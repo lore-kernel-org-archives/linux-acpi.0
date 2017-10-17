@@ -1,65 +1,86 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v2 3/3] i2c: xlp9xx: Handle I2C_M_RECV_LEN in msg->flags
-Date: Tue, 17 Oct 2017 23:54:53 +0200
-Message-ID: <20171017215453.volrt3ma7vdo5ko2@ninjato>
-References: <1507616876-17189-1-git-send-email-kamlakant.patel@cavium.com>
- <1507616876-17189-4-git-send-email-kamlakant.patel@cavium.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/12] PM / sleep: Driver flags for system suspend/resume
+Date: Wed, 18 Oct 2017 01:07:35 +0200
+Message-ID: <2098332.bUT5UI0m5H@aspire.rjw.lan>
+References: <Pine.LNX.4.44L0.1710171558170.1864-100000@iolanthe.rowland.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="pji62g7rjmbidu3p"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([88.99.104.3]:54746 "EHLO pokefinder.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933438AbdJQVyy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 17 Oct 2017 17:54:54 -0400
-Content-Disposition: inline
-In-Reply-To: <1507616876-17189-4-git-send-email-kamlakant.patel@cavium.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.44L0.1710171558170.1864-100000@iolanthe.rowland.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Kamlakant Patel <kamlakant.patel@cavium.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jayachandran C <jnair@caviumnetworks.com>
 
+On Tuesday, October 17, 2017 10:12:19 PM CEST Alan Stern wrote:
+> On Tue, 17 Oct 2017, Ulf Hansson wrote:
+> 
+> > > These functions are wrong, however, because they attempt to reuse the
+> > > whole callback *path* instead of just reusing driver callbacks.  The
+> > > *only* reason why it all "works" is because there are no middle layer
+> > > callbacks involved in that now.
+> > >
+> > > If you changed them to reuse driver callbacks only today, nothing would break
+> > > AFAICS.
+> > 
+> > Yes, it would.
+> > 
+> > First, for example, the amba bus is responsible for the amba bus
+> > clock, but relies on drivers to gate/ungate it during system sleep. In
+> > case the amba drivers don't use the pm_runtime_force_suspend|resume(),
+> > it will explicitly have to start manage the clock during system sleep
+> > themselves. Leading to open coding.
+> 
+> I think what Rafael has in mind is that the PM core will call the amba
+> bus's ->suspend callback, and that routine will then be able to call
+> the amba driver's runtime_suspend routine directly, if it wants to --
+> as opposed to going through pm_runtime_force_suspend.
 
---pji62g7rjmbidu3p
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Right in general.
 
-On Tue, Oct 10, 2017 at 11:57:56AM +0530, Kamlakant Patel wrote:
-> The driver needs to handle the flag I2C_M_RECV_LEN during receive to
-> support SMBus emulation.
->=20
-> Update receive logic to handle the case where the length is received
-> as the first byte of a transaction.
->=20
-> Also update the code to handle I2C_CLIENT_PEC, which is set when the
-> client sends a packet error checking code byte.
->=20
-> Signed-off-by: Jayachandran C <jnair@caviumnetworks.com>
-> Signed-off-by: Kamlakant Patel <kamlakant.patel@cavium.com>
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> However, it's not clear whether this fully answers your concerns.
 
-Applied to for-next, thanks!
+Well, in the particular AMBA case fixing this should be quite straightforward.
 
+> > Second, it will introduce a regression in behavior for all users of
+> > pm_runtime_force_suspend|resume(), especially during system resume as
+> > the driver may then end up resuming the device even in case it isn't
+> > needed. I believe I have explained why, also several times by now -
+> > and that's also how far you could take the i2c designware driver at
+> > this point.
+> > 
+> > That said, I assume the second part may be addressed in this series,
+> > if these drivers convert to use the "driver PM flags", right?
+> 
+> Presumably.
+> 
+> The problem is how to handle things which need to be treated
+> differently for runtime PM vs. system suspend vs. hibernation.  If
+> everything filters through a runtime_suspend routine, that doesn't
+> leave any scope for handling the different kinds of PM transitions
+> differently.  Instead, we can make the middle layer (i.e., the bus-type
+> callbacks) take care of the varying tasks, and they can directly invoke
+> a driver's runtime-PM callbacks to handle all the common activities.  
+> If that's how the middle layer wants to do it.
 
---pji62g7rjmbidu3p
-Content-Type: application/pgp-signature; name="signature.asc"
+Well, that's what happens today, except that driver runtime PM callbacks
+are not directly invoked.  Actually, I tried to implement that, but it was
+so ugly and fragile that I gave up.
 
------BEGIN PGP SIGNATURE-----
+It really is better if drivers point the different callback pointers to the
+same rountine if they want to reuse it.
 
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnmfCwACgkQFA3kzBSg
-KbaxFQ//dEcWBoeHHGmul7d8FMUrGlHDHJgNJ/+7aiFyArNw6s3/bKRWwJdIfkKc
-5N8K1/sm7JZhIFRz6YKiF5DrzoECN1nE2JSYJLYD/WbEj2Wb6jjf6I3Bj0YO/wXt
-pEDqUYnYANkcvUo1O5O52JyLa0ImXgXhDL8hjjV+a0LaxGmBQLwBoylnmozM2btH
-er0+ZH20aITVoZaKu2So5efmjRIcWGK1Apondu7Skr+XxxrmNO6ycgu5DRWyH9hO
-ddhfRpDjrflpQXIx4MXI02vPJTK3n6vmZ0GenlcAjcMJp3w1BVPzU3EE/gFU78ES
-cgFTzW4O5Bmzkq1FOJwcyqyb1aP9E2XJnmL53QRdzujBf0k904CG9hhOyvDK2fkR
-9GuBrnDNTaPwVsZOMMbMkXG586AfX3BdX7j3+noPpcbeZc445sisSOC7RgzQNbWC
-HYvDXvutg6Cw8lGolIURHCoPoqDY58Y8Lf4m6U9kPYjcafWSyeqGVm+tOc9R6k5X
-hH2pY5E0Dg7qsEUJ1fNRwx5JtrAtNop2k8oKYls1Lbw596nlAA6ISpF6XXL7ERXa
-LkK4tBhKB4wOSkeupylFB2R8TTHj9AxgBomYSJADpRenjePeQAVWGm8EQKhz/ZEa
-8P7RiUdDXFoX8287nN6c/J0jEU7R4ZZ9of5TmdeHBUmUF1piUh8=
-=H/N5
------END PGP SIGNATURE-----
+> > However, what about the first case? Is some open coding needed or your
+> > think the amba driver can instruct the amba bus via the "driver PM
+> > flags"?
+> 
+> PM flags won't directly be able to cover things like disabling clocks.  
+> But they could be useful for indicating explicitly whether the code to
+> take care of those things needs to reside at the driver layer or at the
+> bus layer.
 
---pji62g7rjmbidu3p--
+Right.
+
+Thanks,
+Rafael
