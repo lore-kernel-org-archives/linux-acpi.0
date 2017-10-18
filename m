@@ -1,49 +1,94 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 12/36] dt-bindings: document stall and PASID
- properties for IOMMU masters
-Date: Tue, 17 Oct 2017 21:06:20 -0500
-Message-ID: <CAL_JsqLFDeNq=PoipFv4qjKKP2mhE+2Eou4dBZhfm=XuXxjHrg@mail.gmail.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-13-jean-philippe.brucker@arm.com> <20171013191051.lgxbcobkzzj5guhv@rob-hp-laptop>
- <e7288f51-1cfa-44ce-e3ce-e9f3daf91579@arm.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v5 1/2] acpi: apei: remove the unused dead-code for
+ SEA/NMI notification type
+Date: Wed, 18 Oct 2017 11:04:28 +0800
+Message-ID: <642709ec-05d0-2ffd-0e2e-bcdd6b12281b@huawei.com>
+References: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
+ <20171017164336.cedso3f35lpeam7f@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e7288f51-1cfa-44ce-e3ce-e9f3daf91579-5wv7dgnIgG8@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi-5wv7dgnIgG8@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:8517 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752381AbdJRDJc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Oct 2017 23:09:32 -0400
+In-Reply-To: <20171017164336.cedso3f35lpeam7f@pd.tnic>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@suse.de>
+Cc: tbaicar@codeaurora.org, james.morse@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Wuquanming <wuquanming@huawei.com>, Huangshaoyu <huangshaoyu@huawei.com>
 
-On Mon, Oct 16, 2017 at 5:23 AM, Jean-Philippe Brucker
-<jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
-> On 13/10/17 20:10, Rob Herring wrote:
->> On Fri, Oct 06, 2017 at 02:31:39PM +0100, Jean-Philippe Brucker wrote:
->>> On ARM systems, some platform devices behind an IOMMU may support stall
->>> and PASID features. Stall is the ability to recover from page faults and
->>> PASID offers multiple process address spaces to the device. Together they
->>> allow to do paging with a device. Let the firmware tell us when a device
->>> supports stall and PASID.
->>
->> Can't these be implied by the compatible string of the devices?
->
-> I think that PASID capacity can be deduced from the compatible string but
-> don't know how these devices will be implemented (the only known example
-> being a software model for testing). In any case implementing PASID based
-> on the compatible string is tricky, because the IOMMU driver needs to know
-> PASID capacity before the device driver has had time to probe the device.
-> Maybe we could get away with a static table associating compatible string
-> to PASID capacity, but it's not very nice.
->
-> For stall it's a property of the integration between device and IOMMU,
-> much like the "iommus" property, so it can't be deduced only from the
-> compatible string. It's crucial that the firmware validates that stalling
-> is safe, because we don't have any other way to discover it.
+Hi,Borislav
 
-Okay, fair enough. I'll let others comment.
+On 2017/10/18 0:43, Borislav Petkov wrote:
+>> -}
+>> -
+> So GHES NMI notification method is x86-only AFAIK and HAVE_ACPI_APEI_NMI
+> is selected only on x86. Why are you removing those guards? Does ARM
+> have ACPI_HEST_NOTIFY_NMI notification type now too?
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ARM does not have ACPI_HEST_NOTIFY_NMI notification, which should only used by x86.
+In the code, I see those guards are never used. As you see, if the 'CONFIG_HAVE_ACPI_APEI_NMI'
+does not defined in [1], it will print error info and goto [2], in the [2], it will return error,
+then the probe for GHES NMI is failed. so those guards( ghes_nmi_add() and ghes_nmi_remove()) have no chance
+to execute. so I redefine them to NULL for compiling[3].
+
+    static int ghes_probe(struct platform_device *ghes_dev)
+    {
+      struct acpi_hest_generic *generic;
+      struct ghes *ghes = NULL;
+
+      int rc = -EINVAL;
+
+       switch (generic->notify.type) {
+	   ...................
+       case ACPI_HEST_NOTIFY_NMI:                        [1]
+          if (!IS_ENABLED(CONFIG_HAVE_ACPI_APEI_NMI)) {
+              pr_warn(GHES_PFX "Generic hardware error source: %d notified via NMI interrupt is not supported!\n",
+                  generic->header.source_id);
+              goto err;
+          }
+           ..............
+	  }
+	  switch (generic->notify.type) {
+          ...............
+          case ACPI_HEST_NOTIFY_NMI:
+             ghes_nmi_add(ghes);
+             break;
+          }
+          ..........
+ err:                                                [2]
+      if (ghes) {
+          ghes_fini(ghes);
+          kfree(ghes);
+      }
+      return rc;
+    }
+
+[3]:
+-static inline void ghes_nmi_add(struct ghes *ghes)
+-{
+-       pr_err(GHES_PFX "ID: %d, trying to add NMI notification which is not supported!\n",
+-              ghes->generic->header.source_id);
+-       BUG();
+-}
+-
+-static inline void ghes_nmi_remove(struct ghes *ghes)
+-{
+-       pr_err(GHES_PFX "ID: %d, trying to remove NMI notification which is not supported!\n",
+-              ghes->generic->header.source_id);
+-       BUG();
+-}
+-
+-static inline void ghes_nmi_init_cxt(void)
+-{
+-}
++static inline void ghes_nmi_add(struct ghes *ghes) { }
++static inline void ghes_nmi_remove(struct ghes *ghes) { }
++static inline void ghes_nmi_init_cxt(void) { }
+
+
+
+
