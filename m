@@ -1,40 +1,31 @@
 From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v5 2/2] acpi: apei: Add SEI notification type support for
- ARMv8
-Date: Wed, 18 Oct 2017 12:04:57 +0200
-Message-ID: <20171018100456.4xthv2tfvgckzyk3@pd.tnic>
+Subject: Re: [PATCH v5 1/2] acpi: apei: remove the unused dead-code for
+ SEA/NMI notification type
+Date: Wed, 18 Oct 2017 12:17:39 +0200
+Message-ID: <20171018101722.kce2tcvpd7xdpo46@pd.tnic>
 References: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
- <1508227341-15651-2-git-send-email-gengdongjiu@huawei.com>
- <20171017170635.qb4sqyrsnndgbuni@pd.tnic>
- <0bcba052-700b-5ee8-88fc-aaf8cc6b1d37@huawei.com>
- <20171018090649.e7qgdf2dwmr7yxc3@pd.tnic>
- <4b51bd4e-2bf7-3aed-f17c-565b49781009@huawei.com>
- <20171018092547.guf54e6aqbzzfxrq@pd.tnic>
- <59E72290.6060604@arm.com>
+ <20171017164336.cedso3f35lpeam7f@pd.tnic>
+ <642709ec-05d0-2ffd-0e2e-bcdd6b12281b@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42183 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:43941 "EHLO mx2.suse.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759270AbdJRKFC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 18 Oct 2017 06:05:02 -0400
+        id S933777AbdJRKRq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Oct 2017 06:17:46 -0400
 Content-Disposition: inline
-In-Reply-To: <59E72290.6060604@arm.com>
+In-Reply-To: <642709ec-05d0-2ffd-0e2e-bcdd6b12281b@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: gengdongjiu <gengdongjiu@huawei.com>, tbaicar@codeaurora.org, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Huangshaoyu <huangshaoyu@huawei.com>, Wuquanming <wuquanming@huawei.com>
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: tbaicar@codeaurora.org, james.morse@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Wuquanming <wuquanming@huawei.com>, Huangshaoyu <huangshaoyu@huawei.com>
 
-On Wed, Oct 18, 2017 at 10:44:48AM +0100, James Morse wrote:
-> What should we call this thing?
+On Wed, Oct 18, 2017 at 11:04:28AM +0800, gengdongjiu wrote:
+> ARM does not have ACPI_HEST_NOTIFY_NMI notification, which should only
+> used by x86. In the code, I see those guards are never used.
 
-My only pet peeve is having abbreviations everywhere and nothing
-explaining them.
-
-So whatever you guys decide upon and as long as there's an explanation
-what those things mean and you stick with that name, is perfectly fine
-with me.
+Yeah, I see it now.
 
 Thx.
 
