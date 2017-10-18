@@ -1,157 +1,184 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
- behind SMMUv3
-Date: Wed, 18 Oct 2017 14:45:16 +0100
-Message-ID: <20171018134515.GC21820@arm.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
- <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
- <20171013192209.GH30572@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA838437676@FRAEML521-MBS.china.huawei.com>
- <20171018105145.GC11669@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA838448830@FRAEML521-MBX.china.huawei.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 0/12] PM / sleep: Driver flags for system suspend/resume
+Date: Wed, 18 Oct 2017 16:11:33 +0200
+Message-ID: <CAPDyKFozJtSHxxBEFtC+ofJ4XUyQjqUundPs81JATT=WfjXoYA@mail.gmail.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <1591167.zlNa3zLfmM@aspire.rjw.lan>
+ <CAPDyKFqYVjd2zmixQyJ43ZLdXeQZ-7NcLZ66+ci4VT8-q_avPA@mail.gmail.com> <2890181.vdGMMavi5M@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41026 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750942AbdJRNpL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 18 Oct 2017 09:45:11 -0400
-Content-Disposition: inline
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838448830@FRAEML521-MBX.china.huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <2890181.vdGMMavi5M@aspire.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, "bhelgaas@google.com" <bhelgaas@google.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, Guohanjun (Hanjun Guo)
 
-On Wed, Oct 18, 2017 at 12:25:09PM +0000, Shameerali Kolothum Thodi wrote:
-> Hi Will,
-> 
-> > -----Original Message-----
-> > From: Will Deacon [mailto:will.deacon@arm.com]
-> > Sent: Wednesday, October 18, 2017 11:52 AM
-> > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> > sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
-> > bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
-> > John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
-> > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
-> > pci@vger.kernel.org; devel@acpica.org; Linuxarm <linuxarm@huawei.com>;
-> > Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
-> > <guohanjun@huawei.com>
-> > Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers behind
-> > SMMUv3
-> > 
-> > On Sun, Oct 15, 2017 at 07:46:34AM +0000, Shameerali Kolothum Thodi wrote:
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: Will Deacon [mailto:will.deacon@arm.com]
-> > > > Sent: Friday, October 13, 2017 8:22 PM
-> > > > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> > > > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
-> > > > sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
-> > > > bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
-> > > > John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
-> > > > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
-> > > > pci@vger.kernel.org; devel@acpica.org; Linuxarm
-> > <linuxarm@huawei.com>;
-> > > > Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
-> > > > <guohanjun@huawei.com>
-> > > > Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
-> > behind
-> > > > SMMUv3
-> > > >
-> > > > On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
-> > > > > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
-> > > > > platforms hip06/hip07 to support the SMMUv3 mappings for MSI
-> > > > > transactions.
-> > > > >
-> > > > > PCIe controller on these platforms has to differentiate the MSI
-> > > > > payload against other DMA payload and has to modify the MSI payload.
-> > > > > This basically makes it difficult for this platforms to have a SMMU
-> > > > > translation for MSI. In order to workaround this, ARM
-> > > > > SMMUv3 driver requires a quirk to treat the MSI regions separately.
-> > > > > Such a quirk is currently missing for DT based systems and therefore
-> > > > > we need to blacklist the hip06/hip07 PCIe controllers.
-> > > > >
-> > > > > Signed-off-by: Shameer Kolothum
-> > > > <shameerali.kolothum.thodi@huawei.com>
-> > > > > ---
-> > > > >  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
-> > > > >  1 file changed, 12 insertions(+)
-> > > > >
-> > > > > diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
-> > > > > index a201791..6800747 100644
-> > > > > --- a/drivers/pci/dwc/pcie-hisi.c
-> > > > > +++ b/drivers/pci/dwc/pcie-hisi.c
-> > > > > @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device
-> > > > *pdev)
-> > > > >  	struct resource *reg;
-> > > > >  	int ret;
-> > > > >
-> > > > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> > > > > +			of_property_read_bool(dev->of_node, "iommu-
-> > > > map")) {
-> > > > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
-> > > > PCIe controllers behind SMMUv3\n");
-> > > > > +		return -ENODEV;
-> > > > > +	}
-> > > > > +
-> > > > >  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
-> > > > >  	if (!hisi_pcie)
-> > > > >  		return -ENOMEM;
-> > > > > @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct
-> > > > platform_device *pdev)
-> > > > >  	struct device *dev = &pdev->dev;
-> > > > >  	struct pci_ecam_ops *ops;
-> > > > >
-> > > > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
-> > > > > +			of_property_read_bool(dev->of_node, "iommu-
-> > > > map")) {
-> > > > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
-> > > > PCIe controllers behind SMMUv3\n");
-> > > > > +		return -ENODEV;
-> > > > > +	}
-> > > >
-> > > > This isn't the right way to solve this problem. I was really hoping you'd
-> > come
-> > > > up with a solution for DT, and I know you've been trying, so I suppose for
-> > > > now we'll just have to go with the ACPI workaround you have and leave DT
-> > in
-> > > > the balance. I'm not at all happy with that, but I don't think this patch really
-> > > > improves things.
-> > >
-> > > Yes Will, this is to get the ACPI support enabled for now.
-> > >
-> > > > What I think you should do is remove the relevant smmu/iommu-map
-> > > > entries from the .dts files that are available for these platforms (i.e.
-> > > > comment them out with a description as to why).
-> > >
-> > > We don't have any smmu/iommu-map entries for these platforms in the
-> > > .dts files [1][2]. We are not aiming for any official DT support for these
-> > platforms.
-> > > This patch is to enforce the non-support.
-> > 
-> > Understood, but this has dragged on for a while and I don't think this patch
-> > is the right way to enforce things. The best approach might actually be to
-> > add the SMMU to the DTs, but commented out with a comment explaining why
-> > it's not a good idea to enable it.
-> 
-> Ok. Just to clarify, you would like to replace this patch with another 
-> one with smmu entries in dts and commenting/disabling them with explanation.
-> Or you would like to have that in addition to this one?
+[...]
 
-Yes, I'm saying let's do that instead. My preference is still that we would
-have all of this working for DT, but it's clear that isn't going to happen
-and so I'm trying to unblock the ACPI bits whilst not having subtle breakage
-with DT.
+>>
+>> The reason why pm_runtime_force_* needs to respects the hierarchy of
+>> the RPM callbacks, is because otherwise it can't safely update the
+>> runtime PM status of the device.
+>
+> I'm not sure I follow this requirement.  Why is that so?
 
-> +	/** HiSilicon erratum 161010801: Please make sure that
-> +	 *  the smmu (pcie) node on hip06 is disabled as this will
-> +	 *  break the PCIe functionality when iommu-map entry
-> +	 *  is used along with the PCIe node.
+If the PM domain controls some resources for the device in its RPM
+callbacks and the driver controls some other resources in its RPM
+callbacks - then these resources needs to be managed together.
 
-It would be good to have a better description of what is broken and why,
-along with a link to the mailing link discussion.
+This follows the behavior of when a regular call to
+pm_runtime_get|put(), triggers the RPM callbacks to be invoked.
 
-Will
+>
+>> And updating the runtime PM status of
+>> the device is required to manage the optimized behavior during system
+>> resume (avoiding to unnecessary resume devices).
+>
+> Well, OK.  The runtime PM status of the device after system resume should
+> better reflect its physical state.
+>
+> [The physical state of the device may not be under the control of the
+> kernel in some cases, like in S3 resume on some systems that reset
+> devices in the firmware and so on, but let's set that aside.]
+>
+> However, for the runtime PM status of the device may still reflect its state
+> if, say, a ->resume_early of the middle layer is called during resume along
+> with a driver's ->runtime_resume.  That still can produce the right state
+> of the device and all depends on the middle layer.
+>
+> On the other hand, as I said before, using a middle-layer ->runtime_suspend
+> during a system sleep transition may be outright incorrect, say if device
+> wakeup settings need to be adjusted by the middle layer (which is the
+> case for some of them).
+>
+> Of course, if the middle layer expects the driver to point its
+> system-wide PM callbacks to pm_runtime_force_*, then that's how it goes,
+> but the drivers working with this particular middle layer generally
+> won't work with other middle layers and may interact incorrectly
+> with parents and/or children using the other middle layers.
+>
+> I guess the problem boils down to having a common set of expectations
+> on the driver side and on the middle layer side allowing different
+> combinations of these to work together.
+
+Yes!
+
+>
+>> Besides the AMBA case, I also realized that we are dealing with PM
+>> clocks in the genpd case. For this, genpd relies on the that runtime
+>> PM status of the device properly reflects the state of the HW, during
+>> system-wide PM.
+>>
+>> In other words, if the driver would change the runtime PM status of
+>> the device, without respecting the hierarchy of the runtime PM
+>> callbacks, it would lead to that genpd starts taking wrong decisions
+>> while managing the PM clocks during system-wide PM. So in case you
+>> intend to change pm_runtime_force_* this needs to be addressed too.
+>
+> I've just looked at the genpd code and quite frankly I'm not sure how this
+> works, but I'll figure this out. :-)
+
+You may think of it as genpd's RPM callback controls some device
+clocks, while the driver control some other device resources (pinctrl
+for example) from its RPM callback.
+
+These resources needs to managed together, similar to as I described above.
+
+[...]
+
+>> Absolutely agree about the different wake-up settings. However, these
+>> issues can be addressed also when using pm_runtime_force_*, at least
+>> in general, but then not for PCI.
+>
+> Well, not for the ACPI PM domain too.
+>
+> In general, not if the wakeup settings are adjusted by the middle layer.
+
+Correct!
+
+To use pm_runtime_force* for these cases, one would need some
+additional information exchange between the driver and the
+middle-layer.
+
+>
+>> Regarding hibernation, honestly that's not really my area of
+>> expertise. Although, I assume the middle-layer and driver can treat
+>> that as a separate case, so if it's not suitable to use
+>> pm_runtime_force* for that case, then they shouldn't do it.
+>
+> Well, agreed.
+>
+> In some simple cases, though, driver callbacks can be reused for hibernation
+> too, so it would be good to have a common way to do that too, IMO.
+
+Okay, that makes sense!
+
+>
+>> >
+>> > Also, quite so often other middle layers interact with PCI directly or
+>> > indirectly (eg. a platform device may be a child or a consumer of a PCI
+>> > device) and some optimizations need to take that into account (eg. parents
+>> > generally need to be accessible when their childres are resumed and so on).
+>>
+>> A device's parent becomes informed when changing the runtime PM status
+>> of the device via pm_runtime_force_suspend|resume(), as those calls
+>> pm_runtime_set_suspended|active().
+>
+> This requires the parent driver or middle layer to look at the reference
+> counter and understand it the same way as pm_runtime_force_*.
+>
+>> In case that isn't that sufficient, what else is needed? Perhaps you can
+>> point me to an example so I can understand better?
+>
+> Say you want to leave the parent suspended after system resume, but the
+> child drivers use pm_runtime_force_suspend|resume().  The parent would then
+> need to use pm_runtime_force_suspend|resume() too, no?
+
+Actually no.
+
+Currently the other options of "deferring resume" (not using
+pm_runtime_force_*), is either using the "direct_complete" path or
+similar to the approach you took for the i2c designware driver.
+
+Both cases should play nicely in combination of a child being managed
+by pm_runtime_force_*. That's because only when the parent device is
+kept runtime suspended during system suspend, resuming can be
+deferred.
+
+That means, if the resume of the parent is deferred, so will the also
+the resume of the child.
+
+>
+>> For a PCI consumer device those will of course have to play by the rules of PCI.
+>>
+>> >
+>> > Moreover, the majority of the "other subsystems/middle-layers" you've talked
+>> > about so far don't provide any PM callbacks to be invoked by pm_runtime_force_*,
+>> > so question is how representative they really are.
+>>
+>> That's the point. We know pm_runtime_force_* works nicely for the
+>> trivial middle-layer cases.
+>
+> In which cases the middle-layer callbacks don't exist, so it's just like
+> reusing driver callbacks directly. :-)
+>
+>> For the more complex cases, we need something additional/different.
+>
+> Something different.
+>
+> But overall, as I said, this is about common expectations.
+>
+> Today, some middle layers expect drivers to point their callback pointers
+> to the same routine in order to resue it (PCI, ACPI bus type), some of them
+> expect pm_runtime_force_suspend|resume() to be used (AMBA, maybe genpd),
+> and some of them have no expectations at all.
+>
+> There needs to be a common ground in that area for drivers to be able to
+> work with different middle layers.
+
+Yes, reaching that point would be great, we should definitively aim for that!
+
+[...]
+
+Kind regards
+Uffe
