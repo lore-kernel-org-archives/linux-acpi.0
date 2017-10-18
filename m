@@ -1,75 +1,111 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/12] PM / sleep: Driver flags for system suspend/resume
-Date: Wed, 18 Oct 2017 12:24:32 +0200
-Message-ID: <2745759.OYb9FSKnNE@aspire.rjw.lan>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <CAPDyKFrMTSUHP86hnpHius2CDfv-ap4svGg=xgwAiH8pKj9Lvw@mail.gmail.com> <1591167.zlNa3zLfmM@aspire.rjw.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+ behind SMMUv3
+Date: Wed, 18 Oct 2017 11:51:45 +0100
+Message-ID: <20171018105145.GC11669@arm.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+ <20171013192209.GH30572@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838437676@FRAEML521-MBS.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <1591167.zlNa3zLfmM@aspire.rjw.lan>
-Sender: linux-doc-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838437676@FRAEML521-MBS.china.huawei.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, "bhelgaas@google.com" <bhelgaas@google.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, Guohanjun (Hanjun Guo)
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, October 18, 2017 2:39:24 AM CEST Rafael J. Wysocki wrote:
-> On Tuesday, October 17, 2017 9:41:16 PM CEST Ulf Hansson wrote:
+On Sun, Oct 15, 2017 at 07:46:34AM +0000, Shameerali Kolothum Thodi wrote:
 > 
-> [cut]
 > 
-> > >
-> > >> deploying this and from a middle layer point of view, all the trivial
-> > >> cases supports this.
-> > >
-> > > These functions are wrong, however, because they attempt to reuse the
-> > > whole callback *path* instead of just reusing driver callbacks.  The
-> > > *only* reason why it all "works" is because there are no middle layer
-> > > callbacks involved in that now.
-> > >
-> > > If you changed them to reuse driver callbacks only today, nothing would break
-> > > AFAICS.
+> > -----Original Message-----
+> > From: Will Deacon [mailto:will.deacon@arm.com]
+> > Sent: Friday, October 13, 2017 8:22 PM
+> > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> > sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
+> > bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
+> > John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
+> > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
+> > pci@vger.kernel.org; devel@acpica.org; Linuxarm <linuxarm@huawei.com>;
+> > Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
+> > <guohanjun@huawei.com>
+> > Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers behind
+> > SMMUv3
 > > 
-> > Yes, it would.
+> > On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
+> > > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> > > platforms hip06/hip07 to support the SMMUv3 mappings for MSI
+> > > transactions.
+> > >
+> > > PCIe controller on these platforms has to differentiate the MSI
+> > > payload against other DMA payload and has to modify the MSI payload.
+> > > This basically makes it difficult for this platforms to have a SMMU
+> > > translation for MSI. In order to workaround this, ARM
+> > > SMMUv3 driver requires a quirk to treat the MSI regions separately.
+> > > Such a quirk is currently missing for DT based systems and therefore
+> > > we need to blacklist the hip06/hip07 PCIe controllers.
+> > >
+> > > Signed-off-by: Shameer Kolothum
+> > <shameerali.kolothum.thodi@huawei.com>
+> > > ---
+> > >  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
+> > >  1 file changed, 12 insertions(+)
+> > >
+> > > diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
+> > > index a201791..6800747 100644
+> > > --- a/drivers/pci/dwc/pcie-hisi.c
+> > > +++ b/drivers/pci/dwc/pcie-hisi.c
+> > > @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device
+> > *pdev)
+> > >  	struct resource *reg;
+> > >  	int ret;
+> > >
+> > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > > +			of_property_read_bool(dev->of_node, "iommu-
+> > map")) {
+> > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> > PCIe controllers behind SMMUv3\n");
+> > > +		return -ENODEV;
+> > > +	}
+> > > +
+> > >  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
+> > >  	if (!hisi_pcie)
+> > >  		return -ENOMEM;
+> > > @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct
+> > platform_device *pdev)
+> > >  	struct device *dev = &pdev->dev;
+> > >  	struct pci_ecam_ops *ops;
+> > >
+> > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > > +			of_property_read_bool(dev->of_node, "iommu-
+> > map")) {
+> > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> > PCIe controllers behind SMMUv3\n");
+> > > +		return -ENODEV;
+> > > +	}
 > > 
-> > First, for example, the amba bus is responsible for the amba bus
-> > clock, but relies on drivers to gate/ungate it during system sleep. In
-> > case the amba drivers don't use the pm_runtime_force_suspend|resume(),
-> > it will explicitly have to start manage the clock during system sleep
-> > themselves. Leading to open coding.
+> > This isn't the right way to solve this problem. I was really hoping you'd come
+> > up with a solution for DT, and I know you've been trying, so I suppose for
+> > now we'll just have to go with the ACPI workaround you have and leave DT in
+> > the balance. I'm not at all happy with that, but I don't think this patch really
+> > improves things.
 > 
-> Well, I suspected that something like this would surface. ;-)
+> Yes Will, this is to get the ACPI support enabled for now. 
 > 
-> Are there any major reasons why the appended patch (obviously untested) won't
-> work, then?
+> > What I think you should do is remove the relevant smmu/iommu-map
+> > entries from the .dts files that are available for these platforms (i.e.
+> > comment them out with a description as to why).
+> 
+> We don't have any smmu/iommu-map entries for these platforms in the 
+> .dts files [1][2]. We are not aiming for any official DT support for these platforms.
+> This patch is to enforce the non-support.
 
-OK, there is a reason, which is the optimizations bundled into
-pm_runtime_force_*, because (a) the device may be left in runtime suspend
-by them (in which case amba_pm_suspend_early() in my patch should not run)
-and (b) pm_runtime_force_resume() may decide to leave it suspended (in which
-case amba_pm_suspend_late() in my patch should not run).
+Understood, but this has dragged on for a while and I don't think this patch
+is the right way to enforce things. The best approach might actually be to
+add the SMMU to the DTs, but commented out with a comment explaining why
+it's not a good idea to enable it.
 
-[BTW, the "leave the device suspended" optimization in pm_runtime_force_*
-is potentially problematic too, because it requires the children to do
-the right thing, which effectively means that their drivers need to use
-pm_runtime_force_* too, but what if they don't want to reuse their
-runtime PM callbacks for system-wide PM?]
-
-Honestly, I don't like the way this is designed.  IMO, it would be better
-to do the optimizations and all in the bus type middle-layer code instead
-of expecting drivers to use pm_runtime_force_* as their system-wide PM
-callbacks (and that expectation should at least be documented, which I'm
-not sure is the case now).  But whatever.
-
-It all should work the way it does now without pm_runtime_force_* if (a) the
-bus type's PM callbacks are changed like in the last patch and the drivers
-(b) point their system suspend callbacks to the runtime PM callback routines
-and (c) set DPM_FLAG_SMART_SUSPEND and DPM_FLAG_LEAVE_SUSPENDED for the
-devices (if they need to do the PM in ->suspend and ->resume, they may set
-DPM_FLAG_AVOID_RPM too).
-
-And if you see a reason why that won't work, please let me know.
-
-Thanks,
-Rafael
-
+Will
