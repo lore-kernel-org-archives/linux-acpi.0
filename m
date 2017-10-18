@@ -1,34 +1,157 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v5 1/2] acpi: apei: remove the unused dead-code for
- SEA/NMI notification type
-Date: Wed, 18 Oct 2017 15:14:48 +0200
-Message-ID: <20171018131448.byb3roazl3hf6qmn@pd.tnic>
-References: <1508227341-15651-1-git-send-email-gengdongjiu@huawei.com>
- <20171017164336.cedso3f35lpeam7f@pd.tnic>
- <642709ec-05d0-2ffd-0e2e-bcdd6b12281b@huawei.com>
- <20171018101722.kce2tcvpd7xdpo46@pd.tnic>
- <577d79ad-9357-ea40-63eb-1d2988642710@huawei.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+ behind SMMUv3
+Date: Wed, 18 Oct 2017 14:45:16 +0100
+Message-ID: <20171018134515.GC21820@arm.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-5-shameerali.kolothum.thodi@huawei.com>
+ <20171013192209.GH30572@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838437676@FRAEML521-MBS.china.huawei.com>
+ <20171018105145.GC11669@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838448830@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:41026 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750942AbdJRNpL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 18 Oct 2017 09:45:11 -0400
 Content-Disposition: inline
-In-Reply-To: <577d79ad-9357-ea40-63eb-1d2988642710@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: tbaicar@codeaurora.org, james.morse@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mark.rutland@arm.com, kristina.martsenko@arm.com, mingo@kernel.org, punit.agrawal@arm.com, stephen.boyd@linaro.org, kamensky@cisco.com, prarit@redhat.com, shiju.jose@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Wuquanming <wuquanming@huawei.com>, Huangshaoyu <huangshaoyu@huawei.com>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838448830@FRAEML521-MBX.china.huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, "bhelgaas@google.com" <bhelgaas@google.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, John Garry <john.garry@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linuxarm <linuxarm@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, Guohanjun (Hanjun Guo)
 
-On Wed, Oct 18, 2017 at 08:27:00PM +0800, gengdongjiu wrote:
->   For this patch(the first one), whether it can be firstly applied?
+On Wed, Oct 18, 2017 at 12:25:09PM +0000, Shameerali Kolothum Thodi wrote:
+> Hi Will,
+> 
+> > -----Original Message-----
+> > From: Will Deacon [mailto:will.deacon@arm.com]
+> > Sent: Wednesday, October 18, 2017 11:52 AM
+> > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> > sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
+> > bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
+> > John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
+> > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
+> > pci@vger.kernel.org; devel@acpica.org; Linuxarm <linuxarm@huawei.com>;
+> > Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
+> > <guohanjun@huawei.com>
+> > Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers behind
+> > SMMUv3
+> > 
+> > On Sun, Oct 15, 2017 at 07:46:34AM +0000, Shameerali Kolothum Thodi wrote:
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: Will Deacon [mailto:will.deacon@arm.com]
+> > > > Sent: Friday, October 13, 2017 8:22 PM
+> > > > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> > > > Cc: lorenzo.pieralisi@arm.com; marc.zyngier@arm.com;
+> > > > sudeep.holla@arm.com; robin.murphy@arm.com; joro@8bytes.org;
+> > > > bhelgaas@google.com; Gabriele Paoloni <gabriele.paoloni@huawei.com>;
+> > > > John Garry <john.garry@huawei.com>; iommu@lists.linux-foundation.org;
+> > > > linux-arm-kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
+> > > > pci@vger.kernel.org; devel@acpica.org; Linuxarm
+> > <linuxarm@huawei.com>;
+> > > > Wangzhou (B) <wangzhou1@hisilicon.com>; Guohanjun (Hanjun Guo)
+> > > > <guohanjun@huawei.com>
+> > > > Subject: Re: [PATCH v9 4/4] PCI: hisi: blacklist hip06/hip07 controllers
+> > behind
+> > > > SMMUv3
+> > > >
+> > > > On Fri, Oct 06, 2017 at 03:04:50PM +0100, Shameer Kolothum wrote:
+> > > > > The HiSilicon erratum 161010801 describes the limitation of HiSilicon
+> > > > > platforms hip06/hip07 to support the SMMUv3 mappings for MSI
+> > > > > transactions.
+> > > > >
+> > > > > PCIe controller on these platforms has to differentiate the MSI
+> > > > > payload against other DMA payload and has to modify the MSI payload.
+> > > > > This basically makes it difficult for this platforms to have a SMMU
+> > > > > translation for MSI. In order to workaround this, ARM
+> > > > > SMMUv3 driver requires a quirk to treat the MSI regions separately.
+> > > > > Such a quirk is currently missing for DT based systems and therefore
+> > > > > we need to blacklist the hip06/hip07 PCIe controllers.
+> > > > >
+> > > > > Signed-off-by: Shameer Kolothum
+> > > > <shameerali.kolothum.thodi@huawei.com>
+> > > > > ---
+> > > > >  drivers/pci/dwc/pcie-hisi.c | 12 ++++++++++++
+> > > > >  1 file changed, 12 insertions(+)
+> > > > >
+> > > > > diff --git a/drivers/pci/dwc/pcie-hisi.c b/drivers/pci/dwc/pcie-hisi.c
+> > > > > index a201791..6800747 100644
+> > > > > --- a/drivers/pci/dwc/pcie-hisi.c
+> > > > > +++ b/drivers/pci/dwc/pcie-hisi.c
+> > > > > @@ -270,6 +270,12 @@ static int hisi_pcie_probe(struct platform_device
+> > > > *pdev)
+> > > > >  	struct resource *reg;
+> > > > >  	int ret;
+> > > > >
+> > > > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > > > > +			of_property_read_bool(dev->of_node, "iommu-
+> > > > map")) {
+> > > > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> > > > PCIe controllers behind SMMUv3\n");
+> > > > > +		return -ENODEV;
+> > > > > +	}
+> > > > > +
+> > > > >  	hisi_pcie = devm_kzalloc(dev, sizeof(*hisi_pcie), GFP_KERNEL);
+> > > > >  	if (!hisi_pcie)
+> > > > >  		return -ENOMEM;
+> > > > > @@ -340,6 +346,12 @@ static int hisi_pcie_almost_ecam_probe(struct
+> > > > platform_device *pdev)
+> > > > >  	struct device *dev = &pdev->dev;
+> > > > >  	struct pci_ecam_ops *ops;
+> > > > >
+> > > > > +	if ((IS_BUILTIN(CONFIG_ARM_SMMU_V3)) &&
+> > > > > +			of_property_read_bool(dev->of_node, "iommu-
+> > > > map")) {
+> > > > > +		dev_warn(dev, "HiSilicon erratum 161010801: blacklisting
+> > > > PCIe controllers behind SMMUv3\n");
+> > > > > +		return -ENODEV;
+> > > > > +	}
+> > > >
+> > > > This isn't the right way to solve this problem. I was really hoping you'd
+> > come
+> > > > up with a solution for DT, and I know you've been trying, so I suppose for
+> > > > now we'll just have to go with the ACPI workaround you have and leave DT
+> > in
+> > > > the balance. I'm not at all happy with that, but I don't think this patch really
+> > > > improves things.
+> > >
+> > > Yes Will, this is to get the ACPI support enabled for now.
+> > >
+> > > > What I think you should do is remove the relevant smmu/iommu-map
+> > > > entries from the .dts files that are available for these platforms (i.e.
+> > > > comment them out with a description as to why).
+> > >
+> > > We don't have any smmu/iommu-map entries for these platforms in the
+> > > .dts files [1][2]. We are not aiming for any official DT support for these
+> > platforms.
+> > > This patch is to enforce the non-support.
+> > 
+> > Understood, but this has dragged on for a while and I don't think this patch
+> > is the right way to enforce things. The best approach might actually be to
+> > add the SMMU to the DTs, but commented out with a comment explaining why
+> > it's not a good idea to enable it.
+> 
+> Ok. Just to clarify, you would like to replace this patch with another 
+> one with smmu entries in dts and commenting/disabling them with explanation.
+> Or you would like to have that in addition to this one?
 
-Sure:
+Yes, I'm saying let's do that instead. My preference is still that we would
+have all of this working for DT, but it's clear that isn't going to happen
+and so I'm trying to unblock the ACPI bits whilst not having subtle breakage
+with DT.
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+> +	/** HiSilicon erratum 161010801: Please make sure that
+> +	 *  the smmu (pcie) node on hip06 is disabled as this will
+> +	 *  break the PCIe functionality when iommu-map entry
+> +	 *  is used along with the PCIe node.
 
--- 
-Regards/Gruss,
-    Boris.
+It would be good to have a better description of what is broken and why,
+along with a link to the mailing link discussion.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Will
