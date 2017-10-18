@@ -1,30 +1,66 @@
-From: Doug Ledford <dledford@redhat.com>
-Subject: Re: [PATCH v2 12/15] RDMA/cma: make config_item_type const
-Date: Wed, 18 Oct 2017 10:33:31 -0400
-Message-ID: <1508337211.46071.67.camel@redhat.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
-         <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
+From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>
+Subject: Re: [PATCH v3 0/2] ACPI serdev support
+Date: Wed, 18 Oct 2017 16:46:05 +0200
+Message-ID: <ac53458d-c910-2d0a-a2ad-e7d21f8a5be7@gmail.com>
+References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
+ <20171011090354.GS4269@localhost>
+ <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
+ <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, clu
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:55536 "EHLO
+        mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751585AbdJROqK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Oct 2017 10:46:10 -0400
+In-Reply-To: <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <greg@kroah.com>
+Cc: Johan Hovold <johan@kernel.org>, Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Lukas Wunner <lukas@wunner.de>, Hans de Goede <hdegoede@redhat.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, 2017-10-16 at 17:18 +0200, Bhumika Goyal wrote:
-> Make these structures const as they are either passed to the
-> functions
-> having the argument as const or stored as a reference in the
-> "ci_type"
-> const field of a config_item structure.
-> 
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+Hi Greg, Rafael, Marcel,
 
-Acked-by: Doug Ledford <dledford@redhat.com>
+Le 11/10/2017 à 20:32, Marcel Holtmann a écrit :
+> Hi Greg,
+>
+>>>> Add ACPI support for serial attached devices.
+>>>>
+>>>> Currently, serial devices are not set as enumerated during ACPI scan for SPI
+>>>> or i2c buses (but not for UART). This should also be done for UART serial
+>>>> devices.
+>>>> I renamed *spi_i2c_slave* to *serial_bus_slave* to reflect this.
+>>>>
+>>>> This needs Johan Hovold's "serdev: fix registration of second slave" patch.
+>>> In theory this series could go in through the acpi-tree without my
+>>> fix. It would only affect an error case where an unlikely failure to
+>>> register an ACPI serdev device, would prevent the tty-class device from
+>>> being registered instead of the controller. That is, something we can
+>>> live with until this all converges in 4.15-rc1 if needed.
+>>>
+>>> That said, I think we should consider taking all serdev changes, and
+>>> therefore also the ACPI patch, through the tty tree instead in order to
+>>> avoid merge conflicts. Rafael?
+>> OK
+>>
+>> Please feel free to add
+>>
+>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> to the ACPI core change.
+>>
+>> And I will assume that this series will go in via the tty tree.
+> you have to take these two patches now via the TTY tree now. In case you already marked them as someone else problem ;)
+>
+> Regards
+>
+> Marcel
 
--- 
-Doug Ledford <dledford@redhat.com>
-    GPG KeyID: B826A3330E572FDD
-    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
+Is there any problem I missed with those patches?
+Do I have to re-send them?
+
+Regards,
+
+Fred
