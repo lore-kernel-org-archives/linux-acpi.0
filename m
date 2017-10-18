@@ -1,127 +1,30 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v9 2/4] iommu/dma: Add a helper function to reserve HW
- MSI address regions for IOMMU drivers
-Date: Wed, 18 Oct 2017 14:23:31 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838448A48@FRAEML521-MBX.china.huawei.com>
-References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
- <20171006140450.89652-3-shameerali.kolothum.thodi@huawei.com>
- <20171013192350.GA32130@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA83844672A@FRAEML521-MBX.china.huawei.com>
- <1d49243a-4746-f189-7c5d-4b98937115fb@arm.com>
+From: Doug Ledford <dledford@redhat.com>
+Subject: Re: [PATCH v2 12/15] RDMA/cma: make config_item_type const
+Date: Wed, 18 Oct 2017 10:33:31 -0400
+Message-ID: <1508337211.46071.67.camel@redhat.com>
+References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
+         <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:38218 "EHLO
-        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750985AbdJROXu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Oct 2017 10:23:50 -0400
-In-Reply-To: <1d49243a-4746-f189-7c5d-4b98937115fb@arm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1508167134-6243-13-git-send-email-bhumirks@gmail.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bhumika Goyal <bhumirks@gmail.com>, julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, alexander.shishkin@linux.intel.com, jic23@kernel.org, knaack.h@gmx.de, lars@metafoo.de, pmeerw@pmeerw.net, sean.hefty@intel.com, hal.rosenstock@gmail.com, hch@lst.de, sagi@grimberg.me, kishon@ti.com, bhelgaas@google.com, nab@linux-iscsi.org, balbi@kernel.org, gregkh@linuxfoundation.org, laurent.pinchart@ideasonboard.com, jlbec@evilplan.org, ccaulfie@redhat.com, teigland@redhat.com, mfasheh@versity.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-iio@vger.kernel.org, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, linux-pci@vger.kernel.org, linux-scsi@vger.kernel.org, target-devel@vger.kernel.org, linux-usb@vger.kernel.org, clu
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IFdlZG5lc2RheSwgT2N0b2JlciAx
-OCwgMjAxNyAxOjM0IFBNDQo+IFRvOiBTaGFtZWVyYWxpIEtvbG90aHVtIFRob2RpIDxzaGFtZWVy
-YWxpLmtvbG90aHVtLnRob2RpQGh1YXdlaS5jb20+Ow0KPiBXaWxsIERlYWNvbiA8d2lsbC5kZWFj
-b25AYXJtLmNvbT4NCj4gQ2M6IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb207IEdhYnJpZWxlIFBh
-b2xvbmkNCj4gPGdhYnJpZWxlLnBhb2xvbmlAaHVhd2VpLmNvbT47IG1hcmMuenluZ2llckBhcm0u
-Y29tOyBsaW51eC0NCj4gcGNpQHZnZXIua2VybmVsLm9yZzsgam9yb0A4Ynl0ZXMub3JnOyBKb2hu
-IEdhcnJ5IDxqb2huLmdhcnJ5QGh1YXdlaS5jb20+Ow0KPiBHdW9oYW5qdW4gKEhhbmp1biBHdW8p
-IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IExpbnV4YXJtDQo+IDxsaW51eGFybUBodWF3ZWkuY29t
-PjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGlvbW11QGxpc3RzLmxpbnV4LQ0KPiBmb3Vu
-ZGF0aW9uLm9yZzsgV2FuZ3pob3UgKEIpIDx3YW5nemhvdTFAaGlzaWxpY29uLmNvbT47DQo+IHN1
-ZGVlcC5ob2xsYUBhcm0uY29tOyBiaGVsZ2Fhc0Bnb29nbGUuY29tOyBsaW51eC1hcm0tDQo+IGtl
-cm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6IFJl
-OiBbUEFUQ0ggdjkgMi80XSBpb21tdS9kbWE6IEFkZCBhIGhlbHBlciBmdW5jdGlvbiB0byByZXNl
-cnZlIEhXDQo+IE1TSSBhZGRyZXNzIHJlZ2lvbnMgZm9yIElPTU1VIGRyaXZlcnMNCj4gDQo+IE9u
-IDE2LzEwLzE3IDE3OjA5LCBTaGFtZWVyYWxpIEtvbG90aHVtIFRob2RpIHdyb3RlOg0KPiA+IEhp
-IFJvYmluLA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206
-IFdpbGwgRGVhY29uIFttYWlsdG86d2lsbC5kZWFjb25AYXJtLmNvbV0NCj4gPj4gU2VudDogRnJp
-ZGF5LCBPY3RvYmVyIDEzLCAyMDE3IDg6MjQgUE0NCj4gPj4gVG86IFNoYW1lZXJhbGkgS29sb3Ro
-dW0gVGhvZGkgPHNoYW1lZXJhbGkua29sb3RodW0udGhvZGlAaHVhd2VpLmNvbT4NCj4gPj4gQ2M6
-IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb207IG1hcmMuenluZ2llckBhcm0uY29tOw0KPiA+PiBz
-dWRlZXAuaG9sbGFAYXJtLmNvbTsgcm9iaW4ubXVycGh5QGFybS5jb207IGpvcm9AOGJ5dGVzLm9y
-ZzsNCj4gPj4gYmhlbGdhYXNAZ29vZ2xlLmNvbTsgR2FicmllbGUgUGFvbG9uaSA8Z2FicmllbGUu
-cGFvbG9uaUBodWF3ZWkuY29tPjsNCj4gPj4gSm9obiBHYXJyeSA8am9obi5nYXJyeUBodWF3ZWku
-Y29tPjsgaW9tbXVAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmc7DQo+ID4+IGxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxp
-bnV4LQ0KPiA+PiBwY2lAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnOyBMaW51eGFy
-bQ0KPiA8bGludXhhcm1AaHVhd2VpLmNvbT47DQo+ID4+IFdhbmd6aG91IChCKSA8d2FuZ3pob3Ux
-QGhpc2lsaWNvbi5jb20+OyBHdW9oYW5qdW4gKEhhbmp1biBHdW8pDQo+ID4+IDxndW9oYW5qdW5A
-aHVhd2VpLmNvbT4NCj4gPj4gU3ViamVjdDogUmU6IFtQQVRDSCB2OSAyLzRdIGlvbW11L2RtYTog
-QWRkIGEgaGVscGVyIGZ1bmN0aW9uIHRvIHJlc2VydmUNCj4gSFcNCj4gPj4gTVNJIGFkZHJlc3Mg
-cmVnaW9ucyBmb3IgSU9NTVUgZHJpdmVycw0KPiA+Pg0KPiA+PiBPbiBGcmksIE9jdCAwNiwgMjAx
-NyBhdCAwMzowNDo0OFBNICswMTAwLCBTaGFtZWVyIEtvbG90aHVtIHdyb3RlOg0KPiA+Pj4gSU9N
-TVUgZHJpdmVycyBjYW4gdXNlIHRoaXMgdG8gaW1wbGVtZW50IHRoZWlyIC5nZXRfcmVzdl9yZWdp
-b25zIGNhbGxiYWNrDQo+ID4+PiBmb3IgSFcgTVNJIHNwZWNpZmljIHJlc2VydmF0aW9ucyhlLmcu
-IEFSTSBHSUN2MyBJVFMgTVNJIHJlZ2lvbikuDQo+ID4+Pg0KPiA+Pj4gU2lnbmVkLW9mZi1ieTog
-U2hhbWVlciBLb2xvdGh1bQ0KPiA8c2hhbWVlcmFsaS5rb2xvdGh1bS50aG9kaUBodWF3ZWkuY29t
-Pg0KPiA+Pj4gLS0tDQo+ID4+PiAgZHJpdmVycy9pb21tdS9kbWEtaW9tbXUuYyB8IDIwICsrKysr
-KysrKysrKysrKysrKysrDQo+ID4+PiAgaW5jbHVkZS9saW51eC9kbWEtaW9tbXUuaCB8ICA3ICsr
-KysrKysNCj4gPj4+ICAyIGZpbGVzIGNoYW5nZWQsIDI3IGluc2VydGlvbnMoKykNCj4gPj4NCj4g
-Pj4gSSdkIGxpa2UgdG8gc2VlIFJvYmluJ3MgQWNrIG9uIHRoaXMsIGJlY2F1c2UgdGhpcyBpcyBo
-aXMgY29kZSBhbmQgaGUgaGFkDQo+ID4+IGlkZWFzIG9uIHdheXMgdG8gc29sdmUgdGhpcyBwcm9i
-bGVtIHByb3Blcmx5Lg0KPiA+DQo+ID4gUGxlYXNlIGxldCB1cyBrbm93IGlmIGl0IGlzIG9rIHRv
-IGdvIGFoZWFkIHdpdGggQUNQSSBzdXBwb3J0IGZvciBub3cuDQo+ID4gSXQgd2lsbCBoZWxwIG91
-ciBjdXN0b21lcnMgdG8gc3RhcnQgdXNpbmcgcGFzcy10aHJvdWdoIGZvciBQQ0llLg0KPiA+DQo+
-ID4gVGhhbmtzLA0KPiA+IFNoYW1lZXINCj4gPg0KPiA+Pg0KPiA+PiBXaWxsDQo+ID4+DQo+ID4+
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9pb21tdS9kbWEtaW9tbXUuYyBiL2RyaXZlcnMvaW9tbXUv
-ZG1hLWlvbW11LmMNCj4gPj4+IGluZGV4IDlkMWNlYmUuLmJhZTY3N2UgMTAwNjQ0DQo+ID4+PiAt
-LS0gYS9kcml2ZXJzL2lvbW11L2RtYS1pb21tdS5jDQo+ID4+PiArKysgYi9kcml2ZXJzL2lvbW11
-L2RtYS1pb21tdS5jDQo+ID4+PiBAQCAtMTksNiArMTksNyBAQA0KPiA+Pj4gICAqIGFsb25nIHdp
-dGggdGhpcyBwcm9ncmFtLiAgSWYgbm90LCBzZWUgPGh0dHA6Ly93d3cuZ251Lm9yZy9saWNlbnNl
-cy8+Lg0KPiA+Pj4gICAqLw0KPiA+Pj4NCj4gPj4+ICsjaW5jbHVkZSA8bGludXgvYWNwaV9pb3J0
-Lmg+DQo+ID4+PiAgI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPg0KPiA+Pj4gICNpbmNsdWRlIDxs
-aW51eC9kbWEtaW9tbXUuaD4NCj4gPj4+ICAjaW5jbHVkZSA8bGludXgvZ2ZwLmg+DQo+ID4+PiBA
-QCAtMjcsNiArMjgsNyBAQA0KPiA+Pj4gICNpbmNsdWRlIDxsaW51eC9pb3ZhLmg+DQo+ID4+PiAg
-I2luY2x1ZGUgPGxpbnV4L2lycS5oPg0KPiA+Pj4gICNpbmNsdWRlIDxsaW51eC9tbS5oPg0KPiA+
-Pj4gKyNpbmNsdWRlIDxsaW51eC9vZl9pb21tdS5oPg0KPiA+Pj4gICNpbmNsdWRlIDxsaW51eC9w
-Y2kuaD4NCj4gPj4+ICAjaW5jbHVkZSA8bGludXgvc2NhdHRlcmxpc3QuaD4NCj4gPj4+ICAjaW5j
-bHVkZSA8bGludXgvdm1hbGxvYy5oPg0KPiA+Pj4gQEAgLTE5OCw2ICsyMDAsMjQgQEAgdm9pZCBp
-b21tdV9kbWFfZ2V0X3Jlc3ZfcmVnaW9ucyhzdHJ1Y3QgZGV2aWNlDQo+ID4+ICpkZXYsIHN0cnVj
-dCBsaXN0X2hlYWQgKmxpc3QpDQo+ID4+PiAgfQ0KPiA+Pj4gIEVYUE9SVF9TWU1CT0woaW9tbXVf
-ZG1hX2dldF9yZXN2X3JlZ2lvbnMpOw0KPiA+Pj4NCj4gPj4+ICsvKioNCj4gPj4+ICsgKiBpb21t
-dV9kbWFfZ2V0X21zaV9yZXN2X3JlZ2lvbnMgLSBSZXNlcnZlZCByZWdpb24gZHJpdmVyIGhlbHBl
-cg0KPiA+Pj4gKyAqIEBkZXY6IERldmljZSBmcm9tIGlvbW11X2dldF9yZXN2X3JlZ2lvbnMoKQ0K
-PiA+Pj4gKyAqIEBsaXN0OiBSZXNlcnZlZCByZWdpb24gbGlzdCBmcm9tIGlvbW11X2dldF9yZXN2
-X3JlZ2lvbnMoKQ0KPiA+Pj4gKyAqDQo+ID4+PiArICogSU9NTVUgZHJpdmVycyBjYW4gdXNlIHRo
-aXMgdG8gaW1wbGVtZW50IHRoZWlyIC5nZXRfcmVzdl9yZWdpb25zDQo+ID4+PiArICogY2FsbGJh
-Y2sgZm9yIEhXIE1TSSBzcGVjaWZpYyByZXNlcnZhdGlvbnMuIEZvciBub3csIHRoaXMgb25seQ0K
-PiANCj4gVGhpcyBkb2Vzbid0IG1ha2UgYW4gYXdmdWwgbG90IG9mIHNlbnNlIC0gdGhlcmUncyBv
-bmx5IG9uZSByZXNlcnZlZA0KPiByZWdpb24gY2FsbGJhY2ssIHNvIGlvbW11LWRtYSBzaG91bGRu
-J3QgYmUgb2ZmZXJpbmcgdHdvIHNlcGFyYXRlIGFuZA0KPiBub24tb3ZlcmxhcHBpbmcgaW1wbGVt
-ZW50YXRpb25zLg0KPiANCj4gPj4+ICsgKiBjb3ZlcnMgSVRTIE1TSSByZWdpb24gcmVzZXJ2YXRp
-b24gdXNpbmcgQUNQSSBJT1JUIGhlbHBlciBmdW5jdGlvbi4NCj4gPj4+ICsgKi8NCj4gPj4+ICtp
-bnQgaW9tbXVfZG1hX2dldF9tc2lfcmVzdl9yZWdpb25zKHN0cnVjdCBkZXZpY2UgKmRldiwgc3Ry
-dWN0DQo+IGxpc3RfaGVhZA0KPiA+PiAqbGlzdCkNCj4gPj4+ICt7DQo+ID4+PiArCWlmICghaXNf
-b2Zfbm9kZShkZXYtPmlvbW11X2Z3c3BlYy0+aW9tbXVfZndub2RlKSkNCj4gPj4+ICsJCXJldHVy
-biBpb3J0X2lvbW11X21zaV9nZXRfcmVzdl9yZWdpb25zKGRldiwgbGlzdCk7DQo+IA0KPiBFaXRo
-ZXIgdGhpcyBjYWxsIGtub3dzIGhvdyB0byBkbyB0aGUgcmlnaHQgdGhpbmcgZm9yIGFueSBwbGF0
-Zm9ybSBhbmQNCj4gc2hvdWxkIGJlIG1hZGUgZnJvbSBpb21tdV9kbWFfZ2V0X3Jlc2VydmVkX3Jl
-Z2lvbnMoKSBkaXJlY3RseSwgb3IgaXQncw0KPiB0aWdodGx5IGNvdXBsZWQgdG8gdGhlIEhpU2ls
-aWNvbiBxdWlyayBpbiB0aGUgU01NVXYzIGRyaXZlciBhbmQNCj4gaW9tbXUtZG1hIGRvZXNuJ3Qg
-bmVlZCB0byBrbm93IC0gdGhlIG1pZGRsZSBncm91bmQgcHJlc2VudGVkIGhlcmUgaXMNCj4gc3Vy
-ZWx5IHRoZSB3b3JzdCBvZiBib3RoIHdvcmxkcy4NCg0KUmlnaHQuIEkgdGhpbmsgd2UgaGF2ZSBk
-aXNjdXNzZWQgdGhpcyBlYXJsaWVyWzFdIGFuZCBoYWQgYSB2NCBiYXNlZCBvbiBpbnZva2luZw0K
-dGhlIGlvcnRfaW9tbXVfaXRzX2dldF9yZXN2X3JlZ2lvbnMoKSB3aXRoaW4gdGhlIGlvbW11X2Rt
-YV9nZXRfcmVzdl9yZWdpb25zKCkuDQpCdXQgbGF0ZXIgYXMgeW91IHJpZ2h0bHkgcG9pbnRlZCBv
-dXQsIHdlIHdlcmUgbm90IGNoZWNraW5nIGZvciBwbGF0Zm9ybXMgd2hpY2gNCnJlcXVpcmVzIHRo
-aXMgcXVpcmsgaW5zaWRlIHRoZSBpb3J0IGNvZGUgYW5kIHRoYXQgd2lsbCBicmVhayB0aGUgcGxh
-dGZvcm1zIHdoaWNoIGFyZSANCmhhcHB5IHdpdGggTVNJIHRyYW5zbGF0aW9ucy4gSGVuY2UgbW92
-ZWQgdG8gdGhlIGN1cnJlbnQgaW1wbGVtZW50YXRpb24gaW4gdjYNCmFmdGVyIHRoaXMgZGlzY3Vz
-c2lvbiBoZXJlWzJdDQogDQpBbmQgZWFybGllciBJIHRoaW5rIGluIHRoZSB2MyB2ZXJzaW9uIHdl
-IGhhZCB0aGUgZnVuY3Rpb24gY2FsbGVkIGZyb20gc21tdSBkcml2ZXINCmRpcmVjdGx5IGFuZCB0
-aGUgZmVlZGJhY2sgd2FzIHRoYXQgaXQgc2hvdWxkIGJlIGFic3RyYWN0ZWQgZnJvbSB0aGUgZHJp
-dmVyLg0KDQpNYXkgYmUgaXQgaXMgc3RpbGwgcG9zc2libGUgdG8gbW92ZSB0aGUgZnVuY3Rpb24g
-Y2FsbCBpbnNpZGUgdGhlIA0KaW9tbXVfZG1hX2dldF9yZXN2X3JlZ2lvbnMoKSBhbmQgZG8gdGhl
-IHNtbXUgbW9kZWwgY2hlY2sgaW5zaWRlDQogdGhlIGlvcnQgaGVscGVyIGZ1bmN0aW9uIGFuZCBz
-ZWxlY3RpdmVseSBhcHBseSB0aGUgSFcgTVNJIHJlc2VydmF0aW9ucy4NCg0KQnV0IEkgdGhpbmsg
-aXQgaXMgbXVjaCBuZWF0ZXIgaWYgd2UgY2FuIGludm9rZSB0aGUgaW9ydF9nZXRfbXNpX3JlZ2lv
-bnMoKSBkaXJlY3RseQ0KZnJvbSBTTU1VdjMgYmFzZWQgb24gdGhlIG1vZGVsLg0KDQpUaG91Z2h0
-cz8NCg0KVGhhbmtzLA0KU2hhbWVlcg0KMS4gaHR0cHM6Ly9wYXRjaGVzLmxpbmFyby5vcmcvcGF0
-Y2gvMTA2MjY4Lw0KMi4gaHR0cHM6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMvYXJtLWtlcm5lbC9t
-c2c1OTkxNjIuaHRtbA0KDQoNCg0K
+On Mon, 2017-10-16 at 17:18 +0200, Bhumika Goyal wrote:
+> Make these structures const as they are either passed to the
+> functions
+> having the argument as const or stored as a reference in the
+> "ci_type"
+> const field of a config_item structure.
+> 
+> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
+
+Acked-by: Doug Ledford <dledford@redhat.com>
+
+-- 
+Doug Ledford <dledford@redhat.com>
+    GPG KeyID: B826A3330E572FDD
+    Key fingerprint = AE6B 1BDA 122B 23B4 265B  1274 B826 A333 0E57 2FDD
