@@ -1,581 +1,76 @@
-From: Prashanth Prakash <pprakash@codeaurora.org>
-Subject: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
-Date: Thu, 19 Oct 2017 12:19:48 -0600
-Message-ID: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:35028 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751956AbdJSSVD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Oct 2017 14:21:03 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v3 0/2] ACPI serdev support
+Date: Thu, 19 Oct 2017 20:50:49 +0200
+Message-ID: <28b99df9-de22-4542-055e-d9fa585aba8f@redhat.com>
+References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
+ <20171011090354.GS4269@localhost>
+ <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
+ <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
+ <ac53458d-c910-2d0a-a2ad-e7d21f8a5be7@gmail.com>
+ <20171018145608.GB27138@kroah.com> <20171019142354.GE5638@localhost>
+ <877ea825-eec5-d982-f962-d67067749009@redhat.com>
+ <115502FA-19DE-439C-A171-3CD5E6D92338@holtmann.org>
+ <1503e15d-6199-221a-542f-3766a69577e5@redhat.com>
+ <CAMZdPi_ZpNrdjJPnS_rQ9t3oYe6+en9oHQMjmMjx_xHL-WWZKQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMZdPi_ZpNrdjJPnS_rQ9t3oYe6+en9oHQMjmMjx_xHL-WWZKQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Loic Poulain <loic.poulain-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, lenb@kernel.org, sudeep.holla@arm.com, Prashanth Prakash <pprakash@codeaurora.org>
 
-Add support to expose idle statistics maintained by platform to
-userspace via sysfs in addition to other data of interest from
-each LPI(Low Power Idle) state.
+Hi,
 
-LPI described in section 8.4.4 of ACPI spec 6.1 provides different
-methods to obtain idle statistics maintained by the platform. These
-show a granular view of how each of the LPI state is being used at
-different level of hierarchy. sysfs data is exposed at each level in
-the hierarchy by creating a directory named 'lpi' at each level and
-the LPI state information is presented under it. Below is the
-representation of LPI information at one such level in the hierarchy
+On 19-10-17 18:15, Loic Poulain wrote:
+> Hi
+> 
+> 
+>             Hmm, I've never actually seen any hardware use an intel BT HCI connected
+>             to a serdev, but I guess people did not write that code for fun, so those
+>             do exist ?
+> 
+> 
+>         they are all ACPI based and could now start using serdev. Previously they were all driven by btattach.
+> 
+> 
+>     I understand, I was just wondering if anyone is aware of any hardware
+>     actually using Intel BT devices in this manner, because it is going
+>     to be tricky to do a similar series if we cannot test it.
+> 
+> 
+> Yeah this driver supports Lightning-Peak iBT 3.0 UART controller.
+> I remember this controller comes (at least) with Atom x3-c3440 / x3-c3445 SoCs.
+> However I don't have the hardware anymore.
 
-.../ACPI00XX: XX/lpi
-	|-> state0
-	|	|-> state_name
-	|	|-> residency
-	|	|-> usage
-	|	|-> wakeup_latency
-	|	|-> min_residency
-	|	|-> state_index
-	|	|-> enabled_parent_state
-	|
-	<<more states>>
+Ah, those are the Rockchip manufactured Atom based SoCs which
+come with Mali graphics, I don't think anyone is trying to run
+mainline on those and not a whole lot of those have shipped to
+begin with (the line has been canceled).
 
-ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
+I've an Apollo Lake based laptop with Intel Bluetooth, I just
+checked and that is simply using USB.
 
-stateX contains information related to a specific LPI state defined
-in the LPI ACPI tables.
+So I don't think we are actually going to break anything by
+just moving forward as planned. This reminds me of the axp288
+driver where Intel's "embedded" engineering team upstreamed
+parts of the axp288 PMIC code, but in a way where the driver
+could not work as it would not load with platform_data which
+was never provided by the mainline kernel.
 
-Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
----
-v3
-* Changed sysfs names to follow spec names (Rafael)
-* Added enabled_parent_state(Rafael) and state_index to sysfs entries
-  state_index was added to make sense of enabled_parent_state
+As such it might actually be good to break this and if no-one
+complains we can just remove the hci_intel.c code altogether.
 
-Couldn't find a clean way to expose the hierarchical LPI information under
-cpuidle
+The alternative would be to revert 2 if the 3 patches of
+my last series for making the BT on the GPD win / pocket
+(and likely other devices) work in uart mode. Then someone
+(me?) would need to do a completely untested series for
+hci_intel.c, and get that + reverts of the reverts into 4.16,
+which is not the best way forward IMHO.
 
-v2
-* Add Documentation/ABI/testing/sysfs-acpi-lpi
+Regards,
 
-v1
-* Drop flags, arch_flags and summary_stats field (Sudeep)
-* Create sysfs entries after we know that LPI will be used (Sudeep & Rafael)
-
- Documentation/ABI/testing/sysfs-acpi-lpi |  57 +++++
- drivers/acpi/processor_idle.c            | 363 ++++++++++++++++++++++++++++++-
- include/acpi/processor.h                 |  14 ++
- 3 files changed, 432 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-acpi-lpi
-
-diff --git a/Documentation/ABI/testing/sysfs-acpi-lpi b/Documentation/ABI/testing/sysfs-acpi-lpi
-new file mode 100644
-index 0000000..5f1c90a
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-acpi-lpi
-@@ -0,0 +1,57 @@
-+What:		LPI sysfs interface for processor devices and containers
-+Date:		19-October-2017
-+KernelVersion:	v4.15
-+Contact:	linux-acpi@vger.kernel.org
-+Description:	LPI(Low Power Idle) described in section 8.4.4 of ACPI spec 6.1
-+		provides different methods to obtain idle statistics maintained
-+		by the platform. These show a granular view of how each of the
-+		LPI state is being used at different level of processor hierarchy.
-+		sysfs data is exposed at each level in the hierarchy by creating
-+		a directory named 'lpi' at each level and the LPI state
-+		information is presented under it. Below is the representation
-+		of LPI information at one such level in the hierarchy.
-+
-+		.../ACPI00XX: YY/lpi
-+			|-> state0
-+			|	|-> state_name
-+			|	|-> wakeup_latency
-+			|	|-> min_residency
-+			|	|-> state_index
-+			|	|-> enabled_parent_state
-+			|	|-> residency
-+			|	|-> usage
-+			|
-+			|-> state1
-+			|	|-> state_name
-+			|	|-> wakeup_latency
-+			|	|-> min_residency
-+			|	|-> state_index
-+			|	|-> enabled_parent_state
-+			|	|-> residency
-+			|	|-> usage
-+			|
-+			<<more states>>
-+
-+		ACPI00XX can be ACPI0007(processor device) or ACPI0010(processor
-+		container) and the sysfs nodes for these ACPI devices can be
-+		found under /sys/devices/LNXSYSTM:00
-+
-+		stateX contains information related to a specific local LPI
-+		state defined in the LPI ACPI tables under a owning hierarchy
-+		node(ACPI0007 or ACPI0010).
-+
-+		state_name - Name of the local LPI state
-+		wakeup_latency - Worst case wake up latency(in micro seconds)
-+                                 for the owning hierarchy node to exit from this
-+                                 local LPI state
-+		min_residency - Time in microseconds after which a state becomes
-+				more energy effecient than a shallower state
-+		residency - Total time spent(in micro seconds) by the owning
-+			    hierarchy node in this local idle state
-+		usage - Number of times the owning hierarchy node entered
-+			this local power state
-+		state_index - Index 0 represents active state. The index(es) is
-+			      assigned starting from 1 as the states are
-+			      discovered  in ACPI tables.
-+		enabled_parent_state - Index of deepest local power state enabled
-+				       by this LPI state in parent processor node
-\ No newline at end of file
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 2736e25..ac6301a 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -947,6 +947,10 @@ struct acpi_lpi_states_array {
- 	struct acpi_lpi_state *composite_states[ACPI_PROCESSOR_MAX_POWER];
- };
- 
-+static int acpi_lpi_sysfs_init(acpi_handle h,
-+			struct acpi_lpi_states_array *info);
-+static int acpi_lpi_sysfs_exit(struct acpi_processor *pr);
-+
- static int obj_get_integer(union acpi_object *obj, u32 *value)
- {
- 	if (obj->type != ACPI_TYPE_INTEGER)
-@@ -956,6 +960,24 @@ static int obj_get_integer(union acpi_object *obj, u32 *value)
- 	return 0;
- }
- 
-+static int obj_get_generic_addr(union acpi_object *obj,
-+				struct acpi_generic_address *addr)
-+{
-+	struct acpi_power_register *reg;
-+
-+	if (obj->type != ACPI_TYPE_BUFFER)
-+		return -EINVAL;
-+
-+	reg = (struct acpi_power_register *)obj->buffer.pointer;
-+	addr->space_id = reg->space_id;
-+	addr->bit_width = reg->bit_width;
-+	addr->bit_offset = reg->bit_offset;
-+	addr->access_width = reg->access_size;
-+	addr->address = reg->address;
-+
-+	return 0;
-+}
-+
- static int acpi_processor_evaluate_lpi(acpi_handle handle,
- 				       struct acpi_lpi_states_array *info)
- {
-@@ -1030,8 +1052,6 @@ static int acpi_processor_evaluate_lpi(acpi_handle handle,
- 			continue;
- 		}
- 
--		/* elements[7,8] skipped for now i.e. Residency/Usage counter*/
--
- 		obj = pkg_elem + 9;
- 		if (obj->type == ACPI_TYPE_STRING)
- 			strlcpy(lpi_state->desc, obj->string.pointer,
-@@ -1059,9 +1079,16 @@ static int acpi_processor_evaluate_lpi(acpi_handle handle,
- 
- 		if (obj_get_integer(pkg_elem + 5, &lpi_state->enable_parent_state))
- 			lpi_state->enable_parent_state = 0;
-+
-+		obj_get_generic_addr(pkg_elem + 7, &lpi_state->res_cntr);
-+
-+		obj_get_generic_addr(pkg_elem + 8, &lpi_state->usage_cntr);
- 	}
- 
- 	acpi_handle_debug(handle, "Found %d power states\n", state_idx);
-+
-+	/* Set up LPI sysfs */
-+	acpi_lpi_sysfs_init(handle, info);
- end:
- 	kfree(buffer.pointer);
- 	return ret;
-@@ -1173,6 +1200,10 @@ static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
- 	if (!acpi_has_method(handle, "_LPI"))
- 		return -EINVAL;
- 
-+	/* If we have already initialized just return */
-+	if (pr->flags.has_lpi == 1)
-+		return 0;
-+
- 	flat_state_cnt = 0;
- 	prev = &info[0];
- 	curr = &info[1];
-@@ -1484,8 +1515,336 @@ int acpi_processor_power_exit(struct acpi_processor *pr)
- 		acpi_processor_registered--;
- 		if (acpi_processor_registered == 0)
- 			cpuidle_unregister_driver(&acpi_idle_driver);
-+
-+		acpi_lpi_sysfs_exit(pr);
- 	}
- 
- 	pr->flags.power_setup_done = 0;
- 	return 0;
- }
-+
-+
-+/*
-+ * LPI sysfs support
-+ */
-+
-+struct acpi_lpi_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct kobject *kobj, struct attribute *attr,
-+			char *buf);
-+	ssize_t (*store)(struct kobject *kobj, struct attribute *attr,
-+			const char *c, ssize_t count);
-+};
-+
-+#define define_lpi_ro(_name) static struct acpi_lpi_attr _name =	\
-+		__ATTR(_name, 0444, show_##_name, NULL)
-+
-+#define to_acpi_lpi_sysfs_state(k)				\
-+	container_of(k, struct acpi_lpi_sysfs_state, kobj)
-+
-+#define to_acpi_lpi_state(k)				\
-+	(&(to_acpi_lpi_sysfs_state(k)->lpi_state))
-+
-+static ssize_t show_state_name(struct kobject *kobj, struct attribute *attr,
-+			char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%s\n", lpi->desc);
-+}
-+define_lpi_ro(state_name);
-+
-+static int acpi_lpi_get_residency(struct acpi_lpi_state *lpi, u64 *val)
-+{
-+	struct acpi_generic_address *reg;
-+
-+	if (!lpi)
-+		return -EFAULT;
-+
-+	reg = &lpi->res_cntr;
-+
-+	/* Supporting only system memory */
-+	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY ||
-+		!(lpi->flags & ACPI_LPI_STATE_FLAGS_ENABLED) ||
-+		!reg->address || !lpi->res_cnt_freq)
-+		return -EINVAL;
-+
-+	if (ACPI_FAILURE(acpi_read(val, reg)))
-+		return -EFAULT;
-+
-+	*val = div_u64((*val * 1000000), lpi->res_cnt_freq);
-+	return 0;
-+
-+}
-+
-+/* shows residency in us */
-+static ssize_t show_residency(struct kobject *kobj, struct attribute *attr,
-+			char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+	u64 val = 0;
-+	int ret;
-+
-+	ret = acpi_lpi_get_residency(lpi, &val);
-+
-+	if (ret == -EINVAL)
-+		return scnprintf(buf, PAGE_SIZE, "<unsupported>\n");
-+
-+	if (ret)
-+		return ret;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n", val);
-+}
-+define_lpi_ro(residency);
-+
-+static int acpi_lpi_get_usage(struct acpi_lpi_state *lpi, u64 *val)
-+{
-+	struct acpi_generic_address *reg;
-+
-+	if (!lpi)
-+		return -EFAULT;
-+
-+	reg = &lpi->usage_cntr;
-+
-+	/* Supporting only system memory now (FFH not supported) */
-+	if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY ||
-+		!(lpi->flags & ACPI_LPI_STATE_FLAGS_ENABLED) ||
-+		!reg->address)
-+		return -EINVAL;
-+
-+	if (ACPI_FAILURE(acpi_read(val, reg)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static ssize_t show_usage(struct kobject *kobj, struct attribute *attr,
-+			char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+	u64 val = 0;
-+	int ret;
-+
-+	ret = acpi_lpi_get_usage(lpi, &val);
-+
-+	if (ret == -EINVAL)
-+		return scnprintf(buf, PAGE_SIZE, "<unsupported>\n");
-+
-+	if (ret)
-+		return ret;
-+
-+	return scnprintf(buf, PAGE_SIZE, "%llu\n", val);
-+}
-+define_lpi_ro(usage);
-+
-+static ssize_t show_min_residency(struct kobject *kobj, struct attribute *attr,
-+				char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", lpi->min_residency);
-+}
-+define_lpi_ro(min_residency);
-+
-+static ssize_t show_wakeup_latency(struct kobject *kobj, struct attribute *attr,
-+			char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", lpi->wake_latency);
-+}
-+define_lpi_ro(wakeup_latency);
-+
-+static ssize_t show_state_index(struct kobject *kobj,
-+				struct attribute *attr, char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", lpi->index);
-+}
-+define_lpi_ro(state_index);
-+
-+static ssize_t show_enabled_parent_state(struct kobject *kobj,
-+					struct attribute *attr, char *buf)
-+{
-+	struct acpi_lpi_state *lpi = to_acpi_lpi_state(kobj);
-+
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", lpi->enable_parent_state);
-+}
-+define_lpi_ro(enabled_parent_state);
-+
-+static struct attribute *acpi_lpi_state_attrs[] = {
-+	&state_name.attr,
-+	&min_residency.attr,
-+	&wakeup_latency.attr,
-+	&residency.attr,
-+	&usage.attr,
-+	&state_index.attr,
-+	&enabled_parent_state.attr,
-+	NULL
-+};
-+
-+static struct kobj_type lpi_state_ktype = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.default_attrs = acpi_lpi_state_attrs,
-+};
-+
-+static void acpi_lpi_sysfs_release(struct kobject *kobj)
-+{
-+	struct acpi_lpi_sysfs_data *sysfs_data =
-+		container_of(kobj, struct acpi_lpi_sysfs_data, kobj);
-+
-+	kfree(sysfs_data->sysfs_states);
-+	kfree(sysfs_data);
-+}
-+
-+static struct kobj_type lpi_device_ktype = {
-+	.sysfs_ops = &kobj_sysfs_ops,
-+	.release = acpi_lpi_sysfs_release,
-+};
-+
-+static int acpi_lpi_sysfs_get(struct acpi_lpi_sysfs_data *sysfs_data)
-+{
-+	int i;
-+
-+	if (!sysfs_data)
-+		return -EFAULT;
-+
-+	for (i = 0; i < sysfs_data->state_count; i++)
-+		kobject_get(&sysfs_data->sysfs_states[i].kobj);
-+
-+	kobject_get(&sysfs_data->kobj);
-+
-+	return 0;
-+}
-+
-+static int acpi_lpi_sysfs_put(struct acpi_lpi_sysfs_data *sysfs_data)
-+{
-+	int i;
-+
-+	if (!sysfs_data)
-+		return -EFAULT;
-+
-+	for (i = 0; i < sysfs_data->state_count; i++)
-+		kobject_put(&sysfs_data->sysfs_states[i].kobj);
-+
-+	kobject_put(&sysfs_data->kobj);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Given parsed LPI info creates sysfs entries to expose differnt LPI attributes
-+ * stats for all the "enabled" states
-+ */
-+static int acpi_lpi_sysfs_init(acpi_handle h,
-+			struct acpi_lpi_states_array *info)
-+{
-+	struct acpi_device *d;
-+	struct acpi_lpi_sysfs_state *sysfs_state = NULL;
-+	struct acpi_lpi_sysfs_data **lpi_sysfs_data;
-+	struct acpi_lpi_sysfs_data *data = NULL;
-+	int ret, i, j;
-+
-+	if (!info)
-+		return -EINVAL;
-+
-+	ret = acpi_bus_get_device(h, &d);
-+	if (ret)
-+		return ret;
-+
-+	if (!strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
-+		lpi_sysfs_data = (struct acpi_lpi_sysfs_data **)&d->driver_data;
-+	else {
-+		struct acpi_processor *pr = acpi_driver_data(d);
-+
-+		lpi_sysfs_data = &pr->power.lpi_sysfs_data;
-+	}
-+
-+	/* Already initialized, get a reference and return */
-+	if (*lpi_sysfs_data) {
-+		acpi_lpi_sysfs_get(*lpi_sysfs_data);
-+		return 0;
-+	}
-+
-+	data = kzalloc(sizeof(struct acpi_lpi_sysfs_data), GFP_KERNEL);
-+	if (!data) {
-+		ret = -ENOMEM;
-+		goto kfree_and_return;
-+	}
-+
-+	/* Count number of enabled states */
-+	for (i = 0; i < info->size; i++)
-+		if (info->entries[i].flags & ACPI_LPI_STATE_FLAGS_ENABLED)
-+			data->state_count++;
-+
-+	sysfs_state = kcalloc(data->state_count,
-+			sizeof(struct acpi_lpi_sysfs_state), GFP_KERNEL);
-+	if (!sysfs_state) {
-+		ret = -ENOMEM;
-+		goto kfree_and_return;
-+	}
-+
-+	ret = kobject_init_and_add(&data->kobj, &lpi_device_ktype, &d->dev.kobj,
-+				"lpi");
-+	if (ret)
-+		goto kfree_and_return;
-+
-+	*lpi_sysfs_data = data;
-+	data->sysfs_states = sysfs_state;
-+
-+	for (i = 0, j = 0; i < info->size; i++) {
-+		if (!(info->entries[i].flags & ACPI_LPI_STATE_FLAGS_ENABLED))
-+			continue;
-+		sysfs_state = data->sysfs_states + j;
-+		memcpy(&sysfs_state->lpi_state, info->entries + i,
-+			sizeof(struct acpi_lpi_state));
-+		ret = kobject_init_and_add(&sysfs_state->kobj, &lpi_state_ktype,
-+					&data->kobj, "state%d", j);
-+		if (ret)
-+			break;
-+		j++;
-+	}
-+
-+	if (ret) {
-+		while (j > 0) {
-+			j--;
-+			sysfs_state = data->sysfs_states + i;
-+			kobject_put(&sysfs_state->kobj);
-+		}
-+		kobject_put(&data->kobj);
-+	} else
-+		*lpi_sysfs_data = data;
-+
-+	return ret;
-+
-+kfree_and_return:
-+	kfree(data);
-+	kfree(sysfs_state);
-+	return ret;
-+}
-+
-+static int acpi_lpi_sysfs_exit(struct acpi_processor *pr)
-+{
-+	acpi_handle handle, p_handle;
-+	struct acpi_device *d = NULL;
-+	acpi_status status;
-+
-+	if (!pr)
-+		return -ENODEV;
-+
-+	handle = pr->handle;
-+	acpi_lpi_sysfs_put(pr->power.lpi_sysfs_data);
-+
-+	status = acpi_get_parent(handle, &p_handle);
-+	while (ACPI_SUCCESS(status)) {
-+		acpi_bus_get_device(p_handle, &d);
-+		if (strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
-+			break;
-+
-+		acpi_lpi_sysfs_put((struct acpi_lpi_sysfs_data *)d->driver_data);
-+		status = acpi_get_parent(handle, &p_handle);
-+	}
-+
-+	return 0;
-+}
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index c1ba00f..b99b84b 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -79,6 +79,19 @@ struct acpi_lpi_state {
- 	u8 index;
- 	u8 entry_method;
- 	char desc[ACPI_CX_DESC_LEN];
-+	struct acpi_generic_address res_cntr;
-+	struct acpi_generic_address usage_cntr;
-+};
-+
-+struct acpi_lpi_sysfs_state {
-+	struct acpi_lpi_state lpi_state;
-+	struct kobject kobj;
-+};
-+
-+struct acpi_lpi_sysfs_data {
-+	u8 state_count;
-+	struct kobject kobj;
-+	struct acpi_lpi_sysfs_state *sysfs_states;
- };
- 
- struct acpi_processor_power {
-@@ -88,6 +101,7 @@ struct acpi_processor_power {
- 		struct acpi_lpi_state lpi_states[ACPI_PROCESSOR_MAX_POWER];
- 	};
- 	int timer_broadcast_on_state;
-+	struct acpi_lpi_sysfs_data *lpi_sysfs_data;
- };
- 
- /* Performance Management */
--- 
-Qualcomm Datacenter Technologies on behalf of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
-
+Hans
