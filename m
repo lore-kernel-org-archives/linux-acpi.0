@@ -1,57 +1,75 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v3 1/7] ACPI/PPTT: Add Processor Properties Topology Table
- parsing
-Date: Thu, 19 Oct 2017 11:25:08 +0100
-Message-ID: <49421fa9-c3ac-c81b-ed2d-a113f676edd8@huawei.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
- <20171012194856.13844-2-jeremy.linton@arm.com>
- <38c63cfd-4c13-9461-0d4a-74b0943be0fd@semihalf.com>
- <2ce92b90-fc2c-3fff-a3e3-b9517057ab2c@arm.com>
- <4ee4af4d-d987-33f9-4d55-67bfede3ebfa@caviumnetworks.com>
- <ed7f2e82-1e9b-9f46-89af-4e638275355d@caviumnetworks.com>
- <47d8ef93-a3ce-6d40-f8db-2bc7d527ac6f@arm.com>
- <2605aa54-95f7-4619-e632-0a95a68e5fb0@caviumnetworks.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2605aa54-95f7-4619-e632-0a95a68e5fb0@caviumnetworks.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Tomasz Nowicki <tnowicki@caviumnetworks.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, gregkh@linuxfoundation.org, sudeep.holla@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, wangxiongfeng2@huawei.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, catalin.marinas@arm.com, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH resend] ACPI / x86: Extend KIOX000A quirk to cover all affected BIOS versions
+Date: Thu, 19 Oct 2017 13:23:21 +0200
+Message-ID: <20171019112321.27495-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45056 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751710AbdJSLXY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 19 Oct 2017 07:23:24 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-On 19/10/2017 06:18, Tomasz Nowicki wrote:
->>
->> Summary:
->>
->> I'm not at all happy with this specification's attempt to leave out
->> pieces of information which make parsing things more deterministic. In
->> this case I'm happy to demote the message level, but not remove it
->> entirely but I do think the obvious case you list shouldn't be the
->> default one.
->>
->> Lastly:
->>
->> I'm assuming the final result is that the table is actually being
->> parsed correctly despite the ugly message?
->
-> Indeed, the ThunderX2 PPTT table is being parsed so that topology shown
-> in lstopo and lscpu is correct.
+Recently produced GPD win devices have a new BIOS, research into the
+changes in this BIOS has found a ChangeLog which shows that the disabling
+of the KIOX000A node has been done starting with the 20170221 version.
 
-Hi Tomasz,
+Unfortunately the GPD pocket uses the exact same DMI strings as the win
+and its BIOS was copy-pasted from the GPD win, so it has a disabled
+KIOX000A node which we should not enable, so we need to check for the
+exact BIOS date.
 
-Can you share the lscpu output? Does it have cluster info? I did not 
-think that lscpu has a concept of clustering.
+This commit adds 2 extra entries to the always_present_ids quirk table
+with bios_date matches for the older also affected and the latest BIOS.
 
-I would say that the per-cpu cluster index sysfs entry needs be added to 
-drivers/base/arch_topology.c (and other appropiate code under 
-GENERIC_ARCH_TOPOLOGY) to support this.
+Reported-by: ReddestDream <reddestdream@gmail.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/x86/utils.c | 18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-Thanks,
-John
+diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+index b4fbb9929482..ec5b0f190231 100644
+--- a/drivers/acpi/x86/utils.c
++++ b/drivers/acpi/x86/utils.c
+@@ -71,18 +71,34 @@ static const struct always_present_id always_present_ids[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
+ 	      }),
+ 	/*
+-	 * The GPD win BIOS dated 20170320 has disabled the accelerometer, the
++	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
+ 	 * drivers sometimes cause crashes under Windows and this is how the
+ 	 * manufacturer has solved this :| Note that the the DMI data is less
+ 	 * generic then it seems, a board_vendor of "AMI Corporation" is quite
+ 	 * rare and a board_name of "Default String" also is rare.
++	 *
++	 * Unfortunately the GPD pocket also uses these strings and its BIOS
++	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
++	 * node which we should not enable, thus we also check the BIOS date.
+ 	 */
++	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
++		DMI_MATCH(DMI_BIOS_DATE, "02/21/2017")
++	      }),
+ 	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
+ 		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
+ 		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
+ 		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
+ 	      }),
++	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
++		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
++		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
++		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
++		DMI_MATCH(DMI_BIOS_DATE, "05/25/2017")
++	      }),
+ };
+ 
+ bool acpi_device_always_present(struct acpi_device *adev)
+-- 
+2.14.2
 
-
->
-> Thanks,
-> Tomasz
