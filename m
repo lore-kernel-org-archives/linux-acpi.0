@@ -1,118 +1,84 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v3 1/7] ACPI/PPTT: Add Processor Properties Topology Table
- parsing
-Date: Thu, 19 Oct 2017 09:24:12 -0500
-Message-ID: <b5dc310d-ca95-fd08-5b2e-8bbaeba19533@arm.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
- <20171012194856.13844-2-jeremy.linton@arm.com>
- <38c63cfd-4c13-9461-0d4a-74b0943be0fd@semihalf.com>
- <2ce92b90-fc2c-3fff-a3e3-b9517057ab2c@arm.com>
- <4ee4af4d-d987-33f9-4d55-67bfede3ebfa@caviumnetworks.com>
- <ed7f2e82-1e9b-9f46-89af-4e638275355d@caviumnetworks.com>
- <47d8ef93-a3ce-6d40-f8db-2bc7d527ac6f@arm.com>
- <2605aa54-95f7-4619-e632-0a95a68e5fb0@caviumnetworks.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v3 0/2] ACPI serdev support
+Date: Thu, 19 Oct 2017 16:26:25 +0200
+Message-ID: <877ea825-eec5-d982-f962-d67067749009@redhat.com>
+References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
+ <20171011090354.GS4269@localhost>
+ <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
+ <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
+ <ac53458d-c910-2d0a-a2ad-e7d21f8a5be7@gmail.com>
+ <20171018145608.GB27138@kroah.com> <20171019142354.GE5638@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2605aa54-95f7-4619-e632-0a95a68e5fb0@caviumnetworks.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57296 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754936AbdJSO03 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 19 Oct 2017 10:26:29 -0400
+In-Reply-To: <20171019142354.GE5638@localhost>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tnowicki@caviumnetworks.com>, linux-acpi@vger.kernel.org
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, gregkh@linuxfoundation.org, sudeep.holla@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, wangxiongfeng2@huawei.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, catalin.marinas@arm.com, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>, Greg Kroah-Hartman <greg@kroah.com>
+Cc: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss@gmail.com>, Marcel Holtmann <marcel@holtmann.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Rob Herring <robh@kernel.org>, Sebastian Reichel <sre@kernel.org>, Loic Poulain <loic.poulain@gmail.com>, Lukas Wunner <lukas@wunner.de>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
 Hi,
 
-
-On 10/19/2017 12:18 AM, Tomasz Nowicki wrote:
-> On 18.10.2017 19:30, Jeremy Linton wrote:
->> On 10/18/2017 05:24 AM, Tomasz Nowicki wrote:
->>> On 18.10.2017 07:39, Tomasz Nowicki wrote:
->>>> On 17.10.2017 17:22, Jeremy Linton wrote:
->>>>> On 10/17/2017 08:25 AM, Tomasz Nowicki wrote:
->>>>>> On 12.10.2017 21:48, Jeremy Linton wrote:
-(trimming)
->>>>>>> +            if (*found != NULL)
->>>>>>> +                pr_err("Found duplicate cache level/type unable 
->>>>>>> to determine uniqueness\n");
->>>
->>> Actually I still see this error messages in my dmesg. It is because 
->>> the following ThunderX2 per-core L1 and L2 cache hierarchy:
->>>
->>> Core
->>>   ------------------
->>> |                  |
->>> | L1i -----        |
->>> |         |        |
->>> |          ----L2  |
->>> |         |        |
->>> | L1d -----        |
->>> |                  |
->>>   ------------------
->>>
->>> In this case we have two paths which lead to L2 cache and hit above 
->>> case. Is it really error case?
->>
->> No, but its not deterministic unless we mark the node, which doesn't 
->> solve the problem of a table constructed like
->>
->> L1i->L2 (unified)
->> L1d->L2 (unified)
->>
->> or various other structures which aren't disallowed by the spec and 
->> have non-deterministic real world meanings, anymore than constructing 
->> the table like:
->>
->> L1i
->> Lid->L2(unified)
->>
->> which I tend to prefer because with a structuring like that it can be 
->> deterministic (and in a way actually represents the non-coherent 
->> behavior of (most?) ARM64 core's i-caches, as could be argued the 
->> first example if the allocation policies are varied between the L2 
->> nodes).
->>
->> The really ugly bits here happen if you add another layer:
->>
->> L1i->L2i-L3
->> L1d------^
->>
->> which is why I made that an error message, not including the fact that 
->> since the levels aren't tagged the numbering and meaning isn't clear.
->>
->> (the L1i in the above example might be better called an L0i to avoid 
->> throwing off the reset of the hierarchy numbering, also so it could be 
->> ignored).
->>
->> Summary:
->>
->> I'm not at all happy with this specification's attempt to leave out 
->> pieces of information which make parsing things more deterministic. In 
->> this case I'm happy to demote the message level, but not remove it 
->> entirely but I do think the obvious case you list shouldn't be the 
->> default one.
->>
->> Lastly:
->>
->> I'm assuming the final result is that the table is actually being 
->> parsed correctly despite the ugly message?
+On 19-10-17 16:23, Johan Hovold wrote:
+> On Wed, Oct 18, 2017 at 04:56:08PM +0200, Greg Kroah-Hartman wrote:
+>> On Wed, Oct 18, 2017 at 04:46:05PM +0200, Frédéric Danis wrote:
 > 
-> Indeed, the ThunderX2 PPTT table is being parsed so that topology shown 
-> in lstopo and lscpu is correct.
+>>> Le 11/10/2017 à 20:32, Marcel Holtmann a écrit :
+> 
+>>>>>>> Add ACPI support for serial attached devices.
+>>>>>>>
+>>>>>>> Currently, serial devices are not set as enumerated during
+>>>>>>> ACPI scan for SPI or i2c buses (but not for UART). This
+>>>>>>> should also be done for UART serial devices.  I renamed
+>>>>>>> *spi_i2c_slave* to *serial_bus_slave* to reflect this.
+>>>>>>>
+>>>>>>> This needs Johan Hovold's "serdev: fix registration of
+>>>>>>> second slave" patch.
+>>>>>> In theory this series could go in through the acpi-tree
+>>>>>> without my fix. It would only affect an error case where an
+>>>>>> unlikely failure to register an ACPI serdev device, would
+>>>>>> prevent the tty-class device from being registered instead of
+>>>>>> the controller. That is, something we can live with until this
+>>>>>> all converges in 4.15-rc1 if needed.
+>>>>>>
+>>>>>> That said, I think we should consider taking all serdev
+>>>>>> changes, and therefore also the ACPI patch, through the tty
+>>>>>> tree instead in order to avoid merge conflicts. Rafael?
+>>>>> OK
+>>>>>
+>>>>> Please feel free to add
+>>>>>
+>>>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>
+>>>>> to the ACPI core change.
+>>>>>
+>>>>> And I will assume that this series will go in via the tty tree.
+>>>> you have to take these two patches now via the TTY tree now. In
+>>>> case you already marked them as someone else problem ;)
+> 
+>>> Is there any problem I missed with those patches?
+>>> Do I have to re-send them?
+>>
+>> No, they are in my queue, still catching up...
+> 
+> I just realised that we cannot merge this series (the second acpi patch)
+> until the hci_intel driver gains serdev support or otherwise PM will
+> break for those devices.
+> 
+> Specifically, the hci_intel driver uses similar hacks as the hci_bcm
+> driver does for PM, so we need something like Hans's hci_bcm series also
+> for hci_intel before we can do the switch.
 
-Great.
+Hmm, I've never actually seen any hardware use an intel BT HCI connected
+to a serdev, but I guess people did not write that code for fun, so those
+do exist ?
 
-Also, I think this is a better change:
+Regards,
 
-      if ((*found != NULL) && (*found != cache))
-          pr_err("Found duplicate cache level/type unable to determine 
-uniqueness\n");
-
-Which if its a duplicate node/type at the given level the message is 
-just suppressed. It will of course still trigger in cases like:
-
-L1d->L2
-l1i->L2
-
-or other odd cases.
+Hans
