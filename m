@@ -1,79 +1,104 @@
-From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 0/2] ACPI serdev support
-Date: Thu, 19 Oct 2017 21:05:06 +0200
-Message-ID: <0046719b-648f-556d-2dd5-ac695d843103@redhat.com>
-References: <1507710734-32520-1-git-send-email-frederic.danis.oss@gmail.com>
- <20171011090354.GS4269@localhost>
- <CAJZ5v0jPEg5Ow4p0DzPJ9Md7RUTPhZZqCzqP5zmX-pPf9N80=g@mail.gmail.com>
- <AA38D4FD-5A35-460D-85CF-380BAB933448@holtmann.org>
- <ac53458d-c910-2d0a-a2ad-e7d21f8a5be7@gmail.com>
- <20171018145608.GB27138@kroah.com> <20171019142354.GE5638@localhost>
- <877ea825-eec5-d982-f962-d67067749009@redhat.com>
- <115502FA-19DE-439C-A171-3CD5E6D92338@holtmann.org>
- <1503e15d-6199-221a-542f-3766a69577e5@redhat.com>
- <CAMZdPi_ZpNrdjJPnS_rQ9t3oYe6+en9oHQMjmMjx_xHL-WWZKQ@mail.gmail.com>
- <28b99df9-de22-4542-055e-d9fa585aba8f@redhat.com>
- <FFD85CA6-6BD9-45AA-B3C2-898212711C0C@holtmann.org>
+From: Grygorii Strashko <grygorii.strashko@ti.com>
+Subject: Re: [PATCH 0/12] PM / sleep: Driver flags for system suspend/resume
+Date: Thu, 19 Oct 2017 16:31:32 -0500
+Message-ID: <fa2647cb-b043-0116-8129-cb035e03cb2c@ti.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <CAPDyKFozJtSHxxBEFtC+ofJ4XUyQjqUundPs81JATT=WfjXoYA@mail.gmail.com>
+ <7b9c2a3e-2e88-938e-46a5-703de0080681@ti.com>
+ <2926646.NJduVklg7n@aspire.rjw.lan>
+ <CAPDyKFrFbdXrZqtvwm=xmJSqQckfGzs7XNn7AOCTbOjwP4iAFQ@mail.gmail.com>
+ <1769d82f-07d3-14c9-c06a-d6afec20fa0e@ti.com>
+ <CAPDyKFoAKguKiwnJu6zQF7F-w5AQ+mQoQq_XbNOQrys+c54Jhw@mail.gmail.com>
+ <CAPDyKFrtQO_rowO8q=7Lsb25x8+bQAJyc1yUYVRgiguG-2W0tA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <FFD85CA6-6BD9-45AA-B3C2-898212711C0C-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFrtQO_rowO8q=7Lsb25x8+bQAJyc1yUYVRgiguG-2W0tA@mail.gmail.com>
 Content-Language: en-US
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: Loic Poulain <loic.poulain-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Johan Hovold <johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Greg Kroah-Hartman <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Loic Poulain <loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 19-10-17 21:00, Marcel Holtmann wrote:
-> Hi Hans,
+
+On 10/19/2017 01:11 PM, Ulf Hansson wrote:
+> On 19 October 2017 at 20:04, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> On 19 October 2017 at 19:21, Grygorii Strashko <grygorii.strashko@ti.com> wrote:
+>>>
+>>>
+>>> On 10/19/2017 03:33 AM, Ulf Hansson wrote:
+>>>> On 18 October 2017 at 23:48, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>>>> On Wednesday, October 18, 2017 9:45:11 PM CEST Grygorii Strashko wrote:
+>>>>>>
+>>>>>> On 10/18/2017 09:11 AM, Ulf Hansson wrote:
+>>>>>
+>>>>> [...]
+>>>>>
+>>>>>>>>> That's the point. We know pm_runtime_force_* works nicely for the
+>>>>>>>>> trivial middle-layer cases.
+>>>>>>>>
+>>>>>>>> In which cases the middle-layer callbacks don't exist, so it's just like
+>>>>>>>> reusing driver callbacks directly. :-)
+>>>>>>
+>>>>>> I'd like to ask you clarify one point here and provide some info which I hope can be useful -
+>>>>>> what's exactly means  "trivial middle-layer cases"?
+>>>>>>
+>>>>>> Is it when systems use "drivers/base/power/clock_ops.c - Generic clock
+>>>>>> manipulation PM callbacks" as dev_pm_domain (arm davinci/keystone), or OMAP
+>>>>>> device framework struct dev_pm_domain omap_device_pm_domain
+>>>>>> (arm/mach-omap2/omap_device.c) or static const struct dev_pm_ops
+>>>>>> tegra_aconnect_pm_ops?
+>>>>>>
+>>>>>> if yes all above have PM runtime callbacks.
+>>>>>
+>>>>> Trivial ones don't actually do anything meaningful in their PM callbacks.
+>>>>>
+>>>>> Things like the platform bus type, spi bus type, i2c bus type and similar.
+>>>>>
+>>>>> If the middle-layer callbacks manipulate devices in a significant way, then
+>>>>> they aren't trivial.
+>>>>
+>>>> I fully agree with Rafael's description above, but let me also clarify
+>>>> one more thing.
+>>>>
+>>>> We have also been discussing PM domains as being trivial and
+>>>> non-trivial. In some statements I even think the PM domain has been a
+>>>> part the middle-layer terminology, which may have been a bit
+>>>> confusing.
+>>>>
+>>>> In this regards as we consider genpd being a trivial PM domain, those
+>>>> examples your bring up above is too me also examples of trivial PM
+>>>> domains. Especially because they don't deal with wakeups, as that is
+>>>> taken care of by the drivers, right!?
+>>>
+>>> Not directly, for example, omap device framework has noirq callback implemented
+>>> which forcibly disable all devices which are not PM runtime suspended.
+>>> while doing this it calls drivers PM .runtime_suspend() which may return
+>>> non 0 value and in this case device will be left enabled (powered) at suspend for
+>>> wake up purposes (see _od_suspend_noirq()).
+>>>
+>>
+>> Yeah, I had that feeling that omap has some trickyness going on. :-)
+>>
+>> I sure that can be fixed in the omap PM domain, although
 > 
->>>             Hmm, I've never actually seen any hardware use an intel BT HCI connected
->>>             to a serdev, but I guess people did not write that code for fun, so those
->>>             do exist ?
->>>         they are all ACPI based and could now start using serdev. Previously they were all driven by btattach.
->>>     I understand, I was just wondering if anyone is aware of any hardware
->>>     actually using Intel BT devices in this manner, because it is going
->>>     to be tricky to do a similar series if we cannot test it.
->>> Yeah this driver supports Lightning-Peak iBT 3.0 UART controller.
->>> I remember this controller comes (at least) with Atom x3-c3440 / x3-c3445 SoCs.
->>> However I don't have the hardware anymore.
->>
->> Ah, those are the Rockchip manufactured Atom based SoCs which
->> come with Mali graphics, I don't think anyone is trying to run
->> mainline on those and not a whole lot of those have shipped to
->> begin with (the line has been canceled).
->>
->> I've an Apollo Lake based laptop with Intel Bluetooth, I just
->> checked and that is simply using USB.
->>
->> So I don't think we are actually going to break anything by
->> just moving forward as planned. This reminds me of the axp288
->> driver where Intel's "embedded" engineering team upstreamed
->> parts of the axp288 PMIC code, but in a way where the driver
->> could not work as it would not load with platform_data which
->> was never provided by the mainline kernel.
->>
->> As such it might actually be good to break this and if no-one
->> complains we can just remove the hci_intel.c code altogether.
+> ...slipped with my fingers.. here is the rest of the reply...
 > 
-> I think we can go forward with what we have. I am not going to remove hci_intel.c since the firmware loading code etc. is pretty generic to all Intel UART based chips. However we just take the PM pieces out or maybe someone is going to fix them.
-
-Ok.
-
->> The alternative would be to revert 2 if the 3 patches of
->> my last series for making the BT on the GPD win / pocket
->> (and likely other devices) work in uart mode. Then someone
->> (me?) would need to do a completely untested series for
->> hci_intel.c, and get that + reverts of the reverts into 4.16,
->> which is not the best way forward IMHO.
+> ..of course that require us to use another way for drivers to signal
+> to the omap PM domain that it needs to stay powered as to deal with
+> wakeup.
 > 
-> I am not doing that. We have to make progress towards serdev. So if things really turn out badly, then we have to deal with it, but that should not hold up getting things in the direction this needs to go.
+> I can have a look at that more closely, to see if it makes sense to change.
+> 
 
-Sounds good to me.
+Also, additional note here. some IPs are reused between OMAP/Davinci/Keystone,
+OMAP PM domain have some code running at noirq time to dial with devices left
+in PM runtime enabled state (OMAP PM runtime centric), while Davinci/Keystone haven't (clock_ops.c),
+so pm_runtime_force_* API is actually possibility now to make the same driver work 
+ on all these platforms. 
 
-Regards,
-
-Hans
+-- 
+regards,
+-grygorii
