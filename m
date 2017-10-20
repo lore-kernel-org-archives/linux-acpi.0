@@ -1,90 +1,88 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 6/7] arm64: topology: Enable ACPI/PPTT based CPU
- topology.
-Date: Fri, 20 Oct 2017 17:42:51 +0100
-Message-ID: <2114f173-4d89-278b-71f9-3b80457cfa63@arm.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
- <20171012194856.13844-7-jeremy.linton@arm.com>
- <20171019155622.GC18883@red-moon>
- <6a9836f5-d31c-67fb-b2dd-bc0972ebb1c2@arm.com>
- <20171020091428.GA21060@red-moon>
- <e2772689-603b-f129-0643-f5d1f5e41a19@arm.com>
+From: Tvrtko Ursulin <tursulin@ursulin.net>
+Subject: Shift overflow in acpi_gpe_apply_masked_gpes
+Date: Fri, 20 Oct 2017 19:30:31 +0100
+Message-ID: <a44e380e-4efc-1ff4-2ff4-9ef38d27d6cf@ursulin.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e2772689-603b-f129-0643-f5d1f5e41a19@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:47640 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752379AbdJTSae (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Oct 2017 14:30:34 -0400
+Received: by mail-wm0-f66.google.com with SMTP id t69so23622803wmt.2
+        for <linux-acpi@vger.kernel.org>; Fri, 20 Oct 2017 11:30:33 -0700 (PDT)
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
 
+Hi all,
 
-On 20/10/17 17:14, Jeremy Linton wrote:
-> Hi,
-> 
-> On 10/20/2017 04:14 AM, Lorenzo Pieralisi wrote:
->> On Thu, Oct 19, 2017 at 11:13:27AM -0500, Jeremy Linton wrote:
->>> On 10/19/2017 10:56 AM, Lorenzo Pieralisi wrote:
->>>> On Thu, Oct 12, 2017 at 02:48:55PM -0500, Jeremy Linton wrote:
->>>>> Propagate the topology information from the PPTT tree to the
->>>>> cpu_topology array. We can get the thread id, core_id and
->>>>> cluster_id by assuming certain levels of the PPTT tree correspond
->>>>> to those concepts. The package_id is flagged in the tree and can be
->>>>> found by passing an arbitrary large level to setup_acpi_cpu_topology()
->>>>> which terminates its search when it finds an ACPI node flagged
->>>>> as the physical package. If the tree doesn't contain enough
->>>>> levels to represent all of thread/core/cod/package then the package
->>>>> id will be used for the missing levels.
->>>>>
->>>>> Since server/ACPI machines are more likely to be multisocket and NUMA,
->>>>
->>>> I think this stuff is vague enough already so to start with I would
->>>> drop
->>>> patch 4 and 5 and stop assuming what machines are more likely to ship
->>>> with ACPI than DT.
->>>>
->>>> I am just saying, for the umpteenth time, that these levels have no
->>>> architectural meaning _whatsoever_, level is a hierarchy concept
->>>> with no architectural meaning attached.
->>>
->>> ?
->>>
->>> Did anyone say anything about that? No, I think the only thing being
->>> guaranteed here is that the kernel's physical_id maps to an ACPI
->>> defined socket. Which seems to be the mindset of pretty much the
->>> entire !arm64 community meaning they are optimizing their software
->>> and the kernel with that concept in mind.
->>>
->>> Are you denying the existence of non-uniformity between threads
->>> running on different physical sockets?
->>
->> No, I have not explained my POV clearly, apologies.
->>
->> AFAIK, the kernel currently deals with 2 (3 - if SMT) topology layers.
->>
->> 1) thread
->> 2) core
->> 3) package
->>
->> What I wanted to say is, that, to simplify this series, you do not need
->> to introduce the COD topology level, since it is just another arbitrary
->> topology level (ie there is no way you can pinpoint which level
->> corresponds to COD with PPTT - or DT for the sake of this discussion)
->> that would not be used in the kernel (apart from big.LITTLE cpufreq
->> driver and PSCI checker whose usage of topology_physical_package_id() is
->> questionable anyway).
+Triggered with ubsan:
 
-Just thinking out loud here.
+  UBSAN: Undefined behaviour in drivers/acpi/sysfs.c:845:33
+  shift exponent 64 is too large for 64-bit type 'long long unsigned int'
+  CPU: 2 PID: 1 Comm: swapper/0 Not tainted 4.14.0-rc5+ #532
+  Hardware name: LENOVO 80MX/Lenovo E31-80, BIOS DCCN34WW(V2.03) 12/01/2015
+  Call Trace:
+   dump_stack+0xab/0xfe
+   ? _atomic_dec_and_lock+0x112/0x112
+   ? get_unsigned_val+0x48/0x91
+   ubsan_epilogue+0x9/0x49
+   __ubsan_handle_shift_out_of_bounds+0x1ea/0x241
+   ? __ubsan_handle_load_invalid_value+0x136/0x136
+   ? do_raw_spin_unlock+0xf5/0x1d0
+   ? do_raw_spin_trylock+0x90/0x90
+   ? __lock_is_held+0x71/0x150
+   ? _raw_spin_unlock_irqrestore+0x32/0x50
+   ? trace_hardirqs_on_caller+0x184/0x360
+   ? acpi_gpe_apply_masked_gpes+0x95/0xfd
+   acpi_gpe_apply_masked_gpes+0x95/0xfd
+   ? acpi_gpe_set_masked_gpes+0xc1/0xc1
+   ? acpi_get_table+0xff/0x114
+   acpi_scan_init+0x1cf/0x3fe
+   ? acpi_match_madt+0xa7/0xa7
+   ? bus_register+0x386/0x450
+   ? subsys_register.part.1+0x140/0x140
+   acpi_init+0x41f/0x492
+   ? acpi_sleep_proc_init+0x30/0x30
+   ? console_unlock+0x524/0x7a0
+   ? trace_hardirqs_on_caller+0x184/0x360
+   ? scan_for_dmi_ipmi+0x22/0x202
+   ? fb_console_init+0x14f/0x1e6
+   ? acpi_sleep_proc_init+0x30/0x30
+   do_one_initcall+0xa3/0x256
+   ? parameq+0xe0/0xe0
+   ? initcall_blacklisted+0x160/0x160
+   ? down_write_nested+0x110/0x110
+   ? kasan_unpoison_shadow+0x30/0x40
+   kernel_init_freeable+0x3ee/0x47f
+   ? rest_init+0xf0/0xf0
+   kernel_init+0xf/0x140
+   ? rest_init+0xf0/0xf0
+   ret_from_fork+0x27/0x40
 
-1. psci_checker.c : it's just used to get groups of cpu's to achieve
-   deeper idle states. It should be easy to get rid of that.
-2. big.LITTLE cpufreq : 2 users, scpi I should be able to do what I did
-   for SCMI and for spc I am thinking if we can hard code it's just used
-   on TC2
+Code is:
 
--- 
+#define ACPI_MASKABLE_GPE_MAX	0x80
+...
+void __init acpi_gpe_apply_masked_gpes(void)
+{
+	acpi_handle handle;
+	acpi_status status;
+	u8 gpe;
+
+	for (gpe = 0;
+	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
+	     gpe++) {
+		if (acpi_masked_gpes & ((u64)1<<gpe)) {
+...
+
+Left shift on the last line is bound by ACPI_MASKABLE_GPE_MAX which is 0x80.
+
 Regards,
-Sudeep
+
+Tvrtko
