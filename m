@@ -1,117 +1,103 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] device property: Track owner device of device property
-Date: Fri, 20 Oct 2017 16:34:23 +0200
-Message-ID: <20171020143423.GA27882@kroah.com>
-References: <20171009132837.1096-1-jarkko.nikula@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v3 6/7] arm64: topology: Enable ACPI/PPTT based CPU
+ topology.
+Date: Fri, 20 Oct 2017 11:14:31 -0500
+Message-ID: <e2772689-603b-f129-0643-f5d1f5e41a19@arm.com>
+References: <20171012194856.13844-1-jeremy.linton@arm.com>
+ <20171012194856.13844-7-jeremy.linton@arm.com>
+ <20171019155622.GC18883@red-moon>
+ <6a9836f5-d31c-67fb-b2dd-bc0972ebb1c2@arm.com>
+ <20171020091428.GA21060@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171009132837.1096-1-jarkko.nikula@linux.intel.com>
+In-Reply-To: <20171020091428.GA21060@red-moon>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, stable@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 09, 2017 at 04:28:37PM +0300, Jarkko Nikula wrote:
-> Deletion of subdevice will remove device properties associated to parent
-> when they share the same firmware node after commit 478573c93abd ("driver
-> core: Don't leak secondary fwnode on device removal"). This was observed
-> with a driver adding subdevice that driver wasn't able to read device
-> properties after rmmod/modprobe cycle.
-> 
-> Consider the lifecycle of it:
-> 
-> parent device registration
-> 	ACPI_COMPANION_SET()
-> 	device_add_properties()
-> 		pset_copy_set()
-> 		set_secondary_fwnode(dev, &p->fwnode)
-> 	device_add()
-> 
-> parent probe
-> 	read device properties
-> 	ACPI_COMPANION_SET(subdevice, ACPI_COMPANION(parent))
-> 	device_add(subdevice)
-> 
-> parent remove
-> 	device_del(subdevice)
-> 		device_remove_properties()
-> 			set_secondary_fwnode(dev, NULL);
-> 			pset_free()
-> 
-> Parent device will have its primary firmware node pointing to an ACPI node
-> and secondary firmware node point to device properties.
-> ACPI_COMPANION_SET() call in parent probe will set the subdevice's firmware
-> node to point to the same 'struct fwnode_handle' and the associated
-> secondary firmware node, i.e. the device properties as the parent.
-> 
-> When subdevice is deleted in parent remove that will remove those device
-> properties and attempt to read device properties in next parent probe call
-> will fail.
-> 
-> Fix this by tracking the owner device of device properties and delete them
-> only when owner device is being deleted.
-> 
-> Fixes: 478573c93abd ("driver core: Don't leak secondary fwnode on device removal")
-> Cc: <stable@vger.kernel.org> # v4.9+
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> ---
->  drivers/base/property.c | 15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index d0b65bbe7e15..21fcc13013a5 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -21,6 +21,7 @@
->  #include <linux/phy.h>
->  
->  struct property_set {
-> +	struct device *dev;
->  	struct fwnode_handle fwnode;
->  	const struct property_entry *properties;
->  };
-> @@ -891,6 +892,7 @@ static struct property_set *pset_copy_set(const struct property_set *pset)
->  void device_remove_properties(struct device *dev)
->  {
->  	struct fwnode_handle *fwnode;
-> +	struct property_set *pset;
->  
->  	fwnode = dev_fwnode(dev);
->  	if (!fwnode)
-> @@ -900,16 +902,16 @@ void device_remove_properties(struct device *dev)
->  	 * the pset. If there is no real firmware node (ACPI/DT) primary
->  	 * will hold the pset.
->  	 */
-> -	if (is_pset_node(fwnode)) {
-> +	pset = to_pset_node(fwnode);
-> +	if (pset) {
->  		set_primary_fwnode(dev, NULL);
-> -		pset_free_set(to_pset_node(fwnode));
->  	} else {
-> -		fwnode = fwnode->secondary;
-> -		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
-> +		pset = to_pset_node(fwnode->secondary);
-> +		if (pset && dev == pset->dev)
->  			set_secondary_fwnode(dev, NULL);
-> -			pset_free_set(to_pset_node(fwnode));
-> -		}
->  	}
-> +	if (pset && dev == pset->dev)
-> +		pset_free_set(pset);
->  }
->  EXPORT_SYMBOL_GPL(device_remove_properties);
->  
-> @@ -938,6 +940,7 @@ int device_add_properties(struct device *dev,
->  
->  	p->fwnode.ops = &pset_fwnode_ops;
->  	set_secondary_fwnode(dev, &p->fwnode);
-> +	p->dev = dev;
+Hi,
 
-Don't you also need to increment the reference counter here?  Or how is
-it assured that it will not go away?
+On 10/20/2017 04:14 AM, Lorenzo Pieralisi wrote:
+> On Thu, Oct 19, 2017 at 11:13:27AM -0500, Jeremy Linton wrote:
+>> On 10/19/2017 10:56 AM, Lorenzo Pieralisi wrote:
+>>> On Thu, Oct 12, 2017 at 02:48:55PM -0500, Jeremy Linton wrote:
+>>>> Propagate the topology information from the PPTT tree to the
+>>>> cpu_topology array. We can get the thread id, core_id and
+>>>> cluster_id by assuming certain levels of the PPTT tree correspond
+>>>> to those concepts. The package_id is flagged in the tree and can be
+>>>> found by passing an arbitrary large level to setup_acpi_cpu_topology()
+>>>> which terminates its search when it finds an ACPI node flagged
+>>>> as the physical package. If the tree doesn't contain enough
+>>>> levels to represent all of thread/core/cod/package then the package
+>>>> id will be used for the missing levels.
+>>>>
+>>>> Since server/ACPI machines are more likely to be multisocket and NUMA,
+>>>
+>>> I think this stuff is vague enough already so to start with I would drop
+>>> patch 4 and 5 and stop assuming what machines are more likely to ship
+>>> with ACPI than DT.
+>>>
+>>> I am just saying, for the umpteenth time, that these levels have no
+>>> architectural meaning _whatsoever_, level is a hierarchy concept
+>>> with no architectural meaning attached.
+>>
+>> ?
+>>
+>> Did anyone say anything about that? No, I think the only thing being
+>> guaranteed here is that the kernel's physical_id maps to an ACPI
+>> defined socket. Which seems to be the mindset of pretty much the
+>> entire !arm64 community meaning they are optimizing their software
+>> and the kernel with that concept in mind.
+>>
+>> Are you denying the existence of non-uniformity between threads
+>> running on different physical sockets?
+> 
+> No, I have not explained my POV clearly, apologies.
+> 
+> AFAIK, the kernel currently deals with 2 (3 - if SMT) topology layers.
+> 
+> 1) thread
+> 2) core
+> 3) package
+> 
+> What I wanted to say is, that, to simplify this series, you do not need
+> to introduce the COD topology level, since it is just another arbitrary
+> topology level (ie there is no way you can pinpoint which level
+> corresponds to COD with PPTT - or DT for the sake of this discussion)
+> that would not be used in the kernel (apart from big.LITTLE cpufreq
+> driver and PSCI checker whose usage of topology_physical_package_id() is
+> questionable anyway).
 
-thanks,
+Oh! But, i'm at a loss as to what to do with those two users if I set 
+the node which has the physical socket flag set, as the "cluster_id" in 
+the topology.
 
-greg k-h
+Granted, this being ACPI I don't expect the cpufreq driver to be active 
+(given CPPC) and the psci checker might be ignored? Even so, its a bit 
+of a misnomer what is actually happening. Are we good with this?
+
+
+> 
+> PPTT allows you to define what level corresponds to a package, use
+> it to initialize the package topology level (that on ARM internal
+> variables we call cluster) and be done with it.
+> 
+> I do not think that adding another topology level improves anything as
+> far as ACPI topology detection is concerned, you are not able to use it
+> in the scheduler or from userspace to group CPUs anyway.
+
+Correct, and AFAIK after having poked a bit at the scheduler its sort of 
+redundant as the generic cache sharing levels are more useful anyway.
+
+> 
+> Does this answer your question ?
+Yes, other than what to do with the two drivers.
+
+> 
+> Thanks,
+> Lorenzo
+> 
