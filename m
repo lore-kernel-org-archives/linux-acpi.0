@@ -1,82 +1,117 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Update][PATCH v2 01/12] PM / core: Add NEVER_SKIP and SMART_PREPARE driver flags
-Date: Fri, 20 Oct 2017 13:28:33 +0200
-Message-ID: <9928366.cAI691llHG@aspire.rjw.lan>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <1564009.ulyn1Ag4Ad@aspire.rjw.lan> <20171020113527.GA699@kroah.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] device property: Track owner device of device property
+Date: Fri, 20 Oct 2017 16:34:23 +0200
+Message-ID: <20171020143423.GA27882@kroah.com>
+References: <20171009132837.1096-1-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58022 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753006AbdJTLiP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 20 Oct 2017 07:38:15 -0400
-In-Reply-To: <20171020113527.GA699@kroah.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171009132837.1096-1-jarkko.nikula@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Lukas Wunner <lukas@wunner.de>, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 
-On Friday, October 20, 2017 1:35:27 PM CEST Greg Kroah-Hartman wrote:
-> On Fri, Oct 20, 2017 at 01:11:22PM +0200, Rafael J. Wysocki wrote:
-> > On Thursday, October 19, 2017 9:33:15 AM CEST Greg Kroah-Hartman wrote:
-> > > On Thu, Oct 19, 2017 at 01:17:31AM +0200, Rafael J. Wysocki wrote:
-> > > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > > 
-> > > > The motivation for this change is to provide a way to work around
-> > > > a problem with the direct-complete mechanism used for avoiding
-> > > > system suspend/resume handling for devices in runtime suspend.
-> > > > 
-> > > > The problem is that some middle layer code (the PCI bus type and
-> > > > the ACPI PM domain in particular) returns positive values from its
-> > > > system suspend ->prepare callbacks regardless of whether the driver's
-> > > > ->prepare returns a positive value or 0, which effectively prevents
-> > > > drivers from being able to control the direct-complete feature.
-> > > > Some drivers need that control, however, and the PCI bus type has
-> > > > grown its own flag to deal with this issue, but since it is not
-> > > > limited to PCI, it is better to address it by adding driver flags at
-> > > > the core level.
-> > > > 
-> > > > To that end, add a driver_flags field to struct dev_pm_info for flags
-> > > > that can be set by device drivers at the probe time to inform the PM
-> > > > core and/or bus types, PM domains and so on on the capabilities and/or
-> > > > preferences of device drivers.  Also add two static inline helpers
-> > > > for setting that field and testing it against a given set of flags
-> > > > and make the driver core clear it automatically on driver remove
-> > > > and probe failures.
-> > > > 
-> > > > Define and document two PM driver flags related to the direct-
-> > > > complete feature: NEVER_SKIP and SMART_PREPARE that can be used,
-> > > > respectively, to indicate to the PM core that the direct-complete
-> > > > mechanism should never be used for the device and to inform the
-> > > > middle layer code (bus types, PM domains etc) that it can only
-> > > > request the PM core to use the direct-complete mechanism for
-> > > > the device (by returning a positive value from its ->prepare
-> > > > callback) if it also has been requested by the driver.
-> > > > 
-> > > > While at it, make the core check pm_runtime_suspended() when
-> > > > setting power.direct_complete so that it doesn't need to be
-> > > > checked by ->prepare callbacks.
-> > > > 
-> > > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > > 
-> > > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > 
-> > Thanks!
-> > 
-> > Does it also apply to the other patches in the series?
-> > 
-> > I'd like to queue up the core patches for 4.15 as they are specifically
-> > designed to only affect the drivers that actually set the flags, so there
-> > shouldn't be any regression resulting from them, and I'd like to be
-> > able to start using the flags in drivers going forward.
+On Mon, Oct 09, 2017 at 04:28:37PM +0300, Jarkko Nikula wrote:
+> Deletion of subdevice will remove device properties associated to parent
+> when they share the same firmware node after commit 478573c93abd ("driver
+> core: Don't leak secondary fwnode on device removal"). This was observed
+> with a driver adding subdevice that driver wasn't able to read device
+> properties after rmmod/modprobe cycle.
 > 
-> Yes, sorry, I thought I acked them, but you are right, I didn't:
+> Consider the lifecycle of it:
 > 
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> parent device registration
+> 	ACPI_COMPANION_SET()
+> 	device_add_properties()
+> 		pset_copy_set()
+> 		set_secondary_fwnode(dev, &p->fwnode)
+> 	device_add()
 > 
-> for all of them please.
+> parent probe
+> 	read device properties
+> 	ACPI_COMPANION_SET(subdevice, ACPI_COMPANION(parent))
+> 	device_add(subdevice)
+> 
+> parent remove
+> 	device_del(subdevice)
+> 		device_remove_properties()
+> 			set_secondary_fwnode(dev, NULL);
+> 			pset_free()
+> 
+> Parent device will have its primary firmware node pointing to an ACPI node
+> and secondary firmware node point to device properties.
+> ACPI_COMPANION_SET() call in parent probe will set the subdevice's firmware
+> node to point to the same 'struct fwnode_handle' and the associated
+> secondary firmware node, i.e. the device properties as the parent.
+> 
+> When subdevice is deleted in parent remove that will remove those device
+> properties and attempt to read device properties in next parent probe call
+> will fail.
+> 
+> Fix this by tracking the owner device of device properties and delete them
+> only when owner device is being deleted.
+> 
+> Fixes: 478573c93abd ("driver core: Don't leak secondary fwnode on device removal")
+> Cc: <stable@vger.kernel.org> # v4.9+
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> ---
+>  drivers/base/property.c | 15 +++++++++------
+>  1 file changed, 9 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index d0b65bbe7e15..21fcc13013a5 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/phy.h>
+>  
+>  struct property_set {
+> +	struct device *dev;
+>  	struct fwnode_handle fwnode;
+>  	const struct property_entry *properties;
+>  };
+> @@ -891,6 +892,7 @@ static struct property_set *pset_copy_set(const struct property_set *pset)
+>  void device_remove_properties(struct device *dev)
+>  {
+>  	struct fwnode_handle *fwnode;
+> +	struct property_set *pset;
+>  
+>  	fwnode = dev_fwnode(dev);
+>  	if (!fwnode)
+> @@ -900,16 +902,16 @@ void device_remove_properties(struct device *dev)
+>  	 * the pset. If there is no real firmware node (ACPI/DT) primary
+>  	 * will hold the pset.
+>  	 */
+> -	if (is_pset_node(fwnode)) {
+> +	pset = to_pset_node(fwnode);
+> +	if (pset) {
+>  		set_primary_fwnode(dev, NULL);
+> -		pset_free_set(to_pset_node(fwnode));
+>  	} else {
+> -		fwnode = fwnode->secondary;
+> -		if (!IS_ERR(fwnode) && is_pset_node(fwnode)) {
+> +		pset = to_pset_node(fwnode->secondary);
+> +		if (pset && dev == pset->dev)
+>  			set_secondary_fwnode(dev, NULL);
+> -			pset_free_set(to_pset_node(fwnode));
+> -		}
+>  	}
+> +	if (pset && dev == pset->dev)
+> +		pset_free_set(pset);
+>  }
+>  EXPORT_SYMBOL_GPL(device_remove_properties);
+>  
+> @@ -938,6 +940,7 @@ int device_add_properties(struct device *dev,
+>  
+>  	p->fwnode.ops = &pset_fwnode_ops;
+>  	set_secondary_fwnode(dev, &p->fwnode);
+> +	p->dev = dev;
 
-Thanks!
+Don't you also need to increment the reference counter here?  Or how is
+it assured that it will not go away?
 
+thanks,
+
+greg k-h
