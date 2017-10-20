@@ -1,46 +1,85 @@
-From: Bhumika Goyal <bhumirks-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 02/15] usb: gadget: make config_item_type structures const
-Date: Fri, 20 Oct 2017 10:13:11 +0200
-Message-ID: <CAOH+1jFxhiF8j6MM9txfcs1SHOAuYihq=GZWmVb+wUR5aUCsnQ@mail.gmail.com>
-References: <1508167134-6243-1-git-send-email-bhumirks@gmail.com>
- <1985905.z83BJQzMUS@avalon> <20171019140657.GA22233@lst.de> <6348630.r2z9ev4yl2@avalon>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 6/7] arm64: topology: Enable ACPI/PPTT based CPU
+ topology.
+Date: Fri, 20 Oct 2017 10:14:28 +0100
+Message-ID: <20171020091428.GA21060@red-moon>
+References: <20171012194856.13844-1-jeremy.linton@arm.com>
+ <20171012194856.13844-7-jeremy.linton@arm.com>
+ <20171019155622.GC18883@red-moon>
+ <6a9836f5-d31c-67fb-b2dd-bc0972ebb1c2@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6348630.r2z9ev4yl2@avalon>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Alexander Shishkin <alexander.shishkin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, knaack.h-Mmb7MZpHnFY@public.gmane.org, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, sagi-NQWnxTmZq1alnMjI0IkVqw@public.gmane.org, kishon-l0cyMroinI0@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org, balbi-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Joel Becker <jlbec-aKy9MeLSZ9dg9hUCZPvPmw@public.gmane.org>, ccaulfie-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, teigland-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mfasheh-rOS7oXVqrJRBDgjK7y7TUQ@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>Linux Kernel Mailing List <linux>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:37322 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752302AbdJTJOa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 20 Oct 2017 05:14:30 -0400
+Content-Disposition: inline
+In-Reply-To: <6a9836f5-d31c-67fb-b2dd-bc0972ebb1c2@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
 
-On Thu, Oct 19, 2017 at 5:05 PM, Laurent Pinchart
-<laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org> wrote:
-> Hi Christoph,
->
-> On Thursday, 19 October 2017 17:06:57 EEST Christoph Hellwig wrote:
->> > Now we have 9 const instances of the config_item_type structure that are
->> > identical, with only the .ct_owner field set. Should they be all merged
->> > into a single structure ?
->>
->> I think that's a good idea.
->>
->> But I'm about to slurp up this whole series into my tree, how about making
->> that an incremental patch?
->
-> I'm fine with that.
->
-> Bhumika, would you like to submit an incremental patch, or should I do it ?
->
+On Thu, Oct 19, 2017 at 11:13:27AM -0500, Jeremy Linton wrote:
+> On 10/19/2017 10:56 AM, Lorenzo Pieralisi wrote:
+> >On Thu, Oct 12, 2017 at 02:48:55PM -0500, Jeremy Linton wrote:
+> >>Propagate the topology information from the PPTT tree to the
+> >>cpu_topology array. We can get the thread id, core_id and
+> >>cluster_id by assuming certain levels of the PPTT tree correspond
+> >>to those concepts. The package_id is flagged in the tree and can be
+> >>found by passing an arbitrary large level to setup_acpi_cpu_topology()
+> >>which terminates its search when it finds an ACPI node flagged
+> >>as the physical package. If the tree doesn't contain enough
+> >>levels to represent all of thread/core/cod/package then the package
+> >>id will be used for the missing levels.
+> >>
+> >>Since server/ACPI machines are more likely to be multisocket and NUMA,
+> >
+> >I think this stuff is vague enough already so to start with I would drop
+> >patch 4 and 5 and stop assuming what machines are more likely to ship
+> >with ACPI than DT.
+> >
+> >I am just saying, for the umpteenth time, that these levels have no
+> >architectural meaning _whatsoever_, level is a hierarchy concept
+> >with no architectural meaning attached.
+> 
+> ?
+> 
+> Did anyone say anything about that? No, I think the only thing being
+> guaranteed here is that the kernel's physical_id maps to an ACPI
+> defined socket. Which seems to be the mindset of pretty much the
+> entire !arm64 community meaning they are optimizing their software
+> and the kernel with that concept in mind.
+> 
+> Are you denying the existence of non-uniformity between threads
+> running on different physical sockets?
 
-I will submit a patch for merging these structures.
-But should I make a separate patch for this particular change or send
-a v3 for the whole series?
+No, I have not explained my POV clearly, apologies.
+
+AFAIK, the kernel currently deals with 2 (3 - if SMT) topology layers.
+
+1) thread
+2) core
+3) package
+
+What I wanted to say is, that, to simplify this series, you do not need
+to introduce the COD topology level, since it is just another arbitrary
+topology level (ie there is no way you can pinpoint which level
+corresponds to COD with PPTT - or DT for the sake of this discussion)
+that would not be used in the kernel (apart from big.LITTLE cpufreq
+driver and PSCI checker whose usage of topology_physical_package_id() is
+questionable anyway).
+
+PPTT allows you to define what level corresponds to a package, use
+it to initialize the package topology level (that on ARM internal
+variables we call cluster) and be done with it.
+
+I do not think that adding another topology level improves anything as
+far as ACPI topology detection is concerned, you are not able to use it
+in the scheduler or from userspace to group CPUs anyway.
+
+Does this answer your question ?
 
 Thanks,
-Bhumika
-
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Lorenzo
