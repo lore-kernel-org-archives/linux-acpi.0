@@ -1,56 +1,75 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v7] acpi: apei: remove the unused dead-code for SEA/NMI
- notification type
-Date: Sat, 21 Oct 2017 14:15:11 +0200
-Message-ID: <20171021121511.mr2u7etyfj5t2xra@pd.tnic>
-References: <20171021103503.23598-1-gengdongjiu@huawei.com>
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
+	from devices
+Date: Sat, 21 Oct 2017 11:47:53 -0400
+Message-ID: <683a518d-0e22-c855-2416-2e097ec3291d@codeaurora.org>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-6-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:44154 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932067AbdJUMPY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 21 Oct 2017 08:15:24 -0400
-Content-Disposition: inline
-In-Reply-To: <20171021103503.23598-1-gengdongjiu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20171006133203.22803-6-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tbaicar@codeaurora.org, will.deacon@arm.com, prarit@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Oct 21, 2017 at 06:35:03PM +0800, Dongjiu Geng wrote:
-> For the SEA notification, the two functions ghes_sea_add() and
-> ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
-> is defined. If not, it will return errors in the ghes_probe()
-> and not continue. If the probe is failed, the ghes_sea_remove()
-> also has no chance to be called. Hence, remove the unnecessary
-> handling when CONFIG_ACPI_APEI_SEA is not defined.
-> 
-> For the NMI notification, it has the same issue as SEA notification,
-> so also remove the unused dead-code for it.
-> 
-> Cc: Tyler Baicar <tbaicar@codeaurora.org>
-> Cc: James Morse <james.morse@arm.com>
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> Signed-off-by: Borislav Petkov <bp@suse.de>
+Just some improvement suggestions.
 
-I gave you Reviewed-by, not Signed-off-by.
+On 10/6/2017 9:31 AM, Jean-Philippe Brucker wrote:
+> +	spin_lock(&iommu_process_lock);
+> +	idr_for_each_entry(&iommu_process_idr, process, i) {
+> +		if (process->pid != pid)
+> +			continue;
+if you see this construct a lot, this could be a for_each_iommu_process.
 
-Before you send more patches, read this:
+> +
+> +		if (!iommu_process_get_locked(process)) {
+> +			/* Process is defunct, create a new one */
+> +			process = NULL;
+> +			break;
+> +		}
+> +
+> +		/* Great, is it also bound to this domain? */
+> +		list_for_each_entry(cur_context, &process->domains,
+> +				    process_head) {
+> +			if (cur_context->domain != domain)
+> +				continue;
+if you see this construct a lot, this could be a for_each_iommu_process_domain.
 
-Documentation/process/submitting-patches.rst
+> +
+> +			context = cur_context;
+> +			*pasid = process->pasid;
+> +
+> +			/* Splendid, tell the driver and increase the ref */
+> +			err = iommu_process_attach_locked(context, dev);
+> +			if (err)
+> +				iommu_process_put_locked(process);
+> +
+> +			break;
+> +		}
+> +		break;
+> +	}
+> +	spin_unlock(&iommu_process_lock);
+> +	put_pid(pid);
+> +
+> +	if (context)
+> +		return err;
 
-You can read the whole document but do especially concentrate on
-sections 11-13, in order to get an idea how the SOB chain and all that
-patch tagging works.
-
-Thx.
+I think you should make the section above a independent function and return here when the
+context is found.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
