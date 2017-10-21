@@ -1,17 +1,17 @@
 From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v6] acpi: apei: remove the unused dead-code for SEA/NMI notification type
-Date: Sat, 21 Oct 2017 18:04:10 +0800
-Message-ID: <20171021100410.23338-1-gengdongjiu@huawei.com>
+Subject: [PATCH v7] acpi: apei: remove the unused dead-code for SEA/NMI notification type
+Date: Sat, 21 Oct 2017 18:35:03 +0800
+Message-ID: <20171021103503.23598-1-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:8967 "EHLO
+Received: from szxga04-in.huawei.com ([45.249.212.190]:8969 "EHLO
         szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbdJUCKr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Oct 2017 22:10:47 -0400
+        with ESMTP id S1752605AbdJUCoO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Oct 2017 22:44:14 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tbaicar@codeaurora.org, will.deacon@arm.com, bp@suse.de, prarit@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, huangshaoyu@huawei.com, gengdongjiu@huawei.com
+To: rjw@rjwysocki.net, lenb@kernel.org, tbaicar@codeaurora.org, will.deacon@arm.com, bp@suse.de, prarit@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, gengdongjiu@huawei.com
 
 For the SEA notification, the two functions ghes_sea_add() and
 ghes_sea_remove() are only called when CONFIG_ACPI_APEI_SEA
