@@ -1,7 +1,7 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v16 05/32] v4l: async: Correctly serialise async sub-device unregistration
-Date: Thu, 26 Oct 2017 10:53:15 +0300
-Message-ID: <20171026075342.5760-6-sakari.ailus@linux.intel.com>
+Subject: [PATCH v16 11/32] omap3isp: Fix check for our own sub-devices
+Date: Thu, 26 Oct 2017 10:53:21 +0300
+Message-ID: <20171026075342.5760-12-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
 Return-path: <linux-media-owner@vger.kernel.org>
 In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
@@ -10,51 +10,29 @@ To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The check whether an async sub-device is bound to a notifier was performed
-without list_lock held, making it possible for another process to
-unbind the async sub-device before the sub-device unregistration function
-proceeds to take the lock.
-
-Fix this by first acquiring the lock and then proceeding with the check.
+We only want to link sub-devices that were bound to the async notifier the
+isp driver registered but there may be other sub-devices in the
+v4l2_device as well. Check for the correct async notifier.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 18 +++++++-----------
- 1 file changed, 7 insertions(+), 11 deletions(-)
+ drivers/media/platform/omap3isp/isp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 4924481451ca..cde2cf2ab4b0 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -298,20 +298,16 @@ EXPORT_SYMBOL(v4l2_async_register_subdev);
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 97a5206b6ddc..4afd7ba4fad6 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+ 		return ret;
  
- void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
- {
--	struct v4l2_async_notifier *notifier = sd->notifier;
--
--	if (!sd->asd) {
--		if (!list_empty(&sd->async_list))
--			v4l2_async_cleanup(sd);
--		return;
--	}
--
- 	mutex_lock(&list_lock);
+ 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
+-		if (!sd->asd)
++		if (sd->notifier != &isp->notifier)
+ 			continue;
  
--	list_add(&sd->asd->list, &notifier->waiting);
-+	if (sd->asd) {
-+		struct v4l2_async_notifier *notifier = sd->notifier;
- 
--	if (notifier->unbind)
--		notifier->unbind(notifier, sd, sd->asd);
-+		list_add(&sd->asd->list, &notifier->waiting);
-+
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, sd, sd->asd);
-+	}
- 
- 	v4l2_async_cleanup(sd);
- 
+ 		ret = isp_link_entity(isp, &sd->entity,
 -- 
 2.11.0
