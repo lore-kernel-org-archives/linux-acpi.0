@@ -1,37 +1,69 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v16 02/32] v4l: async: Don't set sd->dev NULL in v4l2_async_cleanup
-Date: Thu, 26 Oct 2017 10:53:12 +0300
-Message-ID: <20171026075342.5760-3-sakari.ailus@linux.intel.com>
+Subject: [PATCH v16 03/32] v4l: async: fix unbind error in v4l2_async_notifier_unregister()
+Date: Thu, 26 Oct 2017 10:53:13 +0300
+Message-ID: <20171026075342.5760-4-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39002 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751959AbdJZHx5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 26 Oct 2017 03:53:57 -0400
 In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund+renesas@ragnatech.se>
 
-v4l2_async_cleanup() is called when the async sub-device is unbound from
-the media device. As the pointer is set by the driver registering the
-async sub-device, leave the pointer as set by the driver.
+From: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
+The call to v4l2_async_cleanup() will set sd->asd to NULL so passing it to
+notifier->unbind() has no effect and leaves the notifier confused. Call
+the unbind() callback prior to cleaning up the subdevice to avoid this.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 60a1a50b9537..21c748bf3a7b 100644
+index 21c748bf3a7b..ca281438a0ae 100644
 --- a/drivers/media/v4l2-core/v4l2-async.c
 +++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -134,7 +134,6 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	/* Subdevice driver will reprobe and put the subdev back onto the list */
- 	list_del_init(&sd->async_list);
- 	sd->asd = NULL;
--	sd->dev = NULL;
- }
+@@ -206,11 +206,11 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_del(&notifier->list);
  
- int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		v4l2_async_cleanup(sd);
+-
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
+ 
++		v4l2_async_cleanup(sd);
++
+ 		list_move(&sd->async_list, &subdev_list);
+ 	}
+ 
+@@ -268,11 +268,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 	list_add(&sd->asd->list, &notifier->waiting);
+ 
+-	v4l2_async_cleanup(sd);
+-
+ 	if (notifier->unbind)
+ 		notifier->unbind(notifier, sd, sd->asd);
+ 
++	v4l2_async_cleanup(sd);
++
+ 	mutex_unlock(&list_lock);
+ }
+ EXPORT_SYMBOL(v4l2_async_unregister_subdev);
 -- 
 2.11.0
+
