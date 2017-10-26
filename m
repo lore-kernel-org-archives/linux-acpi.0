@@ -1,180 +1,122 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v16 04/32] v4l: async: Fix notifier complete callback error handling
-Date: Thu, 26 Oct 2017 10:53:14 +0300
-Message-ID: <20171026075342.5760-5-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v16 01/32] v4l: async: Remove re-probing support
+Date: Thu, 26 Oct 2017 10:53:11 +0300
+Message-ID: <20171026075342.5760-2-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-media-owner@vger.kernel.org>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+Sender: linux-media-owner@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The notifier complete callback may return an error. This error code was
-simply returned to the caller but never handled properly.
+Remove V4L2 async re-probing support. The re-probing support has been
+there to support cases where the sub-devices require resources provided by
+the main driver's hardware to function, such as clocks.
 
-Move calling the complete callback function to the caller from
-v4l2_async_test_notify and undo the work that was done either in async
-sub-device or async notifier registration.
+Reprobing has allowed unbinding and again binding the main driver without
+explicitly unbinding the sub-device drivers. This is certainly not a
+common need, and the responsibility will be the user's going forward.
 
-Reported-by: Russell King <rmk+kernel-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+An alternative could have been to introduce notifier specific locks.
+Considering the complexity of the re-probing and that it isn't really a
+solution to a problem but a workaround, remove re-probing instead.
+
+If there is a need to support the clock provider unregister/register cycle
+while keeping the clock references in the consumers in the future, this
+should be implemented in the clock framework instead, not in V4L2.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 ---
- drivers/media/v4l2-core/v4l2-async.c | 78 +++++++++++++++++++++++++++---------
- 1 file changed, 60 insertions(+), 18 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c | 54 +-----------------------------------
+ 1 file changed, 1 insertion(+), 53 deletions(-)
 
 diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index ca281438a0ae..4924481451ca 100644
+index d741a8e0fdac..60a1a50b9537 100644
 --- a/drivers/media/v4l2-core/v4l2-async.c
 +++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -122,9 +122,6 @@ static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
- 	/* Move from the global subdevice list to notifier's done */
- 	list_move(&sd->async_list, &notifier->done);
- 
--	if (list_empty(&notifier->waiting) && notifier->complete)
--		return notifier->complete(notifier);
--
- 	return 0;
- }
- 
-@@ -136,11 +133,27 @@ static void v4l2_async_cleanup(struct v4l2_subdev *sd)
- 	sd->asd = NULL;
- }
- 
-+static void v4l2_async_notifier_unbind_all_subdevs(
-+	struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_subdev *sd, *tmp;
-+
-+	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, sd, sd->asd);
-+
-+		v4l2_async_cleanup(sd);
-+
-+		list_move(&sd->async_list, &subdev_list);
-+	}
-+}
-+
- int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 				 struct v4l2_async_notifier *notifier)
- {
- 	struct v4l2_subdev *sd, *tmp;
- 	struct v4l2_async_subdev *asd;
-+	int ret;
- 	int i;
- 
- 	if (!v4l2_dev || !notifier->num_subdevs ||
-@@ -185,19 +198,30 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		}
- 	}
- 
-+	if (list_empty(&notifier->waiting) && notifier->complete) {
-+		ret = notifier->complete(notifier);
-+		if (ret)
-+			goto err_complete;
-+	}
-+
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
- 
- 	mutex_unlock(&list_lock);
- 
- 	return 0;
-+
-+err_complete:
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+
-+	mutex_unlock(&list_lock);
-+
-+	return ret;
- }
- EXPORT_SYMBOL(v4l2_async_notifier_register);
- 
+@@ -198,78 +198,26 @@ EXPORT_SYMBOL(v4l2_async_notifier_register);
  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
  {
--	struct v4l2_subdev *sd, *tmp;
--
+ 	struct v4l2_subdev *sd, *tmp;
+-	unsigned int notif_n_subdev = notifier->num_subdevs;
+-	unsigned int n_subdev = min(notif_n_subdev, V4L2_MAX_SUBDEVS);
+-	struct device **dev;
+-	int i = 0;
+ 
  	if (!notifier->v4l2_dev)
  		return;
  
-@@ -205,14 +229,7 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+-	dev = kvmalloc_array(n_subdev, sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		dev_err(notifier->v4l2_dev->dev,
+-			"Failed to allocate device cache!\n");
+-	}
+-
+ 	mutex_lock(&list_lock);
  
  	list_del(&notifier->list);
  
--	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
--		if (notifier->unbind)
--			notifier->unbind(notifier, sd, sd->asd);
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		struct device *d;
 -
--		v4l2_async_cleanup(sd);
+-		d = get_device(sd->dev);
 -
--		list_move(&sd->async_list, &subdev_list);
--	}
-+	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 		v4l2_async_cleanup(sd);
  
- 	mutex_unlock(&list_lock);
+-		/* If we handled USB devices, we'd have to lock the parent too */
+-		device_release_driver(d);
+-
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, sd, sd->asd);
  
-@@ -223,6 +240,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
- int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- {
- 	struct v4l2_async_notifier *notifier;
-+	int ret;
- 
- 	/*
- 	 * No reference taken. The reference is held by the device
-@@ -238,19 +256,43 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 
- 	list_for_each_entry(notifier, &notifier_list, list) {
- 		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
--		if (asd) {
--			int ret = v4l2_async_test_notify(notifier, sd, asd);
--			mutex_unlock(&list_lock);
--			return ret;
--		}
-+		int ret;
-+
-+		if (!asd)
-+			continue;
-+
-+		ret = v4l2_async_test_notify(notifier, sd, asd);
-+		if (ret)
-+			goto err_unlock;
-+
-+		if (!list_empty(&notifier->waiting) || !notifier->complete)
-+			goto out_unlock;
-+
-+		ret = notifier->complete(notifier);
-+		if (ret)
-+			goto err_cleanup;
-+
-+		goto out_unlock;
+-		/*
+-		 * Store device at the device cache, in order to call
+-		 * put_device() on the final step
+-		 */
+-		if (dev)
+-			dev[i++] = d;
+-		else
+-			put_device(d);
++		list_move(&sd->async_list, &subdev_list);
  	}
  
- 	/* None matched, wait for hot-plugging */
- 	list_add(&sd->async_list, &subdev_list);
- 
-+out_unlock:
  	mutex_unlock(&list_lock);
  
- 	return 0;
-+
-+err_cleanup:
-+	if (notifier->unbind)
-+		notifier->unbind(notifier, sd, sd->asd);
-+
-+	v4l2_async_cleanup(sd);
-+
-+err_unlock:
-+	mutex_unlock(&list_lock);
-+
-+	return ret;
+-	/*
+-	 * Call device_attach() to reprobe devices
+-	 *
+-	 * NOTE: If dev allocation fails, i is 0, and the whole loop won't be
+-	 * executed.
+-	 */
+-	while (i--) {
+-		struct device *d = dev[i];
+-
+-		if (d && device_attach(d) < 0) {
+-			const char *name = "(none)";
+-			int lock = device_trylock(d);
+-
+-			if (lock && d->driver)
+-				name = d->driver->name;
+-			dev_err(d, "Failed to re-probe to %s\n", name);
+-			if (lock)
+-				device_unlock(d);
+-		}
+-		put_device(d);
+-	}
+-	kvfree(dev);
+-
+ 	notifier->v4l2_dev = NULL;
+-
+-	/*
+-	 * Don't care about the waiting list, it is initialised and populated
+-	 * upon notifier registration.
+-	 */
  }
- EXPORT_SYMBOL(v4l2_async_register_subdev);
+ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
  
 -- 
 2.11.0
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
