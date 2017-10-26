@@ -1,38 +1,145 @@
 From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v16 11/32] omap3isp: Fix check for our own sub-devices
-Date: Thu, 26 Oct 2017 10:53:21 +0300
-Message-ID: <20171026075342.5760-12-sakari.ailus@linux.intel.com>
+Subject: [PATCH v16 14/32] v4l: async: Introduce helpers for calling async ops callbacks
+Date: Thu, 26 Oct 2017 10:53:24 +0300
+Message-ID: <20171026075342.5760-15-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Return-path: <linux-media-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39186 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751232AbdJZHy1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 26 Oct 2017 03:54:27 -0400
 In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-media@vger.kernel.org
 Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-We only want to link sub-devices that were bound to the async notifier the
-isp driver registered but there may be other sub-devices in the
-v4l2_device as well. Check for the correct async notifier.
+Add three helper functions to call async operations callbacks. Besides
+simplifying callbacks, this allows async notifiers to have no ops set,
+i.e. it can be left NULL.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/platform/omap3isp/isp.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 56 +++++++++++++++++++++++++-----------
+ 1 file changed, 39 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
-index 97a5206b6ddc..4afd7ba4fad6 100644
---- a/drivers/media/platform/omap3isp/isp.c
-+++ b/drivers/media/platform/omap3isp/isp.c
-@@ -2155,7 +2155,7 @@ static int isp_subdev_notifier_complete(struct v4l2_async_notifier *async)
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 9d6fc5f25619..e170682dae78 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,34 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+ 
++static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
++					  struct v4l2_subdev *subdev,
++					  struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->bound)
++		return 0;
++
++	return n->ops->bound(n, subdev, asd);
++}
++
++static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
++					    struct v4l2_subdev *subdev,
++					    struct v4l2_async_subdev *asd)
++{
++	if (!n->ops || !n->ops->unbind)
++		return;
++
++	n->ops->unbind(n, subdev, asd);
++}
++
++static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
++{
++	if (!n->ops || !n->ops->complete)
++		return 0;
++
++	return n->ops->complete(n);
++}
++
+ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+ {
+ #if IS_ENABLED(CONFIG_I2C)
+@@ -102,16 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	if (notifier->ops->bound) {
+-		ret = notifier->ops->bound(notifier, sd, asd);
+-		if (ret < 0)
+-			return ret;
+-	}
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, asd);
  		return ret;
+ 	}
  
- 	list_for_each_entry(sd, &v4l2_dev->subdevs, list) {
--		if (!sd->asd)
-+		if (sd->notifier != &isp->notifier)
- 			continue;
+@@ -140,8 +165,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+ 	struct v4l2_subdev *sd, *tmp;
  
- 		ret = isp_link_entity(isp, &sd->entity,
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 		v4l2_async_cleanup(sd);
+ 
+ 		list_move(&sd->async_list, &subdev_list);
+@@ -198,8 +222,8 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		}
+ 	}
+ 
+-	if (list_empty(&notifier->waiting) && notifier->ops->complete) {
+-		ret = notifier->ops->complete(notifier);
++	if (list_empty(&notifier->waiting)) {
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_complete;
+ 	}
+@@ -296,10 +320,10 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 		if (ret)
+ 			goto err_unlock;
+ 
+-		if (!list_empty(&notifier->waiting) || !notifier->ops->complete)
++		if (!list_empty(&notifier->waiting))
+ 			goto out_unlock;
+ 
+-		ret = notifier->ops->complete(notifier);
++		ret = v4l2_async_notifier_call_complete(notifier);
+ 		if (ret)
+ 			goto err_cleanup;
+ 
+@@ -315,8 +339,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	return 0;
+ 
+ err_cleanup:
+-	if (notifier->ops->unbind)
+-		notifier->ops->unbind(notifier, sd, sd->asd);
++	v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	v4l2_async_cleanup(sd);
+ 
+ err_unlock:
+@@ -335,8 +358,7 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ 
+ 		list_add(&sd->asd->list, &notifier->waiting);
+ 
+-		if (notifier->ops->unbind)
+-			notifier->ops->unbind(notifier, sd, sd->asd);
++		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+ 	}
+ 
+ 	v4l2_async_cleanup(sd);
 -- 
 2.11.0
+
