@@ -1,41 +1,53 @@
-From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH v16 30/32] ov5670: Add support for flash and lens devices
-Date: Thu, 26 Oct 2017 10:53:40 +0300
-Message-ID: <20171026075342.5760-31-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: [PATCH v16 15/32] v4l: async: Register sub-devices before calling bound callback
+Date: Thu, 26 Oct 2017 10:53:25 +0300
+Message-ID: <20171026075342.5760-16-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39204 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932185AbdJZHya (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 26 Oct 2017 03:54:30 -0400
+In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-media@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
-Parse async sub-devices related to the sensor by switching the async
-sub-device registration function.
+Register the sub-device before calling the notifier's bound callback.
+Doing this the other way around is problematic as the struct v4l2_device
+has not assigned for the sub-device yet and may be required by the bound
+callback.
 
-Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Pavel Machek <pavel@ucw.cz>
 ---
- drivers/media/i2c/ov5670.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/v4l2-core/v4l2-async.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5670.c b/drivers/media/i2c/ov5670.c
-index a65469f88e36..9f9196568eb8 100644
---- a/drivers/media/i2c/ov5670.c
-+++ b/drivers/media/i2c/ov5670.c
-@@ -2529,7 +2529,7 @@ static int ov5670_probe(struct i2c_client *client)
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index e170682dae78..46db85685894 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ {
+ 	int ret;
+ 
+-	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
++	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
++	ret = v4l2_async_notifier_call_bound(notifier, sd, asd);
+ 	if (ret < 0) {
+-		v4l2_async_notifier_call_unbind(notifier, sd, asd);
++		v4l2_device_unregister_subdev(sd);
+ 		return ret;
  	}
  
- 	/* Async register for subdev */
--	ret = v4l2_async_register_subdev(&ov5670->sd);
-+	ret = v4l2_async_register_subdev_sensor_common(&ov5670->sd);
- 	if (ret < 0) {
- 		err_msg = "v4l2_async_register_subdev() error";
- 		goto error_entity_cleanup;
 -- 
 2.11.0
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
