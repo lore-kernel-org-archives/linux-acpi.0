@@ -1,70 +1,195 @@
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v16 32/32] arm: dts: omap3: N9/N950: Add flash references to the camera
-Date: Thu, 26 Oct 2017 10:53:42 +0300
-Message-ID: <20171026075342.5760-33-sakari.ailus@linux.intel.com>
+From: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: [PATCH v16 26/32] v4l: fwnode: Add a convenience function for registering sensors
+Date: Thu, 26 Oct 2017 10:53:36 +0300
+Message-ID: <20171026075342.5760-27-sakari.ailus@linux.intel.com>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Return-path: <linux-media-owner@vger.kernel.org>
-In-Reply-To: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-To: linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171026075342.5760-1-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add flash and indicator LED phandles to the sensor node.
+Add a convenience function for parsing firmware for information on related
+devices using v4l2_async_notifier_parse_fwnode_sensor_common() registering
+the notifier and finally the async sub-device itself.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Pavel Machek <pavel@ucw.cz>
+This should be useful for sensor drivers that do not have device specific
+requirements related to firmware information parsing or the async
+framework.
+
+Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- arch/arm/boot/dts/omap3-n9.dts       | 1 +
- arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
- arch/arm/boot/dts/omap3-n950.dts     | 1 +
- 3 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-async.c  | 19 ++++++++++++----
+ drivers/media/v4l2-core/v4l2-fwnode.c | 41 +++++++++++++++++++++++++++++++++++
+ include/media/v4l2-async.h            | 22 +++++++++++++++++++
+ include/media/v4l2-subdev.h           |  3 +++
+ 4 files changed, 81 insertions(+), 4 deletions(-)
 
-diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.dts
-index b9e58c536afd..39e35f8b8206 100644
---- a/arch/arm/boot/dts/omap3-n9.dts
-+++ b/arch/arm/boot/dts/omap3-n9.dts
-@@ -26,6 +26,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <199200000 210000000 499200000>;
-diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-index 1b0bd72945f2..12fbb3da5fce 100644
---- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-+++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-@@ -271,14 +271,14 @@
- 		#size-cells = <0>;
- 		reg = <0x30>;
- 		compatible = "ams,as3645a";
--		flash@0 {
-+		as3645a_flash: flash@0 {
- 			reg = <0x0>;
- 			flash-timeout-us = <150000>;
- 			flash-max-microamp = <320000>;
- 			led-max-microamp = <60000>;
- 			ams,input-max-microamp = <1750000>;
- 		};
--		indicator@1 {
-+		as3645a_indicator: indicator@1 {
- 			reg = <0x1>;
- 			led-max-microamp = <10000>;
- 		};
-diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n950.dts
-index 646601a3ebd8..c354a1ed1e70 100644
---- a/arch/arm/boot/dts/omap3-n950.dts
-+++ b/arch/arm/boot/dts/omap3-n950.dts
-@@ -60,6 +60,7 @@
- 		clocks = <&isp 0>;
- 		clock-frequency = <9600000>;
- 		nokia,nvm-size = <(16 * 64)>;
-+		flash-leds = <&as3645a_flash &as3645a_indicator>;
- 		port {
- 			smia_1_1: endpoint {
- 				link-frequencies = /bits/ 64 <210000000 333600000 398400000>;
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index b4e88eef195f..e81a72b8d46e 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -474,19 +474,25 @@ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+ }
+ EXPORT_SYMBOL(v4l2_async_subdev_notifier_register);
+ 
+-void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++static void __v4l2_async_notifier_unregister(
++	struct v4l2_async_notifier *notifier)
+ {
+-	if (!notifier->v4l2_dev && !notifier->sd)
++	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
+ 		return;
+ 
+-	mutex_lock(&list_lock);
+-
+ 	v4l2_async_notifier_unbind_all_subdevs(notifier);
+ 
+ 	notifier->sd = NULL;
+ 	notifier->v4l2_dev = NULL;
+ 
+ 	list_del(&notifier->list);
++}
++
++void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++{
++	mutex_lock(&list_lock);
++
++	__v4l2_async_notifier_unregister(notifier);
+ 
+ 	mutex_unlock(&list_lock);
+ }
+@@ -596,6 +602,11 @@ void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+ {
+ 	mutex_lock(&list_lock);
+ 
++	__v4l2_async_notifier_unregister(sd->subdev_notifier);
++	v4l2_async_notifier_cleanup(sd->subdev_notifier);
++	kfree(sd->subdev_notifier);
++	sd->subdev_notifier = NULL;
++
+ 	if (sd->asd) {
+ 		struct v4l2_async_notifier *notifier = sd->notifier;
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+index 1234bd1a2f49..82af608fd626 100644
+--- a/drivers/media/v4l2-core/v4l2-fwnode.c
++++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+@@ -29,6 +29,7 @@
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
+ 
+ enum v4l2_fwnode_bus_type {
+ 	V4L2_FWNODE_BUS_TYPE_GUESS = 0,
+@@ -900,6 +901,46 @@ int v4l2_async_notifier_parse_fwnode_sensor_common(
+ }
+ EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_sensor_common);
+ 
++int v4l2_async_register_subdev_sensor_common(struct v4l2_subdev *sd)
++{
++	struct v4l2_async_notifier *notifier;
++	int ret;
++
++	if (WARN_ON(!sd->dev))
++		return -ENODEV;
++
++	notifier = kzalloc(sizeof(*notifier), GFP_KERNEL);
++	if (!notifier)
++		return -ENOMEM;
++
++	ret = v4l2_async_notifier_parse_fwnode_sensor_common(sd->dev,
++							     notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_subdev_notifier_register(sd, notifier);
++	if (ret < 0)
++		goto out_cleanup;
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret < 0)
++		goto out_unregister;
++
++	sd->subdev_notifier = notifier;
++
++	return 0;
++
++out_unregister:
++	v4l2_async_notifier_unregister(notifier);
++
++out_cleanup:
++	v4l2_async_notifier_cleanup(notifier);
++	kfree(notifier);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(v4l2_async_register_subdev_sensor_common);
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>");
+ MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org>");
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 8d8cfc3f3100..6152434cbe82 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -174,6 +174,28 @@ void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier);
+ int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+ 
+ /**
++ * v4l2_async_register_subdev_sensor_common - registers a sensor sub-device to
++ *					      the asynchronous sub-device
++ *					      framework and parse set up common
++ *					      sensor related devices
++ *
++ * @sd: pointer to struct &v4l2_subdev
++ *
++ * This function is just like v4l2_async_register_subdev() with the exception
++ * that calling it will also parse firmware interfaces for remote references
++ * using v4l2_async_notifier_parse_fwnode_sensor_common() and registers the
++ * async sub-devices. The sub-device is similarly unregistered by calling
++ * v4l2_async_unregister_subdev().
++ *
++ * While registered, the subdev module is marked as in-use.
++ *
++ * An error is returned if the module is no longer loaded on any attempts
++ * to register it.
++ */
++int __must_check v4l2_async_register_subdev_sensor_common(
++	struct v4l2_subdev *sd);
++
++/**
+  * v4l2_async_unregister_subdev - unregisters a sub-device to the asynchronous
+  * 	subdevice framework
+  *
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index e83872078376..ec399c770301 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -793,6 +793,8 @@ struct v4l2_subdev_platform_data {
+  *	list.
+  * @asd: Pointer to respective &struct v4l2_async_subdev.
+  * @notifier: Pointer to the managing notifier.
++ * @subdev_notifier: A sub-device notifier implicitly registered for the sub-
++ *		     device using v4l2_device_register_sensor_subdev().
+  * @pdata: common part of subdevice platform data
+  *
+  * Each instance of a subdev driver should create this struct, either
+@@ -823,6 +825,7 @@ struct v4l2_subdev {
+ 	struct list_head async_list;
+ 	struct v4l2_async_subdev *asd;
+ 	struct v4l2_async_notifier *notifier;
++	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_subdev_platform_data *pdata;
+ };
+ 
 -- 
 2.11.0
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
