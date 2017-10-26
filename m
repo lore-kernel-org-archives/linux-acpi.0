@@ -1,109 +1,87 @@
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>
-Subject: Re: [PATCH v16 06/32] v4l: async: Use more intuitive names for
- internal functions
-Date: Thu, 26 Oct 2017 17:39:30 +0200
-Message-ID: <20171026153930.GE2297@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-7-sakari.ailus@linux.intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH 11/12] PM: i2c-designware-platdrv: Optimize power
+ management
+Date: Thu, 26 Oct 2017 22:41:40 +0200
+Message-ID: <20171026204140.wzrq4lronz4nu6la@ninjato>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <2298462.BTY6P2Oy1l@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="p4od3itvpvopd5d5"
+Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-7-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <2298462.BTY6P2Oy1l@aspire.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017-10-26 10:53:16 +0300, Sakari Ailus wrote:
-> Rename internal functions to make the names of the functions better
-> describe what they do.
-> 
-> 	Old name			New name
-> 	v4l2_async_test_notify	v4l2_async_match_notify
-> 	v4l2_async_belongs	v4l2_async_find_match
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-> Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
-> Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org>
+--p4od3itvpvopd5d5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 19 ++++++++++---------
->  1 file changed, 10 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index cde2cf2ab4b0..8b84fea50c2a 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -60,8 +60,8 @@ static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
->  static DEFINE_MUTEX(list_lock);
->  
-> -static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-> -						    struct v4l2_subdev *sd)
-> +static struct v4l2_async_subdev *v4l2_async_find_match(
-> +	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
->  {
->  	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
->  	struct v4l2_async_subdev *asd;
-> @@ -95,9 +95,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
->  	return NULL;
->  }
->  
-> -static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-> -				  struct v4l2_subdev *sd,
-> -				  struct v4l2_async_subdev *asd)
-> +static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_subdev *sd,
-> +				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
->  
-> @@ -187,11 +187,11 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
->  		int ret;
->  
-> -		asd = v4l2_async_belongs(notifier, sd);
-> +		asd = v4l2_async_find_match(notifier, sd);
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret < 0) {
->  			mutex_unlock(&list_lock);
->  			return ret;
-> @@ -255,13 +255,14 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	INIT_LIST_HEAD(&sd->async_list);
->  
->  	list_for_each_entry(notifier, &notifier_list, list) {
-> -		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, sd);
-> +		struct v4l2_async_subdev *asd = v4l2_async_find_match(notifier,
-> +								      sd);
->  		int ret;
->  
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_test_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, sd, asd);
->  		if (ret)
->  			goto err_unlock;
->  
-> -- 
-> 2.11.0
-> 
+On Mon, Oct 16, 2017 at 03:31:17AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> Optimize the power management in i2c-designware-platdrv by making it
+> set the DPM_FLAG_SMART_SUSPEND and DPM_FLAG_LEAVE_SUSPENDED which
+> allows some code to be dropped from its PM callbacks.
+>=20
+> First, setting DPM_FLAG_SMART_SUSPEND causes the intel-lpss driver
+> to avoid resuming i2c-designware-platdrv devices in its ->prepare
+> callback, so they can stay in runtime suspend after that point even
+> if the direct-complete feature is not used for them.
+>=20
+> It also causes the PM core to avoid invoking "late" and "noirq"
+> suspend callbacks for these devices if they are in runtime suspend
+> at the beginning of the "late" phase of device suspend during
+> system suspend.  That guarantees dw_i2c_plat_suspend() to be
+> called for a device only if it is not in runtime suspend.
+> Moreover, it also causes the PM core to set the device's runtime
+> PM status to "active" after calling dw_i2c_plat_resume() for
+> it, so the driver doesn't need internal flags to avoid invoking
+> either dw_i2c_plat_suspend() or dw_i2c_plat_resume() twice in
+> a row.
+>=20
+> Second, setting DPM_FLAG_LEAVE_SUSPENDED enables the optimization
+> allowing the device to stay suspended after system resume under
+> suitable conditions, so again the driver doesn't need to take
+> care of that by itself.
+>=20
+> Accordingly, the internal "suspended" and "skip_resume" flags
+> used by the driver are not necessary any more, so drop them and
+> simplify the driver's PM callbacks.
+>=20
+> Additionally, notice that dw_i2c_plat_complete() only needs
+> to schedule runtime PM for the device if platform firmware
+> has been involved in resuming the system, so make it call
+> pm_resume_via_firmware() to check that.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
--- 
-Regards,
-Niklas Söderlund
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So, if the designware maintainers ack it, I will, too.
+
+
+--p4od3itvpvopd5d5
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlnySIQACgkQFA3kzBSg
+KbZqfg//eepQ7dfIR99euQ0zyI993jzfRLKBz6UAy5kdpVCo6Hl2E2QcJNecTwFU
+eyNRbrPW6EpXZvE2QqVASNHVVqYCQXSK1mJtopwDmZJHPq1WL1fQ7LlXvk4fPc8S
+KaiPqvZ4s3leeseUgOCkEW8Ee8g2V5k6mZUmotDjL9lGdi80sKcycm4BJ3nWZLaH
+/6KwYYHy7UKTw7LlXgoTQ4qeqLKjngHh6/tv7U/qkeD9Ai9ia21x6x6hzHcshfnS
+QUNPdKMAqJdHJgdXxBQB8aOdupkKj1lV0AXMw+v+CmMh/8gDfsSET5HWt1teVPVR
+2SBZv9bw/AFuZrnAM5vlLvxeBFs91VfP7C/RzjKT+vfHxmiiOfJMgGY2aCY3JsOe
+SqfhT/5gdemKcn3lcPvLjMA+0g4woZI59VOaeSETdSvXPHxfe4Y0D4LtNEKtubc/
+4vw8Kkh5XDLv6WtI1zDjoHcxcdwyQ7tluK/2jUGN2ekm0lnCHjUtKAkQSpZnWSE0
+MXQhqdwatY8GXi5wGxlPu/eAqcgt471/qi1yHvFf1DdKlmcLNRQcF3a7/xW+u2Ct
+qK1w7Y8GElRdzacu0so2bfRMEYPh3tH3JKbFAH/PpmoYIi9+83zi5kLohOPdQ/WI
+9ALXn8cRYaKM0zpFotULZ75sZqEoJqta974bnGTP14m4zLHnkGo=
+=JoV4
+-----END PGP SIGNATURE-----
+
+--p4od3itvpvopd5d5--
