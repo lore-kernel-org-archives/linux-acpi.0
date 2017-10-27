@@ -1,225 +1,337 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v16 04/32] v4l: async: Fix notifier complete callback
- error handling
-Date: Fri, 27 Oct 2017 16:46:38 +0200
-Message-ID: <20171027144637.pdcbeuvsmjy6ikq2@earth>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v16 09/32] omap3isp: Use generic parser for parsing
+ fwnode endpoints
+Date: Fri, 27 Oct 2017 16:46:55 +0200
+Message-ID: <20171027144655.nqjtxbsmjzxkv3f5@earth>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-5-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-10-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="hbs6e4xhtpnoixnu"
-Return-path: <linux-media-owner@vger.kernel.org>
+        protocol="application/pgp-signature"; boundary="iyy54ps7th2sam26"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-5-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+In-Reply-To: <20171026075342.5760-10-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---hbs6e4xhtpnoixnu
+--iyy54ps7th2sam26
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 26, 2017 at 10:53:14AM +0300, Sakari Ailus wrote:
-> The notifier complete callback may return an error. This error code was
-> simply returned to the caller but never handled properly.
+On Thu, Oct 26, 2017 at 10:53:19AM +0300, Sakari Ailus wrote:
+> Instead of using a custom driver implementation, use
+> v4l2_async_notifier_parse_fwnode_endpoints() to parse the fwnode endpoints
+> of the device.
 >=20
-> Move calling the complete callback function to the caller from
-> v4l2_async_test_notify and undo the work that was done either in async
-> sub-device or async notifier registration.
->=20
-> Reported-by: Russell King <rmk+kernel@armlinux.org.uk>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org>
 > ---
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 
 -- Sebastian
 
->  drivers/media/v4l2-core/v4l2-async.c | 78 +++++++++++++++++++++++++++---=
+>  drivers/media/platform/omap3isp/isp.c | 121 +++++++++++-----------------=
 ------
->  1 file changed, 60 insertions(+), 18 deletions(-)
+>  drivers/media/platform/omap3isp/isp.h |   5 +-
+>  2 files changed, 40 insertions(+), 86 deletions(-)
 >=20
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
-re/v4l2-async.c
-> index ca281438a0ae..4924481451ca 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -122,9 +122,6 @@ static int v4l2_async_test_notify(struct v4l2_async_n=
-otifier *notifier,
->  	/* Move from the global subdevice list to notifier's done */
->  	list_move(&sd->async_list, &notifier->done);
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platfo=
+rm/omap3isp/isp.c
+> index 1a428fe9f070..97a5206b6ddc 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -2001,6 +2001,7 @@ static int isp_remove(struct platform_device *pdev)
+>  	__omap3isp_put(isp, false);
 > =20
-> -	if (list_empty(&notifier->waiting) && notifier->complete)
-> -		return notifier->complete(notifier);
-> -
+>  	media_entity_enum_cleanup(&isp->crashed);
+> +	v4l2_async_notifier_cleanup(&isp->notifier);
+> =20
 >  	return 0;
 >  }
+> @@ -2011,44 +2012,41 @@ enum isp_of_phy {
+>  	ISP_OF_PHY_CSIPHY2,
+>  };
 > =20
-> @@ -136,11 +133,27 @@ static void v4l2_async_cleanup(struct v4l2_subdev *=
-sd)
->  	sd->asd =3D NULL;
->  }
-> =20
-> +static void v4l2_async_notifier_unbind_all_subdevs(
-> +	struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_subdev *sd, *tmp;
-> +
-> +	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> +		if (notifier->unbind)
-> +			notifier->unbind(notifier, sd, sd->asd);
-> +
-> +		v4l2_async_cleanup(sd);
-> +
-> +		list_move(&sd->async_list, &subdev_list);
-> +	}
-> +}
-> +
->  int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  				 struct v4l2_async_notifier *notifier)
+> -static int isp_fwnode_parse(struct device *dev, struct fwnode_handle *fw=
+node,
+> -			    struct isp_async_subdev *isd)
+> +static int isp_fwnode_parse(struct device *dev,
+> +			    struct v4l2_fwnode_endpoint *vep,
+> +			    struct v4l2_async_subdev *asd)
 >  {
->  	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
-> +	int ret;
->  	int i;
+> +	struct isp_async_subdev *isd =3D
+> +		container_of(asd, struct isp_async_subdev, asd);
+>  	struct isp_bus_cfg *buscfg =3D &isd->bus;
+> -	struct v4l2_fwnode_endpoint vep;
+> -	unsigned int i;
+> -	int ret;
+>  	bool csi1 =3D false;
+> -
+> -	ret =3D v4l2_fwnode_endpoint_parse(fwnode, &vep);
+> -	if (ret)
+> -		return ret;
+> +	unsigned int i;
 > =20
->  	if (!v4l2_dev || !notifier->num_subdevs ||
-> @@ -185,19 +198,30 @@ int v4l2_async_notifier_register(struct v4l2_device=
- *v4l2_dev,
+>  	dev_dbg(dev, "parsing endpoint %pOF, interface %u\n",
+> -		to_of_node(fwnode), vep.base.port);
+> +		to_of_node(vep->base.local_fwnode), vep->base.port);
+> =20
+> -	switch (vep.base.port) {
+> +	switch (vep->base.port) {
+>  	case ISP_OF_PHY_PARALLEL:
+>  		buscfg->interface =3D ISP_INTERFACE_PARALLEL;
+>  		buscfg->bus.parallel.data_lane_shift =3D
+> -			vep.bus.parallel.data_shift;
+> +			vep->bus.parallel.data_shift;
+>  		buscfg->bus.parallel.clk_pol =3D
+> -			!!(vep.bus.parallel.flags
+> +			!!(vep->bus.parallel.flags
+>  			   & V4L2_MBUS_PCLK_SAMPLE_FALLING);
+>  		buscfg->bus.parallel.hs_pol =3D
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW);
+>  		buscfg->bus.parallel.vs_pol =3D
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW);
+>  		buscfg->bus.parallel.fld_pol =3D
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_FIELD_EVEN_LOW);
+>  		buscfg->bus.parallel.data_pol =3D
+> -			!!(vep.bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> -		buscfg->bus.parallel.bt656 =3D vep.bus_type =3D=3D V4L2_MBUS_BT656;
+> +			!!(vep->bus.parallel.flags & V4L2_MBUS_DATA_ACTIVE_LOW);
+> +		buscfg->bus.parallel.bt656 =3D vep->bus_type =3D=3D V4L2_MBUS_BT656;
+>  		break;
+> =20
+>  	case ISP_OF_PHY_CSIPHY1:
+>  	case ISP_OF_PHY_CSIPHY2:
+> -		switch (vep.bus_type) {
+> +		switch (vep->bus_type) {
+>  		case V4L2_MBUS_CCP2:
+>  		case V4L2_MBUS_CSI1:
+>  			dev_dbg(dev, "CSI-1/CCP-2 configuration\n");
+> @@ -2060,11 +2058,11 @@ static int isp_fwnode_parse(struct device *dev, s=
+truct fwnode_handle *fwnode,
+>  			break;
+>  		default:
+>  			dev_err(dev, "unsupported bus type %u\n",
+> -				vep.bus_type);
+> +				vep->bus_type);
+>  			return -EINVAL;
 >  		}
+> =20
+> -		switch (vep.base.port) {
+> +		switch (vep->base.port) {
+>  		case ISP_OF_PHY_CSIPHY1:
+>  			if (csi1)
+>  				buscfg->interface =3D ISP_INTERFACE_CCP2B_PHY1;
+> @@ -2080,47 +2078,47 @@ static int isp_fwnode_parse(struct device *dev, s=
+truct fwnode_handle *fwnode,
+>  		}
+>  		if (csi1) {
+>  			buscfg->bus.ccp2.lanecfg.clk.pos =3D
+> -				vep.bus.mipi_csi1.clock_lane;
+> +				vep->bus.mipi_csi1.clock_lane;
+>  			buscfg->bus.ccp2.lanecfg.clk.pol =3D
+> -				vep.bus.mipi_csi1.lane_polarity[0];
+> +				vep->bus.mipi_csi1.lane_polarity[0];
+>  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+>  				buscfg->bus.ccp2.lanecfg.clk.pol,
+>  				buscfg->bus.ccp2.lanecfg.clk.pos);
+> =20
+>  			buscfg->bus.ccp2.lanecfg.data[0].pos =3D
+> -				vep.bus.mipi_csi1.data_lane;
+> +				vep->bus.mipi_csi1.data_lane;
+>  			buscfg->bus.ccp2.lanecfg.data[0].pol =3D
+> -				vep.bus.mipi_csi1.lane_polarity[1];
+> +				vep->bus.mipi_csi1.lane_polarity[1];
+> =20
+>  			dev_dbg(dev, "data lane polarity %u, pos %u\n",
+>  				buscfg->bus.ccp2.lanecfg.data[0].pol,
+>  				buscfg->bus.ccp2.lanecfg.data[0].pos);
+> =20
+>  			buscfg->bus.ccp2.strobe_clk_pol =3D
+> -				vep.bus.mipi_csi1.clock_inv;
+> -			buscfg->bus.ccp2.phy_layer =3D vep.bus.mipi_csi1.strobe;
+> +				vep->bus.mipi_csi1.clock_inv;
+> +			buscfg->bus.ccp2.phy_layer =3D vep->bus.mipi_csi1.strobe;
+>  			buscfg->bus.ccp2.ccp2_mode =3D
+> -				vep.bus_type =3D=3D V4L2_MBUS_CCP2;
+> +				vep->bus_type =3D=3D V4L2_MBUS_CCP2;
+>  			buscfg->bus.ccp2.vp_clk_pol =3D 1;
+> =20
+>  			buscfg->bus.ccp2.crc =3D 1;
+>  		} else {
+>  			buscfg->bus.csi2.lanecfg.clk.pos =3D
+> -				vep.bus.mipi_csi2.clock_lane;
+> +				vep->bus.mipi_csi2.clock_lane;
+>  			buscfg->bus.csi2.lanecfg.clk.pol =3D
+> -				vep.bus.mipi_csi2.lane_polarities[0];
+> +				vep->bus.mipi_csi2.lane_polarities[0];
+>  			dev_dbg(dev, "clock lane polarity %u, pos %u\n",
+>  				buscfg->bus.csi2.lanecfg.clk.pol,
+>  				buscfg->bus.csi2.lanecfg.clk.pos);
+> =20
+>  			buscfg->bus.csi2.num_data_lanes =3D
+> -				vep.bus.mipi_csi2.num_data_lanes;
+> +				vep->bus.mipi_csi2.num_data_lanes;
+> =20
+>  			for (i =3D 0; i < buscfg->bus.csi2.num_data_lanes; i++) {
+>  				buscfg->bus.csi2.lanecfg.data[i].pos =3D
+> -					vep.bus.mipi_csi2.data_lanes[i];
+> +					vep->bus.mipi_csi2.data_lanes[i];
+>  				buscfg->bus.csi2.lanecfg.data[i].pol =3D
+> -					vep.bus.mipi_csi2.lane_polarities[i + 1];
+> +					vep->bus.mipi_csi2.lane_polarities[i + 1];
+>  				dev_dbg(dev,
+>  					"data lane %u polarity %u, pos %u\n", i,
+>  					buscfg->bus.csi2.lanecfg.data[i].pol,
+> @@ -2137,57 +2135,13 @@ static int isp_fwnode_parse(struct device *dev, s=
+truct fwnode_handle *fwnode,
+> =20
+>  	default:
+>  		dev_warn(dev, "%pOF: invalid interface %u\n",
+> -			 to_of_node(fwnode), vep.base.port);
+> +			 to_of_node(vep->base.local_fwnode), vep->base.port);
+>  		return -EINVAL;
 >  	}
 > =20
-> +	if (list_empty(&notifier->waiting) && notifier->complete) {
-> +		ret =3D notifier->complete(notifier);
-> +		if (ret)
-> +			goto err_complete;
-> +	}
-> +
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
-> =20
->  	mutex_unlock(&list_lock);
-> =20
 >  	return 0;
-> +
-> +err_complete:
-> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
-> +
-> +	mutex_unlock(&list_lock);
-> +
-> +	return ret;
 >  }
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
 > =20
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
->  {
-> -	struct v4l2_subdev *sd, *tmp;
+> -static int isp_fwnodes_parse(struct device *dev,
+> -			     struct v4l2_async_notifier *notifier)
+> -{
+> -	struct fwnode_handle *fwnode =3D NULL;
 > -
->  	if (!notifier->v4l2_dev)
->  		return;
-> =20
-> @@ -205,14 +229,7 @@ void v4l2_async_notifier_unregister(struct v4l2_asyn=
-c_notifier *notifier)
-> =20
->  	list_del(&notifier->list);
-> =20
-> -	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
-> -		if (notifier->unbind)
-> -			notifier->unbind(notifier, sd, sd->asd);
+> -	notifier->subdevs =3D devm_kcalloc(
+> -		dev, ISP_MAX_SUBDEVS, sizeof(*notifier->subdevs), GFP_KERNEL);
+> -	if (!notifier->subdevs)
+> -		return -ENOMEM;
 > -
-> -		v4l2_async_cleanup(sd);
+> -	while (notifier->num_subdevs < ISP_MAX_SUBDEVS &&
+> -	       (fwnode =3D fwnode_graph_get_next_endpoint(
+> -			of_fwnode_handle(dev->of_node), fwnode))) {
+> -		struct isp_async_subdev *isd;
 > -
-> -		list_move(&sd->async_list, &subdev_list);
-> -	}
-> +	v4l2_async_notifier_unbind_all_subdevs(notifier);
-> =20
->  	mutex_unlock(&list_lock);
-> =20
-> @@ -223,6 +240,7 @@ EXPORT_SYMBOL(v4l2_async_notifier_unregister);
->  int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  {
->  	struct v4l2_async_notifier *notifier;
-> +	int ret;
-> =20
->  	/*
->  	 * No reference taken. The reference is held by the device
-> @@ -238,19 +256,43 @@ int v4l2_async_register_subdev(struct v4l2_subdev *=
-sd)
-> =20
->  	list_for_each_entry(notifier, &notifier_list, list) {
->  		struct v4l2_async_subdev *asd =3D v4l2_async_belongs(notifier, sd);
-> -		if (asd) {
-> -			int ret =3D v4l2_async_test_notify(notifier, sd, asd);
-> -			mutex_unlock(&list_lock);
-> -			return ret;
+> -		isd =3D devm_kzalloc(dev, sizeof(*isd), GFP_KERNEL);
+> -		if (!isd)
+> -			goto error;
+> -
+> -		if (isp_fwnode_parse(dev, fwnode, isd)) {
+> -			devm_kfree(dev, isd);
+> -			continue;
 > -		}
-> +		int ret;
-> +
-> +		if (!asd)
-> +			continue;
-> +
-> +		ret =3D v4l2_async_test_notify(notifier, sd, asd);
-> +		if (ret)
-> +			goto err_unlock;
-> +
-> +		if (!list_empty(&notifier->waiting) || !notifier->complete)
-> +			goto out_unlock;
-> +
-> +		ret =3D notifier->complete(notifier);
-> +		if (ret)
-> +			goto err_cleanup;
-> +
-> +		goto out_unlock;
->  	}
+> -
+> -		notifier->subdevs[notifier->num_subdevs] =3D &isd->asd;
+> -
+> -		isd->asd.match.fwnode.fwnode =3D
+> -			fwnode_graph_get_remote_port_parent(fwnode);
+> -		if (!isd->asd.match.fwnode.fwnode) {
+> -			dev_warn(dev, "bad remote port parent\n");
+> -			goto error;
+> -		}
+> -
+> -		isd->asd.match_type =3D V4L2_ASYNC_MATCH_FWNODE;
+> -		notifier->num_subdevs++;
+> -	}
+> -
+> -	return notifier->num_subdevs;
+> -
+> -error:
+> -	fwnode_handle_put(fwnode);
+> -	return -EINVAL;
+> -}
+> -
+>  static int isp_subdev_notifier_complete(struct v4l2_async_notifier *asyn=
+c)
+>  {
+>  	struct isp_device *isp =3D container_of(async, struct isp_device,
+> @@ -2256,15 +2210,17 @@ static int isp_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
 > =20
->  	/* None matched, wait for hot-plugging */
->  	list_add(&sd->async_list, &subdev_list);
+> -	ret =3D isp_fwnodes_parse(&pdev->dev, &isp->notifier);
+> -	if (ret < 0)
+> -		return ret;
+> -
+>  	isp->autoidle =3D autoidle;
 > =20
-> +out_unlock:
->  	mutex_unlock(&list_lock);
+>  	mutex_init(&isp->isp_mutex);
+>  	spin_lock_init(&isp->stat_lock);
 > =20
->  	return 0;
+> +	ret =3D v4l2_async_notifier_parse_fwnode_endpoints(
+> +		&pdev->dev, &isp->notifier, sizeof(struct isp_async_subdev),
+> +		isp_fwnode_parse);
+> +	if (ret < 0)
+> +		goto error;
 > +
-> +err_cleanup:
-> +	if (notifier->unbind)
-> +		notifier->unbind(notifier, sd, sd->asd);
-> +
-> +	v4l2_async_cleanup(sd);
-> +
-> +err_unlock:
-> +	mutex_unlock(&list_lock);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL(v4l2_async_register_subdev);
+>  	isp->dev =3D &pdev->dev;
+>  	isp->ref_count =3D 0;
 > =20
+> @@ -2406,6 +2362,7 @@ static int isp_probe(struct platform_device *pdev)
+>  	isp_xclk_cleanup(isp);
+>  	__omap3isp_put(isp, false);
+>  error:
+> +	v4l2_async_notifier_cleanup(&isp->notifier);
+>  	mutex_destroy(&isp->isp_mutex);
+> =20
+>  	return ret;
+> diff --git a/drivers/media/platform/omap3isp/isp.h b/drivers/media/platfo=
+rm/omap3isp/isp.h
+> index e528df6efc09..8b9043db94b3 100644
+> --- a/drivers/media/platform/omap3isp/isp.h
+> +++ b/drivers/media/platform/omap3isp/isp.h
+> @@ -220,14 +220,11 @@ struct isp_device {
+> =20
+>  	unsigned int sbl_resources;
+>  	unsigned int subclk_resources;
+> -
+> -#define ISP_MAX_SUBDEVS		8
+> -	struct v4l2_subdev *subdevs[ISP_MAX_SUBDEVS];
+>  };
+> =20
+>  struct isp_async_subdev {
+> -	struct isp_bus_cfg bus;
+>  	struct v4l2_async_subdev asd;
+> +	struct isp_bus_cfg bus;
+>  };
+> =20
+>  #define v4l2_subdev_to_bus_cfg(sd) \
 > --=20
 > 2.11.0
 >=20
 
---hbs6e4xhtpnoixnu
+--iyy54ps7th2sam26
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzRsoACgkQ2O7X88g7
-+pqnlA/+MD+zvWrZyuAA8TlHlsipW/rdmD/exxsGmCVMtok53BCRiGUzm6z9Q1B5
-r8FciJCx6AlaA2Qrm0evM0dnZM3zLO1D4vsyEFgQ7c9cTamKSuo51pQ+KZ+Jqmx+
-TyoUm45B0L+sstQEzw3WAMxZCRPCjwG3wald8ay2zZCmJ6q8vLvleC3JX88NrPGP
-2wAu/T6Saq6kmponTDOAIQLso1OxnFDZTLNx79UAW1BdLm80TIiHvObjMse1NVW2
-CtlyhUklilT7BZr+ajQTHJuHUuJONmQyrQfP/CxVuxU3y3zmRaMBYvl0MmrNAhKS
-GD3LOcUxdahKmhEnBwhRmCmVWsiUEkzazUGKKy1AogKfb+hyU+lULf/IJfgga1Oi
-bsYSj6pUgpDS2z9cWHQCdJeUYxw9w3UPpzFw8UX4IeB1yvJRj1qoWGzKUF+a9AgP
-sHU4+5PpdIhj7Iv7iuNo/P0qoNt+vtuS6iSPlkbJ3tQGA5ItJCXqoGoxHI9kHdo7
-TuYRyDYhwwtiEpX0clZf4fk29qK2dHmF59iGBwtKq5WqIIr8nOh3QuE7sSDe+U3P
-0JSEqEE8e87ij2Np6J7+jp35j5ZHecgJX/tDzBCyO15xAJlapVMx9/IO/HZZLcdK
-WPRGfi6yN63IkfhRUYIDwj0cRg70A1mwFsHSZwl7SjoncLWYYtY=
-=sJqc
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzRt4ACgkQ2O7X88g7
++ppjvQ//YMv546+MWKGxq2wd5p92YZq154iPzGeBPIiWTzy8alWfpe1AlT6TMaZF
+SQOvbd1BH52lw0CMVrRIx9VxdsgTReyT1NsXroMtbAl4hbSHxcsVWwaL1AgIYK2k
+vAMY8GTW1OJaIan+6Csg3L6rVDcoAOJ4Bk8fipFl84ZqHL/otcmOfCT89W8hJp/6
+bPF4NuzEGRVQVwE0lSw0DI819klagXjr3pl2hPu7Kuux+dswGGJFxdQp4cSCXTXI
+/9hJUMv1nzNHWMi4bK5Jud2Xs4RiLxG0QoKkGx+/Hyu6dkIaqRvJtqhJBiQTep/d
++pFhk5tc5rRP1o8H2dZUAlNJvUyC0nkzinvzuRZpGbq+tWBis4zbDAwP7EaoLOqH
+gfv6oYbfoj7z1OPwBYhOWCeFpwNhaVvrhI0kRtvqPgmTh5I7cP6eigICjFfm9qUH
+188vd7G6LMMqUJenvZ1dfihSqmuBhf4U/pAUguVCSy2sshKmHYy3M8ATiBCaBqLG
+36aNquEcdXKJgxHK6skrKmxWsj8d83ttR+Dm+d/Sy7oOG6ftbr/j8Sy6ytBjCXJt
+Tkf+Tr2eRx76MGBMaSjbzqv9xSZUour1HIDq6j9LQHQSzvWf1TMM8iJ/grdDvQPm
+KkaOMqmOZ2+RSZ7KB9GzAHX+9fVMIZJRL3cY9woY8/WLYONbpzo=
+=I/iz
 -----END PGP SIGNATURE-----
 
---hbs6e4xhtpnoixnu--
+--iyy54ps7th2sam26--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
