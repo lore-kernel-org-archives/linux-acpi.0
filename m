@@ -1,225 +1,125 @@
 From: Niklas =?iso-8859-1?Q?S=F6derlund?=
         <niklas.soderlund@ragnatech.se>
-Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
- registered to notifiers
-Date: Fri, 27 Oct 2017 12:26:49 +0200
-Message-ID: <20171027102649.GB8854@bigcity.dyn.berto.se>
+Subject: Re: [PATCH v16 23/32] v4l: fwnode: Add a helper function for parsing
+ generic references
+Date: Fri, 27 Oct 2017 12:30:54 +0200
+Message-ID: <20171027103054.GC8854@bigcity.dyn.berto.se>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-20-sakari.ailus@linux.intel.com>
- <20171027095227.GA8854@bigcity.dyn.berto.se>
- <20171027100609.zvww6o5bacfvkfsv@valkosipuli.retiisi.org.uk>
+ <20171026075342.5760-24-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:50960 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752222AbdJ0K0w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Oct 2017 06:26:52 -0400
-Received: by mail-lf0-f68.google.com with SMTP id a132so6862607lfa.7
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Oct 2017 03:26:52 -0700 (PDT)
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:51684 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752016AbdJ0Ka5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Oct 2017 06:30:57 -0400
+Received: by mail-lf0-f67.google.com with SMTP id r129so6862659lff.8
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Oct 2017 03:30:56 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20171027100609.zvww6o5bacfvkfsv@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20171026075342.5760-24-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
-Hi Sakari,
-
-On 2017-10-27 13:06:09 +0300, Sakari Ailus wrote:
-> Hi Niklas,
+On 2017-10-26 10:53:33 +0300, Sakari Ailus wrote:
+> Add function v4l2_fwnode_reference_parse() for parsing them as async
+> sub-devices. This can be done on e.g. flash or lens async sub-devices that
+> are not part of but are associated with a sensor.
 > 
-> On Fri, Oct 27, 2017 at 11:52:27AM +0200, Niklas Söderlund wrote:
-> > Hi Sakari,
-> > 
-> > Thanks for your patch.
-> > 
-> > On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
-> > > While registering a notifier, check that each newly added fwnode is
-> > > unique, and return an error if it is not. Also check that a newly added
-> > > notifier does not have the same fwnodes twice.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > ---
-> > >  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
-> > >  1 file changed, 77 insertions(+), 5 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> > > index ed539c4fd5dc..b4e88eef195f 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > > @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
-> > >  	notifier->parent = NULL;
-> > >  }
-> > >  
-> > > +/* See if an fwnode can be found in a notifier's lists. */
-> > > +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
-> > > +{
-> > > +	struct v4l2_async_subdev *asd;
-> > > +	struct v4l2_subdev *sd;
-> > > +
-> > > +	list_for_each_entry(asd, &notifier->waiting, list) {
-> > > +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> > > +			continue;
-> > > +
-> > > +		if (asd->match.fwnode.fwnode == fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	list_for_each_entry(sd, &notifier->done, async_list) {
-> > > +		if (WARN_ON(!sd->asd))
-> > > +			continue;
-> > > +
-> > > +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
-> > > +			continue;
-> > > +
-> > > +		if (sd->asd->match.fwnode.fwnode == fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	return false;
-> > > +}
-> > > +
-> > > +/*
-> > > + * Find out whether an async sub-device was set up for an fwnode already or
-> > > + * whether it exists in a given notifier before @this_index.
-> > > + */
-> > > +static bool v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
-> > > +	unsigned int this_index)
-> > > +{
-> > > +	unsigned int j;
-> > > +
-> > > +	lockdep_assert_held(&list_lock);
-> > > +
-> > > +	/* Check that an fwnode is not being added more than once. */
-> > > +	for (j = 0; j < this_index; j++) {
-> > > +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
-> > > +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
-> > > +
-> > > +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
-> > > +		    asd->match.fwnode.fwnode ==
-> > > +		    other_asd->match.fwnode.fwnode)
-> > > +			return true;
-> > > +	}
-> > > +
-> > > +	/* Check than an fwnode did not exist in other notifiers. */
-> > > +	list_for_each_entry(notifier, &notifier_list, list)
-> > > +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +			    notifier, fwnode))
-> > > +			return true;
-> > > +
-> > > +	return false;
-> > > +}
-> > > +
-> > >  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  {
-> > > +	struct device *dev =
-> > > +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
-> > >  	struct v4l2_async_subdev *asd;
-> > >  	int ret;
-> > >  	int i;
-> > > @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  	INIT_LIST_HEAD(&notifier->waiting);
-> > >  	INIT_LIST_HEAD(&notifier->done);
-> > >  
-> > > +	mutex_lock(&list_lock);
-> > > +
-> > >  	for (i = 0; i < notifier->num_subdevs; i++) {
-> > >  		asd = notifier->subdevs[i];
-> > >  
-> > > @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  		case V4L2_ASYNC_MATCH_CUSTOM:
-> > >  		case V4L2_ASYNC_MATCH_DEVNAME:
-> > >  		case V4L2_ASYNC_MATCH_I2C:
-> > > +			break;
-> > >  		case V4L2_ASYNC_MATCH_FWNODE:
-> > > +			if (v4l2_async_notifier_fwnode_has_async_subdev(
-> > > +				    notifier, asd->match.fwnode.fwnode, i)) {
-> > > +				dev_err(dev,
-> > > +					"fwnode has already been registered or in notifier's subdev list\n");
-> > > +				ret = -EEXIST;
-> > > +				goto out_unlock;
-> > 
-> > You store the error code in ret before the jump, but in the out_unlock 
-> > path ret is not considered and 0 is always returned.
-> > 
-> > > +			}
-> > >  			break;
-> > >  		default:
-> > > -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-> > > -				"Invalid match type %u on %p\n",
-> > > +			dev_err(dev, "Invalid match type %u on %p\n",
-> > >  				asd->match_type, asd);
-> > > -			return -EINVAL;
-> > > +			ret = -EINVAL;
-> > > +			goto out_unlock;
-> > 
-> > Same here.
-> 
-> Good catch! How about this change on top of the patch? It makes return
-> value checks a little bit safer, too.
-
-I'm happy whit this change, feel free to add
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 69 +++++++++++++++++++++++++++++++++++
+>  1 file changed, 69 insertions(+)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index b4e88eef195f..a33a68e5417b 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -412,12 +412,13 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  	}
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 65bdcd59744a..edd2e8d983a1 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -509,6 +509,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_port(
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
 >  
->  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> -	if (ret)
-> +	if (ret < 0)
->  		goto err_unbind;
->  
->  	ret = v4l2_async_notifier_try_complete(notifier);
-> -	if (ret)
-> +	if (ret < 0)
->  		goto err_unbind;
-> +	ret = 0;
->  
->  	/* Keep also completed notifiers on the list */
->  	list_add(&notifier->list, &notifier_list);
-> @@ -425,7 +426,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  out_unlock:
->  	mutex_unlock(&list_lock);
->  
-> -	return 0;
+> +/*
+> + * v4l2_fwnode_reference_parse - parse references for async sub-devices
+> + * @dev: the device node the properties of which are parsed for references
+> + * @notifier: the async notifier where the async subdevs will be added
+> + * @prop: the name of the property
+> + *
+> + * Return: 0 on success
+> + *	   -ENOENT if no entries were found
+> + *	   -ENOMEM if memory allocation failed
+> + *	   -EINVAL if property parsing failed
+> + */
+> +static int v4l2_fwnode_reference_parse(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	const char *prop)
+> +{
+> +	struct fwnode_reference_args args;
+> +	unsigned int index;
+> +	int ret;
+> +
+> +	for (index = 0;
+> +	     !(ret = fwnode_property_get_reference_args(
+> +		       dev_fwnode(dev), prop, NULL, 0, index, &args));
+> +	     index++)
+> +		fwnode_handle_put(args.fwnode);
+> +
+> +	if (!index)
+> +		return -ENOENT;
+> +
+> +	/*
+> +	 * Note that right now both -ENODATA and -ENOENT may signal
+> +	 * out-of-bounds access. Return the error in cases other than that.
+> +	 */
+> +	if (ret != -ENOENT && ret != -ENODATA)
+> +		return ret;
+> +
+> +	ret = v4l2_async_notifier_realloc(notifier,
+> +					  notifier->num_subdevs + index);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (index = 0; !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
+> +	     index++) {
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >= notifier->max_subdevs)) {
+> +			ret = -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		asd = kzalloc(sizeof(*asd), GFP_KERNEL);
+> +		if (!asd) {
+> +			ret = -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] = asd;
+> +		asd->match.fwnode.fwnode = args.fwnode;
+> +		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		notifier->num_subdevs++;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	fwnode_handle_put(args.fwnode);
 > +	return ret;
->  
->  err_unbind:
->  	/*
-> 
-> > 
-> > >  		}
-> > >  		list_add_tail(&asd->list, &notifier->waiting);
-> > >  	}
-> > >  
-> > > -	mutex_lock(&list_lock);
-> > > -
-> > >  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> > >  	if (ret)
-> > >  		goto err_unbind;
-> > > @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-> > >  	/* Keep also completed notifiers on the list */
-> > >  	list_add(&notifier->list, &notifier_list);
-> > >  
-> > > +out_unlock:
-> > >  	mutex_unlock(&list_lock);
-> > >  
-> > >  	return 0;
-> 
+> +}
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
 > -- 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+> 2.11.0
+> 
 
 -- 
 Regards,
