@@ -1,170 +1,70 @@
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Subject: Re: [PATCH v16 17/32] v4l: async: Prepare for async sub-device
- notifiers
-Date: Fri, 27 Oct 2017 00:10:51 +0200
-Message-ID: <20171026221051.GK2297@bigcity.dyn.berto.se>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-18-sakari.ailus@linux.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH v3 1/7] ACPI/PPTT: Add Processor Properties Topology Table
+ parsing
+Date: Fri, 27 Oct 2017 07:21:13 +0200
+Message-ID: <e4f9e8f1-c200-7350-79af-7f3e9e5c3106@semihalf.com>
+References: <20171012194856.13844-1-jeremy.linton@arm.com>
+ <20171012194856.13844-2-jeremy.linton@arm.com>
+ <38c63cfd-4c13-9461-0d4a-74b0943be0fd@semihalf.com>
+ <2ce92b90-fc2c-3fff-a3e3-b9517057ab2c@arm.com>
+ <4ee4af4d-d987-33f9-4d55-67bfede3ebfa@caviumnetworks.com>
+ <ed7f2e82-1e9b-9f46-89af-4e638275355d@caviumnetworks.com>
+ <47d8ef93-a3ce-6d40-f8db-2bc7d527ac6f@arm.com>
+ <2605aa54-95f7-4619-e632-0a95a68e5fb0@caviumnetworks.com>
+ <49421fa9-c3ac-c81b-ed2d-a113f676edd8@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-media-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-18-sakari.ailus@linux.intel.com>
-Sender: linux-media-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <49421fa9-c3ac-c81b-ed2d-a113f676edd8@huawei.com>
+Content-Language: en-GB
+Sender: linux-pm-owner@vger.kernel.org
+To: John Garry <john.garry@huawei.com>, Tomasz Nowicki <tnowicki@caviumnetworks.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
+Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, austinwc@codeaurora.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, gregkh@linuxfoundation.org, sudeep.holla@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, wangxiongfeng2@huawei.com, viresh.kumar@linaro.org, hanjun.guo@linaro.org, catalin.marinas@arm.com, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2017-10-26 10:53:27 +0300, Sakari Ailus wrote:
-> Refactor the V4L2 async framework a little in preparation for async
-> sub-device notifiers. This avoids making some structural changes in the
-> patch actually implementing sub-device notifiers, making that patch easier
-> to review.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi John,
 
-Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 71 ++++++++++++++++++++++++++----------
->  1 file changed, 52 insertions(+), 19 deletions(-)
+On 19.10.2017 12:25, John Garry wrote:
+> On 19/10/2017 06:18, Tomasz Nowicki wrote:
+>>>
+>>> Summary:
+>>>
+>>> I'm not at all happy with this specification's attempt to leave out
+>>> pieces of information which make parsing things more deterministic. In
+>>> this case I'm happy to demote the message level, but not remove it
+>>> entirely but I do think the obvious case you list shouldn't be the
+>>> default one.
+>>>
+>>> Lastly:
+>>>
+>>> I'm assuming the final result is that the table is actually being
+>>> parsed correctly despite the ugly message?
+>>
+>> Indeed, the ThunderX2 PPTT table is being parsed so that topology shown
+>> in lstopo and lscpu is correct.
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 1b536d68cedf..eb31d96254d1 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -125,12 +125,13 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
->  }
->  
->  static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
-> +				   struct v4l2_device *v4l2_dev,
->  				   struct v4l2_subdev *sd,
->  				   struct v4l2_async_subdev *asd)
->  {
->  	int ret;
->  
-> -	ret = v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret = v4l2_device_register_subdev(v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
->  
-> @@ -151,6 +152,31 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
->  	return 0;
->  }
->  
-> +/* Test all async sub-devices in a notifier for a match. */
-> +static int v4l2_async_notifier_try_all_subdevs(
-> +	struct v4l2_async_notifier *notifier)
-> +{
-> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
-> +	struct v4l2_subdev *sd, *tmp;
-> +
-> +	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> +		struct v4l2_async_subdev *asd;
-> +		int ret;
-> +
-> +		asd = v4l2_async_find_match(notifier, sd);
-> +		if (!asd)
-> +			continue;
-> +
-> +		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-> +		if (ret < 0) {
-> +			mutex_unlock(&list_lock);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  static void v4l2_async_cleanup(struct v4l2_subdev *sd)
->  {
->  	v4l2_device_unregister_subdev(sd);
-> @@ -172,18 +198,15 @@ static void v4l2_async_notifier_unbind_all_subdevs(
->  	}
->  }
->  
-> -int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> -				 struct v4l2_async_notifier *notifier)
-> +static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->  {
-> -	struct v4l2_subdev *sd, *tmp;
->  	struct v4l2_async_subdev *asd;
->  	int ret;
->  	int i;
->  
-> -	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
-> +	if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->  		return -EINVAL;
->  
-> -	notifier->v4l2_dev = v4l2_dev;
->  	INIT_LIST_HEAD(&notifier->waiting);
->  	INIT_LIST_HEAD(&notifier->done);
->  
-> @@ -216,18 +239,10 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  
->  	mutex_lock(&list_lock);
->  
-> -	list_for_each_entry_safe(sd, tmp, &subdev_list, async_list) {
-> -		int ret;
-> -
-> -		asd = v4l2_async_find_match(notifier, sd);
-> -		if (!asd)
-> -			continue;
-> -
-> -		ret = v4l2_async_match_notify(notifier, sd, asd);
-> -		if (ret < 0) {
-> -			mutex_unlock(&list_lock);
-> -			return ret;
-> -		}
-> +	ret = v4l2_async_notifier_try_all_subdevs(notifier);
-> +	if (ret) {
-> +		mutex_unlock(&list_lock);
-> +		return ret;
->  	}
->  
->  	if (list_empty(&notifier->waiting)) {
-> @@ -250,6 +265,23 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  
->  	return ret;
->  }
-> +
-> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> +				 struct v4l2_async_notifier *notifier)
-> +{
-> +	int ret;
-> +
-> +	if (WARN_ON(!v4l2_dev))
-> +		return -EINVAL;
-> +
-> +	notifier->v4l2_dev = v4l2_dev;
-> +
-> +	ret = __v4l2_async_notifier_register(notifier);
-> +	if (ret)
-> +		notifier->v4l2_dev = NULL;
-> +
-> +	return ret;
-> +}
->  EXPORT_SYMBOL(v4l2_async_notifier_register);
->  
->  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> @@ -324,7 +356,8 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  		if (!asd)
->  			continue;
->  
-> -		ret = v4l2_async_match_notify(notifier, sd, asd);
-> +		ret = v4l2_async_match_notify(notifier, notifier->v4l2_dev, sd,
-> +					      asd);
->  		if (ret)
->  			goto err_unlock;
->  
-> -- 
-> 2.11.0
+> Hi Tomasz,
 > 
+> Can you share the lscpu output? Does it have cluster info? I did not 
+> think that lscpu has a concept of clustering.
+> 
+> I would say that the per-cpu cluster index sysfs entry needs be added to 
+> drivers/base/arch_topology.c (and other appropiate code under 
+> GENERIC_ARCH_TOPOLOGY) to support this.
 
--- 
-Regards,
-Niklas Söderlund
+Here is what I get:
+
+tn@val2-11 [~]$ lscpu -ap
+# The following is the parsable format, which can be fed to other
+# programs. Each different item in every column has an unique ID
+# starting from zero.
+# CPU,Core,Socket,Node,,L1d,L1i,L2,L3
+[...]
+1,0,0,0,,0,0,0,0
+[...]
+
+so yes, no cluster info.
+
+Thanks,
+Tomasz
