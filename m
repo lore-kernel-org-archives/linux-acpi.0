@@ -1,54 +1,172 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: Multiple Acer laptops hang on ACPI poweroff
-Date: Fri, 27 Oct 2017 16:40:30 +0800
-Message-ID: <CAD8Lp47xEBPQVVDf0SQyAQHb1kXO4YpBq8DUz2u3Qnqj7RDDuQ@mail.gmail.com>
-References: <20170303201524.8150-1-drake@endlessm.com> <CAD8Lp44G_1R4gP9AFpEm34Y+DBmnWGgpBZbuTjimhi9uCQEKdg@mail.gmail.com>
- <CAJZ5v0hXDHU4f5dXD3DrUszgiJWr0tzjM04bC66-qsEdRf6gUg@mail.gmail.com>
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Subject: Re: [PATCH v16 19/32] v4l: async: Ensure only unique fwnodes are
+ registered to notifiers
+Date: Fri, 27 Oct 2017 11:52:27 +0200
+Message-ID: <20171027095227.GA8854@bigcity.dyn.berto.se>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-20-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hXDHU4f5dXD3DrUszgiJWr0tzjM04bC66-qsEdRf6gUg@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: linux-efi@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux Upstreaming Team <linux@endlessm.com>, Chris Chiu <chiu@endlessm.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20171026075342.5760-20-sakari.ailus@linux.intel.com>
+Sender: linux-media-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 27, 2017 at 3:57 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> Testing shutdown on Acer Aspire ES1-732 (Intel Apollo Lake N4200) on
->> Linux 4.14-rc6, this issue is still present.
->>
->> The FADT has:
->>
->> [0ACh 0172  12]           PM1A Control Block : [Generic Address Structure]
->> [0ACh 0172   1]                     Space ID : 01 [SystemIO]
->> [0ADh 0173   1]                    Bit Width : 10
->> [0AEh 0174   1]                   Bit Offset : 00
->> [0AFh 0175   1]         Encoded Access Width : 02 [Word Access:16]
->> [0B0h 0176   8]                      Address : 0000000000000404
->>
->> Full ACPI tables dump:
->> https://gist.github.com/dsd/ed80d9fdd32f99e310002b2492cd6e1b
->>
->> We have tested that writing bit 13 of port 0404 under Windows 10
->> (using an app called RW everything) results in an immediate and
->> successful power down. However, writing the same bit under Linux just
->> makes the system hang.
->>
->> I am not really familiar with the guts of x86 systems. When the OS
->> writes to this port, which component of the system receives that
->> request and acts accordingly? Is it handled by the BIOS? Or an EC, or
->> ...? With more background here we may be able to approach the relevant
->> component vendor and ask for help.
->
-> Writes to the PM1A register may go straight to the PMC or trigger an
-> SMM trap.  In both cases the platform takes over.
+Hi Sakari,
 
-Platform means BIOS/firmware? (i.e. Insyde in this case)
-Or you are referring to the Intel SoC?
+Thanks for your patch.
 
-> Is Apollo Lake the only platform affected or are there any other?
+On 2017-10-26 10:53:29 +0300, Sakari Ailus wrote:
+> While registering a notifier, check that each newly added fwnode is
+> unique, and return an error if it is not. Also check that a newly added
+> notifier does not have the same fwnodes twice.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 82 +++++++++++++++++++++++++++++++++---
+>  1 file changed, 77 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index ed539c4fd5dc..b4e88eef195f 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -308,8 +308,71 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+>  	notifier->parent = NULL;
+>  }
+>  
+> +/* See if an fwnode can be found in a notifier's lists. */
+> +static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode)
+> +{
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_subdev *sd;
+> +
+> +	list_for_each_entry(asd, &notifier->waiting, list) {
+> +		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	list_for_each_entry(sd, &notifier->done, async_list) {
+> +		if (WARN_ON(!sd->asd))
+> +			continue;
+> +
+> +		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+> +			continue;
+> +
+> +		if (sd->asd->match.fwnode.fwnode == fwnode)
+> +			return true;
+> +	}
+> +
+> +	return false;
+> +}
+> +
+> +/*
+> + * Find out whether an async sub-device was set up for an fwnode already or
+> + * whether it exists in a given notifier before @this_index.
+> + */
+> +static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> +	struct v4l2_async_notifier *notifier, struct fwnode_handle *fwnode,
+> +	unsigned int this_index)
+> +{
+> +	unsigned int j;
+> +
+> +	lockdep_assert_held(&list_lock);
+> +
+> +	/* Check that an fwnode is not being added more than once. */
+> +	for (j = 0; j < this_index; j++) {
+> +		struct v4l2_async_subdev *asd = notifier->subdevs[this_index];
+> +		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+> +
+> +		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> +		    asd->match.fwnode.fwnode ==
+> +		    other_asd->match.fwnode.fwnode)
+> +			return true;
+> +	}
+> +
+> +	/* Check than an fwnode did not exist in other notifiers. */
+> +	list_for_each_entry(notifier, &notifier_list, list)
+> +		if (__v4l2_async_notifier_fwnode_has_async_subdev(
+> +			    notifier, fwnode))
+> +			return true;
+> +
+> +	return false;
+> +}
+> +
+>  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  {
+> +	struct device *dev =
+> +		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>  	struct v4l2_async_subdev *asd;
+>  	int ret;
+>  	int i;
+> @@ -320,6 +383,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+>  
+> +	mutex_lock(&list_lock);
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+> @@ -327,19 +392,25 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+> +			break;
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> +			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> +				    notifier, asd->match.fwnode.fwnode, i)) {
+> +				dev_err(dev,
+> +					"fwnode has already been registered or in notifier's subdev list\n");
+> +				ret = -EEXIST;
+> +				goto out_unlock;
 
-All 3 affected product families are Apollo Lake
+You store the error code in ret before the jump, but in the out_unlock 
+path ret is not considered and 0 is always returned.
 
-Thanks
-Daniel
+> +			}
+>  			break;
+>  		default:
+> -			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> -				"Invalid match type %u on %p\n",
+> +			dev_err(dev, "Invalid match type %u on %p\n",
+>  				asd->match_type, asd);
+> -			return -EINVAL;
+> +			ret = -EINVAL;
+> +			goto out_unlock;
+
+Same here.
+
+>  		}
+>  		list_add_tail(&asd->list, &notifier->waiting);
+>  	}
+>  
+> -	mutex_lock(&list_lock);
+> -
+>  	ret = v4l2_async_notifier_try_all_subdevs(notifier);
+>  	if (ret)
+>  		goto err_unbind;
+> @@ -351,6 +422,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+>  
+> +out_unlock:
+>  	mutex_unlock(&list_lock);
+>  
+>  	return 0;
+> -- 
+> 2.11.0
+> 
+
+-- 
+Regards,
+Niklas Söderlund
