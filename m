@@ -1,96 +1,111 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v16 15/32] v4l: async: Register sub-devices before
- calling bound callback
-Date: Fri, 27 Oct 2017 16:49:01 +0200
-Message-ID: <20171027144901.ac45mvnhtvvn4mgg@earth>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v16 16/32] v4l: async: Allow async notifier register call
+ succeed with no subdevs
+Date: Fri, 27 Oct 2017 16:49:35 +0200
+Message-ID: <20171027144934.jhgvgehf4jblgoet@earth>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-16-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-17-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="ua6a5kw7zdmowy4i"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:56116 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751610AbdJ0OtE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 27 Oct 2017 10:49:04 -0400
+        protocol="application/pgp-signature"; boundary="ezsyaa45ehfhihqy"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-16-sakari.ailus@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20171026075342.5760-17-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 
---ua6a5kw7zdmowy4i
+--ezsyaa45ehfhihqy
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 26, 2017 at 10:53:25AM +0300, Sakari Ailus wrote:
-> Register the sub-device before calling the notifier's bound callback.
-> Doing this the other way around is problematic as the struct v4l2_device
-> has not assigned for the sub-device yet and may be required by the bound
-> callback.
+On Thu, Oct 26, 2017 at 10:53:26AM +0300, Sakari Ailus wrote:
+> The information on how many async sub-devices would be bindable to a
+> notifier is typically dependent on information from platform firmware and
+> it's not driver's business to be aware of that.
 >=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
+> Many V4L2 main drivers are perfectly usable (and useful) without async
+> sub-devices and so if there aren't any around, just proceed call the
+> notifier's complete callback immediately without registering the notifier
+> itself.
+>=20
+> If a driver needs to check whether there are async sub-devices available,
+> it can be done by inspecting the notifier's num_subdevs field which tells
+> the number of async sub-devices.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 > ---
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
 
 -- Sebastian
 
->  drivers/media/v4l2-core/v4l2-async.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
+>  drivers/media/v4l2-core/v4l2-async.c | 12 ++++++++++--
+>  1 file changed, 10 insertions(+), 2 deletions(-)
 >=20
 > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-co=
 re/v4l2-async.c
-> index e170682dae78..46db85685894 100644
+> index 46db85685894..1b536d68cedf 100644
 > --- a/drivers/media/v4l2-core/v4l2-async.c
 > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -130,13 +130,13 @@ static int v4l2_async_match_notify(struct v4l2_asyn=
-c_notifier *notifier,
->  {
+> @@ -180,14 +180,22 @@ int v4l2_async_notifier_register(struct v4l2_device=
+ *v4l2_dev,
 >  	int ret;
+>  	int i;
 > =20
-> -	ret =3D v4l2_async_notifier_call_bound(notifier, sd, asd);
-> +	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
->  	if (ret < 0)
->  		return ret;
+> -	if (!v4l2_dev || !notifier->num_subdevs ||
+> -	    notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+> +	if (!v4l2_dev || notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>  		return -EINVAL;
 > =20
-> -	ret =3D v4l2_device_register_subdev(notifier->v4l2_dev, sd);
-> +	ret =3D v4l2_async_notifier_call_bound(notifier, sd, asd);
->  	if (ret < 0) {
-> -		v4l2_async_notifier_call_unbind(notifier, sd, asd);
-> +		v4l2_device_unregister_subdev(sd);
->  		return ret;
->  	}
+>  	notifier->v4l2_dev =3D v4l2_dev;
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+> =20
+> +	if (!notifier->num_subdevs) {
+> +		int ret;
+> +
+> +		ret =3D v4l2_async_notifier_call_complete(notifier);
+> +		notifier->v4l2_dev =3D NULL;
+> +
+> +		return ret;
+> +	}
+> +
+>  	for (i =3D 0; i < notifier->num_subdevs; i++) {
+>  		asd =3D notifier->subdevs[i];
 > =20
 > --=20
 > 2.11.0
 >=20
 
---ua6a5kw7zdmowy4i
+--ezsyaa45ehfhihqy
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzR1wACgkQ2O7X88g7
-+prdnw/+N3KA+1wakuE51jx3r7XxC127Ig5gq8FEsJO4n9sbYqvraIKOQv88yxfE
-8DReASbNOAdZjjv6JF2uzZrzXuk6BaFJufknDE29M0s6CyPlO5jvwFgRv0rZq7fY
-LZi7GeYe7QSJU+bSanC80Q5YQQbd/677F59BXQANBUHcqP4gOe3UFlN4KUJ2fY/6
-95NieR77iD12CtP/TkoFxxjPy/6ykf4DyxgpUFoH4Z5UWRRpp83dvgRu0WIXA/vp
-v50f9SMSJ50OJF2RAFnn9vGluWx7tGGKRWGdvJjaslq88K1pX4vB/HG4C9Y6mtN9
-AqN9U4HNJlZoQ3m6ejoIaAaKp3d5qx7af0Y+UyWQ173f6cX9Ci4OOi0KqBaBNzJD
-q7cO5XNyiBTJrw+8NpTQmMSySI2renmbjRtmz7WP+nle9KAwnVm44fYlGqdL4hEg
-6XTlzc709n0CcUZ+5NEOj1TKmuRJ6sYwV/7BB2w1nMtRq85nQisHEOkDURQ8eMEM
-SiOnZLkfUNx50jUKeK0+Yhrq2uCmhJhOEBx9VbeOd3QugIFPk4H+R9WwNpwMFIZH
-a0MGOZ42SU3q+QNMYW9SOXU0KIqx/6bdbN9A0Lha69pcCFFslykhlgWt3gbx8H/6
-KQD5trPNmXbqGG/+K/z7PdsThfFSBAqUS3/4jCkJU9JWV1W0SDs=
-=akMn
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlnzR34ACgkQ2O7X88g7
++potRA/+O1su/7Aft1Bt0yrE3vsN07KMRCUTE7u/8NEM8Kqjsu9SOeZXGzi9eLpo
+xgUYqzaamCLyd9jY/kiO1ohHHcXcxCpPV9iwmt576KO+uDORDLwJX8MHWwZrcY4U
+0YTrKCziQYAOAkaOf53n+a3AVz5nDR5bmxXCkdWps89yjVjj3DWAMLPMd2SsLPoM
+FCnnU8rGARHRsC1yzc1+rOL9aGVx7TcU5N+RzYwdvw+S98aZGbLyEi2omUqTpJr7
+Ps8yUmhvnEcZLzc5F5NLoYiX984wTuwGnSi7Lnp8nvN+qspdCSHvbNHk4GBuIzqs
+mu12nwv5z6rZCIvfjcW23pgQa/Rm1tk+CnTW1w3L1o4pFtCqM6HYK81Je2wapEAv
+kobFRi5UYpaZ5h/cA/E17sfhkgCo9qd/R9Ac0SDjYP3JDvAzJmrjyyk98KF7Afby
+GcIAyn8DrfmgMd9lNZqo0/Yo2SCyLC8tpyZ+CQVQVfDN4KYPzUnlXDxB5mXI74+4
+5FIWoXKPWl0/gRJkN4nQn3WdP4Omget7Iodk7GHXj8gv0KN/OpnEcBWRaxs0pyDU
+9oUm1vaUcOy61RUwJkVA/u1j4kZ+Qna5mdQDstOGhzaimulg6/w0uge05V6wysOX
+cTziDKCK9sVb8IpKyMijaNJANUVWBqqH1axxMghsj6Wb8rP5vHU=
+=EOWq
 -----END PGP SIGNATURE-----
 
---ua6a5kw7zdmowy4i--
+--ezsyaa45ehfhihqy--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
