@@ -1,40 +1,76 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: [PATCH] ACPICA: Clean up whitespace of indentation
-Date: Sat, 28 Oct 2017 09:34:21 +0800
-Message-ID: <1509154461-23909-1-git-send-email-bhe@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH v10 0/7] PCI: rockchip: Move PCIe WAKE# handling into pci core
+Date: Sat, 28 Oct 2017 11:07:30 +0200
+Message-ID: <1872710.P2f02irZl9@aspire.rjw.lan>
+References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43272 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750962AbdJ1Be2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 27 Oct 2017 21:34:28 -0400
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63202 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751000AbdJ1JHZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 28 Oct 2017 05:07:25 -0400
+In-Reply-To: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, Baoquan He <bhe@redhat.com>
+To: Jeffy Chen <jeffy.chen@rock-chips.com>
+Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, tony@atomide.com, shawn.lin@rock-chips.com, briannorris@chromium.org, dianders@chromium.org, Xinming Hu <huxm@marvell.com>, linux-pci@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Kalle Valo <kvalo@codeaurora.org>, Heiko Stuebner <heiko@sntech.de>, linux-acpi@vger.kernel.org, linux-rockchip@lists.infradead.org, Nishant Sarmukadam <nishants@marvell.com>, Will Deacon <will.deacon@arm.com>, Matthias Kaehlcke <mka@chromium.org>, devicetree@vger.kernel.org, Ganapathi Bhat <gbhat@marvell.com>, Frank Rowand <frowand.list@gmail.com>, Len Brown <lenb@kernel.org>, Amitkumar Karwar <amitkarwar@gmail.com>, linux-arm-kernel@lists.infradead.org, net
 
-Use tabs (not spaces) for indentation.
+On Friday, October 27, 2017 9:26:05 AM CEST Jeffy Chen wrote:
+> 
+> Currently we are handling wake irq in mrvl wifi driver. Move it into
+> pci core.
+> 
+> Tested on my chromebook bob(with cros 4.4 kernel and mrvl wifi).
+> 
+> 
+> Changes in v10:
+> Use device_set_wakeup_capable() instead of device_set_wakeup_enable(),
+> since dedicated wakeirq will be lost in device_set_wakeup_enable(false).
+> 
+> Changes in v9:
+> Add section for PCI devices and rewrite the commit message.
+> Rewrite the commit message.
+> Fix check error in .cleanup().
+> Move dedicated wakeirq setup to setup() callback and use
+> device_set_wakeup_enable() to enable/disable.
+> 
+> Changes in v8:
+> Add optional "pci", and rewrite commit message.
+> Rewrite the commit message.
+> Add pci-of.c and use platform_pm_ops to handle the PCIe WAKE# signal.
+> 
+> Changes in v7:
+> Move PCIE_WAKE handling into pci core.
+> 
+> Changes in v6:
+> Fix device_init_wake error handling, and add some comments.
+> 
+> Changes in v5:
+> Move to pci.txt
+> Use "wakeup" instead of "wake"
+> Rebase.
+> 
+> Changes in v3:
+> Fix error handling.
+> 
+> Changes in v2:
+> Use dev_pm_set_dedicated_wake_irq.
+> 
+> Jeffy Chen (7):
+>   dt-bindings: PCI: Add definition of PCIe WAKE# irq and PCI irq
+>   of/irq: Adjust of_pci_irq parsing for multiple interrupts
+>   mwifiex: Disable wakeup irq handling for pcie
+>   arm64: dts: rockchip: Move PCIe WAKE# irq to pcie driver for Gru
+>   PCI: Make pci_platform_pm_ops's callbacks optional
+>   PCI / PM: Move acpi wakeup code to pci core
+>   PCI / PM: Add support for the PCIe WAKE# signal for OF
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
----
- include/acpi/actbl1.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Overall, I don't quite like the direction this is going into, but I need to
+have a deeper look.  Which may take some time, so please bear with me.
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 6b8714a428b6..d8a4fc066abe 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1438,9 +1438,9 @@ struct acpi_srat_mem_affinity {
- 	u16 reserved;		/* Reserved, must be zero */
- 	u64 base_address;
- 	u64 length;
--       u32 reserved1;
-+	u32 reserved1;
- 	u32 flags;
--       u64 reserved2;	       /* Reserved, must be zero */
-+	u64 reserved2;	       /* Reserved, must be zero */
- };
- 
- /* Flags */
--- 
-2.5.5
+Thanks,
+Rafael
 
