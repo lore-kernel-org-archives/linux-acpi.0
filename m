@@ -1,76 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH v10 0/7] PCI: rockchip: Move PCIe WAKE# handling into pci core
-Date: Sat, 28 Oct 2017 11:07:30 +0200
-Message-ID: <1872710.P2f02irZl9@aspire.rjw.lan>
-References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
+From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v16 20/32] dt: bindings: Add a binding for flash LED
+ devices associated to a sensor
+Date: Sun, 29 Oct 2017 23:26:43 +0100
+Message-ID: <20171029222643.hncpyrvlkbrg2k57@earth>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-21-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63202 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751000AbdJ1JHZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 28 Oct 2017 05:07:25 -0400
-In-Reply-To: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="y2d6l53w2cbhvhga"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171026075342.5760-21-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jeffy Chen <jeffy.chen@rock-chips.com>
-Cc: linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, tony@atomide.com, shawn.lin@rock-chips.com, briannorris@chromium.org, dianders@chromium.org, Xinming Hu <huxm@marvell.com>, linux-pci@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Kalle Valo <kvalo@codeaurora.org>, Heiko Stuebner <heiko@sntech.de>, linux-acpi@vger.kernel.org, linux-rockchip@lists.infradead.org, Nishant Sarmukadam <nishants@marvell.com>, Will Deacon <will.deacon@arm.com>, Matthias Kaehlcke <mka@chromium.org>, devicetree@vger.kernel.org, Ganapathi Bhat <gbhat@marvell.com>, Frank Rowand <frowand.list@gmail.com>, Len Brown <lenb@kernel.org>, Amitkumar Karwar <amitkarwar@gmail.com>, linux-arm-kernel@lists.infradead.org, net
 
-On Friday, October 27, 2017 9:26:05 AM CEST Jeffy Chen wrote:
-> 
-> Currently we are handling wake irq in mrvl wifi driver. Move it into
-> pci core.
-> 
-> Tested on my chromebook bob(with cros 4.4 kernel and mrvl wifi).
-> 
-> 
-> Changes in v10:
-> Use device_set_wakeup_capable() instead of device_set_wakeup_enable(),
-> since dedicated wakeirq will be lost in device_set_wakeup_enable(false).
-> 
-> Changes in v9:
-> Add section for PCI devices and rewrite the commit message.
-> Rewrite the commit message.
-> Fix check error in .cleanup().
-> Move dedicated wakeirq setup to setup() callback and use
-> device_set_wakeup_enable() to enable/disable.
-> 
-> Changes in v8:
-> Add optional "pci", and rewrite commit message.
-> Rewrite the commit message.
-> Add pci-of.c and use platform_pm_ops to handle the PCIe WAKE# signal.
-> 
-> Changes in v7:
-> Move PCIE_WAKE handling into pci core.
-> 
-> Changes in v6:
-> Fix device_init_wake error handling, and add some comments.
-> 
-> Changes in v5:
-> Move to pci.txt
-> Use "wakeup" instead of "wake"
-> Rebase.
-> 
-> Changes in v3:
-> Fix error handling.
-> 
-> Changes in v2:
-> Use dev_pm_set_dedicated_wake_irq.
-> 
-> Jeffy Chen (7):
->   dt-bindings: PCI: Add definition of PCIe WAKE# irq and PCI irq
->   of/irq: Adjust of_pci_irq parsing for multiple interrupts
->   mwifiex: Disable wakeup irq handling for pcie
->   arm64: dts: rockchip: Move PCIe WAKE# irq to pcie driver for Gru
->   PCI: Make pci_platform_pm_ops's callbacks optional
->   PCI / PM: Move acpi wakeup code to pci core
->   PCI / PM: Add support for the PCIe WAKE# signal for OF
 
-Overall, I don't quite like the direction this is going into, but I need to
-have a deeper look.  Which may take some time, so please bear with me.
+--y2d6l53w2cbhvhga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
-Rafael
+Hi,
 
+On Thu, Oct 26, 2017 at 10:53:30AM +0300, Sakari Ailus wrote:
+> Camera flash drivers (and LEDs) are separate from the sensor devices in
+> DT. In order to make an association between the two, provide the
+> association information to the software.
+>=20
+> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Acked-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+> Acked-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+> ---
+
+Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+
+-- Sebastian
+
+>  Documentation/devicetree/bindings/media/video-interfaces.txt | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt=
+ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index bd6474920510..dc66e3224692 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -76,6 +76,14 @@ are required in a relevant parent node:
+>  		    identifier, should be 1.
+>   - #size-cells    : should be zero.
+> =20
+> +
+> +Optional properties
+> +-------------------
+> +
+> +- flash-leds: An array of phandles, each referring to a flash LED, a sub=
+-node
+> +  of the LED driver device node.
+> +
+> +
+>  Optional endpoint properties
+>  ----------------------------
+> =20
+> --=20
+> 2.11.0
+>=20
+
+--y2d6l53w2cbhvhga
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2VaMACgkQ2O7X88g7
++pqpyA//ZAshtDhYm9LJqNOpXhw0XSjSWGgNwpayFfoLZ/G7TcpTROB7tYE9atjZ
+6Cbbl7bYdBDr07d4r4QI5/AgzsjZnjUDhvkCW8vT+6em7vY37nHPkcoTv2VOcqgJ
+IVrSzPybs94CKrhc8u1x4qJWRaLzcPi9Gi8T/wgC8ayOG0RybwvenwNY+xqJ1UD7
+65Hlqa5c3JNjaTNEfRLGMJxVbeO/eS4M946YJDzoCjCZwX1vJBBvBpqgnO10paaa
+WVx90XCDbY3t/asMH6ld8q8jmszzauSXy0jTmt5U8kS+giqY5IorcRSLRctOd0kp
+OJqEMszDEKYkAHagztnBvcc27UD+l77GMnQZm6syo0jhiC3GwkXm0+NnChPL+ZGz
+NErLudA2Y6uHJO0IfaH4Dk80rPFTnoFJrPY7T+71B6Nla8Cakm6OTsMGp5OcySBo
+QugHMHbLzFLTAasB3nnXPykBLHqQNIB1zTk79fKFutUmXH03DoQGUr8o0iBnCodU
+8z3wIyJaCk2M0wRNu9/BuHbzUyYqNqF6bULl6AC2k0ApCIBl2efONq44Yy+3KF0i
+X1uLwVN1ZX1dIwcOpR1BwMNnSALK5C8GT/SLrxK4p9Nzy83+PZzHKoWA4sW/1BhO
+SCXZLAiJSNDCyZ9+w8tD0x0DwQFd5n70hObQJ4BTB7lgVGJXAFo=
+=/v65
+-----END PGP SIGNATURE-----
+
+--y2d6l53w2cbhvhga--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
