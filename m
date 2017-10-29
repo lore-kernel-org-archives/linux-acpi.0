@@ -1,82 +1,120 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v16 31/32] ov13858: Add support for flash and lens devices
-Date: Mon, 30 Oct 2017 00:06:08 +0100
-Message-ID: <20171029230608.syxyfisvvsysr352@earth>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v16 32/32] arm: dts: omap3: N9/N950: Add flash references
+ to the camera
+Date: Mon, 30 Oct 2017 00:08:37 +0100
+Message-ID: <20171029230837.vjs4f7wi7tj7q3bc@earth>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-32-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-33-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="wdfen5xviiq3gjk3"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+        protocol="application/pgp-signature"; boundary="jcz4dhtxtkeqmra6"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:57454 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751152AbdJ2XIk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 29 Oct 2017 19:08:40 -0400
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-32-sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <20171026075342.5760-33-sakari.ailus@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 
---wdfen5xviiq3gjk3
+--jcz4dhtxtkeqmra6
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 26, 2017 at 10:53:41AM +0300, Sakari Ailus wrote:
-> Parse async sub-devices related to the sensor by switching the async
-> sub-device registration function.
+On Thu, Oct 26, 2017 at 10:53:42AM +0300, Sakari Ailus wrote:
+> Add flash and indicator LED phandles to the sensor node.
 >=20
-> Signed-off-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> Acked-by: Hans Verkuil <hans.verkuil-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Pavel Machek <pavel@ucw.cz>
 > ---
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
+Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
->  drivers/media/i2c/ov13858.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  arch/arm/boot/dts/omap3-n9.dts       | 1 +
+>  arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
+>  arch/arm/boot/dts/omap3-n950.dts     | 1 +
+>  3 files changed, 4 insertions(+), 2 deletions(-)
 >=20
-> diff --git a/drivers/media/i2c/ov13858.c b/drivers/media/i2c/ov13858.c
-> index fdce2befed02..bf7d06f3f21a 100644
-> --- a/drivers/media/i2c/ov13858.c
-> +++ b/drivers/media/i2c/ov13858.c
-> @@ -1761,7 +1761,7 @@ static int ov13858_probe(struct i2c_client *client,
->  		goto error_handler_free;
->  	}
-> =20
-> -	ret =3D v4l2_async_register_subdev(&ov13858->sd);
-> +	ret =3D v4l2_async_register_subdev_sensor_common(&ov13858->sd);
->  	if (ret < 0)
->  		goto error_media_entity;
-> =20
+> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.=
+dts
+> index b9e58c536afd..39e35f8b8206 100644
+> --- a/arch/arm/boot/dts/omap3-n9.dts
+> +++ b/arch/arm/boot/dts/omap3-n9.dts
+> @@ -26,6 +26,7 @@
+>  		clocks =3D <&isp 0>;
+>  		clock-frequency =3D <9600000>;
+>  		nokia,nvm-size =3D <(16 * 64)>;
+> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
+>  		port {
+>  			smia_1_1: endpoint {
+>  				link-frequencies =3D /bits/ 64 <199200000 210000000 499200000>;
+> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/oma=
+p3-n950-n9.dtsi
+> index 1b0bd72945f2..12fbb3da5fce 100644
+> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
+> @@ -271,14 +271,14 @@
+>  		#size-cells =3D <0>;
+>  		reg =3D <0x30>;
+>  		compatible =3D "ams,as3645a";
+> -		flash@0 {
+> +		as3645a_flash: flash@0 {
+>  			reg =3D <0x0>;
+>  			flash-timeout-us =3D <150000>;
+>  			flash-max-microamp =3D <320000>;
+>  			led-max-microamp =3D <60000>;
+>  			ams,input-max-microamp =3D <1750000>;
+>  		};
+> -		indicator@1 {
+> +		as3645a_indicator: indicator@1 {
+>  			reg =3D <0x1>;
+>  			led-max-microamp =3D <10000>;
+>  		};
+> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n=
+950.dts
+> index 646601a3ebd8..c354a1ed1e70 100644
+> --- a/arch/arm/boot/dts/omap3-n950.dts
+> +++ b/arch/arm/boot/dts/omap3-n950.dts
+> @@ -60,6 +60,7 @@
+>  		clocks =3D <&isp 0>;
+>  		clock-frequency =3D <9600000>;
+>  		nokia,nvm-size =3D <(16 * 64)>;
+> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
+>  		port {
+>  			smia_1_1: endpoint {
+>  				link-frequencies =3D /bits/ 64 <210000000 333600000 398400000>;
 > --=20
 > 2.11.0
 >=20
 
---wdfen5xviiq3gjk3
+--jcz4dhtxtkeqmra6
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2XuAACgkQ2O7X88g7
-+ppEhQ//UQCQFrJXW4nRYdj5kbqzVFlsZQsApNRY2SPi9wP4YmfBswhZ2Z6pP1RT
-CO6FHsVVrKgoj1CHBegDX1zbNGuCj15E8FYIvV5gewkJ4vFU49JcJvvc1qOLUrRU
-dz+bcm7DhH4uQ0WeX2BsEHL26Q5UZDpuezA5LZ5P4NNoIX/Rnkkprz5UPcLDEh4+
-21vszU+uHeDo7ZNjx0L/nhq9LceI+ohCt+2ZWj+ouN/vT0fmg6lOvTt+tLGXXwKK
-iUpnWh3OxYL951GZuR5R+a4EGfEzQP2oWbyIIgXaYnmOCdsgZ31cJiolExwuxMMR
-TSbMtzz9rGa+fTZHU4sCLkg+r42mg7NAdzE4OwCmt1zzw6/UOfT1OXl+NX1SZUxt
-5LmVurjUlKqCSD0u4MQo3LZC/Mmpa8nS4PPSDcdxsfAz88lRtKPWySRqFhzn7q//
-W4dd6xLARmKCEk4hdh4SZ8SQYZ8qJxbQfOzxlK6ZUwTAPMGJsZFZELnzzZBQQsd+
-OtLkSOmIFr7GV1V+1fpfh/jv806P4YIYg482GkL58yX/DW99M+QBGnBWlxgJmWKQ
-/vbjZ0xK1YlkxeuRucN8f/LMYRSbLGSfafhtldENDBJoSx5reelPf+BSN9vv5034
-PZTawIUScKtW+7htG81rRK009W7GmxP4f5NyNMmQ7IiBeCWOJ9o=
-=y1Rx
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2X3QACgkQ2O7X88g7
++pqXXg/7BOTXpAtSXNm5Jmgi3KzC2fGX2eCXAwN/f/xWU+IVJoAean0K7KC0E/te
+9d+suSOtsU1S5GSKNy3ejz3SV4uZifVfxRO7HeD+dArMn0bEoRhKhFfnb4LXGWDk
+wDTjfQI+Y8FG8y7xUPAJp5DDH/dG62pyxxx6z/rt05tJ3fEkkd0NoITu+M+rM5kk
++3uLK0pbJB0Wep2NwXfy3TQ3iUwdD0/QWbxkpssnrgKpKnTpa6VXvboN1t6J1S6K
+Y0+Upw4ft2B3U48t5zDAb3r3GVrRaRKveTzSxH+NA5crTZ4eGB0FKM1xOR/Rudqc
+J9bJYGEvXr55aj62SYYk3iFbdwhEnaExb3SurzyeJmyw2tJs7h0BDv09lhQ7gKpi
+OzJnC4/xao/YnV9NtUo716dznsS53+Hk95GjGvRCk6OjtHPUrJDHD+xmHo74opI9
+H25iTq3zqpbtwa4OCEnOV4Tf+jIMtexo34EFUesHiM9QXNWO5/nTzELaiwH9XhJ/
+LnVCptWXKXTZXtYshZHE0mU0/zMguzqcISnUSd3V58R0tshSyupHE9ZwiABQzSsv
+bIY/i8ohvqbyyU2fB5k3N0H4D83ySJWG0JJfXfNnjkRnJA/vUiEyT4ee7R4GmlRL
+A7MW0NRoWHZrjQrjDfQKlupY2FOqmcsVo1te++M9O1UUUD8GlRc=
+=clOP
 -----END PGP SIGNATURE-----
 
---wdfen5xviiq3gjk3--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--jcz4dhtxtkeqmra6--
