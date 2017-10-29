@@ -1,338 +1,155 @@
 From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v16 22/32] v4l: fwnode: Move KernelDoc documentation to
- the header
-Date: Sun, 29 Oct 2017 23:28:16 +0100
-Message-ID: <20171029222816.3el3hzcsx7e5zklx@earth>
+Subject: Re: [PATCH v16 23/32] v4l: fwnode: Add a helper function for parsing
+ generic references
+Date: Sun, 29 Oct 2017 23:53:31 +0100
+Message-ID: <20171029225331.2nepypjszl7eu27u@earth>
 References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-23-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-24-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="xgtefgl3fj6vnjo7"
+        protocol="application/pgp-signature"; boundary="yhowj2hc7rkvwzyu"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:55282 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751152AbdJ2W2U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 29 Oct 2017 18:28:20 -0400
+        id S1751152AbdJ2Wxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 29 Oct 2017 18:53:35 -0400
 Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-23-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171026075342.5760-24-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 
---xgtefgl3fj6vnjo7
-Content-Type: text/plain; charset=iso-8859-1
+--yhowj2hc7rkvwzyu
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-On Thu, Oct 26, 2017 at 10:53:32AM +0300, Sakari Ailus wrote:
-> In V4L2 the practice is to have the KernelDoc documentation in the header
-> and not in .c source code files. This consequently makes the V4L2 fwnode
-> function documentation part of the Media documentation build.
->=20
-> Also correct the link related function and argument naming in
-> documentation and add an asterisk to v4l2_fwnode_endpoint_free()
-> documentation to make it proper KernelDoc documentation.
+On Thu, Oct 26, 2017 at 10:53:33AM +0300, Sakari Ailus wrote:
+> Add function v4l2_fwnode_reference_parse() for parsing them as async
+> sub-devices. This can be done on e.g. flash or lens async sub-devices that
+> are not part of but are associated with a sensor.
 >=20
 > Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Reviewed-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
 > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
 > ---
 
 Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
 -- Sebastian
 
->  drivers/media/v4l2-core/v4l2-fwnode.c | 75 -----------------------------=
----
->  include/media/v4l2-fwnode.h           | 81 +++++++++++++++++++++++++++++=
-+++++-
->  2 files changed, 80 insertions(+), 76 deletions(-)
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 69 +++++++++++++++++++++++++++++=
+++++++
+>  1 file changed, 69 insertions(+)
 >=20
 > diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-c=
 ore/v4l2-fwnode.c
-> index df0695b7bbcc..65bdcd59744a 100644
+> index 65bdcd59744a..edd2e8d983a1 100644
 > --- a/drivers/media/v4l2-core/v4l2-fwnode.c
 > +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -183,25 +183,6 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_ha=
-ndle *fwnode,
->  		vep->bus_type =3D V4L2_MBUS_CSI1;
+> @@ -509,6 +509,75 @@ int v4l2_async_notifier_parse_fwnode_endpoints_by_po=
+rt(
 >  }
+>  EXPORT_SYMBOL_GPL(v4l2_async_notifier_parse_fwnode_endpoints_by_port);
 > =20
-> -/**
-> - * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-> - * @fwnode: pointer to the endpoint's fwnode handle
-> - * @vep: pointer to the V4L2 fwnode data structure
-> - *
-> - * All properties are optional. If none are found, we don't set any flag=
-s. This
-> - * means the port has a static configuration and no properties have to be
-> - * specified explicitly. If any properties that identify the bus as para=
-llel
-> - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarl=
-y, if
-> - * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't se=
-t, we
-> - * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-> - * reference to @fwnode.
-> - *
-> - * NOTE: This function does not parse properties the size of which is va=
-riable
-> - * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_pars=
-e() in
-> - * new drivers instead.
-> - *
-> - * Return: 0 on success or a negative error code on failure.
-> - */
->  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
->  			       struct v4l2_fwnode_endpoint *vep)
->  {
-> @@ -241,14 +222,6 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle =
-*fwnode,
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
-> =20
-> -/*
-> - * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> - * v4l2_fwnode_endpoint_alloc_parse()
-> - * @vep - the V4L2 fwnode the resources of which are to be released
-> - *
-> - * It is safe to call this function with NULL argument or on a V4L2 fwno=
-de the
-> - * parsing of which failed.
-> - */
->  void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep)
->  {
->  	if (IS_ERR_OR_NULL(vep))
-> @@ -259,29 +232,6 @@ void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_en=
-dpoint *vep)
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_free);
-> =20
-> -/**
-> - * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-> - * @fwnode: pointer to the endpoint's fwnode handle
-> - *
-> - * All properties are optional. If none are found, we don't set any flag=
-s. This
-> - * means the port has a static configuration and no properties have to be
-> - * specified explicitly. If any properties that identify the bus as para=
-llel
-> - * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarl=
-y, if
-> - * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't se=
-t, we
-> - * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-> - * reference to @fwnode.
-> - *
-> - * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-> - * v4l2_fwnode_endpoint_parse():
-> - *
-> - * 1. It also parses variable size data.
-> - *
-> - * 2. The memory it has allocated to store the variable size data must b=
-e freed
-> - *    using v4l2_fwnode_endpoint_free() when no longer needed.
-> - *
-> - * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error po=
-inter
-> - * on error.
-> - */
->  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
->  	struct fwnode_handle *fwnode)
->  {
-> @@ -324,24 +274,6 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_al=
-loc_parse(
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_alloc_parse);
-> =20
-> -/**
-> - * v4l2_fwnode_endpoint_parse_link() - parse a link between two endpoints
-> - * @__fwnode: pointer to the endpoint's fwnode at the local end of the l=
-ink
-> - * @link: pointer to the V4L2 fwnode link data structure
-> - *
-> - * Fill the link structure with the local and remote nodes and port numb=
-ers.
-> - * The local_node and remote_node fields are set to point to the local a=
-nd
-> - * remote port's parent nodes respectively (the port parent node being t=
-he
-> - * parent node of the port node if that node isn't a 'ports' node, or the
-> - * grand-parent node of the port node otherwise).
-> - *
-> - * A reference is taken to both the local and remote nodes, the caller m=
-ust use
-> - * v4l2_fwnode_endpoint_put_link() to drop the references when done with=
- the
-> - * link.
-> - *
-> - * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't=
- be
-> - * found.
-> - */
->  int v4l2_fwnode_parse_link(struct fwnode_handle *__fwnode,
->  			   struct v4l2_fwnode_link *link)
->  {
-> @@ -376,13 +308,6 @@ int v4l2_fwnode_parse_link(struct fwnode_handle *__f=
-wnode,
->  }
->  EXPORT_SYMBOL_GPL(v4l2_fwnode_parse_link);
-> =20
-> -/**
-> - * v4l2_fwnode_put_link() - drop references to nodes in a link
-> - * @link: pointer to the V4L2 fwnode link data structure
-> - *
-> - * Drop references to the local and remote nodes in the link. This funct=
-ion
-> - * must be called on every link parsed with v4l2_fwnode_parse_link().
-> - */
->  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link)
->  {
->  	fwnode_handle_put(link->local_node);
-> diff --git a/include/media/v4l2-fwnode.h b/include/media/v4l2-fwnode.h
-> index ac605af9b877..105cfeee44ef 100644
-> --- a/include/media/v4l2-fwnode.h
-> +++ b/include/media/v4l2-fwnode.h
-> @@ -115,13 +115,92 @@ struct v4l2_fwnode_link {
->  	unsigned int remote_port;
->  };
-> =20
-> +/**
-> + * v4l2_fwnode_endpoint_parse() - parse all fwnode node properties
-> + * @fwnode: pointer to the endpoint's fwnode handle
-> + * @vep: pointer to the V4L2 fwnode data structure
+> +/*
+> + * v4l2_fwnode_reference_parse - parse references for async sub-devices
+> + * @dev: the device node the properties of which are parsed for referenc=
+es
+> + * @notifier: the async notifier where the async subdevs will be added
+> + * @prop: the name of the property
 > + *
-> + * All properties are optional. If none are found, we don't set any flag=
-s. This
-> + * means the port has a static configuration and no properties have to be
-> + * specified explicitly. If any properties that identify the bus as para=
-llel
-> + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarl=
-y, if
-> + * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't se=
-t, we
-> + * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-> + * reference to @fwnode.
-> + *
-> + * NOTE: This function does not parse properties the size of which is va=
-riable
-> + * without a low fixed limit. Please use v4l2_fwnode_endpoint_alloc_pars=
-e() in
-> + * new drivers instead.
-> + *
-> + * Return: 0 on success or a negative error code on failure.
+> + * Return: 0 on success
+> + *	   -ENOENT if no entries were found
+> + *	   -ENOMEM if memory allocation failed
+> + *	   -EINVAL if property parsing failed
 > + */
->  int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
->  			       struct v4l2_fwnode_endpoint *vep);
+> +static int v4l2_fwnode_reference_parse(
+> +	struct device *dev, struct v4l2_async_notifier *notifier,
+> +	const char *prop)
+> +{
+> +	struct fwnode_reference_args args;
+> +	unsigned int index;
+> +	int ret;
 > +
-> +/**
-> + * v4l2_fwnode_endpoint_free() - free the V4L2 fwnode acquired by
-> + * v4l2_fwnode_endpoint_alloc_parse()
-> + * @vep: the V4L2 fwnode the resources of which are to be released
-> + *
-> + * It is safe to call this function with NULL argument or on a V4L2 fwno=
-de the
-> + * parsing of which failed.
-> + */
-> +void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+> +	for (index =3D 0;
+> +	     !(ret =3D fwnode_property_get_reference_args(
+> +		       dev_fwnode(dev), prop, NULL, 0, index, &args));
+> +	     index++)
+> +		fwnode_handle_put(args.fwnode);
 > +
-> +/**
-> + * v4l2_fwnode_endpoint_alloc_parse() - parse all fwnode node properties
-> + * @fwnode: pointer to the endpoint's fwnode handle
-> + *
-> + * All properties are optional. If none are found, we don't set any flag=
-s. This
-> + * means the port has a static configuration and no properties have to be
-> + * specified explicitly. If any properties that identify the bus as para=
-llel
-> + * are found and slave-mode isn't set, we set V4L2_MBUS_MASTER. Similarl=
-y, if
-> + * we recognise the bus as serial CSI-2 and clock-noncontinuous isn't se=
-t, we
-> + * set the V4L2_MBUS_CSI2_CONTINUOUS_CLOCK flag. The caller should hold a
-> + * reference to @fwnode.
-> + *
-> + * v4l2_fwnode_endpoint_alloc_parse() has two important differences to
-> + * v4l2_fwnode_endpoint_parse():
-> + *
-> + * 1. It also parses variable size data.
-> + *
-> + * 2. The memory it has allocated to store the variable size data must b=
-e freed
-> + *    using v4l2_fwnode_endpoint_free() when no longer needed.
-> + *
-> + * Return: Pointer to v4l2_fwnode_endpoint if successful, on an error po=
-inter
-> + * on error.
-> + */
->  struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
->  	struct fwnode_handle *fwnode);
-> -void v4l2_fwnode_endpoint_free(struct v4l2_fwnode_endpoint *vep);
+> +	if (!index)
+> +		return -ENOENT;
 > +
-> +/**
-> + * v4l2_fwnode_parse_link() - parse a link between two endpoints
-> + * @fwnode: pointer to the endpoint's fwnode at the local end of the link
-> + * @link: pointer to the V4L2 fwnode link data structure
-> + *
-> + * Fill the link structure with the local and remote nodes and port numb=
-ers.
-> + * The local_node and remote_node fields are set to point to the local a=
-nd
-> + * remote port's parent nodes respectively (the port parent node being t=
-he
-> + * parent node of the port node if that node isn't a 'ports' node, or the
-> + * grand-parent node of the port node otherwise).
-> + *
-> + * A reference is taken to both the local and remote nodes, the caller m=
-ust use
-> + * v4l2_fwnode_put_link() to drop the references when done with the
-> + * link.
-> + *
-> + * Return: 0 on success, or -ENOLINK if the remote endpoint fwnode can't=
- be
-> + * found.
-> + */
->  int v4l2_fwnode_parse_link(struct fwnode_handle *fwnode,
->  			   struct v4l2_fwnode_link *link);
+> +	/*
+> +	 * Note that right now both -ENODATA and -ENOENT may signal
+> +	 * out-of-bounds access. Return the error in cases other than that.
+> +	 */
+> +	if (ret !=3D -ENOENT && ret !=3D -ENODATA)
+> +		return ret;
 > +
-> +/**
-> + * v4l2_fwnode_put_link() - drop references to nodes in a link
-> + * @link: pointer to the V4L2 fwnode link data structure
-> + *
-> + * Drop references to the local and remote nodes in the link. This funct=
-ion
-> + * must be called on every link parsed with v4l2_fwnode_parse_link().
-> + */
->  void v4l2_fwnode_put_link(struct v4l2_fwnode_link *link);
-> =20
->  /**
+> +	ret =3D v4l2_async_notifier_realloc(notifier,
+> +					  notifier->num_subdevs + index);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (index =3D 0; !fwnode_property_get_reference_args(
+> +		     dev_fwnode(dev), prop, NULL, 0, index, &args);
+> +	     index++) {
+> +		struct v4l2_async_subdev *asd;
+> +
+> +		if (WARN_ON(notifier->num_subdevs >=3D notifier->max_subdevs)) {
+> +			ret =3D -EINVAL;
+> +			goto error;
+> +		}
+> +
+> +		asd =3D kzalloc(sizeof(*asd), GFP_KERNEL);
+> +		if (!asd) {
+> +			ret =3D -ENOMEM;
+> +			goto error;
+> +		}
+> +
+> +		notifier->subdevs[notifier->num_subdevs] =3D asd;
+> +		asd->match.fwnode.fwnode =3D args.fwnode;
+> +		asd->match_type =3D V4L2_ASYNC_MATCH_FWNODE;
+> +		notifier->num_subdevs++;
+> +	}
+> +
+> +	return 0;
+> +
+> +error:
+> +	fwnode_handle_put(args.fwnode);
+> +	return ret;
+> +}
+> +
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Sakari Ailus <sakari.ailus@linux.intel.com>");
+>  MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
 > --=20
 > 2.11.0
 >=20
 
---xgtefgl3fj6vnjo7
+--yhowj2hc7rkvwzyu
 Content-Type: application/pgp-signature; name="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2VgAACgkQ2O7X88g7
-+ppB2BAAnPQGdoKVKIBv5HmX7ntijAlfMDNf99Ny0ue+TlbIx2R8332tUrMuPyHV
-r/FmTIankEqD5nbjtPNKcwykFybu1v5ShS+15WSdHeel36MX5PnCBMX7a1B8raip
-+zVpSn+kPkE6DGi7MqcLHLTh6JeEnU3lVcfMLlonMpSn58wsiLDBfe9zbIX8oo9n
-CpU5k57R4isXR4GKHZddj34U/vUgXbLprAGAIpJvrG80scP4EwWvOS/egS/ljWFK
-YpRHdBcaA/bS3ECm9yh/9ibB63YEaZdSDPIi9TtiwCr2Ii+BKipXsjcxIW5FGzQ6
-9MKB4hcZSMPQgCgp/EqWSkDlLlxpeqdKdNOa2Eya3YHtGq+fljkp6mX2Npo50COw
-vrv/umw07uzdigQbiNl1UT3v1cYjneQbaCt+a3/nzNa72Af2BGmJKa2U/Bl2D/7D
-92fGKyazcm6Gl9KPXxvI29O/orS1yXRI6dZBNvRVjvvSKff+d6zQ7esIwJIbEbm/
-zG8a9VcbmCUZFyyzjXkGFwKXvp8sv8t8b7CApYMkKuex3HH53Jr0RKWunPrcHASD
-/iKUCTJ6e++GmQHvooKsSoDsK6rUgwyPOtdOv3nd2PkM3usxIywLfcLR3Nt/StSQ
-tr3Mi4KAgcFKs8VYHYevXy7fdv+0Gm+Qkh+WSl5tMWTyDi3jWLI=
-=2E5I
+iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2W+YACgkQ2O7X88g7
++pp1mRAAkFTPeEz/bOaqdoLY4nYzJxAigU4/lBqdy6fYNvHFQqMFlLfi1z72zp3w
+PnwhHZOa79b7ukVqXRLN0NHsqIVTRE6kyD3d5seKkk+zmDadNeHZcXHh+X83Xal5
+k4WvTG1AImd64qguMYd7rf2w82SERbQ6jy3jzxqY2dcy7eS9LT+gJdqta0hp7GDE
+6ab+ktzDkGDYix9om7KI/zWYi38ZhY0U2kxTPjMYPyxqL5SKPXFAfgpoeYQALilh
+Dks9EiJfNp8MDFERmgiEyqFJoCBbpcnoFxi977GZIUsWZXzv2mrlZoykYql0o3v6
+CddEpz4R6m6kFrTNfL3wQmQUXObjVcu+drTou9a49Mlb9pSW4JVDuL8HGI9XLDe7
+7megquYpdVKwlpl7/iUy9MGb71910o4rJYyxqrW9eNXNCfkJ+GS6rW7y9YS8/+aR
+hE1UA0VZb1b3pk0qCanmKf6FIM4yllzlHQz481Ze5R6TCIDPJ0CHkd2dnvT8qQRr
+EoDjGzXdTLaV6PK8zZZL5OaSO0Jd8rHjjrlF9kVaogMBhyjrRxv+aG6jUXFfRHWR
+rR/atTG8u/igp2KvkL+1uT8SoMqYPMzAgLBYctvQVbXnOPR+xSM042NChZaBybLG
+6Ss2X2fUgpICWTH+4fD5O50vsl0vEe6IDJCi+NT94CV/FC3bxdc=
+=VwzH
 -----END PGP SIGNATURE-----
 
---xgtefgl3fj6vnjo7--
+--yhowj2hc7rkvwzyu--
