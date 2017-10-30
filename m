@@ -1,120 +1,53 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v16 32/32] arm: dts: omap3: N9/N950: Add flash references
- to the camera
-Date: Mon, 30 Oct 2017 00:08:37 +0100
-Message-ID: <20171029230837.vjs4f7wi7tj7q3bc@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-33-sakari.ailus@linux.intel.com>
+From: Qiang Zheng <zhengqiang10@huawei.com>
+Subject: [PATCH] Bug fix: Clear ack of GHES table which contain wrong Error status block, let new error can fill GHES table.
+Date: Mon, 30 Oct 2017 09:23:14 +0800
+Message-ID: <1509326594-201050-1-git-send-email-zhengqiang10@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="jcz4dhtxtkeqmra6"
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:57454 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751152AbdJ2XIk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 29 Oct 2017 19:08:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-33-sakari.ailus@linux.intel.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9473 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751283AbdJ3Ag3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Oct 2017 20:36:29 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, pavel@ucw.cz, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: will.deacon@arm.com, tbaicar@codeaurora.org, james.morse@arm.com, shiju.jose@huawei.com, rjw@rjwysocki.net
+Cc: gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 
+Current Error status block processing flow, if wrong format is checked,
+GHES table ack is not cleared.
+It will cause new error can not be filled GHES table, because UEFI
+need check ack to know if error was handled by OS.
 
---jcz4dhtxtkeqmra6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This patch solved issue, no matter Error status block format is wrong,
+But GHES table format is corrected, we clear ack.
 
-Hi,
+Signed-off-by: Qiang Zheng <zhengqiang10@huawei.com>
+---
+ drivers/acpi/apei/ghes.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-On Thu, Oct 26, 2017 at 10:53:42AM +0300, Sakari Ailus wrote:
-> Add flash and indicator LED phandles to the sensor node.
->=20
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Pavel Machek <pavel@ucw.cz>
-> ---
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 077f9ba..b0e0782 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -743,6 +743,7 @@ static int ghes_proc(struct ghes *ghes)
+ 	}
+ 	ghes_do_proc(ghes, ghes->estatus);
+ 
++out:
+ 	/*
+ 	 * GHESv2 type HEST entries introduce support for error acknowledgment,
+ 	 * so only acknowledge the error if this support is present.
+@@ -752,7 +753,7 @@ static int ghes_proc(struct ghes *ghes)
+ 		if (rc)
+ 			return rc;
+ 	}
+-out:
++
+ 	ghes_clear_estatus(ghes);
+ 	return rc;
+ }
+-- 
+1.9.1
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
-
--- Sebastian
-
->  arch/arm/boot/dts/omap3-n9.dts       | 1 +
->  arch/arm/boot/dts/omap3-n950-n9.dtsi | 4 ++--
->  arch/arm/boot/dts/omap3-n950.dts     | 1 +
->  3 files changed, 4 insertions(+), 2 deletions(-)
->=20
-> diff --git a/arch/arm/boot/dts/omap3-n9.dts b/arch/arm/boot/dts/omap3-n9.=
-dts
-> index b9e58c536afd..39e35f8b8206 100644
-> --- a/arch/arm/boot/dts/omap3-n9.dts
-> +++ b/arch/arm/boot/dts/omap3-n9.dts
-> @@ -26,6 +26,7 @@
->  		clocks =3D <&isp 0>;
->  		clock-frequency =3D <9600000>;
->  		nokia,nvm-size =3D <(16 * 64)>;
-> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies =3D /bits/ 64 <199200000 210000000 499200000>;
-> diff --git a/arch/arm/boot/dts/omap3-n950-n9.dtsi b/arch/arm/boot/dts/oma=
-p3-n950-n9.dtsi
-> index 1b0bd72945f2..12fbb3da5fce 100644
-> --- a/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> +++ b/arch/arm/boot/dts/omap3-n950-n9.dtsi
-> @@ -271,14 +271,14 @@
->  		#size-cells =3D <0>;
->  		reg =3D <0x30>;
->  		compatible =3D "ams,as3645a";
-> -		flash@0 {
-> +		as3645a_flash: flash@0 {
->  			reg =3D <0x0>;
->  			flash-timeout-us =3D <150000>;
->  			flash-max-microamp =3D <320000>;
->  			led-max-microamp =3D <60000>;
->  			ams,input-max-microamp =3D <1750000>;
->  		};
-> -		indicator@1 {
-> +		as3645a_indicator: indicator@1 {
->  			reg =3D <0x1>;
->  			led-max-microamp =3D <10000>;
->  		};
-> diff --git a/arch/arm/boot/dts/omap3-n950.dts b/arch/arm/boot/dts/omap3-n=
-950.dts
-> index 646601a3ebd8..c354a1ed1e70 100644
-> --- a/arch/arm/boot/dts/omap3-n950.dts
-> +++ b/arch/arm/boot/dts/omap3-n950.dts
-> @@ -60,6 +60,7 @@
->  		clocks =3D <&isp 0>;
->  		clock-frequency =3D <9600000>;
->  		nokia,nvm-size =3D <(16 * 64)>;
-> +		flash-leds =3D <&as3645a_flash &as3645a_indicator>;
->  		port {
->  			smia_1_1: endpoint {
->  				link-frequencies =3D /bits/ 64 <210000000 333600000 398400000>;
-> --=20
-> 2.11.0
->=20
-
---jcz4dhtxtkeqmra6
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAln2X3QACgkQ2O7X88g7
-+pqXXg/7BOTXpAtSXNm5Jmgi3KzC2fGX2eCXAwN/f/xWU+IVJoAean0K7KC0E/te
-9d+suSOtsU1S5GSKNy3ejz3SV4uZifVfxRO7HeD+dArMn0bEoRhKhFfnb4LXGWDk
-wDTjfQI+Y8FG8y7xUPAJp5DDH/dG62pyxxx6z/rt05tJ3fEkkd0NoITu+M+rM5kk
-+3uLK0pbJB0Wep2NwXfy3TQ3iUwdD0/QWbxkpssnrgKpKnTpa6VXvboN1t6J1S6K
-Y0+Upw4ft2B3U48t5zDAb3r3GVrRaRKveTzSxH+NA5crTZ4eGB0FKM1xOR/Rudqc
-J9bJYGEvXr55aj62SYYk3iFbdwhEnaExb3SurzyeJmyw2tJs7h0BDv09lhQ7gKpi
-OzJnC4/xao/YnV9NtUo716dznsS53+Hk95GjGvRCk6OjtHPUrJDHD+xmHo74opI9
-H25iTq3zqpbtwa4OCEnOV4Tf+jIMtexo34EFUesHiM9QXNWO5/nTzELaiwH9XhJ/
-LnVCptWXKXTZXtYshZHE0mU0/zMguzqcISnUSd3V58R0tshSyupHE9ZwiABQzSsv
-bIY/i8ohvqbyyU2fB5k3N0H4D83ySJWG0JJfXfNnjkRnJA/vUiEyT4ee7R4GmlRL
-A7MW0NRoWHZrjQrjDfQKlupY2FOqmcsVo1te++M9O1UUUD8GlRc=
-=clOP
------END PGP SIGNATURE-----
-
---jcz4dhtxtkeqmra6--
