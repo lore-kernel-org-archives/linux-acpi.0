@@ -1,53 +1,34 @@
-From: Qiang Zheng <zhengqiang10@huawei.com>
-Subject: [PATCH] Bug fix: Clear ack of GHES table which contain wrong Error status block, let new error can fill GHES table.
-Date: Mon, 30 Oct 2017 09:23:14 +0800
-Message-ID: <1509326594-201050-1-git-send-email-zhengqiang10@huawei.com>
+From: jeffy <jeffy.chen-TNX95d0MmH7DzftRWevZcw@public.gmane.org>
+Subject: Re: [RFC PATCH v10 0/7] PCI: rockchip: Move PCIe WAKE# handling into
+ pci core
+Date: Mon, 30 Oct 2017 10:15:28 +0800
+Message-ID: <59F68B40.8050506@rock-chips.com>
+References: <20171027072612.26565-1-jeffy.chen@rock-chips.com> <1872710.P2f02irZl9@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9473 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751283AbdJ3Ag3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 29 Oct 2017 20:36:29 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1872710.P2f02irZl9-yvgW3jdyMHm1GS7QM15AGw@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony-4v6yS6AI5VpBDgjK7y7TUQ@public.gmane.org, shawn.lin-TNX95d0MmH7DzftRWevZcw@public.gmane.org, briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, dianders-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org, Xinming Hu <huxm-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Kalle Valo <kvalo-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Heiko Stuebner <heiko-4mtYJXux2i+zQB+pC5nmwQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rockchip-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Nishant Sarmukadam <nishants-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Matthias Kaehlcke <mka-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ganapathi Bhat <gbhat-eYqpPyKDWXRBDgjK7y7TUQ@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Amitkumar Karwar <amitkarwar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, net
 List-Id: linux-acpi@vger.kernel.org
-To: will.deacon@arm.com, tbaicar@codeaurora.org, james.morse@arm.com, shiju.jose@huawei.com, rjw@rjwysocki.net
-Cc: gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 
-Current Error status block processing flow, if wrong format is checked,
-GHES table ack is not cleared.
-It will cause new error can not be filled GHES table, because UEFI
-need check ack to know if error was handled by OS.
+Hi Rafael,
 
-This patch solved issue, no matter Error status block format is wrong,
-But GHES table format is corrected, we clear ack.
+thanks for your reply.
 
-Signed-off-by: Qiang Zheng <zhengqiang10@huawei.com>
----
- drivers/acpi/apei/ghes.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On 10/28/2017 05:07 PM, Rafael J. Wysocki wrote:
+> Overall, I don't quite like the direction this is going into, but I need to
+> have a deeper look.  Which may take some time, so please bear with me.
+>
+ok, i'll wait for your comments, thanks :)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 077f9ba..b0e0782 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -743,6 +743,7 @@ static int ghes_proc(struct ghes *ghes)
- 	}
- 	ghes_do_proc(ghes, ghes->estatus);
- 
-+out:
- 	/*
- 	 * GHESv2 type HEST entries introduce support for error acknowledgment,
- 	 * so only acknowledge the error if this support is present.
-@@ -752,7 +753,7 @@ static int ghes_proc(struct ghes *ghes)
- 		if (rc)
- 			return rc;
- 	}
--out:
-+
- 	ghes_clear_estatus(ghes);
- 	return rc;
- }
--- 
-1.9.1
+> Thanks,
+> Rafael
 
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
