@@ -1,60 +1,48 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
+From: Borislav Petkov <bp@suse.de>
 Subject: Re: [ghes_copy_tofrom_phys] BUG: sleeping function called from
  invalid context at mm/page_alloc.c:4150
-Date: Mon, 30 Oct 2017 10:20:40 -0700
-Message-ID: <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
+Date: Mon, 30 Oct 2017 18:42:35 +0100
+Message-ID: <20171030174234.humpxetnqkfdcfsh@pd.tnic>
 References: <CA+55aFxSJGeN=2X-uX-on1Uq2Nb8+v1aiMDz5H1+tKW_N5Q+6g@mail.gmail.com>
- <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com> <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
+ <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com>
+ <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
  <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
+ <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Huang Ying <ying.huang@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:50963 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932128AbdJ3Rmo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Oct 2017 13:42:44 -0400
+Content-Disposition: inline
+In-Reply-To: <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Huang Ying <ying.huang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Mon, Oct 30, 2017 at 4:05 AM, Borislav Petkov <bp@suse.de> wrote:
->
-> Looks like Tyler broke it:
->
-> 77b246b32b2c ("acpi: apei: check for pending errors when probing GHES entries")
->
-> and it went into 4.13 and -stable.
+On Mon, Oct 30, 2017 at 10:20:40AM -0700, Linus Torvalds wrote:
+> I think this whole driver is garbage.
 
-I think this whole driver is garbage.
+This "driver" was supposed to implement the handle-hw-errors-in-fw glue
+crap. The thing is, no one has been using it properly because there's
+not even a single firmware vendor who has managed to produce a working
+fw glue reporting errors properly. At least I haven't seen one.
 
-It does ioremap_page_range() in both NMI and irq context.
+Which means, no one is really using this. And now ARM start using it for
+real and shit hits fan.
 
-The fact that it triggers at probe time is just pure luck, and is
-probably because at that point we don't happen to have the page tables
-for the ioremap set up yet, so it actually does an allocation, which
-is what then causes the warning.
+And I'd love to fix it but finding a box which *actually* has a usable
+GHES glue is, as I mentioned above, almost impossible so testing fixes
+would be hard. I need to figure out something...
 
-But we should have warned much eariler, and this code has apparently
-never worked right.
+Thanks.
 
-The driver is COMPLETELY broken. It needs to do the ioremap not at
-interrupt time, but when setting up the device, and outside a
-spinlock.
+-- 
+Regards/Gruss,
+    Boris.
 
-I think somebody must have known how broken this whole thing was,
-because it literally uses a RAW spinloick, and I suspect the reason
-for that is because lockdep complained about the breakage without it.
-
-Reverting just the latest addition is not going to help. The breakage
-is much more fundamental than that.
-
-Note that doing this thing in NMI context is *really* wrong, because
-the whole ioremap() code is definitely not NMI-safe. I don't think
-it's irq-safe either.
-
-I will add a "might_sleep()" to ioremap_page_range() itself, so that
-we get this warning more reliably and much eailer. Right now it has
-been hidden by the fact that most of the time the time the page tables
-may be already allocated, but even then it's broken.
-
-The only safe way to do that kind of access is likely using the FIXMAP model.
-
-                 Linus
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
