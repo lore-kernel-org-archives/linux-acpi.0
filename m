@@ -1,53 +1,60 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v10 6/9] LPC: Support the LPC host on Hip06/Hip07 with
- DT bindings
-Date: Mon, 30 Oct 2017 15:55:15 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CAEE3A@FRAEML521-MBX.china.huawei.com>
-References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
- <1509120687-7352-7-git-send-email-gabriele.paoloni@huawei.com>
- <de9f0362-6f2d-2f73-a23a-af248a9b1963@infradead.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [ghes_copy_tofrom_phys] BUG: sleeping function called from
+ invalid context at mm/page_alloc.c:4150
+Date: Mon, 30 Oct 2017 10:20:40 -0700
+Message-ID: <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
+References: <CA+55aFxSJGeN=2X-uX-on1Uq2Nb8+v1aiMDz5H1+tKW_N5Q+6g@mail.gmail.com>
+ <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com> <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
+ <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <de9f0362-6f2d-2f73-a23a-af248a9b1963@infradead.org>
-Content-Language: en-US
+In-Reply-To: <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "minyard@acm.org" <minyard@acm.org>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "zhichang.yuan" <yuanzhichang@hisilicon.com>
+To: Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Huang Ying <ying.huang@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgUmFuZHkNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYW5keSBE
-dW5sYXAgW21haWx0bzpyZHVubGFwQGluZnJhZGVhZC5vcmddDQo+IFNlbnQ6IDI3IE9jdG9iZXIg
-MjAxNyAxNzo0NA0KPiBUbzogR2FicmllbGUgUGFvbG9uaTsgY2F0YWxpbi5tYXJpbmFzQGFybS5j
-b207IHdpbGwuZGVhY29uQGFybS5jb207DQo+IHJvYmgrZHRAa2VybmVsLm9yZzsgZnJvd2FuZC5s
-aXN0QGdtYWlsLmNvbTsgYmhlbGdhYXNAZ29vZ2xlLmNvbTsNCj4gcmFmYWVsQGtlcm5lbC5vcmc7
-IGFybmRAYXJuZGIuZGU7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsNCj4g
-bG9yZW56by5waWVyYWxpc2lAYXJtLmNvbQ0KPiBDYzogbWFyay5ydXRsYW5kQGFybS5jb207IGJy
-aWFuLnN0YXJrZXlAYXJtLmNvbTsgb2xvZkBsaXhvbS5uZXQ7DQo+IGJlbmhAa2VybmVsLmNyYXNo
-aW5nLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdl
-ci5rZXJuZWwub3JnOyBMaW51eGFybTsgbGludXgtcGNpQHZnZXIua2VybmVsLm9yZzsNCj4gbWlu
-eWFyZEBhY20ub3JnOyBKb2huIEdhcnJ5OyB4dXdlaSAoTyk7IHpoaWNoYW5nLnl1YW4NCj4gU3Vi
-amVjdDogUmU6IFtQQVRDSCB2MTAgNi85XSBMUEM6IFN1cHBvcnQgdGhlIExQQyBob3N0IG9uIEhp
-cDA2L0hpcDA3DQo+IHdpdGggRFQgYmluZGluZ3MNCj4gDQo+IE9uIDEwLzI3LzE3IDA5OjExLCBH
-YWJyaWVsZSBQYW9sb25pIHdyb3RlOg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2J1cy9LY29u
-ZmlnIGIvZHJpdmVycy9idXMvS2NvbmZpZw0KPiA+IGluZGV4IDI0MDhlYTMuLjM1OGVlZDMgMTAw
-NjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9idXMvS2NvbmZpZw0KPiA+ICsrKyBiL2RyaXZlcnMvYnVz
-L0tjb25maWcNCj4gPiBAQCAtNjQsNiArNjQsMTUgQEAgY29uZmlnIEJSQ01TVEJfR0lTQl9BUkIN
-Cj4gPiAgCSAgYXJiaXRlci4gVGhpcyBkcml2ZXIgcHJvdmlkZXMgdGltZW91dCBhbmQgdGFyZ2V0
-IGFib3J0IGVycm9yDQo+IGhhbmRsaW5nDQo+ID4gIAkgIGFuZCBpbnRlcm5hbCBidXMgbWFzdGVy
-IGRlY29kaW5nLg0KPiA+DQo+ID4gK2NvbmZpZyBISVNJTElDT05fTFBDDQo+ID4gKwlib29sICJT
-dXBwb3J0IGZvciBJU0EgSS9PIHNwYWNlIG9uIEhpc2lsaWNvbiBIaXAwWCINCj4gPiArCWRlcGVu
-ZHMgb24gKEFSTTY0ICYmIChBUkNIX0hJU0kgfHwgQ09NUElMRV9URVNUKSkNCj4gPiArCXNlbGVj
-dCBMT0dJQ19QSU8NCj4gPiArCXNlbGVjdCBJTkRJUkVDVF9QSU8NCj4gPiArCWhlbHANCj4gPiAr
-CSAgRHJpdmVyIG5lZWRlZCBmb3Igc29tZSBsZWdhY3kgSVNBIGRldmljZXMgYXR0YWNoZWQgdG8g
-TG93LVBpbi0NCj4gQ291bnQNCj4gPiArCSAgb24gSGlzaWxpY29uIEhpcDBYIFNvQy4NCj4gPiAr
-DQo+ID4gIGNvbmZpZyBJTVhfV0VJTQ0KPiA+ICAJYm9vbCAiRnJlZXNjYWxlIEVJTSBEUklWRVIi
-DQo+ID4gIAlkZXBlbmRzIG9uIEFSQ0hfTVhDDQo+IA0KPiBIaSwNCj4gDQo+IFdoeSBib29sPyB3
-aHkgbm90IHRyaXN0YXRlPw0KDQpXZWxsIGZvciB0aGUgbmF0dXJlIG9mIG91ciBIVyBpdCB3b3Vs
-ZCBub3QgbWFrZSBtdWNoIHNlbnNlIHRvIGhhdmUgdGhlDQpMUEMgbW9kdWxhci4gQWxzbyB5b3Ug
-Y2FuIHNlZSBpbiBwYXRjaCA4IHRoZSBMUEMgaG9zdCBpcyAidHJhbnNsYXRpbmciDQp0aGUgcmVz
-b3VyY2VzIG9mIGl0cyBjaGlsZHJlbiBiZWZvcmUgdGhlc2UgYXJlIGFjdHVhbGx5IHByb2JlZCBh
-bmQgdGhpcw0KaXMgZG9uZSBieSBhY3BpX2luZGlyZWN0aW9fc2Nhbl9pbml0KCkgYXMgcGFydCBv
-ZiB0aGUgQUNQSSBpbml0IHByb2Nlc3MuDQoNClRoYW5rcw0KR2FiDQoNCj4gDQo+IC0tDQo+IH5S
-YW5keQ0K
+On Mon, Oct 30, 2017 at 4:05 AM, Borislav Petkov <bp@suse.de> wrote:
+>
+> Looks like Tyler broke it:
+>
+> 77b246b32b2c ("acpi: apei: check for pending errors when probing GHES entries")
+>
+> and it went into 4.13 and -stable.
+
+I think this whole driver is garbage.
+
+It does ioremap_page_range() in both NMI and irq context.
+
+The fact that it triggers at probe time is just pure luck, and is
+probably because at that point we don't happen to have the page tables
+for the ioremap set up yet, so it actually does an allocation, which
+is what then causes the warning.
+
+But we should have warned much eariler, and this code has apparently
+never worked right.
+
+The driver is COMPLETELY broken. It needs to do the ioremap not at
+interrupt time, but when setting up the device, and outside a
+spinlock.
+
+I think somebody must have known how broken this whole thing was,
+because it literally uses a RAW spinloick, and I suspect the reason
+for that is because lockdep complained about the breakage without it.
+
+Reverting just the latest addition is not going to help. The breakage
+is much more fundamental than that.
+
+Note that doing this thing in NMI context is *really* wrong, because
+the whole ioremap() code is definitely not NMI-safe. I don't think
+it's irq-safe either.
+
+I will add a "might_sleep()" to ioremap_page_range() itself, so that
+we get this warning more reliably and much eailer. Right now it has
+been hidden by the fact that most of the time the time the page tables
+may be already allocated, but even then it's broken.
+
+The only safe way to do that kind of access is likely using the FIXMAP model.
+
+                 Linus
