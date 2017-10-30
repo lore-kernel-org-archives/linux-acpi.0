@@ -1,80 +1,168 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/2] acpi, nfit: hide unknown commands from nmemX/commands
-Date: Mon, 30 Oct 2017 13:47:03 -0700
-Message-ID: <150939642330.4577.10714458271356489094.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH v2 2/2] acpi,
+ nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs
+Date: Mon, 30 Oct 2017 13:47:08 -0700
+Message-ID: <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <150939641796.4577.379718469071595984.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:22519 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932992AbdJ3Uxd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 30 Oct 2017 16:53:33 -0400
+In-Reply-To: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, dave.jiang@intel.com, vishal.l.verma@intel.com
 
-For vendor specific commands that do not have a common kernel
-translation, hide them from nmemX/commands. For example, the following
-results from new enabling to probe for support of the new
-NVDIMM_FAMILY_INTEL DSMs specified in v1.6 of the command specification
-[1]:
+Per v1.6 of the NVDIMM_FAMILY_INTEL command set [1] some of the new
+commands require rev-id 2. In addition to enabling ND_CMD_CALL for these
+new function numbers, add a lookup table for revision-ids by family
+and function number.
 
-    # cat /sys/bus/nd/devices/nmem0/commands
-    smart smart_thresh flags get_size get_data set_data effect_size
-    effect_log vendor cmd_call unknown unknown unknown unknown unknown
-    unknown unknown unknown
+[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
 
-[1]: https://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
-
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit/core.c |   10 ++++++++--
- drivers/acpi/nfit/nfit.h |    6 ++++++
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit/core.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit/nfit.h |   26 +++++++++++++++++++++++++-
+ 2 files changed, 65 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ebe0857ac346..444832b372ec 100644
+index 444832b372ec..1b2c613a9d8b 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -1769,8 +1769,14 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		 * userspace interface.
- 		 */
- 		cmd_mask = 1UL << ND_CMD_CALL;
--		if (nfit_mem->family == NVDIMM_FAMILY_INTEL)
--			cmd_mask |= nfit_mem->dsm_mask;
-+		if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
-+			/*
-+			 * These commands have a 1:1 correspondence
-+			 * between DSM payload and libnvdimm ioctl
-+			 * payload format.
-+			 */
-+			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
-+		}
+@@ -370,6 +370,32 @@ static union acpi_object *acpi_label_info(acpi_handle handle)
+ 	return pkg_to_buf(buf.pointer);
+ }
  
- 		if (nfit_mem->has_lsi)
- 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
++static u8 nfit_dsm_revid(unsigned family, unsigned func)
++{
++	static const u8 revid_table[NVDIMM_FAMILY_MAX][32] = {
++		[NVDIMM_FAMILY_INTEL] = {
++			[NVDIMM_INTEL_GET_MODES] = 2,
++			[NVDIMM_INTEL_GET_FWINFO] = 2,
++			[NVDIMM_INTEL_START_FWUPDATE] = 2,
++			[NVDIMM_INTEL_SEND_FWUPDATE] = 2,
++			[NVDIMM_INTEL_FINISH_FWUPDATE] = 2,
++			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
++			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
++			[NVDIMM_INTEL_INJECT_ERROR] = 2,
++		},
++	};
++	u8 id;
++
++	if (family > NVDIMM_FAMILY_MAX)
++		return 0;
++	if (func > 31)
++		return 0;
++	id = revid_table[family][func];
++	if (id == 0)
++		return 1; /* default */
++	return id;
++}
++
+ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
+ {
+@@ -468,8 +494,15 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 
+ 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
+ 				p->in_buf);
+-	} else
+-		out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
++	} else {
++		u8 revid;
++
++		if (nfit_mem)
++			revid = nfit_dsm_revid(nfit_mem->family, func);
++		else
++			revid = 1;
++		out_obj = acpi_evaluate_dsm(handle, guid, revid, func, &in_obj);
++	}
+ 
+ 	if (!out_obj) {
+ 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+@@ -1640,7 +1673,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	 * different command sets.  Note, that checking for function0 (bit0)
+ 	 * tells us if any commands are reachable through this GUID.
+ 	 */
+-	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
++	for (i = 0; i <= NVDIMM_FAMILY_MAX; i++)
+ 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
+ 			if (family < 0 || i == default_dsm_family)
+ 				family = i;
+@@ -1650,7 +1683,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	if (override_dsm_mask && !disable_vendor_specific)
+ 		dsm_mask = override_dsm_mask;
+ 	else if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
+-		dsm_mask = 0x3fe;
++		dsm_mask = NVDIMM_INTEL_CMDMASK;
+ 		if (disable_vendor_specific)
+ 			dsm_mask &= ~(1 << ND_CMD_VENDOR);
+ 	} else if (nfit_mem->family == NVDIMM_FAMILY_HPE1) {
+@@ -1670,7 +1703,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	guid = to_nfit_uuid(nfit_mem->family);
+ 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
+-		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
++		if (acpi_check_dsm(adev_dimm->handle, guid,
++					nfit_dsm_revid(nfit_mem->family, i),
++					1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
+ 
+ 	obj = acpi_label_info(adev_dimm->handle);
 diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 3976d649f27c..b987196bf132 100644
+index b987196bf132..341be9511d0e 100644
 --- a/drivers/acpi/nfit/nfit.h
 +++ b/drivers/acpi/nfit/nfit.h
-@@ -38,6 +38,12 @@
+@@ -24,7 +24,7 @@
+ /* ACPI 6.1 */
+ #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
+ 
+-/* http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf */
++/* http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf */
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
+ 
+ /* https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/ */
+@@ -38,12 +38,36 @@
  		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
  		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
  
-+#define NVDIMM_STANDARD_CMDMASK \
-+(1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
-+ | 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA \
-+ | 1 << ND_CMD_SET_CONFIG_DATA | 1 << ND_CMD_VENDOR_EFFECT_LOG_SIZE \
-+ | 1 << ND_CMD_VENDOR_EFFECT_LOG | 1 << ND_CMD_VENDOR)
++#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
++
+ #define NVDIMM_STANDARD_CMDMASK \
+ (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
+  | 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA \
+  | 1 << ND_CMD_SET_CONFIG_DATA | 1 << ND_CMD_VENDOR_EFFECT_LOG_SIZE \
+  | 1 << ND_CMD_VENDOR_EFFECT_LOG | 1 << ND_CMD_VENDOR)
+ 
++/*
++ * Command numbers that the kernel needs to know about to handle
++ * non-default DSM revision ids
++ */
++enum nvdimm_family_cmds {
++	NVDIMM_INTEL_GET_MODES = 11,
++	NVDIMM_INTEL_GET_FWINFO = 12,
++	NVDIMM_INTEL_START_FWUPDATE = 13,
++	NVDIMM_INTEL_SEND_FWUPDATE = 14,
++	NVDIMM_INTEL_FINISH_FWUPDATE = 15,
++	NVDIMM_INTEL_QUERY_FWUPDATE = 16,
++	NVDIMM_INTEL_SET_THRESHOLD = 17,
++	NVDIMM_INTEL_INJECT_ERROR = 18,
++};
++
++#define NVDIMM_INTEL_CMDMASK \
++(NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
++ | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
++ | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
++ | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
++ | 1 << NVDIMM_INTEL_INJECT_ERROR)
 +
  enum nfit_uuids {
  	/* for simplicity alias the uuid index with the family id */
  	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
+
