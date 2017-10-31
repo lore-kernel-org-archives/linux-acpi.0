@@ -1,76 +1,73 @@
-From: Zhengqiang <zhengqiang10@huawei.com>
-Subject: Re: [PATCH] Bug fix: Clear ack of GHES table which contain wrong
- Error status block, let new error can fill GHES table.
-Date: Tue, 31 Oct 2017 16:22:43 +0800
-Message-ID: <59F832D3.5050401@huawei.com>
-References: <1509326594-201050-1-git-send-email-zhengqiang10@huawei.com>
- <61027894-b8ab-b90d-05fa-c8a04acfa42d@codeaurora.org>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [ghes_copy_tofrom_phys] BUG: sleeping function called from
+ invalid context at mm/page_alloc.c:4150
+Date: Tue, 31 Oct 2017 10:38:33 +0000
+Message-ID: <20171031103833.GD5584@arm.com>
+References: <CA+55aFxSJGeN=2X-uX-on1Uq2Nb8+v1aiMDz5H1+tKW_N5Q+6g@mail.gmail.com>
+ <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com>
+ <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
+ <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
+ <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
+ <CA+55aFwW7sbguREtVzKAUkNGb4cGh_eADqkEYcUurX5xS60_ww@mail.gmail.com>
+ <526e7cf2-0672-e44b-c32f-26128a2dfd37@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <61027894-b8ab-b90d-05fa-c8a04acfa42d@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, rjw@rjwysocki.net
-Cc: gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33870 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753040AbdJaKib (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 31 Oct 2017 06:38:31 -0400
+Content-Disposition: inline
+In-Reply-To: <526e7cf2-0672-e44b-c32f-26128a2dfd37@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Fengguang Wu <fengguang.wu@intel.com>, Huang Ying <ying.huang@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, mark.rutland@arm.com
 
-Hi, Tyler Baicar,
-Sorry, i missed your patch, you already solved it. thanks.
+On Mon, Oct 30, 2017 at 04:14:15PM -0400, Tyler Baicar wrote:
+> On 10/30/2017 1:46 PM, Linus Torvalds wrote:
+> >On Mon, Oct 30, 2017 at 10:20 AM, Linus Torvalds
+> ><torvalds@linux-foundation.org> wrote:
+> >>I will add a "might_sleep()" to ioremap_page_range() itself, so that
+> >>we get this warning more reliably and much eailer. Right now it has
+> >>been hidden by the fact that most of the time the time the page tables
+> >>may be already allocated, but even then it's broken.
+> >Done. It doesn't report anything for me, so _hopefully_ the GHES
+> >driver is the only one that does games like this. See commit
+> >b39ab98e2f47 ("Mark 'ioremap_page_range()' as possibly sleeping").
+> >
+> >So now it should hopefully warn about this bad usage of page remapping
+> >reliably, at least if you have CONFIG_DEBUG_ATOMIC_SLEEP enabled.
+> >
+> >Can somebody who has a working GHES setup (although Borislav seems to
+> >think no such thing exists) verify?
+> Hello Linus,
+> 
+> I have verified that this flags the error for me every time ghes_proc() is used.
+> But I also see it flagged in ARM PMU code:
+> 
+> [    7.381153] BUG: sleeping function called from invalid context at mm/slab.h:420
+> [    7.387625] in_atomic(): 0, irqs_disabled(): 128, pid: 11, name: cpuhp/0
+> [    7.394310] CPU: 0 PID: 11 Comm: cpuhp/0 Not tainted 4.14.0-rc7 #46
+> [    7.400559] Hardware name: Qualcomm Qualcomm Centriq(TM) 2400 Development
+> Platform
+> [    7.414361] Call trace:
+> [    7.416797] [<ffff000008088b28>] dump_backtrace+0x0/0x270
+> [    7.422175] [<ffff000008088dbc>] show_stack+0x24/0x30
+> [    7.427211] [<ffff0000090d01f0>] dump_stack+0x98/0xb8
+> [    7.432246] [<ffff00000810118c>] ___might_sleep+0x104/0x128
+> [    7.437799] [<ffff000008101208>] __might_sleep+0x58/0x90
+> [    7.443097] [<ffff000008254a7c>] kmem_cache_alloc_trace+0x224/0x280
+> [    7.449347] [<ffff000008e9c938>] armpmu_alloc+0x30/0x168
+> [    7.454639] [<ffff000008e9d15c>] arm_pmu_acpi_cpu_starting+0x114/0x148
+> [    7.461151] [<ffff0000080d0f30>] cpuhp_invoke_callback+0xb8/0x760
+> [    7.467226] [<ffff0000080d1ec4>] cpuhp_thread_fun+0xa4/0x1b8
+> [    7.472872] [<ffff0000080f661c>] smpboot_thread_fn+0x174/0x250
+> [    7.478684] [<ffff0000080f18ec>] kthread+0x114/0x140
+> [    7.483632] [<ffff000008084774>] ret_from_fork+0x10/0x1c
 
-On 2017/10/30 21:53, Tyler Baicar wrote:
-> On 10/29/2017 9:23 PM, Qiang Zheng wrote:
->> Current Error status block processing flow, if wrong format is checked,
->> GHES table ack is not cleared.
->> It will cause new error can not be filled GHES table, because UEFI
->> need check ack to know if error was handled by OS.
->>
->> This patch solved issue, no matter Error status block format is wrong,
->> But GHES table format is corrected, we clear ack.
->>
->> Signed-off-by: Qiang Zheng <zhengqiang10@huawei.com>
->> ---
->>   drivers/acpi/apei/ghes.c | 3 ++-
->>   1 file changed, 2 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index 077f9ba..b0e0782 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -743,6 +743,7 @@ static int ghes_proc(struct ghes *ghes)
->>       }
->>       ghes_do_proc(ghes, ghes->estatus);
->>   +out:
-> The out goto is already at this location. Please sync to the tip:
-> 
->         ghes_do_proc(ghes, ghes->estatus);
-> 
-> out:
->         ghes_clear_estatus(ghes);
-> 
->         if (rc == -ENOENT)
->                 return rc;
-> 
->         /*
->          * GHESv2 type HEST entries introduce support for error acknowledgment,
->          * so only acknowledge the error if this support is present.
->          */
->         if (is_hest_type_generic_v2(ghes))
->                 return ghes_ack_error(ghes->generic_v2);
-> 
->         return rc;
-> 
-> 
->>       /*
->>        * GHESv2 type HEST entries introduce support for error acknowledgment,
->>        * so only acknowledge the error if this support is present.
->> @@ -752,7 +753,7 @@ static int ghes_proc(struct ghes *ghes)
->>           if (rc)
->>               return rc;
->>       }
->> -out:
->> +
->>       ghes_clear_estatus(ghes);
->>       return rc;
->>   }
-> 
+I know Mark was doing some fixes in the ACPI notifier code here, so I've
+added him to CC.
+
+Will
