@@ -1,54 +1,44 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH v3 0/7] Support PPTT for ARM64
-Date: Tue, 31 Oct 2017 08:46:54 -0400
-Message-ID: <82688148-de6c-8538-dec8-51c94dc4f068@redhat.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 09/12] PM / mfd: intel-lpss: Use DPM_FLAG_SMART_SUSPEND
+Date: Tue, 31 Oct 2017 15:09:33 +0000
+Message-ID: <20171031150933.oho2ffvuj3iagx4m@dell>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <5094729.JAaD38WncM@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45696 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751951AbdJaMrJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 31 Oct 2017 08:47:09 -0400
-In-Reply-To: <20171012194856.13844-1-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <5094729.JAaD38WncM@aspire.rjw.lan>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
 
-On 10/12/2017 03:48 PM, Jeremy Linton wrote:
+On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
 
-> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-> used to describe the processor and cache topology. Ideally it is
-> used to extend/override information provided by the hardware, but
-> right now ARM64 is entirely dependent on firmware provided tables.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> This patch parses the table for the cache topology and CPU topology.
-> For the latter we also add an additional topology_cod_id() macro,
-> and a package_id for arm64. Initially the physical id will match
-> the cluster id, but we update users of the cluster to utilize
-> the new macro. When we enable ACPI/PPTT for arm64 we map the socket
-> to the physical id as the remainder of the kernel expects.
+> Make the intel-lpss driver set DPM_FLAG_SMART_SUSPEND for its
+> devices which will allow them to stay in runtime suspend during
+> system suspend unless they need to be reconfigured for some reason.
+> 
+> Also make it avoid resuming its child devices if they have
+> DPM_FLAG_SMART_SUSPEND set to allow them to remain in runtime
+> suspend during system suspend.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/mfd/intel-lpss.c |    6 +++++-
+>  1 file changed, 5 insertions(+), 1 deletion(-)
 
-Just wanted to thank you for doing this Jeremy. As you know, we're
-tracking these patches and working with multiple vendors to ensure that
-firmware has accurate PPTTs populated to match. We're expecting to pull
-these patches and replace our current RHEL-only kludge asap. RHEL
-currently has to kludge topology based upon magic "known" meanings of
-the MPIDRs on various server platforms. It's (known to be) ugly and is
-one of the reasons that we pushed for what became PPTT.
+Is this patch independent?
 
-Beyond scheduler efficiency, in general, it's very important that Arm
-systems can correctly report x86 style topology industry conventions -
-especially sockets - since (and I told Arm this years ago, and other
-non-Linux vendors backed me up) it's typical on server platforms to use
-either "memory" or "number of sockets" when making licensing and
-subscription calculations in various tooling. This became a problem
-early on even with X-Gene1 and Seattle showing as 8 socket boxes ;)
-
-Jon.
+For my own reference:
+  Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
 
 -- 
-Computer Architect | Sent from my Fedora powered laptop
-
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
