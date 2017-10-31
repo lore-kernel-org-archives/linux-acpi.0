@@ -1,94 +1,35 @@
-From: James Morse <james.morse@arm.com>
-Subject: [RFC/RFT PATCH 4/6] ACPI / APEI: Remove ghes_ioremap_area
-Date: Tue, 31 Oct 2017 15:38:30 +0000
-Message-ID: <20171031153832.17746-5-james.morse@arm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [RFC/RFT PATCH 0/6] Switch GHES ioremap_page_range() to use fixmap
+Date: Tue, 31 Oct 2017 08:52:58 -0700
+Message-ID: <CA+55aFxUYoiPgS_VaECsOCnieOUNir=tNB2jHznboo+CZFvO2w@mail.gmail.com>
 References: <20171031153832.17746-1-james.morse@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:51553 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751295AbdJaPw7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Oct 2017 11:52:59 -0400
 In-Reply-To: <20171031153832.17746-1-james.morse@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org, James Morse <james.morse@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, the arch/x86 maintainers <x86@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>
 
-Now that nothing is using the ghes_ioremap_area pages, rip them out.
+On Tue, Oct 31, 2017 at 8:38 AM, James Morse <james.morse@arm.com> wrote:
+>  7 files changed, 30 insertions(+), 85 deletions(-)
 
-Signed-off-by: James Morse <james.morse@arm.com>
----
- drivers/acpi/apei/ghes.c | 39 ++-------------------------------------
- 1 file changed, 2 insertions(+), 37 deletions(-)
+Lovely.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index f3269816b997..1a4f16b10052 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -114,19 +114,7 @@ static DEFINE_MUTEX(ghes_list_mutex);
-  * from BIOS to Linux can be determined only in NMI, IRQ or timer
-  * handler, but general ioremap can not be used in atomic context, so
-  * the fixmap is used instead.
-- */
--
--/*
-- * Two virtual pages are used, one for IRQ/PROCESS context, the other for
-- * NMI context (optionally).
-- */
--#define GHES_IOREMAP_PAGES           2
--#define GHES_IOREMAP_IRQ_PAGE(base)	(base)
--#define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
--
--/* virtual memory area for atomic ioremap */
--static struct vm_struct *ghes_ioremap_area;
--/*
-+ *
-  * These 2 spinlocks are used to prevent the fixmap entries from being used
-  * simultaneously.
-  */
-@@ -141,23 +129,6 @@ static atomic_t ghes_estatus_cache_alloced;
- 
- static int ghes_panic_timeout __read_mostly = 30;
- 
--static int ghes_ioremap_init(void)
--{
--	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
--		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
--	if (!ghes_ioremap_area) {
--		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
--		return -ENOMEM;
--	}
--
--	return 0;
--}
--
--static void ghes_ioremap_exit(void)
--{
--	free_vm_area(ghes_ioremap_area);
--}
--
- static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
- {
- 	phys_addr_t paddr;
-@@ -1270,13 +1241,9 @@ static int __init ghes_init(void)
- 
- 	ghes_nmi_init_cxt();
- 
--	rc = ghes_ioremap_init();
--	if (rc)
--		goto err;
--
- 	rc = ghes_estatus_pool_init();
- 	if (rc)
--		goto err_ioremap_exit;
-+		goto err;
- 
- 	rc = ghes_estatus_pool_expand(GHES_ESTATUS_CACHE_AVG_SIZE *
- 				      GHES_ESTATUS_CACHE_ALLOCED_MAX);
-@@ -1300,8 +1267,6 @@ static int __init ghes_init(void)
- 	return 0;
- err_pool_exit:
- 	ghes_estatus_pool_exit();
--err_ioremap_exit:
--	ghes_ioremap_exit();
- err:
- 	return rc;
- }
--- 
-2.15.0.rc2
+I obviously can't test it, but it looks fine. I *would* suggest just
+making the "add fixmap entries" commits with the code that actually
+uses them. There's no real reason to have two commits that just add
+two entries that aren't used yet.
+
+If it was some meaningful helper function where a split of the commits
+makes each commit easier to read, that would be one thing.  As it is,
+the split just makes it harder to look at the history of the code (ie
+"I wonder where this was introduced - let's use 'git blame'. Oh,
+that's not useful").
+
+                  Linus
