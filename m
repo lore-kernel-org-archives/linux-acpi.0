@@ -1,7 +1,7 @@
 From: James Morse <james.morse@arm.com>
-Subject: [RFC/RFT PATCH 2/6] x86/mm/fixmap: Add GHES fixmap entries
-Date: Tue, 31 Oct 2017 15:38:28 +0000
-Message-ID: <20171031153832.17746-3-james.morse@arm.com>
+Subject: [RFC/RFT PATCH 1/6] arm64: fixmap: Add GHES fixmap entries
+Date: Tue, 31 Oct 2017 15:38:27 +0000
+Message-ID: <20171031153832.17746-2-james.morse@arm.com>
 References: <20171031153832.17746-1-james.morse@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171031153832.17746-1-james.morse@arm.com>
@@ -15,17 +15,18 @@ to avoid using ioremap_page_range() in IRQ/NMI context.
 
 Signed-off-by: James Morse <james.morse@arm.com>
 ---
- arch/x86/include/asm/fixmap.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm64/include/asm/fixmap.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/arch/x86/include/asm/fixmap.h b/arch/x86/include/asm/fixmap.h
-index dcd9fb55e679..be3cc32db7f0 100644
---- a/arch/x86/include/asm/fixmap.h
-+++ b/arch/x86/include/asm/fixmap.h
-@@ -104,6 +104,10 @@ enum fixed_addresses {
- 	FIX_GDT_REMAP_BEGIN,
- 	FIX_GDT_REMAP_END = FIX_GDT_REMAP_BEGIN + NR_CPUS - 1,
+diff --git a/arch/arm64/include/asm/fixmap.h b/arch/arm64/include/asm/fixmap.h
+index caf86be815ba..4edcdcb01a68 100644
+--- a/arch/arm64/include/asm/fixmap.h
++++ b/arch/arm64/include/asm/fixmap.h
+@@ -51,6 +51,11 @@ enum fixed_addresses {
  
+ 	FIX_EARLYCON_MEM_BASE,
+ 	FIX_TEXT_POKE0,
++
 +	/* Used for GHES mapping from assorted contexts */
 +	FIX_APEI_GHES_IRQ,
 +	FIX_APEI_GHES_NMI,
