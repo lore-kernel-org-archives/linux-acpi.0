@@ -1,72 +1,76 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / device_sysfs: Leave modalias empty for devices
- which are not present
-Date: Mon, 30 Oct 2017 23:23:00 +0100
-Message-ID: <CAJZ5v0i2196_=tqM+zahZyGMYGB2ovBr9kvoSWZ_Y-gfd8zqAw@mail.gmail.com>
-References: <20171015192449.16035-1-hdegoede@redhat.com> <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
- <2550330b-38ff-28b1-6294-d55462c03cca@redhat.com> <cb4224a1-05fa-c46a-8447-0e742fa89cec@redhat.com>
+From: Zhengqiang <zhengqiang10@huawei.com>
+Subject: Re: [PATCH] Bug fix: Clear ack of GHES table which contain wrong
+ Error status block, let new error can fill GHES table.
+Date: Tue, 31 Oct 2017 16:22:43 +0800
+Message-ID: <59F832D3.5050401@huawei.com>
+References: <1509326594-201050-1-git-send-email-zhengqiang10@huawei.com>
+ <61027894-b8ab-b90d-05fa-c8a04acfa42d@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:52364 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753373AbdJ3WXC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Oct 2017 18:23:02 -0400
-Received: by mail-io0-f193.google.com with SMTP id f20so30739128ioj.9
-        for <linux-acpi@vger.kernel.org>; Mon, 30 Oct 2017 15:23:02 -0700 (PDT)
-In-Reply-To: <cb4224a1-05fa-c46a-8447-0e742fa89cec@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <61027894-b8ab-b90d-05fa-c8a04acfa42d@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, rjw@rjwysocki.net
+Cc: gengdongjiu@huawei.com, wangxiongfeng2@huawei.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Mon, Oct 30, 2017 at 2:14 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
->
-> On 16-10-17 13:44, Hans de Goede wrote:
->>
->> Hi,
->>
->> On 16-10-17 01:47, Rafael J. Wysocki wrote:
->>>
->>> On Sun, Oct 15, 2017 at 9:24 PM, Hans de Goede <hdegoede@redhat.com>
->>> wrote:
->>>>
->>>> Most Bay and Cherry Trail devices use a generic DSDT with all possible
->>>> peripheral devices present in the DSDT, with their _STA returning 0x00
->>>> or
->>>> 0x0f based on AML variables which describe what is actually present on
->>>> the board.
->>>>
->>>> Since ACPI device objects with a 0x00 status (not present) still get an
->>>> entry under /sys/bus/acpi/devices, and those entry had an acpi:PNPID
->>>> modalias, userspace would end up loading modules for non present
->>>> hardware.
->>>>
->>>> This commit fixes this by leaving the modalias empty for non present
->>>> devices. This results in 10 modules less being loaded with a generic
->>>> distro kernel config on my Cherry Trail test-device (a GPD pocket).
->>>
->>>
->>> Well, what about hotplug?
->>>
->>> On some systems _STA may change from 0 to nonzero for some devices, so
->>> what's going to happen to the modalias then?
->>
->>
->> A good question. I would expect a change uevent to be generated in
->> this case and when the device has become present in this new uvent the
->> modalias will no longer be empty and the module will get loaded, so
->> the module will not get loaded until the actual hotplug.
->>
->> The actual generation of this uevent should be done by the various
->> subsystems based on ACPI_RECONFIG_DEVICE_ADD messages, at which point
->> adev->status is already updated and then when the subsys calls
->> acpi_device_uevent_modalias() for the new uevent it will return a
->> non-empty modalias.
->
->
-> Rafael, how do you want to move forward with this patch ?
+Hi, Tyler Baicar,
+Sorry, i missed your patch, you already solved it. thanks.
 
-Not sure yet, sorry.
+On 2017/10/30 21:53, Tyler Baicar wrote:
+> On 10/29/2017 9:23 PM, Qiang Zheng wrote:
+>> Current Error status block processing flow, if wrong format is checked,
+>> GHES table ack is not cleared.
+>> It will cause new error can not be filled GHES table, because UEFI
+>> need check ack to know if error was handled by OS.
+>>
+>> This patch solved issue, no matter Error status block format is wrong,
+>> But GHES table format is corrected, we clear ack.
+>>
+>> Signed-off-by: Qiang Zheng <zhengqiang10@huawei.com>
+>> ---
+>>   drivers/acpi/apei/ghes.c | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+>> index 077f9ba..b0e0782 100644
+>> --- a/drivers/acpi/apei/ghes.c
+>> +++ b/drivers/acpi/apei/ghes.c
+>> @@ -743,6 +743,7 @@ static int ghes_proc(struct ghes *ghes)
+>>       }
+>>       ghes_do_proc(ghes, ghes->estatus);
+>>   +out:
+> The out goto is already at this location. Please sync to the tip:
+> 
+>         ghes_do_proc(ghes, ghes->estatus);
+> 
+> out:
+>         ghes_clear_estatus(ghes);
+> 
+>         if (rc == -ENOENT)
+>                 return rc;
+> 
+>         /*
+>          * GHESv2 type HEST entries introduce support for error acknowledgment,
+>          * so only acknowledge the error if this support is present.
+>          */
+>         if (is_hest_type_generic_v2(ghes))
+>                 return ghes_ack_error(ghes->generic_v2);
+> 
+>         return rc;
+> 
+> 
+>>       /*
+>>        * GHESv2 type HEST entries introduce support for error acknowledgment,
+>>        * so only acknowledge the error if this support is present.
+>> @@ -752,7 +753,7 @@ static int ghes_proc(struct ghes *ghes)
+>>           if (rc)
+>>               return rc;
+>>       }
+>> -out:
+>> +
+>>       ghes_clear_estatus(ghes);
+>>       return rc;
+>>   }
+> 
