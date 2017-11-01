@@ -1,27 +1,55 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [RFC/RFT PATCH 3/6] ACPI / APEI: Replace ioremap_page_range()
- with fixmap
-Date: Wed, 1 Nov 2017 12:13:35 +0800
-Message-ID: <3b796e66-1618-0a6e-e57e-99323514b84d@huawei.com>
-References: <20171031153832.17746-1-james.morse@arm.com>
- <20171031153832.17746-4-james.morse@arm.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 09/12] PM / mfd: intel-lpss: Use DPM_FLAG_SMART_SUSPEND
+Date: Wed, 1 Nov 2017 09:28:19 +0000
+Message-ID: <20171101092819.thhofiwwjxblef4a@dell>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <5094729.JAaD38WncM@aspire.rjw.lan>
+ <20171031150933.oho2ffvuj3iagx4m@dell>
+ <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:9985 "EHLO
-        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751081AbdKAEQL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2017 00:16:11 -0400
-In-Reply-To: <20171031153832.17746-4-james.morse@arm.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org
 
-On 2017/10/31 23:38, James Morse wrote:
-> CC'd people I've seen posting CPER log fragments, could you give this a
-> test on your platforms?
-Thanks for the fixing, not found obviously issue.
+On Tue, 31 Oct 2017, Rafael J. Wysocki wrote:
 
+> On Tue, Oct 31, 2017 at 4:09 PM, Lee Jones <lee.jones@linaro.org> wrote:
+> > On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
+> >
+> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>
+> >> Make the intel-lpss driver set DPM_FLAG_SMART_SUSPEND for its
+> >> devices which will allow them to stay in runtime suspend during
+> >> system suspend unless they need to be reconfigured for some reason.
+> >>
+> >> Also make it avoid resuming its child devices if they have
+> >> DPM_FLAG_SMART_SUSPEND set to allow them to remain in runtime
+> >> suspend during system suspend.
+> >>
+> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> ---
+> >>  drivers/mfd/intel-lpss.c |    6 +++++-
+> >>  1 file changed, 5 insertions(+), 1 deletion(-)
+> >
+> > Is this patch independent?
+> 
+> It depends on the flag definition at least, but functionally it also
+> depends on the PCI support for the flag.
+
+No problem.  Which tree to you propose this goes through?
+
+> > For my own reference:
+> >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
+
+
+-- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
