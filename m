@@ -1,120 +1,35 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v2 2/2] acpi, nfit: add support for NVDIMM_FAMILY_INTEL
- v1.6 DSMs
-Date: Wed, 1 Nov 2017 11:35:46 -0600
-Message-ID: <20171101173546.GA31061@anatevka.americas.hpqcorp.net>
-References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171031212725.GA22678@anatevka.americas.hpqcorp.net>
- <CAPcyv4j7pvto7AvbzcmpgiYXHHm69LnGyWduRKP8qou947qqXA@mail.gmail.com>
- <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
- <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: "Kani, Toshimitsu" <toshi.kani@hpe.com>
+Subject: Re: [RFC/RFT PATCH 0/6] Switch GHES ioremap_page_range() to use
+ fixmap
+Date: Wed, 1 Nov 2017 18:20:46 +0000
+Message-ID: <1509559730.30483.19.camel@hpe.com>
+References: <20171031153832.17746-1-james.morse@arm.com>
+         <59F9E119.6040700@arm.com> <20171101153043.xgzepqbxsblmppp5@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hpe.com ([15.241.140.73]:28086 "EHLO
-        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbdKARfs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2017 13:35:48 -0400
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
+Received: from g9t1613g.houston.hpe.com ([15.241.32.99]:22303 "EHLO
+        g9t1613g.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754586AbdKASUv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2017 14:20:51 -0400
+In-Reply-To: <20171101153043.xgzepqbxsblmppp5@pd.tnic>
+Content-Language: en-US
+Content-ID: <3703B2A66E3A354FAF9CE8681661F842@NAMPRD84.PROD.OUTLOOK.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "james.morse@arm.com" <james.morse@arm.com>, "bp@suse.de" <bp@suse.de>
+Cc: "gengdongjiu@huawei.com" <gengdongjiu@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "x86@kernel.org" <x86@kernel.org>, "hpa@zytor.com" <hpa@zytor.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "mingo@redhat.com" <mingo@redhat.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "tbaicar@codeaurora.org" <tbaicar@codeaurora.org>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "xiexiuqi@huawei.com" <xiexiuqi@huaw>
 
-On Tue, Oct 31, 2017 at 04:19:32PM -0700, Dan Williams wrote:
-> On Tue, Oct 31, 2017 at 3:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> > On Tue, Oct 31, 2017 at 02:42:01PM -0700, Dan Williams wrote:
-> [..]
-> >> Yes, this can happen. However, for the kernel implementation it can
-> >> decide to move to rev-id2 at its leisure since ACPI mandates that
-> >> rev-id1 implementations stick around, and if the function number was
-> >> reserved in rev-id1 the kernel will already not support it.
-> >
-> > Unfortunately, we can't do that.  The kernel will still need to support
-> > firmware that only knows about Rev ID 1.
-> >
-> > Example, HPE currently supports customers w/ NVDIMMS with DSM that only
-> > responds to rev id 1.
-> >
-> > Say in the future we ship a new generation of NVDIMMs
-> > that extends the DSM health function.  We could make that
-> > additional info available only for rev id 2.  If the table
-> > above were extended to call health function with rev id 2
-> > so that we get the additional info for the new nvdimm, that
-> > call will stop working on what will then be legacy systems
-> > that only know rev id 1.
-> 
-> Right, I'm explicitly not supporting that degree of compatibility
-> freedom. If a platform wants to change the payload of an existing
-> function it had better expand the payload with new information that
-> can optionally be ignored by older kernels rather than spin the revid.
-> The kernel can't break legacy and neither should the platform, either
-> the kernel can call revid1 forever, the function is only available in
-> revid2 or later, or that function number is burned and we need to live
-> with the breakage that the platform shipped.
-
-
-Old software would still be calling firmware with revision id 1 and
-firmware would still respond with the revision id 1 version of the
-call.  So there is no problem there.  This would be the case for
-legacy firmware that only understand revision id 1, or new firmware
-that understands both revision id 1 and revision id 2.  Calling a
-function with revision id 1 should get the revision id 1 version
-of the call.  If not, then bug in firmware.
-
-The idea behind revision ids here is to allow both software and firmware
-to progress but still work together.   Firmware can extend functionality
-by increasing revision ID, but will still answer to old software that
-calls with older revision IDS.
-
-Likewise, OS can add support for new revision IDs/functions but still
-needs to be aware that firmware at customer sites may be legacy firmware that
-doesn't understand the newer firmware revision.  So software needs
-to call firmware with revision IDs that the firmware understands.
-
-Specifically, I am pushing back on the idea that the OS could
-just start calling a function with revision ID 2.  That doesn't
-work on firmware that only understands revision ID 1.  The call
-will fail.
-
-
-> 
-> We are already in this position with the "smart threshold" payload
-> that has been broken in recent revisions of the Intel spec. In this
-> specific case we have ndctl binaries in the wild that are broken, but
-> are somewhat saved by the fact that the interface for *setting* alarms
-> and thresholds is brand new in v1.6. So my plan is to document that
-> smart threshold is broken and require new ndctl binaries with v1.6
-> support to implement the new format via the ND_CMD_CALL interface. The
-> fact that this compatibility management is on a case by case basis and
-> somewhat painful is a feature. Platform implementations must hide DSM
-> update thrash from the kernel and shipping binaries as much as
-> possible.
-
-
-I haven't thought through the changes in v1.6.  The threshold one
-doesn't seem backwards compatible and it would have been better for
-this to have been caught during design review. Oh, well.....
-
-Fortunately, this isn't a customer/legacy bios issue yet, so solutions
-are a bit more flexible.
-
-I am concerned how the ND_CMD_CALL interface can handle revision ID
-changes in general.  The interface doesn't specify a revision ID so
-it can't control the revision of data being returned to the level
-it can handle.  Likewise,  there is no mechanism to communicate
-back to the application the revision of the call being returned.
-This make me think that any application that uses ND_CMD_CALL will
-be rev locked to specific kernel revisions.  I need to think about
-this more.
-
-
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+T24gV2VkLCAyMDE3LTExLTAxIGF0IDE2OjMwICswMTAwLCBCb3Jpc2xhdiBQZXRrb3Ygd3JvdGU6
+DQo+IE9uIFdlZCwgTm92IDAxLCAyMDE3IGF0IDAyOjU4OjMzUE0gKzAwMDAsIEphbWVzIE1vcnNl
+IHdyb3RlOg0KPiA+IERvZXMgYW55b25lIGhhdmUgYW4geDg2IG1hY2hpbmUgdGhhdCBkb2VzIGZp
+cm13YXJlLWZpcnN0IHVzaW5nIE5PVElGWV9OTUk/DQo+IA0KPiBBRkFJSywgdGhlIG9ubHkgb25l
+IHdobyBoYXMgYWNjZXNzIHRvIGEgcmVwb3J0ZWRseSBzb21ld2hhdCB3b3JraW5nIEdIRVMNCj4g
+aW1wbGVtZW50YXRpb24gaXMgVG9zaGkuIENDZWQuDQoNClRoYW5rcyBmb3IgdGhlIGhlYWRzLXVw
+LiAgTXkgeDg2IHN5c3RlbSBvbmx5IHN1cHBvcnRzIEdIRVMgd2l0aCBTQ0kNCmVycm9yIHNvdXJj
+ZXMuICBJdCB1c2VzIE1DRSBmb3Igc3luY2hyb25vdXMgZXJyb3IgZXZlbnRzLg0KDQpTbywgZm9y
+IHg4NiBTQ0kgZXJyb3Igc291cmNlczoNCg0KVGVzdGVkLWJ5OiBUb3NoaSBLYW5pIDx0b3NoaS5r
+YW5pQGhwZS5jb20+DQoNCm5pdDogSSB0aGluayBnaGVzX2lvcmVtYXBfcGZuX1tubWl8aXJxXSBz
+aG91bGQgYmUgcmVuYW1lZCBzaW5jZSB0aGV5IG5vDQpsb25nZXIgdXNlIGlvcmVtYXAuIA0KDQot
+VG9zaGkNCg==
