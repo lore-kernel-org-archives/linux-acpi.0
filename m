@@ -1,42 +1,120 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [RFC/RFT PATCH 0/6] Switch GHES ioremap_page_range() to use
- fixmap
-Date: Wed, 1 Nov 2017 16:30:43 +0100
-Message-ID: <20171101153043.xgzepqbxsblmppp5@pd.tnic>
-References: <20171031153832.17746-1-james.morse@arm.com>
- <59F9E119.6040700@arm.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v2 2/2] acpi, nfit: add support for NVDIMM_FAMILY_INTEL
+ v1.6 DSMs
+Date: Wed, 1 Nov 2017 11:35:46 -0600
+Message-ID: <20171101173546.GA31061@anatevka.americas.hpqcorp.net>
+References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171031212725.GA22678@anatevka.americas.hpqcorp.net>
+ <CAPcyv4j7pvto7AvbzcmpgiYXHHm69LnGyWduRKP8qou947qqXA@mail.gmail.com>
+ <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
+ <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
+Reply-To: Jerry.Hoemann@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:43246 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754593AbdKAPaz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 1 Nov 2017 11:30:55 -0400
+Received: from g4t3427.houston.hpe.com ([15.241.140.73]:28086 "EHLO
+        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751628AbdKARfs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2017 13:35:48 -0400
 Content-Disposition: inline
-In-Reply-To: <59F9E119.6040700@arm.com>
+In-Reply-To: <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org, Huang Ying <ying.huang@intel.com>, Toshi Kani <toshi.kani@hpe.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Wed, Nov 01, 2017 at 02:58:33PM +0000, James Morse wrote:
-> Does anyone have an x86 machine that does firmware-first using NOTIFY_NMI?
+On Tue, Oct 31, 2017 at 04:19:32PM -0700, Dan Williams wrote:
+> On Tue, Oct 31, 2017 at 3:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> > On Tue, Oct 31, 2017 at 02:42:01PM -0700, Dan Williams wrote:
+> [..]
+> >> Yes, this can happen. However, for the kernel implementation it can
+> >> decide to move to rev-id2 at its leisure since ACPI mandates that
+> >> rev-id1 implementations stick around, and if the function number was
+> >> reserved in rev-id1 the kernel will already not support it.
+> >
+> > Unfortunately, we can't do that.  The kernel will still need to support
+> > firmware that only knows about Rev ID 1.
+> >
+> > Example, HPE currently supports customers w/ NVDIMMS with DSM that only
+> > responds to rev id 1.
+> >
+> > Say in the future we ship a new generation of NVDIMMs
+> > that extends the DSM health function.  We could make that
+> > additional info available only for rev id 2.  If the table
+> > above were extended to call health function with rev id 2
+> > so that we get the additional info for the new nvdimm, that
+> > call will stop working on what will then be legacy systems
+> > that only know rev id 1.
+> 
+> Right, I'm explicitly not supporting that degree of compatibility
+> freedom. If a platform wants to change the payload of an existing
+> function it had better expand the payload with new information that
+> can optionally be ignored by older kernels rather than spin the revid.
+> The kernel can't break legacy and neither should the platform, either
+> the kernel can call revid1 forever, the function is only available in
+> revid2 or later, or that function number is burned and we need to live
+> with the breakage that the platform shipped.
 
-AFAIK, the only one who has access to a reportedly somewhat working GHES
-implementation is Toshi. CCed.
 
-> ('ls /sys/firmware/acpi/tables/', if you have a HEST and EINJ we should be able
-> to work something out)
+Old software would still be calling firmware with revision id 1 and
+firmware would still respond with the revision id 1 version of the
+call.  So there is no problem there.  This would be the case for
+legacy firmware that only understand revision id 1, or new firmware
+that understands both revision id 1 and revision id 2.  Calling a
+function with revision id 1 should get the revision id 1 version
+of the call.  If not, then bug in firmware.
 
-That's not enough. All the EINJ boxes I have would stop accepting EINJ
-writes after a couple of injections, i.e., BIOS would get "stuffed". :-)))
+The idea behind revision ids here is to allow both software and firmware
+to progress but still work together.   Firmware can extend functionality
+by increasing revision ID, but will still answer to old software that
+calls with older revision IDS.
 
-Maybe Tony has something better. He's already on CC.
+Likewise, OS can add support for new revision IDs/functions but still
+needs to be aware that firmware at customer sites may be legacy firmware that
+doesn't understand the newer firmware revision.  So software needs
+to call firmware with revision IDs that the firmware understands.
+
+Specifically, I am pushing back on the idea that the OS could
+just start calling a function with revision ID 2.  That doesn't
+work on firmware that only understands revision ID 1.  The call
+will fail.
+
+
+> 
+> We are already in this position with the "smart threshold" payload
+> that has been broken in recent revisions of the Intel spec. In this
+> specific case we have ndctl binaries in the wild that are broken, but
+> are somewhat saved by the fact that the interface for *setting* alarms
+> and thresholds is brand new in v1.6. So my plan is to document that
+> smart threshold is broken and require new ndctl binaries with v1.6
+> support to implement the new format via the ND_CMD_CALL interface. The
+> fact that this compatibility management is on a case by case basis and
+> somewhat painful is a feature. Platform implementations must hide DSM
+> update thrash from the kernel and shipping binaries as much as
+> possible.
+
+
+I haven't thought through the changes in v1.6.  The threshold one
+doesn't seem backwards compatible and it would have been better for
+this to have been caught during design review. Oh, well.....
+
+Fortunately, this isn't a customer/legacy bios issue yet, so solutions
+are a bit more flexible.
+
+I am concerned how the ND_CMD_CALL interface can handle revision ID
+changes in general.  The interface doesn't specify a revision ID so
+it can't control the revision of data being returned to the level
+it can handle.  Likewise,  there is no mechanism to communicate
+back to the application the revision of the call being returned.
+This make me think that any application that uses ND_CMD_CALL will
+be rev locked to specific kernel revisions.  I need to think about
+this more.
+
+
 
 -- 
-Regards/Gruss,
-    Boris.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+-----------------------------------------------------------------------------
+Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
+-----------------------------------------------------------------------------
