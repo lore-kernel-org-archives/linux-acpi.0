@@ -1,66 +1,135 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 2/2] acpi, nfit: add support for NVDIMM_FAMILY_INTEL
- v1.6 DSMs
-Date: Tue, 31 Oct 2017 16:19:32 -0700
-Message-ID: <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
-References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
- <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171031212725.GA22678@anatevka.americas.hpqcorp.net> <CAPcyv4j7pvto7AvbzcmpgiYXHHm69LnGyWduRKP8qou947qqXA@mail.gmail.com>
- <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL] Thermal SoC management updates for v4.15-rc1 #1
+Date: Wed, 01 Nov 2017 10:29:46 +0800
+Message-ID: <1509503386.3080.72.camel@intel.com>
+References: <20171030143003.GA1938@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:43973 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753486AbdJaXTd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 31 Oct 2017 19:19:33 -0400
-Received: by mail-oi0-f66.google.com with SMTP id c77so1012711oig.0
-        for <linux-acpi@vger.kernel.org>; Tue, 31 Oct 2017 16:19:33 -0700 (PDT)
-In-Reply-To: <20171031220552.GB22678@anatevka.americas.hpqcorp.net>
+Received: from mga14.intel.com ([192.55.52.115]:52192 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932742AbdKAC3J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 31 Oct 2017 22:29:09 -0400
+In-Reply-To: <20171030143003.GA1938@localhost.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Tue, Oct 31, 2017 at 3:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Tue, Oct 31, 2017 at 02:42:01PM -0700, Dan Williams wrote:
-[..]
->> Yes, this can happen. However, for the kernel implementation it can
->> decide to move to rev-id2 at its leisure since ACPI mandates that
->> rev-id1 implementations stick around, and if the function number was
->> reserved in rev-id1 the kernel will already not support it.
->
-> Unfortunately, we can't do that.  The kernel will still need to support
-> firmware that only knows about Rev ID 1.
->
-> Example, HPE currently supports customers w/ NVDIMMS with DSM that only
-> responds to rev id 1.
->
-> Say in the future we ship a new generation of NVDIMMs
-> that extends the DSM health function.  We could make that
-> additional info available only for rev id 2.  If the table
-> above were extended to call health function with rev id 2
-> so that we get the additional info for the new nvdimm, that
-> call will stop working on what will then be legacy systems
-> that only know rev id 1.
+On Mon, 2017-10-30 at 07:30 -0700, Eduardo Valentin wrote:
+> Hello Rui,
+> 
+> Please pull the changes for thermal-soc for the coming v4.15-rc1.
+> Changelog:
+> - New drivers: Rockchip RV1108 and Broadcom AVS tmon.
+> - Major rework on HISI driver plus additional support of hisi3660.
+> - Several fixes on diverse drivers and few in core.
+> 
+> BR,
+> 
+> The following changes since commit
+> 569dbb88e80deb68974ef6fdd6a13edb9d686261:
+> 
+>   Linux 4.13 (2017-09-03 13:56:17 -0700)
+> 
+please rebase it on top of v4.14-rc1 to avoid conflict, as we have a
+couple of thermal soc changes merged in 4.14-rc1.
 
-Right, I'm explicitly not supporting that degree of compatibility
-freedom. If a platform wants to change the payload of an existing
-function it had better expand the payload with new information that
-can optionally be ignored by older kernels rather than spin the revid.
-The kernel can't break legacy and neither should the platform, either
-the kernel can call revid1 forever, the function is only available in
-revid2 or later, or that function number is burned and we need to live
-with the breakage that the platform shipped.
+thanks,
+rui
 
-We are already in this position with the "smart threshold" payload
-that has been broken in recent revisions of the Intel spec. In this
-specific case we have ndctl binaries in the wild that are broken, but
-are somewhat saved by the fact that the interface for *setting* alarms
-and thresholds is brand new in v1.6. So my plan is to document that
-smart threshold is broken and require new ndctl binaries with v1.6
-support to implement the new format via the ND_CMD_CALL interface. The
-fact that this compatibility management is on a case by case basis and
-somewhat painful is a feature. Platform implementations must hide DSM
-update thrash from the kernel and shipping binaries as much as
-possible.
+> are available in the git repository at:
+> 
+>  
+> 
+> for you to fetch changes up to
+> 877a9aa9dadc7291b0069fb2ccdf2bbc1e3e6a6e:
+> 
+>   thermal: cpu_cooling: pr_err() strings should end with newlines
+> (2017-10-26 11:33:32 -0700)
+> 
+> ----------------------------------------------------------------
+> Allen Wild (1):
+>       thermal: enable broadcom menu for arm64 bcm2835
+> 
+> Arvind Yadav (1):
+>       thermal: cpu_cooling: pr_err() strings should end with newlines
+> 
+> Baruch Siach (1):
+>       thermal: armada: fix formula documentation comment
+> 
+> Brian Norris (2):
+>       Documentation: devicetree: add binding for Broadcom STB AVS
+> TMON
+>       thermal: add brcmstb AVS TMON driver
+> 
+> Daniel Lezcano (16):
+>       thermal/drivers/hisi: Fix missing interrupt enablement
+>       thermal/drivers/hisi: Remove the multiple sensors support
+>       thermal/drivers/hisi: Fix kernel panic on alarm interrupt
+>       thermal/drivers/hisi: Simplify the temperature/step computation
+>       thermal/drivers/hisi: Fix multiple alarm interrupts firing
+>       thermal/drivers/hisi: Remove pointless lock
+>       thermal/drivers/hisi: Encapsulate register writes into helpers
+>       thermal/drivers/hisi: Fix configuration register setting
+>       thermal/drivers/hisi: Remove costly sensor inspection
+>       thermal/drivers/hisi: Rename and remove unused field
+>       thermal/drivers/hisi: Convert long to int
+>       thermal/drivers/hisi: Remove thermal data back pointer
+>       thermal/drivers/hisi: Remove mutex_lock in the code
+>       thermal/drivers/step_wise: Fix temperature regulation
+> misbehavior
+>       thermal/drivers/generic-iio-adc: Switch tz request to devm
+> version
+>       thermal/drivers/qcom-spmi: Use devm_iio_channel_get
+> 
+> Kevin Wangtao (6):
+>       thermal/drivers/hisi: Move the clk setup in the corresponding
+> functions
+>       thermal/drivers/hisi: Use round up step value
+>       thermal/drivers/hisi: Put platform code together
+>       thermal/drivers/hisi: Add platform prefix to function name
+>       thermal/drivers/hisi: Prepare to add support for other hisi
+> platforms
+>       thermal/drivers/hisi: Add support for hi3660 SoC
+> 
+> Nicolin Chen (1):
+>       thermal: tegra: remove null check for dev pointer
+> 
+> Niklas Söderlund (1):
+>       thermal: rcar_gen3_thermal: fix initialization sequence for H3
+> ES2.0
+> 
+> Rocky Hao (2):
+>       dt-bindings: rockchip-thermal: Support the RV1108 SoC
+> compatible
+>       thermal: rockchip: Support the RV1108 SoC in thermal driver
+> 
+> Tony Lindgren (1):
+>       thermal: ti-soc-thermal: Fix ti_thermal_unregister_cpu_cooling
+> NULL pointer on unload
+> 
+>  .../devicetree/bindings/thermal/brcm,avs-tmon.txt  |  20 +
+>  .../bindings/thermal/rockchip-thermal.txt          |   1 +
+>  MAINTAINERS                                        |   8 +
+>  drivers/thermal/Kconfig                            |   2 +-
+>  drivers/thermal/armada_thermal.c                   |   2 +-
+>  drivers/thermal/broadcom/Kconfig                   |   7 +
+>  drivers/thermal/broadcom/Makefile                  |   1 +
+>  drivers/thermal/broadcom/brcmstb_thermal.c         | 387
+> +++++++++++++
+>  drivers/thermal/cpu_cooling.c                      |   2 +-
+>  drivers/thermal/hisi_thermal.c                     | 612
+> ++++++++++++++-------
+>  drivers/thermal/qcom-spmi-temp-alarm.c             |  43 +-
+>  drivers/thermal/rcar_gen3_thermal.c                |  34 +-
+>  drivers/thermal/rockchip_thermal.c                 |  67 +++
+>  drivers/thermal/step_wise.c                        |  11 +-
+>  drivers/thermal/tegra/soctherm.c                   |   2 +-
+>  drivers/thermal/thermal-generic-adc.c              |  24 +-
+>  drivers/thermal/ti-soc-thermal/ti-thermal-common.c |   3 +-
+>  17 files changed, 940 insertions(+), 286 deletions(-)
+>  create mode 100644
+> Documentation/devicetree/bindings/thermal/brcm,avs-tmon.txt
+>  create mode 100644 drivers/thermal/broadcom/brcmstb_thermal.c
