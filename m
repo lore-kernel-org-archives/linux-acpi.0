@@ -1,55 +1,54 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 09/12] PM / mfd: intel-lpss: Use DPM_FLAG_SMART_SUSPEND
-Date: Wed, 1 Nov 2017 09:28:19 +0000
-Message-ID: <20171101092819.thhofiwwjxblef4a@dell>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan>
- <5094729.JAaD38WncM@aspire.rjw.lan>
- <20171031150933.oho2ffvuj3iagx4m@dell>
- <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [RFC/RFT PATCH 3/6] ACPI / APEI:  Replace ioremap_page_range()
+ with fixmap
+Date: Wed, 1 Nov 2017 14:34:30 +0100
+Message-ID: <20171101133430.if3j2kzins44nv7o@pd.tnic>
+References: <20171031153832.17746-1-james.morse@arm.com>
+ <20171031153832.17746-4-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-doc-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:56470 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751853AbdKANej (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 1 Nov 2017 09:34:39 -0400
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>
+In-Reply-To: <20171031153832.17746-4-james.morse@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org
 
-On Tue, 31 Oct 2017, Rafael J. Wysocki wrote:
-
-> On Tue, Oct 31, 2017 at 4:09 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> > On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
-> >
-> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>
-> >> Make the intel-lpss driver set DPM_FLAG_SMART_SUSPEND for its
-> >> devices which will allow them to stay in runtime suspend during
-> >> system suspend unless they need to be reconfigured for some reason.
-> >>
-> >> Also make it avoid resuming its child devices if they have
-> >> DPM_FLAG_SMART_SUSPEND set to allow them to remain in runtime
-> >> suspend during system suspend.
-> >>
-> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> ---
-> >>  drivers/mfd/intel-lpss.c |    6 +++++-
-> >>  1 file changed, 5 insertions(+), 1 deletion(-)
-> >
-> > Is this patch independent?
+On Tue, Oct 31, 2017 at 03:38:29PM +0000, James Morse wrote:
+> Replace ghes_io{re,un}map_pfn_{nmi,irq}()s use of ioremap_page_range()
+> with __set_fixmap() as ioremap_page_range() may sleep to allocate a new
+> level of page-table, even if its passed an existing final-address to
+> use in the mapping.
 > 
-> It depends on the flag definition at least, but functionally it also
-> depends on the PCI support for the flag.
+> clear_fixmap() does the TLB invalidation in __set_fixmap() for arm64
+> and __set_pte_vaddr() for x86. In each case its the same as the
+> respective arch_apei_flush_tlb_one().
+> 
+> Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+> Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> CC: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Dongjiu Geng <gengdongjiu@huawei.com>
+> CC: Xie XiuQi <xiexiuqi@huawei.com>
+> 
+> ---
+> CC'd people I've seen posting CPER log fragments, could you give this a
+> test on your platforms?
+> 
+>  drivers/acpi/apei/ghes.c | 45 +++++++++++++++------------------------------
+>  1 file changed, 15 insertions(+), 30 deletions(-)
 
-No problem.  Which tree to you propose this goes through?
-
-> > For my own reference:
-> >   Acked-for-MFD-by: Lee Jones <lee.jones@linaro.org>
-
+Reviewed-by: Borislav Petkov <bp@suse.de>
 
 -- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
