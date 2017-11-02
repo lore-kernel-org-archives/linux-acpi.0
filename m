@@ -1,108 +1,94 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 6/7] arm64: topology: Enable ACPI/PPTT based CPU
- topology.
-Date: Wed, 1 Nov 2017 14:29:26 -0600
-Message-ID: <270ae2f5-0af6-1be4-2914-d1ce8d0a5cd0@redhat.com>
-References: <20171012194856.13844-1-jeremy.linton@arm.com>
- <20171012194856.13844-7-jeremy.linton@arm.com>
- <20171019155622.GC18883@red-moon>
- <b6c3fae3-eb6d-e5f2-6887-de1471978897@arm.com>
- <20171020092210.GB21060@red-moon>
-Reply-To: ahs3@redhat.com
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 2/2] acpi, nfit: add support for NVDIMM_FAMILY_INTEL
+ v1.6 DSMs
+Date: Wed, 1 Nov 2017 17:33:32 -0700
+Message-ID: <CAPcyv4j5_hM_GbDZ6-5=zHK_AQ9SZeUCW7SV7tciD_PKaWRCQw@mail.gmail.com>
+References: <150939641796.4577.379718469071595984.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <150939642870.4577.1202379190708311186.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20171031212725.GA22678@anatevka.americas.hpqcorp.net> <CAPcyv4j7pvto7AvbzcmpgiYXHHm69LnGyWduRKP8qou947qqXA@mail.gmail.com>
+ <20171031220552.GB22678@anatevka.americas.hpqcorp.net> <CAPcyv4g+pRApbhK5no=mJQnA8UaRP52JWQ8moz-2tHBzTRiF8Q@mail.gmail.com>
+ <20171101173546.GA31061@anatevka.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20171020092210.GB21060@red-moon>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:52421 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932433AbdKBAde (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Nov 2017 20:33:34 -0400
+Received: by mail-ot0-f194.google.com with SMTP id v105so256578ota.9
+        for <linux-acpi@vger.kernel.org>; Wed, 01 Nov 2017 17:33:33 -0700 (PDT)
+In-Reply-To: <20171101173546.GA31061@anatevka.americas.hpqcorp.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On 10/20/2017 03:22 AM, Lorenzo Pieralisi wrote:
-> On Thu, Oct 19, 2017 at 11:54:22AM -0500, Jeremy Linton wrote:
-> 
-> [...]
-> 
->>>> +			cpu_topology[cpu].core_id   = topology_id;
->>>> +			topology_id = setup_acpi_cpu_topology(cpu, 2);
->>>> +			cpu_topology[cpu].cluster_id = topology_id;
->>>> +			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
->>>
->>> If you want a package id (that's just a package tag to group cores), you
->>> should not use a large level because you know how setup_acpi_cpu_topology()works, you should add an API that allows you to retrieve the package id
->>> (so that you can use th ACPI_PPTT_PHYSICAL_PACKAGE flag consistenly,
->>> whatever it represents).
+On Wed, Nov 1, 2017 at 10:35 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> On Tue, Oct 31, 2017 at 04:19:32PM -0700, Dan Williams wrote:
+>> On Tue, Oct 31, 2017 at 3:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+>> > On Tue, Oct 31, 2017 at 02:42:01PM -0700, Dan Williams wrote:
+>> [..]
+>> >> Yes, this can happen. However, for the kernel implementation it can
+>> >> decide to move to rev-id2 at its leisure since ACPI mandates that
+>> >> rev-id1 implementations stick around, and if the function number was
+>> >> reserved in rev-id1 the kernel will already not support it.
+>> >
+>> > Unfortunately, we can't do that.  The kernel will still need to support
+>> > firmware that only knows about Rev ID 1.
+>> >
+>> > Example, HPE currently supports customers w/ NVDIMMS with DSM that only
+>> > responds to rev id 1.
+>> >
+>> > Say in the future we ship a new generation of NVDIMMs
+>> > that extends the DSM health function.  We could make that
+>> > additional info available only for rev id 2.  If the table
+>> > above were extended to call health function with rev id 2
+>> > so that we get the additional info for the new nvdimm, that
+>> > call will stop working on what will then be legacy systems
+>> > that only know rev id 1.
 >>
->> I don't think the spec requires the use of PHYSICAL_PACKAGE... Am I
->> misreading it? Which means we need to "pick" a node level to
->> represent the physical package if one doesn't exist...
-> 
-> The specs define a means to detect if a given PPTT node corresponds to a
-> package (I am refraining from stating again that to me that's not clean
-> cut what a package is _architecturally_, I think you know my POV by now)
-> and that's what you need to use to retrieve a packageid for a given cpu,
-> if I understand the aim of the physical package flag.
-> 
-> Either that or that flag is completely useless.
-> 
-> Lorenzo
-> 
-> ACPI 6.2 - Table 5-151 (page 248)
-> Physical package
-> -----------------
-> Set to 1 if this node of the processor topology represents the boundary
-> of a physical package, whether socketed or surface mounted.  Set to 0 if
-> this instance of the processor topology does not represent the boundary
-> of a physical package.
-> 
+>> Right, I'm explicitly not supporting that degree of compatibility
+>> freedom. If a platform wants to change the payload of an existing
+>> function it had better expand the payload with new information that
+>> can optionally be ignored by older kernels rather than spin the revid.
+>> The kernel can't break legacy and neither should the platform, either
+>> the kernel can call revid1 forever, the function is only available in
+>> revid2 or later, or that function number is burned and we need to live
+>> with the breakage that the platform shipped.
+>
+>
+> Old software would still be calling firmware with revision id 1 and
+> firmware would still respond with the revision id 1 version of the
+> call.  So there is no problem there.  This would be the case for
+> legacy firmware that only understand revision id 1, or new firmware
+> that understands both revision id 1 and revision id 2.  Calling a
+> function with revision id 1 should get the revision id 1 version
+> of the call.  If not, then bug in firmware.
+>
+> The idea behind revision ids here is to allow both software and firmware
+> to progress but still work together.   Firmware can extend functionality
+> by increasing revision ID, but will still answer to old software that
+> calls with older revision IDS.
+>
+> Likewise, OS can add support for new revision IDs/functions but still
+> needs to be aware that firmware at customer sites may be legacy firmware that
+> doesn't understand the newer firmware revision.  So software needs
+> to call firmware with revision IDs that the firmware understands.
+>
+> Specifically, I am pushing back on the idea that the OS could
+> just start calling a function with revision ID 2.  That doesn't
+> work on firmware that only understands revision ID 1.  The call
+> will fail.
 
-I've been following the discussion and I'm not sure I understand what the
-confusion is around having a physical package ID.  Since I'm the one that
-insisted it be in the spec, I'd be glad to clarify anything.  My apologies
-for not saying anything sooner but things IRL have been very complicated
-of late.
+Right, the OS can only switch to rev-id2 of the same function after a
+long deprecation period. The timeframe to deprecate support for
+rev-id1 and switch the kernel to start using rev-id2 of the same
+function is on the order of several years until all old hardware with
+only rev-id1 is end-of-life. The way to upgrade functionality in a
+manner that does not break the world is to extend payloads with
+optional functionality.
 
-What was intended was a simple flag that was meant to tell me if a CPU ID
-(this could be a CPU, a cluster, a processor container -- I don't really
-care which) is *also* an actual physical device on a motherboard.  That is
-the only intent; there was no architectural meaning intended at all -- that
-is what the PPTT structures are for, in conjunction with any DSDT information
-uncovered later in the boot process.
-
-However, in the broader server ecosystem, this can be incredibly useful.  There
-are a significant number of software products sold or supported that base their
-fees on the number of physical sockets in use.  There have been in the past (and
-may be in the near future) machines where the cost of the lease on the machine
-is determined by how many physical sockets (or even CPUs) are in use, even if
-the machine has many more available.
-
-Some vendors also include FRU (Field Replaceable Unit) location info in their
-ACPI tables.  So, for example, one or more CPUs or caches might fail in one
-physical package, which is then reported to a maintenance system of some sort
-that tells some human which of the physical sockets on what motherboard needs a
-replacement device, or it's simply noted and shut off until it's time to replace
-the entire server, or perhaps it's logged and used in an algorithm to predict
-when the server might fail completely.
-
-So, that's why the flag exists in the spec.  It seems to make sense to me to
-have a package ID as part of struct cpu_topology -- it might even be really
-handy for CPU hotplug.  If you don't, it seems to me a whole separate struct
-would be needed with more cpumasks to show who belongs to what physical package;
-that might be okay but seems unnecessarily complicated to me.
-
-You can also tell me that I have completely missed the point of the discussion
-so far :-).  But if you do, you have to tell me what I missed.
-
-Hope this helps clarify...
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+This is why DSM is a dangerous interface, it gives entirely too much
+power to the platform to do something incompatible, so we should
+mitigate that by communicating to platform implementers that the
+kernel will continue to use rev-id1 indefinitely for a given function.
