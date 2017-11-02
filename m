@@ -1,54 +1,133 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [RFC/RFT PATCH 0/6] Switch GHES ioremap_page_range() to use
- fixmap
-Date: Thu, 2 Nov 2017 10:19:33 +0000
-Message-ID: <20171102101933.GC11881@arm.com>
-References: <20171031153832.17746-1-james.morse@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v3 6/7] arm64: topology: Enable ACPI/PPTT based CPU
+ topology.
+Date: Thu, 2 Nov 2017 10:48:35 +0000
+Message-ID: <20171102104826.GB13580@red-moon>
+References: <20171012194856.13844-1-jeremy.linton@arm.com>
+ <20171012194856.13844-7-jeremy.linton@arm.com>
+ <20171019155622.GC18883@red-moon>
+ <b6c3fae3-eb6d-e5f2-6887-de1471978897@arm.com>
+ <20171020092210.GB21060@red-moon>
+ <270ae2f5-0af6-1be4-2914-d1ce8d0a5cd0@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57378 "EHLO
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57792 "EHLO
         foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755230AbdKBKTa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Nov 2017 06:19:30 -0400
+        id S1755524AbdKBKsc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Nov 2017 06:48:32 -0400
 Content-Disposition: inline
-In-Reply-To: <20171031153832.17746-1-james.morse@arm.com>
+In-Reply-To: <270ae2f5-0af6-1be4-2914-d1ce8d0a5cd0@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org
+To: Al Stone <ahs3@redhat.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org
 
-On Tue, Oct 31, 2017 at 03:38:26PM +0000, James Morse wrote:
-> GHES is doing ioremap_page_range() in both NMI and irq context, neither
-> are safe as it may sleep to allocate intermediate levels of page table.
+On Wed, Nov 01, 2017 at 02:29:26PM -0600, Al Stone wrote:
+> On 10/20/2017 03:22 AM, Lorenzo Pieralisi wrote:
+> > On Thu, Oct 19, 2017 at 11:54:22AM -0500, Jeremy Linton wrote:
+> > 
+> > [...]
+> > 
+> >>>> +			cpu_topology[cpu].core_id   = topology_id;
+> >>>> +			topology_id = setup_acpi_cpu_topology(cpu, 2);
+> >>>> +			cpu_topology[cpu].cluster_id = topology_id;
+> >>>> +			topology_id = setup_acpi_cpu_topology(cpu, max_topo);
+> >>>
+> >>> If you want a package id (that's just a package tag to group cores), you
+> >>> should not use a large level because you know how setup_acpi_cpu_topology()works, you should add an API that allows you to retrieve the package id
+> >>> (so that you can use th ACPI_PPTT_PHYSICAL_PACKAGE flag consistenly,
+> >>> whatever it represents).
+> >>
+> >> I don't think the spec requires the use of PHYSICAL_PACKAGE... Am I
+> >> misreading it? Which means we need to "pick" a node level to
+> >> represent the physical package if one doesn't exist...
+> > 
+> > The specs define a means to detect if a given PPTT node corresponds to a
+> > package (I am refraining from stating again that to me that's not clean
+> > cut what a package is _architecturally_, I think you know my POV by now)
+> > and that's what you need to use to retrieve a packageid for a given cpu,
+> > if I understand the aim of the physical package flag.
+> > 
+> > Either that or that flag is completely useless.
+> > 
+> > Lorenzo
+> > 
+> > ACPI 6.2 - Table 5-151 (page 248)
+> > Physical package
+> > -----------------
+> > Set to 1 if this node of the processor topology represents the boundary
+> > of a physical package, whether socketed or surface mounted.  Set to 0 if
+> > this instance of the processor topology does not represent the boundary
+> > of a physical package.
+> > 
 > 
-> Replace the NMI/irq GHES_IOREMAP_PAGES to use a fixmap entry each.
+> I've been following the discussion and I'm not sure I understand what the
+> confusion is around having a physical package ID.  Since I'm the one that
+> insisted it be in the spec, I'd be glad to clarify anything.  My apologies
+> for not saying anything sooner but things IRL have been very complicated
+> of late.
 > 
-> After this nothing uses ghes_ioremap_area or arch_apei_flush_tlb_one(),
-> rip them out.
+> What was intended was a simple flag that was meant to tell me if a CPU ID
+> (this could be a CPU, a cluster, a processor container -- I don't really
+> care which) is *also* an actual physical device on a motherboard.  That is
+> the only intent; there was no architectural meaning intended at all -- that
+> is what the PPTT structures are for, in conjunction with any DSDT information
+> uncovered later in the boot process.
 > 
-> RFC as I've only build-tested this on x86. For arm64 I've tested it on a
-> software model. Any more testing would be welcome. These patches are based
-> on rc7.
+> However, in the broader server ecosystem, this can be incredibly useful.  There
+> are a significant number of software products sold or supported that base their
+> fees on the number of physical sockets in use.  There have been in the past (and
+> may be in the near future) machines where the cost of the lease on the machine
+> is determined by how many physical sockets (or even CPUs) are in use, even if
+> the machine has many more available.
 > 
-> Thanks,
+> Some vendors also include FRU (Field Replaceable Unit) location info in their
+> ACPI tables.  So, for example, one or more CPUs or caches might fail in one
+> physical package, which is then reported to a maintenance system of some sort
+> that tells some human which of the physical sockets on what motherboard needs a
+> replacement device, or it's simply noted and shut off until it's time to replace
+> the entire server, or perhaps it's logged and used in an algorithm to predict
+> when the server might fail completely.
 > 
-> James Morse (6):
->   arm64: fixmap: Add GHES fixmap entries
->   x86/mm/fixmap: Add GHES fixmap entries
->   ACPI / APEI:  Replace ioremap_page_range() with fixmap
->   ACPI / APEI: Remove ghes_ioremap_area
->   arm64: mm: Remove arch_apei_flush_tlb_one()
->   ACPI / APEI: Remove arch_apei_flush_tlb_one()
+> So, that's why the flag exists in the spec.  It seems to make sense to me to
+> have a package ID as part of struct cpu_topology -- it might even be really
+> handy for CPU hotplug.  If you don't, it seems to me a whole separate struct
+> would be needed with more cpumasks to show who belongs to what physical package;
+> that might be okay but seems unnecessarily complicated to me.
 > 
->  arch/arm64/include/asm/acpi.h   | 12 ------
->  arch/arm64/include/asm/fixmap.h |  5 +++
->  arch/arm64/mm/mmu.c             |  4 ++
+> You can also tell me that I have completely missed the point of the discussion
+> so far :-).  But if you do, you have to tell me what I missed.
+> 
+> Hope this helps clarify...
 
-If you need it:
+Hi Al,
 
-Acked-by: Will Deacon <will.deacon@arm.com>
+yes it does.
 
-for the arm64 bits.
+I think we agree that package ID has a HW/architectural meaning on x86,
+it has none on PPTT (ie it totally depends on how PPTT is enumerated).
 
-Will
+That's the first remark. So, if the package flag is used to group CPUs
+and provide the topology package hierarchy to the kernel/userspace fine,
+if it is to be used to provide scheduler/userspace with an ID that can
+identify a HW "component" of sorts it is not fine because the topology
+package ID is a SW construction on ARM systems relying on PPTT
+(and DT - by the way).
+
+So, to group CPUs and call them a package, fine by me (with a hope
+FW developers won't play too much with that package flag to make
+things work but use it consistenly instead).
+
+Having said that, all I asked is that, given that we _know_ (thanks
+to the PPTT flag) the package boundary, let's use it to initialize
+the topology package level and that's where this patch series should
+stop IMHO.
+
+For the time being, I see no point in adding another arbitrary topology
+level (ie COD) with no architectural meaning, as I said, this is vague
+enough already and there is legacy (and DT systems) to take into account
+too.
+
+Thanks,
+Lorenzo
