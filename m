@@ -1,40 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] APEI/ERST: use 64-bit timestamps
-Date: Thu,  2 Nov 2017 12:42:50 +0100
-Message-ID: <20171102114320.1729239-1-arnd@arndb.de>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [RFC/RFT PATCH 3/6] ACPI / APEI: Replace ioremap_page_range()
+ with fixmap
+Date: Thu, 2 Nov 2017 20:01:16 +0800
+Message-ID: <459a2731-b7eb-5836-93fd-57b7feaa5e40@huawei.com>
+References: <20171031153832.17746-1-james.morse@arm.com>
+ <20171031153832.17746-4-james.morse@arm.com>
+ <3b796e66-1618-0a6e-e57e-99323514b84d@huawei.com> <59F9E0DF.20006@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.74]:61585 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750722AbdKBLnr (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Nov 2017 07:43:47 -0400
+Received: from szxga06-in.huawei.com ([45.249.212.32]:45648 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751370AbdKBMCg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 2 Nov 2017 08:02:36 -0400
+In-Reply-To: <59F9E0DF.20006@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Leon Romanovsky <leonro@mellanox.com>, Dan Williams <dan.j.williams@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, x86@kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@suse.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Xie XiuQi <xiexiuqi@huawei.com>, torvalds@linux-foundation.org, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, "lijinyue@huawei.com" <lijinyue@huawei.com>
 
-32-bit timestamps are deprecated in the kernel, so we should not use
-get_seconds(). In this case, the 'struct cper_record_header' structure
-already contains a 64-bit field, so the only required change is to use
-the safe ktime_get_real_seconds() interface as a replacement.
+Hi James,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/acpi/apei/erst.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> Can I take that as a 'Tested-by:'?
+> 
+> These tags also let us record who has a system that can test changes to this driver.
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 2c462beee551..6742f6c68034 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -1061,7 +1061,7 @@ static int erst_writer(struct pstore_record *record)
- 	rcd->hdr.error_severity = CPER_SEV_FATAL;
- 	/* timestamp valid. platform_id, partition_id are invalid */
- 	rcd->hdr.validation_bits = CPER_VALID_TIMESTAMP;
--	rcd->hdr.timestamp = get_seconds();
-+	rcd->hdr.timestamp = ktime_get_real_seconds();
- 	rcd->hdr.record_length = sizeof(*rcd) + record->size;
- 	rcd->hdr.creator_id = CPER_CREATOR_PSTORE;
- 	rcd->hdr.notification_type = CPER_NOTIFY_MCE;
--- 
-2.9.0
+sure.
+Thanks for the fixing.
+Qiang Zheng who is my colleague have tested it.
+
+CC  Qiang.
+
+Tested-by:  Qiang Zheng <zhengqiang10@huawei.com>
+
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> 
+> .
+> 
 
