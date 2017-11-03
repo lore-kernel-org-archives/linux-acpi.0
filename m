@@ -1,7 +1,7 @@
 From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 1/2] ACPI / PMIC: Make some pointers, structure field and function argument as const
-Date: Fri,  3 Nov 2017 16:03:47 +0100
-Message-ID: <1509721428-6147-2-git-send-email-bhumirks@gmail.com>
+Subject: [PATCH 2/2] ACPI / PMIC: make intel_pmic_opregion_data structures const
+Date: Fri,  3 Nov 2017 16:03:48 +0100
+Message-ID: <1509721428-6147-3-git-send-email-bhumirks@gmail.com>
 References: <1509721428-6147-1-git-send-email-bhumirks@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1509721428-6147-1-git-send-email-bhumirks@gmail.com>
@@ -10,84 +10,68 @@ To: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org
 Cc: Bhumika Goyal <bhumirks@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Make some pointers of type intel_pmic_opregion_data as const as they
-do not modify the fields of the structure they point too.
-After this change, make the data field of intel_pmic_opregion
-structure const as this data field is used for initializing the above pointers
-that are now const.
-Finally, make the struct intel_pmic_opregion_data * argument of the
-function intel_pmic_install_opregion_handler as const as it is only
-getting stored in the data field of the intel_pmic_opregion
-structure which is now made const.
+Make these structures as const as they are only passed to the function
+intel_pmic_install_opregion_handler having the argument as const.
 
 Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
 ---
- drivers/acpi/pmic/intel_pmic.c | 10 +++++-----
- drivers/acpi/pmic/intel_pmic.h |  4 +++-
- 2 files changed, 8 insertions(+), 6 deletions(-)
+ drivers/acpi/pmic/intel_pmic_bxtwc.c  | 2 +-
+ drivers/acpi/pmic/intel_pmic_chtwc.c  | 2 +-
+ drivers/acpi/pmic/intel_pmic_crc.c    | 2 +-
+ drivers/acpi/pmic/intel_pmic_xpower.c | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-index ca18e0d..553fa4f 100644
---- a/drivers/acpi/pmic/intel_pmic.c
-+++ b/drivers/acpi/pmic/intel_pmic.c
-@@ -32,7 +32,7 @@ struct intel_pmic_opregion {
- 	struct mutex lock;
- 	struct acpi_lpat_conversion_table *lpat_table;
- 	struct regmap *regmap;
--	struct intel_pmic_opregion_data *data;
-+	const struct intel_pmic_opregion_data *data;
- 	struct intel_pmic_regs_handler_ctx ctx;
- };
+diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
+index 90011aa..fd698c6 100644
+--- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
++++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
+@@ -377,7 +377,7 @@ static int intel_bxtwc_pmic_get_raw_temp(struct regmap *regmap, int reg)
+ 	return regmap_update_bits(regmap, reg, mask, val);
+ }
  
-@@ -58,7 +58,7 @@ static acpi_status intel_pmic_power_handler(u32 function,
- {
- 	struct intel_pmic_opregion *opregion = region_context;
- 	struct regmap *regmap = opregion->regmap;
--	struct intel_pmic_opregion_data *d = opregion->data;
-+	const struct intel_pmic_opregion_data *d = opregion->data;
- 	int reg, bit, result;
+-static struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
++static const struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
+ 	.get_power      = intel_bxtwc_pmic_get_power,
+ 	.update_power   = intel_bxtwc_pmic_update_power,
+ 	.get_raw_temp   = intel_bxtwc_pmic_get_raw_temp,
+diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
+index 85636d7..240359b 100644
+--- a/drivers/acpi/pmic/intel_pmic_chtwc.c
++++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
+@@ -243,7 +243,7 @@ static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
+  * The thermal table and ops are empty, we do not support the Thermal opregion
+  * (DPTF) due to lacking documentation.
+  */
+-static struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
++static const struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
+ 	.get_power		= intel_cht_wc_pmic_get_power,
+ 	.update_power		= intel_cht_wc_pmic_update_power,
+ 	.power_table		= power_table,
+diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
+index d7f1761..cad1fe1 100644
+--- a/drivers/acpi/pmic/intel_pmic_crc.c
++++ b/drivers/acpi/pmic/intel_pmic_crc.c
+@@ -174,7 +174,7 @@ static int intel_crc_pmic_update_policy(struct regmap *regmap,
+ 	return 0;
+ }
  
- 	if (bits != 32 || !value64)
-@@ -140,7 +140,7 @@ static int pmic_thermal_aux(struct intel_pmic_opregion *opregion, int reg,
- static int pmic_thermal_pen(struct intel_pmic_opregion *opregion, int reg,
- 			    int bit, u32 function, u64 *value)
- {
--	struct intel_pmic_opregion_data *d = opregion->data;
-+	const struct intel_pmic_opregion_data *d = opregion->data;
- 	struct regmap *regmap = opregion->regmap;
+-static struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
++static const struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
+ 	.get_power	= intel_crc_pmic_get_power,
+ 	.update_power	= intel_crc_pmic_update_power,
+ 	.get_raw_temp	= intel_crc_pmic_get_raw_temp,
+diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
+index 6c99d3f..96718af 100644
+--- a/drivers/acpi/pmic/intel_pmic_xpower.c
++++ b/drivers/acpi/pmic/intel_pmic_xpower.c
+@@ -231,7 +231,7 @@ static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap, int reg)
+ 	return ret;
+ }
  
- 	if (!d->get_policy || !d->update_policy)
-@@ -176,7 +176,7 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
- 		void *handler_context, void *region_context)
- {
- 	struct intel_pmic_opregion *opregion = region_context;
--	struct intel_pmic_opregion_data *d = opregion->data;
-+	const struct intel_pmic_opregion_data *d = opregion->data;
- 	int reg, bit, result;
- 
- 	if (bits != 32 || !value64)
-@@ -255,7 +255,7 @@ static acpi_status intel_pmic_regs_handler(u32 function,
- 
- int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
- 					struct regmap *regmap,
--					struct intel_pmic_opregion_data *d)
-+					const struct intel_pmic_opregion_data *d)
- {
- 	acpi_status status;
- 	struct intel_pmic_opregion *opregion;
-diff --git a/drivers/acpi/pmic/intel_pmic.h b/drivers/acpi/pmic/intel_pmic.h
-index e8bfa7b..754b7bd 100644
---- a/drivers/acpi/pmic/intel_pmic.h
-+++ b/drivers/acpi/pmic/intel_pmic.h
-@@ -20,6 +20,8 @@ struct intel_pmic_opregion_data {
- 	int thermal_table_count;
- };
- 
--int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle, struct regmap *regmap, struct intel_pmic_opregion_data *d);
-+int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
-+					struct regmap *regmap,
-+					const struct intel_pmic_opregion_data *d);
- 
- #endif
+-static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
++static const struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
+ 	.get_power = intel_xpower_pmic_get_power,
+ 	.update_power = intel_xpower_pmic_update_power,
+ 	.get_raw_temp = intel_xpower_pmic_get_raw_temp,
 -- 
 1.9.1
