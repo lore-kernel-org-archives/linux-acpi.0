@@ -1,168 +1,151 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v3] acpi, nfit: add support for NVDIMM_FAMILY_INTEL v1.6 DSMs
-Date: Thu, 02 Nov 2017 10:42:17 -0700
-Message-ID: <150964429635.4239.2306961037682428626.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [RFCv2 PATCH 14/36] iommu/arm-smmu-v3: Add support for Substream
+ IDs
+Date: Fri, 3 Nov 2017 13:45:26 +0800
+Message-ID: <37a82eaa-dc9d-af98-6cb8-941ca925b838@huawei.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-15-jean-philippe.brucker@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838454887@FRAEML521-MBX.china.huawei.com>
+ <20171102155152.GA11899@e106794-lin.localdomain>
+ <5FC3163CFD30C246ABAA99954A238FA838454A9B@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:59024 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755651AbdKBRsn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 2 Nov 2017 13:48:43 -0400
+Received: from szxga04-in.huawei.com ([45.249.212.190]:9947 "EHLO
+        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750722AbdKCFrZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Nov 2017 01:47:25 -0400
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838454A9B@FRAEML521-MBX.china.huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, Jean-Philippe Brucker <Jean-Philippe.Brucker@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "yi.l.liu@intel.com" <yi.l.liu@intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, "tn@semihalf.com" <tn@semihalf.com>, "joro@8bytes.org" <joro@8bytes.org>, "rfranz@cavium.com" <rf>
 
-Per v1.6 of the NVDIMM_FAMILY_INTEL command set [1] some of the new
-commands require rev-id 2. In addition to enabling ND_CMD_CALL for these
-new function numbers, add a lookup table for revision-ids by family
-and function number.
+Hi Jean,
 
-[1]: http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
+On 2017/11/3 1:02, Shameerali Kolothum Thodi wrote:
+> 
+> 
+>> -----Original Message-----
+>> From: Jean-Philippe Brucker [mailto:Jean-Philippe.Brucker@arm.com]
+>> Sent: Thursday, November 02, 2017 3:52 PM
+>> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+>> Cc: linux-arm-kernel@lists.infradead.org; linux-pci@vger.kernel.org; linux-
+>> acpi@vger.kernel.org; devicetree@vger.kernel.org; iommu@lists.linux-
+>> foundation.org; Mark Rutland <Mark.Rutland@arm.com>; xieyisheng (A)
+>> <xieyisheng1@huawei.com>; Gabriele Paoloni
+>> <gabriele.paoloni@huawei.com>; Catalin Marinas
+>> <Catalin.Marinas@arm.com>; Will Deacon <Will.Deacon@arm.com>;
+>> okaya@codeaurora.org; yi.l.liu@intel.com; Lorenzo Pieralisi
+>> <Lorenzo.Pieralisi@arm.com>; ashok.raj@intel.com; tn@semihalf.com;
+>> joro@8bytes.org; rfranz@cavium.com; lenb@kernel.org;
+>> jacob.jun.pan@linux.intel.com; alex.williamson@redhat.com;
+>> robh+dt@kernel.org; Leizhen (ThunderTown) <thunder.leizhen@huawei.com>;
+>> bhelgaas@google.com; dwmw2@infradead.org; liubo (CU)
+>> <liubo95@huawei.com>; rjw@rjwysocki.net; robdclark@gmail.com;
+>> hanjun.guo@linaro.org; Sudeep Holla <Sudeep.Holla@arm.com>; Robin
+>> Murphy <Robin.Murphy@arm.com>; nwatters@codeaurora.org; Linuxarm
+>> <linuxarm@huawei.com>
+>> Subject: Re: [RFCv2 PATCH 14/36] iommu/arm-smmu-v3: Add support for
+>> Substream IDs
+>>
+>> Hi Shameer,
+>>
+>> On Thu, Nov 02, 2017 at 12:49:32PM +0000, Shameerali Kolothum Thodi wrote:
+>>> We had a go with this series on HiSIlicon D05 platform which doesn't have
+>>> support for ssids/ATS/PRI, to make sure it generally works.
+>>>
+>>> But observed the below crash on boot,
+>>>
+>>> [   16.009084] WARNING: CPU: 59 PID: 391 at mm/page_alloc.c:3883
+>> __alloc_pages_nodemask+0x19c/0xc48
+>>> [   16.026797] Modules linked in:
+>>> [   16.032944] CPU: 59 PID: 391 Comm: kworker/59:1 Not tainted 4.14.0-rc1-
+>> 159539-ge42aca3 #236
+>>> [...]
+>>> [   16.068206] Workqueue: events deferred_probe_work_func
+>>> [   16.078557] task: ffff8017d38a0000 task.stack: ffff00000b198000
+>>> [   16.090486] PC is at __alloc_pages_nodemask+0x19c/0xc48
+>>> [   16.101013] LR is at __alloc_pages_nodemask+0xe0/0xc48
+>>> [   16.469220] [<ffff000008186b94>] __alloc_pages_nodemask+0x19c/0xc48
+>>> [   16.481854] [<ffff0000081d65b0>] alloc_pages_current+0x80/0xcc
+>>> [   16.493607] [<ffff000008182be8>] __get_free_pages+0xc/0x38
+>>> [   16.504661] [<ffff0000083c4d58>] swiotlb_alloc_coherent+0x64/0x190
+>>> [   16.517117] [<ffff00000809824c>] __dma_alloc+0x110/0x204
+>>> [   16.527820] [<ffff00000858e850>] dmam_alloc_coherent+0x88/0xf0
+>>> [   16.539575] [<ffff000008568884>]
+>> arm_smmu_domain_finalise_s1+0x60/0x248
+>>> [   16.552909] [<ffff00000856c104>] arm_smmu_attach_dev+0x264/0x300
+>>> [   16.565013] [<ffff00000855d40c>] __iommu_attach_device+0x48/0x5c
+>>> [   16.577117] [<ffff00000855e698>] iommu_group_add_device+0x144/0x3a4
+>>> [   16.589746] [<ffff00000855ed18>] iommu_group_get_for_dev+0x70/0xf8
+>>> [   16.602201] [<ffff00000856a314>] arm_smmu_add_device+0x1a4/0x418
+>>> [   16.614308] [<ffff00000849dfcc>] iort_iommu_configure+0xf0/0x16c
+>>> [   16.626416] [<ffff000008468c50>] acpi_dma_configure+0x30/0x70
+>>> [   16.637994] [<ffff00000858f00c>] dma_configure+0xa8/0xd4
+>>> [   16.648695] [<ffff00000857706c>] driver_probe_device+0x1a4/0x2dc
+>>> [   16.673081] [<ffff0000085752c8>] bus_for_each_drv+0x54/0x94
+>>> [   16.684307] [<ffff000008576db0>] __device_attach+0xc4/0x12c
+>>> [   16.695533] [<ffff000008577350>] device_initial_probe+0x10/0x18
+>>> [   16.707462] [<ffff0000085762b4>] bus_probe_device+0x90/0x98
+>>>
+>>> After a bit of debug it looks like on platforms where ssid is not supported,
+>>> s1_cfg.num_contexts is set to zero and it eventually results in this crash
+>>> in,
+>>> arm_smmu_domain_finalise_s1() -->arm_smmu_alloc_cd_tables()-->
+>>> arm_smmu_alloc_cd_leaf_table() as num_leaf_entries is zero.
+>>>
+>>> With the below fix, it works on D05 now,
+>>>
+>>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+>>> index 8ad90e2..51f5821 100644
+>>> --- a/drivers/iommu/arm-smmu-v3.c
+>>> +++ b/drivers/iommu/arm-smmu-v3.c
+>>> @@ -2433,7 +2433,10 @@ static int arm_smmu_domain_finalise(struct
+>> iommu_domain *domain,
+>>>                         domain->min_pasid = 1;
+>>>                         domain->max_pasid = master->num_ssids - 1;
+>>>                         smmu_domain->s1_cfg.num_contexts = master->num_ssids;
+>>> +               } else {
+>>> +                       smmu_domain->s1_cfg.num_contexts = 1;
+>>>                 }
+>>> +
+>>>                 smmu_domain->s1_cfg.can_stall = master->ste.can_stall;
+>>>                 break;
+>>>         case ARM_SMMU_DOMAIN_NESTED:
+>>>
+>>>
+>>> I am not sure this is right place do this. Please take a look.
+>>
+>> Thanks for testing the series and reporting the bug. I added the
+>> following patch to branch svm/current, does it work for you?
+> 
+> Yes, it does.
+> 
+> Thanks,
+> Shameer
+>  
+>> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+>> index 42c8378624ed..edda466adc81 100644
+>> --- a/drivers/iommu/arm-smmu-v3.c
+>> +++ b/drivers/iommu/arm-smmu-v3.c
+>> @@ -3169,9 +3169,7 @@ static int arm_smmu_add_device(struct device *dev)
+>>                 }
+>>         }
+>>
+>> -       if (smmu->ssid_bits)
+>> -               master->num_ssids = 1 << min(smmu->ssid_bits,
+>> -                                            fwspec->num_pasid_bits);
+>> +       master->num_ssids = 1 << min(smmu->ssid_bits, fwspec-
+>>> num_pasid_bits);
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
-Change since v2:
-* fix the off-by one error sizing revid_table (Jerry)
+If fwspec->num_pasid_bits = 0, then master have _one_ num_ssids ?
 
- drivers/acpi/nfit/core.c |   45 ++++++++++++++++++++++++++++++++++++++++-----
- drivers/acpi/nfit/nfit.h |   26 +++++++++++++++++++++++++-
- 2 files changed, 65 insertions(+), 6 deletions(-)
+It seems Shameerali's fix is better ?
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 444832b372ec..aa75d67ceee9 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -370,6 +370,32 @@ static union acpi_object *acpi_label_info(acpi_handle handle)
- 	return pkg_to_buf(buf.pointer);
- }
- 
-+static u8 nfit_dsm_revid(unsigned family, unsigned func)
-+{
-+	static const u8 revid_table[NVDIMM_FAMILY_MAX+1][32] = {
-+		[NVDIMM_FAMILY_INTEL] = {
-+			[NVDIMM_INTEL_GET_MODES] = 2,
-+			[NVDIMM_INTEL_GET_FWINFO] = 2,
-+			[NVDIMM_INTEL_START_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_SEND_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_FINISH_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_QUERY_FWUPDATE] = 2,
-+			[NVDIMM_INTEL_SET_THRESHOLD] = 2,
-+			[NVDIMM_INTEL_INJECT_ERROR] = 2,
-+		},
-+	};
-+	u8 id;
-+
-+	if (family > NVDIMM_FAMILY_MAX)
-+		return 0;
-+	if (func > 31)
-+		return 0;
-+	id = revid_table[family][func];
-+	if (id == 0)
-+		return 1; /* default */
-+	return id;
-+}
-+
- int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 		unsigned int cmd, void *buf, unsigned int buf_len, int *cmd_rc)
- {
-@@ -468,8 +494,15 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 
- 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
- 				p->in_buf);
--	} else
--		out_obj = acpi_evaluate_dsm(handle, guid, 1, func, &in_obj);
-+	} else {
-+		u8 revid;
-+
-+		if (nfit_mem)
-+			revid = nfit_dsm_revid(nfit_mem->family, func);
-+		else
-+			revid = 1;
-+		out_obj = acpi_evaluate_dsm(handle, guid, revid, func, &in_obj);
-+	}
- 
- 	if (!out_obj) {
- 		dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
-@@ -1640,7 +1673,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	 * different command sets.  Note, that checking for function0 (bit0)
- 	 * tells us if any commands are reachable through this GUID.
- 	 */
--	for (i = NVDIMM_FAMILY_INTEL; i <= NVDIMM_FAMILY_MSFT; i++)
-+	for (i = 0; i <= NVDIMM_FAMILY_MAX; i++)
- 		if (acpi_check_dsm(adev_dimm->handle, to_nfit_uuid(i), 1, 1))
- 			if (family < 0 || i == default_dsm_family)
- 				family = i;
-@@ -1650,7 +1683,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	if (override_dsm_mask && !disable_vendor_specific)
- 		dsm_mask = override_dsm_mask;
- 	else if (nfit_mem->family == NVDIMM_FAMILY_INTEL) {
--		dsm_mask = 0x3fe;
-+		dsm_mask = NVDIMM_INTEL_CMDMASK;
- 		if (disable_vendor_specific)
- 			dsm_mask &= ~(1 << ND_CMD_VENDOR);
- 	} else if (nfit_mem->family == NVDIMM_FAMILY_HPE1) {
-@@ -1670,7 +1703,9 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 
- 	guid = to_nfit_uuid(nfit_mem->family);
- 	for_each_set_bit(i, &dsm_mask, BITS_PER_LONG)
--		if (acpi_check_dsm(adev_dimm->handle, guid, 1, 1ULL << i))
-+		if (acpi_check_dsm(adev_dimm->handle, guid,
-+					nfit_dsm_revid(nfit_mem->family, i),
-+					1ULL << i))
- 			set_bit(i, &nfit_mem->dsm_mask);
- 
- 	obj = acpi_label_info(adev_dimm->handle);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index b987196bf132..341be9511d0e 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -24,7 +24,7 @@
- /* ACPI 6.1 */
- #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
- 
--/* http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf */
-+/* http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf */
- #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
- 
- /* https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/ */
-@@ -38,12 +38,36 @@
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
- 		| ACPI_NFIT_MEM_NOT_ARMED | ACPI_NFIT_MEM_MAP_FAILED)
- 
-+#define NVDIMM_FAMILY_MAX NVDIMM_FAMILY_MSFT
-+
- #define NVDIMM_STANDARD_CMDMASK \
- (1 << ND_CMD_SMART | 1 << ND_CMD_SMART_THRESHOLD | 1 << ND_CMD_DIMM_FLAGS \
-  | 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA \
-  | 1 << ND_CMD_SET_CONFIG_DATA | 1 << ND_CMD_VENDOR_EFFECT_LOG_SIZE \
-  | 1 << ND_CMD_VENDOR_EFFECT_LOG | 1 << ND_CMD_VENDOR)
- 
-+/*
-+ * Command numbers that the kernel needs to know about to handle
-+ * non-default DSM revision ids
-+ */
-+enum nvdimm_family_cmds {
-+	NVDIMM_INTEL_GET_MODES = 11,
-+	NVDIMM_INTEL_GET_FWINFO = 12,
-+	NVDIMM_INTEL_START_FWUPDATE = 13,
-+	NVDIMM_INTEL_SEND_FWUPDATE = 14,
-+	NVDIMM_INTEL_FINISH_FWUPDATE = 15,
-+	NVDIMM_INTEL_QUERY_FWUPDATE = 16,
-+	NVDIMM_INTEL_SET_THRESHOLD = 17,
-+	NVDIMM_INTEL_INJECT_ERROR = 18,
-+};
-+
-+#define NVDIMM_INTEL_CMDMASK \
-+(NVDIMM_STANDARD_CMDMASK | 1 << NVDIMM_INTEL_GET_MODES \
-+ | 1 << NVDIMM_INTEL_GET_FWINFO | 1 << NVDIMM_INTEL_START_FWUPDATE \
-+ | 1 << NVDIMM_INTEL_SEND_FWUPDATE | 1 << NVDIMM_INTEL_FINISH_FWUPDATE \
-+ | 1 << NVDIMM_INTEL_QUERY_FWUPDATE | 1 << NVDIMM_INTEL_SET_THRESHOLD \
-+ | 1 << NVDIMM_INTEL_INJECT_ERROR)
-+
- enum nfit_uuids {
- 	/* for simplicity alias the uuid index with the family id */
- 	NFIT_DEV_DIMM = NVDIMM_FAMILY_INTEL,
+>>
+>>         if (fwspec->can_stall && smmu->features & ARM_SMMU_FEAT_STALLS) {
+>>                 master->can_fault = true;
+> 
 
