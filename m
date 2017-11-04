@@ -1,97 +1,60 @@
-From: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 2/5] iio: proximity: sx9500: Add GPIO ACPI mapping
- table
-Date: Sat, 4 Nov 2017 03:14:27 +0000
-Message-ID: <20171104031403.000073b0@huawei.com>
-References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
-        <20171103130340.42459-2-andriy.shevchenko@linux.intel.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v3 1/5] iio: proximity: sx9500: Assign interrupt from GpioIo()
+Date: Sat, 4 Nov 2017 11:43:53 +0100
+Message-ID: <CACRpkdYhJK2=2UAO5sZ0WGouF-V8woiuhTzCYQYz29PuQKcfQQ@mail.gmail.com>
+References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com> <20171104031119.00006e56@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171103130340.42459-2-andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:54783 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752656AbdKDKny (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 4 Nov 2017 06:43:54 -0400
+Received: by mail-io0-f193.google.com with SMTP id e89so11064602ioi.11
+        for <linux-acpi@vger.kernel.org>; Sat, 04 Nov 2017 03:43:54 -0700 (PDT)
+In-Reply-To: <20171104031119.00006e56@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jonathan Cameron <jic23@kernel.org>, "linux-iio@vger.kernel.org" <linux-iio@vger.kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Fri, 3 Nov 2017 15:03:37 +0200
-Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+On Sat, Nov 4, 2017 at 4:11 AM, Jonathan Cameron
+<Jonathan.Cameron@huawei.com> wrote:
+> On Fri, 3 Nov 2017 15:03:36 +0200
+> Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+>
+>> The commit 0f0796509c07
+>>
+>> ("iio: remove gpio interrupt probing from drivers that use a single
+>> interrupt")
+>>
+>> removed custom IRQ assignment for the drivers which are enumerated via
+>> ACPI or OF. Unfortunately, some ACPI tables have IRQ line defined as
+>> GpioIo() resource and thus automatic IRQ allocation will fail.
+>
+> I'll ask the obvious question - is this allowed under the ACPI spec?
+>
+>>
+>> Partially revert the commit 0f0796509c07 to restore original
+>> behaviour.
+>>
+>> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
+> I really don't like scattering fixes for broken ACPI tables through
+> drivers...  Is there really no better solution to this?
+>
+> On patches like this best to pull in ACPI and GPIO on the cc list.
+>
+> Also cc'd Mika who made the original change to support gpioint.
 
-> In order to satisfy GPIO ACPI library requirements convert users of
-> gpiod_get_index() to correctly behave when there no mapping is
-> provided by firmware.
-> 
-> Here we add explicit mapping between _CRS GpioIo() resources and
-> their names used in the driver.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Andy and Mika are the maintainers of ACPI GPIO, I have only
+superficial knowledge of how that actually works. But it's good if
+Mika can look at it too.
 
-Added cc's as for previous patch.  I guess this makes sense if we
-accept that fixes like the previous one should be in drivers at all.
+The only thing that I know for sure about ACPI GPIO is the same
+as always : the people who devised it think that they are releaving
+the OS authors of a burden by taking stuff over, and end up
+creating more work for us since they make mistakes and
+deploy them in firmware that "cannot be fixed".
 
-If not the reset part still makes sense I suppose.
-
-> ---
->  drivers/iio/proximity/sx9500.c | 21 ++++++++++++++++-----
->  1 file changed, 16 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/iio/proximity/sx9500.c
-> b/drivers/iio/proximity/sx9500.c index df23dbcc030a..eb687b3dd442
-> 100644 --- a/drivers/iio/proximity/sx9500.c
-> +++ b/drivers/iio/proximity/sx9500.c
-> @@ -32,9 +32,6 @@
->  #define SX9500_DRIVER_NAME		"sx9500"
->  #define SX9500_IRQ_NAME			"sx9500_event"
->  
-> -#define SX9500_GPIO_INT			"interrupt"
-> -#define SX9500_GPIO_RESET		"reset"
-> -
->  /* Register definitions. */
->  #define SX9500_REG_IRQ_SRC		0x00
->  #define SX9500_REG_STAT			0x01
-> @@ -866,26 +863,40 @@ static int sx9500_init_device(struct iio_dev
-> *indio_dev) return sx9500_init_compensation(indio_dev);
->  }
->  
-> +static const struct acpi_gpio_params reset_gpios = { 0, 0, false };
-> +static const struct acpi_gpio_params interrupt_gpios = { 2, 0,
-> false }; +
-> +static const struct acpi_gpio_mapping acpi_sx9500_gpios[] = {
-> +	{ "reset-gpios", &reset_gpios, 1 },
-> +	{ "interrupt-gpios", &interrupt_gpios, 1 },
-> +	{ },
-> +};
-> +
->  static void sx9500_gpio_probe(struct i2c_client *client,
->  			      struct sx9500_data *data)
->  {
->  	struct gpio_desc *gpiod_int;
->  	struct device *dev;
-> +	int ret;
->  
->  	if (!client)
->  		return;
->  
->  	dev = &client->dev;
->  
-> +	ret = devm_acpi_dev_add_driver_gpios(dev, acpi_sx9500_gpios);
-> +	if (ret)
-> +		dev_dbg(dev, "Unable to add GPIO mapping table\n");
-> +
->  	if (client->irq <= 0) {
-> -		gpiod_int = devm_gpiod_get(dev, SX9500_GPIO_INT,
-> GPIOD_IN);
-> +		gpiod_int = devm_gpiod_get(dev, "interrupt",
-> GPIOD_IN); if (IS_ERR(gpiod_int))
->  			dev_err(dev, "gpio get irq failed\n");
->  		else
->  			client->irq = gpiod_to_irq(gpiod_int);
->  	}
->  
-> -	data->gpiod_rst = devm_gpiod_get(dev, SX9500_GPIO_RESET,
-> GPIOD_OUT_HIGH);
-> +	data->gpiod_rst = devm_gpiod_get(dev, "reset",
-> GPIOD_OUT_HIGH); if (IS_ERR(data->gpiod_rst)) {
->  		dev_warn(dev, "gpio get reset pin failed\n");
->  		data->gpiod_rst = NULL;
+Linus Walleij
