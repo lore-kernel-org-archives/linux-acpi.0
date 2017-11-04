@@ -1,77 +1,80 @@
-From: Bhumika Goyal <bhumirks@gmail.com>
-Subject: [PATCH 2/2] ACPI / PMIC: make intel_pmic_opregion_data structures const
-Date: Fri,  3 Nov 2017 16:03:48 +0100
-Message-ID: <1509721428-6147-3-git-send-email-bhumirks@gmail.com>
-References: <1509721428-6147-1-git-send-email-bhumirks@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1509721428-6147-1-git-send-email-bhumirks@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Bhumika Goyal <bhumirks@gmail.com>
+From: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Subject: Re: [PATCH v3 1/5] iio: proximity: sx9500: Assign interrupt from
+ GpioIo()
+Date: Sat, 4 Nov 2017 03:11:19 +0000
+Message-ID: <20171104031119.00006e56@huawei.com>
+References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Make these structures as const as they are only passed to the function
-intel_pmic_install_opregion_handler having the argument as const.
+On Fri, 3 Nov 2017 15:03:36 +0200
+Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
 
-Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
----
- drivers/acpi/pmic/intel_pmic_bxtwc.c  | 2 +-
- drivers/acpi/pmic/intel_pmic_chtwc.c  | 2 +-
- drivers/acpi/pmic/intel_pmic_crc.c    | 2 +-
- drivers/acpi/pmic/intel_pmic_xpower.c | 2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+> The commit 0f0796509c07
+> 
+> ("iio: remove gpio interrupt probing from drivers that use a single
+> interrupt")
+> 
+> removed custom IRQ assignment for the drivers which are enumerated via
+> ACPI or OF. Unfortunately, some ACPI tables have IRQ line defined as
+> GpioIo() resource and thus automatic IRQ allocation will fail.
 
-diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-index 90011aa..fd698c6 100644
---- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-@@ -377,7 +377,7 @@ static int intel_bxtwc_pmic_get_raw_temp(struct regmap *regmap, int reg)
- 	return regmap_update_bits(regmap, reg, mask, val);
- }
- 
--static struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
-+static const struct intel_pmic_opregion_data intel_bxtwc_pmic_opregion_data = {
- 	.get_power      = intel_bxtwc_pmic_get_power,
- 	.update_power   = intel_bxtwc_pmic_update_power,
- 	.get_raw_temp   = intel_bxtwc_pmic_get_raw_temp,
-diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
-index 85636d7..240359b 100644
---- a/drivers/acpi/pmic/intel_pmic_chtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
-@@ -243,7 +243,7 @@ static int intel_cht_wc_pmic_update_power(struct regmap *regmap, int reg,
-  * The thermal table and ops are empty, we do not support the Thermal opregion
-  * (DPTF) due to lacking documentation.
-  */
--static struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
-+static const struct intel_pmic_opregion_data intel_cht_wc_pmic_opregion_data = {
- 	.get_power		= intel_cht_wc_pmic_get_power,
- 	.update_power		= intel_cht_wc_pmic_update_power,
- 	.power_table		= power_table,
-diff --git a/drivers/acpi/pmic/intel_pmic_crc.c b/drivers/acpi/pmic/intel_pmic_crc.c
-index d7f1761..cad1fe1 100644
---- a/drivers/acpi/pmic/intel_pmic_crc.c
-+++ b/drivers/acpi/pmic/intel_pmic_crc.c
-@@ -174,7 +174,7 @@ static int intel_crc_pmic_update_policy(struct regmap *regmap,
- 	return 0;
- }
- 
--static struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
-+static const struct intel_pmic_opregion_data intel_crc_pmic_opregion_data = {
- 	.get_power	= intel_crc_pmic_get_power,
- 	.update_power	= intel_crc_pmic_update_power,
- 	.get_raw_temp	= intel_crc_pmic_get_raw_temp,
-diff --git a/drivers/acpi/pmic/intel_pmic_xpower.c b/drivers/acpi/pmic/intel_pmic_xpower.c
-index 6c99d3f..96718af 100644
---- a/drivers/acpi/pmic/intel_pmic_xpower.c
-+++ b/drivers/acpi/pmic/intel_pmic_xpower.c
-@@ -231,7 +231,7 @@ static int intel_xpower_pmic_get_raw_temp(struct regmap *regmap, int reg)
- 	return ret;
- }
- 
--static struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
-+static const struct intel_pmic_opregion_data intel_xpower_pmic_opregion_data = {
- 	.get_power = intel_xpower_pmic_get_power,
- 	.update_power = intel_xpower_pmic_update_power,
- 	.get_raw_temp = intel_xpower_pmic_get_raw_temp,
--- 
-1.9.1
+I'll ask the obvious question - is this allowed under the ACPI spec?
+
+> 
+> Partially revert the commit 0f0796509c07 to restore original
+> behaviour.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+I really don't like scattering fixes for broken ACPI tables through
+drivers...  Is there really no better solution to this?
+
+On patches like this best to pull in ACPI and GPIO on the cc list.
+
+Also cc'd Mika who made the original change to support gpioint.
+
+
+
+Jonathan
+
+> ---
+>  drivers/iio/proximity/sx9500.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> diff --git a/drivers/iio/proximity/sx9500.c
+> b/drivers/iio/proximity/sx9500.c index 53c5d653e780..df23dbcc030a
+> 100644 --- a/drivers/iio/proximity/sx9500.c
+> +++ b/drivers/iio/proximity/sx9500.c
+> @@ -869,6 +869,7 @@ static int sx9500_init_device(struct iio_dev
+> *indio_dev) static void sx9500_gpio_probe(struct i2c_client *client,
+>  			      struct sx9500_data *data)
+>  {
+> +	struct gpio_desc *gpiod_int;
+>  	struct device *dev;
+>  
+>  	if (!client)
+> @@ -876,6 +877,14 @@ static void sx9500_gpio_probe(struct i2c_client
+> *client, 
+>  	dev = &client->dev;
+>  
+> +	if (client->irq <= 0) {
+> +		gpiod_int = devm_gpiod_get(dev, SX9500_GPIO_INT,
+> GPIOD_IN);
+> +		if (IS_ERR(gpiod_int))
+> +			dev_err(dev, "gpio get irq failed\n");
+> +		else
+> +			client->irq = gpiod_to_irq(gpiod_int);
+> +	}
+> +
+>  	data->gpiod_rst = devm_gpiod_get(dev, SX9500_GPIO_RESET,
+> GPIOD_OUT_HIGH); if (IS_ERR(data->gpiod_rst)) {
+>  		dev_warn(dev, "gpio get reset pin failed\n");
+
