@@ -1,7 +1,7 @@
 From: James Morse <james.morse@arm.com>
-Subject: [PATCH 4/4] ACPI / APEI: Remove arch_apei_flush_tlb_one()
-Date: Mon,  6 Nov 2017 18:44:27 +0000
-Message-ID: <20171106184427.31905-5-james.morse@arm.com>
+Subject: [PATCH 2/4] ACPI / APEI: Remove ghes_ioremap_area
+Date: Mon,  6 Nov 2017 18:44:25 +0000
+Message-ID: <20171106184427.31905-3-james.morse@arm.com>
 References: <20171106184427.31905-1-james.morse@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20171106184427.31905-1-james.morse@arm.com>
@@ -10,41 +10,87 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, H Peter Anvin <hpa@zytor.com>, x86@kernel.org, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Tyler Baicar <tbaicar@codeaurora.org>, Qiang Zheng <zhengqiang10@huawei.com>, Toshi Kani <toshi.kani@hpe.com>, torvalds@linux-foundation.org
 List-Id: linux-acpi@vger.kernel.org
 
-Nothing calls arch_apei_flush_tlb_one() anymore, instead relying on
-__set_pte_vaddr() to do the invalidation when called from clear_fixmap()
-Remove arch_apei_flush_tlb_one().
+Now that nothing is using the ghes_ioremap_area pages, rip them out.
 
 Signed-off-by: James Morse <james.morse@arm.com>
 Reviewed-by: Borislav Petkov <bp@suse.de>
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 ---
- arch/x86/kernel/acpi/apei.c | 5 -----
- include/acpi/apei.h         | 1 -
- 2 files changed, 6 deletions(-)
+ drivers/acpi/apei/ghes.c | 39 ++-------------------------------------
+ 1 file changed, 2 insertions(+), 37 deletions(-)
 
-diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-index ea3046e0b0cf..bb8d300fecbd 100644
---- a/arch/x86/kernel/acpi/apei.c
-+++ b/arch/x86/kernel/acpi/apei.c
-@@ -52,8 +52,3 @@ void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
- 	apei_mce_report_mem_error(sev, mem_err);
- #endif
- }
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index f3269816b997..1a4f16b10052 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -114,19 +114,7 @@ static DEFINE_MUTEX(ghes_list_mutex);
+  * from BIOS to Linux can be determined only in NMI, IRQ or timer
+  * handler, but general ioremap can not be used in atomic context, so
+  * the fixmap is used instead.
+- */
 -
--void arch_apei_flush_tlb_one(unsigned long addr)
+-/*
+- * Two virtual pages are used, one for IRQ/PROCESS context, the other for
+- * NMI context (optionally).
+- */
+-#define GHES_IOREMAP_PAGES           2
+-#define GHES_IOREMAP_IRQ_PAGE(base)	(base)
+-#define GHES_IOREMAP_NMI_PAGE(base)	((base) + PAGE_SIZE)
+-
+-/* virtual memory area for atomic ioremap */
+-static struct vm_struct *ghes_ioremap_area;
+-/*
++ *
+  * These 2 spinlocks are used to prevent the fixmap entries from being used
+  * simultaneously.
+  */
+@@ -141,23 +129,6 @@ static atomic_t ghes_estatus_cache_alloced;
+ 
+ static int ghes_panic_timeout __read_mostly = 30;
+ 
+-static int ghes_ioremap_init(void)
 -{
--	__flush_tlb_one(addr);
+-	ghes_ioremap_area = __get_vm_area(PAGE_SIZE * GHES_IOREMAP_PAGES,
+-		VM_IOREMAP, VMALLOC_START, VMALLOC_END);
+-	if (!ghes_ioremap_area) {
+-		pr_err(GHES_PFX "Failed to allocate virtual memory area for atomic ioremap.\n");
+-		return -ENOMEM;
+-	}
+-
+-	return 0;
 -}
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index c46694abea28..82c451698c98 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -50,7 +50,6 @@ int erst_clear(u64 record_id);
+-
+-static void ghes_ioremap_exit(void)
+-{
+-	free_vm_area(ghes_ioremap_area);
+-}
+-
+ static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
+ {
+ 	phys_addr_t paddr;
+@@ -1270,13 +1241,9 @@ static int __init ghes_init(void)
  
- int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
- void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
--void arch_apei_flush_tlb_one(unsigned long addr);
+ 	ghes_nmi_init_cxt();
  
- #endif
- #endif
+-	rc = ghes_ioremap_init();
+-	if (rc)
+-		goto err;
+-
+ 	rc = ghes_estatus_pool_init();
+ 	if (rc)
+-		goto err_ioremap_exit;
++		goto err;
+ 
+ 	rc = ghes_estatus_pool_expand(GHES_ESTATUS_CACHE_AVG_SIZE *
+ 				      GHES_ESTATUS_CACHE_ALLOCED_MAX);
+@@ -1300,8 +1267,6 @@ static int __init ghes_init(void)
+ 	return 0;
+ err_pool_exit:
+ 	ghes_estatus_pool_exit();
+-err_ioremap_exit:
+-	ghes_ioremap_exit();
+ err:
+ 	return rc;
+ }
 -- 
 2.15.0.rc2
