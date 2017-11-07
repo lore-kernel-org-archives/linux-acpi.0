@@ -1,44 +1,63 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: Re: [v4.14-rc8 ghes_copy_tofrom_phys] BUG: sleeping function called
- from invalid context at lib/ioremap.c:165
-Date: Tue, 7 Nov 2017 21:39:33 +0800
-Message-ID: <20171107133933.xnuulshxt3sxgibf@wfg-t540p.sh.intel.com>
-References: <CA+55aFxSJGeN=2X-uX-on1Uq2Nb8+v1aiMDz5H1+tKW_N5Q+6g@mail.gmail.com>
- <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com>
- <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
- <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
- <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
- <CA+55aFwW7sbguREtVzKAUkNGb4cGh_eADqkEYcUurX5xS60_ww@mail.gmail.com>
- <526e7cf2-0672-e44b-c32f-26128a2dfd37@codeaurora.org>
- <20171106224635.qopgsszwxzuitkpf@wfg-t540p.sh.intel.com>
- <20171106230219.szcckryg4lqghnvd@pd.tnic>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Clean up whitespace of indentation
+Date: Tue, 7 Nov 2017 15:09:55 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6183BD@ORSMSX110.amr.corp.intel.com>
+References: <1509154461-23909-1-git-send-email-bhe@redhat.com>
+ <20171107104324.GA14732@x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:59046 "EHLO mga14.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:52905 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932631AbdKGNjk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Nov 2017 08:39:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20171106230219.szcckryg4lqghnvd@pd.tnic>
+        id S1751844AbdKGPJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Nov 2017 10:09:57 -0500
+In-Reply-To: <20171107104324.GA14732@x1>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tyler Baicar <tbaicar@codeaurora.org>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Mark Rutland <mark.rutland@arm.com>
+To: Baoquan He <bhe@redhat.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On Tue, Nov 07, 2017 at 12:02:19AM +0100, Borislav Petkov wrote:
->On Tue, Nov 07, 2017 at 06:46:35AM +0800, Fengguang Wu wrote:
->> I can see that in RC8, too:
->
->https://lkml.kernel.org/r/20171106184427.31905-1-james.morse@arm.com
->
->Rafael, you could still queue them for the merge window next week - they
->look pretty straightforward and low risk to me.
+Anything like this probably happens during the conversion of ACPICA code to Linux-style code. This conversion happens after every release (monthly) of ACPICA.
 
-Tested-by: Fengguang Wu <fengguang.wu@intel.com>
+Specifically indent/lindent seems to do things like this, if I remember correctly.
 
-I tried 100 boots with various test jobs and there is no
-more GHES errors.
 
-Thanks,
-Fengguang
+> -----Original Message-----
+> From: Baoquan He [mailto:bhe@redhat.com]
+> Sent: Tuesday, November 7, 2017 2:43 AM
+> To: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> Cc: rjw@rjwysocki.net; lenb@kernel.org; Moore, Robert
+> <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>
+> Subject: Re: [PATCH] ACPICA: Clean up whitespace of indentation
+> 
+> PING!
+> 
+> On 10/28/17 at 09:34am, Baoquan He wrote:
+> > Use tabs (not spaces) for indentation.
+> >
+> > Signed-off-by: Baoquan He <bhe@redhat.com>
+> > ---
+> >  include/acpi/actbl1.h | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
+> > 6b8714a428b6..d8a4fc066abe 100644
+> > --- a/include/acpi/actbl1.h
+> > +++ b/include/acpi/actbl1.h
+> > @@ -1438,9 +1438,9 @@ struct acpi_srat_mem_affinity {
+> >  	u16 reserved;		/* Reserved, must be zero */
+> >  	u64 base_address;
+> >  	u64 length;
+> > -       u32 reserved1;
+> > +	u32 reserved1;
+> >  	u32 flags;
+> > -       u64 reserved2;	       /* Reserved, must be zero */
+> > +	u64 reserved2;	       /* Reserved, must be zero */
+> >  };
+> >
+> >  /* Flags */
+> > --
+> > 2.5.5
+> >
