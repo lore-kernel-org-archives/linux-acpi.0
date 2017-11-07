@@ -1,108 +1,123 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 1/2] ACPI / PMIC: Make some pointers, structure field and
- function argument as const
-Date: Tue, 7 Nov 2017 11:29:54 +0200
-Message-ID: <20171107092954.GO18997@lahna.fi.intel.com>
-References: <1509721428-6147-1-git-send-email-bhumirks@gmail.com>
- <1509721428-6147-2-git-send-email-bhumirks@gmail.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v9 2/4] iommu/dma: Add a helper function to reserve HW
+ MSI address regions for IOMMU drivers
+Date: Tue, 7 Nov 2017 09:37:35 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83845828E@FRAEML521-MBX.china.huawei.com>
+References: <20171006140450.89652-1-shameerali.kolothum.thodi@huawei.com>
+ <20171006140450.89652-3-shameerali.kolothum.thodi@huawei.com>
+ <20171013192350.GA32130@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA83844672A@FRAEML521-MBX.china.huawei.com>
+ <1d49243a-4746-f189-7c5d-4b98937115fb@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA83844FE04@FRAEML521-MBX.china.huawei.com>
+ <20171103113503.GB29434@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:22303 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933382AbdKGJ36 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Nov 2017 04:29:58 -0500
-Content-Disposition: inline
-In-Reply-To: <1509721428-6147-2-git-send-email-bhumirks@gmail.com>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:39770 "EHLO
+        lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755706AbdKGJiI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Nov 2017 04:38:08 -0500
+In-Reply-To: <20171103113503.GB29434@red-moon>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bhumika Goyal <bhumirks@gmail.com>
-Cc: julia.lawall@lip6.fr, rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Fri, Nov 03, 2017 at 04:03:47PM +0100, Bhumika Goyal wrote:
-> Make some pointers of type intel_pmic_opregion_data as const as they
-> do not modify the fields of the structure they point too.
-> After this change, make the data field of intel_pmic_opregion
-> structure const as this data field is used for initializing the above pointers
-> that are now const.
-> Finally, make the struct intel_pmic_opregion_data * argument of the
-> function intel_pmic_install_opregion_handler as const as it is only
-> getting stored in the data field of the intel_pmic_opregion
-> structure which is now made const.
-
-One minor nit:
-
-> Signed-off-by: Bhumika Goyal <bhumirks@gmail.com>
-> ---
->  drivers/acpi/pmic/intel_pmic.c | 10 +++++-----
->  drivers/acpi/pmic/intel_pmic.h |  4 +++-
->  2 files changed, 8 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/pmic/intel_pmic.c b/drivers/acpi/pmic/intel_pmic.c
-> index ca18e0d..553fa4f 100644
-> --- a/drivers/acpi/pmic/intel_pmic.c
-> +++ b/drivers/acpi/pmic/intel_pmic.c
-> @@ -32,7 +32,7 @@ struct intel_pmic_opregion {
->  	struct mutex lock;
->  	struct acpi_lpat_conversion_table *lpat_table;
->  	struct regmap *regmap;
-> -	struct intel_pmic_opregion_data *data;
-> +	const struct intel_pmic_opregion_data *data;
->  	struct intel_pmic_regs_handler_ctx ctx;
->  };
->  
-> @@ -58,7 +58,7 @@ static acpi_status intel_pmic_power_handler(u32 function,
->  {
->  	struct intel_pmic_opregion *opregion = region_context;
->  	struct regmap *regmap = opregion->regmap;
-> -	struct intel_pmic_opregion_data *d = opregion->data;
-> +	const struct intel_pmic_opregion_data *d = opregion->data;
->  	int reg, bit, result;
->  
->  	if (bits != 32 || !value64)
-> @@ -140,7 +140,7 @@ static int pmic_thermal_aux(struct intel_pmic_opregion *opregion, int reg,
->  static int pmic_thermal_pen(struct intel_pmic_opregion *opregion, int reg,
->  			    int bit, u32 function, u64 *value)
->  {
-> -	struct intel_pmic_opregion_data *d = opregion->data;
-> +	const struct intel_pmic_opregion_data *d = opregion->data;
->  	struct regmap *regmap = opregion->regmap;
->  
->  	if (!d->get_policy || !d->update_policy)
-> @@ -176,7 +176,7 @@ static acpi_status intel_pmic_thermal_handler(u32 function,
->  		void *handler_context, void *region_context)
->  {
->  	struct intel_pmic_opregion *opregion = region_context;
-> -	struct intel_pmic_opregion_data *d = opregion->data;
-> +	const struct intel_pmic_opregion_data *d = opregion->data;
->  	int reg, bit, result;
->  
->  	if (bits != 32 || !value64)
-> @@ -255,7 +255,7 @@ static acpi_status intel_pmic_regs_handler(u32 function,
->  
->  int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
->  					struct regmap *regmap,
-> -					struct intel_pmic_opregion_data *d)
-> +					const struct intel_pmic_opregion_data *d)
->  {
->  	acpi_status status;
->  	struct intel_pmic_opregion *opregion;
-> diff --git a/drivers/acpi/pmic/intel_pmic.h b/drivers/acpi/pmic/intel_pmic.h
-> index e8bfa7b..754b7bd 100644
-> --- a/drivers/acpi/pmic/intel_pmic.h
-> +++ b/drivers/acpi/pmic/intel_pmic.h
-> @@ -20,6 +20,8 @@ struct intel_pmic_opregion_data {
->  	int thermal_table_count;
->  };
->  
-> -int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle, struct regmap *regmap, struct intel_pmic_opregion_data *d);
-> +int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
-> +					struct regmap *regmap,
-> +					const struct intel_pmic_opregion_data *d);
-
-I would rather write it like:
-
-int intel_pmic_install_opregion_handler(struct device *dev, acpi_handle handle,
-					struct regmap *regmap, const struct intel_pmic_opregion_data *d);
-
-The rest looks good to me.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTG9yZW56byBQaWVyYWxp
+c2kgW21haWx0bzpsb3JlbnpvLnBpZXJhbGlzaUBhcm0uY29tXQ0KPiBTZW50OiBGcmlkYXksIE5v
+dmVtYmVyIDAzLCAyMDE3IDExOjM1IEFNDQo+IFRvOiBTaGFtZWVyYWxpIEtvbG90aHVtIFRob2Rp
+IDxzaGFtZWVyYWxpLmtvbG90aHVtLnRob2RpQGh1YXdlaS5jb20+DQo+IENjOiBSb2JpbiBNdXJw
+aHkgPHJvYmluLm11cnBoeUBhcm0uY29tPjsgV2lsbCBEZWFjb24NCj4gPHdpbGwuZGVhY29uQGFy
+bS5jb20+OyBHYWJyaWVsZSBQYW9sb25pIDxnYWJyaWVsZS5wYW9sb25pQGh1YXdlaS5jb20+Ow0K
+PiBtYXJjLnp5bmdpZXJAYXJtLmNvbTsgbGludXgtcGNpQHZnZXIua2VybmVsLm9yZzsgam9yb0A4
+Ynl0ZXMub3JnOyBKb2huDQo+IEdhcnJ5IDxqb2huLmdhcnJ5QGh1YXdlaS5jb20+OyBHdW9oYW5q
+dW4gKEhhbmp1biBHdW8pDQo+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IExpbnV4YXJtIDxsaW51
+eGFybUBodWF3ZWkuY29tPjsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnOyBpb21tdUBs
+aXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZzsgV2FuZ3pob3UgKEIpDQo+IDx3YW5nemhvdTFAaGlz
+aWxpY29uLmNvbT47IHN1ZGVlcC5ob2xsYUBhcm0uY29tOyBiaGVsZ2Fhc0Bnb29nbGUuY29tOw0K
+PiBsaW51eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7IGRldmVsQGFjcGljYS5vcmcN
+Cj4gU3ViamVjdDogUmU6IFtQQVRDSCB2OSAyLzRdIGlvbW11L2RtYTogQWRkIGEgaGVscGVyIGZ1
+bmN0aW9uIHRvIHJlc2VydmUgSFcNCj4gTVNJIGFkZHJlc3MgcmVnaW9ucyBmb3IgSU9NTVUgZHJp
+dmVycw0KPiANCj4gT24gVGh1LCBPY3QgMjYsIDIwMTcgYXQgMTA6MTE6NThBTSArMDAwMCwgU2hh
+bWVlcmFsaSBLb2xvdGh1bSBUaG9kaSB3cm90ZToNCj4gDQpbLi5dDQoNCj4gPg0KPiA+IEFzIHdl
+IHN0aWxsIGRvbuKAmXQgaGF2ZSBhIGNsZWFyIHJlc29sdXRpb24gb24gaG93IHRvIGludm9rZSB0
+aGUNCj4gPiBpb3J0X2lvbW11X21zaV9nZXRfcmVzdl9yZWdpb25zKCksIEkgaGF2ZSBnb25lIGJh
+Y2sgYW5kIGF0dGVtcHRlZCB0bw0KPiA+IG1vdmUgdGhlIHNtbXUgbW9kZWwgY2hlY2sgaW5zaWRl
+IHRoZSBpb3J0IGNvZGUuIFRoaXMgbWVhbnMgdGhlDQo+ID4gZnVuY3Rpb24gd2lsbCBzZWxlY3Rp
+dmVseSBhcHBseSBIVyBNU0kgcmVzZXJ2YXRpb24gYmFzZWQgb24gdGhlDQo+ID4gcGxhdGZvcm0g
+YW5kIGFsc28gdGhlIGZ1bmN0aW9uIGNhbiBiZSBpbnZva2VkIGZyb20gdGhlDQo+IGlvbW11X2Rt
+YV9nZXRfcmVzdl9yZWdpb25zKCkgZGlyZWN0bHkuDQo+ID4NCj4gPiBDb3VsZCB5b3UgcGxlYXNl
+IHRha2UgYSBsb29rIGF0IHRoZSBiZWxvdyBzbmlwcGV0IGFuZCBsZXQgbWUga25vdyB5b3VyDQo+
+IGZlZWRiYWNrLg0KPiA+IEhvcGUgd2UgY2FuIG1ha2Ugc29tZSBwcm9ncmVzcyBvbiB0aGlzIHNl
+cmllcy4NCj4gPg0KPiA+IFRoYW5rcywNCj4gPiBTaGFtZWVyDQo+ID4NCj4gPiAtLT44LS0NCj4g
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYyBiL2RyaXZlcnMvYWNwaS9h
+cm02NC9pb3J0LmMNCj4gPiBpbmRleCA4NzZjMGUxLi5hMjcyMzNkIDEwMDY0NA0KPiA+IC0tLSBh
+L2RyaXZlcnMvYWNwaS9hcm02NC9pb3J0LmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvYXJtNjQv
+aW9ydC5jDQo+ID4gQEAgLTYxOSw2ICs2MTksMzkgQEAgc3RhdGljIGludCBfX21heWJlX3VudXNl
+ZCBfX2dldF9wY2lfcmlkKHN0cnVjdA0KPiBwY2lfZGV2ICpwZGV2LCB1MTYgYWxpYXMsDQo+ID4g
+IAlyZXR1cm4gMDsNCj4gPiAgfQ0KPiA+DQo+ID4gK3N0YXRpYyBib29sIF9fbWF5YmVfdW51c2Vk
+IGlvcnRfaHdfbXNpX3Jlc3ZfZW5hYmxlKHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPiArCQkJCQlz
+dHJ1Y3QgYWNwaV9pb3J0X25vZGUgKm5vZGUpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCBhY3BpX2lv
+cnRfbm9kZSAqaW9tbXUgPSBOVUxMOw0KPiA+ICsJaW50IGk7DQo+ID4gKw0KPiA+ICsJaWYgKGRl
+dl9pc19wY2koZGV2KSkgew0KPiA+ICsJCXUzMiByaWQ7DQo+ID4gKw0KPiA+ICsJCXBjaV9mb3Jf
+ZWFjaF9kbWFfYWxpYXModG9fcGNpX2RldihkZXYpLCBfX2dldF9wY2lfcmlkLCAmcmlkKTsNCj4g
+PiArCQlpb21tdSA9IGlvcnRfbm9kZV9tYXBfaWQobm9kZSwgcmlkLCBOVUxMLA0KPiBJT1JUX0lP
+TU1VX1RZUEUpOw0KPiA+ICsJfSBlbHNlIHsNCj4gPiArCQlmb3IgKGkgPSAwOyBpIDwgbm9kZS0+
+bWFwcGluZ19jb3VudDsgaSsrKSB7DQo+ID4gKwkJCWlvbW11ID0gaW9ydF9ub2RlX21hcF9wbGF0
+Zm9ybV9pZChub2RlLCBOVUxMLA0KPiA+ICsJCQkJCQkJSU9SVF9JT01NVV9UWVBFLA0KPiBpKTsN
+Cj4gPiArCQkJaWYgKGlvbW11KQ0KPiA+ICsJCQkJYnJlYWs7DQo+ID4gKwkJfQ0KPiA+ICsJfQ0K
+PiANCj4gWW91IGRvIG5vdCBuZWVkIChhbmQgSSBkbyBub3Qgd2FudCB0aGlzIGNvZGUpIHRvIGRv
+IHRoZSBtYXBwaW5nIGFnYWluLg0KPiANCj4gWW91IGhhdmUgdGhlIGZ3bm9kZSAoaWUgZGV2LT5p
+b21tdV9md3NwZWMpIGNvcnJlc3BvbmRpbmcgdG8gdGhlIElPTU1VLA0KPiB5b3UgY2FuIHJldHJp
+ZXZlIHRoZSBTTU1VIElPUlQgbm9kZSBieSBhIHNpbXBsZSBsb29rLXVwIGFuZCBjYXJyeSBvdXQg
+dGhlDQo+IGNoZWNrIGJlbG93Lg0KDQpPay4gVW5kZXJzdG9vZC4gSSB3aWxsIHJld29yayB0aGlz
+IHBhcnQgdGhlbi4NCg0KPiBJdCB3b3VsZCBiZSBzaW1wbGVyIHRvIHNldCBhbiBvcHRpb24gaW4g
+dGhlIFNNTVV2MyBkcml2ZXIgYnV0IHRoZW4geW91IGdvIGJhY2sNCj4gdG8gc3F1YXJlIG9uZSB3
+aXRoIERUL0FDUEkgU01NVXYzIGRyaXZlciBhd2FyZW5lc3Mgc28sIGlmLCB3aXRoIHRoZSBjaGFu
+Z2UNCj4gYWJvdmUgdGhpcyBjYW4gbWFrZSB0aGUgZ2VuZXJpYyBhcHByb2FjaCB3b3JrIChpZSBS
+b2JpbiBpcyBoYXBweSB3aXRoIGl0KSBJIGFtDQo+IGZpbmUgd2l0aCB0aGlzIElPUlQgdXBkYXRl
+IGFzIHdlbGwuDQoNClRoYW5rcyBMb3JlbnpvLiBJIHdpbGwgcmViYXNlIG9uIHRvcCBvZiByYzEg
+YW5kIHByZXBhcmUgdjEwIHdpdGggdGhlc2UgY2hhbmdlcw0KYW5kIHNlbnQgaXQgb3V0Lg0KDQpT
+aGFtZWVyIA0KDQo+ID4gKw0KPiA+ICsJaWYgKGlvbW11ICYmIChpb21tdS0+dHlwZSA9PSBBQ1BJ
+X0lPUlRfTk9ERV9TTU1VX1YzKSkgew0KPiA+ICsJCXN0cnVjdCBhY3BpX2lvcnRfc21tdV92MyAq
+c21tdTsNCj4gPiArDQo+ID4gKwkJc21tdSA9IChzdHJ1Y3QgYWNwaV9pb3J0X3NtbXVfdjMgKilp
+b21tdS0+bm9kZV9kYXRhOw0KPiA+ICsJCWlmIChzbW11LT5tb2RlbCA9PQ0KPiBBQ1BJX0lPUlRf
+U01NVV9WM19ISVNJTElDT05fSEkxNjFYKSB7DQo+ID4gKwkJCWRldl9ub3RpY2UoZGV2LCAiRW5h
+YmxpbmcgSGlTaWxpY29uIGVycmF0dW0NCj4gMTYxMDEwODAxXG4iKTsNCj4gPiArCQkJcmV0dXJu
+IHRydWU7DQo+ID4gKwkJfQ0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXJldHVybiBmYWxzZTsNCj4g
+PiArfQ0KPiA+ICsNCj4gPiAgc3RhdGljIGludCBhcm1fc21tdV9pb3J0X3hsYXRlKHN0cnVjdCBk
+ZXZpY2UgKmRldiwgdTMyIHN0cmVhbWlkLA0KPiA+ICAJCQkgICAgICAgc3RydWN0IGZ3bm9kZV9o
+YW5kbGUgKmZ3bm9kZSwNCj4gPiAgCQkJICAgICAgIGNvbnN0IHN0cnVjdCBpb21tdV9vcHMgKm9w
+cykgQEAgLTY4Miw2ICs3MTUsOQ0KPiBAQCBpbnQNCj4gPiBpb3J0X2lvbW11X21zaV9nZXRfcmVz
+dl9yZWdpb25zKHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGxpc3RfaGVhZA0KPiAqaGVhZCkN
+Cj4gPiAgCWlmICghbm9kZSkNCj4gPiAgCQlyZXR1cm4gLUVOT0RFVjsNCj4gPg0KPiA+ICsJaWYg
+KCFpb3J0X2h3X21zaV9yZXN2X2VuYWJsZShkZXYsIG5vZGUpKQ0KPiA+ICsJCXJldHVybiAwOw0K
+PiA+ICsNCj4gPiAgCS8qDQo+ID4gIAkgKiBDdXJyZW50IGxvZ2ljIHRvIHJlc2VydmUgSVRTIHJl
+Z2lvbnMgcmVsaWVzIG9uIEhXIHRvcG9sb2dpZXMNCj4gPiAgCSAqIHdoZXJlIGEgZ2l2ZW4gUENJ
+IG9yIG5hbWVkIGNvbXBvbmVudCBtYXBzIGl0cyBJRHMgdG8gb25seSBvbmUNCj4gPiBkaWZmIC0t
+Z2l0IGEvZHJpdmVycy9pb21tdS9kbWEtaW9tbXUuYyBiL2RyaXZlcnMvaW9tbXUvZG1hLWlvbW11
+LmMNCj4gPiBpbmRleCA5ZDFjZWJlLi42N2M2ZTMwIDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMv
+aW9tbXUvZG1hLWlvbW11LmMNCj4gPiArKysgYi9kcml2ZXJzL2lvbW11L2RtYS1pb21tdS5jDQo+
+ID4gQEAgLTE5LDYgKzE5LDcgQEANCj4gPiAgICogYWxvbmcgd2l0aCB0aGlzIHByb2dyYW0uICBJ
+ZiBub3QsIHNlZSA8aHR0cDovL3d3dy5nbnUub3JnL2xpY2Vuc2VzLz4uDQo+ID4gICAqLw0KPiA+
+DQo+ID4gKyNpbmNsdWRlIDxsaW51eC9hY3BpX2lvcnQuaD4NCj4gPiAgI2luY2x1ZGUgPGxpbnV4
+L2RldmljZS5oPg0KPiA+ICAjaW5jbHVkZSA8bGludXgvZG1hLWlvbW11Lmg+DQo+ID4gICNpbmNs
+dWRlIDxsaW51eC9nZnAuaD4NCj4gPiBAQCAtMTc0LDYgKzE3NSwxMCBAQCB2b2lkIGlvbW11X2Rt
+YV9nZXRfcmVzdl9yZWdpb25zKHN0cnVjdCBkZXZpY2UNCj4gKmRldiwgc3RydWN0IGxpc3RfaGVh
+ZCAqbGlzdCkNCj4gPiAgCXN0cnVjdCBwY2lfaG9zdF9icmlkZ2UgKmJyaWRnZTsNCj4gPiAgCXN0
+cnVjdCByZXNvdXJjZV9lbnRyeSAqd2luZG93Ow0KPiA+DQo+ID4gKwlpZiAoIWlzX29mX25vZGUo
+ZGV2LT5pb21tdV9md3NwZWMtPmlvbW11X2Z3bm9kZSkgJiYNCj4gPiArCQlpb3J0X2lvbW11X21z
+aV9nZXRfcmVzdl9yZWdpb25zKGRldiwgbGlzdCkgPCAwKQ0KPiA+ICsJCXJldHVybjsNCj4gPiAr
+DQo+ID4gIAlpZiAoIWRldl9pc19wY2koZGV2KSkNCj4gPiAgCQlyZXR1cm47DQo+ID4NCj4gPiBk
+aWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9hY3BpX2lvcnQuaCBiL2luY2x1ZGUvbGludXgvYWNw
+aV9pb3J0LmgNCj4gPiBpbmRleCAxODJhNTc3Li44OGYxN2M5IDEwMDY0NA0KPiA+IC0tLSBhL2lu
+Y2x1ZGUvbGludXgvYWNwaV9pb3J0LmgNCj4gPiArKysgYi9pbmNsdWRlL2xpbnV4L2FjcGlfaW9y
+dC5oDQo+ID4gQEAgLTU2LDcgKzU2LDcgQEAgY29uc3Qgc3RydWN0IGlvbW11X29wcyAqaW9ydF9p
+b21tdV9jb25maWd1cmUoc3RydWN0DQo+ID4gZGV2aWNlICpkZXYpICB7IHJldHVybiBOVUxMOyB9
+ICBzdGF0aWMgaW5saW5lICBpbnQNCj4gPiBpb3J0X2lvbW11X21zaV9nZXRfcmVzdl9yZWdpb25z
+KHN0cnVjdCBkZXZpY2UgKmRldiwgc3RydWN0IGxpc3RfaGVhZA0KPiA+ICpoZWFkKSAteyByZXR1
+cm4gLUVOT0RFVjsgfQ0KPiA+ICt7IHJldHVybiAwOyB9DQo+ID4gICNlbmRpZg0KPiA+DQo+ID4g
+ICNlbmRpZiAvKiBfX0FDUElfSU9SVF9IX18gKi8NCj4gPg0KPiA+IC0tPjgtLQ0KPiA+DQo+ID4N
+Cj4gPg0K
