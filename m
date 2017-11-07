@@ -1,95 +1,213 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
- flush_workqueue() deadlock
-Date: Tue, 7 Nov 2017 23:47:54 +0100
-Message-ID: <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
-References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs. flush_workqueue() deadlock
+Date: Wed, 08 Nov 2017 00:06:35 +0100
+Message-ID: <1551349.SyN5ciAXNe@aspire.rjw.lan>
+References: <20171107210810.1300-1-ville.syrjala@linux.intel.com> <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Ville Syrjala <ville.syrjala@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47331 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751741AbdKGXGk (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Nov 2017 18:06:40 -0500
+In-Reply-To: <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, Stable <stable@vger.kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>
 
-T24gVHVlLCBOb3YgNywgMjAxNyBhdCAxMDowOCBQTSwgVmlsbGUgU3lyamFsYQo8dmlsbGUuc3ly
-amFsYUBsaW51eC5pbnRlbC5jb20+IHdyb3RlOgo+IEZyb206IFZpbGxlIFN5cmrDpGzDpCA8dmls
-bGUuc3lyamFsYUBsaW51eC5pbnRlbC5jb20+Cj4KPiBhY3BpX3JlbW92ZV9wbV9ub3RpZmllcigp
-IGVuZHMgdXAgY2FsbGluZyBmbHVzaF93b3JrcXVldWUoKSB3aGlsZQo+IGhvbGRpbmcgYWNwaV9w
-bV9ub3RpZmllcl9sb2NrLCBhbmQgdGhhdCBzYW1lIGxvY2sgaXMgdGFrZW4gYnkKPiBieSB0aGUg
-d29yayB2aWEgYWNwaV9wbV9ub3RpZnlfaGFuZGxlcigpLiBUaGlzIGNhbiBkZWFkbG9jay4KCk9L
-LCBnb29kIGNhdGNoIQoKW2N1dF0KCj4KPiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZwo+IENj
-OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+Cj4gQ2M6IExl
-biBCcm93biA8bGVuYkBrZXJuZWwub3JnPgo+IENjOiBQZXRlciBaaWpsc3RyYSA8cGV0ZXJ6QGlu
-ZnJhZGVhZC5vcmc+Cj4gQ2M6IFRlanVuIEhlbyA8dGpAa2VybmVsLm9yZz4KPiBDYzogSW5nbyBN
-b2xuYXIgPG1pbmdvQGtlcm5lbC5vcmc+Cj4gRml4ZXM6IGMwNzI1MzBmMzkxZSAoIkFDUEkgLyBQ
-TTogUmV2b3JrIHRoZSBoYW5kbGluZyBvZiBBQ1BJIGRldmljZSB3YWtldXAgbm90aWZpY2F0aW9u
-cyIpCj4gU2lnbmVkLW9mZi1ieTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4
-LmludGVsLmNvbT4KPiAtLS0KPiAgZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIHwgMjEgKysrKysr
-KysrKysrLS0tLS0tLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCA5IGRl
-bGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBiL2Ry
-aXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+IGluZGV4IGZiY2M3M2Y3YTA5OS4uMThhZjcxMDU3YjQ0
-IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+ICsrKyBiL2RyaXZlcnMv
-YWNwaS9kZXZpY2VfcG0uYwo+IEBAIC0zODcsNiArMzg3LDcgQEAgRVhQT1JUX1NZTUJPTChhY3Bp
-X2J1c19wb3dlcl9tYW5hZ2VhYmxlKTsKPgo+ICAjaWZkZWYgQ09ORklHX1BNCj4gIHN0YXRpYyBE
-RUZJTkVfTVVURVgoYWNwaV9wbV9ub3RpZmllcl9sb2NrKTsKPiArc3RhdGljIERFRklORV9NVVRF
-WChhY3BpX3BtX25vdGlmaWVyX2luc3RhbGxfbG9jayk7Cj4KPiAgdm9pZCBhY3BpX3BtX3dha2V1
-cF9ldmVudChzdHJ1Y3QgZGV2aWNlICpkZXYpCj4gIHsKPiBAQCAtNDQzLDI0ICs0NDQsMjUgQEAg
-YWNwaV9zdGF0dXMgYWNwaV9hZGRfcG1fbm90aWZpZXIoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2
-LCBzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gICAgICAgICBpZiAoIWRldiAmJiAhZnVuYykKPiAgICAg
-ICAgICAgICAgICAgcmV0dXJuIEFFX0JBRF9QQVJBTUVURVI7Cj4KPiAtICAgICAgIG11dGV4X2xv
-Y2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4gKyAgICAgICBtdXRleF9sb2NrKCZhY3BpX3Bt
-X25vdGlmaWVyX2luc3RhbGxfbG9jayk7Cj4KPiAgICAgICAgIGlmIChhZGV2LT53YWtldXAuZmxh
-Z3Mubm90aWZpZXJfcHJlc2VudCkKPiAgICAgICAgICAgICAgICAgZ290byBvdXQ7Cj4KPiAtICAg
-ICAgIGFkZXYtPndha2V1cC53cyA9IHdha2V1cF9zb3VyY2VfcmVnaXN0ZXIoZGV2X25hbWUoJmFk
-ZXYtPmRldikpOwo+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZGV2ID0gZGV2Owo+IC0g
-ICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7Cj4gLQoKQnV0IHRoaXMgZG9l
-c24ndCBsb29rIGdvb2QgdG8gbWUuCgpub3RpZmllcl9wcmVzZW50IHNob3VsZCBiZSBjaGVja2Vk
-IHVuZGVyIGFjcGlfcG1fbm90aWZpZXJfbG9jay4KCkFjdHVhbGx5LCBhY3BpX2luc3RhbGxfbm90
-aWZ5X2hhbmRsZXIoKSBpdHNlbGYgbmVlZCBub3QgYmUgY2FsbGVkCnVuZGVyIHRoZSBsb2NrLCBi
-ZWNhdXNlIGl0IGRvZXMgc3VmZmljaWVudCBjaGVja3Mgb2YgaXRzIG93bi4KClNvIHNheSB5b3Ug
-ZG8KCm11dGV4X2xvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7CgppZiAoYWRldi0+d2FrZXVw
-LmNvbnRleHQuZGV2KQogICAgICAgIGdvdG8gb3V0OwoKYWRldi0+d2FrZXVwLndzID0gd2FrZXVw
-X3NvdXJjZV9yZWdpc3RlcihkZXZfbmFtZSgmYWRldi0+ZGV2KSk7CmFkZXYtPndha2V1cC5jb250
-ZXh0LmRldiA9IGRldjsKYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7CgptdXRleF91
-bmxvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cgo+ICAgICAgICAgc3RhdHVzID0gYWNwaV9p
-bnN0YWxsX25vdGlmeV9oYW5kbGVyKGFkZXYtPmhhbmRsZSwgQUNQSV9TWVNURU1fTk9USUZZLAo+
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfcG1fbm90
-aWZ5X2hhbmRsZXIsIE5VTEwpOwo+ICAgICAgICAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQo+
-ICAgICAgICAgICAgICAgICBnb3RvIG91dDsKPgo+ICsgICAgICAgbXV0ZXhfbG9jaygmYWNwaV9w
-bV9ub3RpZmllcl9sb2NrKTsKCkFuZCBoZXJlIHlvdSBqdXN0IHNldCBub3RpZmllcl9wcmVzZW50
-IHVuZGVyIGFjcGlfcG1fbm90aWZpZXJfbG9jay4KCj4gKyAgICAgICBhZGV2LT53YWtldXAud3Mg
-PSB3YWtldXBfc291cmNlX3JlZ2lzdGVyKGRldl9uYW1lKCZhZGV2LT5kZXYpKTsKPiArICAgICAg
-IGFkZXYtPndha2V1cC5jb250ZXh0LmRldiA9IGRldjsKPiArICAgICAgIGFkZXYtPndha2V1cC5j
-b250ZXh0LmZ1bmMgPSBmdW5jOwo+ICAgICAgICAgYWRldi0+d2FrZXVwLmZsYWdzLm5vdGlmaWVy
-X3ByZXNlbnQgPSB0cnVlOwo+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25vdGlmaWVy
-X2xvY2spOwo+Cj4gICBvdXQ6Cj4gLSAgICAgICBtdXRleF91bmxvY2soJmFjcGlfcG1fbm90aWZp
-ZXJfbG9jayk7Cj4gKyAgICAgICBtdXRleF91bmxvY2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFs
-bF9sb2NrKTsKPiAgICAgICAgIHJldHVybiBzdGF0dXM7Cj4gIH0KClRoZW4gb24gcmVtb3ZhbCB5
-b3UgY2FuIGNsZWFyIG5vdGlmaWVyX3ByZXNlbnQgZmlyc3QgYW5kIGRyb3AgdGhlIGxvY2sKYXJv
-dW5kIHRoZSBhY3BpX3JlbW92ZV9ub3RpZnlfaGFuZGxlcigpIGNhbGwgYW5kIG5vdGhpbmcgYmFk
-IHdpbGwKaGFwcGVuLgoKSWYgeW91IGNhbGwgYWNwaV9hZGRfcG1fbm90aWZpZXIoKSB0d2ljZSBp
-biBwYXJhbGxlbCwgdGhlIGZpcnN0Cmluc3RhbmNlIHdpbGwgc2V0IGNvbnRleHQuZGV2IGFuZCB0
-aGUgc2Vjb25kIG9uZSB3aWxsIHNlZSBpdCBzZXQgYW5kCmJhaWwgb3V0LiAgVGhlIGZpcnN0IGlu
-c3RhbmNlIHdpbGwgdGhlbiBkbyB0aGUgcmVzdC4KCklmIHlvdSBjYWxsIGFjcGlfcmVtb3ZlX3Bt
-X25vdGlmaWVyKCkgdHdpY2UgaW4gYSByb3csIHRoZSBmaXJzdAppbnN0YW5jZSB3aWxsIHNlZSBu
-b3RpZmllcl9wcmVzZW50IHNldCBhbmQgd2lsbCBjbGVhciBpdCwgc28gdGhlCnNlY29uZCBvbmUg
-d2lsbCBzZWUgbm90aWZpZXJfcHJlc2VudCB1bnNldCBhbmQgaXQgd2lsbCBiYWlsIG91dC4KCk5v
-dywgaWYgeW91IGNhbGwgYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoKSBpbiBwYXJhbGxlbCB3aXRo
-CmFjcGlfYWRkX3BtX25vdGlmaWVyKCksIGVpdGhlciB0aGUgZm9ybWVyIHdpbGwgc2VlIG5vdGlm
-aWVyX3ByZXNlbnQKdW5zZXQgYW5kIGJhaWwgb3V0LCBvciB0aGUgbGF0dGVyIHdpbGwgc2VlIGNv
-bnRleHQuZGV2IHVuc2V0IGFuZCBiYWlsCm91dC4KCkl0IGRvZXNuJ3QgbG9vayBsaWtlIHRoZSBv
-dXRlciBsb2NrIGlzIG5lZWRlZCwgb3IgaGF2ZSBJIG1pc3NlZCBhbnl0aGluZz8KClRoYW5rcywK
-UmFmYWVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCklu
-dGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+On Tuesday, November 7, 2017 11:47:54 PM CET Rafael J. Wysocki wrote:
+> On Tue, Nov 7, 2017 at 10:08 PM, Ville Syrjala
+> <ville.syrjala@linux.intel.com> wrote:
+> > From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> >
+> > acpi_remove_pm_notifier() ends up calling flush_workqueue() while
+> > holding acpi_pm_notifier_lock, and that same lock is taken by
+> > by the work via acpi_pm_notify_handler(). This can deadlock.
+> 
+> OK, good catch!
+> 
+> [cut]
+> 
+> >
+> > Cc: stable@vger.kernel.org
+> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Cc: Len Brown <lenb@kernel.org>
+> > Cc: Peter Zijlstra <peterz@infradead.org>
+> > Cc: Tejun Heo <tj@kernel.org>
+> > Cc: Ingo Molnar <mingo@kernel.org>
+> > Fixes: c072530f391e ("ACPI / PM: Revork the handling of ACPI device wakeup notifications")
+> > Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+> > ---
+> >  drivers/acpi/device_pm.c | 21 ++++++++++++---------
+> >  1 file changed, 12 insertions(+), 9 deletions(-)
+> >
+> > diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+> > index fbcc73f7a099..18af71057b44 100644
+> > --- a/drivers/acpi/device_pm.c
+> > +++ b/drivers/acpi/device_pm.c
+> > @@ -387,6 +387,7 @@ EXPORT_SYMBOL(acpi_bus_power_manageable);
+> >
+> >  #ifdef CONFIG_PM
+> >  static DEFINE_MUTEX(acpi_pm_notifier_lock);
+> > +static DEFINE_MUTEX(acpi_pm_notifier_install_lock);
+> >
+> >  void acpi_pm_wakeup_event(struct device *dev)
+> >  {
+> > @@ -443,24 +444,25 @@ acpi_status acpi_add_pm_notifier(struct acpi_device *adev, struct device *dev,
+> >         if (!dev && !func)
+> >                 return AE_BAD_PARAMETER;
+> >
+> > -       mutex_lock(&acpi_pm_notifier_lock);
+> > +       mutex_lock(&acpi_pm_notifier_install_lock);
+> >
+> >         if (adev->wakeup.flags.notifier_present)
+> >                 goto out;
+> >
+> > -       adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
+> > -       adev->wakeup.context.dev = dev;
+> > -       adev->wakeup.context.func = func;
+> > -
+> 
+> But this doesn't look good to me.
+> 
+> notifier_present should be checked under acpi_pm_notifier_lock.
+> 
+> Actually, acpi_install_notify_handler() itself need not be called
+> under the lock, because it does sufficient checks of its own.
+> 
+> So say you do
+> 
+> mutex_lock(&acpi_pm_notifier_lock);
+> 
+> if (adev->wakeup.context.dev)
+>         goto out;
+> 
+> adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
+> adev->wakeup.context.dev = dev;
+> adev->wakeup.context.func = func;
+> 
+> mutex_unlock(&acpi_pm_notifier_lock);
+> 
+> >         status = acpi_install_notify_handler(adev->handle, ACPI_SYSTEM_NOTIFY,
+> >                                              acpi_pm_notify_handler, NULL);
+> >         if (ACPI_FAILURE(status))
+> >                 goto out;
+> >
+> > +       mutex_lock(&acpi_pm_notifier_lock);
+> 
+> And here you just set notifier_present under acpi_pm_notifier_lock.
+> 
+> > +       adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
+> > +       adev->wakeup.context.dev = dev;
+> > +       adev->wakeup.context.func = func;
+> >         adev->wakeup.flags.notifier_present = true;
+> > +       mutex_unlock(&acpi_pm_notifier_lock);
+> >
+> >   out:
+> > -       mutex_unlock(&acpi_pm_notifier_lock);
+> > +       mutex_unlock(&acpi_pm_notifier_install_lock);
+> >         return status;
+> >  }
+> 
+> Then on removal you can clear notifier_present first and drop the lock
+> around the acpi_remove_notify_handler() call and nothing bad will
+> happen.
+> 
+> If you call acpi_add_pm_notifier() twice in parallel, the first
+> instance will set context.dev and the second one will see it set and
+> bail out.  The first instance will then do the rest.
+> 
+> If you call acpi_remove_pm_notifier() twice in a row, the first
+> instance will see notifier_present set and will clear it, so the
+> second one will see notifier_present unset and it will bail out.
+> 
+> Now, if you call acpi_remove_pm_notifier() in parallel with
+> acpi_add_pm_notifier(), either the former will see notifier_present
+> unset and bail out, or the latter will see context.dev unset and bail
+> out.
+> 
+> It doesn't look like the outer lock is needed, or have I missed anything?
+
+So something like the below (totally untested) should work too, shouldn't it?
+
+---
+ drivers/acpi/device_pm.c |   35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
+
+Index: linux-pm/drivers/acpi/device_pm.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/device_pm.c
++++ linux-pm/drivers/acpi/device_pm.c
+@@ -424,6 +424,13 @@ static void acpi_pm_notify_handler(acpi_
+ 	acpi_bus_put_acpi_device(adev);
+ }
+ 
++static void acpi_dev_wakeup_cleanup(struct acpi_device *adev)
++{
++	adev->wakeup.context.func = NULL;
++	adev->wakeup.context.dev = NULL;
++	wakeup_source_unregister(adev->wakeup.ws);
++}
++
+ /**
+  * acpi_add_pm_notifier - Register PM notify handler for given ACPI device.
+  * @adev: ACPI device to add the notify handler for.
+@@ -445,17 +452,24 @@ acpi_status acpi_add_pm_notifier(struct
+ 
+ 	mutex_lock(&acpi_pm_notifier_lock);
+ 
+-	if (adev->wakeup.flags.notifier_present)
++	if (adev->wakeup.context.dev || adev->wakeup.context.func)
+ 		goto out;
+ 
+ 	adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
+ 	adev->wakeup.context.dev = dev;
+ 	adev->wakeup.context.func = func;
+ 
++	mutex_unlock(&acpi_pm_notifier_lock);
++
+ 	status = acpi_install_notify_handler(adev->handle, ACPI_SYSTEM_NOTIFY,
+ 					     acpi_pm_notify_handler, NULL);
+-	if (ACPI_FAILURE(status))
++
++	mutex_lock(&acpi_pm_notifier_lock);
++
++	if (ACPI_FAILURE(status)) {
++		acpi_dev_wakeup_cleanup(adev);
+ 		goto out;
++	}
+ 
+ 	adev->wakeup.flags.notifier_present = true;
+ 
+@@ -477,17 +491,22 @@ acpi_status acpi_remove_pm_notifier(stru
+ 	if (!adev->wakeup.flags.notifier_present)
+ 		goto out;
+ 
++	adev->wakeup.flags.notifier_present = false;
++
++	mutex_unlock(&acpi_pm_notifier_lock);
++
+ 	status = acpi_remove_notify_handler(adev->handle,
+ 					    ACPI_SYSTEM_NOTIFY,
+ 					    acpi_pm_notify_handler);
+-	if (ACPI_FAILURE(status))
+-		goto out;
+ 
+-	adev->wakeup.context.func = NULL;
+-	adev->wakeup.context.dev = NULL;
+-	wakeup_source_unregister(adev->wakeup.ws);
++	mutex_lock(&acpi_pm_notifier_lock);
+ 
+-	adev->wakeup.flags.notifier_present = false;
++	if (ACPI_FAILURE(status)) {
++		adev->wakeup.flags.notifier_present = true;
++		goto out;
++	}
++
++	acpi_dev_wakeup_cleanup(adev);
+ 
+  out:
+ 	mutex_unlock(&acpi_pm_notifier_lock);
+
