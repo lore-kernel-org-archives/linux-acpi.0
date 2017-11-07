@@ -1,16 +1,16 @@
 From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 Subject: RE: [PATCH v10 2/9] PCI: remove unused __weak attribute in
  pci_register_io_range()
-Date: Tue, 7 Nov 2017 10:50:00 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC332E@FRAEML521-MBX.china.huawei.com>
+Date: Tue, 7 Nov 2017 10:50:35 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC3351@FRAEML521-MBX.china.huawei.com>
 References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
  <1509120687-7352-3-git-send-email-gabriele.paoloni@huawei.com>
- <20171107002501.GD9538@bhelgaas-glaptop.roam.corp.google.com>
+ <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171107002501.GD9538@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
@@ -21,7 +21,7 @@ List-Id: linux-acpi@vger.kernel.org
 
 > -----Original Message-----
 > From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 07 November 2017 00:25
+> Sent: 07 November 2017 00:23
 > To: Gabriele Paoloni
 > Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
 > frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
@@ -33,6 +33,19 @@ List-Id: linux-acpi@vger.kernel.org
 > Subject: Re: [PATCH v10 2/9] PCI: remove unused __weak attribute in
 > pci_register_io_range()
 > 
+> > PCI: remove unused __weak attribute in pci_register_io_range()
+> 
+> Please capitalize to follow drivers/pci convention, e.g.,
+> 
+>   PCI: Remove __weak attribute from pci_register_io_range()
+> 
+> (Also do the same for the other PCI patches.)
+
+Agreed, many thanks
+
+Gab
+
+> 
 > On Fri, Oct 27, 2017 at 05:11:20PM +0100, Gabriele Paoloni wrote:
 > > From: gabriele paoloni <gabriele.paoloni@huawei.com>
 > >
@@ -41,19 +54,6 @@ List-Id: linux-acpi@vger.kernel.org
 > >
 > > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 > > Acked-by: Bjorn Helgaas <helgaas@kernel.org>
-> 
-> Also, I normally use this (Google address instead of kernel.org):
-> 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> (Also affects your other PCI patches.)
-
-Ok no probs, we'll change all the Acked-by in the next patchset
-
-Many Thanks
-Gab 
-
-> 
 > > ---
 > >  drivers/pci/pci.c | 2 +-
 > >  1 file changed, 1 insertion(+), 1 deletion(-)
