@@ -1,212 +1,95 @@
-From: Ville Syrjala <ville.syrjala@linux.intel.com>
-Subject: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs. flush_workqueue() deadlock
-Date: Tue,  7 Nov 2017 23:08:10 +0200
-Message-ID: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
+ flush_workqueue() deadlock
+Date: Tue, 7 Nov 2017 23:47:54 +0100
+Message-ID: <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
+References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:12226 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933802AbdKGVIQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Nov 2017 16:08:16 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: intel-gfx@lists.freedesktop.org, stable@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
-
-acpi_remove_pm_notifier() ends up calling flush_workqueue() while
-holding acpi_pm_notifier_lock, and that same lock is taken by
-by the work via acpi_pm_notify_handler(). This can deadlock.
-
-To fix the problem let's split the single lock into two: one to
-protect the dev->wakeup between the work vs. add/remove, and
-another one to handle notifier installation vs. removal.
-
-After commit a1d14934ea4b ("workqueue/lockdep: 'Fix' flush_work()
-annotation") I was able to kill the machine (Intel Braswell)
-very easily with 'powertop --auto-tune', runtime suspending i915,
-and trying to wake it up via the USB keyboard. The cases when
-it didn't die are presumably explained by lockdep getting disabled
-by something else (cpu hotplug locking issues usually).
-
-Fortunately I still got a lockdep report over netconsole
-(trickling in very slowly), even though the machine was
-otherwise practically dead:
-
-[  112.179806] ======================================================
-[  114.670858] WARNING: possible circular locking dependency detected
-[  117.155663] 4.13.0-rc6-bsw-bisect-00169-ga1d14934ea4b #119 Not tainted
-[  119.658101] ------------------------------------------------------
-[  121.310242] xhci_hcd 0000:00:14.0: xHCI host not responding to stop endpoint command.
-[  121.313294] xhci_hcd 0000:00:14.0: xHCI host controller not responding, assume dead
-[  121.313346] xhci_hcd 0000:00:14.0: HC died; cleaning up
-[  121.313485] usb 1-6: USB disconnect, device number 3
-[  121.313501] usb 1-6.2: USB disconnect, device number 4
-[  134.747383] kworker/0:2/47 is trying to acquire lock:
-[  137.220790]  (acpi_pm_notifier_lock){+.+.}, at: [<ffffffff813cafdf>] acpi_pm_notify_handler+0x2f/0x80
-[  139.721524]
-[  139.721524] but task is already holding lock:
-[  144.672922]  ((&dpc->work)){+.+.}, at: [<ffffffff8109ce90>] process_one_work+0x160/0x720
-[  147.184450]
-[  147.184450] which lock already depends on the new lock.
-[  147.184450]
-[  154.604711]
-[  154.604711] the existing dependency chain (in reverse order) is:
-[  159.447888]
-[  159.447888] -> #2 ((&dpc->work)){+.+.}:
-[  164.183486]        __lock_acquire+0x1255/0x13f0
-[  166.504313]        lock_acquire+0xb5/0x210
-[  168.778973]        process_one_work+0x1b9/0x720
-[  171.030316]        worker_thread+0x4c/0x440
-[  173.257184]        kthread+0x154/0x190
-[  175.456143]        ret_from_fork+0x27/0x40
-[  177.624348]
-[  177.624348] -> #1 ("kacpi_notify"){+.+.}:
-[  181.850351]        __lock_acquire+0x1255/0x13f0
-[  183.941695]        lock_acquire+0xb5/0x210
-[  186.046115]        flush_workqueue+0xdd/0x510
-[  190.408153]        acpi_os_wait_events_complete+0x31/0x40
-[  192.625303]        acpi_remove_notify_handler+0x133/0x188
-[  194.820829]        acpi_remove_pm_notifier+0x56/0x90
-[  196.989068]        acpi_dev_pm_detach+0x5f/0xa0
-[  199.145866]        dev_pm_domain_detach+0x27/0x30
-[  201.285614]        i2c_device_probe+0x100/0x210
-[  203.411118]        driver_probe_device+0x23e/0x310
-[  205.522425]        __driver_attach+0xa3/0xb0
-[  207.634268]        bus_for_each_dev+0x69/0xa0
-[  209.714797]        driver_attach+0x1e/0x20
-[  211.778258]        bus_add_driver+0x1bc/0x230
-[  213.837162]        driver_register+0x60/0xe0
-[  215.868162]        i2c_register_driver+0x42/0x70
-[  217.869551]        0xffffffffa0172017
-[  219.863009]        do_one_initcall+0x45/0x170
-[  221.843863]        do_init_module+0x5f/0x204
-[  223.817915]        load_module+0x225b/0x29b0
-[  225.757234]        SyS_finit_module+0xc6/0xd0
-[  227.661851]        do_syscall_64+0x5c/0x120
-[  229.536819]        return_from_SYSCALL_64+0x0/0x7a
-[  231.392444]
-[  231.392444] -> #0 (acpi_pm_notifier_lock){+.+.}:
-[  235.124914]        check_prev_add+0x44e/0x8a0
-[  237.024795]        __lock_acquire+0x1255/0x13f0
-[  238.937351]        lock_acquire+0xb5/0x210
-[  240.840799]        __mutex_lock+0x75/0x940
-[  242.709517]        mutex_lock_nested+0x1c/0x20
-[  244.551478]        acpi_pm_notify_handler+0x2f/0x80
-[  246.382052]        acpi_ev_notify_dispatch+0x44/0x5c
-[  248.194412]        acpi_os_execute_deferred+0x14/0x30
-[  250.003925]        process_one_work+0x1ec/0x720
-[  251.803191]        worker_thread+0x4c/0x440
-[  253.605307]        kthread+0x154/0x190
-[  255.387498]        ret_from_fork+0x27/0x40
-[  257.153175]
-[  257.153175] other info that might help us debug this:
-[  257.153175]
-[  262.324392] Chain exists of:
-[  262.324392]   acpi_pm_notifier_lock --> "kacpi_notify" --> (&dpc->work)
-[  262.324392]
-[  267.391997]  Possible unsafe locking scenario:
-[  267.391997]
-[  270.758262]        CPU0                    CPU1
-[  272.431713]        ----                    ----
-[  274.060756]   lock((&dpc->work));
-[  275.646532]                                lock("kacpi_notify");
-[  277.260772]                                lock((&dpc->work));
-[  278.839146]   lock(acpi_pm_notifier_lock);
-[  280.391902]
-[  280.391902]  *** DEADLOCK ***
-[  280.391902]
-[  284.986385] 2 locks held by kworker/0:2/47:
-[  286.524895]  #0:  ("kacpi_notify"){+.+.}, at: [<ffffffff8109ce90>] process_one_work+0x160/0x720
-[  288.112927]  #1:  ((&dpc->work)){+.+.}, at: [<ffffffff8109ce90>] process_one_work+0x160/0x720
-[  289.727725]
-
-Cc: stable@vger.kernel.org
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Fixes: c072530f391e ("ACPI / PM: Revork the handling of ACPI device wakeup notifications")
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
----
- drivers/acpi/device_pm.c | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index fbcc73f7a099..18af71057b44 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -387,6 +387,7 @@ EXPORT_SYMBOL(acpi_bus_power_manageable);
- 
- #ifdef CONFIG_PM
- static DEFINE_MUTEX(acpi_pm_notifier_lock);
-+static DEFINE_MUTEX(acpi_pm_notifier_install_lock);
- 
- void acpi_pm_wakeup_event(struct device *dev)
- {
-@@ -443,24 +444,25 @@ acpi_status acpi_add_pm_notifier(struct acpi_device *adev, struct device *dev,
- 	if (!dev && !func)
- 		return AE_BAD_PARAMETER;
- 
--	mutex_lock(&acpi_pm_notifier_lock);
-+	mutex_lock(&acpi_pm_notifier_install_lock);
- 
- 	if (adev->wakeup.flags.notifier_present)
- 		goto out;
- 
--	adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
--	adev->wakeup.context.dev = dev;
--	adev->wakeup.context.func = func;
--
- 	status = acpi_install_notify_handler(adev->handle, ACPI_SYSTEM_NOTIFY,
- 					     acpi_pm_notify_handler, NULL);
- 	if (ACPI_FAILURE(status))
- 		goto out;
- 
-+	mutex_lock(&acpi_pm_notifier_lock);
-+	adev->wakeup.ws = wakeup_source_register(dev_name(&adev->dev));
-+	adev->wakeup.context.dev = dev;
-+	adev->wakeup.context.func = func;
- 	adev->wakeup.flags.notifier_present = true;
-+	mutex_unlock(&acpi_pm_notifier_lock);
- 
-  out:
--	mutex_unlock(&acpi_pm_notifier_lock);
-+	mutex_unlock(&acpi_pm_notifier_install_lock);
- 	return status;
- }
- 
-@@ -472,7 +474,7 @@ acpi_status acpi_remove_pm_notifier(struct acpi_device *adev)
- {
- 	acpi_status status = AE_BAD_PARAMETER;
- 
--	mutex_lock(&acpi_pm_notifier_lock);
-+	mutex_lock(&acpi_pm_notifier_install_lock);
- 
- 	if (!adev->wakeup.flags.notifier_present)
- 		goto out;
-@@ -483,14 +485,15 @@ acpi_status acpi_remove_pm_notifier(struct acpi_device *adev)
- 	if (ACPI_FAILURE(status))
- 		goto out;
- 
-+	mutex_lock(&acpi_pm_notifier_lock);
- 	adev->wakeup.context.func = NULL;
- 	adev->wakeup.context.dev = NULL;
- 	wakeup_source_unregister(adev->wakeup.ws);
--
- 	adev->wakeup.flags.notifier_present = false;
-+	mutex_unlock(&acpi_pm_notifier_lock);
- 
-  out:
--	mutex_unlock(&acpi_pm_notifier_lock);
-+	mutex_unlock(&acpi_pm_notifier_install_lock);
- 	return status;
- }
- 
--- 
-2.13.6
-
+T24gVHVlLCBOb3YgNywgMjAxNyBhdCAxMDowOCBQTSwgVmlsbGUgU3lyamFsYQo8dmlsbGUuc3ly
+amFsYUBsaW51eC5pbnRlbC5jb20+IHdyb3RlOgo+IEZyb206IFZpbGxlIFN5cmrDpGzDpCA8dmls
+bGUuc3lyamFsYUBsaW51eC5pbnRlbC5jb20+Cj4KPiBhY3BpX3JlbW92ZV9wbV9ub3RpZmllcigp
+IGVuZHMgdXAgY2FsbGluZyBmbHVzaF93b3JrcXVldWUoKSB3aGlsZQo+IGhvbGRpbmcgYWNwaV9w
+bV9ub3RpZmllcl9sb2NrLCBhbmQgdGhhdCBzYW1lIGxvY2sgaXMgdGFrZW4gYnkKPiBieSB0aGUg
+d29yayB2aWEgYWNwaV9wbV9ub3RpZnlfaGFuZGxlcigpLiBUaGlzIGNhbiBkZWFkbG9jay4KCk9L
+LCBnb29kIGNhdGNoIQoKW2N1dF0KCj4KPiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZwo+IENj
+OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+Cj4gQ2M6IExl
+biBCcm93biA8bGVuYkBrZXJuZWwub3JnPgo+IENjOiBQZXRlciBaaWpsc3RyYSA8cGV0ZXJ6QGlu
+ZnJhZGVhZC5vcmc+Cj4gQ2M6IFRlanVuIEhlbyA8dGpAa2VybmVsLm9yZz4KPiBDYzogSW5nbyBN
+b2xuYXIgPG1pbmdvQGtlcm5lbC5vcmc+Cj4gRml4ZXM6IGMwNzI1MzBmMzkxZSAoIkFDUEkgLyBQ
+TTogUmV2b3JrIHRoZSBoYW5kbGluZyBvZiBBQ1BJIGRldmljZSB3YWtldXAgbm90aWZpY2F0aW9u
+cyIpCj4gU2lnbmVkLW9mZi1ieTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4
+LmludGVsLmNvbT4KPiAtLS0KPiAgZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIHwgMjEgKysrKysr
+KysrKysrLS0tLS0tLS0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCA5IGRl
+bGV0aW9ucygtKQo+Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBiL2Ry
+aXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+IGluZGV4IGZiY2M3M2Y3YTA5OS4uMThhZjcxMDU3YjQ0
+IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+ICsrKyBiL2RyaXZlcnMv
+YWNwaS9kZXZpY2VfcG0uYwo+IEBAIC0zODcsNiArMzg3LDcgQEAgRVhQT1JUX1NZTUJPTChhY3Bp
+X2J1c19wb3dlcl9tYW5hZ2VhYmxlKTsKPgo+ICAjaWZkZWYgQ09ORklHX1BNCj4gIHN0YXRpYyBE
+RUZJTkVfTVVURVgoYWNwaV9wbV9ub3RpZmllcl9sb2NrKTsKPiArc3RhdGljIERFRklORV9NVVRF
+WChhY3BpX3BtX25vdGlmaWVyX2luc3RhbGxfbG9jayk7Cj4KPiAgdm9pZCBhY3BpX3BtX3dha2V1
+cF9ldmVudChzdHJ1Y3QgZGV2aWNlICpkZXYpCj4gIHsKPiBAQCAtNDQzLDI0ICs0NDQsMjUgQEAg
+YWNwaV9zdGF0dXMgYWNwaV9hZGRfcG1fbm90aWZpZXIoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2
+LCBzdHJ1Y3QgZGV2aWNlICpkZXYsCj4gICAgICAgICBpZiAoIWRldiAmJiAhZnVuYykKPiAgICAg
+ICAgICAgICAgICAgcmV0dXJuIEFFX0JBRF9QQVJBTUVURVI7Cj4KPiAtICAgICAgIG11dGV4X2xv
+Y2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4gKyAgICAgICBtdXRleF9sb2NrKCZhY3BpX3Bt
+X25vdGlmaWVyX2luc3RhbGxfbG9jayk7Cj4KPiAgICAgICAgIGlmIChhZGV2LT53YWtldXAuZmxh
+Z3Mubm90aWZpZXJfcHJlc2VudCkKPiAgICAgICAgICAgICAgICAgZ290byBvdXQ7Cj4KPiAtICAg
+ICAgIGFkZXYtPndha2V1cC53cyA9IHdha2V1cF9zb3VyY2VfcmVnaXN0ZXIoZGV2X25hbWUoJmFk
+ZXYtPmRldikpOwo+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZGV2ID0gZGV2Owo+IC0g
+ICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7Cj4gLQoKQnV0IHRoaXMgZG9l
+c24ndCBsb29rIGdvb2QgdG8gbWUuCgpub3RpZmllcl9wcmVzZW50IHNob3VsZCBiZSBjaGVja2Vk
+IHVuZGVyIGFjcGlfcG1fbm90aWZpZXJfbG9jay4KCkFjdHVhbGx5LCBhY3BpX2luc3RhbGxfbm90
+aWZ5X2hhbmRsZXIoKSBpdHNlbGYgbmVlZCBub3QgYmUgY2FsbGVkCnVuZGVyIHRoZSBsb2NrLCBi
+ZWNhdXNlIGl0IGRvZXMgc3VmZmljaWVudCBjaGVja3Mgb2YgaXRzIG93bi4KClNvIHNheSB5b3Ug
+ZG8KCm11dGV4X2xvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7CgppZiAoYWRldi0+d2FrZXVw
+LmNvbnRleHQuZGV2KQogICAgICAgIGdvdG8gb3V0OwoKYWRldi0+d2FrZXVwLndzID0gd2FrZXVw
+X3NvdXJjZV9yZWdpc3RlcihkZXZfbmFtZSgmYWRldi0+ZGV2KSk7CmFkZXYtPndha2V1cC5jb250
+ZXh0LmRldiA9IGRldjsKYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7CgptdXRleF91
+bmxvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cgo+ICAgICAgICAgc3RhdHVzID0gYWNwaV9p
+bnN0YWxsX25vdGlmeV9oYW5kbGVyKGFkZXYtPmhhbmRsZSwgQUNQSV9TWVNURU1fTk9USUZZLAo+
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGFjcGlfcG1fbm90
+aWZ5X2hhbmRsZXIsIE5VTEwpOwo+ICAgICAgICAgaWYgKEFDUElfRkFJTFVSRShzdGF0dXMpKQo+
+ICAgICAgICAgICAgICAgICBnb3RvIG91dDsKPgo+ICsgICAgICAgbXV0ZXhfbG9jaygmYWNwaV9w
+bV9ub3RpZmllcl9sb2NrKTsKCkFuZCBoZXJlIHlvdSBqdXN0IHNldCBub3RpZmllcl9wcmVzZW50
+IHVuZGVyIGFjcGlfcG1fbm90aWZpZXJfbG9jay4KCj4gKyAgICAgICBhZGV2LT53YWtldXAud3Mg
+PSB3YWtldXBfc291cmNlX3JlZ2lzdGVyKGRldl9uYW1lKCZhZGV2LT5kZXYpKTsKPiArICAgICAg
+IGFkZXYtPndha2V1cC5jb250ZXh0LmRldiA9IGRldjsKPiArICAgICAgIGFkZXYtPndha2V1cC5j
+b250ZXh0LmZ1bmMgPSBmdW5jOwo+ICAgICAgICAgYWRldi0+d2FrZXVwLmZsYWdzLm5vdGlmaWVy
+X3ByZXNlbnQgPSB0cnVlOwo+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25vdGlmaWVy
+X2xvY2spOwo+Cj4gICBvdXQ6Cj4gLSAgICAgICBtdXRleF91bmxvY2soJmFjcGlfcG1fbm90aWZp
+ZXJfbG9jayk7Cj4gKyAgICAgICBtdXRleF91bmxvY2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFs
+bF9sb2NrKTsKPiAgICAgICAgIHJldHVybiBzdGF0dXM7Cj4gIH0KClRoZW4gb24gcmVtb3ZhbCB5
+b3UgY2FuIGNsZWFyIG5vdGlmaWVyX3ByZXNlbnQgZmlyc3QgYW5kIGRyb3AgdGhlIGxvY2sKYXJv
+dW5kIHRoZSBhY3BpX3JlbW92ZV9ub3RpZnlfaGFuZGxlcigpIGNhbGwgYW5kIG5vdGhpbmcgYmFk
+IHdpbGwKaGFwcGVuLgoKSWYgeW91IGNhbGwgYWNwaV9hZGRfcG1fbm90aWZpZXIoKSB0d2ljZSBp
+biBwYXJhbGxlbCwgdGhlIGZpcnN0Cmluc3RhbmNlIHdpbGwgc2V0IGNvbnRleHQuZGV2IGFuZCB0
+aGUgc2Vjb25kIG9uZSB3aWxsIHNlZSBpdCBzZXQgYW5kCmJhaWwgb3V0LiAgVGhlIGZpcnN0IGlu
+c3RhbmNlIHdpbGwgdGhlbiBkbyB0aGUgcmVzdC4KCklmIHlvdSBjYWxsIGFjcGlfcmVtb3ZlX3Bt
+X25vdGlmaWVyKCkgdHdpY2UgaW4gYSByb3csIHRoZSBmaXJzdAppbnN0YW5jZSB3aWxsIHNlZSBu
+b3RpZmllcl9wcmVzZW50IHNldCBhbmQgd2lsbCBjbGVhciBpdCwgc28gdGhlCnNlY29uZCBvbmUg
+d2lsbCBzZWUgbm90aWZpZXJfcHJlc2VudCB1bnNldCBhbmQgaXQgd2lsbCBiYWlsIG91dC4KCk5v
+dywgaWYgeW91IGNhbGwgYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoKSBpbiBwYXJhbGxlbCB3aXRo
+CmFjcGlfYWRkX3BtX25vdGlmaWVyKCksIGVpdGhlciB0aGUgZm9ybWVyIHdpbGwgc2VlIG5vdGlm
+aWVyX3ByZXNlbnQKdW5zZXQgYW5kIGJhaWwgb3V0LCBvciB0aGUgbGF0dGVyIHdpbGwgc2VlIGNv
+bnRleHQuZGV2IHVuc2V0IGFuZCBiYWlsCm91dC4KCkl0IGRvZXNuJ3QgbG9vayBsaWtlIHRoZSBv
+dXRlciBsb2NrIGlzIG5lZWRlZCwgb3IgaGF2ZSBJIG1pc3NlZCBhbnl0aGluZz8KClRoYW5rcywK
+UmFmYWVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCklu
+dGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
