@@ -1,76 +1,92 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] ACPI / PM: fix build regression
-Date: Tue,  7 Nov 2017 11:48:44 +0100
-Message-ID: <20171107104913.3303452-1-arnd@arndb.de>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH v10 9/9] MANTAINERS: Add maintainer for HiSilicon LPC
+ driver
+Date: Tue, 7 Nov 2017 10:49:12 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC3305@FRAEML521-MBX.china.huawei.com>
+References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1509120687-7352-10-git-send-email-gabriele.paoloni@huawei.com>
+ <20171107002120.GB9538@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171107002120.GB9538@bhelgaas-glaptop.roam.corp.google.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Paul Menzel <pmenzel@molgen.mpg.de>, Arnd Bergmann <arnd@arndb.de>, stable@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>Linuxarm <li>
 List-Id: linux-acpi@vger.kernel.org
 
-The XPS13 workaround caused a build regression in configurations without
-CONFIG_ACPI_SLEEP.
+Hi Bjorn
 
-drivers/acpi/sleep.c:95:5: error: redefinition of 'acpi_target_system_state'
- u32 acpi_target_system_state(void)
-     ^~~~~~~~~~~~~~~~~~~~~~~~
-In file included from include/linux/acpi.h:44:0,
-                 from drivers/acpi/sleep.c:20:
-include/acpi/acpi_bus.h:661:19: note: previous definition of 'acpi_target_system_state' was here
- static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
-                   ^~~~~~~~~~~~~~~~~~~~~~~~
-drivers/acpi/sleep.c:495:13: error: 'acpi_pm_end' defined but not used [-Werror=unused-function]
+Many Thanks for reviewing
 
-This adds back the #ifdef checks required to make it build cleanly again.
-The patch that caused the regression is marked for backports to v4.13, the
-same should apply to this one.
+> -----Original Message-----
+> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
+> Sent: 07 November 2017 00:21
+> To: Gabriele Paoloni
+> Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
+> frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
+> arnd@arndb.de; linux-arm-kernel@lists.infradead.org;
+> lorenzo.pieralisi@arm.com; mark.rutland@arm.com; brian.starkey@arm.com;
+> olof@lixom.net; benh@kernel.crashing.org; linux-kernel@vger.kernel.org;
+> linux-acpi@vger.kernel.org; Linuxarm; linux-pci@vger.kernel.org;
+> minyard@acm.org; John Garry; xuwei (O)
+> Subject: Re: [PATCH v10 9/9] MANTAINERS: Add maintainer for HiSilicon
+> LPC driver
+> 
+> s/MANTAINERS/MAINTAINERS/
 
-Fixes: 8d7a4756fef9 ("ACPI / PM: Blacklist Low Power S0 Idle _DSM for Dell XPS13 9360")
-Cc: stable@vger.kernel.org
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-I have not tried to verify that the new version makes sense, only that
-it builds cleanly. Please have a look and apply either this patch, or
-whatever else makes more sense here.
----
- drivers/acpi/sleep.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Oops thanks
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 01ac769e51c9..374f995dbd0a 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -90,6 +90,7 @@ static bool acpi_sleep_state_supported(u8 sleep_state)
- 			&& acpi_gbl_FADT.sleep_status.address));
- }
- 
-+#ifdef CONFIG_ACPI_SLEEP
- static u32 acpi_target_sleep_state = ACPI_STATE_S0;
- 
- u32 acpi_target_system_state(void)
-@@ -99,6 +100,7 @@ u32 acpi_target_system_state(void)
- EXPORT_SYMBOL_GPL(acpi_target_system_state);
- 
- static bool pwr_btn_event_pending;
-+#endif
- 
- /*
-  * The ACPI specification wants us to save NVS memory regions during hibernation
-@@ -376,6 +378,7 @@ static void __init acpi_sleep_dmi_check(void)
- 	dmi_check_system(acpisleep_dmi_table);
- }
- 
-+#ifdef CONFIG_ACPI_SLEEP
- /**
-  * acpi_pm_freeze - Disable the GPEs and suspend EC transactions.
-  */
-@@ -503,6 +506,7 @@ static void acpi_pm_end(void)
- 	acpi_target_sleep_state = ACPI_STATE_S0;
- 	acpi_sleep_tts_switch(acpi_target_sleep_state);
- }
-+#endif
- 
- #ifdef CONFIG_SUSPEND
- static u32 acpi_suspend_states[] = {
--- 
-2.9.0
+> 
+> On Fri, Oct 27, 2017 at 05:11:27PM +0100, Gabriele Paoloni wrote:
+> > Added maintainer for drivers/bus/hisi_lpc.c
+> >
+> > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > ---
+> >  MAINTAINERS | 7 +++++++
+> >  1 file changed, 7 insertions(+)
+> >
+> > diff --git a/MAINTAINERS b/MAINTAINERS
+> > index f66488d..b49d4c0 100644
+> > --- a/MAINTAINERS
+> > +++ b/MAINTAINERS
+> > @@ -6130,6 +6130,13 @@ F:	include/uapi/linux/if_hippi.h
+> >  F:	net/802/hippi.c
+> >  F:	drivers/net/hippi/
+> >
+> > +HISILICON LPC BUS DRIVER
+> > +L:	linuxarm@huawei.com
+> > +W:	http://www.hisilicon.com
+> > +S:	Maintained
+> > +F:	drivers/bus/hisi_lpc.c
+> > +F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-
+> pin-count.txt
+> 
+> Does this really count as a "maintainer" since it's only a mailing
+> list, not a real person?  I personally prefer a specific person
+> because there's no accountability with a mailing list.
+
+Right; before the maintainer was meant to be me but as I am moving
+to a different role we decided to put down a mailing list.
+However after discussing internally we agreed to have a person as
+maintainer and we'll specify him in the next patchset.
+
+Cheers
+Gab
+
+> 
+> > +
+> >  HISILICON NETWORK SUBSYSTEM DRIVER
+> >  M:	Yisen Zhuang <yisen.zhuang@huawei.com>
+> >  M:	Salil Mehta <salil.mehta@huawei.com>
+> > --
+> > 2.7.4
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
