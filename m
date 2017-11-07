@@ -1,55 +1,67 @@
-From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: Re: [v4.14-rc8 ghes_copy_tofrom_phys] BUG: sleeping function called
- from invalid context at lib/ioremap.c:165
-Date: Tue, 7 Nov 2017 07:20:15 +0800
-Message-ID: <20171106232015.yw6co4m63f64lrmh@wfg-t540p.sh.intel.com>
-References: <CA+55aFxSJGeN=2X-uX-on1Uq2Nb8+v1aiMDz5H1+tKW_N5Q+6g@mail.gmail.com>
- <20171029225155.qcum5i75awrt5tzm@wfg-t540p.sh.intel.com>
- <20171029231835.3725fnd5yehlmqob@wfg-t540p.sh.intel.com>
- <20171030110511.scfrdtlnf5lbdhu5@pd.tnic>
- <CA+55aFy2c88wKndjRAds-3MZ+MsArGBySOog+Rxmd2AciGFGkA@mail.gmail.com>
- <CA+55aFwW7sbguREtVzKAUkNGb4cGh_eADqkEYcUurX5xS60_ww@mail.gmail.com>
- <526e7cf2-0672-e44b-c32f-26128a2dfd37@codeaurora.org>
- <20171106224635.qopgsszwxzuitkpf@wfg-t540p.sh.intel.com>
- <CA+55aFzvuFK3X9xwanyE=4DAuHnjHF9YNB2q2c2r1z+c9aWO_A@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v10 9/9] MANTAINERS: Add maintainer for HiSilicon LPC
+ driver
+Date: Mon, 6 Nov 2017 18:21:20 -0600
+Message-ID: <20171107002120.GB9538@bhelgaas-glaptop.roam.corp.google.com>
+References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1509120687-7352-10-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:30782 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751434AbdKFXUV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 6 Nov 2017 18:20:21 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CA+55aFzvuFK3X9xwanyE=4DAuHnjHF9YNB2q2c2r1z+c9aWO_A@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1509120687-7352-10-git-send-email-gabriele.paoloni@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Cc: mark.rutland@arm.com, minyard@acm.org, lorenzo.pieralisi@arm.com, linux-acpi@vger.kernel.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, olof@lixom.net, robh+dt@kernel.org, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Borislav Petkov <bp@suse.de>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Huang Ying <ying.huang@intel.com>, Chen Gong <gong.chen@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Mark Rutland <mark.rutland@arm.com>
 
-On Mon, Nov 06, 2017 at 02:57:20PM -0800, Linus Torvalds wrote:
->On Mon, Nov 6, 2017 at 2:46 PM, Fengguang Wu <fengguang.wu@intel.com> wrote:
->>
->> I can see that in RC8, too:
->
->James Morse posted a new version of his series to fix this, and it's
->gotten a few tests, but not a lot. Since you clearly have GHES support
->on at least some of your machines, it might be worth adding that
->series from James to 0day testing.
+s/MANTAINERS/MAINTAINERS/
 
-Sure. I'll test Rafael's git tree including James' patches.
+On Fri, Oct 27, 2017 at 05:11:27PM +0100, Gabriele Paoloni wrote:
+> Added maintainer for drivers/bus/hisi_lpc.c
+> 
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> ---
+>  MAINTAINERS | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index f66488d..b49d4c0 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -6130,6 +6130,13 @@ F:	include/uapi/linux/if_hippi.h
+>  F:	net/802/hippi.c
+>  F:	drivers/net/hippi/
+>  
+> +HISILICON LPC BUS DRIVER
+> +L:	linuxarm@huawei.com
+> +W:	http://www.hisilicon.com
+> +S:	Maintained
+> +F:	drivers/bus/hisi_lpc.c
+> +F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
 
-I can see the GHES warnings in a number of 0day machines:
+Does this really count as a "maintainer" since it's only a mailing
+list, not a real person?  I personally prefer a specific person
+because there's no accountability with a mailing list.
 
-- ivb44: Ivytown Ivy Bridge-EP, E5-2697 v2
-
-  HW details can be found in
-  https://git.kernel.org/pub/scm/linux/kernel/git/wfg/lkp-tests.git/tree/hosts/ivb44
-
-- lkp-bdw-ep6: Broadwell-EP, E5-2699 v4
-- lkp-bdw-ex2: Broadwell-EX, E7-8890 v4
-- lkp-skl-2sp3: Skylake
-- lkp-skl-4sp1: Skylake
-- lkp-avoton2: Atom
-
-Regards,
-Fengguang
+> +
+>  HISILICON NETWORK SUBSYSTEM DRIVER
+>  M:	Yisen Zhuang <yisen.zhuang@huawei.com>
+>  M:	Salil Mehta <salil.mehta@huawei.com>
+> -- 
+> 2.7.4
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
