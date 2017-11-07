@@ -1,84 +1,42 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v10 2/9] PCI: remove unused __weak attribute in
- pci_register_io_range()
-Date: Tue, 7 Nov 2017 10:50:35 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC3351@FRAEML521-MBX.china.huawei.com>
-References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
- <1509120687-7352-3-git-send-email-gabriele.paoloni@huawei.com>
- <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / PM: fix build regression
+Date: Tue, 7 Nov 2017 12:17:01 +0100
+Message-ID: <CAJZ5v0hY-5Hko3YiW_-kg9Mgaf0qFn+fMUdYyip8ax0ADB6DTA@mail.gmail.com>
+References: <20171107104913.3303452-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>Linuxarm <li>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20171107104913.3303452-1-arnd@arndb.de>
+Sender: stable-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Paul Menzel <pmenzel@molgen.mpg.de>, Stable <stable@vger.kernel.org>, Jean Delvare <jdelvare@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Nov 7, 2017 at 11:48 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> The XPS13 workaround caused a build regression in configurations without
+> CONFIG_ACPI_SLEEP.
+>
+> drivers/acpi/sleep.c:95:5: error: redefinition of 'acpi_target_system_state'
+>  u32 acpi_target_system_state(void)
+>      ^~~~~~~~~~~~~~~~~~~~~~~~
+> In file included from include/linux/acpi.h:44:0,
+>                  from drivers/acpi/sleep.c:20:
+> include/acpi/acpi_bus.h:661:19: note: previous definition of 'acpi_target_system_state' was here
+>  static inline u32 acpi_target_system_state(void) { return ACPI_STATE_S0; }
+>                    ^~~~~~~~~~~~~~~~~~~~~~~~
+> drivers/acpi/sleep.c:495:13: error: 'acpi_pm_end' defined but not used [-Werror=unused-function]
+>
+> This adds back the #ifdef checks required to make it build cleanly again.
+> The patch that caused the regression is marked for backports to v4.13, the
+> same should apply to this one.
+>
+> Fixes: 8d7a4756fef9 ("ACPI / PM: Blacklist Low Power S0 Idle _DSM for Dell XPS13 9360")
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
+This should have been fixed in my tree already.
 
-> -----Original Message-----
-> From: Bjorn Helgaas [mailto:helgaas@kernel.org]
-> Sent: 07 November 2017 00:23
-> To: Gabriele Paoloni
-> Cc: catalin.marinas@arm.com; will.deacon@arm.com; robh+dt@kernel.org;
-> frowand.list@gmail.com; bhelgaas@google.com; rafael@kernel.org;
-> arnd@arndb.de; linux-arm-kernel@lists.infradead.org;
-> lorenzo.pieralisi@arm.com; mark.rutland@arm.com; brian.starkey@arm.com;
-> olof@lixom.net; benh@kernel.crashing.org; linux-kernel@vger.kernel.org;
-> linux-acpi@vger.kernel.org; Linuxarm; linux-pci@vger.kernel.org;
-> minyard@acm.org; John Garry; xuwei (O)
-> Subject: Re: [PATCH v10 2/9] PCI: remove unused __weak attribute in
-> pci_register_io_range()
-> 
-> > PCI: remove unused __weak attribute in pci_register_io_range()
-> 
-> Please capitalize to follow drivers/pci convention, e.g.,
-> 
->   PCI: Remove __weak attribute from pci_register_io_range()
-> 
-> (Also do the same for the other PCI patches.)
+Unfortunately, linux-next picked up an earlier version with this issue.
 
-Agreed, many thanks
-
-Gab
-
-> 
-> On Fri, Oct 27, 2017 at 05:11:20PM +0100, Gabriele Paoloni wrote:
-> > From: gabriele paoloni <gabriele.paoloni@huawei.com>
-> >
-> > Currently pci_register_io_range() has only one definition;
-> > therefore there is no use of the __weak attribute.
-> >
-> > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> > Acked-by: Bjorn Helgaas <helgaas@kernel.org>
-> > ---
-> >  drivers/pci/pci.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> > index af0cc34..eee967c 100644
-> > --- a/drivers/pci/pci.c
-> > +++ b/drivers/pci/pci.c
-> > @@ -3270,7 +3270,7 @@ static DEFINE_SPINLOCK(io_range_lock);
-> >   * Record the PCI IO range (expressed as CPU physical address +
-> size).
-> >   * Return a negative value if an error has occured, zero otherwise
-> >   */
-> > -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t
-> size)
-> > +int pci_register_io_range(phys_addr_t addr, resource_size_t size)
-> >  {
-> >  	int err = 0;
-> >
-> > --
-> > 2.7.4
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
