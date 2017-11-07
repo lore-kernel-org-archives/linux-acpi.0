@@ -1,62 +1,53 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v10 9/9] MANTAINERS: Add maintainer for HiSilicon LPC
- driver
-Date: Mon, 6 Nov 2017 18:21:20 -0600
-Message-ID: <20171107002120.GB9538@bhelgaas-glaptop.roam.corp.google.com>
+Subject: Re: [PATCH v10 2/9] PCI: remove unused __weak attribute in
+ pci_register_io_range()
+Date: Mon, 6 Nov 2017 18:23:25 -0600
+Message-ID: <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
 References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
- <1509120687-7352-10-git-send-email-gabriele.paoloni@huawei.com>
+ <1509120687-7352-3-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1509120687-7352-10-git-send-email-gabriele.paoloni@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <1509120687-7352-3-git-send-email-gabriele.paoloni@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: mark.rutland@arm.com, minyard@acm.org, lorenzo.pieralisi@arm.com, linux-acpi@vger.kernel.org, arnd@arndb.de, rafael@kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, john.garry@huawei.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linuxarm@huawei.com, olof@lixom.net, robh+dt@kernel.org, benh@kernel.crashing.org, bhelgaas@google.com, frowand.list@gmail.com, brian.starkey@arm.com, linux-arm-kernel@lists.infradead.org
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, xuwei5@hisilicon.com
 List-Id: linux-acpi@vger.kernel.org
 
-s/MANTAINERS/MAINTAINERS/
+> PCI: remove unused __weak attribute in pci_register_io_range()
 
-On Fri, Oct 27, 2017 at 05:11:27PM +0100, Gabriele Paoloni wrote:
-> Added maintainer for drivers/bus/hisi_lpc.c
+Please capitalize to follow drivers/pci convention, e.g.,
+
+  PCI: Remove __weak attribute from pci_register_io_range()
+
+(Also do the same for the other PCI patches.)
+
+On Fri, Oct 27, 2017 at 05:11:20PM +0100, Gabriele Paoloni wrote:
+> From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> 
+> Currently pci_register_io_range() has only one definition;
+> therefore there is no use of the __weak attribute.
 > 
 > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Acked-by: Bjorn Helgaas <helgaas@kernel.org>
 > ---
->  MAINTAINERS | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  drivers/pci/pci.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index f66488d..b49d4c0 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -6130,6 +6130,13 @@ F:	include/uapi/linux/if_hippi.h
->  F:	net/802/hippi.c
->  F:	drivers/net/hippi/
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index af0cc34..eee967c 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -3270,7 +3270,7 @@ static DEFINE_SPINLOCK(io_range_lock);
+>   * Record the PCI IO range (expressed as CPU physical address + size).
+>   * Return a negative value if an error has occured, zero otherwise
+>   */
+> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+> +int pci_register_io_range(phys_addr_t addr, resource_size_t size)
+>  {
+>  	int err = 0;
 >  
-> +HISILICON LPC BUS DRIVER
-> +L:	linuxarm@huawei.com
-> +W:	http://www.hisilicon.com
-> +S:	Maintained
-> +F:	drivers/bus/hisi_lpc.c
-> +F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
-
-Does this really count as a "maintainer" since it's only a mailing
-list, not a real person?  I personally prefer a specific person
-because there's no accountability with a mailing list.
-
-> +
->  HISILICON NETWORK SUBSYSTEM DRIVER
->  M:	Yisen Zhuang <yisen.zhuang@huawei.com>
->  M:	Salil Mehta <salil.mehta@huawei.com>
 > -- 
 > 2.7.4
 > 
