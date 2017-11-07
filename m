@@ -1,8 +1,8 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH v10 2/9] PCI: remove unused __weak attribute in
  pci_register_io_range()
-Date: Mon, 6 Nov 2017 18:23:25 -0600
-Message-ID: <20171107002325.GC9538@bhelgaas-glaptop.roam.corp.google.com>
+Date: Mon, 6 Nov 2017 18:25:01 -0600
+Message-ID: <20171107002501.GD9538@bhelgaas-glaptop.roam.corp.google.com>
 References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
  <1509120687-7352-3-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
@@ -15,14 +15,6 @@ To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 Cc: catalin.marinas@arm.com, will.deacon@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, bhelgaas@google.com, rafael@kernel.org, arnd@arndb.de, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, mark.rutland@arm.com, brian.starkey@arm.com, olof@lixom.net, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, john.garry@huawei.com, xuwei5@hisilicon.com
 List-Id: linux-acpi@vger.kernel.org
 
-> PCI: remove unused __weak attribute in pci_register_io_range()
-
-Please capitalize to follow drivers/pci convention, e.g.,
-
-  PCI: Remove __weak attribute from pci_register_io_range()
-
-(Also do the same for the other PCI patches.)
-
 On Fri, Oct 27, 2017 at 05:11:20PM +0100, Gabriele Paoloni wrote:
 > From: gabriele paoloni <gabriele.paoloni@huawei.com>
 > 
@@ -31,6 +23,13 @@ On Fri, Oct 27, 2017 at 05:11:20PM +0100, Gabriele Paoloni wrote:
 > 
 > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 > Acked-by: Bjorn Helgaas <helgaas@kernel.org>
+
+Also, I normally use this (Google address instead of kernel.org):
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+(Also affects your other PCI patches.)
+
 > ---
 >  drivers/pci/pci.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
