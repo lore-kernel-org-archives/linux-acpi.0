@@ -1,66 +1,113 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH 09/12] PM / mfd: intel-lpss: Use DPM_FLAG_SMART_SUSPEND
-Date: Wed, 8 Nov 2017 11:08:13 +0000
-Message-ID: <20171108110813.abqehgxdyvyahrro@dell>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan>
- <5094729.JAaD38WncM@aspire.rjw.lan>
- <20171031150933.oho2ffvuj3iagx4m@dell>
- <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
- <20171101092819.thhofiwwjxblef4a@dell>
- <CAJZ5v0gbmPd=rrveH1LyOYhB2Uu8Tz54C1Y+TutYmdRJCv8G4g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
+ flush_workqueue() deadlock
+Date: Wed, 8 Nov 2017 13:23:56 +0100
+Message-ID: <CAJZ5v0hDWbxHSJn++8JneA7UHO1_0wUoYFg_y26DKDqPV2ZejA@mail.gmail.com>
+References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
+ <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
+ <1551349.SyN5ciAXNe@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gbmPd=rrveH1LyOYhB2Uu8Tz54C1Y+TutYmdRJCv8G4g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1551349.SyN5ciAXNe@aspire.rjw.lan>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 01 Nov 2017, Rafael J. Wysocki wrote:
-
-> On Wed, Nov 1, 2017 at 10:28 AM, Lee Jones <lee.jones@linaro.org> wrote:
-> > On Tue, 31 Oct 2017, Rafael J. Wysocki wrote:
-> >
-> >> On Tue, Oct 31, 2017 at 4:09 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> >> > On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
-> >> >
-> >> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >>
-> >> >> Make the intel-lpss driver set DPM_FLAG_SMART_SUSPEND for its
-> >> >> devices which will allow them to stay in runtime suspend during
-> >> >> system suspend unless they need to be reconfigured for some reason.
-> >> >>
-> >> >> Also make it avoid resuming its child devices if they have
-> >> >> DPM_FLAG_SMART_SUSPEND set to allow them to remain in runtime
-> >> >> suspend during system suspend.
-> >> >>
-> >> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >> >> ---
-> >> >>  drivers/mfd/intel-lpss.c |    6 +++++-
-> >> >>  1 file changed, 5 insertions(+), 1 deletion(-)
-> >> >
-> >> > Is this patch independent?
-> >>
-> >> It depends on the flag definition at least, but functionally it also
-> >> depends on the PCI support for the flag.
-> >
-> > No problem.  Which tree to you propose this goes through?
-> 
-> linux-pm.git if that's not a problem as the patches it depends on will
-> go through it too.
-> 
-> That said I'll resend it when the core patches it depends on are ready.
-
-It's fine by me.
-
-Please check to see if there are any clashes with MFD.  If there are,
-I'll need a (small) pull-request from you.
-
--- 
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+T24gV2VkLCBOb3YgOCwgMjAxNyBhdCAxMjowNiBBTSwgUmFmYWVsIEouIFd5c29ja2kgPHJqd0By
+and5c29ja2kubmV0PiB3cm90ZToKPiBPbiBUdWVzZGF5LCBOb3ZlbWJlciA3LCAyMDE3IDExOjQ3
+OjU0IFBNIENFVCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToKPj4gT24gVHVlLCBOb3YgNywgMjAx
+NyBhdCAxMDowOCBQTSwgVmlsbGUgU3lyamFsYQo+PiA8dmlsbGUuc3lyamFsYUBsaW51eC5pbnRl
+bC5jb20+IHdyb3RlOgo+PiA+IEZyb206IFZpbGxlIFN5cmrDpGzDpCA8dmlsbGUuc3lyamFsYUBs
+aW51eC5pbnRlbC5jb20+Cj4+ID4KPj4gPiBhY3BpX3JlbW92ZV9wbV9ub3RpZmllcigpIGVuZHMg
+dXAgY2FsbGluZyBmbHVzaF93b3JrcXVldWUoKSB3aGlsZQo+PiA+IGhvbGRpbmcgYWNwaV9wbV9u
+b3RpZmllcl9sb2NrLCBhbmQgdGhhdCBzYW1lIGxvY2sgaXMgdGFrZW4gYnkKPj4gPiBieSB0aGUg
+d29yayB2aWEgYWNwaV9wbV9ub3RpZnlfaGFuZGxlcigpLiBUaGlzIGNhbiBkZWFkbG9jay4KPj4K
+Pj4gT0ssIGdvb2QgY2F0Y2ghCj4+Cj4+IFtjdXRdCj4+Cj4+ID4KPj4gPiBDYzogc3RhYmxlQHZn
+ZXIua2VybmVsLm9yZwo+PiA+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2Nr
+aUBpbnRlbC5jb20+Cj4+ID4gQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPgo+PiA+IENj
+OiBQZXRlciBaaWpsc3RyYSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+Cj4+ID4gQ2M6IFRlanVuIEhl
+byA8dGpAa2VybmVsLm9yZz4KPj4gPiBDYzogSW5nbyBNb2xuYXIgPG1pbmdvQGtlcm5lbC5vcmc+
+Cj4+ID4gRml4ZXM6IGMwNzI1MzBmMzkxZSAoIkFDUEkgLyBQTTogUmV2b3JrIHRoZSBoYW5kbGlu
+ZyBvZiBBQ1BJIGRldmljZSB3YWtldXAgbm90aWZpY2F0aW9ucyIpCj4+ID4gU2lnbmVkLW9mZi1i
+eTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbT4KPj4gPiAt
+LS0KPj4gPiAgZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIHwgMjEgKysrKysrKysrKysrLS0tLS0t
+LS0tCj4+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCA5IGRlbGV0aW9ucygt
+KQo+PiA+Cj4+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBiL2RyaXZl
+cnMvYWNwaS9kZXZpY2VfcG0uYwo+PiA+IGluZGV4IGZiY2M3M2Y3YTA5OS4uMThhZjcxMDU3YjQ0
+IDEwMDY0NAo+PiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+PiA+ICsrKyBiL2Ry
+aXZlcnMvYWNwaS9kZXZpY2VfcG0uYwo+PiA+IEBAIC0zODcsNiArMzg3LDcgQEAgRVhQT1JUX1NZ
+TUJPTChhY3BpX2J1c19wb3dlcl9tYW5hZ2VhYmxlKTsKPj4gPgo+PiA+ICAjaWZkZWYgQ09ORklH
+X1BNCj4+ID4gIHN0YXRpYyBERUZJTkVfTVVURVgoYWNwaV9wbV9ub3RpZmllcl9sb2NrKTsKPj4g
+PiArc3RhdGljIERFRklORV9NVVRFWChhY3BpX3BtX25vdGlmaWVyX2luc3RhbGxfbG9jayk7Cj4+
+ID4KPj4gPiAgdm9pZCBhY3BpX3BtX3dha2V1cF9ldmVudChzdHJ1Y3QgZGV2aWNlICpkZXYpCj4+
+ID4gIHsKPj4gPiBAQCAtNDQzLDI0ICs0NDQsMjUgQEAgYWNwaV9zdGF0dXMgYWNwaV9hZGRfcG1f
+bm90aWZpZXIoc3RydWN0IGFjcGlfZGV2aWNlICphZGV2LCBzdHJ1Y3QgZGV2aWNlICpkZXYsCj4+
+ID4gICAgICAgICBpZiAoIWRldiAmJiAhZnVuYykKPj4gPiAgICAgICAgICAgICAgICAgcmV0dXJu
+IEFFX0JBRF9QQVJBTUVURVI7Cj4+ID4KPj4gPiAtICAgICAgIG11dGV4X2xvY2soJmFjcGlfcG1f
+bm90aWZpZXJfbG9jayk7Cj4+ID4gKyAgICAgICBtdXRleF9sb2NrKCZhY3BpX3BtX25vdGlmaWVy
+X2luc3RhbGxfbG9jayk7Cj4+ID4KPj4gPiAgICAgICAgIGlmIChhZGV2LT53YWtldXAuZmxhZ3Mu
+bm90aWZpZXJfcHJlc2VudCkKPj4gPiAgICAgICAgICAgICAgICAgZ290byBvdXQ7Cj4+ID4KPj4g
+PiAtICAgICAgIGFkZXYtPndha2V1cC53cyA9IHdha2V1cF9zb3VyY2VfcmVnaXN0ZXIoZGV2X25h
+bWUoJmFkZXYtPmRldikpOwo+PiA+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZGV2ID0g
+ZGV2Owo+PiA+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7Cj4+ID4g
+LQo+Pgo+PiBCdXQgdGhpcyBkb2Vzbid0IGxvb2sgZ29vZCB0byBtZS4KPj4KPj4gbm90aWZpZXJf
+cHJlc2VudCBzaG91bGQgYmUgY2hlY2tlZCB1bmRlciBhY3BpX3BtX25vdGlmaWVyX2xvY2suCj4+
+Cj4+IEFjdHVhbGx5LCBhY3BpX2luc3RhbGxfbm90aWZ5X2hhbmRsZXIoKSBpdHNlbGYgbmVlZCBu
+b3QgYmUgY2FsbGVkCj4+IHVuZGVyIHRoZSBsb2NrLCBiZWNhdXNlIGl0IGRvZXMgc3VmZmljaWVu
+dCBjaGVja3Mgb2YgaXRzIG93bi4KPj4KPj4gU28gc2F5IHlvdSBkbwo+Pgo+PiBtdXRleF9sb2Nr
+KCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+Pgo+PiBpZiAoYWRldi0+d2FrZXVwLmNvbnRleHQu
+ZGV2KQo+PiAgICAgICAgIGdvdG8gb3V0Owo+Pgo+PiBhZGV2LT53YWtldXAud3MgPSB3YWtldXBf
+c291cmNlX3JlZ2lzdGVyKGRldl9uYW1lKCZhZGV2LT5kZXYpKTsKPj4gYWRldi0+d2FrZXVwLmNv
+bnRleHQuZGV2ID0gZGV2Owo+PiBhZGV2LT53YWtldXAuY29udGV4dC5mdW5jID0gZnVuYzsKPj4K
+Pj4gbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+Pgo+PiA+ICAgICAgICAg
+c3RhdHVzID0gYWNwaV9pbnN0YWxsX25vdGlmeV9oYW5kbGVyKGFkZXYtPmhhbmRsZSwgQUNQSV9T
+WVNURU1fTk9USUZZLAo+PiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgIGFjcGlfcG1fbm90aWZ5X2hhbmRsZXIsIE5VTEwpOwo+PiA+ICAgICAgICAgaWYgKEFD
+UElfRkFJTFVSRShzdGF0dXMpKQo+PiA+ICAgICAgICAgICAgICAgICBnb3RvIG91dDsKPj4gPgo+
+PiA+ICsgICAgICAgbXV0ZXhfbG9jaygmYWNwaV9wbV9ub3RpZmllcl9sb2NrKTsKPj4KPj4gQW5k
+IGhlcmUgeW91IGp1c3Qgc2V0IG5vdGlmaWVyX3ByZXNlbnQgdW5kZXIgYWNwaV9wbV9ub3RpZmll
+cl9sb2NrLgo+Pgo+PiA+ICsgICAgICAgYWRldi0+d2FrZXVwLndzID0gd2FrZXVwX3NvdXJjZV9y
+ZWdpc3RlcihkZXZfbmFtZSgmYWRldi0+ZGV2KSk7Cj4+ID4gKyAgICAgICBhZGV2LT53YWtldXAu
+Y29udGV4dC5kZXYgPSBkZXY7Cj4+ID4gKyAgICAgICBhZGV2LT53YWtldXAuY29udGV4dC5mdW5j
+ID0gZnVuYzsKPj4gPiAgICAgICAgIGFkZXYtPndha2V1cC5mbGFncy5ub3RpZmllcl9wcmVzZW50
+ID0gdHJ1ZTsKPj4gPiArICAgICAgIG11dGV4X3VubG9jaygmYWNwaV9wbV9ub3RpZmllcl9sb2Nr
+KTsKPj4gPgo+PiA+ICAgb3V0Ogo+PiA+IC0gICAgICAgbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25v
+dGlmaWVyX2xvY2spOwo+PiA+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25vdGlmaWVy
+X2luc3RhbGxfbG9jayk7Cj4+ID4gICAgICAgICByZXR1cm4gc3RhdHVzOwo+PiA+ICB9Cj4+Cj4+
+IFRoZW4gb24gcmVtb3ZhbCB5b3UgY2FuIGNsZWFyIG5vdGlmaWVyX3ByZXNlbnQgZmlyc3QgYW5k
+IGRyb3AgdGhlIGxvY2sKPj4gYXJvdW5kIHRoZSBhY3BpX3JlbW92ZV9ub3RpZnlfaGFuZGxlcigp
+IGNhbGwgYW5kIG5vdGhpbmcgYmFkIHdpbGwKPj4gaGFwcGVuLgo+Pgo+PiBJZiB5b3UgY2FsbCBh
+Y3BpX2FkZF9wbV9ub3RpZmllcigpIHR3aWNlIGluIHBhcmFsbGVsLCB0aGUgZmlyc3QKPj4gaW5z
+dGFuY2Ugd2lsbCBzZXQgY29udGV4dC5kZXYgYW5kIHRoZSBzZWNvbmQgb25lIHdpbGwgc2VlIGl0
+IHNldCBhbmQKPj4gYmFpbCBvdXQuICBUaGUgZmlyc3QgaW5zdGFuY2Ugd2lsbCB0aGVuIGRvIHRo
+ZSByZXN0Lgo+Pgo+PiBJZiB5b3UgY2FsbCBhY3BpX3JlbW92ZV9wbV9ub3RpZmllcigpIHR3aWNl
+IGluIGEgcm93LCB0aGUgZmlyc3QKPj4gaW5zdGFuY2Ugd2lsbCBzZWUgbm90aWZpZXJfcHJlc2Vu
+dCBzZXQgYW5kIHdpbGwgY2xlYXIgaXQsIHNvIHRoZQo+PiBzZWNvbmQgb25lIHdpbGwgc2VlIG5v
+dGlmaWVyX3ByZXNlbnQgdW5zZXQgYW5kIGl0IHdpbGwgYmFpbCBvdXQuCj4+Cj4+IE5vdywgaWYg
+eW91IGNhbGwgYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoKSBpbiBwYXJhbGxlbCB3aXRoCj4+IGFj
+cGlfYWRkX3BtX25vdGlmaWVyKCksIGVpdGhlciB0aGUgZm9ybWVyIHdpbGwgc2VlIG5vdGlmaWVy
+X3ByZXNlbnQKPj4gdW5zZXQgYW5kIGJhaWwgb3V0LCBvciB0aGUgbGF0dGVyIHdpbGwgc2VlIGNv
+bnRleHQuZGV2IHVuc2V0IGFuZCBiYWlsCj4+IG91dC4KPj4KPj4gSXQgZG9lc24ndCBsb29rIGxp
+a2UgdGhlIG91dGVyIGxvY2sgaXMgbmVlZGVkLCBvciBoYXZlIEkgbWlzc2VkIGFueXRoaW5nPwo+
+Cj4gU28gc29tZXRoaW5nIGxpa2UgdGhlIGJlbG93ICh0b3RhbGx5IHVudGVzdGVkKSBzaG91bGQg
+d29yayB0b28sIHNob3VsZG4ndCBpdD8KClRoZXJlIGlzIGEgcHJvYmxlbSBpZiBhIGRldmljZSBp
+cyByZW1vdmVkIHdoaWxlIGFjcGlfYWRkX3BtX25vdGlmaWVyKCkKaXMgc3RpbGwgaW4gcHJvZ3Jl
+c3MsIGluIHdoaWNoIGNhc2Ugd2l0aCBteSBwYXRjaCB0aGUKYWNwaV9yZW1vdmVfcG1fbm90aWZp
+ZXIoKSBjYWxsZWQgZnJvbSB0aGUgcmVtb3ZhbCBwYXRoIG1heSBiYWlsIG91dApwcmVtYXR1cmVs
+eSAodGhhdCBkb2Vzbid0IHNlZW0gbGlrZWx5IHRvIGhhcHBlbiwgYnV0IHN0aWxsIEkgZG9uJ3Qg
+c2VlCndoeSBpdCBjYW5ub3QgaGFwcGVuKSwgc28gSSdsbCBqdXN0IHVzZSB5b3VyIHBhdGNoLiA6
+LSkKClRoYW5rcywKUmFmYWVsCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2lu
+dGVsLWdmeAo=
