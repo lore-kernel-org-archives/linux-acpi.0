@@ -1,67 +1,79 @@
-From: Bob Liu <liubo95@huawei.com>
-Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
-Date: Wed, 8 Nov 2017 09:21:50 +0800
-Message-ID: <79f3610e-e522-29ad-8a93-be7e05df2973@huawei.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
- <0fecd29e-eaf7-9503-b087-7bfbc251da88@arm.com>
- <c6b7fb4b-4f2b-0d81-8bb5-8fa6b62aca3a@huawei.com>
- <8a1e090d-22e8-0295-a53f-bc3b5b7d7971@arm.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCH] ACPICA: Clean up whitespace of indentation
+Date: Wed, 8 Nov 2017 10:10:02 +0800
+Message-ID: <20171108021002.GH22644@x1>
+References: <1509154461-23909-1-git-send-email-bhe@redhat.com>
+ <20171107104324.GA14732@x1>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37E6183BD@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:9972 "EHLO
-        szxga04-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752667AbdKHB0d (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Nov 2017 20:26:33 -0500
-In-Reply-To: <8a1e090d-22e8-0295-a53f-bc3b5b7d7971@arm.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32866 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751571AbdKHCKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 7 Nov 2017 21:10:08 -0500
+Content-Disposition: inline
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6183BD@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, "nwatters@codeaurora.org" <nwatters@codeaurora.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-Hi Jean,
-
-On 2017/10/12 20:55, Jean-Philippe Brucker wrote:
-> On 12/10/17 13:05, Yisheng Xie wrote:
-> [...]
->>>>> * An iommu_process can be bound to multiple domains, and a domain can have
->>>>>   multiple iommu_process.
->>>> when bind a task to device, can we create a single domain for it? I am thinking
->>>> about process management without shared PT(for some device only support PASID
->>>> without pri ability), it seems hard to expand if a domain have multiple iommu_process?
->>>> Do you have any idea about this?
->>>
->>> A device always has to be in a domain, as far as I know. Not supporting
->>> PRI forces you to pin down all user mappings (or just the ones you use for
->>> DMA) but you should sill be able to share PT. Now if you don't support
->>> shared PT either, but only PASID, then you'll have to use io-pgtable and a
->>> new map/unmap API on an iommu_process. I don't understand your concern
->>> though, how would the link between process and domains prevent this use-case?
->>>
->> So you mean that if an iommu_process bind to multiple devices it should create
->> multiple io-pgtables? or just share the same io-pgtable?
+On 11/07/17 at 03:09pm, Moore, Robert wrote:
+> Anything like this probably happens during the conversion of ACPICA code to Linux-style code. This conversion happens after every release (monthly) of ACPICA.
 > 
-> I don't know to be honest, I haven't thought much about the io-pgtable
-> case, I'm all about sharing the mm :)
+> Specifically indent/lindent seems to do things like this, if I remember correctly.
+
+I found it when went through system init code, it was introduced in this
+commit and looks very obvious: 
+
+commit 19d0cfe9ddfdf7afa8d1765ab0bd2a7dd30e47c9
+Author: Bob Moore <robert.moore@intel.com>
+Date:   Tue Jun 10 15:54:40 2008 +0800
+
+    ACPICA: Update DMAR and SRAT table definitions
+
+If there has been a mechanism to check them, I am fine to leave it as is
+or the tools like lindent to deal with it.
+
+Thanks
+Baoquan
+
 > 
-
-Sorry to get back to this thread, but traditional DMA_MAP use case may also want to
-enable Substreamid/PASID.
-As a general framework, you may also consider SubStreamid/Pasid support for dma map/io-pgtable.
-
-We're considering make io-pgtables per SubStreamid/Pasid, but haven't decide put all 
-io-pgtables into a single domain or iommu_process.
-
-Thanks,
-Liubo
-
-> It really depends on what the user (GPU driver I assume) wants. I think
-> that if you're not sharing an mm with the device, then you're trying to
-> hide parts of the process to the device, so you'd also want the
-> flexibility of having different io-pgtables between devices. Different
-> devices accessing isolated parts of the process requires separate io-pgtables.
-> 
-
-
+> > -----Original Message-----
+> > From: Baoquan He [mailto:bhe@redhat.com]
+> > Sent: Tuesday, November 7, 2017 2:43 AM
+> > To: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
+> > Cc: rjw@rjwysocki.net; lenb@kernel.org; Moore, Robert
+> > <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>
+> > Subject: Re: [PATCH] ACPICA: Clean up whitespace of indentation
+> > 
+> > PING!
+> > 
+> > On 10/28/17 at 09:34am, Baoquan He wrote:
+> > > Use tabs (not spaces) for indentation.
+> > >
+> > > Signed-off-by: Baoquan He <bhe@redhat.com>
+> > > ---
+> > >  include/acpi/actbl1.h | 4 ++--
+> > >  1 file changed, 2 insertions(+), 2 deletions(-)
+> > >
+> > > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
+> > > 6b8714a428b6..d8a4fc066abe 100644
+> > > --- a/include/acpi/actbl1.h
+> > > +++ b/include/acpi/actbl1.h
+> > > @@ -1438,9 +1438,9 @@ struct acpi_srat_mem_affinity {
+> > >  	u16 reserved;		/* Reserved, must be zero */
+> > >  	u64 base_address;
+> > >  	u64 length;
+> > > -       u32 reserved1;
+> > > +	u32 reserved1;
+> > >  	u32 flags;
+> > > -       u64 reserved2;	       /* Reserved, must be zero */
+> > > +	u64 reserved2;	       /* Reserved, must be zero */
+> > >  };
+> > >
+> > >  /* Flags */
+> > > --
+> > > 2.5.5
+> > >
