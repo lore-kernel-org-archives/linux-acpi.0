@@ -1,79 +1,66 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH] ACPICA: Clean up whitespace of indentation
-Date: Wed, 8 Nov 2017 10:10:02 +0800
-Message-ID: <20171108021002.GH22644@x1>
-References: <1509154461-23909-1-git-send-email-bhe@redhat.com>
- <20171107104324.GA14732@x1>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37E6183BD@ORSMSX110.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
+ flush_workqueue() deadlock
+Date: Wed, 8 Nov 2017 10:47:29 +0100
+Message-ID: <CAJZ5v0gt1eZwgvibB7BTVmYWm8b2M8N50ADy=1ZUfojXBMvTvg@mail.gmail.com>
+References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
+ <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32866 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751571AbdKHCKI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 7 Nov 2017 21:10:08 -0500
-Content-Disposition: inline
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37E6183BD@ORSMSX110.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On 11/07/17 at 03:09pm, Moore, Robert wrote:
-> Anything like this probably happens during the conversion of ACPICA code to Linux-style code. This conversion happens after every release (monthly) of ACPICA.
-> 
-> Specifically indent/lindent seems to do things like this, if I remember correctly.
-
-I found it when went through system init code, it was introduced in this
-commit and looks very obvious: 
-
-commit 19d0cfe9ddfdf7afa8d1765ab0bd2a7dd30e47c9
-Author: Bob Moore <robert.moore@intel.com>
-Date:   Tue Jun 10 15:54:40 2008 +0800
-
-    ACPICA: Update DMAR and SRAT table definitions
-
-If there has been a mechanism to check them, I am fine to leave it as is
-or the tools like lindent to deal with it.
-
-Thanks
-Baoquan
-
-> 
-> > -----Original Message-----
-> > From: Baoquan He [mailto:bhe@redhat.com]
-> > Sent: Tuesday, November 7, 2017 2:43 AM
-> > To: linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> > Cc: rjw@rjwysocki.net; lenb@kernel.org; Moore, Robert
-> > <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>
-> > Subject: Re: [PATCH] ACPICA: Clean up whitespace of indentation
-> > 
-> > PING!
-> > 
-> > On 10/28/17 at 09:34am, Baoquan He wrote:
-> > > Use tabs (not spaces) for indentation.
-> > >
-> > > Signed-off-by: Baoquan He <bhe@redhat.com>
-> > > ---
-> > >  include/acpi/actbl1.h | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
-> > > 6b8714a428b6..d8a4fc066abe 100644
-> > > --- a/include/acpi/actbl1.h
-> > > +++ b/include/acpi/actbl1.h
-> > > @@ -1438,9 +1438,9 @@ struct acpi_srat_mem_affinity {
-> > >  	u16 reserved;		/* Reserved, must be zero */
-> > >  	u64 base_address;
-> > >  	u64 length;
-> > > -       u32 reserved1;
-> > > +	u32 reserved1;
-> > >  	u32 flags;
-> > > -       u64 reserved2;	       /* Reserved, must be zero */
-> > > +	u64 reserved2;	       /* Reserved, must be zero */
-> > >  };
-> > >
-> > >  /* Flags */
-> > > --
-> > > 2.5.5
-> > >
+T24gVHVlLCBOb3YgNywgMjAxNyBhdCAxMTo0NyBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJhZmFl
+bEBrZXJuZWwub3JnPiB3cm90ZToKPiBPbiBUdWUsIE5vdiA3LCAyMDE3IGF0IDEwOjA4IFBNLCBW
+aWxsZSBTeXJqYWxhCj4gPHZpbGxlLnN5cmphbGFAbGludXguaW50ZWwuY29tPiB3cm90ZToKPj4g
+RnJvbTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbT4KPj4K
+Pj4gYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoKSBlbmRzIHVwIGNhbGxpbmcgZmx1c2hfd29ya3F1
+ZXVlKCkgd2hpbGUKPj4gaG9sZGluZyBhY3BpX3BtX25vdGlmaWVyX2xvY2ssIGFuZCB0aGF0IHNh
+bWUgbG9jayBpcyB0YWtlbiBieQo+PiBieSB0aGUgd29yayB2aWEgYWNwaV9wbV9ub3RpZnlfaGFu
+ZGxlcigpLiBUaGlzIGNhbiBkZWFkbG9jay4KPgo+IE9LLCBnb29kIGNhdGNoIQo+Cj4gW2N1dF0K
+Pgo+Pgo+PiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZwo+PiBDYzogUmFmYWVsIEouIFd5c29j
+a2kgPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPgo+PiBDYzogTGVuIEJyb3duIDxsZW5iQGtl
+cm5lbC5vcmc+Cj4+IENjOiBQZXRlciBaaWpsc3RyYSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+Cj4+
+IENjOiBUZWp1biBIZW8gPHRqQGtlcm5lbC5vcmc+Cj4+IENjOiBJbmdvIE1vbG5hciA8bWluZ29A
+a2VybmVsLm9yZz4KPj4gRml4ZXM6IGMwNzI1MzBmMzkxZSAoIkFDUEkgLyBQTTogUmV2b3JrIHRo
+ZSBoYW5kbGluZyBvZiBBQ1BJIGRldmljZSB3YWtldXAgbm90aWZpY2F0aW9ucyIpCj4+IFNpZ25l
+ZC1vZmYtYnk6IFZpbGxlIFN5cmrDpGzDpCA8dmlsbGUuc3lyamFsYUBsaW51eC5pbnRlbC5jb20+
+Cj4+IC0tLQo+PiAgZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIHwgMjEgKysrKysrKysrKysrLS0t
+LS0tLS0tCj4+ICAxIGZpbGUgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMo
+LSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBiL2RyaXZlcnMv
+YWNwaS9kZXZpY2VfcG0uYwo+PiBpbmRleCBmYmNjNzNmN2EwOTkuLjE4YWY3MTA1N2I0NCAxMDA2
+NDQKPj4gLS0tIGEvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jCj4+ICsrKyBiL2RyaXZlcnMvYWNw
+aS9kZXZpY2VfcG0uYwo+PiBAQCAtMzg3LDYgKzM4Nyw3IEBAIEVYUE9SVF9TWU1CT0woYWNwaV9i
+dXNfcG93ZXJfbWFuYWdlYWJsZSk7Cj4+Cj4+ICAjaWZkZWYgQ09ORklHX1BNCj4+ICBzdGF0aWMg
+REVGSU5FX01VVEVYKGFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4+ICtzdGF0aWMgREVGSU5FX01V
+VEVYKGFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPj4KPj4gIHZvaWQgYWNwaV9wbV93
+YWtldXBfZXZlbnQoc3RydWN0IGRldmljZSAqZGV2KQo+PiAgewo+PiBAQCAtNDQzLDI0ICs0NDQs
+MjUgQEAgYWNwaV9zdGF0dXMgYWNwaV9hZGRfcG1fbm90aWZpZXIoc3RydWN0IGFjcGlfZGV2aWNl
+ICphZGV2LCBzdHJ1Y3QgZGV2aWNlICpkZXYsCj4+ICAgICAgICAgaWYgKCFkZXYgJiYgIWZ1bmMp
+Cj4+ICAgICAgICAgICAgICAgICByZXR1cm4gQUVfQkFEX1BBUkFNRVRFUjsKPj4KPj4gLSAgICAg
+ICBtdXRleF9sb2NrKCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+PiArICAgICAgIG11dGV4X2xv
+Y2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPj4KPj4gICAgICAgICBpZiAoYWRl
+di0+d2FrZXVwLmZsYWdzLm5vdGlmaWVyX3ByZXNlbnQpCj4+ICAgICAgICAgICAgICAgICBnb3Rv
+IG91dDsKPj4KPj4gLSAgICAgICBhZGV2LT53YWtldXAud3MgPSB3YWtldXBfc291cmNlX3JlZ2lz
+dGVyKGRldl9uYW1lKCZhZGV2LT5kZXYpKTsKPj4gLSAgICAgICBhZGV2LT53YWtldXAuY29udGV4
+dC5kZXYgPSBkZXY7Cj4+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7
+Cj4+IC0KPgo+IEJ1dCB0aGlzIGRvZXNuJ3QgbG9vayBnb29kIHRvIG1lLgo+Cj4gbm90aWZpZXJf
+cHJlc2VudCBzaG91bGQgYmUgY2hlY2tlZCB1bmRlciBhY3BpX3BtX25vdGlmaWVyX2xvY2suCgpX
+ZWxsLCBub3QgcmVhbGx5LCBzbyB0aGUgYWJvdmUgaXMgT0suCgpIb3dldmVyLCBJIHN0aWxsIHdv
+dWxkIHByZWZlciB0byBhdm9pZCBhZGRpbmcgdGhlIG91dGVyIGxvY2suCgpUaGFua3MsClJhZmFl
+bApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1n
+ZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
+aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
