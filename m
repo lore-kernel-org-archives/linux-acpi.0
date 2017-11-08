@@ -1,66 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
- flush_workqueue() deadlock
-Date: Wed, 8 Nov 2017 10:47:29 +0100
-Message-ID: <CAJZ5v0gt1eZwgvibB7BTVmYWm8b2M8N50ADy=1ZUfojXBMvTvg@mail.gmail.com>
-References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
- <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
+Date: Wed, 8 Nov 2017 10:50:56 +0000
+Message-ID: <8734355c-d0c8-a02a-ab47-46803700c467@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <0c6778d8-741f-0db7-fe3c-df88a75ebbb2@huawei.com>
+ <0fecd29e-eaf7-9503-b087-7bfbc251da88@arm.com>
+ <c6b7fb4b-4f2b-0d81-8bb5-8fa6b62aca3a@huawei.com>
+ <8a1e090d-22e8-0295-a53f-bc3b5b7d7971@arm.com>
+ <79f3610e-e522-29ad-8a93-be7e05df2973@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <CAJZ5v0gMsuj11CHD_+Ap08rsea9OgdT54LnzkN8oyg03PaAjZA@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:59668 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750917AbdKHKsp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 8 Nov 2017 05:48:45 -0500
+In-Reply-To: <79f3610e-e522-29ad-8a93-be7e05df2973@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bob Liu <liubo95@huawei.com>, Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, "nwatters@codeaurora.org" <nwatters@codeaurora.org>, ok
 
-T24gVHVlLCBOb3YgNywgMjAxNyBhdCAxMTo0NyBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJhZmFl
-bEBrZXJuZWwub3JnPiB3cm90ZToKPiBPbiBUdWUsIE5vdiA3LCAyMDE3IGF0IDEwOjA4IFBNLCBW
-aWxsZSBTeXJqYWxhCj4gPHZpbGxlLnN5cmphbGFAbGludXguaW50ZWwuY29tPiB3cm90ZToKPj4g
-RnJvbTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbT4KPj4K
-Pj4gYWNwaV9yZW1vdmVfcG1fbm90aWZpZXIoKSBlbmRzIHVwIGNhbGxpbmcgZmx1c2hfd29ya3F1
-ZXVlKCkgd2hpbGUKPj4gaG9sZGluZyBhY3BpX3BtX25vdGlmaWVyX2xvY2ssIGFuZCB0aGF0IHNh
-bWUgbG9jayBpcyB0YWtlbiBieQo+PiBieSB0aGUgd29yayB2aWEgYWNwaV9wbV9ub3RpZnlfaGFu
-ZGxlcigpLiBUaGlzIGNhbiBkZWFkbG9jay4KPgo+IE9LLCBnb29kIGNhdGNoIQo+Cj4gW2N1dF0K
-Pgo+Pgo+PiBDYzogc3RhYmxlQHZnZXIua2VybmVsLm9yZwo+PiBDYzogUmFmYWVsIEouIFd5c29j
-a2kgPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPgo+PiBDYzogTGVuIEJyb3duIDxsZW5iQGtl
-cm5lbC5vcmc+Cj4+IENjOiBQZXRlciBaaWpsc3RyYSA8cGV0ZXJ6QGluZnJhZGVhZC5vcmc+Cj4+
-IENjOiBUZWp1biBIZW8gPHRqQGtlcm5lbC5vcmc+Cj4+IENjOiBJbmdvIE1vbG5hciA8bWluZ29A
-a2VybmVsLm9yZz4KPj4gRml4ZXM6IGMwNzI1MzBmMzkxZSAoIkFDUEkgLyBQTTogUmV2b3JrIHRo
-ZSBoYW5kbGluZyBvZiBBQ1BJIGRldmljZSB3YWtldXAgbm90aWZpY2F0aW9ucyIpCj4+IFNpZ25l
-ZC1vZmYtYnk6IFZpbGxlIFN5cmrDpGzDpCA8dmlsbGUuc3lyamFsYUBsaW51eC5pbnRlbC5jb20+
-Cj4+IC0tLQo+PiAgZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIHwgMjEgKysrKysrKysrKysrLS0t
-LS0tLS0tCj4+ICAxIGZpbGUgY2hhbmdlZCwgMTIgaW5zZXJ0aW9ucygrKSwgOSBkZWxldGlvbnMo
-LSkKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9kZXZpY2VfcG0uYyBiL2RyaXZlcnMv
-YWNwaS9kZXZpY2VfcG0uYwo+PiBpbmRleCBmYmNjNzNmN2EwOTkuLjE4YWY3MTA1N2I0NCAxMDA2
-NDQKPj4gLS0tIGEvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jCj4+ICsrKyBiL2RyaXZlcnMvYWNw
-aS9kZXZpY2VfcG0uYwo+PiBAQCAtMzg3LDYgKzM4Nyw3IEBAIEVYUE9SVF9TWU1CT0woYWNwaV9i
-dXNfcG93ZXJfbWFuYWdlYWJsZSk7Cj4+Cj4+ICAjaWZkZWYgQ09ORklHX1BNCj4+ICBzdGF0aWMg
-REVGSU5FX01VVEVYKGFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4+ICtzdGF0aWMgREVGSU5FX01V
-VEVYKGFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPj4KPj4gIHZvaWQgYWNwaV9wbV93
-YWtldXBfZXZlbnQoc3RydWN0IGRldmljZSAqZGV2KQo+PiAgewo+PiBAQCAtNDQzLDI0ICs0NDQs
-MjUgQEAgYWNwaV9zdGF0dXMgYWNwaV9hZGRfcG1fbm90aWZpZXIoc3RydWN0IGFjcGlfZGV2aWNl
-ICphZGV2LCBzdHJ1Y3QgZGV2aWNlICpkZXYsCj4+ICAgICAgICAgaWYgKCFkZXYgJiYgIWZ1bmMp
-Cj4+ICAgICAgICAgICAgICAgICByZXR1cm4gQUVfQkFEX1BBUkFNRVRFUjsKPj4KPj4gLSAgICAg
-ICBtdXRleF9sb2NrKCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+PiArICAgICAgIG11dGV4X2xv
-Y2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPj4KPj4gICAgICAgICBpZiAoYWRl
-di0+d2FrZXVwLmZsYWdzLm5vdGlmaWVyX3ByZXNlbnQpCj4+ICAgICAgICAgICAgICAgICBnb3Rv
-IG91dDsKPj4KPj4gLSAgICAgICBhZGV2LT53YWtldXAud3MgPSB3YWtldXBfc291cmNlX3JlZ2lz
-dGVyKGRldl9uYW1lKCZhZGV2LT5kZXYpKTsKPj4gLSAgICAgICBhZGV2LT53YWtldXAuY29udGV4
-dC5kZXYgPSBkZXY7Cj4+IC0gICAgICAgYWRldi0+d2FrZXVwLmNvbnRleHQuZnVuYyA9IGZ1bmM7
-Cj4+IC0KPgo+IEJ1dCB0aGlzIGRvZXNuJ3QgbG9vayBnb29kIHRvIG1lLgo+Cj4gbm90aWZpZXJf
-cHJlc2VudCBzaG91bGQgYmUgY2hlY2tlZCB1bmRlciBhY3BpX3BtX25vdGlmaWVyX2xvY2suCgpX
-ZWxsLCBub3QgcmVhbGx5LCBzbyB0aGUgYWJvdmUgaXMgT0suCgpIb3dldmVyLCBJIHN0aWxsIHdv
-dWxkIHByZWZlciB0byBhdm9pZCBhZGRpbmcgdGhlIG91dGVyIGxvY2suCgpUaGFua3MsClJhZmFl
-bApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1n
-ZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+Hi Liubo,
+
+On 08/11/17 01:21, Bob Liu wrote:
+> Hi Jean,
+> 
+> On 2017/10/12 20:55, Jean-Philippe Brucker wrote:
+>> On 12/10/17 13:05, Yisheng Xie wrote:
+>> [...]
+>>>>>> * An iommu_process can be bound to multiple domains, and a domain can have
+>>>>>>   multiple iommu_process.
+>>>>> when bind a task to device, can we create a single domain for it? I am thinking
+>>>>> about process management without shared PT(for some device only support PASID
+>>>>> without pri ability), it seems hard to expand if a domain have multiple iommu_process?
+>>>>> Do you have any idea about this?
+>>>>
+>>>> A device always has to be in a domain, as far as I know. Not supporting
+>>>> PRI forces you to pin down all user mappings (or just the ones you use for
+>>>> DMA) but you should sill be able to share PT. Now if you don't support
+>>>> shared PT either, but only PASID, then you'll have to use io-pgtable and a
+>>>> new map/unmap API on an iommu_process. I don't understand your concern
+>>>> though, how would the link between process and domains prevent this use-case?
+>>>>
+>>> So you mean that if an iommu_process bind to multiple devices it should create
+>>> multiple io-pgtables? or just share the same io-pgtable?
+>>
+>> I don't know to be honest, I haven't thought much about the io-pgtable
+>> case, I'm all about sharing the mm :)
+>>
+> 
+> Sorry to get back to this thread, but traditional DMA_MAP use case may also want to
+> enable Substreamid/PASID.
+> As a general framework, you may also consider SubStreamid/Pasid support for dma map/io-pgtable.
+> 
+> We're considering make io-pgtables per SubStreamid/Pasid, but haven't decide put all 
+> io-pgtables into a single domain or iommu_process.
+
+Yes they should be in a single domain, see also my other reply here:
+http://www.spinics.net/lists/arm-kernel/msg613586.html
+
+I've only been thinking about the IOMMU API for the moment, but I guess
+the VFIO API would use this extension? I suppose it would be a new PASID
+field to DMA_MAP along with a flag. The PASID would probably be allocated
+with BIND + some special flag.
+
+Thanks,
+Jean
