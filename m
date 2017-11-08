@@ -1,187 +1,147 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
 Subject: Re: [PATCH] ACPI / PM: Fix acpi_pm_notifier_lock vs.
  flush_workqueue() deadlock
-Date: Wed, 8 Nov 2017 13:55:06 +0100
-Message-ID: <CAJZ5v0hc-3GcNizFUTk6iJOQjxOvT6CSOuG_0+z1Y1s9AjiNZA@mail.gmail.com>
+Date: Wed, 8 Nov 2017 15:00:36 +0200
+Message-ID: <20171108130036.GZ10981@intel.com>
 References: <20171107210810.1300-1-ville.syrjala@linux.intel.com>
  <CAJZ5v0hDWbxHSJn++8JneA7UHO1_0wUoYFg_y26DKDqPV2ZejA@mail.gmail.com>
- <20171108123122.GY10981@intel.com> <2610015.zRzb04OUDn@aspire.rjw.lan>
+ <20171108123122.GY10981@intel.com>
+ <2610015.zRzb04OUDn@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:57121 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752284AbdKHMzI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Nov 2017 07:55:08 -0500
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
 In-Reply-To: <2610015.zRzb04OUDn@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, Stable <stable@vger.kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Peter Zijlstra <peterz@infradead.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Peter Zijlstra <peterz@infradead.org>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tejun Heo <tj@kernel.org>, Ingo Molnar <mingo@kernel.org>, Len Brown <lenb@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 8, 2017 at 1:41 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote=
-:
-> On Wednesday, November 8, 2017 1:31:22 PM CET Ville Syrj=C3=A4l=C3=A4 wro=
-te:
->> On Wed, Nov 08, 2017 at 01:23:56PM +0100, Rafael J. Wysocki wrote:
->> > On Wed, Nov 8, 2017 at 12:06 AM, Rafael J. Wysocki <rjw@rjwysocki.net>=
- wrote:
->> > > On Tuesday, November 7, 2017 11:47:54 PM CET Rafael J. Wysocki wrote=
-:
->> > >> On Tue, Nov 7, 2017 at 10:08 PM, Ville Syrjala
->> > >> <ville.syrjala@linux.intel.com> wrote:
->> > >> > From: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@linux.intel.com>
->> > >> >
->> > >> > acpi_remove_pm_notifier() ends up calling flush_workqueue() while
->> > >> > holding acpi_pm_notifier_lock, and that same lock is taken by
->> > >> > by the work via acpi_pm_notify_handler(). This can deadlock.
->> > >>
->> > >> OK, good catch!
->> > >>
->> > >> [cut]
->> > >>
->> > >> >
->> > >> > Cc: stable@vger.kernel.org
->> > >> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> > >> > Cc: Len Brown <lenb@kernel.org>
->> > >> > Cc: Peter Zijlstra <peterz@infradead.org>
->> > >> > Cc: Tejun Heo <tj@kernel.org>
->> > >> > Cc: Ingo Molnar <mingo@kernel.org>
->> > >> > Fixes: c072530f391e ("ACPI / PM: Revork the handling of ACPI devi=
-ce wakeup notifications")
->> > >> > Signed-off-by: Ville Syrj=C3=A4l=C3=A4 <ville.syrjala@linux.intel=
-.com>
->> > >> > ---
->> > >> >  drivers/acpi/device_pm.c | 21 ++++++++++++---------
->> > >> >  1 file changed, 12 insertions(+), 9 deletions(-)
->> > >> >
->> > >> > diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
->> > >> > index fbcc73f7a099..18af71057b44 100644
->> > >> > --- a/drivers/acpi/device_pm.c
->> > >> > +++ b/drivers/acpi/device_pm.c
->> > >> > @@ -387,6 +387,7 @@ EXPORT_SYMBOL(acpi_bus_power_manageable);
->> > >> >
->> > >> >  #ifdef CONFIG_PM
->> > >> >  static DEFINE_MUTEX(acpi_pm_notifier_lock);
->> > >> > +static DEFINE_MUTEX(acpi_pm_notifier_install_lock);
->> > >> >
->> > >> >  void acpi_pm_wakeup_event(struct device *dev)
->> > >> >  {
->> > >> > @@ -443,24 +444,25 @@ acpi_status acpi_add_pm_notifier(struct acp=
-i_device *adev, struct device *dev,
->> > >> >         if (!dev && !func)
->> > >> >                 return AE_BAD_PARAMETER;
->> > >> >
->> > >> > -       mutex_lock(&acpi_pm_notifier_lock);
->> > >> > +       mutex_lock(&acpi_pm_notifier_install_lock);
->> > >> >
->> > >> >         if (adev->wakeup.flags.notifier_present)
->> > >> >                 goto out;
->> > >> >
->> > >> > -       adev->wakeup.ws =3D wakeup_source_register(dev_name(&adev=
-->dev));
->> > >> > -       adev->wakeup.context.dev =3D dev;
->> > >> > -       adev->wakeup.context.func =3D func;
->> > >> > -
->> > >>
->> > >> But this doesn't look good to me.
->> > >>
->> > >> notifier_present should be checked under acpi_pm_notifier_lock.
->> > >>
->> > >> Actually, acpi_install_notify_handler() itself need not be called
->> > >> under the lock, because it does sufficient checks of its own.
->> > >>
->> > >> So say you do
->> > >>
->> > >> mutex_lock(&acpi_pm_notifier_lock);
->> > >>
->> > >> if (adev->wakeup.context.dev)
->> > >>         goto out;
->> > >>
->> > >> adev->wakeup.ws =3D wakeup_source_register(dev_name(&adev->dev));
->> > >> adev->wakeup.context.dev =3D dev;
->> > >> adev->wakeup.context.func =3D func;
->> > >>
->> > >> mutex_unlock(&acpi_pm_notifier_lock);
->> > >>
->> > >> >         status =3D acpi_install_notify_handler(adev->handle, ACPI=
-_SYSTEM_NOTIFY,
->> > >> >                                              acpi_pm_notify_handl=
-er, NULL);
->> > >> >         if (ACPI_FAILURE(status))
->> > >> >                 goto out;
->> > >> >
->> > >> > +       mutex_lock(&acpi_pm_notifier_lock);
->> > >>
->> > >> And here you just set notifier_present under acpi_pm_notifier_lock.
->> > >>
->> > >> > +       adev->wakeup.ws =3D wakeup_source_register(dev_name(&adev=
-->dev));
->> > >> > +       adev->wakeup.context.dev =3D dev;
->> > >> > +       adev->wakeup.context.func =3D func;
->> > >> >         adev->wakeup.flags.notifier_present =3D true;
->> > >> > +       mutex_unlock(&acpi_pm_notifier_lock);
->> > >> >
->> > >> >   out:
->> > >> > -       mutex_unlock(&acpi_pm_notifier_lock);
->> > >> > +       mutex_unlock(&acpi_pm_notifier_install_lock);
->> > >> >         return status;
->> > >> >  }
->> > >>
->> > >> Then on removal you can clear notifier_present first and drop the l=
-ock
->> > >> around the acpi_remove_notify_handler() call and nothing bad will
->> > >> happen.
->> > >>
->> > >> If you call acpi_add_pm_notifier() twice in parallel, the first
->> > >> instance will set context.dev and the second one will see it set an=
-d
->> > >> bail out.  The first instance will then do the rest.
->> > >>
->> > >> If you call acpi_remove_pm_notifier() twice in a row, the first
->> > >> instance will see notifier_present set and will clear it, so the
->> > >> second one will see notifier_present unset and it will bail out.
->> > >>
->> > >> Now, if you call acpi_remove_pm_notifier() in parallel with
->> > >> acpi_add_pm_notifier(), either the former will see notifier_present
->> > >> unset and bail out, or the latter will see context.dev unset and ba=
-il
->> > >> out.
->> > >>
->> > >> It doesn't look like the outer lock is needed, or have I missed any=
-thing?
->> > >
->> > > So something like the below (totally untested) should work too, shou=
-ldn't it?
->> >
->> > There is a problem if a device is removed while acpi_add_pm_notifier()
->> > is still in progress, in which case with my patch the
->> > acpi_remove_pm_notifier() called from the removal path may bail out
->> > prematurely (that doesn't seem likely to happen, but still I don't see
->> > why it cannot happen), so I'll just use your patch. :-)
->>
->> OK. I was just looking at your version and was pretty much convinced
->> that it would work. But I'll take your word that it might not :)
->
-> Well, you don't have to. :-)
->
-> The scenario I have in mind is as follows:
->
-> 1. acpi_add_pm_notifier() sets context.dev and context.func and drops the
->    lock.  notifier_present is still unset.
->
-> 2. acpi_remove_pm_notifier() checks notifier_present under the lock.
->    It is (still) unset, so the function decides that there's nothing to d=
-o.
->
-> 3. acpi_add_pm_notifier() continues with notifier installation and the
->    device goes away at the same time.
-
-Of course, the outer lock doesn't help against
-acpi_remove_pm_notifier() in the removal path running right before
-acpi_add_pm_notifier(), so if there's no other mutual exclusion, we
-still have a problem in there (need to check that).
-
-Thanks,
-Rafael
+T24gV2VkLCBOb3YgMDgsIDIwMTcgYXQgMDE6NDE6MDZQTSArMDEwMCwgUmFmYWVsIEouIFd5c29j
+a2kgd3JvdGU6Cj4gT24gV2VkbmVzZGF5LCBOb3ZlbWJlciA4LCAyMDE3IDE6MzE6MjIgUE0gQ0VU
+IFZpbGxlIFN5cmrDpGzDpCB3cm90ZToKPiA+IE9uIFdlZCwgTm92IDA4LCAyMDE3IGF0IDAxOjIz
+OjU2UE0gKzAxMDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOgo+ID4gPiBPbiBXZWQsIE5vdiA4
+LCAyMDE3IGF0IDEyOjA2IEFNLCBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJqd3lzb2NraS5uZXQ+
+IHdyb3RlOgo+ID4gPiA+IE9uIFR1ZXNkYXksIE5vdmVtYmVyIDcsIDIwMTcgMTE6NDc6NTQgUE0g
+Q0VUIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOgo+ID4gPiA+PiBPbiBUdWUsIE5vdiA3LCAyMDE3
+IGF0IDEwOjA4IFBNLCBWaWxsZSBTeXJqYWxhCj4gPiA+ID4+IDx2aWxsZS5zeXJqYWxhQGxpbnV4
+LmludGVsLmNvbT4gd3JvdGU6Cj4gPiA+ID4+ID4gRnJvbTogVmlsbGUgU3lyasOkbMOkIDx2aWxs
+ZS5zeXJqYWxhQGxpbnV4LmludGVsLmNvbT4KPiA+ID4gPj4gPgo+ID4gPiA+PiA+IGFjcGlfcmVt
+b3ZlX3BtX25vdGlmaWVyKCkgZW5kcyB1cCBjYWxsaW5nIGZsdXNoX3dvcmtxdWV1ZSgpIHdoaWxl
+Cj4gPiA+ID4+ID4gaG9sZGluZyBhY3BpX3BtX25vdGlmaWVyX2xvY2ssIGFuZCB0aGF0IHNhbWUg
+bG9jayBpcyB0YWtlbiBieQo+ID4gPiA+PiA+IGJ5IHRoZSB3b3JrIHZpYSBhY3BpX3BtX25vdGlm
+eV9oYW5kbGVyKCkuIFRoaXMgY2FuIGRlYWRsb2NrLgo+ID4gPiA+Pgo+ID4gPiA+PiBPSywgZ29v
+ZCBjYXRjaCEKPiA+ID4gPj4KPiA+ID4gPj4gW2N1dF0KPiA+ID4gPj4KPiA+ID4gPj4gPgo+ID4g
+PiA+PiA+IENjOiBzdGFibGVAdmdlci5rZXJuZWwub3JnCj4gPiA+ID4+ID4gQ2M6IFJhZmFlbCBK
+LiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4KPiA+ID4gPj4gPiBDYzogTGVu
+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Cj4gPiA+ID4+ID4gQ2M6IFBldGVyIFppamxzdHJhIDxw
+ZXRlcnpAaW5mcmFkZWFkLm9yZz4KPiA+ID4gPj4gPiBDYzogVGVqdW4gSGVvIDx0akBrZXJuZWwu
+b3JnPgo+ID4gPiA+PiA+IENjOiBJbmdvIE1vbG5hciA8bWluZ29Aa2VybmVsLm9yZz4KPiA+ID4g
+Pj4gPiBGaXhlczogYzA3MjUzMGYzOTFlICgiQUNQSSAvIFBNOiBSZXZvcmsgdGhlIGhhbmRsaW5n
+IG9mIEFDUEkgZGV2aWNlIHdha2V1cCBub3RpZmljYXRpb25zIikKPiA+ID4gPj4gPiBTaWduZWQt
+b2ZmLWJ5OiBWaWxsZSBTeXJqw6Rsw6QgPHZpbGxlLnN5cmphbGFAbGludXguaW50ZWwuY29tPgo+
+ID4gPiA+PiA+IC0tLQo+ID4gPiA+PiA+ICBkcml2ZXJzL2FjcGkvZGV2aWNlX3BtLmMgfCAyMSAr
+KysrKysrKysrKystLS0tLS0tLS0KPiA+ID4gPj4gPiAgMSBmaWxlIGNoYW5nZWQsIDEyIGluc2Vy
+dGlvbnMoKyksIDkgZGVsZXRpb25zKC0pCj4gPiA+ID4+ID4KPiA+ID4gPj4gPiBkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jIGIvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jCj4g
+PiA+ID4+ID4gaW5kZXggZmJjYzczZjdhMDk5Li4xOGFmNzEwNTdiNDQgMTAwNjQ0Cj4gPiA+ID4+
+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2RldmljZV9wbS5jCj4gPiA+ID4+ID4gKysrIGIvZHJpdmVy
+cy9hY3BpL2RldmljZV9wbS5jCj4gPiA+ID4+ID4gQEAgLTM4Nyw2ICszODcsNyBAQCBFWFBPUlRf
+U1lNQk9MKGFjcGlfYnVzX3Bvd2VyX21hbmFnZWFibGUpOwo+ID4gPiA+PiA+Cj4gPiA+ID4+ID4g
+ICNpZmRlZiBDT05GSUdfUE0KPiA+ID4gPj4gPiAgc3RhdGljIERFRklORV9NVVRFWChhY3BpX3Bt
+X25vdGlmaWVyX2xvY2spOwo+ID4gPiA+PiA+ICtzdGF0aWMgREVGSU5FX01VVEVYKGFjcGlfcG1f
+bm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPiA+ID4gPj4gPgo+ID4gPiA+PiA+ICB2b2lkIGFjcGlf
+cG1fd2FrZXVwX2V2ZW50KHN0cnVjdCBkZXZpY2UgKmRldikKPiA+ID4gPj4gPiAgewo+ID4gPiA+
+PiA+IEBAIC00NDMsMjQgKzQ0NCwyNSBAQCBhY3BpX3N0YXR1cyBhY3BpX2FkZF9wbV9ub3RpZmll
+cihzdHJ1Y3QgYWNwaV9kZXZpY2UgKmFkZXYsIHN0cnVjdCBkZXZpY2UgKmRldiwKPiA+ID4gPj4g
+PiAgICAgICAgIGlmICghZGV2ICYmICFmdW5jKQo+ID4gPiA+PiA+ICAgICAgICAgICAgICAgICBy
+ZXR1cm4gQUVfQkFEX1BBUkFNRVRFUjsKPiA+ID4gPj4gPgo+ID4gPiA+PiA+IC0gICAgICAgbXV0
+ZXhfbG9jaygmYWNwaV9wbV9ub3RpZmllcl9sb2NrKTsKPiA+ID4gPj4gPiArICAgICAgIG11dGV4
+X2xvY2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPiA+ID4gPj4gPgo+ID4gPiA+
+PiA+ICAgICAgICAgaWYgKGFkZXYtPndha2V1cC5mbGFncy5ub3RpZmllcl9wcmVzZW50KQo+ID4g
+PiA+PiA+ICAgICAgICAgICAgICAgICBnb3RvIG91dDsKPiA+ID4gPj4gPgo+ID4gPiA+PiA+IC0g
+ICAgICAgYWRldi0+d2FrZXVwLndzID0gd2FrZXVwX3NvdXJjZV9yZWdpc3RlcihkZXZfbmFtZSgm
+YWRldi0+ZGV2KSk7Cj4gPiA+ID4+ID4gLSAgICAgICBhZGV2LT53YWtldXAuY29udGV4dC5kZXYg
+PSBkZXY7Cj4gPiA+ID4+ID4gLSAgICAgICBhZGV2LT53YWtldXAuY29udGV4dC5mdW5jID0gZnVu
+YzsKPiA+ID4gPj4gPiAtCj4gPiA+ID4+Cj4gPiA+ID4+IEJ1dCB0aGlzIGRvZXNuJ3QgbG9vayBn
+b29kIHRvIG1lLgo+ID4gPiA+Pgo+ID4gPiA+PiBub3RpZmllcl9wcmVzZW50IHNob3VsZCBiZSBj
+aGVja2VkIHVuZGVyIGFjcGlfcG1fbm90aWZpZXJfbG9jay4KPiA+ID4gPj4KPiA+ID4gPj4gQWN0
+dWFsbHksIGFjcGlfaW5zdGFsbF9ub3RpZnlfaGFuZGxlcigpIGl0c2VsZiBuZWVkIG5vdCBiZSBj
+YWxsZWQKPiA+ID4gPj4gdW5kZXIgdGhlIGxvY2ssIGJlY2F1c2UgaXQgZG9lcyBzdWZmaWNpZW50
+IGNoZWNrcyBvZiBpdHMgb3duLgo+ID4gPiA+Pgo+ID4gPiA+PiBTbyBzYXkgeW91IGRvCj4gPiA+
+ID4+Cj4gPiA+ID4+IG11dGV4X2xvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4gPiA+ID4+
+Cj4gPiA+ID4+IGlmIChhZGV2LT53YWtldXAuY29udGV4dC5kZXYpCj4gPiA+ID4+ICAgICAgICAg
+Z290byBvdXQ7Cj4gPiA+ID4+Cj4gPiA+ID4+IGFkZXYtPndha2V1cC53cyA9IHdha2V1cF9zb3Vy
+Y2VfcmVnaXN0ZXIoZGV2X25hbWUoJmFkZXYtPmRldikpOwo+ID4gPiA+PiBhZGV2LT53YWtldXAu
+Y29udGV4dC5kZXYgPSBkZXY7Cj4gPiA+ID4+IGFkZXYtPndha2V1cC5jb250ZXh0LmZ1bmMgPSBm
+dW5jOwo+ID4gPiA+Pgo+ID4gPiA+PiBtdXRleF91bmxvY2soJmFjcGlfcG1fbm90aWZpZXJfbG9j
+ayk7Cj4gPiA+ID4+Cj4gPiA+ID4+ID4gICAgICAgICBzdGF0dXMgPSBhY3BpX2luc3RhbGxfbm90
+aWZ5X2hhbmRsZXIoYWRldi0+aGFuZGxlLCBBQ1BJX1NZU1RFTV9OT1RJRlksCj4gPiA+ID4+ID4g
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYWNwaV9wbV9ub3Rp
+ZnlfaGFuZGxlciwgTlVMTCk7Cj4gPiA+ID4+ID4gICAgICAgICBpZiAoQUNQSV9GQUlMVVJFKHN0
+YXR1cykpCj4gPiA+ID4+ID4gICAgICAgICAgICAgICAgIGdvdG8gb3V0Owo+ID4gPiA+PiA+Cj4g
+PiA+ID4+ID4gKyAgICAgICBtdXRleF9sb2NrKCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+ID4g
+PiA+Pgo+ID4gPiA+PiBBbmQgaGVyZSB5b3UganVzdCBzZXQgbm90aWZpZXJfcHJlc2VudCB1bmRl
+ciBhY3BpX3BtX25vdGlmaWVyX2xvY2suCj4gPiA+ID4+Cj4gPiA+ID4+ID4gKyAgICAgICBhZGV2
+LT53YWtldXAud3MgPSB3YWtldXBfc291cmNlX3JlZ2lzdGVyKGRldl9uYW1lKCZhZGV2LT5kZXYp
+KTsKPiA+ID4gPj4gPiArICAgICAgIGFkZXYtPndha2V1cC5jb250ZXh0LmRldiA9IGRldjsKPiA+
+ID4gPj4gPiArICAgICAgIGFkZXYtPndha2V1cC5jb250ZXh0LmZ1bmMgPSBmdW5jOwo+ID4gPiA+
+PiA+ICAgICAgICAgYWRldi0+d2FrZXVwLmZsYWdzLm5vdGlmaWVyX3ByZXNlbnQgPSB0cnVlOwo+
+ID4gPiA+PiA+ICsgICAgICAgbXV0ZXhfdW5sb2NrKCZhY3BpX3BtX25vdGlmaWVyX2xvY2spOwo+
+ID4gPiA+PiA+Cj4gPiA+ID4+ID4gICBvdXQ6Cj4gPiA+ID4+ID4gLSAgICAgICBtdXRleF91bmxv
+Y2soJmFjcGlfcG1fbm90aWZpZXJfbG9jayk7Cj4gPiA+ID4+ID4gKyAgICAgICBtdXRleF91bmxv
+Y2soJmFjcGlfcG1fbm90aWZpZXJfaW5zdGFsbF9sb2NrKTsKPiA+ID4gPj4gPiAgICAgICAgIHJl
+dHVybiBzdGF0dXM7Cj4gPiA+ID4+ID4gIH0KPiA+ID4gPj4KPiA+ID4gPj4gVGhlbiBvbiByZW1v
+dmFsIHlvdSBjYW4gY2xlYXIgbm90aWZpZXJfcHJlc2VudCBmaXJzdCBhbmQgZHJvcCB0aGUgbG9j
+awo+ID4gPiA+PiBhcm91bmQgdGhlIGFjcGlfcmVtb3ZlX25vdGlmeV9oYW5kbGVyKCkgY2FsbCBh
+bmQgbm90aGluZyBiYWQgd2lsbAo+ID4gPiA+PiBoYXBwZW4uCj4gPiA+ID4+Cj4gPiA+ID4+IElm
+IHlvdSBjYWxsIGFjcGlfYWRkX3BtX25vdGlmaWVyKCkgdHdpY2UgaW4gcGFyYWxsZWwsIHRoZSBm
+aXJzdAo+ID4gPiA+PiBpbnN0YW5jZSB3aWxsIHNldCBjb250ZXh0LmRldiBhbmQgdGhlIHNlY29u
+ZCBvbmUgd2lsbCBzZWUgaXQgc2V0IGFuZAo+ID4gPiA+PiBiYWlsIG91dC4gIFRoZSBmaXJzdCBp
+bnN0YW5jZSB3aWxsIHRoZW4gZG8gdGhlIHJlc3QuCj4gPiA+ID4+Cj4gPiA+ID4+IElmIHlvdSBj
+YWxsIGFjcGlfcmVtb3ZlX3BtX25vdGlmaWVyKCkgdHdpY2UgaW4gYSByb3csIHRoZSBmaXJzdAo+
+ID4gPiA+PiBpbnN0YW5jZSB3aWxsIHNlZSBub3RpZmllcl9wcmVzZW50IHNldCBhbmQgd2lsbCBj
+bGVhciBpdCwgc28gdGhlCj4gPiA+ID4+IHNlY29uZCBvbmUgd2lsbCBzZWUgbm90aWZpZXJfcHJl
+c2VudCB1bnNldCBhbmQgaXQgd2lsbCBiYWlsIG91dC4KPiA+ID4gPj4KPiA+ID4gPj4gTm93LCBp
+ZiB5b3UgY2FsbCBhY3BpX3JlbW92ZV9wbV9ub3RpZmllcigpIGluIHBhcmFsbGVsIHdpdGgKPiA+
+ID4gPj4gYWNwaV9hZGRfcG1fbm90aWZpZXIoKSwgZWl0aGVyIHRoZSBmb3JtZXIgd2lsbCBzZWUg
+bm90aWZpZXJfcHJlc2VudAo+ID4gPiA+PiB1bnNldCBhbmQgYmFpbCBvdXQsIG9yIHRoZSBsYXR0
+ZXIgd2lsbCBzZWUgY29udGV4dC5kZXYgdW5zZXQgYW5kIGJhaWwKPiA+ID4gPj4gb3V0Lgo+ID4g
+PiA+Pgo+ID4gPiA+PiBJdCBkb2Vzbid0IGxvb2sgbGlrZSB0aGUgb3V0ZXIgbG9jayBpcyBuZWVk
+ZWQsIG9yIGhhdmUgSSBtaXNzZWQgYW55dGhpbmc/Cj4gPiA+ID4KPiA+ID4gPiBTbyBzb21ldGhp
+bmcgbGlrZSB0aGUgYmVsb3cgKHRvdGFsbHkgdW50ZXN0ZWQpIHNob3VsZCB3b3JrIHRvbywgc2hv
+dWxkbid0IGl0Pwo+ID4gPiAKPiA+ID4gVGhlcmUgaXMgYSBwcm9ibGVtIGlmIGEgZGV2aWNlIGlz
+IHJlbW92ZWQgd2hpbGUgYWNwaV9hZGRfcG1fbm90aWZpZXIoKQo+ID4gPiBpcyBzdGlsbCBpbiBw
+cm9ncmVzcywgaW4gd2hpY2ggY2FzZSB3aXRoIG15IHBhdGNoIHRoZQo+ID4gPiBhY3BpX3JlbW92
+ZV9wbV9ub3RpZmllcigpIGNhbGxlZCBmcm9tIHRoZSByZW1vdmFsIHBhdGggbWF5IGJhaWwgb3V0
+Cj4gPiA+IHByZW1hdHVyZWx5ICh0aGF0IGRvZXNuJ3Qgc2VlbSBsaWtlbHkgdG8gaGFwcGVuLCBi
+dXQgc3RpbGwgSSBkb24ndCBzZWUKPiA+ID4gd2h5IGl0IGNhbm5vdCBoYXBwZW4pLCBzbyBJJ2xs
+IGp1c3QgdXNlIHlvdXIgcGF0Y2guIDotKQo+ID4gCj4gPiBPSy4gSSB3YXMganVzdCBsb29raW5n
+IGF0IHlvdXIgdmVyc2lvbiBhbmQgd2FzIHByZXR0eSBtdWNoIGNvbnZpbmNlZAo+ID4gdGhhdCBp
+dCB3b3VsZCB3b3JrLiBCdXQgSSdsbCB0YWtlIHlvdXIgd29yZCB0aGF0IGl0IG1pZ2h0IG5vdCA6
+KQo+IAo+IFdlbGwsIHlvdSBkb24ndCBoYXZlIHRvLiA6LSkKPiAKPiBUaGUgc2NlbmFyaW8gSSBo
+YXZlIGluIG1pbmQgaXMgYXMgZm9sbG93czoKPiAKPiAxLiBhY3BpX2FkZF9wbV9ub3RpZmllcigp
+IHNldHMgY29udGV4dC5kZXYgYW5kIGNvbnRleHQuZnVuYyBhbmQgZHJvcHMgdGhlCj4gICAgbG9j
+ay4gIG5vdGlmaWVyX3ByZXNlbnQgaXMgc3RpbGwgdW5zZXQuCj4gCj4gMi4gYWNwaV9yZW1vdmVf
+cG1fbm90aWZpZXIoKSBjaGVja3Mgbm90aWZpZXJfcHJlc2VudCB1bmRlciB0aGUgbG9jay4KPiAg
+ICBJdCBpcyAoc3RpbGwpIHVuc2V0LCBzbyB0aGUgZnVuY3Rpb24gZGVjaWRlcyB0aGF0IHRoZXJl
+J3Mgbm90aGluZyB0byBkby4KPiAKPiAzLiBhY3BpX2FkZF9wbV9ub3RpZmllcigpIGNvbnRpbnVl
+cyB3aXRoIG5vdGlmaWVyIGluc3RhbGxhdGlvbiBhbmQgdGhlCj4gICAgZGV2aWNlIGdvZXMgYXdh
+eSBhdCB0aGUgc2FtZSB0aW1lLgoKUmlnaHQuIFRoYXQgbWFrZXMgc2Vuc2UuIFRob3VnaCBJIGRv
+bid0IGtub3cgd2hhdCB3b3VsZCBwcmV2ZW50IHJhY2luZwphZGRfcG1fbm90aWZpZXIoKSBhZ2Fp
+bnN0IHJlbW92ZV9wbV9ub3RpZmllcigpIGluIGEgc2ltaWxhciB3YXkgZXZlbgp3aXRoIHRoZSBv
+dXRlciBsb2NrLiBJbiB0aGF0IGNhc2UgdGhlIHJlbW92ZV9wbV9ub3RpZmllcigpIHdvdWxkIGp1
+c3QKaGF2ZSB0byBnZXQgYXQgdGhlIG11dGV4IGZpcnN0IGFuZCB0aGVuIHdlJ2Qgc3RpbGwgZW5k
+IHVwIHdpdGggdGhlCm5vdGlmaWVyIGluc3RhbGxlZC4KCi0tIApWaWxsZSBTeXJqw6Rsw6QKSW50
+ZWwgT1RDCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCklu
+dGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
