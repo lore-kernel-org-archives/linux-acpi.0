@@ -1,89 +1,73 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
-Date: Wed, 8 Nov 2017 14:18:43 +0000
-Message-ID: <0569bb96-bd27-6c01-eb3c-5e4e1d868b2a@arm.com>
-References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
+From: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFCv2 PATCH 01/36] iommu: Keep track of processes and PASIDs
+Date: Wed, 8 Nov 2017 17:50:40 +0000
+Message-ID: <BLUPR0201MB150538FDD455F6042803B54FA5560@BLUPR0201MB1505.namprd02.prod.outlook.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-2-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33718 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751448AbdKHOSs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 8 Nov 2017 09:18:48 -0500
-In-Reply-To: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20171006133203.22803-2-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Prashanth Prakash <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, lenb@kernel.org
 
-Hi,
+Hi Jean,
 
++static struct iommu_process *
++iommu_process_alloc(struct iommu_domain *domain, struct task_struct 
++*task) {
++	int err;
++	int pasid;
++	struct iommu_process *process;
++
++	if (WARN_ON(!domain->ops->process_alloc || !domain->ops->process_free))
++		return ERR_PTR(-ENODEV);
++
++	process = domain->ops->process_alloc(task);
++	if (IS_ERR(process))
++		return process;
++	if (!process)
++		return ERR_PTR(-ENOMEM);
++
++	process->pid		= get_task_pid(task, PIDTYPE_PID);
++	process->release	= domain->ops->process_free;
++	INIT_LIST_HEAD(&process->domains);
++	kref_init(&process->kref);
++
++	if (!process->pid) {
++		err = -EINVAL;
++		goto err_free_process;
++	}
++
++	idr_preload(GFP_KERNEL);
++	spin_lock(&iommu_process_lock);
++	pasid = idr_alloc_cyclic(&iommu_process_idr, process, domain->min_pasid,
++				 domain->max_pasid + 1, GFP_ATOMIC);
+If EP supports only one pasid; domain->min_pasid=1 and domain->max_pasid=0.
+When idr_alloc_cyclic is called it invokes idr_get_free_cmn function where we have following condition. (Based on kernel 4.14-rc6)
+	if (!radix_tree_tagged(root, IDR_FREE)) 
+                start = max(start, maxindex + 1);
+              if (start > max) 
+		return ERR_PTR(-ENOSPC);
+Here max is being assigned zero by the time this function is invoked, this value is based on domain->max_pasid.
+This condition fails and ENOSPC is returned.
+	
+In this case even though hardware supports PASID, BIND flow fails.
+Any reason why pasid allocation moved to idr allocations rather than bitmap allocations as in v1 patches ?
 
-On 19/10/17 19:19, Prashanth Prakash wrote:
-> Add support to expose idle statistics maintained by platform to
-> userspace via sysfs in addition to other data of interest from
-> each LPI(Low Power Idle) state.
-> 
-> LPI described in section 8.4.4 of ACPI spec 6.1 provides different
-> methods to obtain idle statistics maintained by the platform. These
-> show a granular view of how each of the LPI state is being used at
-> different level of hierarchy. sysfs data is exposed at each level in
-> the hierarchy by creating a directory named 'lpi' at each level and
-> the LPI state information is presented under it. Below is the
-> representation of LPI information at one such level in the hierarchy
-> 
-> .../ACPI00XX: XX/lpi
-> 	|-> state0
-> 	|	|-> state_name
-> 	|	|-> residency
-> 	|	|-> usage
-> 	|	|-> wakeup_latency
-> 	|	|-> min_residency
-> 	|	|-> state_index
-> 	|	|-> enabled_parent_state
-> 	|
-> 	<<more states>>
-> 
-> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
-> 
-> stateX contains information related to a specific LPI state defined
-> in the LPI ACPI tables.
-> 
-> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
-> ---
++	process->pasid = pasid;
 
-
-> v3
-> * Changed sysfs names to follow spec names (Rafael)
-> * Added enabled_parent_state(Rafael) and state_index to sysfs entries
->   state_index was added to make sense of enabled_parent_state
-> 
-> Couldn't find a clean way to expose the hierarchical LPI information under
-> cpuidle
-> 
-> v2
-> * Add Documentation/ABI/testing/sysfs-acpi-lpi
-> 
-> v1
-> * Drop flags, arch_flags and summary_stats field (Sudeep)
-> * Create sysfs entries after we know that LPI will be used (Sudeep & Rafael)
-> 
-
-I still prefer this as debugfs and not as sysfs ABI. We already have
-issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
-I don't want this to end up in the same way after few years. CPUIdle
-sysfs should be only sysfs ABI for these, adding an alternative is
-inviting troubles for future especially if some user-space starts using
-it and we will be stuck with that. Moreover with more h/w controlled
-idle we may not provide accurate data sooner.
-
-Sorry for the noise, I will shup up now ;). Since this may be last
-chance to make some noise, I am trying it. I completely understand that
-this is just my opinion and am fine if others thinks it's good to make
-this sysfs ABI.
-
--- 
 Regards,
-Sudeep
+Bharat
