@@ -1,57 +1,121 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: [PATCH V3 2/2] acpi: apei: call into AER handling regardless of severity
-Date: Wed,  8 Nov 2017 12:13:12 -0700
-Message-ID: <1510168392-30114-3-git-send-email-tbaicar@codeaurora.org>
-References: <1510168392-30114-1-git-send-email-tbaicar@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1510168392-30114-1-git-send-email-tbaicar@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, tony.luck@intel.com, bp@alien8.de, bp@suse.de, will.deacon@arm.com, james.morse@arm.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 2/6] PCI / PM: Support for LEAVE_SUSPENDED driver flag
+Date: Wed, 8 Nov 2017 14:38:33 -0600
+Message-ID: <20171108203833.GA21597@bhelgaas-glaptop.roam.corp.google.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <16592954.7Zo1mAdIIH@aspire.rjw.lan>
+ <6330680.LdxjlP4uri@aspire.rjw.lan>
+ <125862518.pYVN4SKj76@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:38732 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752528AbdKHUif (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 8 Nov 2017 15:38:35 -0500
+Content-Disposition: inline
+In-Reply-To: <125862518.pYVN4SKj76@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 
-Currently the GHES code only calls into the AER driver for
-recoverable type errors. This is incorrect because errors of
-other severities do not get logged by the AER driver and do not
-get exposed to user space via the AER trace event. So, call
-into the AER driver for PCIe errors regardless of the severity
+On Wed, Nov 08, 2017 at 02:28:18PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Add support for DPM_FLAG_LEAVE_SUSPENDED to the PCI bus type by
+> making it (a) set the power.may_skip_resume status bit for devices
+> that, from its perspective, may be left in suspend after system
+> wakeup from sleep and (b) return early from pci_pm_resume_noirq()
+> for devices whose remaining resume callbacks during the transition
+> under way are going to be skipped by the PM core.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 839c3d5..bb65fa6 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -458,14 +458,12 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
- #endif
- }
- 
--static void ghes_handle_aer(struct acpi_hest_generic_data *gdata, int sev, int sec_sev)
-+static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- {
- #ifdef CONFIG_ACPI_APEI_PCIEAER
- 	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
- 
--	if (sev == GHES_SEV_RECOVERABLE &&
--	    sec_sev == GHES_SEV_RECOVERABLE &&
--	    pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
- 	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO) {
- 		unsigned int devfn;
- 		int aer_severity;
-@@ -519,7 +517,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 			ghes_handle_memory_failure(gdata, sev);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
--			ghes_handle_aer(gdata, sev, sec_sev);
-+			ghes_handle_aer(gdata);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
- 			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+> ---
+>  Documentation/power/pci.txt |   11 +++++++++++
+>  drivers/pci/pci-driver.c    |   19 +++++++++++++++++--
+>  2 files changed, 28 insertions(+), 2 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-driver.c
+> +++ linux-pm/drivers/pci/pci-driver.c
+> @@ -699,7 +699,7 @@ static void pci_pm_complete(struct devic
+>  	pm_generic_complete(dev);
+>  
+>  	/* Resume device if platform firmware has put it in reset-power-on */
+> -	if (dev->power.direct_complete && pm_resume_via_firmware()) {
+> +	if (pm_runtime_suspended(dev) && pm_resume_via_firmware()) {
+>  		pci_power_t pre_sleep_state = pci_dev->current_state;
+>  
+>  		pci_update_current_state(pci_dev, pci_dev->current_state);
+> @@ -783,8 +783,10 @@ static int pci_pm_suspend_noirq(struct d
+>  	struct pci_dev *pci_dev = to_pci_dev(dev);
+>  	const struct dev_pm_ops *pm = dev->driver ? dev->driver->pm : NULL;
+>  
+> -	if (dev_pm_smart_suspend_and_suspended(dev))
+> +	if (dev_pm_smart_suspend_and_suspended(dev)) {
+> +		dev->power.may_skip_resume = true;
+>  		return 0;
+> +	}
+>  
+>  	if (pci_has_legacy_pm_support(pci_dev))
+>  		return pci_legacy_suspend_late(dev, PMSG_SUSPEND);
+> @@ -838,6 +840,16 @@ static int pci_pm_suspend_noirq(struct d
+>  Fixup:
+>  	pci_fixup_device(pci_fixup_suspend_late, pci_dev);
+>  
+> +	/*
+> +	 * If the target system sleep state is suspend-to-idle, it is sufficient
+> +	 * to check whether or not the device's wakeup settings are good for
+> +	 * runtime PM.  Otherwise, the pm_resume_via_firmware() check will cause
+> +	 * pci_pm_complete() to take care of fixing up the device's state
+> +	 * anyway, if need be.
+> +	 */
+> +	dev->power.may_skip_resume = device_may_wakeup(dev) ||
+> +					!device_can_wakeup(dev);
+> +
+>  	return 0;
+>  }
+>  
+> @@ -847,6 +859,9 @@ static int pci_pm_resume_noirq(struct de
+>  	struct device_driver *drv = dev->driver;
+>  	int error = 0;
+>  
+> +	if (dev_pm_may_skip_resume(dev))
+> +		return 0;
+> +
+>  	/*
+>  	 * Devices with DPM_FLAG_SMART_SUSPEND may be left in runtime suspend
+>  	 * during system suspend, so update their runtime PM status to "active"
+> Index: linux-pm/Documentation/power/pci.txt
+> ===================================================================
+> --- linux-pm.orig/Documentation/power/pci.txt
+> +++ linux-pm/Documentation/power/pci.txt
+> @@ -994,6 +994,17 @@ into D0 going forward), but if it is in
+>  the function will set the power.direct_complete flag for it (to make the PM core
+>  skip the subsequent "thaw" callbacks for it) and return.
+>  
+> +Setting the DPM_FLAG_LEAVE_SUSPENDED flag means that the driver prefers the
+> +device to be left in suspend after system-wide transitions to the working state.
+> +This flag is checked by the PM core, but the PCI bus type informs the PM core
+> +which devices may be left in suspend from its perspective (that happens during
+> +the "noirq" phase of system-wide suspend and analogous transitions) and next it
+> +uses the dev_pm_may_skip_resume() helper to decide whether or not to return from
+> +pci_pm_resume_noirq() early, as the PM core will skip the remaining resume
+> +callbacks for the device during the transition under way and will set its
+> +runtime PM status to "suspended" if dev_pm_may_skip_resume() returns "true" for
+> +it.
+> +
+>  3.2. Device Runtime Power Management
+>  ------------------------------------
+>  In addition to providing device power management callbacks PCI device drivers
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
