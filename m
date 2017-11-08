@@ -1,36 +1,66 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH V2] acpi: apei: call into AER handling regardless of
- severity
-Date: Wed, 8 Nov 2017 11:59:15 +0100
-Message-ID: <20171108105915.teb4bgvkyndson5l@pd.tnic>
-References: <1508254115-27945-1-git-send-email-tbaicar@codeaurora.org>
- <01fff9c1-8cd5-14d3-5d90-c0dab8e62a52@codeaurora.org>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH 09/12] PM / mfd: intel-lpss: Use DPM_FLAG_SMART_SUSPEND
+Date: Wed, 8 Nov 2017 11:08:13 +0000
+Message-ID: <20171108110813.abqehgxdyvyahrro@dell>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan>
+ <5094729.JAaD38WncM@aspire.rjw.lan>
+ <20171031150933.oho2ffvuj3iagx4m@dell>
+ <CAJZ5v0ipSJv0PWPrD3P-yeyD0JWe6EqSJSuZXgjtnFTrMEvpfQ@mail.gmail.com>
+ <20171101092819.thhofiwwjxblef4a@dell>
+ <CAJZ5v0gbmPd=rrveH1LyOYhB2Uu8Tz54C1Y+TutYmdRJCv8G4g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <01fff9c1-8cd5-14d3-5d90-c0dab8e62a52@codeaurora.org>
+In-Reply-To: <CAJZ5v0gbmPd=rrveH1LyOYhB2Uu8Tz54C1Y+TutYmdRJCv8G4g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, will.deacon@arm.com, james.morse@arm.com, prarit@redhat.com, punit.agrawal@arm.com, shiju.jose@huawei.com, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 07, 2017 at 06:21:31PM -0500, Tyler Baicar wrote:
-> Do you think this patch is good now?
+On Wed, 01 Nov 2017, Rafael J. Wysocki wrote:
 
-Yes, it looks ok to me but please split it in two patches:
+> On Wed, Nov 1, 2017 at 10:28 AM, Lee Jones <lee.jones@linaro.org> wrote:
+> > On Tue, 31 Oct 2017, Rafael J. Wysocki wrote:
+> >
+> >> On Tue, Oct 31, 2017 at 4:09 PM, Lee Jones <lee.jones@linaro.org> wrote:
+> >> > On Mon, 16 Oct 2017, Rafael J. Wysocki wrote:
+> >> >
+> >> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> >>
+> >> >> Make the intel-lpss driver set DPM_FLAG_SMART_SUSPEND for its
+> >> >> devices which will allow them to stay in runtime suspend during
+> >> >> system suspend unless they need to be reconfigured for some reason.
+> >> >>
+> >> >> Also make it avoid resuming its child devices if they have
+> >> >> DPM_FLAG_SMART_SUSPEND set to allow them to remain in runtime
+> >> >> suspend during system suspend.
+> >> >>
+> >> >> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >> >> ---
+> >> >>  drivers/mfd/intel-lpss.c |    6 +++++-
+> >> >>  1 file changed, 5 insertions(+), 1 deletion(-)
+> >> >
+> >> > Is this patch independent?
+> >>
+> >> It depends on the flag definition at least, but functionally it also
+> >> depends on the PCI support for the flag.
+> >
+> > No problem.  Which tree to you propose this goes through?
+> 
+> linux-pm.git if that's not a problem as the patches it depends on will
+> go through it too.
+> 
+> That said I'll resend it when the core patches it depends on are ready.
 
-1. Only code movement without any functional changes
-2. Make the change to severity checking and add the comment.
+It's fine by me.
 
-This will make the git history clean and understandable.
-
-Thx.
+Please check to see if there are any clashes with MFD.  If there are,
+I'll need a (small) pull-request from you.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
