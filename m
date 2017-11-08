@@ -1,84 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2 3/6] ACPI / PM: Support for LEAVE_SUSPENDED driver flag in ACPI PM domain
-Date: Wed, 08 Nov 2017 14:34:04 +0100
-Message-ID: <2554940.NTGGD0NJQ9@aspire.rjw.lan>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <16592954.7Zo1mAdIIH@aspire.rjw.lan> <6330680.LdxjlP4uri@aspire.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
+Date: Wed, 8 Nov 2017 14:18:43 +0000
+Message-ID: <0569bb96-bd27-6c01-eb3c-5e4e1d868b2a@arm.com>
+References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6330680.LdxjlP4uri@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33718 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751448AbdKHOSs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 8 Nov 2017 09:18:48 -0500
+In-Reply-To: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prashanth Prakash <pprakash@codeaurora.org>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, lenb@kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi,
 
-Add support for DPM_FLAG_LEAVE_SUSPENDED to the ACPI PM domain by
-making it (a) set the power.may_skip_resume status bit for devices
-that, from its perspective, may be left in suspend after system
-wakeup from sleep and (b) return early from acpi_subsys_resume_noirq()
-for devices whose remaining resume callbacks during the transition
-under way are going to be skipped by the PM core.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/acpi/device_pm.c |   27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+On 19/10/17 19:19, Prashanth Prakash wrote:
+> Add support to expose idle statistics maintained by platform to
+> userspace via sysfs in addition to other data of interest from
+> each LPI(Low Power Idle) state.
+> 
+> LPI described in section 8.4.4 of ACPI spec 6.1 provides different
+> methods to obtain idle statistics maintained by the platform. These
+> show a granular view of how each of the LPI state is being used at
+> different level of hierarchy. sysfs data is exposed at each level in
+> the hierarchy by creating a directory named 'lpi' at each level and
+> the LPI state information is presented under it. Below is the
+> representation of LPI information at one such level in the hierarchy
+> 
+> .../ACPI00XX: XX/lpi
+> 	|-> state0
+> 	|	|-> state_name
+> 	|	|-> residency
+> 	|	|-> usage
+> 	|	|-> wakeup_latency
+> 	|	|-> min_residency
+> 	|	|-> state_index
+> 	|	|-> enabled_parent_state
+> 	|
+> 	<<more states>>
+> 
+> ACPI00XX can be ACPI0007(processor) or ACPI0010(processor container)
+> 
+> stateX contains information related to a specific LPI state defined
+> in the LPI ACPI tables.
+> 
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+> ---
 
-Index: linux-pm/drivers/acpi/device_pm.c
-===================================================================
---- linux-pm.orig/drivers/acpi/device_pm.c
-+++ linux-pm/drivers/acpi/device_pm.c
-@@ -987,7 +987,7 @@ void acpi_subsys_complete(struct device
- 	 * the sleep state it is going out of and it has never been resumed till
- 	 * now, resume it in case the firmware powered it up.
- 	 */
--	if (dev->power.direct_complete && pm_resume_via_firmware())
-+	if (pm_runtime_suspended(dev) && pm_resume_via_firmware())
- 		pm_request_resume(dev);
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_complete);
-@@ -1036,10 +1036,28 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend_la
-  */
- int acpi_subsys_suspend_noirq(struct device *dev)
- {
--	if (dev_pm_smart_suspend_and_suspended(dev))
-+	int ret;
-+
-+	if (dev_pm_smart_suspend_and_suspended(dev)) {
-+		dev->power.may_skip_resume = true;
- 		return 0;
-+	}
- 
--	return pm_generic_suspend_noirq(dev);
-+	ret = pm_generic_suspend_noirq(dev);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * If the target system sleep state is suspend-to-idle, it is sufficient
-+	 * to check whether or not the device's wakeup settings are good for
-+	 * runtime PM.  Otherwise, the pm_resume_via_firmware() check will cause
-+	 * acpi_subsys_complete() to take care of fixing up the device's state
-+	 * anyway, if need be.
-+	 */
-+	dev->power.may_skip_resume = device_may_wakeup(dev) ||
-+					!device_can_wakeup(dev);
-+
-+	return 0;
- }
- EXPORT_SYMBOL_GPL(acpi_subsys_suspend_noirq);
- 
-@@ -1049,6 +1067,9 @@ EXPORT_SYMBOL_GPL(acpi_subsys_suspend_no
-  */
- int acpi_subsys_resume_noirq(struct device *dev)
- {
-+	if (dev_pm_may_skip_resume(dev))
-+		return 0;
-+
- 	/*
- 	 * Devices with DPM_FLAG_SMART_SUSPEND may be left in runtime suspend
- 	 * during system suspend, so update their runtime PM status to "active"
+
+> v3
+> * Changed sysfs names to follow spec names (Rafael)
+> * Added enabled_parent_state(Rafael) and state_index to sysfs entries
+>   state_index was added to make sense of enabled_parent_state
+> 
+> Couldn't find a clean way to expose the hierarchical LPI information under
+> cpuidle
+> 
+> v2
+> * Add Documentation/ABI/testing/sysfs-acpi-lpi
+> 
+> v1
+> * Drop flags, arch_flags and summary_stats field (Sudeep)
+> * Create sysfs entries after we know that LPI will be used (Sudeep & Rafael)
+> 
+
+I still prefer this as debugfs and not as sysfs ABI. We already have
+issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
+I don't want this to end up in the same way after few years. CPUIdle
+sysfs should be only sysfs ABI for these, adding an alternative is
+inviting troubles for future especially if some user-space starts using
+it and we will be stuck with that. Moreover with more h/w controlled
+idle we may not provide accurate data sooner.
+
+Sorry for the noise, I will shup up now ;). Since this may be last
+chance to make some noise, I am trying it. I completely understand that
+this is just my opinion and am fine if others thinks it's good to make
+this sysfs ABI.
+
+-- 
+Regards,
+Sudeep
