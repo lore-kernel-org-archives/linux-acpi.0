@@ -1,99 +1,43 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 01/36] iommu: Keep track of processes and PASIDs
-Date: Thu, 9 Nov 2017 12:16:20 +0000
-Message-ID: <16b6ba80-b15b-b278-0d06-350ae0201e82@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-2-jean-philippe.brucker@arm.com>
-	<BLUPR0201MB150538FDD455F6042803B54FA5560@BLUPR0201MB1505.namprd02.prod.outlook.com>
+From: Zhengqiang <zhengqiang10@huawei.com>
+Subject: Re: [RFC/RFT PATCH 0/6] Switch GHES ioremap_page_range() to use
+ fixmap
+Date: Thu, 9 Nov 2017 20:22:53 +0800
+Message-ID: <5A04489D.2040201@huawei.com>
+References: <20171031153832.17746-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <BLUPR0201MB150538FDD455F6042803B54FA5560-hRBPhS1iNj/g9tdZWAsUFxrHTHEw16jenBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10045 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754241AbdKIMYn (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2017 07:24:43 -0500
+In-Reply-To: <20171031153832.17746-1-james.morse@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, Tyler Baicar <tbaicar@codeaurora.org>, Catalin Marinas <catalin.marinas@arm.com>, x86@kernel.org, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Dongjiu Geng <gengdongjiu@huawei.com>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Borislav Petkov <bp@suse.de>, torvalds@linux-foundation.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 
-Hi Bharat,
 
-On 11/08/2017 05:50 PM, Bharat Kumar Gogada wrote:
-> Hi Jean,
+
+On 2017/10/31 23:38, James Morse wrote:
+> GHES is doing ioremap_page_range() in both NMI and irq context, neither
+> are safe as it may sleep to allocate intermediate levels of page table.
 > 
-> +static struct iommu_process *
-> +iommu_process_alloc(struct iommu_domain *domain, struct task_struct
-> +*task) {
-> +       int err;
-> +       int pasid;
-> +       struct iommu_process *process;
-> +
-> +       if (WARN_ON(!domain->ops->process_alloc ||
-> !domain->ops->process_free))
-> +               return ERR_PTR(-ENODEV);
-> +
-> +       process = domain->ops->process_alloc(task);
-> +       if (IS_ERR(process))
-> +               return process;
-> +       if (!process)
-> +               return ERR_PTR(-ENOMEM);
-> +
-> +       process->pid            = get_task_pid(task, PIDTYPE_PID);
-> +       process->release        = domain->ops->process_free;
-> +       INIT_LIST_HEAD(&process->domains);
-> +       kref_init(&process->kref);
-> +
-> +       if (!process->pid) {
-> +               err = -EINVAL;
-> +               goto err_free_process;
-> +       }
-> +
-> +       idr_preload(GFP_KERNEL);
-> +       spin_lock(&iommu_process_lock);
-> +       pasid = idr_alloc_cyclic(&iommu_process_idr, process,
-> domain->min_pasid,
-> +                                domain->max_pasid + 1, GFP_ATOMIC);
-> If EP supports only one pasid; domain->min_pasid=1 and domain->max_pasid=0.
-> When idr_alloc_cyclic is called it invokes idr_get_free_cmn function
-> where we have following condition. (Based on kernel 4.14-rc6)
->         if (!radix_tree_tagged(root, IDR_FREE))
->                 start = max(start, maxindex + 1);
->               if (start > max)
->                 return ERR_PTR(-ENOSPC);
-> Here max is being assigned zero by the time this function is invoked,
-> this value is based on domain->max_pasid.
-> This condition fails and ENOSPC is returned.
->        
-> In this case even though hardware supports PASID, BIND flow fails.
+> Replace the NMI/irq GHES_IOREMAP_PAGES to use a fixmap entry each.
+> 
+> After this nothing uses ghes_ioremap_area or arch_apei_flush_tlb_one(),
+> rip them out.
+> 
+> RFC as I've only build-tested this on x86. For arm64 I've tested it on a
+> software model. Any more testing would be welcome. These patches are based
+> on rc7.
+> 
 
-It should fail, since we're reserving PASID 0 for non-PASID transactions
-with S1DSS=0b10. In addition, the SMMUv3 specification does not allow
-using PASID with a single entry. See the description of S1CDMax in 5.2
-Stream Table Entry:
 
-"when this field is 0, the substreams of the STE are disabled and one CD
-is available. (The minimum useful number of substreams is 2.) Any
-transaction with a SubstreamID will be terminated with an abort and a
-C_BAD_SUBSTREAMID event recorded."
+Tested-by:  Qiang Zheng <zhengqiang10@huawei.com>
 
-> Any reason why pasid allocation moved to idr allocations rather than
-> bitmap allocations as in v1 patches ?
+Verified on our arm64, it work for me. Thanks.
 
-Yes, idr provides a convenient way to quickly retrieve the context
-associated with a PASID, when handling a fault. v1 had the allocation in a
-bitmap and storing in a rb-tree. By using an idr we combine both and rely
-on a well-tested infrastructure.
+Qiang
 
-Note that in the future we might need to go back to handcrafting the PASID
-allocation, but it will probably still be based on idr.
-
-Thanks,
-Jean
