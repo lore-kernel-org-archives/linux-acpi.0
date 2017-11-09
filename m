@@ -1,59 +1,138 @@
-From: Kiernan Hager <kiernan.hager@gmail.com>
-Subject: [PATCH] Fix the ambient light sensor on Zenbook UX430UQ
-Date: Thu, 9 Nov 2017 13:47:45 -0700
-Message-ID: <CANDLvR4Ju1uzn4ncq=ErRs+-jDyDxbpgBASAsjoT-C5w91Zc1g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v4 0/9] Support PPTT for ARM64
+Date: Thu,  9 Nov 2017 15:03:02 -0600
+Message-ID: <20171109210311.25655-1-jeremy.linton@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f174.google.com ([209.85.216.174]:56711 "EHLO
-        mail-qt0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753827AbdKIUsG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2017 15:48:06 -0500
-Received: by mail-qt0-f174.google.com with SMTP id z28so9346000qtz.13
-        for <linux-acpi@vger.kernel.org>; Thu, 09 Nov 2017 12:48:06 -0800 (PST)
+Received: from foss.arm.com ([217.140.101.70]:51564 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754031AbdKIVD0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Nov 2017 16:03:26 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, devel@acpica.org, Jeremy Linton <jeremy.linton@arm.com>
 
-I recently discovered that the acpi-als driver doesn't properly
-activate the ambient light sensor in this laptop. The sensor begins in
-the off state, and gives a constant brightness value of 0x190 when
-queried. The solution is to call the \_SB.PCI0.LPCB.EC0.ALSC method
-with an integer argument of 1 when the module is loaded. I have a
-patch for this, but I don't know if what it does constitutes proper
-testing for the presence of that method, or if I should disable the
-sensor when the module is unloaded, so input is welcome on those
-details.
+ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+used to describe the processor and cache topology. Ideally it is
+used to extend/override information provided by the hardware, but
+right now ARM64 is entirely dependent on firmware provided tables.
 
---- acpi-als.c.orig 2017-11-09 13:29:43.346699941 -0700
-+++ acpi-als.c 2017-11-09 13:35:21.708579014 -0700
-@@ -180,6 +180,11 @@
-  struct acpi_als *als;
-  struct iio_dev *indio_dev;
-  struct iio_buffer *buffer;
-+    unsigned long long temp_val;
-+    acpi_status status;
-+    struct acpi_object_list arg_list;
-+    union acpi_object arg;
-+
+This patch parses the table for the cache topology and CPU topology.
+New in the v4 we rename the topology cluster_id to physical_id
+to match the kernel macro using it, and as its unlikley to actually
+map to a cluster on an ACPI system. When we enable ACPI/PPTT for
+arm64 we map the physical_id to the PPTT node flagged as the
+physical package by the firmware. This results in topologies that
+match what the remainder of the system expects.
 
-  indio_dev = devm_iio_device_alloc(&device->dev, sizeof(*als));
-  if (!indio_dev)
-@@ -204,6 +209,18 @@
+For example on juno:
+[root@mammon-juno-rh topology]# lstopo-no-graphics
+  Package L#0
+    L2 L#0 (1024KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#1 (2048KB)
+      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCIBridge
+          PCI 1095:3132
+            Block(Disk) L#0 "sda"
+        PCIBridge
+          PCI 1002:68f9
+            GPU L#1 "renderD128"
+            GPU L#2 "card0"
+            GPU L#3 "controlD64"
+        PCIBridge
+          PCI 11ab:4380
+            Net L#4 "enp8s0"
 
-  iio_device_attach_buffer(indio_dev, buffer);
 
-+    arg_list.count = 1;
-+    arg_list.pointer = &arg;
-+    arg.type = ACPI_TYPE_INTEGER;
-+    arg.integer.value = 1;
-+
-+    if (acpi_has_method(als->device->handle, "\\_SB.PCI0.LPCB.EC0.ALSC")) {
-+    status = acpi_evaluate_integer(als->device->handle,
-+                                   "\\_SB.PCI0.LPCB.EC0.ALSC",
-+                                   &arg_list,
-+                                   &temp_val);
-+    }
-+
-  return devm_iio_device_register(&device->dev, indio_dev);
- }
+Git tree at:
+http://linux-arm.org/git?p=linux-jlinton.git
+branch: pptt_v4
+
+v3->v4:
+Suppress the "Found duplicate cache level/type..." message if the
+  duplicate cache entry is actually a duplicate node. This allows cases
+  like L1I and L1D nodes that point at the same L2 node to be accepted
+  without the warning.
+  
+Remove cluster/physical split code. Add a patch to rename cluster_id
+  so that its clear the topology may not be referring to a cluster.
+  
+Add additional ACPICA patch for the PPTT cache properties. This matches
+  an outstanding ACPICA pull that should be merged in the near future.
+  
+Replace a number of (struct*)((u8*)ptr+offset) constructs with ACPI_ADD_PTR
+
+Split out the topology parsing into an additional patch.
+
+Tweak the cpu topology code to terminate on either a level, or a flag.
+  Add an additional function which retrives the physical package id
+  for a given cpu.
+
+Various other comments/tweaks.
+
+v2->v3:
+
+Remove valid bit check on leaf nodes. Now simply being a leaf node
+  is sufficient to verify the processor id against the ACPI
+  processor ids (gotten from MADT). 
+
+Use the acpi processor for the "level 0" Id. This makes the /sys
+  visible core/thread ids more human readable if the firmware uses
+  small consecutive values for processor ids.
+
+Added PPTT to the list of injectable ACPI tables.
+
+Fix bug which kept the code from using the processor node as intended
+  in v2, caused by misuse of git rebase/fixup.
+
+v1->v2:
+
+The parser keys off the acpi_pptt_processor node to determine
+  unique cache's rather than the acpi_pptt_cache referenced by the
+  processor node. This allows PPTT tables which "share" cache nodes
+  across cpu nodes despite not being a shared cache.
+
+Normalize the socket, cluster and thread mapping so that they match
+  linux's traditional mapping for the physical id, and thread id.
+  Adding explicit scheduler knowledge of clusters (rather than just
+  their cache sharing attributes) is a subject for a future patch.
+
+Jeremy Linton (9):
+  ACPICA: Add additional PPTT flags for cache properties
+  ACPI/PPTT: Add Processor Properties Topology Table parsing
+  arm64/acpi: Create arch specific cpu to acpi id helper
+  ACPI: Enable PPTT support on ARM64
+  drivers: base: cacheinfo: arm64: Add support for ACPI based firmware
+    tables
+  ACPI/PPTT: Add topology parsing code
+  arm64: Topology, rename cluster_id
+  arm64: topology: Enable ACPI/PPTT based CPU topology.
+  ACPI: Add PPTT to injectable table list
+
+ arch/arm64/Kconfig                |   1 +
+ arch/arm64/include/asm/acpi.h     |   4 +
+ arch/arm64/include/asm/topology.h |   4 +-
+ arch/arm64/kernel/cacheinfo.c     |  23 +-
+ arch/arm64/kernel/topology.c      |  74 ++++-
+ drivers/acpi/Kconfig              |   3 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/pptt.c               | 570 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c             |   3 +-
+ drivers/base/cacheinfo.c          |  17 +-
+ include/acpi/actbl1.h             |  14 +
+ include/linux/cacheinfo.h         |  11 +-
+ include/linux/topology.h          |   2 +
+ 13 files changed, 697 insertions(+), 30 deletions(-)
+ create mode 100644 drivers/acpi/pptt.c
+
+-- 
+2.13.5
+
