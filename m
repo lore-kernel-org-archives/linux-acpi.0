@@ -1,36 +1,66 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v10 0/9] LPC: legacy ISA I/O support
-Date: Thu, 9 Nov 2017 16:18:15 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC85DB@FRAEML521-MBX.china.huawei.com>
-References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
- <CALdTtnsCXp9kone=VECSyPOi6kuYML8eU-TKHM+_ekhVoGSTYA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Final power management fixes for v4.14
+Date: Thu, 9 Nov 2017 17:36:03 +0100
+Message-ID: <CAJZ5v0i0ngNGouoG_RJjxHaeXS=syJp5Gk=5_Rg7UcQstuHfgQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALdTtnsCXp9kone=VECSyPOi6kuYML8eU-TKHM+_ekhVoGSTYA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: dann frazier <dann.frazier@canonical.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, Mark Rutland <mark.rutland@arm.com>, Brian Starkey <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Corey
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:46022 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750909AbdKIQgE (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2017 11:36:04 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-SGkgRGFubg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGRhbm4gZnJh
-emllciBbbWFpbHRvOmRhbm4uZnJhemllckBjYW5vbmljYWwuY29tXQ0KPiBTZW50OiAwOSBOb3Zl
-bWJlciAyMDE3IDE2OjE2DQo+IFRvOiBHYWJyaWVsZSBQYW9sb25pDQo+IENjOiBDYXRhbGluIE1h
-cmluYXM7IFdpbGwgRGVhY29uOyBSb2IgSGVycmluZzsgRnJhbmsgUm93YW5kOyBCam9ybg0KPiBI
-ZWxnYWFzOyByYWZhZWxAa2VybmVsLm9yZzsgQXJuZCBCZXJnbWFubjsgbGludXgtYXJtLWtlcm5l
-bDsNCj4gbG9yZW56by5waWVyYWxpc2lAYXJtLmNvbTsgTWFyayBSdXRsYW5kOyBCcmlhbiBTdGFy
-a2V5OyBvbG9mQGxpeG9tLm5ldDsNCj4gYmVuaEBrZXJuZWwuY3Jhc2hpbmcub3JnOyBsaW51eC1r
-ZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51eC0NCj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IExp
-bnV4YXJtOyBsaW51eC1wY2lAdmdlci5rZXJuZWwub3JnOyBDb3JleQ0KPiBNaW55YXJkOyBKb2hu
-IEdhcnJ5OyB4dXdlaSAoTykNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MTAgMC85XSBMUEM6IGxl
-Z2FjeSBJU0EgSS9PIHN1cHBvcnQNCj4gDQo+IE9uIEZyaSwgT2N0IDI3LCAyMDE3IGF0IDEwOjEx
-IEFNLCBHYWJyaWVsZSBQYW9sb25pDQo+IDxnYWJyaWVsZS5wYW9sb25pQGh1YXdlaS5jb20+IHdy
-b3RlOg0KPiA+IEZyb206IGdhYnJpZWxlIHBhb2xvbmkgPGdhYnJpZWxlLnBhb2xvbmlAaHVhd2Vp
-LmNvbT4NCj4gPg0KPiA+IFRoaXMgcGF0Y2hzZXQgc3VwcG9ydHMgdGhlIElQTUktYnQgZGV2aWNl
-IGF0dGFjaGVkIHRvIHRoZSBMb3ctUGluLQ0KPiBDb3VudA0KPiA+IGludGVyZmFjZSBpbXBsZW1l
-bnRlZCBvbiBIaXNpbGljb24gSGlwMDYvSGlwMDcgU29DLg0KPiANCj4gZndpdywgSSB0ZXN0ZWQg
-dGhpcyBvbiBvbmUgb2Ygb3VyIEQwNSBib2FyZHMgYW5kIHZlcmlmaWVkIHRoYXQgdGhlDQo+IElQ
-TUkgU0kgd29ya2VkIGZpbmUuDQo+IA0KPiBUZXN0ZWQtYnk6IGRhbm4gZnJhemllciA8ZGFubi5m
-cmF6aWVyQGNhbm9uaWNhbC5jb20+DQoNCk1hbnkgdGhhbmtzIGZvciB0aGlzDQpHYWINCg==
+Hi Linus,
+
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm-final-4.14
+
+with top-most commit e029b9bf1221f200319541cd6861912b89345665
+
+ Merge branch 'pm-cpufreq-sched'
+
+on top of commit 39dae59d66acd86d1de24294bd2f343fd5e7a625
+
+ Linux 4.14-rc8
+
+to receive final power management fixes for 4.14.
+
+These fix a regression in the schedutil cpufreq governor introduced
+by a recent change and blacklist Dell XPS13 9360 from using the
+Low Power S0 Idle _DSM interface which triggers serious problems on
+one of these machines.
+
+Specifics:
+
+ - Prevent the schedutil cpufreq governor from using the
+   utilization of a wrong CPU in some cases which started to
+   happen after one of the recent changes in it (Chris Redpath).
+
+ - Blacklist Dell XPS13 9360 from using the Low Power S0 Idle _DSM
+   interface as that causes serious issue (related to NVMe) to
+   appear on one of these machines, even though the other Dells
+   XPS13 9360 in somewhat different HW configurations behave
+   correctly (Rafael Wysocki).
+
+Thanks!
+
+
+---------------
+
+Chris Redpath (1):
+      cpufreq: schedutil: Examine the correct CPU when we update util
+
+Rafael J. Wysocki (1):
+      ACPI / PM: Blacklist Low Power S0 Idle _DSM for Dell XPS13 9360
+
+---------------
+
+ drivers/acpi/sleep.c             | 28 ++++++++++++++++++++++++++++
+ kernel/sched/cpufreq_schedutil.c |  6 +-----
+ 2 files changed, 29 insertions(+), 5 deletions(-)
