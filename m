@@ -1,66 +1,38 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Final power management fixes for v4.14
-Date: Thu, 9 Nov 2017 17:36:03 +0100
-Message-ID: <CAJZ5v0i0ngNGouoG_RJjxHaeXS=syJp5Gk=5_Rg7UcQstuHfgQ@mail.gmail.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH 1/2] acpi: apei: handle PCIe AER errors in separate
+ function
+Date: Thu, 9 Nov 2017 18:21:24 +0100
+Message-ID: <20171109172124.hq5wigcv5zfz56ag@pd.tnic>
+References: <1510168392-30114-1-git-send-email-tbaicar@codeaurora.org>
+ <1510168392-30114-2-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:46022 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750909AbdKIQgE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Nov 2017 11:36:04 -0500
+Received: from mx2.suse.de ([195.135.220.15]:59665 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751066AbdKIRV3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Nov 2017 12:21:29 -0500
+Content-Disposition: inline
+In-Reply-To: <1510168392-30114-2-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: rjw@rjwysocki.net, tony.luck@intel.com, will.deacon@arm.com, james.morse@arm.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Linus,
+On Wed, Nov 08, 2017 at 12:13:11PM -0700, Tyler Baicar wrote:
+> Move PCIe AER error handling code into a separate function.
+> 
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 64 +++++++++++++++++++++++++-----------------------
+>  1 file changed, 34 insertions(+), 30 deletions(-)
 
-Please pull from the tag
+Reviewed-by: Borislav Petkov <bp@suse.de>
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-final-4.14
+-- 
+Regards/Gruss,
+    Boris.
 
-with top-most commit e029b9bf1221f200319541cd6861912b89345665
-
- Merge branch 'pm-cpufreq-sched'
-
-on top of commit 39dae59d66acd86d1de24294bd2f343fd5e7a625
-
- Linux 4.14-rc8
-
-to receive final power management fixes for 4.14.
-
-These fix a regression in the schedutil cpufreq governor introduced
-by a recent change and blacklist Dell XPS13 9360 from using the
-Low Power S0 Idle _DSM interface which triggers serious problems on
-one of these machines.
-
-Specifics:
-
- - Prevent the schedutil cpufreq governor from using the
-   utilization of a wrong CPU in some cases which started to
-   happen after one of the recent changes in it (Chris Redpath).
-
- - Blacklist Dell XPS13 9360 from using the Low Power S0 Idle _DSM
-   interface as that causes serious issue (related to NVMe) to
-   appear on one of these machines, even though the other Dells
-   XPS13 9360 in somewhat different HW configurations behave
-   correctly (Rafael Wysocki).
-
-Thanks!
-
-
----------------
-
-Chris Redpath (1):
-      cpufreq: schedutil: Examine the correct CPU when we update util
-
-Rafael J. Wysocki (1):
-      ACPI / PM: Blacklist Low Power S0 Idle _DSM for Dell XPS13 9360
-
----------------
-
- drivers/acpi/sleep.c             | 28 ++++++++++++++++++++++++++++
- kernel/sched/cpufreq_schedutil.c |  6 +-----
- 2 files changed, 29 insertions(+), 5 deletions(-)
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
