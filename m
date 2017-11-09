@@ -1,82 +1,78 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH v10 6/9] LPC: Support the LPC host on Hip06/Hip07 with
- DT bindings
-Date: Thu, 9 Nov 2017 10:05:14 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E40CC7ED0@FRAEML521-MBX.china.huawei.com>
-References: <1509120687-7352-1-git-send-email-gabriele.paoloni@huawei.com>
- <1509120687-7352-7-git-send-email-gabriele.paoloni@huawei.com>
- <20171109004604.vkrpyrxbogx7r4td@xps13.dannf>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFCv2 PATCH 21/36] iommu/arm-smmu-v3: Implement process
+ operations
+Date: Thu, 9 Nov 2017 12:08:59 +0000
+Message-ID: <812aa54c-1cda-d4a4-640f-4aa2d8eb81fa@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-22-jean-philippe.brucker@arm.com>
+ <084b1848-0939-5e73-3890-3aab8dc4bc70@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171109004604.vkrpyrxbogx7r4td@xps13.dannf>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46094 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754228AbdKIMIO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 9 Nov 2017 07:08:14 -0500
+In-Reply-To: <084b1848-0939-5e73-3890-3aab8dc4bc70@huawei.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: dann frazier <dann.frazier@canonical.com>
-Cc: "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "frowand.list@gmail.com" <frowand.list@gmail.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "rafael@kernel.org" <rafael@kernel.org>, "arnd@arndb.de" <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "brian.starkey@arm.com" <brian.starkey@arm.com>, "olof@lixom.net" <olof@lixom.net>, "benh@kernel.crashing.org" <benh@kernel.crashing.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>Linuxarm <li>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwatters@cod
 
+Hi,
 
-Hi Dann
-
-[...]
-
-> > +
-> > +#define START_WORK		0x01
+On 09/11/17 03:32, Yisheng Xie wrote:
+> Hi Jean,
 > 
-> Any reason not to put this in the LPC_ namespace as well?
-
-No, not really. We'll make it consistent in the next patchset 
-
+> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>> Hook process operations to support PASID and page table sharing with the
+>> SMMUv3:
+>>
+>> +
+>> +static void arm_smmu_process_exit(struct iommu_domain *domain,
+>> +				  struct iommu_process *process)
+>> +{
+>> +	struct arm_smmu_master_data *master;
+>> +	struct arm_smmu_domain *smmu_domain = to_smmu_domain(domain);
+>> +
+>> +	if (!domain->process_exit)
+>> +		return;
 > 
-> > +/* The minimal nanosecond interval for each query on LPC cycle
-> status. */
+> If domain do not set process_exit handler, just return? smmu do not
+> need invalid ATC, clear cd entry, etc.? Maybe you should check when
+> call domain->process_exit?
 
-[...]
+Indeed, that doesn't make sense. I'll move the check below.
 
-> > + * hisilpc_target_in - trigger a series of lpc cycles to read
-> required data
-> > + *		       from target peripheral.
-> > + * @pdev: pointer to hisi lpc device
-> 
-> It's now lpcdev
-> 
+Thanks,
+Jean
 
-Thanks, we'll change it.
-
-> > + * @para: some parameters used to control the lpc I/O operations
-
-[...]
-
-> > + * @pio: the target I/O port address.
-> 
-> @outval & @pio are in the opposite order of the actual function
-
-Thanks, we'll change it.
-
-> 
-
-[...]
-
-> > +		lpcdev->io_host->devpara = NULL;
-> > +		dev_err(dev, "OF: scan hisilpc children got failed(%d)\n",
-> > +			ret);
-> 
-> nit: Maybe "OF: scanning hisilpc children failed(%d)" ?
-> 
-
-Yes, thanks we'll change it.
-
-> > +		return ret;
-> > +	}
-> > +
-> > +	dev_info(dev, "hslpc end probing. range[%pa - sz:%pa]\n",
-> > +		&lpcdev->io_host->io_start,
-> > +		&lpcdev->io_host->size);
-> > +
-> > +	return ret;
-> > +}
+>> +
+>> +	spin_lock(&smmu_domain->devices_lock);
+>> +	list_for_each_entry(master, &smmu_domain->devices, list) {
+>> +		if (!master->processes)
+>> +			continue;
+>> +
+>> +		master->processes--;
+> Add
+> 		if (domain->process_exit)
+> here?
+>> +		domain->process_exit(domain, master->dev, process->pasid,
+>> +				     domain->process_exit_token);
+>> +
+>> +		/* TODO: inval ATC */
+>> +	}
+>> +	spin_unlock(&smmu_domain->devices_lock);
+>> +
+>> +	arm_smmu_write_ctx_desc(smmu_domain, process->pasid, NULL);
+>> +
+>> +	/* TODO: Invalidate all mappings if not DVM */
+>> +}
+>> +
+> Thanks
+> Yisheng Xie
 > 
 > 
->  -dann
+
