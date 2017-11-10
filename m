@@ -1,87 +1,43 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v4 1/9] ACPICA: Add additional PPTT flags for cache
- properties
-Date: Fri, 10 Nov 2017 17:13:19 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37E618DB4@ORSMSX110.amr.corp.intel.com>
-References: <20171109210311.25655-1-jeremy.linton@arm.com>
- <20171109210311.25655-2-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2] xen/pci: Use acpi_noirq_set() helper
+Date: Fri, 10 Nov 2017 20:08:19 +0200
+Message-ID: <20171110180819.83868-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51759 "EHLO mga01.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:12911 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752473AbdKJRNW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 Nov 2017 12:13:22 -0500
-In-Reply-To: <20171109210311.25655-2-jeremy.linton@arm.com>
-Content-Language: en-US
+        id S1753114AbdKJSIz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Nov 2017 13:08:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "jhugo@codeaurora.org" <jhugo@codeaurora.org>, "wangxiongfeng2@huawei.com" <wangxiongfeng2@huawei.com>, Jonathan.Zhang@cavium.
+To: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Included in ACPICA version 20171110
+No need to keep an #ifdef since we have a helper (in x86 world).
+Use it instead.
 
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+- resend as v2 with slightly longer Cc list, i.e. +Rafael and ACPI ML
+- in v1 Bjorn told he is okay with patch, but assumed it goes not via PCI tree
+ arch/x86/pci/xen.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-> -----Original Message-----
-> From: Jeremy Linton [mailto:jeremy.linton@arm.com]
-> Sent: Thursday, November 9, 2017 1:03 PM
-> To: linux-acpi@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org; sudeep.holla@arm.com;
-> hanjun.guo@linaro.org; lorenzo.pieralisi@arm.com; rjw@rjwysocki.net;
-> will.deacon@arm.com; catalin.marinas@arm.com;
-> gregkh@linuxfoundation.org; viresh.kumar@linaro.org;
-> mark.rutland@arm.com; linux-kernel@vger.kernel.org; linux-
-> pm@vger.kernel.org; jhugo@codeaurora.org; wangxiongfeng2@huawei.com;
-> Jonathan.Zhang@cavium.com; ahs3@redhat.com;
-> Jayachandran.Nair@cavium.com; austinwc@codeaurora.org; lenb@kernel.org;
-> Moore, Robert <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>;
-> devel@acpica.org; Jeremy Linton <jeremy.linton@arm.com>
-> Subject: [PATCH v4 1/9] ACPICA: Add additional PPTT flags for cache
-> properties
-> 
-> The PPTT table has a number of flags that can be set to describe whether
-> the cache is I/D/U and the allocation and write policies. Add these
-> flags.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  include/acpi/actbl1.h | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
-> 
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
-> 6b8714a428b6..71f874e2790d 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
-> @@ -1346,6 +1346,20 @@ struct acpi_pptt_cache {
->  #define ACPI_PPTT_MASK_CACHE_TYPE           (0x0C)	/* Cache type */
->  #define ACPI_PPTT_MASK_WRITE_POLICY         (0x10)	/* Write policy */
-> 
-> +/* Attributes describing cache */
-> +#define ACPI_PPTT_CACHE_READ_ALLOCATE	    (0x0)   /* Cache line is
-> allocated on read */
-> +#define ACPI_PPTT_CACHE_WRITE_ALLOCATE	    (0x01)  /* Cache line is
-> allocated on write */
-> +#define ACPI_PPTT_CACHE_RW_ALLOCATE	    (0x02)  /* Cache line is
-> allocated on read and write */
-> +#define ACPI_PPTT_CACHE_RW_ALLOCATE_ALT	    (0x03)  /* Alternate
-> representation of above */
-> +
-> +#define ACPI_PPTT_CACHE_TYPE_DATA	    (0x0)   /* Data cache */
-> +#define ACPI_PPTT_CACHE_TYPE_INSTR	    (1<<2)  /* Instruction cache */
-> +#define ACPI_PPTT_CACHE_TYPE_UNIFIED	    (2<<2)  /* Unified I & D cache
-> */
-> +#define ACPI_PPTT_CACHE_TYPE_UNIFIED_ALT    (3<<2)  /* Alternate
-> representation of above */
-> +
-> +#define ACPI_PPTT_CACHE_POLICY_WB	    (0x0)   /* Cache is write back
-> */
-> +#define ACPI_PPTT_CACHE_POLICY_WT	    (1<<4)  /* Cache is write
-> through */
-> +
->  /* 2: ID Structure */
-> 
->  struct acpi_pptt_id {
-> --
-> 2.13.5
+diff --git a/arch/x86/pci/xen.c b/arch/x86/pci/xen.c
+index c4b3646bd04c..9542a746dc50 100644
+--- a/arch/x86/pci/xen.c
++++ b/arch/x86/pci/xen.c
+@@ -409,10 +409,8 @@ int __init pci_xen_init(void)
+ 	pcibios_enable_irq = xen_pcifront_enable_irq;
+ 	pcibios_disable_irq = NULL;
+ 
+-#ifdef CONFIG_ACPI
+ 	/* Keep ACPI out of the picture */
+-	acpi_noirq = 1;
+-#endif
++	acpi_noirq_set();
+ 
+ #ifdef CONFIG_PCI_MSI
+ 	x86_msi.setup_msi_irqs = xen_setup_msi_irqs;
+-- 
+2.14.2
 
