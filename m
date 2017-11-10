@@ -1,97 +1,112 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 3/6] gpiolib: acpi: Move adev member to struct acpi_gpio_info
-Date: Fri, 10 Nov 2017 15:40:30 +0200
-Message-ID: <20171110134033.85461-3-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 5/6] gpiolib: acpi: Add quirks field to struct acpi_gpio_mapping
+Date: Fri, 10 Nov 2017 15:40:32 +0200
+Message-ID: <20171110134033.85461-5-andriy.shevchenko@linux.intel.com>
 References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58736 "EHLO mga01.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:5480 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752728AbdKJNk7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 10 Nov 2017 08:40:59 -0500
+        id S1752629AbdKJNlH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 10 Nov 2017 08:41:07 -0500
 In-Reply-To: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-The further improvements are based on this change since
-struct acpi_gpio_lookup is not available in some cases.
+Some broken ACPI tables might require quirks in the OS.
+Introduce quirks field in struct acpi_gpio_mapping.
+
+Propagate them to struct acpi_gpio_info for further use.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 10 +++++-----
+ drivers/gpio/gpiolib-acpi.c | 10 ++++++++--
  drivers/gpio/gpiolib.h      |  2 ++
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ include/linux/acpi.h        |  1 +
+ 3 files changed, 11 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index f640445099ab..7d0664a3d1b9 100644
+index 88518afa26bd..711f64b9dd30 100644
 --- a/drivers/gpio/gpiolib-acpi.c
 +++ b/drivers/gpio/gpiolib-acpi.c
-@@ -494,7 +494,6 @@ struct acpi_gpio_lookup {
- 	int index;
- 	int pin_index;
- 	bool active_low;
--	struct acpi_device *adev;
- 	struct gpio_desc *desc;
- 	int n;
- };
-@@ -541,12 +540,13 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
- static int acpi_gpio_resource_lookup(struct acpi_gpio_lookup *lookup,
- 				     struct acpi_gpio_info *info)
+@@ -414,7 +414,8 @@ EXPORT_SYMBOL_GPL(devm_acpi_dev_remove_driver_gpios);
+ 
+ static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+ 				      const char *name, int index,
+-				      struct acpi_reference_args *args)
++				      struct acpi_reference_args *args,
++				      unsigned int *quirks)
  {
-+	struct acpi_device *adev = lookup->info.adev;
- 	struct list_head res_list;
+ 	const struct acpi_gpio_mapping *gm;
+ 
+@@ -430,6 +431,8 @@ static bool acpi_get_driver_gpio_data(struct acpi_device *adev,
+ 			args->args[1] = par->line_index;
+ 			args->args[2] = par->active_low;
+ 			args->nargs = 3;
++
++			*quirks = gm->quirks;
+ 			return true;
+ 		}
+ 
+@@ -580,6 +583,7 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 				     struct acpi_gpio_lookup *lookup)
+ {
+ 	struct acpi_reference_args args;
++	unsigned int quirks = 0;
  	int ret;
  
- 	INIT_LIST_HEAD(&res_list);
+ 	memset(&args, 0, sizeof(args));
+@@ -591,7 +595,8 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
+ 		if (!adev)
+ 			return ret;
  
--	ret = acpi_dev_get_resources(lookup->adev, &res_list,
-+	ret = acpi_dev_get_resources(adev, &res_list,
- 				     acpi_populate_gpio_lookup,
- 				     lookup);
- 	if (ret < 0)
-@@ -592,7 +592,7 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
- 	lookup->pin_index = args.args[1];
+-		if (!acpi_get_driver_gpio_data(adev, propname, index, &args))
++		if (!acpi_get_driver_gpio_data(adev, propname, index, &args,
++					       &quirks))
+ 			return ret;
+ 	}
+ 	/*
+@@ -606,6 +611,7 @@ static int acpi_gpio_property_lookup(struct fwnode_handle *fwnode,
  	lookup->active_low = !!args.args[2];
  
--	lookup->adev = args.adev;
-+	lookup->info.adev = args.adev;
+ 	lookup->info.adev = args.adev;
++	lookup->info.quirks = quirks;
  	return 0;
  }
  
-@@ -640,11 +640,11 @@ static struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
- 			return ERR_PTR(ret);
- 
- 		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %d %d %u\n",
--			dev_name(&lookup.adev->dev), lookup.index,
-+			dev_name(&lookup.info.adev->dev), lookup.index,
- 			lookup.pin_index, lookup.active_low);
- 	} else {
- 		dev_dbg(&adev->dev, "GPIO: looking up %d in _CRS\n", index);
--		lookup.adev = adev;
-+		lookup.info.adev = adev;
- 	}
- 
- 	ret = acpi_gpio_resource_lookup(&lookup, info);
 diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-index af48322839c3..e8d0bfa57288 100644
+index b23aeaf5ac9e..cd4622863fe1 100644
 --- a/drivers/gpio/gpiolib.h
 +++ b/drivers/gpio/gpiolib.h
-@@ -75,12 +75,14 @@ struct gpio_device {
- 
- /**
-  * struct acpi_gpio_info - ACPI GPIO specific information
-+ * @adev: reference to ACPI device which consumes GPIO resource
-  * @flags: GPIO initialization flags
+@@ -80,6 +80,7 @@ struct gpio_device {
   * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
   * @polarity: interrupt polarity as provided by ACPI
   * @triggering: triggering type as provided by ACPI
++ * @quirks: Linux specific quirks as provided by struct acpi_gpio_mapping
   */
  struct acpi_gpio_info {
-+	struct acpi_device *adev;
- 	enum gpiod_flags flags;
+ 	struct acpi_device *adev;
+@@ -87,6 +88,7 @@ struct acpi_gpio_info {
  	bool gpioint;
  	int polarity;
+ 	int triggering;
++	unsigned int quirks;
+ };
+ 
+ /* gpio suffixes used for ACPI and device tree lookup */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index dc1ebfeeb5ec..25fe77fccea0 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -978,6 +978,7 @@ struct acpi_gpio_mapping {
+ 	const char *name;
+ 	const struct acpi_gpio_params *data;
+ 	unsigned int size;
++	unsigned int quirks;
+ };
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_GPIOLIB)
 -- 
 2.14.2
 
