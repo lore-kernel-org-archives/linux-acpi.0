@@ -1,144 +1,173 @@
-From: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Subject: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms supporting only IOAPIC mode
-Date: Fri, 10 Nov 2017 15:08:06 +0530
-Message-ID: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t1383g.austin.hpe.com ([15.233.16.89]:12191 "EHLO
-        g2t1383g.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751254AbdKJKEE (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Nov 2017 05:04:04 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v8 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
+Date: Sat, 11 Nov 2017 03:54:08 +0800
+Message-ID: <1510343650-23659-6-git-send-email-gengdongjiu@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+Sender: kvm-owner@vger.kernel.org
+To: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, james.morse@arm.com, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, gengdongjiu@huawei.com, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net
-Cc: linux-kernel@vger.kernel.org, kkamagui@gmail.com, tglx@linutronix.de, mingo@kernel.org, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>, Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
 
-The platforms which support only IOAPIC mode and whose SCI INT is
-greater than 16, passes SCI INT via FADT and not via MADT int src override
-structure. In such cases current logic fails to handle it and throws error
-"Invalid bus_irq %u for legacy override". This patch handles the above
- mentioned case. While at it, also modify function mp_override_legacy_irq()
-to use the newly introduced function mp_register_ioapic_irq().
+The ARM64 RAS SError Interrupt(SEI) syndrome value is specific to the
+guest and user space needs a way to tell KVM this value. So we add a
+new ioctl. Before user space specifies the Exception Syndrome Register
+ESR(ESR), it firstly checks that whether KVM has the capability to
+set the guest ESR, If has, will set it. Otherwise, nothing to do.
 
-Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Signed-off-by: Sunil V L <sunil.vl@hpe.com>
-Signed-off-by: Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
+For this ESR specifying, Only support for AArch64, not support AArch32.
+
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+Signed-off-by: Quanming Wu <wuquanming@huawei.com>
+
+change the name to KVM_CAP_ARM_INJECT_SERROR_ESR instead of
+XXXXX_ARM_RAS_EXTENSION, suggested here
+
+https://patchwork.kernel.org/patch/9925203/
 ---
- arch/x86/kernel/acpi/boot.c | 77 +++++++++++++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 30 deletions(-)
+ Documentation/virtual/kvm/api.txt | 11 +++++++++++
+ arch/arm/include/asm/kvm_host.h   |  1 +
+ arch/arm/kvm/guest.c              |  9 +++++++++
+ arch/arm64/include/asm/kvm_host.h |  1 +
+ arch/arm64/kvm/guest.c            |  5 +++++
+ arch/arm64/kvm/reset.c            |  3 +++
+ include/uapi/linux/kvm.h          |  3 +++
+ virt/kvm/arm/arm.c                |  7 +++++++
+ 8 files changed, 40 insertions(+)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 079535e..8ab97a5 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -342,13 +342,12 @@ static int acpi_register_lapic(int id, u32 acpiid, u8 enabled)
- #ifdef CONFIG_X86_IO_APIC
- #define MP_ISA_BUS		0
- 
-+static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
-+						u8 trigger, u32 gsi);
+diff --git a/Documentation/virtual/kvm/api.txt b/Documentation/virtual/kvm/api.txt
+index e63a35f..6dfb9fc 100644
+--- a/Documentation/virtual/kvm/api.txt
++++ b/Documentation/virtual/kvm/api.txt
+@@ -4347,3 +4347,14 @@ This capability indicates that userspace can load HV_X64_MSR_VP_INDEX msr.  Its
+ value is used to denote the target vcpu for a SynIC interrupt.  For
+ compatibilty, KVM initializes this msr to KVM's internal vcpu index.  When this
+ capability is absent, userspace can still query this msr's value.
 +
- static void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
- 					  u32 gsi)
- {
--	int ioapic;
--	int pin;
--	struct mpc_intsrc mp_irq;
--
- 	/*
- 	 * Check bus_irq boundary.
- 	 */
-@@ -357,32 +356,8 @@ static void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
- 		return;
- 	}
++8.13 KVM_CAP_ARM_SET_SERROR_ESR
++
++Architectures: arm, arm64
++
++This capability indicates that userspace can specify syndrome value reported to
++guest OS when guest takes a virtual SError interrupt exception.
++If KVM has this capability, userspace can only specify the ISS field for the ESR
++syndrome, can not specify the EC field which is not under control by KVM.
++If this virtual SError is taken to EL1 using AArch64, this value will be reported
++into ISS filed of ESR_EL1
+diff --git a/arch/arm/include/asm/kvm_host.h b/arch/arm/include/asm/kvm_host.h
+index 4a879f6..6cf5c7b 100644
+--- a/arch/arm/include/asm/kvm_host.h
++++ b/arch/arm/include/asm/kvm_host.h
+@@ -211,6 +211,7 @@ struct kvm_vcpu_stat {
+ int kvm_arm_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices);
+ int kvm_arm_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
+ int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
++int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome);
+ unsigned long kvm_call_hyp(void *hypfn, ...);
+ void force_vm_exit(const cpumask_t *mask);
  
--	/*
--	 * Convert 'gsi' to 'ioapic.pin'.
--	 */
--	ioapic = mp_find_ioapic(gsi);
--	if (ioapic < 0)
-+	if (mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi) < 0)
- 		return;
--	pin = mp_find_ioapic_pin(ioapic, gsi);
--
--	/*
--	 * TBD: This check is for faulty timer entries, where the override
--	 *      erroneously sets the trigger to level, resulting in a HUGE
--	 *      increase of timer interrupts!
--	 */
--	if ((bus_irq == 0) && (trigger == 3))
--		trigger = 1;
--
--	mp_irq.type = MP_INTSRC;
--	mp_irq.irqtype = mp_INT;
--	mp_irq.irqflag = (trigger << 2) | polarity;
--	mp_irq.srcbus = MP_ISA_BUS;
--	mp_irq.srcbusirq = bus_irq;	/* IRQ */
--	mp_irq.dstapic = mpc_ioapic_id(ioapic); /* APIC ID */
--	mp_irq.dstirq = pin;	/* INTIN# */
--
--	mp_save_irq(&mp_irq);
--
- 	/*
- 	 * Reset default identity mapping if gsi is also an legacy IRQ,
- 	 * otherwise there will be more than one entry with the same GSI
-@@ -429,6 +404,44 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
- 	return 0;
+diff --git a/arch/arm/kvm/guest.c b/arch/arm/kvm/guest.c
+index 1e0784e..1e15fa2 100644
+--- a/arch/arm/kvm/guest.c
++++ b/arch/arm/kvm/guest.c
+@@ -248,6 +248,15 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
+ 	return -EINVAL;
  }
  
-+static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
-+						u8 trigger, u32 gsi)
++/*
++ * we only support guest SError syndrome specifying
++ * for ARM64, not support it for ARM32.
++ */
++int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome)
 +{
-+	int ioapic;
-+	int pin;
-+	struct mpc_intsrc mp_irq;
-+
-+	/*
-+	 * Convert 'gsi' to 'ioapic.pin'.
-+	 */
-+	ioapic = mp_find_ioapic(gsi);
-+	if (ioapic < 0) {
-+		pr_warn("Failed to find ioapic for gsi : %u\n", gsi);
-+		return ioapic;
-+	}
-+	pin = mp_find_ioapic_pin(ioapic, gsi);
-+
-+	/*
-+	 * TBD: This check is for faulty timer entries, where the override
-+	 *      erroneously sets the trigger to level, resulting in a HUGE
-+	 *      increase of timer interrupts!
-+	 */
-+	if ((bus_irq == 0) && (trigger == 3))
-+		trigger = 1;
-+
-+	mp_irq.type = MP_INTSRC;
-+	mp_irq.irqtype = mp_INT;
-+	mp_irq.irqflag = (trigger << 2) | polarity;
-+	mp_irq.srcbus = MP_ISA_BUS;
-+	mp_irq.srcbusirq = bus_irq;	/* IRQ */
-+	mp_irq.dstapic = mpc_ioapic_id(ioapic); /* APIC ID */
-+	mp_irq.dstirq = pin;	/* INTIN# */
-+
-+	mp_save_irq(&mp_irq);
-+
-+	return 0;
++	return -EINVAL;
 +}
 +
- static int __init
- acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
+ int __attribute_const__ kvm_target_cpu(void)
  {
-@@ -473,7 +486,11 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 	if (acpi_sci_flags & ACPI_MADT_POLARITY_MASK)
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+ 	switch (read_cpuid_part()) {
+diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
+index e923b58..769cc58 100644
+--- a/arch/arm64/include/asm/kvm_host.h
++++ b/arch/arm64/include/asm/kvm_host.h
+@@ -317,6 +317,7 @@ struct kvm_vcpu_stat {
+ int kvm_arm_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices);
+ int kvm_arm_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
+ int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
++int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome);
  
--	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	if (bus_irq < NR_IRQS_LEGACY)
-+		mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	else
-+		mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi);
+ #define KVM_ARCH_WANT_MMU_NOTIFIER
+ int kvm_unmap_hva(struct kvm *kvm, unsigned long hva);
+diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
+index 5c7f657..738ae90 100644
+--- a/arch/arm64/kvm/guest.c
++++ b/arch/arm64/kvm/guest.c
+@@ -277,6 +277,11 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
+ 	return -EINVAL;
+ }
+ 
++int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome)
++{
++	return -EINVAL;
++}
 +
- 	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
+ int __attribute_const__ kvm_target_cpu(void)
+ {
+ 	unsigned long implementor = read_cpuid_implementor();
+diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
+index 3256b92..38c8a64 100644
+--- a/arch/arm64/kvm/reset.c
++++ b/arch/arm64/kvm/reset.c
+@@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
+ 	case KVM_CAP_ARM_PMU_V3:
+ 		r = kvm_arm_support_pmu_v3();
+ 		break;
++	case KVM_CAP_ARM_INJECT_SERROR_ESR:
++		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
++		break;
+ 	case KVM_CAP_SET_GUEST_DEBUG:
+ 	case KVM_CAP_VCPU_ATTRIBUTES:
+ 		r = 1;
+diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
+index 7e99999..0c861c4 100644
+--- a/include/uapi/linux/kvm.h
++++ b/include/uapi/linux/kvm.h
+@@ -931,6 +931,7 @@ struct kvm_ppc_resize_hpt {
+ #define KVM_CAP_PPC_SMT_POSSIBLE 147
+ #define KVM_CAP_HYPERV_SYNIC2 148
+ #define KVM_CAP_HYPERV_VP_INDEX 149
++#define KVM_CAP_ARM_INJECT_SERROR_ESR 150
  
- 	/*
+ #ifdef KVM_CAP_IRQ_ROUTING
+ 
+@@ -1357,6 +1358,8 @@ struct kvm_s390_ucas_mapping {
+ /* Available with KVM_CAP_S390_CMMA_MIGRATION */
+ #define KVM_S390_GET_CMMA_BITS      _IOWR(KVMIO, 0xb8, struct kvm_s390_cmma_log)
+ #define KVM_S390_SET_CMMA_BITS      _IOW(KVMIO, 0xb9, struct kvm_s390_cmma_log)
++/* Available with KVM_CAP_ARM_INJECT_SERROR_ESR */
++#define KVM_ARM_INJECT_SERROR_ESR   _IOW(KVMIO,  0xba, __u32)
+ 
+ #define KVM_DEV_ASSIGN_ENABLE_IOMMU	(1 << 0)
+ #define KVM_DEV_ASSIGN_PCI_2_3		(1 << 1)
+diff --git a/virt/kvm/arm/arm.c b/virt/kvm/arm/arm.c
+index 95cba07..60dea5f 100644
+--- a/virt/kvm/arm/arm.c
++++ b/virt/kvm/arm/arm.c
+@@ -1027,6 +1027,13 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
+ 			return -EFAULT;
+ 		return kvm_arm_vcpu_has_attr(vcpu, &attr);
+ 	}
++	case KVM_ARM_INJECT_SERROR_ESR: {
++		u32 syndrome;
++
++		if (copy_from_user(&syndrome, argp, sizeof(syndrome)))
++			return -EFAULT;
++		return kvm_arm_set_sei_esr(vcpu, &syndrome);
++	}
+ 	default:
+ 		return -EINVAL;
+ 	}
 -- 
 1.9.1
-
