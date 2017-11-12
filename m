@@ -1,87 +1,94 @@
-From: Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: et8ek8: Document support for flash and lens devices
-Date: Sun, 12 Nov 2017 15:25:47 +0100
-Message-ID: <20171112142547.km6haalndqiohoq2@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-30-sakari.ailus@linux.intel.com>
- <20171112112729.GA21247@amd>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 1/2] acpi, nfit: validate commands against the device type
+Date: Sun, 12 Nov 2017 15:25:01 -0800
+Message-ID: <151052910143.33363.12653920068445460294.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3pw3ukvse2a7ndb5"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171112112729.GA21247@amd>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, niklas.soderlund-1zkq55x86MTxsAP9Fp7wbw@public.gmane.org, maxime.ripard-wi1+55ScJUtKEb57/3fJTNBPR1lH4CV8@public.gmane.org, hverkuil-qWit8jRvyhVmR6Xm/wNWPw@public.gmane.org, laurent.pinchart-ryLnwIuWjnjg/C1BVhZhaw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga06.intel.com ([134.134.136.31]:4051 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750954AbdKLXdQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 12 Nov 2017 18:33:16 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org
 
+Fix occasions in acpi_nfit_ctl where we check the command type without
+validating whether we are parsing dimm vs bus level commands. Where the
+command numbers alias between dimms and bus we can make the wrong
+assumption just checking the raw command number. For example, with a
+simple nfit_test mock up of the clear-error command we trigger the
+following:
 
---3pw3ukvse2a7ndb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+    BUG: unable to handle kernel NULL pointer dereference at 0000000000000094
+    IP: acpi_nfit_ctl+0x29b/0x930 [nfit]
+    [..]
+    Call Trace:
+     nfit_test_probe+0xb85/0xc09 [nfit_test]
+     platform_drv_probe+0x3b/0xa0
+     ? platform_drv_probe+0x3b/0xa0
+     driver_probe_device+0x29c/0x450
+     ? test_alloc+0x180/0x180 [nfit_test]
+     __driver_attach+0xe3/0xf0
+     ? driver_probe_device+0x450/0x450
+     bus_for_each_dev+0x73/0xc0
+     driver_attach+0x1e/0x20
+     bus_add_driver+0x173/0x270
+     driver_register+0x60/0xe0
+     __platform_driver_register+0x36/0x40
+     nfit_test_init+0x2a1/0x1000 [nfit_test]
 
-Hi,
+Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and...")
+Reported-by: Vishal Verma <vishal.l.verma@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-On Sun, Nov 12, 2017 at 12:27:29PM +0100, Pavel Machek wrote:
->=20
-> Document dts support of LED/focus.
->=20
-> Signed-off-by: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 8043bfde7c63..ff2580e7611d 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -483,13 +483,14 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
+ 
+ 	/* call the BIOS, prefer the named methods over _DSM if available */
+-	if (cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
++	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
+ 		out_obj = acpi_label_info(handle);
+-	else if (cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
++	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
+ 		struct nd_cmd_get_config_data_hdr *p = buf;
+ 
+ 		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
+-	} else if (cmd == ND_CMD_SET_CONFIG_DATA && nfit_mem->has_lsw) {
++	} else if (nvdimm && cmd == ND_CMD_SET_CONFIG_DATA
++			&& nfit_mem->has_lsw) {
+ 		struct nd_cmd_set_config_hdr *p = buf;
+ 
+ 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
+@@ -497,7 +498,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	} else {
+ 		u8 revid;
+ 
+-		if (nfit_mem)
++		if (nvdimm)
+ 			revid = nfit_dsm_revid(nfit_mem->family, func);
+ 		else
+ 			revid = 1;
+@@ -565,8 +566,10 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 	 * Set fw_status for all the commands with a known format to be
+ 	 * later interpreted by xlat_status().
+ 	 */
+-	if (i >= 1 && ((cmd >= ND_CMD_ARS_CAP && cmd <= ND_CMD_CLEAR_ERROR)
+-			|| (cmd >= ND_CMD_SMART && cmd <= ND_CMD_VENDOR)))
++	if (i >= 1 && ((!nvdimm && cmd >= ND_CMD_ARS_CAP
++					&& cmd <= ND_CMD_CLEAR_ERROR)
++				|| (nvdimm && cmd >= ND_CMD_SMART
++					&& cmd <= ND_CMD_VENDOR)))
+ 		fw_status = *(u32 *) out_obj->buffer.pointer;
+ 
+ 	if (offset + in_buf.buffer.length < buf_len) {
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel-ZGY8ohtN/8pPYcu2f3hruQ@public.gmane.org>
-
--- Sebastian
-
-> diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.t=
-xt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> index 0b7b6a4..e80d589 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> @@ -20,6 +20,13 @@ Mandatory properties
->    is in hardware standby mode when the signal is in the low state.
-> =20
-> =20
-> +Optional properties
-> +-------------------
-> +
-> +- flash-leds: See ../video-interfaces.txt
-> +- lens-focus: See ../video-interfaces.txt
-> +
-> +
->  Endpoint node mandatory properties
->  ----------------------------------
-> =20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---3pw3ukvse2a7ndb5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloIWegACgkQ2O7X88g7
-+proKQ/+KOGfLfkSFbgtSH2ZVZcJCv20jLTJLcXxCGxb8MTWUOebG2iVUskGaWiv
-14SozCnsr+mizd02bbztEkJ6eYnDXPycCcQAE8UAN770XnEp8mfXkMTR/d/Ckemr
-SBfLQiyh+F2Wo3gIkP6O5oIAO8aGj3v/TqTjVTPqaa5iF40xNJHMrgOEUFpsYyAj
-OcbB9wQq7CQaP/RXDKLgtxWXG+HpzQme6B160m2yk93tPttQysnyWDkoJRlORC5s
-5CTAbkq0jGMHKgLdWunC2+BmCZ1iaY5M7UVgDJjzd9hIKNIBH7w7PnhYG7yvtykY
-FSfmEm/1qEY/EQizfVMUeXhHONJTLAdvOL2SX4H9ZySpGnw+8a4s3TE/pUWUACpj
-y4xmMfZaCJ15GWuOIgy867yBeZHERu2LQzYGmdHghQiKL+n6i3ReDL38ksc5bLm5
-AW72surqxMJtWmcYgPlSgDSeORy4NhvidnlDX4FO9AgkMK4ENP7wToGJWvtyaPPl
-OAXXLsmRvk2qwuWKPyAVFgO3zcqIkKMMesolgTx5DQ+koXBApZ7HVym5WULrLHs4
-45JwIr4GO/dYNcSDZvKjvigN7vbrg+18e9FUiRRe6bQrwQJkWRY5TX3ggB1aWbYD
-xQLbQJ1HNWZcV9YWU1/j1yxv8iGYXgDiByMNT5I8lVDD9BycRlY=
-=Up9e
------END PGP SIGNATURE-----
-
---3pw3ukvse2a7ndb5--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
