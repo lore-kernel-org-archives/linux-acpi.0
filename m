@@ -1,41 +1,37 @@
-From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: et8ek8: Document support for flash and lens devices
-Date: Mon, 13 Nov 2017 19:05:40 +0200
-Message-ID: <20171113170540.5bcgszox5eoxkl6b@valkosipuli.retiisi.org.uk>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-30-sakari.ailus@linux.intel.com>
- <20171112112729.GA21247@amd>
- <20171112142547.km6haalndqiohoq2@earth>
+From: Friedrich Mayrhofer <elazzou@fsr.ac.ma>
+Subject: (unknown)
+Date: Sun, 12 Nov 2017 15:09:12 +0000
+Message-ID: <20171112150912.93083qdw2r1fq60w@koutoubia.fsr.ac.ma>
+Reply-To: friedrich_hofer65@163.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48338 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753801AbdKMRFn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Nov 2017 12:05:43 -0500
+Received: from [196.200.138.80] ([196.200.138.80]:60367 "EHLO
+        koutoubia.fsr.ac.ma" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1754658AbdKMTwi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Nov 2017 14:52:38 -0500
+Subject: 
 Content-Disposition: inline
-In-Reply-To: <20171112142547.km6haalndqiohoq2@earth>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
-On Sun, Nov 12, 2017 at 03:25:47PM +0100, Sebastian Reichel wrote:
-> Hi,
-> 
-> On Sun, Nov 12, 2017 at 12:27:29PM +0100, Pavel Machek wrote:
-> > 
-> > Document dts support of LED/focus.
-> > 
-> > Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
 
-Thanks, guys!
+This is the second time i am sending you this Email.
 
-Applied, with "dt-bindings: " prefix added to the subject.
+I, Friedrich Mayrhofer Donate $ 1,000,000.00 to You, Email Me  
+personally for more details.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards.
+Friedrich Mayrhofer
+
+
+
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
