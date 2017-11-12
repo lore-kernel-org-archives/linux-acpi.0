@@ -1,331 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v3 4/6] PM / core: Add helpers for subsystem callback selection
-Date: Sun, 12 Nov 2017 01:42:00 +0100
-Message-ID: <2261600.6h5WdhsrLe@aspire.rjw.lan>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <6330680.LdxjlP4uri@aspire.rjw.lan> <4184911.zoJM7jZeH4@aspire.rjw.lan>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: et8ek8: Document support for flash and lens devices
+Date: Sun, 12 Nov 2017 12:27:29 +0100
+Message-ID: <20171112112729.GA21247@amd>
+References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
+ <20171026075342.5760-30-sakari.ailus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:54673 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752426AbdKLApg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 11 Nov 2017 19:45:36 -0500
-In-Reply-To: <4184911.zoJM7jZeH4@aspire.rjw.lan>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40424 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750735AbdKLL1b (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 12 Nov 2017 06:27:31 -0500
+Content-Disposition: inline
+In-Reply-To: <20171026075342.5760-30-sakari.ailus@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux PM <linux-pm@vger.kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
-
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Add helper routines to find and return a suitable subsystem callback
-during the "noirq" phases of system suspend/resume (or analogous)
-transitions as well as during the "late" phase of system suspend and
-the "early" phase of system resume (or analogous) transitions.
-
-The helpers will be called from additional sites going forward.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
-
-v2 -> v3: No changes.
-
----
- drivers/base/power/main.c |  196 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 136 insertions(+), 60 deletions(-)
-
-Index: linux-pm/drivers/base/power/main.c
-===================================================================
---- linux-pm.orig/drivers/base/power/main.c
-+++ linux-pm/drivers/base/power/main.c
-@@ -525,6 +525,14 @@ static void dpm_watchdog_clear(struct dp
- #define dpm_watchdog_clear(x)
- #endif
- 
-+static pm_callback_t dpm_subsys_suspend_noirq_cb(struct device *dev,
-+						 pm_message_t state,
-+						 const char **info_p);
-+
-+static pm_callback_t dpm_subsys_suspend_late_cb(struct device *dev,
-+						pm_message_t state,
-+						const char **info_p);
-+
- /*------------------------- Resume routines -------------------------*/
- 
- /**
-@@ -539,6 +547,35 @@ bool dev_pm_may_skip_resume(struct devic
- 	return !dev->power.must_resume && pm_transition.event != PM_EVENT_RESTORE;
- }
- 
-+static pm_callback_t dpm_subsys_resume_noirq_cb(struct device *dev,
-+						pm_message_t state,
-+						const char **info_p)
-+{
-+	pm_callback_t callback;
-+	const char *info;
-+
-+	if (dev->pm_domain) {
-+		info = "noirq power domain ";
-+		callback = pm_noirq_op(&dev->pm_domain->ops, state);
-+	} else if (dev->type && dev->type->pm) {
-+		info = "noirq type ";
-+		callback = pm_noirq_op(dev->type->pm, state);
-+	} else if (dev->class && dev->class->pm) {
-+		info = "noirq class ";
-+		callback = pm_noirq_op(dev->class->pm, state);
-+	} else if (dev->bus && dev->bus->pm) {
-+		info = "noirq bus ";
-+		callback = pm_noirq_op(dev->bus->pm, state);
-+	} else {
-+		return NULL;
-+	}
-+
-+	if (info_p)
-+		*info_p = info;
-+
-+	return callback;
-+}
-+
- /**
-  * device_resume_noirq - Execute a "noirq resume" callback for given device.
-  * @dev: Device to handle.
-@@ -550,8 +587,8 @@ bool dev_pm_may_skip_resume(struct devic
-  */
- static int device_resume_noirq(struct device *dev, pm_message_t state, bool async)
- {
--	pm_callback_t callback = NULL;
--	const char *info = NULL;
-+	pm_callback_t callback;
-+	const char *info;
- 	int error = 0;
- 
- 	TRACE_DEVICE(dev);
-@@ -565,19 +602,7 @@ static int device_resume_noirq(struct de
- 
- 	dpm_wait_for_superior(dev, async);
- 
--	if (dev->pm_domain) {
--		info = "noirq power domain ";
--		callback = pm_noirq_op(&dev->pm_domain->ops, state);
--	} else if (dev->type && dev->type->pm) {
--		info = "noirq type ";
--		callback = pm_noirq_op(dev->type->pm, state);
--	} else if (dev->class && dev->class->pm) {
--		info = "noirq class ";
--		callback = pm_noirq_op(dev->class->pm, state);
--	} else if (dev->bus && dev->bus->pm) {
--		info = "noirq bus ";
--		callback = pm_noirq_op(dev->bus->pm, state);
--	}
-+	callback = dpm_subsys_resume_noirq_cb(dev, state, &info);
- 
- 	if (!callback && dev->driver && dev->driver->pm) {
- 		info = "noirq driver ";
-@@ -686,6 +711,35 @@ void dpm_resume_noirq(pm_message_t state
- 	dpm_noirq_end();
- }
- 
-+static pm_callback_t dpm_subsys_resume_early_cb(struct device *dev,
-+						pm_message_t state,
-+						const char **info_p)
-+{
-+	pm_callback_t callback;
-+	const char *info;
-+
-+	if (dev->pm_domain) {
-+		info = "early power domain ";
-+		callback = pm_late_early_op(&dev->pm_domain->ops, state);
-+	} else if (dev->type && dev->type->pm) {
-+		info = "early type ";
-+		callback = pm_late_early_op(dev->type->pm, state);
-+	} else if (dev->class && dev->class->pm) {
-+		info = "early class ";
-+		callback = pm_late_early_op(dev->class->pm, state);
-+	} else if (dev->bus && dev->bus->pm) {
-+		info = "early bus ";
-+		callback = pm_late_early_op(dev->bus->pm, state);
-+	} else {
-+		return NULL;
-+	}
-+
-+	if (info_p)
-+		*info_p = info;
-+
-+	return callback;
-+}
-+
- /**
-  * device_resume_early - Execute an "early resume" callback for given device.
-  * @dev: Device to handle.
-@@ -696,8 +750,8 @@ void dpm_resume_noirq(pm_message_t state
-  */
- static int device_resume_early(struct device *dev, pm_message_t state, bool async)
- {
--	pm_callback_t callback = NULL;
--	const char *info = NULL;
-+	pm_callback_t callback;
-+	const char *info;
- 	int error = 0;
- 
- 	TRACE_DEVICE(dev);
-@@ -711,19 +765,7 @@ static int device_resume_early(struct de
- 
- 	dpm_wait_for_superior(dev, async);
- 
--	if (dev->pm_domain) {
--		info = "early power domain ";
--		callback = pm_late_early_op(&dev->pm_domain->ops, state);
--	} else if (dev->type && dev->type->pm) {
--		info = "early type ";
--		callback = pm_late_early_op(dev->type->pm, state);
--	} else if (dev->class && dev->class->pm) {
--		info = "early class ";
--		callback = pm_late_early_op(dev->class->pm, state);
--	} else if (dev->bus && dev->bus->pm) {
--		info = "early bus ";
--		callback = pm_late_early_op(dev->bus->pm, state);
--	}
-+	callback = dpm_subsys_resume_early_cb(dev, state, &info);
- 
- 	if (!callback && dev->driver && dev->driver->pm) {
- 		info = "early driver ";
-@@ -1110,6 +1152,35 @@ static void dpm_superior_set_must_resume
- 	device_links_read_unlock(idx);
- }
- 
-+static pm_callback_t dpm_subsys_suspend_noirq_cb(struct device *dev,
-+						 pm_message_t state,
-+						 const char **info_p)
-+{
-+	pm_callback_t callback;
-+	const char *info;
-+
-+	if (dev->pm_domain) {
-+		info = "noirq power domain ";
-+		callback = pm_noirq_op(&dev->pm_domain->ops, state);
-+	} else if (dev->type && dev->type->pm) {
-+		info = "noirq type ";
-+		callback = pm_noirq_op(dev->type->pm, state);
-+	} else if (dev->class && dev->class->pm) {
-+		info = "noirq class ";
-+		callback = pm_noirq_op(dev->class->pm, state);
-+	} else if (dev->bus && dev->bus->pm) {
-+		info = "noirq bus ";
-+		callback = pm_noirq_op(dev->bus->pm, state);
-+	} else {
-+		return NULL;
-+	}
-+
-+	if (info_p)
-+		*info_p = info;
-+
-+	return callback;
-+}
-+
- /**
-  * __device_suspend_noirq - Execute a "noirq suspend" callback for given device.
-  * @dev: Device to handle.
-@@ -1121,8 +1192,8 @@ static void dpm_superior_set_must_resume
-  */
- static int __device_suspend_noirq(struct device *dev, pm_message_t state, bool async)
- {
--	pm_callback_t callback = NULL;
--	const char *info = NULL;
-+	pm_callback_t callback;
-+	const char *info;
- 	int error = 0;
- 
- 	TRACE_DEVICE(dev);
-@@ -1141,19 +1212,7 @@ static int __device_suspend_noirq(struct
- 	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
--	if (dev->pm_domain) {
--		info = "noirq power domain ";
--		callback = pm_noirq_op(&dev->pm_domain->ops, state);
--	} else if (dev->type && dev->type->pm) {
--		info = "noirq type ";
--		callback = pm_noirq_op(dev->type->pm, state);
--	} else if (dev->class && dev->class->pm) {
--		info = "noirq class ";
--		callback = pm_noirq_op(dev->class->pm, state);
--	} else if (dev->bus && dev->bus->pm) {
--		info = "noirq bus ";
--		callback = pm_noirq_op(dev->bus->pm, state);
--	}
-+	callback = dpm_subsys_suspend_noirq_cb(dev, state, &info);
- 
- 	if (!callback && dev->driver && dev->driver->pm) {
- 		info = "noirq driver ";
-@@ -1288,6 +1347,35 @@ int dpm_suspend_noirq(pm_message_t state
- 	return ret;
- }
- 
-+static pm_callback_t dpm_subsys_suspend_late_cb(struct device *dev,
-+						pm_message_t state,
-+						const char **info_p)
-+{
-+	pm_callback_t callback;
-+	const char *info;
-+
-+	if (dev->pm_domain) {
-+		info = "late power domain ";
-+		callback = pm_late_early_op(&dev->pm_domain->ops, state);
-+	} else if (dev->type && dev->type->pm) {
-+		info = "late type ";
-+		callback = pm_late_early_op(dev->type->pm, state);
-+	} else if (dev->class && dev->class->pm) {
-+		info = "late class ";
-+		callback = pm_late_early_op(dev->class->pm, state);
-+	} else if (dev->bus && dev->bus->pm) {
-+		info = "late bus ";
-+		callback = pm_late_early_op(dev->bus->pm, state);
-+	} else {
-+		return NULL;
-+	}
-+
-+	if (info_p)
-+		*info_p = info;
-+
-+	return callback;
-+}
-+
- /**
-  * __device_suspend_late - Execute a "late suspend" callback for given device.
-  * @dev: Device to handle.
-@@ -1298,8 +1386,8 @@ int dpm_suspend_noirq(pm_message_t state
-  */
- static int __device_suspend_late(struct device *dev, pm_message_t state, bool async)
- {
--	pm_callback_t callback = NULL;
--	const char *info = NULL;
-+	pm_callback_t callback;
-+	const char *info;
- 	int error = 0;
- 
- 	TRACE_DEVICE(dev);
-@@ -1320,19 +1408,7 @@ static int __device_suspend_late(struct
- 	if (dev->power.syscore || dev->power.direct_complete)
- 		goto Complete;
- 
--	if (dev->pm_domain) {
--		info = "late power domain ";
--		callback = pm_late_early_op(&dev->pm_domain->ops, state);
--	} else if (dev->type && dev->type->pm) {
--		info = "late type ";
--		callback = pm_late_early_op(dev->type->pm, state);
--	} else if (dev->class && dev->class->pm) {
--		info = "late class ";
--		callback = pm_late_early_op(dev->class->pm, state);
--	} else if (dev->bus && dev->bus->pm) {
--		info = "late bus ";
--		callback = pm_late_early_op(dev->bus->pm, state);
--	}
-+	callback = dpm_subsys_suspend_late_cb(dev, state, &info);
- 
- 	if (!callback && dev->driver && dev->driver->pm) {
- 		info = "late driver ";
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se, maxime.ripard@free-electrons.com, hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com, sre@kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 
 
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+
+Document dts support of LED/focus.
+
+Signed-off-by: Pavel Machek <pavel@ucw.cz>
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt=
+ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+index 0b7b6a4..e80d589 100644
+--- a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
++++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
+@@ -20,6 +20,13 @@ Mandatory properties
+   is in hardware standby mode when the signal is in the low state.
+=20
+=20
++Optional properties
++-------------------
++
++- flash-leds: See ../video-interfaces.txt
++- lens-focus: See ../video-interfaces.txt
++
++
+ Endpoint node mandatory properties
+ ----------------------------------
+=20
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAloIMCEACgkQMOfwapXb+vIvvwCgovOzLS5wXz8nFZhPHXmoXMf5
+yzAAnRVd8KAhtF72KttFGW2keU/MFEeH
+=5wB8
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
