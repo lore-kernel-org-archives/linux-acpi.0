@@ -1,77 +1,26 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 6/6] gpiolib: acpi: Introduce NO_RESTRICTION quirk
-Date: Mon, 13 Nov 2017 15:19:30 +0200
-Message-ID: <20171113131930.GB18997@lahna.fi.intel.com>
-References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
- <20171110134033.85461-6-andriy.shevchenko@linux.intel.com>
- <20171113115554.GY18997@lahna.fi.intel.com>
- <1510578648.25007.166.camel@linux.intel.com>
+From: Amos Kalonzo <daniel.basha.tg@gmail.com>
+Subject: Re:
+Date: Mon, 13 Nov 2017 15:55:00 +0100
+Message-ID: <CAKUwMNDfC9uOG95U5f-i17isa+BX5i3BsL5ROvpZbHGNaz4Q8w__30768.79945952$1510584903$gmane$org@mail.gmail.com>
+Reply-To: info@acalonzo.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:55700 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750854AbdKMNTe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 13 Nov 2017 08:19:34 -0500
-Content-Disposition: inline
-In-Reply-To: <1510578648.25007.166.camel@linux.intel.com>
+Received: from mail-yw0-f196.google.com ([209.85.161.196]:48341 "EHLO
+        mail-yw0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753000AbdKMOzB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Nov 2017 09:55:01 -0500
+Received: by mail-yw0-f196.google.com with SMTP id q1so13620803ywh.5
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Nov 2017 06:55:01 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 03:10:48PM +0200, Andy Shevchenko wrote:
-> On Mon, 2017-11-13 at 13:55 +0200, Mika Westerberg wrote:
-> > On Fri, Nov 10, 2017 at 03:40:33PM +0200, Andy Shevchenko wrote:
-> > > Allow to relax IoRestriction for certain cases.
-> > > 
-> > > One of the use case is incorrectly cooked ACPI table where interrupt
-> > > pin is
-> > > defined with GpioIo() macro with IoRestrictionOutputOnly.
-> > > 
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > 
-> > I think you should include user of this quirk in the patch series as
-> > well. Otherwise it is pretty pointless to add random quirks without
-> > real issues they are supposed to solve ;-)
-> 
-> Something like below?
+Attn:
 
-Yes, but I would also add comment on top of the added line explaining
-why this particular quirk is needed in this particular system.
+I am wondering why You haven't respond to my email for some days now.
+reference to my client's contract balance payment of (11.7M,USD)
+Kindly get back to me for more details.
 
-> --- a/drivers/extcon/extcon-intel-int3496.c
-> +++ b/drivers/extcon/extcon-intel-int3496.c
-> @@ -50,7 +50,7 @@ static const struct acpi_gpio_params vbus_gpios = {
-> INT3496_GPIO_VBUS_EN, 0, fal
->  static const struct acpi_gpio_params mux_gpios = {
-> INT3496_GPIO_USB_MUX, 0, false };
->  
->  static const struct acpi_gpio_mapping acpi_int3496_default_gpios[] = {
-> -       { "id-gpios", &id_gpios, 1 },
-> +       { "id-gpios", &id_gpios, 1, ACPI_GPIO_QUIRK_NO_IO_RESTRICTION },
->         { "vbus-gpios", &vbus_gpios, 1 },
->         { "mux-gpios", &mux_gpios, 1 },
->         { },
-> @@ -112,9 +112,6 @@ static int int3496_probe(struct platform_device
-> *pdev)
->                 ret = PTR_ERR(data->gpio_usb_id);
->                 dev_err(dev, "can't request USB ID GPIO: %d\n", ret);
->                 return ret;
-> -       } else if (gpiod_get_direction(data->gpio_usb_id) !=
-> GPIOF_DIR_IN) {
-> -               dev_warn(dev, FW_BUG "USB ID GPIO not in input mode,
-> fixing\n");
-> -               gpiod_direction_input(data->gpio_usb_id);
->         }
-> 
-> > 
-> > Anyway looks good to me,
-> > 
-> > Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> 
-> Thanks!
-> 
-> -- 
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
+Best Regards
+
+Amos Kalonzo
