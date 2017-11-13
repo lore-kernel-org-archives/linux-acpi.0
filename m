@@ -1,66 +1,48 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 2/2] tools/testing/nvdimm: unit test clear-error commands
-Date: Sun, 12 Nov 2017 15:25:06 -0800
-Message-ID: <151052910654.33363.6050998824518199379.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151052910143.33363.12653920068445460294.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFCv2 PATCH 01/36] iommu: Keep track of processes and PASIDs
+Date: Mon, 13 Nov 2017 11:06:51 +0000
+Message-ID: <SN1PR0201MB1518765CCEDD9B75119D6C63A52B0@SN1PR0201MB1518.namprd02.prod.outlook.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-2-jean-philippe.brucker@arm.com>
+ <BLUPR0201MB150538FDD455F6042803B54FA5560@BLUPR0201MB1505.namprd02.prod.outlook.com>
+ <16b6ba80-b15b-b278-0d06-350ae0201e82@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:4051 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750977AbdKLXdV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 12 Nov 2017 18:33:21 -0500
-In-Reply-To: <151052910143.33363.12653920068445460294.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <16b6ba80-b15b-b278-0d06-350ae0201e82-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, gabriele.pao
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org
 
-Validate command parsing in acpi_nfit_ctl for the clear error command.
-This tests for a crash condition introduced by commit 4b27db7e26cd
-"acpi, nfit: add support for the _LSI, _LSR, and _LSW label methods".
+>       =20
+> In this case even though hardware supports PASID, BIND flow fails.
 
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- tools/testing/nvdimm/test/nfit.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+It should fail, since we're reserving PASID 0 for non-PASID transactions wi=
+th S1DSS=3D0b10. In addition, the SMMUv3 specification does not allow using=
+ PASID with a single entry. See the description of S1CDMax in 5.2 Stream Ta=
+ble Entry:
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index edab68c2e221..7a4846d9607d 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1812,6 +1812,7 @@ static int nfit_ctl_test(struct device *dev)
- 	unsigned long mask, cmd_size, offset;
- 	union {
- 		struct nd_cmd_get_config_size cfg_size;
-+		struct nd_cmd_clear_error clear_err;
- 		struct nd_cmd_ars_status ars_stat;
- 		struct nd_cmd_ars_cap ars_cap;
- 		char buf[sizeof(struct nd_cmd_ars_status)
-@@ -1995,6 +1996,23 @@ static int nfit_ctl_test(struct device *dev)
- 		return -EIO;
- 	}
- 
-+	/* test clear error */
-+	cmd_size = sizeof(cmds.clear_err);
-+	cmds.clear_err = (struct nd_cmd_clear_error) {
-+		.length = 512,
-+		.cleared = 512,
-+	};
-+	rc = setup_result(cmds.buf, cmd_size);
-+	if (rc)
-+		return rc;
-+	rc = acpi_nfit_ctl(&acpi_desc->nd_desc, NULL, ND_CMD_CLEAR_ERROR,
-+			cmds.buf, cmd_size, &cmd_rc);
-+	if (rc < 0 || cmd_rc >= 0) {
-+		dev_dbg(dev, "%s: failed at: %d rc: %d cmd_rc: %d\n",
-+				__func__, __LINE__, rc, cmd_rc);
-+		return -EIO;
-+	}
-+
- 	return 0;
- }
- 
+"when this field is 0, the substreams of the STE are disabled and one CD is=
+ available. (The minimum useful number of substreams is 2.) Any transaction=
+ with a SubstreamID will be terminated with an abort and a C_BAD_SUBSTREAMI=
+D event recorded."
 
+> Any reason why pasid allocation moved to idr allocations rather than=20
+> bitmap allocations as in v1 patches ?
+
+Yes, idr provides a convenient way to quickly retrieve the context associat=
+ed with a PASID, when handling a fault. v1 had the allocation in a bitmap a=
+nd storing in a rb-tree. By using an idr we combine both and rely on a well=
+-tested infrastructure.
+
+Note that in the future we might need to go back to handcrafting the PASID =
+allocation, but it will probably still be based on idr.
+
+Thanks for the clarification, Jean.=20
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
