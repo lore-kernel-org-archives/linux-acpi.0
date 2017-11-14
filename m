@@ -1,53 +1,102 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework updates for v4.15-rc1
-Date: Mon, 13 Nov 2017 23:08:14 +0100
-Message-ID: <CAJZ5v0gwU-v66hCcxXUQ8Q8AeXtgb3Oxf-RwgvNSrH+bLhLqRw@mail.gmail.com>
+From: Brian Norris <briannorris@chromium.org>
+Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
+Date: Mon, 13 Nov 2017 18:51:11 -0800
+Message-ID: <20171114025109.GA43048@google.com>
+References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
+ <20171027072612.26565-7-jeffy.chen@rock-chips.com>
+ <1894178.xtK0vD2N4H@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:48830 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752196AbdKMWIP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Nov 2017 17:08:15 -0500
+Received: from mail-io0-f195.google.com ([209.85.223.195]:50897 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751618AbdKNCvP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Nov 2017 21:51:15 -0500
+Received: by mail-io0-f195.google.com with SMTP id 71so7266410ior.7
+        for <linux-acpi@vger.kernel.org>; Mon, 13 Nov 2017 18:51:15 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1894178.xtK0vD2N4H@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jeffy Chen <jeffy.chen@rock-chips.com>, linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, tony@atomide.com, shawn.lin@rock-chips.com, dianders@chromium.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Linus,
+Hi Rafael,
 
-Please pull from the tag
+I'll answer some of it from my perspective, though Jeffy might have had
+different ideas (and answers) when he implemented this.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-4.15-rc1
+On Wed, Nov 08, 2017 at 11:32:20PM +0100, Rafael J. Wysocki wrote:
+> On Friday, October 27, 2017 9:26:11 AM CET Jeffy Chen wrote:
+> > Move acpi wakeup code to pci core as pci_set_wakeup(), so that other
+> > platforms could reuse it.
+> 
+> What exactly do you want to reuse?
+> 
+> It looks like that's just several lines of code in acpi_pci_wakeup()
+> and acpi_pci_propagate_wakeup() which invoke ACPI-specific lower-level
+> functions, so IMO not worth it at all.
 
-with top-most commit 5e4b1b707b7ed795585b8ee28c44ce692aa8dfef
+The important part he's sharing here is the walking of the tree
+structure, in which it's possible for some parent along the way to
+handle wakeup for its children. I'm not sure how valuable nor how
+reusable that is.
 
- device property: Add a macro for interating over graph endpoints
+In this case (the Rockchip platforms Jeffy and I are working on), I
+think we really want to just support a single WAKE# pin for the whole
+system, so maybe the complexity isn't needed. The spec does describe
+that there are good reasons for supporting more than 1 WAKE# pin though
+(e.g., 1 per device), so it doesn't seem really wise to shoehorn
+oursleves into a single setup.
 
-on top of commit 39dae59d66acd86d1de24294bd2f343fd5e7a625
+But that can be implemented either via copying the "few" lines of
+tree-walking logic, or by trying to share them.
 
- Linux 4.14-rc8
+> The structure for other platform code may be the same or similar, but
+> the details will almost certainly be different and I don't think that
+> having more callback pointers in pci_platform_pm_ops is necessarily better.
 
-to receive device properties framework updates for 4.15-rc1.
+I suppose that's reasonable.
 
-These make the fwnode_handle_get() function return a pointer to the
-target fwnode object, which reflects the of_node_get() behavior, and
-add a macro for iterating over graph endpoints (Sakari Ailus).
+> > Also add .setup_dev() / .setup_host_bridge() / .cleanup() platform pm
+> > ops's callbacks to setup and cleanup pci devices and host bridge for
+> > wakeup.
+> 
+> Why are they needed?
 
-Thanks!
+The implementation is in patch 7, if you really needed more info about
+why, or provide alternatives.
 
+The current set of hooks assumes that there is no state information or
+initialization needed for tracking actions of these platform PM hooks on
+a device. For ACPI this works, because devices have "companion"
+acpi_dev's to handle everything, and the ACPI framework generally
+prepares GPE's for you, IIUC. For 'pci-mid', the operations happen to be
+trivial (and arguably wrong -- several are no-ops, where we might expect
+the platform to tell us whether the operation was actually supported or
+not).
 
----------------
+For device tree, there isn't really a canonical place to store this
+information, nor to initialize something like wakeup interrupts.
 
-Sakari Ailus (2):
-      device property: Make fwnode_handle_get() return the fwnode
-      device property: Add a macro for interating over graph endpoints
+Technically, we could shoehorn this into the .set_wakeup() call, but
+we'd probably rather not do things like request_irq() on every attempt
+to suspend/resume the system (among other reasons, we'd lose information
+that we might otherwise track in /proc/ or /sys/).
 
----------------
+Or the inverse of the above: where would you suggest initializing or
+tearing down the wakeirq?
 
- drivers/base/property.c  | 9 +++++++--
- drivers/of/property.c    | 4 ++--
- include/linux/fwnode.h   | 2 +-
- include/linux/property.h | 6 +++++-
- 4 files changed, 15 insertions(+), 6 deletions(-)
+An alternative could be to include any necessary state into the
+pci_host_bridge or pci_dev and just inline the setup code into
+pci.c/remove.c (e.g., pci_register_host_bridge()) and pci-driver.c
+(pci_device_{probe,remove}()). But I'm not sure that's much more
+beautiful.
+
+Brian
+
+> > Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+> 
+> Thanks,
+> Rafael
+> 
