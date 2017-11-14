@@ -1,102 +1,78 @@
-From: Brian Norris <briannorris@chromium.org>
-Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
-Date: Mon, 13 Nov 2017 18:51:11 -0800
-Message-ID: <20171114025109.GA43048@google.com>
-References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
- <20171027072612.26565-7-jeffy.chen@rock-chips.com>
- <1894178.xtK0vD2N4H@aspire.rjw.lan>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v8 0/7] Support RAS virtualization in KVM
+Date: Tue, 14 Nov 2017 16:00:44 +0000
+Message-ID: <5A0B132C.6070400@arm.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:50897 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751618AbdKNCvP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Nov 2017 21:51:15 -0500
-Received: by mail-io0-f195.google.com with SMTP id 71so7266410ior.7
-        for <linux-acpi@vger.kernel.org>; Mon, 13 Nov 2017 18:51:15 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <1894178.xtK0vD2N4H@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jeffy Chen <jeffy.chen@rock-chips.com>, linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, tony@atomide.com, shawn.lin@rock-chips.com, dianders@chromium.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Rafael,
+Hi Dongjiu Geng,
 
-I'll answer some of it from my perspective, though Jeffy might have had
-different ideas (and answers) when he implemented this.
-
-On Wed, Nov 08, 2017 at 11:32:20PM +0100, Rafael J. Wysocki wrote:
-> On Friday, October 27, 2017 9:26:11 AM CET Jeffy Chen wrote:
-> > Move acpi wakeup code to pci core as pci_set_wakeup(), so that other
-> > platforms could reuse it.
+On 10/11/17 19:54, Dongjiu Geng wrote:
+> This series patches mainly do below things:
 > 
-> What exactly do you want to reuse?
-> 
-> It looks like that's just several lines of code in acpi_pci_wakeup()
-> and acpi_pci_propagate_wakeup() which invoke ACPI-specific lower-level
-> functions, so IMO not worth it at all.
+> 1. Trap RAS ERR* registers Accesses to EL2 from Non-secure EL1,
+>    KVM will will do a minimum simulation, there registers are simulated
+>    to RAZ/WI in KVM.
+> 2. Route synchronous External Abort exceptions from Non-secure EL0
+>    and EL1 to EL2. When exception EL3 routing is enabled by firmware,
+>    system will trap to EL3 firmware instead of EL2 KVM, then firmware
+>    judges whether El2 routing is enabled, if enabled, jump to EL2 KVM, 
+>    otherwise jump to EL1 host kernel.
+> 3. Enable APEI ARv8 SEI notification to parse the CPER records for SError
+>    in the ACPI GHES driver, KVM will call handle_guest_sei() to let ACPI
+>    driver to parse the CPER record for SError which happened in the guest
+> 4. Although we can use APEI driver to handle the guest SError, but not all
+>    system support SEI notification, such as kernel-first. So here KVM will
+>    also classify the Error through Exception Syndrome Register and do different
+>    approaches according to Asynchronous Error Type
 
-The important part he's sharing here is the walking of the tree
-structure, in which it's possible for some parent along the way to
-handle wakeup for its children. I'm not sure how valuable nor how
-reusable that is.
+> 5. If the guest SError error is not propagated and not consumed, then KVM return
+>    recoverable error status to user-space, user-space will specify the guest ESR
 
-In this case (the Rockchip platforms Jeffy and I are working on), I
-think we really want to just support a single WAKE# pin for the whole
-system, so maybe the complexity isn't needed. The spec does describe
-that there are good reasons for supporting more than 1 WAKE# pin though
-(e.g., 1 per device), so it doesn't seem really wise to shoehorn
-oursleves into a single setup.
+I thought we'd gone over this. There should be no RAS errors/notifications in
+user space. Only the symptoms should be sent, using the SIGBUS_MCEERR_A{O,R} if
+the kernel has handled as much as it can. This hides the actual mechanisms the
+kernel and firmware used.
 
-But that can be implemented either via copying the "few" lines of
-tree-walking logic, or by trying to share them.
+User-space should not have to know how to handle RAS errors directly. This is a
+service the operating system provides for it. This abstraction means the smae
+user-space code is portable between x86, arm64, powerpc etc.
 
-> The structure for other platform code may be the same or similar, but
-> the details will almost certainly be different and I don't think that
-> having more callback pointers in pci_platform_pm_ops is necessarily better.
+What if the firmware uses another notification method? User space should expect
+the kernel to hide things like this from it.
 
-I suppose that's reasonable.
+If the kernel has no information to interpret a notification, how is user space
+supposed to know?
 
-> > Also add .setup_dev() / .setup_host_bridge() / .cleanup() platform pm
-> > ops's callbacks to setup and cleanup pci devices and host bridge for
-> > wakeup.
-> 
-> Why are they needed?
+I understand you are trying to work around your 'memory corruption at an unknown
+address'[0] problem, but if the kernel can't know where this corrupt memory is
+it should really reboot. What stops this corrupt data being swapped to disk?
 
-The implementation is in patch 7, if you really needed more info about
-why, or provide alternatives.
+Killing 'the thing' that was running at the time is not sufficient because we
+don't know that this 'got' all the users of the corrupt memory. KSM can merge
+pages between guests. This is the difference between the error persisting
+forever killing off all the VMs one by one, and the corrupt page being silently
+re-read from disk clearing the error.
 
-The current set of hooks assumes that there is no state information or
-initialization needed for tracking actions of these platform PM hooks on
-a device. For ACPI this works, because devices have "companion"
-acpi_dev's to handle everything, and the ACPI framework generally
-prepares GPE's for you, IIUC. For 'pci-mid', the operations happen to be
-trivial (and arguably wrong -- several are no-ops, where we might expect
-the platform to tell us whether the operation was actually supported or
-not).
 
-For device tree, there isn't really a canonical place to store this
-information, nor to initialize something like wakeup interrupts.
+>    and inject a virtual SError. For other Asynchronous Error Type, KVM directly
+>    injects virtual SError with IMPLEMENTATION DEFINED ESR or KVM is panic if the
+>    error is fatal. In the RAS extension, guest virtual ESR must be set, because
+>    all-zero  means 'RAS error: Uncategorized' instead of 'no valid ISS', so set
+>    this ESR to IMPLEMENTATION DEFINED by default if user space does not specify it.
 
-Technically, we could shoehorn this into the .set_wakeup() call, but
-we'd probably rather not do things like request_irq() on every attempt
-to suspend/resume the system (among other reasons, we'd lose information
-that we might otherwise track in /proc/ or /sys/).
 
-Or the inverse of the above: where would you suggest initializing or
-tearing down the wakeirq?
+Thanks,
 
-An alternative could be to include any necessary state into the
-pci_host_bridge or pci_dev and just inline the setup code into
-pci.c/remove.c (e.g., pci_register_host_bridge()) and pci-driver.c
-(pci_device_{probe,remove}()). But I'm not sure that's much more
-beautiful.
+James
 
-Brian
 
-> > Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-> 
-> Thanks,
-> Rafael
-> 
+[0] https://www.spinics.net/lists/arm-kernel/msg605345.html
