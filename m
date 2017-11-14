@@ -1,169 +1,176 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
- categorization
-Date: Tue, 14 Nov 2017 16:00:52 +0000
-Message-ID: <5A0B1334.7060500@arm.com>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
+Date: Tue, 14 Nov 2017 17:07:59 +0100
+Message-ID: <CAPDyKFr4DgVdKtf=G1vUy=Si0nSTECsrWoqB+z9UCQHS8DuwcQ@mail.gmail.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <16592954.7Zo1mAdIIH@aspire.rjw.lan>
+ <6330680.LdxjlP4uri@aspire.rjw.lan> <2932219.eEdIVn6WWf@aspire.rjw.lan>
+ <CAPDyKFrbnLjBzY3yE1OyXOpG3--K+C-1BCWQtyL9S6zQ5cmdhw@mail.gmail.com> <CAJZ5v0i4yFGyqAZ6QqG7q1_xNfjMNHkPk3o0WuBvwKFeM2nXeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: wuquanming@huawei.com, linux-doc@vger.kernel.org, kvm@vger.kernel.org, marc.zyngier@arm.com, catalin.marinas@arm.com, corbet@lwn.net, rjw@rjwysocki.net, linux@armlinux.org.uk, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, linux-arm-kernel@lists.infradead.org, huangshaoyu@huawei.com, pbonzini@redhat.com, kvmarm@lists.cs.columbia.edu, devel@acpica.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f49.google.com ([209.85.214.49]:38128 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755044AbdKNQIB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Nov 2017 11:08:01 -0500
+Received: by mail-it0-f49.google.com with SMTP id n134so5611988itg.3
+        for <linux-acpi@vger.kernel.org>; Tue, 14 Nov 2017 08:08:01 -0800 (PST)
+In-Reply-To: <CAJZ5v0i4yFGyqAZ6QqG7q1_xNfjMNHkPk3o0WuBvwKFeM2nXeg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 
-Hi Dongjiu Geng,
+On 11 November 2017 at 00:45, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Fri, Nov 10, 2017 at 10:09 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>> On 8 November 2017 at 14:25, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> Define and document a new driver flag, DPM_FLAG_LEAVE_SUSPENDED, to
+>>> instruct the PM core and middle-layer (bus type, PM domain, etc.)
+>>> code that it is desirable to leave the device in runtime suspend
+>>> after system-wide transitions to the working state (for example,
+>>> the device may be slow to resume and it may be better to avoid
+>>> resuming it right away).
+>>>
+>>> Generally, the middle-layer code involved in the handling of the
+>>> device is expected to indicate to the PM core whether or not the
+>>> device may be left in suspend with the help of the device's
+>>> power.may_skip_resume status bit.  That has to happen in the "noirq"
+>>> phase of the preceding system suspend (or analogous) transition.
+>>> The middle layer is then responsible for handling the device as
+>>> appropriate in its "noirq" resume callback which is executed
+>>> regardless of whether or not the device may be left suspended, but
+>>> the other resume callbacks (except for ->complete) will be skipped
+>>> automatically by the core if the device really can be left in
+>>> suspend.
+>>
+>> I don't understand the reason to why you need to skip invoking resume
+>> callbacks to achieve this behavior, could you elaborate on that?
+>
+> The reason why it is done this way is because that takes less code and
+> is easier (or at least less error-prone, because it avoids repeating
+> patterns in middle layers).
+>
+> Note that the callbacks only may be skipped by the core if the middle
+> layer has set power.skip_resume for the device (or if the core is
+> handling it in patch [5/6], but that's one more step ahead still).
+>
+>> Couldn't the PM domain or the middle-layer instead decide what to do?
+>
+> They still can, the whole thing is a total opt-in.
+>
+> But to be constructive, do you have any specific examples in mind?
 
-On 10/11/17 19:54, Dongjiu Geng wrote:
-> If it is not RAS SError, directly inject virtual SError,
-> which will keep the old way. If it is RAS SError, firstly
-> let host ACPI module to handle it.
+See more below.
 
-> For the ACPI handling,
-> if the error address is invalid, APEI driver will not
-> identify the address to hwpoison memory and can not notify
-> guest to do the recovery.
+>
+>> To me it sounds a bit prone to errors by skipping callbacks from the
+>> PM core, and I wonder if the general driver author will be able to
+>> understand how to use this flag properly.
+>
+> This has nothing to do with general driver authors and I'm not sure
+> what you mean here and where you are going with this.
 
-The guest can't do any recover either. There is no recovery you can do without
-some information about what the error is.
+Let me elaborate.
 
-This is your memory corruption at an unknown address? We should reboot.
+My general goal is that I want to make it easier (or as easy as
+possible) for the general driver author to deploy runtime PM and
+system-wide PM support - in an optimized manner. Therefore, I am
+pondering over the solution you picked in this series, trying to
+understand how it fits into those aspects.
 
-(I agree memory_failure.c's::me_kernel() is ignoring kernel errors, we should
-try and fix this. It makes some sense for polled or irq notifications, but not
-SEA/SEI).
+Particular I am a bit worried from a complexity point of view, about
+the part with skipping callbacks from the PM core. We have observed
+some difficulties with the direct_complete path (i2c dw driver), which
+is based on a similar approach as this one.
 
+Additionally, in this case, to trigger skipping of callbacks to
+happen, first, drivers needs to inform the middle-layer, second, the
+middle layer acts on that information and then informs the PM core,
+then in the third step, the PM core can decide what to do. It doesn't
+sound straight-forward.
 
-> In order to safe, KVM continues
-> categorizing errors and handle it separately.
+I guess I need to be convinced that this new approach is going to be
+better than the the direct_complete path, so it somehow can replace it
+along the road. Otherwise, we may end up just having yet another way
+of skipping callbacks in the PM core and I don't like that.
 
-> If the RAS error is not propagated, let host user space to
-> handle it. 
+Of course, I also realize this hole thing is opt-in, so nothing will
+break and we are all good. :-)
 
-No. Host user space should not know anything about the kernel or platform RAS
-support. Doing so creates an ABI link between EL3 firmware and Qemu. This is
-totally unmaintainable.
+>
+>> That said, as the series don't include any changes for drivers making
+>> use of the flag, could please fold in such change as it would provide
+>> a more complete picture?
+>
+> I've already done so, see https://patchwork.kernel.org/patch/10007349/
+>
+> IMHO it's not really useful to drag this stuff (which doesn't change
+> BTW) along with every iteration of the core patches.
 
-This thing needs to be portable. The kernel should handle the error, and report
-any symptoms to user-space. e.g. 'this memory is gone'.
+Well, to me it's useful because it shows how these flags can/will be used.
 
-We shouldn't special case KVM.
+Anyway, I thought you scraped that patch and was working on a new
+version. I will have a look then.
 
+[...]
 
-> The reason is that sometimes we can only kill the
-> guest effected application instead of panic whose guest OS.
-> Host user space specifies a valid ESR and inject virtual
-> SError, guest can just kill the current application if the
-> non-consumed error coming from guest application.
-> 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Signed-off-by: Quanming Wu <wuquanming@huawei.com>
+>>>   * device_resume_noirq - Execute a "noirq resume" callback for given device.
+>>>   * @dev: Device to handle.
+>>>   * @state: PM transition of the system being carried out.
+>>> @@ -575,6 +587,12 @@ static int device_resume_noirq(struct de
+>>>         error = dpm_run_callback(callback, dev, state, info);
+>>>         dev->power.is_noirq_suspended = false;
+>>>
+>>> +       if (dev_pm_may_skip_resume(dev)) {
+>>> +               pm_runtime_set_suspended(dev);
+>>
+>> According to the doc, the DPM_FLAG_LEAVE_SUSPENDED intends to leave
+>> the device in runtime suspend state during system resume.
+>> However, here you are actually trying to change its runtime PM state to that.
+>
+> So the doc needs to be fixed. :-)
 
-The last Signed-off-by should match the person posting the patch. It's a chain
-of custody for GPL-signoff purposes, not a 'partially-written-by'. If you want
-to credit Quanming Wu you can add CC and they can Ack/Review your patch.
+Yep.
 
+>
+> But I'm guessing that this just is a misunderstanding and you mean the
+> phrase "it may be desirable to leave some devices in runtime suspend
+> after [...]".  Yes, it is talking about "runtime suspend", but
+> actually "runtime suspend" is the only kind of "suspend" you can leave
+> a device in after a system transition to the working state.  It never
+> says that the device must have been suspended before the preceding
+> system transition into a sleep state started.
 
-> diff --git a/arch/arm64/kvm/handle_exit.c b/arch/arm64/kvm/handle_exit.c
-> index 7debb74..1afdc87 100644
-> --- a/arch/arm64/kvm/handle_exit.c
-> +++ b/arch/arm64/kvm/handle_exit.c
-> @@ -178,6 +179,66 @@ static exit_handle_fn kvm_get_exit_handler(struct kvm_vcpu *vcpu)
->  	return arm_exit_handlers[hsr_ec];
->  }
->  
-> +/**
-> + * kvm_handle_guest_sei - handles SError interrupt or asynchronous aborts
-> + * @vcpu:	the VCPU pointer
-> + *
-> + * For RAS SError interrupt, firstly let host kernel handle it.
-> + * If the AET is [ESR_ELx_AET_UER], then let user space handle it,
-> + */
-> +static int kvm_handle_guest_sei(struct kvm_vcpu *vcpu, struct kvm_run *run)
-> +{
-> +	unsigned int esr = kvm_vcpu_get_hsr(vcpu);
-> +	bool impdef_syndrome =  esr & ESR_ELx_ISV;	/* aka IDS */
-> +	unsigned int aet = esr & ESR_ELx_AET;
-> +
-> +	/*
-> +	 * This is not RAS SError
-> +	 */
-> +	if (!cpus_have_const_cap(ARM64_HAS_RAS_EXTN)) {
-> +		kvm_inject_vabt(vcpu);
-> +		return 1;
-> +	}
+My point is, it's isn't obvious why you need to make sure the device's
+runtime PM status is set to "RPM_SUSPENDED" when leaving the resume
+noirq phase. You did explain that somewhat above, thanks!
 
-> +	/* The host kernel may handle this abort. */
-> +	handle_guest_sei();
+Perhaps you could fold in some of that information into the doc as well?
 
-This has to claim the SError as a notification. If APEI claims the error, KVM
-doesn't need to do anything more. You ignore its return code.
+>
+>> Moreover, you should check the return value from
+>> pm_runtime_set_suspended().
+>
+> This is in "noirq", so failures of that are meaningless here.
+>
+>> Then I wonder, what should you do when it fails here?
+>>
+>> Perhaps a better idea is to do this in the noirq suspend phase,
+>> because it allows you to bail out in case pm_runtime_set_suspended()
+>> fails.
+>
+> This doesn't make sense, sorry.
 
+What do you mean by "failures of that are meaningless here."?
 
-> +
-> +	/*
-> +	 * In below two conditions, it will directly inject the
-> +	 * virtual SError:
-> +	 * 1. The Syndrome is IMPLEMENTATION DEFINED
-> +	 * 2. It is Uncategorized SEI
-> +	 */
-> +	if (impdef_syndrome ||
-> +		((esr & ESR_ELx_FSC) != ESR_ELx_FSC_SERROR)) {
-> +		kvm_inject_vabt(vcpu);
-> +		return 1;
-> +	}
-> +
-> +	switch (aet) {
-> +	case ESR_ELx_AET_CE:	/* corrected error */
-> +	case ESR_ELx_AET_UEO:	/* restartable error, not yet consumed */
-> +		return 1;	/* continue processing the guest exit */
+I was suggesting, instead of calling pm_runtime_set_suspended() in the
+noirq *resume* phase, why can't you do that in the noirq *suspend*
+phase?
 
-> +	case ESR_ELx_AET_UER:	/* The error has not been propagated */
-> +		/*
-> +		 * Userspace only handle the guest SError Interrupt(SEI) if the
-> +		 * error has not been propagated
-> +		 */
-> +		run->exit_reason = KVM_EXIT_EXCEPTION;
-> +		run->ex.exception = ESR_ELx_EC_SERROR;
-> +		run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
-> +		return 0;
+In the noirq *suspend* phase it's not too late to deal with errors!? Or is it?
 
-We should not pass RAS notifications to user space. The kernel either handles
-them, or it panics(). User space shouldn't even know if the kernel supports RAS
-until it gets an MCEERR signal.
+[...]
 
-You're making your firmware-first notification an EL3->EL0 signal, bypassing the OS.
-
-If we get a RAS SError and there are no CPER records or values in the ERR nodes,
-we should panic as it looks like the CPU/firmware is broken. (spurious RAS errors)
-
-
-> +	default:
-> +		/*
-> +		 * Until now, the CPU supports RAS and SEI is fatal, or host
-> +		 * does not support to handle the SError.
-> +		 */
-> +		panic("This Asynchronous SError interrupt is dangerous, panic");
-> +	}
-> +
-> +	return 0;
-> +}
-> +
->  /*
->   * Return > 0 to return to guest, < 0 on error, 0 (and set exit_reason) on
->   * proper exit to userspace.
-
-
-
-James
+Kind regards
+Uffe
