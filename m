@@ -1,106 +1,44 @@
-From: Juri Lelli <juri.lelli@redhat.com>
-Subject: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux Kernel
- II edition (OSPM-summit 2018)
-Date: Wed, 15 Nov 2017 14:34:09 +0100
-Message-ID: <CAFj23Bj4PvHyBKXCzeVOo_O0M4tVydK7B7fv78=yPO3WQ2+WBw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/2] ACPI: button: Add an info message when we're sending a LID closed event
+Date: Wed, 15 Nov 2017 15:07:17 +0100
+Message-ID: <20171115140718.13026-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:48006 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757465AbdKOOHZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Nov 2017 09:07:25 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-Power Management and Scheduling in the Linux Kernel II edition
-(OSPM-summit 2018)
+I've been debugging some spurious suspend issues on various devices,
+at least on some devices these spurious suspends are caused by surious
+LID closed events being send to userspace.
 
-April 16-18, 2018
-Scuola Superiore Sant'Anna
-Pisa, Italy
+Running e.g. evemu-record after noticing a spurious suspend is too late
+to detect that a LID closed event it the (probable) cause of this.
+This commit adds a pr_info("ACPI LID closed\n") call to help debugging.
 
-http://retis.sssup.it/ospm-summit/
-
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
+ drivers/acpi/button.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-.:: FOCUS
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index ef1856b15488..07da60fe9cae 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -210,6 +210,9 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+ 	}
+ 	/* Send the platform triggered reliable event */
+ 	if (do_update) {
++		if (!state)
++			pr_info("ACPI LID closed\n");
++
+ 		input_report_switch(button->input, SW_LID, !state);
+ 		input_sync(button->input);
+ 		button->last_state = !!state;
+-- 
+2.14.3
 
-Power management and scheduling techniques to reduce energy
-consumption while meeting performance and latency requirements are
-still receiving considerable attention from the Linux Kernel
-development community.
-
-After the success of the first edition
-(https://lwn.net/Articles/721573/), II edition of the Power Management
-and Scheduling in the Linux Kernel (OSPM) summit aims at replicating
-such focused discussions, understanding what has been achieved and
-what instead still remains to be addressed.
-
-.:: FORMAT
-
-The summit is organised to cover three days of discussions and talks.
-
-The list of topics of interest includes (but it is not limited to):
-
-* Power management techniques
-* Real-time and non real-time scheduling techniques
-* Energy awareness
-* Mobile/Server power management real-world use cases (successes and failures)
-* Power management and scheduling tooling (configuration, integration,
-testing, etc.)
-* Tracing
-* Recap lightning talks (what has been achieved w.r.t. I edition?)
-
-Presentations can cover recently developed technologies, ongoing work
-and new ideas. Please understand that this workshop is not intended
-for presenting sales and marketing pitches.
-
-.:: ATTENDING
-
-Attending the OSPM-summit is free of charge, but registration to the
-event is mandatory. The event can allow a maximum of 50 people (so, be
-sure to register early!). Registrations open on December 23rd, 2017.
-To register fill in the registration form available at
-https://goo.gl/forms/QHebUBdSWgFeSrKv2. While it is not strictly
-required to submit a topic/presentation (see below), registrations
-with a topic/presentation proposal will take precedence.
-
-.:: VENUE
-
-The workshop will take place at ReTiS Lab*, Scuola Superiore
-Sant'Anna, Pisa, Italy. Pisa is a small town, walking distance from
-the city centre to the venue is 20 minutes, walking distance from the
-airport to the city centre is 30 minutes. More details are available
-from the summit web page: http://retis.sssup.it/ospm-summit/#site
-
-* https://goo.gl/maps/2pPXG2v7Lfp
-
-.:: SUBMIT A TOPIC/PRESENTATION
-
-To submit a topic/presentation add its details to this list:
-https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing
-
-Alternatively, simply reply (only to me :) to this email specifying:
-
-- name/surname
-- affiliation
-- short bio
-- email address
-- title
-- abstract
-- 30min or 50min slot
-
-Deadline for submitting topics/presentations is 9th of December 2017.
-Notifications for accepted topics/presentations will be sent out on
-23rd of December 2017.
-
-.:: ORGANISERS (in alphabetical order)
-
-Luca Abeni (SSSA)
-Patrick Bellasi (Arm)
-Tommaso Cucinotta (SSSA)
-Dietmar Eggemann (Arm)
-Sudeep Holla (Arm)
-Juri Lelli (Red Hat)
-Lorenzo Pieralisi (Arm)
-Morten Rasmussen (Arm)
-Claudio Scordino (Evidence SRL)
