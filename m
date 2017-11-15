@@ -1,150 +1,126 @@
-From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
-Subject: RE: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms
- supporting only IOAPIC mode
-Date: Wed, 15 Nov 2017 10:05:07 +0000
-Message-ID: <CS1PR8401MB0518BBCAEA7AB61840C83324D9290@CS1PR8401MB0518.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v8 0/7] Support RAS virtualization in KVM
+Date: Wed, 15 Nov 2017 19:06:33 +0800
+Message-ID: <18af7014-abcd-4593-cd56-208a446ca7c0@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <5A0B132C.6070400@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:10978 "EHLO
+        szxga05-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756961AbdKOLHj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 06:07:39 -0500
+In-Reply-To: <5A0B132C.6070400@arm.com>
 Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kkamagui@gmail.com" <kkamagui@gmail.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@kernel.org" <mingo@kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "Attar, Abdul Lateef" <abdul-lateef.attar@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 
-Hi Rafael,
+Hi James,
+   Thank you very much for your comments and review.
 
-Any thoughts on this.
+On 2017/11/15 0:00, James Morse wrote:
+> Hi Dongjiu Geng,
+> 
+> On 10/11/17 19:54, Dongjiu Geng wrote:
+>> This series patches mainly do below things:
+>>
+>> 1. Trap RAS ERR* registers Accesses to EL2 from Non-secure EL1,
+>>    KVM will will do a minimum simulation, there registers are simulated
+>>    to RAZ/WI in KVM.
+>> 2. Route synchronous External Abort exceptions from Non-secure EL0
+>>    and EL1 to EL2. When exception EL3 routing is enabled by firmware,
+>>    system will trap to EL3 firmware instead of EL2 KVM, then firmware
+>>    judges whether El2 routing is enabled, if enabled, jump to EL2 KVM, 
+>>    otherwise jump to EL1 host kernel.
+>> 3. Enable APEI ARv8 SEI notification to parse the CPER records for SError
+>>    in the ACPI GHES driver, KVM will call handle_guest_sei() to let ACPI
+>>    driver to parse the CPER record for SError which happened in the guest
+>> 4. Although we can use APEI driver to handle the guest SError, but not all
+>>    system support SEI notification, such as kernel-first. So here KVM will
+>>    also classify the Error through Exception Syndrome Register and do different
+>>    approaches according to Asynchronous Error Type
+> 
+>> 5. If the guest SError error is not propagated and not consumed, then KVM return
+>>    recoverable error status to user-space, user-space will specify the guest ESR
+> 
+> I thought we'd gone over this. There should be no RAS errors/notifications in
+> user space. Only the symptoms should be sent, using the SIGBUS_MCEERR_A{O,R} if
+> the kernel has handled as much as it can. This hides the actual mechanisms the
+> kernel and firmware used.
 
-Regards
-Vikas Sajjan
+Yes, I understand it.
+For guest SError, if it is not  propagated and not consumed by PE, and the error address recorded by firmware is not accurate,
+what is your suggestion about this scenario ?
 
------Original Message-----
-From: Sajjan, Vikas C 
-Sent: Friday, November 10, 2017 3:08 PM
-To: linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; rjw@rjwysocki.net
-Cc: linux-kernel@vger.kernel.org; kkamagui@gmail.com; tglx@linutronix.de; mingo@kernel.org; Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; Attar, Abdul Lateef <abdul-lateef.attar@hpe.com>
-Subject: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms supporting only IOAPIC mode
+I check again the comments in [0](as shown below), you ever suggest system panic.
 
-The platforms which support only IOAPIC mode and whose SCI INT is greater than 16, passes SCI INT via FADT and not via MADT int src override structure. In such cases current logic fails to handle it and throws error "Invalid bus_irq %u for legacy override". This patch handles the above  mentioned case. While at it, also modify function mp_override_legacy_irq() to use the newly introduced function mp_register_ioapic_irq().
+-----------------------------------------------------------------
+"I think in this scenario your firmware should describe a memory-error with an
+unknown address. (i.e. don't set the 'physical address valid' bit in CPER's
+'Table 275 Memory Error Record'). When Linux gets one of these, it should
+panic(): We know some memory is corrupt, we don't know where it is"
+----------------------------------------------------------------
 
-Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Signed-off-by: Sunil V L <sunil.vl@hpe.com>
-Signed-off-by: Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
----
- arch/x86/kernel/acpi/boot.c | 77 +++++++++++++++++++++++++++------------------
- 1 file changed, 47 insertions(+), 30 deletions(-)
+but I think it is not better, you ever have below concern in [0]
+"The fault may be in the page tables belonging to the guest kernel,
+even worse they may belong to they hypervisor's stage2 page tables"
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c index 079535e..8ab97a5 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -342,13 +342,12 @@ static int acpi_register_lapic(int id, u32 acpiid, u8 enabled)  #ifdef CONFIG_X86_IO_APIC
- #define MP_ISA_BUS		0
- 
-+static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
-+						u8 trigger, u32 gsi);
-+
- static void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
- 					  u32 gsi)
- {
--	int ioapic;
--	int pin;
--	struct mpc_intsrc mp_irq;
--
- 	/*
- 	 * Check bus_irq boundary.
- 	 */
-@@ -357,32 +356,8 @@ static void __init mp_override_legacy_irq(u8 bus_irq, u8 polarity, u8 trigger,
- 		return;
- 	}
- 
--	/*
--	 * Convert 'gsi' to 'ioapic.pin'.
--	 */
--	ioapic = mp_find_ioapic(gsi);
--	if (ioapic < 0)
-+	if (mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi) < 0)
- 		return;
--	pin = mp_find_ioapic_pin(ioapic, gsi);
--
--	/*
--	 * TBD: This check is for faulty timer entries, where the override
--	 *      erroneously sets the trigger to level, resulting in a HUGE
--	 *      increase of timer interrupts!
--	 */
--	if ((bus_irq == 0) && (trigger == 3))
--		trigger = 1;
--
--	mp_irq.type = MP_INTSRC;
--	mp_irq.irqtype = mp_INT;
--	mp_irq.irqflag = (trigger << 2) | polarity;
--	mp_irq.srcbus = MP_ISA_BUS;
--	mp_irq.srcbusirq = bus_irq;	/* IRQ */
--	mp_irq.dstapic = mpc_ioapic_id(ioapic); /* APIC ID */
--	mp_irq.dstirq = pin;	/* INTIN# */
--
--	mp_save_irq(&mp_irq);
--
- 	/*
- 	 * Reset default identity mapping if gsi is also an legacy IRQ,
- 	 * otherwise there will be more than one entry with the same GSI @@ -429,6 +404,44 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
- 	return 0;
- }
- 
-+static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
-+						u8 trigger, u32 gsi)
-+{
-+	int ioapic;
-+	int pin;
-+	struct mpc_intsrc mp_irq;
-+
-+	/*
-+	 * Convert 'gsi' to 'ioapic.pin'.
-+	 */
-+	ioapic = mp_find_ioapic(gsi);
-+	if (ioapic < 0) {
-+		pr_warn("Failed to find ioapic for gsi : %u\n", gsi);
-+		return ioapic;
-+	}
-+	pin = mp_find_ioapic_pin(ioapic, gsi);
-+
-+	/*
-+	 * TBD: This check is for faulty timer entries, where the override
-+	 *      erroneously sets the trigger to level, resulting in a HUGE
-+	 *      increase of timer interrupts!
-+	 */
-+	if ((bus_irq == 0) && (trigger == 3))
-+		trigger = 1;
-+
-+	mp_irq.type = MP_INTSRC;
-+	mp_irq.irqtype = mp_INT;
-+	mp_irq.irqflag = (trigger << 2) | polarity;
-+	mp_irq.srcbus = MP_ISA_BUS;
-+	mp_irq.srcbusirq = bus_irq;	/* IRQ */
-+	mp_irq.dstapic = mpc_ioapic_id(ioapic); /* APIC ID */
-+	mp_irq.dstirq = pin;	/* INTIN# */
-+
-+	mp_save_irq(&mp_irq);
-+
-+	return 0;
-+}
-+
- static int __init
- acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)  { @@ -473,7 +486,11 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
- 	if (acpi_sci_flags & ACPI_MADT_POLARITY_MASK)
- 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
- 
--	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	if (bus_irq < NR_IRQS_LEGACY)
-+		mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
-+	else
-+		mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi);
-+
- 	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
- 
- 	/*
---
-1.9.1
+If it is in the page tables, killing the APP, the memory will be free. if there is another application
+will use this error address again, trigger another SError?
+
+
+you know the error still not consumed by PE , so we can isolated it by killing it.
+lets discuses the host EL0, if host El0 APP happen SError and error not consumed by the PE.
+do you mean we also panic host OS?
+
+
+> 
+> User-space should not have to know how to handle RAS errors directly. This is a
+> service the operating system provides for it. This abstraction means the smae
+> user-space code is portable between x86, arm64, powerpc etc.
+> 
+> What if the firmware uses another notification method? User space should expect
+> the kernel to hide things like this from it.
+> 
+> If the kernel has no information to interpret a notification, how is user space
+> supposed to know?
+> 
+> I understand you are trying to work around your 'memory corruption at an unknown
+> address'[0] problem, but if the kernel can't know where this corrupt memory is
+> it should really reboot. What stops this corrupt data being swapped to disk?
+> 
+> Killing 'the thing' that was running at the time is not sufficient because we
+> don't know that this 'got' all the users of the corrupt memory. KSM can merge
+
+I think if we better using the ESB to isolate the error between EL0 and EL1, isolate the error between different guest.
+then the error will be isolate to El0 application if it happen in El0. When KSM running, the ESB can synchronize
+the error out instead of spread the error to other guests.
+
+
+
+> pages between guests. This is the difference between the error persisting
+> forever killing off all the VMs one by one, and the corrupt page being silently
+> re-read from disk clearing the error.
+> 
+> 
+>>    and inject a virtual SError. For other Asynchronous Error Type, KVM directly
+>>    injects virtual SError with IMPLEMENTATION DEFINED ESR or KVM is panic if the
+>>    error is fatal. In the RAS extension, guest virtual ESR must be set, because
+>>    all-zero  means 'RAS error: Uncategorized' instead of 'no valid ISS', so set
+>>    this ESR to IMPLEMENTATION DEFINED by default if user space does not specify it.
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> [0] https://www.spinics.net/lists/arm-kernel/msg605345.html
+> 
+> .
+> 
+
