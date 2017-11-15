@@ -1,55 +1,106 @@
-From: " M,Shakour Rosarita" <hassanamira04@gmail.com>
-Subject: Hello Dear...
-Date: Wed, 15 Nov 2017 11:33:35 +0000
-Message-ID: <CADmkuphPLbDWshY0vyFoGaNpEvVxhHAWRGf=JwVhJ4oopvr5uA@mail.gmail.com>
-Reply-To: mshakourrosarita22@gmail.com
+From: Juri Lelli <juri.lelli@redhat.com>
+Subject: [ANNOUNCE][CFP] Power Management and Scheduling in the Linux Kernel
+ II edition (OSPM-summit 2018)
+Date: Wed, 15 Nov 2017 14:34:09 +0100
+Message-ID: <CAFj23Bj4PvHyBKXCzeVOo_O0M4tVydK7B7fv78=yPO3WQ2+WBw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:49965 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932360AbdKOLdg (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 06:33:36 -0500
-Received: by mail-qt0-f196.google.com with SMTP id p44so23079467qtj.6
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Nov 2017 03:33:36 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Dear...
+Power Management and Scheduling in the Linux Kernel II edition
+(OSPM-summit 2018)
 
-I know that this message will come to you as a surprise. I hoped that
-you will not expose or betray this trust and confident that I am about
-to repose on you, my name is M, Shakour Rosarita. I am 19 years old
-Girl, female, from Tartu Syria, (never married) 61 kg, white in
-complexion, and I am currently living in the refugee camp here in
-Abidjan Ivory Coast, My late beloved father M,Shakour Hassin was a
-renowned businessman and owner of Natour Petrol Station in Syria, he
-was killed in a stampede riot in Tartu, Syria.
-When I got the news about my parents. I fled to a nearby country
-Jordan before I joined a ferry to Africa and came to Abidjan capital
-city Ivory Coast West Africa find safety here.
-I came in 2015 to Abidjan and I now live in refugee camps here as
-refugees are allowed freely to enter here without, My late father
-deposited (US$6.200.000.00m) My late father kept the money at the bank
-of Africa, I want you to help me transfer the money to your hand so
-that you will help me bring me into your country for my continue
-education.
+April 16-18, 2018
+Scuola Superiore Sant'Anna
+Pisa, Italy
 
-I sent my pictures here for you to see. Who I am seriously looking for
-a good-person in my life, so I want to hear from you soon and learn
-more about you.
+http://retis.sssup.it/ospm-summit/
 
-I am an open-minded and friendly girl to share a good time with you
-and have fun and enjoy on the go, bird watching, the rest of our
-lives. My Hobbies, tourism books, dance, music, soccer, tennis,
-swimming and cinema.
-I would just think about you, including your dose and doesn=E2=80=99t .I
-believe we will do well together, and live like one family.
-Thank you and God bless you, for you in your promise to help me here,
-looking forward to your reply by the grace of God and have a good day.
-I hope you send me your photos as well? I await your next reply in
-faith please reply through my private email at
-(mshakourrosarita22@gmail.com):
-Thanks.
-Ms Rosarita
+---
+
+.:: FOCUS
+
+Power management and scheduling techniques to reduce energy
+consumption while meeting performance and latency requirements are
+still receiving considerable attention from the Linux Kernel
+development community.
+
+After the success of the first edition
+(https://lwn.net/Articles/721573/), II edition of the Power Management
+and Scheduling in the Linux Kernel (OSPM) summit aims at replicating
+such focused discussions, understanding what has been achieved and
+what instead still remains to be addressed.
+
+.:: FORMAT
+
+The summit is organised to cover three days of discussions and talks.
+
+The list of topics of interest includes (but it is not limited to):
+
+* Power management techniques
+* Real-time and non real-time scheduling techniques
+* Energy awareness
+* Mobile/Server power management real-world use cases (successes and failures)
+* Power management and scheduling tooling (configuration, integration,
+testing, etc.)
+* Tracing
+* Recap lightning talks (what has been achieved w.r.t. I edition?)
+
+Presentations can cover recently developed technologies, ongoing work
+and new ideas. Please understand that this workshop is not intended
+for presenting sales and marketing pitches.
+
+.:: ATTENDING
+
+Attending the OSPM-summit is free of charge, but registration to the
+event is mandatory. The event can allow a maximum of 50 people (so, be
+sure to register early!). Registrations open on December 23rd, 2017.
+To register fill in the registration form available at
+https://goo.gl/forms/QHebUBdSWgFeSrKv2. While it is not strictly
+required to submit a topic/presentation (see below), registrations
+with a topic/presentation proposal will take precedence.
+
+.:: VENUE
+
+The workshop will take place at ReTiS Lab*, Scuola Superiore
+Sant'Anna, Pisa, Italy. Pisa is a small town, walking distance from
+the city centre to the venue is 20 minutes, walking distance from the
+airport to the city centre is 30 minutes. More details are available
+from the summit web page: http://retis.sssup.it/ospm-summit/#site
+
+* https://goo.gl/maps/2pPXG2v7Lfp
+
+.:: SUBMIT A TOPIC/PRESENTATION
+
+To submit a topic/presentation add its details to this list:
+https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing
+
+Alternatively, simply reply (only to me :) to this email specifying:
+
+- name/surname
+- affiliation
+- short bio
+- email address
+- title
+- abstract
+- 30min or 50min slot
+
+Deadline for submitting topics/presentations is 9th of December 2017.
+Notifications for accepted topics/presentations will be sent out on
+23rd of December 2017.
+
+.:: ORGANISERS (in alphabetical order)
+
+Luca Abeni (SSSA)
+Patrick Bellasi (Arm)
+Tommaso Cucinotta (SSSA)
+Dietmar Eggemann (Arm)
+Sudeep Holla (Arm)
+Juri Lelli (Red Hat)
+Lorenzo Pieralisi (Arm)
+Morten Rasmussen (Arm)
+Claudio Scordino (Evidence SRL)
