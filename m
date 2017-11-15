@@ -1,64 +1,49 @@
-From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
-Subject: [PATCH] acpi, numa, ia64: Parse all entries of SRAT memory affinity table
-Date: Wed, 15 Nov 2017 22:59:02 +0530
-Message-ID: <20171115172902.20083-1-ganapatrao.kulkarni@cavium.com>
+From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+Subject: RE: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms
+ supporting only IOAPIC mode
+Date: Wed, 15 Nov 2017 17:30:46 +0000
+Message-ID: <CS1PR8401MB05189C5186CD6E4B6509EAD5D9290@CS1PR8401MB0518.NAMPRD84.PROD.OUTLOOK.COM>
+References: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
+ <CAJZ5v0g8d=q1TZvacBZ_EDMjAnufQdHYkfbnkhv4kSH_FNOhDg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0089.outbound.protection.outlook.com ([104.47.32.89]:33728
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1757627AbdKOR3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:29:55 -0500
+Received: from g4t3425.houston.hpe.com ([15.241.140.78]:18746 "EHLO
+        g4t3425.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753038AbdKORb3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:31:29 -0500
+In-Reply-To: <CAJZ5v0g8d=q1TZvacBZ_EDMjAnufQdHYkfbnkhv4kSH_FNOhDg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: fenghua.yu@intel.com, tony.luck@intel.com, rjw@rjwysocki.net, lenb@kernel.org, guohanjun@huawei.com, jnair@caviumnetworks.com, gpkulkarni@gmail.com, Robert.Richter@cavium.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Seunghun Han <kkamagui@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "Attar, Abdul Lateef" <abdul-lateef.attar@hpe.com>
 
-In current implementation, SRAT Memory Affinity Structure table
-parsing is restricted to number of maximum memblocks allowed
-(NR_NODE_MEMBLKS). However NR_NODE_MEMBLKS is defined individually as
-per architecture requirements. Hence removing the restriction of
-SRAT Memory Affinity Structure parsing in acpi driver code and
-let architecture code check for allowed memblocks count.
-This check is already added in x86 and extending same to ia64.
-
-Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
----
- arch/ia64/kernel/acpi.c | 5 +++++
- drivers/acpi/numa.c     | 3 +--
- 2 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index 1d29b2f..1dacbf5 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -504,6 +504,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 	if (!(ma->flags & ACPI_SRAT_MEM_ENABLED))
- 		return -1;
- 
-+	if (num_node_memblks >= NR_NODE_MEMBLKS) {
-+		pr_err("NUMA: too many memblk ranges\n");
-+		return -EINVAL;
-+	}
-+
- 	/* record this node in proximity bitmap */
- 	pxm_bit_set(pxm);
- 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 917f1cc..8ccaae3 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -460,8 +460,7 @@ int __init acpi_numa_init(void)
- 					srat_proc, ARRAY_SIZE(srat_proc), 0);
- 
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
--					    acpi_parse_memory_affinity,
--					    NR_NODE_MEMBLKS);
-+					    acpi_parse_memory_affinity, 0);
- 	}
- 
- 	/* SLIT: System Locality Information Table */
--- 
-2.9.4
-
+SGkgUmFmYWVsLA0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogcmp3eXNvY2tp
+QGdtYWlsLmNvbSBbbWFpbHRvOnJqd3lzb2NraUBnbWFpbC5jb21dIE9uIEJlaGFsZiBPZiBSYWZh
+ZWwgSi4gV3lzb2NraQ0KU2VudDogV2VkbmVzZGF5LCBOb3ZlbWJlciAxNSwgMjAxNyAxMDo1MSBQ
+TQ0KVG86IFNhamphbiwgVmlrYXMgQyA8dmlrYXMuY2hhLnNhamphbkBocGUuY29tPg0KQ2M6IExp
+bnV4IFBNIDxsaW51eC1wbUB2Z2VyLmtlcm5lbC5vcmc+OyBBQ1BJIERldmVsIE1hbGluZyBMaXN0
+IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3
+eXNvY2tpLm5ldD47IExpbnV4IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LWtlcm5lbEB2Z2Vy
+Lmtlcm5lbC5vcmc+OyBTZXVuZ2h1biBIYW4gPGtrYW1hZ3VpQGdtYWlsLmNvbT47IFRob21hcyBH
+bGVpeG5lciA8dGdseEBsaW51dHJvbml4LmRlPjsgSW5nbyBNb2xuYXIgPG1pbmdvQGtlcm5lbC5v
+cmc+OyBMYWtzaG1pbmFyYXNpbWhhLCBTdW5pbCBWaXNod2FuYXRocHVyIDxzdW5pbC52bEBocGUu
+Y29tPjsgQXR0YXIsIEFiZHVsIExhdGVlZiA8YWJkdWwtbGF0ZWVmLmF0dGFyQGhwZS5jb20+DQpT
+dWJqZWN0OiBSZTogW1BBVENIXSB4ODYvYWNwaTogRml4IGltcHJvcGVyIGhhbmRsaW5nIG9mIFND
+SSBJTlQgZm9yIHBsYXRmb3JtcyBzdXBwb3J0aW5nIG9ubHkgSU9BUElDIG1vZGUNCg0KT24gRnJp
+LCBOb3YgMTAsIDIwMTcgYXQgMTA6MzggQU0sIFZpa2FzIEMgU2FqamFuIDx2aWthcy5jaGEuc2Fq
+amFuQGhwZS5jb20+IHdyb3RlOg0KPiBUaGUgcGxhdGZvcm1zIHdoaWNoIHN1cHBvcnQgb25seSBJ
+T0FQSUMgbW9kZSBhbmQgd2hvc2UgU0NJIElOVCBpcyANCj4gZ3JlYXRlciB0aGFuIDE2LCBwYXNz
+ZXMgU0NJIElOVCB2aWEgRkFEVCBhbmQgbm90IHZpYSBNQURUIGludCBzcmMgDQo+IG92ZXJyaWRl
+IHN0cnVjdHVyZS4gSW4gc3VjaCBjYXNlcyBjdXJyZW50IGxvZ2ljIGZhaWxzIHRvIGhhbmRsZSBp
+dCBhbmQgDQo+IHRocm93cyBlcnJvciAiSW52YWxpZCBidXNfaXJxICV1IGZvciBsZWdhY3kgb3Zl
+cnJpZGUiLiBUaGlzIHBhdGNoIA0KPiBoYW5kbGVzIHRoZSBhYm92ZSAgbWVudGlvbmVkIGNhc2Uu
+IFdoaWxlIGF0IGl0LCBhbHNvIG1vZGlmeSBmdW5jdGlvbiANCj4gbXBfb3ZlcnJpZGVfbGVnYWN5
+X2lycSgpIHRvIHVzZSB0aGUgbmV3bHkgaW50cm9kdWNlZCBmdW5jdGlvbiBtcF9yZWdpc3Rlcl9p
+b2FwaWNfaXJxKCkuDQoNCkFjdHVhbGx5LCBpcyBpdCBuZWNlc3NhcnkgdG8gbWFrZSB0aGlzIGV4
+dHJhIGNoYW5nZSBoZXJlPw0KDQpIb3cgY29tcGxpY2F0ZWQgd291bGQgaXQgYmUgdG8gc2VwYXJh
+dGUgaXQgb3V0Pw0KDQpJIGNhbiBtb3ZlIHRoZXNlIGV4dHJhIGNoYW5nZXMgaW50byBhIHNlcGFy
+YXRlIHBhdGNoIGFuZCBrZWVwIG9ubHkgdGhlIGZpeCBpbiB0aGlzIHBhdGNoLg0KDQpUaGFua3Ms
+DQpSYWZhZWwNCg0KVGhhbmtzLA0KVmlrYXMgU2FqamFuDQo=
