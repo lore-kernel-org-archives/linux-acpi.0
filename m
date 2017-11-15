@@ -1,34 +1,50 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms
- supporting only IOAPIC mode
-Date: Wed, 15 Nov 2017 18:20:36 +0100
-Message-ID: <CAJZ5v0g8d=q1TZvacBZ_EDMjAnufQdHYkfbnkhv4kSH_FNOhDg@mail.gmail.com>
-References: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
+Date: Wed, 15 Nov 2017 18:22:52 +0100
+Message-ID: <CAJZ5v0i7wiFY1rPFP8eS2WXQheOwK58aKpXSkEzw+8TLDbRdPA@mail.gmail.com>
+References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
+ <0569bb96-bd27-6c01-eb3c-5e4e1d868b2a@arm.com> <CAOZdJXXK62Sx75F8Ef62hjS-NBNh9Am_RBXjOzLbjvoQPGMUJg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:52656 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757992AbdKORUh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:20:37 -0500
-In-Reply-To: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:43722 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758013AbdKORWx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:22:53 -0500
+Received: by mail-oi0-f67.google.com with SMTP id f135so1399047oib.0
+        for <linux-acpi@vger.kernel.org>; Wed, 15 Nov 2017 09:22:53 -0800 (PST)
+In-Reply-To: <CAOZdJXXK62Sx75F8Ef62hjS-NBNh9Am_RBXjOzLbjvoQPGMUJg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Seunghun Han <kkamagui@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Sunil V L <sunil.vl@hpe.com>, Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Len Brown <lenb@kernel.org>
 
-On Fri, Nov 10, 2017 at 10:38 AM, Vikas C Sajjan
-<vikas.cha.sajjan@hpe.com> wrote:
-> The platforms which support only IOAPIC mode and whose SCI INT is
-> greater than 16, passes SCI INT via FADT and not via MADT int src override
-> structure. In such cases current logic fails to handle it and throws error
-> "Invalid bus_irq %u for legacy override". This patch handles the above
->  mentioned case. While at it, also modify function mp_override_legacy_irq()
-> to use the newly introduced function mp_register_ioapic_irq().
+On Wed, Nov 15, 2017 at 4:33 PM, Timur Tabi <timur@codeaurora.org> wrote:
+> On Wed, Nov 8, 2017 at 8:18 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>> I still prefer this as debugfs and not as sysfs ABI. We already have
+>> issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
+>> I don't want this to end up in the same way after few years. CPUIdle
+>> sysfs should be only sysfs ABI for these, adding an alternative is
+>> inviting troubles for future especially if some user-space starts using
+>> it and we will be stuck with that. Moreover with more h/w controlled
+>> idle we may not provide accurate data sooner.
+>>
+>> Sorry for the noise, I will shup up now ;). Since this may be last
+>> chance to make some noise, I am trying it. I completely understand that
+>> this is just my opinion and am fine if others thinks it's good to make
+>> this sysfs ABI.
+>
+> Unfortunately, I think Prashanth really needs a specific requirement
+> rather than opinions.  This patch has been languishing for over a
+> month, and we still have no idea whether it will make 4.15 or if
+> Prashanth is *required* to make any more changes.
 
-Actually, is it necessary to make this extra change here?
+No, this is not how it works.
 
-How complicated would it be to separate it out?
+If you want *me* to apply it, which seems to be the case, I need to be
+convinced that applying it is a good idea.
+
+You haven't so far.
 
 Thanks,
 Rafael
