@@ -1,54 +1,64 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
-Date: Wed, 15 Nov 2017 18:24:02 +0100
-Message-ID: <CAJZ5v0h4+f67H4tB1jjdVV+xspjbfoUs7YHfFv4J4jLXqipJsw@mail.gmail.com>
-References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
- <0569bb96-bd27-6c01-eb3c-5e4e1d868b2a@arm.com> <CAOZdJXXK62Sx75F8Ef62hjS-NBNh9Am_RBXjOzLbjvoQPGMUJg@mail.gmail.com>
- <CAJZ5v0i7wiFY1rPFP8eS2WXQheOwK58aKpXSkEzw+8TLDbRdPA@mail.gmail.com>
+From: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Subject: [PATCH] acpi, numa, ia64: Parse all entries of SRAT memory affinity table
+Date: Wed, 15 Nov 2017 22:59:02 +0530
+Message-ID: <20171115172902.20083-1-ganapatrao.kulkarni@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:53412 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758136AbdKORYD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:24:03 -0500
-Received: by mail-oi0-f68.google.com with SMTP id h6so16514135oia.10
-        for <linux-acpi@vger.kernel.org>; Wed, 15 Nov 2017 09:24:03 -0800 (PST)
-In-Reply-To: <CAJZ5v0i7wiFY1rPFP8eS2WXQheOwK58aKpXSkEzw+8TLDbRdPA@mail.gmail.com>
+Received: from mail-sn1nam01on0089.outbound.protection.outlook.com ([104.47.32.89]:33728
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1757627AbdKOR3z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 15 Nov 2017 12:29:55 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Timur Tabi <timur@codeaurora.org>, Sudeep Holla <sudeep.holla@arm.com>, Prashanth Prakash <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Len Brown <lenb@kernel.org>
+To: linux-ia64@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: fenghua.yu@intel.com, tony.luck@intel.com, rjw@rjwysocki.net, lenb@kernel.org, guohanjun@huawei.com, jnair@caviumnetworks.com, gpkulkarni@gmail.com, Robert.Richter@cavium.com
 
-On Wed, Nov 15, 2017 at 6:22 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Nov 15, 2017 at 4:33 PM, Timur Tabi <timur@codeaurora.org> wrote:
->> On Wed, Nov 8, 2017 at 8:18 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>> I still prefer this as debugfs and not as sysfs ABI. We already have
->>> issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
->>> I don't want this to end up in the same way after few years. CPUIdle
->>> sysfs should be only sysfs ABI for these, adding an alternative is
->>> inviting troubles for future especially if some user-space starts using
->>> it and we will be stuck with that. Moreover with more h/w controlled
->>> idle we may not provide accurate data sooner.
->>>
->>> Sorry for the noise, I will shup up now ;). Since this may be last
->>> chance to make some noise, I am trying it. I completely understand that
->>> this is just my opinion and am fine if others thinks it's good to make
->>> this sysfs ABI.
->>
->> Unfortunately, I think Prashanth really needs a specific requirement
->> rather than opinions.  This patch has been languishing for over a
->> month, and we still have no idea whether it will make 4.15 or if
->> Prashanth is *required* to make any more changes.
->
-> No, this is not how it works.
->
-> If you want *me* to apply it, which seems to be the case, I need to be
-> convinced that applying it is a good idea.
->
-> You haven't so far.
+In current implementation, SRAT Memory Affinity Structure table
+parsing is restricted to number of maximum memblocks allowed
+(NR_NODE_MEMBLKS). However NR_NODE_MEMBLKS is defined individually as
+per architecture requirements. Hence removing the restriction of
+SRAT Memory Affinity Structure parsing in acpi driver code and
+let architecture code check for allowed memblocks count.
+This check is already added in x86 and extending same to ia64.
 
-You haven't convinced me so far.
+Signed-off-by: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+---
+ arch/ia64/kernel/acpi.c | 5 +++++
+ drivers/acpi/numa.c     | 3 +--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-Thanks,
-Rafael
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index 1d29b2f..1dacbf5 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -504,6 +504,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 	if (!(ma->flags & ACPI_SRAT_MEM_ENABLED))
+ 		return -1;
+ 
++	if (num_node_memblks >= NR_NODE_MEMBLKS) {
++		pr_err("NUMA: too many memblk ranges\n");
++		return -EINVAL;
++	}
++
+ 	/* record this node in proximity bitmap */
+ 	pxm_bit_set(pxm);
+ 
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 917f1cc..8ccaae3 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -460,8 +460,7 @@ int __init acpi_numa_init(void)
+ 					srat_proc, ARRAY_SIZE(srat_proc), 0);
+ 
+ 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
+-					    acpi_parse_memory_affinity,
+-					    NR_NODE_MEMBLKS);
++					    acpi_parse_memory_affinity, 0);
+ 	}
+ 
+ 	/* SLIT: System Locality Information Table */
+-- 
+2.9.4
+
