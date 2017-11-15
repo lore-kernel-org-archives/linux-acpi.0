@@ -1,29 +1,34 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH] x86/acpi: Fix improper handling of SCI INT for platforms
  supporting only IOAPIC mode
-Date: Wed, 15 Nov 2017 18:18:52 +0100
-Message-ID: <CAJZ5v0i9VFCzMFHzfAWMJitoVNXF3uO82vVOcthLDgXsdLxheg@mail.gmail.com>
-References: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com> <CS1PR8401MB0518BBCAEA7AB61840C83324D9290@CS1PR8401MB0518.NAMPRD84.PROD.OUTLOOK.COM>
+Date: Wed, 15 Nov 2017 18:20:36 +0100
+Message-ID: <CAJZ5v0g8d=q1TZvacBZ_EDMjAnufQdHYkfbnkhv4kSH_FNOhDg@mail.gmail.com>
+References: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:46493 "EHLO
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:52656 "EHLO
         mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757798AbdKORSx (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:18:53 -0500
-In-Reply-To: <CS1PR8401MB0518BBCAEA7AB61840C83324D9290@CS1PR8401MB0518.NAMPRD84.PROD.OUTLOOK.COM>
+        with ESMTP id S1757992AbdKORUh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Nov 2017 12:20:37 -0500
+In-Reply-To: <1510306686-18230-1-git-send-email-vikas.cha.sajjan@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kkamagui@gmail.com" <kkamagui@gmail.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@kernel.org" <mingo@kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "Attar, Abdul Lateef" <abdul-lateef.attar@hpe.com>
+To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Seunghun Han <kkamagui@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@kernel.org>, Sunil V L <sunil.vl@hpe.com>, Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
 
-On Wed, Nov 15, 2017 at 11:05 AM, Sajjan, Vikas C
+On Fri, Nov 10, 2017 at 10:38 AM, Vikas C Sajjan
 <vikas.cha.sajjan@hpe.com> wrote:
-> Hi Rafael,
->
-> Any thoughts on this.
+> The platforms which support only IOAPIC mode and whose SCI INT is
+> greater than 16, passes SCI INT via FADT and not via MADT int src override
+> structure. In such cases current logic fails to handle it and throws error
+> "Invalid bus_irq %u for legacy override". This patch handles the above
+>  mentioned case. While at it, also modify function mp_override_legacy_irq()
+> to use the newly introduced function mp_register_ioapic_irq().
 
-I don't have concerns about it, but you really need to talk to Thomas.
+Actually, is it necessary to make this extra change here?
+
+How complicated would it be to separate it out?
 
 Thanks,
 Rafael
