@@ -1,59 +1,91 @@
-From: Bharat Kumar Gogada <bharatku@xilinx.com>
-Subject: RE: [RFCv2 PATCH 31/36] iommu/arm-smmu-v3: Add support for PCI ATS
-Date: Thu, 16 Nov 2017 14:19:36 +0000
-Message-ID: <BLUPR0201MB150565029F9260A528739ACBA52E0@BLUPR0201MB1505.namprd02.prod.outlook.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-32-jean-philippe.brucker@arm.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
+Date: Thu, 16 Nov 2017 14:52:05 +0000
+Message-ID: <7bfe82ba-0063-0b58-de06-ac534eef36e9@arm.com>
+References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org>
+ <0569bb96-bd27-6c01-eb3c-5e4e1d868b2a@arm.com>
+ <CAOZdJXXK62Sx75F8Ef62hjS-NBNh9Am_RBXjOzLbjvoQPGMUJg@mail.gmail.com>
+ <f45c6d49-a22d-9ef2-fa2a-b8dc1009549d@arm.com>
+ <CAJZ5v0hhtu=6-sKxykjUo7vjT9D6=E+oOQWh_AdNLOPoeQGcFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0083.outbound.protection.outlook.com ([104.47.37.83]:3925
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933562AbdKPOTm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Nov 2017 09:19:42 -0500
-In-Reply-To: <20171006133203.22803-32-jean-philippe.brucker@arm.com>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:52216 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932459AbdKPOwK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 16 Nov 2017 09:52:10 -0500
+In-Reply-To: <CAJZ5v0hhtu=6-sKxykjUo7vjT9D6=E+oOQWh_AdNLOPoeQGcFw@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, xieyisheng1@huawei.co
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Prashanth Prakash <pprakash@codeaurora.org>, Timur Tabi <timur@codeaurora.org>, Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Len Brown <lenb@kernel.org>
 
-Hi Jean,
 
-+static size_t
-+arm_smmu_atc_inv_domain(struct arm_smmu_domain *smmu_domain, int ssid,
-+			unsigned long iova, size_t size)
-+{
-+	unsigned long flags;
-+	struct arm_smmu_cmdq_ent cmd;
-+	struct arm_smmu_master_data *master;
-+
-+	arm_smmu_atc_inv_to_cmd(ssid, iova, size, &cmd);
-+
-+	spin_lock_irqsave(&smmu_domain->devices_lock, flags);
-+	list_for_each_entry(master, &smmu_domain->devices, list)
-+		arm_smmu_atc_inv_master(master, &cmd);
-+	spin_unlock_irqrestore(&smmu_domain->devices_lock, flags);
-+
-+	return size;
-+}
-+
- /* IOMMU API */
- static bool arm_smmu_capable(enum iommu_cap cap)  { @@ -2361,6 +2506,8 @@ =
-static void arm_smmu_detach_dev(struct device *dev)
- 		__iommu_process_unbind_dev_all(&smmu_domain->domain, dev);
-=20
- 	if (smmu_domain) {
-+		arm_smmu_atc_inv_master_all(master, 0);
-+
-In BIND flow, when VFIO_IOMMU_UNBIND is invoked invalidation is sent on all=
-ocated PASID for this application.
-When vfio group fd is closed after UNBIND,  arm_smmu_detach_dev is invoked =
-now invalidation is being sent on ssid zero.
-Why  invalidation needs to be sent on ssid zero ?
 
+On 15/11/17 18:37, Rafael J. Wysocki wrote:
+> On Wed, Nov 15, 2017 at 7:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>
+>>
+>> On 15/11/17 15:33, Timur Tabi wrote:
+>>> On Wed, Nov 8, 2017 at 8:18 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>>> I still prefer this as debugfs and not as sysfs ABI. We already have
+>>>> issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
+>>>> I don't want this to end up in the same way after few years. CPUIdle
+>>>> sysfs should be only sysfs ABI for these, adding an alternative is
+>>>> inviting troubles for future especially if some user-space starts using
+>>>> it and we will be stuck with that. Moreover with more h/w controlled
+>>>> idle we may not provide accurate data sooner.
+>>>>
+>>>> Sorry for the noise, I will shup up now ;). Since this may be last
+>>>> chance to make some noise, I am trying it. I completely understand that
+>>>> this is just my opinion and am fine if others thinks it's good to make
+>>>> this sysfs ABI.
+>>>
+>>> Unfortunately, I think Prashanth really needs a specific requirement
+>>> rather than opinions.
+>>
+>> I completely understand that. So for I haven't got a solid reason as
+>> why debugfs is not sufficient? If it becomes so popular in future, we
+>> can discuss and then make it sysfs ABI with more thoughts/discussions.
+> 
+> Well, the recent discussions regarding tracepoints indicate that the
+> ABI rule is not really about where the stuff is located in the
+> directory structure. :-)
+> 
+
+Agreed.
+
+> The main question to me is whether or not the information exposed is
+> more suitable for debugfs or for sysfs, considering all of the
+> limitations (like one value per file rule in sysfs etc).
+> 
+
+I was thinking of keeping it simple and just one file for all the stats
+like we have /sys/kernel/debug/clk/clk_summary
+
+It looks somethings like below:
+   clock       enable_cnt  prepare_cnt    rate   accuracy   phase
+----------------------------------------------------------------------
+ juno:uartclk         1            2     7273800       0      0
+...
+
+
+> Of course, debugfs means that the users of, say, Android will not be
+> able to access this information, but should that really influence
+> decisions at the technical level?
+> 
+
+That's the idea. IIUC, this is basically useful in the initial days of
+development to tune your idle parameters and for idle characterization.
+I am not sure(and hope) that this will be consumed by some application
+and acted upon dynamically. It's more like collect data, analyze, tune,
+repeat and rinse until happy with the tuning.
+
+Prashanth/Timur, please correct me if that's not the case. Understanding
+how the data is used is essential here.
+
+-- 
 Regards,
-Bharat
-
+Sudeep
