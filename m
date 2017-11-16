@@ -1,177 +1,82 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
-Date: Thu, 16 Nov 2017 16:10:16 +0100
-Message-ID: <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <6330680.LdxjlP4uri@aspire.rjw.lan>
- <4184911.zoJM7jZeH4@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:43042 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934862AbdKPPKT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Nov 2017 10:10:19 -0500
-Received: by mail-io0-f196.google.com with SMTP id 189so5519971iow.10
-        for <linux-acpi@vger.kernel.org>; Thu, 16 Nov 2017 07:10:18 -0800 (PST)
-In-Reply-To: <5556673.MXo6XDN1f4@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+Subject: [PATCH v3 1/2] acpi/x86: Fix improper handling of SCI INT for platforms supporting only IOAPIC mode
+Date: Thu, 16 Nov 2017 21:43:44 +0530
+Message-ID: <1510848825-21965-2-git-send-email-vikas.cha.sajjan@hpe.com>
+References: <1510848825-21965-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1510848825-21965-1-git-send-email-vikas.cha.sajjan@hpe.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: tglx@linutronix.de, rjw@rjwysocki.net
+Cc: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kkamagui@gmail.com, mingo@kernel.org, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 
-On 12 November 2017 at 01:37, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Define and document a new driver flag, DPM_FLAG_LEAVE_SUSPENDED, to
-> instruct the PM core and middle-layer (bus type, PM domain, etc.)
-> code that it is desirable to leave the device in runtime suspend
-> after system-wide transitions to the working state (for example,
-> the device may be slow to resume and it may be better to avoid
-> resuming it right away).
->
-> Generally, the middle-layer code involved in the handling of the
-> device is expected to indicate to the PM core whether or not the
-> device may be left in suspend with the help of the device's
-> power.may_skip_resume status bit.  That has to happen in the "noirq"
-> phase of the preceding system suspend (or analogous) transition.
-> The middle layer is then responsible for handling the device as
-> appropriate in its "noirq" resume callback which is executed
-> regardless of whether or not the device may be left suspended, but
-> the other resume callbacks (except for ->complete) will be skipped
-> automatically by the core if the device really can be left in
-> suspend.
->
-> The additional power.must_resume status bit introduced for the
-> implementation of this mechanisn is used internally by the PM core
-> to track the requirement to resume the device (which may depend on
-> its children etc).
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> ---
->
-> v2 -> v3: Take dev->power.usage_count when updating power.must_resume in
->           __device_suspend_noirq().
->
-> ---
->  Documentation/driver-api/pm/devices.rst |   24 ++++++++++-
->  drivers/base/power/main.c               |   66 +++++++++++++++++++++++++++++---
->  drivers/base/power/runtime.c            |    9 ++--
->  include/linux/pm.h                      |   14 +++++-
->  include/linux/pm_runtime.h              |    9 ++--
->  5 files changed, 104 insertions(+), 18 deletions(-)
->
-> Index: linux-pm/include/linux/pm.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/pm.h
-> +++ linux-pm/include/linux/pm.h
-> @@ -559,6 +559,7 @@ struct pm_subsys_data {
->   * NEVER_SKIP: Do not skip system suspend/resume callbacks for the device.
->   * SMART_PREPARE: Check the return value of the driver's ->prepare callback.
->   * SMART_SUSPEND: No need to resume the device from runtime suspend.
-> + * LEAVE_SUSPENDED: Avoid resuming the device during system resume if possible.
->   *
->   * Setting SMART_PREPARE instructs bus types and PM domains which may want
->   * system suspend/resume callbacks to be skipped for the device to return 0 from
-> @@ -572,10 +573,14 @@ struct pm_subsys_data {
->   * necessary from the driver's perspective.  It also may cause them to skip
->   * invocations of the ->suspend_late and ->suspend_noirq callbacks provided by
->   * the driver if they decide to leave the device in runtime suspend.
-> + *
-> + * Setting LEAVE_SUSPENDED informs the PM core and middle-layer code that the
-> + * driver prefers the device to be left in runtime suspend after system resume.
->   */
+The platforms which support only IOAPIC mode, pass the SCI information
+above the legacy space (0-15) via the FADT mechanism and not via MADT.
+In such cases the mp_override_legacy_irq() used by acpi_sci_ioapic_setup()
+to register SCI interrupts fails for interrupts >= 16, since it is meant to
+handle only legacy space and throws error "Invalid bus_irq %u for legacy
+override". Hence add a new function to handle SCI interrupts >= 16 and
+invoke it conditionally in acpi_sci_ioapic_setup().The code duplication
+due to this new function will be cleaned up in a separate patch.
 
-Question: Can LEAVE_SUSPENDED and NEVER_SKIP be valid combination? I
-guess not!? Should we validate for wrong combinations?
+Co-developed-by: Sunil V L <sunil.vl@hpe.com>
+Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+Tested-by: Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
+---
+ arch/x86/kernel/acpi/boot.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
 
-[...]
-
->  /**
->   * __device_suspend_noirq - Execute a "noirq suspend" callback for given device.
->   * @dev: Device to handle.
-> @@ -1127,10 +1161,28 @@ static int __device_suspend_noirq(struct
->         }
->
->         error = dpm_run_callback(callback, dev, state, info);
-> -       if (!error)
-> -               dev->power.is_noirq_suspended = true;
-> -       else
-> +       if (error) {
->                 async_error = error;
-> +               goto Complete;
-> +       }
-> +
-> +       dev->power.is_noirq_suspended = true;
-> +
-> +       if (dev_pm_test_driver_flags(dev, DPM_FLAG_LEAVE_SUSPENDED)) {
-> +               /*
-> +                * The only safe strategy here is to require that if the device
-> +                * may not be left in suspend, resume callbacks must be invoked
-> +                * for it.
-> +                */
-> +               dev->power.must_resume = dev->power.must_resume ||
-> +                                       !dev->power.may_skip_resume ||
-> +                                       atomic_read(&dev->power.usage_count);
-
-dev->power.usage_count is always > 0 at this point, meaning that
-dev->power.must_resume always becomes true. :-)
-
-You should rather use "atomic_read(&dev->power.usage_count) > 1".
-
-> +       } else {
-> +               dev->power.must_resume = true;
-> +       }
-> +
-> +       if (dev->power.must_resume)
-> +               dpm_superior_set_must_resume(dev);
->
->  Complete:
->         complete_all(&dev->power.completion);
-> @@ -1487,6 +1539,9 @@ static int __device_suspend(struct devic
->                 dev->power.direct_complete = false;
->         }
->
-> +       dev->power.may_skip_resume = false;
-> +       dev->power.must_resume = false;
-> +
-
-First, these assignment could be bypassed if the direct_complete path
-is used. Perhaps it's more robust to reset these flags already in
-device_prepare().
-
-Second, have you considered setting the default value of
-dev->power.may_skip_resume to true? That would means the subsystem
-instead need to implement an opt-out method. I am thinking that it may
-not be an issue, since we anyway at this point, don't have drivers
-using the LEAVE_SUSPENDED flag.
-
-[...]
-
-> +However, it may be desirable to leave some devices in runtime suspend after
-> +system transitions to the working state and device drivers can use the
-> +``DPM_FLAG_LEAVE_SUSPENDED`` flag to indicate to the PM core (and middle-layer
-> +code) that this is the case.  Whether or not the devices will actually be left
-> +in suspend may depend on their state before the given system suspend-resume
-> +cycle and on the type of the system transition under way.  In particular,
-> +devices are not left suspended if that transition is a restore from hibernation,
-> +as device states are not guaranteed to be reflected by the information stored in
-> +the hibernation image in that case.
-> +
-> +The middle-layer code involved in the handling of the device has to indicate to
-> +the PM core if the device may be left in suspend with the help of its
-> +:c:member:`power.may_skip_resume` status bit.  That has to happen in the "noirq"
-> +phase of the preceding system-wide suspend (or analogous) transition.  The
-
-Does it have to be managed in the "noirq" phase? Wouldn't be perfectly
-okay do this in the suspend and suspend_late phases as well?
-
-> +middle layer is then responsible for handling the device as appropriate in its
-> +"noirq" resume callback, which is executed regardless of whether or not the
-> +device may be left suspended, but the other resume callbacks (except for
-> +``->complete``) will be skipped automatically by the PM core if the device
-> +really can be left in suspend.
->
-
-Kind regards
-Uffe
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index ef9e02e..7615379 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -429,6 +429,34 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
+ 	return 0;
+ }
+ 
++static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
++						u8 trigger, u32 gsi)
++{
++	struct mpc_intsrc mp_irq;
++	int ioapic, pin;
++
++	/* Convert 'gsi' to 'ioapic.pin'(INTIN#) */
++	ioapic = mp_find_ioapic(gsi);
++	if (ioapic < 0) {
++		pr_warn("Failed to find ioapic for gsi : %u\n", gsi);
++		return ioapic;
++	}
++
++	pin = mp_find_ioapic_pin(ioapic, gsi);
++
++	mp_irq.type = MP_INTSRC;
++	mp_irq.irqtype = mp_INT;
++	mp_irq.irqflag = (trigger << 2) | polarity;
++	mp_irq.srcbus = MP_ISA_BUS;
++	mp_irq.srcbusirq = bus_irq;
++	mp_irq.dstapic = mpc_ioapic_id(ioapic);
++	mp_irq.dstirq = pin;
++
++	mp_save_irq(&mp_irq);
++
++	return 0;
++}
++
+ static int __init
+ acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
+ {
+@@ -473,7 +501,11 @@ static void __init acpi_sci_ioapic_setup(u8 bus_irq, u16 polarity, u16 trigger,
+ 	if (acpi_sci_flags & ACPI_MADT_POLARITY_MASK)
+ 		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
+ 
+-	mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
++	if (bus_irq < NR_IRQS_LEGACY)
++		mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
++	else
++		mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi);
++
+ 	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
+ 
+ 	/*
+-- 
+1.9.1
