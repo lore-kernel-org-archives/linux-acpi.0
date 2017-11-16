@@ -1,149 +1,68 @@
-From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
+From: Thomas Gleixner <tglx@linutronix.de>
 Subject: RE: [PATCH v2 1/2] acpi/x86: Fix improper handling of SCI INT for
  platforms supporting only IOAPIC mode
-Date: Thu, 16 Nov 2017 11:36:44 +0000
-Message-ID: <TU4PR8401MB0525A1594F5D2E063B3A8CB2D92E0@TU4PR8401MB0525.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1510824595-12287-1-git-send-email-vikas.cha.sajjan@hpe.com>
- <1510824595-12287-2-git-send-email-vikas.cha.sajjan@hpe.com>
- <alpine.DEB.2.20.1711161147200.2191@nanos>
+Date: Thu, 16 Nov 2017 13:16:30 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1711161301250.2191@nanos>
+References: <1510824595-12287-1-git-send-email-vikas.cha.sajjan@hpe.com> <1510824595-12287-2-git-send-email-vikas.cha.sajjan@hpe.com> <alpine.DEB.2.20.1711161147200.2191@nanos>
+ <TU4PR8401MB0525A1594F5D2E063B3A8CB2D92E0@TU4PR8401MB0525.NAMPRD84.PROD.OUTLOOK.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t1383g.austin.hpe.com ([15.233.16.89]:48298 "EHLO
-        g2t1383g.austin.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759300AbdKPLiV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Nov 2017 06:38:21 -0500
-In-Reply-To: <alpine.DEB.2.20.1711161147200.2191@nanos>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <TU4PR8401MB0525A1594F5D2E063B3A8CB2D92E0@TU4PR8401MB0525.NAMPRD84.PROD.OUTLOOK.COM>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
 Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kkamagui@gmail.com" <kkamagui@gmail.com>, "mingo@kernel.org" <mingo@kernel.org>, "Lakshminarasimha, Sunil Vishwanathpur" <sunil.vl@hpe.com>, "Attar, Abdul Lateef" <abdul-lateef.attar@hpe.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Thanks for review, Thomas.
+On Thu, 16 Nov 2017, Sajjan, Vikas C wrote:
+> -----Original Message-----
+> From: Thomas Gleixner [mailto:tglx@linutronix.de] 
+> Sent: Thursday, November 16, 2017 4:35 PM
+> To: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>
+> Cc: rjw@rjwysocki.net; rafael.j.wysocki@intel.com; linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; kkamagui@gmail.com; mingo@kernel.org; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; Attar, Abdul Lateef <abdul-lateef.attar@hpe.com>
+> Subject: Re: [PATCH v2 1/2] acpi/x86: Fix improper handling of SCI INT for platforms supporting only IOAPIC mode
 
------Original Message-----
-From: Thomas Gleixner [mailto:tglx@linutronix.de] 
-Sent: Thursday, November 16, 2017 4:35 PM
-To: Sajjan, Vikas C <vikas.cha.sajjan@hpe.com>
-Cc: rjw@rjwysocki.net; rafael.j.wysocki@intel.com; linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; kkamagui@gmail.com; mingo@kernel.org; Lakshminarasimha, Sunil Vishwanathpur <sunil.vl@hpe.com>; Attar, Abdul Lateef <abdul-lateef.attar@hpe.com>
-Subject: Re: [PATCH v2 1/2] acpi/x86: Fix improper handling of SCI INT for platforms supporting only IOAPIC mode
+Can you please fix your mail client to not pointlessly copy the full mail
+header?
 
-On Thu, 16 Nov 2017, Vikas C Sajjan wrote:
+ On Thu, 16 Nov 2017, Thomas Gleixner wrote:
 
-Thanks for splitting this up.
+is enough. The rest is in the real mail headers already.
 
-> The platforms which support only IOAPIC mode and whose SCI INT is 
-> greater than 16, passes SCI INT via FADT and not via MADT int src 
-> override
-
-greater? I think that's >= 16 because the legacy space is 0-15
-
-yes, It should be >=16. Will modify it.
-
-> structure. In such cases current logic fails to handle it and throws 
-> error "Invalid bus_irq %u for legacy override".
-
-Up to this point the changelog is informative. It just lacks the information WHY the current logic fails to handle it.
-
-> This patch fixes it.
-
-This part is completely useless. You should at least explain the concept of the fix, not the details (they can be seen from the code).
-
-Sure, will remove this part.
-
-Let me give you an example:
-
- Platforms which support only IOAPIC mode pass the SCI information of  interrupts above the legacy space (0-15) via the FADT mechanism and not  via MADT, i.e. the table parser ends up calling acpi_sci_ioapic_setup().
-
- acpi_sci_ioapic_setup() uses mp_override_legacy_irq() to register SCI  interrupts, which fails for interrupts >= 16, because it only handles  interrupts 0-15.
-
- Provide a separate function to handle SCI interrupts >= 16 and invoke it  conditional in acpi_sci_ioapic_setup().
-
- This creates some code duplication, which will be cleaned up in a separate  patch.
-
-See?
-Thanks for the example. Will give details on why the current logic fails and high level view of the fix.
- 
-> Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-> Signed-off-by: Sunil V L <sunil.vl@hpe.com>
-> Signed-off-by: Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
-
-This Signed-off-by chain is broken. It says:
-
-     Vikas wrote the patch and handed it to Sunil
-     Sunil handed it to Abdul
-     Abdul sent it to lkml
-
-Which is obviously not the case.
-3 of us worked on it, hence I had put all the 3 "Signed-off-by". Are you suggesting to call-out who did what.  Is that what you mean, when you say  "Signed-off-by chain is broken".
-
-> ---
->  arch/x86/kernel/acpi/boot.c | 37 
-> ++++++++++++++++++++++++++++++++++++-
->  1 file changed, 36 insertions(+), 1 deletion(-)
+> On Thu, 16 Nov 2017, Vikas C Sajjan wrote:
+> > Signed-off-by: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
+> > Signed-off-by: Sunil V L <sunil.vl@hpe.com>
+> > Signed-off-by: Abdul Lateef Attar <abdul-lateef.attar@hpe.com>
 > 
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c 
-> index ef9e02e..40c24d1b 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -429,6 +429,37 @@ static int mp_config_acpi_gsi(struct device *dev, u32 gsi, int trigger,
->  	return 0;
->  }
->  
-> +static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
-> +						u8 trigger, u32 gsi)
-> +{
-> +	int ioapic;
-> +	int pin;
-> +	struct mpc_intsrc mp_irq;
+> This Signed-off-by chain is broken. It says:
+> 
+>      Vikas wrote the patch and handed it to Sunil
+>      Sunil handed it to Abdul
+>      Abdul sent it to lkml
+> 
+> Which is obviously not the case.
 
-I know you copied that, but please get rid of the extra line and sort the variables in reverse fir tree fashion, i.e.:
+> 3 of us worked on it, hence I had put all the 3 "Signed-off-by". Are you
+> suggesting to call-out who did what.  Is that what you mean, when you say
+> "Signed-off-by chain is broken".
 
-	struct mpc_intsrc mp_irq;
-	int ioapic, pin;
+No. As I explained above. The Signed-off-by is a chain. The first one is
+from the author. The following ones are from people who handled,
+transported or applied the patch.
 
-That takes less space and is better to read/parse.
-Sure, will do.
-> +
-> +	/*
-> +	 * Convert 'gsi' to 'ioapic.pin'.
-> +	 */
+See Documentation/process/submitting-patches.rst the chapter:
 
-Please make this a one line comment. It's useful, but not that important to stand out.
-OK.
+  Developer's Certificate of Origin 1.1
 
-> +	ioapic = mp_find_ioapic(gsi);
-> +	if (ioapic < 0) {
-> +		pr_warn("Failed to find ioapic for gsi : %u\n", gsi);
-> +		return ioapic;
-> +	}
-> +
-> +	pin = mp_find_ioapic_pin(ioapic, gsi);
-> +
-> +	mp_irq.type = MP_INTSRC;
-> +	mp_irq.irqtype = mp_INT;
-> +	mp_irq.irqflag = (trigger << 2) | polarity;
-> +	mp_irq.srcbus = MP_ISA_BUS;
-> +	mp_irq.srcbusirq = bus_irq;	/* IRQ */
+for further clarification.
 
-Please get rid of these tail comments. First of all tail comments are disturbing the reading flow. Secondly these comment have exactly zero value.
-OK.
+Unfortunately we have no canonical way to express joint develoment, but we
+have used non formal tags for that, like
 
-> +	mp_irq.dstapic = mpc_ioapic_id(ioapic); /* APIC ID */
-> +	mp_irq.dstirq = pin;	/* INTIN# */
+     Co-developed-by:
 
-except for this one, but that information should go into that other comment above, i.e.:
+which give credits to the people who were involved in the development.
 
-       /* Convert 'gsi' to ioapic.pin (INTIN#) */
-
-Other than these more formal nitpicks, the patch is fine.
-Thank you, Thomas.
- 
 Thanks,
 
-	Tglx
-
-Thanks 
-Vikas Sajjan
+	tglx
