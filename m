@@ -1,73 +1,177 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 31/36] iommu/arm-smmu-v3: Add support for PCI ATS
-Date: Thu, 16 Nov 2017 15:03:00 +0000
-Message-ID: <673fda01-2ae0-87e4-637e-fe27096b6be0@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-32-jean-philippe.brucker@arm.com>
-	<BLUPR0201MB150565029F9260A528739ACBA52E0@BLUPR0201MB1505.namprd02.prod.outlook.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
+Date: Thu, 16 Nov 2017 16:10:16 +0100
+Message-ID: <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <6330680.LdxjlP4uri@aspire.rjw.lan>
+ <4184911.zoJM7jZeH4@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <BLUPR0201MB150565029F9260A528739ACBA52E0-hRBPhS1iNj/g9tdZWAsUFxrHTHEw16jenBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f196.google.com ([209.85.223.196]:43042 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934862AbdKPPKT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Nov 2017 10:10:19 -0500
+Received: by mail-io0-f196.google.com with SMTP id 189so5519971iow.10
+        for <linux-acpi@vger.kernel.org>; Thu, 16 Nov 2017 07:10:18 -0800 (PST)
+In-Reply-To: <5556673.MXo6XDN1f4@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 
-Hi Bharat,
+On 12 November 2017 at 01:37, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Define and document a new driver flag, DPM_FLAG_LEAVE_SUSPENDED, to
+> instruct the PM core and middle-layer (bus type, PM domain, etc.)
+> code that it is desirable to leave the device in runtime suspend
+> after system-wide transitions to the working state (for example,
+> the device may be slow to resume and it may be better to avoid
+> resuming it right away).
+>
+> Generally, the middle-layer code involved in the handling of the
+> device is expected to indicate to the PM core whether or not the
+> device may be left in suspend with the help of the device's
+> power.may_skip_resume status bit.  That has to happen in the "noirq"
+> phase of the preceding system suspend (or analogous) transition.
+> The middle layer is then responsible for handling the device as
+> appropriate in its "noirq" resume callback which is executed
+> regardless of whether or not the device may be left suspended, but
+> the other resume callbacks (except for ->complete) will be skipped
+> automatically by the core if the device really can be left in
+> suspend.
+>
+> The additional power.must_resume status bit introduced for the
+> implementation of this mechanisn is used internally by the PM core
+> to track the requirement to resume the device (which may depend on
+> its children etc).
+>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> ---
+>
+> v2 -> v3: Take dev->power.usage_count when updating power.must_resume in
+>           __device_suspend_noirq().
+>
+> ---
+>  Documentation/driver-api/pm/devices.rst |   24 ++++++++++-
+>  drivers/base/power/main.c               |   66 +++++++++++++++++++++++++++++---
+>  drivers/base/power/runtime.c            |    9 ++--
+>  include/linux/pm.h                      |   14 +++++-
+>  include/linux/pm_runtime.h              |    9 ++--
+>  5 files changed, 104 insertions(+), 18 deletions(-)
+>
+> Index: linux-pm/include/linux/pm.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm.h
+> +++ linux-pm/include/linux/pm.h
+> @@ -559,6 +559,7 @@ struct pm_subsys_data {
+>   * NEVER_SKIP: Do not skip system suspend/resume callbacks for the device.
+>   * SMART_PREPARE: Check the return value of the driver's ->prepare callback.
+>   * SMART_SUSPEND: No need to resume the device from runtime suspend.
+> + * LEAVE_SUSPENDED: Avoid resuming the device during system resume if possible.
+>   *
+>   * Setting SMART_PREPARE instructs bus types and PM domains which may want
+>   * system suspend/resume callbacks to be skipped for the device to return 0 from
+> @@ -572,10 +573,14 @@ struct pm_subsys_data {
+>   * necessary from the driver's perspective.  It also may cause them to skip
+>   * invocations of the ->suspend_late and ->suspend_noirq callbacks provided by
+>   * the driver if they decide to leave the device in runtime suspend.
+> + *
+> + * Setting LEAVE_SUSPENDED informs the PM core and middle-layer code that the
+> + * driver prefers the device to be left in runtime suspend after system resume.
+>   */
 
-On 16/11/17 14:19, Bharat Kumar Gogada wrote:
-> Hi Jean,
-> 
-> +static size_t
-> +arm_smmu_atc_inv_domain(struct arm_smmu_domain *smmu_domain, int ssid,
-> +			unsigned long iova, size_t size)
-> +{
-> +	unsigned long flags;
-> +	struct arm_smmu_cmdq_ent cmd;
-> +	struct arm_smmu_master_data *master;
-> +
-> +	arm_smmu_atc_inv_to_cmd(ssid, iova, size, &cmd);
-> +
-> +	spin_lock_irqsave(&smmu_domain->devices_lock, flags);
-> +	list_for_each_entry(master, &smmu_domain->devices, list)
-> +		arm_smmu_atc_inv_master(master, &cmd);
-> +	spin_unlock_irqrestore(&smmu_domain->devices_lock, flags);
-> +
-> +	return size;
-> +}
-> +
->  /* IOMMU API */
->  static bool arm_smmu_capable(enum iommu_cap cap)  { @@ -2361,6 +2506,8 @@ static void arm_smmu_detach_dev(struct device *dev)
->  		__iommu_process_unbind_dev_all(&smmu_domain->domain, dev);
->  
->  	if (smmu_domain) {
-> +		arm_smmu_atc_inv_master_all(master, 0);
-> +
-> In BIND flow, when VFIO_IOMMU_UNBIND is invoked invalidation is sent on allocated PASID for this application.
-> When vfio group fd is closed after UNBIND,  arm_smmu_detach_dev is invoked now invalidation is being sent on ssid zero.
-> Why  invalidation needs to be sent on ssid zero ?
+Question: Can LEAVE_SUSPENDED and NEVER_SKIP be valid combination? I
+guess not!? Should we validate for wrong combinations?
 
-It's possible to use bind/unbind and map/unmap APIs at the same time on a
-domain. map/unmap modifies non-ssid mappings as usual, for context
-descriptor 0. Note that SSID 0 is converted to "no SSID" by
-arm_smmu_atc_inv_to_cmd.
+[...]
 
-That said, I think VFIO cleans all DMA mappings when the VFIO group fd is
-closed, which will send individual ATC invalidation for each mapping. But
-VFIO may not be the only user of this API, and future users may be less
-careful. It's safer to send this global invalidation whenever we detach
-the domain, to ensure we're not leaving stale ATC entries for the next user.
+>  /**
+>   * __device_suspend_noirq - Execute a "noirq suspend" callback for given device.
+>   * @dev: Device to handle.
+> @@ -1127,10 +1161,28 @@ static int __device_suspend_noirq(struct
+>         }
+>
+>         error = dpm_run_callback(callback, dev, state, info);
+> -       if (!error)
+> -               dev->power.is_noirq_suspended = true;
+> -       else
+> +       if (error) {
+>                 async_error = error;
+> +               goto Complete;
+> +       }
+> +
+> +       dev->power.is_noirq_suspended = true;
+> +
+> +       if (dev_pm_test_driver_flags(dev, DPM_FLAG_LEAVE_SUSPENDED)) {
+> +               /*
+> +                * The only safe strategy here is to require that if the device
+> +                * may not be left in suspend, resume callbacks must be invoked
+> +                * for it.
+> +                */
+> +               dev->power.must_resume = dev->power.must_resume ||
+> +                                       !dev->power.may_skip_resume ||
+> +                                       atomic_read(&dev->power.usage_count);
 
-Thanks,
-Jean
+dev->power.usage_count is always > 0 at this point, meaning that
+dev->power.must_resume always becomes true. :-)
+
+You should rather use "atomic_read(&dev->power.usage_count) > 1".
+
+> +       } else {
+> +               dev->power.must_resume = true;
+> +       }
+> +
+> +       if (dev->power.must_resume)
+> +               dpm_superior_set_must_resume(dev);
+>
+>  Complete:
+>         complete_all(&dev->power.completion);
+> @@ -1487,6 +1539,9 @@ static int __device_suspend(struct devic
+>                 dev->power.direct_complete = false;
+>         }
+>
+> +       dev->power.may_skip_resume = false;
+> +       dev->power.must_resume = false;
+> +
+
+First, these assignment could be bypassed if the direct_complete path
+is used. Perhaps it's more robust to reset these flags already in
+device_prepare().
+
+Second, have you considered setting the default value of
+dev->power.may_skip_resume to true? That would means the subsystem
+instead need to implement an opt-out method. I am thinking that it may
+not be an issue, since we anyway at this point, don't have drivers
+using the LEAVE_SUSPENDED flag.
+
+[...]
+
+> +However, it may be desirable to leave some devices in runtime suspend after
+> +system transitions to the working state and device drivers can use the
+> +``DPM_FLAG_LEAVE_SUSPENDED`` flag to indicate to the PM core (and middle-layer
+> +code) that this is the case.  Whether or not the devices will actually be left
+> +in suspend may depend on their state before the given system suspend-resume
+> +cycle and on the type of the system transition under way.  In particular,
+> +devices are not left suspended if that transition is a restore from hibernation,
+> +as device states are not guaranteed to be reflected by the information stored in
+> +the hibernation image in that case.
+> +
+> +The middle-layer code involved in the handling of the device has to indicate to
+> +the PM core if the device may be left in suspend with the help of its
+> +:c:member:`power.may_skip_resume` status bit.  That has to happen in the "noirq"
+> +phase of the preceding system-wide suspend (or analogous) transition.  The
+
+Does it have to be managed in the "noirq" phase? Wouldn't be perfectly
+okay do this in the suspend and suspend_late phases as well?
+
+> +middle layer is then responsible for handling the device as appropriate in its
+> +"noirq" resume callback, which is executed regardless of whether or not the
+> +device may be left suspended, but the other resume callbacks (except for
+> +``->complete``) will be skipped automatically by the PM core if the device
+> +really can be left in suspend.
+>
+
+Kind regards
+Uffe
