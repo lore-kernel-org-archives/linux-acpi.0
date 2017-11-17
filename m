@@ -1,78 +1,49 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
-Date: Fri, 17 Nov 2017 15:31:38 +0100
-Message-ID: <CAJZ5v0iD3uzJr4fdhrWfRhSmr_foU4GQx9LY_9sR=BKYUxZOGw@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
- <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com>
- <2654404.6YT5rmSnae@aspire.rjw.lan> <CAPDyKFo4gE6O=xMoS2Phe0kNgNUGBffy1hxT3iPrY71ieGcumQ@mail.gmail.com>
- <CAJZ5v0ibqqUZ0M1_GKCkGj_E+2DQQMOLAVTyPd7mSJDAypkHjQ@mail.gmail.com> <CAPDyKFrsabWL2cVE2SwguRRiEV5sJHLpzpyhahLucdER_RAEpg@mail.gmail.com>
+Subject: [GIT PULL] ACPI fix for v4.15-rc1
+Date: Fri, 17 Nov 2017 15:38:38 +0100
+Message-ID: <CAJZ5v0hVwY7CjYJoREGhTR1VQYdDKkFqAdnTSWSYmBOL1wWtgQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFrsabWL2cVE2SwguRRiEV5sJHLpzpyhahLucdER_RAEpg@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f180.google.com ([74.125.82.180]:44348 "EHLO
+        mail-ot0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934029AbdKQOij (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Nov 2017 09:38:39 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 2:49 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> [...]
->
->>>
->>>>> Second, have you considered setting the default value of
->>>>> dev->power.may_skip_resume to true?
->>>>
->>>> Yes.
->>>>
->>>>> That would means the subsystem
->>>>> instead need to implement an opt-out method. I am thinking that it may
->>>>> not be an issue, since we anyway at this point, don't have drivers
->>>>> using the LEAVE_SUSPENDED flag.
->>>>
->>>> Opt-out doesn't work because of the need to invoke the "noirq" callbacks.
->>>
->>> I am not sure I follow that.
->>>
->>> Whatever needs to be fixed on the subsystem level, that could be done
->>> before the driver starts using the LEAVE_SUSPENDED flag. No?
->>
->> That requires a bit of explanation, sorry for being overly concise.
->>
->> The core calls ->resume_noirq from the middle layer regardless of
->> whether or not the device will be left suspended, so the
->> ->resume_noirq cannot do arbitrary things to it.  Setting
->> may_skip_resume by the middle layer tells the core that the middle
->> layer is ready for that and is going to cooperate.  If may_skip_resume
->> had been set by default, that piece of information would have been
->> missing.
->
-> Huh, I still don't get that. Sorry.
->
-> If the "may_skip_resume" is default set to true by the PM core,
-> wouldn't that just mean that the middle-layer needs to implement an
-> opt-out method, rather than opt-in. In principle to opt-out the
-> middle-layer needs to set may_skip_resume to false in suspend_noirq
-> phase, no?
+Hi Linus,
 
-Yes, but if the middle-layer doesn't clear it, that may mean two
-things.  First, the middle layer is ready and so on.  Good.  Second,
-the middle layer is not aware of the whole thing.  Not good.  The core
-cannot tell.
+Please pull from the tag
 
-In the opt-in case, however, all is clear. :-)
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-fix-4.15-rc1
 
-> Then we only need to make sure drivers don't starts use
-> LEAVE_SUSPENDED, before we make sure the middle layers is adopted. But
-> that should not be a problem.
->
-> The benefit would be that those middle layers that can cope with
-> LEAVE_SUSPENDED as of today don't need to change.
+with top-most commit 09e15086936e01d7588020be37ea724116bcefec
 
-I'm not sure if that's the case.
+ ACPI / utils: Fix memory leak in acpi_evaluate_reference() error path
 
-The middle layer has to evaluate dev_pm_may_skip_resume() in
-->resume_noirq() to check if the device can be left in suspend, as it
-cannot determine that in ->suspend_noirq() yet.
+on top of commit 04ed510988f278a69872b4cdb426e565e3236215
 
-Thanks,
-Rafael
+ Merge tag 'acpi-4.15-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+to receive an ACPI fix for 4.15-rc1.
+
+This fixes a possible memory leak in an error code path in one of
+the utility routines (Xiongfeng Wang).
+
+Thanks!
+
+
+---------------
+
+Xiongfeng Wang (1):
+      ACPI / utils: Fix memory leak in acpi_evaluate_reference() error path
+
+---------------
+
+ drivers/acpi/utils.c | 1 +
+ 1 file changed, 1 insertion(+)
