@@ -1,102 +1,63 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 07/11] ACPICA: Tools: Deploy -vd option (build date/time) across all tools
-Date: Fri, 17 Nov 2017 15:40:20 -0800
-Message-ID: <20171117234024.833-8-erik.schmauss@intel.com>
+Subject: [PATCH 10/11] ACPICA: Utilities: Cleanup style issue for bit clearing
+Date: Fri, 17 Nov 2017 15:40:23 -0800
+Message-ID: <20171117234024.833-11-erik.schmauss@intel.com>
 References: <erik.schmauss@intel.com>
  <20171117234024.833-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:29666 "EHLO mga03.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:7763 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759270AbdKQXpZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Nov 2017 18:45:25 -0500
+        id S1759549AbdKQXpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Nov 2017 18:45:33 -0500
 In-Reply-To: <20171117234024.833-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Lv Zheng <lv.zheng@intel.com>
 
-ACPICA commit 336131640a1574b86240b32eca3150195f9270d6
+ACPICA commit b49a0e1e26f3c61df7113f18f441c83739eb5514
 
-Common option for all tools.
+It's reported in Linux community that change to utmath.c contains a style
+problem:
+ [.../utmath.c:137]: (style) Same expression on both sides of '^='.
+ [.../utmath.c:174]: (style) Same expression on both sides of '^='.
+This patch fixes this problem. ACPICA BZ 1422, reported by David Binderman,
+fixed by Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/33613164
+Link: https://github.com/acpica/acpica/commit/b49a0e1e
+Link: https://bugs.acpica.org/show_bug.cgi?id=1422
+Reported-by: David Binderman <dcb314@hotmail.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/acapps.h             |  3 +++
- tools/power/acpi/tools/acpidump/apmain.c | 28 ++++++++++++++++++++++++----
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/utmath.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acapps.h b/drivers/acpi/acpica/acapps.h
-index 7a1a68b5ac5c..2243c8164b34 100644
---- a/drivers/acpi/acpica/acapps.h
-+++ b/drivers/acpi/acpica/acapps.h
-@@ -80,6 +80,9 @@
- 	prefix, ACPICA_COPYRIGHT, \
- 	prefix
+diff --git a/drivers/acpi/acpica/utmath.c b/drivers/acpi/acpica/utmath.c
+index 5f9c680076c4..2055a858e5f5 100644
+--- a/drivers/acpi/acpica/utmath.c
++++ b/drivers/acpi/acpica/utmath.c
+@@ -134,7 +134,7 @@ acpi_status acpi_ut_short_shift_left(u64 operand, u32 count, u64 *out_result)
  
-+#define ACPI_COMMON_BUILD_TIME \
-+	"Build date/time: %s %s\n", __DATE__, __TIME__
-+
- /* Macros for usage messages */
+ 	if ((count & 63) >= 32) {
+ 		operand_ovl.part.hi = operand_ovl.part.lo;
+-		operand_ovl.part.lo ^= operand_ovl.part.lo;
++		operand_ovl.part.lo = 0;
+ 		count = (count & 63) - 32;
+ 	}
+ 	ACPI_SHIFT_LEFT_64_BY_32(operand_ovl.part.hi,
+@@ -171,7 +171,7 @@ acpi_status acpi_ut_short_shift_right(u64 operand, u32 count, u64 *out_result)
  
- #define ACPI_USAGE_HEADER(usage) \
-diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
-index 22c3b4ee1617..be418fba9441 100644
---- a/tools/power/acpi/tools/acpidump/apmain.c
-+++ b/tools/power/acpi/tools/acpidump/apmain.c
-@@ -79,7 +79,7 @@ struct ap_dump_action action_table[AP_MAX_ACTIONS];
- u32 current_action = 0;
- 
- #define AP_UTILITY_NAME             "ACPI Binary Table Dump Utility"
--#define AP_SUPPORTED_OPTIONS        "?a:bc:f:hn:o:r:svxz"
-+#define AP_SUPPORTED_OPTIONS        "?a:bc:f:hn:o:r:sv^xz"
- 
- /******************************************************************************
-  *
-@@ -100,6 +100,7 @@ static void ap_display_usage(void)
- 	ACPI_OPTION("-r <Address>", "Dump tables from specified RSDP");
- 	ACPI_OPTION("-s", "Print table summaries only");
- 	ACPI_OPTION("-v", "Display version information");
-+	ACPI_OPTION("-vd", "Display build date and time");
- 	ACPI_OPTION("-z", "Verbose mode");
- 
- 	ACPI_USAGE_TEXT("\nTable Options:\n");
-@@ -231,10 +232,29 @@ static int ap_do_options(int argc, char **argv)
- 			}
- 			continue;
- 
--		case 'v':	/* Revision/version */
-+		case 'v':	/* -v: (Version): signon already emitted, just exit */
- 
--			acpi_os_printf(ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
--			return (1);
-+			switch (acpi_gbl_optarg[0]) {
-+			case '^':	/* -v: (Version) */
-+
-+				fprintf(stderr,
-+					ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
-+				return (1);
-+
-+			case 'd':
-+
-+				fprintf(stderr,
-+					ACPI_COMMON_SIGNON(AP_UTILITY_NAME));
-+				printf(ACPI_COMMON_BUILD_TIME);
-+				return (1);
-+
-+			default:
-+
-+				printf("Unknown option: -v%s\n",
-+				       acpi_gbl_optarg);
-+				return (-1);
-+			}
-+			break;
- 
- 		case 'z':	/* Verbose mode */
- 
+ 	if ((count & 63) >= 32) {
+ 		operand_ovl.part.lo = operand_ovl.part.hi;
+-		operand_ovl.part.hi ^= operand_ovl.part.hi;
++		operand_ovl.part.hi = 0;
+ 		count = (count & 63) - 32;
+ 	}
+ 	ACPI_SHIFT_RIGHT_64_BY_32(operand_ovl.part.hi,
 -- 
 2.13.6
 
