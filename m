@@ -1,75 +1,52 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v3 1/2] acpi/x86: Fix improper handling of SCI INT for
- platforms supporting only IOAPIC mode
-Date: Fri, 17 Nov 2017 11:38:05 +0100 (CET)
-Message-ID: <alpine.DEB.2.20.1711171126270.7700@nanos>
-References: <1510848825-21965-1-git-send-email-vikas.cha.sajjan@hpe.com> <1510848825-21965-2-git-send-email-vikas.cha.sajjan@hpe.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 31/36] iommu/arm-smmu-v3: Add support for PCI ATS
+Date: Fri, 17 Nov 2017 11:39:25 +0000
+Message-ID: <9da446e9-cf84-61ce-f3f5-32386387bc9f@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-32-jean-philippe.brucker@arm.com>
+	<BLUPR0201MB150565029F9260A528739ACBA52E0@BLUPR0201MB1505.namprd02.prod.outlook.com>
+	<673fda01-2ae0-87e4-637e-fe27096b6be0@arm.com>
+	<BLUPR0201MB1505BC86D3838D13F38665E7A52F0@BLUPR0201MB1505.namprd02.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1510848825-21965-2-git-send-email-vikas.cha.sajjan@hpe.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Vikas C Sajjan <vikas.cha.sajjan@hpe.com>
-Cc: rjw@rjwysocki.net, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kkamagui@gmail.com, mingo@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <BLUPR0201MB1505BC86D3838D13F38665E7A52F0-hRBPhS1iNj/g9tdZWAsUFxrHTHEw16jenBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 16 Nov 2017, Vikas C Sajjan wrote:
+On 17/11/17 06:11, Bharat Kumar Gogada wrote:
+[...]
+> Thanks Jean, I see that currently vfio_group_fops_open does not allow multiple instances. 
+> If a device supports multiple PASID there might be different applications running parallel. 
+> So why is multiple instances restricted ?
 
-> The platforms which support only IOAPIC mode, pass the SCI information
-> above the legacy space (0-15) via the FADT mechanism and not via MADT.
-> In such cases the mp_override_legacy_irq() used by acpi_sci_ioapic_setup()
-> to register SCI interrupts fails for interrupts >= 16, since it is meant to
-> handle only legacy space and throws error "Invalid bus_irq %u for legacy
-> override". Hence add a new function to handle SCI interrupts >= 16 and
-> invoke it conditionally in acpi_sci_ioapic_setup().The code duplication
-> due to this new function will be cleaned up in a separate patch.
+You can't have multiple processes owning the same PCI device, it's
+unmanageable.
 
-This reads way better, but I have a small nit pick. In the example I gave
-you there were multiple paragraphs on purpose to separate the different
-parts. So if I just split the above lump into separate paragraphs:
+For using multiple PASIDs, my idea was that the userspace driver ("the
+server"), that owns the device, would have a way to partition it into
+smaller frames. It forks to create "clients" and assigns a PASID to each
+of them (by issuing VFIO_BIND(client_pid) -> pasid, then writing the PASID
+into a privileged MMIO frame that defines the partition properties). Each
+client accesses an unprivileged MMIO frame to use a device partition (or
+sends commands to the server via IPC), and can perform DMA on its own
+virtual memory.
 
-[1]
-   The platforms which support only IOAPIC mode, pass the SCI information
-   above the legacy space (0-15) via the FADT mechanism and not via MADT.
+This is complete speculation of course, we have very little information on
+how PASID-capable devices will be designed, so I'm trying to imagine
+likely scenarios.
 
-[2]
-   In such cases the mp_override_legacy_irq() used by acpi_sci_ioapic_setup()
-   to register SCI interrupts fails for interrupts >= 16, since it is meant to
-   handle only legacy space and throws error "Invalid bus_irq %u for legacy
-   override".
-
-[3]
-   Hence add a new function to handle SCI interrupts >= 16 and
-   invoke it conditionally in acpi_sci_ioapic_setup().
-
-[4]
-   The code duplication due to this new function will be cleaned up in a
-   separate patch.
-
-then this is clearly structured:
-
-[1] describes the context.
-
-[2] describes the failure
-
-[3] describes the solution
-
-[4] is an extra note to tell the reviewer/reader that you are aware of the
-    code duplication and this is addressed later. 
-
-No need to resend. I can do that when picking it up.
-
-> Co-developed-by: Sunil V L <sunil.vl@hpe.com>
-
-I had a discussion with Greg about this tag which resulted in a patch so
-it should be soon part of the official documentation:
-
- https://lkml.kernel.org/r/20171116132309.GA8449@kroah.com
-
-We agreed that both authors should add their Signed-off-by to document that
-the work conforms with the Developer Certificate of Origin. I'll add that
-if that's ok for you.
-
-Thanks for following up!
-
-       tglx
+Thanks,
+Jean
