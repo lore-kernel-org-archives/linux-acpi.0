@@ -1,52 +1,92 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 31/36] iommu/arm-smmu-v3: Add support for PCI ATS
-Date: Fri, 17 Nov 2017 11:39:25 +0000
-Message-ID: <9da446e9-cf84-61ce-f3f5-32386387bc9f@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-32-jean-philippe.brucker@arm.com>
-	<BLUPR0201MB150565029F9260A528739ACBA52E0@BLUPR0201MB1505.namprd02.prod.outlook.com>
-	<673fda01-2ae0-87e4-637e-fe27096b6be0@arm.com>
-	<BLUPR0201MB1505BC86D3838D13F38665E7A52F0@BLUPR0201MB1505.namprd02.prod.outlook.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
+Date: Fri, 17 Nov 2017 13:45:16 +0100
+Message-ID: <CAJZ5v0iAC+NoiSs5mMvt37mVtyG+2qp=cap40Ju6y+UG44TJSQ@mail.gmail.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
+ <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com> <2654404.6YT5rmSnae@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <BLUPR0201MB1505BC86D3838D13F38665E7A52F0-hRBPhS1iNj/g9tdZWAsUFxrHTHEw16jenBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <2654404.6YT5rmSnae@aspire.rjw.lan>
+Sender: linux-doc-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On 17/11/17 06:11, Bharat Kumar Gogada wrote:
+On Fri, Nov 17, 2017 at 12:07 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, November 16, 2017 4:10:16 PM CET Ulf Hansson wrote:
+>> On 12 November 2017 at 01:37, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> >
+>> > Define and document a new driver flag, DPM_FLAG_LEAVE_SUSPENDED, to
+>> > instruct the PM core and middle-layer (bus type, PM domain, etc.)
+>> > code that it is desirable to leave the device in runtime suspend
+>> > after system-wide transitions to the working state (for example,
+>> > the device may be slow to resume and it may be better to avoid
+>> > resuming it right away).
+>> >
+>> > Generally, the middle-layer code involved in the handling of the
+>> > device is expected to indicate to the PM core whether or not the
+>> > device may be left in suspend with the help of the device's
+>> > power.may_skip_resume status bit.  That has to happen in the "noirq"
+>> > phase of the preceding system suspend (or analogous) transition.
+>> > The middle layer is then responsible for handling the device as
+>> > appropriate in its "noirq" resume callback which is executed
+>> > regardless of whether or not the device may be left suspended, but
+>> > the other resume callbacks (except for ->complete) will be skipped
+>> > automatically by the core if the device really can be left in
+>> > suspend.
+>> >
+>> > The additional power.must_resume status bit introduced for the
+>> > implementation of this mechanisn is used internally by the PM core
+>> > to track the requirement to resume the device (which may depend on
+>> > its children etc).
+>> >
+>> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> > Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> > ---
+>> >
+>> > v2 -> v3: Take dev->power.usage_count when updating power.must_resume in
+>> >           __device_suspend_noirq().
+>> >
+>> > ---
+
 [...]
-> Thanks Jean, I see that currently vfio_group_fops_open does not allow multiple instances. 
-> If a device supports multiple PASID there might be different applications running parallel. 
-> So why is multiple instances restricted ?
 
-You can't have multiple processes owning the same PCI device, it's
-unmanageable.
+>> > +       } else {
+>> > +               dev->power.must_resume = true;
+>> > +       }
+>> > +
+>> > +       if (dev->power.must_resume)
+>> > +               dpm_superior_set_must_resume(dev);
+>> >
+>> >  Complete:
+>> >         complete_all(&dev->power.completion);
+>> > @@ -1487,6 +1539,9 @@ static int __device_suspend(struct devic
+>> >                 dev->power.direct_complete = false;
+>> >         }
+>> >
+>> > +       dev->power.may_skip_resume = false;
+>> > +       dev->power.must_resume = false;
+>> > +
+>>
+>> First, these assignment could be bypassed if the direct_complete path
+>> is used. Perhaps it's more robust to reset these flags already in
+>> device_prepare().
+>
+> In the direct-complete case may_skip_resume doesn't matter.
+>
+> must_resume should be set to "false", however, so that parents of
+> direct-complete devices may be left in suspend (in case they don't
+> fall under direct-complete themselves), so good catch.
 
-For using multiple PASIDs, my idea was that the userspace driver ("the
-server"), that owns the device, would have a way to partition it into
-smaller frames. It forks to create "clients" and assigns a PASID to each
-of them (by issuing VFIO_BIND(client_pid) -> pasid, then writing the PASID
-into a privileged MMIO frame that defines the partition properties). Each
-client accesses an unprivileged MMIO frame to use a device partition (or
-sends commands to the server via IPC), and can perform DMA on its own
-virtual memory.
+Actually, not really.
 
-This is complete speculation of course, we have very little information on
-how PASID-capable devices will be designed, so I'm trying to imagine
-likely scenarios.
+must_resume for parents/suppliers is not updated if the device has
+direct_complete set and the device's own must_resume doesn't matter
+then.
+
+So this part is good as is AFAICS.
 
 Thanks,
-Jean
+Rafael
