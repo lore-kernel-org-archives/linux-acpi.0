@@ -1,92 +1,57 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
-Date: Fri, 17 Nov 2017 07:11:08 +0100
-Message-ID: <CAPDyKFo4gE6O=xMoS2Phe0kNgNUGBffy1hxT3iPrY71ieGcumQ@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
- <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com> <2654404.6YT5rmSnae@aspire.rjw.lan>
+From: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [RFCv2 PATCH 31/36] iommu/arm-smmu-v3: Add support for PCI ATS
+Date: Fri, 17 Nov 2017 06:11:17 +0000
+Message-ID: <BLUPR0201MB1505BC86D3838D13F38665E7A52F0@BLUPR0201MB1505.namprd02.prod.outlook.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-32-jean-philippe.brucker@arm.com>
+	<BLUPR0201MB150565029F9260A528739ACBA52E0@BLUPR0201MB1505.namprd02.prod.outlook.com>
+	<673fda01-2ae0-87e4-637e-fe27096b6be0@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <2654404.6YT5rmSnae@aspire.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <673fda01-2ae0-87e4-637e-fe27096b6be0-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[...]
+> +
+> +	spin_lock_irqsave(&smmu_domain->devices_lock, flags);
+> +	list_for_each_entry(master, &smmu_domain->devices, list)
+> +		arm_smmu_atc_inv_master(master, &cmd);
+> +	spin_unlock_irqrestore(&smmu_domain->devices_lock, flags);
+> +
+> +	return size;
+> +}
+> +
+>  /* IOMMU API */
+>  static bool arm_smmu_capable(enum iommu_cap cap)  { @@ -2361,6 +2506,8 @@ static void arm_smmu_detach_dev(struct device *dev)
+>  		__iommu_process_unbind_dev_all(&smmu_domain->domain, dev);
+>  
+>  	if (smmu_domain) {
+> +		arm_smmu_atc_inv_master_all(master, 0);
+> +
+> In BIND flow, when VFIO_IOMMU_UNBIND is invoked invalidation is sent on allocated PASID for this application.
+> When vfio group fd is closed after UNBIND,  arm_smmu_detach_dev is invoked now invalidation is being sent on ssid zero.
+> Why  invalidation needs to be sent on ssid zero ?
 
->> > +++ linux-pm/include/linux/pm.h
->> > @@ -559,6 +559,7 @@ struct pm_subsys_data {
->> >   * NEVER_SKIP: Do not skip system suspend/resume callbacks for the device.
->> >   * SMART_PREPARE: Check the return value of the driver's ->prepare callback.
->> >   * SMART_SUSPEND: No need to resume the device from runtime suspend.
->> > + * LEAVE_SUSPENDED: Avoid resuming the device during system resume if possible.
->> >   *
->> >   * Setting SMART_PREPARE instructs bus types and PM domains which may want
->> >   * system suspend/resume callbacks to be skipped for the device to return 0 from
->> > @@ -572,10 +573,14 @@ struct pm_subsys_data {
->> >   * necessary from the driver's perspective.  It also may cause them to skip
->> >   * invocations of the ->suspend_late and ->suspend_noirq callbacks provided by
->> >   * the driver if they decide to leave the device in runtime suspend.
->> > + *
->> > + * Setting LEAVE_SUSPENDED informs the PM core and middle-layer code that the
->> > + * driver prefers the device to be left in runtime suspend after system resume.
->> >   */
->>
->> Question: Can LEAVE_SUSPENDED and NEVER_SKIP be valid combination? I
->> guess not!? Should we validate for wrong combinations?
->
-> Why not?  There's no real overlap between them.
+It's possible to use bind/unbind and map/unmap APIs at the same time on a domain. map/unmap modifies non-ssid mappings as usual, for context descriptor 0. Note that SSID 0 is converted to "no SSID" by arm_smmu_atc_inv_to_cmd.
 
-Except that NEVER_SKIP, documentation wise, tells you that your
-suspend and resume callbacks will never be skipped. :-)
+That said, I think VFIO cleans all DMA mappings when the VFIO group fd is closed, which will send individual ATC invalidation for each mapping. But VFIO may not be the only user of this API, and future users may be less careful. It's safer to send this global invalidation whenever we detach the domain, to ensure we're not leaving stale ATC entries for the next user.
 
-[...]
+Thanks Jean, I see that currently vfio_group_fops_open does not allow multiple instances. 
+If a device supports multiple PASID there might be different applications running parallel. 
+So why is multiple instances restricted ?
 
->> Second, have you considered setting the default value of
->> dev->power.may_skip_resume to true?
->
-> Yes.
->
->> That would means the subsystem
->> instead need to implement an opt-out method. I am thinking that it may
->> not be an issue, since we anyway at this point, don't have drivers
->> using the LEAVE_SUSPENDED flag.
->
-> Opt-out doesn't work because of the need to invoke the "noirq" callbacks.
-
-I am not sure I follow that.
-
-Whatever needs to be fixed on the subsystem level, that could be done
-before the driver starts using the LEAVE_SUSPENDED flag. No?
-
->
->> [...]
->>
->> > +However, it may be desirable to leave some devices in runtime suspend after
->> > +system transitions to the working state and device drivers can use the
->> > +``DPM_FLAG_LEAVE_SUSPENDED`` flag to indicate to the PM core (and middle-layer
->> > +code) that this is the case.  Whether or not the devices will actually be left
->> > +in suspend may depend on their state before the given system suspend-resume
->> > +cycle and on the type of the system transition under way.  In particular,
->> > +devices are not left suspended if that transition is a restore from hibernation,
->> > +as device states are not guaranteed to be reflected by the information stored in
->> > +the hibernation image in that case.
->> > +
->> > +The middle-layer code involved in the handling of the device has to indicate to
->> > +the PM core if the device may be left in suspend with the help of its
->> > +:c:member:`power.may_skip_resume` status bit.  That has to happen in the "noirq"
->> > +phase of the preceding system-wide suspend (or analogous) transition.  The
->>
->> Does it have to be managed in the "noirq" phase? Wouldn't be perfectly
->> okay do this in the suspend and suspend_late phases as well?
->
-> The wording is slightly misleading I think.
->
-> In fact technically may_skip_resume may be set earlier, but the core checks it
-> in the "noirq" phase only anyway.
-
-Yeah, okay.
-
-Kind regards
-Uffe
+Regards,
+Bharat
