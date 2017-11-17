@@ -1,101 +1,92 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3] ACPI / Processor: add sysfs support for low power idle
-Date: Fri, 17 Nov 2017 00:34:17 +0100
-Message-ID: <4875746.ro5yELCUiR@aspire.rjw.lan>
-References: <1508437188-14463-1-git-send-email-pprakash@codeaurora.org> <7bfe82ba-0063-0b58-de06-ac534eef36e9@arm.com> <c45d5fc9-e613-bafd-cc06-60ccccd03019@codeaurora.org>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
+Date: Fri, 17 Nov 2017 07:11:08 +0100
+Message-ID: <CAPDyKFo4gE6O=xMoS2Phe0kNgNUGBffy1hxT3iPrY71ieGcumQ@mail.gmail.com>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
+ <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com> <2654404.6YT5rmSnae@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:48081 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965845AbdKPXec (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 16 Nov 2017 18:34:32 -0500
-In-Reply-To: <c45d5fc9-e613-bafd-cc06-60ccccd03019@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <2654404.6YT5rmSnae@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Timur Tabi <timur@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Len Brown <lenb@kernel.org>
 
-On Thursday, November 16, 2017 6:50:51 PM CET Prakash, Prashanth wrote:
-> Hey Sudeep,
-> 
-> On 11/16/2017 7:52 AM, Sudeep Holla wrote:
-> >
-> > On 15/11/17 18:37, Rafael J. Wysocki wrote:
-> >> On Wed, Nov 15, 2017 at 7:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> >>>
-> >>> On 15/11/17 15:33, Timur Tabi wrote:
-> >>>> On Wed, Nov 8, 2017 at 8:18 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> >>>>> I still prefer this as debugfs and not as sysfs ABI. We already have
-> >>>>> issues with multiple interfaces for the same thing. E.g. cpufreq on x86.
-> >>>>> I don't want this to end up in the same way after few years. CPUIdle
-> >>>>> sysfs should be only sysfs ABI for these, adding an alternative is
-> >>>>> inviting troubles for future especially if some user-space starts using
-> >>>>> it and we will be stuck with that. Moreover with more h/w controlled
-> >>>>> idle we may not provide accurate data sooner.
-> >>>>>
-> >>>>> Sorry for the noise, I will shup up now ;). Since this may be last
-> >>>>> chance to make some noise, I am trying it. I completely understand that
-> >>>>> this is just my opinion and am fine if others thinks it's good to make
-> >>>>> this sysfs ABI.
-> >>>> Unfortunately, I think Prashanth really needs a specific requirement
-> >>>> rather than opinions.
-> >>> I completely understand that. So for I haven't got a solid reason as
-> >>> why debugfs is not sufficient? If it becomes so popular in future, we
-> >>> can discuss and then make it sysfs ABI with more thoughts/discussions.
-> >> Well, the recent discussions regarding tracepoints indicate that the
-> >> ABI rule is not really about where the stuff is located in the
-> >> directory structure. :-)
-> >>
-> > Agreed.
-> >
-> >> The main question to me is whether or not the information exposed is
-> >> more suitable for debugfs or for sysfs, considering all of the
-> >> limitations (like one value per file rule in sysfs etc).
-> >>
-> > I was thinking of keeping it simple and just one file for all the stats
-> > like we have /sys/kernel/debug/clk/clk_summary
-> >
-> > It looks somethings like below:
-> >    clock       enable_cnt  prepare_cnt    rate   accuracy   phase
-> > ----------------------------------------------------------------------
-> >  juno:uartclk         1            2     7273800       0      0
-> > ...
-> >
-> >
-> >> Of course, debugfs means that the users of, say, Android will not be
-> >> able to access this information, but should that really influence
-> >> decisions at the technical level?
-> >>
-> > That's the idea. IIUC, this is basically useful in the initial days of
-> > development to tune your idle parameters and for idle characterization.
-> > I am not sure(and hope) that this will be consumed by some application
-> > and acted upon dynamically. It's more like collect data, analyze, tune,
-> > repeat and rinse until happy with the tuning.
-> >
-> > Prashanth/Timur, please correct me if that's not the case. Understanding
-> > how the data is used is essential here.
-> 
-> One of the use case is definitely initial idle characterization. With the whole
-> hierarchy it does open up some additional use cases even after the initial
-> characterization depending on how high/deep the hierarchy is.
-> 
-> It is sometimes interesting to see how higher level idle states are getting utilized
-> for different workloads and tweaking some thread-placement may help make
-> a workload run more efficiently w.r.t power. Similarly how autopromotable states
-> are used with different workloads.
-> 
-> For the above use cases, the hierarchical view is very important, so we need a
-> way to represent the dependency b/w CPU, cluster and any other higher levels.
-> That's why the existing ACPI sysfs hierarchy was so nice. I haven't though about a
-> lot about how to represent  the above on a single debugfs file yet.
+[...]
 
-That doesn't have to be one file, but you can use one file per Processor
-Container or Processor object, for example.  That already would be fewer
-files than in sysfs. :-)
+>> > +++ linux-pm/include/linux/pm.h
+>> > @@ -559,6 +559,7 @@ struct pm_subsys_data {
+>> >   * NEVER_SKIP: Do not skip system suspend/resume callbacks for the device.
+>> >   * SMART_PREPARE: Check the return value of the driver's ->prepare callback.
+>> >   * SMART_SUSPEND: No need to resume the device from runtime suspend.
+>> > + * LEAVE_SUSPENDED: Avoid resuming the device during system resume if possible.
+>> >   *
+>> >   * Setting SMART_PREPARE instructs bus types and PM domains which may want
+>> >   * system suspend/resume callbacks to be skipped for the device to return 0 from
+>> > @@ -572,10 +573,14 @@ struct pm_subsys_data {
+>> >   * necessary from the driver's perspective.  It also may cause them to skip
+>> >   * invocations of the ->suspend_late and ->suspend_noirq callbacks provided by
+>> >   * the driver if they decide to leave the device in runtime suspend.
+>> > + *
+>> > + * Setting LEAVE_SUSPENDED informs the PM core and middle-layer code that the
+>> > + * driver prefers the device to be left in runtime suspend after system resume.
+>> >   */
+>>
+>> Question: Can LEAVE_SUSPENDED and NEVER_SKIP be valid combination? I
+>> guess not!? Should we validate for wrong combinations?
+>
+> Why not?  There's no real overlap between them.
 
-Thanks,
-Rafael
+Except that NEVER_SKIP, documentation wise, tells you that your
+suspend and resume callbacks will never be skipped. :-)
 
+[...]
+
+>> Second, have you considered setting the default value of
+>> dev->power.may_skip_resume to true?
+>
+> Yes.
+>
+>> That would means the subsystem
+>> instead need to implement an opt-out method. I am thinking that it may
+>> not be an issue, since we anyway at this point, don't have drivers
+>> using the LEAVE_SUSPENDED flag.
+>
+> Opt-out doesn't work because of the need to invoke the "noirq" callbacks.
+
+I am not sure I follow that.
+
+Whatever needs to be fixed on the subsystem level, that could be done
+before the driver starts using the LEAVE_SUSPENDED flag. No?
+
+>
+>> [...]
+>>
+>> > +However, it may be desirable to leave some devices in runtime suspend after
+>> > +system transitions to the working state and device drivers can use the
+>> > +``DPM_FLAG_LEAVE_SUSPENDED`` flag to indicate to the PM core (and middle-layer
+>> > +code) that this is the case.  Whether or not the devices will actually be left
+>> > +in suspend may depend on their state before the given system suspend-resume
+>> > +cycle and on the type of the system transition under way.  In particular,
+>> > +devices are not left suspended if that transition is a restore from hibernation,
+>> > +as device states are not guaranteed to be reflected by the information stored in
+>> > +the hibernation image in that case.
+>> > +
+>> > +The middle-layer code involved in the handling of the device has to indicate to
+>> > +the PM core if the device may be left in suspend with the help of its
+>> > +:c:member:`power.may_skip_resume` status bit.  That has to happen in the "noirq"
+>> > +phase of the preceding system-wide suspend (or analogous) transition.  The
+>>
+>> Does it have to be managed in the "noirq" phase? Wouldn't be perfectly
+>> okay do this in the suspend and suspend_late phases as well?
+>
+> The wording is slightly misleading I think.
+>
+> In fact technically may_skip_resume may be set earlier, but the core checks it
+> in the "noirq" phase only anyway.
+
+Yeah, okay.
+
+Kind regards
+Uffe
