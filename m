@@ -1,85 +1,505 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v3 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
-Date: Fri, 17 Nov 2017 16:57:05 +0100
-Message-ID: <CAPDyKFpXh=E8vC9fUXhbDTLcekb74xfd7chTyKKSw1VgPv1rCQ@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5556673.MXo6XDN1f4@aspire.rjw.lan>
- <CAPDyKFpzSd4zwW_awuxuim0gzyKV5s9dm66X+szsSUKRnBakbA@mail.gmail.com>
- <2654404.6YT5rmSnae@aspire.rjw.lan> <CAPDyKFo4gE6O=xMoS2Phe0kNgNUGBffy1hxT3iPrY71ieGcumQ@mail.gmail.com>
- <CAJZ5v0ibqqUZ0M1_GKCkGj_E+2DQQMOLAVTyPd7mSJDAypkHjQ@mail.gmail.com>
- <CAPDyKFrsabWL2cVE2SwguRRiEV5sJHLpzpyhahLucdER_RAEpg@mail.gmail.com> <CAJZ5v0iD3uzJr4fdhrWfRhSmr_foU4GQx9LY_9sR=BKYUxZOGw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iD3uzJr4fdhrWfRhSmr_foU4GQx9LY_9sR=BKYUxZOGw@mail.gmail.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH 1/8] ACPICA: Hardware: Enable 64-bit support of hardware accesses
+Date: Fri, 17 Nov 2017 10:03:29 -0800
+Message-ID: <20171117180336.15558-1-erik.schmauss@intel.com>
+References: <erik.schmauss@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:51469 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753307AbdKQSIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Nov 2017 13:08:10 -0500
+In-Reply-To: <erik.schmauss@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-On 17 November 2017 at 15:31, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Fri, Nov 17, 2017 at 2:49 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->> [...]
->>
->>>>
->>>>>> Second, have you considered setting the default value of
->>>>>> dev->power.may_skip_resume to true?
->>>>>
->>>>> Yes.
->>>>>
->>>>>> That would means the subsystem
->>>>>> instead need to implement an opt-out method. I am thinking that it may
->>>>>> not be an issue, since we anyway at this point, don't have drivers
->>>>>> using the LEAVE_SUSPENDED flag.
->>>>>
->>>>> Opt-out doesn't work because of the need to invoke the "noirq" callbacks.
->>>>
->>>> I am not sure I follow that.
->>>>
->>>> Whatever needs to be fixed on the subsystem level, that could be done
->>>> before the driver starts using the LEAVE_SUSPENDED flag. No?
->>>
->>> That requires a bit of explanation, sorry for being overly concise.
->>>
->>> The core calls ->resume_noirq from the middle layer regardless of
->>> whether or not the device will be left suspended, so the
->>> ->resume_noirq cannot do arbitrary things to it.  Setting
->>> may_skip_resume by the middle layer tells the core that the middle
->>> layer is ready for that and is going to cooperate.  If may_skip_resume
->>> had been set by default, that piece of information would have been
->>> missing.
->>
->> Huh, I still don't get that. Sorry.
->>
->> If the "may_skip_resume" is default set to true by the PM core,
->> wouldn't that just mean that the middle-layer needs to implement an
->> opt-out method, rather than opt-in. In principle to opt-out the
->> middle-layer needs to set may_skip_resume to false in suspend_noirq
->> phase, no?
->
-> Yes, but if the middle-layer doesn't clear it, that may mean two
-> things.  First, the middle layer is ready and so on.  Good.  Second,
-> the middle layer is not aware of the whole thing.  Not good.  The core
-> cannot tell.
->
-> In the opt-in case, however, all is clear. :-)
+From: Lv Zheng <lv.zheng@intel.com>
 
-Okay.
+ACPICA commit 6b0a604d171334f61a18bc92b44ec0437b11bf98
 
->
->> Then we only need to make sure drivers don't starts use
->> LEAVE_SUSPENDED, before we make sure the middle layers is adopted. But
->> that should not be a problem.
->>
->> The benefit would be that those middle layers that can cope with
->> LEAVE_SUSPENDED as of today don't need to change.
->
-> I'm not sure if that's the case.
->
-> The middle layer has to evaluate dev_pm_may_skip_resume() in
-> ->resume_noirq() to check if the device can be left in suspend, as it
-> cannot determine that in ->suspend_noirq() yet.
+This patch enable 64-bit support for acpi_hw_read()/acpi_hw_write() and
+then convert acpi_read()/acpi_write() to invoke them. BZ 1287, fixed by
+Lv Zheng.
 
-Right. Okay, let's stick with the chosen method.
+Link: https://github.com/acpica/acpica/commit/6b0a604d
+Link: https://bugs.acpica.org/show_bug.cgi?id=1287
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+---
+ drivers/acpi/acpica/achware.h |   4 +-
+ drivers/acpi/acpica/evgpe.c   |   6 +--
+ drivers/acpi/acpica/hwgpe.c   |   4 +-
+ drivers/acpi/acpica/hwregs.c  |  72 ++++++++++++++------------
+ drivers/acpi/acpica/hwxface.c | 118 ++----------------------------------------
+ 5 files changed, 49 insertions(+), 155 deletions(-)
 
-Kind regards
-Uffe
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index fd4f3cacb356..cd722d8edacb 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -66,9 +66,9 @@ acpi_status
+ acpi_hw_validate_register(struct acpi_generic_address *reg,
+ 			  u8 max_bit_width, u64 *address);
+ 
+-acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg);
++acpi_status acpi_hw_read(u64 *value, struct acpi_generic_address *reg);
+ 
+-acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg);
++acpi_status acpi_hw_write(u64 value, struct acpi_generic_address *reg);
+ 
+ struct acpi_bit_register_info *acpi_hw_get_bit_register_info(u32 register_id);
+ 
+diff --git a/drivers/acpi/acpica/evgpe.c b/drivers/acpi/acpica/evgpe.c
+index 229382035550..263d8fc4a9e2 100644
+--- a/drivers/acpi/acpica/evgpe.c
++++ b/drivers/acpi/acpica/evgpe.c
+@@ -390,8 +390,8 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info *gpe_xrupt_list)
+ 	struct acpi_gpe_handler_info *gpe_handler_info;
+ 	u32 int_status = ACPI_INTERRUPT_NOT_HANDLED;
+ 	u8 enabled_status_byte;
+-	u32 status_reg;
+-	u32 enable_reg;
++	u64 status_reg;
++	u64 enable_reg;
+ 	acpi_cpu_flags flags;
+ 	u32 i;
+ 	u32 j;
+@@ -472,7 +472,7 @@ u32 acpi_ev_gpe_detect(struct acpi_gpe_xrupt_info *gpe_xrupt_list)
+ 					  gpe_register_info->base_gpe_number,
+ 					  gpe_register_info->base_gpe_number +
+ 					  (ACPI_GPE_REGISTER_WIDTH - 1),
+-					  status_reg, enable_reg,
++					  (u32)status_reg, (u32)enable_reg,
+ 					  gpe_register_info->enable_for_run,
+ 					  gpe_register_info->enable_for_wake));
+ 
+diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+index 5eb11b30a79e..09b6822aa5cc 100644
+--- a/drivers/acpi/acpica/hwgpe.c
++++ b/drivers/acpi/acpica/hwgpe.c
+@@ -99,7 +99,7 @@ acpi_hw_low_set_gpe(struct acpi_gpe_event_info *gpe_event_info, u32 action)
+ {
+ 	struct acpi_gpe_register_info *gpe_register_info;
+ 	acpi_status status = AE_OK;
+-	u32 enable_mask;
++	u64 enable_mask;
+ 	u32 register_bit;
+ 
+ 	ACPI_FUNCTION_ENTRY();
+@@ -214,7 +214,7 @@ acpi_status
+ acpi_hw_get_gpe_status(struct acpi_gpe_event_info *gpe_event_info,
+ 		       acpi_event_status *event_status)
+ {
+-	u32 in_byte;
++	u64 in_byte;
+ 	u32 register_bit;
+ 	struct acpi_gpe_register_info *gpe_register_info;
+ 	acpi_event_status local_event_status = 0;
+diff --git a/drivers/acpi/acpica/hwregs.c b/drivers/acpi/acpica/hwregs.c
+index acb417b58bbb..aa6e00081915 100644
+--- a/drivers/acpi/acpica/hwregs.c
++++ b/drivers/acpi/acpica/hwregs.c
+@@ -220,16 +220,15 @@ acpi_hw_validate_register(struct acpi_generic_address *reg,
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Read from either memory or IO space. This is a 32-bit max
+- *              version of acpi_read, used internally since the overhead of
+- *              64-bit values is not needed.
++ * DESCRIPTION: Read from either memory or IO space. This is a 64-bit max
++ *              version of acpi_read.
+  *
+  * LIMITATIONS: <These limitations also apply to acpi_hw_write>
+  *      space_ID must be system_memory or system_IO.
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
++acpi_status acpi_hw_read(u64 *value, struct acpi_generic_address *reg)
+ {
+ 	u64 address;
+ 	u8 access_width;
+@@ -244,17 +243,17 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 
+ 	/* Validate contents of the GAS register */
+ 
+-	status = acpi_hw_validate_register(reg, 32, &address);
++	status = acpi_hw_validate_register(reg, 64, &address);
+ 	if (ACPI_FAILURE(status)) {
+ 		return (status);
+ 	}
+ 
+ 	/*
+-	 * Initialize entire 32-bit return value to zero, convert access_width
++	 * Initialize entire 64-bit return value to zero, convert access_width
+ 	 * into number of bits based
+ 	 */
+ 	*value = 0;
+-	access_width = acpi_hw_get_access_bit_width(address, reg, 32);
++	access_width = acpi_hw_get_access_bit_width(address, reg, 64);
+ 	bit_width = reg->bit_offset + reg->bit_width;
+ 	bit_offset = reg->bit_offset;
+ 
+@@ -265,7 +264,7 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 	index = 0;
+ 	while (bit_width) {
+ 		if (bit_offset >= access_width) {
+-			value32 = 0;
++			value64 = 0;
+ 			bit_offset -= access_width;
+ 		} else {
+ 			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+@@ -276,7 +275,6 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 							ACPI_DIV_8
+ 							(access_width),
+ 							&value64, access_width);
+-				value32 = (u32)value64;
+ 			} else {	/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+ 
+ 				status = acpi_hw_read_port((acpi_io_address)
+@@ -286,15 +284,16 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 							   (access_width),
+ 							   &value32,
+ 							   access_width);
++				value64 = (u64)value32;
+ 			}
+ 		}
+ 
+ 		/*
+ 		 * Use offset style bit writes because "Index * AccessWidth" is
+-		 * ensured to be less than 32-bits by acpi_hw_validate_register().
++		 * ensured to be less than 64-bits by acpi_hw_validate_register().
+ 		 */
+ 		ACPI_SET_BITS(value, index * access_width,
+-			      ACPI_MASK_BITS_ABOVE_32(access_width), value32);
++			      ACPI_MASK_BITS_ABOVE_64(access_width), value64);
+ 
+ 		bit_width -=
+ 		    bit_width > access_width ? access_width : bit_width;
+@@ -302,8 +301,9 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-			  "Read:  %8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  *value, access_width, ACPI_FORMAT_UINT64(address),
++			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
++			  ACPI_FORMAT_UINT64(*value), access_width,
++			  ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+ 	return (status);
+@@ -318,20 +318,18 @@ acpi_status acpi_hw_read(u32 *value, struct acpi_generic_address *reg)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Write to either memory or IO space. This is a 32-bit max
+- *              version of acpi_write, used internally since the overhead of
+- *              64-bit values is not needed.
++ * DESCRIPTION: Write to either memory or IO space. This is a 64-bit max
++ *              version of acpi_write.
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
++acpi_status acpi_hw_write(u64 value, struct acpi_generic_address *reg)
+ {
+ 	u64 address;
+ 	u8 access_width;
+ 	u32 bit_width;
+ 	u8 bit_offset;
+ 	u64 value64;
+-	u32 value32;
+ 	u8 index;
+ 	acpi_status status;
+ 
+@@ -339,14 +337,14 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 
+ 	/* Validate contents of the GAS register */
+ 
+-	status = acpi_hw_validate_register(reg, 32, &address);
++	status = acpi_hw_validate_register(reg, 64, &address);
+ 	if (ACPI_FAILURE(status)) {
+ 		return (status);
+ 	}
+ 
+ 	/* Convert access_width into number of bits based */
+ 
+-	access_width = acpi_hw_get_access_bit_width(address, reg, 32);
++	access_width = acpi_hw_get_access_bit_width(address, reg, 64);
+ 	bit_width = reg->bit_offset + reg->bit_width;
+ 	bit_offset = reg->bit_offset;
+ 
+@@ -358,16 +356,15 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 	while (bit_width) {
+ 		/*
+ 		 * Use offset style bit reads because "Index * AccessWidth" is
+-		 * ensured to be less than 32-bits by acpi_hw_validate_register().
++		 * ensured to be less than 64-bits by acpi_hw_validate_register().
+ 		 */
+-		value32 = ACPI_GET_BITS(&value, index * access_width,
+-					ACPI_MASK_BITS_ABOVE_32(access_width));
++		value64 = ACPI_GET_BITS(&value, index * access_width,
++					ACPI_MASK_BITS_ABOVE_64(access_width));
+ 
+ 		if (bit_offset >= access_width) {
+ 			bit_offset -= access_width;
+ 		} else {
+ 			if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-				value64 = (u64)value32;
+ 				status =
+ 				    acpi_os_write_memory((acpi_physical_address)
+ 							 address +
+@@ -382,7 +379,7 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 							    index *
+ 							    ACPI_DIV_8
+ 							    (access_width),
+-							    value32,
++							    (u32)value64,
+ 							    access_width);
+ 			}
+ 		}
+@@ -397,8 +394,9 @@ acpi_status acpi_hw_write(u32 value, struct acpi_generic_address *reg)
+ 	}
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-			  "Wrote: %8.8X width %2d   to %8.8X%8.8X (%s)\n",
+-			  value, access_width, ACPI_FORMAT_UINT64(address),
++			  "Wrote: %8.8X%8.8X width %2d   to %8.8X%8.8X (%s)\n",
++			  ACPI_FORMAT_UINT64(value), access_width,
++			  ACPI_FORMAT_UINT64(address),
+ 			  acpi_ut_get_region_name(reg->space_id)));
+ 
+ 	return (status);
+@@ -526,6 +524,7 @@ acpi_status acpi_hw_write_pm1_control(u32 pm1a_control, u32 pm1b_control)
+ acpi_status acpi_hw_register_read(u32 register_id, u32 *return_value)
+ {
+ 	u32 value = 0;
++	u64 value64;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_TRACE(hw_register_read);
+@@ -564,12 +563,14 @@ acpi_status acpi_hw_register_read(u32 register_id, u32 *return_value)
+ 	case ACPI_REGISTER_PM2_CONTROL:	/* 8-bit access */
+ 
+ 		status =
+-		    acpi_hw_read(&value, &acpi_gbl_FADT.xpm2_control_block);
++		    acpi_hw_read(&value64, &acpi_gbl_FADT.xpm2_control_block);
++		value = (u32)value64;
+ 		break;
+ 
+ 	case ACPI_REGISTER_PM_TIMER:	/* 32-bit access */
+ 
+-		status = acpi_hw_read(&value, &acpi_gbl_FADT.xpm_timer_block);
++		status = acpi_hw_read(&value64, &acpi_gbl_FADT.xpm_timer_block);
++		value = (u32)value64;
+ 		break;
+ 
+ 	case ACPI_REGISTER_SMI_COMMAND_BLOCK:	/* 8-bit access */
+@@ -586,7 +587,7 @@ acpi_status acpi_hw_register_read(u32 register_id, u32 *return_value)
+ 	}
+ 
+ 	if (ACPI_SUCCESS(status)) {
+-		*return_value = value;
++		*return_value = (u32)value;
+ 	}
+ 
+ 	return_ACPI_STATUS(status);
+@@ -622,6 +623,7 @@ acpi_status acpi_hw_register_write(u32 register_id, u32 value)
+ {
+ 	acpi_status status;
+ 	u32 read_value;
++	u64 read_value64;
+ 
+ 	ACPI_FUNCTION_TRACE(hw_register_write);
+ 
+@@ -685,11 +687,12 @@ acpi_status acpi_hw_register_write(u32 register_id, u32 value)
+ 		 * as per the ACPI spec.
+ 		 */
+ 		status =
+-		    acpi_hw_read(&read_value,
++		    acpi_hw_read(&read_value64,
+ 				 &acpi_gbl_FADT.xpm2_control_block);
+ 		if (ACPI_FAILURE(status)) {
+ 			goto exit;
+ 		}
++		read_value = (u32)read_value64;
+ 
+ 		/* Insert the bits to be preserved */
+ 
+@@ -745,22 +748,25 @@ acpi_hw_read_multiple(u32 *value,
+ {
+ 	u32 value_a = 0;
+ 	u32 value_b = 0;
++	u64 value64;
+ 	acpi_status status;
+ 
+ 	/* The first register is always required */
+ 
+-	status = acpi_hw_read(&value_a, register_a);
++	status = acpi_hw_read(&value64, register_a);
+ 	if (ACPI_FAILURE(status)) {
+ 		return (status);
+ 	}
++	value_a = (u32)value64;
+ 
+ 	/* Second register is optional */
+ 
+ 	if (register_b->address) {
+-		status = acpi_hw_read(&value_b, register_b);
++		status = acpi_hw_read(&value64, register_b);
+ 		if (ACPI_FAILURE(status)) {
+ 			return (status);
+ 		}
++		value_b = (u32)value64;
+ 	}
+ 
+ 	/*
+diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+index 34684ae89981..b3c6e439933c 100644
+--- a/drivers/acpi/acpica/hwxface.c
++++ b/drivers/acpi/acpica/hwxface.c
+@@ -125,76 +125,12 @@ ACPI_EXPORT_SYMBOL(acpi_reset)
+  ******************************************************************************/
+ acpi_status acpi_read(u64 *return_value, struct acpi_generic_address *reg)
+ {
+-	u32 value_lo;
+-	u32 value_hi;
+-	u32 width;
+-	u64 address;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(acpi_read);
+ 
+-	if (!return_value) {
+-		return (AE_BAD_PARAMETER);
+-	}
+-
+-	/* Validate contents of the GAS register. Allow 64-bit transfers */
+-
+-	status = acpi_hw_validate_register(reg, 64, &address);
+-	if (ACPI_FAILURE(status)) {
+-		return (status);
+-	}
+-
+-	/*
+-	 * Two address spaces supported: Memory or I/O. PCI_Config is
+-	 * not supported here because the GAS structure is insufficient
+-	 */
+-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-		status = acpi_os_read_memory((acpi_physical_address)
+-					     address, return_value,
+-					     reg->bit_width);
+-		if (ACPI_FAILURE(status)) {
+-			return (status);
+-		}
+-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+-
+-		value_lo = 0;
+-		value_hi = 0;
+-
+-		width = reg->bit_width;
+-		if (width == 64) {
+-			width = 32;	/* Break into two 32-bit transfers */
+-		}
+-
+-		status = acpi_hw_read_port((acpi_io_address)
+-					   address, &value_lo, width);
+-		if (ACPI_FAILURE(status)) {
+-			return (status);
+-		}
+-
+-		if (reg->bit_width == 64) {
+-
+-			/* Read the top 32 bits */
+-
+-			status = acpi_hw_read_port((acpi_io_address)
+-						   (address + 4), &value_hi,
+-						   32);
+-			if (ACPI_FAILURE(status)) {
+-				return (status);
+-			}
+-		}
+-
+-		/* Set the return value only if status is AE_OK */
+-
+-		*return_value = (value_lo | ((u64)value_hi << 32));
+-	}
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-			  "Read:  %8.8X%8.8X width %2d from %8.8X%8.8X (%s)\n",
+-			  ACPI_FORMAT_UINT64(*return_value), reg->bit_width,
+-			  ACPI_FORMAT_UINT64(address),
+-			  acpi_ut_get_region_name(reg->space_id)));
+-
+-	return (AE_OK);
++	status = acpi_hw_read(return_value, reg);
++	return (status);
+ }
+ 
+ ACPI_EXPORT_SYMBOL(acpi_read)
+@@ -213,59 +149,11 @@ ACPI_EXPORT_SYMBOL(acpi_read)
+  ******************************************************************************/
+ acpi_status acpi_write(u64 value, struct acpi_generic_address *reg)
+ {
+-	u32 width;
+-	u64 address;
+ 	acpi_status status;
+ 
+ 	ACPI_FUNCTION_NAME(acpi_write);
+ 
+-	/* Validate contents of the GAS register. Allow 64-bit transfers */
+-
+-	status = acpi_hw_validate_register(reg, 64, &address);
+-	if (ACPI_FAILURE(status)) {
+-		return (status);
+-	}
+-
+-	/*
+-	 * Two address spaces supported: Memory or IO. PCI_Config is
+-	 * not supported here because the GAS structure is insufficient
+-	 */
+-	if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
+-		status = acpi_os_write_memory((acpi_physical_address)
+-					      address, value, reg->bit_width);
+-		if (ACPI_FAILURE(status)) {
+-			return (status);
+-		}
+-	} else {		/* ACPI_ADR_SPACE_SYSTEM_IO, validated earlier */
+-
+-		width = reg->bit_width;
+-		if (width == 64) {
+-			width = 32;	/* Break into two 32-bit transfers */
+-		}
+-
+-		status = acpi_hw_write_port((acpi_io_address)
+-					    address, ACPI_LODWORD(value),
+-					    width);
+-		if (ACPI_FAILURE(status)) {
+-			return (status);
+-		}
+-
+-		if (reg->bit_width == 64) {
+-			status = acpi_hw_write_port((acpi_io_address)
+-						    (address + 4),
+-						    ACPI_HIDWORD(value), 32);
+-			if (ACPI_FAILURE(status)) {
+-				return (status);
+-			}
+-		}
+-	}
+-
+-	ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-			  "Wrote: %8.8X%8.8X width %2d   to %8.8X%8.8X (%s)\n",
+-			  ACPI_FORMAT_UINT64(value), reg->bit_width,
+-			  ACPI_FORMAT_UINT64(address),
+-			  acpi_ut_get_region_name(reg->space_id)));
+-
++	status = acpi_hw_write(value, reg);
+ 	return (status);
+ }
+ 
+-- 
+2.13.6
+
