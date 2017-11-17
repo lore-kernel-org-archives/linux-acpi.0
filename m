@@ -1,88 +1,65 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: [RFC PATCH v2 5/5] ACPI/IORT: Move IORT to the ACPI folder
-Date: Fri, 17 Nov 2017 18:52:11 +0000
-Message-ID: <20171117185211.32593-6-jean-philippe.brucker@arm.com>
-References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: iommu@lists.linux-foundation.org, devel@acpica.org, linux-acpi@vger.kernel.org, kvm@vger.kernel.org, kvmarm@lists.cs.columbia.edu, virtualization@lists.linux-foundation.org, virtio-dev@lists.oasis-open.org
-Cc: Jayachandran.Nair@cavium.com, lorenzo.pieralisi@arm.com, ashok.raj@intel.com, mst@redhat.com, marc.zyngier@arm.com, will.deacon@arm.com, jasowang@redhat.com, rjw@rjwysocki.net, robert.moore@intel.com, alex.williamson@redhat.com, lv.zheng@intel.com, sudeep.holla@arm.com, lenb@kernel.org, robin.murphy@arm.com, joro@8bytes.org, hanjun.guo@linaro.org
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH 00/11] ACPICA release 20170929
+Date: Fri, 17 Nov 2017 15:40:13 -0800
+Message-ID: <20171117234024.833-1-erik.schmauss@intel.com>
+References: <erik.schmauss@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:53935 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1161767AbdKQXpE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Nov 2017 18:45:04 -0500
+In-Reply-To: <erik.schmauss@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Erik Schmauss <erik.schmauss@intel.com>
 
-IORT can be used (by QEMU) to describe a virtual topology containing an
-architecture-agnostic paravirtualized device. The rationale behind this
-blasphemy is explained in patch 4/5.
+This series of patches are from the 20170929 release of ACPICA.
+This set is meant to be applied on top of the 20170831 ACPICA release.
 
-In order to build IORT for x86 systems, the driver has to be moved outside
-of arm64/. Since there is nothing specific to arm64 in the driver, it
-simply requires moving Makefile and Kconfig entries.
+Bob Moore (4):
+  ACPICA: Rename AE_AML_INFINITE_LOOP exception
+  ACPICA: Tools: Deploy -vd option (build date/time) across all tools
+  ACPICA: iASL/Tools: Add support for PDTT,SDEV,TPM2 ACPI tables
+  ACPICA: Update version to 20170929
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
----
- drivers/acpi/Kconfig            | 3 +++
- drivers/acpi/Makefile           | 1 +
- drivers/acpi/arm64/Kconfig      | 3 ---
- drivers/acpi/arm64/Makefile     | 1 -
- drivers/acpi/{arm64 => }/iort.c | 0
- 5 files changed, 4 insertions(+), 4 deletions(-)
- rename drivers/acpi/{arm64 => }/iort.c (100%)
+Colin Ian King (1):
+  ACPICA: Avoid null pointer dereference on Op.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5b1938f4b626..ce40275646c8 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -536,4 +536,7 @@ if ARM64
- source "drivers/acpi/arm64/Kconfig"
- endif
- 
-+config ACPI_IORT
-+	bool
-+
- endif	# ACPI
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index cd1abc9bc325..689c470c013b 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -112,3 +112,4 @@ video-objs			+= acpi_video.o video_detect.o
- obj-y				+= dptf/
- 
- obj-$(CONFIG_ARM64)		+= arm64/
-+obj-$(CONFIG_ACPI_IORT) 	+= iort.o
-diff --git a/drivers/acpi/arm64/Kconfig b/drivers/acpi/arm64/Kconfig
-index 5a6f80fce0d6..403f917ab274 100644
---- a/drivers/acpi/arm64/Kconfig
-+++ b/drivers/acpi/arm64/Kconfig
-@@ -2,8 +2,5 @@
- # ACPI Configuration for ARM64
- #
- 
--config ACPI_IORT
--	bool
--
- config ACPI_GTDT
- 	bool
-diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
-index 1017def2ea12..47925dc6cfc8 100644
---- a/drivers/acpi/arm64/Makefile
-+++ b/drivers/acpi/arm64/Makefile
-@@ -1,2 +1 @@
--obj-$(CONFIG_ACPI_IORT) 	+= iort.o
- obj-$(CONFIG_ACPI_GTDT) 	+= gtdt.o
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/iort.c
-similarity index 100%
-rename from drivers/acpi/arm64/iort.c
-rename to drivers/acpi/iort.c
+Erik Schmauss (3):
+  ACPICA: Disassembler: reset parser_state's Aml pointer when parsing
+    bad externals
+  ACPICA: disassembler: getting rid of error message
+  ACPICA: iASL: change processing of external op namespace nodes for
+    correctness
+
+Jung-uk Kim (1):
+  ACPICA: Fix an off-by-one error in acpi_get_timer_duration().
+
+Lv Zheng (2):
+  ACPICA: Dispatcher: Introduce timeout mechanism for infinite loop
+    detection
+  ACPICA: Utilities: Cleanup style issue for bit clearing
+
+ drivers/acpi/acpica/acapps.h             |  3 ++
+ drivers/acpi/acpica/aclocal.h            |  2 +-
+ drivers/acpi/acpica/dscontrol.c          | 18 ++++----
+ drivers/acpi/acpica/hwtimer.c            | 29 ++++++------
+ drivers/acpi/acpica/nsaccess.c           | 13 +++---
+ drivers/acpi/acpica/nssearch.c           |  1 +
+ drivers/acpi/acpica/psobject.c           | 10 +----
+ drivers/acpi/acpica/psutils.c            |  6 +--
+ drivers/acpi/acpica/utinit.c             |  1 -
+ drivers/acpi/acpica/utmath.c             |  4 +-
+ include/acpi/acconfig.h                  |  4 +-
+ include/acpi/acexcep.h                   |  6 +--
+ include/acpi/acpixf.h                    |  6 +--
+ include/acpi/actbl1.h                    | 77 +++++++++++++++++++++++++++++---
+ include/acpi/actbl2.h                    | 14 +++++-
+ include/acpi/actypes.h                   |  2 +
+ tools/power/acpi/tools/acpidump/apmain.c | 28 ++++++++++--
+ 17 files changed, 160 insertions(+), 64 deletions(-)
+
 -- 
-2.14.3
+2.13.6
+
