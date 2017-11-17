@@ -1,86 +1,71 @@
-From: "Sajjan, Vikas C" <vikas.cha.sajjan@hpe.com>
-Subject: RE: [PATCH v3 1/2] acpi/x86: Fix improper handling of SCI INT for
- platforms supporting only IOAPIC mode
-Date: Fri, 17 Nov 2017 14:00:14 +0000
-Message-ID: <CS1PR8401MB0518E69621848A5BFB398B2CD92F0@CS1PR8401MB0518.NAMPRD84.PROD.OUTLOOK.COM>
-References: <1510848825-21965-1-git-send-email-vikas.cha.sajjan@hpe.com>
- <1510848825-21965-2-git-send-email-vikas.cha.sajjan@hpe.com>
- <alpine.DEB.2.20.1711171126270.7700@nanos>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / device_sysfs: Leave modalias empty for devices
+ which are not present
+Date: Fri, 17 Nov 2017 16:09:04 +0200
+Message-ID: <20171117140904.GH17200@lahna.fi.intel.com>
+References: <20171015192449.16035-1-hdegoede@redhat.com>
+ <CAJZ5v0hAx_-OUQNBngScNKHstZhZ42A42LwcBOFhR2g5pCFXOA@mail.gmail.com>
+ <2550330b-38ff-28b1-6294-d55462c03cca@redhat.com>
+ <2395808.6y9gh4NH3i@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hpe.com ([15.241.140.73]:22617 "EHLO
-        g4t3427.houston.hpe.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751135AbdKQOAy (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Nov 2017 09:00:54 -0500
-In-Reply-To: <alpine.DEB.2.20.1711171126270.7700@nanos>
-Content-Language: en-US
+Received: from mga07.intel.com ([134.134.136.100]:3230 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756904AbdKQORu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Nov 2017 09:17:50 -0500
+Content-Disposition: inline
+In-Reply-To: <2395808.6y9gh4NH3i@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "kkamagui@gmail.com" <kkamagui@gmail.com>, "mingo@kernel.org" <mingo@kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
+On Fri, Nov 17, 2017 at 02:42:44PM +0100, Rafael J. Wysocki wrote:
+> [+Mika & Andy]
+> 
+> On Monday, October 16, 2017 1:44:40 PM CET Hans de Goede wrote:
+> > Hi,
+> > 
+> > On 16-10-17 01:47, Rafael J. Wysocki wrote:
+> > > On Sun, Oct 15, 2017 at 9:24 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> > >> Most Bay and Cherry Trail devices use a generic DSDT with all possible
+> > >> peripheral devices present in the DSDT, with their _STA returning 0x00 or
+> > >> 0x0f based on AML variables which describe what is actually present on
+> > >> the board.
+> > >>
+> > >> Since ACPI device objects with a 0x00 status (not present) still get an
+> > >> entry under /sys/bus/acpi/devices, and those entry had an acpi:PNPID
+> > >> modalias, userspace would end up loading modules for non present hardware.
+> > >>
+> > >> This commit fixes this by leaving the modalias empty for non present
+> > >> devices. This results in 10 modules less being loaded with a generic
+> > >> distro kernel config on my Cherry Trail test-device (a GPD pocket).
+> > > 
+> > > Well, what about hotplug?
+> > > 
+> > > On some systems _STA may change from 0 to nonzero for some devices, so
+> > > what's going to happen to the modalias then?
+> > 
+> > A good question. I would expect a change uevent to be generated in
+> > this case and when the device has become present in this new uvent the
+> > modalias will no longer be empty and the module will get loaded, so
+> > the module will not get loaded until the actual hotplug.
+> > 
+> > The actual generation of this uevent should be done by the various
+> > subsystems based on ACPI_RECONFIG_DEVICE_ADD messages, at which point
+> > adev->status is already updated and then when the subsys calls
+> > acpi_device_uevent_modalias() for the new uevent it will return a
+> > non-empty modalias.
+> 
+> Mika, I need your input here.
+> 
+> I have to say I'm not quite sure about possible implications of this change,
+> what do you think?
 
-On Thu, 16 Nov 2017, Vikas C Sajjan wrote:
-
-> The platforms which support only IOAPIC mode, pass the SCI information 
-> above the legacy space (0-15) via the FADT mechanism and not via MADT.
-> In such cases the mp_override_legacy_irq() used by 
-> acpi_sci_ioapic_setup() to register SCI interrupts fails for 
-> interrupts >= 16, since it is meant to handle only legacy space and 
-> throws error "Invalid bus_irq %u for legacy override". Hence add a new 
-> function to handle SCI interrupts >= 16 and invoke it conditionally in 
-> acpi_sci_ioapic_setup().The code duplication due to this new function will be cleaned up in a separate patch.
-
-This reads way better, but I have a small nit pick. In the example I gave you there were multiple paragraphs on purpose to separate the different parts. So if I just split the above lump into separate paragraphs:
-
-[1]
-   The platforms which support only IOAPIC mode, pass the SCI information
-   above the legacy space (0-15) via the FADT mechanism and not via MADT.
-
-[2]
-   In such cases the mp_override_legacy_irq() used by acpi_sci_ioapic_setup()
-   to register SCI interrupts fails for interrupts >= 16, since it is meant to
-   handle only legacy space and throws error "Invalid bus_irq %u for legacy
-   override".
-
-[3]
-   Hence add a new function to handle SCI interrupts >= 16 and
-   invoke it conditionally in acpi_sci_ioapic_setup().
-
-[4]
-   The code duplication due to this new function will be cleaned up in a
-   separate patch.
-
-then this is clearly structured:
-
-[1] describes the context.
-
-[2] describes the failure
-
-[3] describes the solution
-
-[4] is an extra note to tell the reviewer/reader that you are aware of the
-    code duplication and this is addressed later. 
-
-No need to resend. I can do that when picking it up.
-Thanks.
-
-> Co-developed-by: Sunil V L <sunil.vl@hpe.com>
-
-I had a discussion with Greg about this tag which resulted in a patch so it should be soon part of the official documentation:
-
- https://lkml.kernel.org/r/20171116132309.GA8449@kroah.com
-
-Great. Good to know that.
-
-We agreed that both authors should add their Signed-off-by to document that the work conforms with the Developer Certificate of Origin. I'll add that if that's ok for you.
-
-I am OK with that. Please go ahead.
-
-Thanks for following up!
-
-Thank you for the review.
-
-       tglx
+I think this could work because we are actually interested in physical
+Linux devices, not the struct acpi_device things. So to my understanding
+whenever _STA of an ACPI device goes from 0x0 to 0xf the corresponding
+physical device (platform, spi, i2c) gets created. Userspace is then
+notified by a uevent and it then reads attributes including updated
+modalias of that physical device.
