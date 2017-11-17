@@ -1,80 +1,61 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 13/15] ACPICA: Update linkage for get mutex name interface
-Date: Fri, 17 Nov 2017 15:42:28 -0800
-Message-ID: <20171117234230.913-14-erik.schmauss@intel.com>
+Subject: [PATCH 14/15] ACPICA: ACPI 6.2: Additional PPTT flags
+Date: Fri, 17 Nov 2017 15:42:29 -0800
+Message-ID: <20171117234230.913-15-erik.schmauss@intel.com>
 References: <erik.schmauss@intel.com>
  <20171117234230.913-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga02.intel.com ([134.134.136.20]:39440 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161069AbdKQXqo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Nov 2017 18:46:44 -0500
+        id S1161767AbdKQXqp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 17 Nov 2017 18:46:45 -0500
 In-Reply-To: <20171117234230.913-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
 
-ACPICA commit cb9a3906ec35da7a6e0b8972f8e6e7895e59c208
+ACPICA commit fba3ae99b2bc514ca34f0d7b2609c2a043582784
 
-Always enable the function.
+The ACPI 6.2 spec has flags to describe cache
+allocation, write back, and whether
+it is an instruction, data or unified cache.
 
-Link: https://github.com/acpica/acpica/commit/cb9a3906
+Link: https://github.com/acpica/acpica/commit/fba3ae99
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/acutils.h  |  4 ++--
- drivers/acpi/acpica/utdecode.c | 11 ++++++-----
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ include/acpi/actbl1.h | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index d38187ee11c8..8bb46d8623ca 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -230,10 +230,10 @@ u64 acpi_ut_implicit_strtoul64(char *string);
-  */
- acpi_status acpi_ut_init_globals(void);
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 178661f1b896..4c304bf4d591 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -1441,6 +1441,20 @@ struct acpi_pptt_cache {
+ #define ACPI_PPTT_MASK_CACHE_TYPE           (0x0C)	/* Cache type */
+ #define ACPI_PPTT_MASK_WRITE_POLICY         (0x10)	/* Write policy */
  
--#if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
--
- const char *acpi_ut_get_mutex_name(u32 mutex_id);
- 
-+#if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
++/* Attributes describing cache */
++#define ACPI_PPTT_CACHE_READ_ALLOCATE       (0x0)	/* Cache line is allocated on read */
++#define ACPI_PPTT_CACHE_WRITE_ALLOCATE      (0x01)	/* Cache line is allocated on write */
++#define ACPI_PPTT_CACHE_RW_ALLOCATE         (0x02)	/* Cache line is allocated on read and write */
++#define ACPI_PPTT_CACHE_RW_ALLOCATE_ALT     (0x03)	/* Alternate representation of above */
 +
- const char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type);
- #endif
- 
-diff --git a/drivers/acpi/acpica/utdecode.c b/drivers/acpi/acpica/utdecode.c
-index 02cd2c2d961a..55debbad487d 100644
---- a/drivers/acpi/acpica/utdecode.c
-+++ b/drivers/acpi/acpica/utdecode.c
-@@ -395,11 +395,6 @@ const char *acpi_ut_get_reference_name(union acpi_operand_object *object)
- 	return (acpi_gbl_ref_class_names[object->reference.class]);
- }
- 
--#if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
--/*
-- * Strings and procedures used for debug only
-- */
--
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_get_mutex_name
-@@ -433,6 +428,12 @@ const char *acpi_ut_get_mutex_name(u32 mutex_id)
- 	return (acpi_gbl_mutex_names[mutex_id]);
- }
- 
-+#if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
++#define ACPI_PPTT_CACHE_TYPE_DATA           (0x0)	/* Data cache */
++#define ACPI_PPTT_CACHE_TYPE_INSTR          (1<<2)	/* Instruction cache */
++#define ACPI_PPTT_CACHE_TYPE_UNIFIED        (2<<2)	/* Unified I & D cache */
++#define ACPI_PPTT_CACHE_TYPE_UNIFIED_ALT    (3<<2)	/* Alternate representation of above */
 +
-+/*
-+ * Strings and procedures used for debug only
-+ */
++#define ACPI_PPTT_CACHE_POLICY_WB           (0x0)	/* Cache is write back */
++#define ACPI_PPTT_CACHE_POLICY_WT           (1<<4)	/* Cache is write through */
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ut_get_notify_name
+ /* 2: ID Structure */
+ 
+ struct acpi_pptt_id {
 -- 
 2.13.6
 
