@@ -1,61 +1,34 @@
-From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 14/15] ACPICA: ACPI 6.2: Additional PPTT flags
-Date: Fri, 17 Nov 2017 15:42:29 -0800
-Message-ID: <20171117234230.913-15-erik.schmauss@intel.com>
-References: <erik.schmauss@intel.com>
- <20171117234230.913-1-erik.schmauss@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 8/8] ACPICA: Update version to 20170831
+Date: Sat, 18 Nov 2017 13:49:15 +0100
+Message-ID: <CAJZ5v0jv25y8oCATV-JkzY0qD1dD1UoBL0+YjNFW_UqHw0m-hw@mail.gmail.com>
+References: <erik.schmauss@intel.com> <20171117180336.15558-1-erik.schmauss@intel.com>
+ <20171117180336.15558-8-erik.schmauss@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:39440 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161767AbdKQXqp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 17 Nov 2017 18:46:45 -0500
-In-Reply-To: <20171117234230.913-1-erik.schmauss@intel.com>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:40174 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966499AbdKRMtQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Nov 2017 07:49:16 -0500
+Received: by mail-oi0-f42.google.com with SMTP id l138so3428634oib.7
+        for <linux-acpi@vger.kernel.org>; Sat, 18 Nov 2017 04:49:15 -0800 (PST)
+In-Reply-To: <20171117180336.15558-8-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Jeremy Linton <jeremy.linton@arm.com>, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
+To: Erik Schmauss <erik.schmauss@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 
-From: Jeremy Linton <jeremy.linton@arm.com>
+Hi Erik,
 
-ACPICA commit fba3ae99b2bc514ca34f0d7b2609c2a043582784
+On Fri, Nov 17, 2017 at 7:03 PM, Erik Schmauss <erik.schmauss@intel.com> wrote:
+> From: Bob Moore <robert.moore@intel.com>
+>
+> ACPICA commit faa9fdfbd035a14347e6a875be2a0cddb3e6fc00
+>
+> Version 20170831.
 
-The ACPI 6.2 spec has flags to describe cache
-allocation, write back, and whether
-it is an instruction, data or unified cache.
+This release has gone in already.
 
-Link: https://github.com/acpica/acpica/commit/fba3ae99
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
----
- include/acpi/actbl1.h | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
-
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 178661f1b896..4c304bf4d591 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1441,6 +1441,20 @@ struct acpi_pptt_cache {
- #define ACPI_PPTT_MASK_CACHE_TYPE           (0x0C)	/* Cache type */
- #define ACPI_PPTT_MASK_WRITE_POLICY         (0x10)	/* Write policy */
- 
-+/* Attributes describing cache */
-+#define ACPI_PPTT_CACHE_READ_ALLOCATE       (0x0)	/* Cache line is allocated on read */
-+#define ACPI_PPTT_CACHE_WRITE_ALLOCATE      (0x01)	/* Cache line is allocated on write */
-+#define ACPI_PPTT_CACHE_RW_ALLOCATE         (0x02)	/* Cache line is allocated on read and write */
-+#define ACPI_PPTT_CACHE_RW_ALLOCATE_ALT     (0x03)	/* Alternate representation of above */
-+
-+#define ACPI_PPTT_CACHE_TYPE_DATA           (0x0)	/* Data cache */
-+#define ACPI_PPTT_CACHE_TYPE_INSTR          (1<<2)	/* Instruction cache */
-+#define ACPI_PPTT_CACHE_TYPE_UNIFIED        (2<<2)	/* Unified I & D cache */
-+#define ACPI_PPTT_CACHE_TYPE_UNIFIED_ALT    (3<<2)	/* Alternate representation of above */
-+
-+#define ACPI_PPTT_CACHE_POLICY_WB           (0x0)	/* Cache is write back */
-+#define ACPI_PPTT_CACHE_POLICY_WT           (1<<4)	/* Cache is write through */
-+
- /* 2: ID Structure */
- 
- struct acpi_pptt_id {
--- 
-2.13.6
-
+Thanks,
+Rafael
