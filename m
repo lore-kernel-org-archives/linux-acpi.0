@@ -1,42 +1,31 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 1/6] gpiolib: acpi: Assign polarity when call acpi_populate_gpio_lookup()
-Date: Sat, 18 Nov 2017 15:55:50 +0100
-Message-ID: <3386279.Ob0QzBfdKF@aspire.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 1/6] gpiolib: acpi: Assign polarity when call
+ acpi_populate_gpio_lookup()
+Date: Sat, 18 Nov 2017 18:45:10 +0200
+Message-ID: <1511023510.25007.308.camel@linux.intel.com>
 References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
+         <3386279.Ob0QzBfdKF@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59580 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1762811AbdKRO4H (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 18 Nov 2017 09:56:07 -0500
-In-Reply-To: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
+Received: from mga06.intel.com ([134.134.136.31]:21120 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1422919AbdKRQpO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 18 Nov 2017 11:45:14 -0500
+In-Reply-To: <3386279.Ob0QzBfdKF@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Friday, November 10, 2017 2:40:28 PM CET Andy Shevchenko wrote:
-> There is no need, since we preserve firmware settings, to override
-> polarity for GpioInt() resources.
-> 
-> While Documentation/gpio-properties.txt refers to any from GpioIo() /
-> GpioInt() resources, the active_low flag has been introduced to fill the
-> gap only for GpioIo() which lacks of that information.
-> 
-> Moreover, in case of GpioInt() existed solution was broken anyway, it
-> overrides only in one direction, i.e. from 0 to 1, otherwise it would be
-> still 1 as defined in the resource macro.
-> 
-> So, move the assignment to a right place and forbid to (semi-)override
-> polarity for GpioInt() type of resources.
+On Sat, 2017-11-18 at 15:55 +0100, Rafael J. Wysocki wrote:
+> On Friday, November 10, 2017 2:40:28 PM CET Andy Shevchenko wrote:
 
-I'm assuming that this series is targeted at the GPIO subsystem.
+> I'm assuming that this series is targeted at the GPIO subsystem.
 
-Please let me know if that's not the case.
+That's correct.
 
-Thanks,
-Rafael
-
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
