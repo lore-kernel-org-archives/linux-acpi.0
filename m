@@ -1,119 +1,80 @@
 From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH v3 2/5] iio: proximity: sx9500: Add GPIO ACPI mapping
- table
-Date: Sun, 19 Nov 2017 15:29:34 +0000
-Message-ID: <20171119152934.66a481c0@archlinux>
-References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
-        <20171103130340.42459-2-andriy.shevchenko@linux.intel.com>
-        <20171104031403.000073b0@huawei.com>
+Subject: Re: [RFC] iio: light: acpi-als: Enable the light sensor on the
+ Zenbook UX430UQ
+Date: Sun, 19 Nov 2017 17:03:41 +0000
+Message-ID: <20171119170341.62e5de3d@archlinux>
+References: <20171116032754.20719-1-kah.listaddress@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:35366 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:44156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750831AbdKSP3j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 19 Nov 2017 10:29:39 -0500
-In-Reply-To: <20171104031403.000073b0@huawei.com>
+        id S1750938AbdKSRDq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 19 Nov 2017 12:03:46 -0500
+In-Reply-To: <20171116032754.20719-1-kah.listaddress@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-iio@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Kiernan Hager <kah.listaddress@gmail.com>
+Cc: Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, linux-iio@vger.kernel.org, linux-kernel@vger.kernel.org, Gabriele Mazzotta <gabriele.mzt@gmail.com>, Marek Vasut <marex@denx.de>, linux-acpi@vger.kernel.org
 
-On Sat, 4 Nov 2017 03:14:27 +0000
-Jonathan Cameron <Jonathan.Cameron@huawei.com> wrote:
+On Wed, 15 Nov 2017 20:27:54 -0700
+Kiernan Hager <kah.listaddress@gmail.com> wrote:
 
-> On Fri, 3 Nov 2017 15:03:37 +0200
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> 
-> > In order to satisfy GPIO ACPI library requirements convert users of
-> > gpiod_get_index() to correctly behave when there no mapping is
-> > provided by firmware.
-> > 
-> > Here we add explicit mapping between _CRS GpioIo() resources and
-> > their names used in the driver.
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>  
-> 
-> Added cc's as for previous patch.  I guess this makes sense if we
-> accept that fixes like the previous one should be in drivers at all.
-> 
-> If not the reset part still makes sense I suppose.
-So, what this description is missing:
-* Is this a fix for known problem?
-* If so please add a fixes tag.
-* If it is because we now have platforms that need this then say that.
+> This makes acpi-als properly enable the light sensor on the Zenbook UX430UQ. I don't know if the checking that I do to make sure that the ACPI method exists is sufficient or if it should disable the sensor when the module is unloaded, so input is appreciated on those matters.
 
-I have no idea on the urgency of this patch from the description.
+Please wrap descriptions to around 72 characters (leaves room for indentation
+in the email thread :)
 
-Jonathan
+This seems very much like a board specific hack.  I've cc'd people
+who have worked on the driver recently and the acpi list.
+
 > 
-> > ---
-> >  drivers/iio/proximity/sx9500.c | 21 ++++++++++++++++-----
-> >  1 file changed, 16 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/iio/proximity/sx9500.c
-> > b/drivers/iio/proximity/sx9500.c index df23dbcc030a..eb687b3dd442
-> > 100644 --- a/drivers/iio/proximity/sx9500.c
-> > +++ b/drivers/iio/proximity/sx9500.c
-> > @@ -32,9 +32,6 @@
-> >  #define SX9500_DRIVER_NAME		"sx9500"
-> >  #define SX9500_IRQ_NAME			"sx9500_event"
-> >  
-> > -#define SX9500_GPIO_INT			"interrupt"
-> > -#define SX9500_GPIO_RESET		"reset"
-> > -
-> >  /* Register definitions. */
-> >  #define SX9500_REG_IRQ_SRC		0x00
-> >  #define SX9500_REG_STAT			0x01
-> > @@ -866,26 +863,40 @@ static int sx9500_init_device(struct iio_dev
-> > *indio_dev) return sx9500_init_compensation(indio_dev);
-> >  }
-> >  
-> > +static const struct acpi_gpio_params reset_gpios = { 0, 0, false };
-> > +static const struct acpi_gpio_params interrupt_gpios = { 2, 0,
-> > false }; +
-> > +static const struct acpi_gpio_mapping acpi_sx9500_gpios[] = {
-> > +	{ "reset-gpios", &reset_gpios, 1 },
-> > +	{ "interrupt-gpios", &interrupt_gpios, 1 },
-> > +	{ },
-> > +};
-> > +
-> >  static void sx9500_gpio_probe(struct i2c_client *client,
-> >  			      struct sx9500_data *data)
-> >  {
-> >  	struct gpio_desc *gpiod_int;
-> >  	struct device *dev;
-> > +	int ret;
-> >  
-> >  	if (!client)
-> >  		return;
-> >  
-> >  	dev = &client->dev;
-> >  
-> > +	ret = devm_acpi_dev_add_driver_gpios(dev, acpi_sx9500_gpios);
-> > +	if (ret)
-> > +		dev_dbg(dev, "Unable to add GPIO mapping table\n");
-> > +
-> >  	if (client->irq <= 0) {
-> > -		gpiod_int = devm_gpiod_get(dev, SX9500_GPIO_INT,
-> > GPIOD_IN);
-> > +		gpiod_int = devm_gpiod_get(dev, "interrupt",
-> > GPIOD_IN); if (IS_ERR(gpiod_int))
-> >  			dev_err(dev, "gpio get irq failed\n");
-> >  		else
-> >  			client->irq = gpiod_to_irq(gpiod_int);
-> >  	}
-> >  
-> > -	data->gpiod_rst = devm_gpiod_get(dev, SX9500_GPIO_RESET,
-> > GPIOD_OUT_HIGH);
-> > +	data->gpiod_rst = devm_gpiod_get(dev, "reset",
-> > GPIOD_OUT_HIGH); if (IS_ERR(data->gpiod_rst)) {
-> >  		dev_warn(dev, "gpio get reset pin failed\n");
-> >  		data->gpiod_rst = NULL;  
+> Signed-off-by: Kiernan Hager <kah.listaddress@gmail.com>
+> ---
+>  drivers/iio/light/acpi-als.c | 16 ++++++++++++++++
+>  1 file changed, 16 insertions(+)
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/iio/light/acpi-als.c b/drivers/iio/light/acpi-als.c
+> index c35e2f8df339..8fd66166f19f 100644
+> --- a/drivers/iio/light/acpi-als.c
+> +++ b/drivers/iio/light/acpi-als.c
+> @@ -179,6 +179,10 @@ static int acpi_als_add(struct acpi_device *device)
+>  	struct acpi_als *als;
+>  	struct iio_dev *indio_dev;
+>  	struct iio_buffer *buffer;
+> +	unsigned long long temp_val;
+> +	acpi_status status;
+> +	struct acpi_object_list arg_list;
+> +	union acpi_object arg;
+>  
+>  	indio_dev = devm_iio_device_alloc(&device->dev, sizeof(*als));
+>  	if (!indio_dev)
+> @@ -203,6 +207,18 @@ static int acpi_als_add(struct acpi_device *device)
+>  
+>  	iio_device_attach_buffer(indio_dev, buffer);
+>  
+> +	arg_list.count = 1;
+> +	arg_list.pointer = &arg;
+> +	arg.type = ACPI_TYPE_INTEGER;
+> +	arg.integer.value = 1;
+> +
+> +	if (acpi_has_method(als->device->handle, "\\_SB.PCI0.LPCB.EC0.ALSC")) {
+So this is poking something on
+PCI bus 0
+LPC bus B
+Somethingbus 0
+Ambient light controller.
+
+I assume there is a better way of establishing this needs to be set?
+
+> +		status = acpi_evaluate_integer(als->device->handle,
+> +					       "\\_SB.PCI0.LPCB.EC0.ALSC",
+> +					       &arg_list,
+> +					       &temp_val);
+> +	}
+> +
+>  	return devm_iio_device_register(&device->dev, indio_dev);
+>  }
+>  
 
