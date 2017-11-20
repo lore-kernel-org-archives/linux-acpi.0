@@ -1,97 +1,118 @@
-From: Marek Vasut <marex-ynQEQJNshbs@public.gmane.org>
-Subject: Re: [RFC] iio: light: acpi-als: Enable the light sensor on the
- Zenbook UX430UQ
-Date: Sun, 19 Nov 2017 19:11:32 +0100
-Message-ID: <2bf0e8c2-efe9-c309-844c-de5392216848@denx.de>
-References: <20171116032754.20719-1-kah.listaddress@gmail.com>
- <20171119170341.62e5de3d@archlinux>
- <CABFtUbQm8JMUdo46d4VJR=8gHzphxEs1UofeB+cpxW6xHkSnAg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CABFtUbQm8JMUdo46d4VJR=8gHzphxEs1UofeB+cpxW6xHkSnAg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Gabriele Mazzotta <gabriele.mzt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Kiernan Hager <kah.listaddress-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Kai Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] ACPI / battery: add quirk for Asus GL502VSK and UX305LA
+Date: Mon, 20 Nov 2017 16:24:32 +0800
+Message-ID: <B100F55A-98C4-47D9-B177-2A5AA7F79A58@canonical.com>
+References: <20170922082744.18988-1-kai.heng.feng@canonical.com>
+ <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=utf-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:59825 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750932AbdKTIYi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Nov 2017 03:24:38 -0500
+Received: from mail-pf0-f197.google.com ([209.85.192.197])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <kai.heng.feng@canonical.com>)
+        id 1eGhNd-0003qM-Nc
+        for linux-acpi@vger.kernel.org; Mon, 20 Nov 2017 08:24:37 +0000
+Received: by mail-pf0-f197.google.com with SMTP id i15so8326522pfa.15
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Nov 2017 00:24:37 -0800 (PST)
+In-Reply-To: <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On 11/19/2017 06:38 PM, Gabriele Mazzotta wrote:
-> 2017-11-19 18:03 GMT+01:00 Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>:
->> On Wed, 15 Nov 2017 20:27:54 -0700
->> Kiernan Hager <kah.listaddress-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->>> This makes acpi-als properly enable the light sensor on the Zenbook UX430UQ. I don't know if the checking that I do to make sure that the ACPI method exists is sufficient or if it should disable the sensor when the module is unloaded, so input is appreciated on those matters.
->>
->> Please wrap descriptions to around 72 characters (leaves room for indentation
->> in the email thread :)
->>
->> This seems very much like a board specific hack.  I've cc'd people
->> who have worked on the driver recently and the acpi list.
+
+> On 12 Oct 2017, at 1:16 PM, Kai-Heng Feng <kai.heng.feng@canonical.com> wrote:
 > 
-> This is indeed board specific. I know many other laptops of the
-> Zenbook line need something similar and if you look at
-> drivers/platform/x86/asus-wmi.c or any other asus-* driver you'll
-> find several quirks to enable various features.
-
-Maybe that's where it should go . EC0 in the ACPI path seems like
-Embedded Controller to me .
-
-> Kiernan, check commit aca234f6378864d85514be558746c0ea6eabfa8e
-> ("asus-wmi: provide access to ALS control") in particular.
+> On Fri, Sep 22, 2017 at 4:27 PM, Kai-Heng Feng
+> <kai.heng.feng@canonical.com> wrote:
+>> On Asus GL502VSK and UX305LA, ACPI incorrectly reports discharging when
+>> battery is full and AC is plugged.
+>> 
+>> However rate_now is correct under this circumstance, hence we can use
+>> "rate_now == 0" as a predicate to report battery full status correctly.
+>> 
+>> BugLink: https://bugs.launchpad.net/bugs/1482390
+>> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+>> ---
+>> drivers/acpi/battery.c | 29 ++++++++++++++++++++++++++++-
+>> 1 file changed, 28 insertions(+), 1 deletion(-)
+>> 
+>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+>> index 13e7b56e33ae..f9f008cf3da7 100644
+>> --- a/drivers/acpi/battery.c
+>> +++ b/drivers/acpi/battery.c
+>> @@ -70,6 +70,7 @@ static async_cookie_t async_cookie;
+>> static bool battery_driver_registered;
+>> static int battery_bix_broken_package;
+>> static int battery_notification_delay_ms;
+>> +static int battery_full_discharging;
+>> static unsigned int cache_time = 1000;
+>> module_param(cache_time, uint, 0644);
+>> MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+>> @@ -214,7 +215,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
+>>                return -ENODEV;
+>>        switch (psp) {
+>>        case POWER_SUPPLY_PROP_STATUS:
+>> -               if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+>> +               if (battery_full_discharging && battery->rate_now == 0 &&
+>> +                   battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+>> +                       val->intval = POWER_SUPPLY_STATUS_FULL;
+>> +               else if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+>>                        val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+>>                else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+>>                        val->intval = POWER_SUPPLY_STATUS_CHARGING;
+>> @@ -1166,6 +1170,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
+>>        return 0;
+>> }
+>> 
+>> +static int __init
+>> +battery_full_discharging_quirk(const struct dmi_system_id *d)
+>> +{
+>> +       battery_full_discharging = 1;
+>> +       return 0;
+>> +}
+>> +
+>> static const struct dmi_system_id bat_dmi_table[] __initconst = {
+>>        {
+>>                .callback = battery_bix_broken_package_quirk,
+>> @@ -1183,6 +1194,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
+>>                        DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+>>                },
+>>        },
+>> +       {
+>> +               .callback = battery_full_discharging_quirk,
+>> +               .ident = "ASUS GL502VSK",
+>> +               .matches = {
+>> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "GL502VSK"),
+>> +               },
+>> +       },
+>> +       {
+>> +               .callback = battery_full_discharging_quirk,
+>> +               .ident = "ASUS UX305LA",
+>> +               .matches = {
+>> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
+>> +               },
+>> +       },
+>>        {},
+>> };
+>> 
 > 
->>>
->>> Signed-off-by: Kiernan Hager <kah.listaddress-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->>> ---
->>>  drivers/iio/light/acpi-als.c | 16 ++++++++++++++++
->>>  1 file changed, 16 insertions(+)
->>>
->>> diff --git a/drivers/iio/light/acpi-als.c b/drivers/iio/light/acpi-als.c
->>> index c35e2f8df339..8fd66166f19f 100644
->>> --- a/drivers/iio/light/acpi-als.c
->>> +++ b/drivers/iio/light/acpi-als.c
->>> @@ -179,6 +179,10 @@ static int acpi_als_add(struct acpi_device *device)
->>>       struct acpi_als *als;
->>>       struct iio_dev *indio_dev;
->>>       struct iio_buffer *buffer;
->>> +     unsigned long long temp_val;
->>> +     acpi_status status;
->>> +     struct acpi_object_list arg_list;
->>> +     union acpi_object arg;
->>>
->>>       indio_dev = devm_iio_device_alloc(&device->dev, sizeof(*als));
->>>       if (!indio_dev)
->>> @@ -203,6 +207,18 @@ static int acpi_als_add(struct acpi_device *device)
->>>
->>>       iio_device_attach_buffer(indio_dev, buffer);
->>>
->>> +     arg_list.count = 1;
->>> +     arg_list.pointer = &arg;
->>> +     arg.type = ACPI_TYPE_INTEGER;
->>> +     arg.integer.value = 1;
->>> +
->>> +     if (acpi_has_method(als->device->handle, "\\_SB.PCI0.LPCB.EC0.ALSC")) {
->> So this is poking something on
->> PCI bus 0
->> LPC bus B
->> Somethingbus 0
->> Ambient light controller.
->>
->> I assume there is a better way of establishing this needs to be set?
->>
->>> +             status = acpi_evaluate_integer(als->device->handle,
->>> +                                            "\\_SB.PCI0.LPCB.EC0.ALSC",
->>> +                                            &arg_list,
->>> +                                            &temp_val);
->>> +     }
->>> +
->>>       return devm_iio_device_register(&device->dev, indio_dev);
->>>  }
->>>
->>
+> Hi,
+> 
+> Is there any improvement I can make for this patch?
 
+Another gentle ping…
 
--- 
-Best regards,
-Marek Vasut
+> 
+>> --
+>> 2.14.1
+
