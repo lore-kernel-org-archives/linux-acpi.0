@@ -1,118 +1,96 @@
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH] ACPI / battery: add quirk for Asus GL502VSK and UX305LA
-Date: Mon, 20 Nov 2017 16:24:32 +0800
-Message-ID: <B100F55A-98C4-47D9-B177-2A5AA7F79A58@canonical.com>
-References: <20170922082744.18988-1-kai.heng.feng@canonical.com>
- <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 1/5] iio: proximity: sx9500: Assign interrupt from
+ GpioIo()
+Date: Mon, 20 Nov 2017 12:30:27 +0200
+Message-ID: <20171120103027.GA22431@lahna.fi.intel.com>
+References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
+ <20171104031119.00006e56@huawei.com>
+ <20171106093556.GR2283@lahna.fi.intel.com>
+ <20171119152411.12e4c7cb@archlinux>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59825 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750932AbdKTIYi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Nov 2017 03:24:38 -0500
-Received: from mail-pf0-f197.google.com ([209.85.192.197])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1eGhNd-0003qM-Nc
-        for linux-acpi@vger.kernel.org; Mon, 20 Nov 2017 08:24:37 +0000
-Received: by mail-pf0-f197.google.com with SMTP id i15so8326522pfa.15
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Nov 2017 00:24:37 -0800 (PST)
-In-Reply-To: <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com>
+Received: from mga06.intel.com ([134.134.136.31]:42009 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751068AbdKTKac (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Nov 2017 05:30:32 -0500
+Content-Disposition: inline
+In-Reply-To: <20171119152411.12e4c7cb@archlinux>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-iio@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
 
-
-> On 12 Oct 2017, at 1:16 PM, Kai-Heng Feng <kai.heng.feng@canonical.com> wrote:
+On Sun, Nov 19, 2017 at 03:24:11PM +0000, Jonathan Cameron wrote:
+> On Mon, 6 Nov 2017 11:35:56 +0200
+> Mika Westerberg <mika.westerberg@linux.intel.com> wrote:
 > 
-> On Fri, Sep 22, 2017 at 4:27 PM, Kai-Heng Feng
-> <kai.heng.feng@canonical.com> wrote:
->> On Asus GL502VSK and UX305LA, ACPI incorrectly reports discharging when
->> battery is full and AC is plugged.
->> 
->> However rate_now is correct under this circumstance, hence we can use
->> "rate_now == 0" as a predicate to report battery full status correctly.
->> 
->> BugLink: https://bugs.launchpad.net/bugs/1482390
->> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
->> ---
->> drivers/acpi/battery.c | 29 ++++++++++++++++++++++++++++-
->> 1 file changed, 28 insertions(+), 1 deletion(-)
->> 
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index 13e7b56e33ae..f9f008cf3da7 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -70,6 +70,7 @@ static async_cookie_t async_cookie;
->> static bool battery_driver_registered;
->> static int battery_bix_broken_package;
->> static int battery_notification_delay_ms;
->> +static int battery_full_discharging;
->> static unsigned int cache_time = 1000;
->> module_param(cache_time, uint, 0644);
->> MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
->> @@ -214,7 +215,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
->>                return -ENODEV;
->>        switch (psp) {
->>        case POWER_SUPPLY_PROP_STATUS:
->> -               if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
->> +               if (battery_full_discharging && battery->rate_now == 0 &&
->> +                   battery->state & ACPI_BATTERY_STATE_DISCHARGING)
->> +                       val->intval = POWER_SUPPLY_STATUS_FULL;
->> +               else if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
->>                        val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
->>                else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
->>                        val->intval = POWER_SUPPLY_STATUS_CHARGING;
->> @@ -1166,6 +1170,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
->>        return 0;
->> }
->> 
->> +static int __init
->> +battery_full_discharging_quirk(const struct dmi_system_id *d)
->> +{
->> +       battery_full_discharging = 1;
->> +       return 0;
->> +}
->> +
->> static const struct dmi_system_id bat_dmi_table[] __initconst = {
->>        {
->>                .callback = battery_bix_broken_package_quirk,
->> @@ -1183,6 +1194,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
->>                        DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
->>                },
->>        },
->> +       {
->> +               .callback = battery_full_discharging_quirk,
->> +               .ident = "ASUS GL502VSK",
->> +               .matches = {
->> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->> +                       DMI_MATCH(DMI_PRODUCT_NAME, "GL502VSK"),
->> +               },
->> +       },
->> +       {
->> +               .callback = battery_full_discharging_quirk,
->> +               .ident = "ASUS UX305LA",
->> +               .matches = {
->> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->> +                       DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
->> +               },
->> +       },
->>        {},
->> };
->> 
+> > On Sat, Nov 04, 2017 at 03:11:19AM +0000, Jonathan Cameron wrote:
+> > > On Fri, 3 Nov 2017 15:03:36 +0200
+> > > Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+> > >   
+> > > > The commit 0f0796509c07
+> > > > 
+> > > > ("iio: remove gpio interrupt probing from drivers that use a single
+> > > > interrupt")
+> > > > 
+> > > > removed custom IRQ assignment for the drivers which are enumerated via
+> > > > ACPI or OF. Unfortunately, some ACPI tables have IRQ line defined as
+> > > > GpioIo() resource and thus automatic IRQ allocation will fail.  
+> > > 
+> > > I'll ask the obvious question - is this allowed under the ACPI spec?  
+> > 
+> > Yes, it is perfectly fine.
 > 
-> Hi,
+> I'm unconvinced...
 > 
-> Is there any improvement I can make for this patch?
-
-Another gentle ping…
-
+> > 
+> > > > Partially revert the commit 0f0796509c07 to restore original
+> > > > behaviour.
+> > > > 
+> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>  
+> > > 
+> > > I really don't like scattering fixes for broken ACPI tables through
+> > > drivers...  Is there really no better solution to this?  
+> > 
+> > This is not about broken ACPI tables. We just currently have
+> > "convenience" stuff in the kernel that translates trivial things like a
+> > single ACPI GpioInt() resource directly to a device interrupt. If the
+> > table has multiple GpioInt()s or uses GpioIo() then it is up to the
+> > driver to handle device specific details.
 > 
->> --
->> 2.14.1
+> I agree on the multiple cases needing hanlding. 
+> What bothers me is that there is no guarantee at all that a GpioIo
+> can even do an interrupt.
+> 
+> (table 6.2.17 in the 6.1 spec for example makes it clear that we are
+> in a mess)  If it is a gpioio lots of the interrupt specific stuff
+> cannot be supplied (all the stuff in byte 7)
+> 
+> So as I read the ACPI specification any interrupt specified as GpioIO
+> is simply broken.
 
+Well, it is the same with DT if you just declare GPIOs as in "xxx-gpios"
+but still use them to trigger interrupts.
+
+Normally you would use GpioInt in ACPI case but sometimes there might
+actually be need to use the GPIO as input/output without interrupts. I
+remember there was some I2C connected touchpanel that required some
+magic to be done when it was put to low power states. In those cases
+GpioIo is more correct IMHO.
+
+It is also possible that the BIOS people just messed this up.
+
+> > > On patches like this best to pull in ACPI and GPIO on the cc list.
+> > > 
+> > > Also cc'd Mika who made the original change to support gpioint.  
+> > 
+> > The patch looks fine to me,
+> > 
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> I'll probably take it anyway to support the platforms doing this particular
+> piece of fun as doubtlessly the chance of fixing the firmware is next
+> to nothing...
+
+Thanks!
