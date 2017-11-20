@@ -1,212 +1,113 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v4 5/6] PM / core: Direct handling of DPM_FLAG_LEAVE_SUSPENDED
-Date: Mon, 20 Nov 2017 14:42:26 +0100
-Message-ID: <CAPDyKFq0HGm7h_OFOwd5sRz+3_ZseNFTC-fi8c2qJVW4ZkOaHA@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <4184911.zoJM7jZeH4@aspire.rjw.lan>
- <1917233.X2U0QN21my@aspire.rjw.lan> <5730411.DndCTChqpV@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / battery: add quirk for Asus GL502VSK and UX305LA
+Date: Mon, 20 Nov 2017 15:18:27 +0100
+Message-ID: <9845028.VOqL70lqLX@aspire.rjw.lan>
+References: <20170922082744.18988-1-kai.heng.feng@canonical.com> <CAAd53p7+EOCQyAPkAtUM306p821bqjK_UnD72KRDVYW9uuu9Cg@mail.gmail.com> <B100F55A-98C4-47D9-B177-2A5AA7F79A58@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5730411.DndCTChqpV@aspire.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:46669 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751123AbdKTOSq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Nov 2017 09:18:46 -0500
+In-Reply-To: <B100F55A-98C4-47D9-B177-2A5AA7F79A58@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kai Heng Feng <kai.heng.feng@canonical.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On 18 November 2017 at 15:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Make the PM core handle DPM_FLAG_LEAVE_SUSPENDED directly for
-> devices whose "noirq", "late" and "early" driver callbacks are
-> invoked directly by it.
+On Monday, November 20, 2017 9:24:32 AM CET Kai Heng Feng wrote:
+> 
+> > On 12 Oct 2017, at 1:16 PM, Kai-Heng Feng <kai.heng.feng@canonical.com> wrote:
+> > 
+> > On Fri, Sep 22, 2017 at 4:27 PM, Kai-Heng Feng
+> > <kai.heng.feng@canonical.com> wrote:
+> >> On Asus GL502VSK and UX305LA, ACPI incorrectly reports discharging when
+> >> battery is full and AC is plugged.
+> >> 
+> >> However rate_now is correct under this circumstance, hence we can use
+> >> "rate_now == 0" as a predicate to report battery full status correctly.
+> >> 
+> >> BugLink: https://bugs.launchpad.net/bugs/1482390
+> >> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> >> ---
+> >> drivers/acpi/battery.c | 29 ++++++++++++++++++++++++++++-
+> >> 1 file changed, 28 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> >> index 13e7b56e33ae..f9f008cf3da7 100644
+> >> --- a/drivers/acpi/battery.c
+> >> +++ b/drivers/acpi/battery.c
+> >> @@ -70,6 +70,7 @@ static async_cookie_t async_cookie;
+> >> static bool battery_driver_registered;
+> >> static int battery_bix_broken_package;
+> >> static int battery_notification_delay_ms;
+> >> +static int battery_full_discharging;
+> >> static unsigned int cache_time = 1000;
+> >> module_param(cache_time, uint, 0644);
+> >> MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> >> @@ -214,7 +215,10 @@ static int acpi_battery_get_property(struct power_supply *psy,
+> >>                return -ENODEV;
+> >>        switch (psp) {
+> >>        case POWER_SUPPLY_PROP_STATUS:
+> >> -               if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> >> +               if (battery_full_discharging && battery->rate_now == 0 &&
+> >> +                   battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> >> +                       val->intval = POWER_SUPPLY_STATUS_FULL;
+> >> +               else if (battery->state & ACPI_BATTERY_STATE_DISCHARGING)
+> >>                        val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+> >>                else if (battery->state & ACPI_BATTERY_STATE_CHARGING)
+> >>                        val->intval = POWER_SUPPLY_STATUS_CHARGING;
+> >> @@ -1166,6 +1170,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
+> >>        return 0;
+> >> }
+> >> 
+> >> +static int __init
+> >> +battery_full_discharging_quirk(const struct dmi_system_id *d)
+> >> +{
+> >> +       battery_full_discharging = 1;
+> >> +       return 0;
+> >> +}
+> >> +
+> >> static const struct dmi_system_id bat_dmi_table[] __initconst = {
+> >>        {
+> >>                .callback = battery_bix_broken_package_quirk,
+> >> @@ -1183,6 +1194,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
+> >>                        DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+> >>                },
+> >>        },
+> >> +       {
+> >> +               .callback = battery_full_discharging_quirk,
+> >> +               .ident = "ASUS GL502VSK",
+> >> +               .matches = {
+> >> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> >> +                       DMI_MATCH(DMI_PRODUCT_NAME, "GL502VSK"),
+> >> +               },
+> >> +       },
+> >> +       {
+> >> +               .callback = battery_full_discharging_quirk,
+> >> +               .ident = "ASUS UX305LA",
+> >> +               .matches = {
+> >> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> >> +                       DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
+> >> +               },
+> >> +       },
+> >>        {},
+> >> };
+> >> 
+> > 
+> > Hi,
+> > 
+> > Is there any improvement I can make for this patch?
+> 
+> Another gentle ping…
 
-This indicates that your target for this particular change isn't
-ACPI/PCI, but instead this aims to be a more generic solution to be
-able to optimize the resume path for devices.
+Sorry for the delay.
 
-Assuming, this is the case, I don't think this is good enough as I
-pointed out [1] earlier. Simply because it isn't as flexible as is
-required - to really be able cover generic cases.
+I've a couple of comments, I'll respond to the original patch later today.
 
->
-> Namely, make it skip all of the system-wide resume callbacks for
-> such devices with DPM_FLAG_LEAVE_SUSPENDED set if they are in
-> runtime suspend during the "noirq" phase of system-wide suspend
-> (or analogous) transitions or the system transition under way is
-> a proper suspend (rather than anything related to hibernation) and
-> the device's wakeup settings are compatible with runtime PM (that
-> is, the device cannot generate wakeup signals at all or it is
-> allowed to wake up the system from sleep).
+Thanks,
+Rafael
 
-As I pointed out by submitting another patch [2], device_may_wakeup()
-doesn't really tell whether the wakeup is configured as "in-band" or
-"out-of-band". That knowledge is known by the driver and the subsystem
-layer - and for that reason I don't think the PM core shall base
-generic decisions like this on it.
-
-No comments on the code, so far. :-)
-
-Kind regards
-Uffe
-
-[1]
-https://www.spinics.net/lists/linux-pci/msg66502.html
-[2]
-https://patchwork.kernel.org/patch/10056323/
-
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->
-> v3 -> v4: Rebase on the v4 of patch [1/6], add a forward declaration of
->           dpm_subsys_suspend_late_cb() dropped from the [4/6].
->
-> v2 -> v3: Rebase on the v3 of patch [1/6].
->
-> ---
->  Documentation/driver-api/pm/devices.rst |    9 +++++
->  drivers/base/power/main.c               |   51 ++++++++++++++++++++++++++++----
->  2 files changed, 55 insertions(+), 5 deletions(-)
->
-> Index: linux-pm/drivers/base/power/main.c
-> ===================================================================
-> --- linux-pm.orig/drivers/base/power/main.c
-> +++ linux-pm/drivers/base/power/main.c
-> @@ -525,6 +525,10 @@ static void dpm_watchdog_clear(struct dp
->  #define dpm_watchdog_clear(x)
->  #endif
->
-> +static pm_callback_t dpm_subsys_suspend_late_cb(struct device *dev,
-> +                                               pm_message_t state,
-> +                                               const char **info_p);
-> +
->  /*------------------------- Resume routines -------------------------*/
->
->  /**
-> @@ -581,6 +585,7 @@ static int device_resume_noirq(struct de
->  {
->         pm_callback_t callback;
->         const char *info;
-> +       bool skip_resume;
->         int error = 0;
->
->         TRACE_DEVICE(dev);
-> @@ -594,17 +599,27 @@ static int device_resume_noirq(struct de
->
->         dpm_wait_for_superior(dev, async);
->
-> +       skip_resume = dev_pm_may_skip_resume(dev);
-> +
->         callback = dpm_subsys_resume_noirq_cb(dev, state, &info);
-> +       if (callback)
-> +               goto Run;
-> +
-> +       if (skip_resume)
-> +               goto Skip;
->
->         if (!callback && dev->driver && dev->driver->pm) {
->                 info = "noirq driver ";
->                 callback = pm_noirq_op(dev->driver->pm, state);
->         }
->
-> +Run:
->         error = dpm_run_callback(callback, dev, state, info);
-> +
-> +Skip:
->         dev->power.is_noirq_suspended = false;
->
-> -       if (dev_pm_may_skip_resume(dev)) {
-> +       if (skip_resume) {
->                 /*
->                  * The device is going to be left in suspend, but it might not
->                  * have been in runtime suspend before the system suspended, so
-> @@ -617,7 +632,7 @@ static int device_resume_noirq(struct de
->                 dev->power.is_suspended = false;
->         }
->
-> - Out:
-> +Out:
->         complete_all(&dev->power.completion);
->         TRACE_RESUME(error);
->         return error;
-> @@ -1193,6 +1208,7 @@ static int __device_suspend_noirq(struct
->  {
->         pm_callback_t callback;
->         const char *info;
-> +       bool direct_cb = false;
->         int error = 0;
->
->         TRACE_DEVICE(dev);
-> @@ -1212,12 +1228,17 @@ static int __device_suspend_noirq(struct
->                 goto Complete;
->
->         callback = dpm_subsys_suspend_noirq_cb(dev, state, &info);
-> +       if (callback)
-> +               goto Run;
->
-> -       if (!callback && dev->driver && dev->driver->pm) {
-> +       direct_cb = true;
-> +
-> +       if (dev->driver && dev->driver->pm) {
->                 info = "noirq driver ";
->                 callback = pm_noirq_op(dev->driver->pm, state);
->         }
->
-> +Run:
->         error = dpm_run_callback(callback, dev, state, info);
->         if (error) {
->                 async_error = error;
-> @@ -1227,13 +1248,33 @@ static int __device_suspend_noirq(struct
->         dev->power.is_noirq_suspended = true;
->
->         if (dev_pm_test_driver_flags(dev, DPM_FLAG_LEAVE_SUSPENDED)) {
-> +               pm_message_t resume_msg = resume_event(state);
-> +               bool skip_resume;
-> +
-> +               if (direct_cb &&
-> +                   !dpm_subsys_suspend_late_cb(dev, state, NULL) &&
-> +                   !dpm_subsys_resume_early_cb(dev, resume_msg, NULL) &&
-> +                   !dpm_subsys_resume_noirq_cb(dev, resume_msg, NULL)) {
-> +                       /*
-> +                        * If all of the device driver's "noirq", "late" and
-> +                        * "early" callbacks are invoked directly by the core,
-> +                        * the decision to allow the device to stay in suspend
-> +                        * can be based on its current runtime PM status and its
-> +                        * wakeup settings.
-> +                        */
-> +                       skip_resume = pm_runtime_status_suspended(dev) ||
-> +                               (resume_msg.event == PM_EVENT_RESUME &&
-> +                                (!device_can_wakeup(dev) ||
-> +                                 device_may_wakeup(dev)));
-> +               } else {
-> +                       skip_resume = dev->power.may_skip_resume;
-> +               }
->                 /*
->                  * The only safe strategy here is to require that if the device
->                  * may not be left in suspend, resume callbacks must be invoked
->                  * for it.
->                  */
-> -               dev->power.must_resume = dev->power.must_resume ||
-> -                                       !dev->power.may_skip_resume ||
-> +               dev->power.must_resume = dev->power.must_resume || !skip_resume ||
->                                         atomic_read(&dev->power.usage_count) > 1;
->         } else {
->                 dev->power.must_resume = true;
-> Index: linux-pm/Documentation/driver-api/pm/devices.rst
-> ===================================================================
-> --- linux-pm.orig/Documentation/driver-api/pm/devices.rst
-> +++ linux-pm/Documentation/driver-api/pm/devices.rst
-> @@ -814,3 +814,12 @@ middle layer is then responsible for han
->  whether or not the device is left suspended, but the other resume callbacks
->  (except for ``->complete``) will be skipped automatically by the PM core if the
->  device really can be left in suspend.
-> +
-> +For devices whose "noirq", "late" and "early" driver callbacks are invoked
-> +directly by the PM core, all of the system-wide resume callbacks are skipped if
-> +``DPM_FLAG_LEAVE_SUSPENDED`` is set and the device is in runtime suspend during
-> +the ``suspend_noirq`` (or analogous) phase or the transition under way is a
-> +proper system suspend (rather than anything related to hibernation) and the
-> +device's wakeup settings are suitable for runtime PM (that is, it cannot
-> +generate wakeup signals at all or it is allowed to wake up the system from
-> +sleep).
->
