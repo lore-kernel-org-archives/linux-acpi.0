@@ -1,49 +1,80 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 1/6] PM / core: Add LEAVE_SUSPENDED driver flag
-Date: Tue, 21 Nov 2017 01:16:51 +0100
-Message-ID: <CAJZ5v0gdSpPQ82Oa+orQyMbANJMgu=mp_3wbrHzhXtkOwCxTrQ@mail.gmail.com>
-References: <3806130.B2KCK0tvef@aspire.rjw.lan> <4184911.zoJM7jZeH4@aspire.rjw.lan>
- <1917233.X2U0QN21my@aspire.rjw.lan> <13167729.Euq9qh5SXX@aspire.rjw.lan> <CAPDyKFqODyR6rcTitUdvU3dRwmYpOQF+4p0xXMpkpGQfDB_tBQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/11] ACPICA release 20170929
+Date: Tue, 21 Nov 2017 02:04:59 +0100
+Message-ID: <2319214.my3GEoqqme@aspire.rjw.lan>
+References: <erik.schmauss@intel.com> <20171117234024.833-1-erik.schmauss@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFqODyR6rcTitUdvU3dRwmYpOQF+4p0xXMpkpGQfDB_tBQ@mail.gmail.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:51610 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751800AbdKUBFS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 20 Nov 2017 20:05:18 -0500
+In-Reply-To: <20171117234024.833-1-erik.schmauss@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Erik Schmauss <erik.schmauss@intel.com>
+Cc: linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-On Mon, Nov 20, 2017 at 1:25 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> On 18 November 2017 at 15:31, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Define and document a new driver flag, DPM_FLAG_LEAVE_SUSPENDED, to
->> instruct the PM core and middle-layer (bus type, PM domain, etc.)
->> code that it is desirable to leave the device in runtime suspend
->> after system-wide transitions to the working state (for example,
->> the device may be slow to resume and it may be better to avoid
->> resuming it right away).
->>
->> Generally, the middle-layer code involved in the handling of the
->> device is expected to indicate to the PM core whether or not the
->> device may be left in suspend with the help of the device's
->> power.may_skip_resume status bit.  That has to happen in the "noirq"
->> phase of the preceding system suspend (or analogous) transition.
->> The middle layer is then responsible for handling the device as
->> appropriate in its "noirq" resume callback which is executed
->> regardless of whether or not the device may be left suspended, but
->> the other resume callbacks (except for ->complete) will be skipped
->> automatically by the core if the device really can be left in
->> suspend.
->>
->> The additional power.must_resume status bit introduced for the
->> implementation of this mechanisn is used internally by the PM core
->> to track the requirement to resume the device (which may depend on
->> its children etc).
->>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->
-> Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+Hi Erik,
 
-Thanks!
+On Saturday, November 18, 2017 12:40:13 AM CET Erik Schmauss wrote:
+> This series of patches are from the 20170929 release of ACPICA.
+> This set is meant to be applied on top of the 20170831 ACPICA release.
+> 
+> Bob Moore (4):
+>   ACPICA: Rename AE_AML_INFINITE_LOOP exception
+>   ACPICA: Tools: Deploy -vd option (build date/time) across all tools
+>   ACPICA: iASL/Tools: Add support for PDTT,SDEV,TPM2 ACPI tables
+>   ACPICA: Update version to 20170929
+> 
+> Colin Ian King (1):
+>   ACPICA: Avoid null pointer dereference on Op.
+> 
+> Erik Schmauss (3):
+>   ACPICA: Disassembler: reset parser_state's Aml pointer when parsing
+>     bad externals
+>   ACPICA: disassembler: getting rid of error message
+>   ACPICA: iASL: change processing of external op namespace nodes for
+>     correctness
+> 
+> Jung-uk Kim (1):
+>   ACPICA: Fix an off-by-one error in acpi_get_timer_duration().
+> 
+> Lv Zheng (2):
+>   ACPICA: Dispatcher: Introduce timeout mechanism for infinite loop
+>     detection
+>   ACPICA: Utilities: Cleanup style issue for bit clearing
+> 
+>  drivers/acpi/acpica/acapps.h             |  3 ++
+>  drivers/acpi/acpica/aclocal.h            |  2 +-
+>  drivers/acpi/acpica/dscontrol.c          | 18 ++++----
+>  drivers/acpi/acpica/hwtimer.c            | 29 ++++++------
+>  drivers/acpi/acpica/nsaccess.c           | 13 +++---
+>  drivers/acpi/acpica/nssearch.c           |  1 +
+>  drivers/acpi/acpica/psobject.c           | 10 +----
+>  drivers/acpi/acpica/psutils.c            |  6 +--
+>  drivers/acpi/acpica/utinit.c             |  1 -
+>  drivers/acpi/acpica/utmath.c             |  4 +-
+>  include/acpi/acconfig.h                  |  4 +-
+>  include/acpi/acexcep.h                   |  6 +--
+>  include/acpi/acpixf.h                    |  6 +--
+>  include/acpi/actbl1.h                    | 77 +++++++++++++++++++++++++++++---
+>  include/acpi/actbl2.h                    | 14 +++++-
+>  include/acpi/actypes.h                   |  2 +
+>  tools/power/acpi/tools/acpidump/apmain.c | 28 ++++++++++--
+>  17 files changed, 160 insertions(+), 64 deletions(-)
+
+Thanks for the patches.
+
+It doesn't look like anything in this series and in the next one you posted
+is particularly urgent, so I'm going to queue them up for 4.16.
+
+If there is anything is this material that should be included into 4.15,
+please let me know.
+
+Thanks,
+Rafael
+
