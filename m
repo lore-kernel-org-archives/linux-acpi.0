@@ -1,47 +1,100 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 1/2] ACPI: button: Add a debug message when we're sending a LID event
-Date: Wed, 22 Nov 2017 16:06:11 +0100
-Message-ID: <20171122150612.16999-1-hdegoede@redhat.com>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [PATCH 00/11] ACPICA release 20170929
+Date: Wed, 22 Nov 2017 18:55:15 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396493BB@ORSMSX110.amr.corp.intel.com>
+References: <erik.schmauss@intel.com>
+ <20171117234024.833-1-erik.schmauss@intel.com>
+ <2319214.my3GEoqqme@aspire.rjw.lan>
+ <CF6A88132359CE47947DB4C6E1709ED539646E2D@ORSMSX110.amr.corp.intel.com>
+ <CAJZ5v0gDQJ4iy3n8w=PRsz=bc014vhHccxtR4ywiQ-UnGKtSrA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35894 "EHLO mx1.redhat.com"
+Received: from mga06.intel.com ([134.134.136.31]:41753 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751714AbdKVPGP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Nov 2017 10:06:15 -0500
+        id S1751979AbdKVSzS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Nov 2017 13:55:18 -0500
+In-Reply-To: <CAJZ5v0gDQJ4iy3n8w=PRsz=bc014vhHccxtR4ywiQ-UnGKtSrA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-I've been debugging some spurious suspend issues on various devices,
-at least on some devices these spurious suspends are caused by surious
-LID closed events being send to userspace.
-
-Running e.g. evemu-record after noticing a spurious suspend is too late
-to detect that a LID closed event it the (probable) cause of this.
-
-This commit adds an acpi_handle_debug call to help debugging this.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
-Changes in v2:
--Use acpi_handle_debug instead of pr_info
----
- drivers/acpi/button.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index bf8e4d371fa7..aac81f40e28e 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -210,6 +210,8 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
- 	}
- 	/* Send the platform triggered reliable event */
- 	if (do_update) {
-+		acpi_handle_debug(device->handle, "ACPI LID %s\n",
-+				  state ? "open" : "closed");
- 		input_report_switch(button->input, SW_LID, !state);
- 		input_sync(button->input);
- 		button->last_state = !!state;
--- 
-2.14.3
-
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5j
+b20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsDQo+IEou
+IFd5c29ja2kNCj4gU2VudDogVHVlc2RheSwgTm92ZW1iZXIgMjEsIDIwMTcgMjo0MiBQTQ0KPiBU
+bzogU2NobWF1c3MsIEVyaWsgPGVyaWsuc2NobWF1c3NAaW50ZWwuY29tPg0KPiBDYzogUmFmYWVs
+IEouIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5v
+cmc7IE1vb3JlLA0KPiBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+IFN1YmplY3Q6
+IFJlOiBbUEFUQ0ggMDAvMTFdIEFDUElDQSByZWxlYXNlIDIwMTcwOTI5DQo+IA0KPiBPbiBUdWUs
+IE5vdiAyMSwgMjAxNyBhdCA2OjA1IFBNLCBTY2htYXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0Bp
+bnRlbC5jb20+DQo+IHdyb3RlOg0KPiA+DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdl
+LS0tLS0NCj4gPj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0
+bzpsaW51eC1hY3BpLQ0KPiA+PiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBS
+YWZhZWwgSi4gV3lzb2NraQ0KPiA+PiBTZW50OiBNb25kYXksIE5vdmVtYmVyIDIwLCAyMDE3IDU6
+MDUgUE0NCj4gPj4gVG86IFNjaG1hdXNzLCBFcmlrIDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT4N
+Cj4gPj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnOyBNb29yZSwgUm9iZXJ0DQo+ID4+
+IDxyb2JlcnQubW9vcmVAaW50ZWwuY29tPg0KPiA+PiBTdWJqZWN0OiBSZTogW1BBVENIIDAwLzEx
+XSBBQ1BJQ0EgcmVsZWFzZSAyMDE3MDkyOQ0KPiA+Pg0KPiA+PiBIaSBFcmlrLA0KPiA+Pg0KPiA+
+PiBPbiBTYXR1cmRheSwgTm92ZW1iZXIgMTgsIDIwMTcgMTI6NDA6MTMgQU0gQ0VUIEVyaWsgU2No
+bWF1c3Mgd3JvdGU6DQo+ID4+ID4gVGhpcyBzZXJpZXMgb2YgcGF0Y2hlcyBhcmUgZnJvbSB0aGUg
+MjAxNzA5MjkgcmVsZWFzZSBvZiBBQ1BJQ0EuDQo+ID4+ID4gVGhpcyBzZXQgaXMgbWVhbnQgdG8g
+YmUgYXBwbGllZCBvbiB0b3Agb2YgdGhlIDIwMTcwODMxIEFDUElDQSByZWxlYXNlLg0KPiA+PiA+
+DQo+ID4+ID4gQm9iIE1vb3JlICg0KToNCj4gPj4gPiAgIEFDUElDQTogUmVuYW1lIEFFX0FNTF9J
+TkZJTklURV9MT09QIGV4Y2VwdGlvbg0KPiA+PiA+ICAgQUNQSUNBOiBUb29sczogRGVwbG95IC12
+ZCBvcHRpb24gKGJ1aWxkIGRhdGUvdGltZSkgYWNyb3NzIGFsbCB0b29scw0KPiA+PiA+ICAgQUNQ
+SUNBOiBpQVNML1Rvb2xzOiBBZGQgc3VwcG9ydCBmb3IgUERUVCxTREVWLFRQTTIgQUNQSSB0YWJs
+ZXMNCj4gPj4gPiAgIEFDUElDQTogVXBkYXRlIHZlcnNpb24gdG8gMjAxNzA5MjkNCj4gPj4gPg0K
+PiA+PiA+IENvbGluIElhbiBLaW5nICgxKToNCj4gPj4gPiAgIEFDUElDQTogQXZvaWQgbnVsbCBw
+b2ludGVyIGRlcmVmZXJlbmNlIG9uIE9wLg0KPiA+PiA+DQo+ID4+ID4gRXJpayBTY2htYXVzcyAo
+Myk6DQo+ID4+ID4gICBBQ1BJQ0E6IERpc2Fzc2VtYmxlcjogcmVzZXQgcGFyc2VyX3N0YXRlJ3Mg
+QW1sIHBvaW50ZXIgd2hlbiBwYXJzaW5nDQo+ID4+ID4gICAgIGJhZCBleHRlcm5hbHMNCj4gPj4g
+PiAgIEFDUElDQTogZGlzYXNzZW1ibGVyOiBnZXR0aW5nIHJpZCBvZiBlcnJvciBtZXNzYWdlDQo+
+ID4+ID4gICBBQ1BJQ0E6IGlBU0w6IGNoYW5nZSBwcm9jZXNzaW5nIG9mIGV4dGVybmFsIG9wIG5h
+bWVzcGFjZSBub2RlcyBmb3INCj4gPj4gPiAgICAgY29ycmVjdG5lc3MNCj4gPj4gPg0KPiA+PiA+
+IEp1bmctdWsgS2ltICgxKToNCj4gPj4gPiAgIEFDUElDQTogRml4IGFuIG9mZi1ieS1vbmUgZXJy
+b3IgaW4gYWNwaV9nZXRfdGltZXJfZHVyYXRpb24oKS4NCj4gPj4gPg0KPiA+PiA+IEx2IFpoZW5n
+ICgyKToNCj4gPj4gPiAgIEFDUElDQTogRGlzcGF0Y2hlcjogSW50cm9kdWNlIHRpbWVvdXQgbWVj
+aGFuaXNtIGZvciBpbmZpbml0ZSBsb29wDQo+ID4+ID4gICAgIGRldGVjdGlvbg0KPiA+PiA+ICAg
+QUNQSUNBOiBVdGlsaXRpZXM6IENsZWFudXAgc3R5bGUgaXNzdWUgZm9yIGJpdCBjbGVhcmluZw0K
+PiA+PiA+DQo+ID4+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNhcHBzLmggICAgICAgICAgICAg
+fCAgMyArKw0KPiA+PiA+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2FjbG9jYWwuaCAgICAgICAgICAg
+IHwgIDIgKy0NCj4gPj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9kc2NvbnRyb2wuYyAgICAgICAg
+ICB8IDE4ICsrKystLS0tDQo+ID4+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHd0aW1lci5jICAg
+ICAgICAgICAgfCAyOSArKysrKystLS0tLS0NCj4gPj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9u
+c2FjY2Vzcy5jICAgICAgICAgICB8IDEzICsrKy0tLQ0KPiA+PiA+ICBkcml2ZXJzL2FjcGkvYWNw
+aWNhL25zc2VhcmNoLmMgICAgICAgICAgIHwgIDEgKw0KPiA+PiA+ICBkcml2ZXJzL2FjcGkvYWNw
+aWNhL3Bzb2JqZWN0LmMgICAgICAgICAgIHwgMTAgKy0tLS0NCj4gPj4gPiAgZHJpdmVycy9hY3Bp
+L2FjcGljYS9wc3V0aWxzLmMgICAgICAgICAgICB8ICA2ICstLQ0KPiA+PiA+ICBkcml2ZXJzL2Fj
+cGkvYWNwaWNhL3V0aW5pdC5jICAgICAgICAgICAgIHwgIDEgLQ0KPiA+PiA+ICBkcml2ZXJzL2Fj
+cGkvYWNwaWNhL3V0bWF0aC5jICAgICAgICAgICAgIHwgIDQgKy0NCj4gPj4gPiAgaW5jbHVkZS9h
+Y3BpL2FjY29uZmlnLmggICAgICAgICAgICAgICAgICB8ICA0ICstDQo+ID4+ID4gIGluY2x1ZGUv
+YWNwaS9hY2V4Y2VwLmggICAgICAgICAgICAgICAgICAgfCAgNiArLS0NCj4gPj4gPiAgaW5jbHVk
+ZS9hY3BpL2FjcGl4Zi5oICAgICAgICAgICAgICAgICAgICB8ICA2ICstLQ0KPiA+PiA+ICBpbmNs
+dWRlL2FjcGkvYWN0YmwxLmggICAgICAgICAgICAgICAgICAgIHwgNzcgKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKystLS0NCj4gPj4gPiAgaW5jbHVkZS9hY3BpL2FjdGJsMi5oICAgICAgICAg
+ICAgICAgICAgICB8IDE0ICsrKysrLQ0KPiA+PiA+ICBpbmNsdWRlL2FjcGkvYWN0eXBlcy5oICAg
+ICAgICAgICAgICAgICAgIHwgIDIgKw0KPiA+PiA+ICB0b29scy9wb3dlci9hY3BpL3Rvb2xzL2Fj
+cGlkdW1wL2FwbWFpbi5jIHwgMjggKysrKysrKysrKy0tDQo+ID4+ID4gIDE3IGZpbGVzIGNoYW5n
+ZWQsIDE2MCBpbnNlcnRpb25zKCspLCA2NCBkZWxldGlvbnMoLSkNCj4gPj4NCj4gPj4gVGhhbmtz
+IGZvciB0aGUgcGF0Y2hlcy4NCj4gPj4NCj4gPj4gSXQgZG9lc24ndCBsb29rIGxpa2UgYW55dGhp
+bmcgaW4gdGhpcyBzZXJpZXMgYW5kIGluIHRoZSBuZXh0IG9uZSB5b3UNCj4gPj4gcG9zdGVkIGlz
+IHBhcnRpY3VsYXJseSB1cmdlbnQsIHNvIEknbSBnb2luZyB0byBxdWV1ZSB0aGVtIHVwIGZvciA0
+LjE2Lg0KPiA+Pg0KPiA+PiBJZiB0aGVyZSBpcyBhbnl0aGluZyBpcyB0aGlzIG1hdGVyaWFsIHRo
+YXQgc2hvdWxkIGJlIGluY2x1ZGVkIGludG8NCj4gPj4gNC4xNSwgcGxlYXNlIGxldCBtZSBrbm93
+Lg0KPiA+IEhpIFJhZmFlbCwNCj4gDQo+IEhpIEVyaWssDQo+IA0KPiA+IFRoaXMgMjAxNzA5Mjcg
+cmVsZWFzZSB3YXMgYSBzbWFsbCBvbmUgYW5kIEkgYmVsaWV2ZSB0aGF0IGFsbCBvZiB0aGVzZQ0K
+PiA+IGFyZSBub3QgdmVyeSB1cmdlbnQuIEhvd2V2ZXIsIGNoYW5nZXMgdG8gdGhlIE5GSVQgdGFi
+bGUgaW4gdGhlDQo+ID4gMjAxNzExMTAgcmVsZWFzZSBoYXMgYmVlbiByZXF1ZXN0ZWQgYnkgYSBm
+ZXcgY3VzdG9tZXJzDQo+IA0KDQpIaSBSYWZhZWwsDQoNCj4gV2VsbCwgSSB3YXMgYXNraW5nIGFi
+b3V0IGJ1ZyBmaXhlcyByYXRoZXIgYXMgSSdtIG5vdCBnb2luZyB0byBzdHJldGNoIHRoZSBydWxl
+cw0KPiBhbmQgZmFzdC10cmFjayBuZXcgbWF0ZXJpYWwgdGhhdCBoYXMgb25seSBiZWVuIHBvc3Rl
+ZCBhZnRlciB0aGUgb3BlbmluZyBvZiB0aGUNCj4gbWVyZ2Ugd2luZG93Lg0KPiANCj4gU28gbGV0
+IG1lIHJlcGhyYXNlOiBvdXQgb2YgdGhlIGZpeGVzIGluY2x1ZGVkIGluIHRoZSB0d28gcmVsZWFz
+ZXMgaW4gcXVlc3Rpb24sIGlzDQo+IHRoZXJlIGFueXRoaW5nIHVyZ2VudCBlbm91Z2ggdGhhdCBp
+dCBzaG91bGQgYmUgcHVzaGVkIGZvciA0LjE1Pw0KDQpUaGFua3MgZm9yIHRoZSBjbGFyaWZpY2F0
+aW9uLiBJbiB0aGlzIGNhc2UsIG5vLiBXZSBkb24ndCBoYXZlIGFueSBmaXhlcyB0aGF0IGFyZSB1
+cmdlbnQgZW5vdWdoIHRvIGJlIHB1c2hlZCBmb3IgNC4xNS4NCg0KVGhhbmtzLA0KRXJpayANCj4g
+DQo+IFRoYW5rcywNCj4gUmFmYWVsDQo=
