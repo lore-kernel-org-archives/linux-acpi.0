@@ -1,175 +1,109 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: [RFC PATCH v6 1/3] ACPI / EC: Fix possible driver order issue
- by moving EC event handling earlier
-Date: Wed, 22 Nov 2017 12:52:21 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B9092636BE5557C@SHSMSX101.ccr.corp.intel.com>
-References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com>
- <cover.1506653046.git.lv.zheng@intel.com>
- <88fd3a8dd4a99d25525b55b8ac5274067ddc4195.1506653046.git.lv.zheng@intel.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFCv2 PATCH 01/36] iommu: Keep track of processes and PASIDs
+Date: Wed, 22 Nov 2017 13:04:22 +0000
+Message-ID: <42f815ee-2a9a-ac49-2392-5c03c1d4c809@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-2-jean-philippe.brucker@arm.com>
+ <588ad6f0-e78a-63de-e27a-3da4de4ab2ab@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:30716 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751216AbdKVMw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 22 Nov 2017 07:52:26 -0500
-In-Reply-To: <88fd3a8dd4a99d25525b55b8ac5274067ddc4195.1506653046.git.lv.zheng@intel.com>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:51684 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751292AbdKVNBg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 22 Nov 2017 08:01:36 -0500
+In-Reply-To: <588ad6f0-e78a-63de-e27a-3da4de4ab2ab@huawei.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Bob Liu <liubo95@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "xieyisheng1@huawei.com" <xieyisheng1@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwat
 
+On 22/11/17 03:15, Bob Liu wrote:
+> Hey Jean,
+> 
+> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>> IOMMU drivers need a way to bind Linux processes to devices. This is used
+>> for Shared Virtual Memory (SVM), where devices support paging. In that
+>> mode, DMA can directly target virtual addresses of a process.
+>>
+>> Introduce boilerplate code for allocating process structures and binding
+>> them to devices. Four operations are added to IOMMU drivers:
+>>
+>> * process_alloc, process_free: to create an iommu_process structure and
+>>   perform architecture-specific operations required to grab the process
+>>   (for instance on ARM SMMU, pin down the CPU ASID). There is a single
+>>   iommu_process structure per Linux process.
+>>
+> 
+> I'm a bit confused here.
+> The original meaning of iommu_domain is a virtual addrspace defined by a set of io page table.
+> (fix me if I misunderstood).
 
+iommu_domain can also be seen as a logical partition of devices that share
+the same address spaces (the concept comes from AMD and Intel IOMMU
+domains, I believe). Without PASIDs it was a single address space, with
+PASIDs it can have multiple address spaces.
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Lv Zheng
-> Sent: Friday, September 29, 2017 10:50 AM
-> To: Wysocki, Rafael J <rafael.j.wysocki@intel.com>; Rafael J . Wysocki
-> <rjw@rjwysocki.net>; Brown, Len <len.brown@intel.com>
-> Cc: Zheng, Lv <lv.zheng@intel.com>; Lv Zheng <zetalog@gmail.com>; linux-
-> kernel@vger.kernel.org; linux-acpi@vger.kernel.org
-> Subject: [RFC PATCH v6 1/3] ACPI / EC: Fix possible driver order issue by
-> moving EC event handling earlier
-> 
-> This patch tries to detect EC events earlier after resume, so that if an event
-> occurred before invoking acpi_ec_unblock_transactions(), it could be
-> detected by acpi_ec_unblock_transactions() which is the earliest EC driver
-> call after resume.
-> 
-> However after the noirq stage, if an event ocurred after
-> acpi_ec_unblock_transactions() and before acpi_ec_resume(), there was no
-> mean to detect and trigger it right then, but can only detect it and handle it
-> after acpi_ec_resume().
-> 
-> Now the final logic is:
-> 1. If ec_freeze_events=Y, event handling is stopped in acpi_ec_suspend(),
->    restarted in acpi_ec_resume();
-> 2. If ec_freeze_events=N, event handling is stopped in
->    acpi_ec_block_transactions(), restarted in
->    acpi_ec_unblock_transactions();
-> 3. In order to handling the conflict of the edge-trigger nature of EC IRQ
->    and the Linux noirq stage, advance_transaction() is invoked where the
->    event handling is enabled and the noirq stage is ended.
-> 
-> Known issue:
-> 1. Event ocurred between acpi_ec_unblock_transactions() and
->    acpi_ec_resume() may still lead to the order issue. This can only be
->    fixed by adding a periodic detection mechanism during the noirq stage.
-> 
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Tested-by: Tomislav Ivek <tomislav.ivek@gmail.com>
-> Tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
+> Then what's the meaning of iommu_domain and iommu_process after introducing iommu_process?
+> Could you consider document these concepts? 
 
-I don't know what issue this patch has been tested for. Lv, can you please clarify?
+iommu_process is used to keep track of Linux process address spaces. I'll
+rename it to io_mm in next version, to make it clear that it doesn't
+represent a Linux task but an mm_struct instead. However the
+implementation stays pretty much identical. A domain can be associated to
+multiple io_mm, and an io_mm can be associated to multiple domains.
 
-I agree with lv that it can probably fix some issues brought by the device order issue.
-And I'll be glad to push this after we have verified it is really helpful.
-Lv,
-Do you still remember the bug report for the lid issue?
+In the IOMMU architectures I know, PASID is implemented like this. You
+have the device tables (stream tables on SMMU), pointing to PASID tables
+(context descriptor tables on SMMU). In the following diagram,
+
+                    .->+--------+
+                   / 0 |        |------ io_pgtable
+                  /    +--------+
+                 /   1 |        |------ io_mm->mm X
+    +--------+  /      +--------+
+  0 |      A |-'     2 |        |-.
+    +--------+         +--------+  \
+  1 |        |       3 |        |   \
+    +--------+         +--------+    -- io_mm->mm Y
+  2 |      B |--.     PASID tables  /
+    +--------+   \                 |
+  3 |      B |----+--->+--------+  |
+    +--------+   /   0 |        |- | -- io_pgtable
+  4 |      B |--'      +--------+  |
+    +--------+       1 |        |  |
+  Device tables        +--------+  |
+                     2 |        |--'
+                       +--------+
+                     3 |        |------ io_mm->priv io_pgtable
+                       +--------+
+                      PASID tables
+
+* Device 0 (e.g. PCI 0000:00:00.0) is in domain A.
+* Devices 2, 3 and 4 are in domain B.
+* Domain A has the top set of PASID tables.
+* Domain B has the bottom set of PASID tables.
+
+* Domain A is bound to process address space X.
+  -> Device 0 can access X with PASID 1.
+* Both domains A and B are bound to process address space Y.
+  -> Devices 0, 2, 3 and 4 can access Y with PASID 2
+
+* PASID 0 is special on Arm SMMU (with S1DSS=0b10). It will always be
+  reserved for classic DMA map/unmap. Even for hypothetical devices that
+  don't support non-pasid transactions, I'd like to keep this convention.
+  It should be quite useful for device drivers to have PASID 0 available
+  with DMA map/unmap.
+
+* When introducing "private" PASID address spaces (that many are asking
+  for), which are backed by a set of io-pgtable and map/unmap ops, I
+  suppose they would reuse the io_mm structure. In this example PASID 3 is
+  associated to a private address space and not backed by an mm. Since the
+  PASID space is global, PASID 3 won't be available for any other domain.
+
+Does this clarify the current design, or is it just more confusing?
 
 Thanks,
-rui
-> ---
->  drivers/acpi/ec.c | 35 ++++++++++++++++++++++++++---------
->  1 file changed, 26 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c index df84246..f1f320b
-> 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -249,6 +249,11 @@ static bool acpi_ec_started(struct acpi_ec *ec)
->  	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);  }
-> 
-> +static bool acpi_ec_no_sleep_events(void) {
-> +	return acpi_sleep_no_ec_events() && ec_freeze_events; }
-> +
->  static bool acpi_ec_event_enabled(struct acpi_ec *ec)  {
->  	/*
-> @@ -260,14 +265,14 @@ static bool acpi_ec_event_enabled(struct acpi_ec
-> *ec)
->  		return false;
->  	/*
->  	 * However, disabling the event handling is experimental for late
-> -	 * stage (suspend), and is controlled by the boot parameter of
-> -	 * "ec_freeze_events":
-> +	 * stage (suspend), and is controlled by
-> +	 * "acpi_ec_no_sleep_events()":
->  	 * 1. true:  The EC event handling is disabled before entering
->  	 *           the noirq stage.
->  	 * 2. false: The EC event handling is automatically disabled as
->  	 *           soon as the EC driver is stopped.
->  	 */
-> -	if (ec_freeze_events)
-> +	if (acpi_ec_no_sleep_events())
->  		return acpi_ec_started(ec);
->  	else
->  		return test_bit(EC_FLAGS_STARTED, &ec->flags); @@ -524,8
-> +529,8 @@ static bool acpi_ec_query_flushed(struct acpi_ec *ec)  static void
-> __acpi_ec_flush_event(struct acpi_ec *ec)  {
->  	/*
-> -	 * When ec_freeze_events is true, we need to flush events in
-> -	 * the proper position before entering the noirq stage.
-> +	 * When acpi_ec_no_sleep_events() is true, we need to flush events
-> +	 * in the proper position before entering the noirq stage.
->  	 */
->  	wait_event(ec->wait, acpi_ec_query_flushed(ec));
->  	if (ec_query_wq)
-> @@ -948,7 +953,8 @@ static void acpi_ec_start(struct acpi_ec *ec, bool
-> resuming)
->  		if (!resuming) {
->  			acpi_ec_submit_request(ec);
->  			ec_dbg_ref(ec, "Increase driver");
-> -		}
-> +		} else if (!acpi_ec_no_sleep_events())
-> +			__acpi_ec_enable_event(ec);
->  		ec_log_drv("EC started");
->  	}
->  	spin_unlock_irqrestore(&ec->lock, flags); @@ -980,7 +986,7 @@
-> static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
->  		if (!suspending) {
->  			acpi_ec_complete_request(ec);
->  			ec_dbg_ref(ec, "Decrease driver");
-> -		} else if (!ec_freeze_events)
-> +		} else if (!acpi_ec_no_sleep_events())
->  			__acpi_ec_disable_event(ec);
->  		clear_bit(EC_FLAGS_STARTED, &ec->flags);
->  		clear_bit(EC_FLAGS_STOPPED, &ec->flags); @@ -1910,7
-> +1916,7 @@ static int acpi_ec_suspend(struct device *dev)
->  	struct acpi_ec *ec =
->  		acpi_driver_data(to_acpi_device(dev));
-> 
-> -	if (acpi_sleep_no_ec_events() && ec_freeze_events)
-> +	if (acpi_ec_no_sleep_events())
->  		acpi_ec_disable_event(ec);
->  	return 0;
->  }
-> @@ -1946,7 +1952,18 @@ static int acpi_ec_resume(struct device *dev)
->  	struct acpi_ec *ec =
->  		acpi_driver_data(to_acpi_device(dev));
-> 
-> -	acpi_ec_enable_event(ec);
-> +	if (acpi_ec_no_sleep_events())
-> +		acpi_ec_enable_event(ec);
-> +	else {
-> +		/*
-> +		 * Though whether there is an event pending has been
-> +		 * checked in acpi_ec_unblock_transactions() when
-> +		 * acpi_ec_no_sleep_events() is false, check it one more
-> +		 * time after noirq stage to detect events occurred after
-> +		 * acpi_ec_unblock_transactions().
-> +		 */
-> +		advance_transaction(ec);
-> +	}
->  	return 0;
->  }
->  #endif
-> --
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the
-> body of a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+Jean
