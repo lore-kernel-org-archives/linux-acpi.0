@@ -1,66 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/2] ACPI: button: Add an info message when we're sending a LID closed event
-Date: Wed, 22 Nov 2017 01:41:40 +0100
-Message-ID: <1728907.y24V3x8mmH@aspire.rjw.lan>
-References: <20171115140718.13026-1-hdegoede@redhat.com> <CAJZ5v0iHNj3XD1XWPrp_XZD+Nq-YzG665Ar+BeyCLfJEUT-nbQ@mail.gmail.com> <c6139108-b209-b0e6-6a65-74b09609a46b@redhat.com>
+Subject: Re: [PATCH v4 5/6] PM / core: Direct handling of DPM_FLAG_LEAVE_SUSPENDED
+Date: Wed, 22 Nov 2017 02:10:51 +0100
+Message-ID: <4400947.0Tgl7arJ6a@aspire.rjw.lan>
+References: <3806130.B2KCK0tvef@aspire.rjw.lan> <5730411.DndCTChqpV@aspire.rjw.lan> <CAPDyKFq0HGm7h_OFOwd5sRz+3_ZseNFTC-fi8c2qJVW4ZkOaHA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58416 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:50195 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751408AbdKVAl7 (ORCPT
+        by vger.kernel.org with ESMTP id S1751344AbdKVBLM (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 21 Nov 2017 19:41:59 -0500
-In-Reply-To: <c6139108-b209-b0e6-6a65-74b09609a46b@redhat.com>
+        Tue, 21 Nov 2017 20:11:12 -0500
+In-Reply-To: <CAPDyKFq0HGm7h_OFOwd5sRz+3_ZseNFTC-fi8c2qJVW4ZkOaHA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Alan Stern <stern@rowland.harvard.edu>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Kevin Hilman <khilman@kernel.org>
 
-On Thursday, November 16, 2017 10:33:04 AM CET Hans de Goede wrote:
-> Hi,
+On Monday, November 20, 2017 2:42:26 PM CET Ulf Hansson wrote:
+> On 18 November 2017 at 15:41, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Make the PM core handle DPM_FLAG_LEAVE_SUSPENDED directly for
+> > devices whose "noirq", "late" and "early" driver callbacks are
+> > invoked directly by it.
 > 
-> On 15-11-17 18:16, Rafael J. Wysocki wrote:
-> > On Wed, Nov 15, 2017 at 3:07 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> >> I've been debugging some spurious suspend issues on various devices,
-> >> at least on some devices these spurious suspends are caused by surious
-> >> LID closed events being send to userspace.
-> >>
-> >> Running e.g. evemu-record after noticing a spurious suspend is too late
-> >> to detect that a LID closed event it the (probable) cause of this.
-> >> This commit adds a pr_info("ACPI LID closed\n") call to help debugging.
-> >>
-> >> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >> ---
-> >>   drivers/acpi/button.c | 3 +++
-> >>   1 file changed, 3 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> >> index ef1856b15488..07da60fe9cae 100644
-> >> --- a/drivers/acpi/button.c
-> >> +++ b/drivers/acpi/button.c
-> >> @@ -210,6 +210,9 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
-> >>          }
-> >>          /* Send the platform triggered reliable event */
-> >>          if (do_update) {
-> >> +               if (!state)
-> >> +                       pr_info("ACPI LID closed\n");
-> > 
-> > Why pr_info()?
+> This indicates that your target for this particular change isn't
+> ACPI/PCI, but instead this aims to be a more generic solution to be
+> able to optimize the resume path for devices.
 > 
-> The purpose of the patch is to help debug spurious suspends seen on
-> some devices (typically Intel based tablets or 2in1s) so the goal is to
-> look at the logs after the fact and figure things out, so we want something
-> which shows up by default (typically a lid close leads to a suspend which
-> already causes some logging anyways), but this is not an error or a warning,
-> so I ended up with pr_info.
+> Assuming, this is the case, I don't think this is good enough as I
+> pointed out [1] earlier. Simply because it isn't as flexible as is
+> required - to really be able cover generic cases.
 
-This prints a useless message avery time the lid closes on *many* systems that
-don't have this problem which is a bit overly excessive IMO.
+I'll go back to that message, but nothing so far has been flexible enough to
+cover everything you can imagine.
 
-And you can always ask bug reporters to collect logs with dynamic debug enabled
-if need be, can't you?
+The case this and the next patch cover really is to allow drivers that can be
+used with or without a PM domain to avoid doing any "are we suspended?" type
+of checks in their callbacks.  Actually, the [6/6] is more important from that
+standpoint, but this one also may play the role because of the dependencies
+between devices involved in the handling of LEAVE_SUSPENDED (eg. say a PCI
+parent has a child platform or I2C or similar devices without a PM domain
+and what happens to the child affects the parent).
+
+> >
+> > Namely, make it skip all of the system-wide resume callbacks for
+> > such devices with DPM_FLAG_LEAVE_SUSPENDED set if they are in
+> > runtime suspend during the "noirq" phase of system-wide suspend
+> > (or analogous) transitions or the system transition under way is
+> > a proper suspend (rather than anything related to hibernation) and
+> > the device's wakeup settings are compatible with runtime PM (that
+> > is, the device cannot generate wakeup signals at all or it is
+> > allowed to wake up the system from sleep).
+> 
+> As I pointed out by submitting another patch [2], device_may_wakeup()
+> doesn't really tell whether the wakeup is configured as "in-band" or
+> "out-of-band". That knowledge is known by the driver and the subsystem
+> layer - and for that reason I don't think the PM core shall base
+> generic decisions like this on it.
+
+The "or it is allowed to wake up the system from sleep" case may be overly
+optimistic, but the remaining two (runtime-suspended devices and devices
+that can't generate wakeup signals at all) are quite straightforward to me.
 
 Thanks,
 Rafael
