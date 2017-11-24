@@ -1,46 +1,147 @@
-From: Bob Liu <liubo95@huawei.com>
-Subject: Re: [RFCv2 PATCH 10/36] vfio: Add support for Shared Virtual Memory
-Date: Fri, 24 Nov 2017 16:23:26 +0800
-Message-ID: <419afe22-816d-263f-9c85-1a9e28c723b7@huawei.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-11-jean-philippe.brucker@arm.com>
+From: Andrea Reale <ar@linux.vnet.ibm.com>
+Subject: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory state
+ before hotremove
+Date: Fri, 24 Nov 2017 10:22:35 +0000
+Message-ID: <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar__2899.61828752912$1511518964$gmane$org@linux.vnet.ibm.com>
+References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20171006133203.22803-11-jean-philippe.brucker@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org
-Cc: mark.rutland@arm.com, xieyisheng1@huawei.com, gabriele.paoloni@huawei.com, catalin.marinas@arm.com, will.deacon@arm.com, okaya@codeaurora.org, yi.l.liu@intel.com, lorenzo.pieralisi@arm.com, ashok.raj@intel.com, tn@semihalf.com, joro@8bytes.org, rfranz@cavium.com, lenb@kernel.org, jacob.jun.pan@linux.intel.com, alex.williamson@redhat.com, robh+dt@kernel.org, thunder.leizhen@huawei.com, bhelgaas@google.com, dwmw2@infradead.org, rjw@rjwysocki.net, robdclark@gmail.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robin.murphy@arm.com, nwatters@codeaurora.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx0b-001b2d01.pphosted.com ([148.163.158.5]:41218 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752955AbdKXKWo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 24 Nov 2017 05:22:44 -0500
+Received: from pps.filterd (m0098417.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vAOAJlPd085460
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Nov 2017 05:22:44 -0500
+Received: from e06smtp14.uk.ibm.com (e06smtp14.uk.ibm.com [195.75.94.110])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2eefne6tw9-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Nov 2017 05:22:43 -0500
+Received: from localhost
+        by e06smtp14.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-acpi@vger.kernel.org> from <ar@linux.vnet.ibm.com>;
+        Fri, 24 Nov 2017 10:22:42 -0000
+Content-Disposition: inline
+In-Reply-To: <cover.1511433386.git.ar@linux.vnet.ibm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-mm@kvack.org, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, mark.rutland@arm.com, scott.branden@broadcom.com, will.deacon@arm.com, qiuxishi@huawei.com, catalin.marinas@arm.com, mhocko@suse.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org
 
-On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
-> Add two new ioctl for VFIO containers. VFIO_DEVICE_BIND_PROCESS creates a
-> bond between a container and a process address space, identified by a
-> device-specific ID named PASID. This allows the device to target DMA
-> transactions at the process virtual addresses without a need for mapping
-> and unmapping buffers explicitly in the IOMMU. The process page tables are
-> shared with the IOMMU, and mechanisms such as PCI ATS/PRI may be used to
-> handle faults. VFIO_DEVICE_UNBIND_PROCESS removed a bond identified by a
-> PASID.
-> 
+Resending the patch adding linux-acpi in CC, as suggested by Rafael.
+Everyone else: apologies for the noise.
 
-How about hide bind/unbind into ioctl(VFIO_SET_IOMMU)? 
-e.g always bind to current process in SET_IOMMU.
+Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
+introduced an assumption whereas when control
+reaches remove_memory the corresponding memory has been already
+offlined. In that case, the acpi_memhotplug was making sure that
+the assumption held.
+This assumption, however, is not necessarily true if offlining
+and removal are not done by the same "controller" (for example,
+when first offlining via sysfs).
 
-Not sure about the real use case.
+Removing this assumption for the generic remove_memory code
+and moving it in the specific acpi_memhotplug code. This is
+a dependency for the software-aided arm64 offlining and removal
+process.
 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> ---
->  drivers/vfio/vfio_iommu_type1.c | 243 +++++++++++++++++++++++++++++++++++++++-
->  include/uapi/linux/vfio.h       |  69 ++++++++++++
->  2 files changed, 311 insertions(+), 1 deletion(-)
-> 
+Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
+Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
+---
+ drivers/acpi/acpi_memhotplug.c |  2 +-
+ include/linux/memory_hotplug.h |  9 ++++++---
+ mm/memory_hotplug.c            | 13 +++++++++----
+ 3 files changed, 16 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 6b0d3ef..b0126a0 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+ 			nid = memory_add_physaddr_to_nid(info->start_addr);
+ 
+ 		acpi_unbind_memory_blocks(info);
+-		remove_memory(nid, info->start_addr, info->length);
++		BUG_ON(remove_memory(nid, info->start_addr, info->length));
+ 		list_del(&info->list);
+ 		kfree(info);
+ 	}
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 58e110a..1a9c7b2 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -295,7 +295,7 @@ static inline bool movable_node_is_enabled(void)
+ extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+ extern void try_offline_node(int nid);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+-extern void remove_memory(int nid, u64 start, u64 size);
++extern int remove_memory(int nid, u64 start, u64 size);
+ 
+ #else
+ static inline bool is_mem_section_removable(unsigned long pfn,
+@@ -311,7 +311,10 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ 	return -EINVAL;
+ }
+ 
+-static inline void remove_memory(int nid, u64 start, u64 size) {}
++static inline int remove_memory(int nid, u64 start, u64 size)
++{
++	return -EINVAL;
++}
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+@@ -323,7 +326,7 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+ 		unsigned long nr_pages);
+ extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+ extern bool is_memblock_offlined(struct memory_block *mem);
+-extern void remove_memory(int nid, u64 start, u64 size);
++extern int remove_memory(int nid, u64 start, u64 size);
+ extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+ 		unsigned long map_offset);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index d4b5f29..d5f15af 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1892,7 +1892,7 @@ EXPORT_SYMBOL(try_offline_node);
+  * and online/offline operations before this call, as required by
+  * try_offline_node().
+  */
+-void __ref remove_memory(int nid, u64 start, u64 size)
++int __ref remove_memory(int nid, u64 start, u64 size)
+ {
+ 	int ret;
+ 
+@@ -1908,18 +1908,23 @@ void __ref remove_memory(int nid, u64 start, u64 size)
+ 	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
+ 				check_memblock_offlined_cb);
+ 	if (ret)
+-		BUG();
++		goto end_remove;
++
++	ret = arch_remove_memory(start, size);
++
++	if (ret)
++		goto end_remove;
+ 
+ 	/* remove memmap entry */
+ 	firmware_map_remove(start, start + size, "System RAM");
+ 	memblock_free(start, size);
+ 	memblock_remove(start, size);
+ 
+-	arch_remove_memory(start, size);
+-
+ 	try_offline_node(nid);
+ 
++end_remove:
+ 	mem_hotplug_done();
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(remove_memory);
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
+-- 
+2.7.4
+
