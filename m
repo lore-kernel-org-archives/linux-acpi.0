@@ -1,47 +1,69 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [RFCv2 PATCH 10/36] vfio: Add support for Shared Virtual Memory
-Date: Fri, 24 Nov 2017 10:58:32 +0000
-Message-ID: <f297c4a8-559f-bf23-d5c2-219763bba289@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-11-jean-philippe.brucker@arm.com>
- <419afe22-816d-263f-9c85-1a9e28c723b7@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
+ state before hotremove
+Date: Fri, 24 Nov 2017 15:39:23 +0100
+Message-ID: <CAJZ5v0i7vOxwhgA1LWYDqxCKkHaYikCf_HZZQCbgApLpoyV2JA@mail.gmail.com>
+References: <cover.1511433386.git.ar@linux.vnet.ibm.com> <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <419afe22-816d-263f-9c85-1a9e28c723b7@huawei.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Bob Liu <liubo95@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "xieyisheng1@huawei.com" <xieyisheng1@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwat
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
+Sender: owner-linux-mm@kvack.org
+To: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, Mark Rutland <mark.rutland@arm.com>, scott.branden@broadcom.com, Will Deacon <will.deacon@arm.com>, qiuxishi@huawei.com, Catalin Marinas <catalin.marinas@arm.com>, Michal Hocko <mhocko@suse.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 24/11/17 08:23, Bob Liu wrote:
-> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
->> Add two new ioctl for VFIO containers. VFIO_DEVICE_BIND_PROCESS creates a
->> bond between a container and a process address space, identified by a
->> device-specific ID named PASID. This allows the device to target DMA
->> transactions at the process virtual addresses without a need for mapping
->> and unmapping buffers explicitly in the IOMMU. The process page tables are
->> shared with the IOMMU, and mechanisms such as PCI ATS/PRI may be used to
->> handle faults. VFIO_DEVICE_UNBIND_PROCESS removed a bond identified by a
->> PASID.
->> 
-> 
-> How about hide bind/unbind into ioctl(VFIO_SET_IOMMU)?
-> e.g always bind to current process in SET_IOMMU.
-> 
-> Not sure about the real use case.
+On Fri, Nov 24, 2017 at 11:22 AM, Andrea Reale <ar@linux.vnet.ibm.com> wrote:
+> Resending the patch adding linux-acpi in CC, as suggested by Rafael.
+> Everyone else: apologies for the noise.
+>
+> Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
+> introduced an assumption whereas when control
+> reaches remove_memory the corresponding memory has been already
+> offlined. In that case, the acpi_memhotplug was making sure that
+> the assumption held.
+> This assumption, however, is not necessarily true if offlining
+> and removal are not done by the same "controller" (for example,
+> when first offlining via sysfs).
+>
+> Removing this assumption for the generic remove_memory code
+> and moving it in the specific acpi_memhotplug code. This is
+> a dependency for the software-aided arm64 offlining and removal
+> process.
+>
+> Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
+> Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |  2 +-
+>  include/linux/memory_hotplug.h |  9 ++++++---
+>  mm/memory_hotplug.c            | 13 +++++++++----
+>  3 files changed, 16 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 6b0d3ef..b0126a0 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>                         nid = memory_add_physaddr_to_nid(info->start_addr);
+>
+>                 acpi_unbind_memory_blocks(info);
+> -               remove_memory(nid, info->start_addr, info->length);
+> +               BUG_ON(remove_memory(nid, info->start_addr, info->length));
 
-I guess you could introduce a new VFIO IOMMU type for this. I think this
-would be useful for SVA without PASID: if the device supports I/O page
-faults, use SET_IOMMU with a VFIO_SVA_IOMMU type (for example) and the
-process is bound automatically to the default translation context of the
-device. This requires a new IOMMU type because the MAP/UNMAP ioctl won't
-work anymore.
+Why does this have to be BUG_ON()?  Is it really necessary to kill the
+system here?
 
-I'm not keen on introducing loads of new features in the APIs at the
-moment, because I only have the IOMMU point of view, not many endpoint users.
+If it is, please add a comment describing why continuing is not an option here.
+
+>                 list_del(&info->list);
+>                 kfree(info);
+>         }
 
 Thanks,
-Jean
+Rafael
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
