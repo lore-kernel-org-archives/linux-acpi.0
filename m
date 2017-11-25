@@ -1,135 +1,127 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
- state before hotremove
-Date: Fri, 24 Nov 2017 19:17:41 +0100
-Message-ID: <20171124164042.3crcoz2lwgwv725l@dhcp22.suse.cz>
-References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
- <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
- <CAJZ5v0i7vOxwhgA1LWYDqxCKkHaYikCf_HZZQCbgApLpoyV2JA@mail.gmail.com>
- <20171124144917.GB1966@samekh>
- <20171124154317.copbe3u6y2q4mura@dhcp22.suse.cz>
- <20171124155458.GC1966@samekh>
+From: Jonathan Cameron <jic23-tko9wxEg+fIOOJlXag/Snyp2UmYkHbXO@public.gmane.org>
+Subject: Re: [PATCH v3 2/5] iio: proximity: sx9500: Add GPIO ACPI mapping
+ table
+Date: Sat, 25 Nov 2017 14:24:25 +0000
+Message-ID: <20171125142425.31dd862c@archlinux>
+References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
+        <20171103130340.42459-2-andriy.shevchenko@linux.intel.com>
+        <20171104031403.000073b0@huawei.com>
+        <20171119152934.66a481c0@archlinux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:56583 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753713AbdKXSRp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 24 Nov 2017 13:17:45 -0500
-Content-Disposition: inline
-In-Reply-To: <20171124155458.GC1966@samekh>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171119152934.66a481c0@archlinux>
+Sender: linux-iio-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-iio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hartmut Knaack <knaack.h-Mmb7MZpHnFY@public.gmane.org>, Lars-Peter Clausen <lars-Qo5EllUWu/uELgA04lAiVw@public.gmane.org>, Peter Meerwald-Stadler <pmeerw-jW+XmwGofnusTnJN9+BGXg@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, Mark Rutland <mark.rutland@arm.com>, scott.branden@broadcom.com, Will Deacon <will.deacon@arm.com>, qiuxishi@huawei.com, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri 24-11-17 15:54:59, Andrea Reale wrote:
-> On Fri 24 Nov 2017, 16:43, Michal Hocko wrote:
-> > On Fri 24-11-17 14:49:17, Andrea Reale wrote:
-> > > Hi Rafael,
-> > > 
-> > > On Fri 24 Nov 2017, 15:39, Rafael J. Wysocki wrote:
-> > > > On Fri, Nov 24, 2017 at 11:22 AM, Andrea Reale <ar@linux.vnet.ibm.com> wrote:
-> > > > > Resending the patch adding linux-acpi in CC, as suggested by Rafael.
-> > > > > Everyone else: apologies for the noise.
-> > > > >
-> > > > > Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
-> > > > > introduced an assumption whereas when control
-> > > > > reaches remove_memory the corresponding memory has been already
-> > > > > offlined. In that case, the acpi_memhotplug was making sure that
-> > > > > the assumption held.
-> > > > > This assumption, however, is not necessarily true if offlining
-> > > > > and removal are not done by the same "controller" (for example,
-> > > > > when first offlining via sysfs).
-> > > > >
-> > > > > Removing this assumption for the generic remove_memory code
-> > > > > and moving it in the specific acpi_memhotplug code. This is
-> > > > > a dependency for the software-aided arm64 offlining and removal
-> > > > > process.
-> > > > >
-> > > > > Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
-> > > > > Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
-> > > > > ---
-> > > > >  drivers/acpi/acpi_memhotplug.c |  2 +-
-> > > > >  include/linux/memory_hotplug.h |  9 ++++++---
-> > > > >  mm/memory_hotplug.c            | 13 +++++++++----
-> > > > >  3 files changed, 16 insertions(+), 8 deletions(-)
-> > > > >
-> > > > > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> > > > > index 6b0d3ef..b0126a0 100644
-> > > > > --- a/drivers/acpi/acpi_memhotplug.c
-> > > > > +++ b/drivers/acpi/acpi_memhotplug.c
-> > > > > @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
-> > > > >                         nid = memory_add_physaddr_to_nid(info->start_addr);
-> > > > >
-> > > > >                 acpi_unbind_memory_blocks(info);
-> > > > > -               remove_memory(nid, info->start_addr, info->length);
-> > > > > +               BUG_ON(remove_memory(nid, info->start_addr, info->length));
-> > > > 
-> > > > Why does this have to be BUG_ON()?  Is it really necessary to kill the
-> > > > system here?
-> > > 
-> > > Actually, I hoped you would help me understand that: that BUG() call was introduced
-> > > by yourself in Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
-> > > in memory_hoptlug.c:remove_memory()). 
-> > > 
-> > > Just reading at that commit my understanding was that you were assuming
-> > > that acpi_memory_remove_memory() have already done the job of offlining
-> > > the target memory, so there would be a bug if that wasn't the case.
-> > > 
-> > > In my case, that assumption did not hold and I found that it might not
-> > > hold for other platforms that do not use ACPI. In fact, the purpose of
-> > > this patch is to move this assumption out of the generic hotplug code
-> > > and move it to ACPI code where it originated. 
-> > 
-> > remove_memory failure is basically impossible to handle AFAIR. The
-> > original code to BUG in remove_memory is ugly as hell and we do not want
-> > to spread that out of that function. Instead we really want to get rid
-> > of it.
+On Sun, 19 Nov 2017 15:29:34 +0000
+Jonathan Cameron <jic23-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+
+> On Sat, 4 Nov 2017 03:14:27 +0000
+> Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
 > 
-> Today, BUG() is called even in the simple case where remove fails
-> because the section we are removing is not offline.
+> > On Fri, 3 Nov 2017 15:03:37 +0200
+> > Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+> >   
+> > > In order to satisfy GPIO ACPI library requirements convert users of
+> > > gpiod_get_index() to correctly behave when there no mapping is
+> > > provided by firmware.
+> > > 
+> > > Here we add explicit mapping between _CRS GpioIo() resources and
+> > > their names used in the driver.
+> > > 
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>    
+> > 
+> > Added cc's as for previous patch.  I guess this makes sense if we
+> > accept that fixes like the previous one should be in drivers at all.
+> > 
+> > If not the reset part still makes sense I suppose.  
+> So, what this description is missing:
+> * Is this a fix for known problem?
+> * If so please add a fixes tag.
+> * If it is because we now have platforms that need this then say that.
+> 
+> I have no idea on the urgency of this patch from the description.
+> 
+Hi Andy, any updates on the above?   I probably won't be sending
+a fixes pull until next weekend, but would be good to know if this
+should be in there or not by then!
 
-You cannot hotremove memory which is still online. This is what caller
-should enforce. This is too late to handle the failure. At least for
-ACPI.
-
-> I cannot see any need to
-> BUG() in such a case: an error code seems more than sufficient to me.
-
-I do not rememeber details but AFAIR ACPI is in a deferred (kworker)
-context here and cannot simply communicate error code down the road.
-I agree that we should be able to simply return an error but what is the
-actual error condition that might happen here?
-
-> This is why this patch removes the BUG() call when the "offline" check
-> fails from the generic code. 
-
-As I've said we should simply get rid of BUG rather than move it around.
-
-> It moves it back to the ACPI call, where the assumption
-> originated. Honestlly, I cannot tell if it makes sense to BUG() there:
-> I have nothing against removing it from ACPI hotplug too, but
-> I don't know enough to feel free to change the acpi semantics myself, so I
-> moved it there to keep the original behavior unchanged for x86 code.
-
-Heh, yeah that is an easier path for sure. I would prefer sorting this
-out ;) Not that I would enforce that, though. My concern is that the
-previous hotplug development followed this "I do not understand exactly
-so I will simply put my on top of existing code" mantra and it ended up
-in a huge mess.
-
-> In this arm64 hot-remove port, offline and remove are done in two separate
-> steps, and is conceivable that an user tries erroneusly to remove some
-> section that he forgot to offline first: in that case, with the patch,
-> remove will just report an erro without BUGing.
-
-As I've said it is the caller to enforce that.
-
-> Is my reasoning flawed?
-
-I wouldn't say flawed but this is a low-level call that should already
-happen in a reasonable context.
--- 
-Michal Hocko
-SUSE Labs
+> Jonathan
+> >   
+> > > ---
+> > >  drivers/iio/proximity/sx9500.c | 21 ++++++++++++++++-----
+> > >  1 file changed, 16 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/iio/proximity/sx9500.c
+> > > b/drivers/iio/proximity/sx9500.c index df23dbcc030a..eb687b3dd442
+> > > 100644 --- a/drivers/iio/proximity/sx9500.c
+> > > +++ b/drivers/iio/proximity/sx9500.c
+> > > @@ -32,9 +32,6 @@
+> > >  #define SX9500_DRIVER_NAME		"sx9500"
+> > >  #define SX9500_IRQ_NAME			"sx9500_event"
+> > >  
+> > > -#define SX9500_GPIO_INT			"interrupt"
+> > > -#define SX9500_GPIO_RESET		"reset"
+> > > -
+> > >  /* Register definitions. */
+> > >  #define SX9500_REG_IRQ_SRC		0x00
+> > >  #define SX9500_REG_STAT			0x01
+> > > @@ -866,26 +863,40 @@ static int sx9500_init_device(struct iio_dev
+> > > *indio_dev) return sx9500_init_compensation(indio_dev);
+> > >  }
+> > >  
+> > > +static const struct acpi_gpio_params reset_gpios = { 0, 0, false };
+> > > +static const struct acpi_gpio_params interrupt_gpios = { 2, 0,
+> > > false }; +
+> > > +static const struct acpi_gpio_mapping acpi_sx9500_gpios[] = {
+> > > +	{ "reset-gpios", &reset_gpios, 1 },
+> > > +	{ "interrupt-gpios", &interrupt_gpios, 1 },
+> > > +	{ },
+> > > +};
+> > > +
+> > >  static void sx9500_gpio_probe(struct i2c_client *client,
+> > >  			      struct sx9500_data *data)
+> > >  {
+> > >  	struct gpio_desc *gpiod_int;
+> > >  	struct device *dev;
+> > > +	int ret;
+> > >  
+> > >  	if (!client)
+> > >  		return;
+> > >  
+> > >  	dev = &client->dev;
+> > >  
+> > > +	ret = devm_acpi_dev_add_driver_gpios(dev, acpi_sx9500_gpios);
+> > > +	if (ret)
+> > > +		dev_dbg(dev, "Unable to add GPIO mapping table\n");
+> > > +
+> > >  	if (client->irq <= 0) {
+> > > -		gpiod_int = devm_gpiod_get(dev, SX9500_GPIO_INT,
+> > > GPIOD_IN);
+> > > +		gpiod_int = devm_gpiod_get(dev, "interrupt",
+> > > GPIOD_IN); if (IS_ERR(gpiod_int))
+> > >  			dev_err(dev, "gpio get irq failed\n");
+> > >  		else
+> > >  			client->irq = gpiod_to_irq(gpiod_int);
+> > >  	}
+> > >  
+> > > -	data->gpiod_rst = devm_gpiod_get(dev, SX9500_GPIO_RESET,
+> > > GPIOD_OUT_HIGH);
+> > > +	data->gpiod_rst = devm_gpiod_get(dev, "reset",
+> > > GPIOD_OUT_HIGH); if (IS_ERR(data->gpiod_rst)) {
+> > >  		dev_warn(dev, "gpio get reset pin failed\n");
+> > >  		data->gpiod_rst = NULL;    
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-iio" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
