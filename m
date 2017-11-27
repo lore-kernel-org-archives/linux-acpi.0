@@ -1,198 +1,148 @@
-From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
-Subject: Re: [RFC PATCH v6 1/3] ACPI / EC: Fix possible driver order issue by
- moving EC event handling earlier
-Date: Mon, 27 Nov 2017 09:56:26 +0100
-Message-ID: <20171127085626.GG30708@mail.corp.redhat.com>
-References: <99f23db65bbe89ee856018629654584a96734c84.1501141963.git.lv.zheng@intel.com>
- <cover.1506653046.git.lv.zheng@intel.com>
- <88fd3a8dd4a99d25525b55b8ac5274067ddc4195.1506653046.git.lv.zheng@intel.com>
- <744357E9AAD1214791ACBA4B0B9092636BE5557C@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E886CFBBF6E@SHSMSX101.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 3/3] pinctrl: cannonlake: Align GPIO number space with Windows
+Date: Mon, 27 Nov 2017 16:54:44 +0300
+Message-ID: <20171127135444.66735-4-mika.westerberg@linux.intel.com>
+References: <20171127135444.66735-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38926 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:55539 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751138AbdK0I4c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Nov 2017 03:56:32 -0500
-Content-Disposition: inline
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E886CFBBF6E@SHSMSX101.ccr.corp.intel.com>
+        id S1752182AbdK0Nys (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 27 Nov 2017 08:54:48 -0500
+In-Reply-To: <20171127135444.66735-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Takashi Iwai <tiwai@suse.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Nov 24 2017 or thereabouts, Zheng, Lv wrote:
-> Hi, Rui
-> 
-> > From: Zhang, Rui
-> > Subject: RE: [RFC PATCH v6 1/3] ACPI / EC: Fix possible driver order issue by moving EC event handling
-> > earlier
-> > 
-> > 
-> > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > Subject: [RFC PATCH v6 1/3] ACPI / EC: Fix possible driver order issue by
-> > > moving EC event handling earlier
-> > >
-> > > This patch tries to detect EC events earlier after resume, so that if an event
-> > > occurred before invoking acpi_ec_unblock_transactions(), it could be
-> > > detected by acpi_ec_unblock_transactions() which is the earliest EC driver
-> > > call after resume.
-> > >
-> > > However after the noirq stage, if an event ocurred after
-> > > acpi_ec_unblock_transactions() and before acpi_ec_resume(), there was no
-> > > mean to detect and trigger it right then, but can only detect it and handle it
-> > > after acpi_ec_resume().
-> > >
-> > > Now the final logic is:
-> > > 1. If ec_freeze_events=Y, event handling is stopped in acpi_ec_suspend(),
-> > >    restarted in acpi_ec_resume();
-> > > 2. If ec_freeze_events=N, event handling is stopped in
-> > >    acpi_ec_block_transactions(), restarted in
-> > >    acpi_ec_unblock_transactions();
-> > > 3. In order to handling the conflict of the edge-trigger nature of EC IRQ
-> > >    and the Linux noirq stage, advance_transaction() is invoked where the
-> > >    event handling is enabled and the noirq stage is ended.
-> > >
-> > > Known issue:
-> > > 1. Event ocurred between acpi_ec_unblock_transactions() and
-> > >    acpi_ec_resume() may still lead to the order issue. This can only be
-> > >    fixed by adding a periodic detection mechanism during the noirq stage.
-> > >
-> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > > Tested-by: Tomislav Ivek <tomislav.ivek@gmail.com>
-> > > Tested-by: Luya Tshimbalanga <luya@fedoraproject.org>
-> > 
-> > I don't know what issue this patch has been tested for. Lv, can you please clarify?
-> 
-> The testers' names are listed here because they have tried the commit and no
-> regressions can be found on their test platforms.
-> 
-> > 
-> > I agree with lv that it can probably fix some issues brought by the device order issue.
-> > And I'll be glad to push this after we have verified it is really helpful.
-> > Lv,
-> > Do you still remember the bug report for the lid issue?
-> 
-> Maybe you should ask Benjamin.
-> Let me Cc him for further investigation.
+The Cannon Lake Windows GPIO driver always exposes 32 pins per "bank"
+regardless of whether the hardware actually has that many pins in a pad
+group. This means that there are gaps in the GPIO number space even if
+such gaps do not exist in the real hardware. To make things worse the
+BIOS is also using the same scheme, so for example on Cannon Lake-LP
+vGPIO 39 (vSD3_CD_B) the ACPI GpioInt resource has number 231 instead of
+the expected 180 (which would be the hardware number).
 
-AFAICT, the lid issue was a complete mess. This patch seems to give back
-some hope. One situation that was happening was that the LID
-notification was coming before the system was ready to handle (this is
-all from memory) and that meant that the state of the system was wrong
-(it thought the lid was closed while it was not). Any patch that would
-guarantee the ordering between the module related to this issue would be
-more than welcome.
+To make SD card detection and other GPIOs working properly in Linux we
+align the pinctrl-cannonlake GPIO numbering to follow the Windows GPIO
+driver numbering taking advantage of the gpio_base field introduced in
+the previous patch.
 
-Cheers,
-Benjamin
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/pinctrl/intel/pinctrl-cannonlake.c | 65 ++++++++++++++++--------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
-> 
-> Thanks,
-> Lv
-> 
-> > 
-> > Thanks,
-> > rui
-> > > ---
-> > >  drivers/acpi/ec.c | 35 ++++++++++++++++++++++++++---------
-> > >  1 file changed, 26 insertions(+), 9 deletions(-)
-> > >
-> > > diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c index df84246..f1f320b
-> > > 100644
-> > > --- a/drivers/acpi/ec.c
-> > > +++ b/drivers/acpi/ec.c
-> > > @@ -249,6 +249,11 @@ static bool acpi_ec_started(struct acpi_ec *ec)
-> > >  	       !test_bit(EC_FLAGS_STOPPED, &ec->flags);  }
-> > >
-> > > +static bool acpi_ec_no_sleep_events(void) {
-> > > +	return acpi_sleep_no_ec_events() && ec_freeze_events; }
-> > > +
-> > >  static bool acpi_ec_event_enabled(struct acpi_ec *ec)  {
-> > >  	/*
-> > > @@ -260,14 +265,14 @@ static bool acpi_ec_event_enabled(struct acpi_ec
-> > > *ec)
-> > >  		return false;
-> > >  	/*
-> > >  	 * However, disabling the event handling is experimental for late
-> > > -	 * stage (suspend), and is controlled by the boot parameter of
-> > > -	 * "ec_freeze_events":
-> > > +	 * stage (suspend), and is controlled by
-> > > +	 * "acpi_ec_no_sleep_events()":
-> > >  	 * 1. true:  The EC event handling is disabled before entering
-> > >  	 *           the noirq stage.
-> > >  	 * 2. false: The EC event handling is automatically disabled as
-> > >  	 *           soon as the EC driver is stopped.
-> > >  	 */
-> > > -	if (ec_freeze_events)
-> > > +	if (acpi_ec_no_sleep_events())
-> > >  		return acpi_ec_started(ec);
-> > >  	else
-> > >  		return test_bit(EC_FLAGS_STARTED, &ec->flags); @@ -524,8
-> > > +529,8 @@ static bool acpi_ec_query_flushed(struct acpi_ec *ec)  static void
-> > > __acpi_ec_flush_event(struct acpi_ec *ec)  {
-> > >  	/*
-> > > -	 * When ec_freeze_events is true, we need to flush events in
-> > > -	 * the proper position before entering the noirq stage.
-> > > +	 * When acpi_ec_no_sleep_events() is true, we need to flush events
-> > > +	 * in the proper position before entering the noirq stage.
-> > >  	 */
-> > >  	wait_event(ec->wait, acpi_ec_query_flushed(ec));
-> > >  	if (ec_query_wq)
-> > > @@ -948,7 +953,8 @@ static void acpi_ec_start(struct acpi_ec *ec, bool
-> > > resuming)
-> > >  		if (!resuming) {
-> > >  			acpi_ec_submit_request(ec);
-> > >  			ec_dbg_ref(ec, "Increase driver");
-> > > -		}
-> > > +		} else if (!acpi_ec_no_sleep_events())
-> > > +			__acpi_ec_enable_event(ec);
-> > >  		ec_log_drv("EC started");
-> > >  	}
-> > >  	spin_unlock_irqrestore(&ec->lock, flags); @@ -980,7 +986,7 @@
-> > > static void acpi_ec_stop(struct acpi_ec *ec, bool suspending)
-> > >  		if (!suspending) {
-> > >  			acpi_ec_complete_request(ec);
-> > >  			ec_dbg_ref(ec, "Decrease driver");
-> > > -		} else if (!ec_freeze_events)
-> > > +		} else if (!acpi_ec_no_sleep_events())
-> > >  			__acpi_ec_disable_event(ec);
-> > >  		clear_bit(EC_FLAGS_STARTED, &ec->flags);
-> > >  		clear_bit(EC_FLAGS_STOPPED, &ec->flags); @@ -1910,7
-> > > +1916,7 @@ static int acpi_ec_suspend(struct device *dev)
-> > >  	struct acpi_ec *ec =
-> > >  		acpi_driver_data(to_acpi_device(dev));
-> > >
-> > > -	if (acpi_sleep_no_ec_events() && ec_freeze_events)
-> > > +	if (acpi_ec_no_sleep_events())
-> > >  		acpi_ec_disable_event(ec);
-> > >  	return 0;
-> > >  }
-> > > @@ -1946,7 +1952,18 @@ static int acpi_ec_resume(struct device *dev)
-> > >  	struct acpi_ec *ec =
-> > >  		acpi_driver_data(to_acpi_device(dev));
-> > >
-> > > -	acpi_ec_enable_event(ec);
-> > > +	if (acpi_ec_no_sleep_events())
-> > > +		acpi_ec_enable_event(ec);
-> > > +	else {
-> > > +		/*
-> > > +		 * Though whether there is an event pending has been
-> > > +		 * checked in acpi_ec_unblock_transactions() when
-> > > +		 * acpi_ec_no_sleep_events() is false, check it one more
-> > > +		 * time after noirq stage to detect events occurred after
-> > > +		 * acpi_ec_unblock_transactions().
-> > > +		 */
-> > > +		advance_transaction(ec);
-> > > +	}
-> > >  	return 0;
-> > >  }
-> > >  #endif
-> > > --
-> > > 2.7.4
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the
-> > > body of a message to majordomo@vger.kernel.org More majordomo info at
-> > > http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/pinctrl/intel/pinctrl-cannonlake.c b/drivers/pinctrl/intel/pinctrl-cannonlake.c
+index e130599be571..6243e7d95e7e 100644
+--- a/drivers/pinctrl/intel/pinctrl-cannonlake.c
++++ b/drivers/pinctrl/intel/pinctrl-cannonlake.c
+@@ -23,13 +23,16 @@
+ #define CNL_HOSTSW_OWN	0x0b0
+ #define CNL_GPI_IE	0x120
+ 
+-#define CNL_GPP(r, s, e)				\
++#define CNL_GPP(r, s, e, g)				\
+ 	{						\
+ 		.reg_num = (r),				\
+ 		.base = (s),				\
+ 		.size = ((e) - (s) + 1),		\
++		.gpio_base = (g),			\
+ 	}
+ 
++#define CNL_NO_GPIO	-1
++
+ #define CNL_COMMUNITY(b, s, e, g)			\
+ 	{						\
+ 		.barno = (b),				\
+@@ -363,32 +366,32 @@ static const struct pinctrl_pin_desc cnlh_pins[] = {
+ };
+ 
+ static const struct intel_padgroup cnlh_community0_gpps[] = {
+-	CNL_GPP(0, 0, 24),	/* GPP_A */
+-	CNL_GPP(1, 25, 50),	/* GPP_B */
++	CNL_GPP(0, 0, 24, 0),			/* GPP_A */
++	CNL_GPP(1, 25, 50, 32),			/* GPP_B */
+ };
+ 
+ static const struct intel_padgroup cnlh_community1_gpps[] = {
+-	CNL_GPP(0, 51, 74),	/* GPP_C */
+-	CNL_GPP(1, 75, 98),	/* GPP_D */
+-	CNL_GPP(2, 99, 106),	/* GPP_G */
+-	CNL_GPP(3, 107, 114),	/* AZA */
+-	CNL_GPP(4, 115, 146),	/* vGPIO_0 */
+-	CNL_GPP(5, 147, 154),	/* vGPIO_1 */
++	CNL_GPP(0, 51, 74, 64),			/* GPP_C */
++	CNL_GPP(1, 75, 98, 96),			/* GPP_D */
++	CNL_GPP(2, 99, 106, 128),		/* GPP_G */
++	CNL_GPP(3, 107, 114, CNL_NO_GPIO),	/* AZA */
++	CNL_GPP(4, 115, 146, 160),		/* vGPIO_0 */
++	CNL_GPP(5, 147, 154, CNL_NO_GPIO),	/* vGPIO_1 */
+ };
+ 
+ static const struct intel_padgroup cnlh_community3_gpps[] = {
+-	CNL_GPP(0, 155, 178),	/* GPP_K */
+-	CNL_GPP(1, 179, 202),	/* GPP_H */
+-	CNL_GPP(2, 203, 215),	/* GPP_E */
+-	CNL_GPP(3, 216, 239),	/* GPP_F */
+-	CNL_GPP(4, 240, 248),	/* SPI */
++	CNL_GPP(0, 155, 178, 192),		/* GPP_K */
++	CNL_GPP(1, 179, 202, 224),		/* GPP_H */
++	CNL_GPP(2, 203, 215, 258),		/* GPP_E */
++	CNL_GPP(3, 216, 239, 288),		/* GPP_F */
++	CNL_GPP(4, 240, 248, CNL_NO_GPIO),	/* SPI */
+ };
+ 
+ static const struct intel_padgroup cnlh_community4_gpps[] = {
+-	CNL_GPP(0, 249, 259),	/* CPU */
+-	CNL_GPP(1, 260, 268),	/* JTAG */
+-	CNL_GPP(2, 269, 286),	/* GPP_I */
+-	CNL_GPP(3, 287, 298),	/* GPP_J */
++	CNL_GPP(0, 249, 259, CNL_NO_GPIO),	/* CPU */
++	CNL_GPP(1, 260, 268, CNL_NO_GPIO),	/* JTAG */
++	CNL_GPP(2, 269, 286, 320),		/* GPP_I */
++	CNL_GPP(3, 287, 298, 352),		/* GPP_J */
+ };
+ 
+ static const unsigned int cnlh_spi0_pins[] = { 40, 41, 42, 43 };
+@@ -785,25 +788,25 @@ static const struct intel_function cnllp_functions[] = {
+ };
+ 
+ static const struct intel_padgroup cnllp_community0_gpps[] = {
+-	CNL_GPP(0, 0, 24),	/* GPP_A */
+-	CNL_GPP(1, 25, 50),	/* GPP_B */
+-	CNL_GPP(2, 51, 58),	/* GPP_G */
+-	CNL_GPP(3, 59, 67),	/* SPI */
++	CNL_GPP(0, 0, 24, 0),			/* GPP_A */
++	CNL_GPP(1, 25, 50, 32),			/* GPP_B */
++	CNL_GPP(2, 51, 58, 64),			/* GPP_G */
++	CNL_GPP(3, 59, 67, CNL_NO_GPIO),	/* SPI */
+ };
+ 
+ static const struct intel_padgroup cnllp_community1_gpps[] = {
+-	CNL_GPP(0, 68, 92),	/* GPP_D */
+-	CNL_GPP(1, 93, 116),	/* GPP_F */
+-	CNL_GPP(2, 117, 140),	/* GPP_H */
+-	CNL_GPP(3, 141, 172),	/* vGPIO */
+-	CNL_GPP(4, 173, 180),	/* vGPIO */
++	CNL_GPP(0, 68, 92, 96),			/* GPP_D */
++	CNL_GPP(1, 93, 116, 128),		/* GPP_F */
++	CNL_GPP(2, 117, 140, 160),		/* GPP_H */
++	CNL_GPP(3, 141, 172, 192),		/* vGPIO */
++	CNL_GPP(4, 173, 180, 224),		/* vGPIO */
+ };
+ 
+ static const struct intel_padgroup cnllp_community4_gpps[] = {
+-	CNL_GPP(0, 181, 204),	/* GPP_C */
+-	CNL_GPP(1, 205, 228),	/* GPP_E */
+-	CNL_GPP(2, 229, 237),	/* JTAG */
+-	CNL_GPP(3, 238, 243),	/* HVCMOS */
++	CNL_GPP(0, 181, 204, 256),		/* GPP_C */
++	CNL_GPP(1, 205, 228, 288),		/* GPP_E */
++	CNL_GPP(2, 229, 237, CNL_NO_GPIO),	/* JTAG */
++	CNL_GPP(3, 238, 243, CNL_NO_GPIO),	/* HVCMOS */
+ };
+ 
+ static const struct intel_community cnllp_communities[] = {
+-- 
+2.15.0
+
