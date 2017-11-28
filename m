@@ -1,53 +1,66 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [Xen-devel] [PATCH 3/3] x86/xen: supply rsdp address in boot
- params for pvh guests
-Date: Tue, 28 Nov 2017 11:47:09 +0100
-Message-ID: <5a2f5ecb-e1a6-5823-aa59-2fafd2d6f756@suse.com>
+From: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>
+Subject: Re: [Xen-devel] [PATCH 2/3] x86/acpi: take rsdp address for boot
+ params if available
+Date: Tue, 28 Nov 2017 10:48:38 +0000
+Message-ID: <20171128104838.yke4zlgs45gieprj@MacBook-Pro-de-Roger.local>
 References: <20171128094400.25955-1-jgross@suse.com>
- <20171128094400.25955-4-jgross@suse.com>
- <20171128101724.ol5sufd6x3qzomcc@MacBook-Pro-de-Roger.local>
+ <20171128094400.25955-3-jgross@suse.com>
+ <20171128101834.fmiqygqpfh6wxrvv@MacBook-Pro-de-Roger.local>
+ <072e88ef-dd61-8b7d-026a-5966b13ffed9@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:46544 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933323AbdK1KrM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Nov 2017 05:47:12 -0500
-In-Reply-To: <20171128101724.ol5sufd6x3qzomcc@MacBook-Pro-de-Roger.local>
-Content-Language: de-DE
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <072e88ef-dd61-8b7d-026a-5966b13ffed9@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>
 Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On 28/11/17 11:17, Roger Pau MonnÃ© wrote:
-> On Tue, Nov 28, 2017 at 10:44:00AM +0100, Juergen Gross wrote:
->> When booted via the special PVH entry save the RSDP address set in the
->> boot information block in struct boot_params. This will enable Xen to
->> locate the RSDP at an arbitrary address.
->>
->> Signed-off-by: Juergen Gross <jgross@suse.com>
->> ---
->>  arch/x86/xen/enlighten_pvh.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
->> index 436c4f003e17..0175194f4236 100644
->> --- a/arch/x86/xen/enlighten_pvh.c
->> +++ b/arch/x86/xen/enlighten_pvh.c
->> @@ -71,6 +71,8 @@ static void __init init_pvh_bootparams(void)
->>  	 */
->>  	pvh_bootparams.hdr.version = 0x212;
+On Tue, Nov 28, 2017 at 11:30:15AM +0100, Juergen Gross wrote:
+> On 28/11/17 11:18, Roger Pau Monné wrote:
+> > On Tue, Nov 28, 2017 at 10:43:59AM +0100, Juergen Gross wrote:
+> >> In case the rsdp address in struct boot_params is specified don't try
+> >> to find the table by searching, but take the address directly as set
+> >> by the boot loader.
+> >>
+> >> Signed-off-by: Juergen Gross <jgross@suse.com>
+> >> ---
+> >>  drivers/acpi/osl.c | 8 ++++++++
+> >>  1 file changed, 8 insertions(+)
+> >>
+> >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> >> index 3bb46cb24a99..3b25e2ad7d75 100644
+> >> --- a/drivers/acpi/osl.c
+> >> +++ b/drivers/acpi/osl.c
+> >> @@ -45,6 +45,10 @@
+> >>  #include <linux/uaccess.h>
+> >>  #include <linux/io-64-nonatomic-lo-hi.h>
+> >>  
+> >> +#ifdef CONFIG_X86
+> >> +#include <asm/setup.h>
+> >> +#endif
+> >> +
+> >>  #include "internal.h"
+> >>  
+> >>  #define _COMPONENT		ACPI_OS_SERVICES
+> >> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+> >>  	if (acpi_rsdp)
+> >>  		return acpi_rsdp;
+> >>  #endif
+> >> +#ifdef CONFIG_X86
+> >> +	if (boot_params.hdr.acpi_rsdp_addr)
+> >> +		return boot_params.hdr.acpi_rsdp_addr;
+> >> +#endif
+> > 
+> > I'm struggling to figure out how was PVH getting the RSDP previously,
+> > because that should be removed now that it's in the zero-page.
 > 
-> Shouldn't this be 0x20e, like it's set in patch 1?
+> I don't think it should be removed, because this was the legacy case
+> (searching through memory). It was pure luck that Xen put it at the
+> right location.
 
-I think it was meant to be 0x20c. But setting it to 0x20e in this patch
-seems to be a good idea.
+Oh, right. This is working out of pure luck then.
 
-In the end it doesn't really matter, as hdr.version is meant to be read
-by the boot loader which is already history when this code is being
-executed.
-
-
-Juergen
+Thanks, Roger.
