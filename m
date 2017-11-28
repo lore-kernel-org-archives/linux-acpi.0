@@ -1,66 +1,37 @@
-From: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>
-Subject: Re: [Xen-devel] [PATCH 2/3] x86/acpi: take rsdp address for boot
- params if available
-Date: Tue, 28 Nov 2017 10:48:38 +0000
-Message-ID: <20171128104838.yke4zlgs45gieprj@MacBook-Pro-de-Roger.local>
-References: <20171128094400.25955-1-jgross@suse.com>
- <20171128094400.25955-3-jgross@suse.com>
- <20171128101834.fmiqygqpfh6wxrvv@MacBook-Pro-de-Roger.local>
- <072e88ef-dd61-8b7d-026a-5966b13ffed9@suse.com>
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH V3 2/2] acpi: apei: call into AER handling regardless of
+ severity
+Date: Tue, 28 Nov 2017 11:57:12 +0100
+Message-ID: <20171128105712.zgexfehtvj4rnfur@pd.tnic>
+References: <1510758867-15940-1-git-send-email-tbaicar@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <072e88ef-dd61-8b7d-026a-5966b13ffed9@suse.com>
+In-Reply-To: <1510758867-15940-1-git-send-email-tbaicar@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: rjw@rjwysocki.net, tony.luck@intel.com, will.deacon@arm.com, james.morse@arm.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 28, 2017 at 11:30:15AM +0100, Juergen Gross wrote:
-> On 28/11/17 11:18, Roger Pau Monn� wrote:
-> > On Tue, Nov 28, 2017 at 10:43:59AM +0100, Juergen Gross wrote:
-> >> In case the rsdp address in struct boot_params is specified don't try
-> >> to find the table by searching, but take the address directly as set
-> >> by the boot loader.
-> >>
-> >> Signed-off-by: Juergen Gross <jgross@suse.com>
-> >> ---
-> >>  drivers/acpi/osl.c | 8 ++++++++
-> >>  1 file changed, 8 insertions(+)
-> >>
-> >> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> >> index 3bb46cb24a99..3b25e2ad7d75 100644
-> >> --- a/drivers/acpi/osl.c
-> >> +++ b/drivers/acpi/osl.c
-> >> @@ -45,6 +45,10 @@
-> >>  #include <linux/uaccess.h>
-> >>  #include <linux/io-64-nonatomic-lo-hi.h>
-> >>  
-> >> +#ifdef CONFIG_X86
-> >> +#include <asm/setup.h>
-> >> +#endif
-> >> +
-> >>  #include "internal.h"
-> >>  
-> >>  #define _COMPONENT		ACPI_OS_SERVICES
-> >> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
-> >>  	if (acpi_rsdp)
-> >>  		return acpi_rsdp;
-> >>  #endif
-> >> +#ifdef CONFIG_X86
-> >> +	if (boot_params.hdr.acpi_rsdp_addr)
-> >> +		return boot_params.hdr.acpi_rsdp_addr;
-> >> +#endif
-> > 
-> > I'm struggling to figure out how was PVH getting the RSDP previously,
-> > because that should be removed now that it's in the zero-page.
+On Wed, Nov 15, 2017 at 08:14:27AM -0700, Tyler Baicar wrote:
+> Currently the GHES code only calls into the AER driver for
+> recoverable type errors. This is incorrect because errors of
+> other severities do not get logged by the AER driver and do not
+> get exposed to user space via the AER trace event. So, call
+> into the AER driver for PCIe errors regardless of the severity
 > 
-> I don't think it should be removed, because this was the legacy case
-> (searching through memory). It was pure luck that Xen put it at the
-> right location.
+> Signed-off-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 22 +++++++++++++++++-----
+>  1 file changed, 17 insertions(+), 5 deletions(-)
 
-Oh, right. This is working out of pure luck then.
+Reviewed-by: Borislav Petkov <bp@suse.de>
 
-Thanks, Roger.
+-- 
+Regards/Gruss,
+    Boris.
+
+SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
+-- 
