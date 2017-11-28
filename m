@@ -1,36 +1,39 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH 3/3] x86/xen: supply rsdp address in boot params for pvh guests
-Date: Tue, 28 Nov 2017 10:44:00 +0100
-Message-ID: <20171128094400.25955-4-jgross@suse.com>
-References: <20171128094400.25955-1-jgross@suse.com>
+From: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Subject: [PATCH 2/2] ACPI / PMIC: Constify platform_device_id
+Date: Tue, 28 Nov 2017 15:31:51 +0530
+Message-ID: <c75963e7a2e955795e18b15fe3f8ebfb2cf1cfef.1511863076.git.arvind.yadav.cs@gmail.com>
+References: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171128094400.25955-1-jgross@suse.com>
+In-Reply-To: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
+In-Reply-To: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
+References: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Cc: boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, Juergen Gross <jgross@suse.com>
+To: rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, mika.westerberg@linux.intel.com
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-When booted via the special PVH entry save the RSDP address set in the
-boot information block in struct boot_params. This will enable Xen to
-locate the RSDP at an arbitrary address.
+platform_device_id are not supposed to change at runtime. All functions
+working with platform_device_id provided by <linux/platform_device.h>
+work with const platform_device_id. So mark the non-const structs as
+const.
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
+Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 ---
- arch/x86/xen/enlighten_pvh.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/pmic/intel_pmic_bxtwc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
-index 436c4f003e17..0175194f4236 100644
---- a/arch/x86/xen/enlighten_pvh.c
-+++ b/arch/x86/xen/enlighten_pvh.c
-@@ -71,6 +71,8 @@ static void __init init_pvh_bootparams(void)
- 	 */
- 	pvh_bootparams.hdr.version = 0x212;
- 	pvh_bootparams.hdr.type_of_loader = (9 << 4) | 0; /* Xen loader */
-+
-+	pvh_bootparams.hdr.acpi_rsdp_addr = pvh_start_info.rsdp_paddr;
+diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
+index 90011aa..2012d1d 100644
+--- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
++++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
+@@ -400,7 +400,7 @@ static int intel_bxtwc_pmic_opregion_probe(struct platform_device *pdev)
+ 			&intel_bxtwc_pmic_opregion_data);
  }
  
- /*
+-static struct platform_device_id bxt_wc_opregion_id_table[] = {
++static const struct platform_device_id bxt_wc_opregion_id_table[] = {
+ 	{ .name = "bxt_wcove_region" },
+ 	{},
+ };
 -- 
-2.12.3
+1.9.1
