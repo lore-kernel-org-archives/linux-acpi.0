@@ -1,53 +1,53 @@
 From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH 2/3] x86/acpi: take rsdp address for boot
- params if available
-Date: Tue, 28 Nov 2017 11:30:15 +0100
-Message-ID: <072e88ef-dd61-8b7d-026a-5966b13ffed9@suse.com>
+Subject: Re: [Xen-devel] [PATCH 3/3] x86/xen: supply rsdp address in boot
+ params for pvh guests
+Date: Tue, 28 Nov 2017 11:47:09 +0100
+Message-ID: <5a2f5ecb-e1a6-5823-aa59-2fafd2d6f756@suse.com>
 References: <20171128094400.25955-1-jgross@suse.com>
- <20171128094400.25955-3-jgross@suse.com>
- <20171128101834.fmiqygqpfh6wxrvv@MacBook-Pro-de-Roger.local>
+ <20171128094400.25955-4-jgross@suse.com>
+ <20171128101724.ol5sufd6x3qzomcc@MacBook-Pro-de-Roger.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <20171128101834.fmiqygqpfh6wxrvv@MacBook-Pro-de-Roger.local>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>
-Cc: corbet@lwn.net, x86@kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, xen-devel@lists.xenproject.org, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:46544 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933323AbdK1KrM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 28 Nov 2017 05:47:12 -0500
+In-Reply-To: <20171128101724.ol5sufd6x3qzomcc@MacBook-Pro-de-Roger.local>
+Content-Language: de-DE
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?Q?Roger_Pau_Monn=c3=a9?= <roger.pau@citrix.com>
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
 
-T24gMjgvMTEvMTcgMTE6MTgsIFJvZ2VyIFBhdSBNb25uw6kgd3JvdGU6Cj4gT24gVHVlLCBOb3Yg
-MjgsIDIwMTcgYXQgMTA6NDM6NTlBTSArMDEwMCwgSnVlcmdlbiBHcm9zcyB3cm90ZToKPj4gSW4g
-Y2FzZSB0aGUgcnNkcCBhZGRyZXNzIGluIHN0cnVjdCBib290X3BhcmFtcyBpcyBzcGVjaWZpZWQg
-ZG9uJ3QgdHJ5Cj4+IHRvIGZpbmQgdGhlIHRhYmxlIGJ5IHNlYXJjaGluZywgYnV0IHRha2UgdGhl
-IGFkZHJlc3MgZGlyZWN0bHkgYXMgc2V0Cj4+IGJ5IHRoZSBib290IGxvYWRlci4KPj4KPj4gU2ln
-bmVkLW9mZi1ieTogSnVlcmdlbiBHcm9zcyA8amdyb3NzQHN1c2UuY29tPgo+PiAtLS0KPj4gIGRy
-aXZlcnMvYWNwaS9vc2wuYyB8IDggKysrKysrKysKPj4gIDEgZmlsZSBjaGFuZ2VkLCA4IGluc2Vy
-dGlvbnMoKykKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9vc2wuYyBiL2RyaXZlcnMv
-YWNwaS9vc2wuYwo+PiBpbmRleCAzYmI0NmNiMjRhOTkuLjNiMjVlMmFkN2Q3NSAxMDA2NDQKPj4g
-LS0tIGEvZHJpdmVycy9hY3BpL29zbC5jCj4+ICsrKyBiL2RyaXZlcnMvYWNwaS9vc2wuYwo+PiBA
-QCAtNDUsNiArNDUsMTAgQEAKPj4gICNpbmNsdWRlIDxsaW51eC91YWNjZXNzLmg+Cj4+ICAjaW5j
-bHVkZSA8bGludXgvaW8tNjQtbm9uYXRvbWljLWxvLWhpLmg+Cj4+ICAKPj4gKyNpZmRlZiBDT05G
-SUdfWDg2Cj4+ICsjaW5jbHVkZSA8YXNtL3NldHVwLmg+Cj4+ICsjZW5kaWYKPj4gKwo+PiAgI2lu
-Y2x1ZGUgImludGVybmFsLmgiCj4+ICAKPj4gICNkZWZpbmUgX0NPTVBPTkVOVAkJQUNQSV9PU19T
-RVJWSUNFUwo+PiBAQCAtMTk1LDYgKzE5OSwxMCBAQCBhY3BpX3BoeXNpY2FsX2FkZHJlc3MgX19p
-bml0IGFjcGlfb3NfZ2V0X3Jvb3RfcG9pbnRlcih2b2lkKQo+PiAgCWlmIChhY3BpX3JzZHApCj4+
-ICAJCXJldHVybiBhY3BpX3JzZHA7Cj4+ICAjZW5kaWYKPj4gKyNpZmRlZiBDT05GSUdfWDg2Cj4+
-ICsJaWYgKGJvb3RfcGFyYW1zLmhkci5hY3BpX3JzZHBfYWRkcikKPj4gKwkJcmV0dXJuIGJvb3Rf
-cGFyYW1zLmhkci5hY3BpX3JzZHBfYWRkcjsKPj4gKyNlbmRpZgo+IAo+IEknbSBzdHJ1Z2dsaW5n
-IHRvIGZpZ3VyZSBvdXQgaG93IHdhcyBQVkggZ2V0dGluZyB0aGUgUlNEUCBwcmV2aW91c2x5LAo+
-IGJlY2F1c2UgdGhhdCBzaG91bGQgYmUgcmVtb3ZlZCBub3cgdGhhdCBpdCdzIGluIHRoZSB6ZXJv
-LXBhZ2UuCgpJIGRvbid0IHRoaW5rIGl0IHNob3VsZCBiZSByZW1vdmVkLCBiZWNhdXNlIHRoaXMg
-d2FzIHRoZSBsZWdhY3kgY2FzZQooc2VhcmNoaW5nIHRocm91Z2ggbWVtb3J5KS4gSXQgd2FzIHB1
-cmUgbHVjayB0aGF0IFhlbiBwdXQgaXQgYXQgdGhlCnJpZ2h0IGxvY2F0aW9uLgoKCkp1ZXJnZW4K
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fClhlbi1kZXZl
-bCBtYWlsaW5nIGxpc3QKWGVuLWRldmVsQGxpc3RzLnhlbnByb2plY3Qub3JnCmh0dHBzOi8vbGlz
-dHMueGVucHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby94ZW4tZGV2ZWw=
+On 28/11/17 11:17, Roger Pau Monné wrote:
+> On Tue, Nov 28, 2017 at 10:44:00AM +0100, Juergen Gross wrote:
+>> When booted via the special PVH entry save the RSDP address set in the
+>> boot information block in struct boot_params. This will enable Xen to
+>> locate the RSDP at an arbitrary address.
+>>
+>> Signed-off-by: Juergen Gross <jgross@suse.com>
+>> ---
+>>  arch/x86/xen/enlighten_pvh.c | 2 ++
+>>  1 file changed, 2 insertions(+)
+>>
+>> diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
+>> index 436c4f003e17..0175194f4236 100644
+>> --- a/arch/x86/xen/enlighten_pvh.c
+>> +++ b/arch/x86/xen/enlighten_pvh.c
+>> @@ -71,6 +71,8 @@ static void __init init_pvh_bootparams(void)
+>>  	 */
+>>  	pvh_bootparams.hdr.version = 0x212;
+> 
+> Shouldn't this be 0x20e, like it's set in patch 1?
+
+I think it was meant to be 0x20c. But setting it to 0x20e in this patch
+seems to be a good idea.
+
+In the end it doesn't really matter, as hdr.version is meant to be read
+by the boot loader which is already history when this code is being
+executed.
+
+
+Juergen
