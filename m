@@ -1,55 +1,30 @@
-From: Roger Pau =?iso-8859-1?Q?Monn=E9?= <roger.pau@citrix.com>
-Subject: Re: [Xen-devel] [PATCH 2/3] x86/acpi: take rsdp address for boot
- params if available
-Date: Tue, 28 Nov 2017 10:18:34 +0000
-Message-ID: <20171128101834.fmiqygqpfh6wxrvv@MacBook-Pro-de-Roger.local>
-References: <20171128094400.25955-1-jgross@suse.com>
- <20171128094400.25955-3-jgross@suse.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] ACPI / PMIC: Constify platform_device_id
+Date: Tue, 28 Nov 2017 12:22:10 +0200
+Message-ID: <20171128102210.GY22431@lahna.fi.intel.com>
+References: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
+ <c75963e7a2e955795e18b15fe3f8ebfb2cf1cfef.1511863076.git.arvind.yadav.cs@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20171128094400.25955-3-jgross@suse.com>
+In-Reply-To: <c75963e7a2e955795e18b15fe3f8ebfb2cf1cfef.1511863076.git.arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 28, 2017 at 10:43:59AM +0100, Juergen Gross wrote:
-> In case the rsdp address in struct boot_params is specified don't try
-> to find the table by searching, but take the address directly as set
-> by the boot loader.
+On Tue, Nov 28, 2017 at 03:31:51PM +0530, Arvind Yadav wrote:
+> platform_device_id are not supposed to change at runtime. All functions
+> working with platform_device_id provided by <linux/platform_device.h>
+> work with const platform_device_id. So mark the non-const structs as
+> const.
 > 
-> Signed-off-by: Juergen Gross <jgross@suse.com>
-> ---
->  drivers/acpi/osl.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 3bb46cb24a99..3b25e2ad7d75 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -45,6 +45,10 @@
->  #include <linux/uaccess.h>
->  #include <linux/io-64-nonatomic-lo-hi.h>
->  
-> +#ifdef CONFIG_X86
-> +#include <asm/setup.h>
-> +#endif
-> +
->  #include "internal.h"
->  
->  #define _COMPONENT		ACPI_OS_SERVICES
-> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
->  	if (acpi_rsdp)
->  		return acpi_rsdp;
->  #endif
-> +#ifdef CONFIG_X86
-> +	if (boot_params.hdr.acpi_rsdp_addr)
-> +		return boot_params.hdr.acpi_rsdp_addr;
-> +#endif
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 
-I'm struggling to figure out how was PVH getting the RSDP previously,
-because that should be removed now that it's in the zero-page.
+You may want to change the title to mention the PMIC driver in question
+like: "ACPI / PMIC / bxtwc: ..." or so.
 
-Roger.
+The patch itself is fine,
+
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
