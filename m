@@ -1,50 +1,56 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/3] x86: make rsdp address accessible via boot params
-Date: Tue, 28 Nov 2017 22:03:15 +0100
-Message-ID: <CAJZ5v0iHR+NS_Le3-jO+-bsjWMy40CEuYGSgG_MXjVGoNSB7YA@mail.gmail.com>
-References: <20171128094400.25955-1-jgross@suse.com>
+Subject: Re: [PATCH 1/3] gpio / ACPI: Drop unnecessary ACPI GPIO to Linux GPIO translation
+Date: Tue, 28 Nov 2017 22:05:45 +0100
+Message-ID: <CAJZ5v0jkzMvKfLnDgNa9-dsHLC_7g6Y57kmO_Qzr1wfL13rX_A@mail.gmail.com>
+References: <20171127135444.66735-1-mika.westerberg@linux.intel.com> <20171127135444.66735-2-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:36467 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751712AbdK1VDQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Nov 2017 16:03:16 -0500
-In-Reply-To: <20171128094400.25955-1-jgross@suse.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:36930 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751443AbdK1VFq (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Nov 2017 16:05:46 -0500
+In-Reply-To: <20171127135444.66735-2-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, xen-devel@lists.xenproject.org, the arch/x86 maintainers <x86@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Nov 28, 2017 at 10:43 AM, Juergen Gross <jgross@suse.com> wrote:
-> In the non-EFI boot path the ACPI RSDP table is currently found via
-> either EBDA or by searching through low memory for the RSDP magic.
-> This requires the RSDP to be located in the first 1MB of physical
-> memory. Xen PVH guests, however, get the RSDP address via the start of
-> day information block.
+On Mon, Nov 27, 2017 at 2:54 PM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> We added acpi_gpiochip_pin_to_gpio_offset() because there was a need to
+> translate from ACPI GpioIo/GpioInt number to Linux GPIO number in the
+> Cherryview pinctrl driver. This translation is necessary because
+> Cherryview has gaps in the pin list and the driver used continuous GPIO
+> number space in Linux side as follows:
 >
-> In order to support an arbitrary RSDP address this patch series adds
-> the physical address of the RSDP to the boot params structure filled
-> by the boot loader. A kernel booted directly in PVH mode can save the
-> RSDP address in the boot params, while a kernel booted in PVH mode via
-> grub can rely on the RSDP address being specified by grub2 (which in
-> turn got the address via the start of day information block from Xen).
+>   created GPIO range 0->7 ==> INT33FF:03 PIN 0->7
+>   created GPIO range 8->19 ==> INT33FF:03 PIN 15->26
+>   created GPIO range 20->25 ==> INT33FF:03 PIN 30->35
+>   created GPIO range 26->33 ==> INT33FF:03 PIN 45->52
+>   created GPIO range 34->43 ==> INT33FF:03 PIN 60->69
+>   created GPIO range 44->54 ==> INT33FF:03 PIN 75->85
 >
-> Juergen Gross (3):
->   x86/boot: add acpi rsdp address to setup_header
->   x86/acpi: take rsdp address for boot params if available
->   x86/xen: supply rsdp address in boot params for pvh guests
+> For example when ACPI GpioInt resource refers to GPIO 81 (SDMMC3_CD_B)
+> we translate from pin 81 to the corresponding Linux GPIO number, which
+> is 50. This number is then used when the GPIO is accessed through gpiolib.
 >
->  Documentation/x86/boot.txt            | 19 +++++++++++++++++++
->  arch/x86/boot/header.S                |  6 +++++-
->  arch/x86/include/uapi/asm/bootparam.h |  1 +
->  arch/x86/xen/enlighten_pvh.c          |  2 ++
->  drivers/acpi/osl.c                    |  8 ++++++++
->  5 files changed, 35 insertions(+), 1 deletion(-)
+> It turns out, this is not necessary at all. We can just pass 1:1 mapping
+> between Linux GPIO numbers and pin numbers (including gaps) and the
+> pinctrl core handles all the details automatically:
 >
-> --
+>   created GPIO range 0->7 ==> INT33FF:03 PIN 0->7
+>   created GPIO range 15->26 ==> INT33FF:03 PIN 15->26
+>   created GPIO range 30->35 ==> INT33FF:03 PIN 30->35
+>   created GPIO range 45->52 ==> INT33FF:03 PIN 45->52
+>   created GPIO range 60->69 ==> INT33FF:03 PIN 60->69
+>   created GPIO range 75->85 ==> INT33FF:03 PIN 75->85
+>
+> Here GPIO 81 is exactly same than the hardware pin 81 (SDMMC3_CD_B).
+>
+> As an added bonus this simplifies both the ACPI GPIO core code and the
+> Cherryview pinctrl driver.
 
-Is this going to work with all existing setups?
+Cool!
 
-Thanks,
-Rafael
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
