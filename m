@@ -1,42 +1,36 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: Re: 2f47e7e19f ("x86/mm/kaiser: Use PCID feature to make user and
- .."): WARNING: CPU: 0 PID: 1 at mm/early_ioremap.c:114 __early_ioremap
-Date: Mon, 27 Nov 2017 17:22:02 -0800
-Message-ID: <9f73a515-ce07-c833-4e6b-2062fe03f354@linux.intel.com>
-References: <5a1aaa36.CWNgvwmmRFzeAlPc%fengguang.wu@intel.com>
- <20171127101814.jsglrh7typy3pxxp@gmail.com>
- <bdfdf131-ca57-68c3-3a6c-039cd21c3bb5@linux.intel.com>
- <CAJZ5v0hyAt1cPj3jpm9njOZAo02WmN-83ozeyvDF5qipBXqH=Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH] Bluetooth: hci_bcm: Add support for BCM2E72
+Date: Tue, 28 Nov 2017 09:45:54 +0100
+Message-ID: <CEEF48FA-C11E-4971-9783-C3DC21189982@holtmann.org>
+References: <20171122133728.13116-1-hdegoede@redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.1 \(3445.4.7\))
+Content-Type: text/plain;
+        charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:12912 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752712AbdK1BWF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 27 Nov 2017 20:22:05 -0500
-In-Reply-To: <CAJZ5v0hyAt1cPj3jpm9njOZAo02WmN-83ozeyvDF5qipBXqH=Q@mail.gmail.com>
-Content-Language: en-US
+Received: from coyote.holtmann.net ([212.227.132.17]:51016 "EHLO
+        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751601AbdK1Ip4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Nov 2017 03:45:56 -0500
+In-Reply-To: <20171122133728.13116-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>, kernel test robot <fengguang.wu@intel.com>, LKP <lkp@01.org>, kvm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, wfg@linux.intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Brown, Len" <len.brown@intel.com>, Jesse Barnes <jbarnes@virtuousgeek.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, =?utf-8?Q?Fr=C3=A9d=C3=A9ric_Danis?= <frederic.danis.oss@gmail.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org
 
-I think I narrowed this down.
+Hi Hans,
 
-__native_flush_tlb_single() depends on cpu_tlbstate.loaded_mm_asid
-matching what is in CR3.  But, while we are still "early" in boot, CR3
-has hardware ASID=0, but cpu_tlbstate.loaded_mm_asid=0 which is actually
-hardware ASID=1.
+> The Asus T100HA laptop uses an ACPI HID of BCM2E72 for the bluetooth
+> part of the SDIO bcm43340 wifi/bt combo chip.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> drivers/bluetooth/hci_bcm.c | 1 +
+> 1 file changed, 1 insertion(+)
 
-So, we have ASID=0 in CR3 and we try to *flush* ASID=1 with INVPCID,
-which does nothing for us, effectively missing the TLB flush.
+patch has been applied to bluetooth-next tree.
 
-I think we need to steer __native_flush_tlb_single() into the
-"!this_cpu_has(X86_FEATURE_INVPCID_SINGLE)" path if we get called before
-initialize_tlbstate_and_flush() gives us a "real" ASID in CR3, but I
-haven't found a nice way to do it, yet.
+Regards
 
-We probably also need a debugging warning in there to read CR3 and check
-it against cpu_tlbstate.loaded_mm_asid.  I'll look at this in some more
-detail tomorrow if nobody beats me to it.
+Marcel
+
