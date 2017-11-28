@@ -1,12 +1,8 @@
 From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH 2/2] ACPI / PMIC: Constify platform_device_id
-Date: Tue, 28 Nov 2017 15:31:51 +0530
-Message-ID: <c75963e7a2e955795e18b15fe3f8ebfb2cf1cfef.1511863076.git.arvind.yadav.cs@gmail.com>
-References: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
+Subject: [PATCH 0/2] ACPI / PMIC: constify platform_device_id
+Date: Tue, 28 Nov 2017 15:31:49 +0530
+Message-ID: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
-In-Reply-To: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
-References: <cover.1511863076.git.arvind.yadav.cs@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, mika.westerberg@linux.intel.com
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
@@ -17,23 +13,13 @@ working with platform_device_id provided by <linux/platform_device.h>
 work with const platform_device_id. So mark the non-const structs as
 const.
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
- drivers/acpi/pmic/intel_pmic_bxtwc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Arvind Yadav (2):
+  [PATCH 1/2] ACPI / PMIC: constify platform_device_id
+  [PATCH 2/2] ACPI / PMIC: Constify platform_device_id
 
-diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-index 90011aa..2012d1d 100644
---- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-@@ -400,7 +400,7 @@ static int intel_bxtwc_pmic_opregion_probe(struct platform_device *pdev)
- 			&intel_bxtwc_pmic_opregion_data);
- }
- 
--static struct platform_device_id bxt_wc_opregion_id_table[] = {
-+static const struct platform_device_id bxt_wc_opregion_id_table[] = {
- 	{ .name = "bxt_wcove_region" },
- 	{},
- };
+ drivers/acpi/pmic/intel_pmic_bxtwc.c | 2 +-
+ drivers/acpi/pmic/intel_pmic_chtwc.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
 -- 
 1.9.1
