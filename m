@@ -1,49 +1,28 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [virtio-dev] [RFC PATCH v2 4/5] ACPI/IORT: Support
- paravirtualized IOMMU
-Date: Wed, 29 Nov 2017 15:17:55 +0000
-Message-ID: <aea995d0-333b-cfec-abe7-2e59ef37c19e@arm.com>
-References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
- <20171117185211.32593-5-jean-philippe.brucker@arm.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Re: Dell XPS13 9360 - 1,000ms acpi_pm_finish()
+Date: Wed, 29 Nov 2017 11:11:17 -0500
+Message-ID: <CAJvTdKmxRbpZ=xexXEOgs_JpvFdRdstZMuPQ5zWG9y36tEb62g@mail.gmail.com>
+References: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
+ <CAJZ5v0iii=ZSnz8NwiA_TN0Uk0=dUcw2CH_0VO+_UsipO3i+3w@mail.gmail.com> <744357E9AAD1214791ACBA4B0B9092636BE57FFD@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:40082 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754997AbdK2POs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 10:14:48 -0500
-In-Reply-To: <20171117185211.32593-5-jean-philippe.brucker@arm.com>
-Content-Language: en-US
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:33886 "EHLO
+        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753153AbdK2QLS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Nov 2017 11:11:18 -0500
+Received: by mail-qk0-f181.google.com with SMTP id d66so5071194qkg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Nov 2017 08:11:18 -0800 (PST)
+In-Reply-To: <744357E9AAD1214791ACBA4B0B9092636BE57FFD@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, "virtio-dev@lists.oasis-open.org" <virtio-dev@lists.oasis-open.org>
-Cc: "jasowang@redhat.com" <jasowang@redhat.com>, "mst@redhat.com" <mst@redhat.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "joro@8bytes.org" <joro@8bytes.org>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Robin Murphy <Robin.Murphy@arm.com>, Will Deacon <Will.Deacon@arm.com>, "eric.auger@redhat.com" <eric.auger@redhat.com>, "bharat.bhushan@nxp.com" <bharat.bhushan@nxp.com>, "Jayachandran.Nair@cavium.com" <Jayachandran.Nair@cavium.com>, ashok.
+To: "Zhang, Rui" <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>
 
-On 17/11/17 18:52, Jean-Philippe Brucker wrote:
-> To describe the virtual topology in relation to a virtio-iommu device,
-> ACPI-based systems use a "paravirtualized IOMMU" IORT node. Add support
-> for it.
-> 
-> This is a RFC because the IORT specification doesn't describe the
-> paravirtualized node at the moment, it is only provided as an example in
-> the virtio-iommu spec. What we need to do first is confirm that x86
-> kernels are able to use the IORT driver with the virtio-iommu. There isn't
-> anything specific to arm64 in the driver but there might be other blockers
-> we're not aware of (I know for example that x86 also requires custom DMA
-> ops rather than iommu-dma ones, but it's unrelated) so this needs to be
-> tested on the x86 prototype.
+> How long does acpi_pm_finish() take in 4.12 kernel?
+> It's good to know how much the reverted EC busy_polling mechanism can improve on this case.
 
-I tested IORT with an x86 guest, putting a virtio-iommu on the PCI bus and
-it worked fine :)
+4.12.0 acpi_pm_finish() takes on the order of 40ms (it varies somewhat),
+which is about the same speed as when this hack patch is applied.
 
-x86 still requires additional code [1] for using the IOMMU DMA ops,
-and I'm not comfortable enough with x86 to write the patch, but for
-instantiating virtio-iommus and for enumerating endpoints/buses connected
-to them, IORT should suffice.
-
-Thanks,
-Jean
-
-[1]
-http://www.linux-arm.org/git?p=linux-jpb.git;a=patch;h=e910e224b58712151dda06df595a53ff07edef63;hp=e7f9475480c24c5f973711984b30cf6746ff3ec8
+This is compared to over 1,100ms in current 4.14.
