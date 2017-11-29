@@ -1,29 +1,34 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3 2/4] ACPI / bus: introduce acpi_device_get_match_data()
- function
-Date: Wed, 29 Nov 2017 15:49:26 -0500
-Message-ID: <7a89f75e-d740-9252-419a-58a7b26b0df2@codeaurora.org>
+Subject: Re: [PATCH V3 3/4] dmaengine: qcom_hidma: add support for the new
+ revision
+Date: Wed, 29 Nov 2017 17:14:35 -0500
+Message-ID: <dd656bd9-2e70-931b-62d7-f2c5b68d1892@codeaurora.org>
 References: <1510281175-27173-1-git-send-email-okaya@codeaurora.org>
- <1510281175-27173-2-git-send-email-okaya@codeaurora.org>
- <31ef1ea5-ddb6-1a24-980b-7986627cfeca@codeaurora.org>
- <1605519.pfaIp4IsxJ@aspire.rjw.lan> <20171129135536.GD32417@localhost>
+ <1510281175-27173-3-git-send-email-okaya@codeaurora.org>
+ <20171129135813.GE32417@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171129135536.GD32417@localhost>
+In-Reply-To: <20171129135813.GE32417@localhost>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, linux-arm-msm <linux-arm-msm@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, robin.murphy@arm.com, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Vinod Koul <vinod.koul@intel.com>
+Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robin.murphy@arm.com, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/29/2017 8:55 AM, Vinod Koul wrote:
->> While I understand that the name follows the OF convention, I have some
->> doubts on whether it is the best one.
-> Perhpas acpi_get_match_data() ?
++linux-acpi
 
-Will change as recommended unless Rafael has a better idea.
+On 11/29/2017 8:58 AM, Vinod Koul wrote:
+>> +		cap = (enum hidma_cap) acpi_device_get_match_data(dev);
+> should this not reside in core? How about a device_get_match_data() which
+> returns the data for folks based on node being acpi/of
+
+Sure,
+
+I'm preparing a device function to read this as you suggested.
+
+Sinan
 
 -- 
 Sinan Kaya
