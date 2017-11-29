@@ -1,61 +1,87 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
-Date: Wed, 29 Nov 2017 14:01:58 +0100
-Message-ID: <20171129130158.hji24remijkaoydb@dhcp22.suse.cz>
-References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
- <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
- <5A1EAAF5.4040602@huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 0/3] pinctrl: Align Cannon Lake GPIO number space with
+ Windows
+Date: Wed, 29 Nov 2017 15:09:04 +0200
+Message-ID: <20171129130904.GQ22431@lahna.fi.intel.com>
+References: <20171127135444.66735-1-mika.westerberg@linux.intel.com>
+ <CACRpkdbPk-78bTnL36a3i0xUxep-RYVXLifCVQW+ymw0Nuvy=w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:57171 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932260AbdK2NCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 08:02:01 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5A1EAAF5.4040602@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CACRpkdbPk-78bTnL36a3i0xUxep-RYVXLifCVQW+ymw0Nuvy=w@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: zhong jiang <zhongjiang@huawei.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed 29-11-17 20:41:25, zhong jiang wrote:
-> On 2017/11/29 20:03, Michal Hocko wrote:
-> > On Wed 29-11-17 17:13:27, zhong jiang wrote:
-> >> Currently, Arm64 and x86 use the common code wehn parsing numa node
-> >> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
-> >> but the x86 is not set in that , then it will result in the repeatly
-> >> setting. And the parsed node maybe is  unreasonable to the system.
-> >>
-> >> we would better not set it although it also still works. because the
-> >> parsed node is unresonable. so we should skip related operate in this
-> >> node. This patch just set node in various architecture individually.
-> >> it is no functional change.
-> > I really have hard time to understand what you try to say above. Could
-> > you start by the problem description and then how you are addressing it?
->   I am so sorry for that.  I will make the issue clear.
->  
->   Arm64  get numa information through acpi.  The code flow is as follows.
+On Wed, Nov 29, 2017 at 01:49:01PM +0100, Linus Walleij wrote:
+> On Mon, Nov 27, 2017 at 2:54 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
 > 
->   arm64_acpi_numa_init
->        acpi_parse_memory_affinity
->           acpi_numa_memory_affinity_init
->               numa_add_memblk(nid, start, end);      //it will set node to numa_nodes_parsed successfully.
->               node_set(node, numa_nodes_parsed);     // numa_add_memblk had set that.  it will repeat.
+> > It turns out that the Cannon Lake GPIO driver in Windows uses different
+> > GPIO numbering scheme than what Linux uses. Instead of hardware numbers it
+> > has "banks" of 32 pins even if the hardware group actually does not have
+> > that many pins. This is problematic for Linux because BIOS uses the same
+> > Windows numbering scheme in ACPI GpioIo/GpioInt resources, making Linux to
+> > pick a wrong pin.
+> >
+> > For example the SD card detection GPIO resource in BIOS ACPI tables looks
+> > like:
+> >
+> >   GpioInt (...) {231} // vSD3_CD_B
+> >
+> > Where the real hardware number would be 180 instead of 231.
+> >
+> > Unfortunately changing the BIOS and the Windows driver is not possible for
+> > Cannon Lake anymore so we need to handle it in Linux instead. This should
+> > be done properly in future platforms.
+> >
+> > The patch series updates the Intel pinctrl driver to allow passing custom
+> > GPIO number space, taking advantage of pin ranges supported by the pinctrl
+> > core. However, before we can add these pin ranges we need to drop the
+> > custom Cherryview GPIO/ACPI translation first and make the driver to use
+> > direct mapping instead (which turns out to be much simpler).
+> >
+> > Once that is done we update the Cannon Lake pinctrl driver to align with
+> > the Windows GPIO driver numbering scheme.
+> >
+> > Mika Westerberg (3):
+> >   gpio / ACPI: Drop unnecessary ACPI GPIO to Linux GPIO translation
+> >   pinctrl: intel: Allow custom GPIO base for pad groups
+> >   pinctrl: cannonlake: Align GPIO number space with Windows
 > 
->  the root cause is that X86 parse numa also  go through above code.  and  arch-related
->  numa_add_memblk  is not set the parsed node to numa_nodes_parsed.  it need
->  additional node_set(node, numa_parsed) to handle.  therefore,  the issue will be introduced.
-> 
+> I applied these with Andy's ACKs.
 
-No it is not much more clear. I would have to go and re-study the whole
-code flow to see what you mean here. So you could simply state what _the
-issue_ is? How can user observe it and what are the consequences?
+Thanks!
 
-Sorry for my laziness, I could go and read the code but the primary
-point of the changelog is to be _clear_ about the problem and the fix.
-Call paths can help reviewers but the scope should be clear even without
-them.
--- 
-Michal Hocko
-SUSE Labs
+> I guess I vageuly understand what happened.
+> 
+> So the ACPI GPIO numberspace was misaligned with the
+> actual hardware GPIO numberspace. That's unfortunate.
+
+That's right.
+
+> I hope these is nothing in here trying to align the *LINUX*
+> global GPIO numberspace with this weirdness and that
+> lsgpio still gives something reasonable per-gpiochip?
+
+The resulting GPIO ranges for the chip look like following on the
+problematic system:
+
+# cat /sys/kernel/debug/pinctrl/INT34BB\:00/gpio-ranges 
+GPIO ranges handled:
+0: INT34BB:00 GPIOS [200 - 224] PINS [0 - 24]
+32: INT34BB:00 GPIOS [232 - 257] PINS [25 - 50]
+64: INT34BB:00 GPIOS [264 - 271] PINS [51 - 58]
+96: INT34BB:00 GPIOS [296 - 320] PINS [68 - 92]
+128: INT34BB:00 GPIOS [328 - 351] PINS [93 - 116]
+160: INT34BB:00 GPIOS [360 - 383] PINS [117 - 140]
+192: INT34BB:00 GPIOS [392 - 423] PINS [141 - 172]
+224: INT34BB:00 GPIOS [424 - 431] PINS [173 - 180]
+256: INT34BB:00 GPIOS [456 - 479] PINS [181 - 204]
+288: INT34BB:00 GPIOS [488 - 511] PINS [205 - 228]
+
+So we will have GPIO ranges for each pad group starting at 32 pin
+"boundary" to align it with what the BIOS expects. Pinctrl pin numbers
+still follow the hardware numbering and is continuous.
