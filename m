@@ -1,67 +1,48 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
-Date: Wed, 29 Nov 2017 14:33:55 +0100
-Message-ID: <20171129133355.ybbhzpqhmjreyofi@dhcp22.suse.cz>
-References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
- <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
- <5A1EAAF5.4040602@huawei.com>
- <20171129130158.hji24remijkaoydb@dhcp22.suse.cz>
- <5A1EB57B.2080101@huawei.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 6/6] gpiolib: acpi: Introduce NO_RESTRICTION quirk
+Date: Wed, 29 Nov 2017 15:41:11 +0200
+Message-ID: <1511962871.25007.485.camel@linux.intel.com>
+References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
+         <20171110134033.85461-6-andriy.shevchenko@linux.intel.com>
+         <20171113115554.GY18997@lahna.fi.intel.com>
+         <1510578648.25007.166.camel@linux.intel.com>
+         <CACRpkdY64u0T+BW_ACzZEr7cB+W1aixsn4ZB50EsBUJZttpMaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:59140 "EHLO mx2.suse.de"
+Received: from mga06.intel.com ([134.134.136.31]:14668 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750863AbdK2Nd7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 08:33:59 -0500
-Content-Disposition: inline
-In-Reply-To: <5A1EB57B.2080101@huawei.com>
+        id S1751980AbdK2NlO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Nov 2017 08:41:14 -0500
+In-Reply-To: <CACRpkdY64u0T+BW_ACzZEr7cB+W1aixsn4ZB50EsBUJZttpMaw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: zhong jiang <zhongjiang@huawei.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed 29-11-17 21:26:19, zhong jiang wrote:
-> On 2017/11/29 21:01, Michal Hocko wrote:
-> > On Wed 29-11-17 20:41:25, zhong jiang wrote:
-> >> On 2017/11/29 20:03, Michal Hocko wrote:
-> >>> On Wed 29-11-17 17:13:27, zhong jiang wrote:
-> >>>> Currently, Arm64 and x86 use the common code wehn parsing numa node
-> >>>> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
-> >>>> but the x86 is not set in that , then it will result in the repeatly
-> >>>> setting. And the parsed node maybe is  unreasonable to the system.
-> >>>>
-> >>>> we would better not set it although it also still works. because the
-> >>>> parsed node is unresonable. so we should skip related operate in this
-> >>>> node. This patch just set node in various architecture individually.
-> >>>> it is no functional change.
-> >>> I really have hard time to understand what you try to say above. Could
-> >>> you start by the problem description and then how you are addressing it?
-> >>   I am so sorry for that.  I will make the issue clear.
-> >>  
-> >>   Arm64  get numa information through acpi.  The code flow is as follows.
-> >>
-> >>   arm64_acpi_numa_init
-> >>        acpi_parse_memory_affinity
-> >>           acpi_numa_memory_affinity_init
-> >>               numa_add_memblk(nid, start, end);      //it will set node to numa_nodes_parsed successfully.
-> >>               node_set(node, numa_nodes_parsed);     // numa_add_memblk had set that.  it will repeat.
-> >>
-> >>  the root cause is that X86 parse numa also  go through above code.  and  arch-related
-> >>  numa_add_memblk  is not set the parsed node to numa_nodes_parsed.  it need
-> >>  additional node_set(node, numa_parsed) to handle.  therefore,  the issue will be introduced.
-> >>
-> > No it is not much more clear. I would have to go and re-study the whole
-> > code flow to see what you mean here. So you could simply state what _the
-> > issue_ is? How can user observe it and what are the consequences?
->   The patch do not fix a real issue.  it is a cleanup.
->   because the acpi code  is public,  I find they are messy between
->   Arch64 and X86 when parsing numa message .  therefore,  I try to
->   make the code more clear between them.
+On Wed, 2017-11-29 at 13:35 +0100, Linus Walleij wrote:
+> On Mon, Nov 13, 2017 at 2:10 PM, Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Mon, 2017-11-13 at 13:55 +0200, Mika Westerberg wrote:
 
-So make this explicit in the changelog. Your previous wording sounded
-like there is a _problem_ in the code.
+> > > I think you should include user of this quirk in the patch series
+> > > as
+> > > well. Otherwise it is pretty pointless to add random quirks
+> > > without
+> > > real issues they are supposed to solve ;-)
+> > 
+> > Something like below?
+> 
+> I bet this patch is already somewhere in my mailbox else just send
+> it separately. All these patches are applied.
+
+I'm going to send them (there are two affected users) next week. It
+would be nice if you can prepare immutable branch in case the subsystems
+would like to merge patches via their respective trees.
+
+Thanks for applying!
 
 -- 
-Michal Hocko
-SUSE Labs
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
