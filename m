@@ -1,59 +1,50 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Dell XPS13 9360 - 1,000ms acpi_pm_finish()
-Date: Wed, 29 Nov 2017 15:34:38 +0100
-Message-ID: <CAJZ5v0iii=ZSnz8NwiA_TN0Uk0=dUcw2CH_0VO+_UsipO3i+3w@mail.gmail.com>
-References: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 09/36] iommu/fault: Allow blocking fault handlers
+Date: Wed, 29 Nov 2017 15:01:00 +0000
+Message-ID: <74891e35-17d8-5831-1ebd-18e00ce00d74@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-10-jean-philippe.brucker@arm.com>
+ <7e1c8ea4-e568-1000-17de-62f8562c7169@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f173.google.com ([74.125.82.173]:42959 "EHLO
-        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752772AbdK2Oej (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Nov 2017 09:34:39 -0500
-Received: by mail-ot0-f173.google.com with SMTP id i1so3156686oth.9
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Nov 2017 06:34:39 -0800 (PST)
-In-Reply-To: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <7e1c8ea4-e568-1000-17de-62f8562c7169-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi-5wv7dgnIgG8@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, nwatters@cod
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>
 
-On Wed, Nov 29, 2017 at 7:06 AM, Len Brown <lenb@kernel.org> wrote:
-> Rafael,
->
-> Per our discussion...
->
-> As of Linux-4.14, acpi_pm_finish() takes over 1,000 ms on the Dell
-> XPS13.  This routine accounts for 50% of the total resume time of this
-> machine.
->
-> So I commented _WAK out of acpi_hw_legacy_wake(), and  that 1000ms
-> became 2ms.  (and the system also seemed to resume fine without _WAK,
-> though I didn't test it extensively)
->
-> So I effectively pre-pended acpi_pm_finish() to acpi_pm_end() with the
-> hack patch below, and that seems to work fine.
->
-> (Note that it seems that the relative ordering of enabling run-time
-> GPEs and invoking _WAK is already correct in acpi_hw_legacy_wake() --
-> the GPEs are enabled first.)
+Hello,
 
-The ordering is correct, but the GPEs should be enabled before the SCI
-is enabled by resume_device_irqs().  Arguably, they may just be
-enabled as soon as the kernel gets control back as the SCI won't
-trigger anyway before resume_device_irqs().
+On 29/11/17 06:15, Yisheng Xie wrote:
+> Hi Jean,
+> 
+> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>> -	if (domain->ext_handler) {
+>> +	if (domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC) {
+>> +		fault->flags |= IOMMU_FAULT_ATOMIC;
+> 
+> Why remove the condition of domain->ext_handler? should it be much better like:
+>   if ((domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC) && domain->ext_handler)
+> 
+> If domain->ext_handler is NULL, and (domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC)
+> is true. It will oops, right?
 
-> So the question becomes...  How early does _WAK really need to be?
+I removed the check because ext_handler shouldn't be NULL if handler_flags
+has a bit set (as per iommu_set_ext_fault_handler). But you're right that
+this is fragile, and I overlooked the case where users could call
+set_ext_fault_handler to clear the fault handler.
 
-On this system, apparently, it may go late in the resume path.  There
-are systems on which moving it after the PCI resume introduced issues,
-which is why the default ordering is what it is IIRC (but that was
-bundled with the GPE stuff then, so there could be effects of that
-too).
-
-In any case, we may play with the ordering, but that's fragile.  Or we
-can enable the EC polling just for the time of executing _WAK (which
-should avoid the thermal issues on Lenovo and similar).
+(Note that this ext_handler will most likely be replaced by the fault
+infrastructure that Jacob is working on:
+https://patchwork.kernel.org/patch/10063385/ to which we should add the
+atomic/blocking flags)
 
 Thanks,
-Rafael
+Jean
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
