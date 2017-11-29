@@ -1,57 +1,63 @@
-From: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Subject: [PATCH v2] ACPI / PMIC: constify platform_device_id
-Date: Wed, 29 Nov 2017 10:05:02 +0530
-Message-ID: <317de9ac1d1ff31fd568ca7be10d2e4fd6be1f90.1511929854.git.arvind.yadav.cs@gmail.com>
+From: Len Brown <lenb@kernel.org>
+Subject: Dell XPS13 9360 - 1,000ms acpi_pm_finish()
+Date: Wed, 29 Nov 2017 01:06:37 -0500
+Message-ID: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:33371 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751908AbdK2Ef0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Nov 2017 23:35:26 -0500
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:46817 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750812AbdK2GGj (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Nov 2017 01:06:39 -0500
+Received: by mail-qk0-f194.google.com with SMTP id b184so2992448qkc.13
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Nov 2017 22:06:38 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, andy@infradead.org, mika.westerberg@linux.intel.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-platform_device_id are not supposed to change at runtime. All functions
-working with platform_device_id provided by <linux/platform_device.h>
-work with const platform_device_id. So mark the non-const structs as
-const.
+Rafael,
 
-Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
----
-changes in v2:
-             Resend all changes as single patch.
+Per our discussion...
 
- drivers/acpi/pmic/intel_pmic_bxtwc.c | 2 +-
- drivers/acpi/pmic/intel_pmic_chtwc.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+As of Linux-4.14, acpi_pm_finish() takes over 1,000 ms on the Dell
+XPS13.  This routine accounts for 50% of the total resume time of this
+machine.
 
-diff --git a/drivers/acpi/pmic/intel_pmic_bxtwc.c b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-index 90011aa..2012d1d 100644
---- a/drivers/acpi/pmic/intel_pmic_bxtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_bxtwc.c
-@@ -400,7 +400,7 @@ static int intel_bxtwc_pmic_opregion_probe(struct platform_device *pdev)
- 			&intel_bxtwc_pmic_opregion_data);
- }
- 
--static struct platform_device_id bxt_wc_opregion_id_table[] = {
-+static const struct platform_device_id bxt_wc_opregion_id_table[] = {
- 	{ .name = "bxt_wcove_region" },
- 	{},
+So I commented _WAK out of acpi_hw_legacy_wake(), and  that 1000ms
+became 2ms.  (and the system also seemed to resume fine without _WAK,
+though I didn't test it extensively)
+
+So I effectively pre-pended acpi_pm_finish() to acpi_pm_end() with the
+hack patch below, and that seems to work fine.
+
+(Note that it seems that the relative ordering of enabling run-time
+GPEs and invoking _WAK is already correct in acpi_hw_legacy_wake() --
+the GPEs are enabled first.)
+
+So the question becomes...  How early does _WAK really need to be?
+
+thanks
+Len Brown, Intel Open Source Technology Center
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 8082871b409a..f25f1874cfaf 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -495,6 +495,8 @@ static void acpi_pm_start(u32 acpi_state)
+  */
+ static void acpi_pm_end(void)
+ {
++       printk("lenb: acpi_pm_finish from within acpi_pm_end\n");
++       acpi_pm_finish();
+        acpi_turn_off_unused_power_resources();
+        acpi_scan_lock_release();
+        /*
+@@ -639,7 +641,6 @@ static const struct platform_suspend_ops
+acpi_suspend_ops = {
+        .begin = acpi_suspend_begin,
+        .prepare_late = acpi_pm_prepare,
+        .enter = acpi_suspend_enter,
+-       .wake = acpi_pm_finish,
+        .end = acpi_pm_end,
  };
-diff --git a/drivers/acpi/pmic/intel_pmic_chtwc.c b/drivers/acpi/pmic/intel_pmic_chtwc.c
-index 85636d7..813b829 100644
---- a/drivers/acpi/pmic/intel_pmic_chtwc.c
-+++ b/drivers/acpi/pmic/intel_pmic_chtwc.c
-@@ -260,7 +260,7 @@ static int intel_cht_wc_pmic_opregion_probe(struct platform_device *pdev)
- 			&intel_cht_wc_pmic_opregion_data);
- }
- 
--static struct platform_device_id cht_wc_opregion_id_table[] = {
-+static const struct platform_device_id cht_wc_opregion_id_table[] = {
- 	{ .name = "cht_wcove_region" },
- 	{},
- };
--- 
-1.9.1
-
