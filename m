@@ -1,28 +1,31 @@
-From: Len Brown <lenb@kernel.org>
-Subject: Re: Dell XPS13 9360 - 1,000ms acpi_pm_finish()
-Date: Wed, 29 Nov 2017 11:11:17 -0500
-Message-ID: <CAJvTdKmxRbpZ=xexXEOgs_JpvFdRdstZMuPQ5zWG9y36tEb62g@mail.gmail.com>
-References: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
- <CAJZ5v0iii=ZSnz8NwiA_TN0Uk0=dUcw2CH_0VO+_UsipO3i+3w@mail.gmail.com> <744357E9AAD1214791ACBA4B0B9092636BE57FFD@SHSMSX101.ccr.corp.intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V3 2/4] ACPI / bus: introduce acpi_device_get_match_data()
+ function
+Date: Wed, 29 Nov 2017 15:49:26 -0500
+Message-ID: <7a89f75e-d740-9252-419a-58a7b26b0df2@codeaurora.org>
+References: <1510281175-27173-1-git-send-email-okaya@codeaurora.org>
+ <1510281175-27173-2-git-send-email-okaya@codeaurora.org>
+ <31ef1ea5-ddb6-1a24-980b-7986627cfeca@codeaurora.org>
+ <1605519.pfaIp4IsxJ@aspire.rjw.lan> <20171129135536.GD32417@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f181.google.com ([209.85.220.181]:33886 "EHLO
-        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753153AbdK2QLS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Nov 2017 11:11:18 -0500
-Received: by mail-qk0-f181.google.com with SMTP id d66so5071194qkg.1
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Nov 2017 08:11:18 -0800 (PST)
-In-Reply-To: <744357E9AAD1214791ACBA4B0B9092636BE57FFD@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171129135536.GD32417@localhost>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, linux-arm-msm <linux-arm-msm@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, robin.murphy@arm.com, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Rui" <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>
 
-> How long does acpi_pm_finish() take in 4.12 kernel?
-> It's good to know how much the reverted EC busy_polling mechanism can improve on this case.
+On 11/29/2017 8:55 AM, Vinod Koul wrote:
+>> While I understand that the name follows the OF convention, I have some
+>> doubts on whether it is the best one.
+> Perhpas acpi_get_match_data() ?
 
-4.12.0 acpi_pm_finish() takes on the order of 40ms (it varies somewhat),
-which is about the same speed as when this hack patch is applied.
+Will change as recommended unless Rafael has a better idea.
 
-This is compared to over 1,100ms in current 4.14.
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
