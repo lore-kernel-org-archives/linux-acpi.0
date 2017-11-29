@@ -1,64 +1,36 @@
-From: "Zhang, Rui" <rui.zhang@intel.com>
-Subject: RE: Dell XPS13 9360 - 1,000ms acpi_pm_finish()
-Date: Wed, 29 Nov 2017 15:01:05 +0000
-Message-ID: <744357E9AAD1214791ACBA4B0B9092636BE57FFD@SHSMSX101.ccr.corp.intel.com>
-References: <CAJvTdK=gJk3N+75G97QpXiTnw9FDJPQiuR66sGgyc6e_zcesHQ@mail.gmail.com>
- <CAJZ5v0iii=ZSnz8NwiA_TN0Uk0=dUcw2CH_0VO+_UsipO3i+3w@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [virtio-dev] [RFC PATCH v2 1/5] iommu: Add virtio-iommu driver
+Date: Wed, 29 Nov 2017 15:17:40 +0000
+Message-ID: <73427923-e62a-e277-42a2-cd37141fa122@arm.com>
+References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
+ <20171117185211.32593-2-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:18159 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751808AbdK2PBJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 10:01:09 -0500
-In-Reply-To: <CAJZ5v0iii=ZSnz8NwiA_TN0Uk0=dUcw2CH_0VO+_UsipO3i+3w@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <20171117185211.32593-2-jean-philippe.brucker@arm.com>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: kvm-owner@vger.kernel.org
+To: "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, "virtio-dev@lists.oasis-open.org" <virtio-dev@lists.oasis-open.org>
+Cc: "jasowang@redhat.com" <jasowang@redhat.com>, "mst@redhat.com" <mst@redhat.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "joro@8bytes.org" <joro@8bytes.org>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Robin Murphy <Robin.Murphy@arm.com>, Will Deacon <Will.Deacon@arm.com>, "eric.auger@redhat.com" <eric.auger@redhat.com>, "bharat.bhushan@nxp.com" <bharat.bhushan@nxp.com>, "Jayachandran.Nair@cavium.com" <Jayachandran.Nair@cavium.com>, ashok.
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
-bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBXZWRuZXNkYXks
-IE5vdmVtYmVyIDI5LCAyMDE3IDEwOjM1IFBNDQo+IFRvOiBMZW4gQnJvd24gPGxlbmJAa2VybmVs
-Lm9yZz4NCj4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IGxpbnV4
-IGFjcGkgPGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZz4NCj4gU3ViamVjdDogUmU6IERl
-bGwgWFBTMTMgOTM2MCAtIDEsMDAwbXMgYWNwaV9wbV9maW5pc2goKQ0KPiANCj4gT24gV2VkLCBO
-b3YgMjksIDIwMTcgYXQgNzowNiBBTSwgTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+IHdyb3Rl
-Og0KPiA+IFJhZmFlbCwNCj4gPg0KPiA+IFBlciBvdXIgZGlzY3Vzc2lvbi4uLg0KPiA+DQo+ID4g
-QXMgb2YgTGludXgtNC4xNCwgYWNwaV9wbV9maW5pc2goKSB0YWtlcyBvdmVyIDEsMDAwIG1zIG9u
-IHRoZSBEZWxsDQo+ID4gWFBTMTMuICBUaGlzIHJvdXRpbmUgYWNjb3VudHMgZm9yIDUwJSBvZiB0
-aGUgdG90YWwgcmVzdW1lIHRpbWUgb2YgdGhpcw0KPiA+IG1hY2hpbmUuDQo+ID4NCj4gPiBTbyBJ
-IGNvbW1lbnRlZCBfV0FLIG91dCBvZiBhY3BpX2h3X2xlZ2FjeV93YWtlKCksIGFuZCAgdGhhdCAx
-MDAwbXMNCj4gPiBiZWNhbWUgMm1zLiAgKGFuZCB0aGUgc3lzdGVtIGFsc28gc2VlbWVkIHRvIHJl
-c3VtZSBmaW5lIHdpdGhvdXQgX1dBSywNCj4gPiB0aG91Z2ggSSBkaWRuJ3QgdGVzdCBpdCBleHRl
-bnNpdmVseSkNCj4gPg0KSG93IGxvbmcgZG9lcyBhY3BpX3BtX2ZpbmlzaCgpIHRha2UgaW4gNC4x
-MiBrZXJuZWw/DQpJdCdzIGdvb2QgdG8ga25vdyBob3cgbXVjaCB0aGUgcmV2ZXJ0ZWQgRUMgYnVz
-eV9wb2xsaW5nIG1lY2hhbmlzbSBjYW4gaW1wcm92ZSBvbiB0aGlzIGNhc2UuDQoNClRoYW5rcywN
-CnJ1aQ0KPiA+IFNvIEkgZWZmZWN0aXZlbHkgcHJlLXBlbmRlZCBhY3BpX3BtX2ZpbmlzaCgpIHRv
-IGFjcGlfcG1fZW5kKCkgd2l0aCB0aGUNCj4gPiBoYWNrIHBhdGNoIGJlbG93LCBhbmQgdGhhdCBz
-ZWVtcyB0byB3b3JrIGZpbmUuDQo+ID4NCj4gPiAoTm90ZSB0aGF0IGl0IHNlZW1zIHRoYXQgdGhl
-IHJlbGF0aXZlIG9yZGVyaW5nIG9mIGVuYWJsaW5nIHJ1bi10aW1lDQo+ID4gR1BFcyBhbmQgaW52
-b2tpbmcgX1dBSyBpcyBhbHJlYWR5IGNvcnJlY3QgaW4gYWNwaV9od19sZWdhY3lfd2FrZSgpIC0t
-DQo+ID4gdGhlIEdQRXMgYXJlIGVuYWJsZWQgZmlyc3QuKQ0KPiANCj4gVGhlIG9yZGVyaW5nIGlz
-IGNvcnJlY3QsIGJ1dCB0aGUgR1BFcyBzaG91bGQgYmUgZW5hYmxlZCBiZWZvcmUgdGhlIFNDSSBp
-cw0KPiBlbmFibGVkIGJ5IHJlc3VtZV9kZXZpY2VfaXJxcygpLiAgQXJndWFibHksIHRoZXkgbWF5
-IGp1c3QgYmUgZW5hYmxlZCBhcw0KPiBzb29uIGFzIHRoZSBrZXJuZWwgZ2V0cyBjb250cm9sIGJh
-Y2sgYXMgdGhlIFNDSSB3b24ndCB0cmlnZ2VyIGFueXdheSBiZWZvcmUNCj4gcmVzdW1lX2Rldmlj
-ZV9pcnFzKCkuDQo+IA0KPiA+IFNvIHRoZSBxdWVzdGlvbiBiZWNvbWVzLi4uICBIb3cgZWFybHkg
-ZG9lcyBfV0FLIHJlYWxseSBuZWVkIHRvIGJlPw0KPiANCj4gT24gdGhpcyBzeXN0ZW0sIGFwcGFy
-ZW50bHksIGl0IG1heSBnbyBsYXRlIGluIHRoZSByZXN1bWUgcGF0aC4gIFRoZXJlIGFyZQ0KPiBz
-eXN0ZW1zIG9uIHdoaWNoIG1vdmluZyBpdCBhZnRlciB0aGUgUENJIHJlc3VtZSBpbnRyb2R1Y2Vk
-IGlzc3Vlcywgd2hpY2ggaXMNCj4gd2h5IHRoZSBkZWZhdWx0IG9yZGVyaW5nIGlzIHdoYXQgaXQg
-aXMgSUlSQyAoYnV0IHRoYXQgd2FzIGJ1bmRsZWQgd2l0aCB0aGUgR1BFDQo+IHN0dWZmIHRoZW4s
-IHNvIHRoZXJlIGNvdWxkIGJlIGVmZmVjdHMgb2YgdGhhdCB0b28pLg0KPiANCj4gSW4gYW55IGNh
-c2UsIHdlIG1heSBwbGF5IHdpdGggdGhlIG9yZGVyaW5nLCBidXQgdGhhdCdzIGZyYWdpbGUuICBP
-ciB3ZSBjYW4NCj4gZW5hYmxlIHRoZSBFQyBwb2xsaW5nIGp1c3QgZm9yIHRoZSB0aW1lIG9mIGV4
-ZWN1dGluZyBfV0FLICh3aGljaCBzaG91bGQNCj4gYXZvaWQgdGhlIHRoZXJtYWwgaXNzdWVzIG9u
-IExlbm92byBhbmQgc2ltaWxhcikuDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KPiAtLQ0KPiBU
-byB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUg
-bGludXgtYWNwaSIgaW4gdGhlDQo+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2Vy
-Lmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwu
-b3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
+On 17/11/17 18:52, Jean-Philippe Brucker wrote:
+[...]
+> +struct viommu_domain {
+> +	struct iommu_domain		domain;
+> +	struct viommu_dev		*viommu;
+> +	struct mutex			mutex;
+> +	unsigned int			id;
+> +
+> +	spinlock_t			mappings_lock;
+> +	struct rb_root_cached		mappings;
+> +
+> +	/* Number of endpoints attached to this domain */
+> +	refcount_t			endpoints;
+
+Refcount_t is the wrong tool for this, I went back to an unsigned int (and
+rebased onto v4.15-rc1), on branch virtio-iommu/base.
+
+Thanks,
+Jean
