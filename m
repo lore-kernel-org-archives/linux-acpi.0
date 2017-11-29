@@ -1,102 +1,43 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
-Date: Wed, 29 Nov 2017 13:03:28 +0100
-Message-ID: <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
-References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v1 1/6] gpiolib: acpi: Assign polarity when call acpi_populate_gpio_lookup()
+Date: Wed, 29 Nov 2017 13:27:34 +0100
+Message-ID: <CACRpkdb3+GMZqi00BXgDcJZFRdNbQqe6gG14fzEL0W5e_+WDUQ@mail.gmail.com>
+References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:53779 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751783AbdK2MDa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:03:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:33063 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751791AbdK2M1f (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Nov 2017 07:27:35 -0500
+Received: by mail-it0-f67.google.com with SMTP id o130so26151858itg.0
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Nov 2017 04:27:35 -0800 (PST)
+In-Reply-To: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: zhong jiang <zhongjiang@huawei.com>
-Cc: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Wed 29-11-17 17:13:27, zhong jiang wrote:
-> Currently, Arm64 and x86 use the common code wehn parsing numa node
-> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
-> but the x86 is not set in that , then it will result in the repeatly
-> setting. And the parsed node maybe is  unreasonable to the system.
-> 
-> we would better not set it although it also still works. because the
-> parsed node is unresonable. so we should skip related operate in this
-> node. This patch just set node in various architecture individually.
-> it is no functional change.
+On Fri, Nov 10, 2017 at 2:40 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-I really have hard time to understand what you try to say above. Could
-you start by the problem description and then how you are addressing it?
+> There is no need, since we preserve firmware settings, to override
+> polarity for GpioInt() resources.
+>
+> While Documentation/gpio-properties.txt refers to any from GpioIo() /
+> GpioInt() resources, the active_low flag has been introduced to fill the
+> gap only for GpioIo() which lacks of that information.
+>
+> Moreover, in case of GpioInt() existed solution was broken anyway, it
+> overrides only in one direction, i.e. from 0 to 1, otherwise it would be
+> still 1 as defined in the resource macro.
+>
+> So, move the assignment to a right place and forbid to (semi-)override
+> polarity for GpioInt() type of resources.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-> ---
->  arch/x86/mm/amdtopology.c | 1 -
->  arch/x86/mm/numa.c        | 3 ++-
->  drivers/acpi/numa.c       | 5 ++++-
->  3 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/x86/mm/amdtopology.c b/arch/x86/mm/amdtopology.c
-> index 91f501b..7657042 100644
-> --- a/arch/x86/mm/amdtopology.c
-> +++ b/arch/x86/mm/amdtopology.c
-> @@ -151,7 +151,6 @@ int __init amd_numa_init(void)
->  
->  		prevbase = base;
->  		numa_add_memblk(nodeid, base, limit);
-> -		node_set(nodeid, numa_nodes_parsed);
->  	}
->  
->  	if (!nodes_weight(numa_nodes_parsed))
-> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-> index 25504d5..8f87f26 100644
-> --- a/arch/x86/mm/numa.c
-> +++ b/arch/x86/mm/numa.c
-> @@ -150,6 +150,8 @@ static int __init numa_add_memblk_to(int nid, u64 start, u64 end,
->  	mi->blk[mi->nr_blks].end = end;
->  	mi->blk[mi->nr_blks].nid = nid;
->  	mi->nr_blks++;
-> +
-> +	node_set(nid, numa_nodes_parsed);
->  	return 0;
->  }
->  
-> @@ -693,7 +695,6 @@ static int __init dummy_numa_init(void)
->  	printk(KERN_INFO "Faking a node at [mem %#018Lx-%#018Lx]\n",
->  	       0LLU, PFN_PHYS(max_pfn) - 1);
->  
-> -	node_set(0, numa_nodes_parsed);
->  	numa_add_memblk(0, 0, PFN_PHYS(max_pfn));
->  
->  	return 0;
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index 917f1cc..f2e33cb 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -294,7 +294,9 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
->  		goto out_err_bad_srat;
->  	}
->  
-> -	node_set(node, numa_nodes_parsed);
-> +	/* some architecture is likely to ignore a unreasonable node */
-> +	if (!node_isset(node, numa_nodes_parsed))
-> +		goto out;
->  
->  	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
->  		node, pxm,
-> @@ -309,6 +311,7 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
->  
->  	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
->  
-> +out:
->  	return 0;
->  out_err_bad_srat:
->  	bad_srat();
-> -- 
-> 1.8.3.1
+Patch applied with Mika's ACK.
 
--- 
-Michal Hocko
-SUSE Labs
+Yours,
+Linus Walleij
