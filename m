@@ -1,42 +1,67 @@
-From: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 09/36] iommu/fault: Allow blocking fault handlers
-Date: Wed, 29 Nov 2017 14:15:58 +0800
-Message-ID: <7e1c8ea4-e568-1000-17de-62f8562c7169@huawei.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-10-jean-philippe.brucker@arm.com>
+From: Juergen Gross <jgross@suse.com>
+Subject: Re: [PATCH 0/3] x86: make rsdp address accessible via boot params
+Date: Wed, 29 Nov 2017 08:56:26 +0100
+Message-ID: <0da797e9-90f5-0db9-4513-ebafe98452b9@suse.com>
+References: <20171128094400.25955-1-jgross@suse.com>
+ <CAJZ5v0iHR+NS_Le3-jO+-bsjWMy40CEuYGSgG_MXjVGoNSB7YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20171006133203.22803-10-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:35719 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750928AbdK2H43 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Nov 2017 02:56:29 -0500
+In-Reply-To: <CAJZ5v0iHR+NS_Le3-jO+-bsjWMy40CEuYGSgG_MXjVGoNSB7YA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, xen-devel@lists.xenproject.org, the arch/x86 maintainers <x86@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi Jean,
+On 28/11/17 22:03, Rafael J. Wysocki wrote:
+> On Tue, Nov 28, 2017 at 10:43 AM, Juergen Gross <jgross@suse.com> wrote:
+>> In the non-EFI boot path the ACPI RSDP table is currently found via
+>> either EBDA or by searching through low memory for the RSDP magic.
+>> This requires the RSDP to be located in the first 1MB of physical
+>> memory. Xen PVH guests, however, get the RSDP address via the start of
+>> day information block.
+>>
+>> In order to support an arbitrary RSDP address this patch series adds
+>> the physical address of the RSDP to the boot params structure filled
+>> by the boot loader. A kernel booted directly in PVH mode can save the
+>> RSDP address in the boot params, while a kernel booted in PVH mode via
+>> grub can rely on the RSDP address being specified by grub2 (which in
+>> turn got the address via the start of day information block from Xen).
+>>
+>> Juergen Gross (3):
+>>   x86/boot: add acpi rsdp address to setup_header
+>>   x86/acpi: take rsdp address for boot params if available
+>>   x86/xen: supply rsdp address in boot params for pvh guests
+>>
+>>  Documentation/x86/boot.txt            | 19 +++++++++++++++++++
+>>  arch/x86/boot/header.S                |  6 +++++-
+>>  arch/x86/include/uapi/asm/bootparam.h |  1 +
+>>  arch/x86/xen/enlighten_pvh.c          |  2 ++
+>>  drivers/acpi/osl.c                    |  8 ++++++++
+>>  5 files changed, 35 insertions(+), 1 deletion(-)
+>>
+>> --
+> 
+> Is this going to work with all existing setups?
 
-On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
-> -	if (domain->ext_handler) {
-> +	if (domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC) {
-> +		fault->flags |= IOMMU_FAULT_ATOMIC;
+I think so, yes.
 
-Why remove the condition of domain->ext_handler? should it be much better like:
-  if ((domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC) && domain->ext_handler)
+In EFI environment this doesn't matter, direct PVH boot is working,
+grub2 support is optional (without grub2 support things are working as
+today).
 
-If domain->ext_handler is NULL, and (domain->handler_flags & IOMMU_FAULT_HANDLER_ATOMIC)
-is true. It will oops, right?
+I'm already writing grub2 patches to support booting in PVH environment.
+Those were the reason I need this patch set, as otherwise Xen would have
+to put the RSDP into low memory which is limiting the guest's ability to
+use large page mappings for all its memory.
 
->  		ret = domain->ext_handler(domain, dev, fault,
->  					  domain->handler_token);
+Additionally something like this is needed for PVH dom0 support anyway.
 
-Thanks
-Yisheng Xie
+
+Juergen
