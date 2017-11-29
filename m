@@ -1,66 +1,107 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH V3 2/4] ACPI / bus: introduce
- acpi_device_get_match_data() function
-Date: Wed, 29 Nov 2017 19:25:36 +0530
-Message-ID: <20171129135536.GD32417@localhost>
-References: <1510281175-27173-1-git-send-email-okaya@codeaurora.org>
- <1510281175-27173-2-git-send-email-okaya@codeaurora.org>
- <31ef1ea5-ddb6-1a24-980b-7986627cfeca@codeaurora.org>
- <1605519.pfaIp4IsxJ@aspire.rjw.lan>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
+Date: Wed, 29 Nov 2017 22:14:08 +0800
+Message-ID: <496c8895-ea17-b7c0-3ea4-df555ebc2edc@cn.fujitsu.com>
+References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
+ <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
+ <5A1EAAF5.4040602@huawei.com>
+ <20171129130158.hji24remijkaoydb@dhcp22.suse.cz>
+ <5A1EB57B.2080101@huawei.com>
+ <20171129133355.ybbhzpqhmjreyofi@dhcp22.suse.cz>
+ <5A1EB9B1.9000907@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19694 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752227AbdK2NwF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 29 Nov 2017 08:52:05 -0500
-Content-Disposition: inline
-In-Reply-To: <1605519.pfaIp4IsxJ@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <5A1EB9B1.9000907@huawei.com>
+Sender: owner-linux-mm@kvack.org
+To: zhong jiang <zhongjiang@huawei.com>, Michal Hocko <mhocko@kernel.org>
+Cc: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sinan Kaya <okaya@codeaurora.org>, dmaengine@vger.kernel.org, timur@codeaurora.org, linux-arm-msm <linux-arm-msm@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, robin.murphy@arm.com, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Sun, Nov 12, 2017 at 01:14:12AM +0100, Rafael J. Wysocki wrote:
-> On Friday, November 10, 2017 3:35:41 AM CET Sinan Kaya wrote:
-> > +linux-acpi@vger.kernel.org, +Rafael
-> 
-> Thanks!
-> 
-> > On 11/9/2017 9:32 PM, Sinan Kaya wrote:
-> > > OF has of_device_get_match_data() function to extract driver specific data
-> > > structure. Add a similar function for ACPI.
-> > > 
-> > > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> > > ---
-> > >  drivers/acpi/bus.c   | 12 ++++++++++++
-> > >  include/linux/acpi.h |  6 ++++++
-> > >  2 files changed, 18 insertions(+)
-> > > 
-> > > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > > index 4d0979e..da29c10 100644
-> > > --- a/drivers/acpi/bus.c
-> > > +++ b/drivers/acpi/bus.c
-> > > @@ -785,6 +785,18 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(acpi_match_device);
-> > >  
-> > > +void *acpi_device_get_match_data(const struct device *dev)
-> > > +{
-> > > +	const struct acpi_device_id *match;
-> > > +
-> > > +	match = acpi_match_device(dev->driver->acpi_match_table, dev);
-> > > +	if (!match)
-> > > +		return NULL;
-> > > +
-> > > +	return (void *)match->driver_data;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
-> 
-> While I understand that the name follows the OF convention, I have some
-> doubts on whether it is the best one.
+Hi Jiang,
 
-Perhpas acpi_get_match_data() ?
+At 11/29/2017 09:44 PM, zhong jiang wrote:
+> On 2017/11/29 21:33, Michal Hocko wrote:
+>> On Wed 29-11-17 21:26:19, zhong jiang wrote:
+>>> On 2017/11/29 21:01, Michal Hocko wrote:
+>>>> On Wed 29-11-17 20:41:25, zhong jiang wrote:
+>>>>> On 2017/11/29 20:03, Michal Hocko wrote:
+>>>>>> On Wed 29-11-17 17:13:27, zhong jiang wrote:
+>>>>>>> Currently, Arm64 and x86 use the common code wehn parsing numa node
+>>>>>>> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
+>>>>>>> but the x86 is not set in that , then it will result in the repeatly
+>>>>>>> setting. And the parsed node maybe is  unreasonable to the system.
+>>>>>>>
+>>>>>>> we would better not set it although it also still works. because the
+>>>>>>> parsed node is unresonable. so we should skip related operate in this
+>>>>>>> node. This patch just set node in various architecture individually.
+>>>>>>> it is no functional change.
+>>>>>> I really have hard time to understand what you try to say above. Could
+>>>>>> you start by the problem description and then how you are addressing it?
+>>>>>   I am so sorry for that.  I will make the issue clear.
+>>>>>
+>>>>>   Arm64  get numa information through acpi.  The code flow is as follows.
+>>>>>
+>>>>>   arm64_acpi_numa_init
+>>>>>        acpi_parse_memory_affinity
+>>>>>           acpi_numa_memory_affinity_init
+>>>>>               numa_add_memblk(nid, start, end);      //it will set node to numa_nodes_parsed successfully.
+>>>>>               node_set(node, numa_nodes_parsed);     // numa_add_memblk had set that.  it will repeat.
+>>>>>
+>>>>>  the root cause is that X86 parse numa also  go through above code.  and  arch-related
+>>>>>  numa_add_memblk  is not set the parsed node to numa_nodes_parsed.  it need
+>>>>>  additional node_set(node, numa_parsed) to handle.  therefore,  the issue will be introduced.
+>>>>>
+>>>> No it is not much more clear. I would have to go and re-study the whole
+>>>> code flow to see what you mean here. So you could simply state what _the
+>>>> issue_ is? How can user observe it and what are the consequences?
+>>>   The patch do not fix a real issue.  it is a cleanup.
 
--- 
-~Vinod
+ > @@ -294,7 +294,9 @@ void __init acpi_numa_slit_init(struct 
+acpi_table_slit *slit)
+ >  		goto out_err_bad_srat;
+ >  	}
+ >
+ > -	node_set(node, numa_nodes_parsed);
+ > +	/* some architecture is likely to ignore a unreasonable node */
+ > +	if (!node_isset(node, numa_nodes_parsed))
+ > +		goto out;
+ >
+
+It is not just a cleanup patch,	Here you change the original logic.
+
+With this patch, we just set the *numa_nodes_parsed* after NUMA adds a
+memblk successfully and also add a check here for bypassing the invalid
+memblk node.
+
+I am not sure which arch may meet this situation? did you test this
+patch?
+
+Anyway, AFAIK, The ACPI tables are very much like user input in that
+respect and they are unreasonable. So the patch is better.
+
+Thanks,
+	dou.
+
+>>>   because the acpi code  is public,  I find they are messy between
+>>>   Arch64 and X86 when parsing numa message .  therefore,  I try to
+>>>   make the code more clear between them.
+>> So make this explicit in the changelog. Your previous wording sounded
+>> like there is a _problem_ in the code.
+>>
+> :-[       please take some time to check.  if it works.  I will resend v2 with detailed changelog.
+>
+> Thanks
+> zhongjiang
+>
+>
+>
+>
+
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
