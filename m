@@ -1,39 +1,120 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v1 6/6] gpiolib: acpi: Introduce NO_RESTRICTION quirk
-Date: Wed, 29 Nov 2017 13:35:18 +0100
-Message-ID: <CACRpkdY64u0T+BW_ACzZEr7cB+W1aixsn4ZB50EsBUJZttpMaw@mail.gmail.com>
-References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
- <20171110134033.85461-6-andriy.shevchenko@linux.intel.com>
- <20171113115554.GY18997@lahna.fi.intel.com> <1510578648.25007.166.camel@linux.intel.com>
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
+Date: Wed, 29 Nov 2017 20:41:25 +0800
+Message-ID: <5A1EAAF5.4040602@huawei.com>
+References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com> <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1510578648.25007.166.camel@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:55628 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752379AbdK2MmU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Nov 2017 07:42:20 -0500
+In-Reply-To: <20171129120328.dfbr26o4wsjpwct3@dhcp22.suse.cz>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Michal Hocko <mhocko@kernel.org>
+Cc: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Nov 13, 2017 at 2:10 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Mon, 2017-11-13 at 13:55 +0200, Mika Westerberg wrote:
->> On Fri, Nov 10, 2017 at 03:40:33PM +0200, Andy Shevchenko wrote:
->> > Allow to relax IoRestriction for certain cases.
->> >
->> > One of the use case is incorrectly cooked ACPI table where interrupt
->> > pin is
->> > defined with GpioIo() macro with IoRestrictionOutputOnly.
->> >
->> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On 2017/11/29 20:03, Michal Hocko wrote:
+> On Wed 29-11-17 17:13:27, zhong jiang wrote:
+>> Currently, Arm64 and x86 use the common code wehn parsing numa node
+>> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
+>> but the x86 is not set in that , then it will result in the repeatly
+>> setting. And the parsed node maybe is  unreasonable to the system.
 >>
->> I think you should include user of this quirk in the patch series as
->> well. Otherwise it is pretty pointless to add random quirks without
->> real issues they are supposed to solve ;-)
->
-> Something like below?
+>> we would better not set it although it also still works. because the
+>> parsed node is unresonable. so we should skip related operate in this
+>> node. This patch just set node in various architecture individually.
+>> it is no functional change.
+> I really have hard time to understand what you try to say above. Could
+> you start by the problem description and then how you are addressing it?
+  I am so sorry for that.  I will make the issue clear.
+ 
+  Arm64  get numa information through acpi.  The code flow is as follows.
 
-I bet this patch is already somewhere in my mailbox else just send
-it separately. All these patches are applied.
+  arm64_acpi_numa_init
+       acpi_parse_memory_affinity
+          acpi_numa_memory_affinity_init
+              numa_add_memblk(nid, start, end);      //it will set node to numa_nodes_parsed successfully.
+              node_set(node, numa_nodes_parsed);     // numa_add_memblk had set that.  it will repeat.
 
-Yours,
-Linus Walleij
+  the root cause is that X86 parse numa also  go through above code.  and  arch-related
+  numa_add_memblk  is not set the parsed node to numa_nodes_parsed.  it need
+  additional node_set(node, numa_parsed) to handle.  therefore,  the issue will be introduced.
+
+  menawhile,  the parsed node is meaningless when numa_add_memblk fails and return 0.
+ so we should bail out in time.
+ 
+is it a little clearer ?
+
+ Thanks
+ zhongjiang
+>> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+>> ---
+>>  arch/x86/mm/amdtopology.c | 1 -
+>>  arch/x86/mm/numa.c        | 3 ++-
+>>  drivers/acpi/numa.c       | 5 ++++-
+>>  3 files changed, 6 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/x86/mm/amdtopology.c b/arch/x86/mm/amdtopology.c
+>> index 91f501b..7657042 100644
+>> --- a/arch/x86/mm/amdtopology.c
+>> +++ b/arch/x86/mm/amdtopology.c
+>> @@ -151,7 +151,6 @@ int __init amd_numa_init(void)
+>>  
+>>  		prevbase = base;
+>>  		numa_add_memblk(nodeid, base, limit);
+>> -		node_set(nodeid, numa_nodes_parsed);
+>>  	}
+>>  
+>>  	if (!nodes_weight(numa_nodes_parsed))
+>> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+>> index 25504d5..8f87f26 100644
+>> --- a/arch/x86/mm/numa.c
+>> +++ b/arch/x86/mm/numa.c
+>> @@ -150,6 +150,8 @@ static int __init numa_add_memblk_to(int nid, u64 start, u64 end,
+>>  	mi->blk[mi->nr_blks].end = end;
+>>  	mi->blk[mi->nr_blks].nid = nid;
+>>  	mi->nr_blks++;
+>> +
+>> +	node_set(nid, numa_nodes_parsed);
+>>  	return 0;
+>>  }
+>>  
+>> @@ -693,7 +695,6 @@ static int __init dummy_numa_init(void)
+>>  	printk(KERN_INFO "Faking a node at [mem %#018Lx-%#018Lx]\n",
+>>  	       0LLU, PFN_PHYS(max_pfn) - 1);
+>>  
+>> -	node_set(0, numa_nodes_parsed);
+>>  	numa_add_memblk(0, 0, PFN_PHYS(max_pfn));
+>>  
+>>  	return 0;
+>> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+>> index 917f1cc..f2e33cb 100644
+>> --- a/drivers/acpi/numa.c
+>> +++ b/drivers/acpi/numa.c
+>> @@ -294,7 +294,9 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+>>  		goto out_err_bad_srat;
+>>  	}
+>>  
+>> -	node_set(node, numa_nodes_parsed);
+>> +	/* some architecture is likely to ignore a unreasonable node */
+>> +	if (!node_isset(node, numa_nodes_parsed))
+>> +		goto out;
+>>  
+>>  	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
+>>  		node, pxm,
+>> @@ -309,6 +311,7 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+>>  
+>>  	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
+>>  
+>> +out:
+>>  	return 0;
+>>  out_err_bad_srat:
+>>  	bad_srat();
+>> -- 
+>> 1.8.3.1
+
+
