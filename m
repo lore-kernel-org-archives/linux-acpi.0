@@ -1,84 +1,150 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 0/3] pinctrl: Align Cannon Lake GPIO number space with
- Windows
-Date: Tue, 28 Nov 2017 23:52:24 +0200
-Message-ID: <1511905944.25007.471.camel@linux.intel.com>
-References: <20171127135444.66735-1-mika.westerberg@linux.intel.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
+ state before hotremove
+Date: Wed, 29 Nov 2017 08:49:13 +0800
+Message-ID: <20171129004913.GB1469@linux-l9pv.suse>
+References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
+ <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:53889 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752468AbdK1Vz2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 28 Nov 2017 16:55:28 -0500
-In-Reply-To: <20171127135444.66735-1-mika.westerberg@linux.intel.com>
+Received: from smtp.nue.novell.com ([195.135.221.5]:33066 "EHLO
+        smtp.nue.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751833AbdK2At7 (ORCPT
+        <rfc822;groupwise-linux-acpi@vger.kernel.org:0:0>);
+        Tue, 28 Nov 2017 19:49:59 -0500
+Content-Disposition: inline
+In-Reply-To: <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, mark.rutland@arm.com, scott.branden@broadcom.com, will.deacon@arm.com, qiuxishi@huawei.com, catalin.marinas@arm.com, mhocko@suse.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org
 
-On Mon, 2017-11-27 at 16:54 +0300, Mika Westerberg wrote:
-> Hi,
-> 
-> It turns out that the Cannon Lake GPIO driver in Windows uses
-> different
-> GPIO numbering scheme than what Linux uses. Instead of hardware
-> numbers it
-> has "banks" of 32 pins even if the hardware group actually does not
-> have
-> that many pins. This is problematic for Linux because BIOS uses the
-> same
-> Windows numbering scheme in ACPI GpioIo/GpioInt resources, making
-> Linux to
-> pick a wrong pin.
-> 
-> For example the SD card detection GPIO resource in BIOS ACPI tables
-> looks
-> like:
-> 
->   GpioInt (...) {231} // vSD3_CD_B
-> 
-> Where the real hardware number would be 180 instead of 231.
-> 
-> Unfortunately changing the BIOS and the Windows driver is not possible
-> for
-> Cannon Lake anymore so we need to handle it in Linux instead. This
-> should
-> be done properly in future platforms.
-> 
-> The patch series updates the Intel pinctrl driver to allow passing
-> custom
-> GPIO number space, taking advantage of pin ranges supported by the
-> pinctrl
-> core. However, before we can add these pin ranges we need to drop the
-> custom Cherryview GPIO/ACPI translation first and make the driver to
-> use
-> direct mapping instead (which turns out to be much simpler).
-> 
-> Once that is done we update the Cannon Lake pinctrl driver to align
-> with
-> the Windows GPIO driver numbering scheme.
+Hi Andrea, 
 
-For all three:
-
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
+On Fri, Nov 24, 2017 at 10:22:35AM +0000, Andrea Reale wrote:
+> Resending the patch adding linux-acpi in CC, as suggested by Rafael.
+> Everyone else: apologies for the noise.
 > 
-> Mika Westerberg (3):
->   gpio / ACPI: Drop unnecessary ACPI GPIO to Linux GPIO translation
->   pinctrl: intel: Allow custom GPIO base for pad groups
->   pinctrl: cannonlake: Align GPIO number space with Windows
+> Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
+> introduced an assumption whereas when control
+> reaches remove_memory the corresponding memory has been already
+> offlined. In that case, the acpi_memhotplug was making sure that
+> the assumption held.
+> This assumption, however, is not necessarily true if offlining
+> and removal are not done by the same "controller" (for example,
+> when first offlining via sysfs).
 > 
->  drivers/gpio/gpiolib-acpi.c                |  75 +-------------
->  drivers/pinctrl/intel/pinctrl-cannonlake.c |  65 ++++++------
->  drivers/pinctrl/intel/pinctrl-cherryview.c |  59 ++++-------
->  drivers/pinctrl/intel/pinctrl-intel.c      | 156
-> +++++++++++++++++++++--------
->  drivers/pinctrl/intel/pinctrl-intel.h      |   3 +
->  5 files changed, 176 insertions(+), 182 deletions(-)
+> Removing this assumption for the generic remove_memory code
+> and moving it in the specific acpi_memhotplug code. This is
+> a dependency for the software-aided arm64 offlining and removal
+> process.
 > 
+> Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
+> Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
+> ---
+>  drivers/acpi/acpi_memhotplug.c |  2 +-
+>  include/linux/memory_hotplug.h |  9 ++++++---
+>  mm/memory_hotplug.c            | 13 +++++++++----
+>  3 files changed, 16 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 6b0d3ef..b0126a0 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>  			nid = memory_add_physaddr_to_nid(info->start_addr);
+>  
+>  		acpi_unbind_memory_blocks(info);
+> -		remove_memory(nid, info->start_addr, info->length);
+> +		BUG_ON(remove_memory(nid, info->start_addr, info->length));
+>  		list_del(&info->list);
+>  		kfree(info);
+>  	}
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index 58e110a..1a9c7b2 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -295,7 +295,7 @@ static inline bool movable_node_is_enabled(void)
+>  extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+>  extern void try_offline_node(int nid);
+>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+> -extern void remove_memory(int nid, u64 start, u64 size);
+> +extern int remove_memory(int nid, u64 start, u64 size);
+>  
+>  #else
+>  static inline bool is_mem_section_removable(unsigned long pfn,
+> @@ -311,7 +311,10 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+>  	return -EINVAL;
+>  }
+>  
+> -static inline void remove_memory(int nid, u64 start, u64 size) {}
+> +static inline int remove_memory(int nid, u64 start, u64 size)
+> +{
+> +	return -EINVAL;
+> +}
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+>  
+>  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+> @@ -323,7 +326,7 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>  		unsigned long nr_pages);
+>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>  extern bool is_memblock_offlined(struct memory_block *mem);
+> -extern void remove_memory(int nid, u64 start, u64 size);
+> +extern int remove_memory(int nid, u64 start, u64 size);
+>  extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
+>  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+>  		unsigned long map_offset);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index d4b5f29..d5f15af 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1892,7 +1892,7 @@ EXPORT_SYMBOL(try_offline_node);
+>   * and online/offline operations before this call, as required by
+>   * try_offline_node().
+>   */
+> -void __ref remove_memory(int nid, u64 start, u64 size)
+> +int __ref remove_memory(int nid, u64 start, u64 size)
+>  {
+>  	int ret;
+>  
+> @@ -1908,18 +1908,23 @@ void __ref remove_memory(int nid, u64 start, u64 size)
+>  	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
+>  				check_memblock_offlined_cb);
+>  	if (ret)
+> -		BUG();
+> +		goto end_remove;
+> +
+> +	ret = arch_remove_memory(start, size);
+> +
+> +	if (ret)
+> +		goto end_remove;
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+The original code triggers BUG() when any memblock is not offlined. Why
+the new logic includes the result of arch_remove_memory()?
+
+But I agreed the we don't need BUG(). Returning a error is better.
+
+>  
+>  	/* remove memmap entry */
+>  	firmware_map_remove(start, start + size, "System RAM");
+>  	memblock_free(start, size);
+>  	memblock_remove(start, size);
+>  
+> -	arch_remove_memory(start, size);
+> -
+>  	try_offline_node(nid);
+>  
+> +end_remove:
+>  	mem_hotplug_done();
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(remove_memory);
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+> -- 
+> 2.7.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
