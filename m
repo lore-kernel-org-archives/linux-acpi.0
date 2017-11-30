@@ -1,57 +1,104 @@
 From: Tony Luck <tony.luck@intel.com>
-Subject: [RFC PATCH 0/4] Teach EDAC driver about NVDIMMs
-Date: Thu, 30 Nov 2017 12:40:38 -0800
-Message-ID: <cover.1512070562.git.tony.luck@intel.com>
+Subject: [RFC PATCH 1/4] acpi, nfit: Add function to look up nvdimm device and provide SMBIOS handle
+Date: Thu, 30 Nov 2017 12:40:39 -0800
+Message-ID: <9aa0f36505fd1ca53444360d8eee239a5e890b6f.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:10155 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750923AbdK3Ukm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 15:40:42 -0500
+        id S1751105AbdK3Ukn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 15:40:43 -0500
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
+References: <cover.1512070562.git.tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-edac@vger.kernel.org
 Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-A Skylake server may have some DIMM slots filled with NVDIMMs
-instead of normal DDR4 DIMMs. These are enumerated differently
-by the memory controller.
+EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
 
-Sadly there isn't an easy way to just peek at some memory controller
-register to find the size of these DIMMs, so we have to rely on the
-NFIT and SMBIOS tables to get that information.
+Provide a function that looks up an acpi_nfit_memory_map from a device
+handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
+Also pass back the "flags" so we can see if the NVDIMM is OK.
 
-This series only tackles the topology function of the EDAC
-driver.  A later series of patches will fix the address translation
-parts so that errors in NVDIMMs will be reported correctly.
-
-It's marked "RFC" because it depends on the new ACPCIA version 20171110
-which has only just made it to Rafael's tree.
-
-Some of you may only care about some of the parts that touch code you
-maintain, but I copied you on all four because you might like to see
-the bigger picture.
-
-Tony Luck (4):
-  acpi, nfit: Add function to look up nvdimm device and provide SMBIOS
-    handle
-  firmware: dmi: Add function to look up a handle and return DIMM size
-  edac: Add new memory type for non-volatile DIMMs
-  EDAC, skx_edac: Detect non-volatile DIMMs
-
- drivers/acpi/nfit/core.c     | 27 +++++++++++++++++++++
- drivers/edac/Kconfig         |  2 ++
- drivers/edac/edac_mc.c       |  1 +
- drivers/edac/edac_mc_sysfs.c |  3 ++-
- drivers/edac/skx_edac.c      | 56 ++++++++++++++++++++++++++++++++++++++++----
- drivers/firmware/dmi_scan.c  | 29 +++++++++++++++++++++++
- include/acpi/nfit.h          | 19 +++++++++++++++
- include/linux/dmi.h          |  2 ++
- include/linux/edac.h         |  3 +++
- 9 files changed, 136 insertions(+), 6 deletions(-)
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+---
+ drivers/acpi/nfit/core.c | 27 +++++++++++++++++++++++++++
+ include/acpi/nfit.h      | 19 +++++++++++++++++++
+ 2 files changed, 46 insertions(+)
  create mode 100644 include/acpi/nfit.h
 
-
-base-commit: 3fc70f8be59950ee2deecefdddb68be19b8cddd1
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 9c2c49b6a240..31c0dc30f88f 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -23,6 +23,7 @@
+ #include <linux/io.h>
+ #include <linux/nd.h>
+ #include <asm/cacheflush.h>
++#include <acpi/nfit.h>
+ #include "nfit.h"
+ 
+ /*
+@@ -478,6 +479,32 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
+ }
+ 
++int nfit_get_smbios_id(u32 device_handle, u16 *flags)
++{
++	struct acpi_nfit_memory_map *memdev;
++	struct acpi_nfit_desc *acpi_desc;
++	struct nfit_mem *nfit_mem;
++
++	mutex_lock(&acpi_desc_lock);
++	list_for_each_entry(acpi_desc, &acpi_descs, list) {
++		mutex_lock(&acpi_desc->init_mutex);
++		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++			memdev = __to_nfit_memdev(nfit_mem);
++			if (memdev->device_handle == device_handle) {
++				mutex_unlock(&acpi_desc->init_mutex);
++				mutex_unlock(&acpi_desc_lock);
++				*flags = memdev->flags;
++				return memdev->physical_id;
++			}
++		}
++		mutex_unlock(&acpi_desc->init_mutex);
++	}
++	mutex_unlock(&acpi_desc_lock);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
++
+ /*
+  * An implementation may provide a truncated control region if no block windows
+  * are defined.
+diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
+new file mode 100644
+index 000000000000..1eee1e32e72e
+--- /dev/null
++++ b/include/acpi/nfit.h
+@@ -0,0 +1,19 @@
++/*
++ * Copyright(c) 2017 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++
++#ifndef __ACPI_NFIT_H
++#define __ACPI_NFIT_H
++
++int nfit_get_smbios_id(u32 device_handle, u16 *flags);
++
++#endif /* __ACPI_NFIT_H */
 -- 
 2.14.1
 
