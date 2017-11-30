@@ -1,46 +1,72 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 6/6] gpiolib: acpi: Introduce NO_RESTRICTION quirk
-Date: Thu, 30 Nov 2017 13:07:41 +0200
-Message-ID: <1512040061.25007.531.camel@linux.intel.com>
-References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
-         <20171110134033.85461-6-andriy.shevchenko@linux.intel.com>
-         <20171113115554.GY18997@lahna.fi.intel.com>
-         <1510578648.25007.166.camel@linux.intel.com>
-         <CACRpkdY64u0T+BW_ACzZEr7cB+W1aixsn4ZB50EsBUJZttpMaw@mail.gmail.com>
-         <1511962871.25007.485.camel@linux.intel.com>
-         <CACRpkdZ3rHjZZNwAL4KF_FtP6gQgATwk7F8-S8Y3VPZbJ2TdmQ@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
+ from devices
+Date: Thu, 30 Nov 2017 13:39:31 +0000
+Message-ID: <c4ba0a3d-ef11-6e1a-9c47-7c574233d4fb@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-6-jean-philippe.brucker@arm.com>
+ <9c364147-12c4-5a8a-9cd9-0642a6b92555@huawei.com>
+ <3338635f-f2ba-4b78-a72b-2568645f7df3@arm.com>
+ <7ba3d70a-2364-2a92-39a8-ed112807b83c@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:44240 "EHLO mga06.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:53954 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750771AbdK3LHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 06:07:44 -0500
-In-Reply-To: <CACRpkdZ3rHjZZNwAL4KF_FtP6gQgATwk7F8-S8Y3VPZbJ2TdmQ@mail.gmail.com>
+        id S1751819AbdK3NgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 08:36:24 -0500
+In-Reply-To: <7ba3d70a-2364-2a92-39a8-ed112807b83c@huawei.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwatters@cod
 
-On Thu, 2017-11-30 at 10:57 +0100, Linus Walleij wrote:
-> On Wed, Nov 29, 2017 at 2:41 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
+On 30/11/17 01:11, Yisheng Xie wrote:
+> Hi, Jean,
 > 
-> > It
-> > would be nice if you can prepare immutable branch in case the
-> > subsystems
-> > would like to merge patches via their respective trees.
+> On 2017/11/29 23:01, Jean-Philippe Brucker wrote:
+>> On 29/11/17 06:08, Yisheng Xie wrote:
+>>>
+>>>
+>>> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>>>> +int iommu_process_bind_device(struct device *dev, struct task_struct *task,
+>>>> +			      int *pasid, int flags)
+>>>> +{
+>>> [..]
+>>>> +			err = iommu_process_attach_locked(context, dev);
+>>>> +			if (err)
+>>>> +				iommu_process_put_locked(process);
+>>> one ref for a context is enough right? so also need call iommu_process_put_locked()
+>>> if attach ok, or will be leak if user call bind twice for the same device and task.
+>>
+>> I wasn't sure, I think I prefer taking one ref for each bind. If user
+>> calls bind twice, it should call unbind twice as well (in case of leak we
+>> free the context on process exit).
+>>
+>> Also with this implementation, user can call bind for two devices in the
+>> same domain, which will share the same context structure. So we have to
+>> take as many refs as bind() calls.
 > 
-> I have created a branch named "ib-gpio-acpi-quirks" in my tree
-> with the six patches from you, then merged that to my devel
-> branch.
 > 
-> You can point subsystem maintainers to that one.
+> hmm, it has two ref, one for _context_ and the other for *process* (or maybe mm for
+> your next version), right? For each bind it will take a ref of context as present
+> design. but why also process ref need be taken for each bind? I mean it seems does
+> not break _user can call bind for two devices in the same domain_.
 > 
+> And if you really want to take a ref of *process* for echo bind, you should put it when
+> unbind, right? I just not find where you put the ref of process when unbind. But just put
+> the process ref when free context.
+> 
+> Maybe I just miss something.
 
-Thanks!
+No you're right I misunderstood, sorry about that. Each context has a
+single ref to a process, so we do need to drop the process ref here as you
+pointed out.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+I thought I exercised this path though, I'll update my test suite. Also
+attach_locked shouldn't take a context ref if attach fails...
+
+Thanks a lot,
+Jean
