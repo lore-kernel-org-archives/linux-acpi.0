@@ -1,72 +1,98 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
- from devices
-Date: Thu, 30 Nov 2017 13:39:31 +0000
-Message-ID: <c4ba0a3d-ef11-6e1a-9c47-7c574233d4fb@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-6-jean-philippe.brucker@arm.com>
- <9c364147-12c4-5a8a-9cd9-0642a6b92555@huawei.com>
- <3338635f-f2ba-4b78-a72b-2568645f7df3@arm.com>
- <7ba3d70a-2364-2a92-39a8-ed112807b83c@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH] acpi: Fix ACPI GPE mask kernel parameter
+Date: Thu, 30 Nov 2017 15:05:59 -0500
+Message-ID: <20171130200559.19240-1-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53954 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47658 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751819AbdK3NgY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 08:36:24 -0500
-In-Reply-To: <7ba3d70a-2364-2a92-39a8-ed112807b83c@huawei.com>
-Content-Language: en-US
+        id S1750849AbdK3UGF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 15:06:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Yisheng Xie <xieyisheng1@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwatters@cod
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-doc@vger.kernel.org
 
-On 30/11/17 01:11, Yisheng Xie wrote:
-> Hi, Jean,
-> 
-> On 2017/11/29 23:01, Jean-Philippe Brucker wrote:
->> On 29/11/17 06:08, Yisheng Xie wrote:
->>>
->>>
->>> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
->>>> +int iommu_process_bind_device(struct device *dev, struct task_struct *task,
->>>> +			      int *pasid, int flags)
->>>> +{
->>> [..]
->>>> +			err = iommu_process_attach_locked(context, dev);
->>>> +			if (err)
->>>> +				iommu_process_put_locked(process);
->>> one ref for a context is enough right? so also need call iommu_process_put_locked()
->>> if attach ok, or will be leak if user call bind twice for the same device and task.
->>
->> I wasn't sure, I think I prefer taking one ref for each bind. If user
->> calls bind twice, it should call unbind twice as well (in case of leak we
->> free the context on process exit).
->>
->> Also with this implementation, user can call bind for two devices in the
->> same domain, which will share the same context structure. So we have to
->> take as many refs as bind() calls.
-> 
-> 
-> hmm, it has two ref, one for _context_ and the other for *process* (or maybe mm for
-> your next version), right? For each bind it will take a ref of context as present
-> design. but why also process ref need be taken for each bind? I mean it seems does
-> not break _user can call bind for two devices in the same domain_.
-> 
-> And if you really want to take a ref of *process* for echo bind, you should put it when
-> unbind, right? I just not find where you put the ref of process when unbind. But just put
-> the process ref when free context.
-> 
-> Maybe I just miss something.
+The acpi_mask_gpe= kernel parameter documentation states that the range
+of mask is 128 GPEs (0x00 to 0x7F).  The acpi_masked_gpes mask is a u64 so
+only 64 GPEs (0x00 to 0x3F) can really be masked.
 
-No you're right I misunderstood, sorry about that. Each context has a
-single ref to a process, so we do need to drop the process ref here as you
-pointed out.
+Use a bitmap of size 0xFF instead of a u64 for the GPE mask so 256
+GPEs can be masked.
 
-I thought I exercised this path though, I'll update my test suite. Also
-attach_locked shouldn't take a context ref if attach fails...
+Fixes: 9c4aa1eecb48 ("ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding")
+Signed-off-by: Prarit Bharava <prarit@redhat.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-doc@vger.kernel.org
+---
+ Documentation/admin-guide/kernel-parameters.txt |  1 -
+ drivers/acpi/sysfs.c                            | 26 ++++++++-----------------
+ 2 files changed, 8 insertions(+), 19 deletions(-)
 
-Thanks a lot,
-Jean
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index 6571fbfdb2a1..89ba74761180 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -114,7 +114,6 @@
+ 			This facility can be used to prevent such uncontrolled
+ 			GPE floodings.
+ 			Format: <int>
+-			Support masking of GPEs numbered from 0x00 to 0x7f.
+ 
+ 	acpi_no_auto_serialize	[HW,ACPI]
+ 			Disable auto-serialization of AML methods
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 06a150bb35bf..4fc59c3bc673 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -816,14 +816,8 @@ static ssize_t counter_set(struct kobject *kobj,
+  * interface:
+  *   echo unmask > /sys/firmware/acpi/interrupts/gpe00
+  */
+-
+-/*
+- * Currently, the GPE flooding prevention only supports to mask the GPEs
+- * numbered from 00 to 7f.
+- */
+-#define ACPI_MASKABLE_GPE_MAX	0x80
+-
+-static u64 __initdata acpi_masked_gpes;
++#define ACPI_MASKABLE_GPE_MAX	0xFF
++static DECLARE_BITMAP(acpi_masked_gpes_map, ACPI_MASKABLE_GPE_MAX) __initdata;
+ 
+ static int __init acpi_gpe_set_masked_gpes(char *val)
+ {
+@@ -831,7 +825,7 @@ static int __init acpi_gpe_set_masked_gpes(char *val)
+ 
+ 	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_MASKABLE_GPE_MAX)
+ 		return -EINVAL;
+-	acpi_masked_gpes |= ((u64)1<<gpe);
++	set_bit(gpe, acpi_masked_gpes_map);
+ 
+ 	return 1;
+ }
+@@ -843,15 +837,11 @@ void __init acpi_gpe_apply_masked_gpes(void)
+ 	acpi_status status;
+ 	u8 gpe;
+ 
+-	for (gpe = 0;
+-	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
+-	     gpe++) {
+-		if (acpi_masked_gpes & ((u64)1<<gpe)) {
+-			status = acpi_get_gpe_device(gpe, &handle);
+-			if (ACPI_SUCCESS(status)) {
+-				pr_info("Masking GPE 0x%x.\n", gpe);
+-				(void)acpi_mask_gpe(handle, gpe, TRUE);
+-			}
++	for_each_set_bit(gpe, acpi_masked_gpes_map, ACPI_MASKABLE_GPE_MAX) {
++		status = acpi_get_gpe_device(gpe, &handle);
++		if (ACPI_SUCCESS(status)) {
++			pr_info("Masking GPE 0x%x.\n", gpe);
++			(void)acpi_mask_gpe(handle, gpe, TRUE);
+ 		}
+ 	}
+ }
+-- 
+2.15.0.rc0.39.g2f0e14e64
+
