@@ -1,75 +1,38 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
- state before hotremove
-Date: Thu, 30 Nov 2017 10:47:38 +0100
-Message-ID: <20171130094738.254w36va3lgqodpa@dhcp22.suse.cz>
-References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
- <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
- <CAJZ5v0i7vOxwhgA1LWYDqxCKkHaYikCf_HZZQCbgApLpoyV2JA@mail.gmail.com>
- <20171124144917.GB1966@samekh>
- <20171124154317.copbe3u6y2q4mura@dhcp22.suse.cz>
- <20171124155458.GC1966@samekh>
- <20171124164042.3crcoz2lwgwv725l@dhcp22.suse.cz>
- <20171129012040.GC1469@linux-l9pv.suse>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v1 6/6] gpiolib: acpi: Introduce NO_RESTRICTION quirk
+Date: Thu, 30 Nov 2017 10:57:26 +0100
+Message-ID: <CACRpkdZ3rHjZZNwAL4KF_FtP6gQgATwk7F8-S8Y3VPZbJ2TdmQ@mail.gmail.com>
+References: <20171110134033.85461-1-andriy.shevchenko@linux.intel.com>
+ <20171110134033.85461-6-andriy.shevchenko@linux.intel.com>
+ <20171113115554.GY18997@lahna.fi.intel.com> <1510578648.25007.166.camel@linux.intel.com>
+ <CACRpkdY64u0T+BW_ACzZEr7cB+W1aixsn4ZB50EsBUJZttpMaw@mail.gmail.com> <1511962871.25007.485.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:48538 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750984AbdK3Jrn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 04:47:43 -0500
-Content-Disposition: inline
-In-Reply-To: <20171129012040.GC1469@linux-l9pv.suse>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:39574 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751563AbdK3J51 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Nov 2017 04:57:27 -0500
+Received: by mail-io0-f193.google.com with SMTP id h12so6921187iof.6
+        for <linux-acpi@vger.kernel.org>; Thu, 30 Nov 2017 01:57:27 -0800 (PST)
+In-Reply-To: <1511962871.25007.485.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: Andrea Reale <ar@linux.vnet.ibm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, Mark Rutland <mark.rutland@arm.com>, scott.branden@broadcom.com, Will Deacon <will.deacon@arm.com>, qiuxishi@huawei.com, Catalin Marinas <catalin.marinas@arm.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed 29-11-17 09:20:40, Joey Lee wrote:
-> On Fri, Nov 24, 2017 at 07:17:41PM +0100, Michal Hocko wrote:
-[...]
-> > You cannot hotremove memory which is still online. This is what caller
-> > should enforce. This is too late to handle the failure. At least for
-> > ACPI.
-> >
-> 
-> The logic in acpi_scan_hot_remove() calls memory_subsys_offline(). If
-> there doesn't have any error returns by memory_subsys_offline, then ACPI
-> assumes all devices are offlined by subsystem (memory subsystem in this case).
+On Wed, Nov 29, 2017 at 2:41 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
 
-yes, that is what I meant by calling it caller responsibility
+> It
+> would be nice if you can prepare immutable branch in case the subsystems
+> would like to merge patches via their respective trees.
 
-> Then system moves to remove stage, ACPI calls acpi_memory_device_remove().
-> Here
->  
-> > > I cannot see any need to
-> > > BUG() in such a case: an error code seems more than sufficient to me.
-> > 
-> > I do not rememeber details but AFAIR ACPI is in a deferred (kworker)
-> > context here and cannot simply communicate error code down the road.
-> > I agree that we should be able to simply return an error but what is the
-> > actual error condition that might happen here?
-> >
-> 
-> Currently acpi_bus_trim() didn't handle any return error. If subsystem
-> returns error, then ACPI can only interrupt hot-remove process.
-> 
-> > > This is why this patch removes the BUG() call when the "offline" check
-> > > fails from the generic code. 
-> > 
-> > As I've said we should simply get rid of BUG rather than move it around.
-> >
-> 
-> As I remember that the original BUG() helped us to find out a bug about the
-> offline state doesn't sync between memblock device with memory state.
-> Something likes:
-> 	mem->dev.offline != (mem->state == MEM_OFFLINE)
-> 
-> So, the BUG() is useful to capture bug about state sync between device object
-> and subsystem object.
+I have created a branch named "ib-gpio-acpi-quirks" in my tree
+with the six patches from you, then merged that to my devel
+branch.
 
-BUG is a fatal condition under many contexts. And therefore not an
-appropriate error handling.
--- 
-Michal Hocko
-SUSE Labs
+You can point subsystem maintainers to that one.
+
+Yours,
+Linus Walleij
