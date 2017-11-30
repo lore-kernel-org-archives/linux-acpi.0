@@ -1,13 +1,13 @@
 From: Tony Luck <tony.luck@intel.com>
-Subject: [RFC PATCH 4/4] EDAC, skx_edac: Detect non-volatile DIMMs
-Date: Thu, 30 Nov 2017 12:40:42 -0800
-Message-ID: <da4c989314e82ec29195804ba5349ac3136f74c0.1512070562.git.tony.luck@intel.com>
+Subject: [RFC PATCH 2/4] firmware: dmi: Add function to look up a handle and return DIMM size
+Date: Thu, 30 Nov 2017 12:40:40 -0800
+Message-ID: <2fae02861e5c446c0cdd30ba3e00fad55db97807.1512070562.git.tony.luck@intel.com>
 References: <cover.1512070562.git.tony.luck@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga11.intel.com ([192.55.52.93]:10155 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751591AbdK3Uko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 15:40:44 -0500
+        id S1750923AbdK3Ukn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 15:40:43 -0500
 In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
 In-Reply-To: <cover.1512070562.git.tony.luck@intel.com>
 References: <cover.1512070562.git.tony.luck@intel.com>
@@ -16,150 +16,95 @@ List-Id: linux-acpi@vger.kernel.org
 To: linux-edac@vger.kernel.org
 Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-This just covers the topology function of the EDAC driver.
-We locate which DIMM slots are populated with NVDIMMs and
-query the NFIT and SMBIOS tables to get the size.
+When we first scan the SMBIOS table, save the size of the DIMM.
+
+Provide a function for other code (EDAC driver) to look up the size
+of a DIMM from its SMBIOS handle.
 
 Signed-off-by: Tony Luck <tony.luck@intel.com>
 ---
- drivers/edac/Kconfig    |  2 ++
- drivers/edac/skx_edac.c | 56 ++++++++++++++++++++++++++++++++++++++++++++-----
- 2 files changed, 53 insertions(+), 5 deletions(-)
+ drivers/firmware/dmi_scan.c | 29 +++++++++++++++++++++++++++++
+ include/linux/dmi.h         |  2 ++
+ 2 files changed, 31 insertions(+)
 
-diff --git a/drivers/edac/Kconfig b/drivers/edac/Kconfig
-index 96afb2aeed18..5c0c4a358f67 100644
---- a/drivers/edac/Kconfig
-+++ b/drivers/edac/Kconfig
-@@ -232,6 +232,8 @@ config EDAC_SBRIDGE
- config EDAC_SKX
- 	tristate "Intel Skylake server Integrated MC"
- 	depends on PCI && X86_64 && X86_MCE_INTEL && PCI_MMCONFIG
-+	select DMI
-+	select ACPI_NFIT
- 	help
- 	  Support for error detection and correction the Intel
- 	  Skylake server Integrated Memory Controllers.
-diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
-index 16dea97568a1..814a5245029c 100644
---- a/drivers/edac/skx_edac.c
-+++ b/drivers/edac/skx_edac.c
-@@ -14,6 +14,8 @@
- 
- #include <linux/module.h>
- #include <linux/init.h>
-+#include <linux/acpi.h>
-+#include <linux/dmi.h>
- #include <linux/pci.h>
- #include <linux/pci_ids.h>
- #include <linux/slab.h>
-@@ -24,6 +26,7 @@
- #include <linux/bitmap.h>
- #include <linux/math64.h>
- #include <linux/mod_devicetable.h>
-+#include <acpi/nfit.h>
- #include <asm/cpu_device_id.h>
- #include <asm/intel-family.h>
- #include <asm/processor.h>
-@@ -298,6 +301,7 @@ static int get_dimm_attr(u32 reg, int lobit, int hibit, int add, int minval,
- }
- 
- #define IS_DIMM_PRESENT(mtr)		GET_BITFIELD((mtr), 15, 15)
-+#define IS_NVDIMM_PRESENT(mcddrtcfg, i)	GET_BITFIELD((mcddrtcfg), (i), (i))
- 
- #define numrank(reg) get_dimm_attr((reg), 12, 13, 0, 1, 2, "ranks")
- #define numrow(reg) get_dimm_attr((reg), 2, 4, 12, 1, 6, "rows")
-@@ -346,8 +350,6 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
- 	int  banks = 16, ranks, rows, cols, npages;
- 	u64 size;
- 
--	if (!IS_DIMM_PRESENT(mtr))
--		return 0;
- 	ranks = numrank(mtr);
- 	rows = numrow(mtr);
- 	cols = numcol(mtr);
-@@ -379,6 +381,46 @@ static int get_dimm_info(u32 mtr, u32 amap, struct dimm_info *dimm,
- 	return 1;
- }
- 
-+static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
-+			   int chan, int dimmno)
-+{
-+	int smbios_handle;
-+	u32 dev_handle;
-+	u16 flags;
+diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+index 783041964439..946e86fb1ec6 100644
+--- a/drivers/firmware/dmi_scan.c
++++ b/drivers/firmware/dmi_scan.c
+@@ -37,6 +37,7 @@ static char dmi_ids_string[128] __initdata;
+ static struct dmi_memdev_info {
+ 	const char *device;
+ 	const char *bank;
 +	u64 size;
-+
-+	dev_handle = ACPI_NFIT_BUILD_DEVICE_HANDLE(dimmno, chan, imc->lmc,
-+						   imc->src_id, 0);
-+
-+	smbios_handle = nfit_get_smbios_id(dev_handle, &flags);
-+	if (smbios_handle < 0) {
-+		skx_printk(KERN_ERR, "Can't find handle for NVDIMM ADR=%x\n", dev_handle);
-+		return 0;
-+	}
-+	if (flags & ACPI_NFIT_MEM_MAP_FAILED) {
-+		skx_printk(KERN_ERR, "NVDIMM ADR=%x is not mapped\n", dev_handle);
-+		return 0;
-+	}
-+	size = dmi_memdev_size(smbios_handle);
-+	if (size == ~0ul) {
-+		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
-+			   dev_handle, smbios_handle);
-+		return 0;
-+	}
-+	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
-+		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
-+
-+	dimm->nr_pages = size >> PAGE_SHIFT;
-+	dimm->grain = 32;
-+	dimm->dtype = DEV_UNKNOWN;
-+	dimm->mtype = MEM_NVDIMM;
-+	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
-+	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
-+		 imc->src_id, imc->lmc, chan, dimmno);
-+
-+	return 1;
-+}
-+
- #define SKX_GET_MTMTR(dev, reg) \
- 	pci_read_config_dword((dev), 0x87c, &reg)
- 
-@@ -395,20 +437,24 @@ static int skx_get_dimm_config(struct mem_ctl_info *mci)
+ 	u16 handle;
+ } *dmi_memdev;
+ static int dmi_memdev_nr;
+@@ -395,6 +396,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
  {
- 	struct skx_pvt *pvt = mci->pvt_info;
- 	struct skx_imc *imc = pvt->imc;
-+	u32 mtr, amap, mcddrtcfg;
- 	struct dimm_info *dimm;
- 	int i, j;
--	u32 mtr, amap;
- 	int ndimms;
+ 	const char *d = (const char *)dm;
+ 	static int nr;
++	u64 bytes;
++	u16 size;
  
- 	for (i = 0; i < NUM_CHANNELS; i++) {
- 		ndimms = 0;
- 		pci_read_config_dword(imc->chan[i].cdev, 0x8C, &amap);
-+		pci_read_config_dword(imc->chan[i].cdev, 0x400, &mcddrtcfg);
- 		for (j = 0; j < NUM_DIMMS; j++) {
- 			dimm = EDAC_DIMM_PTR(mci->layers, mci->dimms,
- 					     mci->n_layers, i, j, 0);
- 			pci_read_config_dword(imc->chan[i].cdev,
- 					0x80 + 4*j, &mtr);
--			ndimms += get_dimm_info(mtr, amap, dimm, imc, i, j);
-+			if (IS_DIMM_PRESENT(mtr))
-+				ndimms += get_dimm_info(mtr, amap, dimm, imc, i, j);
-+			else if (IS_NVDIMM_PRESENT(mcddrtcfg, j))
-+				ndimms += get_nvdimm_info(dimm, imc, i, j);
- 		}
- 		if (ndimms && !skx_check_ecc(imc->chan[0].cdev)) {
- 			skx_printk(KERN_ERR, "ECC is disabled on imc %d\n", imc->mc);
-@@ -466,7 +512,7 @@ static int skx_register_mci(struct skx_imc *imc)
+ 	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
+ 		return;
+@@ -405,6 +408,18 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+ 	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
+ 	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
+ 	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
++	size = get_unaligned((u16 *)&d[0xC]);
++	if (size == 0)
++		bytes = 0;
++	else if (size == 0xffff)
++		bytes = ~0ul;
++	else if (size & 0x8000)
++		bytes = (u64)(size & 0x7fff) << 10;
++	else if (size != 0x7fff)
++		bytes = (u64)size << 20;
++	else
++		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
++	dmi_memdev[nr].size = bytes;
+ 	nr++;
+ }
  
- 	mci->ctl_name = kasprintf(GFP_KERNEL, "Skylake Socket#%d IMC#%d",
- 				  imc->node_id, imc->lmc);
--	mci->mtype_cap = MEM_FLAG_DDR4;
-+	mci->mtype_cap = MEM_FLAG_DDR4 | MEM_FLAG_NVDIMM;
- 	mci->edac_ctl_cap = EDAC_FLAG_NONE;
- 	mci->edac_cap = EDAC_FLAG_NONE;
- 	mci->mod_name = "skx_edac.c";
+@@ -1073,3 +1088,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(dmi_memdev_name);
++
++u64 dmi_memdev_size(u16 handle)
++{
++	int n;
++
++	if (dmi_memdev) {
++		for (n = 0; n < dmi_memdev_nr; n++) {
++			if (handle == dmi_memdev[n].handle)
++				return dmi_memdev[n].size;
++		}
++	}
++	return ~0ul;
++}
++EXPORT_SYMBOL_GPL(dmi_memdev_size);
+diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+index 46e151172d95..7f5929123b69 100644
+--- a/include/linux/dmi.h
++++ b/include/linux/dmi.h
+@@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+ 	void *private_data);
+ extern bool dmi_match(enum dmi_field f, const char *str);
+ extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
++extern u64 dmi_memdev_size(u16 handle);
+ 
+ #else
+ 
+@@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
+ 	{ return false; }
+ static inline void dmi_memdev_name(u16 handle, const char **bank,
+ 		const char **device) { }
++static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
+ static inline const struct dmi_system_id *
+ 	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+ 
 -- 
 2.14.1
 
