@@ -1,98 +1,57 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi: Fix ACPI GPE mask kernel parameter
-Date: Thu, 30 Nov 2017 15:05:59 -0500
-Message-ID: <20171130200559.19240-1-prarit@redhat.com>
+From: Tony Luck <tony.luck@intel.com>
+Subject: [RFC PATCH 0/4] Teach EDAC driver about NVDIMMs
+Date: Thu, 30 Nov 2017 12:40:38 -0800
+Message-ID: <cover.1512070562.git.tony.luck@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47658 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:10155 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750849AbdK3UGF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 30 Nov 2017 15:06:05 -0500
+        id S1750923AbdK3Ukm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 15:40:42 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-doc@vger.kernel.org
+To: linux-edac@vger.kernel.org
+Cc: Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-The acpi_mask_gpe= kernel parameter documentation states that the range
-of mask is 128 GPEs (0x00 to 0x7F).  The acpi_masked_gpes mask is a u64 so
-only 64 GPEs (0x00 to 0x3F) can really be masked.
+A Skylake server may have some DIMM slots filled with NVDIMMs
+instead of normal DDR4 DIMMs. These are enumerated differently
+by the memory controller.
 
-Use a bitmap of size 0xFF instead of a u64 for the GPE mask so 256
-GPEs can be masked.
+Sadly there isn't an easy way to just peek at some memory controller
+register to find the size of these DIMMs, so we have to rely on the
+NFIT and SMBIOS tables to get that information.
 
-Fixes: 9c4aa1eecb48 ("ACPI / sysfs: Provide quirk mechanism to prevent GPE flooding")
-Signed-off-by: Prarit Bharava <prarit@redhat.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-doc@vger.kernel.org
----
- Documentation/admin-guide/kernel-parameters.txt |  1 -
- drivers/acpi/sysfs.c                            | 26 ++++++++-----------------
- 2 files changed, 8 insertions(+), 19 deletions(-)
+This series only tackles the topology function of the EDAC
+driver.  A later series of patches will fix the address translation
+parts so that errors in NVDIMMs will be reported correctly.
 
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 6571fbfdb2a1..89ba74761180 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -114,7 +114,6 @@
- 			This facility can be used to prevent such uncontrolled
- 			GPE floodings.
- 			Format: <int>
--			Support masking of GPEs numbered from 0x00 to 0x7f.
- 
- 	acpi_no_auto_serialize	[HW,ACPI]
- 			Disable auto-serialization of AML methods
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 06a150bb35bf..4fc59c3bc673 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -816,14 +816,8 @@ static ssize_t counter_set(struct kobject *kobj,
-  * interface:
-  *   echo unmask > /sys/firmware/acpi/interrupts/gpe00
-  */
--
--/*
-- * Currently, the GPE flooding prevention only supports to mask the GPEs
-- * numbered from 00 to 7f.
-- */
--#define ACPI_MASKABLE_GPE_MAX	0x80
--
--static u64 __initdata acpi_masked_gpes;
-+#define ACPI_MASKABLE_GPE_MAX	0xFF
-+static DECLARE_BITMAP(acpi_masked_gpes_map, ACPI_MASKABLE_GPE_MAX) __initdata;
- 
- static int __init acpi_gpe_set_masked_gpes(char *val)
- {
-@@ -831,7 +825,7 @@ static int __init acpi_gpe_set_masked_gpes(char *val)
- 
- 	if (kstrtou8(val, 0, &gpe) || gpe > ACPI_MASKABLE_GPE_MAX)
- 		return -EINVAL;
--	acpi_masked_gpes |= ((u64)1<<gpe);
-+	set_bit(gpe, acpi_masked_gpes_map);
- 
- 	return 1;
- }
-@@ -843,15 +837,11 @@ void __init acpi_gpe_apply_masked_gpes(void)
- 	acpi_status status;
- 	u8 gpe;
- 
--	for (gpe = 0;
--	     gpe < min_t(u8, ACPI_MASKABLE_GPE_MAX, acpi_current_gpe_count);
--	     gpe++) {
--		if (acpi_masked_gpes & ((u64)1<<gpe)) {
--			status = acpi_get_gpe_device(gpe, &handle);
--			if (ACPI_SUCCESS(status)) {
--				pr_info("Masking GPE 0x%x.\n", gpe);
--				(void)acpi_mask_gpe(handle, gpe, TRUE);
--			}
-+	for_each_set_bit(gpe, acpi_masked_gpes_map, ACPI_MASKABLE_GPE_MAX) {
-+		status = acpi_get_gpe_device(gpe, &handle);
-+		if (ACPI_SUCCESS(status)) {
-+			pr_info("Masking GPE 0x%x.\n", gpe);
-+			(void)acpi_mask_gpe(handle, gpe, TRUE);
- 		}
- 	}
- }
+It's marked "RFC" because it depends on the new ACPCIA version 20171110
+which has only just made it to Rafael's tree.
+
+Some of you may only care about some of the parts that touch code you
+maintain, but I copied you on all four because you might like to see
+the bigger picture.
+
+Tony Luck (4):
+  acpi, nfit: Add function to look up nvdimm device and provide SMBIOS
+    handle
+  firmware: dmi: Add function to look up a handle and return DIMM size
+  edac: Add new memory type for non-volatile DIMMs
+  EDAC, skx_edac: Detect non-volatile DIMMs
+
+ drivers/acpi/nfit/core.c     | 27 +++++++++++++++++++++
+ drivers/edac/Kconfig         |  2 ++
+ drivers/edac/edac_mc.c       |  1 +
+ drivers/edac/edac_mc_sysfs.c |  3 ++-
+ drivers/edac/skx_edac.c      | 56 ++++++++++++++++++++++++++++++++++++++++----
+ drivers/firmware/dmi_scan.c  | 29 +++++++++++++++++++++++
+ include/acpi/nfit.h          | 19 +++++++++++++++
+ include/linux/dmi.h          |  2 ++
+ include/linux/edac.h         |  3 +++
+ 9 files changed, 136 insertions(+), 6 deletions(-)
+ create mode 100644 include/acpi/nfit.h
+
+
+base-commit: 3fc70f8be59950ee2deecefdddb68be19b8cddd1
 -- 
-2.15.0.rc0.39.g2f0e14e64
+2.14.1
 
