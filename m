@@ -1,36 +1,69 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3 3/4] dmaengine: qcom_hidma: add support for the new
- revision
-Date: Wed, 29 Nov 2017 17:14:35 -0500
-Message-ID: <dd656bd9-2e70-931b-62d7-f2c5b68d1892@codeaurora.org>
-References: <1510281175-27173-1-git-send-email-okaya@codeaurora.org>
- <1510281175-27173-3-git-send-email-okaya@codeaurora.org>
- <20171129135813.GE32417@localhost>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
+ from devices
+Date: Thu, 30 Nov 2017 09:11:58 +0800
+Message-ID: <7ba3d70a-2364-2a92-39a8-ed112807b83c@huawei.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-6-jean-philippe.brucker@arm.com>
+ <9c364147-12c4-5a8a-9cd9-0642a6b92555@huawei.com>
+ <3338635f-f2ba-4b78-a72b-2568645f7df3@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171129135813.GE32417@localhost>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, robin.murphy@arm.com, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:51378 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752776AbdK3BM3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 29 Nov 2017 20:12:29 -0500
+In-Reply-To: <3338635f-f2ba-4b78-a72b-2568645f7df3@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Sudeep Holla <Sudeep.Holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Robin Murphy <Robin.Murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, "gabriele.paoloni@huawei.com" <gabriele.paoloni@huawei.com>, nwatters@c
 
-+linux-acpi
+Hi, Jean,
 
-On 11/29/2017 8:58 AM, Vinod Koul wrote:
->> +		cap = (enum hidma_cap) acpi_device_get_match_data(dev);
-> should this not reside in core? How about a device_get_match_data() which
-> returns the data for folks based on node being acpi/of
+On 2017/11/29 23:01, Jean-Philippe Brucker wrote:
+> On 29/11/17 06:08, Yisheng Xie wrote:
+>>
+>>
+>> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>>> +int iommu_process_bind_device(struct device *dev, struct task_struct *task,
+>>> +			      int *pasid, int flags)
+>>> +{
+>> [..]
+>>> +			err = iommu_process_attach_locked(context, dev);
+>>> +			if (err)
+>>> +				iommu_process_put_locked(process);
+>> one ref for a context is enough right? so also need call iommu_process_put_locked()
+>> if attach ok, or will be leak if user call bind twice for the same device and task.
+> 
+> I wasn't sure, I think I prefer taking one ref for each bind. If user
+> calls bind twice, it should call unbind twice as well (in case of leak we
+> free the context on process exit).
+> 
+> Also with this implementation, user can call bind for two devices in the
+> same domain, which will share the same context structure. So we have to
+> take as many refs as bind() calls.
 
-Sure,
 
-I'm preparing a device function to read this as you suggested.
+hmm, it has two ref, one for _context_ and the other for *process* (or maybe mm for
+your next version), right? For each bind it will take a ref of context as present
+design. but why also process ref need be taken for each bind? I mean it seems does
+not break _user can call bind for two devices in the same domain_.
 
-Sinan
+And if you really want to take a ref of *process* for echo bind, you should put it when
+unbind, right? I just not find where you put the ref of process when unbind. But just put
+the process ref when free context.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Maybe I just miss something.
+
+Thanks
+Yisheng Xie
+> 
+> Thanks,
+> Jean
+> 
+> .
+> 
+
