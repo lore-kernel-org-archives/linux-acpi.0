@@ -1,45 +1,76 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 2/5] iio: proximity: sx9500: Add GPIO ACPI mapping
- table
-Date: Fri, 01 Dec 2017 14:36:28 +0200
-Message-ID: <1512131788.25007.535.camel@linux.intel.com>
-References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
-         <20171103130340.42459-2-andriy.shevchenko@linux.intel.com>
-         <20171104031403.000073b0@huawei.com> <20171119152934.66a481c0@archlinux>
-         <20171125142425.31dd862c@archlinux>
-         <1511795292.25007.454.camel@linux.intel.com>
-         <CACRpkdZf_O2OwK8rRnCtZ2kKADTorfD4D-ccmcnkz1Md3fJv8Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V4 2/5] ACPI / bus: Introduce acpi_get_match_data() function
+Date: Fri, 01 Dec 2017 14:52:53 +0100
+Message-ID: <2290830.PQXLc2Sk7k@aspire.rjw.lan>
+References: <1512096776-22883-1-git-send-email-okaya@codeaurora.org> <1512096776-22883-3-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZf_O2OwK8rRnCtZ2kKADTorfD4D-ccmcnkz1Md3fJv8Q@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, linux-iio@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1512096776-22883-3-git-send-email-okaya@codeaurora.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-pci@vger.kernel.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2017-12-01 at 11:04 +0100, Linus Walleij wrote:
-> On Mon, Nov 27, 2017 at 4:08 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Sat, 2017-11-25 at 14:24 +0000, Jonathan Cameron wrote:
-> > > On Sun, 19 Nov 2017 15:29:34 +0000
-> > > Jonathan Cameron <jic23@kernel.org> wrote:
-> > > Hi Andy, any updates on the above?   I probably won't be sending
-> > > a fixes pull until next weekend, but would be good to know if this
-> > > should be in there or not by then!
-> > 
-> > Yes, as you suggested I tried to add quirks to the core, so, this
-> > patch
-> > will be definitely changed.
+On Friday, December 1, 2017 3:52:53 AM CET Sinan Kaya wrote:
+> OF has of_device_get_match_data() function to extract driver specific data
+> structure. Add a similar function for ACPI.
 > 
-> The quirks mechanics are merged to the GPIO core and an
-> immutable branch is available, so Jonathan could "just" pull that in
-> and apply (elegent) fixes on top. I think.
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 
-Unfortunately I didn't see any updates WRT GPIO/pin control in linux-next.
-Did you synchronize repositories?
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> ---
+>  drivers/acpi/bus.c   | 12 ++++++++++++
+>  include/linux/acpi.h |  6 ++++++
+>  2 files changed, 18 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 4d0979e..b271eb1 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -785,6 +785,18 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_match_device);
+>  
+> +void *acpi_get_match_data(const struct device *dev)
+> +{
+> +	const struct acpi_device_id *match;
+> +
+> +	match = acpi_match_device(dev->driver->acpi_match_table, dev);
+> +	if (!match)
+> +		return NULL;
+> +
+> +	return (void *)match->driver_data;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_match_data);
+> +
+>  int acpi_match_device_ids(struct acpi_device *device,
+>  			  const struct acpi_device_id *ids)
+>  {
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 502af53..a927260 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -584,6 +584,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+>  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>  					       const struct device *dev);
+>  
+> +void *acpi_get_match_data(const struct device *dev);
+>  extern bool acpi_driver_match_device(struct device *dev,
+>  				     const struct device_driver *drv);
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+> @@ -755,6 +756,11 @@ static inline const struct acpi_device_id *acpi_match_device(
+>  	return NULL;
+>  }
+>  
+> +static inline void *acpi_get_match_data(const struct device *dev)
+> +{
+> +	return NULL;
+> +}
+> +
+>  static inline bool acpi_driver_match_device(struct device *dev,
+>  					    const struct device_driver *drv)
+>  {
+> 
