@@ -1,120 +1,45 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 0/5] ACPI: DMA ranges management
-Date: Fri, 1 Dec 2017 10:39:43 +0000
-Message-ID: <20171201103943.GA25066@red-moon>
-References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com>
- <CAL85gmAmAO+RH7KN8C4zokgTHe7nsCtotdjacSLEunK_4778cw@mail.gmail.com>
- <CAL85gmDkrwuYPTyUn_cw1bQL2y9D65z2zJe3e79qjifN5Q_7-g@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 2/5] iio: proximity: sx9500: Add GPIO ACPI mapping
+ table
+Date: Fri, 01 Dec 2017 14:36:28 +0200
+Message-ID: <1512131788.25007.535.camel@linux.intel.com>
+References: <20171103130340.42459-1-andriy.shevchenko@linux.intel.com>
+         <20171103130340.42459-2-andriy.shevchenko@linux.intel.com>
+         <20171104031403.000073b0@huawei.com> <20171119152934.66a481c0@archlinux>
+         <20171125142425.31dd862c@archlinux>
+         <1511795292.25007.454.camel@linux.intel.com>
+         <CACRpkdZf_O2OwK8rRnCtZ2kKADTorfD4D-ccmcnkz1Md3fJv8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39018 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751089AbdLAKjP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 1 Dec 2017 05:39:15 -0500
-Content-Disposition: inline
-In-Reply-To: <CAL85gmDkrwuYPTyUn_cw1bQL2y9D65z2zJe3e79qjifN5Q_7-g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <CACRpkdZf_O2OwK8rRnCtZ2kKADTorfD4D-ccmcnkz1Md3fJv8Q@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Linus Walleij <linus.walleij@linaro.org>
+Cc: Jonathan Cameron <jic23@jic23.retrosnub.co.uk>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, linux-iio@vger.kernel.org, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
 
-On Thu, Nov 30, 2017 at 04:43:00PM -0800, Feng Kan wrote:
-> On Wed, Nov 29, 2017 at 11:28 PM, Feng Kan <fkan@apm.com> wrote:
-> > On Thu, Aug 3, 2017 at 5:32 AM, Lorenzo Pieralisi
-> > <lorenzo.pieralisi@arm.com> wrote:
-> >> This patch series is v3 of a previous posting:
-> >>
-> >> v2->v3:
-> >>         - Fixed DMA masks computation
-> >>         - Fixed size computation overflow in acpi_dma_get_range()
-> >>
-> >> v1->v2:
-> >>         - Reworked acpi_dma_get_range() flow and logs
-> >>         - Added IORT named component address limits
-> >>         - Renamed acpi_dev_get_resources() helper function
-> >>         - Rebased against v4.13-rc3
-> >>
-> >> v2: http://lkml.kernel.org/r/20170731152323.32488-1-lorenzo.pieralisi@arm.com
-> >> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
-> >>
-> >> -- Original cover letter --
-> >>
-> >> As reported in:
-> >>
-> >> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
-> >>
-> >> the bus connecting devices to an IOMMU bus can be smaller in size than
-> >> the IOMMU input address bits which results in devices DMA HW bugs in
-> >> particular related to IOVA allocation (ie chopping of higher address
-> >> bits owing to system bus HW capabilities mismatch with the IOMMU).
-> >>
-> >> Fortunately this problem can be solved through an already present but never
-> >> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
-> >> window for a specific bus in ACPI and therefore all upstream devices
-> >> connected to it.
-> >>
-> >> This small patch series enables _DMA parsing in ACPI core code and
-> >> use it in ACPI IORT code in order to detect DMA ranges for devices and
-> >> update their data structures to make them work with their related DMA
-> >> addressing restrictions.
-> >>
-> >> Cc: Will Deacon <will.deacon@arm.com>
-> >> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> >> Cc: Feng Kan <fkan@apm.com>
-> >> Cc: Jon Masters <jcm@redhat.com>
-> >> Cc: Robert Moore <robert.moore@intel.com>
-> >> Cc: Robin Murphy <robin.murphy@arm.com>
-> >> Cc: Zhang Rui <rui.zhang@intel.com>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >>
-> >> Lorenzo Pieralisi (5):
-> >>   ACPICA: resource_mgr: Allow _DMA method in walk resources
-> >>   ACPI: Make acpi_dev_get_resources() method agnostic
-> >>   ACPI: Introduce DMA ranges parsing
-> >>   ACPI: Make acpi_dma_configure() DMA regions aware
-> >>   ACPI/IORT: Add IORT named component memory address limits
-> >>
-> >>  drivers/acpi/acpica/rsxface.c |  7 ++--
-> >>  drivers/acpi/arm64/iort.c     | 57 ++++++++++++++++++++++++++-
-> >>  drivers/acpi/resource.c       | 82 +++++++++++++++++++++++++++++---------
-> >>  drivers/acpi/scan.c           | 91 +++++++++++++++++++++++++++++++++++++++----
-> >>  include/acpi/acnames.h        |  1 +
-> >>  include/acpi/acpi_bus.h       |  2 +
-> >>  include/linux/acpi.h          |  8 ++++
-> >>  include/linux/acpi_iort.h     |  5 ++-
-> >>  8 files changed, 219 insertions(+), 34 deletions(-)
-> >>
-> >> --
-> >> 2.10.0
-> >>
-> > Lorenzo:
-> >
-> > A network driver can use pci_set_dma_mask or its like to override what
-> > is done with this patch here.
-> > Which would result in iova allocation greater than the original _DMA
-> > aperture. Should we force
-> > the dma_set_mask to not change if an existing mask is already set?
+On Fri, 2017-12-01 at 11:04 +0100, Linus Walleij wrote:
+> On Mon, Nov 27, 2017 at 4:08 PM, Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> > On Sat, 2017-11-25 at 14:24 +0000, Jonathan Cameron wrote:
+> > > On Sun, 19 Nov 2017 15:29:34 +0000
+> > > Jonathan Cameron <jic23@kernel.org> wrote:
+> > > Hi Andy, any updates on the above?   I probably won't be sending
+> > > a fixes pull until next weekend, but would be good to know if this
+> > > should be in there or not by then!
+> > 
+> > Yes, as you suggested I tried to add quirks to the core, so, this
+> > patch
+> > will be definitely changed.
 > 
-> Let me clarify the question some more, in our system the IOMMU supports only
-> 42 bits of address. With your _DMA aperture patch, the initial dma_mask and
-> coherent_mask are correctly set by the code. However, the device driver can
-> set the dma_mask and coherent mask at a later point which over writes the
-> initial setting by your code. In which case, once the iova is exhausted with the
-> 32 bit address, it will start seeking more iova address via the
-> dma_limit. In this
-> case it would fail my system since the iommu.aperture_end is that of 48 bits
-> as derived from ias field in  the SMMU.
-> 
-> Should the dma_limit be the smallest of driver->dma_mask, iommu.aperture_end and
-> your _DMA aperture size via ACPI table? Rather than just the
-> driver->dma_mask and
-> iommu.aperture_end. This will ensure the smallest/correct aperture is used.
+> The quirks mechanics are merged to the GPIO core and an
+> immutable branch is available, so Jonathan could "just" pull that in
+> and apply (elegent) fixes on top. I think.
 
-IIUC Nate already reported this issue - I will sync with Robin to
-check the status of this thread:
+Unfortunately I didn't see any updates WRT GPIO/pin control in linux-next.
+Did you synchronize repositories?
 
-https://marc.info/?l=linux-acpi&m=150108156230455&w=2
-
-Thanks,
-Lorenzo
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
