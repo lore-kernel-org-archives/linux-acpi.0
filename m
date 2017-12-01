@@ -1,70 +1,101 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V4 2/5] ACPI / bus: Introduce acpi_get_match_data() function
-Date: Thu, 30 Nov 2017 21:52:53 -0500
-Message-ID: <1512096776-22883-3-git-send-email-okaya@codeaurora.org>
-References: <1512096776-22883-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1512096776-22883-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org, timur@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: Re: [PATCH] x86/numa: move setting parse numa node to num_add_memblk
+Date: Fri, 1 Dec 2017 16:48:25 +0800
+Message-ID: <5A211759.5080800@huawei.com>
+References: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2243 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751666AbdLAIu1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 1 Dec 2017 03:50:27 -0500
+In-Reply-To: <1511946807-22024-1-git-send-email-zhongjiang@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, x86@kernel.org, lenb@kernel.org, mhocko@kernel.org, akpm@linux-foundation.org, vbabka@suse.cz, linux-mm@kvack.org, David Rientjes <rientjes@google.com>, Ingo Molnar <mingo@kernel.org>, Minchan Kim <minchan@kernel.org>, Johannes Weiner <hannes@cmpxchg.org>, "mgorman@techsingularity.net" <mgorman@techsingularity.net>, Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: richard.weiyang@gmail.com, pombredanne@nexb.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-OF has of_device_get_match_data() function to extract driver specific data
-structure. Add a similar function for ACPI.
++cc more mm maintainer.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/bus.c   | 12 ++++++++++++
- include/linux/acpi.h |  6 ++++++
- 2 files changed, 18 insertions(+)
+Any one has any object.  please let me know.  
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4d0979e..b271eb1 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -785,6 +785,18 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- }
- EXPORT_SYMBOL_GPL(acpi_match_device);
- 
-+void *acpi_get_match_data(const struct device *dev)
-+{
-+	const struct acpi_device_id *match;
-+
-+	match = acpi_match_device(dev->driver->acpi_match_table, dev);
-+	if (!match)
-+		return NULL;
-+
-+	return (void *)match->driver_data;
-+}
-+EXPORT_SYMBOL_GPL(acpi_get_match_data);
-+
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 502af53..a927260 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -584,6 +584,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
- const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- 					       const struct device *dev);
- 
-+void *acpi_get_match_data(const struct device *dev);
- extern bool acpi_driver_match_device(struct device *dev,
- 				     const struct device_driver *drv);
- int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
-@@ -755,6 +756,11 @@ static inline const struct acpi_device_id *acpi_match_device(
- 	return NULL;
- }
- 
-+static inline void *acpi_get_match_data(const struct device *dev)
-+{
-+	return NULL;
-+}
-+
- static inline bool acpi_driver_match_device(struct device *dev,
- 					    const struct device_driver *drv)
- {
--- 
-1.9.1
+Thanks
+zhongjiang
+On 2017/11/29 17:13, zhong jiang wrote:
+> Currently, Arm64 and x86 use the common code wehn parsing numa node
+> in a acpi way. The arm64 will set the parsed node in numa_add_memblk,
+> but the x86 is not set in that , then it will result in the repeatly
+> setting. And the parsed node maybe is  unreasonable to the system.
+>
+> we would better not set it although it also still works. because the
+> parsed node is unresonable. so we should skip related operate in this
+> node. This patch just set node in various architecture individually.
+> it is no functional change.
+>
+> Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+> ---
+>  arch/x86/mm/amdtopology.c | 1 -
+>  arch/x86/mm/numa.c        | 3 ++-
+>  drivers/acpi/numa.c       | 5 ++++-
+>  3 files changed, 6 insertions(+), 3 deletions(-)
+>
+> diff --git a/arch/x86/mm/amdtopology.c b/arch/x86/mm/amdtopology.c
+> index 91f501b..7657042 100644
+> --- a/arch/x86/mm/amdtopology.c
+> +++ b/arch/x86/mm/amdtopology.c
+> @@ -151,7 +151,6 @@ int __init amd_numa_init(void)
+>  
+>  		prevbase = base;
+>  		numa_add_memblk(nodeid, base, limit);
+> -		node_set(nodeid, numa_nodes_parsed);
+>  	}
+>  
+>  	if (!nodes_weight(numa_nodes_parsed))
+> diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+> index 25504d5..8f87f26 100644
+> --- a/arch/x86/mm/numa.c
+> +++ b/arch/x86/mm/numa.c
+> @@ -150,6 +150,8 @@ static int __init numa_add_memblk_to(int nid, u64 start, u64 end,
+>  	mi->blk[mi->nr_blks].end = end;
+>  	mi->blk[mi->nr_blks].nid = nid;
+>  	mi->nr_blks++;
+> +
+> +	node_set(nid, numa_nodes_parsed);
+>  	return 0;
+>  }
+>  
+> @@ -693,7 +695,6 @@ static int __init dummy_numa_init(void)
+>  	printk(KERN_INFO "Faking a node at [mem %#018Lx-%#018Lx]\n",
+>  	       0LLU, PFN_PHYS(max_pfn) - 1);
+>  
+> -	node_set(0, numa_nodes_parsed);
+>  	numa_add_memblk(0, 0, PFN_PHYS(max_pfn));
+>  
+>  	return 0;
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 917f1cc..f2e33cb 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -294,7 +294,9 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+>  		goto out_err_bad_srat;
+>  	}
+>  
+> -	node_set(node, numa_nodes_parsed);
+> +	/* some architecture is likely to ignore a unreasonable node */
+> +	if (!node_isset(node, numa_nodes_parsed))
+> +		goto out;
+>  
+>  	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
+>  		node, pxm,
+> @@ -309,6 +311,7 @@ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+>  
+>  	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
+>  
+> +out:
+>  	return 0;
+>  out_err_bad_srat:
+>  	bad_srat();
+
+
