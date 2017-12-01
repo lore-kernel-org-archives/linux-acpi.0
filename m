@@ -1,147 +1,199 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] nfit, libnvdimm: deprecate the generic SMART ioctl
-Date: Fri, 01 Dec 2017 15:32:21 -0800
-Message-ID: <151217114158.28828.16471407941725235430.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] tools/testing/nvdimm: smart alarm/threshold control
+Date: Fri, 01 Dec 2017 15:32:26 -0800
+Message-ID: <151217114672.28828.2929078580379805243.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24618 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751202AbdLAXkg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 1 Dec 2017 18:40:36 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-The kernel's ND_IOCTL_SMART_THRESHOLD command is based on a payload
-definition that has become broken / out-of-sync with recent versions of
-the NVDIMM_FAMILY_INTEL definition. Deprecate the use of the
-ND_IOCTL_SMART_THRESHOLD command in favor of the ND_CMD_CALL approach
-taken by NVDIMM_FAMILY_{HPE,MSFT}, where we can manage the per-vendor
-variance in userspace.
+Allow the smart_threshold values to be changed via the 'set smart
+threshold command' and trigger notifications when the thresholds are
+met.
 
-In a couple years, when the new scheme is widely deployed in userspace
-packages, the ND_IOCTL_SMART_THRESHOLD support can be removed. For now
-we prevent new binaries from compiling against the kernel header
-definitions, but kernel still compatible with old binaries. The
-libndctl.h [1] header is now the authoritative interface definition for
-NVDIMM SMART.
-
-[1]: https://github.com/pmem/ndctl
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/bus.c                  |    3 --
- include/uapi/linux/ndctl.h            |   54 ------------------------------
- tools/testing/nvdimm/test/nfit.c      |   39 ++++++++++++++--------
- tools/testing/nvdimm/test/nfit_test.h |   59 +++++++++++++++++++++++++++++++++
- 4 files changed, 84 insertions(+), 71 deletions(-)
+ tools/testing/nvdimm/test/nfit.c      |  157 ++++++++++++++++++++++++---------
+ tools/testing/nvdimm/test/nfit_test.h |    9 ++
+ 2 files changed, 122 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 0a5e6cd758fe..78eabc3a1ab1 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -1142,9 +1142,6 @@ int __init nvdimm_bus_init(void)
- {
- 	int rc;
- 
--	BUILD_BUG_ON(sizeof(struct nd_smart_payload) != 128);
--	BUILD_BUG_ON(sizeof(struct nd_smart_threshold_payload) != 8);
--
- 	rc = bus_register(&nvdimm_bus_type);
- 	if (rc)
- 		return rc;
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 3f03567631cb..30ef1236aafa 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -15,54 +15,6 @@
- 
- #include <linux/types.h>
- 
--struct nd_cmd_smart {
--	__u32 status;
--	__u8 data[128];
--} __packed;
--
--#define ND_SMART_HEALTH_VALID	(1 << 0)
--#define ND_SMART_SPARES_VALID	(1 << 1)
--#define ND_SMART_USED_VALID	(1 << 2)
--#define ND_SMART_TEMP_VALID 	(1 << 3)
--#define ND_SMART_CTEMP_VALID 	(1 << 4)
--#define ND_SMART_ALARM_VALID	(1 << 9)
--#define ND_SMART_SHUTDOWN_VALID	(1 << 10)
--#define ND_SMART_VENDOR_VALID	(1 << 11)
--#define ND_SMART_SPARE_TRIP	(1 << 0)
--#define ND_SMART_TEMP_TRIP	(1 << 1)
--#define ND_SMART_CTEMP_TRIP	(1 << 2)
--#define ND_SMART_NON_CRITICAL_HEALTH	(1 << 0)
--#define ND_SMART_CRITICAL_HEALTH	(1 << 1)
--#define ND_SMART_FATAL_HEALTH		(1 << 2)
--
--struct nd_smart_payload {
--	__u32 flags;
--	__u8 reserved0[4];
--	__u8 health;
--	__u8 spares;
--	__u8 life_used;
--	__u8 alarm_flags;
--	__u16 temperature;
--	__u16 ctrl_temperature;
--	__u8 reserved1[15];
--	__u8 shutdown_state;
--	__u32 vendor_size;
--	__u8 vendor_data[92];
--} __packed;
--
--struct nd_cmd_smart_threshold {
--	__u32 status;
--	__u8 data[8];
--} __packed;
--
--struct nd_smart_threshold_payload {
--	__u8 alarm_control;
--	__u8 reserved0;
--	__u16 temperature;
--	__u8 spares;
--	__u8 reserved[3];
--} __packed;
--
- struct nd_cmd_dimm_flags {
- 	__u32 status;
- 	__u32 flags;
-@@ -211,12 +163,6 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- 
- #define ND_IOCTL 'N'
- 
--#define ND_IOCTL_SMART			_IOWR(ND_IOCTL, ND_CMD_SMART,\
--					struct nd_cmd_smart)
--
--#define ND_IOCTL_SMART_THRESHOLD	_IOWR(ND_IOCTL, ND_CMD_SMART_THRESHOLD,\
--					struct nd_cmd_smart_threshold)
--
- #define ND_IOCTL_DIMM_FLAGS		_IOWR(ND_IOCTL, ND_CMD_DIMM_FLAGS,\
- 					struct nd_cmd_dimm_flags)
- 
 diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 7217b2b953b5..640c02b08a50 100644
+index 640c02b08a50..2b57254342aa 100644
 --- a/tools/testing/nvdimm/test/nfit.c
 +++ b/tools/testing/nvdimm/test/nfit.c
-@@ -440,39 +440,50 @@ static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus,
+@@ -168,6 +168,8 @@ struct nfit_test {
+ 		spinlock_t lock;
+ 	} ars_state;
+ 	struct device *dimm_dev[NUM_DCR];
++	struct nd_intel_smart *smart;
++	struct nd_intel_smart_threshold *smart_threshold;
+ 	struct badrange badrange;
+ 	struct work_struct work;
+ };
+@@ -440,50 +442,66 @@ static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus,
  	return 0;
  }
  
--static int nfit_test_cmd_smart(struct nd_cmd_smart *smart, unsigned int buf_len)
-+static int nfit_test_cmd_smart(struct nd_intel_smart *smart, unsigned int buf_len)
+-static int nfit_test_cmd_smart(struct nd_intel_smart *smart, unsigned int buf_len)
++static int nfit_test_cmd_smart(struct nd_intel_smart *smart, unsigned int buf_len,
++		struct nd_intel_smart *smart_data)
  {
--	static const struct nd_smart_payload smart_data = {
--		.flags = ND_SMART_HEALTH_VALID | ND_SMART_TEMP_VALID
--			| ND_SMART_SPARES_VALID | ND_SMART_ALARM_VALID
--			| ND_SMART_USED_VALID | ND_SMART_SHUTDOWN_VALID,
--		.health = ND_SMART_NON_CRITICAL_HEALTH,
--		.temperature = 23 * 16,
-+	static const struct nd_intel_smart smart_data = {
+-	static const struct nd_intel_smart smart_data = {
+-		.flags = ND_INTEL_SMART_HEALTH_VALID
+-			| ND_INTEL_SMART_SPARES_VALID
+-			| ND_INTEL_SMART_ALARM_VALID
+-			| ND_INTEL_SMART_USED_VALID
+-			| ND_INTEL_SMART_SHUTDOWN_VALID
+-			| ND_INTEL_SMART_MTEMP_VALID,
+-		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
+-		.media_temperature = 23 * 16,
+-		.ctrl_temperature = 30 * 16,
+-		.pmic_temperature = 40 * 16,
+-		.spares = 75,
+-		.alarm_flags = ND_INTEL_SMART_SPARE_TRIP
+-			| ND_INTEL_SMART_TEMP_TRIP,
+-		.ait_status = 1,
+-		.life_used = 5,
+-		.shutdown_state = 0,
+-		.vendor_size = 0,
+-		.shutdown_count = 100,
+-	};
+-
+ 	if (buf_len < sizeof(*smart))
+ 		return -EINVAL;
+-	memcpy(smart, &smart_data, sizeof(smart_data));
++	memcpy(smart, smart_data, sizeof(*smart));
+ 	return 0;
+ }
+ 
+ static int nfit_test_cmd_smart_threshold(
+-		struct nd_intel_smart_threshold *smart_t,
+-		unsigned int buf_len)
++		struct nd_intel_smart_threshold *out,
++		unsigned int buf_len,
++		struct nd_intel_smart_threshold *smart_t)
+ {
+-	static const struct nd_intel_smart_threshold smart_t_data = {
+-		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
+-			| ND_INTEL_SMART_TEMP_TRIP,
+-		.media_temperature = 40 * 16,
+-		.ctrl_temperature = 30 * 16,
+-		.spares = 5,
+-	};
+-
+ 	if (buf_len < sizeof(*smart_t))
+ 		return -EINVAL;
+-	memcpy(smart_t, &smart_t_data, sizeof(smart_t_data));
++	memcpy(out, smart_t, sizeof(*smart_t));
++	return 0;
++}
++
++static void smart_notify(struct device *bus_dev,
++		struct device *dimm_dev, struct nd_intel_smart *smart,
++		struct nd_intel_smart_threshold *thresh)
++{
++	dev_dbg(dimm_dev, "%s: alarm: %#x spares: %d (%d) mtemp: %d (%d) ctemp: %d (%d)\n",
++			__func__, thresh->alarm_control, thresh->spares,
++			smart->spares, thresh->media_temperature,
++			smart->media_temperature, thresh->ctrl_temperature,
++			smart->ctrl_temperature);
++	if (((thresh->alarm_control & ND_INTEL_SMART_SPARE_TRIP)
++				&& smart->spares
++				<= thresh->spares)
++			|| ((thresh->alarm_control & ND_INTEL_SMART_TEMP_TRIP)
++				&& smart->media_temperature
++				>= thresh->media_temperature)
++			|| ((thresh->alarm_control & ND_INTEL_SMART_CTEMP_TRIP)
++				&& smart->ctrl_temperature
++				>= thresh->ctrl_temperature)) {
++		device_lock(bus_dev);
++		__acpi_nvdimm_notify(dimm_dev, 0x81);
++		device_unlock(bus_dev);
++	}
++}
++
++static int nfit_test_cmd_smart_set_threshold(
++		struct nd_intel_smart_set_threshold *in,
++		unsigned int buf_len,
++		struct nd_intel_smart_threshold *thresh,
++		struct nd_intel_smart *smart,
++		struct device *bus_dev, struct device *dimm_dev)
++{
++	unsigned int size;
++
++	size = sizeof(*in) - 4;
++	if (buf_len < size)
++		return -EINVAL;
++	memcpy(thresh->data, in, size);
++	in->status = 0;
++	smart_notify(bus_dev, dimm_dev, smart, thresh);
++
+ 	return 0;
+ }
+ 
+@@ -608,7 +626,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 				|| !test_bit(func, &nfit_mem->dsm_mask))
+ 			return -ENOTTY;
+ 
+-		/* lookup label space for the given dimm */
++		/* lookup per-dimm data */
+ 		for (i = 0; i < ARRAY_SIZE(handle); i++)
+ 			if (__to_nfit_memdev(nfit_mem)->device_handle ==
+ 					handle[i])
+@@ -631,14 +649,19 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 			rc = nfit_test_cmd_set_config_data(buf, buf_len,
+ 				t->label[i - t->dcr_idx]);
+ 			break;
+-		case ND_CMD_SMART:
+-			rc = nfit_test_cmd_smart(buf, buf_len);
++		case ND_INTEL_SMART:
++			rc = nfit_test_cmd_smart(buf, buf_len,
++					&t->smart[i - t->dcr_idx]);
++			break;
++		case ND_INTEL_SMART_THRESHOLD:
++			rc = nfit_test_cmd_smart_threshold(buf, buf_len,
++					&t->smart_threshold[i - t->dcr_idx]);
+ 			break;
+-		case ND_CMD_SMART_THRESHOLD:
+-			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
+-			device_lock(&t->pdev.dev);
+-			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
+-			device_unlock(&t->pdev.dev);
++		case ND_INTEL_SMART_SET_THRESHOLD:
++			rc = nfit_test_cmd_smart_set_threshold(buf, buf_len,
++					&t->smart_threshold[i - t->dcr_idx],
++					&t->smart[i - t->dcr_idx],
++					&t->pdev.dev, t->dimm_dev[i]);
+ 			break;
+ 		default:
+ 			return -ENOTTY;
+@@ -883,6 +906,44 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++static void smart_init(struct nfit_test *t)
++{
++	int i;
++	const struct nd_intel_smart_threshold smart_t_data = {
++		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
++			| ND_INTEL_SMART_TEMP_TRIP,
++		.media_temperature = 40 * 16,
++		.ctrl_temperature = 30 * 16,
++		.spares = 5,
++	};
++	const struct nd_intel_smart smart_data = {
 +		.flags = ND_INTEL_SMART_HEALTH_VALID
 +			| ND_INTEL_SMART_SPARES_VALID
 +			| ND_INTEL_SMART_ALARM_VALID
@@ -152,115 +204,94 @@ index 7217b2b953b5..640c02b08a50 100644
 +		.media_temperature = 23 * 16,
 +		.ctrl_temperature = 30 * 16,
 +		.pmic_temperature = 40 * 16,
- 		.spares = 75,
--		.alarm_flags = ND_SMART_SPARE_TRIP | ND_SMART_TEMP_TRIP,
++		.spares = 75,
 +		.alarm_flags = ND_INTEL_SMART_SPARE_TRIP
 +			| ND_INTEL_SMART_TEMP_TRIP,
 +		.ait_status = 1,
- 		.life_used = 5,
- 		.shutdown_state = 0,
- 		.vendor_size = 0,
++		.life_used = 5,
++		.shutdown_state = 0,
++		.vendor_size = 0,
 +		.shutdown_count = 100,
- 	};
- 
- 	if (buf_len < sizeof(*smart))
- 		return -EINVAL;
--	memcpy(smart->data, &smart_data, sizeof(smart_data));
-+	memcpy(smart, &smart_data, sizeof(smart_data));
- 	return 0;
- }
- 
--static int nfit_test_cmd_smart_threshold(struct nd_cmd_smart_threshold *smart_t,
-+static int nfit_test_cmd_smart_threshold(
-+		struct nd_intel_smart_threshold *smart_t,
- 		unsigned int buf_len)
++	};
++
++	for (i = 0; i < t->num_dcr; i++) {
++		memcpy(&t->smart[i], &smart_data, sizeof(smart_data));
++		memcpy(&t->smart_threshold[i], &smart_t_data,
++				sizeof(smart_t_data));
++	}
++}
++
+ static int nfit_test0_alloc(struct nfit_test *t)
  {
--	static const struct nd_smart_threshold_payload smart_t_data = {
--		.alarm_control = ND_SMART_SPARE_TRIP | ND_SMART_TEMP_TRIP,
--		.temperature = 40 * 16,
-+	static const struct nd_intel_smart_threshold smart_t_data = {
-+		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
-+			| ND_INTEL_SMART_TEMP_TRIP,
-+		.media_temperature = 40 * 16,
-+		.ctrl_temperature = 30 * 16,
- 		.spares = 5,
- 	};
+ 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
+@@ -950,6 +1011,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 			return -ENOMEM;
+ 	}
  
- 	if (buf_len < sizeof(*smart_t))
- 		return -EINVAL;
--	memcpy(smart_t->data, &smart_t_data, sizeof(smart_t_data));
-+	memcpy(smart_t, &smart_t_data, sizeof(smart_t_data));
- 	return 0;
++	smart_init(t);
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
  }
  
+@@ -980,6 +1042,7 @@ static int nfit_test1_alloc(struct nfit_test *t)
+ 	if (!t->spa_set[1])
+ 		return -ENOMEM;
+ 
++	smart_init(t);
+ 	return ars_state_init(&t->pdev.dev, &t->ars_state);
+ }
+ 
+@@ -1653,13 +1716,14 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
+-	set_bit(ND_CMD_SMART, &acpi_desc->dimm_cmd_force_en);
++	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
++	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
++	set_bit(ND_INTEL_SMART_SET_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
+ 	set_bit(ND_CMD_CALL, &acpi_desc->bus_cmd_force_en);
+-	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
+ 	set_bit(NFIT_CMD_TRANSLATE_SPA, &acpi_desc->bus_nfit_cmd_force_en);
+ 	set_bit(NFIT_CMD_ARS_INJECT_SET, &acpi_desc->bus_nfit_cmd_force_en);
+ 	set_bit(NFIT_CMD_ARS_INJECT_CLEAR, &acpi_desc->bus_nfit_cmd_force_en);
+@@ -2065,6 +2129,11 @@ static int nfit_test_probe(struct platform_device *pdev)
+ 				sizeof(struct nfit_test_dcr *), GFP_KERNEL);
+ 		nfit_test->dcr_dma = devm_kcalloc(dev, num,
+ 				sizeof(dma_addr_t), GFP_KERNEL);
++		nfit_test->smart = devm_kcalloc(dev, num,
++				sizeof(struct nd_intel_smart), GFP_KERNEL);
++		nfit_test->smart_threshold = devm_kcalloc(dev, num,
++				sizeof(struct nd_intel_smart_threshold),
++				GFP_KERNEL);
+ 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
+ 				&& nfit_test->label_dma && nfit_test->dcr
+ 				&& nfit_test->dcr_dma && nfit_test->flush
 diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index 113b44675a71..b85fba2856c7 100644
+index b85fba2856c7..ba230f6f7676 100644
 --- a/tools/testing/nvdimm/test/nfit_test.h
 +++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -84,6 +84,65 @@ struct nd_cmd_ars_err_inj_stat {
- 	} __packed record[0];
+@@ -86,6 +86,7 @@ struct nd_cmd_ars_err_inj_stat {
+ 
+ #define ND_INTEL_SMART 1
+ #define ND_INTEL_SMART_THRESHOLD 2
++#define ND_INTEL_SMART_SET_THRESHOLD 17
+ 
+ #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
+ #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
+@@ -143,6 +144,14 @@ struct nd_intel_smart_threshold {
+ 	};
  } __packed;
  
-+#define ND_INTEL_SMART 1
-+#define ND_INTEL_SMART_THRESHOLD 2
-+
-+#define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
-+#define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
-+#define ND_INTEL_SMART_USED_VALID               (1 << 2)
-+#define ND_INTEL_SMART_MTEMP_VALID              (1 << 3)
-+#define ND_INTEL_SMART_CTEMP_VALID              (1 << 4)
-+#define ND_INTEL_SMART_SHUTDOWN_COUNT_VALID     (1 << 5)
-+#define ND_INTEL_SMART_AIT_STATUS_VALID         (1 << 6)
-+#define ND_INTEL_SMART_PTEMP_VALID              (1 << 7)
-+#define ND_INTEL_SMART_ALARM_VALID              (1 << 9)
-+#define ND_INTEL_SMART_SHUTDOWN_VALID           (1 << 10)
-+#define ND_INTEL_SMART_VENDOR_VALID             (1 << 11)
-+#define ND_INTEL_SMART_SPARE_TRIP               (1 << 0)
-+#define ND_INTEL_SMART_TEMP_TRIP                (1 << 1)
-+#define ND_INTEL_SMART_CTEMP_TRIP               (1 << 2)
-+#define ND_INTEL_SMART_NON_CRITICAL_HEALTH      (1 << 0)
-+#define ND_INTEL_SMART_CRITICAL_HEALTH          (1 << 1)
-+#define ND_INTEL_SMART_FATAL_HEALTH             (1 << 2)
-+
-+struct nd_intel_smart {
++struct nd_intel_smart_set_threshold {
++	__u16 alarm_control;
++	__u8 spares;
++	__u16 media_temperature;
++	__u16 ctrl_temperature;
 +	__u32 status;
-+	union {
-+		struct {
-+			__u32 flags;
-+			__u8 reserved0[4];
-+			__u8 health;
-+			__u8 spares;
-+			__u8 life_used;
-+			__u8 alarm_flags;
-+			__u16 media_temperature;
-+			__u16 ctrl_temperature;
-+			__u32 shutdown_count;
-+			__u8 ait_status;
-+			__u16 pmic_temperature;
-+			__u8 reserved1[8];
-+			__u8 shutdown_state;
-+			__u32 vendor_size;
-+			__u8 vendor_data[92];
-+		} __packed;
-+		__u8 data[128];
-+	};
-+} __packed;
-+
-+struct nd_intel_smart_threshold {
-+	__u32 status;
-+	union {
-+		struct {
-+			__u16 alarm_control;
-+			__u8 spares;
-+			__u16 media_temperature;
-+			__u16 ctrl_temperature;
-+			__u8 reserved[1];
-+		} __packed;
-+		__u8 data[8];
-+	};
 +} __packed;
 +
  union acpi_object;
  typedef void *acpi_handle;
- 
-
