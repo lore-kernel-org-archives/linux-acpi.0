@@ -1,104 +1,64 @@
-From: Feng Kan <fkan@apm.com>
-Subject: Re: [PATCH v3 0/5] ACPI: DMA ranges management
-Date: Thu, 30 Nov 2017 16:43:00 -0800
-Message-ID: <CAL85gmDkrwuYPTyUn_cw1bQL2y9D65z2zJe3e79qjifN5Q_7-g@mail.gmail.com>
-References: <20170803123239.11359-1-lorenzo.pieralisi@arm.com> <CAL85gmAmAO+RH7KN8C4zokgTHe7nsCtotdjacSLEunK_4778cw@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] acpi, nfit: fix health event notification
+Date: Thu, 30 Nov 2017 17:55:03 -0800
+Message-ID: <151209330313.2584.7295902868393348172.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL85gmAmAO+RH7KN8C4zokgTHe7nsCtotdjacSLEunK_4778cw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Robert Moore <robert.moore@intel.com>, Robin Murphy <robin.murphy@arm.com>, Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Nate Watterson <nwatters@codeaurora.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:64745 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751500AbdLACDS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 30 Nov 2017 21:03:18 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Daniel Osawa <daniel.k.osawa@intel.com>, stable@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, linux-acpi@vger.kernel.org
 
-On Wed, Nov 29, 2017 at 11:28 PM, Feng Kan <fkan@apm.com> wrote:
-> On Thu, Aug 3, 2017 at 5:32 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
->> This patch series is v3 of a previous posting:
->>
->> v2->v3:
->>         - Fixed DMA masks computation
->>         - Fixed size computation overflow in acpi_dma_get_range()
->>
->> v1->v2:
->>         - Reworked acpi_dma_get_range() flow and logs
->>         - Added IORT named component address limits
->>         - Renamed acpi_dev_get_resources() helper function
->>         - Rebased against v4.13-rc3
->>
->> v2: http://lkml.kernel.org/r/20170731152323.32488-1-lorenzo.pieralisi@arm.com
->> v1: http://lkml.kernel.org/r/20170720144517.32529-1-lorenzo.pieralisi@arm.com
->>
->> -- Original cover letter --
->>
->> As reported in:
->>
->> http://lkml.kernel.org/r/CAL85gmA_SSCwM80TKdkZqEe+S1beWzDEvdki1kpkmUTDRmSP7g@mail.gmail.com
->>
->> the bus connecting devices to an IOMMU bus can be smaller in size than
->> the IOMMU input address bits which results in devices DMA HW bugs in
->> particular related to IOVA allocation (ie chopping of higher address
->> bits owing to system bus HW capabilities mismatch with the IOMMU).
->>
->> Fortunately this problem can be solved through an already present but never
->> used ACPI 6.2 firmware bindings (ie _DMA object) allowing to define the DMA
->> window for a specific bus in ACPI and therefore all upstream devices
->> connected to it.
->>
->> This small patch series enables _DMA parsing in ACPI core code and
->> use it in ACPI IORT code in order to detect DMA ranges for devices and
->> update their data structures to make them work with their related DMA
->> addressing restrictions.
->>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Hanjun Guo <hanjun.guo@linaro.org>
->> Cc: Feng Kan <fkan@apm.com>
->> Cc: Jon Masters <jcm@redhat.com>
->> Cc: Robert Moore <robert.moore@intel.com>
->> Cc: Robin Murphy <robin.murphy@arm.com>
->> Cc: Zhang Rui <rui.zhang@intel.com>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>
->> Lorenzo Pieralisi (5):
->>   ACPICA: resource_mgr: Allow _DMA method in walk resources
->>   ACPI: Make acpi_dev_get_resources() method agnostic
->>   ACPI: Introduce DMA ranges parsing
->>   ACPI: Make acpi_dma_configure() DMA regions aware
->>   ACPI/IORT: Add IORT named component memory address limits
->>
->>  drivers/acpi/acpica/rsxface.c |  7 ++--
->>  drivers/acpi/arm64/iort.c     | 57 ++++++++++++++++++++++++++-
->>  drivers/acpi/resource.c       | 82 +++++++++++++++++++++++++++++---------
->>  drivers/acpi/scan.c           | 91 +++++++++++++++++++++++++++++++++++++++----
->>  include/acpi/acnames.h        |  1 +
->>  include/acpi/acpi_bus.h       |  2 +
->>  include/linux/acpi.h          |  8 ++++
->>  include/linux/acpi_iort.h     |  5 ++-
->>  8 files changed, 219 insertions(+), 34 deletions(-)
->>
->> --
->> 2.10.0
->>
-> Lorenzo:
->
-> A network driver can use pci_set_dma_mask or its like to override what
-> is done with this patch here.
-> Which would result in iova allocation greater than the original _DMA
-> aperture. Should we force
-> the dma_set_mask to not change if an existing mask is already set?
+Integration testing with a BIOS that generates injected health event
+notifications fails to communicate those events to userspace. The nfit
+driver neglects to link the ACPI DIMM device with the necessary driver
+data so acpi_nvdimm_notify() fails this lookup:
 
-Let me clarify the question some more, in our system the IOMMU supports only
-42 bits of address. With your _DMA aperture patch, the initial dma_mask and
-coherent_mask are correctly set by the code. However, the device driver can
-set the dma_mask and coherent mask at a later point which over writes the
-initial setting by your code. In which case, once the iova is exhausted with the
-32 bit address, it will start seeking more iova address via the
-dma_limit. In this
-case it would fail my system since the iommu.aperture_end is that of 48 bits
-as derived from ias field in  the SMMU.
+        nfit_mem = dev_get_drvdata(dev);
+        if (nfit_mem && nfit_mem->flags_attr)
+                sysfs_notify_dirent(nfit_mem->flags_attr);
 
-Should the dma_limit be the smallest of driver->dma_mask, iommu.aperture_end and
-your _DMA aperture size via ACPI table? Rather than just the
-driver->dma_mask and
-iommu.aperture_end. This will ensure the smallest/correct aperture is used.
+Add the necessary linkage when installing the notification handler and
+clean it up when the nfit driver instance is torn down.
+
+Cc: <stable@vger.kernel.org>
+Cc: Toshi Kani <toshi.kani@hpe.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Fixes: ba9c8dd3c222 ("acpi, nfit: add dimm device notification support")
+Reported-by: Daniel Osawa <daniel.k.osawa@intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/nfit/core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ff2580e7611d..947ea8a92761 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1670,6 +1670,11 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 				dev_name(&adev_dimm->dev));
+ 		return -ENXIO;
+ 	}
++	/*
++	 * Record nfit_mem for the notification path to track back to
++	 * the nfit sysfs attributes for this dimm device object.
++	 */
++	dev_set_drvdata(&adev_dimm->dev, nfit_mem);
+ 
+ 	/*
+ 	 * Until standardization materializes we need to consider 4
+@@ -1755,6 +1760,7 @@ static void shutdown_dimm_notify(void *data)
+ 		if (adev_dimm)
+ 			acpi_remove_notify_handler(adev_dimm->handle,
+ 					ACPI_DEVICE_NOTIFY, acpi_nvdimm_notify);
++		dev_set_drvdata(&adev_dimm->dev, NULL);
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+
