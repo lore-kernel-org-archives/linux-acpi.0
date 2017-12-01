@@ -1,58 +1,142 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPICA: Rename variable to match upstream
-Date: Fri, 01 Dec 2017 15:26:06 +0100
-Message-ID: <9112448.bJb2V9PbAy@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v5 0/9] Support PPTT for ARM64
+Date: Fri,  1 Dec 2017 16:23:21 -0600
+Message-ID: <20171201222330.18863-1-jeremy.linton@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46946 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751031AbdLAWXr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 1 Dec 2017 17:23:47 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, Jeremy Linton <jeremy.linton@arm.com>
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+This patch set is dependent on "[14/15] ACPICA: ACPI 6.2: Additional
+PPTT flags" https://patchwork.kernel.org/patch/10064191/
 
-There is a variable name mismatch in acpi_ut_strtoul_multiply64()
-between the ACPICA code in the kernel and the corresponding upstream
-code which may be problematic if changes to this particular piece of
-code are made upstream and ported to Linux, so rename the variable
-in question to match its name in the upstream code.
+ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+used to describe the processor and cache topology. Ideally it is
+used to extend/override information provided by the hardware, but
+right now ARM64 is entirely dependent on firmware provided tables.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/utstrsuppt.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+This patch parses the table for the cache topology and CPU topology.
+When we enable ACPI/PPTT for arm64 we map the physical_id to the
+PPTT node flagged as the physical package by the firmware.
+This results in topologies that match what the remainder of the
+system expects.
 
-Index: linux-pm/drivers/acpi/acpica/utstrsuppt.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/utstrsuppt.c
-+++ linux-pm/drivers/acpi/acpica/utstrsuppt.c
-@@ -370,7 +370,7 @@ acpi_ut_insert_digit(u64 *accumulated_va
- static acpi_status
- acpi_ut_strtoul_multiply64(u64 multiplicand, u32 base, u64 *out_product)
- {
--	u64 val;
-+	u64 product;
- 	u64 quotient;
- 
- 	/* Exit if either operand is zero */
-@@ -393,15 +393,15 @@ acpi_ut_strtoul_multiply64(u64 multiplic
- 		return (AE_NUMERIC_OVERFLOW);
- 	}
- 
--	val = multiplicand * base;
-+	product = multiplicand * base;
- 
- 	/* Check for 32-bit overflow if necessary */
- 
--	if ((acpi_gbl_integer_bit_width == 32) && (val > ACPI_UINT32_MAX)) {
-+	if ((acpi_gbl_integer_bit_width == 32) && (product > ACPI_UINT32_MAX)) {
- 		return (AE_NUMERIC_OVERFLOW);
- 	}
- 
--	*out_product = val;
-+	*out_product = product;
- 	return (AE_OK);
- }
- 
+For example on juno:
+[root@mammon-juno-rh topology]# lstopo-no-graphics
+  Package L#0
+    L2 L#0 (1024KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#1 (2048KB)
+      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCIBridge
+          PCI 1095:3132
+            Block(Disk) L#0 "sda"
+        PCIBridge
+          PCI 1002:68f9
+            GPU L#1 "renderD128"
+            GPU L#2 "card0"
+            GPU L#3 "controlD64"
+        PCIBridge
+          PCI 11ab:4380
+            Net L#4 "enp8s0"
+
+
+Git tree at:
+http://linux-arm.org/git?p=linux-jlinton.git
+branch: pptt_v5
+
+v4->v5:
+Update the cache type from NOCACHE to UNIFIED when all the cache
+  attributes we update are valid. This fixes a problem where caches
+  which are entirely created by the PPTT don't show up in lstopo.
+
+Give the PPTT its own firmware_node in the cache structure instead of
+  sharing it with the of_node.
+
+Move some pieces around between patches.
+
+v3->v4:
+Suppress the "Found duplicate cache level/type..." message if the
+  duplicate cache entry is actually a duplicate node. This allows cases
+  like L1I and L1D nodes that point at the same L2 node to be accepted
+  without the warning.
+  
+Remove cluster/physical split code. Add a patch to rename cluster_id
+  so that its clear the topology may not be referring to a cluster.
+  
+Add additional ACPICA patch for the PPTT cache properties. This matches
+  an outstanding ACPICA pull that should be merged in the near future.
+  
+Replace a number of (struct*)((u8*)ptr+offset) constructs with ACPI_ADD_PTR
+
+Split out the topology parsing into an additional patch.
+
+Tweak the cpu topology code to terminate on either a level, or a flag.
+  Add an additional function which retrives the physical package id
+  for a given cpu.
+
+Various other comments/tweaks.
+
+v2->v3:
+
+Remove valid bit check on leaf nodes. Now simply being a leaf node
+  is sufficient to verify the processor id against the ACPI
+  processor ids (gotten from MADT). 
+
+Use the acpi processor for the "level 0" Id. This makes the /sys
+  visible core/thread ids more human readable if the firmware uses
+  small consecutive values for processor ids.
+
+Added PPTT to the list of injectable ACPI tables.
+
+Fix bug which kept the code from using the processor node as intended
+  in v2, caused by misuse of git rebase/fixup.
+
+v1->v2:
+
+The parser keys off the acpi_pptt_processor node to determine
+  unique cache's rather than the acpi_pptt_cache referenced by the
+  processor node. This allows PPTT tables which "share" cache nodes
+  across cpu nodes despite not being a shared cache.
+
+Jeremy Linton (9):
+  arm64/acpi: Create arch specific cpu to acpi id helper
+  ACPI/PPTT: Add Processor Properties Topology Table parsing
+  ACPI: Enable PPTT support on ARM64
+  drivers: base cacheinfo: Add support for ACPI based firmware tables
+  arm64: Add support for ACPI based firmware tables
+  ACPI/PPTT: Add topology parsing code
+  arm64: Topology, rename cluster_id
+  arm64: topology: Enable ACPI/PPTT based CPU topology.
+  ACPI: Add PPTT to injectable table list
+
+ arch/arm64/Kconfig                |   1 +
+ arch/arm64/include/asm/acpi.h     |   4 +
+ arch/arm64/include/asm/topology.h |   4 +-
+ arch/arm64/kernel/cacheinfo.c     |  15 +-
+ arch/arm64/kernel/topology.c      |  74 ++++-
+ drivers/acpi/Kconfig              |   3 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/pptt.c               | 592 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c             |   3 +-
+ drivers/base/cacheinfo.c          |  20 +-
+ include/linux/cacheinfo.h         |  13 +-
+ include/linux/topology.h          |   2 +
+ 12 files changed, 703 insertions(+), 29 deletions(-)
+ create mode 100644 drivers/acpi/pptt.c
+
+-- 
+2.13.5
+
