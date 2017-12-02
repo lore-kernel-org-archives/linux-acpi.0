@@ -1,78 +1,52 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: [PATCH V5 2/7] ACPI / bus: Introduce acpi_get_match_data() function
-Date: Fri,  1 Dec 2017 23:27:39 -0500
-Message-ID: <1512188864-773-3-git-send-email-okaya@codeaurora.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V5 5/7] ACPI: properties: Implement get_match_data() callback
+Date: Fri,  1 Dec 2017 23:27:42 -0500
+Message-ID: <1512188864-773-6-git-send-email-okaya@codeaurora.org>
 References: <1512188864-773-1-git-send-email-okaya@codeaurora.org>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1512188864-773-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1512188864-773-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-OF has of_device_get_match_data() function to extract driver specific data
-structure. Add a similar function for ACPI.
+Now that we have a get_match_data() callback as part of the firmware node,
+implement the ACPI specific piece for it.
 
-Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/acpi/bus.c   | 13 +++++++++++++
- include/linux/acpi.h |  8 ++++++++
- 2 files changed, 21 insertions(+)
+ drivers/acpi/property.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4d0979e..05d8d9a 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -785,6 +785,19 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index e26ea20..49dd50b 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1271,6 +1271,17 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(acpi_match_device);
  
-+void *acpi_get_match_data(struct acpi_device *device,
-+			  const struct acpi_device_id *ids)
++static void *acpi_fwnode_get_match_data(const struct fwnode_handle *fwnode,
++					const struct device_driver *drv)
 +{
-+	const struct acpi_device_id *match;
++	struct acpi_device *adev = to_acpi_device_node(fwnode);
 +
-+	match =  __acpi_match_device(device, ids, NULL);
-+	if (!match)
++	if (!adev)
 +		return NULL;
 +
-+	return (void *)match->driver_data;
-+}
-+EXPORT_SYMBOL_GPL(acpi_get_match_data);
-+
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 502af53..196bc7a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -584,6 +584,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
- const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- 					       const struct device *dev);
- 
-+void *acpi_get_match_data(struct acpi_device *device,
-+			  const struct acpi_device_id *ids);
- extern bool acpi_driver_match_device(struct device *dev,
- 				     const struct device_driver *drv);
- int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
-@@ -755,6 +757,12 @@ static inline const struct acpi_device_id *acpi_match_device(
- 	return NULL;
- }
- 
-+static inline void *acpi_get_match_data(struct acpi_device *device,
-+					const struct acpi_device_id *ids)
-+{
-+	return NULL;
++	return acpi_get_match_data(adev, drv->acpi_match_table);
 +}
 +
- static inline bool acpi_driver_match_device(struct device *dev,
- 					    const struct device_driver *drv)
- {
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+ 	const struct fwnode_operations ops = {				\
+ 		.device_is_available = acpi_fwnode_device_is_available, \
+@@ -1289,6 +1300,7 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 			acpi_fwnode_graph_get_remote_endpoint,		\
+ 		.graph_get_port_parent = acpi_fwnode_get_parent,	\
+ 		.graph_parse_endpoint = acpi_fwnode_graph_parse_endpoint, \
++		.get_match_data = acpi_fwnode_get_match_data,		\
+ 	};								\
+ 	EXPORT_SYMBOL_GPL(ops)
+ 
 -- 
 1.9.1
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
