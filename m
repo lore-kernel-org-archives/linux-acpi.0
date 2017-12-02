@@ -1,297 +1,78 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] tools/testing/nvdimm: smart alarm/threshold control
-Date: Fri, 01 Dec 2017 15:32:26 -0800
-Message-ID: <151217114672.28828.2929078580379805243.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V5 2/7] ACPI / bus: Introduce acpi_get_match_data() function
+Date: Fri,  1 Dec 2017 23:27:39 -0500
+Message-ID: <1512188864-773-3-git-send-email-okaya@codeaurora.org>
+References: <1512188864-773-1-git-send-email-okaya@codeaurora.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1512188864-773-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Allow the smart_threshold values to be changed via the 'set smart
-threshold command' and trigger notifications when the thresholds are
-met.
+OF has of_device_get_match_data() function to extract driver specific data
+structure. Add a similar function for ACPI.
 
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 ---
- tools/testing/nvdimm/test/nfit.c      |  157 ++++++++++++++++++++++++---------
- tools/testing/nvdimm/test/nfit_test.h |    9 ++
- 2 files changed, 122 insertions(+), 44 deletions(-)
+ drivers/acpi/bus.c   | 13 +++++++++++++
+ include/linux/acpi.h |  8 ++++++++
+ 2 files changed, 21 insertions(+)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 640c02b08a50..2b57254342aa 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -168,6 +168,8 @@ struct nfit_test {
- 		spinlock_t lock;
- 	} ars_state;
- 	struct device *dimm_dev[NUM_DCR];
-+	struct nd_intel_smart *smart;
-+	struct nd_intel_smart_threshold *smart_threshold;
- 	struct badrange badrange;
- 	struct work_struct work;
- };
-@@ -440,50 +442,66 @@ static int nfit_test_cmd_translate_spa(struct nvdimm_bus *bus,
- 	return 0;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4d0979e..05d8d9a 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -785,6 +785,19 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
++void *acpi_get_match_data(struct acpi_device *device,
++			  const struct acpi_device_id *ids)
++{
++	const struct acpi_device_id *match;
++
++	match =  __acpi_match_device(device, ids, NULL);
++	if (!match)
++		return NULL;
++
++	return (void *)match->driver_data;
++}
++EXPORT_SYMBOL_GPL(acpi_get_match_data);
++
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids)
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 502af53..196bc7a 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -584,6 +584,8 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ 					       const struct device *dev);
+ 
++void *acpi_get_match_data(struct acpi_device *device,
++			  const struct acpi_device_id *ids);
+ extern bool acpi_driver_match_device(struct device *dev,
+ 				     const struct device_driver *drv);
+ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+@@ -755,6 +757,12 @@ static inline const struct acpi_device_id *acpi_match_device(
+ 	return NULL;
  }
  
--static int nfit_test_cmd_smart(struct nd_intel_smart *smart, unsigned int buf_len)
-+static int nfit_test_cmd_smart(struct nd_intel_smart *smart, unsigned int buf_len,
-+		struct nd_intel_smart *smart_data)
- {
--	static const struct nd_intel_smart smart_data = {
--		.flags = ND_INTEL_SMART_HEALTH_VALID
--			| ND_INTEL_SMART_SPARES_VALID
--			| ND_INTEL_SMART_ALARM_VALID
--			| ND_INTEL_SMART_USED_VALID
--			| ND_INTEL_SMART_SHUTDOWN_VALID
--			| ND_INTEL_SMART_MTEMP_VALID,
--		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
--		.media_temperature = 23 * 16,
--		.ctrl_temperature = 30 * 16,
--		.pmic_temperature = 40 * 16,
--		.spares = 75,
--		.alarm_flags = ND_INTEL_SMART_SPARE_TRIP
--			| ND_INTEL_SMART_TEMP_TRIP,
--		.ait_status = 1,
--		.life_used = 5,
--		.shutdown_state = 0,
--		.vendor_size = 0,
--		.shutdown_count = 100,
--	};
--
- 	if (buf_len < sizeof(*smart))
- 		return -EINVAL;
--	memcpy(smart, &smart_data, sizeof(smart_data));
-+	memcpy(smart, smart_data, sizeof(*smart));
- 	return 0;
- }
- 
- static int nfit_test_cmd_smart_threshold(
--		struct nd_intel_smart_threshold *smart_t,
--		unsigned int buf_len)
-+		struct nd_intel_smart_threshold *out,
-+		unsigned int buf_len,
-+		struct nd_intel_smart_threshold *smart_t)
- {
--	static const struct nd_intel_smart_threshold smart_t_data = {
--		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
--			| ND_INTEL_SMART_TEMP_TRIP,
--		.media_temperature = 40 * 16,
--		.ctrl_temperature = 30 * 16,
--		.spares = 5,
--	};
--
- 	if (buf_len < sizeof(*smart_t))
- 		return -EINVAL;
--	memcpy(smart_t, &smart_t_data, sizeof(smart_t_data));
-+	memcpy(out, smart_t, sizeof(*smart_t));
-+	return 0;
++static inline void *acpi_get_match_data(struct acpi_device *device,
++					const struct acpi_device_id *ids)
++{
++	return NULL;
 +}
 +
-+static void smart_notify(struct device *bus_dev,
-+		struct device *dimm_dev, struct nd_intel_smart *smart,
-+		struct nd_intel_smart_threshold *thresh)
-+{
-+	dev_dbg(dimm_dev, "%s: alarm: %#x spares: %d (%d) mtemp: %d (%d) ctemp: %d (%d)\n",
-+			__func__, thresh->alarm_control, thresh->spares,
-+			smart->spares, thresh->media_temperature,
-+			smart->media_temperature, thresh->ctrl_temperature,
-+			smart->ctrl_temperature);
-+	if (((thresh->alarm_control & ND_INTEL_SMART_SPARE_TRIP)
-+				&& smart->spares
-+				<= thresh->spares)
-+			|| ((thresh->alarm_control & ND_INTEL_SMART_TEMP_TRIP)
-+				&& smart->media_temperature
-+				>= thresh->media_temperature)
-+			|| ((thresh->alarm_control & ND_INTEL_SMART_CTEMP_TRIP)
-+				&& smart->ctrl_temperature
-+				>= thresh->ctrl_temperature)) {
-+		device_lock(bus_dev);
-+		__acpi_nvdimm_notify(dimm_dev, 0x81);
-+		device_unlock(bus_dev);
-+	}
-+}
-+
-+static int nfit_test_cmd_smart_set_threshold(
-+		struct nd_intel_smart_set_threshold *in,
-+		unsigned int buf_len,
-+		struct nd_intel_smart_threshold *thresh,
-+		struct nd_intel_smart *smart,
-+		struct device *bus_dev, struct device *dimm_dev)
-+{
-+	unsigned int size;
-+
-+	size = sizeof(*in) - 4;
-+	if (buf_len < size)
-+		return -EINVAL;
-+	memcpy(thresh->data, in, size);
-+	in->status = 0;
-+	smart_notify(bus_dev, dimm_dev, smart, thresh);
-+
- 	return 0;
- }
- 
-@@ -608,7 +626,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 				|| !test_bit(func, &nfit_mem->dsm_mask))
- 			return -ENOTTY;
- 
--		/* lookup label space for the given dimm */
-+		/* lookup per-dimm data */
- 		for (i = 0; i < ARRAY_SIZE(handle); i++)
- 			if (__to_nfit_memdev(nfit_mem)->device_handle ==
- 					handle[i])
-@@ -631,14 +649,19 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 			rc = nfit_test_cmd_set_config_data(buf, buf_len,
- 				t->label[i - t->dcr_idx]);
- 			break;
--		case ND_CMD_SMART:
--			rc = nfit_test_cmd_smart(buf, buf_len);
-+		case ND_INTEL_SMART:
-+			rc = nfit_test_cmd_smart(buf, buf_len,
-+					&t->smart[i - t->dcr_idx]);
-+			break;
-+		case ND_INTEL_SMART_THRESHOLD:
-+			rc = nfit_test_cmd_smart_threshold(buf, buf_len,
-+					&t->smart_threshold[i - t->dcr_idx]);
- 			break;
--		case ND_CMD_SMART_THRESHOLD:
--			rc = nfit_test_cmd_smart_threshold(buf, buf_len);
--			device_lock(&t->pdev.dev);
--			__acpi_nvdimm_notify(t->dimm_dev[i], 0x81);
--			device_unlock(&t->pdev.dev);
-+		case ND_INTEL_SMART_SET_THRESHOLD:
-+			rc = nfit_test_cmd_smart_set_threshold(buf, buf_len,
-+					&t->smart_threshold[i - t->dcr_idx],
-+					&t->smart[i - t->dcr_idx],
-+					&t->pdev.dev, t->dimm_dev[i]);
- 			break;
- 		default:
- 			return -ENOTTY;
-@@ -883,6 +906,44 @@ static const struct attribute_group *nfit_test_dimm_attribute_groups[] = {
- 	NULL,
- };
- 
-+static void smart_init(struct nfit_test *t)
-+{
-+	int i;
-+	const struct nd_intel_smart_threshold smart_t_data = {
-+		.alarm_control = ND_INTEL_SMART_SPARE_TRIP
-+			| ND_INTEL_SMART_TEMP_TRIP,
-+		.media_temperature = 40 * 16,
-+		.ctrl_temperature = 30 * 16,
-+		.spares = 5,
-+	};
-+	const struct nd_intel_smart smart_data = {
-+		.flags = ND_INTEL_SMART_HEALTH_VALID
-+			| ND_INTEL_SMART_SPARES_VALID
-+			| ND_INTEL_SMART_ALARM_VALID
-+			| ND_INTEL_SMART_USED_VALID
-+			| ND_INTEL_SMART_SHUTDOWN_VALID
-+			| ND_INTEL_SMART_MTEMP_VALID,
-+		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
-+		.media_temperature = 23 * 16,
-+		.ctrl_temperature = 30 * 16,
-+		.pmic_temperature = 40 * 16,
-+		.spares = 75,
-+		.alarm_flags = ND_INTEL_SMART_SPARE_TRIP
-+			| ND_INTEL_SMART_TEMP_TRIP,
-+		.ait_status = 1,
-+		.life_used = 5,
-+		.shutdown_state = 0,
-+		.vendor_size = 0,
-+		.shutdown_count = 100,
-+	};
-+
-+	for (i = 0; i < t->num_dcr; i++) {
-+		memcpy(&t->smart[i], &smart_data, sizeof(smart_data));
-+		memcpy(&t->smart_threshold[i], &smart_t_data,
-+				sizeof(smart_t_data));
-+	}
-+}
-+
- static int nfit_test0_alloc(struct nfit_test *t)
+ static inline bool acpi_driver_match_device(struct device *dev,
+ 					    const struct device_driver *drv)
  {
- 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
-@@ -950,6 +1011,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 			return -ENOMEM;
- 	}
- 
-+	smart_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -980,6 +1042,7 @@ static int nfit_test1_alloc(struct nfit_test *t)
- 	if (!t->spa_set[1])
- 		return -ENOMEM;
- 
-+	smart_init(t);
- 	return ars_state_init(&t->pdev.dev, &t->ars_state);
- }
- 
-@@ -1653,13 +1716,14 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_SET_CONFIG_DATA, &acpi_desc->dimm_cmd_force_en);
--	set_bit(ND_CMD_SMART, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_INTEL_SMART, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_INTEL_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
-+	set_bit(ND_INTEL_SMART_SET_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CLEAR_ERROR, &acpi_desc->bus_cmd_force_en);
- 	set_bit(ND_CMD_CALL, &acpi_desc->bus_cmd_force_en);
--	set_bit(ND_CMD_SMART_THRESHOLD, &acpi_desc->dimm_cmd_force_en);
- 	set_bit(NFIT_CMD_TRANSLATE_SPA, &acpi_desc->bus_nfit_cmd_force_en);
- 	set_bit(NFIT_CMD_ARS_INJECT_SET, &acpi_desc->bus_nfit_cmd_force_en);
- 	set_bit(NFIT_CMD_ARS_INJECT_CLEAR, &acpi_desc->bus_nfit_cmd_force_en);
-@@ -2065,6 +2129,11 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				sizeof(struct nfit_test_dcr *), GFP_KERNEL);
- 		nfit_test->dcr_dma = devm_kcalloc(dev, num,
- 				sizeof(dma_addr_t), GFP_KERNEL);
-+		nfit_test->smart = devm_kcalloc(dev, num,
-+				sizeof(struct nd_intel_smart), GFP_KERNEL);
-+		nfit_test->smart_threshold = devm_kcalloc(dev, num,
-+				sizeof(struct nd_intel_smart_threshold),
-+				GFP_KERNEL);
- 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
- 				&& nfit_test->label_dma && nfit_test->dcr
- 				&& nfit_test->dcr_dma && nfit_test->flush
-diff --git a/tools/testing/nvdimm/test/nfit_test.h b/tools/testing/nvdimm/test/nfit_test.h
-index b85fba2856c7..ba230f6f7676 100644
---- a/tools/testing/nvdimm/test/nfit_test.h
-+++ b/tools/testing/nvdimm/test/nfit_test.h
-@@ -86,6 +86,7 @@ struct nd_cmd_ars_err_inj_stat {
- 
- #define ND_INTEL_SMART 1
- #define ND_INTEL_SMART_THRESHOLD 2
-+#define ND_INTEL_SMART_SET_THRESHOLD 17
- 
- #define ND_INTEL_SMART_HEALTH_VALID             (1 << 0)
- #define ND_INTEL_SMART_SPARES_VALID             (1 << 1)
-@@ -143,6 +144,14 @@ struct nd_intel_smart_threshold {
- 	};
- } __packed;
- 
-+struct nd_intel_smart_set_threshold {
-+	__u16 alarm_control;
-+	__u8 spares;
-+	__u16 media_temperature;
-+	__u16 ctrl_temperature;
-+	__u32 status;
-+} __packed;
-+
- union acpi_object;
- typedef void *acpi_handle;
+-- 
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
