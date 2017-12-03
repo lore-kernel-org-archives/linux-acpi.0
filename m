@@ -1,18 +1,14 @@
 From: Ognjen Galic <smclt30p@gmail.com>
-Subject: [PATCH] thinkad_acpi: Support the battery wear control
-Date: Sun, 3 Dec 2017 23:47:18 +0100
-Message-ID: <20171203224718.GA11394@thinkpad>
+Subject: [PATCH v2] thinkad_acpi: Support the battery wear control
+Date: Sun, 3 Dec 2017 23:56:40 +0100
+Message-ID: <20171203225640.GA11655@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:42809 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752638AbdLCWrX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Dec 2017 17:47:23 -0500
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+List-Id: linux-acpi@vger.kernel.org
 
 Add support for the ACPI batteries on newer thinkpad models
 (>Sandy Bridge) that support the setting of start and stop
@@ -33,6 +29,10 @@ The ACPI battery driver won't expose the interface unless
 DMI says that the machine is a Lenovo ThinkPad. This was done
 so that distributions that distribute thinkpad_acpi don't
 expose the API on non-ThinkPad laptops.
+
+v2: Forgot to signoff, fixed that
+
+Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
 ---
  Documentation/laptops/thinkpad-acpi.txt |  16 ++
  drivers/acpi/battery.c                  | 227 +++++++++++++++++++
@@ -807,4 +807,3 @@ index 9fb3179..9bc609f 100644
  #endif
 -- 
 2.7.4
-
