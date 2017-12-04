@@ -1,224 +1,82 @@
-From: Hans de Goede <hdegoede@redhat.com>
+From: Carlo Caione <carlo@endlessm.com>
 Subject: Re: [PATCH] ACPI / LPSS: Add device link for CHT SD card dependency
  on I2C
-Date: Mon, 4 Dec 2017 14:48:20 +0100
-Message-ID: <a949a90b-95f5-ad89-9ee0-b7e7feaf4387@redhat.com>
+Date: Mon, 4 Dec 2017 13:56:41 +0000
+Message-ID: <CAL9uMOGhf-DEmsV9ZGETof51EuU5YLs41umPdu+p2eh3zv2=cw@mail.gmail.com>
 References: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:46580 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751964AbdLDNsX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 08:48:23 -0500
-Received: by mail-wr0-f194.google.com with SMTP id x49so17347140wrb.13
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Dec 2017 05:48:22 -0800 (PST)
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Adrian Hunter <adrian.hunter@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Linux Upstreaming Team <linux@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Carlo Caione <carlo@endlessm.com>
 
-Hi,
-
-Wouldn't it be easier to use the ACPI _DEP tracking for this, e.g.
-add something like this to the the probe function:
-
-	struct acpi_device = ACPI_COMPANION(device);
-
-	if (acpi_device->dep_unmet)
-		return -EPROBE_DEFER;
-
-No idea if this will work, but if it does work, using the deps described
-in the ACPI tables seems like a better solution then hardcoding this.
-
-Regards,
-
-Hans
-
-
-
-On 04-12-17 13:32, Adrian Hunter wrote:
+On Mon, Dec 4, 2017 at 12:32 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
 > Some Cherry Trail boards have a dependency between the SDHCI host
 > controller used for SD cards and an external PMIC accessed via I2C. Add a
 > device link between the SDHCI host controller (consumer) and the I2C
 > adapter (supplier).
-> 
+>
 > This patch depends on a fix to devices links, namely commit 0ff26c662d5f
 > ("driver core: Fix device link deferred probe"). And also either,
 > commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling in
 > probe"), or patch "PM / runtime: Fix handling of suppliers with disabled
 > runtime PM".
-> 
+>
 > Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-> ---
->   drivers/acpi/acpi_lpss.c | 139 +++++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 139 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 7f2b02cc8ea1..9d82f2f6c327 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -290,6 +290,11 @@ static void bsw_pwm_setup(struct lpss_private_data *pdata)
->   	{}
->   };
->   
-> +static const struct x86_cpu_id cht_cpu[] = {
-> +	ICPU(INTEL_FAM6_ATOM_AIRMONT),	/* Braswell, Cherry Trail */
-> +	{}
-> +};
-> +
->   #else
->   
->   #define LPSS_ADDR(desc) (0UL)
-> @@ -427,6 +432,139 @@ static int register_device_clock(struct acpi_device *adev,
->   	return 0;
->   }
->   
-> +struct lpss_device_links {
-> +	const char *supplier_hid;
-> +	const char *supplier_uid;
-> +	const char *consumer_hid;
-> +	const char *consumer_uid;
-> +	const struct x86_cpu_id *cpus;
-> +	u32 flags;
-> +};
-> +
-> +static const struct lpss_device_links lpss_device_links[] = {
-> +	{"808622C1", "7", "80860F14", "3", cht_cpu, DL_FLAG_PM_RUNTIME},
-> +};
-> +
-> +static bool hid_uid_match(const char *hid1, const char *uid1,
-> +			  const char *hid2, const char *uid2)
-> +{
-> +	return !strcmp(hid1, hid2) && uid1 && uid2 && !strcmp(uid1, uid2);
-> +}
-> +
-> +static bool acpi_lpss_is_supplier(struct acpi_device *adev,
-> +				  const struct lpss_device_links *link)
-> +{
-> +	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-> +			     link->supplier_hid, link->supplier_uid);
-> +}
-> +
-> +static bool acpi_lpss_is_consumer(struct acpi_device *adev,
-> +				  const struct lpss_device_links *link)
-> +{
-> +	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-> +			     link->consumer_hid, link->consumer_uid);
-> +}
-> +
-> +struct hid_uid {
-> +	const char *hid;
-> +	const char *uid;
-> +};
-> +
-> +static int match_hid_uid(struct device *dev, void *data)
-> +{
-> +	struct acpi_device *adev = ACPI_COMPANION(dev);
-> +	struct hid_uid *id = data;
-> +
-> +	if (!adev)
-> +		return 0;
-> +
-> +	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-> +			     id->hid, id->uid);
-> +}
-> +
-> +static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
-> +{
-> +	struct hid_uid data = {
-> +		.hid = hid,
-> +		.uid = uid,
-> +	};
-> +
-> +	return bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
-> +}
-> +
-> +static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
-> +{
-> +	struct acpi_handle_list dep_devices;
-> +	acpi_status status;
-> +	int i;
-> +
-> +	if (!acpi_has_method(adev->handle, "_DEP"))
-> +		return false;
-> +
-> +	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
-> +					 &dep_devices);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_dbg(&adev->dev, "Failed to evaluate _DEP.\n");
-> +		return false;
-> +	}
-> +
-> +	for (i = 0; i < dep_devices.count; i++) {
-> +		if (dep_devices.handles[i] == handle)
-> +			return true;
-> +	}
-> +
-> +	return false;
-> +}
-> +
-> +static void acpi_lpss_link_consumer(struct device *dev1,
-> +				    const struct lpss_device_links *link)
-> +{
-> +	struct device *dev2;
-> +
-> +	dev2 = acpi_lpss_find_device(link->consumer_hid, link->consumer_uid);
-> +	if (!dev2)
-> +		return;
-> +
-> +	if (acpi_lpss_dep(ACPI_COMPANION(dev2), ACPI_HANDLE(dev1)))
-> +		device_link_add(dev2, dev1, link->flags);
-> +
-> +	put_device(dev2);
-> +}
-> +
-> +static void acpi_lpss_link_supplier(struct device *dev1,
-> +				    const struct lpss_device_links *link)
-> +{
-> +	struct device *dev2;
-> +
-> +	dev2 = acpi_lpss_find_device(link->supplier_hid, link->supplier_uid);
-> +	if (!dev2)
-> +		return;
-> +
-> +	if (acpi_lpss_dep(ACPI_COMPANION(dev1), ACPI_HANDLE(dev2)))
-> +		device_link_add(dev1, dev2, link->flags);
-> +
-> +	put_device(dev2);
-> +}
-> +
-> +static void acpi_lpss_create_device_links(struct acpi_device *adev,
-> +					  struct platform_device *pdev)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(lpss_device_links); i++) {
-> +		const struct lpss_device_links *link = &lpss_device_links[i];
-> +
-> +		if (link->cpus && !x86_match_cpu(link->cpus))
-> +			continue;
-> +
-> +		if (acpi_lpss_is_supplier(adev, link))
-> +			acpi_lpss_link_consumer(&pdev->dev, link);
-> +
-> +		if (acpi_lpss_is_consumer(adev, link))
-> +			acpi_lpss_link_supplier(&pdev->dev, link);
-> +	}
-> +}
-> +
->   static int acpi_lpss_create_device(struct acpi_device *adev,
->   				   const struct acpi_device_id *id)
->   {
-> @@ -500,6 +638,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->   	adev->driver_data = pdata;
->   	pdev = acpi_create_platform_device(adev, dev_desc->properties);
->   	if (!IS_ERR_OR_NULL(pdev)) {
-> +		acpi_lpss_create_device_links(adev, pdev);
->   		return 1;
->   	}
->   
-> 
+
+Hey Adrian,
+thank you for working on this.
+
+I tried this patch on top of linus HEAD (0ff26c662d5f and 126dbc6b49c8
+are already applied) but I'm still experiencing some difficulties with
+some SD cards on the cherry-trail laptop I'm working with. You can
+find the DSDT in [0].
+
+With an ultra high speed SDR104 SDHC card I get:
+
+  mmc2: Tuning timeout, falling back to fixed sampling clock
+  mmc2: new ultra high speed SDR104 SDHC card at address 59b4
+  mmcblk2: mmc2:59b4 USD00 15.0 GiB
+  mmc2: Timeout waiting for hardware interrupt.
+  mmc2: sdhci: ============ SDHCI REGISTER DUMP ===========
+  mmc2: sdhci: Sys addr:  0x00000008 | Version:  0x00001002
+  mmc2: sdhci: Blk size:  0x00007200 | Blk cnt:  0x00000008
+  mmc2: sdhci: Argument:  0x00000000 | Trn mode: 0x0000003b
+  mmc2: sdhci: Present:   0x01ff0001 | Host ctl: 0x00000017
+  mmc2: sdhci: Power:     0x0000000f | Blk gap:  0x00000080
+  mmc2: sdhci: Wake-up:   0x00000000 | Clock:    0x00000007
+  mmc2: sdhci: Timeout:   0x0000000a | Int stat: 0x00000000
+  mmc2: sdhci: Int enab:  0x02ff008b | Sig enab: 0x02ff008b
+  mmc2: sdhci: AC12 err:  0x00000000 | Slot int: 0x00000000
+  mmc2: sdhci: Caps:      0x0568c8b2 | Caps_1:   0x00000807
+  mmc2: sdhci: Cmd:       0x0000123a | Max curr: 0x00000000
+  mmc2: sdhci: Resp[0]:   0x00000000 | Resp[1]:  0x0077dd7f
+  mmc2: sdhci: Resp[2]:   0x325b5900 | Resp[3]:  0x00000000
+  mmc2: sdhci: Host ctl2: 0x0000800b
+  mmc2: sdhci: ADMA Err:  0x00000000 | ADMA Ptr: 0x33773200
+  mmc2: sdhci: ============================================
+  mmcblk2: error -110 sending status command, retrying
+  mmcblk2: error -110 sending status command, retrying
+  mmcblk2: error -110 sending status command, aborting
+  mmc2: Tuning timeout, falling back to fixed sampling clock
+
+For an high speed SDHC card I simply get:
+
+  mmc2: error -110 whilst initialising SD card
+
+Some other cards just work fine, i.e. ultra high speed DDR50.
+
+At this point I'm not sure if the problem I'm seeing is actually
+related to the issue you are fixing with this commit (and if now,
+sorry to have hijacked this thread).
+Any idea on that?
+
+Thank you,
+
+[0] https://gist.github.com/carlocaione/82bff95ababb67dd33f52a86e94ce3ff
+
+-- 
+Carlo Caione  |  +39.340.80.30.096  |  Endless
