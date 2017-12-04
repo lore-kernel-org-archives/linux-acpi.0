@@ -1,90 +1,178 @@
-From: "Du, Changbin" <changbin.du@intel.com>
-Subject: BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
-Date: Mon, 4 Dec 2017 18:19:45 +0800
-Message-ID: <20171204101944.ppktvwcuf2md6kzt@intel.com>
+From: Andrea Reale <ar@linux.vnet.ibm.com>
+Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
+ state before hotremove
+Date: Mon, 4 Dec 2017 11:28:55 +0000
+Message-ID: <20171204112855.GA6373@samekh>
+References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
+ <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
+ <20171129004913.GB1469@linux-l9pv.suse>
+ <20171129015229.GD1469@linux-l9pv.suse>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:64550 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751219AbdLDK1Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 4 Dec 2017 05:27:24 -0500
+Content-Type: text/plain; charset=utf-8
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20171129015229.GD1469@linux-l9pv.suse>
+Sender: owner-linux-mm@kvack.org
+To: joeyli <jlee@suse.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, mark.rutland@arm.com, scott.branden@broadcom.com, will.deacon@arm.com, qiuxishi@huawei.com, catalin.marinas@arm.com, mhocko@suse.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: george.cherian@cavium.com
-Cc: changbin.du@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Cherian,
-Your patch 'ACPI / CPPC: Make CPPC ACPI driver aware of PCC subspace IDs'
-introduced a out-of-bounds BUG in kernel. The code need to check
-cpu_pcc_subspace_idx before use it since it can be -1. Thanks.
+Hi Joey,
 
-[   15.113449] ==================================================================
-[   15.116983] BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
-[   15.116983] Read of size 8 at addr ffffffffb9a5c0d8 by task swapper/0/1
+and thanks for your comments. Response inline:
 
-[   15.116983] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.15.0-rc2+ #2
-[   15.116983] Hardware name: Dell Inc. OptiPlex 7040/0Y7WYT, BIOS 1.2.8 01/26/2016
-[   15.116983] Call Trace:
-[   15.116983]  dump_stack+0x7c/0xbb
-[   15.116983]  print_address_description+0x1df/0x290
-[   15.116983]  kasan_report+0x28a/0x370
-[   15.116983]  ? cppc_get_perf_caps+0xf3/0x3b0
-[   15.116983]  cppc_get_perf_caps+0xf3/0x3b0
-[   15.116983]  ? cpc_read+0x210/0x210
-[   15.116983]  ? __rdmsr_on_cpu+0x90/0x90
-[   15.116983]  ? rdmsrl_on_cpu+0xa9/0xe0
-[   15.116983]  ? rdmsr_on_cpu+0x100/0x100
-[   15.116983]  ? wrmsrl_on_cpu+0x9c/0xd0
-[   15.116983]  ? wrmsrl_on_cpu+0x9c/0xd0
-[   15.116983]  ? wrmsr_on_cpu+0xe0/0xe0
-[   15.116983]  __intel_pstate_cpu_init.part.16+0x3a2/0x530
-[   15.116983]  ? intel_pstate_init_cpu+0x197/0x390
-[   15.116983]  ? show_no_turbo+0xe0/0xe0
-[   15.116983]  ? __lockdep_init_map+0xa0/0x290
-[   15.116983]  intel_pstate_cpu_init+0x30/0x60
-[   15.116983]  cpufreq_online+0x155/0xac0
-[   15.116983]  cpufreq_add_dev+0x9b/0xb0
-[   15.116983]  subsys_interface_register+0x1ae/0x290
-[   15.116983]  ? bus_unregister_notifier+0x40/0x40
-[   15.116983]  ? mark_held_locks+0x83/0xb0
-[   15.116983]  ? _raw_write_unlock_irqrestore+0x32/0x60
-[   15.116983]  ? intel_pstate_setup+0xc/0x104
-[   15.116983]  ? intel_pstate_setup+0xc/0x104
-[   15.116983]  ? cpufreq_register_driver+0x1ce/0x2b0
-[   15.116983]  cpufreq_register_driver+0x1ce/0x2b0
-[   15.116983]  ? intel_pstate_setup+0x104/0x104
-[   15.116983]  intel_pstate_register_driver+0x3a/0xa0
-[   15.116983]  intel_pstate_init+0x3c4/0x434
-[   15.116983]  ? intel_pstate_setup+0x104/0x104
-[   15.116983]  ? intel_pstate_setup+0x104/0x104
-[   15.116983]  do_one_initcall+0x9c/0x206
-[   15.116983]  ? parameq+0xa0/0xa0
-[   15.116983]  ? initcall_blacklisted+0x150/0x150
-[   15.116983]  ? lock_downgrade+0x2c0/0x2c0
-[   15.116983]  kernel_init_freeable+0x327/0x3f0
-[   15.116983]  ? start_kernel+0x612/0x612
-[   15.116983]  ? _raw_spin_unlock_irq+0x29/0x40
-[   15.116983]  ? finish_task_switch+0xdd/0x320
-[   15.116983]  ? finish_task_switch+0x8e/0x320
-[   15.116983]  ? rest_init+0xd0/0xd0
-[   15.116983]  kernel_init+0xf/0x11a
-[   15.116983]  ? rest_init+0xd0/0xd0
-[   15.116983]  ret_from_fork+0x24/0x30
+On Wed 29 Nov 2017, 09:52, joeyli wrote:
+> On Wed, Nov 29, 2017 at 08:49:13AM +0800, joeyli wrote:
+> > Hi Andrea, 
+> > 
+> > On Fri, Nov 24, 2017 at 10:22:35AM +0000, Andrea Reale wrote:
+> > > Resending the patch adding linux-acpi in CC, as suggested by Rafael.
+> > > Everyone else: apologies for the noise.
+> > > 
+> > > Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
+> > > introduced an assumption whereas when control
+> > > reaches remove_memory the corresponding memory has been already
+> > > offlined. In that case, the acpi_memhotplug was making sure that
+> > > the assumption held.
+> > > This assumption, however, is not necessarily true if offlining
+> > > and removal are not done by the same "controller" (for example,
+> > > when first offlining via sysfs).
+> > > 
+> > > Removing this assumption for the generic remove_memory code
+> > > and moving it in the specific acpi_memhotplug code. This is
+> > > a dependency for the software-aided arm64 offlining and removal
+> > > process.
+> > > 
+> > > Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
+> > > Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
+> > > ---
+> > >  drivers/acpi/acpi_memhotplug.c |  2 +-
+> > >  include/linux/memory_hotplug.h |  9 ++++++---
+> > >  mm/memory_hotplug.c            | 13 +++++++++----
+> > >  3 files changed, 16 insertions(+), 8 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> > > index 6b0d3ef..b0126a0 100644
+> > > --- a/drivers/acpi/acpi_memhotplug.c
+> > > +++ b/drivers/acpi/acpi_memhotplug.c
+> > > @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+> > >  			nid = memory_add_physaddr_to_nid(info->start_addr);
+> > >  
+> > >  		acpi_unbind_memory_blocks(info);
+> > > -		remove_memory(nid, info->start_addr, info->length);
+> > > +		BUG_ON(remove_memory(nid, info->start_addr, info->length));
+> > >  		list_del(&info->list);
+> > >  		kfree(info);
+> > >  	}
+> > > diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> > > index 58e110a..1a9c7b2 100644
+> > > --- a/include/linux/memory_hotplug.h
+> > > +++ b/include/linux/memory_hotplug.h
+> > > @@ -295,7 +295,7 @@ static inline bool movable_node_is_enabled(void)
+> > >  extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+> > >  extern void try_offline_node(int nid);
+> > >  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+> > > -extern void remove_memory(int nid, u64 start, u64 size);
+> > > +extern int remove_memory(int nid, u64 start, u64 size);
+> > >  
+> > >  #else
+> > >  static inline bool is_mem_section_removable(unsigned long pfn,
+> > > @@ -311,7 +311,10 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+> > >  	return -EINVAL;
+> > >  }
+> > >  
+> > > -static inline void remove_memory(int nid, u64 start, u64 size) {}
+> > > +static inline int remove_memory(int nid, u64 start, u64 size)
+> > > +{
+> > > +	return -EINVAL;
+> > > +}
+> > >  #endif /* CONFIG_MEMORY_HOTREMOVE */
+> > >  
+> > >  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+> > > @@ -323,7 +326,7 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+> > >  		unsigned long nr_pages);
+> > >  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+> > >  extern bool is_memblock_offlined(struct memory_block *mem);
+> > > -extern void remove_memory(int nid, u64 start, u64 size);
+> > > +extern int remove_memory(int nid, u64 start, u64 size);
+> > >  extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
+> > >  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+> > >  		unsigned long map_offset);
+> > > diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> > > index d4b5f29..d5f15af 100644
+> > > --- a/mm/memory_hotplug.c
+> > > +++ b/mm/memory_hotplug.c
+> > > @@ -1892,7 +1892,7 @@ EXPORT_SYMBOL(try_offline_node);
+> > >   * and online/offline operations before this call, as required by
+> > >   * try_offline_node().
+> > >   */
+> > > -void __ref remove_memory(int nid, u64 start, u64 size)
+> > > +int __ref remove_memory(int nid, u64 start, u64 size)
+> > >  {
+> > >  	int ret;
+> > >  
+> > > @@ -1908,18 +1908,23 @@ void __ref remove_memory(int nid, u64 start, u64 size)
+> > >  	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
+> > >  				check_memblock_offlined_cb);
+> > >  	if (ret)
+> > > -		BUG();
+> > > +		goto end_remove;
+> > > +
+> > > +	ret = arch_remove_memory(start, size);
+> 
+> Should not include arch_remove_memory() to BUG().
 
-[   15.116983] The buggy address belongs to the variable:
-[   15.116983]  __key.36299+0x38/0x40
+arch_remove_memory might also fail in some cases. In the arm64
+implementation of this patchset, for example, it might fail in the
+(very rare) case when we would have to split a P[UM]D mapped section for
+removal (and we do not support that - see email thread here:
+https://lkml.org/lkml/2017/11/23/456).
 
-[   15.116983] Memory state around the buggy address:
-[   15.116983]  ffffffffb9a5bf80: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
-[   15.116983]  ffffffffb9a5c000: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
-[   15.116983] >ffffffffb9a5c080: fa fa fa fa 00 fa fa fa fa fa fa fa 00 00 00 00
-[   15.116983]                                                     ^
-[   15.116983]  ffffffffb9a5c100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   15.116983]  ffffffffb9a5c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   15.116983] ==================================================================
 
--- 
+> > > +
+> > > +	if (ret)
+> > > +		goto end_remove;
+> > 
+> > The original code triggers BUG() when any memblock is not offlined. Why
+> > the new logic includes the result of arch_remove_memory()?
+> > 
+> > But I agreed the we don't need BUG(). Returning a error is better.
+> 
+> Actually, I lost one thing.
+> 
+> The BUG() have caught a issue about the offline state doesn't sync between
+> memory_block and device object. like:
+>         mem->dev.offline != (mem->state == MEM_OFFLINE)
+> 
+> So, the BUG() is useful to capture state issue in memory subsystem. But, I
+> understood your concern about the two steps offline/remove from userland. 
+> 
+> Maybe we should move the BUG() to somewhere but not just remove it. Or if
+> we think that the BUG() is too intense, at least we should print out a error
+> message, and ACPI should checks the return value from subsystem to
+> interrupt memory-hotplug process.
+
+In this patchset, BUG() is moved to acpi_memory_remove_memory(),
+the caller of arch_remove_memory(). However, I agree with Michal, that
+we should not BUG() here but rather halt the hotremove process and print
+some errors. 
+Is there any state in ACPI that should be undone in case of hotremove
+errors or we can just stop the process "halfway"?
+
+> Thanks a lot!
+> Joey Lee 
+
 Thanks,
-Changbin Du
+Andrea
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
