@@ -1,178 +1,197 @@
-From: Andrea Reale <ar@linux.vnet.ibm.com>
-Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
- state before hotremove
-Date: Mon, 4 Dec 2017 11:28:55 +0000
-Message-ID: <20171204112855.GA6373@samekh>
-References: <cover.1511433386.git.ar@linux.vnet.ibm.com>
- <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
- <20171129004913.GB1469@linux-l9pv.suse>
- <20171129015229.GD1469@linux-l9pv.suse>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20171129015229.GD1469@linux-l9pv.suse>
-Sender: owner-linux-mm@kvack.org
-To: joeyli <jlee@suse.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, mark.rutland@arm.com, scott.branden@broadcom.com, will.deacon@arm.com, qiuxishi@huawei.com, catalin.marinas@arm.com, mhocko@suse.com, rafael.j.wysocki@intel.com, linux-acpi@vger.kernel.org
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: [PATCH] ACPI / LPSS: Add device link for CHT SD card dependency on I2C
+Date: Mon,  4 Dec 2017 14:32:11 +0200
+Message-ID: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:4285 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753460AbdLDMce (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 07:32:34 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Hans de Goede <hdegoede@redhat.com>
 
-Hi Joey,
+Some Cherry Trail boards have a dependency between the SDHCI host
+controller used for SD cards and an external PMIC accessed via I2C. Add a
+device link between the SDHCI host controller (consumer) and the I2C
+adapter (supplier).
 
-and thanks for your comments. Response inline:
+This patch depends on a fix to devices links, namely commit 0ff26c662d5f
+("driver core: Fix device link deferred probe"). And also either,
+commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling in
+probe"), or patch "PM / runtime: Fix handling of suppliers with disabled
+runtime PM".
 
-On Wed 29 Nov 2017, 09:52, joeyli wrote:
-> On Wed, Nov 29, 2017 at 08:49:13AM +0800, joeyli wrote:
-> > Hi Andrea, 
-> > 
-> > On Fri, Nov 24, 2017 at 10:22:35AM +0000, Andrea Reale wrote:
-> > > Resending the patch adding linux-acpi in CC, as suggested by Rafael.
-> > > Everyone else: apologies for the noise.
-> > > 
-> > > Commit 242831eb15a0 ("Memory hotplug / ACPI: Simplify memory removal")
-> > > introduced an assumption whereas when control
-> > > reaches remove_memory the corresponding memory has been already
-> > > offlined. In that case, the acpi_memhotplug was making sure that
-> > > the assumption held.
-> > > This assumption, however, is not necessarily true if offlining
-> > > and removal are not done by the same "controller" (for example,
-> > > when first offlining via sysfs).
-> > > 
-> > > Removing this assumption for the generic remove_memory code
-> > > and moving it in the specific acpi_memhotplug code. This is
-> > > a dependency for the software-aided arm64 offlining and removal
-> > > process.
-> > > 
-> > > Signed-off-by: Andrea Reale <ar@linux.vnet.ibm.com>
-> > > Signed-off-by: Maciej Bielski <m.bielski@linux.vnet.ibm.com>
-> > > ---
-> > >  drivers/acpi/acpi_memhotplug.c |  2 +-
-> > >  include/linux/memory_hotplug.h |  9 ++++++---
-> > >  mm/memory_hotplug.c            | 13 +++++++++----
-> > >  3 files changed, 16 insertions(+), 8 deletions(-)
-> > > 
-> > > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> > > index 6b0d3ef..b0126a0 100644
-> > > --- a/drivers/acpi/acpi_memhotplug.c
-> > > +++ b/drivers/acpi/acpi_memhotplug.c
-> > > @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
-> > >  			nid = memory_add_physaddr_to_nid(info->start_addr);
-> > >  
-> > >  		acpi_unbind_memory_blocks(info);
-> > > -		remove_memory(nid, info->start_addr, info->length);
-> > > +		BUG_ON(remove_memory(nid, info->start_addr, info->length));
-> > >  		list_del(&info->list);
-> > >  		kfree(info);
-> > >  	}
-> > > diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-> > > index 58e110a..1a9c7b2 100644
-> > > --- a/include/linux/memory_hotplug.h
-> > > +++ b/include/linux/memory_hotplug.h
-> > > @@ -295,7 +295,7 @@ static inline bool movable_node_is_enabled(void)
-> > >  extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
-> > >  extern void try_offline_node(int nid);
-> > >  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-> > > -extern void remove_memory(int nid, u64 start, u64 size);
-> > > +extern int remove_memory(int nid, u64 start, u64 size);
-> > >  
-> > >  #else
-> > >  static inline bool is_mem_section_removable(unsigned long pfn,
-> > > @@ -311,7 +311,10 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
-> > >  	return -EINVAL;
-> > >  }
-> > >  
-> > > -static inline void remove_memory(int nid, u64 start, u64 size) {}
-> > > +static inline int remove_memory(int nid, u64 start, u64 size)
-> > > +{
-> > > +	return -EINVAL;
-> > > +}
-> > >  #endif /* CONFIG_MEMORY_HOTREMOVE */
-> > >  
-> > >  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
-> > > @@ -323,7 +326,7 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
-> > >  		unsigned long nr_pages);
-> > >  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
-> > >  extern bool is_memblock_offlined(struct memory_block *mem);
-> > > -extern void remove_memory(int nid, u64 start, u64 size);
-> > > +extern int remove_memory(int nid, u64 start, u64 size);
-> > >  extern int sparse_add_one_section(struct pglist_data *pgdat, unsigned long start_pfn);
-> > >  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
-> > >  		unsigned long map_offset);
-> > > diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> > > index d4b5f29..d5f15af 100644
-> > > --- a/mm/memory_hotplug.c
-> > > +++ b/mm/memory_hotplug.c
-> > > @@ -1892,7 +1892,7 @@ EXPORT_SYMBOL(try_offline_node);
-> > >   * and online/offline operations before this call, as required by
-> > >   * try_offline_node().
-> > >   */
-> > > -void __ref remove_memory(int nid, u64 start, u64 size)
-> > > +int __ref remove_memory(int nid, u64 start, u64 size)
-> > >  {
-> > >  	int ret;
-> > >  
-> > > @@ -1908,18 +1908,23 @@ void __ref remove_memory(int nid, u64 start, u64 size)
-> > >  	ret = walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1), NULL,
-> > >  				check_memblock_offlined_cb);
-> > >  	if (ret)
-> > > -		BUG();
-> > > +		goto end_remove;
-> > > +
-> > > +	ret = arch_remove_memory(start, size);
-> 
-> Should not include arch_remove_memory() to BUG().
+Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 139 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 139 insertions(+)
 
-arch_remove_memory might also fail in some cases. In the arm64
-implementation of this patchset, for example, it might fail in the
-(very rare) case when we would have to split a P[UM]D mapped section for
-removal (and we do not support that - see email thread here:
-https://lkml.org/lkml/2017/11/23/456).
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 7f2b02cc8ea1..9d82f2f6c327 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -290,6 +290,11 @@ static void bsw_pwm_setup(struct lpss_private_data *pdata)
+ 	{}
+ };
+ 
++static const struct x86_cpu_id cht_cpu[] = {
++	ICPU(INTEL_FAM6_ATOM_AIRMONT),	/* Braswell, Cherry Trail */
++	{}
++};
++
+ #else
+ 
+ #define LPSS_ADDR(desc) (0UL)
+@@ -427,6 +432,139 @@ static int register_device_clock(struct acpi_device *adev,
+ 	return 0;
+ }
+ 
++struct lpss_device_links {
++	const char *supplier_hid;
++	const char *supplier_uid;
++	const char *consumer_hid;
++	const char *consumer_uid;
++	const struct x86_cpu_id *cpus;
++	u32 flags;
++};
++
++static const struct lpss_device_links lpss_device_links[] = {
++	{"808622C1", "7", "80860F14", "3", cht_cpu, DL_FLAG_PM_RUNTIME},
++};
++
++static bool hid_uid_match(const char *hid1, const char *uid1,
++			  const char *hid2, const char *uid2)
++{
++	return !strcmp(hid1, hid2) && uid1 && uid2 && !strcmp(uid1, uid2);
++}
++
++static bool acpi_lpss_is_supplier(struct acpi_device *adev,
++				  const struct lpss_device_links *link)
++{
++	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
++			     link->supplier_hid, link->supplier_uid);
++}
++
++static bool acpi_lpss_is_consumer(struct acpi_device *adev,
++				  const struct lpss_device_links *link)
++{
++	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
++			     link->consumer_hid, link->consumer_uid);
++}
++
++struct hid_uid {
++	const char *hid;
++	const char *uid;
++};
++
++static int match_hid_uid(struct device *dev, void *data)
++{
++	struct acpi_device *adev = ACPI_COMPANION(dev);
++	struct hid_uid *id = data;
++
++	if (!adev)
++		return 0;
++
++	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
++			     id->hid, id->uid);
++}
++
++static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
++{
++	struct hid_uid data = {
++		.hid = hid,
++		.uid = uid,
++	};
++
++	return bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
++}
++
++static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
++{
++	struct acpi_handle_list dep_devices;
++	acpi_status status;
++	int i;
++
++	if (!acpi_has_method(adev->handle, "_DEP"))
++		return false;
++
++	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
++					 &dep_devices);
++	if (ACPI_FAILURE(status)) {
++		dev_dbg(&adev->dev, "Failed to evaluate _DEP.\n");
++		return false;
++	}
++
++	for (i = 0; i < dep_devices.count; i++) {
++		if (dep_devices.handles[i] == handle)
++			return true;
++	}
++
++	return false;
++}
++
++static void acpi_lpss_link_consumer(struct device *dev1,
++				    const struct lpss_device_links *link)
++{
++	struct device *dev2;
++
++	dev2 = acpi_lpss_find_device(link->consumer_hid, link->consumer_uid);
++	if (!dev2)
++		return;
++
++	if (acpi_lpss_dep(ACPI_COMPANION(dev2), ACPI_HANDLE(dev1)))
++		device_link_add(dev2, dev1, link->flags);
++
++	put_device(dev2);
++}
++
++static void acpi_lpss_link_supplier(struct device *dev1,
++				    const struct lpss_device_links *link)
++{
++	struct device *dev2;
++
++	dev2 = acpi_lpss_find_device(link->supplier_hid, link->supplier_uid);
++	if (!dev2)
++		return;
++
++	if (acpi_lpss_dep(ACPI_COMPANION(dev1), ACPI_HANDLE(dev2)))
++		device_link_add(dev1, dev2, link->flags);
++
++	put_device(dev2);
++}
++
++static void acpi_lpss_create_device_links(struct acpi_device *adev,
++					  struct platform_device *pdev)
++{
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(lpss_device_links); i++) {
++		const struct lpss_device_links *link = &lpss_device_links[i];
++
++		if (link->cpus && !x86_match_cpu(link->cpus))
++			continue;
++
++		if (acpi_lpss_is_supplier(adev, link))
++			acpi_lpss_link_consumer(&pdev->dev, link);
++
++		if (acpi_lpss_is_consumer(adev, link))
++			acpi_lpss_link_supplier(&pdev->dev, link);
++	}
++}
++
+ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 				   const struct acpi_device_id *id)
+ {
+@@ -500,6 +638,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	adev->driver_data = pdata;
+ 	pdev = acpi_create_platform_device(adev, dev_desc->properties);
+ 	if (!IS_ERR_OR_NULL(pdev)) {
++		acpi_lpss_create_device_links(adev, pdev);
+ 		return 1;
+ 	}
+ 
+-- 
+1.9.1
 
-
-> > > +
-> > > +	if (ret)
-> > > +		goto end_remove;
-> > 
-> > The original code triggers BUG() when any memblock is not offlined. Why
-> > the new logic includes the result of arch_remove_memory()?
-> > 
-> > But I agreed the we don't need BUG(). Returning a error is better.
-> 
-> Actually, I lost one thing.
-> 
-> The BUG() have caught a issue about the offline state doesn't sync between
-> memory_block and device object. like:
->         mem->dev.offline != (mem->state == MEM_OFFLINE)
-> 
-> So, the BUG() is useful to capture state issue in memory subsystem. But, I
-> understood your concern about the two steps offline/remove from userland. 
-> 
-> Maybe we should move the BUG() to somewhere but not just remove it. Or if
-> we think that the BUG() is too intense, at least we should print out a error
-> message, and ACPI should checks the return value from subsystem to
-> interrupt memory-hotplug process.
-
-In this patchset, BUG() is moved to acpi_memory_remove_memory(),
-the caller of arch_remove_memory(). However, I agree with Michal, that
-we should not BUG() here but rather halt the hotremove process and print
-some errors. 
-Is there any state in ACPI that should be undone in case of hotremove
-errors or we can just stop the process "halfway"?
-
-> Thanks a lot!
-> Joey Lee 
-
-Thanks,
-Andrea
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
