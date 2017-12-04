@@ -1,84 +1,56 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Add device link for CHT SD card dependency
- on I2C
-Date: Mon, 4 Dec 2017 17:52:15 +0200
-Message-ID: <0daca59b-633e-c981-9fac-453ac07404cd@intel.com>
-References: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
- <CAL9uMOGhf-DEmsV9ZGETof51EuU5YLs41umPdu+p2eh3zv2=cw@mail.gmail.com>
+From: Ognjen Galic <smclt30p@gmail.com>
+Subject: Re: [PATCH v2] thinkpad_acpi: Support the battery wear control
+Date: Mon, 4 Dec 2017 20:55:24 +0100
+Message-ID: <20171204195524.GA25730@thinkpad>
+References: <20171203225640.GA11655@thinkpad>
+ <3171660.sUGE0a2FEN@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAL9uMOGhf-DEmsV9ZGETof51EuU5YLs41umPdu+p2eh3zv2=cw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlo Caione <carlo@endlessm.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Linux Upstreaming Team <linux@endlessm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:44059 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752035AbdLDTz2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 14:55:28 -0500
+Content-Disposition: inline
+In-Reply-To: <3171660.sUGE0a2FEN@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On 04/12/17 15:56, Carlo Caione wrote:
-> On Mon, Dec 4, 2017 at 12:32 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
->> Some Cherry Trail boards have a dependency between the SDHCI host
->> controller used for SD cards and an external PMIC accessed via I2C. Add a
->> device link between the SDHCI host controller (consumer) and the I2C
->> adapter (supplier).
->>
->> This patch depends on a fix to devices links, namely commit 0ff26c662d5f
->> ("driver core: Fix device link deferred probe"). And also either,
->> commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling in
->> probe"), or patch "PM / runtime: Fix handling of suppliers with disabled
->> runtime PM".
->>
->> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
-> 
-> Hey Adrian,
-> thank you for working on this.
-> 
-> I tried this patch on top of linus HEAD (0ff26c662d5f and 126dbc6b49c8
-> are already applied) but I'm still experiencing some difficulties with
-> some SD cards on the cherry-trail laptop I'm working with. You can
-> find the DSDT in [0].
-> 
-> With an ultra high speed SDR104 SDHC card I get:
+On Mon, Dec 04, 2017 at 03:53:32PM +0100, Rafael J. Wysocki wrote:
 
-SDR104 works for me but I now see it is not supported on all boards.  I will
-send a patch for that i.e. you will end up with no SDR104.
-
+> Not really.
 > 
->   mmc2: Tuning timeout, falling back to fixed sampling clock
->   mmc2: new ultra high speed SDR104 SDHC card at address 59b4
->   mmcblk2: mmc2:59b4 USD00 15.0 GiB
->   mmc2: Timeout waiting for hardware interrupt.
->   mmc2: sdhci: ============ SDHCI REGISTER DUMP ===========
->   mmc2: sdhci: Sys addr:  0x00000008 | Version:  0x00001002
->   mmc2: sdhci: Blk size:  0x00007200 | Blk cnt:  0x00000008
->   mmc2: sdhci: Argument:  0x00000000 | Trn mode: 0x0000003b
->   mmc2: sdhci: Present:   0x01ff0001 | Host ctl: 0x00000017
->   mmc2: sdhci: Power:     0x0000000f | Blk gap:  0x00000080
->   mmc2: sdhci: Wake-up:   0x00000000 | Clock:    0x00000007
->   mmc2: sdhci: Timeout:   0x0000000a | Int stat: 0x00000000
->   mmc2: sdhci: Int enab:  0x02ff008b | Sig enab: 0x02ff008b
->   mmc2: sdhci: AC12 err:  0x00000000 | Slot int: 0x00000000
->   mmc2: sdhci: Caps:      0x0568c8b2 | Caps_1:   0x00000807
->   mmc2: sdhci: Cmd:       0x0000123a | Max curr: 0x00000000
->   mmc2: sdhci: Resp[0]:   0x00000000 | Resp[1]:  0x0077dd7f
->   mmc2: sdhci: Resp[2]:   0x325b5900 | Resp[3]:  0x00000000
->   mmc2: sdhci: Host ctl2: 0x0000800b
->   mmc2: sdhci: ADMA Err:  0x00000000 | ADMA Ptr: 0x33773200
->   mmc2: sdhci: ============================================
->   mmcblk2: error -110 sending status command, retrying
->   mmcblk2: error -110 sending status command, retrying
->   mmcblk2: error -110 sending status command, aborting
->   mmc2: Tuning timeout, falling back to fixed sampling clock
+> This is generic code, so no thinkpad_acpi-specific stuff in this file, please,
+> even under #ifdefs.
 > 
-> For an high speed SDHC card I simply get:
-> 
->   mmc2: error -110 whilst initialising SD card
 
-I will investigate that some more.
+I have some ideas, and I want your confirmation if that would be
+acceptable.
 
-> 
-> Some other cards just work fine, i.e. ultra high speed DDR50.
+Can I do this:
 
-This patch should help in the DDR50 case when booting with a card already
-inserted.  Did it help?
+Expose a new API from battery.c for platform specific hooks:
+
+struct battery_hook {
+	int (*add_battery)(struct acpi_battery* battery);
+	int (*remove_battery)(struct acpi_battery *battery);
+};
+
+battery_hook_register(struct battery_hook *hook)
+battery_hook_unregister(struct battery_hook *hook)
+
+When that hook is invoked from some other module, battery.c 
+calls the add_battery method for each battery that is added and
+remove_battery for each battery that is removed.
+
+battery.c would keep a list of the battery_hook structs and invoke 
+the add_battery and remove_battery methods as batteries get added 
+and removed. 
+
+With this API, we can add more hooks for battery features in 
+the future, not just the ThinkPad hooks.
+
+I hope you like the proposal :)
+
