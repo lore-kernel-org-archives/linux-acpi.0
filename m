@@ -1,56 +1,116 @@
-From: Ognjen Galic <smclt30p@gmail.com>
-Subject: Re: [PATCH v2] thinkpad_acpi: Support the battery wear control
-Date: Mon, 4 Dec 2017 20:55:24 +0100
-Message-ID: <20171204195524.GA25730@thinkpad>
-References: <20171203225640.GA11655@thinkpad>
- <3171660.sUGE0a2FEN@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH 2/4] firmware: dmi: Add function to look up a handle
+ and return DIMM size
+Date: Mon, 4 Dec 2017 22:38:14 +0100
+Message-ID: <20171204213813.rm32qqeqchx37c5x@pd.tnic>
+References: <cover.1512070562.git.tony.luck@intel.com>
+ <2fae02861e5c446c0cdd30ba3e00fad55db97807.1512070562.git.tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:44059 "EHLO
-        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752035AbdLDTz2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 14:55:28 -0500
+Received: from mail.skyhub.de ([5.9.137.197]:35104 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751628AbdLDViU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 16:38:20 -0500
 Content-Disposition: inline
-In-Reply-To: <3171660.sUGE0a2FEN@aspire.rjw.lan>
+In-Reply-To: <2fae02861e5c446c0cdd30ba3e00fad55db97807.1512070562.git.tony.luck@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+To: Tony Luck <tony.luck@intel.com>
+Cc: linux-edac@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-On Mon, Dec 04, 2017 at 03:53:32PM +0100, Rafael J. Wysocki wrote:
-
-> Not really.
+On Thu, Nov 30, 2017 at 12:40:40PM -0800, Tony Luck wrote:
+> When we first scan the SMBIOS table, save the size of the DIMM.
 > 
-> This is generic code, so no thinkpad_acpi-specific stuff in this file, please,
-> even under #ifdefs.
+> Provide a function for other code (EDAC driver) to look up the size
+> of a DIMM from its SMBIOS handle.
 > 
+> Signed-off-by: Tony Luck <tony.luck@intel.com>
+> ---
+>  drivers/firmware/dmi_scan.c | 29 +++++++++++++++++++++++++++++
+>  include/linux/dmi.h         |  2 ++
+>  2 files changed, 31 insertions(+)
+> 
+> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+> index 783041964439..946e86fb1ec6 100644
+> --- a/drivers/firmware/dmi_scan.c
+> +++ b/drivers/firmware/dmi_scan.c
+> @@ -37,6 +37,7 @@ static char dmi_ids_string[128] __initdata;
+>  static struct dmi_memdev_info {
+>  	const char *device;
+>  	const char *bank;
+> +	u64 size;
+>  	u16 handle;
+>  } *dmi_memdev;
+>  static int dmi_memdev_nr;
+> @@ -395,6 +396,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  {
+>  	const char *d = (const char *)dm;
+>  	static int nr;
+> +	u64 bytes;
+> +	u16 size;
+>  
+>  	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
+>  		return;
+> @@ -405,6 +408,18 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
+>  	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
+>  	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
 
-I have some ideas, and I want your confirmation if that would be
-acceptable.
+<---- newline here.
 
-Can I do this:
+> +	size = get_unaligned((u16 *)&d[0xC]);
+> +	if (size == 0)
+> +		bytes = 0;
+> +	else if (size == 0xffff)
+> +		bytes = ~0ul;
+> +	else if (size & 0x8000)
+> +		bytes = (u64)(size & 0x7fff) << 10;
+> +	else if (size != 0x7fff)
+> +		bytes = (u64)size << 20;
+> +	else
+> +		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
 
-Expose a new API from battery.c for platform specific hooks:
+<---- newline here.
 
-struct battery_hook {
-	int (*add_battery)(struct acpi_battery* battery);
-	int (*remove_battery)(struct acpi_battery *battery);
-};
+> +	dmi_memdev[nr].size = bytes;
+>  	nr++;
+>  }
+>  
+> @@ -1073,3 +1088,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dmi_memdev_name);
+> +
+> +u64 dmi_memdev_size(u16 handle)
+> +{
+> +	int n;
+> +
+> +	if (dmi_memdev) {
+> +		for (n = 0; n < dmi_memdev_nr; n++) {
+> +			if (handle == dmi_memdev[n].handle)
+> +				return dmi_memdev[n].size;
+> +		}
+> +	}
+> +	return ~0ul;
+> +}
 
-battery_hook_register(struct battery_hook *hook)
-battery_hook_unregister(struct battery_hook *hook)
+So dmi_memdev_name() also loops over dmi_memdev and returns bank and
+device. This new function returns size.
 
-When that hook is invoked from some other module, battery.c 
-calls the add_battery method for each battery that is added and
-remove_battery for each battery that is removed.
+If code is going to be calling those one after the other, you could do a
 
-battery.c would keep a list of the battery_hook structs and invoke 
-the add_battery and remove_battery methods as batteries get added 
-and removed. 
+	dmi_memdev_desc(u16 handle, struct memdev_desc *desc)
 
-With this API, we can add more hooks for battery features in 
-the future, not just the ThinkPad hooks.
+which fills up a descriptor with all fields a caller would need in one
+go so that you don't have to iterate multiple times. Looking at struct
+dmi_memdev_info, there are no more fields so maybe this is probably
+silly though or you can simply return struct dmi_memdev_info directly...
 
-I hope you like the proposal :)
+Meh.
 
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
