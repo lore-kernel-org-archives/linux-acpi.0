@@ -1,29 +1,55 @@
-From: George Cherian <george.cherian@cavium.com>
-Subject: [PATCH] ACPI / CPPC: FIX KASAN global out of bounds warning
-Date: Mon,  4 Dec 2017 14:06:54 +0000
-Message-ID: <1512396414-1024-1-git-send-email-george.cherian@cavium.com>
+From: "Cherian, George" <George.Cherian@cavium.com>
+Subject: Re: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
+Date: Mon, 4 Dec 2017 14:07:28 +0000
+Message-ID: <CY1PR0701MB1709D330F584CB93BF815DA5F93C0@CY1PR0701MB1709.namprd07.prod.outlook.com>
+References: <20171204101944.ppktvwcuf2md6kzt@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2nam02on0045.outbound.protection.outlook.com ([104.47.38.45]:37664
-        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+Received: from mail-by2nam03on0062.outbound.protection.outlook.com ([104.47.42.62]:24864
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
         rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752316AbdLDOHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 4 Dec 2017 09:07:15 -0500
+        id S1754132AbdLDOHa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 09:07:30 -0500
+In-Reply-To: <20171204101944.ppktvwcuf2md6kzt@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, rjw@rjwysocki.net, changbin.du@intel.com, George Cherian <george.cherian@cavium.com>
+To: "Du, Changbin" <changbin.du@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Default value of pcc_subspace_idx is -1.
-Make sure to check pcc_subspace_idx before using the same as array index.
-This will avoid following KASAN warnings too.
+Hi Changbin,
 
-[   15.113449] ==================================================================
-[   15.116983] BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
+Thanks for pointing it out.
+I have sent out a fix for the same.
+
+Regards,
+-George
+
+________________________________________
+From: Du, Changbin <changbin.du@intel.com>
+Sent: Monday, December 4, 2017 3:49:45 PM
+To: Cherian, George
+Cc: changbin.du@intel.com; linux-acpi@vger.kernel.org; linux-kernel@vger.ke=
+rnel.org
+Subject: BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
+
+Hi Cherian,
+Your patch 'ACPI / CPPC: Make CPPC ACPI driver aware of PCC subspace IDs'
+introduced a out-of-bounds BUG in kernel. The code need to check
+cpu_pcc_subspace_idx before use it since it can be -1. Thanks.
+
+[   15.113449] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+[   15.116983] BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/=
+0x3b0
 [   15.116983] Read of size 8 at addr ffffffffb9a5c0d8 by task swapper/0/1
+
 [   15.116983] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.15.0-rc2+ #2
-[   15.116983] Hardware name: Dell Inc. OptiPlex 7040/0Y7WYT, BIOS 1.2.8 01/26/2016
+[   15.116983] Hardware name: Dell Inc. OptiPlex 7040/0Y7WYT, BIOS 1.2.8 01=
+/26/2016
 [   15.116983] Call Trace:
 [   15.116983]  dump_stack+0x7c/0xbb
 [   15.116983]  print_address_description+0x1df/0x290
@@ -75,113 +101,21 @@ This will avoid following KASAN warnings too.
 [   15.116983]  __key.36299+0x38/0x40
 
 [   15.116983] Memory state around the buggy address:
-[   15.116983]  ffffffffb9a5bf80: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
-[   15.116983]  ffffffffb9a5c000: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
-[   15.116983] >ffffffffb9a5c080: fa fa fa fa 00 fa fa fa fa fa fa fa 00 00 00 00
+[   15.116983]  ffffffffb9a5bf80: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa=
+ fa fa
+[   15.116983]  ffffffffb9a5c000: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa=
+ fa fa
+[   15.116983] >ffffffffb9a5c080: fa fa fa fa 00 fa fa fa fa fa fa fa 00 00=
+ 00 00
 [   15.116983]                                                     ^
-[   15.116983]  ffffffffb9a5c100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   15.116983]  ffffffffb9a5c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   15.116983] ==================================================================
+[   15.116983]  ffffffffb9a5c100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00=
+ 00 00
+[   15.116983]  ffffffffb9a5c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00=
+ 00 00
+[   15.116983] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
 
-Reported-by: Changbin Du <changbin.du@intel.com>
-Signed-off-by: George Cherian <george.cherian@cavium.com>
----
- drivers/acpi/cppc_acpi.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 21c2843..30e84cc 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -949,7 +949,7 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
- 	}
- 
- 	*val = 0;
--	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
-+	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM && pcc_ss_id >= 0)
- 		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
- 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		vaddr = reg_res->sys_mem_vaddr;
-@@ -988,7 +988,7 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
- 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
- 
--	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
-+	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM && pcc_ss_id >= 0)
- 		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
- 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
- 		vaddr = reg_res->sys_mem_vaddr;
-@@ -1035,14 +1035,15 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
- 		*lowest_non_linear_reg, *nominal_reg;
- 	u64 high, low, nom, min_nonlinear;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
--	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
-+	struct cppc_pcc_data *pcc_ss_data;
- 	int ret = 0, regs_in_pcc = 0;
- 
--	if (!cpc_desc) {
-+	if (!cpc_desc || pcc_ss_id < 0) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
- 		return -ENODEV;
- 	}
- 
-+	pcc_ss_data = pcc_data[pcc_ss_id];
- 	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
- 	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
- 	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
-@@ -1095,15 +1096,16 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
- 	struct cpc_register_resource *delivered_reg, *reference_reg,
- 		*ref_perf_reg, *ctr_wrap_reg;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
--	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
-+	struct cppc_pcc_data *pcc_ss_data;
- 	u64 delivered, reference, ref_perf, ctr_wrap_time;
- 	int ret = 0, regs_in_pcc = 0;
- 
--	if (!cpc_desc) {
-+	if (!cpc_desc || pcc_ss_id < 0) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
- 		return -ENODEV;
- 	}
- 
-+	pcc_ss_data = pcc_data[pcc_ss_id];
- 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
- 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
- 	ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
-@@ -1172,11 +1174,12 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
- 	int ret = 0;
- 
--	if (!cpc_desc) {
-+	if (!cpc_desc || pcc_ss_id < 0) {
- 		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
- 		return -ENODEV;
- 	}
- 
-+	pcc_ss_data = pcc_data[pcc_ss_id];
- 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
- 
- 	/*
-@@ -1301,7 +1304,7 @@ unsigned int cppc_get_transition_latency(int cpu_num)
- 	struct cpc_desc *cpc_desc;
- 	struct cpc_register_resource *desired_reg;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu_num);
--	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
-+	struct cppc_pcc_data *pcc_ss_data;
- 
- 	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
- 	if (!cpc_desc)
-@@ -1311,6 +1314,10 @@ unsigned int cppc_get_transition_latency(int cpu_num)
- 	if (!CPC_IN_PCC(desired_reg))
- 		return CPUFREQ_ETERNAL;
- 
-+	if (pcc_ss_id < 0)
-+		return CPUFREQ_ETERNAL;
-+
-+	pcc_ss_data = pcc_data[pcc_ss_id];
- 	if (pcc_ss_data->pcc_mpar)
- 		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_ss_data->pcc_mpar);
- 
--- 
-2.1.4
-
+--
+Thanks,
+Changbin Du
