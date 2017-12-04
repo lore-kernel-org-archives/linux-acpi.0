@@ -1,52 +1,187 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
- state before hotremove
-Date: Mon, 4 Dec 2017 15:05:05 +0100
-Message-ID: <CAJZ5v0hZPtKvBBr3mRhpE5zbWVYYL6To8CWrf_drwWXQ=ohRjQ@mail.gmail.com>
-References: <cover.1511433386.git.ar@linux.vnet.ibm.com> <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
- <20171129004913.GB1469@linux-l9pv.suse> <20171129015229.GD1469@linux-l9pv.suse>
- <20171204112855.GA6373@samekh>
+From: George Cherian <george.cherian@cavium.com>
+Subject: [PATCH] ACPI / CPPC: FIX KASAN global out of bounds warning
+Date: Mon,  4 Dec 2017 14:06:54 +0000
+Message-ID: <1512396414-1024-1-git-send-email-george.cherian@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20171204112855.GA6373@samekh>
-Sender: owner-linux-mm@kvack.org
-To: Andrea Reale <ar@linux.vnet.ibm.com>
-Cc: joeyli <jlee@suse.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, Mark Rutland <mark.rutland@arm.com>, scott.branden@broadcom.com, Will Deacon <will.deacon@arm.com>, qiuxishi@huawei.com, Catalin Marinas <catalin.marinas@arm.com>, Michal Hocko <mhocko@suse.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2nam02on0045.outbound.protection.outlook.com ([104.47.38.45]:37664
+        "EHLO NAM02-BL2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752316AbdLDOHP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 09:07:15 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, rjw@rjwysocki.net, changbin.du@intel.com, George Cherian <george.cherian@cavium.com>
 
-On Mon, Dec 4, 2017 at 12:28 PM, Andrea Reale <ar@linux.vnet.ibm.com> wrote:
-> Hi Joey,
->
-> and thanks for your comments. Response inline:
->
+Default value of pcc_subspace_idx is -1.
+Make sure to check pcc_subspace_idx before using the same as array index.
+This will avoid following KASAN warnings too.
 
-[cut]
+[   15.113449] ==================================================================
+[   15.116983] BUG: KASAN: global-out-of-bounds in cppc_get_perf_caps+0xf3/0x3b0
+[   15.116983] Read of size 8 at addr ffffffffb9a5c0d8 by task swapper/0/1
+[   15.116983] CPU: 3 PID: 1 Comm: swapper/0 Not tainted 4.15.0-rc2+ #2
+[   15.116983] Hardware name: Dell Inc. OptiPlex 7040/0Y7WYT, BIOS 1.2.8 01/26/2016
+[   15.116983] Call Trace:
+[   15.116983]  dump_stack+0x7c/0xbb
+[   15.116983]  print_address_description+0x1df/0x290
+[   15.116983]  kasan_report+0x28a/0x370
+[   15.116983]  ? cppc_get_perf_caps+0xf3/0x3b0
+[   15.116983]  cppc_get_perf_caps+0xf3/0x3b0
+[   15.116983]  ? cpc_read+0x210/0x210
+[   15.116983]  ? __rdmsr_on_cpu+0x90/0x90
+[   15.116983]  ? rdmsrl_on_cpu+0xa9/0xe0
+[   15.116983]  ? rdmsr_on_cpu+0x100/0x100
+[   15.116983]  ? wrmsrl_on_cpu+0x9c/0xd0
+[   15.116983]  ? wrmsrl_on_cpu+0x9c/0xd0
+[   15.116983]  ? wrmsr_on_cpu+0xe0/0xe0
+[   15.116983]  __intel_pstate_cpu_init.part.16+0x3a2/0x530
+[   15.116983]  ? intel_pstate_init_cpu+0x197/0x390
+[   15.116983]  ? show_no_turbo+0xe0/0xe0
+[   15.116983]  ? __lockdep_init_map+0xa0/0x290
+[   15.116983]  intel_pstate_cpu_init+0x30/0x60
+[   15.116983]  cpufreq_online+0x155/0xac0
+[   15.116983]  cpufreq_add_dev+0x9b/0xb0
+[   15.116983]  subsys_interface_register+0x1ae/0x290
+[   15.116983]  ? bus_unregister_notifier+0x40/0x40
+[   15.116983]  ? mark_held_locks+0x83/0xb0
+[   15.116983]  ? _raw_write_unlock_irqrestore+0x32/0x60
+[   15.116983]  ? intel_pstate_setup+0xc/0x104
+[   15.116983]  ? intel_pstate_setup+0xc/0x104
+[   15.116983]  ? cpufreq_register_driver+0x1ce/0x2b0
+[   15.116983]  cpufreq_register_driver+0x1ce/0x2b0
+[   15.116983]  ? intel_pstate_setup+0x104/0x104
+[   15.116983]  intel_pstate_register_driver+0x3a/0xa0
+[   15.116983]  intel_pstate_init+0x3c4/0x434
+[   15.116983]  ? intel_pstate_setup+0x104/0x104
+[   15.116983]  ? intel_pstate_setup+0x104/0x104
+[   15.116983]  do_one_initcall+0x9c/0x206
+[   15.116983]  ? parameq+0xa0/0xa0
+[   15.116983]  ? initcall_blacklisted+0x150/0x150
+[   15.116983]  ? lock_downgrade+0x2c0/0x2c0
+[   15.116983]  kernel_init_freeable+0x327/0x3f0
+[   15.116983]  ? start_kernel+0x612/0x612
+[   15.116983]  ? _raw_spin_unlock_irq+0x29/0x40
+[   15.116983]  ? finish_task_switch+0xdd/0x320
+[   15.116983]  ? finish_task_switch+0x8e/0x320
+[   15.116983]  ? rest_init+0xd0/0xd0
+[   15.116983]  kernel_init+0xf/0x11a
+[   15.116983]  ? rest_init+0xd0/0xd0
+[   15.116983]  ret_from_fork+0x24/0x30
 
->>
->> So, the BUG() is useful to capture state issue in memory subsystem. But, I
->> understood your concern about the two steps offline/remove from userland.
->>
->> Maybe we should move the BUG() to somewhere but not just remove it. Or if
->> we think that the BUG() is too intense, at least we should print out a error
->> message, and ACPI should checks the return value from subsystem to
->> interrupt memory-hotplug process.
->
-> In this patchset, BUG() is moved to acpi_memory_remove_memory(),
-> the caller of arch_remove_memory(). However, I agree with Michal, that
-> we should not BUG() here but rather halt the hotremove process and print
-> some errors.
-> Is there any state in ACPI that should be undone in case of hotremove
-> errors or we can just stop the process "halfway"?
+[   15.116983] The buggy address belongs to the variable:
+[   15.116983]  __key.36299+0x38/0x40
 
-I have to recall a couple of things before answering this question, so
-that may take some time.
+[   15.116983] Memory state around the buggy address:
+[   15.116983]  ffffffffb9a5bf80: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
+[   15.116983]  ffffffffb9a5c000: fa fa fa fa 00 fa fa fa fa fa fa fa 00 fa fa fa
+[   15.116983] >ffffffffb9a5c080: fa fa fa fa 00 fa fa fa fa fa fa fa 00 00 00 00
+[   15.116983]                                                     ^
+[   15.116983]  ffffffffb9a5c100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[   15.116983]  ffffffffb9a5c180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[   15.116983] ==================================================================
 
-Thanks,
-Rafael
+Reported-by: Changbin Du <changbin.du@intel.com>
+Signed-off-by: George Cherian <george.cherian@cavium.com>
+---
+ drivers/acpi/cppc_acpi.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 21c2843..30e84cc 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -949,7 +949,7 @@ static int cpc_read(int cpu, struct cpc_register_resource *reg_res, u64 *val)
+ 	}
+ 
+ 	*val = 0;
+-	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
++	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM && pcc_ss_id >= 0)
+ 		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
+ 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 		vaddr = reg_res->sys_mem_vaddr;
+@@ -988,7 +988,7 @@ static int cpc_write(int cpu, struct cpc_register_resource *reg_res, u64 val)
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+ 	struct cpc_reg *reg = &reg_res->cpc_entry.reg;
+ 
+-	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM)
++	if (reg->space_id == ACPI_ADR_SPACE_PLATFORM_COMM && pcc_ss_id >= 0)
+ 		vaddr = GET_PCC_VADDR(reg->address, pcc_ss_id);
+ 	else if (reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+ 		vaddr = reg_res->sys_mem_vaddr;
+@@ -1035,14 +1035,15 @@ int cppc_get_perf_caps(int cpunum, struct cppc_perf_caps *perf_caps)
+ 		*lowest_non_linear_reg, *nominal_reg;
+ 	u64 high, low, nom, min_nonlinear;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+-	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
++	struct cppc_pcc_data *pcc_ss_data;
+ 	int ret = 0, regs_in_pcc = 0;
+ 
+-	if (!cpc_desc) {
++	if (!cpc_desc || pcc_ss_id < 0) {
+ 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+ 		return -ENODEV;
+ 	}
+ 
++	pcc_ss_data = pcc_data[pcc_ss_id];
+ 	highest_reg = &cpc_desc->cpc_regs[HIGHEST_PERF];
+ 	lowest_reg = &cpc_desc->cpc_regs[LOWEST_PERF];
+ 	lowest_non_linear_reg = &cpc_desc->cpc_regs[LOW_NON_LINEAR_PERF];
+@@ -1095,15 +1096,16 @@ int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+ 	struct cpc_register_resource *delivered_reg, *reference_reg,
+ 		*ref_perf_reg, *ctr_wrap_reg;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+-	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
++	struct cppc_pcc_data *pcc_ss_data;
+ 	u64 delivered, reference, ref_perf, ctr_wrap_time;
+ 	int ret = 0, regs_in_pcc = 0;
+ 
+-	if (!cpc_desc) {
++	if (!cpc_desc || pcc_ss_id < 0) {
+ 		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+ 		return -ENODEV;
+ 	}
+ 
++	pcc_ss_data = pcc_data[pcc_ss_id];
+ 	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
+ 	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
+ 	ref_perf_reg = &cpc_desc->cpc_regs[REFERENCE_PERF];
+@@ -1172,11 +1174,12 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+ 	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
+ 	int ret = 0;
+ 
+-	if (!cpc_desc) {
++	if (!cpc_desc || pcc_ss_id < 0) {
+ 		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
+ 		return -ENODEV;
+ 	}
+ 
++	pcc_ss_data = pcc_data[pcc_ss_id];
+ 	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+ 
+ 	/*
+@@ -1301,7 +1304,7 @@ unsigned int cppc_get_transition_latency(int cpu_num)
+ 	struct cpc_desc *cpc_desc;
+ 	struct cpc_register_resource *desired_reg;
+ 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu_num);
+-	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
++	struct cppc_pcc_data *pcc_ss_data;
+ 
+ 	cpc_desc = per_cpu(cpc_desc_ptr, cpu_num);
+ 	if (!cpc_desc)
+@@ -1311,6 +1314,10 @@ unsigned int cppc_get_transition_latency(int cpu_num)
+ 	if (!CPC_IN_PCC(desired_reg))
+ 		return CPUFREQ_ETERNAL;
+ 
++	if (pcc_ss_id < 0)
++		return CPUFREQ_ETERNAL;
++
++	pcc_ss_data = pcc_data[pcc_ss_id];
+ 	if (pcc_ss_data->pcc_mpar)
+ 		latency_ns = 60 * (1000 * 1000 * 1000 / pcc_ss_data->pcc_mpar);
+ 
+-- 
+2.1.4
+
