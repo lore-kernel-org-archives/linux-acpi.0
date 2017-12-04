@@ -1,82 +1,52 @@
-From: Carlo Caione <carlo@endlessm.com>
-Subject: Re: [PATCH] ACPI / LPSS: Add device link for CHT SD card dependency
- on I2C
-Date: Mon, 4 Dec 2017 13:56:41 +0000
-Message-ID: <CAL9uMOGhf-DEmsV9ZGETof51EuU5YLs41umPdu+p2eh3zv2=cw@mail.gmail.com>
-References: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 2/5] mm: memory_hotplug: Remove assumption on memory
+ state before hotremove
+Date: Mon, 4 Dec 2017 15:05:05 +0100
+Message-ID: <CAJZ5v0hZPtKvBBr3mRhpE5zbWVYYL6To8CWrf_drwWXQ=ohRjQ@mail.gmail.com>
+References: <cover.1511433386.git.ar@linux.vnet.ibm.com> <4e21a27570f665793debf167c8567c6752116d0a.1511433386.git.ar@linux.vnet.ibm.com>
+ <20171129004913.GB1469@linux-l9pv.suse> <20171129015229.GD1469@linux-l9pv.suse>
+ <20171204112855.GA6373@samekh>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1512390731-11171-1-git-send-email-adrian.hunter@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Linux Upstreaming Team <linux@endlessm.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20171204112855.GA6373@samekh>
+Sender: owner-linux-mm@kvack.org
+To: Andrea Reale <ar@linux.vnet.ibm.com>
+Cc: joeyli <jlee@suse.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, m.bielski@virtualopensystems.com, arunks@qti.qualcomm.com, Mark Rutland <mark.rutland@arm.com>, scott.branden@broadcom.com, Will Deacon <will.deacon@arm.com>, qiuxishi@huawei.com, Catalin Marinas <catalin.marinas@arm.com>, Michal Hocko <mhocko@suse.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 4, 2017 at 12:32 PM, Adrian Hunter <adrian.hunter@intel.com> wrote:
-> Some Cherry Trail boards have a dependency between the SDHCI host
-> controller used for SD cards and an external PMIC accessed via I2C. Add a
-> device link between the SDHCI host controller (consumer) and the I2C
-> adapter (supplier).
+On Mon, Dec 4, 2017 at 12:28 PM, Andrea Reale <ar@linux.vnet.ibm.com> wrote:
+> Hi Joey,
 >
-> This patch depends on a fix to devices links, namely commit 0ff26c662d5f
-> ("driver core: Fix device link deferred probe"). And also either,
-> commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling in
-> probe"), or patch "PM / runtime: Fix handling of suppliers with disabled
-> runtime PM".
+> and thanks for your comments. Response inline:
 >
-> Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
 
-Hey Adrian,
-thank you for working on this.
+[cut]
 
-I tried this patch on top of linus HEAD (0ff26c662d5f and 126dbc6b49c8
-are already applied) but I'm still experiencing some difficulties with
-some SD cards on the cherry-trail laptop I'm working with. You can
-find the DSDT in [0].
+>>
+>> So, the BUG() is useful to capture state issue in memory subsystem. But, I
+>> understood your concern about the two steps offline/remove from userland.
+>>
+>> Maybe we should move the BUG() to somewhere but not just remove it. Or if
+>> we think that the BUG() is too intense, at least we should print out a error
+>> message, and ACPI should checks the return value from subsystem to
+>> interrupt memory-hotplug process.
+>
+> In this patchset, BUG() is moved to acpi_memory_remove_memory(),
+> the caller of arch_remove_memory(). However, I agree with Michal, that
+> we should not BUG() here but rather halt the hotremove process and print
+> some errors.
+> Is there any state in ACPI that should be undone in case of hotremove
+> errors or we can just stop the process "halfway"?
 
-With an ultra high speed SDR104 SDHC card I get:
+I have to recall a couple of things before answering this question, so
+that may take some time.
 
-  mmc2: Tuning timeout, falling back to fixed sampling clock
-  mmc2: new ultra high speed SDR104 SDHC card at address 59b4
-  mmcblk2: mmc2:59b4 USD00 15.0 GiB
-  mmc2: Timeout waiting for hardware interrupt.
-  mmc2: sdhci: ============ SDHCI REGISTER DUMP ===========
-  mmc2: sdhci: Sys addr:  0x00000008 | Version:  0x00001002
-  mmc2: sdhci: Blk size:  0x00007200 | Blk cnt:  0x00000008
-  mmc2: sdhci: Argument:  0x00000000 | Trn mode: 0x0000003b
-  mmc2: sdhci: Present:   0x01ff0001 | Host ctl: 0x00000017
-  mmc2: sdhci: Power:     0x0000000f | Blk gap:  0x00000080
-  mmc2: sdhci: Wake-up:   0x00000000 | Clock:    0x00000007
-  mmc2: sdhci: Timeout:   0x0000000a | Int stat: 0x00000000
-  mmc2: sdhci: Int enab:  0x02ff008b | Sig enab: 0x02ff008b
-  mmc2: sdhci: AC12 err:  0x00000000 | Slot int: 0x00000000
-  mmc2: sdhci: Caps:      0x0568c8b2 | Caps_1:   0x00000807
-  mmc2: sdhci: Cmd:       0x0000123a | Max curr: 0x00000000
-  mmc2: sdhci: Resp[0]:   0x00000000 | Resp[1]:  0x0077dd7f
-  mmc2: sdhci: Resp[2]:   0x325b5900 | Resp[3]:  0x00000000
-  mmc2: sdhci: Host ctl2: 0x0000800b
-  mmc2: sdhci: ADMA Err:  0x00000000 | ADMA Ptr: 0x33773200
-  mmc2: sdhci: ============================================
-  mmcblk2: error -110 sending status command, retrying
-  mmcblk2: error -110 sending status command, retrying
-  mmcblk2: error -110 sending status command, aborting
-  mmc2: Tuning timeout, falling back to fixed sampling clock
+Thanks,
+Rafael
 
-For an high speed SDHC card I simply get:
-
-  mmc2: error -110 whilst initialising SD card
-
-Some other cards just work fine, i.e. ultra high speed DDR50.
-
-At this point I'm not sure if the problem I'm seeing is actually
-related to the issue you are fixing with this commit (and if now,
-sorry to have hijacked this thread).
-Any idea on that?
-
-Thank you,
-
-[0] https://gist.github.com/carlocaione/82bff95ababb67dd33f52a86e94ce3ff
-
--- 
-Carlo Caione  |  +39.340.80.30.096  |  Endless
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
