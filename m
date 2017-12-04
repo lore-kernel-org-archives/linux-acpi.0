@@ -1,51 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/11] ACPICA release 20170929
-Date: Mon, 04 Dec 2017 15:44:16 +0100
-Message-ID: <4049715.FQ2OufhA00@aspire.rjw.lan>
-References: <erik.schmauss@intel.com> <20171117234024.833-1-erik.schmauss@intel.com>
+Subject: Re: [PATCH] acpi, numa, ia64: Parse all entries of SRAT memory affinity table
+Date: Mon, 04 Dec 2017 15:46:58 +0100
+Message-ID: <7029225.zYlq9pRjNx@aspire.rjw.lan>
+References: <20171115172902.20083-1-ganapatrao.kulkarni@cavium.com> <CAJZ5v0in=eK9RT5ODGYp8FEggCOKeRdxKdD3JkiAoxqTuveuWA@mail.gmail.com> <CAKTKpr4n2154Ep1541mjzFntyWxVtMWvxJf87UYQT-1XP37CZA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:43198 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751205AbdLDOot (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 09:44:49 -0500
-In-Reply-To: <20171117234024.833-1-erik.schmauss@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <CAKTKpr4n2154Ep1541mjzFntyWxVtMWvxJf87UYQT-1XP37CZA@mail.gmail.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Ganapatrao Kulkarni <gklkml16@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Yu, Fenghua" <fenghua.yu@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "guohanjun@huawei.com" <guohanjun@huawei.com>, "jnair@caviumnetworks.com" <jnair@caviumnetworks.com>, "gpkulkarni@gmail.com" <gpkulkarni@gmail.com>, "Robert.Richter@cavium.com" <Robert.Richter@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Erik Schmauss <erik.schmauss@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Saturday, November 18, 2017 12:40:13 AM CET Erik Schmauss wrote:
-> This series of patches are from the 20170929 release of ACPICA.
-> This set is meant to be applied on top of the 20170831 ACPICA release.
+On Tuesday, November 21, 2017 6:10:53 PM CET Ganapatrao Kulkarni wrote:
+> On Tue, Nov 21, 2017 at 6:22 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Tue, Nov 21, 2017 at 5:16 AM, Ganapatrao Kulkarni <gklkml16@gmail.com> wrote:
+> >> On Thu, Nov 16, 2017 at 12:16 AM, Luck, Tony <tony.luck@intel.com> wrote:
+> >>>> This check is already added in x86 and extending same to ia64.
+> >>>
+> >>> Looks OK.
+> >>>
+> >>> Acked-by: Tony Luck <tony.luck@intel.com>
+> >>
+> >> thanks Tony.
+> >>
+> >> ACPI Maintainers,
+> >> any comments on this patch? i can send rebasing to 4.15-rc1?
+> >
+> > I've queued it up already.
 > 
-> Bob Moore (4):
->   ACPICA: Rename AE_AML_INFINITE_LOOP exception
->   ACPICA: Tools: Deploy -vd option (build date/time) across all tools
->   ACPICA: iASL/Tools: Add support for PDTT,SDEV,TPM2 ACPI tables
->   ACPICA: Update version to 20170929
+> thanks Rafael.
+> >
+> > Is there any urgent need for that to go into 4.15?
 > 
-> Colin Ian King (1):
->   ACPICA: Avoid null pointer dereference on Op.
-> 
-> Erik Schmauss (3):
->   ACPICA: Disassembler: reset parser_state's Aml pointer when parsing
->     bad externals
->   ACPICA: disassembler: getting rid of error message
->   ACPICA: iASL: change processing of external op namespace nodes for
->     correctness
-> 
-> Jung-uk Kim (1):
->   ACPICA: Fix an off-by-one error in acpi_get_timer_duration().
-> 
-> Lv Zheng (2):
->   ACPICA: Dispatcher: Introduce timeout mechanism for infinite loop
->     detection
->   ACPICA: Utilities: Cleanup style issue for bit clearing
+> not really.
 
-Series applied, thanks!
+OK, applied and queued up for 4.16.
 
+Thanks,
 Rafael
 
