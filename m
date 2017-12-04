@@ -1,42 +1,65 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V5 2/7] ACPI / bus: Introduce acpi_get_match_data()
- function
-Date: Mon, 4 Dec 2017 17:01:15 -0500
-Message-ID: <af5279fd-8e7b-ab17-37f1-1ca0ebbbc2f5@codeaurora.org>
-References: <1512188864-773-1-git-send-email-okaya@codeaurora.org>
- <1512188864-773-3-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0gCkY80+A=cZKzhKhxKObSgqN3k1JGgGQgW5cwRSvqt_Q@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: Re: [RFC PATCH 2/4] firmware: dmi: Add function to look up a handle
+ and return DIMM size
+Date: Mon, 4 Dec 2017 14:03:16 -0800
+Message-ID: <20171204220316.nl5m4lmyek7alvhb@agluck-desk>
+References: <cover.1512070562.git.tony.luck@intel.com>
+ <2fae02861e5c446c0cdd30ba3e00fad55db97807.1512070562.git.tony.luck@intel.com>
+ <20171204213813.rm32qqeqchx37c5x@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50808 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753014AbdLDWBS (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 17:01:18 -0500
-In-Reply-To: <CAJZ5v0gCkY80+A=cZKzhKhxKObSgqN3k1JGgGQgW5cwRSvqt_Q@mail.gmail.com>
-Content-Language: en-US
+Received: from mga07.intel.com ([134.134.136.100]:46289 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752642AbdLDWDT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 17:03:19 -0500
+Content-Disposition: inline
+In-Reply-To: <20171204213813.rm32qqeqchx37c5x@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-edac@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-On 12/4/2017 4:59 PM, Rafael J. Wysocki wrote:
-> On Sat, Dec 2, 2017 at 5:27 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> OF has of_device_get_match_data() function to extract driver specific data
->> structure. Add a similar function for ACPI.
->>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+On Mon, Dec 04, 2017 at 10:38:14PM +0100, Borislav Petkov wrote:
+> On Thu, Nov 30, 2017 at 12:40:40PM -0800, Tony Luck wrote:
+> >  	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
 > 
-> Haven't I ACKed this already?
+> <---- newline here.
 > 
-> Anyway, please resend the whole series with a CC to linux-acpi.
+> > +	size = get_unaligned((u16 *)&d[0xC]);
+> > +	if (size == 0)
+> > +		bytes = 0;
+> > +	else if (size == 0xffff)
+> > +		bytes = ~0ul;
+> > +	else if (size & 0x8000)
+> > +		bytes = (u64)(size & 0x7fff) << 10;
+> > +	else if (size != 0x7fff)
+> > +		bytes = (u64)size << 20;
+> > +	else
+> > +		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
+> 
+> <---- newline here.
 
-Yeah, you acked the previous one. Then, I changed the calling parameter from
-struct device to struct acpi_device and removed your ACK.
+Ok ... it does read better with those breaks. Will add.
 
+> So dmi_memdev_name() also loops over dmi_memdev and returns bank and
+> device. This new function returns size.
+> 
+> If code is going to be calling those one after the other, you could do a
+> 
+> 	dmi_memdev_desc(u16 handle, struct memdev_desc *desc)
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Current callers are from different code paths (dmi_memdev_name() from
+ghes and EFI, dmi_memdev_size() just from the Skylake EDAC driver).
+If we later find a place that calls both this would be a good cleanup.
+
+> which fills up a descriptor with all fields a caller would need in one
+> go so that you don't have to iterate multiple times. Looking at struct
+> dmi_memdev_info, there are no more fields so maybe this is probably
+> silly though or you can simply return struct dmi_memdev_info directly...
+> 
+> Meh.
+
+I take it that you talked yourself out of asking for the cleanup now?
+
+-Tony
