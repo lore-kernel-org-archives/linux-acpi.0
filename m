@@ -1,68 +1,58 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Can't even enter X after kernel 4.12
-Date: Mon, 4 Dec 2017 23:40:08 +0100
-Message-ID: <db8cecee-fa79-30de-b809-c00c2296b60f@redhat.com>
-References: <CAB4CAwfOfsuOyuQqJvTMEUsWJi3dw=Ajqz_7YfusKXVz1JAQ_A@mail.gmail.com>
+From: "Luck, Tony" <tony.luck@intel.com>
+Subject: Re: [RFC PATCH 3/4] edac: Add new memory type for non-volatile DIMMs
+Date: Mon, 4 Dec 2017 16:21:33 -0800
+Message-ID: <20171205002133.2ojkurykvv6zpc4m@agluck-desk>
+References: <cover.1512070562.git.tony.luck@intel.com>
+ <862104c26398781e4937c3fca3994cbe75d820ff.1512070562.git.tony.luck@intel.com>
+ <20171204223711.4l7gbd7op7yvsrza@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:42575 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752130AbdLDWkL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Dec 2017 17:40:11 -0500
-Received: by mail-wr0-f175.google.com with SMTP id s66so19021135wrc.9
-        for <linux-acpi@vger.kernel.org>; Mon, 04 Dec 2017 14:40:10 -0800 (PST)
-In-Reply-To: <CAB4CAwfOfsuOyuQqJvTMEUsWJi3dw=Ajqz_7YfusKXVz1JAQ_A@mail.gmail.com>
-Content-Language: en-US
+Received: from mga05.intel.com ([192.55.52.43]:58542 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751546AbdLEAVe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 4 Dec 2017 19:21:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20171204223711.4l7gbd7op7yvsrza@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Chiu <chiu@endlessm.com>, linux-acpi@vger.kernel.org, Linux Upstreaming Team <linux@endlessm.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-edac@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
 
-Hi Chris,
-
-On 30-11-17 07:27, Chris Chiu wrote:
-> Hi,
->      I have a Intel cherry trail machine Haier HR101CW (CPU: x5-Z8350)
-> which used to work fine in kernel 4.11, fails to enter X after I
-> upgrade to kernel version later than 4.12. Even the latest 4.15, it
-> can't even enter X now. There's no panic, oops and even no obvious
-> error log. The panel backlight seems to be off but keyboard still
-> responds.
+On Mon, Dec 04, 2017 at 11:37:11PM +0100, Borislav Petkov wrote:
+> On Thu, Nov 30, 2017 at 12:40:41PM -0800, Tony Luck wrote:
+> WTF, there are *two* string arrays with memory types?! How did that
+> happen?
 > 
->      Then I tried to do bisect, it tells me the commit
-> [b7ecf663c75eed1e764f57281f9508c49c18516e] ACPI / bus: Introduce a
-> list of ids for "always present" devices is the one which causes this.
-> After I revert this commit, the display back to normal.
+> Can you please remove that above in a prepatch and switch to
+> edac_mem_types? Or should we switch to this mem_types array instead and
+> kill edac_mem_types since former is visible in sysfs?
 > 
->      Maybe the DSDT file would help for your reference.
-> https://gist.github.com/mschiu77/e84687cc928ac644117baf05aef47f16
+> :-( Grrr.
 
-Hmm, Daniel Drake from Endless send me a Vios LTH17 machine which
-has similar symptoms. If this is indeed the same issue then adding:
-i915.fastboot=1 to the kernel commandline should fix this.
+Oops. I didn't stare hard enough as I walked the "grep" output
+to just blindly add a new case everywhere for the new type.
 
-This is going to be the default for newer kernels soon-ish (4.16
-I think), so we can use this as a workaround for now.
+Need to resolve the differences:
+1) MEM_LRDDR3 only appears in one of the tables
+2) edac_mem_types[] is exported from edac_mc.c and used
+   by two drivers
+3) mem_types[] is static in edac_mc_sysfs.c, but values
+   are visible to user via sysfs
+4) Strings are different between the two :-(
 
-As for the commit you bisected this to, can you try just commenting
-out the: "80862288" entry in always_present_ids in
-drivers/acpi/x86/utils.c ? I think that is triggering the problem.
+Since the drivers that use edac_mem_types[] only do so in edac_dbg()
+output, I think it's safe to declare those strings as the non-canon
+ones.
 
-Without that entry we don't get backlight control, so if you
-comment it you will likely not be able to control brightness,
-so i915.fastboot=1 is a better fix, but it would be good to know
-if commenting out just that entry fixes things (and breaks
-brightness control).
+So the plan: copy the strings from mem_types[] to edac_mem_types[]
+and then make edac_mc_sysfs.c pick up the exported list from edac_mc.c
+instead of having its own static version.
 
-Without i915.fastboot=1 the i915 driver quickly turns the
-backlight off and on again at boot, which I guess is confusing
-the LCD panel...
+Both files have the same build scope:
 
-Regards,
+edac_core-y     := edac_mc.o edac_device.o edac_mc_sysfs.o
 
-Hans
+so there shouldn't be any weird dependency problems.
 
-
-
-
+-Tony
