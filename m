@@ -1,40 +1,62 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: Re: [RFCv2 PATCH 26/36] iommu/arm-smmu-v3: Add support for Hardware
- Translation Table Update
-Date: Wed, 6 Dec 2017 14:51:59 +0800
-Message-ID: <d2ec2e61-f758-0394-41d2-555ae65feb0d@huawei.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
- <20171006133203.22803-27-jean-philippe.brucker@arm.com>
+From: Julian Andres Klode <jak@jak-linux.org>
+Subject: Re: [PATCH v2] thinkad_acpi: Support the battery wear control
+Date: Tue, 5 Dec 2017 23:23:43 +0100
+Message-ID: <20171205222224.5dcc4u67jhixdyiz@jak-x230>
+References: <20171203225640.GA11655@thinkpad>
+ <20171205142228.lrfds2ih7tgf7ovy@christoph-lap>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20171006133203.22803-27-jean-philippe.brucker@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org
-Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robin.murphy@arm.com, bhelgaas@google.com, alex.williamson@redhat.com, tn@semihalf.com, liubo95@huawei.com, thunder.leizhen@huawei.com, gabriele.paoloni@huawei.com, nwatters@codeaurora.org, okaya@codeaurora.org, rfranz@cavium.com, dwmw2@infradead.org, jacob.jun.pan@linux.intel.com, yi.l.liu@intel.com, ashok.raj@intel.com, robdclark@gmail.com
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:42989 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752747AbdLEWXs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 17:23:48 -0500
+Content-Disposition: inline
+In-Reply-To: <20171205142228.lrfds2ih7tgf7ovy@christoph-lap>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ognjen Galic <smclt30p@gmail.com>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-Hi Jean,
-
-On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
-> If the SMMU supports it and the kernel was built with HTTU support, enable
-> +	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) && (reg & (IDR0_HA | IDR0_HD))) {
-> +		smmu->features |= ARM_SMMU_FEAT_HA;
-> +		if (reg & IDR0_HD)
-> +			smmu->features |= ARM_SMMU_FEAT_HD;
-> +	}
-
-What is relationship of armv8.1 HW_AFDBM and SMMUv3 HTTU? I mean why we need
-IS_ENABLED(CONFIG_ARM64_HW_AFDBM) ?
-
-If CONFIG_ARM64_HW_AFDBM=y but the process do not support ARMv8.1, should it also
-enable related feature for SMMUv3?
-
-Thanks
-Yisheng Xie
-> +
->  	/*
->  	 * If the CPU is using VHE, but the SMMU doesn't support it, the SMMU
->  	 * will create TLB entries for NH-EL1 world and will miss the
+On Tue, Dec 05, 2017 at 03:22:28PM +0100, Christoph Böhmwalder wrote:
+> On Sun, Dec 03, 2017 at 11:56:40PM +0100, Ognjen Galic wrote:
+> > Add support for the ACPI batteries on newer thinkpad models
+> > (>Sandy Bridge) that support the setting of start and stop
+> > thresholds.
+> > 
+> > The actual interface to the driver is a extension for the
+> > existing ACPI battery driver. This was done so that users
+> > can write transparently to the interface of the ACPI battery
+> > driver and dont have to use some private interface
+> > (for ex. /sys/devices/platform/thinkpad_acpi/).
+> > 
+> > Two new interfaces are created:
+> > 
+> > /sys/class/power_supply/BAT{0,1}/charge_start_threshold
+> > /sys/class/power_supply/BAT{0,1}/charge_stop_threshold
 > 
+> Just tried this on my X1 Carbon (i7-3667U Ivy Lake):
+> 
+> # cat /sys/class/power_supply/BAT0/charge_stop_threshold
+> 100
+> # cat /sys/class/power_supply/BAT0/charge_start_threshold
+> 100
+> 
+> That doesn't seem to make any sense.  Is my battery somehow reporting
+> false values here?  Any way to cross check these values?
+
+It means that both values are 0 (default). The first one is wrongly
+mapped to 100, but should probably be reported as 0.
+
+Also, the values are not mangled correctly when writing: 100
+as a stop threshold should be written as 0, and and 100 as a
+start threshold should be illegal, giving you:
+
+	start = [0, 99]
+	stop = [1, 100]
+
+Which is what my patch series a few years ago implemented. I
+never got to integrate that with the acpi battery driver, though.
+-- 
+debian developer - deb.li/jak | jak-linux.org - free software dev
+ubuntu core developer                              i speak de, en
