@@ -1,92 +1,77 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Can't even enter X after kernel 4.12
-Date: Tue, 5 Dec 2017 20:09:25 +0100
-Message-ID: <7634b10f-cc73-4e82-1bef-b0ba837e6ccb@redhat.com>
-References: <CAB4CAwfOfsuOyuQqJvTMEUsWJi3dw=Ajqz_7YfusKXVz1JAQ_A@mail.gmail.com>
- <db8cecee-fa79-30de-b809-c00c2296b60f@redhat.com>
- <CAB4CAwerG4eOFAPP9bWP_cQiKmcmB7bEwTjSag9dzdkWy5E12g@mail.gmail.com>
+From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH 4/4] EDAC, skx_edac: Detect non-volatile DIMMs
+Date: Tue, 5 Dec 2017 12:03:37 -0800
+Message-ID: <20171205200336.tbx7oypjuca3g6vn@agluck-desk>
+References: <cover.1512070562.git.tony.luck@intel.com>
+ <da4c989314e82ec29195804ba5349ac3136f74c0.1512070562.git.tony.luck@intel.com>
+ <20171205105451.ob23asixm726hysb@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f173.google.com ([209.85.128.173]:44325 "EHLO
-        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752585AbdLETJ2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 14:09:28 -0500
-Received: by mail-wr0-f173.google.com with SMTP id l22so1437773wrc.11
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Dec 2017 11:09:28 -0800 (PST)
-In-Reply-To: <CAB4CAwerG4eOFAPP9bWP_cQiKmcmB7bEwTjSag9dzdkWy5E12g@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20171205105451.ob23asixm726hysb-fF5Pk5pvG8Y@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-edac-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Chiu <chiu@endlessm.com>
-Cc: linux-acpi@vger.kernel.org, Linux Upstreaming Team <linux@endlessm.com>
 
-Hi,
-
-On 05-12-17 16:42, Chris Chiu wrote:
-> On Tue, Dec 5, 2017 at 6:40 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi Chris,
->>
->> On 30-11-17 07:27, Chris Chiu wrote:
->>>
->>> Hi,
->>>       I have a Intel cherry trail machine Haier HR101CW (CPU: x5-Z8350)
->>> which used to work fine in kernel 4.11, fails to enter X after I
->>> upgrade to kernel version later than 4.12. Even the latest 4.15, it
->>> can't even enter X now. There's no panic, oops and even no obvious
->>> error log. The panel backlight seems to be off but keyboard still
->>> responds.
->>>
->>>       Then I tried to do bisect, it tells me the commit
->>> [b7ecf663c75eed1e764f57281f9508c49c18516e] ACPI / bus: Introduce a
->>> list of ids for "always present" devices is the one which causes this.
->>> After I revert this commit, the display back to normal.
->>>
->>>       Maybe the DSDT file would help for your reference.
->>> https://gist.github.com/mschiu77/e84687cc928ac644117baf05aef47f16
->>
->>
->> Hmm, Daniel Drake from Endless send me a Vios LTH17 machine which
->> has similar symptoms. If this is indeed the same issue then adding:
->> i915.fastboot=1 to the kernel commandline should fix this.
->>
->> This is going to be the default for newer kernels soon-ish (4.16
->> I think), so we can use this as a workaround for now.
->>
->> As for the commit you bisected this to, can you try just commenting
->> out the: "80862288" entry in always_present_ids in
->> drivers/acpi/x86/utils.c ? I think that is triggering the problem.
->>
->> Without that entry we don't get backlight control, so if you
->> comment it you will likely not be able to control brightness,
->> so i915.fastboot=1 is a better fix, but it would be good to know
->> if commenting out just that entry fixes things (and breaks
->> brightness control).
->>
->> Without i915.fastboot=1 the i915 driver quickly turns the
->> backlight off and on again at boot, which I guess is confusing
->> the LCD panel...
->>
->> Regards,
->>
->> Hans
->>
+On Tue, Dec 05, 2017 at 11:54:51AM +0100, Borislav Petkov wrote:
+> On Thu, Nov 30, 2017 at 12:40:42PM -0800, Tony Luck wrote:
+> >  config EDAC_SKX
+> >  	tristate "Intel Skylake server Integrated MC"
+> >  	depends on PCI && X86_64 && X86_MCE_INTEL && PCI_MMCONFIG
+> > +	select DMI
+> > +	select ACPI_NFIT
 > 
-> Hmm...the i915.fastboot=1 seems not work on my Haier machine here.
-> However, comment out the: "80862288" entry in always_present_ids in
-> drivers/acpi/x86/utils.c do work. Do you need anything on this special
-> machine?
+> Hmm, that ACPI_NFIT depends on a bunch of stuff and enabling EDAC_SKX
+> would pull in all that. Should we make this a user choice instead?
+> 
+> I mean, there could be boxes which don't have nvdimms so all that code
+> would be dead weight there...
 
-On the VIOS LTH17 I just need i915.fastboot=1 and then things work
-(with a 4.14 kernel) the 80862288 entry in that table makes Linux bind
-to the pwm controller in the Z8350, which is usually used for brightness
-control.
+I could. But what happens when someone ends up on a system with
+an edac driver configured without ACPI_NFIT that does have NVDIMMs?
 
-Do you get a brightness slider in gnome3 with the 80862288 entry commented
-out? And does it work ?
+I can make a stub version of nfit_get_smbios_id() that returns some
+error code ... and have the EDAC driver report size==0.
 
-Regards,
+Would that be OK?
 
-Hans
 
+> <---- newline here.
+> 
+> > +	size = dmi_memdev_size(smbios_handle);
+> > +	if (size == ~0ul) {
+> > +		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
+> > +			   dev_handle, smbios_handle);
+> > +		return 0;
+> > +	}
+> 
+> Ditto.
+> 
+> > +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
+> > +		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
+> > +
+> > +	dimm->nr_pages = size >> PAGE_SHIFT;
+> > +	dimm->grain = 32;
+> > +	dimm->dtype = DEV_UNKNOWN;
+> > +	dimm->mtype = MEM_NVDIMM;
+> > +	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
+> 
+> Ditto.
+> 
+> /me hands aegl a bunch of newlines - seems he's all out of \n's
+
+/me finds that the "Enter" key on his keyboard will put in a newline.
+Hurrah! now I don't have to copy/paste them from Boris.
+
+-Tony
