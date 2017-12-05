@@ -1,48 +1,89 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH 4/4] EDAC, skx_edac: Detect non-volatile DIMMs
-Date: Tue, 5 Dec 2017 22:44:41 +0100
-Message-ID: <20171205214441.pfxusrz5lpew5kre@pd.tnic>
-References: <cover.1512070562.git.tony.luck@intel.com>
- <da4c989314e82ec29195804ba5349ac3136f74c0.1512070562.git.tony.luck@intel.com>
- <20171205105451.ob23asixm726hysb@pd.tnic>
- <20171205200336.tbx7oypjuca3g6vn@agluck-desk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH V6 2/7] ACPI / bus: Introduce acpi_get_match_data() function
+Date: Tue, 5 Dec 2017 23:04:20 +0100
+Message-ID: <CAJZ5v0iJ_47z25GrQryQFVyXiXitYNHy8mQtTCf2rtdyhnn2eQ@mail.gmail.com>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org> <1512493493-6464-3-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:56036 "EHLO mail.skyhub.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751453AbdLEVow (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 5 Dec 2017 16:44:52 -0500
-Content-Disposition: inline
-In-Reply-To: <20171205200336.tbx7oypjuca3g6vn@agluck-desk>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:46131 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752491AbdLEWEW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 17:04:22 -0500
+In-Reply-To: <1512493493-6464-3-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: linux-edac@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jean Delvare <jdelvare@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Lv Zheng <lv.zheng@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, Aristeu Rozanski <aris@redhat.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-On Tue, Dec 05, 2017 at 12:03:37PM -0800, Luck, Tony wrote:
-> I could. But what happens when someone ends up on a system with
-> an edac driver configured without ACPI_NFIT that does have NVDIMMs?
+On Tue, Dec 5, 2017 at 6:04 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> OF has of_device_get_match_data() function to extract driver specific data
+> structure. Add a similar function for ACPI.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Same thing when you land on a system with a kernel where the driver for
-a piece of hw is not enabled. I mean, this won't be an issue on distros
-as there *everything* is enabled but for tailored configs, where people
-want skx_edac but don't need the nvdimm part.
+Not sure yet, sorry.
 
-> I can make a stub version of nfit_get_smbios_id() that returns some
-> error code ... and have the EDAC driver report size==0.
-> 
-> Would that be OK?
+> ---
+>  drivers/acpi/bus.c   | 12 ++++++++++++
+>  include/linux/acpi.h |  6 ++++++
+>  2 files changed, 18 insertions(+)
+>
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 4d0979e..b271eb1 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -785,6 +785,18 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_match_device);
+>
+> +void *acpi_get_match_data(const struct device *dev)
+> +{
+> +       const struct acpi_device_id *match;
+> +
+> +       match = acpi_match_device(dev->driver->acpi_match_table, dev);
 
-Sure, thanks!
+Shouldn't this check dev->driver against NULL before dereferencing it?
 
-> /me finds that the "Enter" key on his keyboard will put in a newline.
-> Hurrah! now I don't have to copy/paste them from Boris.
-
-Cheers! :-)))
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+> +       if (!match)
+> +               return NULL;
+> +
+> +       return (void *)match->driver_data;
+> +}
+> +EXPORT_SYMBOL_GPL(acpi_get_match_data);
+> +
+>  int acpi_match_device_ids(struct acpi_device *device,
+>                           const struct acpi_device_id *ids)
+>  {
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 502af53..a927260 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -584,6 +584,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+>  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+>                                                const struct device *dev);
+>
+> +void *acpi_get_match_data(const struct device *dev);
+>  extern bool acpi_driver_match_device(struct device *dev,
+>                                      const struct device_driver *drv);
+>  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+> @@ -755,6 +756,11 @@ static inline const struct acpi_device_id *acpi_match_device(
+>         return NULL;
+>  }
+>
+> +static inline void *acpi_get_match_data(const struct device *dev)
+> +{
+> +       return NULL;
+> +}
+> +
+>  static inline bool acpi_driver_match_device(struct device *dev,
+>                                             const struct device_driver *drv)
+>  {
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
