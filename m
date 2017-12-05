@@ -1,89 +1,38 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V6 2/7] ACPI / bus: Introduce acpi_get_match_data() function
-Date: Tue, 5 Dec 2017 23:04:20 +0100
-Message-ID: <CAJZ5v0iJ_47z25GrQryQFVyXiXitYNHy8mQtTCf2rtdyhnn2eQ@mail.gmail.com>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org> <1512493493-6464-3-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH V6 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
+Date: Tue, 5 Dec 2017 23:05:52 +0100
+Message-ID: <CAJZ5v0gq-Xv1V90GEcfxdnrADQn2Gern=LBnsbSzmrU9M0+FEQ@mail.gmail.com>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:46131 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752491AbdLEWEW (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 17:04:22 -0500
-In-Reply-To: <1512493493-6464-3-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 
 On Tue, Dec 5, 2017 at 6:04 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> OF has of_device_get_match_data() function to extract driver specific data
-> structure. Add a similar function for ACPI.
+> Introduce new ACPI and OF device ids for thw HW along with the helper
+> functions.
 >
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Changes from v5:
+> * use struct device as a calling parameter to get_match_data() callback
+> so that we can reuse the existing OF API.
+> * revert the change on acpi_get_match_data() to V4.
+>
+> Sinan Kaya (7):
+>   Documentation: DT: qcom_hidma: Bump HW revision for the bugfixed HW
+>   ACPI / bus: Introduce acpi_get_match_data() function
+>   device property: Introduce a common API to fetch device match data
+>   OF: properties: Implement get_match_data() callback
+>   ACPI: properties: Implement get_match_data() callback
+>   dmaengine: qcom_hidma: Add support for the new revision
+>   dmaengine: qcom_hidma: Add identity register support
 
-Not sure yet, sorry.
+Sakari, can you please have a look at this series?
 
-> ---
->  drivers/acpi/bus.c   | 12 ++++++++++++
->  include/linux/acpi.h |  6 ++++++
->  2 files changed, 18 insertions(+)
->
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 4d0979e..b271eb1 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -785,6 +785,18 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
->  }
->  EXPORT_SYMBOL_GPL(acpi_match_device);
->
-> +void *acpi_get_match_data(const struct device *dev)
-> +{
-> +       const struct acpi_device_id *match;
-> +
-> +       match = acpi_match_device(dev->driver->acpi_match_table, dev);
+I'm particularly interested in your opinion on patches [2-3/7] and [5/7].
 
-Shouldn't this check dev->driver against NULL before dereferencing it?
-
-> +       if (!match)
-> +               return NULL;
-> +
-> +       return (void *)match->driver_data;
-> +}
-> +EXPORT_SYMBOL_GPL(acpi_get_match_data);
-> +
->  int acpi_match_device_ids(struct acpi_device *device,
->                           const struct acpi_device_id *ids)
->  {
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 502af53..a927260 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -584,6 +584,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
->  const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
->                                                const struct device *dev);
->
-> +void *acpi_get_match_data(const struct device *dev);
->  extern bool acpi_driver_match_device(struct device *dev,
->                                      const struct device_driver *drv);
->  int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
-> @@ -755,6 +756,11 @@ static inline const struct acpi_device_id *acpi_match_device(
->         return NULL;
->  }
->
-> +static inline void *acpi_get_match_data(const struct device *dev)
-> +{
-> +       return NULL;
-> +}
-> +
->  static inline bool acpi_driver_match_device(struct device *dev,
->                                             const struct device_driver *drv)
->  {
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
