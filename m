@@ -1,77 +1,118 @@
-From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH 4/4] EDAC, skx_edac: Detect non-volatile DIMMs
-Date: Tue, 5 Dec 2017 12:03:37 -0800
-Message-ID: <20171205200336.tbx7oypjuca3g6vn@agluck-desk>
-References: <cover.1512070562.git.tony.luck@intel.com>
- <da4c989314e82ec29195804ba5349ac3136f74c0.1512070562.git.tony.luck@intel.com>
- <20171205105451.ob23asixm726hysb@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20171205105451.ob23asixm726hysb-fF5Pk5pvG8Y@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-edac-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH] ACPI / GED: unregister interrupts during shutdown
+Date: Tue,  5 Dec 2017 16:01:45 -0500
+Message-ID: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org
+Cc: rjw@rjwysocki.net, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 05, 2017 at 11:54:51AM +0100, Borislav Petkov wrote:
-> On Thu, Nov 30, 2017 at 12:40:42PM -0800, Tony Luck wrote:
-> >  config EDAC_SKX
-> >  	tristate "Intel Skylake server Integrated MC"
-> >  	depends on PCI && X86_64 && X86_MCE_INTEL && PCI_MMCONFIG
-> > +	select DMI
-> > +	select ACPI_NFIT
-> 
-> Hmm, that ACPI_NFIT depends on a bunch of stuff and enabling EDAC_SKX
-> would pull in all that. Should we make this a user choice instead?
-> 
-> I mean, there could be boxes which don't have nvdimms so all that code
-> would be dead weight there...
+Some GED interrupts could be pending by the time we are doing a reboot.
 
-I could. But what happens when someone ends up on a system with
-an edac driver configured without ACPI_NFIT that does have NVDIMMs?
+Even though GED driver uses devm_request_irq() to register the interrupt
+handler, the handler is not being freed on time during a shutdown since
+the driver is missing a shutdown callback.
 
-I can make a stub version of nfit_get_smbios_id() that returns some
-error code ... and have the EDAC driver report size==0.
+If the ACPI handler is no longer available, this causes an interrupt
+storm and delays shutdown.
 
-Would that be OK?
+Register a shutdown callback and manually free the interrupts.
 
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/evged.c | 36 +++++++++++++++++++++++++++++++++---
+ 1 file changed, 33 insertions(+), 3 deletions(-)
 
-> <---- newline here.
-> 
-> > +	size = dmi_memdev_size(smbios_handle);
-> > +	if (size == ~0ul) {
-> > +		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
-> > +			   dev_handle, smbios_handle);
-> > +		return 0;
-> > +	}
-> 
-> Ditto.
-> 
-> > +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
-> > +		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
-> > +
-> > +	dimm->nr_pages = size >> PAGE_SHIFT;
-> > +	dimm->grain = 32;
-> > +	dimm->dtype = DEV_UNKNOWN;
-> > +	dimm->mtype = MEM_NVDIMM;
-> > +	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
-> 
-> Ditto.
-> 
-> /me hands aegl a bunch of newlines - seems he's all out of \n's
-
-/me finds that the "Enter" key on his keyboard will put in a newline.
-Hurrah! now I don't have to copy/paste them from Boris.
-
--Tony
+diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+index 46f0603..dde50ea 100644
+--- a/drivers/acpi/evged.c
++++ b/drivers/acpi/evged.c
+@@ -1,7 +1,7 @@
+ /*
+  * Generic Event Device for ACPI.
+  *
+- * Copyright (c) 2016, The Linux Foundation. All rights reserved.
++ * Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 and
+@@ -49,6 +49,11 @@
+ 
+ #define MODULE_NAME	"acpi-ged"
+ 
++struct acpi_ged_device {
++	struct device *dev;
++	struct list_head event_list;
++};
++
+ struct acpi_ged_event {
+ 	struct list_head node;
+ 	struct device *dev;
+@@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 	unsigned int irq;
+ 	unsigned int gsi;
+ 	unsigned int irqflags = IRQF_ONESHOT;
+-	struct device *dev = context;
++	struct acpi_ged_device *geddev = context;
++	struct device *dev = geddev->dev;
+ 	acpi_handle handle = ACPI_HANDLE(dev);
+ 	acpi_handle evt_handle;
+ 	struct resource r;
+@@ -122,29 +128,53 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 		return AE_ERROR;
+ 	}
+ 
++	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
++	list_add_tail(&event->node, &geddev->event_list);
+ 	return AE_OK;
+ }
+ 
+ static int ged_probe(struct platform_device *pdev)
+ {
++	struct acpi_ged_device *geddev;
+ 	acpi_status acpi_ret;
+ 
++	geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
++	if (!geddev)
++		return -ENOMEM;
++
++	geddev->dev = &pdev->dev;
++	INIT_LIST_HEAD(&geddev->event_list);
+ 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
+-				       acpi_ged_request_interrupt, &pdev->dev);
++				       acpi_ged_request_interrupt, geddev);
+ 	if (ACPI_FAILURE(acpi_ret)) {
+ 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
+ 		return -EINVAL;
+ 	}
++	platform_set_drvdata(pdev, geddev);
+ 
+ 	return 0;
+ }
+ 
++static void ged_remove(struct platform_device *pdev)
++{
++	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
++	struct acpi_ged_event *event, *next;
++
++	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
++		devm_free_irq(geddev->dev, event->irq, event);
++		list_del(&event->node);
++		dev_info(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
++			 event->gsi, event->irq);
++	}
++}
++
+ static const struct acpi_device_id ged_acpi_ids[] = {
+ 	{"ACPI0013"},
+ 	{},
+ };
+ 
+ static struct platform_driver ged_driver = {
++	.shutdown = ged_remove,
+ 	.probe = ged_probe,
+ 	.driver = {
+ 		.name = MODULE_NAME,
+-- 
+1.9.1
