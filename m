@@ -1,93 +1,48 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V6 3/7] device property: Introduce a common API to fetch
- device match data
-Date: Tue,  5 Dec 2017 12:04:48 -0500
-Message-ID: <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+Subject: [PATCH] ACPI / battery: drop redundant test for failure
+Date: Tue,  5 Dec 2017 18:46:39 +0100
+Message-ID: <20171205174639.672-1-bjorn@mork.no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Rob Herring <robh@kernel.org>, linux-arm-msm@vger.kernel.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, open list <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from canardo.mork.no ([148.122.252.1]:51277 "EHLO canardo.mork.no"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751416AbdLERqv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 5 Dec 2017 12:46:51 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
 
-There is an OF/ACPI function to obtain the driver data. We want to hide
-OF/ACPI details from the device drivers and abstract following the device
-family of functions.
+Merging the two adjacent conditionally built blocks makes the code
+a lot more readable.  And as a bonus, we drop a duplicate test when
+CONFIG_ACPI_PROCFS_POWER is undefined.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
 ---
- drivers/base/property.c  | 6 ++++++
- include/linux/fwnode.h   | 4 ++++
- include/linux/property.h | 2 ++
- 3 files changed, 12 insertions(+)
+ drivers/acpi/battery.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 7ed99c1..65bf6f2 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1335,3 +1335,9 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 	return fwnode_call_int_op(fwnode, graph_parse_endpoint, endpoint);
- }
- EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
-+
-+void *device_get_match_data(struct device *dev)
-+{
-+	return fwnode_call_ptr_op(dev_fwnode(dev), get_match_data, dev);
-+}
-+EXPORT_SYMBOL_GPL(device_get_match_data);
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 0c35b6c..ab9aab5 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -15,6 +15,7 @@
- #include <linux/types.h>
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 13e7b56e33ae..f2eb6c37ea0a 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -1237,13 +1237,11 @@ static int acpi_battery_add(struct acpi_device *device)
  
- struct fwnode_operations;
-+struct device;
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	result = acpi_battery_add_fs(device);
+-#endif
+ 	if (result) {
+-#ifdef CONFIG_ACPI_PROCFS_POWER
+ 		acpi_battery_remove_fs(device);
+-#endif
+ 		goto fail;
+ 	}
++#endif
  
- struct fwnode_handle {
- 	struct fwnode_handle *secondary;
-@@ -66,6 +67,7 @@ struct fwnode_reference_args {
-  *			       endpoint node.
-  * @graph_get_port_parent: Return the parent node of a port node.
-  * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
-+ * @get_match_data: Return the driver match data.
-  */
- struct fwnode_operations {
- 	void (*get)(struct fwnode_handle *fwnode);
-@@ -101,6 +103,8 @@ struct fwnode_operations {
- 	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
- 	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
- 				    struct fwnode_endpoint *endpoint);
-+	void *(*get_match_data)(const struct fwnode_handle *fwnode,
-+				struct device *dev);
- };
- 
- #define fwnode_has_op(fwnode, op)				\
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 6bebee1..01fa55b 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
- 
- enum dev_dma_attr device_get_dma_attr(struct device *dev);
- 
-+void *device_get_match_data(struct device *dev);
-+
- int device_get_phy_mode(struct device *dev);
- 
- void *device_get_mac_address(struct device *dev, char *addr, int alen);
+ 	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
+ 		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
 -- 
-1.9.1
+2.11.0
+
