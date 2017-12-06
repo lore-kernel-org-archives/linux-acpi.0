@@ -1,64 +1,46 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: GemniLake laptops goes power off directly after performing suspend
-Date: Wed, 6 Dec 2017 14:34:01 +0100
-Message-ID: <CAJZ5v0hrpFAffNq8SmTCeHsT0P1ULq7-D1+wA3NoqO5uEWtTaQ@mail.gmail.com>
-References: <CAB4CAwc3q+L9UyHL8W541HXOCUTG0tTx51TfZRyzn61qbyOeEA@mail.gmail.com>
- <CAJZ5v0jS=E0mcm=R2xQSftSnzZXUbzL3RjjWafSYAB=Wd7=ECQ@mail.gmail.com>
- <CAB4CAwe-uahS0HECtqcQ4Mobwb6vD-pxb-v8vPY52t6z+sT5pg@mail.gmail.com>
- <18455542.KZ7HXfzeW6@aspire.rjw.lan> <CAB4CAwdia7RYVVthWAwz-nvpEbiSH+_MFc_zQeu_V7o-uWn8xA@mail.gmail.com>
+Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
+Date: Wed, 6 Dec 2017 14:37:29 +0100
+Message-ID: <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
+References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com> <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:36273 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751546AbdLFNeC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 08:34:02 -0500
-In-Reply-To: <CAB4CAwdia7RYVVthWAwz-nvpEbiSH+_MFc_zQeu_V7o-uWn8xA@mail.gmail.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:33765 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751570AbdLFNha (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 08:37:30 -0500
+In-Reply-To: <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Chiu <chiu@endlessm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux Upstreaming Team <linux@endlessm.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Dec 6, 2017 at 10:33 AM, Chris Chiu <chiu@endlessm.com> wrote:
-> On Wed, Dec 6, 2017 at 5:56 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Tuesday, December 5, 2017 5:19:03 PM CET Chris Chiu wrote:
->>> On Tue, Dec 5, 2017 at 11:01 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>> > On Tue, Dec 5, 2017 at 11:32 AM, Chris Chiu <chiu@endlessm.com> wrote:
->>> >> Hi,
->>> >>     I have 2 GemniLake laptops from ASUS, named X441MB and X507MA,
->>> >> both go power off after I do "systemctl suspend" on top of kerne head
->>> >> fd6d2e506ce6 (Merge tag 'docs-4.15-fixes' of git://git.lwn.net/linux).
->>> >> I then wipe it out and install Windows RS3 instead, also goes to power
->>> >> off after pressing media key for suspend(S3). Then I installed intel
->>> >> graphic driver with the following version number, Windows has no
->>> >> problem on suspend resume then.
->>> >
->>> > There is a suspend-related fix missing in 4.15-rc at this point, so
->>> > please test 4.14.y or wait for the fix to be merged.
->>> >
->>> > Thanks,
->>> > Rafael
->>>
->>> You mean the suspend-related fix used to exist in 4.14? Could you point me
->>> out which commit it is? Thanks
->>
->> No.
->>
->> I mean that suspend generally works in 4.14 and is currently broken
->> in 4.15-rc which requires a fix to be applied.  The fix in question is at:
->>
->> https://lkml.org/lkml/2017/11/30/546
->>
->> This is needed due to some changes made in 4.15-rc (with respect to 4.14)
->> that broke resume from suspend to RAM.
->>
->> Thanks,
->> Rafael
->>
+On Wed, Dec 6, 2017 at 2:24 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> On 12/5/2017 5:18 PM, Rafael J. Wysocki wrote:
+>> On Tue, Dec 5, 2017 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+>>> Some GED interrupts could be pending by the time we are doing a reboot.
+
+[cut]
+
 >
-> I think maybe for GemniLake is a different issue. I tried Ubuntu-4.14.0-11.13
-> kernel and 4.13 kernel. Both go power off immediately.
+>>
+>>>         .probe = ged_probe,
+>>>         .driver = {
+>>>                 .name = MODULE_NAME,
+>>> --
+>>
+>> Overall, it looks like we should just unbind the driver from all
+>> devices on shutdown.
+>
+> I see that shutdown is getting called on all GED instances. That should
+> take care of it, right?
 
-OK, so yes, this is a different issue.
+Yes, it should, so I'm not sure why you need the list in the first place.
 
-Is that suspend-to-idle or suspend-to-RAM (ACPI S3)?
+Also it looks like something along the lines of devres_release_all()
+should be sufficient.
+
+Thanks,
+Rafael
