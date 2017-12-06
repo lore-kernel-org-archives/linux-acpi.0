@@ -1,145 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Tue, 5 Dec 2017 23:18:44 +0100
-Message-ID: <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 26/36] iommu/arm-smmu-v3: Add support for Hardware
+	Translation Table Update
+Date: Wed, 6 Dec 2017 11:06:59 +0000
+Message-ID: <8bdba799-49ec-edc9-dbcf-9277424dea57@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-27-jean-philippe.brucker@arm.com>
+	<d2ec2e61-f758-0394-41d2-555ae65feb0d@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:37659 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751500AbdLEWSp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 17:18:45 -0500
-In-Reply-To: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <d2ec2e61-f758-0394-41d2-555ae65feb0d-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Dec 5, 2017 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Some GED interrupts could be pending by the time we are doing a reboot.
->
-> Even though GED driver uses devm_request_irq() to register the interrupt
-> handler, the handler is not being freed on time during a shutdown since
-> the driver is missing a shutdown callback.
->
-> If the ACPI handler is no longer available, this causes an interrupt
-> storm and delays shutdown.
->
-> Register a shutdown callback and manually free the interrupts.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/evged.c | 36 +++++++++++++++++++++++++++++++++---
->  1 file changed, 33 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-> index 46f0603..dde50ea 100644
-> --- a/drivers/acpi/evged.c
-> +++ b/drivers/acpi/evged.c
-> @@ -1,7 +1,7 @@
->  /*
->   * Generic Event Device for ACPI.
->   *
-> - * Copyright (c) 2016, The Linux Foundation. All rights reserved.
-> + * Copyright (c) 2016-2017, The Linux Foundation. All rights reserved.
+On 06/12/17 06:51, Yisheng Xie wrote:
+> Hi Jean,
+> 
+> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+>> If the SMMU supports it and the kernel was built with HTTU support, enable
+>> +	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) && (reg & (IDR0_HA | IDR0_HD))) {
+>> +		smmu->features |= ARM_SMMU_FEAT_HA;
+>> +		if (reg & IDR0_HD)
+>> +			smmu->features |= ARM_SMMU_FEAT_HD;
+>> +	}
+> 
+> What is relationship of armv8.1 HW_AFDBM and SMMUv3 HTTU? I mean why we need
+> IS_ENABLED(CONFIG_ARM64_HW_AFDBM) ?
 
-Why are you changing this?
+I think the reason we needed this was that, without CONFIG_ARM64_HW_AFDBM,
+the CPU wouldn't update the pte atomically and pte_dirty() wouldn't check
+the DBM bit 51 (only the SW dirty bit 55).
 
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 and
-> @@ -49,6 +49,11 @@
->
->  #define MODULE_NAME    "acpi-ged"
->
-> +struct acpi_ged_device {
-> +       struct device *dev;
-> +       struct list_head event_list;
-> +};
-> +
->  struct acpi_ged_event {
->         struct list_head node;
->         struct device *dev;
-> @@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
->         unsigned int irq;
->         unsigned int gsi;
->         unsigned int irqflags = IRQF_ONESHOT;
-> -       struct device *dev = context;
-> +       struct acpi_ged_device *geddev = context;
-> +       struct device *dev = geddev->dev;
->         acpi_handle handle = ACPI_HANDLE(dev);
->         acpi_handle evt_handle;
->         struct resource r;
-> @@ -122,29 +128,53 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
->                 return AE_ERROR;
->         }
->
-> +       dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
+Since af29678fe785 ("arm64: Remove the !CONFIG_ARM64_HW_AFDBM alternative
+code paths") removed lots of #ifdefs, I'll see if we can remove the above
+IS_ENABLED as well.
 
-Why dev_info()?
+> If CONFIG_ARM64_HW_AFDBM=y but the process do not support ARMv8.1, should it also
+> enable related feature for SMMUv3?
 
-> +       list_add_tail(&event->node, &geddev->event_list);
->         return AE_OK;
->  }
->
->  static int ged_probe(struct platform_device *pdev)
->  {
-> +       struct acpi_ged_device *geddev;
->         acpi_status acpi_ret;
->
-> +       geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
-> +       if (!geddev)
-> +               return -ENOMEM;
-> +
-> +       geddev->dev = &pdev->dev;
-> +       INIT_LIST_HEAD(&geddev->event_list);
->         acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
-> -                                      acpi_ged_request_interrupt, &pdev->dev);
-> +                                      acpi_ged_request_interrupt, geddev);
->         if (ACPI_FAILURE(acpi_ret)) {
->                 dev_err(&pdev->dev, "unable to parse the _CRS record\n");
->                 return -EINVAL;
->         }
-> +       platform_set_drvdata(pdev, geddev);
->
->         return 0;
->  }
->
-> +static void ged_remove(struct platform_device *pdev)
-> +{
-> +       struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
-> +       struct acpi_ged_event *event, *next;
-> +
-> +       list_for_each_entry_safe(event, next, &geddev->event_list, node) {
-> +               devm_free_irq(geddev->dev, event->irq, event);
-> +               list_del(&event->node);
-> +               dev_info(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
-> +                        event->gsi, event->irq);
-
-dev_dbg() and that if you really need it.
-
-> +       }
-> +}
-> +
->  static const struct acpi_device_id ged_acpi_ids[] = {
->         {"ACPI0013"},
->         {},
->  };
->
->  static struct platform_driver ged_driver = {
-> +       .shutdown = ged_remove,
-
-That ged_remove really should be called ged_shutdown.  It is confusing
-as is, because there is a ->remove callback in the structure too.
-
->         .probe = ged_probe,
->         .driver = {
->                 .name = MODULE_NAME,
-> --
-
-Overall, it looks like we should just unbind the driver from all
-devices on shutdown.
+Yes I think we can enable HTTU in the SMMU even if the CPU doesn't support
+it (though HTTU is only useful when sharing process address spaces). The
+mm code checks for both HW and SW bits even when the CPU doesn't support
+ARMv8.1
 
 Thanks,
-Rafael
+Jean
