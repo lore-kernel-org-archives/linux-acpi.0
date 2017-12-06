@@ -1,61 +1,123 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Wed, 6 Dec 2017 09:57:03 -0500
-Message-ID: <fe65ff1a-a8b8-c29b-161d-72cbfea5c056@codeaurora.org>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com>
- <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
- <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [PATCH V2] ACPI / GED: unregister interrupts during shutdown
+Date: Wed,  6 Dec 2017 11:09:06 -0500
+Message-ID: <1512576546-22863-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:44948 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751815AbdLFQJN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 11:09:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On 12/6/2017 8:37 AM, Rafael J. Wysocki wrote:
-> On Wed, Dec 6, 2017 at 2:24 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 12/5/2017 5:18 PM, Rafael J. Wysocki wrote:
->>> On Tue, Dec 5, 2017 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>>> Some GED interrupts could be pending by the time we are doing a reboot.
-> 
-> [cut]
-> 
->>
->>>
->>>>         .probe = ged_probe,
->>>>         .driver = {
->>>>                 .name = MODULE_NAME,
->>>> --
->>>
->>> Overall, it looks like we should just unbind the driver from all
->>> devices on shutdown.
->>
->> I see that shutdown is getting called on all GED instances. That should
->> take care of it, right?
-> 
-> Yes, it should, so I'm not sure why you need the list in the first place.
-> 
-> Also it looks like something along the lines of devres_release_all()
-> should be sufficient.
+Some GED interrupts could be pending by the time we are doing a reboot.
 
-Good suggestion, let me test this.
+Even though GED driver uses devm_request_irq() to register the interrupt
+handler, the handler is not being freed on time during a shutdown since
+the driver is missing a shutdown callback.
 
-> 
-> Thanks,
-> Rafael
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+If the ACPI handler is no longer available, this causes an interrupt
+storm and delays shutdown.
 
+Register a shutdown callback and manually free the interrupts.
 
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/evged.c | 36 ++++++++++++++++++++++++++++++++----
+ 1 file changed, 32 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+index 46f0603..8449f31 100644
+--- a/drivers/acpi/evged.c
++++ b/drivers/acpi/evged.c
+@@ -49,6 +49,11 @@
+ 
+ #define MODULE_NAME	"acpi-ged"
+ 
++struct acpi_ged_device {
++	struct device *dev;
++	struct list_head event_list;
++};
++
+ struct acpi_ged_event {
+ 	struct list_head node;
+ 	struct device *dev;
+@@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 	unsigned int irq;
+ 	unsigned int gsi;
+ 	unsigned int irqflags = IRQF_ONESHOT;
+-	struct device *dev = context;
++	struct acpi_ged_device *geddev = context;
++	struct device *dev = geddev->dev;
+ 	acpi_handle handle = ACPI_HANDLE(dev);
+ 	acpi_handle evt_handle;
+ 	struct resource r;
+@@ -102,8 +108,6 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 		return AE_ERROR;
+ 	}
+ 
+-	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
+-
+ 	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
+ 	if (!event)
+ 		return AE_ERROR;
+@@ -122,29 +126,53 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 		return AE_ERROR;
+ 	}
+ 
++	dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
++	list_add_tail(&event->node, &geddev->event_list);
+ 	return AE_OK;
+ }
+ 
+ static int ged_probe(struct platform_device *pdev)
+ {
++	struct acpi_ged_device *geddev;
+ 	acpi_status acpi_ret;
+ 
++	geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
++	if (!geddev)
++		return -ENOMEM;
++
++	geddev->dev = &pdev->dev;
++	INIT_LIST_HEAD(&geddev->event_list);
+ 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
+-				       acpi_ged_request_interrupt, &pdev->dev);
++				       acpi_ged_request_interrupt, geddev);
+ 	if (ACPI_FAILURE(acpi_ret)) {
+ 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
+ 		return -EINVAL;
+ 	}
++	platform_set_drvdata(pdev, geddev);
+ 
+ 	return 0;
+ }
+ 
++static void ged_shutdown(struct platform_device *pdev)
++{
++	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
++	struct acpi_ged_event *event, *next;
++
++	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
++		devm_free_irq(geddev->dev, event->irq, event);
++		list_del(&event->node);
++		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
++			 event->gsi, event->irq);
++	}
++}
++
+ static const struct acpi_device_id ged_acpi_ids[] = {
+ 	{"ACPI0013"},
+ 	{},
+ };
+ 
+ static struct platform_driver ged_driver = {
++	.shutdown = ged_shutdown,
+ 	.probe = ged_probe,
+ 	.driver = {
+ 		.name = MODULE_NAME,
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+1.9.1
+
