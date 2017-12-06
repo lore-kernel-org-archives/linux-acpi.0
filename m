@@ -1,38 +1,52 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V6 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
-Date: Tue, 5 Dec 2017 23:05:52 +0100
-Message-ID: <CAJZ5v0gq-Xv1V90GEcfxdnrADQn2Gern=LBnsbSzmrU9M0+FEQ@mail.gmail.com>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / APEI: remove redundant variables len and node_len
+Date: Wed, 06 Dec 2017 01:54:32 +0100
+Message-ID: <4133483.q48axFpL8f@aspire.rjw.lan>
+References: <20171015212454.16012-1-colin.king@canonical.com> <20171128105110.hrfe6nh7hzmo5p4f@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171128105110.hrfe6nh7hzmo5p4f@pd.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Colin King <colin.king@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 5, 2017 at 6:04 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Introduce new ACPI and OF device ids for thw HW along with the helper
-> functions.
->
-> Changes from v5:
-> * use struct device as a calling parameter to get_match_data() callback
-> so that we can reuse the existing OF API.
-> * revert the change on acpi_get_match_data() to V4.
->
-> Sinan Kaya (7):
->   Documentation: DT: qcom_hidma: Bump HW revision for the bugfixed HW
->   ACPI / bus: Introduce acpi_get_match_data() function
->   device property: Introduce a common API to fetch device match data
->   OF: properties: Implement get_match_data() callback
->   ACPI: properties: Implement get_match_data() callback
->   dmaengine: qcom_hidma: Add support for the new revision
->   dmaengine: qcom_hidma: Add identity register support
+On Tuesday, November 28, 2017 11:51:10 AM CET Borislav Petkov wrote:
+> On Sun, Oct 15, 2017 at 10:24:54PM +0100, Colin King wrote:
+> > From: Colin Ian King <colin.king@canonical.com>
+> > 
+> > Variables len and node_len are redundant and can be removed. Cleans
+> > up clang warning: node_len = GHES_ESTATUS_NODE_LEN(len);
+> > 
+> > Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> > ---
+> >  drivers/acpi/apei/ghes.c | 3 ---
+> >  1 file changed, 3 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> > index 3c3a37b8503b..f2e1049232c0 100644
+> > --- a/drivers/acpi/apei/ghes.c
+> > +++ b/drivers/acpi/apei/ghes.c
+> > @@ -923,7 +923,6 @@ static void ghes_print_queued_estatus(void)
+> >  	struct ghes_estatus_node *estatus_node;
+> >  	struct acpi_hest_generic *generic;
+> >  	struct acpi_hest_generic_status *estatus;
+> > -	u32 len, node_len;
+> >  
+> >  	llnode = llist_del_all(&ghes_estatus_llist);
+> >  	/*
+> > @@ -935,8 +934,6 @@ static void ghes_print_queued_estatus(void)
+> >  		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+> >  					   llnode);
+> >  		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+> > -		len = cper_estatus_len(estatus);
+> > -		node_len = GHES_ESTATUS_NODE_LEN(len);
+> >  		generic = estatus_node->generic;
+> >  		ghes_print_estatus(NULL, generic, estatus);
+> >  		llnode = llnode->next;
+> 
+> Reviewed-by: Borislav Petkov <bp@suse.de>
 
-Sakari, can you please have a look at this series?
-
-I'm particularly interested in your opinion on patches [2-3/7] and [5/7].
-
-Thanks,
-Rafael
+Patch applied, thanks!
