@@ -1,46 +1,41 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Wed, 6 Dec 2017 14:37:29 +0100
-Message-ID: <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com> <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPICA: Update information in MAINTAINERS
+Date: Wed, 06 Dec 2017 15:23:40 +0100
+Message-ID: <2419650.mvXUDI8C0e@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33765 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751570AbdLFNha (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 08:37:30 -0500
-In-Reply-To: <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42363 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751633AbdLFOYQ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 09:24:16 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-On Wed, Dec 6, 2017 at 2:24 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> On 12/5/2017 5:18 PM, Rafael J. Wysocki wrote:
->> On Tue, Dec 5, 2017 at 10:01 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>> Some GED interrupts could be pending by the time we are doing a reboot.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-[cut]
+Update the ACPICA information in MAINTAINERS to reflect recent
+maintainership changes.
 
->
->>
->>>         .probe = ged_probe,
->>>         .driver = {
->>>                 .name = MODULE_NAME,
->>> --
->>
->> Overall, it looks like we should just unbind the driver from all
->> devices on shutdown.
->
-> I see that shutdown is getting called on all GED instances. That should
-> take care of it, right?
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Yes, it should, so I'm not sure why you need the list in the first place.
+Index: linux-pm/MAINTAINERS
+===================================================================
+--- linux-pm.orig/MAINTAINERS
++++ linux-pm/MAINTAINERS
+@@ -321,7 +321,7 @@ F:	drivers/acpi/apei/
+ 
+ ACPI COMPONENT ARCHITECTURE (ACPICA)
+ M:	Robert Moore <robert.moore@intel.com>
+-M:	Lv Zheng <lv.zheng@intel.com>
++M:	Erik Schmauss <erik.schmauss@intel.com>
+ M:	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ L:	devel@acpica.org
 
-Also it looks like something along the lines of devres_release_all()
-should be sufficient.
-
-Thanks,
-Rafael
