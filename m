@@ -1,66 +1,108 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Wed, 6 Dec 2017 18:16:04 +0100
-Message-ID: <CAJZ5v0iaursWFP_KRoJqT6-QoGkvpTot0oMvs6qdjkaP12p9jQ@mail.gmail.com>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com>
- <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org> <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
- <fe65ff1a-a8b8-c29b-161d-72cbfea5c056@codeaurora.org> <aa5bcbab-b059-1abf-1553-371fe5750455@codeaurora.org>
- <CAJZ5v0iifeFpJsSwXO1AGLW3rn1cG7t3V6ZAnu34-K=D_DavBA@mail.gmail.com> <e0f77da3-93d8-d474-3531-488f8f5f6108@codeaurora.org>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by categorization
+Date: Wed, 06 Dec 2017 19:04:06 +0000
+Message-ID: <5A283F26.3020507@arm.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com> <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com> <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:41746 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752234AbdLFRQF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 12:16:05 -0500
-In-Reply-To: <e0f77da3-93d8-d474-3531-488f8f5f6108@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <kvm-owner@vger.kernel.org>
+In-Reply-To: <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+Sender: kvm-owner@vger.kernel.org
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Dec 6, 2017 at 5:55 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> On 12/6/2017 11:41 AM, Rafael J. Wysocki wrote:
->> On Wed, Dec 6, 2017 at 5:11 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>> On 12/6/2017 9:57 AM, Sinan Kaya wrote:
->>>>> Yes, it should, so I'm not sure why you need the list in the first place.
->>>>>
->>>>> Also it looks like something along the lines of devres_release_all()
->>>>> should be sufficient.
->>>> Good suggestion, let me test this.
->>>>
->>>
->>> I tried to pull the code into GED but the API is not public. I also looked
->>> at how it is used. I was afraid to mess up with the internals of base.c by
->>> calling devres_release_all() externally first and by the driver framework
->>> next. I moved away from this approach.
->>
->> Are you sure it is called by the core in the shutdown path?
->
-> Sorry, I was thinking about a general case not the shutdown path. If we open
-> this API and have device drivers call it from arbitrary places; then we could
-> be opening a new can of worms that show up during device driver removal.
->
-> If you feel confident (I'm not), I can pursue this approach too.
->
->>
->>> I just fixed the function rename and changed the dev_info() to dev_dbg().
->>
->> And why do you need the list?
->>
->> ged_shutdown() will be called for every device for which ged_probe()
->> has been called.
->
-> The problem I had here is that =the last argument is the context pointer when I
-> call devm_free_irq().
->
-> If I don't pass the same context I used during IRQ registration, then the IRQ
-> free API fails. That's why, I needed to keep the event pointer around until the
-> IRQ free is called.
+Hi gengdongjiu,
 
-OK
+On 06/12/17 10:26, gengdongjiu wrote:
+> On 2017/11/15 0:00, James Morse wrote:
+>>> +		 * error has not been propagated
+>>> +		 */
+>>> +		run->exit_reason = KVM_EXIT_EXCEPTION;
+>>> +		run->ex.exception = ESR_ELx_EC_SERROR;
+>>> +		run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
+>>> +		return 0;
+>> We should not pass RAS notifications to user space. The kernel either handles
+>> them, or it panics(). User space shouldn't even know if the kernel supports RAS
+>> until it gets an MCEERR signal.
+>>
+>> You're making your firmware-first notification an EL3->EL0 signal, bypassing the OS.
+>>
+>> If we get a RAS SError and there are no CPER records or values in the ERR nodes,
+>> we should panic as it looks like the CPU/firmware is broken. (spurious RAS errors)
 
-Anyway, it looks like something is missing in the core.
+> do you think whether we need to set the guest ESR by user space?  if need, I need to
+> notify user space that there is a SError happen and need to set ESR for guest in some place of
+> KVM.
 
-You shouldn't really need to do all that dance in a driver.
+I think you are still coming from a world where user-space gets raw RAS
+notifications via KVM. This should not happen because the notification method is
+private to firmware and the kernel. KVM is just in the way when a guest is running.
+
+Notifications reaching KVM should be plumbed into the APEI-firmware-first-code
+or eventually, a kernel-first mechanism if APEI doesn't 'claim' them.
+
+The kernel RAS code may signal user-space with the symptoms of the error, and
+user-space may decided to generate a new RAS notification for the guest.
+
+This should function in exactly the same way, regardless of which notification
+method is in use between the kernel and firmware. (its the only way to make this
+future-proof).
+
+Which notification user-space chooses to use entirely depends on what (if
+anything) it advertised to the guest in the HEST. User-space has to be in
+control of triggering any SError, not just overriding the ESR when KVM has
+decided it wants to kill the guest.
+
+
+> so here I return a error code to user space. you mean we should not pass RAS notifications
+> to user space, so could you give some suggestion how to notify user space to set guest ESR.
+
+KVM shouldn't give the guest an SError when it takes a RAS notification, it
+should pass the notification to the kernel RAS code. It only needs to 'fall
+through' to some default cause if both APEI and kernel-first deny-all-knowledge
+of this notification.
+
+
+The end-to-end flow is then (assuming no-VHE):
+(1)An error occurs, taking the CPU to EL3.
+EL3: triage the error, generate CPER, notify the OS
+EL2: KVM takes the notification, exits the guest, returns to host EL1.
+EL1: KVM handle_exit() calls APEI to handle the error.
+This is the end of KVMs involvement in RAS - its just plumbing.
+
+(2)APEI processes the CPER records and signals affected processes.
+If KVM's user-space is affected, KVM will spot the pending signal when it goes
+to re-enter the guest, and exit to user-space instead.
+Qemu takes the SIGBUS_MCEERR_A{O,R}.
+
+(3) Qemu decides it wants to hand the guest a RAS error, it populates the CPER
+records (in memory only Qemu knows about), then drives the KVM API to make the
+appropriate notification appear.
+
+
+(1) only happens if the guest was running when the error arrived. GHES has ~4
+flavours of IRQ which may be used to describe corruption in guest memory. Steps
+(2) and (3) are exactly the same in this case.
+
+Qemu may decide to trigger RAS errors all by itself, (probably for testing and
+debugging), in which case (1) and (2) don't happen, but (3), is exactly the same.
+
+
+This way platform-firmware/host-kernel can use kernel-first or firmware-first
+with any of the notifications, independently from Qemu/guest-kernel making a
+different kernel-first or firmware-first with different notifications.
+
+Passing information out of KVM breaks this, forcing Qemu to know about the
+mechanism platform-firmware is using.
+
+
+We need to tackle (1) and (3) separately. For (3) we need some API that lets
+Qemu _trigger_ an SError in the guest, with a specified ESR. But, we don't have
+a way of migrating pending SError yet... which is where I got stuck last time I
+was looking at this.
+
+
+
+James
