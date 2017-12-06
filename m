@@ -1,59 +1,54 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 26/36] iommu/arm-smmu-v3: Add support for Hardware
-	Translation Table Update
-Date: Wed, 6 Dec 2017 11:06:59 +0000
-Message-ID: <8bdba799-49ec-edc9-dbcf-9277424dea57@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-27-jean-philippe.brucker@arm.com>
-	<d2ec2e61-f758-0394-41d2-555ae65feb0d@huawei.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Wed, 6 Dec 2017 18:26:14 +0800
+Message-ID: <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <d2ec2e61-f758-0394-41d2-555ae65feb0d-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:2212 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1755094AbdLFK0t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 6 Dec 2017 05:26:49 -0500
+In-Reply-To: <5A0B1334.7060500@arm.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 
-On 06/12/17 06:51, Yisheng Xie wrote:
-> Hi Jean,
+
+On 2017/11/15 0:00, James Morse wrote:
+>> +		 * error has not been propagated
+>> +		 */
+>> +		run->exit_reason = KVM_EXIT_EXCEPTION;
+>> +		run->ex.exception = ESR_ELx_EC_SERROR;
+>> +		run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
+>> +		return 0;
+> We should not pass RAS notifications to user space. The kernel either handles
+> them, or it panics(). User space shouldn't even know if the kernel supports RAS
+> until it gets an MCEERR signal.
 > 
-> On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
->> If the SMMU supports it and the kernel was built with HTTU support, enable
->> +	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) && (reg & (IDR0_HA | IDR0_HD))) {
->> +		smmu->features |= ARM_SMMU_FEAT_HA;
->> +		if (reg & IDR0_HD)
->> +			smmu->features |= ARM_SMMU_FEAT_HD;
->> +	}
+> You're making your firmware-first notification an EL3->EL0 signal, bypassing the OS.
 > 
-> What is relationship of armv8.1 HW_AFDBM and SMMUv3 HTTU? I mean why we need
-> IS_ENABLED(CONFIG_ARM64_HW_AFDBM) ?
+> If we get a RAS SError and there are no CPER records or values in the ERR nodes,
+> we should panic as it looks like the CPU/firmware is broken. (spurious RAS errors)
 
-I think the reason we needed this was that, without CONFIG_ARM64_HW_AFDBM,
-the CPU wouldn't update the pte atomically and pte_dirty() wouldn't check
-the DBM bit 51 (only the SW dirty bit 55).
+Hi james,
+  sorry to disturb you!
 
-Since af29678fe785 ("arm64: Remove the !CONFIG_ARM64_HW_AFDBM alternative
-code paths") removed lots of #ifdefs, I'll see if we can remove the above
-IS_ENABLED as well.
+  do you think whether we need to set the guest ESR by user space?  if need, I need to
+notify user space that there is a SError happen and need to set ESR for guest in some place of
+KVM. so here I return a error code to user space. you mean we should not pass RAS notifications
+to user space, so could you give some suggestion how to notify user space to set guest ESR.
 
-> If CONFIG_ARM64_HW_AFDBM=y but the process do not support ARMv8.1, should it also
-> enable related feature for SMMUv3?
+Thanks a lot in advance.
 
-Yes I think we can enable HTTU in the SMMU even if the CPU doesn't support
-it (though HTTU is only useful when sharing process address spaces). The
-mm code checks for both HW and SW bits even when the CPU doesn't support
-ARMv8.1
 
-Thanks,
-Jean
+> 
+> 
+
