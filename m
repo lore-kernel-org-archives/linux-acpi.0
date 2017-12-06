@@ -1,262 +1,308 @@
-From: Brian Norris <briannorris@chromium.org>
-Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
-Date: Wed, 6 Dec 2017 11:34:24 -0800
-Message-ID: <20171206193421.GA143886@google.com>
-References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
- <1894178.xtK0vD2N4H@aspire.rjw.lan>
- <20171114025109.GA43048@google.com>
- <1882670.s3LR2t44nD@aspire.rjw.lan>
+From: Ognjen Galic <smclt30p@gmail.com>
+Subject: [PATCH 1/3] battery: Add the battery hooking API
+Date: Wed, 6 Dec 2017 23:51:35 +0100
+Message-ID: <20171206225135.GA3793@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f68.google.com ([209.85.214.68]:38074 "EHLO
-        mail-it0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751208AbdLFTe3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 14:34:29 -0500
-Received: by mail-it0-f68.google.com with SMTP id r6so8888539itr.3
-        for <linux-acpi@vger.kernel.org>; Wed, 06 Dec 2017 11:34:29 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1882670.s3LR2t44nD@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jeffy Chen <jeffy.chen@rock-chips.com>, linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, tony@atomide.com, shawn.lin@rock-chips.com, dianders@chromium.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-Hi Rafael,
+This is a patch that implements a generic hooking API for the
+generic ACPI battery driver.
 
-Thanks for the responses, and sorry for some delay. My thoughts are
-still a bit scattered on this (and I'm also busy with other things), and
-I'd like some feedback on the device tree definitions from someone, if
-possible. (I expect you're more familiar with ACPI than with device
-tree, but perhaps you or someone else on copy can humor me?)
+With this new generic API, drivers can expose platform specific
+behaviour via sysfs attributes in /sys/class/power_supply/BATn/
+in a generic way.
 
-I'm also not sure I agree with all of your suggestions, though maybe
-something "similar" could be OK.
+A perfect example of the need for this API are Lenovo ThinkPads.
 
-On Wed, Nov 22, 2017 at 01:26:02AM +0100, Rafael J. Wysocki wrote:
-> On Tuesday, November 14, 2017 3:51:11 AM CET Brian Norris wrote:
-> > On Wed, Nov 08, 2017 at 11:32:20PM +0100, Rafael J. Wysocki wrote:
-> > > On Friday, October 27, 2017 9:26:11 AM CET Jeffy Chen wrote:
-> > > > Move acpi wakeup code to pci core as pci_set_wakeup(), so that other
-> > > > platforms could reuse it.
-> > > 
-> > > What exactly do you want to reuse?
-> > > 
-> > > It looks like that's just several lines of code in acpi_pci_wakeup()
-> > > and acpi_pci_propagate_wakeup() which invoke ACPI-specific lower-level
-> > > functions, so IMO not worth it at all.
-> > 
-> > The important part he's sharing here is the walking of the tree
-> > structure, in which it's possible for some parent along the way to
-> > handle wakeup for its children. I'm not sure how valuable nor how
-> > reusable that is.
-> 
-> ACPI very well may be the only case needing to walk the hierarchy for that.
+Lenovo ThinkPads have a ACPI extension that allows the setting of
+start and stop charge thresholds in the EC and battery firmware
+via ACPI. The thinkpad_acpi module can use this API to expose
+sysfs attributes that it controls inside the ACPI battery driver
+sysfs tree, under /sys/class/power_supply/BATN/.
 
-Sure. It does seem like a bit of overkill, on second thought.
+The file drivers/acpi/battery.h has been moved to
+include/acpi/battery.h and the includes inside ac.c, sbs.c, and
+battery.c have been adjusted to reflect that.
 
-> > In this case (the Rockchip platforms Jeffy and I are working on), I
-> > think we really want to just support a single WAKE# pin for the whole
-> > system, so maybe the complexity isn't needed.
-> 
-> So unless I know you'll need it, please don't add it.
+When drivers hooks into the API, the API calls add_battery() for
+each battery in the system that passes it a acpi_battery
+struct. Then, the drivers can use device_create_file() to create
+new sysfs attributes with that struct and identify the batteries
+for per-battery attributes.
 
-Sure, arbitrary hierarchy is probably over-engineering. But 1-per-device
-is quite reasonable -- even if we don't support it immediately, it would
-be nice if it can be added without too much trouble.
+Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+---
+ drivers/acpi/ac.c      |   2 +-
+ drivers/acpi/battery.c | 139 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/battery.h |  11 ----
+ drivers/acpi/sbs.c     |   2 +-
+ include/acpi/battery.h |  21 ++++++++
+ 5 files changed, 160 insertions(+), 15 deletions(-)
+ delete mode 100644 drivers/acpi/battery.h
+ create mode 100644 include/acpi/battery.h
 
-> > The spec does describe that there are good reasons for supporting more than
-> > 1 WAKE# pin though (e.g., 1 per device), so it doesn't seem really wise to
-> > shoehorn oursleves into a single setup.
-> 
-> One WAKE# pin per device is reasonable enough, but WAKE# is specifically
-> defined as out-of-band and "orthogonal" to the PCIe hierarchy.  What you
-> need is a way to program WAKE# and (possibly) wakeup power on the given
-> platform for each device having a WAKE# pin individually.
-
-So, *don't* define the wakeup in the host bridge?
-
-Or put another way: how would you define a DT description for this?
-
-By the way, it seems pretty ambiguous how we want to handle things like
-(a) multiple devices sharing the same WAKE#
-(b) systems where a slot is swappable
-
-For (a), the main problem is that if we have to repeat the interrupt
-definition in multiple devices, then we have to deal with something like
-IRQF_SHARED. That can be done, but it makes it much harder to use the
-dedicated wakeirq helpers.
-
-For (b), it's already weird to write device trees for probable PCI
-devices; you technically need to redefine the node for the PCI ID of
-each device that gets plugged in. So instead, it seems more like maybe
-a property of the port?
-
-Or more concretely:
-
-pcie@XXXXXXXX {
-	compatible = "rockchip,rk3399-pcie";
-	interrupts-extended = ..., <&gpioX Y>;  // the existing
-						// proposal, for
-						// 'wakeup' in the host
-						// bridge
-	interrupt-names = ..., "wakeup";
-
-	pcie_port: pcie@0,0 {
-		...
-		/*
-		// This is a possible proposal, to account for (b)?
-		interrupts = <Y>;
-		interrupt-parent = <&gpioX>;
-		interrupt-names = "wakeup";
-		*/
-
-		wifi_device: wifi@0,0 {
-			compatible = "pci11ab,2b42";
-			/*
-			// This is the "1-per-device" proposal?
-			// But it doesn't work well if the PCI ID
-			// changes (e.g., card swap). Probably want to
-			// avoid this if possible.
-			// Also, it has an awkward conflict with INTx
-			// definitions.
-			interrupts-extended = <&intX 0>, <&gpioX Y>;
-			interrupt-names = "pci", "wakeup";
-			*/
-			...
-		};
-	};
-};
-
-Does the description at the "port" level seem reasonable? We'd still
-have to figure out how to parse this properly of course...
-
-> The main reason why ACPI needs to walk the hierarchy is that on some systems
-> the firmware takes over the handling of the native PME mechanism which then is
-> taken care of by the AML (and the kernel is not granted control of the
-> relevant PCIe registers).  I don't think you'll ever see anything like that
-> on non-ACPI systems.
-
-OK.
-
-> > But that can be implemented either via copying the "few" lines of
-> > tree-walking logic, or by trying to share them.
-> > 
-> > > The structure for other platform code may be the same or similar, but
-> > > the details will almost certainly be different and I don't think that
-> > > having more callback pointers in pci_platform_pm_ops is necessarily better.
-> > 
-> > I suppose that's reasonable.
-> > 
-> > > > Also add .setup_dev() / .setup_host_bridge() / .cleanup() platform pm
-> > > > ops's callbacks to setup and cleanup pci devices and host bridge for
-> > > > wakeup.
-> > > 
-> > > Why are they needed?
-> > 
-> > The implementation is in patch 7, if you really needed more info about
-> > why, or provide alternatives.
-> 
-> Well, that's quite questionable.
-> 
-> At least defining ->dev_wakeup to do device_set_wakeup_capable() doesn't
-> really make sense to me.
-
-Hmm, that does seem a little weird, but I believe maybe Jeffy is using
-it as a hack for fitting in with the "dedicated IRQ" stuff? It seems
-more like you should be able to use something like
-dev_pm_enable_wake_irq() / dev_pm_disable_wake_irq() instead though.
-That's a question for patch 7 though, not for the general architecture
-of these hooks -- we want to do *something* the arm/disarm the wake-IRQ
-there.
-
-> > The current set of hooks assumes that there is no state information
-> > or
-> > initialization needed for tracking actions of these platform PM hooks on
-> > a device. For ACPI this works, because devices have "companion"
-> > acpi_dev's to handle everything, and the ACPI framework generally
-> > prepares GPE's for you, IIUC. For 'pci-mid', the operations happen to be
-> > trivial (and arguably wrong -- several are no-ops, where we might expect
-> > the platform to tell us whether the operation was actually supported or
-> > not).
-> > 
-> > For device tree, there isn't really a canonical place to store this
-> > information, nor to initialize something like wakeup interrupts.
-> 
-> The only thing you need IMO is ->set_wakeup which also is what ACPI needs
-> and that enables or disables wakeup for the device.  It doesn't actually
-> have to track anything (other than, possibly, whether or not wakeup has
-> been enabled for it already).
-
-Yes, that's technically the only essential thing needed, though it does
-make things a little tougher. We still may need to (depending on whether
-we decide to define WAKE# in the bridge, the port, or the device) do
-some hierarchy walking. I'm also not yet convinced about "where to
-initialize" (see comments below).
-
-> And since the core takes care of native PMEs for you, the only thing
-> this needs to cover is the WAKE# pin programming AFAICS.
-
-Right.
-
-> The setup part, in turn, in the ACPI case is done via acpi_platform_notify()
-> and, analogously, acpi_platform_notify_remove() does the cleanup.  You seem
-> to be trying to add something like it via pci_platform_pm_ops, but is it
-> really the most suitable place for that?
-
-Well, the global 'platform_notify' and 'platform_notify_remove'
-singletons seem even more fragile. Do we really want to take over the
-whole system's device registration hooks just to handle something for a
-particular bus type? We're not going to be able to write a generic "add"
-and "remove" hook for all devices on all Device Tree systems for this
-type of feature. It would likely break a lot of sub-devices to start
-parsing "wakeup" properties there.
-
-We *could* do something like what it8152 does:
-
-static int it8152_pci_platform_notify(struct device *dev)
-{
-	if (dev_is_pci(dev)) {
-	...
-	}
-	return 0;
-}
-
-but that doesn't look very nice to me. Among other problems, it won't
-stack nicely. What if an 'it8152' system wants to use this 'wakeup'
-interrupt definition too?
-
-Instead, I think it makes perfect sense to put the DT-centric wakeup
-handling all in the same module -- the "Firmware PM callbacks" (struct
-pci_platform_pm_ops) -- instead of scattering it around the codebase.
-
-> > Technically, we could shoehorn this into the .set_wakeup() call, but
-> > we'd probably rather not do things like request_irq() on every attempt
-> > to suspend/resume the system (among other reasons, we'd lose information
-> > that we might otherwise track in /proc/ or /sys/).
-> > 
-> > Or the inverse of the above: where would you suggest initializing or
-> > tearing down the wakeirq?
-> 
-> Again, ACPI does that via acpi_platform_notify()/acpi_platform_notify_remove(),
-> so maybe something similar?
-
-I don't like that solution, per the above. (Depending on what "or maybe
-something similar" means.)
-
-> In any case, you need a way to associate DT-provided data with PCI devices and,
-> ideally, that should be done at the enumeration time.
-
-Yes, but that's what these hooks were allowing; PCI PM firmware hooks
-get a chance to do enumeration-time initialization for both bridges and
-devices.
-
-> > An alternative could be to include any necessary state into the
-> > pci_host_bridge or pci_dev and just inline the setup code into
-> > pci.c/remove.c (e.g., pci_register_host_bridge()) and pci-driver.c
-> > (pci_device_{probe,remove}()). But I'm not sure that's much more
-> > beautiful.
-> 
-> Well, that's not the way it is done in the ACPI case anyway.
-
-Brian
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 47a7ed5..2d8de2f 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -33,7 +33,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
+-#include "battery.h"
++#include <acpi/battery.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 13e7b56..2951d07 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -30,6 +30,7 @@
+ #include <linux/dmi.h>
+ #include <linux/delay.h>
+ #include <linux/slab.h>
++#include <linux/list.h>
+ #include <linux/suspend.h>
+ #include <asm/unaligned.h>
+ 
+@@ -42,7 +43,7 @@
+ #include <linux/acpi.h>
+ #include <linux/power_supply.h>
+ 
+-#include "battery.h"
++#include <acpi/battery.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -124,6 +125,7 @@ struct acpi_battery {
+ 	struct power_supply_desc bat_desc;
+ 	struct acpi_device *device;
+ 	struct notifier_block pm_nb;
++	struct list_head list;
+ 	unsigned long update_time;
+ 	int revision;
+ 	int rate_now;
+@@ -626,6 +628,137 @@ static const struct device_attribute alarm_attr = {
+ 	.store = acpi_battery_alarm_store,
+ };
+ 
++/*
++ * The Battery Hooking API
++ *
++ * This API is used inside other drivers that need to expose
++ * platform-specific behaviour within the generic driver in a
++ * generic way.
++ *
++ */
++
++LIST_HEAD(acpi_battery_list);
++LIST_HEAD(battery_hook_list);
++
++void battery_hook_unregister(struct acpi_battery_hook *hook)
++{
++
++	struct list_head *position;
++	struct acpi_battery *battery;
++
++	/*
++	 * In order to remove a hook, we first need to
++	 * de-register all the batteries that are registered.
++	 */
++
++	list_for_each(position, &acpi_battery_list) {
++		battery = list_entry(position, struct acpi_battery, list);
++		hook->remove_battery(battery->bat);
++	}
++
++	/* Then, just remove the hook */
++
++	list_del(&hook->list);
++	pr_info("battery: extension unregistered: %s\n", hook->name);
++
++}
++EXPORT_SYMBOL_GPL(battery_hook_unregister);
++
++void battery_hook_register(struct acpi_battery_hook *hook)
++{
++	struct list_head *position;
++	struct acpi_battery *battery;
++
++	INIT_LIST_HEAD(&hook->list);
++	list_add(&hook->list, &battery_hook_list);
++
++	/*
++	 * Now that the driver is registered, we need
++	 * to notify the hook that a battery is available
++	 * for each battery, so that the driver may add
++	 * its attributes.
++	 */
++	list_for_each(position, &acpi_battery_list) {
++		battery = list_entry(position, struct acpi_battery, list);
++		if (hook->add_battery(battery->bat)) {
++
++			/*
++			 * If a add-battery returns non-zero,
++			 * the registration of the extension has failed,
++			 * we will unload it.
++			 */
++			pr_err("battery: extension failed to load: %s",
++					hook->name);
++			battery_hook_unregister(hook);
++			return;
++
++		}
++	}
++
++	pr_info("battery: new extension: %s\n", hook->name);
++
++}
++EXPORT_SYMBOL_GPL(battery_hook_register);
++
++static void battery_hook_add_battery(struct acpi_battery *battery)
++{
++
++	/*
++	 * This function gets called right after the battery sysfs
++	 * attributes have been added, so that the drivers that
++	 * define custom sysfs attributes can add their own.
++	 */
++
++	struct list_head *position;
++	struct acpi_battery_hook *hook_node;
++
++	INIT_LIST_HEAD(&battery->list);
++	list_add(&battery->list, &acpi_battery_list);
++
++	/*
++	 * Since we added a new battery to the list, we need to
++	 * iterate over the hooks and call add_battery for each
++	 * hook that was registered. This usually happens
++	 * when a battery gets hotplugged or initialized
++	 * during the battery module initialization.
++	 */
++
++	list_for_each(position, &battery_hook_list) {
++		hook_node = list_entry(position, struct acpi_battery_hook, list);
++		if (hook_node->add_battery(battery->bat)) {
++
++			/*
++			 * The notification of the extensions has failed, to
++			 * prevent further errors we will unload the extension.
++			 */
++			battery_hook_unregister(hook_node);
++			pr_err("battery: error in extension, unloading: %s",
++					hook_node->name);
++		}
++	}
++
++}
++
++static void battery_hook_remove_battery(struct acpi_battery *battery)
++{
++	struct list_head *position;
++	struct acpi_battery_hook *hook;
++
++	/*
++	 * Before removing the hook, we need to remove all
++	 * custom attributes from the battery.
++	 */
++	list_for_each(position, &battery_hook_list) {
++		hook = list_entry(position, struct acpi_battery_hook, list);
++		hook->remove_battery(battery->bat);
++	}
++
++	/* Then, just remove the battery from the list */
++
++	list_del(&battery->list);
++
++}
++
+ static int sysfs_add_battery(struct acpi_battery *battery)
+ {
+ 	struct power_supply_config psy_cfg = { .drv_data = battery, };
+@@ -647,6 +780,8 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ 	battery->bat = power_supply_register_no_ws(&battery->device->dev,
+ 				&battery->bat_desc, &psy_cfg);
+ 
++	battery_hook_add_battery(battery);
++
+ 	if (IS_ERR(battery->bat)) {
+ 		int result = PTR_ERR(battery->bat);
+ 
+@@ -663,7 +798,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		mutex_unlock(&battery->sysfs_lock);
+ 		return;
+ 	}
+-
++	battery_hook_remove_battery(battery);
+ 	device_remove_file(&battery->bat->dev, &alarm_attr);
+ 	power_supply_unregister(battery->bat);
+ 	battery->bat = NULL;
+diff --git a/drivers/acpi/battery.h b/drivers/acpi/battery.h
+deleted file mode 100644
+index 225f493..0000000
+--- a/drivers/acpi/battery.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __ACPI_BATTERY_H
+-#define __ACPI_BATTERY_H
+-
+-#define ACPI_BATTERY_CLASS "battery"
+-
+-#define ACPI_BATTERY_NOTIFY_STATUS	0x80
+-#define ACPI_BATTERY_NOTIFY_INFO	0x81
+-#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+-
+-#endif
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index a2428e9..295b592 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -32,9 +32,9 @@
+ #include <linux/delay.h>
+ #include <linux/power_supply.h>
+ #include <linux/platform_data/x86/apple.h>
++#include <acpi/battery.h>
+ 
+ #include "sbshc.h"
+-#include "battery.h"
+ 
+ #define PREFIX "ACPI: "
+ 
+diff --git a/include/acpi/battery.h b/include/acpi/battery.h
+new file mode 100644
+index 0000000..5d8f5d9
+--- /dev/null
++++ b/include/acpi/battery.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __ACPI_BATTERY_H
++#define __ACPI_BATTERY_H
++
++#define ACPI_BATTERY_CLASS "battery"
++
++#define ACPI_BATTERY_NOTIFY_STATUS	0x80
++#define ACPI_BATTERY_NOTIFY_INFO	0x81
++#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
++
++struct acpi_battery_hook {
++	const char *name;
++	int (*add_battery)(struct power_supply *battery);
++	int (*remove_battery)(struct power_supply *battery);
++	struct list_head list;
++};
++
++void battery_hook_register(struct acpi_battery_hook *hook);
++void battery_hook_unregister(struct acpi_battery_hook *hook);
++
++#endif
+-- 
+2.7.4
