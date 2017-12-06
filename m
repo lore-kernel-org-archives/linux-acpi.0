@@ -1,53 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: GemniLake laptops goes power off directly after performing suspend
-Date: Tue, 05 Dec 2017 22:56:53 +0100
-Message-ID: <18455542.KZ7HXfzeW6@aspire.rjw.lan>
-References: <CAB4CAwc3q+L9UyHL8W541HXOCUTG0tTx51TfZRyzn61qbyOeEA@mail.gmail.com> <CAJZ5v0jS=E0mcm=R2xQSftSnzZXUbzL3RjjWafSYAB=Wd7=ECQ@mail.gmail.com> <CAB4CAwe-uahS0HECtqcQ4Mobwb6vD-pxb-v8vPY52t6z+sT5pg@mail.gmail.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: Re: [RFCv2 PATCH 26/36] iommu/arm-smmu-v3: Add support for Hardware
+ Translation Table Update
+Date: Wed, 6 Dec 2017 14:51:59 +0800
+Message-ID: <d2ec2e61-f758-0394-41d2-555ae65feb0d@huawei.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+ <20171006133203.22803-27-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:58087 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752506AbdLEV53 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Dec 2017 16:57:29 -0500
-In-Reply-To: <CAB4CAwe-uahS0HECtqcQ4Mobwb6vD-pxb-v8vPY52t6z+sT5pg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20171006133203.22803-27-jean-philippe.brucker@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org
+Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robin.murphy@arm.com, bhelgaas@google.com, alex.williamson@redhat.com, tn@semihalf.com, liubo95@huawei.com, thunder.leizhen@huawei.com, gabriele.paoloni@huawei.com, nwatters@codeaurora.org, okaya@codeaurora.org, rfranz@cavium.com, dwmw2@infradead.org, jacob.jun.pan@linux.intel.com, yi.l.liu@intel.com, ashok.raj@intel.com, robdclark@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Chiu <chiu@endlessm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux Upstreaming Team <linux@endlessm.com>
 
-On Tuesday, December 5, 2017 5:19:03 PM CET Chris Chiu wrote:
-> On Tue, Dec 5, 2017 at 11:01 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Tue, Dec 5, 2017 at 11:32 AM, Chris Chiu <chiu@endlessm.com> wrote:
-> >> Hi,
-> >>     I have 2 GemniLake laptops from ASUS, named X441MB and X507MA,
-> >> both go power off after I do "systemctl suspend" on top of kerne head
-> >> fd6d2e506ce6 (Merge tag 'docs-4.15-fixes' of git://git.lwn.net/linux).
-> >> I then wipe it out and install Windows RS3 instead, also goes to power
-> >> off after pressing media key for suspend(S3). Then I installed intel
-> >> graphic driver with the following version number, Windows has no
-> >> problem on suspend resume then.
-> >
-> > There is a suspend-related fix missing in 4.15-rc at this point, so
-> > please test 4.14.y or wait for the fix to be merged.
-> >
-> > Thanks,
-> > Rafael
+Hi Jean,
+
+On 2017/10/6 21:31, Jean-Philippe Brucker wrote:
+> If the SMMU supports it and the kernel was built with HTTU support, enable
+> +	if (IS_ENABLED(CONFIG_ARM64_HW_AFDBM) && (reg & (IDR0_HA | IDR0_HD))) {
+> +		smmu->features |= ARM_SMMU_FEAT_HA;
+> +		if (reg & IDR0_HD)
+> +			smmu->features |= ARM_SMMU_FEAT_HD;
+> +	}
+
+What is relationship of armv8.1 HW_AFDBM and SMMUv3 HTTU? I mean why we need
+IS_ENABLED(CONFIG_ARM64_HW_AFDBM) ?
+
+If CONFIG_ARM64_HW_AFDBM=y but the process do not support ARMv8.1, should it also
+enable related feature for SMMUv3?
+
+Thanks
+Yisheng Xie
+> +
+>  	/*
+>  	 * If the CPU is using VHE, but the SMMU doesn't support it, the SMMU
+>  	 * will create TLB entries for NH-EL1 world and will miss the
 > 
-> You mean the suspend-related fix used to exist in 4.14? Could you point me
-> out which commit it is? Thanks
-
-No.
-
-I mean that suspend generally works in 4.14 and is currently broken
-in 4.15-rc which requires a fix to be applied.  The fix in question is at:
-
-https://lkml.org/lkml/2017/11/30/546
-
-This is needed due to some changes made in 4.15-rc (with respect to 4.14)
-that broke resume from suspend to RAM.
-
-Thanks,
-Rafael
-
