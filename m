@@ -1,72 +1,37 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Thu, 7 Dec 2017 00:19:25 +0100
-Message-ID: <CAJZ5v0hEdK_vJcHeoz=Z2H6od=bktspPpTo37Y6qiOT2qptnaA@mail.gmail.com>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com>
- <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org> <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
- <fe65ff1a-a8b8-c29b-161d-72cbfea5c056@codeaurora.org> <aa5bcbab-b059-1abf-1553-371fe5750455@codeaurora.org>
- <CAJZ5v0iifeFpJsSwXO1AGLW3rn1cG7t3V6ZAnu34-K=D_DavBA@mail.gmail.com>
- <e0f77da3-93d8-d474-3531-488f8f5f6108@codeaurora.org> <CAJZ5v0iaursWFP_KRoJqT6-QoGkvpTot0oMvs6qdjkaP12p9jQ@mail.gmail.com>
+From: Christoph =?utf-8?Q?B=C3=B6hmwalder?= <christoph@boehmwalder.at>
+Subject: Re: [PATCH 2/3] battery: Add the ThinkPad "Not Charging" quirk
+Date: Thu, 7 Dec 2017 00:55:34 +0100
+Message-ID: <20171206235534.5d7vm24u3ofegfwn@localhost>
+References: <20171206225301.GA3837@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:34005 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbdLFXT1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 18:19:27 -0500
-In-Reply-To: <CAJZ5v0iaursWFP_KRoJqT6-QoGkvpTot0oMvs6qdjkaP12p9jQ@mail.gmail.com>
+Received: from zimbra.linuxprofi.at ([93.83.54.199]:48716 "EHLO
+        zimbra.linuxprofi.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751711AbdLFXze (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 18:55:34 -0500
+Content-Disposition: inline
+In-Reply-To: <20171206225301.GA3837@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Sinan Kaya <okaya@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Ognjen Galic <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org
 
-Hi Greg,
-
-On Wed, Dec 6, 2017 at 6:16 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Dec 6, 2017 at 5:55 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> On 12/6/2017 11:41 AM, Rafael J. Wysocki wrote:
->>> On Wed, Dec 6, 2017 at 5:11 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>>> On 12/6/2017 9:57 AM, Sinan Kaya wrote:
->>>>>> Yes, it should, so I'm not sure why you need the list in the first place.
->>>>>>
->>>>>> Also it looks like something along the lines of devres_release_all()
->>>>>> should be sufficient.
->>>>> Good suggestion, let me test this.
->>>>>
->>>>
->>>> I tried to pull the code into GED but the API is not public. I also looked
->>>> at how it is used. I was afraid to mess up with the internals of base.c by
->>>> calling devres_release_all() externally first and by the driver framework
->>>> next. I moved away from this approach.
->>>
->>> Are you sure it is called by the core in the shutdown path?
->>
->> Sorry, I was thinking about a general case not the shutdown path. If we open
->> this API and have device drivers call it from arbitrary places; then we could
->> be opening a new can of worms that show up during device driver removal.
-
-[cut]
-
+On Wed, Dec 06, 2017 at 11:53:01PM +0100, Ognjen Galic wrote:
+> The EC/ACPI firmware on Lenovo ThinkPads used to report a status
+> of "Unknown" when the battery is between the charge start and
+> charge stop thresholds. On Windows, it reports "Not Charging"
+> so the quirk has been added to also report correctly.
 >
-> OK
->
-> Anyway, it looks like something is missing in the core.
->
-> You shouldn't really need to do all that dance in a driver.
+> Now the "status" attribute returns "Not Charging" when the
+> battery on ThinkPads is not physicaly charging.
 
-We have a problem with the ACPI GED driver which essentially is a
-platform driver requesting a number of interrupts and handling them by
-dispatching a specific AML method.
+Hi again,
 
-It uses devm_request_threaded_irq() to request the interrupts, so it
-doesn't need a ->remove() callback, but it turns out to need a
-->shutdown() one to free all of these interrupts at the shutdown time.
+I just tried this patch(set) and it still seems to report "Unknown".  We
+can also discuss this on the IRC you mentioned earlier if you want, as I
+said I'm open for testing.
 
-While we can add a ->shutdown() callback to it, that essentially needs
-to duplicate devres_release_all() somewhat.
-
-Any suggestions what to do with that?
-
-Thanks,
-Rafael
+--
+Regards,
+Christoph
