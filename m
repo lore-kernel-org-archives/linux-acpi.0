@@ -1,123 +1,43 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2] ACPI / GED: unregister interrupts during shutdown
-Date: Wed,  6 Dec 2017 11:09:06 -0500
-Message-ID: <1512576546-22863-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
+Date: Wed, 6 Dec 2017 11:11:40 -0500
+Message-ID: <aa5bcbab-b059-1abf-1553-371fe5750455@codeaurora.org>
+References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
+ <CAJZ5v0jcFqG=Jd19ms7XQMR+rGfdKTEaN7SK91DPzBa=xcMY1w@mail.gmail.com>
+ <0b661eec-f9c7-7818-ad09-f3d488adcefe@codeaurora.org>
+ <CAJZ5v0hkajauiqEmEVv+k-OYeP+_S4wufjuR7vmhcxARpRpw=g@mail.gmail.com>
+ <fe65ff1a-a8b8-c29b-161d-72cbfea5c056@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:44948 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:51240 "EHLO
         smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751815AbdLFQJN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 11:09:13 -0500
+        with ESMTP id S1752456AbdLFQLo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 11:11:44 -0500
+In-Reply-To: <fe65ff1a-a8b8-c29b-161d-72cbfea5c056@codeaurora.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Some GED interrupts could be pending by the time we are doing a reboot.
+On 12/6/2017 9:57 AM, Sinan Kaya wrote:
+>> Yes, it should, so I'm not sure why you need the list in the first place.
+>>
+>> Also it looks like something along the lines of devres_release_all()
+>> should be sufficient.
+> Good suggestion, let me test this.
+> 
 
-Even though GED driver uses devm_request_irq() to register the interrupt
-handler, the handler is not being freed on time during a shutdown since
-the driver is missing a shutdown callback.
+I tried to pull the code into GED but the API is not public. I also looked
+at how it is used. I was afraid to mess up with the internals of base.c by
+calling devres_release_all() externally first and by the driver framework
+next. I moved away from this approach.
 
-If the ACPI handler is no longer available, this causes an interrupt
-storm and delays shutdown.
+I just fixed the function rename and changed the dev_info() to dev_dbg().
 
-Register a shutdown callback and manually free the interrupts.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/evged.c | 36 ++++++++++++++++++++++++++++++++----
- 1 file changed, 32 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-index 46f0603..8449f31 100644
---- a/drivers/acpi/evged.c
-+++ b/drivers/acpi/evged.c
-@@ -49,6 +49,11 @@
- 
- #define MODULE_NAME	"acpi-ged"
- 
-+struct acpi_ged_device {
-+	struct device *dev;
-+	struct list_head event_list;
-+};
-+
- struct acpi_ged_event {
- 	struct list_head node;
- 	struct device *dev;
-@@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 	unsigned int irq;
- 	unsigned int gsi;
- 	unsigned int irqflags = IRQF_ONESHOT;
--	struct device *dev = context;
-+	struct acpi_ged_device *geddev = context;
-+	struct device *dev = geddev->dev;
- 	acpi_handle handle = ACPI_HANDLE(dev);
- 	acpi_handle evt_handle;
- 	struct resource r;
-@@ -102,8 +108,6 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 		return AE_ERROR;
- 	}
- 
--	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
--
- 	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
- 	if (!event)
- 		return AE_ERROR;
-@@ -122,29 +126,53 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
- 		return AE_ERROR;
- 	}
- 
-+	dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
-+	list_add_tail(&event->node, &geddev->event_list);
- 	return AE_OK;
- }
- 
- static int ged_probe(struct platform_device *pdev)
- {
-+	struct acpi_ged_device *geddev;
- 	acpi_status acpi_ret;
- 
-+	geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
-+	if (!geddev)
-+		return -ENOMEM;
-+
-+	geddev->dev = &pdev->dev;
-+	INIT_LIST_HEAD(&geddev->event_list);
- 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
--				       acpi_ged_request_interrupt, &pdev->dev);
-+				       acpi_ged_request_interrupt, geddev);
- 	if (ACPI_FAILURE(acpi_ret)) {
- 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
- 		return -EINVAL;
- 	}
-+	platform_set_drvdata(pdev, geddev);
- 
- 	return 0;
- }
- 
-+static void ged_shutdown(struct platform_device *pdev)
-+{
-+	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
-+	struct acpi_ged_event *event, *next;
-+
-+	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
-+		devm_free_irq(geddev->dev, event->irq, event);
-+		list_del(&event->node);
-+		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
-+			 event->gsi, event->irq);
-+	}
-+}
-+
- static const struct acpi_device_id ged_acpi_ids[] = {
- 	{"ACPI0013"},
- 	{},
- };
- 
- static struct platform_driver ged_driver = {
-+	.shutdown = ged_shutdown,
- 	.probe = ged_probe,
- 	.driver = {
- 		.name = MODULE_NAME,
 -- 
-1.9.1
-
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
