@@ -1,55 +1,99 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V6 4/7] OF: properties: Implement get_match_data()
- callback
-Date: Thu, 7 Dec 2017 12:50:50 -0500
-Message-ID: <661cbe4d-ea33-3e84-b5f2-ab6517cbb135@codeaurora.org>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
- <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
- <20171207141029.575c0a03@karo-electronics.de>
- <def8e351-bc2d-7adc-fdc5-362b365302a8@codeaurora.org>
- <20171207162036.6a71a4f5@karo-electronics.de>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH 1/2] acpi, spcr: Make SPCR avialable to other architectures
+Date: Thu, 7 Dec 2017 12:43:26 -0600
+Message-ID: <CAOZdJXV4E6gu=Ed6nOCcEp2afe_g8Ot-H5oO5=6+ye51cv9hUg@mail.gmail.com>
+References: <20171207172912.17868-1-prarit@redhat.com> <20171207172912.17868-2-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171207162036.6a71a4f5@karo-electronics.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Lothar_Wa=c3=9fmann?= <LW@KARO-electronics.de>
-Cc: devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, open list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, dmaengine@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:40556 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752997AbdLGSn3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2017 13:43:29 -0500
+In-Reply-To: <20171207172912.17868-2-prarit@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, the arch/x86 maintainers <x86@kernel.org>, linux-pm@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Bhupesh Sharma <bhsharma@redhat.com>, linux-doc@vger.kernel.org, Will Deacon <will.deacon@arm.com>, lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, linux-serial@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jeffrey Hugo <jhugo@codeaurora.org>
 
-On 12/7/2017 10:20 AM, Lothar Waßmann wrote:
-> Hi,
-> 
-> On Thu, 7 Dec 2017 09:45:31 -0500 Sinan Kaya wrote:
->> On 12/7/2017 8:10 AM, Lothar Waßmann wrote:
->>>> +void *of_fwnode_get_match_data(const struct fwnode_handle *fwnode,
->>>> +			       struct device *dev)
->>> Shouldn't this be 'const void *of_fwnode_get_match_data
->>
->> OF keeps the driver data as a (const void*) internally. ACPI keeps the
->> driver data as kernel_ulong_t in struct acpi_device_id.
->>
->> I tried to find the middle ground here by converting output to void*
->> but not keeping const.
->>
-> It should be no problem to cast a (const void *) to an unsigned long
-> data type (without const qualifier).
-> 
+On Thu, Dec 7, 2017 at 11:29 AM, Prarit Bhargava <prarit@redhat.com> wrote:
+> Other architectures can use SPCR to setup an early console or console but
+> the current code is ARM64 specific.
+>
+> Change the name of parse_spcr() to acpi_parse_spcr().  Add a weak
+> function acpi_arch_setup_console() that can be used for arch-specific
+> setup.  Move SPCR initialization flag into ACPI code.  Update the
+> Documention on the use of the SPCR earlycon.
+>
+> This patch does not change arm64 behaviour.
 
-It is the other way around. If I change this API to return a a (const void*),
-the device_get_match_data() function need to return a (const void *).
+Let's hope so.  Our E44 erratum work-around has caused lots of
+problems in the past, so the code is a bit fragile.
 
-While implementing the ACPI piece, I have to convert an unsigned long to
-(const void *) in ACPI code so that the APIs are compatible.
+> +static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
+> +{
+> +       if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
+> +               return false;
+> +
+> +       if (!memcmp(h->oem_table_id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
+> +               return true;
+> +
+> +       if (!memcmp(h->oem_table_id, "QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
+> +                       h->oem_revision == 1)
+> +               return true;
+> +
+> +       return false;
+> +}
 
-> 
-> Lothar Waßmann
-> 
+Please give us a chance to test this patch before merging. We've had a
+lot of problems with our E44 work-around, and we need to make sure
+that qdf2400_erratum_44_present function is called before the pl011
+driver is probed.
 
+> +
+> +/*
+> + * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
+> + * register aligned to 32-bit. In addition, the BIOS also encoded the
+> + * access width to be 8 bits. This function detects this errata condition.
+> + */
+> +static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+> +{
+> +       bool xgene_8250 = false;
+> +
+> +       if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
+> +               return false;
+> +
+> +       if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE) &&
+> +           memcmp(tb->header.oem_id, "HPE   ", ACPI_OEM_ID_SIZE))
+> +               return false;
+> +
+> +       if (!memcmp(tb->header.oem_table_id, "XGENESPC",
+> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
+> +               xgene_8250 = true;
+> +
+> +       if (!memcmp(tb->header.oem_table_id, "ProLiant",
+> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 1)
+> +               xgene_8250 = true;
+> +
+> +       return xgene_8250;
+> +}
+
+I suspect that this function has the same issues as
+qdf2400_erratum_44_present().
+
+> +config ACPI_SPCR_TABLE
+> +       bool "ACPI Serial Port Console Redirection Support"
+> +       default y if ARM64
+> +       help
+> +         Enable support for Serial Port Console Redirection (SPCR) Table.
+> +         This table provides information about the configuration of the
+> +         earlycon console.
+> +
+
+So ACPI without SPCR has never been tested by us.  Making it optional
+makes me a little nervous.  We'll have to evaluate this change.
 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
