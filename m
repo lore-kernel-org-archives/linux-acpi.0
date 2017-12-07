@@ -1,107 +1,71 @@
 From: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
- device match data
-Date: Thu, 7 Dec 2017 14:29:49 +0200
-Message-ID: <20171207122948.yyl6adb6lnb56gok@valkosipuli.retiisi.org.uk>
+Subject: Re: [PATCH V6 4/7] OF: properties: Implement get_match_data()
+ callback
+Date: Thu, 7 Dec 2017 14:38:45 +0200
+Message-ID: <20171207123845.m7n4wxzn2u5sqtkj@valkosipuli.retiisi.org.uk>
 References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
- <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
+ <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57636 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57740 "EHLO
         hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753230AbdLGM3w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2017 07:29:52 -0500
+        by vger.kernel.org with ESMTP id S1753245AbdLGMis (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2017 07:38:48 -0500
 Content-Disposition: inline
-In-Reply-To: <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
+In-Reply-To: <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Sinan Kaya <okaya@codeaurora.org>
-Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
+Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, open list <linux-kernel@vger.kernel.org>
 
 Hi Sinan,
 
-Thanks for the update.
-
-Just one small comment below.
-
-On Tue, Dec 05, 2017 at 12:04:48PM -0500, Sinan Kaya wrote:
-> There is an OF/ACPI function to obtain the driver data. We want to hide
-> OF/ACPI details from the device drivers and abstract following the device
-> family of functions.
+On Tue, Dec 05, 2017 at 12:04:49PM -0500, Sinan Kaya wrote:
+> Now that we have a get_match_data() callback as part of the firmware node,
+> implement the OF specific piece for it.
 > 
 > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 > ---
->  drivers/base/property.c  | 6 ++++++
->  include/linux/fwnode.h   | 4 ++++
->  include/linux/property.h | 2 ++
->  3 files changed, 12 insertions(+)
+>  drivers/of/property.c | 7 +++++++
+>  1 file changed, 7 insertions(+)
 > 
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 7ed99c1..65bf6f2 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -1335,3 +1335,9 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
->  	return fwnode_call_int_op(fwnode, graph_parse_endpoint, endpoint);
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index 264c355..9964169 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -981,6 +981,12 @@ static int of_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+>  	return 0;
 >  }
->  EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
-> +
-> +void *device_get_match_data(struct device *dev)
+>  
+> +void *of_fwnode_get_match_data(const struct fwnode_handle *fwnode,
+> +			       struct device *dev)
+
+static, as Rob mentioned.
+
 > +{
-> +	return fwnode_call_ptr_op(dev_fwnode(dev), get_match_data, dev);
+> +	return (void *)of_device_get_match_data(dev);
 > +}
-> +EXPORT_SYMBOL_GPL(device_get_match_data);
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 0c35b6c..ab9aab5 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -15,6 +15,7 @@
->  #include <linux/types.h>
->  
->  struct fwnode_operations;
-> +struct device;
->  
->  struct fwnode_handle {
->  	struct fwnode_handle *secondary;
-> @@ -66,6 +67,7 @@ struct fwnode_reference_args {
->   *			       endpoint node.
->   * @graph_get_port_parent: Return the parent node of a port node.
->   * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
-> + * @get_match_data: Return the driver match data.
+> +
+>  const struct fwnode_operations of_fwnode_ops = {
+>  	.get = of_fwnode_get,
+>  	.put = of_fwnode_put,
+> @@ -996,5 +1002,6 @@ static int of_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+>  	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
+>  	.graph_get_port_parent = of_fwnode_graph_get_port_parent,
+>  	.graph_parse_endpoint = of_fwnode_graph_parse_endpoint,
+> +	.get_match_data = of_fwnode_get_match_data,
 
-Could you arrange the new get_match_data op closer to the other ops that
-don't deal with the graphs? Such as device_is_available. As the ops are
-dealing generally with fwnodes, I might call this device_get_match_data to
-explicitly mention it's for devices.
-
->   */
->  struct fwnode_operations {
->  	void (*get)(struct fwnode_handle *fwnode);
-> @@ -101,6 +103,8 @@ struct fwnode_operations {
->  	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
->  	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
->  				    struct fwnode_endpoint *endpoint);
-> +	void *(*get_match_data)(const struct fwnode_handle *fwnode,
-> +				struct device *dev);
-
-Same comment about the order here.
+Please arrange right after device_is_available, the same applies to the
+ACPI equivalent (5th patch).
 
 >  };
->  
->  #define fwnode_has_op(fwnode, op)				\
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index 6bebee1..01fa55b 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
->  
->  enum dev_dma_attr device_get_dma_attr(struct device *dev);
->  
-> +void *device_get_match_data(struct device *dev);
-> +
->  int device_get_phy_mode(struct device *dev);
->  
->  void *device_get_mac_address(struct device *dev, char *addr, int alen);
+>  EXPORT_SYMBOL_GPL(of_fwnode_ops);
+
+With the above changes plus the ones in my comments on 3rd patch, on
+patches 3--5:
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
 Kind regards,
