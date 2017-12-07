@@ -1,46 +1,38 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
- device match data
-Date: Thu, 7 Dec 2017 23:19:51 +0100
-Message-ID: <CAJZ5v0inHMCLGyPaAeuJNo2VH7f3Th0KdpT2UkPBCsvrSDi0gQ@mail.gmail.com>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
- <1512493493-6464-4-git-send-email-okaya@codeaurora.org> <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
- <c2b38889-888a-3518-bf59-c2377f64a8ce@codeaurora.org> <20171207220642.qqiwf4vvk2gf42uf@valkosipuli.retiisi.org.uk>
+From: <Mario.Limonciello@dell.com>
+Subject: Backporting patches that fix TBT at bootup
+Date: Thu, 7 Dec 2017 23:23:25 +0000
+Message-ID: <6677505e9b3347468bf639b7b14de11a@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171207220642.qqiwf4vvk2gf42uf@valkosipuli.retiisi.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sinan Kaya <okaya@codeaurora.org>, dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from esa3.dell-outbound.iphmx.com ([68.232.153.94]:22085 "EHLO
+        esa3.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752326AbdLGXX1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2017 18:23:27 -0500
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: mika.westerberg@intel.com
 
-On Thu, Dec 7, 2017 at 11:06 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Thu, Dec 07, 2017 at 03:17:52PM -0500, Sinan Kaya wrote:
->> On 12/7/2017 7:40 AM, Sakari Ailus wrote:
->> > On Tue, Dec 05, 2017 at 12:04:48PM -0500, Sinan Kaya wrote:
->> >> @@ -101,6 +103,8 @@ struct fwnode_operations {
->> >>    (*graph_get_port_parent)(struct fwnode_handle *fwnode);
->> >>    int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
->> >>                                struct fwnode_endpoint *endpoint);
->> >> +  void *(*get_match_data)(const struct fwnode_handle *fwnode,
->> >> +                          struct device *dev);
->> >
->> > You can make dev const, too.
->> >
->>
->> done, I couldn't change device_get_match_data() parameter const due to
->> dev_fwnode() function.
->>
->>                  from /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:13:
->>
->> /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:1341:39: warning: passing argument 1 of 'dev_fwnode' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
->>   return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
->
-> Right. Makes sense.
->
-> I guess it's not perhaps worth it introducing dev_fwnode_const just for
-> this. devices are seldom if ever const anyway.
+Hi,
 
-They cannot be const.  Had they been const, it wouldn't have been
-possible to register them even. :-)
+During kernel 4.14 some issues were fixed for Thunderbolt enumeration at bo=
+otup. =20
+They were referenced in an issue
+(https://github.com/01org/thunderbolt-software-user-space/issues/24#issueco=
+mment-328011428)
+There are 3 patches that Mika mentioned would be evaluated to be backported=
+ back to 4.13.
+
+As 4.14 has come and gone now, I wanted to see if there was any other thoug=
+hts about=20
+bringing those back to stable now on 4.13 (or did they come back and I just=
+ didn't know?)
+
+ecc1165b8b74 ACPICA: Dispatch active GPEs at init time
+1312b7e0caca ACPICA: Make it possible to enable runtime GPEs earlier
+eb7f43c4adb4 ACPI / scan: Enable GPEs before scanning the namespace
+
+Thanks!
