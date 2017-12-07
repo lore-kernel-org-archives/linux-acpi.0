@@ -1,84 +1,104 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7 3/7] device property: Introduce a common API to fetch device match data
-Date: Thu,  7 Dec 2017 16:10:27 -0500
-Message-ID: <1512681031-11343-4-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V7 6/7] dmaengine: qcom_hidma: Add support for the new revision
+Date: Thu,  7 Dec 2017 16:10:30 -0500
+Message-ID: <1512681031-11343-7-git-send-email-okaya@codeaurora.org>
 References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There is an OF/ACPI function to obtain the driver data. We want to hide
-OF/ACPI details from the device drivers and abstract following the device
-family of functions.
+Add support for probing the newer HW and also organize MSI capable hardware
+into an array for maintenance reasons.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/base/property.c  | 7 +++++++
- include/linux/fwnode.h   | 4 ++++
- include/linux/property.h | 2 ++
- 3 files changed, 13 insertions(+)
+ drivers/dma/qcom/hidma.c | 34 +++++++++++++---------------------
+ 1 file changed, 13 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 7ed99c1..ee704a8 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1335,3 +1335,10 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 	return fwnode_call_int_op(fwnode, graph_parse_endpoint, endpoint);
+diff --git a/drivers/dma/qcom/hidma.c b/drivers/dma/qcom/hidma.c
+index e366985..c146c6d 100644
+--- a/drivers/dma/qcom/hidma.c
++++ b/drivers/dma/qcom/hidma.c
+@@ -50,6 +50,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/of_dma.h>
++#include <linux/of_device.h>
+ #include <linux/property.h>
+ #include <linux/delay.h>
+ #include <linux/acpi.h>
+@@ -104,6 +105,9 @@ static void hidma_free(struct hidma_dev *dmadev)
+ module_param(nr_desc_prm, uint, 0644);
+ MODULE_PARM_DESC(nr_desc_prm, "number of descriptors (default: 0)");
+ 
++enum hidma_cap {
++	HIDMA_MSI_CAP = 1,
++};
+ 
+ /* process completed descriptors */
+ static void hidma_process_completed(struct hidma_chan *mchan)
+@@ -736,25 +740,12 @@ static int hidma_request_msi(struct hidma_dev *dmadev,
+ #endif
  }
- EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
-+
-+void *device_get_match_data(struct device *dev)
-+{
-+	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
-+				  dev);
-+}
-+EXPORT_SYMBOL_GPL(device_get_match_data);
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 0c35b6c..e2b4b22 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -15,6 +15,7 @@
- #include <linux/types.h>
  
- struct fwnode_operations;
-+struct device;
+-static bool hidma_msi_capable(struct device *dev)
++static bool hidma_test_capability(struct device *dev, enum hidma_cap test_cap)
+ {
+-	struct acpi_device *adev = ACPI_COMPANION(dev);
+-	const char *of_compat;
+-	int ret = -EINVAL;
+-
+-	if (!adev || acpi_disabled) {
+-		ret = device_property_read_string(dev, "compatible",
+-						  &of_compat);
+-		if (ret)
+-			return false;
++	enum hidma_cap cap;
  
- struct fwnode_handle {
- 	struct fwnode_handle *secondary;
-@@ -51,6 +52,7 @@ struct fwnode_reference_args {
-  * struct fwnode_operations - Operations for fwnode interface
-  * @get: Get a reference to an fwnode.
-  * @put: Put a reference to an fwnode.
-+ * @device_get_match_data: Return the device driver match data.
-  * @property_present: Return true if a property is present.
-  * @property_read_integer_array: Read an array of integer properties. Return
-  *				 zero on success, a negative error code
-@@ -71,6 +73,8 @@ struct fwnode_operations {
- 	void (*get)(struct fwnode_handle *fwnode);
- 	void (*put)(struct fwnode_handle *fwnode);
- 	bool (*device_is_available)(const struct fwnode_handle *fwnode);
-+	void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
-+				       const struct device *dev);
- 	bool (*property_present)(const struct fwnode_handle *fwnode,
- 				 const char *propname);
- 	int (*property_read_int_array)(const struct fwnode_handle *fwnode,
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 6bebee1..01fa55b 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
+-		ret = strcmp(of_compat, "qcom,hidma-1.1");
+-	} else {
+-#ifdef CONFIG_ACPI
+-		ret = strcmp(acpi_device_hid(adev), "QCOM8062");
+-#endif
+-	}
+-	return ret == 0;
++	cap = (enum hidma_cap) device_get_match_data(dev);
++	return cap ? ((cap & test_cap) > 0) : 0;
+ }
  
- enum dev_dma_attr device_get_dma_attr(struct device *dev);
+ static int hidma_probe(struct platform_device *pdev)
+@@ -834,8 +825,7 @@ static int hidma_probe(struct platform_device *pdev)
+ 	 * Determine the MSI capability of the platform. Old HW doesn't
+ 	 * support MSI.
+ 	 */
+-	msi = hidma_msi_capable(&pdev->dev);
+-
++	msi = hidma_test_capability(&pdev->dev, HIDMA_MSI_CAP);
+ 	device_property_read_u32(&pdev->dev, "desc-count",
+ 				 &dmadev->nr_descriptors);
  
-+void *device_get_match_data(struct device *dev);
-+
- int device_get_phy_mode(struct device *dev);
+@@ -953,7 +943,8 @@ static int hidma_remove(struct platform_device *pdev)
+ #if IS_ENABLED(CONFIG_ACPI)
+ static const struct acpi_device_id hidma_acpi_ids[] = {
+ 	{"QCOM8061"},
+-	{"QCOM8062"},
++	{"QCOM8062", HIDMA_MSI_CAP},
++	{"QCOM8063", HIDMA_MSI_CAP},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(acpi, hidma_acpi_ids);
+@@ -961,7 +952,8 @@ static int hidma_remove(struct platform_device *pdev)
  
- void *device_get_mac_address(struct device *dev, char *addr, int alen);
+ static const struct of_device_id hidma_match[] = {
+ 	{.compatible = "qcom,hidma-1.0",},
+-	{.compatible = "qcom,hidma-1.1",},
++	{.compatible = "qcom,hidma-1.1", .data = (void *)(HIDMA_MSI_CAP),},
++	{.compatible = "qcom,hidma-1.2", .data = (void *)(HIDMA_MSI_CAP),},
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, hidma_match);
 -- 
 1.9.1
