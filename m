@@ -1,118 +1,83 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH] PM / sleep: Avoid excess pm_runtime_enable() calls in device_resume()
-Date: Thu, 7 Dec 2017 20:44:51 +0100
-Message-ID: <CAPDyKFpyfMTw9vdSDHxarZquSRA9zU9aMdb-pkzhMWKrFGxayw@mail.gmail.com>
-References: <3600031.yTsliOITBg@aspire.rjw.lan>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
+ device match data
+Date: Thu, 7 Dec 2017 15:15:29 -0500
+Message-ID: <74f88482-71ff-db72-ee6e-cc9b3b0bc37e@codeaurora.org>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+ <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
+ <20171207122948.yyl6adb6lnb56gok@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <3600031.yTsliOITBg@aspire.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20171207122948.yyl6adb6lnb56gok@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 7 December 2017 at 03:26, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Middle-layer code doing suspend-time optimizations for devices with
-> the DPM_FLAG_SMART_SUSPEND flag set (currently, the PCI bus type and
-> the ACPI PM domain) needs to make the core skip ->thaw_early and
-> ->thaw callbacks for those devices in some cases and it sets the
-> power.direct_complete flag for them for this purpose.
->
-> However, it turns out that setting power.direct_complete outside of
-> the PM core is a bad idea as it triggers an excessive invocation of
-> pm_runtime_enable() in device_resume().
+On 12/7/2017 7:29 AM, Sakari Ailus wrote:
+> Hi Sinan,
+> 
+> Thanks for the update.
+> 
+> Just one small comment below.
+> 
+[snip]
 
-Do we need to clarify the comment about the flag in pm.h?
+>>  
+>>  struct fwnode_handle {
+>>  	struct fwnode_handle *secondary;
+>> @@ -66,6 +67,7 @@ struct fwnode_reference_args {
+>>   *			       endpoint node.
+>>   * @graph_get_port_parent: Return the parent node of a port node.
+>>   * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
+>> + * @get_match_data: Return the driver match data.
+> 
+> Could you arrange the new get_match_data op closer to the other ops that
+> don't deal with the graphs? Such as device_is_available. As the ops are
+> dealing generally with fwnodes, I might call this device_get_match_data to
+> explicitly mention it's for devices.
 
-Or is "/* Owned by the PM core */" sufficient?
+done
 
->
-> For this reason, provide a helper to clear power.is_late_suspended
-> and power.is_suspended to be invoked by the middle-layer code in
-> question instead of setting power.direct_complete and make that code
-> call the new helper.
->
-> Fixes: c4b65157aeef (PCI / PM: Take SMART_SUSPEND driver flag into account)
-> Fixes: 05087360fd7a (ACPI / PM: Take SMART_SUSPEND driver flag into account)
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+>>   */
+>>  struct fwnode_operations {
+>>  	void (*get)(struct fwnode_handle *fwnode);
+>> @@ -101,6 +103,8 @@ struct fwnode_operations {
+>>  	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
+>>  	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
+>>  				    struct fwnode_endpoint *endpoint);
+>> +	void *(*get_match_data)(const struct fwnode_handle *fwnode,
+>> +				struct device *dev);
+> 
+> Same comment about the order here.
 
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro,org>
+ok
 
-Kind regards
-Uffe
+> 
+>>  };
+>>  
+>>  #define fwnode_has_op(fwnode, op)				\
+>> diff --git a/include/linux/property.h b/include/linux/property.h
+>> index 6bebee1..01fa55b 100644
+>> --- a/include/linux/property.h
+>> +++ b/include/linux/property.h
+>> @@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
+>>  
+>>  enum dev_dma_attr device_get_dma_attr(struct device *dev);
+>>  
+>> +void *device_get_match_data(struct device *dev);
+>> +
+>>  int device_get_phy_mode(struct device *dev);
+>>  
+>>  void *device_get_mac_address(struct device *dev, char *addr, int alen);
+> 
 
-> ---
->  drivers/acpi/device_pm.c  |    2 +-
->  drivers/base/power/main.c |   15 +++++++++++++++
->  drivers/pci/pci-driver.c  |    2 +-
->  include/linux/pm.h        |    1 +
->  4 files changed, 18 insertions(+), 2 deletions(-)
->
-> Index: linux-pm/include/linux/pm.h
-> ===================================================================
-> --- linux-pm.orig/include/linux/pm.h
-> +++ linux-pm/include/linux/pm.h
-> @@ -765,6 +765,7 @@ extern int pm_generic_poweroff_late(stru
->  extern int pm_generic_poweroff(struct device *dev);
->  extern void pm_generic_complete(struct device *dev);
->
-> +extern void dev_pm_skip_next_resume_phases(struct device *dev);
->  extern bool dev_pm_smart_suspend_and_suspended(struct device *dev);
->
->  #else /* !CONFIG_PM_SLEEP */
-> Index: linux-pm/drivers/base/power/main.c
-> ===================================================================
-> --- linux-pm.orig/drivers/base/power/main.c
-> +++ linux-pm/drivers/base/power/main.c
-> @@ -526,6 +526,21 @@ static void dpm_watchdog_clear(struct dp
->  /*------------------------- Resume routines -------------------------*/
->
->  /**
-> + * dev_pm_skip_next_resume_phases - Skip next system resume phases for device.
-> + * @dev: Target device.
-> + *
-> + * Make the core skip the "early resume" and "resume" phases for @dev.
-> + *
-> + * This function can be called by middle-layer code during the "noirq" phase of
-> + * system resume if necessary, but not by device drivers.
-> + */
-> +void dev_pm_skip_next_resume_phases(struct device *dev)
-> +{
-> +       dev->power.is_late_suspended = false;
-> +       dev->power.is_suspended = false;
-> +}
-> +
-> +/**
->   * device_resume_noirq - Execute a "noirq resume" callback for given device.
->   * @dev: Device to handle.
->   * @state: PM transition of the system being carried out.
-> Index: linux-pm/drivers/pci/pci-driver.c
-> ===================================================================
-> --- linux-pm.orig/drivers/pci/pci-driver.c
-> +++ linux-pm/drivers/pci/pci-driver.c
-> @@ -999,7 +999,7 @@ static int pci_pm_thaw_noirq(struct devi
->          * the subsequent "thaw" callbacks for the device.
->          */
->         if (dev_pm_smart_suspend_and_suspended(dev)) {
-> -               dev->power.direct_complete = true;
-> +               dev_pm_skip_next_resume_phases(dev);
->                 return 0;
->         }
->
-> Index: linux-pm/drivers/acpi/device_pm.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/device_pm.c
-> +++ linux-pm/drivers/acpi/device_pm.c
-> @@ -1138,7 +1138,7 @@ int acpi_subsys_thaw_noirq(struct device
->          * skip all of the subsequent "thaw" callbacks for the device.
->          */
->         if (dev_pm_smart_suspend_and_suspended(dev)) {
-> -               dev->power.direct_complete = true;
-> +               dev_pm_skip_next_resume_phases(dev);
->                 return 0;
->         }
->
->
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
