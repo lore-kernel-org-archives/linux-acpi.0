@@ -1,57 +1,42 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] ACPI / GED: unregister interrupts during shutdown
-Date: Thu, 7 Dec 2017 09:52:06 -0500
-Message-ID: <e17a3ac6-aac3-09ee-7307-01ddc780507a@codeaurora.org>
-References: <1512507705-2411-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0hEdK_vJcHeoz=Z2H6od=bktspPpTo37Y6qiOT2qptnaA@mail.gmail.com>
- <20171207082958.GA11882@kroah.com> <2960222.F3CtrQ5k26@aspire.rjw.lan>
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW-bxm8fMRDkQLDiMYJYoSAnRvVK+yQ3ZXh@public.gmane.org>
+Subject: Re: [PATCH V6 4/7] OF: properties: Implement get_match_data()
+ callback
+Date: Thu, 7 Dec 2017 16:20:36 +0100
+Message-ID: <20171207162036.6a71a4f5@karo-electronics.de>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+        <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
+        <20171207141029.575c0a03@karo-electronics.de>
+        <def8e351-bc2d-7adc-fdc5-362b365302a8@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <2960222.F3CtrQ5k26@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <def8e351-bc2d-7adc-fdc5-362b365302a8-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Rafael,
+Hi,
 
-On 12/7/2017 8:00 AM, Rafael J. Wysocki wrote:
->> Just don't use devm_request_threaded_irq()?  :)
->>
->> Seriously, those are just "helper" functions if your code happens to
->> follow the pattern they provide, if not, then don't use them, it's not
->> that hard to provide the correct code to unwind things properly by "open
->> coding" this logic as needed.
->>
->> The devm_*irq() functions are known for not being able to be used all of
->> the time for lots of shutdown and cleanup issues, this isn't the first
->> time it has happened, which is why we are very careful when taking
->> "cleanup" patches that use those functions.
-> I see, thanks for the clarification.
+On Thu, 7 Dec 2017 09:45:31 -0500 Sinan Kaya wrote:
+> On 12/7/2017 8:10 AM, Lothar Waßmann wrote:
+> >> +void *of_fwnode_get_match_data(const struct fwnode_handle *fwnode,
+> >> +			       struct device *dev)
+> > Shouldn't this be 'const void *of_fwnode_get_match_data
 > 
-> OK, we'll need to rework the driver somewhat, then.
+> OF keeps the driver data as a (const void*) internally. ACPI keeps the
+> driver data as kernel_ulong_t in struct acpi_device_id.
+> 
+> I tried to find the middle ground here by converting output to void*
+> but not keeping const.
+> 
+It should be no problem to cast a (const void *) to an unsigned long
+data type (without const qualifier).
 
-Even if we got rid of devm_*irq() functions, I see that the free_irq() function
-requires dev_id argument.
 
-	 * There can be multiple actions per IRQ descriptor, find the right
-	 * one based on the dev_id:
-
-I still need to keep track of the dev_ids attached to request_irq() functions. 
-
-My take away from the discussion is:
-1. don't use devm family of functions for IRQ registration/free
-2. still keep track of the events
-3. call free_irq on shutdown.
-
-Do you have something else on your mind?
-
-Sinan
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Lothar Waßmann
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
