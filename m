@@ -1,47 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PM / sleep: Avoid excess pm_runtime_enable() calls in device_resume()
-Date: Thu, 7 Dec 2017 22:17:42 +0100
-Message-ID: <CAJZ5v0j=61dC0+pzpwcZ3zzH0UotfqGycDH833gK-4s+fLWmsA@mail.gmail.com>
-References: <3600031.yTsliOITBg@aspire.rjw.lan> <CAPDyKFpyfMTw9vdSDHxarZquSRA9zU9aMdb-pkzhMWKrFGxayw@mail.gmail.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
+ device match data
+Date: Fri, 8 Dec 2017 00:06:42 +0200
+Message-ID: <20171207220642.qqiwf4vvk2gf42uf@valkosipuli.retiisi.org.uk>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+ <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
+ <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
+ <c2b38889-888a-3518-bf59-c2377f64a8ce@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFpyfMTw9vdSDHxarZquSRA9zU9aMdb-pkzhMWKrFGxayw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <c2b38889-888a-3518-bf59-c2377f64a8ce@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 7, 2017 at 8:44 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
-> On 7 December 2017 at 03:26, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Middle-layer code doing suspend-time optimizations for devices with
->> the DPM_FLAG_SMART_SUSPEND flag set (currently, the PCI bus type and
->> the ACPI PM domain) needs to make the core skip ->thaw_early and
->> ->thaw callbacks for those devices in some cases and it sets the
->> power.direct_complete flag for them for this purpose.
->>
->> However, it turns out that setting power.direct_complete outside of
->> the PM core is a bad idea as it triggers an excessive invocation of
->> pm_runtime_enable() in device_resume().
->
-> Do we need to clarify the comment about the flag in pm.h?
->
-> Or is "/* Owned by the PM core */" sufficient?
+On Thu, Dec 07, 2017 at 03:17:52PM -0500, Sinan Kaya wrote:
+> On 12/7/2017 7:40 AM, Sakari Ailus wrote:
+> > On Tue, Dec 05, 2017 at 12:04:48PM -0500, Sinan Kaya wrote:
+> >> @@ -101,6 +103,8 @@ struct fwnode_operations {
+> >>  	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
+> >>  	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
+> >>  				    struct fwnode_endpoint *endpoint);
+> >> +	void *(*get_match_data)(const struct fwnode_handle *fwnode,
+> >> +				struct device *dev);
+> > 
+> > You can make dev const, too.
+> > 
+> 
+> done, I couldn't change device_get_match_data() parameter const due to
+> dev_fwnode() function.
+> 
+>                  from /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:13:
+> 
+> /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:1341:39: warning: passing argument 1 of 'dev_fwnode' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+>   return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
 
-That should be sufficient (and I sort of tried to ignore it ...).
+Right. Makes sense.
 
->>
->> For this reason, provide a helper to clear power.is_late_suspended
->> and power.is_suspended to be invoked by the middle-layer code in
->> question instead of setting power.direct_complete and make that code
->> call the new helper.
->>
->> Fixes: c4b65157aeef (PCI / PM: Take SMART_SUSPEND driver flag into account)
->> Fixes: 05087360fd7a (ACPI / PM: Take SMART_SUSPEND driver flag into account)
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> Reviewed-by: Ulf Hansson <ulf.hansson@linaro,org>
+I guess it's not perhaps worth it introducing dev_fwnode_const just for
+this. devices are seldom if ever const anyway.
 
-Thanks!
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
