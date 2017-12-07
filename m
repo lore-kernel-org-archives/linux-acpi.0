@@ -1,50 +1,72 @@
-From: Brian Norris <briannorris@chromium.org>
-Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
-Date: Wed, 6 Dec 2017 16:29:56 -0800
-Message-ID: <20171207002955.GA40447@google.com>
-References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
- <1894178.xtK0vD2N4H@aspire.rjw.lan>
- <20171114025109.GA43048@google.com>
- <1882670.s3LR2t44nD@aspire.rjw.lan>
- <20171206193421.GA143886@google.com>
- <20171207001754.GB28152@atomide.com>
+From: Chris Chiu <chiu@endlessm.com>
+Subject: Re: GemniLake laptops goes power off directly after performing suspend
+Date: Thu, 7 Dec 2017 10:14:12 +0800
+Message-ID: <CAB4CAwd0AGnVrWrxjLiMG_9CV610x6n6cgVXQ8UX6ou-i1JFbA@mail.gmail.com>
+References: <CAB4CAwc3q+L9UyHL8W541HXOCUTG0tTx51TfZRyzn61qbyOeEA@mail.gmail.com>
+ <CAJZ5v0jS=E0mcm=R2xQSftSnzZXUbzL3RjjWafSYAB=Wd7=ECQ@mail.gmail.com>
+ <CAB4CAwe-uahS0HECtqcQ4Mobwb6vD-pxb-v8vPY52t6z+sT5pg@mail.gmail.com>
+ <18455542.KZ7HXfzeW6@aspire.rjw.lan> <CAB4CAwdia7RYVVthWAwz-nvpEbiSH+_MFc_zQeu_V7o-uWn8xA@mail.gmail.com>
+ <CAJZ5v0hrpFAffNq8SmTCeHsT0P1ULq7-D1+wA3NoqO5uEWtTaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:41809 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751718AbdLGAaA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 19:30:00 -0500
-Received: by mail-it0-f67.google.com with SMTP id x28so10779232ita.0
-        for <linux-acpi@vger.kernel.org>; Wed, 06 Dec 2017 16:30:00 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20171207001754.GB28152@atomide.com>
+Received: from mail-wm0-f53.google.com ([74.125.82.53]:39498 "EHLO
+        mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751990AbdLGCOO (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Dec 2017 21:14:14 -0500
+Received: by mail-wm0-f53.google.com with SMTP id i11so10272569wmf.4
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Dec 2017 18:14:14 -0800 (PST)
+In-Reply-To: <CAJZ5v0hrpFAffNq8SmTCeHsT0P1ULq7-D1+wA3NoqO5uEWtTaQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jeffy Chen <jeffy.chen@rock-chips.com>, linux-kernel@vger.kernel.org, bhelgaas@google.com, linux-pm@vger.kernel.org, shawn.lin@rock-chips.com, dianders@chromium.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux Upstreaming Team <linux@endlessm.com>
 
-On Wed, Dec 06, 2017 at 04:17:54PM -0800, Tony Lindgren wrote:
-> * Brian Norris <briannorris@chromium.org> [171206 19:36]:
-> > By the way, it seems pretty ambiguous how we want to handle things like
-> > (a) multiple devices sharing the same WAKE#
-> > (b) systems where a slot is swappable
-> > 
-> > For (a), the main problem is that if we have to repeat the interrupt
-> > definition in multiple devices, then we have to deal with something like
-> > IRQF_SHARED. That can be done, but it makes it much harder to use the
-> > dedicated wakeirq helpers.
-> 
-> This will get messy, let's not go there :) That is unless the hardware
-> really has a single interrupt wired to multiple devices. And in that
-> case almost certainly a custom interrupt handler is needed.
+On Wed, Dec 6, 2017 at 9:34 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Wed, Dec 6, 2017 at 10:33 AM, Chris Chiu <chiu@endlessm.com> wrote:
+>> On Wed, Dec 6, 2017 at 5:56 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> On Tuesday, December 5, 2017 5:19:03 PM CET Chris Chiu wrote:
+>>>> On Tue, Dec 5, 2017 at 11:01 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>> > On Tue, Dec 5, 2017 at 11:32 AM, Chris Chiu <chiu@endlessm.com> wrote:
+>>>> >> Hi,
+>>>> >>     I have 2 GemniLake laptops from ASUS, named X441MB and X507MA,
+>>>> >> both go power off after I do "systemctl suspend" on top of kerne head
+>>>> >> fd6d2e506ce6 (Merge tag 'docs-4.15-fixes' of git://git.lwn.net/linux).
+>>>> >> I then wipe it out and install Windows RS3 instead, also goes to power
+>>>> >> off after pressing media key for suspend(S3). Then I installed intel
+>>>> >> graphic driver with the following version number, Windows has no
+>>>> >> problem on suspend resume then.
+>>>> >
+>>>> > There is a suspend-related fix missing in 4.15-rc at this point, so
+>>>> > please test 4.14.y or wait for the fix to be merged.
+>>>> >
+>>>> > Thanks,
+>>>> > Rafael
+>>>>
+>>>> You mean the suspend-related fix used to exist in 4.14? Could you point me
+>>>> out which commit it is? Thanks
+>>>
+>>> No.
+>>>
+>>> I mean that suspend generally works in 4.14 and is currently broken
+>>> in 4.15-rc which requires a fix to be applied.  The fix in question is at:
+>>>
+>>> https://lkml.org/lkml/2017/11/30/546
+>>>
+>>> This is needed due to some changes made in 4.15-rc (with respect to 4.14)
+>>> that broke resume from suspend to RAM.
+>>>
+>>> Thanks,
+>>> Rafael
+>>>
+>>
+>> I think maybe for GemniLake is a different issue. I tried Ubuntu-4.14.0-11.13
+>> kernel and 4.13 kernel. Both go power off immediately.
+>
+> OK, so yes, this is a different issue.
+>
+> Is that suspend-to-idle or suspend-to-RAM (ACPI S3)?
 
-As Rafael mentioned, the spec doesn't clearly delineate a required
-hierarchy to the WAKE# pin, and it's certainly possible to share it. I'm
-fine dodging that question for now, and only writing said custom
-interrupt handler if/when needed.
-
-But device tree bindings are "forever", so it seems reasonable to at
-least agree how it should be defined.
-
-Brian
+It's ACPI S3, suspend-to RAM. Due to it power off immediately,
+difficult for me to
+collect useful information
