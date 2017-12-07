@@ -1,65 +1,58 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7 7/7] dmaengine: qcom_hidma: Add identity register support
-Date: Thu,  7 Dec 2017 16:10:31 -0500
-Message-ID: <1512681031-11343-8-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V7 4/7] OF: properties: Implement get_match_data() callback
+Date: Thu,  7 Dec 2017 16:10:28 -0500
+Message-ID: <1512681031-11343-5-git-send-email-okaya@codeaurora.org>
 References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, open list <linux-kernel@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The location for destination event channel register has been relocated from
-offset 0x28 to 0x40. Update the code accordingly.
+Now that we have a get_match_data() callback as part of the firmware node,
+implement the OF specific piece for it.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/dma/qcom/hidma.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/of/property.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/dma/qcom/hidma.c b/drivers/dma/qcom/hidma.c
-index c146c6d..963cc52 100644
---- a/drivers/dma/qcom/hidma.c
-+++ b/drivers/dma/qcom/hidma.c
-@@ -107,6 +107,7 @@ static void hidma_free(struct hidma_dev *dmadev)
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 264c355..543e059 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -981,10 +981,18 @@ static int of_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return 0;
+ }
  
- enum hidma_cap {
- 	HIDMA_MSI_CAP = 1,
-+	HIDMA_IDENTITY_CAP,
- };
- 
- /* process completed descriptors */
-@@ -838,7 +839,10 @@ static int hidma_probe(struct platform_device *pdev)
- 	if (!dmadev->nr_descriptors)
- 		dmadev->nr_descriptors = HIDMA_NR_DEFAULT_DESC;
- 
--	dmadev->chidx = readl(dmadev->dev_trca + 0x28);
-+	if (hidma_test_capability(&pdev->dev, HIDMA_IDENTITY_CAP))
-+		dmadev->chidx = readl(dmadev->dev_trca + 0x40);
-+	else
-+		dmadev->chidx = readl(dmadev->dev_trca + 0x28);
- 
- 	/* Set DMA mask to 64 bits. */
- 	rc = dma_set_mask_and_coherent(&pdev->dev, DMA_BIT_MASK(64));
-@@ -944,7 +948,7 @@ static int hidma_remove(struct platform_device *pdev)
- static const struct acpi_device_id hidma_acpi_ids[] = {
- 	{"QCOM8061"},
- 	{"QCOM8062", HIDMA_MSI_CAP},
--	{"QCOM8063", HIDMA_MSI_CAP},
-+	{"QCOM8063", (HIDMA_MSI_CAP | HIDMA_IDENTITY_CAP)},
- 	{},
- };
- MODULE_DEVICE_TABLE(acpi, hidma_acpi_ids);
-@@ -953,7 +957,8 @@ static int hidma_remove(struct platform_device *pdev)
- static const struct of_device_id hidma_match[] = {
- 	{.compatible = "qcom,hidma-1.0",},
- 	{.compatible = "qcom,hidma-1.1", .data = (void *)(HIDMA_MSI_CAP),},
--	{.compatible = "qcom,hidma-1.2", .data = (void *)(HIDMA_MSI_CAP),},
-+	{.compatible = "qcom,hidma-1.2",
-+	 .data = (void *)(HIDMA_MSI_CAP | HIDMA_IDENTITY_CAP),},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, hidma_match);
++static void *
++of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
++				const struct device *dev)
++{
++	return (void *)of_device_get_match_data(dev);
++}
++
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
+ 	.device_is_available = of_fwnode_device_is_available,
++	.device_get_match_data = of_fwnode_device_get_match_data,
+ 	.property_present = of_fwnode_property_present,
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
 -- 
 1.9.1
