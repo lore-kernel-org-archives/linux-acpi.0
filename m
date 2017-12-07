@@ -1,51 +1,24 @@
 From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
  device match data
-Date: Thu, 7 Dec 2017 15:15:29 -0500
-Message-ID: <74f88482-71ff-db72-ee6e-cc9b3b0bc37e@codeaurora.org>
+Date: Thu, 7 Dec 2017 15:17:52 -0500
+Message-ID: <c2b38889-888a-3518-bf59-c2377f64a8ce@codeaurora.org>
 References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
  <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
- <20171207122948.yyl6adb6lnb56gok@valkosipuli.retiisi.org.uk>
+ <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <20171207122948.yyl6adb6lnb56gok@valkosipuli.retiisi.org.uk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
 Content-Language: en-US
-Sender: linux-arm-msm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sakari Ailus <sakari.ailus@iki.fi>
 Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/7/2017 7:29 AM, Sakari Ailus wrote:
-> Hi Sinan,
-> 
-> Thanks for the update.
-> 
-> Just one small comment below.
-> 
-[snip]
-
->>  
->>  struct fwnode_handle {
->>  	struct fwnode_handle *secondary;
->> @@ -66,6 +67,7 @@ struct fwnode_reference_args {
->>   *			       endpoint node.
->>   * @graph_get_port_parent: Return the parent node of a port node.
->>   * @graph_parse_endpoint: Parse endpoint for port and endpoint id.
->> + * @get_match_data: Return the driver match data.
-> 
-> Could you arrange the new get_match_data op closer to the other ops that
-> don't deal with the graphs? Such as device_is_available. As the ops are
-> dealing generally with fwnodes, I might call this device_get_match_data to
-> explicitly mention it's for devices.
-
-done
-
-> 
->>   */
->>  struct fwnode_operations {
->>  	void (*get)(struct fwnode_handle *fwnode);
+On 12/7/2017 7:40 AM, Sakari Ailus wrote:
+> On Tue, Dec 05, 2017 at 12:04:48PM -0500, Sinan Kaya wrote:
 >> @@ -101,6 +103,8 @@ struct fwnode_operations {
 >>  	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
 >>  	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
@@ -53,28 +26,17 @@ done
 >> +	void *(*get_match_data)(const struct fwnode_handle *fwnode,
 >> +				struct device *dev);
 > 
-> Same comment about the order here.
-
-ok
-
+> You can make dev const, too.
 > 
->>  };
->>  
->>  #define fwnode_has_op(fwnode, op)				\
->> diff --git a/include/linux/property.h b/include/linux/property.h
->> index 6bebee1..01fa55b 100644
->> --- a/include/linux/property.h
->> +++ b/include/linux/property.h
->> @@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
->>  
->>  enum dev_dma_attr device_get_dma_attr(struct device *dev);
->>  
->> +void *device_get_match_data(struct device *dev);
->> +
->>  int device_get_phy_mode(struct device *dev);
->>  
->>  void *device_get_mac_address(struct device *dev, char *addr, int alen);
-> 
+
+done, I couldn't change device_get_match_data() parameter const due to
+dev_fwnode() function.
+
+                 from /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:13:
+
+/local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:1341:39: warning: passing argument 1 of 'dev_fwnode' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+  return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
+
 
 
 -- 
