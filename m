@@ -1,76 +1,84 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7 2/7] ACPI / bus: Introduce acpi_get_match_data() function
-Date: Thu,  7 Dec 2017 16:10:26 -0500
-Message-ID: <1512681031-11343-3-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V7 3/7] device property: Introduce a common API to fetch device match data
+Date: Thu,  7 Dec 2017 16:10:27 -0500
+Message-ID: <1512681031-11343-4-git-send-email-okaya@codeaurora.org>
 References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-OF has of_device_get_match_data() function to extract driver specific data
-structure. Add a similar function for ACPI.
+There is an OF/ACPI function to obtain the driver data. We want to hide
+OF/ACPI details from the device drivers and abstract following the device
+family of functions.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/acpi/bus.c   | 18 ++++++++++++++++++
- include/linux/acpi.h |  6 ++++++
- 2 files changed, 24 insertions(+)
+ drivers/base/property.c  | 7 +++++++
+ include/linux/fwnode.h   | 4 ++++
+ include/linux/property.h | 2 ++
+ 3 files changed, 13 insertions(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4d0979e..f87ed3b 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -785,6 +785,24 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 7ed99c1..ee704a8 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1335,3 +1335,10 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return fwnode_call_int_op(fwnode, graph_parse_endpoint, endpoint);
  }
- EXPORT_SYMBOL_GPL(acpi_match_device);
- 
-+void *acpi_get_match_data(const struct device *dev)
+ EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
++
++void *device_get_match_data(struct device *dev)
 +{
-+	const struct acpi_device_id *match;
-+
-+	if (!dev->driver)
-+		return NULL;
-+
-+	if (!dev->driver->acpi_match_table)
-+		return NULL;
-+
-+	match = acpi_match_device(dev->driver->acpi_match_table, dev);
-+	if (!match)
-+		return NULL;
-+
-+	return (void *)match->driver_data;
++	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
++				  dev);
 +}
-+EXPORT_SYMBOL_GPL(acpi_get_match_data);
-+
- int acpi_match_device_ids(struct acpi_device *device,
- 			  const struct acpi_device_id *ids)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 502af53..a927260 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -584,6 +584,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
- const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- 					       const struct device *dev);
++EXPORT_SYMBOL_GPL(device_get_match_data);
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index 0c35b6c..e2b4b22 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -15,6 +15,7 @@
+ #include <linux/types.h>
  
-+void *acpi_get_match_data(const struct device *dev);
- extern bool acpi_driver_match_device(struct device *dev,
- 				     const struct device_driver *drv);
- int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
-@@ -755,6 +756,11 @@ static inline const struct acpi_device_id *acpi_match_device(
- 	return NULL;
- }
+ struct fwnode_operations;
++struct device;
  
-+static inline void *acpi_get_match_data(const struct device *dev)
-+{
-+	return NULL;
-+}
+ struct fwnode_handle {
+ 	struct fwnode_handle *secondary;
+@@ -51,6 +52,7 @@ struct fwnode_reference_args {
+  * struct fwnode_operations - Operations for fwnode interface
+  * @get: Get a reference to an fwnode.
+  * @put: Put a reference to an fwnode.
++ * @device_get_match_data: Return the device driver match data.
+  * @property_present: Return true if a property is present.
+  * @property_read_integer_array: Read an array of integer properties. Return
+  *				 zero on success, a negative error code
+@@ -71,6 +73,8 @@ struct fwnode_operations {
+ 	void (*get)(struct fwnode_handle *fwnode);
+ 	void (*put)(struct fwnode_handle *fwnode);
+ 	bool (*device_is_available)(const struct fwnode_handle *fwnode);
++	void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
++				       const struct device *dev);
+ 	bool (*property_present)(const struct fwnode_handle *fwnode,
+ 				 const char *propname);
+ 	int (*property_read_int_array)(const struct fwnode_handle *fwnode,
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 6bebee1..01fa55b 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -275,6 +275,8 @@ int device_add_properties(struct device *dev,
+ 
+ enum dev_dma_attr device_get_dma_attr(struct device *dev);
+ 
++void *device_get_match_data(struct device *dev);
 +
- static inline bool acpi_driver_match_device(struct device *dev,
- 					    const struct device_driver *drv)
- {
+ int device_get_phy_mode(struct device *dev);
+ 
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
 -- 
 1.9.1
