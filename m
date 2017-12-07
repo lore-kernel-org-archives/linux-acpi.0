@@ -1,45 +1,47 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7 5/7] ACPI: properties: Implement get_match_data() callback
-Date: Thu,  7 Dec 2017 16:10:29 -0500
-Message-ID: <1512681031-11343-6-git-send-email-okaya@codeaurora.org>
-References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] PM / sleep: Avoid excess pm_runtime_enable() calls in device_resume()
+Date: Thu, 7 Dec 2017 22:17:42 +0100
+Message-ID: <CAJZ5v0j=61dC0+pzpwcZ3zzH0UotfqGycDH833gK-4s+fLWmsA@mail.gmail.com>
+References: <3600031.yTsliOITBg@aspire.rjw.lan> <CAPDyKFpyfMTw9vdSDHxarZquSRA9zU9aMdb-pkzhMWKrFGxayw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
+In-Reply-To: <CAPDyKFpyfMTw9vdSDHxarZquSRA9zU9aMdb-pkzhMWKrFGxayw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we have a get_match_data() callback as part of the firmware node,
-implement the ACPI specific piece for it.
+On Thu, Dec 7, 2017 at 8:44 PM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> On 7 December 2017 at 03:26, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> Middle-layer code doing suspend-time optimizations for devices with
+>> the DPM_FLAG_SMART_SUSPEND flag set (currently, the PCI bus type and
+>> the ACPI PM domain) needs to make the core skip ->thaw_early and
+>> ->thaw callbacks for those devices in some cases and it sets the
+>> power.direct_complete flag for them for this purpose.
+>>
+>> However, it turns out that setting power.direct_complete outside of
+>> the PM core is a bad idea as it triggers an excessive invocation of
+>> pm_runtime_enable() in device_resume().
+>
+> Do we need to clarify the comment about the flag in pm.h?
+>
+> Or is "/* Owned by the PM core */" sufficient?
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/acpi/property.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+That should be sufficient (and I sort of tried to ignore it ...).
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index e26ea20..466d150 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1271,9 +1271,17 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
-+static void *
-+acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
-+				  const struct device *dev)
-+{
-+	return acpi_get_match_data(dev);
-+}
-+
- #define DECLARE_ACPI_FWNODE_OPS(ops) \
- 	const struct fwnode_operations ops = {				\
- 		.device_is_available = acpi_fwnode_device_is_available, \
-+		.device_get_match_data = acpi_fwnode_device_get_match_data, \
- 		.property_present = acpi_fwnode_property_present,	\
- 		.property_read_int_array =				\
- 			acpi_fwnode_property_read_int_array,		\
--- 
-1.9.1
+>>
+>> For this reason, provide a helper to clear power.is_late_suspended
+>> and power.is_suspended to be invoked by the middle-layer code in
+>> question instead of setting power.direct_complete and make that code
+>> call the new helper.
+>>
+>> Fixes: c4b65157aeef (PCI / PM: Take SMART_SUSPEND driver flag into account)
+>> Fixes: 05087360fd7a (ACPI / PM: Take SMART_SUSPEND driver flag into account)
+>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Reviewed-by: Ulf Hansson <ulf.hansson@linaro,org>
+
+Thanks!
