@@ -1,45 +1,46 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V6 3/7] device property: Introduce a common API to fetch
- device match data
-Date: Thu, 7 Dec 2017 15:17:52 -0500
-Message-ID: <c2b38889-888a-3518-bf59-c2377f64a8ce@codeaurora.org>
-References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
- <1512493493-6464-4-git-send-email-okaya@codeaurora.org>
- <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171207124044.utyrn2mzzyml42b2@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sakari Ailus <sakari.ailus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Rob Herring <robh@kernel.org>, Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>, open list <linux-kernel@vger.kernel.org>
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V7 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
+Date: Thu,  7 Dec 2017 16:10:24 -0500
+Message-ID: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/7/2017 7:40 AM, Sakari Ailus wrote:
-> On Tue, Dec 05, 2017 at 12:04:48PM -0500, Sinan Kaya wrote:
->> @@ -101,6 +103,8 @@ struct fwnode_operations {
->>  	(*graph_get_port_parent)(struct fwnode_handle *fwnode);
->>  	int (*graph_parse_endpoint)(const struct fwnode_handle *fwnode,
->>  				    struct fwnode_endpoint *endpoint);
->> +	void *(*get_match_data)(const struct fwnode_handle *fwnode,
->> +				struct device *dev);
-> 
-> You can make dev const, too.
-> 
+Introduce new ACPI and OF device ids for thw HW along with the helper
+functions.
 
-done, I couldn't change device_get_match_data() parameter const due to
-dev_fwnode() function.
+Changes from v6:
+* add const to the device callback parameter in fwnode.
+* reorganize the callbacks in the code
+* rename get_match_data() as device_get_match_data()
+* place pointer checks into acpi_get_match_data()
 
-                 from /local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:13:
+Sinan Kaya (7):
+  Documentation: DT: qcom_hidma: Bump HW revision for the bugfixed HW
+  ACPI / bus: Introduce acpi_get_match_data() function
+  device property: Introduce a common API to fetch device match data
+  OF: properties: Implement get_match_data() callback
+  ACPI: properties: Implement get_match_data() callback
+  dmaengine: qcom_hidma: Add support for the new revision
+  dmaengine: qcom_hidma: Add identity register support
 
-/local/mnt/workspace/projects/caf/kernel/drivers/base/property.c:1341:39: warning: passing argument 1 of 'dev_fwnode' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
-  return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
-
-
+ .../devicetree/bindings/dma/qcom_hidma_mgmt.txt    |  4 +--
+ drivers/acpi/bus.c                                 | 18 ++++++++++
+ drivers/acpi/property.c                            |  8 +++++
+ drivers/base/property.c                            |  7 ++++
+ drivers/dma/qcom/hidma.c                           | 41 ++++++++++------------
+ drivers/of/property.c                              |  8 +++++
+ include/linux/acpi.h                               |  6 ++++
+ include/linux/fwnode.h                             |  4 +++
+ include/linux/property.h                           |  2 ++
+ 9 files changed, 74 insertions(+), 24 deletions(-)
 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
