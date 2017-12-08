@@ -1,94 +1,44 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: ACPI issues on cold power on [bisected]
-Date: Fri, 8 Dec 2017 15:11:59 +0000
-Message-ID: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
+From: Juergen Gross <jgross@suse.com>
+Subject: [PATCH v3 3/4] x86/xen: fix boot loader version
+	reported for pvh guests
+Date: Fri,  8 Dec 2017 16:11:38 +0100
+Message-ID: <20171208151139.30213-4-jgross@suse.com>
+References: <20171208151139.30213-1-jgross@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-Sender: owner-linux-mm@kvack.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <20171208151139.30213-1-jgross@suse.com>
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
+Cc: Juergen Gross <jgross@suse.com>, corbet@lwn.net, rjw@rjwysocki.net, stable@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-I've been sitting on this for a while and should have spent time to
-investigate sooner, but it's been an odd failure mode that wasn't quite
-obvious.
-
-In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
-don't see anything after grub says its booting. In 4.10 onwards the
-laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
-(no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
-taken from 4.12 as that's the most recent error dmesg I have saved but
-also seen back in 4.10. It's always address 0x30 for the dereference.
-
-Rebooting the laptop does not lead to these problems; it's *only* from a
-complete cold boot that they arise (which didn't help me in terms of
-being able to reliably bisect). Once I realised that I was able to
-bisect, but it leads me to an odd commit:
-
-86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
-(mm/slab: fix kmemcg cache creation delayed issue)
-
-If I revert this then I can cold boot without problems.
-
-Also I don't see the problem with a stock Debian kernel, I think because
-the ACPI support is modularised.
-
-Config, dmesg + bisect log at:
-
-https://the.earth.li/~noodles/acpi-problem/
-
--------
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-IP: netlink_broadcast_filtered+0x1d/0x3e0
-PGD 0 
-P4D 0 
-
-Oops: 0000 [#1] SMP
-Modules linked in:
-CPU: 0 PID: 41 Comm: kworker/0:1 Not tainted 4.12.0 #1
-Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A21 05/08/2017
-Workqueue: kacpi_notify acpi_os_execute_deferred
-task: ffff914e4c321240 task.stack: ffffa3bd4017c000
-RIP: 0010:netlink_broadcast_filtered+0x1d/0x3e0
-RSP: 0000:ffffa3bd4017fd90 EFLAGS: 00010286
-RAX: 0000000000000001 RBX: ffff914e4c82b300 RCX: 0000000000000000
-RDX: 0000000000000000 RSI: 0000000001080020 RDI: ffff914e4c82b300
-RBP: ffff914e4c305614 R08: 0000000001080020 R09: 0000000000000000
-R10: 0000000000000014 R11: ffffffffb8a31d40 R12: 0000000000000000
-R13: 0000000000000000 R14: ffff914e4c305614 R15: 0000000000000000
-FS:  0000000000000000(0000) GS:ffff914e5ea00000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000000000030 CR3: 0000000236c09000 CR4: 00000000001406f0
-Call Trace:
- ? __kmalloc_reserve.isra.37+0x24/0x70
- ? __nlmsg_put+0x63/0x80
- ? netlink_broadcast+0xa/0x10
- ? acpi_bus_generate_netlink_event+0x10d/0x150
- ? acpi_ev_notify_dispatch+0x37/0x4c
- ? acpi_os_execute_deferred+0xb/0x20
- ? process_one_work+0x1cf/0x3c0
- ? worker_thread+0x42/0x3c0
- ? __schedule+0x26c/0x660
- ? kthread+0xf7/0x130
- ? create_worker+0x190/0x190
- ? kthread_create_on_node+0x40/0x40
- ? ret_from_fork+0x22/0x30
-Code: c8 c3 66 90 66 2e 0f 1f 84 00 00 00 00 00 41 57 41 89 cf 41 56 41 55 49 89 fd 48 89 f7 44 89 c6 41 54 41 89 d4 55 53 48 83 ec 38 <49> 8b 6d 30 44 89 44 24 24 4c 89 4c 24 28 e8 a0 ec ff ff 48 c7 
-RIP: netlink_broadcast_filtered+0x1d/0x3e0 RSP: ffffa3bd4017fd90
-CR2: 0000000000000030
----[ end trace f8e25281792d4743 ]---
-
-J.
-
--- 
-/-\                             | 101 things you can't have too much
-|@/  Debian GNU/Linux Developer |       of : 47 - More coffee.
-\-                              |
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+VGhlIGJvb3QgbG9hZGVyIHZlcnNpb24gcmVwb3J0ZWQgdmlhIHN5c2ZzIGlzIHdyb25nIGluIGNh
+c2Ugb2YgdGhlCmtlcm5lbCBiZWluZyBib290ZWQgdmlhIHRoZSBYZW4gUFZIIGJvb3QgZW50cnku
+IGl0IHNob3VsZCBiZSAyLjEyCigweDAyMGMpLCBidXQgaXQgaXMgcmVwb3J0ZWQgdG8gYmUgMi4x
+OCAoMHgwMjEyKS4KCkFzIHRoZSBjdXJyZW50IHdheSB0byBzZXQgdGhlIHZlcnNpb24gaXMgZXJy
+b3IgcHJvbmUgdXNlIHRoZSBtb3JlCnJlYWRhYmxlIHZhcmlhbnQgKDIgPDwgOCkgfCAxMi4KCkNj
+OiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyA0LjEyClNpZ25lZC1vZmYtYnk6IEp1ZXJnZW4g
+R3Jvc3MgPGpncm9zc0BzdXNlLmNvbT4KLS0tCiBhcmNoL3g4Ni94ZW4vZW5saWdodGVuX3B2aC5j
+IHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgpk
+aWZmIC0tZ2l0IGEvYXJjaC94ODYveGVuL2VubGlnaHRlbl9wdmguYyBiL2FyY2gveDg2L3hlbi9l
+bmxpZ2h0ZW5fcHZoLmMKaW5kZXggNDM2YzRmMDAzZTE3Li42ZTY0MzBjYjVlM2YgMTAwNjQ0Ci0t
+LSBhL2FyY2gveDg2L3hlbi9lbmxpZ2h0ZW5fcHZoLmMKKysrIGIvYXJjaC94ODYveGVuL2VubGln
+aHRlbl9wdmguYwpAQCAtNjksNyArNjksNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgaW5pdF9wdmhf
+Ym9vdHBhcmFtcyh2b2lkKQogCSAqIFZlcnNpb24gMi4xMiBzdXBwb3J0cyBYZW4gZW50cnkgcG9p
+bnQgYnV0IHdlIHdpbGwgdXNlIGRlZmF1bHQgeDg2L1BDCiAJICogZW52aXJvbm1lbnQgKGkuZS4g
+aGFyZHdhcmVfc3ViYXJjaCAwKS4KIAkgKi8KLQlwdmhfYm9vdHBhcmFtcy5oZHIudmVyc2lvbiA9
+IDB4MjEyOworCXB2aF9ib290cGFyYW1zLmhkci52ZXJzaW9uID0gKDIgPDwgOCkgfCAxMjsKIAlw
+dmhfYm9vdHBhcmFtcy5oZHIudHlwZV9vZl9sb2FkZXIgPSAoOSA8PCA0KSB8IDA7IC8qIFhlbiBs
+b2FkZXIgKi8KIH0KIAotLSAKMi4xMi4zCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMu
+eGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL3hlbi1kZXZlbA==
