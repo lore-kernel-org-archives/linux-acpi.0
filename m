@@ -1,113 +1,50 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 2/3] x86/acpi: take rsdp address for boot params if
- available
-Date: Fri, 8 Dec 2017 08:05:05 +0100
-Message-ID: <20171208070505.25j6dtun555v6ofo@gmail.com>
-References: <20171207122821.30158-1-jgross@suse.com>
- <20171207122821.30158-3-jgross@suse.com>
+From: Mika Westerberg <mika.westerberg@intel.com>
+Subject: Re: Backporting patches that fix TBT at bootup
+Date: Fri, 8 Dec 2017 09:10:47 +0200
+Message-ID: <20171208071047.GY22431@lahna.fi.intel.com>
+References: <ad18c029a5ca4a3cbcd4a2dfef50fed5@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35323 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751068AbdLHHFK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 02:05:10 -0500
+Received: from mga01.intel.com ([192.55.52.88]:47030 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751109AbdLHHKv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 Dec 2017 02:10:51 -0500
 Content-Disposition: inline
-In-Reply-To: <20171207122821.30158-3-jgross@suse.com>
+In-Reply-To: <ad18c029a5ca4a3cbcd4a2dfef50fed5@ausx13mpc120.AMER.DELL.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: linux-acpi@vger.kernel.org
 
-
-* Juergen Gross <jgross@suse.com> wrote:
-
-> In case the rsdp address in struct boot_params is specified don't try
-> to find the table by searching, but take the address directly as set
-> by the boot loader.
+On Thu, Dec 07, 2017 at 11:20:40PM +0000, Mario.Limonciello@dell.com wrote:
+>    Hi,
 > 
-> Signed-off-by: Juergen Gross <jgross@suse.com>
-> ---
->  drivers/acpi/osl.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 3bb46cb24a99..3b25e2ad7d75 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -45,6 +45,10 @@
->  #include <linux/uaccess.h>
->  #include <linux/io-64-nonatomic-lo-hi.h>
->  
-> +#ifdef CONFIG_X86
-> +#include <asm/setup.h>
-> +#endif
-> +
->  #include "internal.h"
->  
->  #define _COMPONENT		ACPI_OS_SERVICES
-> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
->  	if (acpi_rsdp)
->  		return acpi_rsdp;
->  #endif
-> +#ifdef CONFIG_X86
-> +	if (boot_params.hdr.acpi_rsdp_addr)
-> +		return boot_params.hdr.acpi_rsdp_addr;
-> +#endif
+>    During kernel 4.14 some issues were fixed for Thunderbolt enumeration
+>    at bootup.
+> 
+>    They were referenced in an issue
+> 
+>    ([1]https://github.com/01org/thunderbolt-software-user-space/issues/24#
+>    issuecomment-328011428)
+> 
+>    There are 3 patches that Mika mentioned would be evaluated to be
+>    backported back to 4.13.
+> 
+> 
+>    As 4.14 has come and gone now, I wanted to see if there was any other
+>    thoughts about
+> 
+>    bringing those back to stable now on 4.13 (or did they come back and I
+>    just didn’t know?)
+> 
+> 
+>    ecc1165b8b74 ACPICA: Dispatch active GPEs at init time
+> 
+>    1312b7e0caca ACPICA: Make it possible to enable runtime GPEs earlier
+> 
+>    eb7f43c4adb4 ACPI / scan: Enable GPEs before scanning the namespace
 
-Argh, that's typical short sighted hackery, layering violations and general 
-eyesore combined into a single patch ...
-
-Those #ifdefs are a disgrace, plus why should generic ACPI code include platform 
-details like boot_params.hdr/acpi_rsdp_addr? It's also not very extensible to 
-non-x86 - so someone will have to redo this work for ARM64 as well in the future 
-...
-
-So how about doing it right:
-
-1)
-
-Add a __weak acpi_arch_get_root_pointer() __weak function to drivers/acpi/osl.c:
-
-
-__weak acpi_physical_address acpi_arch_get_root_pointer(void)
-{
-	return 0;
-}
-
-2)
-
-use it in acpi_os_get_root_pointer():
-
-	...
-	pa = acpi_arch_get_root_pointer();
-	if (pa)
-		return pa;
-	...
-
-3)
-
-Override the default variant in x86's acpi.c via something like:
-
-acpi_physical_address acpi_arch_get_root_pointer(void)
-{
-	return boot_params.hdr.acpi_rsdp_addr;
-}
-
-4)
-
-Add this to arch/x86/include/asm/acpi.h:
-
-extern acpi_physical_address acpi_arch_get_root_pointer(void);
-
-5)
-
-Add #include <asm/acpi.h> to drivers/acpi/osl.c.
-
-
-That looks much cleaner, has no layering violations and is infinitely more 
-extensible, right?
-
-Thanks,
-
-	Ingo
+They are already in stable starting from v4.13.13.
