@@ -1,49 +1,142 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH 15/45] drivers: pnp: remove duplicate includes
-Date: Fri, 8 Dec 2017 01:37:14 +0100
-Message-ID: <9d1e8f06-f687-7ee2-f565-efbb2bb17bc1@intel.com>
-References: <1512579654-5549-1-git-send-email-pravin.shedge4linux@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:65004 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752248AbdLHAhR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 7 Dec 2017 19:37:17 -0500
-In-Reply-To: <1512579654-5549-1-git-send-email-pravin.shedge4linux@gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V3] ACPI / GED: unregister interrupts during shutdown
+Date: Thu,  7 Dec 2017 23:40:33 -0500
+Message-ID: <1512708033-28180-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 12/6/2017 6:00 PM, Pravin Shedge wrote:
-> These duplicate includes have been found with scripts/checkincludes.pl but
-> they have been removed manually to avoid removing false positives.
->
-> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Some GED interrupts could be pending by the time we are doing a reboot.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Even though GED driver uses devm_request_irq() to register the interrupt
+handler, the handler is not being freed on time during a shutdown since
+the driver is missing a shutdown callback.
 
-Or do you want me to apply this?
+If the ACPI handler is no longer available, this causes an interrupt
+storm and delays shutdown.
 
-> ---
->   drivers/pnp/quirks.c | 2 --
->   1 file changed, 2 deletions(-)
->
-> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
-> index f054cdd..a0f9a91 100644
-> --- a/drivers/pnp/quirks.c
-> +++ b/drivers/pnp/quirks.c
-> @@ -227,8 +227,6 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
->   	dev_info(&dev->dev, "made independent IRQ optional\n");
->   }
->   
-> -#include <linux/pci.h>
-> -
->   static void quirk_system_pci_resources(struct pnp_dev *dev)
->   {
->   	struct pci_dev *pdev = NULL;
+1. Don't use devm family of functions for IRQ registration/free
+2. Keep track of the events since free_irq() requires the dev_id parameter
+passed into the request_irq() function.
+3. Call free_irq() on both remove and shutdown explicitly.
 
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/evged.c | 55 ++++++++++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 49 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+index 46f0603..38cb00e 100644
+--- a/drivers/acpi/evged.c
++++ b/drivers/acpi/evged.c
+@@ -49,6 +49,11 @@
+ 
+ #define MODULE_NAME	"acpi-ged"
+ 
++struct acpi_ged_device {
++	struct device *dev;
++	struct list_head event_list;
++};
++
+ struct acpi_ged_event {
+ 	struct list_head node;
+ 	struct device *dev;
+@@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 	unsigned int irq;
+ 	unsigned int gsi;
+ 	unsigned int irqflags = IRQF_ONESHOT;
+-	struct device *dev = context;
++	struct acpi_ged_device *geddev = context;
++	struct device *dev = geddev->dev;
+ 	acpi_handle handle = ACPI_HANDLE(dev);
+ 	acpi_handle evt_handle;
+ 	struct resource r;
+@@ -102,8 +108,6 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 		return AE_ERROR;
+ 	}
+ 
+-	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
+-
+ 	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
+ 	if (!event)
+ 		return AE_ERROR;
+@@ -116,26 +120,63 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+ 	if (r.flags & IORESOURCE_IRQ_SHAREABLE)
+ 		irqflags |= IRQF_SHARED;
+ 
+-	if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
+-				      irqflags, "ACPI:Ged", event)) {
++	if (request_threaded_irq(irq, NULL, acpi_ged_irq_handler,
++				 irqflags, "ACPI:Ged", event)) {
+ 		dev_err(dev, "failed to setup event handler for irq %u\n", irq);
+ 		return AE_ERROR;
+ 	}
+ 
++	dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
++	list_add_tail(&event->node, &geddev->event_list);
+ 	return AE_OK;
+ }
+ 
+ static int ged_probe(struct platform_device *pdev)
+ {
++	struct acpi_ged_device *geddev;
+ 	acpi_status acpi_ret;
+ 
++	geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
++	if (!geddev)
++		return -ENOMEM;
++
++	geddev->dev = &pdev->dev;
++	INIT_LIST_HEAD(&geddev->event_list);
+ 	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
+-				       acpi_ged_request_interrupt, &pdev->dev);
++				       acpi_ged_request_interrupt, geddev);
+ 	if (ACPI_FAILURE(acpi_ret)) {
+ 		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
+ 		return -EINVAL;
+ 	}
++	platform_set_drvdata(pdev, geddev);
++
++	return 0;
++}
++
++static void ged_cleanup_irq(struct acpi_ged_device *geddev)
++{
++	struct acpi_ged_event *event, *next;
++
++	list_for_each_entry_safe(event, next, &geddev->event_list, node) {
++		free_irq(event->irq, event);
++		list_del(&event->node);
++		dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
++			 event->gsi, event->irq);
++	}
++}
++
++static void ged_shutdown(struct platform_device *pdev)
++{
++	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
++
++	ged_cleanup_irq(geddev);
++}
++
++static int ged_remove(struct platform_device *pdev)
++{
++	struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
+ 
++	ged_cleanup_irq(geddev);
+ 	return 0;
+ }
+ 
+@@ -146,6 +187,8 @@ static int ged_probe(struct platform_device *pdev)
+ 
+ static struct platform_driver ged_driver = {
+ 	.probe = ged_probe,
++	.remove = ged_remove,
++	.shutdown = ged_shutdown,
+ 	.driver = {
+ 		.name = MODULE_NAME,
+ 		.acpi_match_table = ACPI_PTR(ged_acpi_ids),
+-- 
+1.9.1
