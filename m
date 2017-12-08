@@ -1,66 +1,112 @@
 From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH 0/2] acpi, x86: Add SPCR table support
-Date: Fri, 8 Dec 2017 07:29:25 +0100
-Message-ID: <20171208062925.64ov23u7oxmdfzyk@gmail.com>
-References: <20171207172912.17868-1-prarit@redhat.com>
+Subject: Re: [PATCH v2 2/3] x86/acpi: take rsdp address for boot params if
+ available
+Date: Fri, 8 Dec 2017 08:05:05 +0100
+Message-ID: <20171208070505.25j6dtun555v6ofo@gmail.com>
+References: <20171207122821.30158-1-jgross@suse.com>
+ <20171207122821.30158-3-jgross@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:45442 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751020AbdLHG33 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 01:29:29 -0500
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35323 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751068AbdLHHFK (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 02:05:10 -0500
 Content-Disposition: inline
-In-Reply-To: <20171207172912.17868-1-prarit@redhat.com>
+In-Reply-To: <20171207122821.30158-3-jgross@suse.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Juergen Gross <jgross@suse.com>
+Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 
 
-* Prarit Bhargava <prarit@redhat.com> wrote:
+* Juergen Gross <jgross@suse.com> wrote:
 
-> The SPCR (Serial Port Console Redirection) Table provides information
-> about the configuration of serial port.  This information can be used
-> to configure the early console.
-
-s/about the configuration of serial port
- /about the configuration of the serial port
-
-> SPCR support was added for arm64 and is made available across all arches
-> in this patchset.  The first patch adds a weak per-arch configuration function
-> and moves the SPCR code into ACPI.  The second patch adds support to x86.
+> In case the rsdp address in struct boot_params is specified don't try
+> to find the table by searching, but take the address directly as set
+> by the boot loader.
 > 
-> The existing behaviour on arm64 is maintained.  If the SPCR exists the
-> earlycon and console are automatically configured.
+> Signed-off-by: Juergen Gross <jgross@suse.com>
+> ---
+>  drivers/acpi/osl.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 3bb46cb24a99..3b25e2ad7d75 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -45,6 +45,10 @@
+>  #include <linux/uaccess.h>
+>  #include <linux/io-64-nonatomic-lo-hi.h>
+>  
+> +#ifdef CONFIG_X86
+> +#include <asm/setup.h>
+> +#endif
+> +
+>  #include "internal.h"
+>  
+>  #define _COMPONENT		ACPI_OS_SERVICES
+> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+>  	if (acpi_rsdp)
+>  		return acpi_rsdp;
+>  #endif
+> +#ifdef CONFIG_X86
+> +	if (boot_params.hdr.acpi_rsdp_addr)
+> +		return boot_params.hdr.acpi_rsdp_addr;
+> +#endif
 
-s/arm64
- /ARM64
+Argh, that's typical short sighted hackery, layering violations and general 
+eyesore combined into a single patch ...
 
-which is easier to read and it's also the prevalent spelling:
+Those #ifdefs are a disgrace, plus why should generic ACPI code include platform 
+details like boot_params.hdr/acpi_rsdp_addr? It's also not very extensible to 
+non-x86 - so someone will have to redo this work for ARM64 as well in the future 
+...
 
- triton:~/tip> for N in $(git grep -ih arm64 arch/arm64/ | sed 's/[[:punct:]]/ /g'); do echo $N | grep -iw arm64; done | sort | uniq -c
-     412 arm64
-       1 Arm64
-     854 ARM64
+So how about doing it right:
 
-> The existing default behaviour on x86 is also maintained.  If no console or
-> earlycon parameter is defined and the SPCR exists , the serial port is not
-> configured.  If the earlycon parameter is used both the early console
-> and the console are configured using the data from the SPCR.
+1)
 
-s/exists , the
- /exists, the
+Add a __weak acpi_arch_get_root_pointer() __weak function to drivers/acpi/osl.c:
 
-But, the logic to not use the SPCR looks confusing to me.
 
-The SPCR is only present if the user has explicitly configured a serial console 
-for that machine, either in the firmware, or remotely via IPMI, correct? I.e. SPCR 
-will not be spuriously present by default on systems that have a serial console 
-but the user never expressed any interest for them, right?
+__weak acpi_physical_address acpi_arch_get_root_pointer(void)
+{
+	return 0;
+}
 
-If so then we should pick up that serial console configuration and activate it, 
-regardless of any kernel boot options!
+2)
+
+use it in acpi_os_get_root_pointer():
+
+	...
+	pa = acpi_arch_get_root_pointer();
+	if (pa)
+		return pa;
+	...
+
+3)
+
+Override the default variant in x86's acpi.c via something like:
+
+acpi_physical_address acpi_arch_get_root_pointer(void)
+{
+	return boot_params.hdr.acpi_rsdp_addr;
+}
+
+4)
+
+Add this to arch/x86/include/asm/acpi.h:
+
+extern acpi_physical_address acpi_arch_get_root_pointer(void);
+
+5)
+
+Add #include <asm/acpi.h> to drivers/acpi/osl.c.
+
+
+That looks much cleaner, has no layering violations and is infinitely more 
+extensible, right?
 
 Thanks,
 
