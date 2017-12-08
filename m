@@ -1,66 +1,109 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
-Date: Fri, 8 Dec 2017 18:12:42 +0100
-Message-ID: <CAJZ5v0jSOG-dQ27wSA9DXaBj2ae_KSC21VUhsBdxQc68EEOcKg@mail.gmail.com>
-References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
- <1894178.xtK0vD2N4H@aspire.rjw.lan> <20171114025109.GA43048@google.com>
- <1882670.s3LR2t44nD@aspire.rjw.lan> <20171206193421.GA143886@google.com>
- <20171207001754.GB28152@atomide.com> <20171207002955.GA40447@google.com> <20171208163710.GB24344@atomide.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH 1/2] acpi, spcr: Make SPCR avialable to other
+ architectures
+Date: Fri, 8 Dec 2017 14:42:14 -0500
+Message-ID: <848618dd-86ad-85aa-b7f4-fa700ccf63c3@redhat.com>
+References: <20171207172912.17868-1-prarit@redhat.com>
+ <20171207172912.17868-2-prarit@redhat.com>
+ <CAOZdJXV4E6gu=Ed6nOCcEp2afe_g8Ot-H5oO5=6+ye51cv9hUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f169.google.com ([74.125.82.169]:42523 "EHLO
-        mail-ot0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751492AbdLHRMo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 12:12:44 -0500
-In-Reply-To: <20171208163710.GB24344@atomide.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39316 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752833AbdLHTmV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 8 Dec 2017 14:42:21 -0500
+In-Reply-To: <CAOZdJXV4E6gu=Ed6nOCcEp2afe_g8Ot-H5oO5=6+ye51cv9hUg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tony Lindgren <tony@atomide.com>
-Cc: Brian Norris <briannorris@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jeffy Chen <jeffy.chen@rock-chips.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PM <linux-pm@vger.kernel.org>, shawn.lin@rock-chips.com, Doug Anderson <dianders@chromium.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Timur Tabi <timur@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, the arch/x86 maintainers <x86@kernel.org>, linux-pm@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Bhupesh Sharma <bhsharma@redhat.com>, linux-doc@vger.kernel.org, Will Deacon <will.deacon@arm.com>, lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, linux-serial@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jeffrey Hugo <jhugo@codeaurora.org>
 
-On Fri, Dec 8, 2017 at 5:37 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Brian Norris <briannorris@chromium.org> [171207 00:32]:
->> On Wed, Dec 06, 2017 at 04:17:54PM -0800, Tony Lindgren wrote:
->> > * Brian Norris <briannorris@chromium.org> [171206 19:36]:
->> > > By the way, it seems pretty ambiguous how we want to handle things like
->> > > (a) multiple devices sharing the same WAKE#
->> > > (b) systems where a slot is swappable
->> > >
->> > > For (a), the main problem is that if we have to repeat the interrupt
->> > > definition in multiple devices, then we have to deal with something like
->> > > IRQF_SHARED. That can be done, but it makes it much harder to use the
->> > > dedicated wakeirq helpers.
->> >
->> > This will get messy, let's not go there :) That is unless the hardware
->> > really has a single interrupt wired to multiple devices. And in that
->> > case almost certainly a custom interrupt handler is needed.
+
+
+On 12/07/2017 01:43 PM, Timur Tabi wrote:
+> On Thu, Dec 7, 2017 at 11:29 AM, Prarit Bhargava <prarit@redhat.com> wrote:
+>> Other architectures can use SPCR to setup an early console or console but
+>> the current code is ARM64 specific.
 >>
->> As Rafael mentioned, the spec doesn't clearly delineate a required
->> hierarchy to the WAKE# pin, and it's certainly possible to share it. I'm
->> fine dodging that question for now, and only writing said custom
->> interrupt handler if/when needed.
->
-> OK if the WAKE# pin is shared then PCI (or hardware specific?) code needs
-> to figure out from where it came from.
+>> Change the name of parse_spcr() to acpi_parse_spcr().  Add a weak
+>> function acpi_arch_setup_console() that can be used for arch-specific
+>> setup.  Move SPCR initialization flag into ACPI code.  Update the
+>> Documention on the use of the SPCR earlycon.
+>>
+>> This patch does not change arm64 behaviour.
+> 
+> Let's hope so.  Our E44 erratum work-around has caused lots of
+> problems in the past, so the code is a bit fragile.
 
-Right.
+So it does look like I broke something :(  I'll fix this and do more testing.
+One thing that I just learned (relative to x86) is that you have to test much
+further and wider than on x86.
 
-Basically, that would need a list (or equivalent) of devices sharing
-the wakeup IRQ and if that triggers, it needs to walk the list and
-call pci_pme_wakeup() for all devices in it.
+P.
 
->> But device tree bindings are "forever", so it seems reasonable to at
->> least agree how it should be defined.
->
-> Well that's why we're just using the existing interrupts-extended
-> binding there :) It does not leave out the option for shared interrupts,
-> it's just that drivers/base/power/wakeirq.c can't deal with them in a
-> sane way or at least we'd have to add a flag to not enable/disable the
-> wakeirq automatically.
-
-I think that the binding needs to be sort-of PCI-specific to cover the
-shared case.
-
-I'm not sure if there are any other buses needing that (they would
-need to define standard PM registers as PCI does).
+> 
+>> +static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
+>> +{
+>> +       if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
+>> +               return false;
+>> +
+>> +       if (!memcmp(h->oem_table_id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
+>> +               return true;
+>> +
+>> +       if (!memcmp(h->oem_table_id, "QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
+>> +                       h->oem_revision == 1)
+>> +               return true;
+>> +
+>> +       return false;
+>> +}
+> 
+> Please give us a chance to test this patch before merging. We've had a
+> lot of problems with our E44 work-around, and we need to make sure
+> that qdf2400_erratum_44_present function is called before the pl011
+> driver is probed.
+> 
+>> +
+>> +/*
+>> + * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
+>> + * register aligned to 32-bit. In addition, the BIOS also encoded the
+>> + * access width to be 8 bits. This function detects this errata condition.
+>> + */
+>> +static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+>> +{
+>> +       bool xgene_8250 = false;
+>> +
+>> +       if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
+>> +               return false;
+>> +
+>> +       if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE) &&
+>> +           memcmp(tb->header.oem_id, "HPE   ", ACPI_OEM_ID_SIZE))
+>> +               return false;
+>> +
+>> +       if (!memcmp(tb->header.oem_table_id, "XGENESPC",
+>> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
+>> +               xgene_8250 = true;
+>> +
+>> +       if (!memcmp(tb->header.oem_table_id, "ProLiant",
+>> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 1)
+>> +               xgene_8250 = true;
+>> +
+>> +       return xgene_8250;
+>> +}
+> 
+> I suspect that this function has the same issues as
+> qdf2400_erratum_44_present().
+> 
+>> +config ACPI_SPCR_TABLE
+>> +       bool "ACPI Serial Port Console Redirection Support"
+>> +       default y if ARM64
+>> +       help
+>> +         Enable support for Serial Port Console Redirection (SPCR) Table.
+>> +         This table provides information about the configuration of the
+>> +         earlycon console.
+>> +
+> 
+> So ACPI without SPCR has never been tested by us.  Making it optional
+> makes me a little nervous.  We'll have to evaluate this change.
+> 
