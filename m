@@ -1,44 +1,93 @@
 From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v3 0/4] x86: make rsdp address accessible via boot params
-Date: Fri,  8 Dec 2017 16:11:35 +0100
-Message-ID: <20171208151139.30213-1-jgross@suse.com>
+Subject: [PATCH v3 1/4] x86/boot: add acpi rsdp address to
+	setup_header
+Date: Fri,  8 Dec 2017 16:11:36 +0100
+Message-ID: <20171208151139.30213-2-jgross@suse.com>
+References: <20171208151139.30213-1-jgross@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <20171208151139.30213-1-jgross@suse.com>
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
 To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Cc: boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, Juergen Gross <jgross@suse.com>
+Cc: Juergen Gross <jgross@suse.com>, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In the non-EFI boot path the ACPI RSDP table is currently found via
-either EBDA or by searching through low memory for the RSDP magic.
-This requires the RSDP to be located in the first 1MB of physical
-memory. Xen PVH guests, however, get the RSDP address via the start of
-day information block.
-
-In order to support an arbitrary RSDP address this patch series adds
-the physical address of the RSDP to the boot params structure filled
-by the boot loader. A kernel booted directly in PVH mode can save the
-RSDP address in the boot params, while a kernel booted in PVH mode via
-grub can rely on the RSDP address being specified by grub2 (which in
-turn got the address via the start of day information block from Xen).
-
-
-Juergen Gross (4):
-  x86/boot: add acpi rsdp address to setup_header
-  x86/acpi: take rsdp address for boot params if available
-  x86/xen: fix boot loader version reported for pvh guests
-  x86/xen: supply rsdp address in boot params for pvh guests
-
- Documentation/x86/boot.txt            | 19 +++++++++++++++++++
- arch/x86/boot/header.S                |  6 +++++-
- arch/x86/include/uapi/asm/bootparam.h |  1 +
- arch/x86/kernel/acpi/boot.c           |  7 +++++++
- arch/x86/xen/enlighten_pvh.c          |  5 ++++-
- drivers/acpi/osl.c                    | 10 +++++++++-
- include/linux/acpi.h                  |  2 ++
- 7 files changed, 47 insertions(+), 3 deletions(-)
-
--- 
-2.12.3
+WGVuIFBWSCBndWVzdHMgcmVjZWl2ZSB0aGUgYWRkcmVzcyBvZiB0aGUgUlNEUCB0YWJsZSBmcm9t
+IFhlbi4gSW4gb3JkZXIKdG8gc3VwcG9ydCBib290aW5nIGEgWGVuIFBWSCBndWVzdCB2aWEgR3J1
+YjIgdXNpbmcgdGhlIHN0YW5kYXJkIHg4Ngpib290IGVudHJ5IHdlIG5lZWQgYSB3YXkgZm9yIEdy
+dWIyIHRvIHBhc3MgdGhlIFJTRFAgYWRkcmVzcyB0byB0aGUKa2VybmVsLgoKRm9yIHRoaXMgcHVy
+cG9zZSBleHBhbmQgdGhlIHN0cnVjdCBzZXR1cF9oZWFkZXIgdG8gaG9sZCB0aGUgcGh5c2ljYWwK
+YWRkcmVzcyBvZiB0aGUgUlNEUCBhZGRyZXNzLiBCZWluZyB6ZXJvIG1lYW5zIGl0IGlzbid0IHNw
+ZWNpZmllZCBhbmQKaGFzIHRvIGJlIGxvY2F0ZWQgdGhlIGxlZ2FjeSB3YXkgKHNlYXJjaGluZyB0
+aHJvdWdoIGxvdyBtZW1vcnkgb3IKRUJEQSkuCgpXaGlsZSBkb2N1bWVudGluZyB0aGUgbmV3IHNl
+dHVwX2hlYWRlciBsYXlvdXQgYW5kIHByb3RvY29sIHZlcnNpb24KMi4xNCBhZGQgdGhlIG1pc3Np
+bmcgZG9jdW1lbnRhdGlvbiBvZiBwcm90b2NvbCB2ZXJzaW9uIDIuMTMuCgpTaWduZWQtb2ZmLWJ5
+OiBKdWVyZ2VuIEdyb3NzIDxqZ3Jvc3NAc3VzZS5jb20+ClJldmlld2VkLWJ5OiBSb2dlciBQYXUg
+TW9ubsOpIDxyb2dlci5wYXVAY2l0cml4LmNvbT4KLS0tClYzOiBmaXggY29tbWl0IG1lc3NhZ2Ug
+YW5kIHNvbWUgZG9jdW1lbnRhdGlvbiBiaXRzIChJbmdvIE1vbG5hcikKLS0tCiBEb2N1bWVudGF0
+aW9uL3g4Ni9ib290LnR4dCAgICAgICAgICAgIHwgMTkgKysrKysrKysrKysrKysrKysrKwogYXJj
+aC94ODYvYm9vdC9oZWFkZXIuUyAgICAgICAgICAgICAgICB8ICA2ICsrKysrLQogYXJjaC94ODYv
+aW5jbHVkZS91YXBpL2FzbS9ib290cGFyYW0uaCB8ICAxICsKIDMgZmlsZXMgY2hhbmdlZCwgMjUg
+aW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24v
+eDg2L2Jvb3QudHh0IGIvRG9jdW1lbnRhdGlvbi94ODYvYm9vdC50eHQKaW5kZXggNWU5YjgyNmI1
+ZjYyLi5jZWMxMTI5MDljMzUgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24veDg2L2Jvb3QudHh0
+CisrKyBiL0RvY3VtZW50YXRpb24veDg2L2Jvb3QudHh0CkBAIC02MSw2ICs2MSwxMyBAQCBQcm90
+b2NvbCAyLjEyOgkoS2VybmVsIDMuOCkgQWRkZWQgdGhlIHhsb2FkZmxhZ3MgZmllbGQgYW5kIGV4
+dGVuc2lvbiBmaWVsZHMKIAkgCXRvIHN0cnVjdCBib290X3BhcmFtcyBmb3IgbG9hZGluZyBieklt
+YWdlIGFuZCByYW1kaXNrCiAJCWFib3ZlIDRHIGluIDY0Yml0LgogCitQcm90b2NvbCAyLjEzOgko
+S2VybmVsIDMuMTQpIFN1cHBvcnQgMzItIGFuZCA2NC1iaXQgZmxhZ3MgYmVpbmcgc2V0IGluCisJ
+CXhsb2FkZmxhZ3MgdG8gc3VwcG9ydCBib290aW5nIGEgNjQtYml0IGtlcm5lbCBmcm9tIDMyLWJp
+dAorCQlFRkkKKworUHJvdG9jb2wgMi4xNAkoS2VybmVsIDQuMTYpIEFkZGVkIGFjcGlfcnNkcF9h
+ZGRyIGhvbGRpbmcgdGhlIHBoeXNpY2FsCisJCWFkZHJlc3Mgb2YgdGhlIEFDUEkgUlNEUCB0YWJs
+ZS4KKwogKioqKiBNRU1PUlkgTEFZT1VUCiAKIFRoZSB0cmFkaXRpb25hbCBtZW1vcnkgbWFwIGZv
+ciB0aGUga2VybmVsIGxvYWRlciwgdXNlZCBmb3IgSW1hZ2Ugb3IKQEAgLTE5Nyw2ICsyMDQsNyBA
+QCBPZmZzZXQJUHJvdG8JTmFtZQkJTWVhbmluZwogMDI1OC84CTIuMTArCXByZWZfYWRkcmVzcwlQ
+cmVmZXJyZWQgbG9hZGluZyBhZGRyZXNzCiAwMjYwLzQJMi4xMCsJaW5pdF9zaXplCUxpbmVhciBt
+ZW1vcnkgcmVxdWlyZWQgZHVyaW5nIGluaXRpYWxpemF0aW9uCiAwMjY0LzQJMi4xMSsJaGFuZG92
+ZXJfb2Zmc2V0CU9mZnNldCBvZiBoYW5kb3ZlciBlbnRyeSBwb2ludAorMDI2OC84CTIuMTQrCWFj
+cGlfcnNkcF9hZGRyCVBoeXNpY2FsIGFkZHJlc3Mgb2YgUlNEUCB0YWJsZQogCiAoMSkgRm9yIGJh
+Y2t3YXJkcyBjb21wYXRpYmlsaXR5LCBpZiB0aGUgc2V0dXBfc2VjdHMgZmllbGQgY29udGFpbnMg
+MCwgdGhlCiAgICAgcmVhbCB2YWx1ZSBpcyA0LgpAQCAtNzQ0LDYgKzc1MiwxNyBAQCBPZmZzZXQv
+c2l6ZToJMHgyNjQvNAogCiAgIFNlZSBFRkkgSEFORE9WRVIgUFJPVE9DT0wgYmVsb3cgZm9yIG1v
+cmUgZGV0YWlscy4KIAorRmllbGQgbmFtZToJYWNwaV9yc2RwX2FkZHIKK1R5cGU6CQl3cml0ZQor
+T2Zmc2V0L3NpemU6CTB4MjY4LzgKK1Byb3RvY29sOgkyLjE0KworCisgIFRoaXMgZmllbGQgY2Fu
+IGJlIHNldCBieSB0aGUgYm9vdCBsb2FkZXIgdG8gdGVsbCB0aGUga2VybmVsIHRoZQorICBwaHlz
+aWNhbCBhZGRyZXNzIG9mIHRoZSBBQ1BJIFJTRFAgdGFibGUuCisKKyAgQSB2YWx1ZSBvZiAwIGlu
+ZGljYXRlcyB0aGUga2VybmVsIHNob3VsZCBmYWxsIGJhY2sgdG8gdGhlIHN0YW5kYXJkCisgIG1l
+dGhvZHMgdG8gbG9jYXRlIHRoZSBSU0RQLgorCiAKICoqKiogVEhFIElNQUdFIENIRUNLU1VNCiAK
+ZGlmZiAtLWdpdCBhL2FyY2gveDg2L2Jvb3QvaGVhZGVyLlMgYi9hcmNoL3g4Ni9ib290L2hlYWRl
+ci5TCmluZGV4IDg1MGI4NzYyZTg4OS4uNGM4ODFjODUwMTI1IDEwMDY0NAotLS0gYS9hcmNoL3g4
+Ni9ib290L2hlYWRlci5TCisrKyBiL2FyY2gveDg2L2Jvb3QvaGVhZGVyLlMKQEAgLTMwMCw3ICsz
+MDAsNyBAQCBfc3RhcnQ6CiAJIyBQYXJ0IDIgb2YgdGhlIGhlYWRlciwgZnJvbSB0aGUgb2xkIHNl
+dHVwLlMKIAogCQkuYXNjaWkJIkhkclMiCQkjIGhlYWRlciBzaWduYXR1cmUKLQkJLndvcmQJMHgw
+MjBkCQkjIGhlYWRlciB2ZXJzaW9uIG51bWJlciAoPj0gMHgwMTA1KQorCQkud29yZAkweDAyMGUJ
+CSMgaGVhZGVyIHZlcnNpb24gbnVtYmVyICg+PSAweDAxMDUpCiAJCQkJCSMgb3IgZWxzZSBvbGQg
+bG9hZGxpbi0xLjUgd2lsbCBmYWlsKQogCQkuZ2xvYmwgcmVhbG1vZGVfc3d0Y2gKIHJlYWxtb2Rl
+X3N3dGNoOgkud29yZAkwLCAwCQkjIGRlZmF1bHRfc3dpdGNoLCBTRVRVUFNFRwpAQCAtNTU4LDYg
+KzU1OCwxMCBAQCBwcmVmX2FkZHJlc3M6CQkucXVhZCBMT0FEX1BIWVNJQ0FMX0FERFIJIyBwcmVm
+ZXJyZWQgbG9hZCBhZGRyCiBpbml0X3NpemU6CQkubG9uZyBJTklUX1NJWkUJCSMga2VybmVsIGlu
+aXRpYWxpemF0aW9uIHNpemUKIGhhbmRvdmVyX29mZnNldDoJLmxvbmcgMAkJCSMgRmlsbGVkIGlu
+IGJ5IGJ1aWxkLmMKIAorYWNwaV9yc2RwX2FkZHI6CQkucXVhZCAwCQkJIyA2NC1iaXQgcGh5c2lj
+YWwgcG9pbnRlciB0byB0aGUKKwkJCQkJCSMgQUNQSSBSU0RQIHRhYmxlLCBhZGRlZCB3aXRoCisJ
+CQkJCQkjIHZlcnNpb24gMi4xNAorCiAjIEVuZCBvZiBzZXR1cCBoZWFkZXIgIyMjIyMjIyMjIyMj
+IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMKIAogCS5zZWN0aW9uICIu
+ZW50cnl0ZXh0IiwgImF4IgpkaWZmIC0tZ2l0IGEvYXJjaC94ODYvaW5jbHVkZS91YXBpL2FzbS9i
+b290cGFyYW0uaCBiL2FyY2gveDg2L2luY2x1ZGUvdWFwaS9hc20vYm9vdHBhcmFtLmgKaW5kZXgg
+YWZkZDVhZTBmY2M0Li41NzQyZTQzM2U5M2UgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2luY2x1ZGUv
+dWFwaS9hc20vYm9vdHBhcmFtLmgKKysrIGIvYXJjaC94ODYvaW5jbHVkZS91YXBpL2FzbS9ib290
+cGFyYW0uaApAQCAtODUsNiArODUsNyBAQCBzdHJ1Y3Qgc2V0dXBfaGVhZGVyIHsKIAlfX3U2NAlw
+cmVmX2FkZHJlc3M7CiAJX191MzIJaW5pdF9zaXplOwogCV9fdTMyCWhhbmRvdmVyX29mZnNldDsK
+KwlfX3U2NAlhY3BpX3JzZHBfYWRkcjsKIH0gX19hdHRyaWJ1dGVfXygocGFja2VkKSk7CiAKIHN0
+cnVjdCBzeXNfZGVzY190YWJsZSB7Ci0tIAoyLjEyLjMKCgpfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwgbWFpbGluZyBsaXN0Clhlbi1kZXZl
+bEBsaXN0cy54ZW5wcm9qZWN0Lm9yZwpodHRwczovL2xpc3RzLnhlbnByb2plY3Qub3JnL21haWxt
+YW4vbGlzdGluZm8veGVuLWRldmVs
