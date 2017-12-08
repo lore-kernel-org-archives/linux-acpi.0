@@ -1,115 +1,32 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH v2 2/3] x86/acpi: take rsdp address for boot params if
- available
-Date: Fri, 8 Dec 2017 09:26:55 +0100
-Message-ID: <2c4914fc-5ddd-b7e7-ef7b-90cac582122b@suse.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Re: [Xen-devel] [PATCH v2 1/3] x86/boot: add acpi rsdp address
+ to setup_header
+Date: Fri, 08 Dec 2017 01:28:44 -0700
+Message-ID: <5A2A5B4C0200007800195CDC@prv-mh.provo.novell.com>
 References: <20171207122821.30158-1-jgross@suse.com>
- <20171207122821.30158-3-jgross@suse.com>
- <20171208070505.25j6dtun555v6ofo@gmail.com>
+ <20171207122821.30158-2-jgross@suse.com>
+ <20171208071653.mzyf3ct6n6h2x37r@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171208070505.25j6dtun555v6ofo@gmail.com>
-Content-Language: de-DE
+In-Reply-To: <20171208071653.mzyf3ct6n6h2x37r@gmail.com>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
 To: Ingo Molnar <mingo@kernel.org>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+Cc: lenb@kernel.org, x86@kernel.org, tglx@linutronix.de, xen-devel@lists.xenproject.org, corbet@lwn.net, boris.ostrovsky@oracle.com, mingo@redhat.com, rjw@rjwysocki.net, Juergen Gross <jgross@suse.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, hpa@zytor.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/12/17 08:05, Ingo Molnar wrote:
-> 
-> * Juergen Gross <jgross@suse.com> wrote:
-> 
->> In case the rsdp address in struct boot_params is specified don't try
->> to find the table by searching, but take the address directly as set
->> by the boot loader.
->>
->> Signed-off-by: Juergen Gross <jgross@suse.com>
->> ---
->>  drivers/acpi/osl.c | 8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index 3bb46cb24a99..3b25e2ad7d75 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -45,6 +45,10 @@
->>  #include <linux/uaccess.h>
->>  #include <linux/io-64-nonatomic-lo-hi.h>
->>  
->> +#ifdef CONFIG_X86
->> +#include <asm/setup.h>
->> +#endif
->> +
->>  #include "internal.h"
->>  
->>  #define _COMPONENT		ACPI_OS_SERVICES
->> @@ -195,6 +199,10 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
->>  	if (acpi_rsdp)
->>  		return acpi_rsdp;
->>  #endif
->> +#ifdef CONFIG_X86
->> +	if (boot_params.hdr.acpi_rsdp_addr)
->> +		return boot_params.hdr.acpi_rsdp_addr;
->> +#endif
-> 
-> Argh, that's typical short sighted hackery, layering violations and general 
-> eyesore combined into a single patch ...
-> 
-> Those #ifdefs are a disgrace, plus why should generic ACPI code include platform 
-> details like boot_params.hdr/acpi_rsdp_addr? It's also not very extensible to 
-> non-x86 - so someone will have to redo this work for ARM64 as well in the future 
-> ...
-> 
-> So how about doing it right:
-> 
-> 1)
-> 
-> Add a __weak acpi_arch_get_root_pointer() __weak function to drivers/acpi/osl.c:
-> 
-> 
-> __weak acpi_physical_address acpi_arch_get_root_pointer(void)
-> {
-> 	return 0;
-> }
-> 
-> 2)
-> 
-> use it in acpi_os_get_root_pointer():
-> 
-> 	...
-> 	pa = acpi_arch_get_root_pointer();
-> 	if (pa)
-> 		return pa;
-> 	...
-> 
-> 3)
-> 
-> Override the default variant in x86's acpi.c via something like:
-> 
-> acpi_physical_address acpi_arch_get_root_pointer(void)
-> {
-> 	return boot_params.hdr.acpi_rsdp_addr;
-> }
-> 
-> 4)
-> 
-> Add this to arch/x86/include/asm/acpi.h:
-> 
-> extern acpi_physical_address acpi_arch_get_root_pointer(void);
-> 
-> 5)
-> 
-> Add #include <asm/acpi.h> to drivers/acpi/osl.c.
-> 
-> 
-> That looks much cleaner, has no layering violations and is infinitely more 
-> extensible, right?
+>>> On 08.12.17 at 08:16, <mingo@kernel.org> wrote:
+> Also, a more fundamental question: why doesn't Xen use EFI to hand over 
+> hardware configuration details?
 
-Right.
+Iirc the main purpose of the change here is to allow booting PVH
+(guest or Dom0) with Grub2 in the middle. PVH, at least for the
+time being, is something that gets away without any firmware
+(and I'm pretty certain this is going to remain that way for Dom0).
+ACPI tables are being built by the tool stack (guest) or hypervisor
+(Dom0). Hence there simply isn't any EFI which could be used to
+propagate such information.
 
-Thanks for the very constructive comment.
-
-
-Juergen
+Jan
