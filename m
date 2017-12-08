@@ -1,44 +1,66 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Fix indentation
-Date: Fri, 8 Dec 2017 18:06:19 +0100
-Message-ID: <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com>
-References: <1512750553-15467-1-git-send-email-gomonovych@gmail.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: Backporting patches that fix TBT at bootup
+Date: Fri, 8 Dec 2017 17:08:02 +0000
+Message-ID: <40d3442260b54dc7bb5f3d6401c776d5@ausx13mpc120.AMER.DELL.COM>
+References: <6677505e9b3347468bf639b7b14de11a@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0h4kcLz2owSBkLUAu_RT-FLqBbySKKhj7y=8A5GLo0yAw@mail.gmail.com>
+ <20171208071143.GZ22431@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1512750553-15467-1-git-send-email-gomonovych@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Vasyl Gomonovych <gomonovych@gmail.com>
-Cc: Robert Moore <robert.moore@intel.com>, Lv <lv.zheng@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from esa6.dell-outbound.iphmx.com ([68.232.149.229]:28164 "EHLO
+        esa6.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752379AbdLHRIJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 12:08:09 -0500
+In-Reply-To: <20171208071143.GZ22431@lahna.fi.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mika.westerberg@intel.com, rafael@kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On Fri, Dec 8, 2017 at 5:29 PM, Vasyl Gomonovych <gomonovych@gmail.com> wrote:
-> This patch avoids that smatch reports the following:
-> drivers/acpi/acpica/exdump.c:623 acpi_ex_dump_operand() warn: inconsistent indenting
->
-> Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
+> -----Original Message-----
+> From: Mika Westerberg [mailto:mika.westerberg@intel.com]
+> Sent: Friday, December 8, 2017 1:12 AM
+> To: Rafael J. Wysocki <rafael@kernel.org>
+> Cc: Limonciello, Mario <Mario_Limonciello@Dell.com>; ACPI Devel Maling Li=
+st
+> <linux-acpi@vger.kernel.org>
+> Subject: Re: Backporting patches that fix TBT at bootup
+>=20
+> On Fri, Dec 08, 2017 at 12:32:19AM +0100, Rafael J. Wysocki wrote:
+> > Hi,
+> >
+> > On Fri, Dec 8, 2017 at 12:23 AM,  <Mario.Limonciello@dell.com> wrote:
+> > > Hi,
+> > >
+> > > During kernel 4.14 some issues were fixed for Thunderbolt enumeration=
+ at
+> bootup.
+> > > They were referenced in an issue
+> > > (https://github.com/01org/thunderbolt-software-user-
+> space/issues/24#issuecomment-328011428)
+> > > There are 3 patches that Mika mentioned would be evaluated to be back=
+ported
+> back to 4.13.
+> > >
+> > > As 4.14 has come and gone now, I wanted to see if there was any other=
+ thoughts
+> about
+> > > bringing those back to stable now on 4.13 (or did they come back and =
+I just
+> didn't know?)
+> > >
+> > > ecc1165b8b74 ACPICA: Dispatch active GPEs at init time
+> > > 1312b7e0caca ACPICA: Make it possible to enable runtime GPEs earlier
+> > > eb7f43c4adb4 ACPI / scan: Enable GPEs before scanning the namespace
+> >
+> > I'm not aware of anything else needed at that point.
+> >
+> > Mika, should the three commits above be sufficient?
+>=20
+> Yup, those should be all that is needed and they are included in
+> stable v4.13.13.
 
-This is ACPICA code, so changes like this should go in via the upstream.
-
-Erik may want to pick this up, however.
-
-> ---
->  drivers/acpi/acpica/exdump.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
-> index 83398dc..f43d3d7 100644
-> --- a/drivers/acpi/acpica/exdump.c
-> +++ b/drivers/acpi/acpica/exdump.c
-> @@ -619,8 +619,8 @@ void acpi_ex_dump_operand(union acpi_operand_object *obj_desc, u32 depth)
->
->         ACPI_FUNCTION_NAME(ex_dump_operand)
->
-> -           /* Check if debug output enabled */
-> -           if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_EXEC, _COMPONENT)) {
-> +       /* Check if debug output enabled */
-> +       if (!ACPI_IS_DEBUG_ENABLED(ACPI_LV_EXEC, _COMPONENT)) {
->                 return;
->         }
->
-> --
+Thanks for confirming they were backported and the tag.
