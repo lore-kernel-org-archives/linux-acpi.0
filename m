@@ -1,44 +1,44 @@
 From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v3 3/4] x86/xen: fix boot loader version
-	reported for pvh guests
-Date: Fri,  8 Dec 2017 16:11:38 +0100
-Message-ID: <20171208151139.30213-4-jgross@suse.com>
-References: <20171208151139.30213-1-jgross@suse.com>
+Subject: [PATCH v3 0/4] x86: make rsdp address accessible via boot params
+Date: Fri,  8 Dec 2017 16:11:35 +0100
+Message-ID: <20171208151139.30213-1-jgross@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <20171208151139.30213-1-jgross@suse.com>
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Cc: Juergen Gross <jgross@suse.com>, corbet@lwn.net, rjw@rjwysocki.net, stable@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+Cc: boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, Juergen Gross <jgross@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-VGhlIGJvb3QgbG9hZGVyIHZlcnNpb24gcmVwb3J0ZWQgdmlhIHN5c2ZzIGlzIHdyb25nIGluIGNh
-c2Ugb2YgdGhlCmtlcm5lbCBiZWluZyBib290ZWQgdmlhIHRoZSBYZW4gUFZIIGJvb3QgZW50cnku
-IGl0IHNob3VsZCBiZSAyLjEyCigweDAyMGMpLCBidXQgaXQgaXMgcmVwb3J0ZWQgdG8gYmUgMi4x
-OCAoMHgwMjEyKS4KCkFzIHRoZSBjdXJyZW50IHdheSB0byBzZXQgdGhlIHZlcnNpb24gaXMgZXJy
-b3IgcHJvbmUgdXNlIHRoZSBtb3JlCnJlYWRhYmxlIHZhcmlhbnQgKDIgPDwgOCkgfCAxMi4KCkNj
-OiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyA0LjEyClNpZ25lZC1vZmYtYnk6IEp1ZXJnZW4g
-R3Jvc3MgPGpncm9zc0BzdXNlLmNvbT4KLS0tCiBhcmNoL3g4Ni94ZW4vZW5saWdodGVuX3B2aC5j
-IHwgMiArLQogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspLCAxIGRlbGV0aW9uKC0pCgpk
-aWZmIC0tZ2l0IGEvYXJjaC94ODYveGVuL2VubGlnaHRlbl9wdmguYyBiL2FyY2gveDg2L3hlbi9l
-bmxpZ2h0ZW5fcHZoLmMKaW5kZXggNDM2YzRmMDAzZTE3Li42ZTY0MzBjYjVlM2YgMTAwNjQ0Ci0t
-LSBhL2FyY2gveDg2L3hlbi9lbmxpZ2h0ZW5fcHZoLmMKKysrIGIvYXJjaC94ODYveGVuL2VubGln
-aHRlbl9wdmguYwpAQCAtNjksNyArNjksNyBAQCBzdGF0aWMgdm9pZCBfX2luaXQgaW5pdF9wdmhf
-Ym9vdHBhcmFtcyh2b2lkKQogCSAqIFZlcnNpb24gMi4xMiBzdXBwb3J0cyBYZW4gZW50cnkgcG9p
-bnQgYnV0IHdlIHdpbGwgdXNlIGRlZmF1bHQgeDg2L1BDCiAJICogZW52aXJvbm1lbnQgKGkuZS4g
-aGFyZHdhcmVfc3ViYXJjaCAwKS4KIAkgKi8KLQlwdmhfYm9vdHBhcmFtcy5oZHIudmVyc2lvbiA9
-IDB4MjEyOworCXB2aF9ib290cGFyYW1zLmhkci52ZXJzaW9uID0gKDIgPDwgOCkgfCAxMjsKIAlw
-dmhfYm9vdHBhcmFtcy5oZHIudHlwZV9vZl9sb2FkZXIgPSAoOSA8PCA0KSB8IDA7IC8qIFhlbiBs
-b2FkZXIgKi8KIH0KIAotLSAKMi4xMi4zCgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMu
-eGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL3hlbi1kZXZlbA==
+In the non-EFI boot path the ACPI RSDP table is currently found via
+either EBDA or by searching through low memory for the RSDP magic.
+This requires the RSDP to be located in the first 1MB of physical
+memory. Xen PVH guests, however, get the RSDP address via the start of
+day information block.
+
+In order to support an arbitrary RSDP address this patch series adds
+the physical address of the RSDP to the boot params structure filled
+by the boot loader. A kernel booted directly in PVH mode can save the
+RSDP address in the boot params, while a kernel booted in PVH mode via
+grub can rely on the RSDP address being specified by grub2 (which in
+turn got the address via the start of day information block from Xen).
+
+
+Juergen Gross (4):
+  x86/boot: add acpi rsdp address to setup_header
+  x86/acpi: take rsdp address for boot params if available
+  x86/xen: fix boot loader version reported for pvh guests
+  x86/xen: supply rsdp address in boot params for pvh guests
+
+ Documentation/x86/boot.txt            | 19 +++++++++++++++++++
+ arch/x86/boot/header.S                |  6 +++++-
+ arch/x86/include/uapi/asm/bootparam.h |  1 +
+ arch/x86/kernel/acpi/boot.c           |  7 +++++++
+ arch/x86/xen/enlighten_pvh.c          |  5 ++++-
+ drivers/acpi/osl.c                    | 10 +++++++++-
+ include/linux/acpi.h                  |  2 ++
+ 7 files changed, 47 insertions(+), 3 deletions(-)
+
+-- 
+2.12.3
