@@ -1,109 +1,119 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH 1/2] acpi, spcr: Make SPCR avialable to other
- architectures
-Date: Fri, 8 Dec 2017 14:42:14 -0500
-Message-ID: <848618dd-86ad-85aa-b7f4-fa700ccf63c3@redhat.com>
-References: <20171207172912.17868-1-prarit@redhat.com>
- <20171207172912.17868-2-prarit@redhat.com>
- <CAOZdJXV4E6gu=Ed6nOCcEp2afe_g8Ot-H5oO5=6+ye51cv9hUg@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PM / sleep: Avoid excess pm_runtime_enable() calls in
+ device_resume()
+Date: Fri, 8 Dec 2017 14:25:56 -0600
+Message-ID: <20171208202556.GD12367@bhelgaas-glaptop.roam.corp.google.com>
+References: <3600031.yTsliOITBg@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39316 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752833AbdLHTmV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 8 Dec 2017 14:42:21 -0500
-In-Reply-To: <CAOZdJXV4E6gu=Ed6nOCcEp2afe_g8Ot-H5oO5=6+ye51cv9hUg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <3600031.yTsliOITBg@aspire.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Ulf Hansson <ulf.hansson@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, the arch/x86 maintainers <x86@kernel.org>, linux-pm@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Bhupesh Sharma <bhsharma@redhat.com>, linux-doc@vger.kernel.org, Will Deacon <will.deacon@arm.com>, lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, linux-serial@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jeffrey Hugo <jhugo@codeaurora.org>
 
+On Thu, Dec 07, 2017 at 03:26:14AM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Middle-layer code doing suspend-time optimizations for devices with
+> the DPM_FLAG_SMART_SUSPEND flag set (currently, the PCI bus type and
+> the ACPI PM domain) needs to make the core skip ->thaw_early and
+> ->thaw callbacks for those devices in some cases and it sets the
+> power.direct_complete flag for them for this purpose.
+> 
+> However, it turns out that setting power.direct_complete outside of
+> the PM core is a bad idea as it triggers an excessive invocation of
+> pm_runtime_enable() in device_resume().
+> 
+> For this reason, provide a helper to clear power.is_late_suspended
+> and power.is_suspended to be invoked by the middle-layer code in
+> question instead of setting power.direct_complete and make that code
+> call the new helper.
+> 
+> Fixes: c4b65157aeef (PCI / PM: Take SMART_SUSPEND driver flag into account)
+> Fixes: 05087360fd7a (ACPI / PM: Take SMART_SUSPEND driver flag into account)
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-On 12/07/2017 01:43 PM, Timur Tabi wrote:
-> On Thu, Dec 7, 2017 at 11:29 AM, Prarit Bhargava <prarit@redhat.com> wrote:
->> Other architectures can use SPCR to setup an early console or console but
->> the current code is ARM64 specific.
->>
->> Change the name of parse_spcr() to acpi_parse_spcr().  Add a weak
->> function acpi_arch_setup_console() that can be used for arch-specific
->> setup.  Move SPCR initialization flag into ACPI code.  Update the
->> Documention on the use of the SPCR earlycon.
->>
->> This patch does not change arm64 behaviour.
-> 
-> Let's hope so.  Our E44 erratum work-around has caused lots of
-> problems in the past, so the code is a bit fragile.
+I don't pretend to understand this (and I don't need to, so don't
+waste your time explaining), but I trust you :)
 
-So it does look like I broke something :(  I'll fix this and do more testing.
-One thing that I just learned (relative to x86) is that you have to test much
-further and wider than on x86.
-
-P.
-
+> ---
+>  drivers/acpi/device_pm.c  |    2 +-
+>  drivers/base/power/main.c |   15 +++++++++++++++
+>  drivers/pci/pci-driver.c  |    2 +-
+>  include/linux/pm.h        |    1 +
+>  4 files changed, 18 insertions(+), 2 deletions(-)
 > 
->> +static bool qdf2400_erratum_44_present(struct acpi_table_header *h)
->> +{
->> +       if (memcmp(h->oem_id, "QCOM  ", ACPI_OEM_ID_SIZE))
->> +               return false;
->> +
->> +       if (!memcmp(h->oem_table_id, "QDF2432 ", ACPI_OEM_TABLE_ID_SIZE))
->> +               return true;
->> +
->> +       if (!memcmp(h->oem_table_id, "QDF2400 ", ACPI_OEM_TABLE_ID_SIZE) &&
->> +                       h->oem_revision == 1)
->> +               return true;
->> +
->> +       return false;
->> +}
+> Index: linux-pm/include/linux/pm.h
+> ===================================================================
+> --- linux-pm.orig/include/linux/pm.h
+> +++ linux-pm/include/linux/pm.h
+> @@ -765,6 +765,7 @@ extern int pm_generic_poweroff_late(stru
+>  extern int pm_generic_poweroff(struct device *dev);
+>  extern void pm_generic_complete(struct device *dev);
+>  
+> +extern void dev_pm_skip_next_resume_phases(struct device *dev);
+>  extern bool dev_pm_smart_suspend_and_suspended(struct device *dev);
+>  
+>  #else /* !CONFIG_PM_SLEEP */
+> Index: linux-pm/drivers/base/power/main.c
+> ===================================================================
+> --- linux-pm.orig/drivers/base/power/main.c
+> +++ linux-pm/drivers/base/power/main.c
+> @@ -526,6 +526,21 @@ static void dpm_watchdog_clear(struct dp
+>  /*------------------------- Resume routines -------------------------*/
+>  
+>  /**
+> + * dev_pm_skip_next_resume_phases - Skip next system resume phases for device.
+> + * @dev: Target device.
+> + *
+> + * Make the core skip the "early resume" and "resume" phases for @dev.
+> + *
+> + * This function can be called by middle-layer code during the "noirq" phase of
+> + * system resume if necessary, but not by device drivers.
+> + */
+> +void dev_pm_skip_next_resume_phases(struct device *dev)
+> +{
+> +	dev->power.is_late_suspended = false;
+> +	dev->power.is_suspended = false;
+> +}
+> +
+> +/**
+>   * device_resume_noirq - Execute a "noirq resume" callback for given device.
+>   * @dev: Device to handle.
+>   * @state: PM transition of the system being carried out.
+> Index: linux-pm/drivers/pci/pci-driver.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-driver.c
+> +++ linux-pm/drivers/pci/pci-driver.c
+> @@ -999,7 +999,7 @@ static int pci_pm_thaw_noirq(struct devi
+>  	 * the subsequent "thaw" callbacks for the device.
+>  	 */
+>  	if (dev_pm_smart_suspend_and_suspended(dev)) {
+> -		dev->power.direct_complete = true;
+> +		dev_pm_skip_next_resume_phases(dev);
+>  		return 0;
+>  	}
+>  
+> Index: linux-pm/drivers/acpi/device_pm.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/device_pm.c
+> +++ linux-pm/drivers/acpi/device_pm.c
+> @@ -1138,7 +1138,7 @@ int acpi_subsys_thaw_noirq(struct device
+>  	 * skip all of the subsequent "thaw" callbacks for the device.
+>  	 */
+>  	if (dev_pm_smart_suspend_and_suspended(dev)) {
+> -		dev->power.direct_complete = true;
+> +		dev_pm_skip_next_resume_phases(dev);
+>  		return 0;
+>  	}
+>  
 > 
-> Please give us a chance to test this patch before merging. We've had a
-> lot of problems with our E44 work-around, and we need to make sure
-> that qdf2400_erratum_44_present function is called before the pl011
-> driver is probed.
-> 
->> +
->> +/*
->> + * APM X-Gene v1 and v2 UART hardware is an 16550 like device but has its
->> + * register aligned to 32-bit. In addition, the BIOS also encoded the
->> + * access width to be 8 bits. This function detects this errata condition.
->> + */
->> +static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
->> +{
->> +       bool xgene_8250 = false;
->> +
->> +       if (tb->interface_type != ACPI_DBG2_16550_COMPATIBLE)
->> +               return false;
->> +
->> +       if (memcmp(tb->header.oem_id, "APMC0D", ACPI_OEM_ID_SIZE) &&
->> +           memcmp(tb->header.oem_id, "HPE   ", ACPI_OEM_ID_SIZE))
->> +               return false;
->> +
->> +       if (!memcmp(tb->header.oem_table_id, "XGENESPC",
->> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 0)
->> +               xgene_8250 = true;
->> +
->> +       if (!memcmp(tb->header.oem_table_id, "ProLiant",
->> +           ACPI_OEM_TABLE_ID_SIZE) && tb->header.oem_revision == 1)
->> +               xgene_8250 = true;
->> +
->> +       return xgene_8250;
->> +}
-> 
-> I suspect that this function has the same issues as
-> qdf2400_erratum_44_present().
-> 
->> +config ACPI_SPCR_TABLE
->> +       bool "ACPI Serial Port Console Redirection Support"
->> +       default y if ARM64
->> +       help
->> +         Enable support for Serial Port Console Redirection (SPCR) Table.
->> +         This table provides information about the configuration of the
->> +         earlycon console.
->> +
-> 
-> So ACPI without SPCR has never been tested by us.  Making it optional
-> makes me a little nervous.  We'll have to evaluate this change.
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
