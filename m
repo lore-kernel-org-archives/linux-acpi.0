@@ -1,67 +1,60 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v2 3/3] x86/xen: supply rsdp address in boot params for
- pvh guests
-Date: Fri, 8 Dec 2017 08:22:16 +0100
-Message-ID: <20171208072216.nkexmwnbzin4iwmf@gmail.com>
-References: <20171207122821.30158-1-jgross@suse.com>
- <20171207122821.30158-4-jgross@suse.com>
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
+Subject: Re: [PATCH V6 4/7] OF: properties: Implement get_match_data()
+ callback
+Date: Fri, 8 Dec 2017 09:09:26 +0100
+Message-ID: <20171208090926.2fb362ef@karo-electronics.de>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+        <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
+        <20171207141029.575c0a03@karo-electronics.de>
+        <def8e351-bc2d-7adc-fdc5-362b365302a8@codeaurora.org>
+        <20171207162036.6a71a4f5@karo-electronics.de>
+        <661cbe4d-ea33-3e84-b5f2-ab6517cbb135@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:47082 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751116AbdLHHWU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 02:22:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20171207122821.30158-4-jgross@suse.com>
+Received: from smtprelay08.ispgateway.de ([134.119.228.108]:23695 "EHLO
+        smtprelay08.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750944AbdLHIJb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 03:09:31 -0500
+In-Reply-To: <661cbe4d-ea33-3e84-b5f2-ab6517cbb135@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, open list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, dmaengine@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-arm-kernel@lists.infradead.org
 
+Hi,
 
-* Juergen Gross <jgross@suse.com> wrote:
-
-> When booted via the special PVH entry save the RSDP address set in the
-> boot information block in struct boot_params. This will enable Xen to
-> locate the RSDP at an arbitrary address.
+On Thu, 7 Dec 2017 12:50:50 -0500 Sinan Kaya wrote:
+> On 12/7/2017 10:20 AM, Lothar Waßmann wrote:
+> > Hi,
+> > 
+> > On Thu, 7 Dec 2017 09:45:31 -0500 Sinan Kaya wrote:
+> >> On 12/7/2017 8:10 AM, Lothar Waßmann wrote:
+> >>>> +void *of_fwnode_get_match_data(const struct fwnode_handle *fwnode,
+> >>>> +			       struct device *dev)
+> >>> Shouldn't this be 'const void *of_fwnode_get_match_data
+> >>
+> >> OF keeps the driver data as a (const void*) internally. ACPI keeps the
+> >> driver data as kernel_ulong_t in struct acpi_device_id.
+> >>
+> >> I tried to find the middle ground here by converting output to void*
+> >> but not keeping const.
+> >>
+> > It should be no problem to cast a (const void *) to an unsigned long
+> > data type (without const qualifier).
+> > 
 > 
-> Set the boot loader version to 2.14 (0x020e) replacing the wrong 0x0212
-> which should have been 0x020c.
+> It is the other way around. If I change this API to return a a (const void*),
+> the device_get_match_data() function need to return a (const void *).
 > 
-> Signed-off-by: Juergen Gross <jgross@suse.com>
-> ---
-> V2: set bootloader version to 2.14 (Roger Pau Monn�)
-> ---
->  arch/x86/xen/enlighten_pvh.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
+> While implementing the ACPI piece, I have to convert an unsigned long to
+> (const void *) in ACPI code so that the APIs are compatible.
 > 
-> diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
-> index 436c4f003e17..036e3a5f284a 100644
-> --- a/arch/x86/xen/enlighten_pvh.c
-> +++ b/arch/x86/xen/enlighten_pvh.c
-> @@ -68,9 +68,12 @@ static void __init init_pvh_bootparams(void)
->  	 *
->  	 * Version 2.12 supports Xen entry point but we will use default x86/PC
->  	 * environment (i.e. hardware_subarch 0).
-> +	 * The RSDP address is available from version 2.14 on.
->  	 */
-> -	pvh_bootparams.hdr.version = 0x212;
-> +	pvh_bootparams.hdr.version = 0x20e;
+That's true, but I don't see any problem with that. Your
+device_get_match_data() is merely a wrapper around of_device_get_match_data()
+which returns a const pointer. I see no reason to change this to a
+non-const pointer by the wrapper function.
 
-While 0x212 was "obvious" to read but totally wrong, it would be less fragile and 
-more readable if the version was generated as something like:
 
-	pvh_bootparams.hdr.version = (2 << 8) | 14;
-
-similar to how it's written in other cases:
-
->  	pvh_bootparams.hdr.type_of_loader = (9 << 4) | 0; /* Xen loader */
-
-Also, shouldn't the 0x212 fix be a separate patch, Cc: stable? The bug appears to 
-have been introduced at around v4.12.
-
-Thanks,
-
-	Ingo
+Lothar Waßmann
