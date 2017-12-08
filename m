@@ -1,159 +1,79 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V3] ACPI / GED: unregister interrupts during shutdown
-Date: Fri, 8 Dec 2017 14:54:08 +0100
-Message-ID: <CAJZ5v0iqXz-zBb5Lg_f1FU54-H5hiWcfg-1Qa3hDdbUz=hZD0g@mail.gmail.com>
-References: <1512708033-28180-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI / PM: Do not reconfigure GPEs for suspend-to-idle
+Date: Fri, 8 Dec 2017 15:29:07 +0100
+Message-ID: <CAJZ5v0jhviHiij0EidmKZpWpCNJOwM6_=WQX-1=Rok2PVr_vZw@mail.gmail.com>
+References: <1563861.ZpJ5HHSL6q@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:38712 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753523AbdLHNyK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 08:54:10 -0500
-In-Reply-To: <1512708033-28180-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1563861.ZpJ5HHSL6q@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Dec 8, 2017 at 5:40 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Some GED interrupts could be pending by the time we are doing a reboot.
+On Thu, Dec 7, 2017 at 3:27 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> Even though GED driver uses devm_request_irq() to register the interrupt
-> handler, the handler is not being freed on time during a shutdown since
-> the driver is missing a shutdown callback.
+> Currently, non-wakeup GPEs are disabled on suspend-to-idle
+> entry to avoid spurious wakeups, but that should not be strictly
+> necessary any more after commit 33e4f80ee69b (ACPI / PM: Ignore
+> spurious SCI wakeups from suspend-to-idle) which prevents spurious
+> GPE wakeups from resuming the system.  The only consequence of
+> leaving non-wakeup GPEs enabled may be more interrupt-related
+> activity while suspended, which is not ideal (more energy is
+> used if that happens), but it is not critical too.
 >
-> If the ACPI handler is no longer available, this causes an interrupt
-> storm and delays shutdown.
+> On the other hand, this change allows Dells XPS13 9360 blacklisted by
+> commit 71630b7a832f (ACPI / PM: Blacklist Low Power S0 Idle _DSM for
+> Dell XPS13 9360) to use the power button for waking up from suspend-
+> to-idle and it helps at least one other older Dell system (the
+> wakeup button GPE on that one is not listed in _PRW for any
+> devices, so it is not regarded as a wakeup one and gets disabled
+> on suspend-to-idle entry today).
 >
-> 1. Don't use devm family of functions for IRQ registration/free
-> 2. Keep track of the events since free_irq() requires the dev_id parameter
-> passed into the request_irq() function.
-> 3. Call free_irq() on both remove and shutdown explicitly.
+> For the above reasons, leave GPE configuration as is over
+> suspend-to-idle on all systems.
 >
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->  drivers/acpi/evged.c | 55 ++++++++++++++++++++++++++++++++++++++++++++++------
->  1 file changed, 49 insertions(+), 6 deletions(-)
+>  drivers/acpi/sleep.c |   11 +----------
+>  1 file changed, 1 insertion(+), 10 deletions(-)
 >
-> diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-> index 46f0603..38cb00e 100644
-> --- a/drivers/acpi/evged.c
-> +++ b/drivers/acpi/evged.c
-> @@ -49,6 +49,11 @@
->
->  #define MODULE_NAME    "acpi-ged"
->
-> +struct acpi_ged_device {
-> +       struct device *dev;
-> +       struct list_head event_list;
-> +};
+> Index: linux-pm/drivers/acpi/sleep.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/sleep.c
+> +++ linux-pm/drivers/acpi/sleep.c
+> @@ -951,15 +951,8 @@ static int acpi_s2idle_prepare(void)
+>         if (lps0_device_handle) {
+>                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_OFF);
+>                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_ENTRY);
+> -       } else {
+> -               /*
+> -                * The configuration of GPEs is changed here to avoid spurious
+> -                * wakeups, but that should not be necessary if this is a
+> -                * "low-power S0" platform and the low-power S0 _DSM is present.
+> -                */
+> -               acpi_enable_all_wakeup_gpes();
+> -               acpi_os_wait_events_complete();
+>         }
 > +
->  struct acpi_ged_event {
->         struct list_head node;
->         struct device *dev;
-> @@ -76,7 +81,8 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
->         unsigned int irq;
->         unsigned int gsi;
->         unsigned int irqflags = IRQF_ONESHOT;
-> -       struct device *dev = context;
-> +       struct acpi_ged_device *geddev = context;
-> +       struct device *dev = geddev->dev;
->         acpi_handle handle = ACPI_HANDLE(dev);
->         acpi_handle evt_handle;
->         struct resource r;
-> @@ -102,8 +108,6 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
->                 return AE_ERROR;
+>         if (acpi_sci_irq_valid())
+>                 enable_irq_wake(acpi_sci_irq);
+>
+> @@ -1005,8 +998,6 @@ static void acpi_s2idle_restore(void)
+>         if (lps0_device_handle) {
+>                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
+>                 acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
+> -       } else {
+> -               acpi_enable_all_runtime_gpes();
 >         }
->
-> -       dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
-> -
->         event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
->         if (!event)
->                 return AE_ERROR;
-> @@ -116,26 +120,63 @@ static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
->         if (r.flags & IORESOURCE_IRQ_SHAREABLE)
->                 irqflags |= IRQF_SHARED;
->
-> -       if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
-> -                                     irqflags, "ACPI:Ged", event)) {
-> +       if (request_threaded_irq(irq, NULL, acpi_ged_irq_handler,
-> +                                irqflags, "ACPI:Ged", event)) {
->                 dev_err(dev, "failed to setup event handler for irq %u\n", irq);
->                 return AE_ERROR;
->         }
->
-> +       dev_dbg(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
-> +       list_add_tail(&event->node, &geddev->event_list);
->         return AE_OK;
 >  }
 >
->  static int ged_probe(struct platform_device *pdev)
->  {
-> +       struct acpi_ged_device *geddev;
->         acpi_status acpi_ret;
->
-> +       geddev = devm_kzalloc(&pdev->dev, sizeof(*geddev), GFP_KERNEL);
-> +       if (!geddev)
-> +               return -ENOMEM;
-> +
-> +       geddev->dev = &pdev->dev;
-> +       INIT_LIST_HEAD(&geddev->event_list);
->         acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
-> -                                      acpi_ged_request_interrupt, &pdev->dev);
-> +                                      acpi_ged_request_interrupt, geddev);
->         if (ACPI_FAILURE(acpi_ret)) {
->                 dev_err(&pdev->dev, "unable to parse the _CRS record\n");
->                 return -EINVAL;
->         }
-> +       platform_set_drvdata(pdev, geddev);
-> +
-> +       return 0;
-> +}
-> +
-> +static void ged_cleanup_irq(struct acpi_ged_device *geddev)
-> +{
-> +       struct acpi_ged_event *event, *next;
-> +
-> +       list_for_each_entry_safe(event, next, &geddev->event_list, node) {
-> +               free_irq(event->irq, event);
-> +               list_del(&event->node);
-> +               dev_dbg(geddev->dev, "GED releasing GSI %u @ IRQ %u\n",
-> +                        event->gsi, event->irq);
-> +       }
-> +}
-> +
-> +static void ged_shutdown(struct platform_device *pdev)
-> +{
-> +       struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
-> +
-> +       ged_cleanup_irq(geddev);
-> +}
-> +
-> +static int ged_remove(struct platform_device *pdev)
-> +{
-> +       struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
->
-> +       ged_cleanup_irq(geddev);
 
-Do you really need this duplication?  You may as well call
-ged_shutdown() from here.
+I have to withdraw this as it leads to a regression on one of my test machines.
 
-And the local variable is redundant too.
+That is unexpected, so I need to investigate what's going on in there.
 
-I guess it would be better to just fold ged_cleanup_irq() into
-ged_shutdown() and call that from ged_remove().
-
->         return 0;
->  }
->
-> @@ -146,6 +187,8 @@ static int ged_probe(struct platform_device *pdev)
->
->  static struct platform_driver ged_driver = {
->         .probe = ged_probe,
-> +       .remove = ged_remove,
-> +       .shutdown = ged_shutdown,
->         .driver = {
->                 .name = MODULE_NAME,
->                 .acpi_match_table = ACPI_PTR(ged_acpi_ids),
-> --
+Thanks,
+Rafael
