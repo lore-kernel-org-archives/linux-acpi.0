@@ -1,93 +1,105 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v3 1/4] x86/boot: add acpi rsdp address to
-	setup_header
-Date: Fri,  8 Dec 2017 16:11:36 +0100
-Message-ID: <20171208151139.30213-2-jgross@suse.com>
-References: <20171208151139.30213-1-jgross@suse.com>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: Re: [PATCH 0/2] acpi, x86: Add SPCR table support
+Date: Fri, 8 Dec 2017 08:31:53 -0700
+Message-ID: <bd727a15-c697-741f-864b-8b48b8e5e272@codeaurora.org>
+References: <20171207172912.17868-1-prarit@redhat.com>
+ <20171208062925.64ov23u7oxmdfzyk@gmail.com>
+ <f078ada7-1e30-41cc-28dc-077ed2a5986d@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <20171208151139.30213-1-jgross@suse.com>
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Cc: Juergen Gross <jgross@suse.com>, corbet@lwn.net, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:47260 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753921AbdLHPb5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 10:31:57 -0500
+In-Reply-To: <f078ada7-1e30-41cc-28dc-077ed2a5986d@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>, Ingo Molnar <mingo@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, linux-pm@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Bhupesh Sharma <bhsharma@redhat.com>, linux-doc@vger.kernel.org, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, linux-serial@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org
 
-WGVuIFBWSCBndWVzdHMgcmVjZWl2ZSB0aGUgYWRkcmVzcyBvZiB0aGUgUlNEUCB0YWJsZSBmcm9t
-IFhlbi4gSW4gb3JkZXIKdG8gc3VwcG9ydCBib290aW5nIGEgWGVuIFBWSCBndWVzdCB2aWEgR3J1
-YjIgdXNpbmcgdGhlIHN0YW5kYXJkIHg4Ngpib290IGVudHJ5IHdlIG5lZWQgYSB3YXkgZm9yIEdy
-dWIyIHRvIHBhc3MgdGhlIFJTRFAgYWRkcmVzcyB0byB0aGUKa2VybmVsLgoKRm9yIHRoaXMgcHVy
-cG9zZSBleHBhbmQgdGhlIHN0cnVjdCBzZXR1cF9oZWFkZXIgdG8gaG9sZCB0aGUgcGh5c2ljYWwK
-YWRkcmVzcyBvZiB0aGUgUlNEUCBhZGRyZXNzLiBCZWluZyB6ZXJvIG1lYW5zIGl0IGlzbid0IHNw
-ZWNpZmllZCBhbmQKaGFzIHRvIGJlIGxvY2F0ZWQgdGhlIGxlZ2FjeSB3YXkgKHNlYXJjaGluZyB0
-aHJvdWdoIGxvdyBtZW1vcnkgb3IKRUJEQSkuCgpXaGlsZSBkb2N1bWVudGluZyB0aGUgbmV3IHNl
-dHVwX2hlYWRlciBsYXlvdXQgYW5kIHByb3RvY29sIHZlcnNpb24KMi4xNCBhZGQgdGhlIG1pc3Np
-bmcgZG9jdW1lbnRhdGlvbiBvZiBwcm90b2NvbCB2ZXJzaW9uIDIuMTMuCgpTaWduZWQtb2ZmLWJ5
-OiBKdWVyZ2VuIEdyb3NzIDxqZ3Jvc3NAc3VzZS5jb20+ClJldmlld2VkLWJ5OiBSb2dlciBQYXUg
-TW9ubsOpIDxyb2dlci5wYXVAY2l0cml4LmNvbT4KLS0tClYzOiBmaXggY29tbWl0IG1lc3NhZ2Ug
-YW5kIHNvbWUgZG9jdW1lbnRhdGlvbiBiaXRzIChJbmdvIE1vbG5hcikKLS0tCiBEb2N1bWVudGF0
-aW9uL3g4Ni9ib290LnR4dCAgICAgICAgICAgIHwgMTkgKysrKysrKysrKysrKysrKysrKwogYXJj
-aC94ODYvYm9vdC9oZWFkZXIuUyAgICAgICAgICAgICAgICB8ICA2ICsrKysrLQogYXJjaC94ODYv
-aW5jbHVkZS91YXBpL2FzbS9ib290cGFyYW0uaCB8ICAxICsKIDMgZmlsZXMgY2hhbmdlZCwgMjUg
-aW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL0RvY3VtZW50YXRpb24v
-eDg2L2Jvb3QudHh0IGIvRG9jdW1lbnRhdGlvbi94ODYvYm9vdC50eHQKaW5kZXggNWU5YjgyNmI1
-ZjYyLi5jZWMxMTI5MDljMzUgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24veDg2L2Jvb3QudHh0
-CisrKyBiL0RvY3VtZW50YXRpb24veDg2L2Jvb3QudHh0CkBAIC02MSw2ICs2MSwxMyBAQCBQcm90
-b2NvbCAyLjEyOgkoS2VybmVsIDMuOCkgQWRkZWQgdGhlIHhsb2FkZmxhZ3MgZmllbGQgYW5kIGV4
-dGVuc2lvbiBmaWVsZHMKIAkgCXRvIHN0cnVjdCBib290X3BhcmFtcyBmb3IgbG9hZGluZyBieklt
-YWdlIGFuZCByYW1kaXNrCiAJCWFib3ZlIDRHIGluIDY0Yml0LgogCitQcm90b2NvbCAyLjEzOgko
-S2VybmVsIDMuMTQpIFN1cHBvcnQgMzItIGFuZCA2NC1iaXQgZmxhZ3MgYmVpbmcgc2V0IGluCisJ
-CXhsb2FkZmxhZ3MgdG8gc3VwcG9ydCBib290aW5nIGEgNjQtYml0IGtlcm5lbCBmcm9tIDMyLWJp
-dAorCQlFRkkKKworUHJvdG9jb2wgMi4xNAkoS2VybmVsIDQuMTYpIEFkZGVkIGFjcGlfcnNkcF9h
-ZGRyIGhvbGRpbmcgdGhlIHBoeXNpY2FsCisJCWFkZHJlc3Mgb2YgdGhlIEFDUEkgUlNEUCB0YWJs
-ZS4KKwogKioqKiBNRU1PUlkgTEFZT1VUCiAKIFRoZSB0cmFkaXRpb25hbCBtZW1vcnkgbWFwIGZv
-ciB0aGUga2VybmVsIGxvYWRlciwgdXNlZCBmb3IgSW1hZ2Ugb3IKQEAgLTE5Nyw2ICsyMDQsNyBA
-QCBPZmZzZXQJUHJvdG8JTmFtZQkJTWVhbmluZwogMDI1OC84CTIuMTArCXByZWZfYWRkcmVzcwlQ
-cmVmZXJyZWQgbG9hZGluZyBhZGRyZXNzCiAwMjYwLzQJMi4xMCsJaW5pdF9zaXplCUxpbmVhciBt
-ZW1vcnkgcmVxdWlyZWQgZHVyaW5nIGluaXRpYWxpemF0aW9uCiAwMjY0LzQJMi4xMSsJaGFuZG92
-ZXJfb2Zmc2V0CU9mZnNldCBvZiBoYW5kb3ZlciBlbnRyeSBwb2ludAorMDI2OC84CTIuMTQrCWFj
-cGlfcnNkcF9hZGRyCVBoeXNpY2FsIGFkZHJlc3Mgb2YgUlNEUCB0YWJsZQogCiAoMSkgRm9yIGJh
-Y2t3YXJkcyBjb21wYXRpYmlsaXR5LCBpZiB0aGUgc2V0dXBfc2VjdHMgZmllbGQgY29udGFpbnMg
-MCwgdGhlCiAgICAgcmVhbCB2YWx1ZSBpcyA0LgpAQCAtNzQ0LDYgKzc1MiwxNyBAQCBPZmZzZXQv
-c2l6ZToJMHgyNjQvNAogCiAgIFNlZSBFRkkgSEFORE9WRVIgUFJPVE9DT0wgYmVsb3cgZm9yIG1v
-cmUgZGV0YWlscy4KIAorRmllbGQgbmFtZToJYWNwaV9yc2RwX2FkZHIKK1R5cGU6CQl3cml0ZQor
-T2Zmc2V0L3NpemU6CTB4MjY4LzgKK1Byb3RvY29sOgkyLjE0KworCisgIFRoaXMgZmllbGQgY2Fu
-IGJlIHNldCBieSB0aGUgYm9vdCBsb2FkZXIgdG8gdGVsbCB0aGUga2VybmVsIHRoZQorICBwaHlz
-aWNhbCBhZGRyZXNzIG9mIHRoZSBBQ1BJIFJTRFAgdGFibGUuCisKKyAgQSB2YWx1ZSBvZiAwIGlu
-ZGljYXRlcyB0aGUga2VybmVsIHNob3VsZCBmYWxsIGJhY2sgdG8gdGhlIHN0YW5kYXJkCisgIG1l
-dGhvZHMgdG8gbG9jYXRlIHRoZSBSU0RQLgorCiAKICoqKiogVEhFIElNQUdFIENIRUNLU1VNCiAK
-ZGlmZiAtLWdpdCBhL2FyY2gveDg2L2Jvb3QvaGVhZGVyLlMgYi9hcmNoL3g4Ni9ib290L2hlYWRl
-ci5TCmluZGV4IDg1MGI4NzYyZTg4OS4uNGM4ODFjODUwMTI1IDEwMDY0NAotLS0gYS9hcmNoL3g4
-Ni9ib290L2hlYWRlci5TCisrKyBiL2FyY2gveDg2L2Jvb3QvaGVhZGVyLlMKQEAgLTMwMCw3ICsz
-MDAsNyBAQCBfc3RhcnQ6CiAJIyBQYXJ0IDIgb2YgdGhlIGhlYWRlciwgZnJvbSB0aGUgb2xkIHNl
-dHVwLlMKIAogCQkuYXNjaWkJIkhkclMiCQkjIGhlYWRlciBzaWduYXR1cmUKLQkJLndvcmQJMHgw
-MjBkCQkjIGhlYWRlciB2ZXJzaW9uIG51bWJlciAoPj0gMHgwMTA1KQorCQkud29yZAkweDAyMGUJ
-CSMgaGVhZGVyIHZlcnNpb24gbnVtYmVyICg+PSAweDAxMDUpCiAJCQkJCSMgb3IgZWxzZSBvbGQg
-bG9hZGxpbi0xLjUgd2lsbCBmYWlsKQogCQkuZ2xvYmwgcmVhbG1vZGVfc3d0Y2gKIHJlYWxtb2Rl
-X3N3dGNoOgkud29yZAkwLCAwCQkjIGRlZmF1bHRfc3dpdGNoLCBTRVRVUFNFRwpAQCAtNTU4LDYg
-KzU1OCwxMCBAQCBwcmVmX2FkZHJlc3M6CQkucXVhZCBMT0FEX1BIWVNJQ0FMX0FERFIJIyBwcmVm
-ZXJyZWQgbG9hZCBhZGRyCiBpbml0X3NpemU6CQkubG9uZyBJTklUX1NJWkUJCSMga2VybmVsIGlu
-aXRpYWxpemF0aW9uIHNpemUKIGhhbmRvdmVyX29mZnNldDoJLmxvbmcgMAkJCSMgRmlsbGVkIGlu
-IGJ5IGJ1aWxkLmMKIAorYWNwaV9yc2RwX2FkZHI6CQkucXVhZCAwCQkJIyA2NC1iaXQgcGh5c2lj
-YWwgcG9pbnRlciB0byB0aGUKKwkJCQkJCSMgQUNQSSBSU0RQIHRhYmxlLCBhZGRlZCB3aXRoCisJ
-CQkJCQkjIHZlcnNpb24gMi4xNAorCiAjIEVuZCBvZiBzZXR1cCBoZWFkZXIgIyMjIyMjIyMjIyMj
-IyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMKIAogCS5zZWN0aW9uICIu
-ZW50cnl0ZXh0IiwgImF4IgpkaWZmIC0tZ2l0IGEvYXJjaC94ODYvaW5jbHVkZS91YXBpL2FzbS9i
-b290cGFyYW0uaCBiL2FyY2gveDg2L2luY2x1ZGUvdWFwaS9hc20vYm9vdHBhcmFtLmgKaW5kZXgg
-YWZkZDVhZTBmY2M0Li41NzQyZTQzM2U5M2UgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2luY2x1ZGUv
-dWFwaS9hc20vYm9vdHBhcmFtLmgKKysrIGIvYXJjaC94ODYvaW5jbHVkZS91YXBpL2FzbS9ib290
-cGFyYW0uaApAQCAtODUsNiArODUsNyBAQCBzdHJ1Y3Qgc2V0dXBfaGVhZGVyIHsKIAlfX3U2NAlw
-cmVmX2FkZHJlc3M7CiAJX191MzIJaW5pdF9zaXplOwogCV9fdTMyCWhhbmRvdmVyX29mZnNldDsK
-KwlfX3U2NAlhY3BpX3JzZHBfYWRkcjsKIH0gX19hdHRyaWJ1dGVfXygocGFja2VkKSk7CiAKIHN0
-cnVjdCBzeXNfZGVzY190YWJsZSB7Ci0tIAoyLjEyLjMKCgpfX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwgbWFpbGluZyBsaXN0Clhlbi1kZXZl
-bEBsaXN0cy54ZW5wcm9qZWN0Lm9yZwpodHRwczovL2xpc3RzLnhlbnByb2plY3Qub3JnL21haWxt
-YW4vbGlzdGluZm8veGVuLWRldmVs
+On 12/8/2017 7:29 AM, Prarit Bhargava wrote:
+> 
+> 
+> On 12/08/2017 01:29 AM, Ingo Molnar wrote:
+>>
+>> * Prarit Bhargava <prarit@redhat.com> wrote:
+>>
+>>> The SPCR (Serial Port Console Redirection) Table provides information
+>>> about the configuration of serial port.  This information can be used
+>>> to configure the early console.
+>>
+>> s/about the configuration of serial port
+>>   /about the configuration of the serial port
+>>
+>>> SPCR support was added for arm64 and is made available across all arches
+>>> in this patchset.  The first patch adds a weak per-arch configuration function
+>>> and moves the SPCR code into ACPI.  The second patch adds support to x86.
+>>>
+>>> The existing behaviour on arm64 is maintained.  If the SPCR exists the
+>>> earlycon and console are automatically configured.
+>>
+>> s/arm64
+>>   /ARM64
+>>
+>> which is easier to read and it's also the prevalent spelling:
+>>
+>>   triton:~/tip> for N in $(git grep -ih arm64 arch/arm64/ | sed 's/[[:punct:]]/ /g'); do echo $N | grep -iw arm64; done | sort | uniq -c
+>>       412 arm64
+>>         1 Arm64
+>>       854 ARM64
+>>
+>>> The existing default behaviour on x86 is also maintained.  If no console or
+>>> earlycon parameter is defined and the SPCR exists , the serial port is not
+>>> configured.  If the earlycon parameter is used both the early console
+>>> and the console are configured using the data from the SPCR.
+>>
+>> s/exists , the
+>>   /exists, the
+>>
+>> But, the logic to not use the SPCR looks confusing to me.
+>>
+>> The SPCR is only present if the user has explicitly configured a serial console
+>> for that machine, either in the firmware, or remotely via IPMI, correct? I.e. SPCR
+>> will not be spuriously present by default on systems that have a serial console
+>> but the user never expressed any interest for them, right?
+> 
+> If I disable "Serial Port Console Debug" in my BIOS I still see the SPCR configured:
+> 
+> [root@prarit-lab ~]# dmesg | grep SPCR
+> [    0.000000] ACPI: SPCR 0x0000000069031000 000050 (v01
+> 00000000      00000000)
+> 
+> AFAICT the SPCR is always enabled on some systems.
+
+"Serial Port Console Debug" sounds like DBG2 to me, although I am unsure 
+of the specific platform you are referencing.
+
+> 
+>>
+>> If so then we should pick up that serial console configuration and activate it,
+>> regardless of any kernel boot options!
+> 
+> I'm worried about someone who doesn't want a console on ttyS0 suddenly ending up
+> with one.  The SPCR could contain incorrect data, etc.
+> 
+> I originally wanted this on by default, but the chances of breaking someone's
+> setup seems significant doesn't it?  Maybe I'm being too cautious.  Anyone else
+> want to weigh in?  I'm not ignoring your idea Ingo, I'm just worried about being
+> yelled at by a user :) because I broke their default console setup.
+> 
+
+SPCR is always present on QDF2400 (ARM64 platform).  Firmware will 
+automatically update the SPCR table to point to the correct console (IE 
+Serial-over-LAN or SOL if configured via IPMI).  Unless a user 
+specifically chooses to override the SPCR via "console=", we expect that 
+a console will be present based on the data in SPCR.
+
+-- 
+Jeffrey Hugo
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
+Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
