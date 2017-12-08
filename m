@@ -1,43 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: Backporting patches that fix TBT at bootup
-Date: Fri, 8 Dec 2017 00:32:19 +0100
-Message-ID: <CAJZ5v0h4kcLz2owSBkLUAu_RT-FLqBbySKKhj7y=8A5GLo0yAw@mail.gmail.com>
-References: <6677505e9b3347468bf639b7b14de11a@ausx13mpc120.AMER.DELL.COM>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH 15/45] drivers: pnp: remove duplicate includes
+Date: Fri, 8 Dec 2017 01:37:14 +0100
+Message-ID: <9d1e8f06-f687-7ee2-f565-efbb2bb17bc1@intel.com>
+References: <1512579654-5549-1-git-send-email-pravin.shedge4linux@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:33322 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751741AbdLGXcU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Dec 2017 18:32:20 -0500
-Received: by mail-oi0-f67.google.com with SMTP id w131so6127505oiw.0
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Dec 2017 15:32:20 -0800 (PST)
-In-Reply-To: <6677505e9b3347468bf639b7b14de11a@ausx13mpc120.AMER.DELL.COM>
+Received: from mga04.intel.com ([192.55.52.120]:65004 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752248AbdLHAhR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 7 Dec 2017 19:37:17 -0500
+In-Reply-To: <1512579654-5549-1-git-send-email-pravin.shedge4linux@gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario Limonciello <Mario.Limonciello@dell.com>, Mika Westerberg <mika.westerberg@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
-
-On Fri, Dec 8, 2017 at 12:23 AM,  <Mario.Limonciello@dell.com> wrote:
-> Hi,
+On 12/6/2017 6:00 PM, Pravin Shedge wrote:
+> These duplicate includes have been found with scripts/checkincludes.pl but
+> they have been removed manually to avoid removing false positives.
 >
-> During kernel 4.14 some issues were fixed for Thunderbolt enumeration at bootup.
-> They were referenced in an issue
-> (https://github.com/01org/thunderbolt-software-user-space/issues/24#issuecomment-328011428)
-> There are 3 patches that Mika mentioned would be evaluated to be backported back to 4.13.
+> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Or do you want me to apply this?
+
+> ---
+>   drivers/pnp/quirks.c | 2 --
+>   1 file changed, 2 deletions(-)
 >
-> As 4.14 has come and gone now, I wanted to see if there was any other thoughts about
-> bringing those back to stable now on 4.13 (or did they come back and I just didn't know?)
->
-> ecc1165b8b74 ACPICA: Dispatch active GPEs at init time
-> 1312b7e0caca ACPICA: Make it possible to enable runtime GPEs earlier
-> eb7f43c4adb4 ACPI / scan: Enable GPEs before scanning the namespace
+> diff --git a/drivers/pnp/quirks.c b/drivers/pnp/quirks.c
+> index f054cdd..a0f9a91 100644
+> --- a/drivers/pnp/quirks.c
+> +++ b/drivers/pnp/quirks.c
+> @@ -227,8 +227,6 @@ static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
+>   	dev_info(&dev->dev, "made independent IRQ optional\n");
+>   }
+>   
+> -#include <linux/pci.h>
+> -
+>   static void quirk_system_pci_resources(struct pnp_dev *dev)
+>   {
+>   	struct pci_dev *pdev = NULL;
 
-I'm not aware of anything else needed at that point.
 
-Mika, should the three commits above be sufficient?
-
-Thanks,
-Rafael
