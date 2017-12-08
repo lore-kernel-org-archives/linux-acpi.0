@@ -1,66 +1,66 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: Backporting patches that fix TBT at bootup
-Date: Fri, 8 Dec 2017 17:08:02 +0000
-Message-ID: <40d3442260b54dc7bb5f3d6401c776d5@ausx13mpc120.AMER.DELL.COM>
-References: <6677505e9b3347468bf639b7b14de11a@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0h4kcLz2owSBkLUAu_RT-FLqBbySKKhj7y=8A5GLo0yAw@mail.gmail.com>
- <20171208071143.GZ22431@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC PATCH v10 6/7] PCI / PM: Move acpi wakeup code to pci core
+Date: Fri, 8 Dec 2017 18:12:42 +0100
+Message-ID: <CAJZ5v0jSOG-dQ27wSA9DXaBj2ae_KSC21VUhsBdxQc68EEOcKg@mail.gmail.com>
+References: <20171027072612.26565-1-jeffy.chen@rock-chips.com>
+ <1894178.xtK0vD2N4H@aspire.rjw.lan> <20171114025109.GA43048@google.com>
+ <1882670.s3LR2t44nD@aspire.rjw.lan> <20171206193421.GA143886@google.com>
+ <20171207001754.GB28152@atomide.com> <20171207002955.GA40447@google.com> <20171208163710.GB24344@atomide.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa6.dell-outbound.iphmx.com ([68.232.149.229]:28164 "EHLO
-        esa6.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752379AbdLHRIJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 12:08:09 -0500
-In-Reply-To: <20171208071143.GZ22431@lahna.fi.intel.com>
-Content-Language: en-US
+Received: from mail-ot0-f169.google.com ([74.125.82.169]:42523 "EHLO
+        mail-ot0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751492AbdLHRMo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 12:12:44 -0500
+In-Reply-To: <20171208163710.GB24344@atomide.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mika.westerberg@intel.com, rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org
+To: Tony Lindgren <tony@atomide.com>
+Cc: Brian Norris <briannorris@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jeffy Chen <jeffy.chen@rock-chips.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PM <linux-pm@vger.kernel.org>, shawn.lin@rock-chips.com, Doug Anderson <dianders@chromium.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-> -----Original Message-----
-> From: Mika Westerberg [mailto:mika.westerberg@intel.com]
-> Sent: Friday, December 8, 2017 1:12 AM
-> To: Rafael J. Wysocki <rafael@kernel.org>
-> Cc: Limonciello, Mario <Mario_Limonciello@Dell.com>; ACPI Devel Maling Li=
-st
-> <linux-acpi@vger.kernel.org>
-> Subject: Re: Backporting patches that fix TBT at bootup
->=20
-> On Fri, Dec 08, 2017 at 12:32:19AM +0100, Rafael J. Wysocki wrote:
-> > Hi,
-> >
-> > On Fri, Dec 8, 2017 at 12:23 AM,  <Mario.Limonciello@dell.com> wrote:
-> > > Hi,
-> > >
-> > > During kernel 4.14 some issues were fixed for Thunderbolt enumeration=
- at
-> bootup.
-> > > They were referenced in an issue
-> > > (https://github.com/01org/thunderbolt-software-user-
-> space/issues/24#issuecomment-328011428)
-> > > There are 3 patches that Mika mentioned would be evaluated to be back=
-ported
-> back to 4.13.
-> > >
-> > > As 4.14 has come and gone now, I wanted to see if there was any other=
- thoughts
-> about
-> > > bringing those back to stable now on 4.13 (or did they come back and =
-I just
-> didn't know?)
-> > >
-> > > ecc1165b8b74 ACPICA: Dispatch active GPEs at init time
-> > > 1312b7e0caca ACPICA: Make it possible to enable runtime GPEs earlier
-> > > eb7f43c4adb4 ACPI / scan: Enable GPEs before scanning the namespace
-> >
-> > I'm not aware of anything else needed at that point.
-> >
-> > Mika, should the three commits above be sufficient?
->=20
-> Yup, those should be all that is needed and they are included in
-> stable v4.13.13.
+On Fri, Dec 8, 2017 at 5:37 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Brian Norris <briannorris@chromium.org> [171207 00:32]:
+>> On Wed, Dec 06, 2017 at 04:17:54PM -0800, Tony Lindgren wrote:
+>> > * Brian Norris <briannorris@chromium.org> [171206 19:36]:
+>> > > By the way, it seems pretty ambiguous how we want to handle things like
+>> > > (a) multiple devices sharing the same WAKE#
+>> > > (b) systems where a slot is swappable
+>> > >
+>> > > For (a), the main problem is that if we have to repeat the interrupt
+>> > > definition in multiple devices, then we have to deal with something like
+>> > > IRQF_SHARED. That can be done, but it makes it much harder to use the
+>> > > dedicated wakeirq helpers.
+>> >
+>> > This will get messy, let's not go there :) That is unless the hardware
+>> > really has a single interrupt wired to multiple devices. And in that
+>> > case almost certainly a custom interrupt handler is needed.
+>>
+>> As Rafael mentioned, the spec doesn't clearly delineate a required
+>> hierarchy to the WAKE# pin, and it's certainly possible to share it. I'm
+>> fine dodging that question for now, and only writing said custom
+>> interrupt handler if/when needed.
+>
+> OK if the WAKE# pin is shared then PCI (or hardware specific?) code needs
+> to figure out from where it came from.
 
-Thanks for confirming they were backported and the tag.
+Right.
+
+Basically, that would need a list (or equivalent) of devices sharing
+the wakeup IRQ and if that triggers, it needs to walk the list and
+call pci_pme_wakeup() for all devices in it.
+
+>> But device tree bindings are "forever", so it seems reasonable to at
+>> least agree how it should be defined.
+>
+> Well that's why we're just using the existing interrupts-extended
+> binding there :) It does not leave out the option for shared interrupts,
+> it's just that drivers/base/power/wakeirq.c can't deal with them in a
+> sane way or at least we'd have to add a flag to not enable/disable the
+> wakeirq automatically.
+
+I think that the binding needs to be sort-of PCI-specific to cover the
+shared case.
+
+I'm not sure if there are any other buses needing that (they would
+need to define standard PM registers as PCI does).
