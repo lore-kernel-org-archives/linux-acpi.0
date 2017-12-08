@@ -1,68 +1,56 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH v2 1/3] x86/boot: add acpi rsdp address to setup_header
-Date: Fri, 8 Dec 2017 09:52:45 +0100
-Message-ID: <492e188d-6985-fb13-278b-46f096cb1b4b@suse.com>
-References: <20171207122821.30158-1-jgross@suse.com>
- <20171207122821.30158-2-jgross@suse.com>
- <20171208071653.mzyf3ct6n6h2x37r@gmail.com>
- <81777128-a277-c47b-2570-a330b2f6c50d@suse.com>
- <20171208084827.yv3vrtfnn6otjdg4@gmail.com>
+From: Lothar =?UTF-8?B?V2HDn21hbm4=?= <LW@KARO-electronics.de>
+Subject: Re: [PATCH V6 4/7] OF: properties: Implement get_match_data()
+ callback
+Date: Fri, 8 Dec 2017 10:11:42 +0100
+Message-ID: <20171208101142.1ea9bc13@karo-electronics.de>
+References: <1512493493-6464-1-git-send-email-okaya@codeaurora.org>
+        <1512493493-6464-5-git-send-email-okaya@codeaurora.org>
+        <20171207141029.575c0a03@karo-electronics.de>
+        <def8e351-bc2d-7adc-fdc5-362b365302a8@codeaurora.org>
+        <20171207162036.6a71a4f5@karo-electronics.de>
+        <661cbe4d-ea33-3e84-b5f2-ab6517cbb135@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38965 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750927AbdLHIws (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 8 Dec 2017 03:52:48 -0500
-In-Reply-To: <20171208084827.yv3vrtfnn6otjdg4@gmail.com>
-Content-Language: de-DE
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <661cbe4d-ea33-3e84-b5f2-ab6517cbb135@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: devicetree@vger.kernel.org, linux-arm-msm@vger.kernel.org, timur@codeaurora.org, open list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, dmaengine@vger.kernel.org, Frank Rowand <frowand.list@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org, boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 
-On 08/12/17 09:48, Ingo Molnar wrote:
-> 
-> * Juergen Gross <jgross@suse.com> wrote:
-> 
->>>> +Offset/size:	0x268/8
->>>> +Protocol:	2.14+
->>>> +
->>>> +  This field can be set by the boot loader to tell the kernel the
->>>> +  physical address of the ACPI RSDP table.
->>>> +
->>>> +  A value of 0 indicates the kernel should fall back to the standard
->>>> +  methods to locate the RSDP (search in EBDA/low memory).
->>>
->>> That's not the only method used: the ACPI RSDP address can also be discovered via 
->>> efi.rsdp20 and efi.rsdp, both of which appear to be 32-bit values.
->>
->> Sure, but this is valid for booting via EFI only.
-> 
-> Yeah, so what I tried to say is that the description as written is not fully 
-> correct and triggered my pedantry:
-> 
->  +  A value of 0 indicates the kernel should fall back to the standard
->  +  methods to locate the RSDP (search in EBDA/low memory).
-> 
-> To make it correct we need to either write less:
-> 
->  +  A value of 0 indicates the kernel should fall back to the standard
->  +  methods to locate the RSDP.
-> 
-> or write more and make it open ended so it doesn't have to be extended with every 
-> method of getting the RSDP that might be added in the future:
-> 
->  +  A value of 0 indicates the kernel should fall back to the standard
->  +  methods to locate the RSDP (search in EBDA/low memory, get it from
->  +  EFI if present, etc.).
-> 
-> ... or so?
+Hi,
 
-Aah, okay. I got your remark wrong then.
-
-I think I'll go with the shorter variant.
+On Thu, 7 Dec 2017 12:50:50 -0500 Sinan Kaya wrote:
+> On 12/7/2017 10:20 AM, Lothar Waßmann wrote:
+> > Hi,
+> > 
+> > On Thu, 7 Dec 2017 09:45:31 -0500 Sinan Kaya wrote:
+> >> On 12/7/2017 8:10 AM, Lothar Waßmann wrote:
+> >>>> +void *of_fwnode_get_match_data(const struct fwnode_handle *fwnode,
+> >>>> +			       struct device *dev)
+> >>> Shouldn't this be 'const void *of_fwnode_get_match_data
+> >>
+> >> OF keeps the driver data as a (const void*) internally. ACPI keeps the
+> >> driver data as kernel_ulong_t in struct acpi_device_id.
+> >>
+> >> I tried to find the middle ground here by converting output to void*
+> >> but not keeping const.
+> >>
+> > It should be no problem to cast a (const void *) to an unsigned long
+> > data type (without const qualifier).
+> > 
+> 
+> It is the other way around. If I change this API to return a a (const void*),
+> the device_get_match_data() function need to return a (const void *).
+> 
+> While implementing the ACPI piece, I have to convert an unsigned long to
+> (const void *) in ACPI code so that the APIs are compatible.
+> 
+Just one more remark: Do you need write access to the data the pointer
+returned by device_get_match_data() or of_fwnode_get_match_data()
+points to?
+If not, the return type of those functions should be 'const void *'.
 
 
-Juergen
+Lothar Waßmann
