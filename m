@@ -1,99 +1,94 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v3 2/4] x86/acpi: take rsdp address for boot params if available
-Date: Fri,  8 Dec 2017 16:11:37 +0100
-Message-ID: <20171208151139.30213-3-jgross@suse.com>
-References: <20171208151139.30213-1-jgross@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:46458 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754095AbdLHPLt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 8 Dec 2017 10:11:49 -0500
-In-Reply-To: <20171208151139.30213-1-jgross@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jonathan McDowell <noodles@earth.li>
+Subject: ACPI issues on cold power on [bisected]
+Date: Fri, 8 Dec 2017 15:11:59 +0000
+Message-ID: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+Sender: owner-linux-mm@kvack.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, x86@kernel.org
-Cc: boris.ostrovsky@oracle.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, Juergen Gross <jgross@suse.com>
 
-In case the rsdp address in struct boot_params is specified don't try
-to find the table by searching, but take the address directly as set
-by the boot loader.
+I've been sitting on this for a while and should have spent time to
+investigate sooner, but it's been an odd failure mode that wasn't quite
+obvious.
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
----
-V3: use a generic retrieval function with a __weak annotated default
-    function (Ingo Molnar)
----
- arch/x86/kernel/acpi/boot.c |  7 +++++++
- drivers/acpi/osl.c          | 10 +++++++++-
- include/linux/acpi.h        |  2 ++
- 3 files changed, 18 insertions(+), 1 deletion(-)
+In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
+don't see anything after grub says its booting. In 4.10 onwards the
+laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
+(no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
+taken from 4.12 as that's the most recent error dmesg I have saved but
+also seen back in 4.10. It's always address 0x30 for the dereference.
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index f4c463df8b08..26fc8972dc4b 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -47,6 +47,7 @@
- #include <asm/mpspec.h>
- #include <asm/smp.h>
- #include <asm/i8259.h>
-+#include <asm/setup.h>
- 
- #include "sleep.h" /* To include x86_acpi_suspend_lowlevel */
- static int __initdata acpi_force = 0;
-@@ -1758,3 +1759,9 @@ void __init arch_reserve_mem_area(acpi_physical_address addr, size_t size)
- 	e820__range_add(addr, size, E820_TYPE_ACPI);
- 	e820__update_table_print();
- }
-+
-+acpi_physical_address acpi_arch_get_root_pointer(void)
-+{
-+	return boot_params.hdr.acpi_rsdp_addr;
-+}
-+EXPORT_SYMBOL_GPL(acpi_arch_get_root_pointer);
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 3bb46cb24a99..2b77db914752 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -178,6 +178,11 @@ void acpi_os_vprintf(const char *fmt, va_list args)
- #endif
- }
- 
-+__weak acpi_physical_address acpi_arch_get_root_pointer(void)
-+{
-+	return 0;
-+}
-+
- #ifdef CONFIG_KEXEC
- static unsigned long acpi_rsdp;
- static int __init setup_acpi_rsdp(char *arg)
-@@ -189,12 +194,15 @@ early_param("acpi_rsdp", setup_acpi_rsdp);
- 
- acpi_physical_address __init acpi_os_get_root_pointer(void)
- {
--	acpi_physical_address pa = 0;
-+	acpi_physical_address pa;
- 
- #ifdef CONFIG_KEXEC
- 	if (acpi_rsdp)
- 		return acpi_rsdp;
- #endif
-+	pa = acpi_arch_get_root_pointer();
-+	if (pa)
-+		return pa;
- 
- 	if (efi_enabled(EFI_CONFIG_TABLES)) {
- 		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index dc1ebfeeb5ec..aa603cc5ad30 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1266,4 +1266,6 @@ static inline int lpit_read_residency_count_address(u64 *address)
- }
- #endif
- 
-+acpi_physical_address acpi_arch_get_root_pointer(void);
-+
- #endif	/*_LINUX_ACPI_H*/
+Rebooting the laptop does not lead to these problems; it's *only* from a
+complete cold boot that they arise (which didn't help me in terms of
+being able to reliably bisect). Once I realised that I was able to
+bisect, but it leads me to an odd commit:
+
+86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
+(mm/slab: fix kmemcg cache creation delayed issue)
+
+If I revert this then I can cold boot without problems.
+
+Also I don't see the problem with a stock Debian kernel, I think because
+the ACPI support is modularised.
+
+Config, dmesg + bisect log at:
+
+https://the.earth.li/~noodles/acpi-problem/
+
+-------
+BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+IP: netlink_broadcast_filtered+0x1d/0x3e0
+PGD 0 
+P4D 0 
+
+Oops: 0000 [#1] SMP
+Modules linked in:
+CPU: 0 PID: 41 Comm: kworker/0:1 Not tainted 4.12.0 #1
+Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A21 05/08/2017
+Workqueue: kacpi_notify acpi_os_execute_deferred
+task: ffff914e4c321240 task.stack: ffffa3bd4017c000
+RIP: 0010:netlink_broadcast_filtered+0x1d/0x3e0
+RSP: 0000:ffffa3bd4017fd90 EFLAGS: 00010286
+RAX: 0000000000000001 RBX: ffff914e4c82b300 RCX: 0000000000000000
+RDX: 0000000000000000 RSI: 0000000001080020 RDI: ffff914e4c82b300
+RBP: ffff914e4c305614 R08: 0000000001080020 R09: 0000000000000000
+R10: 0000000000000014 R11: ffffffffb8a31d40 R12: 0000000000000000
+R13: 0000000000000000 R14: ffff914e4c305614 R15: 0000000000000000
+FS:  0000000000000000(0000) GS:ffff914e5ea00000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 0000000000000030 CR3: 0000000236c09000 CR4: 00000000001406f0
+Call Trace:
+ ? __kmalloc_reserve.isra.37+0x24/0x70
+ ? __nlmsg_put+0x63/0x80
+ ? netlink_broadcast+0xa/0x10
+ ? acpi_bus_generate_netlink_event+0x10d/0x150
+ ? acpi_ev_notify_dispatch+0x37/0x4c
+ ? acpi_os_execute_deferred+0xb/0x20
+ ? process_one_work+0x1cf/0x3c0
+ ? worker_thread+0x42/0x3c0
+ ? __schedule+0x26c/0x660
+ ? kthread+0xf7/0x130
+ ? create_worker+0x190/0x190
+ ? kthread_create_on_node+0x40/0x40
+ ? ret_from_fork+0x22/0x30
+Code: c8 c3 66 90 66 2e 0f 1f 84 00 00 00 00 00 41 57 41 89 cf 41 56 41 55 49 89 fd 48 89 f7 44 89 c6 41 54 41 89 d4 55 53 48 83 ec 38 <49> 8b 6d 30 44 89 44 24 24 4c 89 4c 24 28 e8 a0 ec ff ff 48 c7 
+RIP: netlink_broadcast_filtered+0x1d/0x3e0 RSP: ffffa3bd4017fd90
+CR2: 0000000000000030
+---[ end trace f8e25281792d4743 ]---
+
+J.
+
 -- 
-2.12.3
+/-\                             | 101 things you can't have too much
+|@/  Debian GNU/Linux Developer |       of : 47 - More coffee.
+\-                              |
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
