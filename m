@@ -1,52 +1,57 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V3] ACPI / GED: unregister interrupts during shutdown
-Date: Fri, 8 Dec 2017 20:54:15 -0500
-Message-ID: <158410c8-2861-a2c9-1246-9604ab9a8e91@codeaurora.org>
-References: <1512708033-28180-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0iqXz-zBb5Lg_f1FU54-H5hiWcfg-1Qa3hDdbUz=hZD0g@mail.gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] thinkpad_acpi: Support the battery wear control
+Date: Sat, 9 Dec 2017 11:03:07 +0100
+Message-ID: <20171209100307.GA8699@amd>
+References: <20171203225640.GA11655@thinkpad>
+ <3171660.sUGE0a2FEN@aspire.rjw.lan>
+ <20171204195524.GA25730@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="r5Pyd7+fXNt84Ff3"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:35426 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752660AbdLIByT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Dec 2017 20:54:19 -0500
-In-Reply-To: <CAJZ5v0iqXz-zBb5Lg_f1FU54-H5hiWcfg-1Qa3hDdbUz=hZD0g@mail.gmail.com>
-Content-Language: en-US
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:59727 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751145AbdLIKDJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 9 Dec 2017 05:03:09 -0500
+Content-Disposition: inline
+In-Reply-To: <20171204195524.GA25730@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Ognjen Galic <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
 
-On 12/8/2017 8:54 AM, Rafael J. Wysocki wrote:
->> static int ged_remove(struct platform_device *pdev)
->> +{
->> +       struct acpi_ged_device *geddev = platform_get_drvdata(pdev);
->>
->> +       ged_cleanup_irq(geddev);
-> Do you really need this duplication?  You may as well call
-> ged_shutdown() from here.
-> 
-> And the local variable is redundant too.
-> 
-> I guess it would be better to just fold ged_cleanup_irq() into
-> ged_shutdown() and call that from ged_remove().
-> 
 
-I originally tried to make these two APIs as common as possible and tried
-calling shutdown from remove. However, the calling convention of shutdown
-and remove are different. 
+--r5Pyd7+fXNt84Ff3
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Shutdown returns void; whereas, remove returns an integer. That's why, I
-created a common function and called from both places. 
+Hi!
 
-I can probably make the calling parameter of ged_cleanup_irq() a pdev and
-get rid of the additional casting in these two different functions. 
+In newer series (I can't find it at the moment, sorry) you return
+"NOT_CHARGING" status when not charging because of wear control.
 
-Let me know if you have a better idea.
+Maybe we should have separate status "not charging due to wear
+control"?
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Thanks,
+
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--r5Pyd7+fXNt84Ff3
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlortNsACgkQMOfwapXb+vJCSgCfRLnEWI3m93sMf19i293o2W1c
+FMUAnAs5mtdLqGsTV3GEMGAEg3+752Uz
+=7+dT
+-----END PGP SIGNATURE-----
+
+--r5Pyd7+fXNt84Ff3--
