@@ -1,78 +1,73 @@
-From: Vasyl Gomonovych <gomonovych@gmail.com>
-Subject: [PATCH] ACPI, APEI, Fix use resource_size
-Date: Mon, 11 Dec 2017 16:44:31 +0100
-Message-ID: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: [PATCH v2 0/2] acpi, x86: Add SPCR table support
+Date: Mon, 11 Dec 2017 10:50:57 -0500
+Message-ID: <20171211155059.17062-1-prarit@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:33093 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751307AbdLKPop (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Dec 2017 10:44:45 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:59346 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752511AbdLKPvF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Dec 2017 10:51:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, gomonovych@gmail.com, linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Prarit Bhargava <prarit@redhat.com>, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Timur Tabi <timur@codeaurora.org>
+
+The SPCR (Serial Port Console Redirection) Table provides information
+about the configuration of the serial port.  This information can be used to
+configure the early console.
+
+SPCR support was added for ARM64 and is made available across all arches
+in this patchset.  The first patch adds a weak per-arch configuration function
+and moves the SPCR code into ACPI.  The second patch adds support to x86.
+
+The existing behaviour on ARM64 is maintained.  If the SPCR exists the
+earlycon and console are automatically configured.
+
+The existing default behaviour on x86 is also maintained.  If no console or
+earlycon parameter is defined and the SPCR exists, the serial port is not
+configured.  If the earlycon parameter is used both the early console
+and the console are configured using the data from the SPCR.
+
+Additional testing (requested by Timur): On Gigabyte (no quirks), Qualcomm
+Amberwing systems to test Qualcomm quirks, HPE Mantis system to test xgene
+quirks.  Tested several x86 systems with and without a SPCR to confirm
+no changes in default behaviour.
+
+[v2]: See 1/2 for code changes.
+
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-doc@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-serial@vger.kernel.org
+Cc: Bhupesh Sharma <bhsharma@redhat.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: x86@kernel.org
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Timur Tabi <timur@codeaurora.org>
 
-Use resource_size function on resource object
-Underneath __request_region set res->end to start + n - 1
-Lets use resourse_size to set value properly.
+Prarit Bhargava (2):
+  acpi, spcr: Make SPCR avialable to other architectures
+  acpi, x86: Use SPCR table for earlycon on x86
 
-Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
----
- drivers/acpi/apei/apei-base.c | 13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |   9 +-
+ arch/arm64/kernel/acpi.c                        | 128 ++++++++++++++++-
+ arch/x86/kernel/acpi/boot.c                     |   4 +
+ drivers/acpi/Kconfig                            |   7 +-
+ drivers/acpi/spcr.c                             | 180 ++++++------------------
+ drivers/tty/serial/earlycon.c                   |  15 +-
+ include/linux/acpi.h                            |  14 +-
+ include/linux/serial_core.h                     |   2 -
+ 8 files changed, 198 insertions(+), 161 deletions(-)
 
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index da370e1..af712a8 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -506,8 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
- 
- 	rc = -EINVAL;
- 	list_for_each_entry(res, &resources->iomem, list) {
--		r = request_mem_region(res->start, res->end - res->start,
--				       desc);
-+		r = request_mem_region(res->start, resource_size(res), desc);
- 		if (!r) {
- 			pr_err(APEI_PFX
- 		"Can not request [mem %#010llx-%#010llx] for %s registers\n",
-@@ -519,7 +518,7 @@ int apei_resources_request(struct apei_resources *resources,
- 	}
- 
- 	list_for_each_entry(res, &resources->ioport, list) {
--		r = request_region(res->start, res->end - res->start, desc);
-+		r = request_region(res->start, resource_size(res), desc);
- 		if (!r) {
- 			pr_err(APEI_PFX
- 		"Can not request [io  %#06llx-%#06llx] for %s registers\n",
-@@ -542,14 +541,14 @@ int apei_resources_request(struct apei_resources *resources,
- 	list_for_each_entry(res, &resources->ioport, list) {
- 		if (res == res_bak)
- 			break;
--		release_region(res->start, res->end - res->start);
-+		release_region(res->start, resource_size(res));
- 	}
- 	res_bak = NULL;
- err_unmap_iomem:
- 	list_for_each_entry(res, &resources->iomem, list) {
- 		if (res == res_bak)
- 			break;
--		release_mem_region(res->start, res->end - res->start);
-+		release_mem_region(res->start, resource_size(res));
- 	}
- arch_res_fini:
- 	if (arch_apei_filter_addr)
-@@ -566,9 +565,9 @@ void apei_resources_release(struct apei_resources *resources)
- 	struct apei_res *res;
- 
- 	list_for_each_entry(res, &resources->iomem, list)
--		release_mem_region(res->start, res->end - res->start);
-+		release_mem_region(res->start, resource_size(res));
- 	list_for_each_entry(res, &resources->ioport, list)
--		release_region(res->start, res->end - res->start);
-+		release_region(res->start, resource_size(res));
- 
- 	rc = apei_resources_sub(&apei_resources_all, resources);
- 	if (rc)
 -- 
-1.9.1
+2.15.0.rc0.39.g2f0e14e64
 
