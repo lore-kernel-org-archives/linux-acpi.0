@@ -1,70 +1,78 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v10 2/3] iommu/dma: Add HW MSI(GICv3 ITS) address regions
- reservation
-Date: Mon, 11 Dec 2017 14:54:12 +0000
-Message-ID: <431dd431-1c22-32aa-b3a0-2fd5d4a7ec11@arm.com>
-References: <20171129141449.120316-1-shameerali.kolothum.thodi@huawei.com>
- <20171129141449.120316-3-shameerali.kolothum.thodi@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Vasyl Gomonovych <gomonovych@gmail.com>
+Subject: [PATCH] ACPI, APEI, Fix use resource_size
+Date: Mon, 11 Dec 2017 16:44:31 +0100
+Message-ID: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:59120 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751512AbdLKOyQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 11 Dec 2017 09:54:16 -0500
-In-Reply-To: <20171129141449.120316-3-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:33093 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751307AbdLKPop (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Dec 2017 10:44:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, will.deacon@arm.com, marc.zyngier@arm.com, joro@8bytes.org
-Cc: john.garry@huawei.com, xuwei5@hisilicon.com, guohanjun@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linuxarm@huawei.com
+To: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, gomonovych@gmail.com, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On 29/11/17 14:14, Shameer Kolothum wrote:
-> Modified iommu_dma_get_resv_regions() to include GICv3 ITS
-> region on ACPI based ARM platfiorms which may require HW MSI
-> reservations.
+Use resource_size function on resource object
+Underneath __request_region set res->end to start + n - 1
+Lets use resourse_size to set value properly.
 
-Assuming this builds correctly for all the various combinations of 
-CONFIG_ACPI and CONFIG_ACPI_IORT,
+Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
+---
+ drivers/acpi/apei/apei-base.c | 13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-Reviewed-by: Robin Murphy <robin.murphy@arm.com>
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index da370e1..af712a8 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -506,8 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
+ 
+ 	rc = -EINVAL;
+ 	list_for_each_entry(res, &resources->iomem, list) {
+-		r = request_mem_region(res->start, res->end - res->start,
+-				       desc);
++		r = request_mem_region(res->start, resource_size(res), desc);
+ 		if (!r) {
+ 			pr_err(APEI_PFX
+ 		"Can not request [mem %#010llx-%#010llx] for %s registers\n",
+@@ -519,7 +518,7 @@ int apei_resources_request(struct apei_resources *resources,
+ 	}
+ 
+ 	list_for_each_entry(res, &resources->ioport, list) {
+-		r = request_region(res->start, res->end - res->start, desc);
++		r = request_region(res->start, resource_size(res), desc);
+ 		if (!r) {
+ 			pr_err(APEI_PFX
+ 		"Can not request [io  %#06llx-%#06llx] for %s registers\n",
+@@ -542,14 +541,14 @@ int apei_resources_request(struct apei_resources *resources,
+ 	list_for_each_entry(res, &resources->ioport, list) {
+ 		if (res == res_bak)
+ 			break;
+-		release_region(res->start, res->end - res->start);
++		release_region(res->start, resource_size(res));
+ 	}
+ 	res_bak = NULL;
+ err_unmap_iomem:
+ 	list_for_each_entry(res, &resources->iomem, list) {
+ 		if (res == res_bak)
+ 			break;
+-		release_mem_region(res->start, res->end - res->start);
++		release_mem_region(res->start, resource_size(res));
+ 	}
+ arch_res_fini:
+ 	if (arch_apei_filter_addr)
+@@ -566,9 +565,9 @@ void apei_resources_release(struct apei_resources *resources)
+ 	struct apei_res *res;
+ 
+ 	list_for_each_entry(res, &resources->iomem, list)
+-		release_mem_region(res->start, res->end - res->start);
++		release_mem_region(res->start, resource_size(res));
+ 	list_for_each_entry(res, &resources->ioport, list)
+-		release_region(res->start, res->end - res->start);
++		release_region(res->start, resource_size(res));
+ 
+ 	rc = apei_resources_sub(&apei_resources_all, resources);
+ 	if (rc)
+-- 
+1.9.1
 
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->   drivers/iommu/dma-iommu.c | 8 +++++++-
->   1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-> index 25914d3..f05f3cf 100644
-> --- a/drivers/iommu/dma-iommu.c
-> +++ b/drivers/iommu/dma-iommu.c
-> @@ -19,6 +19,7 @@
->    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->    */
->   
-> +#include <linux/acpi_iort.h>
->   #include <linux/device.h>
->   #include <linux/dma-iommu.h>
->   #include <linux/gfp.h>
-> @@ -167,13 +168,18 @@ void iommu_put_dma_cookie(struct iommu_domain *domain)
->    *
->    * IOMMU drivers can use this to implement their .get_resv_regions callback
->    * for general non-IOMMU-specific reservations. Currently, this covers host
-> - * bridge windows for PCI devices.
-> + * bridge windows for PCI devices and GICv3 ITS region reservation on ACPI
-> + * based ARM platforms that may require HW MSI reservation.
->    */
->   void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
->   {
->   	struct pci_host_bridge *bridge;
->   	struct resource_entry *window;
->   
-> +	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode) &&
-> +		iort_iommu_msi_get_resv_regions(dev, list) < 0)
-> +		return;
-> +
->   	if (!dev_is_pci(dev))
->   		return;
->   
-> 
