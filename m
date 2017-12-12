@@ -1,33 +1,65 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH V7 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
-Date: Tue, 12 Dec 2017 11:08:45 +0530
-Message-ID: <20171212053845.GB18649@localhost>
-References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v2 2/2] acpi, x86: Use SPCR table for earlycon on x86
+Date: Tue, 12 Dec 2017 11:41:14 +0100
+Message-ID: <20171212104114.nddfrykzhezmngnl@gmail.com>
+References: <20171211155059.17062-1-prarit@redhat.com>
+ <20171211155059.17062-3-prarit@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:40721 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750749AbdLLFfB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Dec 2017 00:35:01 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20171211155059.17062-3-prarit@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Timur Tabi <timur@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 07, 2017 at 04:10:24PM -0500, Sinan Kaya wrote:
-> Introduce new ACPI and OF device ids for thw HW along with the helper
-> functions.
+
+* Prarit Bhargava <prarit@redhat.com> wrote:
+
+> The ACPI SPCR code has been used to define an earlycon console for ARM64
+> and can be used for x86.
 > 
-> Changes from v6:
-> * add const to the device callback parameter in fwnode.
-> * reorganize the callbacks in the code
-> * rename get_match_data() as device_get_match_data()
-> * place pointer checks into acpi_get_match_data()
+> Modify the ACPI SPCR parsing code to account for console behaviour
+> differences between ARM64 and x86.  Initialize the SPCR code from
+> x86 ACPI initialization code.
+> 
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-serial@vger.kernel.org
+> Cc: Bhupesh Sharma <bhsharma@redhat.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: x86@kernel.org
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Timur Tabi <timur@codeaurora.org>
+> ---
+>  Documentation/admin-guide/kernel-parameters.txt | 3 +++
+>  arch/arm64/kernel/acpi.c                        | 2 +-
+>  arch/x86/kernel/acpi/boot.c                     | 4 ++++
+>  drivers/acpi/Kconfig                            | 2 +-
+>  drivers/acpi/spcr.c                             | 7 +++++--
+>  include/linux/acpi.h                            | 7 +++++--
+>  6 files changed, 19 insertions(+), 6 deletions(-)
 
-This fails for me at 3rd patch. I am on -rc1 is there a dependency?
+LGTM from an x86 perspective:
 
--- 
-~Vinod
+  Acked-by: Ingo Molnar <mingo@kernel.org>
+
+(assuming it causes no regressions in linux-next.)
+
+Since patch #1 affects ARM64 significantly, once that patch is acceptable to the 
+arm64 folks feel free to upstream this second patch via the ARM64 tree as well.
+
+Thanks,
+
+	Ingo
