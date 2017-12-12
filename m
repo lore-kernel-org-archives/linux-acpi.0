@@ -1,102 +1,76 @@
-From: Imre Deak <imre.deak@intel.com>
-Subject: Re: GemniLake laptops goes power off directly after
- performing suspend
-Date: Tue, 12 Dec 2017 15:32:01 +0200
-Message-ID: <20171212133201.tp6g3plnzxrbdkb6@ideak-desk.fi.intel.com>
-References: <CAB4CAwc3q+L9UyHL8W541HXOCUTG0tTx51TfZRyzn61qbyOeEA@mail.gmail.com>
- <CAJZ5v0jS=E0mcm=R2xQSftSnzZXUbzL3RjjWafSYAB=Wd7=ECQ@mail.gmail.com>
- <CAB4CAwe-uahS0HECtqcQ4Mobwb6vD-pxb-v8vPY52t6z+sT5pg@mail.gmail.com>
- <18455542.KZ7HXfzeW6@aspire.rjw.lan>
- <CAB4CAwdia7RYVVthWAwz-nvpEbiSH+_MFc_zQeu_V7o-uWn8xA@mail.gmail.com>
- <CAJZ5v0hrpFAffNq8SmTCeHsT0P1ULq7-D1+wA3NoqO5uEWtTaQ@mail.gmail.com>
- <CAB4CAwd0AGnVrWrxjLiMG_9CV610x6n6cgVXQ8UX6ou-i1JFbA@mail.gmail.com>
- <CAD8Lp44KjAO_Uwb0ZPgBeL=tsbgvPoTw+vXpsqD8DFojv5f5mw@mail.gmail.com>
-Reply-To: imre.deak@intel.com
+From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
+Subject: [BUG] acpica: ltp_acpi test case causes kernel crash at acpi_ns_walk_namespace
+Date: Tue, 12 Dec 2017 07:59:19 -0800
+Message-ID: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAD8Lp44KjAO_Uwb0ZPgBeL=tsbgvPoTw+vXpsqD8DFojv5f5mw@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Daniel Drake <drake@endlessm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Chris Chiu <chiu@endlessm.com>, intel-gfx@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Upstreaming Team <linux@endlessm.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
+Cc: vadim.lomovtsev@cavium.com
 List-Id: linux-acpi@vger.kernel.org
 
-T24gRnJpLCBEZWMgMDgsIDIwMTcgYXQgMTA6MzE6MzBBTSArMDAwMCwgRGFuaWVsIERyYWtlIHdy
-b3RlOgo+IEhpLAo+IAo+IEFkZGluZyBpbnRlbC1nZnggbGlzdCBpbiBjYXNlIGk5MTUgZGV2ZWxv
-cGVycyBjYW4gaGVscC4gVXBkYXRlZCBzdW1tYXJ5IGJlbG93Lgo+IAo+IE9uIFRodSwgRGVjIDcs
-IDIwMTcgYXQgMjoxNCBBTSwgQ2hyaXMgQ2hpdSA8Y2hpdUBlbmRsZXNzbS5jb20+IHdyb3RlOgo+
-ID4gT24gV2VkLCBEZWMgNiwgMjAxNyBhdCA5OjM0IFBNLCBSYWZhZWwgSi4gV3lzb2NraSA8cmFm
-YWVsQGtlcm5lbC5vcmc+IHdyb3RlOgo+ID4gPiBPbiBXZWQsIERlYyA2LCAyMDE3IGF0IDEwOjMz
-IEFNLCBDaHJpcyBDaGl1IDxjaGl1QGVuZGxlc3NtLmNvbT4gd3JvdGU6Cj4gPiA+PiBPbiBXZWQs
-IERlYyA2LCAyMDE3IGF0IDU6NTYgQU0sIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tp
-Lm5ldD4gd3JvdGU6Cj4gPiA+Pj4gT24gVHVlc2RheSwgRGVjZW1iZXIgNSwgMjAxNyA1OjE5OjAz
-IFBNIENFVCBDaHJpcyBDaGl1IHdyb3RlOgo+ID4gPj4+PiBPbiBUdWUsIERlYyA1LCAyMDE3IGF0
-IDExOjAxIFBNLCBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+IHdyb3RlOgo+
-ID4gPj4+PiA+IE9uIFR1ZSwgRGVjIDUsIDIwMTcgYXQgMTE6MzIgQU0sIENocmlzIENoaXUgPGNo
-aXVAZW5kbGVzc20uY29tPiB3cm90ZToKPiA+ID4+Pj4gPj4gICAgIEkgaGF2ZSAyIEdlbW5pTGFr
-ZSBsYXB0b3BzIGZyb20gQVNVUywgbmFtZWQgWDQ0MU1CIGFuZCBYNTA3TUEsCj4gPiA+Pj4+ID4+
-IGJvdGggZ28gcG93ZXIgb2ZmIGFmdGVyIEkgZG8gInN5c3RlbWN0bCBzdXNwZW5kIiBvbiB0b3Ag
-b2Yga2VybmUgaGVhZAo+ID4gPj4+PiA+PiBmZDZkMmU1MDZjZTYgKE1lcmdlIHRhZyAnZG9jcy00
-LjE1LWZpeGVzJyBvZiBnaXQ6Ly9naXQubHduLm5ldC9saW51eCkuCj4gPiA+Pj4+ID4+IEkgdGhl
-biB3aXBlIGl0IG91dCBhbmQgaW5zdGFsbCBXaW5kb3dzIFJTMyBpbnN0ZWFkLCBhbHNvIGdvZXMg
-dG8gcG93ZXIKPiA+ID4+Pj4gPj4gb2ZmIGFmdGVyIHByZXNzaW5nIG1lZGlhIGtleSBmb3Igc3Vz
-cGVuZChTMykuIFRoZW4gSSBpbnN0YWxsZWQgaW50ZWwKPiA+ID4+Pj4gPj4gZ3JhcGhpYyBkcml2
-ZXIgd2l0aCB0aGUgZm9sbG93aW5nIHZlcnNpb24gbnVtYmVyLCBXaW5kb3dzIGhhcyBubwo+ID4g
-Pj4+PiA+PiBwcm9ibGVtIG9uIHN1c3BlbmQgcmVzdW1lIHRoZW4uCj4gPiA+Pj4+ID4KPiA+ID4+
-Pj4gPiBUaGVyZSBpcyBhIHN1c3BlbmQtcmVsYXRlZCBmaXggbWlzc2luZyBpbiA0LjE1LXJjIGF0
-IHRoaXMgcG9pbnQsIHNvCj4gPiA+Pj4+ID4gcGxlYXNlIHRlc3QgNC4xNC55IG9yIHdhaXQgZm9y
-IHRoZSBmaXggdG8gYmUgbWVyZ2VkLgo+ID4gPj4+Pgo+ID4gPj4+PiBZb3UgbWVhbiB0aGUgc3Vz
-cGVuZC1yZWxhdGVkIGZpeCB1c2VkIHRvIGV4aXN0IGluIDQuMTQ/IENvdWxkIHlvdSBwb2ludCBt
-ZQo+ID4gPj4+PiBvdXQgd2hpY2ggY29tbWl0IGl0IGlzPyBUaGFua3MKPiA+ID4+Pgo+ID4gPj4+
-IEkgbWVhbiB0aGF0IHN1c3BlbmQgZ2VuZXJhbGx5IHdvcmtzIGluIDQuMTQgYW5kIGlzIGN1cnJl
-bnRseSBicm9rZW4KPiA+ID4+PiBpbiA0LjE1LXJjIHdoaWNoIHJlcXVpcmVzIGEgZml4IHRvIGJl
-IGFwcGxpZWQuICBUaGUgZml4IGluIHF1ZXN0aW9uIGlzIGF0Ogo+ID4gPj4+IGh0dHBzOi8vbGtt
-bC5vcmcvbGttbC8yMDE3LzExLzMwLzU0Ngo+ID4gPj4+IFRoaXMgaXMgbmVlZGVkIGR1ZSB0byBz
-b21lIGNoYW5nZXMgbWFkZSBpbiA0LjE1LXJjICh3aXRoIHJlc3BlY3QgdG8gNC4xNCkKPiA+ID4+
-PiB0aGF0IGJyb2tlIHJlc3VtZSBmcm9tIHN1c3BlbmQgdG8gUkFNLgo+ID4gPj4KPiA+ID4+IEkg
-dGhpbmsgbWF5YmUgZm9yIEdlbW5pTGFrZSBpcyBhIGRpZmZlcmVudCBpc3N1ZS4gSSB0cmllZCBV
-YnVudHUtNC4xNC4wLTExLjEzCj4gPiA+PiBrZXJuZWwgYW5kIDQuMTMga2VybmVsLiBCb3RoIGdv
-IHBvd2VyIG9mZiBpbW1lZGlhdGVseS4KPiA+ID4KPiA+ID4gT0ssIHNvIHllcywgdGhpcyBpcyBh
-IGRpZmZlcmVudCBpc3N1ZS4KPiA+ID4gSXMgdGhhdCBzdXNwZW5kLXRvLWlkbGUgb3Igc3VzcGVu
-ZC10by1SQU0gKEFDUEkgUzMpPwo+ID4KPiA+IEl0J3MgQUNQSSBTMywgc3VzcGVuZC10byBSQU0u
-IER1ZSB0byBpdCBwb3dlciBvZmYgaW1tZWRpYXRlbHksCj4gPiBkaWZmaWN1bHQgZm9yIG1lIHRv
-IGNvbGxlY3QgdXNlZnVsIGluZm9ybWF0aW9uCj4gCj4gTXVsdGlwbGUgbmV3IEFjZXIgYW5kIEFz
-dXMgY29uc3VtZXIgcHJvZHVjdHMgYmFzZWQgb24gSW50ZWwgR2VtaW5pTGFrZQo+IE40MTAwL041
-MDAwIGZhaWwgdG8gZ28gaW50byBTMyBzdXNwZW5kLXRvLVJBTS4gQXQgdGhlIHBvaW50IHdoZW4g
-eW91Cj4gd291bGQgbm9ybWFsbHkgZXhwZWN0IHRoZSBzeXN0ZW0gdG8gZ28gaW50byBzbGVlcCwg
-dGhlIGNvbXB1dGVyCj4gY29tcGxldGVseSBwb3dlcnMgb2ZmLgo+IAo+IFRoZSBzYW1lIGhhcHBl
-bnMgdW5kZXIgV2luZG93cyAxMCBSUzMsIHVudGlsIHRoZSBmb2xsb3dpbmcgSW50ZWwKPiBncmFw
-aGljcyBkcml2ZXIgaXMgaW5zdGFsbGVkOgo+IAo+ICAgICBQYWNrYWdlOiA1MzA5NjcKPiAgICAg
-SW50ZWwoUikgR3JhcGhpY3MgRHJpdmVyOiAyMy4yMC4xNi40ODQ5Cj4gICAgIEludGVsKFIpIERp
-c3BsYXkgQXVkaW8gRHJpdmVyOiAxMC4wMC4wMC4xCj4gCj4gQWZ0ZXIgaW5zdGFsbGluZyB0aGlz
-IGRyaXZlciwgV2luZG93cyBjYW4gbm93IGdvIGludG8gUzMgc3VzcGVuZCBhbmQKPiBhbHNvIGJl
-IHJlc3VtZWQuIEknbSB3b25kZXJpbmcgaWYgc29tZW9uZSBjYW4gY2hlY2sgd2l0aCB0aGUgV2lu
-ZG93cwo+IGdmeCBkcml2ZXIgZGV2ZWxvcGVycyB3aGF0IHRoaXMgZHJpdmVyIGRvZXMgdG8gYWZm
-ZWN0IFMzIHN1c3BlbmQsIHNvCj4gdGhhdCB3ZSBjYW4gZml4IHVwIExpbnV4IGJlaGF2aW91ci4K
-ClRvIGNoZWNrIHRoaXMgZnJvbSB0aGUgR0ZYIHNpZGUsIGNvdWxkIHlvdSBvcGVuIGEgYnVnIGF0
-IFsxXT8gUGxlYXNlIHRyeQpzdXNwZW5kL3Jlc3VtZSB3aXRob3V0IHRoZSBncmFwaGljcyBkcml2
-ZXIgbG9hZGVkIChib290aW5nIHdpdGgKbm9tb2Rlc2V0KSBhbmQgaWYgdGhhdCB3b3JrcyBzdXNw
-ZW5kL3Jlc3VtZSB3aXRoIGZpcnN0IHNldHRpbmcgb25lIG9mCnRoZSB0ZXN0IHBoYXNlcyBpbiAv
-c3lzL3Bvd2VyL3N0YXRlLiBUcnlpbmcgdGhlIGRybS10aXAgYnJhbmNoIGZyb20gWzJdCndvdWxk
-IGJlIGFsc28gaGVscGZ1bC4gUGxlYXNlIHByb3ZpZGUgdGhlIGRtZXNnIGxvZ3MgYXQgZWFjaCBy
-dW4gd2hlbgpHRlggaXMgZW5hYmxlZCwgYm9vdGluZyB3aXRoIGRybS5kZWJ1Zz0weGUuIFVzaW5n
-IG5ldGNvbnNvbGUgb3IKcHN0b3JlIGNvdWxkIGhlbHAgZ2F0aGVyaW5nIHRoZSBsb2cgd2hlbiB0
-aGUgbWFjaGluZSBqdXN0IHBvd2VycyBvZmYuCgpUaGFua3MsCkltcmUKClsxXSBodHRwczovL2J1
-Z3MuZnJlZWRlc2t0b3Aub3JnL2VudGVyX2J1Zy5jZ2k/cHJvZHVjdD1EUkkKWzJdIGdpdDovL2Fu
-b25naXQuZnJlZWRlc2t0b3Aub3JnL2RybS10aXAKCgo+IAo+IFRoYW5rcwo+IERhbmllbAo+IF9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCj4gSW50ZWwtZ2Z4
-IG1haWxpbmcgbGlzdAo+IEludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKPiBodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeApfX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGlu
-ZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
-ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+Hi guys,
+
+While running LTP tests I've faced kernel crash caused by ltp_acpi test case.
+I have ACPI support enabled in kernel but kernel is boot with FDT having ACPI
+disabled. The ltp_acpi test case application is built along with ltp_acpi_cmds
+module to run ACPI tests.
+
+So my question is - should we update acpica implementation at kernel side by
+adding 'acpi_disabled' variable checking to the 'acpi_get_devices' function (see
+patch next to this email, maybe not a good approach) or this should be fixed at LTP
+side so the ltp_acpi_cmds should be updated in order to check if acpi is enabled
+before running tests ?
+
+Please check for kernel trace below:
+
+[  928.815454] Modules linked in: ltp_acpi_cmds(OE) ip6t_rpfilter ipt_REJECT
+[ .. ]
+2 05:12:36 ...
+ kernel:Internal error: Oops: 96000007 [#1] SMP
+ [  928.903937]  ipmi_devintf mdio_thunder thunderx_edac mdio_cavium ipmi_msghandler dm_mirror dm_region_hash dm_log dm_mod dax
+ [  928.917581] CPU: 32 PID: 27679 Comm: ltp_acpi Tainted: G           OE    4.15.0-rc3+ #1
+ [  928.928154] Hardware name: Gigabyte MT60-SC0-00_24SATA_02/MT60-SC0-00_24SATA_02, BIOS ThunderX-Firmware-Release-1.22.18-Build_02 Oct 17 2017
+ [  928.946235] pstate: 60000005 (nZCv daif -PAN -UAO)
+ [  928.953764] pc : acpi_ns_walk_namespace+0x64/0x1cc
+ [  928.961296] lr : acpi_get_devices+0x74/0x90
+ [  928.968159] sp : fffffc004d50fba0
+ [  928.974170] x29: fffffc004d50fba0 x28: 0000000000000001
+ [  928.982234] x27: fffffc00088a1000 x26: 0000000000000001
+ [  928.990308] x25: 0000000000000000 x24: fffffc004d50fc58
+ [  928.998413] x23: 0000000000000000 x22: 0000000000000001
+ [  929.006536] x21: 0000000000000000 x20: fffffc00084fb2c4
+ [  929.014680] x19: 0000000000000000 x18: 000003ffe27a5d70
+ [  929.022848] x17: 0000000000000000 x16: 0000000000000000
+ [  929.031030] x15: 0000000000005788 x14: 0e200e200e200e20
+ [  929.039231] x13: 0000000000000008 x12: 0000000000000001
+ [  929.047449] x11: 00000000ffffffff x10: ffffff00044e39a0
+ [  929.055695] x9 : 00000000000009eb x8 : 0000000000000001
+ [  929.063972] x7 : 0000000000000000 x6 : fffffc004d50fc58
+ [  929.072272] x5 : 0000000000000000 x4 : fffffc00084fb2c4
+ [  929.080583] x3 : 0000000000000001 x2 : 00000000ffffffff
+ [  929.088915] x1 : ffffffffffffffff x0 : fffffc00095fa000
+ [  929.097284] Process ltp_acpi (pid: 27679, stack limit = 0x0000000060c25f0d)
+ [  929.107389] Call trace:
+ [  929.112989]  acpi_ns_walk_namespace+0x64/0x1cc
+ [  929.120648]  acpi_get_devices+0x74/0x90
+ [  929.127639]  sys_tcase+0x158/0x618 [ltp_acpi_cmds]
+ [  929.135610]  dev_attr_store+0x40/0x54
+ [  929.142396]  sysfs_kf_write+0x5c/0x6c
+ [  929.149123]  kernfs_fop_write+0xc8/0x1d0
+ [  929.156122]  __vfs_write+0x48/0x150
+ [  929.162658]  vfs_write+0xa8/0x1a0
+ [  929.168994]  SyS_write+0x54/0xb0
+ [  929.175234]  __sys_trace_return+0x0/0x4
+ [  929.182099] Code: f9433c13 5280003c 52800017 0a1c007a (f9400e76)
+ [  929.191352] ---[ end trace ae3e06a2af30d07c ]---
+ [  929.199061] Kernel panic - not syncing: Fatal exception
+ [  929.207409] SMP: stopping secondary CPUs
+ [  929.214374] Kernel Offset: disabled
+ [  929.220781] CPU features: 0x100108
+ [  929.227004] Memory Limit: none
+ [  929.232805] ---[ end Kernel panic - not syncing: Fatal exception
+
+WBR,
+Vadim
