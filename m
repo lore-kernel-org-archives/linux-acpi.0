@@ -1,61 +1,48 @@
-From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
-Subject: [PATCH] acpi: acpica: add acpi status check prior walking through namespace
-Date: Tue, 12 Dec 2017 07:59:20 -0800
-Message-ID: <1513094360-1414-2-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
-References: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+Date: Tue, 12 Dec 2017 10:13:08 -0600
+Message-ID: <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-7-jeremy.linton@arm.com>
+ <9009154.M66RGdQJXA@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0060.outbound.protection.outlook.com ([104.47.41.60]:59712
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752007AbdLLP7j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Dec 2017 10:59:39 -0500
-In-Reply-To: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:46166 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751609AbdLLQNM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Dec 2017 11:13:12 -0500
+In-Reply-To: <9009154.M66RGdQJXA@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
-Cc: vadim.lomovtsev@cavium.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org
 
-From: Vadim Lomovtsev <vadim.lomovtsev@cavium.com>
+Hi,
 
-While having kernel built with ACPI support enabled and booted over FDT,
-the ltp_acpi test from LTP suite causes kernel crash while calling
-acpi_ns_walk_namespace(). The acpi_get_devices is high level wrapper for
-it, so we need to protect kernel from crashes by adding acpi status
-check before walking through namespace which is not loaded because of
-acpi is disabled.
+First, thanks for taking a look at this.
 
-Signed-off-by: Vadim Lomovtsev <vadim.lomovtsev@cavium.com>
----
- drivers/acpi/acpica/nsxfeval.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
+> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
+>> The PPTT can be used to determine the groupings of CPU's at
+>> given levels in the system. Lets add a few routines to the PPTT
+>> parsing code to return a unique id for each unique level in the
+>> processor hierarchy. This can then be matched to build
+>> thread/core/cluster/die/package/etc mappings for each processing
+>> element in the system.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> 
+> Why can't this be folded into patch [2/9]?
 
-diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
-index 783f4c8..e0eb9ae 100644
---- a/drivers/acpi/acpica/nsxfeval.c
-+++ b/drivers/acpi/acpica/nsxfeval.c
-@@ -52,6 +52,8 @@
- #define _COMPONENT          ACPI_NAMESPACE
- ACPI_MODULE_NAME("nsxfeval")
- 
-+extern int acpi_disabled;
-+
- /* Local prototypes */
- static void acpi_ns_resolve_references(struct acpi_evaluate_info *info);
- 
-@@ -812,6 +814,11 @@ static void acpi_ns_resolve_references(struct acpi_evaluate_info *info)
- 
- 	ACPI_FUNCTION_TRACE(acpi_get_devices);
- 
-+	/* check if ACPI disabled to prevent kernel crash later */
-+	if (acpi_disabled) {
-+		return_ACPI_STATUS(AE_NOT_CONFIGURED);
-+	}
-+
- 	/* Parameter validation */
- 
- 	if (!user_function) {
--- 
-1.8.3.1
+It can, and I will be happy squash it.
+
+It was requested that the topology portion of the parser be split out 
+back in v3.
+
+https://www.spinics.net/lists/linux-acpi/msg78487.html
+
+
 
