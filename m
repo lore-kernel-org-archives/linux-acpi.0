@@ -1,30 +1,50 @@
-From: Christoph =?utf-8?Q?B=C3=B6hmwalder?= <christoph@boehmwalder.at>
-Subject: Re: [PATCH 1/3 v5] battery: Add the battery hooking API
-Date: Mon, 11 Dec 2017 18:52:58 +0100
-Message-ID: <20171211175258.eewj7rmtqmk6hznf@localhost>
-References: <20171210180131.GA1865@thinkpad>
- <20171211120346.ast5ijqcxslfpbee@christoph-lap>
- <20171211163945.GA23317@thinkpad>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 2/9] ACPI/PPTT: Add Processor Properties Topology Table parsing
+Date: Tue, 12 Dec 2017 02:10:15 +0100
+Message-ID: <5013026.iDfypElIay@aspire.rjw.lan>
+References: <20171201222330.18863-1-jeremy.linton@arm.com> <20171201222330.18863-3-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20171211163945.GA23317@thinkpad>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Ognjen Galic <smclt30p@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:60407 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750759AbdLLBK5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 11 Dec 2017 20:10:57 -0500
+In-Reply-To: <20171201222330.18863-3-jeremy.linton@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org
 
-On Mon, Dec 11, 2017 at 05:39:45PM +0100, Ognjen Galic wrote:
-> The 80-char warning can be omitted if the line looks ugly when broken.
-> This is noted in the style guide.
-Indeed, you're right here.  The line is just barely over 80 characters
-anyway, so it really doesn't matter here.
+On Friday, December 1, 2017 11:23:23 PM CET Jeremy Linton wrote:
+> ACPI 6.2 adds a new table, which describes how processing units
+> are related to each other in tree like fashion. Caches are
+> also sprinkled throughout the tree and describe the properties
+> of the caches in relation to other caches and processing units.
+> 
+> Add the code to parse the cache hierarchy and report the total
+> number of levels of cache for a given core using
+> acpi_find_last_cache_level() as well as fill out the individual
+> cores cache information with cache_setup_acpi() once the
+> cpu_cacheinfo structure has been populated by the arch specific
+> code.
+> 
+> An additional patch later in the set adds the ability to report
+> peers in the topology using find_acpi_cpu_topology()
+> to report a unique ID for each processing unit at a given level
+> in the tree. These unique id's can then be used to match related
+> processing units which exist as threads, COD (clusters
+> on die), within a given package, etc.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 
-> About the MAINTAINERS file, I don't know how, when or why to edit that 
-> file so I did not touch it.
-That was just a warning about you moving drivers/acpi/battery.h to
-include/acpi/battery.h, which could potentially lead to an edit to
-MAINTAINERS being neccessary.  I just double-checked this and the
-include/acpi/ path was already listed in the MAINTAINERS file, so you're
-good.
+This is only going to be used by ARM64 for the time being, so I need
+someone from that camp to review this.
+
+Sudeep, Hanjun, Lorenzo?
+
+Thanks,
+Rafael
+
