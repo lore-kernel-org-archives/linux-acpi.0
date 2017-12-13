@@ -1,43 +1,47 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V8 1/7] Documentation: DT: qcom_hidma: Bump HW revision for the bugfixed HW
-Date: Wed, 13 Dec 2017 02:20:47 -0500
-Message-ID: <1513149653-19451-2-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V8 4/7] OF: properties: Implement get_match_data() callback
+Date: Wed, 13 Dec 2017 02:20:50 -0500
+Message-ID: <1513149653-19451-5-git-send-email-okaya@codeaurora.org>
 References: <1513149653-19451-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:59808 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751060AbdLMHVC (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 02:21:02 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1513149653-19451-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Vinod Koul <vinod.koul@intel.com>, Rob Herring <robh+dt@kernel.org>, Mark Rutland <mark.rutland@arm.com>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, open list <linux-kernel@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-A new version of the HIDMA IP has been released with bug fixes. Bumping the
-hardware version to differentiate from others.
+Now that we have a get_match_data() callback as part of the firmware node,
+implement the OF specific piece for it.
 
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 Reviewed-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/devicetree/bindings/dma/qcom_hidma_mgmt.txt | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/of/property.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/dma/qcom_hidma_mgmt.txt b/Documentation/devicetree/bindings/dma/qcom_hidma_mgmt.txt
-index 55492c2..5d93d6d 100644
---- a/Documentation/devicetree/bindings/dma/qcom_hidma_mgmt.txt
-+++ b/Documentation/devicetree/bindings/dma/qcom_hidma_mgmt.txt
-@@ -47,8 +47,8 @@ When the OS is not in control of the management interface (i.e. it's a guest),
- the channel nodes appear on their own, not under a management node.
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 8ad33a4..f25d363 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -981,10 +981,18 @@ static int of_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return 0;
+ }
  
- Required properties:
--- compatible: must contain "qcom,hidma-1.0" for initial HW or "qcom,hidma-1.1"
--for MSI capable HW.
-+- compatible: must contain "qcom,hidma-1.0" for initial HW or
-+  "qcom,hidma-1.1"/"qcom,hidma-1.2" for MSI capable HW.
- - reg: Addresses for the transfer and event channel
- - interrupts: Should contain the event interrupt
- - desc-count: Number of asynchronous requests this channel can handle
++static void *
++of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
++				const struct device *dev)
++{
++	return (void *)of_device_get_match_data(dev);
++}
++
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
+ 	.device_is_available = of_fwnode_device_is_available,
++	.device_get_match_data = of_fwnode_device_get_match_data,
+ 	.property_present = of_fwnode_property_present,
+ 	.property_read_int_array = of_fwnode_property_read_int_array,
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
 -- 
 1.9.1
-
