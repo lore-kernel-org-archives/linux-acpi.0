@@ -1,49 +1,88 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V7 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
-Date: Tue, 12 Dec 2017 19:09:47 -0500
-Message-ID: <0ed35958-22c9-50e5-3b6a-732821de6d20@codeaurora.org>
-References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
- <20171212053845.GB18649@localhost>
- <CAJZ5v0ijQFO_PuwhBRrKovo4EW9Dck9fiT38wiCw6P5hHUjNuw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI, APEI, Fix use resource_size
+Date: Wed, 13 Dec 2017 01:19:55 +0100
+Message-ID: <4222319.ltJQ6b6Cov@aspire.rjw.lan>
+References: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39270 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752805AbdLMAJz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2017 19:09:55 -0500
-In-Reply-To: <CAJZ5v0ijQFO_PuwhBRrKovo4EW9Dck9fiT38wiCw6P5hHUjNuw@mail.gmail.com>
-Content-Language: en-US
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:47411 "EHLO
+        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752805AbdLMAUi (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 12 Dec 2017 19:20:38 -0500
+In-Reply-To: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Vinod Koul <vinod.koul@intel.com>
-Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-arm-msm <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Vasyl Gomonovych <gomonovych@gmail.com>, Borislav Petkov <bp@suse.de>
+Cc: lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/12/2017 7:36 AM, Rafael J. Wysocki wrote:
-> On Tue, Dec 12, 2017 at 6:38 AM, Vinod Koul <vinod.koul@intel.com> wrote:
->> On Thu, Dec 07, 2017 at 04:10:24PM -0500, Sinan Kaya wrote:
->>> Introduce new ACPI and OF device ids for thw HW along with the helper
->>> functions.
->>>
->>> Changes from v6:
->>> * add const to the device callback parameter in fwnode.
->>> * reorganize the callbacks in the code
->>> * rename get_match_data() as device_get_match_data()
->>> * place pointer checks into acpi_get_match_data()
->>
->> This fails for me at 3rd patch. I am on -rc1 is there a dependency?
+On Monday, December 11, 2017 4:44:31 PM CET Vasyl Gomonovych wrote:
+> Use resource_size function on resource object
+> Underneath __request_region set res->end to start + n - 1
+> Lets use resourse_size to set value properly.
 > 
-> There shouldn't be any.
+> Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
+
+Boris, what do you think?
+
+> ---
+>  drivers/acpi/apei/apei-base.c | 13 ++++++-------
+>  1 file changed, 6 insertions(+), 7 deletions(-)
 > 
-> According to git, all changes to the files touched by the [3/7] are in
-> -rc1 already.
+> diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> index da370e1..af712a8 100644
+> --- a/drivers/acpi/apei/apei-base.c
+> +++ b/drivers/acpi/apei/apei-base.c
+> @@ -506,8 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
+>  
+>  	rc = -EINVAL;
+>  	list_for_each_entry(res, &resources->iomem, list) {
+> -		r = request_mem_region(res->start, res->end - res->start,
+> -				       desc);
+> +		r = request_mem_region(res->start, resource_size(res), desc);
+>  		if (!r) {
+>  			pr_err(APEI_PFX
+>  		"Can not request [mem %#010llx-%#010llx] for %s registers\n",
+> @@ -519,7 +518,7 @@ int apei_resources_request(struct apei_resources *resources,
+>  	}
+>  
+>  	list_for_each_entry(res, &resources->ioport, list) {
+> -		r = request_region(res->start, res->end - res->start, desc);
+> +		r = request_region(res->start, resource_size(res), desc);
+>  		if (!r) {
+>  			pr_err(APEI_PFX
+>  		"Can not request [io  %#06llx-%#06llx] for %s registers\n",
+> @@ -542,14 +541,14 @@ int apei_resources_request(struct apei_resources *resources,
+>  	list_for_each_entry(res, &resources->ioport, list) {
+>  		if (res == res_bak)
+>  			break;
+> -		release_region(res->start, res->end - res->start);
+> +		release_region(res->start, resource_size(res));
+>  	}
+>  	res_bak = NULL;
+>  err_unmap_iomem:
+>  	list_for_each_entry(res, &resources->iomem, list) {
+>  		if (res == res_bak)
+>  			break;
+> -		release_mem_region(res->start, res->end - res->start);
+> +		release_mem_region(res->start, resource_size(res));
+>  	}
+>  arch_res_fini:
+>  	if (arch_apei_filter_addr)
+> @@ -566,9 +565,9 @@ void apei_resources_release(struct apei_resources *resources)
+>  	struct apei_res *res;
+>  
+>  	list_for_each_entry(res, &resources->iomem, list)
+> -		release_mem_region(res->start, res->end - res->start);
+> +		release_mem_region(res->start, resource_size(res));
+>  	list_for_each_entry(res, &resources->ioport, list)
+> -		release_region(res->start, res->end - res->start);
+> +		release_region(res->start, resource_size(res));
+>  
+>  	rc = apei_resources_sub(&apei_resources_all, resources);
+>  	if (rc)
 > 
 
-Let me know if you were able to resolve the conflict. I can rebase against
-a development tree if you can point me to there.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
