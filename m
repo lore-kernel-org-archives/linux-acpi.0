@@ -1,43 +1,108 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [BUG] acpica: ltp_acpi test case causes kernel crash at acpi_ns_walk_namespace
-Date: Wed, 13 Dec 2017 00:45:50 +0100
-Message-ID: <9523980.S2jPabPoO5@aspire.rjw.lan>
-References: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
+Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
+Date: Wed, 13 Dec 2017 01:00:19 +0100
+Message-ID: <34396652.fljU28PShI@aspire.rjw.lan>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net> <20170925191749.2oamusbajgs6clcg@sig21.net> <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:49471 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41643 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752723AbdLLXqd (ORCPT
+        by vger.kernel.org with ESMTP id S1752857AbdLMABB (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Dec 2017 18:46:33 -0500
-In-Reply-To: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
+        Tue, 12 Dec 2017 19:01:01 -0500
+In-Reply-To: <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, vadim.lomovtsev@cavium.com
+To: Johannes Stezenbach <js@sig21.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
+Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
 
-On Tuesday, December 12, 2017 4:59:19 PM CET Vadim Lomovtsev wrote:
-> Hi guys,
+On Monday, September 25, 2017 9:21:09 PM CET Johannes Stezenbach wrote:
+> SATA controller is enabled on Asus E200HA even though the
+> machine doesn't use it (it has eMMC storage), however
+> SATA being on blocks S0ix entry so we need to disable it.
 > 
-> While running LTP tests I've faced kernel crash caused by ltp_acpi test case.
-> I have ACPI support enabled in kernel but kernel is boot with FDT having ACPI
-> disabled. The ltp_acpi test case application is built along with ltp_acpi_cmds
-> module to run ACPI tests.
+> Signed-off-by: Johannes Stezenbach <js@sig21.net>
+
+Mika, Andy, Hans, any comments on this one?
+
+> ---
+>  drivers/platform/x86/pmc_atom.c | 33 +++++++++++++++++++++++++++++++++
+>  1 file changed, 33 insertions(+)
 > 
-> So my question is - should we update acpica implementation at kernel side by
-> adding 'acpi_disabled' variable checking to the 'acpi_get_devices' function (see
-> patch next to this email, maybe not a good approach) or this should be fixed at LTP
-> side so the ltp_acpi_cmds should be updated in order to check if acpi is enabled
-> before running tests ?
+> diff --git a/drivers/platform/x86/pmc_atom.c b/drivers/platform/x86/pmc_atom.c
+> index 8d13c86cc418..b5dd38712268 100644
+> --- a/drivers/platform/x86/pmc_atom.c
+> +++ b/drivers/platform/x86/pmc_atom.c
+> @@ -17,6 +17,7 @@
+>  
+>  #include <linux/debugfs.h>
+>  #include <linux/device.h>
+> +#include <linux/dmi.h>
+>  #include <linux/init.h>
+>  #include <linux/io.h>
+>  #include <linux/platform_data/x86/clk-pmc-atom.h>
+> @@ -57,6 +58,9 @@ struct pmc_dev {
+>  static struct pmc_dev pmc_device;
+>  static u32 acpi_base_addr;
+>  
+> +static u32 quirks;
+> +#define QUIRK_DISABLE_SATA BIT(0)
+> +
+>  static const struct pmc_clk byt_clks[] = {
+>  	{
+>  		.name = "xtal",
+> @@ -271,6 +275,15 @@ static void pmc_hw_reg_setup(struct pmc_dev *pmc)
+>  	 * - GPIO_SCORE shared IRQ
+>  	 */
+>  	pmc_reg_write(pmc, PMC_S0IX_WAKE_EN, (u32)PMC_WAKE_EN_SETTING);
+> +
+> +	if (quirks & QUIRK_DISABLE_SATA) {
+> +		u32 func_dis;
+> +
+> +		pr_info("pmc: disable SATA IP\n");
+> +		func_dis = pmc_reg_read(pmc, PMC_FUNC_DIS);
+> +		func_dis |= BIT_SATA;
+> +		pmc_reg_write(pmc, PMC_FUNC_DIS, func_dis);
+> +	}
+>  }
+>  
+>  #ifdef CONFIG_DEBUG_FS
+> @@ -500,6 +513,24 @@ static struct pmc_notifier_block pmc_freeze_nb = {
+>  };
+>  #endif
+>  
+> +static int cht_asus_e200ha_cb(const struct dmi_system_id *id)
+> +{
+> +	pr_info("pmc: Asus E200HA detected\n");
+> +	quirks |= QUIRK_DISABLE_SATA;
+> +	return 1;
+> +}
+> +
+> +static const struct dmi_system_id cht_table[] = {
+> +	{
+> +		.callback = cht_asus_e200ha_cb,
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "E200HA"),
+> +		},
+> +	},
+> +	{ }
+> +};
+> +
+>  static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
+>  {
+>  	struct pmc_dev *pmc = &pmc_device;
+> @@ -526,6 +557,8 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
+>  
+>  	pmc->map = map;
+>  
+> +	dmi_check_system(cht_table);
+> +
+>  	/* PMC hardware registers setup */
+>  	pmc_hw_reg_setup(pmc);
+>  
+> 
 
-There should be a check preventing acpi_get_devices() from being called in the
-acpi_disabled case.
-
-acpi_disabled is Linux-specific and the ACPICA code isn't, so the code calling
-ACPICA functions should check acpi_disabled when necessary.
-
-Thanks,
-Rafael
 
