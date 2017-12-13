@@ -1,63 +1,73 @@
 From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: [RFC PATCH 2/2] clk: x86: Disable unused clocks to fix S0ix
-Date: Wed, 13 Dec 2017 12:22:45 +0100
-Message-ID: <20171213112245.GB20260@sig21.net>
+Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
+Date: Wed, 13 Dec 2017 12:13:05 +0100
+Message-ID: <20171213111305.GA20260@sig21.net>
 References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
- <1555462.9U3gvkyXAX@aspire.rjw.lan>
- <20170925192352.ihzakshd7yofowdd@sig21.net>
- <7178688.oS2VOf73im@aspire.rjw.lan>
- <fb202f9b-1fa2-4b9c-de75-4431a6273d12@redhat.com>
+ <20170925191749.2oamusbajgs6clcg@sig21.net>
+ <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
+ <34396652.fljU28PShI@aspire.rjw.lan>
+ <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.sig21.net ([80.244.240.74]:47051 "EHLO mail.sig21.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752274AbdLMLXA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Dec 2017 06:23:00 -0500
+Return-path: <linux-clk-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <fb202f9b-1fa2-4b9c-de75-4431a6273d12@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
+Sender: linux-clk-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 13, 2017 at 09:56:45AM +0100, Hans de Goede wrote:
-> On 13-12-17 01:01, Rafael J. Wysocki wrote:
-> > On Monday, September 25, 2017 9:23:52 PM CET Johannes Stezenbach wrote:
-> > > d31fd43c0f9a "clk: x86: Do not gate clocks enabled by the firmware"
-> > > exposed an issue on Asus E200HA where BIOS enables unused
-> > > Atom PMC clocks which prevent the system from entering S0ix.
-> > > Add a quirk to disable these clocks on E200HA.
+On Wed, Dec 13, 2017 at 09:53:21AM +0100, Hans de Goede wrote:
+> On 13-12-17 01:00, Rafael J. Wysocki wrote:
+> > On Monday, September 25, 2017 9:21:09 PM CET Johannes Stezenbach wrote:
+> > > SATA controller is enabled on Asus E200HA even though the
+> > > machine doesn't use it (it has eMMC storage), however
+> > > SATA being on blocks S0ix entry so we need to disable it.
 > > > 
 > > > Signed-off-by: Johannes Stezenbach <js@sig21.net>
 > > 
-> > Mika, Andy, Hans, any comments here?
+> > Mika, Andy, Hans, any comments on this one?
 > 
-> This seems like it is papering over an issue in the
-> d31fd43c0f9a "clk: x86: Do not gate clocks enabled by the firmware"
-> patch to me. That patch seems like a somewhat hackish fix to
-> me, it would be better to figure out which device needs the clock
-> in question and fix the device's driver...
+> Seems sensible to me, I'm afraid we may need the same quirk on
+> other devices, but I see no way around this.
 > 
-> And or maybe have a mask of clocks for which to do this check
-> and not do it for all clocks at least? That way we can maybe
-> fix both Johannes and Carlo's issue in one go without needing
-> device specific quirks ?
+> Although, maybe we need to have a specialized (derived)
+> ahci driver for these Atom SoCs and in there if no
+> disk is detected do this through the clock framework?
 > 
-> Carlo, do you remember which clock you needed this for ?
+> That may be better then a long list of quirks.
 > 
-> Johannes, same question for you, which clock is being kept
-> alive because of this ?
+> Johannes, question how did you test this and figure out
+> which clocks to disable, a quick howto on this, I think
+> a patch adding a little howto / README as say
+> Documentation/power/intel-S0ix-debugging.txt
+> documenting this would be great. I'm certainly interested
+> in trying to reproduce this on some of my own Bay Trail and
+> Cherry Trail devices and add fixes for those if necessary.
 
-IIRC all of these platform clocks need to be disabled for S0ix,
-but d31fd43c0f9a keeps them all enabled (if BIOS had enabled them),
-and only the one claimed by the audio codec driver
-is disabled by it before trying to enter S0ix.
+I put my E200HA aside due to lack of time, so it's
+unlikely I'll send documentation patches anytime soon.
 
-Yes, my vote would be to revert d31fd43c0f9a and fix the issue
-properly, but my patch was the result of previous discussion.
-Since it's BIOS' fault to have these clocks enabled I think
-a platform quirk isn't too bad.
+Basically everything is documented in bugzilla:
+https://bugzilla.kernel.org/show_bug.cgi?id=193891
+
+For the SATA issue I just poked wildly around in registers using
+busybox devmem, after applying S0ix blocker debug patch
+I tried to disable some devices which were printed:
+https://bugzilla.kernel.org/show_bug.cgi?id=193891#c53
+(Obviously bug 193891 is misnamed, most of what's
+discussed there doesn't directly relate to PMIC. Sorry
+for creating a mess, but my understanding of the platform
+was very low when I created it.)
+
+The thing is that the public CHT datasheet (atom-z8000-datasheet-vol-1.pdf + vol-2)
+doesn't even mention SATA, and there is no PCI device for it.
+OTOH, baytrail datasheet (atom-e3800-family-datasheet.pdf)
+specifies SATA and BIT_SATA was already defined in pmc_atom.h.
+
+Besides SATA, I also needed to disable dw DMA, using a
+hack patch or devmem, but eventually it might be solved properly:
+https://bugzilla.kernel.org/show_bug.cgi?id=196861
 
 
 Thanks,
