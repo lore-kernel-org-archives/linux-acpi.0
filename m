@@ -1,67 +1,58 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] ACPI, APEI, Fix use resource_size
-Date: Wed, 13 Dec 2017 16:38:57 +0100
-Message-ID: <20171213153857.2cftlirw7vbo5orm@pd.tnic>
-References: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
- <4222319.ltJQ6b6Cov@aspire.rjw.lan>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] ACPI / CPPC: FIX KASAN global out of bounds warning
+Date: Wed, 13 Dec 2017 09:55:23 -0600
+Message-ID: <20171213155523.GA182892@bhelgaas-glaptop.roam.corp.google.com>
+References: <1512396414-1024-1-git-send-email-george.cherian@cavium.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:40782 "EHLO mail.skyhub.de"
+Received: from mail.kernel.org ([198.145.29.99]:42530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752860AbdLMPjJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Dec 2017 10:39:09 -0500
+        id S1753139AbdLMPz0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 10:55:26 -0500
 Content-Disposition: inline
-In-Reply-To: <4222319.ltJQ6b6Cov@aspire.rjw.lan>
+In-Reply-To: <1512396414-1024-1-git-send-email-george.cherian@cavium.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vasyl Gomonovych <gomonovych@gmail.com>, lenb@kernel.org, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: George Cherian <george.cherian@cavium.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, changbin.du@intel.com
 
-On Wed, Dec 13, 2017 at 01:19:55AM +0100, Rafael J. Wysocki wrote:
-> On Monday, December 11, 2017 4:44:31 PM CET Vasyl Gomonovych wrote:
-> > Use resource_size function on resource object
-> > Underneath __request_region set res->end to start + n - 1
-> > Lets use resourse_size to set value properly.
-> > 
-> > Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
-> 
-> Boris, what do you think?
+On Mon, Dec 04, 2017 at 02:06:54PM +0000, George Cherian wrote:
+> Default value of pcc_subspace_idx is -1.
+> Make sure to check pcc_subspace_idx before using the same as array index.
+> This will avoid following KASAN warnings too.
 
-So if MAINTAINERS says we review apei stuff, it doesn't mean that you
-should completely stop doing that! :-P
+> @@ -1172,11 +1174,12 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
+>  	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
 
-So this looks like a fix to me since it didn't do the + 1 before.
+I think you forgot to remove this initialization.  Coverity reported this:
 
-I don't believe this would break any APEI stuff but it should be tested
-a little just in case.
+  *** CID 1426090:  Memory - illegal accesses  (REVERSE_NEGATIVE)
+  /drivers/acpi/cppc_acpi.c: 1177 in cppc_set_perf()
+  1171            struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
+  1172            struct cpc_register_resource *desired_reg;
+  1173            int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
+  1174            struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
+  1175            int ret = 0;
+  1176
+  >>>     CID 1426090:  Memory - illegal accesses  (REVERSE_NEGATIVE)
+  >>>     You might be using variable "pcc_ss_id" before verifying that it is >= 0.
+  1177            if (!cpc_desc || pcc_ss_id < 0) {
+  1178                    pr_debug("No CPC descriptor for CPU:%d\n", cpu);
+  1179                    return -ENODEV;
+  1180            }
+  1181
+  1182            pcc_ss_data = pcc_data[pcc_ss_id];
 
-> > ---
-> >  drivers/acpi/apei/apei-base.c | 13 ++++++-------
-> >  1 file changed, 6 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-> > index da370e1..af712a8 100644
-> > --- a/drivers/acpi/apei/apei-base.c
-> > +++ b/drivers/acpi/apei/apei-base.c
-> > @@ -506,8 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
-> >  
-> >  	rc = -EINVAL;
-> >  	list_for_each_entry(res, &resources->iomem, list) {
-> > -		r = request_mem_region(res->start, res->end - res->start,
-> > -				       desc);
-> > +		r = request_mem_region(res->start, resource_size(res), desc);
-
-Jeez, this is silly: we compute resource size just so that __request_region()
-can "uncompute" it back:
-
-        res->start = start;
-        res->end = start + n - 1;
-
-Lovely.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+>  	int ret = 0;
+>  
+> -	if (!cpc_desc) {
+> +	if (!cpc_desc || pcc_ss_id < 0) {
+>  		pr_debug("No CPC descriptor for CPU:%d\n", cpu);
+>  		return -ENODEV;
+>  	}
+>  
+> +	pcc_ss_data = pcc_data[pcc_ss_id];
+>  	desired_reg = &cpc_desc->cpc_regs[DESIRED_PERF];
+>  
+>  	/*
