@@ -1,55 +1,52 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: [PATCH] ACPICA: Fix indentation
-Date: Wed, 13 Dec 2017 21:53:35 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED539668D71@ORSMSX110.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPICA: Fix indentation
+Date: Wed, 13 Dec 2017 23:27:08 +0100
+Message-ID: <CAJZ5v0gFRa991=zs=7DoyLWzVtEBp2XqoEbmxwzgEd55Nw4Nnw@mail.gmail.com>
 References: <1512750553-15467-1-git-send-email-gomonovych@gmail.com>
- <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com>
+ <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com> <CF6A88132359CE47947DB4C6E1709ED539668D71@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:30917 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753813AbdLMVxh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Dec 2017 16:53:37 -0500
-In-Reply-To: <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:45589 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752617AbdLMW1J (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 17:27:09 -0500
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED539668D71@ORSMSX110.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Vasyl Gomonovych <gomonovych@gmail.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Vasyl Gomonovych <gomonovych@gmail.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5j
-b20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsDQo+IEou
-IFd5c29ja2kNCj4gU2VudDogRnJpZGF5LCBEZWNlbWJlciA4LCAyMDE3IDk6MDYgQU0NCj4gVG86
-IFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiBDYzogTW9vcmUsIFJv
-YmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFpoZW5nLCBMdg0KPiA8bHYuemhlbmdAaW50
-ZWwuY29tPjsgV3lzb2NraSwgUmFmYWVsIEogPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPjsg
-TGVuDQo+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJIERldmVsIE1hbGluZyBMaXN0IDxs
-aW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47DQo+IGRldmVsQGFjcGljYS5vcmc7IExpbnV4IEtl
-cm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+Ow0KPiBTY2ht
-YXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFU
-Q0hdIEFDUElDQTogRml4IGluZGVudGF0aW9uDQo+IA0KPiBPbiBGcmksIERlYyA4LCAyMDE3IGF0
-IDU6MjkgUE0sIFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiB3cm90
-ZToNCj4gPiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IHNtYXRjaCByZXBvcnRzIHRoZSBmb2xsb3dp
-bmc6DQo+ID4gZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAuYzo2MjMgYWNwaV9leF9kdW1wX29w
-ZXJhbmQoKSB3YXJuOg0KPiA+IGluY29uc2lzdGVudCBpbmRlbnRpbmcNCj4gPg0KPiA+IFNpZ25l
-ZC1vZmYtYnk6IFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiANCj4g
-VGhpcyBpcyBBQ1BJQ0EgY29kZSwgc28gY2hhbmdlcyBsaWtlIHRoaXMgc2hvdWxkIGdvIGluIHZp
-YSB0aGUgdXBzdHJlYW0uDQo+IA0KDQpIaSwNCj4gRXJpayBtYXkgd2FudCB0byBwaWNrIHRoaXMg
-dXAsIGhvd2V2ZXIuDQo+IA0KDQpUaGFua3MgZm9yIHBvaW50aW5nIHRoaXMgb3V0LiBJIGZvdW5k
-ICBzb2x1dGlvbiB0byBmaXggdGhlIGluZGVudGF0aW9uIGlzc3VlLiBJdCB3aWxsIGJlIGluIHRo
-ZSBuZXh0IHJlbGVhc2UuDQpFcmlrDQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
-ZXhkdW1wLmMgfCA0ICsrLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwg
-MiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNh
-L2V4ZHVtcC5jDQo+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2V4ZHVtcC5jIGluZGV4IDgzMzk4
-ZGMuLmY0M2QzZDcgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAu
-Yw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXhkdW1wLmMNCj4gPiBAQCAtNjE5LDgg
-KzYxOSw4IEBAIHZvaWQgYWNwaV9leF9kdW1wX29wZXJhbmQodW5pb24NCj4gPiBhY3BpX29wZXJh
-bmRfb2JqZWN0ICpvYmpfZGVzYywgdTMyIGRlcHRoKQ0KPiA+DQo+ID4gICAgICAgICBBQ1BJX0ZV
-TkNUSU9OX05BTUUoZXhfZHVtcF9vcGVyYW5kKQ0KPiA+DQo+ID4gLSAgICAgICAgICAgLyogQ2hl
-Y2sgaWYgZGVidWcgb3V0cHV0IGVuYWJsZWQgKi8NCj4gPiAtICAgICAgICAgICBpZiAoIUFDUElf
-SVNfREVCVUdfRU5BQkxFRChBQ1BJX0xWX0VYRUMsIF9DT01QT05FTlQpKSB7DQo+ID4gKyAgICAg
-ICAvKiBDaGVjayBpZiBkZWJ1ZyBvdXRwdXQgZW5hYmxlZCAqLw0KPiA+ICsgICAgICAgaWYgKCFB
-Q1BJX0lTX0RFQlVHX0VOQUJMRUQoQUNQSV9MVl9FWEVDLCBfQ09NUE9ORU5UKSkgew0KPiA+ICAg
-ICAgICAgICAgICAgICByZXR1cm47DQo+ID4gICAgICAgICB9DQo+ID4NCj4gPiAtLQ0K
+On Wed, Dec 13, 2017 at 10:53 PM, Schmauss, Erik
+<erik.schmauss@intel.com> wrote:
+>
+>> -----Original Message-----
+>> From: rjwysocki@gmail.com [mailto:rjwysocki@gmail.com] On Behalf Of Rafael
+>> J. Wysocki
+>> Sent: Friday, December 8, 2017 9:06 AM
+>> To: Vasyl Gomonovych <gomonovych@gmail.com>
+>> Cc: Moore, Robert <robert.moore@intel.com>; Zheng, Lv
+>> <lv.zheng@intel.com>; Wysocki, Rafael J <rafael.j.wysocki@intel.com>; Len
+>> Brown <lenb@kernel.org>; ACPI Devel Maling List <linux-acpi@vger.kernel.org>;
+>> devel@acpica.org; Linux Kernel Mailing List <linux-kernel@vger.kernel.org>;
+>> Schmauss, Erik <erik.schmauss@intel.com>
+>> Subject: Re: [PATCH] ACPICA: Fix indentation
+>>
+>> On Fri, Dec 8, 2017 at 5:29 PM, Vasyl Gomonovych <gomonovych@gmail.com>
+>> wrote:
+>> > This patch avoids that smatch reports the following:
+>> > drivers/acpi/acpica/exdump.c:623 acpi_ex_dump_operand() warn:
+>> > inconsistent indenting
+>> >
+>> > Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
+>>
+>> This is ACPICA code, so changes like this should go in via the upstream.
+>>
+>
+> Hi,
+>> Erik may want to pick this up, however.
+>>
+>
+> Thanks for pointing this out. I found  solution to fix the indentation issue. It will be in the next release.
+
+Cool, thanks!
