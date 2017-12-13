@@ -1,72 +1,75 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
-Date: Wed, 13 Dec 2017 21:33:33 +0200
-Message-ID: <1513193613.7000.58.camel@linux.intel.com>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
-         <20170925191749.2oamusbajgs6clcg@sig21.net>
-         <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
-         <34396652.fljU28PShI@aspire.rjw.lan>
-         <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
-         <CAEG3pNDL-8srk_JwqtZxs_waHAPfmRC_5Orhs_=XUhwdHTdM-g@mail.gmail.com>
-         <e4760a03-b6af-00fc-6c26-9fff8ed6c378@redhat.com>
-         <20171213162206.GA7337@sig21.net>
-         <e6aa5c55-8174-7ad9-009f-c254d3aeaf72@redhat.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v2 1/2] acpi, spcr: Make SPCR avialable to other
+ architectures
+Date: Wed, 13 Dec 2017 15:11:33 -0600
+Message-ID: <d967861e-9f83-689c-2b14-58d7450c848b@codeaurora.org>
+References: <20171211155059.17062-1-prarit@redhat.com>
+ <20171211155059.17062-2-prarit@redhat.com> <20171213124533.GA32362@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36867 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753197AbdLMTdi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Dec 2017 14:33:38 -0500
-In-Reply-To: <e6aa5c55-8174-7ad9-009f-c254d3aeaf72@redhat.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:34742 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752908AbdLMVLh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 16:11:37 -0500
+In-Reply-To: <20171213124533.GA32362@red-moon>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Johannes Stezenbach <js@sig21.net>
-Cc: Michael Turquette <mturquette@baylibre.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk <linux-clk@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prarit Bhargava <prarit@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, graeme.gregory@linaro.org, mark.salter@redhat.com
 
-On Wed, 2017-12-13 at 17:37 +0100, Hans de Goede wrote:
-> Hi,
+On 12/13/2017 06:45 AM, Lorenzo Pieralisi wrote:
+>> +/*
+>> + * Erratum 44 for QDF2432v1 and QDF2400v1 SoCs describes the BUSY bit as
+>> + * occasionally getting stuck as 1. To avoid the potential for a hang, check
+>> + * TXFE == 0 instead of BUSY == 1. This may not be suitable for all UART
+>> + * implementations, so only do so if an affected platform is detected in
+>> + * acpi_parse_spcr().
+>> + */
+>> +bool qdf2400_e44_present;
+>> +EXPORT_SYMBOL(qdf2400_e44_present);
 > 
-> On 13-12-17 17:22, Johannes Stezenbach wrote:
-> > 
-
-
-> > Please don't get confused with the other thread about clocks.
-> > This issue sets the "disable IP" bit, found by doing stupid
-> > experiments to enable S0ix on E200HA.
+> My eyes, this is horrible but it is not introduced by this patch. It
+> would have been much better if:
 > 
-> Ah my bad.
-
-Oh, perhaps I also need to refresh my memory from that buglink.
-
-> > 1. no idea if Cherry Trail even has SATA IP, maybe this is a
-> >     meaningless bit but PMC firmware carried over from
-> >     Bay Trail looks at it
+> drivers/tty/serial/amba-pl011.c
 > 
+> parsed the SPCR table (again) to detect it instead of relying on this
+> horrible exported flag.
+
+I didn't want to put any ACPI code in amba-pl011.c, so putting it in 
+spcr.c made the most sense.  I agree the global variable is ugly.  If 
+you have a better idea, I'm all ears.
+
+If it's any consolation, this erratum affects only 1.x silicon, which is 
+technically pre-production (although a lot of people have them).  This 
+work-around will eventually be reverted.
+
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 46505396869e..9ae98eeada76 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -79,7 +79,12 @@ config ACPI_DEBUGGER_USER
+>>   endif
+>>   
+>>   config ACPI_SPCR_TABLE
+>> -	bool
+>> +	bool "ACPI Serial Port Console Redirection Support"
+>> +	default y if ARM64
 > 
-> There are no CHT SoCs with SATA AFAIK, but Braswell SoCs,
-> which I believe is the same die do have SATA.
-> 
-> I think the best fix here is to look at the model-string part
-> of the CPU-id and do a quirk based on that, setting the "disable IP"
-> bit for the SATA on all SoC models known to not have SATA
-> (Z8300, Z8350, Z8500, Z8550, Z8700, Z8750).
-> 
-> Rafael, Andy how does that sound as a solution?
+> You need to remove the selection in arch/arm64 then. Also, moving away
+> from a non-visible config may have consequences on ARM64, Graeme and
+> Mark are more familiar with the SPCR dependencies so please chime in.
 
-Yeah, that bit is a property of PMC microcontroller and thus belongs to
-its driver in Linux kernel.
+I did raise this as a concern in the previous version of the patch.  I 
+also think it should not be a selectable option.
 
-To make it strict we need a matching property. AFAIR CPU model ID is all
-the same for all CHT and BSW SoCs, so, can't be used to distinguish
-them. So, you are thinking about comparing CPU model name then?
-
-It might work. However, SATA itself is a part of PCH, and thus can not
-exactly be matched by CPU ID.
-
-Btw, Pentium Celeron N-series according to spec has SATA host.
+Keeping the "select" does force SPCR to be enabled on ARM64 ACPI 
+platforms, but if it's an option for x86, it should be an option for ARM.
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
+Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
