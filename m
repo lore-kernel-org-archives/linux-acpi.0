@@ -1,74 +1,128 @@
-From: Johannes Stezenbach <js@sig21.net>
-Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
-Date: Wed, 13 Dec 2017 12:13:05 +0100
-Message-ID: <20171213111305.GA20260@sig21.net>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
- <20170925191749.2oamusbajgs6clcg@sig21.net>
- <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
- <34396652.fljU28PShI@aspire.rjw.lan>
- <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v11 0/3] iommu/smmu-v3: Workaround for hisilicon 161010801 erratum(reserve HW MSI)
+Date: Wed, 13 Dec 2017 11:58:27 +0000
+Message-ID: <20171213115830.61872-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-clk-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
-Sender: linux-clk-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:41174 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751853AbdLMMAh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 07:00:37 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lorenzo.pieralisi@arm.com, robin.murphy@arm.com, marc.zyngier@arm.com, will.deacon@arm.com
+Cc: joro@8bytes.org, john.garry@huawei.com, xuwei5@hisilicon.com, guohanjun@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linuxarm@huawei.com, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 
-On Wed, Dec 13, 2017 at 09:53:21AM +0100, Hans de Goede wrote:
-> On 13-12-17 01:00, Rafael J. Wysocki wrote:
-> > On Monday, September 25, 2017 9:21:09 PM CET Johannes Stezenbach wrote:
-> > > SATA controller is enabled on Asus E200HA even though the
-> > > machine doesn't use it (it has eMMC storage), however
-> > > SATA being on blocks S0ix entry so we need to disable it.
-> > > 
-> > > Signed-off-by: Johannes Stezenbach <js@sig21.net>
-> > 
-> > Mika, Andy, Hans, any comments on this one?
-> 
-> Seems sensible to me, I'm afraid we may need the same quirk on
-> other devices, but I see no way around this.
-> 
-> Although, maybe we need to have a specialized (derived)
-> ahci driver for these Atom SoCs and in there if no
-> disk is detected do this through the clock framework?
-> 
-> That may be better then a long list of quirks.
-> 
-> Johannes, question how did you test this and figure out
-> which clocks to disable, a quick howto on this, I think
-> a patch adding a little howto / README as say
-> Documentation/power/intel-S0ix-debugging.txt
-> documenting this would be great. I'm certainly interested
-> in trying to reproduce this on some of my own Bay Trail and
-> Cherry Trail devices and add fixes for those if necessary.
+On certain HiSilicon platforms (hip06/hip07) the GIC ITS and PCIe RC
+deviates from the standard implementation and this breaks PCIe MSI
+functionality when SMMU is enabled.
 
-I put my E200HA aside due to lack of time, so it's
-unlikely I'll send documentation patches anytime soon.
+The HiSilicon erratum 161010801 describes this limitation of certain
+HiSilicon platforms to support the SMMU mappings for MSI transactions.
+On these platforms GICv3 ITS translator is presented with the deviceID
+by extending the MSI payload data to 64 bits to include the deviceID.
+Hence, the PCIe controller on this platforms has to differentiate the MSI
+payload against other DMA payload and has to modify the MSI payload.
+This basically makes it difficult for this platforms to have a SMMU
+translation for MSI.
 
-Basically everything is documented in bugzilla:
-https://bugzilla.kernel.org/show_bug.cgi?id=193891
+This patch implements an ACPI based quirk to reserve the hw msi regions
+in the smmu-v3 driver which means these address regions will not be
+translated and will be excluded from iova allocations.
 
-For the SATA issue I just poked wildly around in registers using
-busybox devmem, after applying S0ix blocker debug patch
-I tried to disable some devices which were printed:
-https://bugzilla.kernel.org/show_bug.cgi?id=193891#c53
-(Obviously bug 193891 is misnamed, most of what's
-discussed there doesn't directly relate to PMIC. Sorry
-for creating a mess, but my understanding of the platform
-was very low when I created it.)
+To implement this quirk, the following changes are incorporated:
+1. Added a generic helper function to IORT code to retrieve and reserve
+   the associated ITS base address from a device IORT node. The function
+   has a check for smmu model to determine whether the platform requires
+   the HW MSI reservation or not.
+2. Added smmu node entries and explicitly disabled them in hip06/hip07
+    dts files so that users are warned about the non-DT support for this
+    erratum.
 
-The thing is that the public CHT datasheet (atom-z8000-datasheet-vol-1.pdf + vol-2)
-doesn't even mention SATA, and there is no PCI device for it.
-OTOH, baytrail datasheet (atom-e3800-family-datasheet.pdf)
-specifies SATA and BIT_SATA was already defined in pmc_atom.h.
+Changelog:
 
-Besides SATA, I also needed to disable dw DMA, using a
-hack patch or devmem, but eventually it might be solved properly:
-https://bugzilla.kernel.org/show_bug.cgi?id=196861
+v10 --> v11
+-Addressed comments from Lorenzo(patch#1)
+-Added Robin's Reviewed-by to patch #2
+
+v9 --> v10
+Addressed comments:
+-Moved smmu model check to iort helper function to selectively apply
+ the msi reservation which will make the fn call generic from iommu-dma.
+-Removed PCI blacklisting patch, instead added smmu nodes(disabled)
+ with comments to hip06/hip07 dts file.
+
+v8 --> v9
+-Thanks to Marc, fixed IORT helper function to reserve the ITS
+ translater region only.
+-Removed the DT support for MSI reservation and blacklisted
+ HiSilicon PCIe controllers on DT based systems when SMMUv3 is
+ enabled.
+
+v7 --> v8
+Addressed comments from Rob and Lorenzo:
+ -Modified to use DT compatible string for errata.
+ -Changed logic to retrieve the msi-parent for DT case.
+
+v6 --> v7
+Addressed request from Will to add DT support for the erratum:
+ - added bt binding
+ - add of_iommu_msi_get_resv_regions()
+New arm64 silicon errata entry
+Rename iort_iommu_{its->msi}_get_resv_regions
+
+v5 --> v6
+Addressed comments from Robin and Lorenzo:
+-No change to patch#1 .
+-Reverted v5 patch#2 as this might break the platforms where this quirk
+  is not applicable. Provided a generic function in iommu code and added
+  back the quirk implementation in SMMU v3 driver(patch#3)
+
+v4 --> v5
+Addressed comments from Robin and Lorenzo:
+-Added a comment to make it clear that, for now, only straightforward
+  HW topologies are handled while reserving ITS regions(patch #1).
+
+v3 --> v4
+Rebased on 4.13-rc1.
+Addressed comments from Robin, Will and Lorenzo:
+-As suggested by Robin, moved the ITS msi reservation into
+  iommu_dma_get_resv_regions().
+-Added its_count != resv region failure case(patch #1).
+
+v2 --> v3
+Addressed comments from Lorenzo and Robin:
+-Removed dev_is_pci() check in smmuV3 driver.
+-Don't treat device not having an ITS mapping as an error in
+  iort helper function.
+
+v1 --> v2
+-patch 2/2: Invoke iort helper fn based on fwnode type(acpi).
+
+RFCv2 -->PATCH
+-Incorporated Lorenzo's review comments.
+
+RFC v1 --> RFC v2
+Based on Robin's review comments,
+-Removed  the generic erratum framework.
+-Using IORT/MADT tables to retrieve the ITS base addr instead
+ of vendor specific CSRT table.
+
+Shameer Kolothum (3):
+  ACPI/IORT: Add msi address regions reservation helper
+  iommu/dma: Add HW MSI(GICv3 ITS) address regions reservation
+  arm64:dts:hisilicon Disable hisilicon smmu node on hip06/hip07
+
+ arch/arm64/boot/dts/hisilicon/hip06.dtsi |  55 +++++++++++++++
+ arch/arm64/boot/dts/hisilicon/hip07.dtsi |  24 +++++++
+ drivers/acpi/arm64/iort.c                | 112 ++++++++++++++++++++++++++++++-
+ drivers/iommu/dma-iommu.c                |   8 ++-
+ drivers/irqchip/irq-gic-v3-its.c         |   3 +-
+ include/linux/acpi_iort.h                |   7 +-
+ 6 files changed, 203 insertions(+), 6 deletions(-)
+
+-- 
+1.9.1
 
 
-Thanks,
-Johannes
