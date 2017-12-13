@@ -1,43 +1,83 @@
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] ACPI / CPPC: Fix negative array index read in cppc_set_perf
-Date: Wed, 13 Dec 2017 16:45:41 -0600
-Message-ID: <20171213224541.GA31477@embeddedor.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+Date: Wed, 13 Dec 2017 17:06:11 -0600
+Message-ID: <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-7-jeremy.linton@arm.com>
+ <9009154.M66RGdQJXA@aspire.rjw.lan>
+ <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com>
+ <20171213173851.GA4060@red-moon>
+ <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, George Cherian <george.cherian@cavium.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:35682 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751461AbdLMXGf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 18:06:35 -0500
+In-Reply-To: <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Al Stone <ahs3@redhat.com>, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, Len Brown <lenb@kernel.org>
 
-If pcc_ss_id is less than 0, there is a negative array index read
-before verifying pcc_ss_id is not a negative value.
+Hi,
 
-Fix this by removing the code that triggers this issue.
+On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
+> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com> wrote:
+>> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
+>>> Hi,
+>>>
+>>> First, thanks for taking a look at this.
+>>>
+>>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
+>>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
+>>>>> The PPTT can be used to determine the groupings of CPU's at
+>>>>> given levels in the system. Lets add a few routines to the PPTT
+>>>>> parsing code to return a unique id for each unique level in the
+>>>>> processor hierarchy. This can then be matched to build
+>>>>> thread/core/cluster/die/package/etc mappings for each processing
+>>>>> element in the system.
+>>>>>
+>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>>>
+>>>> Why can't this be folded into patch [2/9]?
+>>>
+>>> It can, and I will be happy squash it.
+>>>
+>>> It was requested that the topology portion of the parser be split
+>>> out back in v3.
+>>>
+>>> https://www.spinics.net/lists/linux-acpi/msg78487.html
+>>
+>> I asked to split cache/topology since I am not familiar with cache
+>> code and Sudeep - who looks after the cache code - won't be able
+>> to review this series in time for v4.16.
+> 
+> OK, so why do we need it in 4.16?
 
-Notice that this code is already properly placed after the check
-on pcc_ss_id at line 1182: pcc_ss_data = pcc_data[pcc_ss_id];
+I think its more case of as soon as possible. That is because there are 
+machines where the topology is completely incorrect due to assumptions 
+the kernel makes based on registers that aren't defined for that purpose 
+(say describing which cores are in a physical socket, or LLC's attached 
+to interconnects or memory controllers).
 
-Addresses-Coverity-ID: 1426090 ("Negative array index read")
-Fixes: 1ecbd7170d65 ("ACPI / CPPC: Fix KASAN global out of bounds warning")
-Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
----
- drivers/acpi/cppc_acpi.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This incorrect topology information is reported to things like the 
+kernel scheduler, which then makes poor scheduling decisions resulting 
+in sub-optimal system performance.
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 30e84cc..06ea474 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -1171,7 +1171,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
- 	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
- 	struct cpc_register_resource *desired_reg;
- 	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
--	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
-+	struct cppc_pcc_data *pcc_ss_data;
- 	int ret = 0;
- 
- 	if (!cpc_desc || pcc_ss_id < 0) {
--- 
-2.7.4
+
+This patchset (and ACPI 6.2) clears up a lot of those problems.
+
+Thanks,
+
+
+
+
+
+
+
+
