@@ -1,75 +1,55 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v2 1/2] acpi, spcr: Make SPCR avialable to other
- architectures
-Date: Wed, 13 Dec 2017 15:11:33 -0600
-Message-ID: <d967861e-9f83-689c-2b14-58d7450c848b@codeaurora.org>
-References: <20171211155059.17062-1-prarit@redhat.com>
- <20171211155059.17062-2-prarit@redhat.com> <20171213124533.GA32362@red-moon>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [PATCH] ACPICA: Fix indentation
+Date: Wed, 13 Dec 2017 21:53:35 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED539668D71@ORSMSX110.amr.corp.intel.com>
+References: <1512750553-15467-1-git-send-email-gomonovych@gmail.com>
+ <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34742 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752908AbdLMVLh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 16:11:37 -0500
-In-Reply-To: <20171213124533.GA32362@red-moon>
+Received: from mga12.intel.com ([192.55.52.136]:30917 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753813AbdLMVxh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 16:53:37 -0500
+In-Reply-To: <CAJZ5v0hgt8MLkxSHeN1A49p4g6VCr-r8x7RGun9eVmtx0PZKgg@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, graeme.gregory@linaro.org, mark.salter@redhat.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Vasyl Gomonovych <gomonovych@gmail.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 12/13/2017 06:45 AM, Lorenzo Pieralisi wrote:
->> +/*
->> + * Erratum 44 for QDF2432v1 and QDF2400v1 SoCs describes the BUSY bit as
->> + * occasionally getting stuck as 1. To avoid the potential for a hang, check
->> + * TXFE == 0 instead of BUSY == 1. This may not be suitable for all UART
->> + * implementations, so only do so if an affected platform is detected in
->> + * acpi_parse_spcr().
->> + */
->> +bool qdf2400_e44_present;
->> +EXPORT_SYMBOL(qdf2400_e44_present);
-> 
-> My eyes, this is horrible but it is not introduced by this patch. It
-> would have been much better if:
-> 
-> drivers/tty/serial/amba-pl011.c
-> 
-> parsed the SPCR table (again) to detect it instead of relying on this
-> horrible exported flag.
-
-I didn't want to put any ACPI code in amba-pl011.c, so putting it in 
-spcr.c made the most sense.  I agree the global variable is ugly.  If 
-you have a better idea, I'm all ears.
-
-If it's any consolation, this erratum affects only 1.x silicon, which is 
-technically pre-production (although a lot of people have them).  This 
-work-around will eventually be reverted.
-
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index 46505396869e..9ae98eeada76 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -79,7 +79,12 @@ config ACPI_DEBUGGER_USER
->>   endif
->>   
->>   config ACPI_SPCR_TABLE
->> -	bool
->> +	bool "ACPI Serial Port Console Redirection Support"
->> +	default y if ARM64
-> 
-> You need to remove the selection in arch/arm64 then. Also, moving away
-> from a non-visible config may have consequences on ARM64, Graeme and
-> Mark are more familiar with the SPCR dependencies so please chime in.
-
-I did raise this as a concern in the previous version of the patch.  I 
-also think it should not be a selectable option.
-
-Keeping the "select" does force SPCR to be enabled on ARM64 ACPI 
-platforms, but if it's an option for x86, it should be an option for ARM.
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm
-Technologies, Inc.  Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IHJqd3lzb2NraUBnbWFpbC5j
+b20gW21haWx0bzpyand5c29ja2lAZ21haWwuY29tXSBPbiBCZWhhbGYgT2YgUmFmYWVsDQo+IEou
+IFd5c29ja2kNCj4gU2VudDogRnJpZGF5LCBEZWNlbWJlciA4LCAyMDE3IDk6MDYgQU0NCj4gVG86
+IFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiBDYzogTW9vcmUsIFJv
+YmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFpoZW5nLCBMdg0KPiA8bHYuemhlbmdAaW50
+ZWwuY29tPjsgV3lzb2NraSwgUmFmYWVsIEogPHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPjsg
+TGVuDQo+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJIERldmVsIE1hbGluZyBMaXN0IDxs
+aW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz47DQo+IGRldmVsQGFjcGljYS5vcmc7IExpbnV4IEtl
+cm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+Ow0KPiBTY2ht
+YXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IFN1YmplY3Q6IFJlOiBbUEFU
+Q0hdIEFDUElDQTogRml4IGluZGVudGF0aW9uDQo+IA0KPiBPbiBGcmksIERlYyA4LCAyMDE3IGF0
+IDU6MjkgUE0sIFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiB3cm90
+ZToNCj4gPiBUaGlzIHBhdGNoIGF2b2lkcyB0aGF0IHNtYXRjaCByZXBvcnRzIHRoZSBmb2xsb3dp
+bmc6DQo+ID4gZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAuYzo2MjMgYWNwaV9leF9kdW1wX29w
+ZXJhbmQoKSB3YXJuOg0KPiA+IGluY29uc2lzdGVudCBpbmRlbnRpbmcNCj4gPg0KPiA+IFNpZ25l
+ZC1vZmYtYnk6IFZhc3lsIEdvbW9ub3Z5Y2ggPGdvbW9ub3Z5Y2hAZ21haWwuY29tPg0KPiANCj4g
+VGhpcyBpcyBBQ1BJQ0EgY29kZSwgc28gY2hhbmdlcyBsaWtlIHRoaXMgc2hvdWxkIGdvIGluIHZp
+YSB0aGUgdXBzdHJlYW0uDQo+IA0KDQpIaSwNCj4gRXJpayBtYXkgd2FudCB0byBwaWNrIHRoaXMg
+dXAsIGhvd2V2ZXIuDQo+IA0KDQpUaGFua3MgZm9yIHBvaW50aW5nIHRoaXMgb3V0LiBJIGZvdW5k
+ICBzb2x1dGlvbiB0byBmaXggdGhlIGluZGVudGF0aW9uIGlzc3VlLiBJdCB3aWxsIGJlIGluIHRo
+ZSBuZXh0IHJlbGVhc2UuDQpFcmlrDQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2Ev
+ZXhkdW1wLmMgfCA0ICsrLS0NCj4gPiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwg
+MiBkZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYWNwaWNh
+L2V4ZHVtcC5jDQo+ID4gYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2V4ZHVtcC5jIGluZGV4IDgzMzk4
+ZGMuLmY0M2QzZDcgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9leGR1bXAu
+Yw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvZXhkdW1wLmMNCj4gPiBAQCAtNjE5LDgg
+KzYxOSw4IEBAIHZvaWQgYWNwaV9leF9kdW1wX29wZXJhbmQodW5pb24NCj4gPiBhY3BpX29wZXJh
+bmRfb2JqZWN0ICpvYmpfZGVzYywgdTMyIGRlcHRoKQ0KPiA+DQo+ID4gICAgICAgICBBQ1BJX0ZV
+TkNUSU9OX05BTUUoZXhfZHVtcF9vcGVyYW5kKQ0KPiA+DQo+ID4gLSAgICAgICAgICAgLyogQ2hl
+Y2sgaWYgZGVidWcgb3V0cHV0IGVuYWJsZWQgKi8NCj4gPiAtICAgICAgICAgICBpZiAoIUFDUElf
+SVNfREVCVUdfRU5BQkxFRChBQ1BJX0xWX0VYRUMsIF9DT01QT05FTlQpKSB7DQo+ID4gKyAgICAg
+ICAvKiBDaGVjayBpZiBkZWJ1ZyBvdXRwdXQgZW5hYmxlZCAqLw0KPiA+ICsgICAgICAgaWYgKCFB
+Q1BJX0lTX0RFQlVHX0VOQUJMRUQoQUNQSV9MVl9FWEVDLCBfQ09NUE9ORU5UKSkgew0KPiA+ICAg
+ICAgICAgICAgICAgICByZXR1cm47DQo+ID4gICAgICAgICB9DQo+ID4NCj4gPiAtLQ0K
