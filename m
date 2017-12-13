@@ -1,83 +1,41 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
-Date: Wed, 13 Dec 2017 17:06:11 -0600
-Message-ID: <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com>
-References: <20171201222330.18863-1-jeremy.linton@arm.com>
- <20171201222330.18863-7-jeremy.linton@arm.com>
- <9009154.M66RGdQJXA@aspire.rjw.lan>
- <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com>
- <20171213173851.GA4060@red-moon>
- <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI, APEI, Fix use resource_size
+Date: Thu, 14 Dec 2017 00:07:30 +0100
+Message-ID: <CAJZ5v0h5AMJkQFm3uHX+DS=tSeYgYq+6=h0b-WP8Y+McSTLc3w@mail.gmail.com>
+References: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
+ <4222319.ltJQ6b6Cov@aspire.rjw.lan> <20171213153857.2cftlirw7vbo5orm@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:35682 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751461AbdLMXGf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 13 Dec 2017 18:06:35 -0500
-In-Reply-To: <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-ot0-f176.google.com ([74.125.82.176]:36182 "EHLO
+        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750751AbdLMXHb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 18:07:31 -0500
+In-Reply-To: <20171213153857.2cftlirw7vbo5orm@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Al Stone <ahs3@redhat.com>, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, Len Brown <lenb@kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vasyl Gomonovych <gomonovych@gmail.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
-
-On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
-> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
->> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
->>> Hi,
->>>
->>> First, thanks for taking a look at this.
->>>
->>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
->>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
->>>>> The PPTT can be used to determine the groupings of CPU's at
->>>>> given levels in the system. Lets add a few routines to the PPTT
->>>>> parsing code to return a unique id for each unique level in the
->>>>> processor hierarchy. This can then be matched to build
->>>>> thread/core/cluster/die/package/etc mappings for each processing
->>>>> element in the system.
->>>>>
->>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>>>
->>>> Why can't this be folded into patch [2/9]?
->>>
->>> It can, and I will be happy squash it.
->>>
->>> It was requested that the topology portion of the parser be split
->>> out back in v3.
->>>
->>> https://www.spinics.net/lists/linux-acpi/msg78487.html
+On Wed, Dec 13, 2017 at 4:38 PM, Borislav Petkov <bp@alien8.de> wrote:
+> On Wed, Dec 13, 2017 at 01:19:55AM +0100, Rafael J. Wysocki wrote:
+>> On Monday, December 11, 2017 4:44:31 PM CET Vasyl Gomonovych wrote:
+>> > Use resource_size function on resource object
+>> > Underneath __request_region set res->end to start + n - 1
+>> > Lets use resourse_size to set value properly.
+>> >
+>> > Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
 >>
->> I asked to split cache/topology since I am not familiar with cache
->> code and Sudeep - who looks after the cache code - won't be able
->> to review this series in time for v4.16.
-> 
-> OK, so why do we need it in 4.16?
+>> Boris, what do you think?
+>
+> So if MAINTAINERS says we review apei stuff, it doesn't mean that you
+> should completely stop doing that! :-P
 
-I think its more case of as soon as possible. That is because there are 
-machines where the topology is completely incorrect due to assumptions 
-the kernel makes based on registers that aren't defined for that purpose 
-(say describing which cores are in a physical socket, or LLC's attached 
-to interconnects or memory controllers).
+Which is exactly why you've got this question at all. ;-)
 
-This incorrect topology information is reported to things like the 
-kernel scheduler, which then makes poor scheduling decisions resulting 
-in sub-optimal system performance.
+> So this looks like a fix to me since it didn't do the + 1 before.
+>
+> I don't believe this would break any APEI stuff but it should be tested
+> a little just in case.
 
-
-This patchset (and ACPI 6.2) clears up a lot of those problems.
-
-Thanks,
-
-
-
-
-
-
-
-
+OK, let's queue it up for 4.16, then.
