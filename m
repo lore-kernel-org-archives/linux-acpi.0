@@ -1,109 +1,50 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V8 6/7] dmaengine: qcom_hidma: Add support for the new revision
-Date: Wed, 13 Dec 2017 02:20:52 -0500
-Message-ID: <1513149653-19451-7-git-send-email-okaya@codeaurora.org>
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V8 5/7] ACPI: properties: Implement get_match_data() callback
+Date: Wed, 13 Dec 2017 02:20:51 -0500
+Message-ID: <1513149653-19451-6-git-send-email-okaya@codeaurora.org>
 References: <1513149653-19451-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60484 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751539AbdLMHVM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 02:21:12 -0500
-In-Reply-To: <1513149653-19451-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1513149653-19451-1-git-send-email-okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, open list <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: dmaengine@vger.kernel.org, timur@codeaurora.org, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, Andy Gross <andy.gross@linaro.org>, David Brown <david.brown@linaro.org>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, "open list:ARM/QUALCOMM SUPPORT" <linux-soc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-Add support for probing the newer HW and also organize MSI capable hardware
-into an array for maintenance reasons.
+Now that we have a get_match_data() callback as part of the firmware node,
+implement the ACPI specific piece for it.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+Signed-off-by: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Acked-by: Sakari Ailus <sakari.ailus-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/dma/qcom/hidma.c | 34 +++++++++++++---------------------
- 1 file changed, 13 insertions(+), 21 deletions(-)
+ drivers/acpi/property.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/drivers/dma/qcom/hidma.c b/drivers/dma/qcom/hidma.c
-index e366985..c146c6d 100644
---- a/drivers/dma/qcom/hidma.c
-+++ b/drivers/dma/qcom/hidma.c
-@@ -50,6 +50,7 @@
- #include <linux/slab.h>
- #include <linux/spinlock.h>
- #include <linux/of_dma.h>
-+#include <linux/of_device.h>
- #include <linux/property.h>
- #include <linux/delay.h>
- #include <linux/acpi.h>
-@@ -104,6 +105,9 @@ static void hidma_free(struct hidma_dev *dmadev)
- module_param(nr_desc_prm, uint, 0644);
- MODULE_PARM_DESC(nr_desc_prm, "number of descriptors (default: 0)");
- 
-+enum hidma_cap {
-+	HIDMA_MSI_CAP = 1,
-+};
- 
- /* process completed descriptors */
- static void hidma_process_completed(struct hidma_chan *mchan)
-@@ -736,25 +740,12 @@ static int hidma_request_msi(struct hidma_dev *dmadev,
- #endif
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index e26ea20..466d150 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1271,9 +1271,17 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+ 	return 0;
  }
  
--static bool hidma_msi_capable(struct device *dev)
-+static bool hidma_test_capability(struct device *dev, enum hidma_cap test_cap)
- {
--	struct acpi_device *adev = ACPI_COMPANION(dev);
--	const char *of_compat;
--	int ret = -EINVAL;
--
--	if (!adev || acpi_disabled) {
--		ret = device_property_read_string(dev, "compatible",
--						  &of_compat);
--		if (ret)
--			return false;
-+	enum hidma_cap cap;
- 
--		ret = strcmp(of_compat, "qcom,hidma-1.1");
--	} else {
--#ifdef CONFIG_ACPI
--		ret = strcmp(acpi_device_hid(adev), "QCOM8062");
--#endif
--	}
--	return ret == 0;
-+	cap = (enum hidma_cap) device_get_match_data(dev);
-+	return cap ? ((cap & test_cap) > 0) : 0;
- }
- 
- static int hidma_probe(struct platform_device *pdev)
-@@ -834,8 +825,7 @@ static int hidma_probe(struct platform_device *pdev)
- 	 * Determine the MSI capability of the platform. Old HW doesn't
- 	 * support MSI.
- 	 */
--	msi = hidma_msi_capable(&pdev->dev);
--
-+	msi = hidma_test_capability(&pdev->dev, HIDMA_MSI_CAP);
- 	device_property_read_u32(&pdev->dev, "desc-count",
- 				 &dmadev->nr_descriptors);
- 
-@@ -953,7 +943,8 @@ static int hidma_remove(struct platform_device *pdev)
- #if IS_ENABLED(CONFIG_ACPI)
- static const struct acpi_device_id hidma_acpi_ids[] = {
- 	{"QCOM8061"},
--	{"QCOM8062"},
-+	{"QCOM8062", HIDMA_MSI_CAP},
-+	{"QCOM8063", HIDMA_MSI_CAP},
- 	{},
- };
- MODULE_DEVICE_TABLE(acpi, hidma_acpi_ids);
-@@ -961,7 +952,8 @@ static int hidma_remove(struct platform_device *pdev)
- 
- static const struct of_device_id hidma_match[] = {
- 	{.compatible = "qcom,hidma-1.0",},
--	{.compatible = "qcom,hidma-1.1",},
-+	{.compatible = "qcom,hidma-1.1", .data = (void *)(HIDMA_MSI_CAP),},
-+	{.compatible = "qcom,hidma-1.2", .data = (void *)(HIDMA_MSI_CAP),},
- 	{},
- };
- MODULE_DEVICE_TABLE(of, hidma_match);
++static void *
++acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
++				  const struct device *dev)
++{
++	return acpi_get_match_data(dev);
++}
++
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+ 	const struct fwnode_operations ops = {				\
+ 		.device_is_available = acpi_fwnode_device_is_available, \
++		.device_get_match_data = acpi_fwnode_device_get_match_data, \
+ 		.property_present = acpi_fwnode_property_present,	\
+ 		.property_read_int_array =				\
+ 			acpi_fwnode_property_read_int_array,		\
 -- 
 1.9.1
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
