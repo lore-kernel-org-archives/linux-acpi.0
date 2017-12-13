@@ -1,128 +1,49 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 2/2] clk: x86: Disable unused clocks to fix S0ix
-Date: Wed, 13 Dec 2017 01:01:16 +0100
-Message-ID: <7178688.oS2VOf73im@aspire.rjw.lan>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net> <1555462.9U3gvkyXAX@aspire.rjw.lan> <20170925192352.ihzakshd7yofowdd@sig21.net>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V7 0/7] dmaengine: qcom_hidma: add support for bugfixed HW
+Date: Tue, 12 Dec 2017 19:09:47 -0500
+Message-ID: <0ed35958-22c9-50e5-3b6a-732821de6d20@codeaurora.org>
+References: <1512681031-11343-1-git-send-email-okaya@codeaurora.org>
+ <20171212053845.GB18649@localhost>
+ <CAJZ5v0ijQFO_PuwhBRrKovo4EW9Dck9fiT38wiCw6P5hHUjNuw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:59510 "EHLO
-        cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752851AbdLMAB7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 12 Dec 2017 19:01:59 -0500
-In-Reply-To: <20170925192352.ihzakshd7yofowdd@sig21.net>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39270 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752805AbdLMAJz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Dec 2017 19:09:55 -0500
+In-Reply-To: <CAJZ5v0ijQFO_PuwhBRrKovo4EW9Dck9fiT38wiCw6P5hHUjNuw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Johannes Stezenbach <js@sig21.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
-Cc: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Vinod Koul <vinod.koul@intel.com>
+Cc: dmaengine <dmaengine@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, linux-arm-msm <linux-arm-msm@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Monday, September 25, 2017 9:23:52 PM CET Johannes Stezenbach wrote:
-> d31fd43c0f9a "clk: x86: Do not gate clocks enabled by the firmware"
-> exposed an issue on Asus E200HA where BIOS enables unused
-> Atom PMC clocks which prevent the system from entering S0ix.
-> Add a quirk to disable these clocks on E200HA.
+On 12/12/2017 7:36 AM, Rafael J. Wysocki wrote:
+> On Tue, Dec 12, 2017 at 6:38 AM, Vinod Koul <vinod.koul@intel.com> wrote:
+>> On Thu, Dec 07, 2017 at 04:10:24PM -0500, Sinan Kaya wrote:
+>>> Introduce new ACPI and OF device ids for thw HW along with the helper
+>>> functions.
+>>>
+>>> Changes from v6:
+>>> * add const to the device callback parameter in fwnode.
+>>> * reorganize the callbacks in the code
+>>> * rename get_match_data() as device_get_match_data()
+>>> * place pointer checks into acpi_get_match_data()
+>>
+>> This fails for me at 3rd patch. I am on -rc1 is there a dependency?
 > 
-> Signed-off-by: Johannes Stezenbach <js@sig21.net>
-
-Mika, Andy, Hans, any comments here?
-
-> ---
->  drivers/clk/x86/clk-pmc-atom.c                 | 10 +++++++---
->  drivers/platform/x86/pmc_atom.c                |  7 ++++++-
->  include/linux/platform_data/x86/clk-pmc-atom.h |  2 ++
->  3 files changed, 15 insertions(+), 4 deletions(-)
+> There shouldn't be any.
 > 
-> diff --git a/drivers/clk/x86/clk-pmc-atom.c b/drivers/clk/x86/clk-pmc-atom.c
-> index 08ef69945ffb..213e71b905eb 100644
-> --- a/drivers/clk/x86/clk-pmc-atom.c
-> +++ b/drivers/clk/x86/clk-pmc-atom.c
-> @@ -166,7 +166,8 @@ static const struct clk_ops plt_clk_ops = {
->  static struct clk_plt *plt_clk_register(struct platform_device *pdev, int id,
->  					void __iomem *base,
->  					const char **parent_names,
-> -					int num_parents)
-> +					int num_parents,
-> +					bool disable_unused)
->  {
->  	struct clk_plt *pclk;
->  	struct clk_init_data init;
-> @@ -190,7 +191,7 @@ static struct clk_plt *plt_clk_register(struct platform_device *pdev, int id,
->  	 * If the clock was already enabled by the firmware mark it as critical
->  	 * to avoid it being gated by the clock framework if no driver owns it.
->  	 */
-> -	if (plt_clk_is_enabled(&pclk->hw))
-> +	if (!disable_unused && plt_clk_is_enabled(&pclk->hw))
->  		init.flags |= CLK_IS_CRITICAL;
->  
->  	ret = devm_clk_hw_register(&pdev->dev, &pclk->hw);
-> @@ -324,6 +325,7 @@ static int plt_clk_probe(struct platform_device *pdev)
->  	struct clk_plt_data *data;
->  	unsigned int i;
->  	int err;
-> +	bool disable_unused;
->  
->  	pmc_data = dev_get_platdata(&pdev->dev);
->  	if (!pmc_data || !pmc_data->clks)
-> @@ -337,9 +339,11 @@ static int plt_clk_probe(struct platform_device *pdev)
->  	if (IS_ERR(parent_names))
->  		return PTR_ERR(parent_names);
->  
-> +	disable_unused = !!(pmc_data->flags & PMC_CLK_DATA_DISABLE_UNUSED);
->  	for (i = 0; i < PMC_CLK_NUM; i++) {
->  		data->clks[i] = plt_clk_register(pdev, i, pmc_data->base,
-> -						 parent_names, data->nparents);
-> +						 parent_names, data->nparents,
-> +						 disable_unused);
->  		if (IS_ERR(data->clks[i])) {
->  			err = PTR_ERR(data->clks[i]);
->  			goto err_unreg_clk_plt;
-> diff --git a/drivers/platform/x86/pmc_atom.c b/drivers/platform/x86/pmc_atom.c
-> index b5dd38712268..d81ada1a6f27 100644
-> --- a/drivers/platform/x86/pmc_atom.c
-> +++ b/drivers/platform/x86/pmc_atom.c
-> @@ -59,7 +59,8 @@ static struct pmc_dev pmc_device;
->  static u32 acpi_base_addr;
->  
->  static u32 quirks;
-> -#define QUIRK_DISABLE_SATA BIT(0)
-> +#define QUIRK_DISABLE_SATA		BIT(0)
-> +#define QUIRK_DISABLE_UNUSED_CLOCKS	BIT(1)
->  
->  static const struct pmc_clk byt_clks[] = {
->  	{
-> @@ -447,6 +448,8 @@ static int pmc_setup_clks(struct pci_dev *pdev, void __iomem *pmc_regmap,
->  
->  	clk_data->base = pmc_regmap; /* offset is added by client */
->  	clk_data->clks = pmc_data->clks;
-> +	if (quirks & QUIRK_DISABLE_UNUSED_CLOCKS)
-> +		clk_data->flags = PMC_CLK_DATA_DISABLE_UNUSED;
->  
->  	clkdev = platform_device_register_data(&pdev->dev, "clk-pmc-atom",
->  					       PLATFORM_DEVID_NONE,
-> @@ -517,6 +520,8 @@ static int cht_asus_e200ha_cb(const struct dmi_system_id *id)
->  {
->  	pr_info("pmc: Asus E200HA detected\n");
->  	quirks |= QUIRK_DISABLE_SATA;
-> +	/* BIOS enables some clocks at boot which are not needed but block S0ix */
-> +	quirks |= QUIRK_DISABLE_UNUSED_CLOCKS;
->  	return 1;
->  }
->  
-> diff --git a/include/linux/platform_data/x86/clk-pmc-atom.h b/include/linux/platform_data/x86/clk-pmc-atom.h
-> index 3ab892208343..e481878ef238 100644
-> --- a/include/linux/platform_data/x86/clk-pmc-atom.h
-> +++ b/include/linux/platform_data/x86/clk-pmc-atom.h
-> @@ -37,6 +37,8 @@ struct pmc_clk {
->   * @clks:	pointer to set of registered clocks, typically 0..5
->   */
->  struct pmc_clk_data {
-> +	int flags;
-> +#define PMC_CLK_DATA_DISABLE_UNUSED 1
->  	void __iomem *base;
->  	const struct pmc_clk *clks;
->  };
+> According to git, all changes to the files touched by the [3/7] are in
+> -rc1 already.
 > 
 
+Let me know if you were able to resolve the conflict. I can rebase against
+a development tree if you can point me to there.
 
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
