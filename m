@@ -1,160 +1,67 @@
-From: Michael Turquette <mturquette@baylibre.com>
-Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
-Date: Wed, 13 Dec 2017 07:25:28 -0800
-Message-ID: <CAEG3pNDL-8srk_JwqtZxs_waHAPfmRC_5Orhs_=XUhwdHTdM-g@mail.gmail.com>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net> <20170925191749.2oamusbajgs6clcg@sig21.net>
- <20170925192109.rty2fnm7c4jnj3vx@sig21.net> <34396652.fljU28PShI@aspire.rjw.lan>
- <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] ACPI, APEI, Fix use resource_size
+Date: Wed, 13 Dec 2017 16:38:57 +0100
+Message-ID: <20171213153857.2cftlirw7vbo5orm@pd.tnic>
+References: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
+ <4222319.ltJQ6b6Cov@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:39882 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752340AbdLMP0A (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 10:26:00 -0500
-Received: by mail-ot0-f195.google.com with SMTP id v21so2256019oth.6
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Dec 2017 07:25:59 -0800 (PST)
-In-Reply-To: <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
+Received: from mail.skyhub.de ([5.9.137.197]:40782 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752860AbdLMPjJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 10:39:09 -0500
+Content-Disposition: inline
+In-Reply-To: <4222319.ltJQ6b6Cov@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Johannes Stezenbach <js@sig21.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk <linux-clk@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Vasyl Gomonovych <gomonovych@gmail.com>, lenb@kernel.org, tony.luck@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hell Hans, all,
+On Wed, Dec 13, 2017 at 01:19:55AM +0100, Rafael J. Wysocki wrote:
+> On Monday, December 11, 2017 4:44:31 PM CET Vasyl Gomonovych wrote:
+> > Use resource_size function on resource object
+> > Underneath __request_region set res->end to start + n - 1
+> > Lets use resourse_size to set value properly.
+> > 
+> > Signed-off-by: Vasyl Gomonovych <gomonovych@gmail.com>
+> 
+> Boris, what do you think?
 
-On Wed, Dec 13, 2017 at 12:53 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->
-> Hi,
->
-> On 13-12-17 01:00, Rafael J. Wysocki wrote:
->>
->> On Monday, September 25, 2017 9:21:09 PM CET Johannes Stezenbach wrote:
->>>
->>> SATA controller is enabled on Asus E200HA even though the
->>> machine doesn't use it (it has eMMC storage), however
->>> SATA being on blocks S0ix entry so we need to disable it.
->>>
->>> Signed-off-by: Johannes Stezenbach <js@sig21.net>
->>
->>
->> Mika, Andy, Hans, any comments on this one?
->
->
-> Seems sensible to me, I'm afraid we may need the same quirk on
-> other devices, but I see no way around this.
+So if MAINTAINERS says we review apei stuff, it doesn't mean that you
+should completely stop doing that! :-P
 
-Quirks go directly into the driver? Is there a Device Tree analogue
-for x86 that could help here?
+So this looks like a fix to me since it didn't do the + 1 before.
 
->
-> Although, maybe we need to have a specialized (derived)
-> ahci driver for these Atom SoCs and in there if no
-> disk is detected do this through the clock framework?
+I don't believe this would break any APEI stuff but it should be tested
+a little just in case.
 
-Yes please. x86 is already modeling some clocks properly through the
-clock framework. During late init we clean up any clocks that were
-enabled out of reset or by the firmware/bootloader but not claimed and
-enabled by any Linux driver. That should ideally disable this
-particular clock for the case when no SATA drive is present, and
-require no quirk logic in the driver.
+> > ---
+> >  drivers/acpi/apei/apei-base.c | 13 ++++++-------
+> >  1 file changed, 6 insertions(+), 7 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+> > index da370e1..af712a8 100644
+> > --- a/drivers/acpi/apei/apei-base.c
+> > +++ b/drivers/acpi/apei/apei-base.c
+> > @@ -506,8 +506,7 @@ int apei_resources_request(struct apei_resources *resources,
+> >  
+> >  	rc = -EINVAL;
+> >  	list_for_each_entry(res, &resources->iomem, list) {
+> > -		r = request_mem_region(res->start, res->end - res->start,
+> > -				       desc);
+> > +		r = request_mem_region(res->start, resource_size(res), desc);
 
-Regards,
-Mike
+Jeez, this is silly: we compute resource size just so that __request_region()
+can "uncompute" it back:
 
->
-> That may be better then a long list of quirks.
->
-> Johannes, question how did you test this and figure out
-> which clocks to disable, a quick howto on this, I think
-> a patch adding a little howto / README as say
-> Documentation/power/intel-S0ix-debugging.txt
-> documenting this would be great. I'm certainly interested
-> in trying to reproduce this on some of my own Bay Trail and
-> Cherry Trail devices and add fixes for those if necessary.
->
-> Regards,
->
-> Hans
->
->
->
->
->
->>
->>> ---
->>>   drivers/platform/x86/pmc_atom.c | 33 +++++++++++++++++++++++++++++++++
->>>   1 file changed, 33 insertions(+)
->>>
->>> diff --git a/drivers/platform/x86/pmc_atom.c b/drivers/platform/x86/pmc_atom.c
->>> index 8d13c86cc418..b5dd38712268 100644
->>> --- a/drivers/platform/x86/pmc_atom.c
->>> +++ b/drivers/platform/x86/pmc_atom.c
->>> @@ -17,6 +17,7 @@
->>>     #include <linux/debugfs.h>
->>>   #include <linux/device.h>
->>> +#include <linux/dmi.h>
->>>   #include <linux/init.h>
->>>   #include <linux/io.h>
->>>   #include <linux/platform_data/x86/clk-pmc-atom.h>
->>> @@ -57,6 +58,9 @@ struct pmc_dev {
->>>   static struct pmc_dev pmc_device;
->>>   static u32 acpi_base_addr;
->>>   +static u32 quirks;
->>> +#define QUIRK_DISABLE_SATA BIT(0)
->>> +
->>>   static const struct pmc_clk byt_clks[] = {
->>>         {
->>>                 .name = "xtal",
->>> @@ -271,6 +275,15 @@ static void pmc_hw_reg_setup(struct pmc_dev *pmc)
->>>          * - GPIO_SCORE shared IRQ
->>>          */
->>>         pmc_reg_write(pmc, PMC_S0IX_WAKE_EN, (u32)PMC_WAKE_EN_SETTING);
->>> +
->>> +       if (quirks & QUIRK_DISABLE_SATA) {
->>> +               u32 func_dis;
->>> +
->>> +               pr_info("pmc: disable SATA IP\n");
->>> +               func_dis = pmc_reg_read(pmc, PMC_FUNC_DIS);
->>> +               func_dis |= BIT_SATA;
->>> +               pmc_reg_write(pmc, PMC_FUNC_DIS, func_dis);
->>> +       }
->>>   }
->>>     #ifdef CONFIG_DEBUG_FS
->>> @@ -500,6 +513,24 @@ static struct pmc_notifier_block pmc_freeze_nb = {
->>>   };
->>>   #endif
->>>   +static int cht_asus_e200ha_cb(const struct dmi_system_id *id)
->>> +{
->>> +       pr_info("pmc: Asus E200HA detected\n");
->>> +       quirks |= QUIRK_DISABLE_SATA;
->>> +       return 1;
->>> +}
->>> +
->>> +static const struct dmi_system_id cht_table[] = {
->>> +       {
->>> +               .callback = cht_asus_e200ha_cb,
->>> +               .matches = {
->>> +                       DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
->>> +                       DMI_MATCH(DMI_PRODUCT_NAME, "E200HA"),
->>> +               },
->>> +       },
->>> +       { }
->>> +};
->>> +
->>>   static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
->>>   {
->>>         struct pmc_dev *pmc = &pmc_device;
->>> @@ -526,6 +557,8 @@ static int pmc_setup_dev(struct pci_dev *pdev, const struct pci_device_id *ent)
->>>         pmc->map = map;
->>>   +     dmi_check_system(cht_table);
->>> +
->>>         /* PMC hardware registers setup */
->>>         pmc_hw_reg_setup(pmc);
->>>
->>
->>
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-clk" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        res->start = start;
+        res->end = start + n - 1;
+
+Lovely.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
