@@ -1,57 +1,90 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 1/2] acpi, spcr: Make SPCR avialable to other
- architectures
-Date: Thu, 14 Dec 2017 10:30:27 +0000
-Message-ID: <20171214103027.GB697@e107981-ln.cambridge.arm.com>
-References: <20171211155059.17062-1-prarit@redhat.com>
- <20171211155059.17062-2-prarit@redhat.com>
- <20171213124533.GA32362@red-moon>
- <d967861e-9f83-689c-2b14-58d7450c848b@codeaurora.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
+Date: Thu, 14 Dec 2017 11:53:30 +0100
+Message-ID: <2dd8be86-496d-1136-9cc2-0e9e0ac30d41@redhat.com>
+References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
+ <20170925191749.2oamusbajgs6clcg@sig21.net>
+ <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
+ <34396652.fljU28PShI@aspire.rjw.lan>
+ <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
+ <CAEG3pNDL-8srk_JwqtZxs_waHAPfmRC_5Orhs_=XUhwdHTdM-g@mail.gmail.com>
+ <e4760a03-b6af-00fc-6c26-9fff8ed6c378@redhat.com>
+ <20171213162206.GA7337@sig21.net>
+ <e6aa5c55-8174-7ad9-009f-c254d3aeaf72@redhat.com>
+ <1513193613.7000.58.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:39066 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751524AbdLNKad (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Dec 2017 05:30:33 -0500
-Content-Disposition: inline
-In-Reply-To: <d967861e-9f83-689c-2b14-58d7450c848b@codeaurora.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:37258 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751753AbdLNKxd (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2017 05:53:33 -0500
+Received: by mail-wm0-f65.google.com with SMTP id f140so10526486wmd.2
+        for <linux-acpi@vger.kernel.org>; Thu, 14 Dec 2017 02:53:33 -0800 (PST)
+In-Reply-To: <1513193613.7000.58.camel@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: Prarit Bhargava <prarit@redhat.com>, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, graeme.gregory@linaro.org, mark.salter@redhat.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Johannes Stezenbach <js@sig21.net>
+Cc: Michael Turquette <mturquette@baylibre.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk <linux-clk@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Wed, Dec 13, 2017 at 03:11:33PM -0600, Timur Tabi wrote:
-> On 12/13/2017 06:45 AM, Lorenzo Pieralisi wrote:
-> >>+/*
-> >>+ * Erratum 44 for QDF2432v1 and QDF2400v1 SoCs describes the BUSY bit as
-> >>+ * occasionally getting stuck as 1. To avoid the potential for a hang, check
-> >>+ * TXFE == 0 instead of BUSY == 1. This may not be suitable for all UART
-> >>+ * implementations, so only do so if an affected platform is detected in
-> >>+ * acpi_parse_spcr().
-> >>+ */
-> >>+bool qdf2400_e44_present;
-> >>+EXPORT_SYMBOL(qdf2400_e44_present);
-> >
-> >My eyes, this is horrible but it is not introduced by this patch. It
-> >would have been much better if:
-> >
-> >drivers/tty/serial/amba-pl011.c
-> >
-> >parsed the SPCR table (again) to detect it instead of relying on this
-> >horrible exported flag.
+Hi,
+
+On 13-12-17 20:33, Andy Shevchenko wrote:
+> On Wed, 2017-12-13 at 17:37 +0100, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 13-12-17 17:22, Johannes Stezenbach wrote:
+>>>
 > 
-> I didn't want to put any ACPI code in amba-pl011.c, so putting it in spcr.c
-> made the most sense.  I agree the global variable is ugly.  If you have a
-> better idea, I'm all ears.
+> 
+>>> Please don't get confused with the other thread about clocks.
+>>> This issue sets the "disable IP" bit, found by doing stupid
+>>> experiments to enable S0ix on E200HA.
+>>
+>> Ah my bad.
+> 
+> Oh, perhaps I also need to refresh my memory from that buglink.
+> 
+>>> 1. no idea if Cherry Trail even has SATA IP, maybe this is a
+>>>      meaningless bit but PMC firmware carried over from
+>>>      Bay Trail looks at it
+>>
+>>
+>> There are no CHT SoCs with SATA AFAIK, but Braswell SoCs,
+>> which I believe is the same die do have SATA.
+>>
+>> I think the best fix here is to look at the model-string part
+>> of the CPU-id and do a quirk based on that, setting the "disable IP"
+>> bit for the SATA on all SoC models known to not have SATA
+>> (Z8300, Z8350, Z8500, Z8550, Z8700, Z8750).
+>>
+>> Rafael, Andy how does that sound as a solution?
+> 
+> Yeah, that bit is a property of PMC microcontroller and thus belongs to
+> its driver in Linux kernel.
+> 
+> To make it strict we need a matching property. AFAIR CPU model ID is all
+> the same for all CHT and BSW SoCs, so, can't be used to distinguish
+> them. So, you are thinking about comparing CPU model name then?
 
-I told you my idea. It could have been made easier by reusing the
-ACPI_DECLARE_PROBE_ENTRY() mechanism.
+Yes CPU model name.
 
-> If it's any consolation, this erratum affects only 1.x silicon, which is
-> technically pre-production (although a lot of people have them).  This
-> work-around will eventually be reverted.
+> It might work. However, SATA itself is a part of PCH, and thus can not
+> exactly be matched by CPU ID.
 
-The sooner the better.
+AFAIK the PCH is integrated, at least with the Z83xx Z85xx and X87xx
+models.
 
-Lorenzo
+So using a CPU model name match seems a better solution to me
+then DMI product-name matching, as the CPU model name match should
+fix this for all devices with such a SoC.
+
+> Btw, Pentium Celeron N-series according to spec has SATA host.
+
+Right as I said the Braswell models do have SATA.
+
+Regards,
+
+Hans
