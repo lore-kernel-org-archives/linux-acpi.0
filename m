@@ -1,87 +1,156 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
-Date: Thu, 14 Dec 2017 00:09:54 +0100
-Message-ID: <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
-References: <20171201222330.18863-1-jeremy.linton@arm.com> <20171201222330.18863-7-jeremy.linton@arm.com>
- <9009154.M66RGdQJXA@aspire.rjw.lan> <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com>
- <20171213173851.GA4060@red-moon> <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
- <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Wed, 13 Dec 2017 19:10:16 -0700
+Message-ID: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f68.google.com ([209.85.218.68]:38413 "EHLO
-        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751011AbdLMXJz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Dec 2017 18:09:55 -0500
-In-Reply-To: <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com>
+Received: from mga01.intel.com ([192.55.52.88]:64707 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751917AbdLNCKa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 13 Dec 2017 21:10:30 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Al Stone <ahs3@redhat.com>, Jayachandran.Nair@cavium.com
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>B
 
-On Thu, Dec 14, 2017 at 12:06 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> Hi,
->
->
-> On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
->>
->> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
->> <lorenzo.pieralisi@arm.com> wrote:
->>>
->>> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
->>>>
->>>> Hi,
->>>>
->>>> First, thanks for taking a look at this.
->>>>
->>>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
->>>>>
->>>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
->>>>>>
->>>>>> The PPTT can be used to determine the groupings of CPU's at
->>>>>> given levels in the system. Lets add a few routines to the PPTT
->>>>>> parsing code to return a unique id for each unique level in the
->>>>>> processor hierarchy. This can then be matched to build
->>>>>> thread/core/cluster/die/package/etc mappings for each processing
->>>>>> element in the system.
->>>>>>
->>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>>>>
->>>>>
->>>>> Why can't this be folded into patch [2/9]?
->>>>
->>>>
->>>> It can, and I will be happy squash it.
->>>>
->>>> It was requested that the topology portion of the parser be split
->>>> out back in v3.
->>>>
->>>> https://www.spinics.net/lists/linux-acpi/msg78487.html
->>>
->>>
->>> I asked to split cache/topology since I am not familiar with cache
->>> code and Sudeep - who looks after the cache code - won't be able
->>> to review this series in time for v4.16.
->>
->>
->> OK, so why do we need it in 4.16?
->
->
-> I think its more case of as soon as possible. That is because there are
-> machines where the topology is completely incorrect due to assumptions the
-> kernel makes based on registers that aren't defined for that purpose (say
-> describing which cores are in a physical socket, or LLC's attached to
-> interconnects or memory controllers).
->
-> This incorrect topology information is reported to things like the kernel
-> scheduler, which then makes poor scheduling decisions resulting in
-> sub-optimal system performance.
->
-> This patchset (and ACPI 6.2) clears up a lot of those problems.
+This is the third revision of my patches adding a sysfs representation
+of the ACPI Heterogeneous Memory Attribute Table (HMAT).  These patches
+are based on v4.15-rc3 and a working tree can be found here:
 
-As long as the ACPI tables are as expected that is, I suppose?
+https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=hmat_v3
 
-Anyway, fair enough, but I don't want to rush it in.
+My goal is to get these patches merged for v4.16.
 
-Thanks,
-Rafael
+Changes from previous version (https://lkml.org/lkml/2017/7/6/749):
+
+ - Changed "HMEM" to "HMAT" and "hmem" to "hmat" throughout to make sure
+   that this effort doesn't get confused with Jerome's HMM work and to
+   make it clear that this enabling is tightly tied to the ACPI HMAT
+   table.  (John Hubbard)
+
+ - Moved the link in the initiator (i.e. mem_init0/mem_tgt2) from
+   pointing to the "mem_tgt2/local_init" attribute group to instead
+   point at the mem_tgt2 target itself.  (Brice Goglin)
+
+ - Simplified the contents of both the initiators and the targets so
+   that we just symlink to the NUMA node and don't duplicate
+   information.  For initiators this means that we no longer enumerate
+   CPUs, and for targets this means that we don't provide physical
+   address start and length information.  All of this is already
+   available in the NUMA node directory itself (i.e.
+   /sys/devices/system/node/node0), and it already accounts for the fact
+   that both multiple CPUs and multiple memory regions can be owned by a
+   given NUMA node.  Also removed some extra attributes (is_enabled,
+   is_isolated) which I don't think are useful at this point in time.
+
+I have tested this against many different configs that I implemented
+using qemu.
+
+---
+
+==== Quick Summary ====
+
+Platforms exist today which have multiple types of memory attached to a
+single CPU.  These disparate memory ranges have some characteristics in
+common, such as CPU cache coherence, but they can have wide ranges of
+performance both in terms of latency and bandwidth.
+
+For example, consider a system that contains persistent memory, standard
+DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
+There could potentially be an order of magnitude or more difference in
+performance between the slowest and fastest memory attached to that CPU.
+
+With the current Linux code NUMA nodes are CPU-centric, so all the memory
+attached to a given CPU will be lumped into the same NUMA node.  This makes
+it very difficult for userspace applications to understand the performance
+of different memory ranges on a given CPU.
+
+We solve this issue by providing userspace with performance information on
+individual memory ranges.  This performance information is exposed via
+sysfs:
+
+  # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
+  mem_tgt2/firmware_id:1
+  mem_tgt2/is_cached:0
+  mem_tgt2/local_init/read_bw_MBps:40960
+  mem_tgt2/local_init/read_lat_nsec:50
+  mem_tgt2/local_init/write_bw_MBps:40960
+  mem_tgt2/local_init/write_lat_nsec:50
+
+This allows applications to easily find the memory that they want to use.
+We expect that the existing NUMA APIs will be enhanced to use this new
+information so that applications can continue to use them to select their
+desired memory.
+
+==== Lots of Details ====
+
+This patch set provides a sysfs representation of parts of the
+Heterogeneous Memory Attribute Table (HMAT), newly defined in ACPI 6.2.
+One major conceptual change in ACPI 6.2 related to this work is that
+proximity domains no longer need to contain a processor.  We can now
+have memory-only proximity domains, which means that we can now have
+memory-only Linux NUMA nodes.
+
+Here is an example configuration where we have a single processor, one
+range of regular memory and one range of HBM:
+
+  +---------------+   +----------------+
+  | Processor     |   | Memory         |
+  | prox domain 0 +---+ prox domain 1  |
+  | NUMA node 1   |   | NUMA node 2    |
+  +-------+-------+   +----------------+
+          |
+  +-------+----------+
+  | HBM              |
+  | prox domain 2    |
+  | NUMA node 0      |
+  +------------------+
+
+This gives us one initiator (the processor) and two targets (the two memory
+ranges).  Each of these three has its own ACPI proximity domain and
+associated Linux NUMA node.  Note also that while there is a 1:1 mapping
+from each proximity domain to each NUMA node, the numbers don't necessarily
+match up.  Additionally we can have extra NUMA nodes that don't map back to
+ACPI proximity domains.
+
+The above configuration could also have the processor and one of the two
+memory ranges sharing a proximity domain and NUMA node, but for the
+purposes of the HMAT the two memory ranges will need to be separated.
+
+The overall goal of this series and of the HMAT is to allow users to
+identify memory using its performance characteristics.  This is
+complicated by the amount of HMAT data that could be present in very
+large systems, so in this series we only surface performance information
+for local (initiator,target) pairings.  The changelog for patch 5
+discusses this in detail.
+
+Ross Zwisler (3):
+  acpi: HMAT support in acpi_parse_entries_array()
+  hmat: add heterogeneous memory sysfs support
+  hmat: add performance attributes
+
+ MAINTAINERS                         |   6 +
+ drivers/acpi/Kconfig                |   1 +
+ drivers/acpi/Makefile               |   1 +
+ drivers/acpi/hmat/Kconfig           |   7 +
+ drivers/acpi/hmat/Makefile          |   2 +
+ drivers/acpi/hmat/core.c            | 797 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/hmat/hmat.h            |  64 +++
+ drivers/acpi/hmat/initiator.c       |  43 ++
+ drivers/acpi/hmat/perf_attributes.c |  56 +++
+ drivers/acpi/hmat/target.c          |  55 +++
+ drivers/acpi/tables.c               |  52 ++-
+ 11 files changed, 1073 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/acpi/hmat/Kconfig
+ create mode 100644 drivers/acpi/hmat/Makefile
+ create mode 100644 drivers/acpi/hmat/core.c
+ create mode 100644 drivers/acpi/hmat/hmat.h
+ create mode 100644 drivers/acpi/hmat/initiator.c
+ create mode 100644 drivers/acpi/hmat/perf_attributes.c
+ create mode 100644 drivers/acpi/hmat/target.c
+
+-- 
+2.14.3
+
