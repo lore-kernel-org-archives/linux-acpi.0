@@ -1,134 +1,182 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v11 1/3] ACPI/IORT: Add msi address regions reservation
- helper
-Date: Thu, 14 Dec 2017 12:43:36 +0000
-Message-ID: <20171214124336.GC27348@e107981-ln.cambridge.arm.com>
-References: <20171213115830.61872-1-shameerali.kolothum.thodi@huawei.com>
- <20171213115830.61872-2-shameerali.kolothum.thodi@huawei.com>
- <20171214114759.GA27117@e107981-ln.cambridge.arm.com>
- <5FC3163CFD30C246ABAA99954A238FA838628CDD@FRAEML521-MBX.china.huawei.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Thu, 14 Dec 2017 14:00:32 +0100
+Message-ID: <20171214130032.GK16951@dhcp22.suse.cz>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:41010 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751863AbdLNMnm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Dec 2017 07:43:42 -0500
+Received: from mx2.suse.de ([195.135.220.15]:37068 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751297AbdLNNAf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Dec 2017 08:00:35 -0500
 Content-Disposition: inline
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838628CDD@FRAEML521-MBX.china.huawei.com>
+In-Reply-To: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Cc: "robin.murphy@arm.com" <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Brice Goglin <br>
 
-On Thu, Dec 14, 2017 at 12:17:50PM +0000, Shameerali Kolothum Thodi wrote:
-> Hi Lorenzo,
-> 
-> > -----Original Message-----
-> > From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> > Sent: Thursday, December 14, 2017 11:48 AM
-> > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> > Cc: robin.murphy@arm.com; marc.zyngier@arm.com; will.deacon@arm.com;
-> > joro@8bytes.org; John Garry <john.garry@huawei.com>; xuwei (O)
-> > <xuwei5@hisilicon.com>; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> > iommu@lists.linux-foundation.org; linux-arm-kernel@lists.infradead.org; linux-
-> > acpi@vger.kernel.org; devicetree@vger.kernel.org; Linuxarm
-> > <linuxarm@huawei.com>
-> > Subject: Re: [PATCH v11 1/3] ACPI/IORT: Add msi address regions reservation
-> > helper
-> > 
-> > On Wed, Dec 13, 2017 at 11:58:28AM +0000, Shameer Kolothum wrote:
-> > > On some platforms msi parent address regions have to be excluded from
-> > > normal IOVA allocation in that they are detected and decoded in a HW
-> > > specific way by system components and so they cannot be considered normal
-> > > IOVA address space.
-> > >
-> > > Add a helper function that retrieves ITS address regions - the msi
-> > > parent - through IORT device <-> ITS mappings and reserves it so that
-> > > these regions will not be translated by IOMMU and will be excluded from
-> > > IOVA allocations. The function checks for the smmu model number and
-> > > only applies the msi reservation if the platform requires it.
-> > >
-> > > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> > > ---
-> > >  drivers/acpi/arm64/iort.c        | 112
-> > +++++++++++++++++++++++++++++++++++++--
-> > >  drivers/irqchip/irq-gic-v3-its.c |   3 +-
-> > >  include/linux/acpi_iort.h        |   7 ++-
-> > >  3 files changed, 117 insertions(+), 5 deletions(-)
-> > 
-> > You need this additional hunk to make it compile on !CONFIG_IOMMU_API:
-> 
-> Oops..Sorry, missed that. If you are happy with the rest, I will make the below
-> change and sent out the v12(hopefully final).
+[CC linix-api]
 
-I am ok with it, yes.
-
-Thanks,
-Lorenzo
-
-> Please let me know.
+On Wed 13-12-17 19:10:16, Ross Zwisler wrote:
+> This is the third revision of my patches adding a sysfs representation
+> of the ACPI Heterogeneous Memory Attribute Table (HMAT).  These patches
+> are based on v4.15-rc3 and a working tree can be found here:
 > 
-> Thanks,
-> Shameer
+> https://git.kernel.org/pub/scm/linux/kernel/git/zwisler/linux.git/log/?h=hmat_v3
 > 
-> > 
-> > -- >8 --
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index 3e0ce652c3e8..e2f7bddf5522 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -762,25 +762,6 @@ static int __maybe_unused __get_pci_rid(struct
-> > pci_dev *pdev, u16 alias,
-> >  	return 0;
-> >  }
-> > 
-> > -static __maybe_unused struct acpi_iort_node *iort_get_msi_resv_iommu(
-> > -						struct device *dev)
-> > -{
-> > -	struct acpi_iort_node *iommu;
-> > -	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> > -
-> > -	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
-> > -
-> > -	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
-> > -		struct acpi_iort_smmu_v3 *smmu;
-> > -
-> > -		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
-> > -		if (smmu->model ==
-> > ACPI_IORT_SMMU_V3_HISILICON_HI161X)
-> > -			return iommu;
-> > -	}
-> > -
-> > -	return NULL;
-> > -}
-> > -
-> >  static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
-> >  			       struct fwnode_handle *fwnode,
-> >  			       const struct iommu_ops *ops)
-> > @@ -807,6 +788,24 @@ static inline bool iort_iommu_driver_enabled(u8 type)
-> >  }
-> > 
-> >  #ifdef CONFIG_IOMMU_API
-> > +static struct acpi_iort_node *iort_get_msi_resv_iommu(struct device *dev)
-> > +{
-> > +	struct acpi_iort_node *iommu;
-> > +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> > +
-> > +	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
-> > +
-> > +	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
-> > +		struct acpi_iort_smmu_v3 *smmu;
-> > +
-> > +		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
-> > +		if (smmu->model ==
-> > ACPI_IORT_SMMU_V3_HISILICON_HI161X)
-> > +			return iommu;
-> > +	}
-> > +
-> > +	return NULL;
-> > +}
-> > +
-> >  static inline const struct iommu_ops *iort_fwspec_iommu_ops(
-> >  				struct iommu_fwspec *fwspec)
-> >  {
+> My goal is to get these patches merged for v4.16.
+
+Has actually reviewed the overal design already for this to be 4.16
+thing? I do not see any acks/reviewed-bys in any of the patches...
+
+> Changes from previous version (https://lkml.org/lkml/2017/7/6/749):
+
+... comments on this last posting are touching the surface rather than
+really discuss the overal design.
+
+>  - Changed "HMEM" to "HMAT" and "hmem" to "hmat" throughout to make sure
+>    that this effort doesn't get confused with Jerome's HMM work and to
+>    make it clear that this enabling is tightly tied to the ACPI HMAT
+>    table.  (John Hubbard)
+> 
+>  - Moved the link in the initiator (i.e. mem_init0/mem_tgt2) from
+>    pointing to the "mem_tgt2/local_init" attribute group to instead
+>    point at the mem_tgt2 target itself.  (Brice Goglin)
+> 
+>  - Simplified the contents of both the initiators and the targets so
+>    that we just symlink to the NUMA node and don't duplicate
+>    information.  For initiators this means that we no longer enumerate
+>    CPUs, and for targets this means that we don't provide physical
+>    address start and length information.  All of this is already
+>    available in the NUMA node directory itself (i.e.
+>    /sys/devices/system/node/node0), and it already accounts for the fact
+>    that both multiple CPUs and multiple memory regions can be owned by a
+>    given NUMA node.  Also removed some extra attributes (is_enabled,
+>    is_isolated) which I don't think are useful at this point in time.
+> 
+> I have tested this against many different configs that I implemented
+> using qemu.
+
+What is the testing procedure? How can I setup qemu to simlate such HW?
+
+[Keeping the rest of the email for linux-api reference]
+
+> ---
+> 
+> ==== Quick Summary ====
+> 
+> Platforms exist today which have multiple types of memory attached to a
+> single CPU.  These disparate memory ranges have some characteristics in
+> common, such as CPU cache coherence, but they can have wide ranges of
+> performance both in terms of latency and bandwidth.
+> 
+> For example, consider a system that contains persistent memory, standard
+> DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
+> There could potentially be an order of magnitude or more difference in
+> performance between the slowest and fastest memory attached to that CPU.
+> 
+> With the current Linux code NUMA nodes are CPU-centric, so all the memory
+> attached to a given CPU will be lumped into the same NUMA node.  This makes
+> it very difficult for userspace applications to understand the performance
+> of different memory ranges on a given CPU.
+> 
+> We solve this issue by providing userspace with performance information on
+> individual memory ranges.  This performance information is exposed via
+> sysfs:
+> 
+>   # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
+>   mem_tgt2/firmware_id:1
+>   mem_tgt2/is_cached:0
+>   mem_tgt2/local_init/read_bw_MBps:40960
+>   mem_tgt2/local_init/read_lat_nsec:50
+>   mem_tgt2/local_init/write_bw_MBps:40960
+>   mem_tgt2/local_init/write_lat_nsec:50
+> 
+> This allows applications to easily find the memory that they want to use.
+> We expect that the existing NUMA APIs will be enhanced to use this new
+> information so that applications can continue to use them to select their
+> desired memory.
+
+How? Could you provide some examples?
+
+> ==== Lots of Details ====
+> 
+> This patch set provides a sysfs representation of parts of the
+> Heterogeneous Memory Attribute Table (HMAT), newly defined in ACPI 6.2.
+> One major conceptual change in ACPI 6.2 related to this work is that
+> proximity domains no longer need to contain a processor.  We can now
+> have memory-only proximity domains, which means that we can now have
+> memory-only Linux NUMA nodes.
+> 
+> Here is an example configuration where we have a single processor, one
+> range of regular memory and one range of HBM:
+> 
+>   +---------------+   +----------------+
+>   | Processor     |   | Memory         |
+>   | prox domain 0 +---+ prox domain 1  |
+>   | NUMA node 1   |   | NUMA node 2    |
+>   +-------+-------+   +----------------+
+>           |
+>   +-------+----------+
+>   | HBM              |
+>   | prox domain 2    |
+>   | NUMA node 0      |
+>   +------------------+
+> 
+> This gives us one initiator (the processor) and two targets (the two memory
+> ranges).  Each of these three has its own ACPI proximity domain and
+> associated Linux NUMA node.  Note also that while there is a 1:1 mapping
+> from each proximity domain to each NUMA node, the numbers don't necessarily
+> match up.  Additionally we can have extra NUMA nodes that don't map back to
+> ACPI proximity domains.
+> 
+> The above configuration could also have the processor and one of the two
+> memory ranges sharing a proximity domain and NUMA node, but for the
+> purposes of the HMAT the two memory ranges will need to be separated.
+> 
+> The overall goal of this series and of the HMAT is to allow users to
+> identify memory using its performance characteristics.  This is
+> complicated by the amount of HMAT data that could be present in very
+> large systems, so in this series we only surface performance information
+> for local (initiator,target) pairings.  The changelog for patch 5
+> discusses this in detail.
+> 
+> Ross Zwisler (3):
+>   acpi: HMAT support in acpi_parse_entries_array()
+>   hmat: add heterogeneous memory sysfs support
+>   hmat: add performance attributes
+> 
+>  MAINTAINERS                         |   6 +
+>  drivers/acpi/Kconfig                |   1 +
+>  drivers/acpi/Makefile               |   1 +
+>  drivers/acpi/hmat/Kconfig           |   7 +
+>  drivers/acpi/hmat/Makefile          |   2 +
+>  drivers/acpi/hmat/core.c            | 797 ++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/hmat/hmat.h            |  64 +++
+>  drivers/acpi/hmat/initiator.c       |  43 ++
+>  drivers/acpi/hmat/perf_attributes.c |  56 +++
+>  drivers/acpi/hmat/target.c          |  55 +++
+>  drivers/acpi/tables.c               |  52 ++-
+>  11 files changed, 1073 insertions(+), 11 deletions(-)
+>  create mode 100644 drivers/acpi/hmat/Kconfig
+>  create mode 100644 drivers/acpi/hmat/Makefile
+>  create mode 100644 drivers/acpi/hmat/core.c
+>  create mode 100644 drivers/acpi/hmat/hmat.h
+>  create mode 100644 drivers/acpi/hmat/initiator.c
+>  create mode 100644 drivers/acpi/hmat/perf_attributes.c
+>  create mode 100644 drivers/acpi/hmat/target.c
+> 
+> -- 
+> 2.14.3
+> 
+> --
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+-- 
+Michal Hocko
+SUSE Labs
