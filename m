@@ -1,90 +1,98 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/2] platform/x86: add Atom PMC quirk to disable SATA
-Date: Thu, 14 Dec 2017 11:53:30 +0100
-Message-ID: <2dd8be86-496d-1136-9cc2-0e9e0ac30d41@redhat.com>
-References: <20170906204237.24x6fzlfmq7jmuce@sig21.net>
- <20170925191749.2oamusbajgs6clcg@sig21.net>
- <20170925192109.rty2fnm7c4jnj3vx@sig21.net>
- <34396652.fljU28PShI@aspire.rjw.lan>
- <a2c8d724-015a-e6c3-23ab-4b6036cc22eb@redhat.com>
- <CAEG3pNDL-8srk_JwqtZxs_waHAPfmRC_5Orhs_=XUhwdHTdM-g@mail.gmail.com>
- <e4760a03-b6af-00fc-6c26-9fff8ed6c378@redhat.com>
- <20171213162206.GA7337@sig21.net>
- <e6aa5c55-8174-7ad9-009f-c254d3aeaf72@redhat.com>
- <1513193613.7000.58.camel@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v11 1/3] ACPI/IORT: Add msi address regions reservation
+ helper
+Date: Thu, 14 Dec 2017 11:47:59 +0000
+Message-ID: <20171214114759.GA27117@e107981-ln.cambridge.arm.com>
+References: <20171213115830.61872-1-shameerali.kolothum.thodi@huawei.com>
+ <20171213115830.61872-2-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:37258 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751753AbdLNKxd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2017 05:53:33 -0500
-Received: by mail-wm0-f65.google.com with SMTP id f140so10526486wmd.2
-        for <linux-acpi@vger.kernel.org>; Thu, 14 Dec 2017 02:53:33 -0800 (PST)
-In-Reply-To: <1513193613.7000.58.camel@linux.intel.com>
-Content-Language: en-US
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:40402 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752026AbdLNLsI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Dec 2017 06:48:08 -0500
+Content-Disposition: inline
+In-Reply-To: <20171213115830.61872-2-shameerali.kolothum.thodi@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Johannes Stezenbach <js@sig21.net>
-Cc: Michael Turquette <mturquette@baylibre.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-clk <linux-clk@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Carlo Caione <carlo@endlessm.com>, Darren Hart <dvhart@infradead.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, Takashi Iwai <tiwai@suse.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Cc: robin.murphy@arm.com, marc.zyngier@arm.com, will.deacon@arm.com, joro@8bytes.org, john.garry@huawei.com, xuwei5@hisilicon.com, guohanjun@huawei.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linuxarm@huawei.com
 
-Hi,
-
-On 13-12-17 20:33, Andy Shevchenko wrote:
-> On Wed, 2017-12-13 at 17:37 +0100, Hans de Goede wrote:
->> Hi,
->>
->> On 13-12-17 17:22, Johannes Stezenbach wrote:
->>>
+On Wed, Dec 13, 2017 at 11:58:28AM +0000, Shameer Kolothum wrote:
+> On some platforms msi parent address regions have to be excluded from
+> normal IOVA allocation in that they are detected and decoded in a HW
+> specific way by system components and so they cannot be considered normal
+> IOVA address space.
 > 
+> Add a helper function that retrieves ITS address regions - the msi
+> parent - through IORT device <-> ITS mappings and reserves it so that
+> these regions will not be translated by IOMMU and will be excluded from
+> IOVA allocations. The function checks for the smmu model number and
+> only applies the msi reservation if the platform requires it.
 > 
->>> Please don't get confused with the other thread about clocks.
->>> This issue sets the "disable IP" bit, found by doing stupid
->>> experiments to enable S0ix on E200HA.
->>
->> Ah my bad.
-> 
-> Oh, perhaps I also need to refresh my memory from that buglink.
-> 
->>> 1. no idea if Cherry Trail even has SATA IP, maybe this is a
->>>      meaningless bit but PMC firmware carried over from
->>>      Bay Trail looks at it
->>
->>
->> There are no CHT SoCs with SATA AFAIK, but Braswell SoCs,
->> which I believe is the same die do have SATA.
->>
->> I think the best fix here is to look at the model-string part
->> of the CPU-id and do a quirk based on that, setting the "disable IP"
->> bit for the SATA on all SoC models known to not have SATA
->> (Z8300, Z8350, Z8500, Z8550, Z8700, Z8750).
->>
->> Rafael, Andy how does that sound as a solution?
-> 
-> Yeah, that bit is a property of PMC microcontroller and thus belongs to
-> its driver in Linux kernel.
-> 
-> To make it strict we need a matching property. AFAIR CPU model ID is all
-> the same for all CHT and BSW SoCs, so, can't be used to distinguish
-> them. So, you are thinking about comparing CPU model name then?
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/acpi/arm64/iort.c        | 112 +++++++++++++++++++++++++++++++++++++--
+>  drivers/irqchip/irq-gic-v3-its.c |   3 +-
+>  include/linux/acpi_iort.h        |   7 ++-
+>  3 files changed, 117 insertions(+), 5 deletions(-)
 
-Yes CPU model name.
+You need this additional hunk to make it compile on !CONFIG_IOMMU_API:
 
-> It might work. However, SATA itself is a part of PCH, and thus can not
-> exactly be matched by CPU ID.
-
-AFAIK the PCH is integrated, at least with the Z83xx Z85xx and X87xx
-models.
-
-So using a CPU model name match seems a better solution to me
-then DMI product-name matching, as the CPU model name match should
-fix this for all devices with such a SoC.
-
-> Btw, Pentium Celeron N-series according to spec has SATA host.
-
-Right as I said the Braswell models do have SATA.
-
-Regards,
-
-Hans
+-- >8 --
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 3e0ce652c3e8..e2f7bddf5522 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -762,25 +762,6 @@ static int __maybe_unused __get_pci_rid(struct pci_dev *pdev, u16 alias,
+ 	return 0;
+ }
+ 
+-static __maybe_unused struct acpi_iort_node *iort_get_msi_resv_iommu(
+-						struct device *dev)
+-{
+-	struct acpi_iort_node *iommu;
+-	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
+-
+-	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
+-
+-	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
+-		struct acpi_iort_smmu_v3 *smmu;
+-
+-		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
+-		if (smmu->model == ACPI_IORT_SMMU_V3_HISILICON_HI161X)
+-			return iommu;
+-	}
+-
+-	return NULL;
+-}
+-
+ static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
+ 			       struct fwnode_handle *fwnode,
+ 			       const struct iommu_ops *ops)
+@@ -807,6 +788,24 @@ static inline bool iort_iommu_driver_enabled(u8 type)
+ }
+ 
+ #ifdef CONFIG_IOMMU_API
++static struct acpi_iort_node *iort_get_msi_resv_iommu(struct device *dev)
++{
++	struct acpi_iort_node *iommu;
++	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
++
++	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
++
++	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
++		struct acpi_iort_smmu_v3 *smmu;
++
++		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
++		if (smmu->model == ACPI_IORT_SMMU_V3_HISILICON_HI161X)
++			return iommu;
++	}
++
++	return NULL;
++}
++
+ static inline const struct iommu_ops *iort_fwspec_iommu_ops(
+ 				struct iommu_fwspec *fwspec)
+ {
