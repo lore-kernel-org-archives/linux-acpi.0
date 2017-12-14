@@ -1,128 +1,59 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v11 1/3] ACPI/IORT: Add msi address regions reservation
- helper
-Date: Thu, 14 Dec 2017 12:17:50 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838628CDD@FRAEML521-MBX.china.huawei.com>
-References: <20171213115830.61872-1-shameerali.kolothum.thodi@huawei.com>
- <20171213115830.61872-2-shameerali.kolothum.thodi@huawei.com>
- <20171214114759.GA27117@e107981-ln.cambridge.arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Takashi Iwai <tiwai@suse.de>
+Subject: [PATCH] APEI / ERST: Fix missing error handling in erst_reader()
+Date: Thu, 14 Dec 2017 13:31:16 +0100
+Message-ID: <20171214123116.929-1-tiwai@suse.de>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:13266 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751719AbdLNMSC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Dec 2017 07:18:02 -0500
-In-Reply-To: <20171214114759.GA27117@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
+Received: from mx2.suse.de ([195.135.220.15]:34362 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751719AbdLNMbd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Dec 2017 07:31:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "robin.murphy@arm.com" <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+To: Kees Cook <keescook@chromium.org>
+Cc: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jerry Tang <jtang@suse.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi Lorenzo,
+The commit f6f828513290 ("pstore: pass allocated memory region back to
+caller") changed the check of the return value from erst_read() in
+erst_reader() in the following way:
 
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com]
-> Sent: Thursday, December 14, 2017 11:48 AM
-> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> Cc: robin.murphy@arm.com; marc.zyngier@arm.com; will.deacon@arm.com;
-> joro@8bytes.org; John Garry <john.garry@huawei.com>; xuwei (O)
-> <xuwei5@hisilicon.com>; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> iommu@lists.linux-foundation.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; devicetree@vger.kernel.org; Linuxarm
-> <linuxarm@huawei.com>
-> Subject: Re: [PATCH v11 1/3] ACPI/IORT: Add msi address regions reservation
-> helper
-> 
-> On Wed, Dec 13, 2017 at 11:58:28AM +0000, Shameer Kolothum wrote:
-> > On some platforms msi parent address regions have to be excluded from
-> > normal IOVA allocation in that they are detected and decoded in a HW
-> > specific way by system components and so they cannot be considered normal
-> > IOVA address space.
-> >
-> > Add a helper function that retrieves ITS address regions - the msi
-> > parent - through IORT device <-> ITS mappings and reserves it so that
-> > these regions will not be translated by IOMMU and will be excluded from
-> > IOVA allocations. The function checks for the smmu model number and
-> > only applies the msi reservation if the platform requires it.
-> >
-> > Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> > ---
-> >  drivers/acpi/arm64/iort.c        | 112
-> +++++++++++++++++++++++++++++++++++++--
-> >  drivers/irqchip/irq-gic-v3-its.c |   3 +-
-> >  include/linux/acpi_iort.h        |   7 ++-
-> >  3 files changed, 117 insertions(+), 5 deletions(-)
-> 
-> You need this additional hunk to make it compile on !CONFIG_IOMMU_API:
+        if (len == -ENOENT)
+                goto skip;
+-       else if (len < 0) {
+-               rc = -1;
++       else if (len < sizeof(*rcd)) {
++               rc = -EIO;
+                goto out;
 
-Oops..Sorry, missed that. If you are happy with the rest, I will make the below
-change and sent out the v12(hopefully final).
+This introduced another bug: since the comparison with sizeof() is
+cast to unsigned, a negative len value doesn't hit any longer.
+As a result, when an error is returned from erst_read(), the code
+falls through, and it may eventually lead to some weird thing like
+memory corruption.
 
-Please let me know.
+This patch adds the negative error value check more explicitly for
+addressing the issue.
 
-Thanks,
-Shameer
+Fixes: f6f828513290 ("pstore: pass allocated memory region back to caller")
+Cc: <stable@vger.kernel.org>
+Tested-by: Jerry Tang <jtang@suse.com>
+Signed-off-by: Takashi Iwai <tiwai@suse.de>
+---
+ drivers/acpi/apei/erst.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> 
-> -- >8 --
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 3e0ce652c3e8..e2f7bddf5522 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -762,25 +762,6 @@ static int __maybe_unused __get_pci_rid(struct
-> pci_dev *pdev, u16 alias,
->  	return 0;
->  }
-> 
-> -static __maybe_unused struct acpi_iort_node *iort_get_msi_resv_iommu(
-> -						struct device *dev)
-> -{
-> -	struct acpi_iort_node *iommu;
-> -	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> -
-> -	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
-> -
-> -	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
-> -		struct acpi_iort_smmu_v3 *smmu;
-> -
-> -		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
-> -		if (smmu->model ==
-> ACPI_IORT_SMMU_V3_HISILICON_HI161X)
-> -			return iommu;
-> -	}
-> -
-> -	return NULL;
-> -}
-> -
->  static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
->  			       struct fwnode_handle *fwnode,
->  			       const struct iommu_ops *ops)
-> @@ -807,6 +788,24 @@ static inline bool iort_iommu_driver_enabled(u8 type)
->  }
-> 
->  #ifdef CONFIG_IOMMU_API
-> +static struct acpi_iort_node *iort_get_msi_resv_iommu(struct device *dev)
-> +{
-> +	struct acpi_iort_node *iommu;
-> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> +
-> +	iommu = iort_get_iort_node(fwspec->iommu_fwnode);
-> +
-> +	if (iommu && (iommu->type == ACPI_IORT_NODE_SMMU_V3)) {
-> +		struct acpi_iort_smmu_v3 *smmu;
-> +
-> +		smmu = (struct acpi_iort_smmu_v3 *)iommu->node_data;
-> +		if (smmu->model ==
-> ACPI_IORT_SMMU_V3_HISILICON_HI161X)
-> +			return iommu;
-> +	}
-> +
-> +	return NULL;
-> +}
-> +
->  static inline const struct iommu_ops *iort_fwspec_iommu_ops(
->  				struct iommu_fwspec *fwspec)
->  {
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 6742f6c68034..9bff853e85f3 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1007,7 +1007,7 @@ static ssize_t erst_reader(struct pstore_record *record)
+ 	/* The record may be cleared by others, try read next record */
+ 	if (len == -ENOENT)
+ 		goto skip;
+-	else if (len < sizeof(*rcd)) {
++	else if (len < 0 || len < sizeof(*rcd)) {
+ 		rc = -EIO;
+ 		goto out;
+ 	}
+-- 
+2.15.1
+
