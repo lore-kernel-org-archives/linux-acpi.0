@@ -1,46 +1,39 @@
-From: Vadim Lomovtsev <Vadim.Lomovtsev@caviumnetworks.com>
-Subject: Re: [PATCH] acpi: acpica: add acpi status check prior walking
- through namespace
-Date: Thu, 14 Dec 2017 01:36:00 -0800
-Message-ID: <20171214093600.GB10734@localhost.localdomain>
-References: <1513094360-1414-1-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
- <1513094360-1414-2-git-send-email-Vadim.Lomovtsev@caviumnetworks.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E3B74FBD84@ORSMSX110.amr.corp.intel.com>
- <20171213145201.GA6692@localhost.localdomain>
- <CAJZ5v0iTzJ-=8SWcS6Hu1rP4d-EeOHz2yDjTPMAq8BdW8smSPg@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] ACPI, APEI, Fix use resource_size
+Date: Thu, 14 Dec 2017 10:37:59 +0100
+Message-ID: <20171214093759.n63hrae6yyug4aml@pd.tnic>
+References: <1513007072-32020-1-git-send-email-gomonovych@gmail.com>
+ <4222319.ltJQ6b6Cov@aspire.rjw.lan>
+ <20171213153857.2cftlirw7vbo5orm@pd.tnic>
+ <CAJZ5v0h5AMJkQFm3uHX+DS=tSeYgYq+6=h0b-WP8Y+McSTLc3w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0066.outbound.protection.outlook.com ([104.47.32.66]:52640
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750795AbdLNJgF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 14 Dec 2017 04:36:05 -0500
+Received: from mail.skyhub.de ([5.9.137.197]:47242 "EHLO mail.skyhub.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751173AbdLNJiK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Dec 2017 04:38:10 -0500
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iTzJ-=8SWcS6Hu1rP4d-EeOHz2yDjTPMAq8BdW8smSPg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0h5AMJkQFm3uHX+DS=tSeYgYq+6=h0b-WP8Y+McSTLc3w@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "vadim.lomovtsev@cavium.com" <vadim.lomovtsev@cavium.com>, "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vasyl Gomonovych <gomonovych@gmail.com>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Wed, Dec 13, 2017 at 05:48:49PM +0100, Rafael J. Wysocki wrote:
-> On Wed, Dec 13, 2017 at 3:52 PM, Vadim Lomovtsev
-> <Vadim.Lomovtsev@caviumnetworks.com> wrote:
-> > On Tue, Dec 12, 2017 at 09:52:21PM +0000, Moore, Robert wrote:
-> >> Another way to look at this is that the kernel should not be calling ACPI interfaces if ACPI is disabled.
-> >
-> > Yes, I agree. So in this case the ltp_acpi test case has to be updated with such checking
-> > before calling ACPI interfaces. However, it seems that such calls was put there intentionally,
-> > without ACPI state check, as part of kernel testing strategy.
-> 
-> Not really.
+On Thu, Dec 14, 2017 at 12:07:30AM +0100, Rafael J. Wysocki wrote:
+> Which is exactly why you've got this question at all. ;-)
 
-Ok, see your point.
-Thank you for your time.
+So you're saying, you've got your minions to do review for you - you can
+lay back and play all managerial now, huh?
 
-WBR,
-Vadim
+:-P
 
-> 
-> Thanks,
-> Rafael
+> OK, let's queue it up for 4.16, then.
+
+Yeah, just keep an eye on reports of mapping errors...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
