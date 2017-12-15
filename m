@@ -1,160 +1,220 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
- 161010801 erratum(reserve HW MSI)
-Date: Fri, 15 Dec 2017 15:01:02 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83862A92D@FRAEML521-MBX.china.huawei.com>
-References: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v5 7/9] arm64: Topology, rename cluster_id
+Date: Fri, 15 Dec 2017 10:36:35 -0600
+Message-ID: <7bb4e955-f3e5-d22f-4e78-eac97e66a9a6@arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-8-jeremy.linton@arm.com>
+ <20171213180217.GB4060@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:13730 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932072AbdLOPBN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 10:01:13 -0500
-In-Reply-To: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20171213180217.GB4060@red-moon>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, morten.rasmussen@arm.com, dietmar.eggemann@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
 
-Hi Lorenzo/Robin/Will,
+Hi,
 
-Since this has all the necessary reviewed-by from all concerned now(Thanks to all),
-just wondering how this will be picked up? through iort or iommu?
+On 12/13/2017 12:02 PM, Lorenzo Pieralisi wrote:
+> [+Morten, Dietmar]
+> 
+> $SUBJECT should be:
+> 
+> arm64: topology: rename cluster_id
 
-Please let me know.
+Sure..
 
-Thanks,
-Shameer
+> 
+> On Fri, Dec 01, 2017 at 04:23:28PM -0600, Jeremy Linton wrote:
+>> Lets match the name of the arm64 topology field
+>> to the kernel macro that uses it.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   arch/arm64/include/asm/topology.h |  4 ++--
+>>   arch/arm64/kernel/topology.c      | 27 ++++++++++++++-------------
+>>   2 files changed, 16 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+>> index c4f2d50491eb..118136268f66 100644
+>> --- a/arch/arm64/include/asm/topology.h
+>> +++ b/arch/arm64/include/asm/topology.h
+>> @@ -7,14 +7,14 @@
+>>   struct cpu_topology {
+>>   	int thread_id;
+>>   	int core_id;
+>> -	int cluster_id;
+>> +	int physical_id;
+> 
+> package_id ?
 
-> -----Original Message-----
-> From: Shameerali Kolothum Thodi
-> Sent: Thursday, December 14, 2017 4:10 PM
-> To: lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
-> marc.zyngier@arm.com; will.deacon@arm.com
-> Cc: joro@8bytes.org; John Garry <john.garry@huawei.com>; xuwei (O)
-> <xuwei5@hisilicon.com>; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> iommu@lists.linux-foundation.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; devicetree@vger.kernel.org; Linuxarm
-> <linuxarm@huawei.com>; Shameerali Kolothum Thodi
-> <shameerali.kolothum.thodi@huawei.com>
-> Subject: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
-> 161010801 erratum(reserve HW MSI)
-> 
-> On certain HiSilicon platforms (hip06/hip07) the GIC ITS and PCIe RC
-> deviates from the standard implementation and this breaks PCIe MSI
-> functionality when SMMU is enabled.
-> 
-> The HiSilicon erratum 161010801 describes this limitation of certain
-> HiSilicon platforms to support the SMMU mappings for MSI transactions.
-> On these platforms GICv3 ITS translator is presented with the deviceID
-> by extending the MSI payload data to 64 bits to include the deviceID.
-> Hence, the PCIe controller on this platforms has to differentiate the MSI
-> payload against other DMA payload and has to modify the MSI payload.
-> This basically makes it difficult for this platforms to have a SMMU
-> translation for MSI.
-> 
-> This patch implements an ACPI based quirk to reserve the hw msi regions
-> in the smmu-v3 driver which means these address regions will not be
-> translated and will be excluded from iova allocations.
-> 
-> To implement this quirk, the following changes are incorporated:
-> 1. Added a generic helper function to IORT code to retrieve and reserve
->    the associated ITS base address from a device IORT node. The function
->    has a check for smmu model to determine whether the platform requires
->    the HW MSI reservation or not.
-> 2. Added smmu node entries and explicitly disabled them in hip06/hip07
->     dts files so that users are warned about the non-DT support for this
->     erratum.
-> 
-> Changelog:
-> 
-> v11--> v12
-> -Thanks to Lorenzo, Fixed !CONFIG_IOMMU_API compile error(patch #1).
-> 
-> v10 --> v11
-> -Addressed comments from Lorenzo(patch#1)
-> -Added Robin's Reviewed-by to patch #2
-> 
-> v9 --> v10
-> Addressed comments:
-> -Moved smmu model check to iort helper function to selectively apply
->  the msi reservation which will make the fn call generic from iommu-dma.
-> -Removed PCI blacklisting patch, instead added smmu nodes(disabled)
->  with comments to hip06/hip07 dts file.
-> 
-> v8 --> v9
-> -Thanks to Marc, fixed IORT helper function to reserve the ITS
->  translater region only.
-> -Removed the DT support for MSI reservation and blacklisted
->  HiSilicon PCIe controllers on DT based systems when SMMUv3 is
->  enabled.
-> 
-> v7 --> v8
-> Addressed comments from Rob and Lorenzo:
->  -Modified to use DT compatible string for errata.
->  -Changed logic to retrieve the msi-parent for DT case.
-> 
-> v6 --> v7
-> Addressed request from Will to add DT support for the erratum:
->  - added bt binding
->  - add of_iommu_msi_get_resv_regions()
-> New arm64 silicon errata entry
-> Rename iort_iommu_{its->msi}_get_resv_regions
-> 
-> v5 --> v6
-> Addressed comments from Robin and Lorenzo:
-> -No change to patch#1 .
-> -Reverted v5 patch#2 as this might break the platforms where this quirk
->   is not applicable. Provided a generic function in iommu code and added
->   back the quirk implementation in SMMU v3 driver(patch#3)
-> 
-> v4 --> v5
-> Addressed comments from Robin and Lorenzo:
-> -Added a comment to make it clear that, for now, only straightforward
->   HW topologies are handled while reserving ITS regions(patch #1).
-> 
-> v3 --> v4
-> Rebased on 4.13-rc1.
-> Addressed comments from Robin, Will and Lorenzo:
-> -As suggested by Robin, moved the ITS msi reservation into
->   iommu_dma_get_resv_regions().
-> -Added its_count != resv region failure case(patch #1).
-> 
-> v2 --> v3
-> Addressed comments from Lorenzo and Robin:
-> -Removed dev_is_pci() check in smmuV3 driver.
-> -Don't treat device not having an ITS mapping as an error in
->   iort helper function.
-> 
-> v1 --> v2
-> -patch 2/2: Invoke iort helper fn based on fwnode type(acpi).
-> 
-> RFCv2 -->PATCH
-> -Incorporated Lorenzo's review comments.
-> 
-> RFC v1 --> RFC v2
-> Based on Robin's review comments,
-> -Removed  the generic erratum framework.
-> -Using IORT/MADT tables to retrieve the ITS base addr instead
->  of vendor specific CSRT table.
-> 
-> Shameer Kolothum (3):
->   ACPI/IORT: Add msi address regions reservation helper
->   iommu/dma: Add HW MSI(GICv3 ITS) address regions reservation
->   arm64:dts:hisilicon Disable hisilicon smmu node on hip06/hip07
-> 
->  arch/arm64/boot/dts/hisilicon/hip06.dtsi |  56 ++++++++++++++++
->  arch/arm64/boot/dts/hisilicon/hip07.dtsi |  25 +++++++
->  drivers/acpi/arm64/iort.c                | 111 ++++++++++++++++++++++++++++++-
->  drivers/iommu/dma-iommu.c                |   8 ++-
->  drivers/irqchip/irq-gic-v3-its.c         |   3 +-
->  include/linux/acpi_iort.h                |   7 +-
->  6 files changed, 204 insertions(+), 6 deletions(-)
-> 
-> --
-> 1.9.1
-> 
+Given the macro is topology_physical_package_id, either makes sense to 
+me. <shrug> I will change it in the next set.
 
+
+> 
+> It has been debated before, I know. Should we keep the cluster_id too
+> (even if it would be 1:1 mapped to package_id - for now) ?
+
+Well given that this patch replaces the patch that did that at your 
+request..
+
+I was hoping someone else would comment here, but my take at this point 
+is that it doesn't really matter in a functional sense at the moment.
+Like the chiplet discussion it can be the subject of a future patch 
+along with the patches which tweak the scheduler to understand the split.
+
+BTW, given that i'm OoO next week, and the following that are the 
+holidays, I don't intend to repost this for a couple weeks. I don't 
+think there are any issues with this set.
+
+> 
+> There is also arch/arm to take into account, again, this patch is
+> just renaming (as it should have named since the beginning) a
+> topology level but we should consider everything from a legacy
+> perspective.
+> 
+> Lorenzo
+> 
+>>   	cpumask_t thread_sibling;
+>>   	cpumask_t core_sibling;
+>>   };
+>>   
+>>   extern struct cpu_topology cpu_topology[NR_CPUS];
+>>   
+>> -#define topology_physical_package_id(cpu)	(cpu_topology[cpu].cluster_id)
+>> +#define topology_physical_package_id(cpu)	(cpu_topology[cpu].physical_id)
+>>   #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
+>>   #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
+>>   #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
+>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>> index 8d48b233e6ce..74a8a5173a35 100644
+>> --- a/arch/arm64/kernel/topology.c
+>> +++ b/arch/arm64/kernel/topology.c
+>> @@ -51,7 +51,7 @@ static int __init get_cpu_for_node(struct device_node *node)
+>>   	return -1;
+>>   }
+>>   
+>> -static int __init parse_core(struct device_node *core, int cluster_id,
+>> +static int __init parse_core(struct device_node *core, int physical_id,
+>>   			     int core_id)
+>>   {
+>>   	char name[10];
+>> @@ -67,7 +67,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>   			leaf = false;
+>>   			cpu = get_cpu_for_node(t);
+>>   			if (cpu >= 0) {
+>> -				cpu_topology[cpu].cluster_id = cluster_id;
+>> +				cpu_topology[cpu].physical_id = physical_id;
+>>   				cpu_topology[cpu].core_id = core_id;
+>>   				cpu_topology[cpu].thread_id = i;
+>>   			} else {
+>> @@ -89,7 +89,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+>>   			return -EINVAL;
+>>   		}
+>>   
+>> -		cpu_topology[cpu].cluster_id = cluster_id;
+>> +		cpu_topology[cpu].physical_id = physical_id;
+>>   		cpu_topology[cpu].core_id = core_id;
+>>   	} else if (leaf) {
+>>   		pr_err("%pOF: Can't get CPU for leaf core\n", core);
+>> @@ -105,7 +105,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+>>   	bool leaf = true;
+>>   	bool has_cores = false;
+>>   	struct device_node *c;
+>> -	static int cluster_id __initdata;
+>> +	static int physical_id __initdata;
+>>   	int core_id = 0;
+>>   	int i, ret;
+>>   
+>> @@ -144,7 +144,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+>>   			}
+>>   
+>>   			if (leaf) {
+>> -				ret = parse_core(c, cluster_id, core_id++);
+>> +				ret = parse_core(c, physical_id, core_id++);
+>>   			} else {
+>>   				pr_err("%pOF: Non-leaf cluster with core %s\n",
+>>   				       cluster, name);
+>> @@ -162,7 +162,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+>>   		pr_warn("%pOF: empty cluster\n", cluster);
+>>   
+>>   	if (leaf)
+>> -		cluster_id++;
+>> +		physical_id++;
+>>   
+>>   	return 0;
+>>   }
+>> @@ -198,7 +198,7 @@ static int __init parse_dt_topology(void)
+>>   	 * only mark cores described in the DT as possible.
+>>   	 */
+>>   	for_each_possible_cpu(cpu)
+>> -		if (cpu_topology[cpu].cluster_id == -1)
+>> +		if (cpu_topology[cpu].physical_id == -1)
+>>   			ret = -EINVAL;
+>>   
+>>   out_map:
+>> @@ -228,7 +228,7 @@ static void update_siblings_masks(unsigned int cpuid)
+>>   	for_each_possible_cpu(cpu) {
+>>   		cpu_topo = &cpu_topology[cpu];
+>>   
+>> -		if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
+>> +		if (cpuid_topo->physical_id != cpu_topo->physical_id)
+>>   			continue;
+>>   
+>>   		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+>> @@ -249,7 +249,7 @@ void store_cpu_topology(unsigned int cpuid)
+>>   	struct cpu_topology *cpuid_topo = &cpu_topology[cpuid];
+>>   	u64 mpidr;
+>>   
+>> -	if (cpuid_topo->cluster_id != -1)
+>> +	if (cpuid_topo->physical_id != -1)
+>>   		goto topology_populated;
+>>   
+>>   	mpidr = read_cpuid_mpidr();
+>> @@ -263,19 +263,19 @@ void store_cpu_topology(unsigned int cpuid)
+>>   		/* Multiprocessor system : Multi-threads per core */
+>>   		cpuid_topo->thread_id  = MPIDR_AFFINITY_LEVEL(mpidr, 0);
+>>   		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 1);
+>> -		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
+>> +		cpuid_topo->physical_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
+>>   					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 8;
+>>   	} else {
+>>   		/* Multiprocessor system : Single-thread per core */
+>>   		cpuid_topo->thread_id  = -1;
+>>   		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 0);
+>> -		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
+>> +		cpuid_topo->physical_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
+>>   					 MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
+>>   					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
+>>   	}
+>>   
+>>   	pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
+>> -		 cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
+>> +		 cpuid, cpuid_topo->physical_id, cpuid_topo->core_id,
+>>   		 cpuid_topo->thread_id, mpidr);
+>>   
+>>   topology_populated:
+>> @@ -291,7 +291,7 @@ static void __init reset_cpu_topology(void)
+>>   
+>>   		cpu_topo->thread_id = -1;
+>>   		cpu_topo->core_id = 0;
+>> -		cpu_topo->cluster_id = -1;
+>> +		cpu_topo->physical_id = -1;
+>>   
+>>   		cpumask_clear(&cpu_topo->core_sibling);
+>>   		cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
+>> @@ -300,6 +300,7 @@ static void __init reset_cpu_topology(void)
+>>   	}
+>>   }
+>>   
+>> +
+>>   void __init init_cpu_topology(void)
+>>   {
+>>   	reset_cpu_topology();
+>> -- 
+>> 2.13.5
+>>
