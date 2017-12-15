@@ -1,196 +1,161 @@
-From: Adrian Hunter <adrian.hunter@intel.com>
-Subject: [PATCH V3] ACPI / LPSS: Add device link for CHT SD card dependency on I2C
-Date: Fri, 15 Dec 2017 14:48:47 +0200
-Message-ID: <1513342127-26646-1-git-send-email-adrian.hunter@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Hans de Goede <hdegoede@redhat.com>
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH 2/5] device property: Add fwnode_get_name() operation
+Date: Fri, 15 Dec 2017 16:35:01 +0200
+Message-ID: <20171215143501.fg3svt4jkx5p6nyk@paasikivi.fi.intel.com>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:41253 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755322AbdLOOff (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 09:35:35 -0500
+Content-Disposition: inline
+In-Reply-To: <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com, laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org, linux-acpi@vger.kernel.org, mika.westerberg@intel.com
 
-Some Cherry Trail boards have a dependency between the SDHCI host
-controller used for SD cards and an external PMIC accessed via I2C. Add a
-device link between the SDHCI host controller (consumer) and the I2C
-adapter (supplier).
+Hi Jacopo,
 
-This patch depends on a fix to devices links, namely commit 0ff26c662d5f
-("driver core: Fix device link deferred probe"). And also either,
-commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling in
-probe"), or patch "PM / runtime: Fix handling of suppliers with disabled
-runtime PM".
+Thanks for the patch.
 
-Signed-off-by: Adrian Hunter <adrian.hunter@intel.com>
----
+Could you cc the next version to linux-acpi@vger.kernel.org, please? Cc
+Mika, too.
 
+On Wed, Dec 13, 2017 at 07:26:17PM +0100, Jacopo Mondi wrote:
+> Add operation to retrieve the device name from a fwnode handle.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/acpi/property.c  |  6 ++++++
+>  drivers/base/property.c  | 12 ++++++++++++
+>  drivers/of/property.c    |  6 ++++++
+>  include/linux/fwnode.h   |  2 ++
+>  include/linux/property.h |  1 +
+>  5 files changed, 27 insertions(+)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index e26ea20..1e3971c 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -1186,6 +1186,11 @@ acpi_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+>  				   val, nval);
+>  }
+>  
+> +static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return acpi_dev_name(to_acpi_device_node(fwnode));
 
-Changes in V3:
+This works for device nodes but will fail miserably for non-device ACPI
+nodes.
 
-	I2C HID is from CHT so the cpu check is not necessary for now, so
-	it was removed.
+The ACPI nodes don't currently have a name such as the DT nodes do, it
+would certainly help debugging if they did.
 
-Changes in V2:
+What you'll at least need to do is to check to_acpi_device_node() does not
+return NULL.
 
-	Add a comment about why it is necessary to hardcode the links
-	information in the code
+acpi_dev_name() should be made const as well if the function is still used
+in v2.
 
+> +}
+> +
+>  static struct fwnode_handle *
+>  acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+>  				 const char *childname)
+> @@ -1281,6 +1286,7 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+>  			acpi_fwnode_property_read_string_array,		\
+>  		.get_parent = acpi_node_get_parent,			\
+>  		.get_next_child_node = acpi_get_next_subnode,		\
+> +		.get_name = acpi_fwnode_get_name,			\
+>  		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+>  		.get_reference_args = acpi_fwnode_get_reference_args,	\
+>  		.graph_get_next_endpoint =				\
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 851b1b6..a87b4a9 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -950,6 +950,18 @@ int device_add_properties(struct device *dev,
+>  EXPORT_SYMBOL_GPL(device_add_properties);
+>  
+>  /**
+> + * fwnode_get_name - Return the fwnode_handle name
+> + * @fwnode: Firmware node to get name from
+> + *
+> + * Returns a pointer to the firmware node name
+> + */
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return fwnode_call_ptr_op(fwnode, get_name);
+> +}
+> +EXPORT_SYMBOL(fwnode_get_name);
+> +
+> +/**
+>   * fwnode_get_next_parent - Iterate to the node's parent
+>   * @fwnode: Firmware whose parent is retrieved
+>   *
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index 8ad33a4..6c195a8 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -875,6 +875,11 @@ of_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+>  		of_property_count_strings(node, propname);
+>  }
+>  
+> +static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return of_node_full_name(to_of_node(fwnode));
+> +}
+> +
+>  static struct fwnode_handle *
+>  of_fwnode_get_parent(const struct fwnode_handle *fwnode)
+>  {
+> @@ -988,6 +993,7 @@ const struct fwnode_operations of_fwnode_ops = {
+>  	.property_present = of_fwnode_property_present,
+>  	.property_read_int_array = of_fwnode_property_read_int_array,
+>  	.property_read_string_array = of_fwnode_property_read_string_array,
+> +	.get_name = of_fwnode_get_name,
+>  	.get_parent = of_fwnode_get_parent,
+>  	.get_next_child_node = of_fwnode_get_next_child_node,
+>  	.get_named_child_node = of_fwnode_get_named_child_node,
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index 411a84c..5d3a8c6 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -57,6 +57,7 @@ struct fwnode_reference_args {
+>   *				 otherwise.
+>   * @property_read_string_array: Read an array of string properties. Return zero
+>   *				on success, a negative error code otherwise.
+> + * @get_name: Return the fwnode name.
+>   * @get_parent: Return the parent of an fwnode.
+>   * @get_next_child_node: Return the next child node in an iteration.
+>   * @get_named_child_node: Return a child node with a given name.
+> @@ -81,6 +82,7 @@ struct fwnode_operations {
+>  	(*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
+>  				      const char *propname, const char **val,
+>  				      size_t nval);
+> +	const char *(*get_name)(const struct fwnode_handle *fwnode);
+>  	struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
+>  	struct fwnode_handle *
+>  	(*get_next_child_node)(const struct fwnode_handle *fwnode,
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index f6189a3..0fc464f 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -78,6 +78,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+>  				       unsigned int nargs, unsigned int index,
+>  				       struct fwnode_reference_args *args);
+>  
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_next_parent(
+>  	struct fwnode_handle *fwnode);
 
- drivers/acpi/acpi_lpss.c | 137 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 137 insertions(+)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 7f2b02cc8ea1..d78c57a95b86 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -427,6 +427,142 @@ static int register_device_clock(struct acpi_device *adev,
- 	return 0;
- }
- 
-+struct lpss_device_links {
-+	const char *supplier_hid;
-+	const char *supplier_uid;
-+	const char *consumer_hid;
-+	const char *consumer_uid;
-+	u32 flags;
-+};
-+
-+/*
-+ * The _DEP method is used to identify dependencies but instead of creating
-+ * device links for every handle in _DEP, only links in the following list are
-+ * created. That is necessary because, in the general case, _DEP can refer to
-+ * devices that might not have drivers, or that are on different buses, or where
-+ * the supplier is not enumerated until after the consumer is probed.
-+ */
-+static const struct lpss_device_links lpss_device_links[] = {
-+	{"808622C1", "7", "80860F14", "3", DL_FLAG_PM_RUNTIME},
-+};
-+
-+static bool hid_uid_match(const char *hid1, const char *uid1,
-+			  const char *hid2, const char *uid2)
-+{
-+	return !strcmp(hid1, hid2) && uid1 && uid2 && !strcmp(uid1, uid2);
-+}
-+
-+static bool acpi_lpss_is_supplier(struct acpi_device *adev,
-+				  const struct lpss_device_links *link)
-+{
-+	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-+			     link->supplier_hid, link->supplier_uid);
-+}
-+
-+static bool acpi_lpss_is_consumer(struct acpi_device *adev,
-+				  const struct lpss_device_links *link)
-+{
-+	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-+			     link->consumer_hid, link->consumer_uid);
-+}
-+
-+struct hid_uid {
-+	const char *hid;
-+	const char *uid;
-+};
-+
-+static int match_hid_uid(struct device *dev, void *data)
-+{
-+	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	struct hid_uid *id = data;
-+
-+	if (!adev)
-+		return 0;
-+
-+	return hid_uid_match(acpi_device_hid(adev), acpi_device_uid(adev),
-+			     id->hid, id->uid);
-+}
-+
-+static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
-+{
-+	struct hid_uid data = {
-+		.hid = hid,
-+		.uid = uid,
-+	};
-+
-+	return bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
-+}
-+
-+static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
-+{
-+	struct acpi_handle_list dep_devices;
-+	acpi_status status;
-+	int i;
-+
-+	if (!acpi_has_method(adev->handle, "_DEP"))
-+		return false;
-+
-+	status = acpi_evaluate_reference(adev->handle, "_DEP", NULL,
-+					 &dep_devices);
-+	if (ACPI_FAILURE(status)) {
-+		dev_dbg(&adev->dev, "Failed to evaluate _DEP.\n");
-+		return false;
-+	}
-+
-+	for (i = 0; i < dep_devices.count; i++) {
-+		if (dep_devices.handles[i] == handle)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static void acpi_lpss_link_consumer(struct device *dev1,
-+				    const struct lpss_device_links *link)
-+{
-+	struct device *dev2;
-+
-+	dev2 = acpi_lpss_find_device(link->consumer_hid, link->consumer_uid);
-+	if (!dev2)
-+		return;
-+
-+	if (acpi_lpss_dep(ACPI_COMPANION(dev2), ACPI_HANDLE(dev1)))
-+		device_link_add(dev2, dev1, link->flags);
-+
-+	put_device(dev2);
-+}
-+
-+static void acpi_lpss_link_supplier(struct device *dev1,
-+				    const struct lpss_device_links *link)
-+{
-+	struct device *dev2;
-+
-+	dev2 = acpi_lpss_find_device(link->supplier_hid, link->supplier_uid);
-+	if (!dev2)
-+		return;
-+
-+	if (acpi_lpss_dep(ACPI_COMPANION(dev1), ACPI_HANDLE(dev2)))
-+		device_link_add(dev1, dev2, link->flags);
-+
-+	put_device(dev2);
-+}
-+
-+static void acpi_lpss_create_device_links(struct acpi_device *adev,
-+					  struct platform_device *pdev)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(lpss_device_links); i++) {
-+		const struct lpss_device_links *link = &lpss_device_links[i];
-+
-+		if (acpi_lpss_is_supplier(adev, link))
-+			acpi_lpss_link_consumer(&pdev->dev, link);
-+
-+		if (acpi_lpss_is_consumer(adev, link))
-+			acpi_lpss_link_supplier(&pdev->dev, link);
-+	}
-+}
-+
- static int acpi_lpss_create_device(struct acpi_device *adev,
- 				   const struct acpi_device_id *id)
- {
-@@ -500,6 +636,7 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
- 	adev->driver_data = pdata;
- 	pdev = acpi_create_platform_device(adev, dev_desc->properties);
- 	if (!IS_ERR_OR_NULL(pdev)) {
-+		acpi_lpss_create_device_links(adev, pdev);
- 		return 1;
- 	}
- 
 -- 
-1.9.1
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
