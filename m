@@ -1,58 +1,83 @@
-From: George Cherian <gcherian@caviumnetworks.com>
-Subject: Re: [PATCH] ACPI / CPPC: Fix negative array index read in
- cppc_set_perf
-Date: Fri, 15 Dec 2017 23:48:31 +0530
-Message-ID: <af3b5407-065c-51b2-6161-398bdf5af765@caviumnetworks.com>
-References: <20171213224541.GA31477@embeddedor.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by categorization
+Date: Fri, 15 Dec 2017 18:52:47 +0000
+Message-ID: <5A3419FF.30101@arm.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com> <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com> <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com> <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-dm3nam03on0079.outbound.protection.outlook.com ([104.47.41.79]:8416
-        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1755419AbdLOSSh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 13:18:37 -0500
-In-Reply-To: <20171213224541.GA31477@embeddedor.com>
-Content-Language: en-US
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:60966 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756089AbdLOSyy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 13:54:54 -0500
+In-Reply-To: <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, George Cherian <george.cherian@cavium.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
+
+Hi gengdongjiu,
+
+On 07/12/17 06:37, gengdongjiu wrote:
+> I understand you most idea.
+> 
+> But In the Qemu one signal type can only correspond to one behavior, can not correspond to two behaviors,
+> otherwise Qemu will do not know how to do.
+> 
+> For the Qemu, if it receives the SIGBUS_MCEERR_AR signal, it will populate the CPER
+> records and inject a SEA to guest through KVM IOCTL "KVM_SET_ONE_REG"; if receives the SIGBUS_MCEERR_AO
+> signal, it will record the CPER and trigger a IRQ to notify guest, as shown below:
+> 
+> SIGBUS_MCEERR_AR trigger Synchronous External Abort.
+> SIGBUS_MCEERR_AO trigger GPIO IRQ.
+> 
+> For the SIGBUS_MCEERR_AO and SIGBUS_MCEERR_AR, we have already specify trigger method, which all
+> 
+> not involve _trigger_ an SError.
+
+It's a policy choice. How does your virtual CPU notify RAS errors to its virtual
+software? You could use SError for SIGBUS_MCEERR_AR, it depends on what type of
+CPU you are trying to emulate.
+
+I'd suggest using NOTIFY_SEA for SIGBUS_MCEERR_AR as it avoids problems where
+the guest doesn't take the SError immediately, instead tries to re-execute the
+code KVM has unmapped from stage2 because its corrupt. (You could detect this
+happening in Qemu and try something else)
+
+
+Synchronous/asynchronous external abort matters to the CPU, but once the error
+has been notified to software the reasons for this distinction disappear. Once
+the error has been handled, all trace of this distinction is gone.
+
+CPER records only describe component failures. You are trying to re-create some
+state that disappeared with one of the firmware-first abstractions. Trying to
+re-create this information isn't worth the effort as the distinction doesn't
+matter to linux, only to the CPU.
+
+
+> so there is no chance for Qemu to trigger the SError when gets the SIGBUS_MCEERR_A{O,R}.
+
+You mean there is no reason for Qemu to trigger an SError when it gets a signal
+from the kernel.
+
+The reasons the CPU might have to generate an SError don't apply to linux and
+KVM user space. User-space will never get a signal for an uncontained error, we
+will always panic(). We can't give user-space a signal for imprecise exceptions,
+as it can't return from the signal. The classes of error that are left are
+covered by polled/irq and NOTIFY_SEA.
+
+Qemu can decide to generate RAS SErrors for SIGBUS_MCEERR_AR if it really wants
+to, (but I don't think you should, the kernel may have unmapped the page at PC
+from stage2 due to corruption).
+
+
+I think the problem here is you're applying the CPU->software behaviour and
+choices to software->software. By the time user-space gets the error, the
+behaviour is different.
 
 
 
-On Thursday 14 December 2017 04:15 AM, Gustavo A. R. Silva wrote:
-> If pcc_ss_id is less than 0, there is a negative array index read
-> before verifying pcc_ss_id is not a negative value.
->
-> Fix this by removing the code that triggers this issue.
->
-> Notice that this code is already properly placed after the check
-> on pcc_ss_id at line 1182: pcc_ss_data = pcc_data[pcc_ss_id];
->
-> Addresses-Coverity-ID: 1426090 ("Negative array index read")
-> Fixes: 1ecbd7170d65 ("ACPI / CPPC: Fix KASAN global out of bounds warning")
+Thanks,
 
-Reviewed-by: George Cherian <george.cherian@cavium.com>
-
-
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
-> ---
->   drivers/acpi/cppc_acpi.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 30e84cc..06ea474 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -1171,7 +1171,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
->   	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpu);
->   	struct cpc_register_resource *desired_reg;
->   	int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpu);
-> -	struct cppc_pcc_data *pcc_ss_data = pcc_data[pcc_ss_id];
-> +	struct cppc_pcc_data *pcc_ss_data;
->   	int ret = 0;
->   
->   	if (!cpc_desc || pcc_ss_id < 0) {
-
+James
