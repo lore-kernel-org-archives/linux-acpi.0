@@ -1,48 +1,79 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management fix for v4.15-rc4
-Date: Fri, 15 Dec 2017 02:55:29 +0100
-Message-ID: <CAJZ5v0gH4q9QygVhgh=etcdsQeGGSUDiY7PJ6k7BBZ6GRciQsQ@mail.gmail.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Fri, 15 Dec 2017 11:30:57 +0800
+Message-ID: <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+ <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:36577 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754792AbdLODbW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 14 Dec 2017 22:31:22 -0500
+In-Reply-To: <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 
-Hi Linus,
+Hi James,
 
-Please pull from the tag
+On 2017/12/7 14:37, gengdongjiu wrote:
+>> We need to tackle (1) and (3) separately. For (3) we need some API that lets
+>> Qemu _trigger_ an SError in the guest, with a specified ESR. But, we don't have
+>> a way of migrating pending SError yet... which is where I got stuck last time I
+>> was looking at this.
+> I understand you most idea.
+> 
+> But In the Qemu one signal type can only correspond to one behavior, can not correspond to two behaviors,
+> otherwise Qemu will do not know how to do.
+> 
+> For the Qemu, if it receives the SIGBUS_MCEERR_AR signal, it will populate the CPER
+> records and inject a SEA to guest through KVM IOCTL "KVM_SET_ONE_REG"; if receives the SIGBUS_MCEERR_AO
+> signal, it will record the CPER and trigger a IRQ to notify guest, as shown below:
+> 
+> SIGBUS_MCEERR_AR trigger Synchronous External Abort.
+> SIGBUS_MCEERR_AO trigger GPIO IRQ.
+> 
+> For the SIGBUS_MCEERR_AO and SIGBUS_MCEERR_AR, we have already specify trigger method, which all
+> 
+> not involve _trigger_ an SError.
+> 
+> so there is no chance for Qemu to trigger the SError when gets the SIGBUS_MCEERR_A{O,R}.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.15-rc4
+As I explained above:
 
-with top-most commit 3487972d7fa6c5143951436ada5933dcf0ec659d
+If Qemu received SIGBUS_MCEERR_AR, it will record CPER and trigger Synchronous External Abort;
+If Qemu received SIGBUS_MCEERR_AO, it will record CPER and trigger GPIO IRQ;
+So Qemu does not know when to _trigger_ an SError.
 
- PM / sleep: Avoid excess pm_runtime_enable() calls in device_resume()
+so here I "return a error" to Qemu if ghes_notify_sei() return failure in [1], if you opposed KVM "return error",
+do you have a better idea about it? thanks
 
-on top of commit 50c4c4e268a2d7a3e58ebb698ac74da0de40ae36
+About the way of migrating pending SError, I think it is a separate case, because Qemu still does not know
+how and when to trigger the SError.
 
- Linux 4.15-rc3
+[1]:
+static int kvm_handle_guest_sei(struct kvm_vcpu *vcpu, struct kvm_run *run)
+{
+        .......................
++       case ESR_ELx_AET_UER:   /* The error has not been propagated */
++               /*
++                * Userspace only handle the guest SError Interrupt(SEI) if the
++                * error has not been propagated
++                */
++               run->exit_reason = KVM_EXIT_EXCEPTION;
++               run->ex.exception = ESR_ELx_EC_SERROR;
++               run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
++               return 0;
+        .......................
+}
 
-to receive a power management fix for 4.15-rc4.
+> 
 
-This fixes an issue in two recent commits that may cause
-pm_runtime_enable() to be called for too many times for some
-devices during the "thaw" transition belonging to hibernation.
-
-Thanks!
-
-
----------------
-
-Rafael J. Wysocki (1):
-      PM / sleep: Avoid excess pm_runtime_enable() calls in device_resume()
-
----------------
-
- drivers/acpi/device_pm.c  |  2 +-
- drivers/base/power/main.c | 15 +++++++++++++++
- drivers/pci/pci-driver.c  |  2 +-
- include/linux/pm.h        |  1 +
- 4 files changed, 18 insertions(+), 2 deletions(-)
