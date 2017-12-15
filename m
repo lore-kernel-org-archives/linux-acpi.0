@@ -1,49 +1,46 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v3 2/3] hmat: add heterogeneous memory sysfs support
-Date: Fri, 15 Dec 2017 13:53:36 -0700
-Message-ID: <20171215205336.GB5454@linux.intel.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214021019.13579-3-ross.zwisler@linux.intel.com>
- <CAJZ5v0h8=mh9BKa2eZzqbc12T6saB+q19yqSfRLYKOiUjS2Cjg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 0/4] ACPI / boot: Don't handle SCI on HW reduced platforms
+Date: Fri, 15 Dec 2017 23:25:07 +0200
+Message-ID: <20171215212511.52155-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:34677 "EHLO mga06.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:36370 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755650AbdLOUxj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 15:53:39 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0h8=mh9BKa2eZzqbc12T6saB+q19yqSfRLYKOiUjS2Cjg@mail.gmail.com>
+        id S1755596AbdLOVZQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 16:25:16 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-founda>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Fri, Dec 15, 2017 at 01:52:03AM +0100, Rafael J. Wysocki wrote:
-<>
-> > diff --git a/drivers/acpi/hmat/core.c b/drivers/acpi/hmat/core.c
-> > new file mode 100644
-> > index 000000000000..61b90dadf84b
-> > --- /dev/null
-> > +++ b/drivers/acpi/hmat/core.c
-> > @@ -0,0 +1,536 @@
-> > +/*
-> > + * Heterogeneous Memory Attributes Table (HMAT) representation in sysfs
-> > + *
-> > + * Copyright (c) 2017, Intel Corporation.
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify it
-> > + * under the terms and conditions of the GNU General Public License,
-> > + * version 2, as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope it will be useful, but WITHOUT
-> > + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> > + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> > + * more details.
-> > + */
-> 
-> Minor nit for starters: you should use SPDX license indentifiers in
-> new files and if you do so, the license boilerplace is not necessary
-> any more.
+The series improves handling of invalid IRQs in ACPI glue layer along with
+preventing setup SCI on HW reduced platforms as it prescribed by the spec.
 
-Okay, I'll fix that up.
+Patch 1 is just convenient to add to the series.
+
+Patches 2 and 3 make consistent value and variable types for SCI and GSI in
+ACPI code.
+
+Patch 4 prevents setting up SCI on HW reduced platforms.
+
+The series has been tested on T100TA (HW reduced platform) and
+on Intel Kabylake.
+
+In v4:
+- drop upstreamed patches
+- drop patch which belongs to other (future) series
+- rework approach to address Rafael's comment
+
+Andy Shevchenko (4):
+  ACPI / boot: Swap variables in condition in acpi_register_gsi_ioapic()
+  ACPI / boot: Get rid of ACPI_INVALID_GSI
+  ACPI / boot: Use INVALID_ACPI_IRQ instead of 0 for
+    acpi_sci_override_gsi
+  ACPI / boot: Don't setup SCI on HW reduced platforms
+
+ arch/x86/include/asm/acpi.h |  2 +-
+ arch/x86/kernel/acpi/boot.c | 15 +++++++--------
+ 2 files changed, 8 insertions(+), 9 deletions(-)
+
+-- 
+2.15.1
+
