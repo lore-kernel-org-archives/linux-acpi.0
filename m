@@ -1,60 +1,70 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V2] ACPI / LPSS: Add device link for CHT SD card
- dependency on I2C
-Date: Fri, 15 Dec 2017 01:58:28 +0100
-Message-ID: <CAJZ5v0hLBODV4Tfh-TMa6Psh16Bbs_d9x51xjrweGGHAPpqqqQ@mail.gmail.com>
-References: <1512637396-17000-1-git-send-email-adrian.hunter@intel.com> <1513261011.7000.75.camel@linux.intel.com>
+Subject: Re: [PATCH] APEI / ERST: Fix missing error handling in erst_reader()
+Date: Fri, 15 Dec 2017 02:01:20 +0100
+Message-ID: <CAJZ5v0gAiSiwwcWpHXWGEpo_Tjy4tqy1D5XvL==BJeuQ6LRKOg@mail.gmail.com>
+References: <20171214123116.929-1-tiwai@suse.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36433 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754526AbdLOA63 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2017 19:58:29 -0500
-In-Reply-To: <1513261011.7000.75.camel@linux.intel.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:35935 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754526AbdLOBBV (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2017 20:01:21 -0500
+In-Reply-To: <20171214123116.929-1-tiwai@suse.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Carlo Caione <carlo@endlessm.com>, Hans de Goede <hdegoede@redhat.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jerry Tang <jtang@suse.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, Dec 14, 2017 at 3:16 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> On Thu, 2017-12-07 at 11:03 +0200, Adrian Hunter wrote:
->> Some Cherry Trail boards have a dependency between the SDHCI host
->> controller used for SD cards and an external PMIC accessed via I2C.
->> Add a
->> device link between the SDHCI host controller (consumer) and the I2C
->> adapter (supplier).
->>
->> This patch depends on a fix to devices links, namely commit
->> 0ff26c662d5f
->> ("driver core: Fix device link deferred probe"). And also either,
->> commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling
->> in
->> probe"), or patch "PM / runtime: Fix handling of suppliers with
->> disabled
->> runtime PM".
->>
+On Thu, Dec 14, 2017 at 1:31 PM, Takashi Iwai <tiwai@suse.de> wrote:
+> The commit f6f828513290 ("pstore: pass allocated memory region back to
+> caller") changed the check of the return value from erst_read() in
+> erst_reader() in the following way:
 >
-> Fine with me, though I think below comment worth to address.
+>         if (len == -ENOENT)
+>                 goto skip;
+> -       else if (len < 0) {
+> -               rc = -1;
+> +       else if (len < sizeof(*rcd)) {
+> +               rc = -EIO;
+>                 goto out;
 >
->>
->> +static const struct x86_cpu_id cht_cpu[] = {
->> +     ICPU(INTEL_FAM6_ATOM_AIRMONT),  /* Braswell, Cherry
->> Trail */
->> +     {}
->> +};
+> This introduced another bug: since the comparison with sizeof() is
+> cast to unsigned, a negative len value doesn't hit any longer.
+> As a result, when an error is returned from erst_read(), the code
+> falls through, and it may eventually lead to some weird thing like
+> memory corruption.
 >
-> I would rather to modify ICPU() macro to accept driver data where we
-> just pass an unsigned long value to be assigned as lpss_quirks and
-> introduce another quirk.
+> This patch adds the negative error value check more explicitly for
+> addressing the issue.
+>
+> Fixes: f6f828513290 ("pstore: pass allocated memory region back to caller")
 
-Not really.
+That's ancient. :-)
 
-There are many instances of ICPU() already in the tree and updating
-all of them is just not worth it.
+> Cc: <stable@vger.kernel.org>
+> Tested-by: Jerry Tang <jtang@suse.com>
+> Signed-off-by: Takashi Iwai <tiwai@suse.de>
+> ---
+>  drivers/acpi/apei/erst.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+> index 6742f6c68034..9bff853e85f3 100644
+> --- a/drivers/acpi/apei/erst.c
+> +++ b/drivers/acpi/apei/erst.c
+> @@ -1007,7 +1007,7 @@ static ssize_t erst_reader(struct pstore_record *record)
+>         /* The record may be cleared by others, try read next record */
+>         if (len == -ENOENT)
+>                 goto skip;
+> -       else if (len < sizeof(*rcd)) {
+> +       else if (len < 0 || len < sizeof(*rcd)) {
+>                 rc = -EIO;
+>                 goto out;
+>         }
+> --
 
-If you can make the code cleaner without modifying that macro, go for it.
+OK, I'm going to queue this up unless I see objections from Boris or Tony.
 
 Thanks,
 Rafael
