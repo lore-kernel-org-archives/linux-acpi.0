@@ -1,86 +1,70 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] APEI / ERST: Fix missing error handling in erst_reader()
-Date: Fri, 15 Dec 2017 11:52:42 +0100
-Message-ID: <20171215105242.ed7b2nsanwgmoxl6@pd.tnic>
-References: <20171214123116.929-1-tiwai@suse.de>
- <CAJZ5v0gAiSiwwcWpHXWGEpo_Tjy4tqy1D5XvL==BJeuQ6LRKOg@mail.gmail.com>
- <s5hmv2kwj47.wl-tiwai@suse.de>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH V2] ACPI / LPSS: Add device link for CHT SD card
+ dependency on I2C
+Date: Fri, 15 Dec 2017 14:00:31 +0200
+Message-ID: <f7fa2c22-3793-144a-e08a-569d7f1576a0@intel.com>
+References: <1512637396-17000-1-git-send-email-adrian.hunter@intel.com>
+ <1513261011.7000.75.camel@linux.intel.com>
+ <6618157d-6866-8926-fa6a-40dc4b217ba4@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([5.9.137.197]:50368 "EHLO mail.skyhub.de"
+Received: from mga06.intel.com ([134.134.136.31]:5662 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755231AbdLOKwz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 05:52:55 -0500
-Content-Disposition: inline
-In-Reply-To: <s5hmv2kwj47.wl-tiwai@suse.de>
+        id S1754389AbdLOMA5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 07:00:57 -0500
+In-Reply-To: <6618157d-6866-8926-fa6a-40dc4b217ba4@intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jerry Tang <jtang@suse.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Carlo Caione <carlo@endlessm.com>, Hans de Goede <hdegoede@redhat.com>
 
-On Fri, Dec 15, 2017 at 08:22:32AM +0100, Takashi Iwai wrote:
-> On Fri, 15 Dec 2017 02:01:20 +0100,
-> Rafael J. Wysocki wrote:
-> > 
-> > On Thu, Dec 14, 2017 at 1:31 PM, Takashi Iwai <tiwai@suse.de> wrote:
-> > > The commit f6f828513290 ("pstore: pass allocated memory region back to
-> > > caller") changed the check of the return value from erst_read() in
-> > > erst_reader() in the following way:
-> > >
-> > >         if (len == -ENOENT)
-> > >                 goto skip;
-> > > -       else if (len < 0) {
-> > > -               rc = -1;
-> > > +       else if (len < sizeof(*rcd)) {
-> > > +               rc = -EIO;
-> > >                 goto out;
-> > >
-> > > This introduced another bug: since the comparison with sizeof() is
-> > > cast to unsigned, a negative len value doesn't hit any longer.
-> > > As a result, when an error is returned from erst_read(), the code
-> > > falls through, and it may eventually lead to some weird thing like
-> > > memory corruption.
-> > >
-> > > This patch adds the negative error value check more explicitly for
-> > > addressing the issue.
-> > >
-> > > Fixes: f6f828513290 ("pstore: pass allocated memory region back to caller")
-> > 
-> > That's ancient. :-)
-> > 
-> > > Cc: <stable@vger.kernel.org>
-> > > Tested-by: Jerry Tang <jtang@suse.com>
-> > > Signed-off-by: Takashi Iwai <tiwai@suse.de>
-> > > ---
-> > >  drivers/acpi/apei/erst.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> > > index 6742f6c68034..9bff853e85f3 100644
-> > > --- a/drivers/acpi/apei/erst.c
-> > > +++ b/drivers/acpi/apei/erst.c
-> > > @@ -1007,7 +1007,7 @@ static ssize_t erst_reader(struct pstore_record *record)
-> > >         /* The record may be cleared by others, try read next record */
-> > >         if (len == -ENOENT)
-> > >                 goto skip;
-> > > -       else if (len < sizeof(*rcd)) {
-> > > +       else if (len < 0 || len < sizeof(*rcd)) {
-> > >                 rc = -EIO;
-> > >                 goto out;
-> > >         }
-> > > --
-> > 
-> > OK, I'm going to queue this up unless I see objections from Boris or Tony.
+On 15/12/17 11:10, Adrian Hunter wrote:
+> On 14/12/17 16:16, Andy Shevchenko wrote:
+>> On Thu, 2017-12-07 at 11:03 +0200, Adrian Hunter wrote:
+>>> Some Cherry Trail boards have a dependency between the SDHCI host
+>>> controller used for SD cards and an external PMIC accessed via I2C.
+>>> Add a
+>>> device link between the SDHCI host controller (consumer) and the I2C
+>>> adapter (supplier).
+>>>
+>>> This patch depends on a fix to devices links, namely commit
+>>> 0ff26c662d5f
+>>> ("driver core: Fix device link deferred probe"). And also either,
+>>> commit 126dbc6b49c8 ("PM: i2c-designware-platdrv: Clean up PM handling
+>>> in
+>>> probe"), or patch "PM / runtime: Fix handling of suppliers with
+>>> disabled
+>>> runtime PM".
+>>>
+>>
+>> Fine with me, though I think below comment worth to address.
+>>
+>>>  
+>>> +static const struct x86_cpu_id cht_cpu[] = {
+>>> +	ICPU(INTEL_FAM6_ATOM_AIRMONT),	/* Braswell, Cherry
+>>> Trail */
+>>> +	{}
+>>> +};
+>>
+>> I would rather to modify ICPU() macro to accept driver data where we
+>> just pass an unsigned long value to be assigned as lpss_quirks and
+>> introduce another quirk.
+>>
+>>> +
+>>> +		if (link->cpus && !x86_match_cpu(link->cpus))
+>>> +			continue;
+>>
+>> ...thus, 
+>>
+>> if (!(lpss_quirks & LPSS_QUIRK_NEED_DEVICE_LINKS))
+>>  continue;
 > 
-> I missed Boris in Cc list, sorry.  Now added.
+> The intention is to associate the cpu with the link information i.e. that
+> link is needed on that cpu.  What you are proposing is slightly different.
+> 
 
-LGTM.
-
-Reviewed-by: Borislav Petkov <bp@suse.de>
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Spoke with Andy and decided the cpu check could be removed altogether for
+now, so I will send a V3 shortly.
