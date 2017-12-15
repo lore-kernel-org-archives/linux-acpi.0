@@ -1,39 +1,47 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v4 1/4] ACPI / boot: Swap variables in condition in acpi_register_gsi_ioapic()
-Date: Fri, 15 Dec 2017 23:25:08 +0200
-Message-ID: <20171215212511.52155-2-andriy.shevchenko@linux.intel.com>
-References: <20171215212511.52155-1-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171215212511.52155-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-pm@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: [PATCH] MAINTAINERS: Include more PCI files
+Date: Fri, 15 Dec 2017 16:53:07 -0600
+Message-ID: <20171215225307.175987.4972.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:60252 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755795AbdLOWxK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 17:53:10 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 
-For better readability compare input to something considered settled
-down. Additionally move it to one line (while it's slightly longer
-80 characters it makes readability better).
+From: Bjorn Helgaas <bhelgaas@google.com>
 
-No functional change intended.
+Add more PCI files to the PCI subsystem.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+I expect Rafael to continue merging things in drivers/acpi/pci*, but it's
+nice to have linux-pci included on patches.
+
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- arch/x86/kernel/acpi/boot.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ MAINTAINERS |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 3b33662c072a..bd556b0a48f3 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -679,8 +679,7 @@ static int acpi_register_gsi_ioapic(struct device *dev, u32 gsi,
- 	mutex_lock(&acpi_ioapic_lock);
- 	irq = mp_map_gsi_to_irq(gsi, IOAPIC_MAP_ALLOC, &info);
- 	/* Don't set up the ACPI SCI because it's already set up */
--	if (irq >= 0 && enable_update_mptable &&
--	    acpi_gbl_FADT.sci_interrupt != gsi)
-+	if (irq >= 0 && enable_update_mptable && gsi != acpi_gbl_FADT.sci_interrupt)
- 		mp_config_acpi_gsi(dev, gsi, trigger, polarity);
- 	mutex_unlock(&acpi_ioapic_lock);
- #endif
--- 
-2.15.1
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aa71ab52fd76..6fcc9b8bab52 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10551,8 +10551,12 @@ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git
+ S:	Supported
+ F:	Documentation/devicetree/bindings/pci/
+ F:	Documentation/PCI/
++F:	drivers/acpi/pci*
+ F:	drivers/pci/
++F:	include/asm-generic/pci*
+ F:	include/linux/pci*
++F:	include/uapi/linux/pci*
++F:	lib/pci*
+ F:	arch/x86/pci/
+ F:	arch/x86/kernel/quirks.c
+ 
+
