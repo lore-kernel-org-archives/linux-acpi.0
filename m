@@ -1,64 +1,35 @@
-From: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v12 2/3] iommu/dma: Add HW MSI(GICv3 ITS) address regions reservation
-Date: Thu, 14 Dec 2017 16:09:56 +0000
-Message-ID: <20171214160957.13716-3-shameerali.kolothum.thodi@huawei.com>
-References: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 1/3] acpi: HMAT support in acpi_parse_entries_array()
+Date: Fri, 15 Dec 2017 01:49:47 +0100
+Message-ID: <CAJZ5v0iBoUpUK-RFq6Hn7OrJY+ZaVk7qnXpntwUjTo15KmTtZg@mail.gmail.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com> <20171214021019.13579-2-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20171214160957.13716-1-shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, marc.zyngier-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org
-Cc: joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, xuwei5-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org, guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:43330 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754459AbdLOAts (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Dec 2017 19:49:48 -0500
+In-Reply-To: <20171214021019.13579-2-ross.zwisler@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.co>
 
-Modified iommu_dma_get_resv_regions() to include GICv3 ITS
-region on ACPI based ARM platfiorms which may require HW MSI
-reservations.
+On Thu, Dec 14, 2017 at 3:10 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> The current implementation of acpi_parse_entries_array() assumes that each
+> subtable has a standard ACPI subtable entry of type struct
+> acpi_subtable_header.  This standard subtable header has a one byte length
+> followed by a one byte type.
+>
+> The HMAT subtables have to allow for a longer length so they have subtable
+> headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
+> byte length.
+>
+> Enhance the subtable parsing in acpi_parse_entries_array() so that it can
+> handle these new HMAT subtables.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Reviewed-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
----
- drivers/iommu/dma-iommu.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/iommu/dma-iommu.c b/drivers/iommu/dma-iommu.c
-index 25914d3..f05f3cf 100644
---- a/drivers/iommu/dma-iommu.c
-+++ b/drivers/iommu/dma-iommu.c
-@@ -19,6 +19,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi_iort.h>
- #include <linux/device.h>
- #include <linux/dma-iommu.h>
- #include <linux/gfp.h>
-@@ -167,13 +168,18 @@ void iommu_put_dma_cookie(struct iommu_domain *domain)
-  *
-  * IOMMU drivers can use this to implement their .get_resv_regions callback
-  * for general non-IOMMU-specific reservations. Currently, this covers host
-- * bridge windows for PCI devices.
-+ * bridge windows for PCI devices and GICv3 ITS region reservation on ACPI
-+ * based ARM platforms that may require HW MSI reservation.
-  */
- void iommu_dma_get_resv_regions(struct device *dev, struct list_head *list)
- {
- 	struct pci_host_bridge *bridge;
- 	struct resource_entry *window;
- 
-+	if (!is_of_node(dev->iommu_fwspec->iommu_fwnode) &&
-+		iort_iommu_msi_get_resv_regions(dev, list) < 0)
-+		return;
-+
- 	if (!dev_is_pci(dev))
- 		return;
- 
--- 
-1.9.1
-
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This one is fine by me.
