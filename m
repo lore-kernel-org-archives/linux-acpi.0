@@ -1,111 +1,117 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by categorization
-Date: Sat, 16 Dec 2017 12:47:46 +0800
-Message-ID: <CAMj-D2CwHWNpXzeNMEVKGTveAwuJvja219NF6PZ7xqYMUY17Kw@mail.gmail.com>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com> <5A0B1334.7060500@arm.com>
+From: Ognjen Galic <smclt30p@gmail.com>
+Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
+Date: Sat, 16 Dec 2017 09:48:50 +0100
+Message-ID: <20171216084850.GA19033@thinkpad>
+References: <20171215165750.GA6282@thinkpad>
+ <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f46.google.com ([209.85.213.46]:39856 "EHLO
-        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756380AbdLPErs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Dec 2017 23:47:48 -0500
-In-Reply-To: <5A0B1334.7060500@arm.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:44920 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750987AbdLPIsy (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Dec 2017 03:48:54 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: Dongjiu Geng <gengdongjiu@huawei.com>, wuquanming <wuquanming@huawei.com>, linux-doc@vger.kernel.org, kvm@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, linux@armlinux.org.uk, linuxarm@huawei.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Huangshaoyu <huangshaoyu@huawei.com>, kvmarm@lists.cs.columbia.edu, devel@acpica.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-[...]
->
->> +     case ESR_ELx_AET_UER:   /* The error has not been propagated */
->> +             /*
->> +              * Userspace only handle the guest SError Interrupt(SEI) i=
-f the
->> +              * error has not been propagated
->> +              */
->> +             run->exit_reason =3D KVM_EXIT_EXCEPTION;
->> +             run->ex.exception =3D ESR_ELx_EC_SERROR;
->> +             run->ex.error_code =3D KVM_SEI_SEV_RECOVERABLE;
->> +             return 0;
->
-> We should not pass RAS notifications to user space. The kernel either han=
-dles
-> them, or it panics(). User space shouldn't even know if the kernel suppor=
-ts RAS
+On Sat, Dec 16, 2017 at 01:33:55AM +0100, Rafael J. Wysocki wrote:
+> On Fri, Dec 15, 2017 at 5:57 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> > The EC/ACPI firmware on Lenovo ThinkPads used to report a status
+> > of "Unknown" when the battery is between the charge start and
+> > charge stop thresholds. On Windows, it reports "Not Charging"
+> > so the quirk has been added to also report correctly.
+> >
+> > Now the "status" attribute returns "Not Charging" when the
+> > battery on ThinkPads is not physicaly charging.
+> >
+> > Tested-by: Kevin Locke <kevin@kevinlocke.name>
+> > Tested-by: Christoph Böhmwalder <christoph@boehmwalder.at>
+> > Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+> 
+> It doesn't look like this is related to the [1/3] and [3/3], so why do
+> you make it part of the series?
+> 
 
-For the  ESR_ELx_AET_UER(Recoverable error), let us see its definition
-below, which get from [0]
+I made it the same series because it is practically the same feature
+set. Without this patch and with 1/3 and 3/3 applied, there is a bug
+where the status attribute would show "Unknown" for a battery that is
+between the start and stop thresholds while attached to AC.
 
-The state of the PE is Recoverable if all of the following are true:
-=E2=80=94 The error has not been silently propagated.
-=E2=80=94 The error has not been architecturally consumed by the PE. (The P=
-E
-architectural state is not infected.)
-=E2=80=94 The exception is precise and PE can recover execution from the
-preferred return address of the exception, if software locates and
-repairs the error.
-The PE cannot make correct progress without either consuming the error
-or otherwise making the error unrecoverable. The error remains latent
-in the system.
-If software cannot locate and repair the error, either the application
-or the VM, or both, must be isolated by software.
-
-so we can see the  exception is precise and PE can recover execution
-from the preferred return address of the exception, so let guest
-handling it is
-better, for example, if it is guest application RAS error, we can kill
-the guest application instead of panic whole OS; if it is guest kernel
-RAS error, guest will panic.
-Host does not know which application of guest has error, so host can
-not handle it, panic OS is not a good choice for the Recoverable
-error.
-
-[0]
-https://static.docs.arm.com/ddi0587/a/RAS%20Extension-release%20candidate_m=
-arch_29.pdf
-
-
-> until it gets an MCEERR signal.
-
-user space will detect whether kernel support RAS before handing it.
-
->
-> You're making your firmware-first notification an EL3->EL0 signal, bypass=
-ing the OS.
->
-> If we get a RAS SError and there are no CPER records or values in the ERR=
- nodes,
-> we should panic as it looks like the CPU/firmware is broken. (spurious RA=
-S errors)
-
-
->
->
->> +     default:
->> +             /*
->> +              * Until now, the CPU supports RAS and SEI is fatal, or ho=
-st
->> +              * does not support to handle the SError.
->> +              */
->> +             panic("This Asynchronous SError interrupt is dangerous, pa=
-nic");
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->>  /*
->>   * Return > 0 to return to guest, < 0 on error, 0 (and set exit_reason)=
- on
->>   * proper exit to userspace.
->
->
->
-> James
-> _______________________________________________
-> kvmarm mailing list
-> kvmarm@lists.cs.columbia.edu
-> https://lists.cs.columbia.edu/mailman/listinfo/kvmarm
+> > ---
+> >  drivers/acpi/battery.c | 23 +++++++++++++++++++++++
+> >  1 file changed, 23 insertions(+)
+> >
+> > diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> > index 2951d07..81e9b4e 100644
+> > --- a/drivers/acpi/battery.c
+> > +++ b/drivers/acpi/battery.c
+> > @@ -71,6 +71,7 @@ static async_cookie_t async_cookie;
+> >  static bool battery_driver_registered;
+> >  static int battery_bix_broken_package;
+> >  static int battery_notification_delay_ms;
+> > +static int battery_quirk_thinkpad_notcharging;
+> 
+> Drop "thinkpad" from this name as somebody may need to use the quirk
+> for a machine from a different vendor in the future.
+> 
+> >  static unsigned int cache_time = 1000;
+> >  module_param(cache_time, uint, 0644);
+> >  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> > @@ -222,6 +223,13 @@ static int acpi_battery_get_property(struct power_supply *psy,
+> >                         val->intval = POWER_SUPPLY_STATUS_CHARGING;
+> >                 else if (acpi_battery_is_charged(battery))
+> >                         val->intval = POWER_SUPPLY_STATUS_FULL;
+> > +               /*
+> > +                * On the Lenovo ThinkPad ACPI implementation, when
+> > +                * neither bits 0 or 1 are set, that state is
+> > +                * considered as "Not Charging".
+> > +                */
+> > +               else if (battery_quirk_thinkpad_notcharging)
+> > +                       val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+> >                 else
+> >                         val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
+> >                 break;
+> > @@ -1301,6 +1309,13 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
+> >         return 0;
+> >  }
+> >
+> > +static int __init
+> > +battery_quirk_not_charging(const struct dmi_system_id *d)
+> 
+> Don't break the above line (it will be over 80 chars long, but that's fine).
+> 
+> > +{
+> > +       battery_quirk_thinkpad_notcharging = 1;
+> > +       return 0;
+> > +}
+> > +
+> >  static const struct dmi_system_id bat_dmi_table[] __initconst = {
+> >         {
+> >                 .callback = battery_bix_broken_package_quirk,
+> > @@ -1318,6 +1333,14 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
+> >                         DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+> >                 },
+> >         },
+> > +       {
+> 
+> Add a comment to describe this quirk (which it is needed in the first place).
+> 
+> > +               .callback = battery_quirk_not_charging,
+> > +               .ident = "Lenovo ThinkPad",
+> > +               .matches = {
+> > +                       DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> > +                       DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
+> > +               },
+> > +       },
+> >         {},
+> >  };
+> >
+> > --
+> 
+> Thanks,
+> Rafael
