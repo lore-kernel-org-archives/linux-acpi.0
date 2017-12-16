@@ -1,133 +1,111 @@
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: [pm:bleeding-edge 94/95] drivers/acpi/apei/apei-base.c:509:21:
- sparse: incorrect type in argument 1 (different base types)
-Date: Sat, 16 Dec 2017 12:20:10 +0800
-Message-ID: <201712161208.Ou0iMnN5%fengguang.wu@intel.com>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by categorization
+Date: Sat, 16 Dec 2017 12:47:46 +0800
+Message-ID: <CAMj-D2CwHWNpXzeNMEVKGTveAwuJvja219NF6PZ7xqYMUY17Kw@mail.gmail.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com> <5A0B1334.7060500@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:10147 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756152AbdLPEUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 23:20:18 -0500
-Content-Disposition: inline
+Received: from mail-vk0-f46.google.com ([209.85.213.46]:39856 "EHLO
+        mail-vk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756380AbdLPErs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Dec 2017 23:47:48 -0500
+In-Reply-To: <5A0B1334.7060500@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vasyl Gomonovych <gomonovych@gmail.com>
-Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: James Morse <james.morse@arm.com>
+Cc: Dongjiu Geng <gengdongjiu@huawei.com>, wuquanming <wuquanming@huawei.com>, linux-doc@vger.kernel.org, kvm@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, linux@armlinux.org.uk, linuxarm@huawei.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Huangshaoyu <huangshaoyu@huawei.com>, kvmarm@lists.cs.columbia.edu, devel@acpica.org
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
-head:   076c5d77b3e3b4898eedf2738f634ef8eabc3970
-commit: 43af46822779b067622ba468929daef8f61fbef4 [94/95] ACPI: APEI: Fix allocation and release of memory regions
-reproduce:
-        # apt-get install sparse
-        git checkout 43af46822779b067622ba468929daef8f61fbef4
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+[...]
+>
+>> +     case ESR_ELx_AET_UER:   /* The error has not been propagated */
+>> +             /*
+>> +              * Userspace only handle the guest SError Interrupt(SEI) i=
+f the
+>> +              * error has not been propagated
+>> +              */
+>> +             run->exit_reason =3D KVM_EXIT_EXCEPTION;
+>> +             run->ex.exception =3D ESR_ELx_EC_SERROR;
+>> +             run->ex.error_code =3D KVM_SEI_SEV_RECOVERABLE;
+>> +             return 0;
+>
+> We should not pass RAS notifications to user space. The kernel either han=
+dles
+> them, or it panics(). User space shouldn't even know if the kernel suppor=
+ts RAS
+
+For the  ESR_ELx_AET_UER(Recoverable error), let us see its definition
+below, which get from [0]
+
+The state of the PE is Recoverable if all of the following are true:
+=E2=80=94 The error has not been silently propagated.
+=E2=80=94 The error has not been architecturally consumed by the PE. (The P=
+E
+architectural state is not infected.)
+=E2=80=94 The exception is precise and PE can recover execution from the
+preferred return address of the exception, if software locates and
+repairs the error.
+The PE cannot make correct progress without either consuming the error
+or otherwise making the error unrecoverable. The error remains latent
+in the system.
+If software cannot locate and repair the error, either the application
+or the VM, or both, must be isolated by software.
+
+so we can see the  exception is precise and PE can recover execution
+from the preferred return address of the exception, so let guest
+handling it is
+better, for example, if it is guest application RAS error, we can kill
+the guest application instead of panic whole OS; if it is guest kernel
+RAS error, guest will panic.
+Host does not know which application of guest has error, so host can
+not handle it, panic OS is not a good choice for the Recoverable
+error.
+
+[0]
+https://static.docs.arm.com/ddi0587/a/RAS%20Extension-release%20candidate_m=
+arch_29.pdf
 
 
-sparse warnings: (new ones prefixed by >>)
+> until it gets an MCEERR signal.
+
+user space will detect whether kernel support RAS before handing it.
+
+>
+> You're making your firmware-first notification an EL3->EL0 signal, bypass=
+ing the OS.
+>
+> If we get a RAS SError and there are no CPER records or values in the ERR=
+ nodes,
+> we should panic as it looks like the CPU/firmware is broken. (spurious RA=
+S errors)
 
 
-vim +509 drivers/acpi/apei/apei-base.c
-
-   466	
-   467	/*
-   468	 * IO memory/port resource management mechanism is used to check
-   469	 * whether memory/port area used by GARs conflicts with normal memory
-   470	 * or IO memory/port of devices.
-   471	 */
-   472	int apei_resources_request(struct apei_resources *resources,
-   473				   const char *desc)
-   474	{
-   475		struct apei_res *res, *res_bak = NULL;
-   476		struct resource *r;
-   477		struct apei_resources nvs_resources, arch_res;
-   478		int rc;
-   479	
-   480		rc = apei_resources_sub(resources, &apei_resources_all);
-   481		if (rc)
-   482			return rc;
-   483	
-   484		/*
-   485		 * Some firmware uses ACPI NVS region, that has been marked as
-   486		 * busy, so exclude it from APEI resources to avoid false
-   487		 * conflict.
-   488		 */
-   489		apei_resources_init(&nvs_resources);
-   490		rc = apei_get_nvs_resources(&nvs_resources);
-   491		if (rc)
-   492			goto nvs_res_fini;
-   493		rc = apei_resources_sub(resources, &nvs_resources);
-   494		if (rc)
-   495			goto nvs_res_fini;
-   496	
-   497		if (arch_apei_filter_addr) {
-   498			apei_resources_init(&arch_res);
-   499			rc = apei_get_arch_resources(&arch_res);
-   500			if (rc)
-   501				goto arch_res_fini;
-   502			rc = apei_resources_sub(resources, &arch_res);
-   503			if (rc)
-   504				goto arch_res_fini;
-   505		}
-   506	
-   507		rc = -EINVAL;
-   508		list_for_each_entry(res, &resources->iomem, list) {
- > 509			r = request_mem_region(res->start, resource_size(res), desc);
-   510			if (!r) {
-   511				pr_err(APEI_PFX
-   512			"Can not request [mem %#010llx-%#010llx] for %s registers\n",
-   513				       (unsigned long long)res->start,
-   514				       (unsigned long long)res->end - 1, desc);
-   515				res_bak = res;
-   516				goto err_unmap_iomem;
-   517			}
-   518		}
-   519	
-   520		list_for_each_entry(res, &resources->ioport, list) {
-   521			r = request_region(res->start, resource_size(res), desc);
-   522			if (!r) {
-   523				pr_err(APEI_PFX
-   524			"Can not request [io  %#06llx-%#06llx] for %s registers\n",
-   525				       (unsigned long long)res->start,
-   526				       (unsigned long long)res->end - 1, desc);
-   527				res_bak = res;
-   528				goto err_unmap_ioport;
-   529			}
-   530		}
-   531	
-   532		rc = apei_resources_merge(&apei_resources_all, resources);
-   533		if (rc) {
-   534			pr_err(APEI_PFX "Fail to merge resources!\n");
-   535			goto err_unmap_ioport;
-   536		}
-   537	
-   538		goto arch_res_fini;
-   539	
-   540	err_unmap_ioport:
-   541		list_for_each_entry(res, &resources->ioport, list) {
-   542			if (res == res_bak)
-   543				break;
-   544			release_region(res->start, resource_size(res));
-   545		}
-   546		res_bak = NULL;
-   547	err_unmap_iomem:
-   548		list_for_each_entry(res, &resources->iomem, list) {
-   549			if (res == res_bak)
-   550				break;
-   551			release_mem_region(res->start, resource_size(res));
-   552		}
-   553	arch_res_fini:
-   554		if (arch_apei_filter_addr)
-   555			apei_resources_fini(&arch_res);
-   556	nvs_res_fini:
-   557		apei_resources_fini(&nvs_resources);
-   558		return rc;
-   559	}
-   560	EXPORT_SYMBOL_GPL(apei_resources_request);
-   561	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>
+>
+>> +     default:
+>> +             /*
+>> +              * Until now, the CPU supports RAS and SEI is fatal, or ho=
+st
+>> +              * does not support to handle the SError.
+>> +              */
+>> +             panic("This Asynchronous SError interrupt is dangerous, pa=
+nic");
+>> +     }
+>> +
+>> +     return 0;
+>> +}
+>> +
+>>  /*
+>>   * Return > 0 to return to guest, < 0 on error, 0 (and set exit_reason)=
+ on
+>>   * proper exit to userspace.
+>
+>
+>
+> James
+> _______________________________________________
+> kvmarm mailing list
+> kvmarm@lists.cs.columbia.edu
+> https://lists.cs.columbia.edu/mailman/listinfo/kvmarm
