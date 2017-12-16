@@ -1,56 +1,113 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] MAINTAINERS: Include more PCI files
-Date: Sat, 16 Dec 2017 00:30:51 +0100
-Message-ID: <CAJZ5v0hssHzZW2m_+sD3b5XJw8BbwwYnixqc-bKLNzRK8ewb6w@mail.gmail.com>
-References: <20171215225307.175987.4972.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
+Date: Sat, 16 Dec 2017 01:33:55 +0100
+Message-ID: <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
+References: <20171215165750.GA6282@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f195.google.com ([74.125.82.195]:35040 "EHLO
-        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755857AbdLOXaw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Dec 2017 18:30:52 -0500
-In-Reply-To: <20171215225307.175987.4972.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:44531 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755861AbdLPAd4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Dec 2017 19:33:56 -0500
+In-Reply-To: <20171215165750.GA6282@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: Ognjen Galic <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-On Fri, Dec 15, 2017 at 11:53 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> From: Bjorn Helgaas <bhelgaas@google.com>
+On Fri, Dec 15, 2017 at 5:57 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> The EC/ACPI firmware on Lenovo ThinkPads used to report a status
+> of "Unknown" when the battery is between the charge start and
+> charge stop thresholds. On Windows, it reports "Not Charging"
+> so the quirk has been added to also report correctly.
 >
-> Add more PCI files to the PCI subsystem.
+> Now the "status" attribute returns "Not Charging" when the
+> battery on ThinkPads is not physicaly charging.
 >
-> I expect Rafael to continue merging things in drivers/acpi/pci*, but it's
-> nice to have linux-pci included on patches.
->
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> Tested-by: Kevin Locke <kevin@kevinlocke.name>
+> Tested-by: Christoph B=C3=B6hmwalder <christoph@boehmwalder.at>
+> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+It doesn't look like this is related to the [1/3] and [3/3], so why do
+you make it part of the series?
 
 > ---
->  MAINTAINERS |    4 ++++
->  1 file changed, 4 insertions(+)
+>  drivers/acpi/battery.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
 >
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index aa71ab52fd76..6fcc9b8bab52 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -10551,8 +10551,12 @@ T:     git git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git
->  S:     Supported
->  F:     Documentation/devicetree/bindings/pci/
->  F:     Documentation/PCI/
-> +F:     drivers/acpi/pci*
->  F:     drivers/pci/
-> +F:     include/asm-generic/pci*
->  F:     include/linux/pci*
-> +F:     include/uapi/linux/pci*
-> +F:     lib/pci*
->  F:     arch/x86/pci/
->  F:     arch/x86/kernel/quirks.c
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index 2951d07..81e9b4e 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -71,6 +71,7 @@ static async_cookie_t async_cookie;
+>  static bool battery_driver_registered;
+>  static int battery_bix_broken_package;
+>  static int battery_notification_delay_ms;
+> +static int battery_quirk_thinkpad_notcharging;
+
+Drop "thinkpad" from this name as somebody may need to use the quirk
+for a machine from a different vendor in the future.
+
+>  static unsigned int cache_time =3D 1000;
+>  module_param(cache_time, uint, 0644);
+>  MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
+> @@ -222,6 +223,13 @@ static int acpi_battery_get_property(struct power_su=
+pply *psy,
+>                         val->intval =3D POWER_SUPPLY_STATUS_CHARGING;
+>                 else if (acpi_battery_is_charged(battery))
+>                         val->intval =3D POWER_SUPPLY_STATUS_FULL;
+> +               /*
+> +                * On the Lenovo ThinkPad ACPI implementation, when
+> +                * neither bits 0 or 1 are set, that state is
+> +                * considered as "Not Charging".
+> +                */
+> +               else if (battery_quirk_thinkpad_notcharging)
+> +                       val->intval =3D POWER_SUPPLY_STATUS_NOT_CHARGING;
+>                 else
+>                         val->intval =3D POWER_SUPPLY_STATUS_UNKNOWN;
+>                 break;
+> @@ -1301,6 +1309,13 @@ battery_notification_delay_quirk(const struct dmi_=
+system_id *d)
+>         return 0;
+>  }
 >
+> +static int __init
+> +battery_quirk_not_charging(const struct dmi_system_id *d)
+
+Don't break the above line (it will be over 80 chars long, but that's fine)=
+.
+
+> +{
+> +       battery_quirk_thinkpad_notcharging =3D 1;
+> +       return 0;
+> +}
+> +
+>  static const struct dmi_system_id bat_dmi_table[] __initconst =3D {
+>         {
+>                 .callback =3D battery_bix_broken_package_quirk,
+> @@ -1318,6 +1333,14 @@ static const struct dmi_system_id bat_dmi_table[] =
+__initconst =3D {
+>                         DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
+>                 },
+>         },
+> +       {
+
+Add a comment to describe this quirk (which it is needed in the first place=
+).
+
+> +               .callback =3D battery_quirk_not_charging,
+> +               .ident =3D "Lenovo ThinkPad",
+> +               .matches =3D {
+> +                       DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
+> +                       DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
+> +               },
+> +       },
+>         {},
+>  };
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Thanks,
+Rafael
