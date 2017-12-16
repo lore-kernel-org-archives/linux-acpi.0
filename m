@@ -1,54 +1,33 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / battery: drop redundant test for failure
-Date: Sat, 16 Dec 2017 02:54:11 +0100
-Message-ID: <1900895.geBAr4jvZM@aspire.rjw.lan>
-References: <20171205174639.672-1-bjorn@mork.no>
+Subject: Re: [PATCH v2] ACPI / PMIC: constify platform_device_id
+Date: Sat, 16 Dec 2017 02:55:04 +0100
+Message-ID: <2101025.DnMf5DsnqK@aspire.rjw.lan>
+References: <317de9ac1d1ff31fd568ca7be10d2e4fd6be1f90.1511929854.git.arvind.yadav.cs@gmail.com> <20171129085132.GL22431@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:57939 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:42194 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756152AbdLPBy5 (ORCPT
+        by vger.kernel.org with ESMTP id S1755976AbdLPBzu (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 20:54:57 -0500
-In-Reply-To: <20171205174639.672-1-bjorn@mork.no>
+        Fri, 15 Dec 2017 20:55:50 -0500
+In-Reply-To: <20171129085132.GL22431@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: lenb@kernel.org, andy@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tuesday, December 5, 2017 6:46:39 PM CET Bjørn Mork wrote:
-> Merging the two adjacent conditionally built blocks makes the code
-> a lot more readable.  And as a bonus, we drop a duplicate test when
-> CONFIG_ACPI_PROCFS_POWER is undefined.
+On Wednesday, November 29, 2017 9:51:32 AM CET Mika Westerberg wrote:
+> On Wed, Nov 29, 2017 at 10:05:02AM +0530, Arvind Yadav wrote:
+> > platform_device_id are not supposed to change at runtime. All functions
+> > working with platform_device_id provided by <linux/platform_device.h>
+> > work with const platform_device_id. So mark the non-const structs as
+> > const.
+> > 
+> > Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
 > 
-> Signed-off-by: Bjørn Mork <bjorn@mork.no>
-> ---
->  drivers/acpi/battery.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index 13e7b56e33ae..f2eb6c37ea0a 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -1237,13 +1237,11 @@ static int acpi_battery_add(struct acpi_device *device)
->  
->  #ifdef CONFIG_ACPI_PROCFS_POWER
->  	result = acpi_battery_add_fs(device);
-> -#endif
->  	if (result) {
-> -#ifdef CONFIG_ACPI_PROCFS_POWER
->  		acpi_battery_remove_fs(device);
-> -#endif
->  		goto fail;
->  	}
-> +#endif
->  
->  	printk(KERN_INFO PREFIX "%s Slot [%s] (battery %s)\n",
->  		ACPI_BATTERY_DEVICE_NAME, acpi_device_bid(device),
-> 
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Applied, thanks!
-
+Patch applied, thanks!
 
