@@ -1,79 +1,86 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/3] acpi: HMAT support in acpi_parse_entries_array()
-Date: Sat, 16 Dec 2017 03:15:43 +0100
-Message-ID: <CAJZ5v0j63w4xZ+82z3Y8TE_nmCqDvic3RNT8RK7W7FDvEredHw@mail.gmail.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214021019.13579-2-ross.zwisler@linux.intel.com> <CAPcyv4gnZ3NJsEUugjBrsBHcs9-yqxkvs_G4V1HHGWF2JDi13g@mail.gmail.com>
- <1658696.rIK19Js0WO@aspire.rjw.lan> <CAPcyv4hN6obiLuMGLpufL83E42fu=9ax_dU5YQ5dZjTE78c0Mg@mail.gmail.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Sat, 16 Dec 2017 11:44:56 +0800
+Message-ID: <b98d911d-afc3-115b-3ba0-35b1daf63723@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+ <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
+ <5A3419FF.30101@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:39311 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755970AbdLPCPo (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 15 Dec 2017 21:15:44 -0500
-In-Reply-To: <CAPcyv4hN6obiLuMGLpufL83E42fu=9ax_dU5YQ5dZjTE78c0Mg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <5A3419FF.30101@arm.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: wuquanming@huawei.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, marc.zyngier@arm.com, linux-kernel@vger.kernel.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zhen>
 
-On Sat, Dec 16, 2017 at 2:57 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Fri, Dec 15, 2017 at 5:53 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->> On Friday, December 15, 2017 2:10:17 AM CET Dan Williams wrote:
->>> On Wed, Dec 13, 2017 at 6:10 PM, Ross Zwisler
->>> <ross.zwisler@linux.intel.com> wrote:
->>> > The current implementation of acpi_parse_entries_array() assumes that each
->>> > subtable has a standard ACPI subtable entry of type struct
->>> > acpi_subtable_header.  This standard subtable header has a one byte length
->>> > followed by a one byte type.
->>> >
->>> > The HMAT subtables have to allow for a longer length so they have subtable
->>> > headers of type struct acpi_hmat_structure which has a 2 byte type and a 4
->>> > byte length.
->>>
->>> Hmm, NFIT has a 2 byte type and a 2 byte length, so its one more
->>> permutation. I happened to reinvent sub-table parsing in the NFIT
->>> driver, but it might be nice in the future to refactor that to use the
->>> common parsing.
->>>
->>> >
->>> > Enhance the subtable parsing in acpi_parse_entries_array() so that it can
->>> > handle these new HMAT subtables.
->>> >
->>> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
->>> > ---
->>> >  drivers/acpi/tables.c | 52 ++++++++++++++++++++++++++++++++++++++++-----------
->>> >  1 file changed, 41 insertions(+), 11 deletions(-)
->>> >
->>> > diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->>> > index 80ce2a7d224b..f777b94c234a 100644
->>> > --- a/drivers/acpi/tables.c
->>> > +++ b/drivers/acpi/tables.c
->>> > @@ -218,6 +218,33 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->>> >         }
->>> >  }
->>> >
->>> > +static unsigned long __init
->>> > +acpi_get_entry_type(char *id, void *entry)
->>> > +{
->>> > +       if (strncmp(id, ACPI_SIG_HMAT, 4) == 0)
->>> > +               return ((struct acpi_hmat_structure *)entry)->type;
->>> > +       else
->>> > +               return ((struct acpi_subtable_header *)entry)->type;
->>> > +}
->>>
->>> It seems inefficient to make all checks keep asking "is HMAT?".
->>
->> Well, ideally, the signature should be checked once.  I guess that can be
->> arranged for here.
->>
->>> Especially if we want to extend this to other table types should we
->>> instead setup and pass a pair of function pointers to parse the
->>> sub-table format?
->>
->> Function pointers may be too much even. :-)
->
-> True, how about an enum of acpi sub-table header types?
+Hi James,
 
-That works.
+On 2017/12/16 2:52, James Morse wrote:
+>> signal, it will record the CPER and trigger a IRQ to notify guest, as shown below:
+>>
+>> SIGBUS_MCEERR_AR trigger Synchronous External Abort.
+>> SIGBUS_MCEERR_AO trigger GPIO IRQ.
+>>
+>> For the SIGBUS_MCEERR_AO and SIGBUS_MCEERR_AR, we have already specify trigger method, which all
+>>
+>> not involve _trigger_ an SError.
+> It's a policy choice. How does your virtual CPU notify RAS errors to its virtual
+> software? You could use SError for SIGBUS_MCEERR_AR, it depends on what type of
+> CPU you are trying to emulate.
+> 
+> I'd suggest using NOTIFY_SEA for SIGBUS_MCEERR_AR as it avoids problems where
+> the guest doesn't take the SError immediately, instead tries to re-execute the
+I agree it is better to use NOTIFY_SEA for SIGBUS_MCEERR_AR in this case.
+
+> code KVM has unmapped from stage2 because its corrupt. (You could detect this
+> happening in Qemu and try something else)For something else, using NOTIFY_SEI for SIGBUS_MCEERR_AR? At current implementation,
+It seems only have this case that "KVM has unmapped from stage2", do you thing we still have something else?
+
+> 
+> 
+> Synchronous/asynchronous external abort matters to the CPU, but once the error
+> has been notified to software the reasons for this distinction disappear. Once
+> the error has been handled, all trace of this distinction is gone.
+> 
+> CPER records only describe component failures. You are trying to re-create some
+> state that disappeared with one of the firmware-first abstractions. Trying to
+> re-create this information isn't worth the effort as the distinction doesn't
+> matter to linux, only to the CPU.
+> 
+> 
+>> so there is no chance for Qemu to trigger the SError when gets the SIGBUS_MCEERR_A{O,R}.
+> You mean there is no reason for Qemu to trigger an SError when it gets a signal
+> from the kernel.
+> 
+> The reasons the CPU might have to generate an SError don't apply to linux and
+> KVM user space. User-space will never get a signal for an uncontained error, we
+> will always panic(). We can't give user-space a signal for imprecise exceptions,
+> as it can't return from the signal. The classes of error that are left are
+> covered by polled/irq and NOTIFY_SEA.
+> 
+> Qemu can decide to generate RAS SErrors for SIGBUS_MCEERR_AR if it really wants
+> to, (but I don't think you should, the kernel may have unmapped the page at PC
+> from stage2 due to corruption).
+yes, you also said you do not want to generate RAS SErrors for SIGBUS_MCEERR_AR,
+so Qemu does not know in which condition to generate RAS SErrors.
+
+> 
+> I think the problem here is you're applying the CPU->software behaviour and
+> choices to software->software. By the time user-space gets the error, the
+> behaviour is different.
+In the KVM, as a policy choice to reserve this API to specify guest ESR and drive to trigger SError is OK,
+At least for Qemu it does not know in which condition to trigger it.
