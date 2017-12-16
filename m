@@ -1,41 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / CPPC: Fix negative array index read in cppc_set_perf
-Date: Sat, 16 Dec 2017 02:47:30 +0100
-Message-ID: <1775451.pdUQMu89xf@aspire.rjw.lan>
-References: <20171213224541.GA31477@embeddedor.com>
+Subject: Re: [PATCH] ACPI / CPPC: remove initial assignment of pcc_ss_data
+Date: Sat, 16 Dec 2017 02:49:02 +0100
+Message-ID: <3514960.SrIDOzrZqR@aspire.rjw.lan>
+References: <20171208235949.15713-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.net.pl ([79.96.170.134]:41958 "EHLO
+Received: from cloudserver094114.home.net.pl ([79.96.170.134]:63262 "EHLO
         cloudserver094114.home.net.pl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755868AbdLPBsR (ORCPT
+        by vger.kernel.org with ESMTP id S1755884AbdLPBts (ORCPT
         <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 15 Dec 2017 20:48:17 -0500
-In-Reply-To: <20171213224541.GA31477@embeddedor.com>
+        Fri, 15 Dec 2017 20:49:48 -0500
+In-Reply-To: <20171208235949.15713-1-colin.king@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: Len Brown <lenb@kernel.org>, George Cherian <george.cherian@cavium.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, December 13, 2017 11:45:41 PM CET Gustavo A. R. Silva wrote:
-> If pcc_ss_id is less than 0, there is a negative array index read
-> before verifying pcc_ss_id is not a negative value.
+On Saturday, December 9, 2017 12:59:49 AM CET Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> Fix this by removing the code that triggers this issue.
+> The initialization of pcc_ss_data from pcc_data[pcc_ss_id] before
+> pcc_ss_id is being range checked could lead to an out-of-bounds array
+> read.  This very same initialization is also being performed after
+> the range check on pcc_ss_id, so we can just remove this problematic
+> and also redundant assignment to fix the issue.
 > 
-> Notice that this code is already properly placed after the check
-> on pcc_ss_id at line 1182: pcc_ss_data = pcc_data[pcc_ss_id];
+> Detected by cppcheck:
+> warning: Value stored to 'pcc_ss_data' during its initialization is never
+> read
 > 
-> Addresses-Coverity-ID: 1426090 ("Negative array index read")
-> Fixes: 1ecbd7170d65 ("ACPI / CPPC: Fix KASAN global out of bounds warning")
-> Signed-off-by: Gustavo A. R. Silva <garsilva@embeddedor.com>
+> Fixes: commit 85b1407bf6d2 ("ACPI / CPPC: Make CPPC ACPI driver aware of PCC subspace IDs")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > ---
 >  drivers/acpi/cppc_acpi.c | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
 > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 30e84cc..06ea474 100644
+> index 30e84cc600ae..06ea4749ebd9 100644
 > --- a/drivers/acpi/cppc_acpi.c
 > +++ b/drivers/acpi/cppc_acpi.c
 > @@ -1171,7 +1171,7 @@ int cppc_set_perf(int cpu, struct cppc_perf_ctrls *perf_ctrls)
@@ -49,10 +52,5 @@ On Wednesday, December 13, 2017 11:45:41 PM CET Gustavo A. R. Silva wrote:
 >  	if (!cpc_desc || pcc_ss_id < 0) {
 > 
 
-I applied a patch from Coling Ian King that did the same thing and was
-posted eaelier.
-
-Thanks,
-Rafael
-
+Applied, thanks!
 
