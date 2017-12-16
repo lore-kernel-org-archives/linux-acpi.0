@@ -1,86 +1,133 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
- categorization
-Date: Sat, 16 Dec 2017 11:44:56 +0800
-Message-ID: <b98d911d-afc3-115b-3ba0-35b1daf63723@huawei.com>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
- <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
- <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
- <5A3419FF.30101@arm.com>
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: [pm:bleeding-edge 94/95] drivers/acpi/apei/apei-base.c:509:21:
+ sparse: incorrect type in argument 1 (different base types)
+Date: Sat, 16 Dec 2017 12:20:10 +0800
+Message-ID: <201712161208.Ou0iMnN5%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <5A3419FF.30101@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: wuquanming@huawei.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, marc.zyngier@arm.com, linux-kernel@vger.kernel.org, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:10147 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756152AbdLPEUS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 15 Dec 2017 23:20:18 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vasyl Gomonovych <gomonovych@gmail.com>
+Cc: kbuild-all@01.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-Hi James,
+tree:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git bleeding-edge
+head:   076c5d77b3e3b4898eedf2738f634ef8eabc3970
+commit: 43af46822779b067622ba468929daef8f61fbef4 [94/95] ACPI: APEI: Fix allocation and release of memory regions
+reproduce:
+        # apt-get install sparse
+        git checkout 43af46822779b067622ba468929daef8f61fbef4
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-On 2017/12/16 2:52, James Morse wrote:
->> signal, it will record the CPER and trigger a IRQ to notify guest, as shown below:
->>
->> SIGBUS_MCEERR_AR trigger Synchronous External Abort.
->> SIGBUS_MCEERR_AO trigger GPIO IRQ.
->>
->> For the SIGBUS_MCEERR_AO and SIGBUS_MCEERR_AR, we have already specify trigger method, which all
->>
->> not involve _trigger_ an SError.
-> It's a policy choice. How does your virtual CPU notify RAS errors to its virtual
-> software? You could use SError for SIGBUS_MCEERR_AR, it depends on what type of
-> CPU you are trying to emulate.
-> 
-> I'd suggest using NOTIFY_SEA for SIGBUS_MCEERR_AR as it avoids problems where
-> the guest doesn't take the SError immediately, instead tries to re-execute the
-I agree it is better to use NOTIFY_SEA for SIGBUS_MCEERR_AR in this case.
 
-> code KVM has unmapped from stage2 because its corrupt. (You could detect this
-> happening in Qemu and try something else)For something else, using NOTIFY_SEI for SIGBUS_MCEERR_AR? At current implementation,
-It seems only have this case that "KVM has unmapped from stage2", do you thing we still have something else?
+sparse warnings: (new ones prefixed by >>)
 
-> 
-> 
-> Synchronous/asynchronous external abort matters to the CPU, but once the error
-> has been notified to software the reasons for this distinction disappear. Once
-> the error has been handled, all trace of this distinction is gone.
-> 
-> CPER records only describe component failures. You are trying to re-create some
-> state that disappeared with one of the firmware-first abstractions. Trying to
-> re-create this information isn't worth the effort as the distinction doesn't
-> matter to linux, only to the CPU.
-> 
-> 
->> so there is no chance for Qemu to trigger the SError when gets the SIGBUS_MCEERR_A{O,R}.
-> You mean there is no reason for Qemu to trigger an SError when it gets a signal
-> from the kernel.
-> 
-> The reasons the CPU might have to generate an SError don't apply to linux and
-> KVM user space. User-space will never get a signal for an uncontained error, we
-> will always panic(). We can't give user-space a signal for imprecise exceptions,
-> as it can't return from the signal. The classes of error that are left are
-> covered by polled/irq and NOTIFY_SEA.
-> 
-> Qemu can decide to generate RAS SErrors for SIGBUS_MCEERR_AR if it really wants
-> to, (but I don't think you should, the kernel may have unmapped the page at PC
-> from stage2 due to corruption).
-yes, you also said you do not want to generate RAS SErrors for SIGBUS_MCEERR_AR,
-so Qemu does not know in which condition to generate RAS SErrors.
 
-> 
-> I think the problem here is you're applying the CPU->software behaviour and
-> choices to software->software. By the time user-space gets the error, the
-> behaviour is different.
-In the KVM, as a policy choice to reserve this API to specify guest ESR and drive to trigger SError is OK,
-At least for Qemu it does not know in which condition to trigger it.
+vim +509 drivers/acpi/apei/apei-base.c
+
+   466	
+   467	/*
+   468	 * IO memory/port resource management mechanism is used to check
+   469	 * whether memory/port area used by GARs conflicts with normal memory
+   470	 * or IO memory/port of devices.
+   471	 */
+   472	int apei_resources_request(struct apei_resources *resources,
+   473				   const char *desc)
+   474	{
+   475		struct apei_res *res, *res_bak = NULL;
+   476		struct resource *r;
+   477		struct apei_resources nvs_resources, arch_res;
+   478		int rc;
+   479	
+   480		rc = apei_resources_sub(resources, &apei_resources_all);
+   481		if (rc)
+   482			return rc;
+   483	
+   484		/*
+   485		 * Some firmware uses ACPI NVS region, that has been marked as
+   486		 * busy, so exclude it from APEI resources to avoid false
+   487		 * conflict.
+   488		 */
+   489		apei_resources_init(&nvs_resources);
+   490		rc = apei_get_nvs_resources(&nvs_resources);
+   491		if (rc)
+   492			goto nvs_res_fini;
+   493		rc = apei_resources_sub(resources, &nvs_resources);
+   494		if (rc)
+   495			goto nvs_res_fini;
+   496	
+   497		if (arch_apei_filter_addr) {
+   498			apei_resources_init(&arch_res);
+   499			rc = apei_get_arch_resources(&arch_res);
+   500			if (rc)
+   501				goto arch_res_fini;
+   502			rc = apei_resources_sub(resources, &arch_res);
+   503			if (rc)
+   504				goto arch_res_fini;
+   505		}
+   506	
+   507		rc = -EINVAL;
+   508		list_for_each_entry(res, &resources->iomem, list) {
+ > 509			r = request_mem_region(res->start, resource_size(res), desc);
+   510			if (!r) {
+   511				pr_err(APEI_PFX
+   512			"Can not request [mem %#010llx-%#010llx] for %s registers\n",
+   513				       (unsigned long long)res->start,
+   514				       (unsigned long long)res->end - 1, desc);
+   515				res_bak = res;
+   516				goto err_unmap_iomem;
+   517			}
+   518		}
+   519	
+   520		list_for_each_entry(res, &resources->ioport, list) {
+   521			r = request_region(res->start, resource_size(res), desc);
+   522			if (!r) {
+   523				pr_err(APEI_PFX
+   524			"Can not request [io  %#06llx-%#06llx] for %s registers\n",
+   525				       (unsigned long long)res->start,
+   526				       (unsigned long long)res->end - 1, desc);
+   527				res_bak = res;
+   528				goto err_unmap_ioport;
+   529			}
+   530		}
+   531	
+   532		rc = apei_resources_merge(&apei_resources_all, resources);
+   533		if (rc) {
+   534			pr_err(APEI_PFX "Fail to merge resources!\n");
+   535			goto err_unmap_ioport;
+   536		}
+   537	
+   538		goto arch_res_fini;
+   539	
+   540	err_unmap_ioport:
+   541		list_for_each_entry(res, &resources->ioport, list) {
+   542			if (res == res_bak)
+   543				break;
+   544			release_region(res->start, resource_size(res));
+   545		}
+   546		res_bak = NULL;
+   547	err_unmap_iomem:
+   548		list_for_each_entry(res, &resources->iomem, list) {
+   549			if (res == res_bak)
+   550				break;
+   551			release_mem_region(res->start, resource_size(res));
+   552		}
+   553	arch_res_fini:
+   554		if (arch_apei_filter_addr)
+   555			apei_resources_fini(&arch_res);
+   556	nvs_res_fini:
+   557		apei_resources_fini(&nvs_resources);
+   558		return rc;
+   559	}
+   560	EXPORT_SYMBOL_GPL(apei_resources_request);
+   561	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
