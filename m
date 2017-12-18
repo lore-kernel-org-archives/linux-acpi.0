@@ -1,106 +1,186 @@
-From: Marcin Wojtas <mw@semihalf.com>
-Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Mon, 18 Dec 2017 16:49:48 +0100
-Message-ID: <CAPv3WKeF8Nw+rRjWmnJ5NhoyvwyPgpFBCbr-jCnjiHeghW3Tvg@mail.gmail.com>
-References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
- <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.9 106/177] Revert "x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
+Date: Mon, 18 Dec 2017 16:48:49 +0100
+Message-ID: <20171218152915.428191959@linuxfoundation.org>
+References: <20171218152909.823644066@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Nadav Haklai <nadavh@marvell.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Neta Zur Hershkovits <neta@marvell.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Grzegorz Jaszczyk <jaz@semihalf.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Tomasz Nowicki <tn@semihalf.com>, "David S. Miller" <davem@davemloft.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infra>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20171218152909.823644066@linuxfoundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>, Xiaolong Ye <xiaolong.ye@intel.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sasha Levin <alexander.levin@verizon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Ard
+4.9-stable review patch.  If anyone has any objections, please let me know.
 
-2017-12-18 10:40 GMT+01:00 Ard Biesheuvel <ard.biesheuvel@linaro.org>:
-> On 18 December 2017 at 10:17, Marcin Wojtas <mw@semihalf.com> wrote:
->> Hi,
->>
->> This patchset introduces ACPI support in mvpp2 and mvmdio drivers.
->> First three patches introduce fwnode helpers for obtaining PHY
->> information from nodes and also MDIO fwnode API for registering
->> the bus with its PHY/devices.
->>
->> Following patches update code of the mvmdio and mvpp2 drivers
->> to support ACPI tables handling. The latter is done in 4 steps,
->> as can be seen in the commits. For the details, please
->> refer to the commit messages.
->>
->> Drivers operation was tested on top of the net-next branch
->> with both DT and ACPI. Although for compatibility reasons
->> with older platforms, the mvmdio driver keeps using
->> of_ MDIO registering, new fwnode_ one proved to fully work
->> with DT as well (tested on MacchiatoBin board).
->>
->> mvpp2/mvmdio driver can work with the ACPI representation, as exposed
->> on a public branch:
->> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits/marvell-armada-wip
->> It was compiled together with the most recent Tianocore EDK2 revision.
->> Please refer to the firmware build instruction on MacchiatoBin board:
->> http://wiki.macchiatobin.net/tiki-index.php?page=Build+from+source+-+UEFI+EDK+II
->>
->> Above support configures 1G to use its PHY normally. 10G can work now
->> only with the link interrupt mode. Somehow reading of the
->> string property in fwnode_mdiobus_child_is_phy works only with
->> DT and cannot cope with 10G PHY nodes as in:
->> https://pastebin.com/3JnYpU0A
->>
->> Above root cause will be further checked. In the meantime I will
->> appreciate any comments or remarks for the kernel patches.
->>
->
-> Hi Marcin,
->
-> I have added linux-acpi and Graeme to cc. I think it makes sense to
-> discuss the way you describe the device topology before looking at the
-> patches in more detail.
->
+------------------
 
-Thanks. Tomasz Nowicki immediately pointed this to me off the lists.
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
 
-> In particular, I would like to request feedback on the use of
-> [redundant] 'reg' properties and the use of _DSD + compatible to
-> describe PHYs. Usually, we try to avoid this, given that it is
-> essentially a ACPI encapsulated DT dialect that is difficult to
-> support in drivers unless they are based on DT to begin with. Also,
-> non-standard _DSD properties require a vendor prefix, it is not
-> freeform.
->
 
-Already a lot of drivers use both DT + ACPI. Some have IMO very
-fanciful bindings in both, mostly handled within the drivers with
-custom functions. OF_ - only drivers can use of_mdio_ helper routines,
-that assume a certain hierarchy:
-MDIO device node with PHYs as children, which are referenced in the
-ports node. I believe such approach could fit ACPI description too.
-I'm aware however that my code is pretty much DT transposed into ACPI
-environment and I'm of course open to discussion, how to do it in the
-most proper way.
+[ Upstream commit c962cff17dfa11f4a8227ac16de2b28aea3312e4 ]
 
-My main goal is to provide an fwnode-based glue code, that can be used
-among the NIC/MDIO drivers  (+ phylink) without multiple ifs
-differentiating between ACPI/OF. What I sent has single calls in
-mvpp2/mvmdio with a common bottom layers, but I don't see a problem,
-that, e.g. when iterating over PHY subnodes, in case of OF
-'reg'/'compatible' are used, whereas with ACPI some specific _ADR/_CID
-objects.
+Revert: dc6db24d2476 ("x86/acpi: Set persistent cpuid <-> nodeid mapping when booting")
 
-I'd appreaciate any feedback.
+The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
+tables to keep associations of workqueues and other node related items
+consistent across cpu hotplug.
 
-Best regards,
-Marcin
+But, ACPI tables are unreliable and failures with that boot time mapping
+have been reported on machines where the ACPI table and the physical
+information which is retrieved at actual hotplug is inconsistent.
 
-> For reference, the ACPI description is here (starting at line 175)
-> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/72d5ac23b20dd74d479daa5e40ba443264b31261/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl
+Revert the mapping implementation so it can be replaced with a less error
+prone approach.
+
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
+Cc: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org
+Cc: guzheng1@huawei.com
+Cc: izumi.taku@jp.fujitsu.com
+Cc: lenb@kernel.org
+Link: http://lkml.kernel.org/r/1488528147-2279-2-git-send-email-douly.fnst@cn.fujitsu.com
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ arch/x86/kernel/acpi/boot.c   |    2 -
+ drivers/acpi/acpi_processor.c |    5 --
+ drivers/acpi/bus.c            |    1 
+ drivers/acpi/processor_core.c |   73 ------------------------------------------
+ include/linux/acpi.h          |    3 -
+ 5 files changed, 1 insertion(+), 83 deletions(-)
+
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -720,7 +720,7 @@ static void __init acpi_set_irq_model_io
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ #include <acpi/processor.h>
+ 
+-int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+ {
+ #ifdef CONFIG_ACPI_NUMA
+ 	int nid;
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -182,11 +182,6 @@ int __weak arch_register_cpu(int cpu)
+ 
+ void __weak arch_unregister_cpu(int cpu) {}
+ 
+-int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
+-{
+-	return -ENODEV;
+-}
+-
+ static int acpi_processor_hotadd_init(struct acpi_processor *pr)
+ {
+ 	unsigned long long sta;
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1197,7 +1197,6 @@ static int __init acpi_init(void)
+ 	acpi_wakeup_device_init();
+ 	acpi_debugger_init();
+ 	acpi_setup_sb_notify_handler();
+-	acpi_set_processor_mapping();
+ 	return 0;
+ }
+ 
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -280,79 +280,6 @@ int acpi_get_cpuid(acpi_handle handle, i
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
+-#ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static bool __init
+-map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
+-{
+-	int type, id;
+-	u32 acpi_id;
+-	acpi_status status;
+-	acpi_object_type acpi_type;
+-	unsigned long long tmp;
+-	union acpi_object object = { 0 };
+-	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
+-
+-	status = acpi_get_type(handle, &acpi_type);
+-	if (ACPI_FAILURE(status))
+-		return false;
+-
+-	switch (acpi_type) {
+-	case ACPI_TYPE_PROCESSOR:
+-		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
+-		if (ACPI_FAILURE(status))
+-			return false;
+-		acpi_id = object.processor.proc_id;
+-
+-		/* validate the acpi_id */
+-		if(acpi_processor_validate_proc_id(acpi_id))
+-			return false;
+-		break;
+-	case ACPI_TYPE_DEVICE:
+-		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
+-		if (ACPI_FAILURE(status))
+-			return false;
+-		acpi_id = tmp;
+-		break;
+-	default:
+-		return false;
+-	}
+-
+-	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
+-
+-	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
+-	id = acpi_map_cpuid(*phys_id, acpi_id);
+-
+-	if (id < 0)
+-		return false;
+-	*cpuid = id;
+-	return true;
+-}
+-
+-static acpi_status __init
+-set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
+-			   void **rv)
+-{
+-	phys_cpuid_t phys_id;
+-	int cpu_id;
+-
+-	if (!map_processor(handle, &phys_id, &cpu_id))
+-		return AE_ERROR;
+-
+-	acpi_map_cpu2node(handle, cpu_id, phys_id);
+-	return AE_OK;
+-}
+-
+-void __init acpi_set_processor_mapping(void)
+-{
+-	/* Set persistent cpu <-> node mapping for all processors. */
+-	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
+-			    ACPI_UINT32_MAX, set_processor_node_mapping,
+-			    NULL, NULL, NULL);
+-}
+-#else
+-void __init acpi_set_processor_mapping(void) {}
+-#endif /* CONFIG_ACPI_HOTPLUG_CPU */
+-
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+ 			 u64 *phys_addr, int *ioapic_id)
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -276,11 +276,8 @@ bool acpi_processor_validate_proc_id(int
+ /* Arch dependent functions for cpu hotplug support */
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+ int acpi_unmap_cpu(int cpu);
+-int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+-void acpi_set_processor_mapping(void);
+-
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
+ #endif
