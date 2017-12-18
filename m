@@ -1,186 +1,66 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.9 106/177] Revert "x86/acpi: Set persistent cpuid <-> nodeid mapping when booting"
-Date: Mon, 18 Dec 2017 16:48:49 +0100
-Message-ID: <20171218152915.428191959@linuxfoundation.org>
-References: <20171218152909.823644066@linuxfoundation.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
+Date: Mon, 18 Dec 2017 18:30:57 +0100
+Message-ID: <CAJZ5v0jR1ABy-hsGHOMpee9tctUiq6zX6nN44VgxnpdbZ4wiFg@mail.gmail.com>
+References: <20171215165750.GA6282@thinkpad> <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
+ <20171216084850.GA19033@thinkpad> <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
+ <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20171218152909.823644066@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Dou Liyang <douly.fnst@cn.fujitsu.com>, Xiaolong Ye <xiaolong.ye@intel.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, guzheng1@huawei.com, izumi.taku@jp.fujitsu.com, lenb@kernel.org, Thomas Gleixner <tglx@linutronix.de>, Sasha Levin <alexander.levin@verizon.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:35615 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935052AbdLRRa7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Dec 2017 12:30:59 -0500
+In-Reply-To: <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-4.9-stable review patch.  If anyone has any objections, please let me know.
+On Mon, Dec 18, 2017 at 11:21 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com> wr=
+ote:
+> On 16/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> On Sat, Dec 16, 2017 at 9:48 AM, Ognjen Galic <smclt30p@gmail.com> wrote=
+:
+>>> On Sat, Dec 16, 2017 at 01:33:55AM +0100, Rafael J. Wysocki wrote:
+>>>> On Fri, Dec 15, 2017 at 5:57 PM, Ognjen Galic <smclt30p@gmail.com>
+>>>> wrote:
+>>>> > The EC/ACPI firmware on Lenovo ThinkPads used to report a status
+>>>> > of "Unknown" when the battery is between the charge start and
+>>>> > charge stop thresholds. On Windows, it reports "Not Charging"
+>>>> > so the quirk has been added to also report correctly.
+>>>> >
+>>>> > Now the "status" attribute returns "Not Charging" when the
+>>>> > battery on ThinkPads is not physicaly charging.
+>>>> >
+>>>> > Tested-by: Kevin Locke <kevin@kevinlocke.name>
+>>>> > Tested-by: Christoph B=C3=B6hmwalder <christoph@boehmwalder.at>
+>>>> > Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+>>>>
+>>>> It doesn't look like this is related to the [1/3] and [3/3], so why do
+>>>> you make it part of the series?
+>>>>
+>>>
+>>> I made it the same series because it is practically the same feature
+>>> set. Without this patch and with 1/3 and 3/3 applied, there is a bug
+>>> where the status attribute would show "Unknown" for a battery that is
+>>> between the start and stop thresholds while attached to AC.
+>>
+>> OK, fair enough.
+>>
+>> I would reorder it as the first patch in the series, then, because the
+>> other two are more related to each other.
+>>
+>> Thanks,
+>> Rafael
+>>
+>
+> Do I really need now to re-order and re-send the whole patchset for it
+> to get merged?
 
-------------------
+I'm not sure I will take anything of it at this time.
 
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-
-
-[ Upstream commit c962cff17dfa11f4a8227ac16de2b28aea3312e4 ]
-
-Revert: dc6db24d2476 ("x86/acpi: Set persistent cpuid <-> nodeid mapping when booting")
-
-The mapping of "cpuid <-> nodeid" is established at boot time via ACPI
-tables to keep associations of workqueues and other node related items
-consistent across cpu hotplug.
-
-But, ACPI tables are unreliable and failures with that boot time mapping
-have been reported on machines where the ACPI table and the physical
-information which is retrieved at actual hotplug is inconsistent.
-
-Revert the mapping implementation so it can be replaced with a less error
-prone approach.
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Tested-by: Xiaolong Ye <xiaolong.ye@intel.com>
-Cc: rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org
-Cc: guzheng1@huawei.com
-Cc: izumi.taku@jp.fujitsu.com
-Cc: lenb@kernel.org
-Link: http://lkml.kernel.org/r/1488528147-2279-2-git-send-email-douly.fnst@cn.fujitsu.com
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sasha Levin <alexander.levin@verizon.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- arch/x86/kernel/acpi/boot.c   |    2 -
- drivers/acpi/acpi_processor.c |    5 --
- drivers/acpi/bus.c            |    1 
- drivers/acpi/processor_core.c |   73 ------------------------------------------
- include/linux/acpi.h          |    3 -
- 5 files changed, 1 insertion(+), 83 deletions(-)
-
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -720,7 +720,7 @@ static void __init acpi_set_irq_model_io
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
- 
--int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -182,11 +182,6 @@ int __weak arch_register_cpu(int cpu)
- 
- void __weak arch_unregister_cpu(int cpu) {}
- 
--int __weak acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
--{
--	return -ENODEV;
--}
--
- static int acpi_processor_hotadd_init(struct acpi_processor *pr)
- {
- 	unsigned long long sta;
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1197,7 +1197,6 @@ static int __init acpi_init(void)
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
- 	acpi_setup_sb_notify_handler();
--	acpi_set_processor_mapping();
- 	return 0;
- }
- 
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -280,79 +280,6 @@ int acpi_get_cpuid(acpi_handle handle, i
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- 
--#ifdef CONFIG_ACPI_HOTPLUG_CPU
--static bool __init
--map_processor(acpi_handle handle, phys_cpuid_t *phys_id, int *cpuid)
--{
--	int type, id;
--	u32 acpi_id;
--	acpi_status status;
--	acpi_object_type acpi_type;
--	unsigned long long tmp;
--	union acpi_object object = { 0 };
--	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--
--	status = acpi_get_type(handle, &acpi_type);
--	if (ACPI_FAILURE(status))
--		return false;
--
--	switch (acpi_type) {
--	case ACPI_TYPE_PROCESSOR:
--		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
--		if (ACPI_FAILURE(status))
--			return false;
--		acpi_id = object.processor.proc_id;
--
--		/* validate the acpi_id */
--		if(acpi_processor_validate_proc_id(acpi_id))
--			return false;
--		break;
--	case ACPI_TYPE_DEVICE:
--		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
--		if (ACPI_FAILURE(status))
--			return false;
--		acpi_id = tmp;
--		break;
--	default:
--		return false;
--	}
--
--	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
--
--	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
--	id = acpi_map_cpuid(*phys_id, acpi_id);
--
--	if (id < 0)
--		return false;
--	*cpuid = id;
--	return true;
--}
--
--static acpi_status __init
--set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
--			   void **rv)
--{
--	phys_cpuid_t phys_id;
--	int cpu_id;
--
--	if (!map_processor(handle, &phys_id, &cpu_id))
--		return AE_ERROR;
--
--	acpi_map_cpu2node(handle, cpu_id, phys_id);
--	return AE_OK;
--}
--
--void __init acpi_set_processor_mapping(void)
--{
--	/* Set persistent cpu <-> node mapping for all processors. */
--	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
--			    ACPI_UINT32_MAX, set_processor_node_mapping,
--			    NULL, NULL, NULL);
--}
--#else
--void __init acpi_set_processor_mapping(void) {}
--#endif /* CONFIG_ACPI_HOTPLUG_CPU */
--
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -276,11 +276,8 @@ bool acpi_processor_validate_proc_id(int
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
--int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
--void acpi_set_processor_mapping(void);
--
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- int acpi_get_ioapic_id(acpi_handle handle, u32 gsi_base, u64 *phys_addr);
- #endif
+Thanks,
+Rafael
