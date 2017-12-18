@@ -1,57 +1,113 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH 2/3 v5] battery: Add the ThinkPad "Not Charging" quirk
-Date: Mon, 18 Dec 2017 15:47:15 +0100
-Message-ID: <20171218144715.GB2431@amd>
-References: <20171210180529.GA2016@thinkpad>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v5 7/9] arm64: Topology, rename cluster_id
+Date: Mon, 18 Dec 2017 15:47:03 +0000
+Message-ID: <20171218154703.GA8157@red-moon>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-8-jeremy.linton@arm.com>
+ <20171213180217.GB4060@red-moon>
+ <7bb4e955-f3e5-d22f-4e78-eac97e66a9a6@arm.com>
+ <20171218124229.GG507@e105550-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="neYutvxvOLaeuPCA"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:52370 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753159AbdLRPqX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 18 Dec 2017 10:46:23 -0500
 Content-Disposition: inline
-In-Reply-To: <20171210180529.GA2016@thinkpad>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ognjen Galic <smclt30p@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net
+In-Reply-To: <20171218124229.GG507@e105550-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Morten Rasmussen <morten.rasmussen@foss.arm.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, morten.rasmussen@arm.com, dietmar.eggemann@arm.com
 
+On Mon, Dec 18, 2017 at 12:42:29PM +0000, Morten Rasmussen wrote:
+> On Fri, Dec 15, 2017 at 10:36:35AM -0600, Jeremy Linton wrote:
+> > Hi,
+> > 
+> > On 12/13/2017 12:02 PM, Lorenzo Pieralisi wrote:
+> > >[+Morten, Dietmar]
+> > >
+> > >$SUBJECT should be:
+> > >
+> > >arm64: topology: rename cluster_id
+> > 
+> > Sure..
+> > 
+> > >
+> > >On Fri, Dec 01, 2017 at 04:23:28PM -0600, Jeremy Linton wrote:
+> > >>Lets match the name of the arm64 topology field
+> > >>to the kernel macro that uses it.
+> > >>
+> > >>Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > >>---
+> > >>  arch/arm64/include/asm/topology.h |  4 ++--
+> > >>  arch/arm64/kernel/topology.c      | 27 ++++++++++++++-------------
+> > >>  2 files changed, 16 insertions(+), 15 deletions(-)
+> > >>
+> > >>diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+> > >>index c4f2d50491eb..118136268f66 100644
+> > >>--- a/arch/arm64/include/asm/topology.h
+> > >>+++ b/arch/arm64/include/asm/topology.h
+> > >>@@ -7,14 +7,14 @@
+> > >>  struct cpu_topology {
+> > >>  	int thread_id;
+> > >>  	int core_id;
+> > >>-	int cluster_id;
+> > >>+	int physical_id;
+> > >
+> > >package_id ?
+> > 
+> > Given the macro is topology_physical_package_id, either makes sense to me.
+> > <shrug> I will change it in the next set.
+> 
+> I would vote for package_id too. arch/arm has 'socket_id' though.
+> 
+> > >
+> > >It has been debated before, I know. Should we keep the cluster_id too
+> > >(even if it would be 1:1 mapped to package_id - for now) ?
+> > 
+> > Well given that this patch replaces the patch that did that at your
+> > request..
+> > 
+> > I was hoping someone else would comment here, but my take at this point is
+> > that it doesn't really matter in a functional sense at the moment.
+> > Like the chiplet discussion it can be the subject of a future patch along
+> > with the patches which tweak the scheduler to understand the split.
+> > 
+> > BTW, given that i'm OoO next week, and the following that are the holidays,
+> > I don't intend to repost this for a couple weeks. I don't think there are
+> > any issues with this set.
+> > 
+> > >
+> > >There is also arch/arm to take into account, again, this patch is
+> > >just renaming (as it should have named since the beginning) a
+> > >topology level but we should consider everything from a legacy
+> > >perspective.
+> 
+> arch/arm has gone for thread/core/socket for the three topology levels
+> it supports.
+> 
+> I'm not sure what short term value keeping cluster_id has? Isn't it just
+> about where we make the package = cluster assignment? Currently it is in
+> the definition of topology_physical_package_id. If we keep cluster_id
+> and add package_id, it gets moved into the MPIDR/DT parsing code. 
+> 
+> Keeping cluster_id and introducing a topology_cluster_id function could
+> help cleaning up some of the users of topology_physical_package_id that
+> currently assumes package_id == cluster_id though.
 
---neYutvxvOLaeuPCA
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think we should settle for a name (eg package_id), remove cluster_id
+and convert arch/arm socket_id to the same naming used on arm64 (for
+consistency - it is just a variable rename).
 
-On Sun 2017-12-10 19:05:29, Ognjen Galic wrote:
-> The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-> of "Unknown" when the battery is between the charge start and
-> charge stop thresholds. On Windows, it reports "Not Charging"
-> so the quirk has been added to also report correctly.
->=20
-> Now the "status" attribute returns "Not Charging" when the
-> battery on ThinkPads is not physicaly charging.
->=20
-> Tested-by: Kevin Locke <kevin@kevinlocke.name>
-> Tested-by: Christoph B=F6hmwalder <christoph@boehmwalder.at>
-> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+This leaves us with the naming "cluster" only in DT topology bindings,
+which should be fine, given that "cluster" in that context is just a
+"processor-container" - yes we could have chosen a better naming in
+the first place but that's what it is.
 
-As mentioned before, it would be nice to add a state "not charging for
-battery lifetime reasons" and use it here.
+We should nuke the existing users of topology_physical_package_id()
+to identify clusters, I would not add another function for that purpose,
+let's nip it in the bud.
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---neYutvxvOLaeuPCA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlo31PMACgkQMOfwapXb+vJWAwCgnslbv4pIghc2CUsbjEb0tXMb
-XZIAn1iVRWyeRl5s0gSNZY3BTYDZv6Aj
-=8T5I
------END PGP SIGNATURE-----
-
---neYutvxvOLaeuPCA--
+Lorenzo
