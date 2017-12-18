@@ -1,69 +1,59 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Mon, 18 Dec 2017 10:40:31 +0100
-Message-ID: <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
-References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
+From: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
+Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
+Date: Mon, 18 Dec 2017 11:21:26 +0100
+Message-ID: <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
+References: <20171215165750.GA6282@thinkpad> <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
+ <20171216084850.GA19033@thinkpad> <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1513588684-15647-1-git-send-email-mw@semihalf.com>
-Sender: netdev-owner@vger.kernel.org
-To: Marcin Wojtas <mw@semihalf.com>, Graeme Gregory <graeme.gregory@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, ezequiel.garcia@free-electrons.com, Nadav Haklai <nadavh@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, jaz@semihalf.com, Tomasz Nowicki <tn@semihalf.com>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:37390 "EHLO
+        mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758018AbdLRKV3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Dec 2017 05:21:29 -0500
+In-Reply-To: <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-On 18 December 2017 at 10:17, Marcin Wojtas <mw@semihalf.com> wrote:
-> Hi,
+On 16/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Sat, Dec 16, 2017 at 9:48 AM, Ognjen Galic <smclt30p@gmail.com> wrote:
+>> On Sat, Dec 16, 2017 at 01:33:55AM +0100, Rafael J. Wysocki wrote:
+>>> On Fri, Dec 15, 2017 at 5:57 PM, Ognjen Galic <smclt30p@gmail.com>
+>>> wrote:
+>>> > The EC/ACPI firmware on Lenovo ThinkPads used to report a status
+>>> > of "Unknown" when the battery is between the charge start and
+>>> > charge stop thresholds. On Windows, it reports "Not Charging"
+>>> > so the quirk has been added to also report correctly.
+>>> >
+>>> > Now the "status" attribute returns "Not Charging" when the
+>>> > battery on ThinkPads is not physicaly charging.
+>>> >
+>>> > Tested-by: Kevin Locke <kevin@kevinlocke.name>
+>>> > Tested-by: Christoph B=C3=B6hmwalder <christoph@boehmwalder.at>
+>>> > Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+>>>
+>>> It doesn't look like this is related to the [1/3] and [3/3], so why do
+>>> you make it part of the series?
+>>>
+>>
+>> I made it the same series because it is practically the same feature
+>> set. Without this patch and with 1/3 and 3/3 applied, there is a bug
+>> where the status attribute would show "Unknown" for a battery that is
+>> between the start and stop thresholds while attached to AC.
 >
-> This patchset introduces ACPI support in mvpp2 and mvmdio drivers.
-> First three patches introduce fwnode helpers for obtaining PHY
-> information from nodes and also MDIO fwnode API for registering
-> the bus with its PHY/devices.
+> OK, fair enough.
 >
-> Following patches update code of the mvmdio and mvpp2 drivers
-> to support ACPI tables handling. The latter is done in 4 steps,
-> as can be seen in the commits. For the details, please
-> refer to the commit messages.
+> I would reorder it as the first patch in the series, then, because the
+> other two are more related to each other.
 >
-> Drivers operation was tested on top of the net-next branch
-> with both DT and ACPI. Although for compatibility reasons
-> with older platforms, the mvmdio driver keeps using
-> of_ MDIO registering, new fwnode_ one proved to fully work
-> with DT as well (tested on MacchiatoBin board).
->
-> mvpp2/mvmdio driver can work with the ACPI representation, as exposed
-> on a public branch:
-> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits/marvell-armada-wip
-> It was compiled together with the most recent Tianocore EDK2 revision.
-> Please refer to the firmware build instruction on MacchiatoBin board:
-> http://wiki.macchiatobin.net/tiki-index.php?page=Build+from+source+-+UEFI+EDK+II
->
-> Above support configures 1G to use its PHY normally. 10G can work now
-> only with the link interrupt mode. Somehow reading of the
-> string property in fwnode_mdiobus_child_is_phy works only with
-> DT and cannot cope with 10G PHY nodes as in:
-> https://pastebin.com/3JnYpU0A
->
-> Above root cause will be further checked. In the meantime I will
-> appreciate any comments or remarks for the kernel patches.
+> Thanks,
+> Rafael
 >
 
-Hi Marcin,
+Do I really need now to re-order and re-send the whole patchset for it
+to get merged?
 
-I have added linux-acpi and Graeme to cc. I think it makes sense to
-discuss the way you describe the device topology before looking at the
-patches in more detail.
-
-In particular, I would like to request feedback on the use of
-[redundant] 'reg' properties and the use of _DSD + compatible to
-describe PHYs. Usually, we try to avoid this, given that it is
-essentially a ACPI encapsulated DT dialect that is difficult to
-support in drivers unless they are based on DT to begin with. Also,
-non-standard _DSD properties require a vendor prefix, it is not
-freeform.
-
-For reference, the ACPI description is here (starting at line 175)
-https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/72d5ac23b20dd74d479daa5e40ba443264b31261/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl
-
--- 
-Ard.
+Thanks.
