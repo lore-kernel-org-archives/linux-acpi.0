@@ -1,56 +1,92 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
-Date: Tue, 19 Dec 2017 17:24:47 +0100
-Message-ID: <CAJZ5v0hGn1BrPkMGY6KVsNvHvYifWmo4Lpb5UMSqzgYpRjFndw@mail.gmail.com>
-References: <20171215165750.GA6282@thinkpad> <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
- <20171216084850.GA19033@thinkpad> <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
- <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
- <CAHp75VfZaiQfridSQZh+TzpY1BGT3-Jk_2KGBKReMe7TFC507g@mail.gmail.com>
- <CAJZ5v0jqZk6CNPQ0xZ7ktzM61iFZMLCNhGWGVX5+9OZ5qXMo_g@mail.gmail.com> <CAHp75VdDXuOmL0tnQE9V4P1ZNjbw1BVZ0HFEMhJqew-JZeVtGg@mail.gmail.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH V1 0/1] Fix kernel panic caused by device ID duplication
+ presented to the IOMMU
+Date: Tue, 19 Dec 2017 16:34:46 +0000
+Message-ID: <7f7fca76-88f8-6ee7-c402-fe4300c62253@arm.com>
+References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:36267 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750763AbdLSQYt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2017 11:24:49 -0500
-In-Reply-To: <CAHp75VdDXuOmL0tnQE9V4P1ZNjbw1BVZ0HFEMhJqew-JZeVtGg@mail.gmail.com>
+Received: from foss.arm.com ([217.140.101.70]:40038 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750784AbdLSQeu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 19 Dec 2017 11:34:50 -0500
+In-Reply-To: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
+Content-Language: en-GB
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
+To: Tomasz Nowicki <tomasz.nowicki@caviumnetworks.com>, joro@8bytes.org, will.deacon@arm.com, lorenzo.pieralisi@arm.com, bhelgaas@google.com
+Cc: Jayachandran.Nair@cavium.com, Ganapatrao.Kulkarni@cavium.com, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, mw@semihalf.com, stable@vger.kernel.org
 
-On Tue, Dec 19, 2017 at 3:34 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Mon, Dec 18, 2017 at 7:31 PM, Rafael J. Wysocki <rafael@kernel.org> wr=
-ote:
->> On Mon, Dec 18, 2017 at 1:36 PM, Andy Shevchenko
->> <andy.shevchenko@gmail.com> wrote:
->>> On Mon, Dec 18, 2017 at 12:21 PM, Ognjen Gali=C4=87 <smclt30p@gmail.com=
-> wrote:
->>>> On 16/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>>
->>>>> I would reorder it as the first patch in the series, then, because th=
-e
->>>>> other two are more related to each other.
->>>
->>>> Do I really need now to re-order and re-send the whole patchset for it
->>>> to get merged?
->>>
->>> Through which tree it's supposed to go?
->>
->> Wait, wait.  I haven't commented patches [1,3/3] yet, so no ACKs
->> assumed, please.
->
-> I would prefer if you can take it through linux-pm.
+Hi Tomasz,
 
-No problem.
+On 19/12/17 15:13, Tomasz Nowicki wrote:
+> Here is my lspci output of ThunderX2 for which I am observing kernel panic coming from
+> SMMUv3 driver -> arm_smmu_write_strtab_ent() -> BUG_ON(ste_live):
+> 
+> # lspci -vt
+> -[0000:00]-+-00.0-[01-1f]--+ [...]
+>                             + [...]
+>                             \-00.0-[1e-1f]----00.0-[1f]----00.0  ASPEED Technology, Inc. ASPEED Graphics Family
+> 
+> ASP device -> 1f:00.0 VGA compatible controller: ASPEED Technology, Inc. ASPEED Graphics Family
+> PCI-Express to PCI/PCI-X Bridge -> 1e:00.0 PCI bridge: ASPEED Technology, Inc. AST1150 PCI-to-PCI Bridge
+>                             
+> While setting up ASP device SID in IORT dirver:
+> iort_iommu_configure() -> pci_for_each_dma_alias()
+> we need to walk up and iterate over each device which alias transaction from
+> downstream devices.
+> 
+> AST device (1f:00.0) gets BDF=0x1f00 and corresponding SID=0x1f00 from IORT.
+> Bridge (1e:00.0) is the first alias. Following PCI Express to PCI/PCI-X Bridge
+> spec: PCIe-to-PCI/X bridges alias transactions from downstream devices using
+> the subordinate bus number. For bridge (1e:00.0), the subordinate is equal
+> to 0x1f. This gives BDF=0x1f00 and SID=1f00 which is the same as downstream
+> device. So it is possible to have two identical SIDs. The question is what we
+> should do about such case. Presented patch prevents from registering the same
+> ID so that SMMUv3 is not complaining later on.
 
-> Whenever you are okay with the series let me know I would review PDx86 bi=
-ts.
+Ooh, subtle :( There is logic in arm_smmu_attach_device() to tolerate
+grouped devices aliasing to the same ID, but I guess I overlooked the
+distinction of a device sharing an alias ID with itself. I'm not sure
+I really like trying to work around this in generic code, since
+fwspec->ids is essentially opaque data in a driver-specific format - in
+theory a driver is free to encode a single logical ID into multiple
+fwspec elements (I think I did that in an early draft of SMMUv2 SMR
+support), at which point this approach might corrupt things massively.
 
-OK
+Does the (untested) diff below suffice?
 
-Thanks,
-Rafael
+Robin.
+
+----->8-----diff --git a/drivers/iommu/arm-smmu-v3.c 
+b/drivers/iommu/arm-smmu-v3.c
+index f122071688fd..d8a730d83401 100644
+--- a/drivers/iommu/arm-smmu-v3.c
++++ b/drivers/iommu/arm-smmu-v3.c
+@@ -1731,7 +1731,7 @@ static __le64 *arm_smmu_get_step_for_sid(struct 
+arm_smmu_device *smmu, u32 sid)
+
+  static void arm_smmu_install_ste_for_dev(struct iommu_fwspec *fwspec)
+  {
+-	int i;
++	int i, j;
+  	struct arm_smmu_master_data *master = fwspec->iommu_priv;
+  	struct arm_smmu_device *smmu = master->smmu;
+
+@@ -1739,6 +1739,13 @@ static void arm_smmu_install_ste_for_dev(struct 
+iommu_fwspec *fwspec)
+  		u32 sid = fwspec->ids[i];
+  		__le64 *step = arm_smmu_get_step_for_sid(smmu, sid);
+
++		/* Bridged PCI devices may end up with duplicated IDs */
++		for (j = 0; j < i; j++)
++			if (fwspec->ids[j] == sid)
++				break;
++		if (j < i)
++			continue;
++
+  		arm_smmu_write_strtab_ent(smmu, sid, step, &master->ste);
+  	}
+  }
