@@ -1,100 +1,63 @@
-From: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V1 1/1] iommu: Make sure device's ID array elements are
-	unique
-Date: Tue, 19 Dec 2017 09:37:26 -0700
-Message-ID: <20171219093726.432e16e7@t450s.home>
-References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
-	<1513696821-32291-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
+From: Joe Perches <joe@perches.com>
+Subject: [-next PATCH 0/4] sysfs and DEVICE_ATTR_<foo>
+Date: Tue, 19 Dec 2017 10:15:05 -0800
+Message-ID: <cover.1513706701.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1513696821-32291-1-git-send-email-tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Cc: Jayachandran.Nair-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao.Kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, mw-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, platform-driver-x86@vger.kernel.org, linux-s390@vger.kernel.org, esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
+Cc: devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org, linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 19 Dec 2017 16:20:21 +0100
-Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org> wrote:
-
-> While iterating over DMA aliases for a PCI device, for some rare cases
-> (i.e. PCIe-to-PCI/X bridges) we may get exactly the same ID as initial child
-> device. In turn, the same ID may get registered for a device multiple times.
-> Eventually IOMMU  driver may try to configure the same ID within domain
-> multiple times too which for some IOMMU drivers is illegal and causes kernel
-> panic.
-> 
-> Rule out ID duplication prior to device ID array registration.
-> 
-> CC: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org	# v4.14+
-
-You've identified a release, is there a specific commit this fixes?
-
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-> ---
->  drivers/iommu/iommu.c | 28 ++++++++++++++++++++++++++++
->  1 file changed, 28 insertions(+)
-> 
-> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-> index 3de5c0b..9b2c138 100644
-> --- a/drivers/iommu/iommu.c
-> +++ b/drivers/iommu/iommu.c
-> @@ -1945,6 +1945,31 @@ void iommu_fwspec_free(struct device *dev)
->  }
->  EXPORT_SYMBOL_GPL(iommu_fwspec_free);
->  
-> +static void iommu_fwspec_remove_ids_dup(struct device *dev, u32 *ids,
-> +					int *num_ids)
-> +{
-> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> +	int i, j, k, valid_ids = *num_ids;
-> +
-> +	for (i = 0; i < valid_ids; i++) {
-> +		for (j = 0; j < fwspec->num_ids; j++) {
-> +			if (ids[i] != fwspec->ids[j])
-> +				continue;
-> +
-> +			dev_info(dev, "found 0x%x ID duplication, skipped\n",
-> +				 ids[i]);
-> +
-> +			for (k = i + 1; k < valid_ids; k++)
-> +				ids[k - 1] = ids[k];
-
-Use memmove()?
-
-> +
-> +			valid_ids--;
-> +			break;
-
-At this point ids[i] is not the ids[i] that we tested for dupes, it's
-what was ids[i + 1], but we're going to i++ on the next iteration and
-we therefore never test that entry.
-
-> +		}
-> +	}
-> +
-> +	*num_ids = valid_ids;
-> +}
-> +
->  int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
->  {
->  	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> @@ -1954,6 +1979,9 @@ int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
->  	if (!fwspec)
->  		return -EINVAL;
->  
-> +	/* Rule out IDs already registered */
-> +	iommu_fwspec_remove_ids_dup(dev, ids, &num_ids);
-> +
->  	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + num_ids]);
->  	if (size > sizeof(*fwspec)) {
->  		fwspec = krealloc(dev->iommu_fwspec, size, GFP_KERNEL);
+Sm9lIFBlcmNoZXMgKDQpOgogIHN5c2ZzLmg6IFVzZSBvY3RhbCBwZXJtaXNzaW9ucwogIHRyZWV3
+aWRlOiBVc2UgREVWSUNFX0FUVFJfUlcKICB0cmVld2lkZTogVXNlIERFVklDRV9BVFRSX1JPCiAg
+dHJlZXdpZGU6IFVzZSBERVZJQ0VfQVRUUl9XTwoKIGFyY2gvYXJtL21hY2gtcHhhL3NoYXJwc2xf
+cG0uYyAgICAgICAgICAgICAgICAgICAgIHwgIDQgKy0KIGFyY2gvczM5MC9rZXJuZWwvc21wLmMg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvczM5MC9rZXJuZWwvdG9w
+b2xvZ3kuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDMgKy0KIGFyY2gvc2gvZHJpdmVycy9w
+dXNoLXN3aXRjaC5jICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KIGFyY2gvdGlsZS9rZXJu
+ZWwvc3lzZnMuYyAgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTIgKystLQogYXJjaC94ODYv
+a2VybmVsL2NwdS9taWNyb2NvZGUvY29yZS5jICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVy
+cy9hY3BpL2RldmljZV9zeXNmcy5jICAgICAgICAgICAgICAgICAgICAgICAgfCAgNiArLQogZHJp
+dmVycy9jaGFyL2lwbWkvaXBtaV9tc2doYW5kbGVyLmMgICAgICAgICAgICAgICAgfCAxNyArKyst
+LS0KIGRyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfc3lzZnMuYyAgICAgICAgICAgICAgICAgIHwg
+MTIgKystLQogZHJpdmVycy9pbnB1dC90b3VjaHNjcmVlbi9lbGFudHNfaTJjLmMgICAgICAgICAg
+ICAgfCAgMiArLQogZHJpdmVycy9uZXQvZXRoZXJuZXQvaWJtL2libXZuaWMuYyAgICAgICAgICAg
+ICAgICAgfCAgMiArLQogZHJpdmVycy9uZXQvd2ltYXgvaTI0MDBtL3N5c2ZzLmMgICAgICAgICAg
+ICAgICAgICAgfCAgMyArLQogZHJpdmVycy9udm1lL2hvc3QvY29yZS5jICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgfCAxMCArKy0tCiBkcml2ZXJzL3BsYXRmb3JtL3g4Ni9jb21wYWwtbGFwdG9w
+LmMgICAgICAgICAgICAgICB8IDE4ICsrLS0tLQogZHJpdmVycy9zMzkwL2Npby9jc3MuYyAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgOCArLS0KIGRyaXZlcnMvczM5MC9jaW8vZGV2aWNl
+LmMgICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTAgKystLQogZHJpdmVycy9zMzkwL2NyeXB0
+by9hcF9jYXJkLmMgICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVycy9zY3NpL2hw
+c2EuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxMCArKy0tCiBkcml2ZXJzL3Nj
+c2kvbHBmYy9scGZjX2F0dHIuYyAgICAgICAgICAgICAgICAgICAgICB8IDY0ICsrKysrKysrLS0t
+LS0tLS0tLS0tLS0KIC4uLi9zdGFnaW5nL21lZGlhL2F0b21pc3AvcGNpL2F0b21pc3AyL2htbS9o
+bW0uYyAgIHwgIDggKy0tCiBkcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9zeXNmcy5jICAgICAgICAg
+ICAgICAgICAgICB8IDE3ICsrKy0tLQogZHJpdmVycy90dHkvc2VyaWFsL3NoLXNjaS5jICAgICAg
+ICAgICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVycy91c2IvaG9zdC94aGNpLWRiZ2NhcC5j
+ICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVycy91c2IvcGh5L3BoeS10YWh2by5j
+ICAgICAgICAgICAgICAgICAgICAgICAgfCAgMiArLQogZHJpdmVycy92aWRlby9mYmRldi9hdW9f
+azE5MHguYyAgICAgICAgICAgICAgICAgICAgfCAgNCArLQogZHJpdmVycy92aWRlby9mYmRldi93
+MTAwZmIuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgNCArLQogaW5jbHVkZS9saW51eC9zeXNm
+cy5oICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxNCArKy0tLQogbGliL3Rlc3RfZmly
+bXdhcmUuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxNCArKy0tLQogbGliL3Rl
+c3Rfa21vZC5jICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAxNCArKy0tLQog
+c291bmQvc29jL29tYXAvbWNic3AuYyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAgNCAr
+LQogc291bmQvc29jL3NvYy1jb3JlLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgfCAg
+MiArLQogc291bmQvc29jL3NvYy1kYXBtLmMgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+fCAgMiArLQogMzIgZmlsZXMgY2hhbmdlZCwgMTIwIGluc2VydGlvbnMoKyksIDE1OCBkZWxldGlv
+bnMoLSkKCi0tIAoyLjE1LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
+dG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2Ry
+aS1kZXZlbAo=
