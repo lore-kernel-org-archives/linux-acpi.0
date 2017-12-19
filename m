@@ -1,49 +1,55 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
-Date: Tue, 19 Dec 2017 16:34:47 +0200
-Message-ID: <CAHp75VdDXuOmL0tnQE9V4P1ZNjbw1BVZ0HFEMhJqew-JZeVtGg@mail.gmail.com>
-References: <20171215165750.GA6282@thinkpad> <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
- <20171216084850.GA19033@thinkpad> <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
- <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
- <CAHp75VfZaiQfridSQZh+TzpY1BGT3-Jk_2KGBKReMe7TFC507g@mail.gmail.com> <CAJZ5v0jqZk6CNPQ0xZ7ktzM61iFZMLCNhGWGVX5+9OZ5qXMo_g@mail.gmail.com>
+From: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH V1 0/1] Fix kernel panic caused by device ID duplication
+	presented to the IOMMU
+Date: Tue, 19 Dec 2017 16:13:55 +0100
+Message-ID: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f180.google.com ([209.85.220.180]:40725 "EHLO
-        mail-qk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763488AbdLSOet (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2017 09:34:49 -0500
-In-Reply-To: <CAJZ5v0jqZk6CNPQ0xZ7ktzM61iFZMLCNhGWGVX5+9OZ5qXMo_g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
+Cc: Jayachandran.Nair-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao.Kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, mw-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-On Mon, Dec 18, 2017 at 7:31 PM, Rafael J. Wysocki <rafael@kernel.org> wrot=
-e:
-> On Mon, Dec 18, 2017 at 1:36 PM, Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
->> On Mon, Dec 18, 2017 at 12:21 PM, Ognjen Gali=C4=87 <smclt30p@gmail.com>=
- wrote:
->>> On 16/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>
->>>> I would reorder it as the first patch in the series, then, because the
->>>> other two are more related to each other.
->>
->>> Do I really need now to re-order and re-send the whole patchset for it
->>> to get merged?
->>
->> Through which tree it's supposed to go?
->
-> Wait, wait.  I haven't commented patches [1,3/3] yet, so no ACKs
-> assumed, please.
+Here is my lspci output of ThunderX2 for which I am observing kernel panic coming from
+SMMUv3 driver -> arm_smmu_write_strtab_ent() -> BUG_ON(ste_live):
 
-I would prefer if you can take it through linux-pm.
+# lspci -vt
+-[0000:00]-+-00.0-[01-1f]--+ [...]
+                           + [...]
+                           \-00.0-[1e-1f]----00.0-[1f]----00.0  ASPEED Technology, Inc. ASPEED Graphics Family
 
-Whenever you are okay with the series let me know I would review PDx86 bits=
-.
+ASP device -> 1f:00.0 VGA compatible controller: ASPEED Technology, Inc. ASPEED Graphics Family
+PCI-Express to PCI/PCI-X Bridge -> 1e:00.0 PCI bridge: ASPEED Technology, Inc. AST1150 PCI-to-PCI Bridge
+                           
+While setting up ASP device SID in IORT dirver:
+iort_iommu_configure() -> pci_for_each_dma_alias()
+we need to walk up and iterate over each device which alias transaction from
+downstream devices.
 
---=20
-With Best Regards,
-Andy Shevchenko
+AST device (1f:00.0) gets BDF=0x1f00 and corresponding SID=0x1f00 from IORT.
+Bridge (1e:00.0) is the first alias. Following PCI Express to PCI/PCI-X Bridge
+spec: PCIe-to-PCI/X bridges alias transactions from downstream devices using
+the subordinate bus number. For bridge (1e:00.0), the subordinate is equal
+to 0x1f. This gives BDF=0x1f00 and SID=1f00 which is the same as downstream
+device. So it is possible to have two identical SIDs. The question is what we
+should do about such case. Presented patch prevents from registering the same
+ID so that SMMUv3 is not complaining later on.
+
+Tomasz Nowicki (1):
+  iommu: Make sure device's ID array elements are unique
+
+ drivers/iommu/iommu.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+-- 
+2.7.4
