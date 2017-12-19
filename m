@@ -1,86 +1,56 @@
-From: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Subject: [PATCH V1 1/1] iommu: Make sure device's ID array elements are unique
-Date: Tue, 19 Dec 2017 16:20:21 +0100
-Message-ID: <1513696821-32291-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
-References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 2/3 v6] battery: Add the ThinkPad "Not Charging" quirk
+Date: Tue, 19 Dec 2017 17:24:47 +0100
+Message-ID: <CAJZ5v0hGn1BrPkMGY6KVsNvHvYifWmo4Lpb5UMSqzgYpRjFndw@mail.gmail.com>
+References: <20171215165750.GA6282@thinkpad> <CAJZ5v0ida0RTUBdtpCK4rAXfdukadpTyxD0Rpp4R=kKcukyjKA@mail.gmail.com>
+ <20171216084850.GA19033@thinkpad> <CAJZ5v0gWooR7rtY0qmEyERr=A+BoLWoSAHh5Reh3xE5Gvks9+g@mail.gmail.com>
+ <CALgTWSv-4DSnU1MLiapL22rK-qaa45xCz6WuMnM_AeBtKYDidw@mail.gmail.com>
+ <CAHp75VfZaiQfridSQZh+TzpY1BGT3-Jk_2KGBKReMe7TFC507g@mail.gmail.com>
+ <CAJZ5v0jqZk6CNPQ0xZ7ktzM61iFZMLCNhGWGVX5+9OZ5qXMo_g@mail.gmail.com> <CAHp75VdDXuOmL0tnQE9V4P1ZNjbw1BVZ0HFEMhJqew-JZeVtGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <1513696436-31834-1-git-send-email-tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org
-Cc: Jayachandran.Nair-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao.Kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, mw-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:36267 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750763AbdLSQYt (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Dec 2017 11:24:49 -0500
+In-Reply-To: <CAHp75VdDXuOmL0tnQE9V4P1ZNjbw1BVZ0HFEMhJqew-JZeVtGg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-While iterating over DMA aliases for a PCI device, for some rare cases
-(i.e. PCIe-to-PCI/X bridges) we may get exactly the same ID as initial child
-device. In turn, the same ID may get registered for a device multiple times.
-Eventually IOMMU  driver may try to configure the same ID within domain
-multiple times too which for some IOMMU drivers is illegal and causes kernel
-panic.
+On Tue, Dec 19, 2017 at 3:34 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Mon, Dec 18, 2017 at 7:31 PM, Rafael J. Wysocki <rafael@kernel.org> wr=
+ote:
+>> On Mon, Dec 18, 2017 at 1:36 PM, Andy Shevchenko
+>> <andy.shevchenko@gmail.com> wrote:
+>>> On Mon, Dec 18, 2017 at 12:21 PM, Ognjen Gali=C4=87 <smclt30p@gmail.com=
+> wrote:
+>>>> On 16/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>
+>>>>> I would reorder it as the first patch in the series, then, because th=
+e
+>>>>> other two are more related to each other.
+>>>
+>>>> Do I really need now to re-order and re-send the whole patchset for it
+>>>> to get merged?
+>>>
+>>> Through which tree it's supposed to go?
+>>
+>> Wait, wait.  I haven't commented patches [1,3/3] yet, so no ACKs
+>> assumed, please.
+>
+> I would prefer if you can take it through linux-pm.
 
-Rule out ID duplication prior to device ID array registration.
+No problem.
 
-CC: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org	# v4.14+
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
----
- drivers/iommu/iommu.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+> Whenever you are okay with the series let me know I would review PDx86 bi=
+ts.
 
-diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-index 3de5c0b..9b2c138 100644
---- a/drivers/iommu/iommu.c
-+++ b/drivers/iommu/iommu.c
-@@ -1945,6 +1945,31 @@ void iommu_fwspec_free(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(iommu_fwspec_free);
- 
-+static void iommu_fwspec_remove_ids_dup(struct device *dev, u32 *ids,
-+					int *num_ids)
-+{
-+	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-+	int i, j, k, valid_ids = *num_ids;
-+
-+	for (i = 0; i < valid_ids; i++) {
-+		for (j = 0; j < fwspec->num_ids; j++) {
-+			if (ids[i] != fwspec->ids[j])
-+				continue;
-+
-+			dev_info(dev, "found 0x%x ID duplication, skipped\n",
-+				 ids[i]);
-+
-+			for (k = i + 1; k < valid_ids; k++)
-+				ids[k - 1] = ids[k];
-+
-+			valid_ids--;
-+			break;
-+		}
-+	}
-+
-+	*num_ids = valid_ids;
-+}
-+
- int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
- {
- 	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-@@ -1954,6 +1979,9 @@ int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids)
- 	if (!fwspec)
- 		return -EINVAL;
- 
-+	/* Rule out IDs already registered */
-+	iommu_fwspec_remove_ids_dup(dev, ids, &num_ids);
-+
- 	size = offsetof(struct iommu_fwspec, ids[fwspec->num_ids + num_ids]);
- 	if (size > sizeof(*fwspec)) {
- 		fwspec = krealloc(dev->iommu_fwspec, size, GFP_KERNEL);
--- 
-2.7.4
+OK
+
+Thanks,
+Rafael
