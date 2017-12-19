@@ -1,32 +1,39 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH V4] ACPI / GED: unregister interrupts during shutdown
-Date: Tue, 19 Dec 2017 02:42:52 +0100
-Message-ID: <CAJZ5v0g0yULEwWwWooF=5qwjEmmVUoR=uFDm-WsmJd+DDtswiA@mail.gmail.com>
-References: <1513125448-6509-1-git-send-email-okaya@codeaurora.org>
+From: "Martin K. Petersen" <martin.petersen@oracle.com>
+Subject: Re: [trivial PATCH] treewide: Align function
+	definition open/close braces
+Date: Mon, 18 Dec 2017 22:31:06 -0500
+Message-ID: <yq1shc7jsw5.fsf@oracle.com>
+References: <1513556924.31581.51.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1513125448-6509-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm <linux-arm-msm@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <1513556924.31581.51.camel@perches.com> (Joe Perches's message of
+ "Sun, 17 Dec 2017 16:28:44 -0800")
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-rtc@vger.kernel.org, alsa-devel@alsa-project.org, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Jiri Kosina <trivial@kernel.org>, linux-scsi@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com, acpi4asus-user@lists.sourceforge.net, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-xfs@vger.kernel.org, linux-acpi@vger.kernel.org, linux-audit@redhat.com, amd-gfx@lists.freedesktop.org, netdev@vger.kernel.org, linux-fsdevel@vger.kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, ocfs2-devel@oss.oracle.com, linux-media@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 13, 2017 at 1:37 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Some GED interrupts could be pending by the time we are doing a reboot.
->
-> Even though GED driver uses devm_request_irq() to register the interrupt
-> handler, the handler is not being freed on time during a shutdown since
-> the driver is missing a shutdown callback.
->
-> If the ACPI handler is no longer available, this causes an interrupt
-> storm and delays shutdown.
->
-> 1. Don't use devm family of functions for IRQ registration/free
-> 2. Keep track of the events since free_irq() requires the dev_id parameter
-> passed into the request_irq() function.
-> 3. Call free_irq() on both remove and shutdown explicitly.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 
-Applied, thanks!
+Joe,
+
+> Some functions definitions have either the initial open brace and/or
+> the closing brace outside of column 1.
+>
+> Move those braces to column 1.
+
+SCSI bits look OK.
+
+Acked-by: Martin K. Petersen <martin.petersen@oracle.com>
+
+-- 
+Martin K. Petersen	Oracle Linux Engineering
