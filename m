@@ -1,29 +1,119 @@
-From: Felipe Balbi <felipe.balbi@linux.intel.com>
-Subject: Re: [-next PATCH 0/4] sysfs and DEVICE_ATTR_<foo>
-Date: Wed, 20 Dec 2017 11:46:06 +0200
-Message-ID: <87r2rppw9t.fsf@linux.intel.com>
-References: <cover.1513706701.git.joe@perches.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V1 0/1] Fix kernel panic caused by device ID duplication
+ presented to the IOMMU
+Date: Wed, 20 Dec 2017 11:27:52 +0100
+Message-ID: <68279889-a16d-3c8d-3a01-6b5f992c5744@semihalf.com>
+References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
+ <7f7fca76-88f8-6ee7-c402-fe4300c62253@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <cover.1513706701.git.joe@perches.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Joe Perches <joe@perches.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, intel-gfx@lists.freedesktop.org, linuxppc-dev@lists.ozlabs.org, netdev@vger.kernel.org, linux-nvme@lists.infradead.org, platform-driver-x86@vger.kernel.org, linux-s390@vger.kernel.org, esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org, linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:39582 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754328AbdLTK14 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 05:27:56 -0500
+Received: by mail-lf0-f67.google.com with SMTP id m20so10294893lfi.6
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Dec 2017 02:27:54 -0800 (PST)
+In-Reply-To: <7f7fca76-88f8-6ee7-c402-fe4300c62253@arm.com>
+Content-Language: en-GB
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tomasz.nowicki@caviumnetworks.com>, joro@8bytes.org, will.deacon@arm.com, lorenzo.pieralisi@arm.com, bhelgaas@google.com
+Cc: Jayachandran.Nair@cavium.com, Ganapatrao.Kulkarni@cavium.com, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, mw@semihalf.com, stable@vger.kernel.org
 
-CkhpLAoKSm9lIFBlcmNoZXMgPGpvZUBwZXJjaGVzLmNvbT4gd3JpdGVzOgo+ICBkcml2ZXJzL3Vz
-Yi9waHkvcGh5LXRhaHZvLmMgICAgICAgICAgICAgICAgICAgICAgICB8ICAyICstCgpBY2tlZC1i
-eTogRmVsaXBlIEJhbGJpIDxmZWxpcGUuYmFsYmlAbGludXguaW50ZWwuY29tPgoKLS0gCmJhbGJp
-Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdm
-eCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
-c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+Hi Robin,
+
+On 19.12.2017 17:34, Robin Murphy wrote:
+> Hi Tomasz,
+> 
+> On 19/12/17 15:13, Tomasz Nowicki wrote:
+>> Here is my lspci output of ThunderX2 for which I am observing kernel 
+>> panic coming from
+>> SMMUv3 driver -> arm_smmu_write_strtab_ent() -> BUG_ON(ste_live):
+>>
+>> # lspci -vt
+>> -[0000:00]-+-00.0-[01-1f]--+ [...]
+>>                             + [...]
+>>                             \-00.0-[1e-1f]----00.0-[1f]----00.0  
+>> ASPEED Technology, Inc. ASPEED Graphics Family
+>>
+>> ASP device -> 1f:00.0 VGA compatible controller: ASPEED Technology, 
+>> Inc. ASPEED Graphics Family
+>> PCI-Express to PCI/PCI-X Bridge -> 1e:00.0 PCI bridge: ASPEED 
+>> Technology, Inc. AST1150 PCI-to-PCI Bridge
+>> While setting up ASP device SID in IORT dirver:
+>> iort_iommu_configure() -> pci_for_each_dma_alias()
+>> we need to walk up and iterate over each device which alias 
+>> transaction from
+>> downstream devices.
+>>
+>> AST device (1f:00.0) gets BDF=0x1f00 and corresponding SID=0x1f00 from 
+>> IORT.
+>> Bridge (1e:00.0) is the first alias. Following PCI Express to 
+>> PCI/PCI-X Bridge
+>> spec: PCIe-to-PCI/X bridges alias transactions from downstream devices 
+>> using
+>> the subordinate bus number. For bridge (1e:00.0), the subordinate is 
+>> equal
+>> to 0x1f. This gives BDF=0x1f00 and SID=1f00 which is the same as 
+>> downstream
+>> device. So it is possible to have two identical SIDs. The question is 
+>> what we
+>> should do about such case. Presented patch prevents from registering 
+>> the same
+>> ID so that SMMUv3 is not complaining later on.
+> 
+> Ooh, subtle :( There is logic in arm_smmu_attach_device() to tolerate
+> grouped devices aliasing to the same ID, but I guess I overlooked the
+> distinction of a device sharing an alias ID with itself. I'm not sure
+> I really like trying to work around this in generic code, since
+> fwspec->ids is essentially opaque data in a driver-specific format - in
+> theory a driver is free to encode a single logical ID into multiple
+> fwspec elements (I think I did that in an early draft of SMMUv2 SMR
+> support), at which point this approach might corrupt things massively.
+
+I don't have strong favourite here, the fix in SMMUv3 driver would work 
+too. Initially we can fix things for SMMUv3 only and if ever face the 
+same issue for other IOMMU driver, then we can move it to generic layer.
+
+> 
+> Does the (untested) diff below suffice?
+> 
+> Robin.
+> 
+> ----->8-----diff --git a/drivers/iommu/arm-smmu-v3.c 
+> b/drivers/iommu/arm-smmu-v3.c
+> index f122071688fd..d8a730d83401 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -1731,7 +1731,7 @@ static __le64 *arm_smmu_get_step_for_sid(struct 
+> arm_smmu_device *smmu, u32 sid)
+> 
+>   static void arm_smmu_install_ste_for_dev(struct iommu_fwspec *fwspec)
+>   {
+> -    int i;
+> +    int i, j;
+>       struct arm_smmu_master_data *master = fwspec->iommu_priv;
+>       struct arm_smmu_device *smmu = master->smmu;
+> 
+> @@ -1739,6 +1739,13 @@ static void arm_smmu_install_ste_for_dev(struct 
+> iommu_fwspec *fwspec)
+>           u32 sid = fwspec->ids[i];
+>           __le64 *step = arm_smmu_get_step_for_sid(smmu, sid);
+> 
+> +        /* Bridged PCI devices may end up with duplicated IDs */
+> +        for (j = 0; j < i; j++)
+> +            if (fwspec->ids[j] == sid)
+> +                break;
+> +        if (j < i)
+> +            continue;
+> +
+>           arm_smmu_write_strtab_ent(smmu, sid, step, &master->ste);
+>       }
+>   }
+
+Yes, worked for me.
+
+Thanks,
+Tomasz
