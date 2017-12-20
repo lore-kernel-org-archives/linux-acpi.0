@@ -1,101 +1,100 @@
-From: Tomasz Nowicki <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 1/1] iommu: Make sure device's ID array elements are
-	unique
-Date: Wed, 20 Dec 2017 11:28:29 +0100
-Message-ID: <668cc552-e37d-bdff-4d8e-e81516fb0ca0@semihalf.com>
-References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
-	<1513696821-32291-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
-	<20171219093726.432e16e7@t450s.home>
+From: Enric Balletbo Serra <eballetbo@gmail.com>
+Subject: Re: [PATCH v3 1/2] acpi: thermal: initialize tz_enabled to 1
+Date: Wed, 20 Dec 2017 12:27:58 +0100
+Message-ID: <CAFqH_52snyAdyuftaFtnRp1oMGQb98mEY7MGZKqNqabzpbdW1w@mail.gmail.com>
+References: <20170703080040.13750-1-enric.balletbo@collabora.com>
+ <CAJZ5v0joeKd+0TC4ik23zOLKxw0F42aYeZ7XugK=1LpDae3OtQ@mail.gmail.com> <1499132595.2654.7.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20171219093726.432e16e7-1yVPhWWZRC1BDLzU/O5InQ@public.gmane.org>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
-Cc: Jayachandran.Nair-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Ganapatrao.Kulkarni-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, mw-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:34883 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752914AbdLTL17 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 06:27:59 -0500
+In-Reply-To: <1499132595.2654.7.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Enric Balletbo i Serra <enric.balletbo@collabora.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Guenter Roeck <groeck@chromium.org>, Sameer Nanda <snanda@chromium.org>
 
-On 19.12.2017 17:37, Alex Williamson wrote:
-> On Tue, 19 Dec 2017 16:20:21 +0100
-> Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org> wrote:
-> 
->> While iterating over DMA aliases for a PCI device, for some rare cases
->> (i.e. PCIe-to-PCI/X bridges) we may get exactly the same ID as initial child
->> device. In turn, the same ID may get registered for a device multiple times.
->> Eventually IOMMU  driver may try to configure the same ID within domain
->> multiple times too which for some IOMMU drivers is illegal and causes kernel
->> panic.
+Hi Rui,
+
+2017-07-04 3:43 GMT+02:00 Zhang Rui <rui.zhang@intel.com>:
+> On Mon, 2017-07-03 at 23:08 +0200, Rafael J. Wysocki wrote:
+>> On Mon, Jul 3, 2017 at 10:00 AM, Enric Balletbo i Serra
+>> <enric.balletbo@collabora.com> wrote:
+>> >
+>> > From: Sameer Nanda <snanda@chromium.org>
+>> >
+>> > In the acpi_thermal_add path, acpi_thermal_get_info gets called
+>> > before
+>> > acpi_thermal_register_thermal_zone.  Since tz_enabled was getting
+>> > set to
+>> > 1 only in acpi_thermal_register_thermal_zone, acpi_thermal_get_info
+>> > ended up disabling thermal polling.
+>> >
+>> > Moved setting of tz_enabled to 1 into acpi_thermal_add itself.
+>> >
+>> > Signed-off-by: Sameer Nanda <snanda@chromium.org>
+>> > Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com
+>> > >
+>> > ---
+>> > Changes since v2:
+>> >  - Zhang Rui:
+>> >    - Make sure tz->tz_enabled is set properly before registering
+>> > the zone.
+>> >
+>> > Changes since v1:
+>> >  - This patch is new from v1 [1]
+>> >
+>> >  [1] https://patchwork.kernel.org/patch/9804229/
+>> >
+>> >  drivers/acpi/thermal.c | 3 +--
+>> >  1 file changed, 1 insertion(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
+>> > index 1d0417b..cd0fe92 100644
+>> > --- a/drivers/acpi/thermal.c
+>> > +++ b/drivers/acpi/thermal.c
+>> > @@ -930,8 +930,6 @@ static int
+>> > acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
+>> >         if (ACPI_FAILURE(status))
+>> >                 return -ENODEV;
+>> >
+>> > -       tz->tz_enabled = 1;
+>> > -
+>> >         dev_info(&tz->device->dev, "registered as
+>> > thermal_zone%d\n",
+>> >                  tz->thermal_zone->id);
+>> >         return 0;
+>> > @@ -1088,6 +1086,7 @@ static int acpi_thermal_add(struct
+>> > acpi_device *device)
+>> >                 return -ENOMEM;
+>> >
+>> >         tz->device = device;
+>> > +       tz->tz_enabled = 1;
+>> >         strcpy(tz->name, device->pnp.bus_id);
+>> >         strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
+>> >         strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
+>> > --
+>> Rui,
 >>
->> Rule out ID duplication prior to device ID array registration.
+>> Can I just apply this, or do I need to work for a thermal core
+>> update?
+>>  In the latter case, can you take care of this one too, please?
 >>
->> CC: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org	# v4.14+
-> 
-> You've identified a release, is there a specific commit this fixes?
+> Yes, I will take both of the patches.
+>
 
-Yes, it was triggered by converting drm_pci_init() to 
-pci_register_driver() in ast_drv.c
-
-Fixes: 10631d724def ("drm/pci: Deprecate drm_pci_init/exit completely
-")
-
-> 
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki-M3mlKVOIwJVv6pq1l3V1OdBPR1lH4CV8@public.gmane.org>
->> ---
->>   drivers/iommu/iommu.c | 28 ++++++++++++++++++++++++++++
->>   1 file changed, 28 insertions(+)
->>
->> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
->> index 3de5c0b..9b2c138 100644
->> --- a/drivers/iommu/iommu.c
->> +++ b/drivers/iommu/iommu.c
->> @@ -1945,6 +1945,31 @@ void iommu_fwspec_free(struct device *dev)
->>   }
->>   EXPORT_SYMBOL_GPL(iommu_fwspec_free);
->>   
->> +static void iommu_fwspec_remove_ids_dup(struct device *dev, u32 *ids,
->> +					int *num_ids)
->> +{
->> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
->> +	int i, j, k, valid_ids = *num_ids;
->> +
->> +	for (i = 0; i < valid_ids; i++) {
->> +		for (j = 0; j < fwspec->num_ids; j++) {
->> +			if (ids[i] != fwspec->ids[j])
->> +				continue;
->> +
->> +			dev_info(dev, "found 0x%x ID duplication, skipped\n",
->> +				 ids[i]);
->> +
->> +			for (k = i + 1; k < valid_ids; k++)
->> +				ids[k - 1] = ids[k];
-> 
-> Use memmove()?
-
-Right.
-
-> 
->> +
->> +			valid_ids--;
->> +			break;
-> 
-> At this point ids[i] is not the ids[i] that we tested for dupes, it's
-> what was ids[i + 1], but we're going to i++ on the next iteration and
-> we therefore never test that entry.
-
-Good point.
-
-Now the fundamental question is where we should put the patch, here or 
-in SMMUv3 driver as per Robin suggestion.
+Long time since I posted these patches but didn't land, I'm not sure
+if you're waiting an action from me. Are fine ? Do you want me to
+rebase it on top of mainline and resend?
 
 Thanks,
-Tomasz
+ Enric
+
+> thanks,
+> rui
+>
+>> Thanks,
+>> Rafael
