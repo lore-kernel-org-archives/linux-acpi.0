@@ -1,46 +1,38 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Wed, 20 Dec 2017 13:16:49 -0800
-Message-ID: <20171220211649.GA32200@bombadil.infradead.org>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214130032.GK16951@dhcp22.suse.cz>
- <20171218203547.GA2366@linux.intel.com>
- <20171220181937.GB12236@bombadil.infradead.org>
- <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 1/3 v6] battery: Add the battery hooking API
+Date: Wed, 20 Dec 2017 13:17:19 -0800
+Message-ID: <20171220211617.GA14667@fury>
+References: <20171215165654.GA6209@thinkpad>
+ <CAJZ5v0icKSOsxFTRonW8xEt7=oXBvCsO84FMx4ECQHTYd0_SGw@mail.gmail.com>
+ <CALgTWSuWoj6ecfNZmpn68uGV4m+Rz2adAWrw-Ng-7rU75SVtHQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:46187 "EHLO
+Received: from bombadil.infradead.org ([65.50.211.133]:48718 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755637AbdLTVQw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 16:16:52 -0500
+        with ESMTP id S1756280AbdLTVRZ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 16:17:25 -0500
 Content-Disposition: inline
-In-Reply-To: <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+In-Reply-To: <CALgTWSuWoj6ecfNZmpn68uGV4m+Rz2adAWrw-Ng-7rU75SVtHQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Michal Hocko <mhocko@kernel.org>, linux-kernel@vger.kernel.org, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux->
+To: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
 
-On Wed, Dec 20, 2017 at 12:22:21PM -0800, Dave Hansen wrote:
-> On 12/20/2017 10:19 AM, Matthew Wilcox wrote:
-> > I don't know what the right interface is, but my laptop has a set of
-> > /sys/devices/system/memory/memoryN/ directories.  Perhaps this is the
-> > right place to expose write_bw (etc).
+On Wed, Dec 20, 2017 at 03:30:18PM +0100, Ognjen Galić wrote:
+> On 18/12/2017, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > Also, what if someone attempts to add a hook when the ACPI battery
+
+> > module is not loaded?  Will that still work?
 > 
-> Those directories are already too redundant and wasteful.  I think we'd
-> really rather not add to them.  In addition, it's technically possible
-> to have a memory section span NUMA nodes and have different performance
-> properties, which make it impossible to represent there.
+> The module that requests the hooks will fail to load with the following
 > 
-> In any case, ACPI PXM's (Proximity Domains) are guaranteed to have
-> uniform performance properties in the HMAT, and we just so happen to
-> always create one NUMA node per PXM.  So, NUMA nodes really are a good fit.
+> > [  149.259127] thinkpad_acpi: Unknown symbol battery_hook_register (err 0)
+> > [  149.259158] thinkpad_acpi: Unknown symbol battery_hook_unregister (err 0)
 
-I think you're missing my larger point which is that I don't think this
-should be exposed to userspace as an ACPI feature.  Because if you do,
-then it'll also be exposed to userspace as an openfirmware feature.
-And sooner or later a devicetree feature.  And then writing a portable
-program becomes an exercise in suffering.
+Will a synchronous request_module() address this concern?
 
-So, what's the right place in sysfs that isn't tied to ACPI?  A new
-directory or set of directories under /sys/devices/system/memory/ ?
+-- 
+Darren Hart
+VMware Open Source Technology Center
