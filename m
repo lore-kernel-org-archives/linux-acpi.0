@@ -1,286 +1,188 @@
-From: =?UTF-8?Q?Ognjen_Gali=c4=87?= <smclt30p@gmail.com>
-Subject: Re: [PATCH 1/3 v6] battery: Add the battery hooking API
-Date: Wed, 20 Dec 2017 20:42:51 +0100
-Message-ID: <4c3cd47d-e569-bb1b-eb55-ed0860b6ec63@gmail.com>
-References: <20171215165654.GA6209@thinkpad>
- <CAJZ5v0icKSOsxFTRonW8xEt7=oXBvCsO84FMx4ECQHTYd0_SGw@mail.gmail.com>
- <20171220193243.GA7459@thinkpad>
+From: Bhupesh Sharma <bhsharma-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: arm64 crashkernel fails to boot on acpi-only machines due to ACPI
+ regions being no longer mapped as NOMAP
+Date: Thu, 21 Dec 2017 01:22:45 +0530
+Message-ID: <CACi5LpMmuzT-f-zX+mzrJ9J3io9JbYjQ_qQqyeVGBe1ftfN8Ww@mail.gmail.com>
+References: <20171213102624.GC28046@linaro.org> <CAKv+Gu_BmFN9Zg861SCS+R=V4khFykjuOzkmfEknsL=NvWW3Eg@mail.gmail.com>
+ <20171213121605.GE28046@linaro.org> <CAKv+Gu_G8kBEAdAznVauZVAdJOFkr1vmu0Gf6tOwJfH2CgdufA@mail.gmail.com>
+ <20171215085924.sqlcwm4copzba5ag@fireball> <CAKv+Gu-W5VpVrgA=FVZCCevksaRGOVvPdE+B8WkpZc6AE1jOPw@mail.gmail.com>
+ <CACi5LpPDL0j4o3MuOZ3jRv3UOqM48yTgKtdm-hY+OWL8h-ETzQ@mail.gmail.com>
+ <20171218051657.GA5998@dhcp-128-65.nay.redhat.com> <20171218055356.mq4coiibh3frii54@fireball>
+ <CAFTCetQ55zUKe25jSku0DHp8uVZA4hB32d5W6MSCNsTVpxu7Gw@mail.gmail.com> <20171219050113.GF28046@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20171220193243.GA7459@thinkpad>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20171219050113.GF28046-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: AKASHI Takahiro <takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Bhupesh SHARMA <bhupesh.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Bhupesh Sharma <bhsharma-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, James Morse <james.morse-5wv7dgnIgG8@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 20.12.2017 20:32, Ognjen Galic wrote:
-> On Mon, Dec 18, 2017 at 07:04:07PM +0100, Rafael J. Wysocki wrote:
->> On Fri, Dec 15, 2017 at 5:56 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
->>> This is a patch that implements a generic hooking API for the
->>> generic ACPI battery driver.
->>>
->>> With this new generic API, drivers can expose platform specific
->>> behaviour via sysfs attributes in /sys/class/power_supply/BATn/
->>> in a generic way.
->>>
->>> A perfect example of the need for this API are Lenovo ThinkPads.
->>>
->>> Lenovo ThinkPads have a ACPI extension that allows the setting of
->>> start and stop charge thresholds in the EC and battery firmware
->>> via ACPI. The thinkpad_acpi module can use this API to expose
->>> sysfs attributes that it controls inside the ACPI battery driver
->>> sysfs tree, under /sys/class/power_supply/BATN/.
->>>
->>> The file drivers/acpi/battery.h has been moved to
->>> include/acpi/battery.h and the includes inside ac.c, sbs.c, and
->>> battery.c have been adjusted to reflect that.
->>>
->>> When drivers hooks into the API, the API calls add_battery() for
->>> each battery in the system that passes it a acpi_battery
->>> struct. Then, the drivers can use device_create_file() to create
->>> new sysfs attributes with that struct and identify the batteries
->>> for per-battery attributes.
->>>
->>> Tested-by: Kevin Locke <kevin@kevinlocke.name>
->>> Tested-by: Christoph Böhmwalder <christoph@boehmwalder.at>
->>> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
->>> ---
->>>   drivers/acpi/ac.c      |   2 +-
->>>   drivers/acpi/battery.c | 139 ++++++++++++++++++++++++++++++++++++++++++++++++-
->>>   drivers/acpi/battery.h |  11 ----
->>>   drivers/acpi/sbs.c     |   2 +-
->>>   include/acpi/battery.h |  21 ++++++++
->>>   5 files changed, 160 insertions(+), 15 deletions(-)
->>>   delete mode 100644 drivers/acpi/battery.h
->>>   create mode 100644 include/acpi/battery.h
->>>
->>> diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
->>> index 47a7ed5..2d8de2f 100644
->>> --- a/drivers/acpi/ac.c
->>> +++ b/drivers/acpi/ac.c
->>> @@ -33,7 +33,7 @@
->>>   #include <linux/platform_device.h>
->>>   #include <linux/power_supply.h>
->>>   #include <linux/acpi.h>
->>> -#include "battery.h"
->>> +#include <acpi/battery.h>
->>>
->>>   #define PREFIX "ACPI: "
->>>
->>> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->>> index 13e7b56..2951d07 100644
->>> --- a/drivers/acpi/battery.c
->>> +++ b/drivers/acpi/battery.c
->>> @@ -30,6 +30,7 @@
->>>   #include <linux/dmi.h>
->>>   #include <linux/delay.h>
->>>   #include <linux/slab.h>
->>> +#include <linux/list.h>
->>>   #include <linux/suspend.h>
->>>   #include <asm/unaligned.h>
->>>
->>> @@ -42,7 +43,7 @@
->>>   #include <linux/acpi.h>
->>>   #include <linux/power_supply.h>
->>>
->>> -#include "battery.h"
->>> +#include <acpi/battery.h>
->>>
->>>   #define PREFIX "ACPI: "
->>>
->>> @@ -124,6 +125,7 @@ struct acpi_battery {
->>>          struct power_supply_desc bat_desc;
->>>          struct acpi_device *device;
->>>          struct notifier_block pm_nb;
->>> +       struct list_head list;
->>>          unsigned long update_time;
->>>          int revision;
->>>          int rate_now;
->>> @@ -626,6 +628,137 @@ static const struct device_attribute alarm_attr = {
->>>          .store = acpi_battery_alarm_store,
->>>   };
->>>
->>> +/*
->>> + * The Battery Hooking API
->>> + *
->>> + * This API is used inside other drivers that need to expose
->>> + * platform-specific behaviour within the generic driver in a
->>> + * generic way.
->>> + *
->>> + */
->>> +
->>> +LIST_HEAD(acpi_battery_list);
->>> +LIST_HEAD(battery_hook_list);
->>> +
->>> +void battery_hook_unregister(struct acpi_battery_hook *hook)
->>> +{
->>> +
->>> +       struct list_head *position;
->>> +       struct acpi_battery *battery;
->>> +
->>> +       /*
->>> +        * In order to remove a hook, we first need to
->>> +        * de-register all the batteries that are registered.
->>> +        */
->>> +
->>> +       list_for_each(position, &acpi_battery_list) {
->>> +               battery = list_entry(position, struct acpi_battery, list);
->>> +               hook->remove_battery(battery->bat);
->>> +       }
->>> +
->>> +       /* Then, just remove the hook */
->>> +
->>> +       list_del(&hook->list);
->>> +       pr_info("battery: extension unregistered: %s\n", hook->name);
->>> +
->>> +}
->>> +EXPORT_SYMBOL_GPL(battery_hook_unregister);
->>> +
->>> +void battery_hook_register(struct acpi_battery_hook *hook)
->>> +{
->>> +       struct list_head *position;
->>> +       struct acpi_battery *battery;
->>> +
->>> +       INIT_LIST_HEAD(&hook->list);
->>> +       list_add(&hook->list, &battery_hook_list);
->>> +
->>> +       /*
->>> +        * Now that the driver is registered, we need
->>> +        * to notify the hook that a battery is available
->>> +        * for each battery, so that the driver may add
->>> +        * its attributes.
->>> +        */
->>> +       list_for_each(position, &acpi_battery_list) {
->>> +               battery = list_entry(position, struct acpi_battery, list);
->>> +               if (hook->add_battery(battery->bat)) {
->>> +
->>> +                       /*
->>> +                        * If a add-battery returns non-zero,
->>> +                        * the registration of the extension has failed,
->>> +                        * we will unload it.
->>> +                        */
->>> +                       pr_err("battery: extension failed to load: %s",
->>> +                                       hook->name);
->>> +                       battery_hook_unregister(hook);
->>> +                       return;
->>> +
->>> +               }
->>> +       }
->>> +
->>> +       pr_info("battery: new extension: %s\n", hook->name);
->>> +
->>> +}
->>> +EXPORT_SYMBOL_GPL(battery_hook_register);
->>> +
->>> +static void battery_hook_add_battery(struct acpi_battery *battery)
->>> +{
->>> +
->>> +       /*
->>> +        * This function gets called right after the battery sysfs
->>> +        * attributes have been added, so that the drivers that
->>> +        * define custom sysfs attributes can add their own.
->>> +        */
->>> +
->>> +       struct list_head *position;
->>> +       struct acpi_battery_hook *hook_node;
->>> +
->>> +       INIT_LIST_HEAD(&battery->list);
->>> +       list_add(&battery->list, &acpi_battery_list);
->>> +
->>> +       /*
->>> +        * Since we added a new battery to the list, we need to
->>> +        * iterate over the hooks and call add_battery for each
->>> +        * hook that was registered. This usually happens
->>> +        * when a battery gets hotplugged or initialized
->>> +        * during the battery module initialization.
->>> +        */
->>> +
->>> +       list_for_each(position, &battery_hook_list) {
->>> +               hook_node = list_entry(position, struct acpi_battery_hook, list);
->>> +               if (hook_node->add_battery(battery->bat)) {
->>> +
->>> +                       /*
->>> +                        * The notification of the extensions has failed, to
->>> +                        * prevent further errors we will unload the extension.
->>> +                        */
->>> +                       battery_hook_unregister(hook_node);
->>> +                       pr_err("battery: error in extension, unloading: %s",
->>> +                                       hook_node->name);
->>> +               }
->>> +       }
->>> +
->>> +}
->>> +
->>> +static void battery_hook_remove_battery(struct acpi_battery *battery)
->>> +{
->>> +       struct list_head *position;
->>> +       struct acpi_battery_hook *hook;
->>> +
->>> +       /*
->>> +        * Before removing the hook, we need to remove all
->>> +        * custom attributes from the battery.
->>> +        */
->>> +       list_for_each(position, &battery_hook_list) {
->>> +               hook = list_entry(position, struct acpi_battery_hook, list);
->>> +               hook->remove_battery(battery->bat);
->>> +       }
->>> +
->>> +       /* Then, just remove the battery from the list */
->>> +
->>> +       list_del(&battery->list);
->>> +
->>> +}
->>> +
->>>   static int sysfs_add_battery(struct acpi_battery *battery)
->>>   {
->>>          struct power_supply_config psy_cfg = { .drv_data = battery, };
->>> @@ -647,6 +780,8 @@ static int sysfs_add_battery(struct acpi_battery *battery)
->>>          battery->bat = power_supply_register_no_ws(&battery->device->dev,
->>>                                  &battery->bat_desc, &psy_cfg);
->>>
->>> +       battery_hook_add_battery(battery);
->> What if a module registering the hook is loaded after
->> sysfs_add_battery() has run for the battery object in question?
-> The battery module keeps a list of acpi_battery objects, and regardless
-> of the time the hook was registered the batteries will always be
-> registered.
->
->> What if it attempts to register a hook while this code is running?
-> I could not test that as the only module that uses this API is
-> thinkpad_acpi.
->
->> What if two entities try to add or remove hooks simultaneously?
-> Currently there is only one module using this API, so race conditions
-> can't occur, currently. However, this could and will change in the
-> future. See below.
->
->> Don't you think any locking or other synchronization is necessary?
+On Tue, Dec 19, 2017 at 10:31 AM, AKASHI Takahiro
+<takahiro.akashi-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
+> On Mon, Dec 18, 2017 at 02:29:05PM +0530, Bhupesh SHARMA wrote:
 >>
-> In the last version of the patch, version 7, I have implemented locking
-> via mutual exclusions to future-proof the code. I have tested various
-> scenarios of loading and unloading the battery and thinkpad_acpi modules
-> and there are no obvious bugs or memory corruption.
+>> [snip..]
+>>
+>> [    0.000000] linux,usable-memory-range base e800000, size 20000000
+>> [    0.000000]  - e800000 ,  20000000
+>> [    0.000000] linux,usable-memory-range base 396c0000, size a0000
+>> [    0.000000]  - 396c0000 ,  a0000
+>> [    0.000000] linux,usable-memory-range base 39770000, size 40000
+>> [    0.000000]  - 39770000 ,  40000
+>> [    0.000000] linux,usable-memory-range base 398a0000, size 20000
+>> [    0.000000]  - 398a0000 ,  20000
+>> [    0.000000] initrd not fully accessible via the linear mapping --
+>> please check your bootloader ...
 >
->> Also, what if someone attempts to add a hook when the ACPI battery
->> module is not loaded?  Will that still work?
-> The loading of the module that uses the API will fail with the message
-> that symbols that the module needs are missing, so a module can't use
-> the hooks if battery is not loaded.
+> This is an odd message coming from:
+> |void __init arm64_memblock_init(void)
+> |...
+> |
+> |                if (WARN(base < memblock_start_of_DRAM() ||
+> |                         base + size > memblock_start_of_DRAM() +
+> |                                       linear_region_size,
+> |                        "initrd not fully accessible via the linear mapping -- please check your bootloader ...\n")) {
 >
->> Thanks,
->> Rafael
+> Can you confirm how the condition breaks here?
+> I suppose
+>     base: 0xfe70000
+>     size: 0x13c0000
+>     memblock_start_of_DRAM(): 0xe800000
+> according to the information you gave me.
 
-I'm sorry for all the double emails and double replies,
-my e-mail client (mutt) is either buggy, my connection
-is bugging or I don't know how to use it.
+Indeed, the first check 'base < memblock_start_of_DRAM()' in the
+following check fails:
 
-Probably the last.
+        if (WARN(base < memblock_start_of_DRAM() ||
+             base + size > memblock_start_of_DRAM() +
+                       linear_region_size,
 
-Sorry again.
+Here are the values I am seeing on this board using the kernel and
+kexec-tools which have been modified to append the
+'linux,usable-memory-range' with the acpi reclaim regions:
 
-Ognjen
+base=fe70000,
+size=13c0000,
+memblock_start_of_DRAM=39620000
+linear_region_size=800000000000
+
+I suspect that the holes introduced by kexec-tools inside
+'arm64_load_other_segments()' in 'kexec/arch/arm64/kexec-arm64.c' (see
+the code leg below):
+
+    /* Put the other segments after the image. */
+
+    hole_min = image_base + arm64_mem.image_size;
+    if (info->kexec_flags & KEXEC_ON_CRASH)
+        hole_max = crash_reserved_mem.end;
+    else
+        hole_max = ULONG_MAX;
+
+
+should be updated to introduce appropriate handling of the acpi reclaim regions.
+I am not aware of the background of this handling in the kexec-tools.
+Do you think this can be at fault, Akashi?
+
+Regards,
+Bhupesh
+
+
+
+>
+>> [    0.000000] ------------[ cut here ]------------
+>> [    0.000000] WARNING: CPU: 0 PID: 0 at arch/arm64/mm/init.c:597
+>> arm64_memblock_init+0x210/0x484
+>> [    0.000000] Modules linked in:
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 4.14.0+ #7
+>> [    0.000000] task: ffff000008d05580 task.stack: ffff000008cc0000
+>> [    0.000000] PC is at arm64_memblock_init+0x210/0x484
+>> [    0.000000] LR is at arm64_memblock_init+0x210/0x484
+>> [    0.000000] pc : [<ffff000008b76984>] lr : [<ffff000008b76984>]
+>> pstate: 600000c5
+>> [    0.000000] sp : ffff000008ccfe80
+>> [    0.000000] x29: ffff000008ccfe80 x28: 000000000f370018
+>> [    0.000000] x27: 0000000011230000 x26: 00000000013b0000
+>> [    0.000000] x25: 000000000fe80000 x24: ffff000008cf3000
+>> [    0.000000] x23: ffff000008ec0000 x22: ffff000009680000
+>> [    0.000000] x21: ffff000008afa000 x20: ffff000008080000
+>> [    0.000000] x19: ffff000008afa000 x18: 000000000c283806
+>> [    0.000000] x17: 0000000000000000 x16: ffff000008d05580
+>> [    0.000000] x15: 000000002be00842 x14: 79206b6365686320
+>> [    0.000000] x13: 657361656c70202d x12: 2d20676e69707061
+>> [    0.000000] x11: 6d207261656e696c x10: 2065687420616976
+>> [    0.000000] x9 : 00000000000000f4 x8 : ffff000008517414
+>> [    0.000000] x7 : 746f6f622072756f x6 : 000000000000000d
+>> [    0.000000] x5 : ffff000008c96360 x4 : 0000000000000001
+>> [    0.000000] x3 : 0000000000000000 x2 : 0000000000000000
+>> [    0.000000] x1 : 0000000000000000 x0 : 0000000000000056
+>> [    0.000000] Call trace:
+>> [    0.000000] Exception stack(0xffff000008ccfd40 to 0xffff000008ccfe80)
+>> [    0.000000] fd40: 0000000000000056 0000000000000000
+>> 0000000000000000 0000000000000000
+>> [    0.000000] fd60: 0000000000000001 ffff000008c96360
+>> 000000000000000d 746f6f622072756f
+>> [    0.000000] fd80: ffff000008517414 00000000000000f4
+>> 2065687420616976 6d207261656e696c
+>> [    0.000000] fda0: 2d20676e69707061 657361656c70202d
+>> 79206b6365686320 000000002be00842
+>> [    0.000000] fdc0: ffff000008d05580 0000000000000000
+>> 000000000c283806 ffff000008afa000
+>> [    0.000000] fde0: ffff000008080000 ffff000008afa000
+>> ffff000009680000 ffff000008ec0000
+>> [    0.000000] fe00: ffff000008cf3000 000000000fe80000
+>> 00000000013b0000 0000000011230000
+>> [    0.000000] fe20: 000000000f370018 ffff000008ccfe80
+>> ffff000008b76984 ffff000008ccfe80
+>> [    0.000000] fe40: ffff000008b76984 00000000600000c5
+>> ffff00000959b7a8 ffff000008ec0000
+>> [    0.000000] fe60: ffffffffffffffff 0000000000000005
+>> ffff000008ccfe80 ffff000008b76984
+>> [    0.000000] [<ffff000008b76984>] arm64_memblock_init+0x210/0x484
+>> [    0.000000] [<ffff000008b7398c>] setup_arch+0x1b8/0x5f4
+>> [    0.000000] [<ffff000008b70a10>] start_kernel+0x74/0x43c
+>> [    0.000000] random: get_random_bytes called from
+>> print_oops_end_marker+0x50/0x6c with crng_init=0
+>> [    0.000000] ---[ end trace 0000000000000000 ]---
+>> [    0.000000] Reserving 4KB of memory at 0x2e7f0000 for elfcorehdr
+>> [    0.000000] cma: Failed to reserve 512 MiB
+>> [    0.000000] Kernel panic - not syncing: ERROR: Failed to allocate
+>> 0x0000000000010000 bytes below 0x0000000000000000.
+>> [    0.000000]
+>> [    0.000000] CPU: 0 PID: 0 Comm: swapper Tainted: G        W
+>> ------------   4.14.0+ #7
+>> [    0.000000] Call trace:
+>> [    0.000000] [<ffff000008088da8>] dump_backtrace+0x0/0x23c
+>> [    0.000000] [<ffff000008089008>] show_stack+0x24/0x2c
+>> [    0.000000] [<ffff0000087f647c>] dump_stack+0x84/0xa8
+>> [    0.000000] [<ffff0000080cfd44>] panic+0x138/0x2a0
+>> [    0.000000] [<ffff000008b95c88>] memblock_alloc_base+0x44/0x4c
+>> [    0.000000] [<ffff000008b95cbc>] memblock_alloc+0x2c/0x38
+>> [    0.000000] [<ffff000008b772dc>] early_pgtable_alloc+0x20/0x74
+>> [    0.000000] [<ffff000008b7755c>] paging_init+0x28/0x544
+>> [    0.000000] [<ffff000008b73990>] setup_arch+0x1bc/0x5f4
+>> [    0.000000] [<ffff000008b70a10>] start_kernel+0x74/0x43c
+>> [    0.000000] ---[ end Kernel panic - not syncing: ERROR: Failed to
+>> allocate 0x0000000000010000 bytes below 0x0000000000000000.
+>> [    0.000000]
+>>
+>> I guess it is because of the 1G alignment requirement between the
+>> kernel image and the initrd and how we populate the holes between the
+>> kernel image, segments (including dtb) and the initrd from the
+>> kexec-tools.
+>>
+>> Akashi, any pointers on this will be helpful as well.
+>>
+>> Regards,
+>> Bhupesh
+>>
+>>
+>> >> >
+>> >> > Regards,
+>> >> > Bhupesh
+>> >> >
+>> >> > >> Just FYI, on x86, ACPI tables seems to be exposed to crash dump kernel
+>> >> > >> via a kernel command line parameter, "memmap=".
+>> >> > >>
+>> >> > _______________________________________________
+>> >> > kexec mailing list -- kexec-TuqUDEhatI4ANWPb/1PvSmm0pvjS0E/A@public.gmane.org
+>> >> > To unsubscribe send an email to kexec-leave-TuqUDEhatI4ANWPb/1PvSmm0pvjS0E/A@public.gmane.org
