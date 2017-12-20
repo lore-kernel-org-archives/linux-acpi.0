@@ -1,60 +1,46 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.15-rc5
-Date: Wed, 20 Dec 2017 20:07:49 +0100
-Message-ID: <CAJZ5v0h7BZgVFSaVBWcNrNBy76gh+ubZvf1_7sVvu9kt=S__1A@mail.gmail.com>
+From: Ognjen Galic <smclt30p@gmail.com>
+Subject: Re: thinkpad E555, fan module not loaded
+Date: Wed, 20 Dec 2017 20:14:55 +0100
+Message-ID: <20171220191455.GA5734@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:37566 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756107AbdLTTHu (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 14:07:50 -0500
+Received: from mail-wr0-f179.google.com ([209.85.128.179]:44790 "EHLO
+        mail-wr0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755902AbdLTTO7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 14:14:59 -0500
+Received: by mail-wr0-f179.google.com with SMTP id l41so11004084wre.11
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Dec 2017 11:14:58 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: gibboris@gmail.com, linux-acpi@vger.kernel.org
 
-Hi Linus,
+> Hi,
 
-Please pull from the tag
+> I post here as a last ressort as advised at the end of this thread
+> https://www.spinics.net/lists/ibm-acpi-devel/msg04173.html
+> 
+> I own a Thinkpad E555/Kaveri which is overheating.
+> I noticed fan stopped working soon after a 4.9 => 4.12 (Debian Jessie =>
+> Stretch) upgrade.
+> BIOS is up to date, kernel is 4.12.
+> fan runs during BIOS & GRUB stages (or if booting acpi=off)
+> The main symptom seems to be that the "fan" module is not loaded.
+> I already provided information and a couple of ACPI tables in the above
+> thread.
+>
+> What more may I provide in order to efficiently help getting this
+> spotted & solved?
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.15-rc5
+Thanks for contacting us!
 
-with top-most commit 9245fe9fccdbda5d81d97155e5c5de7e16510cee
+That could be caused by two modules, either thinkpad_acpi or fan.
 
- Merge branch 'acpi-cppc'
+First, build a kernel with both modules not built at all and install
+the kernel. The fan should work just fine as both fan and thinkpad_acpi
+are not loaded. Then, build the battery and thinkpad_acpi modules and 
+load one by one, and see which one causes the issue and report back.
 
-on top of commit 1291a0d5049dbc06baaaf66a9ff3f53db493b19b
-
- Linux 4.15-rc4
-
-to receive ACPI fixes for 4.15-rc5.
-
-These fix a recently introduced issue in the ACPI CPPC driver and
-an obscure error hanling bug in the APEI code.
-
-Specifics:
-
- - Fix an error handling issue in the ACPI APEI implementation
-   of the >read callback in struct pstore_info (Takashi Iwai).
-
- - Fix a possible out-of-bounds arrar read in the ACPI CPPC
-   driver (Colin Ian King).
-
-Thanks!
-
-
----------------
-
-Colin Ian King (1):
-      ACPI: CPPC: remove initial assignment of pcc_ss_data
-
-Takashi Iwai (1):
-      ACPI: APEI / ERST: Fix missing error handling in erst_reader()
-
----------------
-
- drivers/acpi/apei/erst.c | 2 +-
- drivers/acpi/cppc_acpi.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Thanks,
+Ognjen
