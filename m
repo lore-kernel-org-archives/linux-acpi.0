@@ -1,64 +1,47 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Wed, 20 Dec 2017 14:24:08 -0700
-Message-ID: <20171220212408.GA8308@linux.intel.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214130032.GK16951@dhcp22.suse.cz>
- <20171218203547.GA2366@linux.intel.com>
- <20171220181937.GB12236@bombadil.infradead.org>
- <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
- <20171220211649.GA32200@bombadil.infradead.org>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [-next PATCH 3/4] treewide: Use DEVICE_ATTR_RO
+Date: Wed, 20 Dec 2017 22:38:22 +0100
+Message-ID: <87tvwlcc6p.fsf@belgarion.home>
+References: <cover.1513706701.git.joe@perches.com>
+ <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
+ <5619005.tOTWM00GFv@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:57039 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755543AbdLTVYK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 20 Dec 2017 16:24:10 -0500
-Content-Disposition: inline
-In-Reply-To: <20171220211649.GA32200@bombadil.infradead.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <5619005.tOTWM00GFv@aspire.rjw.lan> (Rafael J. Wysocki's message
+ of "Wed, 20 Dec 2017 20:00:43 +0100")
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Joe Perches <joe@perches.com>
+Cc: Don Brace <don.brace@microsemi.com>, linux-nvme@lists.infradead.org, Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, David Airlie <airlied@linux.ie>, esc.storagedev@microsemi.com, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, alsa-devel@alsa-project.org, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, Keith Busch <keith.busch@intel.com>, Russell King <linux@arm.osuosl.org>, Christoph Hellwig <hch@lst.de>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Yoshinor i Sato <ysato@users.sourceforge.jp>, Takashi Iwai <tiwai@suse.com>, Sebastian Ott <sebott@linux.vnet.ibm.com>, James Smart <james.smart@broadcom.com>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <willy@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Michal Hocko <mhocko@kernel.org>, linux-kernel@vger.kernel.org, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@i>
 
-On Wed, Dec 20, 2017 at 01:16:49PM -0800, Matthew Wilcox wrote:
-> On Wed, Dec 20, 2017 at 12:22:21PM -0800, Dave Hansen wrote:
-> > On 12/20/2017 10:19 AM, Matthew Wilcox wrote:
-> > > I don't know what the right interface is, but my laptop has a set of
-> > > /sys/devices/system/memory/memoryN/ directories.  Perhaps this is the
-> > > right place to expose write_bw (etc).
-> > 
-> > Those directories are already too redundant and wasteful.  I think we'd
-> > really rather not add to them.  In addition, it's technically possible
-> > to have a memory section span NUMA nodes and have different performance
-> > properties, which make it impossible to represent there.
-> > 
-> > In any case, ACPI PXM's (Proximity Domains) are guaranteed to have
-> > uniform performance properties in the HMAT, and we just so happen to
-> > always create one NUMA node per PXM.  So, NUMA nodes really are a good fit.
-> 
-> I think you're missing my larger point which is that I don't think this
-> should be exposed to userspace as an ACPI feature.  Because if you do,
-> then it'll also be exposed to userspace as an openfirmware feature.
-> And sooner or later a devicetree feature.  And then writing a portable
-> program becomes an exercise in suffering.
-> 
-> So, what's the right place in sysfs that isn't tied to ACPI?  A new
-> directory or set of directories under /sys/devices/system/memory/ ?
+"Rafael J. Wysocki" <rjw@rjwysocki.net> writes:
 
-Oh, the current location isn't at all tied to acpi except that it happens to
-be named 'hmat'.  When it was all named 'hmem' it was just:
+> On Tuesday, December 19, 2017 7:15:08 PM CET Joe Perches wrote:
+>> Convert DEVICE_ATTR uses to DEVICE_ATTR_RO where possible.
+>> 
+>> Done with perl script:
+>> 
+>> $ git grep -w --name-only DEVICE_ATTR | \
+>>   xargs perl -i -e 'local $/; while (<>) { s/\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?(?:\s*S_IRUGO\s*|\s*0444\s*)\)?\s*,\s*\1_show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(\1)/g; print;}'
+>> 
+>> Signed-off-by: Joe Perches <joe@perches.com>
+>> ---
+>>  arch/arm/mach-pxa/sharpsl_pm.c                       |  4 ++--
 
-/sys/devices/system/hmem
+For mach-pxa:
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-Which has no ACPI-isms at all.  I'm happy to move it under
-/sys/devices/system/memory/hmat if that's helpful, but I think we still have
-the issue that the data represented therein is still pulled right from the
-HMAT, and I don't know how to abstract it into something more platform
-agnostic until I know what data is provided by those other platforms.
+Cheers.
 
-For example, the HMAT provides latency information and bandwidth information
-for both reads and writes.  Will the devicetree/openfirmware/etc version have
-this same info, or will it be just different enough that it won't translate
-into whatever I choose to stick in sysfs?
+--
+Robert
