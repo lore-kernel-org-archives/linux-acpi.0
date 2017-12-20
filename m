@@ -1,38 +1,50 @@
-From: Raf <gibboris@gmail.com>
-Subject: thinkpad E555, fan module not loaded
-Date: Wed, 20 Dec 2017 12:30:01 -0300
-Message-ID: <20171220153001.igq4g3urcqjkfsez@debovo.drzraf.me>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Wed, 20 Dec 2017 09:41:07 -0700
+Message-ID: <20171220164107.GA29103@linux.intel.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+ <20171214130032.GK16951@dhcp22.suse.cz>
+ <20171218203547.GA2366@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yb0-f180.google.com ([209.85.213.180]:40957 "EHLO
-        mail-yb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754846AbdLTPaG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 10:30:06 -0500
-Received: by mail-yb0-f180.google.com with SMTP id g198so9058991yba.7
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Dec 2017 07:30:06 -0800 (PST)
-Received: from localhost ([190.175.180.70])
-        by smtp.gmail.com with ESMTPSA id v69sm8242209ywg.41.2017.12.20.07.30.04
-        for <linux-acpi@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Wed, 20 Dec 2017 07:30:04 -0800 (PST)
+Received: from mga05.intel.com ([192.55.52.43]:4738 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754310AbdLTQlJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 20 Dec 2017 11:41:09 -0500
 Content-Disposition: inline
+In-Reply-To: <20171218203547.GA2366@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>, linux-kernel@vger.kernel.org, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gm>
 
-Hi,
+On Mon, Dec 18, 2017 at 01:35:47PM -0700, Ross Zwisler wrote:
+> On Thu, Dec 14, 2017 at 02:00:32PM +0100, Michal Hocko wrote:
+<>
+> > What is the testing procedure? How can I setup qemu to simlate such HW?
+> 
+> Well, the QEMU table simulation is gross, so I'd rather not get everyone
+> testing with that.  Injecting custom HMAT and SRAT tables via initrd/initramfs
+> is a much better way:
+> 
+> https://www.kernel.org/doc/Documentation/acpi/initrd_table_override.txt
+> 
+> Dan recently posted a patch that lets this happen for the HMAT:
+> 
+> https://lists.01.org/pipermail/linux-nvdimm/2017-December/013545.html
+> 
+> I'm working right now on getting an easier way to generate HMAT tables - I'll
+> let you know when I have something working.
 
-I post here as a last ressort as advised at the end of this thread
-https://www.spinics.net/lists/ibm-acpi-devel/msg04173.html
+I've posted details on how to set up test configurations using injected HMAT
+and SRAT tables here:
 
-I own a Thinkpad E555/Kaveri which is overheating.
-I noticed fan stopped working soon after a 4.9 => 4.12 (Debian Jessie =>
-Stretch) upgrade.
-BIOS is up to date, kernel is 4.12.
-fan runs during BIOS & GRUB stages (or if booting acpi=off)
-The main symptom seems to be that the "fan" module is not loaded.
-I already provided information and a couple of ACPI tables in the above thread.
+https://github.com/rzwisler/hmat_examples
 
-What more may I provide in order to efficiently help getting this
-spotted & solved?
+So far I've got two different sample configs, and we can add more as they are
+useful.  Having the sample configs in github is also nice because if someone
+finds a config that causes a kernel issue it can be reported then added to
+this list of example configs for future testing.
+
+Please let me know if you have trouble getting this working.
