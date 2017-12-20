@@ -1,53 +1,78 @@
-From: Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [PATCH 1/3 v6] battery: Add the battery
- hooking API
-Date: Wed, 20 Dec 2017 13:58:09 -0800
-Message-ID: <20171220215809.GB14966@fury>
-References: <20171215165654.GA6209@thinkpad>
- <CAJZ5v0icKSOsxFTRonW8xEt7=oXBvCsO84FMx4ECQHTYd0_SGw@mail.gmail.com>
- <CALgTWSuWoj6ecfNZmpn68uGV4m+Rz2adAWrw-Ng-7rU75SVtHQ@mail.gmail.com>
- <20171220211617.GA14667@fury>
- <CALgTWSvEg3EfjSJqAp5nRuxRceBpg92=x3FPFEW9PThBmizQEA@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Wed, 20 Dec 2017 14:29:56 -0800
+Message-ID: <CAPcyv4gTknp=0yQnVrrB5Ui+mJE_x-wdkV86UD4hsYnx3CAjfA@mail.gmail.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+ <20171214130032.GK16951@dhcp22.suse.cz> <20171218203547.GA2366@linux.intel.com>
+ <20171220181937.GB12236@bombadil.infradead.org> <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+ <20171220211649.GA32200@bombadil.infradead.org> <20171220212408.GA8308@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CALgTWSvEg3EfjSJqAp5nRuxRceBpg92=x3FPFEW9PThBmizQEA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:42198 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756426AbdLTW35 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Dec 2017 17:29:57 -0500
+Received: by mail-ot0-f196.google.com with SMTP id i1so20949621oth.9
+        for <linux-acpi@vger.kernel.org>; Wed, 20 Dec 2017 14:29:57 -0800 (PST)
+In-Reply-To: <20171220212408.GA8308@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Dave Hansen <dave.hansen@intel.com>, Michal Hocko <mhocko@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>
 
-T24gV2VkLCBEZWMgMjAsIDIwMTcgYXQgMTA6MjM6MzBQTSArMDEwMCwgT2duamVuIEdhbGnEhyB3
-cm90ZToKPiBPbiAyMC8xMi8yMDE3LCBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+
-IHdyb3RlOgo+ID4gT24gV2VkLCBEZWMgMjAsIDIwMTcgYXQgMDM6MzA6MThQTSArMDEwMCwgT2du
-amVuIEdhbGnEhyB3cm90ZToKPiA+PiBPbiAxOC8xMi8yMDE3LCBSYWZhZWwgSi4gV3lzb2NraSA8
-cmFmYWVsQGtlcm5lbC5vcmc+IHdyb3RlOgo+ID4+ID4gQWxzbywgd2hhdCBpZiBzb21lb25lIGF0
-dGVtcHRzIHRvIGFkZCBhIGhvb2sgd2hlbiB0aGUgQUNQSSBiYXR0ZXJ5Cj4gPgo+ID4+ID4gbW9k
-dWxlIGlzIG5vdCBsb2FkZWQ/ICBXaWxsIHRoYXQgc3RpbGwgd29yaz8KPiA+Pgo+ID4+IFRoZSBt
-b2R1bGUgdGhhdCByZXF1ZXN0cyB0aGUgaG9va3Mgd2lsbCBmYWlsIHRvIGxvYWQgd2l0aCB0aGUg
-Zm9sbG93aW5nCj4gPj4KPiA+PiA+IFsgIDE0OS4yNTkxMjddIHRoaW5rcGFkX2FjcGk6IFVua25v
-d24gc3ltYm9sIGJhdHRlcnlfaG9va19yZWdpc3RlciAoZXJyCj4gPj4gPiAwKQo+ID4+ID4gWyAg
-MTQ5LjI1OTE1OF0gdGhpbmtwYWRfYWNwaTogVW5rbm93biBzeW1ib2wgYmF0dGVyeV9ob29rX3Vu
-cmVnaXN0ZXIKPiA+PiA+IChlcnIgMCkKPiA+Cj4gPiBXaWxsIGEgc3luY2hyb25vdXMgcmVxdWVz
-dF9tb2R1bGUoKSBhZGRyZXNzIHRoaXMgY29uY2Vybj8KPiA+Cj4gCj4gSSBkb24ndCBrbm93LCB0
-aGF0IGNoZWNrIHNlZW1zIGxpa2UgYSBwcmUtbG9hZCBjaGVjay4gTGlrZSBtZXRhZGF0YQo+IGNo
-ZWNraW5nIGFib3V0Cj4gdGhlIG1vZHVsZS4gbW9kcHJvYmUgaGFuZGxlcyB0aGUgbW9kdWxlIGxv
-YWRpbmcganVzdCBmaW5lLgoKUmVhZCB0byBxdWljayB0cnlpbmcgdG8gY2F0Y2ggdXAgYW5kIG1p
-c3VuZGVyc3Rvb2QgdGhlIHByb2JsZW0uIFBsZWFzZQpkaXNyZWdhcmQuCgotLSAKRGFycmVuIEhh
-cnQKVk13YXJlIE9wZW4gU291cmNlIFRlY2hub2xvZ3kgQ2VudGVyCgotLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KQ2hlY2sgb3V0IHRoZSB2aWJyYW50IHRlY2ggY29tbXVuaXR5IG9uIG9uZSBvZiB0aGUg
-d29ybGQncyBtb3N0CmVuZ2FnaW5nIHRlY2ggc2l0ZXMsIFNsYXNoZG90Lm9yZyEgaHR0cDovL3Nk
-bS5saW5rL3NsYXNoZG90Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmlibS1hY3BpLWRldmVsIG1haWxpbmcgbGlzdAppYm0tYWNwaS1kZXZlbEBsaXN0cy5z
-b3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGlu
-Zm8vaWJtLWFjcGktZGV2ZWwK
+On Wed, Dec 20, 2017 at 1:24 PM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Wed, Dec 20, 2017 at 01:16:49PM -0800, Matthew Wilcox wrote:
+>> On Wed, Dec 20, 2017 at 12:22:21PM -0800, Dave Hansen wrote:
+>> > On 12/20/2017 10:19 AM, Matthew Wilcox wrote:
+>> > > I don't know what the right interface is, but my laptop has a set of
+>> > > /sys/devices/system/memory/memoryN/ directories.  Perhaps this is the
+>> > > right place to expose write_bw (etc).
+>> >
+>> > Those directories are already too redundant and wasteful.  I think we'd
+>> > really rather not add to them.  In addition, it's technically possible
+>> > to have a memory section span NUMA nodes and have different performance
+>> > properties, which make it impossible to represent there.
+>> >
+>> > In any case, ACPI PXM's (Proximity Domains) are guaranteed to have
+>> > uniform performance properties in the HMAT, and we just so happen to
+>> > always create one NUMA node per PXM.  So, NUMA nodes really are a good fit.
+>>
+>> I think you're missing my larger point which is that I don't think this
+>> should be exposed to userspace as an ACPI feature.  Because if you do,
+>> then it'll also be exposed to userspace as an openfirmware feature.
+>> And sooner or later a devicetree feature.  And then writing a portable
+>> program becomes an exercise in suffering.
+>>
+>> So, what's the right place in sysfs that isn't tied to ACPI?  A new
+>> directory or set of directories under /sys/devices/system/memory/ ?
+>
+> Oh, the current location isn't at all tied to acpi except that it happens to
+> be named 'hmat'.  When it was all named 'hmem' it was just:
+>
+> /sys/devices/system/hmem
+>
+> Which has no ACPI-isms at all.  I'm happy to move it under
+> /sys/devices/system/memory/hmat if that's helpful, but I think we still have
+> the issue that the data represented therein is still pulled right from the
+> HMAT, and I don't know how to abstract it into something more platform
+> agnostic until I know what data is provided by those other platforms.
+>
+> For example, the HMAT provides latency information and bandwidth information
+> for both reads and writes.  Will the devicetree/openfirmware/etc version have
+> this same info, or will it be just different enough that it won't translate
+> into whatever I choose to stick in sysfs?
+
+For the initial implementation do we need to have a representation of
+all the performance data? Given that
+/sys/devices/system/node/nodeX/distance is the only generic
+performance attribute published by the kernel today it is already the
+case that applications that need to target specific memories need to
+go parse information that is not provided by the kernel by default.
+The question is can those specialized applications stay special and go
+parse the platform specific data sources, like raw HMAT, directly, or
+do we expect general purpose applications to make use of this data? I
+think a firmware-id to numa-node translation facility
+(/sys/devices/system/node/nodeX/fwid) is a simple start that we can
+build on with more information as specific use cases arise.
