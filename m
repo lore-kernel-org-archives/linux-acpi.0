@@ -1,103 +1,58 @@
-From: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3 v8] battery: Add the ThinkPad "Not
- Charging" quirk
-Date: Thu, 21 Dec 2017 11:01:20 +0100
-Message-ID: <20171221100120.GA30669@thinkpad>
+From: Michael Ellerman <mpe@ellerman.id.au>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Thu, 21 Dec 2017 23:50:40 +1100
+Message-ID: <87mv2cfdnj.fsf@concordia.ellerman.id.au>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com> <20171214130032.GK16951@dhcp22.suse.cz> <20171218203547.GA2366@linux.intel.com> <20171220181937.GB12236@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20171220181937.GB12236@bombadil.infradead.org>
+Sender: owner-linux-mm@kvack.org
+To: Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>, "Box, David E" <david.e.box@intel.com>, Dave Hansen <dave.hansen@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, linux-nvdimm@lists.01.org, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Anaczkowski,
+ Lukasz" <lukasz.anaczkowski@intel.com>, "Moore,
+ Robert" <robert.moore@intel.com>, linux-acpi@vger.kernel.org, "Odzioba,
+ Lukasz" <lukasz.odzioba@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Len Brown <lenb@kernel.org>, John Hubbard <jhubbard@nvidia.com>, linuxppc-dev@lists.ozlabs.org, Jerome Glisse <jglisse@redhat.com>, Dan Williams <dan.j.williams@intel.com>, devel@acpica.org, "Kogut,
+ Jaroslaw" <Jaroslaw.Kogut@intel.com>, linux-mm@kvack.org, "Koss,
+ Marcin" <marcin.koss@intel.com>, linux-api@vger.kernel.org, Brice Goglin <brice.goglin@gmail.com>, "Nachimuthu,
+ Murugasamy" <murugasam>
 List-Id: linux-acpi@vger.kernel.org
 
-The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-of "Unknown" when the battery is between the charge start and
-charge stop thresholds. On Windows, it reports "Not Charging"
-so the quirk has been added to also report correctly.
+Matthew Wilcox <willy@infradead.org> writes:
 
-Now the "status" attribute returns "Not Charging" when the
-battery on ThinkPads is not physicaly charging.
+> On Mon, Dec 18, 2017 at 01:35:47PM -0700, Ross Zwisler wrote:
+>> What I'm hoping to do with this series is to just provide a sysfs
+>> representation of the HMAT so that applications can know which NUMA nodes to
+>> select with existing utilities like numactl.  This series does not currently
+>> alter any kernel behavior, it only provides a sysfs interface.
+>> 
+>> Say for example you had a system with some high bandwidth memory (HBM), and
+>> you wanted to use it for a specific application.  You could use the sysfs
+>> representation of the HMAT to figure out which memory target held your HBM.
+>> You could do this by looking at the local bandwidth values for the various
+>> memory targets, so:
+>> 
+>> 	# grep . /sys/devices/system/hmat/mem_tgt*/local_init/write_bw_MBps
+>> 	/sys/devices/system/hmat/mem_tgt2/local_init/write_bw_MBps:81920
+>> 	/sys/devices/system/hmat/mem_tgt3/local_init/write_bw_MBps:40960
+>> 	/sys/devices/system/hmat/mem_tgt4/local_init/write_bw_MBps:40960
+>> 	/sys/devices/system/hmat/mem_tgt5/local_init/write_bw_MBps:40960
+>> 
+>> and look for the one that corresponds to your HBM speed. (These numbers are
+>> made up, but you get the idea.)
+>
+> Presumably ACPI-based platforms will not be the only ones who have the
+> ability to expose different bandwidth memories in the future.  I think
+> we need a platform-agnostic way ... right, PowerPC people?
 
-v7:
-* Added all the style changes as suggested by Rafael
-* Re-ordered the series to make this a post-implement
-bugfix
+Yes!
 
-v8:
-* No changes in this patch in v8
+I don't have any detail at hand but will try and rustle something up.
 
-Signed-off-by: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+cheers
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index da56c3a..d07da7f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -72,6 +72,7 @@ static async_cookie_t async_cookie;
- static bool battery_driver_registered;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
-+static int battery_quirk_notcharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -223,6 +224,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery_quirk_notcharging)
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
- 		break;
-@@ -1337,6 +1340,12 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-+{
-+	battery_quirk_notcharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		.callback = battery_bix_broken_package_quirk,
-@@ -1354,6 +1363,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
- 		},
- 	},
-+	{
-+		/*
-+		 * On Lenovo ThinkPads the BIOS specification defines
-+		 * a state when the bits for charging and discharging
-+		 * are both set to 0. That state is "Not Charging".
-+		 */
-+		.callback = battery_quirk_not_charging,
-+		.ident = "Lenovo ThinkPad",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-+		},
-+	},
- 	{},
- };
- 
--- 
-2.7.4
-
-
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
