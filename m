@@ -1,98 +1,130 @@
-From: Ognjen Galic <smclt30p@gmail.com>
-Subject: [PATCH v9 4/4] battery: Add the ThinkPad "Not Charging" quirk
-Date: Thu, 21 Dec 2017 20:55:12 +0100
-Message-ID: <20171221195512.GA17520@thinkpad>
+From: Brice Goglin <brice.goglin@gmail.com>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Thu, 21 Dec 2017 21:31:42 +0100
+Message-ID: <39cbe02a-d309-443d-54c9-678a0799342d@gmail.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+ <20171214130032.GK16951@dhcp22.suse.cz>
+ <20171218203547.GA2366@linux.intel.com>
+ <20171220181937.GB12236@bombadil.infradead.org>
+ <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
+ <20171220211649.GA32200@bombadil.infradead.org>
+ <20171220212408.GA8308@linux.intel.com>
+ <CAPcyv4gTknp=0yQnVrrB5Ui+mJE_x-wdkV86UD4hsYnx3CAjfA@mail.gmail.com>
+ <20171220224105.GA27258@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:45767 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753360AbdLUTzP (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 21 Dec 2017 14:55:15 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20171220224105.GA27258@linux.intel.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>, Dave Hansen <dave.hansen@intel.com>, Michal Hocko <mhocko@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-of "Unknown" when the battery is between the charge start and
-charge stop thresholds. On Windows, it reports "Not Charging"
-so the quirk has been added to also report correctly.
+Le 20/12/2017 à 23:41, Ross Zwisler a écrit :
+> On Wed, Dec 20, 2017 at 02:29:56PM -0800, Dan Williams wrote:
+>> On Wed, Dec 20, 2017 at 1:24 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>>> On Wed, Dec 20, 2017 at 01:16:49PM -0800, Matthew Wilcox wrote:
+>>>> On Wed, Dec 20, 2017 at 12:22:21PM -0800, Dave Hansen wrote:
+>>>>> On 12/20/2017 10:19 AM, Matthew Wilcox wrote:
+>>>>>> I don't know what the right interface is, but my laptop has a set of
+>>>>>> /sys/devices/system/memory/memoryN/ directories.  Perhaps this is the
+>>>>>> right place to expose write_bw (etc).
+>>>>> Those directories are already too redundant and wasteful.  I think we'd
+>>>>> really rather not add to them.  In addition, it's technically possible
+>>>>> to have a memory section span NUMA nodes and have different performance
+>>>>> properties, which make it impossible to represent there.
+>>>>>
+>>>>> In any case, ACPI PXM's (Proximity Domains) are guaranteed to have
+>>>>> uniform performance properties in the HMAT, and we just so happen to
+>>>>> always create one NUMA node per PXM.  So, NUMA nodes really are a good fit.
+>>>> I think you're missing my larger point which is that I don't think this
+>>>> should be exposed to userspace as an ACPI feature.  Because if you do,
+>>>> then it'll also be exposed to userspace as an openfirmware feature.
+>>>> And sooner or later a devicetree feature.  And then writing a portable
+>>>> program becomes an exercise in suffering.
+>>>>
+>>>> So, what's the right place in sysfs that isn't tied to ACPI?  A new
+>>>> directory or set of directories under /sys/devices/system/memory/ ?
+>>> Oh, the current location isn't at all tied to acpi except that it happens to
+>>> be named 'hmat'.  When it was all named 'hmem' it was just:
+>>>
+>>> /sys/devices/system/hmem
+>>>
+>>> Which has no ACPI-isms at all.  I'm happy to move it under
+>>> /sys/devices/system/memory/hmat if that's helpful, but I think we still have
+>>> the issue that the data represented therein is still pulled right from the
+>>> HMAT, and I don't know how to abstract it into something more platform
+>>> agnostic until I know what data is provided by those other platforms.
+>>>
+>>> For example, the HMAT provides latency information and bandwidth information
+>>> for both reads and writes.  Will the devicetree/openfirmware/etc version have
+>>> this same info, or will it be just different enough that it won't translate
+>>> into whatever I choose to stick in sysfs?
+>> For the initial implementation do we need to have a representation of
+>> all the performance data? Given that
+>> /sys/devices/system/node/nodeX/distance is the only generic
+>> performance attribute published by the kernel today it is already the
+>> case that applications that need to target specific memories need to
+>> go parse information that is not provided by the kernel by default.
+>> The question is can those specialized applications stay special and go
+>> parse the platform specific data sources, like raw HMAT, directly, or
+>> do we expect general purpose applications to make use of this data? I
+>> think a firmware-id to numa-node translation facility
+>> (/sys/devices/system/node/nodeX/fwid) is a simple start that we can
+>> build on with more information as specific use cases arise.
+> We don't represent all the performance data, we only represent the data for
+> local initiator/target pairs.  I do think that this is useful to have in sysfs
+> because it provides a way to easily answer the most commonly asked questions
+> (or at least what I'm guessing will be the most commmonly asked queststions),
+> i.e. "given a CPU, what are the speeds of the various types of memory attached
+> to it", and "given a chunk of memory, how fast is it and to which CPU is it
+> local"?  By providing this base level of information I'm hoping to prevent
+> most applications from having to parse the HMAT directly.
+>
+> The question of whether or not to include this local performance information
+> was one of the main questions of the initial RFC patch series, and I did get
+> feedback (albiet off-list) that the local performance information was
+> valuable to at least some users.  I did intentionally structure my (now very
+> short) set so that the performance information was added as a separate patch,
+> so we can get to the place you're talking about where we only provide firmware
+> id <=> proximity domain mappings by just leaving off the last patch in the
+> series.
+>
 
-Now the "status" attribute returns "Not Charging" when the
-battery on ThinkPads is not physicaly charging.
----
+Hello
 
-v7:
-* Added all the style changes as suggested by Rafael
-* Re-ordered the series to make this a post-implement
-bugfix
+I can confirm that HPC runtimes are going to use these patches (at least
+all runtimes that use hwloc for topology discovery, but that's the vast
+majority of HPC anyway).
 
-v8:
-* No changes in this patch in v8
+We really didn't like KNL exposing a hacky SLIT table [1]. We had to
+explicitly detect that specific crazy table to find out which NUMA nodes
+were local to which cores, and to find out which NUMA nodes were
+HBM/MCDRAM or DDR. And then we had to hide the SLIT values to the
+application because the reported latencies didn't match reality. Quite
+annoying.
 
-v9:
-* No changes in this patch in v9
+With Ross' patches, we can easily get what we need:
+* which NUMA nodes are local to which CPUs? /sys/devices/system/node/
+can only report a single local node per CPU (doesn't work for KNL and
+upcoming architectures with HBM+DDR+...)
+* which NUMA nodes are slow/fast (for both bandwidth and latency)
+And we can still look at SLIT under /sys/devices/system/node if really
+needed.
 
-Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
----
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+And of course having this in sysfs is much better than parsing ACPI
+tables that are only accessible to root :)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index da56c3a..d07da7f 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -72,6 +72,7 @@ static async_cookie_t async_cookie;
- static bool battery_driver_registered;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
-+static int battery_quirk_notcharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -223,6 +224,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery_quirk_notcharging)
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
- 		break;
-@@ -1337,6 +1340,12 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-+{
-+	battery_quirk_notcharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		.callback = battery_bix_broken_package_quirk,
-@@ -1354,6 +1363,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
- 		},
- 	},
-+	{
-+		/*
-+		 * On Lenovo ThinkPads the BIOS specification defines
-+		 * a state when the bits for charging and discharging
-+		 * are both set to 0. That state is "Not Charging".
-+		 */
-+		.callback = battery_quirk_not_charging,
-+		.ident = "Lenovo ThinkPad",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-+		},
-+	},
- 	{},
- };
- 
--- 
-2.7.4
+Regards
+Brice
 
+[1] local DDR = 10, remote DDR = 20, local HBM = 31, remote HBM = 41
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
