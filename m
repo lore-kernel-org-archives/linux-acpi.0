@@ -1,95 +1,78 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] ACPI / video: Default lcd_only to true on Win8 ready and newer machines
-Date: Fri, 22 Dec 2017 13:34:37 +0100
-Message-ID: <20171222123437.9421-1-hdegoede@redhat.com>
+From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
+Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Fri, 22 Dec 2017 20:07:31 +0530
+Message-ID: <c3930c61-0fe4-960e-2b55-dbd281dfb148@linux.vnet.ibm.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+ <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
+ <34EF90DF7C7F0647A403B771519912C7F5382CF3@irsmsx111.ger.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50930 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750995AbdLVMek (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 22 Dec 2017 07:34:40 -0500
+Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:46944 "EHLO
+        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752227AbdLVOiC (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Dec 2017 09:38:02 -0500
+Received: from pps.filterd (m0098410.ppops.net [127.0.0.1])
+        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vBMEYeUh098536
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Dec 2017 09:38:01 -0500
+Received: from e06smtp12.uk.ibm.com (e06smtp12.uk.ibm.com [195.75.94.108])
+        by mx0a-001b2d01.pphosted.com with ESMTP id 2f11reys0v-1
+        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Dec 2017 09:38:01 -0500
+Received: from localhost
+        by e06smtp12.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+        for <linux-acpi@vger.kernel.org> from <khandual@linux.vnet.ibm.com>;
+        Fri, 22 Dec 2017 14:37:58 -0000
+In-Reply-To: <34EF90DF7C7F0647A403B771519912C7F5382CF3@irsmsx111.ger.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+To: "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, Anshuman Khandual <khandual@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Brice Goglin <brice.goglin@gmail.com>, "Williams, Dan J" <dan.j.williams@intel.com>, Hansen
 
-We're seeing a lot of bogus backlight interfaces on newer machines without
-a LCD such as desktops, servers and HDMI sticks. This causes userspace to
-show a non-functional brightness slider in e.g. the GNOME3 system menu,
-which is undesirable. More in general we should simply just not register
-a non functional backlight interface.
+On 12/22/2017 04:01 PM, Kogut, Jaroslaw wrote:
+>> ... first thinking about redesigning the NUMA for
+>> heterogeneous memory may not be a good idea. Will look into this further.
+> I agree with comment that first a direction should be defined how to handle heterogeneous memory system.
+> 
+>> https://linuxplumbersconf.org/2017/ocw//system/presentations/4656/original/
+>> Hierarchical_NUMA_Design_Plumbers_2017.pdf
+> I miss in the presentation a user perspective of the new approach, e.g.
+> - How does application developer see/understand the heterogeneous memory system?
 
-Checking the lcd flag causes the bogus acpi_video backlight interfaces to
-go away (on the machines this was tested on).
+>From user perspective
 
-This commit enables the lcd_only option by default on any machines which
-are win8 ready, fixing this.
+- Each memory node (with or without CPU) is a NUMA node with attributes
+- User should detect these NUMA nodes from sysfs (not part of proposal)
+- User allocates/operates/destroys VMA with new sys calls (_mattr based)
 
-This is not entirely without risk of regressions, but video_detect.c
-already prefers native-backlight interfaces over the acpi_video one
-on win8 ready machines, calling acpi_video_unregister_backlight() as soon
-as a native interface shows up. This is done because the acpi backlight
-interface often is broken on win8 ready machines, because win8 does not
-seem to actually use it.
+> - How does app developer use the heterogeneous memory system?
 
-So in practice we already end up not registering the acpi backlight
-interface on (most) win8 ready machines with a LCD panel, thus this commit
-does not change anything for (most) machines with a LCD panel and on
-machines without a LCD panel we actually don't want to register any
-backlight interfaces.
+- Through existing and new system calls
 
-This has been tested on the following machines and fixes a bogus backlight
-interface showing up there:
--Desktop with an Asrock B150M Pro4S/D3 m.b. using i5-6500 builtin gfx
--Intel Compute Stick STK1AW32SC
--Meegopad T08 HDMI stick
+> - What are modification in API/sys interfaces?
 
-Bogus backlight interfaces have also been reported on:
--Desktop with Asus H87I-Plus m.b.
--Desktop with ASRock B75M-ITX m.b.
--Desktop with Gigabyte Z87-D3HP m.b.
--Dell PowerEdge T20 desktop
+- The presentation has possible addition of new system calls with 'u64
+  _mattr' representation for memory attributes which can be used while
+  requesting different kinds of memory from the kernel
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1097436
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133327
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133329
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133646
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpi_video.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+> 
+> In other hand, if we assume that separate memory NUMA node has different memory capabilities/attributes from stand point of particular CPU, it is easy to explain for user how to describe/handle heterogeneous memory. 
+> 
+> Of course, current numa design is not sufficient in kernel in following areas today:
+> - Exposing memory attributes that describe heterogeneous memory system
+> - Interfaces to use the heterogeneous memory system, e.g. more sophisticated policies
+> - Internal mechanism in memory management, e.g. automigration, maybe something else.
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 0972ec0e2eb8..a83239507041 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -80,8 +80,8 @@ MODULE_PARM_DESC(report_key_events,
- static bool device_id_scheme = false;
- module_param(device_id_scheme, bool, 0444);
- 
--static bool only_lcd = false;
--module_param(only_lcd, bool, 0444);
-+static int only_lcd = -1;
-+module_param(only_lcd, int, 0444);
- 
- static int register_count;
- static DEFINE_MUTEX(register_count_mutex);
-@@ -2136,6 +2136,16 @@ int acpi_video_register(void)
- 		goto leave;
- 	}
- 
-+	/*
-+	 * We're seeing a lot of bogus backlight interfaces on newer machines
-+	 * without a LCD such as desktops, servers and HDMI sticks. Checking
-+	 * the lcd flag fixes this, so enable this on any machines which are
-+	 * win8 ready (where we also prefer the native backlight driver, so
-+	 * normally the acpi_video code should not register there anyways).
-+	 */
-+	if (only_lcd == -1)
-+		only_lcd = acpi_osi_is_win8() ? 1 : 0;
-+
- 	dmi_check_system(video_dmi_table);
- 
- 	ret = acpi_bus_register_driver(&acpi_video_bus);
--- 
-2.14.3
+Right, we would need
+
+- Representation of NUMA with attributes
+- APIs/syscalls for accessing the intended memory from user space
+- Memory management policies and algorithms navigating trough all these
+  new attributes in various situations
+
+IMHO, we should not consider sysfs interfaces for heterogeneous memory
+(which will be an ABI going forward and hence cannot be changed easily)
+before we get the NUMA redesign right.
 
