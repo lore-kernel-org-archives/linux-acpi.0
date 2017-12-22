@@ -1,121 +1,95 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V1 0/1] Fix kernel panic caused by device ID duplication
- presented to the IOMMU
-Date: Fri, 22 Dec 2017 12:29:08 +0100
-Message-ID: <15883568-4cf6-b88c-8ee9-cf643c5e96f2@semihalf.com>
-References: <1513696436-31834-1-git-send-email-tomasz.nowicki@caviumnetworks.com>
- <7f7fca76-88f8-6ee7-c402-fe4300c62253@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / video: Default lcd_only to true on Win8 ready and newer machines
+Date: Fri, 22 Dec 2017 13:34:37 +0100
+Message-ID: <20171222123437.9421-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:35110 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdLVL3M (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Dec 2017 06:29:12 -0500
-Received: by mail-wm0-f67.google.com with SMTP id f9so21154874wmh.0
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Dec 2017 03:29:11 -0800 (PST)
-In-Reply-To: <7f7fca76-88f8-6ee7-c402-fe4300c62253@arm.com>
-Content-Language: en-US
+Received: from mx1.redhat.com ([209.132.183.28]:50930 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750995AbdLVMek (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Dec 2017 07:34:40 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Tomasz Nowicki <tomasz.nowicki@caviumnetworks.com>, joro@8bytes.org, will.deacon@arm.com, lorenzo.pieralisi@arm.com, bhelgaas@google.com
-Cc: Jayachandran.Nair@cavium.com, Ganapatrao.Kulkarni@cavium.com, linux-kernel@vger.kernel.org, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, mw@semihalf.com, stable@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-Hi Robin,
+We're seeing a lot of bogus backlight interfaces on newer machines without
+a LCD such as desktops, servers and HDMI sticks. This causes userspace to
+show a non-functional brightness slider in e.g. the GNOME3 system menu,
+which is undesirable. More in general we should simply just not register
+a non functional backlight interface.
 
-On 19.12.2017 17:34, Robin Murphy wrote:
-> Hi Tomasz,
-> 
-> On 19/12/17 15:13, Tomasz Nowicki wrote:
->> Here is my lspci output of ThunderX2 for which I am observing kernel 
->> panic coming from
->> SMMUv3 driver -> arm_smmu_write_strtab_ent() -> BUG_ON(ste_live):
->>
->> # lspci -vt
->> -[0000:00]-+-00.0-[01-1f]--+ [...]
->>                             + [...]
->>                             \-00.0-[1e-1f]----00.0-[1f]----00.0  
->> ASPEED Technology, Inc. ASPEED Graphics Family
->>
->> ASP device -> 1f:00.0 VGA compatible controller: ASPEED Technology, 
->> Inc. ASPEED Graphics Family
->> PCI-Express to PCI/PCI-X Bridge -> 1e:00.0 PCI bridge: ASPEED 
->> Technology, Inc. AST1150 PCI-to-PCI Bridge
->> While setting up ASP device SID in IORT dirver:
->> iort_iommu_configure() -> pci_for_each_dma_alias()
->> we need to walk up and iterate over each device which alias 
->> transaction from
->> downstream devices.
->>
->> AST device (1f:00.0) gets BDF=0x1f00 and corresponding SID=0x1f00 from 
->> IORT.
->> Bridge (1e:00.0) is the first alias. Following PCI Express to 
->> PCI/PCI-X Bridge
->> spec: PCIe-to-PCI/X bridges alias transactions from downstream devices 
->> using
->> the subordinate bus number. For bridge (1e:00.0), the subordinate is 
->> equal
->> to 0x1f. This gives BDF=0x1f00 and SID=1f00 which is the same as 
->> downstream
->> device. So it is possible to have two identical SIDs. The question is 
->> what we
->> should do about such case. Presented patch prevents from registering 
->> the same
->> ID so that SMMUv3 is not complaining later on.
-> 
-> Ooh, subtle :( There is logic in arm_smmu_attach_device() to tolerate
-> grouped devices aliasing to the same ID, but I guess I overlooked the
-> distinction of a device sharing an alias ID with itself. I'm not sure
-> I really like trying to work around this in generic code, since
-> fwspec->ids is essentially opaque data in a driver-specific format - in
-> theory a driver is free to encode a single logical ID into multiple
-> fwspec elements (I think I did that in an early draft of SMMUv2 SMR
-> support), at which point this approach might corrupt things massively.
-> 
-> Does the (untested) diff below suffice?
-> 
-> Robin.
-> 
-> ----->8-----diff --git a/drivers/iommu/arm-smmu-v3.c 
-> b/drivers/iommu/arm-smmu-v3.c
-> index f122071688fd..d8a730d83401 100644
-> --- a/drivers/iommu/arm-smmu-v3.c
-> +++ b/drivers/iommu/arm-smmu-v3.c
-> @@ -1731,7 +1731,7 @@ static __le64 *arm_smmu_get_step_for_sid(struct 
-> arm_smmu_device *smmu, u32 sid)
-> 
->   static void arm_smmu_install_ste_for_dev(struct iommu_fwspec *fwspec)
->   {
-> -    int i;
-> +    int i, j;
->       struct arm_smmu_master_data *master = fwspec->iommu_priv;
->       struct arm_smmu_device *smmu = master->smmu;
-> 
-> @@ -1739,6 +1739,13 @@ static void arm_smmu_install_ste_for_dev(struct 
-> iommu_fwspec *fwspec)
->           u32 sid = fwspec->ids[i];
->           __le64 *step = arm_smmu_get_step_for_sid(smmu, sid);
-> 
-> +        /* Bridged PCI devices may end up with duplicated IDs */
-> +        for (j = 0; j < i; j++)
-> +            if (fwspec->ids[j] == sid)
-> +                break;
-> +        if (j < i)
-> +            continue;
-> +
->           arm_smmu_write_strtab_ent(smmu, sid, step, &master->ste);
->       }
->   }
+Checking the lcd flag causes the bogus acpi_video backlight interfaces to
+go away (on the machines this was tested on).
 
-The patch works for me:
+This commit enables the lcd_only option by default on any machines which
+are win8 ready, fixing this.
 
-Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
+This is not entirely without risk of regressions, but video_detect.c
+already prefers native-backlight interfaces over the acpi_video one
+on win8 ready machines, calling acpi_video_unregister_backlight() as soon
+as a native interface shows up. This is done because the acpi backlight
+interface often is broken on win8 ready machines, because win8 does not
+seem to actually use it.
 
-The bug causes a regression on our platform and would be nice to fix it 
-for 4.15. Since no more comments so far, IMO we can put the fix to 
-SMMUv3 driver. Do you prefer to send patch yourself or would you like me 
-to do it?
+So in practice we already end up not registering the acpi backlight
+interface on (most) win8 ready machines with a LCD panel, thus this commit
+does not change anything for (most) machines with a LCD panel and on
+machines without a LCD panel we actually don't want to register any
+backlight interfaces.
 
-Thanks,
-Tomasz
+This has been tested on the following machines and fixes a bogus backlight
+interface showing up there:
+-Desktop with an Asrock B150M Pro4S/D3 m.b. using i5-6500 builtin gfx
+-Intel Compute Stick STK1AW32SC
+-Meegopad T08 HDMI stick
+
+Bogus backlight interfaces have also been reported on:
+-Desktop with Asus H87I-Plus m.b.
+-Desktop with ASRock B75M-ITX m.b.
+-Desktop with Gigabyte Z87-D3HP m.b.
+-Dell PowerEdge T20 desktop
+
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1097436
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133327
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133329
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133646
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpi_video.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 0972ec0e2eb8..a83239507041 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -80,8 +80,8 @@ MODULE_PARM_DESC(report_key_events,
+ static bool device_id_scheme = false;
+ module_param(device_id_scheme, bool, 0444);
+ 
+-static bool only_lcd = false;
+-module_param(only_lcd, bool, 0444);
++static int only_lcd = -1;
++module_param(only_lcd, int, 0444);
+ 
+ static int register_count;
+ static DEFINE_MUTEX(register_count_mutex);
+@@ -2136,6 +2136,16 @@ int acpi_video_register(void)
+ 		goto leave;
+ 	}
+ 
++	/*
++	 * We're seeing a lot of bogus backlight interfaces on newer machines
++	 * without a LCD such as desktops, servers and HDMI sticks. Checking
++	 * the lcd flag fixes this, so enable this on any machines which are
++	 * win8 ready (where we also prefer the native backlight driver, so
++	 * normally the acpi_video code should not register there anyways).
++	 */
++	if (only_lcd == -1)
++		only_lcd = acpi_osi_is_win8() ? 1 : 0;
++
+ 	dmi_check_system(video_dmi_table);
+ 
+ 	ret = acpi_bus_register_driver(&acpi_video_bus);
+-- 
+2.14.3
+
