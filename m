@@ -1,71 +1,139 @@
-From: Juri Lelli <juri.lelli@redhat.com>
-Subject: [ANNOUNCE] OSPM-summit 2018 - Registrations are open!
-Date: Fri, 22 Dec 2017 09:32:50 +0100
-Message-ID: <20171222083250.GI18612@localhost.localdomain>
+From: "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>
+Subject: RE: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
+Date: Fri, 22 Dec 2017 10:31:05 +0000
+Message-ID: <34EF90DF7C7F0647A403B771519912C7F5382CF3@irsmsx111.ger.corp.intel.com>
+References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+ <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:35389 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751912AbdLVIc5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Dec 2017 03:32:57 -0500
-Received: by mail-wr0-f194.google.com with SMTP id l19so14882196wrc.2
-        for <linux-acpi@vger.kernel.org>; Fri, 22 Dec 2017 00:32:56 -0800 (PST)
-Content-Disposition: inline
+Received: from mga14.intel.com ([192.55.52.115]:3654 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757656AbdLVKbL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 22 Dec 2017 05:31:11 -0500
+In-Reply-To: <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>
+To: Anshuman Khandual <khandual@linux.vnet.ibm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Brice Goglin <brice.goglin@gmail.com>, "Williams, Dan J" <dan.j.williams@intel.com>, Hansen
 
-Power Management and Scheduling in the Linux Kernel II edition
-(OSPM-summit 2018)
+PiAuLi4gZmlyc3QgdGhpbmtpbmcgYWJvdXQgcmVkZXNpZ25pbmcgdGhlIE5VTUEgZm9yDQo+IGhl
+dGVyb2dlbmVvdXMgbWVtb3J5IG1heSBub3QgYmUgYSBnb29kIGlkZWEuIFdpbGwgbG9vayBpbnRv
+IHRoaXMgZnVydGhlci4NCg0KSSBhZ3JlZSB3aXRoIGNvbW1lbnQgdGhhdCBmaXJzdCBhIGRpcmVj
+dGlvbiBzaG91bGQgYmUgZGVmaW5lZCBob3cgdG8gaGFuZGxlIGhldGVyb2dlbmVvdXMgbWVtb3J5
+IHN5c3RlbS4NCg0KPiBodHRwczovL2xpbnV4cGx1bWJlcnNjb25mLm9yZy8yMDE3L29jdy8vc3lz
+dGVtL3ByZXNlbnRhdGlvbnMvNDY1Ni9vcmlnaW5hbC8NCj4gSGllcmFyY2hpY2FsX05VTUFfRGVz
+aWduX1BsdW1iZXJzXzIwMTcucGRmDQoNCkkgbWlzcyBpbiB0aGUgcHJlc2VudGF0aW9uIGEgdXNl
+ciBwZXJzcGVjdGl2ZSBvZiB0aGUgbmV3IGFwcHJvYWNoLCBlLmcuDQotIEhvdyBkb2VzIGFwcGxp
+Y2F0aW9uIGRldmVsb3BlciBzZWUvdW5kZXJzdGFuZCB0aGUgaGV0ZXJvZ2VuZW91cyBtZW1vcnkg
+c3lzdGVtPw0KLSBIb3cgZG9lcyBhcHAgZGV2ZWxvcGVyIHVzZSB0aGUgaGV0ZXJvZ2VuZW91cyBt
+ZW1vcnkgc3lzdGVtPyANCi0gV2hhdCBhcmUgbW9kaWZpY2F0aW9uIGluIEFQSS9zeXMgaW50ZXJm
+YWNlcz8NCg0KSW4gb3RoZXIgaGFuZCwgaWYgd2UgYXNzdW1lIHRoYXQgc2VwYXJhdGUgbWVtb3J5
+IE5VTUEgbm9kZSBoYXMgZGlmZmVyZW50IG1lbW9yeSBjYXBhYmlsaXRpZXMvYXR0cmlidXRlcyBm
+cm9tIHN0YW5kIHBvaW50IG9mIHBhcnRpY3VsYXIgQ1BVLCBpdCBpcyBlYXN5IHRvIGV4cGxhaW4g
+Zm9yIHVzZXIgaG93IHRvIGRlc2NyaWJlL2hhbmRsZSBoZXRlcm9nZW5lb3VzIG1lbW9yeS4gDQoN
+Ck9mIGNvdXJzZSwgY3VycmVudCBudW1hIGRlc2lnbiBpcyBub3Qgc3VmZmljaWVudCBpbiBrZXJu
+ZWwgaW4gZm9sbG93aW5nIGFyZWFzIHRvZGF5Og0KLSBFeHBvc2luZyBtZW1vcnkgYXR0cmlidXRl
+cyB0aGF0IGRlc2NyaWJlIGhldGVyb2dlbmVvdXMgbWVtb3J5IHN5c3RlbQ0KLSBJbnRlcmZhY2Vz
+IHRvIHVzZSB0aGUgaGV0ZXJvZ2VuZW91cyBtZW1vcnkgc3lzdGVtLCBlLmcuIG1vcmUgc29waGlz
+dGljYXRlZCBwb2xpY2llcw0KLSBJbnRlcm5hbCBtZWNoYW5pc20gaW4gbWVtb3J5IG1hbmFnZW1l
+bnQsIGUuZy4gYXV0b21pZ3JhdGlvbiwgbWF5YmUgc29tZXRoaW5nIGVsc2UuDQoNCj4gLS0tLS1P
+cmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5zaHVtYW4gS2hhbmR1YWwgW21haWx0bzpr
+aGFuZHVhbEBsaW51eC52bmV0LmlibS5jb21dDQo+IFNlbnQ6IEZyaWRheSwgRGVjZW1iZXIgMjIs
+IDIwMTcgNDoxMCBBTQ0KPiBUbzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50
+ZWwuY29tPjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZw0KPiBDYzogQW5hY3prb3dza2ks
+IEx1a2FzeiA8bHVrYXN6LmFuYWN6a293c2tpQGludGVsLmNvbT47IEJveCwgRGF2aWQgRQ0KPiA8
+ZGF2aWQuZS5ib3hAaW50ZWwuY29tPjsgS29ndXQsIEphcm9zbGF3IDxKYXJvc2xhdy5Lb2d1dEBp
+bnRlbC5jb20+OyBLb3NzLA0KPiBNYXJjaW4gPG1hcmNpbi5rb3NzQGludGVsLmNvbT47IEtvemll
+aiwgQXJ0dXIgPGFydHVyLmtvemllakBpbnRlbC5jb20+Ow0KPiBMYWh0aW5lbiwgSm9vbmFzIDxq
+b29uYXMubGFodGluZW5AaW50ZWwuY29tPjsgTW9vcmUsIFJvYmVydA0KPiA8cm9iZXJ0Lm1vb3Jl
+QGludGVsLmNvbT47IE5hY2hpbXV0aHUsIE11cnVnYXNhbXkNCj4gPG11cnVnYXNhbXkubmFjaGlt
+dXRodUBpbnRlbC5jb20+OyBPZHppb2JhLCBMdWthc3oNCj4gPGx1a2Fzei5vZHppb2JhQGludGVs
+LmNvbT47IFd5c29ja2ksIFJhZmFlbCBKIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT47DQo+
+IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IFNjaG1hdXNzLCBFcmlrDQo+
+IDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT47IFZlcm1hLCBWaXNoYWwgTCA8dmlzaGFsLmwudmVy
+bWFAaW50ZWwuY29tPjsNCj4gWmhlbmcsIEx2IDxsdi56aGVuZ0BpbnRlbC5jb20+OyBBbmRyZXcg
+TW9ydG9uIDxha3BtQGxpbnV4LQ0KPiBmb3VuZGF0aW9uLm9yZz47IEJhbGJpciBTaW5naCA8YnNp
+bmdoYXJvcmFAZ21haWwuY29tPjsgQnJpY2UgR29nbGluDQo+IDxicmljZS5nb2dsaW5AZ21haWwu
+Y29tPjsgV2lsbGlhbXMsIERhbiBKIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ow0KPiBIYW5z
+ZW4sIERhdmUgPGRhdmUuaGFuc2VuQGludGVsLmNvbT47IEplcm9tZSBHbGlzc2UgPGpnbGlzc2VA
+cmVkaGF0LmNvbT47DQo+IEpvaG4gSHViYmFyZCA8amh1YmJhcmRAbnZpZGlhLmNvbT47IExlbiBC
+cm93biA8bGVuYkBrZXJuZWwub3JnPjsgVGltDQo+IENoZW4gPHRpbS5jLmNoZW5AbGludXguaW50
+ZWwuY29tPjsgZGV2ZWxAYWNwaWNhLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3Jn
+OyBsaW51eC1tbUBrdmFjay5vcmc7IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcNCj4gU3ViamVj
+dDogUmU6IFtQQVRDSCB2MyAwLzNdIGNyZWF0ZSBzeXNmcyByZXByZXNlbnRhdGlvbiBvZiBBQ1BJ
+IEhNQVQNCj4gDQo+IE9uIDEyLzE0LzIwMTcgMDc6NDAgQU0sIFJvc3MgWndpc2xlciB3cm90ZToN
+Cj4gPiA9PT09IFF1aWNrIFN1bW1hcnkgPT09PQ0KPiA+DQo+ID4gUGxhdGZvcm1zIGV4aXN0IHRv
+ZGF5IHdoaWNoIGhhdmUgbXVsdGlwbGUgdHlwZXMgb2YgbWVtb3J5IGF0dGFjaGVkIHRvDQo+ID4g
+YSBzaW5nbGUgQ1BVLiAgVGhlc2UgZGlzcGFyYXRlIG1lbW9yeSByYW5nZXMgaGF2ZSBzb21lIGNo
+YXJhY3RlcmlzdGljcw0KPiA+IGluIGNvbW1vbiwgc3VjaCBhcyBDUFUgY2FjaGUgY29oZXJlbmNl
+LCBidXQgdGhleSBjYW4gaGF2ZSB3aWRlIHJhbmdlcw0KPiA+IG9mIHBlcmZvcm1hbmNlIGJvdGgg
+aW4gdGVybXMgb2YgbGF0ZW5jeSBhbmQgYmFuZHdpZHRoLg0KPiANCj4gUmlnaHQuDQo+IA0KPiA+
+DQo+ID4gRm9yIGV4YW1wbGUsIGNvbnNpZGVyIGEgc3lzdGVtIHRoYXQgY29udGFpbnMgcGVyc2lz
+dGVudCBtZW1vcnksDQo+ID4gc3RhbmRhcmQgRERSIG1lbW9yeSBhbmQgSGlnaCBCYW5kd2lkdGgg
+TWVtb3J5IChIQk0pLCBhbGwgYXR0YWNoZWQgdG8NCj4gdGhlIHNhbWUgQ1BVLg0KPiA+IFRoZXJl
+IGNvdWxkIHBvdGVudGlhbGx5IGJlIGFuIG9yZGVyIG9mIG1hZ25pdHVkZSBvciBtb3JlIGRpZmZl
+cmVuY2UgaW4NCj4gPiBwZXJmb3JtYW5jZSBiZXR3ZWVuIHRoZSBzbG93ZXN0IGFuZCBmYXN0ZXN0
+IG1lbW9yeSBhdHRhY2hlZCB0byB0aGF0IENQVS4NCj4gDQo+IFJpZ2h0Lg0KPiANCj4gPg0KPiA+
+IFdpdGggdGhlIGN1cnJlbnQgTGludXggY29kZSBOVU1BIG5vZGVzIGFyZSBDUFUtY2VudHJpYywg
+c28gYWxsIHRoZQ0KPiA+IG1lbW9yeSBhdHRhY2hlZCB0byBhIGdpdmVuIENQVSB3aWxsIGJlIGx1
+bXBlZCBpbnRvIHRoZSBzYW1lIE5VTUEgbm9kZS4NCj4gPiBUaGlzIG1ha2VzIGl0IHZlcnkgZGlm
+ZmljdWx0IGZvciB1c2Vyc3BhY2UgYXBwbGljYXRpb25zIHRvIHVuZGVyc3RhbmQNCj4gPiB0aGUg
+cGVyZm9ybWFuY2Ugb2YgZGlmZmVyZW50IG1lbW9yeSByYW5nZXMgb24gYSBnaXZlbiBDUFUuDQo+
+IA0KPiBSaWdodCBidXQgdGhhdCBtaWdodCByZXF1aXJlIGZ1bmRhbWVudGFsIGNoYW5nZXMgdG8g
+dGhlIE5VTUENCj4gcmVwcmVzZW50YXRpb24uDQo+IFBsdWdnaW5nIHRob3NlIG1lbW9yeSBhcyBz
+ZXBhcmF0ZSBOVU1BIG5vZGVzLCBpZGVudGlmeSB0aGVtIHRocm91Z2ggc3lzZnMNCj4gYW5kIHRy
+eSBhbGxvY2F0aW5nIGZyb20gaXQgdGhyb3VnaCBtYmluZCgpIHNlZW1zIGxpa2UgYSBzaG9ydCB0
+ZXJtIHNvbHV0aW9uLg0KPiANCj4gVGhvdWdoIGlmIHdlIGRlY2lkZSB0byBnbyBpbiB0aGlzIGRp
+cmVjdGlvbiwgc3lzZnMgaW50ZXJmYWNlIG9yIHNvbWV0aGluZyBzaW1pbGFyDQo+IGlzIHJlcXVp
+cmVkIHRvIGVudW1lcmF0ZSBtZW1vcnkgcHJvcGVydGllcy4NCj4gDQo+ID4NCj4gPiBXZSBzb2x2
+ZSB0aGlzIGlzc3VlIGJ5IHByb3ZpZGluZyB1c2Vyc3BhY2Ugd2l0aCBwZXJmb3JtYW5jZQ0KPiA+
+IGluZm9ybWF0aW9uIG9uIGluZGl2aWR1YWwgbWVtb3J5IHJhbmdlcy4gIFRoaXMgcGVyZm9ybWFu
+Y2UgaW5mb3JtYXRpb24NCj4gPiBpcyBleHBvc2VkIHZpYQ0KPiA+IHN5c2ZzOg0KPiA+DQo+ID4g
+ICAjIGdyZXAgLiBtZW1fdGd0Mi8qIG1lbV90Z3QyL2xvY2FsX2luaXQvKiAyPi9kZXYvbnVsbA0K
+PiA+ICAgbWVtX3RndDIvZmlybXdhcmVfaWQ6MQ0KPiA+ICAgbWVtX3RndDIvaXNfY2FjaGVkOjAN
+Cj4gPiAgIG1lbV90Z3QyL2xvY2FsX2luaXQvcmVhZF9id19NQnBzOjQwOTYwDQo+ID4gICBtZW1f
+dGd0Mi9sb2NhbF9pbml0L3JlYWRfbGF0X25zZWM6NTANCj4gPiAgIG1lbV90Z3QyL2xvY2FsX2lu
+aXQvd3JpdGVfYndfTUJwczo0MDk2MA0KPiA+ICAgbWVtX3RndDIvbG9jYWxfaW5pdC93cml0ZV9s
+YXRfbnNlYzo1MA0KPiANCj4gSSBtaWdodCBoYXZlIG1pc3NlZCBkaXNjdXNzaW9ucyBmcm9tIGVh
+cmxpZXIgdmVyc2lvbnMsIHdoeSB3ZSBoYXZlIHRoaXMga2luZCBvZg0KPiBhICJzb3VyY2UgLS0+
+IHRhcmdldCIgbW9kZWwgPyBXZSB3aWxsIGVubGlzdCBwcm9wZXJ0aWVzIGZvciBhbGwgcG9zc2li
+bGUgInNvdXJjZSAtLQ0KPiA+IHRhcmdldCIgb24gdGhlIHN5c3RlbSA/IFJpZ2h0IG5vdyBpdCBz
+aG93cyBvbmx5IGJhbmR3aWR0aCBhbmQgbGF0ZW5jeQ0KPiBwcm9wZXJ0aWVzLCBjYW4gaXQgYWNj
+b21tb2RhdGUgb3RoZXIgcHJvcGVydGllcyBhcyB3ZWxsIGluIGZ1dHVyZSA/DQo+IA0KPiA+DQo+
+ID4gVGhpcyBhbGxvd3MgYXBwbGljYXRpb25zIHRvIGVhc2lseSBmaW5kIHRoZSBtZW1vcnkgdGhh
+dCB0aGV5IHdhbnQgdG8gdXNlLg0KPiA+IFdlIGV4cGVjdCB0aGF0IHRoZSBleGlzdGluZyBOVU1B
+IEFQSXMgd2lsbCBiZSBlbmhhbmNlZCB0byB1c2UgdGhpcyBuZXcNCj4gPiBpbmZvcm1hdGlvbiBz
+byB0aGF0IGFwcGxpY2F0aW9ucyBjYW4gY29udGludWUgdG8gdXNlIHRoZW0gdG8gc2VsZWN0DQo+
+ID4gdGhlaXIgZGVzaXJlZCBtZW1vcnkuDQo+IA0KPiBJIGhhZCBwcmVzZW50ZWQgYSBwcm9wb3Nh
+bCBmb3IgTlVNQSByZWRlc2lnbiBpbiB0aGUgUGx1bWJlcnMgQ29uZmVyZW5jZSB0aGlzDQo+IHll
+YXIgd2hlcmUgdmFyaW91cyBtZW1vcnkgZGV2aWNlcyB3aXRoIGRpZmZlcmVudCBraW5kIG9mIG1l
+bW9yeSBhdHRyaWJ1dGVzDQo+IGNhbiBiZSByZXByZXNlbnRlZCBpbiB0aGUga2VybmVsIGFuZCBi
+ZSB1c2VkIGV4cGxpY2l0bHkgZnJvbSB0aGUgdXNlciBzcGFjZS4NCj4gSGVyZSBpcyB0aGUgbGlu
+ayB0byB0aGUgcHJvcG9zYWwgaWYgeW91IGZlZWwgaW50ZXJlc3RlZC4gVGhlIHByb3Bvc2FsIGlz
+IHZlcnkNCj4gaW50cnVzaXZlIGFuZCBhbHNvIEkgZG9udCBoYXZlIGEgUkZDIGZvciBpdCB5ZXQg
+Zm9yIGRpc2N1c3Npb24gaGVyZS4NCj4gDQo+IGh0dHBzOi8vbGludXhwbHVtYmVyc2NvbmYub3Jn
+LzIwMTcvb2N3Ly9zeXN0ZW0vcHJlc2VudGF0aW9ucy80NjU2L29yaWdpbmFsLw0KPiBIaWVyYXJj
+aGljYWxfTlVNQV9EZXNpZ25fUGx1bWJlcnNfMjAxNy5wZGYNCj4gDQo+IFByb2JsZW0gaXMsIGRl
+c2lnbmluZyB0aGUgc3lzZnMgaW50ZXJmYWNlIGZvciBtZW1vcnkgYXR0cmlidXRlIGRldGVjdGlv
+biBmcm9tDQo+IHVzZXIgc3BhY2Ugd2l0aG91dCBmaXJzdCB0aGlua2luZyBhYm91dCByZWRlc2ln
+bmluZyB0aGUgTlVNQSBmb3INCj4gaGV0ZXJvZ2VuZW91cyBtZW1vcnkgbWF5IG5vdCBiZSBhIGdv
+b2QgaWRlYS4gV2lsbCBsb29rIGludG8gdGhpcyBmdXJ0aGVyLg0KDQotLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKSW50
+ZWwgVGVjaG5vbG9neSBQb2xhbmQgc3AuIHogby5vLgp1bC4gU2xvd2Fja2llZ28gMTczIHwgODAt
+Mjk4IEdkYW5zayB8IFNhZCBSZWpvbm93eSBHZGFuc2sgUG9sbm9jIHwgVklJIFd5ZHppYWwgR29z
+cG9kYXJjenkgS3Jham93ZWdvIFJlamVzdHJ1IFNhZG93ZWdvIC0gS1JTIDEwMTg4MiB8IE5JUCA5
+NTctMDctNTItMzE2IHwgS2FwaXRhbCB6YWtsYWRvd3kgMjAwLjAwMCBQTE4uCgpUYSB3aWFkb21v
+c2Mgd3JheiB6IHphbGFjem5pa2FtaSBqZXN0IHByemV6bmFjem9uYSBkbGEgb2tyZXNsb25lZ28g
+YWRyZXNhdGEgaSBtb3plIHphd2llcmFjIGluZm9ybWFjamUgcG91Zm5lLiBXIHJhemllIHByenlw
+YWRrb3dlZ28gb3RyenltYW5pYSB0ZWogd2lhZG9tb3NjaSwgcHJvc2lteSBvIHBvd2lhZG9taWVu
+aWUgbmFkYXdjeSBvcmF6IHRyd2FsZSBqZWogdXN1bmllY2llOyBqYWtpZWtvbHdpZWsKcHJ6ZWds
+YWRhbmllIGx1YiByb3pwb3dzemVjaG5pYW5pZSBqZXN0IHphYnJvbmlvbmUuClRoaXMgZS1tYWls
+IGFuZCBhbnkgYXR0YWNobWVudHMgbWF5IGNvbnRhaW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZv
+ciB0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lwaWVudChzKS4gSWYgeW91IGFyZSBu
+b3QgdGhlIGludGVuZGVkIHJlY2lwaWVudCwgcGxlYXNlIGNvbnRhY3QgdGhlIHNlbmRlciBhbmQg
+ZGVsZXRlIGFsbCBjb3BpZXM7IGFueSByZXZpZXcgb3IgZGlzdHJpYnV0aW9uIGJ5Cm90aGVycyBp
+cyBzdHJpY3RseSBwcm9oaWJpdGVkLgo=
 
-April 16-18, 2018
-Scuola Superiore Sant'Anna
-Pisa, Italy
-
-https://marc.info/?l=linux-kernel&m=151075286322645&w=2
-http://retis.sssup.it/ospm-summit/
-
----
-
-REGISTRATIONS ARE NOW OPEN!
-
-Attending the OSPM-summit is free of charge, but registration to the
-event is mandatory. The event can allow a maximum of 50 people, and 15
-speakers already got in (so, be sure to register early!).
-
-To register fill in the registration form available at
-https://goo.gl/forms/QHebUBdSWgFeSrKv2
-
-The list of accepted topics is available at
-https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing
-
-The list is not final yet; changes might be made at any time before the
-event. So, if you didn't submit anything yet, there is still lot of time
-to come to Pisa and talk about what matters to you. :)
-
-Speakers with accepted topics were automatically registered to the
-event.
-
-.:: VENUE
-
-The workshop will take place at ReTiS Lab*, Scuola Superiore
-Sant'Anna, Pisa, Italy. Pisa is a small town, walking distance from
-the city centre to the venue is 20 minutes, walking distance from the
-airport to the city centre is 30 minutes. More details are available
-from the summit web page: http://retis.sssup.it/ospm-summit/#site
-
-* https://goo.gl/maps/2pPXG2v7Lfp
-
-.:: ORGANISERS (in alphabetical order)
-
-Luca Abeni (SSSA)
-Patrick Bellasi (Arm)
-Tommaso Cucinotta (SSSA)
-Dietmar Eggemann (Arm)
-Sudeep Holla (Arm)
-Juri Lelli (Red Hat)
-Lorenzo Pieralisi (Arm)
-Morten Rasmussen (Arm)
-Claudio Scordino (Evidence SRL)
