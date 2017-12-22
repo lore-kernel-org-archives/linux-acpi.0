@@ -1,99 +1,71 @@
-From: Anshuman Khandual <khandual@linux.vnet.ibm.com>
-Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Fri, 22 Dec 2017 08:39:41 +0530
-Message-ID: <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+From: Juri Lelli <juri.lelli@redhat.com>
+Subject: [ANNOUNCE] OSPM-summit 2018 - Registrations are open!
+Date: Fri, 22 Dec 2017 09:32:50 +0100
+Message-ID: <20171222083250.GI18612@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0a-001b2d01.pphosted.com ([148.163.156.1]:51518 "EHLO
-        mx0a-001b2d01.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752766AbdLVDKF (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 21 Dec 2017 22:10:05 -0500
-Received: from pps.filterd (m0098394.ppops.net [127.0.0.1])
-        by mx0a-001b2d01.pphosted.com (8.16.0.21/8.16.0.21) with SMTP id vBM39MBQ078475
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2017 22:10:04 -0500
-Received: from e06smtp10.uk.ibm.com (e06smtp10.uk.ibm.com [195.75.94.106])
-        by mx0a-001b2d01.pphosted.com with ESMTP id 2f0nyd958e-1
-        (version=TLSv1.2 cipher=AES256-SHA bits=256 verify=NOT)
-        for <linux-acpi@vger.kernel.org>; Thu, 21 Dec 2017 22:10:04 -0500
-Received: from localhost
-        by e06smtp10.uk.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
-        for <linux-acpi@vger.kernel.org> from <khandual@linux.vnet.ibm.com>;
-        Fri, 22 Dec 2017 03:10:01 -0000
-In-Reply-To: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:35389 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751912AbdLVIc5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Dec 2017 03:32:57 -0500
+Received: by mail-wr0-f194.google.com with SMTP id l19so14882196wrc.2
+        for <linux-acpi@vger.kernel.org>; Fri, 22 Dec 2017 00:32:56 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org
-Cc: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>, "Box, David E" <david.e.box@intel.com>, "Kogut, Jaroslaw" <Jaroslaw.Kogut@intel.com>, "Koss, Marcin" <marcin.koss@intel.com>, "Koziej, Artur" <artur.koziej@intel.com>, "Lahtinen, Joonas" <joonas.lahtinen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu@intel.com>, "Odzioba, Lukasz" <lukasz.odzioba@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Verma, Vishal L" <vishal.l.verma@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Brice Goglin <brice.goglin@gmail.com>, Dan
+To: linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-rt-users@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Vincent Guittot <vincent.guittot@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Dietmar Eggemann <dietmar.eggemann@arm.com>, Luca Abeni <luca.abeni@santannapisa.it>, Tommaso Cucinotta <tommaso.cucinotta@sssup.it>, Sudeep Holla <sudeep.holla@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Patrick Bellasi <patrick.bellasi@arm.com>, Kevin Hilman <khilman@baylibre.com>, Michael Turquette <mturquette@baylibre.com>, Paolo Valente <paolo.valente@unimore.it>, Claudio Scordino <claudio@evidence.eu.com>, Thomas Gleixner <tglx@linutronix.de>, Steven Rostedt <rostedt@goodmis.org>
 
-On 12/14/2017 07:40 AM, Ross Zwisler wrote:
-> ==== Quick Summary ====
-> 
-> Platforms exist today which have multiple types of memory attached to a
-> single CPU.  These disparate memory ranges have some characteristics in
-> common, such as CPU cache coherence, but they can have wide ranges of
-> performance both in terms of latency and bandwidth.
+Power Management and Scheduling in the Linux Kernel II edition
+(OSPM-summit 2018)
 
-Right.
+April 16-18, 2018
+Scuola Superiore Sant'Anna
+Pisa, Italy
 
-> 
-> For example, consider a system that contains persistent memory, standard
-> DDR memory and High Bandwidth Memory (HBM), all attached to the same CPU.
-> There could potentially be an order of magnitude or more difference in
-> performance between the slowest and fastest memory attached to that CPU.
+https://marc.info/?l=linux-kernel&m=151075286322645&w=2
+http://retis.sssup.it/ospm-summit/
 
-Right.
+---
 
-> 
-> With the current Linux code NUMA nodes are CPU-centric, so all the memory
-> attached to a given CPU will be lumped into the same NUMA node.  This makes
-> it very difficult for userspace applications to understand the performance
-> of different memory ranges on a given CPU.
+REGISTRATIONS ARE NOW OPEN!
 
-Right but that might require fundamental changes to the NUMA representation.
-Plugging those memory as separate NUMA nodes, identify them through sysfs
-and try allocating from it through mbind() seems like a short term solution.
+Attending the OSPM-summit is free of charge, but registration to the
+event is mandatory. The event can allow a maximum of 50 people, and 15
+speakers already got in (so, be sure to register early!).
 
-Though if we decide to go in this direction, sysfs interface or something
-similar is required to enumerate memory properties.
+To register fill in the registration form available at
+https://goo.gl/forms/QHebUBdSWgFeSrKv2
 
-> 
-> We solve this issue by providing userspace with performance information on
-> individual memory ranges.  This performance information is exposed via
-> sysfs:
-> 
->   # grep . mem_tgt2/* mem_tgt2/local_init/* 2>/dev/null
->   mem_tgt2/firmware_id:1
->   mem_tgt2/is_cached:0
->   mem_tgt2/local_init/read_bw_MBps:40960
->   mem_tgt2/local_init/read_lat_nsec:50
->   mem_tgt2/local_init/write_bw_MBps:40960
->   mem_tgt2/local_init/write_lat_nsec:50
+The list of accepted topics is available at
+https://docs.google.com/spreadsheets/d/1ZPfASW6zVOM3xQvOrcaDEf1c-Pxi1XnFukVYHHwGUq4/edit?usp=sharing
 
-I might have missed discussions from earlier versions, why we have this
-kind of a "source --> target" model ? We will enlist properties for all
-possible "source --> target" on the system ? Right now it shows only
-bandwidth and latency properties, can it accommodate other properties
-as well in future ?
+The list is not final yet; changes might be made at any time before the
+event. So, if you didn't submit anything yet, there is still lot of time
+to come to Pisa and talk about what matters to you. :)
 
-> 
-> This allows applications to easily find the memory that they want to use.
-> We expect that the existing NUMA APIs will be enhanced to use this new
-> information so that applications can continue to use them to select their
-> desired memory.
+Speakers with accepted topics were automatically registered to the
+event.
 
-I had presented a proposal for NUMA redesign in the Plumbers Conference this
-year where various memory devices with different kind of memory attributes
-can be represented in the kernel and be used explicitly from the user space.
-Here is the link to the proposal if you feel interested. The proposal is
-very intrusive and also I dont have a RFC for it yet for discussion here.
+.:: VENUE
 
-https://linuxplumbersconf.org/2017/ocw//system/presentations/4656/original/Hierarchical_NUMA_Design_Plumbers_2017.pdf
+The workshop will take place at ReTiS Lab*, Scuola Superiore
+Sant'Anna, Pisa, Italy. Pisa is a small town, walking distance from
+the city centre to the venue is 20 minutes, walking distance from the
+airport to the city centre is 30 minutes. More details are available
+from the summit web page: http://retis.sssup.it/ospm-summit/#site
 
-Problem is, designing the sysfs interface for memory attribute detection
-from user space without first thinking about redesigning the NUMA for
-heterogeneous memory may not be a good idea. Will look into this further.
+* https://goo.gl/maps/2pPXG2v7Lfp
 
+.:: ORGANISERS (in alphabetical order)
+
+Luca Abeni (SSSA)
+Patrick Bellasi (Arm)
+Tommaso Cucinotta (SSSA)
+Dietmar Eggemann (Arm)
+Sudeep Holla (Arm)
+Juri Lelli (Red Hat)
+Lorenzo Pieralisi (Arm)
+Morten Rasmussen (Arm)
+Claudio Scordino (Evidence SRL)
