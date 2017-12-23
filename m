@@ -1,99 +1,69 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2] ACPI / video: Default lcd_only to true on Win8 ready and newer machines
-Date: Sat, 23 Dec 2017 19:41:47 +0100
-Message-ID: <20171223184147.12016-1-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33342 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752791AbdLWSlu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 23 Dec 2017 13:41:50 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 1/3 v7] battery: Add the battery hooking API (fwd)
+Date: Sat, 23 Dec 2017 20:24:41 +0100 (CET)
+Message-ID: <alpine.DEB.2.20.1712232023480.2138@hadrien>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, =?ISO-8859-2?Q?Ognjen_Gali=E6?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?ISO-8859-15?Q?Christoph_B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-We're seeing a lot of bogus backlight interfaces on newer machines without
-a LCD such as desktops, servers and HDMI sticks. This causes userspace to
-show a non-functional brightness slider in e.g. the GNOME3 system menu,
-which is undesirable. More in general we should simply just not register
-a non functional backlight interface.
+Please check on the indentation of line 1534.
 
-Checking the lcd flag causes the bogus acpi_video backlight interfaces to
-go away (on the machines this was tested on).
+julia
 
-This commit enables the lcd_only option by default on any machines which
-are win8 ready, fixing this.
+---------- Forwarded message ----------
+Date: Sat, 23 Dec 2017 20:15:26 +0800
+From: kbuild test robot <fengguang.wu@intel.com>
+To: kbuild@01.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [PATCH 1/3 v7] battery: Add the battery hooking API
 
-This is not entirely without risk of regressions, but video_detect.c
-already prefers native-backlight interfaces over the acpi_video one
-on win8 ready machines, calling acpi_video_unregister_backlight() as soon
-as a native interface shows up. This is done because the acpi backlight
-interface often is broken on win8 ready machines, because win8 does not
-seem to actually use it.
+Hi Ognjen,
 
-So in practice we already end up not registering the acpi backlight
-interface on (most) win8 ready machines with a LCD panel, thus this commit
-does not change anything for (most) machines with a LCD panel and on
-machines without a LCD panel we actually don't want to register any
-backlight interfaces.
+Thank you for the patch! Perhaps something to improve:
 
-This has been tested on the following machines and fixes a bogus backlight
-interface showing up there:
--Desktop with an Asrock B150M Pro4S/D3 m.b. using i5-6500 builtin gfx
--Intel Compute Stick STK1AW32SC
--Meegopad T08 HDMI stick
+[auto build test WARNING on platform-drivers-x86/for-next]
+[also build test WARNING on v4.15-rc4 next-20171222]
+[cannot apply to pm/linux-next]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Bogus backlight interfaces have also been reported on:
--Desktop with Asus H87I-Plus m.b.
--Desktop with ASRock B75M-ITX m.b.
--Desktop with Gigabyte Z87-D3HP m.b.
--Dell PowerEdge T20 desktop
+url:    https://github.com/0day-ci/linux/commits/Ognjen-Galic/battery-Add-the-battery-hooking-API/20171223-144855
+base:   git://git.infradead.org/users/dvhart/linux-platform-drivers-x86.git for-next
+:::::: branch date: 5 hours ago
+:::::: commit date: 5 hours ago
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1097436
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133327
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133329
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133646
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> drivers/acpi/battery.c:1533:2-51: code aligned with following code on line 1534
+--
+>> drivers/acpi/battery.c:707:3-9: preceding lock on line 684
+
+# https://github.com/0day-ci/linux/commit/19380b8e214c2ac505bb3b21bbb73f51ecc716de
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout 19380b8e214c2ac505bb3b21bbb73f51ecc716de
+vim +1533 drivers/acpi/battery.c
+
+^1da177e Linus Torvalds 2005-04-16  1528
+4be44fcd Len Brown      2005-08-05  1529  static void __exit acpi_battery_exit(void)
+^1da177e Linus Torvalds 2005-04-16  1530  {
+5dfa0c73 Chris Wilson   2016-05-19  1531  	async_synchronize_cookie(async_cookie + 1);
+bc39fbcf Hans de Goede  2017-04-19  1532  	if (battery_driver_registered)
+^1da177e Linus Torvalds 2005-04-16 @1533  		acpi_bus_unregister_driver(&acpi_battery_driver);
+19380b8e Ognjen Galic   2017-12-20 @1534  		battery_hook_exit();
+3a670cc7 Lan Tianyu     2014-05-04  1535  #ifdef CONFIG_ACPI_PROCFS_POWER
+bc39fbcf Hans de Goede  2017-04-19  1536  	if (acpi_battery_dir)
+3a670cc7 Lan Tianyu     2014-05-04  1537  		acpi_unlock_battery_dir(acpi_battery_dir);
+3a670cc7 Lan Tianyu     2014-05-04  1538  #endif
+^1da177e Linus Torvalds 2005-04-16  1539  }
+^1da177e Linus Torvalds 2005-04-16  1540
+
+:::::: The code at line 1533 was first introduced by commit
+:::::: 1da177e4c3f41524e886b7f1b8a0c1fc7321cac2 Linux-2.6.12-rc2
+
+:::::: TO: Linus Torvalds <torvalds@ppc970.osdl.org>
+:::::: CC: Linus Torvalds <torvalds@ppc970.osdl.org>
+
 ---
-Changes in v2:
--Simplify: "only_lcd = acpi_osi_is_win8() ? 1 : 0;" to:
- "only_lcd = acpi_osi_is_win8();"
----
- drivers/acpi/acpi_video.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 0972ec0e2eb8..f53ccc680238 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -80,8 +80,8 @@ MODULE_PARM_DESC(report_key_events,
- static bool device_id_scheme = false;
- module_param(device_id_scheme, bool, 0444);
- 
--static bool only_lcd = false;
--module_param(only_lcd, bool, 0444);
-+static int only_lcd = -1;
-+module_param(only_lcd, int, 0444);
- 
- static int register_count;
- static DEFINE_MUTEX(register_count_mutex);
-@@ -2136,6 +2136,16 @@ int acpi_video_register(void)
- 		goto leave;
- 	}
- 
-+	/*
-+	 * We're seeing a lot of bogus backlight interfaces on newer machines
-+	 * without a LCD such as desktops, servers and HDMI sticks. Checking
-+	 * the lcd flag fixes this, so enable this on any machines which are
-+	 * win8 ready (where we also prefer the native backlight driver, so
-+	 * normally the acpi_video code should not register there anyways).
-+	 */
-+	if (only_lcd == -1)
-+		only_lcd = acpi_osi_is_win8();
-+
- 	dmi_check_system(video_dmi_table);
- 
- 	ret = acpi_bus_register_driver(&acpi_video_bus);
--- 
-2.14.3
-
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
