@@ -1,81 +1,99 @@
-From: Ognjen Galic <smclt30p@gmail.com>
-Subject: Re: [PATCH v10 1/4] battery: Add the battery hooking API
-Date: Sat, 23 Dec 2017 13:03:44 +0100
-Message-ID: <20171223120344.GA7372@thinkpad>
-References: <20171223105258.GA4334@thinkpad>
- <CAJZ5v0guiuWi=8zHX3cUZarkcxTT-VY9R3ASaCdEPAfjQPDXkA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2] ACPI / video: Default lcd_only to true on Win8 ready and newer machines
+Date: Sat, 23 Dec 2017 19:41:47 +0100
+Message-ID: <20171223184147.12016-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:42857 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750800AbdLWMDs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Dec 2017 07:03:48 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0guiuWi=8zHX3cUZarkcxTT-VY9R3ASaCdEPAfjQPDXkA@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33342 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752791AbdLWSlu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 23 Dec 2017 13:41:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+To: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
 
-On Sat, Dec 23, 2017 at 12:59:45PM +0100, Rafael J. Wysocki wrote:
-> On Sat, Dec 23, 2017 at 11:52 AM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> > This is a patch that implements a generic hooking API for the
-> > generic ACPI battery driver.
-> >
-> > With this new generic API, drivers can expose platform specific
-> > behaviour via sysfs attributes in /sys/class/power_supply/BATn/
-> > in a generic way.
-> >
-> > A perfect example of the need for this API are Lenovo ThinkPads.
-> >
-> > Lenovo ThinkPads have a ACPI extension that allows the setting of
-> > start and stop charge thresholds in the EC and battery firmware
-> > via ACPI. The thinkpad_acpi module can use this API to expose
-> > sysfs attributes that it controls inside the ACPI battery driver
-> > sysfs tree, under /sys/class/power_supply/BATN/.
-> >
-> > The file drivers/acpi/battery.h has been moved to
-> > include/acpi/battery.h and the includes inside ac.c, sbs.c, and
-> > battery.c have been adjusted to reflect that.
-> >
-> > When drivers hooks into the API, the API calls add_battery() for
-> > each battery in the system that passes it a acpi_battery
-> > struct. Then, the drivers can use device_create_file() to create
-> > new sysfs attributes with that struct and identify the batteries
-> > for per-battery attributes.
-> > ---
-> > v7:
-> > * Implemented mutual exclusion for hooking methods and battery
-> > callbacks
-> > * Fixed a BUG where errors in other modules would occur when the
-> > modules that depend on battery get unloaded
-> >
-> > v8:
-> > * Use list_for_each_safe instead of list_for_each for the module
-> > exit function where deletion of nodes occurs
-> >
-> > v9:
-> > * No changes in this patch in v9
-> >
-> > v10:
-> > * Fix compiler warnings in Intel's 0-day CI
-> 
-> You're sending new revisions too fast for me to review them. :-/
+We're seeing a lot of bogus backlight interfaces on newer machines without
+a LCD such as desktops, servers and HDMI sticks. This causes userspace to
+show a non-functional brightness slider in e.g. the GNOME3 system menu,
+which is undesirable. More in general we should simply just not register
+a non functional backlight interface.
 
-I'm sorry for the flooding, but it's really just small changes here and
-there, mainly syntax and style changes and some compiler warnings on 
-Intel's 0-day CI. Nothing major.
+Checking the lcd flag causes the bogus acpi_video backlight interfaces to
+go away (on the machines this was tested on).
 
-> 
-> Please stop doing this for a while until you get a response from me for the v10.
+This commit enables the lcd_only option by default on any machines which
+are win8 ready, fixing this.
 
-There are no major issues with v10 that I can see, so I will wait for
-your review.
+This is not entirely without risk of regressions, but video_detect.c
+already prefers native-backlight interfaces over the acpi_video one
+on win8 ready machines, calling acpi_video_unregister_backlight() as soon
+as a native interface shows up. This is done because the acpi backlight
+interface often is broken on win8 ready machines, because win8 does not
+seem to actually use it.
 
-> 
-> Thanks,
+So in practice we already end up not registering the acpi backlight
+interface on (most) win8 ready machines with a LCD panel, thus this commit
+does not change anything for (most) machines with a LCD panel and on
+machines without a LCD panel we actually don't want to register any
+backlight interfaces.
 
-Thank YOU for your time!
+This has been tested on the following machines and fixes a bogus backlight
+interface showing up there:
+-Desktop with an Asrock B150M Pro4S/D3 m.b. using i5-6500 builtin gfx
+-Intel Compute Stick STK1AW32SC
+-Meegopad T08 HDMI stick
 
-> Rafael
+Bogus backlight interfaces have also been reported on:
+-Desktop with Asus H87I-Plus m.b.
+-Desktop with ASRock B75M-ITX m.b.
+-Desktop with Gigabyte Z87-D3HP m.b.
+-Dell PowerEdge T20 desktop
+
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1097436
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133327
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133329
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133646
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Changes in v2:
+-Simplify: "only_lcd = acpi_osi_is_win8() ? 1 : 0;" to:
+ "only_lcd = acpi_osi_is_win8();"
+---
+ drivers/acpi/acpi_video.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index 0972ec0e2eb8..f53ccc680238 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -80,8 +80,8 @@ MODULE_PARM_DESC(report_key_events,
+ static bool device_id_scheme = false;
+ module_param(device_id_scheme, bool, 0444);
+ 
+-static bool only_lcd = false;
+-module_param(only_lcd, bool, 0444);
++static int only_lcd = -1;
++module_param(only_lcd, int, 0444);
+ 
+ static int register_count;
+ static DEFINE_MUTEX(register_count_mutex);
+@@ -2136,6 +2136,16 @@ int acpi_video_register(void)
+ 		goto leave;
+ 	}
+ 
++	/*
++	 * We're seeing a lot of bogus backlight interfaces on newer machines
++	 * without a LCD such as desktops, servers and HDMI sticks. Checking
++	 * the lcd flag fixes this, so enable this on any machines which are
++	 * win8 ready (where we also prefer the native backlight driver, so
++	 * normally the acpi_video code should not register there anyways).
++	 */
++	if (only_lcd == -1)
++		only_lcd = acpi_osi_is_win8();
++
+ 	dmi_check_system(video_dmi_table);
+ 
+ 	ret = acpi_bus_register_driver(&acpi_video_bus);
+-- 
+2.14.3
+
