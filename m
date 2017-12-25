@@ -1,97 +1,127 @@
-From: "Liubo(OS Lab)" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Mon, 25 Dec 2017 10:05:01 +0800
-Message-ID: <794c531c-eb96-b6ef-97a1-64c81779dc72@huawei.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <2d6420f7-0a95-adfe-7390-a2aea4385ab2@linux.vnet.ibm.com>
- <20171222223154.GC25711@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20171222223154.GC25711-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Anshuman Khandual <khandual-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
- Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
- Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Odzioba,
- Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut,
- Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, "Koss,
- Marcin" <marcin.koss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Brice Goglin <brice.goglin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimuthu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Koziej,
- Artur" <artur.koziej-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Lahtinen,
- Joonas" <joonas.lahtinen-ral2JQCrhuE@public.gmane.org>
+From: Marc CAPDEVILLE <m.capdeville@no-log.org>
+Subject: [PATCH v6 1/4] i2c-core-acpi : Add i2c_acpi_set_connection
+Date: Mon, 25 Dec 2017 16:57:20 +0100
+Message-ID: <20171225155723.6338-1-m.capdeville@no-log.org>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Kevin Tsai <ktsai@capellamicro.com>
+Cc: Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Marc CAPDEVILLE <m.capdeville@no-log.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjAxNy8xMi8yMyA2OjMxLCBSb3NzIFp3aXNsZXIgd3JvdGU6Cj4gT24gRnJpLCBEZWMgMjIs
-IDIwMTcgYXQgMDg6Mzk6NDFBTSArMDUzMCwgQW5zaHVtYW4gS2hhbmR1YWwgd3JvdGU6Cj4+IE9u
-IDEyLzE0LzIwMTcgMDc6NDAgQU0sIFJvc3MgWndpc2xlciB3cm90ZToKPiA8Pgo+Pj4gV2Ugc29s
-dmUgdGhpcyBpc3N1ZSBieSBwcm92aWRpbmcgdXNlcnNwYWNlIHdpdGggcGVyZm9ybWFuY2UgaW5m
-b3JtYXRpb24gb24KPj4+IGluZGl2aWR1YWwgbWVtb3J5IHJhbmdlcy4gIFRoaXMgcGVyZm9ybWFu
-Y2UgaW5mb3JtYXRpb24gaXMgZXhwb3NlZCB2aWEKPj4+IHN5c2ZzOgo+Pj4KPj4+ICAgIyBncmVw
-IC4gbWVtX3RndDIvKiBtZW1fdGd0Mi9sb2NhbF9pbml0LyogMj4vZGV2L251bGwKPj4+ICAgbWVt
-X3RndDIvZmlybXdhcmVfaWQ6MQo+Pj4gICBtZW1fdGd0Mi9pc19jYWNoZWQ6MAo+Pj4gICBtZW1f
-dGd0Mi9sb2NhbF9pbml0L3JlYWRfYndfTUJwczo0MDk2MAo+Pj4gICBtZW1fdGd0Mi9sb2NhbF9p
-bml0L3JlYWRfbGF0X25zZWM6NTAKPj4+ICAgbWVtX3RndDIvbG9jYWxfaW5pdC93cml0ZV9id19N
-QnBzOjQwOTYwCj4+PiAgIG1lbV90Z3QyL2xvY2FsX2luaXQvd3JpdGVfbGF0X25zZWM6NTAKPiA8
-Pgo+PiBXZSB3aWxsIGVubGlzdCBwcm9wZXJ0aWVzIGZvciBhbGwgcG9zc2libGUgInNvdXJjZSAt
-LT4gdGFyZ2V0IiBvbiB0aGUgc3lzdGVtPwo+IAo+IE5vcGUsIGp1c3QgJ2xvY2FsJyBpbml0aWF0
-b3IvdGFyZ2V0IHBhaXJzLiAgSSB0YWxrIGFib3V0IHRoZSByZWFzb25pbmcgZm9yCj4gdGhpcyBp
-biB0aGUgY292ZXIgbGV0dGVyIGZvciBwYXRjaCAzOgo+IAo+IGh0dHBzOi8vbGlzdHMuMDEub3Jn
-L3BpcGVybWFpbC9saW51eC1udmRpbW0vMjAxNy1EZWNlbWJlci8wMTM1NzQuaHRtbAo+IAo+PiBS
-aWdodCBub3cgaXQgc2hvd3Mgb25seSBiYW5kd2lkdGggYW5kIGxhdGVuY3kgcHJvcGVydGllcywg
-Y2FuIGl0IGFjY29tbW9kYXRlCj4+IG90aGVyIHByb3BlcnRpZXMgYXMgd2VsbCBpbiBmdXR1cmUg
-Pwo+IAo+IFdlIGFsc28gaGF2ZSBhbiAnaXNfY2FjaGVkJyBhdHRyaWJ1dGUgZm9yIHRoZSBtZW1v
-cnkgdGFyZ2V0cyBpZiB0aGV5IGFyZQo+IGludm9sdmVkIGluIGEgY2FjaGluZyBoaWVyYXJjaHks
-IGJ1dCByaWdodCBub3cgdGhvc2UgYXJlIGFsbCB0aGUgdGhpbmdzIHdlCj4gZXhwb3NlLiAgV2Ug
-Y2FuIHBvdGVudGlhbGx5IGV4cG9zZSB3aGF0ZXZlciB3ZSB3YW50IHRoYXQgaXMgcHJlc2VudCBp
-biB0aGUKPiBITUFULCBidXQgdGhvc2Ugc2VlbWVkIGxpa2UgYSBnb29kIHN0YXJ0Lgo+IAo+IEkg
-bm90aWNlZCB0aGF0IGluIHlvdXIgcHJlc2VudGF0aW9uIHlvdSBoYWQgc29tZSBvdGhlciBleGFt
-cGxlcyBvZiBhdHRyaWJ1dGVzCj4geW91IGNhcmVkIGFib3V0Ogo+IAo+ICAqIHJlbGlhYmlsaXR5
-Cj4gICogcG93ZXIgY29uc3VtcHRpb24KPiAgKiBkZW5zaXR5Cj4gCj4gVGhlIEhNQVQgZG9lc24n
-dCBwcm92aWRlIHRoaXMgc29ydCBvZiBpbmZvcm1hdGlvbiBhdCBwcmVzZW50LCBidXQgd2UKPiBj
-b3VsZC93b3VsZCBhZGQgdGhlbSB0byBzeXNmcyBpZiB0aGUgSE1BVCBldmVyIGdyZXcgc3VwcG9y
-dCBmb3IgdGhlbS4KPiAKPj4+IFRoaXMgYWxsb3dzIGFwcGxpY2F0aW9ucyB0byBlYXNpbHkgZmlu
-ZCB0aGUgbWVtb3J5IHRoYXQgdGhleSB3YW50IHRvIHVzZS4KPj4+IFdlIGV4cGVjdCB0aGF0IHRo
-ZSBleGlzdGluZyBOVU1BIEFQSXMgd2lsbCBiZSBlbmhhbmNlZCB0byB1c2UgdGhpcyBuZXcKPj4+
-IGluZm9ybWF0aW9uIHNvIHRoYXQgYXBwbGljYXRpb25zIGNhbiBjb250aW51ZSB0byB1c2UgdGhl
-bSB0byBzZWxlY3QgdGhlaXIKPj4+IGRlc2lyZWQgbWVtb3J5Lgo+Pgo+PiBJIGhhZCBwcmVzZW50
-ZWQgYSBwcm9wb3NhbCBmb3IgTlVNQSByZWRlc2lnbiBpbiB0aGUgUGx1bWJlcnMgQ29uZmVyZW5j
-ZSB0aGlzCj4+IHllYXIgd2hlcmUgdmFyaW91cyBtZW1vcnkgZGV2aWNlcyB3aXRoIGRpZmZlcmVu
-dCBraW5kIG9mIG1lbW9yeSBhdHRyaWJ1dGVzCj4+IGNhbiBiZSByZXByZXNlbnRlZCBpbiB0aGUg
-a2VybmVsIGFuZCBiZSB1c2VkIGV4cGxpY2l0bHkgZnJvbSB0aGUgdXNlciBzcGFjZS4KPj4gSGVy
-ZSBpcyB0aGUgbGluayB0byB0aGUgcHJvcG9zYWwgaWYgeW91IGZlZWwgaW50ZXJlc3RlZC4gVGhl
-IHByb3Bvc2FsIGlzCj4+IHZlcnkgaW50cnVzaXZlIGFuZCBhbHNvIEkgZG9udCBoYXZlIGEgUkZD
-IGZvciBpdCB5ZXQgZm9yIGRpc2N1c3Npb24gaGVyZS4KPj4KPj4gaHR0cHM6Ly9saW51eHBsdW1i
-ZXJzY29uZi5vcmcvMjAxNy9vY3cvL3N5c3RlbS9wcmVzZW50YXRpb25zLzQ2NTYvb3JpZ2luYWwv
-SGllcmFyY2hpY2FsX05VTUFfRGVzaWduX1BsdW1iZXJzXzIwMTcucGRmCj4+Cj4+IFByb2JsZW0g
-aXMsIGRlc2lnbmluZyB0aGUgc3lzZnMgaW50ZXJmYWNlIGZvciBtZW1vcnkgYXR0cmlidXRlIGRl
-dGVjdGlvbgo+PiBmcm9tIHVzZXIgc3BhY2Ugd2l0aG91dCBmaXJzdCB0aGlua2luZyBhYm91dCBy
-ZWRlc2lnbmluZyB0aGUgTlVNQSBmb3IKPj4gaGV0ZXJvZ2VuZW91cyBtZW1vcnkgbWF5IG5vdCBi
-ZSBhIGdvb2QgaWRlYS4gV2lsbCBsb29rIGludG8gdGhpcyBmdXJ0aGVyLgo+IAo+IEkgdG9vayBh
-bm90aGVyIGxvb2sgYXQgeW91ciBwcmVzZW50YXRpb24sIGFuZCBvdmVyYWxsIEkgdGhpbmsgdGhh
-dCBpZi93aGVuIGEKPiBOVU1BIHJlZGVzaWduIGxpa2UgdGhpcyB0YWtlcyBwbGFjZSBBQ1BJIHN5
-c3RlbXMgd2l0aCBITUFUIHRhYmxlcyB3aWxsIGJlIGFibGUKPiB0byBwYXJ0aWNpcGF0ZS4gIEJ1
-dCBJIHRoaW5rIHdlIGFyZSBwcm9iYWJseSBhIHdheXMgYXdheSBmcm9tIHRoYXQsIGFuZCBsaWtl
-IEkKCkknbSBhZnJhaWQgbm90LCB0aGVyZSBhcmUgY2FjaGUtY29oZXJlbnQgYnVzIGxpa2UgQ0NJ
-WC9PcGVuQ0FQSSBjb21lIG91dCBzb29uLgpObyBtYXR0ZXIgdG8gc2F5IFN5c3RlbS1vbi1DaGlw
-IGFscmVhZHkgd2l0aCBpbnRlcm5hbCBidXMgbGlua2VkIEREUuOAgUhCTeOAgUNQVeOAgUFjY2Vs
-ZXJhdG9yLi4KCj4gc2FpZCBpbiBteSBwcmV2aW91cyBtYWlsIEFDUEkgc3lzdGVtcyB3aXRoIG1l
-bW9yeS1vbmx5IE5VTUEgbm9kZXMgYXJlIGdvaW5nIHRvCj4gZXhpc3QgYW5kIG5lZWQgdG8gYmUg
-c3VwcG9ydGVkIHdpdGggdGhlIGN1cnJlbnQgTlVNQSBzY2hlbWUuICBIZW5jZSBJIGRvbid0CgpB
-bmQgbm90IG9ubHkgbWVtb3J5LW9ubHksIGJ1dCB0aGUgYWNjZWxlcmF0b3JzIGNhbiBhbHNvIGJl
-IGEgbWFzdGVyIGxpa2UgQ1BVLgoKPiB0aGluayB0aGF0IHRoaXMgcGF0Y2ggc2VyaWVzIGNvbmZs
-aWN0cyB3aXRoIHlvdXIgcHJvcG9zYWwuCgpEaWRuJ3Qgc2VlIGNvbmZsaWN0IG5laXRoZXIsIGJ1
-dCBwZXJoYXBzIHdlIHNob3VsZCB0aGluayBmb3IgYSBsb25nZXItdGVybSBzb2x1dGlvbiBhbmQg
-Y292ZXIgbW9yZQpzaXR1YXRpb25zL3BsYXRmb3Jtcy4KQW5zaHVtYW4ncyBwcm9wb3NhbCBpcyBy
-ZWFsbHkgYSBnb29kIHN0YXJ0IHBvaW50IHRvIHVzLgoKQ2hlZXJzLApCb2IgTGl1CgoKX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTGludXgtbnZkaW1tIG1h
-aWxpbmcgbGlzdApMaW51eC1udmRpbW1AbGlzdHMuMDEub3JnCmh0dHBzOi8vbGlzdHMuMDEub3Jn
-L21haWxtYW4vbGlzdGluZm8vbGludXgtbnZkaW1tCg==
+Add a methode to allow clients to change their connection address on
+same adapter.
+
+On ACPI enumerated device, when a device support smbus alert protocol,
+there are two acpi serial bus connection description. The order in which
+connection is given is not well defined and devices may be enumerated
+with the wrong address (the first one). So let the driver detect the
+unsupported address and request i2c acpi core to choose the second one
+at probing time.
+
+Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
+---
+ drivers/i2c/i2c-core-acpi.c | 50 +++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/i2c.h         | 10 +++++++++
+ 2 files changed, 60 insertions(+)
+
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index a9126b3cda61..47bc0da12055 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -421,6 +421,56 @@ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
+ }
+ EXPORT_SYMBOL_GPL(i2c_acpi_new_device);
+ 
++int i2c_acpi_set_connection(struct i2c_client *client, int index)
++{
++	struct i2c_acpi_lookup lookup;
++	struct i2c_adapter *adapter;
++	struct acpi_device *adev;
++	struct i2c_board_info info;
++	LIST_HEAD(resource_list);
++	int ret;
++
++	if (!client)
++		return -ENODEV;
++
++	adev = ACPI_COMPANION(&client->dev);
++	if (!adev)
++		return -ENODEV;
++
++	memset(&info,  0, sizeof(info));
++	memset(&lookup, 0, sizeof(lookup));
++	lookup.info = &info;
++	lookup.device_handle = acpi_device_handle(adev);
++	lookup.index = index;
++
++	ret = acpi_dev_get_resources(adev, &resource_list,
++				     i2c_acpi_fill_info, &lookup);
++	acpi_dev_free_resource_list(&resource_list);
++
++	adapter = i2c_acpi_find_adapter_by_handle(lookup.adapter_handle);
++
++	if (ret < 0 || !info.addr)
++		return -EINVAL;
++
++	/* Only accept connection on same adapter */
++	if (adapter != client->adapter)
++		return -EINVAL;
++
++	ret = i2c_check_addr_validity(info.addr, info.flags);
++	if (ret) {
++		dev_err(&client->dev, "Invalid %d-bit I2C address 0x%02hx\n",
++			info.flags & I2C_CLIENT_TEN ? 10 : 7, info.addr);
++		return -EINVAL;
++	}
++
++	/* Set new address and flags */
++	client->addr = info.addr;
++	client->flags = info.flags;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(i2c_acpi_set_connection);
++
+ #ifdef CONFIG_ACPI_I2C_OPREGION
+ static int acpi_gsb_i2c_read_bytes(struct i2c_client *client,
+ 		u8 cmd, u8 *data, u8 data_len)
+diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+index 0f774406fad0..618b453901da 100644
+--- a/include/linux/i2c.h
++++ b/include/linux/i2c.h
+@@ -595,6 +595,8 @@ struct i2c_adapter {
+ 	const struct i2c_adapter_quirks *quirks;
+ 
+ 	struct irq_domain *host_notify_domain;
++
++	struct i2c_client *smbus_ara;	/* ARA for SMBUS if present */
+ };
+ #define to_i2c_adapter(d) container_of(d, struct i2c_adapter, dev)
+ 
+@@ -839,16 +841,24 @@ static inline const struct of_device_id
+ u32 i2c_acpi_find_bus_speed(struct device *dev);
+ struct i2c_client *i2c_acpi_new_device(struct device *dev, int index,
+ 				       struct i2c_board_info *info);
++
++int i2c_acpi_set_connection(struct i2c_client *client, int index);
+ #else
+ static inline u32 i2c_acpi_find_bus_speed(struct device *dev)
+ {
+ 	return 0;
+ }
++
+ static inline struct i2c_client *i2c_acpi_new_device(struct device *dev,
+ 					int index, struct i2c_board_info *info)
+ {
+ 	return NULL;
+ }
++
++static inline int i2c_acpi_set_connection(struct i2c_client *client, int index)
++{
++	return -EINVAL;
++}
+ #endif /* CONFIG_ACPI */
+ 
+ #endif /* _LINUX_I2C_H */
+-- 
+2.11.0
