@@ -1,91 +1,32 @@
-From: Brice Goglin <brice.goglin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 0/3] create sysfs representation of ACPI HMAT
-Date: Wed, 27 Dec 2017 10:10:34 +0100
-Message-ID: <71317994-af66-a1b2-4c7a-86a03253cf62@gmail.com>
-References: <20171214021019.13579-1-ross.zwisler@linux.intel.com>
- <20171214130032.GK16951@dhcp22.suse.cz>
- <20171218203547.GA2366@linux.intel.com>
- <20171220181937.GB12236@bombadil.infradead.org>
- <2da89d31-27a3-34ab-2dbb-92403c8215ec@intel.com>
- <20171220211649.GA32200@bombadil.infradead.org>
- <20171220212408.GA8308@linux.intel.com>
- <CAPcyv4gTknp=0yQnVrrB5Ui+mJE_x-wdkV86UD4hsYnx3CAjfA@mail.gmail.com>
- <20171220224105.GA27258@linux.intel.com>
- <39cbe02a-d309-443d-54c9-678a0799342d@gmail.com>
- <CAPcyv4j9shdJFrvADa=qW4L-jPJJ4S_TJc_c=aRoW3EmSCCChQ@mail.gmail.com>
+From: "Sra. Angel Rania" <sra.angelrania83@gmail.com>
+Subject: Re: You will definetely be interested...
+Date: Wed, 27 Dec 2017 10:16:53 +0000
+Message-ID: <CAKx+QTsL6tbExobjfKn2Kvd+VURLikaeJ+JuuxF8mixxBiriEQ__29527.9192775071$1514369772$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4j9shdJFrvADa=qW4L-jPJJ4S_TJc_c=aRoW3EmSCCChQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Box, David E" <david.e.box-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Hansen <dave.hansen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Zheng, Lv" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Anaczkowski,
- Lukasz" <lukasz.anaczkowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Moore,
- Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Odzioba,
- Lukasz" <lukasz.odzioba-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, John Hubbard <jhubbard-DDmLM1+adcrQT0dZR+AlfA@public.gmane.org>, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Jerome Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, "Kogut,
- Jaroslaw" <Jaroslaw.Kogut-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux MM <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "Koss,
- Marcin" <marcin.koss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux API <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Nachimuthu, Murugasamy" <murugasamy.nachimut>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:36902 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751864AbdL0KQ4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Dec 2017 05:16:56 -0500
+Received: by mail-qt0-f193.google.com with SMTP id f2so47405287qtj.4
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Dec 2017 02:16:56 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-TGUgMjIvMTIvMjAxNyDDoCAyMzo1MywgRGFuIFdpbGxpYW1zIGEgw6ljcml0wqA6Cj4gT24gVGh1
-LCBEZWMgMjEsIDIwMTcgYXQgMTI6MzEgUE0sIEJyaWNlIEdvZ2xpbiA8YnJpY2UuZ29nbGluQGdt
-YWlsLmNvbT4gd3JvdGU6Cj4+IExlIDIwLzEyLzIwMTcgw6AgMjM6NDEsIFJvc3MgWndpc2xlciBh
-IMOpY3JpdCA6Cj4gWy4uXQo+PiBIZWxsbwo+Pgo+PiBJIGNhbiBjb25maXJtIHRoYXQgSFBDIHJ1
-bnRpbWVzIGFyZSBnb2luZyB0byB1c2UgdGhlc2UgcGF0Y2hlcyAoYXQgbGVhc3QKPj4gYWxsIHJ1
-bnRpbWVzIHRoYXQgdXNlIGh3bG9jIGZvciB0b3BvbG9neSBkaXNjb3ZlcnksIGJ1dCB0aGF0J3Mg
-dGhlIHZhc3QKPj4gbWFqb3JpdHkgb2YgSFBDIGFueXdheSkuCj4+Cj4+IFdlIHJlYWxseSBkaWRu
-J3QgbGlrZSBLTkwgZXhwb3NpbmcgYSBoYWNreSBTTElUIHRhYmxlIFsxXS4gV2UgaGFkIHRvCj4+
-IGV4cGxpY2l0bHkgZGV0ZWN0IHRoYXQgc3BlY2lmaWMgY3JhenkgdGFibGUgdG8gZmluZCBvdXQg
-d2hpY2ggTlVNQSBub2Rlcwo+PiB3ZXJlIGxvY2FsIHRvIHdoaWNoIGNvcmVzLCBhbmQgdG8gZmlu
-ZCBvdXQgd2hpY2ggTlVNQSBub2RlcyB3ZXJlCj4+IEhCTS9NQ0RSQU0gb3IgRERSLiBBbmQgdGhl
-biB3ZSBoYWQgdG8gaGlkZSB0aGUgU0xJVCB2YWx1ZXMgdG8gdGhlCj4+IGFwcGxpY2F0aW9uIGJl
-Y2F1c2UgdGhlIHJlcG9ydGVkIGxhdGVuY2llcyBkaWRuJ3QgbWF0Y2ggcmVhbGl0eS4gUXVpdGUK
-Pj4gYW5ub3lpbmcuCj4+Cj4+IFdpdGggUm9zcycgcGF0Y2hlcywgd2UgY2FuIGVhc2lseSBnZXQg
-d2hhdCB3ZSBuZWVkOgo+PiAqIHdoaWNoIE5VTUEgbm9kZXMgYXJlIGxvY2FsIHRvIHdoaWNoIENQ
-VXM/IC9zeXMvZGV2aWNlcy9zeXN0ZW0vbm9kZS8KPj4gY2FuIG9ubHkgcmVwb3J0IGEgc2luZ2xl
-IGxvY2FsIG5vZGUgcGVyIENQVSAoZG9lc24ndCB3b3JrIGZvciBLTkwgYW5kCj4+IHVwY29taW5n
-IGFyY2hpdGVjdHVyZXMgd2l0aCBIQk0rRERSKy4uLikKPj4gKiB3aGljaCBOVU1BIG5vZGVzIGFy
-ZSBzbG93L2Zhc3QgKGZvciBib3RoIGJhbmR3aWR0aCBhbmQgbGF0ZW5jeSkKPj4gQW5kIHdlIGNh
-biBzdGlsbCBsb29rIGF0IFNMSVQgdW5kZXIgL3N5cy9kZXZpY2VzL3N5c3RlbS9ub2RlIGlmIHJl
-YWxseQo+PiBuZWVkZWQuCj4+Cj4+IEFuZCBvZiBjb3Vyc2UgaGF2aW5nIHRoaXMgaW4gc3lzZnMg
-aXMgbXVjaCBiZXR0ZXIgdGhhbiBwYXJzaW5nIEFDUEkKPj4gdGFibGVzIHRoYXQgYXJlIG9ubHkg
-YWNjZXNzaWJsZSB0byByb290IDopCj4gT24gdGhpcyBwb2ludCwgaXQncyBub3QgY2xlYXIgdG8g
-bWUgdGhhdCB3ZSBzaG91bGQgYWxsb3cgdGhlc2Ugc3lzZnMKPiBlbnRyaWVzIHRvIGJlIHdvcmxk
-IHJlYWRhYmxlLiBHaXZlbiAvcHJvYy9pb21lbSBub3cgaGlkZXMgcGh5c2ljYWwKPiBhZGRyZXNz
-IGluZm9ybWF0aW9uIGZyb20gbm9uLXJvb3Qgd2UgYXQgbGVhc3QgbmVlZCB0byBiZSBjYXJlZnVs
-IG5vdAo+IHRvIHVuZG8gdGhhdCB3aXRoIG5ldyBzeXNmcyBITUFUIGF0dHJpYnV0ZXMuIE9uY2Ug
-eW91IG5lZWQgdG8gYmUgcm9vdAo+IGZvciB0aGlzIGluZm8sIGlzIHBhcnNpbmcgYmluYXJ5IEhN
-QVQgdnMgc3lzZnMgYSBibG9ja2VyIGZvciB0aGUgSFBDCj4gdXNlIGNhc2U/CgpJIGRvbid0IHRo
-aW5rIGl0IHdvdWxkIGJlIGEgYmxvY2tlci4KCj4gUGVyaGFwcyB3ZSBjYW4gZW5saXN0IC9wcm9j
-L2lvbWVtIG9yIGEgc2ltaWxhciBlbnVtZXJhdGlvbiBpbnRlcmZhY2UKPiB0byB0ZWxsIHVzZXJz
-cGFjZSB0aGUgTlVNQSBub2RlIGFuZCB3aGV0aGVyIHRoZSBrZXJuZWwgdGhpbmtzIGl0IGhhcwo+
-IGJldHRlciBvciB3b3JzZSBwZXJmb3JtYW5jZSBjaGFyYWN0ZXJpc3RpY3MgcmVsYXRpdmUgdG8g
-YmFzZQo+IHN5c3RlbS1SQU0sIGkuZS4gbmV3IElPUkVTX0RFU0NfKiB2YWx1ZXMuIEknbSB3b3Jy
-aWVkIHRoYXQgaWYgd2Ugc3RhcnQKPiBwdWJsaXNoaW5nIGFic29sdXRlIG51bWJlcnMgaW4gc3lz
-ZnMgdXNlcnNwYWNlIHdpbGwgZGVmYXVsdCB0byBsb29raW5nCj4gZm9yIHNwZWNpZmljIG1hZ2lj
-IG51bWJlcnMgaW4gc3lzZnMgdnMgYXNraW5nIHRoZSBrZXJuZWwgZm9yIG1lbW9yeQo+IHRoYXQg
-aGFzIHBlcmZvcm1hbmNlIGNoYXJhY3RlcmlzdGljcyByZWxhdGl2ZSB0byBiYXNlICJTeXN0ZW0g
-UkFNIi4gSW4KPiBvdGhlciB3b3JkcyB0aGUgYWJzb2x1dGUgcGVyZm9ybWFuY2UgaW5mb3JtYXRp
-b24gdGhhdCB0aGUgSE1BVAo+IHB1Ymxpc2hlcyBpcyB1c2VmdWwgdG8gdGhlIGtlcm5lbCwgYnV0
-IGl0J3Mgbm90IGNsZWFyIHRoYXQgdXNlcnNwYWNlCj4gbmVlZHMgdGhhdCB2cyBhIHJlbGF0aXZl
-IGluZGljYXRvciBmb3IgbWFraW5nIE5VTUEgbm9kZSBwcmVmZXJlbmNlCj4gZGVjaXNpb25zLgoK
-U29tZSBIUEMgdXNlcnMgd2lsbCBiZW5jaG1hcmsgdGhlIG1hY2hpbmUgdG8gZGlzY292ZXJ5IGFj
-dHVhbApwZXJmb3JtYW5jZSBudW1iZXJzIGFueXdheS4KSG93ZXZlciwgbW9zdCB1c2VycyB3b24n
-dCBkbyB0aGlzLiBUaGV5IHdpbGwgd2FudCB0byBrbm93IHJlbGF0aXZlCnBlcmZvcm1hbmNlIG9m
-IGRpZmZlcmVudCBub2Rlcy4gSWYgeW91IG5vcm1hbGl6ZSBITUFUIHZhbHVlcyBieSBkaXZpZGlu
-Zwp0aGVtIHdpdGggc3lzdGVtLVJBTSB2YWx1ZXMsIHRoYXQncyBsaWtlbHkgT0suIElmIHlvdSBq
-dXN0IHNheSAidGhhdApub2RlIGlzIGZhc3RlciB0aGFuIHN5c3RlbSBSQU0iLCBpdCdzIG5vdCBw
-cmVjaXNlIGVub3VnaC4KCkJyaWNlCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRp
-bW0K
+Hi Dear,
+
+Reading your profile has given me courage in search of a reasponsable
+and trust worthy Fellow. The past has treated me so awfully but now I
+am ready to move on despite of my health condition. I will like to
+have a sincere and important discussion with you that will be in your
+favor likewise to you and your environment especially to your close
+family. Endeavor to reply me and I have attached my picture in case
+you long to know who emailed you. I will be waiting to hear from you
+as soon as possble.
+Thanks for paying attention to my mail and will appreciate so much if
+I receive a reply from you for understable details.
+
+Thanks,
+
+Mrs. Rania Hassan
