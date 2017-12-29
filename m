@@ -1,78 +1,312 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v10 2/4] pm: add to_power_supply macro to the API
-Date: Thu, 28 Dec 2017 10:19:32 +0200
-Message-ID: <CAHp75VcpuQz4n_wRJ+f-OKf4VAVVhXzKAC+FD0EE52cs+Zv22Q@mail.gmail.com>
-References: <20171223105316.GA4352@thinkpad>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH v6 3/4] iio : Add cm3218 smbus ara and acpi support
+Date: Fri, 29 Dec 2017 12:53:13 +0000
+Message-ID: <20171229125313.28269179@archlinux>
+References: <20171225155723.6338-1-m.capdeville@no-log.org>
+        <20171225155723.6338-3-m.capdeville@no-log.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20171223105316.GA4352@thinkpad>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Ognjen Galic <smclt30p@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:58378 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750708AbdL2MxT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 29 Dec 2017 07:53:19 -0500
+In-Reply-To: <20171225155723.6338-3-m.capdeville@no-log.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc CAPDEVILLE <m.capdeville@no-log.org>
+Cc: Kevin Tsai <ktsai@capellamicro.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Dec 23, 2017 at 12:53 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> This patch adds the to_power_supply macro to upcast
-> a device to a power_supply struct.
->
-> This is needed because the same piece of code using
-> container_of is used in various other places, so we
-> abstract away such low-level operations via a macro.
+On Mon, 25 Dec 2017 16:57:22 +0100
+Marc CAPDEVILLE <m.capdeville@no-log.org> wrote:
+
+> On asus T100, Capella cm3218 chip is implemented as ambiant light
+
+ambient
+
+> sensor. This chip expose an smbus ARA protocol device on standard
+> address 0x0c. The chip is not functional before all alerts are
+> acknowledged.
+> On asus T100, this device is enumerated on ACPI bus and the description
+> give two I2C connection. The first is the connection to the ARA device
+> and the second gives the real address of the device.
+> 
+> So, on device probe,If the i2c address is the ARA address and the
+
+if
+
+> device is enumerated via acpi, we change address of the device for
+> the one in the second acpi serial bus connection.
+> This free the ara address so we can register with the smbus_alert
+> driver.
+> 
+> If an interrupt resource is given, and a smbus_alert device was
+> found on the adapter, we request a treaded interrupt to
+
+threaded
+
+> call i2c_smbus_alert_event to handle the alert.
+> 
+> In somme case, the treaded interrupt is not schedule before the driver
+
+threaded
+
+> try to initialize chip registers. So if first registers access fail, we
+> call i2c_smbus_alert_event() to acknowledge initial alert, then retry
+> register access.
+> 
+> Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
+
+The main thing that bothers me about this is it is putting a non trivial
+burden on each individual driver.  Perhaps we let it go like this
+for now, and see how common this is.  It would be possible (I think)
+to do it in a fashion invisible to the client drivers, but I appreciate
+that would be more complex than this. The multiple devices sharing a bus
+with individual interrupt lines would need to be handled.
+
+Minor comments inline.
+
+Jonathan
 
 > ---
-
-This is wrong! You have to use *existing* --- line below. Otherwise
-all mail parsers will cut this out including your SoB tag.
-
->
-> v9:
-> * Split the pm changes from the thinkpad_acpi patch
-> into its own patch
->
-> v10:
-> * No changes in this patch in v10
->
-> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
-
-Missed:
-
-Suggested-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-> ---
->  drivers/power/supply/power_supply_core.c | 2 +-
->  include/linux/power_supply.h             | 2 ++
->  2 files changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/power/supply/power_supply_core.c b/drivers/power/supply/power_supply_core.c
-> index 82f998a..feac7b0 100644
-> --- a/drivers/power/supply/power_supply_core.c
-> +++ b/drivers/power/supply/power_supply_core.c
-> @@ -668,7 +668,7 @@ EXPORT_SYMBOL_GPL(power_supply_powers);
->
->  static void power_supply_dev_release(struct device *dev)
->  {
-> -       struct power_supply *psy = container_of(dev, struct power_supply, dev);
-> +       struct power_supply *psy = to_power_supply(dev);
->         dev_dbg(dev, "%s\n", __func__);
->         kfree(psy);
->  }
-> diff --git a/include/linux/power_supply.h b/include/linux/power_supply.h
-> index 79e90b3..f0139b4 100644
-> --- a/include/linux/power_supply.h
-> +++ b/include/linux/power_supply.h
-> @@ -371,6 +371,8 @@ devm_power_supply_register_no_ws(struct device *parent,
->  extern void power_supply_unregister(struct power_supply *psy);
->  extern int power_supply_powers(struct power_supply *psy, struct device *dev);
->
-> +#define to_power_supply(device) container_of(device, struct power_supply, dev)
+>  drivers/iio/light/cm32181.c | 120 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 115 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
+> index aebf7dd071af..96c08755e6e3 100644
+> --- a/drivers/iio/light/cm32181.c
+> +++ b/drivers/iio/light/cm32181.c
+> @@ -18,6 +18,9 @@
+>  #include <linux/iio/sysfs.h>
+>  #include <linux/iio/events.h>
+>  #include <linux/init.h>
+> +#include <linux/i2c-smbus.h>
+> +#include <linux/acpi.h>
+> +#include <linux/of_device.h>
+>  
+>  /* Registers Address */
+>  #define CM32181_REG_ADDR_CMD		0x00
+> @@ -47,6 +50,11 @@
+>  #define CM32181_CALIBSCALE_RESOLUTION	1000
+>  #define MLUX_PER_LUX			1000
+>  
+> +#define CM32181_ID			0x81
+> +#define CM3218_ID			0x18
 > +
->  extern void *power_supply_get_drvdata(struct power_supply *psy);
->  /* For APM emulation, think legacy userspace. */
->  extern struct class *power_supply_class;
+> +#define SMBUS_ARA_ADDR			0x0c
 
-Should fold in the changes you sent as a separate patch.
+This isn't driver specific - to my mind belongs in the smbus header.
 
--- 
-With Best Regards,
-Andy Shevchenko
+> +
+>  static const u8 cm32181_reg[CM32181_CONF_REG_NUM] = {
+>  	CM32181_REG_ADDR_CMD,
+>  };
+> @@ -57,6 +65,7 @@ static const int als_it_value[] = {25000, 50000, 100000, 200000, 400000,
+>  
+>  struct cm32181_chip {
+>  	struct i2c_client *client;
+> +	int chip_id;
+>  	struct mutex lock;
+>  	u16 conf_regs[CM32181_CONF_REG_NUM];
+>  	int calibscale;
+> @@ -77,11 +86,22 @@ static int cm32181_reg_init(struct cm32181_chip *cm32181)
+>  	s32 ret;
+>  
+>  	ret = i2c_smbus_read_word_data(client, CM32181_REG_ADDR_ID);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (ret < 0) {
+> +		if (cm32181->chip_id == CM3218_ID) {
+> +			/*
+> +			 * On cm3218, smbus alert trigger after probing,
+> +			 * so poll for first alert here, then retry.
+
+Is it a level interrupt?  I'd have thought we could leave this out and let
+the interrupt handler pick it up if so.
+The check on the ID is rather paranoid anyway so I wouldn't worry about
+it failing here.
+
+Or are we blocked from finishing configuring the device until this is done?
+
+> +			 */
+> +			i2c_smbus_alert_event(client);
+> +			ret = i2c_smbus_read_word_data(client,
+> +						       CM32181_REG_ADDR_ID);
+> +		} else {
+> +			return ret;
+> +		}
+> +	}
+>  
+>  	/* check device ID */
+> -	if ((ret & 0xFF) != 0x81)
+> +	if ((ret & 0xFF) != cm32181->chip_id)
+>  		return -ENODEV;
+>  
+>  	/* Default Values */
+> @@ -297,12 +317,36 @@ static const struct iio_info cm32181_info = {
+>  	.attrs			= &cm32181_attribute_group,
+>  };
+>  
+> +static void cm3218_alert(struct i2c_client *client,
+> +			 enum i2c_alert_protocol type,
+> +			 unsigned int data)
+> +{
+> +	/*
+> +	 * nothing to do for now.
+> +	 * This is just here to acknownledge the cm3218 alert.
+> +	 */
+> +}
+> +
+> +static irqreturn_t cm32181_irq(int irq, void *d)
+> +{
+> +	struct cm32181_chip *cm32181 = d;
+> +
+> +	if (cm32181->chip_id == CM3218_ID) {
+
+I'd move the check out and only register this handler if the chip supports
+ARA in the first place.  That then makes this handler
+generic to any ARA device. Not sure there is a generic handler available,
+but it would make sense to add one if there isn't in the smbus code.
+
+> +		/* This is cm3218 chip irq, so handle the smbus alert */
+> +		i2c_smbus_alert_event(cm32181->client);
+> +	}
+The 32181 also has interrupt support - just looks like it isn't
+ARA.
+
+I guess support for that can be added here at some later date.
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+>  static int cm32181_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+>  	struct cm32181_chip *cm32181;
+>  	struct iio_dev *indio_dev;
+>  	int ret;
+> +	const struct of_device_id *of_id;
+> +	const struct acpi_device_id *acpi_id;
+>  
+>  	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*cm32181));
+>  	if (!indio_dev) {
+> @@ -322,6 +366,61 @@ static int cm32181_probe(struct i2c_client *client,
+>  	indio_dev->name = id->name;
+>  	indio_dev->modes = INDIO_DIRECT_MODE;
+>  
+> +	/* Lookup for chip ID from platform, acpi or of device table */
+> +	if (id) {
+> +		cm32181->chip_id = id->driver_data;
+> +	} else if (ACPI_COMPANION(&client->dev)) {
+> +		acpi_id = acpi_match_device(client->dev.driver->acpi_match_table,
+> +					    &client->dev);
+> +		if (!acpi_id)
+> +			return -ENODEV;
+> +
+> +		cm32181->chip_id = (kernel_ulong_t)acpi_id->driver_data;
+> +	} else if (client->dev.of_node) {
+> +		of_id = of_match_device(client->dev.driver->of_match_table,
+> +					&client->dev);
+> +		if (!of_id)
+> +			return -ENODEV;
+> +
+> +		cm32181->chip_id = (kernel_ulong_t)of_id->data;
+
+of_device_get_match_data perhaps?
+
+I thought something similar had been proposed for acpi as well to
+avoid this boiler plate, but can't find it right now so maybe that
+never went anywhere.
+
+
+> +	} else {
+> +		return -ENODEV;
+> +	}
+> +
+> +	if (cm32181->chip_id == CM3218_ID) {
+> +		if (ACPI_COMPANION(&client->dev) &&
+> +		    client->addr == SMBUS_ARA_ADDR) {
+> +			/*
+> +			 * In case this device as been enumerated by acpi
+> +			 * with the reserved smbus ARA address (first acpi
+> +			 * connection), request change of address to the second
+> +			 * connection.
+> +			 */
+> +			ret = i2c_acpi_set_connection(client, 1);
+> +			if (ret)
+> +				return ret;
+> +		}
+> +
+> +		/* cm3218 chip require an ara device on his adapter */
+> +		ret = i2c_require_smbus_alert(client);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +		/*
+> +		 * If irq is given, request a threaded irq handler to manage
+> +		 * smbus alert.
+> +		 */
+> +		if (client->irq > 0) {
+
+If we have a chip that needs ara and no IRQ isn't it a probe failure case?
+The device won't work as I understand it.
+
+> +			ret = devm_request_threaded_irq(&client->dev,
+> +							client->irq,
+> +							NULL, cm32181_irq,
+> +							IRQF_ONESHOT,
+> +							"cm32181", cm32181);
+> +			if (ret)
+> +				return ret;
+> +		}
+> +	}
+> +
+>  	ret = cm32181_reg_init(cm32181);
+>  	if (ret) {
+>  		dev_err(&client->dev,
+> @@ -342,25 +441,36 @@ static int cm32181_probe(struct i2c_client *client,
+>  }
+>  
+>  static const struct i2c_device_id cm32181_id[] = {
+> -	{ "cm32181", 0 },
+> +	{ "cm32181", CM32181_ID },
+> +	{ "cm3218", CM3218_ID },
+>  	{ }
+>  };
+>  
+>  MODULE_DEVICE_TABLE(i2c, cm32181_id);
+>  
+>  static const struct of_device_id cm32181_of_match[] = {
+> -	{ .compatible = "capella,cm32181" },
+> +	{ .compatible = "capella,cm32181", (void *)CM32181_ID },
+> +	{ .compatible = "capella,cm3218",  (void *)CM3218_ID },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(of, cm32181_of_match);
+>  
+> +static const struct acpi_device_id cm32181_acpi_match[] = {
+> +	{ "CPLM3218", CM3218_ID },
+> +	{ }
+> +};
+> +
+> +MODULE_DEVICE_TABLE(acpi, cm32181_acpi_match);
+> +
+>  static struct i2c_driver cm32181_driver = {
+>  	.driver = {
+>  		.name	= "cm32181",
+>  		.of_match_table = of_match_ptr(cm32181_of_match),
+> +		.acpi_match_table = ACPI_PTR(cm32181_acpi_match),
+>  	},
+>  	.id_table       = cm32181_id,
+>  	.probe		= cm32181_probe,
+> +	.alert		= cm3218_alert,
+
+It's a bit ugly - I'm not sure we wouldn't be better registering
+two separate i2c drivers so as not to specify the alert for devices
+that don't handle it.
+
+>  };
+>  
+>  module_i2c_driver(cm32181_driver);
+
