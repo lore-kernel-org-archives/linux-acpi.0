@@ -1,66 +1,33 @@
-From: Ognjen Galic <smclt30p@gmail.com>
-Subject: [PATCH v11 5/5] pm: Remove to_power_supply impl in ds278*
-Date: Sun, 31 Dec 2017 15:17:57 +0100
-Message-ID: <20171231141757.GA4674@thinkpad>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [net-next: PATCH v2 4/5] net: mvpp2: use device_*/fwnode_* APIs
+ instead of of_*
+Date: Sun, 31 Dec 2017 20:18:36 +0100
+Message-ID: <20171231191836.GA20455@lunn.ch>
+References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
+ <1514721520-18964-5-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from vps0.lunn.ch ([185.16.172.187]:49479 "EHLO vps0.lunn.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750854AbdLaTSt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 31 Dec 2017 14:18:49 -0500
 Content-Disposition: inline
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+In-Reply-To: <1514721520-18964-5-git-send-email-mw@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, ezequiel.garcia@free-electrons.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 
-This patch fixes a issue introduced by patch:
-pm: add to_power_supply macro to the API
+On Sun, Dec 31, 2017 at 12:58:39PM +0100, Marcin Wojtas wrote:
+Hi Marcin
 
-In that patch a new macro has been defined in the
-power_supply.h header with the same name as the private
-function name in the ds278* battery modules that does the
-same thing, thus clashing and producing build errors.
+> Because there is no equivalent for for_each_available_child_of_node(),
+> use device_for_each_child_node() and check the port availability
+> inside the mvpp2_port_probe() routine.
 
-This patch removes that private implementation.
+Could device_each_available_child_node() be added? I guess this will
+not be the last driver converted in this way, and having that macro
+will help with future ports.
 
-Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
-
-v11:
-* Fix build error pointed out by the Intel automated
-kernel build daemon/bot
----
- drivers/power/supply/ds2780_battery.c | 5 -----
- drivers/power/supply/ds2781_battery.c | 5 -----
- 2 files changed, 10 deletions(-)
-
-diff --git a/drivers/power/supply/ds2780_battery.c b/drivers/power/supply/ds2780_battery.c
-index e5d81b4..370e910 100644
---- a/drivers/power/supply/ds2780_battery.c
-+++ b/drivers/power/supply/ds2780_battery.c
-@@ -56,11 +56,6 @@ to_ds2780_device_info(struct power_supply *psy)
- 	return power_supply_get_drvdata(psy);
- }
- 
--static inline struct power_supply *to_power_supply(struct device *dev)
--{
--	return dev_get_drvdata(dev);
--}
--
- static inline int ds2780_battery_io(struct ds2780_device_info *dev_info,
- 	char *buf, int addr, size_t count, int io)
- {
-diff --git a/drivers/power/supply/ds2781_battery.c b/drivers/power/supply/ds2781_battery.c
-index efe83ef..d1b5a19 100644
---- a/drivers/power/supply/ds2781_battery.c
-+++ b/drivers/power/supply/ds2781_battery.c
-@@ -54,11 +54,6 @@ to_ds2781_device_info(struct power_supply *psy)
- 	return power_supply_get_drvdata(psy);
- }
- 
--static inline struct power_supply *to_power_supply(struct device *dev)
--{
--	return dev_get_drvdata(dev);
--}
--
- static inline int ds2781_battery_io(struct ds2781_device_info *dev_info,
- 	char *buf, int addr, size_t count, int io)
- {
--- 
-2.7.4
+     Andrew
