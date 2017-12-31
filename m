@@ -1,33 +1,44 @@
 From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [net-next: PATCH v2 4/5] net: mvpp2: use device_*/fwnode_* APIs
- instead of of_*
-Date: Sun, 31 Dec 2017 20:18:36 +0100
-Message-ID: <20171231191836.GA20455@lunn.ch>
+Subject: Re: [net-next: PATCH v2 5/5] net: mvpp2: enable ACPI support in the
+ driver
+Date: Sun, 31 Dec 2017 20:23:54 +0100
+Message-ID: <20171231192354.GB20455@lunn.ch>
 References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
- <1514721520-18964-5-git-send-email-mw@semihalf.com>
+ <1514721520-18964-6-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from vps0.lunn.ch ([185.16.172.187]:49479 "EHLO vps0.lunn.ch"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750854AbdLaTSt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 31 Dec 2017 14:18:49 -0500
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <1514721520-18964-5-git-send-email-mw@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1514721520-18964-6-git-send-email-mw@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Marcin Wojtas <mw@semihalf.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, ezequiel.garcia@free-electrons.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
+Cc: thomas.petazzoni@free-electrons.com, f.fainelli@gmail.com, graeme.gregory@linaro.org, ard.biesheuvel@linaro.org, netdev@vger.kernel.org, antoine.tenart@free-electrons.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux@armlinux.org.uk, nadavh@marvell.com, linux-acpi@vger.kernel.org, neta@marvell.com, ezequiel.garcia@free-electrons.com, jaz@semihalf.com, gregory.clement@free-electrons.com, tn@semihalf.com, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 31, 2017 at 12:58:39PM +0100, Marcin Wojtas wrote:
+> * Modify way of obtaining interrupts - with ACPI they are resources
+>   bound to struct platform_device and it's not possible to obtain
+>   them directly from the child node. Hence a formula is used, depending
+>   on the port_id and number of possible CPUs.
+
 Hi Marcin
 
-> Because there is no equivalent for for_each_available_child_of_node(),
-> use device_for_each_child_node() and check the port availability
-> inside the mvpp2_port_probe() routine.
+I know nothing about ACPI. Is this limitation with respect to
+interrupts fundamental to ACPI, or just that nobody has implemented
+flexible interrupt support yet?
 
-Could device_each_available_child_node() be added? I guess this will
-not be the last driver converted in this way, and having that macro
-will help with future ports.
+> * Until proper MDIO bus and PHY handling with ACPI is established in the
+>   kernel, use only link interrupts feature in the driver.
 
-     Andrew
+I think interrupts might be interesting with PHY devices, since they
+are child nodes of the MDIO device....
+
+    Andrew
