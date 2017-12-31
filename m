@@ -1,72 +1,112 @@
 From: Marcin Wojtas <mw@semihalf.com>
-Subject: [net-next: PATCH v2 0/5] Armada 7k/8k PP2 ACPI support
-Date: Sun, 31 Dec 2017 12:58:35 +0100
-Message-ID: <1514721520-18964-1-git-send-email-mw@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:36309 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750943AbdLaL6w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 31 Dec 2017 06:58:52 -0500
-Received: by mail-lf0-f68.google.com with SMTP id c19so31953832lfg.3
-        for <linux-acpi@vger.kernel.org>; Sun, 31 Dec 2017 03:58:51 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [net-next: PATCH v2 1/5] device property: Introduce fwnode_get_mac_address()
+Date: Sun, 31 Dec 2017 12:58:36 +0100
+Message-ID: <1514721520-18964-2-git-send-email-mw@semihalf.com>
+References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1514721520-18964-1-git-send-email-mw@semihalf.com>
+Sender: netdev-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, ezequiel.garcia@free-electrons.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com
+List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Until now there were two almost identical functions for
+obtaining MAC address - of_get_mac_address() and, more generic,
+device_get_mac_address(). However it is not uncommon,
+that the network interface is represented as a child
+of the actual controller, hence it is not associated
+directly to any struct device, required by the latter
+routine.
 
-This a second version of a patchset, which introduces ACPI support
-in mvpp2 driver. Comparing to the initial one, all patches
-touching generic ACPI MDIO bus / PHY handling were removed
-and after some modifications will be resend separately. They
-may require a longer discussion in terms of phylink support
-and ACPI specification extensions.
+This commit allows for getting the MAC address for
+children nodes in the ACPI world by introducing a new function -
+fwnode_get_mac_address(). This commit also changes
+device_get_mac_address() routine to be its wrapper, in order
+to prevent unnecessary duplication.
 
-This way mvpp2 driver is able to operate using the link interrupt
-capability (a.k.a. in-band management) on all ports, 1000BaseT RGMII
-included. Driver operation was tested on top of the net-next branch
-with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
+Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+---
+ drivers/base/property.c  | 28 ++++++++++++++------
+ include/linux/property.h |  2 ++
+ 2 files changed, 22 insertions(+), 8 deletions(-)
 
-mvpp2 driver can work with the ACPI representation, as exposed
-on a public branch:
-https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits/marvell-armada-wip
-It was compiled together with the most recent Tianocore EDK2 revision.
-Please refer to the firmware build instruction on MacchiatoBin board:
-http://wiki.macchiatobin.net/tiki-index.php?page=Build+from+source+-+UEFI+EDK+II
-
-ACPI representation of PP2 controllers (withouth PHY support) can
-be viewed in the github:
-* MacchiatoBin:
-https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/marvell-armada-wip/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl#L201
-
-* Armada 7040 DB:
-https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/marvell-armada-wip/Platforms/Marvell/Armada/AcpiTables/Armada70x0/Dsdt.asl#L131
-
-I will appreciate any comments or remarks.
-
-Best regards,
-Marcin
-
-Changelog:
-v1 -> v2:
-* Remove MDIO patches
-* Use PP2 ports only with link interrupts
-* Release second region resources in mvpp2 driver (code moved from
-  mvmdio), as explained in details in 5/5 commit message.
-
-Marcin Wojtas (5):
-  device property: Introduce fwnode_get_mac_address()
-  device property: Introduce fwnode_get_phy_mode()
-  net: mvpp2: simplify maintaining enabled ports' list
-  net: mvpp2: use device_*/fwnode_* APIs instead of of_*
-  net: mvpp2: enable ACPI support in the driver
-
- drivers/base/property.c              |  52 +++--
- drivers/net/ethernet/marvell/mvpp2.c | 222 ++++++++++++--------
- include/linux/property.h             |   3 +
- 3 files changed, 180 insertions(+), 97 deletions(-)
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 851b1b6..f261d1a 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1153,11 +1153,11 @@ int device_get_phy_mode(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(device_get_phy_mode);
+ 
+-static void *device_get_mac_addr(struct device *dev,
++static void *fwnode_get_mac_addr(struct fwnode_handle *fwnode,
+ 				 const char *name, char *addr,
+ 				 int alen)
+ {
+-	int ret = device_property_read_u8_array(dev, name, addr, alen);
++	int ret = fwnode_property_read_u8_array(fwnode, name, addr, alen);
+ 
+ 	if (ret == 0 && alen == ETH_ALEN && is_valid_ether_addr(addr))
+ 		return addr;
+@@ -1165,8 +1165,8 @@ static void *device_get_mac_addr(struct device *dev,
+ }
+ 
+ /**
+- * device_get_mac_address - Get the MAC for a given device
+- * @dev:	Pointer to the device
++ * fwnode_get_mac_address - Get the MAC from the firmware node
++ * @fwnode:	Pointer to the firmware node
+  * @addr:	Address of buffer to store the MAC in
+  * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
+  *
+@@ -1187,19 +1187,31 @@ static void *device_get_mac_addr(struct device *dev,
+  * In this case, the real MAC is in 'local-mac-address', and 'mac-address'
+  * exists but is all zeros.
+ */
+-void *device_get_mac_address(struct device *dev, char *addr, int alen)
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr, int alen)
+ {
+ 	char *res;
+ 
+-	res = device_get_mac_addr(dev, "mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	res = device_get_mac_addr(dev, "local-mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "local-mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	return device_get_mac_addr(dev, "address", addr, alen);
++	return fwnode_get_mac_addr(fwnode, "address", addr, alen);
++}
++EXPORT_SYMBOL(fwnode_get_mac_address);
++
++/**
++ * device_get_mac_address - Get the MAC for a given device
++ * @dev:	Pointer to the device
++ * @addr:	Address of buffer to store the MAC in
++ * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
++ */
++void *device_get_mac_address(struct device *dev, char *addr, int alen)
++{
++	return fwnode_get_mac_address(dev_fwnode(dev), addr, alen);
+ }
+ EXPORT_SYMBOL(device_get_mac_address);
+ 
+diff --git a/include/linux/property.h b/include/linux/property.h
+index f6189a3..35620e0 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -279,6 +279,8 @@ int device_get_phy_mode(struct device *dev);
+ 
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
+ 
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
++			     char *addr, int alen);
+ struct fwnode_handle *fwnode_graph_get_next_endpoint(
+ 	const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+ struct fwnode_handle *
 -- 
 2.7.4
-
