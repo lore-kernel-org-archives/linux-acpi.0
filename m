@@ -1,30 +1,41 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v11 5/5] pm: Remove to_power_supply impl in ds278*
-Date: Mon, 1 Jan 2018 11:56:59 +0200
-Message-ID: <CAHp75VczqpO93aYec+dzJCZ1Nkcfi1Vx=7oVc3YBSFf6mkkQPQ@mail.gmail.com>
-References: <20171231141757.GA4674@thinkpad>
+From: Marcin Wojtas <mw@semihalf.com>
+Subject: Re: [net-next: PATCH v2 4/5] net: mvpp2: use device_*/fwnode_* APIs
+ instead of of_*
+Date: Mon, 1 Jan 2018 11:04:30 +0100
+Message-ID: <CAPv3WKfiR_ekc-ODPfYWDkP0UG0znRxsTCr6FPePgZVXB5J_zw@mail.gmail.com>
+References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
+ <1514721520-18964-5-git-send-email-mw@semihalf.com> <20171231191836.GA20455@lunn.ch>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20171231141757.GA4674@thinkpad>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ognjen Galic <smclt30p@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f170.google.com ([209.85.223.170]:33637 "EHLO
+        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751059AbeAAKEc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jan 2018 05:04:32 -0500
+Received: by mail-io0-f170.google.com with SMTP id t63so9352592iod.0
+        for <linux-acpi@vger.kernel.org>; Mon, 01 Jan 2018 02:04:31 -0800 (PST)
+In-Reply-To: <20171231191836.GA20455@lunn.ch>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, nadavh@marvell.com, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf>
 
-On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> This patch fixes a issue introduced by patch:
-> pm: add to_power_supply macro to the API
+Hi Andrew,
+
+2017-12-31 20:18 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+> On Sun, Dec 31, 2017 at 12:58:39PM +0100, Marcin Wojtas wrote:
+> Hi Marcin
 >
-> In that patch a new macro has been defined in the
-> power_supply.h header with the same name as the private
-> function name in the ds278* battery modules that does the
-> same thing, thus clashing and producing build errors.
+>> Because there is no equivalent for for_each_available_child_of_node(),
+>> use device_for_each_child_node() and check the port availability
+>> inside the mvpp2_port_probe() routine.
 >
-> This patch removes that private implementation.
+> Could device_each_available_child_node() be added? I guess this will
+> not be the last driver converted in this way, and having that macro
+> will help with future ports.
+>
 
-Must be folded into patch 2.
+Sure, I can add it in the next round.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Marcin
