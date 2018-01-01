@@ -1,44 +1,149 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [net-next: PATCH v2 5/5] net: mvpp2: enable ACPI support in the
- driver
-Date: Sun, 31 Dec 2017 20:23:54 +0100
-Message-ID: <20171231192354.GB20455@lunn.ch>
-References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
- <1514721520-18964-6-git-send-email-mw@semihalf.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v11 1/5] battery: Add the battery hooking API
+Date: Mon, 1 Jan 2018 11:53:16 +0200
+Message-ID: <CAHp75VeQGyzf6oSGgkcuuZ6zmsr2eac5MdBFHVQVrstKFG=nzA@mail.gmail.com>
+References: <20171231141631.GA4589@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <1514721520-18964-6-git-send-email-mw@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marcin Wojtas <mw@semihalf.com>
-Cc: thomas.petazzoni@free-electrons.com, f.fainelli@gmail.com, graeme.gregory@linaro.org, ard.biesheuvel@linaro.org, netdev@vger.kernel.org, antoine.tenart@free-electrons.com, rafael.j.wysocki@intel.com, linux-kernel@vger.kernel.org, linux@armlinux.org.uk, nadavh@marvell.com, linux-acpi@vger.kernel.org, neta@marvell.com, ezequiel.garcia@free-electrons.com, jaz@semihalf.com, gregory.clement@free-electrons.com, tn@semihalf.com, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:39070 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751185AbeAAJxS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jan 2018 04:53:18 -0500
+In-Reply-To: <20171231141631.GA4589@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ognjen Galic <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-> * Modify way of obtaining interrupts - with ACPI they are resources
->   bound to struct platform_device and it's not possible to obtain
->   them directly from the child node. Hence a formula is used, depending
->   on the port_id and number of possible CPUs.
+On Sun, Dec 31, 2017 at 4:16 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> This is a patch that implements a generic hooking API for the
+> generic ACPI battery driver.
+>
+> With this new generic API, drivers can expose platform specific
+> behaviour via sysfs attributes in /sys/class/power_supply/BATn/
+> in a generic way.
+>
+> A perfect example of the need for this API are Lenovo ThinkPads.
+>
+> Lenovo ThinkPads have a ACPI extension that allows the setting of
+> start and stop charge thresholds in the EC and battery firmware
+> via ACPI. The thinkpad_acpi module can use this API to expose
+> sysfs attributes that it controls inside the ACPI battery driver
+> sysfs tree, under /sys/class/power_supply/BATN/.
+>
+> The file drivers/acpi/battery.h has been moved to
+> include/acpi/battery.h and the includes inside ac.c, sbs.c, and
+> battery.c have been adjusted to reflect that.
+>
+> When drivers hooks into the API, the API calls add_battery() for
+> each battery in the system that passes it a acpi_battery
+> struct. Then, the drivers can use device_create_file() to create
+> new sysfs attributes with that struct and identify the batteries
+> for per-battery attributes.
 
-Hi Marcin
+Thanks for an update. Few comments below.
 
-I know nothing about ACPI. Is this limitation with respect to
-interrupts fundamental to ACPI, or just that nobody has implemented
-flexible interrupt support yet?
+(Keep in mind, please, that we are not expecting new version
+immediately, and Rafael might also apply this one without changes,
+since they are minors)
 
-> * Until proper MDIO bus and PHY handling with ACPI is established in the
->   kernel, use only link interrupts feature in the driver.
+>  #include <linux/kernel.h>
+>  #include <linux/module.h>
+> +#include <linux/mutex.h>
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+>  #include <linux/jiffies.h>
+> @@ -30,6 +31,7 @@
+>  #include <linux/dmi.h>
+>  #include <linux/delay.h>
+>  #include <linux/slab.h>
+> +#include <linux/list.h>
 
-I think interrupts might be interesting with PHY devices, since they
-are child nodes of the MDIO device....
+Just a nit: perhaps add this before module.h ?
 
-    Andrew
+> +void __battery_hook_unregister(struct acpi_battery_hook *hook, int force)
+> +{
+> +       struct list_head *position;
+> +       struct acpi_battery *battery;
+> +
+> +       /*
+> +        * In order to remove a hook, we first need to
+> +        * de-register all the batteries that are registered.
+> +        */
+> +
+> +       if (!force)
+
+I'm not sure force is a good name here, perhaps "locked"?
+Btw, would it be boolean?
+
+> +               mutex_lock(&hook_mutex);
+
+> +       list_for_each(position, &acpi_battery_list) {
+> +               battery = list_entry(position, struct acpi_battery, list);
+> +               hook->remove_battery(battery->bat);
+> +       }
+
+list_for_each_entry()
+
+> +
+> +       /* Then, just remove the hook */
+> +
+> +       list_del(&hook->list);
+> +
+> +       if (!force)
+> +               mutex_unlock(&hook_mutex);
+> +
+> +       pr_info("battery: extension unregistered: %s\n", hook->name);
+> +}
+
+> +void battery_hook_register(struct acpi_battery_hook *hook)
+> +{
+
+> +       list_for_each(position, &acpi_battery_list) {
+> +               battery = list_entry(position, struct acpi_battery, list);
+
+list_for_each_entry()
+
+> +                       __battery_hook_unregister(hook, 1);
+> +                       return;
+> +
+
+Perhaps you meant empty line followed by return statement.
+
+> +               }
+> +       }
+> +
+> +       pr_info("battery: new extension: %s\n", hook->name);
+
+Perhaps move "battery:" to pr_fmt() ?
+I have counted already 3 prints with it and see more below.
+
+> +       list_for_each(position, &battery_hook_list) {
+> +               hook_node = list_entry(position, struct acpi_battery_hook, list);
+
+list_for_each_entry()
+
+> +       list_for_each(position, &battery_hook_list) {
+> +               hook = list_entry(position, struct acpi_battery_hook, list);
+
+Ditto.
+
+> +       list_for_each_safe(position, temp, &battery_hook_list) {
+> +               hook = list_entry(position, struct acpi_battery_hook, list);
+
+Ditto.
+
+> --- a/drivers/acpi/battery.h
+> +++ /dev/null
+Apparently you didn't apply -M -C (perhaps with some non-default
+threshold) to avoid such thing in the patch.
+
+> --- /dev/null
+> +++ b/include/acpi/battery.h
+
+Ditto.
+
+-- 
+With Best Regards,
+Andy Shevchenko
