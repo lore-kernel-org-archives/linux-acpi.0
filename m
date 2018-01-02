@@ -1,37 +1,92 @@
-From: "Du, Changbin" <changbin.du@intel.com>
-Subject: Re: [PATCH] ACPI / sysfs: fix shift-overflow in GPE flooding quirk
- mechanism
-Date: Tue, 2 Jan 2018 19:11:48 +0800
-Message-ID: <20180102111148.r2r322yjtmwqfrhd@intel.com>
-References: <1513955470-27270-1-git-send-email-changbin.du@intel.com>
- <20180102063651.3p2bwr467w43twbu@intel.com>
- <CAJZ5v0hcMMd+V4eD76mZt4=qobAzbzviOvDuLmC7KRnw8emdPg@mail.gmail.com>
+From: Morten Rasmussen <morten.rasmussen@foss.arm.com>
+Subject: Re: [PATCH v5 7/9] arm64: Topology, rename cluster_id
+Date: Tue, 2 Jan 2018 11:30:14 +0000
+Message-ID: <20180102113014.GA28799@e105550-lin.cambridge.arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-8-jeremy.linton@arm.com>
+ <20171213180217.GB4060@red-moon>
+ <7bb4e955-f3e5-d22f-4e78-eac97e66a9a6@arm.com>
+ <20171218124229.GG507@e105550-lin.cambridge.arm.com>
+ <965127a6-816b-8e0c-d228-a3d73a8c643a@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:26174 "EHLO mga07.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:37446 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751390AbeABLT6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 2 Jan 2018 06:19:58 -0500
+        id S1752151AbeABLa0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 2 Jan 2018 06:30:26 -0500
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hcMMd+V4eD76mZt4=qobAzbzviOvDuLmC7KRnw8emdPg@mail.gmail.com>
+In-Reply-To: <965127a6-816b-8e0c-d228-a3d73a8c643a@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Du, Changbin" <changbin.du@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, morten.rasmussen@arm.com, dietmar.eggemann@arm.com
 
-On Tue, Jan 02, 2018 at 11:18:31AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Jan 2, 2018 at 7:36 AM, Du, Changbin <changbin.du@intel.com> wrote:
-> > Hi Wysocki and Brown,
-> > May I know wether you have checked this? Thanks!
+On Tue, Jan 02, 2018 at 10:29:35AM +0800, Xiongfeng Wang wrote:
+> Hi,
 > 
-> There's a commit changing this queued up already, see
-> https://patchwork.kernel.org/patch/10085579/
+> On 2017/12/18 20:42, Morten Rasmussen wrote:
+> > On Fri, Dec 15, 2017 at 10:36:35AM -0600, Jeremy Linton wrote:
+> >> Hi,
+> >>
+> >> On 12/13/2017 12:02 PM, Lorenzo Pieralisi wrote:
+> >>> [+Morten, Dietmar]
+> >>>
+> >>> $SUBJECT should be:
+> >>>
+> >>> arm64: topology: rename cluster_id
+> >>
+> [cut]
+> >>
+> >> I was hoping someone else would comment here, but my take at this point is
+> >> that it doesn't really matter in a functional sense at the moment.
+> >> Like the chiplet discussion it can be the subject of a future patch along
+> >> with the patches which tweak the scheduler to understand the split.
+> >>
+> >> BTW, given that i'm OoO next week, and the following that are the holidays,
+> >> I don't intend to repost this for a couple weeks. I don't think there are
+> >> any issues with this set.
+> >>
+> >>>
+> >>> There is also arch/arm to take into account, again, this patch is
+> >>> just renaming (as it should have named since the beginning) a
+> >>> topology level but we should consider everything from a legacy
+> >>> perspective.
+> > 
+> > arch/arm has gone for thread/core/socket for the three topology levels
+> > it supports.
+> > 
+> > I'm not sure what short term value keeping cluster_id has? Isn't it just
+> > about where we make the package = cluster assignment? Currently it is in
+> > the definition of topology_physical_package_id. If we keep cluster_id
+> > and add package_id, it gets moved into the MPIDR/DT parsing code. 
+> > 
+> > Keeping cluster_id and introducing a topology_cluster_id function could
+> > help cleaning up some of the users of topology_physical_package_id that
+> > currently assumes package_id == cluster_id though.
 > 
-Got it, Thanks for your reply.
+> I think we still need the information describing which cores are in one cluster.
+> Many arm64 chips have the architecture core/cluster/socket. Cores in one cluster may
+> share a same L2 cache. That information can be used to build the sched_domain. If we put
+> cores in one cluster in one sched_domain, the performance will be better.(please see
+> kernel/sched/topology.c:1197, cpu_coregroup_mask() uses 'core_sibling' to build a multi-core
+> sched_domain)
+> So I think we still need variable to record which cores are in one sched_domain for future use.
 
-> Thanks!
+I agree that information about clusters is useful. The problem is that
+we currently treat clusters as sockets (also known as dies or
+physical_package_id depending on which bit of code you are looking at). We
+don't handle the core/cluster/socket topology you mention as three
+'levels' of grouping of cores. We currently create one sched_domain
+levels for cores (in a cluster) and a parent sched_domain level of all
+clusters in the system ignoring if those are in different sockets and
+tell the scheduler that those clusters are all separate sockets. This
+doesn't work very well for systems with many clusters and/or multiple
+sockets.
 
--- 
-Thanks,
-Changbin Du
+How to solve that problem is a longer discussion which I'm happy to
+have. This patch is just preparing to get rid of the assumption that
+clusters are sockets as this is not in line with what other
+architectures does and the assumptions made by the scheduler.
+
+Morten
