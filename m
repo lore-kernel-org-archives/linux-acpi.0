@@ -1,82 +1,122 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Subject: Re: [PATCH v5 7/9] arm64: Topology, rename cluster_id
-Date: Tue, 2 Jan 2018 10:29:35 +0800
-Message-ID: <965127a6-816b-8e0c-d228-a3d73a8c643a@huawei.com>
-References: <20171201222330.18863-1-jeremy.linton@arm.com>
- <20171201222330.18863-8-jeremy.linton@arm.com>
- <20171213180217.GB4060@red-moon>
- <7bb4e955-f3e5-d22f-4e78-eac97e66a9a6@arm.com>
- <20171218124229.GG507@e105550-lin.cambridge.arm.com>
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: Re: ACPI issues on cold power on [bisected]
+Date: Tue, 2 Jan 2018 11:54:18 +0900
+Message-ID: <20180102025417.GA20740@js1304-P5Q-DELUXE>
+References: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
+ <20171222002108.GB1729@js1304-P5Q-DELUXE>
+ <20171229163659.c5ccfvww4ebvyz54@earth.li>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:3213 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752026AbeABC3v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 1 Jan 2018 21:29:51 -0500
-In-Reply-To: <20171218124229.GG507@e105550-lin.cambridge.arm.com>
+Received: from LGEAMRELO11.lge.com ([156.147.23.51]:38410 "EHLO
+        lgeamrelo11.lge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753623AbeABCx3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Jan 2018 21:53:29 -0500
+Content-Disposition: inline
+In-Reply-To: <20171229163659.c5ccfvww4ebvyz54@earth.li>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Morten Rasmussen <morten.rasmussen@foss.arm.com>, Jeremy Linton <jeremy.linton@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, morten.rasmussen@arm.com, dietmar.eggemann@arm.com
+To: Jonathan McDowell <noodles@earth.li>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, netdev@vger.kernel.org
 
-Hi,
+On Fri, Dec 29, 2017 at 04:36:59PM +0000, Jonathan McDowell wrote:
+> On Fri, Dec 22, 2017 at 09:21:09AM +0900, Joonsoo Kim wrote:
+> > On Fri, Dec 08, 2017 at 03:11:59PM +0000, Jonathan McDowell wrote:
+> > > I've been sitting on this for a while and should have spent time to
+> > > investigate sooner, but it's been an odd failure mode that wasn't quite
+> > > obvious.
+> > > 
+> > > In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
+> > > don't see anything after grub says its booting. In 4.10 onwards the
+> > > laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
+> > > (no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
+> > > taken from 4.12 as that's the most recent error dmesg I have saved but
+> > > also seen back in 4.10. It's always address 0x30 for the dereference.
+> > > 
+> > > Rebooting the laptop does not lead to these problems; it's *only* from a
+> > > complete cold boot that they arise (which didn't help me in terms of
+> > > being able to reliably bisect). Once I realised that I was able to
+> > > bisect, but it leads me to an odd commit:
+> > > 
+> > > 86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
+> > > (mm/slab: fix kmemcg cache creation delayed issue)
+> > > 
+> > > If I revert this then I can cold boot without problems.
+> > > 
+> > > Also I don't see the problem with a stock Debian kernel, I think because
+> > > the ACPI support is modularised.
+> > 
+> > Sorry for late response. I was on a long vacation.
+> 
+> No problem. I've been trying to get around to diagnosing this for a
+> while now anyway and this isn't a great time of year for fast responses.
+> 
+> > I have tried to solve the problem however I don't find any clue yet.
+> > 
+> > >From my analysis, oops report shows that 'struct sock *ssk' passed to
+> > netlink_broadcast_filtered() is NULL. It means that some of
+> > netlink_kernel_create() returns NULL. Maybe, it is due to slab
+> > allocation failure. Could you check it by inserting some log on that
+> > part? The issue cannot be reproducible in my side so I need your help.
+> 
+> I've added some debug in acpi_bus_generate_netlink_event +
+> genlmsg_multicast and the problem seems to be that genlmsg_multicast is
+> getting called when init_net.genl_sock has not yet been initialised,
+> leading to the NULL deference.
+> 
+> Full dmesg output from a cold 4.14.8 boot at:
+> 
+> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-broken
+> 
+> And the same kernel after a reboot ("shutdown -r now"):
+> 
+> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-working
+> 
+> Patch that I've applied is at
+> 
+> https://the.earth.li/~noodles/acpi-problem/debug-acpi.diff
+> 
 
-On 2017/12/18 20:42, Morten Rasmussen wrote:
-> On Fri, Dec 15, 2017 at 10:36:35AM -0600, Jeremy Linton wrote:
->> Hi,
->>
->> On 12/13/2017 12:02 PM, Lorenzo Pieralisi wrote:
->>> [+Morten, Dietmar]
->>>
->>> $SUBJECT should be:
->>>
->>> arm64: topology: rename cluster_id
->>
-[cut]
->>
->> I was hoping someone else would comment here, but my take at this point is
->> that it doesn't really matter in a functional sense at the moment.
->> Like the chiplet discussion it can be the subject of a future patch along
->> with the patches which tweak the scheduler to understand the split.
->>
->> BTW, given that i'm OoO next week, and the following that are the holidays,
->> I don't intend to repost this for a couple weeks. I don't think there are
->> any issues with this set.
->>
->>>
->>> There is also arch/arm to take into account, again, this patch is
->>> just renaming (as it should have named since the beginning) a
->>> topology level but we should consider everything from a legacy
->>> perspective.
-> 
-> arch/arm has gone for thread/core/socket for the three topology levels
-> it supports.
-> 
-> I'm not sure what short term value keeping cluster_id has? Isn't it just
-> about where we make the package = cluster assignment? Currently it is in
-> the definition of topology_physical_package_id. If we keep cluster_id
-> and add package_id, it gets moved into the MPIDR/DT parsing code. 
-> 
-> Keeping cluster_id and introducing a topology_cluster_id function could
-> help cleaning up some of the users of topology_physical_package_id that
-> currently assumes package_id == cluster_id though.
+Thanks for testing! It's very helpful.
 
-I think we still need the information describing which cores are in one cluster.
-Many arm64 chips have the architecture core/cluster/socket. Cores in one cluster may
-share a same L2 cache. That information can be used to build the sched_domain. If we put
-cores in one cluster in one sched_domain, the performance will be better.(please see
-kernel/sched/topology.c:1197, cpu_coregroup_mask() uses 'core_sibling' to build a multi-core
-sched_domain)
-So I think we still need variable to record which cores are in one sched_domain for future use.
-
-Thanks,
-Xiongfeng
-
+> The interesting difference seems to be:
 > 
-> Morten
+>  PCI: Using ACPI for IRQ routing
+> +ACPI: Generating event type 208 (:9DBB5994-A997-11DA-B012-B622A1EF5492)
+> +ERROR: init_net.genl_sock is NULL
+> +BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+> +IP: netlink_broadcast_filtered+0x20/0x3d0
+> +PGD 0 P4D 0 
+> +Oops: 0000 [#1] SMP
+> +Modules linked in:
+> +CPU: 0 PID: 29 Comm: kworker/0:1 Not tainted 4.14.8+ #1
+> +Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A22 10/18/2017
+> +Workqueue: kacpi_notify acpi_os_execute_deferred
 > 
-> .
-> 
+> 9DBB5994-A997-11DA-B012-B622A1EF5492 is the Dell WMI event GUID and
+> there's no visible event for it on a reboot, just on a cold power on.
+> Some sort of ordering issues such that genl_sock is being initialised
+> later with the slab change?
 
+I have checked that there is an ordering issue.
+
+genl_init() which initializes init_net->genl_sock is called on
+subsys_initcall().
+
+acpi_wmi_init() which schedules acpi_wmi_notify_handler() to the
+workqueue is called on subsys_initcall(), too.
+(acpi_wmi_notify_handler() -> acpi_bus_generate_netlink_event() ->
+netlink_broadcast())
+
+In my system, acpi_wmi_init() is called before the genl_init().
+Therefore, if the worker is scheduled before genl_init() is done, NULL
+derefence would happen.
+
+Although slab change revealed this problem, I think that problem is on
+ACPI side and need to be fixed there.
+
+Anyway, I'm not sure why it doesn't happen before. These ACPI
+initialization code looks not changed for a long time. Could you test
+this problem with the slub?
+
+Thanks.
