@@ -1,94 +1,82 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v11 3/5] thinkpad_acpi: Add support for battery thresholds
-Date: Mon, 1 Jan 2018 13:31:29 +0100
-Message-ID: <CAJZ5v0jmYTjhcn_z86tsNNUstbNu=+0OzMgVk85xS-rpvPfKJA@mail.gmail.com>
-References: <20171231141727.GA4643@thinkpad> <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com>
- <20180101114348.GA5589@thinkpad>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v5 7/9] arm64: Topology, rename cluster_id
+Date: Tue, 2 Jan 2018 10:29:35 +0800
+Message-ID: <965127a6-816b-8e0c-d228-a3d73a8c643a@huawei.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-8-jeremy.linton@arm.com>
+ <20171213180217.GB4060@red-moon>
+ <7bb4e955-f3e5-d22f-4e78-eac97e66a9a6@arm.com>
+ <20171218124229.GG507@e105550-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20180101114348.GA5589@thinkpad>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:3213 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1752026AbeABC3v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 1 Jan 2018 21:29:51 -0500
+In-Reply-To: <20171218124229.GG507@e105550-lin.cambridge.arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Morten Rasmussen <morten.rasmussen@foss.arm.com>, Jeremy Linton <jeremy.linton@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, morten.rasmussen@arm.com, dietmar.eggemann@arm.com
 
-On Mon, Jan 1, 2018 at 12:43 PM, Ognjen Gali=C4=87 <smclt30p@gmail.com> wro=
-te:
-> On Mon, Jan 01, 2018 at 12:24:39PM +0200, Andy Shevchenko wrote:
->> On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote=
-:
->> > thinkpad_acpi registers two new attributes for each battery:
->> >
->> > 1) Charge start threshold
->> > /sys/class/power_supply/BATN/charge_start_threshold
->> >
->> > Valid values are [0, 99]. A value of 0 turns off the
->> > start threshold wear control.
->> >
->> > 2) Charge stop threshold
->> > /sys/class/power_supply/BATN/charge_stop_threshold
->> >
->> > Valid values are [1, 100]. A value of 100 turns off
->> > the stop threshold wear control. This must be
->> > configured first.
->> >
->>
->> > This patch depends on the following patches:
->> >
->> > "battery: Add the battery hooking API"
->>
->> Since this is series, no need to put above into changelog.
->>
->> AFAICS it's not going to be backported either.
->>
->>
->> > +/**
->> > + * This evaluates a ACPI method call specific to the battery
->> > + * ACPI extension. The specifics are that an error is marked
->> > + * in the 32rd bit of the response, so we just check that here.
->> > + *
->> > + * Returns 0 on success
->> > + */
->> > +static int tpacpi_battery_acpi_eval(char *method, int *ret, int param=
-)
->> > +{
->>
->> One problem and one trick you may do.
->>
->> A problem: you return ACPI status as int. We have special type for
->> that. So, be consistent with it.
->> Looking to acpi_evalf() which is private to the module, I think you
->> need to get rid of ACPI return codes here.
->
-> What do you mean by "get rid of ACPI return codes"?
-> Are you suggesting this?
->
-> static void tpacpi_battery_ac....
+Hi,
 
-I think that Andy was talking about returning things like AE_ERROR,
-which are of type acpi_status, as int.
-
-You should return either the Linux error codes (in which case int is
-the type to use) or ACPI error codes (in which the function should be
-defined to return acpi_status).  Do not mix them.
-
-> How would I check if the ACPI call failed if I made the function return
-> void?
->
-> I use a function return value to check if the ACPI call failed,
-> and a return integer pointer to which I write the return data to.
->
+On 2017/12/18 20:42, Morten Rasmussen wrote:
+> On Fri, Dec 15, 2017 at 10:36:35AM -0600, Jeremy Linton wrote:
+>> Hi,
 >>
->> A trick: since you are using only least significant byte of the
->> response, you can declare it as u8 *value (yeah, ret is not best name
->> here I think).
->
-> Neat trick.
+>> On 12/13/2017 12:02 PM, Lorenzo Pieralisi wrote:
+>>> [+Morten, Dietmar]
+>>>
+>>> $SUBJECT should be:
+>>>
+>>> arm64: topology: rename cluster_id
+>>
+[cut]
+>>
+>> I was hoping someone else would comment here, but my take at this point is
+>> that it doesn't really matter in a functional sense at the moment.
+>> Like the chiplet discussion it can be the subject of a future patch along
+>> with the patches which tweak the scheduler to understand the split.
+>>
+>> BTW, given that i'm OoO next week, and the following that are the holidays,
+>> I don't intend to repost this for a couple weeks. I don't think there are
+>> any issues with this set.
+>>
+>>>
+>>> There is also arch/arm to take into account, again, this patch is
+>>> just renaming (as it should have named since the beginning) a
+>>> topology level but we should consider everything from a legacy
+>>> perspective.
+> 
+> arch/arm has gone for thread/core/socket for the three topology levels
+> it supports.
+> 
+> I'm not sure what short term value keeping cluster_id has? Isn't it just
+> about where we make the package = cluster assignment? Currently it is in
+> the definition of topology_physical_package_id. If we keep cluster_id
+> and add package_id, it gets moved into the MPIDR/DT parsing code. 
+> 
+> Keeping cluster_id and introducing a topology_cluster_id function could
+> help cleaning up some of the users of topology_physical_package_id that
+> currently assumes package_id == cluster_id though.
 
-Little-endian only though.  Don't do that unless your code is
-guaranteed to always (now and in the future) run on little-endian.
+I think we still need the information describing which cores are in one cluster.
+Many arm64 chips have the architecture core/cluster/socket. Cores in one cluster may
+share a same L2 cache. That information can be used to build the sched_domain. If we put
+cores in one cluster in one sched_domain, the performance will be better.(please see
+kernel/sched/topology.c:1197, cpu_coregroup_mask() uses 'core_sibling' to build a multi-core
+sched_domain)
+So I think we still need variable to record which cores are in one sched_domain for future use.
 
 Thanks,
-Rafael
+Xiongfeng
+
+> 
+> Morten
+> 
+> .
+> 
+
