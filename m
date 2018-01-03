@@ -1,82 +1,102 @@
-From: Chris Clayton <chris2553@googlemail.com>
-Subject: Re: [PATCH V2] mfd: rtsx: release IRQ during shutdown
-Date: Wed, 3 Jan 2018 16:34:06 +0000
-Message-ID: <f0e8857a-47c6-5848-ba24-51652343168b@googlemail.com>
-References: <1514982766-18012-1-git-send-email-okaya@codeaurora.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v12 1/4] battery: Add the battery hooking API
+Date: Wed, 3 Jan 2018 18:40:12 +0200
+Message-ID: <CAHp75VceXVb2N7hyjoDhAq_M+=2VcDcPc+Jt-FSsWuW7D7eFww@mail.gmail.com>
+References: <20180103115847.GA10092@thinkpad> <CAHp75Vdj2rasWqdmBKGxNs9Y+Rap=UycoFdOcbG6QgA48Afq5w@mail.gmail.com>
+ <20180103145307.GA17694@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1514982766-18012-1-git-send-email-okaya@codeaurora.org>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, lee.jones@linaro.org, timur@codeaurora.org
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:40147 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750861AbeACQkN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 11:40:13 -0500
+In-Reply-To: <20180103145307.GA17694@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+
+On Wed, Jan 3, 2018 at 4:53 PM, Ognjen Gali=C4=87 <smclt30p@gmail.com> wrot=
+e:
+> On Wed, Jan 03, 2018 at 04:25:42PM +0200, Andy Shevchenko wrote:
+>> On Wed, Jan 3, 2018 at 1:58 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+
+>> Thanks for an update. I have couple of minors. Otherwise look pretty muc=
+h good!
+>>
+>> >  drivers/acpi/battery.h |  11 ----
+>> >  include/acpi/battery.h |  21 +++++++
+>>
+>> There are -M and -C command line parameters to git format-patch.
+
+>> They can take an optional argument (percentage) of threshold.
+>>
+>> Playing with those numbers you can achieve
+
+^^^^ Pay attention to the above
+
+>>
+>> rename ...
+>>
+>> line and see actual diff.
+>>
+>> No need to resend because of this. Just an explanation for the future Gi=
+t work.
+>
+> I did use thos options. I used the following command:
+>
+> git format-patch -M -C --notes -v12 -o ~/patches/. @^^^^
+>
+> I really don't know what you are targeting. :)
+
+Please, read what I wrote above and the manual of git-format-patch.
+
+>> > +void __battery_hook_unregister(struct acpi_battery_hook *hook, int lo=
+ck)
+>> > +{
+>> > +       struct list_head *position;
+>> > +       struct acpi_battery *battery;
+>>
+>> Missed empty line?
+>
+> checkpatch.pl complains if there are NOT empty lines between
+> declarations and statements.
+
+checkpatch some times on one hand complains about something which it
+should not, on the other didn't take into consideration cases like
+this one.
+
+Your statement started with comment, btw.
+
+>> > +       /*
+>> > +        * In order to remove a hook, we first need to
+>> > +        * de-register all the batteries that are registered.
+>> > +        */
+>> > +       if (lock)
+>> > +               mutex_lock(&hook_mutex);
+
+> I mean, it's not game-breaking, its just minor style stuff. I won't be
+> sending more revisions because of these small issues, as I think its
+> uneccessary to flood both Rafael and the mailing lists with patch
+> revisions that remove or add a few spaces. No offence, it just got old.
+
+Yes, his call anyway to apply or ask you for amendments. I'm just
+helping with review.
+
+>> > +static void __exit battery_hook_exit(void)
+>> > +{
+>> > +       struct acpi_battery_hook *hook;
+>> > +       struct acpi_battery_hook *ptr;
+>>
+>> Missed empty line?
+>
+> See above about the checkpatch.pl stuff.
+
+See above the answer.
 
 
-
-On 03/01/18 12:32, Sinan Kaya wrote:
-> 'Commit cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during
-> shutdown")' revealed a resource leak in rtsx_pci driver during shutdown.
-> 
-> Issue shows up as a warning during shutdown as follows:
-> 
-> remove_proc_entry: removing non-empty directory 'irq/17', leaking at least
-> 'rtsx_pci'
-> WARNING: CPU: 0 PID: 1578 at fs/proc/generic.c:572
-> remove_proc_entry+0x11d/0x130
-> Modules linked in <long list but none that are out-of-tree>
-> ...
-> Call Trace:
-> unregister_irq_proc
-> free_desc
-> irq_free_descs
-> mp_unmap_irq
-> acpi_unregister_gsi_apic
-> acpi_pci_irq_disable
-> do_pci_disable_device
-> pci_disable_device
-> device_shutdown
-> kernel_restart
-> Sys_reboot
-> 
-> Even though rtsx_pci driver implements a shutdown callback, it is not
-> releasing the interrupt that it registered during probe. This is causing
-> the ACPI layer to complain that the shared IRQ is in use while freeing
-> IRQ.
-> 
-> This code releases the IRQ to prevent resource leak and eliminate the
-> warning.
-> 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198141
-> Reported-by: Chris Clayton <chris2553@googlemail.com>
-> Fixes: cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during shutdown")
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/mfd/rtsx_pcr.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/mfd/rtsx_pcr.c b/drivers/mfd/rtsx_pcr.c
-> index 590fb9a..c3ed885 100644
-> --- a/drivers/mfd/rtsx_pcr.c
-> +++ b/drivers/mfd/rtsx_pcr.c
-> @@ -1543,6 +1543,9 @@ static void rtsx_pci_shutdown(struct pci_dev *pcidev)
->  	rtsx_pci_power_off(pcr, HOST_ENTER_S1);
->  
->  	pci_disable_device(pcidev);
-> +	free_irq(pcr->irq, (void *)pcr);
-> +	if (pcr->msi_en)
-> +		pci_disable_msi(pcr->pci);
->  }
->  
->  #else /* CONFIG_PM */
-
-I've applied v2 of the patch and built and installed the kernel (-rc6). All I can say, is that my system still closes
-down without the warning and call trace that the unpatched kernel produces. It's the best I can do by way of a test
-because I have no idea what the code added in v2 is supposed to achieve and, because my system shuts down (or reboots)
-moments later, there is no opportunity to check. If that constitutes a valid test:
-
-Tested-by: Chris Clayton <chris2553@googlemail.com>
-
-> 
+--=20
+With Best Regards,
+Andy Shevchenko
