@@ -1,94 +1,70 @@
-From: Marcin Wojtas <mw@semihalf.com>
-Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Wed, 3 Jan 2018 12:12:06 +0100
-Message-ID: <CAPv3WKcM8WWvh64A=FTtuWkEr6V_QSKjBpNpWnMpp_P=cMU9sw@mail.gmail.com>
-References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
- <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com> <20180103110048.GA21230@xora-haswell>
+From: graeme.gregory@linaro.org
+Subject: Re: [net-next: PATCH v2 5/5] net: mvpp2: enable ACPI support in the
+ driver
+Date: Wed, 3 Jan 2018 11:16:11 +0000
+Message-ID: <20180103111611.GB21230@xora-haswell>
+References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
+ <1514721520-18964-6-git-send-email-mw@semihalf.com>
+ <20171231192354.GB20455@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="eJnRUKwClWJh1Khz"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f196.google.com ([209.85.223.196]:42332 "EHLO
-        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751167AbeACLMI (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:12:08 -0500
-Received: by mail-io0-f196.google.com with SMTP id x67so1742603ioi.9
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Jan 2018 03:12:07 -0800 (PST)
-In-Reply-To: <20180103110048.GA21230@xora-haswell>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:36091 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751442AbeACLQP (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:16:15 -0500
+Received: by mail-wr0-f196.google.com with SMTP id u19so1198714wrc.3
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Jan 2018 03:16:14 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <20171231192354.GB20455@lunn.ch>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Nadav Haklai <nadavh@marvell.co>
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Marcin Wojtas <mw@semihalf.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, ezequiel.garcia@free-electrons.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 
-Hi Graeme,
 
-2018-01-03 12:00 GMT+01:00 Graeme Gregory <graeme.gregory@linaro.org>:
-> On Mon, Dec 18, 2017 at 10:40:31AM +0100, Ard Biesheuvel wrote:
->> On 18 December 2017 at 10:17, Marcin Wojtas <mw@semihalf.com> wrote:
->> > Hi,
->> >
->> > This patchset introduces ACPI support in mvpp2 and mvmdio drivers.
->> > First three patches introduce fwnode helpers for obtaining PHY
->> > information from nodes and also MDIO fwnode API for registering
->> > the bus with its PHY/devices.
->> >
->> > Following patches update code of the mvmdio and mvpp2 drivers
->> > to support ACPI tables handling. The latter is done in 4 steps,
->> > as can be seen in the commits. For the details, please
->> > refer to the commit messages.
->> >
->> > Drivers operation was tested on top of the net-next branch
->> > with both DT and ACPI. Although for compatibility reasons
->> > with older platforms, the mvmdio driver keeps using
->> > of_ MDIO registering, new fwnode_ one proved to fully work
->> > with DT as well (tested on MacchiatoBin board).
->> >
->> > mvpp2/mvmdio driver can work with the ACPI representation, as exposed
->> > on a public branch:
->> > https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits/marvell-armada-wip
->> > It was compiled together with the most recent Tianocore EDK2 revision.
->> > Please refer to the firmware build instruction on MacchiatoBin board:
->> > http://wiki.macchiatobin.net/tiki-index.php?page=Build+from+source+-+UEFI+EDK+II
->> >
->> > Above support configures 1G to use its PHY normally. 10G can work now
->> > only with the link interrupt mode. Somehow reading of the
->> > string property in fwnode_mdiobus_child_is_phy works only with
->> > DT and cannot cope with 10G PHY nodes as in:
->> > https://pastebin.com/3JnYpU0A
->> >
->> > Above root cause will be further checked. In the meantime I will
->> > appreciate any comments or remarks for the kernel patches.
->> >
->>
->> Hi Marcin,
->>
->> I have added linux-acpi and Graeme to cc. I think it makes sense to
->> discuss the way you describe the device topology before looking at the
->> patches in more detail.
->>
->> In particular, I would like to request feedback on the use of
->> [redundant] 'reg' properties and the use of _DSD + compatible to
->> describe PHYs. Usually, we try to avoid this, given that it is
->> essentially a ACPI encapsulated DT dialect that is difficult to
->> support in drivers unless they are based on DT to begin with. Also,
->> non-standard _DSD properties require a vendor prefix, it is not
->> freeform.
->>
->> For reference, the ACPI description is here (starting at line 175)
->> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/72d5ac23b20dd74d479daa5e40ba443264b31261/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl
->>
-> So the representation of PHY's with _DSD was kind of formalised here
->
-> http://www.uefi.org/sites/default/files/resources/nic-request-v2.pdf
->
-> This is already in use in the kernel, and that DSDT seems to be along the same
-> lines. So seems ok in that manner.
->
-> The "reg", 0 property seems a little odd, it would probably make more
-> sense to check for the lack of ranges passed in in ACPI manner _CRS.
->
+--eJnRUKwClWJh1Khz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I already agreed with 'reg' being awkward in the later emails.
-Wouldn't _ADR be more appropriate to specify PHY address on MDIO bus?
+On Sun, Dec 31, 2017 at 08:23:54PM +0100, Andrew Lunn wrote:
+> > * Modify way of obtaining interrupts - with ACPI they are resources
+> >   bound to struct platform_device and it's not possible to obtain
+> >   them directly from the child node. Hence a formula is used, depending
+> >   on the port_id and number of possible CPUs.
+>=20
+> Hi Marcin
+>=20
+> I know nothing about ACPI. Is this limitation with respect to
+> interrupts fundamental to ACPI, or just that nobody has implemented
+> flexible interrupt support yet?
+>=20
+The infrastructure is there to traverse trees of children, but I don't
+think there any helper functions.
 
-Thanks,
-Marcin
+Graeme
+
+
+--eJnRUKwClWJh1Khz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEenb+qYJ1KjE/UpmZkGKawB22KXYFAlpMu3sACgkQkGKawB22
+KXYvsA/+JzcNOHYDlipDKaIyJ10NZBOW+hr/zlXFLUxTEw02iBLgPyEevnv0XU/b
+qzN/XI1d5OQcSUEh6sWaZGKxfQm9S33rQKqLt3QjpYoVoX7tlF6sxGdFWTedfOpx
+11AzzfEdtnBkZRGrR0az6qs1xYrTOG0ugUS11mZ3h/rOR6ezBUQCTwhwoKTkJk9Y
+Y0QS9sjFBzZVhT7uQqHNZwgn+BeNElV620UIPZfgGQ3hxF6ORxXDApmKwEgqmNre
+SWDH1TNHrcUNnjQoB2ydeuDn976kDl+u4iAiwO2Y5sstk657A8NjSt+uZy3XOwJj
+xHBMSuBKIw7rZ0prOziZbQE2BB+2Chlo0lmjOnXIx74nzx/OVPjaM/g4QvHGqVPI
+JLXkDz6Wwa16ZjwJcnXuWGepOyd3NFyIvUEV+6oX827qys7IIHUxeLpeaNiHfxWU
+tDpG6YgvwbwQKQImsVE9Te4GFz6G+q0ahKEHR0rxFFRDShTpxZSvk+SP/kveX4Wk
+PC/mxDOKLBh4fZcAvwGbGBRKml+JRv+ZqLjs+1VIx0qL1YsR1ghSmzLShDOez6C9
+5QubUI+nUSs/bRfHkAUDlaRsn2yvJhebc89pAszlh07XQl9t8onJg60xQbN76pz8
+vQc4u2wybORmPpL5itRmNFkMaqbn12lhgVt7v0GoK6ism0bHSP4=
+=7JoR
+-----END PGP SIGNATURE-----
+
+--eJnRUKwClWJh1Khz--
