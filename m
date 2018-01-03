@@ -1,108 +1,72 @@
-From: Ognjen Galic <smclt30p@gmail.com>
-Subject: [PATCH v12 4/4] battery: Add the ThinkPad "Not Charging" quirk
-Date: Wed, 3 Jan 2018 12:59:39 +0100
-Message-ID: <20180103115939.GA10155@thinkpad>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] misc: rtsx: release IRQ during shutdown
+Date: Wed, 3 Jan 2018 13:06:01 +0100
+Message-ID: <CAJZ5v0hYu-1O63omwGNCDUhzt6_TT2vPk7OxSSfJ06h1GWeWxA@mail.gmail.com>
+References: <1514925904-24001-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38809 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752387AbeACL7o (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:59:44 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1514925904-24001-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Lee Jones <lee.jones@linaro.org>, Timur Tabi <timur@codeaurora.org>, chris2553@googlemail.com, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-The EC/ACPI firmware on Lenovo ThinkPads used to report a status
-of "Unknown" when the battery is between the charge start and
-charge stop thresholds. On Windows, it reports "Not Charging"
-so the quirk has been added to also report correctly.
+On Tue, Jan 2, 2018 at 9:45 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> 'Commit cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during
+> shutdown")' revealed a resource leak in rtsx_pci driver during shutdown.
+>
+> Issue shows up as a warning during the shutdown step as follows:
+>
+> remove_proc_entry: removing non-empty directory 'irq/17', leaking at least
+> 'rtsx_pci'
+> WARNING: CPU: 0 PID: 1578 at fs/proc/generic.c:572
+> remove_proc_entry+0x11d/0x130
+> Modules linked in <long list but none that are out-of-tree>
+> ...
+> Call Trace:
+> unregister_irq_proc
+> free_desc
+> irq_free_descs
+> mp_unmap_irq
+> acpi_unregister_gsi_apic
+> acpi_pci_irq_disable
+> do_pci_disable_device
+> pci_disable_device
+> device_shutdown
+> kernel_restart
+> Sys_reboot
+>
+> Even though rtsx_pci driver implements a shutdown callback, it is not
+> releasing the interrupt that it registered during probe. This is causing
+> the ACPI layer to complain that the shared IRQ is in use while freeing
+> IRQ.
+>
+> This code releases the IRQ to prevent resource leak and eliminate the
+> warning.
+>
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198141
+> Reported-by: Chris Clayton <chris2553@googlemail.com>
+> Fixes: cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during shutdown")
+> Tested-by: Chris Clayton <chris2553@googlemail.com>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/mfd/rtsx_pcr.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/mfd/rtsx_pcr.c b/drivers/mfd/rtsx_pcr.c
+> index 590fb9a..bd504b6 100644
+> --- a/drivers/mfd/rtsx_pcr.c
+> +++ b/drivers/mfd/rtsx_pcr.c
+> @@ -1543,6 +1543,7 @@ static void rtsx_pci_shutdown(struct pci_dev *pcidev)
+>         rtsx_pci_power_off(pcr, HOST_ENTER_S1);
+>
+>         pci_disable_device(pcidev);
+> +       free_irq(pcr->irq, (void *)pcr);
 
-Now the "status" attribute returns "Not Charging" when the
-battery on ThinkPads is not physicaly charging.
+Do you need to disable MSI here too?
 
-Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
----
-
-Notes:
-    v7:
-    * Added all the style changes as suggested by Rafael
-    * Re-ordered the series to make this a post-implement
-    bugfix
-    
-    v8:
-    * No changes in this patch in v8
-    
-    v9:
-    * No changes in this patch in v9
-    
-    v10:
-    * No changes in this patch in v10
-    
-    v11:
-    * Fix formatting of changelog
-    
-    v12:
-    * No changes in this patch in v12
-
- drivers/acpi/battery.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 7089e31..279516e 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -74,6 +74,7 @@ static async_cookie_t async_cookie;
- static bool battery_driver_registered;
- static int battery_bix_broken_package;
- static int battery_notification_delay_ms;
-+static int battery_quirk_notcharging;
- static unsigned int cache_time = 1000;
- module_param(cache_time, uint, 0644);
- MODULE_PARM_DESC(cache_time, "cache time in milliseconds");
-@@ -225,6 +226,8 @@ static int acpi_battery_get_property(struct power_supply *psy,
- 			val->intval = POWER_SUPPLY_STATUS_CHARGING;
- 		else if (acpi_battery_is_charged(battery))
- 			val->intval = POWER_SUPPLY_STATUS_FULL;
-+		else if (battery_quirk_notcharging)
-+			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
- 		else
- 			val->intval = POWER_SUPPLY_STATUS_UNKNOWN;
- 		break;
-@@ -1309,6 +1312,12 @@ battery_notification_delay_quirk(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init battery_quirk_not_charging(const struct dmi_system_id *d)
-+{
-+	battery_quirk_notcharging = 1;
-+	return 0;
-+}
-+
- static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 	{
- 		.callback = battery_bix_broken_package_quirk,
-@@ -1326,6 +1335,19 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "Aspire V5-573G"),
- 		},
- 	},
-+	{
-+		/*
-+		 * On Lenovo ThinkPads the BIOS specification defines
-+		 * a state when the bits for charging and discharging
-+		 * are both set to 0. That state is "Not Charging".
-+		 */
-+		.callback = battery_quirk_not_charging,
-+		.ident = "Lenovo ThinkPad",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-+			DMI_MATCH(DMI_PRODUCT_VERSION, "ThinkPad"),
-+		},
-+	},
- 	{},
- };
- 
--- 
-2.7.4
-
+>  }
+>
+>  #else /* CONFIG_PM */
+> --
