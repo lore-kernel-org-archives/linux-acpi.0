@@ -1,64 +1,60 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 08/12] ACPICA: DT compiler: prevent error if optional field at the end of table is not present
-Date: Wed,  3 Jan 2018 15:06:27 -0800
-Message-ID: <20180103230631.15939-9-erik.schmauss@intel.com>
+Subject: [PATCH 07/12] ACPICA: Rename a global variable, no functional change
+Date: Wed,  3 Jan 2018 15:06:26 -0800
+Message-ID: <20180103230631.15939-8-erik.schmauss@intel.com>
 References: <erik.schmauss@intel.com>
  <20180103230631.15939-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:43368 "EHLO mga04.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:43375 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751192AbeACXHn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 Jan 2018 18:07:43 -0500
+        id S1751207AbeACXHm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Jan 2018 18:07:42 -0500
 In-Reply-To: <20180103230631.15939-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-ACPICA commit a7f73af9003bf4e730db5a133300c01ba7992a01
+From: Bob Moore <robert.moore@intel.com>
 
-The data table compiler throws under the following conditions:
-1.) there is a table with a last field that is optional
-2.) if the optional field is not present
-3.) the optional field is the last line of the data table
+ACPICA commit ab9c83985e8b2b25dc1c173b753280a8d04922b5
 
-A change was made to dt_compile_table to return an AE_EOF under these conditions.
-This AE_EOF means that we are at the end of the file. The caller to dt_compile_table
-is responsible for handling this case. For DBG2 table, we will complete the
-compilation of this subtable. For other tables, this could be different.
+Rename to add the standard prefix for globals.
 
-Link: https://github.com/acpica/acpica/commit/a7f73af9
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+Link: https://github.com/acpica/acpica/commit/ab9c8398
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- include/acpi/acexcep.h | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acglobal.h | 2 +-
+ drivers/acpi/acpica/psutils.c  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
-index e1f9fe47f69e..3c46f0ef5f7a 100644
---- a/include/acpi/acexcep.h
-+++ b/include/acpi/acexcep.h
-@@ -130,8 +130,9 @@ struct acpi_exception_info {
- #define AE_HEX_OVERFLOW                 EXCEP_ENV (0x0020)
- #define AE_DECIMAL_OVERFLOW             EXCEP_ENV (0x0021)
- #define AE_OCTAL_OVERFLOW               EXCEP_ENV (0x0022)
-+#define AE_END_OF_TABLE                 EXCEP_ENV (0x0023)
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 0c609f803ee1..45ef3f5dc9ad 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -245,7 +245,7 @@ ACPI_INIT_GLOBAL(union acpi_parse_object, *acpi_gbl_current_scope, NULL);
  
--#define AE_CODE_ENV_MAX                 0x0022
-+#define AE_CODE_ENV_MAX                 0x0023
+ /* ASL/ASL+ converter */
  
- /*
-  * Programmer exceptions
-@@ -275,7 +276,8 @@ static const struct acpi_exception_info acpi_gbl_exception_names_env[] = {
- 	EXCEP_TXT("AE_DECIMAL_OVERFLOW",
- 		  "Overflow during ASCII decimal-to-binary conversion"),
- 	EXCEP_TXT("AE_OCTAL_OVERFLOW",
--		  "Overflow during ASCII octal-to-binary conversion")
-+		  "Overflow during ASCII octal-to-binary conversion"),
-+	EXCEP_TXT("AE_END_OF_TABLE", "Reached the end of table")
- };
+-ACPI_INIT_GLOBAL(u8, gbl_capture_comments, FALSE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_capture_comments, FALSE);
+ ACPI_INIT_GLOBAL(struct acpi_comment_node, *acpi_gbl_last_list_head, NULL);
  
- static const struct acpi_exception_info acpi_gbl_exception_names_pgm[] = {
+ /*****************************************************************************
+diff --git a/drivers/acpi/acpica/psutils.c b/drivers/acpi/acpica/psutils.c
+index 8bd7d01039cc..cd59dfe6a47d 100644
+--- a/drivers/acpi/acpica/psutils.c
++++ b/drivers/acpi/acpica/psutils.c
+@@ -161,7 +161,7 @@ union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml)
+ 			acpi_gbl_current_scope = op;
+ 		}
+ 
+-		if (gbl_capture_comments) {
++		if (acpi_gbl_capture_comments) {
+ 			ASL_CV_TRANSFER_COMMENTS(op);
+ 		}
+ 	}
 -- 
 2.14.3
 
