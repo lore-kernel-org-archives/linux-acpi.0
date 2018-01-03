@@ -1,71 +1,120 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v11 3/5] thinkpad_acpi: Add support for battery thresholds
-Date: Wed, 03 Jan 2018 12:24:53 +0100
-Message-ID: <7475117.k4QWeGOQkJ@aspire.rjw.lan>
-References: <20171231141727.GA4643@thinkpad> <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com> <20180103103455.GA17803@thinkpad>
+Subject: Re: [net-next: PATCH v2 1/5] device property: Introduce fwnode_get_mac_address()
+Date: Wed, 03 Jan 2018 12:27:22 +0100
+Message-ID: <2588662.RyVCaj53xp@aspire.rjw.lan>
+References: <1514721520-18964-1-git-send-email-mw@semihalf.com> <1514721520-18964-2-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20180103103455.GA17803@thinkpad>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?ISO-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1514721520-18964-2-git-send-email-mw@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, ezequiel.garcia@free-electrons.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, January 3, 2018 11:34:55 AM CET Ognjen Galić wrote:
-> On Mon, Jan 01, 2018 at 12:24:39PM +0200, Andy Shevchenko wrote:
-> > On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> > > thinkpad_acpi registers two new attributes for each battery:
-> > >
-> > > 1) Charge start threshold
-> > > /sys/class/power_supply/BATN/charge_start_threshold
-> > >
-> > > Valid values are [0, 99]. A value of 0 turns off the
-> > > start threshold wear control.
-> > >
-> > > 2) Charge stop threshold
-> > > /sys/class/power_supply/BATN/charge_stop_threshold
-> > >
-> > > Valid values are [1, 100]. A value of 100 turns off
-> > > the stop threshold wear control. This must be
-> > > configured first.
-> > >
-> > 
-> > > This patch depends on the following patches:
-> > >
-> > > "battery: Add the battery hooking API"
-> > 
-> > Since this is series, no need to put above into changelog.
-> > 
-> > AFAICS it's not going to be backported either.
-> > 
-> > 
-> > > +/**
-> > > + * This evaluates a ACPI method call specific to the battery
-> > > + * ACPI extension. The specifics are that an error is marked
-> > > + * in the 32rd bit of the response, so we just check that here.
-> > > + *
-> > > + * Returns 0 on success
-> > > + */
-> > > +static int tpacpi_battery_acpi_eval(char *method, int *ret, int param)
-> > > +{
-> > 
-> > One problem and one trick you may do.
-> > 
-> > A problem: you return ACPI status as int. We have special type for
-> > that. So, be consistent with it.
-> > Looking to acpi_evalf() which is private to the module, I think you
-> > need to get rid of ACPI return codes here.
-> > 
-> > A trick: since you are using only least significant byte of the
-> > response, you can declare it as u8 *value (yeah, ret is not best name
-> > here I think).
+On Sunday, December 31, 2017 12:58:36 PM CET Marcin Wojtas wrote:
+> Until now there were two almost identical functions for
+> obtaining MAC address - of_get_mac_address() and, more generic,
+> device_get_mac_address(). However it is not uncommon,
+> that the network interface is represented as a child
+> of the actual controller, hence it is not associated
+> directly to any struct device, required by the latter
+> routine.
 > 
-> Not really. In one place I need bit #9, so that will stay a int.
-> I have changed the acpi return value to acpi_status tho.
+> This commit allows for getting the MAC address for
+> children nodes in the ACPI world by introducing a new function -
+> fwnode_get_mac_address(). This commit also changes
+> device_get_mac_address() routine to be its wrapper, in order
+> to prevent unnecessary duplication.
+> 
+> Signed-off-by: Marcin Wojtas <mw@semihalf.com>
 
-OK, you can resend the updated series when you're ready.
+The changes look reasonable to me, so
 
-Thanks,
-Rafael
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  drivers/base/property.c  | 28 ++++++++++++++------
+>  include/linux/property.h |  2 ++
+>  2 files changed, 22 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 851b1b6..f261d1a 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -1153,11 +1153,11 @@ int device_get_phy_mode(struct device *dev)
+>  }
+>  EXPORT_SYMBOL_GPL(device_get_phy_mode);
+>  
+> -static void *device_get_mac_addr(struct device *dev,
+> +static void *fwnode_get_mac_addr(struct fwnode_handle *fwnode,
+>  				 const char *name, char *addr,
+>  				 int alen)
+>  {
+> -	int ret = device_property_read_u8_array(dev, name, addr, alen);
+> +	int ret = fwnode_property_read_u8_array(fwnode, name, addr, alen);
+>  
+>  	if (ret == 0 && alen == ETH_ALEN && is_valid_ether_addr(addr))
+>  		return addr;
+> @@ -1165,8 +1165,8 @@ static void *device_get_mac_addr(struct device *dev,
+>  }
+>  
+>  /**
+> - * device_get_mac_address - Get the MAC for a given device
+> - * @dev:	Pointer to the device
+> + * fwnode_get_mac_address - Get the MAC from the firmware node
+> + * @fwnode:	Pointer to the firmware node
+>   * @addr:	Address of buffer to store the MAC in
+>   * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
+>   *
+> @@ -1187,19 +1187,31 @@ static void *device_get_mac_addr(struct device *dev,
+>   * In this case, the real MAC is in 'local-mac-address', and 'mac-address'
+>   * exists but is all zeros.
+>  */
+> -void *device_get_mac_address(struct device *dev, char *addr, int alen)
+> +void *fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr, int alen)
+>  {
+>  	char *res;
+>  
+> -	res = device_get_mac_addr(dev, "mac-address", addr, alen);
+> +	res = fwnode_get_mac_addr(fwnode, "mac-address", addr, alen);
+>  	if (res)
+>  		return res;
+>  
+> -	res = device_get_mac_addr(dev, "local-mac-address", addr, alen);
+> +	res = fwnode_get_mac_addr(fwnode, "local-mac-address", addr, alen);
+>  	if (res)
+>  		return res;
+>  
+> -	return device_get_mac_addr(dev, "address", addr, alen);
+> +	return fwnode_get_mac_addr(fwnode, "address", addr, alen);
+> +}
+> +EXPORT_SYMBOL(fwnode_get_mac_address);
+> +
+> +/**
+> + * device_get_mac_address - Get the MAC for a given device
+> + * @dev:	Pointer to the device
+> + * @addr:	Address of buffer to store the MAC in
+> + * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
+> + */
+> +void *device_get_mac_address(struct device *dev, char *addr, int alen)
+> +{
+> +	return fwnode_get_mac_address(dev_fwnode(dev), addr, alen);
+>  }
+>  EXPORT_SYMBOL(device_get_mac_address);
+>  
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index f6189a3..35620e0 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -279,6 +279,8 @@ int device_get_phy_mode(struct device *dev);
+>  
+>  void *device_get_mac_address(struct device *dev, char *addr, int alen);
+>  
+> +void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
+> +			     char *addr, int alen);
+>  struct fwnode_handle *fwnode_graph_get_next_endpoint(
+>  	const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+>  struct fwnode_handle *
+> 
