@@ -1,174 +1,236 @@
-From: <vkilari@codeaurora.org>
-Subject: RE: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
-Date: Wed, 3 Jan 2018 14:19:25 +0530
-Message-ID: <019601d3846f$c8708550$59518ff0$@codeaurora.org>
-References: <20171201222330.18863-1-jeremy.linton@arm.com> <20171201222330.18863-7-jeremy.linton@arm.com> <9009154.M66RGdQJXA@aspire.rjw.lan> <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com> <20171213173851.GA4060@red-moon> <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com> <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com> <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
+From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+Subject: Re: [PATCH v11 3/5] thinkpad_acpi: Add support for battery thresholds
+Date: Wed, 3 Jan 2018 11:34:55 +0100
+Message-ID: <20180103103455.GA17803@thinkpad>
+References: <20171231141727.GA4643@thinkpad>
+ <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-        charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:59118 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751151AbeACItv (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 03:49:51 -0500
-In-Reply-To: <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
-Content-Language: en-us
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:45149 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750861AbeACKfB (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 05:35:01 -0500
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: 'Jeremy Linton' <jeremy.linton@arm.com>
-Cc: 'Mark Rutland' <mark.rutland@arm.com>, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>, 'Catalin Marinas' <catalin.marinas@arm.com>, jhugo@codeaurora.org, 'Will Deacon' <will.deacon@arm.com>, 'Linux PM' <linux-pm@vger.kernel.org>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>, 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>, 'ACPI Devel Maling List' <linux-acpi@vger.kernel.org>, 'Viresh Kumar' <viresh.kumar@linaro.org>, 'Hanjun Guo' <hanjun.guo@linaro.org>, 'Al Stone' <ahs3@redhat.com>, 'Sudeep Holla' <sudeep.holla@arm.com>, austinwc@codeaurora.org, wangxiongfeng2@huawei.com, "'Rafael J. Wysocki'" <rafael@kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-Hi Jeremy,
-
- Sorry, I don't have your previous patch emails to reply on right patch
-context.
-So commenting on top of this patch.
-
-AFAIU, the PPTT v5 patches still rely on CLIDR_EL1 register to know the type
-of 
-Caches enabled/available on the platform. With PPTT, it should not rely on
-architecture
-registers. There can be platforms which can report cache availability in
-PPTT but not in 
-architecture registers.
-
-The following code snippet shows usage of CLIDR_EL1
-
-In arch/arm64/kernel/cacheinfo.c
-
-static inline enum cache_type get_cache_type(int level)
-{
-         u64 clidr;
- 
-         if (level > MAX_CACHE_LEVEL)
-                 return CACHE_TYPE_NOCACHE;
-         clidr = read_sysreg(clidr_el1);
-         return CLIDR_CTYPE(clidr, level);
-}
-
-static int __populate_cache_leaves(unsigned int cpu)
-{
-          unsigned int level, idx;
-          enum cache_type type;
-          struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
-          struct cacheinfo *this_leaf = this_cpu_ci->info_list;
-  
-          for (idx = 0, level = 1; level <= this_cpu_ci->num_levels &&
-               idx < this_cpu_ci->num_leaves; idx++, level++) {
-                  type = get_cache_type(level);
-                  if (type == CACHE_TYPE_SEPARATE) {
-                          ci_leaf_init(this_leaf++, CACHE_TYPE_DATA, level);
-                          ci_leaf_init(this_leaf++, CACHE_TYPE_INST, level);
-                  } else {
-                          ci_leaf_init(this_leaf++, type, level);
-                  }
-         }
-          return 0;
- }
-
-In populate_cache_leaves() the cache type is read from CLIDR_EL1 register.
-If CLIDR_EL1 reports CACHE_TYPE_NOCACHE for a particular level then sysfs
-entry
-/sys/devices/system/cpu/cpu0/index<n>/type is not created and hence
-userspace tools
-like lstopo will not report this cache level.
-
-Regards
-Vijay
-
-> -----Original Message-----
-> From: linux-arm-kernel
-[mailto:linux-arm-kernel-bounces@lists.infradead.org]
-> On Behalf Of Rafael J. Wysocki
-> Sent: Thursday, December 14, 2017 4:40 AM
-> To: Jeremy Linton <jeremy.linton@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>; Jonathan.Zhang@cavium.com;
-> Jayachandran.Nair@cavium.com; Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com>; Catalin Marinas <catalin.marinas@arm.com>;
-> Rafael J. Wysocki <rafael@kernel.org>; jhugo@codeaurora.org; Will Deacon
-> <will.deacon@arm.com>; Linux PM <linux-pm@vger.kernel.org>; Rafael J.
-> Wysocki <rjw@rjwysocki.net>; Greg Kroah-Hartman
-> <gregkh@linuxfoundation.org>; Linux Kernel Mailing List <linux-
-> kernel@vger.kernel.org>; ACPI Devel Maling List
-<linux-acpi@vger.kernel.org>;
-> Viresh Kumar <viresh.kumar@linaro.org>; Hanjun Guo
-> <hanjun.guo@linaro.org>; Al Stone <ahs3@redhat.com>; Sudeep Holla
-> <sudeep.holla@arm.com>; austinwc@codeaurora.org;
-> wangxiongfeng2@huawei.com; linux-arm-kernel@lists.infradead.org; Len
-> Brown <lenb@kernel.org>
-> Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+On Mon, Jan 01, 2018 at 12:24:39PM +0200, Andy Shevchenko wrote:
+> On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> > thinkpad_acpi registers two new attributes for each battery:
+> >
+> > 1) Charge start threshold
+> > /sys/class/power_supply/BATN/charge_start_threshold
+> >
+> > Valid values are [0, 99]. A value of 0 turns off the
+> > start threshold wear control.
+> >
+> > 2) Charge stop threshold
+> > /sys/class/power_supply/BATN/charge_stop_threshold
+> >
+> > Valid values are [1, 100]. A value of 100 turns off
+> > the stop threshold wear control. This must be
+> > configured first.
+> >
 > 
-> On Thu, Dec 14, 2017 at 12:06 AM, Jeremy Linton <jeremy.linton@arm.com>
-> wrote:
-> > Hi,
+> > This patch depends on the following patches:
 > >
-> >
-> > On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
-> >>
-> >> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
-> >> <lorenzo.pieralisi@arm.com> wrote:
-> >>>
-> >>> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
-> >>>>
-> >>>> Hi,
-> >>>>
-> >>>> First, thanks for taking a look at this.
-> >>>>
-> >>>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
-> >>>>>
-> >>>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
-> >>>>>>
-> >>>>>> The PPTT can be used to determine the groupings of CPU's at given
-> >>>>>> levels in the system. Lets add a few routines to the PPTT parsing
-> >>>>>> code to return a unique id for each unique level in the processor
-> >>>>>> hierarchy. This can then be matched to build
-> >>>>>> thread/core/cluster/die/package/etc mappings for each processing
-> >>>>>> element in the system.
-> >>>>>>
-> >>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> >>>>>
-> >>>>>
-> >>>>> Why can't this be folded into patch [2/9]?
-> >>>>
-> >>>>
-> >>>> It can, and I will be happy squash it.
-> >>>>
-> >>>> It was requested that the topology portion of the parser be split
-> >>>> out back in v3.
-> >>>>
-> >>>> https://www.spinics.net/lists/linux-acpi/msg78487.html
-> >>>
-> >>>
-> >>> I asked to split cache/topology since I am not familiar with cache
-> >>> code and Sudeep - who looks after the cache code - won't be able to
-> >>> review this series in time for v4.16.
-> >>
-> >>
-> >> OK, so why do we need it in 4.16?
-> >
-> >
-> > I think its more case of as soon as possible. That is because there
-> > are machines where the topology is completely incorrect due to
-> > assumptions the kernel makes based on registers that aren't defined
-> > for that purpose (say describing which cores are in a physical socket,
-> > or LLC's attached to interconnects or memory controllers).
-> >
-> > This incorrect topology information is reported to things like the
-> > kernel scheduler, which then makes poor scheduling decisions resulting
-> > in sub-optimal system performance.
-> >
-> > This patchset (and ACPI 6.2) clears up a lot of those problems.
+> > "battery: Add the battery hooking API"
 > 
-> As long as the ACPI tables are as expected that is, I suppose?
+> Since this is series, no need to put above into changelog.
 > 
-> Anyway, fair enough, but I don't want to rush it in.
+> AFAICS it's not going to be backported either.
 > 
-> Thanks,
-> Rafael
 > 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> > +/**
+> > + * This evaluates a ACPI method call specific to the battery
+> > + * ACPI extension. The specifics are that an error is marked
+> > + * in the 32rd bit of the response, so we just check that here.
+> > + *
+> > + * Returns 0 on success
+> > + */
+> > +static int tpacpi_battery_acpi_eval(char *method, int *ret, int param)
+> > +{
+> 
+> One problem and one trick you may do.
+> 
+> A problem: you return ACPI status as int. We have special type for
+> that. So, be consistent with it.
+> Looking to acpi_evalf() which is private to the module, I think you
+> need to get rid of ACPI return codes here.
+> 
+> A trick: since you are using only least significant byte of the
+> response, you can declare it as u8 *value (yeah, ret is not best name
+> here I think).
 
+Not really. In one place I need bit #9, so that will stay a int.
+I have changed the acpi return value to acpi_status tho.
+
+> 
+> So, something like
+> 
+> ..._eval(..., u8 *value, ...)
+> {
+>   int response;
+> 
+>   if (!..._evalf(..., &response, ...)) {
+>   ...
+> 
+> > +       if (!acpi_evalf(hkey_handle, ret, method, "dd", param)) {
+> > +               acpi_handle_err(hkey_handle, "%s: evaluate failed", method);
+> > +               return AE_ERROR;
+> > +       }
+> > +
+> > +       if (*ret & METHOD_ERR) {
+> 
+> if (response & ...) {
+> 
+> > +               acpi_handle_err(hkey_handle,
+> > +                               "%s evaluated but flagged as error", method);
+> > +               return AE_ERROR;
+> > +       }
+> 
+> *value = response;
+> 
+> > +
+> > +       return AE_OK;
+> > +}
+> 
+> > +static int tpacpi_battery_get(int what, int battery, int *ret)
+> > +{
+> > +       switch (what) {
+> > +
+> > +       case THRESHOLD_START:
+> > +
+> > +               if (tpacpi_battery_acpi_eval(GET_START, ret, battery))
+> > +                       return -ENODEV;
+> > +
+> 
+> > +               /* The value is in the low 8 bits of the response */
+> > +               *ret = *ret & 0xFF;
+> 
+> So, this will gone with a trick above.
+> 
+> > +               return 0;
+> > +
+> > +       case THRESHOLD_STOP:
+> > +
+> > +               if (tpacpi_battery_acpi_eval(GET_STOP, ret, battery))
+> > +                       return -ENODEV;
+> > +
+> > +               /* Value is in lower 8 bits */
+> > +               *ret = *ret & 0xFF;
+> 
+> Ditto.
+> 
+> > +
+> > +               /*
+> > +                * On the stop value, if we return 0 that
+> > +                * does not make any sense. 0 means Default, which
+> > +                * means that charging stops at 100%, so we return
+> > +                * that.
+> > +                */
+> > +               if (*ret == 0)
+> > +                       *ret = 100;
+> > +
+> > +               return 0;
+> > +
+> > +       default:
+> > +               pr_crit("wrong parameter: %d", what);
+> > +               return -EINVAL;
+> > +       }
+> > +
+> > +}
+> 
+> > +static int tpacpi_battery_probe(int battery)
+> > +{
+> > +       int ret = 0;
+> > +
+> > +       memset(&battery_info, 0, sizeof(struct tpacpi_battery_driver_data));
+> > +
+> > +       /*
+> > +        * 1) Get the current start threshold
+> > +        * 2) Check for support
+> > +        * 3) Get the current stop threshold
+> > +        * 4) Check for support
+> > +        */
+> > +
+> > +       if (acpi_has_method(hkey_handle, GET_START)) {
+> > +
+> > +               if (tpacpi_battery_acpi_eval(GET_START, &ret, battery)) {
+> > +                       pr_err("Error probing battery %d\n", battery);
+> > +                       return -ENODEV;
+> > +               }
+> > +
+> > +               /* Individual addressing is in bit 9 */
+> > +               if (ret & BIT(9))
+> > +                       battery_info.individual_addressing = true;
+> > +
+> > +               /* Support is marked in bit 8 */
+> > +               if (ret & BIT(8))
+> > +                       battery_info.batteries[battery].start_support = 1;
+> > +               else
+> > +                       return -ENODEV;
+> > +
+> > +               if (tpacpi_battery_get(THRESHOLD_START, battery,
+> > +                       &battery_info.batteries[battery].charge_start)) {
+> > +                       pr_err("Error probing battery %d\n", battery);
+> > +                       return -ENODEV;
+> > +               }
+> 
+> > +
+> 
+> Please, get rid of all useless empty lines like this one, or above (in
+> between of two if:s).
+> 
+> > +       }
+> 
+> > +/* General helper functions */
+> > +
+> > +static int tpacpi_battery_get_id(const char *battery_name)
+> > +{
+> > +
+> > +       if (strcmp(battery_name, "BAT0") == 0)
+> > +               return BAT_PRIMARY;
+> > +       if (strcmp(battery_name, "BAT1") == 0)
+> > +               return BAT_SECONDARY;
+> > +
+> > +       /*
+> > +        * If for some reason the battery is not BAT0 nor is it
+> > +        * BAT1, we will assume it's the default, first battery,
+> > +        * AKA primary.
+> > +        */
+> > +       pr_warn("unknown battery %s, assuming primary", battery_name);
+> > +       return BAT_PRIMARY;
+> > +}
+> > +
+> > +/* sysfs interface */
+> > +
+> > +static ssize_t tpacpi_battery_store(int what,
+> > +                                   struct device *dev,
+> > +                                   const char *buf, size_t count)
+> > +{
+> > +       struct power_supply *supply = to_power_supply(dev);
+> > +       unsigned long value;
+> > +       int battery, errno;
+> 
+> > +       errno = kstrtoul(buf, 10, &value);
+> 
+> > +
+> 
+> Dont' split lines like these where one returns some error code
+> followed by conditional check.
+> 
+> > +       if (errno)
+> 
+> > +               return errno;
+> 
+> Besides, errno is a bad name, please consider what is used elsewhere
+> in this module (rc, ret, rval, ...?).
+> 
+> -- 
+> With Best Regards,
+> Andy Shevchenko
