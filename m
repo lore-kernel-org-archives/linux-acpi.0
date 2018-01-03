@@ -1,141 +1,122 @@
-From: Jonathan McDowell <noodles@earth.li>
-Subject: Re: ACPI issues on cold power on [bisected]
-Date: Wed, 3 Jan 2018 10:38:12 +0000
-Message-ID: <20180103103812.klxncszqtq3lj3rr@earth.li>
-References: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
- <20171222002108.GB1729@js1304-P5Q-DELUXE>
- <20171229163659.c5ccfvww4ebvyz54@earth.li>
- <20180102025417.GA20740@js1304-P5Q-DELUXE>
- <CAJZ5v0hSkEvmcubFzW03COW0f1TwB6W1d7vwJoF9qpJJ6Jc5JQ@mail.gmail.com>
- <20180103021129.GB26517@js1304-P5Q-DELUXE>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Wed, 3 Jan 2018 11:00:48 +0000
+Message-ID: <20180103110048.GA21230@xora-haswell>
+References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
+ <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="opJtzjQTFsWo+cga"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34284 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751336AbeACLAx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:00:53 -0500
+Received: by mail-wm0-f65.google.com with SMTP id y82so19701429wmg.1
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Jan 2018 03:00:53 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <20180103021129.GB26517@js1304-P5Q-DELUXE>
-Sender: owner-linux-mm@kvack.org
-To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, netdev@vger.kernel.org
+In-Reply-To: <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Marcin Wojtas <mw@semihalf.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Antoine =?iso-8859-1?Q?T=E9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, ezequiel.garcia@free-electrons.com, Nadav Haklai <nadavh@marvell.com>, Neta
 
-On Wed, Jan 03, 2018 at 11:11:29AM +0900, Joonsoo Kim wrote:
-> On Tue, Jan 02, 2018 at 11:25:01AM +0100, Rafael J. Wysocki wrote:
-> > On Tue, Jan 2, 2018 at 3:54 AM, Joonsoo Kim <iamjoonsoo.kim@lge.com> wrote:
-> > > On Fri, Dec 29, 2017 at 04:36:59PM +0000, Jonathan McDowell wrote:
-> > >> On Fri, Dec 22, 2017 at 09:21:09AM +0900, Joonsoo Kim wrote:
-> > >> > On Fri, Dec 08, 2017 at 03:11:59PM +0000, Jonathan McDowell wrote:
-> > >> > > I've been sitting on this for a while and should have spent time to
-> > >> > > investigate sooner, but it's been an odd failure mode that wasn't quite
-> > >> > > obvious.
-> > >> > >
-> > >> > > In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
-> > >> > > don't see anything after grub says its booting. In 4.10 onwards the
-> > >> > > laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
-> > >> > > (no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
-> > >> > > taken from 4.12 as that's the most recent error dmesg I have saved but
-> > >> > > also seen back in 4.10. It's always address 0x30 for the dereference.
-> > >> > >
-> > >> > > Rebooting the laptop does not lead to these problems; it's *only* from a
-> > >> > > complete cold boot that they arise (which didn't help me in terms of
-> > >> > > being able to reliably bisect). Once I realised that I was able to
-> > >> > > bisect, but it leads me to an odd commit:
-> > >> > >
-> > >> > > 86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
-> > >> > > (mm/slab: fix kmemcg cache creation delayed issue)
-> > >> > >
-> > >> > > If I revert this then I can cold boot without problems.
-> > >> > >
-> > >> > > Also I don't see the problem with a stock Debian kernel, I think because
-> > >> > > the ACPI support is modularised.
-> > >> >
-> > >> > Sorry for late response. I was on a long vacation.
-> > >>
-> > >> No problem. I've been trying to get around to diagnosing this for a
-> > >> while now anyway and this isn't a great time of year for fast responses.
-> > >>
-> > >> > I have tried to solve the problem however I don't find any clue yet.
-> > >> >
-> > >> > >From my analysis, oops report shows that 'struct sock *ssk' passed to
-> > >> > netlink_broadcast_filtered() is NULL. It means that some of
-> > >> > netlink_kernel_create() returns NULL. Maybe, it is due to slab
-> > >> > allocation failure. Could you check it by inserting some log on that
-> > >> > part? The issue cannot be reproducible in my side so I need your help.
-> > >>
-> > >> I've added some debug in acpi_bus_generate_netlink_event +
-> > >> genlmsg_multicast and the problem seems to be that genlmsg_multicast is
-> > >> getting called when init_net.genl_sock has not yet been initialised,
-> > >> leading to the NULL deference.
-> > >>
-> > >> Full dmesg output from a cold 4.14.8 boot at:
-> > >>
-> > >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-broken
-> > >>
-> > >> And the same kernel after a reboot ("shutdown -r now"):
-> > >>
-> > >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-working
-> > >>
-> > >> Patch that I've applied is at
-> > >>
-> > >> https://the.earth.li/~noodles/acpi-problem/debug-acpi.diff
-> > >>
-> > >
-> > > Thanks for testing! It's very helpful.
-> > >
-> > >> The interesting difference seems to be:
-> > >>
-> > >>  PCI: Using ACPI for IRQ routing
-> > >> +ACPI: Generating event type 208 (:9DBB5994-A997-11DA-B012-B622A1EF5492)
-> > >> +ERROR: init_net.genl_sock is NULL
-> > >> +BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-> > >> +IP: netlink_broadcast_filtered+0x20/0x3d0
-> > >> +PGD 0 P4D 0
-> > >> +Oops: 0000 [#1] SMP
-> > >> +Modules linked in:
-> > >> +CPU: 0 PID: 29 Comm: kworker/0:1 Not tainted 4.14.8+ #1
-> > >> +Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A22 10/18/2017
-> > >> +Workqueue: kacpi_notify acpi_os_execute_deferred
-> > >>
-> > >> 9DBB5994-A997-11DA-B012-B622A1EF5492 is the Dell WMI event GUID and
-> > >> there's no visible event for it on a reboot, just on a cold power on.
-> > >> Some sort of ordering issues such that genl_sock is being initialised
-> > >> later with the slab change?
-> > >
-> > > I have checked that there is an ordering issue.
-> > >
-> > > genl_init() which initializes init_net->genl_sock is called on
-> > > subsys_initcall().
-> > >
-> > > acpi_wmi_init() which schedules acpi_wmi_notify_handler() to the
-> > > workqueue is called on subsys_initcall(), too.
-> > > (acpi_wmi_notify_handler() -> acpi_bus_generate_netlink_event() ->
-> > > netlink_broadcast())
-> > >
-> > > In my system, acpi_wmi_init() is called before the genl_init().
-> > > Therefore, if the worker is scheduled before genl_init() is done, NULL
-> > > derefence would happen.
-> > 
-> > Does it help to change the subsys_initcall() in wmi.c to subsys_initcall_sync()?
-> 
-> I guess that it would work. I cannot reproduce the issue so it needs
-> to be checked by Jonathan. Jonathan, could you check the problem
-> is disappeared with above change?
 
-I have confirmed that the problem also occurs when using SLUB instead of
-SLAB, and that switching drivers/platform/x86/wmi.c to use
-subsys_initcall_sync() instead of subsys_initcall() fixes the problem
-for both. Weirdly I don't see the ACPI 208 event at boot time being
-raised once that patch is in place.
+--opJtzjQTFsWo+cga
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-J.
+On Mon, Dec 18, 2017 at 10:40:31AM +0100, Ard Biesheuvel wrote:
+> On 18 December 2017 at 10:17, Marcin Wojtas <mw@semihalf.com> wrote:
+> > Hi,
+> >
+> > This patchset introduces ACPI support in mvpp2 and mvmdio drivers.
+> > First three patches introduce fwnode helpers for obtaining PHY
+> > information from nodes and also MDIO fwnode API for registering
+> > the bus with its PHY/devices.
+> >
+> > Following patches update code of the mvmdio and mvpp2 drivers
+> > to support ACPI tables handling. The latter is done in 4 steps,
+> > as can be seen in the commits. For the details, please
+> > refer to the commit messages.
+> >
+> > Drivers operation was tested on top of the net-next branch
+> > with both DT and ACPI. Although for compatibility reasons
+> > with older platforms, the mvmdio driver keeps using
+> > of_ MDIO registering, new fwnode_ one proved to fully work
+> > with DT as well (tested on MacchiatoBin board).
+> >
+> > mvpp2/mvmdio driver can work with the ACPI representation, as exposed
+> > on a public branch:
+> > https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits=
+/marvell-armada-wip
+> > It was compiled together with the most recent Tianocore EDK2 revision.
+> > Please refer to the firmware build instruction on MacchiatoBin board:
+> > http://wiki.macchiatobin.net/tiki-index.php?page=3DBuild+from+source+-+=
+UEFI+EDK+II
+> >
+> > Above support configures 1G to use its PHY normally. 10G can work now
+> > only with the link interrupt mode. Somehow reading of the
+> > string property in fwnode_mdiobus_child_is_phy works only with
+> > DT and cannot cope with 10G PHY nodes as in:
+> > https://pastebin.com/3JnYpU0A
+> >
+> > Above root cause will be further checked. In the meantime I will
+> > appreciate any comments or remarks for the kernel patches.
+> >
+>=20
+> Hi Marcin,
+>=20
+> I have added linux-acpi and Graeme to cc. I think it makes sense to
+> discuss the way you describe the device topology before looking at the
+> patches in more detail.
+>=20
+> In particular, I would like to request feedback on the use of
+> [redundant] 'reg' properties and the use of _DSD + compatible to
+> describe PHYs. Usually, we try to avoid this, given that it is
+> essentially a ACPI encapsulated DT dialect that is difficult to
+> support in drivers unless they are based on DT to begin with. Also,
+> non-standard _DSD properties require a vendor prefix, it is not
+> freeform.
+>=20
+> For reference, the ACPI description is here (starting at line 175)
+> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/72d5=
+ac23b20dd74d479daa5e40ba443264b31261/Platforms/Marvell/Armada/AcpiTables/Ar=
+mada80x0McBin/Dsdt.asl
+>=20
+So the representation of PHY's with _DSD was kind of formalised here
 
--- 
-] https://www.earth.li/~noodles/ [] Synonym: word used when you can't  [
-]  PGP/GPG Key @ the.earth.li    []       spell the one you want       [
-] via keyserver, web or email.   []                                    [
-] RSA: 4096/0x94FA372B2DA8B985   []                                    [
+http://www.uefi.org/sites/default/files/resources/nic-request-v2.pdf
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This is already in use in the kernel, and that DSDT seems to be along the s=
+ame
+lines. So seems ok in that manner.
+
+The "reg", 0 property seems a little odd, it would probably make more
+sense to check for the lack of ranges passed in in ACPI manner _CRS.
+
+Graeme
+
+
+--opJtzjQTFsWo+cga
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEenb+qYJ1KjE/UpmZkGKawB22KXYFAlpMt8kACgkQkGKawB22
+KXa1nw/+OTGt355Z/pmZ1DMtMkM9CQ4A41tso9bzrnv/JEBIRnxAwBYPl5pK07bC
+MHJ3RluxvDcJUOPqae3jR4fwW/dvEdyyVwUvsLB5mNM/KtjbLI7mY5R13OSCCnSh
+n9wlwcpNBsjbaGOWHZ4HB4qfnK687mtLWzQt61KFFJeemzS22v3w7+H/ZRz8epEW
+IXJrRxn7nYQ5nFe7wYzAlihLEB0t5ZEbEXfOmKltuaML0dFKO3YDr3J/jc0G4Ixu
+FshF414Htp+fn2pwwjtKQnXsB+r4+VOsVWCLVGCIPZUlFhyvJanHckl3/hQ1alVn
++eL4FsJ+o59Q07+5u3MsDHEpPXLy8Znjc+OkuJ47fuqTpzz9KKQ4g5/J7t6fFLX5
+9QMy0B798ndO1WEl0BgO/XFsGnSEyX2Z610Jgc6psHFRfLw5C+y+XPCl7Q8U9SIA
+vrjBFaNnJHB9q5JQ0/C0P9iS3B3I8oPWqhELysbKRWmuW2HNmvAF2wWYSbifPA7g
+OWSbc+Dyc2B+geyevJ3ZogTcbjLjy/QpRUKkdqosKRkjEJF0pAAGrj0f2296W/H3
+IP5UVd/kCLMifjSyXmJtE7/M/Va7P3ZUt5ayeZdFdmaMcq9ZspD4NqVpsoS8wjvU
+gJA6gC3jdEKRNJCsA26x+xS5bgvvAy8tByWCQms7c9Ogrbfl970=
+=DJdY
+-----END PGP SIGNATURE-----
+
+--opJtzjQTFsWo+cga--
