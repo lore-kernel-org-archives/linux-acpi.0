@@ -1,59 +1,92 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 00/12] ACPICA 20171215
-Date: Wed,  3 Jan 2018 15:06:19 -0800
-Message-ID: <20180103230631.15939-1-erik.schmauss@intel.com>
+Subject: [PATCH 02/12] ACPICA: Update for a few debug output statements
+Date: Wed,  3 Jan 2018 15:06:21 -0800
+Message-ID: <20180103230631.15939-3-erik.schmauss@intel.com>
 References: <erik.schmauss@intel.com>
+ <20180103230631.15939-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:43368 "EHLO mga04.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:43375 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751014AbeACXHi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 Jan 2018 18:07:38 -0500
-In-Reply-To: <erik.schmauss@intel.com>
+        id S1751134AbeACXHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Jan 2018 18:07:41 -0500
+In-Reply-To: <20180103230631.15939-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Erik Schmauss <erik.schmauss@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-The following are the linuxized patches for ACPICA version 20171215
+From: Bob Moore <robert.moore@intel.com>
 
-Bob Moore (8):
-  ACPICA: Debug output, no functional change
-  ACPICA: Update for a few debug output statements
-  ACPICA: Fix a regression in the acpi_evaluate_object_type interface
-  ACPICA: Cleanup the global variables and update comments. No
-    functional change
-  ACPICA: Create and deploy safe version of strncpy. No functional
-    change
-  ACPICA: Rename a global variable, no functional change
-  ACPICA: Fix a couple memory leaks during package object resolution
-  ACPICA: Update version to 20171215
+ACPICA commit 900e96a9c6c6d67c2e18e8c2576dc4742221fc71
 
-Erik Schmauss (3):
-  ACPICA: Debugger: fix slight indentation issue
-  ACPICA: DT compiler: prevent error if optional field at the end of
-    table is not present
-  ACPICA: trivial style fix, no functional change
+Implement a very small indent for trace output.
 
-Mario Limonciello (1):
-  ACPICA: Recognize the Windows 10 version 1607 and 1703 OSI strings
+Link: https://github.com/acpica/acpica/commit/900e96a9
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+---
+ drivers/acpi/acpica/exdump.c  |  4 ++--
+ drivers/acpi/acpica/utdebug.c | 16 ++++++++++++++--
+ 2 files changed, 16 insertions(+), 4 deletions(-)
 
- drivers/acpi/acpica/acglobal.h  | 82 ++++++++++++++---------------------------
- drivers/acpi/acpica/acutils.h   |  2 +
- drivers/acpi/acpica/dbfileio.c  |  4 +-
- drivers/acpi/acpica/dspkginit.c | 21 +++++++----
- drivers/acpi/acpica/exdump.c    | 11 +++---
- drivers/acpi/acpica/hwvalid.c   | 14 +++----
- drivers/acpi/acpica/nsxfeval.c  |  9 +++--
- drivers/acpi/acpica/psutils.c   | 10 +++--
- drivers/acpi/acpica/utdebug.c   | 18 ++++++++-
- drivers/acpi/acpica/utnonansi.c |  9 +++++
- drivers/acpi/acpica/utosi.c     |  2 +
- drivers/acpi/acpica/uttrack.c   |  4 +-
- include/acpi/acexcep.h          |  6 ++-
- include/acpi/acpixf.h           |  2 +-
- include/acpi/actypes.h          |  2 +
- 15 files changed, 104 insertions(+), 92 deletions(-)
-
+diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
+index 83398dc4b7c2..ccdd2a417aa1 100644
+--- a/drivers/acpi/acpica/exdump.c
++++ b/drivers/acpi/acpica/exdump.c
+@@ -904,7 +904,7 @@ void
+ acpi_ex_dump_operands(union acpi_operand_object **operands,
+ 		      const char *opcode_name, u32 num_operands)
+ {
+-	ACPI_FUNCTION_NAME(ex_dump_operands);
++	ACPI_FUNCTION_TRACE(ex_dump_operands);
+ 
+ 	if (!opcode_name) {
+ 		opcode_name = "UNKNOWN";
+@@ -928,7 +928,7 @@ acpi_ex_dump_operands(union acpi_operand_object **operands,
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+ 			  "**** End operand dump for [%s]\n", opcode_name));
+-	return;
++	return_VOID;
+ }
+ 
+ /*******************************************************************************
+diff --git a/drivers/acpi/acpica/utdebug.c b/drivers/acpi/acpica/utdebug.c
+index 615a885e2ca3..77d8c9054b8e 100644
+--- a/drivers/acpi/acpica/utdebug.c
++++ b/drivers/acpi/acpica/utdebug.c
+@@ -163,6 +163,7 @@ acpi_debug_print(u32 requested_debug_level,
+ {
+ 	acpi_thread_id thread_id;
+ 	va_list args;
++	int fill_count;
+ 
+ 	/* Check if debug output enabled */
+ 
+@@ -202,10 +203,21 @@ acpi_debug_print(u32 requested_debug_level,
+ 		acpi_os_printf("[%u] ", (u32)thread_id);
+ 	}
+ 
+-	acpi_os_printf("[%02ld] ", acpi_gbl_nesting_level);
+-#endif
++	fill_count = 48 - acpi_gbl_nesting_level -
++	    strlen(acpi_ut_trim_function_name(function_name));
++	if (fill_count < 0) {
++		fill_count = 0;
++	}
+ 
++	acpi_os_printf("[%02ld] %*s",
++		       acpi_gbl_nesting_level, acpi_gbl_nesting_level, " ");
++	acpi_os_printf("%s%*s: ",
++		       acpi_ut_trim_function_name(function_name), fill_count,
++		       " ");
++
++#else
+ 	acpi_os_printf("%-22.22s: ", acpi_ut_trim_function_name(function_name));
++#endif
+ 
+ 	va_start(args, format);
+ 	acpi_os_vprintf(format, args);
 -- 
 2.14.3
 
