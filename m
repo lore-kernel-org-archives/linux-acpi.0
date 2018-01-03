@@ -1,107 +1,355 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / video: Default lcd_only to true on Win8 ready and newer machines
-Date: Wed, 03 Jan 2018 12:55:47 +0100
-Message-ID: <1844067.RRQ8hq0Cvt@aspire.rjw.lan>
-References: <20171223184147.12016-1-hdegoede@redhat.com>
+From: Ognjen Galic <smclt30p@gmail.com>
+Subject: [PATCH v12 1/4] battery: Add the battery hooking API
+Date: Wed, 3 Jan 2018 12:58:47 +0100
+Message-ID: <20180103115847.GA10092@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:56677 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751145AbeACL4w (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:56:52 -0500
-In-Reply-To: <20171223184147.12016-1-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Saturday, December 23, 2017 7:41:47 PM CET Hans de Goede wrote:
-> We're seeing a lot of bogus backlight interfaces on newer machines without
-> a LCD such as desktops, servers and HDMI sticks. This causes userspace to
-> show a non-functional brightness slider in e.g. the GNOME3 system menu,
-> which is undesirable. More in general we should simply just not register
-> a non functional backlight interface.
-> 
-> Checking the lcd flag causes the bogus acpi_video backlight interfaces to
-> go away (on the machines this was tested on).
-> 
-> This commit enables the lcd_only option by default on any machines which
-> are win8 ready, fixing this.
-> 
-> This is not entirely without risk of regressions, but video_detect.c
-> already prefers native-backlight interfaces over the acpi_video one
-> on win8 ready machines, calling acpi_video_unregister_backlight() as soon
-> as a native interface shows up. This is done because the acpi backlight
-> interface often is broken on win8 ready machines, because win8 does not
-> seem to actually use it.
-> 
-> So in practice we already end up not registering the acpi backlight
-> interface on (most) win8 ready machines with a LCD panel, thus this commit
-> does not change anything for (most) machines with a LCD panel and on
-> machines without a LCD panel we actually don't want to register any
-> backlight interfaces.
-> 
-> This has been tested on the following machines and fixes a bogus backlight
-> interface showing up there:
-> -Desktop with an Asrock B150M Pro4S/D3 m.b. using i5-6500 builtin gfx
-> -Intel Compute Stick STK1AW32SC
-> -Meegopad T08 HDMI stick
-> 
-> Bogus backlight interfaces have also been reported on:
-> -Desktop with Asus H87I-Plus m.b.
-> -Desktop with ASRock B75M-ITX m.b.
-> -Desktop with Gigabyte Z87-D3HP m.b.
-> -Dell PowerEdge T20 desktop
-> 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1097436
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133327
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133329
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1133646
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> -Simplify: "only_lcd = acpi_osi_is_win8() ? 1 : 0;" to:
->  "only_lcd = acpi_osi_is_win8();"
-> ---
->  drivers/acpi/acpi_video.c | 14 ++++++++++++--
->  1 file changed, 12 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index 0972ec0e2eb8..f53ccc680238 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -80,8 +80,8 @@ MODULE_PARM_DESC(report_key_events,
->  static bool device_id_scheme = false;
->  module_param(device_id_scheme, bool, 0444);
->  
-> -static bool only_lcd = false;
-> -module_param(only_lcd, bool, 0444);
-> +static int only_lcd = -1;
-> +module_param(only_lcd, int, 0444);
->  
->  static int register_count;
->  static DEFINE_MUTEX(register_count_mutex);
-> @@ -2136,6 +2136,16 @@ int acpi_video_register(void)
->  		goto leave;
->  	}
->  
-> +	/*
-> +	 * We're seeing a lot of bogus backlight interfaces on newer machines
-> +	 * without a LCD such as desktops, servers and HDMI sticks. Checking
-> +	 * the lcd flag fixes this, so enable this on any machines which are
-> +	 * win8 ready (where we also prefer the native backlight driver, so
-> +	 * normally the acpi_video code should not register there anyways).
-> +	 */
-> +	if (only_lcd == -1)
-> +		only_lcd = acpi_osi_is_win8();
-> +
->  	dmi_check_system(video_dmi_table);
->  
->  	ret = acpi_bus_register_driver(&acpi_video_bus);
-> 
+This is a patch that implements a generic hooking API for the
+generic ACPI battery driver.
 
-Applied, thanks!
+With this new generic API, drivers can expose platform specific
+behaviour via sysfs attributes in /sys/class/power_supply/BATn/
+in a generic way.
 
+A perfect example of the need for this API are Lenovo ThinkPads.
 
+Lenovo ThinkPads have a ACPI extension that allows the setting of
+start and stop charge thresholds in the EC and battery firmware
+via ACPI. The thinkpad_acpi module can use this API to expose
+sysfs attributes that it controls inside the ACPI battery driver
+sysfs tree, under /sys/class/power_supply/BATN/.
+
+The file drivers/acpi/battery.h has been moved to
+include/acpi/battery.h and the includes inside ac.c, sbs.c, and
+battery.c have been adjusted to reflect that.
+
+When drivers hooks into the API, the API calls add_battery() for
+each battery in the system that passes it a acpi_battery
+struct. Then, the drivers can use device_create_file() to create
+new sysfs attributes with that struct and identify the batteries
+for per-battery attributes.
+
+Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+---
+
+Notes:
+    v7:
+    * Implemented mutual exclusion for hooking methods and battery
+    callbacks
+    * Fixed a BUG where errors in other modules would occur when the
+    modules that depend on battery get unloaded
+    
+    v8:
+    * Use list_for_each_safe instead of list_for_each for the module
+    exit function where deletion of nodes occurs
+    
+    v9:
+    * No changes in this patch in v9
+    
+    v10:
+    * Fix compiler warnings in Intel's 0-day CI
+    
+    v11:
+    * Fix changelog formatting
+    * Make lists and mutex static
+    
+    v12:
+    * Change all applicable list_for_each to list_for_each_entry
+    * Define pr_fmt to include module name for pr_*
+
+ drivers/acpi/ac.c      |   2 +-
+ drivers/acpi/battery.c | 151 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/acpi/battery.h |  11 ----
+ drivers/acpi/sbs.c     |   2 +-
+ include/acpi/battery.h |  21 +++++++
+ 5 files changed, 171 insertions(+), 16 deletions(-)
+ delete mode 100644 drivers/acpi/battery.h
+ create mode 100644 include/acpi/battery.h
+
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 47a7ed5..2d8de2f 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -33,7 +33,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/power_supply.h>
+ #include <linux/acpi.h>
+-#include "battery.h"
++#include <acpi/battery.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 13e7b56..7089e31 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -21,8 +21,12 @@
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
++#include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/mutex.h>
+ #include <linux/init.h>
+ #include <linux/types.h>
+ #include <linux/jiffies.h>
+@@ -42,7 +46,7 @@
+ #include <linux/acpi.h>
+ #include <linux/power_supply.h>
+ 
+-#include "battery.h"
++#include <acpi/battery.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -124,6 +128,7 @@ struct acpi_battery {
+ 	struct power_supply_desc bat_desc;
+ 	struct acpi_device *device;
+ 	struct notifier_block pm_nb;
++	struct list_head list;
+ 	unsigned long update_time;
+ 	int revision;
+ 	int rate_now;
+@@ -626,6 +631,142 @@ static const struct device_attribute alarm_attr = {
+ 	.store = acpi_battery_alarm_store,
+ };
+ 
++/*
++ * The Battery Hooking API
++ *
++ * This API is used inside other drivers that need to expose
++ * platform-specific behaviour within the generic driver in a
++ * generic way.
++ *
++ */
++
++static LIST_HEAD(acpi_battery_list);
++static LIST_HEAD(battery_hook_list);
++static DEFINE_MUTEX(hook_mutex);
++
++void __battery_hook_unregister(struct acpi_battery_hook *hook, int lock)
++{
++	struct list_head *position;
++	struct acpi_battery *battery;
++	/*
++	 * In order to remove a hook, we first need to
++	 * de-register all the batteries that are registered.
++	 */
++	if (lock)
++		mutex_lock(&hook_mutex);
++	list_for_each(position, &acpi_battery_list) {
++		battery = list_entry(position, struct acpi_battery, list);
++		hook->remove_battery(battery->bat);
++	}
++	list_del(&hook->list);
++	if (lock)
++		mutex_unlock(&hook_mutex);
++	pr_info("extension unregistered: %s\n", hook->name);
++}
++
++void battery_hook_unregister(struct acpi_battery_hook *hook)
++{
++	__battery_hook_unregister(hook, 1);
++}
++EXPORT_SYMBOL_GPL(battery_hook_unregister);
++
++void battery_hook_register(struct acpi_battery_hook *hook)
++{
++	struct acpi_battery *battery;
++
++	mutex_lock(&hook_mutex);
++	INIT_LIST_HEAD(&hook->list);
++	list_add(&hook->list, &battery_hook_list);
++	/*
++	 * Now that the driver is registered, we need
++	 * to notify the hook that a battery is available
++	 * for each battery, so that the driver may add
++	 * its attributes.
++	 */
++	list_for_each_entry(battery, &acpi_battery_list, list) {
++		if (hook->add_battery(battery->bat)) {
++			/*
++			 * If a add-battery returns non-zero,
++			 * the registration of the extension has failed,
++			 * and we will not add it to the list of loaded
++			 * hooks.
++			 */
++			pr_err("extension failed to load: %s",
++					hook->name);
++			__battery_hook_unregister(hook, 0);
++			return;
++		}
++	}
++	pr_info("new extension: %s\n", hook->name);
++	mutex_unlock(&hook_mutex);
++}
++EXPORT_SYMBOL_GPL(battery_hook_register);
++
++static void battery_hook_add_battery(struct acpi_battery *battery)
++{
++	/*
++	 * This function gets called right after the battery sysfs
++	 * attributes have been added, so that the drivers that
++	 * define custom sysfs attributes can add their own.
++	 */
++	struct acpi_battery_hook *hook_node;
++
++	mutex_lock(&hook_mutex);
++	INIT_LIST_HEAD(&battery->list);
++	list_add(&battery->list, &acpi_battery_list);
++	/*
++	 * Since we added a new battery to the list, we need to
++	 * iterate over the hooks and call add_battery for each
++	 * hook that was registered. This usually happens
++	 * when a battery gets hotplugged or initialized
++	 * during the battery module initialization.
++	 */
++	list_for_each_entry(hook_node, &battery_hook_list, list) {
++		if (hook_node->add_battery(battery->bat)) {
++			/*
++			 * The notification of the extensions has failed, to
++			 * prevent further errors we will unload the extension.
++			 */
++			__battery_hook_unregister(hook_node, 0);
++			pr_err("error in extension, unloading: %s",
++					hook_node->name);
++		}
++	}
++	mutex_unlock(&hook_mutex);
++}
++
++static void battery_hook_remove_battery(struct acpi_battery *battery)
++{
++	struct acpi_battery_hook *hook;
++
++	mutex_lock(&hook_mutex);
++	/*
++	 * Before removing the hook, we need to remove all
++	 * custom attributes from the battery.
++	 */
++	list_for_each_entry(hook, &battery_hook_list, list) {
++		hook->remove_battery(battery->bat);
++	}
++	/* Then, just remove the battery from the list */
++	list_del(&battery->list);
++	mutex_unlock(&hook_mutex);
++}
++
++static void __exit battery_hook_exit(void)
++{
++	struct acpi_battery_hook *hook;
++	struct acpi_battery_hook *ptr;
++	/*
++	 * At this point, the acpi_bus_unregister_driver
++	 * has called remove for all batteries. We just
++	 * need to remove the hooks.
++	 */
++	list_for_each_entry_safe(hook, ptr, &battery_hook_list, list) {
++		__battery_hook_unregister(hook, 1);
++	}
++	mutex_destroy(&hook_mutex);
++}
++
+ static int sysfs_add_battery(struct acpi_battery *battery)
+ {
+ 	struct power_supply_config psy_cfg = { .drv_data = battery, };
+@@ -647,6 +788,8 @@ static int sysfs_add_battery(struct acpi_battery *battery)
+ 	battery->bat = power_supply_register_no_ws(&battery->device->dev,
+ 				&battery->bat_desc, &psy_cfg);
+ 
++	battery_hook_add_battery(battery);
++
+ 	if (IS_ERR(battery->bat)) {
+ 		int result = PTR_ERR(battery->bat);
+ 
+@@ -663,7 +806,7 @@ static void sysfs_remove_battery(struct acpi_battery *battery)
+ 		mutex_unlock(&battery->sysfs_lock);
+ 		return;
+ 	}
+-
++	battery_hook_remove_battery(battery);
+ 	device_remove_file(&battery->bat->dev, &alarm_attr);
+ 	power_supply_unregister(battery->bat);
+ 	battery->bat = NULL;
+@@ -1359,8 +1502,10 @@ static int __init acpi_battery_init(void)
+ static void __exit acpi_battery_exit(void)
+ {
+ 	async_synchronize_cookie(async_cookie + 1);
+-	if (battery_driver_registered)
++	if (battery_driver_registered) {
+ 		acpi_bus_unregister_driver(&acpi_battery_driver);
++		battery_hook_exit();
++	}
+ #ifdef CONFIG_ACPI_PROCFS_POWER
+ 	if (acpi_battery_dir)
+ 		acpi_unlock_battery_dir(acpi_battery_dir);
+diff --git a/drivers/acpi/battery.h b/drivers/acpi/battery.h
+deleted file mode 100644
+index 225f493..0000000
+--- a/drivers/acpi/battery.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0 */
+-#ifndef __ACPI_BATTERY_H
+-#define __ACPI_BATTERY_H
+-
+-#define ACPI_BATTERY_CLASS "battery"
+-
+-#define ACPI_BATTERY_NOTIFY_STATUS	0x80
+-#define ACPI_BATTERY_NOTIFY_INFO	0x81
+-#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
+-
+-#endif
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index a2428e9..295b592 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -32,9 +32,9 @@
+ #include <linux/delay.h>
+ #include <linux/power_supply.h>
+ #include <linux/platform_data/x86/apple.h>
++#include <acpi/battery.h>
+ 
+ #include "sbshc.h"
+-#include "battery.h"
+ 
+ #define PREFIX "ACPI: "
+ 
+diff --git a/include/acpi/battery.h b/include/acpi/battery.h
+new file mode 100644
+index 0000000..5d8f5d9
+--- /dev/null
++++ b/include/acpi/battery.h
+@@ -0,0 +1,21 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef __ACPI_BATTERY_H
++#define __ACPI_BATTERY_H
++
++#define ACPI_BATTERY_CLASS "battery"
++
++#define ACPI_BATTERY_NOTIFY_STATUS	0x80
++#define ACPI_BATTERY_NOTIFY_INFO	0x81
++#define ACPI_BATTERY_NOTIFY_THRESHOLD   0x82
++
++struct acpi_battery_hook {
++	const char *name;
++	int (*add_battery)(struct power_supply *battery);
++	int (*remove_battery)(struct power_supply *battery);
++	struct list_head list;
++};
++
++void battery_hook_register(struct acpi_battery_hook *hook);
++void battery_hook_unregister(struct acpi_battery_hook *hook);
++
++#endif
+-- 
+2.7.4
