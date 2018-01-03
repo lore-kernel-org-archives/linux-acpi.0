@@ -1,236 +1,141 @@
-From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
-Subject: Re: [PATCH v11 3/5] thinkpad_acpi: Add support for battery thresholds
-Date: Wed, 3 Jan 2018 11:34:55 +0100
-Message-ID: <20180103103455.GA17803@thinkpad>
-References: <20171231141727.GA4643@thinkpad>
- <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com>
+From: Jonathan McDowell <noodles@earth.li>
+Subject: Re: ACPI issues on cold power on [bisected]
+Date: Wed, 3 Jan 2018 10:38:12 +0000
+Message-ID: <20180103103812.klxncszqtq3lj3rr@earth.li>
+References: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
+ <20171222002108.GB1729@js1304-P5Q-DELUXE>
+ <20171229163659.c5ccfvww4ebvyz54@earth.li>
+ <20180102025417.GA20740@js1304-P5Q-DELUXE>
+ <CAJZ5v0hSkEvmcubFzW03COW0f1TwB6W1d7vwJoF9qpJJ6Jc5JQ@mail.gmail.com>
+ <20180103021129.GB26517@js1304-P5Q-DELUXE>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:45149 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750861AbeACKfB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 05:35:01 -0500
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20180103021129.GB26517@js1304-P5Q-DELUXE>
+Sender: owner-linux-mm@kvack.org
+To: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-On Mon, Jan 01, 2018 at 12:24:39PM +0200, Andy Shevchenko wrote:
-> On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> > thinkpad_acpi registers two new attributes for each battery:
-> >
-> > 1) Charge start threshold
-> > /sys/class/power_supply/BATN/charge_start_threshold
-> >
-> > Valid values are [0, 99]. A value of 0 turns off the
-> > start threshold wear control.
-> >
-> > 2) Charge stop threshold
-> > /sys/class/power_supply/BATN/charge_stop_threshold
-> >
-> > Valid values are [1, 100]. A value of 100 turns off
-> > the stop threshold wear control. This must be
-> > configured first.
-> >
+On Wed, Jan 03, 2018 at 11:11:29AM +0900, Joonsoo Kim wrote:
+> On Tue, Jan 02, 2018 at 11:25:01AM +0100, Rafael J. Wysocki wrote:
+> > On Tue, Jan 2, 2018 at 3:54 AM, Joonsoo Kim <iamjoonsoo.kim@lge.com> wrote:
+> > > On Fri, Dec 29, 2017 at 04:36:59PM +0000, Jonathan McDowell wrote:
+> > >> On Fri, Dec 22, 2017 at 09:21:09AM +0900, Joonsoo Kim wrote:
+> > >> > On Fri, Dec 08, 2017 at 03:11:59PM +0000, Jonathan McDowell wrote:
+> > >> > > I've been sitting on this for a while and should have spent time to
+> > >> > > investigate sooner, but it's been an odd failure mode that wasn't quite
+> > >> > > obvious.
+> > >> > >
+> > >> > > In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
+> > >> > > don't see anything after grub says its booting. In 4.10 onwards the
+> > >> > > laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
+> > >> > > (no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
+> > >> > > taken from 4.12 as that's the most recent error dmesg I have saved but
+> > >> > > also seen back in 4.10. It's always address 0x30 for the dereference.
+> > >> > >
+> > >> > > Rebooting the laptop does not lead to these problems; it's *only* from a
+> > >> > > complete cold boot that they arise (which didn't help me in terms of
+> > >> > > being able to reliably bisect). Once I realised that I was able to
+> > >> > > bisect, but it leads me to an odd commit:
+> > >> > >
+> > >> > > 86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
+> > >> > > (mm/slab: fix kmemcg cache creation delayed issue)
+> > >> > >
+> > >> > > If I revert this then I can cold boot without problems.
+> > >> > >
+> > >> > > Also I don't see the problem with a stock Debian kernel, I think because
+> > >> > > the ACPI support is modularised.
+> > >> >
+> > >> > Sorry for late response. I was on a long vacation.
+> > >>
+> > >> No problem. I've been trying to get around to diagnosing this for a
+> > >> while now anyway and this isn't a great time of year for fast responses.
+> > >>
+> > >> > I have tried to solve the problem however I don't find any clue yet.
+> > >> >
+> > >> > >From my analysis, oops report shows that 'struct sock *ssk' passed to
+> > >> > netlink_broadcast_filtered() is NULL. It means that some of
+> > >> > netlink_kernel_create() returns NULL. Maybe, it is due to slab
+> > >> > allocation failure. Could you check it by inserting some log on that
+> > >> > part? The issue cannot be reproducible in my side so I need your help.
+> > >>
+> > >> I've added some debug in acpi_bus_generate_netlink_event +
+> > >> genlmsg_multicast and the problem seems to be that genlmsg_multicast is
+> > >> getting called when init_net.genl_sock has not yet been initialised,
+> > >> leading to the NULL deference.
+> > >>
+> > >> Full dmesg output from a cold 4.14.8 boot at:
+> > >>
+> > >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-broken
+> > >>
+> > >> And the same kernel after a reboot ("shutdown -r now"):
+> > >>
+> > >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-working
+> > >>
+> > >> Patch that I've applied is at
+> > >>
+> > >> https://the.earth.li/~noodles/acpi-problem/debug-acpi.diff
+> > >>
+> > >
+> > > Thanks for testing! It's very helpful.
+> > >
+> > >> The interesting difference seems to be:
+> > >>
+> > >>  PCI: Using ACPI for IRQ routing
+> > >> +ACPI: Generating event type 208 (:9DBB5994-A997-11DA-B012-B622A1EF5492)
+> > >> +ERROR: init_net.genl_sock is NULL
+> > >> +BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
+> > >> +IP: netlink_broadcast_filtered+0x20/0x3d0
+> > >> +PGD 0 P4D 0
+> > >> +Oops: 0000 [#1] SMP
+> > >> +Modules linked in:
+> > >> +CPU: 0 PID: 29 Comm: kworker/0:1 Not tainted 4.14.8+ #1
+> > >> +Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A22 10/18/2017
+> > >> +Workqueue: kacpi_notify acpi_os_execute_deferred
+> > >>
+> > >> 9DBB5994-A997-11DA-B012-B622A1EF5492 is the Dell WMI event GUID and
+> > >> there's no visible event for it on a reboot, just on a cold power on.
+> > >> Some sort of ordering issues such that genl_sock is being initialised
+> > >> later with the slab change?
+> > >
+> > > I have checked that there is an ordering issue.
+> > >
+> > > genl_init() which initializes init_net->genl_sock is called on
+> > > subsys_initcall().
+> > >
+> > > acpi_wmi_init() which schedules acpi_wmi_notify_handler() to the
+> > > workqueue is called on subsys_initcall(), too.
+> > > (acpi_wmi_notify_handler() -> acpi_bus_generate_netlink_event() ->
+> > > netlink_broadcast())
+> > >
+> > > In my system, acpi_wmi_init() is called before the genl_init().
+> > > Therefore, if the worker is scheduled before genl_init() is done, NULL
+> > > derefence would happen.
+> > 
+> > Does it help to change the subsys_initcall() in wmi.c to subsys_initcall_sync()?
 > 
-> > This patch depends on the following patches:
-> >
-> > "battery: Add the battery hooking API"
-> 
-> Since this is series, no need to put above into changelog.
-> 
-> AFAICS it's not going to be backported either.
-> 
-> 
-> > +/**
-> > + * This evaluates a ACPI method call specific to the battery
-> > + * ACPI extension. The specifics are that an error is marked
-> > + * in the 32rd bit of the response, so we just check that here.
-> > + *
-> > + * Returns 0 on success
-> > + */
-> > +static int tpacpi_battery_acpi_eval(char *method, int *ret, int param)
-> > +{
-> 
-> One problem and one trick you may do.
-> 
-> A problem: you return ACPI status as int. We have special type for
-> that. So, be consistent with it.
-> Looking to acpi_evalf() which is private to the module, I think you
-> need to get rid of ACPI return codes here.
-> 
-> A trick: since you are using only least significant byte of the
-> response, you can declare it as u8 *value (yeah, ret is not best name
-> here I think).
+> I guess that it would work. I cannot reproduce the issue so it needs
+> to be checked by Jonathan. Jonathan, could you check the problem
+> is disappeared with above change?
 
-Not really. In one place I need bit #9, so that will stay a int.
-I have changed the acpi return value to acpi_status tho.
+I have confirmed that the problem also occurs when using SLUB instead of
+SLAB, and that switching drivers/platform/x86/wmi.c to use
+subsys_initcall_sync() instead of subsys_initcall() fixes the problem
+for both. Weirdly I don't see the ACPI 208 event at boot time being
+raised once that patch is in place.
 
-> 
-> So, something like
-> 
-> ..._eval(..., u8 *value, ...)
-> {
->   int response;
-> 
->   if (!..._evalf(..., &response, ...)) {
->   ...
-> 
-> > +       if (!acpi_evalf(hkey_handle, ret, method, "dd", param)) {
-> > +               acpi_handle_err(hkey_handle, "%s: evaluate failed", method);
-> > +               return AE_ERROR;
-> > +       }
-> > +
-> > +       if (*ret & METHOD_ERR) {
-> 
-> if (response & ...) {
-> 
-> > +               acpi_handle_err(hkey_handle,
-> > +                               "%s evaluated but flagged as error", method);
-> > +               return AE_ERROR;
-> > +       }
-> 
-> *value = response;
-> 
-> > +
-> > +       return AE_OK;
-> > +}
-> 
-> > +static int tpacpi_battery_get(int what, int battery, int *ret)
-> > +{
-> > +       switch (what) {
-> > +
-> > +       case THRESHOLD_START:
-> > +
-> > +               if (tpacpi_battery_acpi_eval(GET_START, ret, battery))
-> > +                       return -ENODEV;
-> > +
-> 
-> > +               /* The value is in the low 8 bits of the response */
-> > +               *ret = *ret & 0xFF;
-> 
-> So, this will gone with a trick above.
-> 
-> > +               return 0;
-> > +
-> > +       case THRESHOLD_STOP:
-> > +
-> > +               if (tpacpi_battery_acpi_eval(GET_STOP, ret, battery))
-> > +                       return -ENODEV;
-> > +
-> > +               /* Value is in lower 8 bits */
-> > +               *ret = *ret & 0xFF;
-> 
-> Ditto.
-> 
-> > +
-> > +               /*
-> > +                * On the stop value, if we return 0 that
-> > +                * does not make any sense. 0 means Default, which
-> > +                * means that charging stops at 100%, so we return
-> > +                * that.
-> > +                */
-> > +               if (*ret == 0)
-> > +                       *ret = 100;
-> > +
-> > +               return 0;
-> > +
-> > +       default:
-> > +               pr_crit("wrong parameter: %d", what);
-> > +               return -EINVAL;
-> > +       }
-> > +
-> > +}
-> 
-> > +static int tpacpi_battery_probe(int battery)
-> > +{
-> > +       int ret = 0;
-> > +
-> > +       memset(&battery_info, 0, sizeof(struct tpacpi_battery_driver_data));
-> > +
-> > +       /*
-> > +        * 1) Get the current start threshold
-> > +        * 2) Check for support
-> > +        * 3) Get the current stop threshold
-> > +        * 4) Check for support
-> > +        */
-> > +
-> > +       if (acpi_has_method(hkey_handle, GET_START)) {
-> > +
-> > +               if (tpacpi_battery_acpi_eval(GET_START, &ret, battery)) {
-> > +                       pr_err("Error probing battery %d\n", battery);
-> > +                       return -ENODEV;
-> > +               }
-> > +
-> > +               /* Individual addressing is in bit 9 */
-> > +               if (ret & BIT(9))
-> > +                       battery_info.individual_addressing = true;
-> > +
-> > +               /* Support is marked in bit 8 */
-> > +               if (ret & BIT(8))
-> > +                       battery_info.batteries[battery].start_support = 1;
-> > +               else
-> > +                       return -ENODEV;
-> > +
-> > +               if (tpacpi_battery_get(THRESHOLD_START, battery,
-> > +                       &battery_info.batteries[battery].charge_start)) {
-> > +                       pr_err("Error probing battery %d\n", battery);
-> > +                       return -ENODEV;
-> > +               }
-> 
-> > +
-> 
-> Please, get rid of all useless empty lines like this one, or above (in
-> between of two if:s).
-> 
-> > +       }
-> 
-> > +/* General helper functions */
-> > +
-> > +static int tpacpi_battery_get_id(const char *battery_name)
-> > +{
-> > +
-> > +       if (strcmp(battery_name, "BAT0") == 0)
-> > +               return BAT_PRIMARY;
-> > +       if (strcmp(battery_name, "BAT1") == 0)
-> > +               return BAT_SECONDARY;
-> > +
-> > +       /*
-> > +        * If for some reason the battery is not BAT0 nor is it
-> > +        * BAT1, we will assume it's the default, first battery,
-> > +        * AKA primary.
-> > +        */
-> > +       pr_warn("unknown battery %s, assuming primary", battery_name);
-> > +       return BAT_PRIMARY;
-> > +}
-> > +
-> > +/* sysfs interface */
-> > +
-> > +static ssize_t tpacpi_battery_store(int what,
-> > +                                   struct device *dev,
-> > +                                   const char *buf, size_t count)
-> > +{
-> > +       struct power_supply *supply = to_power_supply(dev);
-> > +       unsigned long value;
-> > +       int battery, errno;
-> 
-> > +       errno = kstrtoul(buf, 10, &value);
-> 
-> > +
-> 
-> Dont' split lines like these where one returns some error code
-> followed by conditional check.
-> 
-> > +       if (errno)
-> 
-> > +               return errno;
-> 
-> Besides, errno is a bad name, please consider what is used elsewhere
-> in this module (rc, ret, rval, ...?).
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
+J.
+
+-- 
+] https://www.earth.li/~noodles/ [] Synonym: word used when you can't  [
+]  PGP/GPG Key @ the.earth.li    []       spell the one you want       [
+] via keyserver, web or email.   []                                    [
+] RSA: 4096/0x94FA372B2DA8B985   []                                    [
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
