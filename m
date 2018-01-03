@@ -1,46 +1,71 @@
-From: Marcin Wojtas <mw@semihalf.com>
-Subject: Re: [net-next: PATCH v2 5/5] net: mvpp2: enable ACPI support in the driver
-Date: Wed, 3 Jan 2018 12:19:02 +0100
-Message-ID: <CAPv3WKchh4CHS7x0T_9vJ++=ONK5vtLh8oRN_7fgq0uPH29jwA@mail.gmail.com>
-References: <1514721520-18964-1-git-send-email-mw@semihalf.com>
- <1514721520-18964-6-git-send-email-mw@semihalf.com> <20171231192354.GB20455@lunn.ch>
- <20180103111611.GB21230@xora-haswell>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v11 3/5] thinkpad_acpi: Add support for battery thresholds
+Date: Wed, 03 Jan 2018 12:24:53 +0100
+Message-ID: <7475117.k4QWeGOQkJ@aspire.rjw.lan>
+References: <20171231141727.GA4643@thinkpad> <CAHp75VeYRYRpmqy_GGQ95e1YhvZGfWtsJrGbLiA4JskEmd69zg@mail.gmail.com> <20180103103455.GA17803@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-it0-f66.google.com ([209.85.214.66]:35430 "EHLO
-        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751918AbeACLTD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 06:19:03 -0500
-Received: by mail-it0-f66.google.com with SMTP id f143so1454013itb.0
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Jan 2018 03:19:03 -0800 (PST)
-In-Reply-To: <20180103111611.GB21230@xora-haswell>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20180103103455.GA17803@thinkpad>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?ISO-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: Andrew Lunn <andrew@lunn.ch>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, nadavh@marvell.com, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>
 
-Graeme,
+On Wednesday, January 3, 2018 11:34:55 AM CET Ognjen Galić wrote:
+> On Mon, Jan 01, 2018 at 12:24:39PM +0200, Andy Shevchenko wrote:
+> > On Sun, Dec 31, 2017 at 4:17 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> > > thinkpad_acpi registers two new attributes for each battery:
+> > >
+> > > 1) Charge start threshold
+> > > /sys/class/power_supply/BATN/charge_start_threshold
+> > >
+> > > Valid values are [0, 99]. A value of 0 turns off the
+> > > start threshold wear control.
+> > >
+> > > 2) Charge stop threshold
+> > > /sys/class/power_supply/BATN/charge_stop_threshold
+> > >
+> > > Valid values are [1, 100]. A value of 100 turns off
+> > > the stop threshold wear control. This must be
+> > > configured first.
+> > >
+> > 
+> > > This patch depends on the following patches:
+> > >
+> > > "battery: Add the battery hooking API"
+> > 
+> > Since this is series, no need to put above into changelog.
+> > 
+> > AFAICS it's not going to be backported either.
+> > 
+> > 
+> > > +/**
+> > > + * This evaluates a ACPI method call specific to the battery
+> > > + * ACPI extension. The specifics are that an error is marked
+> > > + * in the 32rd bit of the response, so we just check that here.
+> > > + *
+> > > + * Returns 0 on success
+> > > + */
+> > > +static int tpacpi_battery_acpi_eval(char *method, int *ret, int param)
+> > > +{
+> > 
+> > One problem and one trick you may do.
+> > 
+> > A problem: you return ACPI status as int. We have special type for
+> > that. So, be consistent with it.
+> > Looking to acpi_evalf() which is private to the module, I think you
+> > need to get rid of ACPI return codes here.
+> > 
+> > A trick: since you are using only least significant byte of the
+> > response, you can declare it as u8 *value (yeah, ret is not best name
+> > here I think).
+> 
+> Not really. In one place I need bit #9, so that will stay a int.
+> I have changed the acpi return value to acpi_status tho.
 
-2018-01-03 12:16 GMT+01:00  <graeme.gregory@linaro.org>:
-> On Sun, Dec 31, 2017 at 08:23:54PM +0100, Andrew Lunn wrote:
->> > * Modify way of obtaining interrupts - with ACPI they are resources
->> >   bound to struct platform_device and it's not possible to obtain
->> >   them directly from the child node. Hence a formula is used, depending
->> >   on the port_id and number of possible CPUs.
->>
->> Hi Marcin
->>
->> I know nothing about ACPI. Is this limitation with respect to
->> interrupts fundamental to ACPI, or just that nobody has implemented
->> flexible interrupt support yet?
->>
-> The infrastructure is there to traverse trees of children, but I don't
-> think there any helper functions.
->
+OK, you can resend the updated series when you're ready.
 
-Thanks, so if I implement such, do you expect any formal issues that
-prevent its acceptance?
-
-Best regards,
-Marcin
+Thanks,
+Rafael
