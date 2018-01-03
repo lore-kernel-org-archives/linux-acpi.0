@@ -1,80 +1,82 @@
-From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
-Subject: Re: [PATCH v12 3/4] thinkpad_acpi: Add support for battery thresholds
-Date: Wed, 3 Jan 2018 15:58:26 +0100
-Message-ID: <20180103145826.GB17694@thinkpad>
-References: <20180103115922.GA10135@thinkpad>
- <CAHp75Vdqz=VMcdaa04fVywFeHs+C6_a7ux0M1XE1=Q9TTpWOvA@mail.gmail.com>
+From: Chris Clayton <chris2553@googlemail.com>
+Subject: Re: [PATCH V2] mfd: rtsx: release IRQ during shutdown
+Date: Wed, 3 Jan 2018 16:34:06 +0000
+Message-ID: <f0e8857a-47c6-5848-ba24-51652343168b@googlemail.com>
+References: <1514982766-18012-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75Vdqz=VMcdaa04fVywFeHs+C6_a7ux0M1XE1=Q9TTpWOvA@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1514982766-18012-1-git-send-email-okaya@codeaurora.org>
+Content-Language: en-GB
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, lee.jones@linaro.org, timur@codeaurora.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 03, 2018 at 04:42:35PM +0200, Andy Shevchenko wrote:
-> On Wed, Jan 3, 2018 at 1:59 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
-> > thinkpad_acpi registers two new attributes for each battery:
-> >
-> > 1) Charge start threshold
-> > /sys/class/power_supply/BATN/charge_start_threshold
-> >
-> > Valid values are [0, 99]. A value of 0 turns off the
-> > start threshold wear control.
-> >
-> > 2) Charge stop threshold
-> > /sys/class/power_supply/BATN/charge_stop_threshold
-> >
-> > Valid values are [1, 100]. A value of 100 turns off
-> > the stop threshold wear control. This must be
-> > configured first.
-> >
-> > Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
+
+
+On 03/01/18 12:32, Sinan Kaya wrote:
+> 'Commit cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during
+> shutdown")' revealed a resource leak in rtsx_pci driver during shutdown.
 > 
-> Thanks for an update!
+> Issue shows up as a warning during shutdown as follows:
 > 
-> > ---
-> >
-> > Notes:
+> remove_proc_entry: removing non-empty directory 'irq/17', leaking at least
+> 'rtsx_pci'
+> WARNING: CPU: 0 PID: 1578 at fs/proc/generic.c:572
+> remove_proc_entry+0x11d/0x130
+> Modules linked in <long list but none that are out-of-tree>
+> ...
+> Call Trace:
+> unregister_irq_proc
+> free_desc
+> irq_free_descs
+> mp_unmap_irq
+> acpi_unregister_gsi_apic
+> acpi_pci_irq_disable
+> do_pci_disable_device
+> pci_disable_device
+> device_shutdown
+> kernel_restart
+> Sys_reboot
 > 
-> >     * Change int to acpi_status in tpacpi_battery_acpi_eval
+> Even though rtsx_pci driver implements a shutdown callback, it is not
+> releasing the interrupt that it registered during probe. This is causing
+> the ACPI layer to complain that the shared IRQ is in use while freeing
+> IRQ.
 > 
-> Then you need to check return code with ACPI_FAILURE() or ACPI_SUCCESS() macros.
-> That is one of the additional burden while I can't see usefulness of
-> ACPI return codes in that function and why I suggested to use plain
-> int.
+> This code releases the IRQ to prevent resource leak and eliminate the
+> warning.
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=198141
+> Reported-by: Chris Clayton <chris2553@googlemail.com>
+> Fixes: cc27b735ad3a ("PCI/portdrv: Turn off PCIe services during shutdown")
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/mfd/rtsx_pcr.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/mfd/rtsx_pcr.c b/drivers/mfd/rtsx_pcr.c
+> index 590fb9a..c3ed885 100644
+> --- a/drivers/mfd/rtsx_pcr.c
+> +++ b/drivers/mfd/rtsx_pcr.c
+> @@ -1543,6 +1543,9 @@ static void rtsx_pci_shutdown(struct pci_dev *pcidev)
+>  	rtsx_pci_power_off(pcr, HOST_ENTER_S1);
+>  
+>  	pci_disable_device(pcidev);
+> +	free_irq(pcr->irq, (void *)pcr);
+> +	if (pcr->msi_en)
+> +		pci_disable_msi(pcr->pci);
+>  }
+>  
+>  #else /* CONFIG_PM */
 
-Thos macros basically do the same stuff I do manually. I think that most
-of the kernel does errors on a non-0 basis, and ACPI is no exception.
+I've applied v2 of the patch and built and installed the kernel (-rc6). All I can say, is that my system still closes
+down without the warning and call trace that the unpatched kernel produces. It's the best I can do by way of a test
+because I have no idea what the code added in v2 is supposed to achieve and, because my system shuts down (or reboots)
+moments later, there is no opportunity to check. If that constitutes a valid test:
 
-That being said, I think that using a simple non-0 check if more clean
-than using those macros.
-
-Isn't this:
-
-if (!acpi_eval....
-
-nicer than this?
-
-if ACPI_FAILURE(acpi_eval...
-
-It just adds more stuff to get wrong. And I don't really think that the 
-ACPI implementation will change those macros anytime soon, or ever.
-
-Keeping it simple.
+Tested-by: Chris Clayton <chris2553@googlemail.com>
 
 > 
-> One more question: why don't you use dev_err()/dev_*() macros instead
-> of pr_*() ones?
-> (Note, it's a question, needs a bit of discussion, I would like to
-> hear a rationale of this, I think it might be one)
-
-Techically, I'm not adding a device this I did not use those macros. I'm
-only adding more attributes to a device that the battery module manages.
-
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
