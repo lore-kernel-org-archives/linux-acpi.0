@@ -1,14 +1,14 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 03/12] ACPICA: Fix a regression in the acpi_evaluate_object_type interface
-Date: Wed,  3 Jan 2018 15:06:22 -0800
-Message-ID: <20180103230631.15939-4-erik.schmauss@intel.com>
+Subject: [PATCH 01/12] ACPICA: Debug output, no functional change
+Date: Wed,  3 Jan 2018 15:06:20 -0800
+Message-ID: <20180103230631.15939-2-erik.schmauss@intel.com>
 References: <erik.schmauss@intel.com>
  <20180103230631.15939-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga04.intel.com ([192.55.52.120]:43368 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751192AbeACXHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 3 Jan 2018 18:07:41 -0500
+        id S1751029AbeACXHk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 3 Jan 2018 18:07:40 -0500
 In-Reply-To: <20180103230631.15939-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -17,52 +17,74 @@ Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 9ab548ef154b992208524d61770caca90a9762be
+ACPICA commit 04fffc50a131662f57a41ca517c75d32d2479a1c
 
-The optional Pathname parameter inadvertently became required.
-Introduced in April 2017.
+Fix use of return macros and other debug output changes.
 
-Link: https://github.com/acpica/acpica/commit/9ab548ef
+Link: https://github.com/acpica/acpica/commit/04fffc50
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/nsxfeval.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/hwvalid.c | 14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
-index 783f4c838aee..9b51f65823b2 100644
---- a/drivers/acpi/acpica/nsxfeval.c
-+++ b/drivers/acpi/acpica/nsxfeval.c
-@@ -61,10 +61,10 @@ static void acpi_ns_resolve_references(struct acpi_evaluate_info *info);
-  *
-  * PARAMETERS:  handle              - Object handle (optional)
-  *              pathname            - Object pathname (optional)
-- *              external_params     - List of parameters to pass to method,
-+ *              external_params     - List of parameters to pass to a method,
-  *                                    terminated by NULL. May be NULL
-  *                                    if no parameters are being passed.
-- *              return_buffer       - Where to put method's return value (if
-+ *              return_buffer       - Where to put the object's return value (if
-  *                                    any). If NULL, no value is returned.
-  *              return_type         - Expected type of return object
-  *
-@@ -100,13 +100,14 @@ acpi_evaluate_object_typed(acpi_handle handle,
- 		free_buffer_on_error = TRUE;
+diff --git a/drivers/acpi/acpica/hwvalid.c b/drivers/acpi/acpica/hwvalid.c
+index 3094cec4eab4..d1679035d5f3 100644
+--- a/drivers/acpi/acpica/hwvalid.c
++++ b/drivers/acpi/acpica/hwvalid.c
+@@ -128,14 +128,14 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 	acpi_io_address last_address;
+ 	const struct acpi_port_info *port_info;
+ 
+-	ACPI_FUNCTION_NAME(hw_validate_io_request);
++	ACPI_FUNCTION_TRACE(hw_validate_io_request);
+ 
+ 	/* Supported widths are 8/16/32 */
+ 
+ 	if ((bit_width != 8) && (bit_width != 16) && (bit_width != 32)) {
+ 		ACPI_ERROR((AE_INFO,
+ 			    "Bad BitWidth parameter: %8.8X", bit_width));
+-		return (AE_BAD_PARAMETER);
++		return_ACPI_STATUS(AE_BAD_PARAMETER);
  	}
  
-+	/* Get a handle here, in order to build an error message if needed */
-+
-+	target_handle = handle;
- 	if (pathname) {
- 		status = acpi_get_handle(handle, pathname, &target_handle);
- 		if (ACPI_FAILURE(status)) {
- 			return_ACPI_STATUS(status);
+ 	port_info = acpi_protected_ports;
+@@ -153,13 +153,13 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 		ACPI_ERROR((AE_INFO,
+ 			    "Illegal I/O port address/length above 64K: %8.8X%8.8X/0x%X",
+ 			    ACPI_FORMAT_UINT64(address), byte_width));
+-		return (AE_LIMIT);
++		return_ACPI_STATUS(AE_LIMIT);
+ 	}
+ 
+ 	/* Exit if requested address is not within the protected port table */
+ 
+ 	if (address > acpi_protected_ports[ACPI_PORT_INFO_ENTRIES - 1].end) {
+-		return (AE_OK);
++		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
+ 	/* Check request against the list of protected I/O ports */
+@@ -180,8 +180,8 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
+ 			/* Port illegality may depend on the _OSI calls made by the BIOS */
+ 
+ 			if (acpi_gbl_osi_data >= port_info->osi_dependency) {
+-				ACPI_DEBUG_PRINT((ACPI_DB_IO,
+-						  "Denied AML access to port 0x%8.8X%8.8X/%X (%s 0x%.4X-0x%.4X)",
++				ACPI_DEBUG_PRINT((ACPI_DB_VALUES,
++						  "Denied AML access to port 0x%8.8X%8.8X/%X (%s 0x%.4X-0x%.4X)\n",
+ 						  ACPI_FORMAT_UINT64(address),
+ 						  byte_width, port_info->name,
+ 						  port_info->start,
+@@ -198,7 +198,7 @@ acpi_hw_validate_io_request(acpi_io_address address, u32 bit_width)
  		}
--	} else {
--		target_handle = handle;
  	}
  
- 	full_pathname = acpi_ns_get_external_pathname(target_handle);
+-	return (AE_OK);
++	return_ACPI_STATUS(AE_OK);
+ }
+ 
+ /******************************************************************************
 -- 
 2.14.3
 
