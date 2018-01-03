@@ -1,127 +1,174 @@
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Re: ACPI issues on cold power on [bisected]
-Date: Wed, 3 Jan 2018 11:11:29 +0900
-Message-ID: <20180103021129.GB26517@js1304-P5Q-DELUXE>
-References: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
- <20171222002108.GB1729@js1304-P5Q-DELUXE>
- <20171229163659.c5ccfvww4ebvyz54@earth.li>
- <20180102025417.GA20740@js1304-P5Q-DELUXE>
- <CAJZ5v0hSkEvmcubFzW03COW0f1TwB6W1d7vwJoF9qpJJ6Jc5JQ@mail.gmail.com>
+From: <vkilari@codeaurora.org>
+Subject: RE: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+Date: Wed, 3 Jan 2018 14:19:25 +0530
+Message-ID: <019601d3846f$c8708550$59518ff0$@codeaurora.org>
+References: <20171201222330.18863-1-jeremy.linton@arm.com> <20171201222330.18863-7-jeremy.linton@arm.com> <9009154.M66RGdQJXA@aspire.rjw.lan> <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com> <20171213173851.GA4060@red-moon> <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com> <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com> <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hSkEvmcubFzW03COW0f1TwB6W1d7vwJoF9qpJJ6Jc5JQ@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jonathan McDowell <noodles@earth.li>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, netdev@vger.kernel.org
+Content-Type: text/plain;
+        charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:59118 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751151AbeACItv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Jan 2018 03:49:51 -0500
+In-Reply-To: <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
+Content-Language: en-us
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: 'Jeremy Linton' <jeremy.linton@arm.com>
+Cc: 'Mark Rutland' <mark.rutland@arm.com>, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>, 'Catalin Marinas' <catalin.marinas@arm.com>, jhugo@codeaurora.org, 'Will Deacon' <will.deacon@arm.com>, 'Linux PM' <linux-pm@vger.kernel.org>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>, 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>, 'ACPI Devel Maling List' <linux-acpi@vger.kernel.org>, 'Viresh Kumar' <viresh.kumar@linaro.org>, 'Hanjun Guo' <hanjun.guo@linaro.org>, 'Al Stone' <ahs3@redhat.com>, 'Sudeep Holla' <sudeep.holla@arm.com>, austinwc@codeaurora.org, wangxiongfeng2@huawei.com, "'Rafael J. Wysocki'" <rafael@kernel.org>
 
-On Tue, Jan 02, 2018 at 11:25:01AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Jan 2, 2018 at 3:54 AM, Joonsoo Kim <iamjoonsoo.kim@lge.com> wrote:
-> > On Fri, Dec 29, 2017 at 04:36:59PM +0000, Jonathan McDowell wrote:
-> >> On Fri, Dec 22, 2017 at 09:21:09AM +0900, Joonsoo Kim wrote:
-> >> > On Fri, Dec 08, 2017 at 03:11:59PM +0000, Jonathan McDowell wrote:
-> >> > > I've been sitting on this for a while and should have spent time to
-> >> > > investigate sooner, but it's been an odd failure mode that wasn't quite
-> >> > > obvious.
-> >> > >
-> >> > > In 4.9 if I cold power on my laptop (Dell E7240) it fails to boot - I
-> >> > > don't see anything after grub says its booting. In 4.10 onwards the
-> >> > > laptop boots, but I get an Oops as part of the boot and ACPI is unhappy
-> >> > > (no suspend, no clean poweroff, no ACPI buttons). The Oops is below;
-> >> > > taken from 4.12 as that's the most recent error dmesg I have saved but
-> >> > > also seen back in 4.10. It's always address 0x30 for the dereference.
-> >> > >
-> >> > > Rebooting the laptop does not lead to these problems; it's *only* from a
-> >> > > complete cold boot that they arise (which didn't help me in terms of
-> >> > > being able to reliably bisect). Once I realised that I was able to
-> >> > > bisect, but it leads me to an odd commit:
-> >> > >
-> >> > > 86d9f48534e800e4d62cdc1b5aaf539f4c1d47d6
-> >> > > (mm/slab: fix kmemcg cache creation delayed issue)
-> >> > >
-> >> > > If I revert this then I can cold boot without problems.
-> >> > >
-> >> > > Also I don't see the problem with a stock Debian kernel, I think because
-> >> > > the ACPI support is modularised.
-> >> >
-> >> > Sorry for late response. I was on a long vacation.
-> >>
-> >> No problem. I've been trying to get around to diagnosing this for a
-> >> while now anyway and this isn't a great time of year for fast responses.
-> >>
-> >> > I have tried to solve the problem however I don't find any clue yet.
-> >> >
-> >> > >From my analysis, oops report shows that 'struct sock *ssk' passed to
-> >> > netlink_broadcast_filtered() is NULL. It means that some of
-> >> > netlink_kernel_create() returns NULL. Maybe, it is due to slab
-> >> > allocation failure. Could you check it by inserting some log on that
-> >> > part? The issue cannot be reproducible in my side so I need your help.
-> >>
-> >> I've added some debug in acpi_bus_generate_netlink_event +
-> >> genlmsg_multicast and the problem seems to be that genlmsg_multicast is
-> >> getting called when init_net.genl_sock has not yet been initialised,
-> >> leading to the NULL deference.
-> >>
-> >> Full dmesg output from a cold 4.14.8 boot at:
-> >>
-> >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-broken
-> >>
-> >> And the same kernel after a reboot ("shutdown -r now"):
-> >>
-> >> https://the.earth.li/~noodles/acpi-problem/dmesg-4.14.8-working
-> >>
-> >> Patch that I've applied is at
-> >>
-> >> https://the.earth.li/~noodles/acpi-problem/debug-acpi.diff
-> >>
-> >
-> > Thanks for testing! It's very helpful.
-> >
-> >> The interesting difference seems to be:
-> >>
-> >>  PCI: Using ACPI for IRQ routing
-> >> +ACPI: Generating event type 208 (:9DBB5994-A997-11DA-B012-B622A1EF5492)
-> >> +ERROR: init_net.genl_sock is NULL
-> >> +BUG: unable to handle kernel NULL pointer dereference at 0000000000000030
-> >> +IP: netlink_broadcast_filtered+0x20/0x3d0
-> >> +PGD 0 P4D 0
-> >> +Oops: 0000 [#1] SMP
-> >> +Modules linked in:
-> >> +CPU: 0 PID: 29 Comm: kworker/0:1 Not tainted 4.14.8+ #1
-> >> +Hardware name: Dell Inc. Latitude E7240/07RPNV, BIOS A22 10/18/2017
-> >> +Workqueue: kacpi_notify acpi_os_execute_deferred
-> >>
-> >> 9DBB5994-A997-11DA-B012-B622A1EF5492 is the Dell WMI event GUID and
-> >> there's no visible event for it on a reboot, just on a cold power on.
-> >> Some sort of ordering issues such that genl_sock is being initialised
-> >> later with the slab change?
-> >
-> > I have checked that there is an ordering issue.
-> >
-> > genl_init() which initializes init_net->genl_sock is called on
-> > subsys_initcall().
-> >
-> > acpi_wmi_init() which schedules acpi_wmi_notify_handler() to the
-> > workqueue is called on subsys_initcall(), too.
-> > (acpi_wmi_notify_handler() -> acpi_bus_generate_netlink_event() ->
-> > netlink_broadcast())
-> >
-> > In my system, acpi_wmi_init() is called before the genl_init().
-> > Therefore, if the worker is scheduled before genl_init() is done, NULL
-> > derefence would happen.
+Hi Jeremy,
+
+ Sorry, I don't have your previous patch emails to reply on right patch
+context.
+So commenting on top of this patch.
+
+AFAIU, the PPTT v5 patches still rely on CLIDR_EL1 register to know the type
+of 
+Caches enabled/available on the platform. With PPTT, it should not rely on
+architecture
+registers. There can be platforms which can report cache availability in
+PPTT but not in 
+architecture registers.
+
+The following code snippet shows usage of CLIDR_EL1
+
+In arch/arm64/kernel/cacheinfo.c
+
+static inline enum cache_type get_cache_type(int level)
+{
+         u64 clidr;
+ 
+         if (level > MAX_CACHE_LEVEL)
+                 return CACHE_TYPE_NOCACHE;
+         clidr = read_sysreg(clidr_el1);
+         return CLIDR_CTYPE(clidr, level);
+}
+
+static int __populate_cache_leaves(unsigned int cpu)
+{
+          unsigned int level, idx;
+          enum cache_type type;
+          struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+          struct cacheinfo *this_leaf = this_cpu_ci->info_list;
+  
+          for (idx = 0, level = 1; level <= this_cpu_ci->num_levels &&
+               idx < this_cpu_ci->num_leaves; idx++, level++) {
+                  type = get_cache_type(level);
+                  if (type == CACHE_TYPE_SEPARATE) {
+                          ci_leaf_init(this_leaf++, CACHE_TYPE_DATA, level);
+                          ci_leaf_init(this_leaf++, CACHE_TYPE_INST, level);
+                  } else {
+                          ci_leaf_init(this_leaf++, type, level);
+                  }
+         }
+          return 0;
+ }
+
+In populate_cache_leaves() the cache type is read from CLIDR_EL1 register.
+If CLIDR_EL1 reports CACHE_TYPE_NOCACHE for a particular level then sysfs
+entry
+/sys/devices/system/cpu/cpu0/index<n>/type is not created and hence
+userspace tools
+like lstopo will not report this cache level.
+
+Regards
+Vijay
+
+> -----Original Message-----
+> From: linux-arm-kernel
+[mailto:linux-arm-kernel-bounces@lists.infradead.org]
+> On Behalf Of Rafael J. Wysocki
+> Sent: Thursday, December 14, 2017 4:40 AM
+> To: Jeremy Linton <jeremy.linton@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>; Jonathan.Zhang@cavium.com;
+> Jayachandran.Nair@cavium.com; Lorenzo Pieralisi
+> <lorenzo.pieralisi@arm.com>; Catalin Marinas <catalin.marinas@arm.com>;
+> Rafael J. Wysocki <rafael@kernel.org>; jhugo@codeaurora.org; Will Deacon
+> <will.deacon@arm.com>; Linux PM <linux-pm@vger.kernel.org>; Rafael J.
+> Wysocki <rjw@rjwysocki.net>; Greg Kroah-Hartman
+> <gregkh@linuxfoundation.org>; Linux Kernel Mailing List <linux-
+> kernel@vger.kernel.org>; ACPI Devel Maling List
+<linux-acpi@vger.kernel.org>;
+> Viresh Kumar <viresh.kumar@linaro.org>; Hanjun Guo
+> <hanjun.guo@linaro.org>; Al Stone <ahs3@redhat.com>; Sudeep Holla
+> <sudeep.holla@arm.com>; austinwc@codeaurora.org;
+> wangxiongfeng2@huawei.com; linux-arm-kernel@lists.infradead.org; Len
+> Brown <lenb@kernel.org>
+> Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
 > 
-> Does it help to change the subsys_initcall() in wmi.c to subsys_initcall_sync()?
+> On Thu, Dec 14, 2017 at 12:06 AM, Jeremy Linton <jeremy.linton@arm.com>
+> wrote:
+> > Hi,
+> >
+> >
+> > On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
+> >>
+> >> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
+> >> <lorenzo.pieralisi@arm.com> wrote:
+> >>>
+> >>> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
+> >>>>
+> >>>> Hi,
+> >>>>
+> >>>> First, thanks for taking a look at this.
+> >>>>
+> >>>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
+> >>>>>
+> >>>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
+> >>>>>>
+> >>>>>> The PPTT can be used to determine the groupings of CPU's at given
+> >>>>>> levels in the system. Lets add a few routines to the PPTT parsing
+> >>>>>> code to return a unique id for each unique level in the processor
+> >>>>>> hierarchy. This can then be matched to build
+> >>>>>> thread/core/cluster/die/package/etc mappings for each processing
+> >>>>>> element in the system.
+> >>>>>>
+> >>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> >>>>>
+> >>>>>
+> >>>>> Why can't this be folded into patch [2/9]?
+> >>>>
+> >>>>
+> >>>> It can, and I will be happy squash it.
+> >>>>
+> >>>> It was requested that the topology portion of the parser be split
+> >>>> out back in v3.
+> >>>>
+> >>>> https://www.spinics.net/lists/linux-acpi/msg78487.html
+> >>>
+> >>>
+> >>> I asked to split cache/topology since I am not familiar with cache
+> >>> code and Sudeep - who looks after the cache code - won't be able to
+> >>> review this series in time for v4.16.
+> >>
+> >>
+> >> OK, so why do we need it in 4.16?
+> >
+> >
+> > I think its more case of as soon as possible. That is because there
+> > are machines where the topology is completely incorrect due to
+> > assumptions the kernel makes based on registers that aren't defined
+> > for that purpose (say describing which cores are in a physical socket,
+> > or LLC's attached to interconnects or memory controllers).
+> >
+> > This incorrect topology information is reported to things like the
+> > kernel scheduler, which then makes poor scheduling decisions resulting
+> > in sub-optimal system performance.
+> >
+> > This patchset (and ACPI 6.2) clears up a lot of those problems.
+> 
+> As long as the ACPI tables are as expected that is, I suppose?
+> 
+> Anyway, fair enough, but I don't want to rush it in.
+> 
+> Thanks,
+> Rafael
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-I guess that it would work. I cannot reproduce the issue so it needs
-to be checked by Jonathan. Jonathan, could you check the problem
-is disappeared with above change?
-
-Thanks.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
