@@ -1,96 +1,280 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [alsa-devel] [PATCH v2 1/3] ACPI / utils: Introduce
- acpi_dev_get_dev_name()
-Date: Thu, 04 Jan 2018 19:40:27 +0200
-Message-ID: <1515087627.7000.701.camel@linux.intel.com>
-References: <20180104164709.64387-1-andriy.shevchenko@linux.intel.com>
-         <20180104164709.64387-2-andriy.shevchenko@linux.intel.com>
-         <aed928f3-452c-c0b8-bd93-b9921d72df67@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+Date: Thu, 4 Jan 2018 11:50:10 -0600
+Message-ID: <f2bddaa5-099d-8dc5-073b-47146de8d05c@arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-7-jeremy.linton@arm.com>
+ <9009154.M66RGdQJXA@aspire.rjw.lan>
+ <fc12696c-15e1-cea4-42bf-db4b5daa45f2@arm.com>
+ <20171213173851.GA4060@red-moon>
+ <CAJZ5v0hTcC8D6pJuPK+isntWpckNgNmqLHW98iFXL817VYHHdg@mail.gmail.com>
+ <6aca3fa0-9099-f283-ae16-0c48aa00d00d@arm.com>
+ <CAJZ5v0hBZQ-vYbobOYtKFVg9hAtUo4GU==napcJ-btQhMvn+5g@mail.gmail.com>
+ <019601d3846f$c8708550$59518ff0$@codeaurora.org>
+ <f89c8f07-bef6-c20b-cb2e-eaa2121689b3@arm.com>
+ <020801d38528$0ed8c670$2c8a5350$@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <aed928f3-452c-c0b8-bd93-b9921d72df67@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <020801d38528$0ed8c670$2c8a5350$@codeaurora.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: vkilari@codeaurora.org
+Cc: 'Mark Rutland' <mark.rutland@arm.com>, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, 'Lorenzo Pieralisi' <lorenzo.pieralisi@arm.com>, austinwc@codeaurora.org, 'Linux PM' <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, 'Catalin Marinas' <catalin.marinas@arm.com>, 'Sudeep Holla' <sudeep.holla@arm.com>, 'Will Deacon' <will.deacon@arm.com>, 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>, wangxiongfeng2@huawei.com, 'ACPI Devel Maling List' <linux-acpi@vger.kernel.org>, 'Viresh Kumar' <viresh.kumar@linaro.org>, "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, 'Hanjun Guo' <hanjun.guo@linaro.org>, 'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>, "'Rafael J. Wysocki'" <rafael@kernel.org>, 'Al Stone' <ahs3@redhat.com>, linux-arm-kernel@lists.infr
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2018-01-04 at 11:31 -0600, Pierre-Louis Bossart wrote:
-> On 1/4/18 10:47 AM, Andy Shevchenko wrote:
-> > Sometimes the user want to have device name of the match rather than
-> > just checking if device present or not. To make life easier for such
-> > users introduce acpi_dev_get_dev_name() helper based on code for
-> > acpi_dev_present().
-> > 
-> > To be more consistent with the purpose rename
-> > 
-> >    struct acpi_dev_present_info  -> struct acpi_dev_match_info
-> >    acpi_dev_present_cb()         -> acpi_dev_match_cb()
-> > 
-> > in the utils.c file.
+Hi,
+
+On 01/04/2018 12:48 AM, vkilari@codeaurora.org wrote:
+> Hi Jeremy
 > 
-> I would have done this differently. You have two routines 
-> (acpi_dev_present and acpi_dev_get_dev_name) which do the same thing 
-> except for what they return (bool and const char *) respectively.
-
-I have thought about it :-)
-
-I decide that for two current users there is a little benefit over
-effort and readability.
-
-See also below.
-
-> This could be factored with
+>> -----Original Message-----
+>> From: linux-arm-kernel
+> [mailto:linux-arm-kernel-bounces@lists.infradead.org]
+>> On Behalf Of Jeremy Linton
+>> Sent: Wednesday, January 3, 2018 10:28 PM
+>> To: vkilari@codeaurora.org
+>> Cc: 'Mark Rutland' <mark.rutland@arm.com>; Jonathan.Zhang@cavium.com;
+>> Jayachandran.Nair@cavium.com; 'Lorenzo Pieralisi'
+>> <lorenzo.pieralisi@arm.com>; austinwc@codeaurora.org; 'Linux PM' <linux-
+>> pm@vger.kernel.org>; jhugo@codeaurora.org; 'Catalin Marinas'
+>> <catalin.marinas@arm.com>; 'Sudeep Holla' <sudeep.holla@arm.com>; 'Will
+>> Deacon' <will.deacon@arm.com>; 'Linux Kernel Mailing List' <linux-
+>> kernel@vger.kernel.org>; wangxiongfeng2@huawei.com; 'ACPI Devel Maling
+>> List' <linux-acpi@vger.kernel.org>; 'Viresh Kumar'
+> <viresh.kumar@linaro.org>;
+>> 'Rafael J. Wysocki' <rjw@rjwysocki.net>; 'Hanjun Guo'
+>> <hanjun.guo@linaro.org>; 'Greg Kroah-Hartman'
+>> <gregkh@linuxfoundation.org>; 'Rafael J. Wysocki' <rafael@kernel.org>; 'Al
+>> Stone' <ahs3@redhat.com>; linux-arm-kernel@lists.infradead.org; 'Len
+> Brown'
+>> <lenb@kernel.org>
+>> Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+>>
+>> Hi,
+>>
+>> On 01/03/2018 02:49 AM, vkilari@codeaurora.org wrote:
+>>> Hi Jeremy,
+>>>
+>>>    Sorry, I don't have your previous patch emails to reply on right
+>>> patch context.
+>>> So commenting on top of this patch.
+>>>
+>>> AFAIU, the PPTT v5 patches still rely on CLIDR_EL1 register to know
+>>> the type of Caches enabled/available on the platform. With PPTT, it
+>>> should not rely on architecture registers. There can be platforms
+>>> which can report cache availability in PPTT but not in architecture
+>>> registers.
+>>>
+>>> The following code snippet shows usage of CLIDR_EL1
+>>>
+>>> In arch/arm64/kernel/cacheinfo.c
+>>>
+>>> static inline enum cache_type get_cache_type(int level) {
+>>>            u64 clidr;
+>>>
+>>>            if (level > MAX_CACHE_LEVEL)
+>>>                    return CACHE_TYPE_NOCACHE;
+>>>            clidr = read_sysreg(clidr_el1);
+>>>            return CLIDR_CTYPE(clidr, level); }
+>>>
+>>> static int __populate_cache_leaves(unsigned int cpu) {
+>>>             unsigned int level, idx;
+>>>             enum cache_type type;
+>>>             struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+>>>             struct cacheinfo *this_leaf = this_cpu_ci->info_list;
+>>>
+>>>             for (idx = 0, level = 1; level <= this_cpu_ci->num_levels &&
+>>>                  idx < this_cpu_ci->num_leaves; idx++, level++) {
+>>>                     type = get_cache_type(level);
+>>>                     if (type == CACHE_TYPE_SEPARATE) {
+>>>                             ci_leaf_init(this_leaf++, CACHE_TYPE_DATA,
+> level);
+>>>                             ci_leaf_init(this_leaf++, CACHE_TYPE_INST,
+> level);
+>>>                     } else {
+>>>                             ci_leaf_init(this_leaf++, type, level);
+>>>                     }
+>>>            }
+>>>             return 0;
+>>>    }
+>>>
+>>> In populate_cache_leaves() the cache type is read from CLIDR_EL1
+> register.
+>>> If CLIDR_EL1 reports CACHE_TYPE_NOCACHE for a particular level then
+>>> sysfs entry /sys/devices/system/cpu/cpu0/index<n>/type is not created
+>>> and hence userspace tools like lstopo will not report this cache
+>>> level.
+>>
+>>
+>> This sounds suspiciously like one of things tweaked between v4->v5. If you
+> look
+>> at update_cache_properties() in patch 2/9, you will see that we only
+>> update/find NOCACHE nodes and convert them to UNIFIED when all the
+>> attributes in the node are supplied.
+>>
+>> This means that if the node has an incomplete set of attributes we won't
+> update
+>> it. Can you verify that you have all those attributes set for nodes which
+> aren't
+>> being described by the hardware?
 > 
-> static struct device *dev _acpi_dev_present(const char *hid, const
-> char 
-> *uid, s64 hrv) {
-> 
-> 	struct acpi_dev_present_info match = {};
-> 	struct device *dev;
-> 
-> 	strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
-> 	match.uid = uid;
-> 	match.hrv = hrv;
-> 
-> 	dev = bus_find_device(&acpi_bus_type, NULL, &match,
-> 		acpi_dev_present_cb);
-> 	
-> 	return dev;
-> }
-> 
-> bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
-> {
-> 	return !!_acpi_dev_present(const char *hid, const char *uid, s64
-> hrv);
-> }
-> 
-> const char *acpi_dev_get_dev_name(const char *hid, const char *uid,
-> s64 hrv)
-> {
-> 	struct device *dev;
-> 
-> 	dev = _acpi_dev_present(const char *hid, const char *uid, s64
-> hrv);
-> 
-> 	return dev ? match.dev_name : NULL;
+> Thanks for pointing out.
+> Why do we need to check for set of attributes and decide it as UNIFIED
+> cache.?
+> We can get cache type from attributes bits[3:2] if cache type valid flag is
+> set
+> irrespective of other attributes. If cache type valid flag is not set then
+> we can assume
+> it as NOCACHE type as neither architecture register nor in PPTT has valid
+> cache type.
 
-And where is the match declaration?
+To answer the first question, in a strict sense we don't need to check 
+any of the attributes in order to override the cache type. That said, 
+initially I was going to trigger the override only when important 
+attributes were set to assure that we weren't exporting meaningless 
+nodes into sysfs. Then while picking which attributes I considered 
+important, I came to the conclusion that it was simply better to assure 
+that they were all set for nodes entirely generated by the PPTT. AKA, I 
+don't want to see L3 cache nodes with their size or associativity unset, 
+its better in that case that they remain hidden.
 
-Yes, needs to be duplicated. That's why I stopped going this direction.
+Per, the cache type valid bit. The code is written with the assumption 
+that it is overriding probed values (despite that not being true at the 
+moment for arm64) in the spirit of the standard. This informs/restricts 
+how the code works because we aren't simply generating the entire 
+cacheinfo directly from PPTT walks. Instead we are merging the PPTT 
+information with anything previously probed, meaning we need a way to 
+match existing cacheinfo structures with PPTT nodes.
 
-It still might make sense when 3+ variant will appear.
+So, the logic finding/matching an existing probed cache node requires 
+that the cache type is valid because the cache level, and type is used 
+as the match key. If the PPTT cache node doesn't have the cache type 
+valid set, then the match logic won't find the node, and the PPTT code 
+won't make any updates. That may also be what your seeing.. Basically 
+what is happening is that cacheinfo NOCACHE nodes that happen to match 
+valid PPTT UNIFIED nodes, can have their cache types overridden, but 
+only if we determine the remainder of the PPTT node has sufficient 
+information that we aren't exporting cacheinfo structures without useful 
+information. Currently, the only time this can happen is for nodes which 
+are entirely PPTT generated, so I think its fair the PPTT contain enough 
+information to make those nodes useful.
 
-> }
+Thanks,
+
+
+
 > 
-> That said you are a much better programmer than me so the other code
-> is 
-> fine with me...
-
-Thanks.
-
-Would be nice to get your Tested-by at some point.
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+>>
+>> Thanks,
+>>
+>>
+>>>
+>>> Regards
+>>> Vijay
+>>>
+>>>> -----Original Message-----
+>>>> From: linux-arm-kernel
+>>> [mailto:linux-arm-kernel-bounces@lists.infradead.org]
+>>>> On Behalf Of Rafael J. Wysocki
+>>>> Sent: Thursday, December 14, 2017 4:40 AM
+>>>> To: Jeremy Linton <jeremy.linton@arm.com>
+>>>> Cc: Mark Rutland <mark.rutland@arm.com>; Jonathan.Zhang@cavium.com;
+>>>> Jayachandran.Nair@cavium.com; Lorenzo Pieralisi
+>>>> <lorenzo.pieralisi@arm.com>; Catalin Marinas
+>>>> <catalin.marinas@arm.com>; Rafael J. Wysocki <rafael@kernel.org>;
+>>>> jhugo@codeaurora.org; Will Deacon <will.deacon@arm.com>; Linux PM
+>> <linux-pm@vger.kernel.org>; Rafael J.
+>>>> Wysocki <rjw@rjwysocki.net>; Greg Kroah-Hartman
+>>>> <gregkh@linuxfoundation.org>; Linux Kernel Mailing List <linux-
+>>>> kernel@vger.kernel.org>; ACPI Devel Maling List
+>>> <linux-acpi@vger.kernel.org>;
+>>>> Viresh Kumar <viresh.kumar@linaro.org>; Hanjun Guo
+>>>> <hanjun.guo@linaro.org>; Al Stone <ahs3@redhat.com>; Sudeep Holla
+>>>> <sudeep.holla@arm.com>; austinwc@codeaurora.org;
+>>>> wangxiongfeng2@huawei.com; linux-arm-kernel@lists.infradead.org; Len
+>>>> Brown <lenb@kernel.org>
+>>>> Subject: Re: [PATCH v5 6/9] ACPI/PPTT: Add topology parsing code
+>>>>
+>>>> On Thu, Dec 14, 2017 at 12:06 AM, Jeremy Linton
+>>>> <jeremy.linton@arm.com>
+>>>> wrote:
+>>>>> Hi,
+>>>>>
+>>>>>
+>>>>> On 12/13/2017 04:28 PM, Rafael J. Wysocki wrote:
+>>>>>>
+>>>>>> On Wed, Dec 13, 2017 at 6:38 PM, Lorenzo Pieralisi
+>>>>>> <lorenzo.pieralisi@arm.com> wrote:
+>>>>>>>
+>>>>>>> On Tue, Dec 12, 2017 at 10:13:08AM -0600, Jeremy Linton wrote:
+>>>>>>>>
+>>>>>>>> Hi,
+>>>>>>>>
+>>>>>>>> First, thanks for taking a look at this.
+>>>>>>>>
+>>>>>>>> On 12/11/2017 07:12 PM, Rafael J. Wysocki wrote:
+>>>>>>>>>
+>>>>>>>>> On Friday, December 1, 2017 11:23:27 PM CET Jeremy Linton wrote:
+>>>>>>>>>>
+>>>>>>>>>> The PPTT can be used to determine the groupings of CPU's at
+>>>>>>>>>> given levels in the system. Lets add a few routines to the PPTT
+>>>>>>>>>> parsing code to return a unique id for each unique level in the
+>>>>>>>>>> processor hierarchy. This can then be matched to build
+>>>>>>>>>> thread/core/cluster/die/package/etc mappings for each
+>>>>>>>>>> processing element in the system.
+>>>>>>>>>>
+>>>>>>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> Why can't this be folded into patch [2/9]?
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> It can, and I will be happy squash it.
+>>>>>>>>
+>>>>>>>> It was requested that the topology portion of the parser be split
+>>>>>>>> out back in v3.
+>>>>>>>>
+>>>>>>>> https://www.spinics.net/lists/linux-acpi/msg78487.html
+>>>>>>>
+>>>>>>>
+>>>>>>> I asked to split cache/topology since I am not familiar with cache
+>>>>>>> code and Sudeep - who looks after the cache code - won't be able
+>>>>>>> to review this series in time for v4.16.
+>>>>>>
+>>>>>>
+>>>>>> OK, so why do we need it in 4.16?
+>>>>>
+>>>>>
+>>>>> I think its more case of as soon as possible. That is because there
+>>>>> are machines where the topology is completely incorrect due to
+>>>>> assumptions the kernel makes based on registers that aren't defined
+>>>>> for that purpose (say describing which cores are in a physical
+>>>>> socket, or LLC's attached to interconnects or memory controllers).
+>>>>>
+>>>>> This incorrect topology information is reported to things like the
+>>>>> kernel scheduler, which then makes poor scheduling decisions
+>>>>> resulting in sub-optimal system performance.
+>>>>>
+>>>>> This patchset (and ACPI 6.2) clears up a lot of those problems.
+>>>>
+>>>> As long as the ACPI tables are as expected that is, I suppose?
+>>>>
+>>>> Anyway, fair enough, but I don't want to rush it in.
+>>>>
+>>>> Thanks,
+>>>> Rafael
+>>>>
+>>>> _______________________________________________
+>>>> linux-arm-kernel mailing list
+>>>> linux-arm-kernel@lists.infradead.org
+>>>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>>>
+>>
+>>
+>> _______________________________________________
+>> linux-arm-kernel mailing list
+>> linux-arm-kernel@lists.infradead.org
+>> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
