@@ -1,29 +1,38 @@
-From: "Peter Deng" <peterddeng2000@securemailer.com>
-Subject: Business Possibility
-Date: Thu, 4 Jan 2018 16:13:48 +0000
-Message-ID: <2532406461752247374820@nadneaa2>
-Reply-To: peterddeng2000@secsuremailer.com
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Thu, 4 Jan 2018 17:20:36 +0100
+Message-ID: <20180104162036.GL3401@lunn.ch>
+References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
+ <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
+ <20180103110048.GA21230@xora-haswell>
+ <CAPv3WKcM8WWvh64A=FTtuWkEr6V_QSKjBpNpWnMpp_P=cMU9sw@mail.gmail.com>
+ <20180104160939.GA7785@xora-haswell>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from host116-16-237-212.serverdedicati.aruba.it ([212.237.16.116]:46180
-        "EHLO host.arubacloud.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753403AbeADQUK (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jan 2018 11:20:10 -0500
-Received: from slsourcinggroup.com (nadneaa2.miniserver.com [78.31.108.146])
-        by host.arubacloud.com (Postfix) with ESMTPA id 1293175666
-        for <linux-acpi@vger.kernel.org>; Thu,  4 Jan 2018 17:13:20 +0100 (CET)
+Received: from vps0.lunn.ch ([185.16.172.187]:54432 "EHLO vps0.lunn.ch"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752303AbeADQUo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 4 Jan 2018 11:20:44 -0500
+Content-Disposition: inline
+In-Reply-To: <20180104160939.GA7785@xora-haswell>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>
+Cc: Marcin Wojtas <mw@semihalf.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine =?iso-8859-1?Q?T=E9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Nadav Haklai <nad>
 
-Hello there, My name is Peter Deng a South African citizen and a friend to Mrs Mugabe sister . I got your contact through Korean business online directory. I represent the interest of Mrs Mugabe who wishes to move a total amount of $19 million  into a safe account owns by a trusted business man who is capable of accommodating such volume of funds with absolute trust & confidentiality.
+> > I already agreed with 'reg' being awkward in the later emails.
+> > Wouldn't _ADR be more appropriate to specify PHY address on MDIO bus?
+> > 
+> Ah it is an actual address, then yes _ADR is probably more appropriate.
 
-We are willing to give 5-10 percent of the total money for this efforts . A non disclosure non circumvent agreement will be signed before the eventual transfer of funds. It is important for to know that the fund owner is going through a period of political turmoil and she is in a precarious position, so this transaction has to be highly secretive & very confidential.
+Newbie ACPI question. What is the definition of an address?
 
-Kindly respond back to me if this is what you can handle .
+In this cause, we are talking about an address of a device on an MDIO
+bus. It takes a value between 0 and 31.
 
-Regards,
+How are IC2 device addresses represented in ACPI? MDIO devices and I2C
+devices are pretty similar. So it would make sense to use the same as
+what I2C uses.
 
-Peter.
+     Andrew
