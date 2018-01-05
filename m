@@ -1,164 +1,63 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce acpi_dev_get_first_match_name()
-Date: Sat, 6 Jan 2018 00:27:03 +0100
-Message-ID: <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com>
-References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com> <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] ACPI / WMI: Call acpi_wmi_init() later
+Date: Sat, 6 Jan 2018 00:30:23 +0100
+Message-ID: <CAJZ5v0jxVUxFetwPaj76FoeQjHtSSwO+4jiEqadA1WXZ_YNNoQ@mail.gmail.com>
+References: <20171208151159.urdcrzl5qpfd6jnu@earth.li> <2601877.IhOx20xkUK@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:35347 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752370AbeAEXaY (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2018 18:30:24 -0500
+In-Reply-To: <2601877.IhOx20xkUK@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>
+Cc: Jonathan McDowell <noodles@earth.li>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>
 
-On Fri, Jan 5, 2018 at 5:09 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> Sometimes the user wants to have device name of the match rather than
-> just checking if device present or not. To make life easier for such
-> users introduce acpi_dev_get_first_match_name() helper based on code
-> for acpi_dev_present().
+On Wed, Jan 3, 2018 at 12:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 >
-> For example, GPIO driver for Intel Merrifield needs to know the device
-> name of pin control to be able to apply GPIO mapping table to the proper
-> device.
+> Calling acpi_wmi_init() at the subsys_initcall() level causes ordering
+> issues to appear on some systems and they are difficult to reproduce,
+> because there is no guaranteed ordering between subsys_initcall()
+> calls, so they may occur in different orders on different systems.
 >
-> To be more consistent with the purpose rename
+> In particular, commit 86d9f48534e8 (mm/slab: fix kmemcg cache
+> creation delayed issue) exposed one of these issues where genl_init()
+> and acpi_wmi_init() are both called at the same initcall level, but
+> the former must run before the latter so as to avoid a NULL pointer
+> dereference.
 >
->   struct acpi_dev_present_info  -> struct acpi_dev_match_info
->   acpi_dev_present_cb()         -> acpi_dev_match_cb()
+> For this reason, move the acpi_wmi_init() invocation to the
+> initcall_sync level which should still be early enough for things
+> to work correctly in the WMI land.
 >
-> in the utils.c file.
->
-> Tested-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Link: https://marc.info/?t=151274596700002&r=1&w=2
+> Reported-by: Jonathan McDowell <noodles@earth.li>
+> Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+> Tested-by: Jonathan McDowell <noodles@earth.li>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, so which way do you want this to go in?
+Guys, this fixes a crash on boot.
+
+If there are no concerns/objections I will just take it through the ACPI tree.
 
 > ---
->  drivers/acpi/utils.c    | 41 ++++++++++++++++++++++++++++++++++-------
->  include/acpi/acpi_bus.h |  3 +++
->  include/linux/acpi.h    |  6 ++++++
->  3 files changed, 43 insertions(+), 7 deletions(-)
+>  drivers/platform/x86/wmi.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 9d49a1acebe3..78db97687f26 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -737,16 +737,17 @@ bool acpi_dev_found(const char *hid)
->  }
->  EXPORT_SYMBOL(acpi_dev_found);
->
-> -struct acpi_dev_present_info {
-> +struct acpi_dev_match_info {
-> +       const char *dev_name;
->         struct acpi_device_id hid[2];
->         const char *uid;
->         s64 hrv;
->  };
->
-> -static int acpi_dev_present_cb(struct device *dev, void *data)
-> +static int acpi_dev_match_cb(struct device *dev, void *data)
->  {
->         struct acpi_device *adev = to_acpi_device(dev);
-> -       struct acpi_dev_present_info *match = data;
-> +       struct acpi_dev_match_info *match = data;
->         unsigned long long hrv;
->         acpi_status status;
->
-> @@ -757,6 +758,8 @@ static int acpi_dev_present_cb(struct device *dev, void *data)
->             strcmp(adev->pnp.unique_id, match->uid)))
->                 return 0;
->
-> +       match->dev_name = acpi_dev_name(adev);
-> +
->         if (match->hrv == -1)
->                 return 1;
->
-> @@ -789,20 +792,44 @@ static int acpi_dev_present_cb(struct device *dev, void *data)
->   */
->  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
->  {
-> -       struct acpi_dev_present_info match = {};
-> +       struct acpi_dev_match_info match = {};
->         struct device *dev;
->
->         strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
->         match.uid = uid;
->         match.hrv = hrv;
->
-> -       dev = bus_find_device(&acpi_bus_type, NULL, &match,
-> -                             acpi_dev_present_cb);
-> -
-> +       dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
->         return !!dev;
->  }
->  EXPORT_SYMBOL(acpi_dev_present);
->
-> +/**
-> + * acpi_dev_get_first_match_name - Return name of first match of ACPI device
-> + * @hid: Hardware ID of the device.
-> + * @uid: Unique ID of the device, pass NULL to not check _UID
-> + * @hrv: Hardware Revision of the device, pass -1 to not check _HRV
-> + *
-> + * Return device name if a matching device was present
-> + * at the moment of invocation, or NULL otherwise.
-> + *
-> + * See additional information in acpi_dev_present() as well.
-> + */
-> +const char *
-> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv)
-> +{
-> +       struct acpi_dev_match_info match = {};
-> +       struct device *dev;
-> +
-> +       strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
-> +       match.uid = uid;
-> +       match.hrv = hrv;
-> +
-> +       dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
-> +       return dev ? match.dev_name : NULL;
-> +}
-> +EXPORT_SYMBOL(acpi_dev_get_first_match_name);
-> +
->  /*
->   * acpi_backlight= handling, this is done here rather then in video_detect.c
->   * because __setup cannot be used in modules.
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index 79287629c888..c9608b0b80c6 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -91,6 +91,9 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const guid_t *guid, u64 rev,
->  bool acpi_dev_found(const char *hid);
->  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv);
->
-> +const char *
-> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv);
-> +
->  #ifdef CONFIG_ACPI
->
->  #include <linux/proc_fs.h>
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 60f0d3248125..493ac6451773 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -642,6 +642,12 @@ static inline bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
->         return false;
+> Index: linux-pm/drivers/platform/x86/wmi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/platform/x86/wmi.c
+> +++ linux-pm/drivers/platform/x86/wmi.c
+> @@ -1458,5 +1458,5 @@ static void __exit acpi_wmi_exit(void)
+>         class_unregister(&wmi_bus_class);
 >  }
 >
-> +static inline const char *
-> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv)
-> +{
-> +       return NULL;
-> +}
-> +
->  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
->  {
->         return false;
-> --
-> 2.15.1
+> -subsys_initcall(acpi_wmi_init);
+> +subsys_initcall_sync(acpi_wmi_init);
+>  module_exit(acpi_wmi_exit);
 >
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
