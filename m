@@ -1,94 +1,164 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 3/9] ACPI: Enable PPTT support on ARM64
-Date: Fri, 5 Jan 2018 23:07:27 +0100
-Message-ID: <CAJZ5v0gP3ty=TBVXfUUSjXO2s0C9Mmp1z2cjuVbH4Hc+oaG1qQ@mail.gmail.com>
-References: <20171201222330.18863-1-jeremy.linton@arm.com> <20171201222330.18863-4-jeremy.linton@arm.com>
- <20171213172647.GA3316@red-moon> <f0f8c79a-2ff2-abe9-4a16-79485f0a1e2c@arm.com>
+Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce acpi_dev_get_first_match_name()
+Date: Sat, 6 Jan 2018 00:27:03 +0100
+Message-ID: <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com>
+References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com> <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:46263 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753288AbeAEWH2 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jan 2018 17:07:28 -0500
-In-Reply-To: <f0f8c79a-2ff2-abe9-4a16-79485f0a1e2c@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Al Stone <ahs3@redhat.com>, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, Len Brown <lenb@kernel.org>
 
-On Fri, Jan 5, 2018 at 10:58 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> Hi,
+On Fri, Jan 5, 2018 at 5:09 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> Sometimes the user wants to have device name of the match rather than
+> just checking if device present or not. To make life easier for such
+> users introduce acpi_dev_get_first_match_name() helper based on code
+> for acpi_dev_present().
 >
+> For example, GPIO driver for Intel Merrifield needs to know the device
+> name of pin control to be able to apply GPIO mapping table to the proper
+> device.
 >
-> On 12/13/2017 11:26 AM, Lorenzo Pieralisi wrote:
->>
->> On Fri, Dec 01, 2017 at 04:23:24PM -0600, Jeremy Linton wrote:
->>>
->>> Now that we have a PPTT parser, in preparation for its use
->>> on arm64, lets build it.
->>>
->>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>> ---
->>>   arch/arm64/Kconfig    | 1 +
->>>   drivers/acpi/Kconfig  | 3 +++
->>>   drivers/acpi/Makefile | 1 +
->>>   3 files changed, 5 insertions(+)
->>>
->>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->>> index a93339f5178f..e62fd1e08c1f 100644
->>> --- a/arch/arm64/Kconfig
->>> +++ b/arch/arm64/Kconfig
->>> @@ -7,6 +7,7 @@ config ARM64
->>>         select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->>>         select ACPI_MCFG if ACPI
->>>         select ACPI_SPCR_TABLE if ACPI
->>> +       select ACPI_PPTT if ACPI
->>>         select ARCH_CLOCKSOURCE_DATA
->>>         select ARCH_HAS_DEBUG_VIRTUAL
->>>         select ARCH_HAS_DEVMEM_IS_ALLOWED
->>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>> index 46505396869e..df7aebf0af0e 100644
->>> --- a/drivers/acpi/Kconfig
->>> +++ b/drivers/acpi/Kconfig
->>> @@ -545,6 +545,9 @@ config ACPI_CONFIGFS
->>>     if ARM64
->>>   source "drivers/acpi/arm64/Kconfig"
->>> +
->>> +config ACPI_PPTT
->>> +       bool
->>
->>
->> We need to make a choice here. Either PPTT is considered ARM64 only and
->> we move code and config to drivers/acpi/arm64/Kconfig or we leave it in
->> drivers/acpi/pptt.c and we add a Kconfig entry in drivers/acpi/Kconfig
->> (and we make pptt.c compile on !ARM64 - which is what it should be given
->> that there is nothing ARM64 specific in it).
+> To be more consistent with the purpose rename
 >
+>   struct acpi_dev_present_info  -> struct acpi_dev_match_info
+>   acpi_dev_present_cb()         -> acpi_dev_match_cb()
 >
-> No one else has expressed and opinion about this here..
+> in the utils.c file.
 >
-> So i'm not sure what to think.
->
-> OTOH a lot of people didn't like it when I had it in the arm64 directory,
-> which was my original opinion. It seems other people thought that at some
-> point in the future other ACPI platforms would want to use it so putting it
-> in the arm64 directory was a mistake.
+> Tested-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-In my view it may go directly into drivers/acpi/ for the time being.
+OK, so which way do you want this to go in?
 
-That said, going forward it may be useful to add a special
-subdirectory under drivers/acpi/ for these "table drivers" as we seem
-to be acquiring them at alarming rate.
-
-> So, I'm leaning towards leaving it like it is, under the assumption that
-> when someone puts in the effort to verify it on another ACPI platform they
-> can move the config option up 6 lines. In the meantime I don't think it
-> should be enabled on platforms where it hasn't been tested or is basically
-> blocked (cpu_cacheinfo->cpu_map_populated) from executing or there isn't
-> currently any benefit.
-
-Agreed.
-
-Thanks,
-Rafael
+> ---
+>  drivers/acpi/utils.c    | 41 ++++++++++++++++++++++++++++++++++-------
+>  include/acpi/acpi_bus.h |  3 +++
+>  include/linux/acpi.h    |  6 ++++++
+>  3 files changed, 43 insertions(+), 7 deletions(-)
+>
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 9d49a1acebe3..78db97687f26 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -737,16 +737,17 @@ bool acpi_dev_found(const char *hid)
+>  }
+>  EXPORT_SYMBOL(acpi_dev_found);
+>
+> -struct acpi_dev_present_info {
+> +struct acpi_dev_match_info {
+> +       const char *dev_name;
+>         struct acpi_device_id hid[2];
+>         const char *uid;
+>         s64 hrv;
+>  };
+>
+> -static int acpi_dev_present_cb(struct device *dev, void *data)
+> +static int acpi_dev_match_cb(struct device *dev, void *data)
+>  {
+>         struct acpi_device *adev = to_acpi_device(dev);
+> -       struct acpi_dev_present_info *match = data;
+> +       struct acpi_dev_match_info *match = data;
+>         unsigned long long hrv;
+>         acpi_status status;
+>
+> @@ -757,6 +758,8 @@ static int acpi_dev_present_cb(struct device *dev, void *data)
+>             strcmp(adev->pnp.unique_id, match->uid)))
+>                 return 0;
+>
+> +       match->dev_name = acpi_dev_name(adev);
+> +
+>         if (match->hrv == -1)
+>                 return 1;
+>
+> @@ -789,20 +792,44 @@ static int acpi_dev_present_cb(struct device *dev, void *data)
+>   */
+>  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
+>  {
+> -       struct acpi_dev_present_info match = {};
+> +       struct acpi_dev_match_info match = {};
+>         struct device *dev;
+>
+>         strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
+>         match.uid = uid;
+>         match.hrv = hrv;
+>
+> -       dev = bus_find_device(&acpi_bus_type, NULL, &match,
+> -                             acpi_dev_present_cb);
+> -
+> +       dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
+>         return !!dev;
+>  }
+>  EXPORT_SYMBOL(acpi_dev_present);
+>
+> +/**
+> + * acpi_dev_get_first_match_name - Return name of first match of ACPI device
+> + * @hid: Hardware ID of the device.
+> + * @uid: Unique ID of the device, pass NULL to not check _UID
+> + * @hrv: Hardware Revision of the device, pass -1 to not check _HRV
+> + *
+> + * Return device name if a matching device was present
+> + * at the moment of invocation, or NULL otherwise.
+> + *
+> + * See additional information in acpi_dev_present() as well.
+> + */
+> +const char *
+> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv)
+> +{
+> +       struct acpi_dev_match_info match = {};
+> +       struct device *dev;
+> +
+> +       strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
+> +       match.uid = uid;
+> +       match.hrv = hrv;
+> +
+> +       dev = bus_find_device(&acpi_bus_type, NULL, &match, acpi_dev_match_cb);
+> +       return dev ? match.dev_name : NULL;
+> +}
+> +EXPORT_SYMBOL(acpi_dev_get_first_match_name);
+> +
+>  /*
+>   * acpi_backlight= handling, this is done here rather then in video_detect.c
+>   * because __setup cannot be used in modules.
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 79287629c888..c9608b0b80c6 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -91,6 +91,9 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const guid_t *guid, u64 rev,
+>  bool acpi_dev_found(const char *hid);
+>  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv);
+>
+> +const char *
+> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv);
+> +
+>  #ifdef CONFIG_ACPI
+>
+>  #include <linux/proc_fs.h>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 60f0d3248125..493ac6451773 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -642,6 +642,12 @@ static inline bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
+>         return false;
+>  }
+>
+> +static inline const char *
+> +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64 hrv)
+> +{
+> +       return NULL;
+> +}
+> +
+>  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+>  {
+>         return false;
+> --
+> 2.15.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
