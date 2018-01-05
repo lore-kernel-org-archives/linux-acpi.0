@@ -1,86 +1,107 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 0/3] ACPI, ASoC, gpio: Add and use
- acpi_dev_get_first_match_name()
-Date: Fri, 05 Jan 2018 19:08:41 +0200
-Message-ID: <1515172121.7000.749.camel@linux.intel.com>
-References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com>
-         <6614de84-5d58-fa01-5247-717af2e6c1b1@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v5 3/9] ACPI: Enable PPTT support on ARM64
+Date: Fri, 5 Jan 2018 15:58:26 -0600
+Message-ID: <f0f8c79a-2ff2-abe9-4a16-79485f0a1e2c@arm.com>
+References: <20171201222330.18863-1-jeremy.linton@arm.com>
+ <20171201222330.18863-4-jeremy.linton@arm.com>
+ <20171213172647.GA3316@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12057 "EHLO mga11.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:49748 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752426AbeAERKQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 5 Jan 2018 12:10:16 -0500
-In-Reply-To: <6614de84-5d58-fa01-5247-717af2e6c1b1@linux.intel.com>
+        id S1753080AbeAEV62 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 5 Jan 2018 16:58:28 -0500
+In-Reply-To: <20171213172647.GA3316@red-moon>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org
 
-On Fri, 2018-01-05 at 10:13 -0600, Pierre-Louis Bossart wrote:
-> On 1/5/18 10:09 AM, Andy Shevchenko wrote:
-> > It appears that at least one current user (patch 3) and upcoming one
-> > (patch 2) need to get device name by ACPI HID.
-> > 
-> > Here we introduce acpi_dev_get_first_match_name() based on code
-> > done for acpi_dev_present() and reuse it where appropriate.
-> > 
-> > The series has been tested on Intel Edison with non-ACPI and
-> > ACPI enabled versions of U-Boot, while patches 1 and 3 were tested
-> > by Pierre.
-> > 
-> > Since patch 1 and cross subsystem nature of the series I think
-> > the best way is to push this (patches 1 and 2) via Rafael's linux-pm 
-> > tree.
-> > 
-> > Taking into consideration that patch 3 requires not-yet-applied work
-> > from Pierre, I left it for reference, in particular to show the LOC
-> > statistics.
-> > 
-> > Changelog v3:
-> > - add Pierre's tag (I dared to do this for both patches 1 and 3)
-> 
-> I tested a modified version of patch 3 (conflict resolution +
-> addition 
-> of ES8316 support).
+Hi,
 
-In v3 these have been addressed as I put above as "requires non-yet-
-applied work".
+On 12/13/2017 11:26 AM, Lorenzo Pieralisi wrote:
+> On Fri, Dec 01, 2017 at 04:23:24PM -0600, Jeremy Linton wrote:
+>> Now that we have a PPTT parser, in preparation for its use
+>> on arm64, lets build it.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   arch/arm64/Kconfig    | 1 +
+>>   drivers/acpi/Kconfig  | 3 +++
+>>   drivers/acpi/Makefile | 1 +
+>>   3 files changed, 5 insertions(+)
+>>
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index a93339f5178f..e62fd1e08c1f 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -7,6 +7,7 @@ config ARM64
+>>   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>>   	select ACPI_MCFG if ACPI
+>>   	select ACPI_SPCR_TABLE if ACPI
+>> +	select ACPI_PPTT if ACPI
+>>   	select ARCH_CLOCKSOURCE_DATA
+>>   	select ARCH_HAS_DEBUG_VIRTUAL
+>>   	select ARCH_HAS_DEVMEM_IS_ALLOWED
+>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>> index 46505396869e..df7aebf0af0e 100644
+>> --- a/drivers/acpi/Kconfig
+>> +++ b/drivers/acpi/Kconfig
+>> @@ -545,6 +545,9 @@ config ACPI_CONFIGFS
+>>   
+>>   if ARM64
+>>   source "drivers/acpi/arm64/Kconfig"
+>> +
+>> +config ACPI_PPTT
+>> +	bool
+> 
+> We need to make a choice here. Either PPTT is considered ARM64 only and
+> we move code and config to drivers/acpi/arm64/Kconfig or we leave it in
+> drivers/acpi/pptt.c and we add a Kconfig entry in drivers/acpi/Kconfig
+> (and we make pptt.c compile on !ARM64 - which is what it should be given
+> that there is nothing ARM64 specific in it).
+
+No one else has expressed and opinion about this here..
+
+So i'm not sure what to think.
+
+OTOH a lot of people didn't like it when I had it in the arm64 
+directory, which was my original opinion. It seems other people thought 
+that at some point in the future other ACPI platforms would want to use 
+it so putting it in the arm64 directory was a mistake.
+
+So, I'm leaning towards leaving it like it is, under the assumption that 
+when someone puts in the effort to verify it on another ACPI platform 
+they can move the config option up 6 lines. In the meantime I don't 
+think it should be enabled on platforms where it hasn't been tested or 
+is basically blocked (cpu_cacheinfo->cpu_map_populated) from executing 
+or there isn't currently any benefit.
+
+Hence I'm planning on leaving it as is until I get further clarity.
+
 
 > 
-> > - address comment about function name (patch 1)
-> > - add a reference to the first user (patch 1)
-> > - consolidate pin control device possible names in one place (patch
-> > 2)
-> > - rebase ASoC patch on not-yet-applied series from Pierre (patch 3),
-> > and
-> > - thus reordered to make it last in the series (patch 3)
-> > 
-> > Andy Shevchenko (3):
-> >    ACPI / utils: Introduce acpi_dev_get_first_match_name()
-> >    gpio: merrifield: Add support of ACPI enabled platforms
-> >    ASoC: Intel - Convert to use acpi_dev_get_first_match_name()
-> > 
-> >   drivers/acpi/utils.c                    | 41
-> > +++++++++++++++++++++++++++------
-> >   drivers/gpio/gpio-merrifield.c          | 11 ++++++++-
-> >   include/acpi/acpi_bus.h                 |  3 +++
-> >   include/linux/acpi.h                    |  6 +++++
-> >   include/sound/soc-acpi.h                |  7 ------
-> >   sound/soc/intel/boards/bytcht_da7213.c  |  2 +-
-> >   sound/soc/intel/boards/bytcht_es8316.c  |  2 +-
-> >   sound/soc/intel/boards/bytcr_rt5640.c   |  2 +-
-> >   sound/soc/intel/boards/bytcr_rt5651.c   |  2 +-
-> >   sound/soc/intel/boards/cht_bsw_rt5645.c |  2 +-
-> >   sound/soc/intel/boards/cht_bsw_rt5672.c |  2 +-
-> >   sound/soc/soc-acpi.c                    | 33 -------------------
-> > -------
-> >   12 files changed, 59 insertions(+), 54 deletions(-)
-> > 
+> Lorenzo
 > 
-> 
+>>   endif
+>>   
+>>   config TPS68470_PMIC_OPREGION
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index 41954a601989..b6056b566df4 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -87,6 +87,7 @@ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+>>   obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+>>   obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
+>>   obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
+>> +obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
+>>   
+>>   # processor has its own "processor." module_param namespace
+>>   processor-y			:= processor_driver.o
+>> -- 
+>> 2.13.5
+>>
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
