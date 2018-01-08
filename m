@@ -1,201 +1,76 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce
- acpi_dev_get_first_match_name()
-Date: Mon, 08 Jan 2018 15:09:20 +0200
-Message-ID: <1515416960.7000.784.camel@linux.intel.com>
-References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com>
-         <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
-         <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Mon, 8 Jan 2018 14:45:48 +0000
+Message-ID: <20180108144548.GA31502@xora-haswell>
+References: <1513588684-15647-1-git-send-email-mw@semihalf.com>
+ <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
+ <20180103110048.GA21230@xora-haswell>
+ <CAPv3WKcM8WWvh64A=FTtuWkEr6V_QSKjBpNpWnMpp_P=cMU9sw@mail.gmail.com>
+ <20180104160939.GA7785@xora-haswell>
+ <20180104162036.GL3401@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="h31gzZEtNLTqOjlF"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180104162036.GL3401@lunn.ch>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Marcin Wojtas <mw@semihalf.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine =?iso-8859-1?Q?T=E9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Nadav Haklai <nad>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 2018-01-06 at 00:27 +0100, Rafael J. Wysocki wrote:
-> On Fri, Jan 5, 2018 at 5:09 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > Sometimes the user wants to have device name of the match rather
-> > than
-> > just checking if device present or not. To make life easier for such
-> > users introduce acpi_dev_get_first_match_name() helper based on code
-> > for acpi_dev_present().
-> > 
-> > For example, GPIO driver for Intel Merrifield needs to know the
-> > device
-> > name of pin control to be able to apply GPIO mapping table to the
-> > proper
-> > device.
-> > 
-> > To be more consistent with the purpose rename
-> > 
-> >   struct acpi_dev_present_info  -> struct acpi_dev_match_info
-> >   acpi_dev_present_cb()         -> acpi_dev_match_cb()
-> > 
-> > in the utils.c file.
-> > 
-> > Tested-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.co
-> > m>
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> 
-> OK, so which way do you want this to go in?
 
-If you have no objections, patch 1 may go straight forward to linux-pm
-tree as far as you are okay with the contents.
+--h31gzZEtNLTqOjlF
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I dunno, if Mika's ACK is enough to you to get the second one (patch 2)
-together, otherwise Linus' ACK would be needed or leave it for next
-cycle.
+On Thu, Jan 04, 2018 at 05:20:36PM +0100, Andrew Lunn wrote:
+> > > I already agreed with 'reg' being awkward in the later emails.
+> > > Wouldn't _ADR be more appropriate to specify PHY address on MDIO bus?
+> > >=20
+> > Ah it is an actual address, then yes _ADR is probably more appropriate.
+>=20
+> Newbie ACPI question. What is the definition of an address?
+>=20
+> In this cause, we are talking about an address of a device on an MDIO
+> bus. It takes a value between 0 and 31.
+>=20
+> How are IC2 device addresses represented in ACPI? MDIO devices and I2C
+> devices are pretty similar. So it would make sense to use the same as
+> what I2C uses.
+>=20
+Too big (and has table) to sensibly quote, but defined in ACPI spec
 
-According to what Mark and Pierre told previously I guess we just
-postpone patch 3 for next cycle.
+6.1.1 _ADR (Address)
 
-> 
-> > ---
-> >  drivers/acpi/utils.c    | 41 ++++++++++++++++++++++++++++++++++--
-> > -----
-> >  include/acpi/acpi_bus.h |  3 +++
-> >  include/linux/acpi.h    |  6 ++++++
-> >  3 files changed, 43 insertions(+), 7 deletions(-)
-> > 
-> > diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> > index 9d49a1acebe3..78db97687f26 100644
-> > --- a/drivers/acpi/utils.c
-> > +++ b/drivers/acpi/utils.c
-> > @@ -737,16 +737,17 @@ bool acpi_dev_found(const char *hid)
-> >  }
-> >  EXPORT_SYMBOL(acpi_dev_found);
-> > 
-> > -struct acpi_dev_present_info {
-> > +struct acpi_dev_match_info {
-> > +       const char *dev_name;
-> >         struct acpi_device_id hid[2];
-> >         const char *uid;
-> >         s64 hrv;
-> >  };
-> > 
-> > -static int acpi_dev_present_cb(struct device *dev, void *data)
-> > +static int acpi_dev_match_cb(struct device *dev, void *data)
-> >  {
-> >         struct acpi_device *adev = to_acpi_device(dev);
-> > -       struct acpi_dev_present_info *match = data;
-> > +       struct acpi_dev_match_info *match = data;
-> >         unsigned long long hrv;
-> >         acpi_status status;
-> > 
-> > @@ -757,6 +758,8 @@ static int acpi_dev_present_cb(struct device
-> > *dev, void *data)
-> >             strcmp(adev->pnp.unique_id, match->uid)))
-> >                 return 0;
-> > 
-> > +       match->dev_name = acpi_dev_name(adev);
-> > +
-> >         if (match->hrv == -1)
-> >                 return 1;
-> > 
-> > @@ -789,20 +792,44 @@ static int acpi_dev_present_cb(struct device
-> > *dev, void *data)
-> >   */
-> >  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv)
-> >  {
-> > -       struct acpi_dev_present_info match = {};
-> > +       struct acpi_dev_match_info match = {};
-> >         struct device *dev;
-> > 
-> >         strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
-> >         match.uid = uid;
-> >         match.hrv = hrv;
-> > 
-> > -       dev = bus_find_device(&acpi_bus_type, NULL, &match,
-> > -                             acpi_dev_present_cb);
-> > -
-> > +       dev = bus_find_device(&acpi_bus_type, NULL, &match,
-> > acpi_dev_match_cb);
-> >         return !!dev;
-> >  }
-> >  EXPORT_SYMBOL(acpi_dev_present);
-> > 
-> > +/**
-> > + * acpi_dev_get_first_match_name - Return name of first match of
-> > ACPI device
-> > + * @hid: Hardware ID of the device.
-> > + * @uid: Unique ID of the device, pass NULL to not check _UID
-> > + * @hrv: Hardware Revision of the device, pass -1 to not check _HRV
-> > + *
-> > + * Return device name if a matching device was present
-> > + * at the moment of invocation, or NULL otherwise.
-> > + *
-> > + * See additional information in acpi_dev_present() as well.
-> > + */
-> > +const char *
-> > +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64
-> > hrv)
-> > +{
-> > +       struct acpi_dev_match_info match = {};
-> > +       struct device *dev;
-> > +
-> > +       strlcpy(match.hid[0].id, hid, sizeof(match.hid[0].id));
-> > +       match.uid = uid;
-> > +       match.hrv = hrv;
-> > +
-> > +       dev = bus_find_device(&acpi_bus_type, NULL, &match,
-> > acpi_dev_match_cb);
-> > +       return dev ? match.dev_name : NULL;
-> > +}
-> > +EXPORT_SYMBOL(acpi_dev_get_first_match_name);
-> > +
-> >  /*
-> >   * acpi_backlight= handling, this is done here rather then in
-> > video_detect.c
-> >   * because __setup cannot be used in modules.
-> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > index 79287629c888..c9608b0b80c6 100644
-> > --- a/include/acpi/acpi_bus.h
-> > +++ b/include/acpi/acpi_bus.h
-> > @@ -91,6 +91,9 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const
-> > guid_t *guid, u64 rev,
-> >  bool acpi_dev_found(const char *hid);
-> >  bool acpi_dev_present(const char *hid, const char *uid, s64 hrv);
-> > 
-> > +const char *
-> > +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64
-> > hrv);
-> > +
-> >  #ifdef CONFIG_ACPI
-> > 
-> >  #include <linux/proc_fs.h>
-> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > index 60f0d3248125..493ac6451773 100644
-> > --- a/include/linux/acpi.h
-> > +++ b/include/linux/acpi.h
-> > @@ -642,6 +642,12 @@ static inline bool acpi_dev_present(const char
-> > *hid, const char *uid, s64 hrv)
-> >         return false;
-> >  }
-> > 
-> > +static inline const char *
-> > +acpi_dev_get_first_match_name(const char *hid, const char *uid, s64
-> > hrv)
-> > +{
-> > +       return NULL;
-> > +}
-> > +
-> >  static inline bool is_acpi_node(struct fwnode_handle *fwnode)
-> >  {
-> >         return false;
-> > --
-> > 2.15.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ive never though been quite sure if that is just an example list of
+address types or its supposed to be canonical (in which case some ECRs
+are needed to the spec).
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks
+
+Graeme
+
+
+--h31gzZEtNLTqOjlF
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEenb+qYJ1KjE/UpmZkGKawB22KXYFAlpThAAACgkQkGKawB22
+KXb0dw//SWt2W1dEnU8CnfP7S0ddkfiPEDp4jo5aMRGbt3ss23ZoUNvgjaucBCW9
+CwURSjuyvk1pduIic2WNodPqSMoH9cMZyOc51F91JYngKuFoRn7zLy0YkAs+XSnz
+y8kqKC6wtj9l9Ffwg3fOhdQ/XBAGHCIq+2fx0I/7gxkUfBi+NWwV/LEz2IfahNpt
+5rIkKjIfQWW2e2eE8/XIWQJFOyvlrsJK/7KAGh8tUflzuFdZAl9WZr/BfsDBfqo9
+nDFjzbH8wvV0oAVvxPz3kUXcR+rZwCmPj9LLscqIJlfNdx6rIwzlNE3rld8rvqJQ
+JxVkqMALeyRHU4UGFQkeH6QlK4zVLVaPGXbwEHTrF4gTyVWR2yqBeWyFchsV2XQh
+R8S0rt1nHx/Cf74Uq0+9OaFrAUGGU+Q7HRa6fV5xAOpvV9ury5jMZFwTbuMBdA17
+U+3Ebj2kKPu8g8tWIzgAeJ/8a4v7B6Qdnjiujkg2mzxo8qH7npNbxXRYf2YMAqTN
+rdlEDlwlQEC10ksz1SaqH7X/Z3zYPwGaIdW8a7KeoFKArrJ/rdBLxPH84s5jNTTi
+oTTFU3BZh7r3vRPKDYe0h92QZd6ehyuWnE9IUEspxarL6kk+S1dsbpKD0a/KZgvK
+yzzcPbM8BfMUcH6dHmE6xLSZx3LycxIg8rS/JDgP4bK5ok4/OP4=
+=qir+
+-----END PGP SIGNATURE-----
+
+--h31gzZEtNLTqOjlF--
