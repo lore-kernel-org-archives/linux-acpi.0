@@ -1,56 +1,125 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH] ACPI / WMI: Call acpi_wmi_init() later
-Date: Sat, 6 Jan 2018 14:59:25 -0800
-Message-ID: <20180106225925.GA20169@fury>
-References: <20171208151159.urdcrzl5qpfd6jnu@earth.li>
- <2601877.IhOx20xkUK@aspire.rjw.lan>
- <CAJZ5v0jxVUxFetwPaj76FoeQjHtSSwO+4jiEqadA1WXZ_YNNoQ@mail.gmail.com>
- <20180106110227.j2jkxjpjktcy6yjr@earth.li>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180106110227.j2jkxjpjktcy6yjr@earth.li>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Jonathan McDowell <noodles@earth.li>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix with a "rewritten" version
+Date: Mon,  8 Jan 2018 10:44:16 +0100
+Message-ID: <20180108094416.4789-1-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:33512 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756467AbeAHJoV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 8 Jan 2018 04:44:21 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Brian Norris <briannorris@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>
 
-On Sat, Jan 06, 2018 at 11:02:27AM +0000, Jonathan McDowell wrote:
-> On Sat, Jan 06, 2018 at 12:30:23AM +0100, Rafael J. Wysocki wrote:
-> > On Wed, Jan 3, 2018 at 12:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > >
-> > > Calling acpi_wmi_init() at the subsys_initcall() level causes ordering
-> > > issues to appear on some systems and they are difficult to reproduce,
-> > > because there is no guaranteed ordering between subsys_initcall()
-> > > calls, so they may occur in different orders on different systems.
-> > >
-> > > In particular, commit 86d9f48534e8 (mm/slab: fix kmemcg cache
-> > > creation delayed issue) exposed one of these issues where genl_init()
-> > > and acpi_wmi_init() are both called at the same initcall level, but
-> > > the former must run before the latter so as to avoid a NULL pointer
-> > > dereference.
-> > >
-> > > For this reason, move the acpi_wmi_init() invocation to the
-> > > initcall_sync level which should still be early enough for things
-> > > to work correctly in the WMI land.
-> > >
-> > > Link: https://marc.info/?t=151274596700002&r=1&w=2
-> > > Reported-by: Jonathan McDowell <noodles@earth.li>
-> > > Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-> > > Tested-by: Jonathan McDowell <noodles@earth.li>
-> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > Guys, this fixes a crash on boot.
-> > 
-> > If there are no concerns/objections I will just take it through the ACPI tree.
-> 
-> Note that I first started seeing it in v4.9 so would ideally hit the
-> appropriate stable trees too.
+Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
+removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
+instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
 
-Thanks, I'll take care of that.
+This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
+has several issues (see the original commit message). An added advantage
+of moving over to the USB-core reset-resume handling is that it also
+disables autosuspend for these devices, which is similarly broken on these.
 
+But there are 2 issues with this approach:
+1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
+   devices.
+2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
+   added to usb/core/quirks.c and if we fix the Realtek case the same way
+   we need to add an additional 14 entries. So in essence we need to
+   duplicate a large part of the usb_device_id table in btusb.c in
+   usb/core/quirks.c and manually keep them in sync.
+
+This commit instead restores setting a reset-resume quirk for QCA devices
+in the btusb.c code, avoiding the duplicate usb_device_id table problem.
+
+This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
+code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
+usb_device.
+
+This commit also moves the BTUSB_REALTEK case over to directly setting the
+USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
+BTUSB_RESET_RESUME code.
+
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
+Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
+Cc: stable@vger.kernel.org
+Cc: Leif Liddy <leif.linux@gmail.com>
+Cc: Matthias Kaehlcke <mka@chromium.org>
+Cc: Brian Norris <briannorris@chromium.org>
+Cc: Daniel Drake <drake@endlessm.com>
+Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+Note:
+1) Once this has been merged, the 2 commits adding QCA device entries to
+drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
+2) I don't have any of the affected devices, please test
+---
+ drivers/bluetooth/btusb.c | 22 ++++++++++------------
+ 1 file changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+index 4764100a5888..c4689f03220f 100644
+--- a/drivers/bluetooth/btusb.c
++++ b/drivers/bluetooth/btusb.c
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/usb.h>
++#include <linux/usb/quirks.h>
+ #include <linux/firmware.h>
+ #include <linux/of_device.h>
+ #include <linux/of_irq.h>
+@@ -388,9 +389,8 @@ static const struct usb_device_id blacklist_table[] = {
+ #define BTUSB_FIRMWARE_LOADED	7
+ #define BTUSB_FIRMWARE_FAILED	8
+ #define BTUSB_BOOTING		9
+-#define BTUSB_RESET_RESUME	10
+-#define BTUSB_DIAG_RUNNING	11
+-#define BTUSB_OOB_WAKE_ENABLED	12
++#define BTUSB_DIAG_RUNNING	10
++#define BTUSB_OOB_WAKE_ENABLED	11
+ 
+ struct btusb_data {
+ 	struct hci_dev       *hdev;
+@@ -3118,6 +3118,12 @@ static int btusb_probe(struct usb_interface *intf,
+ 	if (id->driver_info & BTUSB_QCA_ROME) {
+ 		data->setup_on_usb = btusb_setup_qca;
+ 		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
++
++		/* QCA Rome devices lose their updated firmware over suspend,
++		 * but the USB hub doesn't notice any status change.
++		 * explicitly request a device reset on resume.
++		 */
++		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
+ 	}
+ 
+ #ifdef CONFIG_BT_HCIBTUSB_RTL
+@@ -3128,7 +3134,7 @@ static int btusb_probe(struct usb_interface *intf,
+ 		 * but the USB hub doesn't notice any status change.
+ 		 * Explicitly request a device reset on resume.
+ 		 */
+-		set_bit(BTUSB_RESET_RESUME, &data->flags);
++		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
+ 	}
+ #endif
+ 
+@@ -3297,14 +3303,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+ 		enable_irq(data->oob_wake_irq);
+ 	}
+ 
+-	/* Optionally request a device reset on resume, but only when
+-	 * wakeups are disabled. If wakeups are enabled we assume the
+-	 * device will stay powered up throughout suspend.
+-	 */
+-	if (test_bit(BTUSB_RESET_RESUME, &data->flags) &&
+-	    !device_may_wakeup(&data->udev->dev))
+-		data->udev->reset_resume = 1;
+-
+ 	return 0;
+ }
+ 
 -- 
-Darren Hart
-VMware Open Source Technology Center
+2.14.3
+
