@@ -1,71 +1,66 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Mon, 8 Jan 2018 21:46:08 +0100
-Message-ID: <28EBA1CE-4DFF-4828-BF00-99BC2B487484@holtmann.org>
-References: <20180108094416.4789-1-hdegoede@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180108094416.4789-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Brian Norris <briannorris@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce acpi_dev_get_first_match_name()
+Date: Tue, 09 Jan 2018 01:18:17 +0100
+Message-ID: <3404188.B388fAZkns@aspire.rjw.lan>
+References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com> <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com> <1515416960.7000.784.camel@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.pl ([79.96.170.134]:64788 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751656AbeAIAT3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jan 2018 19:19:29 -0500
+In-Reply-To: <1515416960.7000.784.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, Mark Brown <broonie@kernel.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Hans,
+On Monday, January 8, 2018 2:09:20 PM CET Andy Shevchenko wrote:
+> On Sat, 2018-01-06 at 00:27 +0100, Rafael J. Wysocki wrote:
+> > On Fri, Jan 5, 2018 at 5:09 PM, Andy Shevchenko
+> > <andriy.shevchenko@linux.intel.com> wrote:
+> > > Sometimes the user wants to have device name of the match rather
+> > > than
+> > > just checking if device present or not. To make life easier for such
+> > > users introduce acpi_dev_get_first_match_name() helper based on code
+> > > for acpi_dev_present().
+> > > 
+> > > For example, GPIO driver for Intel Merrifield needs to know the
+> > > device
+> > > name of pin control to be able to apply GPIO mapping table to the
+> > > proper
+> > > device.
+> > > 
+> > > To be more consistent with the purpose rename
+> > > 
+> > >   struct acpi_dev_present_info  -> struct acpi_dev_match_info
+> > >   acpi_dev_present_cb()         -> acpi_dev_match_cb()
+> > > 
+> > > in the utils.c file.
+> > > 
+> > > Tested-by: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.co
+> > > m>
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > 
+> > OK, so which way do you want this to go in?
+> 
+> If you have no objections, patch 1 may go straight forward to linux-pm
+> tree as far as you are okay with the contents.
+> 
+> I dunno, if Mika's ACK is enough to you to get the second one (patch 2)
+> together, otherwise Linus' ACK would be needed or leave it for next
+> cycle.
+> 
+> According to what Mark and Pierre told previously I guess we just
+> postpone patch 3 for next cycle.
 
-> Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
-> removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
-> instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
-> 
-> This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
-> has several issues (see the original commit message). An added advantage
-> of moving over to the USB-core reset-resume handling is that it also
-> disables autosuspend for these devices, which is similarly broken on these.
-> 
-> But there are 2 issues with this approach:
-> 1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
->   devices.
-> 2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
->   added to usb/core/quirks.c and if we fix the Realtek case the same way
->   we need to add an additional 14 entries. So in essence we need to
->   duplicate a large part of the usb_device_id table in btusb.c in
->   usb/core/quirks.c and manually keep them in sync.
-> 
-> This commit instead restores setting a reset-resume quirk for QCA devices
-> in the btusb.c code, avoiding the duplicate usb_device_id table problem.
-> 
-> This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
-> code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
-> usb_device.
-> 
-> This commit also moves the BTUSB_REALTEK case over to directly setting the
-> USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
-> BTUSB_RESET_RESUME code.
-> 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
-> Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
-> Cc: stable@vger.kernel.org
-> Cc: Leif Liddy <leif.linux@gmail.com>
-> Cc: Matthias Kaehlcke <mka@chromium.org>
-> Cc: Brian Norris <briannorris@chromium.org>
-> Cc: Daniel Drake <drake@endlessm.com>
-> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Note:
-> 1) Once this has been merged, the 2 commits adding QCA device entries to
-> drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
-> 2) I don't have any of the affected devices, please test
-> ---
-> drivers/bluetooth/btusb.c | 22 ++++++++++------------
-> 1 file changed, 10 insertions(+), 12 deletions(-)
+OK
 
-patch has been applied to bluetooth-next tree.
+Linus, can you please have a look at the [2/3] from this lot and let me know
+whether or not I can take it?
 
-Regards
+Thanks,
+Rafael
 
-Marcel
