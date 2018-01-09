@@ -1,78 +1,71 @@
-From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Tue, 9 Jan 2018 09:48:55 +0100
-Message-ID: <61d91b1b-b46a-11db-b2aa-bc419dd68e30@redhat.com>
-References: <20180108094416.4789-1-hdegoede@redhat.com>
- <28EBA1CE-4DFF-4828-BF00-99BC2B487484@holtmann.org>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Tue, 9 Jan 2018 10:19:41 +0000
+Message-ID: <20180109101941.GD31502@xora-haswell>
+References: <CAKv+Gu8_6y3dU81ZS4WWCfpRZkfjGo_+_K--e3go_3_xXwBErQ@mail.gmail.com>
+ <20180103110048.GA21230@xora-haswell>
+ <CAPv3WKcM8WWvh64A=FTtuWkEr6V_QSKjBpNpWnMpp_P=cMU9sw@mail.gmail.com>
+ <20180104160939.GA7785@xora-haswell>
+ <20180104162036.GL3401@lunn.ch>
+ <20180108144548.GA31502@xora-haswell>
+ <20180108145312.GH10940@lunn.ch>
+ <20180108151453.GB31502@xora-haswell>
+ <20180108154243.GA30962@lunn.ch>
+ <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <28EBA1CE-4DFF-4828-BF00-99BC2B487484-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, stable <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Leif Liddy <leif.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthias Kaehlcke <mka-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>, Daniel Drake <drake-6IF/jdPJHihWk0Htik3J/w@public.gmane.org>, Kai-Heng Feng <kai.heng.feng-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="OaZoDhBhXzo6bW1J"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: Andrew Lunn <andrew@lunn.ch>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine =?iso-8859-1?Q?T=E9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Nadav Haklai <nadavh>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 08-01-18 21:46, Marcel Holtmann wrote:
-> Hi Hans,
-> 
->> Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
->> removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
->> instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
->>
->> This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
->> has several issues (see the original commit message). An added advantage
->> of moving over to the USB-core reset-resume handling is that it also
->> disables autosuspend for these devices, which is similarly broken on these.
->>
->> But there are 2 issues with this approach:
->> 1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
->>    devices.
->> 2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
->>    added to usb/core/quirks.c and if we fix the Realtek case the same way
->>    we need to add an additional 14 entries. So in essence we need to
->>    duplicate a large part of the usb_device_id table in btusb.c in
->>    usb/core/quirks.c and manually keep them in sync.
->>
->> This commit instead restores setting a reset-resume quirk for QCA devices
->> in the btusb.c code, avoiding the duplicate usb_device_id table problem.
->>
->> This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
->> code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
->> usb_device.
->>
->> This commit also moves the BTUSB_REALTEK case over to directly setting the
->> USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
->> BTUSB_RESET_RESUME code.
->>
->> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
->> Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
->> Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Cc: Leif Liddy <leif.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> Cc: Matthias Kaehlcke <mka-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
->> Cc: Brian Norris <briannorris-F7+t8E8rja9g9hUCZPvPmw@public.gmane.org>
->> Cc: Daniel Drake <drake-6IF/jdPJHihWk0Htik3J/w@public.gmane.org>
->> Cc: Kai-Heng Feng <kai.heng.feng-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>
->> Signed-off-by: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> ---
->> Note:
->> 1) Once this has been merged, the 2 commits adding QCA device entries to
->> drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
->> 2) I don't have any of the affected devices, please test
->> ---
->> drivers/bluetooth/btusb.c | 22 ++++++++++------------
->> 1 file changed, 10 insertions(+), 12 deletions(-)
-> 
-> patch has been applied to bluetooth-next tree.
+--OaZoDhBhXzo6bW1J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I see that you've also dropped the 2 commits adding QCA device entries to
-drivers/usb/core/quirks.c, great. Thank you.
+On Mon, Jan 08, 2018 at 06:17:06PM +0100, Marcin Wojtas wrote:
+> Hi Andrew,
+>=20
+>=20
+>=20
+> 2018-01-08 16:42 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+> > w> I am not familiar with MDIO, but if its similar or a specific
+> >> implementation of a serial bus that does sound sane!
+> >
+>=20
+> Thanks for digging, I will check if and how we can use
+> GenericSerialBus with MDIO.
+>=20
+Maybe Lorenzo, Hanjun, Sudeep can comment here they might have come
+across similar on other ARM boards.
 
-Regards,
+Graeme
 
-Hans
+
+--OaZoDhBhXzo6bW1J
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEenb+qYJ1KjE/UpmZkGKawB22KXYFAlpUlz0ACgkQkGKawB22
+KXZKPw/6ArwlJJLWfRTrcM/CQr4U0Mcl0zzdvPNZordcQ7XJ9iwPV1S03z5FwBny
+IDZx/1F4b48PZY5ecsO/XBco1QKQ0mS8PCw7IPwE6mIk5nNqRZ4D3yIKHakNhagW
+XJXzhc5QwpWcZSfEd8jMs+0nQRvQgN9l29JH63SpCjGyCnTv8A1VYyg/+ehtXA5i
+rvQnF1TJvJD4XvNAZGAZ/xP33N1q4TAygAK690UkzS6TyR7vcNOhVeL+jmmGSJMq
+FWMWMwEAGYWMfCOUoSQkYW8U9ZbhfuJ9Pqne/7hveQnMG3m9GQi5mhkEZBRYIh7O
+DYBH7vrRujf0qRiWOcTcVLzRL51FTcTYafVsavYe4YtOyx7YMPA+J4k55JV6J/OP
+x2g0jbUfG2nVQEmJe8NCCEALRXw+l+5StEFo+CbBUELvapd4q9HaEx5H+fiEvJtV
+wsXoZK1nPFwuBmBygCbcEq37J4fQ+sXkFiDYDPStQB/dYM7W1mxXt3tEl2v62ykh
+Yz0ZTo7/RTjSBNr9yce0EuF2soVeWTIcFpszV7V/ksFl3huAbzEKWfxshMHU5xwZ
++uRHzPPx//SwaDsjy6Ecd+6daWecCYOWlLTo4iLjjbjJRCtoVJH2BnHUVG2BWi20
+2q5cIrRx3YW5HOeC+Q96ZXjts1vZP/kDZdORd9KtALoxfcNa6X4=
+=P2TR
+-----END PGP SIGNATURE-----
+
+--OaZoDhBhXzo6bW1J--
