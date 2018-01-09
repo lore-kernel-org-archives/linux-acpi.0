@@ -1,51 +1,54 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [-next PATCH 3/4] treewide: Use DEVICE_ATTR_RO
-Date: Tue, 9 Jan 2018 16:34:16 +0100
-Message-ID: <20180109153416.GA7780@kroah.com>
-References: <cover.1513706701.git.joe@perches.com>
- <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
- <20171221093410.ygvupz3azaccxgnb@valkosipuli.retiisi.org.uk>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce
+ acpi_dev_get_first_match_name()
+Date: Tue, 9 Jan 2018 15:54:15 +0000
+Message-ID: <20180109155415.GA11471@sirena.org.uk>
+References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com>
+ <20180105160935.48588-2-andriy.shevchenko@linux.intel.com>
+ <CAJZ5v0iH+2JHe8vCR9tQX62ULwx_eVd1QGPtinSLNDzWx1NmEg@mail.gmail.com>
+ <1515416960.7000.784.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:59588 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758665AbeAIPyb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jan 2018 10:54:31 -0500
 Content-Disposition: inline
-In-Reply-To: <20171221093410.ygvupz3azaccxgnb@valkosipuli.retiisi.org.uk>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Don Brace <don.brace@microsemi.com>, alsa-devel@alsa-project.org, Rich Felker <dalias@libc.org>, linux-sh@vger.kernel.org, David Airlie <airlied@linux.ie>, Sebastian Ott <sebott@linux.vnet.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-nvme@lists.infradead.org, James Smart <james.smart@broadcom.com>, Keith Busch <keith.busch@intel.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Christoph Hellwig <hch@lst.de>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Sagi Grimberg <sagi@grimberg.me>, Yoshinori Sato <ysato@users.sourceforge.jp>, esc.storagedev@microsemi.com, Russell King <linux@armlinux.org.uk>, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Dick Kennedy <dick.kennedy@broadcom.com>, Corey Minyard <minyard@acm.or>
+In-Reply-To: <1515416960.7000.784.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-T24gVGh1LCBEZWMgMjEsIDIwMTcgYXQgMTE6MzQ6MTBBTSArMDIwMCwgU2FrYXJpIEFpbHVzIHdy
-b3RlOgo+IEhpIEpvZSwKPiAKPiBPbiBUdWUsIERlYyAxOSwgMjAxNyBhdCAxMDoxNTowOEFNIC0w
-ODAwLCBKb2UgUGVyY2hlcyB3cm90ZToKPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL3N0YWdpbmcv
-bWVkaWEvYXRvbWlzcC9wY2kvYXRvbWlzcDIvaG1tL2htbS5jIGIvZHJpdmVycy9zdGFnaW5nL21l
-ZGlhL2F0b21pc3AvcGNpL2F0b21pc3AyL2htbS9obW0uYwo+ID4gaW5kZXggYTFjODFjMTI3MThj
-Li40MzM4YjhhMTMwOWYgMTAwNjQ0Cj4gPiAtLS0gYS9kcml2ZXJzL3N0YWdpbmcvbWVkaWEvYXRv
-bWlzcC9wY2kvYXRvbWlzcDIvaG1tL2htbS5jCj4gPiArKysgYi9kcml2ZXJzL3N0YWdpbmcvbWVk
-aWEvYXRvbWlzcC9wY2kvYXRvbWlzcDIvaG1tL2htbS5jCj4gPiBAQCAtMTU4LDEwICsxNTgsMTAg
-QEAgc3RhdGljIHNzaXplX3QgZHluYW1pY19wb29sX3Nob3coc3RydWN0IGRldmljZSAqZGV2LAo+
-ID4gIAlyZXR1cm4gcmV0Owo+ID4gIH07Cj4gPiAgCj4gPiAtc3RhdGljIERFVklDRV9BVFRSKGFj
-dGl2ZV9ibywgMDQ0NCwgYWN0aXZlX2JvX3Nob3csIE5VTEwpOwo+ID4gLXN0YXRpYyBERVZJQ0Vf
-QVRUUihmcmVlX2JvLCAwNDQ0LCBmcmVlX2JvX3Nob3csIE5VTEwpOwo+ID4gLXN0YXRpYyBERVZJ
-Q0VfQVRUUihyZXNlcnZlZF9wb29sLCAwNDQ0LCByZXNlcnZlZF9wb29sX3Nob3csIE5VTEwpOwo+
-ID4gLXN0YXRpYyBERVZJQ0VfQVRUUihkeW5hbWljX3Bvb2wsIDA0NDQsIGR5bmFtaWNfcG9vbF9z
-aG93LCBOVUxMKTsKPiA+ICtzdGF0aWMgREVWSUNFX0FUVFJfUk8oYWN0aXZlX2JvKTsKPiA+ICtz
-dGF0aWMgREVWSUNFX0FUVFJfUk8oZnJlZV9ibyk7Cj4gPiArc3RhdGljIERFVklDRV9BVFRSX1JP
-KHJlc2VydmVkX3Bvb2wpOwo+ID4gK3N0YXRpYyBERVZJQ0VfQVRUUl9STyhkeW5hbWljX3Bvb2wp
-Owo+ID4gIAo+ID4gIHN0YXRpYyBzdHJ1Y3QgYXR0cmlidXRlICpzeXNmc19hdHRyc19jdHJsW10g
-PSB7Cj4gPiAgCSZkZXZfYXR0cl9hY3RpdmVfYm8uYXR0ciwKPiAKPiBJIGhhdmUgdGhlIGV4YWN0
-IHNhbWUgY2hhbmdlcyBxdWV1ZWQgdXAgaW4gbXkgdHJlZS4gQXMgdGhlcmUgc2VlbSB0byBiZSBu
-bwo+IGRlcGVuZGVuY2llcyB0byBvdGhlciBwYXRjaGVzIGluIHlvdXIgc2V0LCBob3cgYWJvdXQg
-ZHJvcHBpbmcgdGhpcyBjaHVuaz8KCkkndmUgbm93IGRyb3BwZWQgaXQsIHRoYW5rcy4KCmdyZWcg
-ay1oCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVs
-LWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczov
-L2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 08, 2018 at 03:09:20PM +0200, Andy Shevchenko wrote:
+
+> According to what Mark and Pierre told previously I guess we just
+> postpone patch 3 for next cycle.
+
+Well, if someone can send me a pull request I could look at merging
+it...  I had thought we might get a new release this week and be in the
+merge window by now TBH.
+
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpU5aQACgkQJNaLcl1U
+h9C/lgf+NyK6Kjnd4dtmdyfbJLaiSbwd7Fx2X0SlVGeNfglwPQw8yJ7Kz4Kokmed
+xDs4JZwemvD5HeGyoTgNuheRLR3vsGBgJCXcE4RR3vaWBA/0I3Z0+EfVW4CGoIXG
+Tc4MO6ZMCJW/VUMBojIoJAfJIbs6rGMPn5yDfTDjUfgpmHN/h0U9KYn1+SZDDAaD
+7a5R2N1U7pEuoO5GSgx/tM1uht/zl+EEYgbHDfpaWY7R4oS/egaNa5FRcuKthv4k
+mJVpklUPM+zruH8G9Oc3m3J3uZxTwKSyjVr0hxfYeT3dDOfP4x+z/lGjeD3YZ5uA
+Z4VPWNXYxOSezO2YS2w3e8RgvnsW3g==
+=SLcA
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
