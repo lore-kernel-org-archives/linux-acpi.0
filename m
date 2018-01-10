@@ -1,24 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 0/2] Suspend-to-idle fixes for Surface Pro3
-Date: Wed, 10 Jan 2018 13:22:42 +0100
-Message-ID: <4046497.JI7UjL75gC@aspire.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/2] ACPI / PM: Use Low Power S0 Idle on more systems
+Date: Wed, 10 Jan 2018 15:24:21 +0200
+Message-ID: <1515590661.7000.855.camel@linux.intel.com>
+References: <4046497.JI7UjL75gC@aspire.rjw.lan>
+         <12541194.33112yYDjW@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Valentin Manea <valy@mrs.ro>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:6999 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751630AbeAJNYZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 10 Jan 2018 08:24:25 -0500
+In-Reply-To: <12541194.33112yYDjW@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Darren Hart <dvhart@infradead.org>, LKML <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Valentin Manea <valy@mrs.ro>
 
-Hi All,
+On Wed, 2018-01-10 at 13:26 +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Some systems don't support the ACPI_LPS0_ENTRY and ACPI_LPS0_EXIT
+> functions in their Low Power S0 Idle _DSM, but still expect EC
+> events to be processed in the suspend-to-idle state for power button
+> wakeup (among other things) to work.  Surface Pro3 turns out to be
+> one of them.
+> 
+> Fortunately, it still provides Low Power S0 Idle _DSM with the screen
+> on/off functions supported, so modify the ACPI suspend-to-idle to use
+> the Low Power S0 Idle code path for all systems supporting the
+> ACPI_LPS0_ENTRY and ACPI_LPS0_EXIT or the ACPI_LPS0_SCREEN_OFF and
+> ACPI_LPS0_SCREEN_ON functions in their Low Power S0 Idle _DSM.
+> 
+> Potentially, that will cause more systems to use suspend-to-idle by
+> default, so some future corrections may be necessary if it leads
+> to issues, but let it remain more straightforward for now.
+ 
+> -#define ACPI_S2IDLE_FUNC_MASK	((1 << ACPI_LPS0_ENTRY) | (1 <<
+> ACPI_LPS0_EXIT))
+> +#define ACPI_LPS0_SCREEN_MASK	((1 << ACPI_LPS0_SCREEN_OFF) |
+> (1 << ACPI_LPS0_SCREEN_ON))
 
-After some changes made during the 4.13 cycle, power button doesn't wake up
-the system from suspend-to-idle any more on Surface Pro3.
+> +#define ACPI_LPS0_S2I_MASK	((1 << ACPI_LPS0_ENTRY) | (1 <<
+> ACPI_LPS0_EXIT))
 
-It turns out that the platform expects EC events to be processed while
-suspended for this to work (patch [1/2]) and the button driver needs to
-report wakeup events properly too (patch [2/2]).
+Just a nitpick: Can we leave S2IDLE instead of S2I?
+Would it make sense for potential code readers?
 
-Thanks,
-Rafael
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
