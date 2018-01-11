@@ -1,45 +1,51 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH] PCI/ACPI: Disable AER when _OSC control bit is clear.
-Date: Thu, 11 Jan 2018 20:04:16 +0100
-Message-ID: <20180111190415.3jd4uffpp6weshzf@pd.tnic>
-References: <20180111150316.19951-1-Yazen.Ghannam@amd.com>
- <CAJZ5v0gU6var3gNQsp2GkSujbR=vB2Zj4dZHKNOzfAtC76jFbA@mail.gmail.com>
- <DM5PR12MB191612888094C4794951FAE4F8160@DM5PR12MB1916.namprd12.prod.outlook.com>
- <CAJZ5v0ie_FntO=TO1X_tX9xzz-t6Q_yeWvTfhqufTbYBdwMGJg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/1] ACPICA: Log Exceptions and Errors as warning while loading extra tables
+Date: Thu, 11 Jan 2018 20:28:40 +0100
+Message-ID: <20180111192841.7951-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:34958 "EHLO mx2.suse.de"
+Received: from mx1.redhat.com ([209.132.183.28]:34206 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933141AbeAKTEd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 11 Jan 2018 14:04:33 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0ie_FntO=TO1X_tX9xzz-t6Q_yeWvTfhqufTbYBdwMGJg@mail.gmail.com>
+        id S1754535AbeAKT2q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 11 Jan 2018 14:28:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-On Thu, Jan 11, 2018 at 07:03:23PM +0100, Rafael J. Wysocki wrote:
-> >> > +       if (!(requested & control & OSC_PCI_EXPRESS_AER_CONTROL))
-> >>
-> >> One of the operators above needs to be a && I suppose?
-> >>
-> >
-> > It's a 3-way bitwise AND to check that OSC_PCI_EXPRESS_AER_CONTROL is
-> > set in both "requested" and "control".
-> >
-> > IOW, we check if AER was requested by the OS and that the platform
-> > granted the request.
-> 
-> OK
+Hi All,
 
-This definitely needs a comment - people will keep tripping over this.
+So this is a rebased resend of an old patch of mine, which back then was
+rejected because all the ugly ACPI errors scaring the user during boot
+would need to be resolved in either the ACPICA code or in the BIOS /
+firmware in question.
 
--- 
-Regards/Gruss,
-    Boris.
+It is a year later now and as all the people commenting on:
+https://bugzilla.kernel.org/show_bug.cgi?id=198167
+show (33 comments and counting in a short time), people experience these
+kinda errors as a real problem. Note this bug is (mostly) about a new bunch
+of ACPI error messages which are not fixed by this patch actually, but it
+does nicely illustrate that people experience these errors as a real problem /
+a real nuisance and I agree with them.
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
+https://bugzilla.kernel.org/show_bug.cgi?id=198167#c33
+also shows that the chances of ever getting these errors fixed in the case
+where the problem is in the DSDT is very close to 0, so rejecting this
+patch with an "ask your vendor to fix the firmware" is really not a useful
+answer, people have tried and this is simply not going to happen.
+
+Given all the effort distros have done with splash-screens to give
+users a nice clean boot experience, we really want dmesg --level=err
+to not print anything unless there is a real problem with either the
+hardware or the kernel. And in this case neither is not true and these
+unfixable and therefor useless errors only lead to a very jarring boot
+experience (hence all the users complaining in bug 198167).
+
+Note this patch does not silence or removes the messages about these
+problems in the ACPI tables, it merely lowers their log level from
+error to warning so that the messages do not show on the console, they
+will still show in dmesg and other logs.
+
+Regards,
+
+Hans
+
