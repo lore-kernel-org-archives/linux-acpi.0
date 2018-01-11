@@ -1,74 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI/ACPI: Disable AER when _OSC control bit is clear.
-Date: Thu, 11 Jan 2018 18:38:34 +0100
-Message-ID: <CAJZ5v0gU6var3gNQsp2GkSujbR=vB2Zj4dZHKNOzfAtC76jFbA@mail.gmail.com>
+From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Subject: RE: [PATCH] PCI/ACPI: Disable AER when _OSC control bit is clear.
+Date: Thu, 11 Jan 2018 17:48:21 +0000
+Message-ID: <DM5PR12MB191612888094C4794951FAE4F8160@DM5PR12MB1916.namprd12.prod.outlook.com>
 References: <20180111150316.19951-1-Yazen.Ghannam@amd.com>
+ <CAJZ5v0gU6var3gNQsp2GkSujbR=vB2Zj4dZHKNOzfAtC76jFbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:46368 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932421AbeAKRig (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jan 2018 12:38:36 -0500
-In-Reply-To: <20180111150316.19951-1-Yazen.Ghannam@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Yazen Ghannam <Yazen.Ghannam@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0gU6var3gNQsp2GkSujbR=vB2Zj4dZHKNOzfAtC76jFbA@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Borislav Petkov <bp@suse.de>
+List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 11, 2018 at 4:03 PM, Yazen Ghannam <Yazen.Ghannam@amd.com> wrote:
-> From: Yazen Ghannam <yazen.ghannam@amd.com>
->
-> Currently, aer_service_init() checks if AER is available and that
-> Firmware First handling is not enabled. The _OSC request for AER is
-> not taken into account when deciding to enable AER in Linux.
->
-> We should check that the _OSC control for AER is set. If it's not
-> then AER should be disabled.
->
-> The _OSC control for AER is not requested when APEI Firmware First is
-> used, so the same condition applies.
->
-> Mark AER as disabled if the _OSC request was not made or accepted.
->
-> Remove redunant check for aer_acpi_firmware_first() when calling
-> aer_service_init(), since this is check is already included when
-> checking the _OSC control.
->
-> Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
-> ---
->  drivers/acpi/pci_root.c       | 3 +++
->  drivers/pci/pcie/aer/aerdrv.c | 2 +-
->  2 files changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 6fc204a52493..19a625ed8de9 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -512,6 +512,9 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
->                  */
->                 *no_aspm = 1;
->         }
-> +
-> +       if (!(requested & control & OSC_PCI_EXPRESS_AER_CONTROL))
-
-One of the operators above needs to be a && I suppose?
-
-> +               pci_no_aer();
->  }
->
->  static int acpi_pci_root_add(struct acpi_device *device,
-> diff --git a/drivers/pci/pcie/aer/aerdrv.c b/drivers/pci/pcie/aer/aerdrv.c
-> index 6ff5f5b4f5e6..39bb059777d0 100644
-> --- a/drivers/pci/pcie/aer/aerdrv.c
-> +++ b/drivers/pci/pcie/aer/aerdrv.c
-> @@ -374,7 +374,7 @@ static void aer_error_resume(struct pci_dev *dev)
->   */
->  static int __init aer_service_init(void)
->  {
-> -       if (!pci_aer_available() || aer_acpi_firmware_first())
-> +       if (!pci_aer_available())
->                 return -ENXIO;
->         return pcie_port_service_register(&aerdriver);
->  }
-> --
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mDQo+IFJhZmFlbCBKLiBX
+eXNvY2tpDQo+IFNlbnQ6IFRodXJzZGF5LCBKYW51YXJ5IDExLCAyMDE4IDEyOjM5IFBNDQo+IFRv
+OiBHaGFubmFtLCBZYXplbiA8WWF6ZW4uR2hhbm5hbUBhbWQuY29tPg0KPiBDYzogQUNQSSBEZXZl
+bCBNYWxpbmcgTGlzdCA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW51eCBLZXJuZWwg
+TWFpbGluZw0KPiBMaXN0IDxsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgTGludXggUENJ
+IDxsaW51eC1wY2lAdmdlci5rZXJuZWwub3JnPjsNCj4gUmFmYWVsIEouIFd5c29ja2kgPHJqd0By
+and5c29ja2kubmV0PjsgTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBCam9ybg0KPiBIZWxn
+YWFzIDxiaGVsZ2Fhc0Bnb29nbGUuY29tPjsgQm9yaXNsYXYgUGV0a292IDxicEBzdXNlLmRlPg0K
+PiBTdWJqZWN0OiBSZTogW1BBVENIXSBQQ0kvQUNQSTogRGlzYWJsZSBBRVIgd2hlbiBfT1NDIGNv
+bnRyb2wgYml0IGlzIGNsZWFyLg0KPiANCj4gT24gVGh1LCBKYW4gMTEsIDIwMTggYXQgNDowMyBQ
+TSwgWWF6ZW4gR2hhbm5hbQ0KPiA8WWF6ZW4uR2hhbm5hbUBhbWQuY29tPiB3cm90ZToNCj4gPiBG
+cm9tOiBZYXplbiBHaGFubmFtIDx5YXplbi5naGFubmFtQGFtZC5jb20+DQo+ID4NCj4gPiBDdXJy
+ZW50bHksIGFlcl9zZXJ2aWNlX2luaXQoKSBjaGVja3MgaWYgQUVSIGlzIGF2YWlsYWJsZSBhbmQg
+dGhhdA0KPiA+IEZpcm13YXJlIEZpcnN0IGhhbmRsaW5nIGlzIG5vdCBlbmFibGVkLiBUaGUgX09T
+QyByZXF1ZXN0IGZvciBBRVIgaXMNCj4gPiBub3QgdGFrZW4gaW50byBhY2NvdW50IHdoZW4gZGVj
+aWRpbmcgdG8gZW5hYmxlIEFFUiBpbiBMaW51eC4NCj4gPg0KPiA+IFdlIHNob3VsZCBjaGVjayB0
+aGF0IHRoZSBfT1NDIGNvbnRyb2wgZm9yIEFFUiBpcyBzZXQuIElmIGl0J3Mgbm90DQo+ID4gdGhl
+biBBRVIgc2hvdWxkIGJlIGRpc2FibGVkLg0KPiA+DQo+ID4gVGhlIF9PU0MgY29udHJvbCBmb3Ig
+QUVSIGlzIG5vdCByZXF1ZXN0ZWQgd2hlbiBBUEVJIEZpcm13YXJlIEZpcnN0IGlzDQo+ID4gdXNl
+ZCwgc28gdGhlIHNhbWUgY29uZGl0aW9uIGFwcGxpZXMuDQo+ID4NCj4gPiBNYXJrIEFFUiBhcyBk
+aXNhYmxlZCBpZiB0aGUgX09TQyByZXF1ZXN0IHdhcyBub3QgbWFkZSBvciBhY2NlcHRlZC4NCj4g
+Pg0KPiA+IFJlbW92ZSByZWR1bmFudCBjaGVjayBmb3IgYWVyX2FjcGlfZmlybXdhcmVfZmlyc3Qo
+KSB3aGVuIGNhbGxpbmcNCj4gPiBhZXJfc2VydmljZV9pbml0KCksIHNpbmNlIHRoaXMgaXMgY2hl
+Y2sgaXMgYWxyZWFkeSBpbmNsdWRlZCB3aGVuDQo+ID4gY2hlY2tpbmcgdGhlIF9PU0MgY29udHJv
+bC4NCj4gPg0KPiA+IFNpZ25lZC1vZmYtYnk6IFlhemVuIEdoYW5uYW0gPHlhemVuLmdoYW5uYW1A
+YW1kLmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL3BjaV9yb290LmMgICAgICAgfCAz
+ICsrKw0KPiA+ICBkcml2ZXJzL3BjaS9wY2llL2Flci9hZXJkcnYuYyB8IDIgKy0NCj4gPiAgMiBm
+aWxlcyBjaGFuZ2VkLCA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkNCj4gPg0KPiA+IGRp
+ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcGNpX3Jvb3QuYyBiL2RyaXZlcnMvYWNwaS9wY2lfcm9v
+dC5jDQo+ID4gaW5kZXggNmZjMjA0YTUyNDkzLi4xOWE2MjVlZDhkZTkgMTAwNjQ0DQo+ID4gLS0t
+IGEvZHJpdmVycy9hY3BpL3BjaV9yb290LmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkvcGNpX3Jv
+b3QuYw0KPiA+IEBAIC01MTIsNiArNTEyLDkgQEAgc3RhdGljIHZvaWQgbmVnb3RpYXRlX29zX2Nv
+bnRyb2woc3RydWN0DQo+IGFjcGlfcGNpX3Jvb3QgKnJvb3QsIGludCAqbm9fYXNwbSkNCj4gPiAg
+ICAgICAgICAgICAgICAgICovDQo+ID4gICAgICAgICAgICAgICAgICpub19hc3BtID0gMTsNCj4g
+PiAgICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICBpZiAoIShyZXF1ZXN0ZWQgJiBjb250cm9s
+ICYgT1NDX1BDSV9FWFBSRVNTX0FFUl9DT05UUk9MKSkNCj4gDQo+IE9uZSBvZiB0aGUgb3BlcmF0
+b3JzIGFib3ZlIG5lZWRzIHRvIGJlIGEgJiYgSSBzdXBwb3NlPw0KPiANCg0KSXQncyBhIDMtd2F5
+IGJpdHdpc2UgQU5EIHRvIGNoZWNrIHRoYXQgT1NDX1BDSV9FWFBSRVNTX0FFUl9DT05UUk9MIGlz
+DQpzZXQgaW4gYm90aCAicmVxdWVzdGVkIiBhbmQgImNvbnRyb2wiLg0KDQpJT1csIHdlIGNoZWNr
+IGlmIEFFUiB3YXMgcmVxdWVzdGVkIGJ5IHRoZSBPUyBhbmQgdGhhdCB0aGUgcGxhdGZvcm0NCmdy
+YW50ZWQgdGhlIHJlcXVlc3QuDQoNClRoYW5rcywNCllhemVuDQo=
