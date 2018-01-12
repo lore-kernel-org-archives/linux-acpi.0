@@ -1,56 +1,130 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: "Error parsing PCC subspaces from PCCT" due to invalid PCCT?
-Date: Fri, 12 Jan 2018 09:50:10 -0500
-Message-ID: <7a0817b6-dd67-4b85-0ef2-3b8f190d5f46@redhat.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Fri, 12 Jan 2018 18:05:23 +0000
+Message-ID: <5A58F8E3.5060002@arm.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+ <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
+ <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2477 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933863AbeALOuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:50:11 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: gengdongjiu <gengdongjiu@huawei.com>
+Cc: wuquanming@huawei.com, linux-doc@vger.kernel.org, kvm@vger.kernel.org, marc.zyngier@arm.com, catalin.marinas@arm.com, corbet@lwn.net, rjw@rjwysocki.net, linux@armlinux.org.uk, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, linux-arm-kernel@lists.infradead.org, huangshaoyu@huawei.com, pbonzini@redhat.com, kvmarm@lists.cs.columbia.edu, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Just looking for some advice on this problem.
+Hi gengdongjiu,
 
-https://bugzilla.redhat.com/show_bug.cgi?id=1435837 are many reports against
-Dell, HP, Lenovo hardware that get a
+On 15/12/17 03:30, gengdongjiu wrote:
+> On 2017/12/7 14:37, gengdongjiu wrote:
+>>> We need to tackle (1) and (3) separately. For (3) we need some API that lets
+>>> Qemu _trigger_ an SError in the guest, with a specified ESR. But, we don't have
+>>> a way of migrating pending SError yet... which is where I got stuck last time I
+>>> was looking at this.
+>> I understand you most idea.
+>>
+>> But In the Qemu one signal type can only correspond to one behavior, can not correspond to two behaviors,
+>> otherwise Qemu will do not know how to do.
+>>
+>> For the Qemu, if it receives the SIGBUS_MCEERR_AR signal, it will populate the CPER
+>> records and inject a SEA to guest through KVM IOCTL "KVM_SET_ONE_REG"; if receives the SIGBUS_MCEERR_AO
+>> signal, it will record the CPER and trigger a IRQ to notify guest, as shown below:
+>>
+>> SIGBUS_MCEERR_AR trigger Synchronous External Abort.
+>> SIGBUS_MCEERR_AO trigger GPIO IRQ.
+>>
+>> For the SIGBUS_MCEERR_AO and SIGBUS_MCEERR_AR, we have already specify trigger method, which all
+>>
+>> not involve _trigger_ an SError.
+>>
+>> so there is no chance for Qemu to trigger the SError when gets the SIGBUS_MCEERR_A{O,R}.
+> 
+> As I explained above:
+> 
+> If Qemu received SIGBUS_MCEERR_AR, it will record CPER and trigger Synchronous External Abort;
+> If Qemu received SIGBUS_MCEERR_AO, it will record CPER and trigger GPIO IRQ;
 
-Error parsing PCC subspaces from PCCT
+> So Qemu does not know when to _trigger_ an SError.
 
-during boot.
+There is no answer to this. How the CPU decides is specific to the CPU design.
+How Qemu decides is going to be specific to the machine it emulates.
 
-AFAICT this occurs because a PCCT header is defined without any actual PCC
-subspaces.  e.g) from one of the systems:
+My understanding is there is some overlap for which RAS errors are reported as
+synchronous external abort, and which use SError. (Obviously the imprecise ones
+are all SError). Which one the CPU uses depends on how the CPU is designed.
 
-[000h 0000   4]                    Signature : "PCCT"    [Platform
-Communications Channel Table]
-[004h 0004   4]                 Table Length : 00000030
-[008h 0008   1]                     Revision : 01
-[009h 0009   1]                     Checksum : 89
-[00Ah 0010   6]                       Oem ID : "HP    "
-[010h 0016   8]                 Oem Table ID : "ProLiant"
-[018h 0024   4]                 Oem Revision : 00000001
-[01Ch 0028   4]              Asl Compiler ID : "HP  "
-[020h 0032   4]        Asl Compiler Revision : 00000001
+When you take an SIGBUS_MCEERR_AR from KVM, its because KVM can't complete a
+stage2 fault because the page is marked with PG_poisoned. These started out as a
+synchronous exception, but you could still report these with SError.
 
-[024h 0036   4]        Flags (decoded below) : 00000001
-                                    Doorbell : 1
-[028h 0040   8]                     Reserved : 0000000000000000
-
-Raw Table Data: Length 48 (0x30)
-
-  0000: 50 43 43 54 30 00 00 00 01 89 48 50 20 20 20 20  // PCCT0.....HP
-  0010: 50 72 6F 4C 69 61 6E 74 01 00 00 00 48 50 20 20  // ProLiant....HP
-  0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  // ................
+We don't have a way to signal user-space about imprecise exceptions, this isn't
+a KVM specific problem.
 
 
-I don't see anything in the ACPI 6.2 Spec 5.2.28 that implies a PCC subspace
-MUST be defined so I guess technically the above is okay to do.
+> so here I "return a error" to Qemu if ghes_notify_sei() return failure in [1], if you opposed KVM "return error",
+> do you have a better idea about it? thanks
 
-OR :)  Is this really a bug in these Intel systems' BIOSes?
+If ghes_notify_sei() fails to claim the error, we should drop through to
+kernel-first-handling. We don't have that yet, just the stub that ignores errors
+where we can make progress.
 
-P.
+If neither firmware-first nor kernel-first claim a RAS error, we're in trouble.
+I'd like to panic() as we got a RAS notification but no description of the
+error. We can't do this until we have kernel-first support, hence that stub.
+
+
+> About the way of migrating pending SError, I think it is a separate case, because Qemu still does not know
+> how and when to trigger the SError.
+
+I agree, but I think we should fix this first before we add another user of this
+unmigratable hypervisor state.
+
+(I recall someone saying migration is needed for any new KVM/cpu features, but I
+can't find the thread)
+
+
+> [1]:
+> static int kvm_handle_guest_sei(struct kvm_vcpu *vcpu, struct kvm_run *run)
+> {
+>         .......................
+> +       case ESR_ELx_AET_UER:   /* The error has not been propagated */
+> +               /*
+> +                * Userspace only handle the guest SError Interrupt(SEI) if the
+> +                * error has not been propagated
+> +                */
+> +               run->exit_reason = KVM_EXIT_EXCEPTION;
+> +               run->ex.exception = ESR_ELx_EC_SERROR;
+
+I'm against telling user space RAS errors ever happened, only the final
+user-visible error when the kernel can't fix it.
+
+This is inventing something new for RAS errors not claimed by firmware-first.
+If we have kernel-first too, this will never happen. (unless your system is
+losing the error description).
+
+
+Your system has firmware-first, why isn't it claiming the notification?
+If its not finding CPER records written by firmware, check firmware and the UEFI
+memory map agree on the attributes to be used when read/writing that area.
+
+
+> +               run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
+> +               return 0;
+
+
+Thanks,
+
+James
