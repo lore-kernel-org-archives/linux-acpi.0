@@ -1,32 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1] ACPI / PMIC: Convert to use builtin_platform_driver() macro
-Date: Fri, 12 Jan 2018 14:18:17 +0100
-Message-ID: <10928369.BK1BejQx67@aspire.rjw.lan>
-References: <20180109202658.85313-1-andriy.shevchenko@linux.intel.com> <20180110135357.GI27654@lahna.fi.intel.com>
+Subject: Re: [PATCH v3 1/3] ACPI / utils: Introduce acpi_dev_get_first_match_name()
+Date: Fri, 12 Jan 2018 14:22:53 +0100
+Message-ID: <17446166.yqafhElxig@aspire.rjw.lan>
+References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com> <1515416960.7000.784.camel@linux.intel.com> <20180109155415.GA11471@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:62294 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:42181 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932976AbeALNTc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2018 08:19:32 -0500
-In-Reply-To: <20180110135357.GI27654@lahna.fi.intel.com>
+        with ESMTP id S932976AbeALNYI (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2018 08:24:08 -0500
+In-Reply-To: <20180109155415.GA11471@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Takashi Iwai <tiwai@suse.de>, Hans de Goede <hdegoede@redhat.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Wednesday, January 10, 2018 2:53:57 PM CET Mika Westerberg wrote:
-> On Tue, Jan 09, 2018 at 10:26:58PM +0200, Andy Shevchenko wrote:
-> > All of PMIC OpRegion drivers can't be modules, thus, convert them to use
-> > builtin_platform_driver() macro and remove redundant MODULE_*() macros.
-> > 
-> > No functional change intended.
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Tuesday, January 9, 2018 4:54:15 PM CET Mark Brown wrote:
 > 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> --vkogqOf2sHV7VnPd
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> 
+> On Mon, Jan 08, 2018 at 03:09:20PM +0200, Andy Shevchenko wrote:
+> 
+> > According to what Mark and Pierre told previously I guess we just
+> > postpone patch 3 for next cycle.
+> 
+> Well, if someone can send me a pull request I could look at merging
+> it...  I had thought we might get a new release this week and be in the
+> merge window by now TBH.
 
-Applied, thanks!
+Patches [1-2/3] from this series are available for pulling in the git branch at
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git acpi-gpio
+
+with top-most commit dd1dbf94d2826a045fbbe2649d84b27d48620d56
+
+    gpio: merrifield: Add support of ACPI enabled platforms
+
+on top of commit b2cd1df66037e7c4697c7e40496bf7e4a5e16a2d
+
+    Linux 4.15-rc7
+
+Thanks!
 
