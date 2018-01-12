@@ -1,29 +1,50 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 3/4] ACPI / battery: use specialized print macros
-Date: Fri, 12 Jan 2018 20:52:24 +0200
-Message-ID: <1515783144.7000.974.camel@linux.intel.com>
-References: <20180112135847.14989-1-dmitry.rozhkov@linux.intel.com>
-         <20180112135847.14989-4-dmitry.rozhkov@linux.intel.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 3/3] ASoC: Intel - Convert to use
+ acpi_dev_get_first_match_name()
+Date: Fri, 12 Jan 2018 19:03:12 +0000
+Message-ID: <20180112190312.GD21458@sirena.org.uk>
+References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com>
+ <20180105160935.48588-4-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="cYtjc4pxslFTELvY"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:5534 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965128AbeALSz1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Jan 2018 13:55:27 -0500
-In-Reply-To: <20180112135847.14989-4-dmitry.rozhkov@linux.intel.com>
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:46612 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S964998AbeALTD2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2018 14:03:28 -0500
+Content-Disposition: inline
+In-Reply-To: <20180105160935.48588-4-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Rozhkov <dmitry.rozhkov@linux.intel.com>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <lgirdwood@gmail.com>, alsa-devel@alsa-project.org, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Fri, 2018-01-12 at 15:58 +0200, Dmitry Rozhkov wrote:
 
-> +	pr_warning(PREFIX "Deprecated procfs I/F for battery is
-> loaded, please retry with CONFIG_ACPI_PROCFS_POWER cleared\n");
+--cYtjc4pxslFTELvY
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-A nit: it can be pr_warn().
+On Fri, Jan 05, 2018 at 06:09:35PM +0200, Andy Shevchenko wrote:
+> Instead of home grown snd_soc_acpi_find_name_from_hid() use
+> acpi_dev_get_first_match_name().
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+This doesn't apply against current code (even after pulling Raphael's
+pull request) - can you please check and resend?
+
+--cYtjc4pxslFTELvY
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpZBm8ACgkQJNaLcl1U
+h9CZDQf+PiyzQu3xKSmImSpyK7LEbagpUO0JZQm8kWvvlnWsqe3CYPIKo746unXy
+6QYDMeWXoh5Rawvy2k8x7jYcsDBrgx66OEf8GR1oJgoVo5QVJGAwPSb8Z95LIg7B
+oih3vR3xlRIE5fcLMtwyVTuN6edfyIFc/Ku7leZ69NhVvSSEsR/gOvj1JkOW2ak2
+gRRuSjy4WdScnR+t4Rv4trH+ZFf4eQcfjhv/GvDr/XgbrppZ9MBRIvCX7WFM8tM8
+lS7W2CaHIQAeZdSY0C/7w1gREKVoWB3GMwW9Cb804bt8+d53MB6GYhbQ/3Eehsd8
+dOVc//625ub5j1NGjs7y2eDAQsrt+Q==
+=OFbF
+-----END PGP SIGNATURE-----
+
+--cYtjc4pxslFTELvY--
