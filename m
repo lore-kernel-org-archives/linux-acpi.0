@@ -1,65 +1,73 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/12] ACPICA 20171215
-Date: Fri, 12 Jan 2018 14:26:25 +0100
-Message-ID: <2002402.ikpHSYtM3V@aspire.rjw.lan>
-References: <erik.schmauss@intel.com> <20180103230631.15939-1-erik.schmauss@intel.com>
+Subject: Re: [PATCH] ACPI: Fix debugfs_create_*() usage
+Date: Fri, 12 Jan 2018 14:33:19 +0100
+Message-ID: <1702185.um3EttcCfv@aspire.rjw.lan>
+References: <1514906791-9166-1-git-send-email-geert+renesas@glider.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:64448 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933478AbeALN1j (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2018 08:27:39 -0500
-In-Reply-To: <20180103230631.15939-1-erik.schmauss@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1514906791-9166-1-git-send-email-geert+renesas@glider.be>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Erik Schmauss <erik.schmauss@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Thursday, January 4, 2018 12:06:19 AM CET Erik Schmauss wrote:
-> The following are the linuxized patches for ACPICA version 20171215
+On Tuesday, January 2, 2018 4:26:31 PM CET Geert Uytterhoeven wrote:
+> acpi_ec.gpe is "unsigned long", hence treating it as "u32" would expose
+> the wrong half on big-endian 64-bit systems.  Fix this by changing its
+> type to "u32" and removing the cast, as all other code already uses u32
+> or sometimes even only u8.
 > 
-> Bob Moore (8):
->   ACPICA: Debug output, no functional change
->   ACPICA: Update for a few debug output statements
->   ACPICA: Fix a regression in the acpi_evaluate_object_type interface
->   ACPICA: Cleanup the global variables and update comments. No
->     functional change
->   ACPICA: Create and deploy safe version of strncpy. No functional
->     change
->   ACPICA: Rename a global variable, no functional change
->   ACPICA: Fix a couple memory leaks during package object resolution
->   ACPICA: Update version to 20171215
+> Fixes: 1195a098168fcacf ("ACPI: Provide /sys/kernel/debug/ec/...")
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+> ---
+> Compile-tested only.
+> ---
+>  drivers/acpi/ec.c       | 2 +-
+>  drivers/acpi/ec_sys.c   | 2 +-
+>  drivers/acpi/internal.h | 2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> Erik Schmauss (3):
->   ACPICA: Debugger: fix slight indentation issue
->   ACPICA: DT compiler: prevent error if optional field at the end of
->     table is not present
->   ACPICA: trivial style fix, no functional change
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 0252c9b9af3d3a09..d9f38c645e4a1dc7 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -1516,7 +1516,7 @@ static int acpi_ec_setup(struct acpi_ec *ec, bool handle_events)
+>  	}
+>  
+>  	acpi_handle_info(ec->handle,
+> -			 "GPE=0x%lx, EC_CMD/EC_SC=0x%lx, EC_DATA=0x%lx\n",
+> +			 "GPE=0x%x, EC_CMD/EC_SC=0x%lx, EC_DATA=0x%lx\n",
+>  			 ec->gpe, ec->command_addr, ec->data_addr);
+>  	return ret;
+>  }
+> diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+> index 6c7dd7af789e453c..dd70d6c2bca03eb2 100644
+> --- a/drivers/acpi/ec_sys.c
+> +++ b/drivers/acpi/ec_sys.c
+> @@ -128,7 +128,7 @@ static int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+>  		return -ENOMEM;
+>  	}
+>  
+> -	if (!debugfs_create_x32("gpe", 0444, dev_dir, (u32 *)&first_ec->gpe))
+> +	if (!debugfs_create_x32("gpe", 0444, dev_dir, &first_ec->gpe))
+>  		goto error;
+>  	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir,
+>  				 &first_ec->global_lock))
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 7f43423de43cebdd..1d0a501bc7f0cbbf 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -159,7 +159,7 @@ static inline void acpi_early_processor_osc(void) {}
+>     -------------------------------------------------------------------------- */
+>  struct acpi_ec {
+>  	acpi_handle handle;
+> -	unsigned long gpe;
+> +	u32 gpe;
+>  	unsigned long command_addr;
+>  	unsigned long data_addr;
+>  	bool global_lock;
 > 
-> Mario Limonciello (1):
->   ACPICA: Recognize the Windows 10 version 1607 and 1703 OSI strings
-> 
->  drivers/acpi/acpica/acglobal.h  | 82 ++++++++++++++---------------------------
->  drivers/acpi/acpica/acutils.h   |  2 +
->  drivers/acpi/acpica/dbfileio.c  |  4 +-
->  drivers/acpi/acpica/dspkginit.c | 21 +++++++----
->  drivers/acpi/acpica/exdump.c    | 11 +++---
->  drivers/acpi/acpica/hwvalid.c   | 14 +++----
->  drivers/acpi/acpica/nsxfeval.c  |  9 +++--
->  drivers/acpi/acpica/psutils.c   | 10 +++--
->  drivers/acpi/acpica/utdebug.c   | 18 ++++++++-
->  drivers/acpi/acpica/utnonansi.c |  9 +++++
->  drivers/acpi/acpica/utosi.c     |  2 +
->  drivers/acpi/acpica/uttrack.c   |  4 +-
->  include/acpi/acexcep.h          |  6 ++-
->  include/acpi/acpixf.h           |  2 +-
->  include/acpi/actypes.h          |  2 +
->  15 files changed, 104 insertions(+), 92 deletions(-)
 
-Series applied with the (fixed) v2 of [06/12].
-
-Thanks,
-Rafael
-
+Applied, thanks!
