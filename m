@@ -1,182 +1,56 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
- 161010801 erratum(reserve HW MSI)
-Date: Fri, 12 Jan 2018 14:48:45 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838639372@FRAEML521-MBX.china.huawei.com>
-References: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: "Error parsing PCC subspaces from PCCT" due to invalid PCCT?
+Date: Fri, 12 Jan 2018 09:50:10 -0500
+Message-ID: <7a0817b6-dd67-4b85-0ef2-3b8f190d5f46@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:18787 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S933869AbeALOtb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:49:31 -0500
-Content-Language: en-US
+Received: from mx1.redhat.com ([209.132.183.28]:2477 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933863AbeALOuL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Jan 2018 09:50:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, John Garry <john.garry@huawei.com>, "xuwei (O)" <xuwei5@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi,
+Just looking for some advice on this problem.
 
-> -----Original Message-----
-> From: Shameerali Kolothum Thodi
-> Sent: Friday, December 15, 2017 3:01 PM
-> To: lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
-> marc.zyngier@arm.com; will.deacon@arm.com
-> Cc: joro@8bytes.org; John Garry <john.garry@huawei.com>; xuwei (O)
-> <xuwei5@hisilicon.com>; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> iommu@lists.linux-foundation.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; devicetree@vger.kernel.org; Linuxarm
-> <linuxarm@huawei.com>
-> Subject: RE: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
-> 161010801 erratum(reserve HW MSI)
-> 
-> Hi Lorenzo/Robin/Will,
-> 
-> Since this has all the necessary reviewed-by from all concerned now(Thanks to
-> all),
-> just wondering how this will be picked up? through iort or iommu?
-> 
-> Please let me know.
-> 
+https://bugzilla.redhat.com/show_bug.cgi?id=1435837 are many reports against
+Dell, HP, Lenovo hardware that get a
 
-A gentle ping on this series...
+Error parsing PCC subspaces from PCCT
 
-Thanks,
-Shameer
+during boot.
 
-> 
-> > -----Original Message-----
-> > From: Shameerali Kolothum Thodi
-> > Sent: Thursday, December 14, 2017 4:10 PM
-> > To: lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
-> > marc.zyngier@arm.com; will.deacon@arm.com
-> > Cc: joro@8bytes.org; John Garry <john.garry@huawei.com>; xuwei (O)
-> > <xuwei5@hisilicon.com>; Guohanjun (Hanjun Guo)
-> <guohanjun@huawei.com>;
-> > iommu@lists.linux-foundation.org; linux-arm-kernel@lists.infradead.org;
-> linux-
-> > acpi@vger.kernel.org; devicetree@vger.kernel.org; Linuxarm
-> > <linuxarm@huawei.com>; Shameerali Kolothum Thodi
-> > <shameerali.kolothum.thodi@huawei.com>
-> > Subject: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
-> > 161010801 erratum(reserve HW MSI)
-> >
-> > On certain HiSilicon platforms (hip06/hip07) the GIC ITS and PCIe RC
-> > deviates from the standard implementation and this breaks PCIe MSI
-> > functionality when SMMU is enabled.
-> >
-> > The HiSilicon erratum 161010801 describes this limitation of certain
-> > HiSilicon platforms to support the SMMU mappings for MSI transactions.
-> > On these platforms GICv3 ITS translator is presented with the deviceID
-> > by extending the MSI payload data to 64 bits to include the deviceID.
-> > Hence, the PCIe controller on this platforms has to differentiate the MSI
-> > payload against other DMA payload and has to modify the MSI payload.
-> > This basically makes it difficult for this platforms to have a SMMU
-> > translation for MSI.
-> >
-> > This patch implements an ACPI based quirk to reserve the hw msi regions
-> > in the smmu-v3 driver which means these address regions will not be
-> > translated and will be excluded from iova allocations.
-> >
-> > To implement this quirk, the following changes are incorporated:
-> > 1. Added a generic helper function to IORT code to retrieve and reserve
-> >    the associated ITS base address from a device IORT node. The function
-> >    has a check for smmu model to determine whether the platform requires
-> >    the HW MSI reservation or not.
-> > 2. Added smmu node entries and explicitly disabled them in hip06/hip07
-> >     dts files so that users are warned about the non-DT support for this
-> >     erratum.
-> >
-> > Changelog:
-> >
-> > v11--> v12
-> > -Thanks to Lorenzo, Fixed !CONFIG_IOMMU_API compile error(patch #1).
-> >
-> > v10 --> v11
-> > -Addressed comments from Lorenzo(patch#1)
-> > -Added Robin's Reviewed-by to patch #2
-> >
-> > v9 --> v10
-> > Addressed comments:
-> > -Moved smmu model check to iort helper function to selectively apply
-> >  the msi reservation which will make the fn call generic from iommu-dma.
-> > -Removed PCI blacklisting patch, instead added smmu nodes(disabled)
-> >  with comments to hip06/hip07 dts file.
-> >
-> > v8 --> v9
-> > -Thanks to Marc, fixed IORT helper function to reserve the ITS
-> >  translater region only.
-> > -Removed the DT support for MSI reservation and blacklisted
-> >  HiSilicon PCIe controllers on DT based systems when SMMUv3 is
-> >  enabled.
-> >
-> > v7 --> v8
-> > Addressed comments from Rob and Lorenzo:
-> >  -Modified to use DT compatible string for errata.
-> >  -Changed logic to retrieve the msi-parent for DT case.
-> >
-> > v6 --> v7
-> > Addressed request from Will to add DT support for the erratum:
-> >  - added bt binding
-> >  - add of_iommu_msi_get_resv_regions()
-> > New arm64 silicon errata entry
-> > Rename iort_iommu_{its->msi}_get_resv_regions
-> >
-> > v5 --> v6
-> > Addressed comments from Robin and Lorenzo:
-> > -No change to patch#1 .
-> > -Reverted v5 patch#2 as this might break the platforms where this quirk
-> >   is not applicable. Provided a generic function in iommu code and added
-> >   back the quirk implementation in SMMU v3 driver(patch#3)
-> >
-> > v4 --> v5
-> > Addressed comments from Robin and Lorenzo:
-> > -Added a comment to make it clear that, for now, only straightforward
-> >   HW topologies are handled while reserving ITS regions(patch #1).
-> >
-> > v3 --> v4
-> > Rebased on 4.13-rc1.
-> > Addressed comments from Robin, Will and Lorenzo:
-> > -As suggested by Robin, moved the ITS msi reservation into
-> >   iommu_dma_get_resv_regions().
-> > -Added its_count != resv region failure case(patch #1).
-> >
-> > v2 --> v3
-> > Addressed comments from Lorenzo and Robin:
-> > -Removed dev_is_pci() check in smmuV3 driver.
-> > -Don't treat device not having an ITS mapping as an error in
-> >   iort helper function.
-> >
-> > v1 --> v2
-> > -patch 2/2: Invoke iort helper fn based on fwnode type(acpi).
-> >
-> > RFCv2 -->PATCH
-> > -Incorporated Lorenzo's review comments.
-> >
-> > RFC v1 --> RFC v2
-> > Based on Robin's review comments,
-> > -Removed  the generic erratum framework.
-> > -Using IORT/MADT tables to retrieve the ITS base addr instead
-> >  of vendor specific CSRT table.
-> >
-> > Shameer Kolothum (3):
-> >   ACPI/IORT: Add msi address regions reservation helper
-> >   iommu/dma: Add HW MSI(GICv3 ITS) address regions reservation
-> >   arm64:dts:hisilicon Disable hisilicon smmu node on hip06/hip07
-> >
-> >  arch/arm64/boot/dts/hisilicon/hip06.dtsi |  56 ++++++++++++++++
-> >  arch/arm64/boot/dts/hisilicon/hip07.dtsi |  25 +++++++
-> >  drivers/acpi/arm64/iort.c                | 111
-> ++++++++++++++++++++++++++++++-
-> >  drivers/iommu/dma-iommu.c                |   8 ++-
-> >  drivers/irqchip/irq-gic-v3-its.c         |   3 +-
-> >  include/linux/acpi_iort.h                |   7 +-
-> >  6 files changed, 204 insertions(+), 6 deletions(-)
-> >
-> > --
-> > 1.9.1
-> >
+AFAICT this occurs because a PCCT header is defined without any actual PCC
+subspaces.  e.g) from one of the systems:
 
+[000h 0000   4]                    Signature : "PCCT"    [Platform
+Communications Channel Table]
+[004h 0004   4]                 Table Length : 00000030
+[008h 0008   1]                     Revision : 01
+[009h 0009   1]                     Checksum : 89
+[00Ah 0010   6]                       Oem ID : "HP    "
+[010h 0016   8]                 Oem Table ID : "ProLiant"
+[018h 0024   4]                 Oem Revision : 00000001
+[01Ch 0028   4]              Asl Compiler ID : "HP  "
+[020h 0032   4]        Asl Compiler Revision : 00000001
+
+[024h 0036   4]        Flags (decoded below) : 00000001
+                                    Doorbell : 1
+[028h 0040   8]                     Reserved : 0000000000000000
+
+Raw Table Data: Length 48 (0x30)
+
+  0000: 50 43 43 54 30 00 00 00 01 89 48 50 20 20 20 20  // PCCT0.....HP
+  0010: 50 72 6F 4C 69 61 6E 74 01 00 00 00 48 50 20 20  // ProLiant....HP
+  0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  // ................
+
+
+I don't see anything in the ACPI 6.2 Spec 5.2.28 that implies a PCC subspace
+MUST be defined so I guess technically the above is okay to do.
+
+OR :)  Is this really a bug in these Intel systems' BIOSes?
+
+P.
