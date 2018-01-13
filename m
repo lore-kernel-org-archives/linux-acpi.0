@@ -1,75 +1,155 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 3/3] ASoC: Intel - Convert to use
- acpi_dev_get_first_match_name()
-Date: Fri, 12 Jan 2018 21:03:22 +0000
-Message-ID: <20180112210322.GG21458@sirena.org.uk>
-References: <20180105160935.48588-1-andriy.shevchenko@linux.intel.com>
- <20180105160935.48588-4-andriy.shevchenko@linux.intel.com>
- <20180112190312.GD21458@sirena.org.uk>
- <1515788467.7000.978.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============8976082422276450978=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <1515788467.7000.978.camel@linux.intel.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: alsa-devel@alsa-project.org, linux-gpio@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v6 00/12]  Support PPTT for ARM64
+Date: Fri, 12 Jan 2018 18:59:08 -0600
+Message-ID: <20180113005920.28658-1-jeremy.linton@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:53714 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S965260AbeAMBAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 12 Jan 2018 20:00:34 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Jeremy Linton <jeremy.linton@arm.com>
+
+This patch set is dependent on "[14/15] ACPICA: ACPI 6.2: Additional
+PPTT flags" https://patchwork.kernel.org/patch/10064191/
+
+ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+used to describe the processor and cache topology. Ideally it is
+used to extend/override information provided by the hardware, but
+right now ARM64 is entirely dependent on firmware provided tables.
+
+This patch parses the table for the cache topology and CPU topology.
+When we enable ACPI/PPTT for arm64 we map the physical_id to the
+PPTT node flagged as the physical package by the firmware.
+This results in topologies that match what the remainder of the
+system expects.
+
+For example on juno:
+[root@mammon-juno-rh topology]# lstopo-no-graphics
+  Package L#0
+    L2 L#0 (1024KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#1 (2048KB)
+      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCIBridge
+          PCI 1095:3132
+            Block(Disk) L#0 "sda"
+        PCIBridge
+          PCI 1002:68f9
+            GPU L#1 "renderD128"
+            GPU L#2 "card0"
+            GPU L#3 "controlD64"
+        PCIBridge
+          PCI 11ab:4380
+            Net L#4 "enp8s0"
 
 
---===============8976082422276450978==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="h3LYUU6HlUDSAOzy"
-Content-Disposition: inline
+Git tree at:
+http://linux-arm.org/git?p=linux-jlinton.git
+branch: pptt_v6
 
+v5->v6:
+Add additional patches which re-factor how the initial DT code sets
+  up the cacheinfo structure so that its not as dependent on the
+  of_node stored in that tree. Once that is done we rename it
+  for use with the ACPI code.
 
---h3LYUU6HlUDSAOzy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Additionally there were a fair number of minor name/location/etc
+  tweaks scattered about made in response to review comments.
 
-On Fri, Jan 12, 2018 at 10:21:07PM +0200, Andy Shevchenko wrote:
-> On Fri, 2018-01-12 at 19:03 +0000, Mark Brown wrote:
+v4->v5:
+Update the cache type from NOCACHE to UNIFIED when all the cache
+  attributes we update are valid. This fixes a problem where caches
+  which are entirely created by the PPTT don't show up in lstopo.
 
-> > This doesn't apply against current code (even after pulling Raphael's
-> > pull request) - can you please check and resend?
+Give the PPTT its own firmware_node in the cache structure instead of
+  sharing it with the of_node.
 
-> It requires Pierre's series #2 [1] to be applied first.
+Move some pieces around between patches.
 
-Oh, and please note that the "and resend" part there is important, if
-I've replied like that it means the patch is gone from my review queue
-so I'll need to go and try to find a copy to do something with it which
-can be error prone.
+v3->v4:
+Suppress the "Found duplicate cache level/type..." message if the
+  duplicate cache entry is actually a duplicate node. This allows cases
+  like L1I and L1D nodes that point at the same L2 node to be accepted
+  without the warning.
+  
+Remove cluster/physical split code. Add a patch to rename cluster_id
+  so that its clear the topology may not be referring to a cluster.
+  
+Add additional ACPICA patch for the PPTT cache properties. This matches
+  an outstanding ACPICA pull that should be merged in the near future.
+  
+Replace a number of (struct*)((u8*)ptr+offset) constructs with ACPI_ADD_PTR
 
---h3LYUU6HlUDSAOzy
-Content-Type: application/pgp-signature; name="signature.asc"
+Split out the topology parsing into an additional patch.
 
------BEGIN PGP SIGNATURE-----
+Tweak the cpu topology code to terminate on either a level, or a flag.
+  Add an additional function which retrives the physical package id
+  for a given cpu.
 
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlpZIpkACgkQJNaLcl1U
-h9C0Xwf+J46crKTMqIYBZqKkO5VH73LQBiKoHwsUJuQZC73qjPgfnCUnpPVBk6cB
-PGEHsTKRzOEJU67K4hqmsrlKit+G4bgSwZfl50We6JLTUICg9XhejPb/vV0b7LgR
-YnFHhJ2HMaL7E62LuV7KD5BL9i5O2avxeCd5GQmKh7pJ9lFDuZHeE96GhKYjRJ0L
-qGEYEXYOkxZQswcS8yzWDLRNoj3T3sU+hmxWrDxzZ3hrXkaZH6BBUKIWoE2cT/X3
-m/oVwYW7NnTCTgr8AtL3k/6HcKuCMQXlpm67bm/RFG4PnJVScMsmdv8CdMJk59LU
-F0FmmetV8rBnMfoFJJQzZTjcZRO+YQ==
-=ryRX
------END PGP SIGNATURE-----
+Various other comments/tweaks.
 
---h3LYUU6HlUDSAOzy--
+v2->v3:
 
---===============8976082422276450978==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Remove valid bit check on leaf nodes. Now simply being a leaf node
+  is sufficient to verify the processor id against the ACPI
+  processor ids (gotten from MADT). 
 
+Use the acpi processor for the "level 0" Id. This makes the /sys
+  visible core/thread ids more human readable if the firmware uses
+  small consecutive values for processor ids.
 
---===============8976082422276450978==--
+Added PPTT to the list of injectable ACPI tables.
+
+Fix bug which kept the code from using the processor node as intended
+  in v2, caused by misuse of git rebase/fixup.
+
+v1->v2:
+
+The parser keys off the acpi_pptt_processor node to determine
+  unique cache's rather than the acpi_pptt_cache referenced by the
+  processor node. This allows PPTT tables which "share" cache nodes
+  across cpu nodes despite not being a shared cache.
+
+Jeremy Linton (12):
+  drivers: base: cacheinfo: move cache_setup_of_node()
+  drivers: base: cacheinfo: setup DT cache properties early
+  cacheinfo: rename of_node to fw_unique
+  arm64/acpi: Create arch specific cpu to acpi id helper
+  ACPI/PPTT: Add Processor Properties Topology Table parsing
+  ACPI: Enable PPTT support on ARM64
+  drivers: base cacheinfo: Add support for ACPI based firmware tables
+  arm64: Add support for ACPI based firmware tables
+  ACPI/PPTT: Add topology parsing code
+  arm64: topology: rename cluster_id
+  arm64: topology: enable ACPI/PPTT based CPU topology
+  ACPI: Add PPTT to injectable table list
+
+ arch/arm64/Kconfig                |   1 +
+ arch/arm64/include/asm/acpi.h     |   4 +
+ arch/arm64/include/asm/topology.h |   4 +-
+ arch/arm64/kernel/cacheinfo.c     |  15 +-
+ arch/arm64/kernel/topology.c      |  73 ++++-
+ arch/riscv/kernel/cacheinfo.c     |   3 +-
+ drivers/acpi/Kconfig              |   3 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/pptt.c               | 592 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c             |   3 +-
+ drivers/base/cacheinfo.c          | 159 +++++-----
+ include/linux/acpi.h              |   3 +
+ include/linux/cacheinfo.h         |  18 +-
+ 13 files changed, 772 insertions(+), 107 deletions(-)
+ create mode 100644 drivers/acpi/pptt.c
+
+-- 
+2.13.5
+
