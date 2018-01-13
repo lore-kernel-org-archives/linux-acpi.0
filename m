@@ -1,64 +1,46 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: "Error parsing PCC subspaces from PCCT" due to invalid PCCT?
-Date: Sat, 13 Jan 2018 02:30:29 +0100
-Message-ID: <1571097.iXCS0Bl1Qo@aspire.rjw.lan>
-References: <7a0817b6-dd67-4b85-0ef2-3b8f190d5f46@redhat.com>
+From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+Subject: Re: [2/4] ACPI / battery: reorder headers alphabetically
+Date: Sat, 13 Jan 2018 12:53:31 +0100
+Message-ID: <20180113115331.GA13662@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:64355 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965242AbeAMBbp (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jan 2018 20:31:45 -0500
-In-Reply-To: <7a0817b6-dd67-4b85-0ef2-3b8f190d5f46@redhat.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:45460 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754801AbeAMLxg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jan 2018 06:53:36 -0500
+Received: by mail-wm0-f68.google.com with SMTP id i186so16708160wmi.4
+        for <linux-acpi@vger.kernel.org>; Sat, 13 Jan 2018 03:53:35 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Dmitry Rozhkov <dmitry.rozhkov@linux.intel.com>, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, andriy.shevchenko@linux.intel.com
 
-On Friday, January 12, 2018 3:50:10 PM CET Prarit Bhargava wrote:
-> Just looking for some advice on this problem.
-> 
-> https://bugzilla.redhat.com/show_bug.cgi?id=1435837 are many reports against
-> Dell, HP, Lenovo hardware that get a
-> 
-> Error parsing PCC subspaces from PCCT
-> 
-> during boot.
-> 
-> AFAICT this occurs because a PCCT header is defined without any actual PCC
-> subspaces.  e.g) from one of the systems:
-> 
-> [000h 0000   4]                    Signature : "PCCT"    [Platform
-> Communications Channel Table]
-> [004h 0004   4]                 Table Length : 00000030
-> [008h 0008   1]                     Revision : 01
-> [009h 0009   1]                     Checksum : 89
-> [00Ah 0010   6]                       Oem ID : "HP    "
-> [010h 0016   8]                 Oem Table ID : "ProLiant"
-> [018h 0024   4]                 Oem Revision : 00000001
-> [01Ch 0028   4]              Asl Compiler ID : "HP  "
-> [020h 0032   4]        Asl Compiler Revision : 00000001
-> 
-> [024h 0036   4]        Flags (decoded below) : 00000001
->                                     Doorbell : 1
-> [028h 0040   8]                     Reserved : 0000000000000000
-> 
-> Raw Table Data: Length 48 (0x30)
-> 
->   0000: 50 43 43 54 30 00 00 00 01 89 48 50 20 20 20 20  // PCCT0.....HP
->   0010: 50 72 6F 4C 69 61 6E 74 01 00 00 00 48 50 20 20  // ProLiant....HP
->   0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  // ................
-> 
-> 
-> I don't see anything in the ACPI 6.2 Spec 5.2.28 that implies a PCC subspace
-> MUST be defined so I guess technically the above is okay to do.
-> 
-> OR :)  Is this really a bug in these Intel systems' BIOSes?
+> -#include <linux/kernel.h>
+> -#include <linux/module.h>
+> -#include <linux/types.h>
+> -#include <linux/jiffies.h>
+> #include <linux/async.h>
+> -#include <linux/dmi.h>
+> #include <linux/delay.h>
+> +#include <linux/dmi.h>
+> +#include <linux/jiffies.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> #include <linux/slab.h>
+> #include <linux/suspend.h>
+> -#include <asm/unaligned.h>
+> +#include <linux/types.h>
 
-On x86 Linux does not use PCC at all, so this is all irrelevant.
+These changes completely break my patch:
+https://patchwork.kernel.org/patch/10142157/
 
-Thanks,
-Rafael
+Can we please postpone this patch until I hear back from Rafael
+about my series, as my series does some of the things this patch
+series does (like defining pr_fmt to shorten log prints) and this 
+is a much smaller changeset and would require small changes on 
+conflicts compared to my series?
 
+Thanks.
+
+Ognjen
