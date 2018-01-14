@@ -1,74 +1,55 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: "Error parsing PCC subspaces from PCCT" due to invalid PCCT?
-Date: Sun, 14 Jan 2018 12:57:25 -0500
-Message-ID: <0b7726a1-0b1f-500b-67a8-5fd4097f2bb5@redhat.com>
-References: <7a0817b6-dd67-4b85-0ef2-3b8f190d5f46@redhat.com>
- <1571097.iXCS0Bl1Qo@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / LPSS: Do not instiate a platform_dev for devs without a mmio resource
+Date: Sun, 14 Jan 2018 21:01:48 +0100
+Message-ID: <20180114200148.11771-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36352 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51522 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751726AbeANR51 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 14 Jan 2018 12:57:27 -0500
-In-Reply-To: <1571097.iXCS0Bl1Qo@aspire.rjw.lan>
+        id S1751348AbeANUBy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 14 Jan 2018 15:01:54 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Chen-Yu Tsai <wens@csie.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Thierry Reding <thierry.reding@gmail.com>, linux-pwm@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+acpi_lpss_create_device() skips handling LPSS devices which do not have
+a mmio resources in their resource list (typically these devices are
+disabled by the firmware). But since the LPSS code does not bind to the
+device, acpi_bus_attach() ends up still creating a platform device for
+it and the regular platform_driver for the ACPI HID still tries to bind
+to it.
 
+This happens e.g. on some boards which do not use the pwm-controller
+and have an empty or invalid resource-table for it. Currently this causes
+these error messages to get logged:
+[    3.281966] pwm-lpss 80862288:00: invalid resource
+[    3.287098] pwm-lpss: probe of 80862288:00 failed with error -22
 
-On 01/12/2018 08:30 PM, Rafael J. Wysocki wrote:
-> On Friday, January 12, 2018 3:50:10 PM CET Prarit Bhargava wrote:
->> Just looking for some advice on this problem.
->>
->> https://bugzilla.redhat.com/show_bug.cgi?id=1435837 are many reports against
->> Dell, HP, Lenovo hardware that get a
->>
->> Error parsing PCC subspaces from PCCT
->>
->> during boot.
->>
->> AFAICT this occurs because a PCCT header is defined without any actual PCC
->> subspaces.  e.g) from one of the systems:
->>
->> [000h 0000   4]                    Signature : "PCCT"    [Platform
->> Communications Channel Table]
->> [004h 0004   4]                 Table Length : 00000030
->> [008h 0008   1]                     Revision : 01
->> [009h 0009   1]                     Checksum : 89
->> [00Ah 0010   6]                       Oem ID : "HP    "
->> [010h 0016   8]                 Oem Table ID : "ProLiant"
->> [018h 0024   4]                 Oem Revision : 00000001
->> [01Ch 0028   4]              Asl Compiler ID : "HP  "
->> [020h 0032   4]        Asl Compiler Revision : 00000001
->>
->> [024h 0036   4]        Flags (decoded below) : 00000001
->>                                     Doorbell : 1
->> [028h 0040   8]                     Reserved : 0000000000000000
->>
->> Raw Table Data: Length 48 (0x30)
->>
->>   0000: 50 43 43 54 30 00 00 00 01 89 48 50 20 20 20 20  // PCCT0.....HP
->>   0010: 50 72 6F 4C 69 61 6E 74 01 00 00 00 48 50 20 20  // ProLiant....HP
->>   0020: 01 00 00 00 01 00 00 00 00 00 00 00 00 00 00 00  // ................
->>
->>
->> I don't see anything in the ACPI 6.2 Spec 5.2.28 that implies a PCC subspace
->> MUST be defined so I guess technically the above is okay to do.
->>
->> OR :)  Is this really a bug in these Intel systems' BIOSes?
-> 
-> On x86 Linux does not use PCC at all, so this is all irrelevant.
+This commit stops the undesirable creation of a platform_device for
+disabled LPSS devices by setting pnp.type.platform_id to 0. Note that
+acpi_scan_attach_handler() also sets pnp.type.platform_id to 0 when there
+is a matching handler for the device and that handler has no attach
+callback, so we simply behave as a handler without an attach function
+in this case.
 
-True.  Then kernel is outputting a bogus error.  And that's a bad end user
-experience.  I'll patch shortly.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpi_lpss.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-P.
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 9cfe6b71078b..166a8e582d96 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -610,6 +610,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
+ 	if (!pdata->mmio_base) {
++		/* Avoid acpi_bus_attach() instantiating a pdev for this dev. */
++		adev->pnp.type.platform_id = 0;
+ 		/* Skip the device, but continue the namespace scan. */
+ 		ret = 0;
+ 		goto err_out;
+-- 
+2.14.3
 
-> 
-> Thanks,
-> Rafael
-> 
