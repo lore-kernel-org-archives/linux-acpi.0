@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 15/87] x86/acpi: Handle SCI interrupts above legacy space gracefully
-Date: Mon, 15 Jan 2018 13:34:14 +0100
-Message-ID: <20180115123350.800983389@linuxfoundation.org>
-References: <20180115123349.252309699@linuxfoundation.org>
+Subject: [PATCH 3.18 18/46] x86/acpi: Handle SCI interrupts above legacy space gracefully
+Date: Mon, 15 Jan 2018 13:33:26 +0100
+Message-ID: <20180115123329.460468634@linuxfoundation.org>
+References: <20180115123327.303455538@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180115123349.252309699@linuxfoundation.org>
+In-Reply-To: <20180115123327.303455538@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>, Thomas Gleixner <tglx@linutronix.de>, Abdul Lateef Attar <abdul-lateef.attar@hpe.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org, kkamagui@gmail.com, linux-acpi@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Sunil V L <sunil.vl@hpe.com>, Thomas Gleixner <tglx@linutronix.de>, Abdul Lateef Attar <abdul-lateef.attar@hpe.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org, kkamagui@gmail.com, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+3.18-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -44,18 +44,17 @@ Cc: linux-pm@vger.kernel.org
 Cc: kkamagui@gmail.com
 Cc: linux-acpi@vger.kernel.org
 Link: https://lkml.kernel.org/r/1510848825-21965-2-git-send-email-vikas.cha.sajjan@hpe.com
-Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 ---
- arch/x86/kernel/acpi/boot.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ arch/x86/kernel/acpi/boot.c |   33 ++++++++++++++++++++++++++++++++-
+ 1 file changed, 32 insertions(+), 1 deletion(-)
 
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
-@@ -408,6 +408,34 @@ static int mp_config_acpi_gsi(struct dev
- 	return 0;
- }
+@@ -445,6 +445,34 @@ static struct irq_domain_ops acpi_irqdom
+ 	.unmap = mp_irqdomain_unmap,
+ };
  
 +static int __init mp_register_ioapic_irq(u8 bus_irq, u8 polarity,
 +						u8 trigger, u32 gsi)
@@ -88,7 +87,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  static int __init
  acpi_parse_ioapic(struct acpi_subtable_header * header, const unsigned long end)
  {
-@@ -452,7 +480,11 @@ static void __init acpi_sci_ioapic_setup
+@@ -489,7 +517,10 @@ static void __init acpi_sci_ioapic_setup
  	if (acpi_sci_flags & ACPI_MADT_POLARITY_MASK)
  		polarity = acpi_sci_flags & ACPI_MADT_POLARITY_MASK;
  
@@ -97,7 +96,6 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 +		mp_override_legacy_irq(bus_irq, polarity, trigger, gsi);
 +	else
 +		mp_register_ioapic_irq(bus_irq, polarity, trigger, gsi);
-+
- 	acpi_penalize_sci_irq(bus_irq, trigger, polarity);
  
  	/*
+ 	 * stash over-ride to indicate we've been here
