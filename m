@@ -1,71 +1,97 @@
-From: Christoffer Dall <christoffer.dall@linaro.org>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
- categorization
-Date: Mon, 15 Jan 2018 09:33:35 +0100
-Message-ID: <20180115083335.GC21403@cbox>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
- <5A0B1334.7060500@arm.com>
- <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
- <5A283F26.3020507@arm.com>
- <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
- <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com>
- <5A58F8E3.5060002@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / LPSS: Do not instiate a platform_dev for devs
+ without a mmio resource
+Date: Mon, 15 Jan 2018 09:42:48 +0100
+Message-ID: <eaa39560-7386-4d24-756d-24ef97cb6392@redhat.com>
+References: <20180114200148.11771-1-hdegoede@redhat.com>
+ <CAJZ5v0iFwWB+3oooV+vZM99SQnUpA-kuYYaNQsre9e_T_UeBxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:36947 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754133AbeAOIdi (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jan 2018 03:33:38 -0500
-Received: by mail-wm0-f48.google.com with SMTP id v71so100444wmv.2
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Jan 2018 00:33:37 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <5A58F8E3.5060002@arm.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:44627 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753674AbeAOImv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jan 2018 03:42:51 -0500
+Received: by mail-wm0-f67.google.com with SMTP id t74so142203wme.3
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Jan 2018 00:42:50 -0800 (PST)
+In-Reply-To: <CAJZ5v0iFwWB+3oooV+vZM99SQnUpA-kuYYaNQsre9e_T_UeBxA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: gengdongjiu <gengdongjiu@huawei.com>, marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, MyungJoo Ham <myungjoo.ham@samsung.com>, Chanwoo Choi <cw00.choi@samsung.com>, Chen-Yu Tsai <wens@csie.org>, Thierry Reding <thierry.reding@gmail.com>, Linux PWM List <linux-pwm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Fri, Jan 12, 2018 at 06:05:23PM +0000, James Morse wrote:
-> On 15/12/17 03:30, gengdongjiu wrote:
-> > On 2017/12/7 14:37, gengdongjiu wrote:
+Hi,
 
-[...]
-
+On 15-01-18 00:36, Rafael J. Wysocki wrote:
+> On Sun, Jan 14, 2018 at 9:01 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> acpi_lpss_create_device() skips handling LPSS devices which do not have
+>> a mmio resources in their resource list (typically these devices are
+>> disabled by the firmware). But since the LPSS code does not bind to the
+>> device, acpi_bus_attach() ends up still creating a platform device for
+>> it and the regular platform_driver for the ACPI HID still tries to bind
+>> to it.
+>>
+>> This happens e.g. on some boards which do not use the pwm-controller
+>> and have an empty or invalid resource-table for it. Currently this causes
+>> these error messages to get logged:
+>> [    3.281966] pwm-lpss 80862288:00: invalid resource
+>> [    3.287098] pwm-lpss: probe of 80862288:00 failed with error -22
+>>
+>> This commit stops the undesirable creation of a platform_device for
+>> disabled LPSS devices by setting pnp.type.platform_id to 0. Note that
+>> acpi_scan_attach_handler() also sets pnp.type.platform_id to 0 when there
+>> is a matching handler for the device and that handler has no attach
+>> callback, so we simply behave as a handler without an attach function
+>> in this case.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > 
-> (I recall someone saying migration is needed for any new KVM/cpu features, but I
-> can't find the thread)
-> 
+> Does this fix new behavior or is it an old issue?
 
-I don't know of any hard set-in-stone rule for this, but I have
-certainly argued that since migration is a popular technique in data
-centers and often a key motivation behind using virtual machines as it
-provides both load-balancing and high availability, we should think
-about migration support for all features and state.  Further, experience
-has shown that retroactively trying to support migration can result in
-really complex interfaces for saving/restoring state (see the ITS
-ordering requirements in
-Documentation/virtual/kvm/devices/arm-vgic-its.txt as an example) so
-thinking about this problem when introducing functionality is a good
-idea.
+The problem this addresses is likely caused by the acpi_always_present
+entry for the CHT 80862288 PWM devices in drivers/acpi/x86/utils.c.
 
-Of course, if there are really good arguments for having some state that
-simply cannot be migrated, then that's fine, and we should just make
-sure that userspace (e.g. QEMU) and higher level components in the
-stack (libvirt, openstack, etc.) can detect this state being used, and
-ideally enable/disable it, so that it can predict that a particular VM
-cannot be migrated off a particular host, or between a particular set of
-two hosts.  As an example, migration is typically prohibited when using
-VFIO direct device assignment, but userspace etc. are already aware of
+The problem is that under Windows the Intel GPU driver has hardcoded
+addresses for the PWM LPSS bits (or so I believe), rather then having
+it as a separate device with a separate driver, so the CHT LPSS PWM
+device's _STA returns 0 on all x86 devices which ship with Windows.
+
+On most CHT laptops / tablets it is used to control the backlight
+brightness so we do need the device under Linux, where we've a
+separate PWM driver and we don't want to be hardcoding stuff like
 this.
 
-As a final note, if we add support for some architectural feature, which
-may be present on some particular hardware and/or implementation, if the
-KVM support for said feature is automatically enabled (and not
-selectively from userspace), I would push back quite strongly on
-something that doesn't support migration, because it would effectively
-prevent migration of VMs on ARM.
+So we really cannot do without the acpi_always_present entry, and thus
+need this extra check for devices where the pwm is actually unused
+and disabled by the firmware.
 
-Thanks,
--Christoffer
+Regards,
+
+Hans
+
+>> ---
+>>   drivers/acpi/acpi_lpss.c | 2 ++
+>>   1 file changed, 2 insertions(+)
+>>
+>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+>> index 9cfe6b71078b..166a8e582d96 100644
+>> --- a/drivers/acpi/acpi_lpss.c
+>> +++ b/drivers/acpi/acpi_lpss.c
+>> @@ -610,6 +610,8 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>>          acpi_dev_free_resource_list(&resource_list);
+>>
+>>          if (!pdata->mmio_base) {
+>> +               /* Avoid acpi_bus_attach() instantiating a pdev for this dev. */
+>> +               adev->pnp.type.platform_id = 0;
+>>                  /* Skip the device, but continue the namespace scan. */
+>>                  ret = 0;
+>>                  goto err_out;
+>> --
+>> 2.14.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
