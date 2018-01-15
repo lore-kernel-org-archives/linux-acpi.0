@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.14 031/118] x86/acpi: Reduce code duplication in mp_override_legacy_irq()
-Date: Mon, 15 Jan 2018 13:34:18 +0100
-Message-ID: <20180115123417.356866062@linuxfoundation.org>
-References: <20180115123415.325497625@linuxfoundation.org>
+Subject: [PATCH 4.9 24/96] x86/acpi: Reduce code duplication in mp_override_legacy_irq()
+Date: Mon, 15 Jan 2018 13:34:23 +0100
+Message-ID: <20180115123406.546761522@linuxfoundation.org>
+References: <20180115123404.270241256@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180115123415.325497625@linuxfoundation.org>
+In-Reply-To: <20180115123404.270241256@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Vikas C Sajjan <vikas.cha.sajjan@hpe.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-pm@vger.kernel.org, kkamagui@gmail.com, linux-acpi@vger.kernel.org, Jean Delvare <jdelvare@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-4.14-stable review patch.  If anyone has any objections, please let me know.
+4.9-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -43,7 +43,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/arch/x86/kernel/acpi/boot.c
 +++ b/arch/x86/kernel/acpi/boot.c
-@@ -342,13 +342,12 @@ acpi_parse_lapic_nmi(struct acpi_subtabl
+@@ -335,13 +335,12 @@ acpi_parse_lapic_nmi(struct acpi_subtabl
  #ifdef CONFIG_X86_IO_APIC
  #define MP_ISA_BUS		0
  
@@ -60,7 +60,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	/*
  	 * Check bus_irq boundary.
  	 */
-@@ -358,14 +357,6 @@ static void __init mp_override_legacy_ir
+@@ -351,14 +350,6 @@ static void __init mp_override_legacy_ir
  	}
  
  	/*
@@ -75,7 +75,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	 * TBD: This check is for faulty timer entries, where the override
  	 *      erroneously sets the trigger to level, resulting in a HUGE
  	 *      increase of timer interrupts!
-@@ -373,16 +364,8 @@ static void __init mp_override_legacy_ir
+@@ -366,16 +357,8 @@ static void __init mp_override_legacy_ir
  	if ((bus_irq == 0) && (trigger == 3))
  		trigger = 1;
  
