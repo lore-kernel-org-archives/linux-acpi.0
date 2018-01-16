@@ -1,295 +1,78 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [RFC PATCH v2 3/5] iommu/virtio-iommu: Add event queue
-Date: Tue, 16 Jan 2018 11:10:46 +0100
-Message-ID: <3061e653-38bb-bffa-0f16-43047724a0ae@redhat.com>
-References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
- <20171117185211.32593-4-jean-philippe.brucker@arm.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Tue, 16 Jan 2018 19:19:38 +0800
+Message-ID: <7eae0e8c-af91-72a1-d27d-e44daf642583@huawei.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+ <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
+ <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com> <5A58F8E3.5060002@arm.com>
+ <20180115083335.GC21403@cbox>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <20171117185211.32593-4-jean-philippe.brucker@arm.com>
-Sender: kvm-owner@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, iommu@lists.linux-foundation.org, devel@acpica.org, linux-acpi@vger.kernel.org, kvm@vger.kernel.org, kvmarm@lists.cs.columbia.edu, virtualization@lists.linux-foundation.org, virtio-dev@lists.oasis-open.org
-Cc: jasowang@redhat.com, mst@redhat.com, lv.zheng@intel.com, robert.moore@intel.com, joro@8bytes.org, alex.williamson@redhat.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, lenb@kernel.org, rjw@rjwysocki.net, marc.zyngier@arm.com, robin.murphy@arm.com, will.deacon@arm.com, bharat.bhushan@nxp.com, Jayachandran.Nair@cavium.com, ashok.raj@intel.com, peterx@redhat.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:35384 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751450AbeAPLUr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Jan 2018 06:20:47 -0500
+In-Reply-To: <20180115083335.GC21403@cbox>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoffer Dall <christoffer.dall@linaro.org>, James Morse <james.morse@arm.com>
+Cc: marc.zyngier@arm.com, linux@armlinux.org.uk, bp@alien8.de, rjw@rjwysocki.net, pbonzini@redhat.com, rkrcmar@redhat.com, corbet@lwn.net, catalin.marinas@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com, wuquanming@huawei.com, linuxarm@huawei.com
 
-Hi,
+Hi Christoffer
 
-On 17/11/17 19:52, Jean-Philippe Brucker wrote:
-> The event queue offers a way for the device to report access faults from
-> devices.
-end points?
- It is implemented on virtqueue #1, whenever the host needs to
-> signal a fault it fills one of the buffers offered by the guest and
-> interrupts it.
+On 2018/1/15 16:33, Christoffer Dall wrote:
+> On Fri, Jan 12, 2018 at 06:05:23PM +0000, James Morse wrote:
+>> On 15/12/17 03:30, gengdongjiu wrote:
+>>> On 2017/12/7 14:37, gengdongjiu wrote:
 > 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> ---
->  drivers/iommu/virtio-iommu.c      | 138 ++++++++++++++++++++++++++++++++++----
->  include/uapi/linux/virtio_iommu.h |  18 +++++
->  2 files changed, 142 insertions(+), 14 deletions(-)
+> [...]
 > 
-> diff --git a/drivers/iommu/virtio-iommu.c b/drivers/iommu/virtio-iommu.c
-> index 79e0add94e05..fe0d449bf489 100644
-> --- a/drivers/iommu/virtio-iommu.c
-> +++ b/drivers/iommu/virtio-iommu.c
-> @@ -30,6 +30,12 @@
->  #define MSI_IOVA_BASE			0x8000000
->  #define MSI_IOVA_LENGTH			0x100000
->  
-> +enum viommu_vq_idx {
-> +	VIOMMU_REQUEST_VQ	= 0,
-> +	VIOMMU_EVENT_VQ		= 1,
-> +	VIOMMU_NUM_VQS		= 2,
-> +};
-> +
->  struct viommu_dev {
->  	struct iommu_device		iommu;
->  	struct device			*dev;
-> @@ -37,7 +43,7 @@ struct viommu_dev {
->  
->  	struct ida			domain_ids;
->  
-> -	struct virtqueue		*vq;
-> +	struct virtqueue		*vqs[VIOMMU_NUM_VQS];
->  	/* Serialize anything touching the request queue */
->  	spinlock_t			request_lock;
->  
-> @@ -84,6 +90,15 @@ struct viommu_request {
->  	struct list_head		list;
->  };
->  
-> +#define VIOMMU_FAULT_RESV_MASK		0xffffff00
-> +
-> +struct viommu_event {
-> +	union {
-> +		u32			head;
-> +		struct virtio_iommu_fault fault;
-> +	};
-> +};
-> +
->  #define to_viommu_domain(domain) container_of(domain, struct viommu_domain, domain)
->  
->  /* Virtio transport */
-> @@ -160,12 +175,13 @@ static int viommu_receive_resp(struct viommu_dev *viommu, int nr_sent,
->  	unsigned int len;
->  	int nr_received = 0;
->  	struct viommu_request *req, *pending;
-> +	struct virtqueue *vq = viommu->vqs[VIOMMU_REQUEST_VQ];
->  
->  	pending = list_first_entry_or_null(sent, struct viommu_request, list);
->  	if (WARN_ON(!pending))
->  		return 0;
->  
-> -	while ((req = virtqueue_get_buf(viommu->vq, &len)) != NULL) {
-> +	while ((req = virtqueue_get_buf(vq, &len)) != NULL) {
->  		if (req != pending) {
->  			dev_warn(viommu->dev, "discarding stale request\n");
->  			continue;
-> @@ -202,6 +218,7 @@ static int _viommu_send_reqs_sync(struct viommu_dev *viommu,
->  	 * dies.
->  	 */
->  	unsigned long timeout_ms = 1000;
-> +	struct virtqueue *vq = viommu->vqs[VIOMMU_REQUEST_VQ];
->  
->  	*nr_sent = 0;
->  
-> @@ -211,15 +228,14 @@ static int _viommu_send_reqs_sync(struct viommu_dev *viommu,
->  		sg[0] = &req->top;
->  		sg[1] = &req->bottom;
->  
-> -		ret = virtqueue_add_sgs(viommu->vq, sg, 1, 1, req,
-> -					GFP_ATOMIC);
-> +		ret = virtqueue_add_sgs(vq, sg, 1, 1, req, GFP_ATOMIC);
->  		if (ret)
->  			break;
->  
->  		list_add_tail(&req->list, &pending);
->  	}
->  
-> -	if (i && !virtqueue_kick(viommu->vq))
-> +	if (i && !virtqueue_kick(vq))
->  		return -EPIPE;
->  
->  	timeout = ktime_add_ms(ktime_get(), timeout_ms * i);
-> @@ -554,6 +570,70 @@ static int viommu_probe_endpoint(struct viommu_dev *viommu, struct device *dev)
->  	return 0;
->  }
->  
-> +static int viommu_fault_handler(struct viommu_dev *viommu,
-> +				struct virtio_iommu_fault *fault)
-> +{
-> +	char *reason_str;
-> +
-> +	u8 reason	= fault->reason;
-> +	u32 flags	= le32_to_cpu(fault->flags);
-> +	u32 endpoint	= le32_to_cpu(fault->endpoint);
-> +	u64 address	= le64_to_cpu(fault->address);
-> +
-> +	switch (reason) {
-> +	case VIRTIO_IOMMU_FAULT_R_DOMAIN:
-> +		reason_str = "domain";
-> +		break;
-> +	case VIRTIO_IOMMU_FAULT_R_MAPPING:
-> +		reason_str = "page";
-> +		break;
-> +	case VIRTIO_IOMMU_FAULT_R_UNKNOWN:
-> +	default:
-> +		reason_str = "unknown";
-> +		break;
-> +	}
-> +
-> +	/* TODO: find EP by ID and report_iommu_fault */
-> +	if (flags & VIRTIO_IOMMU_FAULT_F_ADDRESS)
-> +		dev_err_ratelimited(viommu->dev, "%s fault from EP %u at %#llx [%s%s%s]\n",
-> +				    reason_str, endpoint, address,
-> +				    flags & VIRTIO_IOMMU_FAULT_F_READ ? "R" : "",
-> +				    flags & VIRTIO_IOMMU_FAULT_F_WRITE ? "W" : "",
-> +				    flags & VIRTIO_IOMMU_FAULT_F_EXEC ? "X" : "");
-> +	else
-> +		dev_err_ratelimited(viommu->dev, "%s fault from EP %u\n",
-> +				    reason_str, endpoint);
-> +
-> +	return 0;
-> +}
-> +
-> +static void viommu_event_handler(struct virtqueue *vq)
-> +{
-> +	int ret;
-> +	unsigned int len;
-> +	struct scatterlist sg[1];
-> +	struct viommu_event *evt;
-> +	struct viommu_dev *viommu = vq->vdev->priv;
-> +
-> +	while ((evt = virtqueue_get_buf(vq, &len)) != NULL) {
-> +		if (len > sizeof(*evt)) {
-> +			dev_err(viommu->dev,
-> +				"invalid event buffer (len %u != %zu)\n",
-> +				len, sizeof(*evt));
-> +		} else if (!(evt->head & VIOMMU_FAULT_RESV_MASK)) {
-> +			viommu_fault_handler(viommu, &evt->fault);
-> +		}
-> +
-> +		sg_init_one(sg, evt, sizeof(*evt));
-in case of above error case, ie. len > sizeof(*evt), is it safe to push
-evt again?
-> +		ret = virtqueue_add_inbuf(vq, sg, 1, evt, GFP_ATOMIC);
-> +		if (ret)
-> +			dev_err(viommu->dev, "could not add event buffer\n");
-> +	}
-> +
-> +	if (!virtqueue_kick(vq))
-> +		dev_err(viommu->dev, "kick failed\n");
-> +}
-> +
->  /* IOMMU API */
->  
->  static bool viommu_capable(enum iommu_cap cap)
-> @@ -938,19 +1018,44 @@ static struct iommu_ops viommu_ops = {
->  	.put_resv_regions	= viommu_put_resv_regions,
->  };
->  
-> -static int viommu_init_vq(struct viommu_dev *viommu)
-> +static int viommu_init_vqs(struct viommu_dev *viommu)
->  {
->  	struct virtio_device *vdev = dev_to_virtio(viommu->dev);
-> -	const char *name = "request";
-> -	void *ret;
-> +	const char *names[] = { "request", "event" };
-> +	vq_callback_t *callbacks[] = {
-> +		NULL, /* No async requests */
-> +		viommu_event_handler,
-> +	};
-> +
-> +	return virtio_find_vqs(vdev, VIOMMU_NUM_VQS, viommu->vqs, callbacks,
-> +			       names, NULL);
-> +}
->  
-> -	ret = virtio_find_single_vq(vdev, NULL, name);
-> -	if (IS_ERR(ret)) {
-> -		dev_err(viommu->dev, "cannot find VQ\n");
-> -		return PTR_ERR(ret);
-> +static int viommu_fill_evtq(struct viommu_dev *viommu)
-> +{
-> +	int i, ret;
-> +	struct scatterlist sg[1];
-> +	struct viommu_event *evts;
-> +	struct virtqueue *vq = viommu->vqs[VIOMMU_EVENT_VQ];
-> +	size_t nr_evts = min_t(size_t, PAGE_SIZE / sizeof(struct viommu_event),
-> +			       viommu->vqs[VIOMMU_EVENT_VQ]->num_free);
-> +
-> +	evts = devm_kmalloc_array(viommu->dev, nr_evts, sizeof(*evts),
-> +				  GFP_KERNEL);
-> +	if (!evts)
-> +		return -ENOMEM;
-> +
-> +	for (i = 0; i < nr_evts; i++) {
-> +		sg_init_one(sg, &evts[i], sizeof(*evts));
-> +		ret = virtqueue_add_inbuf(vq, sg, 1, &evts[i], GFP_KERNEL);
-who does the deallocation of evts?
-
-Thanks
-
-Eric
-> +		if (ret)
-> +			return ret;
->  	}
->  
-> -	viommu->vq = ret;
-> +	if (!virtqueue_kick(vq))
-> +		return -EPIPE;
-> +
-> +	dev_info(viommu->dev, "%zu event buffers\n", nr_evts);
->  
->  	return 0;
->  }
-> @@ -973,7 +1078,7 @@ static int viommu_probe(struct virtio_device *vdev)
->  	viommu->dev = dev;
->  	viommu->vdev = vdev;
->  
-> -	ret = viommu_init_vq(viommu);
-> +	ret = viommu_init_vqs(viommu);
->  	if (ret)
->  		goto err_free_viommu;
->  
-> @@ -1014,6 +1119,11 @@ static int viommu_probe(struct virtio_device *vdev)
->  
->  	virtio_device_ready(vdev);
->  
-> +	/* Populate the event queue with buffers */
-> +	ret = viommu_fill_evtq(viommu);
-> +	if (ret)
-> +		goto err_free_viommu;
-> +
->  	ret = iommu_device_sysfs_add(&viommu->iommu, dev, NULL, "%s",
->  				     virtio_bus_name(vdev));
->  	if (ret)
-> diff --git a/include/uapi/linux/virtio_iommu.h b/include/uapi/linux/virtio_iommu.h
-> index eec90a2ab547..b57543b4145b 100644
-> --- a/include/uapi/linux/virtio_iommu.h
-> +++ b/include/uapi/linux/virtio_iommu.h
-> @@ -174,4 +174,22 @@ union virtio_iommu_req {
->  	struct virtio_iommu_req_probe		probe;
->  };
->  
-> +/* Fault types */
-> +#define VIRTIO_IOMMU_FAULT_R_UNKNOWN		0
-> +#define VIRTIO_IOMMU_FAULT_R_DOMAIN		1
-> +#define VIRTIO_IOMMU_FAULT_R_MAPPING		2
-> +
-> +#define VIRTIO_IOMMU_FAULT_F_READ		(1 << 0)
-> +#define VIRTIO_IOMMU_FAULT_F_WRITE		(1 << 1)
-> +#define VIRTIO_IOMMU_FAULT_F_EXEC		(1 << 2)
-> +#define VIRTIO_IOMMU_FAULT_F_ADDRESS		(1 << 8)
-> +
-> +struct virtio_iommu_fault {
-> +	__u8					reason;
-> +	__u8					padding[3];
-> +	__le32					flags;
-> +	__le32					endpoint;
-> +	__le64					address;
-> +} __packed;
-> +
->  #endif
+>>
+>> (I recall someone saying migration is needed for any new KVM/cpu features, but I
+>> can't find the thread)
+>>
 > 
+> I don't know of any hard set-in-stone rule for this, but I have
+> certainly argued that since migration is a popular technique in data
+> centers and often a key motivation behind using virtual machines as it
+> provides both load-balancing and high availability, we should think
+> about migration support for all features and state.  Further, experience
+> has shown that retroactively trying to support migration can result in
+> really complex interfaces for saving/restoring state (see the ITS
+> ordering requirements in
+> Documentation/virtual/kvm/devices/arm-vgic-its.txt as an example) so
+> thinking about this problem when introducing functionality is a good
+> idea.
+> 
+> Of course, if there are really good arguments for having some state that
+> simply cannot be migrated, then that's fine, and we should just make
+> sure that userspace (e.g. QEMU) and higher level components in the
+> stack (libvirt, openstack, etc.) can detect this state being used, and
+> ideally enable/disable it, so that it can predict that a particular VM
+> cannot be migrated off a particular host, or between a particular set of
+> two hosts.  As an example, migration is typically prohibited when using
+> VFIO direct device assignment, but userspace etc. are already aware of
+> this.
+> 
+> As a final note, if we add support for some architectural feature, which
+> may be present on some particular hardware and/or implementation, if the
+> KVM support for said feature is automatically enabled (and not
+> selectively from userspace), I would push back quite strongly on
+> something that doesn't support migration, because it would effectively
+> prevent migration of VMs on ARM.
+Thanks very much for this mail and reply, I will check it, please give me some time due to
+recently busy with other things.
+
+> 
+> Thanks,
+> -Christoffer
+> 
+> .
+> 
+
