@@ -1,118 +1,109 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
- categorization
-Date: Tue, 16 Jan 2018 19:22:53 +0800
-Message-ID: <27cb4309-4ee3-b947-c991-7da0dc6721ab@huawei.com>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
- <5A0B1334.7060500@arm.com>
- <CAMj-D2CwHWNpXzeNMEVKGTveAwuJvja219NF6PZ7xqYMUY17Kw@mail.gmail.com>
- <5A58F8EB.9080909@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <5A58F8EB.9080909@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>, gengdongjiu <gengdj.1984@gmail.com>
-Cc: wuquanming <wuquanming@huawei.com>, kvm@vger.kernel.org, linux-doc@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, linux@armlinux.org.uk, linux-acpi@vger.kernel.org, Huangshaoyu <huangshaoyu@huawei.com>, kvmarm@lists.cs.columbia.edu, arm-mail-list <linux-arm-kernel@lists.infradead.org>, devel@acpica.org
+From: Juergen Gross <jgross@suse.com>
+Subject: [PATCH] x86/acpi: check rsdp address received via bootparams to be valid
+Date: Tue, 16 Jan 2018 14:57:30 +0100
+Message-ID: <20180116135730.19216-1-jgross@suse.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx2.suse.de ([195.135.220.15]:53507 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751295AbeAPN5e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 16 Jan 2018 08:57:34 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com, Juergen Gross <jgross@suse.com>
 
-Hi James,
-  thanks very much for your mail and reply, I will check it ASAP. Due to recently busy with other thing, so reply may be late.
+There seem to exist several grub2 versions trashing
+boot_params.hdr.acpi_rsdp_addr.
 
-On 2018/1/13 2:05, James Morse wrote:
-> Hi gengdongjiu,
-> 
-> On 16/12/17 04:47, gengdongjiu wrote:
->> [...]
->>>
->>>> +     case ESR_ELx_AET_UER:   /* The error has not been propagated */
->>>> +             /*
->>>> +              * Userspace only handle the guest SError Interrupt(SEI) if the
->>>> +              * error has not been propagated
->>>> +              */
->>>> +             run->exit_reason = KVM_EXIT_EXCEPTION;
->>>> +             run->ex.exception = ESR_ELx_EC_SERROR;
->>>> +             run->ex.error_code = KVM_SEI_SEV_RECOVERABLE;
->>>> +             return 0;
->>>
->>> We should not pass RAS notifications to user space. The kernel either handles
->>> them, or it panics(). User space shouldn't even know if the kernel supports RAS
->>
->> For the  ESR_ELx_AET_UER(Recoverable error), let us see its definition
->> below, which get from [0]
-> 
-> [..]
-> 
->> so we can see the  exception is precise and PE can recover execution
->> from the preferred return address of the exception, 
-> 
->> so let guest handling it is
->> better, for example, if it is guest application RAS error, we can kill
->> the guest application instead of panic whole OS; if it is guest kernel
->> RAS error, guest will panic.
-> 
-> If the kernel takes an unhandled RAS error it should panic - we don't know where
-> the error is.
-> 
-> I understand you want to kill-off guest tasks as a result of RAS errors, but
-> this needs to go through the whole APEI->memory_failure()->sigbus machinery so
-> that the kernel knows the kernel can keep running.
-> 
-> This saves us signalling user-space when we don't need to. An example:
-> code-corruption. Linux can happily re-read affected user-space executables from
-> disk, there is absolutely nothing user-space can do about it.
-> Handling errors first in the kernel allows us to do recovery for all the
-> affected processes, not just the one that happens to be running right now.
-> 
-> 
->> Host does not know which application of guest has error, so host can
->> not handle it,
-> 
-> It has to work this out, otherwise the errors we can handle never get a chance.
-> 
-> This kernel is expected to look at the error description, (which for some reason
-> we aren't talking about here), e.g. the CPER records, and determine what
-> recovery action is necessary for this error.
-> For memory errors this may be re-reading from disk, or at the worst case,
-> unmapping from all user-space users (including KVM's stage2) and raining signals
-> on all affected processes.
-> 
-> For a memory error the important piece of information is the physical address.
-> Only the kernel can do anything with this, it determines who owns the affected
-> memory and what needs doing to recover from the error.
-> 
-> If you pass the notification to user-space, all it can do is signal the guest to
-> "stop doing whatever it is you're doing". The guest may have been able to
-> re-read pages from disk, or otherwise handle the error.
-> Has the error been handled? No: The error remains latent in the system.
-> 
-> 
->> panic OS is not a good choice for the Recoverable error.
-> 
-> If we don't know where the error is, and we can't make progress, its the only
-> sane choice.
-> 
-> This code is never expected to run! (why are we arguing about it?) We should get
-> RAS errors as GHES notifications from firmware via some mechanism. If those are
-> NOTIFY_SEI then APEI should claim the notification and kick off the appropriate
-> handling based on the CPER records. If/when we get kernel-first, that can claim
-> the SError. What we're left with is RAS notifications that no-one claimed
-> because there was no error-description found.
-> 
-> 
-> 
-> James
-> 
-> .
-> 
+So don't just believe this address to be valid, but verify it pointing
+to a valid RSDP table.
+
+Signed-off-by: Juergen Gross <jgross@suse.com>
+---
+To be applied on top of my RSDP series currently in tip.git x86/boot
+Mike Galbraith has tested this patch to repair his broken boot
+---
+ drivers/acpi/acpica/tbxfroot.c | 36 ++++++++++++++++++++++++++++++++++++
+ drivers/acpi/osl.c             |  2 +-
+ include/acpi/acpixf.h          |  5 +++++
+ 3 files changed, 42 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
+index f9f9a7da2cad..9edc71780a38 100644
+--- a/drivers/acpi/acpica/tbxfroot.c
++++ b/drivers/acpi/acpica/tbxfroot.c
+@@ -249,6 +249,42 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_find_root_pointer)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_verify_root_pointer
++ *
++ *
++ * PARAMETERS:  rsdp_address        - Pointer to suspected RSDP
++ *
++ * RETURN:      AE_OK if rsdp_address really points to a RSDP, AE_NOT_FOUND
++ *              else
++ *
++ * DESCRIPTION: Verify a physical address being a valid RSDP
++ *
++ ******************************************************************************/
++
++acpi_status ACPI_INIT_FUNCTION
++acpi_verify_root_pointer(acpi_physical_address rsdp_address)
++{
++	acpi_status status;
++	struct acpi_table_rsdp *rsdp;
++
++	ACPI_FUNCTION_TRACE(acpi_verify_root_pointer);
++
++	rsdp = acpi_os_map_memory(rsdp_address, sizeof(*rsdp));
++
++	if (!rsdp)
++		return_ACPI_STATUS(AE_NO_MEMORY);
++
++	status = acpi_tb_validate_rsdp(rsdp);
++
++	acpi_os_unmap_memory(rsdp, sizeof(*rsdp));
++
++	return_ACPI_STATUS(status);
++}
++
++ACPI_EXPORT_SYMBOL_INIT(acpi_verify_root_pointer)
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_tb_scan_memory_for_rsdp
+  *
+  * PARAMETERS:  start_address       - Starting pointer for search
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 2b77db914752..facff5c11f32 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -201,7 +201,7 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ 		return acpi_rsdp;
+ #endif
+ 	pa = acpi_arch_get_root_pointer();
+-	if (pa)
++	if (pa && acpi_verify_root_pointer(pa) == AE_OK)
+ 		return pa;
+ 
+ 	if (efi_enabled(EFI_CONFIG_TABLES)) {
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index e1dd1a8d42b6..1edc47bd13c1 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -505,6 +505,11 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status ACPI_INIT_FUNCTION
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status ACPI_INIT_FUNCTION
+ 			    acpi_find_root_pointer(acpi_physical_address
+ 						   *rsdp_address))
++
++ACPI_EXTERNAL_RETURN_OK(acpi_status ACPI_INIT_FUNCTION
++			acpi_verify_root_pointer(acpi_physical_address
++						 rsdp_address))
++
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 			     acpi_get_table_header(acpi_string signature,
+ 						   u32 instance,
+-- 
+2.13.6
+
