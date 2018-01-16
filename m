@@ -1,39 +1,48 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH] ACPI/PCI: pci_link: reduce verbosity when IRQ is enabled
-Date: Tue, 16 Jan 2018 13:51:04 -0500
-Message-ID: <1516128664-23634-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:42360 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbeAPSvL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jan 2018 13:51:11 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: Re: [PATCH] ACPI/PCI: pci_link: reduce verbosity when IRQ is enabled
+Date: Tue, 16 Jan 2018 13:53:00 -0500
+Message-ID: <f508e749-2976-ec6f-681a-553b79c4ab76@codeaurora.org>
+References: <1516128664-23634-1-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1516128664-23634-1-git-send-email-okaya@codeaurora.org>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, timur@codeaurora.org
-Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pci@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Cc: linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-When ACPI Link object is enabled, the message is printed with a warning
-prefix. Some test tools are capturing warning and test error types as
-errors. Let's reduce the verbosity of success case.
+Correcting linux-pci email.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 1/16/2018 1:51 PM, Sinan Kaya wrote:
+> When ACPI Link object is enabled, the message is printed with a warning
+> prefix. Some test tools are capturing warning and test error types as
+> errors. Let's reduce the verbosity of success case.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index bc3d914..85ad679 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -612,7 +612,7 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			acpi_isa_irq_penalty[link->irq.active] +=
+>  				PIRQ_PENALTY_PCI_USING;
+>  
+> -		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+> +		pr_info("%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+>  	}
+> 
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index bc3d914..85ad679 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -612,7 +612,7 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 			acpi_isa_irq_penalty[link->irq.active] +=
- 				PIRQ_PENALTY_PCI_USING;
- 
--		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
-+		pr_info("%s [%s] enabled at IRQ %d\n",
- 		       acpi_device_name(link->device),
- 		       acpi_device_bid(link->device), link->irq.active);
- 	}
+
 -- 
-1.9.1
-
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
