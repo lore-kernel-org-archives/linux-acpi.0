@@ -1,110 +1,74 @@
 From: Juergen Gross <jgross@suse.com>
 Subject: Re: [PATCH] x86/acpi: check rsdp address received via bootparams to
  be valid
-Date: Wed, 17 Jan 2018 13:20:01 +0100
-Message-ID: <23728a6c-b820-4d37-d522-1a70b4304d28@suse.com>
+Date: Wed, 17 Jan 2018 13:28:20 +0100
+Message-ID: <4a8b0233-9bb8-3c95-0a08-93a5ceffc231@suse.com>
 References: <20180116135730.19216-1-jgross@suse.com>
- <CAJZ5v0j2GMvpYjURfx9N=RFYsVAmdWDwVNMG3-rxDf72ckmn_A@mail.gmail.com>
+ <20180116154630.ke53suvokynj73qd@gmail.com>
+ <432c21ab-24d8-1e70-a471-ad8a14357d4e@suse.com>
+ <20180116163529.rc5j23oqmwk45rp5@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:56594 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752775AbeAQMUE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 17 Jan 2018 07:20:04 -0500
-In-Reply-To: <CAJZ5v0j2GMvpYjURfx9N=RFYsVAmdWDwVNMG3-rxDf72ckmn_A@mail.gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180116163529.rc5j23oqmwk45rp5@gmail.com>
 Content-Language: de-DE
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, lenb@kernel.org, rafael.j.wysocki@intel.com, hpa@zytor.com, tglx@linutronix.de, mingo@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>
 
-On 17/01/18 12:49, Rafael J. Wysocki wrote:
-> On Tue, Jan 16, 2018 at 2:57 PM, Juergen Gross <jgross@suse.com> wrote:
->> There seem to exist several grub2 versions trashing
->> boot_params.hdr.acpi_rsdp_addr.
->>
->> So don't just believe this address to be valid, but verify it pointing
->> to a valid RSDP table.
->>
->> Signed-off-by: Juergen Gross <jgross@suse.com>
->> ---
->> To be applied on top of my RSDP series currently in tip.git x86/boot
->> Mike Galbraith has tested this patch to repair his broken boot
->> ---
->>  drivers/acpi/acpica/tbxfroot.c | 36 ++++++++++++++++++++++++++++++++++++
->>  drivers/acpi/osl.c             |  2 +-
->>  include/acpi/acpixf.h          |  5 +++++
->>  3 files changed, 42 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
->> index f9f9a7da2cad..9edc71780a38 100644
->> --- a/drivers/acpi/acpica/tbxfroot.c
->> +++ b/drivers/acpi/acpica/tbxfroot.c
->> @@ -249,6 +249,42 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_find_root_pointer)
->>
->>  /*******************************************************************************
->>   *
->> + * FUNCTION:    acpi_verify_root_pointer
+On 16/01/18 17:35, Ingo Molnar wrote:
 > 
-> Why do you want this to go into ACPICA?
-
-It seemed to fit in here.
-
->> + *
->> + *
->> + * PARAMETERS:  rsdp_address        - Pointer to suspected RSDP
->> + *
->> + * RETURN:      AE_OK if rsdp_address really points to a RSDP, AE_NOT_FOUND
->> + *              else
->> + *
->> + * DESCRIPTION: Verify a physical address being a valid RSDP
->> + *
->> + ******************************************************************************/
->> +
->> +acpi_status ACPI_INIT_FUNCTION
->> +acpi_verify_root_pointer(acpi_physical_address rsdp_address)
->> +{
->> +       acpi_status status;
->> +       struct acpi_table_rsdp *rsdp;
->> +
->> +       ACPI_FUNCTION_TRACE(acpi_verify_root_pointer);
->> +
->> +       rsdp = acpi_os_map_memory(rsdp_address, sizeof(*rsdp));
->> +
->> +       if (!rsdp)
->> +               return_ACPI_STATUS(AE_NO_MEMORY);
->> +
->> +       status = acpi_tb_validate_rsdp(rsdp);
->> +
->> +       acpi_os_unmap_memory(rsdp, sizeof(*rsdp));
->> +
->> +       return_ACPI_STATUS(status);
->> +}
->> +
->> +ACPI_EXPORT_SYMBOL_INIT(acpi_verify_root_pointer)
->> +
->> +/*******************************************************************************
->> + *
->>   * FUNCTION:    acpi_tb_scan_memory_for_rsdp
->>   *
->>   * PARAMETERS:  start_address       - Starting pointer for search
->> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
->> index 2b77db914752..facff5c11f32 100644
->> --- a/drivers/acpi/osl.c
->> +++ b/drivers/acpi/osl.c
->> @@ -201,7 +201,7 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
->>                 return acpi_rsdp;
->>  #endif
->>         pa = acpi_arch_get_root_pointer();
->> -       if (pa)
->> +       if (pa && acpi_verify_root_pointer(pa) == AE_OK)
+> * Juergen Gross <jgross@suse.com> wrote:
 > 
-> All things needed could just be done locally in this file.
+>> On 16/01/18 16:46, Ingo Molnar wrote:
+>>>
+>>> * Juergen Gross <jgross@suse.com> wrote:
+>>>
+>>>> There seem to exist several grub2 versions trashing
+>>>> boot_params.hdr.acpi_rsdp_addr.
+>>>>
+>>>> So don't just believe this address to be valid, but verify it pointing
+>>>> to a valid RSDP table.
+>>>
+>>> Exactly what kind of values do those Grub2 versions put into that field? Pointer 
+>>> to something, or random noise?
+>>
+>> Looks like random noise. On Mike's system it was 0x000000000151.
+>>
+>>> Also, what exactly does 'validation' mean, how robustly does it filter out of spec 
+>>> uses of the boot protocol?
+>>
+>> It validates the RSDP has the correct 8 byte eye catcher in it and
+>> the checksum of the structure is correct. Searching the RSDP by
+>> scanning memory is using the same checks, so I guess this ought to
+>> be okay. Odds are about 1 : 2^80 for false positives.
+> 
+> Ok, this should work - but only because the RSDP is defined in such a robust 
+> fashion.
+> 
+> The boot protocol extension is still fragile: what I worry about is that if we 
+> start relying on the extended boot protocol with widespread installed base of out 
+> of spec Grub2 loaders, other extensions (which cannot be sanity checked) would be 
+> less robust.
+> 
+> Is there a way to detect the broken Grub2 versions somehow and just limit the boot 
+> protocol for them?
+> 
+> The other solution would be to just discontinue this boot protocol extension and 
+> define a new one.
 
-Okay, if you prefer it this way I can move acpi_verify_root_pointer() to
-osl.c.
+I think the best way to do it would be to let grub2 report the version
+of the protocol it is honoring. This reported version should not be
+higher than that of the kernel. The kernel would then know which fields
+of setup_header are known by grub2 and thus can be trusted to be
+correct.
+
+I can modify my patch series to add the grub2 version information before
+the new rsdp_address field so this band-aid patch won't be required.
+
+What do you think?
 
 
 Juergen
