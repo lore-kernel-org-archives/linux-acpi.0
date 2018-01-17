@@ -1,379 +1,130 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [RFC PATCH v2 2/5] iommu/virtio-iommu: Add probe request
-Date: Wed, 17 Jan 2018 00:26:11 +0100
-Message-ID: <5b236aaa-4abb-2cac-1c74-f8137a0c2244@redhat.com>
-References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
- <20171117185211.32593-3-jean-philippe.brucker@arm.com>
+From: CAPDEVILLE Marc <m.capdeville@no-log.org>
+Subject: Re: [PATCH v7 2/4] i2c-acpi : exclude ARA address for smbus device
+Date: Wed, 17 Jan 2018 11:28:01 +0100
+Message-ID: <1516184881.13570.1.camel@no-log.org>
+References: <20180113133705.25044-1-m.capdeville@no-log.org>
+         <20180113133705.25044-2-m.capdeville@no-log.org>
+         <20180114112829.2c12f705@archlinux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48132 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750823AbeAPX00 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 16 Jan 2018 18:26:26 -0500
-In-Reply-To: <20171117185211.32593-3-jean-philippe.brucker@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20180114112829.2c12f705@archlinux>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Jonathan Cameron <jic23@kernel.org>
+Cc: Kevin Tsai <ktsai@capellamicro.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, iommu@lists.linux-foundation.org, devel@acpica.org, linux-acpi@vger.kernel.org, kvm@vger.kernel.org, kvmarm@lists.cs.columbia.edu, virtualization@lists.linux-foundation.org, virtio-dev@lists.oasis-open.org
-Cc: jasowang@redhat.com, mst@redhat.com, lv.zheng@intel.com, robert.moore@intel.com, joro@8bytes.org, alex.williamson@redhat.com, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, lenb@kernel.org, rjw@rjwysocki.net, marc.zyngier@arm.com, robin.murphy@arm.com, will.deacon@arm.com, bharat.bhushan@nxp.com, Jayachandran.Nair@cavium.com, ashok.raj@intel.com, peterx@redhat.com
 
-Hi Jean-Philippe,
-
-On 17/11/17 19:52, Jean-Philippe Brucker wrote:
-> When the device offers the probe feature, send a probe request for each
-> device managed by the IOMMU. Extract RESV_MEM information. When we
-> encounter a MSI doorbell region, set it up as a IOMMU_RESV_MSI region.
-> This will tell other subsystems that there is no need to map the MSI
-> doorbell in the virtio-iommu, because MSIs bypass it.
+Le dimanche 14 janvier 2018 à 11:28 +0000, Jonathan Cameron a écrit :
+> On Sat, 13 Jan 2018 14:37:03 +0100
+> Marc CAPDEVILLE <m.capdeville@no-log.org> wrote:
 > 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-> ---
->  drivers/iommu/virtio-iommu.c      | 165 ++++++++++++++++++++++++++++++++++++--
->  include/uapi/linux/virtio_iommu.h |  37 +++++++++
->  2 files changed, 195 insertions(+), 7 deletions(-)
+> > Somme ACPI enumerated devices are known to support smbus alert protocol.
+> > Theses devices may be miss-enumerated with the reserved smbus ARA address.
+> > 
+> > This is the case on Asus T100 tablet where cm3218 ambiant light sensor
+> > expose two i2c serial bus connections, with the first one being the alert
+> > response address.
+> > 
+> > This patch make a match on known ACPI ids for which devices are smbus ARA
+> > capable, then skip the connection if it has the reserved 0x0c address and
+> > mark it with I2C_CLIENT_ALERT flag. So device is enumerated with the
+> > correct address.
 > 
-> diff --git a/drivers/iommu/virtio-iommu.c b/drivers/iommu/virtio-iommu.c
-> index feb8c8925c3a..79e0add94e05 100644
-> --- a/drivers/iommu/virtio-iommu.c
-> +++ b/drivers/iommu/virtio-iommu.c
-> @@ -45,6 +45,7 @@ struct viommu_dev {
->  	struct iommu_domain_geometry	geometry;
->  	u64				pgsize_bitmap;
->  	u8				domain_bits;
-> +	u32				probe_size;
->  };
->  
->  struct viommu_mapping {
-> @@ -72,6 +73,7 @@ struct viommu_domain {
->  struct viommu_endpoint {
->  	struct viommu_dev		*viommu;
->  	struct viommu_domain		*vdomain;
-> +	struct list_head		resv_regions;
->  };
->  
->  struct viommu_request {
-> @@ -139,6 +141,10 @@ static int viommu_get_req_size(struct viommu_dev *viommu,
->  	case VIRTIO_IOMMU_T_UNMAP:
->  		size = sizeof(r->unmap);
->  		break;
-> +	case VIRTIO_IOMMU_T_PROBE:
-> +		*bottom += viommu->probe_size;
-> +		size = sizeof(r->probe) + *bottom;
-> +		break;
->  	default:
->  		return -EINVAL;
->  	}
-> @@ -448,6 +454,106 @@ static int viommu_replay_mappings(struct viommu_domain *vdomain)
->  	return ret;
->  }
->  
-> +static int viommu_add_resv_mem(struct viommu_endpoint *vdev,
-> +			       struct virtio_iommu_probe_resv_mem *mem,
-> +			       size_t len)
-> +{
-> +	struct iommu_resv_region *region = NULL;
-> +	unsigned long prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
-> +
-> +	u64 addr = le64_to_cpu(mem->addr);
-> +	u64 size = le64_to_cpu(mem->size);
-> +
-> +	if (len < sizeof(*mem))
-> +		return -EINVAL;
-> +
-> +	switch (mem->subtype) {
-> +	case VIRTIO_IOMMU_RESV_MEM_T_MSI:
-> +		region = iommu_alloc_resv_region(addr, size, prot,
-> +						 IOMMU_RESV_MSI);
-if (!region)
-	return -ENOMEM;
-> +		break;
-> +	case VIRTIO_IOMMU_RESV_MEM_T_RESERVED:
-> +	default:
-> +		region = iommu_alloc_resv_region(addr, size, 0,
-> +						 IOMMU_RESV_RESERVED);
-same.
+> I wonder if we are safe to always skip 0x0c address whether or not
+> we know the device supports ARA.  The exception may be for devices
+> that do support ARA but are rolling their own support the hard way...
 
-There is another issue related to the exclusion of iovas belonging to
-reserved regions. Typically on x86, when attempting to run
-virtio-blk-pci with iommu I eventually saw the driver using iova
-belonging to the IOAPIC regions to map phys addr and this stalled qemu
-with a drown trace:
+The device is only flagged with I2C_CLIENT_ALERT if its ID is in the
+i2c_acpi_alert_device_ids. IF a driver want to be enumerated with the
+reserved Ox0c address, It just have to not put its Id in this table. But
+this may break with registering the smbus_alert device as the address will
+be marked as busy for this adapter.
 
-"virtio: bogus descriptor or out of resources"
+> I suppose it's possible there are i2c devices (not smbus where the
+> spec says you must not use 0x0c for normal address IIRC) that use
+> this address.  Does anyone know of any?
 
-those regions need to be excluded from the iova allocator. This was
-resolved by adding
-if (iommu_dma_init_domain(domain,
-			  vdev->viommu->geometry.aperture_start,
-			  vdev->viommu->geometry.aperture_end,
-			  dev))
-in viommu_attach_dev()
-
-Thanks
-
-Eric
-> +		break;
-> +	}
-> +
-> +	list_add(&vdev->resv_regions, &region->list);
-> +
-> +	if (mem->subtype != VIRTIO_IOMMU_RESV_MEM_T_RESERVED &&
-> +	    mem->subtype != VIRTIO_IOMMU_RESV_MEM_T_MSI) {
-> +		/* Please update your driver. */
-> +		pr_warn("unknown resv mem subtype 0x%x\n", mem->subtype);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int viommu_probe_endpoint(struct viommu_dev *viommu, struct device *dev)
-> +{
-> +	int ret;
-> +	u16 type, len;
-> +	size_t cur = 0;
-> +	struct virtio_iommu_req_probe *probe;
-> +	struct virtio_iommu_probe_property *prop;
-> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> +	struct viommu_endpoint *vdev = fwspec->iommu_priv;
-> +
-> +	if (!fwspec->num_ids)
-> +		/* Trouble ahead. */
-> +		return -EINVAL;
-> +
-> +	probe = kzalloc(sizeof(*probe) + viommu->probe_size +
-> +			sizeof(struct virtio_iommu_req_tail), GFP_KERNEL);
-> +	if (!probe)
-> +		return -ENOMEM;
-> +
-> +	probe->head.type = VIRTIO_IOMMU_T_PROBE;
-> +	/*
-> +	 * For now, assume that properties of an endpoint that outputs multiple
-> +	 * IDs are consistent. Only probe the first one.
-> +	 */
-> +	probe->endpoint = cpu_to_le32(fwspec->ids[0]);
-> +
-> +	ret = viommu_send_req_sync(viommu, probe);
-> +	if (ret) {
-> +		kfree(probe);
-> +		return ret;
-> +	}
-> +
-> +	prop = (void *)probe->properties;
-> +	type = le16_to_cpu(prop->type) & VIRTIO_IOMMU_PROBE_T_MASK;
-> +
-> +	while (type != VIRTIO_IOMMU_PROBE_T_NONE &&
-> +	       cur < viommu->probe_size) {
-> +		len = le16_to_cpu(prop->length);
-> +
-> +		switch (type) {
-> +		case VIRTIO_IOMMU_PROBE_T_RESV_MEM:
-> +			ret = viommu_add_resv_mem(vdev, (void *)prop->value, len);
-> +			break;
-> +		default:
-> +			dev_dbg(dev, "unknown viommu prop 0x%x\n", type);
-> +		}
-> +
-> +		if (ret)
-> +			dev_err(dev, "failed to parse viommu prop 0x%x\n", type);
-> +
-> +		cur += sizeof(*prop) + len;
-> +		if (cur >= viommu->probe_size)
-> +			break;
-> +
-> +		prop = (void *)probe->properties + cur;
-> +		type = le16_to_cpu(prop->type) & VIRTIO_IOMMU_PROBE_T_MASK;
-> +	}
-> +
-> +	kfree(probe);
-> +
-> +	return 0;
-> +}
-> +
->  /* IOMMU API */
->  
->  static bool viommu_capable(enum iommu_cap cap)
-> @@ -706,6 +812,7 @@ static struct viommu_dev *viommu_get_by_fwnode(struct fwnode_handle *fwnode)
->  
->  static int viommu_add_device(struct device *dev)
->  {
-> +	int ret;
->  	struct iommu_group *group;
->  	struct viommu_endpoint *vdev;
->  	struct viommu_dev *viommu = NULL;
-> @@ -723,8 +830,16 @@ static int viommu_add_device(struct device *dev)
->  		return -ENOMEM;
->  
->  	vdev->viommu = viommu;
-> +	INIT_LIST_HEAD(&vdev->resv_regions);
->  	fwspec->iommu_priv = vdev;
->  
-> +	if (viommu->probe_size) {
-> +		/* Get additional information for this endpoint */
-> +		ret = viommu_probe_endpoint(viommu, dev);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
->  	/*
->  	 * Last step creates a default domain and attaches to it. Everything
->  	 * must be ready.
-> @@ -738,7 +853,19 @@ static int viommu_add_device(struct device *dev)
->  
->  static void viommu_remove_device(struct device *dev)
->  {
-> -	kfree(dev->iommu_fwspec->iommu_priv);
-> +	struct viommu_endpoint *vdev;
-> +	struct iommu_resv_region *entry, *next;
-> +	struct iommu_fwspec *fwspec = dev->iommu_fwspec;
-> +
-> +	if (!fwspec || fwspec->ops != &viommu_ops)
-> +		return;
-> +
-> +	vdev = fwspec->iommu_priv;
-> +
-> +	list_for_each_entry_safe(entry, next, &vdev->resv_regions, list)
-> +		kfree(entry);
-> +
-> +	kfree(vdev);
->  }
->  
->  static struct iommu_group *viommu_device_group(struct device *dev)
-> @@ -756,15 +883,34 @@ static int viommu_of_xlate(struct device *dev, struct of_phandle_args *args)
->  
->  static void viommu_get_resv_regions(struct device *dev, struct list_head *head)
->  {
-> -	struct iommu_resv_region *region;
-> +	struct iommu_resv_region *entry, *new_entry, *msi = NULL;
-> +	struct viommu_endpoint *vdev = dev->iommu_fwspec->iommu_priv;
->  	int prot = IOMMU_WRITE | IOMMU_NOEXEC | IOMMU_MMIO;
->  
-> -	region = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH, prot,
-> -					 IOMMU_RESV_SW_MSI);
-> -	if (!region)
-> -		return;
-> +	list_for_each_entry(entry, &vdev->resv_regions, list) {
-> +		/*
-> +		 * If the device registered a bypass MSI windows, use it.
-> +		 * Otherwise add a software-mapped region
-> +		 */
-> +		if (entry->type == IOMMU_RESV_MSI)
-> +			msi = entry;
-> +
-> +		new_entry = kmemdup(entry, sizeof(*entry), GFP_KERNEL);
-> +		if (!new_entry)
-> +			return;
-> +		list_add_tail(&new_entry->list, head);
-> +	}
->  
-> -	list_add_tail(&region->list, head);
-> +	if (!msi) {
-> +		msi = iommu_alloc_resv_region(MSI_IOVA_BASE, MSI_IOVA_LENGTH,
-> +					      prot, IOMMU_RESV_SW_MSI);
-> +		if (!msi)
-> +			return;
-> +
-> +		list_add_tail(&msi->list, head);
-> +	}
-> +
-> +	iommu_dma_get_resv_regions(dev, head);
->  }
->  
->  static void viommu_put_resv_regions(struct device *dev, struct list_head *head)
-> @@ -854,6 +1000,10 @@ static int viommu_probe(struct virtio_device *vdev)
->  			     struct virtio_iommu_config, domain_bits,
->  			     &viommu->domain_bits);
->  
-> +	virtio_cread_feature(vdev, VIRTIO_IOMMU_F_PROBE,
-> +			     struct virtio_iommu_config, probe_size,
-> +			     &viommu->probe_size);
-> +
->  	viommu->geometry = (struct iommu_domain_geometry) {
->  		.aperture_start	= input_start,
->  		.aperture_end	= input_end,
-> @@ -931,6 +1081,7 @@ static unsigned int features[] = {
->  	VIRTIO_IOMMU_F_MAP_UNMAP,
->  	VIRTIO_IOMMU_F_DOMAIN_BITS,
->  	VIRTIO_IOMMU_F_INPUT_RANGE,
-> +	VIRTIO_IOMMU_F_PROBE,
->  };
->  
->  static struct virtio_device_id id_table[] = {
-> diff --git a/include/uapi/linux/virtio_iommu.h b/include/uapi/linux/virtio_iommu.h
-> index 2b4cd2042897..eec90a2ab547 100644
-> --- a/include/uapi/linux/virtio_iommu.h
-> +++ b/include/uapi/linux/virtio_iommu.h
-> @@ -38,6 +38,7 @@
->  #define VIRTIO_IOMMU_F_DOMAIN_BITS		1
->  #define VIRTIO_IOMMU_F_MAP_UNMAP		2
->  #define VIRTIO_IOMMU_F_BYPASS			3
-> +#define VIRTIO_IOMMU_F_PROBE			4
->  
->  struct virtio_iommu_config {
->  	/* Supported page sizes */
-> @@ -49,6 +50,9 @@ struct virtio_iommu_config {
->  	} input_range;
->  	/* Max domain ID size */
->  	__u8 					domain_bits;
-> +	__u8					padding[3];
-> +	/* Probe buffer size */
-> +	__u32					probe_size;
->  } __packed;
->  
->  /* Request types */
-> @@ -56,6 +60,7 @@ struct virtio_iommu_config {
->  #define VIRTIO_IOMMU_T_DETACH			0x02
->  #define VIRTIO_IOMMU_T_MAP			0x03
->  #define VIRTIO_IOMMU_T_UNMAP			0x04
-> +#define VIRTIO_IOMMU_T_PROBE			0x05
->  
->  /* Status types */
->  #define VIRTIO_IOMMU_S_OK			0x00
-> @@ -128,6 +133,37 @@ struct virtio_iommu_req_unmap {
->  	struct virtio_iommu_req_tail		tail;
->  } __packed;
->  
-> +#define VIRTIO_IOMMU_RESV_MEM_T_RESERVED	0
-> +#define VIRTIO_IOMMU_RESV_MEM_T_MSI		1
-> +
-> +struct virtio_iommu_probe_resv_mem {
-> +	__u8					subtype;
-> +	__u8					reserved[3];
-> +	__le64					addr;
-> +	__le64					size;
-> +} __packed;
-> +
-> +#define VIRTIO_IOMMU_PROBE_T_NONE		0
-> +#define VIRTIO_IOMMU_PROBE_T_RESV_MEM		1
-> +
-> +#define VIRTIO_IOMMU_PROBE_T_MASK		0xfff
-> +
-> +struct virtio_iommu_probe_property {
-> +	__le16					type;
-> +	__le16					length;
-> +	__u8					value[];
-> +} __packed;
-> +
-> +struct virtio_iommu_req_probe {
-> +	struct virtio_iommu_req_head		head;
-> +	__le32					endpoint;
-> +	__u8					reserved[64];
-> +
-> +	__u8					properties[];
-> +
-> +	/* Tail follows the variable-length properties array (no padding) */
-> +} __packed;
-> +
->  union virtio_iommu_req {
->  	struct virtio_iommu_req_head		head;
->  
-> @@ -135,6 +171,7 @@ union virtio_iommu_req {
->  	struct virtio_iommu_req_detach		detach;
->  	struct virtio_iommu_req_map		map;
->  	struct virtio_iommu_req_unmap		unmap;
-> +	struct virtio_iommu_req_probe		probe;
->  };
->  
->  #endif
+I think this possible, but a such device can't share the bus with a smbus
+alert capable device.
+> 
+> 
+> Jonathan
+> 
+> > 
+> > Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
+> > ---
+> >  drivers/i2c/i2c-core-acpi.c | 23 +++++++++++++++++++++--
+> >  include/linux/i2c.h         |  1 +
+> >  2 files changed, 22 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> > index a9126b3cda61..5a8886f14329 100644
+> > --- a/drivers/i2c/i2c-core-acpi.c
+> > +++ b/drivers/i2c/i2c-core-acpi.c
+> > @@ -59,8 +59,14 @@ static int i2c_acpi_fill_info(struct acpi_resource *ares,
+> > void *data)
+> >  	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
+> >  		return 1;
+> >  
+> > -	if (lookup->index != -1 && lookup->n++ != lookup->index)
+> > -		return 1;
+> > +	if (lookup->index != -1) {
+> > +		if (lookup->n++ != lookup->index)
+> > +			return 1;
+> > +	} else {
+> > +		if (lookup->info->flags & I2C_CLIENT_ALERT &&
+> > +		    sb->slave_address == 0x0c)
+> > +			return 1;
+> > +	}
+> >  
+> >  	status = acpi_get_handle(lookup->device_handle,
+> >  				 sb->resource_source.string_ptr,
+> > @@ -85,6 +91,15 @@ static const struct acpi_device_id
+> > i2c_acpi_ignored_device_ids[] = {
+> >  	{}
+> >  };
+> >  
+> > +static const struct acpi_device_id i2c_acpi_alert_device_ids[] = {
+> > +	/*
+> > +	 * Smbus alert capable device which may have the reserved ARA
+> > address
+> > +	 * in their serial bus resources list.
+> > +	 */
+> > +	{ "CPLM3218", 0 },
+> > +	{}
+> > +};
+> > +
+> >  static int i2c_acpi_do_lookup(struct acpi_device *adev,
+> >  			      struct i2c_acpi_lookup *lookup)
+> >  {
+> > @@ -100,6 +115,10 @@ static int i2c_acpi_do_lookup(struct acpi_device *adev,
+> >  		return -ENODEV;
+> >  
+> >  	memset(info, 0, sizeof(*info));
+> > +
+> > +	if (acpi_match_device_ids(adev, i2c_acpi_alert_device_ids) == 0)
+> > +		info->flags |= I2C_CLIENT_ALERT;
+> > +
+> >  	lookup->device_handle = acpi_device_handle(adev);
+> >  
+> >  	/* Look up for I2cSerialBus resource */
+> > diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> > index 7592dce12923..b0d6f1333442 100644
+> > --- a/include/linux/i2c.h
+> > +++ b/include/linux/i2c.h
+> > @@ -743,6 +743,7 @@ i2c_unlock_adapter(struct i2c_adapter *adapter)
+> >  #define I2C_CLIENT_SLAVE	0x20	/* we are the slave */
+> >  #define I2C_CLIENT_HOST_NOTIFY	0x40	/* We want to use I2C
+> > host notify */
+> >  #define I2C_CLIENT_WAKE		0x80	/* for board_info; true
+> > iff can wake */
+> > +#define I2C_CLIENT_ALERT	0x100	/* Client use SMBUS alert
+> > protocol */
+> >  #define I2C_CLIENT_SCCB		0x9000	/* Use Omnivision SCCB
+> > protocol */
+> >  					/* Must match I2C_M_STOP|IGNORE_NAK
+> > */
+> >  
+> 
 > 
