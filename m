@@ -1,40 +1,67 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [net-next: PATCH v3 0/7] Armada 7k/8k PP2 ACPI support
-Date: Wed, 17 Jan 2018 21:20:39 +0100
-Message-ID: <20180117202039.GD5894@lunn.ch>
-References: <1516208146-4144-1-git-send-email-mw@semihalf.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/2] ACPICA: acpi_ds_resolve_package_element: Use proper
+ status when logging exception
+Date: Wed, 17 Jan 2018 21:54:04 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B754906A@ORSMSX110.amr.corp.intel.com>
+References: <20180112113707.3833-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1516208146-4144-1-git-send-email-mw@semihalf.com>
-Sender: netdev-owner@vger.kernel.org
-To: Marcin Wojtas <mw@semihalf.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:45804 "EHLO mga11.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753062AbeAQVyL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 17 Jan 2018 16:54:11 -0500
+In-Reply-To: <20180112113707.3833-1-hdegoede@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Schmauss, Erik" <erik.schmauss@intel.com>
 
-On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
-> Hi,
+We are working on this file right now, thanks.
+Bob
+
+
+> -----Original Message-----
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Sent: Friday, January 12, 2018 3:37 AM
+> To: Len Brown <lenb@kernel.org>; Moore, Robert <robert.moore@intel.com>;
+> Zheng, Lv <lv.zheng@intel.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>; linux-acpi@vger.kernel.org;
+> devel@acpica.org
+> Subject: [PATCH 1/2] ACPICA: acpi_ds_resolve_package_element: Use proper
+> status when logging exception
 > 
-> This is a third version of the patchset introducing mvpp2 driver ability
-> to operate with ACPI. Until follow-up generic MDIO is introduced
-> it can using the link interrupt capability (a.k.a. in-band management)
-> on all ports, 1000BaseT RGMII included.
-> Driver operation was tested on top of the net-next branch
-> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
+> Do not override the status which causes us to call acpi_exception with
+> the status returned by the acpi_ns_externalize_name call we do to get a
+> name to log.
 > 
-> The main changes were requested during v2 review, which was
-> adding generic helper routines for:
-> * interating over available fwnodes (new patch 4/7)
-> * getting IRQ directly from fwnode (new patch 3/7)
-> Thanks to the latter the driver code could be simplified
-> and allowed to drop formula-based IRQ obtaining. Changes are
-> summarized in the changelog below.
+> Related: https://bugzilla.kernel.org/show_bug.cgi?id=198167
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/acpica/dspkginit.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/dspkginit.c
+> b/drivers/acpi/acpica/dspkginit.c index 6d487edfe2de..cddbbed2f344
+> 100644
+> --- a/drivers/acpi/acpica/dspkginit.c
+> +++ b/drivers/acpi/acpica/dspkginit.c
+> @@ -372,9 +372,9 @@ acpi_ds_resolve_package_element(union
+> acpi_operand_object **element_ptr)
+>  				ACPI_NS_SEARCH_PARENT | ACPI_NS_DONT_OPEN_SCOPE,
+>  				NULL, &resolved_node);
+>  	if (ACPI_FAILURE(status)) {
+> -		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
+> -						  (char *)element->reference.
+> -						  aml, NULL, &external_path);
+> +		acpi_ns_externalize_name(ACPI_UINT32_MAX,
+> +					 (char *)element->reference.aml, NULL,
+> +					 &external_path);
+> 
+>  		ACPI_EXCEPTION((AE_INFO, status,
+>  				"Could not find/resolve named package element: %s",
+> --
+> 2.14.3
 
-Hi Marcin
-
-I don't know enough about ACPI to make a proper review of the changes.
-
-But it does at least all look sensible.
-
-    Andrew
