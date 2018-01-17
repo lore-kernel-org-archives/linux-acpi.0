@@ -1,87 +1,120 @@
 From: Marcin Wojtas <mw@semihalf.com>
-Subject: [net-next: PATCH v3 4/7] device property: Allow iterating over available child fwnodes
-Date: Wed, 17 Jan 2018 17:55:43 +0100
-Message-ID: <1516208146-4144-5-git-send-email-mw@semihalf.com>
+Subject: [net-next: PATCH v3 1/7] device property: Introduce fwnode_get_mac_address()
+Date: Wed, 17 Jan 2018 17:55:40 +0100
+Message-ID: <1516208146-4144-2-git-send-email-mw@semihalf.com>
 References: <1516208146-4144-1-git-send-email-mw@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:33522 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753636AbeAQQ4B (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2018 11:56:01 -0500
+Received: by mail-lf0-f65.google.com with SMTP id t139so8079329lff.0
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Jan 2018 08:56:00 -0800 (PST)
 In-Reply-To: <1516208146-4144-1-git-send-email-mw@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com
-List-Id: linux-acpi@vger.kernel.org
 
-Implement a new helper function fwnode_get_next_available_child_node(),
-which enables obtaining next enabled child fwnode, which
-works on a similar basis to OF's of_get_next_available_child().
+Until now there were two almost identical functions for
+obtaining MAC address - of_get_mac_address() and, more generic,
+device_get_mac_address(). However it is not uncommon,
+that the network interface is represented as a child
+of the actual controller, hence it is not associated
+directly to any struct device, required by the latter
+routine.
 
-This commit also introduces a macro, thanks to which it is
-possible to iterate over the available fwnodes, using the
-new function described above.
+This commit allows for getting the MAC address for
+children nodes in the ACPI world by introducing a new function -
+fwnode_get_mac_address(). This commit also changes
+device_get_mac_address() routine to be its wrapper, in order
+to prevent unnecessary duplication.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/base/property.c  | 26 ++++++++++++++++++++
- include/linux/property.h |  6 +++++
- 2 files changed, 32 insertions(+)
+ drivers/base/property.c  | 28 ++++++++++++++------
+ include/linux/property.h |  2 ++
+ 2 files changed, 22 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index adb3893..2343906 100644
+index 851b1b6..f261d1a 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -998,6 +998,32 @@ fwnode_get_next_child_node(const struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
+@@ -1153,11 +1153,11 @@ int device_get_phy_mode(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(device_get_phy_mode);
+ 
+-static void *device_get_mac_addr(struct device *dev,
++static void *fwnode_get_mac_addr(struct fwnode_handle *fwnode,
+ 				 const char *name, char *addr,
+ 				 int alen)
+ {
+-	int ret = device_property_read_u8_array(dev, name, addr, alen);
++	int ret = fwnode_property_read_u8_array(fwnode, name, addr, alen);
+ 
+ 	if (ret == 0 && alen == ETH_ALEN && is_valid_ether_addr(addr))
+ 		return addr;
+@@ -1165,8 +1165,8 @@ static void *device_get_mac_addr(struct device *dev,
+ }
  
  /**
-+ * fwnode_get_next_available_child_node - Return the next
-+ * available child node handle for a node
-+ * @fwnode: Firmware node to find the next child node for.
-+ * @child: Handle to one of the node's child nodes or a %NULL handle.
-+ */
-+struct fwnode_handle *
-+fwnode_get_next_available_child_node(const struct fwnode_handle *fwnode,
-+				     struct fwnode_handle *child)
-+{
-+	struct fwnode_handle *next_child = child;
-+
-+	if (!fwnode)
-+		return NULL;
-+
-+	do {
-+		next_child = fwnode_get_next_child_node(fwnode, next_child);
-+
-+		if (!next_child || fwnode_device_is_available(next_child))
-+			break;
-+	} while (next_child);
-+
-+	return next_child;
+- * device_get_mac_address - Get the MAC for a given device
+- * @dev:	Pointer to the device
++ * fwnode_get_mac_address - Get the MAC from the firmware node
++ * @fwnode:	Pointer to the firmware node
+  * @addr:	Address of buffer to store the MAC in
+  * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
+  *
+@@ -1187,19 +1187,31 @@ static void *device_get_mac_addr(struct device *dev,
+  * In this case, the real MAC is in 'local-mac-address', and 'mac-address'
+  * exists but is all zeros.
+ */
+-void *device_get_mac_address(struct device *dev, char *addr, int alen)
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr, int alen)
+ {
+ 	char *res;
+ 
+-	res = device_get_mac_addr(dev, "mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	res = device_get_mac_addr(dev, "local-mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "local-mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	return device_get_mac_addr(dev, "address", addr, alen);
++	return fwnode_get_mac_addr(fwnode, "address", addr, alen);
 +}
-+EXPORT_SYMBOL_GPL(fwnode_get_next_available_child_node);
++EXPORT_SYMBOL(fwnode_get_mac_address);
 +
 +/**
-  * device_get_next_child_node - Return the next child node handle for a device
-  * @dev: Device to find the next child node for.
-  * @child: Handle to one of the device's child nodes or a null handle.
++ * device_get_mac_address - Get the MAC for a given device
++ * @dev:	Pointer to the device
++ * @addr:	Address of buffer to store the MAC in
++ * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
++ */
++void *device_get_mac_address(struct device *dev, char *addr, int alen)
++{
++	return fwnode_get_mac_address(dev_fwnode(dev), addr, alen);
+ }
+ EXPORT_SYMBOL(device_get_mac_address);
+ 
 diff --git a/include/linux/property.h b/include/linux/property.h
-index e05889f..5b0563a 100644
+index f6189a3..35620e0 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -83,11 +83,17 @@ struct fwnode_handle *fwnode_get_next_parent(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
-+struct fwnode_handle *fwnode_get_next_available_child_node(
-+	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
+@@ -279,6 +279,8 @@ int device_get_phy_mode(struct device *dev);
  
- #define fwnode_for_each_child_node(fwnode, child)			\
- 	for (child = fwnode_get_next_child_node(fwnode, NULL); child;	\
- 	     child = fwnode_get_next_child_node(fwnode, child))
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
  
-+#define fwnode_for_each_available_child_node(fwnode, child)		       \
-+	for (child = fwnode_get_next_available_child_node(fwnode, NULL); child;\
-+	     child = fwnode_get_next_available_child_node(fwnode, child))
-+
- struct fwnode_handle *device_get_next_child_node(
- 	struct device *dev, struct fwnode_handle *child);
- 
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
++			     char *addr, int alen);
+ struct fwnode_handle *fwnode_graph_get_next_endpoint(
+ 	const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+ struct fwnode_handle *
 -- 
 2.7.4
+
