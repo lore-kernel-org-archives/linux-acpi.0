@@ -1,130 +1,119 @@
-From: CAPDEVILLE Marc <m.capdeville@no-log.org>
-Subject: Re: [PATCH v7 2/4] i2c-acpi : exclude ARA address for smbus device
-Date: Wed, 17 Jan 2018 11:28:01 +0100
-Message-ID: <1516184881.13570.1.camel@no-log.org>
-References: <20180113133705.25044-1-m.capdeville@no-log.org>
-         <20180113133705.25044-2-m.capdeville@no-log.org>
-         <20180114112829.2c12f705@archlinux>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] x86/acpi: check rsdp address received via bootparams to
+ be valid
+Date: Wed, 17 Jan 2018 12:49:31 +0100
+Message-ID: <CAJZ5v0j2GMvpYjURfx9N=RFYsVAmdWDwVNMG3-rxDf72ckmn_A@mail.gmail.com>
+References: <20180116135730.19216-1-jgross@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20180114112829.2c12f705@archlinux>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Jonathan Cameron <jic23@kernel.org>
-Cc: Kevin Tsai <ktsai@capellamicro.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:33293 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752735AbeAQLtc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2018 06:49:32 -0500
+In-Reply-To: <20180116135730.19216-1-jgross@suse.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Len Brown <lenb@kernel.org>, Rafael Wysocki <rafael.j.wysocki@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>
 
-Le dimanche 14 janvier 2018 à 11:28 +0000, Jonathan Cameron a écrit :
-> On Sat, 13 Jan 2018 14:37:03 +0100
-> Marc CAPDEVILLE <m.capdeville@no-log.org> wrote:
-> 
-> > Somme ACPI enumerated devices are known to support smbus alert protocol.
-> > Theses devices may be miss-enumerated with the reserved smbus ARA address.
-> > 
-> > This is the case on Asus T100 tablet where cm3218 ambiant light sensor
-> > expose two i2c serial bus connections, with the first one being the alert
-> > response address.
-> > 
-> > This patch make a match on known ACPI ids for which devices are smbus ARA
-> > capable, then skip the connection if it has the reserved 0x0c address and
-> > mark it with I2C_CLIENT_ALERT flag. So device is enumerated with the
-> > correct address.
-> 
-> I wonder if we are safe to always skip 0x0c address whether or not
-> we know the device supports ARA.  The exception may be for devices
-> that do support ARA but are rolling their own support the hard way...
+On Tue, Jan 16, 2018 at 2:57 PM, Juergen Gross <jgross@suse.com> wrote:
+> There seem to exist several grub2 versions trashing
+> boot_params.hdr.acpi_rsdp_addr.
+>
+> So don't just believe this address to be valid, but verify it pointing
+> to a valid RSDP table.
+>
+> Signed-off-by: Juergen Gross <jgross@suse.com>
+> ---
+> To be applied on top of my RSDP series currently in tip.git x86/boot
+> Mike Galbraith has tested this patch to repair his broken boot
+> ---
+>  drivers/acpi/acpica/tbxfroot.c | 36 ++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/osl.c             |  2 +-
+>  include/acpi/acpixf.h          |  5 +++++
+>  3 files changed, 42 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/acpica/tbxfroot.c b/drivers/acpi/acpica/tbxfroot.c
+> index f9f9a7da2cad..9edc71780a38 100644
+> --- a/drivers/acpi/acpica/tbxfroot.c
+> +++ b/drivers/acpi/acpica/tbxfroot.c
+> @@ -249,6 +249,42 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_find_root_pointer)
+>
+>  /*******************************************************************************
+>   *
+> + * FUNCTION:    acpi_verify_root_pointer
 
-The device is only flagged with I2C_CLIENT_ALERT if its ID is in the
-i2c_acpi_alert_device_ids. IF a driver want to be enumerated with the
-reserved Ox0c address, It just have to not put its Id in this table. But
-this may break with registering the smbus_alert device as the address will
-be marked as busy for this adapter.
+Why do you want this to go into ACPICA?
 
-> I suppose it's possible there are i2c devices (not smbus where the
-> spec says you must not use 0x0c for normal address IIRC) that use
-> this address.  Does anyone know of any?
+> + *
+> + *
+> + * PARAMETERS:  rsdp_address        - Pointer to suspected RSDP
+> + *
+> + * RETURN:      AE_OK if rsdp_address really points to a RSDP, AE_NOT_FOUND
+> + *              else
+> + *
+> + * DESCRIPTION: Verify a physical address being a valid RSDP
+> + *
+> + ******************************************************************************/
+> +
+> +acpi_status ACPI_INIT_FUNCTION
+> +acpi_verify_root_pointer(acpi_physical_address rsdp_address)
+> +{
+> +       acpi_status status;
+> +       struct acpi_table_rsdp *rsdp;
+> +
+> +       ACPI_FUNCTION_TRACE(acpi_verify_root_pointer);
+> +
+> +       rsdp = acpi_os_map_memory(rsdp_address, sizeof(*rsdp));
+> +
+> +       if (!rsdp)
+> +               return_ACPI_STATUS(AE_NO_MEMORY);
+> +
+> +       status = acpi_tb_validate_rsdp(rsdp);
+> +
+> +       acpi_os_unmap_memory(rsdp, sizeof(*rsdp));
+> +
+> +       return_ACPI_STATUS(status);
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL_INIT(acpi_verify_root_pointer)
+> +
+> +/*******************************************************************************
+> + *
+>   * FUNCTION:    acpi_tb_scan_memory_for_rsdp
+>   *
+>   * PARAMETERS:  start_address       - Starting pointer for search
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 2b77db914752..facff5c11f32 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -201,7 +201,7 @@ acpi_physical_address __init acpi_os_get_root_pointer(void)
+>                 return acpi_rsdp;
+>  #endif
+>         pa = acpi_arch_get_root_pointer();
+> -       if (pa)
+> +       if (pa && acpi_verify_root_pointer(pa) == AE_OK)
 
-I think this possible, but a such device can't share the bus with a smbus
-alert capable device.
-> 
-> 
-> Jonathan
-> 
-> > 
-> > Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
-> > ---
-> >  drivers/i2c/i2c-core-acpi.c | 23 +++++++++++++++++++++--
-> >  include/linux/i2c.h         |  1 +
-> >  2 files changed, 22 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> > index a9126b3cda61..5a8886f14329 100644
-> > --- a/drivers/i2c/i2c-core-acpi.c
-> > +++ b/drivers/i2c/i2c-core-acpi.c
-> > @@ -59,8 +59,14 @@ static int i2c_acpi_fill_info(struct acpi_resource *ares,
-> > void *data)
-> >  	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
-> >  		return 1;
-> >  
-> > -	if (lookup->index != -1 && lookup->n++ != lookup->index)
-> > -		return 1;
-> > +	if (lookup->index != -1) {
-> > +		if (lookup->n++ != lookup->index)
-> > +			return 1;
-> > +	} else {
-> > +		if (lookup->info->flags & I2C_CLIENT_ALERT &&
-> > +		    sb->slave_address == 0x0c)
-> > +			return 1;
-> > +	}
-> >  
-> >  	status = acpi_get_handle(lookup->device_handle,
-> >  				 sb->resource_source.string_ptr,
-> > @@ -85,6 +91,15 @@ static const struct acpi_device_id
-> > i2c_acpi_ignored_device_ids[] = {
-> >  	{}
-> >  };
-> >  
-> > +static const struct acpi_device_id i2c_acpi_alert_device_ids[] = {
-> > +	/*
-> > +	 * Smbus alert capable device which may have the reserved ARA
-> > address
-> > +	 * in their serial bus resources list.
-> > +	 */
-> > +	{ "CPLM3218", 0 },
-> > +	{}
-> > +};
-> > +
-> >  static int i2c_acpi_do_lookup(struct acpi_device *adev,
-> >  			      struct i2c_acpi_lookup *lookup)
-> >  {
-> > @@ -100,6 +115,10 @@ static int i2c_acpi_do_lookup(struct acpi_device *adev,
-> >  		return -ENODEV;
-> >  
-> >  	memset(info, 0, sizeof(*info));
-> > +
-> > +	if (acpi_match_device_ids(adev, i2c_acpi_alert_device_ids) == 0)
-> > +		info->flags |= I2C_CLIENT_ALERT;
-> > +
-> >  	lookup->device_handle = acpi_device_handle(adev);
-> >  
-> >  	/* Look up for I2cSerialBus resource */
-> > diff --git a/include/linux/i2c.h b/include/linux/i2c.h
-> > index 7592dce12923..b0d6f1333442 100644
-> > --- a/include/linux/i2c.h
-> > +++ b/include/linux/i2c.h
-> > @@ -743,6 +743,7 @@ i2c_unlock_adapter(struct i2c_adapter *adapter)
-> >  #define I2C_CLIENT_SLAVE	0x20	/* we are the slave */
-> >  #define I2C_CLIENT_HOST_NOTIFY	0x40	/* We want to use I2C
-> > host notify */
-> >  #define I2C_CLIENT_WAKE		0x80	/* for board_info; true
-> > iff can wake */
-> > +#define I2C_CLIENT_ALERT	0x100	/* Client use SMBUS alert
-> > protocol */
-> >  #define I2C_CLIENT_SCCB		0x9000	/* Use Omnivision SCCB
-> > protocol */
-> >  					/* Must match I2C_M_STOP|IGNORE_NAK
-> > */
-> >  
-> 
-> 
+All things needed could just be done locally in this file.
+
+>                 return pa;
+>
+>         if (efi_enabled(EFI_CONFIG_TABLES)) {
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index e1dd1a8d42b6..1edc47bd13c1 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -505,6 +505,11 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status ACPI_INIT_FUNCTION
+>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status ACPI_INIT_FUNCTION
+>                             acpi_find_root_pointer(acpi_physical_address
+>                                                    *rsdp_address))
+> +
+> +ACPI_EXTERNAL_RETURN_OK(acpi_status ACPI_INIT_FUNCTION
+> +                       acpi_verify_root_pointer(acpi_physical_address
+> +                                                rsdp_address))
+> +
+>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>                              acpi_get_table_header(acpi_string signature,
+>                                                    u32 instance,
+> --
