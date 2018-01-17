@@ -1,60 +1,40 @@
-From: Marcin Wojtas <mw@semihalf.com>
+From: Andrew Lunn <andrew@lunn.ch>
 Subject: Re: [net-next: PATCH v3 0/7] Armada 7k/8k PP2 ACPI support
-Date: Wed, 17 Jan 2018 20:03:47 +0100
-Message-ID: <CAPv3WKccT+NPDqHoYGvaJSYawkViNiAJqEFZrykav=4o79Q2VA@mail.gmail.com>
-References: <1516208146-4144-1-git-send-email-mw@semihalf.com> <20180117181148.GA5894@lunn.ch>
+Date: Wed, 17 Jan 2018 21:20:39 +0100
+Message-ID: <20180117202039.GD5894@lunn.ch>
+References: <1516208146-4144-1-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f194.google.com ([209.85.223.194]:34898 "EHLO
-        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932120AbeAQTDs (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2018 14:03:48 -0500
-Received: by mail-io0-f194.google.com with SMTP id m11so12634994iob.2
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jan 2018 11:03:48 -0800 (PST)
-In-Reply-To: <20180117181148.GA5894@lunn.ch>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1516208146-4144-1-git-send-email-mw@semihalf.com>
+Sender: netdev-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, nadavh@marvell.com, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>
 
-Hi Andrew,
+On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
+> Hi,
+> 
+> This is a third version of the patchset introducing mvpp2 driver ability
+> to operate with ACPI. Until follow-up generic MDIO is introduced
+> it can using the link interrupt capability (a.k.a. in-band management)
+> on all ports, 1000BaseT RGMII included.
+> Driver operation was tested on top of the net-next branch
+> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
+> 
+> The main changes were requested during v2 review, which was
+> adding generic helper routines for:
+> * interating over available fwnodes (new patch 4/7)
+> * getting IRQ directly from fwnode (new patch 3/7)
+> Thanks to the latter the driver code could be simplified
+> and allowed to drop formula-based IRQ obtaining. Changes are
+> summarized in the changelog below.
 
-2018-01-17 19:11 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
-> On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
->> Hi,
->>
->> This is a third version of the patchset introducing mvpp2 driver ability
->> to operate with ACPI. Until follow-up generic MDIO is introduced
->> it can using the link interrupt capability (a.k.a. in-band management)
->> on all ports, 1000BaseT RGMII included.
->> Driver operation was tested on top of the net-next branch
->> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
->>
->> The main changes were requested during v2 review, which was
->> adding generic helper routines for:
->> * interating over available fwnodes (new patch 4/7)
->> * getting IRQ directly from fwnode (new patch 3/7)
->
-> Hi Marcin
->
-> Thanks for adding these helpers. It makes the changes for ACPI much
-> less invasive and more natural.
->
-> Does the IRQ helper solve the issue of getting an interrupt from a
-> child node? I don't see this explicitly mentioned in the commit.  It
-> seems to be getting it from a device. Is the child a device?
->
+Hi Marcin
 
-I didn't use word 'child', but this is what exactly what the new
-helper is capable of. Hence this should easily fit PHY IRQs,
-regardless shape of their final ACPI representation. It's now enough
-to have an ACPI handle with IRQ defined in its own _CRS method - it
-does not have to be a parent / platform_device.
+I don't know enough about ACPI to make a proper review of the changes.
 
-For the reference, please check the IRQs defined under ETHx subnodes
-of the PP2 controllers nodes on MacchiatoBin:
-https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/71ae395da1661374b0f07d1602afb1eee56e9794/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl#L201
+But it does at least all look sensible.
 
-Best regards,
-Marcin
+    Andrew
