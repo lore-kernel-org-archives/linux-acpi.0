@@ -1,86 +1,42 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v6 02/12] drivers: base: cacheinfo: setup DT cache
- properties early
-Date: Wed, 17 Jan 2018 18:08:27 +0000
-Message-ID: <a7d2910e-ae73-61de-9349-c5d804269695@arm.com>
-References: <mhng-72d1934a-43df-4a5b-851d-0dd6d8a1b30b@palmer-si-x1c4>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [net-next: PATCH v3 0/7] Armada 7k/8k PP2 ACPI support
+Date: Wed, 17 Jan 2018 19:11:48 +0100
+Message-ID: <20180117181148.GA5894@lunn.ch>
+References: <1516208146-4144-1-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <mhng-72d1934a-43df-4a5b-851d-0dd6d8a1b30b@palmer-si-x1c4>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1516208146-4144-1-git-send-email-mw@semihalf.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Palmer Dabbelt <palmer@sifive.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, jeremy.linton@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, Will Deacon <will.deacon@arm.com>, catalin.marinas@arm.com, Greg KH <gregkh@linuxfoundation.org>, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, albert@sifive.com
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
 
-(Sorry, somehow I missed this email until I saw Jeremy's reply today)
-
-On 15/01/18 16:07, Palmer Dabbelt wrote:
-> On Mon, 15 Jan 2018 04:33:38 PST (-0800), sudeep.holla@arm.com wrote:
->> On Fri, Jan 12, 2018 at 06:59:10PM -0600, Jeremy Linton wrote:
->>> The original intent in cacheinfo was that an architecture
->>> specific populate_cache_leaves() would probe the hardware
->>> and then cache_shared_cpu_map_setup() and
->>> cache_override_properties() would provide firmware help to
->>> extend/expand upon what was probed. Arm64 was really
->>> the only architecture that was working this way, and
->>> with the removal of most of the hardware probing logic it
->>> became clear that it was possible to simplify the logic a bit.
->>>
->>> This patch combines the walk of the DT nodes with the
->>> code updating the cache size/line_size and nr_sets.
->>> cache_override_properties() (which was DT specific) is
->>> then removed. The result is that cacheinfo.of_node is
->>> no longer used as a temporary place to hold DT references
->>> for future calls that update cache properties. That change
->>> helps to clarify its one remaining use (matching
->>> cacheinfo nodes that represent shared caches) which
->>> will be used by the ACPI/PPTT code in the following patches.
->>>
->>> Cc: Palmer Dabbelt <palmer@sifive.com>
->>> Cc: Albert Ou <albert@sifive.com>
->>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>> ---
->>>  arch/riscv/kernel/cacheinfo.c |  1 +
->>>  drivers/base/cacheinfo.c      | 65
->>> +++++++++++++++++++------------------------
->>>  include/linux/cacheinfo.h     |  1 +
->>>  3 files changed, 31 insertions(+), 36 deletions(-)
->>>
->>> diff --git a/arch/riscv/kernel/cacheinfo.c
->>> b/arch/riscv/kernel/cacheinfo.c
->>> index 10ed2749e246..6f4500233cf8 100644
->>> --- a/arch/riscv/kernel/cacheinfo.c
->>> +++ b/arch/riscv/kernel/cacheinfo.c
->>> @@ -30,6 +30,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
->>>          CACHE_WRITE_BACK
->>>          | CACHE_READ_ALLOCATE
->>>          | CACHE_WRITE_ALLOCATE;
->>> +    cache_of_set_props(this_leaf, node);
->>
->> This may be necessary but can it be done as later patch ? So far nothing
->> is added that may break riscv IIUC.
->>
->> Palmer, Albert,
->>
->> Can you confirm ? Also, as I see we can thin down arch specific
->> implementation on riscv if it's just using DT like ARM64. Sorry if
->> I am missing to see something, so thought of checking.
->>
->> [...]
+On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
+> Hi,
 > 
-> Sorry, I guess I'm a bit confused as to what's going on here.  RISC-V
-> uses device tree on all Linux systems.
+> This is a third version of the patchset introducing mvpp2 driver ability
+> to operate with ACPI. Until follow-up generic MDIO is introduced
+> it can using the link interrupt capability (a.k.a. in-band management)
+> on all ports, 1000BaseT RGMII included.
+> Driver operation was tested on top of the net-next branch
+> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
 > 
+> The main changes were requested during v2 review, which was
+> adding generic helper routines for:
+> * interating over available fwnodes (new patch 4/7)
+> * getting IRQ directly from fwnode (new patch 3/7)
 
-Good. By thin down, I was thinking of moving the init_cache_level and
-populate_cache_leaves implementation of riscv to generic weak function
-under CONFIG_OF. You may even endup deleting riscv cacheinfo.c
+Hi Marcin
 
-Just a thought, sorry for not being clear earlier.
+Thanks for adding these helpers. It makes the changes for ACPI much
+less invasive and more natural.
 
--- 
-Regards,
-Sudeep
+Does the IRQ helper solve the issue of getting an interrupt from a
+child node? I don't see this explicitly mentioned in the commit.  It
+seems to be getting it from a device. Is the child a device?
+
+Thanks
+
+      Andrew
