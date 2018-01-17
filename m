@@ -1,100 +1,60 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v6 02/12] drivers: base: cacheinfo: setup DT cache
- properties early
-Date: Wed, 17 Jan 2018 12:51:31 -0600
-Message-ID: <15884ccc-2cfb-da91-5844-369d8237175d@arm.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com>
- <20180113005920.28658-3-jeremy.linton@arm.com>
- <20180115123338.GB5473@e107155-lin>
- <65f78c99-8b86-0098-7ced-899840a4bf16@arm.com>
- <ca64334c-9345-705c-80d8-f2deb924a679@arm.com>
+From: Marcin Wojtas <mw@semihalf.com>
+Subject: Re: [net-next: PATCH v3 0/7] Armada 7k/8k PP2 ACPI support
+Date: Wed, 17 Jan 2018 20:03:47 +0100
+Message-ID: <CAPv3WKccT+NPDqHoYGvaJSYawkViNiAJqEFZrykav=4o79Q2VA@mail.gmail.com>
+References: <1516208146-4144-1-git-send-email-mw@semihalf.com> <20180117181148.GA5894@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <ca64334c-9345-705c-80d8-f2deb924a679@arm.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Albert Ou <albert@sifive.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:34898 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932120AbeAQTDs (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jan 2018 14:03:48 -0500
+Received: by mail-io0-f194.google.com with SMTP id m11so12634994iob.2
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Jan 2018 11:03:48 -0800 (PST)
+In-Reply-To: <20180117181148.GA5894@lunn.ch>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, nadavh@marvell.com, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>
 
-Hi,
+Hi Andrew,
 
-On 01/17/2018 12:20 PM, Sudeep Holla wrote:
-> 
-> 
-> On 16/01/18 21:07, Jeremy Linton wrote:
+2018-01-17 19:11 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+> On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
 >> Hi,
 >>
->> On 01/15/2018 06:33 AM, Sudeep Holla wrote:
->>> On Fri, Jan 12, 2018 at 06:59:10PM -0600, Jeremy Linton wrote:
->>>> The original intent in cacheinfo was that an architecture
->>>> specific populate_cache_leaves() would probe the hardware
->>>> and then cache_shared_cpu_map_setup() and
->>>> cache_override_properties() would provide firmware help to
->>>> extend/expand upon what was probed. Arm64 was really
->>>> the only architecture that was working this way, and
->>>> with the removal of most of the hardware probing logic it
->>>> became clear that it was possible to simplify the logic a bit.
->>>>
->>>> This patch combines the walk of the DT nodes with the
->>>> code updating the cache size/line_size and nr_sets.
->>>> cache_override_properties() (which was DT specific) is
->>>> then removed. The result is that cacheinfo.of_node is
->>>> no longer used as a temporary place to hold DT references
->>>> for future calls that update cache properties. That change
->>>> helps to clarify its one remaining use (matching
->>>> cacheinfo nodes that represent shared caches) which
->>>> will be used by the ACPI/PPTT code in the following patches.
->>>>
->>>> Cc: Palmer Dabbelt <palmer@sifive.com>
->>>> Cc: Albert Ou <albert@sifive.com>
->>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>>> ---
->>>>    arch/riscv/kernel/cacheinfo.c |  1 +
->>>>    drivers/base/cacheinfo.c      | 65
->>>> +++++++++++++++++++------------------------
->>>>    include/linux/cacheinfo.h     |  1 +
->>>>    3 files changed, 31 insertions(+), 36 deletions(-)
->>>>
->>>> diff --git a/arch/riscv/kernel/cacheinfo.c
->>>> b/arch/riscv/kernel/cacheinfo.c
->>>> index 10ed2749e246..6f4500233cf8 100644
->>>> --- a/arch/riscv/kernel/cacheinfo.c
->>>> +++ b/arch/riscv/kernel/cacheinfo.c
->>>> @@ -30,6 +30,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
->>>>            CACHE_WRITE_BACK
->>>>            | CACHE_READ_ALLOCATE
->>>>            | CACHE_WRITE_ALLOCATE;
->>>> +    cache_of_set_props(this_leaf, node);
->>>
->>> This may be necessary but can it be done as later patch ? So far nothing
->>> is added that may break riscv IIUC.
+>> This is a third version of the patchset introducing mvpp2 driver ability
+>> to operate with ACPI. Until follow-up generic MDIO is introduced
+>> it can using the link interrupt capability (a.k.a. in-band management)
+>> on all ports, 1000BaseT RGMII included.
+>> Driver operation was tested on top of the net-next branch
+>> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
 >>
->> Well I think you have a bisection issue where the additional information
->> will disappear between this patch and wherever we put this code back in.
->>
-> 
-> Hmm, I am sorry but I fail to see the issue. Before this change,
-> populate_cache_leaves just populated the info as per ci_leaf_init in
-> arch/riscv/kernel/cacheinfo.c and cache_override_properties used to fill
-> the remaining.
-> 
-> After this patch, the same is achieved in cache_shared_cpu_map_setup.
-> 
-> In both case, it was by the end of detect_cache_attributes, so I see no
-> issue.
-> 
+>> The main changes were requested during v2 review, which was
+>> adding generic helper routines for:
+>> * interating over available fwnodes (new patch 4/7)
+>> * getting IRQ directly from fwnode (new patch 3/7)
+>
+> Hi Marcin
+>
+> Thanks for adding these helpers. It makes the changes for ACPI much
+> less invasive and more natural.
+>
+> Does the IRQ helper solve the issue of getting an interrupt from a
+> child node? I don't see this explicitly mentioned in the commit.  It
+> seems to be getting it from a device. Is the child a device?
+>
 
+I didn't use word 'child', but this is what exactly what the new
+helper is capable of. Hence this should easily fit PHY IRQs,
+regardless shape of their final ACPI representation. It's now enough
+to have an ACPI handle with IRQ defined in its own _CRS method - it
+does not have to be a parent / platform_device.
 
-Hi,
+For the reference, please check the IRQs defined under ETHx subnodes
+of the PP2 controllers nodes on MacchiatoBin:
+https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/71ae395da1661374b0f07d1602afb1eee56e9794/Platforms/Marvell/Armada/AcpiTables/Armada80x0McBin/Dsdt.asl#L201
 
-I must be misunderstanding something.
-
-AFAIK, The code in cache_setup_of_node() won't call cache_of_set_props() 
-because it returns when there is an existing of_node (fw_unique) created 
-by the riscv populate_cache_leaves(). That's why I'm making the direct 
-call here. If we fail to get that change in place before 
-cache_override_properties() is removed then the fields not set by the 
-riscv code (size/etc) will be missing.
+Best regards,
+Marcin
