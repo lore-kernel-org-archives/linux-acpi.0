@@ -1,7 +1,7 @@
 From: Marcin Wojtas <mw@semihalf.com>
-Subject: [net-next: PATCH v4 4/7] device property: Allow iterating over available child fwnodes
-Date: Thu, 18 Jan 2018 13:31:41 +0100
-Message-ID: <1516278704-17141-5-git-send-email-mw@semihalf.com>
+Subject: [net-next: PATCH v4 2/7] device property: Introduce fwnode_get_phy_mode()
+Date: Thu, 18 Jan 2018 13:31:39 +0100
+Message-ID: <1516278704-17141-3-git-send-email-mw@semihalf.com>
 References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1516278704-17141-1-git-send-email-mw@semihalf.com>
@@ -10,78 +10,90 @@ To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@v
 Cc: graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
 
-Implement a new helper function fwnode_get_next_available_child_node(),
-which enables obtaining next enabled child fwnode, which
-works on a similar basis to OF's of_get_next_available_child().
+Until now there were two almost identical functions for
+obtaining network PHY mode - of_get_phy_mode() and,
+more generic, device_get_phy_mode(). However it is not uncommon,
+that the network interface is represented as a child
+of the actual controller, hence it is not associated
+directly to any struct device, required by the latter
+routine.
 
-This commit also introduces a macro, thanks to which it is
-possible to iterate over the available fwnodes, using the
-new function described above.
+This commit allows for getting the PHY mode for
+children nodes in the ACPI world by introducing a new function -
+fwnode_get_phy_mode(). This commit also changes
+device_get_phy_mode() routine to be its wrapper, in order
+to prevent unnecessary duplication.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/base/property.c  | 26 ++++++++++++++++++++
- include/linux/property.h |  6 +++++
- 2 files changed, 32 insertions(+)
+ drivers/base/property.c  | 24 ++++++++++++++++----
+ include/linux/property.h |  1 +
+ 2 files changed, 20 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 1d6c9d9..613ba82 100644
+index f261d1a..7c4a53d 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -998,6 +998,32 @@ fwnode_get_next_child_node(const struct fwnode_handle *fwnode,
- EXPORT_SYMBOL_GPL(fwnode_get_next_child_node);
+@@ -1126,21 +1126,21 @@ enum dev_dma_attr device_get_dma_attr(struct device *dev)
+ EXPORT_SYMBOL_GPL(device_get_dma_attr);
  
  /**
-+ * fwnode_get_next_available_child_node - Return the next
-+ * available child node handle for a node
-+ * @fwnode: Firmware node to find the next child node for.
-+ * @child: Handle to one of the node's child nodes or a %NULL handle.
-+ */
-+struct fwnode_handle *
-+fwnode_get_next_available_child_node(const struct fwnode_handle *fwnode,
-+				     struct fwnode_handle *child)
-+{
-+	struct fwnode_handle *next_child = child;
-+
-+	if (!fwnode)
-+		return NULL;
-+
-+	do {
-+		next_child = fwnode_get_next_child_node(fwnode, next_child);
-+
-+		if (!next_child || fwnode_device_is_available(next_child))
-+			break;
-+	} while (next_child);
-+
-+	return next_child;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_next_available_child_node);
+- * device_get_phy_mode - Get phy mode for given device
+- * @dev:	Pointer to the given device
++ * fwnode_get_phy_mode - Get phy mode for given firmware node
++ * @fwnode:	Pointer to the given node
+  *
+  * The function gets phy interface string from property 'phy-mode' or
+  * 'phy-connection-type', and return its index in phy_modes table, or errno in
+  * error case.
+  */
+-int device_get_phy_mode(struct device *dev)
++int fwnode_get_phy_mode(struct fwnode_handle *fwnode)
+ {
+ 	const char *pm;
+ 	int err, i;
+ 
+-	err = device_property_read_string(dev, "phy-mode", &pm);
++	err = fwnode_property_read_string(fwnode, "phy-mode", &pm);
+ 	if (err < 0)
+-		err = device_property_read_string(dev,
++		err = fwnode_property_read_string(fwnode,
+ 						  "phy-connection-type", &pm);
+ 	if (err < 0)
+ 		return err;
+@@ -1151,6 +1151,20 @@ int device_get_phy_mode(struct device *dev)
+ 
+ 	return -ENODEV;
+ }
++EXPORT_SYMBOL_GPL(fwnode_get_phy_mode);
 +
 +/**
-  * device_get_next_child_node - Return the next child node handle for a device
-  * @dev: Device to find the next child node for.
-  * @child: Handle to one of the device's child nodes or a null handle.
++ * device_get_phy_mode - Get phy mode for given device
++ * @dev:	Pointer to the given device
++ *
++ * The function gets phy interface string from property 'phy-mode' or
++ * 'phy-connection-type', and return its index in phy_modes table, or errno in
++ * error case.
++ */
++int device_get_phy_mode(struct device *dev)
++{
++	return fwnode_get_phy_mode(dev_fwnode(dev));
++}
+ EXPORT_SYMBOL_GPL(device_get_phy_mode);
+ 
+ static void *fwnode_get_mac_addr(struct fwnode_handle *fwnode,
 diff --git a/include/linux/property.h b/include/linux/property.h
-index e05889f..5b0563a 100644
+index 35620e0..9b13332 100644
 --- a/include/linux/property.h
 +++ b/include/linux/property.h
-@@ -83,11 +83,17 @@ struct fwnode_handle *fwnode_get_next_parent(
- 	struct fwnode_handle *fwnode);
- struct fwnode_handle *fwnode_get_next_child_node(
- 	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
-+struct fwnode_handle *fwnode_get_next_available_child_node(
-+	const struct fwnode_handle *fwnode, struct fwnode_handle *child);
+@@ -279,6 +279,7 @@ int device_get_phy_mode(struct device *dev);
  
- #define fwnode_for_each_child_node(fwnode, child)			\
- 	for (child = fwnode_get_next_child_node(fwnode, NULL); child;	\
- 	     child = fwnode_get_next_child_node(fwnode, child))
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
  
-+#define fwnode_for_each_available_child_node(fwnode, child)		       \
-+	for (child = fwnode_get_next_available_child_node(fwnode, NULL); child;\
-+	     child = fwnode_get_next_available_child_node(fwnode, child))
-+
- struct fwnode_handle *device_get_next_child_node(
- 	struct device *dev, struct fwnode_handle *child);
- 
++int fwnode_get_phy_mode(struct fwnode_handle *fwnode);
+ void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
+ 			     char *addr, int alen);
+ struct fwnode_handle *fwnode_graph_get_next_endpoint(
 -- 
 2.7.4
