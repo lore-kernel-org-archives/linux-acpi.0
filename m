@@ -1,116 +1,70 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v6 02/12] drivers: base: cacheinfo: setup DT cache
- properties early
-Date: Thu, 18 Jan 2018 10:14:06 +0000
-Message-ID: <05a8b375-70c4-34d4-6cde-8dd4cd62c10b@arm.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com>
- <20180113005920.28658-3-jeremy.linton@arm.com>
- <20180115123338.GB5473@e107155-lin>
- <65f78c99-8b86-0098-7ced-899840a4bf16@arm.com>
- <ca64334c-9345-705c-80d8-f2deb924a679@arm.com>
- <15884ccc-2cfb-da91-5844-369d8237175d@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Thu, 18 Jan 2018 12:31:41 +0000
+Message-ID: <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+References: <20180104160939.GA7785@xora-haswell>
+ <20180104162036.GL3401@lunn.ch>
+ <20180108144548.GA31502@xora-haswell>
+ <20180108145312.GH10940@lunn.ch>
+ <20180108151453.GB31502@xora-haswell>
+ <20180108154243.GA30962@lunn.ch>
+ <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+ <20180109101941.GD31502@xora-haswell>
+ <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <15884ccc-2cfb-da91-5844-369d8237175d@arm.com>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Albert Ou <albert@sifive.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180109130012.GA27447@lunn.ch>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Marcin Wojtas <mw@semihalf.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 List-Id: linux-acpi@vger.kernel.org
 
+[+cc Mika]
 
-
-On 17/01/18 18:51, Jeremy Linton wrote:
-> Hi,
+On Tue, Jan 09, 2018 at 02:00:12PM +0100, Andrew Lunn wrote:
+> On Tue, Jan 09, 2018 at 11:22:00AM +0100, Marcin Wojtas wrote:
+> > 2018-01-09 11:19 GMT+01:00 Graeme Gregory <graeme.gregory@linaro.org>:
+> > > On Mon, Jan 08, 2018 at 06:17:06PM +0100, Marcin Wojtas wrote:
+> > >> Hi Andrew,
+> > >>
+> > >>
+> > >>
+> > >> 2018-01-08 16:42 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+> > >> > w> I am not familiar with MDIO, but if its similar or a specific
+> > >> >> implementation of a serial bus that does sound sane!
+> > >> >
+> > >>
+> > >> Thanks for digging, I will check if and how we can use
+> > >> GenericSerialBus with MDIO.
+> > >>
+> > > Maybe Lorenzo, Hanjun, Sudeep can comment here they might have come
+> > > across similar on other ARM boards.
+> > >
+> > 
+> > I'm looking forward to their feedback, however, what I've noticed,
+> > each driver handles mdio/phys on its own, not using any generic
+> > solution, which is what I need to actually avoid :)
 > 
-> On 01/17/2018 12:20 PM, Sudeep Holla wrote:
->>
->>
->> On 16/01/18 21:07, Jeremy Linton wrote:
->>> Hi,
->>>
->>> On 01/15/2018 06:33 AM, Sudeep Holla wrote:
->>>> On Fri, Jan 12, 2018 at 06:59:10PM -0600, Jeremy Linton wrote:
->>>>> The original intent in cacheinfo was that an architecture
->>>>> specific populate_cache_leaves() would probe the hardware
->>>>> and then cache_shared_cpu_map_setup() and
->>>>> cache_override_properties() would provide firmware help to
->>>>> extend/expand upon what was probed. Arm64 was really
->>>>> the only architecture that was working this way, and
->>>>> with the removal of most of the hardware probing logic it
->>>>> became clear that it was possible to simplify the logic a bit.
->>>>>
->>>>> This patch combines the walk of the DT nodes with the
->>>>> code updating the cache size/line_size and nr_sets.
->>>>> cache_override_properties() (which was DT specific) is
->>>>> then removed. The result is that cacheinfo.of_node is
->>>>> no longer used as a temporary place to hold DT references
->>>>> for future calls that update cache properties. That change
->>>>> helps to clarify its one remaining use (matching
->>>>> cacheinfo nodes that represent shared caches) which
->>>>> will be used by the ACPI/PPTT code in the following patches.
->>>>>
->>>>> Cc: Palmer Dabbelt <palmer@sifive.com>
->>>>> Cc: Albert Ou <albert@sifive.com>
->>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>>>> ---
->>>>>    arch/riscv/kernel/cacheinfo.c |  1 +
->>>>>    drivers/base/cacheinfo.c      | 65
->>>>> +++++++++++++++++++------------------------
->>>>>    include/linux/cacheinfo.h     |  1 +
->>>>>    3 files changed, 31 insertions(+), 36 deletions(-)
->>>>>
->>>>> diff --git a/arch/riscv/kernel/cacheinfo.c
->>>>> b/arch/riscv/kernel/cacheinfo.c
->>>>> index 10ed2749e246..6f4500233cf8 100644
->>>>> --- a/arch/riscv/kernel/cacheinfo.c
->>>>> +++ b/arch/riscv/kernel/cacheinfo.c
->>>>> @@ -30,6 +30,7 @@ static void ci_leaf_init(struct cacheinfo
->>>>> *this_leaf,
->>>>>            CACHE_WRITE_BACK
->>>>>            | CACHE_READ_ALLOCATE
->>>>>            | CACHE_WRITE_ALLOCATE;
->>>>> +    cache_of_set_props(this_leaf, node);
->>>>
->>>> This may be necessary but can it be done as later patch ? So far
->>>> nothing
->>>> is added that may break riscv IIUC.
->>>
->>> Well I think you have a bisection issue where the additional information
->>> will disappear between this patch and wherever we put this code back in.
->>>
->>
->> Hmm, I am sorry but I fail to see the issue. Before this change,
->> populate_cache_leaves just populated the info as per ci_leaf_init in
->> arch/riscv/kernel/cacheinfo.c and cache_override_properties used to fill
->> the remaining.
->>
->> After this patch, the same is achieved in cache_shared_cpu_map_setup.
->>
->> In both case, it was by the end of detect_cache_attributes, so I see no
->> issue.
->>
-> 
-> 
-> Hi,
-> 
-> I must be misunderstanding something.
-> 
+> Agreed. Lets define it once for all drivers using phylib/phylink.
 
-Looks like I was missing to understand something :)
+To start with, I am not entirely familiar with MDIO, apologies in
+advance. Building something on top of GenericSerialBus sounds correct
+but if I am not mistaken you would need a new bus type in the ACPI
+specs.
 
-> AFAIK, The code in cache_setup_of_node() won't call cache_of_set_props()
-> because it returns when there is an existing of_node (fw_unique) created
-> by the riscv populate_cache_leaves(). That's why I'm making the direct
-> call here. If we fail to get that change in place before
-> cache_override_properties() is removed then the fields not set by the
-> riscv code (size/etc) will be missing.
+I CC'ed Mika since he is more familiar with handling these bits of ACPI
+specs - I wonder whether this is a problem that cropped up on x86
+systems too.
 
-Indeed. I am trying to avoid use of cache_of_set_props outside.
-How about skipping setting up of fw_unique in ci_leaf_init instead ?
+I do not think there is one and only answer but there must be a single
+set of bindings and if the ACPI specs already cater for some of them
+we have to reuse them.
 
--- 
-Regards,
-Sudeep
+Please take some time to ensure the solution you are pushing is widely
+deployable.
+
+Thanks,
+Lorenzo
