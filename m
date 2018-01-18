@@ -1,143 +1,82 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 4/4] ACPICA: Remove calling of _STA from acpi_get_object_info
-Date: Thu, 18 Jan 2018 17:03:59 +0100
-Message-ID: <20180118160359.29971-5-hdegoede@redhat.com>
-References: <20180118160359.29971-1-hdegoede@redhat.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20180118160359.29971-1-hdegoede@redhat.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org
+From: Palmer Dabbelt <palmer@sifive.com>
+Subject: Re: [PATCH v6 02/12] drivers: base: cacheinfo: setup DT cache properties early
+Date: Thu, 18 Jan 2018 09:36:42 -0800 (PST)
+Message-ID: <mhng-758d7724-dc4c-4d08-adf2-967862df2925@palmer-si-x1c4>
+References: <a7d2910e-ae73-61de-9349-c5d804269695@arm.com>
+Mime-Version: 1.0 (MHng)
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <a7d2910e-ae73-61de-9349-c5d804269695@arm.com>
+Sender: linux-pm-owner@vger.kernel.org
+Cc: sudeep.holla@arm.com, jeremy.linton@arm.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, Will Deacon <will.deacon@arm.com>, catalin.marinas@arm.com, Greg KH <gregkh@linuxfoundation.org>, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, albert@sifive.com
 List-Id: linux-acpi@vger.kernel.org
 
-As the comment above it indicates, acpi_get_object_info is intended for
-early probe usage and as such should not call any methods which may rely
-on OpRegions, before this commit it was also calling _STA, which on some
-systems does rely on OpRegions.
+On Wed, 17 Jan 2018 10:08:27 PST (-0800), sudeep.holla@arm.com wrote:
+> (Sorry, somehow I missed this email until I saw Jeremy's reply today)
+>
+> On 15/01/18 16:07, Palmer Dabbelt wrote:
+>> On Mon, 15 Jan 2018 04:33:38 PST (-0800), sudeep.holla@arm.com wrote:
+>>> On Fri, Jan 12, 2018 at 06:59:10PM -0600, Jeremy Linton wrote:
+>>>> The original intent in cacheinfo was that an architecture
+>>>> specific populate_cache_leaves() would probe the hardware
+>>>> and then cache_shared_cpu_map_setup() and
+>>>> cache_override_properties() would provide firmware help to
+>>>> extend/expand upon what was probed. Arm64 was really
+>>>> the only architecture that was working this way, and
+>>>> with the removal of most of the hardware probing logic it
+>>>> became clear that it was possible to simplify the logic a bit.
+>>>>
+>>>> This patch combines the walk of the DT nodes with the
+>>>> code updating the cache size/line_size and nr_sets.
+>>>> cache_override_properties() (which was DT specific) is
+>>>> then removed. The result is that cacheinfo.of_node is
+>>>> no longer used as a temporary place to hold DT references
+>>>> for future calls that update cache properties. That change
+>>>> helps to clarify its one remaining use (matching
+>>>> cacheinfo nodes that represent shared caches) which
+>>>> will be used by the ACPI/PPTT code in the following patches.
+>>>>
+>>>> Cc: Palmer Dabbelt <palmer@sifive.com>
+>>>> Cc: Albert Ou <albert@sifive.com>
+>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>>> ---
+>>>>  arch/riscv/kernel/cacheinfo.c |  1 +
+>>>>  drivers/base/cacheinfo.c      | 65
+>>>> +++++++++++++++++++------------------------
+>>>>  include/linux/cacheinfo.h     |  1 +
+>>>>  3 files changed, 31 insertions(+), 36 deletions(-)
+>>>>
+>>>> diff --git a/arch/riscv/kernel/cacheinfo.c
+>>>> b/arch/riscv/kernel/cacheinfo.c
+>>>> index 10ed2749e246..6f4500233cf8 100644
+>>>> --- a/arch/riscv/kernel/cacheinfo.c
+>>>> +++ b/arch/riscv/kernel/cacheinfo.c
+>>>> @@ -30,6 +30,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+>>>>          CACHE_WRITE_BACK
+>>>>          | CACHE_READ_ALLOCATE
+>>>>          | CACHE_WRITE_ALLOCATE;
+>>>> +    cache_of_set_props(this_leaf, node);
+>>>
+>>> This may be necessary but can it be done as later patch ? So far nothing
+>>> is added that may break riscv IIUC.
+>>>
+>>> Palmer, Albert,
+>>>
+>>> Can you confirm ? Also, as I see we can thin down arch specific
+>>> implementation on riscv if it's just using DT like ARM64. Sorry if
+>>> I am missing to see something, so thought of checking.
+>>>
+>>> [...]
+>>
+>> Sorry, I guess I'm a bit confused as to what's going on here.  RISC-V
+>> uses device tree on all Linux systems.
+>>
+>
+> Good. By thin down, I was thinking of moving the init_cache_level and
+> populate_cache_leaves implementation of riscv to generic weak function
+> under CONFIG_OF. You may even endup deleting riscv cacheinfo.c
+>
+> Just a thought, sorry for not being clear earlier.
 
-Calling _STA before things are ready leads to errors such as these:
-
-[    0.123579] ACPI Error: No handler for Region [ECRM] (00000000ba9edc4c)
-               [GenericSerialBus] (20170831/evregion-166)
-[    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
-               (20170831/exfldio-299)
-[    0.123618] ACPI Error: Method parse/execution failed
-               \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
-
-End 2015 support for the _SUB method was removed for exactly the same
-reason. Removing current_status from struct acpi_device_info only has
-a limit impact. Within ACPICA it is only used by 2 debug messages, both
-of which are modified to no longer print it with this commit.
-
-Outside of ACPICA, for Linux there is only one user. For which a patch to
-remove the dependency on the current_status field is available.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpica/dbdisply.c |  5 ++---
- drivers/acpi/acpica/nsdumpdv.c |  5 ++---
- drivers/acpi/acpica/nsxfname.c | 19 ++++---------------
- include/acpi/actypes.h         |  2 --
- 4 files changed, 8 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
-index 5a606eac0c22..7b5eb33fe962 100644
---- a/drivers/acpi/acpica/dbdisply.c
-+++ b/drivers/acpi/acpica/dbdisply.c
-@@ -642,9 +642,8 @@ void acpi_db_display_object_type(char *object_arg)
- 		return;
- 	}
- 
--	acpi_os_printf("ADR: %8.8X%8.8X, STA: %8.8X, Flags: %X\n",
--		       ACPI_FORMAT_UINT64(info->address),
--		       info->current_status, info->flags);
-+	acpi_os_printf("ADR: %8.8X%8.8X, Flags: %X\n",
-+		       ACPI_FORMAT_UINT64(info->address), info->flags);
- 
- 	acpi_os_printf("S1D-%2.2X S2D-%2.2X S3D-%2.2X S4D-%2.2X\n",
- 		       info->highest_dstates[0], info->highest_dstates[1],
-diff --git a/drivers/acpi/acpica/nsdumpdv.c b/drivers/acpi/acpica/nsdumpdv.c
-index 5026594763ea..573a5f36f01a 100644
---- a/drivers/acpi/acpica/nsdumpdv.c
-+++ b/drivers/acpi/acpica/nsdumpdv.c
-@@ -88,10 +88,9 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
- 		}
- 
- 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_TABLES,
--				      "    HID: %s, ADR: %8.8X%8.8X, Status: %X\n",
-+				      "    HID: %s, ADR: %8.8X%8.8X\n",
- 				      info->hardware_id.value,
--				      ACPI_FORMAT_UINT64(info->address),
--				      info->current_status));
-+				      ACPI_FORMAT_UINT64(info->address));
- 		ACPI_FREE(info);
- 	}
- 
-diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-index 106966235805..0a9c600c2599 100644
---- a/drivers/acpi/acpica/nsxfname.c
-+++ b/drivers/acpi/acpica/nsxfname.c
-@@ -241,7 +241,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
-  *              namespace node and possibly by running several standard
-  *              control methods (Such as in the case of a device.)
-  *
-- * For Device and Processor objects, run the Device _HID, _UID, _CID, _STA,
-+ * For Device and Processor objects, run the Device _HID, _UID, _CID,
-  * _CLS, _ADR, _sx_w, and _sx_d methods.
-  *
-  * Note: Allocates the return buffer, must be freed by the caller.
-@@ -250,8 +250,9 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
-  * discovery namespace traversal. Therefore, no complex methods can be
-  * executed, especially those that access operation regions. Therefore, do
-  * not add any additional methods that could cause problems in this area.
-- * this was the fate of the _SUB method which was found to cause such
-- * problems and was removed (11/2015).
-+ * Because of this reason support for the following methods has been removed:
-+ * 1) _SUB method was removed (11/2015)
-+ * 2) _STA method was removed (01/2018)
-  *
-  ******************************************************************************/
- 
-@@ -374,20 +375,8 @@ acpi_get_object_info(acpi_handle handle,
- 		 * Notes: none of these methods are required, so they may or may
- 		 * not be present for this device. The Info->Valid bitfield is used
- 		 * to indicate which methods were found and run successfully.
--		 *
--		 * For _STA, if the method does not exist, then (as per the ACPI
--		 * specification), the returned current_status flags will indicate
--		 * that the device is present/functional/enabled. Otherwise, the
--		 * current_status flags reflect the value returned from _STA.
- 		 */
- 
--		/* Execute the Device._STA method */
--
--		status = acpi_ut_execute_STA(node, &info->current_status);
--		if (ACPI_SUCCESS(status)) {
--			valid |= ACPI_VALID_STA;
--		}
--
- 		/* Execute the Device._ADR method */
- 
- 		status = acpi_ut_evaluate_numeric_object(METHOD_NAME__ADR, node,
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 4f077edb9b81..220ef8674763 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -1191,7 +1191,6 @@ struct acpi_device_info {
- 	u8 flags;		/* Miscellaneous info */
- 	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
- 	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
--	u32 current_status;	/* _STA value */
- 	u64 address;	/* _ADR value */
- 	struct acpi_pnp_device_id hardware_id;	/* _HID value */
- 	struct acpi_pnp_device_id unique_id;	/* _UID value */
-@@ -1205,7 +1204,6 @@ struct acpi_device_info {
- 
- /* Flags for Valid field above (acpi_get_object_info) */
- 
--#define ACPI_VALID_STA                  0x0001
- #define ACPI_VALID_ADR                  0x0002
- #define ACPI_VALID_HID                  0x0004
- #define ACPI_VALID_UID                  0x0008
--- 
-2.14.3
+OK, well, I'm always happy to convert things to generic implementations.
