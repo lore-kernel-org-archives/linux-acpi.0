@@ -1,176 +1,117 @@
 From: Marcin Wojtas <mw@semihalf.com>
-Subject: [net-next: PATCH v4 6/7] net: mvpp2: use device_*/fwnode_* APIs instead of of_*
-Date: Thu, 18 Jan 2018 13:31:43 +0100
-Message-ID: <1516278704-17141-7-git-send-email-mw@semihalf.com>
+Subject: [net-next: PATCH v4 3/7] device property: Introduce fwnode_irq_get()
+Date: Thu, 18 Jan 2018 13:31:40 +0100
+Message-ID: <1516278704-17141-4-git-send-email-mw@semihalf.com>
 References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1516278704-17141-1-git-send-email-mw@semihalf.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 Cc: graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
 
-OF functions can be used only for the driver using DT.
-As a preparation for introducing ACPI support in mvpp2
-driver, use struct fwnode_handle in order to obtain
-properties from the hardware description.
+Until now there were two very similar functions allowing
+to get Linux IRQ number from ACPI handle (acpi_irq_get())
+and OF node (of_irq_get()). The first one appeared to be used
+only as a subroutine of platform_irq_get(), which (in the generic
+code) limited IRQ obtaining from _CRS method only to nodes
+associated to kernel's struct platform_device.
 
-This patch replaces of_* function with device_*/fwnode_*
-where possible in the mvpp2.
+This patch introduces a new helper routine - fwnode_irq_get(),
+which allows to get the IRQ number directly from the fwnode
+to be used as common for OF/ACPI worlds. It is usable not
+only for the parents fwnodes, but also for the child nodes
+comprising their own _CRS methods with interrupts description.
+
+In order to be able o satisfy compilation with !CONFIG_ACPI
+and also simplify the new code, introduce a helper macro
+(ACPI_HANDLE_FWNODE), with which it is possible to reach
+an ACPI handle directly from its fwnode.
 
 Signed-off-by: Marcin Wojtas <mw@semihalf.com>
 ---
- drivers/net/ethernet/marvell/mvpp2.c | 45 +++++++++++---------
- 1 file changed, 24 insertions(+), 21 deletions(-)
+ drivers/base/property.c  | 26 ++++++++++++++++++++
+ include/linux/acpi.h     |  3 +++
+ include/linux/property.h |  2 ++
+ 3 files changed, 31 insertions(+)
 
-diff --git a/drivers/net/ethernet/marvell/mvpp2.c b/drivers/net/ethernet/marvell/mvpp2.c
-index 7f42d90..f16448e 100644
---- a/drivers/net/ethernet/marvell/mvpp2.c
-+++ b/drivers/net/ethernet/marvell/mvpp2.c
-@@ -932,6 +932,9 @@ struct mvpp2_port {
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 7c4a53d..1d6c9d9 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -16,6 +16,7 @@
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_graph.h>
++#include <linux/of_irq.h>
+ #include <linux/property.h>
+ #include <linux/etherdevice.h>
+ #include <linux/phy.h>
+@@ -1230,6 +1231,31 @@ void *device_get_mac_address(struct device *dev, char *addr, int alen)
+ EXPORT_SYMBOL(device_get_mac_address);
  
- 	struct mvpp2 *priv;
- 
-+	/* Firmware node associated to the port */
-+	struct fwnode_handle *fwnode;
+ /**
++ * fwnode_irq_get - Get IRQ directly from a fwnode
++ * @fwnode:	Pointer to the firmware node
++ * @index:	Zero-based index of the IRQ
++ *
++ * Returns Linux IRQ number on success. Other values are determined
++ * accordingly to acpi_/of_ irq_get() operation.
++ */
++int fwnode_irq_get(struct fwnode_handle *fwnode, unsigned int index)
++{
++	struct device_node *of_node = to_of_node(fwnode);
++	struct resource res;
++	int ret;
 +
- 	/* Per-port registers' base address */
- 	void __iomem *base;
- 	void __iomem *stats_base;
-@@ -7711,17 +7714,16 @@ static bool mvpp2_port_has_tx_irqs(struct mvpp2 *priv,
- }
++	if (IS_ENABLED(CONFIG_OF) && of_node)
++		return of_irq_get(of_node, index);
++
++	ret = acpi_irq_get(ACPI_HANDLE_FWNODE(fwnode), index, &res);
++	if (ret)
++		return ret;
++
++	return res.start;
++}
++EXPORT_SYMBOL(fwnode_irq_get);
++
++/**
+  * device_graph_get_next_endpoint - Get next endpoint firmware node
+  * @fwnode: Pointer to the parent firmware node
+  * @prev: Previous endpoint node or %NULL to get the first
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index dc1ebfe..f05b9b6 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -56,6 +56,8 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+ #define ACPI_COMPANION_SET(dev, adev)	set_primary_fwnode(dev, (adev) ? \
+ 	acpi_fwnode_handle(adev) : NULL)
+ #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
++#define ACPI_HANDLE_FWNODE(fwnode)	\
++				acpi_device_handle(to_acpi_device_node(fwnode))
  
- static void mvpp2_port_copy_mac_addr(struct net_device *dev, struct mvpp2 *priv,
--				     struct device_node *port_node,
-+				     struct fwnode_handle *fwnode,
- 				     char **mac_from)
+ static inline struct fwnode_handle *acpi_alloc_fwnode_static(void)
  {
- 	struct mvpp2_port *port = netdev_priv(dev);
- 	char hw_mac_addr[ETH_ALEN] = {0};
--	const char *dt_mac_addr;
-+	char fw_mac_addr[ETH_ALEN];
+@@ -626,6 +628,7 @@ int acpi_arch_timer_mem_init(struct arch_timer_mem *timer_mem, int *timer_count)
+ #define ACPI_COMPANION(dev)		(NULL)
+ #define ACPI_COMPANION_SET(dev, adev)	do { } while (0)
+ #define ACPI_HANDLE(dev)		(NULL)
++#define ACPI_HANDLE_FWNODE(fwnode)	(NULL)
+ #define ACPI_DEVICE_CLASS(_cls, _msk)	.cls = (0), .cls_msk = (0),
  
--	dt_mac_addr = of_get_mac_address(port_node);
--	if (dt_mac_addr && is_valid_ether_addr(dt_mac_addr)) {
--		*mac_from = "device tree";
--		ether_addr_copy(dev->dev_addr, dt_mac_addr);
-+	if (fwnode_get_mac_address(fwnode, fw_mac_addr, ETH_ALEN)) {
-+		*mac_from = "firmware node";
-+		ether_addr_copy(dev->dev_addr, fw_mac_addr);
- 		return;
- 	}
+ struct fwnode_handle;
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 9b13332..e05889f 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -103,6 +103,8 @@ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+ struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
+ void fwnode_handle_put(struct fwnode_handle *fwnode);
  
-@@ -7740,13 +7742,14 @@ static void mvpp2_port_copy_mac_addr(struct net_device *dev, struct mvpp2 *priv,
++int fwnode_irq_get(struct fwnode_handle *fwnode, unsigned int index);
++
+ unsigned int device_get_child_node_count(struct device *dev);
  
- /* Ports initialization */
- static int mvpp2_port_probe(struct platform_device *pdev,
--			    struct device_node *port_node,
-+			    struct fwnode_handle *port_fwnode,
- 			    struct mvpp2 *priv)
- {
- 	struct device_node *phy_node;
- 	struct phy *comphy;
- 	struct mvpp2_port *port;
- 	struct mvpp2_port_pcpu *port_pcpu;
-+	struct device_node *port_node = to_of_node(port_fwnode);
- 	struct net_device *dev;
- 	struct resource *res;
- 	char *mac_from = "";
-@@ -7773,7 +7776,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 		return -ENOMEM;
- 
- 	phy_node = of_parse_phandle(port_node, "phy", 0);
--	phy_mode = of_get_phy_mode(port_node);
-+	phy_mode = fwnode_get_phy_mode(port_fwnode);
- 	if (phy_mode < 0) {
- 		dev_err(&pdev->dev, "incorrect phy mode\n");
- 		err = phy_mode;
-@@ -7789,7 +7792,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 		comphy = NULL;
- 	}
- 
--	if (of_property_read_u32(port_node, "port-id", &id)) {
-+	if (fwnode_property_read_u32(port_fwnode, "port-id", &id)) {
- 		err = -EINVAL;
- 		dev_err(&pdev->dev, "missing port-id value\n");
- 		goto err_free_netdev;
-@@ -7820,7 +7823,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 		/* the link irq is optional */
- 		port->link_irq = 0;
- 
--	if (of_property_read_bool(port_node, "marvell,loopback"))
-+	if (fwnode_property_read_bool(port_fwnode, "marvell,loopback"))
- 		port->flags |= MVPP2_F_LOOPBACK;
- 
- 	port->id = id;
-@@ -7845,8 +7848,8 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 				   MVPP21_MIB_COUNTERS_OFFSET +
- 				   port->gop_id * MVPP21_MIB_COUNTERS_PORT_SZ;
- 	} else {
--		if (of_property_read_u32(port_node, "gop-port-id",
--					 &port->gop_id)) {
-+		if (fwnode_property_read_u32(port_fwnode, "gop-port-id",
-+					     &port->gop_id)) {
- 			err = -EINVAL;
- 			dev_err(&pdev->dev, "missing gop-port-id value\n");
- 			goto err_deinit_qvecs;
-@@ -7876,7 +7879,7 @@ static int mvpp2_port_probe(struct platform_device *pdev,
- 	mutex_init(&port->gather_stats_lock);
- 	INIT_DELAYED_WORK(&port->stats_work, mvpp2_gather_hw_statistics);
- 
--	mvpp2_port_copy_mac_addr(dev, priv, port_node, &mac_from);
-+	mvpp2_port_copy_mac_addr(dev, priv, port_fwnode, &mac_from);
- 
- 	port->tx_ring_size = MVPP2_MAX_TXD_DFLT;
- 	port->rx_ring_size = MVPP2_MAX_RXD_DFLT;
-@@ -8194,8 +8197,8 @@ static int mvpp2_init(struct platform_device *pdev, struct mvpp2 *priv)
- 
- static int mvpp2_probe(struct platform_device *pdev)
- {
--	struct device_node *dn = pdev->dev.of_node;
--	struct device_node *port_node;
-+	struct fwnode_handle *fwnode = pdev->dev.fwnode;
-+	struct fwnode_handle *port_fwnode;
- 	struct mvpp2 *priv;
- 	struct resource *res;
- 	void __iomem *base;
-@@ -8315,8 +8318,8 @@ static int mvpp2_probe(struct platform_device *pdev)
- 	}
- 
- 	/* Initialize ports */
--	for_each_available_child_of_node(dn, port_node) {
--		err = mvpp2_port_probe(pdev, port_node, priv);
-+	fwnode_for_each_available_child_node(fwnode, port_fwnode) {
-+		err = mvpp2_port_probe(pdev, port_fwnode, priv);
- 		if (err < 0)
- 			goto err_port_probe;
- 	}
-@@ -8347,7 +8350,7 @@ static int mvpp2_probe(struct platform_device *pdev)
- 
- err_port_probe:
- 	i = 0;
--	for_each_available_child_of_node(dn, port_node) {
-+	fwnode_for_each_available_child_node(fwnode, port_fwnode) {
- 		if (priv->port_list[i])
- 			mvpp2_port_remove(priv->port_list[i]);
- 		i++;
-@@ -8366,14 +8369,14 @@ static int mvpp2_probe(struct platform_device *pdev)
- static int mvpp2_remove(struct platform_device *pdev)
- {
- 	struct mvpp2 *priv = platform_get_drvdata(pdev);
--	struct device_node *dn = pdev->dev.of_node;
--	struct device_node *port_node;
-+	struct fwnode_handle *fwnode = pdev->dev.fwnode;
-+	struct fwnode_handle *port_fwnode;
- 	int i = 0;
- 
- 	flush_workqueue(priv->stats_queue);
- 	destroy_workqueue(priv->stats_queue);
- 
--	for_each_available_child_of_node(dn, port_node) {
-+	fwnode_for_each_available_child_node(fwnode, port_fwnode) {
- 		if (priv->port_list[i]) {
- 			mutex_destroy(&priv->port_list[i]->gather_stats_lock);
- 			mvpp2_port_remove(priv->port_list[i]);
+ static inline bool device_property_read_bool(struct device *dev,
 -- 
 2.7.4
