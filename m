@@ -1,70 +1,120 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Thu, 18 Jan 2018 12:31:41 +0000
-Message-ID: <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
-References: <20180104160939.GA7785@xora-haswell>
- <20180104162036.GL3401@lunn.ch>
- <20180108144548.GA31502@xora-haswell>
- <20180108145312.GH10940@lunn.ch>
- <20180108151453.GB31502@xora-haswell>
- <20180108154243.GA30962@lunn.ch>
- <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
- <20180109101941.GD31502@xora-haswell>
- <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
- <20180109130012.GA27447@lunn.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180109130012.GA27447@lunn.ch>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Lunn <andrew@lunn.ch>
-Cc: Marcin Wojtas <mw@semihalf.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+From: Marcin Wojtas <mw@semihalf.com>
+Subject: [net-next: PATCH v4 1/7] device property: Introduce fwnode_get_mac_address()
+Date: Thu, 18 Jan 2018 13:31:38 +0100
+Message-ID: <1516278704-17141-2-git-send-email-mw@semihalf.com>
+References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:43591 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755708AbeARMcA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jan 2018 07:32:00 -0500
+Received: by mail-lf0-f67.google.com with SMTP id o89so22306155lfg.10
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Jan 2018 04:31:59 -0800 (PST)
+In-Reply-To: <1516278704-17141-1-git-send-email-mw@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: graeme.gregory@linaro.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, mw@semihalf.com, jaz@semihalf.com, tn@semihalf.com
 
-[+cc Mika]
+Until now there were two almost identical functions for
+obtaining MAC address - of_get_mac_address() and, more generic,
+device_get_mac_address(). However it is not uncommon,
+that the network interface is represented as a child
+of the actual controller, hence it is not associated
+directly to any struct device, required by the latter
+routine.
 
-On Tue, Jan 09, 2018 at 02:00:12PM +0100, Andrew Lunn wrote:
-> On Tue, Jan 09, 2018 at 11:22:00AM +0100, Marcin Wojtas wrote:
-> > 2018-01-09 11:19 GMT+01:00 Graeme Gregory <graeme.gregory@linaro.org>:
-> > > On Mon, Jan 08, 2018 at 06:17:06PM +0100, Marcin Wojtas wrote:
-> > >> Hi Andrew,
-> > >>
-> > >>
-> > >>
-> > >> 2018-01-08 16:42 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
-> > >> > w> I am not familiar with MDIO, but if its similar or a specific
-> > >> >> implementation of a serial bus that does sound sane!
-> > >> >
-> > >>
-> > >> Thanks for digging, I will check if and how we can use
-> > >> GenericSerialBus with MDIO.
-> > >>
-> > > Maybe Lorenzo, Hanjun, Sudeep can comment here they might have come
-> > > across similar on other ARM boards.
-> > >
-> > 
-> > I'm looking forward to their feedback, however, what I've noticed,
-> > each driver handles mdio/phys on its own, not using any generic
-> > solution, which is what I need to actually avoid :)
-> 
-> Agreed. Lets define it once for all drivers using phylib/phylink.
+This commit allows for getting the MAC address for
+children nodes in the ACPI world by introducing a new function -
+fwnode_get_mac_address(). This commit also changes
+device_get_mac_address() routine to be its wrapper, in order
+to prevent unnecessary duplication.
 
-To start with, I am not entirely familiar with MDIO, apologies in
-advance. Building something on top of GenericSerialBus sounds correct
-but if I am not mistaken you would need a new bus type in the ACPI
-specs.
+Signed-off-by: Marcin Wojtas <mw@semihalf.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/property.c  | 28 ++++++++++++++------
+ include/linux/property.h |  2 ++
+ 2 files changed, 22 insertions(+), 8 deletions(-)
 
-I CC'ed Mika since he is more familiar with handling these bits of ACPI
-specs - I wonder whether this is a problem that cropped up on x86
-systems too.
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 851b1b6..f261d1a 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1153,11 +1153,11 @@ int device_get_phy_mode(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(device_get_phy_mode);
+ 
+-static void *device_get_mac_addr(struct device *dev,
++static void *fwnode_get_mac_addr(struct fwnode_handle *fwnode,
+ 				 const char *name, char *addr,
+ 				 int alen)
+ {
+-	int ret = device_property_read_u8_array(dev, name, addr, alen);
++	int ret = fwnode_property_read_u8_array(fwnode, name, addr, alen);
+ 
+ 	if (ret == 0 && alen == ETH_ALEN && is_valid_ether_addr(addr))
+ 		return addr;
+@@ -1165,8 +1165,8 @@ static void *device_get_mac_addr(struct device *dev,
+ }
+ 
+ /**
+- * device_get_mac_address - Get the MAC for a given device
+- * @dev:	Pointer to the device
++ * fwnode_get_mac_address - Get the MAC from the firmware node
++ * @fwnode:	Pointer to the firmware node
+  * @addr:	Address of buffer to store the MAC in
+  * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
+  *
+@@ -1187,19 +1187,31 @@ static void *device_get_mac_addr(struct device *dev,
+  * In this case, the real MAC is in 'local-mac-address', and 'mac-address'
+  * exists but is all zeros.
+ */
+-void *device_get_mac_address(struct device *dev, char *addr, int alen)
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode, char *addr, int alen)
+ {
+ 	char *res;
+ 
+-	res = device_get_mac_addr(dev, "mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	res = device_get_mac_addr(dev, "local-mac-address", addr, alen);
++	res = fwnode_get_mac_addr(fwnode, "local-mac-address", addr, alen);
+ 	if (res)
+ 		return res;
+ 
+-	return device_get_mac_addr(dev, "address", addr, alen);
++	return fwnode_get_mac_addr(fwnode, "address", addr, alen);
++}
++EXPORT_SYMBOL(fwnode_get_mac_address);
++
++/**
++ * device_get_mac_address - Get the MAC for a given device
++ * @dev:	Pointer to the device
++ * @addr:	Address of buffer to store the MAC in
++ * @alen:	Length of the buffer pointed to by addr, should be ETH_ALEN
++ */
++void *device_get_mac_address(struct device *dev, char *addr, int alen)
++{
++	return fwnode_get_mac_address(dev_fwnode(dev), addr, alen);
+ }
+ EXPORT_SYMBOL(device_get_mac_address);
+ 
+diff --git a/include/linux/property.h b/include/linux/property.h
+index f6189a3..35620e0 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -279,6 +279,8 @@ int device_get_phy_mode(struct device *dev);
+ 
+ void *device_get_mac_address(struct device *dev, char *addr, int alen);
+ 
++void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
++			     char *addr, int alen);
+ struct fwnode_handle *fwnode_graph_get_next_endpoint(
+ 	const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+ struct fwnode_handle *
+-- 
+2.7.4
 
-I do not think there is one and only answer but there must be a single
-set of bindings and if the ACPI specs already cater for some of them
-we have to reuse them.
-
-Please take some time to ensure the solution you are pushing is widely
-deployable.
-
-Thanks,
-Lorenzo
