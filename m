@@ -1,305 +1,131 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] acpi, spcr: Make SPCR available to x86
-Date: Thu, 18 Jan 2018 10:09:51 -0500
-Message-ID: <20180118150951.28964-1-prarit@redhat.com>
+From: graeme.gregory@linaro.org
+Subject: Re: [net-next: PATCH v3 0/7] Armada 7k/8k PP2 ACPI support
+Date: Thu, 18 Jan 2018 15:53:16 +0000
+Message-ID: <20180118155316.GA32010@xora-haswell>
+References: <1516208146-4144-1-git-send-email-mw@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: Prarit Bhargava <prarit@redhat.com>, Jonathan Corbet <corbet@lwn.net>, x86@kernel.org, graeme.gregory@linaro.org, linux-pm@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Bhupesh Sharma <bhsharma@redhat.com>, linux-doc@vger.kernel.org, Will Deacon <will.deacon@arm.com>, mark.salter@redhat.com, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, Lv Zheng <lv.zheng@intel.com>, linux-serial@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, Thomas Gleixner <tglx@linutronix.de>, Timur Tabi <timur@codeaurora.org>, linux-arm-kernel@lists.infradead.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="RnlQjJ0d97Da+TV1"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1516208146-4144-1-git-send-email-mw@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, davem@davemloft.net, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, antoine.tenart@free-electrons.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 List-Id: linux-acpi@vger.kernel.org
 
-Note on testing:  I've tested this on several ARM64 and x86 boxes (only
-earlycon, console=ttyS0,115200, and with both options), verified that
-functionality on ARM64 has not changed (ie, CONFIG_ACPI_SPCR_TABLE is
-always =y), and verified functionality when !CONFIG_ACPI_SPCR_TABLE on
-x86.
 
-P.
+--RnlQjJ0d97Da+TV1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-----8<----
+On Wed, Jan 17, 2018 at 05:55:39PM +0100, Marcin Wojtas wrote:
+> Hi,
+>=20
+> This is a third version of the patchset introducing mvpp2 driver ability
+> to operate with ACPI. Until follow-up generic MDIO is introduced
+> it can using the link interrupt capability (a.k.a. in-band management)
+> on all ports, 1000BaseT RGMII included.
+> Driver operation was tested on top of the net-next branch
+> with both DT and ACPI on MacchiatoBin and Armada 7040 DB boards.
+>=20
+> The main changes were requested during v2 review, which was
+> adding generic helper routines for:
+> * interating over available fwnodes (new patch 4/7)
+> * getting IRQ directly from fwnode (new patch 3/7)
+> Thanks to the latter the driver code could be simplified
+> and allowed to drop formula-based IRQ obtaining. Changes are
+> summarized in the changelog below.
+>=20
+> mvpp2 driver can work with the ACPI representation, as exposed
+> on a public branch:
+> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/commits/m=
+arvell-armada-wip
+> It was compiled together with the most recent Tianocore EDK2 revision.
+> Please refer to the firmware build instruction on MacchiatoBin board:
+> http://wiki.macchiatobin.net/tiki-index.php?page=3DBuild+from+source+-+UE=
+FI+EDK+II
+>=20
+> ACPI representation of PP2 controllers (withouth PHY support) can
+> be viewed in the github:
+> * MacchiatoBin:
+> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/71ae=
+395da1661374b0f07d1602afb1eee56e9794/Platforms/Marvell/Armada/AcpiTables/Ar=
+mada80x0McBin/Dsdt.asl#L201
+>=20
+> * Armada 7040 DB:
+> https://github.com/MarvellEmbeddedProcessors/edk2-open-platform/blob/71ae=
+395da1661374b0f07d1602afb1eee56e9794/Platforms/Marvell/Armada/AcpiTables/Ar=
+mada70x0/Dsdt.asl#L131
+>=20
+> I will appreciate any comments or remarks.
+>=20
 
-SPCR is currently only enabled or ARM64 and x86 can use SPCR to setup an
-early console.
+Nice work, this looks pretty neat to me, for series.
 
-General fixes include updating Documentation & Kconfig (for x86), updating
-comments, and changing parse_spcr() to acpi_parse_spcr(), and
-earlycon_init_is_deferred to earlycon_acpi_spcr_enable to be more
-descriptive.
+Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
 
-On x86, many systems have a valid SPCR table but the table version is not
-2 so the table version check must be a warning.
+Thanks
 
-On ARM64 when the kernel parameter earlycon is used both the early console
-and console are enabled.  On x86, only the earlycon should be enabled by
-by default.  Modify acpi_parse_spcr() to allow options for initializing
-the early console and console separately.
+Graeme
 
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org
-Cc: linux-pm@vger.kernel.org
-Cc: linux-serial@vger.kernel.org
-Cc: Bhupesh Sharma <bhsharma@redhat.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: x86@kernel.org
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "Rafael J. Wysocki" Mrjw@rjwysocki.net>
-Cc: Timur Tabi <timur@codeaurora.org>
-Cc: graeme.gregory@linaro.org
-Cc: mark.salter@redhat.com
----
- Documentation/admin-guide/kernel-parameters.txt |  9 +++++---
- arch/arm64/kernel/acpi.c                        |  4 ++--
- arch/x86/kernel/acpi/boot.c                     |  3 +++
- drivers/acpi/Kconfig                            |  7 +++++-
- drivers/acpi/spcr.c                             | 29 +++++++++++++------------
- drivers/tty/serial/earlycon.c                   | 15 +++++--------
- include/linux/acpi.h                            |  7 ++++--
- include/linux/serial_core.h                     |  4 ++--
- 8 files changed, 44 insertions(+), 34 deletions(-)
+> Best regards,
+> Marcin
+>=20
+> Changelog:
+> v2 -> v3:
+> * 1/7, 2/7
+>     - Add Rafael's Acked-by's
+> * 3/7, 4/7
+>     - New patches
+> * 6/7, 7/7
+>     - Update driver with new helper routines usage
+>     - Improve commit log.
+>=20
+> v1 -> v2:
+> * Remove MDIO patches
+> * Use PP2 ports only with link interrupts
+> * Release second region resources in mvpp2 driver (code moved from
+>   mvmdio), as explained in details in 5/5 commit message.
+>=20
+>=20
+> Marcin Wojtas (7):
+>   device property: Introduce fwnode_get_mac_address()
+>   device property: Introduce fwnode_get_phy_mode()
+>   device property: Introduce fwnode_irq_get()
+>   device property: Allow iterating over available child fwnodes
+>   net: mvpp2: simplify maintaining enabled ports' list
+>   net: mvpp2: use device_*/fwnode_* APIs instead of of_*
+>   net: mvpp2: enable ACPI support in the driver
+>=20
+>  drivers/base/property.c              | 105 ++++++++--
+>  drivers/net/ethernet/marvell/mvpp2.c | 206 ++++++++++++--------
+>  include/linux/property.h             |  11 ++
+>  3 files changed, 230 insertions(+), 92 deletions(-)
+>=20
+> --=20
+> 2.7.4
+>=20
 
-diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
-index 46b26bfee27b..6f519230ed34 100644
---- a/Documentation/admin-guide/kernel-parameters.txt
-+++ b/Documentation/admin-guide/kernel-parameters.txt
-@@ -915,9 +915,12 @@
- 
- 	earlycon=	[KNL] Output early console device and options.
- 
--			When used with no options, the early console is
--			determined by the stdout-path property in device
--			tree's chosen node.
-+			[ARM64] The early console is determined by the
-+			stdout-path property in device tree's chosen node,
-+			or determined by the ACPI SPCR table.
-+
-+			[X86] When used with no options the early console is
-+			determined by the ACPI SPCR table.
- 
- 		cdns,<addr>[,options]
- 			Start an early, polled-mode console on a Cadence
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index b3162715ed78..2aa5609def27 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -230,10 +230,10 @@ void __init acpi_boot_table_init(void)
- 
- done:
- 	if (acpi_disabled) {
--		if (earlycon_init_is_deferred)
-+		if (earlycon_acpi_spcr_enable)
- 			early_init_dt_scan_chosen_stdout();
- 	} else {
--		parse_spcr(earlycon_init_is_deferred);
-+		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
- 		if (IS_ENABLED(CONFIG_ACPI_BGRT))
- 			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
- 	}
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index f4c463df8b08..0bf6a58f7a6d 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -36,6 +36,7 @@
- #include <linux/ioport.h>
- #include <linux/pci.h>
- #include <linux/efi-bgrt.h>
-+#include <linux/serial_core.h>
- 
- #include <asm/e820/api.h>
- #include <asm/irqdomain.h>
-@@ -1626,6 +1627,8 @@ int __init acpi_boot_init(void)
- 	if (!acpi_noirq)
- 		x86_init.pci.init = pci_acpi_init;
- 
-+	/* Do not enable ACPI SPCR console by default */
-+	acpi_parse_spcr(earlycon_acpi_spcr_enable, false);
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 46505396869e..ddcb5f40e8ee 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -79,7 +79,12 @@ config ACPI_DEBUGGER_USER
- endif
- 
- config ACPI_SPCR_TABLE
--	bool
-+	bool "ACPI Serial Port Console Redirection Support"
-+	default y if X86
-+	help
-+	  Enable support for Serial Port Console Redirection (SPCR) Table.
-+	  This table provides information about the configuration of the
-+	  earlycon console.
- 
- config ACPI_LPIT
- 	bool
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 324b35bfe781..89e97d21a89c 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -21,7 +21,7 @@
-  * occasionally getting stuck as 1. To avoid the potential for a hang, check
-  * TXFE == 0 instead of BUSY == 1. This may not be suitable for all UART
-  * implementations, so only do so if an affected platform is detected in
-- * parse_spcr().
-+ * acpi_parse_spcr().
-  */
- bool qdf2400_e44_present;
- EXPORT_SYMBOL(qdf2400_e44_present);
-@@ -74,19 +74,21 @@ static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
- }
- 
- /**
-- * parse_spcr() - parse ACPI SPCR table and add preferred console
-+ * acpi_parse_spcr() - parse ACPI SPCR table and add preferred console
-  *
-- * @earlycon: set up earlycon for the console specified by the table
-+ * @enable_earlycon: set up earlycon for the console specified by the table
-+ * @enable_console: setup the console specified by the table.
-  *
-  * For the architectures with support for ACPI, CONFIG_ACPI_SPCR_TABLE may be
-  * defined to parse ACPI SPCR table.  As a result of the parsing preferred
-- * console is registered and if @earlycon is true, earlycon is set up.
-+ * console is registered and if @enable_earlycon is true, earlycon is set up.
-+ * If @enable_console is true the system console is also configured.
-  *
-  * When CONFIG_ACPI_SPCR_TABLE is defined, this function should be called
-  * from arch initialization code as soon as the DT/ACPI decision is made.
-  *
-  */
--int __init parse_spcr(bool earlycon)
-+int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- {
- 	static char opts[64];
- 	struct acpi_table_spcr *table;
-@@ -105,11 +107,8 @@ int __init parse_spcr(bool earlycon)
- 	if (ACPI_FAILURE(status))
- 		return -ENOENT;
- 
--	if (table->header.revision < 2) {
--		err = -ENOENT;
--		pr_err("wrong table version\n");
--		goto done;
--	}
-+	if (table->header.revision < 2)
-+		pr_info("SPCR table version %d\n", table->header.revision);
- 
- 	if (table->serial_port.space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY) {
- 		switch (ACPI_ACCESS_BIT_WIDTH((
-@@ -185,7 +184,7 @@ int __init parse_spcr(bool earlycon)
- 	 */
- 	if (qdf2400_erratum_44_present(&table->header)) {
- 		qdf2400_e44_present = true;
--		if (earlycon)
-+		if (enable_earlycon)
- 			uart = "qdf2400_e44";
- 	}
- 
-@@ -205,11 +204,13 @@ int __init parse_spcr(bool earlycon)
- 
- 	pr_info("console: %s\n", opts);
- 
--	if (earlycon)
-+	if (enable_earlycon)
- 		setup_earlycon(opts);
- 
--	err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
--
-+	if (enable_console)
-+		err = add_preferred_console(uart, 0, opts + strlen(uart) + 1);
-+	else
-+		err = 0;
- done:
- 	acpi_put_table((struct acpi_table_header *)table);
- 	return err;
-diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-index 4c8b80f1c688..870e84fb6e39 100644
---- a/drivers/tty/serial/earlycon.c
-+++ b/drivers/tty/serial/earlycon.c
-@@ -197,25 +197,20 @@ int __init setup_earlycon(char *buf)
- }
- 
- /*
-- * When CONFIG_ACPI_SPCR_TABLE is defined, "earlycon" without parameters in
-- * command line does not start DT earlycon immediately, instead it defers
-- * starting it until DT/ACPI decision is made.  At that time if ACPI is enabled
-- * call parse_spcr(), else call early_init_dt_scan_chosen_stdout()
-+ * This defers the initialization of the early console until after ACPI has
-+ * been initialized.
-  */
--bool earlycon_init_is_deferred __initdata;
-+bool earlycon_acpi_spcr_enable __initdata;
- 
- /* early_param wrapper for setup_earlycon() */
- static int __init param_setup_earlycon(char *buf)
- {
- 	int err;
- 
--	/*
--	 * Just 'earlycon' is a valid param for devicetree earlycons;
--	 * don't generate a warning from parse_early_params() in that case
--	 */
-+	/* Just 'earlycon' is a valid param for devicetree and ACPI SPCR. */
- 	if (!buf || !buf[0]) {
- 		if (IS_ENABLED(CONFIG_ACPI_SPCR_TABLE)) {
--			earlycon_init_is_deferred = true;
-+			earlycon_acpi_spcr_enable = true;
- 			return 0;
- 		} else if (!buf) {
- 			return early_init_dt_scan_chosen_stdout();
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index dc1ebfeeb5ec..9aac8f0ebe23 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1242,9 +1242,12 @@ static inline void acpi_table_upgrade(void) { }
- 
- #ifdef CONFIG_ACPI_SPCR_TABLE
- extern bool qdf2400_e44_present;
--int parse_spcr(bool earlycon);
-+int acpi_parse_spcr(bool enable_earlycon, bool enable_console);
- #else
--static inline int parse_spcr(bool earlycon) { return 0; }
-+static inline int acpi_parse_spcr(bool enable_earlycon, bool enable_console)
-+{
-+	return 0;
-+}
- #endif
- 
- #if IS_ENABLED(CONFIG_ACPI_GENERIC_GSI)
-diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
-index 37b044e78333..aefd0e5115da 100644
---- a/include/linux/serial_core.h
-+++ b/include/linux/serial_core.h
-@@ -376,10 +376,10 @@ extern int of_setup_earlycon(const struct earlycon_id *match,
- 			     const char *options);
- 
- #ifdef CONFIG_SERIAL_EARLYCON
--extern bool earlycon_init_is_deferred __initdata;
-+extern bool earlycon_acpi_spcr_enable __initdata;
- int setup_earlycon(char *buf);
- #else
--static const bool earlycon_init_is_deferred;
-+static const bool earlycon_acpi_spcr_enable;
- static inline int setup_earlycon(char *buf) { return 0; }
- #endif
- 
--- 
-1.8.3.1
+--RnlQjJ0d97Da+TV1
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEenb+qYJ1KjE/UpmZkGKawB22KXYFAlpgwt0ACgkQkGKawB22
+KXa2shAAxtbh0QuiXwdwL1qSrAUMp47nJu/oojSCPwdcu4mphkdYu7kNRJE0iapM
+PYfXxxWd4FOb3JzH3UU3eKxBk/Oj7zkUqPIg2xQ6T27jT1SmXLiN+0XFQlLeKnqf
+Y4dmlTtq778e5pwIxznqAyWj/Pl4x4DsybXhvv5wxdT/quAWkf0k7cky8Q/2NT3F
+7arwFskMP1h8iQVllmsgrGOLfPf+7XWIB68z1RmfBiZsR6oBiw40snWKsfF1WhON
+kSjtBAAT2DhTGaYtuH33R9gbjktCzn+c015KBNszutB4rLEw0fNpt0ffolZJDVhA
+3F/+cPZBsHJbAvaHOUV4Oq5C4YAMh/qQpxUgdWiGeCjdCwJXanxg8YIk1+WUiLcz
+Yh4S3BfJQQMnQfQQGxrX7cyJw38HtjUsHrgfz2xHuFQbMIvMtZRQjXwJcFB5D7fJ
+RuBQt+M8TWq0mvevzhgWimIMP52KZT0rtXOljXyTMvX3ijmLBSWnqAryQ2nwMTzA
+mvgIJkVnXXPE/lO7YaTO3d9Z5nbf+FPpcpDvMGScPAV8JUmIMtnbi2z43nO7Ctj4
+RH3se7pUlq9tVkghEIJHajAGQ6XDEjEAkfNo46lXWENovTYwfcIrB6noTqimQoAE
+6QJjC1/IMgku505tiIEiO9qh3FwEz6kUKd5X2PFgR3tLvPrLbAk=
+=IRpx
+-----END PGP SIGNATURE-----
+
+--RnlQjJ0d97Da+TV1--
