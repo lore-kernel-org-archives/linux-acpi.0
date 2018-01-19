@@ -1,111 +1,131 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: ACPI: Do not call _STA on battery devices with unmet
- dependencies
-Date: Fri, 19 Jan 2018 21:03:43 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396D2A4C@ORSMSX110.amr.corp.intel.com>
-References: <20180118160359.29971-1-hdegoede@redhat.com>
- <20180118191112.GI53542@bhelgaas-glaptop.roam.corp.google.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v6 02/12] drivers: base: cacheinfo: setup DT cache
+ properties early
+Date: Fri, 19 Jan 2018 17:27:21 -0600
+Message-ID: <6627a9ef-8d62-3cdf-dbea-390770991f30@arm.com>
+References: <20180113005920.28658-1-jeremy.linton@arm.com>
+ <20180113005920.28658-3-jeremy.linton@arm.com>
+ <20180115123338.GB5473@e107155-lin>
+ <65f78c99-8b86-0098-7ced-899840a4bf16@arm.com>
+ <ca64334c-9345-705c-80d8-f2deb924a679@arm.com>
+ <15884ccc-2cfb-da91-5844-369d8237175d@arm.com>
+ <05a8b375-70c4-34d4-6cde-8dd4cd62c10b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:56352 "EHLO mga04.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:44274 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756460AbeASVDp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 19 Jan 2018 16:03:45 -0500
-In-Reply-To: <20180118191112.GI53542@bhelgaas-glaptop.roam.corp.google.com>
+        id S1752938AbeASX1X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 19 Jan 2018 18:27:23 -0500
+In-Reply-To: <05a8b375-70c4-34d4-6cde-8dd4cd62c10b@arm.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Albert Ou <albert@sifive.com>
 
+Hi,
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Bjorn Helgaas
-> Sent: Thursday, January 18, 2018 11:11 AM
-> To: Hans de Goede <hdegoede@redhat.com>
-> Cc: Rafael J . Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
-> Bjorn Helgaas <bhelgaas@google.com>; Moore, Robert
-> <robert.moore@intel.com>; Zheng, Lv <lv.zheng@intel.com>; linux-
-> acpi@vger.kernel.org; linux-pci@vger.kernel.org; devel@acpica.org
-> Subject: Re: ACPI: Do not call _STA on battery devices with unmet dependencies
+On 01/18/2018 04:14 AM, Sudeep Holla wrote:
 > 
-> On Thu, Jan 18, 2018 at 05:03:55PM +0100, Hans de Goede wrote:
-
-Hi Hans,
-
-> > Hi All,
-> >
-> > The ACPI code already contains quite a bit of code to not bind the
-> > ACPI-battery until all deps for an ACPI battery device have been met,
-> > but on some devices calling _STA before all deps are met is a problem
-> > too because the _STA method uses an i2c OpRegion there.
-
-Could you explain why _STA method using an I2C OpRegion is problematic?
-
-Thanks,
-Erik
-
-> >
-> > Here is the DSDT of the device I'm seeing this on:
-> > https://fedorapeople.org/~jwrdegoede/toshiba-click-mini-dsdt.dsl
 > 
-> This looks like interesting info, but (a) this link isn't mentioned in the actual
-> patches, and (b) it's conceivable that fedorapeople.org could go away someday.
-> If this were a PCI series, I would suggest opening a report at bugzilla.kernel.org,
-> attaching the DSL there, and including the link in the patch changelog.
+> On 17/01/18 18:51, Jeremy Linton wrote:
+>> Hi,
+>>
+>> On 01/17/2018 12:20 PM, Sudeep Holla wrote:
+>>>
+>>>
+>>> On 16/01/18 21:07, Jeremy Linton wrote:
+>>>> Hi,
+>>>>
+>>>> On 01/15/2018 06:33 AM, Sudeep Holla wrote:
+>>>>> On Fri, Jan 12, 2018 at 06:59:10PM -0600, Jeremy Linton wrote:
+>>>>>> The original intent in cacheinfo was that an architecture
+>>>>>> specific populate_cache_leaves() would probe the hardware
+>>>>>> and then cache_shared_cpu_map_setup() and
+>>>>>> cache_override_properties() would provide firmware help to
+>>>>>> extend/expand upon what was probed. Arm64 was really
+>>>>>> the only architecture that was working this way, and
+>>>>>> with the removal of most of the hardware probing logic it
+>>>>>> became clear that it was possible to simplify the logic a bit.
+>>>>>>
+>>>>>> This patch combines the walk of the DT nodes with the
+>>>>>> code updating the cache size/line_size and nr_sets.
+>>>>>> cache_override_properties() (which was DT specific) is
+>>>>>> then removed. The result is that cacheinfo.of_node is
+>>>>>> no longer used as a temporary place to hold DT references
+>>>>>> for future calls that update cache properties. That change
+>>>>>> helps to clarify its one remaining use (matching
+>>>>>> cacheinfo nodes that represent shared caches) which
+>>>>>> will be used by the ACPI/PPTT code in the following patches.
+>>>>>>
+>>>>>> Cc: Palmer Dabbelt <palmer@sifive.com>
+>>>>>> Cc: Albert Ou <albert@sifive.com>
+>>>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>>>>> ---
+>>>>>>     arch/riscv/kernel/cacheinfo.c |  1 +
+>>>>>>     drivers/base/cacheinfo.c      | 65
+>>>>>> +++++++++++++++++++------------------------
+>>>>>>     include/linux/cacheinfo.h     |  1 +
+>>>>>>     3 files changed, 31 insertions(+), 36 deletions(-)
+>>>>>>
+>>>>>> diff --git a/arch/riscv/kernel/cacheinfo.c
+>>>>>> b/arch/riscv/kernel/cacheinfo.c
+>>>>>> index 10ed2749e246..6f4500233cf8 100644
+>>>>>> --- a/arch/riscv/kernel/cacheinfo.c
+>>>>>> +++ b/arch/riscv/kernel/cacheinfo.c
+>>>>>> @@ -30,6 +30,7 @@ static void ci_leaf_init(struct cacheinfo
+>>>>>> *this_leaf,
+>>>>>>             CACHE_WRITE_BACK
+>>>>>>             | CACHE_READ_ALLOCATE
+>>>>>>             | CACHE_WRITE_ALLOCATE;
+>>>>>> +    cache_of_set_props(this_leaf, node);
+>>>>>
+>>>>> This may be necessary but can it be done as later patch ? So far
+>>>>> nothing
+>>>>> is added that may break riscv IIUC.
+>>>>
+>>>> Well I think you have a bisection issue where the additional information
+>>>> will disappear between this patch and wherever we put this code back in.
+>>>>
+>>>
+>>> Hmm, I am sorry but I fail to see the issue. Before this change,
+>>> populate_cache_leaves just populated the info as per ci_leaf_init in
+>>> arch/riscv/kernel/cacheinfo.c and cache_override_properties used to fill
+>>> the remaining.
+>>>
+>>> After this patch, the same is achieved in cache_shared_cpu_map_setup.
+>>>
+>>> In both case, it was by the end of detect_cache_attributes, so I see no
+>>> issue.
+>>>
+>>
+>>
+>> Hi,
+>>
+>> I must be misunderstanding something.
+>>
 > 
-> > This series modifies the kernel to not call _STA until all deps are
-> > met, mirroring the binding behavior of the battery driver.
-> >
-> > Without this series a total of 32 ACPI errors get printend to the
-> > console on boot, there are 4 errors per _STA call, 2 battery devices
-> > on this system and 4 _STA calls per battery device.
-> >
-> > The first commit is a preparation commit for making the ACPICA changes
-> > in the 4th commit, this commit is necessary to not break things after
-> > the ACPICA changes.
-> >
-> > The second commit modifies acpi_bus_get_status to not call _STA on
-> > battery devices until all deps are met. This fixes 2 of the 4 too
-> > early _STA calls triggering these errors.
-> >
-> > The third commit makes the device instantiation code use
-> > acpi_bus_get_status instead of acpi_bus_get_status_handle so that the
-> > code to get the initial status also does not makes 1 too early _STA call.
-> >
-> > The fourth commit changes the ACPICA acpi_get_object_info function to
-> > not call _STA. Only 1 user (which is fixed in the first commit) cares
-> > about acpi_device_info.current_status. And the ACPICA code has this
-> comment:
-> >
-> >  * Note: This interface is intended to be used during the initial
-> > device
-> >  * discovery namespace traversal. Therefore, no complex methods can be
-> >  * executed, especially those that access operation regions.
-> > Therefore, do
-> >  * not add any additional methods that could cause problems in this area.
-> >  * Because of this reason support for the following methods has been
-> removed:
-> >  * this was the fate of the _SUB method which was found to cause such
-> >  * problems and was removed (11/2015).
-> >
-> > The described problems with the _SUB method clearly also apply to the
-> > _STA method, so removing it from acpi_get_object_info seems like it is
-> > the right thing to do here. This too fixes 1 too early _STA call, so
-> > that with all
-> > 4 patches in place we've fixed all 4 too early _STA calls.
-> >
-> > Regards,
-> >
-> > Hans
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi"
-> > in the body of a message to majordomo@vger.kernel.org More majordomo
-> > info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body of
-> a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+> Looks like I was missing to understand something :)
+> 
+>> AFAIK, The code in cache_setup_of_node() won't call cache_of_set_props()
+>> because it returns when there is an existing of_node (fw_unique) created
+>> by the riscv populate_cache_leaves(). That's why I'm making the direct
+>> call here. If we fail to get that change in place before
+>> cache_override_properties() is removed then the fields not set by the
+>> riscv code (size/etc) will be missing.
+> 
+> Indeed. I am trying to avoid use of cache_of_set_props outside.
+> How about skipping setting up of fw_unique in ci_leaf_init instead ?
+> 
+
+I've been thinking about this, but I'm hesitant because I don't have a 
+good test platform for this code. Plus, I'm not 100% sure that the 
+results are the same (is it possible that the platform setup node isn't 
+the same as the one the the common code would find?).
+
+I also think I'm getting a little off topic with these patches in 
+relation to what the core goal is (adding PPTT parsing).
+
+
