@@ -1,87 +1,45 @@
-From: Marcin Wojtas <mw@semihalf.com>
+From: Andrew Lunn <andrew@lunn.ch>
 Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Fri, 19 Jan 2018 19:07:29 +0100
-Message-ID: <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
-References: <20180104162036.GL3401@lunn.ch> <20180108144548.GA31502@xora-haswell>
- <20180108145312.GH10940@lunn.ch> <20180108151453.GB31502@xora-haswell>
- <20180108154243.GA30962@lunn.ch> <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
- <20180109101941.GD31502@xora-haswell> <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
- <20180109130012.GA27447@lunn.ch> <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+Date: Fri, 19 Jan 2018 19:53:53 +0100
+Message-ID: <20180119185353.GF13094@lunn.ch>
+References: <20180108145312.GH10940@lunn.ch>
+ <20180108151453.GB31502@xora-haswell>
+ <20180108154243.GA30962@lunn.ch>
+ <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+ <20180109101941.GD31502@xora-haswell>
+ <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch>
+ <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
  <20180118130026.GG32299@lunn.ch>
+ <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:39075 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755981AbeASSHa (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2018 13:07:30 -0500
-Received: by mail-io0-f195.google.com with SMTP id b198so3038599iof.6
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2018 10:07:30 -0800 (PST)
-In-Reply-To: <20180118130026.GG32299@lunn.ch>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-ele>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hi Mika,
+> Since I have a code that can be tested and easily modified to use
+> different ACPI approaches with real platform MDIO controller
+> (mvmdio.c) and NIC (mvpp2.c), in coming weeks I may be able to find
+> some time to prepare a proof of concept based on GenericSerialBus.
+> Please expect some RFC patches hopefully right after the coming merge
+> window is closed.
 
-2018-01-18 14:00 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
->> I CC'ed Mika since he is more familiar with handling these bits of ACPI
->> specs - I wonder whether this is a problem that cropped up on x86
->> systems too.
->
-> Hi Lorenzo
->
-> There is nothing about MDIO, PHYs, Ethernet switches, etc in version
-> 6.2 of the spec. If x86 has this, it must be after 6.2 was released.
-> I would not be too surprised if x86 has none of this. If you look at
-> the typical drives used on x86, i210, e1000e, ixgb, r8169, etc. They
-> are all PCI devices, and hide all this.
->
->> I do not think there is one and only answer but there must be a single
->> set of bindings and if the ACPI specs already cater for some of them
->> we have to reuse them.
->
-> Agreed. Due diligence so far suggests there is nothing already
-> defined. But im a newbie to ACPI, so could be looking in the wrong
-> place. I really hope there is somebody like Rob Herring, the DT
-> maintainer, who keeps an eye on all ACPI talk and would tell us if we
-> are heading off in the wrong direction.
->
+It would also be interesting to know how the standardisation process
+works.
 
-My initial approach with MDIO bus with PHYs as child nodes was super
-easy to describe and handle in Linux - please refer to:
-- typical representation of mdio bus with the phys -
-https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/mdio.txt?h=v4.15-rc8
-- my patches in the initial series
-However I guess it would be more proper to use the
-GenericSerialBus-based description, as advised in ACPI Spec. The
-question is, whether we should define new type of a bus or not
-(MdioSerialBus, similar to e.g. I2cSerialBus).
+I'm sure these is a FAQs, so maybe somebody could point us towards it.
 
-Since I have a code that can be tested and easily modified to use
-different ACPI approaches with real platform MDIO controller
-(mvmdio.c) and NIC (mvpp2.c), in coming weeks I may be able to find
-some time to prepare a proof of concept based on GenericSerialBus.
-Please expect some RFC patches hopefully right after the coming merge
-window is closed.
+Do we need to submit a proposed extension to the ACPI standard at the
+same time as the patch? Should we not accept the code into Linux until
+the proposal has been accepted? Or can we accept the code
+provisionally, with the understanding that if the ACPI committee
+rejects the extension, or suggest alternations, we can take the code
+out of Linux without having to worry about backwards compatibility?
 
-Of course, if I come up on some ACPI - specific implementation
-questions, I won't hesitate to ask in this thred. I will also
-appreciate any hints. For now my two main concerns are:
-- The PHY address on the mdio bus - should it be put into _CRS ->
-GenericSerialBus() field or separate _ADR? I'd lean towards first
-option.
-- The PHY type - in Linux it's resolved basing on two generic
-compatible strings
-(https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/phy.txt?h=v4.15-rc8).
-I'd put it as a sort of ID into GenericSerialBus(). If you agree - any
-specific filed that you would try to use?
-
-Do I understand correctly that the MDIO controller node should
-comprise OperationRegion() definition of the GenericSerialBus?
-
-I'm looking forward to your feedback.
-
-Thanks,
-Marcin
+Thanks
+      Andrew
