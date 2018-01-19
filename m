@@ -1,93 +1,90 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
-	from devices
-Date: Fri, 19 Jan 2018 10:27:53 +0000
-Message-ID: <e2753b59-2b9e-ffc6-a7b8-0ed23df38e10@arm.com>
-References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
-	<20171006133203.22803-6-jean-philippe.brucker@arm.com>
-	<0772e71e-4861-1e7b-f248-88aaba8bf2fc@codeaurora.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 1/4] PCI: acpiphp_ibm: prepare for acpi_get_object_info no
+ longer returning status
+Date: Fri, 19 Jan 2018 12:38:37 +0100
+Message-ID: <ba3f9498-6f38-b95d-15c7-dc910b027eec@redhat.com>
+References: <20180118160359.29971-1-hdegoede@redhat.com>
+ <20180118160359.29971-2-hdegoede@redhat.com>
+ <20180118191326.GJ53542@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <0772e71e-4861-1e7b-f248-88aaba8bf2fc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38410 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754562AbeASLil (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2018 06:38:41 -0500
+Received: by mail-wm0-f67.google.com with SMTP id 141so2893853wme.3
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2018 03:38:40 -0800 (PST)
+In-Reply-To: <20180118191326.GJ53542@bhelgaas-glaptop.roam.corp.google.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org
 
-Hi Sinan,
+Hi,
 
-On 19/01/18 04:52, Sinan Kaya wrote:
-> Hi Jean-Philippe,
+On 01/18/2018 08:13 PM, Bjorn Helgaas wrote:
+> On Thu, Jan 18, 2018 at 05:03:56PM +0100, Hans de Goede wrote:
+>> acpi_get_object_info is intended for early probe usage and as such should
+>> not call any methods which may rely on OpRegions, but it used to also call
+>> _STA to get the status, which on some systems does rely on OpRegions, this
+>> behavior and the acpi_device_info.current_status member are being removed.
+>>
+>> This commit prepares the acpiphp_ibm code for this by having it get the
+>> status itself using acpi_bus_get_status_handle. Note no error handling is
+>> necessary on any errors acpi_bus_get_status_handle leaves the value of
+>> the passed in current_status at its 0 initialization value.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > 
-> On 10/6/2017 9:31 AM, Jean-Philippe Brucker wrote:
->>  /**
->> + * iommu_process_bind_device - Bind a process address space to a device
->> + * @dev: the device
->> + * @task: the process to bind
->> + * @pasid: valid address where the PASID will be stored
->> + * @flags: bond properties (IOMMU_PROCESS_BIND_*)
->> + *
->> + * Create a bond between device and task, allowing the device to access the
->> + * process address space using the returned PASID.
->> + *
->> + * On success, 0 is returned and @pasid contains a valid ID. Otherwise, an error
->> + * is returned.
->> + */
->> +int iommu_process_bind_device(struct device *dev, struct task_struct *task,
->> +			      int *pasid, int flags)
+> Please add "()" after function names above, then
+
+Fixed in my local tree (I will send out a new version when the other patches
+have been reviewed).
+
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+Thanks.
+
+Regards,
+
+Hans
+
+
 > 
-> This API doesn't play nice with endpoint device drivers that have PASID limitations.
+> I assume this will be merged by Rafael along with the rest of the series.
 > 
-> The AMD driver seems to have PASID limitations per product that are not being
-> advertised in the PCI capability.
+> It would be nice to fix the run-on sentences in the changelog as well.
 > 
-> device_iommu_pasid_init()
-> {
->         pasid_limit = min_t(unsigned int,
->                         (unsigned int)(1 << kfd->device_info->max_pasid_bits),
->                         iommu_info.max_pasids);
->         /*
->          * last pasid is used for kernel queues doorbells
->          * in the future the last pasid might be used for a kernel thread.
->          */
->         pasid_limit = min_t(unsigned int,
->                                 pasid_limit,
->                                 kfd->doorbell_process_limit - 1);
-> }
-> 
-> kfd->device_info->max_pasid_bits seems to contain per device limitations.
-> 
-> Would you be willing to extend the API so that the requester can impose some limit
-> on the PASID value that is getting allocated.
-
-Good point. Following the feedback for this series, next version adds
-another public function:
-
-int iommu_sva_device_init(struct device *dev, int features);
-
-that has to be called by the device driver before any bind(). The intent
-is to let some IOMMU drivers initialize PASID tables and other features
-lazily, only if the device driver actually intends to use them. Maybe I
-could change this function to:
-
-int iommu_sva_device_init(struct device *dev, int features, unsigned int
-max_pasid);
-
-@features is a bitmask telling what the device driver needs (PASID and/or
-page faults). If features has IOMMU_SVA_FEAT_PASID set, then device driver
-can set a max_pasid limit, that we'd store in our private device-iommu
-data. If max_pasid is 0, then we'd use the PCI limit.
-
-Thanks,
-Jean
+>> ---
+>>   drivers/pci/hotplug/acpiphp_ibm.c | 5 ++++-
+>>   1 file changed, 4 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
+>> index 984c7e8cec5a..8472c4a27f70 100644
+>> --- a/drivers/pci/hotplug/acpiphp_ibm.c
+>> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
+>> @@ -399,6 +399,7 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
+>>   		u32 lvl, void *context, void **rv)
+>>   {
+>>   	acpi_handle *phandle = (acpi_handle *)context;
+>> +	unsigned long long current_status = 0;
+>>   	acpi_status status;
+>>   	struct acpi_device_info *info;
+>>   	int retval = 0;
+>> @@ -410,7 +411,9 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
+>>   		return retval;
+>>   	}
+>>   
+>> -	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
+>> +	acpi_bus_get_status_handle(handle, &current_status);
+>> +
+>> +	if (current_status && (info->valid & ACPI_VALID_HID) &&
+>>   			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
+>>   			 !strcmp(info->hardware_id.string, IBM_HARDWARE_ID2))) {
+>>   		pr_debug("found hardware: %s, handle: %p\n",
+>> -- 
+>> 2.14.3
+>>
