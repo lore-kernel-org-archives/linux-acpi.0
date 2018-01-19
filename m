@@ -1,40 +1,93 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: ACPI: sbshc: remove raw pointer from printk message
-Date: Fri, 19 Jan 2018 10:06:03 +0100
-Message-ID: <20180119090603.GA7775@kroah.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFCv2 PATCH 05/36] iommu/process: Bind and unbind process to and
+	from devices
+Date: Fri, 19 Jan 2018 10:27:53 +0000
+Message-ID: <e2753b59-2b9e-ffc6-a7b8-0ed23df38e10@arm.com>
+References: <20171006133203.22803-1-jean-philippe.brucker@arm.com>
+	<20171006133203.22803-6-jean-philippe.brucker@arm.com>
+	<0772e71e-4861-1e7b-f248-88aaba8bf2fc@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45750 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754217AbeASJGG (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2018 04:06:06 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <0772e71e-4861-1e7b-f248-88aaba8bf2fc-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <gabriele.paoloni-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wang Qize <wang_qize@venustech.com.cn>
 
-There's no need to be printing a raw kernel pointer to the kernel log at
-every boot.  So just remove it, and change the whole message to use the
-correct dev_info() call at the same time.
+Hi Sinan,
 
-Reported-by: Wang Qize <wang_qize@venustech.com.cn>
-Cc: stable <stable@vger.kernel.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+On 19/01/18 04:52, Sinan Kaya wrote:
+> Hi Jean-Philippe,
+> 
+> On 10/6/2017 9:31 AM, Jean-Philippe Brucker wrote:
+>>  /**
+>> + * iommu_process_bind_device - Bind a process address space to a device
+>> + * @dev: the device
+>> + * @task: the process to bind
+>> + * @pasid: valid address where the PASID will be stored
+>> + * @flags: bond properties (IOMMU_PROCESS_BIND_*)
+>> + *
+>> + * Create a bond between device and task, allowing the device to access the
+>> + * process address space using the returned PASID.
+>> + *
+>> + * On success, 0 is returned and @pasid contains a valid ID. Otherwise, an error
+>> + * is returned.
+>> + */
+>> +int iommu_process_bind_device(struct device *dev, struct task_struct *task,
+>> +			      int *pasid, int flags)
+> 
+> This API doesn't play nice with endpoint device drivers that have PASID limitations.
+> 
+> The AMD driver seems to have PASID limitations per product that are not being
+> advertised in the PCI capability.
+> 
+> device_iommu_pasid_init()
+> {
+>         pasid_limit = min_t(unsigned int,
+>                         (unsigned int)(1 << kfd->device_info->max_pasid_bits),
+>                         iommu_info.max_pasids);
+>         /*
+>          * last pasid is used for kernel queues doorbells
+>          * in the future the last pasid might be used for a kernel thread.
+>          */
+>         pasid_limit = min_t(unsigned int,
+>                                 pasid_limit,
+>                                 kfd->doorbell_process_limit - 1);
+> }
+> 
+> kfd->device_info->max_pasid_bits seems to contain per device limitations.
+> 
+> Would you be willing to extend the API so that the requester can impose some limit
+> on the PASID value that is getting allocated.
 
-diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-index 2fa8304171e0..217e1caf58d6 100644
---- a/drivers/acpi/sbshc.c
-+++ b/drivers/acpi/sbshc.c
-@@ -275,8 +275,8 @@ static int acpi_smbus_hc_add(struct acpi_device *device)
- 	device->driver_data = hc;
- 
- 	acpi_ec_add_query_handler(hc->ec, hc->query_bit, NULL, smbus_alarm, hc);
--	printk(KERN_INFO PREFIX "SBS HC: EC = 0x%p, offset = 0x%0x, query_bit = 0x%0x\n",
--		hc->ec, hc->offset, hc->query_bit);
-+	dev_info(&device->dev, "SBS HC: offset = 0x%0x, query_bit = 0x%0x\n",
-+		 hc->offset, hc->query_bit);
- 
- 	return 0;
- }
+Good point. Following the feedback for this series, next version adds
+another public function:
+
+int iommu_sva_device_init(struct device *dev, int features);
+
+that has to be called by the device driver before any bind(). The intent
+is to let some IOMMU drivers initialize PASID tables and other features
+lazily, only if the device driver actually intends to use them. Maybe I
+could change this function to:
+
+int iommu_sva_device_init(struct device *dev, int features, unsigned int
+max_pasid);
+
+@features is a bitmask telling what the device driver needs (PASID and/or
+page faults). If features has IOMMU_SVA_FEAT_PASID set, then device driver
+can set a max_pasid limit, that we'd store in our private device-iommu
+data. If max_pasid is 0, then we'd use the PCI limit.
+
+Thanks,
+Jean
