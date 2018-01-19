@@ -1,43 +1,50 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v1 3/3] x86/platform/intel-mid: Add special handling of
- ACPI HW reduced platforms
-Date: Fri, 19 Jan 2018 09:15:25 +0100
-Message-ID: <20180119081525.w3sdwm5xlbanqop2@gmail.com>
-References: <20180117173409.88136-1-andriy.shevchenko@linux.intel.com>
- <20180117173409.88136-3-andriy.shevchenko@linux.intel.com>
- <1516211032.7000.1049.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+Subject: [Patch v1 3/8] ACPI / LPIT: Export lpit_read_residency_count_address()
+Date: Fri, 19 Jan 2018 14:28:22 +0530
+Message-ID: <1516352307-20123-4-git-send-email-rajneesh.bhardwaj@intel.com>
+References: <1516352307-20123-1-git-send-email-rajneesh.bhardwaj@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36671 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751548AbeASIP3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2018 03:15:29 -0500
-Content-Disposition: inline
-In-Reply-To: <1516211032.7000.1049.camel@linux.intel.com>
+Received: from mga06.intel.com ([134.134.136.31]:52686 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755245AbeASJEA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 19 Jan 2018 04:04:00 -0500
+In-Reply-To: <1516352307-20123-1-git-send-email-rajneesh.bhardwaj@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org
+Cc: dvhart@infradead.org, andy@infradead.org, linux-kernel@vger.kernel.org, vishwanath.somayaji@intel.com, srinivas.pandruvada@linux.intel.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-* Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
+Export lpit_read_residency_count_address(), so that it can be used from
+drivers built as module. With the recent changes, the builtin_pci
+functionality of the intel_pmc_core driver is removed and now it can be
+built as a module to read this exported interface to calculate the PMC base
+address.
 
-> On Wed, 2018-01-17 at 19:34 +0200, Andy Shevchenko wrote:
-> > When switching to ACPI HW reduced platforms we still want to
-> > initialize timers.
-> > Override acpi_reduced_hw_init() to achieve that.
-> 
-> Just realized, that it may annihilate the other acpi_reduced_hw_init()
-> on non-MID platforms...
-> 
-> Open to suggestions how would be better to deal with this (I really
-> don't like the idea to spread MID quirks all over the code).
-> 
-> P.S. Patch 2 from the series still makes sense per se.
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 
-Ok, I'll apply patch #2 to tip:x86/platform.
+Tested-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+---
 
-Thanks,
+ drivers/acpi/acpi_lpit.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-	Ingo
+diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
+index e94e478dd18b..cf4fc0161164 100644
+--- a/drivers/acpi/acpi_lpit.c
++++ b/drivers/acpi/acpi_lpit.c
+@@ -100,6 +100,7 @@ int lpit_read_residency_count_address(u64 *address)
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(lpit_read_residency_count_address);
+ 
+ static void lpit_update_residency(struct lpit_residency_info *info,
+ 				 struct acpi_lpit_native *lpit_native)
+-- 
+2.7.4
+
