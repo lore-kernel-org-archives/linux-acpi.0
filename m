@@ -1,77 +1,87 @@
-From: Auger Eric <eric.auger@redhat.com>
-Subject: Re: [RFC PATCH v2 2/5] iommu/virtio-iommu: Add probe request
-Date: Fri, 19 Jan 2018 18:22:30 +0100
-Message-ID: <bfefc181-4c25-8798-b304-dce2c68b1ba8@redhat.com>
-References: <20171117185211.32593-1-jean-philippe.brucker@arm.com>
- <20171117185211.32593-3-jean-philippe.brucker@arm.com>
- <5b236aaa-4abb-2cac-1c74-f8137a0c2244@redhat.com>
- <b9ede9e9-25a6-2848-e152-ffc61d560be8@arm.com>
+From: Marcin Wojtas <mw@semihalf.com>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Fri, 19 Jan 2018 19:07:29 +0100
+Message-ID: <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
+References: <20180104162036.GL3401@lunn.ch> <20180108144548.GA31502@xora-haswell>
+ <20180108145312.GH10940@lunn.ch> <20180108151453.GB31502@xora-haswell>
+ <20180108154243.GA30962@lunn.ch> <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+ <20180109101941.GD31502@xora-haswell> <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch> <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+ <20180118130026.GG32299@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <b9ede9e9-25a6-2848-e152-ffc61d560be8@arm.com>
-Sender: kvm-owner@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "devel@acpica.org" <devel@acpica.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "virtualization@lists.linux-foundation.org" <virtualization@lists.linux-foundation.org>, "virtio-dev@lists.oasis-open.org" <virtio-dev@lists.oasis-open.org>
-Cc: "jasowang@redhat.com" <jasowang@redhat.com>, "mst@redhat.com" <mst@redhat.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "joro@8bytes.org" <joro@8bytes.org>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, Sudeep Holla <Sudeep.Holla@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, Robin Murphy <Robin.Murphy@arm.com>, Will Deacon <Will.Deacon@arm.com>, "bharat.bhushan@nxp.com" <bharat.bhushan@nxp.com>, "Jayachandran.Nair@cavium.com" <Jayachandran.Nair@cavium.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, peterx@red
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-io0-f195.google.com ([209.85.223.195]:39075 "EHLO
+        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755981AbeASSHa (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jan 2018 13:07:30 -0500
+Received: by mail-io0-f195.google.com with SMTP id b198so3038599iof.6
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jan 2018 10:07:30 -0800 (PST)
+In-Reply-To: <20180118130026.GG32299@lunn.ch>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 
-Hi Jean-Philippe,
+Hi Mika,
 
-On 19/01/18 17:21, Jean-Philippe Brucker wrote:
-> On 16/01/18 23:26, Auger Eric wrote:
-> [...]
->>> +	switch (mem->subtype) {
->>> +	case VIRTIO_IOMMU_RESV_MEM_T_MSI:
->>> +		region = iommu_alloc_resv_region(addr, size, prot,
->>> +						 IOMMU_RESV_MSI);
->> if (!region)
->> 	return -ENOMEM;
->>> +		break;
->>> +	case VIRTIO_IOMMU_RESV_MEM_T_RESERVED:
->>> +	default:
->>> +		region = iommu_alloc_resv_region(addr, size, 0,
->>> +						 IOMMU_RESV_RESERVED);
->> same.
-> 
-> I'll add them, thanks
-> 
->> There is another issue related to the exclusion of iovas belonging to
->> reserved regions. Typically on x86, when attempting to run
->> virtio-blk-pci with iommu I eventually saw the driver using iova
->> belonging to the IOAPIC regions to map phys addr and this stalled qemu
->> with a drown trace:
->>
->> "virtio: bogus descriptor or out of resources"
->>
->> those regions need to be excluded from the iova allocator. This was
->> resolved by adding
->> if (iommu_dma_init_domain(domain,
->> 			  vdev->viommu->geometry.aperture_start,
->> 			  vdev->viommu->geometry.aperture_end,
->> 			  dev))
->> in viommu_attach_dev()
-> 
-> The most recent hack for x86 [1] does call iommu_dma_init_domain() in
-> attach_dev(). Is it buggy?
+2018-01-18 14:00 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+>> I CC'ed Mika since he is more familiar with handling these bits of ACPI
+>> specs - I wonder whether this is a problem that cropped up on x86
+>> systems too.
+>
+> Hi Lorenzo
+>
+> There is nothing about MDIO, PHYs, Ethernet switches, etc in version
+> 6.2 of the spec. If x86 has this, it must be after 6.2 was released.
+> I would not be too surprised if x86 has none of this. If you look at
+> the typical drives used on x86, i210, e1000e, ixgb, r8169, etc. They
+> are all PCI devices, and hide all this.
+>
+>> I do not think there is one and only answer but there must be a single
+>> set of bindings and if the ACPI specs already cater for some of them
+>> we have to reuse them.
+>
+> Agreed. Due diligence so far suggests there is nothing already
+> defined. But im a newbie to ACPI, so could be looking in the wrong
+> place. I really hope there is somebody like Rob Herring, the DT
+> maintainer, who keeps an eye on all ACPI talk and would tell us if we
+> are heading off in the wrong direction.
+>
 
-Oh OK. Actually I have never used that branch and in my version the last
-arg of iommu_dma_init_domain was NULL hence the issue. But I was
-thinking more generally that care must be taken to exclude all those
-regions.
+My initial approach with MDIO bus with PHYs as child nodes was super
+easy to describe and handle in Linux - please refer to:
+- typical representation of mdio bus with the phys -
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/mdio.txt?h=v4.15-rc8
+- my patches in the initial series
+However I guess it would be more proper to use the
+GenericSerialBus-based description, as advised in ACPI Spec. The
+question is, whether we should define new type of a bus or not
+(MdioSerialBus, similar to e.g. I2cSerialBus).
 
-Thanks
+Since I have a code that can be tested and easily modified to use
+different ACPI approaches with real platform MDIO controller
+(mvmdio.c) and NIC (mvpp2.c), in coming weeks I may be able to find
+some time to prepare a proof of concept based on GenericSerialBus.
+Please expect some RFC patches hopefully right after the coming merge
+window is closed.
 
-Eric
-> 
-> We probably shouldn't call iommu_dma_init_domain() unconditionally
-> (outside of CONFIG_X86 that is), since it's normally done by the arch
-> (arch/arm64/mm/dma-mapping.c)
-> 
-> Thanks,
-> Jean
-> 
-> [1]
-> http://www.linux-arm.org/git?p=linux-jpb.git;a=commitdiff;h=e910e224b58712151dda06df595a53ff07edef63
-> on branch virtio-iommu/v0.5-x86
-> 
+Of course, if I come up on some ACPI - specific implementation
+questions, I won't hesitate to ask in this thred. I will also
+appreciate any hints. For now my two main concerns are:
+- The PHY address on the mdio bus - should it be put into _CRS ->
+GenericSerialBus() field or separate _ADR? I'd lean towards first
+option.
+- The PHY type - in Linux it's resolved basing on two generic
+compatible strings
+(https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/phy.txt?h=v4.15-rc8).
+I'd put it as a sort of ID into GenericSerialBus(). If you agree - any
+specific filed that you would try to use?
+
+Do I understand correctly that the MDIO controller node should
+comprise OperationRegion() definition of the GenericSerialBus?
+
+I'm looking forward to your feedback.
+
+Thanks,
+Marcin
