@@ -1,315 +1,103 @@
-From: Jonathan Cameron <jic23@kernel.org>
-Subject: Re: [PATCH v7 3/4] iio : Add cm3218 smbus ARA and ACPI support
-Date: Sat, 20 Jan 2018 16:36:28 +0000
-Message-ID: <20180120163628.2057e8d9@archlinux>
-References: <20180113133705.25044-1-m.capdeville@no-log.org>
-        <20180113133705.25044-3-m.capdeville@no-log.org>
-        <20180114114510.1207b191@archlinux>
-        <093635ddcdb9788f80620442ec81eadf.squirrel@webmail.no-log.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Sat, 20 Jan 2018 21:52:46 +0200
+Message-ID: <20180120195246.GC27654@lahna.fi.intel.com>
+References: <20180108145312.GH10940@lunn.ch>
+ <20180108151453.GB31502@xora-haswell>
+ <20180108154243.GA30962@lunn.ch>
+ <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+ <20180109101941.GD31502@xora-haswell>
+ <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch>
+ <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+ <20180118130026.GG32299@lunn.ch>
+ <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <093635ddcdb9788f80620442ec81eadf.squirrel@webmail.no-log.org>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Marc CAPDEVILLE <m.capdeville@no-log.org>
-Cc: Kevin Tsai <ktsai@capellamicro.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:56313 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756422AbeATTwy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 20 Jan 2018 14:52:54 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Andrew Lunn <andrew@lunn.ch>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Eze
 
-On Sun, 14 Jan 2018 15:39:24 +0100
-"Marc CAPDEVILLE" <m.capdeville@no-log.org> wrote:
+On Fri, Jan 19, 2018 at 07:07:29PM +0100, Marcin Wojtas wrote:
+> Hi Mika,
 
-> 
-> > On Sat, 13 Jan 2018 14:37:04 +0100
-> > Marc CAPDEVILLE <m.capdeville@no-log.org> wrote:
-> >
-> >> On asus T100, Capella cm3218 chip is implemented as ambiant light
-> >> sensor. This chip expose an smbus ARA protocol device on standard
-> >> address 0x0c. The chip is not functional before all alerts are
-> >> acknowledged.
-> >>
-> >> The driver call i2c_require_smbus_alert() to set the smbus alert
-> >> protocol driver on its adapter. If an interrupt resource is given,
-> >> we register this irq with the smbus alert driver.
-> >> If no irq is given, the driver call i2c_smbus_alert_event() to trigger
-> >> the alert process to clear the initial alert event before initializing
-> >> cm3218 registers.
-> >>
-> >> Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
-> >
-> > Ultimately I think we can move most of the logic here into the i2c core,
-> > but that can be a job for another day.
-> 
-> This can be done in the core in i2c_device_probe(), but can we suppose
-> that client irq is the smbus alert line when the device is flagged with
-> I2C_CLIENT_ALERT and/or the driver define an alert callback ?
+Hi,
 
-We'd have to audit the drivers and check this was the case.  Unless
-we have have devices with ARA and another interrupt it seems likely
-this would be fine.
+> 2018-01-18 14:00 GMT+01:00 Andrew Lunn <andrew@lunn.ch>:
+> >> I CC'ed Mika since he is more familiar with handling these bits of ACPI
+> >> specs - I wonder whether this is a problem that cropped up on x86
+> >> systems too.
+> >
+> > Hi Lorenzo
+> >
+> > There is nothing about MDIO, PHYs, Ethernet switches, etc in version
+> > 6.2 of the spec. If x86 has this, it must be after 6.2 was released.
+> > I would not be too surprised if x86 has none of this. If you look at
+> > the typical drives used on x86, i210, e1000e, ixgb, r8169, etc. They
+> > are all PCI devices, and hide all this.
+> >
+> >> I do not think there is one and only answer but there must be a single
+> >> set of bindings and if the ACPI specs already cater for some of them
+> >> we have to reuse them.
+> >
+> > Agreed. Due diligence so far suggests there is nothing already
+> > defined. But im a newbie to ACPI, so could be looking in the wrong
+> > place. I really hope there is somebody like Rob Herring, the DT
+> > maintainer, who keeps an eye on all ACPI talk and would tell us if we
+> > are heading off in the wrong direction.
+> >
+> 
+> My initial approach with MDIO bus with PHYs as child nodes was super
+> easy to describe and handle in Linux - please refer to:
+> - typical representation of mdio bus with the phys -
+> https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/mdio.txt?h=v4.15-rc8
+> - my patches in the initial series
+> However I guess it would be more proper to use the
+> GenericSerialBus-based description, as advised in ACPI Spec. The
+> question is, whether we should define new type of a bus or not
+> (MdioSerialBus, similar to e.g. I2cSerialBus).
 
-> >
-> > I'm not sure there isn't a nasty mess with this device if we have
-> > a bus master created ara.  I raised it below.  Not sure there is
-> > much we can do about it though.
-> 
-> If the adapter has already created the smbus alert device, the
-> i2c_require_smbus_alert() do nothing. We just have to register an
-> additional handler for the irq line if it differ from the adapter one.
-> This is handle by i2c_smbus_alert_add_irq().
-> >
-> > Jonathan
-> >
-> >> ---
-> >>  drivers/iio/light/cm32181.c | 94
-> >> +++++++++++++++++++++++++++++++++++++++++++--
-> >>  1 file changed, 91 insertions(+), 3 deletions(-)
-> >>
-> >> diff --git a/drivers/iio/light/cm32181.c b/drivers/iio/light/cm32181.c
-> >> index aebf7dd071af..eae5b7cc6878 100644
-> >> --- a/drivers/iio/light/cm32181.c
-> >> +++ b/drivers/iio/light/cm32181.c
-> >> @@ -18,6 +18,9 @@
-> >>  #include <linux/iio/sysfs.h>
-> >>  #include <linux/iio/events.h>
-> >>  #include <linux/init.h>
-> >> +#include <linux/i2c-smbus.h>
-> >> +#include <linux/acpi.h>
-> >> +#include <linux/of_device.h>
-> >>
-> >>  /* Registers Address */
-> >>  #define CM32181_REG_ADDR_CMD		0x00
-> >> @@ -47,6 +50,9 @@
-> >>  #define CM32181_CALIBSCALE_RESOLUTION	1000
-> >>  #define MLUX_PER_LUX			1000
-> >>
-> >> +#define CM32181_ID			0x81
-> >> +#define CM3218_ID			0x18
-> >> +
-> >>  static const u8 cm32181_reg[CM32181_CONF_REG_NUM] = {
-> >>  	CM32181_REG_ADDR_CMD,
-> >>  };
-> >> @@ -57,6 +63,7 @@ static const int als_it_value[] = {25000, 50000,
-> >> 100000, 200000, 400000,
-> >>
-> >>  struct cm32181_chip {
-> >>  	struct i2c_client *client;
-> >> +	int chip_id;
-> >>  	struct mutex lock;
-> >>  	u16 conf_regs[CM32181_CONF_REG_NUM];
-> >>  	int calibscale;
-> >> @@ -81,7 +88,7 @@ static int cm32181_reg_init(struct cm32181_chip
-> >> *cm32181)
-> >>  		return ret;
-> >>
-> >>  	/* check device ID */
-> >> -	if ((ret & 0xFF) != 0x81)
-> >> +	if ((ret & 0xFF) != cm32181->chip_id)
-> >>  		return -ENODEV;
-> >>
-> >>  	/* Default Values */
-> >> @@ -297,12 +304,23 @@ static const struct iio_info cm32181_info = {
-> >>  	.attrs			= &cm32181_attribute_group,
-> >>  };
-> >>
-> >> +static void cm3218_alert(struct i2c_client *client,
-> >> +			 enum i2c_alert_protocol type,
-> >> +			 unsigned int data)
-> >> +{
-> >> +	/*
-> >> +	 * nothing to do for now.
-> >> +	 * This is just here to acknownledge the cm3218 alert.
-> >> +	 */
-> >> +}
-> >> +
-> >>  static int cm32181_probe(struct i2c_client *client,
-> >>  			const struct i2c_device_id *id)
-> >>  {
-> >>  	struct cm32181_chip *cm32181;
-> >>  	struct iio_dev *indio_dev;
-> >>  	int ret;
-> >> +	const struct acpi_device_id *a_id;
-> >>
-> >>  	indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*cm32181));
-> >>  	if (!indio_dev) {
-> >> @@ -322,11 +340,55 @@ static int cm32181_probe(struct i2c_client
-> >> *client,
-> >>  	indio_dev->name = id->name;
-> >>  	indio_dev->modes = INDIO_DIRECT_MODE;
-> >>
-> >> +	/* Lookup for chip ID from platform, ACPI or of device table */
-> >> +	if (id) {
-> >> +		cm32181->chip_id = id->driver_data;
-> >> +	} else if (ACPI_COMPANION(&client->dev)) {
-> >> +		a_id = acpi_match_device(client->dev.driver->acpi_match_table,
-> >> +					 &client->dev);
-> >> +		if (!a_id)
-> >> +			return -ENODEV;
-> >> +
-> >> +		cm32181->chip_id = (int)a_id->driver_data;
-> >> +	} else if (client->dev.of_node) {
-> >> +		cm32181->chip_id = (int)of_device_get_match_data(&client->dev);
-> >> +		if (!cm32181->chip_id)
-> >> +			return -ENODEV;
-> >> +	} else {
-> >> +		return -ENODEV;
-> >> +	}
-> >> +
-> >> +	if (cm32181->chip_id == CM3218_ID) {
-> >> +		/* cm3218 chip require an ARA device on his adapter */
-> >> +		ret = i2c_require_smbus_alert(client);
-> >> +		if (ret < 0)
-> >> +			return ret;
-> >
-> > This should be apparent to the core as we have an alert callback set.
-> 
-> Yes, I think that i2c_require_smbus_alert() may be handle by the core if
-> the driver have an alert callback defined and/or the client is flagged
-> with I2C_CLIENT_ALERT. I think this can be done in i2c_device_probe().
-> 
-> > I suppose there may be nasty corner cases where the alert can be cleared
-> > without acknowledging explicitly (I think some of the Maxim parts do
-> > this).
-> >
-> >> +
-> >> +		/* If irq is given, register it with the smbus alert driver */
-> >> +		if (client->irq > 0) {
-> >> +			ret = i2c_smbus_alert_add_irq(client, client->irq);
-> >> +			if (ret < 0)
-> >> +				return ret;
-> >> +		} else {
-> >> +			/*
-> >> +			 * if no irq is given, acknownledge initial ARA
-> >> +			 * event so cm32181_reg_init() will not fail.
-> >
-> > Logic here has me a bit confused.  If we don't have an irq then it
-> > could be the i2c master already registered the relevant support.
-> 
-> Yes this code can be removed for now, as all board I have found using this
-> chip enumerated by ACPI define an interrupt. (Asus T100, Chuwi Hi8, Lenovo
-> Carbon X1, Acer Aspire Switch 10).
-> 
-> > Now smbalert is IIRC a level interrupt (stays high until all sources
-> > have been dealt with) so it should have fired when enabled and be
-> > continuously firing until someone deals with it (which is decidedly nasty)
-> 
-> The smbus_alert driver will always deal with each alert on the bus,
-> acknowledging each device until interrupt line is cleared. It don't care
-> if there are drivers handling the alert or not.
-> >
-> > Anyhow to my mind that core irq should be masked until someone says
-> > they are ready to handle it.
-> >
-> > Upshot I think is that any device which can send ARA before driver
-> > is loaded is inherently horribly broken if that alert line is shared
-> > with other devices as then even enabling only on first
-> > device saying it handles an ARA doesn't work. Oh goody.
-> 
-> This is the case of cm3218. Irq line is stuck low at power-on until the
-> first read of alert address on that chip. The driver just can't access
-> register until the alert is cleared. So It need the smbus alert process to
-> be fired before initializing the device.
-If another driver probes first and hence the interrupt is enabled
-we are in an interrupt storm territory.  Oh goody.
+I'm not familiar with MDIO bus but an alternative to GeneriSerialBus
+would be to follow what SDIO is doing, e.g have the PHY devices listed
+below the MDIO controller and use _ADR to describe their "address" on
+that bus. You can see how _ADR applies to SDIO bus from ACPI spec.
 
-> 
-> There is another problem, the treaded irq hander sometime is not run
-> before cm32181_reg_init() is called. So in that case , I think we need to
-> defer the probe and retry later.
+Of course ACPI spec should then be updated accordingly to describe what
+_ADR means for devices on MDIO bus.
 
-Be more lazy and sleep a bit?
+> Since I have a code that can be tested and easily modified to use
+> different ACPI approaches with real platform MDIO controller
+> (mvmdio.c) and NIC (mvpp2.c), in coming weeks I may be able to find
+> some time to prepare a proof of concept based on GenericSerialBus.
+> Please expect some RFC patches hopefully right after the coming merge
+> window is closed.
+> 
+> Of course, if I come up on some ACPI - specific implementation
+> questions, I won't hesitate to ask in this thred. I will also
+> appreciate any hints. For now my two main concerns are:
+> - The PHY address on the mdio bus - should it be put into _CRS ->
+> GenericSerialBus() field or separate _ADR? I'd lean towards first
+> option.
+> - The PHY type - in Linux it's resolved basing on two generic
+> compatible strings
+> (https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/devicetree/bindings/net/phy.txt?h=v4.15-rc8).
+> I'd put it as a sort of ID into GenericSerialBus(). If you agree - any
+> specific filed that you would try to use?
 
-> >
-> > Anyhow, is this path tested?  I.e. did you make your master
-> > driver register the ara support?
-> 
-> No, So I will remove that in next version.
-> 
-> >
-> >> +			 */
-> >> +			ret = i2c_smbus_alert_event(client);
-> >> +			if (ret)
-> >> +				return ret;
-> >> +		}
-> >> +	}
-> >> +
-> >>  	ret = cm32181_reg_init(cm32181);
-> >>  	if (ret) {
-> >>  		dev_err(&client->dev,
-> >>  			"%s: register init failed\n",
-> >>  			__func__);
-> >> +
-> > I would use a goto and unify the unwind of this in an erro rblock at
-> > the end fo the driver.
-> >> +		if (cm32181->chip_id == CM3218_ID && client->irq)
-> >> +			i2c_smbus_alert_free_irq(client, client->irq);
-> >> +
-> >>  		return ret;
-> >>  	}
-> >>
-> >> @@ -335,32 +397,58 @@ static int cm32181_probe(struct i2c_client
-> >> *client,
-> >>  		dev_err(&client->dev,
-> >>  			"%s: regist device failed\n",
-> >>  			__func__);
-> >> +
-> >> +		if (cm32181->chip_id == CM3218_ID && client->irq)
-> >> +			i2c_smbus_alert_free_irq(client, client->irq);
-> >> +
-> >>  		return ret;
-> >>  	}
-> >>
-> >>  	return 0;
-> >>  }
-> >>
-> >> +static int cm32181_remove(struct i2c_client *client)
-> >> +{
-> >> +	struct cm32181_chip *cm32181 = i2c_get_clientdata(client);
-> >> +
-> >> +	if (cm32181->chip_id == CM3218_ID && client->irq)
-> >> +		i2c_smbus_alert_free_irq(client, client->irq);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +
-> >>  static const struct i2c_device_id cm32181_id[] = {
-> >> -	{ "cm32181", 0 },
-> >> +	{ "cm32181", CM32181_ID },
-> >> +	{ "cm3218", CM3218_ID },
-> >>  	{ }
-> >>  };
-> >>
-> >>  MODULE_DEVICE_TABLE(i2c, cm32181_id);
-> >>
-> >>  static const struct of_device_id cm32181_of_match[] = {
-> >> -	{ .compatible = "capella,cm32181" },
-> >> +	{ .compatible = "capella,cm32181", (void *)CM32181_ID },
-> >> +	{ .compatible = "capella,cm3218",  (void *)CM3218_ID },
-> >>  	{ }
-> >>  };
-> >>  MODULE_DEVICE_TABLE(of, cm32181_of_match);
-> >>
-> >> +static const struct acpi_device_id cm32181_acpi_match[] = {
-> >> +	{ "CPLM3218", CM3218_ID },
-> >> +	{ }
-> >> +};
-> >> +
-> >> +MODULE_DEVICE_TABLE(acpi, cm32181_acpi_match);
-> >> +
-> >>  static struct i2c_driver cm32181_driver = {
-> >>  	.driver = {
-> >>  		.name	= "cm32181",
-> >>  		.of_match_table = of_match_ptr(cm32181_of_match),
-> >> +		.acpi_match_table = ACPI_PTR(cm32181_acpi_match),
-> >>  	},
-> >>  	.id_table       = cm32181_id,
-> >>  	.probe		= cm32181_probe,
-> >> +	.remove		= cm32181_remove,
-> >> +	.alert		= cm3218_alert,
-> >>  };
-> >>
-> >>  module_i2c_driver(cm32181_driver);
-> >
-> >
-> 
-> 
+If you go with the SDIO way then each PHY is described as normal ACPI
+device and you can use ACPI _HID/_CID to match the device to the
+corresponding driver.
+
+> Do I understand correctly that the MDIO controller node should
+> comprise OperationRegion() definition of the GenericSerialBus?
+
+I don't think OpRegions are useful in this case because they are mainly
+used to allow BIOS AML code to access the hardware through OS driver.
