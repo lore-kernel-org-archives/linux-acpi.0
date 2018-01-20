@@ -1,93 +1,149 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH] acpi, spcr: Make SPCR available to x86
-Date: Sat, 20 Jan 2018 15:33:51 +0100
-Message-ID: <20180120143351.gmjpnqczaa2zov4o@gmail.com>
-References: <20180118150951.28964-1-prarit@redhat.com>
+From: Jonathan Cameron <jic23@kernel.org>
+Subject: Re: [PATCH v7 2/4] i2c-acpi : exclude ARA address for smbus device
+Date: Sat, 20 Jan 2018 16:30:19 +0000
+Message-ID: <20180120163019.306f5e52@archlinux>
+References: <20180113133705.25044-1-m.capdeville@no-log.org>
+        <20180113133705.25044-2-m.capdeville@no-log.org>
+        <20180114112829.2c12f705@archlinux>
+        <1516184881.13570.1.camel@no-log.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-doc-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180118150951.28964-1-prarit@redhat.com>
-Sender: linux-doc-owner@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Timur Tabi <timur@codeaurora.org>, graeme.gregory@linaro.org, mark.salter@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:42504 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754913AbeATQaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 20 Jan 2018 11:30:25 -0500
+In-Reply-To: <1516184881.13570.1.camel@no-log.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: CAPDEVILLE Marc <m.capdeville@no-log.org>
+Cc: Kevin Tsai <ktsai@capellamicro.com>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-iio@vger.kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
+On Wed, 17 Jan 2018 11:28:01 +0100
+CAPDEVILLE Marc <m.capdeville@no-log.org> wrote:
 
-* Prarit Bhargava <prarit@redhat.com> wrote:
-
-> Note on testing:  I've tested this on several ARM64 and x86 boxes (only
-> earlycon, console=ttyS0,115200, and with both options), verified that
-> functionality on ARM64 has not changed (ie, CONFIG_ACPI_SPCR_TABLE is
-> always =y), and verified functionality when !CONFIG_ACPI_SPCR_TABLE on
-> x86.
+> Le dimanche 14 janvier 2018 à 11:28 +0000, Jonathan Cameron a écrit :
+> > On Sat, 13 Jan 2018 14:37:03 +0100
+> > Marc CAPDEVILLE <m.capdeville@no-log.org> wrote:
+> >   
+> > > Somme ACPI enumerated devices are known to support smbus alert protocol.
+> > > Theses devices may be miss-enumerated with the reserved smbus ARA address.
+> > > 
+> > > This is the case on Asus T100 tablet where cm3218 ambiant light sensor
+> > > expose two i2c serial bus connections, with the first one being the alert
+> > > response address.
+> > > 
+> > > This patch make a match on known ACPI ids for which devices are smbus ARA
+> > > capable, then skip the connection if it has the reserved 0x0c address and
+> > > mark it with I2C_CLIENT_ALERT flag. So device is enumerated with the
+> > > correct address.  
+> > 
+> > I wonder if we are safe to always skip 0x0c address whether or not
+> > we know the device supports ARA.  The exception may be for devices
+> > that do support ARA but are rolling their own support the hard way...  
 > 
-> P.
+> The device is only flagged with I2C_CLIENT_ALERT if its ID is in the
+> i2c_acpi_alert_device_ids. IF a driver want to be enumerated with the
+> reserved Ox0c address, It just have to not put its Id in this table. But
+> this may break with registering the smbus_alert device as the address will
+> be marked as busy for this adapter.
 > 
-> ----8<----
+> > I suppose it's possible there are i2c devices (not smbus where the
+> > spec says you must not use 0x0c for normal address IIRC) that use
+> > this address.  Does anyone know of any?  
 > 
-> SPCR is currently only enabled or ARM64 and x86 can use SPCR to setup an
-> early console.
-> 
-> General fixes include updating Documentation & Kconfig (for x86), updating
-> comments, and changing parse_spcr() to acpi_parse_spcr(), and
-> earlycon_init_is_deferred to earlycon_acpi_spcr_enable to be more
-> descriptive.
-> 
-> On x86, many systems have a valid SPCR table but the table version is not
-> 2 so the table version check must be a warning.
-> 
-> On ARM64 when the kernel parameter earlycon is used both the early console
-> and console are enabled.  On x86, only the earlycon should be enabled by
-> by default.  Modify acpi_parse_spcr() to allow options for initializing
-> the early console and console separately.
-> 
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-arm-kernel@lists.infradead.org
-> Cc: linux-pm@vger.kernel.org
-> Cc: linux-serial@vger.kernel.org
-> Cc: Bhupesh Sharma <bhsharma@redhat.com>
-> Cc: Lv Zheng <lv.zheng@intel.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: "Rafael J. Wysocki" Mrjw@rjwysocki.net>
-> Cc: Timur Tabi <timur@codeaurora.org>
-> Cc: graeme.gregory@linaro.org
-> Cc: mark.salter@redhat.com
-> ---
->  Documentation/admin-guide/kernel-parameters.txt |  9 +++++---
->  arch/arm64/kernel/acpi.c                        |  4 ++--
->  arch/x86/kernel/acpi/boot.c                     |  3 +++
->  drivers/acpi/Kconfig                            |  7 +++++-
->  drivers/acpi/spcr.c                             | 29 +++++++++++++------------
->  drivers/tty/serial/earlycon.c                   | 15 +++++--------
->  include/linux/acpi.h                            |  7 ++++--
->  include/linux/serial_core.h                     |  4 ++--
->  8 files changed, 44 insertions(+), 34 deletions(-)
+> I think this possible, but a such device can't share the bus with a smbus
+> alert capable device.
 
-I'm fine with the x86 aspect of this:
+Hmm. It seems it would also be broken under the i2c specifications:
+https://www.totalphase.com/support/articles/200349176-7-bit-8-bit-and-10-bit-I2C-Slave-Addressing
 
-Acked-by: Ingo Molnar <mingo@kernel.org>
+There are a load of reserved addresses that a device is not allowed
+to use and this is one of them.
 
->  	earlycon=	[KNL] Output early console device and options.
->  
-> -			When used with no options, the early console is
-> -			determined by the stdout-path property in device
-> -			tree's chosen node.
-> +			[ARM64] The early console is determined by the
-> +			stdout-path property in device tree's chosen node,
-> +			or determined by the ACPI SPCR table.
+Not that it really restricts things given the number of implementations
+that definitely aren't i2c but just look like it ;)
 
-s/in device tree's chosen node
- /in the device tree's chosen node
+> > 
+> > 
+> > Jonathan
+> >   
+> > > 
+> > > Signed-off-by: Marc CAPDEVILLE <m.capdeville@no-log.org>
+> > > ---
+> > >  drivers/i2c/i2c-core-acpi.c | 23 +++++++++++++++++++++--
+> > >  include/linux/i2c.h         |  1 +
+> > >  2 files changed, 22 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> > > index a9126b3cda61..5a8886f14329 100644
+> > > --- a/drivers/i2c/i2c-core-acpi.c
+> > > +++ b/drivers/i2c/i2c-core-acpi.c
+> > > @@ -59,8 +59,14 @@ static int i2c_acpi_fill_info(struct acpi_resource *ares,
+> > > void *data)
+> > >  	if (sb->type != ACPI_RESOURCE_SERIAL_TYPE_I2C)
+> > >  		return 1;
+> > >  
+> > > -	if (lookup->index != -1 && lookup->n++ != lookup->index)
+> > > -		return 1;
+> > > +	if (lookup->index != -1) {
+> > > +		if (lookup->n++ != lookup->index)
+> > > +			return 1;
+> > > +	} else {
+> > > +		if (lookup->info->flags & I2C_CLIENT_ALERT &&
+> > > +		    sb->slave_address == 0x0c)
+> > > +			return 1;
+> > > +	}
+> > >  
+> > >  	status = acpi_get_handle(lookup->device_handle,
+> > >  				 sb->resource_source.string_ptr,
+> > > @@ -85,6 +91,15 @@ static const struct acpi_device_id
+> > > i2c_acpi_ignored_device_ids[] = {
+> > >  	{}
+> > >  };
+> > >  
+> > > +static const struct acpi_device_id i2c_acpi_alert_device_ids[] = {
+> > > +	/*
+> > > +	 * Smbus alert capable device which may have the reserved ARA
+> > > address
+> > > +	 * in their serial bus resources list.
+> > > +	 */
+> > > +	{ "CPLM3218", 0 },
+> > > +	{}
+> > > +};
+> > > +
+> > >  static int i2c_acpi_do_lookup(struct acpi_device *adev,
+> > >  			      struct i2c_acpi_lookup *lookup)
+> > >  {
+> > > @@ -100,6 +115,10 @@ static int i2c_acpi_do_lookup(struct acpi_device *adev,
+> > >  		return -ENODEV;
+> > >  
+> > >  	memset(info, 0, sizeof(*info));
+> > > +
+> > > +	if (acpi_match_device_ids(adev, i2c_acpi_alert_device_ids) == 0)
+> > > +		info->flags |= I2C_CLIENT_ALERT;
+> > > +
+> > >  	lookup->device_handle = acpi_device_handle(adev);
+> > >  
+> > >  	/* Look up for I2cSerialBus resource */
+> > > diff --git a/include/linux/i2c.h b/include/linux/i2c.h
+> > > index 7592dce12923..b0d6f1333442 100644
+> > > --- a/include/linux/i2c.h
+> > > +++ b/include/linux/i2c.h
+> > > @@ -743,6 +743,7 @@ i2c_unlock_adapter(struct i2c_adapter *adapter)
+> > >  #define I2C_CLIENT_SLAVE	0x20	/* we are the slave */
+> > >  #define I2C_CLIENT_HOST_NOTIFY	0x40	/* We want to use I2C
+> > > host notify */
+> > >  #define I2C_CLIENT_WAKE		0x80	/* for board_info; true
+> > > iff can wake */
+> > > +#define I2C_CLIENT_ALERT	0x100	/* Client use SMBUS alert
+> > > protocol */
+> > >  #define I2C_CLIENT_SCCB		0x9000	/* Use Omnivision SCCB
+> > > protocol */
+> > >  					/* Must match I2C_M_STOP|IGNORE_NAK
+> > > */
+> > >    
+> > 
+> >   
 
-Thanks,
-
-	Ingo
