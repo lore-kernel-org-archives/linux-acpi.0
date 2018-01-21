@@ -1,58 +1,21 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
-Date: Sun, 21 Jan 2018 19:55:59 +0100
-Message-ID: <20180121185559.GC9004@lunn.ch>
-References: <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
- <20180109130012.GA27447@lunn.ch>
- <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
- <20180118130026.GG32299@lunn.ch>
- <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
- <20180120195246.GC27654@lahna.fi.intel.com>
- <20180121010840.GB1217@lunn.ch>
- <20180121102700.GF27654@lahna.fi.intel.com>
- <20180121161319.GA8017@lunn.ch>
- <CAKv+Gu-LCmYnTWfft=ODqY97gNeD+kzJr_Ni88nwQT72eX7XdQ@mail.gmail.com>
+From: defina@ipb.ac.id
+Subject: Darlehen
+Date: Sun, 21 Jan 2018 22:35:13 +0530
+Message-ID: <20180121170426.E4BA52BC0696@mail.ipb.ac.id>
+Reply-To: alexgrtz5@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAKv+Gu-LCmYnTWfft=ODqY97gNeD+kzJr_Ni88nwQT72eX7XdQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Nadav Haklai <nadavh@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Florian Fainelli <f.fainelli@gmail.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Marcin Wojtas <mw@semihalf.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Graeme Gregory <graeme.gregory@linaro.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [103.10.105.7] ([103.10.105.7]:8846 "EHLO
+        virtual2.esa.ipb.ac.id" rhost-flags-FAIL-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750945AbeAUTm1 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 21 Jan 2018 14:42:27 -0500
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <defina@ipb.ac.id>
 
-> However interesting as an example, I'm not convinced this is what we
-> should aim for.
-> 
-> ACPI is not a replacement for DT, and it is unlikely that people would
-> be interested in running ACPI-only distros such as RHEL on their
-> Ethernet switch. DT is excellent at describing this, and there is no
-> need to replace it.
-
-I however do know of somebody who is building an industrial wireless
-access point, with a Marvell Ethernet switch. They have chosen to use
-an Intel CPU, and want to run CentOS on it, because that is what they
-know.
-
-So they will be using ACPI whatever, for the basic board support. They
-then have a choice of either ACPI for the switch, or having device
-tree as well as ACPI for the switch. And it will be interesting to see
-how that works. Can DT reference GPIOs and I2C busses in ACPI?
-
-> Also, please bear in mind that the ACPI spec is owned by the UEFI/ACPI
-> forum, and only members (who are all under a contract regarding
-> reasonable and non-discriminatory (RAND) licensing terms to IP they
-> own that is covered by the spec) can contribute. Individuals can
-> become members for free AFAIR, but that doesn't mean individuals are
-> typically interested in getting involved in a process that is rather
-> tedious and bureaucratic.
-
-And this is a bit what i'm worried about. How you represent MDIO
-busses, PHYs, Ethernet switches is implemented once in the core Linux
-code. So i would be interested in knowing what happens if the Linux
-community defines and implements something, boards start using it, but
-a year later the tedious and bureaucratic process rejects it,
-re-writes it, in an incompatible way.
-
-	     Andrew
+Ben=F6tigen Sie Privat- oder Gesch=E4ftskredite ohne Stress und schnelle Zu=
+stimmung? Wenn ja, kontaktieren Sie uns bitte alexgrtz5@gmail.com
