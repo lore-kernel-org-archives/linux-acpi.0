@@ -1,41 +1,58 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH v11 6/9] LPC: Support the LPC host on Hip06/Hip07 with DT
- bindings
-Date: Sun, 21 Jan 2018 09:54:40 -0800
-Message-ID: <cabc1ed6-18e3-8685-82b7-ae1d7dd2348a@infradead.org>
-References: <1516537647-50553-1-git-send-email-john.garry@huawei.com>
- <1516537647-50553-7-git-send-email-john.garry@huawei.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Sun, 21 Jan 2018 19:55:59 +0100
+Message-ID: <20180121185559.GC9004@lunn.ch>
+References: <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch>
+ <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+ <20180118130026.GG32299@lunn.ch>
+ <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
+ <20180120195246.GC27654@lahna.fi.intel.com>
+ <20180121010840.GB1217@lunn.ch>
+ <20180121102700.GF27654@lahna.fi.intel.com>
+ <20180121161319.GA8017@lunn.ch>
+ <CAKv+Gu-LCmYnTWfft=ODqY97gNeD+kzJr_Ni88nwQT72eX7XdQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <1516537647-50553-7-git-send-email-john.garry@huawei.com>
-Content-Language: en-US
-Sender: linux-arch-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>, mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com
-Cc: benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, Zhichang Yuan <yuanzhichang@hisilicon.com>, Zou Rongrong <zourongrong@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAKv+Gu-LCmYnTWfft=ODqY97gNeD+kzJr_Ni88nwQT72eX7XdQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Nadav Haklai <nadavh@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Russell King - ARM Linux <linux@arm.linux.org.uk>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Ezequiel Garcia <ezequiel.garcia@free-electrons.com>, Florian Fainelli <f.fainelli@gmail.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Marcin Wojtas <mw@semihalf.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Graeme Gregory <graeme.gregory@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/21/2018 04:27 AM, John Garry wrote:
-> diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
-> index 57e011d..91debe4 100644
-> --- a/drivers/bus/Kconfig
-> +++ b/drivers/bus/Kconfig
-> @@ -65,6 +65,14 @@ config BRCMSTB_GISB_ARB
->  	  arbiter. This driver provides timeout and target abort error handling
->  	  and internal bus master decoding.
->  
-> +config HISILICON_LPC
-> +	bool "Support for ISA I/O space on Hisilicon hip06/7"
-> +	depends on (ARM64 && (ARCH_HISI || COMPILE_TEST))
-> +	select INDIRECT_PIO
-> +	help
-> +	  Driver needed for some legacy ISA devices attached to Low-Pin-Count
-> +	  on Hisilicon hip06/7 SoC.
+> However interesting as an example, I'm not convinced this is what we
+> should aim for.
+> 
+> ACPI is not a replacement for DT, and it is unlikely that people would
+> be interested in running ACPI-only distros such as RHEL on their
+> Ethernet switch. DT is excellent at describing this, and there is no
+> need to replace it.
 
-Hi,
-Why is this config symbol bool instead of tristate?
+I however do know of somebody who is building an industrial wireless
+access point, with a Marvell Ethernet switch. They have chosen to use
+an Intel CPU, and want to run CentOS on it, because that is what they
+know.
 
-thanks,
--- 
-~Randy
+So they will be using ACPI whatever, for the basic board support. They
+then have a choice of either ACPI for the switch, or having device
+tree as well as ACPI for the switch. And it will be interesting to see
+how that works. Can DT reference GPIOs and I2C busses in ACPI?
+
+> Also, please bear in mind that the ACPI spec is owned by the UEFI/ACPI
+> forum, and only members (who are all under a contract regarding
+> reasonable and non-discriminatory (RAND) licensing terms to IP they
+> own that is covered by the spec) can contribute. Individuals can
+> become members for free AFAIR, but that doesn't mean individuals are
+> typically interested in getting involved in a process that is rather
+> tedious and bureaucratic.
+
+And this is a bit what i'm worried about. How you represent MDIO
+busses, PHYs, Ethernet switches is implemented once in the core Linux
+code. So i would be interested in knowing what happens if the Linux
+community defines and implements something, boards start using it, but
+a year later the tedious and bureaucratic process rejects it,
+re-writes it, in an incompatible way.
+
+	     Andrew
