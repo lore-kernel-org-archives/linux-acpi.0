@@ -1,76 +1,118 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by categorization
-Date: Sun, 21 Jan 2018 11:10:38 +0800
-Message-ID: <CAMj-D2AypmVjSeimhqSEqhsrQfDwCeV+F85WYzLQ61crtCEhJg@mail.gmail.com>
-References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
- <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
- <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
- <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
- <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com> <5A58F8E3.5060002@arm.com> <20180115083335.GC21403@cbox>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [net-next: PATCH 0/8] Armada 7k/8k PP2 ACPI support
+Date: Sun, 21 Jan 2018 12:27:00 +0200
+Message-ID: <20180121102700.GF27654@lahna.fi.intel.com>
+References: <20180108154243.GA30962@lunn.ch>
+ <CAPv3WKewA+7WabMYN1w=9fOxe6zOKDbxcjX0VipumQmfZtJKjQ@mail.gmail.com>
+ <20180109101941.GD31502@xora-haswell>
+ <CAPv3WKehwsrxuxemgL_5fKtUT2xjqkE6yf9DMcCcO2WRJ6nQaQ@mail.gmail.com>
+ <20180109130012.GA27447@lunn.ch>
+ <20180118123141.GA2839@e107981-ln.cambridge.arm.com>
+ <20180118130026.GG32299@lunn.ch>
+ <CAPv3WKcYrbfKjsnwZ39Tyq3HN0aneUQZdbeUzLbFgLUbMc3w8Q@mail.gmail.com>
+ <20180120195246.GC27654@lahna.fi.intel.com>
+ <20180121010840.GB1217@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:34704 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756745AbeAUDKk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jan 2018 22:10:40 -0500
-In-Reply-To: <20180115083335.GC21403@cbox>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180121010840.GB1217@lunn.ch>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Marcin Wojtas <mw@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "<netdev@vger.kernel.org>" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Russell King - ARM Linux <linux@arm.linux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Antoine T?nart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory CLEMENT <gregory.clement@free-electrons.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Christoffer Dall <christoffer.dall@linaro.org>
-Cc: James Morse <james.morse@arm.com>, wuquanming <wuquanming@huawei.com>, linux-doc@vger.kernel.org, kvm@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Jonathan Corbet <corbet@lwn.net>, rjw@rjwysocki.net, linux@armlinux.org.uk, linuxarm@huawei.com, gengdongjiu <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, bp@alien8.de, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Huangshaoyu <huangshaoyu@huawei.com>, pbonzini@redhat.com, kvmarm@lists.cs.columbia.edu, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org
 
-2018-01-15 16:33 GMT+08:00 Christoffer Dall <christoffer.dall@linaro.org>:
-> On Fri, Jan 12, 2018 at 06:05:23PM +0000, James Morse wrote:
->> On 15/12/17 03:30, gengdongjiu wrote:
->> > On 2017/12/7 14:37, gengdongjiu wrote:
->
-> [...]
->
->>
->> (I recall someone saying migration is needed for any new KVM/cpu features, but I
->> can't find the thread)
->>
->
-> I don't know of any hard set-in-stone rule for this, but I have
-> certainly argued that since migration is a popular technique in data
-> centers and often a key motivation behind using virtual machines as it
-> provides both load-balancing and high availability, we should think
-> about migration support for all features and state.  Further, experience
-> has shown that retroactively trying to support migration can result in
-> really complex interfaces for saving/restoring state (see the ITS
-> ordering requirements in
-> Documentation/virtual/kvm/devices/arm-vgic-its.txt as an example) so
-> thinking about this problem when introducing functionality is a good
-> idea.
-yes, agree it.
+On Sun, Jan 21, 2018 at 02:08:40AM +0100, Andrew Lunn wrote:
+> > I'm not familiar with MDIO bus but an alternative to GeneriSerialBus
+> > would be to follow what SDIO is doing, e.g have the PHY devices listed
+> > below the MDIO controller and use _ADR to describe their "address" on
+> > that bus. You can see how _ADR applies to SDIO bus from ACPI spec.
+> 
+> Hi Mika
+> 
+> SDIO is not a serial bus, well it can be in its simplest form, but
+> high speed implementations have 4 data lines. So i can understand them
+> not using GenericSerialBus.
 
->
-> Of course, if there are really good arguments for having some state that
-> simply cannot be migrated, then that's fine, and we should just make
-> sure that userspace (e.g. QEMU) and higher level components in the
-> stack (libvirt, openstack, etc.) can detect this state being used, and
-> ideally enable/disable it, so that it can predict that a particular VM
-> cannot be migrated off a particular host, or between a particular set of
-> two hosts.  As an example, migration is typically prohibited when using
-> VFIO direct device assignment, but userspace etc. are already aware of
-> this.
-Ok,  I think this problem is similar to migrating a VM that uses an irqchip in
- userspace and has set the IRQ or FIQ lines using KVM_IRQ_LINE.
+Well, I think SDIO is more of a serial bus pretty much the same way than
+SPI but it can support more data lines as needed (in the same way than
+SPI). But I'm not an expert in SDIO.
 
->
-> As a final note, if we add support for some architectural feature, which
-> may be present on some particular hardware and/or implementation, if the
-> KVM support for said feature is automatically enabled (and not
-> selectively from userspace), I would push back quite strongly on
-> something that doesn't support migration, because it would effectively
-> prevent migration of VMs on ARM.
-Ok, got it.
+However, that's not the point here :-) SATA (which is definitely a serial
+bus) uses the same mechanism and not GenericSerialBus.
 
->
-> Thanks,
-> -Christoffer
-> _______________________________________________
-> kvmarm mailing list
-> kvmarm@lists.cs.columbia.edu
-> https://lists.cs.columbia.edu/mailman/listinfo/kvmarm
+> MDIO is a serial bus, very similar to SPI, I2C, and UART.
+> 
+> > If you go with the SDIO way then each PHY is described as normal ACPI
+> > device and you can use ACPI _HID/_CID to match the device to the
+> > corresponding driver.
+> 
+> Just some background here. If you have a plain PHY as a device on an
+> MDIO bus, you don't need to match it to a driver within ACPI.
+> Registers 2 and 3 contain a vendor and product ID. That is what it
+> used to match the device to the driver.
+> 
+> What you might need to know is the protocol to talk on the bus. Most
+> devices use clause 22 protocol. A few devices are clause 45. 22 is the
+> default in Linux, and you need to indicate if 45 should be used. You
+> can also indicate 22.
+> 
+> It gets more complex when the device on the bus is not a PHY. It is a
+> generic bus, you can connect anything to it. Ethernet switches can be
+> on the bus. They generally cannot be identified using registers 2 and
+> 3. So you do need to match the device to the driver. Most do have ID
+> registers, so the driver can work out what specific device is on the
+> bus. However, Marvell moved the ID registers on there newer generation
+> of devices, so we need to give the driver a hint where to look. So in
+> device tree, we have two different compatible string.
+> 
+> Broadcom really do use it as a generic bus. They have their USB PHYs
+> and PCIE PHYs on an MDIO bus. In DT, they have compatible strings to
+> match the device to the driver, as normal.
+
+OK, thanks for the explanation.
+
+> We need to ensure what we define for ACPI has the same level of
+> flexibility.
+
+Right. So if you need to have some additional "parameters" with the
+connection, then I suppose you may want to go with the GenericSerialBus
+route. However, looking at the sample device tree description:
+
+        davinci_mdio: ethernet@5c030000 {
+                compatible = "ti,davinci_mdio";
+                reg = <0x5c030000 0x1000>;
+                #address-cells = <1>;
+                #size-cells = <0>;
+
+                reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
+                reset-delay-us = <2>;
+
+                ethphy0: ethernet-phy@1 {
+                        reg = <1>;
+                };
+
+                ethphy1: ethernet-phy@3 {
+                        reg = <3>;
+                };
+        };
+
+would pretty much translate directly to this in ACPI if you don't need
+any additional attributes:
+
+	Device (ETH0) {
+		Name (_ADR, /* PCI address of the NIC */)
+
+		Device (PHY0) {
+			Name (_ADR, 1)
+			...
+		} 
+
+		Device (PHY1) {
+			Name (_ADR, 3)
+			...
+		} 
+	}
+
+which looks pretty simple to me. You can also use _DSM and _DSD here to
+pass information (like the protocol number) for the PHY devices to Linux.
