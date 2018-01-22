@@ -1,50 +1,59 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 1/2] Bluetooth: hci_bcm: For serdev case close serdev on failure to set power
-Date: Mon, 22 Jan 2018 12:53:24 +0100
-Message-ID: <20180122115325.28960-2-hdegoede@redhat.com>
-References: <20180122115325.28960-1-hdegoede@redhat.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v11 2/9] PCI: Remove unused __weak attribute in
+ pci_register_io_range()
+Date: Mon, 22 Jan 2018 11:59:20 +0000
+Message-ID: <6816e715-df0f-ddff-d19d-de2d0f3101c7@huawei.com>
+References: <1516537647-50553-1-git-send-email-john.garry@huawei.com>
+ <1516537647-50553-3-git-send-email-john.garry@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50374 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751004AbeAVLxb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 06:53:31 -0500
-In-Reply-To: <20180122115325.28960-1-hdegoede@redhat.com>
+Received: from szxga07-in.huawei.com ([45.249.212.35]:37605 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750886AbeAVL7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 06:59:41 -0500
+In-Reply-To: <1516537647-50553-3-git-send-email-john.garry@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
+To: bhelgaas@google.com
+Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org
 
-Commit 8bfa7e1e03ac ("Bluetooth: hci_bcm: Handle errors properly")
-introduced error checking for the bcm_gpio_set_power() call in bcm_open()
-but the error-path it introduces unsets dev->hu, which is correct for
-platform_device instantiated bcm_dev-s but not for serdev instantiated
-devs. For serdev instantiated devs serdev_device_close() should be called
-instead (and dev->hu should be left set).
+On 21/01/2018 12:27, John Garry wrote:
+> From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+>
+> Currently pci_register_io_range() has only one definition;
+> therefore there is no use of the __weak attribute.
+>
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> ---
 
-Cc: Lukas Wunner <lukas@wunner.de>
-Fixes: 8bfa7e1e03ac ("Bluetooth: hci_bcm: Handle errors properly")
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/bluetooth/hci_bcm.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Hi Bjorn,
 
-diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index 64800cd2796c..0438a64b8185 100644
---- a/drivers/bluetooth/hci_bcm.c
-+++ b/drivers/bluetooth/hci_bcm.c
-@@ -412,8 +412,11 @@ static int bcm_open(struct hci_uart *hu)
- 	return 0;
- 
- err_unset_hu:
-+	if (hu->serdev)
-+		serdev_device_close(hu->serdev);
- #ifdef CONFIG_PM
--	bcm->dev->hu = NULL;
-+	else
-+		bcm->dev->hu = NULL;
- #endif
- err_free:
- 	mutex_unlock(&bcm_device_lock);
--- 
-2.14.3
+So I will need to respin this series again (and it still requires many 
+more SOB tags), so do you want to pick up this minor patch in isolation 
+now? It would save me carrying it, and save people receiving it in future.
+
+Thanks,
+John
+
+>  drivers/pci/pci.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> index 764ca7b..d8357ff 100644
+> --- a/drivers/pci/pci.c
+> +++ b/drivers/pci/pci.c
+> @@ -3383,7 +3383,7 @@ struct io_range {
+>   * Record the PCI IO range (expressed as CPU physical address + size).
+>   * Return a negative value if an error has occured, zero otherwise
+>   */
+> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
+> +int pci_register_io_range(phys_addr_t addr, resource_size_t size)
+>  {
+>  	int err = 0;
+>
+>
+
 
