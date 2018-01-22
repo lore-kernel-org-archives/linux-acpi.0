@@ -1,89 +1,84 @@
 From: James Morse <james.morse@arm.com>
-Subject: [RFC 7/7] ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
-Date: Mon, 22 Jan 2018 19:29:42 +0000
-Message-ID: <20180122192942.30487-8-james.morse@arm.com>
-References: <20180122192942.30487-1-james.morse@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34362 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751071AbeAVTcV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 14:32:21 -0500
-In-Reply-To: <20180122192942.30487-1-james.morse@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: Re: [PATCH v8 7/7] arm64: kvm: handle SError Interrupt by
+ categorization
+Date: Mon, 22 Jan 2018 19:32:12 +0000
+Message-ID: <5A663C3C.7040904@arm.com>
+References: <1510343650-23659-1-git-send-email-gengdongjiu@huawei.com>
+ <1510343650-23659-8-git-send-email-gengdongjiu@huawei.com>
+ <5A0B1334.7060500@arm.com> <4af78739-99da-4056-4db1-f80bfe11081a@huawei.com>
+ <5A283F26.3020507@arm.com> <4b37e86d-eee3-c51e-eceb-5d0c7ad12886@huawei.com>
+ <506cd212-3d16-ba2a-518f-34982bc162fc@huawei.com> <5A58F8E3.5060002@arm.com>
+ <CAMj-D2C5Bz3r-w9v3QasZKK-W2JBY7Mx9W=yCDBnPYyk99gGzA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <CAMj-D2C5Bz3r-w9v3QasZKK-W2JBY7Mx9W=yCDBnPYyk99gGzA@mail.gmail.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: gengdongjiu <gengdj.1984@gmail.com>
+Cc: wuquanming <wuquanming@huawei.com>, linux-acpi@vger.kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Jonathan Corbet <corbet@lwn.net>, rjw@rjwysocki.net, linux@armlinux.org.uk, gengdongjiu <gengdongjiu@huawei.com>, linuxarm@huawei.com, bp@alien8.de, arm-mail-list <linux-arm-kernel@lists.infradead.org>, pbonzini@redhat.com, Huangshaoyu <huangshaoyu@huawei.com>, kvmarm@lists.cs.columbia.edu, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>, James Morse <james.morse@arm.com>
 
-Now that ghes uses the fixmap addresses and locks via some indirection
-we can support multiple NMI-like notifications on arm64.
+Hi gengdongjiu,
 
-These should be named after their notification method. x86's
-NOTIFY_NMI is unchanged, change the SEA fixmap entry to use
-FIX_APEI_GHES_SEA.
+On 21/01/18 02:45, gengdongjiu wrote:
+> For the ESR_ELx_AET_UER, this exception is precise, closing the VM may
+> be better[1].
+> But if you think panic is better until we support kernel-first, it is
+> also OK to me.
 
-Future patches can add support for FIX_APEI_GHES_SEI and
-FIX_APEI_GHES_SDEI_{NORMAL,CRITICAL}.
+I'm not convinced SError while a guest was running means only guest memory could
+be affected. Mechanisms like KSM means the error could affect multiple guests.
 
-Not-signed-off: James Morse <james.morse@arm.com>
----
- arch/arm64/include/asm/fixmap.h | 4 +++-
- drivers/acpi/apei/ghes.c        | 7 ++++---
- 2 files changed, 7 insertions(+), 4 deletions(-)
+Both firmware-fist and kernel-first will give us the address, with which we can
+know which processes are affected, isolated the memory and signal affected
+processes.
 
-diff --git a/arch/arm64/include/asm/fixmap.h b/arch/arm64/include/asm/fixmap.h
-index ec1e6d6fa14c..c3974517c2cb 100644
---- a/arch/arm64/include/asm/fixmap.h
-+++ b/arch/arm64/include/asm/fixmap.h
-@@ -55,7 +55,9 @@ enum fixed_addresses {
- #ifdef CONFIG_ACPI_APEI_GHES
- 	/* Used for GHES mapping from assorted contexts */
- 	FIX_APEI_GHES_IRQ,
--	FIX_APEI_GHES_NMI,
-+#ifdef CONFIG_ACPI_APEI_SEA
-+	FIX_APEI_GHES_SEA,
-+#endif
- #endif /* CONFIG_ACPI_APEI_GHES */
- 
- #ifdef CONFIG_UNMAP_KERNEL_AT_EL0
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 6c2391fd00f8..225e546d1081 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -119,7 +119,6 @@ static DEFINE_MUTEX(ghes_list_mutex);
-  * handler, but general ioremap can not be used in atomic context, so
-  * the fixmap is used instead.
-  */
--static DEFINE_RAW_SPINLOCK(ghes_fixmap_lock_nmi);
- static DEFINE_SPINLOCK(ghes_fixmap_lock_irq);
- 
- static struct gen_pool *ghes_estatus_pool;
-@@ -931,6 +930,7 @@ static struct notifier_block ghes_notifier_hed = {
- 
- #ifdef CONFIG_ACPI_APEI_SEA
- static LIST_HEAD(ghes_sea);
-+static DEFINE_RAW_SPINLOCK(ghes_fixmap_lock_sea);
- 
- /*
-  * Return 0 only if one of the SEA error sources successfully reported an error
-@@ -943,8 +943,8 @@ int ghes_notify_sea(void)
- 
- static void ghes_sea_add(struct ghes *ghes)
- {
--	ghes->nmi_fixmap_lock = &ghes_fixmap_lock_nmi;
--	ghes->fixmap_idx = FIX_APEI_GHES_NMI;
-+	ghes->nmi_fixmap_lock = &ghes_fixmap_lock_sea;
-+	ghes->fixmap_idx = FIX_APEI_GHES_SEA;
- 	ghes_estatus_queue_grow_pool(ghes);
- 
- 	mutex_lock(&ghes_list_mutex);
-@@ -974,6 +974,7 @@ static inline void ghes_sea_remove(struct ghes *ghes) { }
- static atomic_t ghes_in_nmi = ATOMIC_INIT(0);
- 
- static LIST_HEAD(ghes_nmi);
-+static DEFINE_RAW_SPINLOCK(ghes_fixmap_lock_nmi);
- 
- static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- {
--- 
-2.15.1
+Until we have one of these panic() is the only way we have to contain an error,
+but its an interim fix.
+Not panic()ing the host for an error that should be contained to the guest is a
+fudge, we don't actually know its safe (KSM, page-table etc). I want to improve
+on this with {firmware, kernel}-first support (or both!), I don't want to expose
+that this is happening to user-space, as once we have one of {firmware,
+kernel}-first, it shouldn't happen.
 
+
+>> This is inventing something new for RAS errors not claimed by firmware-first.
+>> If we have kernel-first too, this will never happen. (unless your system is
+>> losing the error description).
+
+> In fact, if we have kernel-first, I think we still need to judge the
+> error type by ESR, right?
+
+The kernel-first mechanism should consider the ESR/FAR, yes, but once the error
+has been claimed and handled, KVM shouldn't care about any of these values.
+(maybe we'll sanity check for uncontained errors, just in case the error escaped
+to the RAS code...)
+
+My point here was exposing 'unhandled' (ignored) RAS errors to user-space
+creates an ABI: someone will complain once we start handling the error, and they
+no longer get a notification via this 'unhandled' interface. Code written to use
+this interface becomes useless/untested.
+
+
+> If the handle_guest_sei() , may be the system does not support firmware-first,
+> so we judge the ESR value,
+
+...and panic()/ignore as appropriate.
+
+I agree not all systems will support firmware-first, (big-endian is the obvious
+example), but if we get kernel-first support this ESR guessing can disappear,
+I'm against exposing it to user-space in the meantime.
+
+
+Thanks,
+
+James
