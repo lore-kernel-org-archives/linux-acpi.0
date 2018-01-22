@@ -1,94 +1,30 @@
-From: Marcin Wojtas <mw@semihalf.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [net-next: PATCH v4 0/7] Armada 7k/8k PP2 ACPI support
-Date: Mon, 22 Jan 2018 14:00:37 +0100
-Message-ID: <CAPv3WKeqEd6Hcy0NdPpiVVA1ioUYY4zs_0zai2gwkCPtM1yaJg@mail.gmail.com>
+Date: Mon, 22 Jan 2018 09:35:25 -0500 (EST)
+Message-ID: <20180122.093525.1549534484738907077.davem@davemloft.net>
 References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
- <20180118132322.GE2690@kwain>
+        <20180118132322.GE2690@kwain>
+        <CAPv3WKeqEd6Hcy0NdPpiVVA1ioUYY4zs_0zai2gwkCPtM1yaJg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180118132322.GE2690@kwain>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Graeme Gregory <graeme.gregory@linaro.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, netdev <netdev@vger.kernel.org>, Antoine Tenart <antoine.tenart@free-electrons.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Russell King - ARM Linux <linux@armlinux.org.uk>, nadavh@marvell.com, linux-acpi@vger.kernel.org, Neta Zur Hershkovits <neta@marvell.com>, Grzegorz Jaszczyk <jaz@semihalf.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, linux-arm-kernel@lists.infradead.org, Tomasz Nowicki <tn@semihalf.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([184.105.139.130]:34632 "EHLO
+        shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750945AbeAVOf2 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jan 2018 09:35:28 -0500
+In-Reply-To: <CAPv3WKeqEd6Hcy0NdPpiVVA1ioUYY4zs_0zai2gwkCPtM1yaJg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mw@semihalf.com
+Cc: linux-kernel@vger.kernel.org, antoine.tenart@free-electrons.com, linux-arm-kernel@lists.infradead.org, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, graeme.gregory@linaro.org, linux@armlinux.org.uk, rafael.j.wysocki@intel.com, andrew@lunn.ch, f.fainelli@gmail.com, thomas.petazzoni@free-electrons.com, gregory.clement@free-electrons.com, stefanc@marvell.com, nadavh@marvell.com, neta@marvell.com, ard.biesheuvel@linaro.org, jaz@semihalf.com, tn@semihalf.com
 
-SGkgRGF2aWQsCgpUaGVyZSdzIGEgZGlzY3Vzc2lvbiBhYm91dCB0aGUgQUNQSSB2cyBnZW5lcmlj
-IE1ESU8vUEhZIGNoYW5nZSB1bmRlcgppbml0aWFsIHZlcnNpb24gb2YgdGhlIHBhdGNoc2V0LCBo
-b3dldmVyIHRoZSBwYXRjaGVzIGluIHF1ZXN0aW9uIHdlcmUKZm9yIG5vdyBhYmFuZG9uZWQgZnJv
-bSBmdXJ0aGVyIHJlLXNlbmRzLgoKQXMgdGhlIHY0IGhhcyBoYWQgbm8gb2JqZWN0aW9ucyB1bnRp
-bCBub3cgYW5kOgotIHBhdGNoZXMgMS0yIHdlcmUgQWNrZWQtYnk6IFJhZmFlbCBKLiBXeXNvY2tp
-IDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4KLSBtdnBwMiBwYXRjaGVzICg1LTcpIHdlcmUg
-VGVzdGVkLWJ5OiBBbnRvaW5lIFRlbmFydAo8YW50b2luZS50ZW5hcnRAZnJlZS1lbGVjdHJvbnMu
-Y29tPgotIGVudGlyZSBzZXJpZXMgd2FzICBSZXZpZXdlZC1ieTogR3JhZW1lIEdyZWdvcnkgPGdy
-YWVtZS5ncmVnb3J5QGxpbmFyby5vcmc+CkRvIHlvdSBzZWUgYW55IGNoYW5jZSB0aGF0IGl0IGxh
-bmRzIGluIG5ldC1uZXh0IGJlZm9yZSB0aGUgY29taW5nCm1lcmdlIHdpbmRvdz8gSXQgd291bGQg
-YmUgcmVhbGx5IG11Y2ggYXBwcmVjaWF0ZWQuCgpUaGFua3MsCk1hcmNpbgoKCjIwMTgtMDEtMTgg
-MTQ6MjMgR01UKzAxOjAwIEFudG9pbmUgVGVuYXJ0IDxhbnRvaW5lLnRlbmFydEBmcmVlLWVsZWN0
-cm9ucy5jb20+Ogo+IEhpIE1hcmNpbiwKPgo+IEkgdGVzdGVkIHRoZSBzZXJpZXMgb24gYSBNYWNj
-aGlhdG9CaW4gdG8gZW5zdXJlIHRoZSBtdnBwMiBEVCBzdXBwb3J0IHdhcwo+IHN0aWxsIHdvcmtp
-bmcuIEkgd2FzIGFibGUgdG8gdXNlIGFsbCBzdXBwb3J0ZWQgcG9ydHMgYXMgYmVmb3JlLCBhbmQg
-c2F3Cj4gbm8gaXNzdWUuCj4KPiBGb3IgYWxsIG12cHAyIHBhdGNoZXMsIHlvdSBjYW4gYWRkOgo+
-Cj4gVGVzdGVkLWJ5OiBBbnRvaW5lIFRlbmFydCA8YW50b2luZS50ZW5hcnRAZnJlZS1lbGVjdHJv
-bnMuY29tPgo+Cj4gVGhhbmtzIQo+IEFudG9pbmUKPgo+IE9uIFRodSwgSmFuIDE4LCAyMDE4IGF0
-IDAxOjMxOjM3UE0gKzAxMDAsIE1hcmNpbiBXb2p0YXMgd3JvdGU6Cj4+IEhpLAo+Pgo+PiBJIHF1
-aWNrbHkgcmVzZW5kIHRoZSBzZXJpZXMsIHRoYW5rcyB0byBBbnRvaW5lIFRlbmFydCdzIHJlbWFy
-aywKPj4gd2hvIHNwb3R0ZWQgIUNPTkZJR19BQ1BJIGNvbXBpbGF0aW9uIGlzc3VlIGFmdGVyIGlu
-dHJvZHVjaW5nCj4+IHRoZSBuZXcgZndub2RlX2lycV9nZXQoKSByb3V0aW5lLiBQbGVhc2Ugc2Vl
-IHRoZSBkZXRhaWxzIGluIHRoZSBjaGFuZ2Vsb2cKPj4gYmVsb3cgYW5kIHRoZSAzLzcgY29tbWl0
-IGxvZy4KPj4KPj4gbXZwcDIgZHJpdmVyIGNhbiB3b3JrIHdpdGggdGhlIEFDUEkgcmVwcmVzZW50
-YXRpb24sIGFzIGV4cG9zZWQKPj4gb24gYSBwdWJsaWMgYnJhbmNoOgo+PiBodHRwczovL2dpdGh1
-Yi5jb20vTWFydmVsbEVtYmVkZGVkUHJvY2Vzc29ycy9lZGsyLW9wZW4tcGxhdGZvcm0vY29tbWl0
-cy9tYXJ2ZWxsLWFybWFkYS13aXAKPj4gSXQgd2FzIGNvbXBpbGVkIHRvZ2V0aGVyIHdpdGggdGhl
-IG1vc3QgcmVjZW50IFRpYW5vY29yZSBFREsyIHJldmlzaW9uLgo+PiBQbGVhc2UgcmVmZXIgdG8g
-dGhlIGZpcm13YXJlIGJ1aWxkIGluc3RydWN0aW9uIG9uIE1hY2NoaWF0b0JpbiBib2FyZDoKPj4g
-aHR0cDovL3dpa2kubWFjY2hpYXRvYmluLm5ldC90aWtpLWluZGV4LnBocD9wYWdlPUJ1aWxkK2Zy
-b20rc291cmNlKy0rVUVGSStFREsrSUkKPj4KPj4gQUNQSSByZXByZXNlbnRhdGlvbiBvZiBQUDIg
-Y29udHJvbGxlcnMgKHdpdGhvdXRoIFBIWSBzdXBwb3J0KSBjYW4KPj4gYmUgdmlld2VkIGluIHRo
-ZSBnaXRodWI6Cj4+ICogTWFjY2hpYXRvQmluOgo+PiBodHRwczovL2dpdGh1Yi5jb20vTWFydmVs
-bEVtYmVkZGVkUHJvY2Vzc29ycy9lZGsyLW9wZW4tcGxhdGZvcm0vYmxvYi83MWFlMzk1ZGExNjYx
-Mzc0YjBmMDdkMTYwMmFmYjFlZWU1NmU5Nzk0L1BsYXRmb3Jtcy9NYXJ2ZWxsL0FybWFkYS9BY3Bp
-VGFibGVzL0FybWFkYTgweDBNY0Jpbi9Ec2R0LmFzbCNMMjAxCj4+Cj4+ICogQXJtYWRhIDcwNDAg
-REI6Cj4+IGh0dHBzOi8vZ2l0aHViLmNvbS9NYXJ2ZWxsRW1iZWRkZWRQcm9jZXNzb3JzL2VkazIt
-b3Blbi1wbGF0Zm9ybS9ibG9iLzcxYWUzOTVkYTE2NjEzNzRiMGYwN2QxNjAyYWZiMWVlZTU2ZTk3
-OTQvUGxhdGZvcm1zL01hcnZlbGwvQXJtYWRhL0FjcGlUYWJsZXMvQXJtYWRhNzB4MC9Ec2R0LmFz
-bCNMMTMxCj4+Cj4+IEkgd2lsbCBhcHByZWNpYXRlIGFueSBjb21tZW50cyBvciByZW1hcmtzLgo+
-Pgo+PiBCZXN0IHJlZ2FyZHMsCj4+IE1hcmNpbgo+Pgo+PiBDaGFuZ2Vsb2c6Cj4+IHYzIC0+IHY0
-Ogo+PiAqIDMvNwo+PiAgICAgLSBhZGQgbmV3IG1hY3JvIChBQ1BJX0hBTkRMRV9GV05PREUpIGFu
-ZCBmaXgKPj4gICAgICAgY29tcGlsYXRpb24gd2l0aCAhQ09ORklHX0FDUEkKPj4gICAgIC0gZXh0
-ZW5kIGNvbW1pdCBsb2cgYW5kIG1lbnRpb24gdXNhYmlsaXR5IG9mIGZ3bm9kZV9pcnFfZ2V0Cj4+
-ICAgICAgIGZvciB0aGUgY2hpbGQgbm9kZXMgYXMgd2VsbAo+Pgo+PiB2MiAtPiB2MzoKPj4gKiAx
-LzcsIDIvNwo+PiAgICAgLSBBZGQgUmFmYWVsJ3MgQWNrZWQtYnkncwo+PiAqIDMvNywgNC83Cj4+
-ICAgICAtIE5ldyBwYXRjaGVzCj4+ICogNi83LCA3LzcKPj4gICAgIC0gVXBkYXRlIGRyaXZlciB3
-aXRoIG5ldyBoZWxwZXIgcm91dGluZXMgdXNhZ2UKPj4gICAgIC0gSW1wcm92ZSBjb21taXQgbG9n
-Lgo+Pgo+PiB2MSAtPiB2MjoKPj4gKiBSZW1vdmUgTURJTyBwYXRjaGVzCj4+ICogVXNlIFBQMiBw
-b3J0cyBvbmx5IHdpdGggbGluayBpbnRlcnJ1cHRzCj4+ICogUmVsZWFzZSBzZWNvbmQgcmVnaW9u
-IHJlc291cmNlcyBpbiBtdnBwMiBkcml2ZXIgKGNvZGUgbW92ZWQgZnJvbQo+PiAgIG12bWRpbyks
-IGFzIGV4cGxhaW5lZCBpbiBkZXRhaWxzIGluIDUvNSBjb21taXQgbWVzc2FnZS4KPj4KPj4gTWFy
-Y2luIFdvanRhcyAoNyk6Cj4+ICAgZGV2aWNlIHByb3BlcnR5OiBJbnRyb2R1Y2UgZndub2RlX2dl
-dF9tYWNfYWRkcmVzcygpCj4+ICAgZGV2aWNlIHByb3BlcnR5OiBJbnRyb2R1Y2UgZndub2RlX2dl
-dF9waHlfbW9kZSgpCj4+ICAgZGV2aWNlIHByb3BlcnR5OiBJbnRyb2R1Y2UgZndub2RlX2lycV9n
-ZXQoKQo+PiAgIGRldmljZSBwcm9wZXJ0eTogQWxsb3cgaXRlcmF0aW5nIG92ZXIgYXZhaWxhYmxl
-IGNoaWxkIGZ3bm9kZXMKPj4gICBuZXQ6IG12cHAyOiBzaW1wbGlmeSBtYWludGFpbmluZyBlbmFi
-bGVkIHBvcnRzJyBsaXN0Cj4+ICAgbmV0OiBtdnBwMjogdXNlIGRldmljZV8qL2Z3bm9kZV8qIEFQ
-SXMgaW5zdGVhZCBvZiBvZl8qCj4+ICAgbmV0OiBtdnBwMjogZW5hYmxlIEFDUEkgc3VwcG9ydCBp
-biB0aGUgZHJpdmVyCj4+Cj4+ICBkcml2ZXJzL2Jhc2UvcHJvcGVydHkuYyAgICAgICAgICAgICAg
-fCAxMDQgKysrKysrKystLQo+PiAgZHJpdmVycy9uZXQvZXRoZXJuZXQvbWFydmVsbC9tdnBwMi5j
-IHwgMjA2ICsrKysrKysrKysrKy0tLS0tLS0tCj4+ICBpbmNsdWRlL2xpbnV4L2FjcGkuaCAgICAg
-ICAgICAgICAgICAgfCAgIDMgKwo+PiAgaW5jbHVkZS9saW51eC9wcm9wZXJ0eS5oICAgICAgICAg
-ICAgIHwgIDExICsrCj4+ICA0IGZpbGVzIGNoYW5nZWQsIDIzMiBpbnNlcnRpb25zKCspLCA5MiBk
-ZWxldGlvbnMoLSkKPj4KPj4gLS0KPj4gMi43LjQKPj4KPgo+IC0tCj4gQW50b2luZSBUw6luYXJ0
-LCBGcmVlIEVsZWN0cm9ucwo+IEVtYmVkZGVkIExpbnV4IGFuZCBLZXJuZWwgZW5naW5lZXJpbmcK
-PiBodHRwOi8vZnJlZS1lbGVjdHJvbnMuY29tCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1h
-cm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcv
-bWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+From: Marcin Wojtas <mw@semihalf.com>
+Date: Mon, 22 Jan 2018 14:00:37 +0100
+
+> There's a discussion about the ACPI vs generic MDIO/PHY change under
+> initial version of the patchset, however the patches in question were
+> for now abandoned from further re-sends.
+
+But doesn't the results of that discussion determine whether the way ACPI
+is being used in this patch series is what we want to do or not?
