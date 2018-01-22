@@ -1,108 +1,133 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
-Date: Mon, 22 Jan 2018 21:56:13 +0100
-Message-ID: <5007c009-5d20-d0d4-5f2a-dc1825c6f131@redhat.com>
-References: <20180121214645.15004-1-hdegoede@redhat.com>
- <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
- <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
- <1516614127.7000.1152.camel@linux.intel.com>
- <0160ba20-9dc9-9921-ab12-3ac58b33e9ae@redhat.com>
- <1516620806.7000.1165.camel@linux.intel.com>
- <0cae9024-887a-45f7-7710-1684f9c0e54e@redhat.com>
- <059DCBBD-4966-4531-9E2D-8A369FC400A7@holtmann.org>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v6 07/12] drivers: base cacheinfo: Add support for ACPI
+ based firmware tables
+Date: Mon, 22 Jan 2018 15:14:37 -0600
+Message-ID: <1485ab78-4b43-b703-ca48-4e2cb2059e51@arm.com>
+References: <20180113005920.28658-1-jeremy.linton@arm.com>
+ <20180113005920.28658-8-jeremy.linton@arm.com>
+ <20180122155022.GA7714@kroah.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:43023 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750909AbeAVU4Q (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jan 2018 15:56:16 -0500
-Received: by mail-wm0-f65.google.com with SMTP id g1so18796272wmg.2
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jan 2018 12:56:15 -0800 (PST)
-In-Reply-To: <059DCBBD-4966-4531-9E2D-8A369FC400A7@holtmann.org>
+Received: from foss.arm.com ([217.140.101.70]:35406 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751002AbeAVVOk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 16:14:40 -0500
+In-Reply-To: <20180122155022.GA7714@kroah.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com
 
 Hi,
 
-On 22-01-18 20:57, Marcel Holtmann wrote:
-> Hi Hans,
-> 
->>>>>> Andy, I see that you added support for bcm bluetooth over a tty
->>>>>> using
->>>>>> platform_data instead of ACPI enumeration. Can you change the code
->>>>>> instantiating the device to instead instantiate a serdev, so that
->>>>>> we
->>>>>> kill the platform device support in hci_bcm.c and so that users
->>>>>> don't
->>>>>> need to do a btattach, but instead the kernel will do the attach
->>>>>> itself
->>>>>> and things will just work ?
->>>>>
->>>>> I'm sorry, I can't do this soon, other more priority tasks in a
->>>>> pocket.
->>>>>
->>>>> The instantiation of the driver is happened in
->>>>> arch/x86/platform/intel-
->>>>> mid/device_libs/platform_bt.c
->>>>>
->>>>> I would help with review of any patches till I would able to look at
->>>>> it
->>>>> myself.
->>>>
->>>> If I manage to come up with patches do you have hardware and time to
->>>> test?
->>> Yes and I would find half an hour for sure.
->>
->> That is great, thank you, but ...
->>
->>>> First point of order to get this working as serdev I think is to
->>>> modify drivers/tty/serdev/core.c a and then the
->>>> serdev_controller_add()
->>>> function to somehow recognize the serial port in question, so
->>>> something akin to the of_serdev_register_devices(ctrl) /
->>>> acpi_serdev_register_devices(ctrl) functions for platform_devs,
->>>> assuming
->>>> the tty-parent-dev on the Edison SOM is a platform_dev ?
->>> tty parent is PCI device there.
->>>> Anyways it looks like this will be really hard to do without access
->>>> to the hardware.
->>> I can do a BAT.
->>
->> Right, sorry I was not clear, when I was talking about hardware
->> access I was not (not only) referring to testing.
->>
->> The problem is that to figure out how to hook all this together
->> will require poking around on the hardware, looking in sysfs, finding
->> some id we can use in a pci_serdev_register_devices() to add to
->> drivers/tty/serdev/core.c so that it only turns the serial port on
->> the Edison into a serdev and not somewhere else, etc.
->>
->> But thinking about this more, I too have higher priority items on
->> my TODO list, so as much as I would like to see this cleaned up,
->> lets shelf this for now until you have time to look into this.
->>
->> When you do find time, if you've any questions I'm happy to help.
-> 
-> so the serial port is driven by drivers/tty/serial/8250/8250_mid.c and using PCI_DEVICE_ID_INTEL_TNG_UART 0x1191 to match the driver. So it is exposed as PCI device. While of course more than one UART port uses 0x1191. This one seems to be mapped to pci_get_domain_bus_and_slot(0, 0, PCI_DEVFN(4, 1)) actually.
-> 
-> What I think is that we need to do is some sort of x86_match_cpu like arch/x86/platform/intel-mid/device_libs/platform_bt.c does. But then again, that is also what the Apple Broadcom support does to choose the different ACPI procedures.
-> 
-> I have an Edison board on my desk and can quickly boot any patch you want me to test. Or grab data from sysfs or dmesg.
+Thanks for taking a look at this.
 
-I'm sorry, I started looking at removing the platform code because
-I already spend a lot of time looking at the hci_bcm code to make
-the power-management work with serdev devices instantiated from
-ACPI, when writing the patch-set for that I added removing the
-remaining cruft to my todo list...
+On 01/22/2018 09:50 AM, Greg KH wrote:
+> On Fri, Jan 12, 2018 at 06:59:15PM -0600, Jeremy Linton wrote:
+>> Add a entry to to struct cacheinfo to maintain a reference to the PPTT
+>> node which can be used to match identical caches across cores. Also
+>> stub out cache_setup_acpi() so that individual architectures can
+>> enable ACPI topology parsing.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> ---
+>>   drivers/acpi/pptt.c       |  1 +
+>>   drivers/base/cacheinfo.c  | 20 +++++++++++++-------
+>>   include/linux/cacheinfo.h |  9 +++++++++
+>>   3 files changed, 23 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+>> index 2c4b3ed862a8..4f5ab19c3a08 100644
+>> --- a/drivers/acpi/pptt.c
+>> +++ b/drivers/acpi/pptt.c
+>> @@ -329,6 +329,7 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+>>   {
+>>   	int valid_flags = 0;
+>>   
+>> +	this_leaf->fw_unique = cpu_node;
+>>   	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
+>>   		this_leaf->size = found_cache->size;
+>>   		valid_flags++;
+>> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+>> index 217aa90fb036..ee51e33cc37c 100644
+>> --- a/drivers/base/cacheinfo.c
+>> +++ b/drivers/base/cacheinfo.c
+>> @@ -208,16 +208,16 @@ static int cache_setup_of_node(unsigned int cpu)
+>>   
+>>   	if (index != cache_leaves(cpu)) /* not all OF nodes populated */
+>>   		return -ENOENT;
+>> -
+>>   	return 0;
+>>   }
+>> +
+> 
+> Whitespace changes not needed for this patch :(
 
-But I don't have time / don't want to make time given other priorities
-to also look into the Edison stuff, which seems non-trivial to fix.
+Sure.
 
-Regards,
+> 
+> 
+>>   #else
+>>   static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
+>>   static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+>>   					   struct cacheinfo *sib_leaf)
+>>   {
+>>   	/*
+>> -	 * For non-DT systems, assume unique level 1 cache, system-wide
+>> +	 * For non-DT/ACPI systems, assume unique level 1 caches, system-wide
+>>   	 * shared caches for all other levels. This will be used only if
+>>   	 * arch specific code has not populated shared_cpu_map
+>>   	 */
+>> @@ -225,6 +225,11 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+>>   }
+>>   #endif
+>>   
+>> +int __weak cache_setup_acpi(unsigned int cpu)
+>> +{
+>> +	return -ENOTSUPP;
+>> +}
+>> +
+>>   static int cache_shared_cpu_map_setup(unsigned int cpu)
+>>   {
+>>   	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+>> @@ -235,11 +240,11 @@ static int cache_shared_cpu_map_setup(unsigned int cpu)
+>>   	if (this_cpu_ci->cpu_map_populated)
+>>   		return 0;
+>>   
+>> -	if (of_have_populated_dt())
+>> +	if (!acpi_disabled)
+>> +		ret = cache_setup_acpi(cpu);
+> 
+> Why does acpi go first?  :)
 
-Hans
+This sounds like a joke i heard...
+
+OTOH, given that we have machines with both ACPI and DT tables, it 
+seemed a little clearer and a little more robust to code that so that if 
+ACPI is enabled to prefer it over DT information. As long as the 
+routines which set of of_root are protected by if (acpi_disabled) checks 
+it should be safe to do it either way.
+
+
+> 
+>> +	else if (of_have_populated_dt())
+>>   		ret = cache_setup_of_node(cpu);
+>> -	else if (!acpi_disabled)
+>> -		/* No cache property/hierarchy support yet in ACPI */
+>> -		ret = -ENOTSUPP;
+>> +
+>>   	if (ret)
+>>   		return ret;
+>>   
+>> +int acpi_find_last_cache_level(unsigned int cpu)
+>> +{
+>> +	/*ACPI kernels should be built with PPTT support*/
+> 
+> Here are some extra ' ' characters, you need them...
+
+Oh ok, thanks! :)
+
+
