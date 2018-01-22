@@ -1,59 +1,87 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v11 2/9] PCI: Remove unused __weak attribute in
- pci_register_io_range()
-Date: Mon, 22 Jan 2018 11:59:20 +0000
-Message-ID: <6816e715-df0f-ddff-d19d-de2d0f3101c7@huawei.com>
-References: <1516537647-50553-1-git-send-email-john.garry@huawei.com>
- <1516537647-50553-3-git-send-email-john.garry@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:37605 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750886AbeAVL7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 06:59:41 -0500
-In-Reply-To: <1516537647-50553-3-git-send-email-john.garry@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
+Date: Mon, 22 Jan 2018 13:01:22 +0100
+Message-ID: <83ACB297-D092-4512-AC5B-3AF1137BE194@holtmann.org>
+References: <20180121214645.15004-1-hdegoede@redhat.com>
+ <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
+ <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
+ <1516614127.7000.1152.camel@linux.intel.com>
+ <0160ba20-9dc9-9921-ab12-3ac58b33e9ae@redhat.com>
+ <1516620806.7000.1165.camel@linux.intel.com>
+ <0cae9024-887a-45f7-7710-1684f9c0e54e@redhat.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0cae9024-887a-45f7-7710-1684f9c0e54e-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Andy Shevchenko <andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bluez mailing list <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: bhelgaas@google.com
-Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org
 
-On 21/01/2018 12:27, John Garry wrote:
-> From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->
-> Currently pci_register_io_range() has only one definition;
-> therefore there is no use of the __weak attribute.
->
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
+Hi Hans,
 
-Hi Bjorn,
+>>>>> Andy, I see that you added support for bcm bluetooth over a tty
+>>>>> using
+>>>>> platform_data instead of ACPI enumeration. Can you change the code
+>>>>> instantiating the device to instead instantiate a serdev, so that
+>>>>> we
+>>>>> kill the platform device support in hci_bcm.c and so that users
+>>>>> don't
+>>>>> need to do a btattach, but instead the kernel will do the attach
+>>>>> itself
+>>>>> and things will just work ?
+>>>> 
+>>>> I'm sorry, I can't do this soon, other more priority tasks in a
+>>>> pocket.
+>>>> 
+>>>> The instantiation of the driver is happened in
+>>>> arch/x86/platform/intel-
+>>>> mid/device_libs/platform_bt.c
+>>>> 
+>>>> I would help with review of any patches till I would able to look at
+>>>> it
+>>>> myself.
+>>> 
+>>> If I manage to come up with patches do you have hardware and time to
+>>> test?
+>> Yes and I would find half an hour for sure.
+> 
+> That is great, thank you, but ...
+> 
+>>> First point of order to get this working as serdev I think is to
+>>> modify drivers/tty/serdev/core.c a and then the
+>>> serdev_controller_add()
+>>> function to somehow recognize the serial port in question, so
+>>> something akin to the of_serdev_register_devices(ctrl) /
+>>> acpi_serdev_register_devices(ctrl) functions for platform_devs,
+>>> assuming
+>>> the tty-parent-dev on the Edison SOM is a platform_dev ?
+>> tty parent is PCI device there.
+>>> Anyways it looks like this will be really hard to do without access
+>>> to the hardware.
+>> I can do a BAT.
+> 
+> Right, sorry I was not clear, when I was talking about hardware
+> access I was not (not only) referring to testing.
+> 
+> The problem is that to figure out how to hook all this together
+> will require poking around on the hardware, looking in sysfs, finding
+> some id we can use in a pci_serdev_register_devices() to add to
+> drivers/tty/serdev/core.c so that it only turns the serial port on
+> the Edison into a serdev and not somewhere else, etc.
+> 
+> But thinking about this more, I too have higher priority items on
+> my TODO list, so as much as I would like to see this cleaned up,
+> lets shelf this for now until you have time to look into this.
+> 
+> When you do find time, if you've any questions I'm happy to help.
 
-So I will need to respin this series again (and it still requires many 
-more SOB tags), so do you want to pick up this minor patch in isolation 
-now? It would save me carrying it, and save people receiving it in future.
+so in theory the Edison board has SFI. Problem is just that I am not sure the SFI on the board is fully correct and contains enough information to identify the serial port correctly.
 
-Thanks,
-John
+If no one is willing to help port this over to serdev, then one option is just to rip it out and see who complains. Or include a version that is trying its best and see who reports issues and who helps to fix it. I am now regretting that I accepted the Edison support in the first place, but sadly serdev was not yet fully baked at that point.
 
->  drivers/pci/pci.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index 764ca7b..d8357ff 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -3383,7 +3383,7 @@ struct io_range {
->   * Record the PCI IO range (expressed as CPU physical address + size).
->   * Return a negative value if an error has occured, zero otherwise
->   */
-> -int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-> +int pci_register_io_range(phys_addr_t addr, resource_size_t size)
->  {
->  	int err = 0;
->
->
+Regards
 
-
+Marcel
