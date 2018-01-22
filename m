@@ -1,82 +1,64 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
-Date: Mon, 22 Jan 2018 11:42:07 +0200
-Message-ID: <1516614127.7000.1152.camel@linux.intel.com>
-References: <20180121214645.15004-1-hdegoede@redhat.com>
-         <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
-         <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v11 6/9] LPC: Support the LPC host on Hip06/Hip07 with DT
+ bindings
+Date: Mon, 22 Jan 2018 10:13:23 +0000
+Message-ID: <9c5766ef-3865-4125-dda9-3e0aaad90dca@huawei.com>
+References: <1516537647-50553-1-git-send-email-john.garry@huawei.com>
+ <1516537647-50553-7-git-send-email-john.garry@huawei.com>
+ <cabc1ed6-18e3-8685-82b7-ae1d7dd2348a@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:41067 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751557AbeAVJmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 04:42:11 -0500
-In-Reply-To: <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:43562 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750945AbeAVKN6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:13:58 -0500
+In-Reply-To: <cabc1ed6-18e3-8685-82b7-ae1d7dd2348a@infradead.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Marcel Holtmann <marcel@holtmann.org>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
+To: Randy Dunlap <rdunlap@infradead.org>, mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com
+Cc: benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org
 
-On Mon, 2018-01-22 at 09:23 +0100, Hans de Goede wrote:
+On 21/01/2018 17:54, Randy Dunlap wrote:
+> On 01/21/2018 04:27 AM, John Garry wrote:
+>> diff --git a/drivers/bus/Kconfig b/drivers/bus/Kconfig
+>> index 57e011d..91debe4 100644
+>> --- a/drivers/bus/Kconfig
+>> +++ b/drivers/bus/Kconfig
+>> @@ -65,6 +65,14 @@ config BRCMSTB_GISB_ARB
+>>  	  arbiter. This driver provides timeout and target abort error handling
+>>  	  and internal bus master decoding.
+>>
+>> +config HISILICON_LPC
+>> +	bool "Support for ISA I/O space on Hisilicon hip06/7"
+>> +	depends on (ARM64 && (ARCH_HISI || COMPILE_TEST))
+>> +	select INDIRECT_PIO
+>> +	help
+>> +	  Driver needed for some legacy ISA devices attached to Low-Pin-Count
+>> +	  on Hisilicon hip06/7 SoC.
+>
 > Hi,
-> 
-> On 22-01-18 03:24, Marcel Holtmann wrote:
-> > Hi Hans,
-> > 
-> > > Now that ACPI and DT devices are both enumerated as serdevs, we
-> > > can
-> > > remove platform_device support and the bcm_device_list lookup
-> > > hack.
-> > > 
-> > > This also removes any races between suspend/resume and hci-uart
-> > > binding,
-> > > also making the suspend/resume code a lot simpler.
-> > > 
-> > > This commit leaves manually binding to an uart using btattach
-> > > supported
-> > > (without irq/gpio and thus suspend/resume support, as before).
-> > > 
-> > > Cc: Lukas Wunner <lukas@wunner.de>
-> > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > > ---
-> > > drivers/bluetooth/hci_bcm.c | 260 +++++---------------------------
-> > > ------------
-> > > 1 file changed, 28 insertions(+), 232 deletions(-)
-> > 
-> > so I was under the assumption platforms like Intel Edison still only
-> > do platform data. See commit
-> > 212d71833315c65644efc46223db61dee7b3c68e. Has that changed?
+> Why is this config symbol bool instead of tristate?
+>
+> thanks,
 
-Yes and no.
+Hi Randy,
 
-So, we need that support to satisfy users with classical Edison
-firmware.
+Considering the nature of this driver, and the fact that it provides an 
+IO space region through the logical PIO framework introduced, it does 
+not make sense to have it as a loadable module.
 
-> Ugh, I was not aware of that and the whole code to match the tty with
-> the platform_device on btattach is such a mess and I was actually
-> quite
-> happy to be able to delete this.
+A specific issue is that one of our boards uses this host for the UART 
+console (through 8250-compatible device in BMC), so would want it in the 
+kernel image.
 
-Good idea.
+I will add a note in the commit message and maybe config description 
+explaining this.
 
-> Andy, I see that you added support for bcm bluetooth over a tty using
-> platform_data instead of ACPI enumeration. Can you change the code
-> instantiating the device to instead instantiate a serdev, so that we
-> kill the platform device support in hci_bcm.c and so that users don't
-> need to do a btattach, but instead the kernel will do the attach
-> itself
-> and things will just work ?
+Thanks,
+John
 
-I'm sorry, I can't do this soon, other more priority tasks in a pocket.
+>
 
-The instantiation of the driver is happened in arch/x86/platform/intel-
-mid/device_libs/platform_bt.c
 
-I would help with review of any patches till I would able to look at it
-myself.
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
