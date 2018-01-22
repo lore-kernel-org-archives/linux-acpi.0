@@ -1,71 +1,82 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 0/5] ACPI: Do not call _STA on battery devices with unmet dependencies
-Date: Mon, 22 Jan 2018 09:51:30 +0100
-Message-ID: <20180122085135.16732-1-hdegoede@redhat.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
+Date: Mon, 22 Jan 2018 11:42:07 +0200
+Message-ID: <1516614127.7000.1152.camel@linux.intel.com>
+References: <20180121214645.15004-1-hdegoede@redhat.com>
+         <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
+         <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39134 "EHLO mx1.redhat.com"
+Received: from mga06.intel.com ([134.134.136.31]:41067 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752946AbeAVIvk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 03:51:40 -0500
+        id S1751557AbeAVJmL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 04:42:11 -0500
+In-Reply-To: <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org
+To: Hans de Goede <hdegoede@redhat.com>, Marcel Holtmann <marcel@holtmann.org>
+Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
 
-Hi All,
+On Mon, 2018-01-22 at 09:23 +0100, Hans de Goede wrote:
+> Hi,
+> 
+> On 22-01-18 03:24, Marcel Holtmann wrote:
+> > Hi Hans,
+> > 
+> > > Now that ACPI and DT devices are both enumerated as serdevs, we
+> > > can
+> > > remove platform_device support and the bcm_device_list lookup
+> > > hack.
+> > > 
+> > > This also removes any races between suspend/resume and hci-uart
+> > > binding,
+> > > also making the suspend/resume code a lot simpler.
+> > > 
+> > > This commit leaves manually binding to an uart using btattach
+> > > supported
+> > > (without irq/gpio and thus suspend/resume support, as before).
+> > > 
+> > > Cc: Lukas Wunner <lukas@wunner.de>
+> > > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> > > ---
+> > > drivers/bluetooth/hci_bcm.c | 260 +++++---------------------------
+> > > ------------
+> > > 1 file changed, 28 insertions(+), 232 deletions(-)
+> > 
+> > so I was under the assumption platforms like Intel Edison still only
+> > do platform data. See commit
+> > 212d71833315c65644efc46223db61dee7b3c68e. Has that changed?
 
-Here is v2 of this set, new in v2 is the addressing of Bjorn's comments
-to the "PCI: acpiphp_ibm: prepare for acpi_get_object_info no longer
-returning status" patch and a new patch (the first patch in v2) which
-exports acpi_bus_get_status_handle() for use in modules as acpiphp_ibm
-will now depend on it.
+Yes and no.
 
-Here is the old coverletter from v1 (adjusted for the new patch):
+So, we need that support to satisfy users with classical Edison
+firmware.
 
-The ACPI code already contains quite a bit of code to not bind the
-ACPI-battery until all deps for an ACPI battery device have been met,
-but on some devices calling _STA before all deps are met is a problem
-too because the _STA method uses an i2c OpRegion there.
+> Ugh, I was not aware of that and the whole code to match the tty with
+> the platform_device on btattach is such a mess and I was actually
+> quite
+> happy to be able to delete this.
 
-Here is the DSDT of the device I'm seeing this on:
-https://fedorapeople.org/~jwrdegoede/toshiba-click-mini-dsdt.dsl
+Good idea.
 
-This series modifies the kernel to not call _STA until all deps are met,
-mirroring the binding behavior of the battery driver.
+> Andy, I see that you added support for bcm bluetooth over a tty using
+> platform_data instead of ACPI enumeration. Can you change the code
+> instantiating the device to instead instantiate a serdev, so that we
+> kill the platform device support in hci_bcm.c and so that users don't
+> need to do a btattach, but instead the kernel will do the attach
+> itself
+> and things will just work ?
 
-Without this series a total of 32 ACPI errors get printend to the console
-on boot, there are 4 errors per _STA call, 2 battery devices on this
-system and 4 _STA calls per battery device.
+I'm sorry, I can't do this soon, other more priority tasks in a pocket.
 
-The first 2 commits are preparation commits for making the ACPICA changes
-in the 4th commit, these commits are necessary to not break things after
-the ACPICA changes.
+The instantiation of the driver is happened in arch/x86/platform/intel-
+mid/device_libs/platform_bt.c
 
-The 3th commit modifies acpi_bus_get_status to not call _STA on
-battery devices until all deps are met. This fixes 2 of the 4 too early
-_STA calls triggering these errors.
+I would help with review of any patches till I would able to look at it
+myself.
 
-The 4th commit makes the device instantiation code use
-acpi_bus_get_status instead of acpi_bus_get_status_handle so that the
-code to get the initial status also does not makes 1 too early _STA call.
-
-The 5th commit changes the ACPICA acpi_get_object_info function to not
-call _STA. Only 1 user (which is fixed in the first commit) cares about
-acpi_device_info.current_status. And the ACPICA code has this comment:
-
- * Note: This interface is intended to be used during the initial device
- * discovery namespace traversal. Therefore, no complex methods can be
- * executed, especially those that access operation regions. Therefore, do
- * not add any additional methods that could cause problems in this area.
- * Because of this reason support for the following methods has been removed:
- * this was the fate of the _SUB method which was found to cause such
- * problems and was removed (11/2015).
-
-The described problems with the _SUB method clearly also apply to the _STA
-method, so removing it from acpi_get_object_info seems like it is the right
-thing to do here. This too fixes 1 too early _STA call, so that with all
-5 patches in place we've fixed all 4 too early _STA calls.
-
-Regards,
-
-Hans
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
