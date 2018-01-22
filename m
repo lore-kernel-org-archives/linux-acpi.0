@@ -1,59 +1,143 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
-Date: Mon, 22 Jan 2018 09:23:24 +0100
-Message-ID: <769dd32b-425e-3002-50b5-0d3c707706d4@redhat.com>
-References: <20180121214645.15004-1-hdegoede@redhat.com>
- <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:46997 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751034AbeAVIX1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jan 2018 03:23:27 -0500
-Received: by mail-wm0-f66.google.com with SMTP id 143so14546146wma.5
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jan 2018 00:23:26 -0800 (PST)
-In-Reply-To: <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [PATCH v2 5/5] ACPICA: Remove calling of _STA from acpi_get_object_info
+Date: Mon, 22 Jan 2018 09:51:35 +0100
+Message-ID: <20180122085135.16732-6-hdegoede@redhat.com>
+References: <20180122085135.16732-1-hdegoede@redhat.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180122085135.16732-1-hdegoede@redhat.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
 
-Hi,
+As the comment above it indicates, acpi_get_object_info is intended for
+early probe usage and as such should not call any methods which may rely
+on OpRegions, before this commit it was also calling _STA, which on some
+systems does rely on OpRegions.
 
-On 22-01-18 03:24, Marcel Holtmann wrote:
-> Hi Hans,
-> 
->> Now that ACPI and DT devices are both enumerated as serdevs, we can
->> remove platform_device support and the bcm_device_list lookup hack.
->>
->> This also removes any races between suspend/resume and hci-uart binding,
->> also making the suspend/resume code a lot simpler.
->>
->> This commit leaves manually binding to an uart using btattach supported
->> (without irq/gpio and thus suspend/resume support, as before).
->>
->> Cc: Lukas Wunner <lukas@wunner.de>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> drivers/bluetooth/hci_bcm.c | 260 +++++---------------------------------------
->> 1 file changed, 28 insertions(+), 232 deletions(-)
-> 
-> so I was under the assumption platforms like Intel Edison still only do platform data. See commit 212d71833315c65644efc46223db61dee7b3c68e. Has that changed?
+Calling _STA before things are ready leads to errors such as these:
 
-Ugh, I was not aware of that and the whole code to match the tty with
-the platform_device on btattach is such a mess and I was actually quite
-happy to be able to delete this.
+[    0.123579] ACPI Error: No handler for Region [ECRM] (00000000ba9edc4c)
+               [GenericSerialBus] (20170831/evregion-166)
+[    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
+               (20170831/exfldio-299)
+[    0.123618] ACPI Error: Method parse/execution failed
+               \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
 
-Andy, I see that you added support for bcm bluetooth over a tty using
-platform_data instead of ACPI enumeration. Can you change the code
-instantiating the device to instead instantiate a serdev, so that we
-kill the platform device support in hci_bcm.c and so that users don't
-need to do a btattach, but instead the kernel will do the attach itself
-and things will just work ?
+End 2015 support for the _SUB method was removed for exactly the same
+reason. Removing current_status from struct acpi_device_info only has
+a limit impact. Within ACPICA it is only used by 2 debug messages, both
+of which are modified to no longer print it with this commit.
 
-Regards,
+Outside of ACPICA, for Linux there is only one user. For which a patch to
+remove the dependency on the current_status field is available.
 
-Hans
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpica/dbdisply.c |  5 ++---
+ drivers/acpi/acpica/nsdumpdv.c |  5 ++---
+ drivers/acpi/acpica/nsxfname.c | 19 ++++---------------
+ include/acpi/actypes.h         |  2 --
+ 4 files changed, 8 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
+index 5a606eac0c22..7b5eb33fe962 100644
+--- a/drivers/acpi/acpica/dbdisply.c
++++ b/drivers/acpi/acpica/dbdisply.c
+@@ -642,9 +642,8 @@ void acpi_db_display_object_type(char *object_arg)
+ 		return;
+ 	}
+ 
+-	acpi_os_printf("ADR: %8.8X%8.8X, STA: %8.8X, Flags: %X\n",
+-		       ACPI_FORMAT_UINT64(info->address),
+-		       info->current_status, info->flags);
++	acpi_os_printf("ADR: %8.8X%8.8X, Flags: %X\n",
++		       ACPI_FORMAT_UINT64(info->address), info->flags);
+ 
+ 	acpi_os_printf("S1D-%2.2X S2D-%2.2X S3D-%2.2X S4D-%2.2X\n",
+ 		       info->highest_dstates[0], info->highest_dstates[1],
+diff --git a/drivers/acpi/acpica/nsdumpdv.c b/drivers/acpi/acpica/nsdumpdv.c
+index 5026594763ea..573a5f36f01a 100644
+--- a/drivers/acpi/acpica/nsdumpdv.c
++++ b/drivers/acpi/acpica/nsdumpdv.c
+@@ -88,10 +88,9 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
+ 		}
+ 
+ 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_TABLES,
+-				      "    HID: %s, ADR: %8.8X%8.8X, Status: %X\n",
++				      "    HID: %s, ADR: %8.8X%8.8X\n",
+ 				      info->hardware_id.value,
+-				      ACPI_FORMAT_UINT64(info->address),
+-				      info->current_status));
++				      ACPI_FORMAT_UINT64(info->address));
+ 		ACPI_FREE(info);
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index 106966235805..0a9c600c2599 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -241,7 +241,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
+  *              namespace node and possibly by running several standard
+  *              control methods (Such as in the case of a device.)
+  *
+- * For Device and Processor objects, run the Device _HID, _UID, _CID, _STA,
++ * For Device and Processor objects, run the Device _HID, _UID, _CID,
+  * _CLS, _ADR, _sx_w, and _sx_d methods.
+  *
+  * Note: Allocates the return buffer, must be freed by the caller.
+@@ -250,8 +250,9 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
+  * discovery namespace traversal. Therefore, no complex methods can be
+  * executed, especially those that access operation regions. Therefore, do
+  * not add any additional methods that could cause problems in this area.
+- * this was the fate of the _SUB method which was found to cause such
+- * problems and was removed (11/2015).
++ * Because of this reason support for the following methods has been removed:
++ * 1) _SUB method was removed (11/2015)
++ * 2) _STA method was removed (01/2018)
+  *
+  ******************************************************************************/
+ 
+@@ -374,20 +375,8 @@ acpi_get_object_info(acpi_handle handle,
+ 		 * Notes: none of these methods are required, so they may or may
+ 		 * not be present for this device. The Info->Valid bitfield is used
+ 		 * to indicate which methods were found and run successfully.
+-		 *
+-		 * For _STA, if the method does not exist, then (as per the ACPI
+-		 * specification), the returned current_status flags will indicate
+-		 * that the device is present/functional/enabled. Otherwise, the
+-		 * current_status flags reflect the value returned from _STA.
+ 		 */
+ 
+-		/* Execute the Device._STA method */
+-
+-		status = acpi_ut_execute_STA(node, &info->current_status);
+-		if (ACPI_SUCCESS(status)) {
+-			valid |= ACPI_VALID_STA;
+-		}
+-
+ 		/* Execute the Device._ADR method */
+ 
+ 		status = acpi_ut_evaluate_numeric_object(METHOD_NAME__ADR, node,
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 4f077edb9b81..220ef8674763 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1191,7 +1191,6 @@ struct acpi_device_info {
+ 	u8 flags;		/* Miscellaneous info */
+ 	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
+ 	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
+-	u32 current_status;	/* _STA value */
+ 	u64 address;	/* _ADR value */
+ 	struct acpi_pnp_device_id hardware_id;	/* _HID value */
+ 	struct acpi_pnp_device_id unique_id;	/* _UID value */
+@@ -1205,7 +1204,6 @@ struct acpi_device_info {
+ 
+ /* Flags for Valid field above (acpi_get_object_info) */
+ 
+-#define ACPI_VALID_STA                  0x0001
+ #define ACPI_VALID_ADR                  0x0002
+ #define ACPI_VALID_HID                  0x0004
+ #define ACPI_VALID_UID                  0x0008
+-- 
+2.14.3
