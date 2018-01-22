@@ -1,43 +1,36 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
-Date: Mon, 22 Jan 2018 03:24:18 +0100
-Message-ID: <0EA71635-F2C7-4908-B4DE-F87328A148D0@holtmann.org>
-References: <20180121214645.15004-1-hdegoede@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: Re: ACPI: sbshc: remove raw pointer from printk message
+Date: Mon, 22 Jan 2018 08:18:53 +0100
+Message-ID: <20180122071853.GB15646@kroah.com>
+References: <20180119090603.GA7775@kroah.com>
+ <CAJZ5v0jh7sUje5RcEJVT_bLM9u=9z0pbPBEWy=4k-tfKfKO-SQ@mail.gmail.com>
+ <20180120073613.GB18663@kroah.com>
+ <CAJZ5v0htCL_b6+Pn22Ce612MrBJ6D+4Jby58BdXxjSX_zmNjiw@mail.gmail.com>
+ <20180120081639.GB21147@kroah.com>
+ <2018012211145163626812@venustech.com.cn>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from coyote.holtmann.net ([212.227.132.17]:40581 "EHLO
-        mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751076AbeAVCYV (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jan 2018 21:24:21 -0500
-In-Reply-To: <20180121214645.15004-1-hdegoede@redhat.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45102 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751003AbeAVHSz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jan 2018 02:18:55 -0500
+Content-Disposition: inline
+In-Reply-To: <2018012211145163626812@venustech.com.cn>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, Lukas Wunner <lukas@wunner.de>
+To: "wang_qize@venustech.com.cn" <wang_qize@venustech.com.cn>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, security <security@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Hans,
-
-> Now that ACPI and DT devices are both enumerated as serdevs, we can
-> remove platform_device support and the bcm_device_list lookup hack.
+On Mon, Jan 22, 2018 at 11:19:36AM +0800, wang_qize@venustech.com.cn wrote:
 > 
-> This also removes any races between suspend/resume and hci-uart binding,
-> also making the suspend/resume code a lot simpler.
-> 
-> This commit leaves manually binding to an uart using btattach supported
-> (without irq/gpio and thus suspend/resume support, as before).
-> 
-> Cc: Lukas Wunner <lukas@wunner.de>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> drivers/bluetooth/hci_bcm.c | 260 +++++---------------------------------------
-> 1 file changed, 28 insertions(+), 232 deletions(-)
+>  I has recvied a cve-id from mitre.org for this security bug .
+> should this cve-id( CVE-2018-5750) be mentioned in kernel change log?
 
-so I was under the assumption platforms like Intel Edison still only do platform data. See commit 212d71833315c65644efc46223db61dee7b3c68e. Has that changed?
+Only if Rafael wants to hand-edit the patch, it's not really needed for
+a kernel log commit message to have CVE items in it, especially as the
+id was received after the patch was created and submitted.
 
-Regards
+thanks,
 
-Marcel
-
+greg k-h
