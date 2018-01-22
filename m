@@ -1,62 +1,60 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 2/5] PCI: acpiphp_ibm: prepare for acpi_get_object_info() no longer returning status
-Date: Mon, 22 Jan 2018 09:51:32 +0100
-Message-ID: <20180122085135.16732-3-hdegoede@redhat.com>
+Subject: [PATCH v2 3/5] ACPI / bus: Do not call _STA on battery devices with unmet dependencies
+Date: Mon, 22 Jan 2018 09:51:33 +0100
+Message-ID: <20180122085135.16732-4-hdegoede@redhat.com>
 References: <20180122085135.16732-1-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44604 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:41402 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752988AbeAVIvp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 22 Jan 2018 03:51:45 -0500
+        id S1752997AbeAVIvr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 03:51:47 -0500
 In-Reply-To: <20180122085135.16732-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, devel@acpica.org
 
-acpi_get_object_info() is intended for early probe usage and as such should
-not call any methods which may rely on OpRegions, but it used to also call
-_STA to get the status, which on some systems does rely on OpRegions, this
-behavior and the acpi_device_info.current_status member are being removed.
+The battery code uses acpi_device->dep_unmet to check for unmet deps and
+if there are unmet deps it does not bind to the device to avoid errors
+about missing OpRegions when calling ACPI methods on the device.
 
-This commit prepares the acpiphp_ibm code for this by having it get the
-status itself using acpi_bus_get_status_handle(). Note no error handling is
-necessary on any errors acpi_bus_get_status_handle() leaves the value of
-the passed in current_status at its 0 initialization value.
+The missing OpRegions when there are unmet deps problem also applies to
+the _STA method of some battery devices and calling it too early results
+in errors like these:
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+[    0.123579] ACPI Error: No handler for Region [ECRM] (00000000ba9edc4c)
+               [GenericSerialBus] (20170831/evregion-166)
+[    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
+               (20170831/exfldio-299)
+[    0.123618] ACPI Error: Method parse/execution failed
+               \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
+
+This commit fixes these errors happening when acpi_get_bus_status gets
+called by checking dep_unmet for battery devices and reporting a status
+of 0 until all dependencies are met.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
-Changes in v2:
--Use () after function names in commit message
--Add  Bjorn's Acked-by
----
- drivers/pci/hotplug/acpiphp_ibm.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/bus.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-index 984c7e8cec5a..8472c4a27f70 100644
---- a/drivers/pci/hotplug/acpiphp_ibm.c
-+++ b/drivers/pci/hotplug/acpiphp_ibm.c
-@@ -399,6 +399,7 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
- 		u32 lvl, void *context, void **rv)
- {
- 	acpi_handle *phandle = (acpi_handle *)context;
-+	unsigned long long current_status = 0;
- 	acpi_status status;
- 	struct acpi_device_info *info;
- 	int retval = 0;
-@@ -410,7 +411,9 @@ static acpi_status __init ibm_find_acpi_device(acpi_handle handle,
- 		return retval;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index db0c05997cc2..d0d2c2543395 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -120,6 +120,12 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 		return 0;
  	}
  
--	if (info->current_status && (info->valid & ACPI_VALID_HID) &&
-+	acpi_bus_get_status_handle(handle, &current_status);
++	/* Battery devices must have their deps met before calling _STA */
++	if (acpi_device_is_battery(device) && device->dep_unmet) {
++		acpi_set_device_status(device, 0);
++		return 0;
++	}
 +
-+	if (current_status && (info->valid & ACPI_VALID_HID) &&
- 			(!strcmp(info->hardware_id.string, IBM_HARDWARE_ID1) ||
- 			 !strcmp(info->hardware_id.string, IBM_HARDWARE_ID2))) {
- 		pr_debug("found hardware: %s, handle: %p\n",
+ 	status = acpi_bus_get_status_handle(device->handle, &sta);
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
 -- 
 2.14.3
 
