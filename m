@@ -1,46 +1,83 @@
-From: Marcin Wojtas <mw@semihalf.com>
-Subject: Re: [net-next: PATCH v4 0/7] Armada 7k/8k PP2 ACPI support
-Date: Mon, 22 Jan 2018 17:09:29 +0100
-Message-ID: <CAPv3WKey+JHrgasLigMFH5vAdjfz0Z18z0BVF1AQ_poV5CgQbg@mail.gmail.com>
-References: <CAPv3WKeqEd6Hcy0NdPpiVVA1ioUYY4zs_0zai2gwkCPtM1yaJg@mail.gmail.com>
- <20180122.093525.1549534484738907077.davem@davemloft.net> <20180122144342.GB16923@lunn.ch>
- <20180122.105750.1953487955261969355.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20180122.105750.1953487955261969355.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Andrew Lunn <andrew@lunn.ch>, linux-kernel@vger.kernel.org, =?UTF-8?Q?Antoine_T=C3=A9nart?= <antoine.tenart@free-electrons.com>, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, linux-acpi@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King - ARM Linux <linux@armlinux.org.uk>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, =?UTF-8?Q?Gregory_Cl=C3=A9ment?= <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, nadavh@marvell.com, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz Jaszczyk <jaz@semihalf.com>, Tomasz Nowicki <tn@semihalf.com>
+From: James Morse <james.morse@arm.com>
+Subject: [RFC 0/7] APEI: Move arm64 NMI notifications to use estatus cache
+Date: Mon, 22 Jan 2018 19:29:35 +0000
+Message-ID: <20180122192942.30487-1-james.morse@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:34308 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750830AbeAVTcI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 22 Jan 2018 14:32:08 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>, James Morse <james.morse@arm.com>
 
-2018-01-22 16:57 GMT+01:00 David Miller <davem@davemloft.net>:
-> From: Andrew Lunn <andrew@lunn.ch>
-> Date: Mon, 22 Jan 2018 15:43:42 +0100
->
->> On Mon, Jan 22, 2018 at 09:35:25AM -0500, David Miller wrote:
->>> From: Marcin Wojtas <mw@semihalf.com>
->>> Date: Mon, 22 Jan 2018 14:00:37 +0100
->>>
->>> > There's a discussion about the ACPI vs generic MDIO/PHY change under
->>> > initial version of the patchset, however the patches in question were
->>> > for now abandoned from further re-sends.
->>>
->>> But doesn't the results of that discussion determine whether the way ACPI
->>> is being used in this patch series is what we want to do or not?
->>
->> Hi David
->>
->> The patches submitted here don't involve any ACPI for MDIO or PHY. It
->> is all MAC. And it is using standard ACPI primitives for devices,
->> nothing new.
->>
->> It is not setting any precedence for MDIO and PHY. That is totally out
->> of scope for these patches. Whatever is decided for MDIO and PHY can
->> be added later.
->
-> Thanks for all of the clarifications.
->
-> Series applied to net-next, thank you.
+Hi guys, kbuild-robot,
 
-Great, thanks!
+This RFC is rough, and not at all ready. This is the current status of
+my attempts to split up the ghes.c code to allow multiple notifications
+to be NMI-like. On arm64 we have NOTIFY_{SEA, SEI, SDEI} all of which
+have NMI-like behaviour.
+
+This series splits up APEIs in_nmi() path so that more than one
+notification can use it. To support the asyncronous notifications: SEI
+and SDEI we move all the NMI-like handlers over to the estatus-cache.
+This gives us the same APEI behaviour as x86, and means the multiple
+notification methods can interact if firmware implements more than one.
+
+estatus.. queue? ghes.c has three things all called 'estatus'. One is
+a pool of memory that has a static size, and is grown/shrunk when new
+NMI users are allocated. The second is the cache, this holds recent
+notifications so it can suppress notifications we've already handled.
+The last is the queue, which holds data from NMI notifications (in pool
+memory) that can't be handled immediatly.
+
+So far this has only been tested using SDEI.
+
+This RFC makes a know race worse. (I aim to fix the race before dropping
+the RFC tag). Xie XiuQi reported that both the arch code and
+memory_failure() will signal an affected process, what the process gets
+depends on the order these run in, and how the signals get merged.
+Using the estatus-cache makes this worse. My intention is for the arch
+code's new 'apei_claim_x()' helpers to give any queue that the claimed
+RAS event may be stuck in a kick, depending on which irq/preemptible
+flags the notification caused to be set.
+
+Your CC list is wrong! Yes, given how ropey this is I want to keep the
+noise low, it would only need posting again at rc1.
+
+
+Comments on the overall approach welcome!
+
+
+Thanks,
+
+James Morse (7):
+  ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+  ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+  ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+  KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+  arm64: KVM/mm: Move SEA handling behind a single 'claim' interface.
+  ACPI / APEI: Make the fixmap_idx per-ghes to allow multiple in_nmi()
+    users
+  ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+
+ arch/arm/include/asm/kvm_ras.h       |  14 ++
+ arch/arm/include/asm/system_misc.h   |   5 -
+ arch/arm64/include/asm/acpi.h        |   2 +
+ arch/arm64/include/asm/daifflags.h   |   1 +
+ arch/arm64/include/asm/fixmap.h      |   4 +-
+ arch/arm64/include/asm/kvm_ras.h     |  23 ++
+ arch/arm64/include/asm/system_misc.h |   2 -
+ arch/arm64/kernel/acpi.c             |  30 +++
+ arch/arm64/mm/fault.c                |  30 +--
+ drivers/acpi/apei/ghes.c             | 467 ++++++++++++++++++-----------------
+ include/acpi/ghes.h                  |   5 +
+ virt/kvm/arm/mmu.c                   |   4 +-
+ 12 files changed, 327 insertions(+), 260 deletions(-)
+ create mode 100644 arch/arm/include/asm/kvm_ras.h
+ create mode 100644 arch/arm64/include/asm/kvm_ras.h
+
+-- 
+2.15.1
+
