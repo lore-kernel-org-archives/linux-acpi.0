@@ -1,56 +1,61 @@
-From: "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>
-Subject: Re: [PATCH] ACPI / tables: Add IORT to injectable table list
-Date: Tue, 23 Jan 2018 09:28:10 +0000
-Message-ID: <1516699681.3253.4.camel@hxt-semitech.com>
-References: <1516694778-14784-1-git-send-email-shunyong.yang@hxt-semitech.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v9 3/7] acpi: apei: Add SEI notification type support for
+ ARMv8
+Date: Tue, 23 Jan 2018 18:07:52 +0800
+Message-ID: <53566b7c-d686-66be-ee84-a6a6257b526a@huawei.com>
+References: <1515254577-6460-1-git-send-email-gengdongjiu@huawei.com>
+ <1515254577-6460-4-git-send-email-gengdongjiu@huawei.com>
+ <5A663DEC.8080804@arm.com> <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx01.hxt-semitech.com.96.203.223.in-addr.arpa ([223.203.96.7]:39698
-        "EHLO barracuda.hxt-semitech.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751256AbeAWJ2G (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 04:28:06 -0500
-In-Reply-To: <1516694778-14784-1-git-send-email-shunyong.yang@hxt-semitech.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:4676 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751154AbeAWKJy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Jan 2018 05:09:54 -0500
+In-Reply-To: <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
 Content-Language: en-US
-Content-ID: <43A936403A43BB4C985464BC7E61CAB2@hxt-semitech.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Jiang, Yutang2" <yutang2.jiang@hxt-semitech.com>
+To: James Morse <james.morse@arm.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, robert.moore@intel.com, lv.zheng@intel.com, corbet@lwn.net, will.deacon@arm.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 
-Hi, All
+sorry fix a typo.
 
-Sorry, please ignore this patch. Please help to review v2.
-https://patchwork.kernel.org/patch/10179761/
+On 2018/1/23 17:23, gengdongjiu wrote:
+>> There are problems with doing this:
+>>
+>> Oct. 18, 2017, 10:26 a.m. James Morse wrote:
+>> | How do SEA and SEI interact?
+>> |
+>> | As far as I can see they can both interrupt each other, which isn't something
+>> | the single in_nmi() path in APEI can handle. I thinks we should fix this
+>> | first.
+>>
+>> [..]
+>>
+>> | SEA gets away with a lot of things because its synchronous. SEI isn't. Xie
+>> | XiuQi pointed to the memory_failure_queue() code. We can use this directly
+>> | from SEA, but not SEI. (what happens if an SError arrives while we are
+>> | queueing memory_failure work from an IRQ).
+>> |
+>> | The one that scares me is the trace-point reporting stuff. What happens if an
+>> | SError arrives while we are enabling a trace point? (these are static-keys
+>> | right?)
+>> |
+>> |  I don't think we can just plumb SEI in like this and be done with it.
+>> |  (I'm looking at teasing out the estatus cache code from being x86:NMI only.
+>> |  This way we solve the same 'cant do this from NMI context' with the same
+>> |  code'.)
+>>
+>>
+>> I will post what I've got for this estatus-cache thing as an RFC, its not ready
+>> to be considered yet.
 
-Thanks
-Shunyong
+Yes, I know you are dong that. Your serial's patch will consider all above things, right?
+If your patch can be consider that, this patch can based on your patchset. thanks.
 
-On Tue, 2018-01-23 at 16:06 +0800, Yang Shunyong wrote:
-> This patch adds ACPI_SIG_PPTT to the table, which enables IORT from
-> initrd to override which from firmware.
 > 
-> Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
-> Cc: yutang2.jiang@hxt-semitech.com
-> Cc: yu.zheng@hxt-semitech.com
-> ---
->  drivers/acpi/tables.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 80ce2a7d224b..7bcb66ccccf3 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -456,7 +456,8 @@ static u8 __init acpi_table_checksum(u8 *buffer,
-> u32 length)
->  	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
->  	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
->  	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
-> -	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-> +	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
-> +	NULL };
->  
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
->  
+>>
+
