@@ -1,109 +1,67 @@
-From: =?UTF-8?Q?Nicole_F=c3=a6rber?= <nicole.faerber@dpin.de>
-Subject: kernel <=4.15rc9, acpi_irq - Disabling IRQ #9 after resume from sleep
-Date: Tue, 23 Jan 2018 16:59:58 +0100
-Message-ID: <4b983a91-d5af-dd92-ea5a-4bed05e281c6@dpin.de>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v9 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
+Date: Tue, 23 Jan 2018 19:06:33 +0000
+Message-ID: <5A6787B9.3080906@arm.com>
+References: <1515254577-6460-1-git-send-email-gengdongjiu@huawei.com> <1515254577-6460-6-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dpin.de ([178.77.96.241]:58494 "EHLO dpin.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751188AbeAWQhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 11:37:21 -0500
-Received: from p578c4847.dip0.t-ipconnect.de ([87.140.72.71] helo=[192.168.2.135])
-        by lvps178-77-96-241.dedicated.hosteurope.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <nicole.faerber@dpin.de>)
-        id 1ee0zX-0003Uw-19
-        for linux-acpi@vger.kernel.org; Tue, 23 Jan 2018 17:00:07 +0100
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-doc-owner@vger.kernel.org>
+In-Reply-To: <1515254577-6460-6-git-send-email-gengdongjiu@huawei.com>
+Sender: linux-doc-owner@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, robert.moore@intel.com, lv.zheng@intel.com, corbet@lwn.net, will.deacon@arm.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
+Hi Dongjiu Geng,
 
-pretty much since I am working on the device I have this issues and it
-still persist up until latest 4.15rc9 kernels. What happens is something
-like this, excerpt from dmesg:
-...
-[52208.493346] input: Lenovo ThinkPad 10 Ultrabook Keyboard as
-/devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.1/0003:17EF:6062.0007/input/input16
-[52208.553407] hid-generic 0003:17EF:6062.0007: input,hiddev0,hidraw2:
-USB HID v1.10 Mouse [Lenovo ThinkPad 10 Ultrabook Keyboard] on
-usb-0000:00:14.0-1/input1
-[52208.553749] usbhid 1-1:1.2: couldn't find an input interrupt endpoint
-[52209.028700] irq 9: nobody cared (try booting with the "irqpoll" option)
-[52209.028710] CPU: 1 PID: 6011 Comm: thunar-volman Tainted: G     U A
-      4.15.0-rc9tpt10 #1
-[52209.028712] Hardware name: LENOVO 20C10024GE/20C10024GE, BIOS
-GWET44WW (1.44) 02/13/2017
-[52209.028713] Call Trace:
-[52209.028719]  <IRQ>
-[52209.028728]  dump_stack+0x46/0x68
-[52209.028733]  __report_bad_irq+0x29/0xc0
-[52209.028737]  note_interrupt+0x237/0x280
-[52209.028741]  handle_irq_event_percpu+0x52/0x80
-[52209.028743]  handle_irq_event+0x27/0x50
-[52209.028746]  handle_fasteoi_irq+0x73/0x120
-[52209.028750]  handle_irq+0x16/0x30
-[52209.028753]  do_IRQ+0x42/0xc0
-[52209.028756]  common_interrupt+0x95/0x95
-[52209.028758]  </IRQ>
-[52209.028761] RIP: 0033:0x7f144ba796e0
-[52209.028763] RSP: 002b:00007ffc45d64df0 EFLAGS: 00000246 ORIG_RAX:
-ffffffffffffffde
-[52209.028766] RAX: 0000000000000061 RBX: 00007f144bdc3c20 RCX:
-0000000000000061
-[52209.028767] RDX: 0000000000000061 RSI: 0000000000000000 RDI:
-0000564df1cc2810
-[52209.028769] RBP: 0000564df1cc27c0 R08: 0000000000000000 R09:
-0000564df1cc27c0
-[52209.028770] R10: ffffffffffffffb0 R11: 00007f144c31b720 R12:
-0000000000000050
-[52209.028771] R13: 0000000000009850 R14: 0000564df1cc27b0 R15:
-0000564df1cb3c40
-[52209.028773] handlers:
-[52209.028779] [<00000000a8ae6ecd>] acpi_irq
-[52209.028782] Disabling IRQ #9
-[52217.086686] usb 1-1: USB disconnect, device number 5
-...
+On 06/01/18 16:02, Dongjiu Geng wrote:
+> The ARM64 RAS SError Interrupt(SEI) syndrome value is specific to the
+> guest and user space needs a way to tell KVM this value. So we add a
+> new ioctl. Before user space specifies the Exception Syndrome Register
+> ESR(ESR), it firstly checks that whether KVM has the capability to
+> set the guest ESR, If has, will set it. Otherwise, nothing to do.
+> 
+> For this ESR specifying, Only support for AArch64, not support AArch32.
 
-This does not happen on a freshly booted system. After boot I can do
-anything with the device and it will not happen.
+After this patch user-space can trigger an SError in the guest. If it wants to
+migrate the guest, how does the pending SError get migrated?
 
-But after I suspended the device a single time it becomes vulnerable to
-the above issue. The issue can easiest be reproduced when I e.g. remove
-the keyboard dock from the device, which seems to carry additional
-signals to the USB for keyboard and mouse.
+I think we need to fix migration first. Andrew Jones suggested using
+KVM_GET/SET_VCPU_EVENTS:
+https://www.spinics.net/lists/arm-kernel/msg616846.html
 
-The device in question is a Thinkpad Tablet 10 Gen2, Intel Baytrail
-Z3795 CPU.
+Given KVM uses kvm_inject_vabt() on v8.0 hardware too, we should cover systems
+without the v8.2 RAS Extensions with the same API. I think this means a bit to
+read/write whether SError is pending, and another to indicate the ESR should be
+set/read.
+CPUs without the v8.2 RAS Extensions can reject pending-SError that had an ESR.
 
-Another interesting detail is that the acpi IRQ#9 is usually never used,
-neither before nor after suspend:
+user-space can then use the 'for migration' calls to make a 'new' SError pending.
 
-# cat /proc/interrupts |grep acpi
- 9:        0        0        0        0   IO-APIC    9-fasteoi   acpi
+Now that the cpufeature bits are queued, I think this can be split up into two
+separate series for v4.16-rc1, one to tackle NOTIFY_SEI and the associated
+plumbing. The second for the KVM 'make SError pending' API.
 
-Until the issue happens, when 100000 irqs rush in, nobody cares and the
-kernel disables it.
 
-Also interesting, since kernel 4.15rc kernels finally (yeah!) the Intel
-idle modes S0i<n> started to work! Which is great, saves a lot of power
-during suspend. But after the above issue the device goes to sleep, yes,
-but it does not enter S0i<n> states anymore.
+> diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
+> index 5c7f657..738ae90 100644
+> --- a/arch/arm64/kvm/guest.c
+> +++ b/arch/arm64/kvm/guest.c
+> @@ -277,6 +277,11 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
+>  	return -EINVAL;
+>  }
+>  
+> +int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome)
+> +{
+> +	return -EINVAL;
+> +}
 
-Before S0i<n> started to work I did not care that much since it did not
-have any drawback but now it has and I would very much like to find a fix.
+Does nothing in the patch that adds the support? This is a bit odd.
+(oh, its hiding in patch 6...)
 
-If anyone has an idea what to try I will gladly do so - I can pretty
-nicely reproduce the so it is also pretty easy to try possible fixes.
 
-Thank you so much!
+Thanks,
 
-Cheers
-  nicole
+James
 
--- 
-Sapere aude!
