@@ -1,226 +1,104 @@
 From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [RFC 5/7] arm64: KVM/mm: Move SEA handling behind a single
- 'claim' interface.
-Date: Tue, 23 Jan 2018 16:46:12 +0800
-Message-ID: <a11b56fe-ee50-4a07-cd63-4f4db01ea57f@huawei.com>
+Subject: Re: [RFC 0/7] APEI: Move arm64 NMI notifications to use estatus cache
+Date: Tue, 23 Jan 2018 16:51:53 +0800
+Message-ID: <ecabb4af-ec52-e639-38cb-53d9990270d7@huawei.com>
 References: <20180122192942.30487-1-james.morse@arm.com>
- <20180122192942.30487-6-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:4722 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751027AbeAWIrQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 03:47:16 -0500
-In-Reply-To: <20180122192942.30487-6-james.morse@arm.com>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:51541 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751086AbeAWIw7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Jan 2018 03:52:59 -0500
+In-Reply-To: <20180122192942.30487-1-james.morse@arm.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
+To: James Morse <james.morse@arm.com>, "Zhengqiang (turing)" <zhengqiang10@huawei.com>, "wangxiongfeng (C)" <wangxiongfeng2@huawei.com>
 Cc: linux-acpi@vger.kernel.org, huangshaoyu@huawei.com, Tyler Baicar <tbaicar@codeaurora.org>
 
+Add more Huawei's guys to know the status and review this solution.
 
+Hi James，
+   Thanks for your work.
 
 On 2018/1/23 3:29, James Morse wrote:
-> To split up APEIs in_nmi() path, we need the nmi-like callers to always
-> be in_nmi(). Add a helper to do the work and claim the notification.
+> Hi guys, kbuild-robot,
 > 
-> When KVM or the arch code takes an exception that might be a RAS
-> notification, it asks the APEI firmware-first code whether it wants
-> to claim the exception. We can then go on to see if (a future)
-> kernel-first mechanism wants to claim the notification, before
-> falling through to the existing default behaviour.
-> 
-> The NOTIFY_SEA code was merged before we had multiple, possibly-interacting,
-> NMI-like notifications and the need to consider kernel-first in the future.
-> Make the 'claiming' behaviour explicit, and give ourselves somewhere
-> to hook in kernel-first.
-> 
-> We're restructuring the APEI code to allow multiple NMI-like
-> notifications, any notification that might interrupt interrupts-masked
-> code must always be wrapped in nmi_enter()/nmi_exit().
-> 
-> We mask SError over this window to prevent an asynchronous RAS error
-> arriving and tripping 'nmi_enter()'s BUG_ON(in_nmi()).
-> 
-> Not-signed-off: James Morse <james.morse@arm.com>
-> ---
->  arch/arm64/include/asm/acpi.h      |  2 ++
->  arch/arm64/include/asm/daifflags.h |  1 +
->  arch/arm64/include/asm/kvm_ras.h   | 14 +++++++++++++-
->  arch/arm64/kernel/acpi.c           | 30 ++++++++++++++++++++++++++++++
->  arch/arm64/mm/fault.c              | 30 ++++++------------------------
->  5 files changed, 52 insertions(+), 25 deletions(-)
-> 
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 32f465a80e4e..cf844b8d6ab8 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -94,6 +94,8 @@ void __init acpi_init_cpus(void);
->  static inline void acpi_init_cpus(void) { }
->  #endif /* CONFIG_ACPI */
->  
-> +bool apei_claim_sea(void);
-> +
->  #ifdef CONFIG_ARM64_ACPI_PARKING_PROTOCOL
->  bool acpi_parking_protocol_valid(int cpu);
->  void __init
-> diff --git a/arch/arm64/include/asm/daifflags.h b/arch/arm64/include/asm/daifflags.h
-> index 22e4c83de5a5..cbd753855bf3 100644
-> --- a/arch/arm64/include/asm/daifflags.h
-> +++ b/arch/arm64/include/asm/daifflags.h
-> @@ -20,6 +20,7 @@
->  
->  #define DAIF_PROCCTX		0
->  #define DAIF_PROCCTX_NOIRQ	PSR_I_BIT
-> +#define DAIF_ERRCTX		(PSR_I_BIT | PSR_A_BIT)
->  
->  /* mask/save/unmask/restore all exceptions, including interrupts. */
->  static inline void local_daif_mask(void)
-> diff --git a/arch/arm64/include/asm/kvm_ras.h b/arch/arm64/include/asm/kvm_ras.h
-> index 9a54576b759f..7fd38408a602 100644
-> --- a/arch/arm64/include/asm/kvm_ras.h
-> +++ b/arch/arm64/include/asm/kvm_ras.h
-> @@ -4,8 +4,20 @@
->  #ifndef __ARM64_KVM_RAS_H__
->  #define __ARM64_KVM_RAS_H__
->  
-> +#include <linux/acpi.h>
-> +#include <linux/errno.h>
->  #include <linux/types.h>
->  
-> -int kvm_handle_guest_sea(phys_addr_t addr, unsigned int esr);
-> +static inline int kvm_handle_guest_sea(phys_addr_t addr, unsigned int esr)
-The addr and esr parameter should be not be used, can we remove them?
+> This RFC is rough, and not at all ready. This is the current status of
+> my attempts to split up the ghes.c code to allow multiple notifications
+> to be NMI-like. On arm64 we have NOTIFY_{SEA, SEI, SDEI} all of which
+> have NMI-like behaviour.
+Ok.
 
-> +{
-> +	int ret = -ENOENT;
-> +
-> +	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
-> +		if (apei_claim_sea())
-> +			ret = 0;
-> +	}
-> +
-> +	return ret;
-> +}
->  
->  #endif /* __ARM64_KVM_RAS_H__ */
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 252396a96c78..b2fc9c7a807d 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -33,6 +33,8 @@
->  
->  #ifdef CONFIG_ACPI_APEI
->  # include <linux/efi.h>
-> +# include <acpi/ghes.h>
-> +# include <asm/daifflags.h>
->  # include <asm/pgtable.h>
->  #endif
->  
-> @@ -261,4 +263,32 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
->  		return __pgprot(PROT_NORMAL_NC);
->  	return __pgprot(PROT_DEVICE_nGnRnE);
->  }
-> +
-> +
-> +/*
-> + * Claim Synchronous External Aborts as a firmwre first notification.
+> 
+> This series splits up APEIs in_nmi() path so that more than one
+> notification can use it. To support the asyncronous notifications: SEI
+> and SDEI we move all the NMI-like handlers over to the estatus-cache.
+> This gives us the same APEI behaviour as x86, and means the multiple
+> notification methods can interact if firmware implements more than one.
+> 
+> estatus.. queue? ghes.c has three things all called 'estatus'. One is
+> a pool of memory that has a static size, and is grown/shrunk when new
+> NMI users are allocated. The second is the cache, this holds recent
+> notifications so it can suppress notifications we've already handled.
+> The last is the queue, which holds data from NMI notifications (in pool
+> memory) that can't be handled immediatly.
+thanks for the explanation.
 
-firmwre?
-firmwre -->firmware
+> 
+> So far this has only been tested using SDEI.
+> 
+> This RFC makes a know race worse. (I aim to fix the race before dropping
+> the RFC tag). Xie XiuQi reported that both the arch code and
+> memory_failure() will signal an affected process, what the process gets
+Yes, Now in the ARCH code we firstly call memory_failure() which may signal an affected process,
+then the ARCH code also signal the affected process.
 
-> + *
-> + * Used by KVM and the arch do_sea handler.
-> + */
-> +bool apei_claim_sea(void)
-> +{
-> +	bool ret = false;
-> +
-> +	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
-> +		unsigned long flags = arch_local_save_flags();
-> +
-> +		/*
-> +		 * APEI expects an NMI-like notification to always be called
-> +		 * in NMI context.
-> +		 */
-> +		local_daif_restore(DAIF_ERRCTX);
-> +		nmi_enter();
-> +		if (ghes_notify_sea() == 0)
-> +			ret = true;
-> +		nmi_exit();
-> +		local_daif_restore(flags);
-> +	}
-> +
-> +	return ret;
-> +}
->  #endif
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index 39e607515e8f..360b37594649 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -18,6 +18,7 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/extable.h>
->  #include <linux/signal.h>
->  #include <linux/mm.h>
-> @@ -44,8 +45,6 @@
->  #include <asm/pgtable.h>
->  #include <asm/tlbflush.h>
->  
-> -#include <acpi/ghes.h>
-> -
->  struct fault_info {
->  	int	(*fn)(unsigned long addr, unsigned int esr,
->  		      struct pt_regs *regs);
-> @@ -580,19 +579,12 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->  	pr_err("Synchronous External Abort: %s (0x%08x) at 0x%016lx\n",
->  		inf->name, esr, addr);
->  
-> -	/*
-> -	 * Synchronous aborts may interrupt code which had interrupts masked.
-> -	 * Before calling out into the wider kernel tell the interested
-> -	 * subsystems.
-> -	 */
->  	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA)) {
-> -		if (interrupts_enabled(regs))
-> -			nmi_enter();
-> -
-> -		ret = ghes_notify_sea();
+> depends on the order these run in, and how the signals get merged.
+> Using the estatus-cache makes this worse. My intention is for the arch
+> code's new 'apei_claim_x()' helpers to give any queue that the claimed
+I checked your patch and give some comments. It looks like using apei_claim_x()' helpers
+is good, which can be called both by ARCH kernel and KVM in the NMI path.
 
-  You code needs to rebase, in the newest code, the return value have been ignored.
+> RAS event may be stuck in a kick, depending on which irq/preemptible
+> flags the notification caused to be set.>
+> Your CC list is wrong! Yes, given how ropey this is I want to keep the
+> noise low, it would only need posting again at rc1.
+Great, hope these patches can be applied in rc1 or rc2.
 
-> -
-> -		if (interrupts_enabled(regs))
-> -			nmi_exit();
-> +		/*
-> +		 * Return value ignored as we rely on signal merging.
-> +		 * Future patches will make this more robust.
-> +		 */
-> +	       apei_claim_sea();
->  	}
->  
->  	info.si_signo = SIGBUS;
-> @@ -674,16 +666,6 @@ static const struct fault_info fault_info[] = {
->  	{ do_bad,		SIGBUS,  0,		"unknown 63"			},
->  };
->  
-> -int kvm_handle_guest_sea(phys_addr_t addr, unsigned int esr)
-> -{
-> -	int ret = -ENOENT;
-> -
-> -	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
-> -		ret = ghes_notify_sea();
-> -
-> -	return ret;
-> -}
-> -
->  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
->  					 struct pt_regs *regs)
->  {
+> 
+> 
+> Comments on the overall approach welcome!
+> 
+> 
+> Thanks,
+> 
+> James Morse (7):
+>   ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+>   ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+>   ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+>   KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+>   arm64: KVM/mm: Move SEA handling behind a single 'claim' interface.
+>   ACPI / APEI: Make the fixmap_idx per-ghes to allow multiple in_nmi()
+>     users
+>   ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+> 
+>  arch/arm/include/asm/kvm_ras.h       |  14 ++
+>  arch/arm/include/asm/system_misc.h   |   5 -
+>  arch/arm64/include/asm/acpi.h        |   2 +
+>  arch/arm64/include/asm/daifflags.h   |   1 +
+>  arch/arm64/include/asm/fixmap.h      |   4 +-
+>  arch/arm64/include/asm/kvm_ras.h     |  23 ++
+>  arch/arm64/include/asm/system_misc.h |   2 -
+>  arch/arm64/kernel/acpi.c             |  30 +++
+>  arch/arm64/mm/fault.c                |  30 +--
+>  drivers/acpi/apei/ghes.c             | 467 ++++++++++++++++++-----------------
+>  include/acpi/ghes.h                  |   5 +
+>  virt/kvm/arm/mmu.c                   |   4 +-
+>  12 files changed, 327 insertions(+), 260 deletions(-)
+>  create mode 100644 arch/arm/include/asm/kvm_ras.h
+>  create mode 100644 arch/arm64/include/asm/kvm_ras.h
 > 
 
