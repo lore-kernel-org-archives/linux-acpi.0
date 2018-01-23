@@ -1,120 +1,85 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: ACPI: Do not call _STA on battery devices with unmet
- dependencies
-Date: Tue, 23 Jan 2018 00:24:32 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396D7178@ORSMSX110.amr.corp.intel.com>
-References: <20180118160359.29971-1-hdegoede@redhat.com>
- <20180118191112.GI53542@bhelgaas-glaptop.roam.corp.google.com>
- <CF6A88132359CE47947DB4C6E1709ED5396D2A4C@ORSMSX110.amr.corp.intel.com>
- <03b11c2d-0c17-89d2-daa2-d48f4ea656d5@redhat.com>
+From: Marcin Wojtas <mw@semihalf.com>
+Subject: Re: [net-next: PATCH v4 1/7] device property: Introduce fwnode_get_mac_address()
+Date: Tue, 23 Jan 2018 07:12:49 +0100
+Message-ID: <CAPv3WKf0GUE508P8k1nExBA+h6pQr4UcaFPk+mps3xRepESQmw@mail.gmail.com>
+References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
+ <1516278704-17141-2-git-send-email-mw@semihalf.com> <CAJZ5v0j=4Lvaf49oeDqVmYP5nyAs-E9E8xdgyfL7=J_46X5TMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <03b11c2d-0c17-89d2-daa2-d48f4ea656d5@redhat.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-it0-f49.google.com ([209.85.214.49]:38344 "EHLO
+        mail-it0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751210AbeAWGMv (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jan 2018 01:12:51 -0500
+Received: by mail-it0-f49.google.com with SMTP id w14so12496082itc.3
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Jan 2018 22:12:51 -0800 (PST)
+In-Reply-To: <CAJZ5v0j=4Lvaf49oeDqVmYP5nyAs-E9E8xdgyfL7=J_46X5TMA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, David Miller <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory Clement <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, Nadav Haklai <nadavh@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Grzegorz
 
-SGksDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEhhbnMgZGUgR29lZGUg
-W21haWx0bzpoZGVnb2VkZUByZWRoYXQuY29tXQ0KPiBTZW50OiBTYXR1cmRheSwgSmFudWFyeSAy
-MCwgMjAxOCA0OjQ4IEFNDQo+IFRvOiBTY2htYXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0BpbnRl
-bC5jb20+DQo+IENjOiBSYWZhZWwgSiAuIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgTGVu
-IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Ow0KPiBCam9ybiBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29n
-bGUuY29tPjsgTW9vcmUsIFJvYmVydA0KPiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFpoZW5n
-LCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPjsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3Jn
-OyBsaW51eC1wY2lAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6
-IFJlOiBBQ1BJOiBEbyBub3QgY2FsbCBfU1RBIG9uIGJhdHRlcnkgZGV2aWNlcyB3aXRoIHVubWV0
-IGRlcGVuZGVuY2llcw0KPiANCj4gSGksDQo+IA0KPiBPbiAxOS0wMS0xOCAyMjowMywgU2NobWF1
-c3MsIEVyaWsgd3JvdGU6DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
-Pj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1h
-Y3BpLQ0KPiA+PiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBCam9ybiBIZWxn
-YWFzDQo+ID4+IFNlbnQ6IFRodXJzZGF5LCBKYW51YXJ5IDE4LCAyMDE4IDExOjExIEFNDQo+ID4+
-IFRvOiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPg0KPiA+PiBDYzogUmFmYWVs
-IEogLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93bg0KPiA+PiA8bGVuYkBr
-ZXJuZWwub3JnPjsgQmpvcm4gSGVsZ2FhcyA8YmhlbGdhYXNAZ29vZ2xlLmNvbT47IE1vb3JlLCBS
-b2JlcnQNCj4gPj4gPHJvYmVydC5tb29yZUBpbnRlbC5jb20+OyBaaGVuZywgTHYgPGx2LnpoZW5n
-QGludGVsLmNvbT47IGxpbnV4LQ0KPiA+PiBhY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgtcGNp
-QHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogQUNQ
-STogRG8gbm90IGNhbGwgX1NUQSBvbiBiYXR0ZXJ5IGRldmljZXMgd2l0aCB1bm1ldA0KPiA+PiBk
-ZXBlbmRlbmNpZXMNCj4gPj4NCj4gPj4gT24gVGh1LCBKYW4gMTgsIDIwMTggYXQgMDU6MDM6NTVQ
-TSArMDEwMCwgSGFucyBkZSBHb2VkZSB3cm90ZToNCj4gPg0KPiA+IEhpIEhhbnMsDQo+ID4NCj4g
-Pj4+IEhpIEFsbCwNCj4gPj4+DQo+ID4+PiBUaGUgQUNQSSBjb2RlIGFscmVhZHkgY29udGFpbnMg
-cXVpdGUgYSBiaXQgb2YgY29kZSB0byBub3QgYmluZCB0aGUNCj4gPj4+IEFDUEktYmF0dGVyeSB1
-bnRpbCBhbGwgZGVwcyBmb3IgYW4gQUNQSSBiYXR0ZXJ5IGRldmljZSBoYXZlIGJlZW4NCj4gPj4+
-IG1ldCwgYnV0IG9uIHNvbWUgZGV2aWNlcyBjYWxsaW5nIF9TVEEgYmVmb3JlIGFsbCBkZXBzIGFy
-ZSBtZXQgaXMgYQ0KPiA+Pj4gcHJvYmxlbSB0b28gYmVjYXVzZSB0aGUgX1NUQSBtZXRob2QgdXNl
-cyBhbiBpMmMgT3BSZWdpb24gdGhlcmUuDQo+ID4NCj4gPiBDb3VsZCB5b3UgZXhwbGFpbiB3aHkg
-X1NUQSBtZXRob2QgdXNpbmcgYW4gSTJDIE9wUmVnaW9uIGlzIHByb2JsZW1hdGljPw0KPiANCj4g
-SXQgaXMgcHJvYmxlbWF0aWMgaWYgd2UgY2FsbCB0aGUgX1NUQSBtZXRob2QgYmVmb3JlIHRoZSBo
-YW5kbGVyIGZvciB0aGUgT3BSZWdpb24NCj4gaGFzIGJlZW4gaW5zdGFsbGVkLCB0aGlzIHNlcmll
-cyBkZWxheXMgLyBhdm9pZHMgY2FsbGluZyBfU1RBIGJlZm9yZSB0aGUgT3BSZWdpb24NCj4gaGFz
-IGJlZW4gaW5zdGFsbGVkLg0KDQpUaGFua3MgZm9yIHRoZSBleHBsYW5hdGlvbi4NCkknbSBsb29r
-aW5nIGF0IHRoZSBBQ1BJIHNwZWMgYW5kIGZyb20gd2hhdCBpdCBzYWlkIGFib3V0IF9TVEEsIEkg
-Z2F0aGVyZWQgdGhhdCBfU1RBIGlzIGFsbG93ZWQgdG8gaGF2ZSBzaWRlLWVmZmVjdHMgdG8gbmFt
-ZWQgb2JqZWN0cyB3aXRoaW4gdGhlIEFNTCBuYW1lc3BhY2UuIFNvIHJlbW92aW5nIF9TVEEgZnJv
-bSBhY3BpX2dldF9vYmplY3RfaW5mbyBzZWVtcyBhIGxpdHRsZSBkYW5nZXJvdXMuLi4gSXMgdGhl
-cmUgYSByZWFzb24gd2h5IHlvdSBjYW5ub3QgcmVtb3ZlIG9yIGRlbGF5IHRoZSBjYWxsIHRvIGFj
-cGlfZ2V0X29iamVjdF9pbmZvIGluc3RlYWQ/IENoYXB0ZXIgNiBzZWN0aW9uIDEgb2YgdGhlIEFD
-UEkgc3BlYyBhbHNvIHN0YXRlcyB0aGF0IGl0J3MgcG9zc2libGUgZm9yIF9ISUQgYW5kIF9BRFIg
-dG8gcmVhZCBmcm9tIG9wZXJhdGlvbiByZWdpb25zIGFzIHdlbGwuIElzIGl0IGNvbW1vbiBjb252
-ZW50aW9uIHRoYXQgdGhlc2UgX0hJRCBhbmQgX0FEUiBvYmplY3RzIGRvIG5vdCBhY2Nlc3Mgb3Bl
-cmF0aW9uIHJlZ2lvbnM/DQoNClRoYW5rcywNCg0KRXJpaw0KPiANCj4gUmVnYXJkcywNCj4gDQo+
-IEhhbnMNCj4gDQo+IA0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IEVyaWsNCj4gPg0KPiA+Pj4NCj4g
-Pj4+IEhlcmUgaXMgdGhlIERTRFQgb2YgdGhlIGRldmljZSBJJ20gc2VlaW5nIHRoaXMgb246DQo+
-ID4+PiBodHRwczovL2ZlZG9yYXBlb3BsZS5vcmcvfmp3cmRlZ29lZGUvdG9zaGliYS1jbGljay1t
-aW5pLWRzZHQuZHNsDQo+ID4+DQo+ID4+IFRoaXMgbG9va3MgbGlrZSBpbnRlcmVzdGluZyBpbmZv
-LCBidXQgKGEpIHRoaXMgbGluayBpc24ndCBtZW50aW9uZWQNCj4gPj4gaW4gdGhlIGFjdHVhbCBw
-YXRjaGVzLCBhbmQgKGIpIGl0J3MgY29uY2VpdmFibGUgdGhhdCBmZWRvcmFwZW9wbGUub3JnIGNv
-dWxkIGdvDQo+IGF3YXkgc29tZWRheS4NCj4gPj4gSWYgdGhpcyB3ZXJlIGEgUENJIHNlcmllcywg
-SSB3b3VsZCBzdWdnZXN0IG9wZW5pbmcgYSByZXBvcnQgYXQNCj4gPj4gYnVnemlsbGEua2VybmVs
-Lm9yZywgYXR0YWNoaW5nIHRoZSBEU0wgdGhlcmUsIGFuZCBpbmNsdWRpbmcgdGhlIGxpbmsgaW4g
-dGhlDQo+IHBhdGNoIGNoYW5nZWxvZy4NCj4gPj4NCj4gPj4+IFRoaXMgc2VyaWVzIG1vZGlmaWVz
-IHRoZSBrZXJuZWwgdG8gbm90IGNhbGwgX1NUQSB1bnRpbCBhbGwgZGVwcyBhcmUNCj4gPj4+IG1l
-dCwgbWlycm9yaW5nIHRoZSBiaW5kaW5nIGJlaGF2aW9yIG9mIHRoZSBiYXR0ZXJ5IGRyaXZlci4N
-Cj4gPj4+DQo+ID4+PiBXaXRob3V0IHRoaXMgc2VyaWVzIGEgdG90YWwgb2YgMzIgQUNQSSBlcnJv
-cnMgZ2V0IHByaW50ZW5kIHRvIHRoZQ0KPiA+Pj4gY29uc29sZSBvbiBib290LCB0aGVyZSBhcmUg
-NCBlcnJvcnMgcGVyIF9TVEEgY2FsbCwgMiBiYXR0ZXJ5IGRldmljZXMNCj4gPj4+IG9uIHRoaXMg
-c3lzdGVtIGFuZCA0IF9TVEEgY2FsbHMgcGVyIGJhdHRlcnkgZGV2aWNlLg0KPiA+Pj4NCj4gPj4+
-IFRoZSBmaXJzdCBjb21taXQgaXMgYSBwcmVwYXJhdGlvbiBjb21taXQgZm9yIG1ha2luZyB0aGUg
-QUNQSUNBDQo+ID4+PiBjaGFuZ2VzIGluIHRoZSA0dGggY29tbWl0LCB0aGlzIGNvbW1pdCBpcyBu
-ZWNlc3NhcnkgdG8gbm90IGJyZWFrDQo+ID4+PiB0aGluZ3MgYWZ0ZXIgdGhlIEFDUElDQSBjaGFu
-Z2VzLg0KPiA+Pj4NCj4gPj4+IFRoZSBzZWNvbmQgY29tbWl0IG1vZGlmaWVzIGFjcGlfYnVzX2dl
-dF9zdGF0dXMgdG8gbm90IGNhbGwgX1NUQSBvbg0KPiA+Pj4gYmF0dGVyeSBkZXZpY2VzIHVudGls
-IGFsbCBkZXBzIGFyZSBtZXQuIFRoaXMgZml4ZXMgMiBvZiB0aGUgNCB0b28NCj4gPj4+IGVhcmx5
-IF9TVEEgY2FsbHMgdHJpZ2dlcmluZyB0aGVzZSBlcnJvcnMuDQo+ID4+Pg0KPiA+Pj4gVGhlIHRo
-aXJkIGNvbW1pdCBtYWtlcyB0aGUgZGV2aWNlIGluc3RhbnRpYXRpb24gY29kZSB1c2UNCj4gPj4+
-IGFjcGlfYnVzX2dldF9zdGF0dXMgaW5zdGVhZCBvZiBhY3BpX2J1c19nZXRfc3RhdHVzX2hhbmRs
-ZSBzbyB0aGF0DQo+ID4+PiB0aGUgY29kZSB0byBnZXQgdGhlIGluaXRpYWwgc3RhdHVzIGFsc28g
-ZG9lcyBub3QgbWFrZXMgMSB0b28gZWFybHkgX1NUQSBjYWxsLg0KPiA+Pj4NCj4gPj4+IFRoZSBm
-b3VydGggY29tbWl0IGNoYW5nZXMgdGhlIEFDUElDQSBhY3BpX2dldF9vYmplY3RfaW5mbyBmdW5j
-dGlvbg0KPiA+Pj4gdG8gbm90IGNhbGwgX1NUQS4gT25seSAxIHVzZXIgKHdoaWNoIGlzIGZpeGVk
-IGluIHRoZSBmaXJzdCBjb21taXQpDQo+ID4+PiBjYXJlcyBhYm91dCBhY3BpX2RldmljZV9pbmZv
-LmN1cnJlbnRfc3RhdHVzLiBBbmQgdGhlIEFDUElDQSBjb2RlIGhhcw0KPiA+Pj4gdGhpcw0KPiA+
-PiBjb21tZW50Og0KPiA+Pj4NCj4gPj4+ICAgKiBOb3RlOiBUaGlzIGludGVyZmFjZSBpcyBpbnRl
-bmRlZCB0byBiZSB1c2VkIGR1cmluZyB0aGUgaW5pdGlhbA0KPiA+Pj4gZGV2aWNlDQo+ID4+PiAg
-ICogZGlzY292ZXJ5IG5hbWVzcGFjZSB0cmF2ZXJzYWwuIFRoZXJlZm9yZSwgbm8gY29tcGxleCBt
-ZXRob2RzIGNhbiBiZQ0KPiA+Pj4gICAqIGV4ZWN1dGVkLCBlc3BlY2lhbGx5IHRob3NlIHRoYXQg
-YWNjZXNzIG9wZXJhdGlvbiByZWdpb25zLg0KPiA+Pj4gVGhlcmVmb3JlLCBkbw0KPiA+Pj4gICAq
-IG5vdCBhZGQgYW55IGFkZGl0aW9uYWwgbWV0aG9kcyB0aGF0IGNvdWxkIGNhdXNlIHByb2JsZW1z
-IGluIHRoaXMgYXJlYS4NCj4gPj4+ICAgKiBCZWNhdXNlIG9mIHRoaXMgcmVhc29uIHN1cHBvcnQg
-Zm9yIHRoZSBmb2xsb3dpbmcgbWV0aG9kcyBoYXMNCj4gPj4+IGJlZW4NCj4gPj4gcmVtb3ZlZDoN
-Cj4gPj4+ICAgKiB0aGlzIHdhcyB0aGUgZmF0ZSBvZiB0aGUgX1NVQiBtZXRob2Qgd2hpY2ggd2Fz
-IGZvdW5kIHRvIGNhdXNlIHN1Y2gNCj4gPj4+ICAgKiBwcm9ibGVtcyBhbmQgd2FzIHJlbW92ZWQg
-KDExLzIwMTUpLg0KPiA+Pj4NCj4gPj4+IFRoZSBkZXNjcmliZWQgcHJvYmxlbXMgd2l0aCB0aGUg
-X1NVQiBtZXRob2QgY2xlYXJseSBhbHNvIGFwcGx5IHRvDQo+ID4+PiB0aGUgX1NUQSBtZXRob2Qs
-IHNvIHJlbW92aW5nIGl0IGZyb20gYWNwaV9nZXRfb2JqZWN0X2luZm8gc2VlbXMgbGlrZQ0KPiA+
-Pj4gaXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGhlcmUuIFRoaXMgdG9vIGZpeGVzIDEgdG9v
-IGVhcmx5IF9TVEENCj4gPj4+IGNhbGwsIHNvIHRoYXQgd2l0aCBhbGwNCj4gPj4+IDQgcGF0Y2hl
-cyBpbiBwbGFjZSB3ZSd2ZSBmaXhlZCBhbGwgNCB0b28gZWFybHkgX1NUQSBjYWxscy4NCj4gPj4+
-DQo+ID4+PiBSZWdhcmRzLA0KPiA+Pj4NCj4gPj4+IEhhbnMNCj4gPj4+IC0tDQo+ID4+PiBUbyB1
-bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
-dXgtYWNwaSINCj4gPj4+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
-ci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4+PiBpbmZvIGF0ICBodHRwOi8vdmdlci5r
-ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPj4gLS0NCj4gPj4gVG8gdW5zdWJzY3Jp
-YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGki
-DQo+ID4+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
-b3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4+IGluZm8gYXQgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9t
-YWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Rafael,
+
+> >         if (res)
+> >                 return res;
+> >
+> > -       return device_get_mac_addr(dev, "address", addr, alen);
+> > +       return fwnode_get_mac_addr(fwnode, "address", addr, alen);
+> > +}
+> > +EXPORT_SYMBOL(fwnode_get_mac_address);
+>
+> That should be EXPORT_SYMBOL_GPL().
+>
+> I have overlooked that previously, sorry about that.
+
+The series landed yesterday in net-next, so I need to send a fix on
+top. Would you be ok with single patch fixing all EXPORT_SYMBOL()
+occurences? Those would be 2 new routines:
+- fwnode_get_mac_address
+- fwnode_irq_get
+and  2 already existing in the file:
+- device_get_mac_address
+- fwnode_graph_parse_endpoint
+
+Please let know, how you prefer to handle it?
+
+Best regards,
+Marcin
+
+>
+> > +
+> > +/**
+> > + * device_get_mac_address - Get the MAC for a given device
+> > + * @dev:       Pointer to the device
+> > + * @addr:      Address of buffer to store the MAC in
+> > + * @alen:      Length of the buffer pointed to by addr, should be ETH_ALEN
+> > + */
+> > +void *device_get_mac_address(struct device *dev, char *addr, int alen)
+> > +{
+> > +       return fwnode_get_mac_address(dev_fwnode(dev), addr, alen);
+> >  }
+> >  EXPORT_SYMBOL(device_get_mac_address);
+>
+> Same here.
+>
+> Generally speaking, you should use EXPORT_SYMBOL_GPL() everywhere
+> unless there's a specific reason for not doing that in which cases
+> that specific reason has to be clearly spelled out at least in the
+> changelog of the patch, but really better in a code comment.
+>
+> >
+> > diff --git a/include/linux/property.h b/include/linux/property.h
+> > index f6189a3..35620e0 100644
+> > --- a/include/linux/property.h
+> > +++ b/include/linux/property.h
+> > @@ -279,6 +279,8 @@ int device_get_phy_mode(struct device *dev);
+> >
+> >  void *device_get_mac_address(struct device *dev, char *addr, int alen);
+> >
+> > +void *fwnode_get_mac_address(struct fwnode_handle *fwnode,
+> > +                            char *addr, int alen);
+> >  struct fwnode_handle *fwnode_graph_get_next_endpoint(
+> >         const struct fwnode_handle *fwnode, struct fwnode_handle *prev);
+> >  struct fwnode_handle *
+> > --
