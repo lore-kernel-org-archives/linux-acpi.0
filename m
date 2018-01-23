@@ -1,136 +1,156 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v9 6/7] arm64: kvm: Set Virtual SError Exception Syndrome
- for guest
-Date: Tue, 23 Jan 2018 19:07:50 +0000
-Message-ID: <5A678806.8030108@arm.com>
-References: <1515254577-6460-1-git-send-email-gengdongjiu@huawei.com> <1515254577-6460-7-git-send-email-gengdongjiu@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:45784 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751819AbeAWTKP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 14:10:15 -0500
-In-Reply-To: <1515254577-6460-7-git-send-email-gengdongjiu@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 4.4-stable 1/2] x86/cpu/intel: Introduce macros for Intel family numbers
+Date: Tue, 23 Jan 2018 21:38:55 +0100
+Message-ID: <20180123203856.27727-1-jslaby@suse.cz>
+References: <15163532439137@kroah.com>
+Return-path: <linux-mmc-owner@vger.kernel.org>
+In-Reply-To: <15163532439137@kroah.com>
+Sender: linux-mmc-owner@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: stable@vger.kernel.org, Dave Hansen <dave@sr71.net>, Dave Hansen <dave.hansen@linux.intel.com>, Adrian Hunter <adrian.hunter@intel.com>, Andy Lutomirski <luto@amacapital.net>, Andy Lutomirski <luto@kernel.org>, Borislav Petkov <bp@alien8.de>, Brian Gerst <brgerst@gmail.com>, Darren Hart <dvhart@infradead.org>, Denys Vlasenko <dvlasenk@redhat.com>, Doug Thompson <dougthompson@xmission.com>, Eduardo Valentin <edubezval@gmail.com>, "H . Peter Anvin" <hpa@zytor.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Kan Liang <kan.liang@intel.com>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, robert.moore@intel.com, lv.zheng@intel.com, corbet@lwn.net, will.deacon@arm.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 
-Hi Dongjiu Geng,
+From: Dave Hansen <dave@sr71.net>
 
-On 06/01/18 16:02, Dongjiu Geng wrote:
-> RAS Extension add a VSESR_EL2 register which can provide
-> the syndrome value reported to software on taking a virtual
-> SError interrupt exception. This patch supports to specify
-> this Syndrome.
-> 
-> In the RAS Extensions we can not set all-zero syndrome value
-> for SError, which means 'RAS error: Uncategorized' instead of
-> 'no valid ISS'. So set it to IMPLEMENTATION DEFINED syndrome
-> by default.
-> 
-> We also need to support userspace to specify a valid syndrome
-> value, Because in some case, the recovery is driven by userspace.
-> This patch can support that userspace specify it.
-> 
-> In the guest/host world switch, restore this value to VSESR_EL2
-> only when HCR_EL2.VSE is set. This value no need to be saved
-> because it is stale vale when guest exit.
+commit 970442c599b22ccd644ebfe94d1d303bf6f87c05 upstream.
 
-A version of this patch has been queued by Catalin.
+Problem:
 
-Now that the cpufeature bits are queued, I think this can be split up into two
-separate series for v4.16-rc1, one to tackle NOTIFY_SEI and the associated
-plumbing. The second for the KVM 'make SError pending' API.
+We have a boatload of open-coded family-6 model numbers.  Half of
+them have these model numbers in hex and the other half in
+decimal.  This makes grepping for them tons of fun, if you were
+to try.
 
+Solution:
 
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> [Set an impdef ESR for Virtual-SError]
-> Signed-off-by: James Morse <james.morse@arm.com>
+Consolidate all the magic numbers.  Put all the definitions in
+one header.
 
-I didn't sign-off this patch. If you pick some bits from another version and
-want to credit someone else you can 'CC:' them or just mention it in the
-commit-message.
+The names here are closely derived from the comments describing
+the models from arch/x86/events/intel/core.c.  We could easily
+make them shorter by doing things like s/SANDYBRIDGE/SNB/, but
+they seemed fine even with the longer versions to me.
 
+Do not take any of these names too literally, like "DESKTOP"
+or "MOBILE".  These are all colloquial names and not precise
+descriptions of everywhere a given model will show up.
 
-> diff --git a/arch/arm64/include/asm/sysreg.h b/arch/arm64/include/asm/sysreg.h
-> index 47b967d..3b035cc 100644
-> --- a/arch/arm64/include/asm/sysreg.h
-> +++ b/arch/arm64/include/asm/sysreg.h
-> @@ -86,6 +86,9 @@
->  #define REG_PSTATE_PAN_IMM		sys_reg(0, 0, 4, 0, 4)
->  #define REG_PSTATE_UAO_IMM		sys_reg(0, 0, 4, 0, 3)
->  
-> +/* virtual SError exception syndrome register */
-> +#define REG_VSESR_EL2                  sys_reg(3, 4, 5, 2, 3)
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Brian Gerst <brgerst@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Eduardo Valentin <edubezval@gmail.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Cc: Kan Liang <kan.liang@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+Cc: Souvik Kumar Chakravarty <souvik.k.chakravarty@intel.com>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Vishwanath Somayaji <vishwanath.somayaji@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: jacob.jun.pan@intel.com
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-edac@vger.kernel.org
+Cc: linux-mmc@vger.kernel.org
+Cc: linux-pm@vger.kernel.org
+Cc: platform-driver-x86@vger.kernel.org
+Link: http://lkml.kernel.org/r/20160603001927.F2A7D828@viggo.jf.intel.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+---
+ arch/x86/include/asm/intel-family.h | 68 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 68 insertions(+)
+ create mode 100644 arch/x86/include/asm/intel-family.h
 
-Irrelevant-Nit: sys-regs usually have a 'SYS_' prefix, and are in instruction
-encoding order lower down the file.
+diff --git a/arch/x86/include/asm/intel-family.h b/arch/x86/include/asm/intel-family.h
+new file mode 100644
+index 000000000000..6999f7d01a0d
+--- /dev/null
++++ b/arch/x86/include/asm/intel-family.h
+@@ -0,0 +1,68 @@
++#ifndef _ASM_X86_INTEL_FAMILY_H
++#define _ASM_X86_INTEL_FAMILY_H
++
++/*
++ * "Big Core" Processors (Branded as Core, Xeon, etc...)
++ *
++ * The "_X" parts are generally the EP and EX Xeons, or the
++ * "Extreme" ones, like Broadwell-E.
++ *
++ * Things ending in "2" are usually because we have no better
++ * name for them.  There's no processor called "WESTMERE2".
++ */
++
++#define INTEL_FAM6_CORE_YONAH		0x0E
++#define INTEL_FAM6_CORE2_MEROM		0x0F
++#define INTEL_FAM6_CORE2_MEROM_L	0x16
++#define INTEL_FAM6_CORE2_PENRYN		0x17
++#define INTEL_FAM6_CORE2_DUNNINGTON	0x1D
++
++#define INTEL_FAM6_NEHALEM		0x1E
++#define INTEL_FAM6_NEHALEM_EP		0x1A
++#define INTEL_FAM6_NEHALEM_EX		0x2E
++#define INTEL_FAM6_WESTMERE		0x25
++#define INTEL_FAM6_WESTMERE2		0x1F
++#define INTEL_FAM6_WESTMERE_EP		0x2C
++#define INTEL_FAM6_WESTMERE_EX		0x2F
++
++#define INTEL_FAM6_SANDYBRIDGE		0x2A
++#define INTEL_FAM6_SANDYBRIDGE_X	0x2D
++#define INTEL_FAM6_IVYBRIDGE		0x3A
++#define INTEL_FAM6_IVYBRIDGE_X		0x3E
++
++#define INTEL_FAM6_HASWELL_CORE		0x3C
++#define INTEL_FAM6_HASWELL_X		0x3F
++#define INTEL_FAM6_HASWELL_ULT		0x45
++#define INTEL_FAM6_HASWELL_GT3E		0x46
++
++#define INTEL_FAM6_BROADWELL_CORE	0x3D
++#define INTEL_FAM6_BROADWELL_XEON_D	0x56
++#define INTEL_FAM6_BROADWELL_GT3E	0x47
++#define INTEL_FAM6_BROADWELL_X		0x4F
++
++#define INTEL_FAM6_SKYLAKE_MOBILE	0x4E
++#define INTEL_FAM6_SKYLAKE_DESKTOP	0x5E
++#define INTEL_FAM6_SKYLAKE_X		0x55
++#define INTEL_FAM6_KABYLAKE_MOBILE	0x8E
++#define INTEL_FAM6_KABYLAKE_DESKTOP	0x9E
++
++/* "Small Core" Processors (Atom) */
++
++#define INTEL_FAM6_ATOM_PINEVIEW	0x1C
++#define INTEL_FAM6_ATOM_LINCROFT	0x26
++#define INTEL_FAM6_ATOM_PENWELL		0x27
++#define INTEL_FAM6_ATOM_CLOVERVIEW	0x35
++#define INTEL_FAM6_ATOM_CEDARVIEW	0x36
++#define INTEL_FAM6_ATOM_SILVERMONT1	0x37 /* BayTrail/BYT / Valleyview */
++#define INTEL_FAM6_ATOM_SILVERMONT2	0x4D /* Avaton/Rangely */
++#define INTEL_FAM6_ATOM_AIRMONT		0x4C /* CherryTrail / Braswell */
++#define INTEL_FAM6_ATOM_MERRIFIELD1	0x4A /* Tangier */
++#define INTEL_FAM6_ATOM_MERRIFIELD2	0x5A /* Annidale */
++#define INTEL_FAM6_ATOM_GOLDMONT	0x5C
++#define INTEL_FAM6_ATOM_DENVERTON	0x5F /* Goldmont Microserver */
++
++/* Xeon Phi */
++
++#define INTEL_FAM6_XEON_PHI_KNL		0x57 /* Knights Landing */
++
++#endif /* _ASM_X86_INTEL_FAMILY_H */
+-- 
+2.16.0
 
-(These PSTATE PAN things are a bit odd as they were used to generate and
-instruction before the fancy {read,write}_sysreg() helpers were added).
-
-
->  #define SET_PSTATE_PAN(x) __emit_inst(0xd5000000 | REG_PSTATE_PAN_IMM |	\
->  				      (!!x)<<8 | 0x1f)
->  #define SET_PSTATE_UAO(x) __emit_inst(0xd5000000 | REG_PSTATE_UAO_IMM |	\
-> diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
-> index 738ae90..ffad42b 100644
-> --- a/arch/arm64/kvm/guest.c
-> +++ b/arch/arm64/kvm/guest.c
-> @@ -279,7 +279,16 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
->  
->  int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome)
-
-Bits of this are spread between patches 5 and 6. If you put them in the other
-order this wouldn't happen.
-
-(but after a rebase most of this patch should disappear)
-
->  {
-> -	return -EINVAL;
-> +	u64 reg = *syndrome;
-> +
-> +	/* inject virtual system Error or asynchronous abort */
-> +	kvm_inject_vabt(vcpu);
-
-So this writes an impdef ESR, because its the existing code-path in KVM.
-
-
-> +	if (reg)
-> +		/* set vsesr_el2[24:0] with value that user space specified */
-> +		kvm_vcpu_set_vsesr(vcpu, reg & ESR_ELx_ISS_MASK);
-
-And then you overwrite it. Which is a bit odd as there is a helper to do both in
-one go:
-
-
-> +
-> +	return 0;
->  }
-
->  int __attribute_const__ kvm_target_cpu(void)
-
-> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
-> index 3556715..fb94b5e 100644
-> --- a/arch/arm64/kvm/inject_fault.c
-> +++ b/arch/arm64/kvm/inject_fault.c
-> @@ -246,14 +246,25 @@ void kvm_inject_undefined(struct kvm_vcpu *vcpu)
->  		inject_undef64(vcpu);
->  }
->  
-> +static void pend_guest_serror(struct kvm_vcpu *vcpu, u64 esr)
-> +{
-> +	kvm_vcpu_set_vsesr(vcpu, esr);
-> +	vcpu_set_hcr(vcpu, vcpu_get_hcr(vcpu) | HCR_VSE);
-> +}
-
-How come you don't use this in kvm_arm_set_sei_esr()?
-
-
-
-Thanks,
-
-James
