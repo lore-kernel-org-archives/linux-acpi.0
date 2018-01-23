@@ -1,26 +1,25 @@
 From: Yang Shunyong <shunyong.yang@hxt-semitech.com>
-Subject: [PATCH] ACPI / tables: Add IORT to injectable table list
-Date: Tue, 23 Jan 2018 16:06:18 +0800
-Message-ID: <1516694778-14784-1-git-send-email-shunyong.yang@hxt-semitech.com>
+Subject: [PATCH v2] ACPI / tables: Add IORT to injectable table list
+Date: Tue, 23 Jan 2018 16:25:22 +0800
+Message-ID: <1516695922-15045-1-git-send-email-shunyong.yang@hxt-semitech.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx01.hxt-semitech.com.96.203.223.in-addr.arpa ([223.203.96.7]:37792
-        "EHLO barracuda.hxt-semitech.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750760AbeAWIHT (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 03:07:19 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net
 Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yang Shunyong <shunyong.yang@hxt-semitech.com>, yutang2.jiang@hxt-semitech.com, yu.zheng@hxt-semitech.com
+List-Id: linux-acpi@vger.kernel.org
 
-This patch adds ACPI_SIG_PPTT to the table, which enables IORT from
+This patch adds ACPI_SIG_IORT to the table, which enables IORT from
 initrd to override which from firmware.
 
 Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
 Cc: yutang2.jiang@hxt-semitech.com
 Cc: yu.zheng@hxt-semitech.com
+---
+
+v2: change typo ACPI_SIG_PPTT to ACPI_SIG_IORT in commit message.
+
 ---
  drivers/acpi/tables.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
@@ -41,4 +40,3 @@ index 80ce2a7d224b..7bcb66ccccf3 100644
  
 -- 
 1.8.3.1
-
