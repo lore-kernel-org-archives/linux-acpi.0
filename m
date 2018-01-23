@@ -1,37 +1,109 @@
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Subject: [PATCH] ACPI / video: Use true for boolean value
-Date: Tue, 23 Jan 2018 09:59:20 -0600
-Message-ID: <20180123155920.GA23399@embeddedgus>
+From: =?UTF-8?Q?Nicole_F=c3=a6rber?= <nicole.faerber@dpin.de>
+Subject: kernel <=4.15rc9, acpi_irq - Disabling IRQ #9 after resume from sleep
+Date: Tue, 23 Jan 2018 16:59:58 +0100
+Message-ID: <4b983a91-d5af-dd92-ea5a-4bed05e281c6@dpin.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from dpin.de ([178.77.96.241]:58494 "EHLO dpin.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751188AbeAWQhV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 23 Jan 2018 11:37:21 -0500
+Received: from p578c4847.dip0.t-ipconnect.de ([87.140.72.71] helo=[192.168.2.135])
+        by lvps178-77-96-241.dedicated.hosteurope.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.84_2)
+        (envelope-from <nicole.faerber@dpin.de>)
+        id 1ee0zX-0003Uw-19
+        for linux-acpi@vger.kernel.org; Tue, 23 Jan 2018 17:00:07 +0100
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Assign true or false to boolean variables instead of an integer value.
+Hi,
 
-This issue was detected with the help of Coccinelle.
+pretty much since I am working on the device I have this issues and it
+still persist up until latest 4.15rc9 kernels. What happens is something
+like this, excerpt from dmesg:
+...
+[52208.493346] input: Lenovo ThinkPad 10 Ultrabook Keyboard as
+/devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.1/0003:17EF:6062.0007/input/input16
+[52208.553407] hid-generic 0003:17EF:6062.0007: input,hiddev0,hidraw2:
+USB HID v1.10 Mouse [Lenovo ThinkPad 10 Ultrabook Keyboard] on
+usb-0000:00:14.0-1/input1
+[52208.553749] usbhid 1-1:1.2: couldn't find an input interrupt endpoint
+[52209.028700] irq 9: nobody cared (try booting with the "irqpoll" option)
+[52209.028710] CPU: 1 PID: 6011 Comm: thunar-volman Tainted: G     U A
+      4.15.0-rc9tpt10 #1
+[52209.028712] Hardware name: LENOVO 20C10024GE/20C10024GE, BIOS
+GWET44WW (1.44) 02/13/2017
+[52209.028713] Call Trace:
+[52209.028719]  <IRQ>
+[52209.028728]  dump_stack+0x46/0x68
+[52209.028733]  __report_bad_irq+0x29/0xc0
+[52209.028737]  note_interrupt+0x237/0x280
+[52209.028741]  handle_irq_event_percpu+0x52/0x80
+[52209.028743]  handle_irq_event+0x27/0x50
+[52209.028746]  handle_fasteoi_irq+0x73/0x120
+[52209.028750]  handle_irq+0x16/0x30
+[52209.028753]  do_IRQ+0x42/0xc0
+[52209.028756]  common_interrupt+0x95/0x95
+[52209.028758]  </IRQ>
+[52209.028761] RIP: 0033:0x7f144ba796e0
+[52209.028763] RSP: 002b:00007ffc45d64df0 EFLAGS: 00000246 ORIG_RAX:
+ffffffffffffffde
+[52209.028766] RAX: 0000000000000061 RBX: 00007f144bdc3c20 RCX:
+0000000000000061
+[52209.028767] RDX: 0000000000000061 RSI: 0000000000000000 RDI:
+0000564df1cc2810
+[52209.028769] RBP: 0000564df1cc27c0 R08: 0000000000000000 R09:
+0000564df1cc27c0
+[52209.028770] R10: ffffffffffffffb0 R11: 00007f144c31b720 R12:
+0000000000000050
+[52209.028771] R13: 0000000000009850 R14: 0000564df1cc27b0 R15:
+0000564df1cb3c40
+[52209.028773] handlers:
+[52209.028779] [<00000000a8ae6ecd>] acpi_irq
+[52209.028782] Disabling IRQ #9
+[52217.086686] usb 1-1: USB disconnect, device number 5
+...
 
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/acpi/acpi_video.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This does not happen on a freshly booted system. After boot I can do
+anything with the device and it will not happen.
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index f53ccc6..76fb969 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -53,7 +53,7 @@ MODULE_AUTHOR("Bruno Ducrot");
- MODULE_DESCRIPTION("ACPI Video Driver");
- MODULE_LICENSE("GPL");
- 
--static bool brightness_switch_enabled = 1;
-+static bool brightness_switch_enabled = true;
- module_param(brightness_switch_enabled, bool, 0644);
- 
- /*
+But after I suspended the device a single time it becomes vulnerable to
+the above issue. The issue can easiest be reproduced when I e.g. remove
+the keyboard dock from the device, which seems to carry additional
+signals to the USB for keyboard and mouse.
+
+The device in question is a Thinkpad Tablet 10 Gen2, Intel Baytrail
+Z3795 CPU.
+
+Another interesting detail is that the acpi IRQ#9 is usually never used,
+neither before nor after suspend:
+
+# cat /proc/interrupts |grep acpi
+ 9:        0        0        0        0   IO-APIC    9-fasteoi   acpi
+
+Until the issue happens, when 100000 irqs rush in, nobody cares and the
+kernel disables it.
+
+Also interesting, since kernel 4.15rc kernels finally (yeah!) the Intel
+idle modes S0i<n> started to work! Which is great, saves a lot of power
+during suspend. But after the above issue the device goes to sleep, yes,
+but it does not enter S0i<n> states anymore.
+
+Before S0i<n> started to work I did not care that much since it did not
+have any drawback but now it has and I would very much like to find a fix.
+
+If anyone has an idea what to try I will gladly do so - I can pretty
+nicely reproduce the so it is also pretty easy to try possible fixes.
+
+Thank you so much!
+
+Cheers
+  nicole
+
 -- 
-2.7.4
+Sapere aude!
