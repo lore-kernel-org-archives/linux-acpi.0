@@ -1,40 +1,41 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH] acpi, spcr: Make SPCR available to x86
-Date: Tue, 23 Jan 2018 07:41:56 -0500
-Message-ID: <5fab980d-d937-8806-9745-9850947a9096@redhat.com>
-References: <20180118150951.28964-1-prarit@redhat.com>
- <745c9e29-f0b4-775b-28f7-8712cdc90fe1@codeaurora.org>
+From: John Garry <john.garry@huawei.com>
+Subject: [PATCH v12 9/9] MAINTAINERS: Add maintainer for HiSilicon LPC driver
+Date: Wed, 24 Jan 2018 00:36:25 +0800
+Message-ID: <1516725385-24535-10-git-send-email-john.garry@huawei.com>
+References: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <745c9e29-f0b4-775b-28f7-8712cdc90fe1@codeaurora.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>, linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, graeme.gregory@linaro.org, mark.salter@redhat.com
+Content-Type: text/plain
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com
+Cc: benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, John Garry <john.garry@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Added maintainer for drivers/bus/hisi_lpc.c
 
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-On 01/22/2018 04:49 PM, Timur Tabi wrote:
-> On 01/18/2018 09:09 AM, Prarit Bhargava wrote:
->>       if (acpi_disabled) {
->> -        if (earlycon_init_is_deferred)
->> +        if (earlycon_acpi_spcr_enable)
-> 
-> This patch works for me, so I can ACK it, but first you might want to rename
-> earlycon_acpi_spcr_enable, because these two lines don't make much sense.
-> 
-> "If ACPI is disabled, and ACPI SCPR is enabled, then ...."
-> 
-> If ACPI is disabled, then how can a variable called "earlycon_acpi_spcr_enable"
-> be true?
-> 
-> Would it make more sense to rename it to earlycon_spcr_enable?
-> 
-
-acpi_disabled is a global runtime flag that can be set via "acpi=off" on the
-command line.  It does not disable the tables, only the reading and interpreting
-of the data in the tables.
-
-P.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f1e3ee6..ab09908 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6386,6 +6386,13 @@ W:	http://www.hisilicon.com
+ S:	Maintained
+ F:	drivers/net/ethernet/hisilicon/hns3/
+ 
++HISILICON LPC BUS DRIVER
++M:	john.garry@huawei.com
++W:	http://www.hisilicon.com
++S:	Maintained
++F:	drivers/bus/hisi_lpc.c
++F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
++
+ HISILICON NETWORK SUBSYSTEM DRIVER
+ M:	Yisen Zhuang <yisen.zhuang@huawei.com>
+ M:	Salil Mehta <salil.mehta@huawei.com>
+-- 
+1.9.1
