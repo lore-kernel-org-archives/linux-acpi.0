@@ -1,116 +1,120 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 07/12] drivers: base cacheinfo: Add support for ACPI
- based firmware tables
-Date: Tue, 23 Jan 2018 01:11:57 +0100
-Message-ID: <CAJZ5v0i12FXkfvMe2y_aqZ8XKYbZYzxjS_bUEByWinYjzaQURA@mail.gmail.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com> <20180113005920.28658-8-jeremy.linton@arm.com>
- <20180122155022.GA7714@kroah.com> <1485ab78-4b43-b703-ca48-4e2cb2059e51@arm.com>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: ACPI: Do not call _STA on battery devices with unmet
+ dependencies
+Date: Tue, 23 Jan 2018 00:24:32 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396D7178@ORSMSX110.amr.corp.intel.com>
+References: <20180118160359.29971-1-hdegoede@redhat.com>
+ <20180118191112.GI53542@bhelgaas-glaptop.roam.corp.google.com>
+ <CF6A88132359CE47947DB4C6E1709ED5396D2A4C@ORSMSX110.amr.corp.intel.com>
+ <03b11c2d-0c17-89d2-daa2-d48f4ea656d5@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1485ab78-4b43-b703-ca48-4e2cb2059e51@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Viresh Kumar <viresh.kumar@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, jhugo@codeaurora.org, wangxiongfeng2@huawei.com, Jonathan.Zhang@cavium.com, Al Stone <ahs3@redhat.com>, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, Len Brown <lenb@kernel.org>, vkilari@codeaurora.org, Morten
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <03b11c2d-0c17-89d2-daa2-d48f4ea656d5@redhat.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 22, 2018 at 10:14 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> Hi,
->
-> Thanks for taking a look at this.
->
->
-> On 01/22/2018 09:50 AM, Greg KH wrote:
->>
->> On Fri, Jan 12, 2018 at 06:59:15PM -0600, Jeremy Linton wrote:
->>>
->>> Add a entry to to struct cacheinfo to maintain a reference to the PPTT
->>> node which can be used to match identical caches across cores. Also
->>> stub out cache_setup_acpi() so that individual architectures can
->>> enable ACPI topology parsing.
->>>
->>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->>> ---
->>>   drivers/acpi/pptt.c       |  1 +
->>>   drivers/base/cacheinfo.c  | 20 +++++++++++++-------
->>>   include/linux/cacheinfo.h |  9 +++++++++
->>>   3 files changed, 23 insertions(+), 7 deletions(-)
->>>
->>> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
->>> index 2c4b3ed862a8..4f5ab19c3a08 100644
->>> --- a/drivers/acpi/pptt.c
->>> +++ b/drivers/acpi/pptt.c
->>> @@ -329,6 +329,7 @@ static void update_cache_properties(struct cacheinfo
->>> *this_leaf,
->>>   {
->>>         int valid_flags = 0;
->>>   +     this_leaf->fw_unique = cpu_node;
->>>         if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
->>>                 this_leaf->size = found_cache->size;
->>>                 valid_flags++;
->>> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
->>> index 217aa90fb036..ee51e33cc37c 100644
->>> --- a/drivers/base/cacheinfo.c
->>> +++ b/drivers/base/cacheinfo.c
->>> @@ -208,16 +208,16 @@ static int cache_setup_of_node(unsigned int cpu)
->>>         if (index != cache_leaves(cpu)) /* not all OF nodes populated */
->>>                 return -ENOENT;
->>> -
->>>         return 0;
->>>   }
->>> +
->>
->>
->> Whitespace changes not needed for this patch :(
->
->
-> Sure.
->
->
->>
->>
->>>   #else
->>>   static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
->>>   static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
->>>                                            struct cacheinfo *sib_leaf)
->>>   {
->>>         /*
->>> -        * For non-DT systems, assume unique level 1 cache, system-wide
->>> +        * For non-DT/ACPI systems, assume unique level 1 caches,
->>> system-wide
->>>          * shared caches for all other levels. This will be used only if
->>>          * arch specific code has not populated shared_cpu_map
->>>          */
->>> @@ -225,6 +225,11 @@ static inline bool cache_leaves_are_shared(struct
->>> cacheinfo *this_leaf,
->>>   }
->>>   #endif
->>>   +int __weak cache_setup_acpi(unsigned int cpu)
->>> +{
->>> +       return -ENOTSUPP;
->>> +}
->>> +
->>>   static int cache_shared_cpu_map_setup(unsigned int cpu)
->>>   {
->>>         struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
->>> @@ -235,11 +240,11 @@ static int cache_shared_cpu_map_setup(unsigned int
->>> cpu)
->>>         if (this_cpu_ci->cpu_map_populated)
->>>                 return 0;
->>>   -     if (of_have_populated_dt())
->>> +       if (!acpi_disabled)
->>> +               ret = cache_setup_acpi(cpu);
->>
->>
->> Why does acpi go first?  :)
->
->
-> This sounds like a joke i heard...
->
-> OTOH, given that we have machines with both ACPI and DT tables, it seemed a
-> little clearer and a little more robust to code that so that if ACPI is
-> enabled to prefer it over DT information. As long as the routines which set
-> of of_root are protected by if (acpi_disabled) checks it should be safe to
-> do it either way.
-
-I guess adding a comment about that might help.
+SGksDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IEhhbnMgZGUgR29lZGUg
+W21haWx0bzpoZGVnb2VkZUByZWRoYXQuY29tXQ0KPiBTZW50OiBTYXR1cmRheSwgSmFudWFyeSAy
+MCwgMjAxOCA0OjQ4IEFNDQo+IFRvOiBTY2htYXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0BpbnRl
+bC5jb20+DQo+IENjOiBSYWZhZWwgSiAuIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgTGVu
+IEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Ow0KPiBCam9ybiBIZWxnYWFzIDxiaGVsZ2Fhc0Bnb29n
+bGUuY29tPjsgTW9vcmUsIFJvYmVydA0KPiA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT47IFpoZW5n
+LCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPjsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3Jn
+OyBsaW51eC1wY2lAdmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IFN1YmplY3Q6
+IFJlOiBBQ1BJOiBEbyBub3QgY2FsbCBfU1RBIG9uIGJhdHRlcnkgZGV2aWNlcyB3aXRoIHVubWV0
+IGRlcGVuZGVuY2llcw0KPiANCj4gSGksDQo+IA0KPiBPbiAxOS0wMS0xOCAyMjowMywgU2NobWF1
+c3MsIEVyaWsgd3JvdGU6DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4g
+Pj4gRnJvbTogbGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1h
+Y3BpLQ0KPiA+PiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBCam9ybiBIZWxn
+YWFzDQo+ID4+IFNlbnQ6IFRodXJzZGF5LCBKYW51YXJ5IDE4LCAyMDE4IDExOjExIEFNDQo+ID4+
+IFRvOiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPg0KPiA+PiBDYzogUmFmYWVs
+IEogLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93bg0KPiA+PiA8bGVuYkBr
+ZXJuZWwub3JnPjsgQmpvcm4gSGVsZ2FhcyA8YmhlbGdhYXNAZ29vZ2xlLmNvbT47IE1vb3JlLCBS
+b2JlcnQNCj4gPj4gPHJvYmVydC5tb29yZUBpbnRlbC5jb20+OyBaaGVuZywgTHYgPGx2LnpoZW5n
+QGludGVsLmNvbT47IGxpbnV4LQ0KPiA+PiBhY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgtcGNp
+QHZnZXIua2VybmVsLm9yZzsgZGV2ZWxAYWNwaWNhLm9yZw0KPiA+PiBTdWJqZWN0OiBSZTogQUNQ
+STogRG8gbm90IGNhbGwgX1NUQSBvbiBiYXR0ZXJ5IGRldmljZXMgd2l0aCB1bm1ldA0KPiA+PiBk
+ZXBlbmRlbmNpZXMNCj4gPj4NCj4gPj4gT24gVGh1LCBKYW4gMTgsIDIwMTggYXQgMDU6MDM6NTVQ
+TSArMDEwMCwgSGFucyBkZSBHb2VkZSB3cm90ZToNCj4gPg0KPiA+IEhpIEhhbnMsDQo+ID4NCj4g
+Pj4+IEhpIEFsbCwNCj4gPj4+DQo+ID4+PiBUaGUgQUNQSSBjb2RlIGFscmVhZHkgY29udGFpbnMg
+cXVpdGUgYSBiaXQgb2YgY29kZSB0byBub3QgYmluZCB0aGUNCj4gPj4+IEFDUEktYmF0dGVyeSB1
+bnRpbCBhbGwgZGVwcyBmb3IgYW4gQUNQSSBiYXR0ZXJ5IGRldmljZSBoYXZlIGJlZW4NCj4gPj4+
+IG1ldCwgYnV0IG9uIHNvbWUgZGV2aWNlcyBjYWxsaW5nIF9TVEEgYmVmb3JlIGFsbCBkZXBzIGFy
+ZSBtZXQgaXMgYQ0KPiA+Pj4gcHJvYmxlbSB0b28gYmVjYXVzZSB0aGUgX1NUQSBtZXRob2QgdXNl
+cyBhbiBpMmMgT3BSZWdpb24gdGhlcmUuDQo+ID4NCj4gPiBDb3VsZCB5b3UgZXhwbGFpbiB3aHkg
+X1NUQSBtZXRob2QgdXNpbmcgYW4gSTJDIE9wUmVnaW9uIGlzIHByb2JsZW1hdGljPw0KPiANCj4g
+SXQgaXMgcHJvYmxlbWF0aWMgaWYgd2UgY2FsbCB0aGUgX1NUQSBtZXRob2QgYmVmb3JlIHRoZSBo
+YW5kbGVyIGZvciB0aGUgT3BSZWdpb24NCj4gaGFzIGJlZW4gaW5zdGFsbGVkLCB0aGlzIHNlcmll
+cyBkZWxheXMgLyBhdm9pZHMgY2FsbGluZyBfU1RBIGJlZm9yZSB0aGUgT3BSZWdpb24NCj4gaGFz
+IGJlZW4gaW5zdGFsbGVkLg0KDQpUaGFua3MgZm9yIHRoZSBleHBsYW5hdGlvbi4NCkknbSBsb29r
+aW5nIGF0IHRoZSBBQ1BJIHNwZWMgYW5kIGZyb20gd2hhdCBpdCBzYWlkIGFib3V0IF9TVEEsIEkg
+Z2F0aGVyZWQgdGhhdCBfU1RBIGlzIGFsbG93ZWQgdG8gaGF2ZSBzaWRlLWVmZmVjdHMgdG8gbmFt
+ZWQgb2JqZWN0cyB3aXRoaW4gdGhlIEFNTCBuYW1lc3BhY2UuIFNvIHJlbW92aW5nIF9TVEEgZnJv
+bSBhY3BpX2dldF9vYmplY3RfaW5mbyBzZWVtcyBhIGxpdHRsZSBkYW5nZXJvdXMuLi4gSXMgdGhl
+cmUgYSByZWFzb24gd2h5IHlvdSBjYW5ub3QgcmVtb3ZlIG9yIGRlbGF5IHRoZSBjYWxsIHRvIGFj
+cGlfZ2V0X29iamVjdF9pbmZvIGluc3RlYWQ/IENoYXB0ZXIgNiBzZWN0aW9uIDEgb2YgdGhlIEFD
+UEkgc3BlYyBhbHNvIHN0YXRlcyB0aGF0IGl0J3MgcG9zc2libGUgZm9yIF9ISUQgYW5kIF9BRFIg
+dG8gcmVhZCBmcm9tIG9wZXJhdGlvbiByZWdpb25zIGFzIHdlbGwuIElzIGl0IGNvbW1vbiBjb252
+ZW50aW9uIHRoYXQgdGhlc2UgX0hJRCBhbmQgX0FEUiBvYmplY3RzIGRvIG5vdCBhY2Nlc3Mgb3Bl
+cmF0aW9uIHJlZ2lvbnM/DQoNClRoYW5rcywNCg0KRXJpaw0KPiANCj4gUmVnYXJkcywNCj4gDQo+
+IEhhbnMNCj4gDQo+IA0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IEVyaWsNCj4gPg0KPiA+Pj4NCj4g
+Pj4+IEhlcmUgaXMgdGhlIERTRFQgb2YgdGhlIGRldmljZSBJJ20gc2VlaW5nIHRoaXMgb246DQo+
+ID4+PiBodHRwczovL2ZlZG9yYXBlb3BsZS5vcmcvfmp3cmRlZ29lZGUvdG9zaGliYS1jbGljay1t
+aW5pLWRzZHQuZHNsDQo+ID4+DQo+ID4+IFRoaXMgbG9va3MgbGlrZSBpbnRlcmVzdGluZyBpbmZv
+LCBidXQgKGEpIHRoaXMgbGluayBpc24ndCBtZW50aW9uZWQNCj4gPj4gaW4gdGhlIGFjdHVhbCBw
+YXRjaGVzLCBhbmQgKGIpIGl0J3MgY29uY2VpdmFibGUgdGhhdCBmZWRvcmFwZW9wbGUub3JnIGNv
+dWxkIGdvDQo+IGF3YXkgc29tZWRheS4NCj4gPj4gSWYgdGhpcyB3ZXJlIGEgUENJIHNlcmllcywg
+SSB3b3VsZCBzdWdnZXN0IG9wZW5pbmcgYSByZXBvcnQgYXQNCj4gPj4gYnVnemlsbGEua2VybmVs
+Lm9yZywgYXR0YWNoaW5nIHRoZSBEU0wgdGhlcmUsIGFuZCBpbmNsdWRpbmcgdGhlIGxpbmsgaW4g
+dGhlDQo+IHBhdGNoIGNoYW5nZWxvZy4NCj4gPj4NCj4gPj4+IFRoaXMgc2VyaWVzIG1vZGlmaWVz
+IHRoZSBrZXJuZWwgdG8gbm90IGNhbGwgX1NUQSB1bnRpbCBhbGwgZGVwcyBhcmUNCj4gPj4+IG1l
+dCwgbWlycm9yaW5nIHRoZSBiaW5kaW5nIGJlaGF2aW9yIG9mIHRoZSBiYXR0ZXJ5IGRyaXZlci4N
+Cj4gPj4+DQo+ID4+PiBXaXRob3V0IHRoaXMgc2VyaWVzIGEgdG90YWwgb2YgMzIgQUNQSSBlcnJv
+cnMgZ2V0IHByaW50ZW5kIHRvIHRoZQ0KPiA+Pj4gY29uc29sZSBvbiBib290LCB0aGVyZSBhcmUg
+NCBlcnJvcnMgcGVyIF9TVEEgY2FsbCwgMiBiYXR0ZXJ5IGRldmljZXMNCj4gPj4+IG9uIHRoaXMg
+c3lzdGVtIGFuZCA0IF9TVEEgY2FsbHMgcGVyIGJhdHRlcnkgZGV2aWNlLg0KPiA+Pj4NCj4gPj4+
+IFRoZSBmaXJzdCBjb21taXQgaXMgYSBwcmVwYXJhdGlvbiBjb21taXQgZm9yIG1ha2luZyB0aGUg
+QUNQSUNBDQo+ID4+PiBjaGFuZ2VzIGluIHRoZSA0dGggY29tbWl0LCB0aGlzIGNvbW1pdCBpcyBu
+ZWNlc3NhcnkgdG8gbm90IGJyZWFrDQo+ID4+PiB0aGluZ3MgYWZ0ZXIgdGhlIEFDUElDQSBjaGFu
+Z2VzLg0KPiA+Pj4NCj4gPj4+IFRoZSBzZWNvbmQgY29tbWl0IG1vZGlmaWVzIGFjcGlfYnVzX2dl
+dF9zdGF0dXMgdG8gbm90IGNhbGwgX1NUQSBvbg0KPiA+Pj4gYmF0dGVyeSBkZXZpY2VzIHVudGls
+IGFsbCBkZXBzIGFyZSBtZXQuIFRoaXMgZml4ZXMgMiBvZiB0aGUgNCB0b28NCj4gPj4+IGVhcmx5
+IF9TVEEgY2FsbHMgdHJpZ2dlcmluZyB0aGVzZSBlcnJvcnMuDQo+ID4+Pg0KPiA+Pj4gVGhlIHRo
+aXJkIGNvbW1pdCBtYWtlcyB0aGUgZGV2aWNlIGluc3RhbnRpYXRpb24gY29kZSB1c2UNCj4gPj4+
+IGFjcGlfYnVzX2dldF9zdGF0dXMgaW5zdGVhZCBvZiBhY3BpX2J1c19nZXRfc3RhdHVzX2hhbmRs
+ZSBzbyB0aGF0DQo+ID4+PiB0aGUgY29kZSB0byBnZXQgdGhlIGluaXRpYWwgc3RhdHVzIGFsc28g
+ZG9lcyBub3QgbWFrZXMgMSB0b28gZWFybHkgX1NUQSBjYWxsLg0KPiA+Pj4NCj4gPj4+IFRoZSBm
+b3VydGggY29tbWl0IGNoYW5nZXMgdGhlIEFDUElDQSBhY3BpX2dldF9vYmplY3RfaW5mbyBmdW5j
+dGlvbg0KPiA+Pj4gdG8gbm90IGNhbGwgX1NUQS4gT25seSAxIHVzZXIgKHdoaWNoIGlzIGZpeGVk
+IGluIHRoZSBmaXJzdCBjb21taXQpDQo+ID4+PiBjYXJlcyBhYm91dCBhY3BpX2RldmljZV9pbmZv
+LmN1cnJlbnRfc3RhdHVzLiBBbmQgdGhlIEFDUElDQSBjb2RlIGhhcw0KPiA+Pj4gdGhpcw0KPiA+
+PiBjb21tZW50Og0KPiA+Pj4NCj4gPj4+ICAgKiBOb3RlOiBUaGlzIGludGVyZmFjZSBpcyBpbnRl
+bmRlZCB0byBiZSB1c2VkIGR1cmluZyB0aGUgaW5pdGlhbA0KPiA+Pj4gZGV2aWNlDQo+ID4+PiAg
+ICogZGlzY292ZXJ5IG5hbWVzcGFjZSB0cmF2ZXJzYWwuIFRoZXJlZm9yZSwgbm8gY29tcGxleCBt
+ZXRob2RzIGNhbiBiZQ0KPiA+Pj4gICAqIGV4ZWN1dGVkLCBlc3BlY2lhbGx5IHRob3NlIHRoYXQg
+YWNjZXNzIG9wZXJhdGlvbiByZWdpb25zLg0KPiA+Pj4gVGhlcmVmb3JlLCBkbw0KPiA+Pj4gICAq
+IG5vdCBhZGQgYW55IGFkZGl0aW9uYWwgbWV0aG9kcyB0aGF0IGNvdWxkIGNhdXNlIHByb2JsZW1z
+IGluIHRoaXMgYXJlYS4NCj4gPj4+ICAgKiBCZWNhdXNlIG9mIHRoaXMgcmVhc29uIHN1cHBvcnQg
+Zm9yIHRoZSBmb2xsb3dpbmcgbWV0aG9kcyBoYXMNCj4gPj4+IGJlZW4NCj4gPj4gcmVtb3ZlZDoN
+Cj4gPj4+ICAgKiB0aGlzIHdhcyB0aGUgZmF0ZSBvZiB0aGUgX1NVQiBtZXRob2Qgd2hpY2ggd2Fz
+IGZvdW5kIHRvIGNhdXNlIHN1Y2gNCj4gPj4+ICAgKiBwcm9ibGVtcyBhbmQgd2FzIHJlbW92ZWQg
+KDExLzIwMTUpLg0KPiA+Pj4NCj4gPj4+IFRoZSBkZXNjcmliZWQgcHJvYmxlbXMgd2l0aCB0aGUg
+X1NVQiBtZXRob2QgY2xlYXJseSBhbHNvIGFwcGx5IHRvDQo+ID4+PiB0aGUgX1NUQSBtZXRob2Qs
+IHNvIHJlbW92aW5nIGl0IGZyb20gYWNwaV9nZXRfb2JqZWN0X2luZm8gc2VlbXMgbGlrZQ0KPiA+
+Pj4gaXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvIGhlcmUuIFRoaXMgdG9vIGZpeGVzIDEgdG9v
+IGVhcmx5IF9TVEENCj4gPj4+IGNhbGwsIHNvIHRoYXQgd2l0aCBhbGwNCj4gPj4+IDQgcGF0Y2hl
+cyBpbiBwbGFjZSB3ZSd2ZSBmaXhlZCBhbGwgNCB0b28gZWFybHkgX1NUQSBjYWxscy4NCj4gPj4+
+DQo+ID4+PiBSZWdhcmRzLA0KPiA+Pj4NCj4gPj4+IEhhbnMNCj4gPj4+IC0tDQo+ID4+PiBUbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtYWNwaSINCj4gPj4+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
+ci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4+PiBpbmZvIGF0ICBodHRwOi8vdmdlci5r
+ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPj4gLS0NCj4gPj4gVG8gdW5zdWJzY3Jp
+YmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWFjcGki
+DQo+ID4+IGluIHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
+b3JnIE1vcmUgbWFqb3Jkb21vDQo+ID4+IGluZm8gYXQgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9t
+YWpvcmRvbW8taW5mby5odG1sDQo=
