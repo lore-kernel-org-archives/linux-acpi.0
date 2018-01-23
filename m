@@ -1,61 +1,40 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v9 3/7] acpi: apei: Add SEI notification type support for
- ARMv8
-Date: Tue, 23 Jan 2018 18:07:52 +0800
-Message-ID: <53566b7c-d686-66be-ee84-a6a6257b526a@huawei.com>
-References: <1515254577-6460-1-git-send-email-gengdongjiu@huawei.com>
- <1515254577-6460-4-git-send-email-gengdongjiu@huawei.com>
- <5A663DEC.8080804@arm.com> <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] acpi, spcr: Make SPCR available to x86
+Date: Tue, 23 Jan 2018 07:41:56 -0500
+Message-ID: <5fab980d-d937-8806-9745-9850947a9096@redhat.com>
+References: <20180118150951.28964-1-prarit@redhat.com>
+ <745c9e29-f0b4-775b-28f7-8712cdc90fe1@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:4676 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751154AbeAWKJy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 05:09:54 -0500
-In-Reply-To: <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <745c9e29-f0b4-775b-28f7-8712cdc90fe1@codeaurora.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, graeme.gregory@linaro.org, mark.salter@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, robert.moore@intel.com, lv.zheng@intel.com, corbet@lwn.net, will.deacon@arm.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 
-sorry fix a typo.
 
-On 2018/1/23 17:23, gengdongjiu wrote:
->> There are problems with doing this:
->>
->> Oct. 18, 2017, 10:26 a.m. James Morse wrote:
->> | How do SEA and SEI interact?
->> |
->> | As far as I can see they can both interrupt each other, which isn't something
->> | the single in_nmi() path in APEI can handle. I thinks we should fix this
->> | first.
->>
->> [..]
->>
->> | SEA gets away with a lot of things because its synchronous. SEI isn't. Xie
->> | XiuQi pointed to the memory_failure_queue() code. We can use this directly
->> | from SEA, but not SEI. (what happens if an SError arrives while we are
->> | queueing memory_failure work from an IRQ).
->> |
->> | The one that scares me is the trace-point reporting stuff. What happens if an
->> | SError arrives while we are enabling a trace point? (these are static-keys
->> | right?)
->> |
->> |  I don't think we can just plumb SEI in like this and be done with it.
->> |  (I'm looking at teasing out the estatus cache code from being x86:NMI only.
->> |  This way we solve the same 'cant do this from NMI context' with the same
->> |  code'.)
->>
->>
->> I will post what I've got for this estatus-cache thing as an RFC, its not ready
->> to be considered yet.
 
-Yes, I know you are dong that. Your serial's patch will consider all above things, right?
-If your patch can be consider that, this patch can based on your patchset. thanks.
-
+On 01/22/2018 04:49 PM, Timur Tabi wrote:
+> On 01/18/2018 09:09 AM, Prarit Bhargava wrote:
+>>       if (acpi_disabled) {
+>> -        if (earlycon_init_is_deferred)
+>> +        if (earlycon_acpi_spcr_enable)
 > 
->>
+> This patch works for me, so I can ACK it, but first you might want to rename
+> earlycon_acpi_spcr_enable, because these two lines don't make much sense.
+> 
+> "If ACPI is disabled, and ACPI SCPR is enabled, then ...."
+> 
+> If ACPI is disabled, then how can a variable called "earlycon_acpi_spcr_enable"
+> be true?
+> 
+> Would it make more sense to rename it to earlycon_spcr_enable?
+> 
 
+acpi_disabled is a global runtime flag that can be set via "acpi=off" on the
+command line.  It does not disable the tables, only the reading and interpreting
+of the data in the tables.
+
+P.
