@@ -1,83 +1,263 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v9 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
-Date: Wed, 24 Jan 2018 20:06:15 +0000
-Message-ID: <0184EA26B2509940AA629AE1405DD7F201A9E8EA@DGGEMA503-MBS.china.huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Language: zh-CN
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "will.deacon@arm.com" <will.deacon@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bp@alien8.de" <bp@alien8.de>, "lv.zheng@intel.com" <lv.zheng@intel.com>, Huangshaoyu <huangshaoyu@huawei.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "devel@acpica.org" <devel@acpica.org>
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH 0/6] ACPICA version 20180105
+Date: Wed, 24 Jan 2018 15:42:28 -0800
+Message-ID: <20180124234234.19828-1-erik.schmauss@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:17518 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932072AbeAXXmz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 24 Jan 2018 18:42:55 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Erik Schmauss <erik.schmauss@intel.com>
 
-Hi James,
-   Thanks a lot for your review and comments.
+This is the 20180105 release of ACPICA with updated copyright years
+and a few other small changes.
 
-> 
-> Hi Dongjiu Geng,
-> 
-> On 06/01/18 16:02, Dongjiu Geng wrote:
-> > The ARM64 RAS SError Interrupt(SEI) syndrome value is specific to the
-> > guest and user space needs a way to tell KVM this value. So we add a
-> > new ioctl. Before user space specifies the Exception Syndrome Register
-> > ESR(ESR), it firstly checks that whether KVM has the capability to set
-> > the guest ESR, If has, will set it. Otherwise, nothing to do.
-> >
-> > For this ESR specifying, Only support for AArch64, not support AArch32.
-> 
-> After this patch user-space can trigger an SError in the guest. If it wants to migrate the guest, how does the pending SError get migrated?
-> 
-> I think we need to fix migration first. Andrew Jones suggested using
-> KVM_GET/SET_VCPU_EVENTS:
-> https://www.spinics.net/lists/arm-kernel/msg616846.html
-> 
-> Given KVM uses kvm_inject_vabt() on v8.0 hardware too, we should cover systems without the v8.2 RAS Extensions with the same API. I
-> think this means a bit to read/write whether SError is pending, and another to indicate the ESR should be set/read.
-> CPUs without the v8.2 RAS Extensions can reject pending-SError that had an ESR.
+Anuj Mittal (1):
+  ACPICA: Linux: add support for X32 ABI compilation
 
-For the CPUs without the v8.2 RAS Extensions, its ESR is always 0, we only can inject a SError with ESR 0 to guest, cannot set its ESR.
-About how about to use the KVM_GET/SET_VCPU_EVENTS, I will check the code, and consider your suggestion at the same time. 
-The IOCTL KVM_GET/SET_VCPU_EVENTS has been used by X86.
+Bob Moore (2):
+  ACPICA: All acpica: Update copyrights to 2018
+  ACPICA: Update version to 20180105
 
-> 
-> user-space can then use the 'for migration' calls to make a 'new' SError pending.
-> 
-> Now that the cpufeature bits are queued, I think this can be split up into two separate series for v4.16-rc1, one to tackle NOTIFY_SEI and
-> the associated plumbing. The second for the KVM 'make SError pending' API.
+Jung-uk Kim (3):
+  ACPICA: Avoid NULL pointer arithmetic
+  ACPICA: Prefer ACPI_TO_POINTER() over ACPI_ADD_PTR()
+  ACPICA: Add a missing pair of parentheses
 
-Ok, thanks for your suggestion, will split it.
+ drivers/acpi/acpica/acapps.h                             |  4 ++--
+ drivers/acpi/acpica/accommon.h                           |  2 +-
+ drivers/acpi/acpica/acconvert.h                          |  2 +-
+ drivers/acpi/acpica/acdebug.h                            |  2 +-
+ drivers/acpi/acpica/acdispat.h                           |  2 +-
+ drivers/acpi/acpica/acevents.h                           |  2 +-
+ drivers/acpi/acpica/acglobal.h                           |  2 +-
+ drivers/acpi/acpica/achware.h                            |  2 +-
+ drivers/acpi/acpica/acinterp.h                           |  2 +-
+ drivers/acpi/acpica/aclocal.h                            |  2 +-
+ drivers/acpi/acpica/acmacros.h                           |  2 +-
+ drivers/acpi/acpica/acnamesp.h                           |  2 +-
+ drivers/acpi/acpica/acobject.h                           |  2 +-
+ drivers/acpi/acpica/acopcode.h                           |  2 +-
+ drivers/acpi/acpica/acparser.h                           |  2 +-
+ drivers/acpi/acpica/acpredef.h                           |  2 +-
+ drivers/acpi/acpica/acresrc.h                            |  2 +-
+ drivers/acpi/acpica/acstruct.h                           |  2 +-
+ drivers/acpi/acpica/actables.h                           |  2 +-
+ drivers/acpi/acpica/acutils.h                            |  2 +-
+ drivers/acpi/acpica/amlcode.h                            |  2 +-
+ drivers/acpi/acpica/amlresrc.h                           |  2 +-
+ drivers/acpi/acpica/dbcmds.c                             |  2 +-
+ drivers/acpi/acpica/dbconvert.c                          |  2 +-
+ drivers/acpi/acpica/dbdisply.c                           |  2 +-
+ drivers/acpi/acpica/dbexec.c                             |  2 +-
+ drivers/acpi/acpica/dbfileio.c                           |  2 +-
+ drivers/acpi/acpica/dbhistry.c                           |  2 +-
+ drivers/acpi/acpica/dbinput.c                            |  2 +-
+ drivers/acpi/acpica/dbmethod.c                           |  2 +-
+ drivers/acpi/acpica/dbnames.c                            |  2 +-
+ drivers/acpi/acpica/dbobject.c                           |  2 +-
+ drivers/acpi/acpica/dbstats.c                            |  2 +-
+ drivers/acpi/acpica/dbtest.c                             |  2 +-
+ drivers/acpi/acpica/dbutils.c                            |  2 +-
+ drivers/acpi/acpica/dbxface.c                            |  2 +-
+ drivers/acpi/acpica/dsargs.c                             |  2 +-
+ drivers/acpi/acpica/dscontrol.c                          |  2 +-
+ drivers/acpi/acpica/dsdebug.c                            |  2 +-
+ drivers/acpi/acpica/dsfield.c                            |  2 +-
+ drivers/acpi/acpica/dsinit.c                             |  2 +-
+ drivers/acpi/acpica/dsmethod.c                           |  2 +-
+ drivers/acpi/acpica/dsmthdat.c                           |  2 +-
+ drivers/acpi/acpica/dsobject.c                           |  2 +-
+ drivers/acpi/acpica/dsopcode.c                           |  2 +-
+ drivers/acpi/acpica/dspkginit.c                          |  2 +-
+ drivers/acpi/acpica/dsutils.c                            |  2 +-
+ drivers/acpi/acpica/dswexec.c                            |  2 +-
+ drivers/acpi/acpica/dswload.c                            |  2 +-
+ drivers/acpi/acpica/dswload2.c                           |  2 +-
+ drivers/acpi/acpica/dswscope.c                           |  2 +-
+ drivers/acpi/acpica/dswstate.c                           |  2 +-
+ drivers/acpi/acpica/evevent.c                            |  2 +-
+ drivers/acpi/acpica/evglock.c                            |  2 +-
+ drivers/acpi/acpica/evgpe.c                              |  2 +-
+ drivers/acpi/acpica/evgpeblk.c                           |  2 +-
+ drivers/acpi/acpica/evgpeinit.c                          |  2 +-
+ drivers/acpi/acpica/evgpeutil.c                          |  2 +-
+ drivers/acpi/acpica/evhandler.c                          |  2 +-
+ drivers/acpi/acpica/evmisc.c                             |  2 +-
+ drivers/acpi/acpica/evregion.c                           |  2 +-
+ drivers/acpi/acpica/evrgnini.c                           |  2 +-
+ drivers/acpi/acpica/evsci.c                              |  2 +-
+ drivers/acpi/acpica/evxface.c                            |  2 +-
+ drivers/acpi/acpica/evxfevnt.c                           |  2 +-
+ drivers/acpi/acpica/evxfgpe.c                            |  2 +-
+ drivers/acpi/acpica/evxfregn.c                           |  2 +-
+ drivers/acpi/acpica/exconcat.c                           |  2 +-
+ drivers/acpi/acpica/exconfig.c                           |  2 +-
+ drivers/acpi/acpica/exconvrt.c                           |  2 +-
+ drivers/acpi/acpica/excreate.c                           |  2 +-
+ drivers/acpi/acpica/exdebug.c                            |  2 +-
+ drivers/acpi/acpica/exdump.c                             |  2 +-
+ drivers/acpi/acpica/exfield.c                            |  2 +-
+ drivers/acpi/acpica/exfldio.c                            |  2 +-
+ drivers/acpi/acpica/exmisc.c                             |  2 +-
+ drivers/acpi/acpica/exmutex.c                            |  2 +-
+ drivers/acpi/acpica/exnames.c                            |  2 +-
+ drivers/acpi/acpica/exoparg1.c                           |  2 +-
+ drivers/acpi/acpica/exoparg2.c                           |  2 +-
+ drivers/acpi/acpica/exoparg3.c                           |  2 +-
+ drivers/acpi/acpica/exoparg6.c                           |  2 +-
+ drivers/acpi/acpica/exprep.c                             |  2 +-
+ drivers/acpi/acpica/exregion.c                           |  2 +-
+ drivers/acpi/acpica/exresnte.c                           |  2 +-
+ drivers/acpi/acpica/exresolv.c                           |  2 +-
+ drivers/acpi/acpica/exresop.c                            |  2 +-
+ drivers/acpi/acpica/exstore.c                            |  2 +-
+ drivers/acpi/acpica/exstoren.c                           |  2 +-
+ drivers/acpi/acpica/exstorob.c                           |  2 +-
+ drivers/acpi/acpica/exsystem.c                           |  2 +-
+ drivers/acpi/acpica/extrace.c                            |  2 +-
+ drivers/acpi/acpica/exutils.c                            |  2 +-
+ drivers/acpi/acpica/hwacpi.c                             |  2 +-
+ drivers/acpi/acpica/hwesleep.c                           |  2 +-
+ drivers/acpi/acpica/hwgpe.c                              |  2 +-
+ drivers/acpi/acpica/hwpci.c                              |  2 +-
+ drivers/acpi/acpica/hwregs.c                             |  2 +-
+ drivers/acpi/acpica/hwsleep.c                            |  2 +-
+ drivers/acpi/acpica/hwtimer.c                            |  2 +-
+ drivers/acpi/acpica/hwvalid.c                            |  2 +-
+ drivers/acpi/acpica/hwxface.c                            |  2 +-
+ drivers/acpi/acpica/hwxfsleep.c                          |  2 +-
+ drivers/acpi/acpica/nsaccess.c                           |  2 +-
+ drivers/acpi/acpica/nsalloc.c                            |  2 +-
+ drivers/acpi/acpica/nsarguments.c                        |  2 +-
+ drivers/acpi/acpica/nsconvert.c                          |  2 +-
+ drivers/acpi/acpica/nsdump.c                             |  2 +-
+ drivers/acpi/acpica/nsdumpdv.c                           |  2 +-
+ drivers/acpi/acpica/nseval.c                             |  2 +-
+ drivers/acpi/acpica/nsinit.c                             |  2 +-
+ drivers/acpi/acpica/nsload.c                             |  2 +-
+ drivers/acpi/acpica/nsnames.c                            |  2 +-
+ drivers/acpi/acpica/nsobject.c                           |  2 +-
+ drivers/acpi/acpica/nsparse.c                            |  2 +-
+ drivers/acpi/acpica/nspredef.c                           |  2 +-
+ drivers/acpi/acpica/nsprepkg.c                           |  2 +-
+ drivers/acpi/acpica/nsrepair.c                           |  2 +-
+ drivers/acpi/acpica/nsrepair2.c                          |  2 +-
+ drivers/acpi/acpica/nssearch.c                           |  2 +-
+ drivers/acpi/acpica/nsutils.c                            |  2 +-
+ drivers/acpi/acpica/nswalk.c                             |  2 +-
+ drivers/acpi/acpica/nsxfeval.c                           |  2 +-
+ drivers/acpi/acpica/nsxfname.c                           |  2 +-
+ drivers/acpi/acpica/nsxfobj.c                            |  2 +-
+ drivers/acpi/acpica/psargs.c                             |  2 +-
+ drivers/acpi/acpica/psloop.c                             |  2 +-
+ drivers/acpi/acpica/psobject.c                           |  2 +-
+ drivers/acpi/acpica/psopcode.c                           |  2 +-
+ drivers/acpi/acpica/psopinfo.c                           |  2 +-
+ drivers/acpi/acpica/psparse.c                            |  2 +-
+ drivers/acpi/acpica/psscope.c                            |  2 +-
+ drivers/acpi/acpica/pstree.c                             |  2 +-
+ drivers/acpi/acpica/psutils.c                            |  2 +-
+ drivers/acpi/acpica/pswalk.c                             |  2 +-
+ drivers/acpi/acpica/psxface.c                            |  2 +-
+ drivers/acpi/acpica/rsaddr.c                             |  2 +-
+ drivers/acpi/acpica/rscalc.c                             |  2 +-
+ drivers/acpi/acpica/rscreate.c                           |  2 +-
+ drivers/acpi/acpica/rsdump.c                             |  2 +-
+ drivers/acpi/acpica/rsdumpinfo.c                         |  2 +-
+ drivers/acpi/acpica/rsinfo.c                             |  2 +-
+ drivers/acpi/acpica/rsio.c                               |  2 +-
+ drivers/acpi/acpica/rsirq.c                              |  2 +-
+ drivers/acpi/acpica/rslist.c                             |  2 +-
+ drivers/acpi/acpica/rsmemory.c                           |  2 +-
+ drivers/acpi/acpica/rsmisc.c                             |  2 +-
+ drivers/acpi/acpica/rsserial.c                           |  2 +-
+ drivers/acpi/acpica/rsutils.c                            |  2 +-
+ drivers/acpi/acpica/rsxface.c                            |  2 +-
+ drivers/acpi/acpica/tbdata.c                             |  2 +-
+ drivers/acpi/acpica/tbfadt.c                             |  2 +-
+ drivers/acpi/acpica/tbfind.c                             |  2 +-
+ drivers/acpi/acpica/tbinstal.c                           |  2 +-
+ drivers/acpi/acpica/tbprint.c                            |  2 +-
+ drivers/acpi/acpica/tbutils.c                            |  2 +-
+ drivers/acpi/acpica/tbxface.c                            |  2 +-
+ drivers/acpi/acpica/tbxfload.c                           |  2 +-
+ drivers/acpi/acpica/tbxfroot.c                           |  2 +-
+ drivers/acpi/acpica/utaddress.c                          |  2 +-
+ drivers/acpi/acpica/utalloc.c                            |  2 +-
+ drivers/acpi/acpica/utascii.c                            |  2 +-
+ drivers/acpi/acpica/utbuffer.c                           |  2 +-
+ drivers/acpi/acpica/utcache.c                            |  2 +-
+ drivers/acpi/acpica/utcopy.c                             |  2 +-
+ drivers/acpi/acpica/utdebug.c                            |  2 +-
+ drivers/acpi/acpica/utdecode.c                           |  2 +-
+ drivers/acpi/acpica/utdelete.c                           |  2 +-
+ drivers/acpi/acpica/uterror.c                            |  2 +-
+ drivers/acpi/acpica/uteval.c                             |  2 +-
+ drivers/acpi/acpica/utexcep.c                            |  2 +-
+ drivers/acpi/acpica/utglobal.c                           |  2 +-
+ drivers/acpi/acpica/uthex.c                              |  2 +-
+ drivers/acpi/acpica/utids.c                              |  2 +-
+ drivers/acpi/acpica/utinit.c                             |  2 +-
+ drivers/acpi/acpica/utlock.c                             |  2 +-
+ drivers/acpi/acpica/utmath.c                             |  2 +-
+ drivers/acpi/acpica/utmisc.c                             |  2 +-
+ drivers/acpi/acpica/utmutex.c                            |  2 +-
+ drivers/acpi/acpica/utnonansi.c                          |  2 +-
+ drivers/acpi/acpica/utobject.c                           |  2 +-
+ drivers/acpi/acpica/utosi.c                              |  2 +-
+ drivers/acpi/acpica/utownerid.c                          |  2 +-
+ drivers/acpi/acpica/utpredef.c                           |  2 +-
+ drivers/acpi/acpica/utprint.c                            |  2 +-
+ drivers/acpi/acpica/utresdecode.c                        |  2 +-
+ drivers/acpi/acpica/utresrc.c                            |  2 +-
+ drivers/acpi/acpica/utstate.c                            |  2 +-
+ drivers/acpi/acpica/utstring.c                           |  2 +-
+ drivers/acpi/acpica/utstrsuppt.c                         |  2 +-
+ drivers/acpi/acpica/utstrtoul64.c                        |  2 +-
+ drivers/acpi/acpica/uttrack.c                            |  2 +-
+ drivers/acpi/acpica/utuuid.c                             |  2 +-
+ drivers/acpi/acpica/utxface.c                            |  2 +-
+ drivers/acpi/acpica/utxferror.c                          |  2 +-
+ drivers/acpi/acpica/utxfinit.c                           |  2 +-
+ drivers/acpi/acpica/utxfmutex.c                          |  2 +-
+ include/acpi/acbuffer.h                                  |  2 +-
+ include/acpi/acconfig.h                                  |  2 +-
+ include/acpi/acexcep.h                                   |  2 +-
+ include/acpi/acnames.h                                   |  2 +-
+ include/acpi/acoutput.h                                  |  2 +-
+ include/acpi/acpi.h                                      |  2 +-
+ include/acpi/acpiosxf.h                                  |  2 +-
+ include/acpi/acpixf.h                                    |  4 ++--
+ include/acpi/acrestyp.h                                  |  2 +-
+ include/acpi/actbl.h                                     |  2 +-
+ include/acpi/actbl1.h                                    |  2 +-
+ include/acpi/actbl2.h                                    |  2 +-
+ include/acpi/actbl3.h                                    |  2 +-
+ include/acpi/actypes.h                                   | 12 ++++++------
+ include/acpi/acuuid.h                                    |  2 +-
+ include/acpi/platform/acenv.h                            |  2 +-
+ include/acpi/platform/acenvex.h                          |  2 +-
+ include/acpi/platform/acgcc.h                            |  2 +-
+ include/acpi/platform/acgccex.h                          |  2 +-
+ include/acpi/platform/acintel.h                          |  2 +-
+ include/acpi/platform/aclinux.h                          |  4 ++--
+ include/acpi/platform/aclinuxex.h                        |  2 +-
+ tools/power/acpi/common/cmfsize.c                        |  2 +-
+ tools/power/acpi/common/getopt.c                         |  2 +-
+ tools/power/acpi/os_specific/service_layers/oslinuxtbl.c |  2 +-
+ tools/power/acpi/os_specific/service_layers/osunixdir.c  |  2 +-
+ tools/power/acpi/os_specific/service_layers/osunixmap.c  |  2 +-
+ tools/power/acpi/os_specific/service_layers/osunixxf.c   |  2 +-
+ tools/power/acpi/tools/acpidump/acpidump.h               |  2 +-
+ tools/power/acpi/tools/acpidump/apdump.c                 |  2 +-
+ tools/power/acpi/tools/acpidump/apfiles.c                |  2 +-
+ tools/power/acpi/tools/acpidump/apmain.c                 |  2 +-
+ 229 files changed, 237 insertions(+), 237 deletions(-)
 
-> 
-> 
-> > diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c index
-> > 5c7f657..738ae90 100644
-> > --- a/arch/arm64/kvm/guest.c
-> > +++ b/arch/arm64/kvm/guest.c
-> > @@ -277,6 +277,11 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
-> >  	return -EINVAL;
-> >  }
-> >
-> > +int kvm_arm_set_sei_esr(struct kvm_vcpu *vcpu, u32 *syndrome) {
-> > +	return -EINVAL;
-> > +}
-> 
-> Does nothing in the patch that adds the support? This is a bit odd.
-> (oh, its hiding in patch 6...)
+-- 
+2.14.3
 
-To make this patch simple and small, I add it in patch 6.
-
-> 
-> 
-> Thanks,
-> 
-> James
