@@ -1,75 +1,50 @@
-From: Ferry Toth <fntoth@gmail.com>
-Subject: Re: [PATCH 1/2] Bluetooth: hci_bcm: Remove platform_device support
-Date: Wed, 24 Jan 2018 00:49:05 +0100
-Message-ID: <2372310.Qjp4y9WXno@chromium>
-References: <20180121214645.15004-1-hdegoede@redhat.com> <83ACB297-D092-4512-AC5B-3AF1137BE194@holtmann.org> <1516623321.7000.1175.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [net-next: PATCH v4 1/7] device property: Introduce fwnode_get_mac_address()
+Date: Wed, 24 Jan 2018 03:08:04 +0100
+Message-ID: <CAJZ5v0jpGb8_rSTdtoLJW9os0ufgwLTnbWAQq6MTy_ye6Hr6KA@mail.gmail.com>
+References: <1516278704-17141-1-git-send-email-mw@semihalf.com>
+ <1516278704-17141-2-git-send-email-mw@semihalf.com> <CAJZ5v0j=4Lvaf49oeDqVmYP5nyAs-E9E8xdgyfL7=J_46X5TMA@mail.gmail.com>
+ <CAPv3WKf0GUE508P8k1nExBA+h6pQr4UcaFPk+mps3xRepESQmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailfilter06-out41.webhostingserver.nl ([141.138.169.49]:56903
-        "EHLO mailfilter06-out41.webhostingserver.nl" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752478AbeAXAFM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 23 Jan 2018 19:05:12 -0500
-In-Reply-To: <1516623321.7000.1175.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPv3WKf0GUE508P8k1nExBA+h6pQr4UcaFPk+mps3xRepESQmw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marcin Wojtas <mw@semihalf.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, netdev <netdev@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Graeme Gregory <graeme.gregory@linaro.org>, David Miller <davem@davemloft.net>, Russell King - ARM Linux <linux@armlinux.org.uk>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Andrew Lunn <andrew@lunn.ch>, Florian Fainelli <f.fainelli@gmail.com>, Antoine Tenart <antoine.tenart@free-electrons.com>, Thomas Petazzoni <thomas.petazzoni@free-electrons.com>, Gregory Clement <gregory.clement@free-electrons.com>, Stefan Chulski <stefanc@marvell.com>, Nadav Haklai <nadavh@marvell.com>, Neta Zur Hershkovits <neta@marvell.com>, Ard
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Hans de Goede <hdegoede@redhat.com>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 
-Op maandag 22 januari 2018 13:15:21 CET schreef Andy Shevchenko:
-> On Mon, 2018-01-22 at 13:01 +0100, Marcel Holtmann wrote:
-> > > > > Anyways it looks like this will be really hard to do without
-> > > > > access
-> > > > > to the hardware.
-> > > > 
-> > > > I can do a BAT.
-> > > 
-> > > Right, sorry I was not clear, when I was talking about hardware
-> > > access I was not (not only) referring to testing.
-> > > 
-> > > The problem is that to figure out how to hook all this together
-> > > will require poking around on the hardware, looking in sysfs,
-> > > finding
-> > > some id we can use in a pci_serdev_register_devices() to add to
-> > > drivers/tty/serdev/core.c so that it only turns the serial port on
-> > > the Edison into a serdev and not somewhere else, etc.
-> > > 
-> > > But thinking about this more, I too have higher priority items on
-> > > my TODO list, so as much as I would like to see this cleaned up,
-> > > lets shelf this for now until you have time to look into this.
-> > > 
-> > > When you do find time, if you've any questions I'm happy to help.
-> > 
-> > so in theory the Edison board has SFI. Problem is just that I am not
-> > sure the SFI on the board is fully correct and contains enough
-> > information to identify the serial port correctly.
-> 
-> Unfortunately SFI was so badly designed that board (hard coded) data is
-> needed.
-> 
-> > If no one is willing to help port this over to serdev, then one option
-> > is just to rip it out and see who complains.
-> 
-> Me in the first place. + I guess at least couple of users as of my
-> knowledge. + Undefined amount of swindled users of Edison who is trying
-> or already did a switch to vanilla kernel.
-> 
-> >  Or include a version that is trying its best and see who reports
-> > 
-> > issues and who helps to fix it. I am now regretting that I accepted
-> > the Edison support in the first place, but sadly serdev was not yet
-> > fully baked at that point.
-> 
-> +Cc: Ferry, who might be interested in the helping with it.
+On Tue, Jan 23, 2018 at 7:12 AM, Marcin Wojtas <mw@semihalf.com> wrote:
+> Hi Rafael,
+>
+>> >         if (res)
+>> >                 return res;
+>> >
+>> > -       return device_get_mac_addr(dev, "address", addr, alen);
+>> > +       return fwnode_get_mac_addr(fwnode, "address", addr, alen);
+>> > +}
+>> > +EXPORT_SYMBOL(fwnode_get_mac_address);
+>>
+>> That should be EXPORT_SYMBOL_GPL().
+>>
+>> I have overlooked that previously, sorry about that.
+>
+> The series landed yesterday in net-next, so I need to send a fix on
+> top.
 
-I would be glad to help. Keep in mind I'm not a kernel developer and need 
-someone to hold my hand. All this in my free time of course, but can 
-spend a few evenings per week.
+OK
 
-Nevertheless I have an Edison dual booting 4.15.0-rc8 with poky pyro user 
-space. So I can easily apply patches and test.
+> Would you be ok with single patch fixing all EXPORT_SYMBOL()
+> occurences? Those would be 2 new routines:
+> - fwnode_get_mac_address
+> - fwnode_irq_get
+> and  2 already existing in the file:
+> - device_get_mac_address
+> - fwnode_graph_parse_endpoint
+>
+> Please let know, how you prefer to handle it?
 
--- 
-Ferry Toth
+I guess it's better to fix this up when the series gets merged.
+
+Thanks,
+Rafael
