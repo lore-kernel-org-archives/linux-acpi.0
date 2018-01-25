@@ -1,61 +1,73 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
-Date: Thu, 25 Jan 2018 18:11:18 +0100
-Message-ID: <7c21566b-5cbe-4976-907c-c13110b3ba48@redhat.com>
-References: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0h2TOvoNGx5nYU0yVp_GJCxLTStSY=mp2YMbazhfq3x9g@mail.gmail.com>
- <ae7f4499-d697-6703-52d5-7ab6d7a4b150@codeaurora.org>
- <CAJZ5v0h_xQTQ48OgN9EdorYTjBhXk4JZ2HMfAYebC3FUqrGEOg@mail.gmail.com>
- <4aee44cd-4eb0-162c-3dcc-fbf6255109ac@codeaurora.org>
- <CAJZ5v0ji0pJTSR8Z9Yabgu-A_KJ2wx3hF-gzoSEeaKwFd2m+iw@mail.gmail.com>
- <8637b666-19ce-5382-adab-94a9382cf635@codeaurora.org>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v4 0/4] arm64/ras: support sea error recovery
+Date: Thu, 25 Jan 2018 12:11:09 -0500
+Message-ID: <d6fb667b-402c-00df-fc56-1252261fbbe1@codeaurora.org>
+References: <1506516620-20033-1-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8637b666-19ce-5382-adab-94a9382cf635@codeaurora.org>
+In-Reply-To: <1506516620-20033-1-git-send-email-xiexiuqi@huawei.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Eric Auger <eric.auger@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Xie XiuQi <xiexiuqi@huawei.com>, catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org
+Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hello Xie,
 
-On 25-01-18 18:07, Sinan Kaya wrote:
-> On 1/25/2018 11:57 AM, Rafael J. Wysocki wrote:
->>> That was the original patch. Folks are saying that it breaks some systems.
->>>
->>> Conversation is here:
->>>
->>> https://patchwork.kernel.org/patch/10142425/
->> Couldn't that be addressed by preventing the I2C module from being
->> unloaded in the relevant cases?
->>
-> 
-> Maybe, I'll let Andy And Hans speak for themselves. It is not my code.
-> 
-> I listed the spec behavior and expectation from the OS in the link above.
-> Apparently, Linux isn't playing nice.
-> 
-> Hans is also raising a concern about driver load order that is not being
-> handled well between the I2C driver, its sub modules like PMIC and the ACPI support.
-> 
-> "Lets pretend that all DSTDs are perfect and that some device described in ACPI
-> has a _PS0 method which uses an opregion to turn on some regulator powering
-> the device through i2c, but only if the _REG method for that opregion has
-> been called. So now lets say that the driver for this device loads and
-> tries to bind before the i2c-module has loaded. Before the driver's probe
-> method gets called the driver-core will call _PS0 to power-up the device,
-> which is a nop (*). Then the drivers probe function tries to talk to the
-> device, but fails as the device is not powered, so it returns with -ENODEV."
-> 
-> I'd think that driver would return -EPROBE_DEFER in order to wait until its
-> dependencies come in place. Maybe, driver was not designed for this.
 
-The driver is not aware of any power-management done by ACPI, so the driver
-cannot return -EPROBE_DEFER.
+On 9/27/2017 8:50 AM, Xie XiuQi wrote:
+> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+> are consumed. According to the existing process, errors occurred in the
+> kernel, leading to direct panic, if it occurred the user-space, we should
+> just kill process.
+>
+> But there is a class of error, in fact, is not necessary to kill
+> process, you can recover and continue to run the process. Such as
+> the instruction data corrupted, where the memory page might be
+> read-only, which is has not been modified, the disk might have the
+> correct data, so you can directly drop the page, ant reload it when
+> necessary.
+>
+> So this patchset is just try to solve such problem: if the error is
+> consumed in user-space and the error occurs on a clean page, you can
+> directly drop the memory page without killing process.
+>
+> If the corrupted page is clean, just dropped it and return to user-space
+> without side effects. And if corrupted page is dirty, memory_failure()
+> will send SIGBUS with code=BUS_MCEERR_AR. While without this patchset,
+> do_sea() will just send SIGBUS, so the process was killed in the same place.
+>
+> Because memory_failure() may sleep, we can not call it directly in SEA
+> exception context. So we saved faulting physical address associated with
+> a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
+> from SEA exception context and get into do_notify_resume() before the
+> process running, we could check it and call memory_failure() to do
+> recovery. It's safe, because we are in process context.
+>
+> In some platform, when SEA triggerred, physical address could be reported
+> by memory section or by processor section, so we save address at this two
+> place.
+For this series - Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-Regards,
+Note that this will probably need to be rebased on top of these patches:
 
-Hans
+https://patchwork.codeaurora.org/patch/415877/
+https://patchwork.codeaurora.org/patch/415879/
+
+With that, the first patch should be able to be removed because the above 
+patches already define the ARM error types:
+
++#define CPER_ARM_CACHE_ERROR            0
++#define CPER_ARM_TLB_ERROR            1
++#define CPER_ARM_BUS_ERROR            2
++#define CPER_ARM_VENDOR_ERROR            3
+
+Thanks,
+Tyler
+
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
