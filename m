@@ -1,68 +1,46 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v2 1/2] x86/acpi: add retrieval function for rsdp address
-Date: Thu, 25 Jan 2018 15:36:38 +0100
-Message-ID: <20180125143639.9969-2-jgross@suse.com>
-References: <20180125143639.9969-1-jgross@suse.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
+Date: Thu, 25 Jan 2018 10:43:31 -0500
+Message-ID: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180125143639.9969-1-jgross@suse.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org
-Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, Juergen Gross <jgross@suse.com>, stable@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org
+Cc: eric.auger@redhat.com, hdegoede@redhat.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de, linux-i2c@vger.kernel.org, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Add a function to get the address of the RSDP table. Per default use a
-__weak annotated function being a nop.
+From: Auger Eric <eric.auger@redhat.com>
 
-Cc: <stable@vger.kernel.org> # 4.11
-Signed-off-by: Juergen Gross <jgross@suse.com>
+If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
+and any ACPI opregion calls targeting I2C fail with no opregion found.
+
+Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
+CONFIG_I2C_ACPI config") says following:
+
+"Current there is a race between removing I2C ACPI operation region
+and ACPI AML code accessing."
+
+This patch forces core I2C support to be compiled as a built-in
+module if ACPI is selected as code is not ready for dynamic module
+removal.
+
+Signed-off-by: Eric Auger <eric.auger@redhat.com>
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/acpi/osl.c   | 10 +++++++++-
- include/linux/acpi.h |  2 ++
- 2 files changed, 11 insertions(+), 1 deletion(-)
+ drivers/acpi/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 3bb46cb24a99..2b77db914752 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -178,6 +178,11 @@ void acpi_os_vprintf(const char *fmt, va_list args)
- #endif
- }
- 
-+__weak acpi_physical_address acpi_arch_get_root_pointer(void)
-+{
-+	return 0;
-+}
-+
- #ifdef CONFIG_KEXEC
- static unsigned long acpi_rsdp;
- static int __init setup_acpi_rsdp(char *arg)
-@@ -189,12 +194,15 @@ early_param("acpi_rsdp", setup_acpi_rsdp);
- 
- acpi_physical_address __init acpi_os_get_root_pointer(void)
- {
--	acpi_physical_address pa = 0;
-+	acpi_physical_address pa;
- 
- #ifdef CONFIG_KEXEC
- 	if (acpi_rsdp)
- 		return acpi_rsdp;
- #endif
-+	pa = acpi_arch_get_root_pointer();
-+	if (pa)
-+		return pa;
- 
- 	if (efi_enabled(EFI_CONFIG_TABLES)) {
- 		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index dc1ebfeeb5ec..aa603cc5ad30 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1266,4 +1266,6 @@ static inline int lpit_read_residency_count_address(u64 *address)
- }
- #endif
- 
-+acpi_physical_address acpi_arch_get_root_pointer(void);
-+
- #endif	/*_LINUX_ACPI_H*/
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 4650539..5b48098 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -9,6 +9,8 @@ menuconfig ACPI
+ 	depends on IA64 || X86 || ARM64
+ 	depends on PCI
+ 	select PNP
++	# force building I2C in on ACPI systems, for opregion availability
++	imply I2C
+ 	default y if (IA64 || X86)
+ 	help
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
 -- 
-2.13.6
+1.9.1
