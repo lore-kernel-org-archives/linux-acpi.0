@@ -1,38 +1,59 @@
 From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH v2 0/2] xen: re-enable booting as Xen PVH guest
-Date: Thu, 25 Jan 2018 15:36:37 +0100
-Message-ID: <20180125143639.9969-1-jgross@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50071 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750911AbeAYOgn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Jan 2018 09:36:43 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 2/2] xen: add acpi_arch_get_root_pointer() for pvh guests
+Date: Thu, 25 Jan 2018 15:36:39 +0100
+Message-ID: <20180125143639.9969-3-jgross@suse.com>
+References: <20180125143639.9969-1-jgross@suse.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180125143639.9969-1-jgross@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org
-Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, Juergen Gross <jgross@suse.com>
+Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, Juergen Gross <jgross@suse.com>, stable@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The Xen PVH boot protocol passes vital information to the kernel via
-a start_info block. One of the data transferred is the physical address
-of the RSDP table.
+Add acpi_arch_get_root_pointer() for Xen PVH guests to communicate
+the address of the RSDP table given to the kernel via Xen start info.
 
-Unfortunately PVH support in the kernel didn't use that passed address
-for RSDP, but relied on the legacy mechanism searching for the RSDP in
-low memory. After a recent change in Xen putting the RSDP to a higher
-address booting as PVH guest is now failing.
+This makes the kernel boot again in PVH mode after on recent Xen the
+RSDP was moved to higher addresses. So up to that change it was pure
+luck that the legacy method to locate the RSDP was working when
+running as PVH mode.
 
-This small series repairs that by passing the RSDP address from the
-start_info block to ACPI handling.
-
-Juergen Gross (2):
-  x86/acpi: add retrieval function for rsdp address
-  xen: add acpi_arch_get_root_pointer() for pvh guests
-
+Cc: <stable@vger.kernel.org> # 4.11
+Signed-off-by: Juergen Gross <jgross@suse.com>
+---
  arch/x86/xen/enlighten_pvh.c | 14 +++++++++++---
- drivers/acpi/osl.c           | 10 +++++++++-
- include/linux/acpi.h         |  2 ++
- 3 files changed, 22 insertions(+), 4 deletions(-)
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
+diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
+index 436c4f003e17..f08fd43f2aa2 100644
+--- a/arch/x86/xen/enlighten_pvh.c
++++ b/arch/x86/xen/enlighten_pvh.c
+@@ -16,15 +16,23 @@
+ /*
+  * PVH variables.
+  *
+- * xen_pvh and pvh_bootparams need to live in data segment since they
+- * are used after startup_{32|64}, which clear .bss, are invoked.
++ * xen_pvh, pvh_bootparams and pvh_start_info need to live in data segment
++ * since they are used after startup_{32|64}, which clear .bss, are invoked.
+  */
+ bool xen_pvh __attribute__((section(".data"))) = 0;
+ struct boot_params pvh_bootparams __attribute__((section(".data")));
++struct hvm_start_info pvh_start_info __attribute__((section(".data")));
+ 
+-struct hvm_start_info pvh_start_info;
+ unsigned int pvh_start_info_sz = sizeof(pvh_start_info);
+ 
++acpi_physical_address acpi_arch_get_root_pointer(void)
++{
++	if (xen_pvh)
++		return pvh_start_info.rsdp_paddr;
++
++	return 0;
++}
++
+ static void __init init_pvh_bootparams(void)
+ {
+ 	struct xen_memory_map memmap;
 -- 
 2.13.6
-
