@@ -1,61 +1,36 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
-Date: Thu, 25 Jan 2018 17:25:52 +0100
-Message-ID: <CAJZ5v0h2TOvoNGx5nYU0yVp_GJCxLTStSY=mp2YMbazhfq3x9g@mail.gmail.com>
-References: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
+Subject: Re: [PATCH] ACPI: use bitmap helper for masked GPEs
+Date: Thu, 25 Jan 2018 17:31:35 +0100
+Message-ID: <CAJZ5v0gU=8a1_FkztbSrqc64u7i7W2PCSf-KDf=+79kr1e38HA@mail.gmail.com>
+References: <1516860867-6391-1-git-send-email-rui.zhang@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Eric Auger <eric.auger@redhat.com>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:34925 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750783AbeAYQbg (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jan 2018 11:31:36 -0500
+Received: by mail-oi0-f68.google.com with SMTP id b11so5617955oif.2
+        for <linux-acpi@vger.kernel.org>; Thu, 25 Jan 2018 08:31:36 -0800 (PST)
+In-Reply-To: <1516860867-6391-1-git-send-email-rui.zhang@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Zhang Rui <rui.zhang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, pmenzel+bugzilla.kernel.org@molgen.mpg.de
 
-On Thu, Jan 25, 2018 at 4:43 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> From: Auger Eric <eric.auger@redhat.com>
+On Thu, Jan 25, 2018 at 7:14 AM, Zhang Rui <rui.zhang@intel.com> wrote:
+> "acpi_mask_gpe=" kernel parameter is introduced to mask one or more GPEs
+> at boot stage, to prevent GPE flooding.
 >
-> If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
-> and any ACPI opregion calls targeting I2C fail with no opregion found.
+> Currently, a maximum of 128 GPEs (from GPE 0x00 to GPE 0x7f) are allowed
+> to be masked by this kernel parameter, but only one u64 variant is used
+> as the bitmap for the masked GPEs in kernel.
 >
-> Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
-> CONFIG_I2C_ACPI config") says following:
->
-> "Current there is a race between removing I2C ACPI operation region
-> and ACPI AML code accessing."
->
-> This patch forces core I2C support to be compiled as a built-in
-> module if ACPI is selected as code is not ready for dynamic module
-> removal.
->
-> Signed-off-by: Eric Auger <eric.auger@redhat.com>
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/Kconfig | 2 ++
->  1 file changed, 2 insertions(+)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 4650539..5b48098 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -9,6 +9,8 @@ menuconfig ACPI
->         depends on IA64 || X86 || ARM64
->         depends on PCI
->         select PNP
-> +       # force building I2C in on ACPI systems, for opregion availability
-> +       imply I2C
->         default y if (IA64 || X86)
->         help
->           Advanced Configuration and Power Interface (ACPI) support for
-> --
+> This is bogus and makes some GPEs masked unexpected when masking a GPE
+> larger than 0x40.
 
-I'm not sure how much this helps.
-
-I2C opregions will only work if the requisite I2C controller driver is
-present anyway and this change doesn't guarantee that AFAICS.
-
-OTOH, there are systems using ACPI without I2C opregions, so are we
-really better off by forcing everybody using ACPI to also build I2C?
+Commit 0f27cff8597d (ACPI: sysfs: Make ACPI GPE mask kernel parameter
+cover all GPEs) in linux-next should cover this AFAICS.
 
 Thanks,
 Rafael
