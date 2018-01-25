@@ -1,87 +1,145 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH 2/2] xen: add acpi_arch_get_root_pointer() for pvh guests
-Date: Thu, 25 Jan 2018 13:06:26 +0100
-Message-ID: <b67f9405-5a6b-fd8c-7778-c12ca724ab0b@suse.com>
-References: <20180125100454.23203-1-jgross@suse.com>
- <20180125100454.23203-3-jgross@suse.com> <20180125103719.GA16777@kroah.com>
- <033717a8-f53a-3379-1e05-58b3d2bed24b@suse.com>
- <20180125110051.GA31911@kroah.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
+ topology
+Date: Thu, 25 Jan 2018 20:15:21 +0800
+Message-ID: <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
+References: <20180113005920.28658-1-jeremy.linton@arm.com>
+ <20180113005920.28658-12-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38611 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751184AbeAYMG3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Jan 2018 07:06:29 -0500
-In-Reply-To: <20180125110051.GA31911@kroah.com>
-Content-Language: de-DE
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180113005920.28658-12-jeremy.linton@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Juri Lelli <juri.lelli@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, stable@vger.kernel.org
 
-On 25/01/18 12:00, Greg KH wrote:
-> On Thu, Jan 25, 2018 at 11:49:35AM +0100, Juergen Gross wrote:
->> On 25/01/18 11:37, Greg KH wrote:
->>> On Thu, Jan 25, 2018 at 11:04:54AM +0100, Juergen Gross wrote:
->>>> Add acpi_arch_get_root_pointer() for Xen PVH guests to communicate
->>>> the address of the RSDP table given to the kernel via Xen start info.
->>>>
->>>> This makes the kernel boot again in PVH mode after on recent Xen the
->>>> RSDP was moved to higher addresses. So up to that change it was pure
->>>> luck that the legacy method to locate the RSDP was working when
->>>> running as PVH mode.
->>>>
->>>> Cc: <stable@vger.kernel.org> # 4.11
->>>> Signed-off-by: Juergen Gross <jgross@suse.com>
->>>> ---
->>>>  arch/x86/xen/enlighten_pvh.c | 15 ++++++++++++---
->>>>  1 file changed, 12 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/arch/x86/xen/enlighten_pvh.c b/arch/x86/xen/enlighten_pvh.c
->>>> index 436c4f003e17..9a5c3a7fe673 100644
->>>> --- a/arch/x86/xen/enlighten_pvh.c
->>>> +++ b/arch/x86/xen/enlighten_pvh.c
->>>> @@ -16,15 +16,24 @@
->>>>  /*
->>>>   * PVH variables.
->>>>   *
->>>> - * xen_pvh and pvh_bootparams need to live in data segment since they
->>>> - * are used after startup_{32|64}, which clear .bss, are invoked.
->>>> + * xen_pvh, pvh_bootparams and pvh_start_info need to live in data segment
->>>> + * since they are used after startup_{32|64}, which clear .bss, are invoked.
->>>>   */
->>>>  bool xen_pvh __attribute__((section(".data"))) = 0;
->>>>  struct boot_params pvh_bootparams __attribute__((section(".data")));
->>>> +struct hvm_start_info pvh_start_info __attribute__((section(".data")));
->>>>  
->>>> -struct hvm_start_info pvh_start_info;
->>>>  unsigned int pvh_start_info_sz = sizeof(pvh_start_info);
->>>>  
->>>> +acpi_physical_address acpi_arch_get_root_pointer(void)
->>>> +{
->>>> +	if (xen_pvh)
->>>> +		return pvh_start_info.rsdp_paddr;
->>>> +
->>>> +	return 0;
->>>> +}
->>>> +EXPORT_SYMBOL_GPL(acpi_arch_get_root_pointer);
->>>
->>> Why does this have to be an exported symbol?  Does this code get built
->>> as a module and will the linker somehow go and rewrite the previous call
->>> places with this one if it gets loaded?
->>
->> With being called by drivers/acpi/... I just wanted to make sure it is
->> working properly even in case the acpi code is built as a module.
+Hi Jeremy,
+
+I have tested the patch with the newest UEFI. It prints the below error:
+
+[    4.017371] BUG: arch topology borken
+[    4.021069] BUG: arch topology borken
+[    4.024764] BUG: arch topology borken
+[    4.028460] BUG: arch topology borken
+[    4.032153] BUG: arch topology borken
+[    4.035849] BUG: arch topology borken
+[    4.039543] BUG: arch topology borken
+[    4.043239] BUG: arch topology borken
+[    4.046932] BUG: arch topology borken
+[    4.050629] BUG: arch topology borken
+[    4.054322] BUG: arch topology borken
+
+I checked the code and found that the newest UEFI set PPTT physical_package_flag on a physical package node and
+the NUMA domain (SRAT domains) starts from the layer of DIE. (The topology of our board is core->cluster->die->package).
+
+When the kernel starts to build sched_domain, the multi-core sched_domain contains all the cores within a package,
+and the lowest NUMA sched_domain contains all the cores within a die. But the kernel requires that the multi-core
+sched_domain should be a subset of the lowest NUMA sched_domain, so the BUG info is printed.
+
+If we modify the UEFI to make NUMA sched_domain start from the layer of package, then all the topology information
+within the package will be discarded. I think we need to build the multi-core sched_domain using the cores within
+the cluster instead of the cores within the package. I think that's what 'multi-core' means. Multi cores form a cluster. I guess.
+If we build the multi-core sched_domain using the cores within a cluster, I think we need to add fields in struct cpu_topology
+to record which cores are in each cluster.
+
+
+Thanks,
+Xiongfeng
+
+On 2018/1/13 8:59, Jeremy Linton wrote:
+> Propagate the topology information from the PPTT tree to the
+> cpu_topology array. We can get the thread id, core_id and
+> cluster_id by assuming certain levels of the PPTT tree correspond
+> to those concepts. The package_id is flagged in the tree and can be
+> found by calling find_acpi_cpu_topology_package() which terminates
+> its search when it finds an ACPI node flagged as the physical
+> package. If the tree doesn't contain enough levels to represent
+> all of the requested levels then the root node will be returned
+> for all subsequent levels.
 > 
-> I didn't think the core ACPI code can be built as a module, have you
-> tried that?
-
-No, but as the build wouldn't break whenever this is changed I wanted
-to make sure the symbol is found.
-
-If you feel strong about that I can remove the EXPORT_SYMBOL_GPL().
-
-
-Juergen
+> Cc: Juri Lelli <juri.lelli@arm.com>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 45 insertions(+), 1 deletion(-)
+> 
+> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> index 7b06e263fdd1..ce8ec7fd6b32 100644
+> --- a/arch/arm64/kernel/topology.c
+> +++ b/arch/arm64/kernel/topology.c
+> @@ -11,6 +11,7 @@
+>   * for more details.
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/arch_topology.h>
+>  #include <linux/cpu.h>
+>  #include <linux/cpumask.h>
+> @@ -22,6 +23,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/sched/topology.h>
+>  #include <linux/slab.h>
+> +#include <linux/smp.h>
+>  #include <linux/string.h>
+>  
+>  #include <asm/cpu.h>
+> @@ -300,6 +302,46 @@ static void __init reset_cpu_topology(void)
+>  	}
+>  }
+>  
+> +#ifdef CONFIG_ACPI
+> +/*
+> + * Propagate the topology information of the processor_topology_node tree to the
+> + * cpu_topology array.
+> + */
+> +static int __init parse_acpi_topology(void)
+> +{
+> +	bool is_threaded;
+> +	int cpu, topology_id;
+> +
+> +	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
+> +
+> +	for_each_possible_cpu(cpu) {
+> +		topology_id = find_acpi_cpu_topology(cpu, 0);
+> +		if (topology_id < 0)
+> +			return topology_id;
+> +
+> +		if (is_threaded) {
+> +			cpu_topology[cpu].thread_id = topology_id;
+> +			topology_id = find_acpi_cpu_topology(cpu, 1);
+> +			cpu_topology[cpu].core_id   = topology_id;
+> +			topology_id = find_acpi_cpu_topology_package(cpu);
+> +			cpu_topology[cpu].package_id = topology_id;
+> +		} else {
+> +			cpu_topology[cpu].thread_id  = -1;
+> +			cpu_topology[cpu].core_id    = topology_id;
+> +			topology_id = find_acpi_cpu_topology_package(cpu);
+> +			cpu_topology[cpu].package_id = topology_id;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +#else
+> +static inline int __init parse_acpi_topology(void)
+> +{
+> +	return -EINVAL;
+> +}
+> +#endif
+>  
+>  void __init init_cpu_topology(void)
+>  {
+> @@ -309,6 +351,8 @@ void __init init_cpu_topology(void)
+>  	 * Discard anything that was parsed if we hit an error so we
+>  	 * don't use partial information.
+>  	 */
+> -	if (of_have_populated_dt() && parse_dt_topology())
+> +	if ((!acpi_disabled) && parse_acpi_topology())
+> +		reset_cpu_topology();
+> +	else if (of_have_populated_dt() && parse_dt_topology())
+>  		reset_cpu_topology();
+>  }
+> 
