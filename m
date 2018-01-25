@@ -1,38 +1,68 @@
 From: Juergen Gross <jgross@suse.com>
-Subject: [PATCH 0/2] xen: re-enable booting as Xen PVH guest
-Date: Thu, 25 Jan 2018 11:04:52 +0100
-Message-ID: <20180125100454.23203-1-jgross@suse.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:56547 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751290AbeAYKFQ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 25 Jan 2018 05:05:16 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 1/2] x86/acpi: add retrieval function for rsdp address
+Date: Thu, 25 Jan 2018 11:04:53 +0100
+Message-ID: <20180125100454.23203-2-jgross@suse.com>
+References: <20180125100454.23203-1-jgross@suse.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180125100454.23203-1-jgross@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org
-Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, Juergen Gross <jgross@suse.com>
+Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, boris.ostrovsky@oracle.com, Juergen Gross <jgross@suse.com>, stable@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The Xen PVH boot protocol passes vital information to the kernel via
-a start_info block. One of the data transferred is the physical address
-of the RSDP table.
+Add a function to get the address of the RSDP table. Per default use a
+__weak annotated function being a nop.
 
-Unfortunately PVH support in the kernel didn't use that passed address
-for RSDP, but relied on the legacy mechanism searching for the RSDP in
-low memory. After a recent change in Xen putting the RSDP to a higher
-address booting as PVH guest is now failing.
+Cc: <stable@vger.kernel.org> # 4.11
+Signed-off-by: Juergen Gross <jgross@suse.com>
+---
+ drivers/acpi/osl.c   | 10 +++++++++-
+ include/linux/acpi.h |  2 ++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-This small series repairs that by passing the RSDP address from the
-start_info block to ACPI handling.
-
-Juergen Gross (2):
-  x86/acpi: add retrieval function for rsdp address
-  xen: add acpi_arch_get_root_pointer() for pvh guests
-
- arch/x86/xen/enlighten_pvh.c | 15 ++++++++++++---
- drivers/acpi/osl.c           | 10 +++++++++-
- include/linux/acpi.h         |  2 ++
- 3 files changed, 23 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 3bb46cb24a99..2b77db914752 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -178,6 +178,11 @@ void acpi_os_vprintf(const char *fmt, va_list args)
+ #endif
+ }
+ 
++__weak acpi_physical_address acpi_arch_get_root_pointer(void)
++{
++	return 0;
++}
++
+ #ifdef CONFIG_KEXEC
+ static unsigned long acpi_rsdp;
+ static int __init setup_acpi_rsdp(char *arg)
+@@ -189,12 +194,15 @@ early_param("acpi_rsdp", setup_acpi_rsdp);
+ 
+ acpi_physical_address __init acpi_os_get_root_pointer(void)
+ {
+-	acpi_physical_address pa = 0;
++	acpi_physical_address pa;
+ 
+ #ifdef CONFIG_KEXEC
+ 	if (acpi_rsdp)
+ 		return acpi_rsdp;
+ #endif
++	pa = acpi_arch_get_root_pointer();
++	if (pa)
++		return pa;
+ 
+ 	if (efi_enabled(EFI_CONFIG_TABLES)) {
+ 		if (efi.acpi20 != EFI_INVALID_TABLE_ADDR)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index dc1ebfeeb5ec..aa603cc5ad30 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1266,4 +1266,6 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ }
+ #endif
+ 
++acpi_physical_address acpi_arch_get_root_pointer(void);
++
+ #endif	/*_LINUX_ACPI_H*/
 -- 
 2.13.6
-
