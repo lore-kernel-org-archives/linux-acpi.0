@@ -1,46 +1,38 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
-Date: Thu, 25 Jan 2018 10:43:31 -0500
-Message-ID: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org
-Cc: eric.auger@redhat.com, hdegoede@redhat.com, mika.westerberg@linux.intel.com, wsa@the-dreams.de, linux-i2c@vger.kernel.org, rjw@rjwysocki.net, Sinan Kaya <okaya@codeaurora.org>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: Re: [PATCH v2 2/2] xen: add acpi_arch_get_root_pointer() for pvh
+ guests
+Date: Thu, 25 Jan 2018 10:46:05 -0500
+Message-ID: <b412ae20-76bf-854c-e69c-c74e876191e0@oracle.com>
+References: <20180125143639.9969-1-jgross@suse.com>
+ <20180125143639.9969-3-jgross@suse.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp2130.oracle.com ([141.146.126.79]:60738 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751199AbeAYPqS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jan 2018 10:46:18 -0500
+In-Reply-To: <20180125143639.9969-3-jgross@suse.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Juergen Gross <jgross@suse.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org
+Cc: lenb@kernel.org, rafael.j.wysocki@intel.com, mingo@redhat.com, stable@vger.kernel.org
 
-From: Auger Eric <eric.auger@redhat.com>
 
-If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
-and any ACPI opregion calls targeting I2C fail with no opregion found.
 
-Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
-CONFIG_I2C_ACPI config") says following:
+On 01/25/2018 09:36 AM, Juergen Gross wrote:
+> Add acpi_arch_get_root_pointer() for Xen PVH guests to communicate
+> the address of the RSDP table given to the kernel via Xen start info.
+> 
+> This makes the kernel boot again in PVH mode after on recent Xen the
+> RSDP was moved to higher addresses. So up to that change it was pure
+> luck that the legacy method to locate the RSDP was working when
+> running as PVH mode.
+> 
+> Cc: <stable@vger.kernel.org> # 4.11
+> Signed-off-by: Juergen Gross <jgross@suse.com>
 
-"Current there is a race between removing I2C ACPI operation region
-and ACPI AML code accessing."
 
-This patch forces core I2C support to be compiled as a built-in
-module if ACPI is selected as code is not ready for dynamic module
-removal.
-
-Signed-off-by: Eric Auger <eric.auger@redhat.com>
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 4650539..5b48098 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -9,6 +9,8 @@ menuconfig ACPI
- 	depends on IA64 || X86 || ARM64
- 	depends on PCI
- 	select PNP
-+	# force building I2C in on ACPI systems, for opregion availability
-+	imply I2C
- 	default y if (IA64 || X86)
- 	help
- 	  Advanced Configuration and Power Interface (ACPI) support for 
--- 
-1.9.1
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
