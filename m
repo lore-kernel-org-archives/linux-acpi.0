@@ -1,187 +1,61 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
- topology
-Date: Thu, 25 Jan 2018 09:56:30 -0600
-Message-ID: <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com>
- <20180113005920.28658-12-jeremy.linton@arm.com>
- <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
+Date: Thu, 25 Jan 2018 17:25:52 +0100
+Message-ID: <CAJZ5v0h2TOvoNGx5nYU0yVp_GJCxLTStSY=mp2YMbazhfq3x9g@mail.gmail.com>
+References: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
-Content-Language: en-US
+In-Reply-To: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, morten.rasmussen@arm.com, Juri Lelli <juri.lelli@arm.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Eric Auger <eric.auger@redhat.com>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On Thu, Jan 25, 2018 at 4:43 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> From: Auger Eric <eric.auger@redhat.com>
+>
+> If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
+> and any ACPI opregion calls targeting I2C fail with no opregion found.
+>
+> Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
+> CONFIG_I2C_ACPI config") says following:
+>
+> "Current there is a race between removing I2C ACPI operation region
+> and ACPI AML code accessing."
+>
+> This patch forces core I2C support to be compiled as a built-in
+> module if ACPI is selected as code is not ready for dynamic module
+> removal.
+>
+> Signed-off-by: Eric Auger <eric.auger@redhat.com>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/Kconfig | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 4650539..5b48098 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -9,6 +9,8 @@ menuconfig ACPI
+>         depends on IA64 || X86 || ARM64
+>         depends on PCI
+>         select PNP
+> +       # force building I2C in on ACPI systems, for opregion availability
+> +       imply I2C
+>         default y if (IA64 || X86)
+>         help
+>           Advanced Configuration and Power Interface (ACPI) support for
+> --
 
-On 01/25/2018 06:15 AM, Xiongfeng Wang wrote:
-> Hi Jeremy,
-> 
-> I have tested the patch with the newest UEFI. It prints the below error:
-> 
-> [    4.017371] BUG: arch topology borken
-> [    4.021069] BUG: arch topology borken
-> [    4.024764] BUG: arch topology borken
-> [    4.028460] BUG: arch topology borken
-> [    4.032153] BUG: arch topology borken
-> [    4.035849] BUG: arch topology borken
-> [    4.039543] BUG: arch topology borken
-> [    4.043239] BUG: arch topology borken
-> [    4.046932] BUG: arch topology borken
-> [    4.050629] BUG: arch topology borken
-> [    4.054322] BUG: arch topology borken
-> 
-> I checked the code and found that the newest UEFI set PPTT physical_package_flag on a physical package node and
-> the NUMA domain (SRAT domains) starts from the layer of DIE. (The topology of our board is core->cluster->die->package).
+I'm not sure how much this helps.
 
-I commented about that on the EDK2 mailing list. While the current spec 
-doesn't explicitly ban having the flag set multiple times between the 
-leaf and the root I consider it a "bug" and there is an effort to 
-clarify the spec and the use of that flag.
-> 
-> When the kernel starts to build sched_domain, the multi-core sched_domain contains all the cores within a package,
-> and the lowest NUMA sched_domain contains all the cores within a die. But the kernel requires that the multi-core
-> sched_domain should be a subset of the lowest NUMA sched_domain, so the BUG info is printed.
+I2C opregions will only work if the requisite I2C controller driver is
+present anyway and this change doesn't guarantee that AFAICS.
 
-Right. I've mentioned this problem a couple of times.
-
-At at the moment, the spec isn't clear about how the proximity domain is 
-detected/located within the PPTT topology (a node with a 1:1 
-correspondence isn't even required). As you can see from this patch set, 
-we are making the general assumption that the proximity domains are at 
-the same level as the physical socket. This isn't ideal for NUMA 
-topologies, like the D05, that don't align with the physical socket.
-
-There are efforts underway to clarify and expand upon the specification 
-to deal with this general problem. The simple solution is another flag 
-(say PPTT_PROXIMITY_DOMAIN which would map to the D05 die) which could 
-be used to find nodes with 1:1 correspondence. At that point we could 
-add a fairly trivial patch to correct just the scheduler topology 
-without affecting the rest of the system topology code.
-
-> 
-> If we modify the UEFI to make NUMA sched_domain start from the layer of package, then all the topology information
-> within the package will be discarded. I think we need to build the multi-core sched_domain using the cores within
-> the cluster instead of the cores within the package. I think that's what 'multi-core' means. Multi cores form a cluster. I guess.
-> If we build the multi-core sched_domain using the cores within a cluster, I think we need to add fields in struct cpu_topology
-> to record which cores are in each cluster.
-
-The problem is that there isn't a generic way to identify which level of 
-cache sharing is the "correct" top layer MC domain. For one system 
-cluster might be appropriate, for another it might be the highest 
-caching level within a socket, for another is might be a something in 
-between or a group of clusters or LLCs..
-
-Hence the effort to standardize/guarantee a PPTT node that exactly 
-matches a SRAT domain. With that, each SOC/system provider has clearly 
-defined method for communicating where they want the proximity domain 
-information to begin.
+OTOH, there are systems using ACPI without I2C opregions, so are we
+really better off by forcing everybody using ACPI to also build I2C?
 
 Thanks,
-
-> 
-> 
-> Thanks,
-> Xiongfeng
-> 
-> On 2018/1/13 8:59, Jeremy Linton wrote:
->> Propagate the topology information from the PPTT tree to the
->> cpu_topology array. We can get the thread id, core_id and
->> cluster_id by assuming certain levels of the PPTT tree correspond
->> to those concepts. The package_id is flagged in the tree and can be
->> found by calling find_acpi_cpu_topology_package() which terminates
->> its search when it finds an ACPI node flagged as the physical
->> package. If the tree doesn't contain enough levels to represent
->> all of the requested levels then the root node will be returned
->> for all subsequent levels.
->>
->> Cc: Juri Lelli <juri.lelli@arm.com>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 45 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
->> index 7b06e263fdd1..ce8ec7fd6b32 100644
->> --- a/arch/arm64/kernel/topology.c
->> +++ b/arch/arm64/kernel/topology.c
->> @@ -11,6 +11,7 @@
->>    * for more details.
->>    */
->>   
->> +#include <linux/acpi.h>
->>   #include <linux/arch_topology.h>
->>   #include <linux/cpu.h>
->>   #include <linux/cpumask.h>
->> @@ -22,6 +23,7 @@
->>   #include <linux/sched.h>
->>   #include <linux/sched/topology.h>
->>   #include <linux/slab.h>
->> +#include <linux/smp.h>
->>   #include <linux/string.h>
->>   
->>   #include <asm/cpu.h>
->> @@ -300,6 +302,46 @@ static void __init reset_cpu_topology(void)
->>   	}
->>   }
->>   
->> +#ifdef CONFIG_ACPI
->> +/*
->> + * Propagate the topology information of the processor_topology_node tree to the
->> + * cpu_topology array.
->> + */
->> +static int __init parse_acpi_topology(void)
->> +{
->> +	bool is_threaded;
->> +	int cpu, topology_id;
->> +
->> +	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
->> +
->> +	for_each_possible_cpu(cpu) {
->> +		topology_id = find_acpi_cpu_topology(cpu, 0);
->> +		if (topology_id < 0)
->> +			return topology_id;
->> +
->> +		if (is_threaded) {
->> +			cpu_topology[cpu].thread_id = topology_id;
->> +			topology_id = find_acpi_cpu_topology(cpu, 1);
->> +			cpu_topology[cpu].core_id   = topology_id;
->> +			topology_id = find_acpi_cpu_topology_package(cpu);
->> +			cpu_topology[cpu].package_id = topology_id;
->> +		} else {
->> +			cpu_topology[cpu].thread_id  = -1;
->> +			cpu_topology[cpu].core_id    = topology_id;
->> +			topology_id = find_acpi_cpu_topology_package(cpu);
->> +			cpu_topology[cpu].package_id = topology_id;
->> +		}
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +#else
->> +static inline int __init parse_acpi_topology(void)
->> +{
->> +	return -EINVAL;
->> +}
->> +#endif
->>   
->>   void __init init_cpu_topology(void)
->>   {
->> @@ -309,6 +351,8 @@ void __init init_cpu_topology(void)
->>   	 * Discard anything that was parsed if we hit an error so we
->>   	 * don't use partial information.
->>   	 */
->> -	if (of_have_populated_dt() && parse_dt_topology())
->> +	if ((!acpi_disabled) && parse_acpi_topology())
->> +		reset_cpu_topology();
->> +	else if (of_have_populated_dt() && parse_dt_topology())
->>   		reset_cpu_topology();
->>   }
->>
-> 
+Rafael
