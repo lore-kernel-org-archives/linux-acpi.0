@@ -1,34 +1,180 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 1/2] x86/acpi: add retrieval function for rsdp address
-Date: Fri, 26 Jan 2018 20:08:24 +0200
-Message-ID: <CAHp75VdgdQXH-d9+Fo1DwGdfV1pB0jADMmwAK1BU7oN6dgQs8Q@mail.gmail.com>
-References: <20180125143639.9969-1-jgross@suse.com> <20180125143639.9969-2-jgross@suse.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v3 5/5] ACPICA: Remove calling of _STA from
+ acpi_get_object_info
+Date: Fri, 26 Jan 2018 20:42:30 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B75696BC@ORSMSX110.amr.corp.intel.com>
+References: <20180126150300.9691-1-hdegoede@redhat.com>
+ <20180126150300.9691-5-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:40221 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751506AbeAZSI0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jan 2018 13:08:26 -0500
-In-Reply-To: <20180125143639.9969-2-jgross@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180126150300.9691-5-hdegoede@redhat.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Juergen Gross <jgross@suse.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ingo Molnar <mingo@redhat.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, stable@vger.kernel.org
 
-On Thu, Jan 25, 2018 at 4:36 PM, Juergen Gross <jgross@suse.com> wrote:
-> Add a function to get the address of the RSDP table. Per default use a
-> __weak annotated function being a nop.
+For ACPICA, this is a change to a published public interface. A change to this will potentially affect many operating systems, so we would be very hesitant to change it in the core ACPICA code.
 
-The problem with weak functions that we can't have more than one
-implementation per kernel while we would like to built several code
-paths.
+Bob
 
-I have stumbled on the similar stuff and realize that.
 
-Perhaps, one of the solution is to have an additional struct under
-x86_init to alternate ACPI related stuff.
-
--- 
-With Best Regards,
-Andy Shevchenko
+> -----Original Message-----
+> From: Hans de Goede [mailto:hdegoede@redhat.com]
+> Sent: Friday, January 26, 2018 7:03 AM
+> To: Rafael J . Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
+> Moore, Robert <robert.moore@intel.com>; Schmauss, Erik
+> <erik.schmauss@intel.com>; Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Hans de Goede <hdegoede@redhat.com>; linux-acpi@vger.kernel.org;
+> devel@acpica.org; linux-pci@vger.kernel.org
+> Subject: [PATCH v3 5/5] ACPICA: Remove calling of _STA from
+> acpi_get_object_info
+> 
+> As the comment above it indicates, acpi_get_object_info is intended for
+> early probe usage and as such should not call any methods which may rely
+> on OpRegions, before this commit it was also calling _STA, which on some
+> systems does rely on OpRegions.
+> 
+> Calling _STA before things are ready leads to errors such as these:
+> 
+> [    0.123579] ACPI Error: No handler for Region [ECRM]
+> (00000000ba9edc4c)
+>                [GenericSerialBus] (20170831/evregion-166)
+> [    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
+>                (20170831/exfldio-299)
+> [    0.123618] ACPI Error: Method parse/execution failed
+>                \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
+> 
+> End 2015 support for the _SUB method was removed for exactly the same
+> reason. Removing current_status from struct acpi_device_info only has a
+> limit impact. Within ACPICA it is only used by 2 debug messages, both of
+> which are modified to no longer print it with this commit.
+> 
+> Outside of ACPICA, for Linux there is only one user. For which a patch
+> to remove the dependency on the current_status field is available.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/acpica/dbdisply.c |  5 ++---
+> drivers/acpi/acpica/nsdumpdv.c |  5 ++---
+> drivers/acpi/acpica/nsxfname.c | 19 ++++---------------
+>  include/acpi/actypes.h         |  2 --
+>  4 files changed, 8 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/dbdisply.c
+> b/drivers/acpi/acpica/dbdisply.c index 5a606eac0c22..7b5eb33fe962 100644
+> --- a/drivers/acpi/acpica/dbdisply.c
+> +++ b/drivers/acpi/acpica/dbdisply.c
+> @@ -642,9 +642,8 @@ void acpi_db_display_object_type(char *object_arg)
+>  		return;
+>  	}
+> 
+> -	acpi_os_printf("ADR: %8.8X%8.8X, STA: %8.8X, Flags: %X\n",
+> -		       ACPI_FORMAT_UINT64(info->address),
+> -		       info->current_status, info->flags);
+> +	acpi_os_printf("ADR: %8.8X%8.8X, Flags: %X\n",
+> +		       ACPI_FORMAT_UINT64(info->address), info->flags);
+> 
+>  	acpi_os_printf("S1D-%2.2X S2D-%2.2X S3D-%2.2X S4D-%2.2X\n",
+>  		       info->highest_dstates[0], info->highest_dstates[1],
+> diff --git a/drivers/acpi/acpica/nsdumpdv.c
+> b/drivers/acpi/acpica/nsdumpdv.c index 5026594763ea..573a5f36f01a 100644
+> --- a/drivers/acpi/acpica/nsdumpdv.c
+> +++ b/drivers/acpi/acpica/nsdumpdv.c
+> @@ -88,10 +88,9 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
+>  		}
+> 
+>  		ACPI_DEBUG_PRINT_RAW((ACPI_DB_TABLES,
+> -				      "    HID: %s, ADR: %8.8X%8.8X, Status: %X\n",
+> +				      "    HID: %s, ADR: %8.8X%8.8X\n",
+>  				      info->hardware_id.value,
+> -				      ACPI_FORMAT_UINT64(info->address),
+> -				      info->current_status));
+> +				      ACPI_FORMAT_UINT64(info->address));
+>  		ACPI_FREE(info);
+>  	}
+> 
+> diff --git a/drivers/acpi/acpica/nsxfname.c
+> b/drivers/acpi/acpica/nsxfname.c index 106966235805..0a9c600c2599 100644
+> --- a/drivers/acpi/acpica/nsxfname.c
+> +++ b/drivers/acpi/acpica/nsxfname.c
+> @@ -241,7 +241,7 @@ static char *acpi_ns_copy_device_id(struct
+> acpi_pnp_device_id *dest,
+>   *              namespace node and possibly by running several standard
+>   *              control methods (Such as in the case of a device.)
+>   *
+> - * For Device and Processor objects, run the Device _HID, _UID, _CID,
+> _STA,
+> + * For Device and Processor objects, run the Device _HID, _UID, _CID,
+>   * _CLS, _ADR, _sx_w, and _sx_d methods.
+>   *
+>   * Note: Allocates the return buffer, must be freed by the caller.
+> @@ -250,8 +250,9 @@ static char *acpi_ns_copy_device_id(struct
+> acpi_pnp_device_id *dest,
+>   * discovery namespace traversal. Therefore, no complex methods can be
+>   * executed, especially those that access operation regions. Therefore,
+> do
+>   * not add any additional methods that could cause problems in this
+> area.
+> - * this was the fate of the _SUB method which was found to cause such
+> - * problems and was removed (11/2015).
+> + * Because of this reason support for the following methods has been
+> removed:
+> + * 1) _SUB method was removed (11/2015)
+> + * 2) _STA method was removed (01/2018)
+>   *
+> 
+> ************************************************************************
+> ******/
+> 
+> @@ -374,20 +375,8 @@ acpi_get_object_info(acpi_handle handle,
+>  		 * Notes: none of these methods are required, so they may or
+> may
+>  		 * not be present for this device. The Info->Valid bitfield
+> is used
+>  		 * to indicate which methods were found and run successfully.
+> -		 *
+> -		 * For _STA, if the method does not exist, then (as per the
+> ACPI
+> -		 * specification), the returned current_status flags will
+> indicate
+> -		 * that the device is present/functional/enabled. Otherwise,
+> the
+> -		 * current_status flags reflect the value returned from _STA.
+>  		 */
+> 
+> -		/* Execute the Device._STA method */
+> -
+> -		status = acpi_ut_execute_STA(node, &info->current_status);
+> -		if (ACPI_SUCCESS(status)) {
+> -			valid |= ACPI_VALID_STA;
+> -		}
+> -
+>  		/* Execute the Device._ADR method */
+> 
+>  		status = acpi_ut_evaluate_numeric_object(METHOD_NAME__ADR,
+> node, diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h index
+> 4f077edb9b81..220ef8674763 100644
+> --- a/include/acpi/actypes.h
+> +++ b/include/acpi/actypes.h
+> @@ -1191,7 +1191,6 @@ struct acpi_device_info {
+>  	u8 flags;		/* Miscellaneous info */
+>  	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not
+> valid */
+>  	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
+> -	u32 current_status;	/* _STA value */
+>  	u64 address;	/* _ADR value */
+>  	struct acpi_pnp_device_id hardware_id;	/* _HID value */
+>  	struct acpi_pnp_device_id unique_id;	/* _UID value */
+> @@ -1205,7 +1204,6 @@ struct acpi_device_info {
+> 
+>  /* Flags for Valid field above (acpi_get_object_info) */
+> 
+> -#define ACPI_VALID_STA                  0x0001
+>  #define ACPI_VALID_ADR                  0x0002
+>  #define ACPI_VALID_HID                  0x0004
+>  #define ACPI_VALID_UID                  0x0008
+> --
+> 2.14.3
