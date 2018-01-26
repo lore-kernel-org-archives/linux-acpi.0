@@ -1,44 +1,61 @@
-From: Peter Schuster <femi.ageuh@gmail.com>
-Subject: =?UTF-8?Q?Darlehen_Geld_f=C3=BCr_Einzelpersonen_und_Fachleute_in_w?=
-        =?UTF-8?Q?eniger_als_72_Stunden?=
-Date: Fri, 26 Jan 2018 08:22:47 +0100
-Message-ID: <CACKcKZ-YTVoO8xO=VcRR-F_91T=fQ=MZa2wBTk_EaRT7GRz52Q__3518.44991460002$1516951268$gmane$org@mail.gmail.com>
-Reply-To: klaus.peterschuster@outlook.de
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [Patch v1 3/8] ACPI / LPIT: Export lpit_read_residency_count_address()
+Date: Fri, 26 Jan 2018 11:48:39 +0200
+Message-ID: <CAHp75VezHm3h5WRsm8ep=179qwCz=gep0hbUAcT3+qbH=_8dXQ@mail.gmail.com>
+References: <1516352307-20123-1-git-send-email-rajneesh.bhardwaj@intel.com> <1516352307-20123-4-git-send-email-rajneesh.bhardwaj@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f182.google.com ([74.125.82.182]:36078 "EHLO
-        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751837AbeAZHWt (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 26 Jan 2018 02:22:49 -0500
-Received: by mail-ot0-f182.google.com with SMTP id f100so9366872otf.3
-        for <linux-acpi@vger.kernel.org>; Thu, 25 Jan 2018 23:22:49 -0800 (PST)
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1516352307-20123-4-git-send-email-rajneesh.bhardwaj@intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+Cc: Platform Driver <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vishwanath Somayaji <vishwanath.somayaji@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hallo,
+On Fri, Jan 19, 2018 at 10:58 AM, Rajneesh Bhardwaj
+<rajneesh.bhardwaj@intel.com> wrote:
+> From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+>
+> Export lpit_read_residency_count_address(), so that it can be used from
+> drivers built as module. With the recent changes, the builtin_pci
+> functionality of the intel_pmc_core driver is removed and now it can be
+> built as a module to read this exported interface to calculate the PMC base
+> address.
+>
 
-Sind Sie in einer schwierigen Situation, f=C3=BCr die Sie sich f=C3=BCr ein
-Darlehen suchen? Ben=C3=B6tigen Sie eine Finanzierung, um eine Schuld zu
-begleichen oder eine Aktivit=C3=A4t zu finanzieren? Haben Sie einen
-Verbraucherkredit, eine Hypothek, einen pers=C3=B6nlichen Kredit, eine
-Hypothek, Investition Darlehen, Schuldenkonsolidierung Darlehen oder
-andere braucht?
+This needs Ack from ACPI maintainer(s).
 
-Ich bin ein einzelner Investor. I zur Verf=C3=BCgung stellen die Kredit
-kurz-, mittel- und langfristige. Ihr Finanzierungsbedingungen sind
-sehr einfach und meine Zinssatz betr=C3=A4gt 3% pro Jahr.
+Rafael, are you OK with exporting this method?
 
-F=C3=BCr alle Anfragen, bleibe ich zur Verf=C3=BCgung, um Ihre Fragen zu be=
-antworten.
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+>
+> Tested-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> ---
+>
+>  drivers/acpi/acpi_lpit.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
+> index e94e478dd18b..cf4fc0161164 100644
+> --- a/drivers/acpi/acpi_lpit.c
+> +++ b/drivers/acpi/acpi_lpit.c
+> @@ -100,6 +100,7 @@ int lpit_read_residency_count_address(u64 *address)
+>
+>         return 0;
+>  }
+> +EXPORT_SYMBOL_GPL(lpit_read_residency_count_address);
+>
+>  static void lpit_update_residency(struct lpit_residency_info *info,
+>                                  struct acpi_lpit_native *lpit_native)
+> --
+> 2.7.4
+>
 
-Danke, dass Sie mir per E-Mail an Sie von  :   klaus.peterschuster@outlook.=
-de
 
-Mit freundlichen Gr=C3=BC=C3=9Fen.
 
-Peter Schuster
-
-Financial Bank
-https://firstfinancialsa.com/de
+-- 
+With Best Regards,
+Andy Shevchenko
