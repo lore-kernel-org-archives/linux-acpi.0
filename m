@@ -1,77 +1,57 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [2/4] ACPI / battery: reorder headers alphabetically
-Date: Mon, 29 Jan 2018 04:05:28 +0100
-Message-ID: <CAJZ5v0goEsJjtbtBU5gdJ2mjKif-NqejmVsmjLWbDBRH1-J+Gg@mail.gmail.com>
-References: <20180113115331.GA13662@thinkpad> <1515930919.7000.984.camel@linux.intel.com>
- <CAJZ5v0j_ZY+DvOD9c+ZOMFVefQvE3kY=Ztyq0DRqSU6TNVbnjw@mail.gmail.com>
- <20180114235033.GA10002@thinkpad> <CAJZ5v0hKQfRDsg_R_ZEEJrRnf8uFi5cUZ_brSME2R086zkhm7g@mail.gmail.com>
- <20180127072940.GA839@thinkpad>
+Subject: Re: [PATCH v3 5/5] ACPICA: Remove calling of _STA from acpi_get_object_info
+Date: Mon, 29 Jan 2018 04:07:30 +0100
+Message-ID: <CAJZ5v0gDLrDtgFKo5mUBuGWfAmv_3n1HEUTjnE3J8DSrRUbTCQ@mail.gmail.com>
+References: <20180126150300.9691-1-hdegoede@redhat.com> <20180126150300.9691-5-hdegoede@redhat.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E3B75696BC@ORSMSX110.amr.corp.intel.com> <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:35334 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750808AbeA2DF3 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jan 2018 22:05:29 -0500
-Received: by mail-oi0-f42.google.com with SMTP id b11so4033746oif.2
-        for <linux-acpi@vger.kernel.org>; Sun, 28 Jan 2018 19:05:29 -0800 (PST)
-In-Reply-To: <20180127072940.GA839@thinkpad>
+Received: from mail-ot0-f176.google.com ([74.125.82.176]:45544 "EHLO
+        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751249AbeA2DHc (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jan 2018 22:07:32 -0500
+In-Reply-To: <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Rozhkov <dmitry.rozhkov@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Sat, Jan 27, 2018 at 8:29 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com> wro=
-te:
-> On Mon, Jan 15, 2018 at 01:06:47AM +0100, Rafael J. Wysocki wrote:
->> On Mon, Jan 15, 2018 at 12:50 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com>=
- wrote:
->> > On Mon, Jan 15, 2018 at 12:40:13AM +0100, Rafael J. Wysocki wrote:
->> >> On Sun, Jan 14, 2018 at 12:55 PM, Andy Shevchenko
->> >> <andriy.shevchenko@linux.intel.com> wrote:
->> >> > On Sat, 2018-01-13 at 12:53 +0100, Ognjen Gali=C4=87 wrote:
->> >> >> > -#include <linux/kernel.h>
->> >> >> > -#include <linux/module.h>
->> >> >> > -#include <linux/types.h>
->> >> >> > -#include <linux/jiffies.h>
->> >> >> > #include <linux/async.h>
->> >> >> > -#include <linux/dmi.h>
->> >> >> > #include <linux/delay.h>
->> >> >> > +#include <linux/dmi.h>
->> >> >> > +#include <linux/jiffies.h>
->> >> >> > +#include <linux/kernel.h>
->> >> >> > +#include <linux/module.h>
->> >> >> > #include <linux/slab.h>
->> >> >> > #include <linux/suspend.h>
->> >> >> > -#include <asm/unaligned.h>
->> >> >> > +#include <linux/types.h>
->> >> >>
->> >> >> These changes completely break my patch:
->> >> >> https://patchwork.kernel.org/patch/10142157/
->> >> >>
->> >> >> Can we please postpone this patch until I hear back from Rafael
->> >> >> about my series, as my series does some of the things this patch
->> >> >> series does (like defining pr_fmt to shorten log prints) and this
->> >> >> is a much smaller changeset and would require small changes on
->> >> >> conflicts compared to my series?
->> >> >
->> >> > Definitely on both series we need to hear from Rafael.
->> >>
->> >> Right, I still need to convince myself that the Ognjen's series
->> >> actually works in all cases which I'm not quite sure about ATM.
->> >
->> > What edge cases are you concerned about?
->>
->> Initialization ordering, basically.
->>
->> It appears to work only under specific assumptions that are not
->> guaranteed to be satisfied universally, but I need to walk though it
->> again to check that.
+On Sat, Jan 27, 2018 at 3:02 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
 >
-> Well, any updates? It's been a while.
+> On 26-01-18 21:42, Moore, Robert wrote:
+>>
+>> For ACPICA, this is a change to a published public interface. A change to
+>> this will potentially affect many operating systems, so we would be very
+>> hesitant to change it in the core ACPICA code.
+>
+>
+> From the acpi_get_object_info() documentation in
+> drivers/acpi/acpica/nsxfname.c:
+>
+>  * Note: This interface is intended to be used during the initial device
+>  * discovery namespace traversal. Therefore, no complex methods can be
+>  * executed, especially those that access operation regions.
+>
+> Since _STA can call Opregions, IMHO it does not belong in
+> acpi_get_object_info()
+> and as Erik mentioned _STA can have side-effects then that seems like
+> another
+> reason to NOT call it from acpi_get_object_info().
+>
+> But I can understand that you don't want to outright change the behavior of
+> acpi_get_object_info() to call _STA since it has always done this, still
+> calling _STA can be a problem in some cases.
+>
+> Perhaps we can give acpi_get_object_info() a flags argument, or if you want
+> to
+> preserve the current interface ad a new acpi_get_object_info_no_sta() call
+> (and
+> use flags under the hood so that we still have only 1 implementation) ?
 
-Right, sorry about that.
+Let's first get the [1-4/5] from this series in (as the last patch
+depends on them AFAICS) and then we'll see.
 
-I've been traveling lately (actually I'm still on my way home), but
-I'll do my best to get to your patches as soon as I'm back.
+Thanks,
+Rafael
