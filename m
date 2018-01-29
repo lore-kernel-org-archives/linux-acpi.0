@@ -1,89 +1,41 @@
-From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
-Date: Mon, 29 Jan 2018 14:10:11 +0800
-Message-ID: <20180129061011.11214-1-kai.heng.feng@canonical.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
+ and Precision M5530
+Date: Mon, 29 Jan 2018 14:56:45 +0200
+Message-ID: <CAHp75VfQH6ssvp14HSLNGPL=eUVQCnrC-ifoKMuKoCkR1s=3YA@mail.gmail.com>
+References: <20180129061011.11214-1-kai.heng.feng@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180129061011.11214-1-kai.heng.feng@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>, Mario Limonciello <mario.limonciello@dell.com>
+To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
-of box.
+On Mon, Jan 29, 2018 at 8:10 AM, Kai-Heng Feng
+<kai.heng.feng@canonical.com> wrote:
+> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+> of box.
+>
+> The touchpad relies on its _INI method to update its _HID value from
+> XXXX0000 to SYNA2393.
+> Also, the _STA relies on value of I2CN to report correct status.
+>
+> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+> correctly set up, and _INI can get run. The ACPI table in this machine
+> is designed to get parsed this way.
 
-The touchpad relies on its _INI method to update its _HID value from
-XXXX0000 to SYNA2393.
-Also, the _STA relies on value of I2CN to report correct status.
+> +#ifdef CONFIG_X86
 
-Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
-correctly set up, and _INI can get run. The ACPI table in this machine
-is designed to get parsed this way.
+Why do you need separate #ifdef?
 
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
-Cc: Mario Limonciello <mario.limonciello@dell.com>
-Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
----
- drivers/acpi/bus.c | 41 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+> +static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4d0979e02a28..4da34d67e23d 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -88,6 +86,45 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
- };
- #endif
- 
-+#ifdef CONFIG_X86
-+static int set_gbl_term_list(const struct dmi_system_id *id)
-+{
-+	pr_notice("%s detected - parse the entire table as a term_list\n",
-+		  id->ident);
-+	acpi_gbl_parse_table_as_term_list = 1;
-+	return 0;
-+}
-+
-+static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
-+	/*
-+	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
-+	 * mode.
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
-+	 */
-+	{
-+		.callback = set_gbl_term_list,
-+		.ident = "Dell Precision M5530",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
-+		},
-+	},
-+	{
-+		.callback = set_gbl_term_list,
-+		.ident = "Dell XPS 15 9570",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
-+		},
-+	},
-+	{}
-+};
-+#else
-+static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
-+	{}
-+};
-+#endif
-+
- /* --------------------------------------------------------------------------
-                                 Device Management
-    -------------------------------------------------------------------------- */
-@@ -1007,6 +1046,8 @@ void __init acpi_early_init(void)
- 	 */
- 	dmi_check_system(dsdt_dmi_table);
- 
-+	dmi_check_system(gbl_term_list_dmi_table);
-+
- 	status = acpi_reallocate_root_table();
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX
+I think you can just add new items to the existing table, while renaming it like
+
+dsdt_dmi_table -> acpi_quirks_dmi_table
+
 -- 
-2.15.1
+With Best Regards,
+Andy Shevchenko
