@@ -1,57 +1,33 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 5/5] ACPICA: Remove calling of _STA from acpi_get_object_info
-Date: Mon, 29 Jan 2018 04:07:30 +0100
-Message-ID: <CAJZ5v0gDLrDtgFKo5mUBuGWfAmv_3n1HEUTjnE3J8DSrRUbTCQ@mail.gmail.com>
-References: <20180126150300.9691-1-hdegoede@redhat.com> <20180126150300.9691-5-hdegoede@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E3B75696BC@ORSMSX110.amr.corp.intel.com> <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
+Subject: Re: [Patch v1 3/8] ACPI / LPIT: Export lpit_read_residency_count_address()
+Date: Mon, 29 Jan 2018 04:09:10 +0100
+Message-ID: <CAJZ5v0hfRKxQLzyCtUdHyRECBFmj0Gho_Jc7mrY0fC+v8t0uhA@mail.gmail.com>
+References: <1516352307-20123-1-git-send-email-rajneesh.bhardwaj@intel.com>
+ <1516352307-20123-4-git-send-email-rajneesh.bhardwaj@intel.com> <CAHp75VezHm3h5WRsm8ep=179qwCz=gep0hbUAcT3+qbH=_8dXQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f176.google.com ([74.125.82.176]:45544 "EHLO
-        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751249AbeA2DHc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jan 2018 22:07:32 -0500
-In-Reply-To: <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VezHm3h5WRsm8ep=179qwCz=gep0hbUAcT3+qbH=_8dXQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>, Platform Driver <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Vishwanath Somayaji <vishwanath.somayaji@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 
-On Sat, Jan 27, 2018 at 3:02 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 26-01-18 21:42, Moore, Robert wrote:
+On Fri, Jan 26, 2018 at 10:48 AM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Fri, Jan 19, 2018 at 10:58 AM, Rajneesh Bhardwaj
+> <rajneesh.bhardwaj@intel.com> wrote:
+>> From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 >>
->> For ACPICA, this is a change to a published public interface. A change to
->> this will potentially affect many operating systems, so we would be very
->> hesitant to change it in the core ACPICA code.
+>> Export lpit_read_residency_count_address(), so that it can be used from
+>> drivers built as module. With the recent changes, the builtin_pci
+>> functionality of the intel_pmc_core driver is removed and now it can be
+>> built as a module to read this exported interface to calculate the PMC base
+>> address.
+>>
 >
+> This needs Ack from ACPI maintainer(s).
 >
-> From the acpi_get_object_info() documentation in
-> drivers/acpi/acpica/nsxfname.c:
->
->  * Note: This interface is intended to be used during the initial device
->  * discovery namespace traversal. Therefore, no complex methods can be
->  * executed, especially those that access operation regions.
->
-> Since _STA can call Opregions, IMHO it does not belong in
-> acpi_get_object_info()
-> and as Erik mentioned _STA can have side-effects then that seems like
-> another
-> reason to NOT call it from acpi_get_object_info().
->
-> But I can understand that you don't want to outright change the behavior of
-> acpi_get_object_info() to call _STA since it has always done this, still
-> calling _STA can be a problem in some cases.
->
-> Perhaps we can give acpi_get_object_info() a flags argument, or if you want
-> to
-> preserve the current interface ad a new acpi_get_object_info_no_sta() call
-> (and
-> use flags under the hood so that we still have only 1 implementation) ?
+> Rafael, are you OK with exporting this method?
 
-Let's first get the [1-4/5] from this series in (as the last patch
-depends on them AFAICS) and then we'll see.
-
-Thanks,
-Rafael
+I have no particular objection at this point.
