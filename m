@@ -1,152 +1,101 @@
-From: Nicole Faerber <nicole.faerber@dpin.de>
-Subject: Re: kernel <=4.15rc9, acpi_irq - Disabling IRQ #9 after resume from
- sleep
-Date: Sun, 28 Jan 2018 22:22:14 +0100
-Message-ID: <6c14e2a6-2f06-fa1a-6bda-d88e4541920b@dpin.de>
-References: <4b983a91-d5af-dd92-ea5a-4bed05e281c6@dpin.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from dpin.de ([178.77.96.241]:34268 "EHLO dpin.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752886AbeA1VWR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 28 Jan 2018 16:22:17 -0500
-Received: from x4e30a55a.dyn.telefonica.de ([78.48.165.90] helo=[192.168.178.58])
-        by lvps178-77-96-241.dedicated.hosteurope.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <nicole.faerber@dpin.de>)
-        id 1efuP1-0002Ft-Da
-        for linux-acpi@vger.kernel.org; Sun, 28 Jan 2018 22:22:16 +0100
-In-Reply-To: <4b983a91-d5af-dd92-ea5a-4bed05e281c6@dpin.de>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yu Chen <yu.c.chen@intel.com>
+Subject: [PATCH 1/2] ACPI: processor_perflib: Do not send _PPC change notification if not ready
+Date: Mon, 29 Jan 2018 10:26:46 +0800
+Message-ID: <d71a6cf7352de5595ac1419000bd72b6d068cce1.1517192577.git.yu.c.chen@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yu Chen <yu.c.chen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Am 23.01.2018 um 16:59 schrieb Nicole Færber:
-> Hi,
-> 
-> pretty much since I am working on the device I have this issues and it
-> still persist up until latest 4.15rc9 kernels. What happens is something
-> like this, excerpt from dmesg:
-> ...
-> [52208.493346] input: Lenovo ThinkPad 10 Ultrabook Keyboard as
-> /devices/pci0000:00/0000:00:14.0/usb1/1-1/1-1:1.1/0003:17EF:6062.0007/input/input16
-> [52208.553407] hid-generic 0003:17EF:6062.0007: input,hiddev0,hidraw2:
-> USB HID v1.10 Mouse [Lenovo ThinkPad 10 Ultrabook Keyboard] on
-> usb-0000:00:14.0-1/input1
-> [52208.553749] usbhid 1-1:1.2: couldn't find an input interrupt endpoint
-> [52209.028700] irq 9: nobody cared (try booting with the "irqpoll" option)
-> [52209.028710] CPU: 1 PID: 6011 Comm: thunar-volman Tainted: G     U A
->       4.15.0-rc9tpt10 #1
-> [52209.028712] Hardware name: LENOVO 20C10024GE/20C10024GE, BIOS
-> GWET44WW (1.44) 02/13/2017
-> [52209.028713] Call Trace:
-> [52209.028719]  <IRQ>
-> [52209.028728]  dump_stack+0x46/0x68
-> [52209.028733]  __report_bad_irq+0x29/0xc0
-> [52209.028737]  note_interrupt+0x237/0x280
-> [52209.028741]  handle_irq_event_percpu+0x52/0x80
-> [52209.028743]  handle_irq_event+0x27/0x50
-> [52209.028746]  handle_fasteoi_irq+0x73/0x120
-> [52209.028750]  handle_irq+0x16/0x30
-> [52209.028753]  do_IRQ+0x42/0xc0
-> [52209.028756]  common_interrupt+0x95/0x95
-> [52209.028758]  </IRQ>
-> [52209.028761] RIP: 0033:0x7f144ba796e0
-> [52209.028763] RSP: 002b:00007ffc45d64df0 EFLAGS: 00000246 ORIG_RAX:
-> ffffffffffffffde
-> [52209.028766] RAX: 0000000000000061 RBX: 00007f144bdc3c20 RCX:
-> 0000000000000061
-> [52209.028767] RDX: 0000000000000061 RSI: 0000000000000000 RDI:
-> 0000564df1cc2810
-> [52209.028769] RBP: 0000564df1cc27c0 R08: 0000000000000000 R09:
-> 0000564df1cc27c0
-> [52209.028770] R10: ffffffffffffffb0 R11: 00007f144c31b720 R12:
-> 0000000000000050
-> [52209.028771] R13: 0000000000009850 R14: 0000564df1cc27b0 R15:
-> 0000564df1cb3c40
-> [52209.028773] handlers:
-> [52209.028779] [<00000000a8ae6ecd>] acpi_irq
-> [52209.028782] Disabling IRQ #9
-> [52217.086686] usb 1-1: USB disconnect, device number 5
-> ...
-> 
-> This does not happen on a freshly booted system. After boot I can do
-> anything with the device and it will not happen.
-> 
-> But after I suspended the device a single time it becomes vulnerable to
-> the above issue. The issue can easiest be reproduced when I e.g. remove
-> the keyboard dock from the device, which seems to carry additional
-> signals to the USB for keyboard and mouse.
-> 
-> The device in question is a Thinkpad Tablet 10 Gen2, Intel Baytrail
-> Z3795 CPU.
-> 
-> Another interesting detail is that the acpi IRQ#9 is usually never used,
-> neither before nor after suspend:
-> 
-> # cat /proc/interrupts |grep acpi
->  9:        0        0        0        0   IO-APIC    9-fasteoi   acpi
-> 
-> Until the issue happens, when 100000 irqs rush in, nobody cares and the
-> kernel disables it.
-> 
-> Also interesting, since kernel 4.15rc kernels finally (yeah!) the Intel
-> idle modes S0i<n> started to work! Which is great, saves a lot of power
-> during suspend. But after the above issue the device goes to sleep, yes,
-> but it does not enter S0i<n> states anymore.
-> 
-> Before S0i<n> started to work I did not care that much since it did not
-> have any drawback but now it has and I would very much like to find a fix.
-> 
-> If anyone has an idea what to try I will gladly do so - I can pretty
-> nicely reproduce the so it is also pretty easy to try possible fixes.
-> 
-> Thank you so much!
-> 
-> Cheers
->   nicole
+The following warning was triggered after resumed from S3 -
+if all the nonboot CPUs were put offline before suspend:
 
-I tried to debug this a little further and found that this has something
-to do with the xhci_hcd USB driver. If I set its power control to "auto"
-the IRQ#9 storm happens when disconnecting the keyboard dock right away,
-without a prior suspend:
+[ 1840.329515] unchecked MSR access error: RDMSR from 0x771 at rIP: 0xffffffff86061e3a (native_read_msr+0xa/0x30)
+[ 1840.329516] Call Trace:
+[ 1840.329521]  __rdmsr_on_cpu+0x33/0x50
+[ 1840.329525]  generic_exec_single+0x81/0xb0
+[ 1840.329527]  smp_call_function_single+0xd2/0x100
+[ 1840.329530]  ? acpi_ds_result_pop+0xdd/0xf2
+[ 1840.329532]  ? acpi_ds_create_operand+0x215/0x23c
+[ 1840.329534]  rdmsrl_on_cpu+0x57/0x80
+[ 1840.329536]  ? cpumask_next+0x1b/0x20
+[ 1840.329538]  ? rdmsrl_on_cpu+0x57/0x80
+[ 1840.329541]  intel_pstate_update_perf_limits+0xf3/0x220
+[ 1840.329544]  ? notifier_call_chain+0x4a/0x70
+[ 1840.329546]  intel_pstate_set_policy+0x4e/0x150
+[ 1840.329548]  cpufreq_set_policy+0xcd/0x2f0
+[ 1840.329550]  cpufreq_update_policy+0xb2/0x130
+[ 1840.329552]  ? cpufreq_update_policy+0x130/0x130
+[ 1840.329556]  acpi_processor_ppc_has_changed+0x65/0x80
+[ 1840.329558]  acpi_processor_notify+0x80/0x100
+[ 1840.329561]  acpi_ev_notify_dispatch+0x44/0x5c
+[ 1840.329563]  acpi_os_execute_deferred+0x14/0x20
+[ 1840.329565]  process_one_work+0x193/0x3c0
+[ 1840.329567]  worker_thread+0x35/0x3b0
+[ 1840.329569]  kthread+0x125/0x140
+[ 1840.329571]  ? process_one_work+0x3c0/0x3c0
+[ 1840.329572]  ? kthread_park+0x60/0x60
+[ 1840.329575]  ? do_syscall_64+0x67/0x180
+[ 1840.329577]  ret_from_fork+0x25/0x30
+[ 1840.329585] unchecked MSR access error: WRMSR to 0x774 (tried to write 0x0000000000000000) at rIP: 0xffffffff86061f78 (native_write_msr+0x8/0x30)
+[ 1840.329586] Call Trace:
+[ 1840.329587]  __wrmsr_on_cpu+0x37/0x40
+[ 1840.329589]  generic_exec_single+0x81/0xb0
+[ 1840.329592]  smp_call_function_single+0xd2/0x100
+[ 1840.329594]  ? acpi_ds_create_operand+0x215/0x23c
+[ 1840.329595]  ? cpumask_next+0x1b/0x20
+[ 1840.329597]  wrmsrl_on_cpu+0x57/0x70
+[ 1840.329598]  ? rdmsrl_on_cpu+0x57/0x80
+[ 1840.329599]  ? wrmsrl_on_cpu+0x57/0x70
+[ 1840.329602]  intel_pstate_hwp_set+0xd3/0x150
+[ 1840.329604]  intel_pstate_set_policy+0x119/0x150
+[ 1840.329606]  cpufreq_set_policy+0xcd/0x2f0
+[ 1840.329607]  cpufreq_update_policy+0xb2/0x130
+[ 1840.329610]  ? cpufreq_update_policy+0x130/0x130
+[ 1840.329613]  acpi_processor_ppc_has_changed+0x65/0x80
+[ 1840.329615]  acpi_processor_notify+0x80/0x100
+[ 1840.329617]  acpi_ev_notify_dispatch+0x44/0x5c
+[ 1840.329619]  acpi_os_execute_deferred+0x14/0x20
+[ 1840.329620]  process_one_work+0x193/0x3c0
+[ 1840.329622]  worker_thread+0x35/0x3b0
+[ 1840.329624]  kthread+0x125/0x140
+[ 1840.329625]  ? process_one_work+0x3c0/0x3c0
+[ 1840.329626]  ? kthread_park+0x60/0x60
+[ 1840.329628]  ? do_syscall_64+0x67/0x180
+[ 1840.329631]  ret_from_fork+0x25/0x30
 
-echo 'auto' > '/sys/bus/pci/devices/0000:00:14.0/power/control'
+This is because if there's only one online CPU, the MSR_PM_ENABLE
+(package wide)can not be enabled after resumed, due to
+intel_pstate_hwp_enable() will only be invoked on AP's online
+process after resumed - if there's no AP online, the HWP remains
+disabled after resumed (BIOS has disabled it in S3). Then if
+there comes a _PPC change notification which touches HWP register
+during this stage, the warning is triggered.
 
-The problem also occurs if power control is _not_ set to auto but if I
-press some keys on the keyboard while the device is in sleep state.
+Since we don't call acpi_processor_register_performance() when
+HWP is enabled, the pr->performance will be NULL. When this is
+NULL we don't need to do _PPC change notification.
 
-The keyboard dock is a USB device with three interfaces, port 1 dev 6:
+Reported-by: Doug Smythies <dsmythies@telus.net>
+Suggested-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Signed-off-by: Yu Chen <yu.c.chen@intel.com>
+---
+ drivers/acpi/processor_perflib.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-# lsusb -t
-/:  Bus 02.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/1p, 5000M
-/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=xhci_hcd/6p, 480M
-    |__ Port 1: Dev 6, If 1, Class=Human Interface Device,
-Driver=usbhid, 12M
-    |__ Port 1: Dev 6, If 2, Class=Human Interface Device, Driver=, 12M
-    |__ Port 1: Dev 6, If 0, Class=Human Interface Device,
-Driver=usbhid, 12M
-    |__ Port 3: Dev 3, If 0, Class=Communications, Driver=cdc_mbim, 480M
-    |__ Port 3: Dev 3, If 1, Class=CDC Data, Driver=cdc_mbim, 480M
-    |__ Port 3: Dev 3, If 2, Class=Communications, Driver=cdc_acm, 480M
-    |__ Port 3: Dev 3, If 3, Class=CDC Data, Driver=cdc_acm, 480M
-    |__ Port 3: Dev 3, If 4, Class=Communications, Driver=cdc_acm, 480M
-    |__ Port 3: Dev 3, If 5, Class=CDC Data, Driver=cdc_acm, 480M
-    |__ Port 3: Dev 3, If 6, Class=Communications, Driver=cdc_acm, 480M
-    |__ Port 3: Dev 3, If 7, Class=CDC Data, Driver=cdc_acm, 480M
-
-
-Pretty weird - what is the connection between the acpi_irq and the xhci
-USB host?
-
-I also tried to remove the xhci driver before going to sleep but this
-does not work well since then the CPU will not enter S0i<n> states anymore.
-
-Any help to debug this further and eventually fixing it is very much
-appreciated.
-
-Cheers
-  nicole
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 18b72eec3507..c7cf48ad5cb9 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -159,7 +159,7 @@ void acpi_processor_ppc_has_changed(struct acpi_processor *pr, int event_flag)
+ {
+ 	int ret;
+ 
+-	if (ignore_ppc) {
++	if (ignore_ppc || !pr->performance) {
+ 		/*
+ 		 * Only when it is notification event, the _OST object
+ 		 * will be evaluated. Otherwise it is skipped.
+-- 
+2.13.6
