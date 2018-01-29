@@ -1,74 +1,42 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 26/74] x86/ioapic: Fix incorrect pointers in ioapic_setup_resources()
-Date: Mon, 29 Jan 2018 13:56:31 +0100
-Message-ID: <20180129123848.802267981@linuxfoundation.org>
-References: <20180129123847.507563674@linuxfoundation.org>
+From: Yazen Ghannam <Yazen.Ghannam@amd.com>
+Subject: [PATCH] ACPI / processor_idle: Set default C1 state description
+Date: Mon, 29 Jan 2018 14:22:49 -0600
+Message-ID: <20180129202249.12522-1-Yazen.Ghannam@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180129123847.507563674@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Rui Wang <rui.y.wang@intel.com>, Thomas Gleixner <tglx@linutronix.de>, tony.luck@intel.com, linux-pci@vger.kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, bhelgaas@google.com, Ingo Molnar <mingo@kernel.org>, Joerg Roedel <jroedel@suse.de>
+To: linux-acpi@vger.kernel.org
+Cc: Yazen Ghannam <Yazen.Ghannam@amd.com>, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+From: Yazen Ghannam <yazen.ghannam@amd.com>
 
-------------------
+The acpi_idle driver will default to ACPI_CSTATE_HALT for C1 if a _CST
+object for C1 is not defined. However, the description will not be set,
+so users will see "<null>" when reading the description from sysfs.
 
-From: Rui Wang <rui.y.wang@intel.com>
+Set the C1 state description when defaulting to ACPI_CSTATE_HALT.
 
-commit 9d98bcec731756b8688b59ec998707924d716d7b upstream.
-
-On a 4-socket Brickland system, hot-removing one ioapic is fine.
-Hot-removing the 2nd one causes panic in mp_unregister_ioapic()
-while calling release_resource().
-
-It is because the iomem_res pointer has already been released
-when removing the first ioapic.
-
-To explain the use of &res[num] here: res is assigned to ioapic_resources,
-and later in ioapic_insert_resources() we do:
-
-	struct resource *r = ioapic_resources;
-
-        for_each_ioapic(i) {
-                insert_resource(&iomem_resource, r);
-                r++;
-        }
-
-Here 'r' is treated as an arry of 'struct resource', and the r++ ensures
-that each element of the array is inserted separately. Thus we should call
-release_resouce() on each element at &res[num].
-
-Fix it by assigning the correct pointers to ioapics[i].iomem_res in
-ioapic_setup_resources().
-
-Signed-off-by: Rui Wang <rui.y.wang@intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: tony.luck@intel.com
-Cc: linux-pci@vger.kernel.org
-Cc: rjw@rjwysocki.net
-Cc: linux-acpi@vger.kernel.org
-Cc: bhelgaas@google.com
-Link: http://lkml.kernel.org/r/1465369193-4816-3-git-send-email-rui.y.wang@intel.com
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Acked-by: Joerg Roedel <jroedel@suse.de>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
+Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
+Cc: stable@vger.kernel.org
 ---
- arch/x86/kernel/apic/io_apic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/processor_idle.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/arch/x86/kernel/apic/io_apic.c
-+++ b/arch/x86/kernel/apic/io_apic.c
-@@ -2592,8 +2592,8 @@ static struct resource * __init ioapic_s
- 		res[num].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
- 		snprintf(mem, IOAPIC_RESOURCE_NAME_SIZE, "IOAPIC %u", i);
- 		mem += IOAPIC_RESOURCE_NAME_SIZE;
-+		ioapics[i].iomem_res = &res[num];
- 		num++;
--		ioapics[i].iomem_res = res;
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 5f0071c7e2e1..abb559cd28d7 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -292,6 +292,9 @@ static int acpi_processor_get_power_info_default(struct acpi_processor *pr)
+ 		pr->power.states[ACPI_STATE_C1].type = ACPI_STATE_C1;
+ 		pr->power.states[ACPI_STATE_C1].valid = 1;
+ 		pr->power.states[ACPI_STATE_C1].entry_method = ACPI_CSTATE_HALT;
++
++		snprintf(pr->power.states[ACPI_STATE_C1].desc,
++			 ACPI_CX_DESC_LEN, "ACPI HLT");
  	}
- 
- 	ioapic_resources = res;
+ 	/* the C0 state only exists as a filler in our array */
+ 	pr->power.states[ACPI_STATE_C0].valid = 1;
+-- 
+2.14.1
