@@ -1,56 +1,89 @@
 From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH] ACPI / battery: Add quirk for Asus UX360UA and UX410UAK
-Date: Mon, 29 Jan 2018 13:40:36 +0800
-Message-ID: <20180129054036.13599-1-kai.heng.feng@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:44018 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750867AbeA2Fkn (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jan 2018 00:40:43 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
+Date: Mon, 29 Jan 2018 14:10:11 +0800
+Message-ID: <20180129061011.11214-1-kai.heng.feng@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>, Mario Limonciello <mario.limonciello@dell.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Same issue as other Asus laptops, ACPI incorrectly reports discharging
-when battery is full and AC is plugged.
+The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+of box.
 
-Use the same battery quirk can workaround the issue.
+The touchpad relies on its _INI method to update its _HID value from
+XXXX0000 to SYNA2393.
+Also, the _STA relies on value of I2CN to report correct status.
 
-BugLink: https://bugs.launchpad.net/bugs/1661876
-BugLink: https://bugs.launchpad.net/bugs/1745032
+Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+correctly set up, and _INI can get run. The ACPI table in this machine
+is designed to get parsed this way.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
+Cc: Mario Limonciello <mario.limonciello@dell.com>
 Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
 ---
- drivers/acpi/battery.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ drivers/acpi/bus.c | 41 +++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index 19bc440820e6..7128488a3a72 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -1209,6 +1209,22 @@ static const struct dmi_system_id bat_dmi_table[] __initconst = {
- 			DMI_MATCH(DMI_PRODUCT_NAME, "UX305LA"),
- 		},
- 	},
-+	{
-+		.callback = battery_full_discharging_quirk,
-+		.ident = "ASUS UX360UA",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "UX360UA"),
-+		},
-+	},
-+	{
-+		.callback = battery_full_discharging_quirk,
-+		.ident = "ASUS UX410UAK",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "UX410UAK"),
-+		},
-+	},
- 	{},
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4d0979e02a28..4da34d67e23d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -88,6 +86,45 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
  };
+ #endif
  
++#ifdef CONFIG_X86
++static int set_gbl_term_list(const struct dmi_system_id *id)
++{
++	pr_notice("%s detected - parse the entire table as a term_list\n",
++		  id->ident);
++	acpi_gbl_parse_table_as_term_list = 1;
++	return 0;
++}
++
++static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
++	/*
++	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
++	 * mode.
++	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
++	 */
++	{
++		.callback = set_gbl_term_list,
++		.ident = "Dell Precision M5530",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
++		},
++	},
++	{
++		.callback = set_gbl_term_list,
++		.ident = "Dell XPS 15 9570",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
++		},
++	},
++	{}
++};
++#else
++static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
++	{}
++};
++#endif
++
+ /* --------------------------------------------------------------------------
+                                 Device Management
+    -------------------------------------------------------------------------- */
+@@ -1007,6 +1046,8 @@ void __init acpi_early_init(void)
+ 	 */
+ 	dmi_check_system(dsdt_dmi_table);
+ 
++	dmi_check_system(gbl_term_list_dmi_table);
++
+ 	status = acpi_reallocate_root_table();
+ 	if (ACPI_FAILURE(status)) {
+ 		printk(KERN_ERR PREFIX
 -- 
 2.15.1
-
