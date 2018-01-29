@@ -1,44 +1,74 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] ACPI/PCI: pci_link: reduce verbosity when IRQ is enabled
-Date: Mon, 29 Jan 2018 14:01:59 -0500
-Message-ID: <fde756f4-eb74-4002-6ac4-a44405bad2da@codeaurora.org>
-References: <1516128664-23634-1-git-send-email-okaya@codeaurora.org>
- <f508e749-2976-ec6f-681a-553b79c4ab76@codeaurora.org>
- <20180116214939.GC10860@bhelgaas-glaptop.roam.corp.google.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 4.4 26/74] x86/ioapic: Fix incorrect pointers in ioapic_setup_resources()
+Date: Mon, 29 Jan 2018 13:56:31 +0100
+Message-ID: <20180129123848.802267981@linuxfoundation.org>
+References: <20180129123847.507563674@linuxfoundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180116214939.GC10860@bhelgaas-glaptop.roam.corp.google.com>
-Content-Language: en-US
+In-Reply-To: <20180129123847.507563674@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Rui Wang <rui.y.wang@intel.com>, Thomas Gleixner <tglx@linutronix.de>, tony.luck@intel.com, linux-pci@vger.kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, bhelgaas@google.com, Ingo Molnar <mingo@kernel.org>, Joerg Roedel <jroedel@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Rafael,
+4.4-stable review patch.  If anyone has any objections, please let me know.
 
-On 1/16/2018 4:49 PM, Bjorn Helgaas wrote:
-> On Tue, Jan 16, 2018 at 01:53:00PM -0500, Sinan Kaya wrote:
->> Correcting linux-pci email.
->>
->> On 1/16/2018 1:51 PM, Sinan Kaya wrote:
->>> When ACPI Link object is enabled, the message is printed with a warning
->>> prefix. Some test tools are capturing warning and test error types as
->>> errors. Let's reduce the verbosity of success case.
->>>
->>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> Looks like this was a result of 4d9391557b68 ("ACPI: add missing KERN_*
-> constants to printks"), which I think added the wrong level in this case.
-> 
+------------------
 
-Any chance of merging this for 4.16?
+From: Rui Wang <rui.y.wang@intel.com>
 
-Sinan
+commit 9d98bcec731756b8688b59ec998707924d716d7b upstream.
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+On a 4-socket Brickland system, hot-removing one ioapic is fine.
+Hot-removing the 2nd one causes panic in mp_unregister_ioapic()
+while calling release_resource().
+
+It is because the iomem_res pointer has already been released
+when removing the first ioapic.
+
+To explain the use of &res[num] here: res is assigned to ioapic_resources,
+and later in ioapic_insert_resources() we do:
+
+	struct resource *r = ioapic_resources;
+
+        for_each_ioapic(i) {
+                insert_resource(&iomem_resource, r);
+                r++;
+        }
+
+Here 'r' is treated as an arry of 'struct resource', and the r++ ensures
+that each element of the array is inserted separately. Thus we should call
+release_resouce() on each element at &res[num].
+
+Fix it by assigning the correct pointers to ioapics[i].iomem_res in
+ioapic_setup_resources().
+
+Signed-off-by: Rui Wang <rui.y.wang@intel.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: tony.luck@intel.com
+Cc: linux-pci@vger.kernel.org
+Cc: rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org
+Cc: bhelgaas@google.com
+Link: http://lkml.kernel.org/r/1465369193-4816-3-git-send-email-rui.y.wang@intel.com
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Acked-by: Joerg Roedel <jroedel@suse.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+---
+ arch/x86/kernel/apic/io_apic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/arch/x86/kernel/apic/io_apic.c
++++ b/arch/x86/kernel/apic/io_apic.c
+@@ -2592,8 +2592,8 @@ static struct resource * __init ioapic_s
+ 		res[num].flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 		snprintf(mem, IOAPIC_RESOURCE_NAME_SIZE, "IOAPIC %u", i);
+ 		mem += IOAPIC_RESOURCE_NAME_SIZE;
++		ioapics[i].iomem_res = &res[num];
+ 		num++;
+-		ioapics[i].iomem_res = res;
+ 	}
+ 
+ 	ioapic_resources = res;
