@@ -1,42 +1,77 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/2] x86/acpi: add retrieval function for rsdp address
-Date: Mon, 29 Jan 2018 04:02:36 +0100
-Message-ID: <CAJZ5v0gr7Jd-1dOD_DTRQDCX7ON68O1KJ9ioAJAnwBYm2cEdZg@mail.gmail.com>
-References: <20180125143639.9969-1-jgross@suse.com> <20180125143639.9969-2-jgross@suse.com>
- <CAHp75VdgdQXH-d9+Fo1DwGdfV1pB0jADMmwAK1BU7oN6dgQs8Q@mail.gmail.com>
- <a33e605a-73d7-83b7-4472-14f66b6738be@suse.com> <CAHp75VdUO2Rq7geYD9xxY3nnzGAhO46+w+rQx44=MgJ6obRcEA@mail.gmail.com>
+Subject: Re: [2/4] ACPI / battery: reorder headers alphabetically
+Date: Mon, 29 Jan 2018 04:05:28 +0100
+Message-ID: <CAJZ5v0goEsJjtbtBU5gdJ2mjKif-NqejmVsmjLWbDBRH1-J+Gg@mail.gmail.com>
+References: <20180113115331.GA13662@thinkpad> <1515930919.7000.984.camel@linux.intel.com>
+ <CAJZ5v0j_ZY+DvOD9c+ZOMFVefQvE3kY=Ztyq0DRqSU6TNVbnjw@mail.gmail.com>
+ <20180114235033.GA10002@thinkpad> <CAJZ5v0hKQfRDsg_R_ZEEJrRnf8uFi5cUZ_brSME2R086zkhm7g@mail.gmail.com>
+ <20180127072940.GA839@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VdUO2Rq7geYD9xxY3nnzGAhO46+w+rQx44=MgJ6obRcEA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Juergen Gross <jgross@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ingo Molnar <mingo@redhat.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stable <stable@vger.kernel.org>
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f42.google.com ([209.85.218.42]:35334 "EHLO
+        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750808AbeA2DF3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 28 Jan 2018 22:05:29 -0500
+Received: by mail-oi0-f42.google.com with SMTP id b11so4033746oif.2
+        for <linux-acpi@vger.kernel.org>; Sun, 28 Jan 2018 19:05:29 -0800 (PST)
+In-Reply-To: <20180127072940.GA839@thinkpad>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Rozhkov <dmitry.rozhkov@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sun, Jan 28, 2018 at 4:04 PM, Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
-> On Fri, Jan 26, 2018 at 8:21 PM, Juergen Gross <jgross@suse.com> wrote:
->> On 26/01/18 19:08, Andy Shevchenko wrote:
->>> On Thu, Jan 25, 2018 at 4:36 PM, Juergen Gross <jgross@suse.com> wrote:
->>>> Add a function to get the address of the RSDP table. Per default use a
->>>> __weak annotated function being a nop.
->>>
->>> The problem with weak functions that we can't have more than one
->>> implementation per kernel while we would like to built several code
->>> paths.
->>>
->>> I have stumbled on the similar stuff and realize that.
->>>
->>> Perhaps, one of the solution is to have an additional struct under
->>> x86_init to alternate ACPI related stuff.
+On Sat, Jan 27, 2018 at 8:29 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com> wro=
+te:
+> On Mon, Jan 15, 2018 at 01:06:47AM +0100, Rafael J. Wysocki wrote:
+>> On Mon, Jan 15, 2018 at 12:50 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com>=
+ wrote:
+>> > On Mon, Jan 15, 2018 at 12:40:13AM +0100, Rafael J. Wysocki wrote:
+>> >> On Sun, Jan 14, 2018 at 12:55 PM, Andy Shevchenko
+>> >> <andriy.shevchenko@linux.intel.com> wrote:
+>> >> > On Sat, 2018-01-13 at 12:53 +0100, Ognjen Gali=C4=87 wrote:
+>> >> >> > -#include <linux/kernel.h>
+>> >> >> > -#include <linux/module.h>
+>> >> >> > -#include <linux/types.h>
+>> >> >> > -#include <linux/jiffies.h>
+>> >> >> > #include <linux/async.h>
+>> >> >> > -#include <linux/dmi.h>
+>> >> >> > #include <linux/delay.h>
+>> >> >> > +#include <linux/dmi.h>
+>> >> >> > +#include <linux/jiffies.h>
+>> >> >> > +#include <linux/kernel.h>
+>> >> >> > +#include <linux/module.h>
+>> >> >> > #include <linux/slab.h>
+>> >> >> > #include <linux/suspend.h>
+>> >> >> > -#include <asm/unaligned.h>
+>> >> >> > +#include <linux/types.h>
+>> >> >>
+>> >> >> These changes completely break my patch:
+>> >> >> https://patchwork.kernel.org/patch/10142157/
+>> >> >>
+>> >> >> Can we please postpone this patch until I hear back from Rafael
+>> >> >> about my series, as my series does some of the things this patch
+>> >> >> series does (like defining pr_fmt to shorten log prints) and this
+>> >> >> is a much smaller changeset and would require small changes on
+>> >> >> conflicts compared to my series?
+>> >> >
+>> >> > Definitely on both series we need to hear from Rafael.
+>> >>
+>> >> Right, I still need to convince myself that the Ognjen's series
+>> >> actually works in all cases which I'm not quite sure about ATM.
+>> >
+>> > What edge cases are you concerned about?
 >>
->> I think we can go that route when another user of that interface is
->> appearing.
+>> Initialization ordering, basically.
+>>
+>> It appears to work only under specific assumptions that are not
+>> guaranteed to be satisfied universally, but I need to walk though it
+>> again to check that.
 >
-> Why not to establish the struct? At least this route I would like to
-> go with [1].
->
-> [1]: https://lkml.org/lkml/2018/1/17/834
+> Well, any updates? It's been a while.
 
-Maybe I'm a bit slow today, but care to explain what exactly you mean?
+Right, sorry about that.
+
+I've been traveling lately (actually I'm still on my way home), but
+I'll do my best to get to your patches as soon as I'm back.
