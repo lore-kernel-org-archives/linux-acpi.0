@@ -1,58 +1,67 @@
-From: "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>
-Subject: Re: [PATCH v2] ACPI / tables: Add IORT to injectable table list
-Date: Tue, 30 Jan 2018 01:44:32 +0000
-Message-ID: <1517276662.2652.12.camel@hxt-semitech.com>
-References: <1516695922-15045-1-git-send-email-shunyong.yang@hxt-semitech.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
+From: Kai Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
+ and Precision M5530
+Date: Tue, 30 Jan 2018 10:46:53 +0800
+Message-ID: <8351B08C-C4C0-49F7-BA60-960D6A5E1FA6@canonical.com>
+References: <20180129061011.11214-1-kai.heng.feng@canonical.com>
+ <CAHp75VfQH6ssvp14HSLNGPL=eUVQCnrC-ifoKMuKoCkR1s=3YA@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=utf-8
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1516695922-15045-1-git-send-email-shunyong.yang@hxt-semitech.com>
-Content-Language: en-US
-Content-ID: <F5732FE6EC49F34AB83E1BE5353D4D01@hxt-semitech.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Jiang, Yutang2" <yutang2.jiang@hxt-semitech.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:37885 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752076AbeA3CrA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jan 2018 21:47:00 -0500
+Received: from mail-pf0-f198.google.com ([209.85.192.198])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <kai.heng.feng@canonical.com>)
+        id 1egLwp-00023B-6t
+        for linux-acpi@vger.kernel.org; Tue, 30 Jan 2018 02:46:59 +0000
+Received: by mail-pf0-f198.google.com with SMTP id e185so8872580pfg.23
+        for <linux-acpi@vger.kernel.org>; Mon, 29 Jan 2018 18:46:59 -0800 (PST)
+In-Reply-To: <CAHp75VfQH6ssvp14HSLNGPL=eUVQCnrC-ifoKMuKoCkR1s=3YA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 
-Hi, Rafael
 
-Could you please help to review this patch? This is a small change to
-add ACPI_SIG_IORT to table_sigs[]. 
-Loading IORT table from initrd is very useful to debug SMMU node/device
-probe, MSI allocation, stream id translation and verifying IORT table
-from firmware. So, I add this.
 
-Thanks
-Shunyong.
+> On 29 Jan 2018, at 8:56 PM, Andy Shevchenko <andy.shevchenko@gmail.com> wrote:
+> 
+> On Mon, Jan 29, 2018 at 8:10 AM, Kai-Heng Feng
+> <kai.heng.feng@canonical.com> wrote:
+>> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+>> of box.
+>> 
+>> The touchpad relies on its _INI method to update its _HID value from
+>> XXXX0000 to SYNA2393.
+>> Also, the _STA relies on value of I2CN to report correct status.
+>> 
+>> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+>> correctly set up, and _INI can get run. The ACPI table in this machine
+>> is designed to get parsed this way.
+> 
+>> +#ifdef CONFIG_X86
+> 
+> Why do you need separate #ifdef?
+> 
+>> +static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
+> 
+> I think you can just add new items to the existing table, while renaming it like
+> 
+> dsdt_dmi_table -> acpi_quirks_dmi_table
 
-On Tue, 2018-01-23 at 16:25 +0800, Yang Shunyong wrote:
-> This patch adds ACPI_SIG_IORT to the table, which enables IORT from
-> initrd to override which from firmware.
+Thanks for your suggestion, this is a better approach.
+Iâ€™ll address them in V2 patch.
+
+Kai-Heng
+
 > 
-> Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
-> Cc: yutang2.jiang@hxt-semitech.com
-> Cc: yu.zheng@hxt-semitech.com
-> ---
-> 
-> v2: change typo ACPI_SIG_PPTT to ACPI_SIG_IORT in commit message.
-> 
-> ---
->  drivers/acpi/tables.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 80ce2a7d224b..7bcb66ccccf3 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -456,7 +456,8 @@ static u8 __init acpi_table_checksum(u8 *buffer,
-> u32 length)
->  	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
->  	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
->  	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
-> -	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-> +	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
-> +	NULL };
->  
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
->  
+> -- 
+> With Best Regards,
+> Andy Shevchenko
+
