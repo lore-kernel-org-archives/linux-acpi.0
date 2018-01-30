@@ -1,105 +1,105 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v9 3/7] acpi: apei: Add SEI notification type support
- for ARMv8
-Date: Tue, 30 Jan 2018 19:39:40 +0000
-Message-ID: <5A70C9FC.5080100@arm.com>
-References: <1515254577-6460-1-git-send-email-gengdongjiu@huawei.com> <1515254577-6460-4-git-send-email-gengdongjiu@huawei.com> <5A663DEC.8080804@arm.com> <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS
+ 9570 and Precision M5530
+Date: Tue, 30 Jan 2018 20:09:04 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B756CED7@ORSMSX110.amr.corp.intel.com>
+References: <20180130060744.19049-1-kai.heng.feng@canonical.com>
+ <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED5396EE01A@ORSMSX110.amr.corp.intel.com>
+ <9f0eaaf403014137a123f6676ddac5b9@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:57886 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751251AbeA3TmG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 Jan 2018 14:42:06 -0500
-In-Reply-To: <168c3f61-0d11-13a4-c383-1f6a97d0ef37@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <9f0eaaf403014137a123f6676ddac5b9@ausx13mpc120.AMER.DELL.COM>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "kai.heng.feng@canonical.com" <kai.heng.feng@canonical.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, robert.moore@intel.com, lv.zheng@intel.com, corbet@lwn.net, will.deacon@arm.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 
-Hi gengdongjiu,
-
-On 23/01/18 09:23, gengdongjiu wrote:
-> On 2018/1/23 3:39, James Morse wrote:
->> gengdongjiu wrote:
->>> This error source parsing and handling method
->>> is similar with the SEA.
->>
->> There are problems with doing this:
->>
->> Oct. 18, 2017, 10:26 a.m. James Morse wrote:
->> | How do SEA and SEI interact?
->> |
->> | As far as I can see they can both interrupt each other, which isn't something
->> | the single in_nmi() path in APEI can handle. I thinks we should fix this
->> | first.
->>
->> [..]
->>
->> | SEA gets away with a lot of things because its synchronous. SEI isn't. Xie
->> | XiuQi pointed to the memory_failure_queue() code. We can use this directly
->> | from SEA, but not SEI. (what happens if an SError arrives while we are
->> | queueing memory_failure work from an IRQ).
->> |
->> | The one that scares me is the trace-point reporting stuff. What happens if an
->> | SError arrives while we are enabling a trace point? (these are static-keys
->> | right?)
->> |
->> |  I don't think we can just plumb SEI in like this and be done with it.
->> |  (I'm looking at teasing out the estatus cache code from being x86:NMI only.
->> |  This way we solve the same 'cant do this from NMI context' with the same
->> |  code'.)
->>
->>
->> I will post what I've got for this estatus-cache thing as an RFC, its not ready
->> to be considered yet.
-
-> Yes, I know you are dong that. Your serial's patch will consider all above things, right?
-
-Assuming I got it right, yes. It currently makes the race Xie XiuQi spotted
-worse, which I want to fix too. (details on the cover letter)
-
-
-> If your patch can be consider that, this patch can based on your patchset. thanks.
-
-I'd like to pick these patches onto the end of that series, but first I want to
-know what NOTIFY_SEI means for any OS. The ACPI spec doesn't say, and because
-its asynchronous, route-able and mask-able, there are many more corners than
-NOTFIY_SEA.
-
-This thing is a notification using an emulated SError exception. (emulated
-because physical-SError must be routed to EL3 for firmware-first, and
-virtual-SError belongs to EL2).
-
-Does your firmware emulate SError exactly as the TakeException() pseudo code in
-the Arm-Arm?
-Is the emulated SError routed following the routing rules for HCR_EL2.{AMO, TGE}?
-What does your firmware do when it wants to emulate SError but its masked?
-(e.g.1: The physical-SError interrupted EL2 and the SPSR shows EL2 had PSTATE.A
- set.
- e.g.2: The physical-SError interrupted EL2 but HCR_EL2 indicates the emulated
- SError should go to EL1. This effectively masks SError.)
-
-
-Answers to these let us determine whether a bug is in the firmware or the
-kernel. If firmware is expecting the OS to do something special, I'd like to
-know about it from the beginning!
-
-
->>> Expose API ghes_notify_sei() to external users. External
->>> modules can call this exposed API to parse APEI table and
->>> handle the SEI notification.
->>
->> external modules? You mean called by the arch code when it gets this NOTIFY_SEI?
-
-> yes, called by kernel ARCH code, such as below, I remember I have discussed with you.
-
-Sure. The phrase 'external modules' usually means the '.ko' files that live in
-/lib/modules, nothing outside the kernel tree should be doing this stuff.
-
-
-Thanks,
-
-James
-
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTWFyaW8uTGltb25jaWVs
+bG9AZGVsbC5jb20gW21haWx0bzpNYXJpby5MaW1vbmNpZWxsb0BkZWxsLmNvbV0NCj4gU2VudDog
+VHVlc2RheSwgSmFudWFyeSAzMCwgMjAxOCAxMTowMyBBTQ0KPiBUbzogU2NobWF1c3MsIEVyaWsg
+PGVyaWsuc2NobWF1c3NAaW50ZWwuY29tPjsgYW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbTsNCj4g
+a2FpLmhlbmcuZmVuZ0BjYW5vbmljYWwuY29tDQo+IENjOiByandAcmp3eXNvY2tpLm5ldDsgbGVu
+YkBrZXJuZWwub3JnOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsNCj4gbGludXgta2VybmVs
+QHZnZXIua2VybmVsLm9yZzsgTW9vcmUsIFJvYmVydCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4N
+Cj4gU3ViamVjdDogUkU6IFtQQVRDSF0gQUNQSTogUGFyc2UgZW50aXJlIHRhYmxlIGFzIGEgdGVy
+bV9saXN0IGZvciBEZWxsDQo+IFhQUyA5NTcwIGFuZCBQcmVjaXNpb24gTTU1MzANCj4gDQo+IA0K
+PiANCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IFNjaG1hdXNzLCBF
+cmlrIFttYWlsdG86ZXJpay5zY2htYXVzc0BpbnRlbC5jb21dDQo+ID4gU2VudDogVHVlc2RheSwg
+SmFudWFyeSAzMCwgMjAxOCAxMjozOCBQTQ0KPiA+IFRvOiBBbmR5IFNoZXZjaGVua28gPGFuZHku
+c2hldmNoZW5rb0BnbWFpbC5jb20+OyBLYWktSGVuZyBGZW5nDQo+ID4gPGthaS5oZW5nLmZlbmdA
+Y2Fub25pY2FsLmNvbT4NCj4gPiBDYzogUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2ku
+bmV0PjsgTGVuIEJyb3duDQo+ID4gPGxlbmJAa2VybmVsLm9yZz47IEFDUEkgRGV2ZWwgTWFsaW5n
+IExpc3QNCj4gPiA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW51eCBLZXJuZWwgTWFp
+bGluZyBMaXN0IDxsaW51eC0NCj4gPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgTGltb25jaWVs
+bG8sIE1hcmlvDQo+ID4gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPjsgTW9vcmUsIFJvYmVy
+dCA8cm9iZXJ0Lm1vb3JlQGludGVsLmNvbT4NCj4gPiBTdWJqZWN0OiBSRTogW1BBVENIXSBBQ1BJ
+OiBQYXJzZSBlbnRpcmUgdGFibGUgYXMgYSB0ZXJtX2xpc3QgZm9yIERlbGwNCj4gPiBYUFMgOTU3
+MCBhbmQgUHJlY2lzaW9uIE01NTMwDQo+ID4NCj4gPiBIaSwNCj4gPiA+IC0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQo+ID4gPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9y
+ZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+ID4gPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJl
+aGFsZiBPZiBBbmR5IFNoZXZjaGVua28NCj4gPiA+IFNlbnQ6IFR1ZXNkYXksIEphbnVhcnkgMzAs
+IDIwMTggMTA6MTggQU0NCj4gPiA+IFRvOiBLYWktSGVuZyBGZW5nIDxrYWkuaGVuZy5mZW5nQGNh
+bm9uaWNhbC5jb20+DQo+ID4gPiBDYzogUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2ku
+bmV0PjsgTGVuIEJyb3duDQo+ID4gPiA8bGVuYkBrZXJuZWwub3JnPjsgQUNQSSBEZXZlbCBNYWxp
+bmcgTGlzdA0KPiA+ID4gPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGludXggS2VybmVs
+IE1haWxpbmcgTGlzdCA8bGludXgtDQo+ID4gPiBrZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgTWFy
+aW8gTGltb25jaWVsbG8NCj4gPiA+IDxtYXJpby5saW1vbmNpZWxsb0BkZWxsLmNvbT4NCj4gPiA+
+IFN1YmplY3Q6IFJlOiBbUEFUQ0hdIEFDUEk6IFBhcnNlIGVudGlyZSB0YWJsZSBhcyBhIHRlcm1f
+bGlzdCBmb3INCj4gPiA+IERlbGwgWFBTIDk1NzAgYW5kIFByZWNpc2lvbiBNNTUzMA0KPiA+ID4N
+Cj4gPiA+IE9uIFR1ZSwgSmFuIDMwLCAyMDE4IGF0IDg6MDcgQU0sIEthaS1IZW5nIEZlbmcNCj4g
+PiA+IDxrYWkuaGVuZy5mZW5nQGNhbm9uaWNhbC5jb20+IHdyb3RlOg0KPiA+ID4gPiBUaGUgaTJj
+IHRvdWNocGFkIG9uIERlbGwgWFBTIDk1NzAgYW5kIFByZWNpc2lvbiBNNTUzMCBkb2Vzbid0IHdv
+cmsNCj4gPiA+ID4gb3V0IG9mIGJveC4NCj4gPiA+ID4NCj4gPiA+ID4gVGhlIHRvdWNocGFkIHJl
+bGllcyBvbiBpdHMgX0lOSSBtZXRob2QgdG8gdXBkYXRlIGl0cyBfSElEIHZhbHVlDQo+ID4gPiA+
+IGZyb20NCj4gPiA+ID4gWFhYWDAwMDAgdG8gU1lOQTIzOTMuDQo+ID4gPiA+IEFsc28sIHRoZSBf
+U1RBIHJlbGllcyBvbiB2YWx1ZSBvZiBJMkNOIHRvIHJlcG9ydCBjb3JyZWN0IHN0YXR1cy4NCj4g
+PiA+ID4NCj4gPiA+ID4gU2V0IGFjcGlfZ2JsX3BhcnNlX3RhYmxlX2FzX3Rlcm1fbGlzdCBzbyB0
+aGUgdmFsdWUgb2YgSTJDTiBjYW4gYmUNCj4gPiA+ID4gY29ycmVjdGx5IHNldCB1cCwgYW5kIF9J
+TkkgY2FuIGdldCBydW4uIFRoZSBBQ1BJIHRhYmxlIGluIHRoaXMNCj4gPiA+ID4gbWFjaGluZSBp
+cyBkZXNpZ25lZCB0byBnZXQgcGFyc2VkIHRoaXMgd2F5Lg0KPiA+DQo+ID4gSSB0aG91Z2h0IEkg
+d291bGQgZ2l2ZSBldmVyeW9uZSBhbiB1cGRhdGU6IHdlIGFyZSBnZXR0aW5nIGNsb3NlIHRvDQo+
+ID4gZmluaXNoaW5nIHBhdGNoZXMgdG8gZW5hYmxlIHRoaXMgdGVybSBsaXN0IHBhcnNpbmcgYnkg
+ZGVmYXVsdCBhcyB3ZWxsDQo+ID4gYXMgYSBmZXcgb3RoZXIgZml4ZXMgd2l0aCBmb3J3YXJkIHJl
+ZmVyZW5jaW5nIG9mIHBhY2thZ2UgZWxlbWVudHMuDQo+ID4gT25jZSB3ZSBoYXZlIGVzdGFibGlz
+aGVkIHRoYXQgdGhlc2UgcGF0Y2hlcyBhcmUgc3RhYmxlLCB3ZSB3aWxsIGdldA0KPiA+IHJpZCBv
+ZiBhY3BpX2dibF9wYXJzZV90YWJsZV9hc190ZXJtX2xpc3QuIFNvIHRoaXMgcXVpcmsgbWF5IG5v
+dCBiZQ0KPiBuZWVkZWQgaW4gdGhlIG5lYXIgZnV0dXJlLi4uDQo+IA0KPiBSYWZhZWwsDQo+IA0K
+PiBXb3VsZCB5b3UgYmUgb3Bwb3NlZCB0byBjYXJyeWluZyBhIHBhdGNoIHNpbWlsYXIgdG8gdGhp
+cyAocHJvcG9zZWQpDQo+IHF1aXJrIHBhdGNoIGluIGtlcm5lbCBhbmQgcmV2ZXJ0aW5nIHdoZW4g
+RXJpayBzdWJtaXRzIHBhdGNoZXMgdGhhdCBnZXQNCj4gcmlkIG9mIGFjcGlfZ2JsX3BhcnNlX3Rh
+YmxlX2FzX3Rlcm1fbGlzdD8NCj4gDQo+IFRoZSByZWFzb24gYmVpbmcsIEkgdGhpbmsgdGhpcyBj
+b3VsZCBhbHNvIGJlIGEgY2FuZGlkYXRlIHRvIGJyaW5nIGJhY2sNCj4gdG8gQHN0YWJsZSBhbmQg
+Zml4IHRoaXMgcHJvYmxlbSBvbiBlYXJsaWVyIGtlcm5lbHMgdG9vLg0KPiANCj4gSSBkb27igJl0
+IGJlbGlldmUgdGhlIHBhdGNoZXMgdGhhdCBnZXQgcmlkIG9mDQo+IGFjcGlfZ2JsX3BhcnNlX3Rh
+YmxlX2FzX3Rlcm1fbGlzdCBsaWtlbHkgd2lsbCBiZSBnb29kIGNhbmRpZGF0ZXMgZm9yDQo+IEBz
+dGFibGUuDQo+IA0KDQoNCkRvZXMgYW55b25lIHJlbWVtYmVyIHdoYXQgd2FzIHRoZSBleGFjdCBw
+cm9ibGVtIHRoYXQgZm9yY2VkIHRoZSBjcmVhdGlvbiBvZiBwYXJzZV90YWJsZV9hc190ZXJtX2xp
+c3QgaW4gdGhlIGZpcnN0IHBsYWNlPw0KDQpCb2INCg0KDQo+IA0KPiA+DQo+ID4gRXJpaw0KPiA+
+ID4gPg0KPiA+ID4gPiBBbHNvLCBjaGFuZ2UgdGhlIHF1aXJrIHRhYmxlIHRvIGEgbW9yZSBnZW5l
+cmljIG5hbWUuDQo+ID4gPg0KPiA+ID4gPiArc3RhdGljIGludCBzZXRfZ2JsX3Rlcm1fbGlzdChj
+b25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCAqaWQpIHsNCj4gPiA+ID4gKyAgICAgICBwcl9ub3Rp
+Y2UoIiVzIGRldGVjdGVkIC0gcGFyc2UgdGhlIGVudGlyZSB0YWJsZSBhcyBhDQo+IHRlcm1fbGlz
+dFxuIiwNCj4gPiA+ID4gKyAgICAgICAgICAgICAgICAgaWQtPmlkZW50KTsNCj4gPiA+ID4gKyAg
+ICAgICBhY3BpX2dibF9wYXJzZV90YWJsZV9hc190ZXJtX2xpc3QgPSAxOw0KPiA+ID4gPiArICAg
+ICAgIHJldHVybiAwOw0KPiA+ID4gPiArfQ0KPiA+ID4gPiAgI2VuZGlmDQo+ID4gPg0KPiA+ID4g
+VGhlIGFib3ZlIHNob3VsZCBiZSBvdXRzaWRlIG9mIGFub3RoZXIgI2lmZGVmLiBCYXNpY2FsbHkg
+YWZ0ZXIgdGhlDQo+IGFib3ZlICNlbmRpZi4NCj4gPiA+DQo+ID4gPiA+ICAjZWxzZQ0KPiA+ID4N
+Cj4gPiA+ID4gICNlbmRpZg0KPiA+ID4NCj4gPiA+ID4gQEAgLTEwMDUsNyArMTAzNCw3IEBAIHZv
+aWQgX19pbml0IGFjcGlfZWFybHlfaW5pdCh2b2lkKQ0KPiA+ID4NCj4gPiA+ID4gICAgICAgICAg
+KiBJZiB0aGUgbWFjaGluZSBmYWxscyBpbnRvIHRoZSBETUkgY2hlY2sgdGFibGUsDQo+ID4gPiA+
+ICAgICAgICAgICogRFNEVCB3aWxsIGJlIGNvcGllZCB0byBtZW1vcnkNCj4gPiA+ID4gICAgICAg
+ICAgKi8NCj4gPiA+DQo+ID4gPiBJdCBtaWdodCBtYWtlIHNlbnNlIHRvIGFkanVzdCBjb21tZW50
+IGFib3ZlIHRoYXQgaXQncyBhYm91dCBxdWlya3MNCj4gaW4gZ2VuZXJhbC4NCj4gPiA+IEFuZCwg
+aWYgbmVlZGVkLCBtb3ZlIGN1cnJlbnQgY29udGVudCB0byBhY3R1YWwgRE1JIGdyb3VwIG9mIHJl
+Y29yZHMuDQo+ID4gPg0KPiA+ID4gPiAtICAgICAgIGRtaV9jaGVja19zeXN0ZW0oZHNkdF9kbWlf
+dGFibGUpOw0KPiA+ID4gPiArICAgICAgIGRtaV9jaGVja19zeXN0ZW0oYWNwaV9xdWlya3NfZG1p
+X3RhYmxlKTsNCj4gPiA+DQo+ID4gPiAtLQ0KPiA+ID4gV2l0aCBCZXN0IFJlZ2FyZHMsDQo+ID4g
+PiBBbmR5IFNoZXZjaGVua28NCj4gPiA+IC0tDQo+ID4gPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRo
+aXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUNCj4gPiA+IGxpbnV4LWFjcGkiIGlu
+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+ID4g
+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0IGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21v
+LWluZm8uaHRtbA0K
