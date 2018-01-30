@@ -1,65 +1,70 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
- and Precision M5530
-Date: Tue, 30 Jan 2018 20:17:55 +0200
-Message-ID: <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS
+ 9570 and Precision M5530
+Date: Tue, 30 Jan 2018 18:37:56 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396EE01A@ORSMSX110.amr.corp.intel.com>
 References: <20180130060744.19049-1-kai.heng.feng@canonical.com>
+ <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f182.google.com ([209.85.220.182]:36479 "EHLO
-        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751410AbeA3SR5 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2018 13:17:57 -0500
-In-Reply-To: <20180130060744.19049-1-kai.heng.feng@canonical.com>
+Received: from mga04.intel.com ([192.55.52.120]:39047 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752598AbeA3Si0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 Jan 2018 13:38:26 -0500
+In-Reply-To: <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>, "Moore, Robert" <robert.moore@intel.com>
 
-On Tue, Jan 30, 2018 at 8:07 AM, Kai-Heng Feng
-<kai.heng.feng@canonical.com> wrote:
-> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
-> of box.
->
-> The touchpad relies on its _INI method to update its _HID value from
-> XXXX0000 to SYNA2393.
-> Also, the _STA relies on value of I2CN to report correct status.
->
-> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
-> correctly set up, and _INI can get run. The ACPI table in this machine
-> is designed to get parsed this way.
->
-> Also, change the quirk table to a more generic name.
-
-> +static int set_gbl_term_list(const struct dmi_system_id *id)
-> +{
-> +       pr_notice("%s detected - parse the entire table as a term_list\n",
-> +                 id->ident);
-> +       acpi_gbl_parse_table_as_term_list = 1;
-> +       return 0;
-> +}
->  #endif
-
-The above should be outside of another #ifdef. Basically after the above #endif.
-
->  #else
-
->  #endif
-
-> @@ -1005,7 +1034,7 @@ void __init acpi_early_init(void)
-
->          * If the machine falls into the DMI check table,
->          * DSDT will be copied to memory
->          */
-
-It might make sense to adjust comment above that it's about quirks in
-general. And, if needed, move current content to actual DMI group of
-records.
-
-> -       dmi_check_system(dsdt_dmi_table);
-> +       dmi_check_system(acpi_quirks_dmi_table);
-
--- 
-With Best Regards,
-Andy Shevchenko
+SGksDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4LWFjcGktb3du
+ZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJu
+ZWwub3JnXSBPbiBCZWhhbGYgT2YgQW5keSBTaGV2Y2hlbmtvDQo+IFNlbnQ6IFR1ZXNkYXksIEph
+bnVhcnkgMzAsIDIwMTggMTA6MTggQU0NCj4gVG86IEthaS1IZW5nIEZlbmcgPGthaS5oZW5nLmZl
+bmdAY2Fub25pY2FsLmNvbT4NCj4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tp
+Lm5ldD47IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPjsgQUNQSQ0KPiBEZXZlbCBNYWxpbmcg
+TGlzdCA8bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW51eCBLZXJuZWwgTWFpbGluZyBM
+aXN0IDxsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZz47IE1hcmlvIExpbW9uY2llbGxv
+IDxtYXJpby5saW1vbmNpZWxsb0BkZWxsLmNvbT4NCj4gU3ViamVjdDogUmU6IFtQQVRDSF0gQUNQ
+STogUGFyc2UgZW50aXJlIHRhYmxlIGFzIGEgdGVybV9saXN0IGZvciBEZWxsIFhQUyA5NTcwIGFu
+ZA0KPiBQcmVjaXNpb24gTTU1MzANCj4gDQo+IE9uIFR1ZSwgSmFuIDMwLCAyMDE4IGF0IDg6MDcg
+QU0sIEthaS1IZW5nIEZlbmcNCj4gPGthaS5oZW5nLmZlbmdAY2Fub25pY2FsLmNvbT4gd3JvdGU6
+DQo+ID4gVGhlIGkyYyB0b3VjaHBhZCBvbiBEZWxsIFhQUyA5NTcwIGFuZCBQcmVjaXNpb24gTTU1
+MzAgZG9lc24ndCB3b3JrIG91dA0KPiA+IG9mIGJveC4NCj4gPg0KPiA+IFRoZSB0b3VjaHBhZCBy
+ZWxpZXMgb24gaXRzIF9JTkkgbWV0aG9kIHRvIHVwZGF0ZSBpdHMgX0hJRCB2YWx1ZSBmcm9tDQo+
+ID4gWFhYWDAwMDAgdG8gU1lOQTIzOTMuDQo+ID4gQWxzbywgdGhlIF9TVEEgcmVsaWVzIG9uIHZh
+bHVlIG9mIEkyQ04gdG8gcmVwb3J0IGNvcnJlY3Qgc3RhdHVzLg0KPiA+DQo+ID4gU2V0IGFjcGlf
+Z2JsX3BhcnNlX3RhYmxlX2FzX3Rlcm1fbGlzdCBzbyB0aGUgdmFsdWUgb2YgSTJDTiBjYW4gYmUN
+Cj4gPiBjb3JyZWN0bHkgc2V0IHVwLCBhbmQgX0lOSSBjYW4gZ2V0IHJ1bi4gVGhlIEFDUEkgdGFi
+bGUgaW4gdGhpcyBtYWNoaW5lDQo+ID4gaXMgZGVzaWduZWQgdG8gZ2V0IHBhcnNlZCB0aGlzIHdh
+eS4NCg0KSSB0aG91Z2h0IEkgd291bGQgZ2l2ZSBldmVyeW9uZSBhbiB1cGRhdGU6IHdlIGFyZSBn
+ZXR0aW5nIGNsb3NlIHRvIGZpbmlzaGluZyBwYXRjaGVzIHRvIGVuYWJsZSB0aGlzIHRlcm0gbGlz
+dCBwYXJzaW5nIGJ5IGRlZmF1bHQgYXMgd2VsbCBhcyBhIGZldyBvdGhlciBmaXhlcyB3aXRoIGZv
+cndhcmQgcmVmZXJlbmNpbmcgb2YgcGFja2FnZSBlbGVtZW50cy4gT25jZSB3ZSBoYXZlIGVzdGFi
+bGlzaGVkIHRoYXQgdGhlc2UgcGF0Y2hlcyBhcmUgc3RhYmxlLCB3ZSB3aWxsIGdldCByaWQgb2Yg
+YWNwaV9nYmxfcGFyc2VfdGFibGVfYXNfdGVybV9saXN0LiBTbyB0aGlzIHF1aXJrIG1heSBub3Qg
+YmUgbmVlZGVkIGluIHRoZSBuZWFyIGZ1dHVyZS4uLg0KDQpFcmlrDQo+ID4NCj4gPiBBbHNvLCBj
+aGFuZ2UgdGhlIHF1aXJrIHRhYmxlIHRvIGEgbW9yZSBnZW5lcmljIG5hbWUuDQo+IA0KPiA+ICtz
+dGF0aWMgaW50IHNldF9nYmxfdGVybV9saXN0KGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lkICpp
+ZCkgew0KPiA+ICsgICAgICAgcHJfbm90aWNlKCIlcyBkZXRlY3RlZCAtIHBhcnNlIHRoZSBlbnRp
+cmUgdGFibGUgYXMgYSB0ZXJtX2xpc3RcbiIsDQo+ID4gKyAgICAgICAgICAgICAgICAgaWQtPmlk
+ZW50KTsNCj4gPiArICAgICAgIGFjcGlfZ2JsX3BhcnNlX3RhYmxlX2FzX3Rlcm1fbGlzdCA9IDE7
+DQo+ID4gKyAgICAgICByZXR1cm4gMDsNCj4gPiArfQ0KPiA+ICAjZW5kaWYNCj4gDQo+IFRoZSBh
+Ym92ZSBzaG91bGQgYmUgb3V0c2lkZSBvZiBhbm90aGVyICNpZmRlZi4gQmFzaWNhbGx5IGFmdGVy
+IHRoZSBhYm92ZSAjZW5kaWYuDQo+IA0KPiA+ICAjZWxzZQ0KPiANCj4gPiAgI2VuZGlmDQo+IA0K
+PiA+IEBAIC0xMDA1LDcgKzEwMzQsNyBAQCB2b2lkIF9faW5pdCBhY3BpX2Vhcmx5X2luaXQodm9p
+ZCkNCj4gDQo+ID4gICAgICAgICAgKiBJZiB0aGUgbWFjaGluZSBmYWxscyBpbnRvIHRoZSBETUkg
+Y2hlY2sgdGFibGUsDQo+ID4gICAgICAgICAgKiBEU0RUIHdpbGwgYmUgY29waWVkIHRvIG1lbW9y
+eQ0KPiA+ICAgICAgICAgICovDQo+IA0KPiBJdCBtaWdodCBtYWtlIHNlbnNlIHRvIGFkanVzdCBj
+b21tZW50IGFib3ZlIHRoYXQgaXQncyBhYm91dCBxdWlya3MgaW4gZ2VuZXJhbC4NCj4gQW5kLCBp
+ZiBuZWVkZWQsIG1vdmUgY3VycmVudCBjb250ZW50IHRvIGFjdHVhbCBETUkgZ3JvdXAgb2YgcmVj
+b3Jkcy4NCj4gDQo+ID4gLSAgICAgICBkbWlfY2hlY2tfc3lzdGVtKGRzZHRfZG1pX3RhYmxlKTsN
+Cj4gPiArICAgICAgIGRtaV9jaGVja19zeXN0ZW0oYWNwaV9xdWlya3NfZG1pX3RhYmxlKTsNCj4g
+DQo+IC0tDQo+IFdpdGggQmVzdCBSZWdhcmRzLA0KPiBBbmR5IFNoZXZjaGVua28NCj4gLS0NCj4g
+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJl
+IGxpbnV4LWFjcGkiIGluIHRoZSBib2R5IG9mDQo+IGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
+ci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8gYXQNCj4gaHR0cDovL3ZnZXIua2VybmVs
+Lm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
