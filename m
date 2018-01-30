@@ -1,88 +1,102 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
- and Precision M5530
-Date: Tue, 30 Jan 2018 19:03:09 +0000
-Message-ID: <9f0eaaf403014137a123f6676ddac5b9@ausx13mpc120.AMER.DELL.COM>
-References: <20180130060744.19049-1-kai.heng.feng@canonical.com>
- <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED5396EE01A@ORSMSX110.amr.corp.intel.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v5 1/3] arm64/ras: support sea error recovery
+Date: Tue, 30 Jan 2018 19:19:18 +0000
+Message-ID: <5A70C536.7040208@arm.com>
+References: <1516969885-150532-1-git-send-email-xiexiuqi@huawei.com> <1516969885-150532-2-git-send-email-xiexiuqi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED5396EE01A@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
+In-Reply-To: <1516969885-150532-2-git-send-email-xiexiuqi@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: erik.schmauss@intel.com, andy.shevchenko@gmail.com, kai.heng.feng@canonical.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robert.moore@intel.com
+To: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU2NobWF1c3MsIEVyaWsg
-W21haWx0bzplcmlrLnNjaG1hdXNzQGludGVsLmNvbV0NCj4gU2VudDogVHVlc2RheSwgSmFudWFy
-eSAzMCwgMjAxOCAxMjozOCBQTQ0KPiBUbzogQW5keSBTaGV2Y2hlbmtvIDxhbmR5LnNoZXZjaGVu
-a29AZ21haWwuY29tPjsgS2FpLUhlbmcgRmVuZw0KPiA8a2FpLmhlbmcuZmVuZ0BjYW5vbmljYWwu
-Y29tPg0KPiBDYzogUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgTGVuIEJy
-b3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJDQo+IERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1h
-Y3BpQHZnZXIua2VybmVsLm9yZz47IExpbnV4IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LQ0K
-PiBrZXJuZWxAdmdlci5rZXJuZWwub3JnPjsgTGltb25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1v
-bmNpZWxsb0BEZWxsLmNvbT47DQo+IE1vb3JlLCBSb2JlcnQgPHJvYmVydC5tb29yZUBpbnRlbC5j
-b20+DQo+IFN1YmplY3Q6IFJFOiBbUEFUQ0hdIEFDUEk6IFBhcnNlIGVudGlyZSB0YWJsZSBhcyBh
-IHRlcm1fbGlzdCBmb3IgRGVsbCBYUFMgOTU3MCBhbmQNCj4gUHJlY2lzaW9uIE01NTMwDQo+IA0K
-PiBIaSwNCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+IEZyb206IGxpbnV4LWFj
-cGktb3duZXJAdmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gPiBvd25lckB2
-Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBBbmR5IFNoZXZjaGVua28NCj4gPiBTZW50OiBU
-dWVzZGF5LCBKYW51YXJ5IDMwLCAyMDE4IDEwOjE4IEFNDQo+ID4gVG86IEthaS1IZW5nIEZlbmcg
-PGthaS5oZW5nLmZlbmdAY2Fub25pY2FsLmNvbT4NCj4gPiBDYzogUmFmYWVsIEouIFd5c29ja2kg
-PHJqd0Byand5c29ja2kubmV0PjsgTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+OyBBQ1BJDQo+
-ID4gRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGludXgg
-S2VybmVsIE1haWxpbmcgTGlzdCA8bGludXgtDQo+ID4ga2VybmVsQHZnZXIua2VybmVsLm9yZz47
-IE1hcmlvIExpbW9uY2llbGxvIDxtYXJpby5saW1vbmNpZWxsb0BkZWxsLmNvbT4NCj4gPiBTdWJq
-ZWN0OiBSZTogW1BBVENIXSBBQ1BJOiBQYXJzZSBlbnRpcmUgdGFibGUgYXMgYSB0ZXJtX2xpc3Qg
-Zm9yIERlbGwgWFBTIDk1NzAgYW5kDQo+ID4gUHJlY2lzaW9uIE01NTMwDQo+ID4NCj4gPiBPbiBU
-dWUsIEphbiAzMCwgMjAxOCBhdCA4OjA3IEFNLCBLYWktSGVuZyBGZW5nDQo+ID4gPGthaS5oZW5n
-LmZlbmdAY2Fub25pY2FsLmNvbT4gd3JvdGU6DQo+ID4gPiBUaGUgaTJjIHRvdWNocGFkIG9uIERl
-bGwgWFBTIDk1NzAgYW5kIFByZWNpc2lvbiBNNTUzMCBkb2Vzbid0IHdvcmsgb3V0DQo+ID4gPiBv
-ZiBib3guDQo+ID4gPg0KPiA+ID4gVGhlIHRvdWNocGFkIHJlbGllcyBvbiBpdHMgX0lOSSBtZXRo
-b2QgdG8gdXBkYXRlIGl0cyBfSElEIHZhbHVlIGZyb20NCj4gPiA+IFhYWFgwMDAwIHRvIFNZTkEy
-MzkzLg0KPiA+ID4gQWxzbywgdGhlIF9TVEEgcmVsaWVzIG9uIHZhbHVlIG9mIEkyQ04gdG8gcmVw
-b3J0IGNvcnJlY3Qgc3RhdHVzLg0KPiA+ID4NCj4gPiA+IFNldCBhY3BpX2dibF9wYXJzZV90YWJs
-ZV9hc190ZXJtX2xpc3Qgc28gdGhlIHZhbHVlIG9mIEkyQ04gY2FuIGJlDQo+ID4gPiBjb3JyZWN0
-bHkgc2V0IHVwLCBhbmQgX0lOSSBjYW4gZ2V0IHJ1bi4gVGhlIEFDUEkgdGFibGUgaW4gdGhpcyBt
-YWNoaW5lDQo+ID4gPiBpcyBkZXNpZ25lZCB0byBnZXQgcGFyc2VkIHRoaXMgd2F5Lg0KPiANCj4g
-SSB0aG91Z2h0IEkgd291bGQgZ2l2ZSBldmVyeW9uZSBhbiB1cGRhdGU6IHdlIGFyZSBnZXR0aW5n
-IGNsb3NlIHRvIGZpbmlzaGluZyBwYXRjaGVzDQo+IHRvIGVuYWJsZSB0aGlzIHRlcm0gbGlzdCBw
-YXJzaW5nIGJ5IGRlZmF1bHQgYXMgd2VsbCBhcyBhIGZldyBvdGhlciBmaXhlcyB3aXRoIGZvcndh
-cmQNCj4gcmVmZXJlbmNpbmcgb2YgcGFja2FnZSBlbGVtZW50cy4gT25jZSB3ZSBoYXZlIGVzdGFi
-bGlzaGVkIHRoYXQgdGhlc2UgcGF0Y2hlcyBhcmUNCj4gc3RhYmxlLCB3ZSB3aWxsIGdldCByaWQg
-b2YgYWNwaV9nYmxfcGFyc2VfdGFibGVfYXNfdGVybV9saXN0LiBTbyB0aGlzIHF1aXJrIG1heSBu
-b3QNCj4gYmUgbmVlZGVkIGluIHRoZSBuZWFyIGZ1dHVyZS4uLg0KDQpSYWZhZWwsDQoNCldvdWxk
-IHlvdSBiZSBvcHBvc2VkIHRvIGNhcnJ5aW5nIGEgcGF0Y2ggc2ltaWxhciB0byB0aGlzIChwcm9w
-b3NlZCkgcXVpcmsgcGF0Y2ggaW4gDQprZXJuZWwgYW5kIHJldmVydGluZyB3aGVuIEVyaWsgc3Vi
-bWl0cyBwYXRjaGVzIHRoYXQgZ2V0IHJpZCBvZg0KYWNwaV9nYmxfcGFyc2VfdGFibGVfYXNfdGVy
-bV9saXN0Pw0KDQpUaGUgcmVhc29uIGJlaW5nLCBJIHRoaW5rIHRoaXMgY291bGQgYWxzbyBiZSBh
-IGNhbmRpZGF0ZSB0byBicmluZyBiYWNrIHRvIEBzdGFibGUNCmFuZCBmaXggdGhpcyBwcm9ibGVt
-IG9uIGVhcmxpZXIga2VybmVscyB0b28uDQoNCkkgZG9u4oCZdCBiZWxpZXZlIHRoZSBwYXRjaGVz
-IHRoYXQgZ2V0IHJpZCBvZiBhY3BpX2dibF9wYXJzZV90YWJsZV9hc190ZXJtX2xpc3QgbGlrZWx5
-DQp3aWxsIGJlIGdvb2QgY2FuZGlkYXRlcyBmb3IgQHN0YWJsZS4NCg0KDQo+IA0KPiBFcmlrDQo+
-ID4gPg0KPiA+ID4gQWxzbywgY2hhbmdlIHRoZSBxdWlyayB0YWJsZSB0byBhIG1vcmUgZ2VuZXJp
-YyBuYW1lLg0KPiA+DQo+ID4gPiArc3RhdGljIGludCBzZXRfZ2JsX3Rlcm1fbGlzdChjb25zdCBz
-dHJ1Y3QgZG1pX3N5c3RlbV9pZCAqaWQpIHsNCj4gPiA+ICsgICAgICAgcHJfbm90aWNlKCIlcyBk
-ZXRlY3RlZCAtIHBhcnNlIHRoZSBlbnRpcmUgdGFibGUgYXMgYSB0ZXJtX2xpc3RcbiIsDQo+ID4g
-PiArICAgICAgICAgICAgICAgICBpZC0+aWRlbnQpOw0KPiA+ID4gKyAgICAgICBhY3BpX2dibF9w
-YXJzZV90YWJsZV9hc190ZXJtX2xpc3QgPSAxOw0KPiA+ID4gKyAgICAgICByZXR1cm4gMDsNCj4g
-PiA+ICt9DQo+ID4gPiAgI2VuZGlmDQo+ID4NCj4gPiBUaGUgYWJvdmUgc2hvdWxkIGJlIG91dHNp
-ZGUgb2YgYW5vdGhlciAjaWZkZWYuIEJhc2ljYWxseSBhZnRlciB0aGUgYWJvdmUgI2VuZGlmLg0K
-PiA+DQo+ID4gPiAgI2Vsc2UNCj4gPg0KPiA+ID4gICNlbmRpZg0KPiA+DQo+ID4gPiBAQCAtMTAw
-NSw3ICsxMDM0LDcgQEAgdm9pZCBfX2luaXQgYWNwaV9lYXJseV9pbml0KHZvaWQpDQo+ID4NCj4g
-PiA+ICAgICAgICAgICogSWYgdGhlIG1hY2hpbmUgZmFsbHMgaW50byB0aGUgRE1JIGNoZWNrIHRh
-YmxlLA0KPiA+ID4gICAgICAgICAgKiBEU0RUIHdpbGwgYmUgY29waWVkIHRvIG1lbW9yeQ0KPiA+
-ID4gICAgICAgICAgKi8NCj4gPg0KPiA+IEl0IG1pZ2h0IG1ha2Ugc2Vuc2UgdG8gYWRqdXN0IGNv
-bW1lbnQgYWJvdmUgdGhhdCBpdCdzIGFib3V0IHF1aXJrcyBpbiBnZW5lcmFsLg0KPiA+IEFuZCwg
-aWYgbmVlZGVkLCBtb3ZlIGN1cnJlbnQgY29udGVudCB0byBhY3R1YWwgRE1JIGdyb3VwIG9mIHJl
-Y29yZHMuDQo+ID4NCj4gPiA+IC0gICAgICAgZG1pX2NoZWNrX3N5c3RlbShkc2R0X2RtaV90YWJs
-ZSk7DQo+ID4gPiArICAgICAgIGRtaV9jaGVja19zeXN0ZW0oYWNwaV9xdWlya3NfZG1pX3RhYmxl
-KTsNCj4gPg0KPiA+IC0tDQo+ID4gV2l0aCBCZXN0IFJlZ2FyZHMsDQo+ID4gQW5keSBTaGV2Y2hl
-bmtvDQo+ID4gLS0NCj4gPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUg
-bGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4gdGhlIGJvZHkgb2YNCj4gPiBhIG1lc3Nh
-Z2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZyBNb3JlIG1ham9yZG9tbyBpbmZvIGF0DQo+
-ID4gaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Xie XiuQi,
+
+On 26/01/18 12:31, Xie XiuQi wrote:
+> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+> are consumed. According to the existing process, errors occurred in the
+> kernel, leading to direct panic, if it occurred the user-space, we should
+> just kill process.
+> 
+> But there is a class of error, in fact, is not necessary to kill
+> process, you can recover and continue to run the process. Such as
+> the instruction data corrupted, where the memory page might be
+> read-only, which is has not been modified, the disk might have the
+> correct data, so you can directly drop the page, ant reload it when
+> necessary.
+
+With firmware-first support, we do all this...
+
+
+> So this patchset is just try to solve such problem: if the error is
+> consumed in user-space and the error occurs on a clean page, you can
+> directly drop the memory page without killing process.
+> 
+> If the corrupted page is clean, just dropped it and return to user-space
+> without side effects. And if corrupted page is dirty, memory_failure()
+> will send SIGBUS with code=BUS_MCEERR_AR. While without this patchset,
+> do_sea() will just send SIGBUS, so the process was killed in the same place.
+
+... but this happens too. I agree its something we should fix, but I don't think
+this is the best way to do it.
+
+This series is pulling the memory-failure-queue details back into the arch-code
+to build a second list, that gets processed as extra work when we return to
+user-space.
+
+
+The root of the issue is ghes_notify_sea() claims the notification as something
+APEI has dealt with, ... but it hasn't done it yet. The signals will be
+generated by something currently stuck in a queue. (Evidently x86 doesn't handle
+synchronous errors like this using firmware-first).
+
+I think a smaller fix is to give the queues that may be holding the
+memory_failure() work a kick as part of the code that calls ghes_notify_sea().
+This means that by the time we return to do_sea() ghes_notify_sea()'s claim that
+APEI has dealt with it is true as any generated signals are pending. We can then
+skip the existing SIGBUS generation code.
+
+
+> Because memory_failure() may sleep, we can not call it directly in SEA
+
+(this one is more serious, I've attempted to fix it by moving all NMI-like
+GHES-notifications to use the estatus queue).
+
+
+> exception context. So we saved faulting physical address associated with
+> a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
+> from SEA exception context and get into do_notify_resume() before the
+> process running, we could check it and call memory_failure() to do
+> recovery.
+
+> It's safe, because we are in process context.
+
+I think this is the trick. When we take a Synchronous-external-abort out of
+userspace, we're in process context too. We can add helpers to drain the
+memory_failure_queue which can be called when do_sea() when we know we're
+preemptible and interrupts-et-al are unmasked.
+
+
+Thanks,
+
+James
+
+
+[0] https://www.spinics.net/lists/linux-acpi/msg80149.html
+
+> ---
+>  arch/arm64/Kconfig                   |  11 +++
+>  arch/arm64/include/asm/ras.h         |  23 ++++++
+>  arch/arm64/include/asm/thread_info.h |   4 +-
+>  arch/arm64/kernel/Makefile           |   1 +
+>  arch/arm64/kernel/ras.c              | 142 +++++++++++++++++++++++++++++++++++
+>  arch/arm64/kernel/signal.c           |   7 ++
+>  arch/arm64/mm/fault.c                |  27 +++++--
+>  drivers/acpi/apei/ghes.c             |   8 +-
+>  include/acpi/ghes.h                  |   3 +
+>  9 files changed, 216 insertions(+), 10 deletions(-)
+>  create mode 100644 arch/arm64/include/asm/ras.h
+>  create mode 100644 arch/arm64/kernel/ras.c
