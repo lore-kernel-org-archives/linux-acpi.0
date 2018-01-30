@@ -1,36 +1,65 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v12 3/9] PCI: Add fwnode handler as input param of
- pci_register_io_range()
-Date: Tue, 30 Jan 2018 09:11:27 -0600
-Message-ID: <20180130151127.tqklt7o6zrv3ddqq@rob-hp-laptop>
-References: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
- <1516725385-24535-4-git-send-email-john.garry@huawei.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
+ and Precision M5530
+Date: Tue, 30 Jan 2018 20:17:55 +0200
+Message-ID: <CAHp75VdPQuEwNOOakvZpC1gzWB9p5yx+CHUjRgMDZ9ZDvxGckQ@mail.gmail.com>
+References: <20180130060744.19049-1-kai.heng.feng@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1516725385-24535-4-git-send-email-john.garry@huawei.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, dann.frazier@canonical.com, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f182.google.com ([209.85.220.182]:36479 "EHLO
+        mail-qk0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751410AbeA3SR5 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2018 13:17:57 -0500
+In-Reply-To: <20180130060744.19049-1-kai.heng.feng@canonical.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 
-On Wed, Jan 24, 2018 at 12:36:19AM +0800, John Garry wrote:
-> From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> 
-> In preparation for having the PCI MMIO helpers to use the new generic
-> I/O space management(LOGIC_PIO) we need to add the fwnode handler as
-> extra input parameter.
-> This patch changes the signature of pci_register_io_range() and of
-> its callers as needed.
-> 
-> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/acpi/pci_root.c | 8 +++++---
->  drivers/of/address.c    | 4 +++-
->  drivers/pci/pci.c       | 3 ++-
->  include/linux/pci.h     | 3 ++-
->  4 files changed, 12 insertions(+), 6 deletions(-)
+On Tue, Jan 30, 2018 at 8:07 AM, Kai-Heng Feng
+<kai.heng.feng@canonical.com> wrote:
+> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+> of box.
+>
+> The touchpad relies on its _INI method to update its _HID value from
+> XXXX0000 to SYNA2393.
+> Also, the _STA relies on value of I2CN to report correct status.
+>
+> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+> correctly set up, and _INI can get run. The ACPI table in this machine
+> is designed to get parsed this way.
+>
+> Also, change the quirk table to a more generic name.
 
-Acked-by: Rob Herring <robh@kernel.org>
+> +static int set_gbl_term_list(const struct dmi_system_id *id)
+> +{
+> +       pr_notice("%s detected - parse the entire table as a term_list\n",
+> +                 id->ident);
+> +       acpi_gbl_parse_table_as_term_list = 1;
+> +       return 0;
+> +}
+>  #endif
+
+The above should be outside of another #ifdef. Basically after the above #endif.
+
+>  #else
+
+>  #endif
+
+> @@ -1005,7 +1034,7 @@ void __init acpi_early_init(void)
+
+>          * If the machine falls into the DMI check table,
+>          * DSDT will be copied to memory
+>          */
+
+It might make sense to adjust comment above that it's about quirks in
+general. And, if needed, move current content to actual DMI group of
+records.
+
+> -       dmi_check_system(dsdt_dmi_table);
+> +       dmi_check_system(acpi_quirks_dmi_table);
+
+-- 
+With Best Regards,
+Andy Shevchenko
