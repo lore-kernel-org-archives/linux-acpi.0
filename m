@@ -1,67 +1,101 @@
-From: Kai Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570
- and Precision M5530
-Date: Tue, 30 Jan 2018 10:46:53 +0800
-Message-ID: <8351B08C-C4C0-49F7-BA60-960D6A5E1FA6@canonical.com>
-References: <20180129061011.11214-1-kai.heng.feng@canonical.com>
- <CAHp75VfQH6ssvp14HSLNGPL=eUVQCnrC-ifoKMuKoCkR1s=3YA@mail.gmail.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
+Date: Tue, 30 Jan 2018 14:07:44 +0800
+Message-ID: <20180130060744.19049-1-kai.heng.feng@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:37885 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:40057 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752076AbeA3CrA (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jan 2018 21:47:00 -0500
-Received: from mail-pf0-f198.google.com ([209.85.192.198])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1egLwp-00023B-6t
-        for linux-acpi@vger.kernel.org; Tue, 30 Jan 2018 02:46:59 +0000
-Received: by mail-pf0-f198.google.com with SMTP id e185so8872580pfg.23
-        for <linux-acpi@vger.kernel.org>; Mon, 29 Jan 2018 18:46:59 -0800 (PST)
-In-Reply-To: <CAHp75VfQH6ssvp14HSLNGPL=eUVQCnrC-ifoKMuKoCkR1s=3YA@mail.gmail.com>
+        with ESMTP id S1752385AbeA3GHx (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jan 2018 01:07:53 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, andy.shevchenko@gmail.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>, Mario Limonciello <mario.limonciello@dell.com>
 
+The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+of box.
 
+The touchpad relies on its _INI method to update its _HID value from
+XXXX0000 to SYNA2393.
+Also, the _STA relies on value of I2CN to report correct status.
 
-> On 29 Jan 2018, at 8:56 PM, Andy Shevchenko <andy.shevchenko@gmail.com> wrote:
-> 
-> On Mon, Jan 29, 2018 at 8:10 AM, Kai-Heng Feng
-> <kai.heng.feng@canonical.com> wrote:
->> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
->> of box.
->> 
->> The touchpad relies on its _INI method to update its _HID value from
->> XXXX0000 to SYNA2393.
->> Also, the _STA relies on value of I2CN to report correct status.
->> 
->> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
->> correctly set up, and _INI can get run. The ACPI table in this machine
->> is designed to get parsed this way.
-> 
->> +#ifdef CONFIG_X86
-> 
-> Why do you need separate #ifdef?
-> 
->> +static const struct dmi_system_id gbl_term_list_dmi_table[] __initconst = {
-> 
-> I think you can just add new items to the existing table, while renaming it like
-> 
-> dsdt_dmi_table -> acpi_quirks_dmi_table
+Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+correctly set up, and _INI can get run. The ACPI table in this machine
+is designed to get parsed this way.
 
-Thanks for your suggestion, this is a better approach.
-I’ll address them in V2 patch.
+Also, change the quirk table to a more generic name.
 
-Kai-Heng
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
+Cc: Mario Limonciello <mario.limonciello@dell.com>
+Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+---
+v2: Andy's suggestion, merge to a single quirk table.
 
-> 
-> -- 
-> With Best Regards,
-> Andy Shevchenko
+ drivers/acpi/bus.c | 35 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 4d0979e02a28..3999e175b6f4 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -65,9 +65,38 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+ 	acpi_gbl_copy_dsdt_locally = 1;
+ 	return 0;
+ }
++
++static int set_gbl_term_list(const struct dmi_system_id *id)
++{
++	pr_notice("%s detected - parse the entire table as a term_list\n",
++		  id->ident);
++	acpi_gbl_parse_table_as_term_list = 1;
++	return 0;
++}
+ #endif
+ 
+-static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
++static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
++	/*
++	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
++	 * mode.
++	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
++	 */
++	{
++		.callback = set_gbl_term_list,
++		.ident = "Dell Precision M5530",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
++		},
++	},
++	{
++		.callback = set_gbl_term_list,
++		.ident = "Dell XPS 15 9570",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
++		},
++	},
+ 	/*
+ 	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
+ 	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
+@@ -83,7 +112,7 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
+ 	{}
+ };
+ #else
+-static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
++static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
+ 	{}
+ };
+ #endif
+@@ -1005,7 +1034,7 @@ void __init acpi_early_init(void)
+ 	 * If the machine falls into the DMI check table,
+ 	 * DSDT will be copied to memory
+ 	 */
+-	dmi_check_system(dsdt_dmi_table);
++	dmi_check_system(acpi_quirks_dmi_table);
+ 
+ 	status = acpi_reallocate_root_table();
+ 	if (ACPI_FAILURE(status)) {
+-- 
+2.15.1
 
