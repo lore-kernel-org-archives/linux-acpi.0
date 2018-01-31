@@ -1,8 +1,8 @@
 From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v5 3/4] libnvdimm: expose platform persistence attribute for
+Subject: [PATCH v5 2/4] acpi: nfit: add persistent memory control flag for
  nd_region
-Date: Wed, 31 Jan 2018 12:45:49 -0700
-Message-ID: <151742794970.53525.17251272455889886797.stgit@djiang5-desk3.ch.intel.com>
+Date: Wed, 31 Jan 2018 12:45:43 -0700
+Message-ID: <151742794391.53525.4928012768671546212.stgit@djiang5-desk3.ch.intel.com>
 References: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,42 +22,44 @@ To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ross.zwisler-VuQAYsv
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Providing a sysfs attribute for nd_region that shows the persistence
-capabilities for the platform.
+Propagate the ADR attribute flag from the NFIT platform capabilities
+sub-table to nd_region.
 
 Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/nvdimm/region_devs.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/acpi/nfit/core.c  |    3 +++
+ include/linux/libnvdimm.h |    6 ++++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index abaf38c61220..e6d01911e092 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -528,6 +528,18 @@ static ssize_t resource_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(resource);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bcf52bb93b65..b1616120ca57 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
  
-+static ssize_t persistence_domain_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct nd_region *nd_region = to_nd_region(dev);
-+	unsigned long flags = nd_region->flags;
++	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
++		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
 +
-+	return sprintf(buf, "%s%s\n",
-+			flags & BIT(ND_REGION_PERSIST_CACHE) ? "cpu_cache " : "",
-+			flags & BIT(ND_REGION_PERSIST_MEMCTRL) ? "memory_controller " : "");
-+}
-+static DEVICE_ATTR_RO(persistence_domain);
-+
- static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_size.attr,
- 	&dev_attr_nstype.attr,
-@@ -543,6 +555,7 @@ static struct attribute *nd_region_attributes[] = {
- 	&dev_attr_init_namespaces.attr,
- 	&dev_attr_badblocks.attr,
- 	&dev_attr_resource.attr,
-+	&dev_attr_persistence_domain.attr,
- 	NULL,
- };
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f2fc0da4da04..ff855ed965fb 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -52,6 +52,12 @@ enum {
+ 	 * system power loss.
+ 	 */
+ 	ND_REGION_PERSIST_CACHE = 1,
++	/*
++	 * Platform provides mechanisms to automatically flush outstanding
++	 * write data from memory controler to pmem on system power loss.
++	 * (ADR)
++	 */
++	ND_REGION_PERSIST_MEMCTRL = 2,
+ 
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
