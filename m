@@ -1,104 +1,46 @@
-From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: [PATCH v3] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
-Date: Wed, 31 Jan 2018 12:56:34 +0800
-Message-ID: <20180131045634.13328-1-kai.heng.feng@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, andy.shevchenko@gmail.com, erik.schmauss@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Kai-Heng Feng <kai.heng.feng@canonical.com>, Mario Limonciello <mario.limonciello@dell.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
+Date: Tue, 30 Jan 2018 21:52:19 -0800
+Message-ID: <1517377939-9817-1-git-send-email-alex.hung@canonical.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:36619 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751001AbeAaFwX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jan 2018 00:52:23 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
 
-The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
-of box.
+In recent Intel hardware the IRQs become non-configurable after BIOS
+initializes them in PEI phase and _PRS objects are no longer included in
+ASL.
 
-The touchpad relies on its _INI method to update its _HID value from
-XXXX0000 to SYNA2393.
-Also, the _STA relies on value of I2CN to report correct status.
+This is the same as "static (non-configurable) devices do not
+specify a _PRS object" in ACPI spec. As a result, error messages
+saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
+needed.
 
-Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
-correctly set up, and _INI can get run. The ACPI table in this machine
-is designed to get parsed this way.
-
-Also, change the quirk table to a more generic name.
-
-Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
-Cc: Mario Limonciello <mario.limonciello@dell.com>
-Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Signed-off-by: Alex Hung <alex.hung@canonical.com>
 ---
-v3: Put the function under right #ifdef, comment adjustment
+ drivers/acpi/pci_link.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-v2: Andy's suggestion, merge to a single quirk table.
-
- drivers/acpi/bus.c | 40 +++++++++++++++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 4d0979e02a28..7cb18bc2b59a 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -66,10 +66,39 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
- 	return 0;
- }
- #endif
-+static int set_gbl_term_list(const struct dmi_system_id *id)
-+{
-+	pr_notice("%s detected - parse the entire table as a term_list\n",
-+		  id->ident);
-+	acpi_gbl_parse_table_as_term_list = 1;
-+	return 0;
-+}
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 85ad679390e3..f98215971f30 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -172,10 +172,8 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
  
--static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
-+static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
-+	/*
-+	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
-+	 * mode.
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
-+	 */
-+	{
-+		.callback = set_gbl_term_list,
-+		.ident = "Dell Precision M5530",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
-+		},
-+	},
-+	{
-+		.callback = set_gbl_term_list,
-+		.ident = "Dell XPS 15 9570",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
-+		},
-+	},
- 	/*
- 	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
-+	 * DSDT will be copied to memory.
- 	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
- 	 */
- 	{
-@@ -83,7 +112,7 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
- 	{}
- };
- #else
--static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
-+static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
- 	{}
- };
- #endif
-@@ -1001,11 +1030,8 @@ void __init acpi_early_init(void)
+ 	status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
+ 				     acpi_pci_link_check_possible, link);
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
++	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+-	}
  
- 	acpi_permanent_mmap = true;
- 
--	/*
--	 * If the machine falls into the DMI check table,
--	 * DSDT will be copied to memory
--	 */
--	dmi_check_system(dsdt_dmi_table);
-+	/* Check machine-specific quirks */
-+	dmi_check_system(acpi_quirks_dmi_table);
- 
- 	status = acpi_reallocate_root_table();
- 	if (ACPI_FAILURE(status)) {
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 			  "Found %d possible IRQs\n",
 -- 
 2.15.1
+
