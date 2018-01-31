@@ -1,46 +1,62 @@
 From: Alex Hung <alex.hung@canonical.com>
-Subject: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
-Date: Tue, 30 Jan 2018 21:52:19 -0800
-Message-ID: <1517377939-9817-1-git-send-email-alex.hung@canonical.com>
+Subject: [PATCH 1/2] firmware: dmi_scan: add DMI_OEM_STRING support to dmi_matches
+Date: Wed, 31 Jan 2018 00:40:04 -0800
+Message-ID: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36619 "EHLO
+Received: from youngberry.canonical.com ([91.189.89.112]:38695 "EHLO
         youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751001AbeAaFwX (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jan 2018 00:52:23 -0500
+        with ESMTP id S1752029AbeAaIkS (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jan 2018 03:40:18 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, alex.hung@canonical.com
+To: rjw@rjwysocki.net, lenb@kernel.org, jdelvare@suse.com, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, f.fainelli@gmail.com, dmitry.torokhov@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org, alex.hung@canonical.com, Mario.Limonciello@dell.com
 
-In recent Intel hardware the IRQs become non-configurable after BIOS
-initializes them in PEI phase and _PRS objects are no longer included in
-ASL.
-
-This is the same as "static (non-configurable) devices do not
-specify a _PRS object" in ACPI spec. As a result, error messages
-saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
-needed.
+OEM strings are defined by each OEM and they contain customized and
+useful OEM information. Supporting it provides more flexible uses of
+the dmi_matches function.
 
 Signed-off-by: Alex Hung <alex.hung@canonical.com>
 ---
- drivers/acpi/pci_link.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/firmware/dmi_scan.c     | 8 ++++++++
+ include/linux/mod_devicetable.h | 1 +
+ 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 85ad679390e3..f98215971f30 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -172,10 +172,8 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
+diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+index 7830419..e534d1b 100644
+--- a/drivers/firmware/dmi_scan.c
++++ b/drivers/firmware/dmi_scan.c
+@@ -797,11 +797,19 @@ static bool dmi_matches(const struct dmi_system_id *dmi)
+ 			else if (dmi->matches[i].exact_match &&
+ 				 !strcmp(dmi_ident[s], dmi->matches[i].substr))
+ 				continue;
++		} else if (s == DMI_OEM_STRING) {
++			const struct dmi_device *valid;
++
++			valid = dmi_find_device(DMI_DEV_TYPE_OEM_STRING,
++						dmi->matches[i].substr, NULL);
++			if (valid)
++				continue;
+ 		}
  
- 	status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
- 				     acpi_pci_link_check_possible, link);
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
-+	if (ACPI_FAILURE(status))
- 		return -ENODEV;
--	}
+ 		/* No match */
+ 		return false;
+ 	}
++
+ 	return true;
+ }
  
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 			  "Found %d possible IRQs\n",
+diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
+index abb6dc2..5739c4c 100644
+--- a/include/linux/mod_devicetable.h
++++ b/include/linux/mod_devicetable.h
+@@ -482,6 +482,7 @@ enum dmi_field {
+ 	DMI_CHASSIS_VERSION,
+ 	DMI_CHASSIS_SERIAL,
+ 	DMI_CHASSIS_ASSET_TAG,
++	DMI_OEM_STRING,
+ 	DMI_STRING_MAX,
+ };
+ 
 -- 
-2.15.1
+2.7.4
 
