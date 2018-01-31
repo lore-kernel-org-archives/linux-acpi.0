@@ -1,47 +1,52 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 3/4] dmaengine: hidma: Constify returned by device_get_match_data() value
-Date: Wed, 31 Jan 2018 23:29:58 +0200
-Message-ID: <20180131212959.68766-3-andriy.shevchenko@linux.intel.com>
-References: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/4] ACPI / bus: Remove checks in acpi_get_match_data()
+Date: Wed, 31 Jan 2018 23:29:56 +0200
+Message-ID: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:53032 "EHLO mga17.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:52122 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751782AbeAaVaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1751866AbeAaVaD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 31 Jan 2018 16:30:03 -0500
-In-Reply-To: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-The value under the hood is constant in any case.
-It makes sense to show this explicitly.
+As well as its sibling of_device_get_match_data() has no such checks,
+no need to do it in acpi_get_match_data().
 
-Fixes: 95fbfb7aa28d ("dmaengine: qcom_hidma: Add support for the new revision")
+First of all, we are not supposed to call fwnode API like this without
+driver attached.
+
+Second, if pure OF driver calls this function, it's weird to have ACPI
+companion without ACPI ID in this case.
+
+Fixes: 80212a162329 ("ACPI / bus: Introduce acpi_get_match_data() function")
 Cc: Sinan Kaya <okaya@codeaurora.org>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/dma/qcom/hidma.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/bus.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-diff --git a/drivers/dma/qcom/hidma.c b/drivers/dma/qcom/hidma.c
-index 963cc5228d05..24e163cefb7c 100644
---- a/drivers/dma/qcom/hidma.c
-+++ b/drivers/dma/qcom/hidma.c
-@@ -743,9 +743,9 @@ static int hidma_request_msi(struct hidma_dev *dmadev,
- 
- static bool hidma_test_capability(struct device *dev, enum hidma_cap test_cap)
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index f87ed3be779a..b271eb16341d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -789,12 +789,6 @@ void *acpi_get_match_data(const struct device *dev)
  {
--	enum hidma_cap cap;
-+	const enum hidma_cap cap;
+ 	const struct acpi_device_id *match;
  
--	cap = (enum hidma_cap) device_get_match_data(dev);
-+	cap = (const enum hidma_cap) device_get_match_data(dev);
- 	return cap ? ((cap & test_cap) > 0) : 0;
- }
- 
+-	if (!dev->driver)
+-		return NULL;
+-
+-	if (!dev->driver->acpi_match_table)
+-		return NULL;
+-
+ 	match = acpi_match_device(dev->driver->acpi_match_table, dev);
+ 	if (!match)
+ 		return NULL;
 -- 
 2.15.1
 
