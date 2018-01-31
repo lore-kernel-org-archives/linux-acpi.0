@@ -1,58 +1,144 @@
-From: Dave Jiang <dave.jiang@intel.com>
-Subject: [PATCH v5 0/4] add support for platform persistence capabilities
-Date: Wed, 31 Jan 2018 12:45:32 -0700
-Message-ID: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
+From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v5 1/4] acpi: nfit: Add support for detect platform CPU
+ cache flush on power loss
+Date: Wed, 31 Jan 2018 12:45:38 -0700
+Message-ID: <151742793813.53525.14576611924473234529.stgit@djiang5-desk3.ch.intel.com>
+References: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26009 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751163AbeAaTpd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 31 Jan 2018 14:45:33 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <151742786907.53525.180738048776121385.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 
-ACPI 6.2a provides an NFIT sub-table that informs if the platform has
-auto CPU flush and memory flush on unexpected power loss events. This series
-propogates those attributes to nd_region and add sysfs attribute to show
-those capabilities.
+In ACPI 6.2a the platform capability structure has been added to the NFIT
+tables. That provides software the ability to determine whether a system
+supports the auto flushing of CPU caches on power loss. If the capability
+is supported, we do not need to do dax_flush(). Plumbing the path to set the
+property on per region from the NFIT tables.
 
-v5:
-Fix value of mask in nfit_test.
+This patch depends on the ACPI NFIT 6.2a platform capabilities support code
+in include/acpi/actbl1.h.
 
-v4:
-Fixed typos and added Reviewed-by tags from Ross.
-
-v3:
-Addressed Ross's comments
-- fixed mask calculation for platform cap
-- fixed nfit_test nfit_buf size calcuation
-- fixed offset for test data structure
-
-v2:
-Per Dan's comments
-- Added ADR cap flags propogation
-- Added sysfs attribute
-
+Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
+ drivers/acpi/nfit/core.c  |   20 ++++++++++++++++++++
+ drivers/acpi/nfit/nfit.h  |    1 +
+ drivers/nvdimm/pmem.c     |    4 +++-
+ include/linux/libnvdimm.h |    5 +++++
+ 4 files changed, 29 insertions(+), 1 deletion(-)
 
-Dave Jiang (4):
-      acpi: nfit: Add support for detect platform CPU cache flush on power loss
-      acpi: nfit: add persistent memory control flag for nd_region
-      libnvdimm: expose platform persistence attribute for nd_region
-      nfit-test: Add platform cap support from ACPI 6.2a to test
-
-
- drivers/acpi/nfit/core.c         |   23 +++++++++++++++++++++++
- drivers/acpi/nfit/nfit.h         |    1 +
- drivers/nvdimm/pmem.c            |    4 +++-
- drivers/nvdimm/region_devs.c     |   13 +++++++++++++
- include/linux/libnvdimm.h        |   11 +++++++++++
- tools/testing/nvdimm/test/nfit.c |   14 ++++++++++++--
- 6 files changed, 63 insertions(+), 3 deletions(-)
-
---
-Signature
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index ff2580e7611d..bcf52bb93b65 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -838,6 +838,18 @@ static bool add_flush(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
+ }
+ 
++static bool add_platform_cap(struct acpi_nfit_desc *acpi_desc,
++		struct acpi_nfit_capabilities *pcap)
++{
++	struct device *dev = acpi_desc->dev;
++	u32 mask;
++
++	mask = (1 << (pcap->highest_capability + 1)) - 1;
++	acpi_desc->platform_cap = pcap->capabilities & mask;
++	dev_dbg(dev, "%s: cap: %#x\n", __func__, acpi_desc->platform_cap);
++	return true;
++}
++
+ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_table_prev *prev, void *table, const void *end)
+ {
+@@ -883,6 +895,10 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc,
+ 	case ACPI_NFIT_TYPE_SMBIOS:
+ 		dev_dbg(dev, "%s: smbios\n", __func__);
+ 		break;
++	case ACPI_NFIT_TYPE_CAPABILITIES:
++		if (!add_platform_cap(acpi_desc, table))
++			return err;
++		break;
+ 	default:
+ 		dev_err(dev, "unknown table '%d' parsing nfit\n", hdr->type);
+ 		break;
+@@ -2649,6 +2665,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	else
+ 		ndr_desc->numa_node = NUMA_NO_NODE;
+ 
++	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
++		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
++
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping_desc *mapping;
+@@ -3457,6 +3476,7 @@ static __init int nfit_init(void)
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_smbios) != 9);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_control_region) != 80);
+ 	BUILD_BUG_ON(sizeof(struct acpi_nfit_data_region) != 40);
++	BUILD_BUG_ON(sizeof(struct acpi_nfit_capabilities) != 16);
+ 
+ 	guid_parse(UUID_VOLATILE_MEMORY, &nfit_uuid[NFIT_SPA_VOLATILE]);
+ 	guid_parse(UUID_PERSISTENT_MEMORY, &nfit_uuid[NFIT_SPA_PM]);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index f0cf18b2da8b..50d36e166d70 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -202,6 +202,7 @@ struct acpi_nfit_desc {
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
+ 	unsigned long bus_nfit_cmd_force_en;
++	unsigned int platform_cap;
+ 	int (*blk_do_io)(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 			void *iobuf, u64 len, int rw);
+ };
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 7fbc5c5dc8e1..8aa542398db4 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -35,6 +35,7 @@
+ #include "pmem.h"
+ #include "pfn.h"
+ #include "nd.h"
++#include "nd-core.h"
+ 
+ static struct device *to_dev(struct pmem_device *pmem)
+ {
+@@ -334,7 +335,8 @@ static int pmem_attach_disk(struct device *dev,
+ 		dev_warn(dev, "unable to guarantee persistence of writes\n");
+ 		fua = 0;
+ 	}
+-	wbc = nvdimm_has_cache(nd_region);
++	wbc = nvdimm_has_cache(nd_region) &&
++		!test_bit(ND_REGION_PERSIST_CACHE, &nd_region->flags);
+ 
+ 	if (!devm_request_mem_region(dev, res->start, resource_size(res),
+ 				dev_name(&ndns->dev))) {
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index f8109ddb5ef1..f2fc0da4da04 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -47,6 +47,11 @@ enum {
+ 
+ 	/* region flag indicating to direct-map persistent memory by default */
+ 	ND_REGION_PAGEMAP = 0,
++	/*
++	 * Platform ensures entire CPU store data path is flushed to pmem on
++	 * system power loss.
++	 */
++	ND_REGION_PERSIST_CACHE = 1,
+ 
+ 	/* mark newly adjusted resources as requiring a label update */
+ 	DPA_RESOURCE_ADJUSTED = 1 << 0,
