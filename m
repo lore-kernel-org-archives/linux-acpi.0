@@ -1,8 +1,8 @@
 From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v5 2/4] acpi: nfit: add persistent memory control flag for
- nd_region
-Date: Wed, 31 Jan 2018 12:45:43 -0700
-Message-ID: <151742794391.53525.4928012768671546212.stgit@djiang5-desk3.ch.intel.com>
+Subject: [PATCH v5 4/4] nfit-test: Add platform cap support from ACPI 6.2a
+ to test
+Date: Wed, 31 Jan 2018 12:45:55 -0700
+Message-ID: <151742795542.53525.10921968294502970416.stgit@djiang5-desk3.ch.intel.com>
 References: <151742786907.53525.180738048776121385.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,44 +22,53 @@ To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ross.zwisler-VuQAYsv
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Propagate the ADR attribute flag from the NFIT platform capabilities
-sub-table to nd_region.
+Adding NFIT platform capabilities sub table in nfit_test simulated ACPI
+NFIT table. Only the first NFIT table is added with the capability
+sub-table.
 
 Signed-off-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Reviewed-by: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c  |    3 +++
- include/linux/libnvdimm.h |    6 ++++++
- 2 files changed, 9 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bcf52bb93b65..b1616120ca57 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
- 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 7217b2b953b5..de1373a7ed4f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -881,7 +881,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 					window_size) * NUM_DCR
+ 			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
+ 			+ (sizeof(struct acpi_nfit_flush_address)
+-					+ sizeof(u64) * NUM_HINTS) * NUM_DCR;
++					+ sizeof(u64) * NUM_HINTS) * NUM_DCR
++			+ sizeof(struct acpi_nfit_capabilities);
+ 	int i;
  
-+	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
-+		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
+ 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
+@@ -993,6 +994,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	struct acpi_nfit_control_region *dcr;
+ 	struct acpi_nfit_data_region *bdw;
+ 	struct acpi_nfit_flush_address *flush;
++	struct acpi_nfit_capabilities *pcap;
+ 	unsigned int offset, i;
+ 
+ 	/*
+@@ -1500,8 +1502,16 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	for (i = 0; i < NUM_HINTS; i++)
+ 		flush->hint_address[i] = t->flush_dma[3] + i * sizeof(u64);
+ 
++	/* platform capabilities */
++	pcap = nfit_buf + offset + flush_hint_size * 4;
++	pcap->header.type = ACPI_NFIT_TYPE_CAPABILITIES;
++	pcap->header.length = sizeof(*pcap);
++	pcap->highest_capability = 1;
++	pcap->capabilities = ACPI_NFIT_CAPABILITY_CACHE_FLUSH |
++		ACPI_NFIT_CAPABILITY_MEM_FLUSH;
 +
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
- 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
- 		struct nd_mapping_desc *mapping;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f2fc0da4da04..ff855ed965fb 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -52,6 +52,12 @@ enum {
- 	 * system power loss.
- 	 */
- 	ND_REGION_PERSIST_CACHE = 1,
-+	/*
-+	 * Platform provides mechanisms to automatically flush outstanding
-+	 * write data from memory controler to pmem on system power loss.
-+	 * (ADR)
-+	 */
-+	ND_REGION_PERSIST_MEMCTRL = 2,
- 
- 	/* mark newly adjusted resources as requiring a label update */
- 	DPA_RESOURCE_ADJUSTED = 1 << 0,
+ 	if (t->setup_hotplug) {
+-		offset = offset + flush_hint_size * 4;
++		offset = offset + flush_hint_size * 4 + sizeof(*pcap);
+ 		/* dcr-descriptor4: blk */
+ 		dcr = nfit_buf + offset;
+ 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
