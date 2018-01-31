@@ -1,61 +1,51 @@
 From: Dave Jiang <dave.jiang@intel.com>
-Subject: [PATCH v3 2/4] acpi: nfit: add persistent memory control flag for
- nd_region
-Date: Tue, 30 Jan 2018 17:01:18 -0700
-Message-ID: <151735687890.34477.10539808986417857457.stgit@djiang5-desk3.ch.intel.com>
-References: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
+Subject: [PATCH v3 0/4] add support for platform persistence capabilities
+Date: Tue, 30 Jan 2018 17:01:07 -0700
+Message-ID: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:37158 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:60530 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754256AbeAaABU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 30 Jan 2018 19:01:20 -0500
-In-Reply-To: <151735668391.34477.11820724492631561208.stgit@djiang5-desk3.ch.intel.com>
+        id S1754252AbeAaABJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 30 Jan 2018 19:01:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com
 Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org
 
-Propagate the ADR attribute flag from the NFIT platform capabilities
-sub-table to nd_region.
+ACPI 6.2a provides an NFIT sub-table that informs if the platform has
+auto CPU flush and memory flush on unexpected power loss events. This series
+propogates those attributes to nd_region and add sysfs attribute to show
+those capabilities.
 
-Signed-off-by: Dave Jiang <dave.jiang@intel.com>
+v3:
+Addressed Ross's comments
+- fixed mask calculation for platform cap
+- fixed nfit_test nfit_buf size calcuation
+- fixed offset for test data structure
+
+v2:
+Per Dan's comments
+- Added ADR cap flags propogation
+- Added sysfs attribute
+
 ---
- drivers/acpi/nfit/core.c  |    3 +++
- include/linux/libnvdimm.h |    6 ++++++
- 2 files changed, 9 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bcf52bb93b65..b1616120ca57 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -2668,6 +2668,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
- 	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
- 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
- 
-+	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
-+		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
-+
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
- 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
- 		struct nd_mapping_desc *mapping;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index f2fc0da4da04..ff855ed965fb 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -52,6 +52,12 @@ enum {
- 	 * system power loss.
- 	 */
- 	ND_REGION_PERSIST_CACHE = 1,
-+	/*
-+	 * Platform provides mechanisms to automatically flush outstanding
-+	 * write data from memory controler to pmem on system power loss.
-+	 * (ADR)
-+	 */
-+	ND_REGION_PERSIST_MEMCTRL = 2,
- 
- 	/* mark newly adjusted resources as requiring a label update */
- 	DPA_RESOURCE_ADJUSTED = 1 << 0,
+Dave Jiang (4):
+      acpi: nfit: Add support for detect platform CPU cache flush on power loss
+      acpi: nfit: add persistent memory control flag for nd_region
+      libnvdimm: expose platform persistence attribute for nd_region
+      nfit-test: Add platform cap support from ACPI 6.2a to test
 
+
+ drivers/acpi/nfit/core.c         |   23 +++++++++++++++++++++++
+ drivers/acpi/nfit/nfit.h         |    1 +
+ drivers/nvdimm/pmem.c            |    4 +++-
+ drivers/nvdimm/region_devs.c     |   13 +++++++++++++
+ include/linux/libnvdimm.h        |   11 +++++++++++
+ tools/testing/nvdimm/test/nfit.c |   14 ++++++++++++--
+ 6 files changed, 63 insertions(+), 3 deletions(-)
+
+--
