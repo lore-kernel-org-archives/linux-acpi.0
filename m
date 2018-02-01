@@ -1,39 +1,108 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v1 1/4] ACPI / bus: Remove checks in acpi_get_match_data()
-Date: Wed, 31 Jan 2018 17:17:23 -0500
-Message-ID: <b52b3995-ec9c-660d-6c2f-afebf3864b90@codeaurora.org>
-References: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
+Date: Wed, 31 Jan 2018 20:39:52 -0800
+Message-ID: <CAJ=jquYAVi=CYmbrNuGzw+PuiphwzpVPHhZ06X6_PL5i-488Tw@mail.gmail.com>
+References: <1517377939-9817-1-git-send-email-alex.hung@canonical.com> <1646413.6Bc7kdyLTf@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:38922 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751360AbeAaWR0 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jan 2018 17:17:26 -0500
-In-Reply-To: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com>
-Content-Language: en-US
+Received: from youngberry.canonical.com ([91.189.89.112]:60779 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751190AbeBAEjz (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 31 Jan 2018 23:39:55 -0500
+Received: from mail-qt0-f200.google.com ([209.85.216.200])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <alex.hung@canonical.com>)
+        id 1eh6fC-0007EK-Ed
+        for linux-acpi@vger.kernel.org; Thu, 01 Feb 2018 04:39:54 +0000
+Received: by mail-qt0-f200.google.com with SMTP id f21so15613901qtm.11
+        for <linux-acpi@vger.kernel.org>; Wed, 31 Jan 2018 20:39:54 -0800 (PST)
+In-Reply-To: <1646413.6Bc7kdyLTf@aspire.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, dmaengine <dmaengine@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-On 1/31/2018 4:29 PM, Andy Shevchenko wrote:
-> As well as its sibling of_device_get_match_data() has no such checks,
-> no need to do it in acpi_get_match_data().
-> 
-> First of all, we are not supposed to call fwnode API like this without
-> driver attached.
-> 
-> Second, if pure OF driver calls this function, it's weird to have ACPI
-> companion without ACPI ID in this case.
+On Wed, Jan 31, 2018 at 1:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Wednesday, January 31, 2018 6:52:19 AM CET Alex Hung wrote:
+>> In recent Intel hardware the IRQs become non-configurable after BIOS
+>> initializes them in PEI phase and _PRS objects are no longer included in
+>> ASL.
+>>
+>> This is the same as "static (non-configurable) devices do not
+>> specify a _PRS object" in ACPI spec. As a result, error messages
+>> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
+>> needed.
+>
+> That's questionable at best.
+>
+> The errors basically indicate that _PRT entries corresponding to these
+> IRQs are messed up (because they should contain the value of 0 instead of
+> a NamePath in the Source column), so we are now going to paper over bugs
+> in ACPI tables as someone in the firmware land cannot be bothered with
+> putting correct values into them. :-/
 
-We talked about this during review. 
+Rafael,
 
-of_match_device() does all the checking for the OF part. ACPI doesn't have
-any checks.
+Thanks for quick reply and sharing the information
+
+It seems static (non-configurable) devices on ACPI are discussed in
+both _PRS and _PRT as below:
+
+6.2.12 _PRS (Possible Resource Settings)
+"... Static (non-configurable) devices do not specify a _PRS object... "
+
+6.2.13 _PRT (PCI Routing Table)
+"In the second model, the PCI interrupts are hardwired to specific
+interrupt inputs on the interrupt controller and are not configurable.
+In this case, the Source field in _PRT does not reference a device,
+but instead contains the value zero, and the Source Index field
+contains the global system interrupt to which the PCI interrupt is
+hardwired."
+
+My interpretation is the both are true from ACPI's perspective, and
+both should be implemented by system firmware. On this particular
+system I am debugging remotely, it does the _PRS part but not _PRT,
+and I will follow up with firmware engineers.
+
+On the other hand, it may not be unreasonable to remove AE_NOT_FOUND
+as defined in 6.2.12 in ACPI spec. I also did a code trace and it
+seems that the AE_NOT_FOUND in _PRS cannot be removed by a value of
+zero in Source field in _PRT.
+
+Finally, this seems to be a confusing topic in ACPI spec (to the
+firmware engineers and I at least). If we can figure this out, we may
+want to clarify the wording with ASWG.
+
+>
+>> Signed-off-by: Alex Hung <alex.hung@canonical.com>
+>> ---
+>>  drivers/acpi/pci_link.c | 4 +---
+>>  1 file changed, 1 insertion(+), 3 deletions(-)
+>>
+>> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+>> index 85ad679390e3..f98215971f30 100644
+>> --- a/drivers/acpi/pci_link.c
+>> +++ b/drivers/acpi/pci_link.c
+>> @@ -172,10 +172,8 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
+>>
+>>       status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
+>>                                    acpi_pci_link_check_possible, link);
+>> -     if (ACPI_FAILURE(status)) {
+>> -             ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
+>> +     if (ACPI_FAILURE(status))
+>>               return -ENODEV;
+>> -     }
+>>
+>>       ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+>>                         "Found %d possible IRQs\n",
+>>
+>
+>
+
+
 
 -- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+Cheers,
+Alex Hung
