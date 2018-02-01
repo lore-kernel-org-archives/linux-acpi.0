@@ -1,48 +1,55 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 1/2] x86/acpi: add retrieval function for rsdp address
-Date: Thu, 1 Feb 2018 17:45:02 +0200
-Message-ID: <CAHp75Ved4nO7ktQ=1O5oRx4mNyWcA6YN9fATgMGW1OR0UxCd4g@mail.gmail.com>
-References: <20180125143639.9969-1-jgross@suse.com> <20180125143639.9969-2-jgross@suse.com>
- <CAHp75VdgdQXH-d9+Fo1DwGdfV1pB0jADMmwAK1BU7oN6dgQs8Q@mail.gmail.com>
- <a33e605a-73d7-83b7-4472-14f66b6738be@suse.com> <CAHp75VdUO2Rq7geYD9xxY3nnzGAhO46+w+rQx44=MgJ6obRcEA@mail.gmail.com>
- <CAJZ5v0gr7Jd-1dOD_DTRQDCX7ON68O1KJ9ioAJAnwBYm2cEdZg@mail.gmail.com>
- <CAHp75Vf7SRNGeU_To9WNmzECxaKjDbYeFspnJiwCGAhAwOTRyA@mail.gmail.com> <CAJZ5v0g3Ti4W8Z-ePVCO0RFs3qviJxhrh1___i6oiZKRsYzBng@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 3/6] ACPI / bus: Remove checks in acpi_get_match_data()
+Date: Thu,  1 Feb 2018 22:20:09 +0200
+Message-ID: <20180201202012.36524-3-andriy.shevchenko@linux.intel.com>
+References: <20180201202012.36524-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f181.google.com ([209.85.220.181]:39798 "EHLO
-        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751508AbeBAPpD (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Feb 2018 10:45:03 -0500
-In-Reply-To: <CAJZ5v0g3Ti4W8Z-ePVCO0RFs3qviJxhrh1___i6oiZKRsYzBng@mail.gmail.com>
+Received: from mga17.intel.com ([192.55.52.151]:25365 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754703AbeBAUUT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 1 Feb 2018 15:20:19 -0500
+In-Reply-To: <20180201202012.36524-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Juergen Gross <jgross@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Ingo Molnar <mingo@redhat.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stable <stable@vger.kernel.org>
+To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On Thu, Feb 1, 2018 at 9:57 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Wed, Jan 31, 2018 at 4:43 PM, Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
->> On Mon, Jan 29, 2018 at 5:02 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>> On Sun, Jan 28, 2018 at 4:04 PM, Andy Shevchenko
->>> <andy.shevchenko@gmail.com> wrote:
+As well as its sibling of_device_get_match_data() has no such checks,
+no need to do it in acpi_get_match_data().
 
->> Instead of declaring function as __weak, establish a new struct for
->> ACPI related stubs and incorporate it into x86_init.
->>
->> That is my proposal. I think I would go this way in my case where I
->> need to treat differently ACPI HW reduced initialization of legacy
->> devices.
->
-> IOW you'd like to have a set of ACPI init callbacks that could be
-> defined by an arch, right?
+First of all, we are not supposed to call fwnode API like this without
+driver attached.
 
-Correct!
+Second, since __acpi_match_device() does check input parameter there is
+no need to duplicate it outside.
 
-And since there is another potential user (Xen) for this approach I
-consider it a good chance to be chosen.
-Though I have no idea if Xen can do things differently.
+Fixes: 80212a162329 ("ACPI / bus: Introduce acpi_get_match_data() function")
+Cc: Sinan Kaya <okaya@codeaurora.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+v2: rebase on top of new patches, rephrase commit message
+ drivers/acpi/bus.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index f3a7c29e9190..413e4b1cb1be 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -791,12 +791,6 @@ void *acpi_get_match_data(const struct device *dev)
+ {
+ 	const struct acpi_device_id *match;
+ 
+-	if (!dev->driver)
+-		return NULL;
+-
+-	if (!dev->driver->acpi_match_table)
+-		return NULL;
+-
+ 	match = acpi_match_device(dev->driver->acpi_match_table, dev);
+ 	if (!match)
+ 		return NULL;
 -- 
-With Best Regards,
-Andy Shevchenko
+2.15.1
+
