@@ -1,50 +1,97 @@
-From: "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>
-Subject: Re: [PATCH v2] ACPI / tables: Add IORT to injectable table list
-Date: Fri, 2 Feb 2018 07:18:28 +0000
-Message-ID: <1517555897.3387.6.camel@hxt-semitech.com>
-References: <1516695922-15045-1-git-send-email-shunyong.yang@hxt-semitech.com>
-         <1517276662.2652.12.camel@hxt-semitech.com>
-         <74324d8a-c144-5b21-bea1-9f2e1b891c0f@huawei.com>
+From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [v3,2/2] ACPI / scan: Fix enumeration for special UART devices
+Date: Fri, 2 Feb 2018 11:03:38 +0100
+Message-ID: <4eb3d357-bf54-2360-f547-d0c6fbbc8396@gmail.com>
+References: <1507710734-32520-3-git-send-email-frederic.danis.oss@gmail.com>
+ <20180131142100.GE26342@xora-haswell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <74324d8a-c144-5b21-bea1-9f2e1b891c0f@huawei.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180131142100.GE26342@xora-haswell>
 Content-Language: en-US
-Content-ID: <230C63D794E8754E876676F6DD99C9BD@hxt-semitech.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "guohanjun@huawei.com" <guohanjun@huawei.com>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Jiang, Yutang2" <yutang2.jiang@hxt-semitech.com>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Graeme Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Hanjun
+Hi Graeme,
 
-On Wed, 2018-01-31 at 21:32 +0800, Hanjun Guo wrote:
-> Hi Shunyong,
-> 
-> On 2018/1/30 9:44, Yang, Shunyong wrote:
-> > 
-> > Hi,�Rafael
-> > 
-> > Could you please help to review this patch? This is a small change
-> > to
-> > add ACPI_SIG_IORT to�table_sigs[].�
-> > Loading IORT table from initrd is very useful to debug SMMU
-> > node/device
-> > probe, MSI allocation, stream id translation and verifying IORT
-> > table
-> > from firmware. So, I add this.
-> It's true, mappings in IORT will be easy getting wrong, so it would
-> be
-> good to test it without updating the firmware.
-> 
-> But I think you'd better to add your comment about why you need
-> IORT in the commit message in your patch, that will be useful
-> to convince Rafael to take your patch.
-> 
+Le 31/01/2018 à 15:21, Graeme Gregory a écrit :
+> On Wed, Oct 11, 2017 at 10:32:14AM +0200, Frédéric Danis wrote:
+>> UART devices is expected to be enumerated by SerDev subsystem.
+>>
+>> During ACPI scan, serial devices behind SPI, I2C or UART buses are not
+>> enumerated, allowing them to be enumerated by their respective parents.
+>>
+>> Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for serial
+>> devices on serial buses (SPI, I2C or UART).
+>>
+>> On Macs an empty ResourceTemplate is returned for uart slaves.
+>> Instead the device properties "baud", "parity", "dataBits", "stopBits" are
+>> provided. Add a check for "baud" in acpi_is_serial_bus_slave().
+>>
+> This patch appears to break UART probing in ACPI on xgene based
+> plaforms.
+>
+> The appropriate chunks of DSDT.
+>
+>      Device (_SB.AHBC)
+>      {
+>          OperationRegion (SRST, SystemMemory, 0x1F2AC000, 0x04)
+>          OperationRegion (CLKE, SystemMemory, 0x1F2AC004, 0x04)
+>          OperationRegion (SRRM, SystemMemory, 0x1F2AD070, 0x04)
+>          OperationRegion (RD2F, SystemMemory, 0x1F2AE014, 0x04)
+>
+>      ...
+>
+>          Device (UAR0)
+>          {
+>              Name (_HID, "APMC0D08")  // _HID: Hardware ID
+>              Name (_DDN, "UAR0")  // _DDN: DOS Device Name
+>              Name (_UID, "UAR0")  // _UID: Unique ID
+>              Name (_STR, Unicode ("APM88xxxx UART0 Controller"))  // _STR: Description String
+>              Name (_ADR, 0x1C021000)  // _ADR: Address
+>              Name (_CID, "NS16550A")  // _CID: Compatible ID
+>
+>      ...
+>
+>              Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
+>              {
+>                  Memory32Fixed (ReadWrite,
+>                      0x1C021000,         // Address Base
+>                      0x00000100,         // Address Length
+>                      )
+>                  UartSerialBusV2 (0x00002580, DataBitsEight, StopBitsOne,
+>                      0x00, LittleEndian, ParityTypeNone, FlowControlHardware,
+>                      0x0010, 0x0010, "UAR0",
+>                      0x00, ResourceConsumer, , Exclusive,
+>                      )
+>                  Interrupt (ResourceProducer, Level, ActiveHigh, Exclusive, ,, )
+>                  {
+>                      0x0000006D,
+>                  }
+>              })
 
-Thanks for your suggestion. I will add detailed information to commit
-message and send out v3 later.
+This seems to be related to 
+https://bugzilla.redhat.com/show_bug.cgi?id=1531140
+Am I correct?
 
-Thanks.
-Shunyong.
+The SerDev support should allow UART to appear as tty device if not used 
+by an underlying component (cf. tty_port_register_device_attr() in 
+drivers/tty/tty_port.c).
+
+AFAIU, there is no internal device attached to this serial port.
+Is it possible to get complete ACPI DSDT?
+
+Is SerDev enabled on this device?
+Boot logs with SerDev debug traces enabled can be useful to understand 
+what happens.
+
+Regards,
+
+Fred
+
+-- 
+Frédéric Danis                       Embedded Linux Consultant
+frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
