@@ -1,97 +1,59 @@
-From: =?UTF-8?Q?Fr=c3=a9d=c3=a9ric_Danis?= <frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [v3,2/2] ACPI / scan: Fix enumeration for special UART devices
-Date: Fri, 2 Feb 2018 11:03:38 +0100
-Message-ID: <4eb3d357-bf54-2360-f547-d0c6fbbc8396@gmail.com>
-References: <1507710734-32520-3-git-send-email-frederic.danis.oss@gmail.com>
- <20180131142100.GE26342@xora-haswell>
+From: Yang Shunyong <shunyong.yang@hxt-semitech.com>
+Subject: [PATCH v3] ACPI / tables: Add IORT to injectable table list
+Date: Fri, 2 Feb 2018 18:25:38 +0800
+Message-ID: <1517567138-27283-1-git-send-email-shunyong.yang@hxt-semitech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20180131142100.GE26342@xora-haswell>
-Content-Language: en-US
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Graeme Gregory <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org, sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, loic.poulain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, johan-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx01.hxt-semitech.com.96.203.223.in-addr.arpa ([223.203.96.7]:58510
+        "EHLO barracuda.hxt-semitech.com" rhost-flags-OK-FAIL-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750773AbeBBK1V (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2018 05:27:21 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yang Shunyong <shunyong.yang@hxt-semitech.com>, Joey Zheng <yu.zheng@hxt-semitech.com>, Wang Dongsheng <dongsheng.wang@hxt-semitech.com>, Jiang Yutang <yutang2.jiang@hxt-semitech.com>, Hanjun Guo <guohanjun@huawei.com>
 
-Hi Graeme,
+Loading IORT table from initrd is used to fix firmware IORT defects.
+Moreover, it is very useful to debug SMMU node/device probe, MSI
+allocation, stream id translation and IORT table from firmware. It
+is also very useful to enable SMMU and devices behind SMMU before
+firmware is ready.
 
-Le 31/01/2018 à 15:21, Graeme Gregory a écrit :
-> On Wed, Oct 11, 2017 at 10:32:14AM +0200, Frédéric Danis wrote:
->> UART devices is expected to be enumerated by SerDev subsystem.
->>
->> During ACPI scan, serial devices behind SPI, I2C or UART buses are not
->> enumerated, allowing them to be enumerated by their respective parents.
->>
->> Rename *spi_i2c_slave* to *serial_bus_slave* as this will be used for serial
->> devices on serial buses (SPI, I2C or UART).
->>
->> On Macs an empty ResourceTemplate is returned for uart slaves.
->> Instead the device properties "baud", "parity", "dataBits", "stopBits" are
->> provided. Add a check for "baud" in acpi_is_serial_bus_slave().
->>
-> This patch appears to break UART probing in ACPI on xgene based
-> plaforms.
->
-> The appropriate chunks of DSDT.
->
->      Device (_SB.AHBC)
->      {
->          OperationRegion (SRST, SystemMemory, 0x1F2AC000, 0x04)
->          OperationRegion (CLKE, SystemMemory, 0x1F2AC004, 0x04)
->          OperationRegion (SRRM, SystemMemory, 0x1F2AD070, 0x04)
->          OperationRegion (RD2F, SystemMemory, 0x1F2AE014, 0x04)
->
->      ...
->
->          Device (UAR0)
->          {
->              Name (_HID, "APMC0D08")  // _HID: Hardware ID
->              Name (_DDN, "UAR0")  // _DDN: DOS Device Name
->              Name (_UID, "UAR0")  // _UID: Unique ID
->              Name (_STR, Unicode ("APM88xxxx UART0 Controller"))  // _STR: Description String
->              Name (_ADR, 0x1C021000)  // _ADR: Address
->              Name (_CID, "NS16550A")  // _CID: Compatible ID
->
->      ...
->
->              Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
->              {
->                  Memory32Fixed (ReadWrite,
->                      0x1C021000,         // Address Base
->                      0x00000100,         // Address Length
->                      )
->                  UartSerialBusV2 (0x00002580, DataBitsEight, StopBitsOne,
->                      0x00, LittleEndian, ParityTypeNone, FlowControlHardware,
->                      0x0010, 0x0010, "UAR0",
->                      0x00, ResourceConsumer, , Exclusive,
->                      )
->                  Interrupt (ResourceProducer, Level, ActiveHigh, Exclusive, ,, )
->                  {
->                      0x0000006D,
->                  }
->              })
+This patch adds ACPI_SIG_IORT to the table, which enables IORT
+from initrd to override which from firmware.
 
-This seems to be related to 
-https://bugzilla.redhat.com/show_bug.cgi?id=1531140
-Am I correct?
+Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
+Cc: Joey Zheng <yu.zheng@hxt-semitech.com>
+Cc: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+Cc: Jiang Yutang <yutang2.jiang@hxt-semitech.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+---
 
-The SerDev support should allow UART to appear as tty device if not used 
-by an underlying component (cf. tty_port_register_device_attr() in 
-drivers/tty/tty_port.c).
+v3:
+Add more detailed commit message according to Hanjun's suggestion.
 
-AFAIU, there is no internal device attached to this serial port.
-Is it possible to get complete ACPI DSDT?
+v2:
+Change typo ACPI_SIG_PPTT to ACPI_SIG_IORT in commit message.
 
-Is SerDev enabled on this device?
-Boot logs with SerDev debug traces enabled can be useful to understand 
-what happens.
+---
+ drivers/acpi/tables.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Regards,
-
-Fred
-
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 80ce2a7d224b..7bcb66ccccf3 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -456,7 +456,8 @@ static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
+ 	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
+ 	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
+ 	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
+-	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
++	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
++	NULL };
+ 
+ #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+ 
 -- 
-Frédéric Danis                       Embedded Linux Consultant
-frederic.danis.oss-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+1.8.3.1
+
