@@ -1,59 +1,93 @@
-From: Yang Shunyong <shunyong.yang@hxt-semitech.com>
-Subject: [PATCH v3] ACPI / tables: Add IORT to injectable table list
-Date: Fri, 2 Feb 2018 18:25:38 +0800
-Message-ID: <1517567138-27283-1-git-send-email-shunyong.yang@hxt-semitech.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
+Date: Fri, 02 Feb 2018 12:25:52 +0100
+Message-ID: <2378701.uKqO5Wmcrc@aspire.rjw.lan>
+References: <1517377939-9817-1-git-send-email-alex.hung@canonical.com> <CAJZ5v0hNXpwvEDX4ddFdNVzKF8MrbCH=Dn7+z3bTMJ937_-J8w@mail.gmail.com> <CAJ=jquasNcZyVu3w+Xaz0g4DXtz-pAi8Bq61VkiRtLhm4mceMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx01.hxt-semitech.com.96.203.223.in-addr.arpa ([223.203.96.7]:58510
-        "EHLO barracuda.hxt-semitech.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750773AbeBBK1V (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2018 05:27:21 -0500
+Received: from cloudserver094114.home.pl ([79.96.170.134]:53246 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751416AbeBBL13 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2018 06:27:29 -0500
+In-Reply-To: <CAJ=jquasNcZyVu3w+Xaz0g4DXtz-pAi8Bq61VkiRtLhm4mceMQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yang Shunyong <shunyong.yang@hxt-semitech.com>, Joey Zheng <yu.zheng@hxt-semitech.com>, Wang Dongsheng <dongsheng.wang@hxt-semitech.com>, Jiang Yutang <yutang2.jiang@hxt-semitech.com>, Hanjun Guo <guohanjun@huawei.com>
+To: Alex Hung <alex.hung@canonical.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
-Loading IORT table from initrd is used to fix firmware IORT defects.
-Moreover, it is very useful to debug SMMU node/device probe, MSI
-allocation, stream id translation and IORT table from firmware. It
-is also very useful to enable SMMU and devices behind SMMU before
-firmware is ready.
+On Thursday, February 1, 2018 9:07:59 AM CET Alex Hung wrote:
+> On Wed, Jan 31, 2018 at 11:30 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Thu, Feb 1, 2018 at 5:39 AM, Alex Hung <alex.hung@canonical.com> wrote:
+> >> On Wed, Jan 31, 2018 at 1:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >>> On Wednesday, January 31, 2018 6:52:19 AM CET Alex Hung wrote:
+> >>>> In recent Intel hardware the IRQs become non-configurable after BIOS
+> >>>> initializes them in PEI phase and _PRS objects are no longer included in
+> >>>> ASL.
+> >>>>
+> >>>> This is the same as "static (non-configurable) devices do not
+> >>>> specify a _PRS object" in ACPI spec. As a result, error messages
+> >>>> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
+> >>>> needed.
+> >>>
+> >>> That's questionable at best.
+> >>>
+> >>> The errors basically indicate that _PRT entries corresponding to these
+> >>> IRQs are messed up (because they should contain the value of 0 instead of
+> >>> a NamePath in the Source column), so we are now going to paper over bugs
+> >>> in ACPI tables as someone in the firmware land cannot be bothered with
+> >>> putting correct values into them. :-/
+> >>
+> >> Rafael,
+> >>
+> >> Thanks for quick reply and sharing the information
+> >>
+> >> It seems static (non-configurable) devices on ACPI are discussed in
+> >> both _PRS and _PRT as below:
+> >>
+> >> 6.2.12 _PRS (Possible Resource Settings)
+> >> "... Static (non-configurable) devices do not specify a _PRS object... "
+> >>
+> >> 6.2.13 _PRT (PCI Routing Table)
+> >> "In the second model, the PCI interrupts are hardwired to specific
+> >> interrupt inputs on the interrupt controller and are not configurable.
+> >> In this case, the Source field in _PRT does not reference a device,
+> >> but instead contains the value zero, and the Source Index field
+> >> contains the global system interrupt to which the PCI interrupt is
+> >> hardwired."
+> >>
+> >> My interpretation is the both are true from ACPI's perspective, and
+> >> both should be implemented by system firmware. On this particular
+> >> system I am debugging remotely, it does the _PRS part but not _PRT,
+> >> and I will follow up with firmware engineers.
+> >
+> > OK
+> >
+> >> On the other hand, it may not be unreasonable to remove AE_NOT_FOUND
+> >> as defined in 6.2.12 in ACPI spec. I also did a code trace and it
+> >> seems that the AE_NOT_FOUND in _PRS cannot be removed by a value of
+> >> zero in Source field in _PRT.
+> >
+> > I'm not sure what you mean here.
+> >
+> > Do you mean that the code would mishandle 0 in the Source field of _PRT?
+> 
+> I meant the AE_NOT_FOUND messages still pop up when SOURCE = 0.
 
-This patch adds ACPI_SIG_IORT to the table, which enables IORT
-from initrd to override which from firmware.
+OK, so why does the firmware define the link objects in the namespace then?
 
-Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
-Cc: Joey Zheng <yu.zheng@hxt-semitech.com>
-Cc: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
-Cc: Jiang Yutang <yutang2.jiang@hxt-semitech.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
----
+> Do you have other comments about this patch or concerns that I can work
+> with firmware engineers?
 
-v3:
-Add more detailed commit message according to Hanjun's suggestion.
+It looks to me that there are some PCI interrupt link objects in the
+namespace without _PRS and which aren't pointed to by any _PRT entries.
 
-v2:
-Change typo ACPI_SIG_PPTT to ACPI_SIG_IORT in commit message.
+If so, what are they useful for then?
 
----
- drivers/acpi/tables.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+We sure may ignore such things, but the patch makes us ignore cases that
+are outright invalid too AFAICS.
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 80ce2a7d224b..7bcb66ccccf3 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -456,7 +456,8 @@ static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
- 	ACPI_SIG_SLIC, ACPI_SIG_SPCR, ACPI_SIG_SPMI, ACPI_SIG_TCPA,
- 	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
- 	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
--	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, NULL };
-+	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
-+	NULL };
- 
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
- 
--- 
-1.8.3.1
+Thanks,
+Rafael
 
