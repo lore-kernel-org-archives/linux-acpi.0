@@ -1,33 +1,41 @@
-From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
-Subject: Re: Re: [PATCH v3] ACPI / tables: Add IORT to injectable table list
-Date: Fri, 2 Feb 2018 12:12:39 +0000
-Message-ID: <em5890c25f-84af-42ac-bfea-b27c6516e46b@bjl0091>
-References: <1517567138-27283-1-git-send-email-shunyong.yang@hxt-semitech.com>
- <68362a1f-cc0c-42f9-97da-bdf379c4f5a1@huawei.com>
-Reply-To: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx01.hxt-semitech.com.96.203.223.in-addr.arpa ([223.203.96.7]:59875
-        "EHLO barracuda.hxt-semitech.com" rhost-flags-OK-FAIL-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751584AbeBBMMw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2018 07:12:52 -0500
-In-Reply-To: <68362a1f-cc0c-42f9-97da-bdf379c4f5a1@huawei.com>
-Content-Language: en-US
-Content-ID: <2C293ACC3B91E445907C1EE789E92A4B@hxt-semitech.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>
+Subject: [Patch v2 0/5] platform/x86: intel_pmc_core: Add CFL/CNL Support
+Date: Fri,  2 Feb 2018 19:13:32 +0530
+Message-ID: <1517579017-19935-1-git-send-email-rajneesh.bhardwaj@intel.com>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: platform-driver-x86@vger.kernel.org
+Cc: dvhart@infradead.org, andy@infradead.org, linux-kernel@vger.kernel.org, vishwanath.somayaji@intel.com, srinivas.pandruvada@linux.intel.com, Rajneesh Bhardwaj <rajneesh.bhardwaj@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "Jiang, Yutang2" <yutang2.jiang@hxt-semitech.com>
 
-SGV5LCBIYW5qdW4sDQoNCk9uIDIwMTgvMi8yIDE5OjU0OjI0LCAiSGFuanVuIEd1byIgPGd1b2hh
-bmp1bkBodWF3ZWkuY29tPiB3cm90ZToNCg0KPk9uIDIwMTgvMi8yIDE4OjI1LCBZYW5nIFNodW55
-b25nIHdyb3RlOg0KPj5Mb2FkaW5nIElPUlQgdGFibGUgZnJvbSBpbml0cmQgaXMgdXNlZCB0byBm
-aXggZmlybXdhcmUgSU9SVCBkZWZlY3RzLg0KPg0KPkkgZG9uJ3QgdGhpbmsgdGhpcyBmaXggImZp
-cm13YXJlIGRlZmVjdHMiLCBpdCBqdXN0IGZvciBkZWJ1ZyBwdXJwb3NlLA0KPndlIHdpbGwgbm90
-IHVzZSB0aGF0IGZvciBwcm9kdWN0aW9uIHB1cnBvc2UsIHJpZ2h0PyBJIHRoaW5rIGFib3ZlIGxp
-bmUNCj5jYW4gYmUgcmVtb3ZlZC4NCj4NCkkgdGhpbmtzIHRoZSB1cGdyYWRlIGZlYXR1cmUgbm90
-IG9ubHkgZm9yIGRlYnVnLiBIZXJlJ3MgYW4gaW1wb3J0YW50DQp3YXkgdG8gZml4IGJ1Z3MgdGhh
-dCBjb21lIGZyb20gdGhlIGZpcm13YXJlLg0KDQpEb2N1bWVudGF0aW9uL2FjcGkvaW5pdHJkX3Rh
-YmxlX292ZXJyaWRlLnR4dA0KDQoNCkNoZWVycywNCi1Eb25nc2hlbmc=
+This series contains the remaining (rebased) patches that were not applied
+to the pdx tree earlier. This also includes Acked-by / Reviewed-by tags from
+Rafael and Thomas.
+
+Rebased and tested on:
+http://git.infradead.org/linux-platform-drivers-x86.git/shortlog/refs/heads/review-andy
+
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+
+Cc: linux-acpi@vger.kernel.org
+Cc: x86@kernel.org
+
+Rajneesh Bhardwaj (3):
+  x86/cpu: Add Cannonlake to Intel family
+  platform/x86: intel_pmc_core: Add CannonLake PCH support
+  platform/x86: intel_pmc_core: Special case for Coffeelake
+
+Srinivas Pandruvada (2):
+  ACPI / LPIT: Export lpit_read_residency_count_address()
+  platform/x86: intel_pmc_core: Read base address from LPIT
+
+ arch/x86/include/asm/intel-family.h   |   6 ++
+ drivers/acpi/acpi_lpit.c              |   1 +
+ drivers/platform/x86/intel_pmc_core.c | 108 +++++++++++++++++++++++++++++++++-
+ drivers/platform/x86/intel_pmc_core.h |  13 ++++
+ 4 files changed, 127 insertions(+), 1 deletion(-)
+
+-- 
+2.7.4
