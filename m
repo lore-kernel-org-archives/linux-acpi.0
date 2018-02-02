@@ -1,56 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 1/4] ACPI / bus: Remove checks in acpi_get_match_data()
-Date: Fri, 02 Feb 2018 12:32:18 +0100
-Message-ID: <2550046.e5XUd9eR5Z@aspire.rjw.lan>
-References: <20180131212959.68766-1-andriy.shevchenko@linux.intel.com> <CAJZ5v0i_wZCmPcMSqGWNpxAStkw0UVhrDNUdaEiDY90=uEjGcw@mail.gmail.com> <1517487893.7000.1372.camel@linux.intel.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v3] ACPI / tables: Add IORT to injectable table list
+Date: Fri, 2 Feb 2018 19:54:24 +0800
+Message-ID: <68362a1f-cc0c-42f9-97da-bdf379c4f5a1@huawei.com>
+References: <1517567138-27283-1-git-send-email-shunyong.yang@hxt-semitech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:51390 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751579AbeBBLdz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Feb 2018 06:33:55 -0500
-In-Reply-To: <1517487893.7000.1372.camel@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1517567138-27283-1-git-send-email-shunyong.yang@hxt-semitech.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Yang Shunyong <shunyong.yang@hxt-semitech.com>, rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joey Zheng <yu.zheng@hxt-semitech.com>, Wang Dongsheng <dongsheng.wang@hxt-semitech.com>, Jiang Yutang <yutang2.jiang@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@codeaurora.org>, dmaengine <dmaengine@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On Thursday, February 1, 2018 1:24:53 PM CET Andy Shevchenko wrote:
-> On Thu, 2018-02-01 at 08:27 +0100, Rafael J. Wysocki wrote:
-> > On Wed, Jan 31, 2018 at 11:17 PM, Sinan Kaya <okaya@codeaurora.org>
-> > wrote:
-> > > On 1/31/2018 4:29 PM, Andy Shevchenko wrote:
-> > > > As well as its sibling of_device_get_match_data() has no such
-> > > > checks,
-> > > > no need to do it in acpi_get_match_data().
-> > > > 
-> > > > First of all, we are not supposed to call fwnode API like this
-> > > > without
-> > > > driver attached.
-> > > > 
-> > > > Second, if pure OF driver calls this function, it's weird to have
-> > > > ACPI
-> > > > companion without ACPI ID in this case.
-> > > 
-> > > We talked about this during review.
-> > > 
-> > > of_match_device() does all the checking for the OF part. ACPI
-> > > doesn't have
-> > > any checks.
-> > 
-> > Yeah, this patch is just plain incorrect AFAICS.
-> 
-> I don't see how check dev->driver is implemented on OF side then
-> 
-> 
-> of_device_get_match_data() which is called by
-> of_fwnode_device_get_match_data() has dereferenced dev->driver w/o any
-> check.
-> 
-> I can't agree that the patch is plain incorrect, if I didn't miss
-> anything.
+On 2018/2/2 18:25, Yang Shunyong wrote:
+> Loading IORT table from initrd is used to fix firmware IORT defects.
 
-OK, you're right, sorry.
+I don't think this fix "firmware defects", it just for debug purpose,
+we will not use that for production purpose, right? I think above line
+can be removed.
 
+> Moreover, it is very useful to debug SMMU node/device probe, MSI
+> allocation, stream id translation and IORT table from firmware. It
+> is also very useful to enable SMMU and devices behind SMMU before
+> firmware is ready.
+> 
+> This patch adds ACPI_SIG_IORT to the table, which enables IORT
+> from initrd to override which from firmware.
+> 
+> Signed-off-by: Yang Shunyong <shunyong.yang@hxt-semitech.com>
+> Cc: Joey Zheng <yu.zheng@hxt-semitech.com>
+> Cc: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+> Cc: Jiang Yutang <yutang2.jiang@hxt-semitech.com>
+> Cc: Hanjun Guo <guohanjun@huawei.com>
+
+With that updated,
+
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
