@@ -1,66 +1,60 @@
-From: okaya@codeaurora.org
-Subject: Re: [PATCH] ACPI/PCI: pci_link: reduce verbosity when IRQ is enabled
-Date: Sun, 04 Feb 2018 08:43:10 -0500
-Message-ID: <f941444fae6a217c8ecd90010062a04b@codeaurora.org>
-References: <1516128664-23634-1-git-send-email-okaya@codeaurora.org>
- <f508e749-2976-ec6f-681a-553b79c4ab76@codeaurora.org>
- <20180116214939.GC10860@bhelgaas-glaptop.roam.corp.google.com>
- <fde756f4-eb74-4002-6ac4-a44405bad2da@codeaurora.org>
- <CAJZ5v0jNVENRq-3QjF6nY9_5-0ff=6j_qneLqCQ57h6t1R4Fow@mail.gmail.com>
- <CAJZ5v0gW7hHAAisSemyvgTyMxpqxmUTADLZTmpyERB+qSMoA=w@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 5/6] dmaengine: hidma: Constify returned by
+ device_get_match_data() value
+Date: Sun, 04 Feb 2018 16:06:55 +0200
+Message-ID: <1517753215.7000.1505.camel@linux.intel.com>
+References: <20180201202012.36524-1-andriy.shevchenko@linux.intel.com>
+         <20180201202012.36524-5-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:33404 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750868AbeBDNnM (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Feb 2018 08:43:12 -0500
-In-Reply-To: <CAJZ5v0gW7hHAAisSemyvgTyMxpqxmUTADLZTmpyERB+qSMoA=w@mail.gmail.com>
+Received: from mga03.intel.com ([134.134.136.65]:42786 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750868AbeBDOG6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sun, 4 Feb 2018 09:06:58 -0500
+In-Reply-To: <20180201202012.36524-5-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, linux-arm-msm <linux-arm-msm@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, Linux PCI <linux-pci@vger.kernel.org>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi-owner@vger.kernel.org
+To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On 2018-02-04 04:03, Rafael J. Wysocki wrote:
-> On Thu, Feb 1, 2018 at 8:32 AM, Rafael J. Wysocki <rafael@kernel.org> 
-> wrote:
->> On Mon, Jan 29, 2018 at 8:01 PM, Sinan Kaya <okaya@codeaurora.org> 
->> wrote:
->>> Rafael,
->>> 
->>> On 1/16/2018 4:49 PM, Bjorn Helgaas wrote:
->>>> On Tue, Jan 16, 2018 at 01:53:00PM -0500, Sinan Kaya wrote:
->>>>> Correcting linux-pci email.
->>>>> 
->>>>> On 1/16/2018 1:51 PM, Sinan Kaya wrote:
->>>>>> When ACPI Link object is enabled, the message is printed with a 
->>>>>> warning
->>>>>> prefix. Some test tools are capturing warning and test error types 
->>>>>> as
->>>>>> errors. Let's reduce the verbosity of success case.
->>>>>> 
->>>>>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->>>> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->>>> 
->>>> Looks like this was a result of 4d9391557b68 ("ACPI: add missing 
->>>> KERN_*
->>>> constants to printks"), which I think added the wrong level in this 
->>>> case.
->>>> 
->>> 
->>> Any chance of merging this for 4.16?
->> 
->> There is.
+On Thu, 2018-02-01 at 22:20 +0200, Andy Shevchenko wrote:
+> The value under the hood is constant in any case.
+> It makes sense to show this explicitly.
 > 
-> This one is already there in the Linus' tree AFAICS.
 
-You are right. I see it there. I have not seen an applied email. I 
-thought it was still outstanding.
+This patch is wrong, sorry.
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" 
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Fixes: 95fbfb7aa28d ("dmaengine: qcom_hidma: Add support for the new
+> revision")
+> Cc: Sinan Kaya <okaya@codeaurora.org>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Vinod Koul <vinod.koul@intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/dma/qcom/hidma.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/dma/qcom/hidma.c b/drivers/dma/qcom/hidma.c
+> index 963cc5228d05..24e163cefb7c 100644
+> --- a/drivers/dma/qcom/hidma.c
+> +++ b/drivers/dma/qcom/hidma.c
+> @@ -743,9 +743,9 @@ static int hidma_request_msi(struct hidma_dev
+> *dmadev,
+>  
+>  static bool hidma_test_capability(struct device *dev, enum hidma_cap
+> test_cap)
+>  {
+> -	enum hidma_cap cap;
+> +	const enum hidma_cap cap;
+>  
+> -	cap = (enum hidma_cap) device_get_match_data(dev);
+> +	cap = (const enum hidma_cap) device_get_match_data(dev);
+>  	return cap ? ((cap & test_cap) > 0) : 0;
+>  }
+>  
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
