@@ -1,47 +1,66 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 2/6] ACPI / bus: Do not traverse through non-existed
- device table
-Date: Sun, 4 Feb 2018 08:18:23 +0100
-Message-ID: <CAJZ5v0gBzP+QGs5zj25N7DQpBnAyqzmDeeVL4mjK1cns4Jyh1g@mail.gmail.com>
+Subject: Re: [PATCH v2 3/6] ACPI / bus: Remove checks in acpi_get_match_data()
+Date: Sun, 4 Feb 2018 08:21:43 +0100
+Message-ID: <CAJZ5v0hw2h2qvHD=FyH1SU2CwcQj7xOOs7buAoc779EK1TeibQ@mail.gmail.com>
 References: <20180201202012.36524-1-andriy.shevchenko@linux.intel.com>
- <20180201202012.36524-2-andriy.shevchenko@linux.intel.com>
- <68fea449-6478-3d6d-addf-79925ca62931@codeaurora.org> <1517517646.7000.1446.camel@linux.intel.com>
- <1517517921.7000.1447.camel@linux.intel.com>
+ <20180201202012.36524-3-andriy.shevchenko@linux.intel.com> <1517517998.7000.1448.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:34113 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750747AbeBDHSY (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Feb 2018 02:18:24 -0500
-In-Reply-To: <1517517921.7000.1447.camel@linux.intel.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:35081 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750747AbeBDHVo (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sun, 4 Feb 2018 02:21:44 -0500
+In-Reply-To: <1517517998.7000.1448.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+Cc: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-On Thu, Feb 1, 2018 at 9:45 PM, Andy Shevchenko
+On Thu, Feb 1, 2018 at 9:46 PM, Andy Shevchenko
 <andriy.shevchenko@linux.intel.com> wrote:
-> On Thu, 2018-02-01 at 22:40 +0200, Andy Shevchenko wrote:
->> On Thu, 2018-02-01 at 15:32 -0500, Sinan Kaya wrote:
->> > On 2/1/2018 3:20 PM, Andy Shevchenko wrote:
->> > > When __acpi_match_device() is called it would be possible to have
->> > > ACPI ID table a MULL pointer. To avoid potential dereference,
->> >
->> > NULL
+> On Thu, 2018-02-01 at 22:20 +0200, Andy Shevchenko wrote:
+>> As well as its sibling of_device_get_match_data() has no such checks,
+>> no need to do it in acpi_get_match_data().
 >>
->> Thanks, will fix later.
+>> First of all, we are not supposed to call fwnode API like this without
+>> driver attached.
 >>
->> > Why not bail out here immediately if ids is null?
+>> Second, since __acpi_match_device() does check input parameter there
+>> is
+>> no need to duplicate it outside.
 >>
->> Because of the code which wasn't in context of this patch.
+>> Fixes: 80212a162329 ("ACPI / bus: Introduce acpi_get_match_data()
+>> function")
+>> Cc: Sinan Kaya <okaya@codeaurora.org>
+>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+>> Cc: Vinod Koul <vinod.koul@intel.com>
+>> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>> ---
+>> v2: rebase on top of new patches, rephrase commit message
+>>  drivers/acpi/bus.c | 6 ------
+>>  1 file changed, 6 deletions(-)
 >>
->> See also patch 1 in the series.
+>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+>> index f3a7c29e9190..413e4b1cb1be 100644
+>> --- a/drivers/acpi/bus.c
+>> +++ b/drivers/acpi/bus.c
+>> @@ -791,12 +791,6 @@ void *acpi_get_match_data(const struct device
+>> *dev)
+>>  {
+>>       const struct acpi_device_id *match;
 >>
->> It's about how acpi_driver_match_device() uses it.
+>> -     if (!dev->driver)
+>> -             return NULL;
+>> -
 >
-> Btw, it makes device_get_match_data() to work properly on PRP0001 kind
-> of devices.
+>> -     if (!dev->driver->acpi_match_table)
+>> -             return NULL;
+>> -
+>
+> Perhaps I have to add that this conditional prevents
+> device_get_match_data() to work on PRP0001 devices AFAIU.
 
-Maybe combine this one with the [1/6] then, it would make it somewhat
-easier to follow what's going on.
+Yes, please.
+
+I'm also not sure if the Fixes: tag is really applicable to this.
