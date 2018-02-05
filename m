@@ -1,235 +1,60 @@
 From: <Mario.Limonciello@dell.com>
 Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Mon, 5 Feb 2018 17:24:43 +0000
-Message-ID: <ddcf31de6764453e98fb8647514ad8fa@ausx13mpc120.AMER.DELL.COM>
+Date: Mon, 5 Feb 2018 17:36:18 +0000
+Message-ID: <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
 References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
-        <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
- <20180205141447.6e1442ac@endymion>
+         <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
+         <20180205141447.6e1442ac@endymion>
+ <1517840100.22495.25.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa7.dell-outbound.iphmx.com ([68.232.153.96]:61424 "EHLO
-        esa7.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752582AbeBERYq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2018 12:24:46 -0500
-In-Reply-To: <20180205141447.6e1442ac@endymion>
+Received: from esa3.dell-outbound.iphmx.com ([68.232.153.94]:12735 "EHLO
+        esa3.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752999AbeBERgU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2018 12:36:20 -0500
+In-Reply-To: <1517840100.22495.25.camel@linux.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: jdelvare@suse.de, alex.hung@canonical.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, f.fainelli@gmail.com, dmitry.torokhov@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, jdelvare@suse.de, alex.hung@canonical.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, dmitry.torokhov@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-> -----Original Message-----
-> From: Jean Delvare [mailto:jdelvare@suse.de]
-> Sent: Monday, February 5, 2018 7:15 AM
-> To: Alex Hung <alex.hung@canonical.com>
-> Cc: rjw@rjwysocki.net; lenb@kernel.org; gregkh@linuxfoundation.org;
-> davem@davemloft.net; mika.westerberg@linux.intel.com;
-> andriy.shevchenko@linux.intel.com; f.fainelli@gmail.com;
-> dmitry.torokhov@gmail.com; kishon@ti.com; karniksayli1995@gmail.com; linu=
-x-
-> acpi@vger.kernel.org; Limonciello, Mario <Mario_Limonciello@Dell.com>
-> Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
->=20
-> Hi Alex,
->=20
-> On Wed, 31 Jan 2018 00:40:05 -0800, Alex Hung wrote:
-> > A number of Dell systems require an OEM _OSI string "Linux-Dell-Video" =
-as
-> > a BIOS workaround for a system hang bug caused by discrete VGA. The for=
-m of
-> > the OEM _OSI string is discussed in Documentation/acpi/osi.txt and is
-> > defined by each OEM.
->=20
-> I admit I don't understand how it is the operating system's job to
-> carry the information from the BIOS to the BIOS.
-
-The reason it's done this way is so that Linux kernel can revert this behav=
-ior when it's
-no longer appropriate without system vendor having to issue a BIOS update t=
-o do this.
-
-For example if underlying issue that required this BIOS ASL workaround is f=
-ixed in a
-newer kernel.
-
-You can read the documentation about this in Documentations/acpi/osi.txt.
-
->=20
-> > Signed-off-by: Alex Hung <alex.hung@canonical.com>
-> > ---
-> >  drivers/acpi/osi.c | 107
-> +++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 file changed, 107 insertions(+)
-> >
-> > diff --git a/drivers/acpi/osi.c b/drivers/acpi/osi.c
-> > index 76998a5..43e4349 100644
-> > --- a/drivers/acpi/osi.c
-> > +++ b/drivers/acpi/osi.c
-> > @@ -477,6 +477,112 @@ static const struct dmi_system_id
-> acpi_osi_dmi_table[] __initconst =3D {
-> >  	{}
-> >  };
-> >
-> > +static int __init dmi_oem_osi_add(const struct dmi_system_id *d)
-> > +{
-> > +	struct acpi_osi_entry *osi;
-> > +	const char *str =3D d->driver_data;
-> > +	int i;
-> > +
-> > +	for (i =3D 0; i < OSI_STRING_ENTRIES_MAX; i++) {
-> > +		osi =3D &osi_setup_entries[i];
-> > +		if (!strcmp(osi->string, str)) {
->=20
-> This can only happen if the user passes acpi_osi=3DLinux-Dell-Video or
-> acpi_osi=3D!Linux-Dell-Video on the boot command line, right?
->=20
-> > +			osi->enable =3D true;
->=20
-> Does this not prevent the user from explicitly disabling it with
-> acpi_osi=3D!Linux-Dell-Video ?
->=20
-> > +			continue;
->=20
-> Are you not done at this point? I think you want to break, not
-> continue, else you may add a duplicate Linux-Dell-Video entry below.
-
-You might have two different entries that apply to the same system in the f=
-uture.
-
-At least the way that Dell is intending to use this is that "Linux-Dell-Vid=
-eo" would
-only apply to ASL related to video configuration.
-
-If for example there is later an issue with audio on a different platform t=
-hat also
-needed "Linux-Dell-Video", the ASL to do the audio configuration would be a=
-ctivated
-by "Linux-Dell-Audio".
-
->=20
-> > +		} else if (osi->string[0] =3D=3D '\0') {
-> > +			osi->enable =3D true;
-> > +			strncpy(osi->string, str, OSI_STRING_LENGTH_MAX);
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static const struct dmi_system_id acpi_oem_osi_dmi_table[] __initconst=
- =3D {
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell Latitude 5491",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0818]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell Latitude 5591",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0819]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell Precision 3530",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0820]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell Inspiron 7777 AIO",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0850]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell Inspiron 5477 AIO",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0851]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell G5 5779",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0886]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell G5 5779",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0870]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell G5 5579",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[086F]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{
-> > +	.callback =3D dmi_oem_osi_add,
-> > +	.ident =3D "Dell G5 5579",
-> > +	.matches =3D {
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "Dell System"),
-> > +		     DMI_EXACT_MATCH(DMI_OEM_STRING, "1[0885]"),
-> > +		},
-> > +	.driver_data =3D "Linux-Dell-Video",
-> > +	},
-> > +	{}
-> > +};
->=20
-> G5 5779 and G5 5579 appear twice each, are these copy-and-paste errors?
-
-No, there are two different PCBs that can be used in these systems.  They s=
-hare
-same "Product Name".  You can only differentiate between them via OEM strin=
-g.
-
->=20
-> Choosing a sort rule and sticking to it would make it easier to add
-> entries later with not risk of duplicates.
->=20
-> > +
-> >  static __init void acpi_osi_dmi_blacklisted(void)
-> >  {
-> >  	dmi_check_system(acpi_osi_dmi_table);
-> > @@ -496,6 +602,7 @@ int __init early_acpi_osi_init(void)
-> >  int __init acpi_osi_init(void)
-> >  {
-> >  	acpi_install_interface_handler(acpi_osi_handler);
-> > +	dmi_check_system(acpi_oem_osi_dmi_table);
-> >  	acpi_osi_setup_late();
-> >
-> >  	return 0;
->=20
->=20
-> --
-> Jean Delvare
-> SUSE L3 Support
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
+aWx0bzphbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwg
+RmVicnVhcnkgNSwgMjAxOCA4OjE1IEFNDQo+IFRvOiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1
+c2UuZGU+OyBBbGV4IEh1bmcgPGFsZXguaHVuZ0BjYW5vbmljYWwuY29tPg0KPiBDYzogcmp3QHJq
+d3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgZ3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc7
+DQo+IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IG1pa2Eud2VzdGVyYmVyZ0BsaW51eC5pbnRlbC5jb207
+IGYuZmFpbmVsbGlAZ21haWwuY29tOw0KPiBkbWl0cnkudG9yb2tob3ZAZ21haWwuY29tOyBraXNo
+b25AdGkuY29tOyBrYXJuaWtzYXlsaTE5OTVAZ21haWwuY29tOyBsaW51eC0NCj4gYWNwaUB2Z2Vy
+Lmtlcm5lbC5vcmc7IExpbW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5j
+b20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBBQ1BJIC8gb3NpOiBhZGQgRE1JIHF1aXJr
+IGZvciBEZWxsIHN5c3RlbXMNCj4gDQo+IE9uIE1vbiwgMjAxOC0wMi0wNSBhdCAxNDoxNCArMDEw
+MCwgSmVhbiBEZWx2YXJlIHdyb3RlOg0KPiANCj4gPiBPbiBXZWQsIDMxIEphbiAyMDE4IDAwOjQw
+OjA1IC0wODAwLCBBbGV4IEh1bmcgd3JvdGU6DQo+ID4gPiBBIG51bWJlciBvZiBEZWxsIHN5c3Rl
+bXMgcmVxdWlyZSBhbiBPRU0gX09TSSBzdHJpbmcgIkxpbnV4LURlbGwtDQo+ID4gPiBWaWRlbyIg
+YXMNCj4gPiA+IGEgQklPUyB3b3JrYXJvdW5kIGZvciBhIHN5c3RlbSBoYW5nIGJ1ZyBjYXVzZWQg
+YnkgZGlzY3JldGUgVkdBLiBUaGUNCj4gPiA+IGZvcm0gb2YNCj4gPiA+IHRoZSBPRU0gX09TSSBz
+dHJpbmcgaXMgZGlzY3Vzc2VkIGluIERvY3VtZW50YXRpb24vYWNwaS9vc2kudHh0IGFuZA0KPiA+
+ID4gaXMNCj4gPiA+IGRlZmluZWQgYnkgZWFjaCBPRU0uDQo+ID4NCj4gPiBJIGFkbWl0IEkgZG9u
+J3QgdW5kZXJzdGFuZCBob3cgaXQgaXMgdGhlIG9wZXJhdGluZyBzeXN0ZW0ncyBqb2IgdG8NCj4g
+PiBjYXJyeSB0aGUgaW5mb3JtYXRpb24gZnJvbSB0aGUgQklPUyB0byB0aGUgQklPUy4NCj4gDQo+
+ID4gPiArCWZvciAoaSA9IDA7IGkgPCBPU0lfU1RSSU5HX0VOVFJJRVNfTUFYOyBpKyspIHsNCj4g
+PiA+ICsJCW9zaSA9ICZvc2lfc2V0dXBfZW50cmllc1tpXTsNCj4gPiA+ICsJCWlmICghc3RyY21w
+KG9zaS0+c3RyaW5nLCBzdHIpKSB7DQo+ID4NCj4gPiBUaGlzIGNhbiBvbmx5IGhhcHBlbiBpZiB0
+aGUgdXNlciBwYXNzZXMgYWNwaV9vc2k9TGludXgtRGVsbC1WaWRlbyBvcg0KPiA+IGFjcGlfb3Np
+PSFMaW51eC1EZWxsLVZpZGVvIG9uIHRoZSBib290IGNvbW1hbmQgbGluZSwgcmlnaHQ/DQo+ID4N
+Cj4gPiA+ICsJCQlvc2ktPmVuYWJsZSA9IHRydWU7DQo+ID4NCj4gPiBEb2VzIHRoaXMgbm90IHBy
+ZXZlbnQgdGhlIHVzZXIgZnJvbSBleHBsaWNpdGx5IGRpc2FibGluZyBpdCB3aXRoDQo+ID4gYWNw
+aV9vc2k9IUxpbnV4LURlbGwtVmlkZW8gPw0KPiANCj4gUGxheWluZyB3aXRoIE9TSSBzdHJpbmcg
+aXMgYSBiYWQgaWRlYS4gSSB3b3VsZG4ndCBkbyBhbnl0aGluZyB3aGlsZQ0KPiBSYWZhZWwsIG9y
+IGV2ZW4gTGVuIGNhbiBjb25maXJtIHRoYXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvLg0KPiAN
+Cj4gRm9yIG1lLCBBRkFJSyB3ZSBuZWVkIHRvIGJlIGJ1Zy10by1idWcgY29tcGF0aWJsZSB3aXRo
+IFdpbmRvd3MgKGF0IGxlYXN0DQo+IG9uIEFDUElDQSBzaWRlKSwgc28sIHdoYXQgV2luZG93cyBl
+eGFjdGx5IGRvZXMgb24gc3VjaCBsYXB0b3BzPw0KPiANCg0KVGhlIGlzc3VlIHRoYXQncyBiZWlu
+ZyB3b3JrZWQgYXJvdW5kIGlzbid0IGFuIEFDUElDQSBpbnRlcnByZXRlciBpc3N1ZSwgYnV0IGl0
+J3MgDQphIGdyYXBoaWNzIGRldmljZSBjb25maWd1cmF0aW9uIGlzc3VlLg0KDQpXaW5kb3dzIGV4
+cGVjdHMgdG8gdXNlIFJURDMgb24gdGhlIE5WSURJQSBHUFUgYnV0IExpbnV4IGRyaXZlcnMNCmRv
+bid0LiAgSXQgbGVhZHMgdG8gc3lzdGVtIGhhbmdzIG9uIHRoZSBMaW51eCBzaWRlLg0KDQoNCg==
