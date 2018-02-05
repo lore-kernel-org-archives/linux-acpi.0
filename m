@@ -1,60 +1,61 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Mon, 5 Feb 2018 17:36:18 +0000
-Message-ID: <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
+Date: Mon, 5 Feb 2018 22:55:17 +0100
+Message-ID: <20180205225517.4c565351@endymion>
 References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
-         <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
-         <20180205141447.6e1442ac@endymion>
- <1517840100.22495.25.camel@linux.intel.com>
+        <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
+        <20180205141447.6e1442ac@endymion>
+        <ddcf31de6764453e98fb8647514ad8fa@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa3.dell-outbound.iphmx.com ([68.232.153.94]:12735 "EHLO
-        esa3.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752999AbeBERgU (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2018 12:36:20 -0500
-In-Reply-To: <1517840100.22495.25.camel@linux.intel.com>
-Content-Language: en-US
+Received: from mx2.suse.de ([195.135.220.15]:45582 "EHLO mx2.suse.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751960AbeBEVzU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 5 Feb 2018 16:55:20 -0500
+In-Reply-To: <ddcf31de6764453e98fb8647514ad8fa@ausx13mpc120.AMER.DELL.COM>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, jdelvare@suse.de, alex.hung@canonical.com
-Cc: rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, dmitry.torokhov@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: alex.hung@canonical.com, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, andriy.shevchenko@linux.intel.com, f.fainelli@gmail.com, dmitry.torokhov@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
-aWx0bzphbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb21dDQo+IFNlbnQ6IE1vbmRheSwg
-RmVicnVhcnkgNSwgMjAxOCA4OjE1IEFNDQo+IFRvOiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1
-c2UuZGU+OyBBbGV4IEh1bmcgPGFsZXguaHVuZ0BjYW5vbmljYWwuY29tPg0KPiBDYzogcmp3QHJq
-d3lzb2NraS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgZ3JlZ2toQGxpbnV4Zm91bmRhdGlvbi5vcmc7
-DQo+IGRhdmVtQGRhdmVtbG9mdC5uZXQ7IG1pa2Eud2VzdGVyYmVyZ0BsaW51eC5pbnRlbC5jb207
-IGYuZmFpbmVsbGlAZ21haWwuY29tOw0KPiBkbWl0cnkudG9yb2tob3ZAZ21haWwuY29tOyBraXNo
-b25AdGkuY29tOyBrYXJuaWtzYXlsaTE5OTVAZ21haWwuY29tOyBsaW51eC0NCj4gYWNwaUB2Z2Vy
-Lmtlcm5lbC5vcmc7IExpbW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5j
-b20+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBBQ1BJIC8gb3NpOiBhZGQgRE1JIHF1aXJr
-IGZvciBEZWxsIHN5c3RlbXMNCj4gDQo+IE9uIE1vbiwgMjAxOC0wMi0wNSBhdCAxNDoxNCArMDEw
-MCwgSmVhbiBEZWx2YXJlIHdyb3RlOg0KPiANCj4gPiBPbiBXZWQsIDMxIEphbiAyMDE4IDAwOjQw
-OjA1IC0wODAwLCBBbGV4IEh1bmcgd3JvdGU6DQo+ID4gPiBBIG51bWJlciBvZiBEZWxsIHN5c3Rl
-bXMgcmVxdWlyZSBhbiBPRU0gX09TSSBzdHJpbmcgIkxpbnV4LURlbGwtDQo+ID4gPiBWaWRlbyIg
-YXMNCj4gPiA+IGEgQklPUyB3b3JrYXJvdW5kIGZvciBhIHN5c3RlbSBoYW5nIGJ1ZyBjYXVzZWQg
-YnkgZGlzY3JldGUgVkdBLiBUaGUNCj4gPiA+IGZvcm0gb2YNCj4gPiA+IHRoZSBPRU0gX09TSSBz
-dHJpbmcgaXMgZGlzY3Vzc2VkIGluIERvY3VtZW50YXRpb24vYWNwaS9vc2kudHh0IGFuZA0KPiA+
-ID4gaXMNCj4gPiA+IGRlZmluZWQgYnkgZWFjaCBPRU0uDQo+ID4NCj4gPiBJIGFkbWl0IEkgZG9u
-J3QgdW5kZXJzdGFuZCBob3cgaXQgaXMgdGhlIG9wZXJhdGluZyBzeXN0ZW0ncyBqb2IgdG8NCj4g
-PiBjYXJyeSB0aGUgaW5mb3JtYXRpb24gZnJvbSB0aGUgQklPUyB0byB0aGUgQklPUy4NCj4gDQo+
-ID4gPiArCWZvciAoaSA9IDA7IGkgPCBPU0lfU1RSSU5HX0VOVFJJRVNfTUFYOyBpKyspIHsNCj4g
-PiA+ICsJCW9zaSA9ICZvc2lfc2V0dXBfZW50cmllc1tpXTsNCj4gPiA+ICsJCWlmICghc3RyY21w
-KG9zaS0+c3RyaW5nLCBzdHIpKSB7DQo+ID4NCj4gPiBUaGlzIGNhbiBvbmx5IGhhcHBlbiBpZiB0
-aGUgdXNlciBwYXNzZXMgYWNwaV9vc2k9TGludXgtRGVsbC1WaWRlbyBvcg0KPiA+IGFjcGlfb3Np
-PSFMaW51eC1EZWxsLVZpZGVvIG9uIHRoZSBib290IGNvbW1hbmQgbGluZSwgcmlnaHQ/DQo+ID4N
-Cj4gPiA+ICsJCQlvc2ktPmVuYWJsZSA9IHRydWU7DQo+ID4NCj4gPiBEb2VzIHRoaXMgbm90IHBy
-ZXZlbnQgdGhlIHVzZXIgZnJvbSBleHBsaWNpdGx5IGRpc2FibGluZyBpdCB3aXRoDQo+ID4gYWNw
-aV9vc2k9IUxpbnV4LURlbGwtVmlkZW8gPw0KPiANCj4gUGxheWluZyB3aXRoIE9TSSBzdHJpbmcg
-aXMgYSBiYWQgaWRlYS4gSSB3b3VsZG4ndCBkbyBhbnl0aGluZyB3aGlsZQ0KPiBSYWZhZWwsIG9y
-IGV2ZW4gTGVuIGNhbiBjb25maXJtIHRoYXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvLg0KPiAN
-Cj4gRm9yIG1lLCBBRkFJSyB3ZSBuZWVkIHRvIGJlIGJ1Zy10by1idWcgY29tcGF0aWJsZSB3aXRo
-IFdpbmRvd3MgKGF0IGxlYXN0DQo+IG9uIEFDUElDQSBzaWRlKSwgc28sIHdoYXQgV2luZG93cyBl
-eGFjdGx5IGRvZXMgb24gc3VjaCBsYXB0b3BzPw0KPiANCg0KVGhlIGlzc3VlIHRoYXQncyBiZWlu
-ZyB3b3JrZWQgYXJvdW5kIGlzbid0IGFuIEFDUElDQSBpbnRlcnByZXRlciBpc3N1ZSwgYnV0IGl0
-J3MgDQphIGdyYXBoaWNzIGRldmljZSBjb25maWd1cmF0aW9uIGlzc3VlLg0KDQpXaW5kb3dzIGV4
-cGVjdHMgdG8gdXNlIFJURDMgb24gdGhlIE5WSURJQSBHUFUgYnV0IExpbnV4IGRyaXZlcnMNCmRv
-bid0LiAgSXQgbGVhZHMgdG8gc3lzdGVtIGhhbmdzIG9uIHRoZSBMaW51eCBzaWRlLg0KDQoNCg==
+On Mon, 5 Feb 2018 17:24:43 +0000, Mario.Limonciello@dell.com wrote:
+> > > +static int __init dmi_oem_osi_add(const struct dmi_system_id *d)
+> > > +{
+> > > +	struct acpi_osi_entry *osi;
+> > > +	const char *str = d->driver_data;
+> > > +	int i;
+> > > +
+> > > +	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
+> > > +		osi = &osi_setup_entries[i];
+> > > +		if (!strcmp(osi->string, str)) {  
+> > 
+> > This can only happen if the user passes acpi_osi=Linux-Dell-Video or
+> > acpi_osi=!Linux-Dell-Video on the boot command line, right?
+> >   
+> > > +			osi->enable = true;  
+> > 
+> > Does this not prevent the user from explicitly disabling it with
+> > acpi_osi=!Linux-Dell-Video ?
+> >   
+> > > +			continue;  
+> > 
+> > Are you not done at this point? I think you want to break, not
+> > continue, else you may add a duplicate Linux-Dell-Video entry below.  
+> 
+> You might have two different entries that apply to the same system in the future.
+> 
+> At least the way that Dell is intending to use this is that "Linux-Dell-Video" would
+> only apply to ASL related to video configuration.
+> 
+> If for example there is later an issue with audio on a different platform that also
+> needed "Linux-Dell-Video", the ASL to do the audio configuration would be activated
+> by "Linux-Dell-Audio".
+
+I understand what you say, but can't see how this relates to my
+concerns above.
+
+-- 
+Jean Delvare
+SUSE L3 Support
