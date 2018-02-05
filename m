@@ -1,29 +1,70 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 1/3] ACPI / x86: boot: Not all platforms require
- acpi_reduced_hw_init()
-Date: Sun, 04 Feb 2018 16:14:44 +0200
-Message-ID: <1517753684.7000.1509.camel@linux.intel.com>
-References: <20180117173409.88136-1-andriy.shevchenko@linux.intel.com>
-         <3139601.BsU5hxGGNu@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:50256 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750995AbeBDOOr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sun, 4 Feb 2018 09:14:47 -0500
-In-Reply-To: <3139601.BsU5hxGGNu@aspire.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Kai Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH v3] ACPI: Parse entire table as a term_list for Dell XPS
+ 9570 and Precision M5530
+Date: Mon, 5 Feb 2018 13:06:37 +0800
+Message-ID: <334D3FD8-FF56-410C-8B33-B973EDFDD7D7@canonical.com>
+References: <20180131045634.13328-1-kai.heng.feng@canonical.com>
+ <CAJZ5v0ha9xZVSvUjUPO5ebM+JhPH7jk6W=M8AheirqOrhf8Ezg@mail.gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.3 \(3445.6.9\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0ha9xZVSvUjUPO5ebM+JhPH7jk6W=M8AheirqOrhf8Ezg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, 2018-02-04 at 09:54 +0100, Rafael J. Wysocki wrote:
-> OTOH, I guess you'll go for the new init callbacks rather.
 
-Yep, just ignore these two for now. I will remake it later.
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> On Feb 4, 2018, at 4:26 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> 
+> On Wed, Jan 31, 2018 at 5:56 AM, Kai-Heng Feng
+> <kai.heng.feng@canonical.com> wrote:
+>> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+>> of box.
+>> 
+>> The touchpad relies on its _INI method to update its _HID value from
+>> XXXX0000 to SYNA2393.
+>> Also, the _STA relies on value of I2CN to report correct status.
+>> 
+>> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+>> correctly set up, and _INI can get run. The ACPI table in this machine
+>> is designed to get parsed this way.
+>> 
+>> Also, change the quirk table to a more generic name.
+>> 
+>> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
+>> Cc: Mario Limonciello <mario.limonciello@dell.com>
+>> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+>> ---
+>> v3: Put the function under right #ifdef, comment adjustment
+>> 
+>> v2: Andy's suggestion, merge to a single quirk table.
+>> 
+>> drivers/acpi/bus.c | 40 +++++++++++++++++++++++++++++++++-------
+>> 1 file changed, 33 insertions(+), 7 deletions(-)
+>> 
+>> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+>> index 4d0979e02a28..7cb18bc2b59a 100644
+>> --- a/drivers/acpi/bus.c
+>> +++ b/drivers/acpi/bus.c
+>> @@ -66,10 +66,39 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+>>        return 0;
+>> }
+>> #endif
+>> +static int set_gbl_term_list(const struct dmi_system_id *id)
+>> +{
+>> +       pr_notice("%s detected - parse the entire table as a term_list\n",
+>> +                 id->ident);
+> 
+> This is not a useful message for a user (who may not know what
+> trem_list is).  Care to change it to something more useful, or even
+> drop it?
+
+Yes, I think it should be dropped. The information is already in the
+commit log and comment section, if the user really wants to know
+more.
+
+Kai-Heng
