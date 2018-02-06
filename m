@@ -1,83 +1,85 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
-Date: Tue, 6 Feb 2018 09:25:58 -0500
-Message-ID: <2902c0aa-b7d4-ea2f-e687-bc5cd19631e1@codeaurora.org>
-References: <1516895011-17588-1-git-send-email-okaya@codeaurora.org>
- <CAJZ5v0h2TOvoNGx5nYU0yVp_GJCxLTStSY=mp2YMbazhfq3x9g@mail.gmail.com>
- <30a108bc-c85f-55d9-67c5-586534a987c0@infradead.org>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
+Date: Tue, 6 Feb 2018 16:24:35 +0000
+Message-ID: <87fd656bb080495089cd21c66d559cea@ausx13mpc120.AMER.DELL.COM>
+References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
+         <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
+         <20180205141447.6e1442ac@endymion>
+         <1517840100.22495.25.camel@linux.intel.com>
+         <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
+         <20180205224531.GA46524@dtor-ws>
+         <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
+ <1517924731.22495.51.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:39534 "EHLO
-        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750990AbeBFO0D (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2018 09:26:03 -0500
-In-Reply-To: <30a108bc-c85f-55d9-67c5-586534a987c0@infradead.org>
+Received: from esa2.dell-outbound.iphmx.com ([68.232.149.220]:53420 "EHLO
+        esa2.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752003AbeBFQYh (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2018 11:24:37 -0500
+In-Reply-To: <1517924731.22495.51.camel@linux.intel.com>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Eric Auger <eric.auger@redhat.com>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com
+Cc: jdelvare@suse.de, alex.hung@canonical.com, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On 1/25/2018 12:36 PM, Randy Dunlap wrote:
-> On 01/25/2018 08:25 AM, Rafael J. Wysocki wrote:
->> On Thu, Jan 25, 2018 at 4:43 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->>> From: Auger Eric <eric.auger@redhat.com>
->>>
->>> If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
->>> and any ACPI opregion calls targeting I2C fail with no opregion found.
->>>
->>> Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
->>> CONFIG_I2C_ACPI config") says following:
->>>
->>> "Current there is a race between removing I2C ACPI operation region
->>> and ACPI AML code accessing."
->>>
->>> This patch forces core I2C support to be compiled as a built-in
->>> module if ACPI is selected as code is not ready for dynamic module
->>> removal.
->>>
->>> Signed-off-by: Eric Auger <eric.auger@redhat.com>
->>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->>> ---
->>>  drivers/acpi/Kconfig | 2 ++
->>>  1 file changed, 2 insertions(+)
->>>
->>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->>> index 4650539..5b48098 100644
->>> --- a/drivers/acpi/Kconfig
->>> +++ b/drivers/acpi/Kconfig
->>> @@ -9,6 +9,8 @@ menuconfig ACPI
->>>         depends on IA64 || X86 || ARM64
->>>         depends on PCI
->>>         select PNP
->>> +       # force building I2C in on ACPI systems, for opregion availability
->>> +       imply I2C
->>>         default y if (IA64 || X86)
->>>         help
->>>           Advanced Configuration and Power Interface (ACPI) support for
->>> --
->>
->> I'm not sure how much this helps.
->>
->> I2C opregions will only work if the requisite I2C controller driver is
->> present anyway and this change doesn't guarantee that AFAICS.
->>
->> OTOH, there are systems using ACPI without I2C opregions, so are we
->> really better off by forcing everybody using ACPI to also build I2C?
-> 
-> Definitely not.
-> 
-
-Where do we stand on this? Do you have a better suggestion?
-
-
-Sinan
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
+aWx0bzphbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb21dDQo+IFNlbnQ6IFR1ZXNkYXks
+IEZlYnJ1YXJ5IDYsIDIwMTggNzo0NiBBTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJp
+b19MaW1vbmNpZWxsb0BEZWxsLmNvbT47DQo+IGRtaXRyeS50b3Jva2hvdkBnbWFpbC5jb20NCj4g
+Q2M6IGpkZWx2YXJlQHN1c2UuZGU7IGFsZXguaHVuZ0BjYW5vbmljYWwuY29tOyByandAcmp3eXNv
+Y2tpLm5ldDsNCj4gbGVuYkBrZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsg
+ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsNCj4gbWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNvbTsg
+Zi5mYWluZWxsaUBnbWFpbC5jb207IGtpc2hvbkB0aS5jb207DQo+IGthcm5pa3NheWxpMTk5NUBn
+bWFpbC5jb207IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFU
+Q0ggMi8yXSBBQ1BJIC8gb3NpOiBhZGQgRE1JIHF1aXJrIGZvciBEZWxsIHN5c3RlbXMNCj4gDQo+
+IE9uIFR1ZSwgMjAxOC0wMi0wNiBhdCAwMDo0NSArMDAwMCwgTWFyaW8uTGltb25jaWVsbG9AZGVs
+bC5jb20gd3JvdGU6DQo+IA0KPiA+ID4gPiA+IFBsYXlpbmcgd2l0aCBPU0kgc3RyaW5nIGlzIGEg
+YmFkIGlkZWEuIEkgd291bGRuJ3QgZG8gYW55dGhpbmcNCj4gPiA+ID4gPiB3aGlsZQ0KPiA+ID4g
+PiA+IFJhZmFlbCwgb3IgZXZlbiBMZW4gY2FuIGNvbmZpcm0gdGhhdCBpcyB0aGUgcmlnaHQgdGhp
+bmcgdG8gZG8uDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBGb3IgbWUsIEFGQUlLIHdlIG5lZWQgdG8g
+YmUgYnVnLXRvLWJ1ZyBjb21wYXRpYmxlIHdpdGggV2luZG93cw0KPiA+ID4gPiA+IChhdCBsZWFz
+dA0KPiA+ID4gPiA+IG9uIEFDUElDQSBzaWRlKSwgc28sIHdoYXQgV2luZG93cyBleGFjdGx5IGRv
+ZXMgb24gc3VjaCBsYXB0b3BzPw0KPiA+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBpc3N1
+ZSB0aGF0J3MgYmVpbmcgd29ya2VkIGFyb3VuZCBpc24ndCBhbiBBQ1BJQ0EgaW50ZXJwcmV0ZXIN
+Cj4gPiA+ID4gaXNzdWUsIGJ1dCBpdCdzDQo+ID4gPiA+IGEgZ3JhcGhpY3MgZGV2aWNlIGNvbmZp
+Z3VyYXRpb24gaXNzdWUuDQo+IA0KPiBUaGVuIGNsZWFybHkgbm90aGluZyB0byBkbyB3aXRoIE9T
+SSBzdHJpbmdzIGhlcmUsIHJpZ2h0Pw0KDQpUaGUgdXNhZ2Ugb2YgT1NJIGhlcmUgaXM6IGRvIHlv
+dSBzdXBwb3J0IHRoZSBmZWF0dXJlICJMaW51eC1EZWxsLVZpZGVvIg0KdG8gTGludXgga2VybmVs
+LiAgSWYgTGludXgga2VybmVsIHJlc3BvbmRzIHllcyB0aGVuIGZpcm13YXJlIHdpbGwgdHVybiBv
+ZmYgDQpSVEQzIGZ1bmN0aW9uYWxpdHkgZm9yIHRoZSBkaXNjcmV0ZSBHUFUuDQoNCj4gDQo+ID4g
+PiA+IFdpbmRvd3MgZXhwZWN0cyB0byB1c2UgUlREMyBvbiB0aGUgTlZJRElBIEdQVSBidXQgTGlu
+dXggZHJpdmVycw0KPiA+ID4gPiBkb24ndC4gIEl0IGxlYWRzIHRvIHN5c3RlbSBoYW5ncyBvbiB0
+aGUgTGludXggc2lkZS4NCj4gPiA+DQo+ID4gPiBDYW4gd2UgYWRqdXN0IExpbnV4IGRyaXZlcnMg
+dG8gZG8gdGhlIHJpZ2h0IHRoaW5nPw0KPiANCj4gKzEwMA0KPiANCj4gPiA+ICBPciBpcyBpdCBy
+ZWdhcmRpbmcNCj4gPiA+IHRoZSBiaW5hcnkgTlZJRElBIGJsb2I/DQo+IA0KPiBuVmlkaWEgdnMu
+IExpbnV4IGFnYWluPyA6LSkNCj4gDQo+ID4NCj4gPiBOZWl0aGVyIE5vdXZlYXUgbm9yIHRoZSBO
+VklESUEgYmxvYiBoYXZlIHN1cHBvcnQgZm9yIFJURDMuDQo+ID4NCj4gPiBMYXN0IEkgaGVhcmQg
+aXQncyB3YWl0aW5nIG9uIE5WSURJQSByZWxlYXNpbmcgc29tZXRoaW5nIE5vdXZlYXUNCj4gPiBu
+ZWVkcy4gIFNvLi4gRXZlbnR1YWxseT8gIEZvciBub3cgaXQncyBiZXR0ZXIgdG8gbm90IGhhbmcg
+dGhvdWdoLg0KPiANCj4gSG1tLi4uIFdoaWxlIHlvdSBhcmUgdGFsa2luZyBzZW5zZSwgdGhlIHBh
+dGNoIGl0c2VsZiBsb29rcyBsaWtlIGFuIHVnbHkNCj4gaGFjay4NCg0KSSBkb24ndCBkaXNhZ3Jl
+ZSBpdCdzIGEgd29ya2Fyb3VuZCBmb3IgYSBkcml2ZXIgZGVmaWNpZW5jeS4NCg0KPiANCj4gPiBU
+aGF0J3MgcGFydCBvZiB3aHkgd2Ugd2FudGVkIHRvIGVuYWJsZSB0aGlzIHZpYSBhIHRyYW5zaWVu
+dCBPU0kNCj4gPiBzdHJpbmcsDQo+ID4gdG8gbGV0IHRoaXMgYmUgcmVtb3ZlZCBieSBMaW51eCB3
+aGVuZXZlciB0aGUgZHJpdmVyIGRvZXMgZ3JvdyBzdXBwb3J0Lg0KPiANCj4gU28sIG1lYW5zICJu
+ZXZlciIgdGhlbj8gKEFzc3VtZSBhIGJpdCBvZiBpcm9ueSBoZXJlKQ0KPiANCj4gSSBkb24ndCBr
+bm93IGhvdyBpdCBmZWVscyBmb3IgbWFpbnRhaW5lcnMsIGZvciBtZSBpdCdzIHF1aXRlIHVubGlr
+ZWx5IHRvDQo+IGdvIChhdCBsZWFzdCBpbiB0aGlzIHNoYXBlKS4NCg0KSSdtIG5vdCBnb2luZyB0
+byBiZSBhYmxlIHRvIGZvcmNlIE5WSURJQSB0byBmaXggdGhlIGJsb2Igb3IgdG8gZ2l2ZSB3aGF0
+J3MNCm5lY2Vzc2FyeSB0byBlbmFibGUgTm91dmFldSBmb3IgdGhpcyBmdW5jdGlvbi4gIFdoYXQg
+d2UgY2FuIGRvIGlzIHByZXZlbnQNCnNvbWVvbmUncyBzeXN0ZW0gZnJvbSBoYW5naW5nIGJlY2F1
+c2Ugb2YgdGhpcyBzaXR1YXRpb24uDQoNCj4gDQo+IEknbSBzb3JyeSBJIGNhbid0IGJlIG11Y2gg
+Y29uc3RydWN0aXZlIGhlcmUsIEkgaGVhcmQgTGVuIG9uY2UgYWJvdXQgT1NJDQo+IGh1Z2UgYWJ1
+c2UgYnkgYWxtb3N0IGV2ZXJ5IHBhcnR5LiBJIHdvdWxkIHJhdGhlciBsZXQgaGltIHNwZWFrIG9u
+IHRoZQ0KPiBtYXR0ZXIuDQoNCkkga25vdyB0aGF0IE9TSSBoYXMgYmVlbiBhYnVzZWQgaW4gdGhl
+IHBhc3QsIGJ1dCB0aGF0J3MgZXhhY3RseSB3aHkgdGhpcw0KaGFzIGJlZW4gaW1wbGVtZW50ZWQg
+YXMgc2VlbiBpbiB0aGlzIHBhdGNoIHNlcmllcy4NCg0KSXQncyBkb25lIHNwZWNpZmljYWxseSB0
+byBmaXQgd2l0aGluIGV4YWN0bHkgd2hhdCB0aGUgTGludXgga2VybmVsIGlkZWFsbHkNCmxvb2tz
+IGZvciBpbiBhIGN1c3RvbSBPU0kgZmVhdHVyZSBzdHJpbmcuDQoNCiogSXQgaGFzIGFuIE9TIFBy
+ZWZpeCAoTGludXgtKQ0KKiBJdCdzIGFuIE9FTSBzcGVjaWZpYyBzdHJpbmcgKC1EZWxsLSkNCiog
+SXQncyBhIGZlYXR1cmUgc3BlY2lmaWMgc3RyaW5nICgtVmlkZW8pDQoqSXQncyBzcGVjaWZpYyB0
+byBhIHNpbmdsZSBwbGF0Zm9ybSAobm90IGEgYmxhbmtldCBtYXRjaCB0byBEZWxsIEluYykNCipJ
+dCBvbmx5IG1vZGlmaWVzIG9uZSBmZWF0dXJlIGluIEFTTA0KDQoNCg==
