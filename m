@@ -1,85 +1,58 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Tue, 6 Feb 2018 16:24:35 +0000
-Message-ID: <87fd656bb080495089cd21c66d559cea@ausx13mpc120.AMER.DELL.COM>
-References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
-         <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
-         <20180205141447.6e1442ac@endymion>
-         <1517840100.22495.25.camel@linux.intel.com>
-         <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
-         <20180205224531.GA46524@dtor-ws>
-         <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
- <1517924731.22495.51.camel@linux.intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v12 7/9] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Tue, 6 Feb 2018 21:44:35 +0200
+Message-ID: <CAHp75VdTKCq5Vxox2OPvr+BvVSduhaxs_sa7B9wskzjv8ZJLqw@mail.gmail.com>
+References: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
+ <1516725385-24535-8-git-send-email-john.garry@huawei.com> <0a30452f-34eb-d0b5-2001-ab6b866c53e2@huawei.com>
+ <CAHp75VfXoAHNH2BnfNLbFfdCqUk3rxU_QWfxTx7ZyLgV0qxotQ@mail.gmail.com> <62634aa6-ad3c-93c2-e6fa-9e163d4004ca@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa2.dell-outbound.iphmx.com ([68.232.149.220]:53420 "EHLO
-        esa2.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752003AbeBFQYh (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2018 11:24:37 -0500
-In-Reply-To: <1517924731.22495.51.camel@linux.intel.com>
-Content-Language: en-US
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:46179 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752966AbeBFTog (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 6 Feb 2018 14:44:36 -0500
+In-Reply-To: <62634aa6-ad3c-93c2-e6fa-9e163d4004ca@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com
-Cc: jdelvare@suse.de, alex.hung@canonical.com, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
+To: John Garry <john.garry@huawei.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Hanjun Guo <hanjun.guo@linaro.org>, Dann Frazier <dann.frazier@canonical.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, linux-pci@vger.kernel.org, Corey Minyard <minyard@acm.org>, devicetree <devicetree@vger.kernel.org>, Linux-Arch <linux-arch@vger.kernel>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21h
-aWx0bzphbmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb21dDQo+IFNlbnQ6IFR1ZXNkYXks
-IEZlYnJ1YXJ5IDYsIDIwMTggNzo0NiBBTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJp
-b19MaW1vbmNpZWxsb0BEZWxsLmNvbT47DQo+IGRtaXRyeS50b3Jva2hvdkBnbWFpbC5jb20NCj4g
-Q2M6IGpkZWx2YXJlQHN1c2UuZGU7IGFsZXguaHVuZ0BjYW5vbmljYWwuY29tOyByandAcmp3eXNv
-Y2tpLm5ldDsNCj4gbGVuYkBrZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZzsg
-ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsNCj4gbWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNvbTsg
-Zi5mYWluZWxsaUBnbWFpbC5jb207IGtpc2hvbkB0aS5jb207DQo+IGthcm5pa3NheWxpMTk5NUBn
-bWFpbC5jb207IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFU
-Q0ggMi8yXSBBQ1BJIC8gb3NpOiBhZGQgRE1JIHF1aXJrIGZvciBEZWxsIHN5c3RlbXMNCj4gDQo+
-IE9uIFR1ZSwgMjAxOC0wMi0wNiBhdCAwMDo0NSArMDAwMCwgTWFyaW8uTGltb25jaWVsbG9AZGVs
-bC5jb20gd3JvdGU6DQo+IA0KPiA+ID4gPiA+IFBsYXlpbmcgd2l0aCBPU0kgc3RyaW5nIGlzIGEg
-YmFkIGlkZWEuIEkgd291bGRuJ3QgZG8gYW55dGhpbmcNCj4gPiA+ID4gPiB3aGlsZQ0KPiA+ID4g
-PiA+IFJhZmFlbCwgb3IgZXZlbiBMZW4gY2FuIGNvbmZpcm0gdGhhdCBpcyB0aGUgcmlnaHQgdGhp
-bmcgdG8gZG8uDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBGb3IgbWUsIEFGQUlLIHdlIG5lZWQgdG8g
-YmUgYnVnLXRvLWJ1ZyBjb21wYXRpYmxlIHdpdGggV2luZG93cw0KPiA+ID4gPiA+IChhdCBsZWFz
-dA0KPiA+ID4gPiA+IG9uIEFDUElDQSBzaWRlKSwgc28sIHdoYXQgV2luZG93cyBleGFjdGx5IGRv
-ZXMgb24gc3VjaCBsYXB0b3BzPw0KPiA+ID4gPiA+DQo+ID4gPiA+DQo+ID4gPiA+IFRoZSBpc3N1
-ZSB0aGF0J3MgYmVpbmcgd29ya2VkIGFyb3VuZCBpc24ndCBhbiBBQ1BJQ0EgaW50ZXJwcmV0ZXIN
-Cj4gPiA+ID4gaXNzdWUsIGJ1dCBpdCdzDQo+ID4gPiA+IGEgZ3JhcGhpY3MgZGV2aWNlIGNvbmZp
-Z3VyYXRpb24gaXNzdWUuDQo+IA0KPiBUaGVuIGNsZWFybHkgbm90aGluZyB0byBkbyB3aXRoIE9T
-SSBzdHJpbmdzIGhlcmUsIHJpZ2h0Pw0KDQpUaGUgdXNhZ2Ugb2YgT1NJIGhlcmUgaXM6IGRvIHlv
-dSBzdXBwb3J0IHRoZSBmZWF0dXJlICJMaW51eC1EZWxsLVZpZGVvIg0KdG8gTGludXgga2VybmVs
-LiAgSWYgTGludXgga2VybmVsIHJlc3BvbmRzIHllcyB0aGVuIGZpcm13YXJlIHdpbGwgdHVybiBv
-ZmYgDQpSVEQzIGZ1bmN0aW9uYWxpdHkgZm9yIHRoZSBkaXNjcmV0ZSBHUFUuDQoNCj4gDQo+ID4g
-PiA+IFdpbmRvd3MgZXhwZWN0cyB0byB1c2UgUlREMyBvbiB0aGUgTlZJRElBIEdQVSBidXQgTGlu
-dXggZHJpdmVycw0KPiA+ID4gPiBkb24ndC4gIEl0IGxlYWRzIHRvIHN5c3RlbSBoYW5ncyBvbiB0
-aGUgTGludXggc2lkZS4NCj4gPiA+DQo+ID4gPiBDYW4gd2UgYWRqdXN0IExpbnV4IGRyaXZlcnMg
-dG8gZG8gdGhlIHJpZ2h0IHRoaW5nPw0KPiANCj4gKzEwMA0KPiANCj4gPiA+ICBPciBpcyBpdCBy
-ZWdhcmRpbmcNCj4gPiA+IHRoZSBiaW5hcnkgTlZJRElBIGJsb2I/DQo+IA0KPiBuVmlkaWEgdnMu
-IExpbnV4IGFnYWluPyA6LSkNCj4gDQo+ID4NCj4gPiBOZWl0aGVyIE5vdXZlYXUgbm9yIHRoZSBO
-VklESUEgYmxvYiBoYXZlIHN1cHBvcnQgZm9yIFJURDMuDQo+ID4NCj4gPiBMYXN0IEkgaGVhcmQg
-aXQncyB3YWl0aW5nIG9uIE5WSURJQSByZWxlYXNpbmcgc29tZXRoaW5nIE5vdXZlYXUNCj4gPiBu
-ZWVkcy4gIFNvLi4gRXZlbnR1YWxseT8gIEZvciBub3cgaXQncyBiZXR0ZXIgdG8gbm90IGhhbmcg
-dGhvdWdoLg0KPiANCj4gSG1tLi4uIFdoaWxlIHlvdSBhcmUgdGFsa2luZyBzZW5zZSwgdGhlIHBh
-dGNoIGl0c2VsZiBsb29rcyBsaWtlIGFuIHVnbHkNCj4gaGFjay4NCg0KSSBkb24ndCBkaXNhZ3Jl
-ZSBpdCdzIGEgd29ya2Fyb3VuZCBmb3IgYSBkcml2ZXIgZGVmaWNpZW5jeS4NCg0KPiANCj4gPiBU
-aGF0J3MgcGFydCBvZiB3aHkgd2Ugd2FudGVkIHRvIGVuYWJsZSB0aGlzIHZpYSBhIHRyYW5zaWVu
-dCBPU0kNCj4gPiBzdHJpbmcsDQo+ID4gdG8gbGV0IHRoaXMgYmUgcmVtb3ZlZCBieSBMaW51eCB3
-aGVuZXZlciB0aGUgZHJpdmVyIGRvZXMgZ3JvdyBzdXBwb3J0Lg0KPiANCj4gU28sIG1lYW5zICJu
-ZXZlciIgdGhlbj8gKEFzc3VtZSBhIGJpdCBvZiBpcm9ueSBoZXJlKQ0KPiANCj4gSSBkb24ndCBr
-bm93IGhvdyBpdCBmZWVscyBmb3IgbWFpbnRhaW5lcnMsIGZvciBtZSBpdCdzIHF1aXRlIHVubGlr
-ZWx5IHRvDQo+IGdvIChhdCBsZWFzdCBpbiB0aGlzIHNoYXBlKS4NCg0KSSdtIG5vdCBnb2luZyB0
-byBiZSBhYmxlIHRvIGZvcmNlIE5WSURJQSB0byBmaXggdGhlIGJsb2Igb3IgdG8gZ2l2ZSB3aGF0
-J3MNCm5lY2Vzc2FyeSB0byBlbmFibGUgTm91dmFldSBmb3IgdGhpcyBmdW5jdGlvbi4gIFdoYXQg
-d2UgY2FuIGRvIGlzIHByZXZlbnQNCnNvbWVvbmUncyBzeXN0ZW0gZnJvbSBoYW5naW5nIGJlY2F1
-c2Ugb2YgdGhpcyBzaXR1YXRpb24uDQoNCj4gDQo+IEknbSBzb3JyeSBJIGNhbid0IGJlIG11Y2gg
-Y29uc3RydWN0aXZlIGhlcmUsIEkgaGVhcmQgTGVuIG9uY2UgYWJvdXQgT1NJDQo+IGh1Z2UgYWJ1
-c2UgYnkgYWxtb3N0IGV2ZXJ5IHBhcnR5LiBJIHdvdWxkIHJhdGhlciBsZXQgaGltIHNwZWFrIG9u
-IHRoZQ0KPiBtYXR0ZXIuDQoNCkkga25vdyB0aGF0IE9TSSBoYXMgYmVlbiBhYnVzZWQgaW4gdGhl
-IHBhc3QsIGJ1dCB0aGF0J3MgZXhhY3RseSB3aHkgdGhpcw0KaGFzIGJlZW4gaW1wbGVtZW50ZWQg
-YXMgc2VlbiBpbiB0aGlzIHBhdGNoIHNlcmllcy4NCg0KSXQncyBkb25lIHNwZWNpZmljYWxseSB0
-byBmaXQgd2l0aGluIGV4YWN0bHkgd2hhdCB0aGUgTGludXgga2VybmVsIGlkZWFsbHkNCmxvb2tz
-IGZvciBpbiBhIGN1c3RvbSBPU0kgZmVhdHVyZSBzdHJpbmcuDQoNCiogSXQgaGFzIGFuIE9TIFBy
-ZWZpeCAoTGludXgtKQ0KKiBJdCdzIGFuIE9FTSBzcGVjaWZpYyBzdHJpbmcgKC1EZWxsLSkNCiog
-SXQncyBhIGZlYXR1cmUgc3BlY2lmaWMgc3RyaW5nICgtVmlkZW8pDQoqSXQncyBzcGVjaWZpYyB0
-byBhIHNpbmdsZSBwbGF0Zm9ybSAobm90IGEgYmxhbmtldCBtYXRjaCB0byBEZWxsIEluYykNCipJ
-dCBvbmx5IG1vZGlmaWVzIG9uZSBmZWF0dXJlIGluIEFTTA0KDQoNCg==
+On Mon, Feb 5, 2018 at 4:25 PM, John Garry <john.garry@huawei.com> wrote:
+> On 05/02/2018 13:16, Andy Shevchenko wrote:
+>> On Thu, Feb 1, 2018 at 1:32 PM, John Garry <john.garry@huawei.com> wrote:
+
+>> resource_size_t is dynamic width type, you will see a compiler
+>> warning. For this we have
+>> %pap specifier.
+>>
+>> Moreover, in some cases it's useful to print struct resource via %pR or
+>> %pr.
+
+> I have already fixed this up in my rework.
+
+Good!
+
+>>>> +/* All the host devices which apply indirect-IO can be listed here. */
+>>>> +static const struct acpi_device_id acpi_indirect_host_id[] = {
+>>>> +       {""},
+>>>> +};
+>>
+>>
+>> The idea of terminator is to be such (remove comma there). And it's
+>> basically redundant to have an empty string there. Moreover, it's a
+>> waste of resources in ro section.
+>
+>
+> OK, the comma should be removed. So what is the preferred acpi device id
+> array sentinel? I see {}, {"", 0}, and {""} used.
+
+The rule of thumb --- whatever has more entries in the kernel.
+In case of similarity I would prefer simple {} because it suits for
+termination slightly better (for my opinion, some cases might
+potentially have {"", non_null_vakue}).
+
+-- 
+With Best Regards,
+Andy Shevchenko
