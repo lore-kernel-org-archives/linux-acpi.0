@@ -1,82 +1,196 @@
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Mon, 5 Feb 2018 14:45:31 -0800
-Message-ID: <20180205224531.GA46524@dtor-ws>
-References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
- <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
- <20180205141447.6e1442ac@endymion>
- <1517840100.22495.25.camel@linux.intel.com>
- <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [GIT PULL] libnvdimm for 4.16
+Date: Mon, 5 Feb 2018 17:07:06 -0700
+Message-ID: <20180206000706.GA24568@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:40804 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751671AbeBEWpf (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Feb 2018 17:45:35 -0500
-Received: by mail-pl0-f67.google.com with SMTP id g18so12771817plo.7
-        for <linux-acpi@vger.kernel.org>; Mon, 05 Feb 2018 14:45:35 -0800 (PST)
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: torvalds@linux-foundation.org
+Cc: linux-fsdevel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: andriy.shevchenko@linux.intel.com, jdelvare@suse.de, alex.hung@canonical.com, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-On Mon, Feb 05, 2018 at 05:36:18PM +0000, Mario.Limonciello@dell.com wrote:
-> > -----Original Message-----
-> > From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
-> > Sent: Monday, February 5, 2018 8:15 AM
-> > To: Jean Delvare <jdelvare@suse.de>; Alex Hung <alex.hung@canonical.com>
-> > Cc: rjw@rjwysocki.net; lenb@kernel.org; gregkh@linuxfoundation.org;
-> > davem@davemloft.net; mika.westerberg@linux.intel.com; f.fainelli@gmail.com;
-> > dmitry.torokhov@gmail.com; kishon@ti.com; karniksayli1995@gmail.com; linux-
-> > acpi@vger.kernel.org; Limonciello, Mario <Mario_Limonciello@Dell.com>
-> > Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-> > 
-> > On Mon, 2018-02-05 at 14:14 +0100, Jean Delvare wrote:
-> > 
-> > > On Wed, 31 Jan 2018 00:40:05 -0800, Alex Hung wrote:
-> > > > A number of Dell systems require an OEM _OSI string "Linux-Dell-
-> > > > Video" as
-> > > > a BIOS workaround for a system hang bug caused by discrete VGA. The
-> > > > form of
-> > > > the OEM _OSI string is discussed in Documentation/acpi/osi.txt and
-> > > > is
-> > > > defined by each OEM.
-> > >
-> > > I admit I don't understand how it is the operating system's job to
-> > > carry the information from the BIOS to the BIOS.
-> > 
-> > > > +	for (i = 0; i < OSI_STRING_ENTRIES_MAX; i++) {
-> > > > +		osi = &osi_setup_entries[i];
-> > > > +		if (!strcmp(osi->string, str)) {
-> > >
-> > > This can only happen if the user passes acpi_osi=Linux-Dell-Video or
-> > > acpi_osi=!Linux-Dell-Video on the boot command line, right?
-> > >
-> > > > +			osi->enable = true;
-> > >
-> > > Does this not prevent the user from explicitly disabling it with
-> > > acpi_osi=!Linux-Dell-Video ?
-> > 
-> > Playing with OSI string is a bad idea. I wouldn't do anything while
-> > Rafael, or even Len can confirm that is the right thing to do.
-> > 
-> > For me, AFAIK we need to be bug-to-bug compatible with Windows (at least
-> > on ACPICA side), so, what Windows exactly does on such laptops?
-> > 
-> 
-> The issue that's being worked around isn't an ACPICA interpreter issue, but it's 
-> a graphics device configuration issue.
-> 
-> Windows expects to use RTD3 on the NVIDIA GPU but Linux drivers
-> don't.  It leads to system hangs on the Linux side.
+Hi Linus, please pull from:
 
-Can we adjust Linux drivers to do the right thing? Or is it regarding
-the binary NVIDIA blob?
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.16
 
-Thanks.
+...to receive the libnvdimm update for 4.16.
 
--- 
-Dmitry
+All of these commits have shipped in -next and have received build verification
+notices from 0day.
+
+There is one small merge conflict that Michael Ellerman also noted in his pull
+request.  In Michael's tree the axonram driver was removed, and in our tree it
+received two small updates.  The merge can be trivially resolved by just
+keeping the driver removed per Michael's tree.
+
+Regarding the vmem_altmap patches, Michal Hocko took a quick look and while it
+wasn't a full review he has future plans to reuse vmem_altmap in wider places
+in the memory hotplug code, so he's in favor of getting it properly plumbed.
+
+In case you wanted to inspect them or verify the merge I've also pushed the
+three topic branches for this cycle to our nvdimm tree: 
+
+  for-4.16/nfit
+  for-4.16/libnvdimm
+  for-4.16/dax
+
+---
+
+The following changes since commit a7f2766ac7c359216da4e714dc117c881e39a74a:
+
+  Merge branches 'acpi-gpio', 'acpi-button', 'acpi-battery' and 'acpi-video' (2018-01-18 03:02:16 +0100)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.16
+
+for you to fetch changes up to ee95f4059a833839bf52972191b2d4c3d3cec552:
+
+  Merge branch 'for-4.16/nfit' into libnvdimm-for-next (2018-02-03 00:26:26 -0700)
+
+----------------------------------------------------------------
+libnvdimm for 4.16
+
+* Require struct page by default for filesystem DAX to remove a number of
+  surprising failure cases.  This includes failures with direct I/O, gdb and
+  fork(2).
+
+* Add support for the new Platform Capabilities Structure added to the NFIT in
+  ACPI 6.2a.  This new table tells us whether the platform supports flushing
+  of CPU and memory controller caches on unexpected power loss events.
+
+* Revamp vmem_altmap and dev_pagemap handling to clean up code and better
+  support future future PCI P2P uses.
+
+* Deprecate the ND_IOCTL_SMART_THRESHOLD command whose payload has become
+  out-of-sync with recent versions of the NVDIMM_FAMILY_INTEL spec, and
+  instead rely on the generic ND_CMD_CALL approach used by the two other IOCTL
+  families, NVDIMM_FAMILY_{HPE,MSFT}.
+
+* Enhance nfit_test so we can test some of the new things added in version 1.6
+  of the DSM specification.  This includes testing firmware download and
+  simulating the Last Shutdown State (LSS) status.
+
+----------------------------------------------------------------
+Christoph Hellwig (16):
+      memremap: provide stubs for vmem_altmap_offset and vmem_altmap_free
+      mm: don't export arch_add_memory
+      mm: don't export __add_pages
+      mm: pass the vmem_altmap to arch_add_memory and __add_pages
+      mm: pass the vmem_altmap to vmemmap_populate
+      mm: pass the vmem_altmap to arch_remove_memory and __remove_pages
+      mm: pass the vmem_altmap to vmemmap_free
+      mm: pass the vmem_altmap to memmap_init_zone
+      mm: split altmap memory map allocation from normal case
+      mm: merge vmem_altmap_alloc into altmap_alloc_block_buf
+      mm: move get_dev_pagemap out of line
+      mm: optimize dev_pagemap reference counting around get_dev_pagemap
+      memremap: remove to_vmem_altmap
+      memremap: simplify duplicate region handling in devm_memremap_pages
+      memremap: change devm_memremap_pages interface to use struct dev_pagemap
+      memremap: merge find_dev_pagemap into get_dev_pagemap
+
+Colin Ian King (1):
+      libnvdimm, namespace: remove redundant initialization of 'nd_mapping'
+
+Dan Williams (8):
+      nfit, libnvdimm: deprecate the generic SMART ioctl
+      tools/testing/nvdimm: smart alarm/threshold control
+      mm, dax: introduce pfn_t_special()
+      ext4: auto disable dax instead of failing mount
+      ext2: auto disable dax instead of failing mount
+      dax: require 'struct page' by default for filesystem dax
+      tools/testing/nvdimm: force nfit_test to depend on instrumented modules
+      libnvdimm, namespace: make min namespace size 4K
+
+Dave Jiang (6):
+      acpi: nfit: Add support for detect platform CPU cache flush on power loss
+      acpi: nfit: add persistent memory control flag for nd_region
+      libnvdimm: expose platform persistence attribute for nd_region
+      nfit-test: Add platform cap support from ACPI 6.2a to test
+      libnvdimm/nfit_test: add firmware download emulation
+      libnvdimm/nfit_test: adding support for unit testing enable LSS status
+
+Jan H. Schönherr (2):
+      mm: Fix memory size alignment in devm_memremap_pages_release()
+      mm: Fix devm_memremap_pages() collision handling
+
+Jeff Moyer (1):
+      libnvdimm, btt: fix uninitialized err_lock
+
+Logan Gunthorpe (1):
+      memremap: drop private struct page_map
+
+Luis de Bethencourt (1):
+      device-dax: Fix trailing semicolon
+
+Ross Zwisler (2):
+      Merge branch 'for-4.16/dax' into libnvdimm-for-next
+      Merge branch 'for-4.16/nfit' into libnvdimm-for-next
+
+Toshi Kani (1):
+      acpi, nfit: fix register dimm error handling
+
+ arch/arm64/mm/mmu.c                    |   9 +-
+ arch/ia64/mm/discontig.c               |   6 +-
+ arch/ia64/mm/init.c                    |  18 +-
+ arch/powerpc/mm/init_64.c              |  17 +-
+ arch/powerpc/mm/mem.c                  |  11 +-
+ arch/powerpc/platforms/Kconfig         |   1 +
+ arch/powerpc/sysdev/axonram.c          |   2 +-
+ arch/s390/mm/init.c                    |   7 +-
+ arch/s390/mm/vmem.c                    |   6 +-
+ arch/sh/mm/init.c                      |  10 +-
+ arch/sparc/mm/init_64.c                |   5 +-
+ arch/x86/mm/init_32.c                  |   9 +-
+ arch/x86/mm/init_64.c                  |  94 ++++---
+ drivers/acpi/nfit/core.c               |  26 ++
+ drivers/acpi/nfit/nfit.h               |   1 +
+ drivers/dax/device.c                   |   2 +-
+ drivers/dax/pmem.c                     |  20 +-
+ drivers/dax/super.c                    |  10 +
+ drivers/nvdimm/btt.c                   |   2 +-
+ drivers/nvdimm/bus.c                   |   3 -
+ drivers/nvdimm/namespace_devs.c        |   2 +-
+ drivers/nvdimm/nd.h                    |   9 +-
+ drivers/nvdimm/pfn_devs.c              |  27 +-
+ drivers/nvdimm/pmem.c                  |  41 +--
+ drivers/nvdimm/pmem.h                  |   1 +
+ drivers/nvdimm/region_devs.c           |  13 +
+ drivers/s390/block/Kconfig             |   1 +
+ drivers/s390/block/dcssblk.c           |   3 +-
+ fs/Kconfig                             |   7 +
+ fs/ext2/super.c                        |   7 +-
+ fs/ext4/super.c                        |   9 +-
+ include/linux/libnvdimm.h              |  11 +
+ include/linux/memory_hotplug.h         |  29 +-
+ include/linux/memremap.h               |  77 ++---
+ include/linux/mm.h                     |  22 +-
+ include/linux/pfn_t.h                  |  13 +
+ include/uapi/linux/ndctl.h             |  56 +---
+ kernel/memremap.c                      | 174 +++++-------
+ mm/gup.c                               |   7 +-
+ mm/hmm.c                               |  13 +-
+ mm/memory.c                            |  16 +-
+ mm/memory_hotplug.c                    |  39 ++-
+ mm/page_alloc.c                        |   6 +-
+ mm/sparse-vmemmap.c                    |  67 ++---
+ mm/sparse.c                            |  43 +--
+ tools/testing/nvdimm/Kbuild            |   4 +
+ tools/testing/nvdimm/acpi_nfit_test.c  |   8 +
+ tools/testing/nvdimm/device_dax_test.c |   8 +
+ tools/testing/nvdimm/libnvdimm_test.c  |   8 +
+ tools/testing/nvdimm/pmem_test.c       |   8 +
+ tools/testing/nvdimm/test/iomap.c      |   7 +-
+ tools/testing/nvdimm/test/nfit.c       | 498 +++++++++++++++++++++++++++++----
+ tools/testing/nvdimm/test/nfit_test.h  | 134 +++++++++
+ tools/testing/nvdimm/watermark.h       |  21 ++
+ 54 files changed, 1122 insertions(+), 526 deletions(-)
+ create mode 100644 tools/testing/nvdimm/acpi_nfit_test.c
+ create mode 100644 tools/testing/nvdimm/device_dax_test.c
+ create mode 100644 tools/testing/nvdimm/libnvdimm_test.c
+ create mode 100644 tools/testing/nvdimm/pmem_test.c
+ create mode 100644 tools/testing/nvdimm/watermark.h
