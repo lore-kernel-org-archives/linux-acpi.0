@@ -1,12 +1,12 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 5/5] device property: Constify device_get_match_data()
-Date: Wed,  7 Feb 2018 16:56:10 +0200
-Message-ID: <20180207145610.88434-5-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 2/5] ACPI / bus: Do not traverse through non-existed device table
+Date: Wed,  7 Feb 2018 16:56:07 +0200
+Message-ID: <20180207145610.88434-2-andriy.shevchenko@linux.intel.com>
 References: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:25917 "EHLO mga11.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:12723 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754412AbeBGO4Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1754416AbeBGO4Q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Wed, 7 Feb 2018 09:56:16 -0500
 In-Reply-To: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
@@ -14,143 +14,43 @@ List-Id: linux-acpi@vger.kernel.org
 To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-Constify device_get_match_data() as OF and ACPI variants return
-constant value.
+When __acpi_match_device() is called it would be possible to have
+ACPI ID table a MULL pointer. To avoid potential dereference,
+check for this before traverse.
+
+While here, remove redundant 'else'.
 
 Cc: Sinan Kaya <okaya@codeaurora.org>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Vinod Koul <vinod.koul@intel.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/bus.c       | 4 ++--
- drivers/acpi/property.c  | 2 +-
- drivers/base/property.c  | 5 ++---
- drivers/of/property.c    | 4 ++--
- include/linux/acpi.h     | 4 ++--
- include/linux/fwnode.h   | 4 ++--
- include/linux/property.h | 2 +-
- 7 files changed, 12 insertions(+), 13 deletions(-)
+ drivers/acpi/bus.c | 12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index fd5407314f51..ad9be9a21941 100644
+index 761286e50067..da7e9cf770a6 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -794,7 +794,7 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- }
- EXPORT_SYMBOL_GPL(acpi_match_device);
+@@ -752,11 +752,13 @@ static const struct acpi_device_id *__acpi_match_device(
  
--void *acpi_device_get_match_data(const struct device *dev)
-+const void *acpi_device_get_match_data(const struct device *dev)
- {
- 	const struct acpi_device_id *match;
+ 	list_for_each_entry(hwid, &device->pnp.ids, list) {
+ 		/* First, check the ACPI/PNP IDs provided by the caller. */
+-		for (id = ids; id->id[0] || id->cls; id++) {
+-			if (id->id[0] && !strcmp((char *) id->id, hwid->id))
+-				return id;
+-			else if (id->cls && __acpi_match_device_cls(id, hwid))
+-				return id;
++		if (ids) {
++			for (id = ids; id->id[0] || id->cls; id++) {
++				if (id->id[0] && !strcmp((char *)id->id, hwid->id))
++					return id;
++				if (id->cls && __acpi_match_device_cls(id, hwid))
++					return id;
++			}
+ 		}
  
-@@ -802,7 +802,7 @@ void *acpi_device_get_match_data(const struct device *dev)
- 	if (!match)
- 		return NULL;
- 
--	return (void *)match->driver_data;
-+	return (const void *)match->driver_data;
- }
- EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
- 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index f9b5fa230a86..5815356ea6ad 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1271,7 +1271,7 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
--static void *
-+static const void *
- acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 				  const struct device *dev)
- {
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 302236281d83..8f205f6461ed 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -1410,9 +1410,8 @@ int fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- }
- EXPORT_SYMBOL(fwnode_graph_parse_endpoint);
- 
--void *device_get_match_data(struct device *dev)
-+const void *device_get_match_data(struct device *dev)
- {
--	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data,
--				  dev);
-+	return fwnode_call_ptr_op(dev_fwnode(dev), device_get_match_data, dev);
- }
- EXPORT_SYMBOL_GPL(device_get_match_data);
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index 36ed84e26d9c..f46828e3b082 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -977,11 +977,11 @@ static int of_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
- 	return 0;
- }
- 
--static void *
-+static const void *
- of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 				const struct device *dev)
- {
--	return (void *)of_device_get_match_data(dev);
-+	return of_device_get_match_data(dev);
- }
- 
- const struct fwnode_operations of_fwnode_ops = {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d0cbbbd88e0e..9a618204aba4 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -587,7 +587,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
- const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
- 					       const struct device *dev);
- 
--void *acpi_device_get_match_data(const struct device *dev);
-+const void *acpi_device_get_match_data(const struct device *dev);
- extern bool acpi_driver_match_device(struct device *dev,
- 				     const struct device_driver *drv);
- int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
-@@ -766,7 +766,7 @@ static inline const struct acpi_device_id *acpi_match_device(
- 	return NULL;
- }
- 
--static inline void *acpi_device_get_match_data(const struct device *dev)
-+static inline const void *acpi_device_get_match_data(const struct device *dev)
- {
- 	return NULL;
- }
-diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-index 4fa1a489efe4..4fe8f289b3f6 100644
---- a/include/linux/fwnode.h
-+++ b/include/linux/fwnode.h
-@@ -73,8 +73,8 @@ struct fwnode_operations {
- 	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
- 	void (*put)(struct fwnode_handle *fwnode);
- 	bool (*device_is_available)(const struct fwnode_handle *fwnode);
--	void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
--				       const struct device *dev);
-+	const void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
-+					     const struct device *dev);
- 	bool (*property_present)(const struct fwnode_handle *fwnode,
- 				 const char *propname);
- 	int (*property_read_int_array)(const struct fwnode_handle *fwnode,
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 769d372c1edf..2eea4b310fc2 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -283,7 +283,7 @@ bool device_dma_supported(struct device *dev);
- 
- enum dev_dma_attr device_get_dma_attr(struct device *dev);
- 
--void *device_get_match_data(struct device *dev);
-+const void *device_get_match_data(struct device *dev);
- 
- int device_get_phy_mode(struct device *dev);
- 
+ 		/*
 -- 
 2.15.1
 
