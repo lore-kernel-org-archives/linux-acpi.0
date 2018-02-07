@@ -1,55 +1,34 @@
-From: Borislav Petkov <bp@suse.de>
-Subject: Re: [PATCH v5 2/3] GHES: add a notify chain for process memory
- section
-Date: Wed, 7 Feb 2018 11:31:46 +0100
-Message-ID: <20180207103145.GC8944@pd.tnic>
-References: <1516969885-150532-1-git-send-email-xiexiuqi@huawei.com>
- <1516969885-150532-3-git-send-email-xiexiuqi@huawei.com>
+From: Aishwarya Pant <aishpant@gmail.com>
+Subject: [PATCH 0/2] acpi: document sysfs interfaces
+Date: Wed, 7 Feb 2018 18:46:50 +0530
+Message-ID: <cover.1518009225.git.aishpant@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:42759 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753630AbeBGNQ6 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2018 08:16:58 -0500
 Content-Disposition: inline
-In-Reply-To: <1516969885-150532-3-git-send-email-xiexiuqi@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
 
-On Fri, Jan 26, 2018 at 08:31:24PM +0800, Xie XiuQi wrote:
-> Add a notify chain for process memory section, with
-> which other modules might do error recovery.
-> 
-> Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Tested-by: Wang Xiongfeng <wangxiongfeng2@huawei.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  drivers/acpi/apei/ghes.c | 10 ++++++++++
->  include/acpi/ghes.h      |  8 ++++++++
->  2 files changed, 18 insertions(+)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index cff671d..1f0ebfb 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -109,6 +109,9 @@ static inline bool is_hest_type_generic_v2(struct ghes *ghes)
->  static LIST_HEAD(ghes_hed);
->  static DEFINE_MUTEX(ghes_list_mutex);
->  
-> +ATOMIC_NOTIFIER_HEAD(ghes_mem_err_chain);
-> +EXPORT_SYMBOL(ghes_mem_err_chain);
+Patchset contains documentation for two acpi drivers- dock and dptf. Description
+was collected from git history and reading through code. This might be useful
+for tracking changes in the ABI.
 
-Definitely not EXPORT_SYMBOL.
+Aishwarya Pant (2):
+  acpi/dptf: document sysfs atttributes
+  acpi/dock: document sysfs interface
 
-And certainly not export the notifier head. Have register and unregister
-functions instead.
-
-That is, *if* you can't solve it differently with James. Notifiers
-should be avoided if possible.
+ .../ABI/testing/sysfs-devices-platform-dock        | 38 ++++++++++++++++++++++
+ Documentation/ABI/testing/sysfs-platform-dptf      | 30 +++++++++++++++++
+ 2 files changed, 68 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-devices-platform-dock
+ create mode 100644 Documentation/ABI/testing/sysfs-platform-dptf
 
 -- 
-Regards/Gruss,
-    Boris.
+2.16.1
 
-SUSE Linux GmbH, GF: Felix Imendörffer, Jane Smithard, Graham Norton, HRB 21284 (AG Nürnberg)
--- 
