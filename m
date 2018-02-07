@@ -1,152 +1,128 @@
-From: Alex Hung <alex.hung@canonical.com>
-Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Wed, 7 Feb 2018 12:38:45 -0800
-Message-ID: <CAJ=jquaWYk6Z9jn+107+1x2GZfk1hNGnOVcszKZ4OA+_7eXE2Q@mail.gmail.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
+Date: Wed, 7 Feb 2018 20:49:20 +0000
+Message-ID: <49a288b90c44425a99119508a74a9f83@ausx13mpc120.AMER.DELL.COM>
 References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
  <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
- <20180205141447.6e1442ac@endymion> <1517840100.22495.25.camel@linux.intel.com>
+ <20180205141447.6e1442ac@endymion>
+ <1517840100.22495.25.camel@linux.intel.com>
  <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
- <20180205224531.GA46524@dtor-ws> <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
- <1517924731.22495.51.camel@linux.intel.com> <87fd656bb080495089cd21c66d559cea@ausx13mpc120.AMER.DELL.COM>
+ <20180205224531.GA46524@dtor-ws>
+ <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
+ <1517924731.22495.51.camel@linux.intel.com>
+ <87fd656bb080495089cd21c66d559cea@ausx13mpc120.AMER.DELL.COM>
+ <CAJ=jquaWYk6Z9jn+107+1x2GZfk1hNGnOVcszKZ4OA+_7eXE2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:53633 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754421AbeBGUis (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2018 15:38:48 -0500
-Received: from mail-qt0-f199.google.com ([209.85.216.199])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <alex.hung@canonical.com>)
-        id 1ejWUR-0007VR-FL
-        for linux-acpi@vger.kernel.org; Wed, 07 Feb 2018 20:38:47 +0000
-Received: by mail-qt0-f199.google.com with SMTP id h6so1946959qtm.15
-        for <linux-acpi@vger.kernel.org>; Wed, 07 Feb 2018 12:38:47 -0800 (PST)
-In-Reply-To: <87fd656bb080495089cd21c66d559cea@ausx13mpc120.AMER.DELL.COM>
+Received: from esa2.dell-outbound.iphmx.com ([68.232.149.220]:20248 "EHLO
+        esa2.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754127AbeBGUtW (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Wed, 7 Feb 2018 15:49:22 -0500
+In-Reply-To: <CAJ=jquaWYk6Z9jn+107+1x2GZfk1hNGnOVcszKZ4OA+_7eXE2Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jean Delvare <jdelvare@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, Florian Fainelli <f.fainelli@gmail.com>, kishon@ti.com, sayli karnik <karniksayli1995@gmail.com>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: alex.hung@canonical.com
+Cc: andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com, jdelvare@suse.de, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-On Tue, Feb 6, 2018 at 8:24 AM,  <Mario.Limonciello@dell.com> wrote:
->> -----Original Message-----
->> From: Andy Shevchenko [mailto:andriy.shevchenko@linux.intel.com]
->> Sent: Tuesday, February 6, 2018 7:46 AM
->> To: Limonciello, Mario <Mario_Limonciello@Dell.com>;
->> dmitry.torokhov@gmail.com
->> Cc: jdelvare@suse.de; alex.hung@canonical.com; rjw@rjwysocki.net;
->> lenb@kernel.org; gregkh@linuxfoundation.org; davem@davemloft.net;
->> mika.westerberg@linux.intel.com; f.fainelli@gmail.com; kishon@ti.com;
->> karniksayli1995@gmail.com; linux-acpi@vger.kernel.org
->> Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
->>
->> On Tue, 2018-02-06 at 00:45 +0000, Mario.Limonciello@dell.com wrote:
->>
->> > > > > Playing with OSI string is a bad idea. I wouldn't do anything
->> > > > > while
->> > > > > Rafael, or even Len can confirm that is the right thing to do.
->> > > > >
->> > > > > For me, AFAIK we need to be bug-to-bug compatible with Windows
->> > > > > (at least
->> > > > > on ACPICA side), so, what Windows exactly does on such laptops?
->> > > > >
->> > > >
->> > > > The issue that's being worked around isn't an ACPICA interpreter
->> > > > issue, but it's
->> > > > a graphics device configuration issue.
->>
->> Then clearly nothing to do with OSI strings here, right?
->
-> The usage of OSI here is: do you support the feature "Linux-Dell-Video"
-> to Linux kernel.  If Linux kernel responds yes then firmware will turn off
-> RTD3 functionality for the discrete GPU.
->
->>
->> > > > Windows expects to use RTD3 on the NVIDIA GPU but Linux drivers
->> > > > don't.  It leads to system hangs on the Linux side.
->> > >
->> > > Can we adjust Linux drivers to do the right thing?
->>
->> +100
->>
->> > >  Or is it regarding
->> > > the binary NVIDIA blob?
->>
->> nVidia vs. Linux again? :-)
->>
->> >
->> > Neither Nouveau nor the NVIDIA blob have support for RTD3.
->> >
->> > Last I heard it's waiting on NVIDIA releasing something Nouveau
->> > needs.  So.. Eventually?  For now it's better to not hang though.
->>
->> Hmm... While you are talking sense, the patch itself looks like an ugly
->> hack.
->
-> I don't disagree it's a workaround for a driver deficiency.
->
->>
->> > That's part of why we wanted to enable this via a transient OSI
->> > string,
->> > to let this be removed by Linux whenever the driver does grow support.
->>
->> So, means "never" then? (Assume a bit of irony here)
->>
->> I don't know how it feels for maintainers, for me it's quite unlikely to
->> go (at least in this shape).
-
-Workarounds are never preferred, but they are needed from time to time.
-
-There are other alternatives such as 1) _REV & acpi_rev_dmi_table, 2)
-windows & linux osi strings & acpi_osi_dmi_table.
-
-However, Linux-OEM-my_interface_name strings + OEM strings in DMI are
-better choices for couple reasons:
-
-1. Linux-OEM-my_interface_name are more informative than current
-available mechanisms.
-
-2. Linux-OEM-my_interface_name is defined in
-Documentation/acpi/osi.txt as below:
-
-_OSI("Linux-OEM-my_interface_name")
-where 'OEM' is needed if this is an OEM-specific hook,
-and 'my_interface_name' describes the hook, which could be a
-quirk, a bug, or a bug-fix.
-
-3. DMI OEM strings used in this patch are System IDs and they are
-unlikely to repeat for years. System IDs are also more precise than
-Product names.
-
-4. The workaround is controlled and limited to specific systems as
-Mario commented previously.
-
->
-> I'm not going to be able to force NVIDIA to fix the blob or to give what's
-> necessary to enable Nouvaeu for this function.  What we can do is prevent
-> someone's system from hanging because of this situation.
-
-and we never stopped poking NVIDIA to fix drivers and will never stop
-trying. If NVIDIA fixes RTD3, a clean-up patch will be submit to
-remove the quirks.
-
->
->>
->> I'm sorry I can't be much constructive here, I heard Len once about OSI
->> huge abuse by almost every party. I would rather let him speak on the
->> matter.
->
-> I know that OSI has been abused in the past, but that's exactly why this
-> has been implemented as seen in this patch series.
->
-> It's done specifically to fit within exactly what the Linux kernel ideally
-> looks for in a custom OSI feature string.
->
-> * It has an OS Prefix (Linux-)
-> * It's an OEM specific string (-Dell-)
-> * It's a feature specific string (-Video)
-> *It's specific to a single platform (not a blanket match to Dell Inc)
-> *It only modifies one feature in ASL
->
->
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbGV4IEh1bmcgW21haWx0bzph
+bGV4Lmh1bmdAY2Fub25pY2FsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBGZWJydWFyeSA3LCAy
+MDE4IDI6MzkgUE0NCj4gVG86IExpbW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVsbG9A
+RGVsbC5jb20+DQo+IENjOiBBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4
+LmludGVsLmNvbT47IERtaXRyeSBUb3Jva2hvdg0KPiA8ZG1pdHJ5LnRvcm9raG92QGdtYWlsLmNv
+bT47IEplYW4gRGVsdmFyZSA8amRlbHZhcmVAc3VzZS5kZT47IFJhZmFlbCBKLg0KPiBXeXNvY2tp
+IDxyandAcmp3eXNvY2tpLm5ldD47IExlbiBCcm93biA8bGVuYkBrZXJuZWwub3JnPjsNCj4gZ3Jl
+Z2toQGxpbnV4Zm91bmRhdGlvbi5vcmc7IGRhdmVtQGRhdmVtbG9mdC5uZXQ7DQo+IG1pa2Eud2Vz
+dGVyYmVyZ0BsaW51eC5pbnRlbC5jb207IEZsb3JpYW4gRmFpbmVsbGkgPGYuZmFpbmVsbGlAZ21h
+aWwuY29tPjsNCj4ga2lzaG9uQHRpLmNvbTsgc2F5bGkga2FybmlrIDxrYXJuaWtzYXlsaTE5OTVA
+Z21haWwuY29tPjsgTGludXggQUNQSSBNYWlsaW5nIExpc3QNCj4gPGxpbnV4LWFjcGlAdmdlci5r
+ZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIDIvMl0gQUNQSSAvIG9zaTogYWRkIERN
+SSBxdWlyayBmb3IgRGVsbCBzeXN0ZW1zDQo+IA0KPiBPbiBUdWUsIEZlYiA2LCAyMDE4IGF0IDg6
+MjQgQU0sICA8TWFyaW8uTGltb25jaWVsbG9AZGVsbC5jb20+IHdyb3RlOg0KPiA+PiAtLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21haWx0bzph
+bmRyaXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb21dDQo+ID4+IFNlbnQ6IFR1ZXNkYXksIEZl
+YnJ1YXJ5IDYsIDIwMTggNzo0NiBBTQ0KPiA+PiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJp
+b19MaW1vbmNpZWxsb0BEZWxsLmNvbT47DQo+ID4+IGRtaXRyeS50b3Jva2hvdkBnbWFpbC5jb20N
+Cj4gPj4gQ2M6IGpkZWx2YXJlQHN1c2UuZGU7IGFsZXguaHVuZ0BjYW5vbmljYWwuY29tOyByandA
+cmp3eXNvY2tpLm5ldDsNCj4gPj4gbGVuYkBrZXJuZWwub3JnOyBncmVna2hAbGludXhmb3VuZGF0
+aW9uLm9yZzsgZGF2ZW1AZGF2ZW1sb2Z0Lm5ldDsNCj4gPj4gbWlrYS53ZXN0ZXJiZXJnQGxpbnV4
+LmludGVsLmNvbTsgZi5mYWluZWxsaUBnbWFpbC5jb207IGtpc2hvbkB0aS5jb207DQo+ID4+IGth
+cm5pa3NheWxpMTk5NUBnbWFpbC5jb207IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+ID4+
+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBBQ1BJIC8gb3NpOiBhZGQgRE1JIHF1aXJrIGZvciBE
+ZWxsIHN5c3RlbXMNCj4gPj4NCj4gPj4gT24gVHVlLCAyMDE4LTAyLTA2IGF0IDAwOjQ1ICswMDAw
+LCBNYXJpby5MaW1vbmNpZWxsb0BkZWxsLmNvbSB3cm90ZToNCj4gPj4NCj4gPj4gPiA+ID4gPiBQ
+bGF5aW5nIHdpdGggT1NJIHN0cmluZyBpcyBhIGJhZCBpZGVhLiBJIHdvdWxkbid0IGRvIGFueXRo
+aW5nDQo+ID4+ID4gPiA+ID4gd2hpbGUNCj4gPj4gPiA+ID4gPiBSYWZhZWwsIG9yIGV2ZW4gTGVu
+IGNhbiBjb25maXJtIHRoYXQgaXMgdGhlIHJpZ2h0IHRoaW5nIHRvIGRvLg0KPiA+PiA+ID4gPiA+
+DQo+ID4+ID4gPiA+ID4gRm9yIG1lLCBBRkFJSyB3ZSBuZWVkIHRvIGJlIGJ1Zy10by1idWcgY29t
+cGF0aWJsZSB3aXRoIFdpbmRvd3MNCj4gPj4gPiA+ID4gPiAoYXQgbGVhc3QNCj4gPj4gPiA+ID4g
+PiBvbiBBQ1BJQ0Egc2lkZSksIHNvLCB3aGF0IFdpbmRvd3MgZXhhY3RseSBkb2VzIG9uIHN1Y2gg
+bGFwdG9wcz8NCj4gPj4gPiA+ID4gPg0KPiA+PiA+ID4gPg0KPiA+PiA+ID4gPiBUaGUgaXNzdWUg
+dGhhdCdzIGJlaW5nIHdvcmtlZCBhcm91bmQgaXNuJ3QgYW4gQUNQSUNBIGludGVycHJldGVyDQo+
+ID4+ID4gPiA+IGlzc3VlLCBidXQgaXQncw0KPiA+PiA+ID4gPiBhIGdyYXBoaWNzIGRldmljZSBj
+b25maWd1cmF0aW9uIGlzc3VlLg0KPiA+Pg0KPiA+PiBUaGVuIGNsZWFybHkgbm90aGluZyB0byBk
+byB3aXRoIE9TSSBzdHJpbmdzIGhlcmUsIHJpZ2h0Pw0KPiA+DQo+ID4gVGhlIHVzYWdlIG9mIE9T
+SSBoZXJlIGlzOiBkbyB5b3Ugc3VwcG9ydCB0aGUgZmVhdHVyZSAiTGludXgtRGVsbC1WaWRlbyIN
+Cj4gPiB0byBMaW51eCBrZXJuZWwuICBJZiBMaW51eCBrZXJuZWwgcmVzcG9uZHMgeWVzIHRoZW4g
+ZmlybXdhcmUgd2lsbCB0dXJuIG9mZg0KPiA+IFJURDMgZnVuY3Rpb25hbGl0eSBmb3IgdGhlIGRp
+c2NyZXRlIEdQVS4NCj4gPg0KPiA+Pg0KPiA+PiA+ID4gPiBXaW5kb3dzIGV4cGVjdHMgdG8gdXNl
+IFJURDMgb24gdGhlIE5WSURJQSBHUFUgYnV0IExpbnV4IGRyaXZlcnMNCj4gPj4gPiA+ID4gZG9u
+J3QuICBJdCBsZWFkcyB0byBzeXN0ZW0gaGFuZ3Mgb24gdGhlIExpbnV4IHNpZGUuDQo+ID4+ID4g
+Pg0KPiA+PiA+ID4gQ2FuIHdlIGFkanVzdCBMaW51eCBkcml2ZXJzIHRvIGRvIHRoZSByaWdodCB0
+aGluZz8NCj4gPj4NCj4gPj4gKzEwMA0KPiA+Pg0KPiA+PiA+ID4gIE9yIGlzIGl0IHJlZ2FyZGlu
+Zw0KPiA+PiA+ID4gdGhlIGJpbmFyeSBOVklESUEgYmxvYj8NCj4gPj4NCj4gPj4gblZpZGlhIHZz
+LiBMaW51eCBhZ2Fpbj8gOi0pDQo+ID4+DQo+ID4+ID4NCj4gPj4gPiBOZWl0aGVyIE5vdXZlYXUg
+bm9yIHRoZSBOVklESUEgYmxvYiBoYXZlIHN1cHBvcnQgZm9yIFJURDMuDQo+ID4+ID4NCj4gPj4g
+PiBMYXN0IEkgaGVhcmQgaXQncyB3YWl0aW5nIG9uIE5WSURJQSByZWxlYXNpbmcgc29tZXRoaW5n
+IE5vdXZlYXUNCj4gPj4gPiBuZWVkcy4gIFNvLi4gRXZlbnR1YWxseT8gIEZvciBub3cgaXQncyBi
+ZXR0ZXIgdG8gbm90IGhhbmcgdGhvdWdoLg0KPiA+Pg0KPiA+PiBIbW0uLi4gV2hpbGUgeW91IGFy
+ZSB0YWxraW5nIHNlbnNlLCB0aGUgcGF0Y2ggaXRzZWxmIGxvb2tzIGxpa2UgYW4gdWdseQ0KPiA+
+PiBoYWNrLg0KPiA+DQo+ID4gSSBkb24ndCBkaXNhZ3JlZSBpdCdzIGEgd29ya2Fyb3VuZCBmb3Ig
+YSBkcml2ZXIgZGVmaWNpZW5jeS4NCj4gPg0KPiA+Pg0KPiA+PiA+IFRoYXQncyBwYXJ0IG9mIHdo
+eSB3ZSB3YW50ZWQgdG8gZW5hYmxlIHRoaXMgdmlhIGEgdHJhbnNpZW50IE9TSQ0KPiA+PiA+IHN0
+cmluZywNCj4gPj4gPiB0byBsZXQgdGhpcyBiZSByZW1vdmVkIGJ5IExpbnV4IHdoZW5ldmVyIHRo
+ZSBkcml2ZXIgZG9lcyBncm93IHN1cHBvcnQuDQo+ID4+DQo+ID4+IFNvLCBtZWFucyAibmV2ZXIi
+IHRoZW4/IChBc3N1bWUgYSBiaXQgb2YgaXJvbnkgaGVyZSkNCj4gPj4NCj4gPj4gSSBkb24ndCBr
+bm93IGhvdyBpdCBmZWVscyBmb3IgbWFpbnRhaW5lcnMsIGZvciBtZSBpdCdzIHF1aXRlIHVubGlr
+ZWx5IHRvDQo+ID4+IGdvIChhdCBsZWFzdCBpbiB0aGlzIHNoYXBlKS4NCj4gDQo+IFdvcmthcm91
+bmRzIGFyZSBuZXZlciBwcmVmZXJyZWQsIGJ1dCB0aGV5IGFyZSBuZWVkZWQgZnJvbSB0aW1lIHRv
+IHRpbWUuDQo+IA0KPiBUaGVyZSBhcmUgb3RoZXIgYWx0ZXJuYXRpdmVzIHN1Y2ggYXMgMSkgX1JF
+ViAmIGFjcGlfcmV2X2RtaV90YWJsZSwgMikNCj4gd2luZG93cyAmIGxpbnV4IG9zaSBzdHJpbmdz
+ICYgYWNwaV9vc2lfZG1pX3RhYmxlLg0KPiANCj4gSG93ZXZlciwgTGludXgtT0VNLW15X2ludGVy
+ZmFjZV9uYW1lIHN0cmluZ3MgKyBPRU0gc3RyaW5ncyBpbiBETUkgYXJlDQo+IGJldHRlciBjaG9p
+Y2VzIGZvciBjb3VwbGUgcmVhc29uczoNCj4gDQo+IDEuIExpbnV4LU9FTS1teV9pbnRlcmZhY2Vf
+bmFtZSBhcmUgbW9yZSBpbmZvcm1hdGl2ZSB0aGFuIGN1cnJlbnQNCj4gYXZhaWxhYmxlIG1lY2hh
+bmlzbXMuDQo+IA0KPiAyLiBMaW51eC1PRU0tbXlfaW50ZXJmYWNlX25hbWUgaXMgZGVmaW5lZCBp
+bg0KPiBEb2N1bWVudGF0aW9uL2FjcGkvb3NpLnR4dCBhcyBiZWxvdzoNCj4gDQo+IF9PU0koIkxp
+bnV4LU9FTS1teV9pbnRlcmZhY2VfbmFtZSIpDQo+IHdoZXJlICdPRU0nIGlzIG5lZWRlZCBpZiB0
+aGlzIGlzIGFuIE9FTS1zcGVjaWZpYyBob29rLA0KPiBhbmQgJ215X2ludGVyZmFjZV9uYW1lJyBk
+ZXNjcmliZXMgdGhlIGhvb2ssIHdoaWNoIGNvdWxkIGJlIGENCj4gcXVpcmssIGEgYnVnLCBvciBh
+IGJ1Zy1maXguDQo+IA0KPiAzLiBETUkgT0VNIHN0cmluZ3MgdXNlZCBpbiB0aGlzIHBhdGNoIGFy
+ZSBTeXN0ZW0gSURzIGFuZCB0aGV5IGFyZQ0KPiB1bmxpa2VseSB0byByZXBlYXQgZm9yIHllYXJz
+LiBTeXN0ZW0gSURzIGFyZSBhbHNvIG1vcmUgcHJlY2lzZSB0aGFuDQo+IFByb2R1Y3QgbmFtZXMu
+DQoNCkFjdHVhbGx5IGZvciBEZWxsIHRoZXkncmUgZ3VhcmFudGVlZCB0byBhbHdheXMgYmUgdW5p
+cXVlIGFuZCB3aWxsIA0KbmV2ZXIgcmVwZWF0IG9uIGFub3RoZXIgcGxhdGZvcm0uDQoNCj4gDQo+
+IDQuIFRoZSB3b3JrYXJvdW5kIGlzIGNvbnRyb2xsZWQgYW5kIGxpbWl0ZWQgdG8gc3BlY2lmaWMg
+c3lzdGVtcyBhcw0KPiBNYXJpbyBjb21tZW50ZWQgcHJldmlvdXNseS4NCj4gDQo+ID4NCj4gPiBJ
+J20gbm90IGdvaW5nIHRvIGJlIGFibGUgdG8gZm9yY2UgTlZJRElBIHRvIGZpeCB0aGUgYmxvYiBv
+ciB0byBnaXZlIHdoYXQncw0KPiA+IG5lY2Vzc2FyeSB0byBlbmFibGUgTm91dmFldSBmb3IgdGhp
+cyBmdW5jdGlvbi4gIFdoYXQgd2UgY2FuIGRvIGlzIHByZXZlbnQNCj4gPiBzb21lb25lJ3Mgc3lz
+dGVtIGZyb20gaGFuZ2luZyBiZWNhdXNlIG9mIHRoaXMgc2l0dWF0aW9uLg0KPiANCj4gYW5kIHdl
+IG5ldmVyIHN0b3BwZWQgcG9raW5nIE5WSURJQSB0byBmaXggZHJpdmVycyBhbmQgd2lsbCBuZXZl
+ciBzdG9wDQo+IHRyeWluZy4gSWYgTlZJRElBIGZpeGVzIFJURDMsIGEgY2xlYW4tdXAgcGF0Y2gg
+d2lsbCBiZSBzdWJtaXQgdG8NCj4gcmVtb3ZlIHRoZSBxdWlya3MuDQo+IA0KPiA+DQo+ID4+DQo+
+ID4+IEknbSBzb3JyeSBJIGNhbid0IGJlIG11Y2ggY29uc3RydWN0aXZlIGhlcmUsIEkgaGVhcmQg
+TGVuIG9uY2UgYWJvdXQgT1NJDQo+ID4+IGh1Z2UgYWJ1c2UgYnkgYWxtb3N0IGV2ZXJ5IHBhcnR5
+LiBJIHdvdWxkIHJhdGhlciBsZXQgaGltIHNwZWFrIG9uIHRoZQ0KPiA+PiBtYXR0ZXIuDQo+ID4N
+Cj4gPiBJIGtub3cgdGhhdCBPU0kgaGFzIGJlZW4gYWJ1c2VkIGluIHRoZSBwYXN0LCBidXQgdGhh
+dCdzIGV4YWN0bHkgd2h5IHRoaXMNCj4gPiBoYXMgYmVlbiBpbXBsZW1lbnRlZCBhcyBzZWVuIGlu
+IHRoaXMgcGF0Y2ggc2VyaWVzLg0KPiA+DQo+ID4gSXQncyBkb25lIHNwZWNpZmljYWxseSB0byBm
+aXQgd2l0aGluIGV4YWN0bHkgd2hhdCB0aGUgTGludXgga2VybmVsIGlkZWFsbHkNCj4gPiBsb29r
+cyBmb3IgaW4gYSBjdXN0b20gT1NJIGZlYXR1cmUgc3RyaW5nLg0KPiA+DQo+ID4gKiBJdCBoYXMg
+YW4gT1MgUHJlZml4IChMaW51eC0pDQo+ID4gKiBJdCdzIGFuIE9FTSBzcGVjaWZpYyBzdHJpbmcg
+KC1EZWxsLSkNCj4gPiAqIEl0J3MgYSBmZWF0dXJlIHNwZWNpZmljIHN0cmluZyAoLVZpZGVvKQ0K
+PiA+ICpJdCdzIHNwZWNpZmljIHRvIGEgc2luZ2xlIHBsYXRmb3JtIChub3QgYSBibGFua2V0IG1h
+dGNoIHRvIERlbGwgSW5jKQ0KPiA+ICpJdCBvbmx5IG1vZGlmaWVzIG9uZSBmZWF0dXJlIGluIEFT
+TA0KPiA+DQo+ID4NCg==
