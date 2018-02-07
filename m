@@ -1,70 +1,91 @@
-From: Aishwarya Pant <aishpant@gmail.com>
-Subject: [PATCH v1 2/2] acpi/dock: document sysfs interface
-Date: Wed, 7 Feb 2018 18:48:17 +0530
-Message-ID: <9dff9dee68daf82305de32c45604757eca93afaf.1518009225.git.aishpant@gmail.com>
-References: <cover.1518009225.git.aishpant@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1518009225.git.aishpant@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 4/5] ACPI / bus: Rename acpi_get_match_data() to acpi_device_get_match_data()
+Date: Wed,  7 Feb 2018 16:56:09 +0200
+Message-ID: <20180207145610.88434-4-andriy.shevchenko@linux.intel.com>
+References: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:56329 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754389AbeBGO4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 7 Feb 2018 09:56:15 -0500
+In-Reply-To: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-Description has been collected from git commit history and reading
-through code.
+Do the renaming to be consistent with its sibling, i.e.
+of_device_get_match_data().
 
-Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+No functional change.
+
+Cc: Sinan Kaya <okaya@codeaurora.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- .../ABI/testing/sysfs-devices-platform-dock        | 38 ++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-devices-platform-dock
+ drivers/acpi/bus.c      | 4 ++--
+ drivers/acpi/property.c | 2 +-
+ include/linux/acpi.h    | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/ABI/testing/sysfs-devices-platform-dock b/Documentation/ABI/testing/sysfs-devices-platform-dock
-new file mode 100644
-index 000000000000..0bb0d42e9126
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-devices-platform-dock
-@@ -0,0 +1,38 @@
-+sysfs interface for ACPI dock station driver
-+--------------------------------------------
-+
-+What:		/sys/devices/platform/dock.N/docked
-+What:		/sys/devices/platform/dock.N/undock
-+Date:		Dec, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		docked: (RO) Value 1 or 0 indicates whether the software
-+		believes the laptop is docked in a docking station.
-+
-+		undock: (WO) Writing to this file causes the software to
-+		initiate an undock request to the firmware.
-+
-+What:		/sys/devices/platform/dock.N/uid
-+Date:		Feb, 2007
-+KernelVersion:	v2.6.21
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Displays the docking station the laptop is docked to.
-+
-+What:		/sys/devices/platform/dock.N/flags
-+Date:		May, 2007
-+KernelVersion:	v2.6.21
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Show dock station flags, useful for checking if undock
-+		request has been made by the user (from the immediate_undock
-+		option).
-+
-+What:		/sys/devices/platform/dock.N/type
-+Date:		Aug, 2008
-+KernelVersion:	v2.6.27
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Display the dock station type- dock_station, ata_bay or
-+		battery_bay.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 1a7aa97a32f8..fd5407314f51 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -794,7 +794,7 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
+-void *acpi_get_match_data(const struct device *dev)
++void *acpi_device_get_match_data(const struct device *dev)
+ {
+ 	const struct acpi_device_id *match;
+ 
+@@ -804,7 +804,7 @@ void *acpi_get_match_data(const struct device *dev)
+ 
+ 	return (void *)match->driver_data;
+ }
+-EXPORT_SYMBOL_GPL(acpi_get_match_data);
++EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
+ 
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids)
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 466d1503aba0..f9b5fa230a86 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1275,7 +1275,7 @@ static void *
+ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 				  const struct device *dev)
+ {
+-	return acpi_get_match_data(dev);
++	return acpi_device_get_match_data(dev);
+ }
+ 
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 246845da3f84..d0cbbbd88e0e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -587,7 +587,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ 					       const struct device *dev);
+ 
+-void *acpi_get_match_data(const struct device *dev);
++void *acpi_device_get_match_data(const struct device *dev);
+ extern bool acpi_driver_match_device(struct device *dev,
+ 				     const struct device_driver *drv);
+ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+@@ -766,7 +766,7 @@ static inline const struct acpi_device_id *acpi_match_device(
+ 	return NULL;
+ }
+ 
+-static inline void *acpi_get_match_data(const struct device *dev)
++static inline void *acpi_device_get_match_data(const struct device *dev)
+ {
+ 	return NULL;
+ }
 -- 
-2.16.1
+2.15.1
+
