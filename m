@@ -1,216 +1,220 @@
-From: dann frazier <dann.frazier@canonical.com>
-Subject: Re: [PATCH v12 0/9] LPC: legacy ISA I/O support
-Date: Wed, 7 Feb 2018 18:02:33 -0700
-Message-ID: <CALdTtnsKovpBVOW4nSpCGfeyBa+zUr6a_Mi2+wC-H6CuifGDXA@mail.gmail.com>
-References: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: Re: [PATCH v5 1/3] arm64/ras: support sea error recovery
+Date: Thu, 8 Feb 2018 16:35:44 +0800
+Message-ID: <7dacf375-4645-ba34-62d1-96d9f67dbcc2@huawei.com>
+References: <1516969885-150532-1-git-send-email-xiexiuqi@huawei.com>
+ <1516969885-150532-2-git-send-email-xiexiuqi@huawei.com>
+ <5A70C536.7040208@arm.com> <5A7B4D87.9020207@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: mika.westerberg@linux.intel.com, Rafael Wysocki <rafael@kernel.org>, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, olof@lixom.net, Hanjun Guo <hanjun.guo@linaro.org>, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, Corey Minyard <minyard@acm.org>, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, Randy Dunlap <rdunlap@infradead.org>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:59469 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750806AbeBHIkr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 8 Feb 2018 03:40:47 -0500
+In-Reply-To: <5A7B4D87.9020207@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, gengdongjiu@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
 
-On Tue, Jan 23, 2018 at 9:36 AM, John Garry <john.garry@huawei.com> wrote:
-> This patchset supports the IPMI-bt device attached to the Low-Pin-Count
-> interface implemented on Hisilicon Hip06/Hip07 SoC.
->                         -----------
->                         | LPC host|
->                         |         |
->                         -----------
->                              |
->                 _____________V_______________LPC
->                   |                       |
->                   V                       V
->                                      ------------
->                                      |  BT(ipmi)|
->                                      ------------
->
-> When master accesses those peripherals beneath the Hip06/Hip07 LPC, a specific
-> LPC driver is needed to make LPC host generate the standard LPC I/O cycles with
-> the target peripherals'I/O port addresses. But on curent arm64 world, there is
-> no real I/O accesses. All the I/O operations through in/out accessors are based
-> on MMIO ranges; on Hip06/Hip07 LPC the I/O accesses are performed through driver
-> specific accessors rather than MMIO.
-> To solve this issue and keep the relevant existing peripherals' drivers untouched,
-> this patchset:
->    - introduces a generic I/O space management framework, LIBIO, to support I/O
->      operations on host controllers operating either on MMIO buses or on buses
->      requiring specific driver I/O accessors;
->    - redefines the in/out accessors to provide a unified interface for both MMIO
->      and driver specific I/O operations. Using LIBIO, th call of in/out() from
->      the host children drivers, such as ipmi-si, will be redirected to the
->      corresponding device-specific I/O hooks to perform the I/O accesses.
->
-> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC peripherals can
-> be supported without any changes on the existing ipmi-si driver.
->
-> The whole patchset has been tested on Hip07 D05 board both using DTB and ACPI.
+Hi James,
 
-fyi, tested successfully here as well on a D05:
+Sorry for reply late.
 
-Tested-by: dann frazier <dann.frazier@canonical.com>
+On 2018/2/8 3:03, James Morse wrote:
+> Hi Xie XiuQi,
+> 
+> On 30/01/18 19:19, James Morse wrote:
+>> On 26/01/18 12:31, Xie XiuQi wrote:
+>>> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
+>>> are consumed. According to the existing process, errors occurred in the
+>>> kernel, leading to direct panic, if it occurred the user-space, we should
+>>> just kill process.
+>>>
+>>> But there is a class of error, in fact, is not necessary to kill
+>>> process, you can recover and continue to run the process. Such as
+>>> the instruction data corrupted, where the memory page might be
+>>> read-only, which is has not been modified, the disk might have the
+>>> correct data, so you can directly drop the page, ant reload it when
+>>> necessary.
+>>
+>> With firmware-first support, we do all this...
+>>
+>>
+>>> So this patchset is just try to solve such problem: if the error is
+>>> consumed in user-space and the error occurs on a clean page, you can
+>>> directly drop the memory page without killing process.
+>>>
+>>> If the corrupted page is clean, just dropped it and return to user-space
+>>> without side effects. And if corrupted page is dirty, memory_failure()
+>>> will send SIGBUS with code=BUS_MCEERR_AR. While without this patchset,
+>>> do_sea() will just send SIGBUS, so the process was killed in the same place.
+>>
+>> ... but this happens too. I agree its something we should fix, but I don't think
+>> this is the best way to do it.
+>>
+>> This series is pulling the memory-failure-queue details back into the arch-code
+>> to build a second list, that gets processed as extra work when we return to
+>> user-space.
+>>
+>>
+>> The root of the issue is ghes_notify_sea() claims the notification as something
+>> APEI has dealt with, ... but it hasn't done it yet. The signals will be
+>> generated by something currently stuck in a queue. (Evidently x86 doesn't handle
+>> synchronous errors like this using firmware-first).
+>>
+>> I think a smaller fix is to give the queues that may be holding the
+>> memory_failure() work a kick as part of the code that calls ghes_notify_sea().
+>> This means that by the time we return to do_sea() ghes_notify_sea()'s claim that
+>> APEI has dealt with it is true as any generated signals are pending. We can then
+>> skip the existing SIGBUS generation code.
+>>
+>>
+>>> Because memory_failure() may sleep, we can not call it directly in SEA
+>>
+>> (this one is more serious, I've attempted to fix it by moving all NMI-like
+>> GHES-notifications to use the estatus queue).
+>>
+>>
+>>> exception context. So we saved faulting physical address associated with
+>>> a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
+>>> from SEA exception context and get into do_notify_resume() before the
+>>> process running, we could check it and call memory_failure() to do
+>>> recovery.
+>>
+>>> It's safe, because we are in process context.
+>>
+>> I think this is the trick. When we take a Synchronous-external-abort out of
+>> userspace, we're in process context too. We can add helpers to drain the
+>> memory_failure_queue which can be called when do_sea() when we know we're
+>> preemptible and interrupts-et-al are unmasked.
+> 
+> Something like... base on [0], in arch/arm64/kernel/acpi.c:
 
- -dann
+I am very glad that you are trying to solve the problem, which is very helpful.
+I agree with your proposal, and I'll test it on by box latter.
 
-> Differences to v11:
->     - fixed build errors for i386, m68k, and tile
->     - added a comment in LPC driver commit log why we set
->        the kernel config as bool
->     - some tidying logic_pio code
->
-> Differences to v10:
->     - dropped CONFIG_LOGIC_PIO. Reason is that CONFIG_PCI
->       depends on this, and CONFIG_PCI is a per-arch CONFIG.
->       So we would require all arch's kconfig to select this.
->     - Addressed Dann Frazier's comments on LPC driver, and
->       sopme other cleanup
->     - Moved logic_pio.h to be included in generic asm io.h
->     - Fixed ACPI indirect IO host setup to handle >1 child
->     - Relocated ACPI indirect IO host setup code to
->       drivers/acpi
->     - Rebased to linux next-20180118
->
-> Changes from v9:
->   - patch 2 has been split into 3 patches according to Bjorn comments on
->     v9 thread
->   - patch 1 has been reworked accordign to Bjorn comments on v9
->   - now logic_pio_trans_hwaddr() has a sanity check to make sure the resource
->     size fits into the assigned range
->   - in patch 5 the MFD framework has been used to probe the LPC children
->     according to the suggestion from Mika Westerberg
->   - Maintaner has changed to Huawei Linuxarm mailing list
->
-> Changes from v8:
->   - Simplified LIB IO framewrok
->   - Moved INDIRECT PIO ACPI framework under acpi/arm64
->   - Renamed occurrences of "lib io" and "indirect io" to "lib pio" and
->     "indirect pio" to keep the patchset nomenclature consistent
->   - Removed Alignment reuqirements
->   - Moved LPC specific code out of ACPI common framework
->   - Now PIO indirect HW ranges can overlap
->   - Changed HiSilicon LPC driver maintainer (Gabriele Paoloni now) and split
->     maintaner file modifications in a separate commit
->   - Removed the commit with the DT nodes support for hip06 and hip07 (to be
->     pushed separately)
->   - Added a checking on ioport_map() not to break that function as Arnd points
->     out in V7 review thread;
->   - fixed the compile issues on alpha, m68k;
->
-> Changes from V7:
->   - Based on Arnd's comment, rename the LIBIO as LOGIC_PIO;
->   - Improved the mapping process in LOGIC_PIO to gain better efficiency when
->     redirecting the I/O accesses to right device driver;
->   - To reduce the impact on PCI MMIO to a minimum, add a new
->     CONFIG_INDIRECT_PIO for indirect-IO hosts/devices;
->   - Added a new ACPI handler for indirect-IO hosts/devices;
->   - Fixed the compile issues on V6;
->
-> Changes from V6:
->   - According to the comments from Bjorn and Alex, merge PCI IO and indirect-IO
->     into a generic I/O space management, LIBIO;
->   - Adopted the '_DEP' to replace the platform bus notifier. In this way, we can
->     ensure the LPC peripherals' I/O resources had been translated to logical IO
->     before the LPC peripheral enumeration;
->   - Replaced the rwlock with rcu list based on Alex's suggestion;
->   - Applied relaxed write/read to LPC driver;
->   - Some bugs fixing and some optimazations based on the comments of V6;
->
-> Changes from V5:
->   - Made the extio driver more generic and locate in lib/;
->   - Supported multiple indirect-IO bus instances;
->   - Extended the pci_register_io_range() to support indirect-IO, then dropped
->   the I/O reservation used in previous patchset;
->   - Reimplemented the ACPI LPC support;
->   - Fixed some bugs, including the compile error on other archs, the module
->   building failure found by Ming Lei, etc;
->
-> Changes from V4:
->   - Some revises based on the comments from Bjorn, Rob on V4;
->   - Fixed the compile error on some platforms, such as openrisc;
->
-> Changes from V3:
->   - UART support deferred to a separate patchset; This patchset only support
->   ipmi device under LPC;
->   - LPC bus I/O range is fixed to 0 ~ (PCIBIOS_MIN_IO - 1), which is separeted
->   from PCI/PCIE PIO space;
->   - Based on Arnd's remarks, removed the ranges property from Hip06 lpc dts and
->   added a new fixup function, of_isa_indirect_io(), to get the I/O address
->   directly from LPC dts configurations;
->   - Support in(w,l)/out(w,l) for Hip06 lpc I/O;
->   - Decouple the header file dependency on the gerenic io.h by defining in/out
->   as normal functions in c file;
->   - removed unused macro definitions in the LPC driver;
->
-> Changes from V2:
->   - Support the PIO retrieval from the linux PIO generated by
->   pci_address_to_pio. This method replace the 4K PIO reservation in V2;
->   - Support the flat-tree earlycon;
->   - Some revises based on Arnd's remarks;
->   - Make sure the linux PIO range allocated to Hip06 LPC peripherals starts
->   from non-ZERO;
->
-> Changes from V1:
->   - Support the ACPI LPC device;
->   - Optimize the dts LPC driver in ISA compatible mode;
->   - Reserve the IO range below 4K in avoid the possible conflict with PCI host
->   IO ranges;
->   - Support the LPC uart and relevant earlycon;
->
-> V11 thread here: https://lkml.org/lkml/2018/1/21/38
-> V10 thread here: https://lkml.org/lkml/2017/10/27/465
-> V9 thread here: https://lkml.org/lkml/2017/5/25/263
-> V8 thread here: https://lkml.org/lkml/2017/3/30/619
-> V7 thread here: https://lkml.org/lkml/2017/3/12/279
-> v6 thread here: https://lkml.org/lkml/2017/1/24/25
-> v5 thread here: https://lkml.org/lkml/2016/11/7/955
-> v4 thread here: https://lkml.org/lkml/2016/10/20/149
-> v3 thread here: https://lkml.org/lkml/2016/9/14/326
-> v2 thread here: https://lkml.org/lkml/2016/9/7/356
-> v1 thread here: https://lkml.org/lkml/2015/12/29/154
->
->
-> Gabriele Paoloni (2):
->   PCI: Remove unused __weak attribute in pci_register_io_range()
->   PCI: Add fwnode handler as input param of pci_register_io_range()
->
-> John Garry (3):
->   ACPI: Translate the I/O range of non-MMIO devices before scanning
->   LPC, ACPI: Add the HISI LPC ACPI support
->   MAINTAINERS: Add maintainer for HiSilicon LPC driver
->
-> Zhichang Yuan (4):
->   LIB: Introduce a generic PIO mapping method
->   PCI: Apply the new generic I/O management on PCI IO hosts
->   OF: Add missing I/O range exception for indirect-IO devices
->   LPC: Support the LPC host on Hip06/Hip07 with DT bindings
->
->  .../arm/hisilicon/hisilicon-low-pin-count.txt      |  33 ++
->  MAINTAINERS                                        |   7 +
->  drivers/acpi/arm64/Makefile                        |   1 +
->  drivers/acpi/arm64/acpi_indirectio.c               | 282 +++++++++++
->  drivers/acpi/internal.h                            |   5 +
->  drivers/acpi/pci_root.c                            |   8 +-
->  drivers/acpi/scan.c                                |   1 +
->  drivers/bus/Kconfig                                |   8 +
->  drivers/bus/Makefile                               |   1 +
->  drivers/bus/hisi_lpc.c                             | 541 +++++++++++++++++++++
->  drivers/of/address.c                               |  96 +++-
->  drivers/pci/pci.c                                  |  98 +---
->  include/asm-generic/io.h                           |   4 +-
->  include/linux/logic_pio.h                          | 141 ++++++
->  include/linux/pci.h                                |   3 +-
->  lib/Kconfig                                        |  15 +
->  lib/Makefile                                       |   2 +
->  lib/logic_pio.c                                    | 282 +++++++++++
->  18 files changed, 1427 insertions(+), 101 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
->  create mode 100644 drivers/acpi/arm64/acpi_indirectio.c
->  create mode 100644 drivers/bus/hisi_lpc.c
->  create mode 100644 include/linux/logic_pio.h
->  create mode 100644 lib/logic_pio.c
->
-> --
-> 1.9.1
->
+Indeed, we're in precess context when we are in sea handler. I was thought we
+can't call schedule() in the exception handler before.
+
+Thank you very much!
+
+> -----------------%<-----------------
+> int apei_claim_sea(struct pt_regs *regs)
+> {
+>         int cpu;
+>         int err = -ENOENT;
+>         unsigned long current_flags = arch_local_save_flags();
+>         unsigned long interrupted_flags = current_flags;
+> 
+>         if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+>                 return err;
+> 
+>         if (regs)
+>                 interrupted_flags = regs->pstate;
+> 
+>         /*
+>          * APEI expects an NMI-like notification to always be called
+>          * in NMI context.
+>          */
+>         local_daif_restore(DAIF_ERRCTX);
+>         nmi_enter();
+>         err = ghes_notify_sea();
+>         cpu = smp_processor_id();
+>         nmi_exit();
+> 
+>         /*
+>          * APEI NMI-like notifications are deferred to irq_work. Unless
+>          * we interrupted irqs-masked code, we can do that now.
+>          */
+>         if (!err) {
+>                 if (!arch_irqs_disabled_flags(interrupted_flags)) {
+>                         local_daif_restore(DAIF_PROCCTX_NOIRQ);
+>                         irq_work_run();
+>                 } else {
+>                         err = -EINPROGRESS;
+>                 }
+>         }
+> 
+>         local_daif_restore(current_flags);
+> 
+>         if (IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE) && !err) {
+>                 /*
+>                  * Memory failure work is scheduled on the local CPU.
+>                  * If we interrupted userspace, or are in process context
+>                  * we can do that now.
+>                  */
+>                 if ((regs && !user_mode(regs)) || !preemptible())
+>                         err = -EINPROGRESS;
+>                 else
+>                         memory_failure_queue_kick(cpu);
+>         }
+> 
+>         return err;
+> }
+> -----------------%<-----------------
+> 
+> 
+> and to mm/memory-failure.c:
+> -----------------%<-----------------
+> @@ -1355,7 +1355,7 @@ static void memory_failure_work_func(struct work_struct *w
+> ork)
+>         unsigned long proc_flags;
+>         int gotten;
+> 
+> -       mf_cpu = this_cpu_ptr(&memory_failure_cpu);
+> +       mf_cpu = container_of(work, struct memory_failure_cpu, work);
+>         for (;;) {
+>                 spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+>                 gotten = kfifo_get(&mf_cpu->fifo, &entry);
+> 
+> @@ -1369,6 +1369,22 @@ static void memory_failure_work_func(struct work_struct *
+> work)
+>         }
+>  }
+> 
+> +/*
+> + * Process memory_failure work queued on the specified CPU.
+> + * Used to avoid return-to-userspace racing with the memory_failure workqueue.
+> + */
+> +void memory_failure_queue_kick(int cpu)
+> +{
+> +       unsigned long flags;
+> +       struct memory_failure_cpu *mf_cpu;
+> +
+> +       might_sleep();
+> +
+> +       mf_cpu = &per_cpu(memory_failure_cpu, cpu);
+> +       cancel_work_sync(&mf_cpu->work);
+> +       memory_failure_work_func(&mf_cpu->work);
+> +}
+> +
+>  static int __init memory_failure_init(void)
+>  {
+>         struct memory_failure_cpu *mf_cpu;
+> -----------------%<-----------------
+> 
+> I've cooked up some NOTFIY_SEA-ing APEI firmware using kvmtool to test this. I
+> haven't yet managed to hit irq-masked code with NOTIFY_SEA. I'll try and tidy
+> this up and post a branch to make it easier to test...
+> 
+> I prefer this as it doesn't duplicate the state then come back on a TIF flag.
+> I'd like to move the kicking logic into ghes.c, as that is where the queueing
+> happened, but the 'do-this, restore these flags, do-that' is somewhat tasteless,
+> and it looks like on arm64 has synchronous nmi-like notifications that must be
+> handled before returning to user-space...
+> 
+> Thanks,
+> 
+> James
+> 
+> [0] https://www.spinics.net/lists/linux-acpi/msg80149.html
+> 
+
+
+-- 
+Thanks,
+Xie XiuQi
+
