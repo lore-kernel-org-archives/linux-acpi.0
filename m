@@ -1,116 +1,57 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
-Date: Thu, 08 Feb 2018 10:48:09 +0100
-Message-ID: <1730642.Ly2vjemNAk@aspire.rjw.lan>
-References: <20180130060744.19049-1-kai.heng.feng@canonical.com> <9f0eaaf403014137a123f6676ddac5b9@ausx13mpc120.AMER.DELL.COM> <94F2FBAB4432B54E8AACC7DFDE6C92E3B756CED7@ORSMSX110.amr.corp.intel.com>
+Subject: Re: [PATCH] ACPI / CPPC: Use 64-bit arithmetic instead of 32-bit
+Date: Thu, 08 Feb 2018 10:49:47 +0100
+Message-ID: <2503109.MpnWDuSnnD@aspire.rjw.lan>
+References: <20180206233617.GA30829@embeddedgus>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:52689 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:62050 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750986AbeBHJtw (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:49:52 -0500
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3B756CED7@ORSMSX110.amr.corp.intel.com>
+        with ESMTP id S1751562AbeBHJvb (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:51:31 -0500
+In-Reply-To: <20180206233617.GA30829@embeddedgus>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "kai.heng.feng@canonical.com" <kai.heng.feng@canonical.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 
-On Tuesday, January 30, 2018 9:09:04 PM CET Moore, Robert wrote:
+On Wednesday, February 7, 2018 12:36:17 AM CET Gustavo A. R. Silva wrote:
+> Add suffix ULL to constant 500 in order to give the compiler complete
+> information about the proper arithmetic to use. Notice that this
+> constant is used in a context that expects an expression of type
+> u64 (64 bits, unsigned).
 > 
-> > -----Original Message-----
-> > From: Mario.Limonciello@dell.com [mailto:Mario.Limonciello@dell.com]
-> > Sent: Tuesday, January 30, 2018 11:03 AM
-> > To: Schmauss, Erik <erik.schmauss@intel.com>; andy.shevchenko@gmail.com;
-> > kai.heng.feng@canonical.com
-> > Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
-> > linux-kernel@vger.kernel.org; Moore, Robert <robert.moore@intel.com>
-> > Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell
-> > XPS 9570 and Precision M5530
-> > 
-> > 
-> > 
-> > > -----Original Message-----
-> > > From: Schmauss, Erik [mailto:erik.schmauss@intel.com]
-> > > Sent: Tuesday, January 30, 2018 12:38 PM
-> > > To: Andy Shevchenko <andy.shevchenko@gmail.com>; Kai-Heng Feng
-> > > <kai.heng.feng@canonical.com>
-> > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown
-> > > <lenb@kernel.org>; ACPI Devel Maling List
-> > > <linux-acpi@vger.kernel.org>; Linux Kernel Mailing List <linux-
-> > > kernel@vger.kernel.org>; Limonciello, Mario
-> > > <Mario_Limonciello@Dell.com>; Moore, Robert <robert.moore@intel.com>
-> > > Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell
-> > > XPS 9570 and Precision M5530
-> > >
-> > > Hi,
-> > > > -----Original Message-----
-> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> > > > owner@vger.kernel.org] On Behalf Of Andy Shevchenko
-> > > > Sent: Tuesday, January 30, 2018 10:18 AM
-> > > > To: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown
-> > > > <lenb@kernel.org>; ACPI Devel Maling List
-> > > > <linux-acpi@vger.kernel.org>; Linux Kernel Mailing List <linux-
-> > > > kernel@vger.kernel.org>; Mario Limonciello
-> > > > <mario.limonciello@dell.com>
-> > > > Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for
-> > > > Dell XPS 9570 and Precision M5530
-> > > >
-> > > > On Tue, Jan 30, 2018 at 8:07 AM, Kai-Heng Feng
-> > > > <kai.heng.feng@canonical.com> wrote:
-> > > > > The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work
-> > > > > out of box.
-> > > > >
-> > > > > The touchpad relies on its _INI method to update its _HID value
-> > > > > from
-> > > > > XXXX0000 to SYNA2393.
-> > > > > Also, the _STA relies on value of I2CN to report correct status.
-> > > > >
-> > > > > Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
-> > > > > correctly set up, and _INI can get run. The ACPI table in this
-> > > > > machine is designed to get parsed this way.
-> > >
-> > > I thought I would give everyone an update: we are getting close to
-> > > finishing patches to enable this term list parsing by default as well
-> > > as a few other fixes with forward referencing of package elements.
-> > > Once we have established that these patches are stable, we will get
-> > > rid of acpi_gbl_parse_table_as_term_list. So this quirk may not be
-> > needed in the near future...
-> > 
-> > Rafael,
-> > 
-> > Would you be opposed to carrying a patch similar to this (proposed)
-> > quirk patch in kernel and reverting when Erik submits patches that get
-> > rid of acpi_gbl_parse_table_as_term_list?
-> > 
-> > The reason being, I think this could also be a candidate to bring back
-> > to @stable and fix this problem on earlier kernels too.
-> > 
-> > I don’t believe the patches that get rid of
-> > acpi_gbl_parse_table_as_term_list likely will be good candidates for
-> > @stable.
-> > 
+> The expression NUM_RETRIES * cppc_ss->latency at line 578, which at
+> preprocessing time translates to 500 * cppc_ss->latency is currently
+> being evaluated using 32-bit arithmetic.
 > 
+> Addresses-Coverity-ID: 1382602
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+> Notice that another option is to cast NUM_RETRIES to u64 at line 578,
+> but as there is only one instace in which this macro is being used I
+> think adding the ULL is just enough.
 > 
-> Does anyone remember what was the exact problem that forced the creation of
-> parse_table_as_term_list in the first place?
+>  drivers/acpi/cppc_acpi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 06ea474..0afbb26 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -119,7 +119,7 @@ static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
+>   * to PCC commands. Keeping it high enough to cover emulators where
+>   * the processors run painfully slow.
+>   */
+> -#define NUM_RETRIES 500
+> +#define NUM_RETRIES 500ULL
+>  
+>  struct cppc_attr {
+>  	struct attribute attr;
+> 
 
-I don't remember exactly, but it was related to the MLC code.
+Applied, thanks!
 
-That was introduced by this kernel commit:
-
-commit de56ba95e8d6d760910711744a548b50b3a4262d
-Author: Lv Zheng <lv.zheng@intel.com>
-Date:   Wed Sep 7 14:06:54 2016 +0800
-
-    ACPICA: Interpreter: Fix MLC issues by switching to new term_list grammar for table loading
-    
-    ACPICA commit 0e24fb67cde08d7df7671d7d7b183490dc79707e
-
-which has a very detailed changelog including links to several bug entries.
-
-Thanks,
-Rafael
 
