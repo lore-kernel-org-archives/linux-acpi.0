@@ -1,39 +1,81 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2 0/5] ACPI: Do not call _STA on battery devices with
- unmet dependencies
-Date: Thu, 8 Feb 2018 17:34:17 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B7570FA0@ORSMSX110.amr.corp.intel.com>
-References: <20180122085135.16732-1-hdegoede@redhat.com>
- <3281375.11fh90aaLK@aspire.rjw.lan>
- <7efce3e1-4cb7-fa68-9024-73fa124b9171@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bug 197863] Thinkpad X240 resume dramatically slower on kernels 4.13+
+Date: Thu, 08 Feb 2018 20:12:06 +0100
+Message-ID: <4333304.2V78SBapX3@aspire.rjw.lan>
+References: <bug-197863-190391@https.bugzilla.kernel.org/> <a662d85c-e226-223e-3467-90b651dd291b@intel.com> <CAJZ5v0jN2cQUmwWRQ=Rvb+dQpMg+Q+GuaDtt-X-tXWNThUx-NQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <7efce3e1-4cb7-fa68-9024-73fa124b9171@redhat.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Box, David E" <david.e.box@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.pl ([79.96.170.134]:45437 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752433AbeBHTNu (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 14:13:50 -0500
+In-Reply-To: <CAJZ5v0jN2cQUmwWRQ=Rvb+dQpMg+Q+GuaDtt-X-tXWNThUx-NQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>, Markus Demleitner <m@tfiu.de>
+Cc: Greg KH <gregkh@linuxfoundation.org>, Andreas Lindhe <andreas@lindhe.io>, Gjorgji Jankovski <j.gjorgji@gmail.com>, Damjan Georgievski <gdamjan@gmail.com>, Fernando Chaves <nanochaves@gmail.com>, Tomislav Ivek <tomislav.ivek@gmail.com>, "Denis P." <theoriginal.skullburner@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-DQoNCj4gPiBUaGUgbGFzdCBvbmUgbmVlZHMgdG8gZ28gaW4gdmlhIEFDUElDQSBhbnl3YXkgb3Ig
-d2UnbGwgbmVlZCB0byBjYXJyeSBhDQo+ID4gTGludXgtc3BlY2lmaWMgcmVwbGFjZW1lbnQgZm9y
-IGFjcGlfZ2V0X29iamVjdF9pbmZvKCkuDQo+IA0KPiBBY2ssIEknbSBkaXNjdXNzaW5nIGhvdyB0
-byBwcm9jZWVkIHdpdGggdGhpcyB3aXRoIHRoZSBBQ1BJQ0EgcGVvcGxlLg0KPiANCj4gUmVnYXJk
-cywNCj4gDQo+IEhhbnMNCg0KDQpJIG5vcm1hbGx5IGRvbid0IGxpa2UgdG8gY2hhbmdlIGV4dGVy
-bmFsIGludGVyZmFjZXMgKHRoZSBiaWdnZXN0IHJlYXNvbiBiZWluZyB0aGUgc2hlZXIgbnVtYmVy
-IG9mIGRpZmZlcmVudCBPUyB2ZW5kb3JzIHRoYXQgdXNlIEFDUElDQSksIGJ1dCBpbiB0aGlzIGNh
-c2UsIEkgZmVlbCBpdCBtYXkgYmUgT0suIFRoaXMgaW50ZXJmYWNlIGlzIHByb2JhYmx5IG5vdCBo
-ZWF2aWx5IHVzZWQsIGFuZCB0aGVyZSBpcyBwcmVjZWRlbnQgZm9yIHRoaXMgd2hlbiB0aGUgaW52
-b2NhdGlvbiBvZiBfU1VCIHdhcyByZW1vdmVkLg0KDQpPbiB0aGUgb3RoZXIgaGFuZCwgSSB0aGlu
-ayBJIHNhdyBpdCBtZW50aW9uZWQgdGhhdCBMaW51eCBjYWxscyB0aGlzIGludGVyZmFjZSBvbmx5
-IG9uY2UsIGlzIHRoaXMgY29ycmVjdD8gSWYgc28sIHBlcmhhcHMgaXQgd291bGQgYmUgZWFzaWVz
-dCB0byBzaW1wbHkgcmVtb3ZlIHRoaXMgY2FsbCBhbmQgdXNlIGRpcmVjdCBjb250cm9sIG1ldGhv
-ZCBpbnZvY2F0aW9ucyB0byBvYnRhaW4gdGhlIGRlc2lyZWQgZGF0YS4NCg0KSWYgd2UgZ28gYWhl
-YWQgYW5kIG1ha2UgdGhpcyBjaGFuZ2UgdG8gQUNQSUNBOiBJIGhhdmUgbm90IHNlZW4gdGhlIHBh
-dGNoLCBidXQgcGxlYXNlIG1ha2Ugc3VyZSB0aGF0IGFsbCB2ZXN0aWdlcyBvZiB0aGlzIGFyZSBy
-ZW1vdmVkLiBUaGlzIGluY2x1ZGVzIGFsbCBpbnZvY2F0aW9ucyB3aXRoaW4gQUNQSUNBIHRoYXQg
-ZXhhbWluZSB0aGUgcmVzdWx0IG9mIHRoZSBfU1RBIGludm9jYXRpb24sIHRoZSBDdXJyZW50U3Rh
-dHVzIGZpZWxkIG9mIEFDUElfREVWSUNFX0lORk8sIHRoZSBBQ1BJX1ZBTElEX1NUQSBmbGFnLCBl
-dGMuDQoNCkJvYg0KDQo=
+On Wednesday, February 7, 2018 11:44:15 PM CET Rafael J. Wysocki wrote:
+> On Mon, Feb 5, 2018 at 6:06 PM, Rafael J. Wysocki
+> <rafael.j.wysocki@intel.com> wrote:
+> > On 2/5/2018 3:14 PM, Bjørn Mork wrote:
+> >>
+> >> "Rafael J. Wysocki" <rafael.j.wysocki@intel.com> writes:
+> >>>
+> >>> On 2/4/2018 9:28 PM, Bjørn Mork wrote:
+> >>>
+> >>>> But I do wonder if the attached (completely untested!!) patch makes
+> >>>> things any better?
+> >>>
+> >>> I don't think so, the macro is needed too.
+> >>
+> >> Doh! Obviously.  Don't know how I managed to miss that.
+> >>
+> >>> I'll queue up a full revert of 662591461c4b9a1e3b.
+> >>
+> >> Still with the additional exception for "ec == first_ec"?
+> >>
+> >
+> > No, just a full revert for now.
+> 
+> That doesn't work, because we made some changes on top of this commit.
+> 
+> I'll send a patch to try tomorrow.
+
+Below is a patch for the mainline (should be applicable to 4.15.y) to test.
+Please let me know if it improves things for you.
+
+The corresponding fix for -stable would still be a full revert of
+662591461c4b9a1e3b, but it needs to be fixed in the mainline first.
+
+---
+ drivers/acpi/ec.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+Index: linux-pm/drivers/acpi/ec.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/ec.c
++++ linux-pm/drivers/acpi/ec.c
+@@ -1927,6 +1927,9 @@ static int acpi_ec_suspend_noirq(struct
+ 	    ec->reference_count >= 1)
+ 		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_DISABLE);
+ 
++	if (acpi_sleep_no_ec_events())
++		acpi_ec_enter_noirq(ec);
++
+ 	return 0;
+ }
+ 
+@@ -1934,6 +1937,9 @@ static int acpi_ec_resume_noirq(struct d
+ {
+ 	struct acpi_ec *ec = acpi_driver_data(to_acpi_device(dev));
+ 
++	if (acpi_sleep_no_ec_events())
++		acpi_ec_leave_noirq(ec);
++
+ 	if (ec_no_wakeup && test_bit(EC_FLAGS_STARTED, &ec->flags) &&
+ 	    ec->reference_count >= 1)
+ 		acpi_set_gpe(NULL, ec->gpe, ACPI_GPE_ENABLE);
+
