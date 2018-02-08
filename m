@@ -1,94 +1,225 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: osl: Replace GFP_ATOMIC with GFP_KERNEL in acpi_os_execute
-Date: Thu, 08 Feb 2018 11:20:39 +0100
-Message-ID: <1914141.qoxtLSqbUU@aspire.rjw.lan>
-References: <1516875222-12293-1-git-send-email-baijiaju1990@gmail.com> <1808276.ZJn2ZeULZY@aspire.rjw.lan> <151808479008.28809.166946118004484639@mail.alporthouse.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v3 5/5] ACPICA: Remove calling of _STA from
+ acpi_get_object_info
+Date: Thu, 8 Feb 2018 13:02:23 +0100
+Message-ID: <d4f6bb0e-6d72-9384-9df5-c22b936bed99@redhat.com>
+References: <20180126150300.9691-1-hdegoede@redhat.com>
+ <20180126150300.9691-5-hdegoede@redhat.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E3B75696BC@ORSMSX110.amr.corp.intel.com>
+ <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <151808479008.28809.166946118004484639@mail.alporthouse.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Jia-Ju Bai <baijiaju1990@gmail.com>, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
+Content-Language: en-US
+Sender: linux-pci-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, February 8, 2018 11:13:10 AM CET Chris Wilson wrote:
-> Quoting Rafael J. Wysocki (2018-02-08 09:51:41)
-> > On Thursday, January 25, 2018 11:13:41 AM CET Jia-Ju Bai wrote:
-> > > After checking all possible call chains to acpi_os_execute here,
-> > > my tool finds that acpi_os_execute is never called in atomic context.
-> > > And acpi_os_execute calls acpi_debugger_create_thread 
-> > > which calls mutex_lock,
-> > > thus it proves again that acpi_os_execute can 
-> > > call functions which may sleep.
-> > > Thus GFP_ATOMIC is not necessary, and it can be replaced with GFP_KERNEL.
-> > > 
-> > > This is found by a static analysis tool named DCNS written by myself.
-> > > 
-> > > Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-> > > ---
-> > >  drivers/acpi/osl.c |    2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> > > index 3bb46cb..8ee605e 100644
-> > > --- a/drivers/acpi/osl.c
-> > > +++ b/drivers/acpi/osl.c
-> > > @@ -1066,7 +1066,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
-> > >        * having a static work_struct.
-> > >        */
-> > >  
-> > > -     dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
-> > > +     dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_KERNEL);
-> > >       if (!dpc)
-> > >               return AE_NO_MEMORY;
-> > >  
-> > > 
-> > 
-> > Applied, thanks!
-> 
-> Hmm, not this patch per se, but 
-> 
-> https://intel-gfx-ci.01.org/tree/next/next-20180207/fi-bxt-dsi/dmesg0.log
-> [  111.378236] BUG: sleeping function called from invalid context at mm/slab.h:420
-> [  111.378259] in_atomic(): 1, irqs_disabled(): 1, pid: 1701, name: gem_exec_flush
-> [  111.378275] INFO: lockdep is turned off.
-> [  111.378277] irq event stamp: 0
-> [  111.378280] hardirqs last  enabled at (0): [<          (null)>]           (null)
-> [  111.378286] hardirqs last disabled at (0): [<00000000a01fa473>] copy_process.part.7+0x2f1/0x1db0
-> [  111.378290] softirqs last  enabled at (0): [<00000000a01fa473>] copy_process.part.7+0x2f1/0x1db0
-> [  111.378292] softirqs last disabled at (0): [<          (null)>]           (null)
-> [  111.378293] Preemption disabled at:
-> [  111.378298] [<ffffffffa18f14f6>] __mutex_lock+0x56/0x9b0
-> [  111.378311] CPU: 1 PID: 1701 Comm: gem_exec_flush Tainted: G     U  W        4.15.0-next-20180207-g5d1c98967100-next-20180207 #1
-> [  111.378313] Hardware name: Intel Corp. Broxton P/Apollolake RVP1A, BIOS APLKRVPA.X64.0150.B11.1608081044 08/08/2016
-> [  111.378314] Call Trace:
-> [  111.378318]  <IRQ>
-> [  111.378323]  dump_stack+0x5f/0x86
-> [  111.378328]  ___might_sleep+0x1d9/0x240
-> [  111.378334]  ? acpi_os_execute+0x2d/0x130
-> [  111.378338]  kmem_cache_alloc_trace+0x1ae/0x2b0
-> [  111.378344]  ? acpi_ev_asynch_enable_gpe+0x2d/0x2d
-> [  111.378347]  acpi_os_execute+0x2d/0x130
-> [  111.378351]  acpi_ev_gpe_dispatch+0xd7/0x120
-> [  111.378355]  acpi_ev_gpe_detect+0x156/0x195
-> [  111.378362]  acpi_ev_sci_xrupt_handler+0x16/0x28
-> [  111.378365]  acpi_irq+0xd/0x30
-> [  111.378369]  __handle_irq_event_percpu+0x3c/0x340
-> [  111.378374]  handle_irq_event_percpu+0x1b/0x50
-> [  111.378378]  handle_irq_event+0x2f/0x50
-> [  111.378381]  handle_fasteoi_irq+0x93/0x150
-> [  111.378386]  handle_irq+0x11/0x20
-> [  111.378390]  do_IRQ+0x5e/0x120
-> [  111.378395]  common_interrupt+0xbb/0xbb
-> [  111.378397]  </IRQ>
-> 
-> does tell us that acpi_os_execute() is called in irq context.
+Hi,
 
-Well, right, thanks!
+On 27-01-18 15:02, Hans de Goede wrote:
+> Hi,
+> 
+> On 26-01-18 21:42, Moore, Robert wrote:
+>> For ACPICA, this is a change to a published public interface. A change to this will potentially affect many operating systems, so we would be very hesitant to change it in the core ACPICA code.
+> 
+>  From the acpi_get_object_info() documentation in drivers/acpi/acpica/nsxfname.c:
+> 
+>   * Note: This interface is intended to be used during the initial device
+>   * discovery namespace traversal. Therefore, no complex methods can be
+>   * executed, especially those that access operation regions.
+> 
+> Since _STA can call Opregions, IMHO it does not belong in acpi_get_object_info()
+> and as Erik mentioned _STA can have side-effects then that seems like another
+> reason to NOT call it from acpi_get_object_info().
+> 
+> But I can understand that you don't want to outright change the behavior of
+> acpi_get_object_info() to call _STA since it has always done this, still
+> calling _STA can be a problem in some cases.
+> 
+> Perhaps we can give acpi_get_object_info() a flags argument, or if you want to
+> preserve the current interface ad a new acpi_get_object_info_no_sta() call (and
+> use flags under the hood so that we still have only 1 implementation) ?
 
-I overlooked this instance, so dropping the patch.
+Erm, ping? It would be nice to get some feedback on my suggestions how to deal
+with this... ?
 
-Thanks,
-Rafael
+Regards,
+
+Hans
+
+
+
+
+
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+>>
+>> Bob
+>>
+>>
+>>> -----Original Message-----
+>>> From: Hans de Goede [mailto:hdegoede@redhat.com]
+>>> Sent: Friday, January 26, 2018 7:03 AM
+>>> To: Rafael J . Wysocki <rjw@rjwysocki.net>; Len Brown <lenb@kernel.org>;
+>>> Moore, Robert <robert.moore@intel.com>; Schmauss, Erik
+>>> <erik.schmauss@intel.com>; Bjorn Helgaas <bhelgaas@google.com>
+>>> Cc: Hans de Goede <hdegoede@redhat.com>; linux-acpi@vger.kernel.org;
+>>> devel@acpica.org; linux-pci@vger.kernel.org
+>>> Subject: [PATCH v3 5/5] ACPICA: Remove calling of _STA from
+>>> acpi_get_object_info
+>>>
+>>> As the comment above it indicates, acpi_get_object_info is intended for
+>>> early probe usage and as such should not call any methods which may rely
+>>> on OpRegions, before this commit it was also calling _STA, which on some
+>>> systems does rely on OpRegions.
+>>>
+>>> Calling _STA before things are ready leads to errors such as these:
+>>>
+>>> [    0.123579] ACPI Error: No handler for Region [ECRM]
+>>> (00000000ba9edc4c)
+>>>                 [GenericSerialBus] (20170831/evregion-166)
+>>> [    0.123601] ACPI Error: Region GenericSerialBus (ID=9) has no handler
+>>>                 (20170831/exfldio-299)
+>>> [    0.123618] ACPI Error: Method parse/execution failed
+>>>                 \_SB.I2C1.BAT1._STA, AE_NOT_EXIST (20170831/psparse-550)
+>>>
+>>> End 2015 support for the _SUB method was removed for exactly the same
+>>> reason. Removing current_status from struct acpi_device_info only has a
+>>> limit impact. Within ACPICA it is only used by 2 debug messages, both of
+>>> which are modified to no longer print it with this commit.
+>>>
+>>> Outside of ACPICA, for Linux there is only one user. For which a patch
+>>> to remove the dependency on the current_status field is available.
+>>>
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>> ---
+>>>   drivers/acpi/acpica/dbdisply.c |  5 ++---
+>>> drivers/acpi/acpica/nsdumpdv.c |  5 ++---
+>>> drivers/acpi/acpica/nsxfname.c | 19 ++++---------------
+>>>   include/acpi/actypes.h         |  2 --
+>>>   4 files changed, 8 insertions(+), 23 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/acpica/dbdisply.c
+>>> b/drivers/acpi/acpica/dbdisply.c index 5a606eac0c22..7b5eb33fe962 100644
+>>> --- a/drivers/acpi/acpica/dbdisply.c
+>>> +++ b/drivers/acpi/acpica/dbdisply.c
+>>> @@ -642,9 +642,8 @@ void acpi_db_display_object_type(char *object_arg)
+>>>           return;
+>>>       }
+>>>
+>>> -    acpi_os_printf("ADR: %8.8X%8.8X, STA: %8.8X, Flags: %X\n",
+>>> -               ACPI_FORMAT_UINT64(info->address),
+>>> -               info->current_status, info->flags);
+>>> +    acpi_os_printf("ADR: %8.8X%8.8X, Flags: %X\n",
+>>> +               ACPI_FORMAT_UINT64(info->address), info->flags);
+>>>
+>>>       acpi_os_printf("S1D-%2.2X S2D-%2.2X S3D-%2.2X S4D-%2.2X\n",
+>>>                  info->highest_dstates[0], info->highest_dstates[1],
+>>> diff --git a/drivers/acpi/acpica/nsdumpdv.c
+>>> b/drivers/acpi/acpica/nsdumpdv.c index 5026594763ea..573a5f36f01a 100644
+>>> --- a/drivers/acpi/acpica/nsdumpdv.c
+>>> +++ b/drivers/acpi/acpica/nsdumpdv.c
+>>> @@ -88,10 +88,9 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
+>>>           }
+>>>
+>>>           ACPI_DEBUG_PRINT_RAW((ACPI_DB_TABLES,
+>>> -                      "    HID: %s, ADR: %8.8X%8.8X, Status: %X\n",
+>>> +                      "    HID: %s, ADR: %8.8X%8.8X\n",
+>>>                         info->hardware_id.value,
+>>> -                      ACPI_FORMAT_UINT64(info->address),
+>>> -                      info->current_status));
+>>> +                      ACPI_FORMAT_UINT64(info->address));
+>>>           ACPI_FREE(info);
+>>>       }
+>>>
+>>> diff --git a/drivers/acpi/acpica/nsxfname.c
+>>> b/drivers/acpi/acpica/nsxfname.c index 106966235805..0a9c600c2599 100644
+>>> --- a/drivers/acpi/acpica/nsxfname.c
+>>> +++ b/drivers/acpi/acpica/nsxfname.c
+>>> @@ -241,7 +241,7 @@ static char *acpi_ns_copy_device_id(struct
+>>> acpi_pnp_device_id *dest,
+>>>    *              namespace node and possibly by running several standard
+>>>    *              control methods (Such as in the case of a device.)
+>>>    *
+>>> - * For Device and Processor objects, run the Device _HID, _UID, _CID,
+>>> _STA,
+>>> + * For Device and Processor objects, run the Device _HID, _UID, _CID,
+>>>    * _CLS, _ADR, _sx_w, and _sx_d methods.
+>>>    *
+>>>    * Note: Allocates the return buffer, must be freed by the caller.
+>>> @@ -250,8 +250,9 @@ static char *acpi_ns_copy_device_id(struct
+>>> acpi_pnp_device_id *dest,
+>>>    * discovery namespace traversal. Therefore, no complex methods can be
+>>>    * executed, especially those that access operation regions. Therefore,
+>>> do
+>>>    * not add any additional methods that could cause problems in this
+>>> area.
+>>> - * this was the fate of the _SUB method which was found to cause such
+>>> - * problems and was removed (11/2015).
+>>> + * Because of this reason support for the following methods has been
+>>> removed:
+>>> + * 1) _SUB method was removed (11/2015)
+>>> + * 2) _STA method was removed (01/2018)
+>>>    *
+>>>
+>>> ************************************************************************
+>>> ******/
+>>>
+>>> @@ -374,20 +375,8 @@ acpi_get_object_info(acpi_handle handle,
+>>>            * Notes: none of these methods are required, so they may or
+>>> may
+>>>            * not be present for this device. The Info->Valid bitfield
+>>> is used
+>>>            * to indicate which methods were found and run successfully.
+>>> -         *
+>>> -         * For _STA, if the method does not exist, then (as per the
+>>> ACPI
+>>> -         * specification), the returned current_status flags will
+>>> indicate
+>>> -         * that the device is present/functional/enabled. Otherwise,
+>>> the
+>>> -         * current_status flags reflect the value returned from _STA.
+>>>            */
+>>>
+>>> -        /* Execute the Device._STA method */
+>>> -
+>>> -        status = acpi_ut_execute_STA(node, &info->current_status);
+>>> -        if (ACPI_SUCCESS(status)) {
+>>> -            valid |= ACPI_VALID_STA;
+>>> -        }
+>>> -
+>>>           /* Execute the Device._ADR method */
+>>>
+>>>           status = acpi_ut_evaluate_numeric_object(METHOD_NAME__ADR,
+>>> node, diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h index
+>>> 4f077edb9b81..220ef8674763 100644
+>>> --- a/include/acpi/actypes.h
+>>> +++ b/include/acpi/actypes.h
+>>> @@ -1191,7 +1191,6 @@ struct acpi_device_info {
+>>>       u8 flags;        /* Miscellaneous info */
+>>>       u8 highest_dstates[4];    /* _sx_d values: 0xFF indicates not
+>>> valid */
+>>>       u8 lowest_dstates[5];    /* _sx_w values: 0xFF indicates not valid */
+>>> -    u32 current_status;    /* _STA value */
+>>>       u64 address;    /* _ADR value */
+>>>       struct acpi_pnp_device_id hardware_id;    /* _HID value */
+>>>       struct acpi_pnp_device_id unique_id;    /* _UID value */
+>>> @@ -1205,7 +1204,6 @@ struct acpi_device_info {
+>>>
+>>>   /* Flags for Valid field above (acpi_get_object_info) */
+>>>
+>>> -#define ACPI_VALID_STA                  0x0001
+>>>   #define ACPI_VALID_ADR                  0x0002
+>>>   #define ACPI_VALID_HID                  0x0004
+>>>   #define ACPI_VALID_UID                  0x0008
+>>> -- 
+>>> 2.14.3
+>>
