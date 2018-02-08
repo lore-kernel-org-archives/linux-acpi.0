@@ -1,110 +1,116 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
-Date: Thu, 08 Feb 2018 10:41:12 +0100
-Message-ID: <2007331.yMPN9LMbQs@aspire.rjw.lan>
-References: <20180205051924.10186-1-kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
+Date: Thu, 08 Feb 2018 10:48:09 +0100
+Message-ID: <1730642.Ly2vjemNAk@aspire.rjw.lan>
+References: <20180130060744.19049-1-kai.heng.feng@canonical.com> <9f0eaaf403014137a123f6676ddac5b9@ausx13mpc120.AMER.DELL.COM> <94F2FBAB4432B54E8AACC7DFDE6C92E3B756CED7@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180205051924.10186-1-kai.heng.feng@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc: lenb@kernel.org, andy.shevchenko@gmail.com, erik.schmauss@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mario Limonciello <mario.limonciello@dell.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cloudserver094114.home.pl ([79.96.170.134]:52689 "EHLO
+        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750986AbeBHJtw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:49:52 -0500
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3B756CED7@ORSMSX110.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "kai.heng.feng@canonical.com" <kai.heng.feng@canonical.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Monday, February 5, 2018 6:19:24 AM CET Kai-Heng Feng wrote:
-> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
-> of box.
+On Tuesday, January 30, 2018 9:09:04 PM CET Moore, Robert wrote:
 > 
-> The touchpad relies on its _INI method to update its _HID value from
-> XXXX0000 to SYNA2393.
-> Also, the _STA relies on value of I2CN to report correct status.
+> > -----Original Message-----
+> > From: Mario.Limonciello@dell.com [mailto:Mario.Limonciello@dell.com]
+> > Sent: Tuesday, January 30, 2018 11:03 AM
+> > To: Schmauss, Erik <erik.schmauss@intel.com>; andy.shevchenko@gmail.com;
+> > kai.heng.feng@canonical.com
+> > Cc: rjw@rjwysocki.net; lenb@kernel.org; linux-acpi@vger.kernel.org;
+> > linux-kernel@vger.kernel.org; Moore, Robert <robert.moore@intel.com>
+> > Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell
+> > XPS 9570 and Precision M5530
+> > 
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Schmauss, Erik [mailto:erik.schmauss@intel.com]
+> > > Sent: Tuesday, January 30, 2018 12:38 PM
+> > > To: Andy Shevchenko <andy.shevchenko@gmail.com>; Kai-Heng Feng
+> > > <kai.heng.feng@canonical.com>
+> > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown
+> > > <lenb@kernel.org>; ACPI Devel Maling List
+> > > <linux-acpi@vger.kernel.org>; Linux Kernel Mailing List <linux-
+> > > kernel@vger.kernel.org>; Limonciello, Mario
+> > > <Mario_Limonciello@Dell.com>; Moore, Robert <robert.moore@intel.com>
+> > > Subject: RE: [PATCH] ACPI: Parse entire table as a term_list for Dell
+> > > XPS 9570 and Precision M5530
+> > >
+> > > Hi,
+> > > > -----Original Message-----
+> > > > From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> > > > owner@vger.kernel.org] On Behalf Of Andy Shevchenko
+> > > > Sent: Tuesday, January 30, 2018 10:18 AM
+> > > > To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> > > > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>; Len Brown
+> > > > <lenb@kernel.org>; ACPI Devel Maling List
+> > > > <linux-acpi@vger.kernel.org>; Linux Kernel Mailing List <linux-
+> > > > kernel@vger.kernel.org>; Mario Limonciello
+> > > > <mario.limonciello@dell.com>
+> > > > Subject: Re: [PATCH] ACPI: Parse entire table as a term_list for
+> > > > Dell XPS 9570 and Precision M5530
+> > > >
+> > > > On Tue, Jan 30, 2018 at 8:07 AM, Kai-Heng Feng
+> > > > <kai.heng.feng@canonical.com> wrote:
+> > > > > The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work
+> > > > > out of box.
+> > > > >
+> > > > > The touchpad relies on its _INI method to update its _HID value
+> > > > > from
+> > > > > XXXX0000 to SYNA2393.
+> > > > > Also, the _STA relies on value of I2CN to report correct status.
+> > > > >
+> > > > > Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+> > > > > correctly set up, and _INI can get run. The ACPI table in this
+> > > > > machine is designed to get parsed this way.
+> > >
+> > > I thought I would give everyone an update: we are getting close to
+> > > finishing patches to enable this term list parsing by default as well
+> > > as a few other fixes with forward referencing of package elements.
+> > > Once we have established that these patches are stable, we will get
+> > > rid of acpi_gbl_parse_table_as_term_list. So this quirk may not be
+> > needed in the near future...
+> > 
+> > Rafael,
+> > 
+> > Would you be opposed to carrying a patch similar to this (proposed)
+> > quirk patch in kernel and reverting when Erik submits patches that get
+> > rid of acpi_gbl_parse_table_as_term_list?
+> > 
+> > The reason being, I think this could also be a candidate to bring back
+> > to @stable and fix this problem on earlier kernels too.
+> > 
+> > I don’t believe the patches that get rid of
+> > acpi_gbl_parse_table_as_term_list likely will be good candidates for
+> > @stable.
+> > 
 > 
-> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
-> correctly set up, and _INI can get run. The ACPI table in this machine
-> is designed to get parsed this way.
 > 
-> Also, change the quirk table to a more generic name.
-> 
-> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
-> Cc: Mario Limonciello <mario.limonciello@dell.com>
-> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> ---
-> v4: Remove unnecessary message for user.
-> 
-> v3: Put the function under right #ifdef, comment adjustment
-> 
-> v2: Andy's suggestion, merge to a single quirk table.
->  drivers/acpi/bus.c | 38 +++++++++++++++++++++++++++++++-------
->  1 file changed, 31 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index f87ed3be779a..11c6dda233d6 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -66,10 +66,37 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
->  	return 0;
->  }
->  #endif
-> +static int set_gbl_term_list(const struct dmi_system_id *id)
-> +{
-> +	acpi_gbl_parse_table_as_term_list = 1;
-> +	return 0;
-> +}
->  
-> -static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
-> +static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
-> +	/*
-> +	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
-> +	 * mode.
-> +	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
-> +	 */
-> +	{
-> +		.callback = set_gbl_term_list,
-> +		.ident = "Dell Precision M5530",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
-> +		},
-> +	},
-> +	{
-> +		.callback = set_gbl_term_list,
-> +		.ident = "Dell XPS 15 9570",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
-> +		},
-> +	},
->  	/*
->  	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
-> +	 * DSDT will be copied to memory.
->  	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
->  	 */
->  	{
-> @@ -83,7 +110,7 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
->  	{}
->  };
->  #else
-> -static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
-> +static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
->  	{}
->  };
->  #endif
-> @@ -1019,11 +1046,8 @@ void __init acpi_early_init(void)
->  
->  	acpi_permanent_mmap = true;
->  
-> -	/*
-> -	 * If the machine falls into the DMI check table,
-> -	 * DSDT will be copied to memory
-> -	 */
-> -	dmi_check_system(dsdt_dmi_table);
-> +	/* Check machine-specific quirks */
-> +	dmi_check_system(acpi_quirks_dmi_table);
->  
->  	status = acpi_reallocate_root_table();
->  	if (ACPI_FAILURE(status)) {
-> 
+> Does anyone remember what was the exact problem that forced the creation of
+> parse_table_as_term_list in the first place?
 
-Applied, thanks!
+I don't remember exactly, but it was related to the MLC code.
+
+That was introduced by this kernel commit:
+
+commit de56ba95e8d6d760910711744a548b50b3a4262d
+Author: Lv Zheng <lv.zheng@intel.com>
+Date:   Wed Sep 7 14:06:54 2016 +0800
+
+    ACPICA: Interpreter: Fix MLC issues by switching to new term_list grammar for table loading
+    
+    ACPICA commit 0e24fb67cde08d7df7671d7d7b183490dc79707e
+
+which has a very detailed changelog including links to several bug entries.
+
+Thanks,
+Rafael
+
