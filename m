@@ -1,65 +1,53 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 1/5] ACPI / bus: Return error code from
- __acpi_match_device() in one case
-Date: Thu, 8 Feb 2018 16:14:31 +0100
-Message-ID: <CAJZ5v0gkn4keNLA4jyCDOjSB4EGhya0d7ecwo-4zDQ=+E9PnJA@mail.gmail.com>
-References: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v13 1/4] battery: Add the battery hooking API
+Date: Thu, 8 Feb 2018 16:18:55 +0100
+Message-ID: <CAJZ5v0jvz2CNRdbTf=yC5g3H4tEJNRGogyradWFYzF9vgkr_Vg@mail.gmail.com>
+References: <20180207145813.icmv6rwemyejhxbk@thinkpad>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f45.google.com ([209.85.218.45]:45632 "EHLO
-        mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750847AbeBHPOc (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 10:14:32 -0500
-In-Reply-To: <20180207145610.88434-1-andriy.shevchenko@linux.intel.com>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:47015 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbeBHPS4 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 10:18:56 -0500
+In-Reply-To: <20180207145813.icmv6rwemyejhxbk@thinkpad>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+To: Ognjen Galic <smclt30p@gmail.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Sebastian Reichel <sre@kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>
 
-On Wed, Feb 7, 2018 at 3:56 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> Instead of playing tricks with last invalid entry,
-> return simple -ENODATA error code cast to pointer.
+On Wed, Feb 7, 2018 at 3:58 PM, Ognjen Galic <smclt30p@gmail.com> wrote:
+> This is a patch that implements a generic hooking API for the
+> generic ACPI battery driver.
 >
-> It would be good for future in case caller passes NULL pointer for
-> ID table. Moreover, caller can check the code to be sure what happened
-> inside callee.
+> With this new generic API, drivers can expose platform specific
+> behaviour via sysfs attributes in /sys/class/power_supply/BATn/
+> in a generic way.
 >
-> Fixes: 2b9c698efa58 ("ACPI / scan: Take the PRP0001 position in the list of IDs into account")
-
-I still don't think the Fixes: tag here is valid (the code works as is
-AFAICS), but I could drop it when applying the patch just fine. :-)
-
-That said, see below.
-
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Vinod Koul <vinod.koul@intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/acpi/bus.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> A perfect example of the need for this API are Lenovo ThinkPads.
 >
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 58239abb0a72..761286e50067 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -769,7 +769,7 @@ static const struct acpi_device_id *__acpi_match_device(
->                  */
->                 if (!strcmp(ACPI_DT_NAMESPACE_HID, hwid->id)
->                     && acpi_of_match_device(device, of_ids))
-> -                       return id;
-> +                       return ERR_PTR(-ENODATA);
+> Lenovo ThinkPads have a ACPI extension that allows the setting of
+> start and stop charge thresholds in the EC and battery firmware
+> via ACPI. The thinkpad_acpi module can use this API to expose
+> sysfs attributes that it controls inside the ACPI battery driver
+> sysfs tree, under /sys/class/power_supply/BATN/.
+>
+> The file drivers/acpi/battery.h has been moved to
+> include/acpi/battery.h and the includes inside ac.c, sbs.c, and
+> battery.c have been adjusted to reflect that.
+>
+> When drivers hooks into the API, the API calls add_battery() for
+> each battery in the system that passes it a acpi_battery
+> struct. Then, the drivers can use device_create_file() to create
+> new sysfs attributes with that struct and identify the batteries
+> for per-battery attributes.
+>
+> Signed-off-by: Ognjen Galic <smclt30p@gmail.com>
 
-Doesn't the comment above need to be updated?
+This is a major update and for timing reasons I'd rather not try to
+rush it into 4.16-rc.
 
-Also the return value here means "success", so why is an error the right choice?
+If that's not a big issue, I'll queue it up for 4.17.
 
->         }
->         return NULL;
->  }
-> --
-
-Overall, this really looks like a preparation for a future patch, so
-why not just say that straight away in the changelog?
+Thanks,
+Rafael
