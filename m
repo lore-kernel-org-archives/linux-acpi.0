@@ -1,94 +1,109 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2 0/5] ACPI: Do not call _STA on battery devices with
- unmet dependencies
-Date: Thu, 8 Feb 2018 13:19:07 +0100
-Message-ID: <7efce3e1-4cb7-fa68-9024-73fa124b9171@redhat.com>
-References: <20180122085135.16732-1-hdegoede@redhat.com>
- <3281375.11fh90aaLK@aspire.rjw.lan>
+From: Jia-Ju Bai <baijiaju1990@gmail.com>
+Subject: Re: [PATCH] acpi: osl: Replace GFP_ATOMIC with GFP_KERNEL in
+ acpi_os_execute
+Date: Thu, 8 Feb 2018 21:41:53 +0800
+Message-ID: <2e48794f-1ebb-6466-f4bf-aa409674bdaa@gmail.com>
+References: <1516875222-12293-1-git-send-email-baijiaju1990@gmail.com>
+ <1808276.ZJn2ZeULZY@aspire.rjw.lan>
+ <151808479008.28809.166946118004484639@mail.alporthouse.com>
+ <1914141.qoxtLSqbUU@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:52129 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbeBHMTL (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 07:19:11 -0500
-Received: by mail-wm0-f66.google.com with SMTP id r71so9168541wmd.1
-        for <linux-acpi@vger.kernel.org>; Thu, 08 Feb 2018 04:19:10 -0800 (PST)
-In-Reply-To: <3281375.11fh90aaLK@aspire.rjw.lan>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:37385 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750961AbeBHNmA (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 08:42:00 -0500
+In-Reply-To: <1914141.qoxtLSqbUU@aspire.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, linux-pci@vger.kernel.org, devel@acpica.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chris Wilson <chris@chris-wilson.co.uk>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Hi,
 
-On 08-02-18 10:57, Rafael J. Wysocki wrote:
-> On Monday, January 22, 2018 9:51:30 AM CET Hans de Goede wrote:
->> Hi All,
->>
->> Here is v2 of this set, new in v2 is the addressing of Bjorn's comments
->> to the "PCI: acpiphp_ibm: prepare for acpi_get_object_info no longer
->> returning status" patch and a new patch (the first patch in v2) which
->> exports acpi_bus_get_status_handle() for use in modules as acpiphp_ibm
->> will now depend on it.
->>
->> Here is the old coverletter from v1 (adjusted for the new patch):
->>
->> The ACPI code already contains quite a bit of code to not bind the
->> ACPI-battery until all deps for an ACPI battery device have been met,
->> but on some devices calling _STA before all deps are met is a problem
->> too because the _STA method uses an i2c OpRegion there.
->>
->> Here is the DSDT of the device I'm seeing this on:
->> https://fedorapeople.org/~jwrdegoede/toshiba-click-mini-dsdt.dsl
->>
->> This series modifies the kernel to not call _STA until all deps are met,
->> mirroring the binding behavior of the battery driver.
->>
->> Without this series a total of 32 ACPI errors get printend to the console
->> on boot, there are 4 errors per _STA call, 2 battery devices on this
->> system and 4 _STA calls per battery device.
->>
->> The first 2 commits are preparation commits for making the ACPICA changes
->> in the 4th commit, these commits are necessary to not break things after
->> the ACPICA changes.
->>
->> The 3th commit modifies acpi_bus_get_status to not call _STA on
->> battery devices until all deps are met. This fixes 2 of the 4 too early
->> _STA calls triggering these errors.
->>
->> The 4th commit makes the device instantiation code use
->> acpi_bus_get_status instead of acpi_bus_get_status_handle so that the
->> code to get the initial status also does not makes 1 too early _STA call.
->>
->> The 5th commit changes the ACPICA acpi_get_object_info function to not
->> call _STA. Only 1 user (which is fixed in the first commit) cares about
->> acpi_device_info.current_status. And the ACPICA code has this comment:
->>
->>   * Note: This interface is intended to be used during the initial device
->>   * discovery namespace traversal. Therefore, no complex methods can be
->>   * executed, especially those that access operation regions. Therefore, do
->>   * not add any additional methods that could cause problems in this area.
->>   * Because of this reason support for the following methods has been removed:
->>   * this was the fate of the _SUB method which was found to cause such
->>   * problems and was removed (11/2015).
->>
->> The described problems with the _SUB method clearly also apply to the _STA
->> method, so removing it from acpi_get_object_info seems like it is the right
->> thing to do here. This too fixes 1 too early _STA call, so that with all
->> 5 patches in place we've fixed all 4 too early _STA calls.
-> 
-> I've applied [1-4/5] from this series.
 
-Thank you.
+On 2018/2/8 18:20, Rafael J. Wysocki wrote:
+> On Thursday, February 8, 2018 11:13:10 AM CET Chris Wilson wrote:
+>> Quoting Rafael J. Wysocki (2018-02-08 09:51:41)
+>>> On Thursday, January 25, 2018 11:13:41 AM CET Jia-Ju Bai wrote:
+>>>> After checking all possible call chains to acpi_os_execute here,
+>>>> my tool finds that acpi_os_execute is never called in atomic context.
+>>>> And acpi_os_execute calls acpi_debugger_create_thread
+>>>> which calls mutex_lock,
+>>>> thus it proves again that acpi_os_execute can
+>>>> call functions which may sleep.
+>>>> Thus GFP_ATOMIC is not necessary, and it can be replaced with GFP_KERNEL.
+>>>>
+>>>> This is found by a static analysis tool named DCNS written by myself.
+>>>>
+>>>> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
+>>>> ---
+>>>>   drivers/acpi/osl.c |    2 +-
+>>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+>>>> index 3bb46cb..8ee605e 100644
+>>>> --- a/drivers/acpi/osl.c
+>>>> +++ b/drivers/acpi/osl.c
+>>>> @@ -1066,7 +1066,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
+>>>>         * having a static work_struct.
+>>>>         */
+>>>>   
+>>>> -     dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
+>>>> +     dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_KERNEL);
+>>>>        if (!dpc)
+>>>>                return AE_NO_MEMORY;
+>>>>   
+>>>>
+>>> Applied, thanks!
+>> Hmm, not this patch per se, but
+>>
+>> https://intel-gfx-ci.01.org/tree/next/next-20180207/fi-bxt-dsi/dmesg0.log
+>> [  111.378236] BUG: sleeping function called from invalid context at mm/slab.h:420
+>> [  111.378259] in_atomic(): 1, irqs_disabled(): 1, pid: 1701, name: gem_exec_flush
+>> [  111.378275] INFO: lockdep is turned off.
+>> [  111.378277] irq event stamp: 0
+>> [  111.378280] hardirqs last  enabled at (0): [<          (null)>]           (null)
+>> [  111.378286] hardirqs last disabled at (0): [<00000000a01fa473>] copy_process.part.7+0x2f1/0x1db0
+>> [  111.378290] softirqs last  enabled at (0): [<00000000a01fa473>] copy_process.part.7+0x2f1/0x1db0
+>> [  111.378292] softirqs last disabled at (0): [<          (null)>]           (null)
+>> [  111.378293] Preemption disabled at:
+>> [  111.378298] [<ffffffffa18f14f6>] __mutex_lock+0x56/0x9b0
+>> [  111.378311] CPU: 1 PID: 1701 Comm: gem_exec_flush Tainted: G     U  W        4.15.0-next-20180207-g5d1c98967100-next-20180207 #1
+>> [  111.378313] Hardware name: Intel Corp. Broxton P/Apollolake RVP1A, BIOS APLKRVPA.X64.0150.B11.1608081044 08/08/2016
+>> [  111.378314] Call Trace:
+>> [  111.378318]  <IRQ>
+>> [  111.378323]  dump_stack+0x5f/0x86
+>> [  111.378328]  ___might_sleep+0x1d9/0x240
+>> [  111.378334]  ? acpi_os_execute+0x2d/0x130
+>> [  111.378338]  kmem_cache_alloc_trace+0x1ae/0x2b0
+>> [  111.378344]  ? acpi_ev_asynch_enable_gpe+0x2d/0x2d
+>> [  111.378347]  acpi_os_execute+0x2d/0x130
+>> [  111.378351]  acpi_ev_gpe_dispatch+0xd7/0x120
+>> [  111.378355]  acpi_ev_gpe_detect+0x156/0x195
+>> [  111.378362]  acpi_ev_sci_xrupt_handler+0x16/0x28
+>> [  111.378365]  acpi_irq+0xd/0x30
+>> [  111.378369]  __handle_irq_event_percpu+0x3c/0x340
+>> [  111.378374]  handle_irq_event_percpu+0x1b/0x50
+>> [  111.378378]  handle_irq_event+0x2f/0x50
+>> [  111.378381]  handle_fasteoi_irq+0x93/0x150
+>> [  111.378386]  handle_irq+0x11/0x20
+>> [  111.378390]  do_IRQ+0x5e/0x120
+>> [  111.378395]  common_interrupt+0xbb/0xbb
+>> [  111.378397]  </IRQ>
+>>
+>> does tell us that acpi_os_execute() is called in irq context.
+> Well, right, thanks!
+>
+> I overlooked this instance, so dropping the patch.
 
-> The last one needs to go in via ACPICA anyway or we'll need to carry
-> a Linux-specific replacement for acpi_get_object_info().
+Sorry for my false positive.
+My tool missed that acpi_ev_sci_xrupt_handler() is an interrupt handler, 
+sorry.
+Thank Chris for testing my patch.
 
-Ack, I'm discussing how to proceed with this with the ACPICA people.
 
-Regards,
-
-Hans
+Best wishes,
+Jia-Ju Bai
