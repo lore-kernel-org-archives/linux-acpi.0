@@ -1,53 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: osl: Replace GFP_ATOMIC with GFP_KERNEL in acpi_os_execute
-Date: Thu, 08 Feb 2018 10:51:41 +0100
-Message-ID: <1808276.ZJn2ZeULZY@aspire.rjw.lan>
-References: <1516875222-12293-1-git-send-email-baijiaju1990@gmail.com>
+Subject: Re: [PATCH v3] ACPI: Force I2C to be selected as a built-in module
+Date: Thu, 08 Feb 2018 10:52:57 +0100
+Message-ID: <1702559.i3Y6HFQMvP@aspire.rjw.lan>
+References: <1516895011-17588-1-git-send-email-okaya@codeaurora.org> <30a108bc-c85f-55d9-67c5-586534a987c0@infradead.org> <2902c0aa-b7d4-ea2f-e687-bc5cd19631e1@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:50736 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:50386 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751175AbeBHJxZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:53:25 -0500
-In-Reply-To: <1516875222-12293-1-git-send-email-baijiaju1990@gmail.com>
+        with ESMTP id S1752026AbeBHJyl (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:54:41 -0500
+In-Reply-To: <2902c0aa-b7d4-ea2f-e687-bc5cd19631e1@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jia-Ju Bai <baijiaju1990@gmail.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Eric Auger <eric.auger@redhat.com>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c <linux-i2c@vger.kernel.org>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-On Thursday, January 25, 2018 11:13:41 AM CET Jia-Ju Bai wrote:
-> After checking all possible call chains to acpi_os_execute here,
-> my tool finds that acpi_os_execute is never called in atomic context.
-> And acpi_os_execute calls acpi_debugger_create_thread 
-> which calls mutex_lock,
-> thus it proves again that acpi_os_execute can 
-> call functions which may sleep.
-> Thus GFP_ATOMIC is not necessary, and it can be replaced with GFP_KERNEL.
+On Tuesday, February 6, 2018 3:25:58 PM CET Sinan Kaya wrote:
+> Hi Rafael,
 > 
-> This is found by a static analysis tool named DCNS written by myself.
+> On 1/25/2018 12:36 PM, Randy Dunlap wrote:
+> > On 01/25/2018 08:25 AM, Rafael J. Wysocki wrote:
+> >> On Thu, Jan 25, 2018 at 4:43 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> >>> From: Auger Eric <eric.auger@redhat.com>
+> >>>
+> >>> If I2C is built as a module, ACPI_I2C_OPREGION cannot be set
+> >>> and any ACPI opregion calls targeting I2C fail with no opregion found.
+> >>>
+> >>> Commit da3c6647ee08 ("I2C/ACPI: Clean up I2C ACPI code and Add
+> >>> CONFIG_I2C_ACPI config") says following:
+> >>>
+> >>> "Current there is a race between removing I2C ACPI operation region
+> >>> and ACPI AML code accessing."
+> >>>
+> >>> This patch forces core I2C support to be compiled as a built-in
+> >>> module if ACPI is selected as code is not ready for dynamic module
+> >>> removal.
+> >>>
+> >>> Signed-off-by: Eric Auger <eric.auger@redhat.com>
+> >>> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> >>> ---
+> >>>  drivers/acpi/Kconfig | 2 ++
+> >>>  1 file changed, 2 insertions(+)
+> >>>
+> >>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> >>> index 4650539..5b48098 100644
+> >>> --- a/drivers/acpi/Kconfig
+> >>> +++ b/drivers/acpi/Kconfig
+> >>> @@ -9,6 +9,8 @@ menuconfig ACPI
+> >>>         depends on IA64 || X86 || ARM64
+> >>>         depends on PCI
+> >>>         select PNP
+> >>> +       # force building I2C in on ACPI systems, for opregion availability
+> >>> +       imply I2C
+> >>>         default y if (IA64 || X86)
+> >>>         help
+> >>>           Advanced Configuration and Power Interface (ACPI) support for
+> >>> --
+> >>
+> >> I'm not sure how much this helps.
+> >>
+> >> I2C opregions will only work if the requisite I2C controller driver is
+> >> present anyway and this change doesn't guarantee that AFAICS.
+> >>
+> >> OTOH, there are systems using ACPI without I2C opregions, so are we
+> >> really better off by forcing everybody using ACPI to also build I2C?
+> > 
+> > Definitely not.
+> > 
 > 
-> Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
-> ---
->  drivers/acpi/osl.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 3bb46cb..8ee605e 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1066,7 +1066,7 @@ acpi_status acpi_os_execute(acpi_execute_type type,
->  	 * having a static work_struct.
->  	 */
->  
-> -	dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_ATOMIC);
-> +	dpc = kzalloc(sizeof(struct acpi_os_dpc), GFP_KERNEL);
->  	if (!dpc)
->  		return AE_NO_MEMORY;
->  
-> 
+> Where do we stand on this? Do you have a better suggestion?
 
-Applied, thanks!
+Not at the moment, but I also don't think that this approach is valid.
 
+Thanks,
+Rafael
 
