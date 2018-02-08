@@ -1,8 +1,8 @@
 From: Hans de Goede <hdegoede@redhat.com>
 Subject: Re: [PATCH v3 5/5] ACPICA: Remove calling of _STA from
  acpi_get_object_info
-Date: Thu, 8 Feb 2018 13:02:23 +0100
-Message-ID: <d4f6bb0e-6d72-9384-9df5-c22b936bed99@redhat.com>
+Date: Thu, 8 Feb 2018 13:16:20 +0100
+Message-ID: <8b7eec39-a262-0317-baf7-5301cce367ab@redhat.com>
 References: <20180126150300.9691-1-hdegoede@redhat.com>
  <20180126150300.9691-5-hdegoede@redhat.com>
  <94F2FBAB4432B54E8AACC7DFDE6C92E3B75696BC@ORSMSX110.amr.corp.intel.com>
@@ -10,13 +10,19 @@ References: <20180126150300.9691-1-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 8bit
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f49.google.com ([74.125.82.49]:40015 "EHLO
+        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750847AbeBHMQX (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 07:16:23 -0500
+Received: by mail-wm0-f49.google.com with SMTP id v123so9532557wmd.5
+        for <linux-acpi@vger.kernel.org>; Thu, 08 Feb 2018 04:16:22 -0800 (PST)
 In-Reply-To: <08f2a8aa-1510-3b78-4fa7-bf0ae194ccb0@redhat.com>
 Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Moore, Robert" <robert.moore@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
 Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
 Hi,
 
@@ -44,8 +50,26 @@ On 27-01-18 15:02, Hans de Goede wrote:
 > preserve the current interface ad a new acpi_get_object_info_no_sta() call (and
 > use flags under the hood so that we still have only 1 implementation) ?
 
-Erm, ping? It would be nice to get some feedback on my suggestions how to deal
-with this... ?
+p.s.
+
+A cleaner fix might simply be to make whether or not acpi_get_object_info()
+calls _STA configurable, by say doing something like this in acconfig.h:
+
+#ifndef ACPI_GET_OBJ_INFO_WITH_STA
+#define ACPI_GET_OBJ_INFO_WITH_STA 1
+#endif
+
+And then in aclinux.h:
+
+#define ACPI_GET_OBJ_INFO_WITH_STA 0
+
+And instead of removing the calling of _STA all together as my initial
+patch did, wrap it in:
+
+#if ACPI_GET_OBJ_INFO_WITH_STA
+#endif
+
+Shall I respin the patch to do this ?
 
 Regards,
 
@@ -54,17 +78,6 @@ Hans
 
 
 
-
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
->>
->> Bob
->>
->>
 >>> -----Original Message-----
 >>> From: Hans de Goede [mailto:hdegoede@redhat.com]
 >>> Sent: Friday, January 26, 2018 7:03 AM
