@@ -1,269 +1,110 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/6] ACPICA version 20180105
-Date: Thu, 08 Feb 2018 10:40:49 +0100
-Message-ID: <16180478.Ha7yAzlCIo@aspire.rjw.lan>
-References: <20180124234234.19828-1-erik.schmauss@intel.com>
+Subject: Re: [PATCH v4] ACPI: Parse entire table as a term_list for Dell XPS 9570 and Precision M5530
+Date: Thu, 08 Feb 2018 10:41:12 +0100
+Message-ID: <2007331.yMPN9LMbQs@aspire.rjw.lan>
+References: <20180205051924.10186-1-kai.heng.feng@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:49313 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750847AbeBHJmd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:42:33 -0500
-In-Reply-To: <20180124234234.19828-1-erik.schmauss@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180205051924.10186-1-kai.heng.feng@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: lenb@kernel.org, andy.shevchenko@gmail.com, erik.schmauss@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Erik Schmauss <erik.schmauss@intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Thursday, January 25, 2018 12:42:28 AM CET Erik Schmauss wrote:
-> This is the 20180105 release of ACPICA with updated copyright years
-> and a few other small changes.
+On Monday, February 5, 2018 6:19:24 AM CET Kai-Heng Feng wrote:
+> The i2c touchpad on Dell XPS 9570 and Precision M5530 doesn't work out
+> of box.
 > 
-> Anuj Mittal (1):
->   ACPICA: Linux: add support for X32 ABI compilation
+> The touchpad relies on its _INI method to update its _HID value from
+> XXXX0000 to SYNA2393.
+> Also, the _STA relies on value of I2CN to report correct status.
 > 
-> Bob Moore (2):
->   ACPICA: All acpica: Update copyrights to 2018
->   ACPICA: Update version to 20180105
+> Set acpi_gbl_parse_table_as_term_list so the value of I2CN can be
+> correctly set up, and _INI can get run. The ACPI table in this machine
+> is designed to get parsed this way.
 > 
-> Jung-uk Kim (3):
->   ACPICA: Avoid NULL pointer arithmetic
->   ACPICA: Prefer ACPI_TO_POINTER() over ACPI_ADD_PTR()
->   ACPICA: Add a missing pair of parentheses
+> Also, change the quirk table to a more generic name.
 > 
->  drivers/acpi/acpica/acapps.h                             |  4 ++--
->  drivers/acpi/acpica/accommon.h                           |  2 +-
->  drivers/acpi/acpica/acconvert.h                          |  2 +-
->  drivers/acpi/acpica/acdebug.h                            |  2 +-
->  drivers/acpi/acpica/acdispat.h                           |  2 +-
->  drivers/acpi/acpica/acevents.h                           |  2 +-
->  drivers/acpi/acpica/acglobal.h                           |  2 +-
->  drivers/acpi/acpica/achware.h                            |  2 +-
->  drivers/acpi/acpica/acinterp.h                           |  2 +-
->  drivers/acpi/acpica/aclocal.h                            |  2 +-
->  drivers/acpi/acpica/acmacros.h                           |  2 +-
->  drivers/acpi/acpica/acnamesp.h                           |  2 +-
->  drivers/acpi/acpica/acobject.h                           |  2 +-
->  drivers/acpi/acpica/acopcode.h                           |  2 +-
->  drivers/acpi/acpica/acparser.h                           |  2 +-
->  drivers/acpi/acpica/acpredef.h                           |  2 +-
->  drivers/acpi/acpica/acresrc.h                            |  2 +-
->  drivers/acpi/acpica/acstruct.h                           |  2 +-
->  drivers/acpi/acpica/actables.h                           |  2 +-
->  drivers/acpi/acpica/acutils.h                            |  2 +-
->  drivers/acpi/acpica/amlcode.h                            |  2 +-
->  drivers/acpi/acpica/amlresrc.h                           |  2 +-
->  drivers/acpi/acpica/dbcmds.c                             |  2 +-
->  drivers/acpi/acpica/dbconvert.c                          |  2 +-
->  drivers/acpi/acpica/dbdisply.c                           |  2 +-
->  drivers/acpi/acpica/dbexec.c                             |  2 +-
->  drivers/acpi/acpica/dbfileio.c                           |  2 +-
->  drivers/acpi/acpica/dbhistry.c                           |  2 +-
->  drivers/acpi/acpica/dbinput.c                            |  2 +-
->  drivers/acpi/acpica/dbmethod.c                           |  2 +-
->  drivers/acpi/acpica/dbnames.c                            |  2 +-
->  drivers/acpi/acpica/dbobject.c                           |  2 +-
->  drivers/acpi/acpica/dbstats.c                            |  2 +-
->  drivers/acpi/acpica/dbtest.c                             |  2 +-
->  drivers/acpi/acpica/dbutils.c                            |  2 +-
->  drivers/acpi/acpica/dbxface.c                            |  2 +-
->  drivers/acpi/acpica/dsargs.c                             |  2 +-
->  drivers/acpi/acpica/dscontrol.c                          |  2 +-
->  drivers/acpi/acpica/dsdebug.c                            |  2 +-
->  drivers/acpi/acpica/dsfield.c                            |  2 +-
->  drivers/acpi/acpica/dsinit.c                             |  2 +-
->  drivers/acpi/acpica/dsmethod.c                           |  2 +-
->  drivers/acpi/acpica/dsmthdat.c                           |  2 +-
->  drivers/acpi/acpica/dsobject.c                           |  2 +-
->  drivers/acpi/acpica/dsopcode.c                           |  2 +-
->  drivers/acpi/acpica/dspkginit.c                          |  2 +-
->  drivers/acpi/acpica/dsutils.c                            |  2 +-
->  drivers/acpi/acpica/dswexec.c                            |  2 +-
->  drivers/acpi/acpica/dswload.c                            |  2 +-
->  drivers/acpi/acpica/dswload2.c                           |  2 +-
->  drivers/acpi/acpica/dswscope.c                           |  2 +-
->  drivers/acpi/acpica/dswstate.c                           |  2 +-
->  drivers/acpi/acpica/evevent.c                            |  2 +-
->  drivers/acpi/acpica/evglock.c                            |  2 +-
->  drivers/acpi/acpica/evgpe.c                              |  2 +-
->  drivers/acpi/acpica/evgpeblk.c                           |  2 +-
->  drivers/acpi/acpica/evgpeinit.c                          |  2 +-
->  drivers/acpi/acpica/evgpeutil.c                          |  2 +-
->  drivers/acpi/acpica/evhandler.c                          |  2 +-
->  drivers/acpi/acpica/evmisc.c                             |  2 +-
->  drivers/acpi/acpica/evregion.c                           |  2 +-
->  drivers/acpi/acpica/evrgnini.c                           |  2 +-
->  drivers/acpi/acpica/evsci.c                              |  2 +-
->  drivers/acpi/acpica/evxface.c                            |  2 +-
->  drivers/acpi/acpica/evxfevnt.c                           |  2 +-
->  drivers/acpi/acpica/evxfgpe.c                            |  2 +-
->  drivers/acpi/acpica/evxfregn.c                           |  2 +-
->  drivers/acpi/acpica/exconcat.c                           |  2 +-
->  drivers/acpi/acpica/exconfig.c                           |  2 +-
->  drivers/acpi/acpica/exconvrt.c                           |  2 +-
->  drivers/acpi/acpica/excreate.c                           |  2 +-
->  drivers/acpi/acpica/exdebug.c                            |  2 +-
->  drivers/acpi/acpica/exdump.c                             |  2 +-
->  drivers/acpi/acpica/exfield.c                            |  2 +-
->  drivers/acpi/acpica/exfldio.c                            |  2 +-
->  drivers/acpi/acpica/exmisc.c                             |  2 +-
->  drivers/acpi/acpica/exmutex.c                            |  2 +-
->  drivers/acpi/acpica/exnames.c                            |  2 +-
->  drivers/acpi/acpica/exoparg1.c                           |  2 +-
->  drivers/acpi/acpica/exoparg2.c                           |  2 +-
->  drivers/acpi/acpica/exoparg3.c                           |  2 +-
->  drivers/acpi/acpica/exoparg6.c                           |  2 +-
->  drivers/acpi/acpica/exprep.c                             |  2 +-
->  drivers/acpi/acpica/exregion.c                           |  2 +-
->  drivers/acpi/acpica/exresnte.c                           |  2 +-
->  drivers/acpi/acpica/exresolv.c                           |  2 +-
->  drivers/acpi/acpica/exresop.c                            |  2 +-
->  drivers/acpi/acpica/exstore.c                            |  2 +-
->  drivers/acpi/acpica/exstoren.c                           |  2 +-
->  drivers/acpi/acpica/exstorob.c                           |  2 +-
->  drivers/acpi/acpica/exsystem.c                           |  2 +-
->  drivers/acpi/acpica/extrace.c                            |  2 +-
->  drivers/acpi/acpica/exutils.c                            |  2 +-
->  drivers/acpi/acpica/hwacpi.c                             |  2 +-
->  drivers/acpi/acpica/hwesleep.c                           |  2 +-
->  drivers/acpi/acpica/hwgpe.c                              |  2 +-
->  drivers/acpi/acpica/hwpci.c                              |  2 +-
->  drivers/acpi/acpica/hwregs.c                             |  2 +-
->  drivers/acpi/acpica/hwsleep.c                            |  2 +-
->  drivers/acpi/acpica/hwtimer.c                            |  2 +-
->  drivers/acpi/acpica/hwvalid.c                            |  2 +-
->  drivers/acpi/acpica/hwxface.c                            |  2 +-
->  drivers/acpi/acpica/hwxfsleep.c                          |  2 +-
->  drivers/acpi/acpica/nsaccess.c                           |  2 +-
->  drivers/acpi/acpica/nsalloc.c                            |  2 +-
->  drivers/acpi/acpica/nsarguments.c                        |  2 +-
->  drivers/acpi/acpica/nsconvert.c                          |  2 +-
->  drivers/acpi/acpica/nsdump.c                             |  2 +-
->  drivers/acpi/acpica/nsdumpdv.c                           |  2 +-
->  drivers/acpi/acpica/nseval.c                             |  2 +-
->  drivers/acpi/acpica/nsinit.c                             |  2 +-
->  drivers/acpi/acpica/nsload.c                             |  2 +-
->  drivers/acpi/acpica/nsnames.c                            |  2 +-
->  drivers/acpi/acpica/nsobject.c                           |  2 +-
->  drivers/acpi/acpica/nsparse.c                            |  2 +-
->  drivers/acpi/acpica/nspredef.c                           |  2 +-
->  drivers/acpi/acpica/nsprepkg.c                           |  2 +-
->  drivers/acpi/acpica/nsrepair.c                           |  2 +-
->  drivers/acpi/acpica/nsrepair2.c                          |  2 +-
->  drivers/acpi/acpica/nssearch.c                           |  2 +-
->  drivers/acpi/acpica/nsutils.c                            |  2 +-
->  drivers/acpi/acpica/nswalk.c                             |  2 +-
->  drivers/acpi/acpica/nsxfeval.c                           |  2 +-
->  drivers/acpi/acpica/nsxfname.c                           |  2 +-
->  drivers/acpi/acpica/nsxfobj.c                            |  2 +-
->  drivers/acpi/acpica/psargs.c                             |  2 +-
->  drivers/acpi/acpica/psloop.c                             |  2 +-
->  drivers/acpi/acpica/psobject.c                           |  2 +-
->  drivers/acpi/acpica/psopcode.c                           |  2 +-
->  drivers/acpi/acpica/psopinfo.c                           |  2 +-
->  drivers/acpi/acpica/psparse.c                            |  2 +-
->  drivers/acpi/acpica/psscope.c                            |  2 +-
->  drivers/acpi/acpica/pstree.c                             |  2 +-
->  drivers/acpi/acpica/psutils.c                            |  2 +-
->  drivers/acpi/acpica/pswalk.c                             |  2 +-
->  drivers/acpi/acpica/psxface.c                            |  2 +-
->  drivers/acpi/acpica/rsaddr.c                             |  2 +-
->  drivers/acpi/acpica/rscalc.c                             |  2 +-
->  drivers/acpi/acpica/rscreate.c                           |  2 +-
->  drivers/acpi/acpica/rsdump.c                             |  2 +-
->  drivers/acpi/acpica/rsdumpinfo.c                         |  2 +-
->  drivers/acpi/acpica/rsinfo.c                             |  2 +-
->  drivers/acpi/acpica/rsio.c                               |  2 +-
->  drivers/acpi/acpica/rsirq.c                              |  2 +-
->  drivers/acpi/acpica/rslist.c                             |  2 +-
->  drivers/acpi/acpica/rsmemory.c                           |  2 +-
->  drivers/acpi/acpica/rsmisc.c                             |  2 +-
->  drivers/acpi/acpica/rsserial.c                           |  2 +-
->  drivers/acpi/acpica/rsutils.c                            |  2 +-
->  drivers/acpi/acpica/rsxface.c                            |  2 +-
->  drivers/acpi/acpica/tbdata.c                             |  2 +-
->  drivers/acpi/acpica/tbfadt.c                             |  2 +-
->  drivers/acpi/acpica/tbfind.c                             |  2 +-
->  drivers/acpi/acpica/tbinstal.c                           |  2 +-
->  drivers/acpi/acpica/tbprint.c                            |  2 +-
->  drivers/acpi/acpica/tbutils.c                            |  2 +-
->  drivers/acpi/acpica/tbxface.c                            |  2 +-
->  drivers/acpi/acpica/tbxfload.c                           |  2 +-
->  drivers/acpi/acpica/tbxfroot.c                           |  2 +-
->  drivers/acpi/acpica/utaddress.c                          |  2 +-
->  drivers/acpi/acpica/utalloc.c                            |  2 +-
->  drivers/acpi/acpica/utascii.c                            |  2 +-
->  drivers/acpi/acpica/utbuffer.c                           |  2 +-
->  drivers/acpi/acpica/utcache.c                            |  2 +-
->  drivers/acpi/acpica/utcopy.c                             |  2 +-
->  drivers/acpi/acpica/utdebug.c                            |  2 +-
->  drivers/acpi/acpica/utdecode.c                           |  2 +-
->  drivers/acpi/acpica/utdelete.c                           |  2 +-
->  drivers/acpi/acpica/uterror.c                            |  2 +-
->  drivers/acpi/acpica/uteval.c                             |  2 +-
->  drivers/acpi/acpica/utexcep.c                            |  2 +-
->  drivers/acpi/acpica/utglobal.c                           |  2 +-
->  drivers/acpi/acpica/uthex.c                              |  2 +-
->  drivers/acpi/acpica/utids.c                              |  2 +-
->  drivers/acpi/acpica/utinit.c                             |  2 +-
->  drivers/acpi/acpica/utlock.c                             |  2 +-
->  drivers/acpi/acpica/utmath.c                             |  2 +-
->  drivers/acpi/acpica/utmisc.c                             |  2 +-
->  drivers/acpi/acpica/utmutex.c                            |  2 +-
->  drivers/acpi/acpica/utnonansi.c                          |  2 +-
->  drivers/acpi/acpica/utobject.c                           |  2 +-
->  drivers/acpi/acpica/utosi.c                              |  2 +-
->  drivers/acpi/acpica/utownerid.c                          |  2 +-
->  drivers/acpi/acpica/utpredef.c                           |  2 +-
->  drivers/acpi/acpica/utprint.c                            |  2 +-
->  drivers/acpi/acpica/utresdecode.c                        |  2 +-
->  drivers/acpi/acpica/utresrc.c                            |  2 +-
->  drivers/acpi/acpica/utstate.c                            |  2 +-
->  drivers/acpi/acpica/utstring.c                           |  2 +-
->  drivers/acpi/acpica/utstrsuppt.c                         |  2 +-
->  drivers/acpi/acpica/utstrtoul64.c                        |  2 +-
->  drivers/acpi/acpica/uttrack.c                            |  2 +-
->  drivers/acpi/acpica/utuuid.c                             |  2 +-
->  drivers/acpi/acpica/utxface.c                            |  2 +-
->  drivers/acpi/acpica/utxferror.c                          |  2 +-
->  drivers/acpi/acpica/utxfinit.c                           |  2 +-
->  drivers/acpi/acpica/utxfmutex.c                          |  2 +-
->  include/acpi/acbuffer.h                                  |  2 +-
->  include/acpi/acconfig.h                                  |  2 +-
->  include/acpi/acexcep.h                                   |  2 +-
->  include/acpi/acnames.h                                   |  2 +-
->  include/acpi/acoutput.h                                  |  2 +-
->  include/acpi/acpi.h                                      |  2 +-
->  include/acpi/acpiosxf.h                                  |  2 +-
->  include/acpi/acpixf.h                                    |  4 ++--
->  include/acpi/acrestyp.h                                  |  2 +-
->  include/acpi/actbl.h                                     |  2 +-
->  include/acpi/actbl1.h                                    |  2 +-
->  include/acpi/actbl2.h                                    |  2 +-
->  include/acpi/actbl3.h                                    |  2 +-
->  include/acpi/actypes.h                                   | 12 ++++++------
->  include/acpi/acuuid.h                                    |  2 +-
->  include/acpi/platform/acenv.h                            |  2 +-
->  include/acpi/platform/acenvex.h                          |  2 +-
->  include/acpi/platform/acgcc.h                            |  2 +-
->  include/acpi/platform/acgccex.h                          |  2 +-
->  include/acpi/platform/acintel.h                          |  2 +-
->  include/acpi/platform/aclinux.h                          |  4 ++--
->  include/acpi/platform/aclinuxex.h                        |  2 +-
->  tools/power/acpi/common/cmfsize.c                        |  2 +-
->  tools/power/acpi/common/getopt.c                         |  2 +-
->  tools/power/acpi/os_specific/service_layers/oslinuxtbl.c |  2 +-
->  tools/power/acpi/os_specific/service_layers/osunixdir.c  |  2 +-
->  tools/power/acpi/os_specific/service_layers/osunixmap.c  |  2 +-
->  tools/power/acpi/os_specific/service_layers/osunixxf.c   |  2 +-
->  tools/power/acpi/tools/acpidump/acpidump.h               |  2 +-
->  tools/power/acpi/tools/acpidump/apdump.c                 |  2 +-
->  tools/power/acpi/tools/acpidump/apfiles.c                |  2 +-
->  tools/power/acpi/tools/acpidump/apmain.c                 |  2 +-
->  229 files changed, 237 insertions(+), 237 deletions(-)
+> Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=198515
+> Cc: Mario Limonciello <mario.limonciello@dell.com>
+> Signed-off-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+> ---
+> v4: Remove unnecessary message for user.
+> 
+> v3: Put the function under right #ifdef, comment adjustment
+> 
+> v2: Andy's suggestion, merge to a single quirk table.
+>  drivers/acpi/bus.c | 38 +++++++++++++++++++++++++++++++-------
+>  1 file changed, 31 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index f87ed3be779a..11c6dda233d6 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -66,10 +66,37 @@ static int set_copy_dsdt(const struct dmi_system_id *id)
+>  	return 0;
+>  }
+>  #endif
+> +static int set_gbl_term_list(const struct dmi_system_id *id)
+> +{
+> +	acpi_gbl_parse_table_as_term_list = 1;
+> +	return 0;
+> +}
+>  
+> -static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
+> +static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
+> +	/*
+> +	 * Touchpad on Dell XPS 9570/Precision M5530 doesn't work under I2C
+> +	 * mode.
+> +	 * https://bugzilla.kernel.org/show_bug.cgi?id=198515
+> +	 */
+> +	{
+> +		.callback = set_gbl_term_list,
+> +		.ident = "Dell Precision M5530",
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "Precision M5530"),
+> +		},
+> +	},
+> +	{
+> +		.callback = set_gbl_term_list,
+> +		.ident = "Dell XPS 15 9570",
+> +		.matches = {
+> +			DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "XPS 15 9570"),
+> +		},
+> +	},
+>  	/*
+>  	 * Invoke DSDT corruption work-around on all Toshiba Satellite.
+> +	 * DSDT will be copied to memory.
+>  	 * https://bugzilla.kernel.org/show_bug.cgi?id=14679
+>  	 */
+>  	{
+> @@ -83,7 +110,7 @@ static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
+>  	{}
+>  };
+>  #else
+> -static const struct dmi_system_id dsdt_dmi_table[] __initconst = {
+> +static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
+>  	{}
+>  };
+>  #endif
+> @@ -1019,11 +1046,8 @@ void __init acpi_early_init(void)
+>  
+>  	acpi_permanent_mmap = true;
+>  
+> -	/*
+> -	 * If the machine falls into the DMI check table,
+> -	 * DSDT will be copied to memory
+> -	 */
+> -	dmi_check_system(dsdt_dmi_table);
+> +	/* Check machine-specific quirks */
+> +	dmi_check_system(acpi_quirks_dmi_table);
+>  
+>  	status = acpi_reallocate_root_table();
+>  	if (ACPI_FAILURE(status)) {
+> 
 
-All applied, thanks!
-
-
+Applied, thanks!
