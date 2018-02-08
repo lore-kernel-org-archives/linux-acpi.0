@@ -1,97 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
-Date: Thu, 08 Feb 2018 10:55:11 +0100
-Message-ID: <2044034.AEdEGWvtQO@aspire.rjw.lan>
-References: <1517377939-9817-1-git-send-email-alex.hung@canonical.com> <2378701.uKqO5Wmcrc@aspire.rjw.lan> <CAJ=jquYgyMUi8-Sdv3yPhOAuiNfPJbK+F1fkdekY_XHphmMZGw@mail.gmail.com>
+Subject: Re: [PATCH v2 0/5] ACPI: Do not call _STA on battery devices with unmet dependencies
+Date: Thu, 08 Feb 2018 10:57:24 +0100
+Message-ID: <3281375.11fh90aaLK@aspire.rjw.lan>
+References: <20180122085135.16732-1-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:54252 "EHLO
+Received: from cloudserver094114.home.pl ([79.96.170.134]:63853 "EHLO
         cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbeBHJ4z (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:56:55 -0500
-In-Reply-To: <CAJ=jquYgyMUi8-Sdv3yPhOAuiNfPJbK+F1fkdekY_XHphmMZGw@mail.gmail.com>
+        with ESMTP id S1750806AbeBHJ7I (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Feb 2018 04:59:08 -0500
+In-Reply-To: <20180122085135.16732-1-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, linux-pci@vger.kernel.org, devel@acpica.org
 
-On Tuesday, February 6, 2018 6:59:34 AM CET Alex Hung wrote:
-> On Fri, Feb 2, 2018 at 3:25 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Thursday, February 1, 2018 9:07:59 AM CET Alex Hung wrote:
-> >> On Wed, Jan 31, 2018 at 11:30 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >> > On Thu, Feb 1, 2018 at 5:39 AM, Alex Hung <alex.hung@canonical.com> wrote:
-> >> >> On Wed, Jan 31, 2018 at 1:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> >>> On Wednesday, January 31, 2018 6:52:19 AM CET Alex Hung wrote:
-> >> >>>> In recent Intel hardware the IRQs become non-configurable after BIOS
-> >> >>>> initializes them in PEI phase and _PRS objects are no longer included in
-> >> >>>> ASL.
-> >> >>>>
-> >> >>>> This is the same as "static (non-configurable) devices do not
-> >> >>>> specify a _PRS object" in ACPI spec. As a result, error messages
-> >> >>>> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
-> >> >>>> needed.
-> >> >>>
-> >> >>> That's questionable at best.
-> >> >>>
-> >> >>> The errors basically indicate that _PRT entries corresponding to these
-> >> >>> IRQs are messed up (because they should contain the value of 0 instead of
-> >> >>> a NamePath in the Source column), so we are now going to paper over bugs
-> >> >>> in ACPI tables as someone in the firmware land cannot be bothered with
-> >> >>> putting correct values into them. :-/
-> >> >>
-> >> >> Rafael,
-> >> >>
-> >> >> Thanks for quick reply and sharing the information
-> >> >>
-> >> >> It seems static (non-configurable) devices on ACPI are discussed in
-> >> >> both _PRS and _PRT as below:
-> >> >>
-> >> >> 6.2.12 _PRS (Possible Resource Settings)
-> >> >> "... Static (non-configurable) devices do not specify a _PRS object... "
-> >> >>
-> >> >> 6.2.13 _PRT (PCI Routing Table)
-> >> >> "In the second model, the PCI interrupts are hardwired to specific
-> >> >> interrupt inputs on the interrupt controller and are not configurable.
-> >> >> In this case, the Source field in _PRT does not reference a device,
-> >> >> but instead contains the value zero, and the Source Index field
-> >> >> contains the global system interrupt to which the PCI interrupt is
-> >> >> hardwired."
-> >> >>
-> >> >> My interpretation is the both are true from ACPI's perspective, and
-> >> >> both should be implemented by system firmware. On this particular
-> >> >> system I am debugging remotely, it does the _PRS part but not _PRT,
-> >> >> and I will follow up with firmware engineers.
-> >> >
-> >> > OK
-> >> >
-> >> >> On the other hand, it may not be unreasonable to remove AE_NOT_FOUND
-> >> >> as defined in 6.2.12 in ACPI spec. I also did a code trace and it
-> >> >> seems that the AE_NOT_FOUND in _PRS cannot be removed by a value of
-> >> >> zero in Source field in _PRT.
-> >> >
-> >> > I'm not sure what you mean here.
-> >> >
-> >> > Do you mean that the code would mishandle 0 in the Source field of _PRT?
-> >>
-> >> I meant the AE_NOT_FOUND messages still pop up when SOURCE = 0.
-> >
-> > OK, so why does the firmware define the link objects in the namespace then?
-> >
-> >> Do you have other comments about this patch or concerns that I can work
-> >> with firmware engineers?
-> >
-> > It looks to me that there are some PCI interrupt link objects in the
-> > namespace without _PRS and which aren't pointed to by any _PRT entries.
-> >
-> > If so, what are they useful for then?
+On Monday, January 22, 2018 9:51:30 AM CET Hans de Goede wrote:
+> Hi All,
 > 
-> The LNKA~LNKD used in Name(PK00) are used when PIC mode is used, ex.
-> _PIC(0).
+> Here is v2 of this set, new in v2 is the addressing of Bjorn's comments
+> to the "PCI: acpiphp_ibm: prepare for acpi_get_object_info no longer
+> returning status" patch and a new patch (the first patch in v2) which
+> exports acpi_bus_get_status_handle() for use in modules as acpiphp_ibm
+> will now depend on it.
+> 
+> Here is the old coverletter from v1 (adjusted for the new patch):
+> 
+> The ACPI code already contains quite a bit of code to not bind the
+> ACPI-battery until all deps for an ACPI battery device have been met,
+> but on some devices calling _STA before all deps are met is a problem
+> too because the _STA method uses an i2c OpRegion there.
+> 
+> Here is the DSDT of the device I'm seeing this on:
+> https://fedorapeople.org/~jwrdegoede/toshiba-click-mini-dsdt.dsl
+> 
+> This series modifies the kernel to not call _STA until all deps are met,
+> mirroring the binding behavior of the battery driver.
+> 
+> Without this series a total of 32 ACPI errors get printend to the console
+> on boot, there are 4 errors per _STA call, 2 battery devices on this
+> system and 4 _STA calls per battery device.
+> 
+> The first 2 commits are preparation commits for making the ACPICA changes
+> in the 4th commit, these commits are necessary to not break things after
+> the ACPICA changes.
+> 
+> The 3th commit modifies acpi_bus_get_status to not call _STA on
+> battery devices until all deps are met. This fixes 2 of the 4 too early
+> _STA calls triggering these errors.
+> 
+> The 4th commit makes the device instantiation code use
+> acpi_bus_get_status instead of acpi_bus_get_status_handle so that the
+> code to get the initial status also does not makes 1 too early _STA call.
+> 
+> The 5th commit changes the ACPICA acpi_get_object_info function to not
+> call _STA. Only 1 user (which is fixed in the first commit) cares about
+> acpi_device_info.current_status. And the ACPICA code has this comment:
+> 
+>  * Note: This interface is intended to be used during the initial device
+>  * discovery namespace traversal. Therefore, no complex methods can be
+>  * executed, especially those that access operation regions. Therefore, do
+>  * not add any additional methods that could cause problems in this area.
+>  * Because of this reason support for the following methods has been removed:
+>  * this was the fate of the _SUB method which was found to cause such
+>  * problems and was removed (11/2015).
+> 
+> The described problems with the _SUB method clearly also apply to the _STA
+> method, so removing it from acpi_get_object_info seems like it is the right
+> thing to do here. This too fixes 1 too early _STA call, so that with all
+> 5 patches in place we've fixed all 4 too early _STA calls.
 
-I see.
+I've applied [1-4/5] from this series.
 
-OK, in that case I'd just change the log level of the message to "debug",
-and use acpi_handle_debug() for printing it for that matter.
+The last one needs to go in via ACPICA anyway or we'll need to carry
+a Linux-specific replacement for acpi_get_object_info().
 
