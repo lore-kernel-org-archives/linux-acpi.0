@@ -1,210 +1,120 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v5 1/3] arm64/ras: support sea error recovery
-Date: Fri, 9 Feb 2018 13:04:32 +0800
-Message-ID: <92585a44-aeac-4e0e-f879-e2d00b30040f@huawei.com>
-References: <1516969885-150532-1-git-send-email-xiexiuqi@huawei.com>
- <1516969885-150532-2-git-send-email-xiexiuqi@huawei.com>
- <5A70C536.7040208@arm.com> <5A7B4D87.9020207@arm.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: remove error messages when no _PRS methods
+Date: Fri, 9 Feb 2018 01:02:31 -0800
+Message-ID: <CAJ=jquZBP7S1oJJF4YR7K_5KaExU9f2uq=iBnxANbJgOQ_uOWw@mail.gmail.com>
+References: <1517377939-9817-1-git-send-email-alex.hung@canonical.com>
+ <2378701.uKqO5Wmcrc@aspire.rjw.lan> <CAJ=jquYgyMUi8-Sdv3yPhOAuiNfPJbK+F1fkdekY_XHphmMZGw@mail.gmail.com>
+ <2044034.AEdEGWvtQO@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5A7B4D87.9020207@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mingo@redhat.com, mark.rutland@arm.com, ard.biesheuvel@linaro.org, Dave.Martin@arm.com, takahiro.akashi@linaro.org, tbaicar@codeaurora.org, stephen.boyd@linaro.org, bp@suse.de, julien.thierry@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, wangxiongfeng2@huawei.com, zhengqiang10@huawei.com, huawei.libin@huawei.com, wangkefeng.wang@huawei.com, lijinyue@huawei.com, guohanjun@huawei.com, hanjun.guo@linaro.org, cj.chengjian@huawei.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:58579 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750789AbeBIJCf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2018 04:02:35 -0500
+Received: from mail-qk0-f198.google.com ([209.85.220.198])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <alex.hung@canonical.com>)
+        id 1ek4Zl-0004GP-Uw
+        for linux-acpi@vger.kernel.org; Fri, 09 Feb 2018 09:02:34 +0000
+Received: by mail-qk0-f198.google.com with SMTP id d131so6043565qkc.16
+        for <linux-acpi@vger.kernel.org>; Fri, 09 Feb 2018 01:02:33 -0800 (PST)
+In-Reply-To: <2044034.AEdEGWvtQO@aspire.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
 
+On Thu, Feb 8, 2018 at 1:55 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, February 6, 2018 6:59:34 AM CET Alex Hung wrote:
+>> On Fri, Feb 2, 2018 at 3:25 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Thursday, February 1, 2018 9:07:59 AM CET Alex Hung wrote:
+>> >> On Wed, Jan 31, 2018 at 11:30 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> >> > On Thu, Feb 1, 2018 at 5:39 AM, Alex Hung <alex.hung@canonical.com> wrote:
+>> >> >> On Wed, Jan 31, 2018 at 1:20 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> >> >>> On Wednesday, January 31, 2018 6:52:19 AM CET Alex Hung wrote:
+>> >> >>>> In recent Intel hardware the IRQs become non-configurable after BIOS
+>> >> >>>> initializes them in PEI phase and _PRS objects are no longer included in
+>> >> >>>> ASL.
+>> >> >>>>
+>> >> >>>> This is the same as "static (non-configurable) devices do not
+>> >> >>>> specify a _PRS object" in ACPI spec. As a result, error messages
+>> >> >>>> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" are not
+>> >> >>>> needed.
+>> >> >>>
+>> >> >>> That's questionable at best.
+>> >> >>>
+>> >> >>> The errors basically indicate that _PRT entries corresponding to these
+>> >> >>> IRQs are messed up (because they should contain the value of 0 instead of
+>> >> >>> a NamePath in the Source column), so we are now going to paper over bugs
+>> >> >>> in ACPI tables as someone in the firmware land cannot be bothered with
+>> >> >>> putting correct values into them. :-/
+>> >> >>
+>> >> >> Rafael,
+>> >> >>
+>> >> >> Thanks for quick reply and sharing the information
+>> >> >>
+>> >> >> It seems static (non-configurable) devices on ACPI are discussed in
+>> >> >> both _PRS and _PRT as below:
+>> >> >>
+>> >> >> 6.2.12 _PRS (Possible Resource Settings)
+>> >> >> "... Static (non-configurable) devices do not specify a _PRS object... "
+>> >> >>
+>> >> >> 6.2.13 _PRT (PCI Routing Table)
+>> >> >> "In the second model, the PCI interrupts are hardwired to specific
+>> >> >> interrupt inputs on the interrupt controller and are not configurable.
+>> >> >> In this case, the Source field in _PRT does not reference a device,
+>> >> >> but instead contains the value zero, and the Source Index field
+>> >> >> contains the global system interrupt to which the PCI interrupt is
+>> >> >> hardwired."
+>> >> >>
+>> >> >> My interpretation is the both are true from ACPI's perspective, and
+>> >> >> both should be implemented by system firmware. On this particular
+>> >> >> system I am debugging remotely, it does the _PRS part but not _PRT,
+>> >> >> and I will follow up with firmware engineers.
+>> >> >
+>> >> > OK
+>> >> >
+>> >> >> On the other hand, it may not be unreasonable to remove AE_NOT_FOUND
+>> >> >> as defined in 6.2.12 in ACPI spec. I also did a code trace and it
+>> >> >> seems that the AE_NOT_FOUND in _PRS cannot be removed by a value of
+>> >> >> zero in Source field in _PRT.
+>> >> >
+>> >> > I'm not sure what you mean here.
+>> >> >
+>> >> > Do you mean that the code would mishandle 0 in the Source field of _PRT?
+>> >>
+>> >> I meant the AE_NOT_FOUND messages still pop up when SOURCE = 0.
+>> >
+>> > OK, so why does the firmware define the link objects in the namespace then?
+>> >
+>> >> Do you have other comments about this patch or concerns that I can work
+>> >> with firmware engineers?
+>> >
+>> > It looks to me that there are some PCI interrupt link objects in the
+>> > namespace without _PRS and which aren't pointed to by any _PRT entries.
+>> >
+>> > If so, what are they useful for then?
+>>
+>> The LNKA~LNKD used in Name(PK00) are used when PIC mode is used, ex.
+>> _PIC(0).
+>
+> I see.
+>
+> OK, in that case I'd just change the log level of the message to "debug",
+> and use acpi_handle_debug() for printing it for that matter.
+>
 
+Hi Rafael,
 
-On 2018/2/8 3:03, James Morse wrote:
-> Hi Xie XiuQi,
-> 
-> On 30/01/18 19:19, James Morse wrote:
->> On 26/01/18 12:31, Xie XiuQi wrote:
->>> With ARM v8.2 RAS Extension, SEA are usually triggered when memory errors
->>> are consumed. According to the existing process, errors occurred in the
->>> kernel, leading to direct panic, if it occurred the user-space, we should
->>> just kill process.
->>>
->>> But there is a class of error, in fact, is not necessary to kill
->>> process, you can recover and continue to run the process. Such as
->>> the instruction data corrupted, where the memory page might be
->>> read-only, which is has not been modified, the disk might have the
->>> correct data, so you can directly drop the page, ant reload it when
->>> necessary.
->>
->> With firmware-first support, we do all this...
->>
->>
->>> So this patchset is just try to solve such problem: if the error is
->>> consumed in user-space and the error occurs on a clean page, you can
->>> directly drop the memory page without killing process.
->>>
->>> If the corrupted page is clean, just dropped it and return to user-space
->>> without side effects. And if corrupted page is dirty, memory_failure()
->>> will send SIGBUS with code=BUS_MCEERR_AR. While without this patchset,
->>> do_sea() will just send SIGBUS, so the process was killed in the same place.
->>
->> ... but this happens too. I agree its something we should fix, but I don't think
->> this is the best way to do it.
->>
->> This series is pulling the memory-failure-queue details back into the arch-code
->> to build a second list, that gets processed as extra work when we return to
->> user-space.
->>
->>
->> The root of the issue is ghes_notify_sea() claims the notification as something
->> APEI has dealt with, ... but it hasn't done it yet. The signals will be
->> generated by something currently stuck in a queue. (Evidently x86 doesn't handle
->> synchronous errors like this using firmware-first).
->>
->> I think a smaller fix is to give the queues that may be holding the
->> memory_failure() work a kick as part of the code that calls ghes_notify_sea().
->> This means that by the time we return to do_sea() ghes_notify_sea()'s claim that
->> APEI has dealt with it is true as any generated signals are pending. We can then
->> skip the existing SIGBUS generation code.
->>
->>
->>> Because memory_failure() may sleep, we can not call it directly in SEA
->>
->> (this one is more serious, I've attempted to fix it by moving all NMI-like
->> GHES-notifications to use the estatus queue).
->>
->>
->>> exception context. So we saved faulting physical address associated with
->>> a process in the ghes handler and set __TIF_SEA_NOTIFY. When we return
->>> from SEA exception context and get into do_notify_resume() before the
->>> process running, we could check it and call memory_failure() to do
->>> recovery.
->>
->>> It's safe, because we are in process context.
->>
->> I think this is the trick. When we take a Synchronous-external-abort out of
->> userspace, we're in process context too. We can add helpers to drain the
->> memory_failure_queue which can be called when do_sea() when we know we're
->> preemptible and interrupts-et-al are unmasked.
-> 
-> Something like... base on [0], in arch/arm64/kernel/acpi.c:
-> -----------------%<-----------------
-> int apei_claim_sea(struct pt_regs *regs)
-> {
->         int cpu;
->         int err = -ENOENT;
->         unsigned long current_flags = arch_local_save_flags();
->         unsigned long interrupted_flags = current_flags;
-> 
->         if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
->                 return err;
-> 
->         if (regs)
->                 interrupted_flags = regs->pstate;
-> 
->         /*
->          * APEI expects an NMI-like notification to always be called
->          * in NMI context.
->          */
->         local_daif_restore(DAIF_ERRCTX);
->         nmi_enter();
->         err = ghes_notify_sea();
->         cpu = smp_processor_id();
->         nmi_exit();
-> 
->         /*
->          * APEI NMI-like notifications are deferred to irq_work. Unless
->          * we interrupted irqs-masked code, we can do that now.
->          */
->         if (!err) {
->                 if (!arch_irqs_disabled_flags(interrupted_flags)) {
->                         local_daif_restore(DAIF_PROCCTX_NOIRQ);
->                         irq_work_run();
->                 } else {
->                         err = -EINPROGRESS;
->                 }
->         }
-> 
->         local_daif_restore(current_flags);
-> 
->         if (IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE) && !err) {
->                 /*
->                  * Memory failure work is scheduled on the local CPU.
->                  * If we interrupted userspace, or are in process context
->                  * we can do that now.
->                  */
->                 if ((regs && !user_mode(regs)) || !preemptible())
->                         err = -EINPROGRESS;
->                 else
->                         memory_failure_queue_kick(cpu);
->         }
-> 
->         return err;
-> }
-> -----------------%<-----------------
-> 
-> 
-> and to mm/memory-failure.c:
-> -----------------%<-----------------
-> @@ -1355,7 +1355,7 @@ static void memory_failure_work_func(struct work_struct *w
-> ork)
->         unsigned long proc_flags;
->         int gotten;
-> 
-> -       mf_cpu = this_cpu_ptr(&memory_failure_cpu);
-> +       mf_cpu = container_of(work, struct memory_failure_cpu, work);
->         for (;;) {
->                 spin_lock_irqsave(&mf_cpu->lock, proc_flags);
->                 gotten = kfifo_get(&mf_cpu->fifo, &entry);
-> 
-> @@ -1369,6 +1369,22 @@ static void memory_failure_work_func(struct work_struct *
-> work)
->         }
->  }
-> 
-> +/*
-> + * Process memory_failure work queued on the specified CPU.
-> + * Used to avoid return-to-userspace racing with the memory_failure workqueue.
-> + */
-> +void memory_failure_queue_kick(int cpu)
-> +{
-> +       unsigned long flags;
-> +       struct memory_failure_cpu *mf_cpu;
-> +
-> +       might_sleep();
-> +
-> +       mf_cpu = &per_cpu(memory_failure_cpu, cpu);
-> +       cancel_work_sync(&mf_cpu->work);
-> +       memory_failure_work_func(&mf_cpu->work);
-> +}
-> +
->  static int __init memory_failure_init(void)
->  {
->         struct memory_failure_cpu *mf_cpu;
-> -----------------%<-----------------
+Do you mean something like the below change?
 
-It look like the change is reasonable, thanks James's solving.
+        if (ACPI_FAILURE(status)) {
+-               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
++               acpi_handle_debug(link->device->handle, "failed to
+evaluate _PRS");
+                return -ENODEV;
+        }
 
-> 
-> I've cooked up some NOTFIY_SEA-ing APEI firmware using kvmtool to test this. I
-> haven't yet managed to hit irq-masked code with NOTIFY_SEA. I'll try and tidy
-> this up and post a branch to make it easier to test...
-> 
-> I prefer this as it doesn't duplicate the state then come back on a TIF flag.
-> I'd like to move the kicking logic into ghes.c, as that is where the queueing
-> happened, but the 'do-this, restore these flags, do-that' is somewhat tasteless,
-> and it looks like on arm64 has synchronous nmi-like notifications that must be
-> handled before returning to user-space...
-> 
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> [0] https://www.spinics.net/lists/linux-acpi/msg80149.html
-> 
-> 
-> 
-> 
-> .
-> 
+If so, I will submit a V2 accordingly.
