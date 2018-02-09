@@ -1,57 +1,91 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v4 2/4] ACPI / bus: Remove checks in acpi_get_match_data()
-Date: Fri,  9 Feb 2018 17:38:34 +0200
-Message-ID: <20180209153836.19302-2-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 3/4] ACPI / bus: Rename acpi_get_match_data() to acpi_device_get_match_data()
+Date: Fri,  9 Feb 2018 17:38:35 +0200
+Message-ID: <20180209153836.19302-3-andriy.shevchenko@linux.intel.com>
 References: <20180209153836.19302-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:43575 "EHLO mga03.intel.com"
+Received: from mga18.intel.com ([134.134.136.126]:65284 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751098AbeBIPil (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 9 Feb 2018 10:38:41 -0500
+        id S1751090AbeBIPik (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Fri, 9 Feb 2018 10:38:40 -0500
 In-Reply-To: <20180209153836.19302-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
 
-As well as its sibling of_device_get_match_data() has no such checks,
-no need to do it in acpi_get_match_data().
+Do the renaming to be consistent with its sibling, i.e.
+of_device_get_match_data().
 
-First of all, we are not supposed to call fwnode API like this without
-driver attached.
-
-Second, since __acpi_match_device() does check input parameter there is
-no need to duplicate it outside.
-
-And last but not least one, the API should still serve the cases when
-ACPI device is enumerated via PRP0001. In such case driver has neither
-ACPI table nor driver data there.
+No functional change.
 
 Cc: Sinan Kaya <okaya@codeaurora.org>
 Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 Cc: Vinod Koul <vinod.koul@intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/bus.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/acpi/bus.c      | 4 ++--
+ drivers/acpi/property.c | 2 +-
+ include/linux/acpi.h    | 4 ++--
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index f1384e107eed..ca4af098b1bf 100644
+index ca4af098b1bf..e6285b5ce0d5 100644
 --- a/drivers/acpi/bus.c
 +++ b/drivers/acpi/bus.c
-@@ -834,12 +834,6 @@ void *acpi_get_match_data(const struct device *dev)
+@@ -830,7 +830,7 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
+-void *acpi_get_match_data(const struct device *dev)
++void *acpi_device_get_match_data(const struct device *dev)
  {
  	const struct acpi_device_id *match;
  
--	if (!dev->driver)
--		return NULL;
--
--	if (!dev->driver->acpi_match_table)
--		return NULL;
--
- 	match = acpi_match_device(dev->driver->acpi_match_table, dev);
- 	if (!match)
- 		return NULL;
+@@ -840,7 +840,7 @@ void *acpi_get_match_data(const struct device *dev)
+ 
+ 	return (void *)match->driver_data;
+ }
+-EXPORT_SYMBOL_GPL(acpi_get_match_data);
++EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
+ 
+ int acpi_match_device_ids(struct acpi_device *device,
+ 			  const struct acpi_device_id *ids)
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 466d1503aba0..f9b5fa230a86 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1275,7 +1275,7 @@ static void *
+ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 				  const struct device *dev)
+ {
+-	return acpi_get_match_data(dev);
++	return acpi_device_get_match_data(dev);
+ }
+ 
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 64e10746f282..bdf47e0f92e9 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -587,7 +587,7 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ 					       const struct device *dev);
+ 
+-void *acpi_get_match_data(const struct device *dev);
++void *acpi_device_get_match_data(const struct device *dev);
+ extern bool acpi_driver_match_device(struct device *dev,
+ 				     const struct device_driver *drv);
+ int acpi_device_uevent_modalias(struct device *, struct kobj_uevent_env *);
+@@ -766,7 +766,7 @@ static inline const struct acpi_device_id *acpi_match_device(
+ 	return NULL;
+ }
+ 
+-static inline void *acpi_get_match_data(const struct device *dev)
++static inline void *acpi_device_get_match_data(const struct device *dev)
+ {
+ 	return NULL;
+ }
 -- 
 2.15.1
 
