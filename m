@@ -1,54 +1,75 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/2] acpi/dptf: document sysfs atttributes
-Date: Fri, 9 Feb 2018 11:57:50 +0100
-Message-ID: <CAJZ5v0gwiuo_b_N_8PjJ7Q532s1V-e37080Dk0YCNs+nMDVOVQ@mail.gmail.com>
-References: <cover.1518009225.git.aishpant@gmail.com> <01eb929d8dbfa3e2041d33619a7d30a6b0f4748c.1518009225.git.aishpant@gmail.com>
- <CAJZ5v0i5=EdmR_6Kcg=r5XUBtt8yaQX_yHt_qRfZLU-q85gkBQ@mail.gmail.com> <20180209105425.GA24487@mordor.localdomain>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] ACPI/IORT: Remove temporary iort_get_id_mapping_index()
+ ACPICA guard
+Date: Fri,  9 Feb 2018 12:15:10 +0000
+Message-ID: <20180209121510.9015-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180209105425.GA24487@mordor.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aishwarya Pant <aishpant@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>, Julia Lawall <julia.lawall@lip6.fr>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 9, 2018 at 11:54 AM, Aishwarya Pant <aishpant@gmail.com> wrote:
-> On Fri, Feb 09, 2018 at 11:31:35AM +0100, Rafael J. Wysocki wrote:
->> On Wed, Feb 7, 2018 at 2:18 PM, Aishwarya Pant <aishpant@gmail.com> wrote:
->> > The descriptions have been collected from git commit logs and reading
->> > through code.
->> >
->> > Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
->> > ---
->> >  Documentation/ABI/testing/sysfs-platform-dptf | 30 +++++++++++++++++++++++++++
->> >  1 file changed, 30 insertions(+)
->> >  create mode 100644 Documentation/ABI/testing/sysfs-platform-dptf
->> >
->> > diff --git a/Documentation/ABI/testing/sysfs-platform-dptf b/Documentation/ABI/testing/sysfs-platform-dptf
->> > new file mode 100644
->> > index 000000000000..e8168e5198d7
->> > --- /dev/null
->> > +++ b/Documentation/ABI/testing/sysfs-platform-dptf
->> > @@ -0,0 +1,30 @@
->> > +sysfs interface for ACPI DPTF platform power driver
->> > +---------------------------------------------------
->>
->> The header isn't necessary.
->>
->> > +
->> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/charger_type
->> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/adapter_rating_mw
->> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/max_platform_power_mw
->> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/platform_power_source
->> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/battery_steady_power
->>
->> There should be one entry per attribute AFAICS.
->
-> I grouped attributes by the date in which they were added for brevity, because
-> otherwise fields like Date added, KernelVersion and Contact information are the
-> same.
->
-> I can split them up if it makes more sense...
+In IORT issue C SMMUv3 IORT nodes gained an additional field (DeviceID
+mapping index) so that the SMMUv3 can describe its MSI interrupts.
 
-That's what the format is from looking at the existing files.
+Referring to it in the kernel requires ACPICA changes and in order
+to prevent kernel<->ACPICA dependencies kernel code depending on the
+SMMUv3 DeviceID mapping index field was guarded with an ACPICA version
+conditional.
+
+ACPICA changes introducing DeviceID mapping index in the IORT structs
+were integrated in the kernel with:
+
+commit 4c106aa411ee ("ACPICA: iasl: Add SMMUv3 device ID mapping index
+support")
+
+so the temporary ACPICA guard has become stale and can be removed.
+
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+ drivers/acpi/arm64/iort.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 95255ecfae7c..a84a5787bbd2 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -366,7 +366,6 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
+ 	return NULL;
+ }
+ 
+-#if (ACPI_CA_VERSION > 0x20170929)
+ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+ {
+ 	struct acpi_iort_smmu_v3 *smmu;
+@@ -400,12 +399,6 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
+ 		return -EINVAL;
+ 	}
+ }
+-#else
+-static inline int iort_get_id_mapping_index(struct acpi_iort_node *node)
+-{
+-	return -EINVAL;
+-}
+-#endif
+ 
+ static struct acpi_iort_node *iort_node_map_id(struct acpi_iort_node *node,
+ 					       u32 id_in, u32 *id_out,
+-- 
+2.15.0
