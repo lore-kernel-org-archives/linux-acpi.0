@@ -1,59 +1,87 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v13 3/4] thinkpad_acpi: Add support for battery thresholds
-Date: Fri, 9 Feb 2018 11:49:40 +0100
-Message-ID: <CAJZ5v0h8YW03EpqEVO8LGti9ECo7+Gmm0PdgQViidUCZ=o0AQw@mail.gmail.com>
-References: <20180207145844.bd567c36juvlkjvz@thinkpad> <20180208220323.cr6j2kcozekwbzo6@earth.universe>
- <CAJZ5v0hOf1DfQuoqcqb3Xjmw_Y49MGCnY19Xv6Qz88KyT5T+xQ@mail.gmail.com> <20180209103946.fkolldv6boml3e32@earth.universe>
+From: Aishwarya Pant <aishpant@gmail.com>
+Subject: Re: [PATCH 1/2] acpi/dptf: document sysfs atttributes
+Date: Fri, 9 Feb 2018 16:24:25 +0530
+Message-ID: <20180209105425.GA24487@mordor.localdomain>
+References: <cover.1518009225.git.aishpant@gmail.com>
+ <01eb929d8dbfa3e2041d33619a7d30a6b0f4748c.1518009225.git.aishpant@gmail.com>
+ <CAJZ5v0i5=EdmR_6Kcg=r5XUBtt8yaQX_yHt_qRfZLU-q85gkBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:43390 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751024AbeBIKtl (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2018 05:49:41 -0500
-In-Reply-To: <20180209103946.fkolldv6boml3e32@earth.universe>
+Received: from mail-io0-f194.google.com ([209.85.223.194]:34295 "EHLO
+        mail-io0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750878AbeBIKyf (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Feb 2018 05:54:35 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0i5=EdmR_6Kcg=r5XUBtt8yaQX_yHt_qRfZLU-q85gkBQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Platform Driver <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, Linux PM <linux-pm@vger.kernel.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph@boehmwalder.at>, Kevin Locke <kevin@kevinlocke.name>, Ognjen Galic <smclt30p@gmail.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>, Julia Lawall <julia.lawall@lip6.fr>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 
-On Fri, Feb 9, 2018 at 11:39 AM, Sebastian Reichel <sre@kernel.org> wrote:
-> Hi,
->
-> On Fri, Feb 09, 2018 at 10:22:54AM +0100, Rafael J. Wysocki wrote:
->> On Thu, Feb 8, 2018 at 11:03 PM, Sebastian Reichel <sre@kernel.org> wrote:
->> > Hi,
->> >
->> > On Wed, Feb 07, 2018 at 03:58:44PM +0100, Ognjen Galic wrote:
->> >> 1) Charge start threshold
->> >> /sys/class/power_supply/BATN/charge_start_threshold
->> >>
->> >> Valid values are [0, 99]. A value of 0 turns off the
->> >> start threshold wear control.
->> >>
->> >> 2) Charge stop threshold
->> >> /sys/class/power_supply/BATN/charge_stop_threshold
->> >>
->> >> Valid values are [1, 100]. A value of 100 turns off
->> >> the stop threshold wear control. This must be
->> >> configured first.
->> >
->> > This is a new sysfs file, that should be documented.
->>
->> Right, I should have remembered about that, sorry.
->>
->> > Also this looks pretty generic. Just introduce new POWER_SUPPLY_PROP_
->> > entries for start/stop charging threshold and use them.
->>
->> What about doing this as a follow-up?
->
-> Fine with me.
+On Fri, Feb 09, 2018 at 11:31:35AM +0100, Rafael J. Wysocki wrote:
+> On Wed, Feb 7, 2018 at 2:18 PM, Aishwarya Pant <aishpant@gmail.com> wrote:
+> > The descriptions have been collected from git commit logs and reading
+> > through code.
+> >
+> > Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
+> > ---
+> >  Documentation/ABI/testing/sysfs-platform-dptf | 30 +++++++++++++++++++++++++++
+> >  1 file changed, 30 insertions(+)
+> >  create mode 100644 Documentation/ABI/testing/sysfs-platform-dptf
+> >
+> > diff --git a/Documentation/ABI/testing/sysfs-platform-dptf b/Documentation/ABI/testing/sysfs-platform-dptf
+> > new file mode 100644
+> > index 000000000000..e8168e5198d7
+> > --- /dev/null
+> > +++ b/Documentation/ABI/testing/sysfs-platform-dptf
+> > @@ -0,0 +1,30 @@
+> > +sysfs interface for ACPI DPTF platform power driver
+> > +---------------------------------------------------
+> 
+> The header isn't necessary.
+> 
+> > +
+> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/charger_type
+> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/adapter_rating_mw
+> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/max_platform_power_mw
+> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/platform_power_source
+> > +What:          /sys/bus/platform/devices/INT3407:00/dptf_power/battery_steady_power
+> 
+> There should be one entry per attribute AFAICS.
 
-OK
+I grouped attributes by the date in which they were added for brevity, because
+otherwise fields like Date added, KernelVersion and Contact information are the
+same.
 
-Actually, I don't see any documentation whatever for ACPI battery and
-AC power supply properties, so I guess that needs to be added in
-general and I don't think it would be fair to ask Ognjen to do that in
-order to get the extension in.
+I can split them up if it makes more sense...
 
-Why don't we pencil this in as work to do?
+Aishwarya
+
+> 
+> Also I need Srinivas to tell me whether or not the descriptions are
+> accurate enough.
+> 
+> > +Date:          Jul, 2016
+> > +KernelVersion: v4.10
+> > +Contact:       linux-acpi@vger.kernel.org
+> > +Description:
+> > +               charger_type:           (RO) The charger type- Traditional,
+> > +                                       Hybrid or NVDC.
+> > +
+> > +               adapter_rating_mw:      (RO) Adapter rating in milliwatts (the
+> > +                                       maximum Adapter power). Must be 0 if no
+> > +                                       AC Adaptor is plugged in.
+> > +
+> > +               max_platform_power_mw:  (RO) Maximum platform power that can be
+> > +                                       supported by the battery in milliwatts.
+> > +
+> > +               platform_power_source:  (RO) Display the platform power source
+> > +                                       0x00 = DC
+> > +                                       0x01 = AC
+> > +                                       0x02 = USB
+> > +                                       0x03 = Wireless Charger
+> > +
+> > +               battery_steady_power_mw:(RO) The maximum sustained power for
+> > +                                       battery in milliwatts.
+> > --
