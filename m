@@ -1,74 +1,60 @@
-From: Aishwarya Pant <aishpant@gmail.com>
-Subject: [PATCH v2 2/2] acpi/dock: document sysfs interface
-Date: Sat, 10 Feb 2018 14:27:38 +0530
-Message-ID: <4766f754e929cf4888ebe4da8d406d29bf07436c.1518252138.git.aishpant@gmail.com>
-References: <cover.1518252138.git.aishpant@gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
+Date: Sat, 10 Feb 2018 09:34:50 -0600
+Message-ID: <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com>
+References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com>
+ <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
+ <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:45020 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750934AbeBJPex (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Feb 2018 10:34:53 -0500
 Content-Disposition: inline
-In-Reply-To: <cover.1518252138.git.aishpant@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+In-Reply-To: <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Alex Hung <alex.hung@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Description has been collected from git commit history and reading
-through code.
+On Sat, Feb 10, 2018 at 09:08:42AM +0100, Rafael J. Wysocki wrote:
+> On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
+> >> In recent Intel hardware the IRQs become non-configurable after BIOS
+> >> initializes them in PEI phase and _PRS objects are no longer included in
+> >> ASL.
+> >>
+> >> This is the same as "static (non-configurable) devices do not
+> >> specify a _PRS object" in ACPI spec. As a result, error messages
+> >> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" does not need to
+> >> be in kernel messages all the time but only when debug is enabled.
+> >
+> > I agree and would even go further: _PRS is optional and I don't think
+> > there's a reason to log anything at all if it's absent.  A log message
+> > like "failed to evaluate _PRS" makes people think something is wrong
+> > when in fact nothing is wrong.
+> 
+> _PRS is required if the link object is pointed to by a _PRT entry.
 
-Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
----
-Changes in v2:
-- Split up attribute definitions
+The closest thing I see with a quick look is ACPI 6.0, sec 6.2.13:
 
- .../ABI/testing/sysfs-devices-platform-dock        | 39 ++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
- create mode 100644 Documentation/ABI/testing/sysfs-devices-platform-dock
+  These objects [PCI Interrupt Link Devices] have _PRS, _CRS, _SRS,
+  and _DIS control methods to allocate the interrupt.
 
-diff --git a/Documentation/ABI/testing/sysfs-devices-platform-dock b/Documentation/ABI/testing/sysfs-devices-platform-dock
-new file mode 100644
-index 000000000000..1d8c18f905c7
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-devices-platform-dock
-@@ -0,0 +1,39 @@
-+What:		/sys/devices/platform/dock.N/docked
-+Date:		Dec, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Value 1 or 0 indicates whether the software believes the
-+		laptop is docked in a docking station.
-+
-+What:		/sys/devices/platform/dock.N/undock
-+Date:		Dec, 2006
-+KernelVersion:	2.6.19
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(WO) Writing to this file causes the software to initiate an
-+		undock request to the firmware.
-+
-+What:		/sys/devices/platform/dock.N/uid
-+Date:		Feb, 2007
-+KernelVersion:	v2.6.21
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Displays the docking station the laptop is docked to.
-+
-+What:		/sys/devices/platform/dock.N/flags
-+Date:		May, 2007
-+KernelVersion:	v2.6.21
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Show dock station flags, useful for checking if undock
-+		request has been made by the user (from the immediate_undock
-+		option).
-+
-+What:		/sys/devices/platform/dock.N/type
-+Date:		Aug, 2008
-+KernelVersion:	v2.6.27
-+Contact:	linux-acpi@vger.kernel.org
-+Description:
-+		(RO) Display the dock station type- dock_station, ata_bay or
-+		battery_bay.
--- 
-2.16.1
+I don't read that as a requirement for _PRS in particular; I read it
+as saying that the interrupt link devices use the normal device
+configuration method, i.e., _CRS is required and _PRS and _SRS are
+optional and needed for configurable devices but not for static ones.
+
+But this is just a drive-by comment and I'm really fine with whatever
+you decide to do.
+
+> > That leads to the mindset of treating a missing _PRS as an error when
+> > it's not.  In fact, it looks like acpi_pci_link_add() *does* treat
+> > this as an error.  If _PRS doesn't exist, it skips the _CRS
+> > evaluation.  That seems wrong.
+> 
+> I agree here.  _CRS still should be evaluated if _PRS is not there in
+> general, but in some cases the lack of _PRS *is* an error.
