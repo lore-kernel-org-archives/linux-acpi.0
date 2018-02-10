@@ -1,30 +1,18 @@
-From: Alex Hung <alex.hung@canonical.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
-Date: Fri, 9 Feb 2018 23:40:24 -0800
-Message-ID: <CAJ=jquYWcs=Brehj-S66RQ4z4LTA8JQDT2zmGc-Pdo5TQ0PwBQ@mail.gmail.com>
+Date: Sat, 10 Feb 2018 09:08:42 +0100
+Message-ID: <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
 References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com> <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49352 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750761AbeBJHk1 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sat, 10 Feb 2018 02:40:27 -0500
-Received: from mail-qt0-f200.google.com ([209.85.216.200])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <alex.hung@canonical.com>)
-        id 1ekPlq-0002mi-03
-        for linux-acpi@vger.kernel.org; Sat, 10 Feb 2018 07:40:26 +0000
-Received: by mail-qt0-f200.google.com with SMTP id i26so8602477qtc.1
-        for <linux-acpi@vger.kernel.org>; Fri, 09 Feb 2018 23:40:25 -0800 (PST)
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-pci@vger.kernel.org, Linux ACPI Mailing List <linux-acpi@vger.kernel.org>
+Cc: Alex Hung <alex.hung@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 9, 2018 at 5:05 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
 > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
 >> In recent Intel hardware the IRQs become non-configurable after BIOS
 >> initializes them in PEI phase and _PRS objects are no longer included in
@@ -40,80 +28,12 @@ On Fri, Feb 9, 2018 at 5:05 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
 > like "failed to evaluate _PRS" makes people think something is wrong
 > when in fact nothing is wrong.
 
-Bjorn,
+_PRS is required if the link object is pointed to by a _PRT entry.
 
-Thanks for the feedback. Rafael and I had discussion on the previous
-patch that removed the error message
-(https://patchwork.codeaurora.org/patch/440263/), and had a conclusion
-that using a level log of "debug" is more appropriate and less noisy
-for most of default setting. After all, there can be other failure
-types than _PRS is absent.
-
->
 > That leads to the mindset of treating a missing _PRS as an error when
 > it's not.  In fact, it looks like acpi_pci_link_add() *does* treat
 > this as an error.  If _PRS doesn't exist, it skips the _CRS
 > evaluation.  That seems wrong.
 
-Do you mean we can do something like
-
-        status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
-                                     acpi_pci_link_check_possible, link);
-        if (status == AE_NOT_FOUND) { // acceptable scenario but let's
-still output a message
-                acpi_handle_debug(link->device->handle, "_PRS is absent");
-        } else if (ACPI_FAILURE(status)) { // something indeed wrong with _PRS
-                acpi_handle_debug(link->device->handle, "failed to
-evaluate _PRS");
-                return -ENODEV;
-        }
-or
-        status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
-                                     acpi_pci_link_check_possible, link);
-        if (ACPI_FAILURE(status)) { // output messages but do not return -ENODEV
-                acpi_handle_debug(link->device->handle, "something
-wrong with _PRS, so let's not use it");  // or a more meaningful
-message
-        }
-
-and plus other probable changes and many tests as this affects other
-parts of pci_link.c
-
-Perhaps we can do this in two patches:
-1. fix the error messages first - low risk and nobody freaks out with
-the new hardware
-2. refine _PRS & _CRT because of higher risk and extensive testing required
-
-Rafael and Len
-
-Any comments and suggestions on error messages or _CRS?
-
-
->
->> Signed-off-by: Alex Hung <alex.hung@canonical.com>
->> ---
->>  drivers/acpi/pci_link.c | 2 +-
->>  1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
->> index 85ad679..9d9cf24 100644
->> --- a/drivers/acpi/pci_link.c
->> +++ b/drivers/acpi/pci_link.c
->> @@ -173,7 +173,7 @@ static int acpi_pci_link_get_possible(struct acpi_pci_link *link)
->>       status = acpi_walk_resources(link->device->handle, METHOD_NAME__PRS,
->>                                    acpi_pci_link_check_possible, link);
->>       if (ACPI_FAILURE(status)) {
->> -             ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
->> +             acpi_handle_debug(link->device->handle, "failed to evaluate _PRS");
->>               return -ENODEV;
->>       }
->>
->> --
->> 2.7.4
->>
-
-
-
--- 
-Cheers,
-Alex Hung
+I agree here.  _CRS still should be evaluated if _PRS is not there in
+general, but in some cases the lack of _PRS *is* an error.
