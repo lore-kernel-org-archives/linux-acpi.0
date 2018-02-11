@@ -1,60 +1,49 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
-Date: Sat, 10 Feb 2018 09:34:50 -0600
-Message-ID: <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com>
-References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com>
- <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] ACPI/IORT: Remove temporary iort_get_id_mapping_index()
+ ACPICA guard
+Date: Sun, 11 Feb 2018 10:06:02 +0800
+Message-ID: <da3331ec-686d-5809-65ce-9c562682b4fc@huawei.com>
+References: <20180209121510.9015-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45020 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750934AbeBJPex (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Sat, 10 Feb 2018 10:34:53 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
+Received: from szxga06-in.huawei.com ([45.249.212.32]:39278 "EHLO huawei.com"
+        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751050AbeBKCGv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Sat, 10 Feb 2018 21:06:51 -0500
+In-Reply-To: <20180209121510.9015-1-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Alex Hung <alex.hung@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Sat, Feb 10, 2018 at 09:08:42AM +0100, Rafael J. Wysocki wrote:
-> On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
-> >> In recent Intel hardware the IRQs become non-configurable after BIOS
-> >> initializes them in PEI phase and _PRS objects are no longer included in
-> >> ASL.
-> >>
-> >> This is the same as "static (non-configurable) devices do not
-> >> specify a _PRS object" in ACPI spec. As a result, error messages
-> >> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" does not need to
-> >> be in kernel messages all the time but only when debug is enabled.
-> >
-> > I agree and would even go further: _PRS is optional and I don't think
-> > there's a reason to log anything at all if it's absent.  A log message
-> > like "failed to evaluate _PRS" makes people think something is wrong
-> > when in fact nothing is wrong.
+On 2018/2/9 20:15, Lorenzo Pieralisi wrote:
+> In IORT issue C SMMUv3 IORT nodes gained an additional field (DeviceID
+> mapping index) so that the SMMUv3 can describe its MSI interrupts.
 > 
-> _PRS is required if the link object is pointed to by a _PRT entry.
-
-The closest thing I see with a quick look is ACPI 6.0, sec 6.2.13:
-
-  These objects [PCI Interrupt Link Devices] have _PRS, _CRS, _SRS,
-  and _DIS control methods to allocate the interrupt.
-
-I don't read that as a requirement for _PRS in particular; I read it
-as saying that the interrupt link devices use the normal device
-configuration method, i.e., _CRS is required and _PRS and _SRS are
-optional and needed for configurable devices but not for static ones.
-
-But this is just a drive-by comment and I'm really fine with whatever
-you decide to do.
-
-> > That leads to the mindset of treating a missing _PRS as an error when
-> > it's not.  In fact, it looks like acpi_pci_link_add() *does* treat
-> > this as an error.  If _PRS doesn't exist, it skips the _CRS
-> > evaluation.  That seems wrong.
+> Referring to it in the kernel requires ACPICA changes and in order
+> to prevent kernel<->ACPICA dependencies kernel code depending on the
+> SMMUv3 DeviceID mapping index field was guarded with an ACPICA version
+> conditional.
 > 
-> I agree here.  _CRS still should be evaluated if _PRS is not there in
-> general, but in some cases the lack of _PRS *is* an error.
+> ACPICA changes introducing DeviceID mapping index in the IORT structs
+> were integrated in the kernel with:
+> 
+> commit 4c106aa411ee ("ACPICA: iasl: Add SMMUv3 device ID mapping index
+> support")
+> 
+> so the temporary ACPICA guard has become stale and can be removed.
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks for doing this,
+
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
+
