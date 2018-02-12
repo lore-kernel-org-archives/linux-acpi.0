@@ -1,43 +1,177 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH] acpi, spcr: Make SPCR available to x86
-Date: Mon, 12 Feb 2018 10:54:41 -0500
-Message-ID: <3299be7d-66cf-1116-042b-8c68c9b401af@redhat.com>
-References: <20180118150951.28964-1-prarit@redhat.com>
- <20180212133429.GC25314@hirez.programming.kicks-ass.net>
- <1e69fffc-1c3b-8cc0-f1cb-695de5ccdcb5@redhat.com>
- <20180212145652.GM25181@hirez.programming.kicks-ass.net>
- <03e799c6-a0f3-eccf-882d-78205e9335ad@redhat.com>
- <20180212154434.GX25201@hirez.programming.kicks-ass.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: [PATCH 00/37] Shared Virtual Addressing for the IOMMU
+Date: Mon, 12 Feb 2018 18:33:15 +0000
+Message-ID: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx3-rdu2.redhat.com ([66.187.233.73]:56016 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932236AbeBLPyn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Feb 2018 10:54:43 -0500
-In-Reply-To: <20180212154434.GX25201@hirez.programming.kicks-ass.net>
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:44948 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752121AbeBLSaw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Feb 2018 13:30:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Timur Tabi <timur@codeaurora.org>, graeme.gregory@linaro.org, mark.salter@redhat.com
+To: linux-arm-kernel@lists.infradead.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, iommu@lists.linux-foundation.org, kvm@vger.kernel.org
+Cc: joro@8bytes.org, robh+dt@kernel.org, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, rjw@rjwysocki.net, lenb@kernel.org, robin.murphy@arm.com, bhelgaas@google.com, alex.williamson@redhat.com, tn@semihalf.com, liubo95@huawei.com, thunder.leizhen@huawei.com, xieyisheng1@huawei.com, xuzaibo@huawei.com, ilias.apalodimas@linaro.org, jonathan.cameron@huawei.com, shunyong.yang@hxt-semitech.com, nwatters@codeaurora.org, okaya@codeaurora.org, jcrouse@codeaurora.org, rfranz@cavium.com, dwmw2@infradead.org, jacob.jun.pan@linux.intel.com, yi.l.liu@intel.com, ashok.raj@intel.com, robdclark@gmail.com, christian.koenig@amd.com, bharatku@xilinx.com
 
+Shared Virtual Addressing (SVA) is the ability to share process address
+spaces with devices. It is called "SVM" (Shared Virtual Memory) by
+OpenCL and some IOMMU architectures, but since that abbreviation is
+already used for AMD virtualisation in Linux (Secure Virtual Machine),
+we prefer the less ambiguous "SVA".
 
+Sharing process address spaces with devices allows to rely on core kernel
+memory management for DMA, removing some complexity from application and
+device drivers. After binding to a device, applications can instruct it to
+perform DMA on buffers obtained with malloc.
 
-On 02/12/2018 10:44 AM, Peter Zijlstra wrote:
-> On Mon, Feb 12, 2018 at 10:18:06AM -0500, Prarit Bhargava wrote:
->>> But when I specify "earlyprintk=serial,ttyS0,115200" this SPCR crud will
->>> not interfere?
->>>
->>
->> I tested "earlyprintk=serial,ttyS0,115200" on a system which is known to have a
->> functional console with "console=ttyS0,1152008N1" both with and without
->> CONFIG_ACPI_SPCR_TABLE enabled.
-> 
-> OK, but my point was that SPCR will never override explicit earlyprintk
-> stuff. There is absolutely nothing worse than breaking working setups.
-> 
+The device, buses and the IOMMU must support the following features:
 
-Oh, I see.  SPCR will not override earlyprintk config.
+* Multiple address spaces per device, for example using the PCI PASID
+  (Process Address Space ID) extension. The IOMMU driver allocates a
+  PASID and the device uses it in DMA transactions.
 
-P.
+* I/O Page Faults (IOPF), for example PCI PRI (Page Request Interface) or
+  Arm SMMU stall. The core mm handles translation faults from the IOMMU.
+
+* MMU and IOMMU implement compatible page table formats.
+
+This series requires to support all three features. I tried to
+facilitate using only a subset of them but enabling it requires more
+work. Upcoming patches will enable private PASID management, which
+allows device driver to use an API similar to classical DMA,
+map()/unmap() on PASIDs. In the future device drivers should also be
+able to use SVA without IOPF by pinning all pages, or without PASID by
+sharing the single device address space with a process.
+
+Although we don't have any performance measurement at the moment, SVA
+will likely be slower than classical DMA since it relies on page faults,
+whereas classical DMA pins all pages in memory. SVA mostly aims at
+simplifying DMA management, but also improves security by isolating
+address spaces in devices.
+
+Intel and AMD IOMMU drivers already offer slightly differing public
+functions that bind process address spaces to devices. Because they don't
+go through an architecture-agnostic API, only integrated devices could
+use them so far.
+                                ---
+
+The series adds an SVA API to the IOMMU core, an example implementation
+(SMMUv3), and an example user (VFIO). Since last version, sent as RFCv2
+in October [1], I reworked the API and fixed some bugs.
+
+Patches 1-6 introduce the bind API and track address spaces. This
+version of the patchset improves documentation, adds device_init()/
+shutdown(), and per-bond device driver data. Functions available to
+device drivers are:
+
+	iommu_sva_device_init(dev, features, max_pasid)
+	iommu_sva_device_shutdown(dev)
+	iommu_register_mm_exit_handler(dev, handler)
+	iommu_unregister_mm_exit_handler(dev)
+	iommu_sva_bind_device(dev, mm, *pasid, flags, drvdata)
+	iommu_sva_unbind_device(dev, pasid)
+
+Patches 7-10 add a generic fault handler. This version reuses the
+structures introduced by Jacob Pan's vSVA series [2] (with some changes
+to match the most recent comments in that thread).
+
+Patches 11-36 add complete SVA support to the SMMUv3 driver, for both
+platform and PCI devices. If you don't care about SMMU I advise to only
+look at patches 25, 27, 29 and 35, which use the tools introduced
+earlier.
+
+In this version, context code for SMMUv3 moved to a separate module,
+behind an interface reusable by other IOMMU drivers, and easily
+extensible for private PASIDs. There are complicated interactions
+between private and shared contexts (they have a common ASID space), so
+moving it all to a separate file also helps making sense of refs and
+locks.
+
+Finally, patch 37 adds an ioctl to VFIO providing SVA to userspace
+drivers. Since last version I fixed a few bugs.
+
+You can pull the full series based onto v4.16-rc1+fault patches at:
+git://linux-arm.org/linux-jpb.git sva/v1
+
+I tested this code on a software model implementing an SMMUv3 and a
+dummy DMA devices. Any testing report would be greatly appreciated!
+
+[1] [RFCv2 PATCH 00/36] Process management for IOMMU + SVM for SMMUv3
+    https://www.spinics.net/lists/arm-kernel/msg609771.html
+[2] [PATCH v3 00/16] IOMMU driver support for SVM virtualization
+    https://www.spinics.net/lists/kernel/msg2651481.html
+
+Jean-Philippe Brucker (37):
+  iommu: Introduce Shared Virtual Addressing API
+  iommu/sva: Bind process address spaces to devices
+  iommu/sva: Manage process address spaces
+  iommu/sva: Add a mm_exit callback for device drivers
+  iommu/sva: Track mm changes with an MMU notifier
+  iommu/sva: Search mm by PASID
+  iommu: Add a page fault handler
+  iommu/fault: Handle mm faults
+  iommu/fault: Let handler return a fault response
+  iommu/fault: Allow blocking fault handlers
+  dt-bindings: document stall and PASID properties for IOMMU masters
+  iommu/of: Add stall and pasid properties to iommu_fwspec
+  arm64: mm: Pin down ASIDs for sharing mm with devices
+  iommu/arm-smmu-v3: Link domains and devices
+  iommu/io-pgtable-arm: Factor out ARM LPAE register defines
+  iommu: Add generic PASID table library
+  iommu/arm-smmu-v3: Move context descriptor code
+  iommu/arm-smmu-v3: Add support for Substream IDs
+  iommu/arm-smmu-v3: Add second level of context descriptor table
+  iommu/arm-smmu-v3: Share process page tables
+  iommu/arm-smmu-v3: Seize private ASID
+  iommu/arm-smmu-v3: Add support for VHE
+  iommu/arm-smmu-v3: Enable broadcast TLB maintenance
+  iommu/arm-smmu-v3: Add SVA feature checking
+  iommu/arm-smmu-v3: Implement mm operations
+  iommu/arm-smmu-v3: Add support for Hardware Translation Table Update
+  iommu/arm-smmu-v3: Register fault workqueue
+  iommu/arm-smmu-v3: Maintain a SID->device structure
+  iommu/arm-smmu-v3: Add stall support for platform devices
+  ACPI/IORT: Check ATS capability in root complex nodes
+  iommu/arm-smmu-v3: Add support for PCI ATS
+  iommu/arm-smmu-v3: Hook up ATC invalidation to mm ops
+  iommu/arm-smmu-v3: Disable tagged pointers
+  PCI: Make "PRG Response PASID Required" handling common
+  iommu/arm-smmu-v3: Add support for PRI
+  iommu/arm-smmu-v3: Add support for PCI PASID
+  vfio: Add support for Shared Virtual Addressing
+
+ Documentation/devicetree/bindings/iommu/iommu.txt |   24 +
+ MAINTAINERS                                       |    3 +-
+ arch/arm64/include/asm/mmu.h                      |    1 +
+ arch/arm64/include/asm/mmu_context.h              |   11 +-
+ arch/arm64/mm/context.c                           |   87 +-
+ drivers/acpi/arm64/iort.c                         |   11 +
+ drivers/iommu/Kconfig                             |   42 +
+ drivers/iommu/Makefile                            |    4 +
+ drivers/iommu/amd_iommu.c                         |   19 +-
+ drivers/iommu/arm-smmu-v3-context.c               |  728 +++++++++++
+ drivers/iommu/arm-smmu-v3.c                       | 1395 ++++++++++++++++++---
+ drivers/iommu/io-pgfault.c                        |  384 ++++++
+ drivers/iommu/io-pgtable-arm.c                    |   48 +-
+ drivers/iommu/io-pgtable-arm.h                    |   67 +
+ drivers/iommu/iommu-pasid.c                       |   54 +
+ drivers/iommu/iommu-pasid.h                       |  173 +++
+ drivers/iommu/iommu-sva.c                         |  795 ++++++++++++
+ drivers/iommu/iommu.c                             |  109 +-
+ drivers/iommu/of_iommu.c                          |   12 +
+ drivers/pci/ats.c                                 |   17 +
+ drivers/vfio/vfio_iommu_type1.c                   |  399 ++++++
+ include/linux/iommu.h                             |  217 +++-
+ include/linux/pci-ats.h                           |    8 +
+ include/uapi/linux/pci_regs.h                     |    1 +
+ include/uapi/linux/vfio.h                         |   76 ++
+ 25 files changed, 4381 insertions(+), 304 deletions(-)
+ create mode 100644 drivers/iommu/arm-smmu-v3-context.c
+ create mode 100644 drivers/iommu/io-pgfault.c
+ create mode 100644 drivers/iommu/io-pgtable-arm.h
+ create mode 100644 drivers/iommu/iommu-pasid.c
+ create mode 100644 drivers/iommu/iommu-pasid.h
+ create mode 100644 drivers/iommu/iommu-sva.c
+
+-- 
+2.15.1
+
