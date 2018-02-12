@@ -1,48 +1,88 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Mon, 12 Feb 2018 10:49:53 +0100
-Message-ID: <CAJZ5v0jXwNx7-O_icxAqHwEvki0mZDK_VijDU-hcVM7CtG46Tg@mail.gmail.com>
-References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
- <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
- <20180205141447.6e1442ac@endymion> <1517840100.22495.25.camel@linux.intel.com>
- <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
- <20180205224531.GA46524@dtor-ws> <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
- <1517924731.22495.51.camel@linux.intel.com> <CAJZ5v0gpkBkuSV8rvvgVq8Cr7cWUr0PfeuGD5tG7GU+jWsTkqg@mail.gmail.com>
- <20180211134510.GB1521@wunner.de>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v9 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
+Date: Mon, 12 Feb 2018 18:19:24 +0800
+Message-ID: <93d07d3e-8388-7814-d674-538071d84e2a@huawei.com>
+References: <0184EA26B2509940AA629AE1405DD7F201A9E8EA@DGGEMA503-MBS.china.huawei.com>
+ <5A70C5A0.1050600@arm.com> <d1b17dae-9d9c-970a-d164-a41c618d449b@huawei.com>
+ <5A7DDDEE.9050306@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:42246 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932720AbeBLJtz (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2018 04:49:55 -0500
-Received: by mail-ot0-f196.google.com with SMTP id a7so13477978otk.9
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2018 01:49:54 -0800 (PST)
-In-Reply-To: <20180211134510.GB1521@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5A7DDDEE.9050306@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: "christoffer.dall@linaro.org" <christoffer.dall@linaro.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "bp@alien8.de" <bp@alien8.de>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "corbet@lwn.net" <corbet@lwn.net>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, Alex Hung <alex.hung@canonical.com>
-Cc: Mario Limonciello <Mario.Limonciello@dell.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jean Delvare <jdelvare@suse.de>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Miller <davem@davemloft.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, karniksayli1995@gmail.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Sun, Feb 11, 2018 at 2:45 PM, Lukas Wunner <lukas@wunner.de> wrote:
-> On Tue, 2018-02-06 at 00:45 +0000, Mario.Limonciello@dell.com wrote:
->> Windows expects to use RTD3 on the NVIDIA GPU but Linux drivers
->> don't.  It leads to system hangs on the Linux side.
->
-> So I'm on a Mac and thus indifferent to this issue, but I happen
-> to know a thing or two about hybrid graphics and I'm wondering
-> what the claim above is supposed to mean.
->
-> RTD3, that's runtime D3, right?  Because nouveau does runtime suspend
-> to D3cold and has been doing so since 2013.
->
-> The commit message is extremely terse as to what exact problem
-> the commit is trying to solve, and I haven't seen anything more
-> specific in this thread other than handwaving. ("waiting on NVIDIA
-> releasing something Nouveau needs" -- what exactly?)
->
-> So please state clearly what the problem is and why solving it
-> this way is the best or only solution.
+Hi James,
+ Thanks for the mail.
 
-If that's not clear, I also would like to see a response to this
-request before making any decisions here.
+On 2018/2/10 1:44, James Morse wrote:
+[...]
+> 
+>> its ESR is 0, can not control the virtual SError's syndrom value, it does not have
+>> such registers to control that.
+> 
+> My point was its more nuanced than this: the ARM-ARM's
+> TakeVirtualSErrorException() pseudo-code lets virtual-SError have an
+> implementation defined syndrome. I've never seen Juno generate anything other
+> than '0', but it might do something different on a thursday.
+
+I checked the "aarch64/exceptions/asynch/AArch64.TakeVirtualSErrorException",
+you are right, the virtual SError's syndrome value can be 0 or implementation defined value, not always 0,
+which is decided by the "exception.syndrome<24>".
+thanks for the clarification.
+
+> 
+> The point? We can't know what a CPU without the RAS extensions puts in there.
+> 
+> Why Does this matter? When migrating a pending SError we have to know the
+> difference between 'use this 64bit value', and 'the CPU will generate it'.
+> If I make an SError pending with ESR=0 on a CPU with VSESR, I can't migrated to
+> a system that generates an impdef SError-ESR, because I can't know it will be 0.
+Yes,
+But it will have a issue,
+For the target system, before taking the SError, no one can know whether its syndrome value
+is IMPLEMENTATION DEFINED or architecturally defined.
+
+when the virtual SError is taken, the ESR_ELx.IDS will be updated, then we can know
+whether the ESR value is impdef or architecturally defined.
+
+It seems migration is only allowed only when target system and source system all support RAS extension, because we do not know
+whether its syndrome is IMPLEMENTATION DEFINED or architecturally defined.
+
+> 
+> 
+>> Does Juno not have RAS Extension? 
+> 
+> It's two types of v8.0 CPU, no RAS extensions.
+> 
+> 
+>> if yes, I think we can only inject an SError, but can not change its ESR value,
+>> because it does not have vsesr_el2.
+> 
+> I agree, this means we need to be able to tell the difference between 'pending'
+> and 'pending with this ESR'.
+> 
+> 
+>>> Just because we can't control the ESR doesn't mean injecting an SError isn't
+>>> something user-space may want to do.
+> 
+>> yes, we may need to support user-space injects an SError even through CPU does not have RAS Extension.
+>>
+>>> If we tackle migration of pending-SError first, I think that will give us the
+>>> API to create a new pending SError with/without an ESR as appropriate.
+>>
+>> sure, we should. Last week, I checked the KVM_GET/SET_VCPU_EVENTS IOCTL, it should meet our
+>> migration requirements
+> 
+> Great!
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
