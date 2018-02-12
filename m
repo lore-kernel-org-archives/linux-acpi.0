@@ -1,88 +1,114 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v9 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
-Date: Mon, 12 Feb 2018 18:19:24 +0800
-Message-ID: <93d07d3e-8388-7814-d674-538071d84e2a@huawei.com>
-References: <0184EA26B2509940AA629AE1405DD7F201A9E8EA@DGGEMA503-MBS.china.huawei.com>
- <5A70C5A0.1050600@arm.com> <d1b17dae-9d9c-970a-d164-a41c618d449b@huawei.com>
- <5A7DDDEE.9050306@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5A7DDDEE.9050306@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: "christoffer.dall@linaro.org" <christoffer.dall@linaro.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "bp@alien8.de" <bp@alien8.de>, "robert.moore@intel.com" <robert.moore@intel.com>, "lv.zheng@intel.com" <lv.zheng@intel.com>, "corbet@lwn.net" <corbet@lwn.net>, "will.deacon@arm.com" <will.deacon@arm.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH] ACPI / hotplug / PCI: Check presence of slot itself in get_slot_status()
+Date: Mon, 12 Feb 2018 13:55:23 +0300
+Message-ID: <20180212105523.15984-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga12.intel.com ([192.55.52.136]:35315 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933760AbeBLKz1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Feb 2018 05:55:27 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Len Brown <lenb@kernel.org>, Mike Lothian <mike@fireburn.co.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-Hi James,
- Thanks for the mail.
+Mike Lothian reported that plugging in a USB-C device does not work
+properly in his Dell Alienware system. This system has Intel Alpine
+Ridge Thunderbolt controller providing USB-C functionality. In these
+systems the USB controller (xHCI) is hotplugged whenever a device is
+connected to the port using ACPI based hotplug.
 
-On 2018/2/10 1:44, James Morse wrote:
-[...]
-> 
->> its ESR is 0, can not control the virtual SError's syndrom value, it does not have
->> such registers to control that.
-> 
-> My point was its more nuanced than this: the ARM-ARM's
-> TakeVirtualSErrorException() pseudo-code lets virtual-SError have an
-> implementation defined syndrome. I've never seen Juno generate anything other
-> than '0', but it might do something different on a thursday.
+The ACPI description of the root port in question looks as follows:
 
-I checked the "aarch64/exceptions/asynch/AArch64.TakeVirtualSErrorException",
-you are right, the virtual SError's syndrome value can be 0 or implementation defined value, not always 0,
-which is decided by the "exception.syndrome<24>".
-thanks for the clarification.
+Device (RP01)
+{
+    Name (_ADR, 0x001C0000)
 
-> 
-> The point? We can't know what a CPU without the RAS extensions puts in there.
-> 
-> Why Does this matter? When migrating a pending SError we have to know the
-> difference between 'use this 64bit value', and 'the CPU will generate it'.
-> If I make an SError pending with ESR=0 on a CPU with VSESR, I can't migrated to
-> a system that generates an impdef SError-ESR, because I can't know it will be 0.
-Yes,
-But it will have a issue,
-For the target system, before taking the SError, no one can know whether its syndrome value
-is IMPLEMENTATION DEFINED or architecturally defined.
+    Device (PXSX)
+    {
+        Name (_ADR, 0x02)
 
-when the virtual SError is taken, the ESR_ELx.IDS will be updated, then we can know
-whether the ESR value is impdef or architecturally defined.
+        Method (_RMV, 0, NotSerialized)
+        {
+            // ...
+        }
+    }
 
-It seems migration is only allowed only when target system and source system all support RAS extension, because we do not know
-whether its syndrome is IMPLEMENTATION DEFINED or architecturally defined.
+Here _ADR 0x02 means device 0, function 2 on the bus under root port
+(RP1) but that seems to be incorrect because device 0 is the upstream
+port of the Alpine Ridge PCIe switch and it does not have other
+functions than 0 (the bridge itself). When we get ACPI Notify() to the
+root port resulting from connecting a USB-C device, Linux tries to read
+PCI_VENDOR_ID from device 0, function 2 which of course always returns
+0xffffffff because there is no such function and we never find the
+device.
 
-> 
-> 
->> Does Juno not have RAS Extension? 
-> 
-> It's two types of v8.0 CPU, no RAS extensions.
-> 
-> 
->> if yes, I think we can only inject an SError, but can not change its ESR value,
->> because it does not have vsesr_el2.
-> 
-> I agree, this means we need to be able to tell the difference between 'pending'
-> and 'pending with this ESR'.
-> 
-> 
->>> Just because we can't control the ESR doesn't mean injecting an SError isn't
->>> something user-space may want to do.
-> 
->> yes, we may need to support user-space injects an SError even through CPU does not have RAS Extension.
->>
->>> If we tackle migration of pending-SError first, I think that will give us the
->>> API to create a new pending SError with/without an ESR as appropriate.
->>
->> sure, we should. Last week, I checked the KVM_GET/SET_VCPU_EVENTS IOCTL, it should meet our
->> migration requirements
-> 
-> Great!
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
+In Windows this works fine.
+
+Now, since we get ACPI Notify() to the root port and not to the PXSX
+device we should actually start our scan from there as well and not from
+the non-existent PXSX device so fix this by checking presence of the
+slot itself (function 0) if we fail to do that otherwise.
+
+While there use pci_bus_read_dev_vendor_id() in get_slot_status() which
+is the recommended way to read device and vendor ID of device on PCI bus.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=198557
+Reported-by: Mike Lothian <mike@fireburn.co.uk>
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c | 23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index e2198a2feeca..b45b375c0e6c 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -541,6 +541,7 @@ static unsigned int get_slot_status(struct acpiphp_slot *slot)
+ {
+ 	unsigned long long sta = 0;
+ 	struct acpiphp_func *func;
++	u32 dvid;
+ 
+ 	list_for_each_entry(func, &slot->funcs, sibling) {
+ 		if (func->flags & FUNC_HAS_STA) {
+@@ -551,19 +552,27 @@ static unsigned int get_slot_status(struct acpiphp_slot *slot)
+ 			if (ACPI_SUCCESS(status) && sta)
+ 				break;
+ 		} else {
+-			u32 dvid;
+-
+-			pci_bus_read_config_dword(slot->bus,
+-						  PCI_DEVFN(slot->device,
+-							    func->function),
+-						  PCI_VENDOR_ID, &dvid);
+-			if (dvid != 0xffffffff) {
++			if (pci_bus_read_dev_vendor_id(slot->bus,
++					PCI_DEVFN(slot->device, func->function),
++					&dvid, 0)) {
+ 				sta = ACPI_STA_ALL;
+ 				break;
+ 			}
+ 		}
+ 	}
+ 
++	if (!sta) {
++		/*
++		 * Check for the slot itself since it may be that the
++		 * ACPI slot is a device below PCIe upstream port so in
++		 * that case it may not even be reachable yet.
++		 */
++		if (pci_bus_read_dev_vendor_id(slot->bus,
++				PCI_DEVFN(slot->device, 0), &dvid, 0)) {
++			sta = ACPI_STA_ALL;
++		}
++	}
++
+ 	return (unsigned int)sta;
+ }
+ 
+-- 
+2.15.1
+
