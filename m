@@ -1,39 +1,78 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v4 1/4] ACPI / bus: Do not traverse through non-existed
- device table
-Date: Mon, 12 Feb 2018 09:34:48 +0200
-Message-ID: <20180212073448.GB27191@lahna.fi.intel.com>
-References: <20180209153836.19302-1-andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
+Date: Mon, 12 Feb 2018 09:51:04 +0100
+Message-ID: <CAJZ5v0iNq2ni9ML=_6H0i99dUm5+Noh1MQ9AO4JCiqyXU1xW3Q@mail.gmail.com>
+References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com>
+ <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
+ <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com> <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4051 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751171AbeBLHex (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Mon, 12 Feb 2018 02:34:53 -0500
-Content-Disposition: inline
-In-Reply-To: <20180209153836.19302-1-andriy.shevchenko@linux.intel.com>
+Received: from mail-ot0-f170.google.com ([74.125.82.170]:33605 "EHLO
+        mail-ot0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751334AbeBLIvF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2018 03:51:05 -0500
+In-Reply-To: <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: dmaengine <dmaengine@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Vinod Koul <vinod.koul@intel.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Alex Hung <alex.hung@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Fri, Feb 09, 2018 at 05:38:33PM +0200, Andy Shevchenko wrote:
-> When __acpi_match_device() is called it would be possible to have
-> ACPI ID table a NULL pointer. To avoid potential dereference,
-> check for this before traverse.
-> 
-> While here, remove redundant 'else'.
-> 
-> Note, this patch implies a bit of refactoring acpi_of_match_device()
-> to return pointer to OF ID when matched followed by refactoring
-> __acpi_match_device() to return either ACPI or OF ID when matches.
-> 
-> Cc: Sinan Kaya <okaya@codeaurora.org>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Vinod Koul <vinod.koul@intel.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Sat, Feb 10, 2018 at 4:34 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Sat, Feb 10, 2018 at 09:08:42AM +0100, Rafael J. Wysocki wrote:
+>> On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
+>> >> In recent Intel hardware the IRQs become non-configurable after BIOS
+>> >> initializes them in PEI phase and _PRS objects are no longer included in
+>> >> ASL.
+>> >>
+>> >> This is the same as "static (non-configurable) devices do not
+>> >> specify a _PRS object" in ACPI spec. As a result, error messages
+>> >> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" does not need to
+>> >> be in kernel messages all the time but only when debug is enabled.
+>> >
+>> > I agree and would even go further: _PRS is optional and I don't think
+>> > there's a reason to log anything at all if it's absent.  A log message
+>> > like "failed to evaluate _PRS" makes people think something is wrong
+>> > when in fact nothing is wrong.
+>>
+>> _PRS is required if the link object is pointed to by a _PRT entry.
+>
+> The closest thing I see with a quick look is ACPI 6.0, sec 6.2.13:
+>
+>   These objects [PCI Interrupt Link Devices] have _PRS, _CRS, _SRS,
+>   and _DIS control methods to allocate the interrupt.
+>
+> I don't read that as a requirement for _PRS in particular; I read it
+> as saying that the interrupt link devices use the normal device
+> configuration method, i.e., _CRS is required and _PRS and _SRS are
+> optional and needed for configurable devices but not for static ones.
 
-For the whole series,
+Well, that's slightly out of context. :-)
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+First of all, Section 6.2.13 says this: "Typically, the interrupt
+input that a given PCI interrupt is on is configurable. [...]  In this
+model, each interrupt is represented in the ACPI namespace as a PCI
+Interrupt Link Device."  Then, it says the above.
+
+Now, if _PRS is not present, the IRQ represented by the link object
+cannot be configured, so in fact the underlying assumption doesn't
+apply to it, strictly speaking.  It follows from the last paragraph in
+Section 6.2.13 that _PRT entries representing such IRQs should not
+point to interrupt link device objects (there should be 0 in their
+Source fields).
+
+Hence, if a _PRT entry points to an interrupt link device object in
+the namespace, _PRS should be present under this object or at least it
+is reasonable to expect that it will be present in there.
+
+> But this is just a drive-by comment and I'm really fine with whatever
+> you decide to do.
+
+OK
+
+So I think that (a) the message should be printed using
+acpi_handle_debug(), except that I would make it slightly more
+neutral, something like "_PRS not present or invalid", and (b) 0
+should be returned instead of -ENODEV when _PRS evaluation doesn't
+succeed.
