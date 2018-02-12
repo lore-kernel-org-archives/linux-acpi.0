@@ -1,24 +1,22 @@
-From: Mike Lothian <mike@fireburn.co.uk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: [PATCH] ACPI / hotplug / PCI: Check presence of slot itself in get_slot_status()
-Date: Mon, 12 Feb 2018 11:08:55 +0000
-Message-ID: <CAHbf0-Exsu14dBmmfYy8Tcb4R58eYJKLFPPoM9RkqxHWDkqwXQ@mail.gmail.com>
+Date: Mon, 12 Feb 2018 13:05:17 +0100
+Message-ID: <CAJZ5v0h3qstkuNbuTv29ARBWo7L5rNtBAW6GHSZwV8CNa+pYHg@mail.gmail.com>
 References: <20180212105523.15984-1-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:45055 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933581AbeBLLJQ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2018 06:09:16 -0500
-Received: by mail-qt0-f195.google.com with SMTP id f18so18257772qth.11
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2018 03:09:16 -0800 (PST)
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:39305 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753979AbeBLMFT (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2018 07:05:19 -0500
 In-Reply-To: <20180212105523.15984-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Mike Lothian <mike@fireburn.co.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
 
-On 12 February 2018 at 10:55, Mika Westerberg
+On Mon, Feb 12, 2018 at 11:55 AM, Mika Westerberg
 <mika.westerberg@linux.intel.com> wrote:
 > Mike Lothian reported that plugging in a USB-C device does not work
 > properly in his Dell Alienware system. This system has Intel Alpine
@@ -66,6 +64,9 @@ On 12 February 2018 at 10:55, Mika Westerberg
 > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 > Cc: stable@vger.kernel.org
+
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 > ---
 >  drivers/pci/hotplug/acpiphp_glue.c | 23 ++++++++++++++++-------
 >  1 file changed, 16 insertions(+), 7 deletions(-)
@@ -120,11 +121,7 @@ On 12 February 2018 at 10:55, Mika Westerberg
 > --
 > 2.15.1
 >
-
-Thanks for this, it fixes a few other issues on my machine too
-
-I'm going to do some searches around different bugzillas for the USB-C
-non-detection and the NVMe drive disappearing after suspend issues and
-report that they'll be getting a fix soon
-
-Tested-by: Mike Lothian <mike@fireburn.co.uk>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
