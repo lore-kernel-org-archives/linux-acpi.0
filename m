@@ -1,108 +1,144 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH] acpi, spcr: Make SPCR available to x86
-Date: Mon, 12 Feb 2018 10:18:06 -0500
-Message-ID: <03e799c6-a0f3-eccf-882d-78205e9335ad@redhat.com>
-References: <20180118150951.28964-1-prarit@redhat.com>
- <20180212133429.GC25314@hirez.programming.kicks-ass.net>
- <1e69fffc-1c3b-8cc0-f1cb-695de5ccdcb5@redhat.com>
- <20180212145652.GM25181@hirez.programming.kicks-ass.net>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] ACPI / hotplug / PCI: Check presence of slot itself in
+ get_slot_status()
+Date: Mon, 12 Feb 2018 09:21:22 -0600
+Message-ID: <20180212152122.GB75542@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180212105523.15984-1-mika.westerberg@linux.intel.com>
+ <CAHbf0-Exsu14dBmmfYy8Tcb4R58eYJKLFPPoM9RkqxHWDkqwXQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20180212145652.GM25181@hirez.programming.kicks-ass.net>
-Sender: linux-pm-owner@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-pm@vger.kernel.org, linux-serial@vger.kernel.org, Bhupesh Sharma <bhsharma@redhat.com>, Lv Zheng <lv.zheng@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jonathan Corbet <corbet@lwn.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Timur Tabi <timur@codeaurora.org>, graeme.gregory@linaro.org, mark.salter@redhat.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.99]:52336 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751185AbeBLPVZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Mon, 12 Feb 2018 10:21:25 -0500
+Content-Disposition: inline
+In-Reply-To: <CAHbf0-Exsu14dBmmfYy8Tcb4R58eYJKLFPPoM9RkqxHWDkqwXQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mike Lothian <mike@fireburn.co.uk>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-
-
-On 02/12/2018 09:56 AM, Peter Zijlstra wrote:
-> On Mon, Feb 12, 2018 at 08:47:57AM -0500, Prarit Bhargava wrote:
->>
->>
->> On 02/12/2018 08:34 AM, Peter Zijlstra wrote:
->>> On Thu, Jan 18, 2018 at 10:09:51AM -0500, Prarit Bhargava wrote:
->>>>  config ACPI_SPCR_TABLE
->>>> +	bool "ACPI Serial Port Console Redirection Support"
->>>> +	default y if X86
->>>> +	help
->>>> +	  Enable support for Serial Port Console Redirection (SPCR) Table.
->>>> +	  This table provides information about the configuration of the
->>>> +	  earlycon console.
->>>
->>> I just got asked this by oldconfig, which left me rather puzzled, WTF
->>> does this do?
->>
->> Odd -- I thought I had taken care of that :(  My apologies Peter.
->>
->> ACPI SPCR is used by a vendor to define the serial console for a system.  If
->> SPCR exists a user can add kernel parameter "earlycon" (no extra kernel
->> parameters) and the console will work out-of-the-box.
->>
->> The serial console configuration varies from vendor to vendor.  This takes the
->> guess-work out of defining a serial console.
+On Mon, Feb 12, 2018 at 11:08:55AM +0000, Mike Lothian wrote:
+> On 12 February 2018 at 10:55, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > Mike Lothian reported that plugging in a USB-C device does not work
+> > properly in his Dell Alienware system. This system has Intel Alpine
+> > Ridge Thunderbolt controller providing USB-C functionality. In these
+> > systems the USB controller (xHCI) is hotplugged whenever a device is
+> > connected to the port using ACPI based hotplug.
+> >
+> > The ACPI description of the root port in question looks as follows:
+> >
+> > Device (RP01)
+> > {
+> >     Name (_ADR, 0x001C0000)
+> >
+> >     Device (PXSX)
+> >     {
+> >         Name (_ADR, 0x02)
+> >
+> >         Method (_RMV, 0, NotSerialized)
+> >         {
+> >             // ...
+> >         }
+> >     }
+> >
+> > Here _ADR 0x02 means device 0, function 2 on the bus under root port
+> > (RP1) but that seems to be incorrect because device 0 is the upstream
+> > port of the Alpine Ridge PCIe switch and it does not have other
+> > functions than 0 (the bridge itself). When we get ACPI Notify() to the
+> > root port resulting from connecting a USB-C device, Linux tries to read
+> > PCI_VENDOR_ID from device 0, function 2 which of course always returns
+> > 0xffffffff because there is no such function and we never find the
+> > device.
+> >
+> > In Windows this works fine.
+> >
+> > Now, since we get ACPI Notify() to the root port and not to the PXSX
+> > device we should actually start our scan from there as well and not from
+> > the non-existent PXSX device so fix this by checking presence of the
+> > slot itself (function 0) if we fail to do that otherwise.
+> >
+> > While there use pci_bus_read_dev_vendor_id() in get_slot_status() which
+> > is the recommended way to read device and vendor ID of device on PCI bus.
+> >
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=198557
+> > Reported-by: Mike Lothian <mike@fireburn.co.uk>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: stable@vger.kernel.org
+> > ---
+> >  drivers/pci/hotplug/acpiphp_glue.c | 23 ++++++++++++++++-------
+> >  1 file changed, 16 insertions(+), 7 deletions(-)
+> >
+> > diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+> > index e2198a2feeca..b45b375c0e6c 100644
+> > --- a/drivers/pci/hotplug/acpiphp_glue.c
+> > +++ b/drivers/pci/hotplug/acpiphp_glue.c
+> > @@ -541,6 +541,7 @@ static unsigned int get_slot_status(struct acpiphp_slot *slot)
+> >  {
+> >         unsigned long long sta = 0;
+> >         struct acpiphp_func *func;
+> > +       u32 dvid;
+> >
+> >         list_for_each_entry(func, &slot->funcs, sibling) {
+> >                 if (func->flags & FUNC_HAS_STA) {
+> > @@ -551,19 +552,27 @@ static unsigned int get_slot_status(struct acpiphp_slot *slot)
+> >                         if (ACPI_SUCCESS(status) && sta)
+> >                                 break;
+> >                 } else {
+> > -                       u32 dvid;
+> > -
+> > -                       pci_bus_read_config_dword(slot->bus,
+> > -                                                 PCI_DEVFN(slot->device,
+> > -                                                           func->function),
+> > -                                                 PCI_VENDOR_ID, &dvid);
+> > -                       if (dvid != 0xffffffff) {
+> > +                       if (pci_bus_read_dev_vendor_id(slot->bus,
+> > +                                       PCI_DEVFN(slot->device, func->function),
+> > +                                       &dvid, 0)) {
+> >                                 sta = ACPI_STA_ALL;
+> >                                 break;
+> >                         }
+> >                 }
+> >         }
+> >
+> > +       if (!sta) {
+> > +               /*
+> > +                * Check for the slot itself since it may be that the
+> > +                * ACPI slot is a device below PCIe upstream port so in
+> > +                * that case it may not even be reachable yet.
+> > +                */
+> > +               if (pci_bus_read_dev_vendor_id(slot->bus,
+> > +                               PCI_DEVFN(slot->device, 0), &dvid, 0)) {
+> > +                       sta = ACPI_STA_ALL;
+> > +               }
+> > +       }
+> > +
+> >         return (unsigned int)sta;
+> >  }
+> >
+> > --
+> > 2.15.1
+> >
 > 
-> But when I specify "earlyprintk=serial,ttyS0,115200" this SPCR crud will
-> not interfere?
-> 
+> Thanks for this, it fixes a few other issues on my machine too
 
-I tested "earlyprintk=serial,ttyS0,115200" on a system which is known to have a
-functional console with "console=ttyS0,1152008N1" both with and without
-CONFIG_ACPI_SPCR_TABLE enabled.
+Thanks for testing this.  Can you elaborate on what other issues this
+fixes?  I don't know what they are, but they might be worth mentioning
+in the changelog do make this fix more discoverable.
 
-I do not see any significant difference in output.
+> I'm going to do some searches around different bugzillas for the USB-C
+> non-detection and the NVMe drive disappearing after suspend issues and
+> report that they'll be getting a fix soon
 
-diff of boot logs:
+If you find more bugzillas that are fixed by this, please include the
+URLs so we can include them in the changelog.  (I can do this; no need
+to respin the patch just for this.)
 
---- earlyprintk_no_spcr_enable  2018-02-12 10:11:00.477288423 -0500
-+++ earlyprintk_spcr_enable     2018-02-12 10:16:02.282574797 -0500
-@@ -1,5 +1,5 @@
- microcode: microcode updated early to revision 0x2000035, date = 2017-10-17
--Linux version 4.15.0+ (root@intel-purley-lr-02.khw.lab.eng.bos.redhat.com) (gcc
-version 4.8.5 20150623 (Red Hat 4.8.5-28) (GCC)) #5 SMP Mon Feb 12 10:06:08 EST 2018
-+Linux version 4.15.0+ (root@intel-purley-lr-02.khw.lab.eng.bos.redhat.com) (gcc
-version 4.8.5 20150623 (Red Hat 4.8.5-28) (GCC)) #6 SMP Mon Feb 12 10:11:42 EST 2018
- Command line: BOOT_IMAGE=/vmlinuz-4.15.0+
-root=/dev/mapper/rhel_intel--purley--lr--02-root ro crashkernel=auto
-rd.lvm.lv=rhel_intel-purley-lr-02/root rd.lvm.lv=rhel_intel-purley-lr-02/swap
-earlyprintk=serial,ttyS0,115200 LANG=en_US.UTF-8
- x86/fpu: Supporting XSAVE feature 0x001: 'x87 floating point registers'
- x86/fpu: Supporting XSAVE feature 0x002: 'SSE registers'
-@@ -205,7 +205,7 @@
- e820: last_pfn = 0x6f800 max_arch_pfn = 0x400000000
- Using GB pages for direct mapping
- Secure boot disabled
--RAMDISK: [mem 0x3a563000-0x3bba2fff]
-+RAMDISK: [mem 0x3a5da000-0x3bba2fff]
- ACPI: Early table checksum verification disabled
- ACPI: RSDP 0x000000006922A014 000024 (v02 INTEL )
- ACPI: XSDT 0x00000000690DD188 000114 (v01 INTEL  EDK2     00000000      01000013)
-@@ -519,6 +519,8 @@
- ACPI: INT_SRC_OVR (bus 0 bus_irq 9 global_irq 9 high level)
- Using ACPI (MADT) for SMP configuration information
- ACPI: HPET id: 0x8086a701 base: 0xfed00000
-+ACPI: SPCR: SPCR table version 1
-+ACPI: SPCR: console: uart,io,0x3f8,115200
- smpboot: Allowing 432 CPUs, 224 hotplug CPUs
- PM: Registered nosave memory: [mem 0x00000000-0x00000fff]
- PM: Registered nosave memory: [mem 0x000a0000-0x000fffff]
-@@ -555,10 +557,10 @@
- log_buf_len total cpu_extra contributions: 1765376 bytes
- log_buf_len min size: 524288 bytes
- log_buf_len: 4194304 bytes
--early log buf free: 477984(91%)
--Memory: 394593504K/401282564K available (10252K kernel code, 2147K rwdata,
-3664K rodata, 2504K init, 1800K bss, 6689060K reserved, 0K cma-reserved)
-+early log buf free: 477876(91%)
-+Memory: 394593976K/401282564K available (10252K kernel code, 2147K rwdata,
-3664K rodata, 2504K init, 1800K bss, 6688588K reserved, 0K cma-reserved)
- Kernel/User page tables isolation: enabled
--ftrace: allocating 35205 entries in 138 pages
-+ftrace: allocating 35206 entries in 138 pages
- Hierarchical RCU implementation.
-        RCU restricting CPUs from NR_CPUS=8192 to nr_cpu_ids=432.
-        Tasks RCU enabled.
-
-P.
+> Tested-by: Mike Lothian <mike@fireburn.co.uk>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
