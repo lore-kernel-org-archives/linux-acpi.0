@@ -1,54 +1,65 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 5/5] ACPI / hotplug / PCI: Mark stale PCI devices disconnected
-Date: Tue, 13 Feb 2018 18:51:45 +0100
-Message-ID: <CAJZ5v0hpKEY74fXaW4sbTMaXdP7FwSiR7EseA5w9CGUP-kUBdQ@mail.gmail.com>
-References: <20180213163200.8787-1-mika.westerberg@linux.intel.com> <20180213163200.8787-6-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Mario Limonciello <mario.limonciello@dell.com>
+Subject: [PATCH] ACPICA: Recognize the Windows 10 RS3 OSI string
+Date: Tue, 13 Feb 2018 12:00:19 -0600
+Message-ID: <1518544819-1173-1-git-send-email-mario.limonciello@dell.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:40577 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965290AbeBMRvq (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 12:51:46 -0500
-In-Reply-To: <20180213163200.8787-6-mika.westerberg@linux.intel.com>
+Received: from esa2.dell-outbound.iphmx.com ([68.232.149.220]:12653 "EHLO
+        esa2.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S965158AbeBMSAw (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Feb 2018 13:00:52 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario Limonciello <Mario.Limonciello@dell.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Len Brown <lenb@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mario Limonciello <mario.limonciello@dell.com>
 
-On Tue, Feb 13, 2018 at 5:32 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> Following PCIehp mark the unplugged PCI devices disconnected. This makes
-> sure PCI core code leaves the now missing hardware registers alone.
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Dell uses this string to activate Thunderbolt native mode on supported
+machines.
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
+---
+Thunderbolt Native mode requires other patches to be applied otherwise
+this patch will cause problems.
 
-> ---
->  drivers/pci/hotplug/acpiphp_glue.c | 5 +++++
->  1 file changed, 5 insertions(+)
->
-> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-> index 5efa21cdddc9..0aef35ee665a 100644
-> --- a/drivers/pci/hotplug/acpiphp_glue.c
-> +++ b/drivers/pci/hotplug/acpiphp_glue.c
-> @@ -651,6 +651,11 @@ static void trim_stale_devices(struct pci_dev *dev)
->                 alive = pci_device_is_present(dev);
->
->         if (!alive) {
-> +               pci_dev_set_disconnected(dev, NULL);
-> +               if (pci_has_subordinate(dev))
-> +                       pci_walk_bus(dev->subordinate, pci_dev_set_disconnected,
-> +                                    NULL);
-> +
->                 pci_stop_and_remove_bus_device(dev);
->                 if (adev)
->                         acpi_bus_trim(adev);
-> --
-> 2.15.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This patch should only be applied with:
+1) Acpiphp platches from
+   https://marc.info/?l=linux-acpi&m=151853954129169&w=2
+and
+
+2) Thunderbolt patches from
+   https://lkml.org/lkml/2018/2/13/685
+
+This has also been submited into ACPICA:
+https://github.com/acpica/acpica/pull/359
+
+ drivers/acpi/acpica/utosi.c | 1 +
+ include/acpi/actypes.h      | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/drivers/acpi/acpica/utosi.c b/drivers/acpi/acpica/utosi.c
+index f6b8dd2..aed77c3 100644
+--- a/drivers/acpi/acpica/utosi.c
++++ b/drivers/acpi/acpica/utosi.c
+@@ -103,6 +103,7 @@ static struct acpi_interface_info acpi_default_supported_interfaces[] = {
+ 	{"Windows 2015", NULL, 0, ACPI_OSI_WIN_10},	/* Windows 10 - Added 03/2015 */
+ 	{"Windows 2016", NULL, 0, ACPI_OSI_WIN_10_RS1},	/* Windows 10 version 1607 - Added 12/2017 */
+ 	{"Windows 2017", NULL, 0, ACPI_OSI_WIN_10_RS2},	/* Windows 10 version 1703 - Added 12/2017 */
++	{"Windows 2017.2", NULL, 0, ACPI_OSI_WIN_10_RS3}, /* Windows 10 version 1709 - Added 02/2018 */
+ 
+ 	/* Feature Group Strings */
+ 
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 31f1be7..3f829cc 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1303,6 +1303,7 @@ typedef enum {
+ #define ACPI_OSI_WIN_10                 0x0D
+ #define ACPI_OSI_WIN_10_RS1             0x0E
+ #define ACPI_OSI_WIN_10_RS2             0x0F
++#define ACPI_OSI_WIN_10_RS3             0x10
+ 
+ /* Definitions of getopt */
+ 
+-- 
+2.7.4
+
