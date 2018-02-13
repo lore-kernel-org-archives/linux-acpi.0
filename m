@@ -1,45 +1,61 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 7/7] ACPICA: Update version to 20180209
-Date: Tue, 13 Feb 2018 10:52:22 -0800
-Message-ID: <20180213185222.12441-8-erik.schmauss@intel.com>
-References: <20180213185222.12441-1-erik.schmauss@intel.com>
+Subject: [PATCH 0/7] ACPICA 20180212 release
+Date: Tue, 13 Feb 2018 10:52:15 -0800
+Message-ID: <20180213185222.12441-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19327 "EHLO mga02.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:19305 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965509AbeBMSxB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Feb 2018 13:53:01 -0500
-In-Reply-To: <20180213185222.12441-1-erik.schmauss@intel.com>
+        id S965479AbeBMSwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Feb 2018 13:52:37 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
+Cc: Erik Schmauss <erik.schmauss@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+This is the ACPICA20180212 release.
 
-ACPICA commit 6e3468837f9f32f64c7d0a6e20bf0d2579411d43
+Notable commits are changes made to integrate package handling with
+MLC and setting the TermList parsing as a default. A small commit
+was made to disable package resolution errors. This reverts the
+error reporting behavior to match the previous behavior (in 4.13)
 
-Version 20180209.
 
-Link: https://github.com/acpica/acpica/commit/6e346883
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
----
- include/acpi/acpixf.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Bob Moore (7):
+  ACPICA: Update error message, no functional change
+  ACPICA: Update for some debug output. No functional change
+  ACPICA: Revert "Fix for implicit result conversion for the ToXXXX
+    functions"
+  ACPICA: Add option to disable Package object name resolution errors
+  ACPICA: Restructure ACPI table files
+  ACPICA: Integrate package handling with module-level code
+  ACPICA: Update version to 20180209
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 84c946882589..ecd22e45ce3b 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20180105
-+#define ACPI_CA_VERSION                 0x20180209
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+ drivers/acpi/acpica/acopcode.h  |   14 +-
+ drivers/acpi/acpica/amlcode.h   |   20 +-
+ drivers/acpi/acpica/dsargs.c    |    1 +
+ drivers/acpi/acpica/dsopcode.c  |    4 +-
+ drivers/acpi/acpica/dspkginit.c |  164 ++--
+ drivers/acpi/acpica/dswexec.c   |    6 +-
+ drivers/acpi/acpica/dswload.c   |    2 +-
+ drivers/acpi/acpica/exconvrt.c  |    1 +
+ drivers/acpi/acpica/exnames.c   |    7 +-
+ drivers/acpi/acpica/exresop.c   |    1 +
+ drivers/acpi/acpica/nseval.c    |    8 +-
+ drivers/acpi/acpica/nsinit.c    |    7 +-
+ drivers/acpi/acpica/nsnames.c   |    3 +
+ drivers/acpi/acpica/nsparse.c   |   10 +-
+ drivers/acpi/acpica/psloop.c    |    4 +-
+ drivers/acpi/acpica/psparse.c   |    2 +-
+ drivers/acpi/acpica/pstree.c    |    1 +
+ drivers/acpi/acpica/utcache.c   |    7 +-
+ drivers/acpi/acpica/utdelete.c  |   20 +-
+ include/acpi/acpixf.h           |   10 +-
+ include/acpi/actbl1.h           | 1638 ++++++++++++++++----------------
+ include/acpi/actbl2.h           | 1964 +++++++++++++++++++++------------------
+ include/acpi/actbl3.h           | 1016 +++++++++-----------
+ include/acpi/platform/aclinux.h |    1 +
+ 24 files changed, 2477 insertions(+), 2434 deletions(-)
+
 -- 
 2.14.3
 
