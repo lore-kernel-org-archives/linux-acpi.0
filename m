@@ -1,363 +1,171 @@
-From: "Tian, Kevin" <kevin.tian@intel.com>
-Subject: RE: [PATCH 02/37] iommu/sva: Bind process address spaces to devices
-Date: Tue, 13 Feb 2018 07:54:29 +0000
-Message-ID: <AADFC41AFE54684AB9EE6CBC0274A5D191002897@SHSMSX101.ccr.corp.intel.com>
+From: "Tian, Kevin" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 04/37] iommu/sva: Add a mm_exit callback for device
+ drivers
+Date: Tue, 13 Feb 2018 08:11:03 +0000
+Message-ID: <AADFC41AFE54684AB9EE6CBC0274A5D1910028F9@SHSMSX101.ccr.corp.intel.com>
 References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
- <20180212183352.22730-3-jean-philippe.brucker@arm.com>
+ <20180212183352.22730-5-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <kvm-owner@vger.kernel.org>
-In-Reply-To: <20180212183352.22730-3-jean-philippe.brucker@arm.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20180212183352.22730-5-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 Content-Language: en-US
-Sender: kvm-owner@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>
-Cc: "joro@8bytes.org" <joro@8bytes.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "alex.williamson@redhat.com" <alex.williamson@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "thunder.leizhen@huawei.com" <thunder.leizhen@huawei.com>, xieyisheng1@huawei.co
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org" <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robin.murphy-5wv7dgnIgG8@public.gmane.org" <robin.murphy-5wv7dgnIgG8@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org" <tn-nYOzD4b6Jr9Wk0Htik3J/w@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <thunder.leizhen-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, xieyisheng1-hv44wF8Li91hl2p70BpVqQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 > From: Jean-Philippe Brucker
 > Sent: Tuesday, February 13, 2018 2:33 AM
 > 
-> Add bind() and unbind() operations to the IOMMU API. Device drivers can
-> use them to share process page tables with their devices. bind_group()
-> is provided for VFIO's convenience, as it needs to provide a coherent
-> interface on containers. Other device drivers will most likely want to
-> use bind_device(), which binds a single device in the group.
+> When an mm exits, devices that were bound to it must stop performing
+> DMA
+> on its PASID. Let device drivers register a callback to be notified on mm
+> exit. Add the callback to the iommu_param structure attached to struct
+> device.
 
-I saw your bind_group implementation tries to bind the address space
-for all devices within a group, which IMO has some problem. Based on PCIe
-spec, packet routing on the bus doesn't take PASID into consideration. 
-since devices within same group cannot be isolated based on requestor-ID
-i.e. traffic not guaranteed going to IOMMU, enabling SVA on multiple devices
-could cause undesired p2p.
- 
-If my understanding of PCIe spec is correct, probably we should fail 
-calling bind_group()/bind_device() when there are multiple devices within 
-the given group. If only one device then bind_group is essentially a wrapper
-to bind_device.
+what about registering the callback in sva_device_init? 
 
 > 
-> Regardless of the IOMMU group or domain a device is in, device drivers
-> should call bind() for each device that will use the PASID.
-> 
-> This patch only adds skeletons for the device driver API, most of the
-> implementation is still missing.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 > ---
->  drivers/iommu/iommu-sva.c | 105
-> ++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/iommu/iommu.c     |  63 ++++++++++++++++++++++++++++
->  include/linux/iommu.h     |  36 ++++++++++++++++
->  3 files changed, 204 insertions(+)
+>  drivers/iommu/iommu-sva.c | 54
+> +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/iommu.h     | 18 ++++++++++++++++
+>  2 files changed, 72 insertions(+)
 > 
 > diff --git a/drivers/iommu/iommu-sva.c b/drivers/iommu/iommu-sva.c
-> index cab5d723520f..593685d891bf 100644
+> index f9af9d66b3ed..90b524c99d3d 100644
 > --- a/drivers/iommu/iommu-sva.c
 > +++ b/drivers/iommu/iommu-sva.c
-> @@ -9,6 +9,9 @@
-> 
->  #include <linux/iommu.h>
-> 
-> +/* TODO: stub for the fault queue. Remove later. */
-> +#define iommu_fault_queue_flush(...)
-> +
->  /**
->   * iommu_sva_device_init() - Initialize Shared Virtual Addressing for a
-> device
->   * @dev: the device
-> @@ -78,6 +81,8 @@ int iommu_sva_device_shutdown(struct device *dev)
->  	if (!domain)
->  		return -ENODEV;
-> 
-> +	__iommu_sva_unbind_dev_all(dev);
-> +
->  	if (domain->ops->sva_device_shutdown)
->  		domain->ops->sva_device_shutdown(dev);
-> 
-> @@ -88,3 +93,103 @@ int iommu_sva_device_shutdown(struct device
+> @@ -569,3 +569,57 @@ void __iommu_sva_unbind_dev_all(struct device
 > *dev)
->  	return 0;
+>  	spin_unlock(&iommu_sva_lock);
 >  }
->  EXPORT_SYMBOL_GPL(iommu_sva_device_shutdown);
+>  EXPORT_SYMBOL_GPL(__iommu_sva_unbind_dev_all);
 > +
 > +/**
-> + * iommu_sva_bind_device() - Bind a process address space to a device
+> + * iommu_register_mm_exit_handler() - Set a callback for mm exit
 > + * @dev: the device
-> + * @mm: the mm to bind, caller must hold a reference to it
-> + * @pasid: valid address where the PASID will be stored
-> + * @flags: bond properties (IOMMU_SVA_FEAT_*)
-> + * @drvdata: private data passed to the mm exit handler
+> + * @handler: exit handler
 > + *
-> + * Create a bond between device and task, allowing the device to access
-> the mm
-> + * using the returned PASID. A subsequent bind() for the same device and
-> mm will
-> + * reuse the bond (and return the same PASID), but users will have to call
-> + * unbind() twice.
-
-what's the point of requiring unbind twice?
-
+> + * Users of the bind/unbind API should call this function to set a
+> + * device-specific callback telling them when a mm is exiting.
 > + *
-> + * Callers should have taken care of setting up SVA for this device with
-> + * iommu_sva_device_init() beforehand. They may also be notified of the
-> bond
-> + * disappearing, for example when the last task that uses the mm dies, by
-> + * registering a notifier with iommu_register_mm_exit_handler().
+> + * After the callback returns, the device must not issue any more
+> transaction
+> + * with the PASID given as argument to the handler. In addition the
+> handler gets
+> + * an opaque pointer corresponding to the drvdata passed as argument of
+> bind().
 > + *
-> + * If IOMMU_SVA_FEAT_PASID is requested, a PASID is allocated and
-> returned.
-> + * TODO: The alternative, binding the non-PASID context to an mm, isn't
-> + * supported at the moment because existing IOMMU domain types
-> initialize the
-> + * non-PASID context for iommu_map()/unmap() or bypass. This requires
-> a new
-> + * domain type.
-> + *
-> + * If IOMMU_SVA_FEAT_IOPF is not requested, the caller must pin down
-> all
-> + * mappings shared with the device. mlock() isn't sufficient, as it doesn't
-> + * prevent minor page faults (e.g. copy-on-write). TODO: !IOPF isn't
-> allowed at
-> + * the moment.
-> + *
-> + * On success, 0 is returned and @pasid contains a valid ID. Otherwise, an
-> error
-> + * is returned.
+> + * The handler itself should return 0 on success, and an appropriate error
+> code
+> + * otherwise.
 > + */
-> +int iommu_sva_bind_device(struct device *dev, struct mm_struct *mm,
-> int *pasid,
-> +			  unsigned long flags, void *drvdata)
+> +int iommu_register_mm_exit_handler(struct device *dev,
+> +				   iommu_mm_exit_handler_t handler)
 > +{
-> +	struct iommu_domain *domain;
 > +	struct iommu_param *dev_param = dev->iommu_param;
 > +
-> +	domain = iommu_get_domain_for_dev(dev);
-> +	if (!domain)
-> +		return -EINVAL;
-> +
-> +	if (!pasid)
-> +		return -EINVAL;
-> +
-> +	if (!dev_param || (flags & ~dev_param->sva_features))
-> +		return -EINVAL;
-> +
-> +	if (flags != (IOMMU_SVA_FEAT_PASID | IOMMU_SVA_FEAT_IOPF))
-> +		return -EINVAL;
-> +
-> +	return -ENOSYS; /* TODO */
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_bind_device);
-> +
-> +/**
-> + * iommu_sva_unbind_device() - Remove a bond created with
-> iommu_sva_bind_device
-> + * @dev: the device
-> + * @pasid: the pasid returned by bind()
-> + *
-> + * Remove bond between device and address space identified by @pasid.
-> Users
-> + * should not call unbind() if the corresponding mm exited (as the PASID
-> might
-> + * have been reallocated to another process.)
-> + *
-> + * The device must not be issuing any more transaction for this PASID. All
-> + * outstanding page requests for this PASID must have been flushed to the
-> IOMMU.
-> + *
-> + * Returns 0 on success, or an error value
-> + */
-> +int iommu_sva_unbind_device(struct device *dev, int pasid)
-> +{
-> +	struct iommu_domain *domain;
-> +
-> +	domain = iommu_get_domain_for_dev(dev);
-> +	if (WARN_ON(!domain))
+> +	if (!dev_param)
 > +		return -EINVAL;
 > +
 > +	/*
-> +	 * Caller stopped the device from issuing PASIDs, now make sure
-> they are
-> +	 * out of the fault queue.
+> +	 * FIXME: racy. Same as iommu_sva_device_init, but here we'll
+> need a
+> +	 * spinlock to call the mm_exit param from atomic context.
 > +	 */
-> +	iommu_fault_queue_flush(dev);
+> +	if (dev_param->mm_exit)
+> +		return -EBUSY;
 > +
-> +	return -ENOSYS; /* TODO */
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_unbind_device);
-> +
-> +/**
-> + * __iommu_sva_unbind_dev_all() - Detach all address spaces from this
-> device
-> + *
-> + * When detaching @device from a domain, IOMMU drivers should use
-> this helper.
-> + */
-> +void __iommu_sva_unbind_dev_all(struct device *dev)
-> +{
-> +	iommu_fault_queue_flush(dev);
-> +
-> +	/* TODO */
-> +}
-> +EXPORT_SYMBOL_GPL(__iommu_sva_unbind_dev_all);
-> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
-> index d4a4edaf2d8c..f977851c522b 100644
-> --- a/drivers/iommu/iommu.c
-> +++ b/drivers/iommu/iommu.c
-> @@ -1535,6 +1535,69 @@ void iommu_detach_group(struct
-> iommu_domain *domain, struct iommu_group *group)
->  }
->  EXPORT_SYMBOL_GPL(iommu_detach_group);
-> 
-> +/*
-> + * iommu_sva_bind_group() - Share address space with all devices in the
-> group.
-> + * @group: the iommu group
-> + * @mm: the mm to bind
-> + * @pasid: valid address where the PASID will be stored
-> + * @flags: bond properties (IOMMU_PROCESS_BIND_*)
-> + * @drvdata: private data passed to the mm exit handler
-> + *
-> + * Create a bond between group and process, allowing devices in the
-> group to
-> + * access the process address space using @pasid.
-> + *
-> + * Refer to iommu_sva_bind_device() for more details.
-> + *
-> + * On success, 0 is returned and @pasid contains a valid ID. Otherwise, an
-> error
-> + * is returned.
-> + */
-> +int iommu_sva_bind_group(struct iommu_group *group, struct
-> mm_struct *mm,
-> +			 int *pasid, unsigned long flags, void *drvdata)
-> +{
-> +	struct group_device *device;
-> +	int ret = -ENODEV;
-> +
-> +	if (!group->domain)
-> +		return -EINVAL;
-> +
-> +	mutex_lock(&group->mutex);
-> +	list_for_each_entry(device, &group->devices, list) {
-> +		ret = iommu_sva_bind_device(device->dev, mm, pasid,
-> flags,
-> +					    drvdata);
-> +		if (ret)
-> +			break;
-> +	}
-> +
-> +	if (ret) {
-> +		list_for_each_entry_continue_reverse(device, &group-
-> >devices, list)
-> +			iommu_sva_unbind_device(device->dev, *pasid);
-> +	}
-> +	mutex_unlock(&group->mutex);
-> +
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_bind_group);
-> +
-> +/**
-> + * iommu_sva_unbind_group() - Remove a bond created with
-> iommu_sva_bind_group()
-> + * @group: the group
-> + * @pasid: the pasid returned by bind
-> + *
-> + * Refer to iommu_sva_unbind_device() for more details.
-> + */
-> +int iommu_sva_unbind_group(struct iommu_group *group, int pasid)
-> +{
-> +	struct group_device *device;
-> +
-> +	mutex_lock(&group->mutex);
-> +	list_for_each_entry(device, &group->devices, list)
-> +		iommu_sva_unbind_device(device->dev, pasid);
-> +	mutex_unlock(&group->mutex);
+> +	get_device(dev);
+> +	dev_param->mm_exit = handler;
 > +
 > +	return 0;
 > +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_unbind_group);
+> +EXPORT_SYMBOL_GPL(iommu_register_mm_exit_handler);
 > +
->  phys_addr_t iommu_iova_to_phys(struct iommu_domain *domain,
-> dma_addr_t iova)
->  {
->  	if (unlikely(domain->ops->iova_to_phys == NULL))
+> +/**
+> + * iommu_unregister_mm_exit_handler() - Remove mm exit callback
+> + */
+> +int iommu_unregister_mm_exit_handler(struct device *dev)
+> +{
+> +	struct iommu_param *dev_param = dev->iommu_param;
+> +
+> +	if (!dev_param || !dev_param->mm_exit)
+> +		return -EINVAL;
+> +
+> +	dev_param->mm_exit = NULL;
+> +	put_device(dev);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(iommu_unregister_mm_exit_handler);
 > diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index e9e09eecdece..1fb10d64b9e5 100644
+> index 09d85f44142a..1b1a16892ac1 100644
 > --- a/include/linux/iommu.h
 > +++ b/include/linux/iommu.h
-> @@ -576,6 +576,10 @@ int iommu_fwspec_init(struct device *dev, struct
-> fwnode_handle *iommu_fwnode,
->  void iommu_fwspec_free(struct device *dev);
->  int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
->  const struct iommu_ops *iommu_ops_from_fwnode(struct
-> fwnode_handle *fwnode);
-> +extern int iommu_sva_bind_group(struct iommu_group *group,
-> +				struct mm_struct *mm, int *pasid,
-> +				unsigned long flags, void *drvdata);
-> +extern int iommu_sva_unbind_group(struct iommu_group *group, int
-> pasid);
+> @@ -65,6 +65,8 @@ typedef int (*iommu_dev_fault_handler_t)(struct
+> iommu_fault_event *, void *);
+>  /* Request I/O page fault support */
+>  #define IOMMU_SVA_FEAT_IOPF		(1 << 1)
 > 
->  #else /* CONFIG_IOMMU_API */
-> 
-> @@ -890,12 +894,28 @@ const struct iommu_ops
-> *iommu_ops_from_fwnode(struct fwnode_handle *fwnode)
->  	return NULL;
->  }
-> 
-> +static inline int iommu_sva_bind_group(struct iommu_group *group,
-> +				       struct mm_struct *mm, int *pasid,
-> +				       unsigned long flags, void *drvdata)
-> +{
-> +	return -ENODEV;
-> +}
+> +typedef int (*iommu_mm_exit_handler_t)(struct device *dev, int pasid,
+> void *);
 > +
-> +static inline int iommu_sva_unbind_group(struct iommu_group *group,
-> int pasid)
-> +{
-> +	return -ENODEV;
-> +}
-> +
->  #endif /* CONFIG_IOMMU_API */
+>  struct iommu_domain_geometry {
+>  	dma_addr_t aperture_start; /* First address that can be mapped
+> */
+>  	dma_addr_t aperture_end;   /* Last address that can be mapped
+> */
+> @@ -424,6 +426,7 @@ struct iommu_param {
+>  	unsigned int min_pasid;
+>  	unsigned int max_pasid;
+>  	struct list_head mm_list;
+> +	iommu_mm_exit_handler_t mm_exit;
+>  };
 > 
->  #ifdef CONFIG_IOMMU_SVA
->  extern int iommu_sva_device_init(struct device *dev, unsigned long
-> features,
->  				 unsigned int max_pasid);
->  extern int iommu_sva_device_shutdown(struct device *dev);
-> +extern int iommu_sva_bind_device(struct device *dev, struct mm_struct
-> *mm,
-> +				int *pasid, unsigned long flags, void
+>  int  iommu_device_register(struct iommu_device *iommu);
+> @@ -941,6 +944,10 @@ extern int iommu_sva_bind_device(struct device
+> *dev, struct mm_struct *mm,
+>  				int *pasid, unsigned long flags, void
 > *drvdata);
-> +extern int iommu_sva_unbind_device(struct device *dev, int pasid);
-> +extern void __iommu_sva_unbind_dev_all(struct device *dev);
+>  extern int iommu_sva_unbind_device(struct device *dev, int pasid);
+>  extern void __iommu_sva_unbind_dev_all(struct device *dev);
+> +extern int iommu_register_mm_exit_handler(struct device *dev,
+> +					  iommu_mm_exit_handler_t
+> handler);
+> +extern int iommu_unregister_mm_exit_handler(struct device *dev);
+> +
 >  #else /* CONFIG_IOMMU_SVA */
 >  static inline int iommu_sva_device_init(struct device *dev,
 >  					unsigned long features,
-> @@ -908,6 +928,22 @@ static inline int
-> iommu_sva_device_shutdown(struct device *dev)
+> @@ -969,6 +976,17 @@ static inline int iommu_sva_unbind_device(struct
+> device *dev, int pasid)
+>  static inline void __iommu_sva_unbind_dev_all(struct device *dev)
 >  {
->  	return -ENODEV;
 >  }
 > +
-> +static inline int iommu_sva_bind_device(struct device *dev,
-> +					struct mm_struct *mm, int *pasid,
-> +					unsigned long flags, void *drvdata)
+> +static inline int iommu_register_mm_exit_handler(struct device *dev,
+> +						 iommu_mm_exit_handler_t
+> handler)
 > +{
 > +	return -ENODEV;
 > +}
 > +
-> +static inline int iommu_sva_unbind_device(struct device *dev, int pasid)
+> +static inline int iommu_unregister_mm_exit_handler(struct device *dev)
 > +{
 > +	return -ENODEV;
-> +}
-> +
-> +static inline void __iommu_sva_unbind_dev_all(struct device *dev)
-> +{
 > +}
 >  #endif /* CONFIG_IOMMU_SVA */
 > 
 >  #endif /* __LINUX_IOMMU_H */
 > --
 > 2.15.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
