@@ -1,77 +1,191 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Tue, 13 Feb 2018 10:55:12 +0100
-Message-ID: <20180213095512.GB8239@wunner.de>
-References: <20180205224531.GA46524@dtor-ws>
- <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
- <1517924731.22495.51.camel@linux.intel.com>
- <CAJZ5v0gpkBkuSV8rvvgVq8Cr7cWUr0PfeuGD5tG7GU+jWsTkqg@mail.gmail.com>
- <20180211134510.GB1521@wunner.de>
- <CAJZ5v0jXwNx7-O_icxAqHwEvki0mZDK_VijDU-hcVM7CtG46Tg@mail.gmail.com>
- <9ae8628a5a9649afaadfa4dda5d896af@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0hUz-+0+_Buobx1Y9d8YVzObsJ4r=Zm61wdm-F7ffhBKg@mail.gmail.com>
- <81dad01f354e4dcab852d145ce5d9fb3@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0jCRXs9wCBb-kE-0HVJPCSMRZFgY8hF5Mn+kFLYhdp4=A@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
+ with a "rewritten" version
+Date: Tue, 13 Feb 2018 12:25:55 +0100
+Message-ID: <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
+References: <20180108094416.4789-1-hdegoede@redhat.com>
+ <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bmailout2.hostsharing.net ([83.223.90.240]:47547 "EHLO
-        bmailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934500AbeBMJzO (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 04:55:14 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jCRXs9wCBb-kE-0HVJPCSMRZFgY8hF5Mn+kFLYhdp4=A@mail.gmail.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:50920 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934102AbeBMLZ7 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 06:25:59 -0500
+Received: by mail-wm0-f65.google.com with SMTP id f71so15344603wmf.0
+        for <linux-acpi@vger.kernel.org>; Tue, 13 Feb 2018 03:25:58 -0800 (PST)
+In-Reply-To: <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Mario Limonciello <Mario.Limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jean Delvare <jdelvare@suse.de>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Miller <davem@davemloft.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, sayli karnik <karniksayli1995@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Peter Wu <peter@lekensteyn.nl>
+To: Brian Norris <briannorris@chromium.org>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, matadeen@qti.qualcomm.com, linux-kernel@vger.kernel.org
 
-On Tue, Feb 13, 2018 at 10:18:01AM +0100, Rafael J. Wysocki wrote:
-> On Tue, Feb 13, 2018 at 12:14 AM,  <Mario.Limonciello@dell.com> wrote:
-> >> >> request before making any decisions here.
-> >> >
-> >> > It's a lack of proper D3hot support and GC6 support in Nouveau.
-> >>
-> >> Thanks, but that is still a bit enigmatic.
-> >>
-> >> What exactly do you mean by "proper D3hot support", in particular?
-> >>
-> >
-> > I don't believe Nouveau or NVIDIA has support for D3hot at all from
-> > what I've heard.  I've not dug further into this.
+Hi,
+
+On 13-02-18 03:24, Brian Norris wrote:
+> Hi,
 > 
-> But Lukas is saying that Nouveau actually supports runtime PM, so I'm
-> not sure what exactly the problem is with respect to this particular
-> driver.
+> On Mon, Jan 08, 2018 at 10:44:16AM +0100, Hans de Goede wrote:
+>> Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
+>> removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
+>> instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
+>>
+>> This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
+>> has several issues (see the original commit message). An added advantage
+>> of moving over to the USB-core reset-resume handling is that it also
+>> disables autosuspend for these devices, which is similarly broken on these.
+> 
+> Wait, is autosuspend actually broken for all QCA Rome chipsets? I don't
+> think so -- I'm using one now.
 
-Just providing some background info in the hope that it might be useful:
+And have you manually enabled USB autosuspend for it, or are you
+running something which might have done so, e.g. powertop --auto-tune ?
 
-nouveau runtime suspends to D3cold on Nvidia Optimus hybrid graphics
-laptops, not on any other machines (e.g. desktop).  The code is in
-drivers/gpu/drm/nouveau/nouveau_acpi.c.  It detects presence of Optimus
-by looking for a specific _DSM.
+Because if you did not do that then you're already not using autosuspend
+for your QCA devices and this patch will change nothing.
 
-On older machines, power was cut using that _DSM.  Newer machines instead
-specify _PR3 resources for the root port above the GPU, so power is cut
-once the GPU and the root port above it have runtime suspended.  nouveau
-detects and supports both mechanisms, as well as the ancient "HybridPower"
-machines that preceded Optimus.  Adding Peter Wu to cc, who is the most
-knowledgable person I know for this.
+> Thus, this is a poor solution, which
+> negatively affects my systems. However, I see that this patch was
+> applied regardless...
 
-Mario mentions GC6, doing a bit of googling reveals this has to do with
-power sequencing:
-https://www.manualslib.com/manual/1273261/Clevo-N850hk1.html?page=67#manual
+Note that there already is a quirk to handle broken suspend/resume
+behavior on ALL QCA devices in older kernels. Also note that the
+patches series which this commit builds on top of was already
+setting USB_QUIRK_RESET_RESUME for some devices in
+usb/core/quirks.c.
 
-It looks like a number of GPIO pins need to be toggled in just the right
-order with just the right timing for the GPU to suspend and resume
-properly.  Now, normally this should all be handled by the firmware,
-but apparently there's some OS cooperation necessary but people may
-not be at liberty to talk about it or haven't been told everything
-by Nvidia.
+All my commit does is instead of duplicating all the QCA USB-ids in
+usb/core/quirks.c, move the setting of USB_QUIRK_RESET_RESUME
+to btusb.c so that we don't need to duplicate the USB-id tables.
 
-AFAIK the proprietary Nvidia driver doesn't support Optimus at all.
-That might be the real motivation for the patch.
+The result of the combination of these patches is that the custom
+DIY reset on resume handling btusb.c was doing is now replaced
+by setting the standard USB-core USB_QUIRK_RESET_RESUME quirk.
 
-Thanks,
+As a (desirable) side effect this also disables USB autosuspend
+for QCA devices since the USB-core does not allow USB autosuspend
+on devices with the USB_QUIRK_RESET_RESUME quirk. Testing has shown
+this to be necessary on at least some QCA devices and given that
+these devices tend to loose there firmware on a suspend, it seems
+sensible to not allow autosuspend on them.
 
-Lukas
+ > What justifications was found for this anyway? AIUI, this is a platform
+ > bug, and not entirely a chipset bug.
+
+No this is believed to be a chipset issue, hence also the quirk in
+older kernels to always reset these devices after a normal suspend/resume.
+
+Regards,
+
+Hans
+
+
+
+
+> 
+> Brian
+> 
+>> But there are 2 issues with this approach:
+>> 1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
+>>     devices.
+>> 2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
+>>     added to usb/core/quirks.c and if we fix the Realtek case the same way
+>>     we need to add an additional 14 entries. So in essence we need to
+>>     duplicate a large part of the usb_device_id table in btusb.c in
+>>     usb/core/quirks.c and manually keep them in sync.
+>>
+>> This commit instead restores setting a reset-resume quirk for QCA devices
+>> in the btusb.c code, avoiding the duplicate usb_device_id table problem.
+>>
+>> This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
+>> code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
+>> usb_device.
+>>
+>> This commit also moves the BTUSB_REALTEK case over to directly setting the
+>> USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
+>> BTUSB_RESET_RESUME code.
+>>
+>> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
+>> Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
+>> Cc: stable@vger.kernel.org
+>> Cc: Leif Liddy <leif.linux@gmail.com>
+>> Cc: Matthias Kaehlcke <mka@chromium.org>
+>> Cc: Brian Norris <briannorris@chromium.org>
+>> Cc: Daniel Drake <drake@endlessm.com>
+>> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>> Note:
+>> 1) Once this has been merged, the 2 commits adding QCA device entries to
+>> drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
+>> 2) I don't have any of the affected devices, please test
+>> ---
+>>   drivers/bluetooth/btusb.c | 22 ++++++++++------------
+>>   1 file changed, 10 insertions(+), 12 deletions(-)
+>>
+>> diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
+>> index 4764100a5888..c4689f03220f 100644
+>> --- a/drivers/bluetooth/btusb.c
+>> +++ b/drivers/bluetooth/btusb.c
+>> @@ -23,6 +23,7 @@
+>>   
+>>   #include <linux/module.h>
+>>   #include <linux/usb.h>
+>> +#include <linux/usb/quirks.h>
+>>   #include <linux/firmware.h>
+>>   #include <linux/of_device.h>
+>>   #include <linux/of_irq.h>
+>> @@ -388,9 +389,8 @@ static const struct usb_device_id blacklist_table[] = {
+>>   #define BTUSB_FIRMWARE_LOADED	7
+>>   #define BTUSB_FIRMWARE_FAILED	8
+>>   #define BTUSB_BOOTING		9
+>> -#define BTUSB_RESET_RESUME	10
+>> -#define BTUSB_DIAG_RUNNING	11
+>> -#define BTUSB_OOB_WAKE_ENABLED	12
+>> +#define BTUSB_DIAG_RUNNING	10
+>> +#define BTUSB_OOB_WAKE_ENABLED	11
+>>   
+>>   struct btusb_data {
+>>   	struct hci_dev       *hdev;
+>> @@ -3118,6 +3118,12 @@ static int btusb_probe(struct usb_interface *intf,
+>>   	if (id->driver_info & BTUSB_QCA_ROME) {
+>>   		data->setup_on_usb = btusb_setup_qca;
+>>   		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
+>> +
+>> +		/* QCA Rome devices lose their updated firmware over suspend,
+>> +		 * but the USB hub doesn't notice any status change.
+>> +		 * explicitly request a device reset on resume.
+>> +		 */
+>> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
+>>   	}
+>>   
+>>   #ifdef CONFIG_BT_HCIBTUSB_RTL
+>> @@ -3128,7 +3134,7 @@ static int btusb_probe(struct usb_interface *intf,
+>>   		 * but the USB hub doesn't notice any status change.
+>>   		 * Explicitly request a device reset on resume.
+>>   		 */
+>> -		set_bit(BTUSB_RESET_RESUME, &data->flags);
+>> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
+>>   	}
+>>   #endif
+>>   
+>> @@ -3297,14 +3303,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
+>>   		enable_irq(data->oob_wake_irq);
+>>   	}
+>>   
+>> -	/* Optionally request a device reset on resume, but only when
+>> -	 * wakeups are disabled. If wakeups are enabled we assume the
+>> -	 * device will stay powered up throughout suspend.
+>> -	 */
+>> -	if (test_bit(BTUSB_RESET_RESUME, &data->flags) &&
+>> -	    !device_may_wakeup(&data->udev->dev))
+>> -		data->udev->reset_resume = 1;
+>> -
+>>   	return 0;
+>>   }
+>>   
+>> -- 
+>> 2.14.3
+>>
