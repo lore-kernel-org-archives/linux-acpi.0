@@ -1,141 +1,99 @@
-From: Brian Norris <briannorris@chromium.org>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Mon, 12 Feb 2018 18:24:56 -0800
-Message-ID: <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
-References: <20180108094416.4789-1-hdegoede@redhat.com>
+From: Alex Hung <alex.hung@canonical.com>
+Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
+Date: Mon, 12 Feb 2018 20:03:02 -0800
+Message-ID: <CAJ=jquZtaLqZZQaAitPYLK4dGVXxw3U92NJB5KuP3oU-LFDudQ@mail.gmail.com>
+References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com>
+ <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
+ <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
+ <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com> <CAJZ5v0iNq2ni9ML=_6H0i99dUm5+Noh1MQ9AO4JCiqyXU1xW3Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180108094416.4789-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, matadeen@qti.qualcomm.com, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:36466 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933033AbeBMEDF (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Feb 2018 23:03:05 -0500
+Received: from mail-qt0-f197.google.com ([209.85.216.197])
+        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
+        (Exim 4.76)
+        (envelope-from <alex.hung@canonical.com>)
+        id 1elRo8-0001fa-FI
+        for linux-acpi@vger.kernel.org; Tue, 13 Feb 2018 04:03:04 +0000
+Received: by mail-qt0-f197.google.com with SMTP id f21so1497291qtm.11
+        for <linux-acpi@vger.kernel.org>; Mon, 12 Feb 2018 20:03:04 -0800 (PST)
+In-Reply-To: <CAJZ5v0iNq2ni9ML=_6H0i99dUm5+Noh1MQ9AO4JCiqyXU1xW3Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi,
+On Mon, Feb 12, 2018 at 12:51 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Sat, Feb 10, 2018 at 4:34 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> On Sat, Feb 10, 2018 at 09:08:42AM +0100, Rafael J. Wysocki wrote:
+>>> On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>>> > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
+>>> >> In recent Intel hardware the IRQs become non-configurable after BIOS
+>>> >> initializes them in PEI phase and _PRS objects are no longer included in
+>>> >> ASL.
+>>> >>
+>>> >> This is the same as "static (non-configurable) devices do not
+>>> >> specify a _PRS object" in ACPI spec. As a result, error messages
+>>> >> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" does not need to
+>>> >> be in kernel messages all the time but only when debug is enabled.
+>>> >
+>>> > I agree and would even go further: _PRS is optional and I don't think
+>>> > there's a reason to log anything at all if it's absent.  A log message
+>>> > like "failed to evaluate _PRS" makes people think something is wrong
+>>> > when in fact nothing is wrong.
+>>>
+>>> _PRS is required if the link object is pointed to by a _PRT entry.
+>>
+>> The closest thing I see with a quick look is ACPI 6.0, sec 6.2.13:
+>>
+>>   These objects [PCI Interrupt Link Devices] have _PRS, _CRS, _SRS,
+>>   and _DIS control methods to allocate the interrupt.
+>>
+>> I don't read that as a requirement for _PRS in particular; I read it
+>> as saying that the interrupt link devices use the normal device
+>> configuration method, i.e., _CRS is required and _PRS and _SRS are
+>> optional and needed for configurable devices but not for static ones.
+>
+> Well, that's slightly out of context. :-)
+>
+> First of all, Section 6.2.13 says this: "Typically, the interrupt
+> input that a given PCI interrupt is on is configurable. [...]  In this
+> model, each interrupt is represented in the ACPI namespace as a PCI
+> Interrupt Link Device."  Then, it says the above.
+>
+> Now, if _PRS is not present, the IRQ represented by the link object
+> cannot be configured, so in fact the underlying assumption doesn't
+> apply to it, strictly speaking.  It follows from the last paragraph in
+> Section 6.2.13 that _PRT entries representing such IRQs should not
+> point to interrupt link device objects (there should be 0 in their
+> Source fields).
+>
+> Hence, if a _PRT entry points to an interrupt link device object in
+> the namespace, _PRS should be present under this object or at least it
+> is reasonable to expect that it will be present in there.
+>
+>> But this is just a drive-by comment and I'm really fine with whatever
+>> you decide to do.
+>
+> OK
+>
+> So I think that (a) the message should be printed using
+> acpi_handle_debug(), except that I would make it slightly more
+> neutral, something like "_PRS not present or invalid", and (b) 0
+> should be returned instead of -ENODEV when _PRS evaluation doesn't
+> succeed.
 
-On Mon, Jan 08, 2018 at 10:44:16AM +0100, Hans de Goede wrote:
-> Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
-> removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
-> instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
-> 
-> This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
-> has several issues (see the original commit message). An added advantage
-> of moving over to the USB-core reset-resume handling is that it also
-> disables autosuspend for these devices, which is similarly broken on these.
+Looks like we will do the following.
 
-Wait, is autosuspend actually broken for all QCA Rome chipsets? I don't
-think so -- I'm using one now. Thus, this is a poor solution, which
-negatively affects my systems. However, I see that this patch was
-applied regardless...
+        if (ACPI_FAILURE(status)) {
+-               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
+-                return -ENODEV;
++               acpi_handle_debug(link->device->handle, "_PRS not
+present or invalid");
++                return 0;
 
-What justifications was found for this anyway? AIUI, this is a platform
-bug, and not entirely a chipset bug. Why should all users of this
-chipset be penalized?
-
-Brian
-
-> But there are 2 issues with this approach:
-> 1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
->    devices.
-> 2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
->    added to usb/core/quirks.c and if we fix the Realtek case the same way
->    we need to add an additional 14 entries. So in essence we need to
->    duplicate a large part of the usb_device_id table in btusb.c in
->    usb/core/quirks.c and manually keep them in sync.
-> 
-> This commit instead restores setting a reset-resume quirk for QCA devices
-> in the btusb.c code, avoiding the duplicate usb_device_id table problem.
-> 
-> This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
-> code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
-> usb_device.
-> 
-> This commit also moves the BTUSB_REALTEK case over to directly setting the
-> USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
-> BTUSB_RESET_RESUME code.
-> 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
-> Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
-> Cc: stable@vger.kernel.org
-> Cc: Leif Liddy <leif.linux@gmail.com>
-> Cc: Matthias Kaehlcke <mka@chromium.org>
-> Cc: Brian Norris <briannorris@chromium.org>
-> Cc: Daniel Drake <drake@endlessm.com>
-> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Note:
-> 1) Once this has been merged, the 2 commits adding QCA device entries to
-> drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
-> 2) I don't have any of the affected devices, please test
-> ---
->  drivers/bluetooth/btusb.c | 22 ++++++++++------------
->  1 file changed, 10 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-> index 4764100a5888..c4689f03220f 100644
-> --- a/drivers/bluetooth/btusb.c
-> +++ b/drivers/bluetooth/btusb.c
-> @@ -23,6 +23,7 @@
->  
->  #include <linux/module.h>
->  #include <linux/usb.h>
-> +#include <linux/usb/quirks.h>
->  #include <linux/firmware.h>
->  #include <linux/of_device.h>
->  #include <linux/of_irq.h>
-> @@ -388,9 +389,8 @@ static const struct usb_device_id blacklist_table[] = {
->  #define BTUSB_FIRMWARE_LOADED	7
->  #define BTUSB_FIRMWARE_FAILED	8
->  #define BTUSB_BOOTING		9
-> -#define BTUSB_RESET_RESUME	10
-> -#define BTUSB_DIAG_RUNNING	11
-> -#define BTUSB_OOB_WAKE_ENABLED	12
-> +#define BTUSB_DIAG_RUNNING	10
-> +#define BTUSB_OOB_WAKE_ENABLED	11
->  
->  struct btusb_data {
->  	struct hci_dev       *hdev;
-> @@ -3118,6 +3118,12 @@ static int btusb_probe(struct usb_interface *intf,
->  	if (id->driver_info & BTUSB_QCA_ROME) {
->  		data->setup_on_usb = btusb_setup_qca;
->  		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
-> +
-> +		/* QCA Rome devices lose their updated firmware over suspend,
-> +		 * but the USB hub doesn't notice any status change.
-> +		 * explicitly request a device reset on resume.
-> +		 */
-> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
->  	}
->  
->  #ifdef CONFIG_BT_HCIBTUSB_RTL
-> @@ -3128,7 +3134,7 @@ static int btusb_probe(struct usb_interface *intf,
->  		 * but the USB hub doesn't notice any status change.
->  		 * Explicitly request a device reset on resume.
->  		 */
-> -		set_bit(BTUSB_RESET_RESUME, &data->flags);
-> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
->  	}
->  #endif
->  
-> @@ -3297,14 +3303,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
->  		enable_irq(data->oob_wake_irq);
->  	}
->  
-> -	/* Optionally request a device reset on resume, but only when
-> -	 * wakeups are disabled. If wakeups are enabled we assume the
-> -	 * device will stay powered up throughout suspend.
-> -	 */
-> -	if (test_bit(BTUSB_RESET_RESUME, &data->flags) &&
-> -	    !device_may_wakeup(&data->udev->dev))
-> -		data->udev->reset_resume = 1;
-> -
->  	return 0;
->  }
->  
-> -- 
-> 2.14.3
-> 
+I will revise the patch and send it if this is all agreed.
