@@ -1,86 +1,144 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/5] PCI: Make sure all bridges reserve at least one bus number
-Date: Tue, 13 Feb 2018 18:43:00 +0100
-Message-ID: <CAJZ5v0h7okRkBsNmSkLQ9AOZ_zPk5G0vbu=hKxwm2vjEthvxOA@mail.gmail.com>
-References: <20180213163200.8787-1-mika.westerberg@linux.intel.com> <20180213163200.8787-2-mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/5] PCI: Take bridge window alignment into account when
+ distributing resources
+Date: Tue, 13 Feb 2018 18:45:02 +0100
+Message-ID: <CAJZ5v0i5hzMktBDhYcOiZnnvNyS6QeanVmjs2dR=XewmLzeW4g@mail.gmail.com>
+References: <20180213163200.8787-1-mika.westerberg@linux.intel.com> <20180213163200.8787-3-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:35563 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934279AbeBMRnB (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 12:43:01 -0500
-In-Reply-To: <20180213163200.8787-2-mika.westerberg@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180213163200.8787-3-mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario Limonciello <Mario.Limonciello@dell.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
 On Tue, Feb 13, 2018 at 5:31 PM, Mika Westerberg
 <mika.westerberg@linux.intel.com> wrote:
-> When distributing extra buses between hotplug bridges we need to make
-> sure each bridge reserve at least one bus number, even if there is
-> currently nothing connected to it. For instance ACPI hotplug may bring
-> in additional devices to non-hotplug bridges later on. To make sure we
-> don't run out of bus numbers for non-hotplug bridges reserve one bus
-> number for them upfront before distributing buses for hotplug bridges.
+> When connecting a Thunderbolt endpoint which itself has internal PCIe
+> switch (not the integrated one) the way we currently distribute
+> resources does not always work well because devices below non-hotplug
+> bridges might need to have their MMIO resources aligned to something
+> else than 1 MB boundary. As an example connecting a server grade 4-port
+> GbE add in card adds another PCIe switch leading to GbE devices that
+> want to have their MMIO resources aligned to 2 MB boundary instead.
 >
-> Fixes: 1c02ea810065 ("PCI: Distribute available buses to hotplug-capable bridges")
-> Reported-by: Mario Limonciello <mario.limonciello@dell.com>
+> Current resource distribution code does not take this alignment into
+> account and might try to add too much resources for the extension
+> hotplug bridges. The resulting bridge window is then too big which makes
+> Linux to re-allocate minimal amount of resources, making future
+> extension impossible.
+>
+> Make this work better by substracting properly aligned non-hotplug
+> downstream bridge window size from the remaining resources.
+>
+> Fixes: 1a5767725cec ("PCI: Distribute available resources to hotplug-capable bridges")
 > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 > Cc: stable@vger.kernel.org
 
-Just a few notation-related nits below.
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 > ---
->  drivers/pci/probe.c | 9 ++++++---
->  1 file changed, 6 insertions(+), 3 deletions(-)
+>  drivers/pci/setup-bus.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+>  1 file changed, 40 insertions(+), 1 deletion(-)
 >
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index ef5377438a1e..3e91d2191a7d 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -2561,7 +2561,8 @@ static unsigned int pci_scan_child_bus_extend(struct pci_bus *bus,
->         for_each_pci_bridge(dev, bus) {
->                 cmax = max;
->                 max = pci_scan_bridge_extend(bus, dev, max, 0, 0);
-> -               used_buses += cmax - max;
-> +               /* Reserve one bus for each bridge */
-> +               used_buses += cmax - max ?: 1;
-
-I would write this as
-
-used_buses++;
-if (cmax - max > 1)
-        used_buses += cmax - max - 1;
-
-to make this and the new code below look analogous.
-
+> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+> index 3cce29a069e6..f1e6172734f0 100644
+> --- a/drivers/pci/setup-bus.c
+> +++ b/drivers/pci/setup-bus.c
+> @@ -1882,6 +1882,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+>         resource_size_t available_mmio, resource_size_t available_mmio_pref)
+>  {
+>         resource_size_t remaining_io, remaining_mmio, remaining_mmio_pref;
+> +       resource_size_t io_start, mmio_start, mmio_pref_start;
+>         unsigned int normal_bridges = 0, hotplug_bridges = 0;
+>         struct resource *io_res, *mmio_res, *mmio_pref_res;
+>         struct pci_dev *dev, *bridge = bus->self;
+> @@ -1946,11 +1947,16 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+>                         remaining_mmio_pref -= resource_size(res);
 >         }
 >
->         /* Scan bridges that need to be reconfigured */
-> @@ -2584,12 +2585,14 @@ static unsigned int pci_scan_child_bus_extend(struct pci_bus *bus,
->                          * bridges if any.
->                          */
->                         buses = available_buses / hotplug_bridges;
-> -                       buses = min(buses, available_buses - used_buses);
-> +                       buses = min(buses, available_buses - (used_buses - 1));
-
-You can write the inner expression as "available_buses - used_buses +
-1" (without the extra parens).
-
->                 }
->
->                 cmax = max;
->                 max = pci_scan_bridge_extend(bus, dev, cmax, buses, 1);
-> -               used_buses += max - cmax;
-> +               /* One bus is already accounted so don't add it again */
-> +               if (max - cmax > 1)
-> +                       used_buses += (max - cmax) - 1;
-
-The parens on the right-hand side are not necessary here AFAICS.
-
->         }
->
+> +       io_start = io_res->start;
+> +       mmio_start = mmio_res->start;
+> +       mmio_pref_start = mmio_pref_res->start;
+> +
 >         /*
+>          * Go over devices on this bus and distribute the remaining
+>          * resource space between hotplug bridges.
+>          */
+>         for_each_pci_bridge(dev, bus) {
+> +               resource_size_t align;
+>                 struct pci_bus *b;
+>
+>                 b = dev->subordinate;
+> @@ -1968,7 +1974,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+>                                 available_io, available_mmio,
+>                                 available_mmio_pref);
+>                 } else if (dev->is_hotplug_bridge) {
+> -                       resource_size_t align, io, mmio, mmio_pref;
+> +                       resource_size_t io, mmio, mmio_pref;
+>
+>                         /*
+>                          * Distribute available extra resources equally
+> @@ -1981,11 +1987,13 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+>                         io = div64_ul(available_io, hotplug_bridges);
+>                         io = min(ALIGN(io, align), remaining_io);
+>                         remaining_io -= io;
+> +                       io_start += io;
+>
+>                         align = pci_resource_alignment(bridge, mmio_res);
+>                         mmio = div64_ul(available_mmio, hotplug_bridges);
+>                         mmio = min(ALIGN(mmio, align), remaining_mmio);
+>                         remaining_mmio -= mmio;
+> +                       mmio_start += mmio;
+>
+>                         align = pci_resource_alignment(bridge, mmio_pref_res);
+>                         mmio_pref = div64_ul(available_mmio_pref,
+> @@ -1993,9 +2001,40 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+>                         mmio_pref = min(ALIGN(mmio_pref, align),
+>                                         remaining_mmio_pref);
+>                         remaining_mmio_pref -= mmio_pref;
+> +                       mmio_pref_start += mmio_pref;
+>
+>                         pci_bus_distribute_available_resources(b, add_list, io,
+>                                                                mmio, mmio_pref);
+> +               } else {
+> +                       /*
+> +                        * For normal bridges, track start of the parent
+> +                        * bridge window to make sure we align the
+> +                        * remaining space which is distributed to the
+> +                        * hotplug bridges properly.
+> +                        */
+> +                       resource_size_t aligned;
+> +                       struct resource *res;
+> +
+> +                       res = &dev->resource[PCI_BRIDGE_RESOURCES + 0];
+> +                       io_start += resource_size(res);
+> +                       aligned = ALIGN(io_start,
+> +                                       pci_resource_alignment(dev, res));
+> +                       if (aligned > io_start)
+> +                               remaining_io -= aligned - io_start;
+> +
+> +                       res = &dev->resource[PCI_BRIDGE_RESOURCES + 1];
+> +                       mmio_start += resource_size(res);
+> +                       aligned = ALIGN(mmio_start,
+> +                                       pci_resource_alignment(dev, res));
+> +                       if (aligned > mmio_start)
+> +                               remaining_mmio -= aligned - mmio_start;
+> +
+> +                       res = &dev->resource[PCI_BRIDGE_RESOURCES + 2];
+> +                       mmio_pref_start += resource_size(res);
+> +                       aligned = ALIGN(mmio_pref_start,
+> +                                       pci_resource_alignment(dev, res));
+> +                       if (aligned > mmio_pref_start)
+> +                               remaining_mmio_pref -= aligned - mmio_pref_start;
+>                 }
+>         }
+>  }
 > --
+> 2.15.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
