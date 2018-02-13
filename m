@@ -1,95 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI/PCI: pci_link: change log level of no _PRS messages
-Date: Tue, 13 Feb 2018 09:49:31 +0100
-Message-ID: <CAJZ5v0hb3SBnKJm+EQaJk3dFp+_8kXHJ8SLH-QYrgR-bUiHwJg@mail.gmail.com>
-References: <1518217003-19637-1-git-send-email-alex.hung@canonical.com>
- <20180210010548.GC206223@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0gBK8WmX4QYYBzVxdk8CaSBo5ckzmP49qr05+9DAYieqw@mail.gmail.com>
- <20180210153450.GD206223@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0iNq2ni9ML=_6H0i99dUm5+Noh1MQ9AO4JCiqyXU1xW3Q@mail.gmail.com> <CAJ=jquZtaLqZZQaAitPYLK4dGVXxw3U92NJB5KuP3oU-LFDudQ@mail.gmail.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
+	161010801 erratum(reserve HW MSI)
+Date: Tue, 13 Feb 2018 09:18:28 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83864614F@FRAEML521-MBX.china.huawei.com>
+References: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+	<20180129153939.GC24972@arm.com>
+	<5FC3163CFD30C246ABAA99954A238FA83863FC88@FRAEML521-MBX.china.huawei.com>
+	<20180129162109.GA25266@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f170.google.com ([74.125.82.170]:40319 "EHLO
-        mail-ot0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933631AbeBMItd (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 03:49:33 -0500
-In-Reply-To: <CAJ=jquZtaLqZZQaAitPYLK4dGVXxw3U92NJB5KuP3oU-LFDudQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180129162109.GA25266-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "marc.zyngier-5wv7dgnIgG8@public.gmane.org" <marc.zyngier-5wv7dgnIgG8@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "xuwei (O)" <xuwei5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "Guohanjun (Hanjun
+	Guo)" <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Alex Hung <alex.hung@canonical.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On Tue, Feb 13, 2018 at 5:03 AM, Alex Hung <alex.hung@canonical.com> wrote:
-> On Mon, Feb 12, 2018 at 12:51 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Sat, Feb 10, 2018 at 4:34 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->>> On Sat, Feb 10, 2018 at 09:08:42AM +0100, Rafael J. Wysocki wrote:
->>>> On Sat, Feb 10, 2018 at 2:05 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->>>> > On Fri, Feb 09, 2018 at 02:56:43PM -0800, Alex Hung wrote:
->>>> >> In recent Intel hardware the IRQs become non-configurable after BIOS
->>>> >> initializes them in PEI phase and _PRS objects are no longer included in
->>>> >> ASL.
->>>> >>
->>>> >> This is the same as "static (non-configurable) devices do not
->>>> >> specify a _PRS object" in ACPI spec. As a result, error messages
->>>> >> saying "ACPI Exception: AE_NOT_FOUND, Evaluating _PRS" does not need to
->>>> >> be in kernel messages all the time but only when debug is enabled.
->>>> >
->>>> > I agree and would even go further: _PRS is optional and I don't think
->>>> > there's a reason to log anything at all if it's absent.  A log message
->>>> > like "failed to evaluate _PRS" makes people think something is wrong
->>>> > when in fact nothing is wrong.
->>>>
->>>> _PRS is required if the link object is pointed to by a _PRT entry.
->>>
->>> The closest thing I see with a quick look is ACPI 6.0, sec 6.2.13:
->>>
->>>   These objects [PCI Interrupt Link Devices] have _PRS, _CRS, _SRS,
->>>   and _DIS control methods to allocate the interrupt.
->>>
->>> I don't read that as a requirement for _PRS in particular; I read it
->>> as saying that the interrupt link devices use the normal device
->>> configuration method, i.e., _CRS is required and _PRS and _SRS are
->>> optional and needed for configurable devices but not for static ones.
->>
->> Well, that's slightly out of context. :-)
->>
->> First of all, Section 6.2.13 says this: "Typically, the interrupt
->> input that a given PCI interrupt is on is configurable. [...]  In this
->> model, each interrupt is represented in the ACPI namespace as a PCI
->> Interrupt Link Device."  Then, it says the above.
->>
->> Now, if _PRS is not present, the IRQ represented by the link object
->> cannot be configured, so in fact the underlying assumption doesn't
->> apply to it, strictly speaking.  It follows from the last paragraph in
->> Section 6.2.13 that _PRT entries representing such IRQs should not
->> point to interrupt link device objects (there should be 0 in their
->> Source fields).
->>
->> Hence, if a _PRT entry points to an interrupt link device object in
->> the namespace, _PRS should be present under this object or at least it
->> is reasonable to expect that it will be present in there.
->>
->>> But this is just a drive-by comment and I'm really fine with whatever
->>> you decide to do.
->>
->> OK
->>
->> So I think that (a) the message should be printed using
->> acpi_handle_debug(), except that I would make it slightly more
->> neutral, something like "_PRS not present or invalid", and (b) 0
->> should be returned instead of -ENODEV when _PRS evaluation doesn't
->> succeed.
->
-> Looks like we will do the following.
->
->         if (ACPI_FAILURE(status)) {
-> -               ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PRS"));
-> -                return -ENODEV;
-> +               acpi_handle_debug(link->device->handle, "_PRS not
-> present or invalid");
-> +                return 0;
+Hi Will,
 
-Yes, but this affects the caller.
+> -----Original Message-----
+> From: Will Deacon [mailto:will.deacon-5wv7dgnIgG8@public.gmane.org]
+> Sent: Monday, January 29, 2018 4:21 PM
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Cc: lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; robin.murphy-5wv7dgnIgG8@public.gmane.org;
+> marc.zyngier-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; John Garry
+> <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; xuwei (O) <xuwei5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; Guohanjun
+> (Hanjun Guo) <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org;
+> linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> Subject: Re: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
+> 161010801 erratum(reserve HW MSI)
+> 
+> On Mon, Jan 29, 2018 at 04:16:33PM +0000, Shameerali Kolothum Thodi wrote:
+> > > -----Original Message-----
+> > > From: Will Deacon [mailto:will.deacon-5wv7dgnIgG8@public.gmane.org]
+> > > Sent: Monday, January 29, 2018 3:40 PM
+> > > To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > Cc: lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org; robin.murphy-5wv7dgnIgG8@public.gmane.org;
+> > > marc.zyngier-5wv7dgnIgG8@public.gmane.org; joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org; John Garry
+> > > <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; xuwei (O) <xuwei5-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; Guohanjun
+> > > (Hanjun Guo) <guohanjun-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>; iommu-cunTk1MwBs/ROKNJybVBZg@public.gmane.org
+> foundation.org;
+> > > linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org;
+> > > devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+> > > Subject: Re: [PATCH v12 0/3] iommu/smmu-v3: Workaround for hisilicon
+> > > 161010801 erratum(reserve HW MSI)
+> > > On Thu, Dec 14, 2017 at 04:09:54PM +0000, Shameer Kolothum wrote:
+> > > > On certain HiSilicon platforms (hip06/hip07) the GIC ITS and PCIe RC
+> > > > deviates from the standard implementation and this breaks PCIe MSI
+> > > > functionality when SMMU is enabled.
+> > > >
+[...]
 
-Please make sure that everything will work correctly in there after this change.
+> > > It occurred to me this morning that this series probably isn't queued
+> anywhere
+> > > because it's not obvious which tree is supposed to take it and I can't see it in
+> -
+> > > next.
+> > >
+> > > Is this one for arm64, IOMMU, irqchip or something else? It's probably
+> missed
+> > > the boat for 4.16 now...
+> > >
+> >
+> > I have been trying to ping you guys on this[1]. My expectation was that it will
+> be
+> > through IOMMU. Anyway missed the boat now, I will re-spin for 4.17.
+> 
+> The problem with "ping" emails is that they don't really mean anything. In
+> this case, everybody probably assumed somebody else was picking it up so you
+> didn't get a reply.
+> 
+> Joerg may be ok pulling this, but it's odd to have dts changes going via his
+> tree. You might want to split those out, at least. Talk to him.
+
+As this series missed out from the PULL request, I am preparing to send this again.
+Please let me know, you are ok with the dts changes being part of this or would like
+to split it.
+
+Thanks,
+Shameer
