@@ -1,61 +1,62 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 0/7] ACPICA 20180212 release
-Date: Tue, 13 Feb 2018 10:52:15 -0800
-Message-ID: <20180213185222.12441-1-erik.schmauss@intel.com>
+Subject: [PATCH 2/7] ACPICA: Update error message, no functional change
+Date: Tue, 13 Feb 2018 10:52:17 -0800
+Message-ID: <20180213185222.12441-3-erik.schmauss@intel.com>
+References: <20180213185222.12441-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:19305 "EHLO mga02.intel.com"
+Received: from mga05.intel.com ([192.55.52.43]:26003 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965479AbeBMSwh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Feb 2018 13:52:37 -0500
+        id S965479AbeBMSwq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Feb 2018 13:52:46 -0500
+In-Reply-To: <20180213185222.12441-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Erik Schmauss <erik.schmauss@intel.com>
+Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-This is the ACPICA20180212 release.
+From: Bob Moore <robert.moore@intel.com>
 
-Notable commits are changes made to integrate package handling with
-MLC and setting the TermList parsing as a default. A small commit
-was made to disable package resolution errors. This reverts the
-error reporting behavior to match the previous behavior (in 4.13)
+ACPICA commit 0787fda3b224a78369e26ac6046658beb2b64c12
 
+Clarify error when an attempt is made to evaluate things like
+devices, events, etc. -- these objects have no data and cannot
+be "evaluated".
 
-Bob Moore (7):
-  ACPICA: Update error message, no functional change
-  ACPICA: Update for some debug output. No functional change
-  ACPICA: Revert "Fix for implicit result conversion for the ToXXXX
-    functions"
-  ACPICA: Add option to disable Package object name resolution errors
-  ACPICA: Restructure ACPI table files
-  ACPICA: Integrate package handling with module-level code
-  ACPICA: Update version to 20180209
+Link: https://github.com/acpica/acpica/commit/0787fda3
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+---
+ drivers/acpi/acpica/nseval.c | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
- drivers/acpi/acpica/acopcode.h  |   14 +-
- drivers/acpi/acpica/amlcode.h   |   20 +-
- drivers/acpi/acpica/dsargs.c    |    1 +
- drivers/acpi/acpica/dsopcode.c  |    4 +-
- drivers/acpi/acpica/dspkginit.c |  164 ++--
- drivers/acpi/acpica/dswexec.c   |    6 +-
- drivers/acpi/acpica/dswload.c   |    2 +-
- drivers/acpi/acpica/exconvrt.c  |    1 +
- drivers/acpi/acpica/exnames.c   |    7 +-
- drivers/acpi/acpica/exresop.c   |    1 +
- drivers/acpi/acpica/nseval.c    |    8 +-
- drivers/acpi/acpica/nsinit.c    |    7 +-
- drivers/acpi/acpica/nsnames.c   |    3 +
- drivers/acpi/acpica/nsparse.c   |   10 +-
- drivers/acpi/acpica/psloop.c    |    4 +-
- drivers/acpi/acpica/psparse.c   |    2 +-
- drivers/acpi/acpica/pstree.c    |    1 +
- drivers/acpi/acpica/utcache.c   |    7 +-
- drivers/acpi/acpica/utdelete.c  |   20 +-
- include/acpi/acpixf.h           |   10 +-
- include/acpi/actbl1.h           | 1638 ++++++++++++++++----------------
- include/acpi/actbl2.h           | 1964 +++++++++++++++++++++------------------
- include/acpi/actbl3.h           | 1016 +++++++++-----------
- include/acpi/platform/aclinux.h |    1 +
- 24 files changed, 2477 insertions(+), 2434 deletions(-)
-
+diff --git a/drivers/acpi/acpica/nseval.c b/drivers/acpi/acpica/nseval.c
+index c2d883b8c45e..bdf94ec19c10 100644
+--- a/drivers/acpi/acpica/nseval.c
++++ b/drivers/acpi/acpica/nseval.c
+@@ -187,6 +187,7 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info *info)
+ 	 * 3) The object is not a method -- just return it's current value
+ 	 */
+ 	switch (acpi_ns_get_type(info->node)) {
++	case ACPI_TYPE_ANY:
+ 	case ACPI_TYPE_DEVICE:
+ 	case ACPI_TYPE_EVENT:
+ 	case ACPI_TYPE_MUTEX:
+@@ -194,11 +195,12 @@ acpi_status acpi_ns_evaluate(struct acpi_evaluate_info *info)
+ 	case ACPI_TYPE_THERMAL:
+ 	case ACPI_TYPE_LOCAL_SCOPE:
+ 		/*
+-		 * 1) Disallow evaluation of certain object types. For these,
+-		 *    object evaluation is undefined and not supported.
++		 * 1) Disallow evaluation of these object types. For these,
++		 *    object evaluation is undefined.
+ 		 */
+ 		ACPI_ERROR((AE_INFO,
+-			    "%s: Evaluation of object type [%s] is not supported",
++			    "%s: This object type [%s] "
++			    "never contains data and cannot be evaluated",
+ 			    info->full_pathname,
+ 			    acpi_ut_get_type_name(info->node->type)));
+ 
 -- 
 2.14.3
 
