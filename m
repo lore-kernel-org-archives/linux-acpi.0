@@ -1,191 +1,124 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Tue, 13 Feb 2018 12:25:55 +0100
-Message-ID: <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
-References: <20180108094416.4789-1-hdegoede@redhat.com>
- <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 01/37] iommu: Introduce Shared Virtual Addressing API
+Date: Tue, 13 Feb 2018 12:40:13 +0000
+Message-ID: <b3c190e7-1a33-971e-b86c-a9725118ba05@arm.com>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-2-jean-philippe.brucker@arm.com>
+	<AADFC41AFE54684AB9EE6CBC0274A5D191002823@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:50920 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934102AbeBMLZ7 (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Feb 2018 06:25:59 -0500
-Received: by mail-wm0-f65.google.com with SMTP id f71so15344603wmf.0
-        for <linux-acpi@vger.kernel.org>; Tue, 13 Feb 2018 03:25:58 -0800 (PST)
-In-Reply-To: <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <AADFC41AFE54684AB9EE6CBC0274A5D191002823-0J0gbvR4kThpB2pF5aRoyrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: "Tian, Kevin" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "Raj,
+	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org" <shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Brian Norris <briannorris@chromium.org>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, matadeen@qti.qualcomm.com, linux-kernel@vger.kernel.org
 
-Hi,
+Hi Kevin,
 
-On 13-02-18 03:24, Brian Norris wrote:
-> Hi,
+Thanks for taking a look!
+
+On 13/02/18 07:31, Tian, Kevin wrote:
+>> From: Jean-Philippe Brucker
+>> Sent: Tuesday, February 13, 2018 2:33 AM
+>>
+>> Shared Virtual Addressing (SVA) provides a way for device drivers to bind
+>> process address spaces to devices. This requires the IOMMU to support the
+>> same page table format as CPUs, and requires the system to support I/O
 > 
-> On Mon, Jan 08, 2018 at 10:44:16AM +0100, Hans de Goede wrote:
->> Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
->> removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
->> instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
->>
->> This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
->> has several issues (see the original commit message). An added advantage
->> of moving over to the USB-core reset-resume handling is that it also
->> disables autosuspend for these devices, which is similarly broken on these.
+> "same" is a bit restrictive. "compatible" is better as you used in coverletter. :-)
+
+Indeed
+
+[..]
+>> +config IOMMU_SVA
+>> +	bool "Shared Virtual Addressing API for the IOMMU"
+>> +	select IOMMU_API
+>> +	help
+>> +	  Enable process address space management for the IOMMU API. In
+>> systems
+>> +	  that support it, device drivers can bind process address spaces to
+>> +	  devices and share their page tables using this API.
 > 
-> Wait, is autosuspend actually broken for all QCA Rome chipsets? I don't
-> think so -- I'm using one now.
+> "their page table" is a bit confusing here.
 
-And have you manually enabled USB autosuspend for it, or are you
-running something which might have done so, e.g. powertop --auto-tune ?
+Maybe this is sufficient:
+"In systems that support it, drivers can share process address spaces with
+their devices using this API."
 
-Because if you did not do that then you're already not using autosuspend
-for your QCA devices and this patch will change nothing.
-
-> Thus, this is a poor solution, which
-> negatively affects my systems. However, I see that this patch was
-> applied regardless...
-
-Note that there already is a quirk to handle broken suspend/resume
-behavior on ALL QCA devices in older kernels. Also note that the
-patches series which this commit builds on top of was already
-setting USB_QUIRK_RESET_RESUME for some devices in
-usb/core/quirks.c.
-
-All my commit does is instead of duplicating all the QCA USB-ids in
-usb/core/quirks.c, move the setting of USB_QUIRK_RESET_RESUME
-to btusb.c so that we don't need to duplicate the USB-id tables.
-
-The result of the combination of these patches is that the custom
-DIY reset on resume handling btusb.c was doing is now replaced
-by setting the standard USB-core USB_QUIRK_RESET_RESUME quirk.
-
-As a (desirable) side effect this also disables USB autosuspend
-for QCA devices since the USB-core does not allow USB autosuspend
-on devices with the USB_QUIRK_RESET_RESUME quirk. Testing has shown
-this to be necessary on at least some QCA devices and given that
-these devices tend to loose there firmware on a suspend, it seems
-sensible to not allow autosuspend on them.
-
- > What justifications was found for this anyway? AIUI, this is a platform
- > bug, and not entirely a chipset bug.
-
-No this is believed to be a chipset issue, hence also the quirk in
-older kernels to always reset these devices after a normal suspend/resume.
-
-Regards,
-
-Hans
-
-
-
-
-> 
-> Brian
-> 
->> But there are 2 issues with this approach:
->> 1) It leaves the broken DIY BTUSB_RESET_RESUME code in place for Realtek
->>     devices.
->> 2) Sofar only 2 of the 10 QCA devices known to the btusb code have been
->>     added to usb/core/quirks.c and if we fix the Realtek case the same way
->>     we need to add an additional 14 entries. So in essence we need to
->>     duplicate a large part of the usb_device_id table in btusb.c in
->>     usb/core/quirks.c and manually keep them in sync.
->>
->> This commit instead restores setting a reset-resume quirk for QCA devices
->> in the btusb.c code, avoiding the duplicate usb_device_id table problem.
->>
->> This commit avoids the problems with the original DIY BTUSB_RESET_RESUME
->> code by simply setting the USB_QUIRK_RESET_RESUME quirk directly on the
->> usb_device.
->>
->> This commit also moves the BTUSB_REALTEK case over to directly setting the
->> USB_QUIRK_RESET_RESUME on the usb_device and removes the now unused
->> BTUSB_RESET_RESUME code.
->>
->> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
->> Fixes: 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
->> Cc: stable@vger.kernel.org
->> Cc: Leif Liddy <leif.linux@gmail.com>
->> Cc: Matthias Kaehlcke <mka@chromium.org>
->> Cc: Brian Norris <briannorris@chromium.org>
->> Cc: Daniel Drake <drake@endlessm.com>
->> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> Note:
->> 1) Once this has been merged, the 2 commits adding QCA device entries to
->> drivers/usb/core/quirks.c should be reverted or dropped from bluetooth-next.
->> 2) I don't have any of the affected devices, please test
->> ---
->>   drivers/bluetooth/btusb.c | 22 ++++++++++------------
->>   1 file changed, 10 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
->> index 4764100a5888..c4689f03220f 100644
->> --- a/drivers/bluetooth/btusb.c
->> +++ b/drivers/bluetooth/btusb.c
->> @@ -23,6 +23,7 @@
->>   
->>   #include <linux/module.h>
->>   #include <linux/usb.h>
->> +#include <linux/usb/quirks.h>
->>   #include <linux/firmware.h>
->>   #include <linux/of_device.h>
->>   #include <linux/of_irq.h>
->> @@ -388,9 +389,8 @@ static const struct usb_device_id blacklist_table[] = {
->>   #define BTUSB_FIRMWARE_LOADED	7
->>   #define BTUSB_FIRMWARE_FAILED	8
->>   #define BTUSB_BOOTING		9
->> -#define BTUSB_RESET_RESUME	10
->> -#define BTUSB_DIAG_RUNNING	11
->> -#define BTUSB_OOB_WAKE_ENABLED	12
->> +#define BTUSB_DIAG_RUNNING	10
->> +#define BTUSB_OOB_WAKE_ENABLED	11
->>   
->>   struct btusb_data {
->>   	struct hci_dev       *hdev;
->> @@ -3118,6 +3118,12 @@ static int btusb_probe(struct usb_interface *intf,
->>   	if (id->driver_info & BTUSB_QCA_ROME) {
->>   		data->setup_on_usb = btusb_setup_qca;
->>   		hdev->set_bdaddr = btusb_set_bdaddr_ath3012;
+[...]
 >> +
->> +		/* QCA Rome devices lose their updated firmware over suspend,
->> +		 * but the USB hub doesn't notice any status change.
->> +		 * explicitly request a device reset on resume.
->> +		 */
->> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
->>   	}
->>   
->>   #ifdef CONFIG_BT_HCIBTUSB_RTL
->> @@ -3128,7 +3134,7 @@ static int btusb_probe(struct usb_interface *intf,
->>   		 * but the USB hub doesn't notice any status change.
->>   		 * Explicitly request a device reset on resume.
->>   		 */
->> -		set_bit(BTUSB_RESET_RESUME, &data->flags);
->> +		interface_to_usbdev(intf)->quirks |= USB_QUIRK_RESET_RESUME;
->>   	}
->>   #endif
->>   
->> @@ -3297,14 +3303,6 @@ static int btusb_suspend(struct usb_interface *intf, pm_message_t message)
->>   		enable_irq(data->oob_wake_irq);
->>   	}
->>   
->> -	/* Optionally request a device reset on resume, but only when
->> -	 * wakeups are disabled. If wakeups are enabled we assume the
->> -	 * device will stay powered up throughout suspend.
->> -	 */
->> -	if (test_bit(BTUSB_RESET_RESUME, &data->flags) &&
->> -	    !device_may_wakeup(&data->udev->dev))
->> -		data->udev->reset_resume = 1;
->> -
->>   	return 0;
->>   }
->>   
->> -- 
->> 2.14.3
->>
+>> +/**
+>> + * iommu_sva_device_init() - Initialize Shared Virtual Addressing for a
+>> device
+>> + * @dev: the device
+>> + * @features: bitmask of features that need to be initialized
+>> + * @max_pasid: max PASID value supported by the device
+>> + *
+>> + * Users of the bind()/unbind() API must call this function to initialize all
+>> + * features required for SVA.
+>> + *
+>> + * - If the device should support multiple address spaces (e.g. PCI PASID),
+>> + *   IOMMU_SVA_FEAT_PASID must be requested.
+> 
+> I think it is by default assumed when using this API, based on definition of
+> SVA. Can you elaborate the situation where this flag can be cleared?
+
+When passing a device to userspace, you could also share its non-pasid
+address space with the process. It requires a new domain type so is left
+as a TODO in patch 2/37. I did get requests for this feature, though I
+think it was mostly for prototyping. I guess I could remove the flag, and
+reintroduce it as IOMMU_SVA_FEAT_NO_PASID later on.
+
+>> + *
+>> + *   By default the PASID allocated during bind() is limited by the IOMMU
+>> + *   capacity, and by the device PASID width defined in the PCI capability or
+>> in
+>> + *   the firmware description. Setting @max_pasid to a non-zero value
+>> smaller
+>> + *   than this limit overrides it.
+>> + *
+>> + * - If the device should support I/O Page Faults (e.g. PCI PRI),
+>> + *   IOMMU_SVA_FEAT_IOPF must be requested.
+>> + *
+>> + * The device should not be be performing any DMA while this function is
+> 
+> remove double "be"
+> 
+>> + * running.
+> 
+> "otherwise the behavior is undefined"
+
+ok
+
+[...]
+>> +	ret = domain->ops->sva_device_init(dev, features, &min_pasid,
+>> +					   &max_pasid);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	/* FIXME: racy. Next version should have a mutex (same as fault
+>> handler) */
+>> +	dev_param->sva_features = features;
+>> +	dev_param->min_pasid = min_pasid;
+>> +	dev_param->max_pasid = max_pasid;
+> 
+> what's the point of min_pasid here?
+
+Arm SMMUv3 uses entry 0 of the PASID table for the default (non-pasid)
+context, so it needs to set min_pasid to 1. AMD IOMMU recently added a
+similar feature (GIoSup), if I understood correctly.
+
+Thanks,
+Jean
