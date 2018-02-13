@@ -1,300 +1,64 @@
-From: "Tian, Kevin" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 01/37] iommu: Introduce Shared Virtual Addressing API
-Date: Tue, 13 Feb 2018 07:31:51 +0000
-Message-ID: <AADFC41AFE54684AB9EE6CBC0274A5D191002823@SHSMSX101.ccr.corp.intel.com>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-2-jean-philippe.brucker@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
+Date: Tue, 13 Feb 2018 09:32:58 +0200
+Message-ID: <20180213073258.GX27191@lahna.fi.intel.com>
+References: <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
+ <20180205224531.GA46524@dtor-ws>
+ <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
+ <1517924731.22495.51.camel@linux.intel.com>
+ <CAJZ5v0gpkBkuSV8rvvgVq8Cr7cWUr0PfeuGD5tG7GU+jWsTkqg@mail.gmail.com>
+ <20180211134510.GB1521@wunner.de>
+ <CAJZ5v0jXwNx7-O_icxAqHwEvki0mZDK_VijDU-hcVM7CtG46Tg@mail.gmail.com>
+ <9ae8628a5a9649afaadfa4dda5d896af@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0hUz-+0+_Buobx1Y9d8YVzObsJ4r=Zm61wdm-F7ffhBKg@mail.gmail.com>
+ <81dad01f354e4dcab852d145ce5d9fb3@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180212183352.22730-2-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "mark.rutland-5wv7dgnIgG8@public.gmane.org" <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "Raj,
-	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org" <shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "catalin.marinas-5wv7dgnIgG8@public.gmane.org" <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "sudeep.holla-5wv7dgnIgG8@public.gmane.org" <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:35625 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933489AbeBMHdE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Feb 2018 02:33:04 -0500
+Content-Disposition: inline
+In-Reply-To: <81dad01f354e4dcab852d145ce5d9fb3@ausx13mpc120.AMER.DELL.COM>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mario.Limonciello@dell.com
+Cc: rafael@kernel.org, lukas@wunner.de, alex.hung@canonical.com, andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com, jdelvare@suse.de, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-> From: Jean-Philippe Brucker
-> Sent: Tuesday, February 13, 2018 2:33 AM
+On Mon, Feb 12, 2018 at 11:14:42PM +0000, Mario.Limonciello@dell.com wrote:
+> > So something like "Do you support native PCI power management?" would
+> > be fine, because native PCI power management is defined by the PCI
+> > standard and it should be clear what supporting it means and it
+> > doesn't depend on what platform the kernel runs on.
+> > 
 > 
-> Shared Virtual Addressing (SVA) provides a way for device drivers to bind
-> process address spaces to devices. This requires the IOMMU to support the
-> same page table format as CPUs, and requires the system to support I/O
-
-"same" is a bit restrictive. "compatible" is better as you used in coverletter. :-)
-
-> Page Faults (IOPF) and Process Address Space ID (PASID). When all of these
-> are available, DMA can access virtual addresses of a process. A PASID is
-> allocated for each process, and the device driver programs it into the
-> device in an implementation-specific way.
+> The problem is this is in conflict with the documentation.
+> As quoted:
 > 
-> Add a new API for sharing process page tables with devices. Introduce two
-> IOMMU operations, sva_device_init() and sva_device_shutdown(), that
-> prepare the IOMMU driver for SVA. For example allocate PASID tables and
-> fault queues. Subsequent patches will implement the bind() and unbind()
-> operations.
+> ```
+> _OSI("Linux-OEM-my_interface_name")
+> where 'OEM' is needed if this is an OEM-specific hook,
+> and 'my_interface_name' describes the hook, which could be a
+> quirk, a bug, or a bug-fix.
+> ```
 > 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-> ---
->  drivers/iommu/Kconfig     | 10 ++++++
->  drivers/iommu/Makefile    |  1 +
->  drivers/iommu/iommu-sva.c | 90
-> +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/iommu.h     | 32 +++++++++++++++++
->  4 files changed, 133 insertions(+)
->  create mode 100644 drivers/iommu/iommu-sva.c
+> Quite literally from an OEM perspective this is a quirk.  The affected
+> platforms as configured by default won't work properly with Linux.
 > 
-> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
-> index f3a21343e636..555147a61f7c 100644
-> --- a/drivers/iommu/Kconfig
-> +++ b/drivers/iommu/Kconfig
-> @@ -74,6 +74,16 @@ config IOMMU_DMA
->  	select IOMMU_IOVA
->  	select NEED_SG_DMA_LENGTH
+> We apply a code deviation if the OSPM responds yes to that OSI string.
 > 
-> +config IOMMU_SVA
-> +	bool "Shared Virtual Addressing API for the IOMMU"
-> +	select IOMMU_API
-> +	help
-> +	  Enable process address space management for the IOMMU API. In
-> systems
-> +	  that support it, device drivers can bind process address spaces to
-> +	  devices and share their page tables using this API.
-
-"their page table" is a bit confusing here.
-
-> +
-> +	  If unsure, say N here.
-> +
->  config FSL_PAMU
->  	bool "Freescale IOMMU support"
->  	depends on PCI
-> diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
-> index 1fb695854809..1dbcc89ebe4c 100644
-> --- a/drivers/iommu/Makefile
-> +++ b/drivers/iommu/Makefile
-> @@ -3,6 +3,7 @@ obj-$(CONFIG_IOMMU_API) += iommu.o
->  obj-$(CONFIG_IOMMU_API) += iommu-traces.o
->  obj-$(CONFIG_IOMMU_API) += iommu-sysfs.o
->  obj-$(CONFIG_IOMMU_DMA) += dma-iommu.o
-> +obj-$(CONFIG_IOMMU_SVA) += iommu-sva.o
->  obj-$(CONFIG_IOMMU_IO_PGTABLE) += io-pgtable.o
->  obj-$(CONFIG_IOMMU_IO_PGTABLE_ARMV7S) += io-pgtable-arm-v7s.o
->  obj-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += io-pgtable-arm.o
-> diff --git a/drivers/iommu/iommu-sva.c b/drivers/iommu/iommu-sva.c
-> new file mode 100644
-> index 000000000000..cab5d723520f
-> --- /dev/null
-> +++ b/drivers/iommu/iommu-sva.c
-> @@ -0,0 +1,90 @@
-> +/*
-> + * Track processes address spaces bound to devices and allocate PASIDs.
-> + *
-> + * Copyright (C) 2018 ARM Ltd.
-> + * Author: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-> + *
-> + * SPDX-License-Identifier: GPL-2.0
-> + */
-> +
-> +#include <linux/iommu.h>
-> +
-> +/**
-> + * iommu_sva_device_init() - Initialize Shared Virtual Addressing for a
-> device
-> + * @dev: the device
-> + * @features: bitmask of features that need to be initialized
-> + * @max_pasid: max PASID value supported by the device
-> + *
-> + * Users of the bind()/unbind() API must call this function to initialize all
-> + * features required for SVA.
-> + *
-> + * - If the device should support multiple address spaces (e.g. PCI PASID),
-> + *   IOMMU_SVA_FEAT_PASID must be requested.
-
-I think it is by default assumed when using this API, based on definition of
-SVA. Can you elaborate the situation where this flag can be cleared?
-
-> + *
-> + *   By default the PASID allocated during bind() is limited by the IOMMU
-> + *   capacity, and by the device PASID width defined in the PCI capability or
-> in
-> + *   the firmware description. Setting @max_pasid to a non-zero value
-> smaller
-> + *   than this limit overrides it.
-> + *
-> + * - If the device should support I/O Page Faults (e.g. PCI PRI),
-> + *   IOMMU_SVA_FEAT_IOPF must be requested.
-> + *
-> + * The device should not be be performing any DMA while this function is
-
-remove double "be"
-
-> + * running.
-
-"otherwise the behavior is undefined"
-
-> + *
-> + * Return 0 if initialization succeeded, or an error.
-> + */
-> +int iommu_sva_device_init(struct device *dev, unsigned long features,
-> +			  unsigned int max_pasid)
-> +{
-> +	int ret;
-> +	unsigned int min_pasid = 0;
-> +	struct iommu_param *dev_param = dev->iommu_param;
-> +	struct iommu_domain *domain =
-> iommu_get_domain_for_dev(dev);
-> +
-> +	if (!domain || !dev_param || !domain->ops->sva_device_init)
-> +		return -ENODEV;
-> +
-> +	/*
-> +	 * IOMMU driver updates the limits depending on the IOMMU and
-> device
-> +	 * capabilities.
-> +	 */
-> +	ret = domain->ops->sva_device_init(dev, features, &min_pasid,
-> +					   &max_pasid);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/* FIXME: racy. Next version should have a mutex (same as fault
-> handler) */
-> +	dev_param->sva_features = features;
-> +	dev_param->min_pasid = min_pasid;
-> +	dev_param->max_pasid = max_pasid;
-
-what's the point of min_pasid here?
-
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_device_init);
-> +
-> +/**
-> + * iommu_sva_device_shutdown() - Shutdown Shared Virtual Addressing
-> for a device
-> + * @dev: the device
-> + *
-> + * Disable SVA. The device should not be performing any DMA while this
-> function
-> + * is running.
-> + */
-> +int iommu_sva_device_shutdown(struct device *dev)
-> +{
-> +	struct iommu_param *dev_param = dev->iommu_param;
-> +	struct iommu_domain *domain =
-> iommu_get_domain_for_dev(dev);
-> +
-> +	if (!domain)
-> +		return -ENODEV;
-> +
-> +	if (domain->ops->sva_device_shutdown)
-> +		domain->ops->sva_device_shutdown(dev);
-> +
-> +	dev_param->sva_features = 0;
-> +	dev_param->min_pasid = 0;
-> +	dev_param->max_pasid = 0;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(iommu_sva_device_shutdown);
-> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
-> index 66ef406396e9..e9e09eecdece 100644
-> --- a/include/linux/iommu.h
-> +++ b/include/linux/iommu.h
-> @@ -60,6 +60,11 @@ typedef int (*iommu_fault_handler_t)(struct
-> iommu_domain *,
->  			struct device *, unsigned long, int, void *);
->  typedef int (*iommu_dev_fault_handler_t)(struct iommu_fault_event *,
-> void *);
+> It's entirely possible that the Linux kernel could not store a quirk table
+> to match the affected platforms and instead give a blanket simple fast 
+> "Yes" answer to "Linux-Dell-Video", but I think that is no better than
+> _OSI("Linux").  This is at least an attestation from the OEM perspective
+> that we have only changed one thing by this string.
 > 
-> +/* Request PASID support */
-> +#define IOMMU_SVA_FEAT_PASID		(1 << 0)
-> +/* Request I/O page fault support */
-> +#define IOMMU_SVA_FEAT_IOPF		(1 << 1)
-> +
->  struct iommu_domain_geometry {
->  	dma_addr_t aperture_start; /* First address that can be mapped
-> */
->  	dma_addr_t aperture_end;   /* Last address that can be mapped
-> */
-> @@ -197,6 +202,8 @@ struct page_response_msg {
->   * @domain_free: free iommu domain
->   * @attach_dev: attach device to an iommu domain
->   * @detach_dev: detach device from an iommu domain
-> + * @sva_device_init: initialize Shared Virtual Adressing for a device
-> + * @sva_device_shutdown: shutdown Shared Virtual Adressing for a
-> device
->   * @map: map a physically contiguous memory region to an iommu
-> domain
->   * @unmap: unmap a physically contiguous memory region from an
-> iommu domain
->   * @map_sg: map a scatter-gather list of physically contiguous memory
-> chunks
-> @@ -230,6 +237,10 @@ struct iommu_ops {
-> 
->  	int (*attach_dev)(struct iommu_domain *domain, struct device
-> *dev);
->  	void (*detach_dev)(struct iommu_domain *domain, struct device
-> *dev);
-> +	int (*sva_device_init)(struct device *dev, unsigned long features,
-> +			       unsigned int *min_pasid,
-> +			       unsigned int *max_pasid);
-> +	void (*sva_device_shutdown)(struct device *dev);
->  	int (*map)(struct iommu_domain *domain, unsigned long iova,
->  		   phys_addr_t paddr, size_t size, int prot);
->  	size_t (*unmap)(struct iommu_domain *domain, unsigned long
-> iova,
-> @@ -385,6 +396,9 @@ struct iommu_fault_param {
->   */
->  struct iommu_param {
->  	struct iommu_fault_param *fault_param;
-> +	unsigned long sva_features;
-> +	unsigned int min_pasid;
-> +	unsigned int max_pasid;
->  };
-> 
->  int  iommu_device_register(struct iommu_device *iommu);
-> @@ -878,4 +892,22 @@ const struct iommu_ops
-> *iommu_ops_from_fwnode(struct fwnode_handle *fwnode)
-> 
->  #endif /* CONFIG_IOMMU_API */
-> 
-> +#ifdef CONFIG_IOMMU_SVA
-> +extern int iommu_sva_device_init(struct device *dev, unsigned long
-> features,
-> +				 unsigned int max_pasid);
-> +extern int iommu_sva_device_shutdown(struct device *dev);
-> +#else /* CONFIG_IOMMU_SVA */
-> +static inline int iommu_sva_device_init(struct device *dev,
-> +					unsigned long features,
-> +					unsigned int max_pasid)
-> +{
-> +	return -ENODEV;
-> +}
-> +
-> +static inline int iommu_sva_device_shutdown(struct device *dev)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif /* CONFIG_IOMMU_SVA */
-> +
->  #endif /* __LINUX_IOMMU_H */
-> --
-> 2.15.1
-> 
-> _______________________________________________
-> iommu mailing list
-> iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-> https://lists.linuxfoundation.org/mailman/listinfo/iommu
+> The alternative (and what has been done in the past) was the ACPI
+> _OSI rev hack marking those platforms for quirks and other things
+> before that and.  I really don't want to go down that road again.
+
+I have not followed this thread too closely so I might be missing
+something but why do we need to do this in the first place? Does this
+work in Windows and if yes, why we can't do the the same in Linux
+without any sort of hacks and/or quirks?
