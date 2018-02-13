@@ -1,13 +1,13 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH 6/7] ACPICA: Add option to disable Package object name resolution errors
-Date: Tue, 13 Feb 2018 10:52:21 -0800
-Message-ID: <20180213185222.12441-7-erik.schmauss@intel.com>
+Subject: [PATCH 3/7] ACPICA: Update for some debug output. No functional change
+Date: Tue, 13 Feb 2018 10:52:18 -0800
+Message-ID: <20180213185222.12441-4-erik.schmauss@intel.com>
 References: <20180213185222.12441-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga05.intel.com ([192.55.52.43]:26007 "EHLO mga05.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965547AbeBMSwy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Tue, 13 Feb 2018 13:52:54 -0500
+        id S965457AbeBMSwt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Tue, 13 Feb 2018 13:52:49 -0500
 In-Reply-To: <20180213185222.12441-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,101 +16,268 @@ Cc: Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a6c3c725c44dd44ad9d3f2b2a64351fdbe6e0014
+ACPICA commit 3a08436fe3bff297a6de162252964e955946c7d3
 
-For the kernel-resident ACPICA, optionally be silent about the
-NOT_FOUND case. Although this is potentially a serious problem,
-it can generate a lot of noise/errors on platforms whose
-firmware carries around a bunch of unused Package objects.
-To disable these errors, define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
-in the OS-specific header.
+Improve/simplify some of the debug messages.
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=198167
-Link: https://github.com/acpica/acpica/commit/a6c3c725
+Link: https://github.com/acpica/acpica/commit/3a08436f
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/dspkginit.c | 38 +++++++++++++++++++++++++++++++-------
- include/acpi/platform/aclinux.h |  1 +
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/dsargs.c   |  1 +
+ drivers/acpi/acpica/dsopcode.c |  4 ++--
+ drivers/acpi/acpica/dswload.c  |  2 +-
+ drivers/acpi/acpica/exnames.c  |  7 ++-----
+ drivers/acpi/acpica/nsinit.c   |  7 ++++++-
+ drivers/acpi/acpica/nsnames.c  |  3 +++
+ drivers/acpi/acpica/nsparse.c  |  9 ++++++---
+ drivers/acpi/acpica/psloop.c   |  4 ++--
+ drivers/acpi/acpica/psparse.c  |  2 +-
+ drivers/acpi/acpica/utcache.c  |  7 ++++---
+ drivers/acpi/acpica/utdelete.c | 20 ++++++++++++--------
+ 11 files changed, 40 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dspkginit.c b/drivers/acpi/acpica/dspkginit.c
-index a307a07aeacd..7d48525b5e52 100644
---- a/drivers/acpi/acpica/dspkginit.c
-+++ b/drivers/acpi/acpica/dspkginit.c
-@@ -389,11 +389,12 @@ static void
- acpi_ds_resolve_package_element(union acpi_operand_object **element_ptr)
- {
- 	acpi_status status;
-+	acpi_status status2;
- 	union acpi_generic_state scope_info;
- 	union acpi_operand_object *element = *element_ptr;
- 	struct acpi_namespace_node *resolved_node;
- 	struct acpi_namespace_node *original_node;
--	char *external_path = NULL;
-+	char *external_path = "";
- 	acpi_object_type type;
- 
- 	ACPI_FUNCTION_TRACE(ds_resolve_package_element);
-@@ -417,17 +418,40 @@ acpi_ds_resolve_package_element(union acpi_operand_object **element_ptr)
- 				ACPI_NS_SEARCH_PARENT | ACPI_NS_DONT_OPEN_SCOPE,
- 				NULL, &resolved_node);
- 	if (ACPI_FAILURE(status)) {
--		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
--						  (char *)element->reference.
--						  aml, NULL, &external_path);
-+#if defined ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS && !defined ACPI_APPLICATION
-+		/*
-+		 * For the kernel-resident ACPICA, optionally be silent about the
-+		 * NOT_FOUND case. Although this is potentially a serious problem,
-+		 * it can generate a lot of noise/errors on platforms whose
-+		 * firmware carries around a bunch of unused Package objects.
-+		 * To disable these errors, define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
-+		 * in the OS-specific header.
-+		 *
-+		 * All errors are always reported for ACPICA applications such as
-+		 * acpi_exec.
-+		 */
-+		if (status == AE_NOT_FOUND) {
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index 04a9f60e7ad1..a164b1530eec 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -346,6 +346,7 @@ acpi_status acpi_ds_get_package_arguments(union acpi_operand_object *obj_desc)
+ 	status = acpi_ds_execute_arguments(node, node,
+ 					   obj_desc->package.aml_length,
+ 					   obj_desc->package.aml_start);
 +
-+			/* Reference name not found, set the element to NULL */
+ 	return_ACPI_STATUS(status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 0181cd317751..84667c9055cb 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -603,8 +603,8 @@ acpi_ds_eval_data_object_operands(struct acpi_walk_state *walk_state,
+ 
+ 	if (!op->common.value.arg) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Dispatch: Missing child while executing TermArg for %X",
+-			    op->common.aml_opcode));
++			    "Missing child while evaluating opcode %4.4X, Op %p",
++			    op->common.aml_opcode, op));
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index fa4ef9229e17..be1410f4755f 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -147,7 +147,7 @@ acpi_ds_load1_begin_op(struct acpi_walk_state *walk_state,
+ 	char *path;
+ 	u32 flags;
+ 
+-	ACPI_FUNCTION_TRACE(ds_load1_begin_op);
++	ACPI_FUNCTION_TRACE_PTR(ds_load1_begin_op, walk_state->op);
+ 
+ 	op = walk_state->op;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH, "Op=%p State=%p\n", op,
+diff --git a/drivers/acpi/acpica/exnames.c b/drivers/acpi/acpica/exnames.c
+index c7b249cda5c0..6dc2682cbbea 100644
+--- a/drivers/acpi/acpica/exnames.c
++++ b/drivers/acpi/acpica/exnames.c
+@@ -174,13 +174,10 @@ static acpi_status acpi_ex_name_segment(u8 ** in_aml_address, char *name_string)
+ 		return_ACPI_STATUS(AE_CTRL_PENDING);
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "Bytes from stream:\n"));
+-
+ 	for (index = 0;
+ 	     (index < ACPI_NAME_SIZE)
+ 	     && (acpi_ut_valid_name_char(*aml_address, 0)); index++) {
+ 		char_buf[index] = *aml_address++;
+-		ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "%c\n", char_buf[index]));
+ 	}
+ 
+ 	/* Valid name segment  */
+@@ -192,9 +189,9 @@ static acpi_status acpi_ex_name_segment(u8 ** in_aml_address, char *name_string)
+ 		char_buf[4] = '\0';
+ 
+ 		if (name_string) {
+-			strcat(name_string, char_buf);
+ 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+-					  "Appended to - %s\n", name_string));
++					  "Appending NameSeg %s\n", char_buf));
++			strcat(name_string, char_buf);
+ 		} else {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+ 					  "No Name string - %s\n", char_buf));
+diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
+index c17af4a3ab67..93697527036d 100644
+--- a/drivers/acpi/acpica/nsinit.c
++++ b/drivers/acpi/acpica/nsinit.c
+@@ -286,7 +286,7 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
+  * RETURN:      Status
+  *
+  * DESCRIPTION: Callback from acpi_walk_namespace. Invoked for every object
+- *              within the  namespace.
++ *              within the namespace.
+  *
+  *              Currently, the only objects that require initialization are:
+  *              1) Methods
+@@ -400,6 +400,10 @@ acpi_ns_init_one_object(acpi_handle obj_handle,
+ 			break;
+ 		}
+ 
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
++				      "%s: Completing resolution of Package elements\n",
++				      ACPI_GET_FUNCTION_NAME));
 +
-+			acpi_ut_remove_reference(*element_ptr);
-+			*element_ptr = NULL;
-+			return_VOID;
-+		}
-+#endif
-+		status2 = acpi_ns_externalize_name(ACPI_UINT32_MAX,
-+						   (char *)element->reference.
-+						   aml, NULL, &external_path);
+ 		/*
+ 		 * Resolve all named references in package objects (and all
+ 		 * sub-packages). This action has been deferred until the entire
+@@ -409,6 +413,7 @@ acpi_ns_init_one_object(acpi_handle obj_handle,
+ 		status = acpi_ut_walk_package_tree(obj_desc, NULL,
+ 						   acpi_ds_init_package_element,
+ 						   NULL);
++
+ 		obj_desc->package.flags |= AOPOBJ_DATA_VALID;
+ 		break;
  
- 		ACPI_EXCEPTION((AE_INFO, status,
--				"Could not find/resolve named package element: %s",
-+				"While resolving a named reference package element - %s",
- 				external_path));
-+		if (ACPI_SUCCESS(status2)) {
-+			ACPI_FREE(external_path);
-+		}
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index c686eda7ca66..5d3bfaa6c035 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -354,6 +354,9 @@ char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
+ 	(void)acpi_ns_build_normalized_path(node, name_buffer, size,
+ 					    no_trailing);
  
--		/* Not found, set the element to NULL */
-+		/* Could not resolve name, set the element to NULL */
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES, "%s: Path \"%s\"\n",
++			      ACPI_GET_FUNCTION_NAME, name_buffer));
++
+ 	return_PTR(name_buffer);
+ }
  
--		ACPI_FREE(external_path);
- 		acpi_ut_remove_reference(*element_ptr);
- 		*element_ptr = NULL;
- 		return_VOID;
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index adee92c38c43..e6e757254138 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -58,6 +58,7 @@
+diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+index c5b22ea5b369..6ac2d26a2cfb 100644
+--- a/drivers/acpi/acpica/nsparse.c
++++ b/drivers/acpi/acpica/nsparse.c
+@@ -112,8 +112,10 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
+ 		goto cleanup;
+ 	}
  
- #define ACPI_USE_SYSTEM_CLIBRARY
- #define ACPI_USE_DO_WHILE_0
-+#define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
+-	ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-			  "Create table code block: %p\n", method_obj));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
++			      "%s: Create table pseudo-method for [%4.4s] @%p, method %p\n",
++			      ACPI_GET_FUNCTION_NAME, table->signature, table,
++			      method_obj));
  
- #ifdef __KERNEL__
+ 	method_obj->method.aml_start = aml_start;
+ 	method_obj->method.aml_length = aml_length;
+@@ -265,7 +267,8 @@ acpi_ns_parse_table(u32 table_index, struct acpi_namespace_node *start_node)
+ 	ACPI_FUNCTION_TRACE(ns_parse_table);
  
+ 	if (acpi_gbl_parse_table_as_term_list) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_PARSE, "**** Start load pass\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
++				  "**** Start table execution pass\n"));
+ 
+ 		status = acpi_ns_execute_table(table_index, start_node);
+ 		if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 7dca287d7690..569df3cc6cb5 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -165,7 +165,7 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
+ 		}
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-				  "Final argument count: %u pass %u\n",
++				  "Final argument count: %8.8X pass %u\n",
+ 				  walk_state->arg_count,
+ 				  walk_state->pass_number));
+ 
+@@ -581,7 +581,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 		/* Check for arguments that need to be processed */
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-				  "Parseloop: argument count: %u\n",
++				  "Parseloop: argument count: %8.8X\n",
+ 				  walk_state->arg_count));
+ 
+ 		if (walk_state->arg_count) {
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index 2474ff961294..b10fb68eb83d 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -454,7 +454,7 @@ acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
+ 			  walk_state->parser_state.aml_size));
+ 
+ 	if (!walk_state->parser_state.aml) {
+-		return_ACPI_STATUS(AE_NULL_OBJECT);
++		return_ACPI_STATUS(AE_BAD_ADDRESS);
+ 	}
+ 
+ 	/* Create and initialize a new thread state */
+diff --git a/drivers/acpi/acpica/utcache.c b/drivers/acpi/acpica/utcache.c
+index 08e6944404b3..3ec7e8aca325 100644
+--- a/drivers/acpi/acpica/utcache.c
++++ b/drivers/acpi/acpica/utcache.c
+@@ -269,9 +269,10 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
+ 		cache->current_depth--;
+ 
+ 		ACPI_MEM_TRACKING(cache->hits++);
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-				  "Object %p from %s cache\n", object,
+-				  cache->list_name));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_EXEC,
++				      "%s: Object %p from %s cache\n",
++				      ACPI_GET_FUNCTION_NAME, object,
++				      cache->list_name));
+ 
+ 		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
+ 		if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 7d8d0208f0a3..db98f0d991f7 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -332,8 +332,10 @@ static void acpi_ut_delete_internal_obj(union acpi_operand_object *object)
+ 
+ 	/* Now the object can be safely deleted */
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "Deleting Object %p [%s]\n",
+-			  object, acpi_ut_get_object_type_name(object)));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++			      "%s: Deleting Object %p [%s]\n",
++			      ACPI_GET_FUNCTION_NAME, object,
++			      acpi_ut_get_object_type_name(object)));
+ 
+ 	acpi_ut_delete_object_desc(object);
+ 	return_VOID;
+@@ -444,9 +446,10 @@ acpi_ut_update_ref_count(union acpi_operand_object *object, u32 action)
+ 				      object));
+ 		}
+ 
+-		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+-				  "Obj %p Type %.2X Refs %.2X [Decremented]\n",
+-				  object, object->common.type, new_count));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++				      "%s: Obj %p Type %.2X Refs %.2X [Decremented]\n",
++				      ACPI_GET_FUNCTION_NAME, object,
++				      object->common.type, new_count));
+ 
+ 		/* Actually delete the object on a reference count of zero */
+ 
+@@ -747,9 +750,10 @@ void acpi_ut_remove_reference(union acpi_operand_object *object)
+ 		return;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+-			  "Obj %p Current Refs=%X [To Be Decremented]\n",
+-			  object, object->common.reference_count));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++			      "%s: Obj %p Current Refs=%X [To Be Decremented]\n",
++			      ACPI_GET_FUNCTION_NAME, object,
++			      object->common.reference_count));
+ 
+ 	/*
+ 	 * Decrement the reference count, and only actually delete the object
 -- 
 2.14.3
 
