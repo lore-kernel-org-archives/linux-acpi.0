@@ -1,64 +1,145 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2 0/5] ACPI: Do not call _STA on battery devices with
- unmet dependencies
-Date: Wed, 14 Feb 2018 11:33:06 +0100
-Message-ID: <a62364ba-7b79-6bb0-20a3-c66cb166e923@redhat.com>
-References: <20180122085135.16732-1-hdegoede@redhat.com>
- <3281375.11fh90aaLK@aspire.rjw.lan>
- <7efce3e1-4cb7-fa68-9024-73fa124b9171@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E3B7570FA0@ORSMSX110.amr.corp.intel.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v12 6/9] LPC: Support the LPC host on Hip06/Hip07 with DT
+ bindings
+Date: Wed, 14 Feb 2018 11:35:24 +0000
+Message-ID: <78ff2d7a-201f-8fff-9acc-ae23a65ce18f@huawei.com>
+References: <1516725385-24535-1-git-send-email-john.garry@huawei.com>
+ <1516725385-24535-7-git-send-email-john.garry@huawei.com>
+ <20180213184123.GA11446@xps13.dannf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34970 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754564AbeBNKdJ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Feb 2018 05:33:09 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r78so21149433wme.0
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Feb 2018 02:33:08 -0800 (PST)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3B7570FA0@ORSMSX110.amr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180213184123.GA11446@xps13.dannf>
+Sender: linux-pci-owner@vger.kernel.org
+To: dann frazier <dann.frazier@canonical.com>
+Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, hanjun.guo@linaro.org, benh@kernel.crashing.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, linux-pci@vger.kernel.org, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, Zhichang Yuan <yuanzhichang@hisilicon.com>, Zou Rongrong <zourongrong@huawei.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Box, David E" <david.e.box@intel.com>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-Hi,
+Hi Dann,
 
-On 08-02-18 18:34, Moore, Robert wrote:
-> 
-> 
->>> The last one needs to go in via ACPICA anyway or we'll need to carry a
->>> Linux-specific replacement for acpi_get_object_info().
->>
->> Ack, I'm discussing how to proceed with this with the ACPICA people.
->>
->> Regards,
->>
->> Hans
-> 
-> 
-> I normally don't like to change external interfaces (the biggest reason being the sheer number of different OS vendors that use ACPICA), but in this case, I feel it may be OK. This interface is probably not heavily used, and there is precedent for this when the invocation of _SUB was removed.
-> 
-> On the other hand, I think I saw it mentioned that Linux calls this interface only once, is this correct?
+>> + */
+>> +static int
+>> +hisilpc_target_in(struct hisilpc_dev *lpcdev, struct lpc_cycle_para *para,
+>> +		  unsigned long ptaddr, unsigned char *buf,
+>> +		  unsigned long opcnt)
+>> +{
+>> +	unsigned long cnt_per_trans;
+>> +	unsigned int cmd_word;
+>> +	unsigned int waitcnt;
+>> +	int ret;
+>> +
+>> +	if (!buf || !opcnt || !para || !para->csize || !lpcdev)
+>> +		return -EINVAL;
+>> +
+>> +	cmd_word = LPC_CMD_TYPE_IO | LPC_CMD_READ;
+>> +	waitcnt = LPC_PEROP_WAITCNT;
+>> +	if (!(para->opflags & FG_INCRADDR_LPC)) {
+>> +		cmd_word |= LPC_CMD_SAMEADDR;
+>> +		waitcnt = LPC_MAX_WAITCNT;
+>> +	}
+>> +
+>> +	ret = 0;
+>> +	cnt_per_trans = (para->csize == 1) ? opcnt : para->csize;
+>> +	for (; opcnt && !ret; cnt_per_trans = para->csize) {
+>> +		unsigned long flags;
+>> +
+>> +		/* whole operation must be atomic */
+>> +		spin_lock_irqsave(&lpcdev->cycle_lock, flags);
+>> +
+>> +		writel_relaxed(cnt_per_trans, lpcdev->membase + LPC_REG_OP_LEN);
+>> +
+>> +		writel_relaxed(cmd_word, lpcdev->membase + LPC_REG_CMD);
+>> +
+>> +		writel_relaxed(ptaddr, lpcdev->membase + LPC_REG_ADDR);
+>> +
+>> +		writel(LPC_START_WORK, lpcdev->membase + LPC_REG_START);
+>> +
+>> +		/* whether the operation is finished */
+>> +		ret = wait_lpc_idle(lpcdev->membase, waitcnt);
+>> +		if (!ret) {
+>> +			opcnt -= cnt_per_trans;
+>
+> Do we need to check for an underflow here?
 
-More or less, Linux calls it once when enumerating all the devices and a few ACPI drivers call it again to get some
-extra info they need.
+I think that underflow is ensured not to happen.
 
-> If so, perhaps it would be easiest to simply remove this call and use direct control method invocations to obtain the desired data.
+Regardless, I find this code hard to follow myself, so I will rewrite a 
+bit of this to make it more straightforward.
 
-If we go this route we would probably end up copying the function, since as said several drivers
-use it too.
+>
+>> +			for (cnt_per_trans--; cnt_per_trans--; buf++)
+>> +				*buf = readb_relaxed(lpcdev->membase +
+>> +					LPC_REG_RDATA);
+>> +			*buf = readb(lpcdev->membase + LPC_REG_RDATA);
+>> +		}
+>> +
+>> +		spin_unlock_irqrestore(&lpcdev->cycle_lock, flags);
+>> +	}
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +/*
+>> + * hisilpc_target_out - trigger a series of lpc cycles to write required
+>> + *			data to target peripheral.
+>> + * @lpcdev: pointer to hisi lpc device
+>> + * @para: some parameters used to control the lpc I/O operations
+>> + * @ptaddr: the lpc I/O target port address
+>> + * @buf: where the data to be written is stored
+>> + * @opcnt: how many I/O operations required
+>> + *
+>> + * Only one byte data is read each I/O operation.
+>
+> s/read/written/ ?
 
-> If we go ahead and make this change to ACPICA: I have not seen the patch, but please make sure that all vestiges of this are removed. This includes all invocations within ACPICA that examine the result of the _STA invocation, the CurrentStatus field of ACPI_DEVICE_INFO, the ACPI_VALID_STA flag, etc.
+Right
 
-The patch already does that:
+>
+>> + * Returns 0 on success, non-zero on fail.
+>> + *
+>> + */
+>> +static int
+>> +hisilpc_target_out(struct hisilpc_dev *lpcdev, struct lpc_cycle_para *para,
+>> +		   unsigned long ptaddr, const unsigned char *buf,
+>> +		   unsigned long opcnt)
+>> +{
+>> +	unsigned long cnt_per_trans;
+>> +	unsigned int cmd_word;
+>> +	unsigned int waitcnt;
+>> +	int ret;
+>> +
+>> +	if (!buf || !opcnt || !para || !lpcdev)
+>> +		return -EINVAL;
+>> +
+>> +	/* default is increasing address */
+>> +	cmd_word = LPC_CMD_TYPE_IO | LPC_CMD_WRITE;
+>> +	waitcnt = LPC_PEROP_WAITCNT;
+>> +	if (!(para->opflags & FG_INCRADDR_LPC)) {
+>> +		cmd_word |= LPC_CMD_SAMEADDR;
+>> +		waitcnt = LPC_MAX_WAITCNT;
+>> +	}
+>> +
+>> +	ret = 0;
+>> +	cnt_per_trans = (para->csize == 1) ? opcnt : para->csize;
+>> +	for (; opcnt && !ret; cnt_per_trans = para->csize) {
+>> +		unsigned long flags;
+>> +
+>> +		spin_lock_irqsave(&lpcdev->cycle_lock, flags);
+>> +
+>> +		writel_relaxed(cnt_per_trans, lpcdev->membase + LPC_REG_OP_LEN);
+>> +		writel_relaxed(cmd_word, lpcdev->membase + LPC_REG_CMD);
+>> +		writel_relaxed(ptaddr, lpcdev->membase + LPC_REG_ADDR);
+>> +
+>> +		opcnt -= cnt_per_trans;
+>
+> Underflow check needed?
 
-https://patchwork.kernel.org/patch/10186195/
+As above
 
-Regards,
+>
+>  -dann
+>
 
-Hans
-
-
+Thanks,
+John
