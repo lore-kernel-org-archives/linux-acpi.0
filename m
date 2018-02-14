@@ -1,83 +1,227 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH] ACPICA: Recognize the Windows 10 RS3 OSI string
-Date: Wed, 14 Feb 2018 15:39:21 +0000
-Message-ID: <083ff76874ae4cde8e15740ad98ce9b5@ausx13mpc120.AMER.DELL.COM>
-References: <1518544819-1173-1-git-send-email-mario.limonciello@dell.com>
- <CAJZ5v0gYMTsG-t6VY3MurP-p5faT3kVdUoeA_LiSrL7moUW2yQ@mail.gmail.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v13 4/9] PCI: Apply the new generic I/O management on PCI
+ IO hosts
+Date: Wed, 14 Feb 2018 15:42:15 +0000
+Message-ID: <ffaf1c82-3738-86fd-8bc9-f76299f99a79@huawei.com>
+References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
+ <1518543933-22456-5-git-send-email-john.garry@huawei.com>
+ <20180213225721.GA22219@xps13.dannf>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from esa4.dell-outbound.iphmx.com ([68.232.149.214]:47426 "EHLO
-        esa4.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1031607AbeBNPjZ (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>);
-        Wed, 14 Feb 2018 10:39:25 -0500
-In-Reply-To: <CAJZ5v0gYMTsG-t6VY3MurP-p5faT3kVdUoeA_LiSrL7moUW2yQ@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180213225721.GA22219@xps13.dannf>
+Sender: linux-kernel-owner@vger.kernel.org
+To: dann frazier <dann.frazier@canonical.com>
+Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, andy.shevchenko@gmail.com, robh@kernel.org, joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael@kernel.org
-Cc: linux-acpi@vger.kernel.org, lenb@kernel.org, rjw@rjwysocki.net, mika.westerberg@linux.intel.com
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
-IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0KPiBX
-eXNvY2tpDQo+IFNlbnQ6IFdlZG5lc2RheSwgRmVicnVhcnkgMTQsIDIwMTggMjo0NiBBTQ0KPiBU
-bzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6
-IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3QgPGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnPjsgTGVu
-IEJyb3duDQo+IDxsZW5iQGtlcm5lbC5vcmc+OyBSYWZhZWwgSiAuIFd5c29ja2kgPHJqd0Byand5
-c29ja2kubmV0PjsgTWlrYSBXZXN0ZXJiZXJnDQo+IDxtaWthLndlc3RlcmJlcmdAbGludXguaW50
-ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBBQ1BJQ0E6IFJlY29nbml6ZSB0aGUgV2lu
-ZG93cyAxMCBSUzMgT1NJIHN0cmluZw0KPiANCj4gT24gVHVlLCBGZWIgMTMsIDIwMTggYXQgNzow
-MCBQTSwgTWFyaW8gTGltb25jaWVsbG8NCj4gPG1hcmlvLmxpbW9uY2llbGxvQGRlbGwuY29tPiB3
-cm90ZToNCj4gPiBEZWxsIHVzZXMgdGhpcyBzdHJpbmcgdG8gYWN0aXZhdGUgVGh1bmRlcmJvbHQg
-bmF0aXZlIG1vZGUgb24gc3VwcG9ydGVkDQo+ID4gbWFjaGluZXMuDQo+ID4NCj4gPiBTaWduZWQt
-b2ZmLWJ5OiBNYXJpbyBMaW1vbmNpZWxsbyA8bWFyaW8ubGltb25jaWVsbG9AZGVsbC5jb20+DQo+
-ID4gLS0tDQo+ID4gVGh1bmRlcmJvbHQgTmF0aXZlIG1vZGUgcmVxdWlyZXMgb3RoZXIgcGF0Y2hl
-cyB0byBiZSBhcHBsaWVkIG90aGVyd2lzZQ0KPiA+IHRoaXMgcGF0Y2ggd2lsbCBjYXVzZSBwcm9i
-bGVtcy4NCg0KSSBzaG91bGQgaGF2ZSBiZWVuIGNsZWFyZXIgIC0gcHJvYmxlbXMgd2l0aCB0aHVu
-ZGVyYm9sdCBkcml2ZXIgaW4gTGludXguDQoNCklmIHlvdSBhcHBseSB0aGlzIHBhdGNoIHdpdGhv
-dXQgdGhlIHJlc3Qgb2YgTWlrYSdzIHNlcmllcyB0aGVyZSB3aWxsIGJlIHByb2JsZW1zDQp3aXRo
-IFRodW5kZXJib2x0IG5hdGl2ZSBtb2RlIGluIExpbnV4Lg0KDQpUaGUgcGF0Y2hlcyB5b3UgYWxy
-ZWFkeSByZXZpZXdlZCBpbg0KPiAgICBodHRwczovL21hcmMuaW5mby8/bD1saW51eC1hY3BpJm09
-MTUxODUzOTU0MTI5MTY5Jnc9Mg0KDQpBcmUgdGhlIG1vcmUgaW1wb3J0YW50IG9uZXMsIGJ1dCBh
-IGZldyBvZiB0aGUgZml4ZXMgdGhhdCBjYW1lIGluIHRoZSBzZWNvbmQNCnNlcmllcyBoZWxwIHdp
-dGggc29tZSBvZiB0aGUgY29ybmVyIGNhc2VzIChmb3IgZXhhbXBsZSBjb2xkIGJvb3QgSUNNIHRp
-bWVvdXQpLg0KDQpNaWthIG1pZ2h0IGhhdmUgYSBmZXcgbW9yZSBjb21tZW50cyB0byBhZGQgaGVy
-ZSBmcm9tIHRoZSB0ZXN0aW5nIGhlIGRpZA0KdG8gbWFrZSB0aG9zZSBwYXRjaGVzLg0KDQo+ID4N
-Cj4gPiBUaGlzIHBhdGNoIHNob3VsZCBvbmx5IGJlIGFwcGxpZWQgd2l0aDoNCj4gPiAxKSBBY3Bp
-cGhwIHBsYXRjaGVzIGZyb20NCj4gPiAgICBodHRwczovL21hcmMuaW5mby8/bD1saW51eC1hY3Bp
-Jm09MTUxODUzOTU0MTI5MTY5Jnc9Mg0KPiA+IGFuZA0KPiA+DQo+ID4gMikgVGh1bmRlcmJvbHQg
-cGF0Y2hlcyBmcm9tDQo+ID4gICAgaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvMi8xMy82ODUN
-Cj4gDQo+IFRoYW5rcyBmb3IgdGhlc2UgcG9pbnRlcnMsIHRoZXkgaGVscCBhIGxvdC4NCj4gDQo+
-ID4gVGhpcyBoYXMgYWxzbyBiZWVuIHN1Ym1pdGVkIGludG8gQUNQSUNBOg0KPiA+IGh0dHBzOi8v
-Z2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL3B1bGwvMzU5DQo+IA0KPiBEdWUgdG8gdGhlIGRlcGVu
-ZGVuY2llcyBvdXRzaWRlIG9mIHVwc3RyZWFtIEFDUElDQSwgSSBkb24ndCB0aGluayB0aGF0DQo+
-IHRoaXMgcGF0Y2ggaXMgc3VpdGFibGUgZm9yIHVwc3RyZWFtIEFDUElDQSBhdCBhbGwuDQoNCkFj
-dHVhbGx5IEFDUElDQSBkaWQgbWVyZ2UgaXQgYWxyZWFkeToNCmh0dHBzOi8vZ2l0aHViLmNvbS9h
-Y3BpY2EvYWNwaWNhL2NvbW1pdC8yNGY3NzkxNzg5YzQ5ZWMwMmViMDI0MTA2Yzg1ZDIzMzIyYmU1
-NjcyDQoNCj4gDQo+ID4NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS91dG9zaS5jIHwgMSArDQo+
-ID4gIGluY2x1ZGUvYWNwaS9hY3R5cGVzLmggICAgICB8IDEgKw0KPiA+ICAyIGZpbGVzIGNoYW5n
-ZWQsIDIgaW5zZXJ0aW9ucygrKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9h
-Y3BpY2EvdXRvc2kuYyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvdXRvc2kuYw0KPiA+IGluZGV4IGY2
-YjhkZDIuLmFlZDc3YzMgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS91dG9z
-aS5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS91dG9zaS5jDQo+ID4gQEAgLTEwMyw2
-ICsxMDMsNyBAQCBzdGF0aWMgc3RydWN0IGFjcGlfaW50ZXJmYWNlX2luZm8NCj4gYWNwaV9kZWZh
-dWx0X3N1cHBvcnRlZF9pbnRlcmZhY2VzW10gPSB7DQo+ID4gICAgICAgICB7IldpbmRvd3MgMjAx
-NSIsIE5VTEwsIDAsIEFDUElfT1NJX1dJTl8xMH0sICAgICAvKiBXaW5kb3dzIDEwIC0gQWRkZWQN
-Cj4gMDMvMjAxNSAqLw0KPiA+ICAgICAgICAgeyJXaW5kb3dzIDIwMTYiLCBOVUxMLCAwLCBBQ1BJ
-X09TSV9XSU5fMTBfUlMxfSwgLyogV2luZG93cyAxMCB2ZXJzaW9uDQo+IDE2MDcgLSBBZGRlZCAx
-Mi8yMDE3ICovDQo+ID4gICAgICAgICB7IldpbmRvd3MgMjAxNyIsIE5VTEwsIDAsIEFDUElfT1NJ
-X1dJTl8xMF9SUzJ9LCAvKiBXaW5kb3dzIDEwIHZlcnNpb24NCj4gMTcwMyAtIEFkZGVkIDEyLzIw
-MTcgKi8NCj4gPiArICAgICAgIHsiV2luZG93cyAyMDE3LjIiLCBOVUxMLCAwLCBBQ1BJX09TSV9X
-SU5fMTBfUlMzfSwgLyogV2luZG93cyAxMA0KPiB2ZXJzaW9uIDE3MDkgLSBBZGRlZCAwMi8yMDE4
-ICovDQo+ID4NCj4gPiAgICAgICAgIC8qIEZlYXR1cmUgR3JvdXAgU3RyaW5ncyAqLw0KPiA+DQo+
-ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvYWNwaS9hY3R5cGVzLmggYi9pbmNsdWRlL2FjcGkvYWN0
-eXBlcy5oDQo+ID4gaW5kZXggMzFmMWJlNy4uM2Y4MjljYyAxMDA2NDQNCj4gPiAtLS0gYS9pbmNs
-dWRlL2FjcGkvYWN0eXBlcy5oDQo+ID4gKysrIGIvaW5jbHVkZS9hY3BpL2FjdHlwZXMuaA0KPiA+
-IEBAIC0xMzAzLDYgKzEzMDMsNyBAQCB0eXBlZGVmIGVudW0gew0KPiA+ICAjZGVmaW5lIEFDUElf
-T1NJX1dJTl8xMCAgICAgICAgICAgICAgICAgMHgwRA0KPiA+ICAjZGVmaW5lIEFDUElfT1NJX1dJ
-Tl8xMF9SUzEgICAgICAgICAgICAgMHgwRQ0KPiA+ICAjZGVmaW5lIEFDUElfT1NJX1dJTl8xMF9S
-UzIgICAgICAgICAgICAgMHgwRg0KPiA+ICsjZGVmaW5lIEFDUElfT1NJX1dJTl8xMF9SUzMgICAg
-ICAgICAgICAgMHgxMA0KPiA+DQo+ID4gIC8qIERlZmluaXRpb25zIG9mIGdldG9wdCAqLw0KPiA+
-DQo+ID4gLS0NCg==
+On 13/02/2018 22:57, dann frazier wrote:
+> On Wed, Feb 14, 2018 at 01:45:28AM +0800, John Garry wrote:
+>> From: Zhichang Yuan <yuanzhichang@hisilicon.com>
+>>
+>> After introducing the new generic I/O space management in logic pio, the
+>> original PCI MMIO relevant helpers need to be updated based on the new
+>> interfaces.
+>> This patch adapts the corresponding code to match the changes introduced
+>> by logic pio.
+>>
+>> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
+>> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>        #earlier draft
+>> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>
+> I saw that Bjorn Acked this back in v6, but it seems like the code in
+> pci.c was reworked a bit for v7 onwards and I didn't see a follow-up
+> review (apologies if I just missed it). In which case, maybe his Ack
+> should have the "#earlier draft" tag as well?
+>
+
+Hi Dann,
+
+I see Bjorn acked again later on in the series, here:
+https://lkml.org/lkml/2017/5/26/612
+
+>> ---
+>>  drivers/pci/pci.c        | 95 +++++++++---------------------------------------
+>>  include/asm-generic/io.h |  2 +-
+>>  2 files changed, 18 insertions(+), 79 deletions(-)
+>>
+>> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+>> index 07290a3..8aa5c54 100644
+>> --- a/drivers/pci/pci.c
+>> +++ b/drivers/pci/pci.c
+>> @@ -22,6 +22,7 @@
+>>  #include <linux/spinlock.h>
+>>  #include <linux/string.h>
+>>  #include <linux/log2.h>
+>> +#include <linux/logic_pio.h>
+>>  #include <linux/pci-aspm.h>
+>>  #include <linux/pm_wakeup.h>
+>>  #include <linux/interrupt.h>
+>> @@ -3440,17 +3441,6 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
+>>  }
+>>  EXPORT_SYMBOL(pci_request_regions_exclusive);
+>>
+>> -#ifdef PCI_IOBASE
+>> -struct io_range {
+>> -	struct list_head list;
+>> -	phys_addr_t start;
+>> -	resource_size_t size;
+>> -};
+>> -
+>> -static LIST_HEAD(io_range_list);
+>> -static DEFINE_SPINLOCK(io_range_lock);
+>> -#endif
+>> -
+>>  /*
+>>   * Record the PCI IO range (expressed as CPU physical address + size).
+>>   * Return a negative value if an error has occured, zero otherwise
+>> @@ -3458,51 +3448,28 @@ struct io_range {
+>>  int pci_register_io_range(struct fwnode_handle *fwnode, phys_addr_t addr,
+>>  			resource_size_t	size)
+>>  {
+>> -	int err = 0;
+>> -
+>> +	int ret = 0;
+>>  #ifdef PCI_IOBASE
+>> -	struct io_range *range;
+>> -	resource_size_t allocated_size = 0;
+>> -
+>> -	/* check if the range hasn't been previously recorded */
+>> -	spin_lock(&io_range_lock);
+>> -	list_for_each_entry(range, &io_range_list, list) {
+>> -		if (addr >= range->start && addr + size <= range->start + size) {
+>> -			/* range already registered, bail out */
+>> -			goto end_register;
+>> -		}
+>> -		allocated_size += range->size;
+>> -	}
+>> +	struct logic_pio_hwaddr *range;
+>>
+>> -	/* range not registed yet, check for available space */
+>> -	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
+>> -		/* if it's too big check if 64K space can be reserved */
+>> -		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
+>> -			err = -E2BIG;
+>> -			goto end_register;
+>> -		}
+>> -
+>> -		size = SZ_64K;
+>> -		pr_warn("Requested IO range too big, new size set to 64K\n");
+>> -	}
+>> +	if (!size || addr + size < addr)
+>> +		return -EINVAL;
+>>
+>> -	/* add the range to the list */
+>>  	range = kzalloc(sizeof(*range), GFP_ATOMIC);
+>> -	if (!range) {
+>> -		err = -ENOMEM;
+>> -		goto end_register;
+>> -	}
+>> +	if (!range)
+>> +		return -ENOMEM;
+>>
+>> -	range->start = addr;
+>> +	range->fwnode = fwnode;
+>>  	range->size = size;
+>> +	range->hw_start = addr;
+>> +	range->flags = PIO_CPU_MMIO;
+>>
+>> -	list_add_tail(&range->list, &io_range_list);
+>> -
+>> -end_register:
+>> -	spin_unlock(&io_range_lock);
+>> +	ret = logic_pio_register_range(range);
+>> +	if (ret)
+>> +		kfree(range);
+>>  #endif
+>>
+>> -	return err;
+>> +	return ret;
+>>  }
+>>
+>>  phys_addr_t pci_pio_to_address(unsigned long pio)
+>> @@ -3510,21 +3477,10 @@ phys_addr_t pci_pio_to_address(unsigned long pio)
+>>  	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
+>>
+>>  #ifdef PCI_IOBASE
+>> -	struct io_range *range;
+>> -	resource_size_t allocated_size = 0;
+>> -
+>> -	if (pio > IO_SPACE_LIMIT)
+>> +	if (pio >= MMIO_UPPER_LIMIT)
+>>  		return address;
+>>
+>> -	spin_lock(&io_range_lock);
+>> -	list_for_each_entry(range, &io_range_list, list) {
+>> -		if (pio >= allocated_size && pio < allocated_size + range->size) {
+>> -			address = range->start + pio - allocated_size;
+>> -			break;
+>> -		}
+>> -		allocated_size += range->size;
+>> -	}
+>> -	spin_unlock(&io_range_lock);
+>> +	address = logic_pio_to_hwaddr(pio);
+>>  #endif
+>>
+>>  	return address;
+>> @@ -3533,25 +3489,8 @@ phys_addr_t pci_pio_to_address(unsigned long pio)
+>>  unsigned long __weak pci_address_to_pio(phys_addr_t address)
+>>  {
+>>  #ifdef PCI_IOBASE
+>> -	struct io_range *res;
+>> -	resource_size_t offset = 0;
+>> -	unsigned long addr = -1;
+>> -
+>> -	spin_lock(&io_range_lock);
+>> -	list_for_each_entry(res, &io_range_list, list) {
+>> -		if (address >= res->start && address < res->start + res->size) {
+>> -			addr = address - res->start + offset;
+>> -			break;
+>> -		}
+>> -		offset += res->size;
+>> -	}
+>> -	spin_unlock(&io_range_lock);
+>> -
+>> -	return addr;
+>> +	return logic_pio_trans_cpuaddr(address);
+>>  #else
+>> -	if (address > IO_SPACE_LIMIT)
+>> -		return (unsigned long)-1;
+>> -
+>
+> Why is this check now safe to drop in the !PCI_IOBASE case?
+
+So I have been studying the (long) patchset history and I don't see the 
+reason for removing this check, and I think it can be reinstated.
+
+The address and pio are analogous here, and pio should not exceed the IO 
+space limit, so just a safety check.
+
+>
+>   -dann
+>
+>>  	return (unsigned long) address;
+>>  #endif
+>>  }
+>> diff --git a/include/asm-generic/io.h b/include/asm-generic/io.h
+>> index b7996a79..5a59931 100644
+>> --- a/include/asm-generic/io.h
+>> +++ b/include/asm-generic/io.h
+>> @@ -901,7 +901,7 @@ static inline void iounmap(void __iomem *addr)
+>>  #define ioport_map ioport_map
+>>  static inline void __iomem *ioport_map(unsigned long port, unsigned int nr)
+>>  {
+
+Thanks,
+John
+
+>> -	return PCI_IOBASE + (port & IO_SPACE_LIMIT);
+>> +	return PCI_IOBASE + (port & MMIO_UPPER_LIMIT);
+>>  }
+>>  #endif
+>>
+>
+> .
+>
