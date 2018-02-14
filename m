@@ -1,39 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 0/2] acpi: document sysfs interfaces
-Date: Wed, 14 Feb 2018 10:27:24 +0100
-Message-ID: <2867905.gflgnk5biQ@aspire.rjw.lan>
-References: <cover.1518252138.git.aishpant@gmail.com>
+Subject: Re: [PATCH] ACPI: SPCR: Mark expected switch fall-through in acpi_parse_spcr
+Date: Wed, 14 Feb 2018 10:27:53 +0100
+Message-ID: <1757557.bTtaD8LxG2@aspire.rjw.lan>
+References: <20180209180821.GA20326@embeddedgus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cloudserver094114.home.pl ([79.96.170.134]:60714 "EHLO
-        cloudserver094114.home.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966446AbeBNJ3N (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Feb 2018 04:29:13 -0500
-In-Reply-To: <cover.1518252138.git.aishpant@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180209180821.GA20326@embeddedgus>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Aishwarya Pant <aishpant@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg KH <gregkh@linuxfoundation.org>, Julia Lawall <julia.lawall@lip6.fr>
 
-On Saturday, February 10, 2018 9:55:53 AM CET Aishwarya Pant wrote:
-> Patchset contains documentation for two acpi drivers- dock and dptf. Description
-> was collected from git history and reading through code. This might be useful
-> for tracking changes in the ABI.
+On Friday, February 9, 2018 7:08:21 PM CET Gustavo A. R. Silva wrote:
+> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
+> where we are expecting to fall through.
 > 
-> Changes in v2:
-> - Split up multiple attribute definitions
+> Addresses-Coverity-ID: 1465078
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+> This code was compiled with GCC 7.3.0
 > 
-> Aishwarya Pant (2):
->   acpi/dptf: document sysfs atttributes
->   acpi/dock: document sysfs interface
+>  drivers/acpi/spcr.c | 1 +
+>  1 file changed, 1 insertion(+)
 > 
->  .../ABI/testing/sysfs-devices-platform-dock        | 39 +++++++++++++++++++++
->  Documentation/ABI/testing/sysfs-platform-dptf      | 40 ++++++++++++++++++++++
->  2 files changed, 79 insertions(+)
->  create mode 100644 Documentation/ABI/testing/sysfs-devices-platform-dock
->  create mode 100644 Documentation/ABI/testing/sysfs-platform-dptf
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> index 89e97d2..9d52743 100644
+> --- a/drivers/acpi/spcr.c
+> +++ b/drivers/acpi/spcr.c
+> @@ -115,6 +115,7 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+>  			table->serial_port.access_width))) {
+>  		default:
+>  			pr_err("Unexpected SPCR Access Width.  Defaulting to byte size\n");
+> +			/* fall through */
+>  		case 8:
+>  			iotype = "mmio";
+>  			break;
+> 
 
-Both patches applied with minor modifications, thanks!
-
+Applied, thanks!
