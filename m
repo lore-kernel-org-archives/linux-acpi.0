@@ -1,168 +1,170 @@
-From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 08/37] iommu/fault: Handle mm faults
-Date: Wed, 14 Feb 2018 10:46:21 -0800
-Message-ID: <20180214104621.7675579c@jacob-builder>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-9-jean-philippe.brucker@arm.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
+Date: Wed, 14 Feb 2018 18:47:17 +0000
+Message-ID: <ef6487e0f4954f96816354e69ae3f1fc@ausx13mpc120.AMER.DELL.COM>
+References: <1517388005-14852-1-git-send-email-alex.hung@canonical.com>
+ <1517388005-14852-2-git-send-email-alex.hung@canonical.com>
+ <20180205141447.6e1442ac@endymion>
+ <1517840100.22495.25.camel@linux.intel.com>
+ <5de252ed95ee48eab3bd8deeea5c610a@ausx13mpc120.AMER.DELL.COM>
+ <20180205224531.GA46524@dtor-ws>
+ <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
+ <1517924731.22495.51.camel@linux.intel.com>
+ <CAJZ5v0gpkBkuSV8rvvgVq8Cr7cWUr0PfeuGD5tG7GU+jWsTkqg@mail.gmail.com>
+ <20180211134510.GB1521@wunner.de>
+ <CAJZ5v0jXwNx7-O_icxAqHwEvki0mZDK_VijDU-hcVM7CtG46Tg@mail.gmail.com>
+ <9ae8628a5a9649afaadfa4dda5d896af@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0hUz-+0+_Buobx1Y9d8YVzObsJ4r=Zm61wdm-F7ffhBKg@mail.gmail.com>
+ <81dad01f354e4dcab852d145ce5d9fb3@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0jCRXs9wCBb-kE-0HVJPCSMRZFgY8hF5Mn+kFLYhdp4=A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180212183352.22730-9-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from esa8.dell-outbound.iphmx.com ([68.232.149.218]:59971 "EHLO
+        esa8.dell-outbound.iphmx.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754756AbeBNSrU (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>);
+        Wed, 14 Feb 2018 13:47:20 -0500
+In-Reply-To: <CAJZ5v0jCRXs9wCBb-kE-0HVJPCSMRZFgY8hF5Mn+kFLYhdp4=A@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rafael@kernel.org
+Cc: lukas@wunner.de, alex.hung@canonical.com, andriy.shevchenko@linux.intel.com, dmitry.torokhov@gmail.com, jdelvare@suse.de, lenb@kernel.org, gregkh@linuxfoundation.org, davem@davemloft.net, mika.westerberg@linux.intel.com, f.fainelli@gmail.com, kishon@ti.com, karniksayli1995@gmail.com, linux-acpi@vger.kernel.org
 
-On Mon, 12 Feb 2018 18:33:23 +0000
-Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
-
-> When a recoverable page fault is handled by the fault workqueue, find
-> the associated mm and call handle_mm_fault.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-> ---
->  drivers/iommu/io-pgfault.c | 89
-> ++++++++++++++++++++++++++++++++++++++++++++-- 1 file changed, 87
-> insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/iommu/io-pgfault.c b/drivers/iommu/io-pgfault.c
-> index 33309ed316d2..565ec01a1b5f 100644
-> --- a/drivers/iommu/io-pgfault.c
-> +++ b/drivers/iommu/io-pgfault.c
-> @@ -9,6 +9,7 @@
->  
->  #include <linux/iommu.h>
->  #include <linux/list.h>
-> +#include <linux/sched/mm.h>
->  #include <linux/slab.h>
->  #include <linux/workqueue.h>
->  
-> @@ -82,8 +83,92 @@ static int iommu_fault_complete(struct
-> iommu_domain *domain, struct device *dev, 
->  static int iommu_fault_handle_single(struct iommu_fault_context
-> *fault) {
-> -	/* TODO */
-> -	return -ENODEV;
-> +	struct mm_struct *mm;
-> +	struct vm_area_struct *vma;
-> +	unsigned int access_flags = 0;
-unsigned long to match vm_flags?
-> +	int ret = IOMMU_PAGE_RESP_INVALID;
-> +	unsigned int fault_flags = FAULT_FLAG_REMOTE;
-> +	struct iommu_fault_event *evt = &fault->evt;
-> +
-> +	if (!evt->pasid_valid)
-> +		return ret;
-I guess for not we don't handle PRQ without PASID, right?
-> +
-> +	/*
-> +	 * Special case: PASID Stop Marker (LRW = 0b100) doesn't
-> expect a
-> +	 * response. A Stop Marker may be generated when disabling a
-> PASID
-> +	 * (issuing a PASID stop request) in some PCI devices.
-> +	 *
-> +	 * When the mm_exit() callback returns from the device
-> driver, no page
-> +	 * request is generated for this PASID anymore and
-> outstanding ones have
-> +	 * been pushed to the IOMMU (as per PCIe 4.0r1.0 - 6.20.1
-> and 10.4.1.2 -
-> +	 * Managing PASID TLP Prefix Usage). Some PCI devices will
-> wait for all
-> +	 * outstanding page requests to come back with a response
-> before
-> +	 * completing the PASID stop request. Others do not wait for
-> page
-> +	 * responses, and instead issue this Stop Marker that tells
-> us when the
-> +	 * PASID can be reallocated.
-> +	 *
-> +	 * We ignore the Stop Marker because:
-> +	 * a. Page requests, which are posted requests, have been
-> flushed to the
-> +	 *    IOMMU when mm_exit() returns,
-> +	 * b. We flush all fault queues after mm_exit() returns and
-> before
-> +	 *    freeing the PASID.
-> +	 *
-> +	 * So even though the Stop Marker might be issued by the
-> device *after*
-> +	 * the stop request completes, outstanding faults will have
-> been dealt
-> +	 * with by the time we free the PASID.
-> +	 */
-> +	if (evt->last_req &&
-> +	    !(evt->prot & (IOMMU_FAULT_READ | IOMMU_FAULT_WRITE)))
-> +		return IOMMU_PAGE_RESP_HANDLED;
-> +
-If we don't expect a page response, shouldn't it be filtered by the
-IOMMU vendor driver in the first place? i.e. in the vendor IOMMU driver
-PRQ handler, it will sanitize the request anyway, for anything that
-does not need response, it will not call iommu_report_device_fault().
-> +	mm = iommu_sva_find(evt->pasid);
-> +	if (!mm)
-> +		return ret;
-> +
-> +	down_read(&mm->mmap_sem);
-> +
-> +	vma = find_extend_vma(mm, evt->addr);
-> +	if (!vma)
-> +		/* Unmapped area */
-> +		goto out_put_mm;
-> +
-> +	if (evt->prot & IOMMU_FAULT_READ)
-> +		access_flags |= VM_READ;
-> +
-> +	if (evt->prot & IOMMU_FAULT_WRITE) {
-> +		access_flags |= VM_WRITE;
-> +		fault_flags |= FAULT_FLAG_WRITE;
-> +	}
-> +
-> +	if (evt->prot & IOMMU_FAULT_EXEC) {
-> +		access_flags |= VM_EXEC;
-> +		fault_flags |= FAULT_FLAG_INSTRUCTION;
-> +	}
-> +
-> +	if (!(evt->prot & IOMMU_FAULT_PRIV))
-> +		fault_flags |= FAULT_FLAG_USER;
-> +
-> +	if (access_flags & ~vma->vm_flags)
-> +		/* Access fault */
-> +		goto out_put_mm;
-> +
-> +	ret = handle_mm_fault(vma, evt->addr, fault_flags);
-> +	ret = ret & VM_FAULT_ERROR ? IOMMU_PAGE_RESP_INVALID :
-> +		IOMMU_PAGE_RESP_SUCCESS;
-> +
-> +out_put_mm:
-> +	up_read(&mm->mmap_sem);
-> +
-> +	/*
-> +	 * If the process exits while we're handling the fault on
-> its mm, we
-> +	 * can't do mmput(). exit_mmap() would release the MMU
-> notifier, calling
-> +	 * iommu_notifier_release(), which has to flush the fault
-> queue that
-> +	 * we're executing on... So mmput_async() moves the release
-> of the mm to
-> +	 * another thread, if we're the last user.
-> +	 */
-> +	mmput_async(mm);
-> +
-> +	return ret;
->  }
->  
->  static void iommu_fault_handle_group(struct work_struct *work)
-
-[Jacob Pan]
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0KPiBX
+eXNvY2tpDQo+IFNlbnQ6IFR1ZXNkYXksIEZlYnJ1YXJ5IDEzLCAyMDE4IDM6MTggQU0NCj4gVG86
+IExpbW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+DQo+IENjOiBS
+YWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+OyBMdWthcyBXdW5uZXIgPGx1a2Fz
+QHd1bm5lci5kZT47DQo+IEFsZXggSHVuZyA8YWxleC5odW5nQGNhbm9uaWNhbC5jb20+OyBBbmR5
+IFNoZXZjaGVua28NCj4gPGFuZHJpeS5zaGV2Y2hlbmtvQGxpbnV4LmludGVsLmNvbT47IERtaXRy
+eSBUb3Jva2hvdg0KPiA8ZG1pdHJ5LnRvcm9raG92QGdtYWlsLmNvbT47IEplYW4gRGVsdmFyZSA8
+amRlbHZhcmVAc3VzZS5kZT47IExlbiBCcm93bg0KPiA8bGVuYkBrZXJuZWwub3JnPjsgR3JlZyBL
+cm9haC1IYXJ0bWFuIDxncmVna2hAbGludXhmb3VuZGF0aW9uLm9yZz47IERhdmlkDQo+IE1pbGxl
+ciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD47IE1pa2EgV2VzdGVyYmVyZw0KPiA8bWlrYS53ZXN0ZXJi
+ZXJnQGxpbnV4LmludGVsLmNvbT47IEZsb3JpYW4gRmFpbmVsbGkgPGYuZmFpbmVsbGlAZ21haWwu
+Y29tPjsNCj4gS2lzaG9uIFZpamF5IEFicmFoYW0gSSA8a2lzaG9uQHRpLmNvbT47IHNheWxpIGth
+cm5paw0KPiA8a2Fybmlrc2F5bGkxOTk1QGdtYWlsLmNvbT47IEFDUEkgRGV2ZWwgTWFsaW5nIExp
+c3QgPGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZz4NCj4gU3ViamVjdDogUmU6IFtQQVRD
+SCAyLzJdIEFDUEkgLyBvc2k6IGFkZCBETUkgcXVpcmsgZm9yIERlbGwgc3lzdGVtcw0KPiANCj4g
+T24gVHVlLCBGZWIgMTMsIDIwMTggYXQgMTI6MTQgQU0sICA8TWFyaW8uTGltb25jaWVsbG9AZGVs
+bC5jb20+IHdyb3RlOg0KPiA+PiA+PiByZXF1ZXN0IGJlZm9yZSBtYWtpbmcgYW55IGRlY2lzaW9u
+cyBoZXJlLg0KPiA+PiA+DQo+ID4+ID4gSXQncyBhIGxhY2sgb2YgcHJvcGVyIEQzaG90IHN1cHBv
+cnQgYW5kIEdDNiBzdXBwb3J0IGluIE5vdXZlYXUuDQo+ID4+DQo+ID4+IFRoYW5rcywgYnV0IHRo
+YXQgaXMgc3RpbGwgYSBiaXQgZW5pZ21hdGljLg0KPiA+Pg0KPiA+PiBXaGF0IGV4YWN0bHkgZG8g
+eW91IG1lYW4gYnkgInByb3BlciBEM2hvdCBzdXBwb3J0IiwgaW4gcGFydGljdWxhcj8NCj4gPj4N
+Cj4gPg0KPiA+IEkgZG9uJ3QgYmVsaWV2ZSBOb3V2ZWF1IG9yIE5WSURJQSBoYXMgc3VwcG9ydCBm
+b3IgRDNob3QgYXQgYWxsIGZyb20NCj4gPiB3aGF0IEkndmUgaGVhcmQuICBJJ3ZlIG5vdCBkdWcg
+ZnVydGhlciBpbnRvIHRoaXMuDQo+IA0KPiBCdXQgTHVrYXMgaXMgc2F5aW5nIHRoYXQgTm91dmVh
+dSBhY3R1YWxseSBzdXBwb3J0cyBydW50aW1lIFBNLCBzbyBJJ20NCj4gbm90IHN1cmUgd2hhdCBl
+eGFjdGx5IHRoZSBwcm9ibGVtIGlzIHdpdGggcmVzcGVjdCB0byB0aGlzIHBhcnRpY3VsYXINCj4g
+ZHJpdmVyLg0KPiANCj4gPiBNYXliZSBDYW5vbmljYWwgZ3V5cyB3aWxsIGhhdmUgc29tZSBtb3Jl
+IGRldGFpbC4NCj4gDQo+IE9LDQo+IA0KPiA+PiBXZWxsLCBJIGhhdmUgc29tZSByZXNlcnZhdGlv
+bnMuDQo+ID4+DQo+ID4+IFdoaWxlIHRoZSBpZGVhIG9mIHVzaW5nIF9PU0kgdG8gbGV0IHRoZSBw
+bGF0Zm9ybSBmaXJtd2FyZSBmaW5kIG91dA0KPiA+PiB3aGF0IHRoZSBrZXJuZWwgY2FuIGRvIGlz
+IGdlbmVyYWxseSBmaW5lIGJ5IG1lLCB0aGUgaW1wbGVtZW50YXRpb24NCj4gPj4gaGVyZSBpc24n
+dCByZWFsbHkuDQo+ID4+DQo+ID4+IEluIHRoZSBmaXJzdCBwbGFjZSwgdGhlIF9PU0kgImZlYXR1
+cmUiIGhhcyB0byBiZSBkZWZpbmVkIGNsZWFybHkgYW5kDQo+ID4+IGluIHN1Y2ggYSB3YXkgdGhh
+dCB0aGUga2VybmVsIGNhbiBzYXkgcmlnaHQgYXdheSB3aGV0aGVyIG9yIG5vdCBpdCBpcw0KPiA+
+PiAic3VwcG9ydGVkIi4gIFRoYXQgZG9lc24ndCBzZWVtIHRvIGJlIHRoZSBjYXNlIGhlcmUuDQo+
+ID4+DQo+ID4+IFNlY29uZCAoYW5kIHdoYXQgZm9sbG93cyBmcm9tIHRoZSBhYm92ZSksIHRoZSBr
+ZXJuZWwgc2hvdWxkIG5vdCBuZWVkDQo+ID4+IGFueSBxdWlya3Mgb24gaXRzIHNpZGUgYXQgYWxs
+IHRvIGdpdmUgYW4gYW5zd2VyLiAgSXQgc2hvdWxkIGJlIGFibGUgdG8NCj4gPj4gc2F5ICJ5ZXMi
+IG9yICJubyIgcmVnYXJkbGVzcyBvZiB0aGUgcGxhdGZvcm0gaXQgcnVucyBvbiBpZiB0aGUNCj4g
+Pj4gZmlybXdhcmUgYXNrcyB0aGUgcXVlc3Rpb24uDQo+ID4+DQo+ID4+IFNvIHNvbWV0aGluZyBs
+aWtlICJEbyB5b3Ugc3VwcG9ydCBuYXRpdmUgUENJIHBvd2VyIG1hbmFnZW1lbnQ/IiB3b3VsZA0K
+PiA+PiBiZSBmaW5lLCBiZWNhdXNlIG5hdGl2ZSBQQ0kgcG93ZXIgbWFuYWdlbWVudCBpcyBkZWZp
+bmVkIGJ5IHRoZSBQQ0kNCj4gPj4gc3RhbmRhcmQgYW5kIGl0IHNob3VsZCBiZSBjbGVhciB3aGF0
+IHN1cHBvcnRpbmcgaXQgbWVhbnMgYW5kIGl0DQo+ID4+IGRvZXNuJ3QgZGVwZW5kIG9uIHdoYXQg
+cGxhdGZvcm0gdGhlIGtlcm5lbCBydW5zIG9uLg0KPiA+Pg0KPiA+DQo+ID4gVGhlIHByb2JsZW0g
+aXMgdGhpcyBpcyBpbiBjb25mbGljdCB3aXRoIHRoZSBkb2N1bWVudGF0aW9uLg0KPiA+IEFzIHF1
+b3RlZDoNCj4gPg0KPiA+IGBgYA0KPiA+IF9PU0koIkxpbnV4LU9FTS1teV9pbnRlcmZhY2VfbmFt
+ZSIpDQo+ID4gd2hlcmUgJ09FTScgaXMgbmVlZGVkIGlmIHRoaXMgaXMgYW4gT0VNLXNwZWNpZmlj
+IGhvb2ssDQo+ID4gYW5kICdteV9pbnRlcmZhY2VfbmFtZScgZGVzY3JpYmVzIHRoZSBob29rLCB3
+aGljaCBjb3VsZCBiZSBhDQo+ID4gcXVpcmssIGEgYnVnLCBvciBhIGJ1Zy1maXguDQo+ID4gYGBg
+DQo+ID4NCj4gDQo+IEkgZG9uJ3Qgc2VlIHRoZSBjb25mbGljdCwgc29ycnkuDQo+IA0KPiBUaGUg
+Ik9FTS1zcGVjaWZpYyBob29rIiBpcyB0aGUgImZlYXR1cmUiIGhlcmUuICBJdCBpcyBPRU0tc3Bl
+Y2lmaWMsDQo+IGJ1dCB0aGUga2VybmVsIHN0aWxsIHNob3VsZCBiZSBhYmxlIHRvIHNheSAiWWVz
+LCBkbyB0aGF0IiBvciAiTm8sDQo+IGRvbid0IGRvIHRoYXQiIHdpdGhvdXQgbG9va2luZyBhdCB0
+aGUgcGxhdGZvcm0gaXQgaXMgcnVubmluZyBvbi4NCj4gDQo+ID4gUXVpdGUgbGl0ZXJhbGx5IGZy
+b20gYW4gT0VNIHBlcnNwZWN0aXZlIHRoaXMgaXMgYSBxdWlyay4gIFRoZSBhZmZlY3RlZA0KPiA+
+IHBsYXRmb3JtcyBhcyBjb25maWd1cmVkIGJ5IGRlZmF1bHQgd29uJ3Qgd29yayBwcm9wZXJseSB3
+aXRoIExpbnV4Lg0KPiA+DQo+ID4gV2UgYXBwbHkgYSBjb2RlIGRldmlhdGlvbiBpZiB0aGUgT1NQ
+TSByZXNwb25kcyB5ZXMgdG8gdGhhdCBPU0kgc3RyaW5nLg0KPiANCj4gUmlnaHQuDQo+IA0KPiA+
+IEl0J3MgZW50aXJlbHkgcG9zc2libGUgdGhhdCB0aGUgTGludXgga2VybmVsIGNvdWxkIG5vdCBz
+dG9yZSBhIHF1aXJrIHRhYmxlDQo+ID4gdG8gbWF0Y2ggdGhlIGFmZmVjdGVkIHBsYXRmb3JtcyBh
+bmQgaW5zdGVhZCBnaXZlIGEgYmxhbmtldCBzaW1wbGUgZmFzdA0KPiA+ICJZZXMiIGFuc3dlciB0
+byAiTGludXgtRGVsbC1WaWRlbyIsIGJ1dCBJIHRoaW5rIHRoYXQgaXMgbm8gYmV0dGVyIHRoYW4N
+Cj4gPiBfT1NJKCJMaW51eCIpLg0KPiANCj4gRmlyc3Qgb2YgYWxsLCBfT1NJKCJMaW51eCIpIGlz
+IG5vdCB3ZWxsLWRlZmluZWQsIGJlY2F1c2UgaXQNCj4gcG90ZW50aWFsbHkgY292ZXJzIGV2ZXJ5
+dGhpbmcgZXZlciBkb25lIG9yIG5vdCBkb25lIGJ5IExpbnV4LA0KPiByZWdhcmRsZXNzIG9mIHRo
+ZSBrZXJuZWwgdmVyc2lvbi4gIFRoaXMganVzdCBwbGFpbiBkb2Vzbid0IHdvcmsuDQo+IA0KPiAi
+TGludXgtRGVsbC1WaWRlbyIgY291bGQgYmUgZGVmaW5lZCBwcmVjaXNlbHkgZW5vdWdoIHRvIGFj
+dHVhbGx5IHdvcmssDQo+IGJ1dCBJTU8gIlZpZGVvIiBpcyB0b28gZ2VuZXJpYyBmb3IgYW4gX09T
+SSAiZmVhdHVyZSIgbmFtZS4NCj4gDQo+IFNvbWV0aGluZyBsaWtlICJMaW51eC1EZWxsLXF1aXJr
+LXRoaXMtc3BlY2lmaWMtdmlkZW8taXNzdWUiIGNhbiBiZSBtYWRlIHdvcmsuDQoNCldvdWxkOg0K
+IkxpbnV4LURlbGwtTlZJRElBLVBvd2VyTWFuYWdlbWVudCINCkJlIG1vcmUgc3VmZmljaWVudD8N
+Cg0KSWYgbm90LCBjYW4geW91IHBsZWFzZSBhZHZpc2Ugd2hhdCB3b3VsZCBiZSBtb3JlIGFjY2Vw
+dGFibGU/DQoNCldlJ2xsIGhhdmUgdG8gc2VlIGlmIHRoZXJlIGlzIHN0aWxsIHRpbWUgdG8gY3V0
+IHRoaXMgaW4gaW5zdGVhZCBvZiBMaW51eC1EZWxsLVZpZGVvLg0Kb3IgIkxpbnV4LURlbGwtVmlk
+ZW8iIGlzIGFscmVhZHkgaW4gc3RhYmxlIEJJT1MgZm9yIGFueSBvZiB0aGVzZSBwbGF0Zm9ybXMu
+DQoNCj4gDQo+ID4gVGhpcyBpcyBhdCBsZWFzdCBhbiBhdHRlc3RhdGlvbiBmcm9tIHRoZSBPRU0g
+cGVyc3BlY3RpdmUNCj4gPiB0aGF0IHdlIGhhdmUgb25seSBjaGFuZ2VkIG9uZSB0aGluZyBieSB0
+aGlzIHN0cmluZy4NCj4gDQo+IEknbSBub3Qgc3VyZSB3aGF0IHlvdSBtZWFuLg0KPiANCj4gVGhl
+IGZpcm13YXJlIHNob3VsZCBvbmx5IGRvDQo+IF9PU0koIkxpbnV4LURlbGwtcXVpcmstdGhpcy1z
+cGVjaWZpYy12aWRlby1pc3N1ZSIpIGlmIHRoZSByZXNwb25zZSB0bw0KPiB0aGF0IG1ha2VzIGEg
+ZGlmZmVyZW5jZSB0byBpdC4gIEl0IGtub3dzIHdoYXQgdGhlIHBsYXRmb3JtIGlzIGFuZCBpdA0K
+PiBkb2VzIHRoZSBfT1NJKCkgdGhpbmcgaWYgdGhlIHBsYXRmb3JtIG1heSBiZSBhZmZlY3RlZCBi
+eSB0aGUgcXVpcmsNCj4gKHRoYXQgaXMsIHdoZW4gbmVjZXNzYXJ5KS4gIElmIHRoZSBrZXJuZWwg
+c2VlcyB0aGF0LCBpdCBoYXMgdG8gYXNzdW1lDQo+IHRoYXQgdGhlIHBsYXRmb3JtIG1heSBiZSBh
+ZmZlY3RlZC4gIERvdWJsZSBjaGVja2luZyBpbiBETUkgaXMNCj4gcG9pbnRsZXNzIHVubGVzcyB0
+aGVyZSBhcmUgcGxhdGZvcm1zIGFidXNpbmcgdGhlIF9PU0koKSwgYnV0IHRoZW4gdGhlDQo+IGFi
+dXNlIGlzIG5vdCB0aGUga2VybmVsJ3MgcHJvYmxlbSByZWFsbHkuDQoNClRoZSBpbnRlbnQgZnJv
+bSB0aGUgYXBwcm9hY2ggQWxleCBzdWJtaXR0ZWQgd2FzIHNwZWNpZmljYWxseSB0byBhdm9pZA0K
+dW5pbnRlbnRpb25hbCAoYnV0IHBvdGVudGlhbCkgYWJ1c2UuICBVbmNoZWNrZWQgdGhlIG5ldyBP
+U0kgc3RyaW5ncyBjYW4NCmVhc2lseSB0dXJuIGludG8gY29weSBhbmQgcGFzdGUgZm9yIGFsbCB0
+aGUgcHJvYmxlbXMgdGhhdCBjb21lIHVwIGFuZA0Kc3RhcnQgdG8gYmVoYXZlIGxpa2UgX09TSShM
+aW51eCkuICBXZSBjYW4gZG8gb3VyIGJlc3QgdG8gdHJhaW4gZXZlcnlvbmUNCnRoYXQgdG91Y2hl
+cyBCSU9TIGNvZGUgYnV0IGl0IGNvbWVzIGZyb20gbWFueSBwYXJ0bmVycyBhbmQgbWlzdGFrZXMN
+CmNhbiBhbmQgd2lsbCBoYXBwZW4uDQoNCkJ5IG5lZWRpbmcgdG8gYWRkIHRoZSBPRU0gc3RyaW5n
+IHRvIHRoZSB0YWJsZSB3aGVuIHRoZSBzeXN0ZW1zIGFyZQ0KdGVzdGVkIHRoZXkgYXJlIHRlc3Rl
+ZCB3aXRoIExpbnV4IHRoaXMgZW5zdXJlcyB0aGF0IHdoZW4gYSBkZXZpYXRlZA0KT1NJIHN0cmlu
+ZyBpcyBhZGRlZCBjcmVhdGVzIGEgY2hlY2twb2ludCBmb3IgdGhlIGNoYW5nZXMgdG8gYmUgDQph
+dWRpdGVkIHRvIG1ha2Ugc3VyZSB0aGV5J3JlIG9ubHkgY2hhbmdpbmcgd2hhdCB0aGV5IHNob3Vs
+ZCBhbmQNCnVuZGVyc3Rvb2QuDQoNCklmIHlvdSBzdGlsbCBmZWVsIHRoYXQgaXMgYWRkaW5nIHVu
+ZHVlL3VubmVjZXNzYXJ5IHByb2Nlc3MsIEFsZXggY2FuIA0KZHJvcCB0aGF0IHBhcnQgb2YgdGhp
+cy4NCg0KSSdkIHN0aWxsIGxpa2Ugc2VlIHBhdGNoIDEvMiByZXN1Ym1pdHRlZCB3aXRoIHRoZSBw
+cm9wb3NlZCBmaXhlcyANCmhvd2V2ZXIgZm9yIHVzZSBlbHNld2hlcmUgaW4gdGhlIGtlcm5lbCB3
+aGVuIHN5c3RlbXMgbmVlZCB0bw0KYmUgZGV0ZWN0ZWQgcmVsaWFibHkuDQoNCj4gDQo+IFRoZSB3
+aG9sZSBwb2ludCBpcyB0aGF0IGF0IG9uZSBwb2ludCB0aGUga2VybmVsIGNhbiBzdG9wIHNheWlu
+ZyAieWVzIg0KPiB0byAiTGludXgtRGVsbC1xdWlyay10aGlzLXNwZWNpZmljLXZpZGVvLWlzc3Vl
+IiBpZiB0aGUgcXVpcmsgaXMgbm90DQo+IG5lY2Vzc2FyeSBhbnkgbW9yZSBpbiB0aGlzIHBhcnRp
+Y3VsYXIga2VybmVsIHZlcnNpb24uDQoNCkJ1dCB0aGVuIGl0IGRlcGVuZHMgb24gaG93IHNwZWNp
+ZmljIHRoZSBxdWlyayBhY3R1YWxseSBpcy4NCg0KV2UgY2FuJ3QgcG9zc2libHkgcHJlZGljdCBh
+bGwgdGhlIHByb2JsZW1zIHRoYXQgd2lsbCBjb21lIHVwIHNvIGVhY2gNCnF1aXJrIE9TSSBzdHJp
+bmcgaXMgZ29pbmcgdG8gYmUgY3JlYXRlZCBhcyB0aGV5IGNvbWUgdXAuDQoNCldoYXQgaWYgb25l
+IGRheSBMaW51eCBrZXJuZWwgc3VwcG9ydHMgRDNob3QgYW5kIEdDNiBOViB0aGVyZSBpcyANCnNv
+bWUgbmV3ICB0ZWNobm9sb2d5IHRoYXQgcmVwbGFjZXMgR0M2IHRoYXQgd291bGQgb3RoZXJ3aXNl
+IA0KZmFsbCB1bmRlciB0aGUgc2FtZSAqLVBvd2VyTWFuYWdlbWVudCBwdXJ2aWV3IGFuZCBPU0kg
+c3RyaW5nIA0KcHJvcG9zZWQ/ICBOb3cgeW91IG5lZWQgdG8gZWl0aGVyIGZpbmQgYWxsIHRoZSBz
+eXN0ZW1zIHRoYXQgdXNlZA0KdGhlIHN0cmluZyBwcmV2aW91c2x5IGFuZCBxdWlyayB0aGVtIG9y
+IHF1aXJrIHRoZSBuZXcgc3lzdGVtLg0KDQpTbyB0aGF0J3MgdGhlIG90aGVyIHJlYXNvbiB3aHkg
+dG8gbWUgaXQgaXMgc2FmZXIgdG8gYnVpbGQgdGhlIGxpc3Qgb2YNCmV2ZXJ5IHN5c3RlbSB0aGF0
+IG5lZWRzIGl0LiAgRG9jdW1lbnQgaXQgaW4gdGhlIGdpdCBjb21taXQgb3IgYQ0KY29tbWVudCwg
+YW5kIGlmIG9uZSBhc3BlY3Qgb2YgdGhlIHdvcmthcm91bmQgY2FuIGJlIGRyb3BwZWQNCmluIHRo
+ZSBmdXR1cmUgdGFrZSB0aG9zZSBzeXN0ZW1zIG91dCBvZiB0aGUgbGlzdC4NCg0KSSdkIGxpa2Ug
+dG8gaWxsdXN0cmF0ZSBhbm90aGVyIGh5cG90aGV0aWNhbCBleGFtcGxlOg0KQSBsb3Qgb2Ygb3Vy
+IG1hY2hpbmVzIGhhdmUgYSBEU1AgdGhhdCBnb2VzIHVudXNlZCBpbiBMaW51eC4NCldoYXQgaWYg
+d2UgY29uY2x1ZGVkIHRoYXQncyBhY3R1YWxseSBhIHNpZ25pZmljYW50IHBvd2VyIGRyYWluIHRv
+IA0KaGF2ZSBpdCBzcHVuIHVwIGJ1dCB1bnVzZWQgIGluIExpbnV4IGFuZCBkZWNpZGUgdG8gbWFr
+ZSBhOg0KIkxpbnV4LURlbGwtRGlzYWJsZURTUCINCg0KTGF0ZXIgYSBkcml2ZXIgY29tZXMgYWxv
+bmcgdGhhdCBjYW4gc3VwcG9ydCB0aGUgRFNQIG9uIHNvbWUNCm5ld2VyIHN5c3RlbXMgYnV0IG5v
+dCB0aGUgb2xkZXIgb25lcy4gIFNvIHRoZSBuZXdlciBvbmVzIHByb2JhYmx5DQpzaG91bGQgZHJv
+cCB0aGUgcmVzcG9uc2Ugb2YgeWVzIHRvIHRoYXQgT1NJIHN0cmluZyBpZiBpdCdzIHN0aWxsIGlu
+IEJJT1MsDQpidXQgaG93IGVsc2Ugd291bGQgeW91IGF2b2lkIHJlZ3Jlc3Npbmcgb2xkZXIgc3lz
+dGVtcz8NCg0KSSBndWVzcyB0aGUgcXVpcmsgT1NJIHN0cmluZyBjb3VsZCBiZQ0KIkxpbnV4LURl
+bGwtRGlzYWJsZURTUC1LQkwtR2VuZXJhdGlvbiINCg0KQnV0IHlvdSBzZWUgd2hhdCBJIG1lYW4g
+YWJvdXQgaG93IGl0J3MgaGFyZCB0byBwcmVkaWN0IHRoaXMgaW4NCmFkdmFuY2UgYW5kIGJldHRl
+ciB0byB3aGl0ZWxpc3QgYnkgc3lzdGVtPw0K
