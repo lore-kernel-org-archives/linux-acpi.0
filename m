@@ -1,76 +1,425 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 2/2] ACPI / osi: add DMI quirk for Dell systems
-Date: Wed, 14 Feb 2018 10:10:38 +0100
-Message-ID: <CAJZ5v0jqY-KQ6Y+iN0LQ_9CVPCDWuOOpDNO7jvKH777gcV2vhg@mail.gmail.com>
-References: <20180205224531.GA46524@dtor-ws> <e30274b31bda47c5972621607cf3b605@ausx13mpc120.AMER.DELL.COM>
- <1517924731.22495.51.camel@linux.intel.com> <CAJZ5v0gpkBkuSV8rvvgVq8Cr7cWUr0PfeuGD5tG7GU+jWsTkqg@mail.gmail.com>
- <20180211134510.GB1521@wunner.de> <CAJZ5v0jXwNx7-O_icxAqHwEvki0mZDK_VijDU-hcVM7CtG46Tg@mail.gmail.com>
- <9ae8628a5a9649afaadfa4dda5d896af@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0hUz-+0+_Buobx1Y9d8YVzObsJ4r=Zm61wdm-F7ffhBKg@mail.gmail.com>
- <81dad01f354e4dcab852d145ce5d9fb3@ausx13mpc120.AMER.DELL.COM>
- <CAJZ5v0jCRXs9wCBb-kE-0HVJPCSMRZFgY8hF5Mn+kFLYhdp4=A@mail.gmail.com> <20180213095512.GB8239@wunner.de>
+Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Wed, 14 Feb 2018 10:21:10 +0100
+Message-ID: <CAJZ5v0hZ8eUstCaOo4bth1LonM+_RqZ0pSi5U1E2pLfA_eNCiA@mail.gmail.com>
+References: <1518543933-22456-1-git-send-email-john.garry@huawei.com> <1518543933-22456-8-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36046 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934803AbeBNJKk (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Feb 2018 04:10:40 -0500
-Received: by mail-oi0-f67.google.com with SMTP id 24so15997972oij.3
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Feb 2018 01:10:39 -0800 (PST)
-In-Reply-To: <20180213095512.GB8239@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arch-owner@vger.kernel.org>
+In-Reply-To: <1518543933-22456-8-git-send-email-john.garry@huawei.com>
+Sender: linux-arch-owner@vger.kernel.org
+To: John Garry <john.garry@huawei.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Rob Herring <robh@kernel.org>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@hu>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mario Limonciello <Mario.Limonciello@dell.com>, Alex Hung <alex.hung@canonical.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Jean Delvare <jdelvare@suse.de>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, David Miller <davem@davemloft.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Florian Fainelli <f.fainelli@gmail.com>, Kishon Vijay Abraham I <kishon@ti.com>, sayli karnik <karniksayli1995@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Peter Wu <peter@lekensteyn.nl>
 
-On Tue, Feb 13, 2018 at 10:55 AM, Lukas Wunner <lukas@wunner.de> wrote:
-> On Tue, Feb 13, 2018 at 10:18:01AM +0100, Rafael J. Wysocki wrote:
->> On Tue, Feb 13, 2018 at 12:14 AM,  <Mario.Limonciello@dell.com> wrote:
->> >> >> request before making any decisions here.
->> >> >
->> >> > It's a lack of proper D3hot support and GC6 support in Nouveau.
->> >>
->> >> Thanks, but that is still a bit enigmatic.
->> >>
->> >> What exactly do you mean by "proper D3hot support", in particular?
->> >>
->> >
->> > I don't believe Nouveau or NVIDIA has support for D3hot at all from
->> > what I've heard.  I've not dug further into this.
->>
->> But Lukas is saying that Nouveau actually supports runtime PM, so I'm
->> not sure what exactly the problem is with respect to this particular
->> driver.
+On Tue, Feb 13, 2018 at 6:45 PM, John Garry <john.garry@huawei.com> wrote:
+> On some platforms (such as arm64-based hip06/hip07), access to legacy
+> ISA/LPC devices through access IO space is required, similar to x86
+> platforms. As the I/O for these devices are not memory mapped like
+> PCI/PCIE MMIO host bridges, they require special low-level device
+> operations through some host to generate IO accesses, i.e. a non-
+> transparent bridge.
 >
-> Just providing some background info in the hope that it might be useful:
+> Through the logical PIO framework, hosts are able to register address
+> ranges in the logical PIO space for IO accesses. For hosts which require
+> a LLDD to generate the IO accesses, through the logical PIO framework
+> the host also registers accessors as a backend to generate the physical
+> bus transactions for IO space accesses (called indirect IO).
 >
-> nouveau runtime suspends to D3cold on Nvidia Optimus hybrid graphics
-> laptops, not on any other machines (e.g. desktop).  The code is in
-> drivers/gpu/drm/nouveau/nouveau_acpi.c.  It detects presence of Optimus
-> by looking for a specific _DSM.
+> When describing the indirect IO child device in APCI tables, the IO
+> resource is the host-specific address for the child (generally a
+> bus address).
+> An example is as follows:
+>   Device (LPC0) {
+>     Name (_HID, "HISI0191")  // HiSi LPC
+>     Name (_CRS, ResourceTemplate () {
+>       Memory32Fixed (ReadWrite, 0xa01b0000, 0x1000)
+>     })
+>   }
 >
-> On older machines, power was cut using that _DSM.  Newer machines instead
-> specify _PR3 resources for the root port above the GPU, so power is cut
-> once the GPU and the root port above it have runtime suspended.  nouveau
-> detects and supports both mechanisms, as well as the ancient "HybridPower"
-> machines that preceded Optimus.  Adding Peter Wu to cc, who is the most
-> knowledgable person I know for this.
+>   Device (LPC0.IPMI) {
+>     Name (_HID, "IPI0001")
+>     Name (LORS, ResourceTemplate() {
+>       QWordIO (
+>         ResourceConsumer,
+>         MinNotFixed,     // _MIF
+>         MaxNotFixed,     // _MAF
+>         PosDecode,
+>         EntireRange,
+>         0x0,             // _GRA
+>         0xe4,            // _MIN
+>         0x3fff,          // _MAX
+>         0x0,             // _TRA
+>         0x04,            // _LEN
+>         , ,
+>         BTIO
+>       )
+>     })
 >
-> Mario mentions GC6, doing a bit of googling reveals this has to do with
-> power sequencing:
-> https://www.manualslib.com/manual/1273261/Clevo-N850hk1.html?page=67#manual
+> Since the IO resource for the child is a host-specific address,
+> special translation are required to retrieve the logical PIO address
+> for that child.
 >
-> It looks like a number of GPIO pins need to be toggled in just the right
-> order with just the right timing for the GPU to suspend and resume
-> properly.  Now, normally this should all be handled by the firmware,
-> but apparently there's some OS cooperation necessary but people may
-> not be at liberty to talk about it or haven't been told everything
-> by Nvidia.
+> To overcome the problem of associating this logical PIO address
+> with the child device, a scan handler is added to scan the ACPI
+> namespace for known indirect IO hosts. This scan handler creates an
+> MFD per child with the translated logical PIO address as it's IO
+> resource, as a substitute for the normal platform device which ACPI
+> would create during device enumeration.
 >
-> AFAIK the proprietary Nvidia driver doesn't support Optimus at all.
-> That might be the real motivation for the patch.
+> Signed-off-by: John Garry <john.garry@huawei.com>
+> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
+> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 
-OK, that helps, thanks!
+Just a few minor nits below.
 
-It actually agrees with my last reply to Mika.
+> ---
+>  drivers/acpi/arm64/Makefile          |   1 +
+>  drivers/acpi/arm64/acpi_indirectio.c | 250 +++++++++++++++++++++++++++++++++++
+>  drivers/acpi/internal.h              |   5 +
+>  drivers/acpi/scan.c                  |   1 +
+>  4 files changed, 257 insertions(+)
+>  create mode 100644 drivers/acpi/arm64/acpi_indirectio.c
+>
+> diff --git a/drivers/acpi/arm64/Makefile b/drivers/acpi/arm64/Makefile
+> index 1017def..f4a7f46 100644
+> --- a/drivers/acpi/arm64/Makefile
+> +++ b/drivers/acpi/arm64/Makefile
+> @@ -1,2 +1,3 @@
+>  obj-$(CONFIG_ACPI_IORT)        += iort.o
+>  obj-$(CONFIG_ACPI_GTDT)        += gtdt.o
+> +obj-$(CONFIG_INDIRECT_PIO)     += acpi_indirectio.o
+> diff --git a/drivers/acpi/arm64/acpi_indirectio.c b/drivers/acpi/arm64/acpi_indirectio.c
+> new file mode 100644
+> index 0000000..51a1b92
+> --- /dev/null
+> +++ b/drivers/acpi/arm64/acpi_indirectio.c
+> @@ -0,0 +1,250 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+> +/*
+> + * Copyright (C) 2017 HiSilicon Limited, All Rights Reserved.
+> + * Author: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> + * Author: Zhichang Yuan <yuanzhichang@hisilicon.com>
+> + * Author: John Garry <john.garry@huawei.com>
+> + *
+> + * This file implements functunality to scan the ACPI namespace and config
+> + * devices under "indirect IO" hosts. An "indirect IO" host allows child
+> + * devices to use logical IO accesses when the host, itself, does not provide
+> + * a transparent bridge. The device setup creates a per-child MFD with a
+> + * logical port IO resource.
+> + */
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/logic_pio.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/platform_device.h>
+> +
+> +ACPI_MODULE_NAME("indirect IO");
+> +
+> +#define ACPI_INDIRECT_IO_NAME_LEN 255
+> +
+> +struct acpi_indirect_io_mfd_cell {
+> +       struct mfd_cell_acpi_match acpi_match;
+> +       char name[ACPI_INDIRECT_IO_NAME_LEN];
+> +       char pnpid[ACPI_INDIRECT_IO_NAME_LEN];
+> +};
+> +
+> +static int acpi_indirect_io_xlat_res(struct acpi_device *adev,
+> +                                    struct acpi_device *host,
+> +                                    struct resource *res)
+> +{
+> +       unsigned long sys_port;
+> +       resource_size_t len = res->end - res->start;
+> +
+> +       sys_port = logic_pio_trans_hwaddr(&host->fwnode, res->start, len);
+> +       if (sys_port == -1UL)
+> +               return -EFAULT;
+> +
+> +       res->start = sys_port;
+> +       res->end = sys_port + len;
+> +
+> +       return 0;
+> +}
+> +
+> +/*
+> + * acpi_indirect_io_set_res - set the resources for a child device
+> + * (MFD) of an "indirect IO" host.
+
+The above should fit into a single line.
+
+I'd make it something like "acpi_indirect_io_set_res - set "indirect
+IO" host child (MFD) resources" and it already is explained in the
+comment below.
+
+> + * @child: the device node to be updated the I/O resource
+> + * @hostdev: the device node associated with the "indirect IO" host
+> + * @res: double pointer to be set to the address of translated resources
+> + * @num_res: pointer to variable to hold the number of translated resources
+> + *
+> + * Returns 0 when successful, and a negative value for failure.
+> + *
+> + * For a given "indirect IO" host, each child device will have associated
+> + * host-relevative address resource. This function will return the translated
+
+host-relative
+
+> + * logical PIO addresses for each child devices resources.
+> + */
+> +static int acpi_indirect_io_set_res(struct device *child,
+> +                                   struct device *hostdev,
+> +                                   const struct resource **res,
+> +                                   int *num_res)
+> +{
+> +       struct acpi_device *adev;
+> +       struct acpi_device *host;
+> +       struct resource_entry *rentry;
+> +       LIST_HEAD(resource_list);
+> +       struct resource *resources;
+> +       int count;
+> +       int i;
+> +       int ret = -EIO;
+> +
+> +       if (!child || !hostdev)
+> +               return -EINVAL;
+> +
+> +       host = to_acpi_device(hostdev);
+> +       adev = to_acpi_device(child);
+> +
+> +       /* check the device state */
+> +       if (!adev->status.present) {
+> +               dev_info(child, "device is not present\n");
+
+dev_dbg()?
+
+> +               return 0;
+> +       }
+> +       /* whether the child had been enumerated? */
+> +       if (acpi_device_enumerated(adev)) {
+> +               dev_info(child, "had been enumerated\n");
+
+Again, dev_dbg()?
+
+> +               return 0;
+> +       }
+> +
+> +       count = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
+> +       if (count <= 0) {
+> +               dev_err(child, "failed to get resources\n");
+
+I'd use dev_dbg() here too (the message may not even be meaningful to a user).
+
+> +               return count ? count : -EIO;
+> +       }
+> +
+> +       resources = kcalloc(count, sizeof(*resources), GFP_KERNEL);
+> +       if (!resources) {
+
+And you don't print anything here, I wonder why?
+
+> +               acpi_dev_free_resource_list(&resource_list);
+> +               return -ENOMEM;
+> +       }
+> +       count = 0;
+> +       list_for_each_entry(rentry, &resource_list, node)
+> +               resources[count++] = *rentry->res;
+> +
+> +       acpi_dev_free_resource_list(&resource_list);
+> +
+> +       /* translate the I/O resources */
+> +       for (i = 0; i < count; i++) {
+> +               if (!(resources[i].flags & IORESOURCE_IO))
+> +                       continue;
+> +               ret = acpi_indirect_io_xlat_res(adev, host, &resources[i]);
+> +               if (ret) {
+> +                       kfree(resources);
+> +                       dev_err(child, "translate IO range failed(%d)\n", ret);
+> +                       return ret;
+> +               }
+> +       }
+> +       *res = resources;
+> +       *num_res = count;
+> +
+> +       return ret;
+> +}
+> +
+> +/*
+> + * acpi_indirect_io_setup - scan handler for "indirect IO" host.
+> + * @adev: "indirect IO" host ACPI device pointer
+
+One extra empty comment line here, please.
+
+> + * Returns 0 when successful, and a negative value for failure.
+> + *
+> + * Setup an "indirect IO" host by scanning all child devices, and
+> + * create a per-device MFD with logical PIO translated IO resources.
+> + */
+> +static int acpi_indirect_io_setup(struct acpi_device *adev)
+> +{
+> +       struct platform_device *pdev;
+> +       struct mfd_cell *mfd_cells;
+> +       struct logic_pio_hwaddr *range;
+> +       struct acpi_device *child;
+> +       struct acpi_indirect_io_mfd_cell *acpi_indirect_io_mfd_cells;
+> +       int size, ret, count = 0, cell_num = 0;
+> +
+> +       range = kzalloc(sizeof(*range), GFP_KERNEL);
+> +       if (!range)
+> +               return -ENOMEM;
+> +       range->fwnode = &adev->fwnode;
+> +       range->flags = PIO_INDIRECT;
+> +       range->size = PIO_INDIRECT_SIZE;
+> +
+> +       ret = logic_pio_register_range(range);
+> +       if (ret)
+> +               goto free_range;
+> +
+> +       list_for_each_entry(child, &adev->children, node)
+> +               cell_num++;
+> +
+> +       /* allocate the mfd cell and companion acpi info, one per child */
+> +       size = sizeof(*mfd_cells) + sizeof(*acpi_indirect_io_mfd_cells);
+> +       mfd_cells = kcalloc(cell_num, size, GFP_KERNEL);
+> +       if (!mfd_cells) {
+> +               ret = -ENOMEM;
+> +               goto free_range;
+> +       }
+> +
+> +       acpi_indirect_io_mfd_cells = (struct acpi_indirect_io_mfd_cell *)
+> +                                       &mfd_cells[cell_num];
+> +       /* Only consider the children of the host */
+> +       list_for_each_entry(child, &adev->children, node) {
+> +               struct mfd_cell *mfd_cell = &mfd_cells[count];
+> +               struct acpi_indirect_io_mfd_cell *acpi_indirect_io_mfd_cell =
+> +                                       &acpi_indirect_io_mfd_cells[count];
+> +               const struct mfd_cell_acpi_match *acpi_match =
+> +                                       &acpi_indirect_io_mfd_cell->acpi_match;
+> +               char *name = &acpi_indirect_io_mfd_cell[count].name[0];
+> +               char *pnpid = &acpi_indirect_io_mfd_cell[count].pnpid[0];
+> +               struct mfd_cell_acpi_match match = {
+> +                       .pnpid = pnpid,
+> +               };
+> +
+> +               snprintf(name, ACPI_INDIRECT_IO_NAME_LEN, "indirect-io-%s",
+> +                        acpi_device_hid(child));
+> +               snprintf(pnpid, ACPI_INDIRECT_IO_NAME_LEN, "%s",
+> +                        acpi_device_hid(child));
+> +
+> +               memcpy((void *)acpi_match, (void *)&match, sizeof(*acpi_match));
+> +               mfd_cell->name = name;
+> +               mfd_cell->acpi_match = acpi_match;
+> +
+> +               ret = acpi_indirect_io_set_res(&child->dev, &adev->dev,
+> +                                              &mfd_cell->resources,
+> +                                              &mfd_cell->num_resources);
+> +               if (ret) {
+> +                       dev_err(&child->dev, "set resource failed (%d)\n", ret);
+
+Again, please consider using dev_dbg() here and below (for the same
+reason as above).
+
+> +                       goto free_mfd_resources;
+> +               }
+> +               count++;
+> +       }
+> +
+> +       pdev = acpi_create_platform_device(adev, NULL);
+> +       if (IS_ERR_OR_NULL(pdev)) {
+> +               dev_err(&adev->dev, "create platform device for host failed\n");
+> +               ret = PTR_ERR(pdev);
+> +               goto free_mfd_resources;
+> +       }
+> +       acpi_device_set_enumerated(adev);
+> +
+> +       ret = mfd_add_devices(&pdev->dev, PLATFORM_DEVID_NONE,
+> +                             mfd_cells, cell_num, NULL, 0, NULL);
+> +       if (ret) {
+> +               dev_err(&pdev->dev, "failed to add mfd cells (%d)\n", ret);
+> +               goto free_mfd_resources;
+> +       }
+> +
+> +       return ret;
+
+return 0;
+
+You know that ret must be 0 here anyway.
+
+> +
+> +free_mfd_resources:
+> +       while (cell_num--)
+> +               kfree(mfd_cells[cell_num].resources);
+> +       kfree(mfd_cells);
+> +free_range:
+> +       kfree(range);
+> +
+> +       return ret;
+> +}
+> +
+> +/* All the host devices which apply indirect-IO can be listed here. */
+> +static const struct acpi_device_id acpi_indirect_io_host_id[] = {
+> +       {}
+> +};
+> +
+> +static int acpi_indirect_io_attach(struct acpi_device *adev,
+> +                                  const struct acpi_device_id *id)
+> +{
+> +       int ret = acpi_indirect_io_setup(adev);
+> +
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       return 1;
+
+The above can be written as
+
+return ret < 0 ? ret : 1;
+
+to save a few lines of code (you are using this pattern above, so why
+not here?).
+
+> +}
+> +
+> +static struct acpi_scan_handler acpi_indirect_io_handler = {
+> +       .ids = acpi_indirect_io_host_id,
+> +       .attach = acpi_indirect_io_attach,
+> +};
+> +
+> +void __init acpi_indirect_io_scan_init(void)
+> +{
+> +       acpi_scan_add_handler(&acpi_indirect_io_handler);
+> +}
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 1d0a501..680f3cf 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -31,6 +31,11 @@
+>  void acpi_platform_init(void);
+>  void acpi_pnp_init(void);
+>  void acpi_int340x_thermal_init(void);
+> +#ifdef CONFIG_INDIRECT_PIO
+> +void acpi_indirect_io_scan_init(void);
+> +#else
+> +static inline void acpi_indirect_io_scan_init(void) {}
+> +#endif
+>  #ifdef CONFIG_ARM_AMBA
+>  void acpi_amba_init(void);
+>  #else
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 8e63d93..204da8a 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -2155,6 +2155,7 @@ int __init acpi_scan_init(void)
+>         acpi_amba_init();
+>         acpi_watchdog_init();
+>         acpi_init_lpit();
+> +       acpi_indirect_io_scan_init();
+>
+>         acpi_scan_add_handler(&generic_device_handler);
+>
+> --
+
+But generally
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+for the generic ACPI changes.
