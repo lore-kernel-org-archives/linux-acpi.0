@@ -1,147 +1,168 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Wed, 14 Feb 2018 16:52:59 +0000
-Message-ID: <65185a4d-c712-4486-d713-3fa9de14e35d@huawei.com>
-References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
- <1518543933-22456-8-git-send-email-john.garry@huawei.com>
- <20180214161635.GA13849@e107981-ln.cambridge.arm.com>
+From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 08/37] iommu/fault: Handle mm faults
+Date: Wed, 14 Feb 2018 10:46:21 -0800
+Message-ID: <20180214104621.7675579c@jacob-builder>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-9-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180214161635.GA13849@e107981-ln.cambridge.arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180212183352.22730-9-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, shunyong.yang-PT9Dzx9SjPiXmMXjJBpWqg@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 14/02/2018 16:16, Lorenzo Pieralisi wrote:
-> On Wed, Feb 14, 2018 at 01:45:31AM +0800, John Garry wrote:
->> On some platforms (such as arm64-based hip06/hip07), access to legacy
->> ISA/LPC devices through access IO space is required, similar to x86
->> platforms. As the I/O for these devices are not memory mapped like
->> PCI/PCIE MMIO host bridges, they require special low-level device
->> operations through some host to generate IO accesses, i.e. a non-
->> transparent bridge.
->>
->> Through the logical PIO framework, hosts are able to register address
->> ranges in the logical PIO space for IO accesses. For hosts which require
->> a LLDD to generate the IO accesses, through the logical PIO framework
->> the host also registers accessors as a backend to generate the physical
->> bus transactions for IO space accesses (called indirect IO).
->>
->> When describing the indirect IO child device in APCI tables, the IO
->> resource is the host-specific address for the child (generally a
->> bus address).
->> An example is as follows:
->>   Device (LPC0) {
->>     Name (_HID, "HISI0191")  // HiSi LPC
->>     Name (_CRS, ResourceTemplate () {
->>       Memory32Fixed (ReadWrite, 0xa01b0000, 0x1000)
->>     })
->>   }
->>
->>   Device (LPC0.IPMI) {
->>     Name (_HID, "IPI0001")
->>     Name (LORS, ResourceTemplate() {
->>       QWordIO (
->>         ResourceConsumer,
->> 	MinNotFixed,     // _MIF
->> 	MaxNotFixed,     // _MAF
->> 	PosDecode,
->> 	EntireRange,
->> 	0x0,             // _GRA
->> 	0xe4,            // _MIN
->> 	0x3fff,          // _MAX
->> 	0x0,             // _TRA
->> 	0x04,            // _LEN
->> 	, ,
->> 	BTIO
->>       )
->>     })
->>
->> Since the IO resource for the child is a host-specific address,
->> special translation are required to retrieve the logical PIO address
->> for that child.
->
+On Mon, 12 Feb 2018 18:33:23 +0000
+Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
 
-Hi Lorenzo,
+> When a recoverable page fault is handled by the fault workqueue, find
+> the associated mm and call handle_mm_fault.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/iommu/io-pgfault.c | 89
+> ++++++++++++++++++++++++++++++++++++++++++++-- 1 file changed, 87
+> insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/iommu/io-pgfault.c b/drivers/iommu/io-pgfault.c
+> index 33309ed316d2..565ec01a1b5f 100644
+> --- a/drivers/iommu/io-pgfault.c
+> +++ b/drivers/iommu/io-pgfault.c
+> @@ -9,6 +9,7 @@
+>  
+>  #include <linux/iommu.h>
+>  #include <linux/list.h>
+> +#include <linux/sched/mm.h>
+>  #include <linux/slab.h>
+>  #include <linux/workqueue.h>
+>  
+> @@ -82,8 +83,92 @@ static int iommu_fault_complete(struct
+> iommu_domain *domain, struct device *dev, 
+>  static int iommu_fault_handle_single(struct iommu_fault_context
+> *fault) {
+> -	/* TODO */
+> -	return -ENODEV;
+> +	struct mm_struct *mm;
+> +	struct vm_area_struct *vma;
+> +	unsigned int access_flags = 0;
+unsigned long to match vm_flags?
+> +	int ret = IOMMU_PAGE_RESP_INVALID;
+> +	unsigned int fault_flags = FAULT_FLAG_REMOTE;
+> +	struct iommu_fault_event *evt = &fault->evt;
+> +
+> +	if (!evt->pasid_valid)
+> +		return ret;
+I guess for not we don't handle PRQ without PASID, right?
+> +
+> +	/*
+> +	 * Special case: PASID Stop Marker (LRW = 0b100) doesn't
+> expect a
+> +	 * response. A Stop Marker may be generated when disabling a
+> PASID
+> +	 * (issuing a PASID stop request) in some PCI devices.
+> +	 *
+> +	 * When the mm_exit() callback returns from the device
+> driver, no page
+> +	 * request is generated for this PASID anymore and
+> outstanding ones have
+> +	 * been pushed to the IOMMU (as per PCIe 4.0r1.0 - 6.20.1
+> and 10.4.1.2 -
+> +	 * Managing PASID TLP Prefix Usage). Some PCI devices will
+> wait for all
+> +	 * outstanding page requests to come back with a response
+> before
+> +	 * completing the PASID stop request. Others do not wait for
+> page
+> +	 * responses, and instead issue this Stop Marker that tells
+> us when the
+> +	 * PASID can be reallocated.
+> +	 *
+> +	 * We ignore the Stop Marker because:
+> +	 * a. Page requests, which are posted requests, have been
+> flushed to the
+> +	 *    IOMMU when mm_exit() returns,
+> +	 * b. We flush all fault queues after mm_exit() returns and
+> before
+> +	 *    freeing the PASID.
+> +	 *
+> +	 * So even though the Stop Marker might be issued by the
+> device *after*
+> +	 * the stop request completes, outstanding faults will have
+> been dealt
+> +	 * with by the time we free the PASID.
+> +	 */
+> +	if (evt->last_req &&
+> +	    !(evt->prot & (IOMMU_FAULT_READ | IOMMU_FAULT_WRITE)))
+> +		return IOMMU_PAGE_RESP_HANDLED;
+> +
+If we don't expect a page response, shouldn't it be filtered by the
+IOMMU vendor driver in the first place? i.e. in the vendor IOMMU driver
+PRQ handler, it will sanitize the request anyway, for anything that
+does not need response, it will not call iommu_report_device_fault().
+> +	mm = iommu_sva_find(evt->pasid);
+> +	if (!mm)
+> +		return ret;
+> +
+> +	down_read(&mm->mmap_sem);
+> +
+> +	vma = find_extend_vma(mm, evt->addr);
+> +	if (!vma)
+> +		/* Unmapped area */
+> +		goto out_put_mm;
+> +
+> +	if (evt->prot & IOMMU_FAULT_READ)
+> +		access_flags |= VM_READ;
+> +
+> +	if (evt->prot & IOMMU_FAULT_WRITE) {
+> +		access_flags |= VM_WRITE;
+> +		fault_flags |= FAULT_FLAG_WRITE;
+> +	}
+> +
+> +	if (evt->prot & IOMMU_FAULT_EXEC) {
+> +		access_flags |= VM_EXEC;
+> +		fault_flags |= FAULT_FLAG_INSTRUCTION;
+> +	}
+> +
+> +	if (!(evt->prot & IOMMU_FAULT_PRIV))
+> +		fault_flags |= FAULT_FLAG_USER;
+> +
+> +	if (access_flags & ~vma->vm_flags)
+> +		/* Access fault */
+> +		goto out_put_mm;
+> +
+> +	ret = handle_mm_fault(vma, evt->addr, fault_flags);
+> +	ret = ret & VM_FAULT_ERROR ? IOMMU_PAGE_RESP_INVALID :
+> +		IOMMU_PAGE_RESP_SUCCESS;
+> +
+> +out_put_mm:
+> +	up_read(&mm->mmap_sem);
+> +
+> +	/*
+> +	 * If the process exits while we're handling the fault on
+> its mm, we
+> +	 * can't do mmput(). exit_mmap() would release the MMU
+> notifier, calling
+> +	 * iommu_notifier_release(), which has to flush the fault
+> queue that
+> +	 * we're executing on... So mmput_async() moves the release
+> of the mm to
+> +	 * another thread, if we're the last user.
+> +	 */
+> +	mmput_async(mm);
+> +
+> +	return ret;
+>  }
+>  
+>  static void iommu_fault_handle_group(struct work_struct *work)
 
-> The problem I have with this patchset and with pretending that the ACPI
-> bits are generic is that the rules used to translate resources (I am
-> referring to LPC0.IPMI above) are documented _nowhere_ which means that
-> making this series generic code is just wishful thinking - there are no
-> bindings backing it, it will never ever be used on a platform different
-> from the one you are pushing this code for and I stated this already.
->
-
-Right, it is working on the presumption that this is how all "indirectio 
-IO" hosts and children should/would be described in DSDT.
-
-> Reworded differently - this is a Hisilicon driver it is not generic ACPI
-> code; I can't see how it can be used on a multitude of platforms unless
-> you specify FW level bindings.
->
->> To overcome the problem of associating this logical PIO address
->> with the child device, a scan handler is added to scan the ACPI
->> namespace for known indirect IO hosts. This scan handler creates an
->> MFD per child with the translated logical PIO address as it's IO
->> resource, as a substitute for the normal platform device which ACPI
->> would create during device enumeration.
->>
->> Signed-off-by: John Garry <john.garry@huawei.com>
->> Signed-off-by: Zhichang Yuan <yuanzhichang@hisilicon.com>
->> Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
->> ---
->>  drivers/acpi/arm64/Makefile          |   1 +
->>  drivers/acpi/arm64/acpi_indirectio.c | 250 +++++++++++++++++++++++++++++++++++
->
-> See above (and I do not understand what arm64 has to do with it).
-
-Nothing apart from only being used by arm64 platforms today, which is 
-circumstantial.
-
->
-> I understand you need to find a place to add the:
->
-> acpi_indirect_io_scan_init()
->
-> to be called from core ACPI code because ACPI can't handle probe
-> dependencies in any other way but other than that this patch is
-> a Hisilicon ACPI driver - there is nothing generic in it (or at
-> least there are no standard bindings to make it so).
->
-> Whether a callback from ACPI core code (acpi_scan_init()) to a driver
-> specific hook is sane or not that's the question and the only reason
-> why you want to add this in drivers/acpi/arm64 rather than, say,
-> drivers/bus (as you do for the DT driver).
->
-> I do not know Rafael's opinion on the above, I would like to help
-> you make forward progress but please understand my concerns, mostly
-> on FW side.
->
-
-I did mention an alternative in my "ping" in v12 patch 7/9 (Feb 1), but 
-no response to this specific note so I kept on the same path.
-
-Here's what I then wrote:
-"I think another solution - which you may prefer - is to avoid adding
-this scan handler (and all this other scan code) and add a check like
-acpi_is_serial_bus_slave() [which checks the device parent versus a list 
-of known indirectIO hosts] to not enumerate these children, and do it 
-from the LLDD host probe instead (https://lkml.org/lkml/2017/6/16/250)"
-
-Please consider this.
-
-> Thanks,
-> Lorenzo
->
->>  drivers/acpi/internal.h              |   5 +
->>  drivers/acpi/scan.c                  |   1 +
->>  4 files changed, 257 insertions(+)
->>  create mode 100644 drivers/acpi/arm64/acpi_indirectio.c
->>
-
-Cheers,
-John
+[Jacob Pan]
