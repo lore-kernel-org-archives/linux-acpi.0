@@ -1,42 +1,36 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: SPCR: Mark expected switch fall-through in acpi_parse_spcr
-Date: Wed, 14 Feb 2018 10:27:53 +0100
-Message-ID: <1757557.bTtaD8LxG2@aspire.rjw.lan>
-References: <20180209180821.GA20326@embeddedgus>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/5] PCI: Make sure all bridges reserve at least one bus
+ number
+Date: Wed, 14 Feb 2018 11:47:32 +0200
+Message-ID: <20180214094732.GJ27191@lahna.fi.intel.com>
+References: <20180213163200.8787-1-mika.westerberg@linux.intel.com>
+ <20180213163200.8787-2-mika.westerberg@linux.intel.com>
+ <CAJZ5v0h7okRkBsNmSkLQ9AOZ_zPk5G0vbu=hKxwm2vjEthvxOA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180209180821.GA20326@embeddedgus>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0h7okRkBsNmSkLQ9AOZ_zPk5G0vbu=hKxwm2vjEthvxOA@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario Limonciello <Mario.Limonciello@dell.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, February 9, 2018 7:08:21 PM CET Gustavo A. R. Silva wrote:
-> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-> where we are expecting to fall through.
+On Tue, Feb 13, 2018 at 06:43:00PM +0100, Rafael J. Wysocki wrote:
+> On Tue, Feb 13, 2018 at 5:31 PM, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > When distributing extra buses between hotplug bridges we need to make
+> > sure each bridge reserve at least one bus number, even if there is
+> > currently nothing connected to it. For instance ACPI hotplug may bring
+> > in additional devices to non-hotplug bridges later on. To make sure we
+> > don't run out of bus numbers for non-hotplug bridges reserve one bus
+> > number for them upfront before distributing buses for hotplug bridges.
+> >
+> > Fixes: 1c02ea810065 ("PCI: Distribute available buses to hotplug-capable bridges")
+> > Reported-by: Mario Limonciello <mario.limonciello@dell.com>
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Cc: stable@vger.kernel.org
 > 
-> Addresses-Coverity-ID: 1465078
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
-> ---
-> This code was compiled with GCC 7.3.0
-> 
->  drivers/acpi/spcr.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> index 89e97d2..9d52743 100644
-> --- a/drivers/acpi/spcr.c
-> +++ b/drivers/acpi/spcr.c
-> @@ -115,6 +115,7 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
->  			table->serial_port.access_width))) {
->  		default:
->  			pr_err("Unexpected SPCR Access Width.  Defaulting to byte size\n");
-> +			/* fall through */
->  		case 8:
->  			iotype = "mmio";
->  			break;
-> 
+> Just a few notation-related nits below.
 
-Applied, thanks!
+Thanks for the comments! I'll update the patch accordingly.
