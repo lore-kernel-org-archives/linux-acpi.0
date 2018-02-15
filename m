@@ -1,130 +1,88 @@
-From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH v2 4/7] ACPICA: Revert "Fix for implicit result conversion for the To____ functions"
-Date: Thu, 15 Feb 2018 13:17:04 -0800
-Message-ID: <20180215211704.15895-1-erik.schmauss@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI updates for v4.16-rc2
+Date: Thu, 15 Feb 2018 23:18:12 +0100
+Message-ID: <CAJZ5v0gvN5hGZMt4kceyAJhbpJdyJdbCArWgWO2F07d02zN0Ug@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:3633 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1162707AbeBOVRJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Feb 2018 16:17:09 -0500
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:41716 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1163612AbeBOWSN (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Feb 2018 17:18:13 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-From: Bob Moore <robert.moore@intel.com>
+Hi Linus,
 
-ACPICA commit 0e44fee13434766ebbb4d156e3ed45604508d7c3
+Please pull from the tag
 
-This reverts commit e1342c9f2dde37a67e916099658b65984ef8a434.
-Implicit conversion should in fact be disabled for the "explicit
-conversion" operators. This is stated in the ACPI specification.
-The operators affected are:
-to_integer
-to_string
-to_buffer
-to_decimal_string
-to_hex_string
-to_BCD
-from_BCD
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.16-rc2
 
-Link: https://github.com/acpica/acpica/commit/0e44fee1
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
----
- drivers/acpi/acpica/acopcode.h | 14 +++++++-------
- drivers/acpi/acpica/amlcode.h  | 20 +++-----------------
- drivers/acpi/acpica/exconvrt.c |  1 +
- drivers/acpi/acpica/exresop.c  |  1 +
- 4 files changed, 12 insertions(+), 24 deletions(-)
+with top-most commit 31a3be353fc21f13e2ccdc661cda253f78b16661
 
-diff --git a/drivers/acpi/acpica/acopcode.h b/drivers/acpi/acpica/acopcode.h
-index 36c2c5825986..92e755ce6893 100644
---- a/drivers/acpi/acpica/acopcode.h
-+++ b/drivers/acpi/acpica/acopcode.h
-@@ -251,7 +251,7 @@
- #define ARGI_FIELD_OP                   ARGI_INVALID_OPCODE
- #define ARGI_FIND_SET_LEFT_BIT_OP       ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
- #define ARGI_FIND_SET_RIGHT_BIT_OP      ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
--#define ARGI_FROM_BCD_OP                ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
-+#define ARGI_FROM_BCD_OP                ARGI_LIST2 (ARGI_INTEGER,    ARGI_FIXED_TARGET)
- #define ARGI_IF_OP                      ARGI_INVALID_OPCODE
- #define ARGI_INCREMENT_OP               ARGI_LIST1 (ARGI_TARGETREF)
- #define ARGI_INDEX_FIELD_OP             ARGI_INVALID_OPCODE
-@@ -315,12 +315,12 @@
- #define ARGI_SUBTRACT_OP                ARGI_LIST3 (ARGI_INTEGER,    ARGI_INTEGER,       ARGI_TARGETREF)
- #define ARGI_THERMAL_ZONE_OP            ARGI_INVALID_OPCODE
- #define ARGI_TIMER_OP                   ARG_NONE
--#define ARGI_TO_BCD_OP                  ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
--#define ARGI_TO_BUFFER_OP               ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
--#define ARGI_TO_DEC_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
--#define ARGI_TO_HEX_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
--#define ARGI_TO_INTEGER_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
--#define ARGI_TO_STRING_OP               ARGI_LIST3 (ARGI_BUFFER,     ARGI_INTEGER,       ARGI_TARGETREF)
-+#define ARGI_TO_BCD_OP                  ARGI_LIST2 (ARGI_INTEGER,    ARGI_FIXED_TARGET)
-+#define ARGI_TO_BUFFER_OP               ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
-+#define ARGI_TO_DEC_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
-+#define ARGI_TO_HEX_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
-+#define ARGI_TO_INTEGER_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
-+#define ARGI_TO_STRING_OP               ARGI_LIST3 (ARGI_BUFFER,     ARGI_INTEGER,       ARGI_FIXED_TARGET)
- #define ARGI_UNLOAD_OP                  ARGI_LIST1 (ARGI_DDBHANDLE)
- #define ARGI_VAR_PACKAGE_OP             ARGI_LIST1 (ARGI_INTEGER)
- #define ARGI_WAIT_OP                    ARGI_LIST2 (ARGI_EVENT,      ARGI_INTEGER)
-diff --git a/drivers/acpi/acpica/amlcode.h b/drivers/acpi/acpica/amlcode.h
-index b0e9492a6297..7adc5aea0385 100644
---- a/drivers/acpi/acpica/amlcode.h
-+++ b/drivers/acpi/acpica/amlcode.h
-@@ -274,23 +274,9 @@
- #define ARGI_DEVICE_REF             0x0D
- #define ARGI_REFERENCE              0x0E
- #define ARGI_TARGETREF              0x0F	/* Target, subject to implicit conversion */
--#define ARGI_SIMPLE_TARGET          0x10	/* Name, Local, Arg -- no implicit conversion */
--#define ARGI_STORE_TARGET           0x11	/* Target for store is TARGETREF + package objects */
--/*
-- * #define ARGI_FIXED_TARGET           0x10     Target, no implicit conversion
-- *
-- * Removed 10/2016. ARGI_FIXED_TARGET was used for these operators:
-- *      from_BCD
-- *      to_BCD
-- *      to_decimal_string
-- *      to_hex_string
-- *      to_integer
-- *      to_buffer
-- * The purpose of this type was to disable "implicit result conversion",
-- * but this was incorrect per the ACPI spec and other ACPI implementations.
-- * These operators now have the target operand defined as a normal
-- * ARGI_TARGETREF.
-- */
-+#define ARGI_FIXED_TARGET           0x10	/* Target, no implicit conversion */
-+#define ARGI_SIMPLE_TARGET          0x11	/* Name, Local, Arg -- no implicit conversion */
-+#define ARGI_STORE_TARGET           0x12	/* Target for store is TARGETREF + package objects */
- 
- /* Multiple/complex types */
- 
-diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
-index 9abcc41a573b..66437f5cc904 100644
---- a/drivers/acpi/acpica/exconvrt.c
-+++ b/drivers/acpi/acpica/exconvrt.c
-@@ -598,6 +598,7 @@ acpi_ex_convert_to_target_type(acpi_object_type destination_type,
- 	 */
- 	switch (GET_CURRENT_ARG_TYPE(walk_state->op_info->runtime_args)) {
- 	case ARGI_SIMPLE_TARGET:
-+	case ARGI_FIXED_TARGET:
- 	case ARGI_INTEGER_REF:	/* Handles Increment, Decrement cases */
- 
- 		switch (destination_type) {
-diff --git a/drivers/acpi/acpica/exresop.c b/drivers/acpi/acpica/exresop.c
-index 2643d34f194d..59f43f3d7482 100644
---- a/drivers/acpi/acpica/exresop.c
-+++ b/drivers/acpi/acpica/exresop.c
-@@ -305,6 +305,7 @@ acpi_ex_resolve_operands(u16 opcode,
- 		case ARGI_OBJECT_REF:
- 		case ARGI_DEVICE_REF:
- 		case ARGI_TARGETREF:	/* Allows implicit conversion rules before store */
-+		case ARGI_FIXED_TARGET:	/* No implicit conversion before store to target */
- 		case ARGI_SIMPLE_TARGET:	/* Name, Local, or arg - no implicit conversion  */
- 		case ARGI_STORE_TARGET:
- 
--- 
-2.14.3
+ Merge branches 'acpi-ec', 'acpi-tables' and 'acpi-doc'
 
+on top of commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2
+
+ Linux 4.16-rc1
+
+to receive ACPI updates for 4.16-rc2.
+
+These fix a system resume regression from the 4.13 cycle, clean up
+device table handling in the ACPI core, update sysfs ABI documentation
+of a couple of drivers and add an expected switch fall-through marker
+to the SPCR table parsing code.
+
+Specifics:
+
+ - Revert a problematic EC driver change from the 4.13 cycle that
+   introduced a system resume regression on Thinkpad X240 (Rafael
+   Wysocki).
+
+ - Clean up device tables handling in the ACPI core and the related
+   part of the device properties framework (Andy Shevchenko).
+
+ - Update the sysfs ABI documentatio of the dock and the INT3407
+   special device drivers (Aishwarya Pant).
+
+ - Add an expected switch fall-through marker to the SPCR table
+   parsing code (Gustavo Silva).
+
+Thanks!
+
+
+---------------
+
+Aishwarya Pant (2):
+      ACPI / DPTF: Document dptf_power sysfs atttributes
+      ACPI: dock: document sysfs interface
+
+Andy Shevchenko (4):
+      ACPI / bus: Do not traverse through non-existed device table
+      ACPI / bus: Remove checks in acpi_get_match_data()
+      ACPI / bus: Rename acpi_get_match_data() to acpi_device_get_match_data()
+      device property: Constify device_get_match_data()
+
+Gustavo A. R. Silva (1):
+      ACPI: SPCR: Mark expected switch fall-through in acpi_parse_spcr
+
+Rafael J. Wysocki (1):
+      ACPI / EC: Restore polling during noirq suspend/resume phases
+
+---------------
+
+ .../ABI/testing/sysfs-devices-platform-dock        | 39 +++++++++++
+ Documentation/ABI/testing/sysfs-platform-dptf      | 40 ++++++++++++
+ drivers/acpi/bus.c                                 | 75 ++++++++++++----------
+ drivers/acpi/ec.c                                  |  6 ++
+ drivers/acpi/property.c                            |  4 +-
+ drivers/acpi/spcr.c                                |  1 +
+ drivers/base/property.c                            |  5 +-
+ drivers/of/property.c                              |  4 +-
+ include/linux/acpi.h                               |  4 +-
+ include/linux/fwnode.h                             |  4 +-
+ include/linux/property.h                           |  2 +-
+ 11 files changed, 138 insertions(+), 46 deletions(-)
