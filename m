@@ -1,67 +1,44 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 1/5] PCI: Make sure all bridges reserve at least one bus number
-Date: Thu, 15 Feb 2018 17:39:55 +0300
-Message-ID: <20180215144000.60456-2-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 5/5] ACPI / hotplug / PCI: Mark stale PCI devices disconnected
+Date: Thu, 15 Feb 2018 17:39:59 +0300
+Message-ID: <20180215144000.60456-6-mika.westerberg@linux.intel.com>
 References: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:39097 "EHLO mga12.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:34661 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033381AbeBOOkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Feb 2018 09:40:06 -0500
+        id S1033381AbeBOOkI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Feb 2018 09:40:08 -0500
 In-Reply-To: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-When distributing extra buses between hotplug bridges we need to make
-sure each bridge reserve at least one bus number, even if there is
-currently nothing connected to it. For instance ACPI hotplug may bring
-in additional devices to non-hotplug bridges later on. To make sure we
-don't run out of bus numbers for non-hotplug bridges reserve one bus
-number for them upfront before distributing buses for hotplug bridges.
+Following PCIehp mark the unplugged PCI devices disconnected. This makes
+sure PCI core code leaves the now missing hardware registers alone.
 
-Fixes: 1c02ea810065 ("PCI: Distribute available buses to hotplug-capable bridges")
-Reported-by: Mario Limonciello <mario.limonciello@dell.com>
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: stable@vger.kernel.org
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/pci/probe.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/acpiphp_glue.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ef5377438a1e..6cefd47556e3 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2561,7 +2561,10 @@ static unsigned int pci_scan_child_bus_extend(struct pci_bus *bus,
- 	for_each_pci_bridge(dev, bus) {
- 		cmax = max;
- 		max = pci_scan_bridge_extend(bus, dev, max, 0, 0);
--		used_buses += cmax - max;
-+		/* Reserve one bus for each bridge */
-+		used_buses++;
-+		if (cmax - max > 1)
-+			used_buses += cmax - max - 1;
- 	}
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index 5efa21cdddc9..0aef35ee665a 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -651,6 +651,11 @@ static void trim_stale_devices(struct pci_dev *dev)
+ 		alive = pci_device_is_present(dev);
  
- 	/* Scan bridges that need to be reconfigured */
-@@ -2584,12 +2587,14 @@ static unsigned int pci_scan_child_bus_extend(struct pci_bus *bus,
- 			 * bridges if any.
- 			 */
- 			buses = available_buses / hotplug_bridges;
--			buses = min(buses, available_buses - used_buses);
-+			buses = min(buses, available_buses - used_buses + 1);
- 		}
- 
- 		cmax = max;
- 		max = pci_scan_bridge_extend(bus, dev, cmax, buses, 1);
--		used_buses += max - cmax;
-+		/* One bus is already accounted so don't add it again */
-+		if (max - cmax > 1)
-+			used_buses += max - cmax - 1;
- 	}
- 
- 	/*
+ 	if (!alive) {
++		pci_dev_set_disconnected(dev, NULL);
++		if (pci_has_subordinate(dev))
++			pci_walk_bus(dev->subordinate, pci_dev_set_disconnected,
++				     NULL);
++
+ 		pci_stop_and_remove_bus_device(dev);
+ 		if (adev)
+ 			acpi_bus_trim(adev);
 -- 
 2.15.1
 
