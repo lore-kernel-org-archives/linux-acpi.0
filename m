@@ -1,137 +1,182 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 2/5] PCI: Take bridge window alignment into account when distributing resources
-Date: Thu, 15 Feb 2018 17:39:56 +0300
-Message-ID: <20180215144000.60456-3-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 4/5] ACPI / hotplug / PCI: Do not scan all bridges when native PCIe hotplug is used
+Date: Thu, 15 Feb 2018 17:39:58 +0300
+Message-ID: <20180215144000.60456-5-mika.westerberg@linux.intel.com>
 References: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
 Received: from mga14.intel.com ([192.55.52.115]:54987 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033431AbeBOOkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Feb 2018 09:40:06 -0500
+        id S1033436AbeBOOkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Feb 2018 09:40:07 -0500
 In-Reply-To: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-When connecting a Thunderbolt endpoint which itself has internal PCIe
-switch (not the integrated one) the way we currently distribute
-resources does not always work well because devices below non-hotplug
-bridges might need to have their MMIO resources aligned to something
-else than 1 MB boundary. As an example connecting a server grade 4-port
-GbE add in card adds another PCIe switch leading to GbE devices that
-want to have their MMIO resources aligned to 2 MB boundary instead.
+When a system is using native PCIe hotplug for Thunderbolt and the
+controller is not enabled for full RTD3 (runtime D3) it will be only
+present in the system when there is a device connected. This pretty much
+follows the BIOS assisted hotplug behaviour.
 
-Current resource distribution code does not take this alignment into
-account and might try to add too much resources for the extension
-hotplug bridges. The resulting bridge window is then too big which makes
-Linux to re-allocate minimal amount of resources, making future
-extension impossible.
+Thunderbolt host controller integrated PCIe switch has two additional
+PCIe downstream ports that lead to NHI (Thunderbolt host controller) and
+xHCI (USB 3 host controller) respectively. These downstream ports are
+not marked being hotplug capable. Reason for that is to preserve
+resources. Otherwise the OS would distribute remaining resources between
+all downstream ports making these two ports consume too much resources
+they don't really need (both NHI and xHCI only need 1 MB of MMIO space,
+and no extra buses).
 
-Make this work better by substracting properly aligned non-hotplug
-downstream bridge window size from the remaining resources.
+Now, because these ports are not marked being hotplug capable the OS
+will not enable hotplug interrupt for them either and will not receive
+interrupt when devices below them are hotplugged. Solution to this is
+that the BIOS sends ACPI Notify() for the root port to notify the OS it
+needs to rescan for added devices.
 
-Fixes: 1a5767725cec ("PCI: Distribute available resources to hotplug-capable bridges")
+However, the current ACPI hotplug implementation scans the whole slot
+regardless whether native PCIe is used or not and it expects that the
+BIOS has configured bridge resources upfront. If that's not the case it
+assigns resources using minimal allocation (everything currently found
+just barely fit) preventing future extension. In addition to that, if
+there is another native PCIe hotplug going on we may find the new PCIe
+switch only partially ready (all links are not fully trained yet)
+confusing PCIehp when it finally starts to enumerate new devices.
+
+To make this work better with the native PCIe hotplug driver (PCIehp),
+we let it to handle all slot management and resource allocation for
+hotplug bridges and restrict ACPI hotplug to non-hotplug bridges.
+
 Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Cc: stable@vger.kernel.org
 ---
- drivers/pci/setup-bus.c | 41 ++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 40 insertions(+), 1 deletion(-)
+ drivers/pci/hotplug/acpiphp.h      |  1 +
+ drivers/pci/hotplug/acpiphp_glue.c | 73 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 59 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 3cce29a069e6..f1e6172734f0 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -1882,6 +1882,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
- 	resource_size_t available_mmio, resource_size_t available_mmio_pref)
- {
- 	resource_size_t remaining_io, remaining_mmio, remaining_mmio_pref;
-+	resource_size_t io_start, mmio_start, mmio_pref_start;
- 	unsigned int normal_bridges = 0, hotplug_bridges = 0;
- 	struct resource *io_res, *mmio_res, *mmio_pref_res;
- 	struct pci_dev *dev, *bridge = bus->self;
-@@ -1946,11 +1947,16 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
- 			remaining_mmio_pref -= resource_size(res);
- 	}
+diff --git a/drivers/pci/hotplug/acpiphp.h b/drivers/pci/hotplug/acpiphp.h
+index e438a2d734f2..8dcfd623ef1d 100644
+--- a/drivers/pci/hotplug/acpiphp.h
++++ b/drivers/pci/hotplug/acpiphp.h
+@@ -158,6 +158,7 @@ struct acpiphp_attention_info
  
-+	io_start = io_res->start;
-+	mmio_start = mmio_res->start;
-+	mmio_pref_start = mmio_pref_res->start;
+ #define SLOT_ENABLED		(0x00000001)
+ #define SLOT_IS_GOING_AWAY	(0x00000002)
++#define SLOT_IS_NATIVE		(0x00000004)
+ 
+ /* function flags */
+ 
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index b45b375c0e6c..5efa21cdddc9 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -282,6 +282,9 @@ static acpi_status acpiphp_add_context(acpi_handle handle, u32 lvl, void *data,
+ 	slot->device = device;
+ 	INIT_LIST_HEAD(&slot->funcs);
+ 
++	if (pdev && pciehp_is_native(pdev))
++		slot->flags |= SLOT_IS_NATIVE;
 +
+ 	list_add_tail(&slot->node, &bridge->slots);
+ 
  	/*
- 	 * Go over devices on this bus and distribute the remaining
- 	 * resource space between hotplug bridges.
+@@ -291,7 +294,7 @@ static acpi_status acpiphp_add_context(acpi_handle handle, u32 lvl, void *data,
+ 	 * expose slots to user space in those cases.
  	 */
- 	for_each_pci_bridge(dev, bus) {
-+		resource_size_t align;
- 		struct pci_bus *b;
+ 	if ((acpi_pci_check_ejectable(pbus, handle) || is_dock_device(adev))
+-	    && !(pdev && pdev->is_hotplug_bridge && pciehp_is_native(pdev))) {
++	    && !(slot->flags & SLOT_IS_NATIVE && pdev->is_hotplug_bridge)) {
+ 		unsigned long long sun;
+ 		int retval;
  
- 		b = dev->subordinate;
-@@ -1968,7 +1974,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
- 				available_io, available_mmio,
- 				available_mmio_pref);
- 		} else if (dev->is_hotplug_bridge) {
--			resource_size_t align, io, mmio, mmio_pref;
-+			resource_size_t io, mmio, mmio_pref;
- 
- 			/*
- 			 * Distribute available extra resources equally
-@@ -1981,11 +1987,13 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
- 			io = div64_ul(available_io, hotplug_bridges);
- 			io = min(ALIGN(io, align), remaining_io);
- 			remaining_io -= io;
-+			io_start += io;
- 
- 			align = pci_resource_alignment(bridge, mmio_res);
- 			mmio = div64_ul(available_mmio, hotplug_bridges);
- 			mmio = min(ALIGN(mmio, align), remaining_mmio);
- 			remaining_mmio -= mmio;
-+			mmio_start += mmio;
- 
- 			align = pci_resource_alignment(bridge, mmio_pref_res);
- 			mmio_pref = div64_ul(available_mmio_pref,
-@@ -1993,9 +2001,40 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
- 			mmio_pref = min(ALIGN(mmio_pref, align),
- 					remaining_mmio_pref);
- 			remaining_mmio_pref -= mmio_pref;
-+			mmio_pref_start += mmio_pref;
- 
- 			pci_bus_distribute_available_resources(b, add_list, io,
- 							       mmio, mmio_pref);
-+		} else {
-+			/*
-+			 * For normal bridges, track start of the parent
-+			 * bridge window to make sure we align the
-+			 * remaining space which is distributed to the
-+			 * hotplug bridges properly.
-+			 */
-+			resource_size_t aligned;
-+			struct resource *res;
-+
-+			res = &dev->resource[PCI_BRIDGE_RESOURCES + 0];
-+			io_start += resource_size(res);
-+			aligned = ALIGN(io_start,
-+					pci_resource_alignment(dev, res));
-+			if (aligned > io_start)
-+				remaining_io -= aligned - io_start;
-+
-+			res = &dev->resource[PCI_BRIDGE_RESOURCES + 1];
-+			mmio_start += resource_size(res);
-+			aligned = ALIGN(mmio_start,
-+					pci_resource_alignment(dev, res));
-+			if (aligned > mmio_start)
-+				remaining_mmio -= aligned - mmio_start;
-+
-+			res = &dev->resource[PCI_BRIDGE_RESOURCES + 2];
-+			mmio_pref_start += resource_size(res);
-+			aligned = ALIGN(mmio_pref_start,
-+					pci_resource_alignment(dev, res));
-+			if (aligned > mmio_pref_start)
-+				remaining_mmio_pref -= aligned - mmio_pref_start;
- 		}
- 	}
+@@ -430,6 +433,29 @@ static int acpiphp_rescan_slot(struct acpiphp_slot *slot)
+ 	return pci_scan_slot(slot->bus, PCI_DEVFN(slot->device, 0));
  }
+ 
++static void acpiphp_native_scan_bridge(struct pci_dev *bridge)
++{
++	struct pci_bus *bus = bridge->subordinate;
++	struct pci_dev *dev;
++	int max;
++
++	if (!bus)
++		return;
++
++	max = bus->busn_res.start;
++	/* Scan already configured non-hotplug bridges */
++	for_each_pci_bridge(dev, bus) {
++		if (!dev->is_hotplug_bridge)
++			max = pci_scan_bridge(bus, dev, max, 0);
++	}
++
++	/* Scan non-hotplug bridges that need to be reconfigured */
++	for_each_pci_bridge(dev, bus) {
++		if (!dev->is_hotplug_bridge)
++			max = pci_scan_bridge(bus, dev, max, 1);
++	}
++}
++
+ /**
+  * enable_slot - enable, configure a slot
+  * @slot: slot to be enabled
+@@ -442,25 +468,42 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 	struct pci_dev *dev;
+ 	struct pci_bus *bus = slot->bus;
+ 	struct acpiphp_func *func;
+-	int max, pass;
+-	LIST_HEAD(add_list);
+ 
+-	acpiphp_rescan_slot(slot);
+-	max = acpiphp_max_busnr(bus);
+-	for (pass = 0; pass < 2; pass++) {
++	if (slot->flags & SLOT_IS_NATIVE) {
++		/*
++		 * If native PCIe hotplug is used, it will take care of
++		 * hotplug slot management and resource allocation for
++		 * hotplug bridges. However, ACPI hotplug may still be
++		 * used for non-hotplug bridges to bring in additional
++		 * devices such as Thunderbolt host controller.
++		 */
+ 		for_each_pci_bridge(dev, bus) {
+-			if (PCI_SLOT(dev->devfn) != slot->device)
+-				continue;
+-
+-			max = pci_scan_bridge(bus, dev, max, pass);
+-			if (pass && dev->subordinate) {
+-				check_hotplug_bridge(slot, dev);
+-				pcibios_resource_survey_bus(dev->subordinate);
+-				__pci_bus_size_bridges(dev->subordinate, &add_list);
++			if (PCI_SLOT(dev->devfn) == slot->device)
++				acpiphp_native_scan_bridge(dev);
++		}
++		pci_assign_unassigned_bridge_resources(bus->self);
++	} else {
++		LIST_HEAD(add_list);
++		int max, pass;
++
++		acpiphp_rescan_slot(slot);
++		max = acpiphp_max_busnr(bus);
++		for (pass = 0; pass < 2; pass++) {
++			for_each_pci_bridge(dev, bus) {
++				if (PCI_SLOT(dev->devfn) != slot->device)
++					continue;
++
++				max = pci_scan_bridge(bus, dev, max, pass);
++				if (pass && dev->subordinate) {
++					check_hotplug_bridge(slot, dev);
++					pcibios_resource_survey_bus(dev->subordinate);
++					__pci_bus_size_bridges(dev->subordinate,
++							       &add_list);
++				}
+ 			}
+ 		}
++		__pci_bus_assign_resources(bus, &add_list, NULL);
+ 	}
+-	__pci_bus_assign_resources(bus, &add_list, NULL);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
 -- 
 2.15.1
 
