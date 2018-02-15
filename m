@@ -1,70 +1,137 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH v2 0/5] PCI: Fixes for native PCIe and ACPI hotplug
-Date: Thu, 15 Feb 2018 17:39:54 +0300
-Message-ID: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 2/5] PCI: Take bridge window alignment into account when distributing resources
+Date: Thu, 15 Feb 2018 17:39:56 +0300
+Message-ID: <20180215144000.60456-3-mika.westerberg@linux.intel.com>
+References: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:42984 "EHLO mga04.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:54987 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1033435AbeBOOkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        id S1033431AbeBOOkG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
         Thu, 15 Feb 2018 09:40:06 -0500
+In-Reply-To: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi,
+When connecting a Thunderbolt endpoint which itself has internal PCIe
+switch (not the integrated one) the way we currently distribute
+resources does not always work well because devices below non-hotplug
+bridges might need to have their MMIO resources aligned to something
+else than 1 MB boundary. As an example connecting a server grade 4-port
+GbE add in card adds another PCIe switch leading to GbE devices that
+want to have their MMIO resources aligned to 2 MB boundary instead.
 
-When Thunderbolt controller is configured to be in native enumeration mode
-it actually includes two slightly different modes. First there is non-RTD3
-mode where the Thunderbolt host controller is only present when there is a
-device connected. The second one is RTD3 mode where the controller is
-always present.
+Current resource distribution code does not take this alignment into
+account and might try to add too much resources for the extension
+hotplug bridges. The resulting bridge window is then too big which makes
+Linux to re-allocate minimal amount of resources, making future
+extension impossible.
 
-In non-RTD3 mode the Thunderbolt host controller (NHI) and USB host (xHCI)
-controller are not hotplugged using native PCIe hotplug but instead they
-will be hotplugged via BIOS triggered ACPI Notify() to the root port. This
-is done to preserve resources since the NHI and xHCI only need 1 MB of MMIO
-space and no additional buses. Currently Linux does not support this very
-well and ends up failing the hotplug in one way or another. More detailed
-explanation is in changelog of patch [4/5].
+Make this work better by substracting properly aligned non-hotplug
+downstream bridge window size from the remaining resources.
 
-This series fixes this issue and in addition includes fixes for few other
-issues found during testing on a system that has Thunderbolt controller in
-non-RTD3 native PCIe enumeration mode. However, the fixes here are not in
-any way Thunderbolt specific and should be applicable to other systems as
-well.
+Fixes: 1a5767725cec ("PCI: Distribute available resources to hotplug-capable bridges")
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/pci/setup-bus.c | 41 ++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 40 insertions(+), 1 deletion(-)
 
-The previous version of the patch series can be found here:
-
-  https://www.spinics.net/lists/linux-acpi/msg80607.html
-
-Changes from the previous version:
-
-  - Drop 'cmax - max ?: 1' and use similar construct than we use in second
-    pass loop in patch [1/5].
-  - Drop unnecessary parentheses in patch [1/5].
-  - Added Rafael's tag to patches [2-5/5].
-
-[ I'm sending this updated patch series now because my vacation starts
-  tomorrow and I'll be away whole next week. If any further changes are
-  needed, I'll do those when I'm back. ]
-
-Mika Westerberg (5):
-  PCI: Make sure all bridges reserve at least one bus number
-  PCI: Take bridge window alignment into account when distributing resources
-  PCI: pciehp: Clear Presence Detect and Data Link Layer Status Changed on resume
-  ACPI / hotplug / PCI: Do not scan all bridges when native PCIe hotplug is used
-  ACPI / hotplug / PCI: Mark stale PCI devices disconnected
-
- drivers/pci/hotplug/acpiphp.h      |  1 +
- drivers/pci/hotplug/acpiphp_glue.c | 78 ++++++++++++++++++++++++++++++--------
- drivers/pci/hotplug/pciehp.h       |  2 +-
- drivers/pci/hotplug/pciehp_core.c  |  2 +-
- drivers/pci/hotplug/pciehp_hpc.c   | 13 ++++++-
- drivers/pci/probe.c                | 11 ++++--
- drivers/pci/setup-bus.c            | 41 +++++++++++++++++++-
- 7 files changed, 126 insertions(+), 22 deletions(-)
-
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 3cce29a069e6..f1e6172734f0 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -1882,6 +1882,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+ 	resource_size_t available_mmio, resource_size_t available_mmio_pref)
+ {
+ 	resource_size_t remaining_io, remaining_mmio, remaining_mmio_pref;
++	resource_size_t io_start, mmio_start, mmio_pref_start;
+ 	unsigned int normal_bridges = 0, hotplug_bridges = 0;
+ 	struct resource *io_res, *mmio_res, *mmio_pref_res;
+ 	struct pci_dev *dev, *bridge = bus->self;
+@@ -1946,11 +1947,16 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+ 			remaining_mmio_pref -= resource_size(res);
+ 	}
+ 
++	io_start = io_res->start;
++	mmio_start = mmio_res->start;
++	mmio_pref_start = mmio_pref_res->start;
++
+ 	/*
+ 	 * Go over devices on this bus and distribute the remaining
+ 	 * resource space between hotplug bridges.
+ 	 */
+ 	for_each_pci_bridge(dev, bus) {
++		resource_size_t align;
+ 		struct pci_bus *b;
+ 
+ 		b = dev->subordinate;
+@@ -1968,7 +1974,7 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+ 				available_io, available_mmio,
+ 				available_mmio_pref);
+ 		} else if (dev->is_hotplug_bridge) {
+-			resource_size_t align, io, mmio, mmio_pref;
++			resource_size_t io, mmio, mmio_pref;
+ 
+ 			/*
+ 			 * Distribute available extra resources equally
+@@ -1981,11 +1987,13 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+ 			io = div64_ul(available_io, hotplug_bridges);
+ 			io = min(ALIGN(io, align), remaining_io);
+ 			remaining_io -= io;
++			io_start += io;
+ 
+ 			align = pci_resource_alignment(bridge, mmio_res);
+ 			mmio = div64_ul(available_mmio, hotplug_bridges);
+ 			mmio = min(ALIGN(mmio, align), remaining_mmio);
+ 			remaining_mmio -= mmio;
++			mmio_start += mmio;
+ 
+ 			align = pci_resource_alignment(bridge, mmio_pref_res);
+ 			mmio_pref = div64_ul(available_mmio_pref,
+@@ -1993,9 +2001,40 @@ static void pci_bus_distribute_available_resources(struct pci_bus *bus,
+ 			mmio_pref = min(ALIGN(mmio_pref, align),
+ 					remaining_mmio_pref);
+ 			remaining_mmio_pref -= mmio_pref;
++			mmio_pref_start += mmio_pref;
+ 
+ 			pci_bus_distribute_available_resources(b, add_list, io,
+ 							       mmio, mmio_pref);
++		} else {
++			/*
++			 * For normal bridges, track start of the parent
++			 * bridge window to make sure we align the
++			 * remaining space which is distributed to the
++			 * hotplug bridges properly.
++			 */
++			resource_size_t aligned;
++			struct resource *res;
++
++			res = &dev->resource[PCI_BRIDGE_RESOURCES + 0];
++			io_start += resource_size(res);
++			aligned = ALIGN(io_start,
++					pci_resource_alignment(dev, res));
++			if (aligned > io_start)
++				remaining_io -= aligned - io_start;
++
++			res = &dev->resource[PCI_BRIDGE_RESOURCES + 1];
++			mmio_start += resource_size(res);
++			aligned = ALIGN(mmio_start,
++					pci_resource_alignment(dev, res));
++			if (aligned > mmio_start)
++				remaining_mmio -= aligned - mmio_start;
++
++			res = &dev->resource[PCI_BRIDGE_RESOURCES + 2];
++			mmio_pref_start += resource_size(res);
++			aligned = ALIGN(mmio_pref_start,
++					pci_resource_alignment(dev, res));
++			if (aligned > mmio_pref_start)
++				remaining_mmio_pref -= aligned - mmio_pref_start;
+ 		}
+ 	}
+ }
 -- 
 2.15.1
 
