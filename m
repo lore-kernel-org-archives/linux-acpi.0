@@ -1,169 +1,283 @@
-From: James Morse <james.morse@arm.com>
-Subject: [PATCH 09/11] ACPI / APEI: Add support for the SDEI GHES Notification type
-Date: Thu, 15 Feb 2018 18:56:04 +0000
-Message-ID: <20180215185606.26736-10-james.morse@arm.com>
-References: <20180215185606.26736-1-james.morse@arm.com>
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH v2 3/7] ACPICA: Update for some debug output. No functional change
+Date: Thu, 15 Feb 2018 13:09:28 -0800
+Message-ID: <20180215210932.15490-4-erik.schmauss@intel.com>
+References: <20180215210932.15490-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:60366 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161425AbeBOS7V (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Feb 2018 13:59:21 -0500
-In-Reply-To: <20180215185606.26736-1-james.morse@arm.com>
+Received: from mga02.intel.com ([134.134.136.20]:43731 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752375AbeBOVJ5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Feb 2018 16:09:57 -0500
+In-Reply-To: <20180215210932.15490-1-erik.schmauss@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Christoffer Dall <christoffer.dall@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, Punit Agrawal <punit.agrawal@arm.com>, James Morse <james.morse@arm.com>
+Cc: rjw@rjwysocki.net, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>
 
-If the GHES notification type is SDEI, register the provided event
-number and point the callback at ghes_sdei_callback().
+From: Bob Moore <robert.moore@intel.com>
 
-Signed-off-by: James Morse <james.morse@arm.com>
+ACPICA commit 3a08436fe3bff297a6de162252964e955946c7d3
+
+Improve/simplify some of the debug messages.
+
+Link: https://github.com/acpica/acpica/commit/3a08436f
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/apei/ghes.c | 66 ++++++++++++++++++++++++++++++++++++++++++++++--
- include/linux/arm_sdei.h |  3 +++
- 2 files changed, 67 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/dsargs.c   |  1 +
+ drivers/acpi/acpica/dsopcode.c |  4 ++--
+ drivers/acpi/acpica/dswload.c  |  2 +-
+ drivers/acpi/acpica/exnames.c  |  7 ++-----
+ drivers/acpi/acpica/nsinit.c   |  7 ++++++-
+ drivers/acpi/acpica/nsnames.c  |  3 +++
+ drivers/acpi/acpica/nsparse.c  |  9 ++++++---
+ drivers/acpi/acpica/psloop.c   |  4 ++--
+ drivers/acpi/acpica/psparse.c  |  2 +-
+ drivers/acpi/acpica/utcache.c  |  7 ++++---
+ drivers/acpi/acpica/utdelete.c | 20 ++++++++++++--------
+ 11 files changed, 40 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 280c0a58c700..5eaf0a772be7 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -25,6 +25,7 @@
-  * GNU General Public License for more details.
-  */
- 
-+#include <linux/arm_sdei.h>
- #include <linux/kernel.h>
- #include <linux/moduleparam.h>
- #include <linux/init.h>
-@@ -59,7 +60,7 @@
- 
- #define GHES_PFX	"GHES: "
- 
--#if defined(CONFIG_HAVE_ACPI_APEI_NMI) || defined(CONFIG_ACPI_APEI_SEA)
-+#if defined(CONFIG_HAVE_ACPI_APEI_NMI) || defined(CONFIG_ACPI_APEI_SEA) || defined(CONFIG_ARM_SDE_INTERFACE)
- #define WANT_NMI_ESTATUS_QUEUE	1
- #endif
- 
-@@ -753,7 +754,7 @@ static int _in_nmi_notify_one(struct ghes *ghes)
- 	return ret;
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index 04a9f60e7ad1..a164b1530eec 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -346,6 +346,7 @@ acpi_status acpi_ds_get_package_arguments(union acpi_operand_object *obj_desc)
+ 	status = acpi_ds_execute_arguments(node, node,
+ 					   obj_desc->package.aml_length,
+ 					   obj_desc->package.aml_start);
++
+ 	return_ACPI_STATUS(status);
  }
  
--static int ghes_estatus_queue_notified(struct list_head *rcu_list)
-+static int __maybe_unused ghes_estatus_queue_notified(struct list_head *rcu_list)
- {
- 	int ret = -ENOENT;
- 	struct ghes *ghes;
-@@ -1047,6 +1048,49 @@ static inline void ghes_nmi_add(struct ghes *ghes) { }
- static inline void ghes_nmi_remove(struct ghes *ghes) { }
- #endif /* CONFIG_HAVE_ACPI_APEI_NMI */
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index 0181cd317751..84667c9055cb 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -603,8 +603,8 @@ acpi_ds_eval_data_object_operands(struct acpi_walk_state *walk_state,
  
-+static int ghes_sdei_callback(u32 event_num, struct pt_regs *regs, void *arg)
-+{
-+	struct ghes *ghes = arg;
-+
-+	if (!_in_nmi_notify_one(ghes)) {
-+		if (IS_ENABLED(CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG))
-+			irq_work_queue(&ghes_proc_irq_work);
-+
-+		return 0;
-+	}
-+
-+	return -ENOENT;
-+}
-+
-+static int apei_sdei_register_ghes(struct ghes *ghes)
-+{
-+	int err = -EINVAL;
-+
-+	if (IS_ENABLED(CONFIG_ARM_SDE_INTERFACE)) {
-+		ghes_estatus_queue_grow_pool(ghes);
-+
-+		err = sdei_register_ghes(ghes, ghes_sdei_callback);
-+		if (err)
-+			ghes_estatus_queue_shrink_pool(ghes);
-+	}
-+
-+	return err;
-+}
-+
-+static int apei_sdei_unregister_ghes(struct ghes *ghes)
-+{
-+	int err = -EINVAL;
-+
-+	if (IS_ENABLED(CONFIG_ARM_SDE_INTERFACE)) {
-+		err = sdei_unregister_ghes(ghes);
-+
-+		if (!err)
-+			ghes_estatus_queue_shrink_pool(ghes);
-+	}
-+
-+	return err;
-+}
-+
- static int ghes_probe(struct platform_device *ghes_dev)
- {
- 	struct acpi_hest_generic *generic;
-@@ -1081,6 +1125,13 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 			goto err;
- 		}
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		if (!IS_ENABLED(CONFIG_ARM_SDE_INTERFACE)) {
-+			pr_warn(GHES_PFX "Generic hardware error source: %d notified via SDE Interface is not supported!\n",
-+				generic->header.source_id);
-+			goto err;
-+		}
-+		break;
- 	case ACPI_HEST_NOTIFY_LOCAL:
- 		pr_warning(GHES_PFX "Generic hardware error source: %d notified via local interrupt is not supported!\n",
- 			   generic->header.source_id);
-@@ -1154,6 +1205,11 @@ static int ghes_probe(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_add(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		rc = apei_sdei_register_ghes(ghes);
-+		if (rc)
-+			goto err_edac_unreg;
-+		break;
- 	default:
- 		BUG();
+ 	if (!op->common.value.arg) {
+ 		ACPI_ERROR((AE_INFO,
+-			    "Dispatch: Missing child while executing TermArg for %X",
+-			    op->common.aml_opcode));
++			    "Missing child while evaluating opcode %4.4X, Op %p",
++			    op->common.aml_opcode, op));
+ 		return_ACPI_STATUS(AE_OK);
  	}
-@@ -1175,6 +1231,7 @@ err:
  
- static int ghes_remove(struct platform_device *ghes_dev)
- {
-+	int rc;
- 	struct ghes *ghes;
- 	struct acpi_hest_generic *generic;
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index fa4ef9229e17..be1410f4755f 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -147,7 +147,7 @@ acpi_ds_load1_begin_op(struct acpi_walk_state *walk_state,
+ 	char *path;
+ 	u32 flags;
  
-@@ -1207,6 +1264,11 @@ static int ghes_remove(struct platform_device *ghes_dev)
- 	case ACPI_HEST_NOTIFY_NMI:
- 		ghes_nmi_remove(ghes);
- 		break;
-+	case ACPI_HEST_NOTIFY_SOFTWARE_DELEGATED:
-+		rc = apei_sdei_unregister_ghes(ghes);
-+		if (rc)
-+			return rc;
-+		break;
- 	default:
- 		BUG();
- 		break;
-diff --git a/include/linux/arm_sdei.h b/include/linux/arm_sdei.h
-index 5fdf799be026..f49063ca206d 100644
---- a/include/linux/arm_sdei.h
-+++ b/include/linux/arm_sdei.h
-@@ -12,7 +12,10 @@ enum sdei_conduit_types {
- };
+-	ACPI_FUNCTION_TRACE(ds_load1_begin_op);
++	ACPI_FUNCTION_TRACE_PTR(ds_load1_begin_op, walk_state->op);
  
- #include <acpi/ghes.h>
+ 	op = walk_state->op;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH, "Op=%p State=%p\n", op,
+diff --git a/drivers/acpi/acpica/exnames.c b/drivers/acpi/acpica/exnames.c
+index c7b249cda5c0..6dc2682cbbea 100644
+--- a/drivers/acpi/acpica/exnames.c
++++ b/drivers/acpi/acpica/exnames.c
+@@ -174,13 +174,10 @@ static acpi_status acpi_ex_name_segment(u8 ** in_aml_address, char *name_string)
+ 		return_ACPI_STATUS(AE_CTRL_PENDING);
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "Bytes from stream:\n"));
+-
+ 	for (index = 0;
+ 	     (index < ACPI_NAME_SIZE)
+ 	     && (acpi_ut_valid_name_char(*aml_address, 0)); index++) {
+ 		char_buf[index] = *aml_address++;
+-		ACPI_DEBUG_PRINT((ACPI_DB_LOAD, "%c\n", char_buf[index]));
+ 	}
+ 
+ 	/* Valid name segment  */
+@@ -192,9 +189,9 @@ static acpi_status acpi_ex_name_segment(u8 ** in_aml_address, char *name_string)
+ 		char_buf[4] = '\0';
+ 
+ 		if (name_string) {
+-			strcat(name_string, char_buf);
+ 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+-					  "Appended to - %s\n", name_string));
++					  "Appending NameSeg %s\n", char_buf));
++			strcat(name_string, char_buf);
+ 		} else {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
+ 					  "No Name string - %s\n", char_buf));
+diff --git a/drivers/acpi/acpica/nsinit.c b/drivers/acpi/acpica/nsinit.c
+index c17af4a3ab67..93697527036d 100644
+--- a/drivers/acpi/acpica/nsinit.c
++++ b/drivers/acpi/acpica/nsinit.c
+@@ -286,7 +286,7 @@ acpi_status acpi_ns_initialize_devices(u32 flags)
+  * RETURN:      Status
+  *
+  * DESCRIPTION: Callback from acpi_walk_namespace. Invoked for every object
+- *              within the  namespace.
++ *              within the namespace.
+  *
+  *              Currently, the only objects that require initialization are:
+  *              1) Methods
+@@ -400,6 +400,10 @@ acpi_ns_init_one_object(acpi_handle obj_handle,
+ 			break;
+ 		}
+ 
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
++				      "%s: Completing resolution of Package elements\n",
++				      ACPI_GET_FUNCTION_NAME));
 +
-+#ifdef CONFIG_ARM_SDE_INTERFACE
- #include <asm/sdei.h>
-+#endif
+ 		/*
+ 		 * Resolve all named references in package objects (and all
+ 		 * sub-packages). This action has been deferred until the entire
+@@ -409,6 +413,7 @@ acpi_ns_init_one_object(acpi_handle obj_handle,
+ 		status = acpi_ut_walk_package_tree(obj_desc, NULL,
+ 						   acpi_ds_init_package_element,
+ 						   NULL);
++
+ 		obj_desc->package.flags |= AOPOBJ_DATA_VALID;
+ 		break;
  
- /* Arch code should override this to set the entry point from firmware... */
- #ifndef sdei_arch_get_entry_point
+diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
+index c686eda7ca66..5d3bfaa6c035 100644
+--- a/drivers/acpi/acpica/nsnames.c
++++ b/drivers/acpi/acpica/nsnames.c
+@@ -354,6 +354,9 @@ char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
+ 	(void)acpi_ns_build_normalized_path(node, name_buffer, size,
+ 					    no_trailing);
+ 
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES, "%s: Path \"%s\"\n",
++			      ACPI_GET_FUNCTION_NAME, name_buffer));
++
+ 	return_PTR(name_buffer);
+ }
+ 
+diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+index c5b22ea5b369..6ac2d26a2cfb 100644
+--- a/drivers/acpi/acpica/nsparse.c
++++ b/drivers/acpi/acpica/nsparse.c
+@@ -112,8 +112,10 @@ acpi_ns_execute_table(u32 table_index, struct acpi_namespace_node *start_node)
+ 		goto cleanup;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-			  "Create table code block: %p\n", method_obj));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_PARSE,
++			      "%s: Create table pseudo-method for [%4.4s] @%p, method %p\n",
++			      ACPI_GET_FUNCTION_NAME, table->signature, table,
++			      method_obj));
+ 
+ 	method_obj->method.aml_start = aml_start;
+ 	method_obj->method.aml_length = aml_length;
+@@ -265,7 +267,8 @@ acpi_ns_parse_table(u32 table_index, struct acpi_namespace_node *start_node)
+ 	ACPI_FUNCTION_TRACE(ns_parse_table);
+ 
+ 	if (acpi_gbl_parse_table_as_term_list) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_PARSE, "**** Start load pass\n"));
++		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
++				  "**** Start table execution pass\n"));
+ 
+ 		status = acpi_ns_execute_table(table_index, start_node);
+ 		if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 7dca287d7690..569df3cc6cb5 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -165,7 +165,7 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
+ 		}
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-				  "Final argument count: %u pass %u\n",
++				  "Final argument count: %8.8X pass %u\n",
+ 				  walk_state->arg_count,
+ 				  walk_state->pass_number));
+ 
+@@ -581,7 +581,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 		/* Check for arguments that need to be processed */
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+-				  "Parseloop: argument count: %u\n",
++				  "Parseloop: argument count: %8.8X\n",
+ 				  walk_state->arg_count));
+ 
+ 		if (walk_state->arg_count) {
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index 2474ff961294..b10fb68eb83d 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -454,7 +454,7 @@ acpi_status acpi_ps_parse_aml(struct acpi_walk_state *walk_state)
+ 			  walk_state->parser_state.aml_size));
+ 
+ 	if (!walk_state->parser_state.aml) {
+-		return_ACPI_STATUS(AE_NULL_OBJECT);
++		return_ACPI_STATUS(AE_BAD_ADDRESS);
+ 	}
+ 
+ 	/* Create and initialize a new thread state */
+diff --git a/drivers/acpi/acpica/utcache.c b/drivers/acpi/acpica/utcache.c
+index 08e6944404b3..3ec7e8aca325 100644
+--- a/drivers/acpi/acpica/utcache.c
++++ b/drivers/acpi/acpica/utcache.c
+@@ -269,9 +269,10 @@ void *acpi_os_acquire_object(struct acpi_memory_list *cache)
+ 		cache->current_depth--;
+ 
+ 		ACPI_MEM_TRACKING(cache->hits++);
+-		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
+-				  "Object %p from %s cache\n", object,
+-				  cache->list_name));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_EXEC,
++				      "%s: Object %p from %s cache\n",
++				      ACPI_GET_FUNCTION_NAME, object,
++				      cache->list_name));
+ 
+ 		status = acpi_ut_release_mutex(ACPI_MTX_CACHES);
+ 		if (ACPI_FAILURE(status)) {
+diff --git a/drivers/acpi/acpica/utdelete.c b/drivers/acpi/acpica/utdelete.c
+index 7d8d0208f0a3..db98f0d991f7 100644
+--- a/drivers/acpi/acpica/utdelete.c
++++ b/drivers/acpi/acpica/utdelete.c
+@@ -332,8 +332,10 @@ static void acpi_ut_delete_internal_obj(union acpi_operand_object *object)
+ 
+ 	/* Now the object can be safely deleted */
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS, "Deleting Object %p [%s]\n",
+-			  object, acpi_ut_get_object_type_name(object)));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++			      "%s: Deleting Object %p [%s]\n",
++			      ACPI_GET_FUNCTION_NAME, object,
++			      acpi_ut_get_object_type_name(object)));
+ 
+ 	acpi_ut_delete_object_desc(object);
+ 	return_VOID;
+@@ -444,9 +446,10 @@ acpi_ut_update_ref_count(union acpi_operand_object *object, u32 action)
+ 				      object));
+ 		}
+ 
+-		ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+-				  "Obj %p Type %.2X Refs %.2X [Decremented]\n",
+-				  object, object->common.type, new_count));
++		ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++				      "%s: Obj %p Type %.2X Refs %.2X [Decremented]\n",
++				      ACPI_GET_FUNCTION_NAME, object,
++				      object->common.type, new_count));
+ 
+ 		/* Actually delete the object on a reference count of zero */
+ 
+@@ -747,9 +750,10 @@ void acpi_ut_remove_reference(union acpi_operand_object *object)
+ 		return;
+ 	}
+ 
+-	ACPI_DEBUG_PRINT((ACPI_DB_ALLOCATIONS,
+-			  "Obj %p Current Refs=%X [To Be Decremented]\n",
+-			  object, object->common.reference_count));
++	ACPI_DEBUG_PRINT_RAW((ACPI_DB_ALLOCATIONS,
++			      "%s: Obj %p Current Refs=%X [To Be Decremented]\n",
++			      ACPI_GET_FUNCTION_NAME, object,
++			      object->common.reference_count));
+ 
+ 	/*
+ 	 * Decrement the reference count, and only actually delete the object
 -- 
-2.15.1
+2.14.3
 
