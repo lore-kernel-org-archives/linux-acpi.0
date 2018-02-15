@@ -1,137 +1,49 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/2] power: supply: Fix AXP288 fallback when not needed
-Date: Thu, 15 Feb 2018 17:15:32 +0100
-Message-ID: <acfd286f-cedc-930e-3810-8795b4bd7dbb@redhat.com>
-References: <20180214194201.24385-1-carlo@caione.org>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Thu, 15 Feb 2018 17:07:24 +0000
+Message-ID: <59e5293f-0ea5-12f4-27db-b13bbcf0918b@huawei.com>
+References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
+ <1518543933-22456-8-git-send-email-john.garry@huawei.com>
+ <CAHp75Ve7C4AJYK6AC=o-jzw6b2p8c8GBRd70Zjv+vYWbfytufg@mail.gmail.com>
+ <adfa2009-476b-8c25-c661-b0eeb48a6c43@huawei.com>
+ <CAHp75VfOa5pN4MKT-aQmWBwPGWsOaQupyfrN-weWwfR3vMLtuA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20180214194201.24385-1-carlo@caione.org>
-Content-Language: en-US
-Sender: linux-pm-owner@vger.kernel.org
-To: Carlo Caione <carlo@caione.org>, linux@endlessm.com, rjw@rjwysocki.net, lenb@kernel.org, sre@kernel.org, wens@csie.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
-Cc: Carlo Caione <carlo@endlessm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VfOa5pN4MKT-aQmWBwPGWsOaQupyfrN-weWwfR3vMLtuA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Rob Herring <robh@kernel.org>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linux-pci@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, Corey Minyard <minyard@acm.org>, devic
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Carlo,
+On 14/02/2018 16:16, Andy Shevchenko wrote:
+> Another approach is to use ~0UL if that is preferable.
+>
+>>>> >>> +       list_for_each_entry(rentry, &resource_list, node)
+>>>> >>> +               resources[count++] = *rentry->res;
+>>> >> It has similarities with acpi_create_platform_device().
+>>> >> I guess we can utilize existing code.
+>> > For sure, this particular segment is effectively same as part of
+>> > acpi_create_platform_device():
+> Not the same, acpi_create_platform_device() does a bit more than
+> copying the resources. If it indeed makes no hurt...
+>
+>> >         list_for_each_entry(rentry, &resource_list, node)
+>> >             acpi_platform_fill_resource(adev, rentry->res,
+>> >                             &resources[count++]);
+>> > So is your idea to refactor this common segment into a helper function?
+> ...I would go with helper.
+>
 
-On 14-02-18 20:41, Carlo Caione wrote:
-> From: Carlo Caione <carlo@endlessm.com>
-> 
-> With commits af3ec837 and dccfae6d a blacklist was introduced to avoid
-> using the ACPI drivers for AC and battery when a native PMIC driver was
-> already present. While this is in general a good idea (because of broken
-> DSDT or proprietary and undocumented ACPI opregions for the ACPI
-> AC/battery devices) we have come across at least one CherryTrail laptop
-> (ECS EF20EA) shipping the AXP288 together with a separate FG controller
-> (a MAX17047) instead of the one embedded in the AXP288.
+Hi Andy,
 
-Thank you for the patches, the code looks good, but I think you need
-to split them up a bit differently, the patches under drivers/acpi
-need to be merged into a different subsys tree as those under
-drivers/power/supply, so the "power: supply: ACPI/AXP288: Add quirks
-for ECS EF20EA" needs to be split I believe.
+Since the plan now is that this code is no longer going to be added to 
+drivers/acpi, but instead pushed to the LLDD, I am pondering whether we 
+should still factor out of this common code. Opinion?
 
-Also the patches to files under drivers/acpi should have an
-"ACPI: " prefix for their subject AFAIK.
+Thanks,
+John
 
-Regards,
-
-Hans
-
-
-
-
-> This is the interesting analisys done by Hans de Goede (thank you):
-> 
-> Looking at the _BIX method of the BATC/PNP0C0A device, we see it referencing
-> FG10:
-> 
-> Method (_BIX, 0, NotSerialized)  // _BIX: Battery Information Extend
-> {
->      If (AVBL == One)
->      {
->          BUF2 = FG10 /* \_SB_.PCI0.I2C1.FG10 */
-> 
-> And FG10 is defined as:
-> 
-> Field (DVFG, BufferAcc, NoLock, Preserve)
-> {
->      Connection (SMFG),
->      Offset (0x10),
->      AccessAs (BufferAcc, AttribBytes (0x02)),
->      FG10,   8
-> }
-> 
-> With SMFG being defined as:
-> 
-> Name (SMFG, ResourceTemplate ()
-> {
->      I2cSerialBusV2 (0x0036, ControllerInitiated, 0x000186A0,
->          AddressingMode7Bit, "\\_SB.PCI0.I2C1",
->          0x00, ResourceConsumer, , Exclusive,
->          )
-> })
-> 
-> Looking for I2C1 address 0x0036 we find:
-> 
-> Device (ANFG)
-> {
->      Name (_HID, "MAX17047" /* Fuel Gauge Controller */)  // _HID: Hardwa
->      Name (_CID, "MAX17047" /* Fuel Gauge Controller */)  // _CID: Compat
->      Name (_DDN, "Fuel Gauge Controller")  // _DDN: DOS Device Name
->      Name (RBUF, ResourceTemplate ()
->      {
->          I2cSerialBusV2 (0x0036, ControllerInitiated, 0x00061A80,
->              AddressingMode7Bit, "\\_SB.PCI0.I2C1",
->              0x00, ResourceConsumer, , Exclusive,
->              )
->          GpioInt (Level, ActiveLow, ExclusiveAndWake, PullNone, 0x0000,
->              "\\_SB.GPO3", 0x00, ResourceConsumer, ,
->              )
->              {   // Pin list
->                  0x0001
->              }
->      })
-> 
-> Where as the AXP288 PMIC is I2C7 address 0x034:
-> 
-> Device (PMI1)
-> {
->      Name (_ADR, Zero)  // _ADR: Address
->      Name (_HID, "INT33F4" /* XPOWER PMIC Controller */)  // _HID: Ha
->      Name (_CID, "INT33F4" /* XPOWER PMIC Controller */)  // _CID: Co
->      Name (_DDN, "XPOWER PMIC Controller")  // _DDN: DOS Device Name
->      Name (_HRV, 0x03)  // _HRV: Hardware Revision
->      Name (_UID, One)  // _UID: Unique ID
-> 
->      Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Setti
->      {
->          Name (SBUF, ResourceTemplate ()
->          {
->              I2cSerialBusV2 (0x0034, ControllerInitiated, 0x000F4240,
->                  AddressingMode7Bit, "\\_SB.PCI0.I2C7",
->                  0x00, ResourceConsumer, , Exclusive,
->                  )
-> 
-> So basically this laptopt is using a separate FG chip instead of the one
-> embedded in the AXP288.
-> 
-> To have this correctly working we need basically to avoid the fallback on the
-> AXP288 driver enabling again the ACPI AC/battery drivers and at the same time
-> avoiding that the AXP288 FG driver is probed at all.
-> 
-> I'm still not fully convinced that having two different quirks (one to disable
-> the blacklist and another to disable the AXP288 FG probing) is the right way to
-> fix this. So any comment is welcome.
-> 
-> Carlo Caione (2):
->    power: supply: ACPI/AXP288: Add quirk to avoid using PMIC
->    power: supply: ACPI/AXP288: Add quirks for ECS EF20EA
-> 
->   drivers/acpi/ac.c                        | 33 ++++++++++++++++++++++++--------
->   drivers/acpi/battery.c                   | 33 ++++++++++++++++++++++++--------
->   drivers/power/supply/axp288_fuel_gauge.c |  6 ++++++
->   3 files changed, 56 insertions(+), 16 deletions(-)
-> 
+>>>> >>> +               char *name = &acpi_indirect_io_mfd_cell[count].name[0];
