@@ -1,91 +1,90 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 08/37] iommu/fault: Handle mm faults
-Date: Thu, 15 Feb 2018 13:51:34 +0000
-Message-ID: <800c2efe-10d7-5711-37d6-fb45df9b6e5c@arm.com>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-9-jean-philippe.brucker@arm.com>
-	<20180214104621.7675579c@jacob-builder>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180214104621.7675579c@jacob-builder>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rjw@rjwyso
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 3/5] PCI: pciehp: Clear Presence Detect and Data Link Layer Status Changed on resume
+Date: Thu, 15 Feb 2018 17:39:57 +0300
+Message-ID: <20180215144000.60456-4-mika.westerberg@linux.intel.com>
+References: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20180215144000.60456-1-mika.westerberg@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <yehezkel.bernat@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 14/02/18 18:46, Jacob Pan wrote:
-> On Mon, 12 Feb 2018 18:33:23 +0000
-> Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
-[...]
->> +	if (!evt->pasid_valid)
->> +		return ret;
-> I guess for not we don't handle PRQ without PASID, right?
+After suspend/resume cycle the Presence Detect or Data Link Layer Status
+Changed bits might be set and if we don't clear them those events will
+not fire anymore and nothing happens for instance when a device is now
+hot-unplugged.
 
-No. I'm not sure how to implement it, though there have been some requests
-(see discussion on 1/37)
+Fix this by clearing those bits in a newly introduced function
+pcie_reenable_notification(). This should be fine because immediately
+after we check if the adapter is still present by reading directly from
+the status register.
 
->> +	/*
->> +	 * Special case: PASID Stop Marker (LRW = 0b100) doesn't
->> expect a
->> +	 * response. A Stop Marker may be generated when disabling a
->> PASID
->> +	 * (issuing a PASID stop request) in some PCI devices.
->> +	 *
->> +	 * When the mm_exit() callback returns from the device
->> driver, no page
->> +	 * request is generated for this PASID anymore and
->> outstanding ones have
->> +	 * been pushed to the IOMMU (as per PCIe 4.0r1.0 - 6.20.1
->> and 10.4.1.2 -
->> +	 * Managing PASID TLP Prefix Usage). Some PCI devices will
->> wait for all
->> +	 * outstanding page requests to come back with a response
->> before
->> +	 * completing the PASID stop request. Others do not wait for
->> page
->> +	 * responses, and instead issue this Stop Marker that tells
->> us when the
->> +	 * PASID can be reallocated.
->> +	 *
->> +	 * We ignore the Stop Marker because:
->> +	 * a. Page requests, which are posted requests, have been
->> flushed to the
->> +	 *    IOMMU when mm_exit() returns,
->> +	 * b. We flush all fault queues after mm_exit() returns and
->> before
->> +	 *    freeing the PASID.
->> +	 *
->> +	 * So even though the Stop Marker might be issued by the
->> device *after*
->> +	 * the stop request completes, outstanding faults will have
->> been dealt
->> +	 * with by the time we free the PASID.
->> +	 */
->> +	if (evt->last_req &&
->> +	    !(evt->prot & (IOMMU_FAULT_READ | IOMMU_FAULT_WRITE)))
->> +		return IOMMU_PAGE_RESP_HANDLED;
->> +
-> If we don't expect a page response, shouldn't it be filtered by the
-> IOMMU vendor driver in the first place? i.e. in the vendor IOMMU driver
-> PRQ handler, it will sanitize the request anyway, for anything that
-> does not need response, it will not call iommu_report_device_fault().
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: stable@vger.kernel.org
+---
+ drivers/pci/hotplug/pciehp.h      |  2 +-
+ drivers/pci/hotplug/pciehp_core.c |  2 +-
+ drivers/pci/hotplug/pciehp_hpc.c  | 13 ++++++++++++-
+ 3 files changed, 14 insertions(+), 3 deletions(-)
 
-Right, we're not doing anything with the stop marker anyway. This encoding
-is also specific to PCI PRI, and maybe in future architectures, LRW =
-0b100 will mean something else and will require a response. So filtering
-it in the IOMMU driver makes more sense.
-
-Thanks,
-Jean
+diff --git a/drivers/pci/hotplug/pciehp.h b/drivers/pci/hotplug/pciehp.h
+index 636ed8f4b869..5abf864eae35 100644
+--- a/drivers/pci/hotplug/pciehp.h
++++ b/drivers/pci/hotplug/pciehp.h
+@@ -120,7 +120,7 @@ struct controller *pcie_init(struct pcie_device *dev);
+ int pcie_init_notification(struct controller *ctrl);
+ int pciehp_enable_slot(struct slot *p_slot);
+ int pciehp_disable_slot(struct slot *p_slot);
+-void pcie_enable_notification(struct controller *ctrl);
++void pcie_reenable_notification(struct controller *ctrl);
+ int pciehp_power_on_slot(struct slot *slot);
+ void pciehp_power_off_slot(struct slot *slot);
+ void pciehp_get_power_status(struct slot *slot, u8 *status);
+diff --git a/drivers/pci/hotplug/pciehp_core.c b/drivers/pci/hotplug/pciehp_core.c
+index 332b723ff9e6..44a6a63802d5 100644
+--- a/drivers/pci/hotplug/pciehp_core.c
++++ b/drivers/pci/hotplug/pciehp_core.c
+@@ -283,7 +283,7 @@ static int pciehp_resume(struct pcie_device *dev)
+ 	ctrl = get_service_data(dev);
+ 
+ 	/* reinitialize the chipset's event detection logic */
+-	pcie_enable_notification(ctrl);
++	pcie_reenable_notification(ctrl);
+ 
+ 	slot = ctrl->slot;
+ 
+diff --git a/drivers/pci/hotplug/pciehp_hpc.c b/drivers/pci/hotplug/pciehp_hpc.c
+index 18a42f8f5dc5..98ea75aa32c7 100644
+--- a/drivers/pci/hotplug/pciehp_hpc.c
++++ b/drivers/pci/hotplug/pciehp_hpc.c
+@@ -659,7 +659,7 @@ static irqreturn_t pcie_isr(int irq, void *dev_id)
+ 	return handled;
+ }
+ 
+-void pcie_enable_notification(struct controller *ctrl)
++static void pcie_enable_notification(struct controller *ctrl)
+ {
+ 	u16 cmd, mask;
+ 
+@@ -697,6 +697,17 @@ void pcie_enable_notification(struct controller *ctrl)
+ 		 pci_pcie_cap(ctrl->pcie->port) + PCI_EXP_SLTCTL, cmd);
+ }
+ 
++void pcie_reenable_notification(struct controller *ctrl)
++{
++	/*
++	 * Clear both Presence and Data Link Layer Changed to make sure
++	 * those events still fire after we have re-enabled them.
++	 */
++	pcie_capability_write_word(ctrl->pcie->port, PCI_EXP_SLTSTA,
++				   PCI_EXP_SLTSTA_PDC | PCI_EXP_SLTSTA_DLLSC);
++	pcie_enable_notification(ctrl);
++}
++
+ static void pcie_disable_notification(struct controller *ctrl)
+ {
+ 	u16 mask;
+-- 
+2.15.1
