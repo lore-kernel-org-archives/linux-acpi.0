@@ -1,67 +1,89 @@
-From: "joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org" <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 02/37] iommu/sva: Bind process address spaces to devices
-Date: Thu, 15 Feb 2018 11:21:13 +0100
-Message-ID: <20180215102113.c7t7rrnyzgazmdli@8bytes.org>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-3-jean-philippe.brucker@arm.com>
-	<AADFC41AFE54684AB9EE6CBC0274A5D191002897@SHSMSX101.ccr.corp.intel.com>
-	<b9eacb30-817f-9027-bc0a-1f01cf9f13f9@arm.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Thu, 15 Feb 2018 11:19:00 +0000
+Message-ID: <e3fb78b3-5f5c-fe96-9f02-e96092963c17@huawei.com>
+References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
+ <1518543933-22456-8-git-send-email-john.garry@huawei.com>
+ <20180214161635.GA13849@e107981-ln.cambridge.arm.com>
+ <65185a4d-c712-4486-d713-3fa9de14e35d@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <b9eacb30-817f-9027-bc0a-1f01cf9f13f9-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, mykyta.iziumtsev-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "Raj,
-	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2@infradead>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <65185a4d-c712-4486-d713-3fa9de14e35d@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rafael@kernel.org
+Cc: mika.westerberg@linux.intel.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Feb 13, 2018 at 12:57:23PM +0000, Jean-Philippe Brucker wrote:
-> * bind_device() fails if the device's group has more than one device,
-> otherwise calls __bind_device(). This prevents device drivers that are
-> oblivious to IOMMU groups from opening a backdoor.
-> 
-> * bind_group() calls __bind_device() for all devices in group. This way
-> users that are aware of IOMMU groups can still use them safely. Note that
-> at the moment bind_group() fails as soon as it finds a device that doesn't
-> support SVA. Having all devices support SVA in a given group is
-> unrealistic and this behavior ought to be improved.
+> Nothing apart from only being used by arm64 platforms today, which is
+> circumstantial.
+>
+>>
+>> I understand you need to find a place to add the:
+>>
+>> acpi_indirect_io_scan_init()
+>>
+>> to be called from core ACPI code because ACPI can't handle probe
+>> dependencies in any other way but other than that this patch is
+>> a Hisilicon ACPI driver - there is nothing generic in it (or at
+>> least there are no standard bindings to make it so).
+>>
+>> Whether a callback from ACPI core code (acpi_scan_init()) to a driver
+>> specific hook is sane or not that's the question and the only reason
+>> why you want to add this in drivers/acpi/arm64 rather than, say,
+>> drivers/bus (as you do for the DT driver).
+>>
+>> I do not know Rafael's opinion on the above, I would like to help
+>> you make forward progress but please understand my concerns, mostly
+>> on FW side.
+>>
+>
+> I did mention an alternative in my "ping" in v12 patch 7/9 (Feb 1), but
+> no response to this specific note so I kept on the same path.
+>
+> Here's what I then wrote:
+> "I think another solution - which you may prefer - is to avoid adding
+> this scan handler (and all this other scan code) and add a check like
+> acpi_is_serial_bus_slave() [which checks the device parent versus a list
+> of known indirectIO hosts] to not enumerate these children, and do it
+> from the LLDD host probe instead (https://lkml.org/lkml/2017/6/16/250)"
+>
 
-Yeah, so the problem on PCI is that all functions of a multi-function
-device are put into one group. For AMD-GPUs this means that the GPU
-(SVA-capable) will end up in the same group as the on-GPU sound
-device (not SVA-capable).
+Hi Rafael, Lorenzo,
 
-Before this causes us big headaches I suggest to only provide the
-bind_device() function. This should be fine because for SVA we don't
-need all types of isolation that iommu_groups provide.
+I can avoid adding the scan handler in acpi_indirectio.c by skipping the 
+child enumeration, like with this change in scan.c:
 
-IOMMU-groups provide two types of isolation:
++static const struct acpi_device_id indirect_io_hosts[] = {
++    {"HISI0191", 0},    /* HiSilicon LPC host */
++    {},
++};
++
++static bool acpi_is_indirect_io_slave(struct acpi_device *device)
++{
++    struct acpi_device *parent = dev->parent;
++
++    if (!parent || acpi_match_device_ids(parent, indirect_io_hosts))
++        return false;
++
++    return true;
++}
++
+  static bool acpi_is_serial_bus_slave(struct acpi_device *device)
+  {
+      struct list_head resource_list;
+      bool is_serial_bus_slave = false;
 
-	1) They group devices together which the IOMMU can't distinguish
-	   from each other, like PCI devices behind a PCIe bridge.
-
-	2) Devices that can't be isolated from each other are also put
-	   into the same group. This is the case for multi-function PCIe
-	   devices as well as all PCIe devices behind a non-ACS bridge.
-	   But all these devices cann still be distinguished by the
-	   IOMMU.
-
-These two types of protection are needed to safely assign devices to
-guests, but for bare-metal SVA all we need is type 1) isolation, and
-not even that if we can assume that all SVA-capable devices have an
-exclusive device-id (or stream-id).
++    if (acpi_is_indirect_io_slave(device))
++        return true;
++
+      /* Macs use device properties in lieu of _CRS resources */
 
 
+This means I can move all this scan code into the LLDD.
 
-	Joerg
+What do you think? Please let me know.
+
+John
