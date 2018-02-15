@@ -1,14 +1,12 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH v2 6/7] ACPICA: Add option to disable Package object name resolution errors
-Date: Thu, 15 Feb 2018 13:09:31 -0800
-Message-ID: <20180215210932.15490-7-erik.schmauss@intel.com>
-References: <20180215210932.15490-1-erik.schmauss@intel.com>
+Subject: [PATCH v2 4/7] ACPICA: Revert "Fix for implicit result conversion for the To____ functions"
+Date: Thu, 15 Feb 2018 13:17:04 -0800
+Message-ID: <20180215211704.15895-1-erik.schmauss@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:43731 "EHLO mga02.intel.com"
+Received: from mga07.intel.com ([134.134.136.100]:3633 "EHLO mga07.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752390AbeBOVJ7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Thu, 15 Feb 2018 16:09:59 -0500
-In-Reply-To: <20180215210932.15490-1-erik.schmauss@intel.com>
+        id S1162707AbeBOVRJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+        Thu, 15 Feb 2018 16:17:09 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -16,100 +14,116 @@ Cc: rjw@rjwysocki.net, Bob Moore <robert.moore@intel.com>, Erik Schmauss <erik.s
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a6c3c725c44dd44ad9d3f2b2a64351fdbe6e0014
+ACPICA commit 0e44fee13434766ebbb4d156e3ed45604508d7c3
 
-For the kernel-resident ACPICA, optionally be silent about the
-NOT_FOUND case. Although this is potentially a serious problem,
-it can generate a lot of noise/errors on platforms whose
-firmware carries around a bunch of unused Package objects.
-To disable these errors, define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
-in the OS-specific header.
+This reverts commit e1342c9f2dde37a67e916099658b65984ef8a434.
+Implicit conversion should in fact be disabled for the "explicit
+conversion" operators. This is stated in the ACPI specification.
+The operators affected are:
+to_integer
+to_string
+to_buffer
+to_decimal_string
+to_hex_string
+to_BCD
+from_BCD
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=198167
-Link: https://github.com/acpica/acpica/commit/a6c3c725
+Link: https://github.com/acpica/acpica/commit/0e44fee1
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/dspkginit.c | 38 +++++++++++++++++++++++++++++++-------
- include/acpi/platform/aclinux.h |  1 +
- 2 files changed, 32 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/acopcode.h | 14 +++++++-------
+ drivers/acpi/acpica/amlcode.h  | 20 +++-----------------
+ drivers/acpi/acpica/exconvrt.c |  1 +
+ drivers/acpi/acpica/exresop.c  |  1 +
+ 4 files changed, 12 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dspkginit.c b/drivers/acpi/acpica/dspkginit.c
-index a307a07aeacd..7d48525b5e52 100644
---- a/drivers/acpi/acpica/dspkginit.c
-+++ b/drivers/acpi/acpica/dspkginit.c
-@@ -389,11 +389,12 @@ static void
- acpi_ds_resolve_package_element(union acpi_operand_object **element_ptr)
- {
- 	acpi_status status;
-+	acpi_status status2;
- 	union acpi_generic_state scope_info;
- 	union acpi_operand_object *element = *element_ptr;
- 	struct acpi_namespace_node *resolved_node;
- 	struct acpi_namespace_node *original_node;
--	char *external_path = NULL;
-+	char *external_path = "";
- 	acpi_object_type type;
+diff --git a/drivers/acpi/acpica/acopcode.h b/drivers/acpi/acpica/acopcode.h
+index 36c2c5825986..92e755ce6893 100644
+--- a/drivers/acpi/acpica/acopcode.h
++++ b/drivers/acpi/acpica/acopcode.h
+@@ -251,7 +251,7 @@
+ #define ARGI_FIELD_OP                   ARGI_INVALID_OPCODE
+ #define ARGI_FIND_SET_LEFT_BIT_OP       ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
+ #define ARGI_FIND_SET_RIGHT_BIT_OP      ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
+-#define ARGI_FROM_BCD_OP                ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
++#define ARGI_FROM_BCD_OP                ARGI_LIST2 (ARGI_INTEGER,    ARGI_FIXED_TARGET)
+ #define ARGI_IF_OP                      ARGI_INVALID_OPCODE
+ #define ARGI_INCREMENT_OP               ARGI_LIST1 (ARGI_TARGETREF)
+ #define ARGI_INDEX_FIELD_OP             ARGI_INVALID_OPCODE
+@@ -315,12 +315,12 @@
+ #define ARGI_SUBTRACT_OP                ARGI_LIST3 (ARGI_INTEGER,    ARGI_INTEGER,       ARGI_TARGETREF)
+ #define ARGI_THERMAL_ZONE_OP            ARGI_INVALID_OPCODE
+ #define ARGI_TIMER_OP                   ARG_NONE
+-#define ARGI_TO_BCD_OP                  ARGI_LIST2 (ARGI_INTEGER,    ARGI_TARGETREF)
+-#define ARGI_TO_BUFFER_OP               ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
+-#define ARGI_TO_DEC_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
+-#define ARGI_TO_HEX_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
+-#define ARGI_TO_INTEGER_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_TARGETREF)
+-#define ARGI_TO_STRING_OP               ARGI_LIST3 (ARGI_BUFFER,     ARGI_INTEGER,       ARGI_TARGETREF)
++#define ARGI_TO_BCD_OP                  ARGI_LIST2 (ARGI_INTEGER,    ARGI_FIXED_TARGET)
++#define ARGI_TO_BUFFER_OP               ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
++#define ARGI_TO_DEC_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
++#define ARGI_TO_HEX_STR_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
++#define ARGI_TO_INTEGER_OP              ARGI_LIST2 (ARGI_COMPUTEDATA,ARGI_FIXED_TARGET)
++#define ARGI_TO_STRING_OP               ARGI_LIST3 (ARGI_BUFFER,     ARGI_INTEGER,       ARGI_FIXED_TARGET)
+ #define ARGI_UNLOAD_OP                  ARGI_LIST1 (ARGI_DDBHANDLE)
+ #define ARGI_VAR_PACKAGE_OP             ARGI_LIST1 (ARGI_INTEGER)
+ #define ARGI_WAIT_OP                    ARGI_LIST2 (ARGI_EVENT,      ARGI_INTEGER)
+diff --git a/drivers/acpi/acpica/amlcode.h b/drivers/acpi/acpica/amlcode.h
+index b0e9492a6297..7adc5aea0385 100644
+--- a/drivers/acpi/acpica/amlcode.h
++++ b/drivers/acpi/acpica/amlcode.h
+@@ -274,23 +274,9 @@
+ #define ARGI_DEVICE_REF             0x0D
+ #define ARGI_REFERENCE              0x0E
+ #define ARGI_TARGETREF              0x0F	/* Target, subject to implicit conversion */
+-#define ARGI_SIMPLE_TARGET          0x10	/* Name, Local, Arg -- no implicit conversion */
+-#define ARGI_STORE_TARGET           0x11	/* Target for store is TARGETREF + package objects */
+-/*
+- * #define ARGI_FIXED_TARGET           0x10     Target, no implicit conversion
+- *
+- * Removed 10/2016. ARGI_FIXED_TARGET was used for these operators:
+- *      from_BCD
+- *      to_BCD
+- *      to_decimal_string
+- *      to_hex_string
+- *      to_integer
+- *      to_buffer
+- * The purpose of this type was to disable "implicit result conversion",
+- * but this was incorrect per the ACPI spec and other ACPI implementations.
+- * These operators now have the target operand defined as a normal
+- * ARGI_TARGETREF.
+- */
++#define ARGI_FIXED_TARGET           0x10	/* Target, no implicit conversion */
++#define ARGI_SIMPLE_TARGET          0x11	/* Name, Local, Arg -- no implicit conversion */
++#define ARGI_STORE_TARGET           0x12	/* Target for store is TARGETREF + package objects */
  
- 	ACPI_FUNCTION_TRACE(ds_resolve_package_element);
-@@ -417,17 +418,40 @@ acpi_ds_resolve_package_element(union acpi_operand_object **element_ptr)
- 				ACPI_NS_SEARCH_PARENT | ACPI_NS_DONT_OPEN_SCOPE,
- 				NULL, &resolved_node);
- 	if (ACPI_FAILURE(status)) {
--		status = acpi_ns_externalize_name(ACPI_UINT32_MAX,
--						  (char *)element->reference.
--						  aml, NULL, &external_path);
-+#if defined ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS && !defined ACPI_APPLICATION
-+		/*
-+		 * For the kernel-resident ACPICA, optionally be silent about the
-+		 * NOT_FOUND case. Although this is potentially a serious problem,
-+		 * it can generate a lot of noise/errors on platforms whose
-+		 * firmware carries around a bunch of unused Package objects.
-+		 * To disable these errors, define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
-+		 * in the OS-specific header.
-+		 *
-+		 * All errors are always reported for ACPICA applications such as
-+		 * acpi_exec.
-+		 */
-+		if (status == AE_NOT_FOUND) {
-+
-+			/* Reference name not found, set the element to NULL */
-+
-+			acpi_ut_remove_reference(*element_ptr);
-+			*element_ptr = NULL;
-+			return_VOID;
-+		}
-+#endif
-+		status2 = acpi_ns_externalize_name(ACPI_UINT32_MAX,
-+						   (char *)element->reference.
-+						   aml, NULL, &external_path);
+ /* Multiple/complex types */
  
- 		ACPI_EXCEPTION((AE_INFO, status,
--				"Could not find/resolve named package element: %s",
-+				"While resolving a named reference package element - %s",
- 				external_path));
-+		if (ACPI_SUCCESS(status2)) {
-+			ACPI_FREE(external_path);
-+		}
+diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
+index 9abcc41a573b..66437f5cc904 100644
+--- a/drivers/acpi/acpica/exconvrt.c
++++ b/drivers/acpi/acpica/exconvrt.c
+@@ -598,6 +598,7 @@ acpi_ex_convert_to_target_type(acpi_object_type destination_type,
+ 	 */
+ 	switch (GET_CURRENT_ARG_TYPE(walk_state->op_info->runtime_args)) {
+ 	case ARGI_SIMPLE_TARGET:
++	case ARGI_FIXED_TARGET:
+ 	case ARGI_INTEGER_REF:	/* Handles Increment, Decrement cases */
  
--		/* Not found, set the element to NULL */
-+		/* Could not resolve name, set the element to NULL */
- 
--		ACPI_FREE(external_path);
- 		acpi_ut_remove_reference(*element_ptr);
- 		*element_ptr = NULL;
- 		return_VOID;
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index adee92c38c43..e6e757254138 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -58,6 +58,7 @@
- 
- #define ACPI_USE_SYSTEM_CLIBRARY
- #define ACPI_USE_DO_WHILE_0
-+#define ACPI_IGNORE_PACKAGE_RESOLUTION_ERRORS
- 
- #ifdef __KERNEL__
+ 		switch (destination_type) {
+diff --git a/drivers/acpi/acpica/exresop.c b/drivers/acpi/acpica/exresop.c
+index 2643d34f194d..59f43f3d7482 100644
+--- a/drivers/acpi/acpica/exresop.c
++++ b/drivers/acpi/acpica/exresop.c
+@@ -305,6 +305,7 @@ acpi_ex_resolve_operands(u16 opcode,
+ 		case ARGI_OBJECT_REF:
+ 		case ARGI_DEVICE_REF:
+ 		case ARGI_TARGETREF:	/* Allows implicit conversion rules before store */
++		case ARGI_FIXED_TARGET:	/* No implicit conversion before store to target */
+ 		case ARGI_SIMPLE_TARGET:	/* Name, Local, or arg - no implicit conversion  */
+ 		case ARGI_STORE_TARGET:
  
 -- 
 2.14.3
