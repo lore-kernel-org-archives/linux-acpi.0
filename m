@@ -1,70 +1,73 @@
-From: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
- before scanning
-Date: Fri, 16 Feb 2018 14:48:46 +0000
-Message-ID: <fa1cadea-6127-2526-449c-3eed3d4c3041@huawei.com>
-References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
- <1518543933-22456-8-git-send-email-john.garry@huawei.com>
- <CAHp75Ve7C4AJYK6AC=o-jzw6b2p8c8GBRd70Zjv+vYWbfytufg@mail.gmail.com>
- <adfa2009-476b-8c25-c661-b0eeb48a6c43@huawei.com>
- <CAHp75VfOa5pN4MKT-aQmWBwPGWsOaQupyfrN-weWwfR3vMLtuA@mail.gmail.com>
- <59e5293f-0ea5-12f4-27db-b13bbcf0918b@huawei.com>
- <CAHp75VeTQg+A9o5Ox-k_9Qx8=JPEnqg1taVjcd8Zd2rfj_TMog@mail.gmail.com>
+From: Brian Norris <briannorris@chromium.org>
+Subject: Re: udev USB autosupend whitelist (was Re: [PATCH] Bluetooth: btusb:
+ Restore QCA Rome suspend/resume fix with a "rewritten" version)
+Date: Fri, 16 Feb 2018 08:49:25 -0800
+Message-ID: <20180216164924.GA72213@rodete-desktop-imager.corp.google.com>
+References: <20180108094416.4789-1-hdegoede@redhat.com>
+ <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
+ <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
+ <20180216022721.GA69988@rodete-desktop-imager.corp.google.com>
+ <0a13d0f3-8e0d-74df-df9c-2bf0622a9fb6@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAHp75VeTQg+A9o5Ox-k_9Qx8=JPEnqg1taVjcd8Zd2rfj_TMog-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Dann Frazier <dann.frazier-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Corey Minyard <minyard-HInyCGIudOg@public.gmane.org>, devic
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:35691 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1161344AbeBPQt3 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Fri, 16 Feb 2018 11:49:29 -0500
+Received: by mail-pg0-f67.google.com with SMTP id l131so2844809pga.2
+        for <linux-acpi@vger.kernel.org>; Fri, 16 Feb 2018 08:49:29 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <0a13d0f3-8e0d-74df-df9c-2bf0622a9fb6@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, matadeen@qti.qualcomm.com, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>, Benson Leung <bleung@chromium.org>
 
-On 16/02/2018 14:42, Andy Shevchenko wrote:
-> On Thu, Feb 15, 2018 at 7:07 PM, John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
->> On 14/02/2018 16:16, Andy Shevchenko wrote:
->
->>>>>>>>> +       list_for_each_entry(rentry, &resource_list, node)
->>>>>>>>> +               resources[count++] = *rentry->res;
->>>>>
->>>>>>> It has similarities with acpi_create_platform_device().
->>>>>>> I guess we can utilize existing code.
->>>>
->>>>> For sure, this particular segment is effectively same as part of
->>>>> acpi_create_platform_device():
->>>
->>> Not the same, acpi_create_platform_device() does a bit more than
->>> copying the resources. If it indeed makes no hurt...
->>>
->>>>>         list_for_each_entry(rentry, &resource_list, node)
->>>>>             acpi_platform_fill_resource(adev, rentry->res,
->>>>>                             &resources[count++]);
->>>>> So is your idea to refactor this common segment into a helper function?
->>>
->>> ...I would go with helper.
->>>
->>
->> Hi Andy,
->>
->> Since the plan now is that this code is no longer going to be added to
->> drivers/acpi, but instead pushed to the LLDD, I am pondering whether we
->> should still factor out of this common code. Opinion?
->
-> I would still go with a common helper. Though, as first step, we can
-> make it lazy, i.e. put a comment in your code, like a todo notice (w/o
-> TODO word :-) ) to consider a common helper.
++ Benson (and there are probably others that know better answers)
 
-Fine, I was also thinking that I don't want to do this now as it could 
-make merging the patchset more complex. For now, the ACPI change I plan 
-creates no dependencies.
+Hi,
 
-Cheers,
-John
+On Fri, Feb 16, 2018 at 09:26:37AM +0100, Hans de Goede wrote:
+> Going a bit off-topic here, so changed the subject.
+> I will reply on topic in another mail.
+> 
+> On 16-02-18 03:27, Brian Norris wrote:
+> > I use a set of udev rules that manually whitelist devices for
+> > autosuspend. You can see it here:
+> > 
+> > https://chromium.googlesource.com/chromiumos/platform2/+/43728a93f6de137006c6b92fbb2a7cc4f353c9bf/power_manager/udev/gen_autosuspend_rules.py#83
+> > 
+> > You'll find at least one Rome chip in there.
+> 
+> Oh, that is a very interesting link for the work I've been doing to
+> improve Linux power-consumption in general:
+> 
+> https://fedoraproject.org/wiki/Changes/ImprovedLaptopBatteryLife
+> 
+> I was actually planning on at least doing such a list for WWAN modems,
+> for btusb my approach has been to just enable it everywhere
+> (except for QCA devices as I got bugreports for those).
+> 
+> Note that I plan to eventually submit this whitelist to the
+> udev rules which are part of systemd upstream, so if chromeos
+> is using systemd too, this is something to be aware of for you.
 
->
+Chrome OS does not currently use systemd, but thanks for the heads up.
 
+> Question, is the white-listing of the root and rate-limiting
+> hubs really necessary? I thought these have this enabled by default?
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This list is old and maintained by several of my team, originating from
+quite a ways back (i.e., much older kernels). It's quite possible that
+some of it is redundant today.
+
+> Also any caveats here I should be aware of?
+
+That it's only maintained for the express purpose of Chrome{device}s?
+There's no guarantee that there aren't platform issues with other
+systems, for instance :)
+
+I'm not really aware of any particular caveats otherwise.
+
+Brian
