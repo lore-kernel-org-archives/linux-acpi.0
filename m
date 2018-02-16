@@ -1,89 +1,58 @@
-From: Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2 3/3] power: supply: axp288_fuel_gauge: Do not register
- FG on ECS EF20EA
-Date: Fri, 16 Feb 2018 15:26:55 +0100
-Message-ID: <20180216142655.heommid67q3g22qt@earth.universe>
-References: <20180216082616.25084-1-carlo@caione.org>
- <20180216082616.25084-4-carlo@caione.org>
+From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v13 7/9] ACPI: Translate the I/O range of non-MMIO devices
+ before scanning
+Date: Fri, 16 Feb 2018 16:42:34 +0200
+Message-ID: <CAHp75VeTQg+A9o5Ox-k_9Qx8=JPEnqg1taVjcd8Zd2rfj_TMog@mail.gmail.com>
+References: <1518543933-22456-1-git-send-email-john.garry@huawei.com>
+ <1518543933-22456-8-git-send-email-john.garry@huawei.com> <CAHp75Ve7C4AJYK6AC=o-jzw6b2p8c8GBRd70Zjv+vYWbfytufg@mail.gmail.com>
+ <adfa2009-476b-8c25-c661-b0eeb48a6c43@huawei.com> <CAHp75VfOa5pN4MKT-aQmWBwPGWsOaQupyfrN-weWwfR3vMLtuA@mail.gmail.com>
+ <59e5293f-0ea5-12f4-27db-b13bbcf0918b@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="wshm6zzqjg7sveev"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180216082616.25084-4-carlo@caione.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Carlo Caione <carlo@caione.org>
-Cc: linux@endlessm.com, hdegoede@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, wens@csie.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <59e5293f-0ea5-12f4-27db-b13bbcf0918b-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Olof Johansson <olof-nZhT3qVonbNeoWH0uzbU5w@public.gmane.org>, Dann Frazier <dann.frazier-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linuxarm <linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Corey Minyard <minyard-HInyCGIudOg@public.gmane.org>devicetree <d>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Feb 15, 2018 at 7:07 PM, John Garry <john.garry-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+> On 14/02/2018 16:16, Andy Shevchenko wrote:
 
---wshm6zzqjg7sveev
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+>>>>> >>> +       list_for_each_entry(rentry, &resource_list, node)
+>>>>> >>> +               resources[count++] = *rentry->res;
+>>>>
+>>>> >> It has similarities with acpi_create_platform_device().
+>>>> >> I guess we can utilize existing code.
+>>>
+>>> > For sure, this particular segment is effectively same as part of
+>>> > acpi_create_platform_device():
+>>
+>> Not the same, acpi_create_platform_device() does a bit more than
+>> copying the resources. If it indeed makes no hurt...
+>>
+>>> >         list_for_each_entry(rentry, &resource_list, node)
+>>> >             acpi_platform_fill_resource(adev, rentry->res,
+>>> >                             &resources[count++]);
+>>> > So is your idea to refactor this common segment into a helper function?
+>>
+>> ...I would go with helper.
+>>
+>
+> Hi Andy,
+>
+> Since the plan now is that this code is no longer going to be added to
+> drivers/acpi, but instead pushed to the LLDD, I am pondering whether we
+> should still factor out of this common code. Opinion?
 
-Hi,
+I would still go with a common helper. Though, as first step, we can
+make it lazy, i.e. put a comment in your code, like a todo notice (w/o
+TODO word :-) ) to consider a common helper.
 
-On Fri, Feb 16, 2018 at 08:26:16AM +0000, Carlo Caione wrote:
-> From: Carlo Caione <carlo@endlessm.com>
->=20
-> The ECS EF20EA laptop ships an AXP288 but it is actually using a
-> different, separate FG chip for AC and battery monitoring. On this
-> laptop we need to keep using the regular ACPI driver and disable the
-> AXP288 FG to avoid reporting two batteries to userspace.
->=20
-> Signed-off-by: Carlo Caione <carlo@endlessm.com>
-> ---
-
-It looks like this could be applied independently of the ACPI
-patches to the power-supply tree?
-
--- Sebastian
-
->  drivers/power/supply/axp288_fuel_gauge.c | 6 ++++++
->  1 file changed, 6 insertions(+)
->=20
-> diff --git a/drivers/power/supply/axp288_fuel_gauge.c b/drivers/power/sup=
-ply/axp288_fuel_gauge.c
-> index 4cc6e038dfdd..903891a9bcf0 100644
-> --- a/drivers/power/supply/axp288_fuel_gauge.c
-> +++ b/drivers/power/supply/axp288_fuel_gauge.c
-> @@ -708,6 +708,12 @@ static const struct dmi_system_id axp288_fuel_gauge_=
-blacklist[] =3D {
->  			DMI_MATCH(DMI_BOARD_VERSION, "V1.1"),
->  		},
->  	},
-> +	{
-> +		/* ECS EF20EA */
-> +		.matches =3D {
-> +			DMI_MATCH(DMI_PRODUCT_NAME, "EF20EA"),
-> +		},
-> +	},
->  	{}
->  };
-> =20
-> --=20
-> 2.14.1
->=20
-
---wshm6zzqjg7sveev
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG6i8ACgkQ2O7X88g7
-+poL4g/+OPnzr2lxPcaXb2Q+dNqRgWMa69O+3rKWZRGnUnYxToNTdCBvNFfKj6zJ
-7kZeVYmTotevZatUiV6mDpmLxQ4JvtuwfFOsOucSXktfNIzEx50ByK3lvoLWSsxt
-bAVDPXXZ6vHQ/Wx3wCQ8Jgr7QvuMC05YK5YtY/KTALoWRcD1/Pn+/rDpCsAtzxKz
-aHuVQmT/fbZV42vInm49yW65NXRlLgWjgh1h0jf6o5DhA9Aya8ahHOBO92k7zmmw
-4/stjP871xt80YoLl29derLI+l5UGcTTsQdxpZyCz04lZWodwVr5SbPo+nXDzXYA
-zvPU3vb/EiSTL0H8UJCPZ03ZNIKtOMQQi1iokWuDzYCSZZ5qpFAM7TnzXoYULSQh
-kshiT7lbRip1dSapqlJaIEFew4Z7MLMkCPlfa0n8IkBtu57hDgO3tJZ2i56nAcLo
-uuU2m1Y/iWPgCl+2Awe+yeb196+7eIOH4ASBCnIx+UeGSMm8h7SaQVgnMJn6lPvc
-lqR0T2af89PBGhjb/rgxLUelmK5xIpaFFNKHlMLSscTkqV/dzDsgcR4Pp4rS1gNg
-XJ+sZJ2K4pLtCV5BbcQnHZ6FXpqVMB3n8MuheUJAjLL4WUxHz5Ki2MAOlI90/k/m
-MGmy+Sj8aTpo+PK/ui0BZ9yf3hNKEMbbDEXO4nVSpqq1xOaRgG4=
-=2r8q
------END PGP SIGNATURE-----
-
---wshm6zzqjg7sveev--
+-- 
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
