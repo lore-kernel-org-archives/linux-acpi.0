@@ -1,111 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / PM: Set wakeup GPE masks in acpi_s2idle_prepare()
-Date: Fri, 16 Feb 2018 13:44:37 +0100
-Message-ID: <1758350.ii3lBJcPKt@aspire.rjw.lan>
+From: Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 3/3] power: supply: axp288_fuel_gauge: Do not register
+ FG on ECS EF20EA
+Date: Fri, 16 Feb 2018 15:26:55 +0100
+Message-ID: <20180216142655.heommid67q3g22qt@earth.universe>
+References: <20180216082616.25084-1-carlo@caione.org>
+ <20180216082616.25084-4-carlo@caione.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Du Wenkai <wenkai.du@intel.com>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="wshm6zzqjg7sveev"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180216082616.25084-4-carlo@caione.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Carlo Caione <carlo@caione.org>
+Cc: linux@endlessm.com, hdegoede@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, wens@csie.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, Carlo Caione <carlo@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-It is reported that commit 235d81a630ca (ACPI / PM: Clean up device
-wakeup enable/disable code) broke wakeup from suspend-to-idle on
-some platforms.  That is due to the acpi_enable_all_wakeup_gpes() in
-acpi_s2idle_prepare() which needs acpi_enable_wakeup_devices() to be
-called before it as the latter sets up the GPE masks used by the
-former and commit 235d81a630ca removed acpi_enable_wakeup_devices()
-invocation from the suspend-to-idle path.
+--wshm6zzqjg7sveev
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-However, acpi_enable_wakeup_devices() does more than just setting
-the GPE masks and the remaining part of it is not necessary for
-suspend-to-idle, so introduce special functions just for setting and
-clearing the wakeup GPE masks and use them in acpi_s2idle_prepare(),
-before calling acpi_enable_all_wakeup_gpes(), and in
-acpi_s2idle_restore(), respectively.
+Hi,
 
-Fixes: 235d81a630ca (ACPI / PM: Clean up device wakeup enable/disable code)
-Reported-by: Du Wenkai <wenkai.du@intel.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/sleep.c  |    2 ++
- drivers/acpi/sleep.h  |    2 ++
- drivers/acpi/wakeup.c |   29 +++++++++++++++++++++++++++++
- 3 files changed, 33 insertions(+)
+On Fri, Feb 16, 2018 at 08:26:16AM +0000, Carlo Caione wrote:
+> From: Carlo Caione <carlo@endlessm.com>
+>=20
+> The ECS EF20EA laptop ships an AXP288 but it is actually using a
+> different, separate FG chip for AC and battery monitoring. On this
+> laptop we need to keep using the regular ACPI driver and disable the
+> AXP288 FG to avoid reporting two batteries to userspace.
+>=20
+> Signed-off-by: Carlo Caione <carlo@endlessm.com>
+> ---
 
-Index: linux-pm/drivers/acpi/wakeup.c
-===================================================================
---- linux-pm.orig/drivers/acpi/wakeup.c
-+++ linux-pm/drivers/acpi/wakeup.c
-@@ -21,6 +21,35 @@
- ACPI_MODULE_NAME("wakeup_devices")
- 
- /**
-+ * acpi_set_wakeup_gpe_masks - Set wakeup GPE masks.
-+ *
-+ * Set wakeup GPE masks used by acpi_enable_all_wakeup_gpes().
-+ */
-+void acpi_set_wakeup_gpe_masks(void)
-+{
-+	struct acpi_device *adev;
-+
-+	list_for_each_entry(adev, &acpi_wakeup_device_list, wakeup_list)
-+		if (device_may_wakeup(&adev->dev) || adev->wakeup.prepare_count)
-+			acpi_set_gpe_wake_mask(adev->wakeup.gpe_device,
-+					       adev->wakeup.gpe_number,
-+					       ACPI_GPE_ENABLE);
-+}
-+
-+/**
-+ * acpi_clear_wakeup_gpe_masks - Clear wakeup GPE masks.
-+ */
-+void acpi_clear_wakeup_gpe_masks(void)
-+{
-+	struct acpi_device *adev;
-+
-+	list_for_each_entry(adev, &acpi_wakeup_device_list, wakeup_list)
-+		acpi_set_gpe_wake_mask(adev->wakeup.gpe_device,
-+				       adev->wakeup.gpe_number,
-+				       ACPI_GPE_DISABLE);
-+}
-+
-+/**
-  * acpi_enable_wakeup_devices - Enable wake-up device GPEs.
-  * @sleep_state: ACPI system sleep state.
-  *
-Index: linux-pm/drivers/acpi/sleep.h
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.h
-+++ linux-pm/drivers/acpi/sleep.h
-@@ -1,5 +1,7 @@
- /* SPDX-License-Identifier: GPL-2.0 */
- 
-+extern void acpi_set_wakeup_gpe_masks(void);
-+extern void acpi_clear_wakeup_gpe_masks(void);
- extern void acpi_enable_wakeup_devices(u8 sleep_state);
- extern void acpi_disable_wakeup_devices(u8 sleep_state);
- 
-Index: linux-pm/drivers/acpi/sleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/sleep.c
-+++ linux-pm/drivers/acpi/sleep.c
-@@ -959,6 +959,7 @@ static int acpi_s2idle_prepare(void)
- 		 * wakeups, but that should not be necessary if this is a
- 		 * "low-power S0" platform and the low-power S0 _DSM is present.
- 		 */
-+		acpi_set_wakeup_gpe_masks();
- 		acpi_enable_all_wakeup_gpes();
- 		acpi_os_wait_events_complete();
- 	}
-@@ -1008,6 +1009,7 @@ static void acpi_s2idle_restore(void)
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_EXIT);
- 		acpi_sleep_run_lps0_dsm(ACPI_LPS0_SCREEN_ON);
- 	} else {
-+		acpi_clear_wakeup_gpe_masks();
- 		acpi_enable_all_runtime_gpes();
- 	}
- }
+It looks like this could be applied independently of the ACPI
+patches to the power-supply tree?
+
+-- Sebastian
+
+>  drivers/power/supply/axp288_fuel_gauge.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>=20
+> diff --git a/drivers/power/supply/axp288_fuel_gauge.c b/drivers/power/sup=
+ply/axp288_fuel_gauge.c
+> index 4cc6e038dfdd..903891a9bcf0 100644
+> --- a/drivers/power/supply/axp288_fuel_gauge.c
+> +++ b/drivers/power/supply/axp288_fuel_gauge.c
+> @@ -708,6 +708,12 @@ static const struct dmi_system_id axp288_fuel_gauge_=
+blacklist[] =3D {
+>  			DMI_MATCH(DMI_BOARD_VERSION, "V1.1"),
+>  		},
+>  	},
+> +	{
+> +		/* ECS EF20EA */
+> +		.matches =3D {
+> +			DMI_MATCH(DMI_PRODUCT_NAME, "EF20EA"),
+> +		},
+> +	},
+>  	{}
+>  };
+> =20
+> --=20
+> 2.14.1
+>=20
+
+--wshm6zzqjg7sveev
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAlqG6i8ACgkQ2O7X88g7
++poL4g/+OPnzr2lxPcaXb2Q+dNqRgWMa69O+3rKWZRGnUnYxToNTdCBvNFfKj6zJ
+7kZeVYmTotevZatUiV6mDpmLxQ4JvtuwfFOsOucSXktfNIzEx50ByK3lvoLWSsxt
+bAVDPXXZ6vHQ/Wx3wCQ8Jgr7QvuMC05YK5YtY/KTALoWRcD1/Pn+/rDpCsAtzxKz
+aHuVQmT/fbZV42vInm49yW65NXRlLgWjgh1h0jf6o5DhA9Aya8ahHOBO92k7zmmw
+4/stjP871xt80YoLl29derLI+l5UGcTTsQdxpZyCz04lZWodwVr5SbPo+nXDzXYA
+zvPU3vb/EiSTL0H8UJCPZ03ZNIKtOMQQi1iokWuDzYCSZZ5qpFAM7TnzXoYULSQh
+kshiT7lbRip1dSapqlJaIEFew4Z7MLMkCPlfa0n8IkBtu57hDgO3tJZ2i56nAcLo
+uuU2m1Y/iWPgCl+2Awe+yeb196+7eIOH4ASBCnIx+UeGSMm8h7SaQVgnMJn6lPvc
+lqR0T2af89PBGhjb/rgxLUelmK5xIpaFFNKHlMLSscTkqV/dzDsgcR4Pp4rS1gNg
+XJ+sZJ2K4pLtCV5BbcQnHZ6FXpqVMB3n8MuheUJAjLL4WUxHz5Ki2MAOlI90/k/m
+MGmy+Sj8aTpo+PK/ui0BZ9yf3hNKEMbbDEXO4nVSpqq1xOaRgG4=
+=2r8q
+-----END PGP SIGNATURE-----
+
+--wshm6zzqjg7sveev--
