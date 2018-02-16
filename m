@@ -1,88 +1,107 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI updates for v4.16-rc2
-Date: Thu, 15 Feb 2018 23:18:12 +0100
-Message-ID: <CAJZ5v0gvN5hGZMt4kceyAJhbpJdyJdbCArWgWO2F07d02zN0Ug@mail.gmail.com>
+From: Brian Norris <briannorris@chromium.org>
+Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
+ with a "rewritten" version
+Date: Thu, 15 Feb 2018 18:27:23 -0800
+Message-ID: <20180216022721.GA69988@rodete-desktop-imager.corp.google.com>
+References: <20180108094416.4789-1-hdegoede@redhat.com>
+ <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
+ <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:41716 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1163612AbeBOWSN (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Feb 2018 17:18:13 -0500
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:45589 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757215AbeBPC11 (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Feb 2018 21:27:27 -0500
+Received: by mail-pg0-f65.google.com with SMTP id e11so1315055pgq.12
+        for <linux-acpi@vger.kernel.org>; Thu, 15 Feb 2018 18:27:26 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, matadeen@qti.qualcomm.com, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
-Hi Linus,
+Hi Hans,
 
-Please pull from the tag
+On Tue, Feb 13, 2018 at 12:25:55PM +0100, Hans de Goede wrote:
+> On 13-02-18 03:24, Brian Norris wrote:
+> > On Mon, Jan 08, 2018 at 10:44:16AM +0100, Hans de Goede wrote:
+> > > Commit 7d06d5895c15 ("Revert "Bluetooth: btusb: fix QCA...suspend/resume"")
+> > > removed the setting of the BTUSB_RESET_RESUME quirk for QCA Rome devices,
+> > > instead favoring adding USB_QUIRK_RESET_RESUME quirks in usb/core/quirks.c.
+> > > 
+> > > This was done because the DIY BTUSB_RESET_RESUME reset-resume handling
+> > > has several issues (see the original commit message). An added advantage
+> > > of moving over to the USB-core reset-resume handling is that it also
+> > > disables autosuspend for these devices, which is similarly broken on these.
+> > 
+> > Wait, is autosuspend actually broken for all QCA Rome chipsets? I don't
+> > think so -- I'm using one now.
+> 
+> And have you manually enabled USB autosuspend for it, or are you
+> running something which might have done so, e.g. powertop --auto-tune ?
+> 
+> Because if you did not do that then you're already not using autosuspend
+> for your QCA devices and this patch will change nothing.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.16-rc2
+I use a set of udev rules that manually whitelist devices for
+autosuspend. You can see it here:
 
-with top-most commit 31a3be353fc21f13e2ccdc661cda253f78b16661
+https://chromium.googlesource.com/chromiumos/platform2/+/43728a93f6de137006c6b92fbb2a7cc4f353c9bf/power_manager/udev/gen_autosuspend_rules.py#83
 
- Merge branches 'acpi-ec', 'acpi-tables' and 'acpi-doc'
+You'll find at least one Rome chip in there.
 
-on top of commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2
+> > Thus, this is a poor solution, which
+> > negatively affects my systems. However, I see that this patch was
+> > applied regardless...
+> 
+> Note that there already is a quirk to handle broken suspend/resume
+> behavior on ALL QCA devices in older kernels. Also note that the
 
- Linux 4.16-rc1
+Yes, and the quirk was broken, and I made sure it got reverted when it
+broke my devices ;)
 
-to receive ACPI updates for 4.16-rc2.
+> patches series which this commit builds on top of was already
+> setting USB_QUIRK_RESET_RESUME for some devices in
+> usb/core/quirks.c.
+> 
+> All my commit does is instead of duplicating all the QCA USB-ids in
+> usb/core/quirks.c, move the setting of USB_QUIRK_RESET_RESUME
+> to btusb.c so that we don't need to duplicate the USB-id tables.
 
-These fix a system resume regression from the 4.13 cycle, clean up
-device table handling in the ACPI core, update sysfs ABI documentation
-of a couple of drivers and add an expected switch fall-through marker
-to the SPCR table parsing code.
+I was slightly more OK with marking specific IDs as broken, because
+those IDs didn't happen to be ones that I knew were currently working.
+Now you're breaking my systems again. But this time, it's more subtle
+because bluetooth will still work, but we just suck more power leaving
+our USB port active all the time.
 
-Specifics:
+> The result of the combination of these patches is that the custom
+> DIY reset on resume handling btusb.c was doing is now replaced
+> by setting the standard USB-core USB_QUIRK_RESET_RESUME quirk.
+> 
+> As a (desirable) side effect this also disables USB autosuspend
+> for QCA devices since the USB-core does not allow USB autosuspend
+> on devices with the USB_QUIRK_RESET_RESUME quirk. Testing has shown
+> this to be necessary on at least some QCA devices and given that
+> these devices tend to loose there firmware on a suspend, it seems
+> sensible to not allow autosuspend on them.
 
- - Revert a problematic EC driver change from the 4.13 cycle that
-   introduced a system resume regression on Thinkpad X240 (Rafael
-   Wysocki).
+But you're not accurately targeting the "some". AFAICT, you're wasting
+power on my system.
 
- - Clean up device tables handling in the ACPI core and the related
-   part of the device properties framework (Andy Shevchenko).
+> > What justifications was found for this anyway? AIUI, this is a platform
+> > bug, and not entirely a chipset bug.
+> 
+> No this is believed to be a chipset issue, hence also the quirk in
+> older kernels to always reset these devices after a normal suspend/resume.
 
- - Update the sysfs ABI documentatio of the dock and the INT3407
-   special device drivers (Aishwarya Pant).
+I have Qualcomm telling me this is a platform issue. I haven't noticed
+problems with autosuspend nor system suspend/resume on my platform. Do
+you have any more detail on this issue? Have you consulsted QCA folks?
 
- - Add an expected switch fall-through marker to the SPCR table
-   parsing code (Gustavo Silva).
+Unfortunately, Greg is already queueing this patch up to all the -stable
+trees, so I'm going to have to revert it yet again in Chromium
+kernels...
 
-Thanks!
-
-
----------------
-
-Aishwarya Pant (2):
-      ACPI / DPTF: Document dptf_power sysfs atttributes
-      ACPI: dock: document sysfs interface
-
-Andy Shevchenko (4):
-      ACPI / bus: Do not traverse through non-existed device table
-      ACPI / bus: Remove checks in acpi_get_match_data()
-      ACPI / bus: Rename acpi_get_match_data() to acpi_device_get_match_data()
-      device property: Constify device_get_match_data()
-
-Gustavo A. R. Silva (1):
-      ACPI: SPCR: Mark expected switch fall-through in acpi_parse_spcr
-
-Rafael J. Wysocki (1):
-      ACPI / EC: Restore polling during noirq suspend/resume phases
-
----------------
-
- .../ABI/testing/sysfs-devices-platform-dock        | 39 +++++++++++
- Documentation/ABI/testing/sysfs-platform-dptf      | 40 ++++++++++++
- drivers/acpi/bus.c                                 | 75 ++++++++++++----------
- drivers/acpi/ec.c                                  |  6 ++
- drivers/acpi/property.c                            |  4 +-
- drivers/acpi/spcr.c                                |  1 +
- drivers/base/property.c                            |  5 +-
- drivers/of/property.c                              |  4 +-
- include/linux/acpi.h                               |  4 +-
- include/linux/fwnode.h                             |  4 +-
- include/linux/property.h                           |  2 +-
- 11 files changed, 138 insertions(+), 46 deletions(-)
+Brian
