@@ -1,87 +1,113 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: [PATCH v2 0/7] ACPICA release 20180208v2
-Date: Fri, 16 Feb 2018 21:45:15 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED5396F6B94@ORSMSX110.amr.corp.intel.com>
-References: <20180215210932.15490-1-erik.schmauss@intel.com>
+From: Laszlo Toth <laszlth@gmail.com>
+Subject: [PATCH] ACPI: battery: do not export degraded capacity values over
+ 100
+Date: Sat, 17 Feb 2018 22:22:05 +0100
+Message-ID: <20180217212205.GA2748@laszlth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:31590 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750734AbeBPVpS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-        Fri, 16 Feb 2018 16:45:18 -0500
-In-Reply-To: <20180215210932.15490-1-erik.schmauss@intel.com>
-Content-Language: en-US
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:53551 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751211AbeBQVWJ (ORCPT
+        <rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Feb 2018 16:22:09 -0500
+Received: by mail-wm0-f66.google.com with SMTP id t74so8848641wme.3
+        for <linux-acpi@vger.kernel.org>; Sat, 17 Feb 2018 13:22:08 -0800 (PST)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
+With a degraded battery, full_charge_capacity can be less
+than design_capacity, however it's not sure that capacity_now's
+max will follow.
 
-> -----Original Message-----
-> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
-> owner@vger.kernel.org] On Behalf Of Erik Schmauss
-> Sent: Thursday, February 15, 2018 1:09 PM
-> To: linux-acpi@vger.kernel.org
-> Cc: rjw@rjwysocki.net; Schmauss, Erik <erik.schmauss@intel.com>
-> Subject: [PATCH v2 0/7] ACPICA release 20180208v2
-> 
-> v2 of the patch set. Apparently, a patch was left off due to issues with my mail
-> client...
-> 
-> This is the ACPICA20180212 release.
-> 
-> Notable commits are changes made to integrate package handling with MLC
-> and setting the TermList parsing as a default. A small commit was made to
-> disable package resolution errors. This reverts the error reporting behavior to
-> match the previous behavior (in 4.13)
-> 
-> Bob Moore (5):
->   ACPICA: Update error message, no functional change
->   ACPICA: Update for some debug output. No functional change
->   ACPICA: Revert "Fix for implicit result conversion for the ToXXXX
->     functions"
->   ACPICA: Add option to disable Package object name resolution errors
->   ACPICA: Update version to 20180209
-> 
-> Erik Schmauss (2):
->   ACPICA: Restructure ACPI table files
-This probably did not send to the mailing list due to its size.
-This commit is available here: https://github.com/SchmErik/linux/commit/58f4a9a56fe0789c1c9cd2c48ae45225f85dabdf
+Example from an affected machine:
+/sys/class/power_supply/BAT0/charge_full        -> 4290000
+/sys/class/power_supply/BAT0/charge_full_design -> 5900000
+/sys/class/power_supply/BAT0/charge_now         -> 5900000
+/sys/class/power_supply/BAT0/capacity           -> 137
 
->   ACPICA: Integrate package handling with module-level code
-> 
->  drivers/acpi/acpica/acopcode.h  |   14 +-
->  drivers/acpi/acpica/amlcode.h   |   20 +-
->  drivers/acpi/acpica/dsargs.c    |    1 +
->  drivers/acpi/acpica/dsopcode.c  |    4 +-
->  drivers/acpi/acpica/dspkginit.c |  164 ++--
->  drivers/acpi/acpica/dswexec.c   |    6 +-
->  drivers/acpi/acpica/dswload.c   |    2 +-
->  drivers/acpi/acpica/exconvrt.c  |    1 +
->  drivers/acpi/acpica/exnames.c   |    7 +-
->  drivers/acpi/acpica/exresop.c   |    1 +
->  drivers/acpi/acpica/nseval.c    |    8 +-
->  drivers/acpi/acpica/nsinit.c    |    7 +-
->  drivers/acpi/acpica/nsnames.c   |    3 +
->  drivers/acpi/acpica/nsparse.c   |   10 +-
->  drivers/acpi/acpica/psloop.c    |    4 +-
->  drivers/acpi/acpica/psparse.c   |    2 +-
->  drivers/acpi/acpica/pstree.c    |    1 +
->  drivers/acpi/acpica/utcache.c   |    7 +-
->  drivers/acpi/acpica/utdelete.c  |   20 +-
->  include/acpi/acpixf.h           |   10 +-
->  include/acpi/actbl1.h           | 1638 ++++++++++++++++----------------
->  include/acpi/actbl2.h           | 1964 +++++++++++++++++++++------------------
->  include/acpi/actbl3.h           | 1016 +++++++++-----------
->  include/acpi/platform/aclinux.h |    1 +
->  24 files changed, 2477 insertions(+), 2434 deletions(-)
-> 
-> --
-> 2.14.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in the body of
-> a message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
+The battery is a degraded one with a full charge, and
+charge_now is the value of charge_full_design instead of
+charge_full.
+
+Added a new quirk to test and correct this, and
+a new function to check if the battery is a degraded one
+or not. This keeps the possibility to be over 100 if
+it's really the case.
+
+Signed-off-by: Laszlo Toth <laszlth@gmail.com>
+---
+ drivers/acpi/battery.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 7128488..b2729a5 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -116,6 +116,10 @@ enum {
+ 	   post-1.29 BIOS), but as of Nov. 2012, no such update is
+ 	   available for the 2010 models.  */
+ 	ACPI_BATTERY_QUIRK_THINKPAD_MAH,
++	/* for batteries reporting current capacity with design capacity
++	 * on a full charge, but showing degradation in full charge cap.
++	 */
++	ACPI_BATTERY_QUIRK_DESIGN_MAX_CAPACITY,
+ };
+ 
+ struct acpi_battery {
+@@ -201,6 +205,13 @@ static int acpi_battery_is_charged(struct acpi_battery *battery)
+ 	return 0;
+ }
+ 
++static inline int acpi_battery_is_degraded(struct acpi_battery *battery)
++{
++	if (battery->full_charge_capacity && battery->design_capacity)
++		return battery->full_charge_capacity < battery->design_capacity;
++	return 0;
++}
++
+ static int acpi_battery_get_property(struct power_supply *psy,
+ 				     enum power_supply_property psp,
+ 				     union power_supply_propval *val)
+@@ -475,6 +486,9 @@ static int extract_battery_info(const int use_bix,
+ 		   it's impossible to tell if they would need an adjustment
+ 		   or not if their values were higher.  */
+ 	}
++	if (test_bit(ACPI_BATTERY_QUIRK_DESIGN_MAX_CAPACITY, &battery->flags) &&
++	    battery->capacity_now > battery->full_charge_capacity)
++		battery->capacity_now = battery->full_charge_capacity;
+ 	return result;
+ }
+ 
+@@ -567,6 +581,10 @@ static int acpi_battery_get_state(struct acpi_battery *battery)
+ 		battery->capacity_now = battery->capacity_now *
+ 		    10000 / battery->design_voltage;
+ 	}
++	if (test_bit(ACPI_BATTERY_QUIRK_DESIGN_MAX_CAPACITY, &battery->flags) &&
++	    battery->capacity_now > battery->full_charge_capacity)
++		battery->capacity_now = battery->full_charge_capacity;
++
+ 	return result;
+ }
+ 
+@@ -743,6 +761,16 @@ static void acpi_battery_quirks(struct acpi_battery *battery)
+ 			}
+ 		}
+ 	}
++
++	if (test_bit(ACPI_BATTERY_QUIRK_DESIGN_MAX_CAPACITY, &battery->flags))
++		return;
++
++	if (acpi_battery_is_degraded(battery) &&
++	    battery->capacity_now > battery->full_charge_capacity) {
++		set_bit(ACPI_BATTERY_QUIRK_DESIGN_MAX_CAPACITY,
++			&battery->flags);
++		battery->capacity_now = battery->full_charge_capacity;
++	}
+ }
+ 
+ static int acpi_battery_update(struct acpi_battery *battery, bool resume)
+-- 
+2.7.4
+
