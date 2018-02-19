@@ -1,77 +1,51 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 11/37] dt-bindings: document stall and PASID properties
-	for IOMMU masters
-Date: Sun, 18 Feb 2018 20:51:07 -0600
-Message-ID: <20180219025107.v3f3eapukupm7g5j@rob-hp-laptop>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-12-jean-philippe.brucker@arm.com>
+From: Juergen Gross <jgross@suse.com>
+Subject: [PATCH v3 1/3] acpi: introduce
+	acpi_arch_get_root_pointer() for getting rsdp address
+Date: Mon, 19 Feb 2018 11:09:04 +0100
+Message-ID: <20180219100906.14265-2-jgross@suse.com>
+References: <20180219100906.14265-1-jgross@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180212183352.22730-12-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <20180219100906.14265-1-jgross@suse.com>
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: linux-kernel@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: Juergen Gross <jgross@suse.com>, rafael.j.wysocki@intel.com, stable@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, boris.ostrovsky@oracle.com, tglx@linutronix.de, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 12, 2018 at 06:33:26PM +0000, Jean-Philippe Brucker wrote:
-> On ARM systems, some platform devices behind an IOMMU may support stall
-> and PASID features. Stall is the ability to recover from page faults and
-> PASID offers multiple process address spaces to the device. Together they
-> allow to do paging with a device. Let the firmware tell us when a device
-> supports stall and PASID.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-> ---
->  Documentation/devicetree/bindings/iommu/iommu.txt | 24 +++++++++++++++++++++++
->  1 file changed, 24 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
-> index 5a8b4624defc..8066b3852110 100644
-> --- a/Documentation/devicetree/bindings/iommu/iommu.txt
-> +++ b/Documentation/devicetree/bindings/iommu/iommu.txt
-> @@ -86,6 +86,30 @@ have a means to turn off translation. But it is invalid in such cases to
->  disable the IOMMU's device tree node in the first place because it would
->  prevent any driver from properly setting up the translations.
->  
-> +Optional properties:
-> +--------------------
-> +- dma-can-stall: When present, the master can wait for a transaction to
-> +  complete for an indefinite amount of time. Upon translation fault some
-> +  IOMMUs, instead of aborting the translation immediately, may first
-> +  notify the driver and keep the transaction in flight. This allows the OS
-> +  to inspect the fault and, for example, make physical pages resident
-> +  before updating the mappings and completing the transaction. Such IOMMU
-> +  accepts a limited number of simultaneous stalled transactions before
-> +  having to either put back-pressure on the master, or abort new faulting
-> +  transactions.
-> +
-> +  Firmware has to opt-in stalling, because most buses and masters don't
-> +  support it. In particular it isn't compatible with PCI, where
-> +  transactions have to complete before a time limit. More generally it
-> +  won't work in systems and masters that haven't been designed for
-> +  stalling. For example the OS, in order to handle a stalled transaction,
-> +  may attempt to retrieve pages from secondary storage in a stalled
-> +  domain, leading to a deadlock.
-> +
-> +- pasid-bits: Some masters support multiple address spaces for DMA, by
-> +  tagging DMA transactions with an address space identifier. By default,
-> +  this is 0, which means that the device only has one address space.
-
-So 3 would mean 8 address spaces?
-
-Maybe pasid-num-bits would be a bit clearer. Either way,
-
-Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
-Rob
+QWRkIGFuIGFyY2hpdGVjdHVyZSBzcGVjaWZpYyBmdW5jdGlvbiB0byBnZXQgdGhlIGFkZHJlc3Mg
+b2YgdGhlIFJTRFAKdGFibGUuIFBlciBkZWZhdWx0IGl0IHdpbGwganVzdCByZXR1cm4gMCBpbmRp
+Y2F0aW5nIGZhbGxpbmcgYmFjayB0bwp0aGUgY3VycmVudCBtZWNoYW5pc20uCgpDYzogPHN0YWJs
+ZUB2Z2VyLmtlcm5lbC5vcmc+ICMgNC4xMQpTaWduZWQtb2ZmLWJ5OiBKdWVyZ2VuIEdyb3NzIDxq
+Z3Jvc3NAc3VzZS5jb20+Ci0tLQogZHJpdmVycy9hY3BpL29zbC5jICAgfCA1ICsrKystCiBpbmNs
+dWRlL2xpbnV4L2FjcGkuaCB8IDcgKysrKysrKwogMiBmaWxlcyBjaGFuZ2VkLCAxMSBpbnNlcnRp
+b25zKCspLCAxIGRlbGV0aW9uKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL29zbC5jIGIv
+ZHJpdmVycy9hY3BpL29zbC5jCmluZGV4IDNiYjQ2Y2IyNGE5OS4uZmY4MTIyNDNiYWMzIDEwMDY0
+NAotLS0gYS9kcml2ZXJzL2FjcGkvb3NsLmMKKysrIGIvZHJpdmVycy9hY3BpL29zbC5jCkBAIC0x
+ODksMTIgKzE4OSwxNSBAQCBlYXJseV9wYXJhbSgiYWNwaV9yc2RwIiwgc2V0dXBfYWNwaV9yc2Rw
+KTsKIAogYWNwaV9waHlzaWNhbF9hZGRyZXNzIF9faW5pdCBhY3BpX29zX2dldF9yb290X3BvaW50
+ZXIodm9pZCkKIHsKLQlhY3BpX3BoeXNpY2FsX2FkZHJlc3MgcGEgPSAwOworCWFjcGlfcGh5c2lj
+YWxfYWRkcmVzcyBwYTsKIAogI2lmZGVmIENPTkZJR19LRVhFQwogCWlmIChhY3BpX3JzZHApCiAJ
+CXJldHVybiBhY3BpX3JzZHA7CiAjZW5kaWYKKwlwYSA9IGFjcGlfYXJjaF9nZXRfcm9vdF9wb2lu
+dGVyKCk7CisJaWYgKHBhKQorCQlyZXR1cm4gcGE7CiAKIAlpZiAoZWZpX2VuYWJsZWQoRUZJX0NP
+TkZJR19UQUJMRVMpKSB7CiAJCWlmIChlZmkuYWNwaTIwICE9IEVGSV9JTlZBTElEX1RBQkxFX0FE
+RFIpCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2FjcGkuaCBiL2luY2x1ZGUvbGludXgvYWNw
+aS5oCmluZGV4IDk2ODE3M2VjMjcyNi4uMTViZmIxNWMyZmE1IDEwMDY0NAotLS0gYS9pbmNsdWRl
+L2xpbnV4L2FjcGkuaAorKysgYi9pbmNsdWRlL2xpbnV4L2FjcGkuaApAQCAtNjIzLDYgKzYyMywx
+MyBAQCBib29sIGFjcGlfZ3RkdF9jM3N0b3AoaW50IHR5cGUpOwogaW50IGFjcGlfYXJjaF90aW1l
+cl9tZW1faW5pdChzdHJ1Y3QgYXJjaF90aW1lcl9tZW0gKnRpbWVyX21lbSwgaW50ICp0aW1lcl9j
+b3VudCk7CiAjZW5kaWYKIAorI2lmbmRlZiBBQ1BJX0hBVkVfQVJDSF9HRVRfUk9PVF9QT0lOVEVS
+CitzdGF0aWMgaW5saW5lIHU2NCBhY3BpX2FyY2hfZ2V0X3Jvb3RfcG9pbnRlcih2b2lkKQorewor
+CXJldHVybiAwOworfQorI2VuZGlmCisKICNlbHNlCS8qICFDT05GSUdfQUNQSSAqLwogCiAjZGVm
+aW5lIGFjcGlfZGlzYWJsZWQgMQotLSAKMi4xMy42CgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxA
+bGlzdHMueGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL3hlbi1kZXZlbA==
