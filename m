@@ -1,66 +1,77 @@
-From: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Sun, 18 Feb 2018 16:13:13 +0800
-Message-ID: <AC3BE596-68BD-4D15-B06A-B529F9559C13@canonical.com>
-References: <20180108094416.4789-1-hdegoede@redhat.com>
- <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
- <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com>
- <20180216022721.GA69988@rodete-desktop-imager.corp.google.com>
- <345b0de8-1a23-d2f8-bc56-507eadf7faa7@redhat.com>
- <6B37F6AC-1103-4FCF-A5DC-4BA236A7B11B@holtmann.org>
- <1a08612e-2531-3711-ec0f-a867e86d0009@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=utf-8
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49410 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751001AbeBRINm (ORCPT
-        <rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Feb 2018 03:13:42 -0500
-Received: from mail-pg0-f70.google.com ([74.125.83.70])
-        by youngberry.canonical.com with esmtps (TLS1.0:RSA_AES_128_CBC_SHA1:16)
-        (Exim 4.76)
-        (envelope-from <kai.heng.feng@canonical.com>)
-        id 1enK6P-0000Tk-Ho
-        for linux-acpi@vger.kernel.org; Sun, 18 Feb 2018 08:13:41 +0000
-Received: by mail-pg0-f70.google.com with SMTP id h10so4044205pgf.3
-        for <linux-acpi@vger.kernel.org>; Sun, 18 Feb 2018 00:13:41 -0800 (PST)
-In-Reply-To: <1a08612e-2531-3711-ec0f-a867e86d0009@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 11/37] dt-bindings: document stall and PASID properties
+	for IOMMU masters
+Date: Sun, 18 Feb 2018 20:51:07 -0600
+Message-ID: <20180219025107.v3f3eapukupm7g5j@rob-hp-laptop>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-12-jean-philippe.brucker@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180212183352.22730-12-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Marcel Holtmann <marcel@holtmann.org>, Brian Norris <briannorris@chromium.org>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>, Leif Liddy <leif.linux@gmail.com>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, matadeen@qti.qualcomm.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
 
+On Mon, Feb 12, 2018 at 06:33:26PM +0000, Jean-Philippe Brucker wrote:
+> On ARM systems, some platform devices behind an IOMMU may support stall
+> and PASID features. Stall is the ability to recover from page faults and
+> PASID offers multiple process address spaces to the device. Together they
+> allow to do paging with a device. Let the firmware tell us when a device
+> supports stall and PASID.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  Documentation/devicetree/bindings/iommu/iommu.txt | 24 +++++++++++++++++++++++
+>  1 file changed, 24 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/iommu/iommu.txt b/Documentation/devicetree/bindings/iommu/iommu.txt
+> index 5a8b4624defc..8066b3852110 100644
+> --- a/Documentation/devicetree/bindings/iommu/iommu.txt
+> +++ b/Documentation/devicetree/bindings/iommu/iommu.txt
+> @@ -86,6 +86,30 @@ have a means to turn off translation. But it is invalid in such cases to
+>  disable the IOMMU's device tree node in the first place because it would
+>  prevent any driver from properly setting up the translations.
+>  
+> +Optional properties:
+> +--------------------
+> +- dma-can-stall: When present, the master can wait for a transaction to
+> +  complete for an indefinite amount of time. Upon translation fault some
+> +  IOMMUs, instead of aborting the translation immediately, may first
+> +  notify the driver and keep the transaction in flight. This allows the OS
+> +  to inspect the fault and, for example, make physical pages resident
+> +  before updating the mappings and completing the transaction. Such IOMMU
+> +  accepts a limited number of simultaneous stalled transactions before
+> +  having to either put back-pressure on the master, or abort new faulting
+> +  transactions.
+> +
+> +  Firmware has to opt-in stalling, because most buses and masters don't
+> +  support it. In particular it isn't compatible with PCI, where
+> +  transactions have to complete before a time limit. More generally it
+> +  won't work in systems and masters that haven't been designed for
+> +  stalling. For example the OS, in order to handle a stalled transaction,
+> +  may attempt to retrieve pages from secondary storage in a stalled
+> +  domain, leading to a deadlock.
+> +
+> +- pasid-bits: Some masters support multiple address spaces for DMA, by
+> +  tagging DMA transactions with an address space identifier. By default,
+> +  this is 0, which means that the device only has one address space.
 
+So 3 would mean 8 address spaces?
 
-> On 16 Feb 2018, at 8:10 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> 
-> 
-> Ok, I've asked the reporter of:
-> 
-> https://bugzilla.redhat.com/show_bug.cgi?id=1514836
-> 
-> Which is how I got involved in this to provide DMI data and
-> I will whip up a patch for his machine and ask him to test
-> and once that is done submit upstream. This is the only machine
-> I'm aware of though and looking at the history of this I think
-> there will be others.
+Maybe pasid-num-bits would be a bit clearer. Either way,
 
-I have one machine needs the quirk. I’ll also send a patch to
-match its DMI.
+Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 
-Kai-Heng
-
-> 
->> I addition we can add a module option to btusb.ko that allows us to force this flag to be set. That way testing this is easy on a vendor kernel. A bunch of the btusb quirks (and also core quirks) can be tested via module options or debugfs.
-> 
-> Yes a module option for this is a good idea.
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-
+Rob
