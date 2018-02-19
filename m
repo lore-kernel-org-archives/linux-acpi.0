@@ -1,62 +1,55 @@
-From: Palmer Dabbelt <palmer@sifive.com>
-Subject: Re: [PATCH v7 02/13] drivers: base: cacheinfo: setup DT cache properties early
-Date: Wed, 28 Feb 2018 14:34:14 -0800 (PST)
-Message-ID: <mhng-a110cedb-912a-4701-b1b4-8546d12e861a@palmer-si-x1c4>
-References: <20180228220619.6992-3-jeremy.linton@arm.com>
-Mime-Version: 1.0 (MHng)
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-3-jeremy.linton@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will Deacon <will.deacon@arm.com>, catalin.marinas@arm.com, Greg KH <gregkh@linuxfoundation.org>, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, dietmar.eggemann@arm.com, morten.rasmussen@arm.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jeremy.linton@arm.com
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 00/11] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Mon, 19 Feb 2018 22:05:23 +0100
+Message-ID: <20180219210523.GA17922@pd.tnic>
+References: <20180215185606.26736-1-james.morse@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180215185606.26736-1-james.morse@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 28 Feb 2018 14:06:08 PST (-0800), jeremy.linton@arm.com wrote:
-> The original intent in cacheinfo was that an architecture
-> specific populate_cache_leaves() would probe the hardware
-> and then cache_shared_cpu_map_setup() and
-> cache_override_properties() would provide firmware help to
-> extend/expand upon what was probed. Arm64 was really
-> the only architecture that was working this way, and
-> with the removal of most of the hardware probing logic it
-> became clear that it was possible to simplify the logic a bit.
->
-> This patch combines the walk of the DT nodes with the
-> code updating the cache size/line_size and nr_sets.
-> cache_override_properties() (which was DT specific) is
-> then removed. The result is that cacheinfo.of_node is
-> no longer used as a temporary place to hold DT references
-> for future calls that update cache properties. That change
-> helps to clarify its one remaining use (matching
-> cacheinfo nodes that represent shared caches) which
-> will be used by the ACPI/PPTT code in the following patches.
->
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/riscv/kernel/cacheinfo.c |  1 -
->  drivers/base/cacheinfo.c      | 65 +++++++++++++++++++------------------------
->  2 files changed, 29 insertions(+), 37 deletions(-)
->
-> diff --git a/arch/riscv/kernel/cacheinfo.c b/arch/riscv/kernel/cacheinfo.c
-> index 10ed2749e246..0bc86e5f8f3f 100644
-> --- a/arch/riscv/kernel/cacheinfo.c
-> +++ b/arch/riscv/kernel/cacheinfo.c
-> @@ -20,7 +20,6 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
->  			 struct device_node *node,
->  			 enum cache_type type, unsigned int level)
->  {
-> -	this_leaf->of_node = node;
->  	this_leaf->level = level;
->  	this_leaf->type = type;
->  	/* not a sector cache */
-> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-> index 09ccef7ddc99..a872523e8951 100644
-> --- a/drivers/base/cacheinfo.c
-> +++ b/drivers/base/cacheinfo.c
-> @@ -71,7 +71,7 @@ static inline int get_cacheinfo_idx(enum cache_type type)
->  	return type;
->  }
+On Thu, Feb 15, 2018 at 06:55:55PM +0000, James Morse wrote:
+> Hello!
+> 
+> The aim of this series is to wire arm64's SDEI into APEI.
+> 
+> What's SDEI? Its ARM's "Software Delegated Exception Interface" [0]. It's
+> used by firmware to tell the OS about firmware-first RAS events.
+> 
+> These Software exceptions can interrupt anything, so I describe them as
+> NMI-like. They aren't the only NMI-like way to notify the OS about
+> firmware-first RAS events, the ACPI spec also defines 'NOTFIY_SEA' and
+> 'NOTIFY_SEI'.
+> 
+> (Acronyms: SEA, Synchronous External Abort. The CPU requested some memory,
+> but the owner of that memory said no. These are always synchronous with the
+> instruction that caused them. SEI, System-Error Interrupt, commonly called
+> SError. This is an asynchronous external abort, the memory-owner didn't say no
+> at the right point. Collectively these things are called external-aborts
+> How is firmware involved? It traps these and re-injects them into the kernel
+> once its written the CPER records).
 
-This looks good as far as RISC-V is concerned, though that's such a trivial 
-part of the changeset it's not worth that much :).  Thanks!
+Thank you about those! This is how people should write 0/N introductory
+messages with fancy new abbreviations.
+
+:-)
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
