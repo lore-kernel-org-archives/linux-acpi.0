@@ -1,57 +1,244 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 0/3] xen: re-enable booting as Xen PVH
-	guest
-Date: Mon, 19 Feb 2018 15:43:40 +0200
-Message-ID: <CAHp75VfWRtTXQ02PuYG9xceEb8sQ0UhiixcW4nzxCV+cqW-6tQ@mail.gmail.com>
-References: <20180219100906.14265-1-jgross@suse.com>
- <209b38ec-aab4-ea5f-70a2-3f9bdb1f52a1@intel.com>
+From: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi: nfit: document sysfs interface
+Date: Mon, 19 Feb 2018 23:37:54 +0530
+Message-ID: <20180219180754.GA31007@mordor.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <209b38ec-aab4-ea5f-70a2-3f9bdb1f52a1@intel.com>
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Juergen Gross <jgross@suse.com>, x86@kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, xen-devel@lists.xenproject.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Thomas Gleixner <tglx@linutronix.de>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBGZWIgMTksIDIwMTggYXQgMTI6MjcgUE0sIFJhZmFlbCBKLiBXeXNvY2tpCjxyYWZh
-ZWwuai53eXNvY2tpQGludGVsLmNvbT4gd3JvdGU6Cj4gT24gMi8xOS8yMDE4IDExOjA5IEFNLCBK
-dWVyZ2VuIEdyb3NzIHdyb3RlOgo+Pgo+PiBUaGUgWGVuIFBWSCBib290IHByb3RvY29sIHBhc3Nl
-cyB2aXRhbCBpbmZvcm1hdGlvbiB0byB0aGUga2VybmVsIHZpYQo+PiBhIHN0YXJ0X2luZm8gYmxv
-Y2suIE9uZSBvZiB0aGUgZGF0YSB0cmFuc2ZlcnJlZCBpcyB0aGUgcGh5c2ljYWwgYWRkcmVzcwo+
-PiBvZiB0aGUgUlNEUCB0YWJsZS4KPj4KPj4gVW5mb3J0dW5hdGVseSBQVkggc3VwcG9ydCBpbiB0
-aGUga2VybmVsIGRpZG4ndCB1c2UgdGhhdCBwYXNzZWQgYWRkcmVzcwo+PiBmb3IgUlNEUCwgYnV0
-IHJlbGllZCBvbiB0aGUgbGVnYWN5IG1lY2hhbmlzbSBzZWFyY2hpbmcgZm9yIHRoZSBSU0RQIGlu
-Cj4+IGxvdyBtZW1vcnkuIEFmdGVyIGEgcmVjZW50IGNoYW5nZSBpbiBYZW4gcHV0dGluZyB0aGUg
-UlNEUCB0byBhIGhpZ2hlcgo+PiBhZGRyZXNzIGJvb3RpbmcgYXMgUFZIIGd1ZXN0IGlzIG5vdyBm
-YWlsaW5nLgo+Pgo+PiBUaGlzIHNtYWxsIHNlcmllcyByZXBhaXJzIHRoYXQgYnkgcGFzc2luZyB0
-aGUgUlNEUCBhZGRyZXNzIGZyb20gdGhlCj4+IHN0YXJ0X2luZm8gYmxvY2sgdG8gQUNQSSBoYW5k
-bGluZy4KPj4KPj4gQ2hhbmdlcyBpbiBWMzoKPj4gLSBpbnN0ZWFkIG9mIHVzaW5nIGEgd2VhayBm
-dW5jdGlvbiBhZGQgYSBmdW5jdGlvbiBwb2ludGVyIHRvIHg4Nl9pbml0Cj4+ICAgIGZvciBvYnRh
-aW5pbmcgdGhlIFJTRFAgYWRkcmVzcwo+Pgo+PiBKdWVyZ2VuIEdyb3NzICgzKToKPj4gICAgYWNw
-aTogaW50cm9kdWNlIGFjcGlfYXJjaF9nZXRfcm9vdF9wb2ludGVyKCkgZm9yIGdldHRpbmcgcnNk
-cCBhZGRyZXNzCj4+ICAgIHg4Ni9hY3BpOiBhZGQgYSBuZXcgeDg2X2luaXRfYWNwaSBzdHJ1Y3R1
-cmUgdG8geDg2X2luaXRfb3BzCj4+ICAgIHg4Ni94ZW46IGFkZCBwdmggc3BlY2lmaWMgcnNkcCBh
-ZGRyZXNzIHJldHJpZXZhbCBmdW5jdGlvbgo+Pgo+PiAgIGFyY2gveDg2L2luY2x1ZGUvYXNtL2Fj
-cGkuaCAgICAgfCAgNyArKysrKysrCj4+ICAgYXJjaC94ODYvaW5jbHVkZS9hc20veDg2X2luaXQu
-aCB8ICA5ICsrKysrKysrKwo+PiAgIGFyY2gveDg2L2tlcm5lbC94ODZfaW5pdC5jICAgICAgfCAg
-NSArKysrKwo+PiAgIGFyY2gveDg2L3hlbi9lbmxpZ2h0ZW5fcHZoLmMgICAgfCAxNCArKysrKysr
-KysrKy0tLQo+PiAgIGRyaXZlcnMvYWNwaS9vc2wuYyAgICAgICAgICAgICAgfCAgNSArKysrLQo+
-PiAgIGluY2x1ZGUvbGludXgvYWNwaS5oICAgICAgICAgICAgfCAgNyArKysrKysrCj4+ICAgNiBm
-aWxlcyBjaGFuZ2VkLCA0MyBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQo+Pgo+IFRoZSBz
-ZXJpZXMgaXMgZmluZSBieSBtZToKPgo+IEFja2VkLWJ5OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFm
-YWVsLmoud3lzb2NraUBpbnRlbC5jb20+CgpEb24ndCBrbm93IG11Y2ggYWJvdXQgWGVuLCB0aG91
-Z2ggdGhlIEFDUEkgLyB4ODYgc3R1YnMgYXJlIGV4YWN0bHkKd2hhdCBJJ20gd2FudGluZyEKVGhh
-bmtzLgoKUmV2aWV3ZWQtYnk6IEFuZHkgU2hldmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWls
-LmNvbT4KCi0tIApXaXRoIEJlc3QgUmVnYXJkcywKQW5keSBTaGV2Y2hlbmtvCgpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwgbWFpbGluZyBs
-aXN0Clhlbi1kZXZlbEBsaXN0cy54ZW5wcm9qZWN0Lm9yZwpodHRwczovL2xpc3RzLnhlbnByb2pl
-Y3Qub3JnL21haWxtYW4vbGlzdGluZm8veGVuLWRldmVs
+This is an attempt to document the nfit sysfs interface. The
+descriptions have been collected from git commit logs and the ACPI
+specification 6.2. There are still two undocumented attributes-
+range_index and ecc_unit_size, for which I couldn't collect complete
+information.
+
+Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ Documentation/ABI/testing/sysfs-bus-nfit | 202 +++++++++++++++++++++++++++++++
+ 1 file changed, 202 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-nfit
+
+diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
+new file mode 100644
+index 000000000000..758d8d0d4c37
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-bus-nfit
+@@ -0,0 +1,202 @@
++What:		/sys/bus/nd/devices/nmemX/nfit/serial
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Serial number of the NVDIMM (non-volatile dual in-line
++		memory module), assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/handle
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The address (given by the _ADR object) of the device on its
++		parent bus of the NVDIMM device containing the NVDIMM region.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/device
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Identifier for the NVDIMM, assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/rev_id
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Revision of the NVDIMM, assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/phys_id
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Handle (i.e., instance number) for the SMBIOS (system
++		management BIOS) Memory Device structure describing the NVDIMM
++		containing the NVDIMM region.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/flags
++Date:		Jun, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The flags in the NFIT memory device sub-structure indicate
++		the state of the data on the nvdimm relative to its energy
++		source or last "flush to persistence".
++
++		The attribute is a translation of the 'NVDIMM State Flags' field
++		in section 5.2.25.3 'NVDIMM Region Mapping' Structure of the
++		ACPI specification 6.2.
++
++		The health states are "save_fail", "restore_fail", "flush_fail",
++		"not_armed", "smart_event", "map_fail" and "smart_notify".
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/format
++What:		/sys/bus/nd/devices/nmemX/nfit/format1
++What:		/sys/bus/nd/devices/nmemX/nfit/formats
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Identifiers for the programming interface. Starting with
++		ACPI 6.1 an NFIT table reports multiple 'NVDIMM Control Region
++		Structure' instances per-dimm, one for each supported format
++		interface. That code is represented in the sysfs as follows:
++		nmemX/nfit/formats, nmemX/nfit/format, nmemX/nfit/format1,
++		nmemX/nfit/format2 ... nmemX/nfit/formatN, where format2 -
++		formatN are theoretical as there are no known DIMMs with support
++		for more than two interface formats. The 'formats' attribute
++		displays the number of supported interfaces.
++
++		This layout is compatible with existing libndctl binaries that
++		only expect one code per-dimm as they will ignore
++		nmemX/nfit/formats and nmemX/nfit/formatN.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/vendor
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Identifier indicating the vendor of the NVDIMM.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/dsm_mask
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The bitmask indicates the supported device specific control
++		functions.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/family
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Displays the NVDIMM family (and the command sets). Values
++		0, 1, 2 and 3 correspond to NVDIMM_FAMILY_INTEL,
++		NVDIMM_FAMILY_HPE1, NVDIMM_FAMILY_HPE2 and NVDIMM_FAMILY_MSFT
++		respectively.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/id
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) ACPI specification 6.2 section 5.2.25.9, defines an
++		identifier for an NVDIMM, which refelects the id attribute.
++
++		If the manufacturing location and manufacturing date fields are
++		valid, then 'id' is composed of the vendor id (bytes 0-1),
++		manufacturing location byte, manufacturing date (bytes 0-1) and
++		the serial number(bytes 0-3), otherwise it is composed of vendor
++		id (bytes 0-1) and serial number (bytes 0-3)
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_vendor
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Vendor of the NVDIMM non-volatile memory subsystem
++		controller.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_rev_id
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Revision of the NVDIMM non-volatile memory subsystem
++		controller, assigned by the non-volatile memory subsystem
++		controller vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_device
++Date:		Apr, 2016
++KernelVersion:	v4.6
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Identifier for the NVDIMM non-volatile memory subsystem
++		controller, assigned by the non-volatile memory subsystem
++		controller vendor.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/revision
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) ACPI Specification minor version number.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/scrub
++Date:		Sep, 2016
++KernelVersion:	v4.8
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RW) This shows the number of full Address Range Scrubs (ARS)
++		that have been completed since driver load time. Userspace can
++		wait on this using select/poll etc. A '+' at the end indicates
++		an ARS is in progress
++
++		Writing a value of 1 triggers an ARS scan.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/hw_error_scrub
++Date:		Sep, 2016
++KernelVersion:	v4.8
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RW) Provides a way to toggle the behavior between just adding
++		the address (cache line) where the MCE happened to the poison
++		list and doing a full scrub. The former (selective insertion of
++		the address) is done unconditionally.
++
++		This attribute can have the following values written to it:
++
++		'0': Switch to the default mode where an exception will only
++		insert the address of the memory error into the poison and
++		badblocks lists.
++		'1': Enable a full scrub to happen if an exception for a memory
++		error is received.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/dsm_mask
++Date:		Jun, 2017
++KernelVersion:	v4.12
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The bitmask indicates the supported bus specific control
++		functions.
+-- 
+2.16.1
