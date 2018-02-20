@@ -1,45 +1,97 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 11/37] dt-bindings: document stall and PASID properties
-	for IOMMU masters
-Date: Tue, 20 Feb 2018 11:28:16 +0000
-Message-ID: <82037ff9-c786-8769-81fc-300e48ee4156@arm.com>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-12-jean-philippe.brucker@arm.com>
-	<20180219025107.v3f3eapukupm7g5j@rob-hp-laptop>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH 01/11] ACPI / APEI: Move the estatus queue code up,
+ and under its own ifdef
+Date: Tue, 20 Feb 2018 18:26:10 +0000
+Message-ID: <87zi43zfel.fsf@e105922-lin.cambridge.arm.com>
+References: <20180215185606.26736-1-james.morse@arm.com>
+ <20180215185606.26736-2-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180219025107.v3f3eapukupm7g5j@rob-hp-laptop>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, iommu@lists.
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 19/02/18 02:51, Rob Herring wrote:
+Hi James,
+
+A couple of nitpicks below.
+
+James Morse <james.morse@arm.com> writes:
+
+> To support asynchronous NMI-like notifications on arm64 we need to use
+> the estatus-queue. These patches refactor it to allow multiple APEI
+> notification types to use it.
+>
+> First we move the estatus-queue code higher in the file so that any
+> notify_foo() handler can make user of it.
+                                ^
+                                use
+
+>
+> This patch moves code around ... and makes the following trivial change:
+> Freshen the dated comment above ghes_estatus_llist. printk() is no
+> longer the issue, its the helpers like memory_failure_queue() that
+> still aren't nmi safe.
+>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 267 ++++++++++++++++++++++++-----------------------
+>  1 file changed, 139 insertions(+), 128 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 1efefe919555..e42b587c509b 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -545,6 +545,16 @@ static int ghes_print_estatus(const char *pfx,
+>  	return 0;
+>  }
+>  
+> +static void __ghes_panic(struct ghes *ghes)
+> +{
+> +	__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
+> +
+> +	/* reboot to log the error! */
+> +	if (!panic_timeout)
+> +		panic_timeout = ghes_panic_timeout;
+> +	panic("Fatal hardware error!");
+> +}
+> +
+>  /*
+>   * GHES error status reporting throttle, to report more kinds of
+>   * errors, instead of just most frequently occurred errors.
+> @@ -672,6 +682,135 @@ static void ghes_estatus_cache_add(
+>  	rcu_read_unlock();
+>  }
+>  
+> +#ifdef CONFIG_HAVE_ACPI_APEI_NMI
+> +/*
+> + * While printk() now has an in_nmi() path, the handling for CPER records
+> + * does not. For example, memory_failure_queue() takes spinlocks and calls
+> + * schedule_work_on().
+> + *
+> + * So in any NMI-like handler, we allocate required memory from lock-less
+> + * memory allocator (ghes_estatus_pool), save estatus into it, put them into
+> + * lock-less list (ghes_estatus_llist), then delay printk into IRQ context via
+> + * irq_work (ghes_proc_irq_work).  ghes_estatus_size_request record
+> + * required pool size by all NMI error source.
+
+I am not sure it is worth keeping specific references to printk
+around. As you're refreshing the comment, I'd suggest replacing the
+above reference with "...processing of error status reported by the
+NMI..." or something similar.
+
+Thanks,
+Punit
+
+
 [...]
->> +- pasid-bits: Some masters support multiple address spaces for DMA, by
->> +  tagging DMA transactions with an address space identifier. By default,
->> +  this is 0, which means that the device only has one address space.
-> 
-> So 3 would mean 8 address spaces?
-
-Yes
-
-> Maybe pasid-num-bits would be a bit clearer. Either way,
-
-Indeed, I'll change it
-
-> Reviewed-by: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
-Thanks!
-Jean
