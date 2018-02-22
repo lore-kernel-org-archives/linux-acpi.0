@@ -1,45 +1,91 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 03/37] iommu/sva: Manage process address spaces
-Date: Thu, 22 Feb 2018 13:17:32 +0000
-Message-ID: <3ff6fedc-d0c3-23a3-f1be-03b84f72a43c@arm.com>
-References: <1519280641-30258-1-git-send-email-xieyisheng1@huawei.com>
-	<1519280641-30258-3-git-send-email-xieyisheng1@huawei.com>
-	<63e4b545-c6e5-f4b4-3ba1-cf7a142b64ec@huawei.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH 06/11] ACPI / APEI: Make the fixmap_idx per-ghes to allow
+ multiple in_nmi() users
+Date: Thu, 22 Feb 2018 17:47:28 +0000
+Message-ID: <5A8F0230.1080007@arm.com>
+References: <20180215185606.26736-1-james.morse@arm.com>
+ <20180215185606.26736-7-james.morse@arm.com>
+ <879ab426-c6a9-b881-e3d5-a605cfad5f97@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <63e4b545-c6e5-f4b4-3ba1-cf7a142b64ec-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rjw-LthD3rsA81gHJAlzAAQw8A@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <879ab426-c6a9-b881-e3d5-a605cfad5f97@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tyler Baicar <tbaicar@codeaurora.org>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 22/02/18 09:03, Yisheng Xie wrote:
-[...]
->> +		/* Is it already bound to this device? */
->> +		list_for_each_entry(tmp, &io_mm->devices, mm_head) {
->> +			if (tmp->dev != dev)
->> +				continue;
->> +
->> +			bond = tmp;
->> +			refcount_inc(&bond->refs);
->> +			io_mm_put_locked(io_mm);
-> 
-> Should io_mm->pasid still be set to *pasid when the device already bond? so driver can
-> always get the right pasid if it bond to a mm multi-times, without keeping the pasid itself?
+Hi Tyler
 
-(Assuming you mean set *pasid = io_mm->pasid) I think it should, I seem to
-have removed it by accident from this version
+Thanks for taking a look!
 
-Thanks,
-Jean
+
+On 20/02/18 21:18, Tyler Baicar wrote:
+> On 2/15/2018 1:56 PM, James Morse wrote:
+>> Arm64 has multiple NMI-like notifications, but GHES only has one
+>> in_nmi() path. The interactions between these multiple NMI-like
+>> notifications is, unclear.
+>>
+>> Split this single path up by moving the fixmap idx and lock into
+>> the struct ghes. Each notification's init function can consider
+>> which other notifications it masks and can share a fixmap_idx with.
+>> This lets us merge the two ghes_ioremap_pfn_* flavours.
+>>
+>> Two lock pointers are provided, but only one will be used by
+>> ghes_copy_tofrom_phys(), depending on in_nmi(). This means any
+>> notification that might arrive as an NMI must always be wrapped in
+>> nmi_enter()/nmi_exit().
+>>
+>> The double-underscore version of fix_to_virt() is used because
+>> the index to be mapped can't be tested against the end of the
+>> enum at compile time.
+
+>> @@ -303,13 +278,11 @@ static void ghes_copy_tofrom_phys(void *buffer, u64
+>> paddr, u32 len,
+>>         while (len > 0) {
+>>           offset = paddr - (paddr & PAGE_MASK);
+>> -        if (in_nmi) {
+>> -            raw_spin_lock(&ghes_ioremap_lock_nmi);
+>> -            vaddr = ghes_ioremap_pfn_nmi(paddr >> PAGE_SHIFT);
+>> -        } else {
+>> -            spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
+>> -            vaddr = ghes_ioremap_pfn_irq(paddr >> PAGE_SHIFT);
+>> -        }
+>> +        if (in_nmi)
+>> +            raw_spin_lock(ghes->nmi_fixmap_lock);
+>> +        else
+>> +            spin_lock_irqsave(ghes->fixmap_lock, flags);
+
+> This locking is resulting in a NULL pointer dereference for me during boot time.
+> I removed the ghes_proc() call
+> from ghes_probe() and then when triggering errors and going through ghes_proc()
+> the NULL pointer dereference
+> no longer happens. That makes me think that this is dependent on something that
+> is not setup before
+> ghes_probe() is happening. Any ideas?
+
+Gah, One of the things I've tried to enforce is that notifications that happen
+in_nmi() always happen in_nmi(): but that isn't the case for this first
+ghes_proc() call, which always happens in process context.
+
+Why didn't this happen to me? I'm assuming your GHES has work to do prior to
+probing, but I waited for it to finish booting before generating test events.
+
+The smallest fix is to have an irq/nmi fixmap and lock. This probe time call
+would always use the irq fixmap and lock, and can be safely interrupted by an
+NMI. Its only the NMI notifications interacting that we need to worry about as
+they can't be masked.
+
+
+Thanks!
+
+James
