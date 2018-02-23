@@ -1,43 +1,59 @@
-From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v13 3/4] thinkpad_acpi: Add support for
- battery thresholds
-Date: Fri, 23 Feb 2018 19:21:11 +0200
-Message-ID: <CAHp75Vej+EjOd-fHjM9R45E0M_qttGsEBOQrwp7WdJ16X6qxXQ@mail.gmail.com>
-References: <20180207145844.bd567c36juvlkjvz@thinkpad>
- <20180208220323.cr6j2kcozekwbzo6@earth.universe>
- <CAJZ5v0hOf1DfQuoqcqb3Xjmw_Y49MGCnY19Xv6Qz88KyT5T+xQ@mail.gmail.com>
- <20180209103946.fkolldv6boml3e32@earth.universe>
- <CAJZ5v0h8YW03EpqEVO8LGti9ECo7+Gmm0PdgQViidUCZ=o0AQw@mail.gmail.com>
- <20180209123414.xrtmtgmeeezmma5u@earth.universe>
- <20180210084859.dtpydh5gkvoywoju@thinkpad>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH 01/11] ACPI / APEI: Move the estatus queue code up, and
+ under its own ifdef
+Date: Fri, 23 Feb 2018 18:02:21 +0000
+Message-ID: <5A90572D.9010704@arm.com>
+References: <20180215185606.26736-1-james.morse@arm.com>
+ <20180215185606.26736-2-james.morse@arm.com> <20180220192852.GB24320@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20180210084859.dtpydh5gkvoywoju@thinkpad>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, =?UTF-8?Q?Christoph_B=C3=B6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180220192852.GB24320@pd.tnic>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gU2F0LCBGZWIgMTAsIDIwMTggYXQgMTA6NDggQU0sIE9nbmplbiBHYWxpxIcgPHNtY2x0MzBw
-QGdtYWlsLmNvbT4gd3JvdGU6Cgo+IERvIHlvdSBndXlzIHdhbnQgbWUgdG8gc2VuZCBpbiBhbm90
-aGVyIHJldmlzaW9uIG9mIHRoZSBwYXRjaCB3aXRoIHNvbWUKPiBkb2N1bWVudGF0aW9uIG9uIHRo
-ZSBzeXNmcyBBUEk/CgpJIG5vdGljZWQgSSBkaWRuJ3QgYXBwbHkgaXQgYmVjYXVzZSBvZiBzb21l
-IHBlbmRpbmcgY2hhbmdlcyBkaXNjdXNzZWQsCnBlcmhhcHMgdGhpcyBvbmUgYWJvdmUuClNvLCBk
-ZWZpbml0ZWx5IHBsZWFzZSBzZW5kIGEgbmV3IHZlcnNpb24gd2hpY2ggYWRkcmVzc2VzIGNvbW1l
-bnRzLgoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVua28KCi0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLQpDaGVjayBvdXQgdGhlIHZpYnJhbnQgdGVjaCBjb21tdW5pdHkgb24gb25lIG9m
-IHRoZSB3b3JsZCdzIG1vc3QKZW5nYWdpbmcgdGVjaCBzaXRlcywgU2xhc2hkb3Qub3JnISBodHRw
-Oi8vc2RtLmxpbmsvc2xhc2hkb3QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KaWJtLWFjcGktZGV2ZWwgbWFpbGluZyBsaXN0CmlibS1hY3BpLWRldmVsQGxp
-c3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9saXN0cy9s
-aXN0aW5mby9pYm0tYWNwaS1kZXZlbAo=
+Hi Borislav,
+
+On 20/02/18 19:28, Borislav Petkov wrote:
+> On Thu, Feb 15, 2018 at 06:55:56PM +0000, James Morse wrote:
+>> +#ifdef CONFIG_HAVE_ACPI_APEI_NMI
+>> +/*
+>> + * While printk() now has an in_nmi() path, the handling for CPER records
+>> + * does not. For example, memory_failure_queue() takes spinlocks and calls
+>> + * schedule_work_on().
+>> + *
+>> + * So in any NMI-like handler, we allocate required memory from lock-less
+>> + * memory allocator (ghes_estatus_pool), save estatus into it, put them into
+>> + * lock-less list (ghes_estatus_llist), then delay printk into IRQ context via
+>> + * irq_work (ghes_proc_irq_work).  ghes_estatus_size_request record
+>> + * required pool size by all NMI error source.
+> 
+> Since you're touching this, pls correct the grammar too, while at it,
+> and correct them into proper sentences.
+> Also, end function names with "()".
+> Also the "we" pronoun and tense sounds funny - let's make it passive.
+
+Sure. I reckon your English grammar is better than mine, is this better?:
+
+| In any NMI-like handler, memory from ghes_estatus_pool is used to save
+| estatus, and added to the ghes_estatus_llist. irq_work_queue() causes
+| ghes_proc_in_irq() to run in IRQ context where each estatus in
+| ghes_estatus_llist are processed. Each NMI-like error source must grow
+| the ghes_estatus_pool to ensure memory is available.
+
+
+
+Thanks,
+
+James
