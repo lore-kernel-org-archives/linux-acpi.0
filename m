@@ -1,209 +1,277 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
- topology
-Date: Fri, 23 Feb 2018 11:02:38 +0000
-Message-ID: <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com>
- <20180113005920.28658-12-jeremy.linton@arm.com>
- <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
- <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
+From: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] acpi: nfit: document sysfs interface
+Date: Fri, 23 Feb 2018 18:24:48 +0530
+Message-ID: <20180223125448.GA16909@mordor.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, austinwc@codeaurora.org, catalin.marinas@arm.com, will.deacon@arm.com, morten.rasmussen@arm.com, vkilari@codeaurora.org, Jayachandran.Nair@cavium.com, Juri Lelli <juri.lelli@arm.com>, jhugo@codeaurora.org, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, lenb@kernel.org, linux-pm@vger.kernel.org, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 25, 2018 at 09:56:30AM -0600, Jeremy Linton wrote:
-> Hi,
-> 
-> On 01/25/2018 06:15 AM, Xiongfeng Wang wrote:
-> >Hi Jeremy,
-> >
-> >I have tested the patch with the newest UEFI. It prints the below error:
-> >
-> >[    4.017371] BUG: arch topology borken
-> >[    4.021069] BUG: arch topology borken
-> >[    4.024764] BUG: arch topology borken
-> >[    4.028460] BUG: arch topology borken
-> >[    4.032153] BUG: arch topology borken
-> >[    4.035849] BUG: arch topology borken
-> >[    4.039543] BUG: arch topology borken
-> >[    4.043239] BUG: arch topology borken
-> >[    4.046932] BUG: arch topology borken
-> >[    4.050629] BUG: arch topology borken
-> >[    4.054322] BUG: arch topology borken
-> >
-> >I checked the code and found that the newest UEFI set PPTT physical_package_flag on a physical package node and
-> >the NUMA domain (SRAT domains) starts from the layer of DIE. (The topology of our board is core->cluster->die->package).
-> 
-> I commented about that on the EDK2 mailing list. While the current spec
-> doesn't explicitly ban having the flag set multiple times between the leaf
-> and the root I consider it a "bug" and there is an effort to clarify the
-> spec and the use of that flag.
-> >
-> >When the kernel starts to build sched_domain, the multi-core sched_domain contains all the cores within a package,
-> >and the lowest NUMA sched_domain contains all the cores within a die. But the kernel requires that the multi-core
-> >sched_domain should be a subset of the lowest NUMA sched_domain, so the BUG info is printed.
-> 
-> Right. I've mentioned this problem a couple of times.
-> 
-> At at the moment, the spec isn't clear about how the proximity domain is
-> detected/located within the PPTT topology (a node with a 1:1 correspondence
-> isn't even required). As you can see from this patch set, we are making the
-> general assumption that the proximity domains are at the same level as the
-> physical socket. This isn't ideal for NUMA topologies, like the D05, that
-> don't align with the physical socket.
-> 
-> There are efforts underway to clarify and expand upon the specification to
-> deal with this general problem. The simple solution is another flag (say
-> PPTT_PROXIMITY_DOMAIN which would map to the D05 die) which could be used to
-> find nodes with 1:1 correspondence. At that point we could add a fairly
-> trivial patch to correct just the scheduler topology without affecting the
-> rest of the system topology code.
+This is an attempt to document the nfit sysfs interface. The
+descriptions have been collected from git commit logs and the ACPI
+specification 6.2.
 
-I think Morten asked already but isn't this the same end result we end
-up having if we remove the DIE level if NUMA-within-package is detected
-(instead of using the default_topology[]) and we create our own ARM64
-domain hierarchy (with DIE level removed) through set_sched_topology()
-accordingly ?
+Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+Changes in v2:
+- Add descriptions for range_index and ecc_unit_size
+- Edit various descriptions as suggested
 
-Put it differently: do we really need to rely on another PPTT flag to
-collect this information ?
+ Documentation/ABI/testing/sysfs-bus-nfit | 233 +++++++++++++++++++++++++++++++
+ 1 file changed, 233 insertions(+)
+ create mode 100644 Documentation/ABI/testing/sysfs-bus-nfit
 
-I can't merge code that breaks a platform with legitimate firmware
-bindings.
-
-Thanks,
-Lorenzo
-
-> 
-> >
-> >If we modify the UEFI to make NUMA sched_domain start from the layer of package, then all the topology information
-> >within the package will be discarded. I think we need to build the multi-core sched_domain using the cores within
-> >the cluster instead of the cores within the package. I think that's what 'multi-core' means. Multi cores form a cluster. I guess.
-> >If we build the multi-core sched_domain using the cores within a cluster, I think we need to add fields in struct cpu_topology
-> >to record which cores are in each cluster.
-> 
-> The problem is that there isn't a generic way to identify which level of
-> cache sharing is the "correct" top layer MC domain. For one system cluster
-> might be appropriate, for another it might be the highest caching level
-> within a socket, for another is might be a something in between or a group
-> of clusters or LLCs..
-> 
-> Hence the effort to standardize/guarantee a PPTT node that exactly matches a
-> SRAT domain. With that, each SOC/system provider has clearly defined method
-> for communicating where they want the proximity domain information to begin.
-> 
-> Thanks,
-> 
-> >
-> >
-> >Thanks,
-> >Xiongfeng
-> >
-> >On 2018/1/13 8:59, Jeremy Linton wrote:
-> >>Propagate the topology information from the PPTT tree to the
-> >>cpu_topology array. We can get the thread id, core_id and
-> >>cluster_id by assuming certain levels of the PPTT tree correspond
-> >>to those concepts. The package_id is flagged in the tree and can be
-> >>found by calling find_acpi_cpu_topology_package() which terminates
-> >>its search when it finds an ACPI node flagged as the physical
-> >>package. If the tree doesn't contain enough levels to represent
-> >>all of the requested levels then the root node will be returned
-> >>for all subsequent levels.
-> >>
-> >>Cc: Juri Lelli <juri.lelli@arm.com>
-> >>Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> >>---
-> >>  arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
-> >>  1 file changed, 45 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> >>index 7b06e263fdd1..ce8ec7fd6b32 100644
-> >>--- a/arch/arm64/kernel/topology.c
-> >>+++ b/arch/arm64/kernel/topology.c
-> >>@@ -11,6 +11,7 @@
-> >>   * for more details.
-> >>   */
-> >>+#include <linux/acpi.h>
-> >>  #include <linux/arch_topology.h>
-> >>  #include <linux/cpu.h>
-> >>  #include <linux/cpumask.h>
-> >>@@ -22,6 +23,7 @@
-> >>  #include <linux/sched.h>
-> >>  #include <linux/sched/topology.h>
-> >>  #include <linux/slab.h>
-> >>+#include <linux/smp.h>
-> >>  #include <linux/string.h>
-> >>  #include <asm/cpu.h>
-> >>@@ -300,6 +302,46 @@ static void __init reset_cpu_topology(void)
-> >>  	}
-> >>  }
-> >>+#ifdef CONFIG_ACPI
-> >>+/*
-> >>+ * Propagate the topology information of the processor_topology_node tree to the
-> >>+ * cpu_topology array.
-> >>+ */
-> >>+static int __init parse_acpi_topology(void)
-> >>+{
-> >>+	bool is_threaded;
-> >>+	int cpu, topology_id;
-> >>+
-> >>+	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
-> >>+
-> >>+	for_each_possible_cpu(cpu) {
-> >>+		topology_id = find_acpi_cpu_topology(cpu, 0);
-> >>+		if (topology_id < 0)
-> >>+			return topology_id;
-> >>+
-> >>+		if (is_threaded) {
-> >>+			cpu_topology[cpu].thread_id = topology_id;
-> >>+			topology_id = find_acpi_cpu_topology(cpu, 1);
-> >>+			cpu_topology[cpu].core_id   = topology_id;
-> >>+			topology_id = find_acpi_cpu_topology_package(cpu);
-> >>+			cpu_topology[cpu].package_id = topology_id;
-> >>+		} else {
-> >>+			cpu_topology[cpu].thread_id  = -1;
-> >>+			cpu_topology[cpu].core_id    = topology_id;
-> >>+			topology_id = find_acpi_cpu_topology_package(cpu);
-> >>+			cpu_topology[cpu].package_id = topology_id;
-> >>+		}
-> >>+	}
-> >>+
-> >>+	return 0;
-> >>+}
-> >>+
-> >>+#else
-> >>+static inline int __init parse_acpi_topology(void)
-> >>+{
-> >>+	return -EINVAL;
-> >>+}
-> >>+#endif
-> >>  void __init init_cpu_topology(void)
-> >>  {
-> >>@@ -309,6 +351,8 @@ void __init init_cpu_topology(void)
-> >>  	 * Discard anything that was parsed if we hit an error so we
-> >>  	 * don't use partial information.
-> >>  	 */
-> >>-	if (of_have_populated_dt() && parse_dt_topology())
-> >>+	if ((!acpi_disabled) && parse_acpi_topology())
-> >>+		reset_cpu_topology();
-> >>+	else if (of_have_populated_dt() && parse_dt_topology())
-> >>  		reset_cpu_topology();
-> >>  }
-> >>
-> >
-> 
+diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
+new file mode 100644
+index 000000000000..619eb8ca0f99
+--- /dev/null
++++ b/Documentation/ABI/testing/sysfs-bus-nfit
+@@ -0,0 +1,233 @@
++For all of the nmem device attributes under nfit/*, see the 'NVDIMM Firmware
++Interface Table (NFIT)' section in the ACPI specification
++(http://www.uefi.org/specifications) for more details.
++
++What:		/sys/bus/nd/devices/nmemX/nfit/serial
++Date:		Jun, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Serial number of the NVDIMM (non-volatile dual in-line
++		memory module), assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/handle
++Date:		Apr, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The address (given by the _ADR object) of the device on its
++		parent bus of the NVDIMM device containing the NVDIMM region.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/device
++Date:		Apr, 2015
++KernelVersion:	v4.1
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Device id for the NVDIMM, assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/rev_id
++Date:		Jun, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Revision of the NVDIMM, assigned by the module vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/phys_id
++Date:		Apr, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Handle (i.e., instance number) for the SMBIOS (system
++		management BIOS) Memory Device structure describing the NVDIMM
++		containing the NVDIMM region.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/flags
++Date:		Jun, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The flags in the NFIT memory device sub-structure indicate
++		the state of the data on the nvdimm relative to its energy
++		source or last "flush to persistence".
++
++		The attribute is a translation of the 'NVDIMM State Flags' field
++		in section 5.2.25.3 'NVDIMM Region Mapping' Structure of the
++		ACPI specification 6.2.
++
++		The health states are "save_fail", "restore_fail", "flush_fail",
++		"not_armed", "smart_event", "map_fail" and "smart_notify".
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/format
++What:		/sys/bus/nd/devices/nmemX/nfit/format1
++What:		/sys/bus/nd/devices/nmemX/nfit/formats
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The interface codes indicate support for persistent memory
++		mapped directly into system physical address space and / or a
++		block aperture access mechanism to the NVDIMM media.
++		The 'formats' attribute displays the number of supported
++		interfaces.
++
++		This layout is compatible with existing libndctl binaries that
++		only expect one code per-dimm as they will ignore
++		nmemX/nfit/formats and nmemX/nfit/formatN.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/vendor
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Vendor id of the NVDIMM.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/dsm_mask
++Date:		May, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The bitmask indicates the supported device specific control
++		functions relative to the NVDIMM command family supported by the
++		device
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/family
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Displays the NVDIMM family command sets. Values
++		0, 1, 2 and 3 correspond to NVDIMM_FAMILY_INTEL,
++		NVDIMM_FAMILY_HPE1, NVDIMM_FAMILY_HPE2 and NVDIMM_FAMILY_MSFT
++		respectively.
++
++		See the specifications for these command families here:
++		http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
++		https://github.com/HewlettPackard/hpe-nvm/blob/master/Documentation/
++		https://msdn.microsoft.com/library/windows/hardware/mt604741"
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/id
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) ACPI specification 6.2 section 5.2.25.9, defines an
++		identifier for an NVDIMM, which refelects the id attribute.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_vendor
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Sub-system vendor id of the NVDIMM non-volatile memory
++		subsystem controller.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_rev_id
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Sub-system revision id of the NVDIMM non-volatile memory subsystem
++		controller, assigned by the non-volatile memory subsystem
++		controller vendor.
++
++
++What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_device
++Date:		Apr, 2016
++KernelVersion:	v4.7
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Sub-system device id for the NVDIMM non-volatile memory
++		subsystem controller, assigned by the non-volatile memory
++		subsystem controller vendor.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/revision
++Date:		Jun, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) ACPI NFIT table revision number.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/scrub
++Date:		Sep, 2016
++KernelVersion:	v4.9
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RW) This shows the number of full Address Range Scrubs (ARS)
++		that have been completed since driver load time. Userspace can
++		wait on this using select/poll etc. A '+' at the end indicates
++		an ARS is in progress
++
++		Writing a value of 1 triggers an ARS scan.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/hw_error_scrub
++Date:		Sep, 2016
++KernelVersion:	v4.9
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RW) Provides a way to toggle the behavior between just adding
++		the address (cache line) where the MCE happened to the poison
++		list and doing a full scrub. The former (selective insertion of
++		the address) is done unconditionally.
++
++		This attribute can have the following values written to it:
++
++		'0': Switch to the default mode where an exception will only
++		insert the address of the memory error into the poison and
++		badblocks lists.
++		'1': Enable a full scrub to happen if an exception for a memory
++		error is received.
++
++
++What:		/sys/bus/nd/devices/ndbusX/nfit/dsm_mask
++Date:		Jun, 2017
++KernelVersion:	v4.13
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) The bitmask indicates the supported bus specific control
++		functions. See the section named 'NVDIMM Root Device _DSMs' in
++		the ACPI specification.
++
++
++What:		/sys/bus/nd/devices/regionX/nfit/range_index
++Date:		Jun, 2015
++KernelVersion:	v4.2
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) A unique number provided by the BIOS to identify an address
++		range. Used by NVDIMM Region Mapping Structure to uniquely refer
++		to this structure. Value of 0 is reserved and not used as an
++		index.
++
++
++What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
++Date:		Aug, 2017
++KernelVersion:	v4.14
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Size of a write request to a DIMM that will not incur a
++		read-modify-write cycle at the memory controller.
++
++		When the nfit driver initializes it runs an ARS (Address Range
++		Scrub) operation across every pmem range. Part of that process
++		involves determining the ARS capabilities of a given address
++		range. One of the capabilities that is reported is the 'Clear
++		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
++		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
++		This property indicates the boundary at which the NVDIMM may
++		need to perform read-modify-write cycles to maintain ECC (Error
++		Correcting Code) blocks.
+-- 
+2.16.2
