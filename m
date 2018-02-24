@@ -1,18 +1,19 @@
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
 Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
  topology
-Date: Sat, 24 Feb 2018 11:05:53 +0800
-Message-ID: <2d248f08-79b6-d5e2-7e34-31a21efcdc07@huawei.com>
+Date: Fri, 23 Feb 2018 22:37:33 -0600
+Message-ID: <52a4e58b-b5dd-cf68-1207-b43e60efee4b@arm.com>
 References: <20180113005920.28658-1-jeremy.linton@arm.com>
  <20180113005920.28658-12-jeremy.linton@arm.com>
  <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
  <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
  <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,13 +23,11 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeremy Linton <jeremy.linton@arm.com>
-Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, catalin.marinas@arm.com, Juri Lelli <juri.lelli@arm.com>, gregkh@linuxfoundation.org, jhugo@codeaurora.org, rjw@rjwysocki.net, linux-pm@vger.kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, morten.rasmussen@arm.com, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, austinwc@codeaurora.org, vkilari@codeaurora.org, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, austinwc@codeaurora.org, catalin.marinas@arm.com, will.deacon@arm.com, morten.rasmussen@arm.com, vkilari@codeaurora.org, Jayachandran.Nair@cavium.com, Juri Lelli <juri.lelli@arm.com>, jhugo@codeaurora.org, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, lenb@kernel.org, linux-pm@vger.kernel.org, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-
-Hi,
-On 2018/2/23 19:02, Lorenzo Pieralisi wrote:
+On 02/23/2018 05:02 AM, Lorenzo Pieralisi wrote:
 > On Thu, Jan 25, 2018 at 09:56:30AM -0600, Jeremy Linton wrote:
 >> Hi,
 >>
@@ -82,22 +81,45 @@ On 2018/2/23 19:02, Lorenzo Pieralisi wrote:
 > (instead of using the default_topology[]) and we create our own ARM64
 > domain hierarchy (with DIE level removed) through set_sched_topology()
 > accordingly ?
+
+I'm not sure what removing the die level does for you, but its not 
+really the problem AFAIK, the problem is because MC layer is larger than 
+the NUMA domains.
+
 > 
 > Put it differently: do we really need to rely on another PPTT flag to
 > collect this information ?
-> 
+
+Strictly no, and I have a partial patch around here i've been meaning to 
+flush out which uses the early node information to detect if there are 
+nodes smaller than the package. Initially I've been claiming i was going 
+to stay away from making scheduler topology changes in this patch set, 
+but it seems that at least providing a patch which does the minimal bits 
+is in the cards. The PXN flag was is more of a shortcut to finding the 
+cache levels at or below the numa domains, rather than any hard 
+requirement. Similarly, to the request someone else was making for a 
+leaf node flag (or node ordering) to avoid multiple passes in the table. 
+That request would simplify the posted code a bit but it works without it.
+
+
 > I can't merge code that breaks a platform with legitimate firmware
 > bindings.
 
-I think we really need another PPTT flag, from which we can get information
-about how to build a multi-core sched_domain. I think only cache-sharing information
-is not enough to get information about how to build a multi-core shced_domain.
+Breaks in this case is a BUG warning that shows up right before it 
+"corrects" a scheduler domain.
 
-How about this? We assume the upper layer of the lowest layer to be multi-core layer.
-After that flag is added into ACPI specs, we add another patch to adapt to the change.
+Basically, as i've mentioned a few times, this patch set corrects the 
+existing topology problems, in doing so it uncovers issues with the way 
+we are mapping that topology for the scheduler. That is actually not 
+difficult thing to fix, my assumption originally is that we would 
+already be at the point of discussion the finer points of the scheduler 
+changes but we are still here.
+
+Anyway, I was planning on posting a v7 this week, but time flys... I 
+will include a further scheduler tweak to work around the inverted numa 
+domain problem in that set early next week.
 
 Thanks,
-Xiongfeng
 
 > 
 > Thanks,
@@ -142,30 +164,30 @@ Xiongfeng
 >>>> Cc: Juri Lelli <juri.lelli@arm.com>
 >>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 >>>> ---
->>>>  arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
->>>>  1 file changed, 45 insertions(+), 1 deletion(-)
+>>>>   arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
+>>>>   1 file changed, 45 insertions(+), 1 deletion(-)
 >>>>
 >>>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
 >>>> index 7b06e263fdd1..ce8ec7fd6b32 100644
 >>>> --- a/arch/arm64/kernel/topology.c
 >>>> +++ b/arch/arm64/kernel/topology.c
 >>>> @@ -11,6 +11,7 @@
->>>>   * for more details.
->>>>   */
+>>>>    * for more details.
+>>>>    */
 >>>> +#include <linux/acpi.h>
->>>>  #include <linux/arch_topology.h>
->>>>  #include <linux/cpu.h>
->>>>  #include <linux/cpumask.h>
+>>>>   #include <linux/arch_topology.h>
+>>>>   #include <linux/cpu.h>
+>>>>   #include <linux/cpumask.h>
 >>>> @@ -22,6 +23,7 @@
->>>>  #include <linux/sched.h>
->>>>  #include <linux/sched/topology.h>
->>>>  #include <linux/slab.h>
+>>>>   #include <linux/sched.h>
+>>>>   #include <linux/sched/topology.h>
+>>>>   #include <linux/slab.h>
 >>>> +#include <linux/smp.h>
->>>>  #include <linux/string.h>
->>>>  #include <asm/cpu.h>
+>>>>   #include <linux/string.h>
+>>>>   #include <asm/cpu.h>
 >>>> @@ -300,6 +302,46 @@ static void __init reset_cpu_topology(void)
->>>>  	}
->>>>  }
+>>>>   	}
+>>>>   }
 >>>> +#ifdef CONFIG_ACPI
 >>>> +/*
 >>>> + * Propagate the topology information of the processor_topology_node tree to the
@@ -206,21 +228,18 @@ Xiongfeng
 >>>> +	return -EINVAL;
 >>>> +}
 >>>> +#endif
->>>>  void __init init_cpu_topology(void)
->>>>  {
+>>>>   void __init init_cpu_topology(void)
+>>>>   {
 >>>> @@ -309,6 +351,8 @@ void __init init_cpu_topology(void)
->>>>  	 * Discard anything that was parsed if we hit an error so we
->>>>  	 * don't use partial information.
->>>>  	 */
+>>>>   	 * Discard anything that was parsed if we hit an error so we
+>>>>   	 * don't use partial information.
+>>>>   	 */
 >>>> -	if (of_have_populated_dt() && parse_dt_topology())
 >>>> +	if ((!acpi_disabled) && parse_acpi_topology())
 >>>> +		reset_cpu_topology();
 >>>> +	else if (of_have_populated_dt() && parse_dt_topology())
->>>>  		reset_cpu_topology();
->>>>  }
+>>>>   		reset_cpu_topology();
+>>>>   }
 >>>>
 >>>
 >>
-> 
-> .
-> 
