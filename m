@@ -1,15 +1,18 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
- add/remove and notify code
-Date: Fri, 23 Feb 2018 18:21:31 +0000
-Message-ID: <5A905BAB.2060007@arm.com>
-References: <20180215185606.26736-1-james.morse@arm.com>	<20180215185606.26736-3-james.morse@arm.com>
- <87sh9vzfdn.fsf@e105922-lin.cambridge.arm.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
+ topology
+Date: Sat, 24 Feb 2018 11:05:53 +0800
+Message-ID: <2d248f08-79b6-d5e2-7e34-31a21efcdc07@huawei.com>
+References: <20180113005920.28658-1-jeremy.linton@arm.com>
+ <20180113005920.28658-12-jeremy.linton@arm.com>
+ <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
+ <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
+ <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <87sh9vzfdn.fsf@e105922-lin.cambridge.arm.com>
+In-Reply-To: <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -19,87 +22,205 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Punit Agrawal <punit.agrawal@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeremy Linton <jeremy.linton@arm.com>
+Cc: mark.rutland@arm.com, Jonathan.Zhang@cavium.com, Jayachandran.Nair@cavium.com, catalin.marinas@arm.com, Juri Lelli <juri.lelli@arm.com>, gregkh@linuxfoundation.org, jhugo@codeaurora.org, rjw@rjwysocki.net, linux-pm@vger.kernel.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, morten.rasmussen@arm.com, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, austinwc@codeaurora.org, vkilari@codeaurora.org, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Punit,
 
-On 20/02/18 18:26, Punit Agrawal wrote:
-> James Morse <james.morse@arm.com> writes:
-> 
->> To support asynchronous NMI-like notifications on arm64 we need to use
->> the estatus-queue. These patches refactor it to allow multiple APEI
->> notification types to use it.
+Hi,
+On 2018/2/23 19:02, Lorenzo Pieralisi wrote:
+> On Thu, Jan 25, 2018 at 09:56:30AM -0600, Jeremy Linton wrote:
+>> Hi,
 >>
->> Refactor the estatus queue's pool grow/shrink code and notification
->> routine from NOTIFY_NMI's handlers. This will allow another notification
->> method to use the estatus queue without duplicating this code.
+>> On 01/25/2018 06:15 AM, Xiongfeng Wang wrote:
+>>> Hi Jeremy,
+>>>
+>>> I have tested the patch with the newest UEFI. It prints the below error:
+>>>
+>>> [    4.017371] BUG: arch topology borken
+>>> [    4.021069] BUG: arch topology borken
+>>> [    4.024764] BUG: arch topology borken
+>>> [    4.028460] BUG: arch topology borken
+>>> [    4.032153] BUG: arch topology borken
+>>> [    4.035849] BUG: arch topology borken
+>>> [    4.039543] BUG: arch topology borken
+>>> [    4.043239] BUG: arch topology borken
+>>> [    4.046932] BUG: arch topology borken
+>>> [    4.050629] BUG: arch topology borken
+>>> [    4.054322] BUG: arch topology borken
+>>>
+>>> I checked the code and found that the newest UEFI set PPTT physical_package_flag on a physical package node and
+>>> the NUMA domain (SRAT domains) starts from the layer of DIE. (The topology of our board is core->cluster->die->package).
 >>
->> This patch adds rcu_read_lock()/rcu_read_unlock() around the list
->> list_for_each_entry_rcu() walker. These aren't strictly necessary as
->> the whole nmi_enter/nmi_exit() window is a spooky RCU read-side
->> critical section.
+>> I commented about that on the EDK2 mailing list. While the current spec
+>> doesn't explicitly ban having the flag set multiple times between the leaf
+>> and the root I consider it a "bug" and there is an effort to clarify the
+>> spec and the use of that flag.
+>>>
+>>> When the kernel starts to build sched_domain, the multi-core sched_domain contains all the cores within a package,
+>>> and the lowest NUMA sched_domain contains all the cores within a die. But the kernel requires that the multi-core
+>>> sched_domain should be a subset of the lowest NUMA sched_domain, so the BUG info is printed.
 >>
->> Keep the oops_begin() call for x86, arm64 doesn't have one of these,
->> and APEI is the only thing outside arch code calling this..
+>> Right. I've mentioned this problem a couple of times.
 >>
->> The existing ghes_estatus_pool_shrink() is folded into the new
->> ghes_estatus_queue_shrink_pool() as only the queue uses it.
+>> At at the moment, the spec isn't clear about how the proximity domain is
+>> detected/located within the PPTT topology (a node with a 1:1 correspondence
+>> isn't even required). As you can see from this patch set, we are making the
+>> general assumption that the proximity domains are at the same level as the
+>> physical socket. This isn't ideal for NUMA topologies, like the D05, that
+>> don't align with the physical socket.
 >>
->> _in_nmi_notify_one() is separate from the rcu-list walker for a later
->> caller that doesn't need to walk a list.
-
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index e42b587c509b..d3cc5bd5b496 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -749,6 +749,54 @@ static void __process_error(struct ghes *ghes)
->>  #endif
->>  }
->>  
->> +static int _in_nmi_notify_one(struct ghes *ghes)
->> +{
->> +	int sev;
->> +	int ret = -ENOENT;
+>> There are efforts underway to clarify and expand upon the specification to
+>> deal with this general problem. The simple solution is another flag (say
+>> PPTT_PROXIMITY_DOMAIN which would map to the D05 die) which could be used to
+>> find nodes with 1:1 correspondence. At that point we could add a fairly
+>> trivial patch to correct just the scheduler topology without affecting the
+>> rest of the system topology code.
 > 
-> If ret is initialised to 0 ...
+> I think Morten asked already but isn't this the same end result we end
+> up having if we remove the DIE level if NUMA-within-package is detected
+> (instead of using the default_topology[]) and we create our own ARM64
+> domain hierarchy (with DIE level removed) through set_sched_topology()
+> accordingly ?
 > 
->> +
->> +	if (ghes_read_estatus(ghes, 1)) {
->> +		ghes_clear_estatus(ghes);
->> +		return ret;
+> Put it differently: do we really need to rely on another PPTT flag to
+> collect this information ?
 > 
-> and return -ENOENT here...
-> 
->> +	} else {
->> +		ret = 0;
->> +	}
-> 
-> ... then the else block can be dropped.
+> I can't merge code that breaks a platform with legitimate firmware
+> bindings.
 
+I think we really need another PPTT flag, from which we can get information
+about how to build a multi-core sched_domain. I think only cache-sharing information
+is not enough to get information about how to build a multi-core shced_domain.
 
-Good point, this happened because I was trying to keep the same shape as the
-existing notify_nmi() code as far as possible.
-
-
->> +
->> +	sev = ghes_severity(ghes->estatus->error_severity);
->> +	if (sev >= GHES_SEV_PANIC) {
->> +#ifdef CONFIG_X86
->> +		oops_begin();
->> +#endif
-> 
-> Can you use IS_ENABLED() here as well?
-
-I didn't think that would build without an empty declaration for arm64, I
-assumed it would generate an implicit-declaration-of warning. But, I've tried
-it, and evidently today's toolchain does dead-code elimination before generating
-implicit-declaration-of warnings...
-I'd prefer to leave this (ugly as it is), to avoid warnings on a different
-version of the compiler.
-
+How about this? We assume the upper layer of the lowest layer to be multi-core layer.
+After that flag is added into ACPI specs, we add another patch to adapt to the change.
 
 Thanks,
+Xiongfeng
 
-James
+> 
+> Thanks,
+> Lorenzo
+> 
+>>
+>>>
+>>> If we modify the UEFI to make NUMA sched_domain start from the layer of package, then all the topology information
+>>> within the package will be discarded. I think we need to build the multi-core sched_domain using the cores within
+>>> the cluster instead of the cores within the package. I think that's what 'multi-core' means. Multi cores form a cluster. I guess.
+>>> If we build the multi-core sched_domain using the cores within a cluster, I think we need to add fields in struct cpu_topology
+>>> to record which cores are in each cluster.
+>>
+>> The problem is that there isn't a generic way to identify which level of
+>> cache sharing is the "correct" top layer MC domain. For one system cluster
+>> might be appropriate, for another it might be the highest caching level
+>> within a socket, for another is might be a something in between or a group
+>> of clusters or LLCs..
+>>
+>> Hence the effort to standardize/guarantee a PPTT node that exactly matches a
+>> SRAT domain. With that, each SOC/system provider has clearly defined method
+>> for communicating where they want the proximity domain information to begin.
+>>
+>> Thanks,
+>>
+>>>
+>>>
+>>> Thanks,
+>>> Xiongfeng
+>>>
+>>> On 2018/1/13 8:59, Jeremy Linton wrote:
+>>>> Propagate the topology information from the PPTT tree to the
+>>>> cpu_topology array. We can get the thread id, core_id and
+>>>> cluster_id by assuming certain levels of the PPTT tree correspond
+>>>> to those concepts. The package_id is flagged in the tree and can be
+>>>> found by calling find_acpi_cpu_topology_package() which terminates
+>>>> its search when it finds an ACPI node flagged as the physical
+>>>> package. If the tree doesn't contain enough levels to represent
+>>>> all of the requested levels then the root node will be returned
+>>>> for all subsequent levels.
+>>>>
+>>>> Cc: Juri Lelli <juri.lelli@arm.com>
+>>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>>> ---
+>>>>  arch/arm64/kernel/topology.c | 46 +++++++++++++++++++++++++++++++++++++++++++-
+>>>>  1 file changed, 45 insertions(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>>>> index 7b06e263fdd1..ce8ec7fd6b32 100644
+>>>> --- a/arch/arm64/kernel/topology.c
+>>>> +++ b/arch/arm64/kernel/topology.c
+>>>> @@ -11,6 +11,7 @@
+>>>>   * for more details.
+>>>>   */
+>>>> +#include <linux/acpi.h>
+>>>>  #include <linux/arch_topology.h>
+>>>>  #include <linux/cpu.h>
+>>>>  #include <linux/cpumask.h>
+>>>> @@ -22,6 +23,7 @@
+>>>>  #include <linux/sched.h>
+>>>>  #include <linux/sched/topology.h>
+>>>>  #include <linux/slab.h>
+>>>> +#include <linux/smp.h>
+>>>>  #include <linux/string.h>
+>>>>  #include <asm/cpu.h>
+>>>> @@ -300,6 +302,46 @@ static void __init reset_cpu_topology(void)
+>>>>  	}
+>>>>  }
+>>>> +#ifdef CONFIG_ACPI
+>>>> +/*
+>>>> + * Propagate the topology information of the processor_topology_node tree to the
+>>>> + * cpu_topology array.
+>>>> + */
+>>>> +static int __init parse_acpi_topology(void)
+>>>> +{
+>>>> +	bool is_threaded;
+>>>> +	int cpu, topology_id;
+>>>> +
+>>>> +	is_threaded = read_cpuid_mpidr() & MPIDR_MT_BITMASK;
+>>>> +
+>>>> +	for_each_possible_cpu(cpu) {
+>>>> +		topology_id = find_acpi_cpu_topology(cpu, 0);
+>>>> +		if (topology_id < 0)
+>>>> +			return topology_id;
+>>>> +
+>>>> +		if (is_threaded) {
+>>>> +			cpu_topology[cpu].thread_id = topology_id;
+>>>> +			topology_id = find_acpi_cpu_topology(cpu, 1);
+>>>> +			cpu_topology[cpu].core_id   = topology_id;
+>>>> +			topology_id = find_acpi_cpu_topology_package(cpu);
+>>>> +			cpu_topology[cpu].package_id = topology_id;
+>>>> +		} else {
+>>>> +			cpu_topology[cpu].thread_id  = -1;
+>>>> +			cpu_topology[cpu].core_id    = topology_id;
+>>>> +			topology_id = find_acpi_cpu_topology_package(cpu);
+>>>> +			cpu_topology[cpu].package_id = topology_id;
+>>>> +		}
+>>>> +	}
+>>>> +
+>>>> +	return 0;
+>>>> +}
+>>>> +
+>>>> +#else
+>>>> +static inline int __init parse_acpi_topology(void)
+>>>> +{
+>>>> +	return -EINVAL;
+>>>> +}
+>>>> +#endif
+>>>>  void __init init_cpu_topology(void)
+>>>>  {
+>>>> @@ -309,6 +351,8 @@ void __init init_cpu_topology(void)
+>>>>  	 * Discard anything that was parsed if we hit an error so we
+>>>>  	 * don't use partial information.
+>>>>  	 */
+>>>> -	if (of_have_populated_dt() && parse_dt_topology())
+>>>> +	if ((!acpi_disabled) && parse_acpi_topology())
+>>>> +		reset_cpu_topology();
+>>>> +	else if (of_have_populated_dt() && parse_dt_topology())
+>>>>  		reset_cpu_topology();
+>>>>  }
+>>>>
+>>>
+>>
+> 
+> .
+> 
