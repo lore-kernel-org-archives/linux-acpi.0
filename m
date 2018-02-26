@@ -1,64 +1,58 @@
-From: "Tobin C. Harding" <me@tobin.cc>
-Subject: Re: [RESEND][PATCH v4 3/3] i2c: piix4: add ACPI support
-Date: Mon, 26 Feb 2018 19:59:24 +1100
-Message-ID: <20180226085924.GB15131@eros>
-References: <cover.1519601860.git.andrew.cooks@opengear.com>
- <d197d95d77afa2054ff1b2c593dae7939030e24b.1519601860.git.andrew.cooks@opengear.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v1 1/4] dmi: Introduce dmi_get_bios_year() helper
+Date: Mon, 26 Feb 2018 10:29:58 +0100
+Message-ID: <CAJZ5v0hK3fvgL42qowQFBbcG5JABec42R781vBbia0Z2MQy31w@mail.gmail.com>
+References: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
+ <20180223213552.GL14632@bhelgaas-glaptop.roam.corp.google.com> <1519565039.10722.145.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d197d95d77afa2054ff1b2c593dae7939030e24b.1519601860.git.andrew.cooks@opengear.com>
+In-Reply-To: <1519565039.10722.145.camel@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Cooks <andrew.cooks@opengear.com>
-Cc: Jean Delvare <jdelvare@suse.com>, Wolfram Sang <wsa@the-dreams.de>, "open list:I2C/SMBUS CONTROLLER DRIVERS FOR PC" <linux-i2c@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Andrew Cooks <acooks@rationali.st>, linux-acpi@vger.kernel.org, platypus-sw@opengear.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Jean Delvare <jdelvare@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 26, 2018 at 10:28:45AM +1000, Andrew Cooks wrote:
-> Enable the i2c-piix4 SMBus controller driver to enumerate I2C slave
-> devices using ACPI. It builds on the related I2C mux device work
-> in commit 8eb5c87a92c0 ("i2c: add ACPI support for I2C mux ports")
-> 
-> In the i2c-piix4 driver the adapters are enumerated as:
->  Main SMBus adapter Port 0, Port 2, ..., aux port (i.e., ASF adapter)
-> 
-> However, in the AMD BKDG documentation[1], the implied order of ports is:
->  Main SMBus adapter Port 0, ASF adapter, Port 2, Port 3, ...
-> 
-> This ordering difference is unfortunate. We assume that ACPI
-> developers will use the Linux ordering.
-> 
-> [1] 52740 BIOS and Kernel Developer's Guide (BKDG) for AMD Family 16h
-> Models 30h-3Fh Processors
-> 
-> Signed-off-by: Andrew Cooks <andrew.cooks@opengear.com>
-> ---
->  drivers/i2c/busses/i2c-piix4.c | 6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/i2c/busses/i2c-piix4.c b/drivers/i2c/busses/i2c-piix4.c
-> index 01f1610..9a6cdc8 100644
-> --- a/drivers/i2c/busses/i2c-piix4.c
-> +++ b/drivers/i2c/busses/i2c-piix4.c
-> @@ -837,6 +837,12 @@ static int piix4_add_adapter(struct pci_dev *dev, unsigned short smba,
->  	/* set up the sysfs linkage to our parent device */
->  	adap->dev.parent = &dev->dev;
->  
-> +	if (has_acpi_companion(&dev->dev)) {
-> +		acpi_preset_companion(&adap->dev,
-> +				ACPI_COMPANION(&dev->dev),
-> +				piix4_adapter_count);
+On Sun, Feb 25, 2018 at 2:23 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> On Fri, 2018-02-23 at 15:35 -0600, Bjorn Helgaas wrote:
+>> On Thu, Feb 22, 2018 at 02:59:20PM +0200, Andy Shevchenko wrote:
+>> > It's used in several places and more users may come.
+>> > By using this helper they may create a slightly cleaner code.
+>> >
+>> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>> > ---
+>> >  include/linux/dmi.h | 7 +++++++
+>> >  1 file changed, 7 insertions(+)
+>> >
+>> > diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+>> > index 46e151172d95..241c27008c70 100644
+>> > --- a/include/linux/dmi.h
+>> > +++ b/include/linux/dmi.h
+>> > @@ -147,4 +147,11 @@ static inline const struct dmi_system_id *
+>> >
+>> >  #endif
+>> >
+>> > +static inline int dmi_get_bios_year(void)
+>> > +{
+>> > +   int year;
+>> > +   dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL);
+>> > +   return year;
+>> > +}
+>>
+>> I don't really care personally, and I assume this series will go via a
+>> non-PCI tree, but making this inline looks similar to this, which
+>> wasn't well-received:
+>>
+>> https://lkml.kernel.org/r/CA+55aFypU331cQy-
+>> 6ZJ6szF=2KVLqcbwCUGd+gTwPViRqRWN+g@mail.gmail.com
+>
+> "Yes, that header file is already full of random inline functions, but
+> they are generally wrapper functions that don't really do anything, ..."
+>
+> I think the function above is exactly from the "wrapper that doesn't
+> really do anything" category.
 
-nit:
-		acpi_preset_companion(&adap->dev,
-				      ACPI_COMPANION(&dev->dev),
-				      piix4_adapter_count);
+Yes, but honestly does it need to be inline even so?
 
-> +	}
-> +
->  	snprintf(adap->name, sizeof(adap->name),
->  		"SMBus PIIX4 adapter%s at %04x", name, smba);
-
-
-Hope this helps,
-Tobin
+Why don't you simply put the wrapper into dmi_scan.c and export it?
