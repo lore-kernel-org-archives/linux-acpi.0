@@ -1,37 +1,41 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RESEND PATCH v3 2/2] thermal: core: introduce thermal zone
- device mode control
-Date: Mon, 26 Feb 2018 16:48:23 +0200
-Message-ID: <CAHp75VcervG-TWbt6t7q7505meXG=0E3hrO8pT-pc_=BJGqwpw@mail.gmail.com>
-References: <20180226144118.24693-1-enric.balletbo@collabora.com> <20180226144118.24693-2-enric.balletbo@collabora.com>
+From: John Garry <john.garry@huawei.com>
+Subject: [PATCH v15 9/9] MAINTAINERS: Add maintainer for HiSilicon LPC driver
+Date: Tue, 27 Feb 2018 00:40:49 +0800
+Message-ID: <1519663249-9850-10-git-send-email-john.garry@huawei.com>
+References: <1519663249-9850-1-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180226144118.24693-2-enric.balletbo@collabora.com>
+In-Reply-To: <1519663249-9850-1-git-send-email-john.garry@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, groeck@chromium.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, snanda@chromium.org, Len Brown <lenb@kernel.org>, Eduardo Valentin <edubezval@gmail.com>, Linux PM <linux-pm@vger.kernel.org>
+To: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, andriy.shevchenko@linux.intel.com
+Cc: joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, frowand.list@gmail.com, agraf@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 26, 2018 at 4:41 PM, Enric Balletbo i Serra
-<enric.balletbo@collabora.com> wrote:
+Added maintainer for drivers/bus/hisi_lpc.c
 
-> --- a/drivers/thermal/thermal_sysfs.c
-> +++ b/drivers/thermal/thermal_sysfs.c
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
->         if (!strncmp(buf, "enabled", sizeof("enabled") - 1))
-> -               result = tz->ops->set_mode(tz, THERMAL_DEVICE_ENABLED);
-> +               mode = THERMAL_DEVICE_ENABLED;
->         else if (!strncmp(buf, "disabled", sizeof("disabled") - 1))
-> -               result = tz->ops->set_mode(tz, THERMAL_DEVICE_DISABLED);
-> +               mode = THERMAL_DEVICE_DISABLED;
->         else
-> -               result = -EINVAL;
-> +               return -EINVAL;
-
-sysfs_match_string()?
-
-
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8c2320e1..ef5c38a 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -6401,6 +6401,13 @@ W:	http://www.hisilicon.com
+ S:	Maintained
+ F:	drivers/net/ethernet/hisilicon/hns3/
+ 
++HISILICON LPC BUS DRIVER
++M:	john.garry@huawei.com
++W:	http://www.hisilicon.com
++S:	Maintained
++F:	drivers/bus/hisi_lpc.c
++F:	Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
++
+ HISILICON NETWORK SUBSYSTEM DRIVER
+ M:	Yisen Zhuang <yisen.zhuang@huawei.com>
+ M:	Salil Mehta <salil.mehta@huawei.com>
 -- 
-With Best Regards,
-Andy Shevchenko
+1.9.1
