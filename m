@@ -1,50 +1,50 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
- add/remove and notify code
-Date: Thu, 1 Mar 2018 16:01:44 +0100
-Message-ID: <20180301150144.GA4215@pd.tnic>
-References: <20180215185606.26736-1-james.morse@arm.com>
- <20180215185606.26736-3-james.morse@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v7 00/13] Support PPTT for ARM64
+Date: Tue, 27 Feb 2018 12:49:58 -0600
+Message-ID: <1890b2e2-375e-f44f-c224-8cfa23a0add3@arm.com>
+References: <20180228220619.6992-1-jeremy.linton@arm.com>
+ <8b5bfd7e-57ea-bb34-85f8-69007a3847e6@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180215185606.26736-3-james.morse@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8b5bfd7e-57ea-bb34-85f8-69007a3847e6@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, dietmar.eggemann@arm.com, morten.rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Feb 15, 2018 at 06:55:57PM +0000, James Morse wrote:
-> Keep the oops_begin() call for x86,
+On 03/01/2018 06:06 AM, Sudeep Holla wrote:
+> Hi Jeremy,
+> 
+> On 28/02/18 22:06, Jeremy Linton wrote:
+>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+>> used to describe the processor and cache topology. Ideally it is
+>> used to extend/override information provided by the hardware, but
+>> right now ARM64 is entirely dependent on firmware provided tables.
+>>
+>> This patch parses the table for the cache topology and CPU topology.
+>> When we enable ACPI/PPTT for arm64 we map the physical_id to the
+>> PPTT node flagged as the physical package by the firmware.
+>> This results in topologies that match what the remainder of the
+>> system expects. To avoid inverted scheduler domains we then
+>> set the MC domain equal to the largest cache within the socket
+>> below the NUMA domain.
+>>
+> I remember reviewing and acknowledging most of the cacheinfo stuff with
+> couple of minor suggestions for v6. I don't see any Acked-by tags in
+> this series and don't know if I need to review/ack any more cacheinfo
+> related patches.
 
-That oops_begin() in generic code is such a layering violation, grrr.
+Hi,
 
-> arm64 doesn't have one of these,
-> and APEI is the only thing outside arch code calling this..
+Yes, I didn't put them in because I changed the functionality in 2/13 
+and there is a bug fix in 5/13. I thought you might want to do a quick 
+diff of the git v6->v7 tree.
 
-So looking at:
+Although given that most of the changes were in response to your 
+comments in v6 I probably should have just put the tags in.
 
-arch/arm/kernel/traps.c:die()
 
-it does call oops_begin() ... oops_end() just like the x86 version of
-die().
-
-I'm wondering if we could move the code to do die() in a prepatch? My
-assumption is that all the arches should have die()... A quick grep does
-show a bunch of other arches having die()...
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Thanks,
