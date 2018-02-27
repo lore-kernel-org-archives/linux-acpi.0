@@ -1,64 +1,75 @@
-From: Anshuman Gupta <anshuman.gupta@intel.corp-partner.google.com>
-Subject: [PATCH 1/2] x86/ACPI: Parse ACPI_FADT_LEGACY_DEVICES
-Date: Tue, 27 Feb 2018 11:47:45 +0530
-Message-ID: <1519712266-12284-1-git-send-email-anshuman.gupta@intel.corp-partner.google.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH v1 1/4] dmi: Introduce dmi_get_bios_year() helper
+Date: Tue, 27 Feb 2018 10:14:22 +0100
+Message-ID: <20180227101422.7c0efb40@endymion>
+References: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: rajneesh.bhardwaj@intel.com
-Cc: kozerkov@parallels.com, Peter Zijlstra <peterz@infradead.org>, bigeasy@linutronix.de, "H . Peter Anvin" <hpa@zytor.com>, lv.zheng@intel.com, ffainelli@freebox.fr, mbizon@freebox.fr, boris.ostrovsky@oracle.com, matt@codeblueprint.co.uk, lguest@lists.ozlabs.org, robert.moore@intel.com, linux-acpi@vger.kernel.org, glin@suse.com, lenb@kernel.org, rusty@rustcorp.com.au, Denys Vlasenko <dvlasenk@redhat.com>, Brian Gerst <brgerst@gmail.com>, julien.grall@linaro.org, josh@joshtriplett.org, george.dunlap@citrix.com, jlee@suse.com, xen-devel@lists.xensource.com, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, andriy.shevchenko@linux.intel.com, jgross@suse.com, toshi.kani@hp.com, andrew.cooper3@citrix.com, rjw@rjwysocki.net, Andy Lutomirski <luto@amacapital.net>, "Luis R. Rodriguez" <mcgrof@kernel.org>, david.vrabel@citrix.com, tiwai@suse.deLinus Torvalds <t>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-RnJvbTogIkx1aXMgUi4gUm9kcmlndWV6IiA8bWNncm9mQGtlcm5lbC5vcmc+CgpBQ1BJIDUuMi45
-LjMgSUEtUEMgQm9vdCBBcmNoaXRlY3R1cmUgZmxhZyBBQ1BJX0ZBRFRfTEVHQUNZX0RFVklDRVMK
-Y2FuIGJlIHVzZWQgdG8gZGV0ZXJtaW5lIGlmIGEgc3lzdGVtIGhhcyBsZWdhY3kgZGV2aWNlcyBM
-UEMgb3IKSVNBIGRldmljZXMuIFRoZSB4ODYgcGxhdGZvcm0gYWxyZWFkeSBoYXMgYSBzdHJ1Y3Qg
-d2hpY2ggbGlzdHMKa25vd24gYXNzb2NpYXRlZCBsZWdhY3kgZGV2aWNlcywgd2Ugc3RhcnQgb2Zm
-IGNhcmVmdWwgb25seQpieSBkaXNhYmxpbmcgcm9vdCBkZXZpY2VzIHdlIHNob3VsZCBub3QgcmVn
-cmVzcyB3aXRoLiBUaGUgc3RydWN0CmFuZCBkZXZpY2UgbGlzdCBjYW4gYmUgZXhwYW5kZWQgd2l0
-aCB0aW1lIHRvIGNvdmVyIG1vcmUgcm9vdApsZWdhY3kgY29tcG9uZW50cy4KCkNoYW5nZS1JZDog
-STg1YmE3ZGZiNDA1YzdmYWVmYzBmOGU2YjQzYTZlNzI2MGEyN2ExYzkKU2lnbmVkLW9mZi1ieTog
-THVpcyBSLiBSb2RyaWd1ZXogPG1jZ3JvZkBrZXJuZWwub3JnPgpDYzogQW5keSBMdXRvbWlyc2tp
-IDxsdXRvQGFtYWNhcGl0YWwubmV0PgpDYzogQm9yaXNsYXYgUGV0a292IDxicEBhbGllbjguZGU+
-CkNjOiBCcmlhbiBHZXJzdCA8YnJnZXJzdEBnbWFpbC5jb20+CkNjOiBEZW55cyBWbGFzZW5rbyA8
-ZHZsYXNlbmtAcmVkaGF0LmNvbT4KQ2M6IEguIFBldGVyIEFudmluIDxocGFAenl0b3IuY29tPgpD
-YzogTGludXMgVG9ydmFsZHMgPHRvcnZhbGRzQGxpbnV4LWZvdW5kYXRpb24ub3JnPgpDYzogUGV0
-ZXIgWmlqbHN0cmEgPHBldGVyekBpbmZyYWRlYWQub3JnPgpDYzogVGhvbWFzIEdsZWl4bmVyIDx0
-Z2x4QGxpbnV0cm9uaXguZGU+CkNjOiBhbmRyZXcuY29vcGVyM0BjaXRyaXguY29tCkNjOiBhbmRy
-aXkuc2hldmNoZW5rb0BsaW51eC5pbnRlbC5jb20KQ2M6IGJpZ2Vhc3lAbGludXRyb25peC5kZQpD
-YzogYm9yaXMub3N0cm92c2t5QG9yYWNsZS5jb20KQ2M6IGRhdmlkLnZyYWJlbEBjaXRyaXguY29t
-CkNjOiBmZmFpbmVsbGlAZnJlZWJveC5mcgpDYzogZ2VvcmdlLmR1bmxhcEBjaXRyaXguY29tCkNj
-OiBnbGluQHN1c2UuY29tCkNjOiBqZ3Jvc3NAc3VzZS5jb20KQ2M6IGpsZWVAc3VzZS5jb20KQ2M6
-IGpvc2hAam9zaHRyaXBsZXR0Lm9yZwpDYzoganVsaWVuLmdyYWxsQGxpbmFyby5vcmcKQ2M6IGtv
-bnJhZC53aWxrQG9yYWNsZS5jb20KQ2M6IGtvemVya292QHBhcmFsbGVscy5jb20KQ2M6IGxlbmJA
-a2VybmVsLm9yZwpDYzogbGd1ZXN0QGxpc3RzLm96bGFicy5vcmcKQ2M6IGxpbnV4LWFjcGlAdmdl
-ci5rZXJuZWwub3JnCkNjOiBsdi56aGVuZ0BpbnRlbC5jb20KQ2M6IG1hdHRAY29kZWJsdWVwcmlu
-dC5jby51awpDYzogbWJpem9uQGZyZWVib3guZnIKQ2M6IHJqd0Byand5c29ja2kubmV0CkNjOiBy
-b2JlcnQubW9vcmVAaW50ZWwuY29tCkNjOiBydXN0eUBydXN0Y29ycC5jb20uYXUKQ2M6IHRpd2Fp
-QHN1c2UuZGUKQ2M6IHRvc2hpLmthbmlAaHAuY29tCkNjOiB4ZW4tZGV2ZWxAbGlzdHMueGVuc291
-cmNlLmNvbQpMaW5rOiBodHRwOi8vbGttbC5rZXJuZWwub3JnL3IvMTQ2MDU5MjI4Ni0zMDAtMTMt
-Z2l0LXNlbmQtZW1haWwtbWNncm9mQGtlcm5lbC5vcmcKU2lnbmVkLW9mZi1ieTogSW5nbyBNb2xu
-YXIgPG1pbmdvQGtlcm5lbC5vcmc+Ci0tLQogYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jIHwg
-NCArKysrCiAxIGZpbGUgY2hhbmdlZCwgNCBpbnNlcnRpb25zKCspCgpkaWZmIC0tZ2l0IGEvYXJj
-aC94ODYva2VybmVsL2FjcGkvYm9vdC5jIGIvYXJjaC94ODYva2VybmVsL2FjcGkvYm9vdC5jCmlu
-ZGV4IDg4MTYxMDIuLjdhMjUxMjEgMTAwNjQ0Ci0tLSBhL2FyY2gveDg2L2tlcm5lbC9hY3BpL2Jv
-b3QuYworKysgYi9hcmNoL3g4Ni9rZXJuZWwvYWNwaS9ib290LmMKQEAgLTkzNiw2ICs5MzYsMTAg
-QEAgbGF0ZV9pbml0Y2FsbChocGV0X2luc2VydF9yZXNvdXJjZSk7CiAKIHN0YXRpYyBpbnQgX19p
-bml0IGFjcGlfcGFyc2VfZmFkdChzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgKnRhYmxlKQogewor
-CWlmICghKGFjcGlfZ2JsX0ZBRFQuYm9vdF9mbGFncyAmIEFDUElfRkFEVF9MRUdBQ1lfREVWSUNF
-UykpIHsKKwkJcHJfZGVidWcoIkFDUEk6IG5vIGxlZ2FjeSBkZXZpY2VzIHByZXNlbnRcbiIpOwor
-CQl4ODZfcGxhdGZvcm0ubGVnYWN5LmRldmljZXMucG5wYmlvcyA9IDA7CisJfQogCiAJaWYgKGFj
-cGlfZ2JsX0ZBRFQuaGVhZGVyLnJldmlzaW9uID49IEZBRFQyX1JFVklTSU9OX0lEICYmCiAJICAg
-ICEoYWNwaV9nYmxfRkFEVC5ib290X2ZsYWdzICYgQUNQSV9GQURUXzgwNDIpICYmCi0tIAoyLjcu
-NAoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fClhlbi1k
-ZXZlbCBtYWlsaW5nIGxpc3QKWGVuLWRldmVsQGxpc3RzLnhlbnByb2plY3Qub3JnCmh0dHBzOi8v
-bGlzdHMueGVucHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby94ZW4tZGV2ZWw=
+Hi Andy,
+
+On Thu, 22 Feb 2018 14:59:20 +0200, Andy Shevchenko wrote:
+> It's used in several places and more users may come.
+> By using this helper they may create a slightly cleaner code.
+
+In general I'm not a big fan of arbitrary API shortcuts. I won't object
+if you think it's a good one to have, however I'm a bit concerned about
+the silent handling of the "error case", which could cause unexpected
+default decisions as seen in patch 2/4 of this series. The fact that
+dmi_get_bios_year() returns 0 if there is no DMI BIOS date provided
+should at least be documented, to limit the risk.
+
+I also wonder if dmi_get_date() itself couldn't be optimized a bit if
+it turns out that most callers are only interested in the year.
+Currently it will parse the whole string even if the caller isn't
+interested in the month and day.
+
+The fact that dmi_get_date() returns true even if it couldn't parse the
+date string at all is also strange, although unrelated with your
+current work.
+
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  include/linux/dmi.h | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+> index 46e151172d95..241c27008c70 100644
+> --- a/include/linux/dmi.h
+> +++ b/include/linux/dmi.h
+> @@ -147,4 +147,11 @@ static inline const struct dmi_system_id *
+>  
+>  #endif
+>  
+> +static inline int dmi_get_bios_year(void)
+> +{
+> +	int year;
+> +	dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL);
+> +	return year;
+> +}
+
+checkpatch complains:
+
+WARNING: Missing a blank line after declarations
+#61: FILE: include/linux/dmi.h:153:
++	int year;
++	dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL);
+
+And I would tend to agree. Just because it is an inline function in a
+header file doesn't mean we don't stick to the usual coding style
+policy.
+
+> +
+>  #endif	/* __DMI_H__ */
+
+-- 
+Jean Delvare
+SUSE L3 Support
