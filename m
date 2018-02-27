@@ -1,75 +1,320 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RESEND PATCH v3 1/2] acpi: thermal: initialize tz_enabled to 1
-Date: Tue, 27 Feb 2018 17:17:55 +0100
-Message-ID: <CAJZ5v0gOaatHkd8mX88TewnXBsu4gspAb-M3bqzJTDXZ995atg@mail.gmail.com>
-References: <20180226144118.24693-1-enric.balletbo@collabora.com>
+From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 16/37] iommu: Add generic PASID table library
+Date: Tue, 27 Feb 2018 10:51:21 -0800
+Message-ID: <20180227105121.7c6e1110@jacob-builder>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-17-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180226144118.24693-1-enric.balletbo@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Guenter Roeck <groeck@chromium.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sameer Nanda <snanda@chromium.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180212183352.22730-17-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 26, 2018 at 3:41 PM, Enric Balletbo i Serra
-<enric.balletbo@collabora.com> wrote:
-> From: Sameer Nanda <snanda@chromium.org>
->
-> In the acpi_thermal_add path, acpi_thermal_get_info gets called before
-> acpi_thermal_register_thermal_zone.  Since tz_enabled was getting set to
-> 1 only in acpi_thermal_register_thermal_zone, acpi_thermal_get_info
-> ended up disabling thermal polling.
->
-> Moved setting of tz_enabled to 1 into acpi_thermal_add itself.
->
-> Signed-off-by: Sameer Nanda <snanda@chromium.org>
-> Signed-off-by: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+On Mon, 12 Feb 2018 18:33:31 +0000
+Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
+
+> Add a small API within the IOMMU subsystem to handle different
+> formats of PASID tables. It uses the same principle as io-pgtable:
+> 
+> * The IOMMU driver registers a PASID table with some invalidation
+>   callbacks.
+> * The pasid-table lib allocates a set of tables of the right format,
+> and returns an iommu_pasid_table_ops structure.
+> * The IOMMU driver allocates entries and writes them using the
+> provided ops.
+> * The pasid-table lib calls the IOMMU driver back for invalidation
+> when necessary.
+> * The IOMMU driver unregisters the ops which frees the tables when
+>   finished.
+> 
+> An example user will be Arm SMMU in a subsequent patch.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 > ---
-> That's another attempt to land these to patches that were sent long time
-> ago but never got merged, although, apparently, there is no issue with
-> it. Latest discussion about these here:
->
->  https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1436081.html
+>  drivers/iommu/Kconfig       |   8 +++
+>  drivers/iommu/Makefile      |   1 +
+>  drivers/iommu/iommu-pasid.c |  53 +++++++++++++++++
+>  drivers/iommu/iommu-pasid.h | 142
+> ++++++++++++++++++++++++++++++++++++++++++++ 4 files changed, 204
+> insertions(+) create mode 100644 drivers/iommu/iommu-pasid.c
+>  create mode 100644 drivers/iommu/iommu-pasid.h
+> 
+> diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+> index e751bb9958ba..8add90ba9b75 100644
+> --- a/drivers/iommu/Kconfig
+> +++ b/drivers/iommu/Kconfig
+> @@ -60,6 +60,14 @@ config IOMMU_IO_PGTABLE_ARMV7S_SELFTEST
+>  
+>  endmenu
+>  
+> +menu "Generic PASID table support"
+> +
+> +# Selected by the actual PASID table implementations
+> +config IOMMU_PASID_TABLE
+> +	bool
+> +
+> +endmenu
+> +
+>  config IOMMU_IOVA
+>  	tristate
+>  
+> diff --git a/drivers/iommu/Makefile b/drivers/iommu/Makefile
+> index f4324e29035e..338e59c93131 100644
+> --- a/drivers/iommu/Makefile
+> +++ b/drivers/iommu/Makefile
+> @@ -8,6 +8,7 @@ obj-$(CONFIG_IOMMU_FAULT) += io-pgfault.o
+>  obj-$(CONFIG_IOMMU_IO_PGTABLE) += io-pgtable.o
+>  obj-$(CONFIG_IOMMU_IO_PGTABLE_ARMV7S) += io-pgtable-arm-v7s.o
+>  obj-$(CONFIG_IOMMU_IO_PGTABLE_LPAE) += io-pgtable-arm.o
+> +obj-$(CONFIG_IOMMU_PASID_TABLE) += iommu-pasid.o
+>  obj-$(CONFIG_IOMMU_IOVA) += iova.o
+>  obj-$(CONFIG_OF_IOMMU)	+= of_iommu.o
+>  obj-$(CONFIG_MSM_IOMMU) += msm_iommu.o
+> diff --git a/drivers/iommu/iommu-pasid.c b/drivers/iommu/iommu-pasid.c
+> new file mode 100644
+> index 000000000000..6b21d369d514
+> --- /dev/null
+> +++ b/drivers/iommu/iommu-pasid.c
+> @@ -0,0 +1,53 @@
+> +/*
+> + * PASID table management for the IOMMU
+> + *
+> + * Copyright (C) 2018 ARM Ltd.
+> + * Author: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> + *
+> + * SPDX-License-Identifier: GPL-2.0
+> + */
+> +
+> +#include <linux/kernel.h>
+> +
+> +#include "iommu-pasid.h"
+> +
+> +static const struct iommu_pasid_init_fns *
+> +pasid_table_init_fns[PASID_TABLE_NUM_FMTS] = {
+> +};
+> +
+> +struct iommu_pasid_table_ops *
+> +iommu_alloc_pasid_ops(enum iommu_pasid_table_fmt fmt,
+> +		      struct iommu_pasid_table_cfg *cfg, void
+> *cookie) +{
+I guess you don't need to pass in cookie here.
+> +	struct iommu_pasid_table *table;
+> +	const struct iommu_pasid_init_fns *fns;
+> +
+> +	if (fmt >= PASID_TABLE_NUM_FMTS)
+> +		return NULL;
+> +
+> +	fns = pasid_table_init_fns[fmt];
+> +	if (!fns)
+> +		return NULL;
+> +
+> +	table = fns->alloc(cfg, cookie);
+> +	if (!table)
+> +		return NULL;
+> +
+> +	table->fmt = fmt;
+> +	table->cookie = cookie;
+> +	table->cfg = *cfg;
+> +
+the ops is already IOMMU model specific, why do you need to pass cfg
+back?
+> +	return &table->ops;
+If there is no common code that uses these ops, I don't see the benefit
+of having these APIs. Or the plan is to consolidate even further such
+that referene to pasid table can be attached at per iommu_domain etc,
+but that would be model specific choice.
 
-I can apply this one, but the other one has to go in through the Rui's tree.
+Jacob 
+> +}
+> +
+> +void iommu_free_pasid_ops(struct iommu_pasid_table_ops *ops)
+> +{
+> +	struct iommu_pasid_table *table;
+> +
+> +	if (!ops)
+> +		return;
+> +
+> +	table = container_of(ops, struct iommu_pasid_table, ops);
+> +	iommu_pasid_flush_all(table);
+> +	pasid_table_init_fns[table->fmt]->free(table);
+> +}
+> diff --git a/drivers/iommu/iommu-pasid.h b/drivers/iommu/iommu-pasid.h
+> new file mode 100644
+> index 000000000000..40a27d35c1e0
+> --- /dev/null
+> +++ b/drivers/iommu/iommu-pasid.h
+> @@ -0,0 +1,142 @@
+> +/*
+> + * PASID table management for the IOMMU
+> + *
+> + * Copyright (C) 2017 ARM Ltd.
+> + * Author: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> + *
+> + * SPDX-License-Identifier: GPL-2.0
+> + */
+> +#ifndef __IOMMU_PASID_H
+> +#define __IOMMU_PASID_H
+> +
+> +#include <linux/types.h>
+> +#include "io-pgtable.h"
+> +
+> +struct mm_struct;
+> +
+> +enum iommu_pasid_table_fmt {
+> +	PASID_TABLE_NUM_FMTS,
+> +};
+> +
+> +/**
+> + * iommu_pasid_entry - Entry of a PASID table
+> + *
+> + * @token:	architecture-specific data needed to uniquely
+> identify the
+> + *		entry. Most notably used for TLB invalidation
+> + */
+> +struct iommu_pasid_entry {
+> +	u64		tag;
+> +};
+> +
+> +/**
+> + * iommu_pasid_table_ops - Operations on a PASID table
+> + *
+> + * @alloc_shared_entry:	allocate an entry for sharing an mm
+> (SVA)
+> + *			Returns the pointer to a new entry or an
+> error
+> + * @alloc_priv_entry:	allocate an entry for map/unmap
+> operations
+> + *			Returns the pointer to a new entry or an
+> error
+> + * @free_entry:		free an entry obtained with
+> alloc_entry
+> + * @set_entry:		write PASID table entry
+> + * @clear_entry:	clear PASID table entry
+> + */
+> +struct iommu_pasid_table_ops {
+> +	struct iommu_pasid_entry *
+> +	(*alloc_shared_entry)(struct iommu_pasid_table_ops *ops,
+> +			      struct mm_struct *mm);
+> +	struct iommu_pasid_entry *
+> +	(*alloc_priv_entry)(struct iommu_pasid_table_ops *ops,
+> +			    enum io_pgtable_fmt fmt,
+> +			    struct io_pgtable_cfg *cfg);
+> +	void (*free_entry)(struct iommu_pasid_table_ops *ops,
+> +			   struct iommu_pasid_entry *entry);
+> +	int (*set_entry)(struct iommu_pasid_table_ops *ops, int
+> pasid,
+> +			 struct iommu_pasid_entry *entry);
+> +	void (*clear_entry)(struct iommu_pasid_table_ops *ops, int
+> pasid,
+> +			    struct iommu_pasid_entry *entry);
+> +};
+> +
+> +/**
+> + * iommu_pasid_sync_ops - Callbacks into the IOMMU driver
+> + *
+> + * @cfg_flush:		flush cached configuration for one
+> entry. For a
+> + *			multi-level PASID table, 'leaf' tells
+> whether to only
+> + *			flush cached leaf entries or intermediate
+> levels as
+> + *			well.
+> + * @cfg_flush_all:	flush cached configuration for all entries
+> of the PASID
+> + *			table
+> + * @tlb_flush:		flush TLB entries for one entry
+> + */
+> +struct iommu_pasid_sync_ops {
+> +	void (*cfg_flush)(void *cookie, int pasid, bool leaf);
+> +	void (*cfg_flush_all)(void *cookie);
+> +	void (*tlb_flush)(void *cookie, int pasid,
+> +			  struct iommu_pasid_entry *entry);
+> +};
+> +
+> +/**
+> + * struct iommu_pasid_table_cfg - Configuration data for a set of
+> PASID tables.
+> + *
+> + * @iommu_dev	device performing the DMA table walks
+> + * @order:	number of PASID bits, set by IOMMU driver
+> + * @flush:	TLB management callbacks for this set of tables.
+> + *
+> + * @base:	DMA address of the allocated table, set by the
+> allocator.
+> + */
+> +struct iommu_pasid_table_cfg {
+> +	struct device			*iommu_dev;
+> +	size_t				order;
+> +	const struct iommu_pasid_sync_ops *sync;
+> +
+> +	dma_addr_t			base;
+> +};
+> +
+> +struct iommu_pasid_table_ops *
+> +iommu_alloc_pasid_ops(enum iommu_pasid_table_fmt fmt,
+> +		      struct iommu_pasid_table_cfg *cfg,
+> +		      void *cookie);
+> +void iommu_free_pasid_ops(struct iommu_pasid_table_ops *ops);
+> +
+> +/**
+> + * struct iommu_pasid_table - describes a set of PASID tables
+> + *
+> + * @fmt:	The PASID table format.
+> + * @cookie:	An opaque token provided by the IOMMU driver and
+> passed back to
+> + *		any callback routine.
+> + * @cfg:	A copy of the PASID table configuration.
+> + * @ops:	The PASID table operations in use for this set of
+> page tables.
+> + */
+> +struct iommu_pasid_table {
+> +	enum iommu_pasid_table_fmt	fmt;
+> +	void				*cookie;
+> +	struct iommu_pasid_table_cfg	cfg;
+> +	struct iommu_pasid_table_ops	ops;
+> +};
+> +
+> +#define iommu_pasid_table_ops_to_table(ops) \
+> +	container_of((ops), struct iommu_pasid_table, ops)
+> +
+> +struct iommu_pasid_init_fns {
+> +	struct iommu_pasid_table *(*alloc)(struct
+> iommu_pasid_table_cfg *cfg,
+> +					   void *cookie);
+> +	void (*free)(struct iommu_pasid_table *table);
+> +};
+> +
+> +static inline void iommu_pasid_flush_all(struct iommu_pasid_table
+> *table) +{
+> +	table->cfg.sync->cfg_flush_all(table->cookie);
+> +}
+> +
+> +static inline void iommu_pasid_flush(struct iommu_pasid_table *table,
+> +					 int pasid, bool leaf)
+> +{
+> +	table->cfg.sync->cfg_flush(table->cookie, pasid, leaf);
+> +}
+> +
+> +static inline void iommu_pasid_flush_tlbs(struct iommu_pasid_table
+> *table,
+> +					  int pasid,
+> +					  struct iommu_pasid_entry
+> *entry) +{
+> +	table->cfg.sync->tlb_flush(table->cookie, pasid, entry);
+> +}
+> +
+> +#endif /* __IOMMU_PASID_H */
 
-> Changes in v3:
-> - [1/2] Make sure tz->tz_enabled is set properly before registering the
->   zone (Zhang Rui)
->
-> Changes in v2:
-> - [1/2] This patch is new from v1
->   (https://patchwork.kernel.org/patch/9804229/)
->
->  drivers/acpi/thermal.c | 3 +--
->  1 file changed, 1 insertion(+), 2 deletions(-)
->
-> diff --git a/drivers/acpi/thermal.c b/drivers/acpi/thermal.c
-> index 551b71a24b85..1d8f185e96c6 100644
-> --- a/drivers/acpi/thermal.c
-> +++ b/drivers/acpi/thermal.c
-> @@ -930,8 +930,6 @@ static int acpi_thermal_register_thermal_zone(struct acpi_thermal *tz)
->         if (ACPI_FAILURE(status))
->                 return -ENODEV;
->
-> -       tz->tz_enabled = 1;
-> -
->         dev_info(&tz->device->dev, "registered as thermal_zone%d\n",
->                  tz->thermal_zone->id);
->         return 0;
-> @@ -1088,6 +1086,7 @@ static int acpi_thermal_add(struct acpi_device *device)
->                 return -ENOMEM;
->
->         tz->device = device;
-> +       tz->tz_enabled = 1;
->         strcpy(tz->name, device->pnp.bus_id);
->         strcpy(acpi_device_name(device), ACPI_THERMAL_DEVICE_NAME);
->         strcpy(acpi_device_class(device), ACPI_THERMAL_CLASS);
-> --
-> 2.16.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[Jacob Pan]
