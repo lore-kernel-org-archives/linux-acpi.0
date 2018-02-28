@@ -1,47 +1,55 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 1/4] dmi: Introduce dmi_get_bios_year() helper
-Date: Wed, 28 Feb 2018 12:14:04 +0200
-Message-ID: <1519812844.10722.253.camel@linux.intel.com>
+Subject: Re: [PATCH v1 2/4] x86/pci: Re-use new dmi_get_bios_year() helper
+Date: Wed, 28 Feb 2018 12:29:04 +0200
+Message-ID: <1519813744.10722.258.camel@linux.intel.com>
 References: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
-         <20180223213552.GL14632@bhelgaas-glaptop.roam.corp.google.com>
-         <1519565039.10722.145.camel@linux.intel.com>
-         <CAJZ5v0hK3fvgL42qowQFBbcG5JABec42R781vBbia0Z2MQy31w@mail.gmail.com>
+         <20180222125923.57385-2-andriy.shevchenko@linux.intel.com>
+         <20180226172832.7bf82336@endymion>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hK3fvgL42qowQFBbcG5JABec42R781vBbia0Z2MQy31w@mail.gmail.com>
+In-Reply-To: <20180226172832.7bf82336@endymion>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Jean Delvare <jdelvare@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jean Delvare <jdelvare@suse.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2018-02-26 at 10:29 +0100, Rafael J. Wysocki wrote:
-> On Sun, Feb 25, 2018 at 2:23 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Fri, 2018-02-23 at 15:35 -0600, Bjorn Helgaas wrote:
+On Mon, 2018-02-26 at 17:28 +0100, Jean Delvare wrote:
 
-> > > but making this inline looks similar to this, which
-> > > wasn't well-received:
-> > > 
-> > > https://lkml.kernel.org/r/CA+55aFypU331cQy-
-> > > 6ZJ6szF=2KVLqcbwCUGd+gTwPViRqRWN+g@mail.gmail.com
-> > 
-> > "Yes, that header file is already full of random inline functions,
-> > but
-> > they are generally wrapper functions that don't really do anything,
-> > ..."
-> > 
-> > I think the function above is exactly from the "wrapper that doesn't
-> > really do anything" category.
+> > -	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year
+> > < 2008) {
+> > -		if (iomem_resource.end <= 0xffffffff)
+> > -			pci_use_crs = false;
+> > -	}
+> > +	if ((dmi_get_bios_year() < 2008) && (iomem_resource.end <=
+> > 0xffffffff))
+> > +		pci_use_crs = false;
 > 
-> Yes, but honestly does it need to be inline even so?
-> 
-> Why don't you simply put the wrapper into dmi_scan.c and export it?
+> You are changing the behavior here, when DMI does not provide a BIOS
+> date. Beforehand, the test would fail and pci_use_crs would be left
+> alone. After your change, dmi_get_bios_year() will return 0, and
+> "0 < 2008" is true, so pci_use_crs is set to false.
 
-Taking into consideration that there are few comments to be addressed
-and series had been applied, I will send a fix up series where I move
-this to be a normal function.
+Hmm... Indeed.
+
+> I have no opinion on what this driver should do in such case,
+
+I would assume that no BIOS date is related to prehistoric firmwares and
+ using _CRS would sound weird on them.
+
+>  but I
+> certainly wouldn't expect a change of behavior from a "use a helper
+> instead of open-coding" kind of patch.
+
+Agree.
+
+> I don't think you can safely assume that the code calling
+> dmi_get_bios_year() will always do the right thing when 0 is being
+> returned. It's up to the calling code to decide what the default
+> behavior should be.
+
+That's correct.
 
 -- 
 Andy Shevchenko <andriy.shevchenko@linux.intel.com>
