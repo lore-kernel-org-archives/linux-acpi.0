@@ -1,87 +1,45 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [RFC] power/hibernate: Make passing hibernate offsets more
- friendly
-Date: Wed, 28 Feb 2018 20:05:03 +0000
-Message-ID: <ad15f3beb9f44c77b79f3038cb75b69c@ausx13mpc124.AMER.DELL.COM>
-References: <1519839829-2191-1-git-send-email-mario.limonciello@dell.com>
- <CAHp75VcdsALCUBNoO4BoOj0rHuxurhr6B3GL2i7D79BxRL77kQ@mail.gmail.com>
+From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: Re: [PATCH 02/37] iommu/sva: Bind process address spaces to devices
+Date: Wed, 28 Feb 2018 15:34:20 -0500
+Message-ID: <bce32071-4159-3bdd-1e03-77f540ee4509@codeaurora.org>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-3-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcdsALCUBNoO4BoOj0rHuxurhr6B3GL2i7D79BxRL77kQ@mail.gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180212183352.22730-3-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: andy.shevchenko@gmail.com
-Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtv
-IFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBG
-ZWJydWFyeSAyOCwgMjAxOCAxMjoxMSBQTQ0KPiBUbzogTGltb25jaWVsbG8sIE1hcmlvIDxNYXJp
-b19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IFJhZmFlbCBKIC4gV3lzb2NraSA8cmp3QHJq
-d3lzb2NraS5uZXQ+OyBBQ1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC0NCj4gYWNwaUB2Z2Vy
-Lmtlcm5lbC5vcmc+OyBMS01MIDxsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnPg0KPiBTdWJq
-ZWN0OiBSZTogW1JGQ10gcG93ZXIvaGliZXJuYXRlOiBNYWtlIHBhc3NpbmcgaGliZXJuYXRlIG9m
-ZnNldHMgbW9yZSBmcmllbmRseQ0KPiANCj4gT24gV2VkLCBGZWIgMjgsIDIwMTggYXQgNzo0MyBQ
-TSwgTWFyaW8gTGltb25jaWVsbG8NCj4gPG1hcmlvLmxpbW9uY2llbGxvQGRlbGwuY29tPiB3cm90
-ZToNCj4gPiBDdXJyZW50bHkgdGhlIG9ubHkgd2F5IHRvIHNwZWNpZnkgYSBoaWJlcm5hdGUgb2Zm
-c2V0IGZvciBhIHN3YXANCj4gPiBmaWxlIGlzIG9uIHRoZSBrZXJuZWwgY29tbWFuZCBsaW5lLg0K
-PiA+DQo+ID4gVGhpcyBtYWtlcyBzb21lIGNoYW5nZXMgdG8gaW1wcm92ZToNCj4gPiAxKSBBZGQg
-YSBuZXcgL3N5cy9wb3dlci9kaXNrX29mZnNldCB0aGF0IGxldHMgdXNlcnNwYWNlIHNwZWNpZnkN
-Cj4gPiB0aGUgb2Zmc2V0IGFuZCBkaXNrIHRvIHVzZSB3aGVuIGluaXRpYXRpbmcgYSBoaWJlcm5h
-dGUgY3ljbGUuDQo+ID4NCj4gPiAyKSBBZGp1c3QgL3N5cy9wb3dlci9yZXN1bWUgaW50ZXJwcmV0
-YXRpb24gdG8gYWxzbyByZWFkIGluIGFuDQo+ID4gb2Zmc2V0Lg0KPiANCj4gUmVhZCBpcyBva2F5
-IHBlciBzZSAobm90IGNvbnNpc3RlbnQgdGhvdWdoKSwgc2hvd2luZyBpcyBub3QuDQo+IEl0IG1p
-Z2h0IGJyZWFrIGFuIEFCSS4NCg0KUmlnaHQgdGhpcyBpcyBwYXJ0IG9mIHdoeSBJIHdhcyBwcm9w
-b3NpbmcgbWFraW5nIGEgbmV3IGF0dHJpYnV0ZS4NCg0KVGhlIGN1cnJlbnQgUkZDIGltcGxlbWVu
-dGF0aW9uIEkgc2VudCBrZWVwcyB0aGUgcmVhZCBvdXRwdXQgdGhlDQpzYW1lIGZvciAvc3lzL3Bv
-d2VyL3Jlc3VtZS4NCg0KPiANCj4gPiBBY3R1YWxseSBrbGliYydzIC9iaW4vcmVzdW1lIGhhcyBz
-dXBwb3J0ZWQgcGFzc2luZyBhIGhpYmVybmF0ZQ0KPiA+IG9mZnNldCBpbiBzaW5jZSAyMDY5NTI2
-NGUyMWRjYmRlMzA5Y2Q4MWY3M2NmZTJjZWE0MmU3NzlkLg0KPiA+DQo+ID4gVGhlIGtlcm5lbCB3
-YXMganVzdCBsb2JiaW5nIGFueXRoaW5nIGFmdGVyIHRoZSBkZXZpY2Ugc3BlY2lmaWVkDQo+ID4g
-b2ZmIHRoZSBzdHJpbmcuICBJbnN0ZWFkIHBhcnNlIHRoYXQgYW5kIHBvcHVsYXRlIGhpYmVybmF0
-ZSBvZmZzZXQNCj4gPiB3aXRoIGl0Lg0KPiANCj4gPiBBbiBhbHRlcm5hdGl2ZSB0byBpbnRyb2R1
-Y2luZyBhIG5ldyBzeXNmcyBwYXJhbWV0ZXIgbWF5IGJlIHRvIGRvY3VtZW50DQo+ID4gc2V0dGlu
-ZyB0aGVzZSB2YWx1ZXMgdmlhIC9zeXMvcG93ZXIvcmVzdW1lLiAgSWYgdGhlIHdyb25nIHNpZ25h
-dHVyZSBpcyBmb3VuZA0KPiA+IG9uIHRoZSBzd2FwZmlsZS9zd2FwIHBhcnRpdGlvbiBieSB0aGUg
-a2VybmVsIGl0IGRvZXMgc2hvdyBhbiBlcnJvcg0KPiA+IGJ1dCBpdCB1cGRhdGVzIHRoZSB2YWx1
-ZXMgYW5kIHRoZXknbGwgd29yayB3aGVuIGFjdHVhbGx5IGludm9rZWQgbGF0ZXIuDQo+IA0KPiBE
-b24ndCB5b3UgbmVlZCB0byBkb2N1bWVudCBuZXcgbm9kZT8NCg0KWWVzLCBJIHdhbnRlZCB0byBn
-ZXQgZmVlZGJhY2sgYmVmb3JlIEkgcmV3b3JrZWQgZG9jdW1lbnRhdGlvbiBhbmQgdGhhdCdzDQp3
-aHkgSSBpbXBsZW1lbnRlZCBib3RoIGFwcHJvYWNoZXMgcmlnaHQgbm93Lg0KDQpNYXliZSBib3Ro
-IGV2ZW4gbWFrZSBzZW5zZS4NCldoZW4gSSByZXN1Ym1pdCBhcyBhIHBhdGNoIEknbGwgbWFrZSBz
-dXJlIGRvY3VtZW50YXRpb24gaXMgdXBkYXRlZC4NCg0KPiANCj4gPiArc3RhdGljIGludCBwYXJz
-ZV9kZXZpY2VfaW5wdXQoY29uc3QgY2hhciAqYnVmLCBzaXplX3QgbikNCj4gPiAgew0KPiA+ICsg
-ICAgICAgdW5zaWduZWQgbG9uZyBsb25nIG9mZnNldDsNCj4gPiAgICAgICAgIGRldl90IHJlczsN
-Cj4gPiAgICAgICAgIGludCBsZW4gPSBuOw0KPiA+ICAgICAgICAgY2hhciAqbmFtZTsNCj4gPiAr
-ICAgICAgIGNoYXIgKmxhc3Q7DQo+ID4NCj4gPiAgICAgICAgIGlmIChsZW4gJiYgYnVmW2xlbi0x
-XSA9PSAnXG4nKQ0KPiA+ICAgICAgICAgICAgICAgICBsZW4tLTsNCj4gDQo+IEknbSBub3Qgc3Vy
-ZSBmaXJzdCBwYXJ0IGV2ZW4gbmVlZGVkLCBidXQgb2theSwgaXQncyBpbiBvcmlnaW5hbCBjb2Rl
-Lg0KPiANCj4gPiAgICAgICAgIG5hbWUgPSBrc3RybmR1cChidWYsIGxlbiwgR0ZQX0tFUk5FTCk7
-DQo+ID4gICAgICAgICBpZiAoIW5hbWUpDQo+ID4gICAgICAgICAgICAgICAgIHJldHVybiAtRU5P
-TUVNOw0KPiANCj4gU2lkZSBub3Rlcy4NCj4gVGhpcyB3aG9sZSBkYW5jZSBiL2Mgb2YgaGlnaCBw
-cm9iYWJpbGl0eSBvZiAnXG4nIGF0IHRoZSBlbmQgd2hpY2gNCj4gYnJlYWtzIF9zb21lXyBrZXJu
-ZWwgcGFyc2Vycy4NCj4gSXQgbWlnaHQgbWFrZSBzZW5zZSB0byBkbyBhIHdyYXBwZXIgYW5kIGNh
-bGwgdGhlIGd1dHMgb2YgdGhpcyBmdW5jdGlvbg0KPiB3aXRoIG9yIHdpdGhvdXQgbWVtb3J5IGFs
-bG9jYXRpb24gZGVwZW5kaW5nIG9uIHByZXNlbmNlIG9mICdcbicuDQo+IA0KDQpPSy4NCg0KPiA+
-IC0NCj4gDQo+IFRoaXMgaXMgbm90IG5lZWRlZCB0byBiZSByZW1vdmVkLg0KPiANCj4gPiArICAg
-ICAgIGxhc3QgPSBzdHJyY2hyKG5hbWUsICc6Jyk7DQo+IA0KPiA+ICsgICAgICAgcHJpbnRrKCIl
-bHUgJXMgJXMgJWQiLCBsYXN0LW5hbWUsIG5hbWUsIGxhc3QsIGxlbik7DQo+IA0KPiBPdWNoLiBJ
-IGd1ZXNzIGl0J3Mgb25seSBmb3IgUkZDLg0KDQpZZXMgSSB3YXMgaGF2aW5nIHByb2JsZW1zIG9y
-aWdpbmFsbHkgYW5kIGl0IHdhcyBkZWJ1ZywgaXQgd29uJ3QNCmJlIHRoZXJlIHdoZW4gc3VibWl0
-dGVkIGZvciBhcHBsaWNhdGlvbi4NCg0KPiANCj4gPiArICAgICAgIGlmIChsYXN0ICE9IE5VTEwg
-JiYNCj4gDQo+ID4gKyAgICAgICAgICAgKGxhc3QtbmFtZSkgIT0gbGVuLTEgJiYNCj4gDQo+ID4g
-KyAgICAgICAgICAgc3NjYW5mKGxhc3QrMSwgIiVsbHUiLCAmb2Zmc2V0KSA9PSAxKQ0KPiANCj4g
-VGhpcyBpcyBlZmZlY3RpdmVseQ0KPiANCj4gaWYgKGxhc3QgJiYgKihsYXN0KzEpKSB7DQo+ICAg
-aW50IHJldCA9IGtzdHJ0b3VsbCguLi4mc3dzdXNwX3Jlc3VtZV9ibG9jay4uLik7DQo+ICAgaWYg
-KHJldCkNCj4gICAgLi4ud2Fybj8uLg0KPiB9DQo+IA0KPiA/DQoNCkknbGwgaGF2ZSB0byBsb29r
-IG1vcmUgY2xvc2VseSwgYnV0IGlmIHRoaXMgc2ltcGxpZmljYXRpb24NCndvcmtzIEknbGwgc3dp
-dGNoIG92ZXIuDQoNCj4gDQo+ID4gKyAgICAgICAgICAgICAgICBzd3N1c3BfcmVzdW1lX2Jsb2Nr
-ID0gb2Zmc2V0Ow0KPiANCj4gPiArICAgICAgIHN3c3VzcF9yZXN1bWVfZGV2aWNlID0gcmVzOw0K
-PiA+ICsNCj4gDQo+ID4gKyAgICAgICByZXR1cm4gMTsNCj4gDQo+ID8/Pw0KPiBXaHkgbm90IHRy
-YWRpdGlvbmFsIDA/DQo+IA0KPiA+ICt9DQo+IA0KPiA+IEBAIC0xMTI1LDcgKzExNjEsNiBAQCBz
-dGF0aWMgaW50IF9faW5pdCBwbV9kaXNrX2luaXQodm9pZCkNCj4gPg0KPiA+ICBjb3JlX2luaXRj
-YWxsKHBtX2Rpc2tfaW5pdCk7DQo+ID4NCj4gPiAtDQo+IA0KPiBUaGlzIGRvZXNuJ3QgYmVsb25n
-IHRvIHRoZSBjaGFuZ2UuDQo+IA0KPiAtLQ0KPiBXaXRoIEJlc3QgUmVnYXJkcywNCj4gQW5keSBT
-aGV2Y2hlbmtvDQo=
+On 2/12/2018 1:33 PM, Jean-Philippe Brucker wrote:
+> +int iommu_sva_unbind_group(struct iommu_group *group, int pasid)
+> +{
+> +	struct group_device *device;
+> +
+> +	mutex_lock(&group->mutex);
+> +	list_for_each_entry(device, &group->devices, list)
+> +		iommu_sva_unbind_device(device->dev, pasid);
+> +	mutex_unlock(&group->mutex);
+> +
+> +	return 0;
+> +}
+
+I think we should handle the errors returned by iommu_sva_unbind_device() here
+or at least print a warning if we want to still continue unbinding. 
+
+-- 
+Sinan Kaya
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
