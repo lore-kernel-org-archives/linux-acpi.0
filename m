@@ -1,67 +1,68 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/5] Teach EDAC about non-volatile DIMMs and add partial
- support to skx_edac
-Date: Wed, 28 Feb 2018 05:59:25 -0800
-Message-ID: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
-References: <20180222195811.27237-1-tony.luck@intel.com>
- <20180228130410.GC3769@pd.tnic>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 4/4] pci: Re-use new dmi_get_bios_year() helper
+Date: Wed, 28 Feb 2018 09:17:14 -0600
+Message-ID: <20180228151714.GF127842@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
+ <20180222125923.57385-4-andriy.shevchenko@linux.intel.com>
+ <20180223214051.GN14632@bhelgaas-glaptop.roam.corp.google.com>
+ <1519565224.10722.148.camel@linux.intel.com>
+ <20180226181943.GC25159@bhelgaas-glaptop.roam.corp.google.com>
+ <1519812742.10722.251.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180228130410.GC3769-fF5Pk5pvG8Y@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1519812742.10722.251.camel@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Jean Delvare <jdelvare@suse.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Feb 28, 2018 at 5:04 AM, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org> wrote:
-> On Thu, Feb 22, 2018 at 11:58:06AM -0800, Tony Luck wrote:
->> This series was posted as RFC and got some review back in December:
->>
->>    https://marc.info/?l=linux-edac&m=151257213825419&w=2
->>
->> It couldn't go upstream back then because I was waiting for some updates
->> to the ACPICA headers for NFIT support.  Those patches are complete now,
->> so here is the series again.
->>
->> The "partial support" part is that the changes here only do the detection of
->> the non-volatile DIMMs. Coming later will be another patch/series to teach
->> skx_edac how to decode system addresses to NVDIMM addresses. But this part
->> stands on its own and is a useful first step.
->>
->> Tony Luck (5):
->>   EDAC: Drop duplicated array of strings for memory type names
->>   edac: Add new memory type for non-volatile DIMMs
->>   acpi, nfit: Add function to look up nvdimm device and provide SMBIOS
->>     handle
->>   firmware: dmi: Add function to look up a handle and return DIMM size
->>   EDAC, skx_edac: Detect non-volatile DIMMs
->>
->>  drivers/acpi/nfit/core.c     | 27 ++++++++++++++++++
->>  drivers/edac/Kconfig         |  5 +++-
->>  drivers/edac/edac_mc.c       | 41 +++++++++++++-------------
->>  drivers/edac/edac_mc_sysfs.c | 26 ++---------------
->>  drivers/edac/skx_edac.c      | 68 ++++++++++++++++++++++++++++++++++++++++----
->>  drivers/firmware/dmi_scan.c  | 31 ++++++++++++++++++++
->>  include/acpi/nfit.h          | 26 +++++++++++++++++
->>  include/linux/dmi.h          |  2 ++
->>  include/linux/edac.h         |  3 ++
->>  9 files changed, 178 insertions(+), 51 deletions(-)
->>  create mode 100644 include/acpi/nfit.h
->
-> Series looks ok to me.
->
-> Dan, I could route patch 3 through the EDAC tree if you'd prefer.
+On Wed, Feb 28, 2018 at 12:12:22PM +0200, Andy Shevchenko wrote:
+> On Mon, 2018-02-26 at 12:19 -0600, Bjorn Helgaas wrote:
+> > On Sun, Feb 25, 2018 at 03:27:04PM +0200, Andy Shevchenko wrote:
+> > > On Fri, 2018-02-23 at 15:40 -0600, Bjorn Helgaas wrote:
+> > > > On Thu, Feb 22, 2018 at 02:59:23PM +0200, Andy Shevchenko wrote:
+> > > > > ...instead of open coding its functionality.
+> > > > 
+> > > > Same comment about making the changelog complete, independent of
+> > > > the
+> > > > subject.
+> > > 
+> > > Any suggestion how it would look like? (Same question for previous
+> > > comment)
+> > 
+> >   PCI: Re-use new dmi_get_bios_year() helper
+> > 
+> >   Use new dmi_get_bios_year() helper instead of open-coding its
+> >   functionality.
+> > 
+> > The usual document structure is something like:
+> > 
+> >   TITLE
+> > 
+> >   This abstract contains a summary of the entire document, in a few
+> >   paragraphs of complete sentences.
+> > 
+> > Where "TITLE" makes sense all by itself, even without reading the
+> > body, and "Body" is a complete statement that also makes sense all by
+> > itself without having to read "TITLE" first.
+> > 
+> 
+> Thank you for a hint!
+> 
+> > Granted, it's trivial, but following the convention improves
+> > readability slightly because it fits the reader's expectations.
+> 
+> > When the body is "...instead of open coding its functionality", it's a
+> > bit of a hiccup because I have to start over and look back up to the
+> > title to re-read the thing as a whole.
+> 
+> OK, I got your point, though I don't like duplication in the subject and
+> body.
 
-Yes, please, and you can add:
+Ah, I see.  I think of the subject and the body as serving two
+distinct purposes, so for me there's no issue even if they happen to
+contain exactly the same text.
 
-Acked-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Bjorn
