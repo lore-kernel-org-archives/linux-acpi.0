@@ -1,55 +1,72 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 2/4] x86/pci: Re-use new dmi_get_bios_year() helper
-Date: Wed, 28 Feb 2018 12:29:04 +0200
-Message-ID: <1519813744.10722.258.camel@linux.intel.com>
+Subject: Re: [PATCH v1 1/4] dmi: Introduce dmi_get_bios_year() helper
+Date: Wed, 28 Feb 2018 12:33:10 +0200
+Message-ID: <1519813990.10722.262.camel@linux.intel.com>
 References: <20180222125923.57385-1-andriy.shevchenko@linux.intel.com>
-         <20180222125923.57385-2-andriy.shevchenko@linux.intel.com>
-         <20180226172832.7bf82336@endymion>
+         <20180227101422.7c0efb40@endymion>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180226172832.7bf82336@endymion>
+In-Reply-To: <20180227101422.7c0efb40@endymion>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jean Delvare <jdelvare@suse.de>
 Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2018-02-26 at 17:28 +0100, Jean Delvare wrote:
-
-> > -	if (dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL) && year
-> > < 2008) {
-> > -		if (iomem_resource.end <= 0xffffffff)
-> > -			pci_use_crs = false;
-> > -	}
-> > +	if ((dmi_get_bios_year() < 2008) && (iomem_resource.end <=
-> > 0xffffffff))
-> > +		pci_use_crs = false;
+On Tue, 2018-02-27 at 10:14 +0100, Jean Delvare wrote:
+> Hi Andy,
 > 
-> You are changing the behavior here, when DMI does not provide a BIOS
-> date. Beforehand, the test would fail and pci_use_crs would be left
-> alone. After your change, dmi_get_bios_year() will return 0, and
-> "0 < 2008" is true, so pci_use_crs is set to false.
+> On Thu, 22 Feb 2018 14:59:20 +0200, Andy Shevchenko wrote:
+> > It's used in several places and more users may come.
+> > By using this helper they may create a slightly cleaner code.
+> 
+> In general I'm not a big fan of arbitrary API shortcuts. I won't
+> object
+> if you think it's a good one to have, however I'm a bit concerned
+> about
+> the silent handling of the "error case", which could cause unexpected
+> default decisions as seen in patch 2/4 of this series.
 
-Hmm... Indeed.
+Yes, we better to return -ERRNO in such case and allow callers to behave
+correspondingly.
 
-> I have no opinion on what this driver should do in such case,
+>  The fact that
+> dmi_get_bios_year() returns 0 if there is no DMI BIOS date provided
+> should at least be documented, to limit the risk.
+> 
+> I also wonder if dmi_get_date() itself couldn't be optimized a bit if
+> it turns out that most callers are only interested in the year.
+> Currently it will parse the whole string even if the caller isn't
+> interested in the month and day.
+> 
+> The fact that dmi_get_date() returns true even if it couldn't parse
+> the
+> date string at all is also strange, although unrelated with your
+> current work.
 
-I would assume that no BIOS date is related to prehistoric firmwares and
- using _CRS would sound weird on them.
+So, what I consider is to
+- move inline function to be regular one
+- optimize it with current dmi_get_date()
+- return error code when year is not parsable
+- consider current use cases where we do compare for less than a given
+year
 
->  but I
-> certainly wouldn't expect a change of behavior from a "use a helper
-> instead of open-coding" kind of patch.
+Does it sound a correct approach?
 
-Agree.
+> 
+> checkpatch complains:
+> 
+> WARNING: Missing a blank line after declarations
+> #61: FILE: include/linux/dmi.h:153:
+> +	int year;
+> +	dmi_get_date(DMI_BIOS_DATE, &year, NULL, NULL);
+> 
+> And I would tend to agree. Just because it is an inline function in a
+> header file doesn't mean we don't stick to the usual coding style
+> policy.
 
-> I don't think you can safely assume that the code calling
-> dmi_get_bios_year() will always do the right thing when 0 is being
-> returned. It's up to the calling code to decide what the default
-> behavior should be.
-
-That's correct.
+Ingo fixed that.
 
 -- 
 Andy Shevchenko <andriy.shevchenko@linux.intel.com>
