@@ -1,7 +1,7 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v7 07/13] drivers: base cacheinfo: Add support for ACPI based firmware tables
-Date: Wed, 28 Feb 2018 16:06:13 -0600
-Message-ID: <20180228220619.6992-8-jeremy.linton@arm.com>
+Subject: [PATCH v7 06/13] ACPI: Enable PPTT support on ARM64
+Date: Wed, 28 Feb 2018 16:06:12 -0600
+Message-ID: <20180228220619.6992-7-jeremy.linton@arm.com>
 References: <20180228220619.6992-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180228220619.6992-1-jeremy.linton@arm.com>
@@ -10,94 +10,53 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, dietmar.eggemann@arm.com, morten.rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Call ACPI cache parsing routines from base cacheinfo code if ACPI
-is enable. Also stub out cache_setup_acpi() so that individual
-architectures can enable ACPI topology parsing.
+Now that we have a PPTT parser, in preparation for its use
+on arm64, lets build it.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/pptt.c       |  1 +
- drivers/base/cacheinfo.c  | 14 ++++++++++----
- include/linux/cacheinfo.h |  9 +++++++++
- 3 files changed, 20 insertions(+), 4 deletions(-)
+ arch/arm64/Kconfig    | 1 +
+ drivers/acpi/Kconfig  | 3 +++
+ drivers/acpi/Makefile | 1 +
+ 3 files changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index 883e4318c6cd..c98f94ebd272 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -343,6 +343,7 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- {
- 	int valid_flags = 0;
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 7381eeb7ef8e..439684a71e18 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -7,6 +7,7 @@ config ARM64
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ACPI_MCFG if ACPI
+ 	select ACPI_SPCR_TABLE if ACPI
++	select ACPI_PPTT if ACPI
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_HAS_DEBUG_VIRTUAL
+ 	select ARCH_HAS_DEVMEM_IS_ALLOWED
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index f505e9a01b2d..55aa9789d474 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -534,6 +534,9 @@ config ACPI_CONFIGFS
  
-+	this_leaf->fw_token = cpu_node;
- 	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
- 		this_leaf->size = found_cache->size;
- 		valid_flags++;
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index 597aacb233fc..2880e2ab01f5 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -206,7 +206,7 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- 					   struct cacheinfo *sib_leaf)
- {
- 	/*
--	 * For non-DT systems, assume unique level 1 cache, system-wide
-+	 * For non-DT/ACPI systems, assume unique level 1 caches, system-wide
- 	 * shared caches for all other levels. This will be used only if
- 	 * arch specific code has not populated shared_cpu_map
- 	 */
-@@ -214,6 +214,11 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- }
- #endif
- 
-+int __weak cache_setup_acpi(unsigned int cpu)
-+{
-+	return -ENOTSUPP;
-+}
+ if ARM64
+ source "drivers/acpi/arm64/Kconfig"
 +
- static int cache_shared_cpu_map_setup(unsigned int cpu)
- {
- 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
-@@ -227,8 +232,8 @@ static int cache_shared_cpu_map_setup(unsigned int cpu)
- 	if (of_have_populated_dt())
- 		ret = cache_setup_of_node(cpu);
- 	else if (!acpi_disabled)
--		/* No cache property/hierarchy support yet in ACPI */
--		ret = -ENOTSUPP;
-+		ret = cache_setup_acpi(cpu);
-+
- 	if (ret)
- 		return ret;
++config ACPI_PPTT
++	bool
+ endif
  
-@@ -279,7 +284,8 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
- 			cpumask_clear_cpu(cpu, &sib_leaf->shared_cpu_map);
- 			cpumask_clear_cpu(sibling, &this_leaf->shared_cpu_map);
- 		}
--		of_node_put(this_leaf->fw_token);
-+		if (of_have_populated_dt())
-+			of_node_put(this_leaf->fw_token);
- 	}
- }
+ config TPS68470_PMIC_OPREGION
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 41954a601989..b6056b566df4 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -87,6 +87,7 @@ obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
+ obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
+ obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
+ obj-$(CONFIG_ACPI_DEBUGGER_USER) += acpi_dbg.o
++obj-$(CONFIG_ACPI_PPTT) 	+= pptt.o
  
-diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
-index 0c6f658054d2..1446d3f053a2 100644
---- a/include/linux/cacheinfo.h
-+++ b/include/linux/cacheinfo.h
-@@ -97,6 +97,15 @@ int func(unsigned int cpu)					\
- struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
- int init_cache_level(unsigned int cpu);
- int populate_cache_leaves(unsigned int cpu);
-+int cache_setup_acpi(unsigned int cpu);
-+int acpi_find_last_cache_level(unsigned int cpu);
-+#ifndef CONFIG_ACPI
-+int acpi_find_last_cache_level(unsigned int cpu)
-+{
-+	/* ACPI kernels should be built with PPTT support */
-+	return 0;
-+}
-+#endif
- 
- const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
- 
+ # processor has its own "processor." module_param namespace
+ processor-y			:= processor_driver.o
 -- 
 2.13.6
