@@ -1,60 +1,72 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] Bluetooth: btusb: Remove Yoga 920 from the btusb_needs_reset_resume_table
-Date: Wed, 28 Feb 2018 11:57:50 +0100
-Message-ID: <20180228105750.6491-2-hdegoede@redhat.com>
-References: <20180228105750.6491-1-hdegoede@redhat.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180228105750.6491-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Brian Norris <briannorris@chromium.org>
+From: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
+Subject: Re: [PATCH 0/5] Teach EDAC about non-volatile DIMMs and add partial
+ support to skx_edac
+Date: Wed, 28 Feb 2018 14:04:10 +0100
+Message-ID: <20180228130410.GC3769@pd.tnic>
+References: <20180222195811.27237-1-tony.luck@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180222195811.27237-1-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>
+Cc: Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Commit 55a9c95d70ab ("Bluetooth: btusb: Use DMI matching for QCA
-reset_resume quirking"), added the Lenovo Yoga 920 to the
-btusb_needs_reset_resume_table.
+On Thu, Feb 22, 2018 at 11:58:06AM -0800, Tony Luck wrote:
+> This series was posted as RFC and got some review back in December:
+> 
+>    https://marc.info/?l=linux-edac&m=151257213825419&w=2
+> 
+> It couldn't go upstream back then because I was waiting for some updates
+> to the ACPICA headers for NFIT support.  Those patches are complete now,
+> so here is the series again.
+> 
+> The "partial support" part is that the changes here only do the detection of
+> the non-volatile DIMMs. Coming later will be another patch/series to teach
+> skx_edac how to decode system addresses to NVDIMM addresses. But this part
+> stands on its own and is a useful first step.
+> 
+> Tony Luck (5):
+>   EDAC: Drop duplicated array of strings for memory type names
+>   edac: Add new memory type for non-volatile DIMMs
+>   acpi, nfit: Add function to look up nvdimm device and provide SMBIOS
+>     handle
+>   firmware: dmi: Add function to look up a handle and return DIMM size
+>   EDAC, skx_edac: Detect non-volatile DIMMs
+> 
+>  drivers/acpi/nfit/core.c     | 27 ++++++++++++++++++
+>  drivers/edac/Kconfig         |  5 +++-
+>  drivers/edac/edac_mc.c       | 41 +++++++++++++-------------
+>  drivers/edac/edac_mc_sysfs.c | 26 ++---------------
+>  drivers/edac/skx_edac.c      | 68 ++++++++++++++++++++++++++++++++++++++++----
+>  drivers/firmware/dmi_scan.c  | 31 ++++++++++++++++++++
+>  include/acpi/nfit.h          | 26 +++++++++++++++++
+>  include/linux/dmi.h          |  2 ++
+>  include/linux/edac.h         |  3 ++
+>  9 files changed, 178 insertions(+), 51 deletions(-)
+>  create mode 100644 include/acpi/nfit.h
 
-Testing has shown that this is a false positive and the problems where
-caused by issues with the initial fix: commit fd865802c66b ("Bluetooth:
-btusb: fix QCA Rome suspend/resume"), which has already been reverted.
+Series looks ok to me.
 
-So the QCA Rome BT in the Yoga 920 does not need a reset-resume quirk at
-all and this commit removes it from the btusb_needs_reset_resume_table.
+Dan, I could route patch 3 through the EDAC tree if you'd prefer.
 
-Note that after this commit the btusb_needs_reset_resume_table is now
-empty. It is kept around on purpose, since this whole series of commits
-started for a reason and there are actually broken platforms around,
-which need to be added to it.
+Jean, ditto for patch 4.
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
-Fixes: 55a9c95d70ab ("Bluetooth: btusb: Use DMI matching for QCA ...")
-Cc: stable@vger.kernel.org
-Cc: Brian Norris <briannorris@chromium.org>
-Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Tested-by: Kevin Fenzi <kevin@scrye.com>
-Suggested-by: Brian Norris <briannorris@chromium.org>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/bluetooth/btusb.c | 7 -------
- 1 file changed, 7 deletions(-)
+Thanks.
 
-diff --git a/drivers/bluetooth/btusb.c b/drivers/bluetooth/btusb.c
-index a4b62f0a93cc..418550eb1522 100644
---- a/drivers/bluetooth/btusb.c
-+++ b/drivers/bluetooth/btusb.c
-@@ -386,13 +386,6 @@ static const struct usb_device_id blacklist_table[] = {
-  * the module itself. So we use a DMI list to match known broken platforms.
-  */
- static const struct dmi_system_id btusb_needs_reset_resume_table[] = {
--	{
--		/* Lenovo Yoga 920 (QCA Rome device 0cf3:e300) */
--		.matches = {
--			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
--			DMI_MATCH(DMI_PRODUCT_VERSION, "Lenovo YOGA 920"),
--		},
--	},
- 	{}
- };
- 
 -- 
-2.14.3
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
