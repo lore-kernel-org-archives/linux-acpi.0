@@ -1,59 +1,57 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Remove obsolete
- ACPI_IORT_SMMU_V3_CAVIUM_CN99XX define
-Date: Wed, 28 Feb 2018 16:55:50 +0000
-Message-ID: <35249df2-23a4-7406-e849-6e2a5955290b@arm.com>
-References: <20180228162424.13636-1-lorenzo.pieralisi@arm.com>
- <e6cbbf2a-738c-a77e-efa1-a38a5602ae1c@arm.com>
- <20180228165305.GA14610@e107981-ln.cambridge.arm.com>
+From: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 3/5] acpi, nfit: Add function to look up nvdimm device
+ and provide SMBIOS handle
+Date: Wed, 28 Feb 2018 10:36:21 -0700
+Message-ID: <20180228173621.GA12883@linux.intel.com>
+References: <20180222195811.27237-1-tony.luck@intel.com>
+ <20180222195811.27237-4-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180228165305.GA14610@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180222195811.27237-4-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 28/02/18 16:53, Lorenzo Pieralisi wrote:
-> On Wed, Feb 28, 2018 at 04:35:17PM +0000, Robin Murphy wrote:
->> Hi Lorenzo,
->>
->> On 28/02/18 16:24, Lorenzo Pieralisi wrote:
->>> To defeat ACPICA<->kernel merge order dependencies a preprocessor define
->>> value was introduced in the IORT compilation unit according to IORT
->>> revision C, IORT_SMMU_V3_CAVIUM_CN99XX, so that even if the value was
->>> not defined in ACPICA headers the IORT kernel layer would still be able
->>> to function and use it.
->>>
->>> Since commit 0c2021c047ba ("ACPICA: IORT: Update SMMU models for
->>> revision C") finally added the define in ACPICA headers, as required by
->>> ACPICA IORT support, the preprocessor definition in the IORT kernel
->>> compilation unit has become obsolete and can be removed.
->>
->> Can the version check around iort_get_id_mapping_index() go as well?
+On Thu, Feb 22, 2018 at 11:58:09AM -0800, Tony Luck wrote:
+> EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
 > 
-> https://marc.info/?l=linux-acpi&m=151817852003174&w=2
+> Provide a function that looks up an acpi_nfit_memory_map from a device
+> handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
+> Also pass back the "flags" so we can see if the NVDIMM is OK.
 > 
-> Gone :) (just did two patches since they were part of different
-> changes), I will batch them up and send them in a pull request for
-> v4.17.
+> Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+<>
+> diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
+> new file mode 100644
+> index 000000000000..6ccc6eacd855
+> --- /dev/null
+> +++ b/include/acpi/nfit.h
+> @@ -0,0 +1,26 @@
+> +/*
+> + * Copyright(c) 2017 Intel Corporation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of version 2 of the GNU General Public License as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + */
 
-Ah, cool - I hadn't see that one go by.
-
-For this one (and the other as well if you like):
-
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-
-Thanks,
-Robin.
+Just a quick nit - I think we're supposed to use SPDX license identifiers for
+new files?
