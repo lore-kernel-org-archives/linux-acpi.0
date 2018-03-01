@@ -1,53 +1,53 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH] Bluetooth: btusb: Remove Yoga 920 from the
- btusb_needs_reset_resume_table
-Date: Thu, 1 Mar 2018 08:43:35 +0100
-Message-ID: <2F0ACD89-F225-479A-A65E-2F84E60781D3@holtmann.org>
-References: <20180228105750.6491-1-hdegoede@redhat.com>
- <20180228105750.6491-2-hdegoede@redhat.com>
-Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
-Content-Type: text/plain;
-        charset=us-ascii
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH 03/37] iommu/sva: Manage process address spaces
+Date: Thu, 1 Mar 2018 09:04:58 +0100
+Message-ID: <cd4d7a98-e45e-7066-345f-52d8eef926a2@amd.com>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-4-jean-philippe.brucker@arm.com>
+	<5A97A324.9050605@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180228105750.6491-2-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>, Brian Norris <briannorris@chromium.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <5A97A324.9050605-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Lu Baolu <baolu.lu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hans,
+Am 01.03.2018 um 07:52 schrieb Lu Baolu:
+> Hi Jean,
+>
+> On 02/13/2018 02:33 AM, Jean-Philippe Brucker wrote:
+>> [SNIP]
+>> +	pasid = idr_alloc_cyclic(&iommu_pasid_idr, io_mm, dev_param->min_pasid,
+>> +				 dev_param->max_pasid + 1, GFP_ATOMIC);
+> Can the pasid management code be moved into a common library?
+> PASID is not stick to SVA. An IOMMU model device could be designed
+> to use PASID for second level translation (classical DMA translation)
+> as well.
 
-> Commit 55a9c95d70ab ("Bluetooth: btusb: Use DMI matching for QCA
-> reset_resume quirking"), added the Lenovo Yoga 920 to the
-> btusb_needs_reset_resume_table.
-> 
-> Testing has shown that this is a false positive and the problems where
-> caused by issues with the initial fix: commit fd865802c66b ("Bluetooth:
-> btusb: fix QCA Rome suspend/resume"), which has already been reverted.
-> 
-> So the QCA Rome BT in the Yoga 920 does not need a reset-resume quirk at
-> all and this commit removes it from the btusb_needs_reset_resume_table.
-> 
-> Note that after this commit the btusb_needs_reset_resume_table is now
-> empty. It is kept around on purpose, since this whole series of commits
-> started for a reason and there are actually broken platforms around,
-> which need to be added to it.
-> 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1514836
-> Fixes: 55a9c95d70ab ("Bluetooth: btusb: Use DMI matching for QCA ...")
-> Cc: stable@vger.kernel.org
-> Cc: Brian Norris <briannorris@chromium.org>
-> Cc: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Tested-by: Kevin Fenzi <kevin@scrye.com>
-> Suggested-by: Brian Norris <briannorris@chromium.org>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> drivers/bluetooth/btusb.c | 7 -------
-> 1 file changed, 7 deletions(-)
+Yeah, we have the same problem on amdgpu.
 
-patch has been applied to bluetooth-stable tree.
+We assign PASIDs to clients even when IOMMU isn't present in the system 
+just because we need it for debugging.
 
-Regards
+E.g. when the hardware detects that some shader program is doing 
+something nasty we get the PASID in the interrupt and could for example 
+use it to inform the client about the fault.
 
-Marcel
+Regards,
+Christian.
+
+>
+> Best regards,
+> Lu Baolu
