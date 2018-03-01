@@ -1,102 +1,50 @@
-From: Morten Rasmussen <morten.rasmussen@arm.com>
-Subject: Re: [PATCH v6 11/12] arm64: topology: enable ACPI/PPTT based CPU
- topology
-Date: Thu, 1 Mar 2018 14:19:03 +0000
-Message-ID: <20180301141903.GH4589@e105550-lin.cambridge.arm.com>
-References: <20180113005920.28658-1-jeremy.linton@arm.com>
- <20180113005920.28658-12-jeremy.linton@arm.com>
- <928cb0c9-1d7a-3d0c-0538-a8bb0e2a86b1@huawei.com>
- <b4060cb0-6eed-f34a-00d5-4c2f55f20220@arm.com>
- <20180223110238.GB20461@e107981-ln.cambridge.arm.com>
- <2d248f08-79b6-d5e2-7e34-31a21efcdc07@huawei.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
+ add/remove and notify code
+Date: Thu, 1 Mar 2018 16:01:44 +0100
+Message-ID: <20180301150144.GA4215@pd.tnic>
+References: <20180215185606.26736-1-james.morse@arm.com>
+ <20180215185606.26736-3-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <2d248f08-79b6-d5e2-7e34-31a21efcdc07@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, viresh.kumar@linaro.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org, jhugo@codeaurora.org, Jonathan.Zhang@cavium.com, ahs3@redhat.com, Jayachandran.Nair@cavium.com, austinwc@codeaurora.org, lenb@kernel.org, vkilari@codeaurora.org, Juri Lelli <juri.lelli@arm.com>
+In-Reply-To: <20180215185606.26736-3-james.morse@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Feb 24, 2018 at 11:05:53AM +0800, Xiongfeng Wang wrote:
-> 
-> Hi,
-> On 2018/2/23 19:02, Lorenzo Pieralisi wrote:
-> > On Thu, Jan 25, 2018 at 09:56:30AM -0600, Jeremy Linton wrote:
-> >> Hi,
-> >>
-> >> On 01/25/2018 06:15 AM, Xiongfeng Wang wrote:
-> >>> Hi Jeremy,
-> >>>
-> >>> I have tested the patch with the newest UEFI. It prints the below error:
-> >>>
-> >>> [    4.017371] BUG: arch topology borken
-> >>> [    4.021069] BUG: arch topology borken
-> >>> [    4.024764] BUG: arch topology borken
-> >>> [    4.028460] BUG: arch topology borken
-> >>> [    4.032153] BUG: arch topology borken
-> >>> [    4.035849] BUG: arch topology borken
-> >>> [    4.039543] BUG: arch topology borken
-> >>> [    4.043239] BUG: arch topology borken
-> >>> [    4.046932] BUG: arch topology borken
-> >>> [    4.050629] BUG: arch topology borken
-> >>> [    4.054322] BUG: arch topology borken
-> >>>
-> >>> I checked the code and found that the newest UEFI set PPTT physical_package_flag on a physical package node and
-> >>> the NUMA domain (SRAT domains) starts from the layer of DIE. (The topology of our board is core->cluster->die->package).
-> >>
-> >> I commented about that on the EDK2 mailing list. While the current spec
-> >> doesn't explicitly ban having the flag set multiple times between the leaf
-> >> and the root I consider it a "bug" and there is an effort to clarify the
-> >> spec and the use of that flag.
-> >>>
-> >>> When the kernel starts to build sched_domain, the multi-core sched_domain contains all the cores within a package,
-> >>> and the lowest NUMA sched_domain contains all the cores within a die. But the kernel requires that the multi-core
-> >>> sched_domain should be a subset of the lowest NUMA sched_domain, so the BUG info is printed.
-> >>
-> >> Right. I've mentioned this problem a couple of times.
-> >>
-> >> At at the moment, the spec isn't clear about how the proximity domain is
-> >> detected/located within the PPTT topology (a node with a 1:1 correspondence
-> >> isn't even required). As you can see from this patch set, we are making the
-> >> general assumption that the proximity domains are at the same level as the
-> >> physical socket. This isn't ideal for NUMA topologies, like the D05, that
-> >> don't align with the physical socket.
-> >>
-> >> There are efforts underway to clarify and expand upon the specification to
-> >> deal with this general problem. The simple solution is another flag (say
-> >> PPTT_PROXIMITY_DOMAIN which would map to the D05 die) which could be used to
-> >> find nodes with 1:1 correspondence. At that point we could add a fairly
-> >> trivial patch to correct just the scheduler topology without affecting the
-> >> rest of the system topology code.
-> > 
-> > I think Morten asked already but isn't this the same end result we end
-> > up having if we remove the DIE level if NUMA-within-package is detected
-> > (instead of using the default_topology[]) and we create our own ARM64
-> > domain hierarchy (with DIE level removed) through set_sched_topology()
-> > accordingly ?
-> > 
-> > Put it differently: do we really need to rely on another PPTT flag to
-> > collect this information ?
-> > 
-> > I can't merge code that breaks a platform with legitimate firmware
-> > bindings.
-> 
-> I think we really need another PPTT flag, from which we can get information
-> about how to build a multi-core sched_domain. I think only cache-sharing information
-> is not enough to get information about how to build a multi-core shced_domain.
-> 
-> How about this? We assume the upper layer of the lowest layer to be multi-core layer.
-> After that flag is added into ACPI specs, we add another patch to adapt to the change.
+On Thu, Feb 15, 2018 at 06:55:57PM +0000, James Morse wrote:
+> Keep the oops_begin() call for x86,
 
-I'm not sure what you mean by upper layers of the lowest layer.
+That oops_begin() in generic code is such a layering violation, grrr.
 
-As I see it for non-numa-in-package system, the PPTT physical package
-flag should define the MC domains, any levels above should be
-represented in the DIE level, any level below should be ignored, except
-the lowest level if we have SMT. If have SMT the lowest level in PPTT
-should define the SMT domains.
+> arm64 doesn't have one of these,
+> and APEI is the only thing outside arch code calling this..
 
-For numa-in-package, the MC domains should be shrunk to match the NUMA
-nodes and DIE is ignored.
+So looking at:
+
+arch/arm/kernel/traps.c:die()
+
+it does call oops_begin() ... oops_end() just like the x86 version of
+die().
+
+I'm wondering if we could move the code to do die() in a prepatch? My
+assumption is that all the arches should have die()... A quick grep does
+show a bunch of other arches having die()...
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
