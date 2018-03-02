@@ -1,49 +1,56 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 02/37] iommu/sva: Bind process address spaces to devices
-Date: Fri, 2 Mar 2018 12:32:22 +0000
-Message-ID: <78212417-ae79-0fb2-1233-d1604412bfec@arm.com>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-3-jean-philippe.brucker@arm.com>
-	<bce32071-4159-3bdd-1e03-77f540ee4509@codeaurora.org>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [RFC] power/hibernate: Make passing hibernate offsets more
+ friendly
+Date: Fri, 2 Mar 2018 13:41:12 +0000
+Message-ID: <836fd1d7923d4432b17607351b302a56@ausx13mpc124.AMER.DELL.COM>
+References: <1519839829-2191-1-git-send-email-mario.limonciello@dell.com>
+ <CAHp75VcdsALCUBNoO4BoOj0rHuxurhr6B3GL2i7D79BxRL77kQ@mail.gmail.com>
+ <ad15f3beb9f44c77b79f3038cb75b69c@ausx13mpc124.AMER.DELL.COM>
+ <CAJZ5v0jGr0VP9bNXprvyHfLvvvEgva6S9rAZM8EZEpGw=0PG+g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <bce32071-4159-3bdd-1e03-77f540ee4509-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jGr0VP9bNXprvyHfLvvvEgva6S9rAZM8EZEpGw=0PG+g@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rafael@kernel.org
+Cc: andy.shevchenko@gmail.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 28/02/18 20:34, Sinan Kaya wrote:
-> On 2/12/2018 1:33 PM, Jean-Philippe Brucker wrote:
->> +int iommu_sva_unbind_group(struct iommu_group *group, int pasid)
->> +{
->> +	struct group_device *device;
->> +
->> +	mutex_lock(&group->mutex);
->> +	list_for_each_entry(device, &group->devices, list)
->> +		iommu_sva_unbind_device(device->dev, pasid);
->> +	mutex_unlock(&group->mutex);
->> +
->> +	return 0;
->> +}
-> 
-> I think we should handle the errors returned by iommu_sva_unbind_device() here
-> or at least print a warning if we want to still continue unbinding. 
-
-Agreed, though bind_group/unbind_group are probably going away in next
-series
-
-Thanks,
-Jean
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0KPiBX
+eXNvY2tpDQo+IFNlbnQ6IEZyaWRheSwgTWFyY2ggMiwgMjAxOCAzOjQzIEFNDQo+IFRvOiBMaW1v
+bmNpZWxsbywgTWFyaW8gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPg0KPiBDYzogQW5keSBT
+aGV2Y2hlbmtvIDxhbmR5LnNoZXZjaGVua29AZ21haWwuY29tPjsgUmFmYWVsIEouIFd5c29ja2kN
+Cj4gPHJqd0Byand5c29ja2kubmV0PjsgQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgtYWNw
+aUB2Z2VyLmtlcm5lbC5vcmc+OyBMaW51eA0KPiBLZXJuZWwgTWFpbGluZyBMaXN0IDxsaW51eC1r
+ZXJuZWxAdmdlci5rZXJuZWwub3JnPg0KPiBTdWJqZWN0OiBSZTogW1JGQ10gcG93ZXIvaGliZXJu
+YXRlOiBNYWtlIHBhc3NpbmcgaGliZXJuYXRlIG9mZnNldHMgbW9yZSBmcmllbmRseQ0KPiANCj4g
+T24gV2VkLCBGZWIgMjgsIDIwMTggYXQgOTowNSBQTSwgIDxNYXJpby5MaW1vbmNpZWxsb0BkZWxs
+LmNvbT4gd3JvdGU6DQo+ID4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+PiA+PiBGcm9tOiBBbmR5IFNoZXZjaGVua28gW21haWx0bzphbmR5LnNoZXZjaGVua29AZ21haWwu
+Y29tXQ0KPiA+PiBTZW50OiBXZWRuZXNkYXksIEZlYnJ1YXJ5IDI4LCAyMDE4IDEyOjExIFBNDQo+
+ID4+IFRvOiBMaW1vbmNpZWxsbywgTWFyaW8gPE1hcmlvX0xpbW9uY2llbGxvQERlbGwuY29tPg0K
+PiA+PiBDYzogUmFmYWVsIEogLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IEFDUEkgRGV2
+ZWwgTWFsaW5nIExpc3QgPGxpbnV4LQ0KPiA+PiBhY3BpQHZnZXIua2VybmVsLm9yZz47IExLTUwg
+PGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQo+ID4+IFN1YmplY3Q6IFJlOiBbUkZDXSBw
+b3dlci9oaWJlcm5hdGU6IE1ha2UgcGFzc2luZyBoaWJlcm5hdGUgb2Zmc2V0cyBtb3JlIGZyaWVu
+ZGx5DQo+ID4+DQo+ID4+IE9uIFdlZCwgRmViIDI4LCAyMDE4IGF0IDc6NDMgUE0sIE1hcmlvIExp
+bW9uY2llbGxvDQo+ID4+IDxtYXJpby5saW1vbmNpZWxsb0BkZWxsLmNvbT4gd3JvdGU6DQo+ID4+
+ID4gQ3VycmVudGx5IHRoZSBvbmx5IHdheSB0byBzcGVjaWZ5IGEgaGliZXJuYXRlIG9mZnNldCBm
+b3IgYSBzd2FwDQo+ID4+ID4gZmlsZSBpcyBvbiB0aGUga2VybmVsIGNvbW1hbmQgbGluZS4NCj4g
+Pj4gPg0KPiA+PiA+IFRoaXMgbWFrZXMgc29tZSBjaGFuZ2VzIHRvIGltcHJvdmU6DQo+ID4+ID4g
+MSkgQWRkIGEgbmV3IC9zeXMvcG93ZXIvZGlza19vZmZzZXQgdGhhdCBsZXRzIHVzZXJzcGFjZSBz
+cGVjaWZ5DQo+ID4+ID4gdGhlIG9mZnNldCBhbmQgZGlzayB0byB1c2Ugd2hlbiBpbml0aWF0aW5n
+IGEgaGliZXJuYXRlIGN5Y2xlLg0KPiA+PiA+DQo+ID4+ID4gMikgQWRqdXN0IC9zeXMvcG93ZXIv
+cmVzdW1lIGludGVycHJldGF0aW9uIHRvIGFsc28gcmVhZCBpbiBhbg0KPiA+PiA+IG9mZnNldC4N
+Cj4gPj4NCj4gPj4gUmVhZCBpcyBva2F5IHBlciBzZSAobm90IGNvbnNpc3RlbnQgdGhvdWdoKSwg
+c2hvd2luZyBpcyBub3QuDQo+ID4+IEl0IG1pZ2h0IGJyZWFrIGFuIEFCSS4NCj4gPg0KPiA+IFJp
+Z2h0IHRoaXMgaXMgcGFydCBvZiB3aHkgSSB3YXMgcHJvcG9zaW5nIG1ha2luZyBhIG5ldyBhdHRy
+aWJ1dGUuDQo+ID4NCj4gPiBUaGUgY3VycmVudCBSRkMgaW1wbGVtZW50YXRpb24gSSBzZW50IGtl
+ZXBzIHRoZSByZWFkIG91dHB1dCB0aGUNCj4gPiBzYW1lIGZvciAvc3lzL3Bvd2VyL3Jlc3VtZS4N
+Cj4gDQo+IFlvdSBhbHNvIG5lZWQgdG8gcmV0YWluIHRoZSB3cml0ZSBiZWhhdmlvciBvZiBpdC4N
+Cj4gDQo+IEEgbmV3IGF0dHJpYnV0ZSBpcyBmaW5lIGlmIGl0IGhlbHBzLCBidXQgdGhlIGJlaGF2
+aW9yIG9mIHRoZSBleGlzdGluZw0KPiBvbmUgY2Fubm90IGNoYW5nZSAoYm90aCBzaWRlcykuDQoN
+ClRoYW5rcyBmb3IgeW91ciBmZWVkYmFjaywgSSdsbCBhZGp1c3QgaXQgYXMgc3VjaC4NCg==
