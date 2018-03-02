@@ -1,84 +1,49 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v15 0/9] LPC: legacy ISA I/O support
-Date: Fri, 2 Mar 2018 10:48:21 +0000
-Message-ID: <5b7024af-33c8-48c8-22bc-8d36ca3eadd8@huawei.com>
-References: <1519663249-9850-1-git-send-email-john.garry@huawei.com>
- <1519933978.10722.366.camel@linux.intel.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 02/37] iommu/sva: Bind process address spaces to devices
+Date: Fri, 2 Mar 2018 12:32:22 +0000
+Message-ID: <78212417-ae79-0fb2-1233-d1604412bfec@arm.com>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-3-jean-philippe.brucker@arm.com>
+	<bce32071-4159-3bdd-1e03-77f540ee4509@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1519933978.10722.366.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org
-Cc: joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, frowand.list@gmail.com, agraf@suse.de
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <bce32071-4159-3bdd-1e03-77f540ee4509-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/03/2018 19:52, Andy Shevchenko wrote:
-> On Tue, 2018-02-27 at 00:40 +0800, John Garry wrote:
->> > This patchset supports the IPMI-bt device attached to the Low-Pin-
->> > Count
->> > interface implemented on Hisilicon Hip06/Hip07 SoC.
->> >                         -----------
->> >                         | LPC host|
->> >                         |         |
->> >                         -----------
->> >                              |
->> >                 _____________V_______________LPC
->> >                   |                       |
->> >                   V                       V
->> >                                      ------------
->> >                                      |  BT(ipmi)|
->> >                                      ------------
->> >
->> > When master accesses those peripherals beneath the Hip06/Hip07 LPC, a
->> > specific
->> > LPC driver is needed to make LPC host generate the standard LPC I/O
->> > cycles with
->> > the target peripherals'I/O port addresses. But on curent arm64 world,
->> > there is
->> > no real I/O accesses. All the I/O operations through in/out accessors
->> > are based
->> > on MMIO ranges; on Hip06/Hip07 LPC the I/O accesses are performed
->> > through driver
->> > specific accessors rather than MMIO.
->> > To solve this issue and keep the relevant existing peripherals'
->> > drivers untouched,
->> > this patchset:
->> >    - introduces a generic I/O space management framework, logical PIO,
->> > to support
->> >       I/O operations on host controllers operating either on MMIO
->> > buses or on buses
->> >      requiring specific driver I/O accessors;
->> >    - redefines the in/out accessors to provide a unified interface for
->> > both MMIO
->> >      and driver specific I/O operations. Using logical PIO, th call of
->> > in/out() from
->> >      the host children drivers, such as ipmi-si, will be redirected to
->> > the
->> >      corresponding device-specific I/O hooks to perform the I/O
->> > accesses.
->> >
->> > Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC
->> > peripherals can
->> > be supported without any changes on the existing ipmi-si driver.
->> >
->> > The whole patchset has been tested on Hip07 D05 board both using DTB
->> > and ACPI.
->> >
-> I did a review and don't see the patch 8 is ready to go.
->
-> So, to move things forward I may suggest to reorder series that some
-> small preparation stuff can go first w/o dependency to the actual Logic
-> PIO / LPC.
->
+On 28/02/18 20:34, Sinan Kaya wrote:
+> On 2/12/2018 1:33 PM, Jean-Philippe Brucker wrote:
+>> +int iommu_sva_unbind_group(struct iommu_group *group, int pasid)
+>> +{
+>> +	struct group_device *device;
+>> +
+>> +	mutex_lock(&group->mutex);
+>> +	list_for_each_entry(device, &group->devices, list)
+>> +		iommu_sva_unbind_device(device->dev, pasid);
+>> +	mutex_unlock(&group->mutex);
+>> +
+>> +	return 0;
+>> +}
+> 
+> I think we should handle the errors returned by iommu_sva_unbind_device() here
+> or at least print a warning if we want to still continue unbinding. 
 
+Agreed, though bind_group/unbind_group are probably going away in next
+series
 
-Hi Andy,
-
-As mentioned in the reply to patch #8, as a practical exercise I don't 
-see the reason to change it now. Let's conclude that issue first before 
-deciding on patchset revising.
-
-Thanks very much,
-John
+Thanks,
+Jean
