@@ -1,49 +1,173 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 03/37] iommu/sva: Manage process address spaces
-Date: Fri, 2 Mar 2018 16:19:31 +0000
-Message-ID: <087d3daa-5b63-038b-a81e-92ab752fdd26@arm.com>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-4-jean-philippe.brucker@arm.com>
-	<5A97A324.9050605@linux.intel.com>
+From: Wei Xu <xuwei5@hisilicon.com>
+Subject: Re: [PATCH v12 3/3] arm64:dts:hisilicon Disable hisilicon smmu node
+ on hip06/hip07
+Date: Fri, 2 Mar 2018 16:34:02 +0000
+Message-ID: <5A997CFA.9080306@hisilicon.com>
+References: <20171214160957.13716-1-shameerali.kolothum.thodi@huawei.com>
+ <20171214160957.13716-4-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5A97A324.9050605-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lu Baolu <baolu.lu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20171214160957.13716-4-shameerali.kolothum.thodi@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, robin.murphy@arm.com, marc.zyngier@arm.com, will.deacon@arm.com
+Cc: devicetree@vger.kernel.org, joro@8bytes.org, john.garry@huawei.com, linuxarm@huawei.com, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/03/18 06:52, Lu Baolu wrote:
-> Can the pasid management code be moved into a common library?
-> PASID is not stick to SVA. An IOMMU model device could be designed
-> to use PASID for second level translation (classical DMA translation)
-> as well.
+Hi Shameer,
 
-What do you mean by second level translation? Do you see a use-case with
-nesting translation within the host?
+On 2017/12/14 16:09, Shameer Kolothum wrote:
+> The HiSilicon erratum 161010801 describes the limitation of
+> HiSilicon platforms hip06/hip07 to support the SMMUv3 mappings
+> for MSI transactions.
+> 
+> PCIe controller on these platforms has to differentiate the
+> MSI payload against other DMA payload and has to modify the
+> MSI  payload. This makes it difficult for these platforms to
+> have SMMU translation for MSI. In order to workaround this,
+> ARM SMMUv3 driver requires a quirk to treat the MSI regions
+> separately. Such a quirk is currently missing for DT based
+> systems and therefore we need to explicitly disable the
+> hip06/hip07 smmu entries in dts.
+> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> Signed-off-by: Wei Xu <xuwei5@hisilicon.com>
+> ---
 
-I agree that PASID + classical DMA is desirable. A device driver would
-allocate PASIDs and perform iommu_sva_map(domain, pasid, iova, pa, size,
-prot) and iommu_sva_unmap(domain, pasid, iova, size). I'm hoping that we
-can also augment the DMA API with PASIDs, and that a driver can use both
-shared and private contexts simultaneously. So that it can use a few
-PASIDs for management purpose, and assign the rest to userspace.
+Thanks!
+Applied into hisilicon dt tree.
 
-The intent is for iommu-sva.c to be this common library. Work for
-"private" PASID allocation is underway, see Jordan Crouse's series
-posted last week https://www.spinics.net/lists/arm-kernel/msg635857.html
+BR,
+Wei
 
-Thanks,
-Jean
+>  arch/arm64/boot/dts/hisilicon/hip06.dtsi | 56 ++++++++++++++++++++++++++++++++
+>  arch/arm64/boot/dts/hisilicon/hip07.dtsi | 25 ++++++++++++++
+>  2 files changed, 81 insertions(+)
+> 
+> diff --git a/arch/arm64/boot/dts/hisilicon/hip06.dtsi b/arch/arm64/boot/dts/hisilicon/hip06.dtsi
+> index a049b64..35202eb 100644
+> --- a/arch/arm64/boot/dts/hisilicon/hip06.dtsi
+> +++ b/arch/arm64/boot/dts/hisilicon/hip06.dtsi
+> @@ -291,6 +291,13 @@
+>  			#interrupt-cells = <2>;
+>  			num-pins = <128>;
+>  		};
+> +
+> +		mbigen_pcie0: intc_pcie0 {
+> +			msi-parent = <&its_dsa 0x40085>;
+> +			interrupt-controller;
+> +			#interrupt-cells = <2>;
+> +			num-pins = <10>;
+> +		};
+>  	};
+>  
+>  	mbigen_dsa@c0080000 {
+> @@ -312,6 +319,31 @@
+>  		};
+>  	};
+>  
+> +	/**
+> +	 *  HiSilicon erratum 161010801: This describes the limitation
+> +	 *  of HiSilicon platforms hip06/hip07 to support the SMMUv3
+> +	 *  mappings for PCIe MSI transactions.
+> +	 *  PCIe controller on these platforms has to differentiate the
+> +	 *  MSI payload against other DMA payload and has to modify the
+> +	 *  MSI payload. This makes it difficult for these platforms to
+> +	 *  have a SMMU translation for MSI. In order to workaround this,
+> +	 *  ARM SMMUv3 driver requires a quirk to treat the MSI regions
+> +	 *  separately. Such a quirk is currently missing for DT based
+> +	 *  systems. Hence please make sure that the smmu pcie node on
+> +	 *  hip06 is disabled as this will break the PCIe functionality
+> +	 *  when iommu-map entry is used along with the PCIe node.
+> +	 *  Refer:https://www.spinics.net/lists/arm-kernel/msg602812.html
+> +	 */
+> +	smmu0: smmu_pcie {
+> +		compatible = "arm,smmu-v3";
+> +		reg = <0x0 0xa0040000 0x0 0x20000>;
+> +		#iommu-cells = <1>;
+> +		dma-coherent;
+> +		smmu-cb-memtype = <0x0 0x1>;
+> +		hisilicon,broken-prefetch-cmd;
+> +		status = "disabled";
+> +	};
+> +
+>  	soc {
+>  		compatible = "simple-bus";
+>  		#address-cells = <2>;
+> @@ -676,6 +708,30 @@
+>  				     <637 1>,<638 1>,<639 1>;
+>  			status = "disabled";
+>  		};
+> +
+> +		pcie0: pcie@a0090000 {
+> +			compatible = "hisilicon,hip06-pcie-ecam";
+> +			reg = <0 0xb0000000 0 0x2000000>,
+> +			      <0 0xa0090000 0 0x10000>;
+> +			bus-range = <0  31>;
+> +			msi-map = <0x0000 &its_dsa 0x0000 0x2000>;
+> +			msi-map-mask = <0xffff>;
+> +			#address-cells = <3>;
+> +			#size-cells = <2>;
+> +			device_type = "pci";
+> +			dma-coherent;
+> +			ranges = <0x02000000 0 0xb2000000 0x0 0xb2000000 0
+> +				 0x5ff0000 0x01000000 0 0 0 0xb7ff0000
+> +				 0 0x10000>;
+> +			#interrupt-cells = <1>;
+> +			interrupt-map-mask = <0xf800 0 0 7>;
+> +			interrupt-map = <0x0 0 0 1 &mbigen_pcie0 650 4
+> +					0x0 0 0 2 &mbigen_pcie0 650 4
+> +					0x0 0 0 3 &mbigen_pcie0 650 4
+> +					0x0 0 0 4 &mbigen_pcie0 650 4>;
+> +			status = "disabled";
+> +		};
+> +
+>  	};
+>  
+>  };
+> diff --git a/arch/arm64/boot/dts/hisilicon/hip07.dtsi b/arch/arm64/boot/dts/hisilicon/hip07.dtsi
+> index 2c01a21..3e80bf3 100644
+> --- a/arch/arm64/boot/dts/hisilicon/hip07.dtsi
+> +++ b/arch/arm64/boot/dts/hisilicon/hip07.dtsi
+> @@ -1083,6 +1083,31 @@
+>  		};
+>  	};
+>  
+> +	/**
+> +	 *  HiSilicon erratum 161010801: This describes the limitation
+> +	 *  of HiSilicon platforms hip06/hip07 to support the SMMUv3
+> +	 *  mappings for PCIe MSI transactions.
+> +	 *  PCIe controller on these platforms has to differentiate the
+> +	 *  MSI payload against other DMA payload and has to modify the
+> +	 *  MSI payload. This makes it difficult for these platforms to
+> +	 *  have a SMMU translation for MSI. In order to workaround this,
+> +	 *  ARM SMMUv3 driver requires a quirk to treat the MSI regions
+> +	 *  separately. Such a quirk is currently missing for DT based
+> +	 *  systems. Hence please make sure that the smmu pcie node on
+> +	 *  hip07 is disabled as this will break the PCIe functionality
+> +	 *  when iommu-map entry is used along with the PCIe node.
+> +	 *  Refer:https://www.spinics.net/lists/arm-kernel/msg602812.html
+> +	 */
+> +	smmu0: smmu_pcie {
+> +		compatible = "arm,smmu-v3";
+> +		reg = <0x0 0xa0040000 0x0 0x20000>;
+> +		#iommu-cells = <1>;
+> +		dma-coherent;
+> +		smmu-cb-memtype = <0x0 0x1>;
+> +		hisilicon,broken-prefetch-cmd;
+> +		status = "disabled";
+> +	};
+> +
+>  	soc {
+>  		compatible = "simple-bus";
+>  		#address-cells = <2>;
+> 
