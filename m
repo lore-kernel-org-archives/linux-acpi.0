@@ -1,56 +1,50 @@
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: [PATCH] ACPI / scan: Send the change uevent with offine environmental data
-Date: Fri,  2 Mar 2018 14:35:08 +0800
-Message-ID: <20180302063508.15818-1-jlee@suse.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC] power/hibernate: Make passing hibernate offsets more friendly
+Date: Fri, 2 Mar 2018 10:42:40 +0100
+Message-ID: <CAJZ5v0jGr0VP9bNXprvyHfLvvvEgva6S9rAZM8EZEpGw=0PG+g@mail.gmail.com>
+References: <1519839829-2191-1-git-send-email-mario.limonciello@dell.com>
+ <CAHp75VcdsALCUBNoO4BoOj0rHuxurhr6B3GL2i7D79BxRL77kQ@mail.gmail.com> <ad15f3beb9f44c77b79f3038cb75b69c@ausx13mpc124.AMER.DELL.COM>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ad15f3beb9f44c77b79f3038cb75b69c@ausx13mpc124.AMER.DELL.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Michal Hocko <mhocko@kernel.org>, Len Brown <lenb@kernel.org>
+To: Mario Limonciello <Mario.Limonciello@dell.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In current design of ACPI container offline, Kernel emits
-KOBJ_CHANGE uevent to user space to indidate that the ejection of
-the container was triggered by platform. (caa73ea15 patch)
+On Wed, Feb 28, 2018 at 9:05 PM,  <Mario.Limonciello@dell.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
+>> Sent: Wednesday, February 28, 2018 12:11 PM
+>> To: Limonciello, Mario <Mario_Limonciello@Dell.com>
+>> Cc: Rafael J . Wysocki <rjw@rjwysocki.net>; ACPI Devel Maling List <linux-
+>> acpi@vger.kernel.org>; LKML <linux-kernel@vger.kernel.org>
+>> Subject: Re: [RFC] power/hibernate: Make passing hibernate offsets more friendly
+>>
+>> On Wed, Feb 28, 2018 at 7:43 PM, Mario Limonciello
+>> <mario.limonciello@dell.com> wrote:
+>> > Currently the only way to specify a hibernate offset for a swap
+>> > file is on the kernel command line.
+>> >
+>> > This makes some changes to improve:
+>> > 1) Add a new /sys/power/disk_offset that lets userspace specify
+>> > the offset and disk to use when initiating a hibernate cycle.
+>> >
+>> > 2) Adjust /sys/power/resume interpretation to also read in an
+>> > offset.
+>>
+>> Read is okay per se (not consistent though), showing is not.
+>> It might break an ABI.
+>
+> Right this is part of why I was proposing making a new attribute.
+>
+> The current RFC implementation I sent keeps the read output the
+> same for /sys/power/resume.
 
-A pure KOBJ_CHANGE uevent is not enough for user space to identify
-the purpose. For example, a "udevadm trigger" command can also
-be used to emit change event to all udev rules. A udev rule can not
-identify that the event is from kernel for offline or from udevadm
-for other purpose. Then the offline action in udev rule may also be
-triggered by udevadm tool.
+You also need to retain the write behavior of it.
 
-So, similar to the change uevent of dock, kernel sends the
-KOBJ_CHANGE uevent with a offline environmental data to indicate
-purpose. It's useful by udev rule for using ENV{EVENT} filter.
-
-Cc: Michal Hocko <mhocko@kernel.org> 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> 
-Cc: Len Brown <lenb@kernel.org> 
-Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
----
- drivers/acpi/scan.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 8e63d93..f6dca9b 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -116,6 +116,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
- {
- 	struct acpi_device_physical_node *pn;
- 	bool offline = true;
-+	static const char *envp[] = { "EVENT=offline", NULL };
- 
- 	/*
- 	 * acpi_container_offline() calls this for all of the container's
-@@ -126,7 +127,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
- 	list_for_each_entry(pn, &adev->physical_node_list, node)
- 		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
- 			if (uevent)
--				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-+				kobject_uevent_env(&pn->dev->kobj, KOBJ_CHANGE, envp);
- 
- 			offline = false;
- 			break;
--- 
-2.10.2
+A new attribute is fine if it helps, but the behavior of the existing
+one cannot change (both sides).
