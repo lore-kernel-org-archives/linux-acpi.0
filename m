@@ -1,54 +1,47 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] acpi: edit ACPI_PROCFS_POWER help text
-Date: Fri, 2 Mar 2018 16:55:54 -0800
-Message-ID: <dbb2b722-aa1e-04ca-1487-08984f68d91e@infradead.org>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v10 0/5] set VSESR_EL2 by user space and support NOTIFY_SEI notification
+Date: Sun, 4 Mar 2018 00:09:35 +0800
+Message-ID: <1520093380-42577-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@linaro.org, marc.zyngier@arm.com, james.morse@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, lenb@kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: gengdongjiu@huawei.com, huangshaoyu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
+1. Detect whether KVM can set set guest SError syndrome
+2. Support to Set VSESR_EL2 and inject SError by user space.
+3. Support live migration to keep SError pending state and VSESR_EL2 value.
+4. ACPI 6.1 adds support for NOTIFY_SEI as a GHES notification mechanism, so support this
+   notification in software, KVM or kernel ARCH code call handle_guest_sei() to let ACP driver
+   to handle this notification.
 
-Fix grammar and punctuation (end sentences with a period) in the
-Kconfig help text for ACPI_PROCFS_POWER.
+Dongjiu Geng (5):
+  arm64: KVM: Prepare set virtual SEI syndrome value
+  arm64: KVM: export the capability to set guest SError syndrome
+  arm/arm64: KVM: Introduce set and get per-vcpu event
+  ACPI / APEI: Add SEI notification type support for ARMv8
+  arm64: handle NOTIFY_SEI notification by the APEI driver
 
-I was looking at this since it appears to be going away (again,
-some day) and I have a working script that uses this info to tell me
-battery usage. I can update the script to use /sys/class/power_supply
-(in theory) but the contents (with units) should be documented in
-Documentation/ABI/ before /proc/acpi/battery/ is removed (IMO).
+ Documentation/virtual/kvm/api.txt    | 37 +++++++++++++++++++++++--
+ arch/arm/include/asm/kvm_host.h      |  6 ++++
+ arch/arm/kvm/guest.c                 | 12 ++++++++
+ arch/arm64/include/asm/kvm_emulate.h |  5 ++++
+ arch/arm64/include/asm/kvm_host.h    |  7 +++++
+ arch/arm64/include/asm/system_misc.h |  1 +
+ arch/arm64/include/uapi/asm/kvm.h    | 10 +++++++
+ arch/arm64/kernel/traps.c            |  4 +++
+ arch/arm64/kvm/guest.c               | 26 ++++++++++++++++++
+ arch/arm64/kvm/inject_fault.c        |  5 ++++
+ arch/arm64/kvm/reset.c               |  4 +++
+ arch/arm64/mm/fault.c                | 10 +++++++
+ drivers/acpi/apei/Kconfig            | 15 ++++++++++
+ drivers/acpi/apei/ghes.c             | 53 ++++++++++++++++++++++++++++++++++++
+ include/acpi/ghes.h                  |  1 +
+ include/uapi/linux/kvm.h             |  1 +
+ virt/kvm/arm/arm.c                   | 18 ++++++++++++
+ 17 files changed, 213 insertions(+), 2 deletions(-)
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
----
- drivers/acpi/Kconfig |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- linux-next-20180302.orig/drivers/acpi/Kconfig
-+++ linux-next-20180302/drivers/acpi/Kconfig
-@@ -105,14 +105,14 @@ config ACPI_PROCFS_POWER
-           deprecated power /proc/acpi/ directories to exist, even when
-           they have been replaced by functions in /sys.
-           The deprecated directories (and their replacements) include:
--	  /proc/acpi/battery/* (/sys/class/power_supply/*)
--	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
-+	  /proc/acpi/battery/* (/sys/class/power_supply/*) and
-+	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*).
- 	  This option has no effect on /proc/acpi/ directories
--	  and functions, which do not yet exist in /sys
-+	  and functions which do not yet exist in /sys.
- 	  This option, together with the proc directories, will be
- 	  deleted in the future.
- 
--	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
-+	  Say N to delete power /proc/acpi/ directories that have moved to /sys.
- 
- config ACPI_REV_OVERRIDE_POSSIBLE
- 	bool "Allow supported ACPI revision to be overridden"
+-- 
+1.9.1
