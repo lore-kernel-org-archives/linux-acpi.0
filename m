@@ -1,14 +1,14 @@
 From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH 03/37] iommu/sva: Manage process address spaces
-Date: Mon, 5 Mar 2018 10:28:42 -0500
-Message-ID: <27a044ee-0ed7-0470-0fef-289d0d5cf5e8@codeaurora.org>
+Subject: Re: [PATCH 07/37] iommu: Add a page fault handler
+Date: Mon, 5 Mar 2018 16:44:48 -0500
+Message-ID: <b2a3d2a7-7042-aef3-0def-05e64e39d046@codeaurora.org>
 References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-4-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-8-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180212183352.22730-4-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+In-Reply-To: <20180212183352.22730-8-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 Content-Language: en-US
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
@@ -24,23 +24,36 @@ Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+y
 List-Id: linux-acpi@vger.kernel.org
 
 On 2/12/2018 1:33 PM, Jean-Philippe Brucker wrote:
-> +static void io_mm_free(struct io_mm *io_mm)
+> +static int iommu_queue_fault(struct iommu_domain *domain, struct device *dev,
+> +			     struct iommu_fault_event *evt)
 > +{
-> +	struct mm_struct *mm;
-> +	void (*release)(struct io_mm *);
+> +	struct iommu_fault_group *group;
+> +	struct iommu_fault_context *fault, *next;
 > +
-> +	release = io_mm->release;
-> +	mm = io_mm->mm;
+> +	if (!iommu_fault_queue)
+> +		return -ENOSYS;
 > +
-> +	release(io_mm);
-
-Is there any reason why you can't call iommu->release()
-here directly? Why do you need the release local variable?
-
-> +	mmdrop(mm);
-> +}
+> +	if (!evt->last_req) {
+> +		fault = kzalloc(sizeof(*fault), GFP_KERNEL);
+> +		if (!fault)
+> +			return -ENOMEM;
 > +
+> +		fault->evt = *evt;
+> +		fault->dev = dev;
+> +
+> +		/* Non-last request of a group. Postpone until the last one */
+> +		spin_lock(&iommu_partial_faults_lock);
+> +		list_add_tail(&fault->head, &iommu_partial_faults);
+> +		spin_unlock(&iommu_partial_faults_lock);
+> +
+> +		return IOMMU_PAGE_RESP_HANDLED;
+> +	}
+> +
+> +	group = kzalloc(sizeof(*group), GFP_KERNEL);
+> +	if (!group)
+> +		return -ENOMEM;
 
+Release the requests in iommu_partial_faults here.
 
 -- 
 Sinan Kaya
