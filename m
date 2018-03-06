@@ -1,32 +1,68 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 01/13] drivers: base: cacheinfo: move
- cache_setup_of_node()
-Date: Tue, 6 Mar 2018 16:16:14 +0000
-Message-ID: <f74da924-31ba-22a9-1386-0c9b0cc41e61@arm.com>
-References: <20180228220619.6992-1-jeremy.linton@arm.com>
- <20180228220619.6992-2-jeremy.linton@arm.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v16 0/9] LPC: legacy ISA I/O support
+Date: Tue, 6 Mar 2018 16:22:36 +0000
+Message-ID: <3ef757ff-8430-017f-59d3-ff67f49f5a80@huawei.com>
+References: <1520333268-82754-1-git-send-email-john.garry@huawei.com>
+ <1520335317.10722.416.camel@linux.intel.com>
+ <b4459d98-ebd4-7b13-07ec-613845579558@huawei.com>
+ <CAJZ5v0gnf6rDYtKLBNfKjC=g3W=2XUed_R=AO+GeGYuubP_zWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-2-jeremy.linton@arm.com>
-Content-Language: en-US
+In-Reply-To: <CAJZ5v0gnf6rDYtKLBNfKjC=g3W=2XUed_R=AO+GeGYuubP_zWw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, dietmar.eggemann@arm.com, morten.rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Rob Herring <robh@kernel.org>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>Linux
 List-Id: linux-acpi@vger.kernel.org
 
+>>>>
+>>>> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC
+>>>> peripherals can
+>>>> be supported without any changes on the existing ipmi-si driver.
+>>>>
+>>>> The whole patchset has been tested on Hip07 D05 board both using DTB
+>>>> and ACPI.
+>>>>
+>>>
+>>>> V15 thread here: https://lkml.org/lkml/2018/2/26/584
+>>>
+>>>
+>>> Thanks for an update.
+>>> Though I answered to previous thread.
+>>>
+>>> Summary: I'm fine with the series as long as maintainers are fine
+>>> (Rafael et al.). On personal side I think that the handler approach is
+>>> better. Details are in v15 thread.
+>>
+>>
+>> Hi Andy,
+>>
+>> Thanks for your input and continued support. As I mentioned in reply in v15,
+>> the handler support would (or has) faced issues. And Rafael seems fine with
+>> deferring the probe to the LLDD in Patch #7/9
+>
 
+Hi Rafael,
 
-On 28/02/18 22:06, Jeremy Linton wrote:
-> In preparation for the next patch, and to aid in
-> review of that patch, lets move cache_setup_of_node
-> further down in the module without any changes.
-> 
-I don't think this is change since v6 so my ack stands.
+> Well, the only sort-of concern is that these devices may not be
+> "serial bus slaves" in general, so the naming is slightly confusing.
+>
 
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Right, the name.
 
--- 
-Regards,
-Sudeep
+The key point is that we model the bus the same as other serial buses 
+like I2C or SPI, so require the same treatment from the ACPI scan.
+
+Would you prefer acpi_is_serial_bus_slave() and 
+acpi_device_flags.serial_bus_slave symbols be modified also?
+
+> But overall this approach and the one based on a scan handler both
+> boil down to checking a (list of) device ID(s) and doing something
+> special in case of a match.
+>
+> .
+>
+
+Thanks,
+John
