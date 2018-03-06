@@ -1,15 +1,15 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 04/13] arm64/acpi: Create arch specific cpu to acpi id
- helper
-Date: Tue, 6 Mar 2018 17:13:46 +0000
-Message-ID: <6763fdb6-92ac-c9cd-0cbc-e641e785b2d9@arm.com>
+Subject: Re: [PATCH v7 08/13] arm64: Add support for ACPI based firmware
+ tables
+Date: Tue, 6 Mar 2018 17:23:28 +0000
+Message-ID: <362fcf8a-44f8-7eb5-0f17-a7763f6236e4@arm.com>
 References: <20180228220619.6992-1-jeremy.linton@arm.com>
- <20180228220619.6992-5-jeremy.linton@arm.com>
+ <20180228220619.6992-9-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-5-jeremy.linton@arm.com>
+In-Reply-To: <20180228220619.6992-9-jeremy.linton@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
@@ -19,15 +19,20 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 On 28/02/18 22:06, Jeremy Linton wrote:
-> Its helpful to be able to lookup the acpi_processor_id associated
-> with a logical cpu. Provide an arm64 helper to do this.
+> The /sys cache entries should support ACPI/PPTT generated cache
+> topology information. Lets detect ACPI systems and call
+> an arch specific cache_setup_acpi() routine to update the hardware
+> probed cache topology.
+> 
+> For arm64, if ACPI is enabled, determine the max number of cache
+> levels and populate them using the PPTT table if one is available.
 > 
 
-This patch on it's own is good, but it's quite generic and made to look
-at it again. Sorry for missing this earlier.
+I fail to understand the kbuild failure report association with this
+patch(most likely the previous patch could be culprit, I am looking at
+it in detail now), but for this patch
 
-Can we use "per_cpu(processors, cpu)->acpi_id" at call sites instead ?
-Or you can make that a generic helper using above expression ?
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
 -- 
 Regards,
