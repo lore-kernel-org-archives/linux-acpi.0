@@ -1,14 +1,14 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 03/13] cacheinfo: rename of_node to fw_token
-Date: Tue, 6 Mar 2018 16:45:03 +0000
-Message-ID: <4864c763-0d11-9e09-ff02-87e94b410da6@arm.com>
+Subject: Re: [PATCH v7 06/13] ACPI: Enable PPTT support on ARM64
+Date: Tue, 6 Mar 2018 16:55:11 +0000
+Message-ID: <776784b6-01ce-1385-0d02-ca5fd1ece61f@arm.com>
 References: <20180228220619.6992-1-jeremy.linton@arm.com>
- <20180228220619.6992-4-jeremy.linton@arm.com>
+ <20180228220619.6992-7-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-4-jeremy.linton@arm.com>
+In-Reply-To: <20180228220619.6992-7-jeremy.linton@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
@@ -18,15 +18,11 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 On 28/02/18 22:06, Jeremy Linton wrote:
-> Rename and change the type of of_node to indicate
-> it is a generic pointer which is generally only used
-> for comparison purposes. In a later patch we will put
-> an ACPI/PPTT token pointer in fw_token so that
-> the code which builds the shared cpu masks can be reused.
+> Now that we have a PPTT parser, in preparation for its use
+> on arm64, lets build it.
 > 
-Thanks for renaming :)
 
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
 -- 
 Regards,
