@@ -1,15 +1,15 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 08/13] arm64: Add support for ACPI based firmware
- tables
-Date: Tue, 6 Mar 2018 17:23:28 +0000
-Message-ID: <362fcf8a-44f8-7eb5-0f17-a7763f6236e4@arm.com>
+Subject: Re: [PATCH v7 05/13] ACPI/PPTT: Add Processor Properties Topology
+ Table parsing
+Date: Tue, 6 Mar 2018 17:39:24 +0000
+Message-ID: <56b96eaa-4c9d-7661-1ed0-df34c9c1e636@arm.com>
 References: <20180228220619.6992-1-jeremy.linton@arm.com>
- <20180228220619.6992-9-jeremy.linton@arm.com>
+ <20180228220619.6992-6-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-9-jeremy.linton@arm.com>
+In-Reply-To: <20180228220619.6992-6-jeremy.linton@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
@@ -19,20 +19,33 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 On 28/02/18 22:06, Jeremy Linton wrote:
-> The /sys cache entries should support ACPI/PPTT generated cache
-> topology information. Lets detect ACPI systems and call
-> an arch specific cache_setup_acpi() routine to update the hardware
-> probed cache topology.
+> ACPI 6.2 adds a new table, which describes how processing units
+> are related to each other in tree like fashion. Caches are
+> also sprinkled throughout the tree and describe the properties
+> of the caches in relation to other caches and processing units.
 > 
-> For arm64, if ACPI is enabled, determine the max number of cache
-> levels and populate them using the PPTT table if one is available.
+> Add the code to parse the cache hierarchy and report the total
+> number of levels of cache for a given core using
+> acpi_find_last_cache_level() as well as fill out the individual
+> cores cache information with cache_setup_acpi() once the
+> cpu_cacheinfo structure has been populated by the arch specific
+> code.
 > 
+> An additional patch later in the set adds the ability to report
+> peers in the topology using find_acpi_cpu_topology()
+> to report a unique ID for each processing unit at a given level
+> in the tree. These unique id's can then be used to match related
+> processing units which exist as threads, COD (clusters
+> on die), within a given package, etc.
+> 
+> 
+The more I look at the ACPI table parsing code, I get more questions
+every time :). So I just skimmed through it this time. Not sure why
+ACPI_PTR_* is not used elsewhere in drivers/acpi/tables.c
 
-I fail to understand the kbuild failure report association with this
-patch(most likely the previous patch could be culprit, I am looking at
-it in detail now), but for this patch
+Anyways for cacheinfo part of this file:
 
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 
 -- 
 Regards,
