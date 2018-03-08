@@ -1,16 +1,16 @@
 From: Sasha Levin <Alexander.Levin@microsoft.com>
-Subject: [PATCH AUTOSEL for 3.18 11/53] ACPI/processor: Replace racy task
+Subject: [PATCH AUTOSEL for 4.4 018/101] ACPI/processor: Replace racy task
  affinity logic
-Date: Thu, 8 Mar 2018 05:03:11 +0000
-Message-ID: <20180308050230.8876-11-alexander.levin@microsoft.com>
-References: <20180308050230.8876-1-alexander.levin@microsoft.com>
+Date: Thu, 8 Mar 2018 05:01:31 +0000
+Message-ID: <20180308050023.8548-18-alexander.levin@microsoft.com>
+References: <20180308050023.8548-1-alexander.levin@microsoft.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180308050230.8876-1-alexander.levin@microsoft.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180308050023.8548-1-alexander.levin@microsoft.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: stable-owner@vger.kernel.org
 To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Siewior <bigeasy@linutronix.de>, Lai Jiangshan <jiangshanlai@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, "David S. Miller" <davem@davemloft.net>, Len Brown <lenb@kernel.org>, Sasha Levin <Alexander.Levin@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
@@ -66,10 +66,10 @@ Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
 
 diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_drive=
 r.c
-index d9f71581b79b..bdc3063f694d 100644
+index 2c086859a0bd..c9bf74982688 100644
 --- a/drivers/acpi/processor_driver.c
 +++ b/drivers/acpi/processor_driver.c
-@@ -231,11 +231,16 @@ static int __acpi_processor_start(struct acpi_device =
+@@ -270,11 +270,16 @@ static int __acpi_processor_start(struct acpi_device =
 *device)
  static int acpi_processor_start(struct device *dev)
  {
@@ -90,10 +90,10 @@ index d9f71581b79b..bdc3063f694d 100644
  static int acpi_processor_stop(struct device *dev)
 diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_t=
 hrottling.c
-index 84243c32e29c..a92ea0a1c7e4 100644
+index c72e64893d03..93d72413d844 100644
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -66,8 +66,8 @@ struct acpi_processor_throttling_arg {
+@@ -62,8 +62,8 @@ struct acpi_processor_throttling_arg {
  #define THROTTLING_POSTCHANGE      (2)
 =20
  static int acpi_processor_get_throttling(struct acpi_processor *pr);
@@ -104,7 +104,7 @@ index 84243c32e29c..a92ea0a1c7e4 100644
 =20
  static int acpi_processor_update_tsd_coord(void)
  {
-@@ -886,7 +886,8 @@ static int acpi_processor_get_throttling_ptc(struct acp=
+@@ -891,7 +891,8 @@ static int acpi_processor_get_throttling_ptc(struct acp=
 i_processor *pr)
  			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
  				"Invalid throttling state, reset\n"));
@@ -115,7 +115,7 @@ i_processor *pr)
  			if (ret)
  				return ret;
  		}
-@@ -896,36 +897,31 @@ static int acpi_processor_get_throttling_ptc(struct a=
+@@ -901,36 +902,31 @@ static int acpi_processor_get_throttling_ptc(struct a=
 cpi_processor *pr)
  	return 0;
  }
@@ -166,7 +166,7 @@ cpi_processor *pr)
  }
 =20
  static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
-@@ -1075,8 +1071,15 @@ static long acpi_processor_throttling_fn(void *data)
+@@ -1080,8 +1076,15 @@ static long acpi_processor_throttling_fn(void *data)
  			arg->target_state, arg->force);
  }
 =20
@@ -185,7 +185,7 @@ cpi_processor *pr)
  {
  	int ret =3D 0;
  	unsigned int i;
-@@ -1125,7 +1128,8 @@ int acpi_processor_set_throttling(struct acpi_process=
+@@ -1130,7 +1133,8 @@ int acpi_processor_set_throttling(struct acpi_process=
 or *pr,
  		arg.pr =3D pr;
  		arg.target_state =3D state;
@@ -196,7 +196,7 @@ or *pr,
  	} else {
  		/*
  		 * When the T-state coordination is SW_ALL or HW_ALL,
-@@ -1158,8 +1162,8 @@ int acpi_processor_set_throttling(struct acpi_process=
+@@ -1163,8 +1167,8 @@ int acpi_processor_set_throttling(struct acpi_process=
 or *pr,
  			arg.pr =3D match_pr;
  			arg.target_state =3D state;
@@ -208,7 +208,7 @@ or *pr,
  		}
  	}
  	/*
-@@ -1177,6 +1181,12 @@ int acpi_processor_set_throttling(struct acpi_proces=
+@@ -1182,6 +1186,12 @@ int acpi_processor_set_throttling(struct acpi_proces=
 sor *pr,
  	return ret;
  }
