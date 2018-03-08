@@ -1,59 +1,226 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
- add/remove and notify code
-Date: Thu, 8 Mar 2018 11:44:08 +0100
-Message-ID: <20180308104408.GB21166@pd.tnic>
-References: <20180215185606.26736-1-james.morse@arm.com>
- <20180215185606.26736-3-james.morse@arm.com>
- <20180301150144.GA4215@pd.tnic>
- <87sh9jbrgc.fsf@e105922-lin.cambridge.arm.com>
- <20180301223529.GA28811@pd.tnic> <5AA02C26.10803@arm.com>
+From: Sasha Levin <Alexander.Levin@microsoft.com>
+Subject: [PATCH AUTOSEL for 3.18 11/53] ACPI/processor: Replace racy task
+ affinity logic
+Date: Thu, 8 Mar 2018 05:03:11 +0000
+Message-ID: <20180308050230.8876-11-alexander.levin@microsoft.com>
+References: <20180308050230.8876-1-alexander.levin@microsoft.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5AA02C26.10803@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180308050230.8876-1-alexander.levin@microsoft.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Siewior <bigeasy@linutronix.de>, Lai Jiangshan <jiangshanlai@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, "David S. Miller" <davem@davemloft.net>, Len Brown <lenb@kernel.org>, Sasha Levin <Alexander.Levin@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 07, 2018 at 06:15:02PM +0000, James Morse wrote:
-> Today its just x86 and arm64. arm64 doesn't have a hook to do this. I'm happy to
-> add an empty declaration or leave it under an ifdef until someone complains
-> about any behaviour I missed!
+From: Thomas Gleixner <tglx@linutronix.de>
 
-So I did some more staring at the code and I think oops_begin() is
-needed mainly, as you point out, to prevent two oops messages from
-interleaving. And yap, the other stuff with printk() is not true anymore
-because the commit which added oops_begin():
+[ Upstream commit 8153f9ac43897f9f4786b30badc134fcc1a4fb11 ]
 
-  81e88fdc432a ("ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support")
+acpi_processor_get_throttling() requires to invoke the getter function on
+the target CPU. This is achieved by temporarily setting the affinity of the
+calling user space thread to the requested CPU and reset it to the original
+affinity afterwards.
 
-still saw an NMI-unsafe printk. Which is long taken care of now.
+That's racy vs. CPU hotplug and concurrent affinity settings for that
+thread resulting in code executing on the wrong CPU and overwriting the
+new affinity setting.
 
-So only the interleaving issue remains.
+acpi_processor_get_throttling() is invoked in two ways:
 
-Which begs the question: how are you guys preventing the interleaving on
-arm64? Because arch/arm64/kernel/traps.c:200 grabs the die_lock too, so
-interleaving can happen on arm64 too, AFAICT.
+1) The CPU online callback, which is already running on the target CPU and
+   obviously protected against hotplug and not affected by affinity
+   settings.
 
-And by that logic, you should technically grab that lock here too in
-_in_nmi_notify_one().
+2) The ACPI driver probe function, which is not protected against hotplug
+   during modprobe.
 
-Or?
+Switch it over to work_on_cpu() and protect the probe function against CPU
+hotplug.
 
--- 
-Regards/Gruss,
-    Boris.
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: Lai Jiangshan <jiangshanlai@gmail.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Len Brown <lenb@kernel.org>
+Link: http://lkml.kernel.org/r/20170412201042.785920903@linutronix.de
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
+---
+ drivers/acpi/processor_driver.c     |  7 ++++-
+ drivers/acpi/processor_throttling.c | 62 +++++++++++++++++++++------------=
+----
+ 2 files changed, 42 insertions(+), 27 deletions(-)
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_drive=
+r.c
+index d9f71581b79b..bdc3063f694d 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -231,11 +231,16 @@ static int __acpi_processor_start(struct acpi_device =
+*device)
+ static int acpi_processor_start(struct device *dev)
+ {
+ 	struct acpi_device *device =3D ACPI_COMPANION(dev);
++	int ret;
+=20
+ 	if (!device)
+ 		return -ENODEV;
+=20
+-	return __acpi_processor_start(device);
++	/* Protect against concurrent CPU hotplug operations */
++	get_online_cpus();
++	ret =3D __acpi_processor_start(device);
++	put_online_cpus();
++	return ret;
+ }
+=20
+ static int acpi_processor_stop(struct device *dev)
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_t=
+hrottling.c
+index 84243c32e29c..a92ea0a1c7e4 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -66,8 +66,8 @@ struct acpi_processor_throttling_arg {
+ #define THROTTLING_POSTCHANGE      (2)
+=20
+ static int acpi_processor_get_throttling(struct acpi_processor *pr);
+-int acpi_processor_set_throttling(struct acpi_processor *pr,
+-						int state, bool force);
++static int __acpi_processor_set_throttling(struct acpi_processor *pr,
++					   int state, bool force, bool direct);
+=20
+ static int acpi_processor_update_tsd_coord(void)
+ {
+@@ -886,7 +886,8 @@ static int acpi_processor_get_throttling_ptc(struct acp=
+i_processor *pr)
+ 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				"Invalid throttling state, reset\n"));
+ 			state =3D 0;
+-			ret =3D acpi_processor_set_throttling(pr, state, true);
++			ret =3D __acpi_processor_set_throttling(pr, state, true,
++							      true);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -896,36 +897,31 @@ static int acpi_processor_get_throttling_ptc(struct a=
+cpi_processor *pr)
+ 	return 0;
+ }
+=20
+-static int acpi_processor_get_throttling(struct acpi_processor *pr)
++static long __acpi_processor_get_throttling(void *data)
+ {
+-	cpumask_var_t saved_mask;
+-	int ret;
++	struct acpi_processor *pr =3D data;
++
++	return pr->throttling.acpi_processor_get_throttling(pr);
++}
+=20
++static int acpi_processor_get_throttling(struct acpi_processor *pr)
++{
+ 	if (!pr)
+ 		return -EINVAL;
+=20
+ 	if (!pr->flags.throttling)
+ 		return -ENODEV;
+=20
+-	if (!alloc_cpumask_var(&saved_mask, GFP_KERNEL))
+-		return -ENOMEM;
+-
+ 	/*
+-	 * Migrate task to the cpu pointed by pr.
++	 * This is either called from the CPU hotplug callback of
++	 * processor_driver or via the ACPI probe function. In the latter
++	 * case the CPU is not guaranteed to be online. Both call sites are
++	 * protected against CPU hotplug.
+ 	 */
+-	cpumask_copy(saved_mask, &current->cpus_allowed);
+-	/* FIXME: use work_on_cpu() */
+-	if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
+-		/* Can't migrate to the target pr->id CPU. Exit */
+-		free_cpumask_var(saved_mask);
++	if (!cpu_online(pr->id))
+ 		return -ENODEV;
+-	}
+-	ret =3D pr->throttling.acpi_processor_get_throttling(pr);
+-	/* restore the previous state */
+-	set_cpus_allowed_ptr(current, saved_mask);
+-	free_cpumask_var(saved_mask);
+=20
+-	return ret;
++	return work_on_cpu(pr->id, __acpi_processor_get_throttling, pr);
+ }
+=20
+ static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
+@@ -1075,8 +1071,15 @@ static long acpi_processor_throttling_fn(void *data)
+ 			arg->target_state, arg->force);
+ }
+=20
+-int acpi_processor_set_throttling(struct acpi_processor *pr,
+-						int state, bool force)
++static int call_on_cpu(int cpu, long (*fn)(void *), void *arg, bool direct=
+)
++{
++	if (direct)
++		return fn(arg);
++	return work_on_cpu(cpu, fn, arg);
++}
++
++static int __acpi_processor_set_throttling(struct acpi_processor *pr,
++					   int state, bool force, bool direct)
+ {
+ 	int ret =3D 0;
+ 	unsigned int i;
+@@ -1125,7 +1128,8 @@ int acpi_processor_set_throttling(struct acpi_process=
+or *pr,
+ 		arg.pr =3D pr;
+ 		arg.target_state =3D state;
+ 		arg.force =3D force;
+-		ret =3D work_on_cpu(pr->id, acpi_processor_throttling_fn, &arg);
++		ret =3D call_on_cpu(pr->id, acpi_processor_throttling_fn, &arg,
++				  direct);
+ 	} else {
+ 		/*
+ 		 * When the T-state coordination is SW_ALL or HW_ALL,
+@@ -1158,8 +1162,8 @@ int acpi_processor_set_throttling(struct acpi_process=
+or *pr,
+ 			arg.pr =3D match_pr;
+ 			arg.target_state =3D state;
+ 			arg.force =3D force;
+-			ret =3D work_on_cpu(pr->id, acpi_processor_throttling_fn,
+-				&arg);
++			ret =3D call_on_cpu(pr->id, acpi_processor_throttling_fn,
++					  &arg, direct);
+ 		}
+ 	}
+ 	/*
+@@ -1177,6 +1181,12 @@ int acpi_processor_set_throttling(struct acpi_proces=
+sor *pr,
+ 	return ret;
+ }
+=20
++int acpi_processor_set_throttling(struct acpi_processor *pr, int state,
++				  bool force)
++{
++	return __acpi_processor_set_throttling(pr, state, force, false);
++}
++
+ int acpi_processor_get_throttling_info(struct acpi_processor *pr)
+ {
+ 	int result =3D 0;
+--=20
+2.14.1
