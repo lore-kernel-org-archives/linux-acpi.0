@@ -1,67 +1,122 @@
-From: Sasha Levin <Alexander.Levin@microsoft.com>
-Subject: [PATCH AUTOSEL for 4.4 017/101] ACPI/processor: Fix error handling in
- __acpi_processor_start()
-Date: Thu, 8 Mar 2018 05:01:30 +0000
-Message-ID: <20180308050023.8548-17-alexander.levin@microsoft.com>
-References: <20180308050023.8548-1-alexander.levin@microsoft.com>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH v9 5/7] arm64: kvm: Introduce KVM_ARM_SET_SERROR_ESR ioctl
+Date: Thu, 8 Mar 2018 14:18:02 +0800
+Message-ID: <CAMj-D2COh4xDKreZXPHeiJK34mrPqDbHszDWY-fz_SfxTRaHQA@mail.gmail.com>
+References: <0184EA26B2509940AA629AE1405DD7F201A9E8EA@DGGEMA503-MBS.china.huawei.com>
+ <5A70C5A0.1050600@arm.com> <d1b17dae-9d9c-970a-d164-a41c618d449b@huawei.com>
+ <5A7DDDEE.9050306@arm.com> <93d07d3e-8388-7814-d674-538071d84e2a@huawei.com> <5A85C974.70500@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180308050023.8548-1-alexander.levin@microsoft.com>
-Content-Language: en-US
-Sender: stable-owner@vger.kernel.org
-To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Siewior <bigeasy@linutronix.de>, Lai Jiangshan <jiangshanlai@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, "David S. Miller" <davem@davemloft.net>, Len Brown <lenb@kernel.org>, Sasha Levin <Alexander.Levin@microsoft.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5A85C974.70500@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Morse <james.morse@arm.com>, drjones@redhat.com
+Cc: gengdongjiu <gengdongjiu@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "corbet@lwn.net" <corbet@lwn.net>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "will.deacon@arm.com" <will.deacon@arm.com>, "robert.moore@intel.com" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "bp@alien8.de" <bp@alien8.de>, "lv.zheng@intel.com" <lv.zheng@intel.com>, Huangshaoyu <huangshaoyu@huawei.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Hi James,
+   sorry for my late response due to chines new year.
 
-[ Upstream commit a5cbdf693a60d5b86d4d21dfedd90f17754eb273 ]
+2018-02-16 1:55 GMT+08:00 James Morse <james.morse@arm.com>:
+> Hi gengdongjiu,
+>
+> On 12/02/18 10:19, gengdongjiu wrote:
+>> On 2018/2/10 1:44, James Morse wrote:
+>>> The point? We can't know what a CPU without the RAS extensions puts in there.
+>>>
+>>> Why Does this matter? When migrating a pending SError we have to know the
+>>> difference between 'use this 64bit value', and 'the CPU will generate it'.
+>>> If I make an SError pending with ESR=0 on a CPU with VSESR, I can't migrated to
+>>> a system that generates an impdef SError-ESR, because I can't know it will be 0.
+>
+>> For the target system, before taking the SError, no one can know whether its syndrome value
+>> is IMPLEMENTATION DEFINED or architecturally defined.
+>
+> For a virtual-SError, the hypervisor knows what it generated. (do I have
+> VSESR_EL2? What did I put in there?).
+>
+>
+>> when the virtual SError is taken, the ESR_ELx.IDS will be updated, then we can know
+>> whether the ESR value is impdef or architecturally defined.
+>
+> True, the guest can't know anything about a pending virtual SError until it
+> takes it. Why is this a problem?
+>
+>
+>> It seems migration is only allowed only when target system and source system all support
+>> RAS extension, because we do not know whether its syndrome is IMPLEMENTATION DEFINED or
+>> architecturally defined.
+>
+> I don't think Qemu allows migration between hosts with differing guest-ID
+> registers. But we shouldn't depend on this, and we may want to hide the v8.2 RAS
+> features from the guest's ID register, but still use them from the host.
+>
+> The way I imagined it working was we would pack the following information into
+> that events struct:
+> {
+>         bool serror_pending;
+>         bool serror_has_esr;
+>         u64  serror_esr;
+> }
 
-When acpi_install_notify_handler() fails the cooling device stays
-registered and the sysfs files created via acpi_pss_perf_init() are
-leaked and the function returns success.
+I have used your suggestion struct
 
-Undo acpi_pss_perf_init() and return a proper error code.
+>
+> The problem I was trying to describe is because there is no value of serror_esr
+> we can use to mean 'Ignore this, I'm a v8.0 CPU'. VSESR_EL2 is a 64bit register,
+> any bits we abuse may get a meaning we want to use in the future.
+>
+> When it comes to migration, v8.{0,1} systems can only GET/SET events where
+> serror_has_esr == false, they can't use the serror_esr. On v8.2 systems we
+> should require serror_has_esr to be true.
+yes, I agreed.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/20170412201042.695499645@linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
----
- drivers/acpi/processor_driver.c | 3 +++
- 1 file changed, 3 insertions(+)
+>
+> If we need to support migration from v8.{0,1} to v8.2, we can make up an impdef
+> serror_esr.
 
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_drive=
-r.c
-index 11154a330f07..2c086859a0bd 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -259,6 +259,9 @@ static int __acpi_processor_start(struct acpi_device *d=
-evice)
- 	if (ACPI_SUCCESS(status))
- 		return 0;
-=20
-+	result =3D -ENODEV;
-+	acpi_pss_perf_exit(pr, device);
-+
- err_power_exit:
- 	acpi_processor_power_exit(pr);
- 	return result;
---=20
-2.14.1
+For the Qemu migration, I need to check more the QEMU code.
+
+
+Hi Andrew,
+      I use KVM_GET/SET_VCPU_EVENTS IOCTL to migrate the Serror
+exception status of VM,
+The even struct is shown below:
+
+{
+      bool serror_pending;
+      bool serror_has_esr;
+     u64  serror_esr;
+}
+
+Only when the target machine is armv8.2, it needs to set the
+serror_esr(SError Exception Syndrome Register).
+for the armv8.0,  software can not set the serror_esr(SError Exception
+Syndrome Register).
+so when migration from v8.{0,1} to v8.2, QEMU should make up an impdef
+serror_esr for the v8.2 target.
+can you give me some suggestion how to set that register in the QEMU?
+I do not familar with the QEMU migration.
+Thanks very much.
+
+>
+> We will need to decide what KVM does when SET is called but an SError was
+> already pending. 2.5.3 "Multiple SError interrupts" of [0] has something to say.
+
+how about KVM set again to the same VCPU?
+
+>
+>
+> Happy new year,
+thanks!
+
+>
+> James
+>
+>
+> [0]
+> https://static.docs.arm.com/ddi0587/a/RAS%20Extension-release%20candidate_march_29.pdf
+> _______________________________________________
+> kvmarm mailing list
+> kvmarm@lists.cs.columbia.edu
+> https://lists.cs.columbia.edu/mailman/listinfo/kvmarm
