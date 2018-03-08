@@ -1,66 +1,120 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [GIT PULL] ACPI IORT updates for v4.17
-Date: Thu, 8 Mar 2018 11:54:25 +0000
-Message-ID: <20180308115425.GA31267@e107981-ln.cambridge.arm.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH v7 00/13] Support PPTT for ARM64
+Date: Thu, 8 Mar 2018 15:59:29 +0000
+Message-ID: <CAKv+Gu__yYX-fFqxyxNk3M=Byvw5798po0Jr=qr3anEWKJ+SMA@mail.gmail.com>
+References: <20180228220619.6992-1-jeremy.linton@arm.com> <8b5bfd7e-57ea-bb34-85f8-69007a3847e6@arm.com>
+ <1890b2e2-375e-f44f-c224-8cfa23a0add3@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: will.deacon@arm.com, catalin.marinas@arm.com
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jia He <jia.he@hxt-semitech.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1890b2e2-375e-f44f-c224-8cfa23a0add3@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, vkilari@codeaurora.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dietmar.eggemann@arm.com, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, morten.rasmussen@arm.com, Al Stone <ahs3@redhat.com>, palmer@sifive.com, Hanjun Guo <hanjun.guo@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, linux-riscv@lists.infradead.org, John Garry <john.garry@huawei.com>, wangxiongfeng2@huawei.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Catalin, Will,
+On 27 February 2018 at 18:49, Jeremy Linton <jeremy.linton@arm.com> wrote:
+> On 03/01/2018 06:06 AM, Sudeep Holla wrote:
+>>
+>> Hi Jeremy,
+>>
+>> On 28/02/18 22:06, Jeremy Linton wrote:
+>>>
+>>> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+>>> used to describe the processor and cache topology. Ideally it is
+>>> used to extend/override information provided by the hardware, but
+>>> right now ARM64 is entirely dependent on firmware provided tables.
+>>>
+>>> This patch parses the table for the cache topology and CPU topology.
+>>> When we enable ACPI/PPTT for arm64 we map the physical_id to the
+>>> PPTT node flagged as the physical package by the firmware.
+>>> This results in topologies that match what the remainder of the
+>>> system expects. To avoid inverted scheduler domains we then
+>>> set the MC domain equal to the largest cache within the socket
+>>> below the NUMA domain.
+>>>
+>> I remember reviewing and acknowledging most of the cacheinfo stuff with
+>> couple of minor suggestions for v6. I don't see any Acked-by tags in
+>> this series and don't know if I need to review/ack any more cacheinfo
+>> related patches.
+>
+>
+> Hi,
+>
+> Yes, I didn't put them in because I changed the functionality in 2/13 and
+> there is a bug fix in 5/13. I thought you might want to do a quick diff of
+> the git v6->v7 tree.
+>
+> Although given that most of the changes were in response to your comments in
+> v6 I probably should have just put the tags in.
+>
 
-some clean-ups patches for the ACPI IORT code aimed at the v4.17 kernel
-release:
+I get sane output from lstopo when applying these patches and booting
+my Socionext SynQuacer in ACPI mode:
 
-- Two leftover ACPICA preprocessor guards removal (L.Pieralisi)
-- Removal of IORT linker script entry re-introduced by mistake
-  in clocksource driver refactoring (J.He)
+$ lstopo-no-graphics
+Machine (31GB)
+  Package L#0 + L3 L#0 (4096KB)
+    L2 L#0 (256KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+    L2 L#1 (256KB)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#2 (256KB)
+      L1d L#4 (32KB) + L1i L#4 (32KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (32KB) + Core L#5 + PU L#5 (P#5)
+    L2 L#3 (256KB)
+      L1d L#6 (32KB) + L1i L#6 (32KB) + Core L#6 + PU L#6 (P#6)
+      L1d L#7 (32KB) + L1i L#7 (32KB) + Core L#7 + PU L#7 (P#7)
+    L2 L#4 (256KB)
+      L1d L#8 (32KB) + L1i L#8 (32KB) + Core L#8 + PU L#8 (P#8)
+      L1d L#9 (32KB) + L1i L#9 (32KB) + Core L#9 + PU L#9 (P#9)
+    L2 L#5 (256KB)
+      L1d L#10 (32KB) + L1i L#10 (32KB) + Core L#10 + PU L#10 (P#10)
+      L1d L#11 (32KB) + L1i L#11 (32KB) + Core L#11 + PU L#11 (P#11)
+    L2 L#6 (256KB)
+      L1d L#12 (32KB) + L1i L#12 (32KB) + Core L#12 + PU L#12 (P#12)
+      L1d L#13 (32KB) + L1i L#13 (32KB) + Core L#13 + PU L#13 (P#13)
+    L2 L#7 (256KB)
+      L1d L#14 (32KB) + L1i L#14 (32KB) + Core L#14 + PU L#14 (P#14)
+      L1d L#15 (32KB) + L1i L#15 (32KB) + Core L#15 + PU L#15 (P#15)
+    L2 L#8 (256KB)
+      L1d L#16 (32KB) + L1i L#16 (32KB) + Core L#16 + PU L#16 (P#16)
+      L1d L#17 (32KB) + L1i L#17 (32KB) + Core L#17 + PU L#17 (P#17)
+    L2 L#9 (256KB)
+      L1d L#18 (32KB) + L1i L#18 (32KB) + Core L#18 + PU L#18 (P#18)
+      L1d L#19 (32KB) + L1i L#19 (32KB) + Core L#19 + PU L#19 (P#19)
+    L2 L#10 (256KB)
+      L1d L#20 (32KB) + L1i L#20 (32KB) + Core L#20 + PU L#20 (P#20)
+      L1d L#21 (32KB) + L1i L#21 (32KB) + Core L#21 + PU L#21 (P#21)
+    L2 L#11 (256KB)
+      L1d L#22 (32KB) + L1i L#22 (32KB) + Core L#22 + PU L#22 (P#22)
+      L1d L#23 (32KB) + L1i L#23 (32KB) + Core L#23 + PU L#23 (P#23)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCI 1b21:0612
+          Block(Disk) L#0 "sda"
+  HostBridge L#3
+    PCI 10de:128b
+      GPU L#1 "renderD128"
+      GPU L#2 "card0"
+      GPU L#3 "controlD64"
 
-Please consider pulling them, thank you very much.
+So
 
-Lorenzo
+Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 
-The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
+*However*, while hacking on the firmware that exposes the table, I
+noticed that a malformed structure (incorrect size) can get the parser
+in an infinite loop, hanging the boot after
 
-  Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
+[    8.244281] Serial: 8250/16550 driver, 4 ports, IRQ sharing enabled
+[    8.251780] Serial: AMBA driver
+[    8.255042] msm_serial: driver initialized
+[    8.259752] ACPI PPTT: Cache Setup ACPI cpu 0
+[    8.264121] ACPI PPTT: Looking for data cache
+[    8.268484] ACPI PPTT: Looking for CPU 0's level 1 cache type 0
 
-are available in the Git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git tags/acpi/iort-for-v4.17
-
-for you to fetch changes up to 8dc12538dd14480ffcbcbf18b80dc641ee37e9de:
-
-  ACPI/IORT: Remove obsolete ACPI_IORT_SMMU_V3_CAVIUM_CN99XX define (2018-03-08 11:22:30 +0000)
-
-----------------------------------------------------------------
-Three ACPI IORT clean-up patches aimed at v4.17 release cycle:
-
-- Removal of IORT linker script entry re-introduced by mistake by clocksource
-  drivers refactoring (J.He)
-- Two ACPICA guards removal of previously introduced guards to prevent
-  ACPICA<->kernel patches dependencies (L.Pieralisi)
-
-----------------------------------------------------------------
-Jia He (1):
-      ACPI/IORT: Remove linker section for IORT entries again
-
-Lorenzo Pieralisi (2):
-      ACPI/IORT: Remove temporary iort_get_id_mapping_index() ACPICA guard
-      ACPI/IORT: Remove obsolete ACPI_IORT_SMMU_V3_CAVIUM_CN99XX define
-
- drivers/acpi/arm64/iort.c         | 12 ------------
- include/asm-generic/vmlinux.lds.h |  1 -
- 2 files changed, 13 deletions(-)
+so I guess the parsing code could be made a bit more robust?
