@@ -1,17 +1,19 @@
-From: James Morse <james.morse@arm.com>
+From: Borislav Petkov <bp@alien8.de>
 Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
  add/remove and notify code
-Date: Wed, 07 Mar 2018 18:15:02 +0000
-Message-ID: <5AA02C26.10803@arm.com>
+Date: Thu, 8 Mar 2018 11:44:08 +0100
+Message-ID: <20180308104408.GB21166@pd.tnic>
 References: <20180215185606.26736-1-james.morse@arm.com>
- <20180215185606.26736-3-james.morse@arm.com> <20180301150144.GA4215@pd.tnic>
+ <20180215185606.26736-3-james.morse@arm.com>
+ <20180301150144.GA4215@pd.tnic>
  <87sh9jbrgc.fsf@e105922-lin.cambridge.arm.com>
- <20180301223529.GA28811@pd.tnic>
+ <20180301223529.GA28811@pd.tnic> <5AA02C26.10803@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180301223529.GA28811@pd.tnic>
+Content-Disposition: inline
+In-Reply-To: <5AA02C26.10803@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -21,57 +23,37 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Borislav Petkov <bp@alien8.de>, Punit Agrawal <punit.agrawal@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Borislav, Punit,
+On Wed, Mar 07, 2018 at 06:15:02PM +0000, James Morse wrote:
+> Today its just x86 and arm64. arm64 doesn't have a hook to do this. I'm happy to
+> add an empty declaration or leave it under an ifdef until someone complains
+> about any behaviour I missed!
 
-On 01/03/18 22:35, Borislav Petkov wrote:
-> On Thu, Mar 01, 2018 at 06:06:59PM +0000, Punit Agrawal wrote:
->> The 64-bit support lives in arch/arm64 and the die() there doesn't
->> contain an oops_begin()/oops_end(). But the lack of oops_begin() on
->> arm64 doesn't really matter here.
+So I did some more staring at the code and I think oops_begin() is
+needed mainly, as you point out, to prevent two oops messages from
+interleaving. And yap, the other stuff with printk() is not true anymore
+because the commit which added oops_begin():
 
->> One issue I see with calling die() is that it is defined in different
->> includes across various architectures, (e.g., include/asm/kdebug.h for
->> x86, include/asm/system_misc.h in arm64, etc.)
-> 
-> I don't think that's insurmountable.
+  81e88fdc432a ("ACPI, APEI, Generic Hardware Error Source POLL/IRQ/NMI notification type support")
 
-I don't think die() helps us, its not quite the same as oops_begin()/panic(),
-which means we're interpreting the APEI notification's severity differently,
-depending on when we took it.
+still saw an NMI-unsafe printk. Which is long taken care of now.
 
+So only the interleaving issue remains.
 
-> The more important question is, can we do the same set of calls when
-> panic severity on all architectures which support APEI or should we have
-> arch-specific ghes_panic() callbacks or so.
+Which begs the question: how are you guys preventing the interleaving on
+arm64? Because arch/arm64/kernel/traps.c:200 grabs the die_lock too, so
+interleaving can happen on arm64 too, AFAICT.
 
-I think the purpose of this oops_begin() is to ensure two CPUs calling
-oops_begin() at the same time don't have their traces interleaved, unblanks the
-screen and 'busts' any spinlocks printk() may need (console etc).
+And by that logic, you should technically grab that lock here too in
+_in_nmi_notify_one().
 
-This code is called in_nmi(), printk() now supports this so it doesn't need its
-locks busting.
-When called in_nmi(), printk batches the messages into its per-cpu
-printk_safe_seq_buf, which in our case is dumped by panic() using
-printk_safe_flush_on_panic(). So provided we call panic(), the in_nmi() messages
-from ghes.c are already batched, and printed behind panic()'s atomic_cmpxchg()
-exclusion thing.
+Or?
 
-If your arm64 system has one of these futuristic 'screens', they get unblanked
-when panic() calls console_verbose() and bust_spinlocks(1).
+-- 
+Regards/Gruss,
+    Boris.
 
-
-> As it is now, it would turn into a mess if we start with the ifdeffery
-> and the different requirements architectures might have...
-
-Today its just x86 and arm64. arm64 doesn't have a hook to do this. I'm happy to
-add an empty declaration or leave it under an ifdef until someone complains
-about any behaviour I missed!
-
-
-Thanks,
-
-James
+Good mailing practices for 400: avoid top-posting and trim the reply.
