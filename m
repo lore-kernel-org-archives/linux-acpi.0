@@ -1,155 +1,150 @@
-From: Leif Liddy <leif.linux@gmail.com>
-Subject: Re: [PATCH] Bluetooth: btusb: Restore QCA Rome suspend/resume fix
- with a "rewritten" version
-Date: Fri, 9 Mar 2018 01:56:26 +0100
-Message-ID: <CAAbRKOsejuTNdRBJ7g1omS_07DSHuPHpwW2JEsADNOhG6fnWDA@mail.gmail.com>
-References: <20180108094416.4789-1-hdegoede@redhat.com> <20180213022455.GA151190@rodete-desktop-imager.corp.google.com>
- <8cd918fd-bf6f-70ac-e561-e7deffa695f0@redhat.com> <20180216022721.GA69988@rodete-desktop-imager.corp.google.com>
- <345b0de8-1a23-d2f8-bc56-507eadf7faa7@redhat.com> <6B37F6AC-1103-4FCF-A5DC-4BA236A7B11B@holtmann.org>
- <1a08612e-2531-3711-ec0f-a867e86d0009@redhat.com> <20180216175955.GA80944@rodete-desktop-imager.corp.google.com>
- <a846c1ac-7dea-a30a-4133-32eac606d101@redhat.com> <20180223031216.GA230265@rodete-desktop-imager.corp.google.com>
- <a6090910-7941-b194-c094-7ce3ef047974@redhat.com> <CA+ASDXOGhi4t2R5qrbXHTFkjtzvUL=qHxkJqku4XKJ6u8Wr+cg@mail.gmail.com>
- <cdf043ef-b7d5-61f9-b8ea-7e75cb22485f@redhat.com> <1711ebe8-8d1a-7d96-bcbe-17238988557a@redhat.com>
+From: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
+ return DIMM size
+Date: Fri, 9 Mar 2018 11:20:53 +0100
+Message-ID: <20180309112053.20605672@endymion>
+References: <20180222195811.27237-1-tony.luck@intel.com>
+ <20180222195811.27237-5-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1711ebe8-8d1a-7d96-bcbe-17238988557a@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Brian Norris <briannorris@chromium.org>, Marcel Holtmann <marcel@holtmann.org>, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>, Matthias Kaehlcke <mka@chromium.org>, Daniel Drake <drake@endlessm.com>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Matadeen Mishra <matadeen@qti.qualcomm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Guenter Roeck <linux@roeck-us.net>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180222195811.27237-5-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael
+ J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry for being a bit slow to respond to this.
+Hi Tony,
 
-I'm the original author of commit:
-https://git.kernel.org/pub/scm/linux/kernel/git/bluetooth/bluetooth-next.git/commit/drivers/bluetooth/btusb.c?id=fd865802c66bc451dc515ed89360f84376ce1a56
+On Thu, 22 Feb 2018 11:58:10 -0800, Tony Luck wrote:
+> When we first scan the SMBIOS table, save the size of the DIMM.
+> 
+> Provide a function for other code (EDAC driver) to look up the size
+> of a DIMM from its SMBIOS handle.
 
-> Says: "There's been numerous reported instances where BTUSB_QCA_ROME
-> bluetooth controllers stop functioning upon resume from suspend."
+On the principle I'm OK with the idea. My comments on the
+implementation details are inline below.
 
-> So it may be platform specific but it is not just limited to 1 or
->2 platforms I think.
+> Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/firmware/dmi_scan.c | 31 +++++++++++++++++++++++++++++++
+>  include/linux/dmi.h         |  2 ++
+>  2 files changed, 33 insertions(+)
+> 
+> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+> index e763e1484331..9947f1f6ef7b 100644
+> --- a/drivers/firmware/dmi_scan.c
+> +++ b/drivers/firmware/dmi_scan.c
+> @@ -32,6 +32,7 @@ static char dmi_ids_string[128] __initdata;
+>  static struct dmi_memdev_info {
+>  	const char *device;
+>  	const char *bank;
+> +	u64 size;
 
-This issue might very well be limited to just a few platforms.
-Here's a link to the original bug report I submitted.
+A comment stating in which unit the size is stored would be appreciated.
 
-https://bugzilla.kernel.org/show_bug.cgi?id=193571
+>  	u16 handle;
+>  } *dmi_memdev;
+>  static int dmi_memdev_nr;
+> @@ -386,6 +387,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  {
+>  	const char *d = (const char *)dm;
+>  	static int nr;
+> +	u64 bytes;
+> +	u16 size;
+>  
+>  	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
+>  		return;
+> @@ -396,6 +399,20 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
+>  	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
+>  	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
+> +
+> +	size = get_unaligned((u16 *)&d[0xC]);
+> +	if (size == 0)
+> +		bytes = 0;
+> +	else if (size == 0xffff)
+> +		bytes = ~0ul;
 
-There was a number of people who reported they were having similar
-issues with various QCA Rome bluetooth devices.
-The userspace fix that seemed to work for everyone was resetting the usb device.
+Should this not be ~0ull? On 32-bit systems ~0ul would be 0xffffffff not
+0xffffffffffffffff.
 
-ie
+Also it would be nice to document somewhere that 0 means memory module
+not installed and all fs means size is unknown.
 
-#!/bin/bash
-echo 0 > /sys/bus/usb/devices/1-4/authorized
-echo 1 > /sys/bus/usb/devices/1-4/authorized
+> +	else if (size & 0x8000)
+> +		bytes = (u64)(size & 0x7fff) << 10;
+> +	else if (size != 0x7fff)
+> +		bytes = (u64)size << 20;
+> +	else
+> +		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
+> +
+> +	dmi_memdev[nr].size = bytes;
 
-or
+I'm curious, do you really need to know the amount of memory to the
+byte? The SMBIOS specification itself does not support granularity
+under 1 kB. I would be very surprised if any machine running Linux
+today has memory modules under 1 MB. If storing in MB you wouldn't need
+a u64...
 
-#!/usr/bin/python
-from usb.core import find as finddev
-dev = finddev(idVendor=0x0cf3, idProduct=0xe300)
-dev.reset()
+>  	nr++;
+>  }
+>  
+> @@ -1065,3 +1082,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dmi_memdev_name);
+> +
+> +u64 dmi_memdev_size(u16 handle)
+> +{
+> +	int n;
+> +
+> +	if (dmi_memdev) {
+> +		for (n = 0; n < dmi_memdev_nr; n++) {
+> +			if (handle == dmi_memdev[n].handle)
+> +				return dmi_memdev[n].size;
+> +		}
+> +	}
+> +	return ~0ul;
 
-It's difficult to ascertain what the underlying issue was for each
-person (and associated device) who commented. I can only speak
-authoritatively for my own device.
-It's a Samsung ATIV Book 9 12.2 (2015) laptop that contains an
-integrated bluetooth controller that's attached to the internal usb
-bus.
+~0ull?
 
-# lsusb
-Bus 001 Device 005: ID 0cf3:e300 Atheros Communications, Inc.
+> +}
+> +EXPORT_SYMBOL_GPL(dmi_memdev_size);
+> diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+> index 46e151172d95..7f5929123b69 100644
+> --- a/include/linux/dmi.h
+> +++ b/include/linux/dmi.h
+> @@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+>  	void *private_data);
+>  extern bool dmi_match(enum dmi_field f, const char *str);
+>  extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
+> +extern u64 dmi_memdev_size(u16 handle);
+>  
+>  #else
+>  
+> @@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
+>  	{ return false; }
+>  static inline void dmi_memdev_name(u16 handle, const char **bank,
+>  		const char **device) { }
+> +static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
 
-After suspending the laptop for an extended length of time (sometimes
-it would take an hour or two before issue occurred), and resuming
---the bluetooth controller would not come back on-line. After reading
-through various forums, I suspected the issue I was experiencing was
-due to the bluetooth device losing it's firmware during suspend.
-The original patch I created did fix the issue. (I do realize that
-targeting all QCA Rome chipset's was the wrong decision). Hans de
-Goede's rewritten version (commit: 61f5acea8737) also worked for my
-device. Since, some people think that the underlying issue may been
-fixed elsewhere in the kernel. I'm going to remove Hans' commit and
-see if the issue persists (with kernel 4.15.6). I'll report back
-tomorrow with the results.
+~0ull?
 
+>  static inline const struct dmi_system_id *
+>  	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+>  
 
--Leif
-
-On Wed, Feb 28, 2018 at 11:54 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
->
-> On 27-02-18 15:07, Hans de Goede wrote:
->>
->> Hi,
->>
->> On 27-02-18 03:29, Brian Norris wrote:
->>>
->>> On Thu, Feb 22, 2018 at 11:14 PM, Hans de Goede <hdegoede@redhat.com>
->>> wrote:
->>>>
->>>> On 23-02-18 04:12, Brian Norris wrote:
->>>>>
->>>>> Hmm? I'm not sure I completely follow here when you say "he was not
->>>>> hitting the firmware loading race". If things were functioning fine
->>>>> with
->>>>> system suspend (but not with autosuspend), then he's not seeing the
->>>>> controller (quoting commit fd865802c66b) "losing power during suspend".
->>>>
->>>>
->>>>
->>>> He was running a kernel with the original "fd865802c66b Bluetooth:
->>>> btusb:
->>>> fix QCA Rome suspend/resume" commit, which fixes regular suspend for
->>>> devices which are "losing power during suspend", but does nothing for
->>>> runtime-suspend.
->>>>
->>>> He ran tests both with and without runtime-pm enabled with that same
->>>> kernel
->>>> and he needed to disable runtime-pm to get working bluetooth.
->>>
->>>
->>> Did he ever test with commit fd865802c66b reverted?
->>>
->>> My symptoms were exactly the same as you described. BT was broken as
->>> of v4.14 if I had runtime suspend enabled. Things were fine if I
->>> either (a) reverted the patch or (b) disabled runtime suspend. I
->>> obviously preferred (a), which is why I continued to complain :)
->>>
->>> Did your tester ever try (a)? If not, then I don't think you've really
->>> ensured that he really needed a "fixed" version; he may not have
->>> needed the patch at all.
->>>
->>> Or an alternative question: did that system work on an older Fedora
->>> release (and presumably an older kernel)? If so, then he probably also
->>> did not need that patch.
->>>
->>>>> So, that would suggest he could only be seeing the race (as I was), and
->>>>> that his machine does not deserve a RESET_RESUME quirk?
->>>>
->>>>
->>>>
->>>> I hope my above answer helps to clarify why I believe the quirk is
->>>> necessary on his machine.
->>>
->>>
->>> I'm sorry, but no it doesn't. If anything, it suggests to me even more
->>> that it may not have been necessary.
->>
->>
->> Ok, I've started another test-kernel build for the reporter this time
->> without any quirks at all and I've asked him to test.
->
->
-> You were right, the Yoga 920 works fine without any quirks, thank you
-> for being persistent on getting this tested properly.
->
-> I will submit a patch dropping the Yoga 920 from the
-> btusb_needs_reset_resume_table.
->
-> Regards,
->
-> Hans
+-- 
+Jean Delvare
+SUSE L3 Support
