@@ -1,15 +1,14 @@
 From: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
-Subject: Re: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
- return DIMM size
-Date: Fri, 9 Mar 2018 11:20:53 +0100
-Message-ID: <20180309112053.20605672@endymion>
+Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
+Date: Fri, 9 Mar 2018 11:38:01 +0100
+Message-ID: <20180309113801.14b06cdf@endymion>
 References: <20180222195811.27237-1-tony.luck@intel.com>
- <20180222195811.27237-5-tony.luck@intel.com>
+ <20180222195811.27237-6-tony.luck@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180222195811.27237-5-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20180222195811.27237-6-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -26,124 +25,81 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi Tony,
 
-On Thu, 22 Feb 2018 11:58:10 -0800, Tony Luck wrote:
-> When we first scan the SMBIOS table, save the size of the DIMM.
+On Thu, 22 Feb 2018 11:58:11 -0800, Tony Luck wrote:
+> This just covers the topology function of the EDAC driver.
+> We locate which DIMM slots are populated with NVDIMMs and
+> query the NFIT and SMBIOS tables to get the size.
 > 
-> Provide a function for other code (EDAC driver) to look up the size
-> of a DIMM from its SMBIOS handle.
-
-On the principle I'm OK with the idea. My comments on the
-implementation details are inline below.
-
 > Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > ---
->  drivers/firmware/dmi_scan.c | 31 +++++++++++++++++++++++++++++++
->  include/linux/dmi.h         |  2 ++
->  2 files changed, 33 insertions(+)
-> 
-> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
-> index e763e1484331..9947f1f6ef7b 100644
-> --- a/drivers/firmware/dmi_scan.c
-> +++ b/drivers/firmware/dmi_scan.c
-> @@ -32,6 +32,7 @@ static char dmi_ids_string[128] __initdata;
->  static struct dmi_memdev_info {
->  	const char *device;
->  	const char *bank;
-> +	u64 size;
-
-A comment stating in which unit the size is stored would be appreciated.
-
->  	u16 handle;
->  } *dmi_memdev;
->  static int dmi_memdev_nr;
-> @@ -386,6 +387,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
->  {
->  	const char *d = (const char *)dm;
->  	static int nr;
-> +	u64 bytes;
-> +	u16 size;
->  
->  	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
->  		return;
-> @@ -396,6 +399,20 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
->  	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
->  	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
->  	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
-> +
-> +	size = get_unaligned((u16 *)&d[0xC]);
-> +	if (size == 0)
-> +		bytes = 0;
-> +	else if (size == 0xffff)
-> +		bytes = ~0ul;
-
-Should this not be ~0ull? On 32-bit systems ~0ul would be 0xffffffff not
-0xffffffffffffffff.
-
-Also it would be nice to document somewhere that 0 means memory module
-not installed and all fs means size is unknown.
-
-> +	else if (size & 0x8000)
-> +		bytes = (u64)(size & 0x7fff) << 10;
-> +	else if (size != 0x7fff)
-> +		bytes = (u64)size << 20;
-> +	else
-> +		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
-> +
-> +	dmi_memdev[nr].size = bytes;
-
-I'm curious, do you really need to know the amount of memory to the
-byte? The SMBIOS specification itself does not support granularity
-under 1 kB. I would be very surprised if any machine running Linux
-today has memory modules under 1 MB. If storing in MB you wouldn't need
-a u64...
-
->  	nr++;
->  }
->  
-> @@ -1065,3 +1082,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
->  	}
->  }
->  EXPORT_SYMBOL_GPL(dmi_memdev_name);
-> +
-> +u64 dmi_memdev_size(u16 handle)
+>  drivers/edac/Kconfig    |  5 +++-
+>  drivers/edac/skx_edac.c | 68 ++++++++++++++++++++++++++++++++++++++++++++-----
+>  2 files changed, 66 insertions(+), 7 deletions(-)
+> (...)
+> +static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
+> +			   int chan, int dimmno)
 > +{
-> +	int n;
+> +	int smbios_handle;
+> +	u32 dev_handle;
+> +	u16 flags;
+> +	u64 size = 0;
 > +
-> +	if (dmi_memdev) {
-> +		for (n = 0; n < dmi_memdev_nr; n++) {
-> +			if (handle == dmi_memdev[n].handle)
-> +				return dmi_memdev[n].size;
-> +		}
+> +	dev_handle = ACPI_NFIT_BUILD_DEVICE_HANDLE(dimmno, chan, imc->lmc,
+> +						   imc->src_id, 0);
+> +
+> +	smbios_handle = nfit_get_smbios_id(dev_handle, &flags);
+> +	if (smbios_handle == -EOPNOTSUPP) {
+> +		pr_warn_once("skx_edac: can't find size of NVDIMM. Try enabling CONFIG_ACPI_NFIT\n");
+> +		goto unknown_size;
+
+I'm curious why you continue in this (worse) error case, but stop on
+all other (some presumably less critical) error cases? Specifically I
+can't see how an unknown size returned by the dmi subsystem can be worse
+than not being able to query the size at all.
+
 > +	}
-> +	return ~0ul;
+> +	if (smbios_handle < 0) {
+> +		skx_printk(KERN_ERR, "Can't find handle for NVDIMM ADR=%x\n", dev_handle);
+> +		return 0;
+> +	}
+> +
+> +	if (flags & ACPI_NFIT_MEM_MAP_FAILED) {
+> +		skx_printk(KERN_ERR, "NVDIMM ADR=%x is not mapped\n", dev_handle);
+> +		return 0;
+> +	}
+> +
+> +	size = dmi_memdev_size(smbios_handle);
+> +	if (size == ~0ul) {
 
-~0ull?
+If you agree with my comment on previous patch then this becomes ~0ull.
 
+> +		skx_printk(KERN_ERR, "Can't find size for NVDIMM ADR=%x/SMBIOS=%x\n",
+> +			   dev_handle, smbios_handle);
+> +		return 0;
+> +	}
+> +
+> +unknown_size:
+> +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %lld Mb (%lld pages)\n",
+
+%llu instead of %lld (twice)?
+
+> +		 imc->mc, chan, dimmno, size >> 20, size >> PAGE_SHIFT);
+> +
+> +	dimm->nr_pages = size >> PAGE_SHIFT;
+
+If you moved the debug print after, you wouldn't have to do the shift
+twice.
+
+> +	dimm->grain = 32;
+> +	dimm->dtype = DEV_UNKNOWN;
+> +	dimm->mtype = MEM_NVDIMM;
+> +	dimm->edac_mode = EDAC_SECDED; /* likely better than this */
+> +
+> +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+> +		 imc->src_id, imc->lmc, chan, dimmno);
+> +
+> +	return 1;
 > +}
-> +EXPORT_SYMBOL_GPL(dmi_memdev_size);
-> diff --git a/include/linux/dmi.h b/include/linux/dmi.h
-> index 46e151172d95..7f5929123b69 100644
-> --- a/include/linux/dmi.h
-> +++ b/include/linux/dmi.h
-> @@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
->  	void *private_data);
->  extern bool dmi_match(enum dmi_field f, const char *str);
->  extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
-> +extern u64 dmi_memdev_size(u16 handle);
->  
->  #else
->  
-> @@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
->  	{ return false; }
->  static inline void dmi_memdev_name(u16 handle, const char **bank,
->  		const char **device) { }
-> +static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
-
-~0ull?
-
->  static inline const struct dmi_system_id *
->  	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
->  
 
 -- 
 Jean Delvare
