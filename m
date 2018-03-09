@@ -1,54 +1,41 @@
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: Re: [Xen-devel] [PATCH v2] xen/acpi: upload _PSD info for non Dom0
- CPUs too
-Date: Fri, 9 Mar 2018 12:56:28 +0000
-Message-ID: <165abeed-3194-fe35-74f6-e2c68543c92c@oracle.com>
-References: <20180308105751.8176-1-joao.m.martins@oracle.com>
- <4f20689f-552f-b9eb-272d-0035ba2efdd6@oracle.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [GIT PULL] ACPI IORT updates for v4.17
+Date: Fri, 9 Mar 2018 13:48:24 +0000
+Message-ID: <20180309134823.GF15537@arm.com>
+References: <20180308115425.GA31267@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4f20689f-552f-b9eb-272d-0035ba2efdd6@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: linux-kernel@vger.kernel.org, Juergen Gross <jgross@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, devel@acpica.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180308115425.GA31267@e107981-ln.cambridge.arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: catalin.marinas@arm.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jia He <jia.he@hxt-semitech.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, sudeep.holla@arm.com, robin.murphy@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/08/2018 10:33 PM, Boris Ostrovsky wrote:
-> On 03/08/2018 05:57 AM, Joao Martins wrote:
+On Thu, Mar 08, 2018 at 11:54:25AM +0000, Lorenzo Pieralisi wrote:
+> Jia He (1):
+>       ACPI/IORT: Remove linker section for IORT entries again
 > 
->> @@ -372,6 +376,15 @@ read_acpi_id(acpi_handle handle, u32 lvl, void *context, void **rv)
->>   
->>   	pr_debug("ACPI CPU%u w/ PBLK:0x%lx\n", acpi_id, (unsigned long)pblk);
->>   
->> +	/* It has P-state dependencies */
->> +	if (!acpi_processor_get_psd(handle, &acpi_psd[acpi_id])) {
->> +		__set_bit(acpi_id, acpi_id_psd_present);
->> +
->> +		pr_debug("ACPI CPU%u w/ PST:coord_type = %llu domain = %llu\n",
->> +			 acpi_id, acpi_psd[acpi_id].coord_type,
->> +			 acpi_psd[acpi_id].domain);
->> +	}
+> Lorenzo Pieralisi (2):
+>       ACPI/IORT: Remove temporary iort_get_id_mapping_index() ACPICA guard
+>       ACPI/IORT: Remove obsolete ACPI_IORT_SMMU_V3_CAVIUM_CN99XX define
 > 
-> 
-> I should have noticed this earlier, but do you really need 
-> acpi_id_psd_present? Can you just go by acpi_psd[i] != NULL?
->
+>  drivers/acpi/arm64/iort.c         | 12 ------------
+>  include/asm-generic/vmlinux.lds.h |  1 -
+>  2 files changed, 13 deletions(-)
 
-Oh yes! I was trying to be consistent with the rest of the module, but we surely
-don't need that array of longs. Will respin after testing.
+Nice diffstat! ;)
 
-> Sorry for missing it in the first patch.
->
-Thanks for the feedback!
+I'll pull this into for-next/core.
 
-> -boris
-> 
-> 
-> _______________________________________________
-> Xen-devel mailing list
-> Xen-devel@lists.xenproject.org
-> https://lists.xenproject.org/mailman/listinfo/xen-devel
-> 
+Will
