@@ -1,58 +1,57 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 1/3] ACPI / x86: boot: Split out acpi_generic_reduce_hw_init()
- and export
-Date: Mon, 12 Mar 2018 12:42:22 +0100
-Message-ID: <CAJZ5v0gTzC8bqqzrpHJ_ZaO1LQEdubnGu9ePDoJ+ixPOocYBxA@mail.gmail.com>
-References: <20180220180506.65523-1-andriy.shevchenko@linux.intel.com>
- <CAJZ5v0g7XO2N0vCi-A95MDjgJpTS0M=ZXrSGu2fqkwSHZ79GEg@mail.gmail.com>
- <1519383078.10722.107.camel@linux.intel.com> <1520427371.10722.453.camel@linux.intel.com>
- <20180312110122.x7srrgui6r4e7jxm@gmail.com> <CAJZ5v0hN0SjwLhFiK_5u25CaNVeVXOF=HAd8UrBM3LEU8rgVVQ@mail.gmail.com>
- <20180312113349.seolbpec7e3czad3@gmail.com>
+From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
+ return DIMM size
+Date: Mon, 12 Mar 2018 09:46:06 -0700
+Message-ID: <20180312164605.ytd6vl4nygwh2wop@agluck-desk>
+References: <20180222195811.27237-1-tony.luck@intel.com>
+ <20180222195811.27237-5-tony.luck@intel.com>
+ <20180309112053.20605672@endymion>
+ <20180309230357.iz7fx47qywx4ijnj@agluck-desk>
+ <20180310142217.0054dc35@endymion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180312113349.seolbpec7e3czad3@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "H . Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Eric Biederman <ebiederm@xmission.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Juergen Gross <jgross@suse.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180310142217.0054dc35@endymion>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 12, 2018 at 12:33 PM, Ingo Molnar <mingo@kernel.org> wrote:
->
-> * Rafael J. Wysocki <rafael@kernel.org> wrote:
->
->> On Mon, Mar 12, 2018 at 12:01 PM, Ingo Molnar <mingo@kernel.org> wrote:
->> >
->> > * Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
->> >
->> >> On Fri, 2018-02-23 at 12:51 +0200, Andy Shevchenko wrote:
->> >> > On Tue, 2018-02-20 at 19:42 +0100, Rafael J. Wysocki wrote:
->> >> > > On Tue, Feb 20, 2018 at 7:05 PM, Andy Shevchenko
->> >> > > <andriy.shevchenko@linux.intel.com> wrote:
->> >> > > > This is a preparation patch to allow override the hardware reduced
->> >> > > > initialization on ACPI enabled platforms.
->> >> > > >
->> >> > > > No functional change intended.
->> >> > > >
->> >> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> >> > >
->> >> > > Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >> >
->> >> > Thanks, Rafael!
->> >> >
->> >> > Ingo, can it be applied?
->> >>
->> >> Hmm... It seems Ingo is busy with something else.
->> >
->> > Sorry, it all looks good to me:
->> >
->> >   Acked-by: Ingo Molnar <mingo@kernel.org>
->>
->> It depends on some material in -tip AFAICS, so can you apply it, please?
->
-> Sure, done!
->
-> Once they have passed testing it will live in tip:x86/mm, that's where the
-> dependent x86/boot commits ended up in this development cycle.
+On Sat, Mar 10, 2018 at 02:22:17PM +0100, Jean Delvare wrote:
+> Note that it is possible to store MB values (up to 16 MB) using kB as
+> the unit. The specification allows for it, and a few systems use that
+> option. For example [1], the DMI data of a Supermicro X8STi board looks
+> like:
+> 
+> Handle 0x0038, DMI type 17, 28 bytes
+> Memory Device
+> 	(...)
+> 	Size: 4096 kB
+> 
+> and it is encoded as 0x9000.
+> 
+> I understand you don't care about such "small" memory modules for
+> persistent DIMMs, however the API is not specific to these, and it
+> could be confusing for callers that modules between 1 MB and 16 MB are
+> sometimes reported as 0 and sometimes not. So I believe that your code
+> should handle this case.
 
-Thanks!
+Then I might as well go with a fully standards compliant version
+(just in case somebody in the future has a 512KB module encoded as
+0x8200, they would also be confused by a return of 0 MB).
+
+That means I should stick with u64 as the type of the "size" field
+(using KB in a u32 would max out with 4TB modules, which may happen
+before I retire).
+
+-Tony
