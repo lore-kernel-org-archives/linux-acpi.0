@@ -1,78 +1,55 @@
-From: Pavel Machek <pavel@ucw.cz>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
 Subject: Re: linux-next on thinkpad x60: full battery is indicated as battery
  error in mate
-Date: Mon, 12 Mar 2018 20:49:44 +0100
-Message-ID: <20180312194944.GA3979@amd>
-References: <20180312194715.GA3992@amd>
+Date: Mon, 12 Mar 2018 23:29:56 +0100
+Message-ID: <CAJZ5v0gWd7OCy+P41CFWJ1E9Tzw++Ok=YmjQwLk+iSZutBzphA@mail.gmail.com>
+References: <20180312194715.GA3992@amd> <20180312194944.GA3979@amd>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="17pEHd4RhPHOinZp"
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180312194715.GA3992@amd>
+In-Reply-To: <20180312194944.GA3979@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, sre@kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sebastian Reichel <sre@kernel.org>, Ognjen Galic <smclt30p@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Mar 12, 2018 at 8:49 PM, Pavel Machek <pavel@ucw.cz> wrote:
+> On Mon 2018-03-12 20:47:15, Pavel Machek wrote:
+>> Hi!
+>>
+>> Did something change recently with battery reporting?
 
---17pEHd4RhPHOinZp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Yes, it did, and specifically for Thinkpads.
 
-On Mon 2018-03-12 20:47:15, Pavel Machek wrote:
-> Hi!
->=20
-> Did something change recently with battery reporting? Fully charged
-> battery shows as empty battery with red "x" in Mate desktop. After
-> reboot to recent mainline problem goes away. Tooltip says "battery
-> waiting to charge".
->=20
-> /proc/acpi/battery/BAT0/state looks ok:
-> present:                 yes
-> capacity state:          ok
-> charging state:          charged
-> present rate:            0 mW
-> remaining capacity:      41240 mWh
-> present voltage:         16495 mV
->=20
-> Linux amd 4.16.0-rc3-next-20180302 #30 SMP Fri Mar 2 10:28:44 CET 2018
-> i686 GNU/Linux
+>> Fully charged
+>> battery shows as empty battery with red "x" in Mate desktop. After
+>> reboot to recent mainline problem goes away. Tooltip says "battery
+>> waiting to charge".
+>>
+>> /proc/acpi/battery/BAT0/state looks ok:
+>> present:                 yes
+>> capacity state:          ok
+>> charging state:          charged
+>> present rate:            0 mW
+>> remaining capacity:      41240 mWh
+>> present voltage:         16495 mV
+>>
+>> Linux amd 4.16.0-rc3-next-20180302 #30 SMP Fri Mar 2 10:28:44 CET 2018
+>> i686 GNU/Linux
+>> pavel@amd:~$ cat /sys/class/power_supply/BAT0/status
+>> Not charging
+>
+> Reboot to mainline:
+>
+> pavel@amd:~$ uname -a
+> Linux amd 4.16.0-rc4+ #509 SMP Thu Mar 8 15:28:06 CET 2018 i686
+> GNU/Linux
 > pavel@amd:~$ cat /sys/class/power_supply/BAT0/status
-> Not charging
+> Unknown
+>
+> Mate shows it as "laptop battery is fully charged".
+>
+>> Thinkpad X60.
 
-Reboot to mainline:
-
-pavel@amd:~$ uname -a
-Linux amd 4.16.0-rc4+ #509 SMP Thu Mar 8 15:28:06 CET 2018 i686
-GNU/Linux
-pavel@amd:~$ cat /sys/class/power_supply/BAT0/status
-Unknown
-
-Mate shows it as "laptop battery is fully charged".
-
-> Thinkpad X60.
-> =20
-> 									Pavel
-
-
-
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---17pEHd4RhPHOinZp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlqm2dgACgkQMOfwapXb+vIZEQCfeRSEIcTC2fSH9Pr28Ms92/PJ
-QH8AmQE6iJd5zTzXQx85bgRz2Nmy9D79
-=BdfR
------END PGP SIGNATURE-----
-
---17pEHd4RhPHOinZp--
+Please try to revert commits fa93854f7a7e..a20136a67a99 from
+linux-next and see if that helps.
