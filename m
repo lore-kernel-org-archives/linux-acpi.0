@@ -1,8 +1,8 @@
 From: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/5] acpi,
- nfit: Add function to look up nvdimm device and provide SMBIOS handle
-Date: Mon, 12 Mar 2018 11:24:28 -0700
-Message-ID: <20180312182430.10335-4-tony.luck@intel.com>
+Subject: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
+ return DIMM size
+Date: Mon, 12 Mar 2018 11:24:29 -0700
+Message-ID: <20180312182430.10335-5-tony.luck@intel.com>
 References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
  <20180312182430.10335-1-tony.luck@intel.com>
 Mime-Version: 1.0
@@ -23,88 +23,96 @@ To: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
 Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
+When we first scan the SMBIOS table, save the size of the DIMM.
 
-Provide a function that looks up an acpi_nfit_memory_map from a device
-handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
-Also pass back the "flags" so we can see if the NVDIMM is OK.
+Provide a function for other code (EDAC driver) to look up the size
+of a DIMM from its SMBIOS handle.
 
-Acked-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c | 27 +++++++++++++++++++++++++++
- include/acpi/nfit.h      | 18 ++++++++++++++++++
- 2 files changed, 45 insertions(+)
- create mode 100644 include/acpi/nfit.h
+ drivers/firmware/dmi_scan.c | 31 +++++++++++++++++++++++++++++++
+ include/linux/dmi.h         |  2 ++
+ 2 files changed, 33 insertions(+)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index bbe48ad20886..4d6eeb1793e6 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -23,6 +23,7 @@
- #include <linux/io.h>
- #include <linux/nd.h>
- #include <asm/cacheflush.h>
-+#include <acpi/nfit.h>
- #include "nfit.h"
+diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+index e763e1484331..35c6c74c9304 100644
+--- a/drivers/firmware/dmi_scan.c
++++ b/drivers/firmware/dmi_scan.c
+@@ -32,6 +32,7 @@ static char dmi_ids_string[128] __initdata;
+ static struct dmi_memdev_info {
+ 	const char *device;
+ 	const char *bank;
++	u64 size;		/* bytes */
+ 	u16 handle;
+ } *dmi_memdev;
+ static int dmi_memdev_nr;
+@@ -386,6 +387,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+ {
+ 	const char *d = (const char *)dm;
+ 	static int nr;
++	u64 bytes;
++	u16 size;
  
- /*
-@@ -690,6 +691,32 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
- 	return true;
+ 	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
+ 		return;
+@@ -396,6 +399,20 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+ 	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
+ 	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
+ 	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
++
++	size = get_unaligned((u16 *)&d[0xC]);
++	if (size == 0)
++		bytes = 0;
++	else if (size == 0xffff)
++		bytes = ~0ull;
++	else if (size & 0x8000)
++		bytes = (u64)(size & 0x7fff) << 10;
++	else if (size != 0x7fff)
++		bytes = (u64)size << 20;
++	else
++		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
++
++	dmi_memdev[nr].size = bytes;
+ 	nr++;
  }
  
-+int nfit_get_smbios_id(u32 device_handle, u16 *flags)
-+{
-+	struct acpi_nfit_memory_map *memdev;
-+	struct acpi_nfit_desc *acpi_desc;
-+	struct nfit_mem *nfit_mem;
+@@ -1065,3 +1082,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(dmi_memdev_name);
 +
-+	mutex_lock(&acpi_desc_lock);
-+	list_for_each_entry(acpi_desc, &acpi_descs, list) {
-+		mutex_lock(&acpi_desc->init_mutex);
-+		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
-+			memdev = __to_nfit_memdev(nfit_mem);
-+			if (memdev->device_handle == device_handle) {
-+				mutex_unlock(&acpi_desc->init_mutex);
-+				mutex_unlock(&acpi_desc_lock);
-+				*flags = memdev->flags;
-+				return memdev->physical_id;
-+			}
++u64 dmi_memdev_size(u16 handle)
++{
++	int n;
++
++	if (dmi_memdev) {
++		for (n = 0; n < dmi_memdev_nr; n++) {
++			if (handle == dmi_memdev[n].handle)
++				return dmi_memdev[n].size;
 +		}
-+		mutex_unlock(&acpi_desc->init_mutex);
 +	}
-+	mutex_unlock(&acpi_desc_lock);
-+
-+	return -ENODEV;
++	return ~0ull;
 +}
-+EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
-+
- /*
-  * An implementation may provide a truncated control region if no block windows
-  * are defined.
-diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
-new file mode 100644
-index 000000000000..86ed07c1200d
---- /dev/null
-+++ b/include/acpi/nfit.h
-@@ -0,0 +1,18 @@
-+/*
-+ * SPDX-License-Identifier: GPL-2.0
-+ * Copyright (C) 2018 Intel Corporation
-+ */
-+
-+#ifndef __ACPI_NFIT_H
-+#define __ACPI_NFIT_H
-+
-+#if IS_ENABLED(CONFIG_ACPI_NFIT)
-+int nfit_get_smbios_id(u32 device_handle, u16 *flags);
-+#else
-+static inline int nfit_get_smbios_id(u32 device_handle, u16 *flags)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
-+
-+#endif /* __ACPI_NFIT_H */
++EXPORT_SYMBOL_GPL(dmi_memdev_size);
+diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+index 46e151172d95..7f5929123b69 100644
+--- a/include/linux/dmi.h
++++ b/include/linux/dmi.h
+@@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+ 	void *private_data);
+ extern bool dmi_match(enum dmi_field f, const char *str);
+ extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
++extern u64 dmi_memdev_size(u16 handle);
+ 
+ #else
+ 
+@@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
+ 	{ return false; }
+ static inline void dmi_memdev_name(u16 handle, const char **bank,
+ 		const char **device) { }
++static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
+ static inline const struct dmi_system_id *
+ 	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+ 
 -- 
 2.14.1
