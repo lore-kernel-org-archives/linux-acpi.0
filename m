@@ -1,70 +1,75 @@
-From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
 Subject: Re: linux-next on thinkpad x60: full battery is indicated as battery
  error in mate
-Date: Mon, 12 Mar 2018 23:35:21 +0100
-Message-ID: <20180312223521.vzccevf6z7ik5ysf@thinkpad>
+Date: Tue, 13 Mar 2018 00:04:07 +0100
+Message-ID: <20180312230407.GA7612@amd>
 References: <20180312194715.GA3992@amd>
  <20180312194944.GA3979@amd>
  <CAJZ5v0gWd7OCy+P41CFWJ1E9Tzw++Ok=YmjQwLk+iSZutBzphA@mail.gmail.com>
+ <20180312223521.vzccevf6z7ik5ysf@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="IJpNTDwzlM2Ie8A6"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gWd7OCy+P41CFWJ1E9Tzw++Ok=YmjQwLk+iSZutBzphA@mail.gmail.com>
+In-Reply-To: <20180312223521.vzccevf6z7ik5ysf@thinkpad>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Pavel Machek <pavel@ucw.cz>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sebastian Reichel <sre@kernel.org>
+To: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sebastian Reichel <sre@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 12, 2018 at 11:29:56PM +0100, Rafael J. Wysocki wrote:
-> On Mon, Mar 12, 2018 at 8:49 PM, Pavel Machek <pavel@ucw.cz> wrote:
-> > On Mon 2018-03-12 20:47:15, Pavel Machek wrote:
-> >> Hi!
-> >>
-> >> Did something change recently with battery reporting?
-> 
-> Yes, it did, and specifically for Thinkpads.
 
+--IJpNTDwzlM2Ie8A6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> >> Fully charged
-> >> battery shows as empty battery with red "x" in Mate desktop. After
-> >> reboot to recent mainline problem goes away. Tooltip says "battery
-> >> waiting to charge".
-> >>
+Hi!
 
-For the MATE bug see:
-https://github.com/mate-desktop/mate-power-manager/pull/251
+> > >> Fully charged
+> > >> battery shows as empty battery with red "x" in Mate desktop. After
+> > >> reboot to recent mainline problem goes away. Tooltip says "battery
+> > >> waiting to charge".
+> > >>
+>=20
+> For the MATE bug see:
+> https://github.com/mate-desktop/mate-power-manager/pull/251
+>=20
+> The problem is in the new composite battery system in UPower, it
+> "merges" two external batteries into a single one for reporting. That
+> battery does not understand "Not Charging" inside the MATE Power
+> Manager. The above patch fixes that in MATE.
 
-The problem is in the new composite battery system in UPower, it
-"merges" two external batteries into a single one for reporting. That
-battery does not understand "Not Charging" inside the MATE Power
-Manager. The above patch fixes that in MATE.
+Ok, so problem is 91eea70e5e5ce12eb1c7cd922e561fab43e201bd.
 
-> >> /proc/acpi/battery/BAT0/state looks ok:
-> >> present:                 yes
-> >> capacity state:          ok
-> >> charging state:          charged
-> >> present rate:            0 mW
-> >> remaining capacity:      41240 mWh
-> >> present voltage:         16495 mV
-> >>
-> >> Linux amd 4.16.0-rc3-next-20180302 #30 SMP Fri Mar 2 10:28:44 CET 2018
-> >> i686 GNU/Linux
-> >> pavel@amd:~$ cat /sys/class/power_supply/BAT0/status
-> >> Not charging
-> >
-> > Reboot to mainline:
-> >
-> > pavel@amd:~$ uname -a
-> > Linux amd 4.16.0-rc4+ #509 SMP Thu Mar 8 15:28:06 CET 2018 i686
-> > GNU/Linux
-> > pavel@amd:~$ cat /sys/class/power_supply/BAT0/status
-> > Unknown
-> >
-> > Mate shows it as "laptop battery is fully charged".
-> >
-> >> Thinkpad X60.
-> 
-> Please try to revert commits fa93854f7a7e..a20136a67a99 from
-> linux-next and see if that helps.
+And now, I see that MATE should be improved.
+
+But what I also see is that kernel is changing its interface in a way
+that (while making sense) breaks existing application. And we don't
+break existing applications.
+
+[Now... maybe if the fix for the application is available for long
+long time and noone is really looking and everyone already has new
+application version, maybe ... But pull request for MATE is 9 days
+old, and not even merged. So there is no way this is suitable for
+4.17.]
+
+								Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--IJpNTDwzlM2Ie8A6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqnB2cACgkQMOfwapXb+vJNjgCgt2WRQHWFzZise9vYRi6ryIvr
+/a4AoLyqSOQ/14n0JmioxEC265RZ40RT
+=ak1a
+-----END PGP SIGNATURE-----
+
+--IJpNTDwzlM2Ie8A6--
