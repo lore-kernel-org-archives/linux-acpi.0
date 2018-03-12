@@ -1,7 +1,8 @@
 From: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/5] edac: Add new memory type for non-volatile DIMMs
-Date: Mon, 12 Mar 2018 11:24:27 -0700
-Message-ID: <20180312182430.10335-3-tony.luck@intel.com>
+Subject: [PATCH 3/5] acpi,
+ nfit: Add function to look up nvdimm device and provide SMBIOS handle
+Date: Mon, 12 Mar 2018 11:24:28 -0700
+Message-ID: <20180312182430.10335-4-tony.luck@intel.com>
 References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
  <20180312182430.10335-1-tony.luck@intel.com>
 Mime-Version: 1.0
@@ -22,56 +23,88 @@ To: Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>
 Cc: Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-There are now non-volatile versions of DIMMs. Add a new entry to
-"enum mem_type" and a new string in edac_mem_types[].
+EDAC driver needs to look up attributes of NVDIMMs provided in SMBIOS.
 
+Provide a function that looks up an acpi_nfit_memory_map from a device
+handle (node/socket/mc/channel/dimm) and returns the SMBIOS handle.
+Also pass back the "flags" so we can see if the NVDIMM is OK.
+
+Acked-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/edac/edac_mc.c | 3 ++-
- include/linux/edac.h   | 3 +++
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c | 27 +++++++++++++++++++++++++++
+ include/acpi/nfit.h      | 18 ++++++++++++++++++
+ 2 files changed, 45 insertions(+)
+ create mode 100644 include/acpi/nfit.h
 
-diff --git a/drivers/edac/edac_mc.c b/drivers/edac/edac_mc.c
-index 1f61b736e075..3bb82e511eca 100644
---- a/drivers/edac/edac_mc.c
-+++ b/drivers/edac/edac_mc.c
-@@ -214,7 +214,8 @@ const char * const edac_mem_types[] = {
- 	[MEM_RDDR3]	= "Registered-DDR3",
- 	[MEM_LRDDR3]	= "Load-Reduced-DDR3-RAM",
- 	[MEM_DDR4]	= "Unbuffered-DDR4",
--	[MEM_RDDR4]	= "Registered-DDR4"
-+	[MEM_RDDR4]	= "Registered-DDR4",
-+	[MEM_NVDIMM]	= "Non-volatile-RAM",
- };
- EXPORT_SYMBOL_GPL(edac_mem_types);
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bbe48ad20886..4d6eeb1793e6 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -23,6 +23,7 @@
+ #include <linux/io.h>
+ #include <linux/nd.h>
+ #include <asm/cacheflush.h>
++#include <acpi/nfit.h>
+ #include "nfit.h"
  
-diff --git a/include/linux/edac.h b/include/linux/edac.h
-index cd75c173fd00..bffb97828ed6 100644
---- a/include/linux/edac.h
-+++ b/include/linux/edac.h
-@@ -186,6 +186,7 @@ static inline char *mc_event_error_type(const unsigned int err_type)
-  * @MEM_RDDR4:		Registered DDR4 RAM
-  *			This is a variant of the DDR4 memories.
-  * @MEM_LRDDR4:		Load-Reduced DDR4 memory.
-+ * @MEM_NVDIMM:		Non-volatile RAM
-  */
- enum mem_type {
- 	MEM_EMPTY = 0,
-@@ -209,6 +210,7 @@ enum mem_type {
- 	MEM_DDR4,
- 	MEM_RDDR4,
- 	MEM_LRDDR4,
-+	MEM_NVDIMM,
- };
+ /*
+@@ -690,6 +691,32 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
+ }
  
- #define MEM_FLAG_EMPTY		BIT(MEM_EMPTY)
-@@ -231,6 +233,7 @@ enum mem_type {
- #define MEM_FLAG_DDR4           BIT(MEM_DDR4)
- #define MEM_FLAG_RDDR4          BIT(MEM_RDDR4)
- #define MEM_FLAG_LRDDR4         BIT(MEM_LRDDR4)
-+#define MEM_FLAG_NVDIMM         BIT(MEM_NVDIMM)
- 
- /**
-  * enum edac-type - Error Detection and Correction capabilities and mode
++int nfit_get_smbios_id(u32 device_handle, u16 *flags)
++{
++	struct acpi_nfit_memory_map *memdev;
++	struct acpi_nfit_desc *acpi_desc;
++	struct nfit_mem *nfit_mem;
++
++	mutex_lock(&acpi_desc_lock);
++	list_for_each_entry(acpi_desc, &acpi_descs, list) {
++		mutex_lock(&acpi_desc->init_mutex);
++		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list) {
++			memdev = __to_nfit_memdev(nfit_mem);
++			if (memdev->device_handle == device_handle) {
++				mutex_unlock(&acpi_desc->init_mutex);
++				mutex_unlock(&acpi_desc_lock);
++				*flags = memdev->flags;
++				return memdev->physical_id;
++			}
++		}
++		mutex_unlock(&acpi_desc->init_mutex);
++	}
++	mutex_unlock(&acpi_desc_lock);
++
++	return -ENODEV;
++}
++EXPORT_SYMBOL_GPL(nfit_get_smbios_id);
++
+ /*
+  * An implementation may provide a truncated control region if no block windows
+  * are defined.
+diff --git a/include/acpi/nfit.h b/include/acpi/nfit.h
+new file mode 100644
+index 000000000000..86ed07c1200d
+--- /dev/null
++++ b/include/acpi/nfit.h
+@@ -0,0 +1,18 @@
++/*
++ * SPDX-License-Identifier: GPL-2.0
++ * Copyright (C) 2018 Intel Corporation
++ */
++
++#ifndef __ACPI_NFIT_H
++#define __ACPI_NFIT_H
++
++#if IS_ENABLED(CONFIG_ACPI_NFIT)
++int nfit_get_smbios_id(u32 device_handle, u16 *flags);
++#else
++static inline int nfit_get_smbios_id(u32 device_handle, u16 *flags)
++{
++	return -EOPNOTSUPP;
++}
++#endif
++
++#endif /* __ACPI_NFIT_H */
 -- 
 2.14.1
