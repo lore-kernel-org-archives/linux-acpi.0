@@ -1,8 +1,8 @@
 From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p@gmail.com>
 Subject: Re: linux-next on thinkpad x60: full battery is indicated as battery
  error in mate
-Date: Tue, 13 Mar 2018 00:39:05 +0100
-Message-ID: <20180312233905.ulb4zrr7dphy2l3i@thinkpad>
+Date: Tue, 13 Mar 2018 01:51:03 +0100
+Message-ID: <20180313005103.brhhrxlatxfkdw7p@thinkpad>
 References: <20180312194715.GA3992@amd>
  <20180312194944.GA3979@amd>
  <CAJZ5v0gWd7OCy+P41CFWJ1E9Tzw++Ok=YmjQwLk+iSZutBzphA@mail.gmail.com>
@@ -50,28 +50,6 @@ On Tue, Mar 13, 2018 at 12:18:47AM +0100, Pavel Machek wrote:
 > > > application version, maybe ... But pull request for MATE is 9 days
 > > > old, and not even merged. So there is no way this is suitable for
 > > > 4.17.]
-
-It's not a bug in the kernel, it's a very subtle cosmetic bug in MATE.
-If you can, please test that MATE patch and report back to Github
-if it works, as I wrote that patch and they are waiting for someone with
-a ThinkPad to test the patch. If it works, it will get merged and
-everyone will be happy.
-
-This is far from "breaking applications", it's just a cosmetic bug with
-a single icon in a single application that has a simple fix.
-
-The upstream underlying UPower system reports it properly, as
-UP_DEVICE_STATE_PENDING_CHARGE, it's just that the MATE/GNOME developers did
-not handle that scenario due to poor testing and use case analysis, even
-when that state is in the UpDeviceState enumeration.
-
-See:
-https://upower.freedesktop.org/docs/UPower-up-types.html#UpDeviceState
-
-UPower correctly returns UP_DEVICE_STATE_PENDING_CHARGE, its just that
-the MATE Power Manager discards that and assumes
-UP_DEVICE_STATE_UNKNOWN.
-
 > > 
 > > Right.
 > > 
@@ -80,20 +58,17 @@ UP_DEVICE_STATE_UNKNOWN.
 > > packages.
 > 
 > Yes please.
-
-No. See below.
-
 > 
 > Note that only 91eea70e5e5ce12eb1c7cd922e561fab43e201bd should break
 > anything, the others should be safe AFAICT?
-
-Again, nothing is broken here, the kernel is *currently* broken as it
-shows that the battery state is "Unknown" and MATE assumes a broken
-kernel and returns a simple charging icon.
-
 > 
 > 								Pavel
 > 
+
+Actually there is a bug in UPower itself, and that reflects the status
+icon being broken in almost all desktop environments. I will work on
+fixing UPower in the following days. Disregard my previous comment.
+
 > -- 
 > (english) http://www.livejournal.com/~pavelmachek
 > (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
