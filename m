@@ -1,89 +1,74 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v16 0/9] LPC: legacy ISA I/O support
-Date: Tue, 13 Mar 2018 10:42:22 +0000
-Message-ID: <fb457950-b0d7-0d77-02c5-f9531ea71d90@huawei.com>
-References: <1520333268-82754-1-git-send-email-john.garry@huawei.com>
- <1520335317.10722.416.camel@linux.intel.com>
- <b4459d98-ebd4-7b13-07ec-613845579558@huawei.com>
- <CAJZ5v0gnf6rDYtKLBNfKjC=g3W=2XUed_R=AO+GeGYuubP_zWw@mail.gmail.com>
- <3ef757ff-8430-017f-59d3-ff67f49f5a80@huawei.com>
- <CAJZ5v0jTJ-LwyPUO7mbS47KyZ35pZeBfqkjxqubZjEGC=OJ82Q@mail.gmail.com>
+From: "Luck, Tony" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/5] EDAC, skx_edac: Detect non-volatile DIMMs
+Date: Tue, 13 Mar 2018 08:59:56 -0700
+Message-ID: <20180313155956.zapcx3l5bb72w4yz@agluck-desk>
+References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
+ <20180312182430.10335-1-tony.luck@intel.com>
+ <20180312182430.10335-6-tony.luck@intel.com>
+ <20180313105901.0f18d027@endymion>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jTJ-LwyPUO7mbS47KyZ35pZeBfqkjxqubZjEGC=OJ82Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Rob Herring <robh@kernel.org>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>Linux
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180313105901.0f18d027@endymion>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 13/03/2018 10:22, Rafael J. Wysocki wrote:
-> On Tue, Mar 6, 2018 at 5:22 PM, John Garry <john.garry@huawei.com> wrote:
->>>>>>
->>>>>> Based on this patch-set, all the I/O accesses to Hip06/Hip07 LPC
->>>>>> peripherals can
->>>>>> be supported without any changes on the existing ipmi-si driver.
->>>>>>
->>>>>> The whole patchset has been tested on Hip07 D05 board both using DTB
->>>>>> and ACPI.
->>>>>>
->>>>>
->>>>>> V15 thread here: https://lkml.org/lkml/2018/2/26/584
->>>>>
->>>>>
->>>>>
->>>>> Thanks for an update.
->>>>> Though I answered to previous thread.
->>>>>
->>>>> Summary: I'm fine with the series as long as maintainers are fine
->>>>> (Rafael et al.). On personal side I think that the handler approach is
->>>>> better. Details are in v15 thread.
->>>>
->>>>
->>>>
->>>> Hi Andy,
->>>>
->>>> Thanks for your input and continued support. As I mentioned in reply in
->>>> v15,
->>>> the handler support would (or has) faced issues. And Rafael seems fine
->>>> with
->>>> deferring the probe to the LLDD in Patch #7/9
->>>
->>>
->>
->> Hi Rafael,
->>
->>> Well, the only sort-of concern is that these devices may not be
->>> "serial bus slaves" in general, so the naming is slightly confusing.
->>>
->>
->> Right, the name.
->>
->> The key point is that we model the bus the same as other serial buses like
->> I2C or SPI, so require the same treatment from the ACPI scan.
->>
->> Would you prefer acpi_is_serial_bus_slave() and
->> acpi_device_flags.serial_bus_slave symbols be modified also?
->
-> Yeah, preferably.
->
-> You can rename them to acpi_device_enumeration_by_parent() and
-> acpi_device_flags.enumeration_by_parent, respectively, as far as I'm
-> concerned.
->
-> At least the names would match the purpose then. :-)
->
-> And please update the comment in acpi_default_enumeration() while at it.
+On Tue, Mar 13, 2018 at 10:59:01AM +0100, Jean Delvare wrote:
+> > +	edac_dbg(0, "mc#%d: channel %d, dimm %d, %llu Mb (%u pages)\n",
+> 
+> I did not notice on previous review, but I think "b" in general means
+> bit not byte, so "MB" would be better.
 
-Hi Rafael,
+Heh! We've been cut & pasting that line from EDAC drivers since the i7core_edac.c
+I think the origin is in 2.6.35. So you are far from the only person to not
+notice it in a review :-)
 
-That should be ok. I can just add this mentioned modification to my 
-series and send for review.
+> 
+> > +		 imc->mc, chan, dimmno, size >> 20, dimm->nr_pages);
+> > +
+> > +	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+> > +		 imc->src_id, imc->lmc, chan, dimmno);
+> > +
+> > +	return 1;
+> > +}
+> 
+> Now this function always return 1, that doesn't make a lot of sense?
 
-All the best,
-John
+I could fix the return to be:
 
->
-> .
->
+
+diff --git a/drivers/edac/skx_edac.c b/drivers/edac/skx_edac.c
+index 84c18bb1e0cd..1a66e145c0bd 100644
+--- a/drivers/edac/skx_edac.c
++++ b/drivers/edac/skx_edac.c
+@@ -429,7 +429,7 @@ static int get_nvdimm_info(struct dimm_info *dimm, struct skx_imc *imc,
+ 	snprintf(dimm->label, sizeof(dimm->label), "CPU_SrcID#%u_MC#%u_Chan#%u_DIMM#%u",
+ 		 imc->src_id, imc->lmc, chan, dimmno);
+ 
+-	return 1;
++	return (size == 0 || size == ~0ull) ? 0 : 1;
+ }
+ 
+ #define SKX_GET_MTMTR(dev, reg) \
+
+
+
+> Other than these details, the dmi-related code looks good to me now.
+> 
+> Reviewed-by: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org> # for DMI
+
+Thanks.  Boris ... ready to go now? Or do you have some other comments?
+
+-Tony
