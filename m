@@ -1,83 +1,124 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: linux-next on thinkpad x60: full battery is indicated as battery
- error in mate
-Date: Tue, 13 Mar 2018 10:15:39 +0100
-Message-ID: <CAJZ5v0jjVAj_B6ex37E9Br+KbRkyOzYwwkX9Rh10=R0Mpdwc+Q@mail.gmail.com>
-References: <20180312194715.GA3992@amd> <20180312194944.GA3979@amd>
- <CAJZ5v0gWd7OCy+P41CFWJ1E9Tzw++Ok=YmjQwLk+iSZutBzphA@mail.gmail.com>
- <20180312223521.vzccevf6z7ik5ysf@thinkpad> <20180312230407.GA7612@amd>
- <CAJZ5v0irEfMxURr2c8VZ=SZhsW+MWxRd4OwDH5bS6P=R3a0REw@mail.gmail.com>
- <20180312231847.GB7612@amd> <20180313005103.brhhrxlatxfkdw7p@thinkpad> <CAJZ5v0i6sEcDQ8fCgPSdt6MpLm5BCKY4Aam6zxQi-s0WY9Qq_A@mail.gmail.com>
+From: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+Subject: Re: [PATCH 4/5] firmware: dmi: Add function to look up a handle and
+ return DIMM size
+Date: Tue, 13 Mar 2018 10:43:27 +0100
+Message-ID: <20180313104327.7a56046a@endymion>
+References: <CAPcyv4iHr9nUAS0SiFeqqDkU8NXZ_x=rkD3YS010Dy-nbHJXmA@mail.gmail.com>
+ <20180312182430.10335-1-tony.luck@intel.com>
+ <20180312182430.10335-5-tony.luck@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0i6sEcDQ8fCgPSdt6MpLm5BCKY4Aam6zxQi-s0WY9Qq_A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Ognjen_Gali=C4=87?= <smclt30p@gmail.com>, Pavel Machek <pavel@ucw.cz>
-Cc: kernel list <linux-kernel@vger.kernel.org>, ACPI mailing list <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sebastian Reichel <sre@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20180312182430.10335-5-tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mauro Carvalho Chehab <mchehab-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Qiuxu Zhuo <qiuxu.zhuo-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Aristeu Rozanski <aris-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Borislav Petkov <bp-l3A5Bk7waGM@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Mar 13, 2018 at 10:14 AM, Rafael J. Wysocki <rafael@kernel.org> wro=
-te:
-> On Tue, Mar 13, 2018 at 1:51 AM, Ognjen Gali=C4=87 <smclt30p@gmail.com> w=
-rote:
->> On Tue, Mar 13, 2018 at 12:18:47AM +0100, Pavel Machek wrote:
->>> Hi!
->>>
->>> > >> > >> Fully charged
->>> > >> > >> battery shows as empty battery with red "x" in Mate desktop. =
-After
->>> > >> > >> reboot to recent mainline problem goes away. Tooltip says "ba=
-ttery
->>> > >> > >> waiting to charge".
->>> > >> > >>
->>> > >>
->>> > >> For the MATE bug see:
->>> > >> https://github.com/mate-desktop/mate-power-manager/pull/251
->>> > >>
->>> > >> The problem is in the new composite battery system in UPower, it
->>> > >> "merges" two external batteries into a single one for reporting. T=
-hat
->>> > >> battery does not understand "Not Charging" inside the MATE Power
->>> > >> Manager. The above patch fixes that in MATE.
->>> > >
->>> > > Ok, so problem is 91eea70e5e5ce12eb1c7cd922e561fab43e201bd.
->>> > >
->>> > > And now, I see that MATE should be improved.
->>> > >
->>> > > But what I also see is that kernel is changing its interface in a w=
-ay
->>> > > that (while making sense) breaks existing application. And we don't
->>> > > break existing applications.
->>> > >
->>> > > [Now... maybe if the fix for the application is available for long
->>> > > long time and noone is really looking and everyone already has new
->>> > > application version, maybe ... But pull request for MATE is 9 days
->>> > > old, and not even merged. So there is no way this is suitable for
->>> > > 4.17.]
->>> >
->>> > Right.
->>> >
->>> > This basically means that we will have to defer the battery changes
->>> > until user space is ready and not just upstream, but also in distro
->>> > packages.
->>>
->>> Yes please.
->>>
->>> Note that only 91eea70e5e5ce12eb1c7cd922e561fab43e201bd should break
->>> anything, the others should be safe AFAICT?
->>>
->>>                                                               Pavel
->>>
->>
->> Actually there is a bug in UPower itself, and that reflects the status
->> icon being broken in almost all desktop environments. I will work on
->> fixing UPower in the following days. Disregard my previous comment.
->
-> I have reverted commit 91eea70e5e5ce12e for the time being.
->
-> Of course, it can be applied again after all of the bus triggered by
-> it have been fixed and the fixes have gone to users.
+On Mon, 12 Mar 2018 11:24:29 -0700, Tony Luck wrote:
+> When we first scan the SMBIOS table, save the size of the DIMM.
+> 
+> Provide a function for other code (EDAC driver) to look up the size
+> of a DIMM from its SMBIOS handle.
+> 
+> Signed-off-by: Tony Luck <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/firmware/dmi_scan.c | 31 +++++++++++++++++++++++++++++++
+>  include/linux/dmi.h         |  2 ++
+>  2 files changed, 33 insertions(+)
+> 
+> diff --git a/drivers/firmware/dmi_scan.c b/drivers/firmware/dmi_scan.c
+> index e763e1484331..35c6c74c9304 100644
+> --- a/drivers/firmware/dmi_scan.c
+> +++ b/drivers/firmware/dmi_scan.c
+> @@ -32,6 +32,7 @@ static char dmi_ids_string[128] __initdata;
+>  static struct dmi_memdev_info {
+>  	const char *device;
+>  	const char *bank;
+> +	u64 size;		/* bytes */
+>  	u16 handle;
+>  } *dmi_memdev;
+>  static int dmi_memdev_nr;
+> @@ -386,6 +387,8 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  {
+>  	const char *d = (const char *)dm;
+>  	static int nr;
+> +	u64 bytes;
+> +	u16 size;
+>  
+>  	if (dm->type != DMI_ENTRY_MEM_DEVICE || dm->length < 0x12)
+>  		return;
+> @@ -396,6 +399,20 @@ static void __init save_mem_devices(const struct dmi_header *dm, void *v)
+>  	dmi_memdev[nr].handle = get_unaligned(&dm->handle);
+>  	dmi_memdev[nr].device = dmi_string(dm, d[0x10]);
+>  	dmi_memdev[nr].bank = dmi_string(dm, d[0x11]);
+> +
+> +	size = get_unaligned((u16 *)&d[0xC]);
+> +	if (size == 0)
+> +		bytes = 0;
+> +	else if (size == 0xffff)
+> +		bytes = ~0ull;
+> +	else if (size & 0x8000)
+> +		bytes = (u64)(size & 0x7fff) << 10;
+> +	else if (size != 0x7fff)
+> +		bytes = (u64)size << 20;
+> +	else
+> +		bytes = (u64)get_unaligned((u32 *)&d[0x1C]) << 20;
+> +
+> +	dmi_memdev[nr].size = bytes;
+>  	nr++;
+>  }
+>  
+> @@ -1065,3 +1082,17 @@ void dmi_memdev_name(u16 handle, const char **bank, const char **device)
+>  	}
+>  }
+>  EXPORT_SYMBOL_GPL(dmi_memdev_name);
+> +
+> +u64 dmi_memdev_size(u16 handle)
+> +{
+> +	int n;
+> +
+> +	if (dmi_memdev) {
+> +		for (n = 0; n < dmi_memdev_nr; n++) {
+> +			if (handle == dmi_memdev[n].handle)
+> +				return dmi_memdev[n].size;
+> +		}
+> +	}
+> +	return ~0ull;
+> +}
+> +EXPORT_SYMBOL_GPL(dmi_memdev_size);
+> diff --git a/include/linux/dmi.h b/include/linux/dmi.h
+> index 46e151172d95..7f5929123b69 100644
+> --- a/include/linux/dmi.h
+> +++ b/include/linux/dmi.h
+> @@ -113,6 +113,7 @@ extern int dmi_walk(void (*decode)(const struct dmi_header *, void *),
+>  	void *private_data);
+>  extern bool dmi_match(enum dmi_field f, const char *str);
+>  extern void dmi_memdev_name(u16 handle, const char **bank, const char **device);
+> +extern u64 dmi_memdev_size(u16 handle);
+>  
+>  #else
+>  
+> @@ -142,6 +143,7 @@ static inline bool dmi_match(enum dmi_field f, const char *str)
+>  	{ return false; }
+>  static inline void dmi_memdev_name(u16 handle, const char **bank,
+>  		const char **device) { }
+> +static inline u64 dmi_memdev_size(u16 handle) { return ~0ul; }
+>  static inline const struct dmi_system_id *
+>  	dmi_first_match(const struct dmi_system_id *list) { return NULL; }
+>  
 
-s/bus/bugs/ (obviously)
+Reviewed-by: Jean Delvare <jdelvare-l3A5Bk7waGM@public.gmane.org>
+
+-- 
+Jean Delvare
+SUSE L3 Support
