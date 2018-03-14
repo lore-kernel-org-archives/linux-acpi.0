@@ -1,67 +1,153 @@
-From: Daniel Kurtz <djkurtz@chromium.org>
-Subject: [PATCH v2 2/3] ACPI: SPCR: Add support for AMD CT/SZ
-Date: Wed, 14 Mar 2018 15:44:37 -0600
-Message-ID: <20180314214439.27806-3-djkurtz@chromium.org>
-References: <20180314214439.27806-1-djkurtz@chromium.org>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH v2 3/3] serial: core: Allow skipping old serial port initialization
+Date: Wed, 14 Mar 2018 15:58:18 -0700
+Message-ID: <CAGXu5jK4QdG83FGAx94GAmU=tpuhN1dypTh5n_Pes8n7shEZuw@mail.gmail.com>
+References: <20180314214439.27806-1-djkurtz@chromium.org> <20180314214439.27806-4-djkurtz@chromium.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180314214439.27806-1-djkurtz@chromium.org>
+In-Reply-To: <20180314214439.27806-4-djkurtz@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: adurbin@chromium.org, linux-kernel@vger.kernel.org, Daniel Kurtz <djkurtz@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: Daniel Kurtz <djkurtz@chromium.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Aaron Durbin <adurbin@chromium.org>, LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Slaby <jslaby@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Matthias Brugger <mbrugger@suse.com>, David Howells <dhowells@redhat.com>, Vignesh R <vigneshr@ti.com>, Sean Young <sean@mess.org>, Jeffy Chen <jeffy.chen@rock-chips.com>, Douglas Anderson <dianders@chromium.org>, Matt Redfearn <matt.redfearn@mips.com>, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
-earlycon setup handler to configure its input clock in order to compute
-baud rate divisor registers.
-Detect them by examining the OEMID field in the SPCR header, and pass
-then pass uart type amdcz to earlycon.
+On Wed, Mar 14, 2018 at 2:44 PM, Daniel Kurtz <djkurtz@chromium.org> wrote:
+> The old_serial_port global array in 8250_core is supposed to hold an entry
+> for each serial port on the system that cannot be discovered via a
+> standard enumeration mechanism (aka ACPI/PCI/DTS).  The array is populated
+> at compile-time from the value specified in the SERIAL_PORT_DFNS macro.
+> This macro is defined in arch/serial.h.
+>
+> For x86, this macro is currently unconditionally initialized to supply
+> four ioport UARTs (0x3F8, 0x2F8, 0x3E8, 0x2E8).
+>
+> However, not all x86 CPUs have these four ioport UARTs.  For example, the
+> UARTs on AMD Carrizo and later are separate memory mapped Designware IP
+> blocks.
+>
+> Fairly early in boot the console_initcall univ8250_console_init iterates
+> over this array and installs these old UARTs into the global array
+> serial8250_ports.  Further, it attempts to register them for use as
+> the console.  In other words, if, for example, the kernel commandline has
+> console=ttyS0, the console will be switched over to one of these
+> non-existent UARTs.  Only later, when the real UART drivers are probed
+> and their devices are instantiated will the console switch back over to
+> the proper UART.
+>
+> This is noticeable when using earlycon, since part of the serial console
+> log will appear to disappear (when the bogus old takes over) and then
+> re-appear (when the real UART finally gets registered for the console).
+>
+> The problem is even more noticable when *not* using earlycon, since in
+> this case the entire console output is missing, having been incorrectly
+> played back to the non-existing serial port.
+>
+> Create a global variable to allow skipping old serial port initialization
+> and wire it up to the AMDCZ ACPI SPCR quirk and the special amdcz earlycon
+> setup handler.
+>
+> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> ---
+> Changes since v1:
+>  * Rename variable to serial8250_skip_old_ports
+>  * Also set variable in acpi/spcr. to support no-earlycon case.
+>
+>  drivers/acpi/spcr.c                  | 2 ++
+>  drivers/tty/serial/8250/8250_core.c  | 6 ++++++
+>  drivers/tty/serial/8250/8250_early.c | 1 +
+>  include/linux/serial_8250.h          | 6 ++++++
+>  4 files changed, 15 insertions(+)
+>
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> index 52d840d0e05b..f59591283410 100644
+> --- a/drivers/acpi/spcr.c
+> +++ b/drivers/acpi/spcr.c
+> @@ -14,6 +14,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/console.h>
+>  #include <linux/kernel.h>
+> +#include <linux/serial_8250.h>
+>  #include <linux/serial_core.h>
+>
+>  /*
+> @@ -208,6 +209,7 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+>         }
+>
+>         if (amdcz_present(table)) {
+> +               serial8250_skip_old_ports = true;
+>                 if (enable_earlycon)
+>                         uart = "amdcz";
+>         }
 
-Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
----
- drivers/acpi/spcr.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Sorry for being dense. What tree is this against? I can't find mention
+of amdcz in Linus's tree nor linux-next.
 
-diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-index 9d52743080a4..52d840d0e05b 100644
---- a/drivers/acpi/spcr.c
-+++ b/drivers/acpi/spcr.c
-@@ -73,6 +73,24 @@ static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
- 	return xgene_8250;
- }
- 
-+/*
-+ * AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
-+ * earlycon setup handler to configure its input clock in order to compute
-+ * baud rate divisor registers.
-+ * Detect them by examining the OEM fields in the SPCR header.
-+ */
-+static bool amdcz_present(struct acpi_table_spcr *tb)
-+{
-+	if (memcmp(tb->header.oem_id, "AMDCZ ", ACPI_OEM_ID_SIZE))
-+		return false;
-+
-+	if (memcmp(tb->header.oem_table_id, "AMDCZ   ",
-+		    ACPI_OEM_TABLE_ID_SIZE))
-+		return false;
-+
-+	return true;
-+}
-+
- /**
-  * acpi_parse_spcr() - parse ACPI SPCR table and add preferred console
-  *
-@@ -189,6 +207,11 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
- 			uart = "qdf2400_e44";
- 	}
- 
-+	if (amdcz_present(table)) {
-+		if (enable_earlycon)
-+			uart = "amdcz";
-+	}
-+
- 	if (xgene_8250_erratum_present(table)) {
- 		iotype = "mmio32";
- 
+> diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+> index 9342fc2ee7df..a04da392a251 100644
+> --- a/drivers/tty/serial/8250/8250_core.c
+> +++ b/drivers/tty/serial/8250/8250_core.c
+> @@ -66,6 +66,9 @@ static unsigned int skip_txen_test; /* force skip of txen test at init time */
+>  #define SERIAL_PORT_DFNS
+>  #endif
+>
+> +bool serial8250_skip_old_ports;
+> +EXPORT_SYMBOL(serial8250_skip_old_ports);
+> +
+>  static const struct old_serial_port old_serial_port[] = {
+>         SERIAL_PORT_DFNS /* defined in asm/serial.h */
+>  };
+> @@ -537,6 +540,9 @@ static void __init serial8250_isa_init_ports(void)
+>         if (share_irqs)
+>                 irqflag = IRQF_SHARED;
+>
+> +       if (serial8250_skip_old_ports)
+> +               return;
+> +
+>         for (i = 0, up = serial8250_ports;
+>              i < ARRAY_SIZE(old_serial_port) && i < nr_uarts;
+>              i++, up++) {
+> diff --git a/drivers/tty/serial/8250/8250_early.c b/drivers/tty/serial/8250/8250_early.c
+> index c6bf971a6038..288d2be82990 100644
+> --- a/drivers/tty/serial/8250/8250_early.c
+> +++ b/drivers/tty/serial/8250/8250_early.c
+> @@ -202,6 +202,7 @@ static int __init early_amdcz_setup(struct earlycon_device *dev,
+>  {
+>         struct uart_port *port = &dev->port;
+>
+> +       serial8250_skip_old_ports = true;
+>         port->uartclk = 48000000;
+>
+>         return early_serial8250_setup(dev, opt);
+> diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+> index a27ef5f56431..02570edaddd8 100644
+> --- a/include/linux/serial_8250.h
+> +++ b/include/linux/serial_8250.h
+> @@ -136,6 +136,12 @@ struct uart_8250_port {
+>         struct uart_8250_em485 *em485;
+>  };
+>
+> +#ifdef CONFIG_SERIAL_8250
+> +extern bool serial8250_skip_old_ports;
+> +#else
+> +static const bool serial8250_skip_old_ports;
+> +#endif
+
+Where does serial8250_skip_old_ports get used where CONFIG_SERIAL_8250
+isn't defined? (i.e. why is the #ifdef needed here?)
+
+> +
+>  static inline struct uart_8250_port *up_to_u8250p(struct uart_port *up)
+>  {
+>         return container_of(up, struct uart_8250_port, port);
+> --
+> 2.16.2.804.g6dcf76e118-goog
+>
+
+Otherwise, sure, sounds good. :)
+
+-Kees
+
 -- 
-2.16.2.804.g6dcf76e118-goog
+Kees Cook
+Pixel Security
