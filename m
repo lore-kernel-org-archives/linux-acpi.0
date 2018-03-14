@@ -1,69 +1,79 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [RFC PATCH] ACPI / processor: Get accurate possible CPU count
-Date: Wed, 14 Mar 2018 18:28:47 +0800
-Message-ID: <20180314102847.30459-1-douly.fnst@cn.fujitsu.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 2/3] ACPI: SPCR: Add support for AMD CT/SZ
+Date: Wed, 14 Mar 2018 12:36:42 +0200
+Message-ID: <CAHp75Vdi_X9DHVMAM07eAhbPGJ4R3HrKpPVg0JK2vKjTzs0D9g@mail.gmail.com>
+References: <20180314003655.12141-1-djkurtz@chromium.org> <20180314003655.12141-3-djkurtz@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180314003655.12141-3-djkurtz@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tglx@linutronix.de, rafael@kernel.org, dedekind1@gmail.com, ming.lei@redhat.com, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: Daniel Kurtz <djkurtz@chromium.org>
+Cc: Aaron Durbin <adurbin@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Rafael J told me in order for the ACPI-based physical CPU hotplug to work,
-there have to be objects in the ACPI namespace corresponding to all of the
-processors in question. If they are not present, there is no way to signal
-insertion and eject the processors safely.
+On Wed, Mar 14, 2018 at 2:36 AM, Daniel Kurtz <djkurtz@chromium.org> wrote:
+> AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
+> earlycon setup handler to configure its input clock in order to compute
+> baud rate divisor registers.
+> Detect them by examining the OEMID field in the SPCR header, and pass
+> then pass uart type amdcz to earlycon.
 
-But, Kernel calculates the possible CPU count from the number of Local APIC
-entries in ACPI MADT. It doesn't consider with the ACPI namespace and
-reports unrealistically high numbers.
+Thanks, this is what I meant.
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-Depth-first search the namespace tree, check and collect the correct CPUs
-and update the possible map
+> Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+> ---
+>  drivers/acpi/spcr.c | 23 +++++++++++++++++++++++
+>  1 file changed, 23 insertions(+)
+>
+> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+> index 9d52743080a4..52d840d0e05b 100644
+> --- a/drivers/acpi/spcr.c
+> +++ b/drivers/acpi/spcr.c
+> @@ -73,6 +73,24 @@ static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+>         return xgene_8250;
+>  }
+>
+> +/*
+> + * AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
+> + * earlycon setup handler to configure its input clock in order to compute
+> + * baud rate divisor registers.
+> + * Detect them by examining the OEM fields in the SPCR header.
+> + */
+> +static bool amdcz_present(struct acpi_table_spcr *tb)
+> +{
+> +       if (memcmp(tb->header.oem_id, "AMDCZ ", ACPI_OEM_ID_SIZE))
+> +               return false;
+> +
+> +       if (memcmp(tb->header.oem_table_id, "AMDCZ   ",
+> +                   ACPI_OEM_TABLE_ID_SIZE))
+> +               return false;
+> +
+> +       return true;
+> +}
+> +
+>  /**
+>   * acpi_parse_spcr() - parse ACPI SPCR table and add preferred console
+>   *
+> @@ -189,6 +207,11 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+>                         uart = "qdf2400_e44";
+>         }
+>
+> +       if (amdcz_present(table)) {
+> +               if (enable_earlycon)
+> +                       uart = "amdcz";
+> +       }
+> +
+>         if (xgene_8250_erratum_present(table)) {
+>                 iotype = "mmio32";
+>
+> --
+> 2.16.2.804.g6dcf76e118-goog
+>
 
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c | 20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 449d86d39965..ca4fa95e0515 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -671,6 +671,23 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
- 
- }
- 
-+static void __init acpi_update_possible_map(void)
-+{
-+	unsigned int cpu, nr = 0;
-+
-+	if (nr_cpu_ids <= nr_unique_ids)
-+		return;
-+
-+	for_each_possible_cpu(cpu) {
-+		if (nr >= nr_unique_ids)
-+			set_cpu_possible(cpu, false);
-+		nr++;
-+	}
-+
-+	nr_cpu_ids = nr_unique_ids;
-+	pr_info("Allowing %d possible CPUs\n", nr_cpu_ids);
-+}
-+
- static void __init acpi_processor_check_duplicates(void)
- {
- 	/* check the correctness for all processors in ACPI namespace */
-@@ -680,6 +697,9 @@ static void __init acpi_processor_check_duplicates(void)
- 						NULL, NULL, NULL);
- 	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID, acpi_processor_ids_walk,
- 						NULL, NULL);
-+
-+	/* make possible CPU count more realistic */
-+	acpi_update_possible_map();
- }
- 
- bool acpi_duplicate_processor_id(int proc_id)
+
 -- 
-2.14.3
+With Best Regards,
+Andy Shevchenko
