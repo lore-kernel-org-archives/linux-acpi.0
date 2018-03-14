@@ -1,50 +1,59 @@
-From: Morten Rasmussen <morten.rasmussen@arm.com>
-Subject: Re: [PATCH v7 13/13] arm64: topology: divorce MC scheduling domain
- from core_siblings
-Date: Wed, 14 Mar 2018 12:43:02 +0000
-Message-ID: <20180314124302.GL4589@e105550-lin.cambridge.arm.com>
-References: <20180228220619.6992-1-jeremy.linton@arm.com>
- <20180228220619.6992-14-jeremy.linton@arm.com>
- <20180301155216.GI4589@e105550-lin.cambridge.arm.com>
- <5d6bf4cf-2f6d-d123-f17f-d47d8e74c16c@arm.com>
- <20180306160721.GJ4589@e105550-lin.cambridge.arm.com>
- <8ac3567c-9fd8-4b0c-121c-287a027b5156@arm.com>
- <20180307130623.GK4589@e105550-lin.cambridge.arm.com>
- <d6497158-c58f-4fd4-4613-699fb2af7a61@gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH 07/37] iommu: Add a page fault handler
+Date: Wed, 14 Mar 2018 13:08:07 +0000
+Message-ID: <d855e893-0f3d-3106-eb75-ce01ad9ce663@arm.com>
+References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
+	<20180212183352.22730-8-jean-philippe.brucker@arm.com>
+	<20180308164035.000065c2@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d6497158-c58f-4fd4-4613-699fb2af7a61@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Brice Goglin <brice.goglin@gmail.com>
-Cc: Jeremy Linton <jeremy.linton@arm.com>, mark.rutland@arm.com, vkilari@codeaurora.org, lorenzo.pieralisi@arm.com, catalin.marinas@arm.com, tnowicki@caviumnetworks.com, gregkh@linuxfoundation.org, will.deacon@arm.com, dietmar.eggemann@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, ahs3@redhat.com, linux-acpi@vger.kernel.org, palmer@sifive.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, austinwc@codeaurora.org, linux-riscv@lists.infradead.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180308164035.000065c2-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rjw@rjwyso
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 08, 2018 at 09:41:17PM +0100, Brice Goglin wrote:
+Hi Jonathan,
+
+Thanks for reviewing
+
+On 08/03/18 15:40, Jonathan Cameron wrote:
+>> +/**
+>> + * iommu_fault_queue_unregister() - Unregister an IOMMU driver from the fault
+>> + * queue.
+>> + * @flush_notifier: same parameter as iommu_fault_queue_register
+>> + */
+>> +void iommu_fault_queue_unregister(struct notifier_block *flush_notifier)
+>> +{
+>> +	down_write(&iommu_fault_queue_sem);
+>> +	if (refcount_dec_and_test(&iommu_fault_queue_refs)) {
+>> +		destroy_workqueue(iommu_fault_queue);
+>> +		iommu_fault_queue = NULL;
+>> +	}
+>> +	up_write(&iommu_fault_queue_sem);
+>> +
+>> +	if (flush_notifier)
+>> +		blocking_notifier_chain_unregister(&iommu_fault_queue_flush_notifiers,
+>> +						   flush_notifier);
+> I would expect the ordering in queue_unregister to be the reverse of queue
+> register (to make it obvious there are no races).
 > 
-> > Is there a good reason for diverging instead of adjusting the
-> > core_sibling mask? On x86 the core_siblings mask is defined by the last
-> > level cache span so they don't have this issue. 
-> 
-> No. core_siblings is defined as the list of cores that have the same
-> physical_package_id (see the doc of sysfs topology files), and LLC can
-> be smaller than that.
-> Example with E5v3 with cluster-on-die (two L3 per package, core_siblings
-> is twice larger than L3 cpumap):
-> https://www.open-mpi.org/projects/hwloc/lstopo/images/2XeonE5v3.v1.11.png
-> On AMD EPYC, you even have up to 8 LLC per package.
+> That would put this last block at the start before potentially destroying
+> the work queue.  If I'm missing something then perhaps a comment to
+> explain why the ordering is not the obvious one?
 
-Right, I missed the fact that x86 reports a different cpumask for
-topology_core_cpumask() which defines the core_siblings exported through
-sysfs than the mask used to define MC level in the scheduler topology.
-The sysfs core_siblings is defined by the package_id, while the MC level
-is defined by the LLC.
+Sure, I'll fix the order, I don't think there was any good reason for it
 
-Thanks for pointing this out.
-
-On arm64 MC level and sysfs core_siblings are currently defined using
-the same mask, but we can't break sysfs, so using different masks is the
-only option.
-
-Morten 
+Thanks,
+Jean
