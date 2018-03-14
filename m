@@ -1,42 +1,133 @@
-From: John Garry <john.garry@huawei.com>
-Subject: [PATCH v17 02/10] PCI: Remove unused __weak attribute in pci_register_io_range()
-Date: Thu, 15 Mar 2018 02:15:51 +0800
-Message-ID: <1521051359-34473-3-git-send-email-john.garry@huawei.com>
-References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
+From: Daniel Kurtz <djkurtz@chromium.org>
+Subject: [PATCH v2 3/3] serial: core: Allow skipping old serial port initialization
+Date: Wed, 14 Mar 2018 15:44:38 -0600
+Message-ID: <20180314214439.27806-4-djkurtz@chromium.org>
+References: <20180314214439.27806-1-djkurtz@chromium.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
+In-Reply-To: <20180314214439.27806-1-djkurtz@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, andriy.shevchenko@linux.intel.com
-Cc: joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, frowand.list@gmail.com, agraf@suse.de
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: adurbin@chromium.org, linux-kernel@vger.kernel.org, Daniel Kurtz <djkurtz@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jiri Slaby <jslaby@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Matthias Brugger <mbrugger@suse.com>, Kees Cook <keescook@chromium.org>, David Howells <dhowells@redhat.com>, Vignesh R <vigneshr@ti.com>, Sean Young <sean@mess.org>, Jeffy Chen <jeffy.chen@rock-chips.com>, Douglas Anderson <dianders@chromium.org>, Matt Redfearn <matt.redfearn@mips.com>, Marc Gonzalez <marc_gonzalez@sigmadesigns.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:SERIAL DRIVERS" <linux-serial@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+The old_serial_port global array in 8250_core is supposed to hold an entry
+for each serial port on the system that cannot be discovered via a
+standard enumeration mechanism (aka ACPI/PCI/DTS).  The array is populated
+at compile-time from the value specified in the SERIAL_PORT_DFNS macro.
+This macro is defined in arch/serial.h.
 
-Currently pci_register_io_range() has only one definition;
-therefore there is no use of the __weak attribute.
+For x86, this macro is currently unconditionally initialized to supply
+four ioport UARTs (0x3F8, 0x2F8, 0x3E8, 0x2E8).
 
-Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Tested-by: dann frazier <dann.frazier@canonical.com>
+However, not all x86 CPUs have these four ioport UARTs.  For example, the
+UARTs on AMD Carrizo and later are separate memory mapped Designware IP
+blocks.
+
+Fairly early in boot the console_initcall univ8250_console_init iterates
+over this array and installs these old UARTs into the global array
+serial8250_ports.  Further, it attempts to register them for use as
+the console.  In other words, if, for example, the kernel commandline has
+console=ttyS0, the console will be switched over to one of these
+non-existent UARTs.  Only later, when the real UART drivers are probed
+and their devices are instantiated will the console switch back over to
+the proper UART.
+
+This is noticeable when using earlycon, since part of the serial console
+log will appear to disappear (when the bogus old takes over) and then
+re-appear (when the real UART finally gets registered for the console).
+
+The problem is even more noticable when *not* using earlycon, since in
+this case the entire console output is missing, having been incorrectly
+played back to the non-existing serial port.
+
+Create a global variable to allow skipping old serial port initialization
+and wire it up to the AMDCZ ACPI SPCR quirk and the special amdcz earlycon
+setup handler.
+
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
 ---
- drivers/pci/pci.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes since v1:
+ * Rename variable to serial8250_skip_old_ports
+ * Also set variable in acpi/spcr. to support no-earlycon case.
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index ae654e2..ff41a64 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3451,7 +3451,7 @@ struct io_range {
-  * Record the PCI IO range (expressed as CPU physical address + size).
-  * Return a negative value if an error has occured, zero otherwise
-  */
--int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-+int pci_register_io_range(phys_addr_t addr, resource_size_t size)
- {
- 	int err = 0;
+ drivers/acpi/spcr.c                  | 2 ++
+ drivers/tty/serial/8250/8250_core.c  | 6 ++++++
+ drivers/tty/serial/8250/8250_early.c | 1 +
+ include/linux/serial_8250.h          | 6 ++++++
+ 4 files changed, 15 insertions(+)
+
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 52d840d0e05b..f59591283410 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -14,6 +14,7 @@
+ #include <linux/acpi.h>
+ #include <linux/console.h>
+ #include <linux/kernel.h>
++#include <linux/serial_8250.h>
+ #include <linux/serial_core.h>
  
+ /*
+@@ -208,6 +209,7 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 	}
+ 
+ 	if (amdcz_present(table)) {
++		serial8250_skip_old_ports = true;
+ 		if (enable_earlycon)
+ 			uart = "amdcz";
+ 	}
+diff --git a/drivers/tty/serial/8250/8250_core.c b/drivers/tty/serial/8250/8250_core.c
+index 9342fc2ee7df..a04da392a251 100644
+--- a/drivers/tty/serial/8250/8250_core.c
++++ b/drivers/tty/serial/8250/8250_core.c
+@@ -66,6 +66,9 @@ static unsigned int skip_txen_test; /* force skip of txen test at init time */
+ #define SERIAL_PORT_DFNS
+ #endif
+ 
++bool serial8250_skip_old_ports;
++EXPORT_SYMBOL(serial8250_skip_old_ports);
++
+ static const struct old_serial_port old_serial_port[] = {
+ 	SERIAL_PORT_DFNS /* defined in asm/serial.h */
+ };
+@@ -537,6 +540,9 @@ static void __init serial8250_isa_init_ports(void)
+ 	if (share_irqs)
+ 		irqflag = IRQF_SHARED;
+ 
++	if (serial8250_skip_old_ports)
++		return;
++
+ 	for (i = 0, up = serial8250_ports;
+ 	     i < ARRAY_SIZE(old_serial_port) && i < nr_uarts;
+ 	     i++, up++) {
+diff --git a/drivers/tty/serial/8250/8250_early.c b/drivers/tty/serial/8250/8250_early.c
+index c6bf971a6038..288d2be82990 100644
+--- a/drivers/tty/serial/8250/8250_early.c
++++ b/drivers/tty/serial/8250/8250_early.c
+@@ -202,6 +202,7 @@ static int __init early_amdcz_setup(struct earlycon_device *dev,
+ {
+ 	struct uart_port *port = &dev->port;
+ 
++	serial8250_skip_old_ports = true;
+ 	port->uartclk = 48000000;
+ 
+ 	return early_serial8250_setup(dev, opt);
+diff --git a/include/linux/serial_8250.h b/include/linux/serial_8250.h
+index a27ef5f56431..02570edaddd8 100644
+--- a/include/linux/serial_8250.h
++++ b/include/linux/serial_8250.h
+@@ -136,6 +136,12 @@ struct uart_8250_port {
+ 	struct uart_8250_em485 *em485;
+ };
+ 
++#ifdef CONFIG_SERIAL_8250
++extern bool serial8250_skip_old_ports;
++#else
++static const bool serial8250_skip_old_ports;
++#endif
++
+ static inline struct uart_8250_port *up_to_u8250p(struct uart_port *up)
+ {
+ 	return container_of(up, struct uart_8250_port, port);
 -- 
-1.9.1
+2.16.2.804.g6dcf76e118-goog
