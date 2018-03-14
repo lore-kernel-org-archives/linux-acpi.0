@@ -1,82 +1,65 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH] ACPI / PM: Reduce LPI constraints logging noise
-Date: Tue, 13 Mar 2018 10:47:17 -0700
-Message-ID: <1520963237.15766.216.camel@linux.intel.com>
-References: <2232544.VHtLQCEKNu@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Daniel Kurtz <djkurtz@chromium.org>
+Subject: [PATCH 2/3] ACPI: SPCR: Add support for AMD CT/SZ
+Date: Tue, 13 Mar 2018 18:36:54 -0600
+Message-ID: <20180314003655.12141-3-djkurtz@chromium.org>
+References: <20180314003655.12141-1-djkurtz@chromium.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2232544.VHtLQCEKNu@aspire.rjw.lan>
+In-Reply-To: <20180314003655.12141-1-djkurtz@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Cc: adurbin@chromium.org, Daniel Kurtz <djkurtz@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2018-03-13 at 10:47 +0100, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> If a device referred to by ACPI LPI constrains (coming from function
-> 1
-> of the Low Power S0 Idle _DSM interface) is not power-manageable via
-> ACPI (no _PS0 method and no power resources), the code generating
-> diagnostic information for the LPI constraints will print a message
-> about that to the kernel log on every system suspend-resume cycle
-> (possibly for multiple times).
-> 
-> That is not very useful and noisy, so modify that code to disregard
-> the LPI list entries corresponding to the devices that are not power-
-> manageable after printing that information for them once.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
+earlycon setup handler to configure its input clock in order to compute
+baud rate divisor registers.
+Detect them by examining the OEMID field in the SPCR header, and pass
+then pass uart type amdcz to earlycon.
 
-> ---
->  drivers/acpi/sleep.c |   15 +++++++++------
->  1 file changed, 9 insertions(+), 6 deletions(-)
-> 
-> Index: linux-pm/drivers/acpi/sleep.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/sleep.c
-> +++ linux-pm/drivers/acpi/sleep.c
-> @@ -851,23 +852,25 @@ static void lpi_check_constraints(void)
->  	int i;
->  
->  	for (i = 0; i < lpi_constraints_table_size; ++i) {
-> +		acpi_handle handle =
-> lpi_constraints_table[i].handle;
->  		struct acpi_device *adev;
->  
-> -		if
-> (acpi_bus_get_device(lpi_constraints_table[i].handle, &adev))
-> +		if (!handle || acpi_bus_get_device(handle, &adev))
->  			continue;
->  
-> -		acpi_handle_debug(adev->handle,
-> +		acpi_handle_debug(handle,
->  			"LPI: required min power state:%s current
-> power state:%s\n",
->  			acpi_power_state_string(lpi_constraints_tabl
-> e[i].min_dstate),
->  			acpi_power_state_string(adev->power.state));
->  
->  		if (!adev->flags.power_manageable) {
-> -			acpi_handle_info(adev->handle, "LPI: Device
-> not power manageble\n");
-> +			acpi_handle_info(handle, "LPI: Device not
-> power manageable\n");
-> +			lpi_constraints_table[i].handle = NULL;
->  			continue;
->  		}
->  
->  		if (adev->power.state <
-> lpi_constraints_table[i].min_dstate)
-> -			acpi_handle_info(adev->handle,
-> +			acpi_handle_info(handle,
->  				"LPI: Constraint not met; min power
-> state:%s current power state:%s\n",
->  				acpi_power_state_string(lpi_constrai
-> nts_table[i].min_dstate),
->  				acpi_power_state_string(adev-
-> >power.state));
-> 
+Signed-off-by: Daniel Kurtz <djkurtz@chromium.org>
+---
+ drivers/acpi/spcr.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
+
+diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
+index 9d52743080a4..52d840d0e05b 100644
+--- a/drivers/acpi/spcr.c
++++ b/drivers/acpi/spcr.c
+@@ -73,6 +73,24 @@ static bool xgene_8250_erratum_present(struct acpi_table_spcr *tb)
+ 	return xgene_8250;
+ }
+ 
++/*
++ * AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
++ * earlycon setup handler to configure its input clock in order to compute
++ * baud rate divisor registers.
++ * Detect them by examining the OEM fields in the SPCR header.
++ */
++static bool amdcz_present(struct acpi_table_spcr *tb)
++{
++	if (memcmp(tb->header.oem_id, "AMDCZ ", ACPI_OEM_ID_SIZE))
++		return false;
++
++	if (memcmp(tb->header.oem_table_id, "AMDCZ   ",
++		    ACPI_OEM_TABLE_ID_SIZE))
++		return false;
++
++	return true;
++}
++
+ /**
+  * acpi_parse_spcr() - parse ACPI SPCR table and add preferred console
+  *
+@@ -189,6 +207,11 @@ int __init acpi_parse_spcr(bool enable_earlycon, bool enable_console)
+ 			uart = "qdf2400_e44";
+ 	}
+ 
++	if (amdcz_present(table)) {
++		if (enable_earlycon)
++			uart = "amdcz";
++	}
++
+ 	if (xgene_8250_erratum_present(table)) {
+ 		iotype = "mmio32";
+ 
+-- 
+2.16.2.804.g6dcf76e118-goog
