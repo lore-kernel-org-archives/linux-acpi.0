@@ -1,79 +1,80 @@
-From: Daniel Kurtz <djkurtz@chromium.org>
-Subject: Re: [PATCH v3 3/3] serial: core: Allow skipping old serial port initialization
-Date: Thu, 15 Mar 2018 16:24:56 +0000
-Message-ID: <CAGS+omBiUJ=0LouOkP_C9GvHNZCTeH5Vr8=Yqoe9EO6YGgZFvQ@mail.gmail.com>
-References: <20180315020445.150604-1-djkurtz@chromium.org> <20180315020445.150604-4-djkurtz@chromium.org>
- <1521119068.10722.661.camel@linux.intel.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v10 1/5] arm64: KVM: Prepare set virtual SEI syndrome
+ value
+Date: Thu, 15 Mar 2018 20:37:53 +0000
+Message-ID: <5AAAD9A1.6090107@arm.com>
+References: <1520093380-42577-1-git-send-email-gengdongjiu@huawei.com> <1520093380-42577-2-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1521119068.10722.661.camel@linux.intel.com>
+In-Reply-To: <1520093380-42577-2-git-send-email-gengdongjiu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, adurbin@chromium.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jslaby@suse.com, Kees Cook <keescook@chromium.org>, mbrugger@suse.com, dhowells@redhat.com, allen.lkml@gmail.com, sean@mess.org, Doug Anderson <dianders@chromium.org>, matt.redfearn@mips.com, Jeffy <jeffy.chen@rock-chips.com>, marc_gonzalez@sigmadesigns.com, linux-acpi@vger.kernel.org, linux-serial@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, lenb@kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 15, 2018 at 7:04 AM Andy Shevchenko <
-andriy.shevchenko@linux.intel.com> wrote:
+Hi Dongjiu Geng,
 
-> On Wed, 2018-03-14 at 20:04 -0600, Daniel Kurtz wrote:
-> > The old_serial_port global array in 8250_core is supposed to hold an
-> > entry
-> > for each serial port on the system that cannot be discovered via a
-> > standard enumeration mechanism (aka ACPI/PCI/DTS).  The array is
-> > populated
-> > at compile-time from the value specified in the SERIAL_PORT_DFNS
-> > macro.
-> > This macro is defined in arch/serial.h.
-> >
-> > For x86, this macro is currently unconditionally initialized to supply
-> > four ioport UARTs (0x3F8, 0x2F8, 0x3E8, 0x2E8).
-> >
-> > However, not all x86 CPUs have these four ioport UARTs.  For example,
-> > the
-> > UARTs on AMD Carrizo and later are separate memory mapped Designware
-> > IP
-> > blocks.
-> >
-> > Fairly early in boot the console_initcall univ8250_console_init
-> > iterates
-> > over this array and installs these old UARTs into the global array
-> > serial8250_ports.  Further, it attempts to register them for use as
-> > the console.  In other words, if, for example, the kernel commandline
-> > has
-> > console=ttyS0, the console will be switched over to one of these
-> > non-existent UARTs.  Only later, when the real UART drivers are probed
-> > and their devices are instantiated will the console switch back over
-> > to
-> > the proper UART.
-> >
-> > This is noticeable when using earlycon, since part of the serial
-> > console
-> > log will appear to disappear (when the bogus old takes over) and then
-> > re-appear (when the real UART finally gets registered for the
-> > console).
-> >
-> > The problem is even more noticable when *not* using earlycon, since in
-> > this case the entire console output is missing, having been
-> > incorrectly
-> > played back to the non-existing serial port.
-> >
-> > Create a global variable to allow skipping old serial port
-> > initialization
-> > and wire it up to the AMDCZ ACPI SPCR quirk and the special amdcz
-> > earlycon
-> > setup handler.
+On 03/03/18 16:09, Dongjiu Geng wrote:
+> Export one API to specify virtual SEI syndrome value
+> for guest, and add a helper to get the VSESR_EL2 value.
 
-> I don't like this approach at all.
-> But unfortunately I have nothing to propose.
-> Just felt like I have to share my opinion on this.
-
-I'm not very proud of this either, but I don't know how else to set this
-flag.
-I proposed a Kconfig option earlier, but that also met resistance.
-Perhaps another kernel command line option?
+This patch adds two helpers that nothing calls... its not big, please merge it
+with the patch that uses these.
 
 
-> --
-> Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Intel Finland Oy
+> diff --git a/arch/arm64/include/asm/kvm_emulate.h b/arch/arm64/include/asm/kvm_emulate.h
+> index 413dc82..3294885 100644
+> --- a/arch/arm64/include/asm/kvm_emulate.h
+> +++ b/arch/arm64/include/asm/kvm_emulate.h
+> @@ -71,6 +71,11 @@ static inline void vcpu_set_hcr(struct kvm_vcpu *vcpu, unsigned long hcr)
+>  	vcpu->arch.hcr_el2 = hcr;
+>  }
+>  
+> +static inline unsigned long vcpu_get_vsesr(struct kvm_vcpu *vcpu)
+> +{
+> +	return vcpu->arch.vsesr_el2;
+> +}
+> +
+>  static inline void vcpu_set_vsesr(struct kvm_vcpu *vcpu, u64 vsesr)
+>  {
+>  	vcpu->arch.vsesr_el2 = vsesr;
+> diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
+> index a73f63a..3dc49b7 100644
+> --- a/arch/arm64/include/asm/kvm_host.h
+> +++ b/arch/arm64/include/asm/kvm_host.h
+> @@ -354,6 +354,8 @@ void handle_exit_early(struct kvm_vcpu *vcpu, struct kvm_run *run,
+>  int kvm_perf_init(void);
+>  int kvm_perf_teardown(void);
+>  
+> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome);
+> +
+>  struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
+>  
+>  static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
+> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
+> index 60666a0..78ecb28 100644
+> --- a/arch/arm64/kvm/inject_fault.c
+> +++ b/arch/arm64/kvm/inject_fault.c
+> @@ -186,3 +186,8 @@ void kvm_inject_vabt(struct kvm_vcpu *vcpu)
+>  {
+>  	pend_guest_serror(vcpu, ESR_ELx_ISV);
+>  }
+> +
+> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome)
+> +{
+> +	pend_guest_serror(vcpu, syndrome & ESR_ELx_ISS_MASK);
+
+If you move the ISS_MASK into pend_guest_serror(), you wouldn't need this at all.
+
+It would be better if any validation were in the user-space helpers so we can
+check user-space hasn't put something funny in the top bits.
+
+> +}
+> 
+
+
+Thanks,
+
+James
