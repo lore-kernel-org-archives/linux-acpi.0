@@ -1,11 +1,11 @@
 From: kernel test robot <fengguang.wu@intel.com>
 Subject: [ACPI / processor]  d619c81e24:
  WARNING:at_include/linux/cpumask.h:#cpumask_test_cpu
-Date: Fri, 16 Mar 2018 19:17:52 +0800
-Message-ID: <20180316111752.qi3u42mag367vx46@inn>
+Date: Fri, 16 Mar 2018 19:17:42 +0800
+Message-ID: <20180316111742.2t4lp3u3xt4v35oz@inn>
 References: <20180314102847.30459-1-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="22d3gw6x6mkdqpbo"
+Content-Type: multipart/mixed; boundary="zdgnnuuetafg2jfn"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
 In-Reply-To: <20180314102847.30459-1-douly.fnst@cn.fujitsu.com>
@@ -14,7 +14,7 @@ Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net,
 List-Id: linux-acpi@vger.kernel.org
 
 
---22d3gw6x6mkdqpbo
+--zdgnnuuetafg2jfn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -120,7 +120,7 @@ To reproduce:
 Thanks,
 lkp
 
---22d3gw6x6mkdqpbo
+--zdgnnuuetafg2jfn
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename="config-4.16.0-rc4-00340-gd619c81"
 
@@ -4646,7 +4646,129 @@ CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE=y
 CONFIG_SBITMAP=y
 CONFIG_STRING_SELFTEST=y
 
---22d3gw6x6mkdqpbo
+--zdgnnuuetafg2jfn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=job-script
+
+#!/bin/sh
+
+export_top_env()
+{
+	export suite='boot'
+	export testcase='boot'
+	export timeout='10m'
+	export job_origin='/lkp/lkp/src/jobs/boot.yaml'
+	export queue='bisect'
+	export testbox='vm-lkp-nex04-1G-17'
+	export tbox_group='vm-lkp-nex04-1G'
+	export branch='linux-devel/devel-catchup-201803161519'
+	export commit='d619c81e246424e322f7a902bed6e60b90668d56'
+	export kconfig='x86_64-randconfig-s5-03161524'
+	export submit_id='5aab9b560b9a9337b1b99062'
+	export job_file='/lkp/scheduled/vm-lkp-nex04-1G-17/boot-1-debian-x86_64-2016-08-31.cgz-d619c81e246424e322f7a902bed6e60b90668d56-20180316-14257-pzknv7-0.yaml'
+	export id='fe7e5024544804954cfbf6be4895c71359912dea'
+	export model='qemu-system-x86_64 -enable-kvm -cpu host'
+	export nr_vm=30
+	export nr_cpu=2
+	export memory='1G'
+	export need_kconfig='CONFIG_KVM_GUEST=y'
+	export ssh_base_port=23200
+	export compiler='gcc-7'
+	export rootfs='debian-x86_64-2016-08-31.cgz'
+	export enqueue_time='2018-03-16 18:24:22 +0800'
+	export _id='5aab9b560b9a9337b1b99062'
+	export _rt='/result/boot/1/vm-lkp-nex04-1G/debian-x86_64-2016-08-31.cgz/x86_64-randconfig-s5-03161524/gcc-7/d619c81e246424e322f7a902bed6e60b90668d56'
+	export user='lkp'
+	export result_root='/result/boot/1/vm-lkp-nex04-1G/debian-x86_64-2016-08-31.cgz/x86_64-randconfig-s5-03161524/gcc-7/d619c81e246424e322f7a902bed6e60b90668d56/0'
+	export LKP_SERVER='inn'
+	export max_uptime=600
+	export initrd='/osimage/debian/debian-x86_64-2016-08-31.cgz'
+	export bootloader_append='root=/dev/ram0
+user=lkp
+job=/lkp/scheduled/vm-lkp-nex04-1G-17/boot-1-debian-x86_64-2016-08-31.cgz-d619c81e246424e322f7a902bed6e60b90668d56-20180316-14257-pzknv7-0.yaml
+ARCH=x86_64
+kconfig=x86_64-randconfig-s5-03161524
+branch=linux-devel/devel-catchup-201803161519
+commit=d619c81e246424e322f7a902bed6e60b90668d56
+BOOT_IMAGE=/pkg/linux/x86_64-randconfig-s5-03161524/gcc-7/d619c81e246424e322f7a902bed6e60b90668d56/vmlinuz-4.16.0-rc4-00340-gd619c81
+max_uptime=600
+RESULT_ROOT=/result/boot/1/vm-lkp-nex04-1G/debian-x86_64-2016-08-31.cgz/x86_64-randconfig-s5-03161524/gcc-7/d619c81e246424e322f7a902bed6e60b90668d56/0
+LKP_SERVER=inn
+debug
+apic=debug
+sysrq_always_enabled
+rcupdate.rcu_cpu_stall_timeout=100
+net.ifnames=0
+printk.devkmsg=on
+panic=-1
+softlockup_panic=1
+nmi_watchdog=panic
+oops=panic
+load_ramdisk=2
+prompt_ramdisk=0
+drbd.minor_count=8
+systemd.log_level=err
+ignore_loglevel
+console=tty0
+earlyprintk=ttyS0,115200
+console=ttyS0,115200
+vga=normal
+rw'
+	export bm_initrd='/osimage/deps/debian-x86_64-2016-08-31.cgz/lkp_2017-12-14.cgz,/osimage/deps/debian-x86_64-2016-08-31.cgz/rsync-rootfs_2016-11-15.cgz,/osimage/deps/debian-x86_64-2016-08-31.cgz/run-ipconfig_2016-11-15.cgz'
+	export lkp_initrd='/lkp/lkp/lkp-x86_64.cgz'
+	export site='inn'
+	export LKP_CGI_PORT=80
+	export LKP_CIFS_PORT=139
+	export kernel='/pkg/linux/x86_64-randconfig-s5-03161524/gcc-7/d619c81e246424e322f7a902bed6e60b90668d56/vmlinuz-4.16.0-rc4-00340-gd619c81'
+	export dequeue_time='2018-03-16 18:27:00 +0800'
+	export job_initrd='/lkp/scheduled/vm-lkp-nex04-1G-17/boot-1-debian-x86_64-2016-08-31.cgz-d619c81e246424e322f7a902bed6e60b90668d56-20180316-14257-pzknv7-0.cgz'
+
+	[ -n "$LKP_SRC" ] ||
+	export LKP_SRC=/lkp/${user:-lkp}/src
+}
+
+run_job()
+{
+	echo $$ > $TMP/run-job.pid
+
+	. $LKP_SRC/lib/http.sh
+	. $LKP_SRC/lib/job.sh
+	. $LKP_SRC/lib/env.sh
+
+	export_top_env
+
+	run_monitor $LKP_SRC/monitors/one-shot/wrapper boot-slabinfo
+	run_monitor $LKP_SRC/monitors/one-shot/wrapper boot-meminfo
+	run_monitor $LKP_SRC/monitors/one-shot/wrapper memmap
+	run_monitor $LKP_SRC/monitors/no-stdout/wrapper boot-time
+	run_monitor $LKP_SRC/monitors/wrapper kmsg
+	run_monitor $LKP_SRC/monitors/wrapper oom-killer
+	run_monitor $LKP_SRC/monitors/plain/watchdog
+
+	run_test $LKP_SRC/tests/wrapper sleep 1
+}
+
+extract_stats()
+{
+	$LKP_SRC/stats/wrapper boot-slabinfo
+	$LKP_SRC/stats/wrapper boot-meminfo
+	$LKP_SRC/stats/wrapper memmap
+	$LKP_SRC/stats/wrapper boot-memory
+	$LKP_SRC/stats/wrapper boot-time
+	$LKP_SRC/stats/wrapper kernel-size
+	$LKP_SRC/stats/wrapper kmsg
+
+	$LKP_SRC/stats/wrapper time sleep.time
+	$LKP_SRC/stats/wrapper time
+	$LKP_SRC/stats/wrapper dmesg
+	$LKP_SRC/stats/wrapper kmsg
+	$LKP_SRC/stats/wrapper stderr
+	$LKP_SRC/stats/wrapper last_state
+}
+
+"$@"
+
+--zdgnnuuetafg2jfn
 Content-Type: application/x-xz
 Content-Disposition: attachment; filename="dmesg.xz"
 Content-Transfer-Encoding: base64
@@ -4880,4 +5002,4 @@ nJa6TiEqUVRmQK3gTmCRuNOCzXBOmqEcRHN5kaATWISVz/9HtVRBq7kBZM+B0vcLWD6m2hnT
 Lka2LmulbcEAtc9XcEjC19RCcmzJ8EXjwZuKmj79mhev5M4OuOd/sakfsLu0ObUMDkL/Nrqf
 pZHzAygKyDS8GRmJRaop3wAALkDIwhA4Q1sAAe9fyL8EAFCfk4exxGf7AgAAAAAEWVo=
 
---22d3gw6x6mkdqpbo--
+--zdgnnuuetafg2jfn--
