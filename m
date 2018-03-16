@@ -1,92 +1,84 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v10 1/5] arm64: KVM: Prepare set virtual SEI syndrome
- value
-Date: Fri, 16 Mar 2018 15:58:14 +0800
-Message-ID: <076069fe-0017-7cb4-8316-4d4d58f9f06b@huawei.com>
-References: <1520093380-42577-1-git-send-email-gengdongjiu@huawei.com>
- <1520093380-42577-2-git-send-email-gengdongjiu@huawei.com>
- <5AAAD9A1.6090107@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Daniel Drake <drake@endlessm.com>
+Subject: Re: Intel GemniLake xHCI connected devices can never wake up the system from suspend
+Date: Fri, 16 Mar 2018 16:23:20 +0800
+Message-ID: <20180316082320.12636-1-drake@endlessm.com>
+References: <CAD8Lp45tvQP0aA=6zg+1j-_0jTxyyNxnrL=Gt0+0WrzeT6XS0Q@mail.gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5AAAD9A1.6090107@arm.com>
-Content-Language: en-US
+In-Reply-To: <CAD8Lp45tvQP0aA=6zg+1j-_0jTxyyNxnrL=Gt0+0WrzeT6XS0Q@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, lenb@kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
+To: mathias.nyman@linux.intel.com
+Cc: chiu@endlessm.com, mathias.nyman@intel.com, gregkh@linuxfoundation.org, linux-usb@vger.kernel.org, linux@endlessm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
-   Thank you very much for this mail and your time to review this patch. Appreciate that.
-I will check it and reply.
+> I've studied the ACPI spec trying to understand better, but I'm
+> struggling with the question:
+> What is the maximum number (lowest power) permitted device power state
+> for a device that is configured as able to wake the system from S3,
+> **that does not implement the _S3W method**?
 
+Actually the ACPI spec has an answer for the case when _S3D is present.
+The lack of clarity is only over the situation when both _S3D and _S3W
+are missing - like on the platforms being worked on here.
 
-On 2018/3/16 4:37, James Morse wrote:
-> Hi Dongjiu Geng,
-> 
-> On 03/03/18 16:09, Dongjiu Geng wrote:
->> Export one API to specify virtual SEI syndrome value
->> for guest, and add a helper to get the VSESR_EL2 value.
-> 
-> This patch adds two helpers that nothing calls... its not big, please merge it
-> with the patch that uses these.
-> 
-> 
->> diff --git a/arch/arm64/include/asm/kvm_emulate.h b/arch/arm64/include/asm/kvm_emulate.h
->> index 413dc82..3294885 100644
->> --- a/arch/arm64/include/asm/kvm_emulate.h
->> +++ b/arch/arm64/include/asm/kvm_emulate.h
->> @@ -71,6 +71,11 @@ static inline void vcpu_set_hcr(struct kvm_vcpu *vcpu, unsigned long hcr)
->>  	vcpu->arch.hcr_el2 = hcr;
->>  }
->>  
->> +static inline unsigned long vcpu_get_vsesr(struct kvm_vcpu *vcpu)
->> +{
->> +	return vcpu->arch.vsesr_el2;
->> +}
->> +
->>  static inline void vcpu_set_vsesr(struct kvm_vcpu *vcpu, u64 vsesr)
->>  {
->>  	vcpu->arch.vsesr_el2 = vsesr;
->> diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
->> index a73f63a..3dc49b7 100644
->> --- a/arch/arm64/include/asm/kvm_host.h
->> +++ b/arch/arm64/include/asm/kvm_host.h
->> @@ -354,6 +354,8 @@ void handle_exit_early(struct kvm_vcpu *vcpu, struct kvm_run *run,
->>  int kvm_perf_init(void);
->>  int kvm_perf_teardown(void);
->>  
->> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome);
->> +
->>  struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
->>  
->>  static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
->> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
->> index 60666a0..78ecb28 100644
->> --- a/arch/arm64/kvm/inject_fault.c
->> +++ b/arch/arm64/kvm/inject_fault.c
->> @@ -186,3 +186,8 @@ void kvm_inject_vabt(struct kvm_vcpu *vcpu)
->>  {
->>  	pend_guest_serror(vcpu, ESR_ELx_ISV);
->>  }
->> +
->> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome)
->> +{
->> +	pend_guest_serror(vcpu, syndrome & ESR_ELx_ISS_MASK);
-> 
-> If you move the ISS_MASK into pend_guest_serror(), you wouldn't need this at all.
-> 
-> It would be better if any validation were in the user-space helpers so we can
-> check user-space hasn't put something funny in the top bits.
-> 
->> +}
->>
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> .
-> 
+The _S3D docs say:
+> If the device can wake the system from the S3 system sleeping state (see
+> _PRW) then the device must support wake in the D-state returned by this
+> object. However, OSPM cannot assume wake from the S3 system sleeping state
+> is supported in any deeper D-state unless specified by a corresponding
+> _S3W object
+
+Looking at the design of the existing Linux code, it seems like this
+"max = min" assignment that is causing us trouble originates directly
+from an attempt to implement that logic: if we didn't get a response from
+_S3W, then we must clamp ourselves to the data we got from _S3D.
+
+If I modify the Linux code to be a little more specific in that logic
+(only applying when we actually got something from _S3D) then the
+problematic behaviour is avoided and USB wakeups work.
+
+I feel that this change makes the Linux implementation more directly
+mirror the wording in the ACPI spec and it's associated lack of clarity
+for when both methods are missing. Thoughts?
+
+---
+ drivers/acpi/device_pm.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index a4c8ad98560d..44f12c5c75ee 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -543,6 +543,7 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
+ 	unsigned long long ret;
+ 	int d_min, d_max;
+ 	bool wakeup = false;
++	acpi_status sxd_status;
+ 	acpi_status status;
+ 
+ 	/*
+@@ -565,8 +566,8 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
+ 		 * provided if AE_NOT_FOUND is returned.
+ 		 */
+ 		ret = d_min;
+-		status = acpi_evaluate_integer(handle, method, NULL, &ret);
+-		if ((ACPI_FAILURE(status) && status != AE_NOT_FOUND)
++		sxd_status = acpi_evaluate_integer(handle, method, NULL, &ret);
++		if ((ACPI_FAILURE(sxd_status) && sxd_status != AE_NOT_FOUND)
+ 		    || ret > ACPI_STATE_D3_COLD)
+ 			return -ENODATA;
+ 
+@@ -599,7 +600,11 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
+ 		method[3] = 'W';
+ 		status = acpi_evaluate_integer(handle, method, NULL, &ret);
+ 		if (status == AE_NOT_FOUND) {
+-			if (target_state > ACPI_STATE_S0)
++			/* No _SxW. In this case, the ACPI spec says that we
++			 * must not go into any power state deeper than the
++			 * value returned from _SxD.
++			 */
++			if (sxd_status == AE_OK && target_state > ACPI_STATE_S0)
+ 				d_max = d_min;
+ 		} else if (ACPI_SUCCESS(status) && ret <= ACPI_STATE_D3_COLD) {
+ 			/* Fall back to D3cold if ret is not a valid state. */
+-- 
+2.14.1
