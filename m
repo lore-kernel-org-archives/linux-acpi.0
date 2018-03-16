@@ -1,87 +1,82 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [RFC PATCH v2] ACPI / processor: Fix possible CPUs map
-Date: Fri, 16 Mar 2018 10:51:43 +0800
-Message-ID: <cb79c370-8c6f-2ef7-9a0a-ed33bd485113@cn.fujitsu.com>
-References: <20180315030756.5548-1-douly.fnst@cn.fujitsu.com>
- <alpine.DEB.2.21.1803151436200.1525@nanos.tec.linutronix.de>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, numa: fix pxm to online numa node associations
+Date: Thu, 15 Mar 2018 20:08:37 -0700
+Message-ID: <152116964416.8343.514895686858363582.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.21.1803151436200.1525@nanos.tec.linutronix.de>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, rafael@kernel.org, dedekind1@gmail.com, Ming Lei <ming.lei@redhat.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Thomas,
+Commit 99759869faf1 "acpi: Add acpi_map_pxm_to_online_node()" added
+support for mapping a given proximity to its nearest, by SLIT distance,
+online node. However, it sometimes returns unexpected results due to the
+fact that it switches from comparing the PXM node to the last node that
+was closer than the current max.
 
-At 03/15/2018 09:45 PM, Thomas Gleixner wrote:
-[...]
+    for_each_online_node(n) {
+            dist = node_distance(node, n);
+            if (dist < min_dist) {
+                    min_dist = dist;
+                    node = n;	<---- from this point we're using the
+				      wrong node for node_distance()
 
-> I tested this on a machine which claims to have gazillion of hotplugable
-> CPUs:
 
-I really appreciate your test.
+Fixes: 99759869faf1 ("acpi: Add acpi_map_pxm_to_online_node()")
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Toshi Kani <toshi.kani-VXdhtT5mjnY@public.gmane.org>
+Cc: Rafael J. Wysocki <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+Rafael, I can take this through the nvdimm tree with your ack. I have a
+few other nvdimm fixes pending for 4.16.
 
-> 
-> 	smpboot: Allowing 152 CPUs, 120 hotplug CPUs
-> 	setup_percpu: NR_CPUS:512 nr_cpumask_bits:512 nr_cpu_ids:152 nr_node_ids:2
-> 	smp: Brought up 2 nodes, 32 CPUs
-> 
-> Now with your patch applied it's still saying:
-> 
-> 	smpboot: Allowing 152 CPUs, 120 hotplug CPUs
-> 	setup_percpu: NR_CPUS:512 nr_cpumask_bits:512 nr_cpu_ids:152 nr_node_ids:2
-> 	smp: Brought up 2 nodes, 32 CPUs
-> 
-> and the above code runs later on and the result is:
-> 
-> 	nr_unique_ids 1 nr_cpu_ids 152
-> 	Allowing 1 possible CPU
-> 
-> which subsequently causes the machine to die as we have already 32 CPUs
-> online.
-> 
+ drivers/acpi/numa.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-That is so interesting, it proofs that this strategy is risky.
-
-I've been wondering how to determine the number of possible CPUs. Due to
-the diversity of ACPI in different systems, that seems impossible. Why 
-don't I change my mind? Here is a new strategy and I think it is more
-reasonable and minimally invasive.
-
-   As we all know, we reset possible CPUs in the prefill_possible_map(),
-   If CONFIG_HOTPLUG_CPU = y :
-       nr_possible_CPUs = num_processors + disabled_cpus.
-
-   Before the prefill_possible_map(), *Fix the inaccurate disabled_cpus*:
-
-     1) For each disabled CPUs, get it's processor id from ACPI MADT
-
-     2) Check whether this processor id is existed in ACPI namespace or not.
-        If false, disabled_cpus--;
-
-I will show you the code and test it later. And IMO, the code logic in
-prefill_possible_map() is a little mess, will try to sort it out first.
-
-> So nr_unique_ids is not what it should be and even if it would be the code
-> runs way too late. It needs to run _before_ setup_percpu() is invoked to
-> scale everything correctly.
-> 
-
-Yes, Got it.
-
-Thanks,
-	dou
-
-> Thanks,
-> 
-> 	tglx
-> 
-> 
-> 
-> 
-> 
-> 
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 8ccaae3550d2..85167603b9c9 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -103,25 +103,27 @@ int acpi_map_pxm_to_node(int pxm)
+  */
+ int acpi_map_pxm_to_online_node(int pxm)
+ {
+-	int node, n, dist, min_dist;
++	int node, min_node;
+ 
+ 	node = acpi_map_pxm_to_node(pxm);
+ 
+ 	if (node == NUMA_NO_NODE)
+ 		node = 0;
+ 
++	min_node = node;
+ 	if (!node_online(node)) {
+-		min_dist = INT_MAX;
++		int min_dist = INT_MAX, dist, n;
++
+ 		for_each_online_node(n) {
+ 			dist = node_distance(node, n);
+ 			if (dist < min_dist) {
+ 				min_dist = dist;
+-				node = n;
++				min_node = n;
+ 			}
+ 		}
+ 	}
+ 
+-	return node;
++	return min_node;
+ }
+ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
