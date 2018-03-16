@@ -1,49 +1,59 @@
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: Re: [PATCH v3] xen/acpi: upload _PSD info for non Dom0 CPUs too
-Date: Fri, 16 Mar 2018 13:57:13 +0000
-Message-ID: <d14d48ab-9ba1-c70c-4d46-cd9c7c862add@oracle.com>
-References: <20180315142205.15839-1-joao.m.martins@oracle.com>
- <bbf536dc-3c3d-8a25-47e8-7fd52850835d@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bbf536dc-3c3d-8a25-47e8-7fd52850835d@oracle.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-kernel@vger.kernel.org
-Cc: Juergen Gross <jgross@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, devel@acpica.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 1/5] Bluetooth: hci_bcm: Add irq_polarity module option
+Date: Fri, 16 Mar 2018 21:28:07 +0100
+Message-ID: <20180316202811.5678-1-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/15/2018 03:45 PM, Boris Ostrovsky wrote:
-> On 03/15/2018 10:22 AM, Joao Martins wrote:
->> All uploaded PM data from non-dom0 CPUs takes the info from vCPU 0 and
->> changing only the acpi_id. For processors which P-state coordination type
->> is HW_ALL (0xFD) it is OK to upload bogus P-state dependency information
->> (_PSD), because Xen will ignore any cpufreq domains created for past CPUs.
->>
->> Albeit for platforms which expose coordination types as SW_ANY or SW_ALL,
->> this will have some unintended side effects. Effectively, it will look at
->> the P-state domain existence and *if it already exists* it will skip the
->> acpi-cpufreq initialization and thus inherit the policy from the first CPU
->> in the cpufreq domain. This will finally lead to the original cpu not
->> changing target freq to P0 other than the first in the domain. Which will
->> make turbo boost not getting enabled (e.g. for 'performance' governor) for
->> all cpus.
->>
->> This patch fixes that, by also evaluating _PSD when we enumerate all ACPI
->> processors and thus always uploading the correct info to Xen. We export
->> acpi_processor_get_psd() for that this purpose, but change signature
->> to not assume an existent of acpi_processor given that ACPI isn't creating
->> an acpi_processor for non-dom0 CPUs.
->>
->> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-> 
-> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-> 
-Thanks!
+Add irq_polarity module option for easier troubleshooting of irq-polarity
+issues.
 
-I suppose what's remaining is review (or ack) from ACPI folks on the interface
-changes made to acpi_processor_get_psd().
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/bluetooth/hci_bcm.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-	Joao
+diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
+index 5e3aba3c3185..bb6cd1623132 100644
+--- a/drivers/bluetooth/hci_bcm.c
++++ b/drivers/bluetooth/hci_bcm.c
+@@ -126,6 +126,10 @@ struct bcm_data {
+ static DEFINE_MUTEX(bcm_device_lock);
+ static LIST_HEAD(bcm_device_list);
+ 
++static int irq_polarity = -1;
++module_param(irq_polarity, int, 0444);
++MODULE_PARM_DESC(irq_polarity, "IRQ polarity 0: active-high 1: active-low");
++
+ static inline void host_set_baudrate(struct hci_uart *hu, unsigned int speed)
+ {
+ 	if (hu->serdev)
+@@ -988,11 +992,17 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+ 	}
+ 	acpi_dev_free_resource_list(&resources);
+ 
+-	dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
+-	if (dmi_id) {
+-		dev_warn(dev->dev, "%s: Overwriting IRQ polarity to active low",
+-			    dmi_id->ident);
+-		dev->irq_active_low = true;
++	if (irq_polarity != -1) {
++		dev->irq_active_low = irq_polarity;
++		dev_warn(dev->dev, "Overwriting IRQ polarity to active %s by module-param\n",
++			 dev->irq_active_low ? "low" : "high");
++	} else {
++		dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
++		if (dmi_id) {
++			dev_warn(dev->dev, "%s: Overwriting IRQ polarity to active low",
++				 dmi_id->ident);
++			dev->irq_active_low = true;
++		}
+ 	}
+ 
+ 	return 0;
+-- 
+2.14.3
