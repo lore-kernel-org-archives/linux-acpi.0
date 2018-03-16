@@ -1,64 +1,92 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: Re: Intel GemniLake xHCI connected devices can never wake up the
- system from suspend
-Date: Fri, 16 Mar 2018 15:47:14 +0800
-Message-ID: <CAD8Lp45tvQP0aA=6zg+1j-_0jTxyyNxnrL=Gt0+0WrzeT6XS0Q@mail.gmail.com>
-References: <CAB4CAwf_k-WsF3zL4epm9TKAOu0h=Bv1XhXV_gY3bziOo_NPKA@mail.gmail.com>
- <6c8df688-b456-6f07-9325-6f4dfd8f0883@linux.intel.com> <CAB4CAwf39wW2LmuY-TZNdfgL=SBiDZuXvRNu7MD7j5Nc8O-bkg@mail.gmail.com>
- <278fe5fa-7b33-02e5-12e3-b7760952b297@linux.intel.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v10 1/5] arm64: KVM: Prepare set virtual SEI syndrome
+ value
+Date: Fri, 16 Mar 2018 15:58:14 +0800
+Message-ID: <076069fe-0017-7cb4-8316-4d4d58f9f06b@huawei.com>
+References: <1520093380-42577-1-git-send-email-gengdongjiu@huawei.com>
+ <1520093380-42577-2-git-send-email-gengdongjiu@huawei.com>
+ <5AAAD9A1.6090107@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <278fe5fa-7b33-02e5-12e3-b7760952b297@linux.intel.com>
+In-Reply-To: <5AAAD9A1.6090107@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mathias Nyman <mathias.nyman@linux.intel.com>
-Cc: Chris Chiu <chiu@endlessm.com>, mathias.nyman@intel.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux USB Mailing List <linux-usb@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Linux Upstreaming Team <linux@endlessm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: James Morse <james.morse@arm.com>
+Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@linaro.org, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, rjw@rjwysocki.net, bp@alien8.de, lenb@kernel.org, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, kvmarm@lists.cs.columbia.edu, linux-acpi@vger.kernel.org, devel@acpica.org, huangshaoyu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Hi James,
+   Thank you very much for this mail and your time to review this patch. Appreciate that.
+I will check it and reply.
 
-I'm working alongside Chris on this issue.
 
-On Fri, Mar 16, 2018 at 12:11 AM, Mathias Nyman
-<mathias.nyman@linux.intel.com> wrote:
-> Scope (_SB.PCI0.XHC) has _PS0 method, so Linux will look for a _S3W to get
-> the
-> lowest possible D state in S3, but_S3W is missing, so Linux pci-acpi code
-> will
-> probably default to D0
-
-Yes, _S3W is missing, and in this case, acpi_dev_pm_get_state() is
-setting the maximum number permitted device power state to the minimum
-value of D0.
-
-So the XHCI controller is in D0 when you go into suspend.
-
-I tried your hack to force it into D3hot. Now the system can wake up
-from resume via the USB port. Thanks for finding that.
-
->> ASUS said the BIOS has no problem on USB wakeup under Windows so I don't
->> think
->> there's any update. Anything else could be cause for this?
->
-> Linux and Windows probably check different DSDT values
-
-I've studied the ACPI spec trying to understand better, but I'm
-struggling with the question:
-What is the maximum number (lowest power) permitted device power state
-for a device that is configured as able to wake the system from S3,
-**that does not implement the _S3W method**?
-
-As far as I can see, the ACPI spec doesn't give an answer. It's clear
-what the behaviour is when _S3W is present, but not unclear what
-should happen when it is not there.
-
-As noted above, Linux's interpretation is that in such case, the
-device must remain fully on (D0) when going into S3. I am wondering if
-Windows just has made an alternative assumption that all available
-device power states can wake the system from suspend in such case.
-
-This is working in Windows so hopefully we can find a way to match the
-behaviour?
-
-Thanks
-Daniel
+On 2018/3/16 4:37, James Morse wrote:
+> Hi Dongjiu Geng,
+> 
+> On 03/03/18 16:09, Dongjiu Geng wrote:
+>> Export one API to specify virtual SEI syndrome value
+>> for guest, and add a helper to get the VSESR_EL2 value.
+> 
+> This patch adds two helpers that nothing calls... its not big, please merge it
+> with the patch that uses these.
+> 
+> 
+>> diff --git a/arch/arm64/include/asm/kvm_emulate.h b/arch/arm64/include/asm/kvm_emulate.h
+>> index 413dc82..3294885 100644
+>> --- a/arch/arm64/include/asm/kvm_emulate.h
+>> +++ b/arch/arm64/include/asm/kvm_emulate.h
+>> @@ -71,6 +71,11 @@ static inline void vcpu_set_hcr(struct kvm_vcpu *vcpu, unsigned long hcr)
+>>  	vcpu->arch.hcr_el2 = hcr;
+>>  }
+>>  
+>> +static inline unsigned long vcpu_get_vsesr(struct kvm_vcpu *vcpu)
+>> +{
+>> +	return vcpu->arch.vsesr_el2;
+>> +}
+>> +
+>>  static inline void vcpu_set_vsesr(struct kvm_vcpu *vcpu, u64 vsesr)
+>>  {
+>>  	vcpu->arch.vsesr_el2 = vsesr;
+>> diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
+>> index a73f63a..3dc49b7 100644
+>> --- a/arch/arm64/include/asm/kvm_host.h
+>> +++ b/arch/arm64/include/asm/kvm_host.h
+>> @@ -354,6 +354,8 @@ void handle_exit_early(struct kvm_vcpu *vcpu, struct kvm_run *run,
+>>  int kvm_perf_init(void);
+>>  int kvm_perf_teardown(void);
+>>  
+>> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome);
+>> +
+>>  struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
+>>  
+>>  static inline void __cpu_init_hyp_mode(phys_addr_t pgd_ptr,
+>> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
+>> index 60666a0..78ecb28 100644
+>> --- a/arch/arm64/kvm/inject_fault.c
+>> +++ b/arch/arm64/kvm/inject_fault.c
+>> @@ -186,3 +186,8 @@ void kvm_inject_vabt(struct kvm_vcpu *vcpu)
+>>  {
+>>  	pend_guest_serror(vcpu, ESR_ELx_ISV);
+>>  }
+>> +
+>> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome)
+>> +{
+>> +	pend_guest_serror(vcpu, syndrome & ESR_ELx_ISS_MASK);
+> 
+> If you move the ISS_MASK into pend_guest_serror(), you wouldn't need this at all.
+> 
+> It would be better if any validation were in the user-space helpers so we can
+> check user-space hasn't put something funny in the top bits.
+> 
+>> +}
+>>
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> .
+> 
