@@ -1,75 +1,80 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 2/5] Bluetooth: hci_bcm: Treat Interrupt ACPI resources as always being active-low
-Date: Fri, 16 Mar 2018 21:28:08 +0100
-Message-ID: <20180316202811.5678-2-hdegoede@redhat.com>
-References: <20180316202811.5678-1-hdegoede@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] acpi, numa: fix pxm to online numa node associations
+Date: Fri, 16 Mar 2018 18:16:39 -0700
+Message-ID: <CAPcyv4iLs7rdTxA19Syp4stQSfKbDYP912dD01_e_1QMnf3FkQ@mail.gmail.com>
+References: <152116964416.8343.514895686858363582.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180316202811.5678-1-hdegoede@redhat.com>
+In-Reply-To: <152116964416.8343.514895686858363582.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: stable-owner@vger.kernel.org
-To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: linux-nvdimm <linux-nvdimm@lists.01.org>
+Cc: stable <stable@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Older devices with a serdev attached bcm bt hci, use an Interrupt ACPI
-resource to describe the IRQ (rather then a GpioInt resource).
+[ adding Toshi's correct address ]
 
-These device seem to all claim the IRQ is active-high and seem to all need
-a DMI quirk to treat it as active-low. Instead simply always assume that
-Interrupt resource specified IRQs are always active-low.
-
-This fixes the bt device not being able to wake the host from runtime-
-suspend on the: Asus T100TAM, Asus T200TA, Lenovo Yoga2 and the Toshiba
-Encore, without the need to add 4 new DMI quirks for these models.
-
-This also allows us to remove 2 DMI quirks for the Asus T100TA and Asus
-T100CHI series. Likely the 2 remaining quirks can also be removed but I
-could not find a DSDT of these devices to verify this.
-
-Cc: stable@vger.kernel.org
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=198953
-Buglink: https://bugzilla.redhat.com/show_bug.cgi?id=1554835
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/bluetooth/hci_bcm.c | 20 +++-----------------
- 1 file changed, 3 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index bb6cd1623132..7acd77a53b08 100644
---- a/drivers/bluetooth/hci_bcm.c
-+++ b/drivers/bluetooth/hci_bcm.c
-@@ -799,22 +799,6 @@ static const struct acpi_gpio_mapping acpi_bcm_int_first_gpios[] = {
- #ifdef CONFIG_ACPI
- /* IRQ polarity of some chipsets are not defined correctly in ACPI table. */
- static const struct dmi_system_id bcm_active_low_irq_dmi_table[] = {
--	{
--		.ident = "Asus T100TA",
--		.matches = {
--			DMI_EXACT_MATCH(DMI_SYS_VENDOR,
--					"ASUSTeK COMPUTER INC."),
--			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "T100TA"),
--		},
--	},
--	{
--		.ident = "Asus T100CHI",
--		.matches = {
--			DMI_EXACT_MATCH(DMI_SYS_VENDOR,
--					"ASUSTeK COMPUTER INC."),
--			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "T100CHI"),
--		},
--	},
- 	{	/* Handle ThinkPad 8 tablets with BCM2E55 chipset ACPI ID */
- 		.ident = "Lenovo ThinkPad 8",
- 		.matches = {
-@@ -842,7 +826,9 @@ static int bcm_resource(struct acpi_resource *ares, void *data)
- 	switch (ares->type) {
- 	case ACPI_RESOURCE_TYPE_EXTENDED_IRQ:
- 		irq = &ares->data.extended_irq;
--		dev->irq_active_low = irq->polarity == ACPI_ACTIVE_LOW;
-+		if (irq->polarity != ACPI_ACTIVE_LOW)
-+			dev_info(dev->dev, "ACPI Interrupt resource is active-high, this is usually wrong, treating the IRQ as active-low\n");
-+		dev->irq_active_low = true;
- 		break;
- 
- 	case ACPI_RESOURCE_TYPE_GPIO:
--- 
-2.14.3
+On Thu, Mar 15, 2018 at 8:08 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> Commit 99759869faf1 "acpi: Add acpi_map_pxm_to_online_node()" added
+> support for mapping a given proximity to its nearest, by SLIT distance,
+> online node. However, it sometimes returns unexpected results due to the
+> fact that it switches from comparing the PXM node to the last node that
+> was closer than the current max.
+>
+>     for_each_online_node(n) {
+>             dist = node_distance(node, n);
+>             if (dist < min_dist) {
+>                     min_dist = dist;
+>                     node = n;   <---- from this point we're using the
+>                                       wrong node for node_distance()
+>
+>
+> Fixes: 99759869faf1 ("acpi: Add acpi_map_pxm_to_online_node()")
+> Cc: <stable@vger.kernel.org>
+> Cc: Toshi Kani <toshi.kani@hp.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+> ---
+> Rafael, I can take this through the nvdimm tree with your ack. I have a
+> few other nvdimm fixes pending for 4.16.
+>
+>  drivers/acpi/numa.c |   10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 8ccaae3550d2..85167603b9c9 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -103,25 +103,27 @@ int acpi_map_pxm_to_node(int pxm)
+>   */
+>  int acpi_map_pxm_to_online_node(int pxm)
+>  {
+> -       int node, n, dist, min_dist;
+> +       int node, min_node;
+>
+>         node = acpi_map_pxm_to_node(pxm);
+>
+>         if (node == NUMA_NO_NODE)
+>                 node = 0;
+>
+> +       min_node = node;
+>         if (!node_online(node)) {
+> -               min_dist = INT_MAX;
+> +               int min_dist = INT_MAX, dist, n;
+> +
+>                 for_each_online_node(n) {
+>                         dist = node_distance(node, n);
+>                         if (dist < min_dist) {
+>                                 min_dist = dist;
+> -                               node = n;
+> +                               min_node = n;
+>                         }
+>                 }
+>         }
+>
+> -       return node;
+> +       return min_node;
+>  }
+>  EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
+>
+>
