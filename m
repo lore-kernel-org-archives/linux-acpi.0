@@ -1,86 +1,70 @@
-From: Daniel Drake <drake@endlessm.com>
-Subject: [PATCH] ACPI / PM: allow deeper wakeup power states with no _SxD nor _SxW
-Date: Mon, 19 Mar 2018 15:29:41 +0800
-Message-ID: <20180319072941.22767-1-drake@endlessm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@endlessm.com, chiu@endlessm.com, mathias.nyman@intel.com, linux-usb@vger.kernel.org
+From: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 37/37] vfio: Add support for Shared Virtual Addressing
+Date: Mon, 19 Mar 2018 17:47:15 +0800
+Message-ID: <e3ae1693-0ed8-65e1-352a-07f79038dcbd@huawei.com>
+References: <1519280641-30258-1-git-send-email-xieyisheng1@huawei.com>
+	<1519280641-30258-37-git-send-email-xieyisheng1@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1519280641-30258-37-git-send-email-xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-acpi_dev_pm_get_state() is used to determine the range of allowable
-device power states when going into S3 suspend. This is implemented
-by executing the _S3D and _S3W ACPI methods.
+Hi Jean,
 
-Linux follows the ACPI spec behaviour in that when _S3D is implemented
-and _S3W is not, Linux will not go into a power state deeper than the one
-returned by _S3D for a wakeup-enabled device.
+vfio can be compiled as module, however you use some functions which are not
+exported.
 
-However, this same logic is being applied to the case when neither
-_S3D nor _S3W are present, and the result is that this function
-decides that the device must stay in D0 (fully on) state.
+comment inline:
 
-This is breaking USB wakeups on Asus V222GA and Acer XC-830. _S3D and
-_S3W are not present, so the USB controller is left in the D0 running
-state during S3, and hence it is unable to generate a PME# wake event.
+[...]
+> Add two new ioctl for VFIO containers. VFIO_IOMMU_BIND_PROCESS creates a
+> bond between a container and a process address space, identified by a
+> device-specific ID named PASID. This allows the device to target DMA
+> transactions at the process virtual addresses without a need for mapping
+> and unmapping buffers explicitly in the IOMMU. The process page tables are
+> shared with the IOMMU, and mechanisms such as PCI ATS/PRI are used to
+> handle faults. VFIO_IOMMU_UNBIND_PROCESS removes a bond created with
+> VFIO_IOMMU_BIND_PROCESS.
+>
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> ---
+[...]
+> +static struct mm_struct *vfio_iommu_get_mm_by_vpid(pid_t vpid)
+> +{
+> +	struct mm_struct *mm;
+> +	struct task_struct *task;
+> +
+> +	rcu_read_lock();
+> +	task = find_task_by_vpid(vpid);
 
-The ACPI spec is unclear on which power states are permissable for
-wakeup-enabled devices when both _S3D and _S3W are missing.
-However, USB wakeups work fine on these platforms under Windows, where
-device manager shows that they are using D3 device state for the USB
-controller in S3.
+Maybe can use?
+	task = pid_task(find_vpid(params.vpid), PIDTYPE_PID)
 
-I assume that the "max = min" clamping done by the code here is
-specifically written for the _S3D but no _S3W case. By making the
-code true to those conditions, avoiding them on these platforms,
-the controller will be put into D3 state and USB wakeups start working.
+> +	if (task)
+> +		get_task_struct(task);
+> +	rcu_read_unlock();
+> +	if (!task)
+> +		return ERR_PTR(-ESRCH);
+> +
+> +	/* Ensure that current has RW access on the mm */
+> +	mm = mm_access(task, PTRACE_MODE_ATTACH_REALCREDS);
 
-Additionally I feel that this change makes the code more directly
-mirror the wording of the ACPI spec and it's associated lack of clarity.
+You will try to export mm_access, I find Felix have tried to, but seems give up:
 
-Thanks to Mathias Nyman for pointing us in the right direction.
+ https://patchwork.kernel.org/patch/9744281/
 
-Signed-off-by: Daniel Drake <drake@endlessm.com>
-Link: http://lkml.kernel.org/r/CAB4CAwf_k-WsF3zL4epm9TKAOu0h=Bv1XhXV_gY3bziOo_NPKA@mail.gmail.com
----
- drivers/acpi/device_pm.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index c4d0a1c912f0..b945e37bcac0 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -543,6 +543,7 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
- 	unsigned long long ret;
- 	int d_min, d_max;
- 	bool wakeup = false;
-+	acpi_status sxd_status;
- 	acpi_status status;
- 
- 	/*
-@@ -565,8 +566,8 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
- 		 * provided if AE_NOT_FOUND is returned.
- 		 */
- 		ret = d_min;
--		status = acpi_evaluate_integer(handle, method, NULL, &ret);
--		if ((ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-+		sxd_status = acpi_evaluate_integer(handle, method, NULL, &ret);
-+		if ((ACPI_FAILURE(sxd_status) && sxd_status != AE_NOT_FOUND)
- 		    || ret > ACPI_STATE_D3_COLD)
- 			return -ENODATA;
- 
-@@ -599,7 +600,11 @@ static int acpi_dev_pm_get_state(struct device *dev, struct acpi_device *adev,
- 		method[3] = 'W';
- 		status = acpi_evaluate_integer(handle, method, NULL, &ret);
- 		if (status == AE_NOT_FOUND) {
--			if (target_state > ACPI_STATE_S0)
-+			/* No _SxW. In this case, the ACPI spec says that we
-+			 * must not go into any power state deeper than the
-+			 * value returned from _SxD.
-+			 */
-+			if (sxd_status == AE_OK && target_state > ACPI_STATE_S0)
- 				d_max = d_min;
- 		} else if (ACPI_SUCCESS(status) && ret <= ACPI_STATE_D3_COLD) {
- 			/* Fall back to D3cold if ret is not a valid state. */
--- 
-2.14.1
+Thanks
+Yisheng
