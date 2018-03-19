@@ -1,205 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 05/13] ACPI/PPTT: Add Processor Properties Topology Table parsing
-Date: Mon, 19 Mar 2018 11:46:20 +0100
-Message-ID: <2844054.uKnBIypXtU@aspire.rjw.lan>
-References: <20180228220619.6992-1-jeremy.linton@arm.com> <20180228220619.6992-6-jeremy.linton@arm.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v17 08/10] ACPI / scan: do not enumerate Indirect IO host
+ children
+Date: Mon, 19 Mar 2018 10:48:34 +0000
+Message-ID: <906b3868-39a5-3807-23a4-dfc52c2e82c4@huawei.com>
+References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
+ <1521051359-34473-9-git-send-email-john.garry@huawei.com>
+ <2309217.pWfZsU88YQ@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180228220619.6992-6-jeremy.linton@arm.com>
+In-Reply-To: <2309217.pWfZsU88YQ@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, will.deacon@arm.com, catalin.marinas@arm.com, gregkh@linuxfoundation.org, mark.rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, dietmar.eggemann@arm.com, morten.rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, andriy.shevchenko@linux.intel.com, joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, frowand.list@gmail.com, agraf@suse.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, February 28, 2018 11:06:11 PM CET Jeremy Linton wrote:
-> ACPI 6.2 adds a new table, which describes how processing units
-> are related to each other in tree like fashion. Caches are
-> also sprinkled throughout the tree and describe the properties
-> of the caches in relation to other caches and processing units.
-> 
-> Add the code to parse the cache hierarchy and report the total
-> number of levels of cache for a given core using
-> acpi_find_last_cache_level() as well as fill out the individual
-> cores cache information with cache_setup_acpi() once the
-> cpu_cacheinfo structure has been populated by the arch specific
-> code.
-> 
-> An additional patch later in the set adds the ability to report
-> peers in the topology using find_acpi_cpu_topology()
-> to report a unique ID for each processing unit at a given level
-> in the tree. These unique id's can then be used to match related
-> processing units which exist as threads, COD (clusters
-> on die), within a given package, etc.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+On 19/03/2018 10:30, Rafael J. Wysocki wrote:
+> On Wednesday, March 14, 2018 7:15:57 PM CET John Garry wrote:
+>> > Through the logical PIO framework systems which otherwise have
+>> > no IO space access to legacy ISA/LPC devices may access these
+>> > devices through so-called "indirect IO" method. In this, IO
+>> > space accesses for non-PCI hosts are redirected to a host
+>> > LLDD to manually generate the IO space (bus) accesses. Hosts
+>> > are able to register a region in logical PIO space to map to
+>> > its bus address range.
+>> >
+>> > Indirect IO child devices have an associated host-specific bus
+>> > address. Special translation is required to map between
+>> > a logical PIO address for a device and it's host bus address.
+>> >
+>> > Since in the ACPI tables the child device IO resources would
+>> > be the host-specific values, it is required the ACPI scan code
+>> > should not enumerate these devices, and that this should be
+>> > the responsibility of the host driver so that it can "fixup"
+>> > the resources so that they map to the appropriate logical PIO
+>> > addresses.
+>> >
+>> > To avoid enumerating these child devices, we add a check from
+>> > acpi_device_enumeration_by_parent() as to whether the parent
+>> > for a device is a member of a known list of "indirect IO" hosts.
+>> > For now, the HiSilicon LPC host controller ID is added.
+>> >
+>> > Signed-off-by: John Garry <john.garry@huawei.com>
+>> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> You have my ACK here already.
+>
+> Since I've ACKed the [7/10] too, I don't think there's anything more I can do
+> about this series and I'm assuming that it will be routed through other trees.
+>
+> Thanks!
+>
 
-A couple of cosmetic comments.
+Hi Rafael,
 
-> ---
->  drivers/acpi/pptt.c | 488 ++++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 488 insertions(+)
->  create mode 100644 drivers/acpi/pptt.c
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> new file mode 100644
-> index 000000000000..883e4318c6cd
-> --- /dev/null
-> +++ b/drivers/acpi/pptt.c
-> @@ -0,0 +1,488 @@
+Thanks for this.
 
-Use an SPDX license ID here and then you don't need the license boilerplate
-below.
+Yes, I am working on getting this whole series routed through another 
+tree. Actually I think 7+8 could go separately since there is no build 
+dependency, but I will try to keep the series together.
 
-> +/*
-> + * Copyright (C) 2018, ARM
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms and conditions of the GNU General Public License,
-> + * version 2, as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope it will be useful, but WITHOUT
-> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-> + * more details.
-> + *
-> + * This file implements parsing of Processor Properties Topology Table (PPTT)
-> + * which is optionally used to describe the processor and cache topology.
-> + * Due to the relative pointers used throughout the table, this doesn't
-> + * leverage the existing subtable parsing in the kernel.
-> + *
-> + * The PPTT structure is an inverted tree, with each node potentially
-> + * holding one or two inverted tree data structures describing
-> + * the caches available at that level. Each cache structure optionally
-> + * contains properties describing the cache at a given level which can be
-> + * used to override hardware probed values.
-> + */
-> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/cacheinfo.h>
-> +#include <acpi/processor.h>
-> +
-> +/*
-> + * Given the PPTT table, find and verify that the subtable entry
-> + * is located within the table
-> + */
-
-If you add a comment above a function, make it a kerneldoc.  That
-never hurts, but really helps sometimes.
-
-> +static struct acpi_subtable_header *fetch_pptt_subtable(
-
-Don't break the line here, it can be broken after the first arg.
-
-That's OK even if it is more than 80 chars long.
-
-> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
-> +{
-> +	struct acpi_subtable_header *entry;
-> +
-> +	/* there isn't a subtable at reference 0 */
-> +	if (pptt_ref < sizeof(struct acpi_subtable_header))
-> +		return NULL;
-> +
-> +	if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
-> +		return NULL;
-> +
-> +	entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr, pptt_ref);
-> +
-> +	if (pptt_ref + entry->length > table_hdr->length)
-> +		return NULL;
-> +
-> +	return entry;
-> +}
-> +
-> +static struct acpi_pptt_processor *fetch_pptt_node(
-> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
-> +{
-> +	return (struct acpi_pptt_processor *)fetch_pptt_subtable(table_hdr,
-> +								 pptt_ref);
-
-You don't need to break this line too.
-
-> +}
-> +
-> +static struct acpi_pptt_cache *fetch_pptt_cache(
-> +	struct acpi_table_header *table_hdr, u32 pptt_ref)
-> +{
-> +	return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr,
-> +							     pptt_ref);
-
-And here.
-
-> +}
-> +
-> +static struct acpi_subtable_header *acpi_get_pptt_resource(
-> +	struct acpi_table_header *table_hdr,
-> +	struct acpi_pptt_processor *node, int resource)
-> +{
-> +	u32 *ref;
-> +
-> +	if (resource >= node->number_of_priv_resources)
-> +		return NULL;
-> +
-> +	ref = ACPI_ADD_PTR(u32, node, sizeof(struct acpi_pptt_processor));
-> +	ref += resource;
-> +
-> +	return fetch_pptt_subtable(table_hdr, *ref);
-> +}
-> +
-> +/*
-> + * Match the type passed and special case the TYPE_UNIFIED so that
-> + * it match both ACPI_PPTT_CACHE_TYPE_UNIFIED(_ALT) types.
-> + */
-> +static inline bool acpi_pptt_match_type(int table_type, int type)
-> +{
-> +	return (((table_type & ACPI_PPTT_MASK_CACHE_TYPE) == type) ||
-> +		(table_type & ACPI_PPTT_CACHE_TYPE_UNIFIED & type));
-> +}
-> +
-> +/*
-> + * Attempt to find a given cache level, while counting the max number
-> + * of cache levels for the cache node.
-> + *
-> + * Given a pptt resource, verify that it is a cache node, then walk
-> + * down each level of caches, counting how many levels are found
-> + * as well as checking the cache type (icache, dcache, unified). If a
-> + * level & type match, then we set found, and continue the search.
-> + * Once the entire cache branch has been walked return its max
-> + * depth.
-> + */
-> +static int acpi_pptt_walk_cache(struct acpi_table_header *table_hdr,
-> +				int local_level,
-> +				struct acpi_subtable_header *res,
-> +				struct acpi_pptt_cache **found,
-> +				int level, int type)
-> +{
-> +	struct acpi_pptt_cache *cache;
-> +
-> +	if (res->type != ACPI_PPTT_TYPE_CACHE)
-> +		return 0;
-> +
-> +	cache = (struct acpi_pptt_cache *) res;
-> +	while (cache) {
-> +		local_level++;
-> +
-> +		if ((local_level == level) &&
-> +		    (cache->flags & ACPI_PPTT_CACHE_TYPE_VALID) &&
-> +		    acpi_pptt_match_type(cache->attributes, type)) {
-> +			if ((*found != NULL) && (cache != *found))
-
-Inner parens are not necessary (and above and in some other places too).
-
-> +				pr_err("Found duplicate cache level/type unable to determine uniqueness\n");
-
-This is not an error, rather a statement that something is inconsistent in the
-ACPI table, so please consider using a different log level here.
-
-[cut]
-
-I guess I could post similar comments for the other general ACPI patches in
-this series, so please address them in there too if applicable.
-
-Thanks!
+All the best, And thanks again,
+John
