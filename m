@@ -1,82 +1,40 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v17 08/10] ACPI / scan: do not enumerate Indirect IO host
- children
-Date: Mon, 19 Mar 2018 11:13:07 +0000
-Message-ID: <d4048516-033c-85f1-1766-69b3e58ae295@huawei.com>
-References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
- <1521051359-34473-9-git-send-email-john.garry@huawei.com>
- <2309217.pWfZsU88YQ@aspire.rjw.lan>
- <906b3868-39a5-3807-23a4-dfc52c2e82c4@huawei.com>
- <CAJZ5v0gm5AokZy4JvuJzDgdNoc88FjrMmXR2RK5pdRkXgtYrXQ@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI: Add Time and Alarm Device (TAD) driver
+Date: Mon, 19 Mar 2018 13:14:45 +0200
+Message-ID: <20180319111445.GM2703@lahna.fi.intel.com>
+References: <6419044.RXe4JATo1K@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gm5AokZy4JvuJzDgdNoc88FjrMmXR2RK5pdRkXgtYrXQ@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <6419044.RXe4JATo1K@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Rob Herring <robh@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 19/03/2018 10:57, Rafael J. Wysocki wrote:
-> On Mon, Mar 19, 2018 at 11:48 AM, John Garry <john.garry@huawei.com> wrote:
->> On 19/03/2018 10:30, Rafael J. Wysocki wrote:
->>>
->>> On Wednesday, March 14, 2018 7:15:57 PM CET John Garry wrote:
->>>>
->>>>> Through the logical PIO framework systems which otherwise have
->>>>> no IO space access to legacy ISA/LPC devices may access these
->>>>> devices through so-called "indirect IO" method. In this, IO
->>>>> space accesses for non-PCI hosts are redirected to a host
->>>>> LLDD to manually generate the IO space (bus) accesses. Hosts
->>>>> are able to register a region in logical PIO space to map to
->>>>> its bus address range.
->>>>>
->>>>> Indirect IO child devices have an associated host-specific bus
->>>>> address. Special translation is required to map between
->>>>> a logical PIO address for a device and it's host bus address.
->>>>>
->>>>> Since in the ACPI tables the child device IO resources would
->>>>> be the host-specific values, it is required the ACPI scan code
->>>>> should not enumerate these devices, and that this should be
->>>>> the responsibility of the host driver so that it can "fixup"
->>>>> the resources so that they map to the appropriate logical PIO
->>>>> addresses.
->>>>>
->>>>> To avoid enumerating these child devices, we add a check from
->>>>> acpi_device_enumeration_by_parent() as to whether the parent
->>>>> for a device is a member of a known list of "indirect IO" hosts.
->>>>> For now, the HiSilicon LPC host controller ID is added.
->>>>>
->>>>> Signed-off-by: John Garry <john.garry@huawei.com>
->>>>> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>>
->>> You have my ACK here already.
->>>
->>> Since I've ACKed the [7/10] too, I don't think there's anything more I can
->>> do
->>> about this series and I'm assuming that it will be routed through other
->>> trees.
->>>
->>> Thanks!
->>>
->>
->> Hi Rafael,
->>
->> Thanks for this.
->>
->> Yes, I am working on getting this whole series routed through another tree.
->> Actually I think 7+8 could go separately since there is no build dependency,
->> but I will try to keep the series together.
->
-> I can take the [7-8/10] if you want me to, so please let me know.
->
+On Fri, Mar 16, 2018 at 01:51:01PM +0100, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Introduce a driver for the ACPI Time and Alarm Device (TAD) based on
+> Section 9.18 of ACPI 6.2.
+> 
+> This driver only supports the system wakeup capabilities of the TAD
+> which are mandatory.  Support for the RTC capabilities of the TAD
+> will be added to it in the future.
+> 
+> This driver is entirely sysfs-based.  It provides attributes (under
+> the TAD platform device) to allow user space to manage the AC and DC
+> wakeup timers of the TAD: set and read their values, set and check
+> their expire timer wake policies, check and clear their status and
+> check the capabilities of the TAD reported by AML.  The DC timer
+> attributes are only present if the TAD supports a separate DC alarm
+> timer.
+> 
+> The wakeup events handling and power management of the TAD is
+> expected to be taken care of by the ACPI PM domain attached to its
+> platform device.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-OK, thanks. Will do.
-
-John
-
-> Thanks!
->
-> .
->
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
