@@ -1,69 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v17 08/10] ACPI / scan: do not enumerate Indirect IO host children
-Date: Mon, 19 Mar 2018 11:57:15 +0100
-Message-ID: <CAJZ5v0gm5AokZy4JvuJzDgdNoc88FjrMmXR2RK5pdRkXgtYrXQ@mail.gmail.com>
-References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
- <1521051359-34473-9-git-send-email-john.garry@huawei.com> <2309217.pWfZsU88YQ@aspire.rjw.lan>
- <906b3868-39a5-3807-23a4-dfc52c2e82c4@huawei.com>
+From: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 27/37] iommu/arm-smmu-v3: Register fault workqueue
+Date: Mon, 19 Mar 2018 19:03:41 +0800
+Message-ID: <f2841aac-4c5e-4ac2-fa4d-81d6b2857503@huawei.com>
+References: <1519280641-30258-1-git-send-email-xieyisheng1@huawei.com>
+	<1519280641-30258-27-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <906b3868-39a5-3807-23a4-dfc52c2e82c4@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Rob Herring <robh+dt@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Mark Rutland <mark.rutland@arm.com>, Olof Johansson <olof@lixom.net>, Dann Frazier <dann.frazier@canonical.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Rob Herring <robh@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Joe Perches <joe@perches.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1519280641-30258-27-git-send-email-xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Sudeep Holla <Sudeep.Holla-5wv7dgnIgG8@public.gmane.org>, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 19, 2018 at 11:48 AM, John Garry <john.garry@huawei.com> wrote:
-> On 19/03/2018 10:30, Rafael J. Wysocki wrote:
->>
->> On Wednesday, March 14, 2018 7:15:57 PM CET John Garry wrote:
->>>
->>> > Through the logical PIO framework systems which otherwise have
->>> > no IO space access to legacy ISA/LPC devices may access these
->>> > devices through so-called "indirect IO" method. In this, IO
->>> > space accesses for non-PCI hosts are redirected to a host
->>> > LLDD to manually generate the IO space (bus) accesses. Hosts
->>> > are able to register a region in logical PIO space to map to
->>> > its bus address range.
->>> >
->>> > Indirect IO child devices have an associated host-specific bus
->>> > address. Special translation is required to map between
->>> > a logical PIO address for a device and it's host bus address.
->>> >
->>> > Since in the ACPI tables the child device IO resources would
->>> > be the host-specific values, it is required the ACPI scan code
->>> > should not enumerate these devices, and that this should be
->>> > the responsibility of the host driver so that it can "fixup"
->>> > the resources so that they map to the appropriate logical PIO
->>> > addresses.
->>> >
->>> > To avoid enumerating these child devices, we add a check from
->>> > acpi_device_enumeration_by_parent() as to whether the parent
->>> > for a device is a member of a known list of "indirect IO" hosts.
->>> > For now, the HiSilicon LPC host controller ID is added.
->>> >
->>> > Signed-off-by: John Garry <john.garry@huawei.com>
->>> > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> You have my ACK here already.
->>
->> Since I've ACKed the [7/10] too, I don't think there's anything more I can
->> do
->> about this series and I'm assuming that it will be routed through other
->> trees.
->>
->> Thanks!
->>
->
-> Hi Rafael,
->
-> Thanks for this.
->
-> Yes, I am working on getting this whole series routed through another tree.
-> Actually I think 7+8 could go separately since there is no build dependency,
-> but I will try to keep the series together.
+Hi Jean,
 
-I can take the [7-8/10] if you want me to, so please let me know.
+[...]
+> @@ -3168,6 +3260,13 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
+>  	if (ret)
+>  		return ret;
+>  
+> +	if (smmu->features & (ARM_SMMU_FEAT_STALLS | ARM_SMMU_FEAT_PRI)) {
+> +		smmu->faultq_nb.notifier_call = arm_smmu_flush_queues;
+> +		ret = iommu_fault_queue_register(&smmu->faultq_nb);
+> +		if (ret)
+> +			return ret;
 
-Thanks!
+I find a case here: CONFIG_IOMMU_FAULT=n, and smmu support feature STALLS or PRI,
+the device probe will failed here, is this what we want?
+
+Thanks
+Yisheng
+
+> +	}
+> +
+>  	/* And we're up. Go go go! */
+>  	ret = iommu_device_sysfs_add(&smmu->iommu, dev, NULL,
+>  				     "smmu3.%pa", &ioaddr);
