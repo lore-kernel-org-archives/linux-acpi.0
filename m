@@ -1,40 +1,50 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH 0/5] x86/cpu_hotplug: one bug fix and four cleanup
-Date: Tue, 20 Mar 2018 19:04:27 +0800
-Message-ID: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
+Subject: [PATCH 4/5] acpi/processor: Fix the return value of acpi_processor_ids_walk()
+Date: Tue, 20 Mar 2018 19:04:31 +0800
+Message-ID: <20180320110432.28127-5-douly.fnst@cn.fujitsu.com>
+References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org
 Cc: tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, hpa@zytor.com, peterz@infradead.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Recently, we hoped to make the possible CPU count more accurate for
-Kernel. I stuck on the issue how do I run acpi_early_init() _before_ 
-setup_percpu() is invoked. So send these insignificant patches first.
+ACPI driver should make sure all the processor IDs in their ACPI Namespace
+are unique for CPU hotplug. the driver performs a depth-first walk of the
+namespace tree and calls the acpi_processor_ids_walk().
 
-This patchset does this things:
+But, the acpi_processor_ids_walk() will return true if one processor is
+checked, that cause the walk break after walking pass the first processor.
 
-  - two document-related work(the 1th and 2th patch),
-  - two cleapup work (the 3th and 5th patch)
-  - a bug fix for CPU hotplug(4th patch)
+Repace the value with AE_OK which is the standard acpi_status value.
 
-Dou Liyang (5):
-  x86/smpboot: Add the missing description of possible_cpus
-  x86/cpu_hotplug: Update the link of cpu_hotplug.rst
-  x86/smpboot: Make the check code more clear in prefill_possible_map()
-  acpi/processor: Fix the return value of acpi_processor_ids_walk()
-  acpi/processor: Make the acpi_duplicate_processor_id() static
+Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for processor enumeration")
 
- Documentation/00-INDEX                          |  2 -
- Documentation/admin-guide/kernel-parameters.txt |  5 ++
- Documentation/cputopology.txt                   | 10 ++--
- Documentation/x86/x86_64/cpu-hotplug-spec       |  2 +-
- arch/x86/kernel/smpboot.c                       | 31 +++++++-----
- drivers/acpi/acpi_processor.c                   | 66 ++++++++++++-------------
- include/linux/acpi.h                            |  3 --
- 7 files changed, 62 insertions(+), 57 deletions(-)
+Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+---
+ drivers/acpi/acpi_processor.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 449d86d39965..db5bdb59639c 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -663,11 +663,11 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
+ 	}
+ 
+ 	processor_validated_ids_update(uid);
+-	return true;
++	return AE_OK;
+ 
+ err:
+ 	acpi_handle_info(handle, "Invalid processor object\n");
+-	return false;
++	return AE_OK;
+ 
+ }
+ 
 -- 
 2.14.3
