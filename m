@@ -1,66 +1,64 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH 2/5] x86/cpu_hotplug: Update the link of cpu_hotplug.rst
-Date: Tue, 20 Mar 2018 19:04:29 +0800
-Message-ID: <20180320110432.28127-3-douly.fnst@cn.fujitsu.com>
-References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: Re: [PATCH v3] xen/acpi: upload _PSD info for non Dom0 CPUs too
+Date: Tue, 20 Mar 2018 11:07:51 +0000
+Message-ID: <5549560b-44ba-8063-de11-2e74b99a3e20@oracle.com>
+References: <20180315142205.15839-1-joao.m.martins@oracle.com>
+ <bbf536dc-3c3d-8a25-47e8-7fd52850835d@oracle.com>
+ <d14d48ab-9ba1-c70c-4d46-cd9c7c862add@oracle.com>
+ <CAJZ5v0ipVHsjEBJuj3Lz6iRSVasv8d2YY0qjz1SFaCK+zDP=Xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
+In-Reply-To: <CAJZ5v0ipVHsjEBJuj3Lz6iRSVasv8d2YY0qjz1SFaCK+zDP=Xw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, hpa@zytor.com, peterz@infradead.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Juergen Gross <jgross@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, xen-devel@lists.xenproject.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-The original cpu_hotplug.txt documents describing CPU hotplug support in
-Linux kernel. it was moved in to core-api/ and renamed cpu_hotplug.rst.
+On 03/20/2018 09:41 AM, Rafael J. Wysocki wrote:
+> On Fri, Mar 16, 2018 at 2:57 PM, Joao Martins <joao.m.martins@oracle.com> wrote:
+>> On 03/15/2018 03:45 PM, Boris Ostrovsky wrote:
+>>> On 03/15/2018 10:22 AM, Joao Martins wrote:
+>>>> All uploaded PM data from non-dom0 CPUs takes the info from vCPU 0 and
+>>>> changing only the acpi_id. For processors which P-state coordination type
+>>>> is HW_ALL (0xFD) it is OK to upload bogus P-state dependency information
+>>>> (_PSD), because Xen will ignore any cpufreq domains created for past CPUs.
+>>>>
+>>>> Albeit for platforms which expose coordination types as SW_ANY or SW_ALL,
+>>>> this will have some unintended side effects. Effectively, it will look at
+>>>> the P-state domain existence and *if it already exists* it will skip the
+>>>> acpi-cpufreq initialization and thus inherit the policy from the first CPU
+>>>> in the cpufreq domain. This will finally lead to the original cpu not
+>>>> changing target freq to P0 other than the first in the domain. Which will
+>>>> make turbo boost not getting enabled (e.g. for 'performance' governor) for
+>>>> all cpus.
+>>>>
+>>>> This patch fixes that, by also evaluating _PSD when we enumerate all ACPI
+>>>> processors and thus always uploading the correct info to Xen. We export
+>>>> acpi_processor_get_psd() for that this purpose, but change signature
+>>>> to not assume an existent of acpi_processor given that ACPI isn't creating
+>>>> an acpi_processor for non-dom0 CPUs.
+>>>>
+>>>> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+>>>
+>>> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>>>
+>> Thanks!
+>>
+>> I suppose what's remaining is review (or ack) from ACPI folks on the interface
+>> changes made to acpi_processor_get_psd().
+> 
+> There you go:
+> 
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+Thank you!
 
-Update it's link in other documents
+> Do you want to route this via Xen?
+> 
+I suppose that makes sense given that the majority of the change is on xen acpi
+processor. But it's ultimately Boris/Juergen call.
 
-Fixes: ff58fa7f556c ("Documentation: Update CPU hotplug and move it to core-api")
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- Documentation/00-INDEX        |  2 --
- Documentation/cputopology.txt | 10 +++++-----
- 2 files changed, 5 insertions(+), 7 deletions(-)
-
-diff --git a/Documentation/00-INDEX b/Documentation/00-INDEX
-index 7f3a0728ccf2..3773c67ea9e5 100644
---- a/Documentation/00-INDEX
-+++ b/Documentation/00-INDEX
-@@ -104,8 +104,6 @@ core-api/
- 	- documentation on kernel core components.
- cpu-freq/
- 	- info on CPU frequency and voltage scaling.
--cpu-hotplug.txt
--	- document describing CPU hotplug support in the Linux kernel.
- cpu-load.txt
- 	- document describing how CPU load statistics are collected.
- cpuidle/
-diff --git a/Documentation/cputopology.txt b/Documentation/cputopology.txt
-index c6e7e9196a8b..e05b0879fe91 100644
---- a/Documentation/cputopology.txt
-+++ b/Documentation/cputopology.txt
-@@ -117,9 +117,9 @@ source for the output is in brackets ("[]").
- 		[NR_CPUS-1]
- 
-     offline:	CPUs that are not online because they have been
--		HOTPLUGGED off (see cpu-hotplug.txt) or exceed the limit
--		of CPUs allowed by the kernel configuration (kernel_max
--		above). [~cpu_online_mask + cpus >= NR_CPUS]
-+		HOTPLUGGED off (see core-api/cpu_hotplug.rst) or exceed
-+		the limit of CPUs allowed by the kernel configuration
-+		(kernel_max above). [~cpu_online_mask + cpus >= NR_CPUS]
- 
-     online:	CPUs that are online and being scheduled [cpu_online_mask]
- 
-@@ -155,5 +155,5 @@ online.)::
-        possible: 0-127
-         present: 0-3
- 
--See cpu-hotplug.txt for the possible_cpus=NUM kernel start parameter
--as well as more information on the various cpumasks.
-+See core-api/cpu_hotplug.rst for the possible_cpus=NUM kernel start
-+parameter as well as more information on the various cpumasks.
--- 
-2.14.3
+	Joao
