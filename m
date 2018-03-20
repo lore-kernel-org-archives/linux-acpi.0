@@ -1,64 +1,26 @@
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: Re: [PATCH v3] xen/acpi: upload _PSD info for non Dom0 CPUs too
-Date: Tue, 20 Mar 2018 11:07:51 +0000
-Message-ID: <5549560b-44ba-8063-de11-2e74b99a3e20@oracle.com>
-References: <20180315142205.15839-1-joao.m.martins@oracle.com>
- <bbf536dc-3c3d-8a25-47e8-7fd52850835d@oracle.com>
- <d14d48ab-9ba1-c70c-4d46-cd9c7c862add@oracle.com>
- <CAJZ5v0ipVHsjEBJuj3Lz6iRSVasv8d2YY0qjz1SFaCK+zDP=Xw@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 1/5] x86/smpboot: Add the missing description of
+ possible_cpus
+Date: Tue, 20 Mar 2018 13:37:12 +0100
+Message-ID: <20180320123712.GR4043@hirez.programming.kicks-ass.net>
+References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
+ <20180320110432.28127-2-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0ipVHsjEBJuj3Lz6iRSVasv8d2YY0qjz1SFaCK+zDP=Xw@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180320110432.28127-2-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Juergen Gross <jgross@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, xen-devel@lists.xenproject.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, hpa@zytor.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/20/2018 09:41 AM, Rafael J. Wysocki wrote:
-> On Fri, Mar 16, 2018 at 2:57 PM, Joao Martins <joao.m.martins@oracle.com> wrote:
->> On 03/15/2018 03:45 PM, Boris Ostrovsky wrote:
->>> On 03/15/2018 10:22 AM, Joao Martins wrote:
->>>> All uploaded PM data from non-dom0 CPUs takes the info from vCPU 0 and
->>>> changing only the acpi_id. For processors which P-state coordination type
->>>> is HW_ALL (0xFD) it is OK to upload bogus P-state dependency information
->>>> (_PSD), because Xen will ignore any cpufreq domains created for past CPUs.
->>>>
->>>> Albeit for platforms which expose coordination types as SW_ANY or SW_ALL,
->>>> this will have some unintended side effects. Effectively, it will look at
->>>> the P-state domain existence and *if it already exists* it will skip the
->>>> acpi-cpufreq initialization and thus inherit the policy from the first CPU
->>>> in the cpufreq domain. This will finally lead to the original cpu not
->>>> changing target freq to P0 other than the first in the domain. Which will
->>>> make turbo boost not getting enabled (e.g. for 'performance' governor) for
->>>> all cpus.
->>>>
->>>> This patch fixes that, by also evaluating _PSD when we enumerate all ACPI
->>>> processors and thus always uploading the correct info to Xen. We export
->>>> acpi_processor_get_psd() for that this purpose, but change signature
->>>> to not assume an existent of acpi_processor given that ACPI isn't creating
->>>> an acpi_processor for non-dom0 CPUs.
->>>>
->>>> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
->>>
->>> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->>>
->> Thanks!
->>
->> I suppose what's remaining is review (or ack) from ACPI folks on the interface
->> changes made to acpi_processor_get_psd().
-> 
-> There you go:
-> 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-Thank you!
+On Tue, Mar 20, 2018 at 07:04:28PM +0800, Dou Liyang wrote:
 
-> Do you want to route this via Xen?
-> 
-I suppose that makes sense given that the majority of the change is on xen acpi
-processor. But it's ultimately Boris/Juergen call.
+> +	possible_cpus=	[s390,x86_64] Use this to set hotpluggable cpus.
+> +			This option sets possible_cpus bits in cpu_possible_map.
+> +			Thus keeping the numbers of bits set constant even if
+> +			the machine gets rebooted.
 
-	Joao
+That description, esp. the last sentence, doesn't make any kind of sense
+to me. What?
