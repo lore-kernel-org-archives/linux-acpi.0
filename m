@@ -1,73 +1,52 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH] ACPI / scan: Send the change uevent with offine
- environmental data
-Date: Tue, 20 Mar 2018 13:52:54 +0800
-Message-ID: <20180320055254.GJ15088@linux-l9pv.suse>
-References: <20180302063508.15818-1-jlee@suse.com>
- <12390857.1FYhrZHzGj@aspire.rjw.lan>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3] xen/acpi: upload _PSD info for non Dom0 CPUs too
+Date: Tue, 20 Mar 2018 10:41:49 +0100
+Message-ID: <CAJZ5v0ipVHsjEBJuj3Lz6iRSVasv8d2YY0qjz1SFaCK+zDP=Xw@mail.gmail.com>
+References: <20180315142205.15839-1-joao.m.martins@oracle.com>
+ <bbf536dc-3c3d-8a25-47e8-7fd52850835d@oracle.com> <d14d48ab-9ba1-c70c-4d46-cd9c7c862add@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <12390857.1FYhrZHzGj@aspire.rjw.lan>
+In-Reply-To: <d14d48ab-9ba1-c70c-4d46-cd9c7c862add@oracle.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Michal Hocko <mhocko@kernel.org>, Len Brown <lenb@kernel.org>
+To: Joao Martins <joao.m.martins@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Juergen Gross <jgross@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, xen-devel@lists.xenproject.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael, 
+On Fri, Mar 16, 2018 at 2:57 PM, Joao Martins <joao.m.martins@oracle.com> wrote:
+> On 03/15/2018 03:45 PM, Boris Ostrovsky wrote:
+>> On 03/15/2018 10:22 AM, Joao Martins wrote:
+>>> All uploaded PM data from non-dom0 CPUs takes the info from vCPU 0 and
+>>> changing only the acpi_id. For processors which P-state coordination type
+>>> is HW_ALL (0xFD) it is OK to upload bogus P-state dependency information
+>>> (_PSD), because Xen will ignore any cpufreq domains created for past CPUs.
+>>>
+>>> Albeit for platforms which expose coordination types as SW_ANY or SW_ALL,
+>>> this will have some unintended side effects. Effectively, it will look at
+>>> the P-state domain existence and *if it already exists* it will skip the
+>>> acpi-cpufreq initialization and thus inherit the policy from the first CPU
+>>> in the cpufreq domain. This will finally lead to the original cpu not
+>>> changing target freq to P0 other than the first in the domain. Which will
+>>> make turbo boost not getting enabled (e.g. for 'performance' governor) for
+>>> all cpus.
+>>>
+>>> This patch fixes that, by also evaluating _PSD when we enumerate all ACPI
+>>> processors and thus always uploading the correct info to Xen. We export
+>>> acpi_processor_get_psd() for that this purpose, but change signature
+>>> to not assume an existent of acpi_processor given that ACPI isn't creating
+>>> an acpi_processor for non-dom0 CPUs.
+>>>
+>>> Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+>>
+>> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>>
+> Thanks!
+>
+> I suppose what's remaining is review (or ack) from ACPI folks on the interface
+> changes made to acpi_processor_get_psd().
 
-On Mon, Mar 19, 2018 at 11:02:32AM +0100, Rafael J. Wysocki wrote:
-> On Friday, March 2, 2018 7:35:08 AM CET Lee, Chun-Yi wrote:
-> > In current design of ACPI container offline, Kernel emits
-> > KOBJ_CHANGE uevent to user space to indidate that the ejection of
-> > the container was triggered by platform. (caa73ea15 patch)
-> > 
-> > A pure KOBJ_CHANGE uevent is not enough for user space to identify
-> > the purpose. For example, a "udevadm trigger" command can also
-> > be used to emit change event to all udev rules. A udev rule can not
-> > identify that the event is from kernel for offline or from udevadm
-> > for other purpose. Then the offline action in udev rule may also be
-> > triggered by udevadm tool.
-> > 
-> > So, similar to the change uevent of dock, kernel sends the
-> > KOBJ_CHANGE uevent with a offline environmental data to indicate
-> > purpose. It's useful by udev rule for using ENV{EVENT} filter.
-> > 
-> > Cc: Michal Hocko <mhocko@kernel.org> 
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> 
-> > Cc: Len Brown <lenb@kernel.org> 
-> > Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-> > ---
-> >  drivers/acpi/scan.c | 3 ++-
-> >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index 8e63d93..f6dca9b 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -116,6 +116,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
-> >  {
-> >  	struct acpi_device_physical_node *pn;
-> >  	bool offline = true;
-> > +	static const char *envp[] = { "EVENT=offline", NULL };
-> >  
-> >  	/*
-> >  	 * acpi_container_offline() calls this for all of the container's
-> > @@ -126,7 +127,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
-> >  	list_for_each_entry(pn, &adev->physical_node_list, node)
-> >  		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
-> >  			if (uevent)
-> > -				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-> > +				kobject_uevent_env(&pn->dev->kobj, KOBJ_CHANGE, envp);
-> >  
-> >  			offline = false;
-> >  			break;
-> > 
-> 
-> This causes build issues when applied, please fix.
-> 
+There you go:
 
-I just sent the v2 patch. Thanks for your review!
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Joey Lee 
+Do you want to route this via Xen?
