@@ -1,52 +1,91 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [trivial PATCH V2] treewide: Align function definition open/close
- braces
-Date: Wed, 21 Mar 2018 23:36:49 +0100
-Message-ID: <CAJZ5v0hYKnPVxbbBY-SDjxBY2Pj12WD3nD9zE--+eZpBzZr-NA@mail.gmail.com>
-References: <5ccbbf083e26bddfb4ea4f819ed62347ce266f39.1521669820.git.joe@perches.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] libnvdimm, nfit: fix persistence domain reporting
+Date: Wed, 21 Mar 2018 15:39:18 -0700
+Message-ID: <152167195887.4609.5407001869524973776.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <5ccbbf083e26bddfb4ea4f819ed62347ce266f39.1521669820.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/amd-gfx>
-List-Post: <mailto:amd-gfx-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/amd-gfx>,
- <mailto:amd-gfx-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "amd-gfx" <amd-gfx-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, the arch/x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Xiubo Li <Xiubo.Lee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Jeff Layton <jlayton-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Timur Tabi <timur-N01EOCouUvQ@public.gmane.org>, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Adaptec OEM Raid Solutions <aacraid-ugMvIWC9OiRBDgjK7y7TUQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "David (ChunMing) Zhou" <David1.Zhou-5C7GfCeVMHo@public.gmane.org>, "James E.J. Bottomley" <jejb-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Paul Moore <paul-r2n+y4ga6xFZroRs9YW3xA@public.gmane.org>, "open list:TARGET SUBSYSTEM" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Dept-GELinuxNIC
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gV2VkLCBNYXIgMjEsIDIwMTggYXQgMTE6MDkgUE0sIEpvZSBQZXJjaGVzIDxqb2VAcGVyY2hl
-cy5jb20+IHdyb3RlOgo+IFNvbWUgZnVuY3Rpb25zIGRlZmluaXRpb25zIGhhdmUgZWl0aGVyIHRo
-ZSBpbml0aWFsIG9wZW4gYnJhY2UgYW5kL29yCj4gdGhlIGNsb3NpbmcgYnJhY2Ugb3V0c2lkZSBv
-ZiBjb2x1bW4gMS4KPgo+IE1vdmUgdGhvc2UgYnJhY2VzIHRvIGNvbHVtbiAxLgo+Cj4gVGhpcyBh
-bGxvd3MgdmFyaW91cyBmdW5jdGlvbiBhbmFseXplcnMgbGlrZSBnbnUgY29tcGxleGl0eSB0byB3
-b3JrCj4gcHJvcGVybHkgZm9yIHRoZXNlIG1vZGlmaWVkIGZ1bmN0aW9ucy4KPgo+IFNpZ25lZC1v
-ZmYtYnk6IEpvZSBQZXJjaGVzIDxqb2VAcGVyY2hlcy5jb20+Cj4gQWNrZWQtYnk6IEFuZHkgU2hl
-dmNoZW5rbyA8YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbT4KPiBBY2tlZC1ieTogUGF1bCBNb29y
-ZSA8cGF1bEBwYXVsLW1vb3JlLmNvbT4KPiBBY2tlZC1ieTogQWxleCBEZXVjaGVyIDxhbGV4YW5k
-ZXIuZGV1Y2hlckBhbWQuY29tPgo+IEFja2VkLWJ5OiBEYXZlIENoaW5uZXIgPGRjaGlubmVyQHJl
-ZGhhdC5jb20+Cj4gUmV2aWV3ZWQtYnk6IERhcnJpY2sgSi4gV29uZyA8ZGFycmljay53b25nQG9y
-YWNsZS5jb20+Cj4gQWNrZWQtYnk6IEFsZXhhbmRyZSBCZWxsb25pIDxhbGV4YW5kcmUuYmVsbG9u
-aUBmcmVlLWVsZWN0cm9ucy5jb20+Cj4gQWNrZWQtYnk6IE1hcnRpbiBLLiBQZXRlcnNlbiA8bWFy
-dGluLnBldGVyc2VuQG9yYWNsZS5jb20+Cj4gQWNrZWQtYnk6IFRha2FzaGkgSXdhaSA8dGl3YWlA
-c3VzZS5kZT4KPiBBY2tlZC1ieTogTWF1cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQHMtb3Bl
-bnNvdXJjZS5jb20+Cj4gLS0tCj4KPiBnaXQgZGlmZiAtdyBzdGlsbCBzaG93cyBubyBkaWZmZXJl
-bmNlLgo+Cj4gVGhpcyBwYXRjaCB3YXMgc2VudCBidXQgRGVjZW1iZXIgYW5kIG5vdCBhcHBsaWVk
-Lgo+Cj4gQXMgdGhlIHRyaXZpYWwgbWFpbnRhaW5lciBzZWVtcyBub3QgYWN0aXZlLCBpdCdkIGJl
-IG5pY2UgaWYKPiBBbmRyZXcgTW9ydG9uIHBpY2tzIHRoaXMgdXAuCj4KPiBWMjogUmVtb3ZlIGZz
-L3hmcy9saWJ4ZnMveGZzX2FsbG9jLmMgYXMgaXQncyB1cGRhdGVkIGFuZCByZW1lcmdlIHRoZSBy
-ZXN0Cj4KPiAgYXJjaC94ODYvaW5jbHVkZS9hc20vYXRvbWljNjRfMzIuaCAgICAgICAgICAgICAg
-ICAgICB8ICAyICstCj4gIGRyaXZlcnMvYWNwaS9jdXN0b21fbWV0aG9kLmMgICAgICAgICAgICAg
-ICAgICAgICAgICAgfCAgMiArLQo+ICBkcml2ZXJzL2FjcGkvZmFuLmMgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIHwgIDIgKy0KCkZvciB0aGUgQUNQSSBjaGFuZ2VzOgoKQWNrZWQt
-Ynk6IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4KX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KYW1kLWdmeCBtYWlsaW5n
-IGxpc3QKYW1kLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9hbWQtZ2Z4Cg==
+The persistence domain is a point in the platform where once writes
+reach that destination the platform claims it will make them persistent
+relative to power loss. In the ACPI NFIT this is currently communicated
+as 2 bits in the "NFIT - Platform Capabilities Structure". The bits
+comprise a hierarchy, i.e. bit0 "CPU Cache Flush to NVDIMM Durability on
+Power Loss Capable" implies bit1 "Memory Controller Flush to NVDIMM
+Durability on Power Loss Capable".
+
+Commit 96c3a239054a "libnvdimm: expose platform persistence attr..."
+shows the persistence domain as flags, but it's really an enumerated
+hierarchy.
+
+Fix this newly introduced user ABI to show the closest available
+persistence domain before userspace develops dependencies on seeing, or
+needing to develop code to tolerate, the raw NFIT flags communicated
+through the libnvdimm-generic region attribute.
+
+Fixes: 96c3a239054a ("libnvdimm: expose platform persistence attr...")
+Cc: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/core.c     |   10 +++++++---
+ drivers/nvdimm/region_devs.c |   10 ++++++----
+ 2 files changed, 13 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index bbe48ad20886..eb09ef55c38a 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2675,10 +2675,14 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	else
+ 		ndr_desc->numa_node = NUMA_NO_NODE;
+ 
+-	if(acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
++	/*
++	 * Persistence domain bits are hierarchical, if
++	 * ACPI_NFIT_CAPABILITY_CACHE_FLUSH is set then
++	 * ACPI_NFIT_CAPABILITY_MEM_FLUSH is implied.
++	 */
++	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_CACHE_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_CACHE, &ndr_desc->flags);
+-
+-	if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
++	else if (acpi_desc->platform_cap & ACPI_NFIT_CAPABILITY_MEM_FLUSH)
+ 		set_bit(ND_REGION_PERSIST_MEMCTRL, &ndr_desc->flags);
+ 
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index a8e9d428c0a5..1593e1806b16 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -532,11 +532,13 @@ static ssize_t persistence_domain_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+-	unsigned long flags = nd_region->flags;
+ 
+-	return sprintf(buf, "%s%s\n",
+-			flags & BIT(ND_REGION_PERSIST_CACHE) ? "cpu_cache " : "",
+-			flags & BIT(ND_REGION_PERSIST_MEMCTRL) ? "memory_controller " : "");
++	if (test_bit(ND_REGION_PERSIST_CACHE, &nd_region->flags))
++		return sprintf(buf, "cpu_cache\n");
++	else if (test_bit(ND_REGION_PERSIST_MEMCTRL, &nd_region->flags))
++		return sprintf(buf, "memory_controller\n");
++	else
++		return sprintf(buf, "\n");
+ }
+ static DEVICE_ATTR_RO(persistence_domain);
