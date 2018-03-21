@@ -1,83 +1,109 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 37/37] vfio: Add support for Shared Virtual Addressing
-Date: Wed, 21 Mar 2018 13:40:13 +0000
-Message-ID: <09ecbaf4-477c-1a06-4f37-523391e5b92e@arm.com>
-References: <1519280641-30258-1-git-send-email-xieyisheng1@huawei.com>
-	<1519280641-30258-37-git-send-email-xieyisheng1@huawei.com>
-	<e3ae1693-0ed8-65e1-352a-07f79038dcbd@huawei.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH 1/2] ACPI / PM: Use register_reboot_notifier() instead of
+ pm_power_off_prepare
+Date: Wed, 21 Mar 2018 15:04:23 +0100
+Message-ID: <20180321140422.GA10700@amd>
+References: <7ff55372818461feed4b0550d5f88edce2cc7d41.1521631678.git.baolin.wang@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="C7zPtVaVf+AK4Oqc"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <e3ae1693-0ed8-65e1-352a-07f79038dcbd-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Yisheng Xie <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Cc: Mark Rutland <Mark.Rutland-5wv7dgnIgG8@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org" <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, rjw-LthD3rsA81gHJAlzAAQw8A@public.gmane.org
+In-Reply-To: <7ff55372818461feed4b0550d5f88edce2cc7d41.1521631678.git.baolin.wang@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Baolin Wang <baolin.wang@linaro.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, andrew.smirnov@gmail.com, akpm@linux-foundation.org, broonie@kernel.org, arnd@arndb.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 19/03/18 09:47, Yisheng Xie wrote:
-> Hi Jean,
-> 
-> vfio can be compiled as module, however you use some functions which are not
-> exported.
 
-Oh right. I remember the kbuild test robot warning about this once, I
-wonder why it didn't find this one.
+--C7zPtVaVf+AK4Oqc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> comment inline:
-> 
-> [...]
->> Add two new ioctl for VFIO containers. VFIO_IOMMU_BIND_PROCESS creates a
->> bond between a container and a process address space, identified by a
->> device-specific ID named PASID. This allows the device to target DMA
->> transactions at the process virtual addresses without a need for mapping
->> and unmapping buffers explicitly in the IOMMU. The process page tables are
->> shared with the IOMMU, and mechanisms such as PCI ATS/PRI are used to
->> handle faults. VFIO_IOMMU_UNBIND_PROCESS removes a bond created with
->> VFIO_IOMMU_BIND_PROCESS.
->>
->> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
->> ---
-> [...]
->> +static struct mm_struct *vfio_iommu_get_mm_by_vpid(pid_t vpid)
->> +{
->> +	struct mm_struct *mm;
->> +	struct task_struct *task;
->> +
->> +	rcu_read_lock();
->> +	task = find_task_by_vpid(vpid);
-> 
-> Maybe can use?
-> 	task = pid_task(find_vpid(params.vpid), PIDTYPE_PID)
+On Wed 2018-03-21 19:30:16, Baolin Wang wrote:
+> We can register one notifier through register_reboot_notifier() function =
+to
+> prepare to power off the system, then we can remove the 'pm_power_off_pre=
+pare'
+> hook in following patch.
+>=20
+> Signed-off-by: Baolin Wang <baolin.wang@linaro.org>
+> ---
+> Note: Please help to review carefully, since I have no platform to test
+> this conversion.
+>=20
+> I saw there is another reboot notifier in this driver, I am not sure the
+> orders between them. I can change the priority of notifier to keep their
+> orders if it is necessary.
 
-I'd rather submit a patch requesting to export the symbol. Especially
-since this function can be further simplified by using the brand new
-find_get_task_by_vpid() helper, introduced by 2ee0826085d1.
+I don't understand why this is good idea... and you should really test
+it. I'm sure you can find PC or notebook somewhere...
+								Pavel
 
->> +	if (task)
->> +		get_task_struct(task);
->> +	rcu_read_unlock();
->> +	if (!task)
->> +		return ERR_PTR(-ESRCH);
->> +
->> +	/* Ensure that current has RW access on the mm */
->> +	mm = mm_access(task, PTRACE_MODE_ATTACH_REALCREDS);
-> 
-> You will try to export mm_access, I find Felix have tried to, but seems give up:
-> 
->  https://patchwork.kernel.org/patch/9744281/
+>  drivers/acpi/sleep.c |   22 ++++++++++++++++------
+>  1 file changed, 16 insertions(+), 6 deletions(-)
+>=20
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 46cde091..b3de894 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -1229,14 +1229,24 @@ static void acpi_sleep_hibernate_setup(void)
+>  static inline void acpi_sleep_hibernate_setup(void) {}
+>  #endif /* !CONFIG_HIBERNATION */
+> =20
+> -static void acpi_power_off_prepare(void)
+> +static int acpi_reboot_notify(struct notifier_block *this, unsigned long=
+ code,
+> +			      void *x)
+>  {
+> -	/* Prepare to power off the system */
+> -	acpi_sleep_prepare(ACPI_STATE_S5);
+> -	acpi_disable_all_gpes();
+> -	acpi_os_wait_events_complete();
+> +	if (code =3D=3D SYSTEM_POWER_OFF) {
+> +		/* Prepare to power off the system */
+> +		acpi_sleep_prepare(ACPI_STATE_S5);
+> +		acpi_disable_all_gpes();
+> +		acpi_os_wait_events_complete();
+> +	}
+> +
+> +	return NOTIFY_DONE;
+>  }
+> =20
+> +static struct notifier_block acpi_reboot_notifier =3D {
+> +	.notifier_call	=3D acpi_reboot_notify,
+> +	.priority	=3D 0,
+> +};
+> +
+>  static void acpi_power_off(void)
+>  {
+>  	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+> @@ -1261,7 +1271,7 @@ int __init acpi_sleep_init(void)
+> =20
+>  	if (acpi_sleep_state_supported(ACPI_STATE_S5)) {
+>  		sleep_states[ACPI_STATE_S5] =3D 1;
+> -		pm_power_off_prepare =3D acpi_power_off_prepare;
+> +		register_reboot_notifier(&acpi_reboot_notifier);
+>  		pm_power_off =3D acpi_power_off;
+>  	} else {
+>  		acpi_no_s5 =3D true;
 
-Thanks for the pointer, I'll try to revive this.
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
 
-Thanks,
-Jean
+--C7zPtVaVf+AK4Oqc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlqyZmYACgkQMOfwapXb+vKPiwCghfQwm3ymuaDQlGMODFJv5DfW
+MRUAn0xM9yJPKHv9cFUaFvS37B8w8/yx
+=A/gx
+-----END PGP SIGNATURE-----
+
+--C7zPtVaVf+AK4Oqc--
