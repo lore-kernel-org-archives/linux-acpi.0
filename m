@@ -1,16 +1,16 @@
 From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH 1/5] x86/smpboot: Add the missing description of
- possible_cpus
-Date: Wed, 21 Mar 2018 13:33:24 +0800
-Message-ID: <f64cb207-3851-9a26-2001-653fc0068540@cn.fujitsu.com>
+Subject: Re: [PATCH 3/5] x86/smpboot: Make the check code more clear in
+ prefill_possible_map()
+Date: Wed, 21 Mar 2018 13:38:44 +0800
+Message-ID: <e9ef4100-0b87-b61a-5ad4-5f78b2d61783@cn.fujitsu.com>
 References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
- <20180320110432.28127-2-douly.fnst@cn.fujitsu.com>
- <20180320123712.GR4043@hirez.programming.kicks-ass.net>
+ <20180320110432.28127-4-douly.fnst@cn.fujitsu.com>
+ <20180320123918.GS4043@hirez.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Type: text/plain; charset="gbk"; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180320123712.GR4043@hirez.programming.kicks-ass.net>
+In-Reply-To: <20180320123918.GS4043@hirez.programming.kicks-ass.net>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Peter Zijlstra <peterz@infradead.org>
@@ -19,30 +19,23 @@ List-Id: linux-acpi@vger.kernel.org
 
 Hi Peter,
 
-At 03/20/2018 08:37 PM, Peter Zijlstra wrote:
-> On Tue, Mar 20, 2018 at 07:04:28PM +0800, Dou Liyang wrote:
+At 03/20/2018 08:39 PM, Peter Zijlstra wrote:
+> On Tue, Mar 20, 2018 at 07:04:30PM +0800, Dou Liyang wrote:
+>> case 1: no  | no  | no | -->  min (setup_possible_cpus, nr_cpu_ids, setup_max_cpus)
+>> case 2: no  | no  | yes| -->  min (setup_possible_cpus, nr_cpu_ids)
+>> case 3: no  | yes | no | -->  1
+>> case 4: no  | yes | yes| -->  1
+>> case 5: yes | no  | no | -->  min (num_processors, nr_cpu_ids, setup_max_cpus)
+>> case 6: yes | no  | yes| -->  min (num_processors + disabled_cpus, nr_cpu_ids)
+>> case 7: yes | yes | no | -->  1
+>> case 8: yes | yes | yes| -->  1
 > 
->> +	possible_cpus=	[s390,x86_64] Use this to set hotpluggable cpus.
->> +			This option sets possible_cpus bits in cpu_possible_map.
->> +			Thus keeping the numbers of bits set constant even if
->> +			the machine gets rebooted.
-> 
-> That description, esp. the last sentence, doesn't make any kind of sense
-> to me. What?
+> The case number is off by one ;-)
 > 
 
-Ah, sure enough, I can't be lazy. :-) I stole that from the commit
- Â  3b11ce7f542e ("x86: use possible_cpus=NUM to extend the possible cpus 
-allowed")
+I got it! ;-£©
 
-How about:
-
-possible_cpus=	[s390,x86_64] Set the number of possible CPUs which
-		are determined by the ACPI tables MADT or mptables by
-		default. possible_cpus=n : n >= 1 enforces the possible
-		number to be 'n'.
-		While nr_cpus is also be set: nr_cpus=m, choice the
-		minimum one for the number of possible CPUs.
-
-Thank,
+Thanks
 	dou
+> 
+> 
