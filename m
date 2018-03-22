@@ -1,92 +1,42 @@
-From: James Morse <james.morse@arm.com>
-Subject: [PATCH v2 10/11] mm/memory-failure: increase queued recovery work's
- priority
-Date: Thu, 22 Mar 2018 18:14:44 +0000
-Message-ID: <20180322181445.23298-11-james.morse@arm.com>
-References: <20180322181445.23298-1-james.morse@arm.com>
+From: "Kani, Toshi" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH] nfit: skip region registration for incomplete control
+ regions
+Date: Thu, 22 Mar 2018 19:58:42 +0000
+Message-ID: <1521748710.2693.233.camel@hpe.com>
+References: <152169374458.19742.14326187212131249042.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20180322181445.23298-1-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-acpi@vger.kernel.org
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152169374458.19742.14326187212131249042.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <BD9FBE9C81AA15478E37727130F579CC-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-arm64 can take an NMI-like error notification when user-space steps in
-some corrupt memory. APEI's GHES code will call memory_failure_queue()
-to schedule the recovery work. We then return to user-space, possibly
-taking the fault again.
+On Wed, 2018-03-21 at 21:42 -0700, Dan Williams wrote:
+> Per the ACPI specification the only functional purpose for a DIMM
+> Control Region to be mapped into the system physical address space, from
+> an OSPM perspective, is to support block-apertures. However, there are
+> some BIOSen that publish DIMM Control Region SPA entries for pre-boot
+> environment consumption.  Undo the kernel policy of generating disabled
+> 'ndblk' regions when this configuration is detected.
+> 
+> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-Currently the arch code unconditionally signals user-space from this
-path, so we don't get stuck in this loop, but the affected process
-never benefits from memory_failure()s recovery work. To fix this we
-need to know the recovery work will run before we get back to user-space.
+The change looks good.
 
-Increase the priority of the recovery work by scheduling it on the
-system_highpri_wq, then try to bump the current task off this CPU
-so that the recover work starts immediately.
+Reviewed-by: Toshi Kani <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
 
-Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
-Signed-off-by: James Morse <james.morse@arm.com>
-Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-CC: Xie XiuQi <xiexiuqi@huawei.com>
-CC: gengdongjiu <gengdongjiu@huawei.com>
----
-It is possible that the task will migrate to another CPU which will take
-RAS error again until memory_failure() has completed its work. I don't
-think this is any different from a process being scheduled while
-memory_failure() is running, which we should tackle separately.
-
- mm/memory-failure.c | 11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 4b80ccee4535..14f44d841e8b 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -55,6 +55,7 @@
- #include <linux/hugetlb.h>
- #include <linux/memory_hotplug.h>
- #include <linux/mm_inline.h>
-+#include <linux/preempt.h>
- #include <linux/kfifo.h>
- #include <linux/ratelimit.h>
- #include "internal.h"
-@@ -1319,6 +1320,7 @@ static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
-  */
- void memory_failure_queue(unsigned long pfn, int flags)
- {
-+	int cpu = smp_processor_id();
- 	struct memory_failure_cpu *mf_cpu;
- 	unsigned long proc_flags;
- 	struct memory_failure_entry entry = {
-@@ -1328,11 +1330,14 @@ void memory_failure_queue(unsigned long pfn, int flags)
- 
- 	mf_cpu = &get_cpu_var(memory_failure_cpu);
- 	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
--	if (kfifo_put(&mf_cpu->fifo, entry))
--		schedule_work_on(smp_processor_id(), &mf_cpu->work);
--	else
-+	if (kfifo_put(&mf_cpu->fifo, entry)) {
-+		queue_work_on(cpu, system_highpri_wq, &mf_cpu->work);
-+		set_tsk_need_resched(current);
-+		preempt_set_need_resched();
-+	} else {
- 		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
- 		       pfn);
-+	}
- 	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
- 	put_cpu_var(memory_failure_cpu);
- }
--- 
-2.16.2
+Thanks!
+-Toshi
