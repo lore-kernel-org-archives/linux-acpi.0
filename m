@@ -1,86 +1,43 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v17 00/10] LPC: legacy ISA I/O support
-Date: Thu, 22 Mar 2018 08:35:44 -0500
-Message-ID: <20180322133544.GA236400@bhelgaas-glaptop.roam.corp.google.com>
-References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
- <20180321233940.GI38649@bhelgaas-glaptop.roam.corp.google.com>
- <334da3b2-5233-5ad3-728e-7ae95231bf01@huawei.com>
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: [trivial PATCH V2] treewide: Align function definition
+ open/close braces
+Date: Thu, 22 Mar 2018 09:37:20 -0400
+Message-ID: <20180322093720.2254cfbb@gandalf.local.home>
+References: <5ccbbf083e26bddfb4ea4f819ed62347ce266f39.1521669820.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <334da3b2-5233-5ad3-728e-7ae95231bf01@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "rafael@kernel.org" <rafael@kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "robh+dt@kernel.org" <robh+dt@kernel.org>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "olof@lixom.net" <olof@lixom.net>, "dann.frazier@canonical.com" <dann.frazier@canonical.com>, "andy.shevchenko@gmail.com" <andy.shevchenko@gmail.com>, "robh@kernel.org" <robh@kernel.org>, "andriy.shevchenko@linux.intel.com" <andriy.shevchenko@linux.intel.com>, "joe@perches.com" <joe@perches.com>, "benh@kernel.crashing.org" <benh@kernel.cras>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <5ccbbf083e26bddfb4ea4f819ed62347ce266f39.1521669820.git.joe@perches.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Joe Perches <joe@perches.com>
+Cc: linux-wireless@vger.kernel.org, Alexandre Belloni <alexandre.belloni@bootlin.com>, x86@kernel.org, Xiubo Li <Xiubo.Lee@gmail.com>, Peter Zijlstra <peterz@infradead.org>, Jeff Layton <jlayton@kernel.org>, Will Deacon <will.deacon@arm.com>, Timur Tabi <timur@tabi.org>, dri-devel@lists.freedesktop.org, Liam Girdwood <lgirdwood@gmail.com>, "J. Bruce Fields" <bfields@fieldses.org>, Adaptec OEM Raid Solutions <aacraid@adaptec.com>, "H. Peter
+ Anvin" <hpa@zytor.com>, linux-acpi@vger.kernel.org, linux-rtc@vger.kernel.org, "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>, Paul Moore <paul@paul-moore.com>, linux-scsi@vger.kernel.org, "Darrick J.
+ Wong" <darrick.wong@oracle.com>, Dept-GELinuxNICDev@cavium.com, Mark Fasheh <mark@fasheh.com>, Sathya Prakash <sathya.prakash@broadcom.com>, amd-gfx@lists.freedesktop.org, David Airlie <airlied@linux.ie>, Darren Hart <dvhart@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 22, 2018 at 10:38:37AM +0000, John Garry wrote:
-> On 21/03/2018 23:39, Bjorn Helgaas wrote:
-> > On Thu, Mar 15, 2018 at 02:15:49AM +0800, John Garry wrote:
-> > > This patchset supports the IPMI-bt device attached to the Low-Pin-Count
-> > > interface implemented on Hisilicon Hip06/Hip07 SoC.
-> > >                         -----------
-> > >                         | LPC host|
-> > >                         |         |
-> > >                         -----------
-> > >                              |
-> > >                 _____________V_______________LPC
-> > >                   |                       |
-> > >                   V                       V
-> > >                                      ------------
-> > >                                      |  BT(ipmi)|
-> > >                                      ------------
-> > > ...
-> > 
-> > > Gabriele Paoloni (2):
-> > >   PCI: Remove unused __weak attribute in pci_register_io_range()
-> > >   PCI: Add fwnode handler as input param of pci_register_io_range()
-> > > 
-> > > John Garry (4):
-> > >   ACPI / scan: rename acpi_is_serial_bus_slave() to widen use
-> > >   ACPI / scan: do not enumerate Indirect IO host children
-> > >   HISI LPC: Add ACPI support
-> > >   MAINTAINERS: Add maintainer for HiSilicon LPC driver
-> > > 
-> > > Zhichang Yuan (4):
-> > >   LIB: Introduce a generic PIO mapping method
-> > >   PCI: Apply the new generic I/O management on PCI IO hosts
-> > >   OF: Add missing I/O range exception for indirect-IO devices
-> > >   HISI LPC: Support the LPC host on Hip06/Hip07 with DT bindings
-> > > 
-> > >  .../arm/hisilicon/hisilicon-low-pin-count.txt      |  33 ++
-> > >  MAINTAINERS                                        |   7 +
-> > >  drivers/acpi/pci_root.c                            |   8 +-
-> > >  drivers/acpi/scan.c                                |  33 +-
-> > >  drivers/bus/Kconfig                                |   8 +
-> > >  drivers/bus/Makefile                               |   2 +
-> > >  drivers/bus/hisi_lpc.c                             | 623 +++++++++++++++++++++
-> > >  drivers/of/address.c                               |  96 +++-
-> > >  drivers/pci/pci.c                                  |  95 +---
-> > >  include/acpi/acpi_bus.h                            |   2 +-
-> > >  include/asm-generic/io.h                           |   4 +-
-> > >  include/linux/logic_pio.h                          | 124 ++++
-> > >  include/linux/pci.h                                |   3 +-
-> > >  lib/Kconfig                                        |  15 +
-> > >  lib/Makefile                                       |   2 +
-> > >  lib/logic_pio.c                                    | 282 ++++++++++
-> > >  16 files changed, 1229 insertions(+), 108 deletions(-)
-> > >  create mode 100644 Documentation/devicetree/bindings/arm/hisilicon/hisilicon-low-pin-count.txt
-> > >  create mode 100644 drivers/bus/hisi_lpc.c
-> > >  create mode 100644 include/linux/logic_pio.h
-> > >  create mode 100644 lib/logic_pio.c
-> > 
-> > I applied this whole series to pci/lpc for v4.17.
-> > 
-> > I made the following whitespace and other trivial corrections.
-> > Hopefully I didn't break anything.
-> > 
-> 
-> Hi Bjorn,
-> 
-> Super thanks for doing this. In general the changes look ok. However a build
-> issue has appeared, below.
-
-It didn't just "appear"; I added it myself!  I fixed it and repushed the
-branch.
+T24gV2VkLCAyMSBNYXIgMjAxOCAxNTowOTozMiAtMDcwMApKb2UgUGVyY2hlcyA8am9lQHBlcmNo
+ZXMuY29tPiB3cm90ZToKCj4gZGlmZiAtLWdpdCBhL2tlcm5lbC90cmFjZS90cmFjZV9wcmludGsu
+YyBiL2tlcm5lbC90cmFjZS90cmFjZV9wcmludGsuYwo+IGluZGV4IGFkMWQ2MTY0ZTk0Ni4uNTBm
+NDRiN2IyYjMyIDEwMDY0NAo+IC0tLSBhL2tlcm5lbC90cmFjZS90cmFjZV9wcmludGsuYwo+ICsr
+KyBiL2tlcm5lbC90cmFjZS90cmFjZV9wcmludGsuYwo+IEBAIC0xOTYsNyArMTk2LDcgQEAgc3Ry
+dWN0IG5vdGlmaWVyX2Jsb2NrIG1vZHVsZV90cmFjZV9icHJpbnRrX2Zvcm1hdF9uYiA9IHsKPiAg
+fTsKPiAgCj4gIGludCBfX3RyYWNlX2JwcmludGsodW5zaWduZWQgbG9uZyBpcCwgY29uc3QgY2hh
+ciAqZm10LCAuLi4pCj4gLSB7Cj4gK3sKPiAgCWludCByZXQ7Cj4gIAl2YV9saXN0IGFwOwo+ICAK
+PiBAQCAtMjE0LDcgKzIxNCw3IEBAIGludCBfX3RyYWNlX2JwcmludGsodW5zaWduZWQgbG9uZyBp
+cCwgY29uc3QgY2hhciAqZm10LCAuLi4pCj4gIEVYUE9SVF9TWU1CT0xfR1BMKF9fdHJhY2VfYnBy
+aW50ayk7Cj4gIAo+ICBpbnQgX19mdHJhY2VfdmJwcmludGsodW5zaWduZWQgbG9uZyBpcCwgY29u
+c3QgY2hhciAqZm10LCB2YV9saXN0IGFwKQo+IC0gewo+ICt7Cj4gIAlpZiAodW5saWtlbHkoIWZt
+dCkpCj4gIAkJcmV0dXJuIDA7Cj4gIAoKQWNrZWQtYnk6IFN0ZXZlbiBSb3N0ZWR0IChWTXdhcmUp
+IDxyb3N0ZWR0QGdvb2RtaXMub3JnPgoKLS0gU3RldmUKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxt
+YW4vbGlzdGluZm8vZHJpLWRldmVsCg==
