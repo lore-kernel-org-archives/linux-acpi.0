@@ -1,67 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI / scan: Send the change uevent with offine environmental data
-Date: Fri, 23 Mar 2018 00:25:29 +0100
-Message-ID: <16547461.vlqm9ldVjj@aspire.rjw.lan>
-References: <20180320055126.8671-1-jlee@suse.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [GIT PULL] ACPI fixes for v4.16-rc7
+Date: Fri, 23 Mar 2018 00:30:04 +0100
+Message-ID: <CAJZ5v0gxY2ZndTrDh8H280SscX7iRsjOU5qZDBEjuO0O-RdDbQ@mail.gmail.com>
+References: <CAJZ5v0gT_p44NGUhkw7irDk-Uo8HnEYQ35+wJaBUo3ziLSbPsQ@mail.gmail.com>
+ <CA+55aFwR_29JpVPUyyhnpJp=PBXk4nVO-8DBty6-vk2-8cgNFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180320055126.8671-1-jlee@suse.com>
+In-Reply-To: <CA+55aFwR_29JpVPUyyhnpJp=PBXk4nVO-8DBty6-vk2-8cgNFw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, March 20, 2018 6:51:26 AM CET Lee, Chun-Yi wrote:
-> In current design of ACPI container offline, Kernel emits
-> KOBJ_CHANGE uevent to user space to indidate that the ejection of
-> the container was triggered by platform. (caa73ea15 patch)
-> 
-> A pure KOBJ_CHANGE uevent is not enough for user space to identify
-> the purpose. For example, a "udevadm trigger" command can also
-> be used to emit change event to all udev rules. A udev rule can not
-> identify that the event is from kernel for offline or from udevadm
-> for other purpose. Then the offline action in udev rule may also be
-> triggered by udevadm tool.
-> 
-> So, similar to the change uevent of dock, kernel sends the
-> KOBJ_CHANGE uevent with a offline environmental data to indicate
-> purpose. It's useful by udev rule for using ENV{EVENT} filter.
-> 
-> v2:
-> Fix build warning for the environmental string
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Acked-by: Michal Hocko <mhocko@suse.com>
-> Tested-by: Michal Hocko <mhocko@suse.com>
-> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
-> ---
->  drivers/acpi/scan.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 8e63d93..490498e 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -116,6 +116,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
->  {
->  	struct acpi_device_physical_node *pn;
->  	bool offline = true;
-> +	char *envp[] = { "EVENT=offline", NULL };
->  
->  	/*
->  	 * acpi_container_offline() calls this for all of the container's
-> @@ -126,7 +127,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
->  	list_for_each_entry(pn, &adev->physical_node_list, node)
->  		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
->  			if (uevent)
-> -				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
-> +				kobject_uevent_env(&pn->dev->kobj, KOBJ_CHANGE, envp);
->  
->  			offline = false;
->  			break;
-> 
+On Fri, Mar 23, 2018 at 12:21 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Thu, Mar 22, 2018 at 4:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>
+>>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+>>  acpi-4.16-rc4
+>
+> I get
+>
+>   fatal: Couldn't find remote ref acpi-4.16-rc4
+>
+> Forgot to push out?
+>
+> Oh. No, I see what happened. You meant "rc7".
+>
+> Didn't your script warn about the tag name not matching?
 
-Applied, thanks!
+Well, this was a manual one, sorry about that.
+
+Rafael
