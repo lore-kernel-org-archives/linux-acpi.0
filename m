@@ -1,50 +1,67 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / video: Add a quirk to force acpi-video backlight on Samsung 670Z5E
-Date: Fri, 23 Mar 2018 00:24:50 +0100
-Message-ID: <1560983.5e3OQOx0Ng@aspire.rjw.lan>
-References: <20180319170145.21371-1-hdegoede@redhat.com>
+Subject: Re: [PATCH v2] ACPI / scan: Send the change uevent with offine environmental data
+Date: Fri, 23 Mar 2018 00:25:29 +0100
+Message-ID: <16547461.vlqm9ldVjj@aspire.rjw.lan>
+References: <20180320055126.8671-1-jlee@suse.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180319170145.21371-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180320055126.8671-1-jlee@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, March 19, 2018 6:01:45 PM CET Hans de Goede wrote:
-> Just like many other Samsung models, the 670Z5E needs to use the acpi-video
-> backlight interface rather then the native one for backlight control to
-> work, add a quirk for this.
+On Tuesday, March 20, 2018 6:51:26 AM CET Lee, Chun-Yi wrote:
+> In current design of ACPI container offline, Kernel emits
+> KOBJ_CHANGE uevent to user space to indidate that the ejection of
+> the container was triggered by platform. (caa73ea15 patch)
 > 
-> Buglink: https://bugzilla.redhat.com/show_bug.cgi?id=1557060
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> A pure KOBJ_CHANGE uevent is not enough for user space to identify
+> the purpose. For example, a "udevadm trigger" command can also
+> be used to emit change event to all udev rules. A udev rule can not
+> identify that the event is from kernel for offline or from udevadm
+> for other purpose. Then the offline action in udev rule may also be
+> triggered by udevadm tool.
+> 
+> So, similar to the change uevent of dock, kernel sends the
+> KOBJ_CHANGE uevent with a offline environmental data to indicate
+> purpose. It's useful by udev rule for using ENV{EVENT} filter.
+> 
+> v2:
+> Fix build warning for the environmental string
+> 
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Acked-by: Michal Hocko <mhocko@suse.com>
+> Tested-by: Michal Hocko <mhocko@suse.com>
+> Signed-off-by: "Lee, Chun-Yi" <jlee@suse.com>
 > ---
->  drivers/acpi/video_detect.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
+>  drivers/acpi/scan.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 601e5d372887..43587ac680e4 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -219,6 +219,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
->  			  "3570R/370R/470R/450R/510R/4450RV"),
->  		},
->  	},
-> +	{
-> +	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1557060 */
-> +	 .callback = video_detect_force_video,
-> +	 .ident = "SAMSUNG 670Z5E",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "670Z5E"),
-> +		},
-> +	},
->  	{
->  	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1094948 */
->  	 .callback = video_detect_force_video,
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 8e63d93..490498e 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -116,6 +116,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
+>  {
+>  	struct acpi_device_physical_node *pn;
+>  	bool offline = true;
+> +	char *envp[] = { "EVENT=offline", NULL };
+>  
+>  	/*
+>  	 * acpi_container_offline() calls this for all of the container's
+> @@ -126,7 +127,7 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
+>  	list_for_each_entry(pn, &adev->physical_node_list, node)
+>  		if (device_supports_offline(pn->dev) && !pn->dev->offline) {
+>  			if (uevent)
+> -				kobject_uevent(&pn->dev->kobj, KOBJ_CHANGE);
+> +				kobject_uevent_env(&pn->dev->kobj, KOBJ_CHANGE, envp);
+>  
+>  			offline = false;
+>  			break;
 > 
 
 Applied, thanks!
