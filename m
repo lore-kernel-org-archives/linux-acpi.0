@@ -1,30 +1,58 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] ACPI fixes for v4.16-rc7
-Date: Thu, 22 Mar 2018 16:21:10 -0700
-Message-ID: <CA+55aFwR_29JpVPUyyhnpJp=PBXk4nVO-8DBty6-vk2-8cgNFw@mail.gmail.com>
-References: <CAJZ5v0gT_p44NGUhkw7irDk-Uo8HnEYQ35+wJaBUo3ziLSbPsQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: edit ACPI_PROCFS_POWER help text
+Date: Fri, 23 Mar 2018 00:21:59 +0100
+Message-ID: <2441397.Fxpz0x4M6m@aspire.rjw.lan>
+References: <dbb2b722-aa1e-04ca-1487-08984f68d91e@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gT_p44NGUhkw7irDk-Uo8HnEYQ35+wJaBUo3ziLSbPsQ@mail.gmail.com>
+In-Reply-To: <dbb2b722-aa1e-04ca-1487-08984f68d91e@infradead.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Mar 22, 2018 at 4:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->
->  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
->  acpi-4.16-rc4
+On Saturday, March 3, 2018 1:55:54 AM CET Randy Dunlap wrote:
+> From: Randy Dunlap <rdunlap@infradead.org>
+> 
+> Fix grammar and punctuation (end sentences with a period) in the
+> Kconfig help text for ACPI_PROCFS_POWER.
+> 
+> I was looking at this since it appears to be going away (again,
+> some day) and I have a working script that uses this info to tell me
+> battery usage. I can update the script to use /sys/class/power_supply
+> (in theory) but the contents (with units) should be documented in
+> Documentation/ABI/ before /proc/acpi/battery/ is removed (IMO).
+> 
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> ---
+>  drivers/acpi/Kconfig |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> --- linux-next-20180302.orig/drivers/acpi/Kconfig
+> +++ linux-next-20180302/drivers/acpi/Kconfig
+> @@ -105,14 +105,14 @@ config ACPI_PROCFS_POWER
+>            deprecated power /proc/acpi/ directories to exist, even when
+>            they have been replaced by functions in /sys.
+>            The deprecated directories (and their replacements) include:
+> -	  /proc/acpi/battery/* (/sys/class/power_supply/*)
+> -	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*)
+> +	  /proc/acpi/battery/* (/sys/class/power_supply/*) and
+> +	  /proc/acpi/ac_adapter/* (sys/class/power_supply/*).
+>  	  This option has no effect on /proc/acpi/ directories
+> -	  and functions, which do not yet exist in /sys
+> +	  and functions which do not yet exist in /sys.
+>  	  This option, together with the proc directories, will be
+>  	  deleted in the future.
+>  
+> -	  Say N to delete power /proc/acpi/ directories that have moved to /sys/
+> +	  Say N to delete power /proc/acpi/ directories that have moved to /sys.
+>  
+>  config ACPI_REV_OVERRIDE_POSSIBLE
+>  	bool "Allow supported ACPI revision to be overridden"
 
-I get
-
-  fatal: Couldn't find remote ref acpi-4.16-rc4
-
-Forgot to push out?
-
-Oh. No, I see what happened. You meant "rc7".
-
-Didn't your script warn abou tthe tag name not matching?
-
-              Linus
+Applied, thanks!
