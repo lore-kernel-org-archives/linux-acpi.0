@@ -1,213 +1,77 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 3.18 04/47] ACPI/processor: Replace racy task affinity logic
-Date: Fri, 23 Mar 2018 10:54:55 +0100
-Message-ID: <20180323094248.309975152@linuxfoundation.org>
-References: <20180323094248.117679641@linuxfoundation.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 1/5] Bluetooth: hci_bcm: Add irq_polarity module option
+Date: Fri, 23 Mar 2018 11:56:57 +0100
+Message-ID: <a5553246-d39c-8d3a-430e-2b8fea3b7732@redhat.com>
+References: <20180316202811.5678-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180323094248.117679641@linuxfoundation.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Siewior <bigeasy@linutronix.de>, Lai Jiangshan <jiangshanlai@gmail.com>, linux-acpi@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, "David S. Miller" <davem@davemloft.net>, Len Brown <lenb@kernel.org>, Sasha Levin <alexander.levin@microsoft.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180316202811.5678-1-hdegoede@redhat.com>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>
+Cc: linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-3.18-stable review patch.  If anyone has any objections, please let me know.
+Hi Marcel, et al.,
 
-------------------
+On 16-03-18 21:28, Hans de Goede wrote:
+> Add irq_polarity module option for easier troubleshooting of irq-polarity
+> issues.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-From: Thomas Gleixner <tglx@linutronix.de>
+Marcel, is there any reason why this (bug-fix) series is not merged
+yet? Any review remarks I missed?
+
+Regards,
+
+Hans
 
 
-[ Upstream commit 8153f9ac43897f9f4786b30badc134fcc1a4fb11 ]
 
-acpi_processor_get_throttling() requires to invoke the getter function on
-the target CPU. This is achieved by temporarily setting the affinity of the
-calling user space thread to the requested CPU and reset it to the original
-affinity afterwards.
-
-That's racy vs. CPU hotplug and concurrent affinity settings for that
-thread resulting in code executing on the wrong CPU and overwriting the
-new affinity setting.
-
-acpi_processor_get_throttling() is invoked in two ways:
-
-1) The CPU online callback, which is already running on the target CPU and
-   obviously protected against hotplug and not affected by affinity
-   settings.
-
-2) The ACPI driver probe function, which is not protected against hotplug
-   during modprobe.
-
-Switch it over to work_on_cpu() and protect the probe function against CPU
-hotplug.
-
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Len Brown <lenb@kernel.org>
-Link: http://lkml.kernel.org/r/20170412201042.785920903@linutronix.de
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sasha Levin <alexander.levin@microsoft.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
----
- drivers/acpi/processor_driver.c     |    7 +++-
- drivers/acpi/processor_throttling.c |   62 ++++++++++++++++++++----------------
- 2 files changed, 42 insertions(+), 27 deletions(-)
-
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -231,11 +231,16 @@ static int __acpi_processor_start(struct
- static int acpi_processor_start(struct device *dev)
- {
- 	struct acpi_device *device = ACPI_COMPANION(dev);
-+	int ret;
- 
- 	if (!device)
- 		return -ENODEV;
- 
--	return __acpi_processor_start(device);
-+	/* Protect against concurrent CPU hotplug operations */
-+	get_online_cpus();
-+	ret = __acpi_processor_start(device);
-+	put_online_cpus();
-+	return ret;
- }
- 
- static int acpi_processor_stop(struct device *dev)
---- a/drivers/acpi/processor_throttling.c
-+++ b/drivers/acpi/processor_throttling.c
-@@ -66,8 +66,8 @@ struct acpi_processor_throttling_arg {
- #define THROTTLING_POSTCHANGE      (2)
- 
- static int acpi_processor_get_throttling(struct acpi_processor *pr);
--int acpi_processor_set_throttling(struct acpi_processor *pr,
--						int state, bool force);
-+static int __acpi_processor_set_throttling(struct acpi_processor *pr,
-+					   int state, bool force, bool direct);
- 
- static int acpi_processor_update_tsd_coord(void)
- {
-@@ -886,7 +886,8 @@ static int acpi_processor_get_throttling
- 			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				"Invalid throttling state, reset\n"));
- 			state = 0;
--			ret = acpi_processor_set_throttling(pr, state, true);
-+			ret = __acpi_processor_set_throttling(pr, state, true,
-+							      true);
- 			if (ret)
- 				return ret;
- 		}
-@@ -896,36 +897,31 @@ static int acpi_processor_get_throttling
- 	return 0;
- }
- 
--static int acpi_processor_get_throttling(struct acpi_processor *pr)
-+static long __acpi_processor_get_throttling(void *data)
- {
--	cpumask_var_t saved_mask;
--	int ret;
-+	struct acpi_processor *pr = data;
-+
-+	return pr->throttling.acpi_processor_get_throttling(pr);
-+}
- 
-+static int acpi_processor_get_throttling(struct acpi_processor *pr)
-+{
- 	if (!pr)
- 		return -EINVAL;
- 
- 	if (!pr->flags.throttling)
- 		return -ENODEV;
- 
--	if (!alloc_cpumask_var(&saved_mask, GFP_KERNEL))
--		return -ENOMEM;
--
- 	/*
--	 * Migrate task to the cpu pointed by pr.
-+	 * This is either called from the CPU hotplug callback of
-+	 * processor_driver or via the ACPI probe function. In the latter
-+	 * case the CPU is not guaranteed to be online. Both call sites are
-+	 * protected against CPU hotplug.
- 	 */
--	cpumask_copy(saved_mask, &current->cpus_allowed);
--	/* FIXME: use work_on_cpu() */
--	if (set_cpus_allowed_ptr(current, cpumask_of(pr->id))) {
--		/* Can't migrate to the target pr->id CPU. Exit */
--		free_cpumask_var(saved_mask);
-+	if (!cpu_online(pr->id))
- 		return -ENODEV;
--	}
--	ret = pr->throttling.acpi_processor_get_throttling(pr);
--	/* restore the previous state */
--	set_cpus_allowed_ptr(current, saved_mask);
--	free_cpumask_var(saved_mask);
- 
--	return ret;
-+	return work_on_cpu(pr->id, __acpi_processor_get_throttling, pr);
- }
- 
- static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
-@@ -1075,8 +1071,15 @@ static long acpi_processor_throttling_fn
- 			arg->target_state, arg->force);
- }
- 
--int acpi_processor_set_throttling(struct acpi_processor *pr,
--						int state, bool force)
-+static int call_on_cpu(int cpu, long (*fn)(void *), void *arg, bool direct)
-+{
-+	if (direct)
-+		return fn(arg);
-+	return work_on_cpu(cpu, fn, arg);
-+}
-+
-+static int __acpi_processor_set_throttling(struct acpi_processor *pr,
-+					   int state, bool force, bool direct)
- {
- 	int ret = 0;
- 	unsigned int i;
-@@ -1125,7 +1128,8 @@ int acpi_processor_set_throttling(struct
- 		arg.pr = pr;
- 		arg.target_state = state;
- 		arg.force = force;
--		ret = work_on_cpu(pr->id, acpi_processor_throttling_fn, &arg);
-+		ret = call_on_cpu(pr->id, acpi_processor_throttling_fn, &arg,
-+				  direct);
- 	} else {
- 		/*
- 		 * When the T-state coordination is SW_ALL or HW_ALL,
-@@ -1158,8 +1162,8 @@ int acpi_processor_set_throttling(struct
- 			arg.pr = match_pr;
- 			arg.target_state = state;
- 			arg.force = force;
--			ret = work_on_cpu(pr->id, acpi_processor_throttling_fn,
--				&arg);
-+			ret = call_on_cpu(pr->id, acpi_processor_throttling_fn,
-+					  &arg, direct);
- 		}
- 	}
- 	/*
-@@ -1177,6 +1181,12 @@ int acpi_processor_set_throttling(struct
- 	return ret;
- }
- 
-+int acpi_processor_set_throttling(struct acpi_processor *pr, int state,
-+				  bool force)
-+{
-+	return __acpi_processor_set_throttling(pr, state, force, false);
-+}
-+
- int acpi_processor_get_throttling_info(struct acpi_processor *pr)
- {
- 	int result = 0;
+> ---
+>   drivers/bluetooth/hci_bcm.c | 20 +++++++++++++++-----
+>   1 file changed, 15 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
+> index 5e3aba3c3185..bb6cd1623132 100644
+> --- a/drivers/bluetooth/hci_bcm.c
+> +++ b/drivers/bluetooth/hci_bcm.c
+> @@ -126,6 +126,10 @@ struct bcm_data {
+>   static DEFINE_MUTEX(bcm_device_lock);
+>   static LIST_HEAD(bcm_device_list);
+>   
+> +static int irq_polarity = -1;
+> +module_param(irq_polarity, int, 0444);
+> +MODULE_PARM_DESC(irq_polarity, "IRQ polarity 0: active-high 1: active-low");
+> +
+>   static inline void host_set_baudrate(struct hci_uart *hu, unsigned int speed)
+>   {
+>   	if (hu->serdev)
+> @@ -988,11 +992,17 @@ static int bcm_acpi_probe(struct bcm_device *dev)
+>   	}
+>   	acpi_dev_free_resource_list(&resources);
+>   
+> -	dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
+> -	if (dmi_id) {
+> -		dev_warn(dev->dev, "%s: Overwriting IRQ polarity to active low",
+> -			    dmi_id->ident);
+> -		dev->irq_active_low = true;
+> +	if (irq_polarity != -1) {
+> +		dev->irq_active_low = irq_polarity;
+> +		dev_warn(dev->dev, "Overwriting IRQ polarity to active %s by module-param\n",
+> +			 dev->irq_active_low ? "low" : "high");
+> +	} else {
+> +		dmi_id = dmi_first_match(bcm_active_low_irq_dmi_table);
+> +		if (dmi_id) {
+> +			dev_warn(dev->dev, "%s: Overwriting IRQ polarity to active low",
+> +				 dmi_id->ident);
+> +			dev->irq_active_low = true;
+> +		}
+>   	}
+>   
+>   	return 0;
+> 
