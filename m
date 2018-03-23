@@ -1,35 +1,91 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [GIT PULL] ACPI fixes for v4.16-rc7
-Date: Fri, 23 Mar 2018 00:30:04 +0100
-Message-ID: <CAJZ5v0gxY2ZndTrDh8H280SscX7iRsjOU5qZDBEjuO0O-RdDbQ@mail.gmail.com>
-References: <CAJZ5v0gT_p44NGUhkw7irDk-Uo8HnEYQ35+wJaBUo3ziLSbPsQ@mail.gmail.com>
- <CA+55aFwR_29JpVPUyyhnpJp=PBXk4nVO-8DBty6-vk2-8cgNFw@mail.gmail.com>
+From: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] libnvdimm fixes for 4.16-rc7
+Date: Fri, 23 Mar 2018 00:34:10 +0000
+Message-ID: <1521765242.9257.19.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFwR_29JpVPUyyhnpJp=PBXk4nVO-8DBty6-vk2-8cgNFw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <A20C5207B42157439D50FD9D053FAC95-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Mar 23, 2018 at 12:21 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> On Thu, Mar 22, 2018 at 4:05 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>
->>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
->>  acpi-4.16-rc4
->
-> I get
->
->   fatal: Couldn't find remote ref acpi-4.16-rc4
->
-> Forgot to push out?
->
-> Oh. No, I see what happened. You meant "rc7".
->
-> Didn't your script warn about the tag name not matching?
+Hi Linus, please pull from:
 
-Well, this was a manual one, sorry about that.
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
 
-Rafael
+...to receive 2 regression fixes, 2 bug fixes for older issues, 2
+fixes for new functionality added this cycle that have userspace ABI
+concerns, and a small cleanup. These have appeared in a linux-next
+release and have a build success report from the 0day robot.
+
+* The 4.16 rework of altmap handling led to some configurations leaking
+page table allocations due to freeing from the altmap reservation
+rather than the page allocator. The impact without the fix is leaked
+memory and a WARN() message when tearing down libnvdimm namespaces. The
+rework also missed a place where error handling code needed to be
+removed that can lead to a crash if devm_memremap_pages() fails.
+
+* acpi_map_pxm_to_node() had a latent bug whereby it could misidentify
+the closest online node to a given proximity domain.
+
+* Block integrity handling was reworked several kernels back to allow
+calling add_disk() after setting up the integrity profile. The nd_btt
+and nd_blk drivers are just now catching up to fix automatic partition
+detection at driver load time.
+
+* The new peristence_domain attribute, a platform indicator of whether
+cpu caches are powerfail protected for example, is meant to be a single
+value enum and not a set of flags. This oversight was caught while
+reviewing new userspace code in libndctl to communicate the attribute.
+Fix this new enabling up so that we are not stuck with an unwanted
+userspace ABI.
+
+The following changes since commit 661e50bc853209e41a5c14a290ca4decc43cbfd1:
+
+  Linux 4.16-rc4 (2018-03-04 14:54:11 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+
+for you to fetch changes up to fe9a552e715dfe5167d52deb74ea16335896bdaf:
+
+  libnvdimm, nfit: fix persistence domain reporting (2018-03-21 15:12:07 -0700)
+
+----------------------------------------------------------------
+Colin Ian King (1):
+      libnvdimm: remove redundant assignment to pointer 'dev'
+
+Dan Williams (4):
+      x86, memremap: fix altmap accounting at free
+      acpi, numa: fix pxm to online numa node associations
+      libnvdimm, region: hide persistence_domain when unknown
+      libnvdimm, nfit: fix persistence domain reporting
+
+Oliver O'Halloran (1):
+      kernel/memremap: Remove stale devres_free() call
+
+Vishal Verma (1):
+      libnvdimm, {btt, blk}: do integrity setup before add_disk()
+
+ arch/x86/mm/init_64.c        | 60 +++++++++++++++++++++-----------------------
+ drivers/acpi/nfit/core.c     | 10 +++++---
+ drivers/acpi/numa.c          | 10 +++++---
+ drivers/nvdimm/blk.c         |  3 +--
+ drivers/nvdimm/btt.c         |  3 +--
+ drivers/nvdimm/pfn_devs.c    |  2 +-
+ drivers/nvdimm/region_devs.c | 17 ++++++++++---
+ kernel/memremap.c            |  1 -
+ 8 files changed, 57 insertions(+), 49 deletions(-)
