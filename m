@@ -1,18 +1,18 @@
 From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.4 13/97] ACPI/processor: Replace racy task affinity logic
-Date: Fri, 23 Mar 2018 10:54:00 +0100
-Message-ID: <20180323094158.240658328@linuxfoundation.org>
-References: <20180323094157.535925724@linuxfoundation.org>
+Subject: [PATCH 3.18 04/47] ACPI/processor: Replace racy task affinity logic
+Date: Fri, 23 Mar 2018 10:54:55 +0100
+Message-ID: <20180323094248.309975152@linuxfoundation.org>
+References: <20180323094248.117679641@linuxfoundation.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180323094157.535925724@linuxfoundation.org>
+In-Reply-To: <20180323094248.117679641@linuxfoundation.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Fenghua Yu <fenghua.yu@intel.com>, Tony Luck <tony.luck@intel.com>, Herbert Xu <herbert@gondor.apana.org.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Sebastian Siewior <bigeasy@linutronix.de>, Lai Jiangshan <jiangshanlai@gmail.com>, linux-acpi@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Michael Ellerman <mpe@ellerman.id.au>, Tejun Heo <tj@kernel.org>, "David S. Miller" <davem@davemloft.net>, Len Brown <lenb@kernel.org>, Sasha Levin <alexander.levin@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-4.4-stable review patch.  If anyone has any objections, please let me know.
+3.18-stable review patch.  If anyone has any objections, please let me know.
 
 ------------------
 
@@ -68,7 +68,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/drivers/acpi/processor_driver.c
 +++ b/drivers/acpi/processor_driver.c
-@@ -270,11 +270,16 @@ err_power_exit:
+@@ -231,11 +231,16 @@ static int __acpi_processor_start(struct
  static int acpi_processor_start(struct device *dev)
  {
  	struct acpi_device *device = ACPI_COMPANION(dev);
@@ -88,7 +88,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  static int acpi_processor_stop(struct device *dev)
 --- a/drivers/acpi/processor_throttling.c
 +++ b/drivers/acpi/processor_throttling.c
-@@ -62,8 +62,8 @@ struct acpi_processor_throttling_arg {
+@@ -66,8 +66,8 @@ struct acpi_processor_throttling_arg {
  #define THROTTLING_POSTCHANGE      (2)
  
  static int acpi_processor_get_throttling(struct acpi_processor *pr);
@@ -99,7 +99,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  
  static int acpi_processor_update_tsd_coord(void)
  {
-@@ -891,7 +891,8 @@ static int acpi_processor_get_throttling
+@@ -886,7 +886,8 @@ static int acpi_processor_get_throttling
  			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
  				"Invalid throttling state, reset\n"));
  			state = 0;
@@ -109,7 +109,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  			if (ret)
  				return ret;
  		}
-@@ -901,36 +902,31 @@ static int acpi_processor_get_throttling
+@@ -896,36 +897,31 @@ static int acpi_processor_get_throttling
  	return 0;
  }
  
@@ -159,7 +159,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  }
  
  static int acpi_processor_get_fadt_info(struct acpi_processor *pr)
-@@ -1080,8 +1076,15 @@ static long acpi_processor_throttling_fn
+@@ -1075,8 +1071,15 @@ static long acpi_processor_throttling_fn
  			arg->target_state, arg->force);
  }
  
@@ -177,7 +177,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  {
  	int ret = 0;
  	unsigned int i;
-@@ -1130,7 +1133,8 @@ int acpi_processor_set_throttling(struct
+@@ -1125,7 +1128,8 @@ int acpi_processor_set_throttling(struct
  		arg.pr = pr;
  		arg.target_state = state;
  		arg.force = force;
@@ -187,7 +187,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	} else {
  		/*
  		 * When the T-state coordination is SW_ALL or HW_ALL,
-@@ -1163,8 +1167,8 @@ int acpi_processor_set_throttling(struct
+@@ -1158,8 +1162,8 @@ int acpi_processor_set_throttling(struct
  			arg.pr = match_pr;
  			arg.target_state = state;
  			arg.force = force;
@@ -198,7 +198,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  		}
  	}
  	/*
-@@ -1182,6 +1186,12 @@ int acpi_processor_set_throttling(struct
+@@ -1177,6 +1181,12 @@ int acpi_processor_set_throttling(struct
  	return ret;
  }
  
