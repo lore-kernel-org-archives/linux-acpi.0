@@ -1,63 +1,63 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] power/hibernate: Make passing hibernate offsets more friendly
-Date: Mon, 26 Mar 2018 11:37:52 +0200
-Message-ID: <CAJZ5v0iwpp5oPGYhrL3X=bMOueByup=UF_ChOTkhjTU5PJc3Cg@mail.gmail.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: [PATCH] power/hibernate: Make passing hibernate offsets more
+ friendly
+Date: Mon, 26 Mar 2018 09:41:27 +0000
+Message-ID: <72e8709fe8824411a713ef36cd2463ad@ausx13mpc120.AMER.DELL.COM>
 References: <1520333620-22342-1-git-send-email-mario.limonciello@dell.com>
- <1854392.I8WPNng6r5@aspire.rjw.lan> <b3e9a7ad5dfc4348a8b017110e8ba032@ausx13mpc120.AMER.DELL.COM>
+ <1854392.I8WPNng6r5@aspire.rjw.lan>
+ <b3e9a7ad5dfc4348a8b017110e8ba032@ausx13mpc120.AMER.DELL.COM>
+ <CAJZ5v0iwpp5oPGYhrL3X=bMOueByup=UF_ChOTkhjTU5PJc3Cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b3e9a7ad5dfc4348a8b017110e8ba032@ausx13mpc120.AMER.DELL.COM>
+In-Reply-To: <CAJZ5v0iwpp5oPGYhrL3X=bMOueByup=UF_ChOTkhjTU5PJc3Cg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mario Limonciello <Mario.Limonciello@dell.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: rafael@kernel.org
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Mar 26, 2018 at 9:17 AM,  <Mario.Limonciello@dell.com> wrote:
->> -----Original Message-----
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Sent: Monday, March 19, 2018 5:11 AM
->> To: Limonciello, Mario <Mario_Limonciello@Dell.com>
->> Cc: linux-acpi@vger.kernel.org; LKML <linux-kernel@vger.kernel.org>
->> Subject: Re: [PATCH] power/hibernate: Make passing hibernate offsets more friendly
->>
->> On Tuesday, March 6, 2018 11:53:40 AM CET Mario Limonciello wrote:
->> > Currently the only way to specify a hibernate offset for a
->> > swap file is on the kernel command line.
->> >
->> > Add a new /sys/power/disk_offset that lets userspace
->> > specify the offset and disk to use when initiating a hibernate
->> > cycle.
->> >
->> > Also split up the parsing routine to re-use the same code
->> > for the /sys/power/resume and /sys/power/disk_offset parsing.
->> >
->> > Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
->>
->> Well, IMO /sys/power/resume and /sys/power/disk_offset would be confusingly
->> similar after this patch.
->
-> Yeah they do function pretty similarly.
->
->>
->> I wonder if adding a resume_offset sysfs attr to simply allow the value of
->> resume offset alone to be passed to the kernel at run time (in addition to
->> the command line) would work?
->>
->> Thanks!
->
-> I guess what's your expected flow for how the disk gets selected though?  Should
-> the kernel be "guessing" which disk to use?
->
-> Or should userspace be setting offset via /sys/power/resume_offset followed by
-> disk in /sys/power/resume (which will show an error in syslog about no partition
-> found)
->
-> If the latter,
-
-Yes, the latter.
-
-> then I'd like to also modify the behavior to downgrade that missing
-> hibernate partition to debug instead too.
-
-That's OK.
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiByand5c29ja2lAZ21haWwuY29t
+IFttYWlsdG86cmp3eXNvY2tpQGdtYWlsLmNvbV0gT24gQmVoYWxmIE9mIFJhZmFlbCBKLg0KPiBX
+eXNvY2tpDQo+IFNlbnQ6IE1vbmRheSwgTWFyY2ggMjYsIDIwMTggNDozOCBBTQ0KPiBUbzogTGlt
+b25jaWVsbG8sIE1hcmlvIDxNYXJpb19MaW1vbmNpZWxsb0BEZWxsLmNvbT4NCj4gQ2M6IFJhZmFl
+bCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IEFDUEkgRGV2ZWwgTWFsaW5nIExpc3Qg
+PGxpbnV4LQ0KPiBhY3BpQHZnZXIua2VybmVsLm9yZz47IExpbnV4IEtlcm5lbCBNYWlsaW5nIExp
+c3QgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0hd
+IHBvd2VyL2hpYmVybmF0ZTogTWFrZSBwYXNzaW5nIGhpYmVybmF0ZSBvZmZzZXRzIG1vcmUgZnJp
+ZW5kbHkNCj4gDQo+IE9uIE1vbiwgTWFyIDI2LCAyMDE4IGF0IDk6MTcgQU0sICA8TWFyaW8uTGlt
+b25jaWVsbG9AZGVsbC5jb20+IHdyb3RlOg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
+LQ0KPiA+PiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJqd0Byand5c29ja2kubmV0
+XQ0KPiA+PiBTZW50OiBNb25kYXksIE1hcmNoIDE5LCAyMDE4IDU6MTEgQU0NCj4gPj4gVG86IExp
+bW9uY2llbGxvLCBNYXJpbyA8TWFyaW9fTGltb25jaWVsbG9ARGVsbC5jb20+DQo+ID4+IENjOiBs
+aW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgTEtNTCA8bGludXgta2VybmVsQHZnZXIua2VybmVs
+Lm9yZz4NCj4gPj4gU3ViamVjdDogUmU6IFtQQVRDSF0gcG93ZXIvaGliZXJuYXRlOiBNYWtlIHBh
+c3NpbmcgaGliZXJuYXRlIG9mZnNldHMgbW9yZQ0KPiBmcmllbmRseQ0KPiA+Pg0KPiA+PiBPbiBU
+dWVzZGF5LCBNYXJjaCA2LCAyMDE4IDExOjUzOjQwIEFNIENFVCBNYXJpbyBMaW1vbmNpZWxsbyB3
+cm90ZToNCj4gPj4gPiBDdXJyZW50bHkgdGhlIG9ubHkgd2F5IHRvIHNwZWNpZnkgYSBoaWJlcm5h
+dGUgb2Zmc2V0IGZvciBhDQo+ID4+ID4gc3dhcCBmaWxlIGlzIG9uIHRoZSBrZXJuZWwgY29tbWFu
+ZCBsaW5lLg0KPiA+PiA+DQo+ID4+ID4gQWRkIGEgbmV3IC9zeXMvcG93ZXIvZGlza19vZmZzZXQg
+dGhhdCBsZXRzIHVzZXJzcGFjZQ0KPiA+PiA+IHNwZWNpZnkgdGhlIG9mZnNldCBhbmQgZGlzayB0
+byB1c2Ugd2hlbiBpbml0aWF0aW5nIGEgaGliZXJuYXRlDQo+ID4+ID4gY3ljbGUuDQo+ID4+ID4N
+Cj4gPj4gPiBBbHNvIHNwbGl0IHVwIHRoZSBwYXJzaW5nIHJvdXRpbmUgdG8gcmUtdXNlIHRoZSBz
+YW1lIGNvZGUNCj4gPj4gPiBmb3IgdGhlIC9zeXMvcG93ZXIvcmVzdW1lIGFuZCAvc3lzL3Bvd2Vy
+L2Rpc2tfb2Zmc2V0IHBhcnNpbmcuDQo+ID4+ID4NCj4gPj4gPiBTaWduZWQtb2ZmLWJ5OiBNYXJp
+byBMaW1vbmNpZWxsbyA8bWFyaW8ubGltb25jaWVsbG9AZGVsbC5jb20+DQo+ID4+DQo+ID4+IFdl
+bGwsIElNTyAvc3lzL3Bvd2VyL3Jlc3VtZSBhbmQgL3N5cy9wb3dlci9kaXNrX29mZnNldCB3b3Vs
+ZCBiZSBjb25mdXNpbmdseQ0KPiA+PiBzaW1pbGFyIGFmdGVyIHRoaXMgcGF0Y2guDQo+ID4NCj4g
+PiBZZWFoIHRoZXkgZG8gZnVuY3Rpb24gcHJldHR5IHNpbWlsYXJseS4NCj4gPg0KPiA+Pg0KPiA+
+PiBJIHdvbmRlciBpZiBhZGRpbmcgYSByZXN1bWVfb2Zmc2V0IHN5c2ZzIGF0dHIgdG8gc2ltcGx5
+IGFsbG93IHRoZSB2YWx1ZSBvZg0KPiA+PiByZXN1bWUgb2Zmc2V0IGFsb25lIHRvIGJlIHBhc3Nl
+ZCB0byB0aGUga2VybmVsIGF0IHJ1biB0aW1lIChpbiBhZGRpdGlvbiB0bw0KPiA+PiB0aGUgY29t
+bWFuZCBsaW5lKSB3b3VsZCB3b3JrPw0KPiA+Pg0KPiA+PiBUaGFua3MhDQo+ID4NCj4gPiBJIGd1
+ZXNzIHdoYXQncyB5b3VyIGV4cGVjdGVkIGZsb3cgZm9yIGhvdyB0aGUgZGlzayBnZXRzIHNlbGVj
+dGVkIHRob3VnaD8gIFNob3VsZA0KPiA+IHRoZSBrZXJuZWwgYmUgImd1ZXNzaW5nIiB3aGljaCBk
+aXNrIHRvIHVzZT8NCj4gPg0KPiA+IE9yIHNob3VsZCB1c2Vyc3BhY2UgYmUgc2V0dGluZyBvZmZz
+ZXQgdmlhIC9zeXMvcG93ZXIvcmVzdW1lX29mZnNldCBmb2xsb3dlZCBieQ0KPiA+IGRpc2sgaW4g
+L3N5cy9wb3dlci9yZXN1bWUgKHdoaWNoIHdpbGwgc2hvdyBhbiBlcnJvciBpbiBzeXNsb2cgYWJv
+dXQgbm8gcGFydGl0aW9uDQo+ID4gZm91bmQpDQo+ID4NCj4gPiBJZiB0aGUgbGF0dGVyLA0KPiAN
+Cj4gWWVzLCB0aGUgbGF0dGVyLg0KPiANCj4gPiB0aGVuIEknZCBsaWtlIHRvIGFsc28gbW9kaWZ5
+IHRoZSBiZWhhdmlvciB0byBkb3duZ3JhZGUgdGhhdCBtaXNzaW5nDQo+ID4gaGliZXJuYXRlIHBh
+cnRpdGlvbiB0byBkZWJ1ZyBpbnN0ZWFkIHRvby4NCj4gDQo+IFRoYXQncyBPSy4NCg0KT0sgdGhh
+bmtzLCBJJ2xsIGFkanVzdCBwZXIgeW91ciByZWNvbW1lbmRhdGlvbnMuDQo=
