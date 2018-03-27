@@ -1,39 +1,42 @@
-From: ianwmorrison@gmail.com
-Subject: [PATCH] Bluetooth: hci_bcm: Remove DMI quirk for the MINIX Z83-4
-Date: Tue, 27 Mar 2018 09:09:28 +1100
-Message-ID: <20180326220928.2755-1-ianwmorrison@gmail.com>
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: marcel@holtmann.org, gustavo@padovan.org, johan.hedberg@gmail.com
-Cc: linux-bluetooth@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org, hdegoede@redhat.com, ianwmorrison@gmail.com
+From: Lenny Szubowicz <lszubowi@redhat.com>
+Subject: [PATCH] ACPI: acpi_pad: Fix memory leak in power saving threads
+Date: Tue, 27 Mar 2018 09:56:40 -0400
+Message-ID: <1522159000-7778-1-git-send-email-lszubowi@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-As Interrupt resource specified IRQs are now assumed to be always
-active-low the DMI quirk for the MINIX Z83-4 is no longer required.
+Fix once per second (round_robin_time) memory leak of about 1 KB in
+each acpi_pad kernel idling thread that is activated.
 
-Cc: stable@vger.kernel.org
-Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+Found by testing with kmemleak.
+
+Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
 ---
- drivers/bluetooth/hci_bcm.c | 7 -------
- 1 file changed, 7 deletions(-)
+ drivers/acpi/acpi_pad.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index 6828e485bc24..8a011267a4f6 100644
---- a/drivers/bluetooth/hci_bcm.c
-+++ b/drivers/bluetooth/hci_bcm.c
-@@ -804,13 +804,6 @@ static const struct dmi_system_id bcm_active_low_irq_dmi_table[] = {
- 			DMI_EXACT_MATCH(DMI_PRODUCT_VERSION, "ThinkPad 8"),
- 		},
- 	},
--	{
--		.ident = "MINIX Z83-4",
--		.matches = {
--			DMI_EXACT_MATCH(DMI_SYS_VENDOR, "MINIX"),
--			DMI_MATCH(DMI_PRODUCT_NAME, "Z83-4"),
--		},
--	},
- 	{ }
- };
+diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+index 7544310..552c1f7 100644
+--- a/drivers/acpi/acpi_pad.c
++++ b/drivers/acpi/acpi_pad.c
+@@ -110,6 +110,7 @@ static void round_robin_cpu(unsigned int tsk_index)
+ 		cpumask_andnot(tmp, cpu_online_mask, pad_busy_cpus);
+ 	if (cpumask_empty(tmp)) {
+ 		mutex_unlock(&round_robin_lock);
++		free_cpumask_var(tmp);
+ 		return;
+ 	}
+ 	for_each_cpu(cpu, tmp) {
+@@ -127,6 +128,8 @@ static void round_robin_cpu(unsigned int tsk_index)
+ 	mutex_unlock(&round_robin_lock);
  
+ 	set_cpus_allowed_ptr(current, cpumask_of(preferred_cpu));
++
++	free_cpumask_var(tmp);
+ }
+ 
+ static void exit_round_robin(unsigned int tsk_index)
 -- 
-2.11.0
+1.8.3.1
