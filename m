@@ -1,82 +1,59 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal SoC management updates for v4.17-rc1
-Date: Tue, 27 Mar 2018 06:59:43 -0700
-Message-ID: <20180327135942.GA11104@localhost.localdomain>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
+ add/remove and notify code
+Date: Tue, 27 Mar 2018 19:25:10 +0200
+Message-ID: <20180327172510.GB32184@pd.tnic>
+References: <20180215185606.26736-1-james.morse@arm.com>
+ <20180215185606.26736-3-james.morse@arm.com>
+ <20180301150144.GA4215@pd.tnic>
+ <87sh9jbrgc.fsf@e105922-lin.cambridge.arm.com>
+ <20180301223529.GA28811@pd.tnic> <5AA02C26.10803@arm.com>
+ <20180308104408.GB21166@pd.tnic> <5AAFC939.3010309@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <5AAFC939.3010309@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Rui,
+Hi James,
 
-Please find thermal-soc changes for v4.17-rc1 as follows.
+On Mon, Mar 19, 2018 at 02:29:13PM +0000, James Morse wrote:
+> I don't think the die_lock really helps here, do we really want to wait for a
+> remote CPU to finish printing an OOPs about user-space's bad memory accesses,
+> before we bring the machine down due to this system-wide fatal RAS error? The
+> presence of firmware-first means we know this error, and any other oops are
+> unrelated.
 
-- New i.MX7 thermal sensor
-- Mediatek driver now supports MT7622 SoC
-- Fixes on exynos driver
-- Removal of min max cpu cooling dt property
+Hmm, now that you put it this way...
 
-Despite my local testing, this has been tested by kernelci bot:
-Full Boot Summary: https://kernelci.org/boot/all/job/evalenti/branch/for-kernelci/kernel/v4.16-rc1-16-g9db4c0feaf87/
-Full Build Summary: https://kernelci.org/build/evalenti/branch/for-kernelci/kernel/v4.16-rc1-16-g9db4c0feaf87/
+> I'd like to leave this under the x86-ifdef for now. For arm64 it would be an
+> APEI specific arch hook to stop the arch code from printing some messages,
 
-BR,
+... I'm thinking we should ignore the whole serializing of oopses and
+really dump that hw error ASAP. If it really is a fatal error, our main
+and only goal is to get it out as fast as possible so that it has the
+highest chance to appear on some screen or logging facility and thus the
+system can be serviced successfully.
 
-Eduardo
+And the other oopses have lower prio.
 
-The following changes since commit 7928b2cbe55b2a410a0f5c1f154610059c57b1b2:
+Hmmm?
 
-  Linux 4.16-rc1 (2018-02-11 15:04:29 -0800)
+-- 
+Regards/Gruss,
+    Boris.
 
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
-
-for you to fetch changes up to 2db48884bb51f2ad26b1b716297ceaab624a2e68:
-
-  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties (2018-03-27 06:43:05 -0700)
-
-----------------------------------------------------------------
-Anson Huang (1):
-      thermal: imx: add i.MX7 thermal sensor support
-
-Bartlomiej Zolnierkiewicz (10):
-      thermal: exynos: remove unused "type" field from struct exynos_tmu_platform_data
-      thermal: exynos: remove parsing of samsung, tmu_default_temp_offset property
-      thermal: exynos: remove parsing of samsung, tmu_[first, second]_point_trim properties
-      thermal: exynos: remove parsing of samsung, tmu_noise_cancel_mode property
-      thermal: exynos: remove parsing of samsung, tmu[_min, _max]_efuse_value properties
-      thermal: exynos: remove parsing of samsung, tmu_reference_voltage property
-      thermal: exynos: remove parsing of samsung,tmu_gain property
-      thermal: exynos: remove parsing of samsung, tmu_cal_type property
-      thermal: exynos: remove separate exynos_tmu.h header file
-      dt-bindings: thermal: remove no longer needed samsung thermal properties
-
-Maciej Purski (1):
-      thermal: exynos: Read soc_type from match data
-
-Marek Szyprowski (2):
-      thermal: exynos: Reading temperature makes sense only when TMU is turned on
-      thermal: exynos: Propagate error value from tmu_read()
-
-Sean Wang (2):
-      dt-bindings: thermal: add binding for MT7622 SoC
-      thermal: mediatek: add support for MT7622 SoC
-
-Viresh Kumar (1):
-      dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
-
- .../devicetree/bindings/thermal/exynos-thermal.txt |  23 +-
- .../devicetree/bindings/thermal/imx-thermal.txt    |   9 +-
- .../bindings/thermal/mediatek-thermal.txt          |   1 +
- .../devicetree/bindings/thermal/thermal.txt        |  16 +-
- drivers/thermal/imx_thermal.c                      | 295 ++++++++++++++++-----
- drivers/thermal/mtk_thermal.c                      |  35 +++
- drivers/thermal/samsung/exynos_tmu.c               | 268 ++++++++++---------
- drivers/thermal/samsung/exynos_tmu.h               |  75 ------
- 8 files changed, 423 insertions(+), 299 deletions(-)
- delete mode 100644 drivers/thermal/samsung/exynos_tmu.h
+Good mailing practices for 400: avoid top-posting and trim the reply.
