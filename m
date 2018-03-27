@@ -1,59 +1,110 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
- add/remove and notify code
-Date: Tue, 27 Mar 2018 19:25:10 +0200
-Message-ID: <20180327172510.GB32184@pd.tnic>
-References: <20180215185606.26736-1-james.morse@arm.com>
- <20180215185606.26736-3-james.morse@arm.com>
- <20180301150144.GA4215@pd.tnic>
- <87sh9jbrgc.fsf@e105922-lin.cambridge.arm.com>
- <20180301223529.GA28811@pd.tnic> <5AA02C26.10803@arm.com>
- <20180308104408.GB21166@pd.tnic> <5AAFC939.3010309@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <5AAFC939.3010309@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+From: Mario Limonciello <mario.limonciello@dell.com>
+Subject: [PATCH v2 1/2] power/hibernate: Make passing hibernate offsets more friendly
+Date: Tue, 27 Mar 2018 15:58:52 -0500
+Message-ID: <1522184333-27582-1-git-send-email-mario.limonciello@dell.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
+Currently the only way to specify a hibernate offset for a
+swap file is on the kernel command line.
 
-On Mon, Mar 19, 2018 at 02:29:13PM +0000, James Morse wrote:
-> I don't think the die_lock really helps here, do we really want to wait for a
-> remote CPU to finish printing an OOPs about user-space's bad memory accesses,
-> before we bring the machine down due to this system-wide fatal RAS error? The
-> presence of firmware-first means we know this error, and any other oops are
-> unrelated.
+Add a new /sys/power/resume_offset that lets userspace
+specify the offset and disk to use when initiating a hibernate
+cycle.
 
-Hmm, now that you put it this way...
+Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
+---
+ Documentation/ABI/testing/sysfs-power | 14 ++++++++++++++
+ Documentation/power/swsusp.txt        | 10 +++++++++-
+ kernel/power/hibernate.c              | 21 +++++++++++++++++++++
+ 3 files changed, 44 insertions(+), 1 deletion(-)
 
-> I'd like to leave this under the x86-ifdef for now. For arm64 it would be an
-> APEI specific arch hook to stop the arch code from printing some messages,
-
-... I'm thinking we should ignore the whole serializing of oopses and
-really dump that hw error ASAP. If it really is a fatal error, our main
-and only goal is to get it out as fast as possible so that it has the
-highest chance to appear on some screen or logging facility and thus the
-system can be serviced successfully.
-
-And the other oopses have lower prio.
-
-Hmmm?
-
+diff --git a/Documentation/ABI/testing/sysfs-power b/Documentation/ABI/testing/sysfs-power
+index 1e0d1da..2f813d6 100644
+--- a/Documentation/ABI/testing/sysfs-power
++++ b/Documentation/ABI/testing/sysfs-power
+@@ -287,3 +287,17 @@ Description:
+ 		Writing a "1" to this file enables the debug messages and
+ 		writing a "0" (default) to it disables them.  Reads from
+ 		this file return the current value.
++
++What:		/sys/power/resume_offset
++Date:		April 2018
++Contact:	Mario Limonciello <mario.limonciello@dell.com>
++Description:
++		This file is used for telling the kernel an offset into a disk
++		to use when hibernating the system such as with a swap file.
++
++		Reads from this file will display the current offset
++		the kernel will be using on the next hibernation
++		attempt.
++
++		Using this sysfs file will override any values that were
++		set using the kernel command line for disk offset.
+\ No newline at end of file
+diff --git a/Documentation/power/swsusp.txt b/Documentation/power/swsusp.txt
+index 9f2f942..cc87adf 100644
+--- a/Documentation/power/swsusp.txt
++++ b/Documentation/power/swsusp.txt
+@@ -24,8 +24,16 @@ Some warnings, first.
+  * see the FAQ below for details.  (This is not true for more traditional
+  * power states like "standby", which normally don't turn USB off.)
+ 
++Swap partition:
+ You need to append resume=/dev/your_swap_partition to kernel command
+-line. Then you suspend by
++line or specify it using /sys/power/resume.
++
++Swap file:
++If using a swapfile you can also specify a resume offset using
++resume_offset=<number> on the kernel command line or specify it
++in /sys/power/resume_offset.
++
++After preparing then you suspend by
+ 
+ echo shutdown > /sys/power/disk; echo disk > /sys/power/state
+ 
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index a5c36e9..16e8645 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -1061,6 +1061,26 @@ static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 
+ power_attr(resume);
+ 
++static ssize_t resume_offset_show(struct kobject *kobj,
++				  struct kobj_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%lu\n", swsusp_resume_block);
++}
++
++static ssize_t resume_offset_store(struct kobject *kobj,
++				   struct kobj_attribute *attr, const char *buf,
++				   size_t n)
++{
++	int rc = kstrtoul(buf, 0, &swsusp_resume_block);
++
++	if (rc)
++		return rc;
++
++	return n;
++}
++
++power_attr(resume_offset);
++
+ static ssize_t image_size_show(struct kobject *kobj, struct kobj_attribute *attr,
+ 			       char *buf)
+ {
+@@ -1106,6 +1126,7 @@ power_attr(reserved_size);
+ 
+ static struct attribute * g[] = {
+ 	&disk_attr.attr,
++	&resume_offset_attr.attr,
+ 	&resume_attr.attr,
+ 	&image_size_attr.attr,
+ 	&reserved_size_attr.attr,
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.7.4
