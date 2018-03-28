@@ -1,39 +1,32 @@
-From: Mario Limonciello <mario.limonciello@dell.com>
-Subject: [PATCH v2 2/2] power/hibernate: Change message when writing to /sys/power/resume
-Date: Tue, 27 Mar 2018 15:58:53 -0500
-Message-ID: <1522184333-27582-2-git-send-email-mario.limonciello@dell.com>
-References: <1522184333-27582-1-git-send-email-mario.limonciello@dell.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1522184333-27582-1-git-send-email-mario.limonciello@dell.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
+From: Marcel Holtmann <marcel@holtmann.org>
+Subject: Re: [PATCH] Bluetooth: hci_bcm: Remove DMI quirk for the MINIX Z83-4
+Date: Wed, 28 Mar 2018 11:39:29 +0200
+Message-ID: <5DF0FA92-1058-45C9-AB5E-6C9678EF6BAE@holtmann.org>
+References: <20180326220928.2755-1-ianwmorrison@gmail.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.2 \(3445.5.20\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180326220928.2755-1-ianwmorrison@gmail.com>
+Sender: stable-owner@vger.kernel.org
+To: ianwmorrison@gmail.com
+Cc: "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Bluez mailing list <linux-bluetooth@vger.kernel.org>, linux-serial@vger.kernel.org, linux-acpi <linux-acpi@vger.kernel.org>, stable@vger.kernel.org, hdegoede@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-This file is used both for setting the wakeup device without kernel
-command line as well as for actually waking the system (when appropriate
-swap header is in place).
+Hi Ian,
 
-To avoid confusion on incorrect logs in system log downgrade the
-message to debug and make it clearer.
+> As Interrupt resource specified IRQs are now assumed to be always
+> active-low the DMI quirk for the MINIX Z83-4 is no longer required.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Ian W MORRISON <ianwmorrison@gmail.com>
+> ---
+> drivers/bluetooth/hci_bcm.c | 7 -------
+> 1 file changed, 7 deletions(-)
 
-Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
----
- kernel/power/hibernate.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+patch has been applied to bluetooth-next tree.
 
-diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index 16e8645..15bc3cd 100644
---- a/kernel/power/hibernate.c
-+++ b/kernel/power/hibernate.c
-@@ -1053,7 +1053,7 @@ static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
- 	lock_system_sleep();
- 	swsusp_resume_device = res;
- 	unlock_system_sleep();
--	pr_info("Starting manual resume from disk\n");
-+	pm_pr_dbg("Configured resume from disk to %u\n", swsusp_resume_device);
- 	noresume = 0;
- 	software_resume();
- 	return n;
--- 
-2.7.4
+Regards
+
+Marcel
