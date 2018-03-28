@@ -1,50 +1,39 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v2 08/11] firmware: arm_sdei: Add ACPI GHES registration
- helper
-Date: Wed, 28 Mar 2018 17:33:30 +0100
-Message-ID: <590e2665-4471-8795-675e-28d103e1a103@arm.com>
-References: <20180322181445.23298-9-james.morse@arm.com>
- <201803250913.XCBc2k7m%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201803250913.XCBc2k7m%fengguang.wu@intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+From: Mario Limonciello <mario.limonciello@dell.com>
+Subject: [PATCH v3 2/2] power/hibernate: Change message when writing to /sys/power/resume
+Date: Wed, 28 Mar 2018 12:01:10 -0500
+Message-ID: <1522256470-2825-2-git-send-email-mario.limonciello@dell.com>
+References: <1522256470-2825-1-git-send-email-mario.limonciello@dell.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1522256470-2825-1-git-send-email-mario.limonciello@dell.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi kbuild test robot,
+This file is used both for setting the wakeup device without kernel
+command line as well as for actually waking the system (when appropriate
+swap header is in place).
 
-On 25/03/18 02:41, kbuild test robot wrote:
-> I love your patch! Yet something to improve:
-> 
-> [auto build test ERROR on pm/linux-next]
-> [also build test ERROR on v4.16-rc6]
-> [cannot apply to arm64/for-next/core next-20180323]
+To avoid confusion on incorrect logs in system log downgrade the
+message to debug and make it clearer.
 
-This is the potential conflict I referred to in v1's cover letter...
+Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
+---
+ kernel/power/hibernate.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-> All errors (new ones prefixed by >>):
-> 
->    drivers//firmware/arm_sdei.c: In function 'sdei_register_ghes':
->>> drivers//firmware/arm_sdei.c:921:26: error: 'FIX_APEI_GHES_SDEI_CRITICAL' undeclared (first use in this function)
->       ghes->nmi_fixmap_idx = FIX_APEI_GHES_SDEI_CRITICAL;
-
-Looks like I forgot to include asm/fixmap.h! I hate header-soup.
-
-
-Thanks,
-
-James
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index d58fad3d..1028ecb 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -1053,7 +1053,7 @@ static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
+ 	lock_system_sleep();
+ 	swsusp_resume_device = res;
+ 	unlock_system_sleep();
+-	pr_info("Starting manual resume from disk\n");
++	pm_pr_dbg("Configured resume from disk to %u\n", swsusp_resume_device);
+ 	noresume = 0;
+ 	software_resume();
+ 	return n;
+-- 
+2.7.4
