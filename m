@@ -1,117 +1,145 @@
-From: Mario Limonciello <mario.limonciello@dell.com>
-Subject: [PATCH v3 1/2] power/hibernate: Make passing hibernate offsets more friendly
-Date: Wed, 28 Mar 2018 12:01:09 -0500
-Message-ID: <1522256470-2825-1-git-send-email-mario.limonciello@dell.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Mario Limonciello <mario.limonciello@dell.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: rework NVDIMM leaf method detection
+Date: Wed, 28 Mar 2018 14:00:27 -0700
+Message-ID: <152227082782.1504.17033843515446218287.stgit@dwillia2-desk3.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Erik Schmauss <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Currently the only way to specify a hibernate offset for a
-swap file is on the kernel command line.
+Some BIOSen do not handle 0-byte transfer lengths for the _LSR and _LSW
+(label storage read/write) methods. This causes Linux to fallback to the
+deprecated _DSM path, or otherwise disable label support.
 
-Add a new /sys/power/resume_offset that lets userspace
-specify the offset and disk to use when initiating a hibernate
-cycle.
+Introduce acpi_nvdimm_has_method() to detect whether a method is
+available rather than calling the method, require _LSI and _LSR to be
+paired, and require read support before enabling write support.
 
-Signed-off-by: Mario Limonciello <mario.limonciello@dell.com>
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LS...")
+Suggested-by: Erik Schmauss <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes from v2:
- * Cast the output for sector_t when printing
- * Fix a compilation problem with i386 due to different size of sector_t
+ drivers/acpi/nfit/core.c |   41 +++++++++++++++++++++--------------------
+ drivers/acpi/nfit/nfit.h |    5 ++---
+ 2 files changed, 23 insertions(+), 23 deletions(-)
 
- Documentation/ABI/testing/sysfs-power | 14 ++++++++++++++
- Documentation/power/swsusp.txt        | 10 +++++++++-
- kernel/power/hibernate.c              | 24 ++++++++++++++++++++++++
- 3 files changed, 47 insertions(+), 1 deletion(-)
-
-diff --git a/Documentation/ABI/testing/sysfs-power b/Documentation/ABI/testing/sysfs-power
-index 1e0d1da..2f813d6 100644
---- a/Documentation/ABI/testing/sysfs-power
-+++ b/Documentation/ABI/testing/sysfs-power
-@@ -287,3 +287,17 @@ Description:
- 		Writing a "1" to this file enables the debug messages and
- 		writing a "0" (default) to it disables them.  Reads from
- 		this file return the current value.
-+
-+What:		/sys/power/resume_offset
-+Date:		April 2018
-+Contact:	Mario Limonciello <mario.limonciello@dell.com>
-+Description:
-+		This file is used for telling the kernel an offset into a disk
-+		to use when hibernating the system such as with a swap file.
-+
-+		Reads from this file will display the current offset
-+		the kernel will be using on the next hibernation
-+		attempt.
-+
-+		Using this sysfs file will override any values that were
-+		set using the kernel command line for disk offset.
-\ No newline at end of file
-diff --git a/Documentation/power/swsusp.txt b/Documentation/power/swsusp.txt
-index 9f2f942..cc87adf 100644
---- a/Documentation/power/swsusp.txt
-+++ b/Documentation/power/swsusp.txt
-@@ -24,8 +24,16 @@ Some warnings, first.
-  * see the FAQ below for details.  (This is not true for more traditional
-  * power states like "standby", which normally don't turn USB off.)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 4530d89044db..12fb414fa678 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -196,7 +196,7 @@ static int xlat_nvdimm_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd
+ 		 * In the _LSI, _LSR, _LSW case the locked status is
+ 		 * communicated via the read/write commands
+ 		 */
+-		if (nfit_mem->has_lsi)
++		if (nfit_mem->has_lsr)
+ 			break;
  
-+Swap partition:
- You need to append resume=/dev/your_swap_partition to kernel command
--line. Then you suspend by
-+line or specify it using /sys/power/resume.
-+
-+Swap file:
-+If using a swapfile you can also specify a resume offset using
-+resume_offset=<number> on the kernel command line or specify it
-+in /sys/power/resume_offset.
-+
-+After preparing then you suspend by
+ 		if (status >> 16 & ND_CONFIG_LOCKED)
+@@ -483,7 +483,7 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
+ 			min_t(u32, 256, in_buf.buffer.length), true);
  
- echo shutdown > /sys/power/disk; echo disk > /sys/power/state
+ 	/* call the BIOS, prefer the named methods over _DSM if available */
+-	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsi)
++	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsr)
+ 		out_obj = acpi_label_info(handle);
+ 	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
+ 		struct nd_cmd_get_config_data_hdr *p = buf;
+@@ -1653,12 +1653,23 @@ static void acpi_nvdimm_notify(acpi_handle handle, u32 event, void *data)
+ 	device_unlock(dev->parent);
+ }
  
-diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
-index a5c36e9..d58fad3d 100644
---- a/kernel/power/hibernate.c
-+++ b/kernel/power/hibernate.c
-@@ -1061,6 +1061,29 @@ static ssize_t resume_store(struct kobject *kobj, struct kobj_attribute *attr,
- 
- power_attr(resume);
- 
-+static ssize_t resume_offset_show(struct kobject *kobj,
-+				  struct kobj_attribute *attr, char *buf)
++static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
 +{
-+	return sprintf(buf, "%llu\n", (unsigned long long)swsusp_resume_block);
++	acpi_handle handle;
++	acpi_status status;
++
++	status = acpi_get_handle(adev->handle, method, &handle);
++
++	if (ACPI_SUCCESS(status))
++		return true;
++	return false;
 +}
 +
-+static ssize_t resume_offset_store(struct kobject *kobj,
-+				   struct kobj_attribute *attr, const char *buf,
-+				   size_t n)
-+{
-+	unsigned long long offset;
-+	int rc;
-+
-+	rc = kstrtoull(buf, 0, &offset);
-+	if (rc)
-+		return rc;
-+	swsusp_resume_block = offset;
-+
-+	return n;
-+}
-+
-+power_attr(resume_offset);
-+
- static ssize_t image_size_show(struct kobject *kobj, struct kobj_attribute *attr,
- 			       char *buf)
+ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, u32 device_handle)
  {
-@@ -1106,6 +1129,7 @@ power_attr(reserved_size);
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	union acpi_object *obj;
+ 	unsigned long dsm_mask;
+ 	const guid_t *guid;
+ 	int i;
+@@ -1731,25 +1742,15 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 					1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
  
- static struct attribute * g[] = {
- 	&disk_attr.attr,
-+	&resume_offset_attr.attr,
- 	&resume_attr.attr,
- 	&image_size_attr.attr,
- 	&reserved_size_attr.attr,
--- 
-2.7.4
+-	obj = acpi_label_info(adev_dimm->handle);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsi = 1;
+-		dev_dbg(dev, "%s: has _LSI\n", dev_name(&adev_dimm->dev));
+-	}
+-
+-	obj = acpi_label_read(adev_dimm->handle, 0, 0);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsr = 1;
++	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
++			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
+ 		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
++		nfit_mem->has_lsr = true;
+ 	}
+ 
+-	obj = acpi_label_write(adev_dimm->handle, 0, 0, NULL);
+-	if (obj) {
+-		ACPI_FREE(obj);
+-		nfit_mem->has_lsw = 1;
++	if (nfit_mem->has_lsr && acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
+ 		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
++		nfit_mem->has_lsw = true;
+ 	}
+ 
+ 	return 0;
+@@ -1838,10 +1839,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
+ 		}
+ 
+-		if (nfit_mem->has_lsi)
++		if (nfit_mem->has_lsr) {
+ 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
+-		if (nfit_mem->has_lsr)
+ 			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
++		}
+ 		if (nfit_mem->has_lsw)
+ 			set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
+ 
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 50d36e166d70..ac9c49463731 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -171,9 +171,8 @@ struct nfit_mem {
+ 	struct resource *flush_wpq;
+ 	unsigned long dsm_mask;
+ 	int family;
+-	u32 has_lsi:1;
+-	u32 has_lsr:1;
+-	u32 has_lsw:1;
++	bool has_lsr;
++	bool has_lsw;
+ };
+ 
+ struct acpi_nfit_desc {
