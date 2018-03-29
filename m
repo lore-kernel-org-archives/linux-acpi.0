@@ -1,126 +1,46 @@
-From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
-Subject: Re: [RFC PATCH 1/2] driver core: add new dl device status
- DL_DEV_PROBE_FAILED
-Date: Thu, 29 Mar 2018 11:24:22 +0000
-Message-ID: <6c37c0c4ce13456ea2945f4900785a0617d05fa1.camel@hxt-semitech.com>
-References: <1522317660-11080-1-git-send-email-dongsheng.wang@hxt-semitech.com>
-         <1522317660-11080-2-git-send-email-dongsheng.wang@hxt-semitech.com>
-         <CAJZ5v0g+hQaU5RqsdzZ0XanXis-LqwKc+PxsmFEqo2eziXnkCQ@mail.gmail.com>
+From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/4] Adding support to parse BERT for libnvdimm
+Date: Thu, 29 Mar 2018 15:37:01 -0700
+Message-ID: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0g+hQaU5RqsdzZ0XanXis-LqwKc+PxsmFEqo2eziXnkCQ@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <F21840E5D721574C96EBC908E8BCC538@hxt-semitech.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "rafael@kernel.org" <rafael@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "sudeep.holla@arm.com" <sudeep.holla@arm.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVGh1LCAyMDE4LTAzLTI5IGF0IDEyOjUxICswMjAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
-ZToNCj4gT24gVGh1LCBNYXIgMjksIDIwMTggYXQgMTI6MDAgUE0sIFdhbmcgRG9uZ3NoZW5nDQo+
-IDxkb25nc2hlbmcud2FuZ0BoeHQtc2VtaXRlY2guY29tPiB3cm90ZToNCj4gPiBDdXJyZW50bHkg
-dGhlIGluaXRpYWxpemF0aW9uIHN0YXRlIG9mIGRldmljZSBpcyBETF9ERVZfTk9fRFJJVkVSLg0K
-PiA+IFRoZSBwcm9ibGVtIGlzLCBhZnRlciBwcm9iZSBmYWlsdXJlIHRoZSBzdGF0ZSB3aWxsIGFs
-c28gYmUgc2V0IHRvDQo+ID4gRExfREVWX05PX0RSSVZFUiBhcyB3ZWxsLiBBbmQgdGhlIGRldmlj
-ZSBpcyBub3QgbGlua2VkLCBpdCBoYXMgbm8NCj4gPiBzdXBwbGllciBvciBjb25zdW1lci4gVGh1
-cyBhZGRpbmcgYSBuZXcgc3RhdGUgdG8gZGlzdGluZ3Vpc2gNCj4gPiBwcm9iZSBmYWlsdXJlIGFu
-ZCBub3QtcHJvYmVkLXlldC4NCj4gPiANCj4gPiBTaWduZWQtb2ZmLWJ5OiBXYW5nIERvbmdzaGVu
-ZyA8ZG9uZ3NoZW5nLndhbmdAaHh0LXNlbWl0ZWNoLmNvbT4NCj4gDQo+IEkgZ3Vlc3Mgd2hhdCB5
-b3Ugd2FudCBpcyBhIGNsZWFudXAgYWZ0ZXIgYSBmYWlsaW5nIHByb2JlLCBidXQgYWZ0ZXINCj4g
-dGhhdCB0aGUgc3RhdGUgcmVhbGx5IGlzICJubyBkcml2ZXIiIGFnYWluLCBpc24ndCBpdD8NClll
-cywgYWdyZWUgIm5vIGRyaXZlciIsIGRldmljZSBpcyBuZXZlciBnZXQgYSBkcml2ZXIgYWdhaW4u
-DQoNCkJ1dCBBIGRlcGVuZCBvbiBCIHN1Y2Nlc3NmdWwgcHJvYmUuIGlmIEIgZmFpbGVkLCBBIHdp
-bGwgbmV2ZXIga25vdzoNCjEuIEIgY2FuJ3Qgd29yay4NCjIuIEIgaGFzbid0IGdvdCBhIHByb2Jl
-IHlldC4NCg0KTGlrZSBJT01NVS4gQWZ0ZXIgU01NVSBzdWNjZXNzZnVsIHByb2JlZCwgdGhlIGRy
-aXZlciBhZGQgYSByZXNvdXJjZQ0KaW50byAiaW9tbXVfZGV2aWNlX2xpc3QiLiBNYXN0ZXIgbG9v
-a3VwIHRoZSBjb3JyZXNwb25kaW5nIFNNTVUgZndub2RlDQpmcm9tICJpb21tdV9kZXZpY2VfbGlz
-dCIsIGFmdGVyIG1hdGNoZWQgbWFzdGVyIHdpbGwgZG8gcHJvYmUuIGJ1dCBpZg0KdGhlIGxpc3Qg
-aXMgTlVMTCBtYXN0ZXIgd2lsbCBnZXQgLUVQUk9CRV9ERUZFUiwgbWVhbnMgU01NVSBkZXZpY2Ug
-bWF5DQpub3QgcHJvYmUgeWV0LCBpbiBmYWN0IFNNTVUgbWF5IHByb2JlIGZhaWxlZC4NCg0KSSB0
-cnkgdG8gdXNlIERMX0RFViBzdGF0ZSB0byBmaXggdGhpcyBpc3N1ZSwgYnV0IE5PX0RSSVZFUiBk
-b2VzIG5vdA0KZGlzdGluZ3Vpc2ggYmV0d2VlbiB0aGUgdHdvIGNhc2VzLg0KDQpDaGVlcnMsDQot
-RG9uZ3NoZW5nDQoNCj4gDQo+ID4gLS0tDQo+ID4gIERvY3VtZW50YXRpb24vZHJpdmVyLWFwaS9k
-ZXZpY2VfbGluay5yc3QgfCAgMiArLQ0KPiA+ICBkcml2ZXJzL2Jhc2UvYmFzZS5oICAgICAgICAg
-ICAgICAgICAgICAgIHwgIDIgKy0NCj4gPiAgZHJpdmVycy9iYXNlL2NvcmUuYyAgICAgICAgICAg
-ICAgICAgICAgICB8IDIyDQo+ID4gKysrKysrKysrKysrKysrKysrKystLQ0KPiA+ICBkcml2ZXJz
-L2Jhc2UvZGQuYyAgICAgICAgICAgICAgICAgICAgICAgIHwgIDIgKy0NCj4gPiAgaW5jbHVkZS9s
-aW51eC9kZXZpY2UuaCAgICAgICAgICAgICAgICAgICB8ICAxICsNCj4gPiAgNSBmaWxlcyBjaGFu
-Z2VkLCAyNCBpbnNlcnRpb25zKCspLCA1IGRlbGV0aW9ucygtKQ0KPiA+IA0KPiA+IGRpZmYgLS1n
-aXQgYS9Eb2N1bWVudGF0aW9uL2RyaXZlci1hcGkvZGV2aWNlX2xpbmsucnN0DQo+ID4gYi9Eb2N1
-bWVudGF0aW9uL2RyaXZlci1hcGkvZGV2aWNlX2xpbmsucnN0DQo+ID4gaW5kZXggNzBlMzI4ZS4u
-OTA1NDQwMyAxMDA2NDQNCj4gPiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RyaXZlci1hcGkvZGV2aWNl
-X2xpbmsucnN0DQo+ID4gKysrIGIvRG9jdW1lbnRhdGlvbi9kcml2ZXItYXBpL2RldmljZV9saW5r
-LnJzdA0KPiA+IEBAIC0yNDcsNyArMjQ3LDcgQEAgU3RhdGUgbWFjaGluZQ0KPiA+ICAgIDpjOmZ1
-bmM6YGRldmljZV9saW5rc191bmJpbmRfY29uc3VtZXJzKClgLikNCj4gPiANCj4gPiAgKiBJZiB0
-aGUgcHJvYmUgZmFpbHMsIGxpbmtzIHRvIHN1cHBsaWVycyByZXZlcnQgYmFjayB0bw0KPiA+IGBg
-RExfU1RBVEVfQVZBSUxBQkxFYGAuDQo+ID4gLSAgKENhbGwgdG8gOmM6ZnVuYzpgZGV2aWNlX2xp
-bmtzX25vX2RyaXZlcigpYCBmcm9tDQo+ID4gOmM6ZnVuYzpgcmVhbGx5X3Byb2JlKClgLikNCj4g
-PiArICAoQ2FsbCB0byA6YzpmdW5jOmBkZXZpY2VfbGlua3NfcHJvYmVfZmFpbGVkKClgIGZyb20N
-Cj4gPiA6YzpmdW5jOmByZWFsbHlfcHJvYmUoKWAuKQ0KPiA+IA0KPiA+ICAqIElmIHRoZSBwcm9i
-ZSBzdWNjZWVkcywgbGlua3MgdG8gc3VwcGxpZXJzIHByb2dyZXNzIHRvDQo+ID4gYGBETF9TVEFU
-RV9BQ1RJVkVgYC4NCj4gPiAgICAoQ2FsbCB0byA6YzpmdW5jOmBkZXZpY2VfbGlua3NfZHJpdmVy
-X2JvdW5kKClgIGZyb20NCj4gPiA6YzpmdW5jOmBkcml2ZXJfYm91bmQoKWAuKQ0KPiA+IGRpZmYg
-LS1naXQgYS9kcml2ZXJzL2Jhc2UvYmFzZS5oIGIvZHJpdmVycy9iYXNlL2Jhc2UuaA0KPiA+IGlu
-ZGV4IGQ4MDBkZTYuLmY5OTMxZDkgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9iYXNlL2Jhc2Uu
-aA0KPiA+ICsrKyBiL2RyaXZlcnMvYmFzZS9iYXNlLmgNCj4gPiBAQCAtMTU4LDYgKzE1OCw2IEBA
-IGV4dGVybiB2b2lkIGRldmljZV9saW5rc19yZWFkX3VubG9jayhpbnQgaWR4KTsNCj4gPiAgZXh0
-ZXJuIGludCBkZXZpY2VfbGlua3NfY2hlY2tfc3VwcGxpZXJzKHN0cnVjdCBkZXZpY2UgKmRldik7
-DQo+ID4gIGV4dGVybiB2b2lkIGRldmljZV9saW5rc19kcml2ZXJfYm91bmQoc3RydWN0IGRldmlj
-ZSAqZGV2KTsNCj4gPiAgZXh0ZXJuIHZvaWQgZGV2aWNlX2xpbmtzX2RyaXZlcl9jbGVhbnVwKHN0
-cnVjdCBkZXZpY2UgKmRldik7DQo+ID4gLWV4dGVybiB2b2lkIGRldmljZV9saW5rc19ub19kcml2
-ZXIoc3RydWN0IGRldmljZSAqZGV2KTsNCj4gPiArZXh0ZXJuIHZvaWQgZGV2aWNlX2xpbmtzX3By
-b2JlX2ZhaWxlZChzdHJ1Y3QgZGV2aWNlICpkZXYpOw0KPiA+ICBleHRlcm4gYm9vbCBkZXZpY2Vf
-bGlua3NfYnVzeShzdHJ1Y3QgZGV2aWNlICpkZXYpOw0KPiA+ICBleHRlcm4gdm9pZCBkZXZpY2Vf
-bGlua3NfdW5iaW5kX2NvbnN1bWVycyhzdHJ1Y3QgZGV2aWNlICpkZXYpOw0KPiA+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2Jhc2UvY29yZS5jIGIvZHJpdmVycy9iYXNlL2NvcmUuYw0KPiA+IGluZGV4
-IDU4NDczNjQuLjMxZDRmNjggMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9iYXNlL2NvcmUuYw0K
-PiA+ICsrKyBiL2RyaXZlcnMvYmFzZS9jb3JlLmMNCj4gPiBAQCAtNDUyLDEwICs0NTIsMjggQEAg
-c3RhdGljIHZvaWQgX19kZXZpY2VfbGlua3Nfbm9fZHJpdmVyKHN0cnVjdA0KPiA+IGRldmljZSAq
-ZGV2KQ0KPiA+ICAgICAgICAgZGV2LT5saW5rcy5zdGF0dXMgPSBETF9ERVZfTk9fRFJJVkVSOw0K
-PiA+ICB9DQo+ID4gDQo+ID4gLXZvaWQgZGV2aWNlX2xpbmtzX25vX2RyaXZlcihzdHJ1Y3QgZGV2
-aWNlICpkZXYpDQo+ID4gK3N0YXRpYyB2b2lkIF9fZGV2aWNlX2xpbmtzX3Byb2JlX2ZhaWxlZChz
-dHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4gK3sNCj4gPiArICAgICAgIHN0cnVjdCBkZXZpY2VfbGlu
-ayAqbGluaywgKmxuOw0KPiA+ICsNCj4gPiArICAgICAgIGxpc3RfZm9yX2VhY2hfZW50cnlfc2Fm
-ZV9yZXZlcnNlKGxpbmssIGxuLCAmZGV2LQ0KPiA+ID5saW5rcy5zdXBwbGllcnMsDQo+ID4gKyAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBjX25vZGUpIHsNCj4gPiArICAg
-ICAgICAgICAgICAgaWYgKGxpbmstPmZsYWdzICYgRExfRkxBR19TVEFURUxFU1MpDQo+ID4gKyAg
-ICAgICAgICAgICAgICAgICAgICAgY29udGludWU7DQo+ID4gKw0KPiA+ICsgICAgICAgICAgICAg
-ICBpZiAobGluay0+ZmxhZ3MgJiBETF9GTEFHX0FVVE9SRU1PVkUpDQo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgX19kZXZpY2VfbGlua19kZWwobGluayk7DQo+ID4gKyAgICAgICAgICAgICAg
-IGVsc2UgaWYgKGxpbmstPnN0YXR1cyAhPSBETF9TVEFURV9TVVBQTElFUl9VTkJJTkQpDQo+ID4g
-KyAgICAgICAgICAgICAgICAgICAgICAgV1JJVEVfT05DRShsaW5rLT5zdGF0dXMsDQo+ID4gRExf
-U1RBVEVfQVZBSUxBQkxFKTsNCj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAgICAgICBkZXYt
-PmxpbmtzLnN0YXR1cyA9IERMX0RFVl9QUk9CRV9GQUlMRUQ7DQo+ID4gK30NCj4gPiArDQo+ID4g
-K3ZvaWQgZGV2aWNlX2xpbmtzX3Byb2JlX2ZhaWxlZChzdHJ1Y3QgZGV2aWNlICpkZXYpDQo+ID4g
-IHsNCj4gPiAgICAgICAgIGRldmljZV9saW5rc193cml0ZV9sb2NrKCk7DQo+ID4gLSAgICAgICBf
-X2RldmljZV9saW5rc19ub19kcml2ZXIoZGV2KTsNCj4gPiArICAgICAgIF9fZGV2aWNlX2xpbmtz
-X3Byb2JlX2ZhaWxlZChkZXYpOw0KPiA+ICAgICAgICAgZGV2aWNlX2xpbmtzX3dyaXRlX3VubG9j
-aygpOw0KPiA+ICB9DQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9kZC5jIGIv
-ZHJpdmVycy9iYXNlL2RkLmMNCj4gPiBpbmRleCBkZTZmZDA5Li45MGQ1N2UwIDEwMDY0NA0KPiA+
-IC0tLSBhL2RyaXZlcnMvYmFzZS9kZC5jDQo+ID4gKysrIGIvZHJpdmVycy9iYXNlL2RkLmMNCj4g
-PiBAQCAtNDkyLDcgKzQ5Miw3IEBAIHN0YXRpYyBpbnQgcmVhbGx5X3Byb2JlKHN0cnVjdCBkZXZp
-Y2UgKmRldiwNCj4gPiBzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZHJ2KQ0KPiA+ICAgICAgICAgICAg
-ICAgICBibG9ja2luZ19ub3RpZmllcl9jYWxsX2NoYWluKCZkZXYtPmJ1cy0+cC0NCj4gPiA+YnVz
-X25vdGlmaWVyLA0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIEJVU19OT1RJRllfRFJJVkVSX05PVF8NCj4gPiBCT1VORCwgZGV2KTsNCj4gPiAgcGluY3Ry
-bF9iaW5kX2ZhaWxlZDoNCj4gPiAtICAgICAgIGRldmljZV9saW5rc19ub19kcml2ZXIoZGV2KTsN
-Cj4gPiArICAgICAgIGRldmljZV9saW5rc19wcm9iZV9mYWlsZWQoZGV2KTsNCj4gPiAgICAgICAg
-IGRldnJlc19yZWxlYXNlX2FsbChkZXYpOw0KPiA+ICAgICAgICAgZHJpdmVyX3N5c2ZzX3JlbW92
-ZShkZXYpOw0KPiA+ICAgICAgICAgZGV2LT5kcml2ZXIgPSBOVUxMOw0KPiA+IGRpZmYgLS1naXQg
-YS9pbmNsdWRlL2xpbnV4L2RldmljZS5oIGIvaW5jbHVkZS9saW51eC9kZXZpY2UuaA0KPiA+IGlu
-ZGV4IGIwOTM0MDUuLmJmOTYzMGEgMTAwNjQ0DQo+ID4gLS0tIGEvaW5jbHVkZS9saW51eC9kZXZp
-Y2UuaA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvZGV2aWNlLmgNCj4gPiBAQCAtNzk0LDYgKzc5
-NCw3IEBAIHN0cnVjdCBkZXZpY2VfbGluayB7DQo+ID4gIGVudW0gZGxfZGV2X3N0YXRlIHsNCj4g
-PiAgICAgICAgIERMX0RFVl9OT19EUklWRVIgPSAwLA0KPiA+ICAgICAgICAgRExfREVWX1BST0JJ
-TkcsDQo+ID4gKyAgICAgICBETF9ERVZfUFJPQkVfRkFJTEVELA0KPiA+ICAgICAgICAgRExfREVW
-X0RSSVZFUl9CT1VORCwNCj4gPiAgICAgICAgIERMX0RFVl9VTkJJTkRJTkcsDQo+ID4gIH07DQo+
-ID4gLS0NCj4gPiAyLjcuNA0KPiA+IA0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0
-aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LQ0KPiA+IGFjcGkiIGlu
-DQo+ID4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcN
-Cj4gPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
-ZG9tby1pbmZvLmh0bWwNCj4gDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
-OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1hY3BpIiANCj4gaW4NCj4gdGhlIGJv
-ZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
+The following series implements support for parsing of the BERT records
+and adding the error memory ranges to nvdimm badblocks in order for the
+kernel to avoid prevent the kernel from accessing those areas. And with
+the addition of this support, we can surface the nd regions instead of waiting
+for ARS to complete. So the ARS handling is reworked to run in the
+background and not block nd region registration.
+
+---
+
+Dave Jiang (4):
+      acpi: add find error record in BERT function
+      acpi/libnvdimm: search through BERT records and add to nvdimm badblocks
+      acpi/nfit: removing ARS timeout and change scrubbing to delayed work
+      acpi/nfit: allow knob to disable ARS being issued at kernel boot
+
+
+ drivers/acpi/apei/bert.c  |  137 +++++++++++++++++++++---
+ drivers/acpi/nfit/core.c  |  262 ++++++++++++++++++++-------------------------
+ drivers/acpi/nfit/nfit.h  |   13 ++
+ drivers/nvdimm/core.c     |    6 +
+ include/linux/acpi.h      |   10 ++
+ include/linux/libnvdimm.h |    1 
+ 6 files changed, 271 insertions(+), 158 deletions(-)
+
+--
