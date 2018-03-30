@@ -1,81 +1,71 @@
-From: "Kani, Toshi" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
-Subject: Re: [PATCH 0/4] Adding support to parse BERT for libnvdimm
-Date: Fri, 30 Mar 2018 16:51:39 +0000
-Message-ID: <1522428677.2693.272.camel@hpe.com>
-References: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
- <1522422276.2693.268.camel@hpe.com>
- <CAPcyv4iBnOLrFyhZBpAhkrdkY42w7g125jQhxi2Qv6drC7HQdA@mail.gmail.com>
- <1522428337.2693.271.camel@hpe.com>
- <02d3c416-6840-2d72-6ebf-75b9da606f7c@intel.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: [PATCH RFC] ACPI: disable extra P_LVLx access on KVM
+Date: Fri, 30 Mar 2018 20:43:58 +0300
+Message-ID: <1522431741-4678-1-git-send-email-mst@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <02d3c416-6840-2d72-6ebf-75b9da606f7c-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <1A50943C99FCCF44B579CD6BE598397D-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2018-03-30 at 09:49 -0700, Dave Jiang wrote:
-> 
-> On 03/30/2018 09:45 AM, Kani, Toshi wrote:
-> > On Fri, 2018-03-30 at 09:38 -0700, Dan Williams wrote:
-> > > On Fri, Mar 30, 2018 at 8:04 AM, Kani, Toshi <toshi.kani-ZPxbGqLxI0U@public.gmane.org> wrote:
-> > > > On Thu, 2018-03-29 at 15:37 -0700, Dave Jiang wrote:
-> > > > > The following series implements support for parsing of the BERT records
-> > > > > and adding the error memory ranges to nvdimm badblocks in order for the
-> > > > > kernel to avoid prevent the kernel from accessing those areas. And with
-> > > > > the addition of this support, we can surface the nd regions instead of waiting
-> > > > > for ARS to complete. So the ARS handling is reworked to run in the
-> > > > > background and not block nd region registration.
-> > > > 
-> > > > Hi Dave,
-> > > > 
-> > > > I agree on the problem, and adding an ability to obtain pmem badblocks
-> > > > records at boot-time without waiting for a new ARS scan to complete is a
-> > > > good option for users.
-> > > > 
-> > > > However, I do not think using the BERT table is a good approach.  This
-> > > > requires FW to report pmem badblocks records with a new interface in
-> > > > addition to ARS records, which FW already implements for pmem.  ACPI 6.2
-> > > > defines Start ARS with Flags Bit[1] set to report badblocks record
-> > > > without starting a new ARS scan.  We set this bit after receiving a 0x81
-> > > > notification at this point.
-> > > > 
-> > > > Can we use ARS with Flags bit[1] set at boot-time so that both OS and FW
-> > > > can use the same ARS implementation?
-> > > 
-> > > You have a point.
-> > > 
-> > > The other benefit I see to this policy is that it hopefully convinces
-> > > BIOS implementations to not run ARS at boot and leave it to the OS to
-> > > manage it in the background. If the platform has any critical errors
-> > > to report, i.e. ones that triggered a system reset, then it should be
-> > > able to report them in the flag-bit1 case.
-> > 
-> > Agreed.
-> > 
-> > > This also lets the implementation be completely self contained to the
-> > > nfit driver, and not grow any BERT entanglements that may or may not
-> > > be valid for the persistent memory case.
-> > 
-> > Right.  Thanks Dan!
-> > -Toshi
-> > 
-> 
-> Ok, I'll respin the series with what you suggested Toshi and drop the
-> BERT stuff.
+As documented by commit b488f021 "ACPI: restore comment justifying
+'extra' P_LVLx access", Linux does an extra IO read after entering idle
+because on (some) chipsets STPCLK# doesn't get asserted in time
+to prevent further instruction processing.
 
-Great!  Thanks Dave!
--Toshi
+This can never be the case on KVM, and a timer read causes an expensive
+VM exit in turn causing useless load on host system. Detect KVM and skip
+the read.  TODO: whitelist more hypervisors?
+
+Note: very lightly tested.  Pls don't apply this yet, I am working on a
+_CST implementation for KVM and will repost this without the RFC tag
+when it's been tested properly.
+
+Posting now for early flames/feedback.
+
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Radim Krčmář <rkrcmar@redhat.com>
+Cc: kvm@vger.kernel.org
+Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+---
+ drivers/acpi/processor_idle.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index abb559c..8ae28dc 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -33,6 +33,7 @@
+ #include <linux/cpuidle.h>
+ #include <linux/cpu.h>
+ #include <acpi/processor.h>
++#include <linux/kvm_para.h>
+ 
+ /*
+  * Include the apic definitions for x86 to have the APIC timer related defines
+@@ -665,7 +666,8 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
+ 		/* Dummy wait op - must do something useless after P_LVL2 read
+ 		   because chipsets cannot guarantee that STPCLK# signal
+ 		   gets asserted in time to freeze execution properly. */
+-		inl(acpi_gbl_FADT.xpm_timer_block.address);
++		if (!kvm_para_available())
++			inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 	}
+ }
+ 
+@@ -687,7 +689,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+ 		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
+ 			inb(cx->address);
+ 			/* See comment in acpi_idle_do_entry() */
+-			inl(acpi_gbl_FADT.xpm_timer_block.address);
++			if (!kvm_para_available())
++				inl(acpi_gbl_FADT.xpm_timer_block.address);
+ 		} else
+ 			return -ENODEV;
+ 	}
+-- 
+MST
