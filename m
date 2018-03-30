@@ -1,71 +1,85 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: [PATCH RFC] ACPI: disable extra P_LVLx access on KVM
-Date: Fri, 30 Mar 2018 20:43:58 +0300
-Message-ID: <1522431741-4678-1-git-send-email-mst@redhat.com>
+From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/4] acpi: add find error record in BERT function
+Date: Sat, 31 Mar 2018 07:36:54 +0800
+Message-ID: <201803310742.jTzcHxid%fengguang.wu@intel.com>
+References: <152236302712.35558.17322719540329044966.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152236302712.35558.17322719540329044966.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, Ying Huang <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-As documented by commit b488f021 "ACPI: restore comment justifying
-'extra' P_LVLx access", Linux does an extra IO read after entering idle
-because on (some) chipsets STPCLK# doesn't get asserted in time
-to prevent further instruction processing.
+Hi Dave,
 
-This can never be the case on KVM, and a timer read causes an expensive
-VM exit in turn causing useless load on host system. Detect KVM and skip
-the read.  TODO: whitelist more hypervisors?
+I love your patch! Yet something to improve:
 
-Note: very lightly tested.  Pls don't apply this yet, I am working on a
-_CST implementation for KVM and will repost this without the RFC tag
-when it's been tested properly.
+[auto build test ERROR on pm/linux-next]
+[also build test ERROR on v4.16-rc7 next-20180329]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-Posting now for early flames/feedback.
+url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/Adding-support-to-parse-BERT-for-libnvdimm/20180331-065821
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+config: i386-tinyconfig (attached as .config)
+compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
+reproduce:
+        # save the attached .config to linux build tree
+        make ARCH=i386 
 
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Radim Krčmář <rkrcmar@redhat.com>
-Cc: kvm@vger.kernel.org
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+All errors (new ones prefixed by >>):
+
+   arch/x86/kernel/setup.o: In function `bert_find_mem_error_record':
+>> setup.c:(.text+0x3): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/i8259.o: In function `bert_find_mem_error_record':
+   i8259.c:(.text+0x2c2): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/irqinit.o: In function `bert_find_mem_error_record':
+   irqinit.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/bootflag.o: In function `bert_find_mem_error_record':
+   bootflag.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/e820.o: In function `bert_find_mem_error_record':
+   e820.c:(.text+0xb1): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/pci-dma.o: In function `bert_find_mem_error_record':
+   pci-dma.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   arch/x86/kernel/rtc.o: In function `bert_find_mem_error_record':
+   rtc.c:(.text+0x41): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   kernel/sysctl.o: In function `bert_find_mem_error_record':
+   sysctl.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/platform.o: In function `bert_find_mem_error_record':
+   platform.c:(.text+0x1e8): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/cpu.o: In function `bert_find_mem_error_record':
+   cpu.c:(.text+0x1a1): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/property.o: In function `bert_find_mem_error_record':
+   property.c:(.text+0x2aa): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/cacheinfo.o: In function `bert_find_mem_error_record':
+   cacheinfo.c:(.text+0x2e5): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+   drivers/base/dma-mapping.o: In function `bert_find_mem_error_record':
+   dma-mapping.c:(.text+0x104): multiple definition of `bert_find_mem_error_record'
+   init/main.o:main.c:(.text+0x19): first defined here
+
 ---
- drivers/acpi/processor_idle.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index abb559c..8ae28dc 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -33,6 +33,7 @@
- #include <linux/cpuidle.h>
- #include <linux/cpu.h>
- #include <acpi/processor.h>
-+#include <linux/kvm_para.h>
- 
- /*
-  * Include the apic definitions for x86 to have the APIC timer related defines
-@@ -665,7 +666,8 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
- 		/* Dummy wait op - must do something useless after P_LVL2 read
- 		   because chipsets cannot guarantee that STPCLK# signal
- 		   gets asserted in time to freeze execution properly. */
--		inl(acpi_gbl_FADT.xpm_timer_block.address);
-+		if (!kvm_para_available())
-+			inl(acpi_gbl_FADT.xpm_timer_block.address);
- 	}
- }
- 
-@@ -687,7 +689,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
- 		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
- 			inb(cx->address);
- 			/* See comment in acpi_idle_do_entry() */
--			inl(acpi_gbl_FADT.xpm_timer_block.address);
-+			if (!kvm_para_available())
-+				inl(acpi_gbl_FADT.xpm_timer_block.address);
- 		} else
- 			return -ENODEV;
- 	}
--- 
-MST
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
