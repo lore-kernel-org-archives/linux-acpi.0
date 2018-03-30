@@ -1,50 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: acpi_pad: Fix memory leak in power saving threads
-Date: Fri, 30 Mar 2018 12:08:10 +0200
-Message-ID: <2044415.8uv91vuFCW@aspire.rjw.lan>
-References: <1522159000-7778-1-git-send-email-lszubowi@redhat.com>
+From: "Kani, Toshi" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH 0/4] Adding support to parse BERT for libnvdimm
+Date: Fri, 30 Mar 2018 15:04:58 +0000
+Message-ID: <1522422276.2693.268.camel@hpe.com>
+References: <152236282506.35558.2067249639136170490.stgit@djiang5-desk3.ch.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1522159000-7778-1-git-send-email-lszubowi@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lenny Szubowicz <lszubowi@redhat.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152236282506.35558.2067249639136170490.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
+Content-Language: en-US
+Content-ID: <611C14C1B0FB5C43A134DC8BADA16EC5-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, March 27, 2018 3:56:40 PM CEST Lenny Szubowicz wrote:
-> Fix once per second (round_robin_time) memory leak of about 1 KB in
-> each acpi_pad kernel idling thread that is activated.
-> 
-> Found by testing with kmemleak.
-> 
-> Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
-> ---
->  drivers/acpi/acpi_pad.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index 7544310..552c1f7 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -110,6 +110,7 @@ static void round_robin_cpu(unsigned int tsk_index)
->  		cpumask_andnot(tmp, cpu_online_mask, pad_busy_cpus);
->  	if (cpumask_empty(tmp)) {
->  		mutex_unlock(&round_robin_lock);
-> +		free_cpumask_var(tmp);
->  		return;
->  	}
->  	for_each_cpu(cpu, tmp) {
-> @@ -127,6 +128,8 @@ static void round_robin_cpu(unsigned int tsk_index)
->  	mutex_unlock(&round_robin_lock);
->  
->  	set_cpus_allowed_ptr(current, cpumask_of(preferred_cpu));
-> +
-> +	free_cpumask_var(tmp);
->  }
->  
->  static void exit_round_robin(unsigned int tsk_index)
-> 
+On Thu, 2018-03-29 at 15:37 -0700, Dave Jiang wrote:
+> The following series implements support for parsing of the BERT records
+> and adding the error memory ranges to nvdimm badblocks in order for the
+> kernel to avoid prevent the kernel from accessing those areas. And with
+> the addition of this support, we can surface the nd regions instead of waiting
+> for ARS to complete. So the ARS handling is reworked to run in the
+> background and not block nd region registration.
 
-Applied, thanks!
+Hi Dave,
+
+I agree on the problem, and adding an ability to obtain pmem badblocks
+records at boot-time without waiting for a new ARS scan to complete is a
+good option for users.
+
+However, I do not think using the BERT table is a good approach.  This
+requires FW to report pmem badblocks records with a new interface in
+addition to ARS records, which FW already implements for pmem.  ACPI 6.2
+defines Start ARS with Flags Bit[1] set to report badblocks record
+without starting a new ARS scan.  We set this bit after receiving a 0x81
+notification at this point.
+
+Can we use ARS with Flags bit[1] set at boot-time so that both OS and FW
+can use the same ARS implementation?
+
+Thanks,
+-Toshi
