@@ -1,52 +1,90 @@
 From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v2 2/2] PCI: Check phys_addr for pci_remap_iospace
-Date: Sat, 31 Mar 2018 15:12:23 +0800
-Message-ID: <1522480343-37669-2-git-send-email-xieyisheng1@huawei.com>
-References: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
+Subject: [PATCH v2 1/2] PCI ACPI: Avoid panic when PCI IO resource's size is not page aligned
+Date: Sat, 31 Mar 2018 15:12:22 +0800
+Message-ID: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org
 Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com, Yisheng Xie <xieyisheng1@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-If phys_addr is not page aligned, ioremap_page_range() will align down it
-when get pfn by phys_addr >> PAGE_SHIFT. An example in arm64 system with
-64KB page size:
+Zhou reported a bug on Hisilicon arm64 D06 platform with 64KB page size:
 
- phys_addr:  0xefff8000
- res->start: 0x0
- res->end:   0x0ffff
- PCI_IOBASE: 0xffff7fdffee00000
+ [    2.470908] kernel BUG at lib/ioremap.c:72!
+ [    2.475079] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
+ [    2.480551] Modules linked in:
+ [    2.483594] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.16.0-rc7-00062-g0b41260-dirty #23
+ [    2.491756] Hardware name: Huawei D06/D06, BIOS Hisilicon D06 UEFI Nemo 2.0 RC0 - B120 03/23/2018
+ [    2.500614] pstate: 80c00009 (Nzcv daif +PAN +UAO)
+ [    2.505395] pc : ioremap_page_range+0x268/0x36c
+ [    2.509912] lr : pci_remap_iospace+0xe4/0x100
+ [...]
+ [    2.603733] Call trace:
+ [    2.606168]  ioremap_page_range+0x268/0x36c
+ [    2.610337]  pci_remap_iospace+0xe4/0x100
+ [    2.614334]  acpi_pci_probe_root_resources+0x1d4/0x214
+ [    2.619460]  pci_acpi_root_prepare_resources+0x18/0xa8
+ [    2.624585]  acpi_pci_root_create+0x98/0x214
+ [    2.628843]  pci_acpi_scan_root+0x124/0x20c
+ [    2.633013]  acpi_pci_root_add+0x224/0x494
+ [    2.637096]  acpi_bus_attach+0xf8/0x200
+ [    2.640918]  acpi_bus_attach+0x98/0x200
+ [    2.644740]  acpi_bus_attach+0x98/0x200
+ [    2.648562]  acpi_bus_scan+0x48/0x9c
+ [    2.652125]  acpi_scan_init+0x104/0x268
+ [    2.655948]  acpi_init+0x308/0x374
+ [    2.659337]  do_one_initcall+0x48/0x14c
+ [    2.663160]  kernel_init_freeable+0x19c/0x250
+ [    2.667504]  kernel_init+0x10/0x100
+ [    2.670979]  ret_from_fork+0x10/0x18
 
-This will remap virtual address 0xffff7fdffee00000 to phys_addr 0xefff0000,
-but what we really want is 0xefff8000, which makes later IO access to a
-mess. And users may even donot know this until find some odd phenemenon.
+The cause is the size of PCI IO resource is 32KB, which is 4K aligned but
+not 64KB aligned, however, ioremap_page_range() request the range as page
+aligned or it will trigger a BUG_ON() on ioremap_pte_range() it calls, as
+ioremap_pte_range increase the addr by PAGE_SIZE, which makes addr != end
+until trigger BUG_ON, if its incoming end is not page aligned. More detail
+trace is as following:
 
-This patch checks whether phys_addr is PAGE_ALIGNED or not to find the
-primary scene.
+ ioremap_page_range
+ -> ioremap_p4d_range
+    -> ioremap_p4d_range
+       -> ioremap_pud_range
+          -> ioremap_pmd_range
+             -> ioremap_pte_range
 
-Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+This patch fix the bug by align the size of PCI IO resource to PAGE_SIZE.
+
+Reported-by: Zhou Wang <wangzhou1@hisilicon.com>
+Tested-by: Xiaojun Tan <tanxiaojun@huawei.com>
 Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
 ---
- drivers/pci/pci.c | 3 +++
- 1 file changed, 3 insertions(+)
+I mark this as v2 for I have post a RFC version:
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index f6a4dd1..deb91f0 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3576,6 +3576,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
- 	if (res->end > IO_SPACE_LIMIT)
- 		return -EINVAL;
+ https://lkml.org/lkml/2018/3/30/8
  
-+	if (!PAGE_ALIGNED(phys_addr))
-+		return -EINVAL;
-+
- 	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
- 				  pgprot_device(PAGE_KERNEL));
- #else
+v2:
+ * Let the caller of ioremap_page_range() align the request by PAGE_SIZE - per Toshi
+
+Thanks
+Yisheng
+
+ drivers/acpi/pci_root.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 6fc204a..b758ca3 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -746,7 +746,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
+ 		goto err;
+ 
+ 	res->start = port;
+-	res->end = port + length - 1;
++	res->end = PAGE_ALIGN(port + length) - 1;
+ 	entry->offset = port - pci_addr;
+ 
+ 	if (pci_remap_iospace(res, cpu_addr) < 0)
 -- 
 1.7.12.4
