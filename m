@@ -1,85 +1,87 @@
-From: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/4] acpi: add find error record in BERT function
-Date: Sat, 31 Mar 2018 07:36:54 +0800
-Message-ID: <201803310742.jTzcHxid%fengguang.wu@intel.com>
-References: <152236302712.35558.17322719540329044966.stgit@djiang5-desk3.ch.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <152236302712.35558.17322719540329044966.stgit-Cxk7aZI4ujnJARH06PadV2t3HXsI98Cx0E9HWUfgJXw@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kbuild-all-JC7UmRfGjtg@public.gmane.org, Ying Huang <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+From: Chris Chiu <chiu@endlessm.com>
+Subject: [PATCH] ACPI / PM: Fix wake up by PS2 keyboard fail on ASUS UX331UA
+Date: Sat, 31 Mar 2018 10:08:23 +0800
+Message-ID: <1522462103-84130-1-git-send-email-chiu@endlessm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@endlessm.com, Chris Chiu <chiu@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Dave,
+This issue happens on new ASUS laptop UX331UA which has modern
+standby mode (suspend-to-idle). Pressing keys on the PS2 keyboard
+can't wake up the system from suspend-to-idle which is not expected.
+However, pressing power button can wake up without problem.
 
-I love your patch! Yet something to improve:
+Per the engineers of ASUS, the keypress event is routed to Embedded
+Controller (EC) in standby mode. EC then signals the SCI event to
+BIOS so BIOS would Notify() power button to wake up the system. It's
+from BIOS perspective. What we observe here is that kernel receives
+the SCI event from SCI interrupt handler which informs that the GPE
+status bit belongs to EC needs to be handled and then queries the EC
+to find out what event is pending. Then execute the following ACPI
+_QDF method which defined in ACPI DSDT for EC to notify power button.
 
-[auto build test ERROR on pm/linux-next]
-[also build test ERROR on v4.16-rc7 next-20180329]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+ Method (_QDF, 0, NotSerialized)  // _Qxx: EC Query
+        {
+            Notify (PWRB, 0x80) // Status Change
+        }
 
-url:    https://github.com/0day-ci/linux/commits/Dave-Jiang/Adding-support-to-parse-BERT-for-libnvdimm/20180331-065821
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-config: i386-tinyconfig (attached as .config)
-compiler: gcc-7 (Debian 7.3.0-1) 7.3.0
-reproduce:
-        # save the attached .config to linux build tree
-        make ARCH=i386 
+With more debug messages added to analyze this problem, we find that
+the keypress does wake up the system from suspend-to-idle but it's back
+to suspend again almost immediately. As we see in the following messages,
+the acpi_button_notify() is invoked but acpi_pm_wakeup_event() can not
+really wake up the system here because acpi_s2idle_wakeup() is false.
+The acpi_s2idle_wakeup() returnd false because the acpi_s2idle_sync() has
+alrealdy exited.
 
-All errors (new ones prefixed by >>):
+[   52.987048] s2idle_loop going s2idle
+[   59.713392] acpi_s2idle_wake enter
+[   59.713394] acpi_s2idle_wake exit
+[   59.760888] acpi_ev_gpe_detect enter
+[   59.760893] acpi_s2idle_sync enter
+[   59.760893] acpi_ec_query_flushed ec pending queries 0
+[   59.760953] Read registers for GPE 50-57: Status=01, Enable=01, RunEnable=01, WakeEnable=00
+[   59.760955] ACPI: EC: ===== IRQ (1) =====
+[   59.760972] ACPI: EC: EC_SC(R) = 0x28 SCI_EVT=1 BURST=0 CMD=1 IBF=0 OBF=0
+[   59.760979] ACPI: EC: +++++ Polling enabled +++++
+[   59.760979] ACPI: EC: ##### Command(QR_EC) submitted/blocked #####
+[   59.761003] acpi_s2idle_sync exit
+[   59.769587] ACPI: EC: ##### Query(0xdf) started #####
+[   59.769611] ACPI: EC: ##### Query(0xdf) stopped #####
+[   59.774154] acpi_button_notify button type 1
+[   59.813175] s2idle_loop going s2idle
 
-   arch/x86/kernel/setup.o: In function `bert_find_mem_error_record':
->> setup.c:(.text+0x3): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/i8259.o: In function `bert_find_mem_error_record':
-   i8259.c:(.text+0x2c2): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/irqinit.o: In function `bert_find_mem_error_record':
-   irqinit.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/bootflag.o: In function `bert_find_mem_error_record':
-   bootflag.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/e820.o: In function `bert_find_mem_error_record':
-   e820.c:(.text+0xb1): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/pci-dma.o: In function `bert_find_mem_error_record':
-   pci-dma.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   arch/x86/kernel/rtc.o: In function `bert_find_mem_error_record':
-   rtc.c:(.text+0x41): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   kernel/sysctl.o: In function `bert_find_mem_error_record':
-   sysctl.c:(.text+0x0): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   drivers/base/platform.o: In function `bert_find_mem_error_record':
-   platform.c:(.text+0x1e8): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   drivers/base/cpu.o: In function `bert_find_mem_error_record':
-   cpu.c:(.text+0x1a1): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   drivers/base/property.o: In function `bert_find_mem_error_record':
-   property.c:(.text+0x2aa): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   drivers/base/cacheinfo.o: In function `bert_find_mem_error_record':
-   cacheinfo.c:(.text+0x2e5): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
-   drivers/base/dma-mapping.o: In function `bert_find_mem_error_record':
-   dma-mapping.c:(.text+0x104): multiple definition of `bert_find_mem_error_record'
-   init/main.o:main.c:(.text+0x19): first defined here
+acpi_s2idle_sync() already makes an effort to flush the EC event
+queue, but in this case, the EC event has yet to be generated when
+the call to acpi_ec_flush_work() is made. The event is generated
+shortly after, through the ongoing handling of the SCI interrupt
+which is happening on another CPU, and we must synchronize that
+to make sure that it has run and completed. Adding another call to
+acpi_os_wait_events_complete() solves this issue, since that
+function synchronizes with SCI interrupt completion.
 
+Signed-off-by: Chris Chiu <chiu@endlessm.com>
+
+https://phabricator.endlessm.com/T21599
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/acpi/sleep.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 8082871..c6e1b4b 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -982,8 +982,9 @@ static void acpi_s2idle_sync(void)
+ 	 * The EC driver uses the system workqueue and an additional special
+ 	 * one, so those need to be flushed too.
+ 	 */
++	acpi_os_wait_events_complete();	/* synchronize SCI IRQ handling */
+ 	acpi_ec_flush_work();
+-	acpi_os_wait_events_complete();
++	acpi_os_wait_events_complete();	/* synchronize Notify handling */
+ 	s2idle_wakeup = false;
+ }
+ 
+-- 
+2.7.4
