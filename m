@@ -1,7 +1,7 @@
 From: Chris Chiu <chiu@endlessm.com>
 Subject: [PATCH] ACPI / PM: Fix wake up by PS2 keyboard fail on ASUS UX331UA
-Date: Sat, 31 Mar 2018 10:08:23 +0800
-Message-ID: <1522462103-84130-1-git-send-email-chiu@endlessm.com>
+Date: Sat, 31 Mar 2018 10:09:31 +0800
+Message-ID: <1522462171-84178-1-git-send-email-chiu@endlessm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org
@@ -63,7 +63,6 @@ function synchronizes with SCI interrupt completion.
 
 Signed-off-by: Chris Chiu <chiu@endlessm.com>
 
-https://phabricator.endlessm.com/T21599
 ---
  drivers/acpi/sleep.c | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
