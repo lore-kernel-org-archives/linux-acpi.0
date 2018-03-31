@@ -1,86 +1,52 @@
-From: Chris Chiu <chiu@endlessm.com>
-Subject: [PATCH] ACPI / PM: Fix wake up by PS2 keyboard fail on ASUS UX331UA
-Date: Sat, 31 Mar 2018 10:09:31 +0800
-Message-ID: <1522462171-84178-1-git-send-email-chiu@endlessm.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: [PATCH v2 2/2] PCI: Check phys_addr for pci_remap_iospace
+Date: Sat, 31 Mar 2018 15:12:23 +0800
+Message-ID: <1522480343-37669-2-git-send-email-xieyisheng1@huawei.com>
+References: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@endlessm.com, Chris Chiu <chiu@endlessm.com>
+To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com, Yisheng Xie <xieyisheng1@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This issue happens on new ASUS laptop UX331UA which has modern
-standby mode (suspend-to-idle). Pressing keys on the PS2 keyboard
-can't wake up the system from suspend-to-idle which is not expected.
-However, pressing power button can wake up without problem.
+If phys_addr is not page aligned, ioremap_page_range() will align down it
+when get pfn by phys_addr >> PAGE_SHIFT. An example in arm64 system with
+64KB page size:
 
-Per the engineers of ASUS, the keypress event is routed to Embedded
-Controller (EC) in standby mode. EC then signals the SCI event to
-BIOS so BIOS would Notify() power button to wake up the system. It's
-from BIOS perspective. What we observe here is that kernel receives
-the SCI event from SCI interrupt handler which informs that the GPE
-status bit belongs to EC needs to be handled and then queries the EC
-to find out what event is pending. Then execute the following ACPI
-_QDF method which defined in ACPI DSDT for EC to notify power button.
+ phys_addr:  0xefff8000
+ res->start: 0x0
+ res->end:   0x0ffff
+ PCI_IOBASE: 0xffff7fdffee00000
 
- Method (_QDF, 0, NotSerialized)  // _Qxx: EC Query
-        {
-            Notify (PWRB, 0x80) // Status Change
-        }
+This will remap virtual address 0xffff7fdffee00000 to phys_addr 0xefff0000,
+but what we really want is 0xefff8000, which makes later IO access to a
+mess. And users may even donot know this until find some odd phenemenon.
 
-With more debug messages added to analyze this problem, we find that
-the keypress does wake up the system from suspend-to-idle but it's back
-to suspend again almost immediately. As we see in the following messages,
-the acpi_button_notify() is invoked but acpi_pm_wakeup_event() can not
-really wake up the system here because acpi_s2idle_wakeup() is false.
-The acpi_s2idle_wakeup() returnd false because the acpi_s2idle_sync() has
-alrealdy exited.
+This patch checks whether phys_addr is PAGE_ALIGNED or not to find the
+primary scene.
 
-[   52.987048] s2idle_loop going s2idle
-[   59.713392] acpi_s2idle_wake enter
-[   59.713394] acpi_s2idle_wake exit
-[   59.760888] acpi_ev_gpe_detect enter
-[   59.760893] acpi_s2idle_sync enter
-[   59.760893] acpi_ec_query_flushed ec pending queries 0
-[   59.760953] Read registers for GPE 50-57: Status=01, Enable=01, RunEnable=01, WakeEnable=00
-[   59.760955] ACPI: EC: ===== IRQ (1) =====
-[   59.760972] ACPI: EC: EC_SC(R) = 0x28 SCI_EVT=1 BURST=0 CMD=1 IBF=0 OBF=0
-[   59.760979] ACPI: EC: +++++ Polling enabled +++++
-[   59.760979] ACPI: EC: ##### Command(QR_EC) submitted/blocked #####
-[   59.761003] acpi_s2idle_sync exit
-[   59.769587] ACPI: EC: ##### Query(0xdf) started #####
-[   59.769611] ACPI: EC: ##### Query(0xdf) stopped #####
-[   59.774154] acpi_button_notify button type 1
-[   59.813175] s2idle_loop going s2idle
-
-acpi_s2idle_sync() already makes an effort to flush the EC event
-queue, but in this case, the EC event has yet to be generated when
-the call to acpi_ec_flush_work() is made. The event is generated
-shortly after, through the ongoing handling of the SCI interrupt
-which is happening on another CPU, and we must synchronize that
-to make sure that it has run and completed. Adding another call to
-acpi_os_wait_events_complete() solves this issue, since that
-function synchronizes with SCI interrupt completion.
-
-Signed-off-by: Chris Chiu <chiu@endlessm.com>
-
+Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
 ---
- drivers/acpi/sleep.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/pci/pci.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 8082871..c6e1b4b 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -982,8 +982,9 @@ static void acpi_s2idle_sync(void)
- 	 * The EC driver uses the system workqueue and an additional special
- 	 * one, so those need to be flushed too.
- 	 */
-+	acpi_os_wait_events_complete();	/* synchronize SCI IRQ handling */
- 	acpi_ec_flush_work();
--	acpi_os_wait_events_complete();
-+	acpi_os_wait_events_complete();	/* synchronize Notify handling */
- 	s2idle_wakeup = false;
- }
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index f6a4dd1..deb91f0 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -3576,6 +3576,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+ 	if (res->end > IO_SPACE_LIMIT)
+ 		return -EINVAL;
  
++	if (!PAGE_ALIGNED(phys_addr))
++		return -EINVAL;
++
+ 	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
+ 				  pgprot_device(PAGE_KERNEL));
+ #else
 -- 
-2.7.4
+1.7.12.4
