@@ -1,90 +1,92 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v2 1/2] PCI ACPI: Avoid panic when PCI IO resource's size is not page aligned
-Date: Sat, 31 Mar 2018 15:12:22 +0800
-Message-ID: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / PM: Fix wake up by PS2 keyboard fail on ASUS UX331UA
+Date: Mon, 02 Apr 2018 13:00:16 +0200
+Message-ID: <7811830.kIhyTMphcm@aspire.rjw.lan>
+References: <1522462171-84178-1-git-send-email-chiu@endlessm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1522462171-84178-1-git-send-email-chiu@endlessm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com, Yisheng Xie <xieyisheng1@huawei.com>
+To: Chris Chiu <chiu@endlessm.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux@endlessm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Zhou reported a bug on Hisilicon arm64 D06 platform with 64KB page size:
-
- [    2.470908] kernel BUG at lib/ioremap.c:72!
- [    2.475079] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
- [    2.480551] Modules linked in:
- [    2.483594] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.16.0-rc7-00062-g0b41260-dirty #23
- [    2.491756] Hardware name: Huawei D06/D06, BIOS Hisilicon D06 UEFI Nemo 2.0 RC0 - B120 03/23/2018
- [    2.500614] pstate: 80c00009 (Nzcv daif +PAN +UAO)
- [    2.505395] pc : ioremap_page_range+0x268/0x36c
- [    2.509912] lr : pci_remap_iospace+0xe4/0x100
- [...]
- [    2.603733] Call trace:
- [    2.606168]  ioremap_page_range+0x268/0x36c
- [    2.610337]  pci_remap_iospace+0xe4/0x100
- [    2.614334]  acpi_pci_probe_root_resources+0x1d4/0x214
- [    2.619460]  pci_acpi_root_prepare_resources+0x18/0xa8
- [    2.624585]  acpi_pci_root_create+0x98/0x214
- [    2.628843]  pci_acpi_scan_root+0x124/0x20c
- [    2.633013]  acpi_pci_root_add+0x224/0x494
- [    2.637096]  acpi_bus_attach+0xf8/0x200
- [    2.640918]  acpi_bus_attach+0x98/0x200
- [    2.644740]  acpi_bus_attach+0x98/0x200
- [    2.648562]  acpi_bus_scan+0x48/0x9c
- [    2.652125]  acpi_scan_init+0x104/0x268
- [    2.655948]  acpi_init+0x308/0x374
- [    2.659337]  do_one_initcall+0x48/0x14c
- [    2.663160]  kernel_init_freeable+0x19c/0x250
- [    2.667504]  kernel_init+0x10/0x100
- [    2.670979]  ret_from_fork+0x10/0x18
-
-The cause is the size of PCI IO resource is 32KB, which is 4K aligned but
-not 64KB aligned, however, ioremap_page_range() request the range as page
-aligned or it will trigger a BUG_ON() on ioremap_pte_range() it calls, as
-ioremap_pte_range increase the addr by PAGE_SIZE, which makes addr != end
-until trigger BUG_ON, if its incoming end is not page aligned. More detail
-trace is as following:
-
- ioremap_page_range
- -> ioremap_p4d_range
-    -> ioremap_p4d_range
-       -> ioremap_pud_range
-          -> ioremap_pmd_range
-             -> ioremap_pte_range
-
-This patch fix the bug by align the size of PCI IO resource to PAGE_SIZE.
-
-Reported-by: Zhou Wang <wangzhou1@hisilicon.com>
-Tested-by: Xiaojun Tan <tanxiaojun@huawei.com>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
----
-I mark this as v2 for I have post a RFC version:
-
- https://lkml.org/lkml/2018/3/30/8
- 
-v2:
- * Let the caller of ioremap_page_range() align the request by PAGE_SIZE - per Toshi
-
-Thanks
-Yisheng
-
- drivers/acpi/pci_root.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 6fc204a..b758ca3 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -746,7 +746,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
- 		goto err;
- 
- 	res->start = port;
--	res->end = port + length - 1;
-+	res->end = PAGE_ALIGN(port + length) - 1;
- 	entry->offset = port - pci_addr;
- 
- 	if (pci_remap_iospace(res, cpu_addr) < 0)
--- 
-1.7.12.4
+On Saturday, March 31, 2018 4:09:31 AM CEST Chris Chiu wrote:
+> This issue happens on new ASUS laptop UX331UA which has modern
+> standby mode (suspend-to-idle). Pressing keys on the PS2 keyboard
+> can't wake up the system from suspend-to-idle which is not expected.
+> However, pressing power button can wake up without problem.
+> 
+> Per the engineers of ASUS, the keypress event is routed to Embedded
+> Controller (EC) in standby mode. EC then signals the SCI event to
+> BIOS so BIOS would Notify() power button to wake up the system. It's
+> from BIOS perspective. What we observe here is that kernel receives
+> the SCI event from SCI interrupt handler which informs that the GPE
+> status bit belongs to EC needs to be handled and then queries the EC
+> to find out what event is pending. Then execute the following ACPI
+> _QDF method which defined in ACPI DSDT for EC to notify power button.
+> 
+>  Method (_QDF, 0, NotSerialized)  // _Qxx: EC Query
+>         {
+>             Notify (PWRB, 0x80) // Status Change
+>         }
+> 
+> With more debug messages added to analyze this problem, we find that
+> the keypress does wake up the system from suspend-to-idle but it's back
+> to suspend again almost immediately. As we see in the following messages,
+> the acpi_button_notify() is invoked but acpi_pm_wakeup_event() can not
+> really wake up the system here because acpi_s2idle_wakeup() is false.
+> The acpi_s2idle_wakeup() returnd false because the acpi_s2idle_sync() has
+> alrealdy exited.
+> 
+> [   52.987048] s2idle_loop going s2idle
+> [   59.713392] acpi_s2idle_wake enter
+> [   59.713394] acpi_s2idle_wake exit
+> [   59.760888] acpi_ev_gpe_detect enter
+> [   59.760893] acpi_s2idle_sync enter
+> [   59.760893] acpi_ec_query_flushed ec pending queries 0
+> [   59.760953] Read registers for GPE 50-57: Status=01, Enable=01, RunEnable=01, WakeEnable=00
+> [   59.760955] ACPI: EC: ===== IRQ (1) =====
+> [   59.760972] ACPI: EC: EC_SC(R) = 0x28 SCI_EVT=1 BURST=0 CMD=1 IBF=0 OBF=0
+> [   59.760979] ACPI: EC: +++++ Polling enabled +++++
+> [   59.760979] ACPI: EC: ##### Command(QR_EC) submitted/blocked #####
+> [   59.761003] acpi_s2idle_sync exit
+> [   59.769587] ACPI: EC: ##### Query(0xdf) started #####
+> [   59.769611] ACPI: EC: ##### Query(0xdf) stopped #####
+> [   59.774154] acpi_button_notify button type 1
+> [   59.813175] s2idle_loop going s2idle
+> 
+> acpi_s2idle_sync() already makes an effort to flush the EC event
+> queue, but in this case, the EC event has yet to be generated when
+> the call to acpi_ec_flush_work() is made. The event is generated
+> shortly after, through the ongoing handling of the SCI interrupt
+> which is happening on another CPU, and we must synchronize that
+> to make sure that it has run and completed. Adding another call to
+> acpi_os_wait_events_complete() solves this issue, since that
+> function synchronizes with SCI interrupt completion.
+> 
+> Signed-off-by: Chris Chiu <chiu@endlessm.com>
+> 
+> ---
+>  drivers/acpi/sleep.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 8082871..c6e1b4b 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -982,8 +982,9 @@ static void acpi_s2idle_sync(void)
+>  	 * The EC driver uses the system workqueue and an additional special
+>  	 * one, so those need to be flushed too.
+>  	 */
+> +	acpi_os_wait_events_complete();	/* synchronize SCI IRQ handling */
+>  	acpi_ec_flush_work();
+> -	acpi_os_wait_events_complete();
+> +	acpi_os_wait_events_complete();	/* synchronize Notify handling */
+>  	s2idle_wakeup = false;
+>  }
+>  
+> 
+Applied, thanks!
