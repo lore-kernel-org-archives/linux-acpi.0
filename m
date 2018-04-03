@@ -1,16 +1,16 @@
-From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/6] nfit, address-range-scrub: introduce
- nfit_spa->ars_state
-Date: Tue, 3 Apr 2018 08:31:22 -0700
-Message-ID: <c37b43b3-bcb7-b3a3-f7d7-cc0753843859@intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/6] nfit, address-range-scrub: rework and simplify ARS
+ state machine
+Date: Tue, 3 Apr 2018 08:33:58 -0700
+Message-ID: <CAPcyv4hbt-YNA_NA6Sic7Uzfg6EVwtPPyztFrGPjoYze9nfT9g@mail.gmail.com>
 References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
- <152273078267.38372.2191145328822655057.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152273078779.38372.13062348829183334140.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <f4c0ca57-3c4a-9805-a66a-6a61aec2b108@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <152273078267.38372.2191145328822655057.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <f4c0ca57-3c4a-9805-a66a-6a61aec2b108-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -20,79 +20,23 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-On 4/2/2018 9:46 PM, Dan Williams wrote:
-> In preparation for re-working the ARS implementation to better handle
-> short vs long ARS runs, introduce nfit_spa->ars_state. For now this just
-> replaces the nfit_spa->ars_required bit-field/flag, but going forward it
-> will be used to track ARS completion and make short vs long ARS
-> requests.
+On Tue, Apr 3, 2018 at 8:29 AM, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 >
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-Reviewed-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-> ---
->   drivers/acpi/nfit/core.c |    6 +++---
->   drivers/acpi/nfit/nfit.h |    9 ++++++++-
->   2 files changed, 11 insertions(+), 4 deletions(-)
+[..]
+>> +               if (test_and_set_bit(ARS_REQ, &nfit_spa->ars_state))
+>> +                       busy++;
+>> +               else {
+>> +                       if (flags == ND_ARS_RETURN_PREV_DATA)
 >
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 2a1fc3817a81..9ba60f58d929 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -2808,7 +2808,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
->   	unsigned int tmo = scrub_timeout;
->   	int rc;
->   
-> -	if (!nfit_spa->ars_required || !nfit_spa->nd_region)
-> +	if (!test_bit(ARS_REQ, &nfit_spa->ars_state) || !nfit_spa->nd_region)
->   		return;
->   
->   	rc = ars_start(acpi_desc, nfit_spa);
-> @@ -3003,7 +3003,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
->   		 * register them now to make data available.
->   		 */
->   		if (!nfit_spa->nd_region) {
-> -			nfit_spa->ars_required = 1;
-> +			set_bit(ARS_REQ, &nfit_spa->ars_state);
->   			acpi_nfit_register_region(acpi_desc, nfit_spa);
->   		}
->   	}
-> @@ -3261,7 +3261,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags)
->   		if (nfit_spa_type(spa) != NFIT_SPA_PM)
->   			continue;
->   
-> -		nfit_spa->ars_required = 1;
-> +		set_bit(ARS_REQ, &nfit_spa->ars_state);
->   	}
->   	acpi_desc->ars_start_flags = flags;
->   	queue_work(nfit_wq, &acpi_desc->work);
-> diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-> index ac9c49463731..efb6c6bcde42 100644
-> --- a/drivers/acpi/nfit/nfit.h
-> +++ b/drivers/acpi/nfit/nfit.h
-> @@ -117,10 +117,17 @@ enum nfit_dimm_notifiers {
->   	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
->   };
->   
-> +enum nfit_ars_state {
-> +	ARS_REQ,
-> +	ARS_DONE,
-> +	ARS_SHORT,
-> +	ARS_FAILED,
-> +};
-> +
->   struct nfit_spa {
->   	struct list_head list;
->   	struct nd_region *nd_region;
-> -	unsigned int ars_required:1;
-> +	unsigned long ars_state;
->   	u32 clear_err_unit;
->   	u32 max_ars;
->   	struct acpi_nfit_system_address spa[0];
 >
+> if (flags & ND_ARS_RETURN_PREV_DATA)?
+>
+> I think the spec allows other bits set in the flag byte.
+>
+
+True, and it might be better to pass in the kernel's ARS_SHORT flag
+rather than the firmware interface value.
