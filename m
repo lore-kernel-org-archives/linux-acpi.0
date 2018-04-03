@@ -1,41 +1,71 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/6] nfit, address-range-scrub: rework and fixes
-Date: Mon, 02 Apr 2018 21:46:01 -0700
-Message-ID: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/6] nfit: fix region registration vs block-data-window ranges
+Date: Mon, 02 Apr 2018 21:46:06 -0700
+Message-ID: <152273076649.38372.8379231668189794225.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Dave Jiang <dave.jiang@intel.com>, stable@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.orgdave.jiang@intel.comvishal.l.verma@intel.com
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152273076087.38372.4803377088477706610.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Given the fact that ARS can take 10s to 100s of seconds it is not
-feasible to wait for ARS completion before publishing persistent memory
-namespaces. Instead convert the ARS implementation to perform a short
-ARS for critical errors, ones that caused a previous system reset,
-before registering namespaces. Finally, arrange for all long ARS
-operations to run in the background and populate the badblock lists at
-run time.
+Commit 1cf03c00e7c1 "nfit: scrub and register regions in a workqueue"
+mistakenly attempts to register a region per BLK aperture. There is
+nothing to register for individual apertures as they belong as a set to
+a BLK aperture group that are registered with a corresponding
+DIMM-control-region. Filter them for registration to prevent some
+needless devm_kzalloc() allocations.
 
-While developing this rework a handful of cleanups and fixes also fell
-out.
-
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: 1cf03c00e7c1 ("nfit: scrub and register regions in a workqueue")
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/acpi/nfit/core.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-Dan Williams (6):
-      nfit: fix region registration vs block-data-window ranges
-      nfit, address-range-scrub: fix scrub in-progress reporting
-      libnvdimm: add an api to cast a 'struct nd_region' to its 'struct device'
-      nfit, address-range-scrub: introduce nfit_spa->ars_state
-      nfit, address-range-scrub: rework and simplify ARS state machine
-      nfit, address-range-scrub: add module option to skip initial ars
-
-
- drivers/acpi/nfit/core.c     |  443 ++++++++++++++++++------------------------
- drivers/acpi/nfit/nfit.h     |   13 +
- drivers/nvdimm/nd.h          |    1 
- drivers/nvdimm/region_devs.c |    8 +
- include/linux/libnvdimm.h    |    1 
- 5 files changed, 213 insertions(+), 253 deletions(-)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 12fb414fa678..ea9f3e727fef 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3018,15 +3018,21 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ {
+ 	struct nfit_spa *nfit_spa;
+-	int rc;
+ 
+-	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
+-		if (nfit_spa_type(nfit_spa->spa) == NFIT_SPA_DCR) {
+-			/* BLK regions don't need to wait for ars results */
+-			rc = acpi_nfit_register_region(acpi_desc, nfit_spa);
+-			if (rc)
+-				return rc;
+-		}
++	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
++		int rc, type = nfit_spa_type(nfit_spa->spa);
++
++		/* PMEM and VMEM will be registered by the ARS workqueue */
++		if (type == NFIT_SPA_PM || type == NFIT_SPA_VOLATILE)
++			continue;
++		/* BLK apertures belong to BLK region registration below */
++		if (type == NFIT_SPA_BDW)
++			continue;
++		/* BLK regions don't need to wait for ARS results */
++		rc = acpi_nfit_register_region(acpi_desc, nfit_spa);
++		if (rc)
++			return rc;
++	}
+ 
+ 	acpi_desc->ars_start_flags = 0;
+ 	if (!acpi_desc->cancel)
