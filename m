@@ -1,8 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/6] libnvdimm: add an api to cast a 'struct nd_region' to
- its 'struct device'
-Date: Mon, 02 Apr 2018 21:46:17 -0700
-Message-ID: <152273077753.38372.6434283957266644623.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 4/6] nfit, address-range-scrub: introduce nfit_spa->ars_state
+Date: Mon, 02 Apr 2018 21:46:22 -0700
+Message-ID: <152273078267.38372.2191145328822655057.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,59 +21,69 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-For debug, it is useful for bus providers to be able to retrieve the
-'struct device' associated with an nd_region instance that it
-registered. We already have to_nd_region() to perform the reverse cast
-operation, in fact its duplicate declaration can be removed from the
-private drivers/nvdimm/nd.h header.
+In preparation for re-working the ARS implementation to better handle
+short vs long ARS runs, introduce nfit_spa->ars_state. For now this just
+replaces the nfit_spa->ars_required bit-field/flag, but going forward it
+will be used to track ARS completion and make short vs long ARS
+requests.
 
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/nd.h          |    1 -
- drivers/nvdimm/region_devs.c |    8 ++++++++
- include/linux/libnvdimm.h    |    1 +
- 3 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/acpi/nfit/core.c |    6 +++---
+ drivers/acpi/nfit/nfit.h |    9 ++++++++-
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 8d6375ee0fda..9dad5d737309 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -341,7 +341,6 @@ static inline struct device *nd_dax_create(struct nd_region *nd_region)
- }
- #endif
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 2a1fc3817a81..9ba60f58d929 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -2808,7 +2808,7 @@ static void acpi_nfit_async_scrub(struct acpi_nfit_desc *acpi_desc,
+ 	unsigned int tmo = scrub_timeout;
+ 	int rc;
  
--struct nd_region *to_nd_region(struct device *dev);
- int nd_region_to_nstype(struct nd_region *nd_region);
- int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
- u64 nd_region_interleave_set_cookie(struct nd_region *nd_region,
-diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-index e6d01911e092..0af275c62bdf 100644
---- a/drivers/nvdimm/region_devs.c
-+++ b/drivers/nvdimm/region_devs.c
-@@ -182,6 +182,14 @@ struct nd_region *to_nd_region(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(to_nd_region);
+-	if (!nfit_spa->ars_required || !nfit_spa->nd_region)
++	if (!test_bit(ARS_REQ, &nfit_spa->ars_state) || !nfit_spa->nd_region)
+ 		return;
  
-+struct device *nd_region_dev(struct nd_region *nd_region)
-+{
-+	if (!nd_region)
-+		return NULL;
-+	return &nd_region->dev;
-+}
-+EXPORT_SYMBOL_GPL(nd_region_dev);
+ 	rc = ars_start(acpi_desc, nfit_spa);
+@@ -3003,7 +3003,7 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 		 * register them now to make data available.
+ 		 */
+ 		if (!nfit_spa->nd_region) {
+-			nfit_spa->ars_required = 1;
++			set_bit(ARS_REQ, &nfit_spa->ars_state);
+ 			acpi_nfit_register_region(acpi_desc, nfit_spa);
+ 		}
+ 	}
+@@ -3261,7 +3261,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, u8 flags)
+ 		if (nfit_spa_type(spa) != NFIT_SPA_PM)
+ 			continue;
+ 
+-		nfit_spa->ars_required = 1;
++		set_bit(ARS_REQ, &nfit_spa->ars_state);
+ 	}
+ 	acpi_desc->ars_start_flags = flags;
+ 	queue_work(nfit_wq, &acpi_desc->work);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index ac9c49463731..efb6c6bcde42 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -117,10 +117,17 @@ enum nfit_dimm_notifiers {
+ 	NFIT_NOTIFY_DIMM_HEALTH = 0x81,
+ };
+ 
++enum nfit_ars_state {
++	ARS_REQ,
++	ARS_DONE,
++	ARS_SHORT,
++	ARS_FAILED,
++};
 +
- struct nd_blk_region *to_nd_blk_region(struct device *dev)
- {
- 	struct nd_region *nd_region = to_nd_region(dev);
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index ff855ed965fb..e0684a678a1b 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -164,6 +164,7 @@ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
- struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
- struct nvdimm *to_nvdimm(struct device *dev);
- struct nd_region *to_nd_region(struct device *dev);
-+struct device *nd_region_dev(struct nd_region *nd_region);
- struct nd_blk_region *to_nd_blk_region(struct device *dev);
- struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
- struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
+ struct nfit_spa {
+ 	struct list_head list;
+ 	struct nd_region *nd_region;
+-	unsigned int ars_required:1;
++	unsigned long ars_state;
+ 	u32 clear_err_unit;
+ 	u32 max_ars;
+ 	struct acpi_nfit_system_address spa[0];
