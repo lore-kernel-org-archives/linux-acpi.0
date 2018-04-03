@@ -1,56 +1,106 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [RFC PATCH 0/4]  acpi: apei: Improve error handling with firmware-first
-Date: Tue,  3 Apr 2018 12:08:26 -0500
-Message-ID: <20180403170830.29282-1-mr.nuke.me@gmail.com>
+Subject: [RFC PATCH 2/4] acpi: apei: Swap ghes_print_queued_estatus and ghes_proc_in_irq
+Date: Tue,  3 Apr 2018 12:08:28 -0500
+Message-ID: <20180403170830.29282-3-mr.nuke.me@gmail.com>
+References: <20180403170830.29282-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180403170830.29282-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+Move ghes_print_queued_estatus() above ghes_proc_in_irq(). In a
+subsequent patch, the NMI handler will be updated, and the print
+functionality will be used in ghes_proc_in_irq.
+This simply makes the subsequent diff look sane.
 
-I'm helping out Dell work out through the issues related to PCIe and NVMe
-hotplug. Although hot-plug generally works, there are corner cases such as
-pin bounce, drives failing and surprise removal that are not 100% worked out.
-Because of this, NVMe is not yet on feature parity with SCSI and SAS.
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/acpi/apei/ghes.c | 40 ++++++++++++++++++++--------------------
+ 1 file changed, 20 insertions(+), 20 deletions(-)
 
-One of the interesting issues is that most server vendors like to use
-firmware-first (FFS), for various reasons that I won't go into. The side
-effect of that is that we oftentimes don't even a stab at correcting the
-problem.
-
-This is especially troublesome for NVMe, which needs PCIe hotplug to work
-correctly. When we do get a stab, it's after FFS can't handle a fatal error,
-and we're told of it through ACPI tables. On x86, this happens through an
-NMI, and as soon as we see a "fatal" error, we panic().
-
-One problem with this FFS approach is that AER never even gets notified of
-the issue. And even if a PCIe drive were to stop responding, nvme or higher
-block drivers would notice something is wrong even without AER. Unless there
-is a physical defect or silicon bug, AER can recover the link.
-
-Another issue we're seeing with FFS is that BIOSes assume than an OS will crash
-on a fatal error reported through ACPI. Sometimes they will leave hardware in
-a "kind of" working state, or will fail to re-arm the errors. From what I've
-observed, this happens on hardware with silicon bugs. For example, PCIe root
-ports are unaffected, but certain PCIe switches may stop issuing hotplug
-interrupts. It's just another headache with FFS.
-
-While I don't expect server vendors to drop FFS in favor of native AER control,
-I do think we can harden linux against the idiosyncrasies of such systems. The
-scope of these patches is to protect against poorly designed firmware, and
-perform proper error handling when possible. It is not to make FFS a first
-class citizen in error handling.
-
-Alexandru Gagniuc (4):
-  acpi: apei: Return severity of GHES messages after handling
-  acpi: apei: Swap ghes_print_queued_estatus and ghes_proc_in_irq
-  acpi: apei: Do not panic() in NMI because of GHES messages
-  acpi: apei: Warn when GHES marks correctable errors as "fatal"
-
- drivers/acpi/apei/ghes.c | 100 ++++++++++++++++++++++++++++++-----------------
- 1 file changed, 64 insertions(+), 36 deletions(-)
-
---
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 25cf77a18e0a..2c998125b1d5 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -870,13 +870,12 @@ static atomic_t ghes_in_nmi = ATOMIC_INIT(0);
+ 
+ static LIST_HEAD(ghes_nmi);
+ 
+-static void ghes_proc_in_irq(struct irq_work *irq_work)
++static void ghes_print_queued_estatus(void)
+ {
+-	struct llist_node *llnode, *next;
++	struct llist_node *llnode;
+ 	struct ghes_estatus_node *estatus_node;
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
+-	u32 len, node_len;
+ 
+ 	llnode = llist_del_all(&ghes_estatus_llist);
+ 	/*
+@@ -885,30 +884,22 @@ static void ghes_proc_in_irq(struct irq_work *irq_work)
+ 	 */
+ 	llnode = llist_reverse_order(llnode);
+ 	while (llnode) {
+-		next = llnode->next;
+ 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+ 					   llnode);
+ 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+-		len = cper_estatus_len(estatus);
+-		node_len = GHES_ESTATUS_NODE_LEN(len);
+-		ghes_do_proc(estatus_node->ghes, estatus);
+-		if (!ghes_estatus_cached(estatus)) {
+-			generic = estatus_node->generic;
+-			if (ghes_print_estatus(NULL, generic, estatus))
+-				ghes_estatus_cache_add(generic, estatus);
+-		}
+-		gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node,
+-			      node_len);
+-		llnode = next;
++		generic = estatus_node->generic;
++		ghes_print_estatus(NULL, generic, estatus);
++		llnode = llnode->next;
+ 	}
+ }
+ 
+-static void ghes_print_queued_estatus(void)
++static void ghes_proc_in_irq(struct irq_work *irq_work)
+ {
+-	struct llist_node *llnode;
++	struct llist_node *llnode, *next;
+ 	struct ghes_estatus_node *estatus_node;
+ 	struct acpi_hest_generic *generic;
+ 	struct acpi_hest_generic_status *estatus;
++	u32 len, node_len;
+ 
+ 	llnode = llist_del_all(&ghes_estatus_llist);
+ 	/*
+@@ -917,12 +908,21 @@ static void ghes_print_queued_estatus(void)
+ 	 */
+ 	llnode = llist_reverse_order(llnode);
+ 	while (llnode) {
++		next = llnode->next;
+ 		estatus_node = llist_entry(llnode, struct ghes_estatus_node,
+ 					   llnode);
+ 		estatus = GHES_ESTATUS_FROM_NODE(estatus_node);
+-		generic = estatus_node->generic;
+-		ghes_print_estatus(NULL, generic, estatus);
+-		llnode = llnode->next;
++		len = cper_estatus_len(estatus);
++		node_len = GHES_ESTATUS_NODE_LEN(len);
++		ghes_do_proc(estatus_node->ghes, estatus);
++		if (!ghes_estatus_cached(estatus)) {
++			generic = estatus_node->generic;
++			if (ghes_print_estatus(NULL, generic, estatus))
++				ghes_estatus_cache_add(generic, estatus);
++		}
++		gen_pool_free(ghes_estatus_pool, (unsigned long)estatus_node,
++			      node_len);
++		llnode = next;
+ 	}
+ }
+ 
+-- 
 2.14.3
