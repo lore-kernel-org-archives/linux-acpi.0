@@ -1,7 +1,8 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/6] nfit, address-range-scrub: fix scrub in-progress reporting
-Date: Mon, 02 Apr 2018 21:46:12 -0700
-Message-ID: <152273077198.38372.11857145045474104173.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 3/6] libnvdimm: add an api to cast a 'struct nd_region' to
+ its 'struct device'
+Date: Mon, 02 Apr 2018 21:46:17 -0700
+Message-ID: <152273077753.38372.6434283957266644623.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,37 +19,62 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is a small window whereby ARS scan requests can schedule work that
-userspace will miss when polling scrub_show. Hold the init_mutex lock
-over calls to report the status to close this potential escape. Also,
-make sure that requests to cancel the ARS workqueue are treated as an
-idle event.
+For debug, it is useful for bus providers to be able to retrieve the
+'struct device' associated with an nd_region instance that it
+registered. We already have to_nd_region() to perform the reverse cast
+operation, in fact its duplicate declaration can be removed from the
+private drivers/nvdimm/nd.h header.
 
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Fixes: 37b137ff8c83 ("nfit, libnvdimm: allow an ARS scrub...")
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/nvdimm/nd.h          |    1 -
+ drivers/nvdimm/region_devs.c |    8 ++++++++
+ include/linux/libnvdimm.h    |    1 +
+ 3 files changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index ea9f3e727fef..2a1fc3817a81 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1249,8 +1249,11 @@ static ssize_t scrub_show(struct device *dev,
- 	if (nd_desc) {
- 		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 8d6375ee0fda..9dad5d737309 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -341,7 +341,6 @@ static inline struct device *nd_dax_create(struct nd_region *nd_region)
+ }
+ #endif
  
-+		mutex_lock(&acpi_desc->init_mutex);
- 		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
--				(work_busy(&acpi_desc->work)) ? "+\n" : "\n");
-+				work_busy(&acpi_desc->work)
-+				&& !acpi_desc->cancel ? "+\n" : "\n");
-+		mutex_unlock(&acpi_desc->init_mutex);
- 	}
- 	device_unlock(dev);
- 	return rc;
+-struct nd_region *to_nd_region(struct device *dev);
+ int nd_region_to_nstype(struct nd_region *nd_region);
+ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region,
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index e6d01911e092..0af275c62bdf 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -182,6 +182,14 @@ struct nd_region *to_nd_region(struct device *dev)
+ }
+ EXPORT_SYMBOL_GPL(to_nd_region);
+ 
++struct device *nd_region_dev(struct nd_region *nd_region)
++{
++	if (!nd_region)
++		return NULL;
++	return &nd_region->dev;
++}
++EXPORT_SYMBOL_GPL(nd_region_dev);
++
+ struct nd_blk_region *to_nd_blk_region(struct device *dev)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index ff855ed965fb..e0684a678a1b 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -164,6 +164,7 @@ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus);
+ struct nvdimm_bus *to_nvdimm_bus(struct device *dev);
+ struct nvdimm *to_nvdimm(struct device *dev);
+ struct nd_region *to_nd_region(struct device *dev);
++struct device *nd_region_dev(struct nd_region *nd_region);
+ struct nd_blk_region *to_nd_blk_region(struct device *dev);
+ struct nvdimm_bus_descriptor *to_nd_desc(struct nvdimm_bus *nvdimm_bus);
+ struct device *to_nvdimm_bus_dev(struct nvdimm_bus *nvdimm_bus);
