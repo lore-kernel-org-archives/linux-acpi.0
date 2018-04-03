@@ -1,124 +1,148 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [RFC PATCH 1/4] acpi: apei: Return severity of GHES messages after handling
-Date: Tue,  3 Apr 2018 12:08:27 -0500
-Message-ID: <20180403170830.29282-2-mr.nuke.me@gmail.com>
-References: <20180403170830.29282-1-mr.nuke.me@gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v17 01/10] LIB: Introduce a generic PIO mapping method
+Date: Tue, 3 Apr 2018 12:53:11 -0500
+Message-ID: <20180403175311.GD60020@bhelgaas-glaptop.roam.corp.google.com>
+References: <1521051359-34473-1-git-send-email-john.garry@huawei.com>
+ <1521051359-34473-2-git-send-email-john.garry@huawei.com>
+ <20180403140410.GE27789@ulmo>
+ <20180403143909.GA21171@ulmo>
+ <ab748c97-2b55-d090-606f-5491551feff6@huawei.com>
+ <20180403163700.GA10059@ulmo>
+ <19c46196-304a-1574-89c9-01c71d123539@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180403170830.29282-1-mr.nuke.me@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <19c46196-304a-1574-89c9-01c71d123539@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>
+To: John Garry <john.garry@huawei.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>, mika.westerberg@linux.intel.com, rafael@kernel.org, lorenzo.pieralisi@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, robh+dt@kernel.org, bhelgaas@google.com, arnd@arndb.de, mark.rutland@arm.com, olof@lixom.net, dann.frazier@canonical.com, andy.shevchenko@gmail.com, robh@kernel.org, andriy.shevchenko@linux.intel.com, joe@perches.com, benh@kernel.crashing.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com, minyard@acm.org, devicetree@vger.kernel.org, linux-arch@vger.kernel.org, rdunlap@infradead.org, gregkh@linuxfoundation.org, akpm@linux-foundation.org, frowand.list@gmail.com, agraf@suse.de, linux-tegra@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The policy currently is to simply panic() on GHES fatal errors.
-Oftentimes we may correct fatal errors
-i.e. "Fatal" PCIe errors can be corrected via AER
-When these errors are corrected, it doesn't make sense to panic().
+On Tue, Apr 03, 2018 at 06:02:43PM +0100, John Garry wrote:
+> On 03/04/2018 17:37, Thierry Reding wrote:
+> > On Tue, Apr 03, 2018 at 05:01:37PM +0100, John Garry wrote:
+> > > > > > +int logic_pio_register_range(struct logic_pio_hwaddr *new_range)
+> > > > > > +{
+> > > > > > +	struct logic_pio_hwaddr *range;
+> > > > > > +	resource_size_t start = new_range->hw_start;
+> > > > > > +	resource_size_t end = new_range->hw_start + new_range->size;
+> > > > > > +	resource_size_t mmio_sz = 0;
+> > > > > > +	resource_size_t iio_sz = MMIO_UPPER_LIMIT;
+> > > > > > +	int ret = 0;
+> > > > > > +
+> > > > > > +	if (!new_range || !new_range->fwnode || !new_range->size)
+> > > > > > +		return -EINVAL;
+> > > > > > +
+> > > > > > +	mutex_lock(&io_range_mutex);
+> > > > > > +	list_for_each_entry_rcu(range, &io_range_list, list) {
+> > > > > > +		if (range->fwnode == new_range->fwnode) {
+> > > > > > +			/* range already there */
+> > > > > > +			ret = -EFAULT;
+> > > > > > +			goto end_register;
+> > > > > > +		}
+> > > > > 
+> > > 
+> > > Hi Thierry,
+> > > 
+> > > > > This is the -EFAULT that propagates to pci-tegra.c's ->probe() and fails
+> > > > > to bind the driver.
+> > > > > 
+> > > > > I'm not exactly sure what's causing the duplicate here because it's
+> > > > > rather difficult to get at something useful from just the ->fwnode, but
+> > > > > I'm fairly sure that the reason this breaks is because the Tegra driver
+> > > > > will defer probe due to some regulators that aren't available on the
+> > > > > first try. Given the above code and the rest of this file, I can't see a
+> > > > > way to "fix" the driver and remove the I/O range on failure.
+> > > > > 
+> > > > > This is doubly bad because this doesn't only leak the ranges on probe
+> > > > > deferral, but also on driver unload, and we just added support for
+> > > > > building the Tegra driver as a loadable module, so these are actually
+> > > > > cases that can happen in regular uses of the driver.
+> > > > > 
+> > > > > I have no idea on how to fix this. Anyone know of a quick fix to restore
+> > > > > PCI for Tegra other than reverting all of these changes?
+> > > > > 
+> > > > > I suppose an API could be added to unregister the range, but the calling
+> > > > > sequence is rather obfuscated, so removing the range will look totally
+> > > > > asymmetric, I'm afraid.
+> > > > > 
+> > > > > Here's the call stack:
+> > > > > 
+> > > > > 	tegra_pcie_probe()
+> > > > > 	tegra_pcie_parse_dt()
+> > > > > 	of_pci_range_to_resource()
+> > > > > 	pci_register_io_range()
+> > > > > 	logic_pio_register_range()
+> > > > > 
+> > > > > So the range here is registered as part of a resource parsing function,
+> > > > > which is supposed to not have any side-effects. There's no equivalent of
+> > > > > that parsing routine (i.e. no "unparse" function that would undo the
+> > > > > effects of parsing).
+> > > > > 
+> > > > > Perhaps a cleaner way would be to decouple the parsing from the actual
+> > > > > request step that has the side-effect.
+> > > 
+> > > This could be added if we agreed that it would be useful.
+> > 
+> > I guess in most cases these ranges will be static at least during one
+> > boot. But it still feels like this should be removed when the driver
+> > goes away. While this may not depend on data by the driver, and hence
+> > won't cause a crash or anything, it just seems wrong to leave it
+> > around when the driver no longer isn't.
+> 
+> That sounds reasonable, considering we do unmap the iospace when we release
+> - so it looks like currently we're leaving some IO range reserved which does
+> not have a mapping.
+> 
+> However this change seems non-trivial, considering we're now even coupling
+> the PIO range registration into DT parsing.
+> 
+> > 
+> > > > > Going back in history a little, it looks like even before this commit
+> > > > > the I/O range registration was triggered by the parsing code and even
+> > > > > the range leak was there, except that it caused pci_register_io_range()
+> > > > > to return 0 rather than -EFAULT. Perhaps the quickest fix for this would
+> > > > > be to do the same in the new code and restore drivers that accidentally
+> > > > > depend on this behaviour.
+> > > > 
+> > > > I can confirm that the following fixes the issue for me, though I don't
+> > > > think it's a very clean fix given that the range will remain requested
+> > > > forever, even if the driver is gone. But since that's already been the
+> > > > case for quite a while, probably something that can be fixed separately.
+> > > > 
+> > > 
+> > > Right, there was no way to deregister the range previously.  From looking at
+> > > the history here I see no reason to not support it.
+> > > 
+> > > As for this patch, as you said, the only difference is that we fault on
+> > > trying to register the same range again. So this solution seems reasonable.
+> > 
+> > Okay, I can turn this into a proper patch to fix this up. I suspect that
+> > other drivers may be subject to the same regression. For the longer term
+> > I think it'd be better to properly undo the registration on failure and
+> > removal, but I suspect that it'd be quite a bit of work and not suitable
+> > for v4.17 anymore.
+> 
+> Thanks, I had started to put the patch together but if you're happy to
+> continue then that's fine. Please let me know.
 
-Update ghes_do_proc() to return the severity of the worst error, while
-marking handled errors as corrected.
+Since you seem to agree this is the right short-term fix and I would
+squash it into the original commit anyway, I went ahead and did that
+so we could get this into linux-next as soon as possible.
 
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 35 +++++++++++++++++++++++++++++------
- 1 file changed, 29 insertions(+), 6 deletions(-)
+Here's the diff from my previous "next" branch with respect to this
+series:
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 1efefe919555..25cf77a18e0a 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -383,7 +383,7 @@ static void ghes_clear_estatus(struct ghes *ghes)
- 	ghes->flags &= ~GHES_TO_CLEAR;
- }
- 
--static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int sev)
-+static bool ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int sev)
- {
- #ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
- 	unsigned long pfn;
-@@ -411,7 +411,10 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
- 
- 	if (flags != -1)
- 		memory_failure_queue(pfn, flags);
-+
-+	return true;
- #endif
-+	return false;
- }
- 
- /*
-@@ -428,7 +431,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
-  * GHES_SEV_PANIC does not make it to this handling since the kernel must
-  *     panic.
-  */
--static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
-+static bool ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- {
- #ifdef CONFIG_ACPI_APEI_PCIEAER
- 	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-@@ -456,20 +459,33 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- 				  (struct aer_capability_regs *)
- 				  pcie_err->aer_info);
- 	}
-+
-+	return true;
- #endif
-+	return false;
- }
- 
--static void ghes_do_proc(struct ghes *ghes,
-+/*
-+ * Handle GHES messages, and return the highest encountered severity.
-+ * Errors which are handled are considered to be CORRECTED. The severity is
-+ * taken from each GHES error data entry, not the error status block.
-+ * An error is considered corrected if it can be dispatched to an appropriate
-+ * handler. However, simply logging an error is not enough to "correct" it.
-+ */
-+static int ghes_do_proc(struct ghes *ghes,
- 			 const struct acpi_hest_generic_status *estatus)
- {
--	int sev, sec_sev;
-+	int sev, sec_sev, corrected_sev;
- 	struct acpi_hest_generic_data *gdata;
- 	guid_t *sec_type;
- 	guid_t *fru_id = &NULL_UUID_LE;
- 	char *fru_text = "";
-+	bool handled;
- 
-+	corrected_sev = GHES_SEV_NO;
- 	sev = ghes_severity(estatus->error_severity);
- 	apei_estatus_for_each_section(estatus, gdata) {
-+		handled = false;
- 		sec_type = (guid_t *)gdata->section_type;
- 		sec_sev = ghes_severity(gdata->error_severity);
- 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
-@@ -484,10 +500,10 @@ static void ghes_do_proc(struct ghes *ghes,
- 			ghes_edac_report_mem_error(ghes, sev, mem_err);
- 
- 			arch_apei_report_mem_error(sev, mem_err);
--			ghes_handle_memory_failure(gdata, sev);
-+			handled = ghes_handle_memory_failure(gdata, sev);
+diff --git a/lib/logic_pio.c b/lib/logic_pio.c
+index 29cedeadb397..4664b87e1c5f 100644
+--- a/lib/logic_pio.c
++++ b/lib/logic_pio.c
+@@ -46,7 +46,6 @@ int logic_pio_register_range(struct logic_pio_hwaddr *new_range)
+ 	list_for_each_entry_rcu(range, &io_range_list, list) {
+ 		if (range->fwnode == new_range->fwnode) {
+ 			/* range already there */
+-			ret = -EFAULT;
+ 			goto end_register;
  		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
--			ghes_handle_aer(gdata);
-+			handled = ghes_handle_aer(gdata);
- 		}
- 		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
- 			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
-@@ -500,7 +516,14 @@ static void ghes_do_proc(struct ghes *ghes,
- 					       sec_sev, err,
- 					       gdata->error_data_length);
- 		}
-+
-+		if (sec_sev >= GHES_SEV_RECOVERABLE && handled)
-+			sec_sev = GHES_SEV_CORRECTED;
-+
-+		corrected_sev = max(corrected_sev, sec_sev);
- 	}
-+
-+	return corrected_sev;
- }
- 
- static void __ghes_print_estatus(const char *pfx,
--- 
-2.14.3
+ 		if (range->flags == LOGIC_PIO_CPU_MMIO &&
