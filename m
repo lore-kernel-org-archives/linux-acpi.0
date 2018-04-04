@@ -1,111 +1,76 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH 2/2] ACPI/IORT: use swiotlb_dma_ops when smmu probe
- failed
-Date: Wed, 4 Apr 2018 17:01:38 +0100
-Message-ID: <20180404160138.GA9317@e107981-ln.cambridge.arm.com>
-References: <1522317660-11080-1-git-send-email-dongsheng.wang@hxt-semitech.com>
- <1522317660-11080-3-git-send-email-dongsheng.wang@hxt-semitech.com>
+From: "Kani, Toshi" <toshi.kani-ZPxbGqLxI0U@public.gmane.org>
+Subject: Re: [PATCH 5/6] nfit, address-range-scrub: rework and simplify ARS
+ state machine
+Date: Wed, 4 Apr 2018 16:26:09 +0000
+Message-ID: <1522859143.2693.296.camel@hpe.com>
+References: <152273076087.38372.4803377088477706610.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <152273078779.38372.13062348829183334140.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1522317660-11080-3-git-send-email-dongsheng.wang@hxt-semitech.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
-Cc: rjw@rjwysocki.net, gregkh@linuxfoundation.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, yu.zheng@hxt-semitech.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, robin.murphy@arm.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152273078779.38372.13062348829183334140.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
+Content-ID: <2261346303772C44A1DC3B4EEC8487D4-mmYPd6ayCNGroOM5E8FhRbjFIynDaujOfM0AETQt39g@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Robin]
-
-On Thu, Mar 29, 2018 at 03:01:00AM -0700, Wang Dongsheng wrote:
-> If SMMU probe failed, master should use swiotlb as dma ops.
-> SMMU may probe failed with specified environment, so there
-> are not any iommu resources in iommu_device_list.
-> 
-> The master will always get EPROBE_DEFER from really_probe
-> (dma_configure) but in fact SMMU has probe failed. The issue
-> causes all of masters failed to be driven.
-
-I added Robin to pick his brain. An alternative would consist
-in using a bus notifier to prevent deferred probing once the SMMU
-driver probing failed but that seems backwards given that a major
-reason to move to deferred probing was to remove the bus notifiers
-dependency in the first place.
-
-It seems to me this is both an OF/ACPI issue - it is not an IORT
-only problem.
-
-Lorenzo
-
-> Signed-off-by: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
-> ---
->  drivers/acpi/arm64/iort.c | 39 +++++++++++++++++++++++++++++++++------
->  1 file changed, 33 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index e2f7bdd..a6f4c27 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -774,17 +774,45 @@ static int arm_smmu_iort_xlate(struct device *dev, u32 streamid,
->  	return ret;
->  }
->  
-> -static inline bool iort_iommu_driver_enabled(u8 type)
-> +static int iort_check_dev_dl_status(struct device *dev, void *data)
+On Mon, 2018-04-02 at 21:46 -0700, Dan Williams wrote:
+ :
+> +static int init_ars(struct acpi_nfit_desc *acpi_desc, struct nfit_spa *nfit_spa,
+> +		int query_rc)
 >  {
-> +	struct fwnode_handle *fwnode = data;
-> +
-> +	if (dev->fwnode != fwnode)
-> +		return 0;
-> +
-> +	if (dev->links.status == DL_DEV_PROBE_FAILED)
-> +		return -ENODEV;
-> +
-> +	return -EPROBE_DEFER;
-> +}
-> +
-> +static int iort_iommu_driver_enabled(u8 type, struct fwnode_handle *fwnode)
-> +{
-> +	bool buildin;
-> +	int ret;
-> +
->  	switch (type) {
->  	case ACPI_IORT_NODE_SMMU_V3:
-> -		return IS_BUILTIN(CONFIG_ARM_SMMU_V3);
-> +		buildin = IS_BUILTIN(CONFIG_ARM_SMMU_V3);
-> +		break;
->  	case ACPI_IORT_NODE_SMMU:
-> -		return IS_BUILTIN(CONFIG_ARM_SMMU);
-> +		buildin = IS_BUILTIN(CONFIG_ARM_SMMU);
-> +		break;
->  	default:
->  		pr_warn("IORT node type %u does not describe an SMMU\n", type);
-> -		return false;
-> +		buildin = false;
->  	}
-> +
-> +	if (!buildin)
-> +		return -ENODEV;
-> +
-> +	ret = bus_for_each_dev(&platform_bus_type, NULL, fwnode,
-> +			       iort_check_dev_dl_status);
-> +	if (!ret)
-> +		return -EPROBE_DEFER;
-> +
-> +	return ret;
->  }
+> -	struct acpi_nfit_system_address *spa = nfit_spa->spa;
+> -	unsigned int overflow_retry = scrub_overflow_abort;
+> -	u64 init_ars_start = 0, init_ars_len = 0;
+> -	struct device *dev = acpi_desc->dev;
+> -	unsigned int tmo = scrub_timeout;
+>  	int rc;
 >  
->  #ifdef CONFIG_IOMMU_API
-> @@ -919,8 +947,7 @@ static int iort_iommu_xlate(struct device *dev, struct acpi_iort_node *node,
->  	 */
->  	ops = iommu_ops_from_fwnode(iort_fwnode);
->  	if (!ops)
-> -		return iort_iommu_driver_enabled(node->type) ?
-> -		       -EPROBE_DEFER : -ENODEV;
-> +		return iort_iommu_driver_enabled(node->type, iort_fwnode);
+> -	if (!test_bit(ARS_REQ, &nfit_spa->ars_state) || !nfit_spa->nd_region)
+> -		return;
+> +	switch (query_rc) {
+> +	case 0:
+> +		/* ARS is idle, lets look for critical known errors... */
+> +		break;
+> +	case -EBUSY:
+> +		/*
+> +		 * ARS is already running, some agent thought it was ok
+> +		 * to busy ARS before handing off to the nfit driver.
+> +		 */
+> +		clear_bit(ARS_SHORT, &nfit_spa->ars_state);
+> +		rc = query_rc;
+> +		goto out;
+> +	case -ENOSPC:
+> +		/* ARS continuation needed... */
+> +		clear_bit(ARS_SHORT, &nfit_spa->ars_state);
+> +		rc = query_rc;
+> +		goto out;
+> +	default:
+> +		rc = query_rc;
+> +		goto out;
+> +	}
 >  
->  	return arm_smmu_iort_xlate(dev, streamid, iort_fwnode, ops);
->  }
-> -- 
-> 2.7.4
-> 
+> +	WARN_ON_ONCE(!test_bit(ARS_SHORT, &nfit_spa->ars_state));
+
+I am hitting this WARN_ON_ONCE.  I think there is an issue in the code
+flow that ars_complete() clears ARS_SHORT before init_ars().
+
+  acpi_nfit_scrub
+    acpi_nfit_query_poison
+      ars_status_process_records
+         ars_complete
+    init_ars
+
+Thanks!
+-Toshi
