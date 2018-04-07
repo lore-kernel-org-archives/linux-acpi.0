@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libnvdimm, namespace: use a safe lookup for dimm device name
-Date: Sat, 07 Apr 2018 07:50:52 -0700
-Message-ID: <152311265227.13507.15898106957113137141.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v3 0/3] nfit, address-range-scrub: rework and fixes
+Date: Sat, 07 Apr 2018 08:45:52 -0700
+Message-ID: <152311595210.35426.13667585208560808244.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -16,67 +16,43 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The following NULL dereference results from incorrectly assuming that
-ndd is valid in this print:
+Changes since v2 [1]:
+* Handle -EAGAIN (no result) ars_status responses
 
-  struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
-
-  /*
-   * Give up if we don't find an instance of a uuid at each
-   * position (from 0 to nd_region->ndr_mappings - 1), or if we
-   * find a dimm with two instances of the same uuid.
-   */
-  dev_err(&nd_region->dev, "%s missing label for %pUb\n",
-                  dev_name(ndd->dev), nd_label->uuid);
-
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
- IP: nd_region_register_namespaces+0xd67/0x13c0 [libnvdimm]
- PGD 0 P4D 0
- Oops: 0000 [#1] SMP PTI
- CPU: 43 PID: 673 Comm: kworker/u609:10 Not tainted 4.16.0-rc4+ #1
- [..]
- RIP: 0010:nd_region_register_namespaces+0xd67/0x13c0 [libnvdimm]
- [..]
- Call Trace:
-  ? devres_add+0x2f/0x40
-  ? devm_kmalloc+0x52/0x60
-  ? nd_region_activate+0x9c/0x320 [libnvdimm]
-  nd_region_probe+0x94/0x260 [libnvdimm]
-  ? kernfs_add_one+0xe4/0x130
-  nvdimm_bus_probe+0x63/0x100 [libnvdimm]
-
-Switch to using the nvdimm device directly.
-
-Fixes: 0e3b0d123c8f ("libnvdimm, namespace: allow multiple pmem...")
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Reported-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/namespace_devs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 89b40ff83025..28afdd668905 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1921,7 +1921,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
- 	}
- 
- 	if (i < nd_region->ndr_mappings) {
--		struct nvdimm_drvdata *ndd = to_ndd(&nd_region->mapping[i]);
-+		struct nvdimm *nvdimm = nd_region->mapping[i].nvdimm;
- 
- 		/*
- 		 * Give up if we don't find an instance of a uuid at each
-@@ -1929,7 +1929,7 @@ static struct device *create_namespace_pmem(struct nd_region *nd_region,
- 		 * find a dimm with two instances of the same uuid.
- 		 */
- 		dev_err(&nd_region->dev, "%s missing label for %pUb\n",
--				dev_name(ndd->dev), nd_label->uuid);
-+				nvdimm_name(nvdimm), nd_label->uuid);
- 		rc = -EINVAL;
- 		goto err;
- 	}
+Given the fact that ARS can take 10s to 100s of seconds it is not
+feasible to wait for ARS completion before publishing persistent memory
+namespaces. Instead convert the ARS implementation to perform a short
+ARS for critical errors, ones that caused a previous system reset,
+before registering namespaces. Finally, arrange for all long ARS
+operations to run in the background and populate the badblock lists at
+run time.
+
+In the extreme situation that an implementation is unable to return
+sufficient results in a short scan and the system encounters media
+errors that machine check recovery does not handle, an administrator can
+arrange to wait for a full ARS scan by doing the following:
+
+1/ Boot with "modprobe.blacklist=nd_pmem" to stop pmem namespaces from
+   starting automatically
+
+2/ Call "ndctl wait-scrub" to wait for the OS or BIOS initiated ARS to complete
+
+3/ Manually start up namespaces with the up to date error list
+   "modprobe nd_pmem"
+
+---
+
+Dan Williams (3):
+      nfit, address-range-scrub: determine one platform max_ars value
+      nfit, address-range-scrub: rework and simplify ARS state machine
+      nfit, address-range-scrub: add module option to skip initial ars
+
+
+ drivers/acpi/nfit/core.c |  557 +++++++++++++++++++++-------------------------
+ drivers/acpi/nfit/nfit.h |    6 
+ 2 files changed, 261 insertions(+), 302 deletions(-)
