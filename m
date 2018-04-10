@@ -1,295 +1,287 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [RFC PATCH 3/4] acpi: apei: Do not panic() in NMI because of GHES
- messages
-Date: Mon, 9 Apr 2018 13:11:10 -0500
-Message-ID: <2120d34a-41d2-9fff-2710-d11e9a19e12a@gmail.com>
-References: <20180403170830.29282-1-mr.nuke.me@gmail.com>
- <20180403170830.29282-4-mr.nuke.me@gmail.com>
- <338e9bb4-a837-69f9-36e5-5ee2ddcaaa38@arm.com>
- <d6492b41-612a-b256-44c9-4ff3b3d5ae4b@gmail.com>
- <e65986c8-55a1-14c4-5c06-f34fa25916d8@arm.com>
- <9e29e5c6-b942-617e-f92e-728627799506@gmail.com>
- <cdea7af5-6c9b-10c5-a9a9-1481446c65a8@arm.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm for 4.17
+Date: Tue, 10 Apr 2018 05:12:42 +0000
+Message-ID: <1523337147.23102.31.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-7"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cdea7af5-6c9b-10c5-a9a9-1481446c65a8@arm.com>
 Content-Language: en-US
+Content-ID: <2389145D2311944ABE7A409A373390E3@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "inux-nvdimm@lists.01.org" <inux-nvdimm@lists.01.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
+Hi Linus, please pull from:
 
-On 04/06/2018 01:24 PM, James Morse wrote:
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.17
 
-Do you have any ETA on when your SEA patches are going to make it
-upstream? There's not much point in updating my patchset if it's going
-to conflict with your work.
+...to receive the libnvdimm update for 4.17.
 
-(snip)
->> On the contrary. No output, followed by a watchdog reboot is usually
->> what happens when the panic() is in NMI. One of the very few ways that
->> can be debugged is over a NULL modem cable.
-> 
-> (IPMI-SOL?)
-> 
-> Really? printk has NMI support, and panic()s call to bust_spinlocks() should
-> unblank the screen before printk_safe_flush_on_panic() dumps the messages. (I'm
-> assuming some BMC-VGA exists to capture the 'screen').
+This cycle was was not something I ever want to repeat as there were
+several late changes that have only now just settled. Half of the
+branch up to commit d2c997c0f145 +ACI-fs, dax: use page-+AD4-mapping to
+warn...+ACI- have been in -next for several releases. The of+AF8-pmem driver
+and the address range scrub rework were late arrivals, and the dax work
+was scaled back at the last moment.
 
-Plausible. There are other mechanisms though that may reset the system
-before it is practical to capture the screen.
+The of+AF8-pmem driver missed a previous merge window due to an oversight.
+A sense of obligation to rectify that miss is why it is included for
+4.17. It has acks from PowerPC folks. Stephen reported a build failure
+that only occurs when merging it with your latest tree, for now I have
+fixed that up by disabling modular builds of of+AF8-pmem. A test merge with
+your tree has received a build success report from the 0day robot over
+156 configs.
 
-(snip)
->> But if on arm64, you can return to firmware,
->> then we have wildly different constraints.
-> 
-> We can't return to firmware, but we can take the error again, causing another
-> trap to firmware.
-> 
-> e.g.: If a program accesses a value in the cache and the cache location is
-> discovered to be corrupt/marked-as-poisoned. This causes an 'external abort'
-> exception, which firmware has configured to trap to firmware. Once there, it
-> generates CPER records and sets-up an external-abort-exception for Linux.
-> If linux returns from this external-abort, we return to whatever program
-> accessed the bad-cache-value in the first case, re-run the instruction that
-> generates the external abort, and the same thing happens again, but to firmware
-> it looks like a second fault at the same address.
+An initial version of the ARS rework was submitted before the merge
+window. It is self contained to libnvdimm, a net code reduction, and
+passing all unit tests.
 
-This is a very good example of why we should _not_ panic in NMI.
-Invalidate the cache-line, next load causes a memory round-trip, and
-everyone's happy. Of course, FFS can't do that because it doesn't know
-if it's valid to invalidate (pun intended). But the OS does. So you
-_want_ to reach the error handler downstream of NMI context, and you do
-_not_ want to crash.
+The filesystem-dax changes are based on the wait+AF8-var+AF8-event()
+functionality from tip/sched/core. However, late review feedback showed
+that those changes regressed truncate performance to a large degress.
+The branch was rewound to drop the truncate behavior change and now
+only includes preparation patches and cleanups (with full acks and
+reviews). The finalization of this dax-dma-vs-trnucate work will need
+to wait for 4.18.
 
+git picked the wait+AF8-var+AF8-event() baseline for the diffstat, so I also
+include the diffstat of the test merge below.
 
-(snip)
->> On x86, you can't return to SMM. You can have a new SMI triggered while
->> servicing the NMI, but you can't re-enter an SMI that you've returned
->> from. SMM holds all the cores, and they all leave SMM at roughly the
->> same time, so you don't deal with coexistence issues. This probably also
->> avoids the multiple notifications that you are trying to implement on arm.
-> 
-> its the new SMI case.
-> 
-> (We don't necessarily have all cores pulled into firmware, (although firmware
-> could do that in software), so different CPUs taking NMI-like notifications is
-> one of the things we have to handle.)
+The following changes since commit 3eb2ce825ea1ad89d20f7a3b5780df850e4be274:
 
-How does FFS handle race conditions that can occur when accessing HW
-concurrently with the OS? I'm told it's the main reasons why BIOS
-doesn't release unused cores from SMM early.
+  Linux 4.16-rc7 (2018-03-25 12:44:30 -1000)
 
+are available in the git repository at:
 
->> On quick thought, I think the best way to go for both series is to leave
->> the entry points arch-specific, and prevent hax86 and harm64 from
->> stepping on each other's toes. Thoughts?
-> 
-> The behaviour should be driven from the standard. I agree there is some leeway,
-> which linux should handle on all architectures that support GHES.
+  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm tags/libnvdimm-for-4.17
 
-"The standard" deals mostly with firmware behavior. While I'm all for
-following specifications in order to ensure smooth interaction and
-integration, Linux is an OS and it deals with a plethora of "standards".
-Its job is to serve user requests. When a "standard" deviates from this,
-such as mandating a crash when one is not required, it's the OS's job to
-_not_ follow this requirement.
+for you to fetch changes up to e13e75b86ef2f88e3a47d672dd4c52a293efb95b:
 
+  Merge branch 'for-4.17/dax' into libnvdimm-for-next (2018-04-09 10:50:17 -0700)
 
-> The entry points from the arch code are already separate, as these have
-> different notification types in the HEST->GHES entries and different
-> registration requirements.
-> Once in ghes.c all the NMI-like notifications get merged together as the only
-> relevant thing about them is we have to use the estatus-queue, and can't call
-> any of the sleepy recovery helpers.
-> 
-> I don't think this is the issue though: An NMI notification could by any of the
-> eleven CPER notification record types.
-> Your argument is Linux probably can handle PCIe-AER errors,
+----------------------------------------------------------------
+libnvdimm for 4.17
 
-My argument is that Linux should do a best effort to recover from
-hardware (or FFS) errors. In support of that argument, I presented
-evidence that Linux already can handle a variety of errors. How those
-errors are reported determines whether the OS crashes or not, and that's
-not right. When errors are reported natively, we make it to the error
-handlers before crashing. And the essence of my argument is that there
-is no reason to have a different behavior with FFS.
++ACo- A rework of the filesytem-dax implementation provides for detection of
+  unmap operations (truncate / hole punch) colliding with in-progress
+  device-DMA. A fix for these collisions remains a work-in-progress
+  pending resolution of truncate latency and starvation regressions.
 
-> even if broken firmware thinks they are fatal.
++ACo- The of+AF8-pmem driver expands the users of libnvdimm outside of x86 and
+  ACPI to describe an implementation of persistent memory on PowerPC with
+  Open Firmware / Device tree.
 
-I think the idea of firmware-first is broken. But it's there, it's
-shipping in FW, so we have to accommodate it in SW.
++ACo- Address Range Scrub (ARS) handling is completely rewritten to account for
+  the fact that ARS may run for 100s of seconds and there is no platform
+  defined way to cancel it. ARS will now no longer block namespace
+  initialization.
 
++ACo- The NVDIMM Namespace Label implementation is updated to handle label
+  areas as small as 1K, down from 128K.
 
-> This is only one of the eleven notification record types. Returning to handle
-> the error definitely doesn't work for some classes of fatal error, especially
-> when interrupts are masked.
++ACo- Miscellaneous cleanups and updates to unit test infrastructure.
 
-> I think its straightforward to test whether the CPER records contain only errors
-> where we can do better: (not tested/built, I haven't checked whether this is nmi
-> safe):
-That looks very similar to what I had originally implemented.
-> ---------------------%<---------------------
-> /*
->  * Return true if only PCIe-AER CPER sections are present. We ignore the fatal
->  * severity in this case as linux knows better. Called in_nmi().
->  */
-> static bool ghes_is_deferrable(struct ghes *ghes,
->        const struct acpi_hest_generic_status *estatus)
-> {
->        guid_t *sec_type;
->        struct acpi_hest_generic_data *gdata;
-> 
->        apei_estatus_for_each_section(estatus, gdata) {
->                sec_type = (guid_t *)gdata->section_type;
->                if (!guid_equal(sec_type, &CPER_SEC_PCIE))
+----------------------------------------------------------------
+Dan Williams (26):
+      libnvdimm: remove redundant +AF8AXw-func+AF8AXw- in dev+AF8-dbg
+      device-dax: remove redundant +AF8AXw-func+AF8AXw- in dev+AF8-dbg
+      nfit: skip region registration for incomplete control regions
+      acpi, nfit: rework NVDIMM leaf method detection
+      dax: store pfns in the radix
+      fs, dax: prepare for dax-specific address+AF8-space+AF8-operations
+      block, dax: remove dead code in blkdev+AF8-writepages()
+      xfs, dax: introduce xfs+AF8-dax+AF8-aops
+      ext4, dax: introduce ext4+AF8-dax+AF8-aops
+      nfit: fix region registration vs block-data-window ranges
+      ext2, dax: introduce ext2+AF8-dax+AF8-aops
+      fs, dax: use page-+AD4-mapping to warn if truncate collides with a busy page
+      dax: introduce CONFIG+AF8-DAX+AF8-DRIVER
+      dax, dm: allow device-mapper to operate without dax support
+      nfit, address-range-scrub: fix scrub in-progress reporting
+      libnvdimm: add an api to cast a 'struct nd+AF8-region' to its 'struct device'
+      nfit, address-range-scrub: introduce nfit+AF8-spa-+AD4-ars+AF8-state
+      libnvdimm, dimm: fix dpa reservation vs uninitialized label area
+      libnvdimm, namespace: use a safe lookup for dimm device name
+      libnvdimm, region: quiet region probe
+      nfit, address-range-scrub: determine one platform max+AF8-ars value
+      nfit, address-range-scrub: rework and simplify ARS state machine
+      nfit, address-range-scrub: add module option to skip initial ars
+      libnvdimm, of+AF8-pmem: workaround OF+AF8-NUMA+AD0-n build error
+      Merge branch 'for-4.17/libnvdimm' into libnvdimm-for-next
+      Merge branch 'for-4.17/dax' into libnvdimm-for-next
 
-Also need to check if the CPER record contains enough information to
-identify the cause of the error. There's no guarantee the record even
-has a valid PCI BDF, let alone error information. Possible? yes. Easy?
-yes. Advisable? maybe.
+Johannes Thumshirn (4):
+      acpi, nfit: remove redundant +AF8AXw-func+AF8AXw- in dev+AF8-dbg
+      libnvdimm: provide module+AF8-nd+AF8-driver wrapper
+      libnvdimm, pmem: use module+AF8-nd+AF8-driver
+      device-dax: use module+AF8-nd+AF8-driver
 
+Oliver O'Halloran (4):
+      libnvdimm: Add of+AF8-node to region and bus descriptors
+      libnvdimm: Add device-tree based driver
+      doc/devicetree: Persistent memory region bindings
+      powerpc/powernv: Create platform devs for nvdimm buses
 
-(snip)
->>> My point was there is a class of reported-as-fatal error that really is fatal,
->>> and for these trying to defer the work to irq_work is worse than panic()ing as
->>> we get less information about what happened.
->>
->> How do we get less information? We save the GHES structure on the
->> estatus_queue, and use it as the error source in either case. Is there a
->> class of errors where we can reasonable expect things to be okay in NMI,
->> but go horribly wrong on return from NMI?
-> 
-> Yes, (described above). This could happen if we see Arm64's 'SEA' CPER  records
-> or x86's 'MCE' CPER records. I'm pretty sure it will happen on both
-> architectures if you return to a context with interrupts masked.
+Ross Zwisler (3):
+      nfit+AF8-test: improve structure offset handling
+      nfit+AF8-test: fix buffer overrun, add sanity check
+      nfit+AF8-test: prevent parsing error of nfit+AF8-test.0
 
-And linux can handle a wide subset of MCEs just fine, so the
-ghes_is_deferrable() logic would, under my argument, agree to pass
-execution to the actual handlers. I do agree that this is one case where
-splitting the handler in a top half and bottom half would make sense.
-Though in that case, the problem is generalized to "how to best handle
-error Y", rather than "how to handle error Y in FFS".
+Toshi Kani (2):
+      libnvdimm, label: change min label storage size per UEFI 2.7
+      libnvdimm, label: change nvdimm+AF8-num+AF8-label+AF8-slots per UEFI 2.7
 
+Vishal Verma (2):
+      libnvdimm, testing: Add emulation for smart injection commands
+      libnvdimm, testing: update the default smart ctrl+AF8-temperature
 
->> (snip)
->>> Are all AER errors recoverable?  (is an OS:'fatal' AER error ever valid?)
->>
->> PCIe "fatal" means that your link is gone and you might not get it back.
->> You lose all the downstream devices. You may be able to reset the link
->> and get it back. This sort of "fatal" has no impact on a machine's
->> ability to continue operation.
->>
->> From ACPI, FFS should only send a "fatal" error if a machine needs reset
->> [1], so it's clearly a firmware bug to mark any PCIe error "fatal". This
->> won't stop BIOS vendors from taking shortcuts and deciding to crash an
->> OS by sending the error as "fatal".
->>
->> [1]ACPI 6.2: 18.1Hardware Errors and Error Sources
-> 
-> Great! Its never valid. So we can check the CPER records in the NMI handler, and
-> for AER errors, clear the fatal bit printing a nasty message about the firmware.
+ Documentation/admin-guide/kernel-parameters.txt    +AHw-  11 +-
+ .../devicetree/bindings/pmem/pmem-region.txt       +AHw-  65 +-+-
+ MAINTAINERS                                        +AHw-   8 +-
+ arch/powerpc/platforms/powernv/opal.c              +AHw-   3 +-
+ drivers/acpi/nfit/core.c                           +AHw- 679 +-+-+-+-+-+-+-+-+-+------------
+ drivers/acpi/nfit/mce.c                            +AHw-   5 +--
+ drivers/acpi/nfit/nfit.h                           +AHw-  22 +--
+ drivers/dax/Kconfig                                +AHw-   5 +--
+ drivers/dax/device.c                               +AHw-  38 +--
+ drivers/dax/pmem.c                                 +AHw-  18 +--
+ drivers/dax/super.c                                +AHw-  15 +--
+ drivers/md/Kconfig                                 +AHw-   2 +--
+ drivers/md/dm-linear.c                             +AHw-   6 +-
+ drivers/md/dm-log-writes.c                         +AHw-  95 +---
+ drivers/md/dm-stripe.c                             +AHw-   6 +-
+ drivers/md/dm.c                                    +AHw-  10 +--
+ drivers/nvdimm/Kconfig                             +AHw-  13 +--
+ drivers/nvdimm/Makefile                            +AHw-   1 +-
+ drivers/nvdimm/btt+AF8-devs.c                          +AHw-  21 +--
+ drivers/nvdimm/bus.c                               +AHw-  14 +--
+ drivers/nvdimm/claim.c                             +AHw-   2 +--
+ drivers/nvdimm/core.c                              +AHw-   6 +--
+ drivers/nvdimm/dax+AF8-devs.c                          +AHw-   5 +--
+ drivers/nvdimm/dimm.c                              +AHw-   8 +--
+ drivers/nvdimm/dimm+AF8-devs.c                         +AHw-   7 +--
+ drivers/nvdimm/label.c                             +AHw-  85 +---
+ drivers/nvdimm/label.h                             +AHw-   2 +--
+ drivers/nvdimm/namespace+AF8-devs.c                    +AHw-  42 +--
+ drivers/nvdimm/nd.h                                +AHw-   1 -
+ drivers/nvdimm/of+AF8-pmem.c                           +AHw- 119 +-+-+-+-
+ drivers/nvdimm/pfn+AF8-devs.c                          +AHw-  25 +--
+ drivers/nvdimm/pmem.c                              +AHw-  14 +--
+ drivers/nvdimm/region.c                            +AHw-   4 +--
+ drivers/nvdimm/region+AF8-devs.c                       +AHw-   9 +-
+ drivers/s390/block/Kconfig                         +AHw-   2 +--
+ fs/block+AF8-dev.c                                     +AHw-   5 -
+ fs/dax.c                                           +AHw- 146 +-+-+---
+ fs/ext2/ext2.h                                     +AHw-   1 +-
+ fs/ext2/inode.c                                    +AHw-  46 +--
+ fs/ext2/namei.c                                    +AHw-  18 +--
+ fs/ext4/inode.c                                    +AHw-  42 +--
+ fs/libfs.c                                         +AHw-  39 +-+-
+ fs/xfs/xfs+AF8-aops.c                                  +AHw-  34 +--
+ fs/xfs/xfs+AF8-aops.h                                  +AHw-   1 +-
+ fs/xfs/xfs+AF8-iops.c                                  +AHw-   5 +--
+ include/linux/dax.h                                +AHw-  42 +--
+ include/linux/fs.h                                 +AHw-   4 +-
+ include/linux/libnvdimm.h                          +AHw-   4 +-
+ include/linux/nd.h                                 +AHw-   6 +-
+ include/linux/sched/deadline.h                     +AHw-   6 -
+ include/linux/sched/isolation.h                    +AHw-   1 +-
+ include/linux/sched/nohz.h                         +AHw-   4 -
+ include/linux/tick.h                               +AHw-   4 +--
+ include/linux/wait+AF8-bit.h                           +AHw-  70 +-+-+-
+ kernel/sched/Makefile                              +AHw-   5 +--
+ kernel/sched/autogroup.c                           +AHw-  21 +--
+ kernel/sched/autogroup.h                           +AHw-  12 +--
+ kernel/sched/clock.c                               +AHw-  36 +--
+ kernel/sched/completion.c                          +AHw-   5 +--
+ kernel/sched/core.c                                +AHw- 165 +-+-+---
+ kernel/sched/cpuacct.c                             +AHw-  33 +--
+ kernel/sched/cpudeadline.c                         +AHw-  23 +--
+ kernel/sched/cpudeadline.h                         +AHw-  29 +--
+ kernel/sched/cpufreq.c                             +AHw-   1 -
+ kernel/sched/cpufreq+AF8-schedutil.c                   +AHw- 137 +-+----
+ kernel/sched/cpupri.c                              +AHw-  15 +--
+ kernel/sched/cpupri.h                              +AHw-  25 +--
+ kernel/sched/cputime.c                             +AHw-  58 +--
+ kernel/sched/deadline.c                            +AHw-  78 +---
+ kernel/sched/debug.c                               +AHw-  99 +-+--
+ kernel/sched/fair.c                                +AHw- 299 +-+-+-+-+-----
+ kernel/sched/idle.c                                +AHw- 142 +-+-+-+--
+ kernel/sched/idle+AF8-task.c                           +AHw- 110 ----
+ kernel/sched/isolation.c                           +AHw-  14 +--
+ kernel/sched/loadavg.c                             +AHw-  34 +--
+ kernel/sched/membarrier.c                          +AHw-  27 +--
+ kernel/sched/rt.c                                  +AHw-  51 +--
+ kernel/sched/sched.h                               +AHw- 623 +-+-+-+-+-+-+-+-+-+----------
+ kernel/sched/stats.c                               +AHw-  20 +--
+ kernel/sched/stats.h                               +AHw-  86 +-+--
+ kernel/sched/stop+AF8-task.c                           +AHw-  11 +--
+ kernel/sched/swait.c                               +AHw-   6 +--
+ kernel/sched/topology.c                            +AHw-  46 +--
+ kernel/sched/wait.c                                +AHw-  13 +--
+ kernel/sched/wait+AF8-bit.c                            +AHw-  71 +-+--
+ kernel/time/tick-sched.c                           +AHw-  15 +--
+ kernel/workqueue.c                                 +AHw-   3 +--
+ tools/testing/nvdimm/test/nfit.c                   +AHw- 239 +-+-+-+-+----
+ tools/testing/nvdimm/test/nfit+AF8-test.h              +AHw-  16 +-
+ 89 files changed, 2513 insertions(+-), 1901 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/pmem/pmem-region.txt
+ create mode 100644 drivers/nvdimm/of+AF8-pmem.c
+ delete mode 100644 kernel/sched/idle+AF8-task.c
 
-There's the counter-argument that the machine is a "XYZ" appliance, and
-losing the PCIe link to the "XYZ" device is essentially "fatal" to the
-(purpose of the) machine. As you noted, there is some leeway ;)
-Sarcasm aside, I do like the idea of a message complaining about the
-firmware.
+---
+Test merge diffstat:
 
-(snip)
->> That's the approach I originally tried, but I didn't like it. The
->> parsing gets deeper and deeper, and, by the time you realize if the
->> error can be handled or not, you're already halfway through recovery.
->>
->> This is a perfectly viable approach. However, is there a palpable
->> (non-theoretical) concern that warrants complicating things this way?
-> 
-> For AER your text above says no, we can always handle an error, they are never
-> fatal.
-> 
-> For memory-errors, yes. An ECC error for a location on the kernel stack while
-> the affected thread was preempt_disable()d. We can't kick the thread off the
-> CPU, and we can't return from the handler as we can't stop accesses to the stack
-> when we return.
-> 
-> We can avoid it being complicated by just separating AER errors out when they
-> come in. You've said they never mean the OS has to reboot.
-
-If we're going to split recovery paths, then it makes better sense to
-have a system where handleable errors are passed down to a lesser
-context. Or even run non-blocking handlers in whatever context they are
-received. Much more than having a special case for a specific error.
-
-
-(snip)
->> I abstract things at irq_work_queue(): "queue this work and let me
->> return from this interrupt"
-> 
-> ('from this NMI', to come back later as an IRQ, from where we can call
-> schedule_work_on(). This chaining is because the scheduler takes irqsave
-> spin-locks to schedule the work.)
-
-Hopefully, the handling is set up in such a way that I don't have to
-worry about these details on a per-error basis. If I do have to worry,
-them I must be doing something wrong.
-
-
-(snip)
->> In the event that FFS fails to prevent and SMI storm, and keeps spamming
->> the CPU with NMIs, that is a clear firmware bug. It's also the sort of
->> bug I haven't observed in the wild.
-> 
-> Do these SMI ever occur synchronously with the CPUs execution? i.e. if I execute
-> this instruction, I will get an SMI. (or are these your handled-elsewhere-NMI case?)
-
-I'm not aware of synchronous exceptions that end up as SMIs, though I
-imagine it is possible on x86. An IO write to an SMI trap is equivalent
-to that.
-
-> On arm64 poisoned-cache locations triggering an external abort (leading to a
-> NOTIFY_SEA NMI-like notification to APEI) in response to a load is synchronous,
-> hence the live-lock problem.
-
-How is this currently handled in the kernel-first case?
-
-
-(snip)
-> Maybe. On arm systems error sources might have their own interrupts that are
-> taken to firmware,
-
-That sounds like an even bigger headache than x86.
-
-
->> I am not concert about livelocking the system.
-> 
-> This is what keeps me awake at night.
-
-Nothing keeps me awake at night. I keep others awake at night.
-
-> I think your platform has NMI handled as MCE/kernel-first for synchronous CPU
-> errors. SMI triggered by PCI-AER are notified by NMI too, but handled by
-> firmware-first.
-
-MCEs come in via FFS. There's a school of thought that sees a certain
-value in logging ECC errors to the BMC. It's arguable whether the ECC
-errors are synchronous in 100% of cases.
-
-> This hybrid kernel/firmware first depending on the error-source isn't the only
-> way of building things. Appendix-N of the UEFI spec lists CPER records for
-> firmware-first handling of types of error that your platform must 'handle
-> elsewhere'.
-> 
-> We have arm systems where kernel-first isn't viable as the equivalent of the MCA
-> registers is platform/integration/silicon-revision specific. These systems
-> handle all their errors using firmware-first. These systems will generate CPER
-> records where fatal means fatal, and returning from the NMI-like notification
-> will either send us into the weeds, or trap us back into firmware.
-
-Without getting into details, the non-viablity of kernel-first is
-subjective.
-
-Alex
+ .../devicetree/bindings/pmem/pmem-region.txt       +AHw-  65 +-+-
+ MAINTAINERS                                        +AHw-   8 +-
+ arch/powerpc/platforms/powernv/opal.c              +AHw-   3 +-
+ drivers/acpi/nfit/core.c                           +AHw- 679 +-+-+-+-+-+-+-+-+-+------------
+ drivers/acpi/nfit/mce.c                            +AHw-   5 +--
+ drivers/acpi/nfit/nfit.h                           +AHw-  22 +--
+ drivers/dax/Kconfig                                +AHw-   5 +--
+ drivers/dax/device.c                               +AHw-  38 +--
+ drivers/dax/pmem.c                                 +AHw-  18 +--
+ drivers/dax/super.c                                +AHw-  15 +--
+ drivers/md/Kconfig                                 +AHw-   2 +--
+ drivers/md/dm-linear.c                             +AHw-   6 +-
+ drivers/md/dm-log-writes.c                         +AHw-  95 +---
+ drivers/md/dm-stripe.c                             +AHw-   6 +-
+ drivers/md/dm.c                                    +AHw-  10 +--
+ drivers/nvdimm/Kconfig                             +AHw-  13 +--
+ drivers/nvdimm/Makefile                            +AHw-   1 +-
+ drivers/nvdimm/btt+AF8-devs.c                          +AHw-  21 +--
+ drivers/nvdimm/bus.c                               +AHw-  14 +--
+ drivers/nvdimm/claim.c                             +AHw-   2 +--
+ drivers/nvdimm/core.c                              +AHw-   6 +--
+ drivers/nvdimm/dax+AF8-devs.c                          +AHw-   5 +--
+ drivers/nvdimm/dimm.c                              +AHw-   8 +--
+ drivers/nvdimm/dimm+AF8-devs.c                         +AHw-   7 +--
+ drivers/nvdimm/label.c                             +AHw-  85 +---
+ drivers/nvdimm/label.h                             +AHw-   2 +--
+ drivers/nvdimm/namespace+AF8-devs.c                    +AHw-  42 +--
+ drivers/nvdimm/nd.h                                +AHw-   1 -
+ drivers/nvdimm/of+AF8-pmem.c                           +AHw- 119 +-+-+-+-
+ drivers/nvdimm/pfn+AF8-devs.c                          +AHw-  25 +--
+ drivers/nvdimm/pmem.c                              +AHw-  14 +--
+ drivers/nvdimm/region.c                            +AHw-   4 +--
+ drivers/nvdimm/region+AF8-devs.c                       +AHw-   9 +-
+ drivers/s390/block/Kconfig                         +AHw-   2 +--
+ fs/block+AF8-dev.c                                     +AHw-   5 -
+ fs/dax.c                                           +AHw- 146 +-+-+---
+ fs/ext2/ext2.h                                     +AHw-   1 +-
+ fs/ext2/inode.c                                    +AHw-  46 +--
+ fs/ext2/namei.c                                    +AHw-  18 +--
+ fs/ext4/inode.c                                    +AHw-  42 +--
+ fs/libfs.c                                         +AHw-  39 +-+-
+ fs/xfs/xfs+AF8-aops.c                                  +AHw-  34 +--
+ fs/xfs/xfs+AF8-aops.h                                  +AHw-   1 +-
+ fs/xfs/xfs+AF8-iops.c                                  +AHw-   5 +--
+ include/linux/dax.h                                +AHw-  42 +--
+ include/linux/fs.h                                 +AHw-   4 +-
+ include/linux/libnvdimm.h                          +AHw-   4 +-
+ include/linux/nd.h                                 +AHw-   6 +-
+ tools/testing/nvdimm/test/nfit.c                   +AHw- 239 +-+-+-+-+----
+ tools/testing/nvdimm/test/nfit+AF8-test.h              +AHw-  16 +-
+ 50 files changed, 1217 insertions(+-), 788 deletions(-)
