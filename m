@@ -1,34 +1,108 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/5] libnvdimm: fix locked status detection
-Date: Tue, 10 Apr 2018 15:39:09 -0700
-Message-ID: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/5] libnvdimm, dimm: handle EACCES failures from label reads
+Date: Tue, 10 Apr 2018 15:39:14 -0700
+Message-ID: <152339995442.16061.14476943382736126807.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: stable@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <152339994885.16061.1760220735664848631.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The new ACPI _LSx methods moved the 'dimm locked' error status from the
-result of ND_CMD_GET_CONFIG_SIZE to an error status result of
-ND_CMD_GET_CONFIG_DATA. Error code translation prevents the proper error
-code from making it back to the 'nd_dimm' driver.
+The new support for the standard _LSR and _LSW methods neglected to also
+update the nvdimm_init_config_data() and nvdimm_set_config_data() to
+return the translated error code from failed commands. This precision is
+necessary because the locked status that was previously returned on
+ND_CMD_GET_CONFIG_SIZE commands is now returned on
+ND_CMD_{GET,SET}_CONFIG_DATA commands.
 
-Fix the error code propagation and add some unit test infrastructure for
-regression testing this case.
+If the kernel misses this indication it can inadvertently fall back to
+label-less mode when it should otherwise avoid all access to locked
+regions.
 
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and...")
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/nvdimm/dimm_devs.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-Dan Williams (5):
-      libnvdimm, dimm: handle EACCES failures from label reads
-      tools/testing/nvdimm: allow custom error code injection
-      tools/testing/nvdimm: support nfit_test_dimm attributes under nfit_test.1
-      tools/testing/nvdimm: fix missing newline in nfit_test_dimm 'handle' attribute
-      tools/testing/nvdimm: enable labels for nfit_test.1 dimms
-
-
- drivers/nvdimm/dimm_devs.c       |   22 +++++-----
- tools/testing/nvdimm/test/nfit.c |   84 +++++++++++++++++++++++++++++---------
- 2 files changed, 77 insertions(+), 29 deletions(-)
+diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
+index e00d45522b80..8d348b22ba45 100644
+--- a/drivers/nvdimm/dimm_devs.c
++++ b/drivers/nvdimm/dimm_devs.c
+@@ -88,9 +88,9 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
+ {
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
++	int rc = validate_dimm(ndd), cmd_rc = 0;
+ 	struct nd_cmd_get_config_data_hdr *cmd;
+ 	struct nvdimm_bus_descriptor *nd_desc;
+-	int rc = validate_dimm(ndd);
+ 	u32 max_cmd_size, config_size;
+ 	size_t offset;
+ 
+@@ -124,9 +124,11 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
+ 		cmd->in_offset = offset;
+ 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
+ 				ND_CMD_GET_CONFIG_DATA, cmd,
+-				cmd->in_length + sizeof(*cmd), NULL);
+-		if (rc || cmd->status) {
+-			rc = -ENXIO;
++				cmd->in_length + sizeof(*cmd), &cmd_rc);
++		if (rc < 0)
++			break;
++		if (cmd_rc < 0) {
++			rc = cmd_rc;
+ 			break;
+ 		}
+ 		memcpy(ndd->data + offset, cmd->out_buf, cmd->in_length);
+@@ -140,9 +142,9 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
+ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 		void *buf, size_t len)
+ {
+-	int rc = validate_dimm(ndd);
+ 	size_t max_cmd_size, buf_offset;
+ 	struct nd_cmd_set_config_hdr *cmd;
++	int rc = validate_dimm(ndd), cmd_rc = 0;
+ 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
+ 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+ 
+@@ -164,7 +166,6 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 	for (buf_offset = 0; len; len -= cmd->in_length,
+ 			buf_offset += cmd->in_length) {
+ 		size_t cmd_size;
+-		u32 *status;
+ 
+ 		cmd->in_offset = offset + buf_offset;
+ 		cmd->in_length = min(max_cmd_size, len);
+@@ -172,12 +173,13 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 
+ 		/* status is output in the last 4-bytes of the command buffer */
+ 		cmd_size = sizeof(*cmd) + cmd->in_length + sizeof(u32);
+-		status = ((void *) cmd) + cmd_size - sizeof(u32);
+ 
+ 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
+-				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size, NULL);
+-		if (rc || *status) {
+-			rc = rc ? rc : -ENXIO;
++				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size, &cmd_rc);
++		if (rc < 0)
++			break;
++		if (cmd_rc < 0) {
++			rc = cmd_rc;
+ 			break;
+ 		}
+ 	}
