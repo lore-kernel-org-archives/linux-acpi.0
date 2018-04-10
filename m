@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/5] libnvdimm, dimm: handle EACCES failures from label reads
-Date: Tue, 10 Apr 2018 15:39:14 -0700
-Message-ID: <152339995442.16061.14476943382736126807.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/5] tools/testing/nvdimm: allow custom error code injection
+Date: Tue, 10 Apr 2018 15:39:19 -0700
+Message-ID: <152339995956.16061.8063508678567328863.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152339994885.16061.1760220735664848631.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,91 +18,80 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-The new support for the standard _LSR and _LSW methods neglected to also
-update the nvdimm_init_config_data() and nvdimm_set_config_data() to
-return the translated error code from failed commands. This precision is
-necessary because the locked status that was previously returned on
-ND_CMD_GET_CONFIG_SIZE commands is now returned on
-ND_CMD_{GET,SET}_CONFIG_DATA commands.
+Given that libnvdimm driver stack takes specific actions on DIMM command
+error codes like -EACCES, provide a facility to inject custom failures.
 
-If the kernel misses this indication it can inadvertently fall back to
-label-less mode when it should otherwise avoid all access to locked
-regions.
-
-Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Fixes: 4b27db7e26cd ("acpi, nfit: add support for the _LSI, _LSR, and...")
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/dimm_devs.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |   38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index e00d45522b80..8d348b22ba45 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -88,9 +88,9 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- {
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
-+	int rc = validate_dimm(ndd), cmd_rc = 0;
- 	struct nd_cmd_get_config_data_hdr *cmd;
- 	struct nvdimm_bus_descriptor *nd_desc;
--	int rc = validate_dimm(ndd);
- 	u32 max_cmd_size, config_size;
- 	size_t offset;
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index cb166be4918d..dc6cf5630280 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -138,6 +138,7 @@ static u32 handle[] = {
+ };
  
-@@ -124,9 +124,11 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 		cmd->in_offset = offset;
- 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_GET_CONFIG_DATA, cmd,
--				cmd->in_length + sizeof(*cmd), NULL);
--		if (rc || cmd->status) {
--			rc = -ENXIO;
-+				cmd->in_length + sizeof(*cmd), &cmd_rc);
-+		if (rc < 0)
-+			break;
-+		if (cmd_rc < 0) {
-+			rc = cmd_rc;
- 			break;
- 		}
- 		memcpy(ndd->data + offset, cmd->out_buf, cmd->in_length);
-@@ -140,9 +142,9 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 		void *buf, size_t len)
- {
--	int rc = validate_dimm(ndd);
- 	size_t max_cmd_size, buf_offset;
- 	struct nd_cmd_set_config_hdr *cmd;
-+	int rc = validate_dimm(ndd), cmd_rc = 0;
- 	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(ndd->dev);
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
+ static unsigned long dimm_fail_cmd_flags[NUM_DCR];
++static int dimm_fail_cmd_code[NUM_DCR];
  
-@@ -164,7 +166,6 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 	for (buf_offset = 0; len; len -= cmd->in_length,
- 			buf_offset += cmd->in_length) {
- 		size_t cmd_size;
--		u32 *status;
+ struct nfit_test_fw {
+ 	enum intel_fw_update_state state;
+@@ -892,8 +893,11 @@ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
+ 	if (i >= ARRAY_SIZE(handle))
+ 		return -ENXIO;
  
- 		cmd->in_offset = offset + buf_offset;
- 		cmd->in_length = min(max_cmd_size, len);
-@@ -172,12 +173,13 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+-	if ((1 << func) & dimm_fail_cmd_flags[i])
++	if ((1 << func) & dimm_fail_cmd_flags[i]) {
++		if (dimm_fail_cmd_code[i])
++			return dimm_fail_cmd_code[i];
+ 		return -EIO;
++	}
  
- 		/* status is output in the last 4-bytes of the command buffer */
- 		cmd_size = sizeof(*cmd) + cmd->in_length + sizeof(u32);
--		status = ((void *) cmd) + cmd_size - sizeof(u32);
+ 	return i;
+ }
+@@ -1225,8 +1229,40 @@ static ssize_t fail_cmd_store(struct device *dev, struct device_attribute *attr,
+ }
+ static DEVICE_ATTR_RW(fail_cmd);
  
- 		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
--				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size, NULL);
--		if (rc || *status) {
--			rc = rc ? rc : -ENXIO;
-+				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size, &cmd_rc);
-+		if (rc < 0)
-+			break;
-+		if (cmd_rc < 0) {
-+			rc = cmd_rc;
- 			break;
- 		}
- 	}
++static ssize_t fail_cmd_code_show(struct device *dev, struct device_attribute *attr,
++		char *buf)
++{
++	int dimm = dimm_name_to_id(dev);
++
++	if (dimm < 0)
++		return dimm;
++
++	return sprintf(buf, "%d\n", dimm_fail_cmd_code[dimm]);
++}
++
++static ssize_t fail_cmd_code_store(struct device *dev, struct device_attribute *attr,
++		const char *buf, size_t size)
++{
++	int dimm = dimm_name_to_id(dev);
++	unsigned long val;
++	ssize_t rc;
++
++	if (dimm < 0)
++		return dimm;
++
++	rc = kstrtol(buf, 0, &val);
++	if (rc)
++		return rc;
++
++	dimm_fail_cmd_code[dimm] = val;
++	return size;
++}
++static DEVICE_ATTR_RW(fail_cmd_code);
++
++
+ static struct attribute *nfit_test_dimm_attributes[] = {
+ 	&dev_attr_fail_cmd.attr,
++	&dev_attr_fail_cmd_code.attr,
+ 	&dev_attr_handle.attr,
+ 	NULL,
+ };
