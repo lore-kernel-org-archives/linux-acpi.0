@@ -1,95 +1,73 @@
-From: Dennis Gilmore <dgilmore@redhat.com>
-Subject: issues with suspend on Dell XPS 13 2-in-1
-Date: Fri, 13 Apr 2018 21:02:52 -0500
-Message-ID: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL V3] Thermal SoC management updates for v4.17-rc1
+Date: Sat, 14 Apr 2018 11:30:53 -0700
+Message-ID: <20180414183051.GA27921@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Mario Limonciello <mario.limonciello@dell.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+Hello Linus,
 
-I have a Dell XPS 13 2-in-1 (9365) that when I supend gets warm and has
-much shorter than expected battery life, it is about the same as if the
-laptop just runs. I am currently running Fedora 28 with 4.16.2 kernel.
+Please find thermal-soc changes for v4.17-rc1.
+Rui asked me to send the pull request directly to you
+as we are close to the end of the merge window.
+Essentially this pull removes the series that caused
+warning regression. I will work with the developer
+to get that fixed later on, but I am still sending
+the other few patches that are unrelated to that.
+Let me know if this causes any issues and can still
+be pulled.
 
-My laptop has NVMe for storage and is configured for AHCI mode in the
-bios.
+Changelog:
+- New i.MX7 thermal sensor
+- Mediatek driver now supports MT7622 SoC
+- Removal of min max cpu cooling DT property
 
-powertop by default shows
->> Bad           VM writeback timeout            
-   Bad           NMI watchdog should be turned off
-   Bad           Autosuspend for unknown USB device 1-7 (138a:0091)
-   Bad           Runtime PM for I2C Adapter i2c-0 (i915 gmbus dpc)
-   Bad           Runtime PM for I2C Adapter i2c-1 (i915 gmbus dpb)
-   Bad           Runtime PM for I2C Adapter i2c-2 (i915 gmbus dpd)
-   Bad           Runtime PM for PCI Device Intel Corporation Wireless
-8265 / 8275
-   Bad           Runtime PM for PCI Device Intel Corporation Device
-590c
-   Bad           Runtime PM for PCI Device Realtek Semiconductor Co.,
-Ltd. RTS525A PCI Express Card Reader
-   Bad           Runtime PM for PCI Device Intel Corporation Device
-9d3d
-   Bad           Runtime PM for PCI Device Sandisk Corp WD Black NVMe
-SSD
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP PCI Express Root Port #9
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP Thermal subsystem
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP USB 3.0 xHCI Controller
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP PMC
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP HD Audio
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP PCI Express Root Port #1
-   Bad           Runtime PM for PCI Device Intel Corporation Device
-9d4b
-   Bad           Runtime PM for PCI Device Intel Corporation Xeon E3-
-1200 v5/E3-1500 v5/6th Gen Core Processor Thermal Subsystem
-   Bad           Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP Integrated Sensor Hub
-   Bad           Runtime PM for PCI Device Intel Corporation Device
-591e
-   Good          Bluetooth device interface status
-   Good          Enable Audio codec power management
-   Good          Runtime PM for I2C Adapter i2c-8 (Synopsys DesignWare
-I2C adapter)
-   Good          Autosuspend for USB device Integrated_Webcam_HD
-[CNFGE16N092020028362]
-   Good          Autosuspend for USB device xHCI Host Controller [usb1]
-   Good          Autosuspend for USB device xHCI Host Controller [usb2]
-   Good          Runtime PM for I2C Adapter i2c-7 (SMBus I801 adapter
-at efa0)
-   Good          Autosuspend for unknown USB device 1-2 (8087:0a2b)
-   Good          Runtime PM for I2C Adapter i2c-6 (Synopsys DesignWare
-I2C adapter)
-   Good          I2C Device i2c-DLL077A:01 has no runtime power
-management
-   Good          I2C Device i2c-WCOM482F:00 has no runtime power
-management
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP PCI Express Root Port #10
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP CSME HECI #1
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP Serial IO I2C Controller #1
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP SMBus
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP PCI Express Root Port #5
-   Good          Runtime PM for PCI Device Intel Corporation Sunrise
-Point-LP Serial IO I2C Controller #0
-   Good          Wake-on-lan status for device virbr0-nic
-   Good          Wake-on-lan status for device virbr0
-   Good          Wake-on-lan status for device wlp60s0
+Differences in V3:
+- Rebased on top current linus/master, to avoid and merge issues
+from previous pulled thermal code.
 
-Regards
+Differences in V2:
+- Reordered the patches to drop exynos changes for now until we get
+agreement on the fix on that driver for the compilation warns
+caused by the confusing conversion functions.
 
-Dennis
+
+The following changes since commit 48023102b7078a6674516b1fe0d639669336049d:
+
+  Merge branch 'overlayfs-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs (2018-04-13 16:55:41 -0700)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+
+for you to fetch changes up to 15a32df1918259be6c23fc36014fc26ee66c836c:
+
+  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties (2018-04-14 09:37:55 -0700)
+
+----------------------------------------------------------------
+Anson Huang (1):
+      thermal: imx: add i.MX7 thermal sensor support
+
+Bartlomiej Zolnierkiewicz (1):
+      dt-bindings: thermal: remove no longer needed samsung thermal properties
+
+Sean Wang (2):
+      dt-bindings: thermal: add binding for MT7622 SoC
+      thermal: mediatek: add support for MT7622 SoC
+
+Viresh Kumar (1):
+      dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
+
+ .../devicetree/bindings/thermal/exynos-thermal.txt |  23 +-
+ .../devicetree/bindings/thermal/imx-thermal.txt    |   9 +-
+ .../bindings/thermal/mediatek-thermal.txt          |   1 +
+ .../devicetree/bindings/thermal/thermal.txt        |  16 +-
+ drivers/thermal/imx_thermal.c                      | 295 ++++++++++++++++-----
+ drivers/thermal/mtk_thermal.c                      |  35 +++
+ 6 files changed, 281 insertions(+), 98 deletions(-)
