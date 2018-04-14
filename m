@@ -1,73 +1,82 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL V3] Thermal SoC management updates for v4.17-rc1
-Date: Sat, 14 Apr 2018 11:30:53 -0700
-Message-ID: <20180414183051.GA27921@localhost.localdomain>
+From: James Hogan <jhogan@kernel.org>
+Subject: [REGRESSION] [v2] ACPI / video: Default lcd_only to true on Win8
+ ready and newer machines
+Date: Sun, 15 Apr 2018 00:07:46 +0100
+Message-ID: <20180414230746.GA29537@saruman>
+References: <20171223184147.12016-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="EeQfGwPcQSOJBaQU"
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <20171223184147.12016-1-hdegoede@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Sasha Levin <alexander.levin@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Linus,
 
-Please find thermal-soc changes for v4.17-rc1.
-Rui asked me to send the pull request directly to you
-as we are close to the end of the merge window.
-Essentially this pull removes the series that caused
-warning regression. I will work with the developer
-to get that fixed later on, but I am still sending
-the other few patches that are unrelated to that.
-Let me know if this causes any issues and can still
-be pulled.
+--EeQfGwPcQSOJBaQU
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Changelog:
-- New i.MX7 thermal sensor
-- Mediatek driver now supports MT7622 SoC
-- Removal of min max cpu cooling DT property
+On Sat, Dec 23, 2017 at 07:41:47PM +0100, Hans de Goede wrote:
+> We're seeing a lot of bogus backlight interfaces on newer machines without
+> a LCD such as desktops, servers and HDMI sticks. This causes userspace to
+> show a non-functional brightness slider in e.g. the GNOME3 system menu,
+> which is undesirable. More in general we should simply just not register
+> a non functional backlight interface.
+>=20
+> Checking the lcd flag causes the bogus acpi_video backlight interfaces to
+> go away (on the machines this was tested on).
+>=20
+> This commit enables the lcd_only option by default on any machines which
+> are win8 ready, fixing this.
+>=20
+> This is not entirely without risk of regressions, but video_detect.c
+> already prefers native-backlight interfaces over the acpi_video one
+> on win8 ready machines, calling acpi_video_unregister_backlight() as soon
+> as a native interface shows up. This is done because the acpi backlight
+> interface often is broken on win8 ready machines, because win8 does not
+> seem to actually use it.
 
-Differences in V3:
-- Rebased on top current linus/master, to avoid and merge issues
-from previous pulled thermal code.
+This patch (in the form of commit 965736ee654d ("ACPI / video: Default
+lcd_only to true on Win8-ready and newer machines") in stable v4.15.17),
+breaks backlight control on my 2013 XPS13 laptop.
 
-Differences in V2:
-- Reordered the patches to drop exynos changes for now until we get
-agreement on the fix on that driver for the compilation warns
-caused by the confusing conversion functions.
+It normally uses the acpi backlight device, but after this patch that
+device no longer shows up in sysfs.
 
+This isn't the first time the backlight has gotton broken on this
+system, though I think last time it was because the intel backlight
+driver got used instead of the ACPI one and that didn't work properly
+with it, so it needed a quirk to make it use ACPI instead.
 
-The following changes since commit 48023102b7078a6674516b1fe0d639669336049d:
+Is some other quirk needed around here too?
 
-  Merge branch 'overlayfs-linus' of git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs (2018-04-13 16:55:41 -0700)
+Cheers
+James
 
-are available in the git repository at:
+--EeQfGwPcQSOJBaQU
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+-----BEGIN PGP SIGNATURE-----
 
-for you to fetch changes up to 15a32df1918259be6c23fc36014fc26ee66c836c:
+iQIzBAEBCAAdFiEEd80NauSabkiESfLYbAtpk944dnoFAlrSibsACgkQbAtpk944
+dnpMehAAq6g62xhJiZ8O8kQvGm76rK2vWBHo9BAZMCOKMv33jE+DPiCM738OxlaI
+AJaihkP5wZoZMf8lwB25FUo+bGkpuNjXN2XthKhHefHAk+DNptOIyVNIiZ1Qk3pV
+ycp9HOs5lfEoF9L1i/1/wfbAMJ/1ag/Svmbrm8UPf9Y5xAGMHwBg5+NbzBKrUf8b
+kaJyHsI29argdEG0Th/oqZ0H+XTT2T1ZouVfrZED9m3W2zdFOny2reiqosULgPCd
+l9ciyluKDeUCSGZjiVh7tb0Gdh7y+barObL+KxogRriwF/AP3SKjUNd/k7u6Hioh
+DbYnTOa9pGCAC/rxAAwbXBYn6p3xhUXTlwtBvElguaCWzJF3oswSUEb7HiKh6Q7J
+pKpepjqHJIgWkRXlrsRQ7AyZs0vfBjEW9Gp3BLaXTEQf8tLD5fXsA/M6mmyuRXgk
+nIKdgbT0VYXeMAo3pO5nf830xbHlXJoZ2rvthW8HS+2ROIRnSPPs0An7cRefdmfM
+uLdD/kVeEqI4WRHKBemOrOtVIBmUjCBwp1BRhchMRrV/MnNPvVfN1ZZLa1CBgwwY
+wcPHeZ40TWvJ0ai2fTpIMx9Uux/+z7FGiKDXejrSrFvdtbuOUg405tEp9Ku11ckJ
+RoC26t0lLhvy4WLmANHw9S/4v7zo0CZD1yznviOxxOv17wL0fjk=
+=Q+fX
+-----END PGP SIGNATURE-----
 
-  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties (2018-04-14 09:37:55 -0700)
-
-----------------------------------------------------------------
-Anson Huang (1):
-      thermal: imx: add i.MX7 thermal sensor support
-
-Bartlomiej Zolnierkiewicz (1):
-      dt-bindings: thermal: remove no longer needed samsung thermal properties
-
-Sean Wang (2):
-      dt-bindings: thermal: add binding for MT7622 SoC
-      thermal: mediatek: add support for MT7622 SoC
-
-Viresh Kumar (1):
-      dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
-
- .../devicetree/bindings/thermal/exynos-thermal.txt |  23 +-
- .../devicetree/bindings/thermal/imx-thermal.txt    |   9 +-
- .../bindings/thermal/mediatek-thermal.txt          |   1 +
- .../devicetree/bindings/thermal/thermal.txt        |  16 +-
- drivers/thermal/imx_thermal.c                      | 295 ++++++++++++++++-----
- drivers/thermal/mtk_thermal.c                      |  35 +++
- 6 files changed, 281 insertions(+), 98 deletions(-)
+--EeQfGwPcQSOJBaQU--
