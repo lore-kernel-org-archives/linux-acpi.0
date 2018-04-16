@@ -1,70 +1,54 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [RFC PATCH v2 1/4] EDAC, GHES: Remove unused argument to ghes_edac_report_mem_error
-Date: Mon, 16 Apr 2018 16:59:00 -0500
-Message-ID: <20180416215903.7318-2-mr.nuke.me@gmail.com>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180416215903.7318-1-mr.nuke.me@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>
+From: "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2 5/7] ACPICA: Integrate package handling with
+ module-level code
+Date: Mon, 16 Apr 2018 23:15:49 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED539727606@ORSMSX110.amr.corp.intel.com>
+References: <20180215210932.15490-1-erik.schmauss@intel.com>
+ <CAPcyv4hp_pm2n3H_froFkedd_GMQvsrEc8yZxYzfYkPDYvjDww@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED5397230D6@ORSMSX110.amr.corp.intel.com>
+ <3701399.BBZtpt46yJ@aspire.rjw.lan>
+ <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Moore,
+ Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 2 +-
- drivers/edac/ghes_edac.c | 3 +--
- include/acpi/ghes.h      | 5 ++---
- 3 files changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 1efefe919555..f9b53a6f55f3 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -481,7 +481,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
- 			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
- 
--			ghes_edac_report_mem_error(ghes, sev, mem_err);
-+			ghes_edac_report_mem_error(sev, mem_err);
- 
- 			arch_apei_report_mem_error(sev, mem_err);
- 			ghes_handle_memory_failure(gdata, sev);
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 68b6ee18bea6..32bb8c5f47dc 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -172,8 +172,7 @@ static void ghes_edac_dmidecode(const struct dmi_header *dh, void *arg)
- 	}
- }
- 
--void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
--				struct cper_sec_mem_err *mem_err)
-+void ghes_edac_report_mem_error(int sev, struct cper_sec_mem_err *mem_err)
- {
- 	enum hw_event_mc_err_type type;
- 	struct edac_raw_error_desc *e;
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 8feb0c866ee0..e096a4e7f611 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -55,15 +55,14 @@ enum {
- /* From drivers/edac/ghes_edac.c */
- 
- #ifdef CONFIG_EDAC_GHES
--void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
--				struct cper_sec_mem_err *mem_err);
-+void ghes_edac_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
- 
- int ghes_edac_register(struct ghes *ghes, struct device *dev);
- 
- void ghes_edac_unregister(struct ghes *ghes);
- 
- #else
--static inline void ghes_edac_report_mem_error(struct ghes *ghes, int sev,
-+static inline void ghes_edac_report_mem_error(int sev,
- 				       struct cper_sec_mem_err *mem_err)
- {
- }
--- 
-2.14.3
+WyB0cmltbWluZyBdDQo+ID4+IFJhZmFlbCwgd2UgbWF5IHdhbnQgdG8gaG9sZCBiYWNrIG9uIHRo
+ZSBtb2R1bGUtbGV2ZWwgY29kZSBjaGFuZ2VzDQo+ID4+ICh0aGUgcGF0Y2hlcyBiZWxvdykgZm9y
+IHJjMS4gQmV0d2VlbiB0aGlzIGFuZCB0aGUgc3RyYW5nZSBfVFNTIGlzc3VlLA0KPiA+PiBpdCBz
+ZWVtcyBsaWtlIHRoZXJlIGFyZSBhIGZldyBtb3JlIHRoaW5ncyB0byByZXNvbHZlIGJlZm9yZSB0
+aGlzIGlzDQo+ID4+IHJlYWR5IGZvciBrZXJuZWwgdXBzdHJlYW0uDQo+ID4NCkhpIFJhZmFlbCwN
+Cg0KPiA+IEl0IGxvb2tzIGxpa2UgeW91IGFyZSBhc2tpbmcgbWUgdG8gcXVldWUgdXAgcmV2ZXJ0
+cyBhcyBwZXIgdGhlIERhbidzDQo+ID4gcmVwb3J0LCBpcyB0aGF0IGNvcnJlY3Q/DQoNClRoaXMg
+aXMgaW5kZWVkIHdoYXQgSSBtZWFudCBsYXN0IHdlZWsuIEhvd2V2ZXIsIEkndmUgbG9va2VkIGlu
+dG8gdGhlIGlzc3VlIGFuZCBEYW4ncyBxZW11DQppbnN0YW5jZSBoYWQgQU1MIHRoYXQgd2Ugbm8g
+bG9uZ2VyIHN1cHBvcnQuIFRoaXMgaXMgYmVjYXVzZSB0aGUgQUNQSUNBIGNvbW1pdCBtYWtlcyBj
+aGFuZ2VzIHRvIHRoZSBleGVjdXRpb24gb2YgQU1MDQpkdXJpbmcgdGFibGUgbG9hZCB0byBtYXRj
+aCB3aW5kb3dzIEFNTCBpbnRlcnByZXRlciBiZWhhdmlvciBzbyB0aGlzIGNvbW1pdCBhbHNvIGdv
+dCByaWQgb2Ygc3VwcG9ydCBmb3IgZXhlY3V0aW5nIGNvZGUNCmNvbnRhaW5pbmcgZm9yd2FyZCBy
+ZWZlcmVuY2VzIChleGNlcHQgZm9yIHBhY2thZ2UgZWxlbWVudHMpLg0KDQpJJ3ZlIHN1Z2dlc3Rl
+ZCBhIGZpeCBmb3IgdGhlIGZpcm13YXJlIGluIGEgc2VwYXJhdGUgZW1haWwuIFNvIEkgd291bGQg
+c2F5IHRoYXQgdGhpcyBpc3N1ZSBpcyByZXNvbHZlZCBhZnRlciBpZiBEYW4gY2FuIHJ1bg0KaGlz
+IHRlc3Qgc3VjY2Vzc2Z1bGx5IHdpdGggdGhlIGFkanVzdGVkIGZpcm13YXJlLg0KDQpJZiBEYW4n
+cyB0ZXN0IGlzIHN1Y2Nlc3NmdWwsIHdlIGRvbuKAmXQgbmVlZCB0byByZXZlcnQgdGhlc2UgY2hh
+bmdlcw0KDQpFcmlrDQoNCj4gDQo+IE5vdGUsIHRoYXQgSSdtIHdpbGxpbmcgdG8gdHJ5IGFueSBw
+cm9wb3NlZCBmaXggcGF0Y2hlcyBvbiB0b3AuIEkganVzdCB3YW50ZWQgdG8NCj4gY2xhcmlmeSB0
+aGF0IHdlIGhhdmUgYSBzaW1wbGUgZmFsbGJhY2sgcG9zaXRpb24gaWYgdGhlIGRlYnVnIHN0YXJ0
+cyBkcmFnZ2luZyBvdXQuDQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
+cmcKaHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
