@@ -1,78 +1,40 @@
-From: Joseph Salisbury <joseph.salisbury@canonical.com>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Mon, 16 Apr 2018 12:48:18 -0400
-Message-ID: <63ab8099-1c33-50dd-8c79-e02d55fe9f81@canonical.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
- <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
- <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [RFC PATCH v2 0/4] acpi: apei: Improve error handling with firmware-first
+Date: Mon, 16 Apr 2018 16:58:59 -0500
+Message-ID: <20180416215903.7318-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net
+To: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
-> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
-> <joseph.salisbury@canonical.com> wrote:
->> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
->>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
->>> <joseph.salisbury@canonical.com> wrote:
->>>> Hi Rafael,
->>>>
->>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
->>>> bisect, it was found that reverting the following two commits resolved
->>>> this bug:
->>>>
->>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
->>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
->>>>
->>>> This is a regression introduced in v4.13-rc1 and still exists in
->>>> mainline.  The bug causes the battery to drain when the system is
->>>> powered down and unplugged, which does not happed prior to these two
->>>> commits.
->>> What system and what do you mean by "powered down"?  How much time
->>> does it take for the battery to drain now?
->> By powered down, the bug reporter is saying physically powered off and
->> unplugged.  The system is a HP laptop:
->>
->> dmi.chassis.vendor: HP
->> dmi.product.family: 103C_5335KV HP Notebook
->> dmi.product.name: HP Notebook
->> vendor_id    : GenuineIntel
->> cpu family    : 6
->>
->>
->>>> The bisect actually pointed to commit de3ef1e, but reverting
->>>> these two commits fixes the issue.
->>>>
->>>> I was hoping to get your feedback, since you are the patch author.  Do
->>>> you think gathering any additional data will help diagnose this issue,
->>>> or would it be best to submit a revert request?
->>> First, reverting these is not an option or you will break systems
->>> relying on them now.  4.13 is three releases back at this point.
->>>
->>> Second, your issue appears to be related to the suspend/shutdown path
->>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
->>> change in pci_enable_wake() causes the problem to happen.  Can you try
->>> to revert this one alone and see if that helps?
->> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
->> tested.  However, the test kernel still exhibited the bug.
-> So essentially the bisection result cannot be trusted.
-Yes, the bisect results were different than usual.  The bisect reported
-commit de3ef1eb1cd0 as the first bad commit.  I could not revet commit
-de3ef1eb1cd0 without either back porting  the revert of that commit or
-reverting 0ce3fcaff929 first.  However, the bug still happened with
-these two reverted.  I needed to revert 0847684cfc5f and 0ce3fcaff929
-for the bug to go away.  I reverted 0ce3fcaff929 in this case to also
-avoid having to back port the revert of 0847684cfc5f.  I was unsure if
-these unexpected results were due to the interaction/dependency between
-the commits or due to inaccurate testing by the end user.
+Or "acpi: apei: Don't let puny firmware crash us with puny errors"
 
-I'll build some more test kernels and have the user perform some more
-testing to see if the bug can be specifically narrowed down to 0847684cfc5f.
+This is the improved implementation following feedback from James Morse
+(thanks James!). This implementation, I think, is more modular, and easier to
+follow, and just makes more sense.
+
+I'm leaving this as RFC because the BIOS team is a bit scared of an OS
+that won't crash when it's told to. However, if people like the idea, then
+I have nothing against merging this.
+
+Changes since v1:
+ - Due to popular request, the panic() is left in the NMI handler
+ - GHES AER handler is split into NMI and non-NMI portions
+ - ghes_notify_nmi() does not panic on deferrable errors
+ - The handlers are put in a mapping and given a common call signature
+
+Alexandru Gagniuc (4):
+  EDAC, GHES: Remove unused argument to ghes_edac_report_mem_error
+  acpi: apei: Split GHES handlers outside of ghes_do_proc
+  acpi: apei: Do not panic() when correctable errors are marked as
+    fatal.
+  acpi: apei: Warn when GHES marks correctable errors as "fatal"
+
+ drivers/acpi/apei/ghes.c | 132 ++++++++++++++++++++++++++++++++++++++++-------
+ drivers/edac/ghes_edac.c |   3 +-
+ include/acpi/ghes.h      |   5 +-
+ 3 files changed, 117 insertions(+), 23 deletions(-)
+
+-- 
+2.14.3
