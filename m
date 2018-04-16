@@ -1,142 +1,253 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [RFC PATCH v2 2/4] acpi: apei: Split GHES handlers outside of ghes_do_proc
-Date: Mon, 16 Apr 2018 16:59:01 -0500
-Message-ID: <20180416215903.7318-3-mr.nuke.me@gmail.com>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [RFC PATCH 3/4] acpi: apei: Do not panic() in NMI because of GHES
+ messages
+Date: Mon, 16 Apr 2018 16:59:29 -0500
+Message-ID: <70c0a230-945a-3a1a-7c49-4b0784a3cfa6@gmail.com>
+References: <20180403170830.29282-1-mr.nuke.me@gmail.com>
+ <20180403170830.29282-4-mr.nuke.me@gmail.com>
+ <338e9bb4-a837-69f9-36e5-5ee2ddcaaa38@arm.com>
+ <d6492b41-612a-b256-44c9-4ff3b3d5ae4b@gmail.com>
+ <e65986c8-55a1-14c4-5c06-f34fa25916d8@arm.com>
+ <9e29e5c6-b942-617e-f92e-728627799506@gmail.com>
+ <cdea7af5-6c9b-10c5-a9a9-1481446c65a8@arm.com>
+ <2120d34a-41d2-9fff-2710-d11e9a19e12a@gmail.com>
+ <855860ef-f84e-00af-ed44-55d6a5a41a94@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+In-Reply-To: <855860ef-f84e-00af-ed44-55d6a5a41a94@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>
+To: James Morse <james.morse@arm.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, tbaicar@codeaurora.org, will.deacon@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com
 List-Id: linux-acpi@vger.kernel.org
 
-Use a mapping from CPER UUID to get the correct handler for a given
-GHES error. This is in preparation of splitting some handlers into
-irq safe and regular parts.
+On 04/13/2018 11:38 AM, James Morse wrote:
+> Hi Alex,
+> 
+> On 09/04/18 19:11, Alex G. wrote:
+>> On 04/06/2018 01:24 PM, James Morse wrote:
+>> Do you have any ETA on when your SEA patches are going to make it
+>> upstream? There's not much point in updating my patchset if it's going
+>> to conflict with your work.
+> 
+> The SEA stuff went in with 7edda0886bc3 ("acpi: apei: handle SEA notification
+> type for ARMv8"). My series is moving it to use the estatus-queue in the same
+> way as x86's NOTIFY_NMI does. This lets us safely add the other two NMI-like
+> notifications. I have no idea on the ETA, it depends on review feedback!
 
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 78 ++++++++++++++++++++++++++++++++++++++----------
- 1 file changed, 63 insertions(+), 15 deletions(-)
+Okay. I'll get a v2 out soonish then.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index f9b53a6f55f3..2119c51b4a9e 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -414,6 +414,25 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
- #endif
- }
- 
-+static int ghes_handle_arm(struct acpi_hest_generic_data *gdata, int sev)
-+{
-+	struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
-+
-+	log_arm_hw_error(err);
-+	return ghes_severity(gdata->error_severity);
-+}
-+
-+static int ghes_handle_mem(struct acpi_hest_generic_data *gdata, int sev)
-+{
-+	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
-+
-+	ghes_edac_report_mem_error(sev, mem_err);
-+	arch_apei_report_mem_error(sev, mem_err);
-+	ghes_handle_memory_failure(gdata, sev);
-+
-+	return ghes_severity(gdata->error_severity);
-+}
-+
- /*
-  * PCIe AER errors need to be sent to the AER driver for reporting and
-  * recovery. The GHES severities map to the following AER severities and
-@@ -428,7 +447,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
-  * GHES_SEV_PANIC does not make it to this handling since the kernel must
-  *     panic.
-  */
--static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
-+static int ghes_handle_aer(struct acpi_hest_generic_data *gdata, int sev)
- {
- #ifdef CONFIG_ACPI_APEI_PCIEAER
- 	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-@@ -456,14 +475,54 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- 				  (struct aer_capability_regs *)
- 				  pcie_err->aer_info);
- 	}
-+
-+	return GHES_SEV_CORRECTED;
- #endif
-+	return ghes_severity(gdata->error_severity);
- }
- 
-+/**
-+ * ghes_handler - handler for ACPI APEI errors
-+ * @error_uuid: UUID describing the error entry (See ACPI/EFI CPER for details)
-+ * @handle: Handler for the GHES entry of type 'error_uuid'. The handler
-+ *	returns the severity of the error after handling. A handler is allowed
-+ *	to demote errors to correctable or corrected, as appropriate.
-+ */
-+static const struct ghes_handler {
-+	const guid_t *error_uuid;
-+	int (*handle_irqsafe)(struct acpi_hest_generic_data *gdata, int sev);
-+	int (*handle)(struct acpi_hest_generic_data *gdata, int sev);
-+} ghes_handlers[] = {
-+	{
-+		.error_uuid = &CPER_SEC_PLATFORM_MEM,
-+		.handle = ghes_handle_mem,
-+	}, {
-+		.error_uuid = &CPER_SEC_PCIE,
-+		.handle = ghes_handle_aer,
-+	}, {
-+		.error_uuid = &CPER_SEC_PROC_ARM,
-+		.handle = ghes_handle_arm,
-+	}
-+};
-+
-+static const struct ghes_handler *get_handler(const guid_t *type)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < ARRAY_SIZE(ghes_handlers); i++) {
-+		if (guid_equal(type, ghes_handlers[i].error_uuid))
-+			return &ghes_handlers[i];
-+	}
-+	return NULL;
-+}
-+
-+
- static void ghes_do_proc(struct ghes *ghes,
- 			 const struct acpi_hest_generic_status *estatus)
- {
- 	int sev, sec_sev;
- 	struct acpi_hest_generic_data *gdata;
-+	const struct ghes_handler *handler;
- 	guid_t *sec_type;
- 	guid_t *fru_id = &NULL_UUID_LE;
- 	char *fru_text = "";
-@@ -478,21 +537,10 @@ static void ghes_do_proc(struct ghes *ghes,
- 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
- 			fru_text = gdata->fru_text;
- 
--		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
--			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
--
--			ghes_edac_report_mem_error(sev, mem_err);
--
--			arch_apei_report_mem_error(sev, mem_err);
--			ghes_handle_memory_failure(gdata, sev);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
--			ghes_handle_aer(gdata);
--		}
--		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
--			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
- 
--			log_arm_hw_error(err);
-+		handler = get_handler(sec_type);
-+		if (handler) {
-+			sec_sev = handler->handle(gdata, sev);
- 		} else {
- 			void *err = acpi_hest_get_payload(gdata);
- 
--- 
-2.14.3
+(snip)
+> This assumes a cache-invalidate will clear the error, which I don't think we're
+> guaranteed on arm.
+> It also destroys any adjacent data, "everyone's happy" includes the thread that
+> got a chunk of someone-else's stack frame, I don't think it will be happy for
+> very long!
+
+Hmm, no cache-line (or page) invalidation on arm64? How does
+dma_map/unmap_*() work then? You may not guarantee to fix the error, but
+I don't buy into the "let's crash without trying" argument.
+
+> (this is a side issue for AER though)
+
+Somebody muddled up AER with these tables, so we now have to worry about
+it. :)
+
+(snip)
+>> How does FFS handle race conditions that can occur when accessing HW
+>> concurrently with the OS? I'm told it's the main reasons why BIOS
+>> doesn't release unused cores from SMM early.
+> 
+> This is firmware's problem, it depends on whether there is any hardware that is
+> shared with the OS. Some hardware can be marked 'secure' in which case only
+> firmware can access it, alternatively firmware can trap or just disable the OS's
+> access to the shared hardware.
+
+It's everyone's problem. It's the firmware's responsibility.
+
+> For example, with the v8.2 RAS Extensions, there are some per-cpu error
+> registers. Firmware can disable these for the OS, so that it always reads 0 from
+> them. Instead firmware takes the error via FF, reads the registers from
+> firmware, and dumps CPER records into the OS's memory.
+> 
+> If there is a shared hardware resource that both the OS and firmware may be
+> accessing, yes firmware needs to pull the other CPUs in, but this depends on the
+> SoC design, it doesn't necessarily happen.
+
+The problem with shared resources is just a problem. I've seen systems
+where all 100 cores are held up for 300+ ms. In latency-critical
+applications reliability drops exponentially. Am I correct in assuming
+your answer would be to "hide" more stuff from the OS?
+
+
+(snip)
+> Sure, we're quirking our behaviour based on a high level of mistrust for the
+> firmware. My point here was we shouldn't duplicate the implementation because we
+> want x86:{AER,CPU,MEM} to behave differently to arm64:{AER,CPU,MEM}. I'd rather
+> the quirked-behaviour was along the *:{AER} versus *:{CPU,MEM} line. If we have
+> extra code to spot deferrable errors, we should use it on both architectures.
+
+It's a well earned and well deserved mistrust. Firmware is evil (*).
+
+(*) sarcastic overstatement of facts
+
+
+(snip)
+> For AER we agree, these never mean 'the CPU is on fire'.
+
+Sounds like a good marketing slogan:
+"ACME's new turbo-encabulated CPU -- it's on fire!"
+
+
+(snip)
+>>> even if broken firmware thinks they are fatal.
+> 
+>> I think the idea of firmware-first is broken. But it's there, it's
+>> shipping in FW, so we have to accommodate it in SW.
+> 
+> Part of our different-views here is firmware-first is taking something away from
+> you, whereas for me its giving me information that would otherwise be in
+> secret-soc-specific registers.
+
+Under this interpretation, FFS is a band-aid to the problem of "secret"
+registers. "Secret" hardware doesn't really fit well into the idea of an
+OS [1]. The irony of the solution is that the response is centered on
+firmware extensions which were designed to stile interoperability [2].
+
+You are right, FFS is a poopstorm and headache for me. It takes my
+sanity away. I once wrote FW for a laptop where the only use of SMM was
+to run the "Enable ACPI" call -- which only disabled further SMM. We
+didn't need an iota of FFS because at that time AMD wasn't secretive,
+and there was no need to have "secret" registers in the first place.
+
+[1] https://www.youtube.com/watch?v=_36yNWw_07g
+[2]
+http://antitrust.slated.org/www.iowaconsumercase.org/011607/3000/PX03020.pdf
+
+(snip)
+>> And linux can handle a wide subset of MCEs just fine, so the
+>> ghes_is_deferrable() logic would, under my argument, agree to pass
+>> execution to the actual handlers.
+> 
+> For some classes of error we can't safely get there.
+
+Optimize for the common case.
+
+(snip)
+>> Though in that case, the problem is generalized to "how to best handle
+>> error Y", rather than "how to handle error Y in FFS".
+> 
+> (that's a good thing yes?) I assume x86 can take MCE errors out of IRQ-masked
+> code. Sharing the handle_foo_error_nmi() code between the two paths would be a
+> good thing.
+
+That's a good thing, yes. But, by ignorance, FFS doesn't always let you
+do this. Getting to your kernel data structures is not IRQ-safe in the
+general case. In the AER case, you need pci_get_domain_bus_and_slot(),
+which is not IRQ-safe. So, while in the native case, you can stage
+context pointers, and separate things based on interrupt vector, you
+don't get this sort of flexibility with FFS.
+
+There is the extra step of recovering your context, which is not the
+sort of situation you often get with kernel-first. Most of the
+discussion has been around whether to crash before we even get this
+context. Stay tuned for v2 though.
+
+(snip)
+>> Sarcasm aside, I do like the idea of a message complaining about the
+>> firmware.
+> 
+> It wouldn't be appropriate in all cases, but for AER it looks like 'fatal' is
+> always an over-reaction.
+> For example, given a memory error firmware can't know whether we can re-read
+> some page of kernel memory from disk and then reschedule the thread.
+
+If firmware can't know the error is recoverable, it also can't know it's
+fatal. When firmware does try to make a determination from insufficient
+information, it opens itself up to sarky remarks. That's fair game.
+
+(snip)
+>> If we're going to split recovery paths, then it makes better sense to
+>> have a system where handleable errors are passed down to a lesser
+>> context. Or even run non-blocking handlers in whatever context they are
+>> received. Much more than having a special case for a specific error.
+> 
+> Yes. I think running the NMI-safe parts of the handler first, then the IRQ-parts
+> when we drop to IRQ context is the way to do this.
+
+Coming soon to a ML near you.
+
+>>>> I abstract things at irq_work_queue(): "queue this work and let me
+>>>> return from this interrupt"
+>>>
+>>> ('from this NMI', to come back later as an IRQ, from where we can call
+>>> schedule_work_on(). This chaining is because the scheduler takes irqsave
+>>> spin-locks to schedule the work.)
+>>
+>> Hopefully, the handling is set up in such a way that I don't have to
+>> worry about these details on a per-error basis. If I do have to worry,
+>> them I must be doing something wrong.
+> 
+> I agree, but something has to know. Lets tackle AER first,
+
+The actual handler knows. For AER, that's do_recovery().
+
+> where we have none of theses concerns
+
+Untamed PCIe errors can end up as MCEs and triple-fault the CPU :)
+You didn't think we get a free ride with AER, did you?
+
+(snip)
+>>> On arm64 poisoned-cache locations triggering an external abort (leading to a
+>>> NOTIFY_SEA NMI-like notification to APEI) in response to a load is synchronous,
+>>> hence the live-lock problem.
+>>
+>> How is this currently handled in the kernel-first case?
+> 
+> We don't have any kernel-first support today
+
+:(
+
+> it would need the Arm version of
+> MCA (v8.2 RAS Extensions) which are relatively new. Everything we've seen so far
+> is using firmware-first as it has to know a little about the SoC topology.
+> 
+> How would it be handled? For the kernel-first version of NOTIFY_SEA the code
+> would get the interrupted pt_regs and can probe the RAS Error registers (snip)
+
+Sounds like a regular, standard, raceless error handler :)
+
+
+>>>> I am not concert about livelocking the system.
+>>>
+>>> This is what keeps me awake at night.
+>>
+>> Nothing keeps me awake at night. I keep others awake at night.
+> 
+> (Ha! I owe you a beer!)
+
+(I will not forget)
+
+>>> I think your platform has NMI handled as MCE/kernel-first for synchronous CPU
+>>> errors. SMI triggered by PCI-AER are notified by NMI too, but handled by
+>>> firmware-first.
+>>
+>> MCEs come in via FFS.
+> 
+> Oh? I thought those were to separate worlds. I assumed MCE-NMIs didn't go via SMM.
+
+FFS is done in SMM. I'm certain there's a very simple and easy way in
+which MCEs can be reported kernel-first, but I've only seen it done FFS
+recently.
+
+(snip)
+> I think the way forward here is to spot defer-able errors, even if they are
+> marked fatal. Initially this will just be AER, but if we can split up the
+> handlers to have NMI/IRQ/Process context counterparts, we may be able to do
+> enough work early-on to defer other types of error.
+
+You're gonna love my v2.
+
+Alex
