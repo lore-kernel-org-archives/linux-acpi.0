@@ -1,63 +1,104 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Mon, 16 Apr 2018 17:58:10 +0200
-Message-ID: <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com> <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: issues with suspend on Dell XPS 13 2-in-1
+Date: Mon, 16 Apr 2018 16:07:14 +0000
+Message-ID: <b7c4434319bf4ff8877f882d219a60ba@ausx13mpc120.AMER.DELL.COM>
+References: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
+In-Reply-To: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net
+To: dgilmore@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: srinivas.pandruvada@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
-<joseph.salisbury@canonical.com> wrote:
-> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
->> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
->> <joseph.salisbury@canonical.com> wrote:
->>> Hi Rafael,
->>>
->>> A kernel bug report was opened against Ubuntu [0].  After a kernel
->>> bisect, it was found that reverting the following two commits resolved
->>> this bug:
->>>
->>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
->>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
->>>
->>> This is a regression introduced in v4.13-rc1 and still exists in
->>> mainline.  The bug causes the battery to drain when the system is
->>> powered down and unplugged, which does not happed prior to these two
->>> commits.
->> What system and what do you mean by "powered down"?  How much time
->> does it take for the battery to drain now?
-> By powered down, the bug reporter is saying physically powered off and
-> unplugged.  The system is a HP laptop:
->
-> dmi.chassis.vendor: HP
-> dmi.product.family: 103C_5335KV HP Notebook
-> dmi.product.name: HP Notebook
-> vendor_id    : GenuineIntel
-> cpu family    : 6
->
->
->>
->>> The bisect actually pointed to commit de3ef1e, but reverting
->>> these two commits fixes the issue.
->>>
->>> I was hoping to get your feedback, since you are the patch author.  Do
->>> you think gathering any additional data will help diagnose this issue,
->>> or would it be best to submit a revert request?
->> First, reverting these is not an option or you will break systems
->> relying on them now.  4.13 is three releases back at this point.
->>
->> Second, your issue appears to be related to the suspend/shutdown path
->> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
->> change in pci_enable_wake() causes the problem to happen.  Can you try
->> to revert this one alone and see if that helps?
-> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
-> tested.  However, the test kernel still exhibited the bug.
-
-So essentially the bisection result cannot be trusted.
+SGkgRGVubmlzLA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IERlbm5p
+cyBHaWxtb3JlIFttYWlsdG86ZGdpbG1vcmVAcmVkaGF0LmNvbV0NCj4gU2VudDogRnJpZGF5LCBB
+cHJpbCAxMywgMjAxOCA5OjAzIFBNDQo+IFRvOiBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3Jn
+OyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZw0KPiBDYzogTGltb25jaWVsbG8sIE1hcmlvDQo+
+IFN1YmplY3Q6IGlzc3VlcyB3aXRoIHN1c3BlbmQgb24gRGVsbCBYUFMgMTMgMi1pbi0xDQo+IA0K
+PiBIaSBBbGwsDQo+IA0KPiBJIGhhdmUgYSBEZWxsIFhQUyAxMyAyLWluLTEgKDkzNjUpIHRoYXQg
+d2hlbiBJIHN1cGVuZCBnZXRzIHdhcm0gYW5kIGhhcw0KPiBtdWNoIHNob3J0ZXIgdGhhbiBleHBl
+Y3RlZCBiYXR0ZXJ5IGxpZmUsIGl0IGlzIGFib3V0IHRoZSBzYW1lIGFzIGlmIHRoZQ0KPiBsYXB0
+b3AganVzdCBydW5zLiBJIGFtIGN1cnJlbnRseSBydW5uaW5nIEZlZG9yYSAyOCB3aXRoIDQuMTYu
+MiBrZXJuZWwuDQo+IA0KDQpTaW5jZSBiYXR0ZXJ5IGNvbnN1bXB0aW9uIGlzIHF1aXRlIHJlbGF0
+aXZlIEkgdGhpbmsgSXQgd291bGQgYmUgZ29vZCBpZg0KeW91IGNhbiBtYWtlIGEgY29tcGFyYWJs
+ZSBiZW5jaG1hcmsgYXMgdGhpcyBpcyBmdXJ0aGVyIGRpc2N1c3NlZC4NCkVnIGZ1bGx5IGNoYXJn
+ZSB5b3VyIG5vdGVib29rLCBwdWxsIHRoZSBwbHVnLCBzdXNwZW5kIGl0IGF0IDEwMCUgYW5kDQpj
+aGVjayB0aGUgcG93ZXIgbGVmdCBhZnRlciBzb21lIHJlcGVhdGFibGUgYW1vdW50IG9mIHRpbWUu
+DQoNCj4gTXkgbGFwdG9wIGhhcyBOVk1lIGZvciBzdG9yYWdlIGFuZCBpcyBjb25maWd1cmVkIGZv
+ciBBSENJIG1vZGUgaW4gdGhlDQo+IGJpb3MuDQo+IA0KPiBwb3dlcnRvcCBieSBkZWZhdWx0IHNo
+b3dzDQo+ID4+IEJhZCAgICAgICAgICAgVk0gd3JpdGViYWNrIHRpbWVvdXQNCj4gICAgQmFkICAg
+ICAgICAgICBOTUkgd2F0Y2hkb2cgc2hvdWxkIGJlIHR1cm5lZCBvZmYNCj4gICAgQmFkICAgICAg
+ICAgICBBdXRvc3VzcGVuZCBmb3IgdW5rbm93biBVU0IgZGV2aWNlIDEtNyAoMTM4YTowMDkxKQ0K
+PiAgICBCYWQgICAgICAgICAgIFJ1bnRpbWUgUE0gZm9yIEkyQyBBZGFwdGVyIGkyYy0wIChpOTE1
+IGdtYnVzIGRwYykNCj4gICAgQmFkICAgICAgICAgICBSdW50aW1lIFBNIGZvciBJMkMgQWRhcHRl
+ciBpMmMtMSAoaTkxNSBnbWJ1cyBkcGIpDQo+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBm
+b3IgSTJDIEFkYXB0ZXIgaTJjLTIgKGk5MTUgZ21idXMgZHBkKQ0KPiAgICBCYWQgICAgICAgICAg
+IFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24gV2lyZWxlc3MNCj4g
+ODI2NSAvIDgyNzUNCj4gICAgQmFkICAgICAgICAgICBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNl
+IEludGVsIENvcnBvcmF0aW9uIERldmljZQ0KPiA1OTBjDQo+ICAgIEJhZCAgICAgICAgICAgUnVu
+dGltZSBQTSBmb3IgUENJIERldmljZSBSZWFsdGVrIFNlbWljb25kdWN0b3IgQ28uLA0KPiBMdGQu
+IFJUUzUyNUEgUENJIEV4cHJlc3MgQ2FyZCBSZWFkZXINCj4gICAgQmFkICAgICAgICAgICBSdW50
+aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENvcnBvcmF0aW9uIERldmljZQ0KPiA5ZDNkDQo+
+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBTYW5kaXNrIENvcnAg
+V0QgQmxhY2sgTlZNZQ0KPiBTU0QNCj4gICAgQmFkICAgICAgICAgICBSdW50aW1lIFBNIGZvciBQ
+Q0kgRGV2aWNlIEludGVsIENvcnBvcmF0aW9uIFN1bnJpc2UNCj4gUG9pbnQtTFAgUENJIEV4cHJl
+c3MgUm9vdCBQb3J0ICM5DQo+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBmb3IgUENJIERl
+dmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBTdW5yaXNlDQo+IFBvaW50LUxQIFRoZXJtYWwgc3Vic3lz
+dGVtDQo+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBD
+b3Jwb3JhdGlvbiBTdW5yaXNlDQo+IFBvaW50LUxQIFVTQiAzLjAgeEhDSSBDb250cm9sbGVyDQo+
+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3Jh
+dGlvbiBTdW5yaXNlDQo+IFBvaW50LUxQIFBNQw0KPiAgICBCYWQgICAgICAgICAgIFJ1bnRpbWUg
+UE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24gU3VucmlzZQ0KPiBQb2ludC1MUCBI
+RCBBdWRpbw0KPiAgICBCYWQgICAgICAgICAgIFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50
+ZWwgQ29ycG9yYXRpb24gU3VucmlzZQ0KPiBQb2ludC1MUCBQQ0kgRXhwcmVzcyBSb290IFBvcnQg
+IzENCj4gICAgQmFkICAgICAgICAgICBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENv
+cnBvcmF0aW9uIERldmljZQ0KPiA5ZDRiDQo+ICAgIEJhZCAgICAgICAgICAgUnVudGltZSBQTSBm
+b3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBYZW9uIEUzLQ0KPiAxMjAwIHY1L0UzLTE1
+MDAgdjUvNnRoIEdlbiBDb3JlIFByb2Nlc3NvciBUaGVybWFsIFN1YnN5c3RlbQ0KPiAgICBCYWQg
+ICAgICAgICAgIFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24gU3Vu
+cmlzZQ0KPiBQb2ludC1MUCBJbnRlZ3JhdGVkIFNlbnNvciBIdWINCj4gICAgQmFkICAgICAgICAg
+ICBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENvcnBvcmF0aW9uIERldmljZQ0KPiA1
+OTFlDQoNCkFmdGVyIHlvdSd2ZSBhZGp1c3RlZCBhbGwgb2YgdGhlc2UgaW4gcG93ZXJ0b3AsIGhh
+dmUgeW91IGNvbXBhcmVkDQp5b3VyIHBlcmZvcm1hbmNlIG9mIHRoZSBiYXR0ZXJ5IG92ZXIgc2xl
+ZXAgKGFuZCBhY3R1YWxseSBvdmVyIHJ1bnRpbWUNCnVzYWdlIHJlYWxseSB0b28pPw0KDQpUaGV5
+IHNob3VsZCBoZWxwIHRvIGFsbG93IHRoZSBDUFUgdG8gZ2V0IGludG8gZGVlcGVyIHN0YXRlcy4N
+Cg0KQWZ0ZXIgeW91J3ZlIG1hZGUgdGhhdCBjaGFuZ2UgeW91IHNob3VsZCBhbHNvIHNlZSBvbiB0
+aGUgIklkbGUgU3RhdHMiDQpwYWdlIHRoYXQgeW91ciBDUFUgaXMgc3BlbmRpbmcgbW9yZSB0aW1l
+IGluIHRoZSBsb3dlciBDIHN0YXRlcyAoaG9wZWZ1bGx5DQptb3JlIGluIEM5LzEwKS4NCg0KU3Jp
+bml2YXMsDQoNCkRvIHlvdSBrbm93IHdoeSBSdW50aW1lIFBNIGlzIGRlZmF1bHRpbmcgdG8gZGlz
+YWJsZWQgZm9yIGFsbCBvZiB0aGVzZQ0KZGV2aWNlcz8gIElzIHRoYXQgYSBkZWZhdWx0IGtlcm5l
+bCBwb2xpY3kgcHJvYmxlbSBvciBhIGRpc3RybyBwb2xpY3kgcHJvYmxlbT8NCg0KDQo+ICAgIEdv
+b2QgICAgICAgICAgQmx1ZXRvb3RoIGRldmljZSBpbnRlcmZhY2Ugc3RhdHVzDQo+ICAgIEdvb2Qg
+ICAgICAgICAgRW5hYmxlIEF1ZGlvIGNvZGVjIHBvd2VyIG1hbmFnZW1lbnQNCj4gICAgR29vZCAg
+ICAgICAgICBSdW50aW1lIFBNIGZvciBJMkMgQWRhcHRlciBpMmMtOCAoU3lub3BzeXMgRGVzaWdu
+V2FyZQ0KPiBJMkMgYWRhcHRlcikNCj4gICAgR29vZCAgICAgICAgICBBdXRvc3VzcGVuZCBmb3Ig
+VVNCIGRldmljZSBJbnRlZ3JhdGVkX1dlYmNhbV9IRA0KPiBbQ05GR0UxNk4wOTIwMjAwMjgzNjJd
+DQo+ICAgIEdvb2QgICAgICAgICAgQXV0b3N1c3BlbmQgZm9yIFVTQiBkZXZpY2UgeEhDSSBIb3N0
+IENvbnRyb2xsZXIgW3VzYjFdDQo+ICAgIEdvb2QgICAgICAgICAgQXV0b3N1c3BlbmQgZm9yIFVT
+QiBkZXZpY2UgeEhDSSBIb3N0IENvbnRyb2xsZXIgW3VzYjJdDQo+ICAgIEdvb2QgICAgICAgICAg
+UnVudGltZSBQTSBmb3IgSTJDIEFkYXB0ZXIgaTJjLTcgKFNNQnVzIEk4MDEgYWRhcHRlcg0KPiBh
+dCBlZmEwKQ0KPiAgICBHb29kICAgICAgICAgIEF1dG9zdXNwZW5kIGZvciB1bmtub3duIFVTQiBk
+ZXZpY2UgMS0yICg4MDg3OjBhMmIpDQo+ICAgIEdvb2QgICAgICAgICAgUnVudGltZSBQTSBmb3Ig
+STJDIEFkYXB0ZXIgaTJjLTYgKFN5bm9wc3lzIERlc2lnbldhcmUNCj4gSTJDIGFkYXB0ZXIpDQo+
+ICAgIEdvb2QgICAgICAgICAgSTJDIERldmljZSBpMmMtRExMMDc3QTowMSBoYXMgbm8gcnVudGlt
+ZSBwb3dlcg0KPiBtYW5hZ2VtZW50DQo+ICAgIEdvb2QgICAgICAgICAgSTJDIERldmljZSBpMmMt
+V0NPTTQ4MkY6MDAgaGFzIG5vIHJ1bnRpbWUgcG93ZXINCj4gbWFuYWdlbWVudA0KPiAgICBHb29k
+ICAgICAgICAgIFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24gU3Vu
+cmlzZQ0KPiBQb2ludC1MUCBQQ0kgRXhwcmVzcyBSb290IFBvcnQgIzEwDQo+ICAgIEdvb2QgICAg
+ICAgICAgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBTdW5yaXNl
+DQo+IFBvaW50LUxQIENTTUUgSEVDSSAjMQ0KPiAgICBHb29kICAgICAgICAgIFJ1bnRpbWUgUE0g
+Zm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24gU3VucmlzZQ0KPiBQb2ludC1MUCBTZXJp
+YWwgSU8gSTJDIENvbnRyb2xsZXIgIzENCj4gICAgR29vZCAgICAgICAgICBSdW50aW1lIFBNIGZv
+ciBQQ0kgRGV2aWNlIEludGVsIENvcnBvcmF0aW9uIFN1bnJpc2UNCj4gUG9pbnQtTFAgU01CdXMN
+Cj4gICAgR29vZCAgICAgICAgICBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENvcnBv
+cmF0aW9uIFN1bnJpc2UNCj4gUG9pbnQtTFAgUENJIEV4cHJlc3MgUm9vdCBQb3J0ICM1DQo+ICAg
+IEdvb2QgICAgICAgICAgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlv
+biBTdW5yaXNlDQo+IFBvaW50LUxQIFNlcmlhbCBJTyBJMkMgQ29udHJvbGxlciAjMA0KPiAgICBH
+b29kICAgICAgICAgIFdha2Utb24tbGFuIHN0YXR1cyBmb3IgZGV2aWNlIHZpcmJyMC1uaWMNCj4g
+ICAgR29vZCAgICAgICAgICBXYWtlLW9uLWxhbiBzdGF0dXMgZm9yIGRldmljZSB2aXJicjANCj4g
+ICAgR29vZCAgICAgICAgICBXYWtlLW9uLWxhbiBzdGF0dXMgZm9yIGRldmljZSB3bHA2MHMwDQo+
+IA0KPiBSZWdhcmRzDQo+IA0KPiBEZW5uaXMNCg==
