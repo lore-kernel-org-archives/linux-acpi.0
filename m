@@ -1,82 +1,77 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 02/11] ACPI / APEI: Generalise the estatus queue's
- add/remove and notify code
-Date: Tue, 17 Apr 2018 17:10:18 +0200
-Message-ID: <20180417151018.GE20840@pd.tnic>
-References: <20180215185606.26736-1-james.morse@arm.com>
- <20180215185606.26736-3-james.morse@arm.com>
- <20180301150144.GA4215@pd.tnic>
- <87sh9jbrgc.fsf@e105922-lin.cambridge.arm.com>
- <20180301223529.GA28811@pd.tnic> <5AA02C26.10803@arm.com>
- <20180308104408.GB21166@pd.tnic> <5AAFC939.3010309@arm.com>
- <20180327172510.GB32184@pd.tnic>
- <d15ba145-479c-ffde-14ad-ab7170d0f06e@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [REGRESSION] [v2] ACPI / video: Default lcd_only to true on Win8
+ ready and newer machines
+Date: Tue, 17 Apr 2018 17:20:37 +0200
+Message-ID: <a7b890d2-9009-d029-3f80-2842109b089e@redhat.com>
+References: <20171223184147.12016-1-hdegoede@redhat.com>
+ <20180414230746.GA29537@saruman>
+ <d5ff7ff3-4fa1-0f8c-e0a9-6779b9185e14@redhat.com>
+ <20180415225403.GA6373@jamesdev>
+ <18c72a70-577f-358e-fb82-095b75157a29@redhat.com>
+ <20180416130211.GA484@jamesdev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <d15ba145-479c-ffde-14ad-ab7170d0f06e@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, Christoffer Dall <christoffer.dall@linaro.org>, Len Brown <lenb@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180416130211.GA484@jamesdev>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: James Hogan <jhogan@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org, Sasha Levin <alexander.levin@microsoft.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Mar 28, 2018 at 05:30:55PM +0100, James Morse wrote:
-> -----------------%<-----------------
->     ACPI / APEI: don't wait to serialise with oops messages when panic()ing
-> 
->     oops_begin() exists to group printk() messages with the oops message
->     printed by die(). To reach this caller we know that platform firmware
->     took this error first, then notified the OS via NMI with a 'panic'
->     severity.
-> 
->     Don't wait for another CPU to release the die-lock before we can
->     panic(), our only goal is to print this fatal error and panic().
-> 
->     This code is always called in_nmi(), and since 42a0bb3f7138 ("printk/nmi:
->     generic solution for safe printk in NMI"), it has been safe to call
->     printk() from this context. Messages are batched in a per-cpu buffer
->     and printed via irq-work, or a call back from panic().
-> 
->     Signed-off-by: James Morse <james.morse@arm.com>
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 22f6ea5b9ad5..f348e6540960 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -34,7 +34,6 @@
->  #include <linux/interrupt.h>
->  #include <linux/timer.h>
->  #include <linux/cper.h>
-> -#include <linux/kdebug.h>
->  #include <linux/platform_device.h>
->  #include <linux/mutex.h>
->  #include <linux/ratelimit.h>
-> @@ -736,9 +735,6 @@ static int _in_nmi_notify_one(struct ghes *ghes)
-> 
->         sev = ghes_severity(ghes->estatus->error_severity);
->         if (sev >= GHES_SEV_PANIC) {
-> -#ifdef CONFIG_X86
-> -               oops_begin();
-> -#endif
->                 ghes_print_queued_estatus();
->                 __ghes_panic(ghes);
->         }
-> -----------------%<-----------------
+Hi James,
 
-Acked-by: Borislav Petkov <bp@suse.de>
+On 04/16/2018 03:02 PM, James Hogan wrote:
+> On Mon, Apr 16, 2018 at 01:07:50PM +0200, Hans de Goede wrote:
+>> On 16-04-18 00:54, James Hogan wrote:
+>>> On Sun, Apr 15, 2018 at 02:04:26PM +0200, Hans de Goede wrote:
+>>>> When you say quirk do you mean you add something to
+>>>> the kernel commandline to work around this?
+>>>
+>>> No, it was automatic, in the source. I don't know this code well enough
+>>> to know how they got it working.
+>>
+>> Weird, if my only_lcd changes impact you then acpi_osi_is_win8()
+>> returns true for you
+> 
+> It rings a bell that this laptop claims win8 support.
+> 
+>> you should get the intel backlight interface
+>> by default, but maybe the i915 driver somehow detects that that
+>> is not appropriate on your device ... ?
+>>
+>> Before I can start working on a quirk to fix this I've some
+>> questions:
+>>
+>> 1) With recent kernels without the 965736ee654d commit, what is
+>>     the output of "ls /sys/class/backlight" ?
+> 
+> $ ls -l /sys/class/backlight
+> total 0
+> lrwxrwxrwx 1 root root 0 Apr 16 13:57 acpi_video0 -> ../../devices/pci0000:00/0000:00:02.0/backlight/acpi_video0
+> 
+>> 2) What is the output of "ls /sys/class/backlight" after
+>>     commit 965736ee654d ?
+> 
+> no devices show up there.
+> 
+>> 3) Can you start a kernel with commit 965736ee654d in there and
+>>     "video.only_lcd=0" on the kernel commandline and verify that
+>>     this fixes backlight control for you ?
+> 
+> Confirmed, acpi_video0 shows up and backlight control works as expected.
 
--- 
-Regards/Gruss,
-    Boris.
+Ok, so rather then DMI quirk our way out of this I've come up
+with a more generic solution.
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+I've just send out a "[RFC] ACPI / video: Only default only_lcd to true on Win8-ready _desktops_"
+patch which should fix this.
+
+Can you give this patch a quick spin (on top of the troublesome commit)
+and let me know if it fixes things (without needing the kernel cmdline
+option).
+
+Regards,
+
+Hans
