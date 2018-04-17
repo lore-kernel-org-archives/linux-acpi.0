@@ -1,89 +1,32 @@
-From: "Schmauss, Erik" <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2 5/7] ACPICA: Integrate package handling with
- module-level code
-Date: Tue, 17 Apr 2018 00:05:42 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED53972762F@ORSMSX110.amr.corp.intel.com>
-References: <20180215210932.15490-1-erik.schmauss@intel.com>
- <CAPcyv4hp_pm2n3H_froFkedd_GMQvsrEc8yZxYzfYkPDYvjDww@mail.gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED5397230D6@ORSMSX110.amr.corp.intel.com>
- <3701399.BBZtpt46yJ@aspire.rjw.lan>
- <CAPcyv4j-iC+b07=JPP_TV1MLHA2iO5iKLvc+jaPHoEuRfzoAFQ@mail.gmail.com>
- <CF6A88132359CE47947DB4C6E1709ED539727606@ORSMSX110.amr.corp.intel.com>
- <CAPcyv4jEkQTEWxE=+mf0C5oA0j50ZvjU=QpvL1n6mmtemrnBLg@mail.gmail.com>
+From: Jon Masters <jcm@jonmasters.org>
+Subject: Re: [PATCH 2/3] ACPI: SPCR: Add support for AMD CT/SZ
+Date: Mon, 16 Apr 2018 20:43:46 -0400
+Message-ID: <01bc6f27-57aa-d8e9-934b-191a128543cf@jonmasters.org>
+References: <20180314003655.12141-1-djkurtz@chromium.org>
+ <20180314003655.12141-3-djkurtz@chromium.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <CAPcyv4jEkQTEWxE=+mf0C5oA0j50ZvjU=QpvL1n6mmtemrnBLg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180314003655.12141-3-djkurtz@chromium.org>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "Moore,
- Robert" <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel Kurtz <djkurtz@chromium.org>
+Cc: adurbin@chromium.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-DQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJA
-dmdlci5rZXJuZWwub3JnIFttYWlsdG86bGludXgtYWNwaS0NCj4gb3duZXJAdmdlci5rZXJuZWwu
-b3JnXSBPbiBCZWhhbGYgT2YgRGFuIFdpbGxpYW1zDQo+IFNlbnQ6IE1vbmRheSwgQXByaWwgMTYs
-IDIwMTggNDoyMiBQTQ0KPiBUbzogU2NobWF1c3MsIEVyaWsgPGVyaWsuc2NobWF1c3NAaW50ZWwu
-Y29tPg0KPiBDYzogUmFmYWVsIEouIFd5c29ja2kgPHJqd0Byand5c29ja2kubmV0PjsgTGludXgg
-QUNQSSA8bGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnPjsgTW9vcmUsIFJvYmVydCA8cm9i
-ZXJ0Lm1vb3JlQGludGVsLmNvbT47IGxpbnV4LQ0KPiBudmRpbW0gPGxpbnV4LW52ZGltbUBsaXN0
-cy4wMS5vcmc+OyBRZW11IERldmVsb3BlcnMgPHFlbXUtDQo+IGRldmVsQG5vbmdudS5vcmc+DQo+
-IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjIgNS83XSBBQ1BJQ0E6IEludGVncmF0ZSBwYWNrYWdlIGhh
-bmRsaW5nIHdpdGggbW9kdWxlLQ0KPiBsZXZlbCBjb2RlDQo+IA0KPiBPbiBNb24sIEFwciAxNiwg
-MjAxOCBhdCA0OjE1IFBNLCBTY2htYXVzcywgRXJpayA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+
-DQo+IHdyb3RlOg0KPiA+IFsgdHJpbW1pbmcgXQ0KPiA+PiA+PiBSYWZhZWwsIHdlIG1heSB3YW50
-IHRvIGhvbGQgYmFjayBvbiB0aGUgbW9kdWxlLWxldmVsIGNvZGUgY2hhbmdlcw0KPiA+PiA+PiAo
-dGhlIHBhdGNoZXMgYmVsb3cpIGZvciByYzEuIEJldHdlZW4gdGhpcyBhbmQgdGhlIHN0cmFuZ2Ug
-X1RTUw0KPiA+PiA+PiBpc3N1ZSwgaXQgc2VlbXMgbGlrZSB0aGVyZSBhcmUgYSBmZXcgbW9yZSB0
-aGluZ3MgdG8gcmVzb2x2ZSBiZWZvcmUNCj4gPj4gPj4gdGhpcyBpcyByZWFkeSBmb3Iga2VybmVs
-IHVwc3RyZWFtLg0KPiA+PiA+DQo+ID4gSGkgUmFmYWVsLA0KPiA+DQo+ID4+ID4gSXQgbG9va3Mg
-bGlrZSB5b3UgYXJlIGFza2luZyBtZSB0byBxdWV1ZSB1cCByZXZlcnRzIGFzIHBlciB0aGUNCj4g
-Pj4gPiBEYW4ncyByZXBvcnQsIGlzIHRoYXQgY29ycmVjdD8NCj4gPg0KPiA+IFRoaXMgaXMgaW5k
-ZWVkIHdoYXQgSSBtZWFudCBsYXN0IHdlZWsuIEhvd2V2ZXIsIEkndmUgbG9va2VkIGludG8gdGhl
-DQo+ID4gaXNzdWUgYW5kIERhbidzIHFlbXUgaW5zdGFuY2UgaGFkIEFNTCB0aGF0IHdlIG5vIGxv
-bmdlciBzdXBwb3J0LiBUaGlzDQo+ID4gaXMgYmVjYXVzZSB0aGUgQUNQSUNBIGNvbW1pdCBtYWtl
-cyBjaGFuZ2VzIHRvIHRoZSBleGVjdXRpb24gb2YgQU1MDQo+ID4gZHVyaW5nIHRhYmxlIGxvYWQg
-dG8gbWF0Y2ggd2luZG93cyBBTUwgaW50ZXJwcmV0ZXIgYmVoYXZpb3Igc28gdGhpcyBjb21taXQN
-Cj4gYWxzbyBnb3QgcmlkIG9mIHN1cHBvcnQgZm9yIGV4ZWN1dGluZyBjb2RlIGNvbnRhaW5pbmcg
-Zm9yd2FyZCByZWZlcmVuY2VzIChleGNlcHQNCj4gZm9yIHBhY2thZ2UgZWxlbWVudHMpLg0KPiA+
-DQo+ID4gSSd2ZSBzdWdnZXN0ZWQgYSBmaXggZm9yIHRoZSBmaXJtd2FyZSBpbiBhIHNlcGFyYXRl
-IGVtYWlsLiBTbyBJIHdvdWxkDQo+ID4gc2F5IHRoYXQgdGhpcyBpc3N1ZSBpcyByZXNvbHZlZCBh
-ZnRlciBpZiBEYW4gY2FuIHJ1biBoaXMgdGVzdCBzdWNjZXNzZnVsbHkgd2l0aCB0aGUNCj4gYWRq
-dXN0ZWQgZmlybXdhcmUuDQo+ID4NCj4gPiBJZiBEYW4ncyB0ZXN0IGlzIHN1Y2Nlc3NmdWwsIHdl
-IGRvbuKAmXQgbmVlZCB0byByZXZlcnQgdGhlc2UgY2hhbmdlcw0KPiANCg0KSGkgRGFuLA0KDQo+
-IEknbSBjb25jZXJuZWQgYWJvdXQgb3RoZXIgcWVtdS1rdm0gdXNlcnMgdGhhdCBkbyBub3QgdXBn
-cmFkZSB0aGVpciBoeXBlcnZpc29yDQo+IGF0IHRoZSBzYW1lIHBhY2UgYXMgdGhlaXIgZ3Vlc3Qg
-a2VybmVsLiBFc3BlY2lhbGx5IGZvciBjbG91ZCBwcm92aWRlcnMgdGhhdCBtYXkNCj4gYmUgcnVu
-bmluZyBsYXRlc3QgbWFpbmxpbmUga2VybmVsIG9uIG9sZGVyIHFlbXUta3ZtIHRoaXMgd2lsbCBs
-b29rIGxpa2UgYSBwdXJlDQo+IGtlcm5lbCByZWdyZXNzaW9uLiBJcyB0aGVyZSBhIHF1aWNrIGZp
-eCB3ZSBjYW4gY2FycnkgaW4gdGhlIGtlcm5lbCB0byBzdXBwb3J0IHRoZXNlDQo+IGZvcndhcmQg
-cmVmZXJlbmNlcywgYXQgbGVhc3QgdW50aWwgd2Uga25vdyB0aGF0IHFlbXUta3ZtIGlzIG5vIGxv
-bmdlciBzaGlwcGluZw0KPiB0aGUgYnJva2VuIEFNTD8NCg0KVGhpcyBpcyBhIHZlcnkgZ29vZCBw
-b2ludC4gVGhhbmtzIGZvciBicmluZ2luZyB0aGlzIHVwISBPbmUgb3B0aW9uIGlzIGZvciB0aGVt
-IHRvIHNldA0KdGhlIGdsb2JhbCB2YXJpYWJsZSBhY3BpX2dibF9leGVjdXRlX3RhYmxlc19hc19t
-ZXRob2RzIGluIGluY2x1ZGUvYWNwaS9hY3BpeGYuaCB0byBmYWxzZS4NClRoaXMgd2lsbCBlZmZl
-Y3RpdmVseSByZXZlcnQgdGhlIG5ldyBiZWhhdmlvciBpbiB0aGUgQU1MIGludGVycHJldGVyIGFu
-ZCBnbyBiYWNrIHRvIHRoZSBvbGQgd2F5Lg0KU2luY2UgdGhpcyBpcyBhIGdsb2JhbCBmbGFnLCB3
-ZSBjb3VsZCBoYXZlIGEgY29tbWFuZCBsaW5lIG9wdGlvbiBmb3IgTGludXgga2VybmVsIHRvIHR1
-cm4gdGhpcw0KZmVhdHVyZSBvbi4NCg0KT3V0IG9mIGN1cmlvc2l0eSwgaXMgdGhpcyBBQ1BJIHRh
-YmxlIHNvbWVob3cgY3VzdG9taXplZCBmb3IgeW91ciB3b3JrPyBJIGhhdmUgYSBjb2xsZWN0aW9u
-DQpvZiBhY3BpIHRhYmxlcyBhbmQgeW91ciBBQ1BJIHRhYmxlcyBhcmUgdGhlIG9ubHkgb25lcyB0
-aGF0IGhhdmUgYW4gT3BlcmF0aW9uUmVnaW9uIGNhbGxlZA0KTlJBTS4gV2hhdCBpcyB0aGUgY2hh
-bmNlIHRoYXQgb3RoZXJzIHdpbGwgYmUgcnVubmluZyBMaW51eCBvbiB0aGUgc2FtZSB0YWJsZXMg
-YXMgdGhlIG9uZQ0KeW91IHNlbnQgbWU/DQoNCkVyaWsNCg0KPiAtLQ0KPiBUbyB1bnN1YnNjcmli
-ZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIg
-aW4gdGhlIGJvZHkgb2YNCj4gYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcg
-TW9yZSBtYWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9t
-by1pbmZvLmh0bWwNCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fCkxpbnV4LW52ZGltbSBtYWlsaW5nIGxpc3QKTGludXgtbnZkaW1tQGxpc3RzLjAxLm9yZwpo
-dHRwczovL2xpc3RzLjAxLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LW52ZGltbQo=
+On 03/13/2018 08:36 PM, Daniel Kurtz wrote:
+> AMD Carrizo / Stoneyridge use a DesignWare 8250 UART that uses a special
+> earlycon setup handler to configure its input clock in order to compute
+> baud rate divisor registers.
+> Detect them by examining the OEMID field in the SPCR header, and pass
+> then pass uart type amdcz to earlycon.
+
+FYI I spoke with Microsoft some time ago about standardizing the ability
+to convey non-standard baud rates in the SPCR. If you're interested in
+driving, I can put you in touch with the right person over there.
+
+Jon.
+
+-- 
+Computer Architect
