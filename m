@@ -1,195 +1,99 @@
-From: "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>
-Subject: Re: issues with suspend on Dell XPS 13 2-in-1
-Date: Tue, 17 Apr 2018 22:59:39 +0000
-Message-ID: <1524005977.31134.15.camel@intel.com>
-References: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
-         <b7c4434319bf4ff8877f882d219a60ba@ausx13mpc120.AMER.DELL.COM>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL V3] Thermal SoC management updates for v4.17-rc1
+Date: Wed, 18 Apr 2018 15:51:29 +0800
+Message-ID: <1524037889.2553.13.camel@intel.com>
+References: <20180414183051.GA27921@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=sha-1;
-        protocol="application/x-pkcs7-signature"; boundary="=-sCq2uG6EDu9oDeAxdg5j"
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b7c4434319bf4ff8877f882d219a60ba@ausx13mpc120.AMER.DELL.COM>
-Content-Language: en-US
+In-Reply-To: <20180414183051.GA27921@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dgilmore@redhat.com" <dgilmore@redhat.com>, "Mario.Limonciello@dell.com" <Mario.Limonciello@dell.com>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
---=-sCq2uG6EDu9oDeAxdg5j
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: base64
+Hi, Eduardo,
 
-T24gTW9uLCAyMDE4LTA0LTE2IGF0IDE2OjA3ICswMDAwLCBNYXJpby5MaW1vbmNpZWxsb0BkZWxs
-LmNvbSB3cm90ZToKPiBIaSBEZW5uaXMsCj4gCj4gPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0t
-LQo+ID4gRnJvbTogRGVubmlzIEdpbG1vcmUgW21haWx0bzpkZ2lsbW9yZUByZWRoYXQuY29tXQo+
-ID4gU2VudDogRnJpZGF5LCBBcHJpbCAxMywgMjAxOCA5OjAzIFBNCj4gPiBUbzogbGludXgta2Vy
-bmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKPiA+IENjOiBM
-aW1vbmNpZWxsbywgTWFyaW8KPiA+IFN1YmplY3Q6IGlzc3VlcyB3aXRoIHN1c3BlbmQgb24gRGVs
-bCBYUFMgMTMgMi1pbi0xCj4gPiAKPiA+IEhpIEFsbCwKPiA+IAo+ID4gSSBoYXZlIGEgRGVsbCBY
-UFMgMTMgMi1pbi0xICg5MzY1KSB0aGF0IHdoZW4gSSBzdXBlbmQgZ2V0cyB3YXJtIGFuZAo+ID4g
-aGFzCj4gPiBtdWNoIHNob3J0ZXIgdGhhbiBleHBlY3RlZCBiYXR0ZXJ5IGxpZmUsIGl0IGlzIGFi
-b3V0IHRoZSBzYW1lIGFzIGlmCj4gPiB0aGUKPiA+IGxhcHRvcCBqdXN0IHJ1bnMuIEkgYW0gY3Vy
-cmVudGx5IHJ1bm5pbmcgRmVkb3JhIDI4IHdpdGggNC4xNi4yCj4gPiBrZXJuZWwuCj4gPiAKPiAK
-PiBTaW5jZSBiYXR0ZXJ5IGNvbnN1bXB0aW9uIGlzIHF1aXRlIHJlbGF0aXZlIEkgdGhpbmsgSXQg
-d291bGQgYmUgZ29vZAo+IGlmCj4geW91IGNhbiBtYWtlIGEgY29tcGFyYWJsZSBiZW5jaG1hcmsg
-YXMgdGhpcyBpcyBmdXJ0aGVyIGRpc2N1c3NlZC4KPiBFZyBmdWxseSBjaGFyZ2UgeW91ciBub3Rl
-Ym9vaywgcHVsbCB0aGUgcGx1Zywgc3VzcGVuZCBpdCBhdCAxMDAlIGFuZAo+IGNoZWNrIHRoZSBw
-b3dlciBsZWZ0IGFmdGVyIHNvbWUgcmVwZWF0YWJsZSBhbW91bnQgb2YgdGltZS4KPiAKPiA+IE15
-IGxhcHRvcCBoYXMgTlZNZSBmb3Igc3RvcmFnZSBhbmQgaXMgY29uZmlndXJlZCBmb3IgQUhDSSBt
-b2RlIGluCj4gPiB0aGUKPiA+IGJpb3MuCj4gPiAKPiA+IHBvd2VydG9wIGJ5IGRlZmF1bHQgc2hv
-d3MKPiA+ID4gPiBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgVk0gd3JpdGViYWNrIHRpbWVvdXQK
-PiA+IAo+ID4gwqDCoMKgQmFkwqDCoMKgwqDCoMKgwqDCoMKgwqDCoE5NSSB3YXRjaGRvZyBzaG91
-bGQgYmUgdHVybmVkIG9mZgo+ID4gwqDCoMKgQmFkwqDCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9z
-dXNwZW5kIGZvciB1bmtub3duIFVTQiBkZXZpY2UgMS03ICgxMzhhOjAwOTEpCj4gPiDCoMKgwqBC
-YWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgSTJDIEFkYXB0ZXIgaTJjLTAg
-KGk5MTUgZ21idXMgZHBjKQo+ID4gwqDCoMKgQmFkwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRp
-bWUgUE0gZm9yIEkyQyBBZGFwdGVyIGkyYy0xIChpOTE1IGdtYnVzIGRwYikKPiA+IMKgwqDCoEJh
-ZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBJMkMgQWRhcHRlciBpMmMtMiAo
-aTkxNSBnbWJ1cyBkcGQpCj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGlt
-ZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbgo+ID4gV2lyZWxlc3MKPiA+IDgy
-NjUgLyA4Mjc1Cj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBm
-b3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBEZXZpY2UKPiA+IDU5MGMKPiA+IMKgwqDC
-oEJhZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIFJlYWx0
-ZWsgU2VtaWNvbmR1Y3Rvcgo+ID4gQ28uLAo+ID4gTHRkLiBSVFM1MjVBIFBDSSBFeHByZXNzIENh
-cmQgUmVhZGVyCj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBm
-b3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBEZXZpY2UKPiA+IDlkM2QKPiA+IMKgwqDC
-oEJhZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIFNhbmRp
-c2sgQ29ycCBXRCBCbGFjawo+ID4gTlZNZQo+ID4gU1NECj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbgo+
-ID4gU3VucmlzZQo+ID4gUG9pbnQtTFAgUENJIEV4cHJlc3MgUm9vdCBQb3J0ICM5Cj4gPiDCoMKg
-wqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRl
-bCBDb3Jwb3JhdGlvbgo+ID4gU3VucmlzZQo+ID4gUG9pbnQtTFAgVGhlcm1hbCBzdWJzeXN0ZW0K
-PiA+IMKgwqDCoEJhZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2
-aWNlIEludGVsIENvcnBvcmF0aW9uCj4gPiBTdW5yaXNlCj4gPiBQb2ludC1MUCBVU0IgMy4wIHhI
-Q0kgQ29udHJvbGxlcgo+ID4gwqDCoMKgQmFkwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUg
-UE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24KPiA+IFN1bnJpc2UKPiA+IFBvaW50
-LUxQIFBNQwo+ID4gwqDCoMKgQmFkwqDCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9y
-IFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24KPiA+IFN1bnJpc2UKPiA+IFBvaW50LUxQIEhE
-IEF1ZGlvCj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3Ig
-UENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbgo+ID4gU3VucmlzZQo+ID4gUG9pbnQtTFAgUENJ
-IEV4cHJlc3MgUm9vdCBQb3J0ICMxCj4gPiDCoMKgwqBCYWTCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-UnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbiBEZXZpY2UKPiA+IDlk
-NGIKPiA+IMKgwqDCoEJhZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kg
-RGV2aWNlIEludGVsIENvcnBvcmF0aW9uIFhlb24KPiA+IEUzLQo+ID4gMTIwMCB2NS9FMy0xNTAw
-IHY1LzZ0aCBHZW4gQ29yZSBQcm9jZXNzb3IgVGhlcm1hbCBTdWJzeXN0ZW0KPiA+IMKgwqDCoEJh
-ZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENv
-cnBvcmF0aW9uCj4gPiBTdW5yaXNlCj4gPiBQb2ludC1MUCBJbnRlZ3JhdGVkIFNlbnNvciBIdWIK
-PiA+IMKgwqDCoEJhZMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2
-aWNlIEludGVsIENvcnBvcmF0aW9uIERldmljZQo+ID4gNTkxZQo+IAo+IEFmdGVyIHlvdSd2ZSBh
-ZGp1c3RlZCBhbGwgb2YgdGhlc2UgaW4gcG93ZXJ0b3AsIGhhdmUgeW91IGNvbXBhcmVkCj4geW91
-ciBwZXJmb3JtYW5jZSBvZiB0aGUgYmF0dGVyeSBvdmVyIHNsZWVwIChhbmQgYWN0dWFsbHkgb3Zl
-ciBydW50aW1lCj4gdXNhZ2UgcmVhbGx5IHRvbyk/Cj4gCj4gVGhleSBzaG91bGQgaGVscCB0byBh
-bGxvdyB0aGUgQ1BVIHRvIGdldCBpbnRvIGRlZXBlciBzdGF0ZXMuCj4gCj4gQWZ0ZXIgeW91J3Zl
-IG1hZGUgdGhhdCBjaGFuZ2UgeW91IHNob3VsZCBhbHNvIHNlZSBvbiB0aGUgIklkbGUgU3RhdHMi
-Cj4gcGFnZSB0aGF0IHlvdXIgQ1BVIGlzIHNwZW5kaW5nIG1vcmUgdGltZSBpbiB0aGUgbG93ZXIg
-QyBzdGF0ZXMKPiAoaG9wZWZ1bGx5Cj4gbW9yZSBpbiBDOS8xMCkuCj4gCj4gU3Jpbml2YXMsCj4g
-Cj4gRG8geW91IGtub3cgd2h5IFJ1bnRpbWUgUE0gaXMgZGVmYXVsdGluZyB0byBkaXNhYmxlZCBm
-b3IgYWxsIG9mIHRoZXNlCj4gZGV2aWNlcz/CoMKgSXMgdGhhdCBhIGRlZmF1bHQga2VybmVsIHBv
-bGljeSBwcm9ibGVtIG9yIGEgZGlzdHJvIHBvbGljeQo+IHByb2JsZW0/ClRoaXMgaXMgZGVmYXVs
-dCBrZXJuZWwgcG9saWN5LgpJIHN1Z2dlc3QgcnVuCiN0dXJib3N0YXQKdGhlbiBzdXNwZW5kIGFu
-ZCB3YWtlCndoZW4gd2FrZSB1cCBsZXQgdGhlIHR1cmJvc3RhdCBjb2xsZWN0IGRhdGEgZm9yIG5l
-eHQgc2FtcGxpbmcgaW50ZXJ2YWwuCldlIGhhdmUgdG8gc2VlIHdoYXQgYXJlIFBrZ0MlIHJlc2lk
-ZW5jaWVzIGFyZT8KClRoYW5rcywKU3Jpbml2YXMKCj4gCj4gCj4gPiDCoMKgwqBHb29kwqDCoMKg
-wqDCoMKgwqDCoMKgwqBCbHVldG9vdGggZGV2aWNlIGludGVyZmFjZSBzdGF0dXMKPiA+IMKgwqDC
-oEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEVuYWJsZSBBdWRpbyBjb2RlYyBwb3dlciBtYW5hZ2Vt
-ZW50Cj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBJMkMg
-QWRhcHRlciBpMmMtOCAoU3lub3BzeXMKPiA+IERlc2lnbldhcmUKPiA+IEkyQyBhZGFwdGVyKQo+
-ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgQXV0b3N1c3BlbmQgZm9yIFVTQiBkZXZp
-Y2UgSW50ZWdyYXRlZF9XZWJjYW1fSEQKPiA+IFtDTkZHRTE2TjA5MjAyMDAyODM2Ml0KPiA+IMKg
-wqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciBVU0IgZGV2aWNlIHhI
-Q0kgSG9zdCBDb250cm9sbGVyCj4gPiBbdXNiMV0KPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDC
-oMKgwqDCoEF1dG9zdXNwZW5kIGZvciBVU0IgZGV2aWNlIHhIQ0kgSG9zdCBDb250cm9sbGVyCj4g
-PiBbdXNiMl0KPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9y
-IEkyQyBBZGFwdGVyIGkyYy03IChTTUJ1cyBJODAxCj4gPiBhZGFwdGVyCj4gPiBhdCBlZmEwKQo+
-ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgQXV0b3N1c3BlbmQgZm9yIHVua25vd24g
-VVNCIGRldmljZSAxLTIgKDgwODc6MGEyYikKPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKg
-wqDCoFJ1bnRpbWUgUE0gZm9yIEkyQyBBZGFwdGVyIGkyYy02IChTeW5vcHN5cwo+ID4gRGVzaWdu
-V2FyZQo+ID4gSTJDIGFkYXB0ZXIpCj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBJ
-MkMgRGV2aWNlIGkyYy1ETEwwNzdBOjAxIGhhcyBubyBydW50aW1lIHBvd2VyCj4gPiBtYW5hZ2Vt
-ZW50Cj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBJMkMgRGV2aWNlIGkyYy1XQ09N
-NDgyRjowMCBoYXMgbm8gcnVudGltZSBwb3dlcgo+ID4gbWFuYWdlbWVudAo+ID4gwqDCoMKgR29v
-ZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJbnRlbCBDb3Jw
-b3JhdGlvbgo+ID4gU3VucmlzZQo+ID4gUG9pbnQtTFAgUENJIEV4cHJlc3MgUm9vdCBQb3J0ICMx
-MAo+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJIERl
-dmljZSBJbnRlbCBDb3Jwb3JhdGlvbgo+ID4gU3VucmlzZQo+ID4gUG9pbnQtTFAgQ1NNRSBIRUNJ
-ICMxCj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kg
-RGV2aWNlIEludGVsIENvcnBvcmF0aW9uCj4gPiBTdW5yaXNlCj4gPiBQb2ludC1MUCBTZXJpYWwg
-SU8gSTJDIENvbnRyb2xsZXIgIzEKPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1
-bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24KPiA+IFN1bnJpc2UKPiA+
-IFBvaW50LUxQIFNNQnVzCj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1l
-IFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENvcnBvcmF0aW9uCj4gPiBTdW5yaXNlCj4gPiBQb2lu
-dC1MUCBQQ0kgRXhwcmVzcyBSb290IFBvcnQgIzUKPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDC
-oMKgwqDCoFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24KPiA+IFN1
-bnJpc2UKPiA+IFBvaW50LUxQIFNlcmlhbCBJTyBJMkMgQ29udHJvbGxlciAjMAo+ID4gwqDCoMKg
-R29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgV2FrZS1vbi1sYW4gc3RhdHVzIGZvciBkZXZpY2Ugdmly
-YnIwLW5pYwo+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgV2FrZS1vbi1sYW4gc3Rh
-dHVzIGZvciBkZXZpY2UgdmlyYnIwCj4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBX
-YWtlLW9uLWxhbiBzdGF0dXMgZm9yIGRldmljZSB3bHA2MHMwCj4gPiAKPiA+IFJlZ2FyZHMKPiA+
-IAo+ID4gRGVubmlz
+On 六, 2018-04-14 at 11:30 -0700, Eduardo Valentin wrote:
+> Hello Linus,
+> 
+> Please find thermal-soc changes for v4.17-rc1.
+> Rui asked me to send the pull request directly to you
+> as we are close to the end of the merge window.
+> Essentially this pull removes the series that caused
+> warning regression. I will work with the developer
+> to get that fixed later on, but I am still sending
+> the other few patches that are unrelated to that.
+> Let me know if this causes any issues and can still
+> be pulled.
+> 
+> Changelog:
+> - New i.MX7 thermal sensor
+> - Mediatek driver now supports MT7622 SoC
+> - Removal of min max cpu cooling DT property
+> 
+> Differences in V3:
+> - Rebased on top current linus/master, to avoid and merge issues
+> from previous pulled thermal code.
+> 
+> Differences in V2:
+> - Reordered the patches to drop exynos changes for now until we get
+> agreement on the fix on that driver for the compilation warns
+> caused by the confusing conversion functions.
+> 
+> 
+> The following changes since commit
+> 48023102b7078a6674516b1fe0d639669336049d:
+> 
+>   Merge branch 'overlayfs-linus' of
+> git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs (2018-04-
+> 13 16:55:41 -0700)
+> 
+> are available in the git repository at:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
+> thermal linus
+> 
+> for you to fetch changes up to
+> 15a32df1918259be6c23fc36014fc26ee66c836c:
+> 
+>   dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
+> (2018-04-14 09:37:55 -0700)
+> 
+This pull request does not catch this merge window.
+So do you want to split it into 2 separate pull requests, one for 4.17-
+rc and another for 4.18-rc1?
+
+> ----------------------------------------------------------------
+> Anson Huang (1):
+>       thermal: imx: add i.MX7 thermal sensor support
+> 
+> Bartlomiej Zolnierkiewicz (1):
+>       dt-bindings: thermal: remove no longer needed samsung thermal
+> properties
+> 
+> Sean Wang (2):
+>       dt-bindings: thermal: add binding for MT7622 SoC
+>       thermal: mediatek: add support for MT7622 SoC
+> 
+> Viresh Kumar (1):
+>       dt-bindings: thermal: Remove "cooling-{min|max}-level"
+> properties
+> 
+IMO, together with the refreshed exynos fixes, the one from Viresh and
+the one from Bartlomiej can be queued for 4.17-rc, and the others have
+to wait until next merge window.
+
+thanks,
+rui
 
 
---=-sCq2uG6EDu9oDeAxdg5j
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-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
-aQGEV8ArjHXcotL/yLNh30JyB9sygYzIQadqyFvtvhUyiHwAh7Pf6Gl7Gsz0i/QSq7MK49JvgbUM
-F1TCZwc7AgMBAAGjggI9MIICOTAdBgNVHQ4EFgQUf6YLVqF1vjXfk2h4J2GzgJAOB/8wHwYDVR0j
-BBgwFoAUHmkqtNwo/kcYTiELP7ysES/wmPUwZQYDVR0fBF4wXDBaoFigVoZUaHR0cDovL3d3dy5p
-bnRlbC5jb20vcmVwb3NpdG9yeS9DUkwvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWlu
-ZyUyMENBJTIwNEEuY3JsMIGfBggrBgEFBQcBAQSBkjCBjzBpBggrBgEFBQcwAoZdaHR0cDovL3d3
-dy5pbnRlbC5jb20vcmVwb3NpdG9yeS9jZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJh
-c2ljJTIwSXNzdWluZyUyMENBJTIwNEEuY3J0MCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5pbnRl
-bC5jb20vMAsGA1UdDwQEAwIHgDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9
-gSiFjp9TgpHACWeB3r05lfBDAgFkAgEJMB8GA1UdJQQYMBYGCCsGAQUFBwMEBgorBgEEAYI3CgMM
-MCkGCSsGAQQBgjcVCgQcMBowCgYIKwYBBQUHAwQwDAYKKwYBBAGCNwoDDDBXBgNVHREEUDBOoC0G
-CisGAQQBgjcUAgOgHwwdc3Jpbml2YXMucGFuZHJ1dmFkYUBpbnRlbC5jb22BHXNyaW5pdmFzLnBh
-bmRydXZhZGFAaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQDDpWcY9zqtG5P0e1FRJpG/RPQ6
-p6sQJHZ5UwykMtYFqBJYOZn9B8koeLEhE4vOAh6v6fgVoCfOvwxJ57BUAdP3jvkbCaLz3r6nUHNr
-6w6KwnT9rHykdDjZsRUGs2yP+139qVqoXRHTOLfqvnAzcirjgf4Fz3JRPJZraRWrICBehqhYVfFH
-sxxBgOauQ+DTHjZARkomjmrATvlDpLMlN74L/BKZI4rl4R/BjSaLBzAKQnAN0nvWefpPzdeSYuxK
-XaN1xDzINPDnmShXSbQzee0h2CvEnIMtPQDM9DJACUi14Cc9y4o7DqRky4r1+XnksN2lKnu83l4E
-oSxCkDMhszkFMYICFzCCAhMCAQEwgZAweTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQwEgYD
-VQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIklu
-dGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEECEzMAAK0KIyEkTMbH5OYAAAAArQowCQYF
-Kw4DAhoFAKBdMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTE4MDQx
-NzIyNTkzOFowIwYJKoZIhvcNAQkEMRYEFA+ccyBxJA3WUy9dHWd95wD8KZwVMA0GCSqGSIb3DQEB
-AQUABIIBAL8b6NfJexkbqG+6xrxpE9jl6L5ZAFBf2ue2UCrq2qupXrgbeNarjj/qYQo3JyUu+AM8
-Cf6a1Hjd92lfH948Ly+BkpsEqH3aubJte6cGmCUFTxjYvyl/eKt4UoCriWksRwvCLIrmPXNONiNH
-mvmdVdl2LTPfs/l46Ey1wowQslD4N2WC0HwHws52tj+z6Bc7Zno0hPBZgYKf02hTE28TsjdpXGXY
-RP/FqlJ2UudGLka9vfpdzPEp+at8VaK1j9Mi6R9DGhBIzHm7muVQMDkPsUfgg2z1T3q09C5DULeF
-eBz4fLtHaiDuMd3loMAqQfU8oeUmoQm+S23wOf42qxetE98AAAAAAAA=
-
-
---=-sCq2uG6EDu9oDeAxdg5j--
+>  .../devicetree/bindings/thermal/exynos-thermal.txt |  23 +-
+>  .../devicetree/bindings/thermal/imx-thermal.txt    |   9 +-
+>  .../bindings/thermal/mediatek-thermal.txt          |   1 +
+>  .../devicetree/bindings/thermal/thermal.txt        |  16 +-
+>  drivers/thermal/imx_thermal.c                      | 295
+> ++++++++++++++++-----
+>  drivers/thermal/mtk_thermal.c                      |  35 +++
+>  6 files changed, 281 insertions(+), 98 deletions(-)
