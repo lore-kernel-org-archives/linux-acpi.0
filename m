@@ -1,69 +1,49 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
- errors are marked as fatal.
-Date: Thu, 19 Apr 2018 17:40:06 +0200
-Message-ID: <20180419154006.GE3600@pd.tnic>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [RFC PATCH v2 2/4] acpi: apei: Split GHES handlers outside of
+ ghes_do_proc
+Date: Thu, 19 Apr 2018 10:46:15 -0500
+Message-ID: <b9887ae1-8d7e-cfff-3933-d9358283a3c4@gmail.com>
 References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
- <20180416215903.7318-4-mr.nuke.me@gmail.com>
- <20180418175415.GJ4795@pd.tnic>
- <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+ <20180416215903.7318-3-mr.nuke.me@gmail.com> <20180418175201.GI4795@pd.tnic>
+ <5f26275c-5896-c552-69c4-78e5aaaa6558@gmail.com>
+ <20180419143018.GC3600@pd.tnic>
+ <8f467611-16a1-8fe7-ea12-e2e29023e4e8@gmail.com>
+ <20180419152933.GD3600@pd.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+In-Reply-To: <20180419152933.GD3600@pd.tnic>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Alex G." <mr.nuke.me@gmail.com>
+To: Borislav Petkov <bp@alien8.de>
 Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 19, 2018 at 09:57:07AM -0500, Alex G. wrote:
-> ghes_severity() is a one-to-one mapping from a set of unsorted
-> severities to monotonically increasing numbers. The "one-to-one" mapping
-> part of the sentence is obvious from the function name. To change it to
-> parse the entire GHES would completely destroy this, and I think it
-> would apply policy in the wrong place.
 
-So do a wrapper or whatever. Do a ghes_compute_severity() or however you
-would wanna call it and do the iteration there.
 
-> Should I do that, I might have to call it something like
-> ghes_parse_and_apply_policy_to_severity(). But that misses the whole
-> point if these changes.
+On 04/19/2018 10:29 AM, Borislav Petkov wrote:
+> On Thu, Apr 19, 2018 at 09:57:08AM -0500, Alex G. wrote:
+>> And that was the motivation behind my splitting it in this patch.
+> 
+> By "split" I don't mean add a function pointer which gets selected and
+> then called - if the function becomes too long, you simply split the
+> function body properly.
 
-What policy? You simply compute the severity like we do in the mce code.
+The bulk of the function is the if/else mapping from UUID to error
+handler. I don't see how that can be easily split up, hence why I
+originally resorted to the mapping. As you said, we'll keep it simple at
+first.
 
-> I would like to get to the handlers first, and then decide if things are
-> okay or not,
+>> You don't need the entire GHES structure -- wide context. Individual
+>> handlers should not be able to access the entire ghes.
+> 
+> But you remove the @ghes argument in patch 1. So what are we even
+> talking about?
 
-Why? Give me an example why you'd handle an error first and then decide
-whether we're ok or not?
+You could say, by convention, handlers shouldn't access ghes directly,
+but that is not obvious when @ghes is in scope. The reason I bring it up
+is that, if [1/4] ends up being unneeded, then I will drop it from the
+series.
 
-Usually, the error handler decides that in one place. So what exactly
-are you trying to do differently that doesn't fit that flow?
-
-> I don't want to leave people scratching their heads, but I also don't
-> want to make AER a special case without having a generic way to handle
-> these cases. People are just as susceptible to scratch their heads
-> wondering why AER is a special case and everything else crashes.
-
-Not if it is properly done *and* documented why we applying the
-respective policy for the error type.
-
-> Maybe it's better move the AER handling to NMI/IRQ context, since
-> ghes_handle_aer() is only scheduling the real AER andler, and is irq
-> safe. I'm scratching my head about why we're messing with IRQ work from
-> NMI context, instead of just scheduling a regular handler to take care
-> of things.
-
-No, first pls explain what exactly you're trying to do and then we can
-talk about how to do it. Btw, a real-life example to accompany that
-intention goes a long way.
-
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Alex
