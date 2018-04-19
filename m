@@ -1,49 +1,45 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
- errors are marked as fatal.
-Date: Thu, 19 Apr 2018 18:45:28 +0200
-Message-ID: <20180419164528.GD5635@pd.tnic>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
- <20180416215903.7318-4-mr.nuke.me@gmail.com>
- <20180418175415.GJ4795@pd.tnic>
- <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
- <20180419154006.GE3600@pd.tnic>
- <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: [PATCH] ACPI / bus: ignore rather than fail bus driver registrations on non-ACPI boot
+Date: Thu, 19 Apr 2018 18:58:25 +0200
+Message-ID: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Alex G." <mr.nuke.me@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, broonie@kernel.org, lorenzo.pieralisi@arm.com, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 19, 2018 at 11:26:57AM -0500, Alex G. wrote:
-> At a very high level, I'm working with Dell on improving server
-> reliability, with a focus on NVME hotplug and surprise removal. One of
-> the features we don't support is surprise removal of NVME drives;
-> hotplug is supported with 'prepare to remove'. This is one of the
-> reasons NVME is not on feature parity with SAS and SATA.
+When building ACPI bus drivers such as button.ko into the core kernel,
+other drivers that depend on its symbols are loadable even when booting
+with ACPI disabled. For instance, nouveau.ko has a link time dependency
+on acpi_lid_open() on ACPI capable kernels, and calls it regardless of
+whether the system booted via ACPI.
 
-Ok, first question: is surprise removal something purely mechanical or
-do you need firmware support for it? In the sense that you need to tell
-the firmware that you will be removing the drive.
+However, when building button.ko as a module, it will refuse to load if
+the system did not boot in ACPI mode, which subsequently prevents the
+nouveau driver from loading as well, resulting in broken graphics.
 
-I'm sceptical, though, as it has "surprise" in the name so I'm guessing
-the firmware doesn't know about it, the drive physically disappears and
-the FW starts spewing PCIe errors...
+Given that returning an error from an initcall() is ignored for drivers
+that are built into the kernel, let's align the module case with this,
+and not return an error when registering an ACPI bus driver on a system
+that did not boot via ACPI.
 
-> I'm not sure if this is the example you're looking for, but
-> take an r740xd server, and slowly unplug an Intel NVME drives at an
-> angle. You're likely to crash the machine.
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+ drivers/acpi/bus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-No no, that's actually a great example!
-
-Thx.
-
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 84b4a62018eb..529d3d496fab 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -880,7 +880,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
+ 	int ret;
+ 
+ 	if (acpi_disabled)
+-		return -ENODEV;
++		return 0;
+ 	driver->drv.name = driver->name;
+ 	driver->drv.bus = &acpi_bus_type;
+ 	driver->drv.owner = driver->owner;
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.17.0
