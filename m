@@ -1,70 +1,64 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH 03/39] proc: introduce proc_create_seq_private
-Date: Thu, 19 Apr 2018 17:18:18 +0300
-Message-ID: <20180419141818.pjys7at4xmz2h6ho@mwanda>
-References: <20180419124140.9309-1-hch@lst.de>
- <20180419124140.9309-4-hch@lst.de>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [RFC PATCH v2 2/4] acpi: apei: Split GHES handlers outside of
+ ghes_do_proc
+Date: Thu, 19 Apr 2018 09:19:03 -0500
+Message-ID: <5f26275c-5896-c552-69c4-78e5aaaa6558@gmail.com>
+References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+ <20180416215903.7318-3-mr.nuke.me@gmail.com> <20180418175201.GI4795@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20180419124140.9309-4-hch@lst.de>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, Corey Minyard <minyard@acm.org>, linux-scsi@vger.kernel.org, linux-acpi@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, megaraidlinux.pdl@broadcom.com, linux-kernel@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, linux-ide@vger.kernel.org, netfilter-devel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, netdev@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, linux-afs@lists.infradead.org, jfs-discussion@lists.sourceforge.net, drbd-dev@lists.linbit.com
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180418175201.GI4795@pd.tnic>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 19, 2018 at 02:41:04PM +0200, Christoph Hellwig wrote:
-> diff --git a/drivers/s390/cio/blacklist.c b/drivers/s390/cio/blacklist.c
-> index 2a3f874a21d5..ad35cddcf6af 100644
-> --- a/drivers/s390/cio/blacklist.c
-> +++ b/drivers/s390/cio/blacklist.c
-> @@ -391,28 +391,15 @@ static const struct seq_operations cio_ignore_proc_seq_ops = {
->  	.show  = cio_ignore_proc_seq_show,
->  };
->  
-> -static int
-> -cio_ignore_proc_open(struct inode *inode, struct file *file)
-> -{
-> -	return seq_open_private(file, &cio_ignore_proc_seq_ops,
-> -				sizeof(struct ccwdev_iter));
-> -}
-> -
-> -static const struct file_operations cio_ignore_proc_fops = {
-> -	.open    = cio_ignore_proc_open,
-> -	.read    = seq_read,
-> -	.llseek  = seq_lseek,
-> -	.release = seq_release_private,
-> -	.write   = cio_ignore_write,
-                   ^^^^^^^^^^^^^^^^
-The cio_ignore_write() function isn't used any more so compilers will
-complain.
 
-> -};
-> -
->  static int
->  cio_ignore_proc_init (void)
->  {
->  	struct proc_dir_entry *entry;
->  
-> -	entry = proc_create("cio_ignore", S_IFREG | S_IRUGO | S_IWUSR, NULL,
-> -			    &cio_ignore_proc_fops);
-> +	entry = proc_create_seq_private("cio_ignore",
-> +			S_IFREG | S_IRUGO | S_IWUSR, NULL,
-> +			&cio_ignore_proc_seq_ops, sizeof(struct ccwdev_iter),
-> +			NULL);
->  	if (!entry)
->  		return -ENOENT;
->  	return 0;
+On 04/18/2018 12:52 PM, Borislav Petkov wrote:
+> On Mon, Apr 16, 2018 at 04:59:01PM -0500, Alexandru Gagniuc wrote:
+>>  static void ghes_do_proc(struct ghes *ghes,
+>>  			 const struct acpi_hest_generic_status *estatus)
+>>  {
+>>  	int sev, sec_sev;
+>>  	struct acpi_hest_generic_data *gdata;
+>> +	const struct ghes_handler *handler;
+>>  	guid_t *sec_type;
+>>  	guid_t *fru_id = &NULL_UUID_LE;
+>>  	char *fru_text = "";
+>> @@ -478,21 +537,10 @@ static void ghes_do_proc(struct ghes *ghes,
+>>  		if (gdata->validation_bits & CPER_SEC_VALID_FRU_TEXT)
+>>  			fru_text = gdata->fru_text;
+>>  
+>> -		if (guid_equal(sec_type, &CPER_SEC_PLATFORM_MEM)) {
+>> -			struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
+>> -
+>> -			ghes_edac_report_mem_error(sev, mem_err);
+>> -
+>> -			arch_apei_report_mem_error(sev, mem_err);
+>> -			ghes_handle_memory_failure(gdata, sev);
+>> -		}
+>> -		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
+>> -			ghes_handle_aer(gdata);
+>> -		}
+>> -		else if (guid_equal(sec_type, &CPER_SEC_PROC_ARM)) {
+>> -			struct cper_sec_proc_arm *err = acpi_hest_get_payload(gdata);
+>>  
+>> -			log_arm_hw_error(err);
+>> +		handler = get_handler(sec_type);
+> 
+> I don't like this - it was better and more readable before because I can
+> follow which handler gets called. This change makes is less readable.
 
-regards,
-dan carpenter
+I agree with the readability argument in the current situation of three
+handlers. I guess I was thinking ahead and generalizing for an arbitrary
+number of handlers.
+
+On the other side, you lose readability as soon as you get a few more
+handlers and the function becomes too long. And more importantly, you
+lose generality: it's not obvious that there's
+ghes_edac_report_mem_error() which too wide a context.
+
+Alex
