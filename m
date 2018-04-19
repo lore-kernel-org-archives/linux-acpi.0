@@ -1,110 +1,57 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: issues with suspend on Dell XPS 13 2-in-1
-Date: Thu, 19 Apr 2018 19:53:18 +0000
-Message-ID: <3c730d38c3b345289ec27434d79349cb@ausx13mpc120.AMER.DELL.COM>
-References: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
-         <b7c4434319bf4ff8877f882d219a60ba@ausx13mpc120.AMER.DELL.COM>
-         <1524005977.31134.15.camel@intel.com>
-         <6ebf99dedde4446d84333c2cf25cc9fa@ausx13mpc120.AMER.DELL.COM>
-         <1524112616.31134.43.camel@intel.com>
-         <d37a1c5a6505416bbc77a2dc5f76a714@ausx13mpc120.AMER.DELL.COM>
- <1524167123.8392.7.camel@intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: [PATCH v1 0/2] PCI/ASPM: Tighten up ASPM L1.2 and LTR usage
+Date: Thu, 19 Apr 2018 16:05:19 -0500
+Message-ID: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1524167123.8392.7.camel@intel.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: srinivas.pandruvada@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dgilmore@redhat.com
+To: linux-pci@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, Rajat Jain <rajatja@google.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Ray Jui <ray.jui@broadcom.com>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBQYW5kcnV2YWRhLCBTcmluaXZh
-cyBbbWFpbHRvOnNyaW5pdmFzLnBhbmRydXZhZGFAaW50ZWwuY29tXQ0KPiBTZW50OiBUaHVyc2Rh
-eSwgQXByaWwgMTksIDIwMTggMjo0NiBQTQ0KPiBUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5v
-cmc7IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc7DQo+IGRnaWxtb3JlQHJlZGhhdC5jb207
-IExpbW9uY2llbGxvLCBNYXJpbw0KPiBTdWJqZWN0OiBSZTogaXNzdWVzIHdpdGggc3VzcGVuZCBv
-biBEZWxsIFhQUyAxMyAyLWluLTENCj4gDQo+IE9uIFRodSwgMjAxOC0wNC0xOSBhdCAxNzozMCAr
-MDAwMCwgTWFyaW8uTGltb25jaWVsbG9AZGVsbC5jb20gd3JvdGU6DQo+IA0KPiBbLi4uXQ0KPiAN
-Cj4gPiA+DQo+IFRob3NlIHNob3VsZCBpbXBhY3Qgb3Bwb3J0dW5pc3RpYyBpZGxlIHNpbmNlIGZv
-ciBTMkkgcmVndWxhcg0KPiA+ID4gc3VzcGVuZA0KPiA+ID4gY2FsbGJhY2tzIGFyZSBjYWxsZWQu
-IEluIG15IDkzNjUsIEkgY2FuIGdldCBQQzEwIGR1cmluZyBTMkkgcGF0aA0KPiA+ID4gd2l0aG91
-dCBhZGp1c3RpbmcgdGhlbS4gT25seSBwcm9ibGVtYXRpYyBpcyBzeXN0ZW1zIHdpdGggU0FUQSwN
-Cj4gPiA+IHdoZXJlIHdlDQo+ID4gPiBuZWVkIHRvIGVuYWJsZSBkZXZzbGVlcC4NCj4gPg0KPiA+
-IEhtbSwgRGVubmlzIGRpZCBtZW50aW9uIHRoYXQgaGUgaGFkIGFuIE5WTUUgZGlzaywgc28gaXQg
-Y2FuJ3QgYmUgYQ0KPiA+IGRldnNsZWVwDQo+ID4gcHJvYmxlbS4NCj4gPg0KPiA+IFBlcmhhcHMg
-Y2FuIHlvdSBhbHNvIHNoYXJlIHlvdXIga2VybmVsIGNvbmZpZyB1c2VkIHdpdGggOTM2NSBzbw0K
-PiA+IERlbm5pcw0KPiA+IGNhbiBjb21wYXJlPw0KPiBJIGFtIHVzaW5nIHVidW50dSBrZXJuZWwg
-Y29uZmlnIGFzIGlzLiBOb3RoaW5nIHNwZWNpYWwuDQo+IFdlIG5lZWQgdG8gbG9vayBhdCB0aGUg
-dHVyYm9zdGF0IGRhdGEgYW5kIHNlZSB3aGF0IFBrZ0Mgc3RhdGVzIHRoZQ0KPiBzeXN0ZW0gY2Fu
-IHJlYWNoLiBNYXkgYmUgdGhlIGlzc3VlcyBpcyB3aXRoIGxvYWRpbmcgRE1DIGZpcm13YXJlIG9y
-DQo+IHNvbWUgTFRSIGlzc3Vlcy4NCg0KSXQgY291bGQgYmUgcG90ZW50aWFsbHkgbmVlZGluZyB0
-byB1cGRhdGUgdG8gbmV3IERNQyBmaXJtd2FyZSB0aGFuDQpGZWRvcmEgaW5zdGFsbHMgYnkgZGVm
-YXVsdCB0b28gdGhlbi4NCg0KRWcgZHVlIHRvOg0KaHR0cHM6Ly9naXRodWIuY29tL3RvcnZhbGRz
-L2xpbnV4L2NvbW1pdC8zOWNjYzk4NTJlMmI0Njk2NGM5YzQ0ZWJhNTJkYjU3NDEzYmE2ZDI3DQpo
-dHRwczovL2dpdGh1Yi5jb20vdG9ydmFsZHMvbGludXgvY29tbWl0LzRmMGFhMWZhM2UzODQ5Y2Fl
-ZTQ1MGVlNWQxNGZjYzI4OWNmMTY3MDMNCg0KPiANCj4gVGhhbmtzLA0KPiBTcmluaXZhcw0KPiAN
-Cj4gPg0KPiA+IEkgYmVsaWV2ZSB3ZSdsbCBuZWVkIHRvIHNlZSBzb21lIG1vcmUgaW5mb3JtYXRp
-b24gZnJvbSBEZW5uaXMgeW91DQo+ID4gYXNrZWQNCj4gPiBpbiBwcmV2aW91cyBlbWFpbCBiZWZv
-cmUgd2UgY2FuIG1ha2UgbW9yZSBwcm9ncmVzcyBoZXJlIHRob3VnaC4NCj4gPg0KPiA+ID4gPg0K
-PiA+ID4gPiA+IEkgc3VnZ2VzdCBydW4NCj4gPiA+ID4gPiAjdHVyYm9zdGF0DQo+ID4gPiA+ID4g
-dGhlbiBzdXNwZW5kIGFuZCB3YWtlDQo+ID4gPiA+ID4gd2hlbiB3YWtlIHVwIGxldCB0aGUgdHVy
-Ym9zdGF0IGNvbGxlY3QgZGF0YSBmb3IgbmV4dCBzYW1wbGluZw0KPiA+ID4gPiA+IGludGVydmFs
-Lg0KPiA+ID4gPiA+IFdlIGhhdmUgdG8gc2VlIHdoYXQgYXJlIFBrZ0MlIHJlc2lkZW5jaWVzIGFy
-ZT8NCj4gPiA+ID4NCj4gPiA+ID4gQXNzdW1pbmcgeW91IG1lYW4gZm9yIERhbiB0byBydW4gdGhp
-cyBhZnRlciBoZSBhZGp1c3RzIGFsbCB0aGUgUE0NCj4gPiA+ID4gc2V0dGluZ3MNCj4gPiA+ID4g
-Zm9yIHRob3NlIG9wdGlvbnMgcG93ZXIgdG9wIGNhbGxlZCBvdXQsIHJpZ2h0Pw0KPiA+ID4NCj4g
-PiA+IEl0IGlzIGJldHRlci4NCj4gPiA+IE1heSBiZSBzb21lIGRldmljZSBpcyBub3QgYmVoYXZp
-bmcgY29ycmVjdGx5LiBTbyBoZSBjYW4gdHJ5IHdpdGgNCj4gPiA+IHBvd2VydG9wIC0tYXV0by10
-dW5lIGFuZCBjaGVjayB0dXJib3N0YXQgYW5kIHNlZSBzdGF0dXMgb2YgUGtnQw0KPiA+ID4gc3Rh
-dGVzLg0KPiA+ID4NCj4gPiA+IFRoYW5rcywNCj4gPiA+IFNyaW5pdmFzDQo+ID4gPg0KPiA+ID4g
-Pg0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gVGhhbmtzLA0KPiA+ID4gPiA+IFNyaW5pdmFzDQo+ID4g
-PiA+ID4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPg0KPiA+ID4gPiA+ID4gPiDCoMKgwqBHb29k
-wqDCoMKgwqDCoMKgwqDCoMKgwqBCbHVldG9vdGggZGV2aWNlIGludGVyZmFjZSBzdGF0dXMNCj4g
-PiA+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgRW5hYmxlIEF1ZGlvIGNv
-ZGVjIHBvd2VyIG1hbmFnZW1lbnQNCj4gPiA+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDC
-oMKgwqDCoMKgUnVudGltZSBQTSBmb3IgSTJDIEFkYXB0ZXIgaTJjLTggKFN5bm9wc3lzDQo+ID4g
-PiA+ID4gPiA+IERlc2lnbldhcmUNCj4gPiA+ID4gPiA+ID4gSTJDIGFkYXB0ZXIpDQo+ID4gPiA+
-ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciBVU0Ig
-ZGV2aWNlDQo+ID4gPiA+ID4gPiA+IEludGVncmF0ZWRfV2ViY2FtX0hEDQo+ID4gPiA+ID4gPiA+
-IFtDTkZHRTE2TjA5MjAyMDAyODM2Ml0NCj4gPiA+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKg
-wqDCoMKgwqDCoMKgQXV0b3N1c3BlbmQgZm9yIFVTQiBkZXZpY2UgeEhDSSBIb3N0DQo+ID4gPiA+
-ID4gPiA+IENvbnRyb2xsZXINCj4gPiA+ID4gPiA+ID4gW3VzYjFdDQo+ID4gPiA+ID4gPiA+IMKg
-wqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciBVU0IgZGV2aWNlIHhI
-Q0kgSG9zdA0KPiA+ID4gPiA+ID4gPiBDb250cm9sbGVyDQo+ID4gPiA+ID4gPiA+IFt1c2IyXQ0K
-PiA+ID4gPiA+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZv
-ciBJMkMgQWRhcHRlciBpMmMtNyAoU01CdXMNCj4gPiA+ID4gPiA+ID4gSTgwMQ0KPiA+ID4gPiA+
-ID4gPiBhZGFwdGVyDQo+ID4gPiA+ID4gPiA+IGF0IGVmYTApDQo+ID4gPiA+ID4gPiA+IMKgwqDC
-oEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciB1bmtub3duIFVTQiBkZXZp
-Y2UgMS0yDQo+ID4gPiA+ID4gPiA+ICg4MDg3OjBhMmIpDQo+ID4gPiA+ID4gPiA+IMKgwqDCoEdv
-b2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9yIEkyQyBBZGFwdGVyIGkyYy02IChT
-eW5vcHN5cw0KPiA+ID4gPiA+ID4gPiBEZXNpZ25XYXJlDQo+ID4gPiA+ID4gPiA+IEkyQyBhZGFw
-dGVyKQ0KPiA+ID4gPiA+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBJMkMgRGV2
-aWNlIGkyYy1ETEwwNzdBOjAxIGhhcyBubyBydW50aW1lDQo+ID4gPiA+ID4gPiA+IHBvd2VyDQo+
-ID4gPiA+ID4gPiA+IG1hbmFnZW1lbnQNCj4gPiA+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKg
-wqDCoMKgwqDCoMKgSTJDIERldmljZSBpMmMtV0NPTTQ4MkY6MDAgaGFzIG5vIHJ1bnRpbWUNCj4g
-PiA+ID4gPiA+ID4gcG93ZXINCj4gPiA+ID4gPiA+ID4gbWFuYWdlbWVudA0KPiA+ID4gPiA+ID4g
-PiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNl
-IEludGVsDQo+ID4gPiA+ID4gPiA+IENvcnBvcmF0aW9uDQo+ID4gPiA+ID4gPiA+IFN1bnJpc2UN
-Cj4gPiA+ID4gPiA+ID4gUG9pbnQtTFAgUENJIEV4cHJlc3MgUm9vdCBQb3J0ICMxMA0KPiA+ID4g
-PiA+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kg
-RGV2aWNlIEludGVsDQo+ID4gPiA+ID4gPiA+IENvcnBvcmF0aW9uDQo+ID4gPiA+ID4gPiA+IFN1
-bnJpc2UNCj4gPiA+ID4gPiA+ID4gUG9pbnQtTFAgQ1NNRSBIRUNJICMxDQo+ID4gPiA+ID4gPiA+
-IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2Ug
-SW50ZWwNCj4gPiA+ID4gPiA+ID4gQ29ycG9yYXRpb24NCj4gPiA+ID4gPiA+ID4gU3VucmlzZQ0K
-PiA+ID4gPiA+ID4gPiBQb2ludC1MUCBTZXJpYWwgSU8gSTJDIENvbnRyb2xsZXIgIzENCj4gPiA+
-ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJ
-IERldmljZSBJbnRlbA0KPiA+ID4gPiA+ID4gPiBDb3Jwb3JhdGlvbg0KPiA+ID4gPiA+ID4gPiBT
-dW5yaXNlDQo+ID4gPiA+ID4gPiA+IFBvaW50LUxQIFNNQnVzDQo+ID4gPiA+ID4gPiA+IMKgwqDC
-oEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwN
-Cj4gPiA+ID4gPiA+ID4gQ29ycG9yYXRpb24NCj4gPiA+ID4gPiA+ID4gU3VucmlzZQ0KPiA+ID4g
-PiA+ID4gPiBQb2ludC1MUCBQQ0kgRXhwcmVzcyBSb290IFBvcnQgIzUNCj4gPiA+ID4gPiA+ID4g
-wqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgUENJIERldmljZSBJ
-bnRlbA0KPiA+ID4gPiA+ID4gPiBDb3Jwb3JhdGlvbg0KPiA+ID4gPiA+ID4gPiBTdW5yaXNlDQo+
-ID4gPiA+ID4gPiA+IFBvaW50LUxQIFNlcmlhbCBJTyBJMkMgQ29udHJvbGxlciAjMA0KPiA+ID4g
-PiA+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBXYWtlLW9uLWxhbiBzdGF0dXMg
-Zm9yIGRldmljZSB2aXJicjAtbmljDQo+ID4gPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKg
-wqDCoMKgwqDCoFdha2Utb24tbGFuIHN0YXR1cyBmb3IgZGV2aWNlIHZpcmJyMA0KPiA+ID4gPiA+
-ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBXYWtlLW9uLWxhbiBzdGF0dXMgZm9y
-IGRldmljZSB3bHA2MHMwDQo+ID4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiA+IFJlZ2FyZHMNCj4g
-PiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+ID4gRGVubmlzDQo=
+The ASPM L1.2 substate depends on LTR information.  Per the PCI
+Firmware spec, the OS is supposed to negotiate with the platform for
+control of the LTR feature, but previously we didn't do that.
+
+In addition, we must not enable LTR in an endpoint unless the Root
+Complex and all intermediate switches also support LTR.  We already
+took care of that in pci_configure_ltr(), but we didn't ensure that
+LTR was enabled before allowing ASPM L1.2 to be enabled.
+
+These patches fix both of these issues.  Or rather, they *should* fix
+them.  I don't have hardware to test them, so any help with testing
+would be appreciated.
+
+I think the most likely issue would be a platform where the hardware
+supports LTR and the ASPM L1.2 substate, but the BIOS doesn't support
+LTR in _OSC.  In that case, we previously could have enabled ASPM L1.2
+(though it probably wouldn't work correctly), and after these patches,
+we should not enable ASPM L1.2.
+
+You can look for issues by comparing dmesg and "lspci -vv" output
+before and after these patches.
+
+It would also be interesting to collect an acpidump from platforms
+that support LTR, even if there's no endpoint that supports ASPM L1.2.
+The acpidump should show that _OSC supports LTR.
+
+I included some NVMe folks because these were motivated by Srinath's
+recent report of LTR and ASPM issues with a Samsung NVMe SSD
+Controller SM961/PM961 device, so this is sort of FYI in case you see
+similar issues or are in a position to test these.
+
+---
+
+Bjorn Helgaas (2):
+      PCI/ASPM: Disable ASPM L1.2 Substate if we don't have LTR
+      PCI/ACPI: Request LTR control from platform before using it
+
+
+ drivers/acpi/pci_root.c |    7 +++++++
+ drivers/pci/pcie/aspm.c |    9 +++++++++
+ drivers/pci/probe.c     |    5 +++++
+ include/linux/acpi.h    |    3 ++-
+ include/linux/pci.h     |    1 +
+ 5 files changed, 24 insertions(+), 1 deletion(-)
