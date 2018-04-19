@@ -1,22 +1,43 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: simplify procfs code for seq_file instances
-Date: Thu, 19 Apr 2018 21:57:50 +0300
-Message-ID: <20180419185750.GD2066@avx2>
-References: <20180419124140.9309-1-hch@lst.de>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
+ errors are marked as fatal.
+Date: Thu, 19 Apr 2018 21:03:23 +0200
+Message-ID: <20180419190323.GF5635@pd.tnic>
+References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+ <20180416215903.7318-4-mr.nuke.me@gmail.com>
+ <20180418175415.GJ4795@pd.tnic>
+ <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+ <20180419154006.GE3600@pd.tnic>
+ <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
+ <20180419164528.GD5635@pd.tnic>
+ <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180419124140.9309-1-hch@lst.de>
-Sender: netdev-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Corey Minyard <minyard@acm.org>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Alex G." <mr.nuke.me@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
->     git://git.infradead.org/users/hch/misc.git proc_create
+(snip useful explanation).
 
+On Thu, Apr 19, 2018 at 12:40:54PM -0500, Alex G. wrote:
+> On the r740xd, FW just hides those errors from the OS with no further
+> notification. On this machine BIOS sets things up such that non-posted
+> requests report fatal (PCIe) errors. FW still tries very hard to hide
+> this from the OS, and I think the heuristic is that if the drive
+> physical presence is gone, don't even report the error.
 
-I want to ask if it is time to start using poorman function overloading
-with _b_c_e(). There are millions of allocation functions for example,
-all slightly difference, and people will add more. Seeing /proc interfaces
-doubled like this is painful.
+Ok, second question: can you detect from the error signatures alone that
+it was a surprise removal? How does such an error look like, in detail?
+Got error logs somewhere to dump?
+
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
