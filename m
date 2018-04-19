@@ -1,86 +1,72 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
- errors are marked as fatal.
-Date: Thu, 19 Apr 2018 12:40:54 -0500
-Message-ID: <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
- <20180416215903.7318-4-mr.nuke.me@gmail.com> <20180418175415.GJ4795@pd.tnic>
- <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
- <20180419154006.GE3600@pd.tnic>
- <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
- <20180419164528.GD5635@pd.tnic>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 02/39] proc: introduce proc_create_seq{,_data}
+Date: Thu, 19 Apr 2018 21:41:06 +0300
+Message-ID: <20180419184106.GA2066@avx2>
+References: <20180419124140.9309-1-hch@lst.de>
+ <20180419124140.9309-3-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180419164528.GD5635@pd.tnic>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20180419124140.9309-3-hch@lst.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, Corey Minyard <minyard@acm.org>, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, linux-afs@lists.infradead.org, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
 List-Id: linux-acpi@vger.kernel.org
 
-SURPRISE!!!
+On Thu, Apr 19, 2018 at 02:41:03PM +0200, Christoph Hellwig wrote:
+> Variants of proc_create{,_data} that directly take a struct seq_operations
+> argument and drastically reduces the boilerplate code in the callers.
 
-On 04/19/2018 11:45 AM, Borislav Petkov wrote:
-> On Thu, Apr 19, 2018 at 11:26:57AM -0500, Alex G. wrote:
->> At a very high level, I'm working with Dell on improving server
->> reliability, with a focus on NVME hotplug and surprise removal. One of
->> the features we don't support is surprise removal of NVME drives;
->> hotplug is supported with 'prepare to remove'. This is one of the
->> reasons NVME is not on feature parity with SAS and SATA.
-> 
-> Ok, first question: is surprise removal something purely mechanical or
-> do you need firmware support for it? In the sense that you need to tell
-> the firmware that you will be removing the drive.
+> +static int proc_seq_open(struct inode *inode, struct file *file)
+> +{
+> +	struct proc_dir_entry *de = PDE(inode);
+> +
+> +	return seq_open(file, de->seq_ops);
+> +}
+> +
+> +static const struct file_operations proc_seq_fops = {
+> +	.open		= proc_seq_open,
+> +	.read		= seq_read,
+> +	.llseek		= seq_lseek,
+> +	.release	= seq_release,
+> +};
+> +
+> +struct proc_dir_entry *proc_create_seq_data(const char *name, umode_t mode,
+> +		struct proc_dir_entry *parent, const struct seq_operations *ops,
+> +		void *data)
+> +{
+> +	struct proc_dir_entry *p;
+> +
+> +	p = proc_create_data(name, mode, parent, &proc_seq_fops, data);
+> +	if (p)
+> +		p->seq_ops = ops;
+> +	return p;
+> +}
 
-SURPRISE!!! removal only means that the system was not expecting the
-drive to be yanked. An example is removing a USB flash drive without
-first unmounting it and removing the usb device (echo 0 >
-/sys/bus/usb/.../authorized).
+Should be oopsable.
+Once proc_create_data() returns, entry is live, ->open can be called.
 
-PCIe removal and hotplug is fairly well spec'd, and NVMe rides on that
-without issue. It's much easier and faster for an OS to just follow the
-spec and handle things on its own.
+> --- a/fs/proc/internal.h
+> +++ b/fs/proc/internal.h
+> @@ -44,6 +44,7 @@ struct proc_dir_entry {
+>  	struct completion *pde_unload_completion;
+>  	const struct inode_operations *proc_iops;
+>  	const struct file_operations *proc_fops;
+> +	const struct seq_operations *seq_ops;
+>  	void *data;
+>  	unsigned int low_ino;
+>  	nlink_t nlink;
 
-Interference from firmware only comes in with EFI/ACPI and FFS. From a
-purely technical point of view, firmware has nothing to do with this.
->From a firmware-centric view, unfortunately, firmware wants the ability
-to log errors to the BMC... and hotplug events.
-
-Does firmware need to know that a drive will be removed? I'm not aware
-of any such requirement. I think the main purpose of 'prepare to remove'
-is to shut down any traffic on the link. This way, link removal does not
-generate PCIe errors which may otherwise end up crashing the OS.
-
-
-> I'm sceptical, though, as it has "surprise" in the name so I'm guessing
-> the firmware doesn't know about it, the drive physically disappears and
-> the FW starts spewing PCIe errors...
-
-It's not the FW that spews out errors. It's the hardware. It's very
-likely that a device which is actively used will have several DMA
-transactions already queued up and lots of traffic going through the
-link. When the link dies and the traffic can't be delivered, Unsupported
-Request errors are very common.
-
-On the r740xd, FW just hides those errors from the OS with no further
-notification. On this machine BIOS sets things up such that non-posted
-requests report fatal (PCIe) errors. FW still tries very hard to hide
-this from the OS, and I think the heuristic is that if the drive
-physical presence is gone, don't even report the error.
-
-There are a lot of problems with the approach, but one thing to keep in
-mind is that the FW was written at a time when OSes were more than happy
-to crash at any PCIe error reported through GHES.
-
-Alex
-
->> I'm not sure if this is the example you're looking for, but
->> take an r740xd server, and slowly unplug an Intel NVME drives at an
->> angle. You're likely to crash the machine.
-> 
-> No no, that's actually a great example!
-> 
-> Thx.
-> 
+"struct proc_dir_entry is 192/128 bytes now.
+If someone knows how to pad array to certain size without union
+please tell.
