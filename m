@@ -1,45 +1,111 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH] ACPI / bus: ignore rather than fail bus driver registrations on non-ACPI boot
-Date: Thu, 19 Apr 2018 18:58:25 +0200
-Message-ID: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
+From: <Mario.Limonciello@dell.com>
+Subject: RE: issues with suspend on Dell XPS 13 2-in-1
+Date: Thu, 19 Apr 2018 17:30:38 +0000
+Message-ID: <d37a1c5a6505416bbc77a2dc5f76a714@ausx13mpc120.AMER.DELL.COM>
+References: <6ce634cb82617c2a9a060ba6e2accef2a15dcc15.camel@redhat.com>
+         <b7c4434319bf4ff8877f882d219a60ba@ausx13mpc120.AMER.DELL.COM>
+         <1524005977.31134.15.camel@intel.com>
+         <6ebf99dedde4446d84333c2cf25cc9fa@ausx13mpc120.AMER.DELL.COM>
+ <1524112616.31134.43.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1524112616.31134.43.camel@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, broonie@kernel.org, lorenzo.pieralisi@arm.com, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: srinivas.pandruvada@intel.com, dgilmore@redhat.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-When building ACPI bus drivers such as button.ko into the core kernel,
-other drivers that depend on its symbols are loadable even when booting
-with ACPI disabled. For instance, nouveau.ko has a link time dependency
-on acpi_lid_open() on ACPI capable kernels, and calls it regardless of
-whether the system booted via ACPI.
-
-However, when building button.ko as a module, it will refuse to load if
-the system did not boot in ACPI mode, which subsequently prevents the
-nouveau driver from loading as well, resulting in broken graphics.
-
-Given that returning an error from an initcall() is ignored for drivers
-that are built into the kernel, let's align the module case with this,
-and not return an error when registering an ACPI bus driver on a system
-that did not boot via ACPI.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- drivers/acpi/bus.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 84b4a62018eb..529d3d496fab 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -880,7 +880,7 @@ int acpi_bus_register_driver(struct acpi_driver *driver)
- 	int ret;
- 
- 	if (acpi_disabled)
--		return -ENODEV;
-+		return 0;
- 	driver->drv.name = driver->name;
- 	driver->drv.bus = &acpi_bus_type;
- 	driver->drv.owner = driver->owner;
--- 
-2.17.0
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUGFuZHJ1dmFkYSwgU3Jp
+bml2YXMgW21haWx0bzpzcmluaXZhcy5wYW5kcnV2YWRhQGludGVsLmNvbV0NCj4gU2VudDogV2Vk
+bmVzZGF5LCBBcHJpbCAxOCwgMjAxOCAxMTozNyBQTQ0KPiBUbzogZGdpbG1vcmVAcmVkaGF0LmNv
+bTsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJu
+ZWwub3JnOyBMaW1vbmNpZWxsbywgTWFyaW8NCj4gU3ViamVjdDogUmU6IGlzc3VlcyB3aXRoIHN1
+c3BlbmQgb24gRGVsbCBYUFMgMTMgMi1pbi0xDQo+IA0KPiBPbiBXZWQsIDIwMTgtMDQtMTggYXQg
+MjE6MDEgKzAwMDAsIE1hcmlvLkxpbW9uY2llbGxvQGRlbGwuY29tIHdyb3RlOg0KPiANCj4gPiA+
+DQo+ID4gPiA+IFsuLi5dDQo+IA0KPiA+ID4gPiBTcmluaXZhcywNCj4gPiA+ID4NCj4gPiA+ID4g
+RG8geW91IGtub3cgd2h5IFJ1bnRpbWUgUE0gaXMgZGVmYXVsdGluZyB0byBkaXNhYmxlZCBmb3Ig
+YWxsIG9mDQo+ID4gPiA+IHRoZXNlDQo+ID4gPiA+IGRldmljZXM/wqDCoElzIHRoYXQgYSBkZWZh
+dWx0IGtlcm5lbCBwb2xpY3kgcHJvYmxlbSBvciBhIGRpc3Rybw0KPiA+ID4gPiBwb2xpY3kNCj4g
+PiA+ID4gcHJvYmxlbT8NCj4gPiA+DQo+ID4gPiBUaGlzIGlzIGRlZmF1bHQga2VybmVsIHBvbGlj
+eS4NCj4gPg0KPiA+IFdoeSBpcyBwb2xpY3kgc2V0IHRoaXMgd2F5IGJ5IGRlZmF1bHQgaW4ga2Vy
+bmVsP8KgwqBDb3VsZCB3ZSBkaXNjdXNzIHRvDQo+ID4gY2hhbmdlDQo+ID4gRGVmYXVsdCBrZXJu
+ZWwgcG9saWN5IHNvIHRoYXQgdXNlcnMgY2FuIGdldCBiZXR0ZXIgcG93ZXIgY29uc3VtcHRpb24N
+Cj4gPiBieSBkZWZhdWx0DQo+IEdvb2QgcXVlc3Rpb24uIFRoaXMgd2FzIGRpc2N1c3NlZCBiZWZv
+cmUsIHRoZSBwcm9ibGVtIGlzIHRoYXQgaXQgY2FuDQo+IGNhdXNlIHNvbWUgaXNzdWVzIHdpdGgg
+bGVnYWN5IGRldmljZXMuDQoNCklmIHRoZSBjb25jZXJuIGlzIGxlZ2FjeSBkZXZpY2VzLCB3aGF0
+IGFib3V0IGZsaXBwaW5nIGRlZmF1bHQgcG9saWN5IHdoZW4NCml0J3Mgc2F5IFNLTCBvciBuZXdl
+cj8NCg0KPiBJdCBzaG91bGQgYmUgYmV0dGVyIGRvbmUgaW4gdXNlcg0KPiAgc3BhY2UgYnkgc29t
+ZSBwb2xpY3kgaW4gZ25vbWUgcG93ZXIgbWFuYWdlciwgd2hpY2ggdXNlciBjYW4NCj4gZW5hYmxl
+L2Rpc2FibGUuDQoNClN1cmUsIEkgdGhpbmsgbGV0dGluZyB1c2Vyc3BhY2UgY2hhbmdlIHRoZSBw
+b2xpY3kgaWYgYSB1c2VyIHdhbnRzIHRvIHR1cm4NCkl0IG9mZiBtYWtlcyBzZW5zZS4gIFdoYXQg
+SSdtIGhvcGluZyB0byBhY2NvbXBsaXNoIGhvd2V2ZXIgaXMgYSBiZXR0ZXINCmRlZmF1bHQgcG9s
+aWN5IGhvd2V2ZXIgc2luY2UgbW9zdCB1c2VycyBzaG91bGQgcHJlZmVyIG1vcmUgYmF0dGVyeQ0K
+bGlmZSwgYW5kICJwb3dlciB1c2VycyIgd291bGQgYmUgdGhlIG9uZXMgdG8gZnVydGhlciB0dW5l
+IGZvciB0aGVpcg0KcHJlZmVycmVkIHVzYWdlLg0KDQo+IA0KPiA+DQo+ID4gSSB0aGluayBpdCB3
+aWxsIGJlIGVzcGVjaWFsbHkgaW1wb3J0YW50IGFzIG1vcmUgbWFjaGluZXMgY29udGludWUgdG8N
+Cj4gPiBhZG9wdA0KPiA+IHN1c3BlbmQtdG8taWRsZS4NCg0KPiBUaG9zZSBzaG91bGQgaW1wYWN0
+IG9wcG9ydHVuaXN0aWMgaWRsZSBzaW5jZSBmb3IgUzJJIHJlZ3VsYXIgc3VzcGVuZA0KPiBjYWxs
+YmFja3MgYXJlIGNhbGxlZC4gSW4gbXkgOTM2NSwgSSBjYW4gZ2V0IFBDMTAgZHVyaW5nIFMySSBw
+YXRoDQo+IHdpdGhvdXQgYWRqdXN0aW5nIHRoZW0uIE9ubHkgcHJvYmxlbWF0aWMgaXMgc3lzdGVt
+cyB3aXRoIFNBVEEsIHdoZXJlIHdlDQo+IG5lZWQgdG8gZW5hYmxlIGRldnNsZWVwLg0KDQpIbW0s
+IERlbm5pcyBkaWQgbWVudGlvbiB0aGF0IGhlIGhhZCBhbiBOVk1FIGRpc2ssIHNvIGl0IGNhbid0
+IGJlIGEgZGV2c2xlZXANCnByb2JsZW0uDQoNClBlcmhhcHMgY2FuIHlvdSBhbHNvIHNoYXJlIHlv
+dXIga2VybmVsIGNvbmZpZyB1c2VkIHdpdGggOTM2NSBzbyBEZW5uaXMNCmNhbiBjb21wYXJlPw0K
+DQpJIGJlbGlldmUgd2UnbGwgbmVlZCB0byBzZWUgc29tZSBtb3JlIGluZm9ybWF0aW9uIGZyb20g
+RGVubmlzIHlvdSBhc2tlZA0KaW4gcHJldmlvdXMgZW1haWwgYmVmb3JlIHdlIGNhbiBtYWtlIG1v
+cmUgcHJvZ3Jlc3MgaGVyZSB0aG91Z2guDQoNCj4gPg0KPiA+ID4gSSBzdWdnZXN0IHJ1bg0KPiA+
+ID4gI3R1cmJvc3RhdA0KPiA+ID4gdGhlbiBzdXNwZW5kIGFuZCB3YWtlDQo+ID4gPiB3aGVuIHdh
+a2UgdXAgbGV0IHRoZSB0dXJib3N0YXQgY29sbGVjdCBkYXRhIGZvciBuZXh0IHNhbXBsaW5nDQo+
+ID4gPiBpbnRlcnZhbC4NCj4gPiA+IFdlIGhhdmUgdG8gc2VlIHdoYXQgYXJlIFBrZ0MlIHJlc2lk
+ZW5jaWVzIGFyZT8NCj4gPg0KPiA+IEFzc3VtaW5nIHlvdSBtZWFuIGZvciBEYW4gdG8gcnVuIHRo
+aXMgYWZ0ZXIgaGUgYWRqdXN0cyBhbGwgdGhlIFBNDQo+ID4gc2V0dGluZ3MNCj4gPiBmb3IgdGhv
+c2Ugb3B0aW9ucyBwb3dlciB0b3AgY2FsbGVkIG91dCwgcmlnaHQ/DQo+IEl0IGlzIGJldHRlci4N
+Cj4gTWF5IGJlIHNvbWUgZGV2aWNlIGlzIG5vdCBiZWhhdmluZyBjb3JyZWN0bHkuIFNvIGhlIGNh
+biB0cnkgd2l0aA0KPiBwb3dlcnRvcCAtLWF1dG8tdHVuZSBhbmQgY2hlY2sgdHVyYm9zdGF0IGFu
+ZCBzZWUgc3RhdHVzIG9mIFBrZ0Mgc3RhdGVzLg0KPiANCj4gVGhhbmtzLA0KPiBTcmluaXZhcw0K
+PiANCj4gPg0KPiA+ID4NCj4gPiA+IFRoYW5rcywNCj4gPiA+IFNyaW5pdmFzDQo+ID4gPg0KPiA+
+ID4gPg0KPiA+ID4gPg0KPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEJs
+dWV0b290aCBkZXZpY2UgaW50ZXJmYWNlIHN0YXR1cw0KPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKg
+wqDCoMKgwqDCoMKgwqDCoEVuYWJsZSBBdWRpbyBjb2RlYyBwb3dlciBtYW5hZ2VtZW50DQo+ID4g
+PiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3IgSTJDIEFk
+YXB0ZXIgaTJjLTggKFN5bm9wc3lzDQo+ID4gPiA+ID4gRGVzaWduV2FyZQ0KPiA+ID4gPiA+IEky
+QyBhZGFwdGVyKQ0KPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9z
+dXNwZW5kIGZvciBVU0IgZGV2aWNlDQo+ID4gPiA+ID4gSW50ZWdyYXRlZF9XZWJjYW1fSEQNCj4g
+PiA+ID4gPiBbQ05GR0UxNk4wOTIwMjAwMjgzNjJdDQo+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDC
+oMKgwqDCoMKgwqDCoMKgQXV0b3N1c3BlbmQgZm9yIFVTQiBkZXZpY2UgeEhDSSBIb3N0DQo+ID4g
+PiA+ID4gQ29udHJvbGxlcg0KPiA+ID4gPiA+IFt1c2IxXQ0KPiA+ID4gPiA+IMKgwqDCoEdvb2TC
+oMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciBVU0IgZGV2aWNlIHhIQ0kgSG9zdA0K
+PiA+ID4gPiA+IENvbnRyb2xsZXINCj4gPiA+ID4gPiBbdXNiMl0NCj4gPiA+ID4gPiDCoMKgwqBH
+b29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBJMkMgQWRhcHRlciBpMmMtNyAo
+U01CdXMgSTgwMQ0KPiA+ID4gPiA+IGFkYXB0ZXINCj4gPiA+ID4gPiBhdCBlZmEwKQ0KPiA+ID4g
+PiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoEF1dG9zdXNwZW5kIGZvciB1bmtub3du
+IFVTQiBkZXZpY2UgMS0yDQo+ID4gPiA+ID4gKDgwODc6MGEyYikNCj4gPiA+ID4gPiDCoMKgwqBH
+b29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBJMkMgQWRhcHRlciBpMmMtNiAo
+U3lub3BzeXMNCj4gPiA+ID4gPiBEZXNpZ25XYXJlDQo+ID4gPiA+ID4gSTJDIGFkYXB0ZXIpDQo+
+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgSTJDIERldmljZSBpMmMtRExM
+MDc3QTowMSBoYXMgbm8gcnVudGltZSBwb3dlcg0KPiA+ID4gPiA+IG1hbmFnZW1lbnQNCj4gPiA+
+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBJMkMgRGV2aWNlIGkyYy1XQ09NNDgy
+RjowMCBoYXMgbm8gcnVudGltZQ0KPiA+ID4gPiA+IHBvd2VyDQo+ID4gPiA+ID4gbWFuYWdlbWVu
+dA0KPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9y
+IFBDSSBEZXZpY2UgSW50ZWwgQ29ycG9yYXRpb24NCj4gPiA+ID4gPiBTdW5yaXNlDQo+ID4gPiA+
+ID4gUG9pbnQtTFAgUENJIEV4cHJlc3MgUm9vdCBQb3J0ICMxMA0KPiA+ID4gPiA+IMKgwqDCoEdv
+b2TCoMKgwqDCoMKgwqDCoMKgwqDCoFJ1bnRpbWUgUE0gZm9yIFBDSSBEZXZpY2UgSW50ZWwgQ29y
+cG9yYXRpb24NCj4gPiA+ID4gPiBTdW5yaXNlDQo+ID4gPiA+ID4gUG9pbnQtTFAgQ1NNRSBIRUNJ
+ICMxDQo+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBm
+b3IgUENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbg0KPiA+ID4gPiA+IFN1bnJpc2UNCj4gPiA+
+ID4gPiBQb2ludC1MUCBTZXJpYWwgSU8gSTJDIENvbnRyb2xsZXIgIzENCj4gPiA+ID4gPiDCoMKg
+wqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVs
+IENvcnBvcmF0aW9uDQo+ID4gPiA+ID4gU3VucmlzZQ0KPiA+ID4gPiA+IFBvaW50LUxQIFNNQnVz
+DQo+ID4gPiA+ID4gwqDCoMKgR29vZMKgwqDCoMKgwqDCoMKgwqDCoMKgUnVudGltZSBQTSBmb3Ig
+UENJIERldmljZSBJbnRlbCBDb3Jwb3JhdGlvbg0KPiA+ID4gPiA+IFN1bnJpc2UNCj4gPiA+ID4g
+PiBQb2ludC1MUCBQQ0kgRXhwcmVzcyBSb290IFBvcnQgIzUNCj4gPiA+ID4gPiDCoMKgwqBHb29k
+wqDCoMKgwqDCoMKgwqDCoMKgwqBSdW50aW1lIFBNIGZvciBQQ0kgRGV2aWNlIEludGVsIENvcnBv
+cmF0aW9uDQo+ID4gPiA+ID4gU3VucmlzZQ0KPiA+ID4gPiA+IFBvaW50LUxQIFNlcmlhbCBJTyBJ
+MkMgQ29udHJvbGxlciAjMA0KPiA+ID4gPiA+IMKgwqDCoEdvb2TCoMKgwqDCoMKgwqDCoMKgwqDC
+oFdha2Utb24tbGFuIHN0YXR1cyBmb3IgZGV2aWNlIHZpcmJyMC1uaWMNCj4gPiA+ID4gPiDCoMKg
+wqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBXYWtlLW9uLWxhbiBzdGF0dXMgZm9yIGRldmljZSB2
+aXJicjANCj4gPiA+ID4gPiDCoMKgwqBHb29kwqDCoMKgwqDCoMKgwqDCoMKgwqBXYWtlLW9uLWxh
+biBzdGF0dXMgZm9yIGRldmljZSB3bHA2MHMwDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBSZWdhcmRz
+DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBEZW5uaXMNCg==
