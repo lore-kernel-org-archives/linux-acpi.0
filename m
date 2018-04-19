@@ -1,52 +1,102 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: [PATCH v1 1/2] PCI/ASPM: Disable ASPM L1.2 Substate if we don't
- have LTR
-Date: Thu, 19 Apr 2018 16:05:29 -0500
-Message-ID: <152417192976.76853.5171081412139699180.stgit@bhelgaas-glaptop.roam.corp.google.com>
-References: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
+ errors are marked as fatal.
+Date: Thu, 19 Apr 2018 17:55:08 -0500
+Message-ID: <dba07329-2f85-2bde-85ea-5bdf26fb8df2@gmail.com>
+References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+ <20180416215903.7318-4-mr.nuke.me@gmail.com> <20180418175415.GJ4795@pd.tnic>
+ <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+ <20180419154006.GE3600@pd.tnic>
+ <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
+ <20180419164528.GD5635@pd.tnic>
+ <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
+ <20180419190323.GF5635@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20180419190323.GF5635@pd.tnic>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, Rajat Jain <rajatja@google.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Ray Jui <ray.jui@broadcom.com>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
 
-When in the ASPM L1.0 state (but not the PCI-PM L1.0 state), the most
-recent LTR value and the LTR_L1.2_THRESHOLD determines whether the link
-enters the L1.2 substate.
 
-If we don't have LTR enabled, prevent the use of ASPM L1.2.
+On 04/19/2018 02:03 PM, Borislav Petkov wrote:
+> (snip useful explanation).
+> 
+> On Thu, Apr 19, 2018 at 12:40:54PM -0500, Alex G. wrote:
+>> On the r740xd, FW just hides those errors from the OS with no further
+>> notification. On this machine BIOS sets things up such that non-posted
+>> requests report fatal (PCIe) errors. FW still tries very hard to hide
+>> this from the OS, and I think the heuristic is that if the drive
+>> physical presence is gone, don't even report the error.
+> 
+> Ok, second question: can you detect from the error signatures alone that
+> it was a surprise removal? 
 
-PCI-PM L1.2 may still be used because it doesn't depend on
-LTR_L1.2_THRESHOLD (see PCIe r4.0, sec 5.5.1).
+I suppose you could make some inference, given the timing of other
+events going on around the the crash. It's not uncommon to see a "Card
+not present" event around drive removal.
 
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/pcie/aspm.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Since the presence detect pin breaks last, you might not get that
+interrupt for a long while. In that case it's much harder to determine
+if you're seeing a SURPRISE!!! removal or some other fault.
 
-diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-index f76eb7704f64..c687c817b47d 100644
---- a/drivers/pci/pcie/aspm.c
-+++ b/drivers/pci/pcie/aspm.c
-@@ -400,6 +400,15 @@ static void pcie_get_aspm_reg(struct pci_dev *pdev,
- 		info->l1ss_cap = 0;
- 		return;
- 	}
-+
-+	/*
-+	 * If we don't have LTR for the entire path from the Root Complex
-+	 * to this device, we can't use ASPM L1.2 because it relies on the
-+	 * LTR_L1.2_THRESHOLD.  See PCIe r4.0, secs 5.5.4, 6.18.
-+	 */
-+	if (!pdev->ltr_path)
-+		info->l1ss_cap &= ~PCI_L1SS_CAP_ASPM_L1_2;
-+
- 	pci_read_config_dword(pdev, info->l1ss_cap_ptr + PCI_L1SS_CTL1,
- 			      &info->l1ss_ctl1);
- 	pci_read_config_dword(pdev, info->l1ss_cap_ptr + PCI_L1SS_CTL2,
+I don't think you can use GHES alone to determine the nature of the
+event. There is not a 1:1 mapping from the set of things going wrong to
+the set of PCIe errors.
+
+> How does such an error look like, in detail?
+
+It's green on the soft side, with lots of red accents, as well as some
+textured white shades:
+
+[   51.414616] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down
+[   51.414634] pciehp 0000:b0:05.0:pcie204: Slot(179): Link Down
+[   52.703343] FIRMWARE BUG: Firmware sent fatal error that we were able
+to correct
+[   52.703345] BROKEN FIRMWARE: Complain to your hardware vendor
+[   52.703347] {1}[Hardware Error]: Hardware error from APEI Generic
+Hardware Error Source: 1
+[   52.703358] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Up
+[   52.711616] {1}[Hardware Error]: event severity: fatal
+[   52.716754] {1}[Hardware Error]:  Error 0, type: fatal
+[   52.721891] {1}[Hardware Error]:   section_type: PCIe error
+[   52.727463] {1}[Hardware Error]:   port_type: 6, downstream switch port
+[   52.734075] {1}[Hardware Error]:   version: 3.0
+[   52.738607] {1}[Hardware Error]:   command: 0x0407, status: 0x0010
+[   52.744786] {1}[Hardware Error]:   device_id: 0000:b0:06.0
+[   52.750271] {1}[Hardware Error]:   slot: 4
+[   52.754371] {1}[Hardware Error]:   secondary_bus: 0xb3
+[   52.759509] {1}[Hardware Error]:   vendor_id: 0x10b5, device_id: 0x9733
+[   52.766123] {1}[Hardware Error]:   class_code: 000406
+[   52.771182] {1}[Hardware Error]:   bridge: secondary_status: 0x0000,
+control: 0x0003
+[   52.779038] pcieport 0000:b0:06.0: aer_status: 0x00100000, aer_mask:
+0x01a10000
+[   52.782303] nvme0n1: detected capacity change from 3200631791616 to 0
+[   52.786348] pcieport 0000:b0:06.0:    [20] Unsupported Request
+[   52.786349] pcieport 0000:b0:06.0: aer_layer=Transaction Layer,
+aer_agent=Requester ID
+[   52.786350] pcieport 0000:b0:06.0: aer_uncor_severity: 0x004eb030
+[   52.786352] pcieport 0000:b0:06.0:   TLP Header: 40000001 0000020f
+e12023bc 01000000
+[   52.786357] pcieport 0000:b0:06.0: broadcast error_detected message
+[   52.883895] pci 0000:b3:00.0: device has no driver
+[   52.883976] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down
+[   52.884184] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down event
+queued; currently getting powered on
+[   52.967175] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Up
+
+
+> Got error logs somewhere to dump?
+
+Sure [1]. They have the ANSI sequences, so you might want to wget and
+grep them in a color terminal.
+
+Alex
+
+[1] http://gtech.myftp.org/~mrnuke/nvme_logs/log-20180416-1919.log
