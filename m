@@ -1,63 +1,73 @@
-From: John Garry <john.garry@huawei.com>
-Subject: [RFC PATCH 0/2] HISI LPC: Add PNP device support
-Date: Fri, 20 Apr 2018 18:07:24 +0800
-Message-ID: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [RFC PATCH 2/2] HISI LPC: Add PNP device support
+Date: Fri, 20 Apr 2018 15:50:06 +0300
+Message-ID: <1524228606.21176.472.camel@linux.intel.com>
+References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
+         <1524218846-169934-3-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1524218846-169934-3-git-send-email-john.garry@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, lenb@kernel.org, mika.westerberg@linux.intel.com, lorenzo.pieralisi@arm.com
-Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, John Garry <john.garry@huawei.com>
+To: John Garry <john.garry@huawei.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, mika.westerberg@linux.intel.com, lorenzo.pieralisi@arm.com
+Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com
 List-Id: linux-acpi@vger.kernel.org
 
-This patchset adds support for creating PNP devices
-for devices attached to the HiSilicon LPC host bus.
+On Fri, 2018-04-20 at 18:07 +0800, John Garry wrote:
+> Currently the driver creates an per-ACPI device mfd_cell
+> for child devices. This does not suit devices which are
+> PNP-compatible, as we expect PNP-compatible devices to
+> derive PNP devices.
+> 
+> To add PNP device support, we continue to allow the PNP
+> scan code to create the PNP device (which have the
+> enumeration_by_parent flag set), but expect the PNP
+> scan to defer adding the device to allow the host probe
+> code to do this. In addition, no longer do we create an
+> mfd_cell (platform_device) for PNP-compatible devices.
+> 
+> We take this approach so that host probe code can
+> translate the IO resources of the PNP device prior
+> to adding the device.
 
-Currently an mfd-cell (platform device) is created per
-device on the bus for using ACPI-based firmware. As
-such, we need require a platform driver for these
-devices.
+> +	list_for_each_entry(child, &adev->children, node) {
+> +		if (acpi_is_pnp_device(child))
+> +			continue;
 
-However for PNP-compatible devices, it would be better
-to create a PNP device so that we may use the existing
-PNP driver.
+This is good candidate for a separate helper macro
 
-The PNP-compatible device we are interested in is the
-8250-compatible UART on the Huawei D03 development
-board. This uart has the following profile:
-- IO space iotype
-- no interrupt, so polling mode required
-- 16550 compatible
+#define for_each_acpi_non_pnp_device(child, adev) \
+...
 
-Currently no platform driver exists for this. I did
-send an RFC to add support to the 8250_dw driver, but
-Andy Shevchenko suggested adding PNP support to the
-host driver instead so we may use the appropriate PNP
-driver (8250_pnp) without modification, see here:
-https://lkml.org/lkml/2018/2/26/354
+(see, for example, for_each_pci_bridge() implementation as an example)
 
-As for the implementation in this patchset, to avoid
-the PNP scan from creating and adding the device,
-we reuse the "enumeration_by_parent" flag to hold off
-adding the PNP device, so the parent driver can modify
-the IO resources to translate from the bus address
-to the logical PIO address, and then add the device
-for probing.
+ 
+> +	list_for_each_entry(child, &adev->children, node) {
 
-This solution is not good - hence the RFC. But I am
-looking for suggestions on how to solve this.
+> +		if (!acpi_is_pnp_device(child))
+> +			continue;
 
-Any opinions or ideas?
+Ditto.
 
-Thanks!
+> +		/*
+> +		 * Prior to adding the device, we need to translate
+> the
+> +		 * resources to logical PIO addresses.
+> +		 */
+> +		list_for_each_entry(pnp_res, &pnp_dev->resources,
+> list) {
+> +			struct resource *res = &pnp_res->res;
+> +
 
-John Garry (2):
-  ACPI / PNP: Don't add "enumeration_by_parent" devices
-  HISI LPC: Add PNP device support
+> +			if (res->flags | IORESOURCE_IO)
 
- drivers/bus/hisi_lpc.c     | 38 +++++++++++++++++++++++++++++++++++++-
- drivers/pnp/pnpacpi/core.c | 12 ++++++++----
- 2 files changed, 45 insertions(+), 5 deletions(-)
+What does this mean?
+
+> +				hisi_lpc_acpi_xlat_io_res(child,
+> adev, res);
+> +		}
 
 -- 
-1.9.1
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
