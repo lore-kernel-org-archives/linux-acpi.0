@@ -1,130 +1,44 @@
 From: Eduardo Valentin <edubezval@gmail.com>
-Subject: Re: [GIT PULL V3] Thermal SoC management updates for v4.17-rc1
-Date: Fri, 20 Apr 2018 07:48:31 -0700
-Message-ID: <20180420144829.GA20978@localhost.localdomain>
-References: <20180414183051.GA27921@localhost.localdomain>
- <1524037889.2553.13.camel@intel.com>
- <20180418141027.GA3303@localhost.localdomain>
- <CGME20180419104145eucas1p2e64408e3340d5af7731765df0e82f1cd@eucas1p2.samsung.com>
- <13169679.AINr0uuryx@amdc3058>
+Subject: [GIT PULL] Thermal management updates for v4.17-rc2
+Date: Fri, 20 Apr 2018 09:18:35 -0700
+Message-ID: <20180420161834.GA22776@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <13169679.AINr0uuryx@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Bartlomiej,
+Hello Linus,
 
-On Thu, Apr 19, 2018 at 12:41:42PM +0200, Bartlomiej Zolnierkiewicz wrote:
-> 
-> Hi,
-> 
-> On Wednesday, April 18, 2018 07:10:30 AM Eduardo Valentin wrote:
-> > Hello,
-> > 
-> > On Wed, Apr 18, 2018 at 03:51:29PM +0800, Zhang Rui wrote:
-> > > Hi, Eduardo,
-> > > 
-> > > On å…­, 2018-04-14 at 11:30 -0700, Eduardo Valentin wrote:
-> > > > Hello Linus,
-> > > > 
-> > > > Please find thermal-soc changes for v4.17-rc1.
-> > > > Rui asked me to send the pull request directly to you
-> > > > as we are close to the end of the merge window.
-> > > > Essentially this pull removes the series that caused
-> > > > warning regression. I will work with the developer
-> > > > to get that fixed later on, but I am still sending
-> > > > the other few patches that are unrelated to that.
-> > > > Let me know if this causes any issues and can still
-> > > > be pulled.
-> > > > 
-> > > > Changelog:
-> > > > - New i.MX7 thermal sensor
-> > > > - Mediatek driver now supports MT7622 SoC
-> > > > - Removal of min max cpu cooling DT property
-> > > > 
-> > > > Differences in V3:
-> > > > - Rebased on top current linus/master, to avoid and merge issues
-> > > > from previous pulled thermal code.
-> > > > 
-> > > > Differences in V2:
-> > > > - Reordered the patches to drop exynos changes for now until we get
-> > > > agreement on the fix on that driver for the compilation warns
-> > > > caused by the confusing conversion functions.
-> > > > 
-> > > > 
-> > > > The following changes since commit
-> > > > 48023102b7078a6674516b1fe0d639669336049d:
-> > > > 
-> > > > Â  Merge branch 'overlayfs-linus' of
-> > > > git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs (2018-04-
-> > > > 13 16:55:41 -0700)
-> > > > 
-> > > > are available in the git repository at:
-> > > > 
-> > > > Â  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
-> > > > thermal linus
-> > > > 
-> > > > for you to fetch changes up to
-> > > > 15a32df1918259be6c23fc36014fc26ee66c836c:
-> > > > 
-> > > > Â  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
-> > > > (2018-04-14 09:37:55 -0700)
-> > > > 
-> > > This pull request does not catch this merge window.
-> > > So do you want to split it into 2 separate pull requests, one for 4.17-
-> > > rc and another for 4.18-rc1?
-> > 
-> > OK. Yeah, I am fine with that.
-> > 
-> > > 
-> > > > ----------------------------------------------------------------
-> > > > Anson Huang (1):
-> > > > Â Â Â Â Â Â thermal: imx: add i.MX7 thermal sensor support
-> > > > 
-> > > > Bartlomiej Zolnierkiewicz (1):
-> > > > Â Â Â Â Â Â dt-bindings: thermal: remove no longer needed samsung thermal
-> > > > properties
-> > > > 
-> > > > Sean Wang (2):
-> > > > Â Â Â Â Â Â dt-bindings: thermal: add binding for MT7622 SoC
-> > > > Â Â Â Â Â Â thermal: mediatek: add support for MT7622 SoC
-> > > > 
-> > > > Viresh Kumar (1):
-> > > > Â Â Â Â Â Â dt-bindings: thermal: Remove "cooling-{min|max}-level"
-> > > > properties
-> > > > 
-> > > IMO, together with the refreshed exynos fixes, the one from Viresh and
-> > > the one fromÂ Bartlomiej can be queued for 4.17-rc, and the others have
-> > > to wait until next merge window.
-> > > 
-> > 
-> > Correct, the new chip support will need to wait for the next merge
-> > window. I have already split the patches into the two categories.
-> > The patches removing stuff are in my -fixes branch. All the other adding
-> > new chip support are in my -linus branch.
-> > 
-> > Now, Do you have anything for this -rc2 ? If not, I will send directly
-> > to Linus the stuff in my -fixes branch. Let me know.
-> 
-> What about refreshed Exynos patches (https://lkml.org/lkml/2018/4/16/256)?
+Here are a couple of fixes on thermal subsystem.
+Please consider pulling from
 
-Cool! Thanks for fixing that warning.
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
-> 
-> Fixes from Marek (first two patches) are quite critical (without them
-> booting with thermal enabled triggers critical temperature handling on
-> Exynos4210 SoC).
+to receive Thermal Management updates for v4.17-rc2 with top-most
 
-I will include those two fixes in rc3. The other of that patch series
-will go into the next merge window.
+e04907dbc25930b88ee2328fe692c776f63ddf2c:
 
-Thanks for helping me to keep track of the patches.
+  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties (2018-04-18 07:04:28 -0700)
+
+on top of commit 60cc43fc888428bb2f18f08997432d426a243338:
+
+  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
 
 BR,
-Eduardo
+
+Eduardo Valentin
+
+----------------------------------------------------------------
+Bartlomiej Zolnierkiewicz (1):
+      dt-bindings: thermal: remove no longer needed samsung thermal properties
+
+Viresh Kumar (1):
+      dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
+
+ .../devicetree/bindings/thermal/exynos-thermal.txt | 23 +++++-----------------
+ .../devicetree/bindings/thermal/thermal.txt        | 16 +--------------
+ 2 files changed, 6 insertions(+), 33 deletions(-)
