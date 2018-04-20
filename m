@@ -1,61 +1,110 @@
-From: Srinath Mannam <srinath.mannam@broadcom.com>
-Subject: Re: [PATCH v1 1/2] PCI/ASPM: Disable ASPM L1.2 Substate if we don't
- have LTR
-Date: Fri, 20 Apr 2018 14:22:06 +0530
-Message-ID: <CABe79T546trxQ2YSUj74SmW2qVUPkB1Mor2TP-K3SM0rerpogw@mail.gmail.com>
-References: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <152417192976.76853.5171081412139699180.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: John Garry <john.garry@huawei.com>
+Subject: [RFC PATCH 2/2] HISI LPC: Add PNP device support
+Date: Fri, 20 Apr 2018 18:07:26 +0800
+Message-ID: <1524218846-169934-3-git-send-email-john.garry@huawei.com>
+References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152417192976.76853.5171081412139699180.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, Rajat Jain <rajatja@google.com>, Ray Jui <ray.jui@broadcom.com>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
+To: rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, lenb@kernel.org, mika.westerberg@linux.intel.com, lorenzo.pieralisi@arm.com
+Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, John Garry <john.garry@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Bjorn,
+Currently the driver creates an per-ACPI device mfd_cell
+for child devices. This does not suit devices which are
+PNP-compatible, as we expect PNP-compatible devices to
+derive PNP devices.
 
-I have verified this patch, it works fine for me.
+To add PNP device support, we continue to allow the PNP
+scan code to create the PNP device (which have the
+enumeration_by_parent flag set), but expect the PNP
+scan to defer adding the device to allow the host probe
+code to do this. In addition, no longer do we create an
+mfd_cell (platform_device) for PNP-compatible devices.
 
-Thanks & Regards,
-Srinath.
+We take this approach so that host probe code can
+translate the IO resources of the PNP device prior
+to adding the device.
 
-On Fri, Apr 20, 2018 at 2:35 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> From: Bjorn Helgaas <bhelgaas@google.com>
->
-> When in the ASPM L1.0 state (but not the PCI-PM L1.0 state), the most
-> recent LTR value and the LTR_L1.2_THRESHOLD determines whether the link
-> enters the L1.2 substate.
->
-> If we don't have LTR enabled, prevent the use of ASPM L1.2.
->
-> PCI-PM L1.2 may still be used because it doesn't depend on
-> LTR_L1.2_THRESHOLD (see PCIe r4.0, sec 5.5.1).
->
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> ---
->  drivers/pci/pcie/aspm.c |    9 +++++++++
->  1 file changed, 9 insertions(+)
->
-> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-> index f76eb7704f64..c687c817b47d 100644
-> --- a/drivers/pci/pcie/aspm.c
-> +++ b/drivers/pci/pcie/aspm.c
-> @@ -400,6 +400,15 @@ static void pcie_get_aspm_reg(struct pci_dev *pdev,
->                 info->l1ss_cap = 0;
->                 return;
->         }
-> +
-> +       /*
-> +        * If we don't have LTR for the entire path from the Root Complex
-> +        * to this device, we can't use ASPM L1.2 because it relies on the
-> +        * LTR_L1.2_THRESHOLD.  See PCIe r4.0, secs 5.5.4, 6.18.
-> +        */
-> +       if (!pdev->ltr_path)
-> +               info->l1ss_cap &= ~PCI_L1SS_CAP_ASPM_L1_2;
-> +
->         pci_read_config_dword(pdev, info->l1ss_cap_ptr + PCI_L1SS_CTL1,
->                               &info->l1ss_ctl1);
->         pci_read_config_dword(pdev, info->l1ss_cap_ptr + PCI_L1SS_CTL2,
->
+Signed-off-by: John Garry <john.garry@huawei.com>
+---
+ drivers/bus/hisi_lpc.c | 38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
+index 2d4611e..d228bc5 100644
+--- a/drivers/bus/hisi_lpc.c
++++ b/drivers/bus/hisi_lpc.c
+@@ -17,8 +17,11 @@
+ #include <linux/of_address.h>
+ #include <linux/of_platform.h>
+ #include <linux/pci.h>
++#include <linux/pnp.h>
+ #include <linux/slab.h>
+ 
++#include "../pnp/base.h"
++
+ #define DRV_NAME "hisi-lpc"
+ 
+ /*
+@@ -469,8 +472,11 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
+ 	struct acpi_device *child;
+ 	int size, ret, count = 0, cell_num = 0;
+ 
+-	list_for_each_entry(child, &adev->children, node)
++	list_for_each_entry(child, &adev->children, node) {
++		if (acpi_is_pnp_device(child))
++			continue;
+ 		cell_num++;
++	}
+ 
+ 	/* allocate the mfd cell and companion ACPI info, one per child */
+ 	size = sizeof(*mfd_cells) + sizeof(*hisi_lpc_mfd_cells);
+@@ -492,6 +498,9 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
+ 			.pnpid = pnpid,
+ 		};
+ 
++		if (acpi_is_pnp_device(child))
++			continue;
++
+ 		/*
+ 		 * For any instances of this host controller (Hip06 and Hip07
+ 		 * are the only chipsets), we would not have multiple slaves
+@@ -523,6 +532,33 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
+ 		return ret;
+ 	}
+ 
++	list_for_each_entry(child, &adev->children, node) {
++		struct pnp_resource *pnp_res;
++		struct pnp_dev *pnp_dev;
++		int rc;
++
++		if (!acpi_is_pnp_device(child))
++			continue;
++
++		pnp_dev = child->driver_data;
++
++		/*
++		 * Prior to adding the device, we need to translate the
++		 * resources to logical PIO addresses.
++		 */
++		list_for_each_entry(pnp_res, &pnp_dev->resources, list) {
++			struct resource *res = &pnp_res->res;
++
++			if (res->flags | IORESOURCE_IO)
++				hisi_lpc_acpi_xlat_io_res(child, adev, res);
++		}
++		rc = pnp_add_device(pnp_dev);
++		if (rc) {
++			put_device(&pnp_dev->dev);
++			return rc;
++		}
++	}
++
+ 	return 0;
+ }
+ 
+-- 
+1.9.1
