@@ -1,66 +1,130 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
- devices
-Date: Fri, 20 Apr 2018 15:09:30 +0100
-Message-ID: <75eae3ac-228f-d6a4-bb0e-4bd27e35c55d@huawei.com>
-References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
- <1524218846-169934-2-git-send-email-john.garry@huawei.com>
- <20180420130727.GV2173@lahna.fi.intel.com>
- <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
- <20180420135222.GY2173@lahna.fi.intel.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: Re: [GIT PULL V3] Thermal SoC management updates for v4.17-rc1
+Date: Fri, 20 Apr 2018 07:48:31 -0700
+Message-ID: <20180420144829.GA20978@localhost.localdomain>
+References: <20180414183051.GA27921@localhost.localdomain>
+ <1524037889.2553.13.camel@intel.com>
+ <20180418141027.GA3303@localhost.localdomain>
+ <CGME20180419104145eucas1p2e64408e3340d5af7731765df0e82f1cd@eucas1p2.samsung.com>
+ <13169679.AINr0uuryx@amdc3058>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420135222.GY2173@lahna.fi.intel.com>
+Content-Disposition: inline
+In-Reply-To: <13169679.AINr0uuryx@amdc3058>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 20/04/2018 14:52, Mika Westerberg wrote:
-> On Fri, Apr 20, 2018 at 02:24:18PM +0100, John Garry wrote:
->> Hi Mika,
->>
->> On 20/04/2018 14:07, Mika Westerberg wrote:
->>> On Fri, Apr 20, 2018 at 06:07:25PM +0800, John Garry wrote:
->>>> +	} else {
->>>> +		device->driver_data = dev;
->>>
->>> I think this deserves a comment explaining why we (ab)use driver_data
->>> like this.
->>
->> Sure, could add. I didn't see any other way for the acpi_device structure to
->> reference the derived PNP device.
->>
->> TBH, This overall approach is not good since we are creating the PNP device
->> in the scan, and then leaving the device in limbo, waiting for the parent to
->> add it, if at all. There's no rule for this.
->>
->> So I'm looking for ideas on how to improve this.
->
+Hello Bartlomiej,
 
-Hi Mika,
+On Thu, Apr 19, 2018 at 12:41:42PM +0200, Bartlomiej Zolnierkiewicz wrote:
+> 
+> Hi,
+> 
+> On Wednesday, April 18, 2018 07:10:30 AM Eduardo Valentin wrote:
+> > Hello,
+> > 
+> > On Wed, Apr 18, 2018 at 03:51:29PM +0800, Zhang Rui wrote:
+> > > Hi, Eduardo,
+> > > 
+> > > On å…­, 2018-04-14 at 11:30 -0700, Eduardo Valentin wrote:
+> > > > Hello Linus,
+> > > > 
+> > > > Please find thermal-soc changes for v4.17-rc1.
+> > > > Rui asked me to send the pull request directly to you
+> > > > as we are close to the end of the merge window.
+> > > > Essentially this pull removes the series that caused
+> > > > warning regression. I will work with the developer
+> > > > to get that fixed later on, but I am still sending
+> > > > the other few patches that are unrelated to that.
+> > > > Let me know if this causes any issues and can still
+> > > > be pulled.
+> > > > 
+> > > > Changelog:
+> > > > - New i.MX7 thermal sensor
+> > > > - Mediatek driver now supports MT7622 SoC
+> > > > - Removal of min max cpu cooling DT property
+> > > > 
+> > > > Differences in V3:
+> > > > - Rebased on top current linus/master, to avoid and merge issues
+> > > > from previous pulled thermal code.
+> > > > 
+> > > > Differences in V2:
+> > > > - Reordered the patches to drop exynos changes for now until we get
+> > > > agreement on the fix on that driver for the compilation warns
+> > > > caused by the confusing conversion functions.
+> > > > 
+> > > > 
+> > > > The following changes since commit
+> > > > 48023102b7078a6674516b1fe0d639669336049d:
+> > > > 
+> > > > Â  Merge branch 'overlayfs-linus' of
+> > > > git://git.kernel.org/pub/scm/linux/kernel/git/mszeredi/vfs (2018-04-
+> > > > 13 16:55:41 -0700)
+> > > > 
+> > > > are available in the git repository at:
+> > > > 
+> > > > Â  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
+> > > > thermal linus
+> > > > 
+> > > > for you to fetch changes up to
+> > > > 15a32df1918259be6c23fc36014fc26ee66c836c:
+> > > > 
+> > > > Â  dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
+> > > > (2018-04-14 09:37:55 -0700)
+> > > > 
+> > > This pull request does not catch this merge window.
+> > > So do you want to split it into 2 separate pull requests, one for 4.17-
+> > > rc and another for 4.18-rc1?
+> > 
+> > OK. Yeah, I am fine with that.
+> > 
+> > > 
+> > > > ----------------------------------------------------------------
+> > > > Anson Huang (1):
+> > > > Â Â Â Â Â Â thermal: imx: add i.MX7 thermal sensor support
+> > > > 
+> > > > Bartlomiej Zolnierkiewicz (1):
+> > > > Â Â Â Â Â Â dt-bindings: thermal: remove no longer needed samsung thermal
+> > > > properties
+> > > > 
+> > > > Sean Wang (2):
+> > > > Â Â Â Â Â Â dt-bindings: thermal: add binding for MT7622 SoC
+> > > > Â Â Â Â Â Â thermal: mediatek: add support for MT7622 SoC
+> > > > 
+> > > > Viresh Kumar (1):
+> > > > Â Â Â Â Â Â dt-bindings: thermal: Remove "cooling-{min|max}-level"
+> > > > properties
+> > > > 
+> > > IMO, together with the refreshed exynos fixes, the one from Viresh and
+> > > the one fromÂ Bartlomiej can be queued for 4.17-rc, and the others have
+> > > to wait until next merge window.
+> > > 
+> > 
+> > Correct, the new chip support will need to wait for the next merge
+> > window. I have already split the patches into the two categories.
+> > The patches removing stuff are in my -fixes branch. All the other adding
+> > new chip support are in my -linus branch.
+> > 
+> > Now, Do you have anything for this -rc2 ? If not, I will send directly
+> > to Linus the stuff in my -fixes branch. Let me know.
+> 
+> What about refreshed Exynos patches (https://lkml.org/lkml/2018/4/16/256)?
 
-> One idea is to make pnpacpi_add_device() available outside of PNP and
-> call it directly (or some variation) in hisi_lpc.c when it walks over
-> its children.
->
+Cool! Thanks for fixing that warning.
 
-I did consider this initially and it seems quite straightforward.
+> 
+> Fixes from Marek (first two patches) are quite critical (without them
+> booting with thermal enabled triggers critical temperature handling on
+> Exynos4210 SoC).
 
-However I think the problem is that we would need to modify the 
-acpi_device child resources from FW with kernel-specific resources, 
-which does not seem right (I think that is what you meant). As I see, 
-this is one reason that we went in the direction of modelling the host 
-as an MFD, as we could set the resources of the mfd_cells.
+I will include those two fixes in rc3. The other of that patch series
+will go into the next merge window.
 
-So adding a variant of pnpacpi_add_device() could work, or modifying 
-pnpacpi_add_device() to accept a callback to translate the resources. 
-But this feature is specific to our very special requirement...
+Thanks for helping me to keep track of the patches.
 
-Thanks,
-John
-
-> .
->
+BR,
+Eduardo
