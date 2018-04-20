@@ -1,7 +1,7 @@
 From: John Garry <john.garry@huawei.com>
-Subject: [RFC PATCH 2/2] HISI LPC: Add PNP device support
-Date: Fri, 20 Apr 2018 18:07:26 +0800
-Message-ID: <1524218846-169934-3-git-send-email-john.garry@huawei.com>
+Subject: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent" devices
+Date: Fri, 20 Apr 2018 18:07:25 +0800
+Message-ID: <1524218846-169934-2-git-send-email-john.garry@huawei.com>
 References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,99 +12,47 @@ To: rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel
 Cc: linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, John Garry <john.garry@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Currently the driver creates an per-ACPI device mfd_cell
-for child devices. This does not suit devices which are
-PNP-compatible, as we expect PNP-compatible devices to
-derive PNP devices.
+For ACPI devices with the enumeration_by_parent flag set,
+we expect the parent device to enumerate the device after
+the ACPI scan.
 
-To add PNP device support, we continue to allow the PNP
-scan code to create the PNP device (which have the
-enumeration_by_parent flag set), but expect the PNP
-scan to defer adding the device to allow the host probe
-code to do this. In addition, no longer do we create an
-mfd_cell (platform_device) for PNP-compatible devices.
+This patch does partially the same for devices which are
+enumerated as PNP devices.
 
-We take this approach so that host probe code can
-translate the IO resources of the PNP device prior
-to adding the device.
+We still want PNP scan code to create the per-ACPI device
+PNP device, but hold off adding the device to allow the
+parent to do this optionally.
+
+Flag acpi_device.driver_data is used as temp store as a
+reference to the PNP device for the parent.
 
 Signed-off-by: John Garry <john.garry@huawei.com>
 ---
- drivers/bus/hisi_lpc.c | 38 +++++++++++++++++++++++++++++++++++++-
- 1 file changed, 37 insertions(+), 1 deletion(-)
+ drivers/pnp/pnpacpi/core.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
-index 2d4611e..d228bc5 100644
---- a/drivers/bus/hisi_lpc.c
-+++ b/drivers/bus/hisi_lpc.c
-@@ -17,8 +17,11 @@
- #include <linux/of_address.h>
- #include <linux/of_platform.h>
- #include <linux/pci.h>
-+#include <linux/pnp.h>
- #include <linux/slab.h>
+diff --git a/drivers/pnp/pnpacpi/core.c b/drivers/pnp/pnpacpi/core.c
+index 3a4c1aa..92f9d6f 100644
+--- a/drivers/pnp/pnpacpi/core.c
++++ b/drivers/pnp/pnpacpi/core.c
+@@ -285,10 +285,14 @@ static int __init pnpacpi_add_device(struct acpi_device *device)
+ 	if (!dev->active)
+ 		pnp_init_resources(dev);
  
-+#include "../pnp/base.h"
-+
- #define DRV_NAME "hisi-lpc"
- 
- /*
-@@ -469,8 +472,11 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
- 	struct acpi_device *child;
- 	int size, ret, count = 0, cell_num = 0;
- 
--	list_for_each_entry(child, &adev->children, node)
-+	list_for_each_entry(child, &adev->children, node) {
-+		if (acpi_is_pnp_device(child))
-+			continue;
- 		cell_num++;
-+	}
- 
- 	/* allocate the mfd cell and companion ACPI info, one per child */
- 	size = sizeof(*mfd_cells) + sizeof(*hisi_lpc_mfd_cells);
-@@ -492,6 +498,9 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
- 			.pnpid = pnpid,
- 		};
- 
-+		if (acpi_is_pnp_device(child))
-+			continue;
-+
- 		/*
- 		 * For any instances of this host controller (Hip06 and Hip07
- 		 * are the only chipsets), we would not have multiple slaves
-@@ -523,6 +532,33 @@ static int hisi_lpc_acpi_probe(struct device *hostdev)
- 		return ret;
+-	error = pnp_add_device(dev);
+-	if (error) {
+-		put_device(&dev->dev);
+-		return error;
++	if (!device->flags.enumeration_by_parent) {
++		error = pnp_add_device(dev);
++		if (error) {
++			put_device(&dev->dev);
++			return error;
++		}
++	} else {
++		device->driver_data = dev;
  	}
  
-+	list_for_each_entry(child, &adev->children, node) {
-+		struct pnp_resource *pnp_res;
-+		struct pnp_dev *pnp_dev;
-+		int rc;
-+
-+		if (!acpi_is_pnp_device(child))
-+			continue;
-+
-+		pnp_dev = child->driver_data;
-+
-+		/*
-+		 * Prior to adding the device, we need to translate the
-+		 * resources to logical PIO addresses.
-+		 */
-+		list_for_each_entry(pnp_res, &pnp_dev->resources, list) {
-+			struct resource *res = &pnp_res->res;
-+
-+			if (res->flags | IORESOURCE_IO)
-+				hisi_lpc_acpi_xlat_io_res(child, adev, res);
-+		}
-+		rc = pnp_add_device(pnp_dev);
-+		if (rc) {
-+			put_device(&pnp_dev->dev);
-+			return rc;
-+		}
-+	}
-+
- 	return 0;
- }
- 
+ 	num++;
 -- 
 1.9.1
