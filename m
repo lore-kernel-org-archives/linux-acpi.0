@@ -1,58 +1,34 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / scan: Fix regression related to X-Gene UARTs
-Date: Sun, 22 Apr 2018 11:34:06 +0200
-Message-ID: <CAJZ5v0g5iB1zoz7S0KBvimqj_ZEQLNX_LZ8g3vBoythJ_ZzjaA@mail.gmail.com>
-References: <20180420032947.23023-1-msalter@redhat.com>
+Subject: Re: [PATCH 15/39] acpi/battery: simplify procfs code
+Date: Sun, 22 Apr 2018 11:42:08 +0200
+Message-ID: <CAJZ5v0gRw8P8KL12QKMuSjyePxWn71LB+s8ephF2a4-Ns234NQ@mail.gmail.com>
+References: <20180419124140.9309-1-hch@lst.de>
+ <20180419124140.9309-16-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420032947.23023-1-msalter@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>
-Cc: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180419124140.9309-16-hch@lst.de>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kernel.org>, Corey Minyard <minyard@acm.org>, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Ext4 Developers List <linux-ext4@vger.kernel.org>, Alexey Dobriyan <adobriyan@gmail.com>, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Apr 20, 2018 at 5:29 AM, Mark Salter <msalter@redhat.com> wrote:
-> Commit e361d1f85855 ("ACPI / scan: Fix enumeration for special UART
-> devices") caused a regression with some X-Gene based platforms (Mustang
-> and M400) with invalid DSDT.
-
-I'm not convinced that making changes to the core ACPI device
-enumeration code in order to cover up for firmware bugs is the right
-approach.
-
-> The DSDT makes it appear that the UART
-> device is also a slave device attached to itself. With the above commit
-> the UART won't be enumerated by ACPI scan (slave serial devices shouldn't
-> be). So check for X-Gene UART device and skip slace device check on it.
+On Thu, Apr 19, 2018 at 2:41 PM, Christoph Hellwig <hch@lst.de> wrote:
+> Use remove_proc_subtree to remove the whole subtree on cleanup, and
+> unwind the registration loop into individual calls.  Switch to use
+> proc_create_seq where applicable.
 >
-> Signed-off-by: Mark Salter <msalter@redhat.com>
-> ---
->  drivers/acpi/scan.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
->
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index cc234e6a6297..1dcdd0122862 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1551,6 +1551,14 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
->              fwnode_property_present(&device->fwnode, "baud")))
->                 return true;
->
-> +       /*
-> +        * Firmware on some arm64 X-Gene platforms will make the UART
-> +        * device appear as both a UART and a slave of that UART. Just
-> +        * bail out here for X-Gene UARTs.
-> +        */
-> +       if (!strcmp(acpi_device_hid(device), "APMC0D08"))
-> +               return false;
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
 
-Is the device ID never to be used outside of the broken configurations?
+It is OK AFAICS.
 
-Even if that's the plan, how are you going to guarantee that anyway?
-
-> +
->         INIT_LIST_HEAD(&resource_list);
->         acpi_dev_get_resources(device, &resource_list,
->                                acpi_check_serial_bus_slave,
-> --
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
