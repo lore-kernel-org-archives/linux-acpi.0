@@ -1,47 +1,58 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / bus: ignore rather than fail bus driver
- registrations on non-ACPI boot
-Date: Sun, 22 Apr 2018 11:27:10 +0200
-Message-ID: <CAJZ5v0jE4Ler2OWeKEWuHwEwM4RHYC5r8BwgcPrT6XBxFjnSNw@mail.gmail.com>
-References: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] ACPI / scan: Fix regression related to X-Gene UARTs
+Date: Sun, 22 Apr 2018 11:34:06 +0200
+Message-ID: <CAJZ5v0g5iB1zoz7S0KBvimqj_ZEQLNX_LZ8g3vBoythJ_ZzjaA@mail.gmail.com>
+References: <20180420032947.23023-1-msalter@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
+In-Reply-To: <20180420032947.23023-1-msalter@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org
+To: Mark Salter <msalter@redhat.com>
+Cc: =?UTF-8?B?RnLDqWTDqXJpYyBEYW5pcw==?= <frederic.danis.oss@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 19, 2018 at 6:58 PM, Ard Biesheuvel
-<ard.biesheuvel@linaro.org> wrote:
-> When building ACPI bus drivers such as button.ko into the core kernel,
-> other drivers that depend on its symbols are loadable even when booting
-> with ACPI disabled. For instance, nouveau.ko has a link time dependency
-> on acpi_lid_open() on ACPI capable kernels, and calls it regardless of
-> whether the system booted via ACPI.
+On Fri, Apr 20, 2018 at 5:29 AM, Mark Salter <msalter@redhat.com> wrote:
+> Commit e361d1f85855 ("ACPI / scan: Fix enumeration for special UART
+> devices") caused a regression with some X-Gene based platforms (Mustang
+> and M400) with invalid DSDT.
+
+I'm not convinced that making changes to the core ACPI device
+enumeration code in order to cover up for firmware bugs is the right
+approach.
+
+> The DSDT makes it appear that the UART
+> device is also a slave device attached to itself. With the above commit
+> the UART won't be enumerated by ACPI scan (slave serial devices shouldn't
+> be). So check for X-Gene UART device and skip slace device check on it.
 >
-> However, when building button.ko as a module, it will refuse to load if
-> the system did not boot in ACPI mode, which subsequently prevents the
-> nouveau driver from loading as well, resulting in broken graphics.
+> Signed-off-by: Mark Salter <msalter@redhat.com>
+> ---
+>  drivers/acpi/scan.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 >
-> Given that returning an error from an initcall() is ignored for drivers
-> that are built into the kernel,
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index cc234e6a6297..1dcdd0122862 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1551,6 +1551,14 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
+>              fwnode_property_present(&device->fwnode, "baud")))
+>                 return true;
+>
+> +       /*
+> +        * Firmware on some arm64 X-Gene platforms will make the UART
+> +        * device appear as both a UART and a slave of that UART. Just
+> +        * bail out here for X-Gene UARTs.
+> +        */
+> +       if (!strcmp(acpi_device_hid(device), "APMC0D08"))
+> +               return false;
 
-Which makes sense, because they are present in the kernel anyway.
+Is the device ID never to be used outside of the broken configurations?
 
-> let's align the module case with this,
-> and not return an error when registering an ACPI bus driver on a system
-> that did not boot via ACPI.
+Even if that's the plan, how are you going to guarantee that anyway?
 
-But why is loading a module that's never going to be used actually OK?
-
-Isn't this a problem with the assumptions made by the nouveau driver
-that need not be met depending on what configuration the kernel is run
-in?
-
-Honestly, it doesn't appear quite right to try to change the rest of
-the kernel to follow the nouveau's expectations.
-
-Thanks,
-Rafael
+> +
+>         INIT_LIST_HEAD(&resource_list);
+>         acpi_dev_get_resources(device, &resource_list,
+>                                acpi_check_serial_bus_slave,
+> --
