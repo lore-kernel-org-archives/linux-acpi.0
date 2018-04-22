@@ -1,83 +1,47 @@
-From: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PULL] libnvdimm fixes for 4.17-rc2
-Date: Sun, 22 Apr 2018 00:17:25 +0000
-Message-ID: <1524356236.26036.13.camel@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI / bus: ignore rather than fail bus driver
+ registrations on non-ACPI boot
+Date: Sun, 22 Apr 2018 11:27:10 +0200
+Message-ID: <CAJZ5v0jE4Ler2OWeKEWuHwEwM4RHYC5r8BwgcPrT6XBxFjnSNw@mail.gmail.com>
+References: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Language: en-US
-Content-ID: <07665B705A136D459F8F248D670F4E73-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org" <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180419165825.13008-1-ard.biesheuvel@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus, please pull from
+On Thu, Apr 19, 2018 at 6:58 PM, Ard Biesheuvel
+<ard.biesheuvel@linaro.org> wrote:
+> When building ACPI bus drivers such as button.ko into the core kernel,
+> other drivers that depend on its symbols are loadable even when booting
+> with ACPI disabled. For instance, nouveau.ko has a link time dependency
+> on acpi_lid_open() on ACPI capable kernels, and calls it regardless of
+> whether the system booted via ACPI.
+>
+> However, when building button.ko as a module, it will refuse to load if
+> the system did not boot in ACPI mode, which subsequently prevents the
+> nouveau driver from loading as well, resulting in broken graphics.
+>
+> Given that returning an error from an initcall() is ignored for drivers
+> that are built into the kernel,
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
+Which makes sense, because they are present in the kernel anyway.
 
-...to receive, a regression fix, new unit test infrastructure and a
-build fix.
+> let's align the module case with this,
+> and not return an error when registering an ACPI bus driver on a system
+> that did not boot via ACPI.
 
-* The regression fix addresses support for the new NVDIMM label storage
-area access commands (_LSI, _LSR, and _LSW). The Intel specific version
-of these commands communicated the "Device Locked" status on the label-
-storage-information command. However, these new commands (standardized
-in ACPI 6.2) communicate the "Device Locked" status on the label-
-storage-read command, and the driver was missing the indication.
-Reading from locked persistent memory is similar to reading unmapped
-PCI memory space, returns all 1's.
+But why is loading a module that's never going to be used actually OK?
 
-* Unit test infrastructure is added to regression test the "Device
-Locked" detection failure.
+Isn't this a problem with the assumptions made by the nouveau driver
+that need not be met depending on what configuration the kernel is run
+in?
 
-* A build fix is included to allow the "of_pmem" driver to be built as
-a module and translate an Open Firmware described device to its local
-numa node.
+Honestly, it doesn't appear quite right to try to change the rest of
+the kernel to follow the nouveau's expectations.
 
----
-
-The following changes since commit 60cc43fc888428bb2f18f08997432d426a243338:
-
-  Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm libnvdimm-fixes
-
-for you to fetch changes up to c5794510d7b5f210f05531ff9e82432cf7244367:
-
-  MAINTAINERS: Add backup maintainers for libnvdimm and DAX (2018-04-19 15:22:50 -0700)
-
-----------------------------------------------------------------
-Dan Williams (6):
-      libnvdimm, dimm: handle EACCES failures from label reads
-      tools/testing/nvdimm: allow custom error code injection
-      tools/testing/nvdimm: support nfit_test_dimm attributes under nfit_test.1
-      tools/testing/nvdimm: fix missing newline in nfit_test_dimm 'handle' attribute
-      tools/testing/nvdimm: enable labels for nfit_test.1 dimms
-      Revert "libnvdimm, of_pmem: workaround OF_NUMA=n build error"
-
-Dave Jiang (2):
-      device-dax: allow MAP_SYNC to succeed
-      MAINTAINERS: Add backup maintainers for libnvdimm and DAX
-
-Rob Herring (1):
-      libnvdimm, of_pmem: use dev_to_node() instead of of_node_to_nid()
-
- MAINTAINERS                      | 15 +++++++
- drivers/dax/device.c             |  2 +
- drivers/nvdimm/Kconfig           |  3 +-
- drivers/nvdimm/dimm_devs.c       | 22 ++++++-----
- drivers/nvdimm/of_pmem.c         |  2 +-
- tools/testing/nvdimm/test/nfit.c | 84 +++++++++++++++++++++++++++++++---------
- 6 files changed, 96 insertions(+), 32 deletions(-)
+Thanks,
+Rafael
