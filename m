@@ -1,69 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi:ipmi: Convert ipmi_user_t to
- struct ipmi_user *
-Date: Mon, 23 Apr 2018 09:59:08 +0200
-Message-ID: <1681615.uzei3cHtpm@aspire.rjw.lan>
-References: <1524064541-22252-1-git-send-email-minyard@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
-In-Reply-To: <1524064541-22252-1-git-send-email-minyard@acm.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/openipmi-developer>,
- <mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
-List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
-List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
- <mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: openipmi-developer-bounces@lists.sourceforge.net
-To: minyard@acm.org
-Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, Lv Zheng <lv.zheng@intel.com>, Corey Minyard <cminyard@mvista.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: [PATCH] ACPI / button: make module loadable when booted in non-ACPI mode
+Date: Mon, 23 Apr 2018 10:28:34 +0200
+Message-ID: <20180423082834.24617-1-ard.biesheuvel@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, broonie@kernel.org, lorenzo.pieralisi@arm.com, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, April 18, 2018 5:15:41 PM CEST minyard@acm.org wrote:
-> From: Corey Minyard <cminyard@mvista.com>
-> 
-> Signed-off-by: Corey Minyard <cminyard@mvista.com>
-> Cc: Zhao Yakui <yakui.zhao@intel.com>
-> Cc: Lv Zheng <lv.zheng@intel.com>
-> ---
->  drivers/acpi/acpi_ipmi.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> I'm getting rid of this annoying coding style violation, if you
-> could get this in that would be great.
-> 
-> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
-> index 1b64419..712fd31 100644
-> --- a/drivers/acpi/acpi_ipmi.c
-> +++ b/drivers/acpi/acpi_ipmi.c
-> @@ -46,7 +46,7 @@ struct acpi_ipmi_device {
->  	spinlock_t tx_msg_lock;
->  	acpi_handle handle;
->  	struct device *dev;
-> -	ipmi_user_t user_interface;
-> +	struct ipmi_user *user_interface;
->  	int ipmi_ifnum; /* IPMI interface number */
->  	long curr_msgid;
->  	bool dead;
-> @@ -125,7 +125,7 @@ ipmi_dev_alloc(int iface, struct device *dev, acpi_handle handle)
->  {
->  	struct acpi_ipmi_device *ipmi_device;
->  	int err;
-> -	ipmi_user_t user;
-> +	struct ipmi_user *user;
->  
->  	ipmi_device = kzalloc(sizeof(*ipmi_device), GFP_KERNEL);
->  	if (!ipmi_device)
-> 
+Modules such as nouveau.ko and i915.ko have a link time dependency on
+acpi_lid_open(), and due to its use of acpi_bus_register_driver(),
+the button.ko module that provides it is only loadable when booted in
+ACPI mode. However, the ACPI button driver can be built into the core
+kernel as well, in which case the dependency can always be satisfied,
+and the dependent modules can be loaded regardless of whether the
+system was booted in ACPI mode or not.
 
-FWIW:
+So let's fix this asymmetry by making the ACPI button driver loadable
+as a module even if not booted in ACPI mode, so it can provide the
+acpi_lid_open() symbol in the same way as when built into the kernel.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+---
+Could we perhaps get this into -stable as well? It is not a classic
+regression, but it completely breaks, e.g., Fedora when booting in
+DT mode on an ARM system.
 
+ drivers/acpi/button.c | 23 +++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index e1eee7a60fad..0506ca56c615 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -635,4 +635,25 @@ module_param_call(lid_init_state,
+ 		  NULL, 0644);
+ MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
+ 
+-module_acpi_driver(acpi_button_driver);
++/*
++ * Modules such as nouveau.ko and i915.ko have a link time dependency on
++ * acpi_lid_open(), and would therefore not be loadable on ACPI capable kernels
++ * booted in non-ACPI mode if we use the ordinary acpi_bus_[un]register_driver
++ * routines here (which only work when booted in ACPI mode) and build this
++ * driver as a module. So provide our own versions instead.
++ */
++static int __acpi_bus_register_driver(struct acpi_driver *driver)
++{
++	if (!acpi_disabled)
++		return acpi_bus_register_driver(driver);
++	return 0;
++}
++
++static void __acpi_bus_unregister_driver(struct acpi_driver *driver)
++{
++	if (!acpi_disabled)
++		acpi_bus_unregister_driver(driver);
++}
++
++module_driver(acpi_button_driver, __acpi_bus_register_driver,
++	      __acpi_bus_unregister_driver);
+-- 
+2.17.0
