@@ -1,64 +1,86 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: [PATCH] ACPI / button: make module loadable when booted in non-ACPI mode
-Date: Mon, 23 Apr 2018 10:28:34 +0200
-Message-ID: <20180423082834.24617-1-ard.biesheuvel@linaro.org>
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: Re: [PATCH RFC] ACPI: disable extra P_LVLx access on KVM
+Date: Mon, 23 Apr 2018 10:36:09 +0200
+Message-ID: <dbf3d84a-8482-cc59-11c9-f59585c8c349@redhat.com>
+References: <1522431741-4678-1-git-send-email-mst@redhat.com>
+ <1969294.enFTGV94N4@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1969294.enFTGV94N4@aspire.rjw.lan>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, broonie@kernel.org, lorenzo.pieralisi@arm.com, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-kernel@vger.kernel.org, =?UTF-8?B?UmFkaW0gS3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Modules such as nouveau.ko and i915.ko have a link time dependency on
-acpi_lid_open(), and due to its use of acpi_bus_register_driver(),
-the button.ko module that provides it is only loadable when booted in
-ACPI mode. However, the ACPI button driver can be built into the core
-kernel as well, in which case the dependency can always be satisfied,
-and the dependent modules can be loaded regardless of whether the
-system was booted in ACPI mode or not.
+On 23/04/2018 10:07, Rafael J. Wysocki wrote:
+> On Friday, March 30, 2018 7:43:58 PM CEST Michael S. Tsirkin wrote:
+>> As documented by commit b488f021 "ACPI: restore comment justifying
+>> 'extra' P_LVLx access", Linux does an extra IO read after entering idle
+>> because on (some) chipsets STPCLK# doesn't get asserted in time
+>> to prevent further instruction processing.
+>>
+>> This can never be the case on KVM, and a timer read causes an expensive
+>> VM exit in turn causing useless load on host system. Detect KVM and skip
+>> the read.  TODO: whitelist more hypervisors?
+>>
+>> Note: very lightly tested.  Pls don't apply this yet, I am working on a
+>> _CST implementation for KVM and will repost this without the RFC tag
+>> when it's been tested properly.
+>>
+>> Posting now for early flames/feedback.
+>>
+>> Cc: Paolo Bonzini <pbonzini@redhat.com>
+>> Cc: Radim Krčmář <rkrcmar@redhat.com>
+>> Cc: kvm@vger.kernel.org
+>> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+>> ---
+>>  drivers/acpi/processor_idle.c | 7 +++++--
+>>  1 file changed, 5 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+>> index abb559c..8ae28dc 100644
+>> --- a/drivers/acpi/processor_idle.c
+>> +++ b/drivers/acpi/processor_idle.c
+>> @@ -33,6 +33,7 @@
+>>  #include <linux/cpuidle.h>
+>>  #include <linux/cpu.h>
+>>  #include <acpi/processor.h>
+>> +#include <linux/kvm_para.h>
+>>  
+>>  /*
+>>   * Include the apic definitions for x86 to have the APIC timer related defines
+>> @@ -665,7 +666,8 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
+>>  		/* Dummy wait op - must do something useless after P_LVL2 read
+>>  		   because chipsets cannot guarantee that STPCLK# signal
+>>  		   gets asserted in time to freeze execution properly. */
+>> -		inl(acpi_gbl_FADT.xpm_timer_block.address);
+>> +		if (!kvm_para_available())
+>> +			inl(acpi_gbl_FADT.xpm_timer_block.address);
+>>  	}
+>>  }
+>>  
+>> @@ -687,7 +689,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+>>  		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
+>>  			inb(cx->address);
+>>  			/* See comment in acpi_idle_do_entry() */
+>> -			inl(acpi_gbl_FADT.xpm_timer_block.address);
+>> +			if (!kvm_para_available())
+>> +				inl(acpi_gbl_FADT.xpm_timer_block.address);
+>>  		} else
+>>  			return -ENODEV;
+>>  	}
+>>
+> 
+> While I have no objections to this change from the ACPI side, I'd like someone
+> from the KVM land to comment on this.
 
-So let's fix this asymmetry by making the ACPI button driver loadable
-as a module even if not booted in ACPI mode, so it can provide the
-acpi_lid_open() symbol in the same way as when built into the kernel.
+It would be nicer to blacklist the problematic chipsets, or as Michael
+said have a way to whitelist more hypervisors, but this is certainly
+okay from KVM land too.
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
-Could we perhaps get this into -stable as well? It is not a classic
-regression, but it completely breaks, e.g., Fedora when booting in
-DT mode on an ARM system.
+Thanks,
 
- drivers/acpi/button.c | 23 +++++++++++++++++++-
- 1 file changed, 22 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-index e1eee7a60fad..0506ca56c615 100644
---- a/drivers/acpi/button.c
-+++ b/drivers/acpi/button.c
-@@ -635,4 +635,25 @@ module_param_call(lid_init_state,
- 		  NULL, 0644);
- MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
- 
--module_acpi_driver(acpi_button_driver);
-+/*
-+ * Modules such as nouveau.ko and i915.ko have a link time dependency on
-+ * acpi_lid_open(), and would therefore not be loadable on ACPI capable kernels
-+ * booted in non-ACPI mode if we use the ordinary acpi_bus_[un]register_driver
-+ * routines here (which only work when booted in ACPI mode) and build this
-+ * driver as a module. So provide our own versions instead.
-+ */
-+static int __acpi_bus_register_driver(struct acpi_driver *driver)
-+{
-+	if (!acpi_disabled)
-+		return acpi_bus_register_driver(driver);
-+	return 0;
-+}
-+
-+static void __acpi_bus_unregister_driver(struct acpi_driver *driver)
-+{
-+	if (!acpi_disabled)
-+		acpi_bus_unregister_driver(driver);
-+}
-+
-+module_driver(acpi_button_driver, __acpi_bus_register_driver,
-+	      __acpi_bus_unregister_driver);
--- 
-2.17.0
+paolo
