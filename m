@@ -1,56 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 0/2] PCI/ASPM: Tighten up ASPM L1.2 and LTR usage
-Date: Mon, 23 Apr 2018 09:56:46 +0200
-Message-ID: <7042555.G8Gd07mvkX@aspire.rjw.lan>
-References: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Subject: Re: [PATCH RFC] ACPI: disable extra P_LVLx access on KVM
+Date: Mon, 23 Apr 2018 10:07:10 +0200
+Message-ID: <1969294.enFTGV94N4@aspire.rjw.lan>
+References: <1522431741-4678-1-git-send-email-mst@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <1522431741-4678-1-git-send-email-mst@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, Rajat Jain <rajatja@google.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Ray Jui <ray.jui@broadcom.com>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, April 19, 2018 11:05:19 PM CEST Bjorn Helgaas wrote:
-> The ASPM L1.2 substate depends on LTR information.  Per the PCI
-> Firmware spec, the OS is supposed to negotiate with the platform for
-> control of the LTR feature, but previously we didn't do that.
+On Friday, March 30, 2018 7:43:58 PM CEST Michael S. Tsirkin wrote:
+> As documented by commit b488f021 "ACPI: restore comment justifying
+> 'extra' P_LVLx access", Linux does an extra IO read after entering idle
+> because on (some) chipsets STPCLK# doesn't get asserted in time
+> to prevent further instruction processing.
 > 
-> In addition, we must not enable LTR in an endpoint unless the Root
-> Complex and all intermediate switches also support LTR.  We already
-> took care of that in pci_configure_ltr(), but we didn't ensure that
-> LTR was enabled before allowing ASPM L1.2 to be enabled.
+> This can never be the case on KVM, and a timer read causes an expensive
+> VM exit in turn causing useless load on host system. Detect KVM and skip
+> the read.  TODO: whitelist more hypervisors?
 > 
-> These patches fix both of these issues.  Or rather, they *should* fix
-> them.  I don't have hardware to test them, so any help with testing
-> would be appreciated.
+> Note: very lightly tested.  Pls don't apply this yet, I am working on a
+> _CST implementation for KVM and will repost this without the RFC tag
+> when it's been tested properly.
 > 
-> I think the most likely issue would be a platform where the hardware
-> supports LTR and the ASPM L1.2 substate, but the BIOS doesn't support
-> LTR in _OSC.  In that case, we previously could have enabled ASPM L1.2
-> (though it probably wouldn't work correctly), and after these patches,
-> we should not enable ASPM L1.2.
+> Posting now for early flames/feedback.
 > 
-> You can look for issues by comparing dmesg and "lspci -vv" output
-> before and after these patches.
-> 
-> It would also be interesting to collect an acpidump from platforms
-> that support LTR, even if there's no endpoint that supports ASPM L1.2.
-> The acpidump should show that _OSC supports LTR.
-> 
-> I included some NVMe folks because these were motivated by Srinath's
-> recent report of LTR and ASPM issues with a Samsung NVMe SSD
-> Controller SM961/PM961 device, so this is sort of FYI in case you see
-> similar issues or are in a position to test these.
-> 
+> Cc: Paolo Bonzini <pbonzini@redhat.com>
+> Cc: Radim Krčmář <rkrcmar@redhat.com>
+> Cc: kvm@vger.kernel.org
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 > ---
+>  drivers/acpi/processor_idle.c | 7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 > 
-> Bjorn Helgaas (2):
->       PCI/ASPM: Disable ASPM L1.2 Substate if we don't have LTR
->       PCI/ACPI: Request LTR control from platform before using it
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index abb559c..8ae28dc 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/cpuidle.h>
+>  #include <linux/cpu.h>
+>  #include <acpi/processor.h>
+> +#include <linux/kvm_para.h>
+>  
+>  /*
+>   * Include the apic definitions for x86 to have the APIC timer related defines
+> @@ -665,7 +666,8 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
+>  		/* Dummy wait op - must do something useless after P_LVL2 read
+>  		   because chipsets cannot guarantee that STPCLK# signal
+>  		   gets asserted in time to freeze execution properly. */
+> -		inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +		if (!kvm_para_available())
+> +			inl(acpi_gbl_FADT.xpm_timer_block.address);
+>  	}
+>  }
+>  
+> @@ -687,7 +689,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
+>  		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
+>  			inb(cx->address);
+>  			/* See comment in acpi_idle_do_entry() */
+> -			inl(acpi_gbl_FADT.xpm_timer_block.address);
+> +			if (!kvm_para_available())
+> +				inl(acpi_gbl_FADT.xpm_timer_block.address);
+>  		} else
+>  			return -ENODEV;
+>  	}
+> 
 
-For both:
+While I have no objections to this change from the ACPI side, I'd like someone
+from the KVM land to comment on this.
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Thanks,
+Rafael
