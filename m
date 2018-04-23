@@ -1,78 +1,69 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH RFC] ACPI: disable extra P_LVLx access on KVM
-Date: Mon, 23 Apr 2018 10:07:10 +0200
-Message-ID: <1969294.enFTGV94N4@aspire.rjw.lan>
-References: <1522431741-4678-1-git-send-email-mst@redhat.com>
+Subject: Re: [PATCH] acpi:ipmi: Convert ipmi_user_t to
+ struct ipmi_user *
+Date: Mon, 23 Apr 2018 09:59:08 +0200
+Message-ID: <1681615.uzei3cHtpm@aspire.rjw.lan>
+References: <1524064541-22252-1-git-send-email-minyard@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1522431741-4678-1-git-send-email-mst@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Paolo Bonzini <pbonzini@redhat.com>, Radim =?utf-8?B?S3LEjW3DocWZ?= <rkrcmar@redhat.com>, kvm@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <openipmi-developer-bounces@lists.sourceforge.net>
+In-Reply-To: <1524064541-22252-1-git-send-email-minyard@acm.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/openipmi-developer>,
+ <mailto:openipmi-developer-request@lists.sourceforge.net?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=openipmi-developer>
+List-Post: <mailto:openipmi-developer@lists.sourceforge.net>
+List-Help: <mailto:openipmi-developer-request@lists.sourceforge.net?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/openipmi-developer>,
+ <mailto:openipmi-developer-request@lists.sourceforge.net?subject=subscribe>
+Errors-To: openipmi-developer-bounces@lists.sourceforge.net
+To: minyard@acm.org
+Cc: Zhao Yakui <yakui.zhao@intel.com>, linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net, Lv Zheng <lv.zheng@intel.com>, Corey Minyard <cminyard@mvista.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, March 30, 2018 7:43:58 PM CEST Michael S. Tsirkin wrote:
-> As documented by commit b488f021 "ACPI: restore comment justifying
-> 'extra' P_LVLx access", Linux does an extra IO read after entering idle
-> because on (some) chipsets STPCLK# doesn't get asserted in time
-> to prevent further instruction processing.
+On Wednesday, April 18, 2018 5:15:41 PM CEST minyard@acm.org wrote:
+> From: Corey Minyard <cminyard@mvista.com>
 > 
-> This can never be the case on KVM, and a timer read causes an expensive
-> VM exit in turn causing useless load on host system. Detect KVM and skip
-> the read.  TODO: whitelist more hypervisors?
-> 
-> Note: very lightly tested.  Pls don't apply this yet, I am working on a
-> _CST implementation for KVM and will repost this without the RFC tag
-> when it's been tested properly.
-> 
-> Posting now for early flames/feedback.
-> 
-> Cc: Paolo Bonzini <pbonzini@redhat.com>
-> Cc: Radim Krčmář <rkrcmar@redhat.com>
-> Cc: kvm@vger.kernel.org
-> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
+> Signed-off-by: Corey Minyard <cminyard@mvista.com>
+> Cc: Zhao Yakui <yakui.zhao@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
 > ---
->  drivers/acpi/processor_idle.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
+>  drivers/acpi/acpi_ipmi.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index abb559c..8ae28dc 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -33,6 +33,7 @@
->  #include <linux/cpuidle.h>
->  #include <linux/cpu.h>
->  #include <acpi/processor.h>
-> +#include <linux/kvm_para.h>
+> I'm getting rid of this annoying coding style violation, if you
+> could get this in that would be great.
+> 
+> diff --git a/drivers/acpi/acpi_ipmi.c b/drivers/acpi/acpi_ipmi.c
+> index 1b64419..712fd31 100644
+> --- a/drivers/acpi/acpi_ipmi.c
+> +++ b/drivers/acpi/acpi_ipmi.c
+> @@ -46,7 +46,7 @@ struct acpi_ipmi_device {
+>  	spinlock_t tx_msg_lock;
+>  	acpi_handle handle;
+>  	struct device *dev;
+> -	ipmi_user_t user_interface;
+> +	struct ipmi_user *user_interface;
+>  	int ipmi_ifnum; /* IPMI interface number */
+>  	long curr_msgid;
+>  	bool dead;
+> @@ -125,7 +125,7 @@ ipmi_dev_alloc(int iface, struct device *dev, acpi_handle handle)
+>  {
+>  	struct acpi_ipmi_device *ipmi_device;
+>  	int err;
+> -	ipmi_user_t user;
+> +	struct ipmi_user *user;
 >  
->  /*
->   * Include the apic definitions for x86 to have the APIC timer related defines
-> @@ -665,7 +666,8 @@ static void __cpuidle acpi_idle_do_entry(struct acpi_processor_cx *cx)
->  		/* Dummy wait op - must do something useless after P_LVL2 read
->  		   because chipsets cannot guarantee that STPCLK# signal
->  		   gets asserted in time to freeze execution properly. */
-> -		inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +		if (!kvm_para_available())
-> +			inl(acpi_gbl_FADT.xpm_timer_block.address);
->  	}
->  }
->  
-> @@ -687,7 +689,8 @@ static int acpi_idle_play_dead(struct cpuidle_device *dev, int index)
->  		else if (cx->entry_method == ACPI_CSTATE_SYSTEMIO) {
->  			inb(cx->address);
->  			/* See comment in acpi_idle_do_entry() */
-> -			inl(acpi_gbl_FADT.xpm_timer_block.address);
-> +			if (!kvm_para_available())
-> +				inl(acpi_gbl_FADT.xpm_timer_block.address);
->  		} else
->  			return -ENODEV;
->  	}
+>  	ipmi_device = kzalloc(sizeof(*ipmi_device), GFP_KERNEL);
+>  	if (!ipmi_device)
 > 
 
-While I have no objections to this change from the ACPI side, I'd like someone
-from the KVM land to comment on this.
+FWIW:
 
-Thanks,
-Rafael
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+
+
+------------------------------------------------------------------------------
+Check out the vibrant tech community on one of the world's most
+engaging tech sites, Slashdot.org! http://sdm.link/slashdot
