@@ -1,62 +1,35 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [GIT PULL] Thermal management updates for v4.17-rc2
-Date: Tue, 24 Apr 2018 21:25:45 +0800
-Message-ID: <1524576345.2597.31.camel@intel.com>
-References: <20180420161834.GA22776@localhost.localdomain>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 26/39] rtc/proc: switch to proc_create_single_data
+Date: Tue, 24 Apr 2018 16:15:24 +0200
+Message-ID: <20180424141524.GB26136@lst.de>
+References: <20180419124140.9309-1-hch@lst.de> <20180419124140.9309-27-hch@lst.de> <20180419131027.GC7369@piout.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180420161834.GA22776@localhost.localdomain>
+Content-Disposition: inline
+In-Reply-To: <20180419131027.GC7369@piout.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Cc: Christoph Hellwig <hch@lst.de>, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Corey Minyard <minyard@acm.org>, Alessandro Zummo <a.zummo@towertech.it>, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Eduardo,
+On Thu, Apr 19, 2018 at 03:10:27PM +0200, Alexandre Belloni wrote:
+> On 19/04/2018 14:41:27+0200, Christoph Hellwig wrote:
+> > And stop trying to get a reference on the submodule, procfs code deals
+> > with release after and unloaded module and thus removed proc entry.
+> > 
+> 
+> Are you sure about that? The rtc module is not the one adding the procfs
+> file so I'm not sure how the procfs code can handle it.
 
-On 五, 2018-04-20 at 09:18 -0700, Eduardo Valentin wrote:
-> Hello Linus,
-> 
-> Here are a couple of fixes on thermal subsystem.
-> Please consider pulling from
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
-> thermal fixes
-> 
-> to receive Thermal Management updates for v4.17-rc2 with top-most
-> 
-> e04907dbc25930b88ee2328fe692c776f63ddf2c:
-> 
->   dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
-> (2018-04-18 07:04:28 -0700)
-> 
-> on top of commit 60cc43fc888428bb2f18f08997432d426a243338:
-> 
->   Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
-> 
-As this does not hit 4.17-rc2, and I have some thermal core fixes now,
-would you mind rebase the patches on top of 4.17-rc2, and send the pull
-request to me, including the exynos fixes, so that I can pull and queue
-for next -rc?
+The proc file is removed from this call chain:
 
-thanks,
-rui
-> BR,
-> 
-> Eduardo Valentin
-> 
-> ----------------------------------------------------------------
-> Bartlomiej Zolnierkiewicz (1):
->       dt-bindings: thermal: remove no longer needed samsung thermal
-> properties
-> 
-> Viresh Kumar (1):
->       dt-bindings: thermal: Remove "cooling-{min|max}-level"
-> properties
-> 
->  .../devicetree/bindings/thermal/exynos-thermal.txt | 23 +++++-------
-> ----------
->  .../devicetree/bindings/thermal/thermal.txt        | 16 +-----------
-> ---
->  2 files changed, 6 insertions(+), 33 deletions(-)
+  <driver>_exit (module_exit handler)
+    -> rtc_device_unregister
+      -> rtc_proc_del_device
+        -> remove_proc_entry
+
+remove_proc_entry takes care of waiting for currently active file
+operation instances and makes sure every new operation never calls
+into the actual proc file ops.  Same behavior as in RTC exists all
+over the kernel.
