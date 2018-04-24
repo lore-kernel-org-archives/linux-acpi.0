@@ -1,44 +1,56 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: simplify procfs code for seq_file instances
-Date: Tue, 24 Apr 2018 18:06:53 +0200
-Message-ID: <20180424160652.GA28483@lst.de>
-References: <20180419124140.9309-1-hch@lst.de> <20180419185750.GD2066@avx2>
-	<20180424142304.GE26136@lst.de>
-	<20180424081916.e94ca8463fb3c39ebc082bdd@linux-foundation.org>
+From: Martin Kelly <martin@martingkelly.com>
+Subject: Re: [PATCH 1/1] tools: power/acpi, revert to LD = gcc
+Date: Tue, 24 Apr 2018 09:38:31 -0700
+Message-ID: <CAN8CM3wHg8ena1ZfUQwioc_fhn0P9gNHVe7OwttUVi0vmkDrcw@mail.gmail.com>
+References: <54661ff7-5c2a-473b-e08c-1cd267353c03@martingkelly.com> <20180424074344.23029-1-jslaby@suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180424081916.e94ca8463fb3c39ebc082bdd-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-List-Unsubscribe: <http://lists.linbit.com/mailman/options/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linbit.com/pipermail/drbd-dev>
-List-Post: <mailto:drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-List-Help: <mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linbit.com/mailman/listinfo/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=subscribe>
-Sender: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-Errors-To: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Corey Minyard <minyard-HInyCGIudOg@public.gmane.org>, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jfs-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180424074344.23029-1-jslaby@suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 24, 2018 at 08:19:16AM -0700, Andrew Morton wrote:
-> > > I want to ask if it is time to start using poorman function overloading
-> > > with _b_c_e(). There are millions of allocation functions for example,
-> > > all slightly difference, and people will add more. Seeing /proc interfaces
-> > > doubled like this is painful.
-> > 
-> > Function overloading is totally unacceptable.
-> > 
-> > And I very much disagree with a tradeoff that keeps 5000 lines of 
-> > code vs a few new helpers.
-> 
-> OK, the curiosity and suspense are killing me.  What the heck is
-> "function overloading with _b_c_e()"?
+On Tue, Apr 24, 2018 at 12:43 AM, Jiri Slaby <jslaby@suse.cz> wrote:
+> Commit 7ed1c1901fe5 (tools: fix cross-compile var clobbering) removed
+> setting of LD to $(CROSS_COMPILE)gcc. This broke build of acpica
+> (acpidump) in power/acpi:
+>  ld: unrecognized option '-D_LINUX'
+>
+> The tools pass CFLAGS to the linker (incl. -D_LINUX), so revert this
+> particular change and let LD be $(CC) again. Note that the old behaviour
+> was a bit different, it used $(CROSS_COMPILE)gcc which was eliminated by
+> the commit 7ed1c1901fe5. We use $(CC) for that reason.
+>
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Martin Kelly <martin@martingkelly.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Erik Schmauss <erik.schmauss@intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: devel@acpica.org
+> ---
+>  tools/power/acpi/Makefile.config | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
+> index 2cccbba64418..f304be71c278 100644
+> --- a/tools/power/acpi/Makefile.config
+> +++ b/tools/power/acpi/Makefile.config
+> @@ -56,6 +56,7 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
+>  # to compile vs uClibc, that can be done here as well.
+>  CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
+>  CROSS_COMPILE ?= $(CROSS)
+> +LD = $(CC)
+>  HOSTCC = gcc
+>
+>  # check if compiler option is supported
+> --
+> 2.16.3
+>
 
-The way I understood Alexey was to use have a proc_create macro
-that can take different ops types.  Although the short cut for
-__builtin_types_compatible_p would be _b_t_c or similar, so maybe
-I misunderstood him.
+Reviewed-by: Martin Kelly <martin@martingkelly.com>
+
+Thanks for noticing this and sorry I missed it!
