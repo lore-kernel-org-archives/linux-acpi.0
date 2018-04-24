@@ -1,51 +1,76 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH v2 1/3] ACPI: improve function documentation for acpi_parse_entries_array()
-Date: Tue, 24 Apr 2018 13:35:03 -0600
-Message-ID: <20180424193505.6934-2-ahs3@redhat.com>
-References: <20180424193505.6934-1-ahs3@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180424193505.6934-1-ahs3@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+From: James Hogan <jhogan@kernel.org>
+Subject: Re: [PATCH] ACPI / video: Only default only_lcd to true on
+ Win8-ready _desktops_
+Date: Tue, 24 Apr 2018 22:50:48 +0100
+Message-ID: <20180424215048.GC25058@saruman>
+References: <20180417162350.12227-1-hdegoede@redhat.com>
+ <57c14762-f327-aab2-7b06-5320d93010be@redhat.com>
+ <CAJZ5v0hvLOPJ0aM5WLBZ0GT9Drcezvpq1CkH6S3Jxw3t6He+Xg@mail.gmail.com>
+ <0b3fb04d-5dbc-19ce-0fd1-890dcf58bf52@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="9Ek0hoCL9XbhcSqy"
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <0b3fb04d-5dbc-19ce-0fd1-890dcf58bf52@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-I found the description of the table_size argument to the function
-acpi_parse_entries_array() unclear and ambiguous.  This is a minor
-documentation change to improve that description so I don't misuse
-the argument again in the future, and it is hopefully clearer to
-other future users.
 
-Signed-off-by: Al Stone <ahs3@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- drivers/acpi/tables.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+--9Ek0hoCL9XbhcSqy
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 849c4fb19b03..21535762b890 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -222,7 +222,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-  * acpi_parse_entries_array - for each proc_num find a suitable subtable
-  *
-  * @id: table id (for debugging purposes)
-- * @table_size: single entry size
-+ * @table_size: size of the root table; i.e., the offset from the very
-+ *              first byte of the complete ACPI table, to the first byte
-+ *              of the first subtable
-  * @table_header: where does the table start?
-  * @proc: array of acpi_subtable_proc struct containing entry id
-  *        and associated handler with it
-@@ -400,7 +402,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
- 		return -ENODEV;
- }
- 
--/* 
-+/*
-  * The BIOS is supposed to supply a single APIC/MADT,
-  * but some report two.  Provide a knob to use either.
-  * (don't you wish instance 0 and 1 were not the same?)
--- 
-2.14.3
+On Tue, Apr 24, 2018 at 11:13:25PM +0200, Hans de Goede wrote:
+> FWIW this has gotten into 4.15 without it having a Cc: stable or a
+> Fixes: tag, I think it was picked up by the new magic scripts scripts
+> which try to find commits which should have a Cc: stable but are lacking
+> one.
+>=20
+> In this case I deliberately did not add a Cc: stable as what gets fixed
+> is not that important, whereas the possible regression this might cause
+> (and actually seems to be causing) is sorta bad.
+
+This isn't the first time I've seen patches backported that simply don't
+need to be, or shouldn't be. In one case a few years back the patch had
+a fixes tag, but it still wasn't important to backport, which is why I
+left off the Cc stable, and in fact it broke something.
+
+TBH its a bit distracting having to review such patches, which I've
+already looked at before, determined there's no need for a backport, and
+subsequently paged out of my head.
+
+Stable folk: is there already (and should there be) a defined mechanism
+to record that a given patch is:
+
+1) not suitable/worthwhile to backport (e.g. even though it might have a
+   Fixes tag or use the word "fix").
+
+2) OR it would require a bit more human effort to backport (perhaps it
+   applies cleanly but would be expected not to build/work) and probably
+   shouldn't be attempted automatically.
+
+3) OR it probably isn't worth backporting and is risky to do so, and so
+   should only be carefully attempted if somebody actually complains.
+
+other than simply stating it in prose in the commit message?
+
+Cheers
+James
+
+--9Ek0hoCL9XbhcSqy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQS7lRNBWUYtqfDOVL41zuSGKxAj8gUCWt+muAAKCRA1zuSGKxAj
+8sfOAQDj0GReVAg8OXqZ2r7Ck/C0sYEo5+W2MIheD56Zjt/F9AD+OwsOvRN4TTmF
+lzwJnmrDpkEywYyTzYzn1gxtUEpVsAw=
+=wG5j
+-----END PGP SIGNATURE-----
+
+--9Ek0hoCL9XbhcSqy--
