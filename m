@@ -1,77 +1,133 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH 03/37] iommu/sva: Manage process address spaces
-Date: Mon, 23 Apr 2018 21:32:33 -0400
-Message-ID: <57d77955-caa7-ddac-df7d-7eef1f05dbb2@codeaurora.org>
-References: <20180212183352.22730-1-jean-philippe.brucker@arm.com>
-	<20180212183352.22730-4-jean-philippe.brucker@arm.com>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
+ errors are marked as fatal.
+Date: Mon, 23 Apr 2018 23:19:25 -0500
+Message-ID: <70c43399-e8e5-5061-b5a5-451deb5f02fa@gmail.com>
+References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+ <20180416215903.7318-4-mr.nuke.me@gmail.com> <20180418175415.GJ4795@pd.tnic>
+ <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+ <20180419154006.GE3600@pd.tnic>
+ <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
+ <20180419164528.GD5635@pd.tnic>
+ <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
+ <20180419190323.GF5635@pd.tnic>
+ <dba07329-2f85-2bde-85ea-5bdf26fb8df2@gmail.com>
+ <20180422104849.GA32754@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180212183352.22730-4-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180422104849.GA32754@pd.tnic>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: mark.rutland-5wv7dgnIgG8@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com, Yazen Ghannam <yazen.ghannam@amd.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2/12/2018 1:33 PM, Jean-Philippe Brucker wrote:
-> /**
->   * iommu_sva_device_init() - Initialize Shared Virtual Addressing for a device
->   * @dev: the device
-> @@ -129,7 +439,10 @@ EXPORT_SYMBOL_GPL(iommu_sva_device_shutdown);
->  int iommu_sva_bind_device(struct device *dev, struct mm_struct *mm, int *pasid,
->  			  unsigned long flags, void *drvdata)
->  {
-> +	int i, ret;
-> +	struct io_mm *io_mm = NULL;
->  	struct iommu_domain *domain;
-> +	struct iommu_bond *bond = NULL, *tmp;
->  	struct iommu_param *dev_param = dev->iommu_param;
->  
->  	domain = iommu_get_domain_for_dev(dev);
-> @@ -145,7 +458,42 @@ int iommu_sva_bind_device(struct device *dev, struct mm_struct *mm, int *pasid,
->  	if (flags != (IOMMU_SVA_FEAT_PASID | IOMMU_SVA_FEAT_IOPF))
->  		return -EINVAL;
->  
-> -	return -ENOSYS; /* TODO */
-> +	/* If an io_mm already exists, use it */
-> +	spin_lock(&iommu_sva_lock);
-> +	idr_for_each_entry(&iommu_pasid_idr, io_mm, i) {
-> +		if (io_mm->mm != mm || !io_mm_get_locked(io_mm))
-> +			continue;
-> +
-> +		/* Is it already bound to this device? */
-> +		list_for_each_entry(tmp, &io_mm->devices, mm_head) {
-> +			if (tmp->dev != dev)
-> +				continue;
-> +
-> +			bond = tmp;
-> +			refcount_inc(&bond->refs);
-> +			io_mm_put_locked(io_mm);
-> +			break;
-> +		}
-> +		break;
-> +	}
-> +	spin_unlock(&iommu_sva_lock);
-> +
-> +	if (bond)
-
-Please return pasid when you find an io_mm that is already bound. Something like
-*pasid = io_mm->pasid should do the work here when bond is true.
-
-> +		return 0;
 
 
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+On 04/22/2018 05:48 AM, Borislav Petkov wrote:
+> On Thu, Apr 19, 2018 at 05:55:08PM -0500, Alex G. wrote:
+>>> How does such an error look like, in detail?
+>>
+>> It's green on the soft side, with lots of red accents, as well as some
+>> textured white shades:
+>>
+>> [   51.414616] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down
+>> [   51.414634] pciehp 0000:b0:05.0:pcie204: Slot(179): Link Down
+>> [   52.703343] FIRMWARE BUG: Firmware sent fatal error that we were able
+>> to correct
+>> [   52.703345] BROKEN FIRMWARE: Complain to your hardware vendor
+>> [   52.703347] {1}[Hardware Error]: Hardware error from APEI Generic
+>> Hardware Error Source: 1
+>> [   52.703358] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Up
+>> [   52.711616] {1}[Hardware Error]: event severity: fatal
+>> [   52.716754] {1}[Hardware Error]:  Error 0, type: fatal
+>> [   52.721891] {1}[Hardware Error]:   section_type: PCIe error
+>> [   52.727463] {1}[Hardware Error]:   port_type: 6, downstream switch port
+>> [   52.734075] {1}[Hardware Error]:   version: 3.0
+>> [   52.738607] {1}[Hardware Error]:   command: 0x0407, status: 0x0010
+>> [   52.744786] {1}[Hardware Error]:   device_id: 0000:b0:06.0
+>> [   52.750271] {1}[Hardware Error]:   slot: 4
+>> [   52.754371] {1}[Hardware Error]:   secondary_bus: 0xb3
+>> [   52.759509] {1}[Hardware Error]:   vendor_id: 0x10b5, device_id: 0x9733
+>> [   52.766123] {1}[Hardware Error]:   class_code: 000406
+>> [   52.771182] {1}[Hardware Error]:   bridge: secondary_status: 0x0000,
+>> control: 0x0003
+>> [   52.779038] pcieport 0000:b0:06.0: aer_status: 0x00100000, aer_mask:
+>> 0x01a10000
+>> [   52.782303] nvme0n1: detected capacity change from 3200631791616 to 0
+>> [   52.786348] pcieport 0000:b0:06.0:    [20] Unsupported Request
+>> [   52.786349] pcieport 0000:b0:06.0: aer_layer=Transaction Layer,
+>> aer_agent=Requester ID
+>> [   52.786350] pcieport 0000:b0:06.0: aer_uncor_severity: 0x004eb030
+>> [   52.786352] pcieport 0000:b0:06.0:   TLP Header: 40000001 0000020f
+>> e12023bc 01000000
+>> [   52.786357] pcieport 0000:b0:06.0: broadcast error_detected message
+>> [   52.883895] pci 0000:b3:00.0: device has no driver
+>> [   52.883976] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down
+>> [   52.884184] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down event
+>> queued; currently getting powered on
+>> [   52.967175] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Up
+> 
+> Btw, from another discussion we're having with Yazen:
+> 
+> @Yazen, do you see how this error record is worth shit?
+> 
+>   class_code: 000406
+>   command: 0x0407, status: 0x0010
+>   bridge: secondary_status: 0x0000, control: 0x0003
+>   aer_status: 0x00100000, aer_mask: 0x01a10000
+>   aer_uncor_severity: 0x004eb030
+
+That tells you what FFS said about the error. Keep in mind that FFS has 
+cleared the hardware error bits, which the AER handler would normally 
+read from the PCI device.
+
+> those above are only some of the fields which are purely useless
+> undecoded. Makes me wonder what's worse for the user: dump the
+> half-decoded error or not dump an error at all...
+
+It's immediately obvious if there's a glaring FFS bug and if we get 
+bogus data. If you distrust firmware as much as I do, then you will find 
+great value in having such info in the logs. It's probably not too 
+useful to a casual user, but then neither is a majority of the system log.
+
+> Anyway, Alex, I see this in the logs:
+> 
+> [   66.581121] pciehp 0000:b0:06.0:pcie204: Slot(176): Link Down
+> [   66.591939] pciehp 0000:b0:05.0:pcie204: Slot(179): Card not present
+> [   66.592102] pciehp 0000:b0:06.0:pcie204: Slot(176): Card not present
+> 
+> and that comes from that pciehp_isr() interrupt handler AFAICT.
+> 
+> So there *is* a way to know that the card is not present anymore. So,
+> theoretically, and ignoring the code layering for now, we can connect
+> that error to the card not present event and then ignore the error...
+
+You're missing the timing and assuming you will get the hotplug 
+interrupt. In this example, you have 22ms between the link down and 
+presence detect state change. This is a fairly fast removal.
+
+Hotplug dependencies aside (you can have the kernel run without PCIe 
+hotplug support), I don't think you want to just linger in NMI for 
+dozens of milliseconds waiting for presence detect confirmation.
+
+For enterprise SFF NVMe drives, the data lanes will disconnect before 
+the presence detect. FFS relies on presence detect, and these are two of 
+the reasons why slow removal is such a problem. You might not get a 
+presence detect interrupt at all.
+
+Presence detect is optional for PCIe. PD is such a reliable heuristic, 
+that it guarantees worse error handling than the crackmonkey firmware. I 
+don't see how might be useful in a way which gives us better handling 
+than firmware.
+
+> Hmmm.
+
+Hmmm
+
+Anyway, heuristics about PCIe error recovery belong in the recovery 
+handler. I don't think it's smart to apply policy before we get there
+
+Alex
