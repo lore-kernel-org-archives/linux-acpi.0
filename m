@@ -1,57 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PM: Blacklist Low Power S0 Idle _DSM for ThinkPad X1 Tablet(2016)
-Date: Tue, 24 Apr 2018 12:06:01 +0200
-Message-ID: <4652718.cogBrKaOA5@aspire.rjw.lan>
-References: <20180410150751.31580-1-yu.c.chen@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [GIT PULL] Thermal management updates for v4.17-rc2
+Date: Tue, 24 Apr 2018 21:25:45 +0800
+Message-ID: <1524576345.2597.31.camel@intel.com>
+References: <20180420161834.GA22776@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180410150751.31580-1-yu.c.chen@intel.com>
+In-Reply-To: <20180420161834.GA22776@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yu Chen <yu.c.chen@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Robin Lee <robinlee.sysu@gmail.com>, Hans de Goede <jwrdegoede@fedoraproject.org>
+To: Eduardo Valentin <edubezval@gmail.com>, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, April 10, 2018 5:07:51 PM CEST Yu Chen wrote:
-> From: Chen Yu <yu.c.chen@intel.com>
-> 
-> ThinkPad X1 Tablet(2016) is reported to have issues with
-> the Low Power S0 Idle _DSM interface and since this machine
-> model generally can do ACPI S3 just fine, and user would
-> like to use S3 as default sleep model, add a blacklist
-> entry to disable that interface for ThinkPad X1 Tablet(2016).
-> 
-> Reported-and-tested-by: Robin Lee <robinlee.sysu@gmail.com>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> ---
->  drivers/acpi/sleep.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
-> 
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 46cde0912762..465f33aa0bd8 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -364,6 +364,19 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9360"),
->  		},
->  	},
-> +	/*
-> +	 * https://bugzilla.kernel.org/show_bug.cgi?id=199057
-> +	 * ThinkPad X1 Tablet(2016) cannot do suspend-to-idle using the Low Power
-> +	 * S0 Idle firmware interface.
-> +	 */
-> +	{
-> +	.callback = init_no_lps0,
-> +	.ident = "ThinkPad X1 Tablet(2016)",
-> +	.matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "20GGA00L00"),
-> +		},
-> +	},
->  	{},
->  };
->  
-> 
+Hi, Eduardo,
 
-Applied, thanks!
+On 五, 2018-04-20 at 09:18 -0700, Eduardo Valentin wrote:
+> Hello Linus,
+> 
+> Here are a couple of fixes on thermal subsystem.
+> Please consider pulling from
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-
+> thermal fixes
+> 
+> to receive Thermal Management updates for v4.17-rc2 with top-most
+> 
+> e04907dbc25930b88ee2328fe692c776f63ddf2c:
+> 
+>   dt-bindings: thermal: Remove "cooling-{min|max}-level" properties
+> (2018-04-18 07:04:28 -0700)
+> 
+> on top of commit 60cc43fc888428bb2f18f08997432d426a243338:
+> 
+>   Linux 4.17-rc1 (2018-04-15 18:24:20 -0700)
+> 
+As this does not hit 4.17-rc2, and I have some thermal core fixes now,
+would you mind rebase the patches on top of 4.17-rc2, and send the pull
+request to me, including the exynos fixes, so that I can pull and queue
+for next -rc?
+
+thanks,
+rui
+> BR,
+> 
+> Eduardo Valentin
+> 
+> ----------------------------------------------------------------
+> Bartlomiej Zolnierkiewicz (1):
+>       dt-bindings: thermal: remove no longer needed samsung thermal
+> properties
+> 
+> Viresh Kumar (1):
+>       dt-bindings: thermal: Remove "cooling-{min|max}-level"
+> properties
+> 
+>  .../devicetree/bindings/thermal/exynos-thermal.txt | 23 +++++-------
+> ----------
+>  .../devicetree/bindings/thermal/thermal.txt        | 16 +-----------
+> ---
+>  2 files changed, 6 insertions(+), 33 deletions(-)
