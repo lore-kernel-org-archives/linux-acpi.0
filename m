@@ -1,36 +1,73 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 12/13] ACPI: Add PPTT to injectable table list
-Date: Wed, 25 Apr 2018 18:31:20 -0500
-Message-ID: <20180425233121.13270-13-jeremy.linton@arm.com>
+Subject: [PATCH v8 08/13] arm64: Add support for ACPI based firmware tables
+Date: Wed, 25 Apr 2018 18:31:16 -0500
+Message-ID: <20180425233121.13270-9-jeremy.linton@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>, Geoffrey Blake <geoffrey.blake@arm.com>
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add ACPI_SIG_PPTT to the table so initrd's can override the
-system topology.
+The /sys cache entries should support ACPI/PPTT generated cache
+topology information. Lets detect ACPI systems and call
+an arch specific cache_setup_acpi() routine to update the hardware
+probed cache topology.
 
-Signed-off-by: Geoffrey Blake <geoffrey.blake@arm.com>
+For arm64, if ACPI is enabled, determine the max number of cache
+levels and populate them using the PPTT table if one is available.
+
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/tables.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm64/kernel/cacheinfo.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 849c4fb19b03..30d93bf7c6a2 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -457,7 +457,7 @@ static const char * const table_sigs[] = {
- 	ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
- 	ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
- 	ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
--	ACPI_SIG_NFIT, ACPI_SIG_HMAT, NULL };
-+	ACPI_SIG_NFIT, ACPI_SIG_HMAT, ACPI_SIG_PPTT, NULL };
+diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
+index 380f2e2fbed5..0bf0a835122f 100644
+--- a/arch/arm64/kernel/cacheinfo.c
++++ b/arch/arm64/kernel/cacheinfo.c
+@@ -17,6 +17,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
  
- #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
++#include <linux/acpi.h>
+ #include <linux/cacheinfo.h>
+ #include <linux/of.h>
  
+@@ -46,7 +47,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+ 
+ static int __init_cache_level(unsigned int cpu)
+ {
+-	unsigned int ctype, level, leaves, of_level;
++	unsigned int ctype, level, leaves, fw_level;
+ 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+ 
+ 	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
+@@ -59,15 +60,19 @@ static int __init_cache_level(unsigned int cpu)
+ 		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
+ 	}
+ 
+-	of_level = of_find_last_cache_level(cpu);
+-	if (level < of_level) {
++	if (acpi_disabled)
++		fw_level = of_find_last_cache_level(cpu);
++	else
++		fw_level = acpi_find_last_cache_level(cpu);
++
++	if (level < fw_level) {
+ 		/*
+ 		 * some external caches not specified in CLIDR_EL1
+ 		 * the information may be available in the device tree
+ 		 * only unified external caches are considered here
+ 		 */
+-		leaves += (of_level - level);
+-		level = of_level;
++		leaves += (fw_level - level);
++		level = fw_level;
+ 	}
+ 
+ 	this_cpu_ci->num_levels = level;
 -- 
 2.13.6
