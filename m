@@ -1,7 +1,7 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 03/13] cacheinfo: rename of_node to fw_token
-Date: Wed, 25 Apr 2018 18:31:11 -0500
-Message-ID: <20180425233121.13270-4-jeremy.linton@arm.com>
+Subject: [PATCH v8 10/13] arm64: topology: rename cluster_id
+Date: Wed, 25 Apr 2018 18:31:18 -0500
+Message-ID: <20180425233121.13270-11-jeremy.linton@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
@@ -10,100 +10,152 @@ To: linux-acpi@vger.kernel.org
 Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Rename and change the type of of_node to indicate
-it is a generic pointer which is generally only used
-for comparison purposes. In a later patch we will put
-an ACPI/PPTT token pointer in fw_token so that
-the code which builds the shared cpu masks can be reused.
+Lets match the name of the arm64 topology field
+to the kernel macro that uses it.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/base/cacheinfo.c  | 16 +++++++++-------
- include/linux/cacheinfo.h |  8 +++-----
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ arch/arm64/include/asm/topology.h |  4 ++--
+ arch/arm64/kernel/topology.c      | 26 +++++++++++++-------------
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index a872523e8951..597aacb233fc 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -35,7 +35,7 @@ struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu)
- static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- 					   struct cacheinfo *sib_leaf)
- {
--	return sib_leaf->of_node == this_leaf->of_node;
-+	return sib_leaf->fw_token == this_leaf->fw_token;
- }
- 
- /* OF properties to query for a given cache type */
-@@ -167,9 +167,10 @@ static int cache_setup_of_node(unsigned int cpu)
- 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
- 	unsigned int index = 0;
- 
--	/* skip if of_node is already populated */
--	if (this_cpu_ci->info_list->of_node)
-+	/* skip if fw_token is already populated */
-+	if (this_cpu_ci->info_list->fw_token) {
- 		return 0;
-+	}
- 
- 	if (!cpu_dev) {
- 		pr_err("No cpu device for CPU %d\n", cpu);
-@@ -190,7 +191,7 @@ static int cache_setup_of_node(unsigned int cpu)
- 		if (!np)
- 			break;
- 		cache_of_set_props(this_leaf, np);
--		this_leaf->of_node = np;
-+		this_leaf->fw_token = np;
- 		index++;
- 	}
- 
-@@ -278,7 +279,7 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
- 			cpumask_clear_cpu(cpu, &sib_leaf->shared_cpu_map);
- 			cpumask_clear_cpu(sibling, &this_leaf->shared_cpu_map);
- 		}
--		of_node_put(this_leaf->of_node);
-+		of_node_put(this_leaf->fw_token);
- 	}
- }
- 
-@@ -323,8 +324,9 @@ static int detect_cache_attributes(unsigned int cpu)
- 	if (ret)
- 		goto free_ci;
- 	/*
--	 * For systems using DT for cache hierarchy, of_node and shared_cpu_map
--	 * will be set up here only if they are not populated already
-+	 * For systems using DT for cache hierarchy, fw_token
-+	 * and shared_cpu_map will be set up here only if they are
-+	 * not populated already
- 	 */
- 	ret = cache_shared_cpu_map_setup(cpu);
- 	if (ret) {
-diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
-index 3d9805297cda..0c6f658054d2 100644
---- a/include/linux/cacheinfo.h
-+++ b/include/linux/cacheinfo.h
-@@ -34,9 +34,8 @@ enum cache_type {
-  * @shared_cpu_map: logical cpumask representing all the cpus sharing
-  *	this cache node
-  * @attributes: bitfield representing various cache attributes
-- * @of_node: if devicetree is used, this represents either the cpu node in
-- *	case there's no explicit cache node or the cache node itself in the
-- *	device tree
-+ * @fw_token: Unique value used to determine if different cacheinfo
-+ *	structures represent a single hardware cache instance.
-  * @disable_sysfs: indicates whether this node is visible to the user via
-  *	sysfs or not
-  * @priv: pointer to any private data structure specific to particular
-@@ -65,8 +64,7 @@ struct cacheinfo {
- #define CACHE_ALLOCATE_POLICY_MASK	\
- 	(CACHE_READ_ALLOCATE | CACHE_WRITE_ALLOCATE)
- #define CACHE_ID		BIT(4)
--
--	struct device_node *of_node;
-+	void *fw_token;
- 	bool disable_sysfs;
- 	void *priv;
+diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+index c4f2d50491eb..6b10459e6905 100644
+--- a/arch/arm64/include/asm/topology.h
++++ b/arch/arm64/include/asm/topology.h
+@@ -7,14 +7,14 @@
+ struct cpu_topology {
+ 	int thread_id;
+ 	int core_id;
+-	int cluster_id;
++	int package_id;
+ 	cpumask_t thread_sibling;
+ 	cpumask_t core_sibling;
  };
+ 
+ extern struct cpu_topology cpu_topology[NR_CPUS];
+ 
+-#define topology_physical_package_id(cpu)	(cpu_topology[cpu].cluster_id)
++#define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
+ #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
+ #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
+ #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
+diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+index 21868530018e..dc18b1e53194 100644
+--- a/arch/arm64/kernel/topology.c
++++ b/arch/arm64/kernel/topology.c
+@@ -47,7 +47,7 @@ static int __init get_cpu_for_node(struct device_node *node)
+ 	return cpu;
+ }
+ 
+-static int __init parse_core(struct device_node *core, int cluster_id,
++static int __init parse_core(struct device_node *core, int package_id,
+ 			     int core_id)
+ {
+ 	char name[10];
+@@ -63,7 +63,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+ 			leaf = false;
+ 			cpu = get_cpu_for_node(t);
+ 			if (cpu >= 0) {
+-				cpu_topology[cpu].cluster_id = cluster_id;
++				cpu_topology[cpu].package_id = package_id;
+ 				cpu_topology[cpu].core_id = core_id;
+ 				cpu_topology[cpu].thread_id = i;
+ 			} else {
+@@ -85,7 +85,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
+ 			return -EINVAL;
+ 		}
+ 
+-		cpu_topology[cpu].cluster_id = cluster_id;
++		cpu_topology[cpu].package_id = package_id;
+ 		cpu_topology[cpu].core_id = core_id;
+ 	} else if (leaf) {
+ 		pr_err("%pOF: Can't get CPU for leaf core\n", core);
+@@ -101,7 +101,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+ 	bool leaf = true;
+ 	bool has_cores = false;
+ 	struct device_node *c;
+-	static int cluster_id __initdata;
++	static int package_id __initdata;
+ 	int core_id = 0;
+ 	int i, ret;
+ 
+@@ -140,7 +140,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+ 			}
+ 
+ 			if (leaf) {
+-				ret = parse_core(c, cluster_id, core_id++);
++				ret = parse_core(c, package_id, core_id++);
+ 			} else {
+ 				pr_err("%pOF: Non-leaf cluster with core %s\n",
+ 				       cluster, name);
+@@ -158,7 +158,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
+ 		pr_warn("%pOF: empty cluster\n", cluster);
+ 
+ 	if (leaf)
+-		cluster_id++;
++		package_id++;
+ 
+ 	return 0;
+ }
+@@ -194,7 +194,7 @@ static int __init parse_dt_topology(void)
+ 	 * only mark cores described in the DT as possible.
+ 	 */
+ 	for_each_possible_cpu(cpu)
+-		if (cpu_topology[cpu].cluster_id == -1)
++		if (cpu_topology[cpu].package_id == -1)
+ 			ret = -EINVAL;
+ 
+ out_map:
+@@ -224,7 +224,7 @@ static void update_siblings_masks(unsigned int cpuid)
+ 	for_each_possible_cpu(cpu) {
+ 		cpu_topo = &cpu_topology[cpu];
+ 
+-		if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
++		if (cpuid_topo->package_id != cpu_topo->package_id)
+ 			continue;
+ 
+ 		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
+@@ -245,7 +245,7 @@ void store_cpu_topology(unsigned int cpuid)
+ 	struct cpu_topology *cpuid_topo = &cpu_topology[cpuid];
+ 	u64 mpidr;
+ 
+-	if (cpuid_topo->cluster_id != -1)
++	if (cpuid_topo->package_id != -1)
+ 		goto topology_populated;
+ 
+ 	mpidr = read_cpuid_mpidr();
+@@ -259,19 +259,19 @@ void store_cpu_topology(unsigned int cpuid)
+ 		/* Multiprocessor system : Multi-threads per core */
+ 		cpuid_topo->thread_id  = MPIDR_AFFINITY_LEVEL(mpidr, 0);
+ 		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 1);
+-		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
++		cpuid_topo->package_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
+ 					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 8;
+ 	} else {
+ 		/* Multiprocessor system : Single-thread per core */
+ 		cpuid_topo->thread_id  = -1;
+ 		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 0);
+-		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
++		cpuid_topo->package_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
+ 					 MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
+ 					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
+ 	}
+ 
+ 	pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
+-		 cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
++		 cpuid, cpuid_topo->package_id, cpuid_topo->core_id,
+ 		 cpuid_topo->thread_id, mpidr);
+ 
+ topology_populated:
+@@ -287,7 +287,7 @@ static void __init reset_cpu_topology(void)
+ 
+ 		cpu_topo->thread_id = -1;
+ 		cpu_topo->core_id = 0;
+-		cpu_topo->cluster_id = -1;
++		cpu_topo->package_id = -1;
+ 
+ 		cpumask_clear(&cpu_topo->core_sibling);
+ 		cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
 -- 
 2.13.6
