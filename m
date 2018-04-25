@@ -1,49 +1,215 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 04/13] arm64/acpi: Create arch specific cpu to acpi id
- helper
-Date: Wed, 25 Apr 2018 18:31:12 -0500
-Message-ID: <20180425233121.13270-5-jeremy.linton@arm.com>
+Subject: [PATCH v8 09/13] ACPI/PPTT: Add topology parsing code
+Date: Wed, 25 Apr 2018 18:31:17 -0500
+Message-ID: <20180425233121.13270-10-jeremy.linton@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Catalin.Marinas@arm.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, jhugo@qti.qualcomm.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, timur@qti.qualcomm.com, hanjun.guo@linaro.org, Sudeep.Holla@arm.com
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Its helpful to be able to lookup the acpi_processor_id associated
-with a logical cpu. Provide an arm64 helper to do this.
+The PPTT can be used to determine the groupings of CPU's at
+given levels in the system. Lets add a few routines to the PPTT
+parsing code to return a unique id for each unique level in the
+processor hierarchy. This can then be matched to build
+thread/core/cluster/die/package/etc mappings for each processing
+element in the system.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/include/asm/acpi.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/pptt.c  | 160 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |   4 ++
+ 2 files changed, 164 insertions(+)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 32f465a80e4e..0db62a4cbce2 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -86,6 +86,10 @@ static inline bool acpi_has_cpu_in_madt(void)
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index cced71ef851a..0fc4b2654665 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -453,6 +453,86 @@ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+ 	}
  }
  
- struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
-+static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
++/* Passing level values greater than this will result in search termination */
++#define PPTT_ABORT_PACKAGE 0xFF
++
++/**
++ * acpi_find_processor_package_id() - Locate the processor structure for a cpu
++ *
++ * Given an acpi_pptt_processor node, walk up until we identify the
++ * package that the node is associated with, or we run out of levels
++ * to request or the search is terminated with a flag match
++ * The level parameter also serves to limit possible loops within the tree.
++ *
++ * Return: acpi_pptt_processor* describing the passed core or NULL
++ */
++static struct acpi_pptt_processor *acpi_find_processor_package_id(struct acpi_table_header *table_hdr,
++								  struct acpi_pptt_processor *cpu,
++								  int level, int flag)
 +{
-+	return	acpi_cpu_get_madt_gicc(cpu)->uid;
++	struct acpi_pptt_processor *prev_node;
++
++	while (cpu && level) {
++		if (cpu->flags & flag)
++			break;
++		pr_debug("level %d\n", level);
++		prev_node = fetch_pptt_node(table_hdr, cpu->parent);
++		if (prev_node == NULL)
++			break;
++		cpu = prev_node;
++		level--;
++	}
++	return cpu;
 +}
++
++/**
++ * topology_get_acpi_cpu_tag() - Find a unique topology value for a feature
++ *
++ * Get a unique value given a cpu, and a topology level, that can be
++ * matched to determine which cpus share common topological features
++ * at that level.
++ *
++ * Return: Unique value, or -ENOENT if unable to locate cpu
++ */
++static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
++				     unsigned int cpu, int level, int flag)
++{
++	struct acpi_pptt_processor *cpu_node;
++	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
++
++	cpu_node = acpi_find_processor_node(table, acpi_cpu_id);
++	if (cpu_node) {
++		cpu_node = acpi_find_processor_package_id(table, cpu_node,
++							  level, flag);
++		/* Only the first level has a guaranteed id */
++		if (level == 0)
++			return cpu_node->acpi_processor_id;
++		return ACPI_PTR_DIFF(cpu_node, table);
++	}
++	pr_warn_once("PPTT table found, but unable to locate core %d (%d)\n",
++		    cpu, acpi_cpu_id);
++	return -ENOENT;
++}
++
++static int find_acpi_cpu_topology_tag(unsigned int cpu, int level, int flag)
++{
++	struct acpi_table_header *table;
++	acpi_status status;
++	int retval;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status)) {
++		pr_warn_once("No PPTT table found, cpu topology may be inaccurate\n");
++		return -ENOENT;
++	}
++	retval = topology_get_acpi_cpu_tag(table, cpu, level, flag);
++	pr_debug("Topology Setup ACPI cpu %d, level %d ret = %d\n",
++		 cpu, level, retval);
++	acpi_put_table(table);
++
++	return retval;
++}
++
+ /**
+  * acpi_find_last_cache_level() - Determines the number of cache levels for a PE
+  * @cpu: Kernel logical cpu number
+@@ -516,3 +596,83 @@ int cache_setup_acpi(unsigned int cpu)
  
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- void __init acpi_init_cpus(void);
+ 	return status;
+ }
++
++/**
++ * find_acpi_cpu_topology() - Determine a unique topology value for a given cpu
++ * @cpu: Kernel logical cpu number
++ * @level: The topological level for which we would like a unique ID
++ *
++ * Determine a topology unique ID for each thread/core/cluster/mc_grouping
++ * /socket/etc. This ID can then be used to group peers, which will have
++ * matching ids.
++ *
++ * The search terminates when either the requested level is found or
++ * we reach a root node. Levels beyond the termination point will return the
++ * same unique ID. The unique id for level 0 is the acpi processor id. All
++ * other levels beyond this use a generated value to uniquely identify
++ * a topological feature.
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
++ * Otherwise returns a value which represents a unique topological feature.
++ */
++int find_acpi_cpu_topology(unsigned int cpu, int level)
++{
++	return find_acpi_cpu_topology_tag(cpu, level, 0);
++}
++
++/**
++ * find_acpi_cpu_cache_topology() - Determine a unique cache topology value
++ * @cpu: Kernel logical cpu number
++ * @level: The cache level for which we would like a unique ID
++ *
++ * Determine a unique ID for each unified cache in the system
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
++ * Otherwise returns a value which represents a unique topological feature.
++ */
++int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
++{
++	struct acpi_table_header *table;
++	struct acpi_pptt_cache *found_cache;
++	acpi_status status;
++	u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
++	struct acpi_pptt_processor *cpu_node = NULL;
++	int ret = -1;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status)) {
++		pr_warn_once("No PPTT table found, topology may be inaccurate\n");
++		return -ENOENT;
++	}
++
++	found_cache = acpi_find_cache_node(table, acpi_cpu_id,
++					   CACHE_TYPE_UNIFIED,
++					   level,
++					   &cpu_node);
++	if (found_cache)
++		ret = ACPI_PTR_DIFF(cpu_node, table);
++
++	acpi_put_table(table);
++
++	return ret;
++}
++
++
++/**
++ * find_acpi_cpu_topology_package() - Determine a unique cpu package value
++ * @cpu: Kernel logical cpu number
++ *
++ * Determine a topology unique package ID for the given cpu.
++ * This ID can then be used to group peers, which will have matching ids.
++ *
++ * The search terminates when either a level is found with the PHYSICAL_PACKAGE
++ * flag set or we reach a root node.
++ *
++ * Return: -ENOENT if the PPTT doesn't exist, or the cpu cannot be found.
++ * Otherwise returns a value which represents the package for this cpu.
++ */
++int find_acpi_cpu_topology_package(unsigned int cpu)
++{
++	return find_acpi_cpu_topology_tag(cpu, PPTT_ABORT_PACKAGE,
++					  ACPI_PPTT_PHYSICAL_PACKAGE);
++}
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 15bfb15c2fa5..032e12a2fdc2 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -1297,4 +1297,8 @@ static inline int lpit_read_residency_count_address(u64 *address)
+ }
+ #endif
+ 
++int find_acpi_cpu_topology(unsigned int cpu, int level);
++int find_acpi_cpu_topology_package(unsigned int cpu);
++int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
++
+ #endif	/*_LINUX_ACPI_H*/
 -- 
 2.13.6
