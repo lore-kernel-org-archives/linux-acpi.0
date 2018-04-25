@@ -1,161 +1,49 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v8 10/13] arm64: topology: rename cluster_id
-Date: Wed, 25 Apr 2018 18:31:18 -0500
-Message-ID: <20180425233121.13270-11-jeremy.linton@arm.com>
+Subject: [PATCH v8 04/13] arm64/acpi: Create arch specific cpu to acpi id
+ helper
+Date: Wed, 25 Apr 2018 18:31:12 -0500
+Message-ID: <20180425233121.13270-5-jeremy.linton@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-acpi@vger.kernel.org
-Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
+Cc: Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Catalin.Marinas@arm.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, jhugo@qti.qualcomm.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, timur@qti.qualcomm.com, hanjun.guo@linaro.org, Sudeep.Holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Lets match the name of the arm64 topology field
-to the kernel macro that uses it.
+Its helpful to be able to lookup the acpi_processor_id associated
+with a logical cpu. Provide an arm64 helper to do this.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- arch/arm64/include/asm/topology.h |  4 ++--
- arch/arm64/kernel/topology.c      | 26 +++++++++++++-------------
- 2 files changed, 15 insertions(+), 15 deletions(-)
+ arch/arm64/include/asm/acpi.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
-index c4f2d50491eb..6b10459e6905 100644
---- a/arch/arm64/include/asm/topology.h
-+++ b/arch/arm64/include/asm/topology.h
-@@ -7,14 +7,14 @@
- struct cpu_topology {
- 	int thread_id;
- 	int core_id;
--	int cluster_id;
-+	int package_id;
- 	cpumask_t thread_sibling;
- 	cpumask_t core_sibling;
- };
- 
- extern struct cpu_topology cpu_topology[NR_CPUS];
- 
--#define topology_physical_package_id(cpu)	(cpu_topology[cpu].cluster_id)
-+#define topology_physical_package_id(cpu)	(cpu_topology[cpu].package_id)
- #define topology_core_id(cpu)		(cpu_topology[cpu].core_id)
- #define topology_core_cpumask(cpu)	(&cpu_topology[cpu].core_sibling)
- #define topology_sibling_cpumask(cpu)	(&cpu_topology[cpu].thread_sibling)
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index 21868530018e..dc18b1e53194 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -47,7 +47,7 @@ static int __init get_cpu_for_node(struct device_node *node)
- 	return cpu;
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 32f465a80e4e..0db62a4cbce2 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -86,6 +86,10 @@ static inline bool acpi_has_cpu_in_madt(void)
  }
  
--static int __init parse_core(struct device_node *core, int cluster_id,
-+static int __init parse_core(struct device_node *core, int package_id,
- 			     int core_id)
- {
- 	char name[10];
-@@ -63,7 +63,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
- 			leaf = false;
- 			cpu = get_cpu_for_node(t);
- 			if (cpu >= 0) {
--				cpu_topology[cpu].cluster_id = cluster_id;
-+				cpu_topology[cpu].package_id = package_id;
- 				cpu_topology[cpu].core_id = core_id;
- 				cpu_topology[cpu].thread_id = i;
- 			} else {
-@@ -85,7 +85,7 @@ static int __init parse_core(struct device_node *core, int cluster_id,
- 			return -EINVAL;
- 		}
+ struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
++static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
++{
++	return	acpi_cpu_get_madt_gicc(cpu)->uid;
++}
  
--		cpu_topology[cpu].cluster_id = cluster_id;
-+		cpu_topology[cpu].package_id = package_id;
- 		cpu_topology[cpu].core_id = core_id;
- 	} else if (leaf) {
- 		pr_err("%pOF: Can't get CPU for leaf core\n", core);
-@@ -101,7 +101,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
- 	bool leaf = true;
- 	bool has_cores = false;
- 	struct device_node *c;
--	static int cluster_id __initdata;
-+	static int package_id __initdata;
- 	int core_id = 0;
- 	int i, ret;
- 
-@@ -140,7 +140,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
- 			}
- 
- 			if (leaf) {
--				ret = parse_core(c, cluster_id, core_id++);
-+				ret = parse_core(c, package_id, core_id++);
- 			} else {
- 				pr_err("%pOF: Non-leaf cluster with core %s\n",
- 				       cluster, name);
-@@ -158,7 +158,7 @@ static int __init parse_cluster(struct device_node *cluster, int depth)
- 		pr_warn("%pOF: empty cluster\n", cluster);
- 
- 	if (leaf)
--		cluster_id++;
-+		package_id++;
- 
- 	return 0;
- }
-@@ -194,7 +194,7 @@ static int __init parse_dt_topology(void)
- 	 * only mark cores described in the DT as possible.
- 	 */
- 	for_each_possible_cpu(cpu)
--		if (cpu_topology[cpu].cluster_id == -1)
-+		if (cpu_topology[cpu].package_id == -1)
- 			ret = -EINVAL;
- 
- out_map:
-@@ -224,7 +224,7 @@ static void update_siblings_masks(unsigned int cpuid)
- 	for_each_possible_cpu(cpu) {
- 		cpu_topo = &cpu_topology[cpu];
- 
--		if (cpuid_topo->cluster_id != cpu_topo->cluster_id)
-+		if (cpuid_topo->package_id != cpu_topo->package_id)
- 			continue;
- 
- 		cpumask_set_cpu(cpuid, &cpu_topo->core_sibling);
-@@ -245,7 +245,7 @@ void store_cpu_topology(unsigned int cpuid)
- 	struct cpu_topology *cpuid_topo = &cpu_topology[cpuid];
- 	u64 mpidr;
- 
--	if (cpuid_topo->cluster_id != -1)
-+	if (cpuid_topo->package_id != -1)
- 		goto topology_populated;
- 
- 	mpidr = read_cpuid_mpidr();
-@@ -259,19 +259,19 @@ void store_cpu_topology(unsigned int cpuid)
- 		/* Multiprocessor system : Multi-threads per core */
- 		cpuid_topo->thread_id  = MPIDR_AFFINITY_LEVEL(mpidr, 0);
- 		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 1);
--		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
-+		cpuid_topo->package_id = MPIDR_AFFINITY_LEVEL(mpidr, 2) |
- 					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 8;
- 	} else {
- 		/* Multiprocessor system : Single-thread per core */
- 		cpuid_topo->thread_id  = -1;
- 		cpuid_topo->core_id    = MPIDR_AFFINITY_LEVEL(mpidr, 0);
--		cpuid_topo->cluster_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
-+		cpuid_topo->package_id = MPIDR_AFFINITY_LEVEL(mpidr, 1) |
- 					 MPIDR_AFFINITY_LEVEL(mpidr, 2) << 8 |
- 					 MPIDR_AFFINITY_LEVEL(mpidr, 3) << 16;
- 	}
- 
- 	pr_debug("CPU%u: cluster %d core %d thread %d mpidr %#016llx\n",
--		 cpuid, cpuid_topo->cluster_id, cpuid_topo->core_id,
-+		 cpuid, cpuid_topo->package_id, cpuid_topo->core_id,
- 		 cpuid_topo->thread_id, mpidr);
- 
- topology_populated:
-@@ -287,7 +287,7 @@ static void __init reset_cpu_topology(void)
- 
- 		cpu_topo->thread_id = -1;
- 		cpu_topo->core_id = 0;
--		cpu_topo->cluster_id = -1;
-+		cpu_topo->package_id = -1;
- 
- 		cpumask_clear(&cpu_topo->core_sibling);
- 		cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
+ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+ void __init acpi_init_cpus(void);
 -- 
 2.13.6
