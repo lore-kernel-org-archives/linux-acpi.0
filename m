@@ -1,62 +1,81 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] ACPI / video: Only default only_lcd to true on
- Win8-ready _desktops_
-Date: Wed, 25 Apr 2018 07:52:43 +0200
-Message-ID: <20180425055243.GA31890@kroah.com>
-References: <20180417162350.12227-1-hdegoede@redhat.com>
- <57c14762-f327-aab2-7b06-5320d93010be@redhat.com>
- <CAJZ5v0hvLOPJ0aM5WLBZ0GT9Drcezvpq1CkH6S3Jxw3t6He+Xg@mail.gmail.com>
- <0b3fb04d-5dbc-19ce-0fd1-890dcf58bf52@redhat.com>
- <20180424215048.GC25058@saruman>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC][PATCH 0/1] serdev: Support HS-UART serdev slaves over tty
+Date: Wed, 25 Apr 2018 11:00:47 +0200
+Message-ID: <1821148.enBAg0iGPe@aspire.rjw.lan>
+References: <20180424082954.11453-1-shrirang.bagul@canonical.com> <b4947b3c-15b3-15ea-e1b7-38169f11d0f9@redhat.com> <20180425074736.GK4615@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180424215048.GC25058@saruman>
-Sender: stable-owner@vger.kernel.org
-To: James Hogan <jhogan@kernel.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180425074736.GK4615@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Johan Hovold <johan@kernel.org>, Shrirang Bagul <shrirang.bagul@canonical.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-serial@vger.kernel.org, gregkh@linuxfoundation.org, Rob Herring <robh@kernel.org>, =?ISO-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, Lukas Wunner <lukas@wunner.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 24, 2018 at 10:50:48PM +0100, James Hogan wrote:
-> On Tue, Apr 24, 2018 at 11:13:25PM +0200, Hans de Goede wrote:
-> > FWIW this has gotten into 4.15 without it having a Cc: stable or a
-> > Fixes: tag, I think it was picked up by the new magic scripts scripts
-> > which try to find commits which should have a Cc: stable but are lacking
-> > one.
+On Wednesday, April 25, 2018 9:47:36 AM CEST Johan Hovold wrote:
+> On Tue, Apr 24, 2018 at 11:16:38PM +0200, Hans de Goede wrote:
+> > Hi,
 > > 
-> > In this case I deliberately did not add a Cc: stable as what gets fixed
-> > is not that important, whereas the possible regression this might cause
-> > (and actually seems to be causing) is sorta bad.
+> > On 24-04-18 19:18, Johan Hovold wrote:
+> > > [ Adding some more people on CC. ]
+> > > 
+> > > On Tue, Apr 24, 2018 at 04:29:53PM +0800, Shrirang Bagul wrote:
+> > >> On systems using Intel Atom (Baytrail-I) SoC's, slave devices connected on
+> > >> HSUART1/2 ports are described by the ACPI BIOS as virtual hardware using
+> > >> HID's INT3511/INT3512 [1].
+> > >>
+> > >> As a consequence, HW manufacturers have complete freedom to install any
+> > >> devices on-board as long as they can be accessed over serial tty
+> > >> interface. Once such device is Dell Edge 3002 IoT Gateway which sports
+> > >> ZigBee & GPS devices on the HS-UART ports 1 & 2 respectively.
+> > >>
+> > >> In kernels before the introduction of 'Serial Device Bus (serdev)'
+> > >> subsystem, these devices were accessible using /dev/ttySx nodes. But,
+> > >> kernels since 4.15 can no longer do so.
+> > >>
+> > >> Post 4.15, with CONFIG_SERIAL_DEV_BUS=y, serdev port controller driver
+> > >> handles the enumeration for the slaves connected on these ports. Also,
+> > >> /dev/ttySx device nodes for these ports are no longer exposed to the
+> > >> userspace.
+> > >>
+> > >> This patch implements a new driver which binds to the ACPI serdev slaves
+> > >> enumerated by the serdev port controller and exposes /dev/ttyHSx device
+> > >> nodes which the userspace applications can use. Otherwise, upgrades to 4.15
+> > >> or higher kernels would certainly render these devices unusable.
+> > >>
+> > >> Considering serdev is new and evolving, this is one approach to solving
+> > >> the problem at hand. An obvious drawback is the change in the tty device
+> > >> node name from ttySx => ttyHSx, which means userspace applications have to
+> > >> be modified (I know that this is strongly discouraged). For the same
+> > >> reason, I am submitting these patches as RFC.
+> > >>
+> > >> If there are other/better ways of solving this or improving on the
+> > >> proposed solution, that will be most helpful.
+> > > 
+> > > Yeah, I don't think this is the right solution to this problem. It seems
+> > > we need to blacklist (or maybe even use whitelists) ACPI-ids until there
+> > > are drivers for the slave devices that would otherwise be claimed by
+> > > serdev.
+> > 
+> > FWIW I've been using this patch for a while for realtek UART attached bluetooth:
+> > https://github.com/jwrdegoede/linux-sunxi/commit/bc904e3703940600ca66c65fcdb0a8cb01dff55d
+> > which is a gross hack.
+> > 
+> > If we're going to do a whitelist for this, it better support some sort of
+> > wildcards as there are a LOT of BCM2E?? devices which need to be on the
+> > whitelist. I think a blacklist would actually be better though, this also
+> > documents which devices are lacking a proper kernel (where applicable).
 > 
-> This isn't the first time I've seen patches backported that simply don't
-> need to be, or shouldn't be. In one case a few years back the patch had
-> a fixes tag, but it still wasn't important to backport, which is why I
-> left off the Cc stable, and in fact it broke something.
+> Yeah, you guys know the ACPI space better than I do. I just fear that
+> if we go with the blacklist approach, we'll be playing a whack-a-mole
+> with this for a long time when people start upgrading there systems to
+> 4.15 and discover that their serial ports are gone.
 > 
-> TBH its a bit distracting having to review such patches, which I've
-> already looked at before, determined there's no need for a backport, and
-> subsequently paged out of my head.
-> 
-> Stable folk: is there already (and should there be) a defined mechanism
-> to record that a given patch is:
-> 
-> 1) not suitable/worthwhile to backport (e.g. even though it might have a
->    Fixes tag or use the word "fix").
-> 
-> 2) OR it would require a bit more human effort to backport (perhaps it
->    applies cleanly but would be expected not to build/work) and probably
->    shouldn't be attempted automatically.
-> 
-> 3) OR it probably isn't worth backporting and is risky to do so, and so
->    should only be carefully attempted if somebody actually complains.
-> 
-> other than simply stating it in prose in the commit message?
+> Since this would qualify as a severe regression, me may need to consider
+> adding a serdev whitelist for every ACPI id we add to a serdev driver
+> instead.
 
-Just say in the changelog "this should not go to stable kernels because
-of X, Y, and Z".  We read them by hand, and I can easily drop the patch
-because of that.
+OK, so let's have the ACPI discussion on linux-acpi pretty please.
 
-thanks,
-
-greg k-h
+Could this be resent with a CC to linux-acpi for some more complete context?
