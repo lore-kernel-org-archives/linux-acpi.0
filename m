@@ -1,99 +1,65 @@
-From: Johan Hovold <johan@kernel.org>
-Subject: Re: [RFC][PATCH 0/1] serdev: Support HS-UART serdev slaves over tty
-Date: Wed, 25 Apr 2018 11:12:09 +0200
-Message-ID: <20180425091209.GM4615@localhost>
-References: <20180424082954.11453-1-shrirang.bagul@canonical.com>
- <b4947b3c-15b3-15ea-e1b7-38169f11d0f9@redhat.com>
- <20180425074736.GK4615@localhost>
- <1821148.enBAg0iGPe@aspire.rjw.lan>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH v2 3/4] acpi: apei: Do not panic() when correctable
+ errors are marked as fatal.
+Date: Wed, 25 Apr 2018 16:01:08 +0200
+Message-ID: <20180425140108.GA2597@pd.tnic>
+References: <20180418175415.GJ4795@pd.tnic>
+ <bdc1d19b-3cc1-3f90-d276-414aaacdbd3a@gmail.com>
+ <20180419154006.GE3600@pd.tnic>
+ <977608e6-9f5d-c523-a78a-993ac5bfd55f@gmail.com>
+ <20180419164528.GD5635@pd.tnic>
+ <ffe6b459-c80a-d3c0-451d-0d21ae63da54@gmail.com>
+ <20180419190323.GF5635@pd.tnic>
+ <dba07329-2f85-2bde-85ea-5bdf26fb8df2@gmail.com>
+ <20180422104849.GA32754@pd.tnic>
+ <70c43399-e8e5-5061-b5a5-451deb5f02fa@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1821148.enBAg0iGPe@aspire.rjw.lan>
+In-Reply-To: <70c43399-e8e5-5061-b5a5-451deb5f02fa@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Johan Hovold <johan@kernel.org>, Shrirang Bagul <shrirang.bagul@canonical.com>, Hans de Goede <hdegoede@redhat.com>, linux-serial@vger.kernel.org, gregkh@linuxfoundation.org, Rob Herring <robh@kernel.org>, =?iso-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, Lukas Wunner <lukas@wunner.de>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Alex G." <mr.nuke.me@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, tbaicar@codeaurora.org, will.deacon@arm.com, james.morse@arm.com, shiju.jose@huawei.com, zjzhang@codeaurora.org, gengdongjiu@huawei.com, linux-kernel@vger.kernel.org, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, devel@acpica.org, mchehab@kernel.org, robert.moore@intel.com, erik.schmauss@intel.com, Yazen Ghannam <yazen.ghannam@amd.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Apr 25, 2018 at 11:00:47AM +0200, Rafael J. Wysocki wrote:
-> On Wednesday, April 25, 2018 9:47:36 AM CEST Johan Hovold wrote:
-> > On Tue, Apr 24, 2018 at 11:16:38PM +0200, Hans de Goede wrote:
-> > > Hi,
-> > > 
-> > > On 24-04-18 19:18, Johan Hovold wrote:
-> > > > [ Adding some more people on CC. ]
-> > > > 
-> > > > On Tue, Apr 24, 2018 at 04:29:53PM +0800, Shrirang Bagul wrote:
-> > > >> On systems using Intel Atom (Baytrail-I) SoC's, slave devices connected on
-> > > >> HSUART1/2 ports are described by the ACPI BIOS as virtual hardware using
-> > > >> HID's INT3511/INT3512 [1].
-> > > >>
-> > > >> As a consequence, HW manufacturers have complete freedom to install any
-> > > >> devices on-board as long as they can be accessed over serial tty
-> > > >> interface. Once such device is Dell Edge 3002 IoT Gateway which sports
-> > > >> ZigBee & GPS devices on the HS-UART ports 1 & 2 respectively.
-> > > >>
-> > > >> In kernels before the introduction of 'Serial Device Bus (serdev)'
-> > > >> subsystem, these devices were accessible using /dev/ttySx nodes. But,
-> > > >> kernels since 4.15 can no longer do so.
-> > > >>
-> > > >> Post 4.15, with CONFIG_SERIAL_DEV_BUS=y, serdev port controller driver
-> > > >> handles the enumeration for the slaves connected on these ports. Also,
-> > > >> /dev/ttySx device nodes for these ports are no longer exposed to the
-> > > >> userspace.
-> > > >>
-> > > >> This patch implements a new driver which binds to the ACPI serdev slaves
-> > > >> enumerated by the serdev port controller and exposes /dev/ttyHSx device
-> > > >> nodes which the userspace applications can use. Otherwise, upgrades to 4.15
-> > > >> or higher kernels would certainly render these devices unusable.
-> > > >>
-> > > >> Considering serdev is new and evolving, this is one approach to solving
-> > > >> the problem at hand. An obvious drawback is the change in the tty device
-> > > >> node name from ttySx => ttyHSx, which means userspace applications have to
-> > > >> be modified (I know that this is strongly discouraged). For the same
-> > > >> reason, I am submitting these patches as RFC.
-> > > >>
-> > > >> If there are other/better ways of solving this or improving on the
-> > > >> proposed solution, that will be most helpful.
-> > > > 
-> > > > Yeah, I don't think this is the right solution to this problem. It seems
-> > > > we need to blacklist (or maybe even use whitelists) ACPI-ids until there
-> > > > are drivers for the slave devices that would otherwise be claimed by
-> > > > serdev.
-> > > 
-> > > FWIW I've been using this patch for a while for realtek UART attached bluetooth:
-> > > https://github.com/jwrdegoede/linux-sunxi/commit/bc904e3703940600ca66c65fcdb0a8cb01dff55d
-> > > which is a gross hack.
-> > > 
-> > > If we're going to do a whitelist for this, it better support some sort of
-> > > wildcards as there are a LOT of BCM2E?? devices which need to be on the
-> > > whitelist. I think a blacklist would actually be better though, this also
-> > > documents which devices are lacking a proper kernel (where applicable).
-> > 
-> > Yeah, you guys know the ACPI space better than I do. I just fear that
-> > if we go with the blacklist approach, we'll be playing a whack-a-mole
-> > with this for a long time when people start upgrading there systems to
-> > 4.15 and discover that their serial ports are gone.
-> > 
-> > Since this would qualify as a severe regression, me may need to consider
-> > adding a serdev whitelist for every ACPI id we add to a serdev driver
-> > instead.
+On Mon, Apr 23, 2018 at 11:19:25PM -0500, Alex G. wrote:
+> That tells you what FFS said about the error.
+
+I betcha those status and command values have a human-readable counterparts.
+
+Btw, what do you abbreviate with "FFS"?
+
+> It's immediately obvious if there's a glaring FFS bug and if we get bogus
+> data. If you distrust firmware as much as I do, then you will find great
+> value in having such info in the logs. It's probably not too useful to a
+> casual user, but then neither is a majority of the system log.
+
+No no, you're missing the point - I *want* all data in the error log
+which helps debug a hardware issue. I just want it humanly readable so
+that I don't have to jot down the values and go scour the manuals to map
+what it actually means.
+
+> You're missing the timing and assuming you will get the hotplug interrupt.
+> In this example, you have 22ms between the link down and presence detect
+> state change. This is a fairly fast removal.
 > 
-> OK, so let's have the ACPI discussion on linux-acpi pretty please.
+> Hotplug dependencies aside (you can have the kernel run without PCIe hotplug
+> support), I don't think you want to just linger in NMI for dozens of
+> milliseconds waiting for presence detect confirmation.
 
-Oh, sorry, I forgot to add linux-acpi.
+No, I don't mean that. I mean something like deferred processing: you
+get an error, you notice it is a device which supports physical removal
+so you exit the NMI handler and process the error in normal, process
+context which allows you to query the device and say, "Hey device, are
+you still there?"
 
-> Could this be resent with a CC to linux-acpi for some more complete
-> context?
+If it is not, you drop all the hw I/O errors reported for it.
 
-Fortunately, I think the relevant context is still there above.
+Hmmm?
 
-In short, when we added ACPI support to serdev, serdev started claiming
-all slave devices to UARTs that happen to described by ACPI. Regardless
-of whether there's a kernel driver for them or not. This means that
-serial ports (/dev/ttySn) will simply start disappearing on such systems
-when updating to 4.15 unless we act somehow (blacklist or whitelist).
+-- 
+Regards/Gruss,
+    Boris.
 
-Thanks,
-Johan
+Good mailing practices for 400: avoid top-posting and trim the reply.
