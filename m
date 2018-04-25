@@ -1,54 +1,125 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: simplify procfs code for seq_file instances
-Date: Thu, 26 Apr 2018 00:24:11 +0300
-Message-ID: <20180425212411.GB9020@avx2>
-References: <20180419124140.9309-1-hch@lst.de> <20180419185750.GD2066@avx2>
- <20180424142304.GE26136@lst.de>
- <20180424081916.e94ca8463fb3c39ebc082bdd@linux-foundation.org>
- <20180424160652.GA28483@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20180424160652.GA28483@lst.de>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-scsi@vger.kernel.org, Corey Minyard <minyard@acm.org>, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Alexander Viro <viro@zeniv.linux.org.uk>, Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, linux-afs@lists.infradead.org, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v8 00/13] Support PPTT for ARM64
+Date: Wed, 25 Apr 2018 18:31:08 -0500
+Message-ID: <20180425233121.13270-1-jeremy.linton@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Apr 24, 2018 at 06:06:53PM +0200, Christoph Hellwig wrote:
-> On Tue, Apr 24, 2018 at 08:19:16AM -0700, Andrew Morton wrote:
-> > > > I want to ask if it is time to start using poorman function overloading
-> > > > with _b_c_e(). There are millions of allocation functions for example,
-> > > > all slightly difference, and people will add more. Seeing /proc interfaces
-> > > > doubled like this is painful.
-> > > 
-> > > Function overloading is totally unacceptable.
-> > > 
-> > > And I very much disagree with a tradeoff that keeps 5000 lines of 
-> > > code vs a few new helpers.
-> > 
-> > OK, the curiosity and suspense are killing me.  What the heck is
-> > "function overloading with _b_c_e()"?
-> 
-> The way I understood Alexey was to use have a proc_create macro
-> that can take different ops types.  Although the short cut for
-> __builtin_types_compatible_p would be _b_t_c or similar, so maybe
-> I misunderstood him.
+ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+used to describe the processor and cache topology. Ideally it is
+used to extend/override information provided by the hardware, but
+right now ARM64 is entirely dependent on firmware provided tables.
 
-That's correct.
+This patch parses the table for the cache topology and CPU topology.
+When we enable ACPI/PPTT for arm64 we map the package_id to the
+PPTT node flagged as the physical package by the firmware.
+This results in topologies that match what the remainder of the
+system expects. Finally, we update the scheduler MC domain so that
+it generally reflects the LLC unless the LLC is too large for the
+NUMA domain (or package).
 
-I also think that several dozens kmalloc signatures are a problem.
+For example on juno:
+[root@mammon-juno-rh topology]# lstopo-no-graphics
+  Package L#0
+    L2 L#0 (1024KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#1 (2048KB)
+      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCIBridge
+          PCI 1095:3132
+            Block(Disk) L#0 "sda"
+        PCIBridge
+          PCI 1002:68f9
+            GPU L#1 "renderD128"
+            GPU L#2 "card0"
+            GPU L#3 "controlD64"
+        PCIBridge
+          PCI 11ab:4380
+            Net L#4 "enp8s0"
 
-And there will be more with pmalloc* stuff and more 2D/3D array
-checked allocations and who knows what.
-And I want to add typed kmalloc!
+Git tree at:
+http://linux-arm.org/git?p=linux-jlinton.git
+branch: pptt_v8
+
+v7->v8:
+Modify the logic used to select the MC domain (the change
+  shouldn't modify the sched domains on any existing machines
+  compared to v7, only how they are built)
+Reduce the severity of some parsing messages.
+Fix s390 link problem.
+Further checks to deal with broken PPTT tables.
+Various style tweaks, SPDX license addition, etc.
+
+v6->v7:
+Add additional patch to use the last cache level within the NUMA
+  or socket as the MC domain. This assures the MC domain is
+  equal or smaller than the DIE.
+  
+Various formatting/etc review comments.
+
+Rebase to 4.16rc2
+
+v5->v6:
+Add additional patches which re-factor how the initial DT code sets
+  up the cacheinfo structure so that its not as dependent on the
+  of_node stored in that tree. Once that is done we rename it
+  for use with the ACPI code.
+
+Additionally there were a fair number of minor name/location/etc
+  tweaks scattered about made in response to review comments.
+
+v4->v5:
+Update the cache type from NOCACHE to UNIFIED when all the cache
+  attributes we update are valid. This fixes a problem where caches
+  which are entirely created by the PPTT don't show up in lstopo.
+
+Give the PPTT its own firmware_node in the cache structure instead of
+  sharing it with the of_node.
+
+Move some pieces around between patches.
+
+(see previous cover letters for futher changes)
+
+Jeremy Linton (13):
+  drivers: base: cacheinfo: move cache_setup_of_node()
+  drivers: base: cacheinfo: setup DT cache properties early
+  cacheinfo: rename of_node to fw_token
+  arm64/acpi: Create arch specific cpu to acpi id helper
+  ACPI/PPTT: Add Processor Properties Topology Table parsing
+  ACPI: Enable PPTT support on ARM64
+  drivers: base cacheinfo: Add support for ACPI based firmware tables
+  arm64: Add support for ACPI based firmware tables
+  ACPI/PPTT: Add topology parsing code
+  arm64: topology: rename cluster_id
+  arm64: topology: enable ACPI/PPTT based CPU topology
+  ACPI: Add PPTT to injectable table list
+  arm64: topology: divorce MC scheduling domain from core_siblings
+
+ arch/arm64/Kconfig                |   1 +
+ arch/arm64/include/asm/acpi.h     |   4 +
+ arch/arm64/include/asm/topology.h |   6 +-
+ arch/arm64/kernel/cacheinfo.c     |  15 +-
+ arch/arm64/kernel/topology.c      | 103 +++++-
+ arch/riscv/kernel/cacheinfo.c     |   1 -
+ drivers/acpi/Kconfig              |   3 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/pptt.c               | 678 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c             |   2 +-
+ drivers/base/cacheinfo.c          | 157 ++++-----
+ include/linux/acpi.h              |   4 +
+ include/linux/cacheinfo.h         |  18 +-
+ 13 files changed, 886 insertions(+), 107 deletions(-)
+ create mode 100644 drivers/acpi/pptt.c
+
+-- 
+2.13.6
