@@ -1,41 +1,57 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 07/13] drivers: base cacheinfo: Add support for ACPI
- based firmware tables
-Date: Thu, 26 Apr 2018 12:05:56 +0100
-Message-ID: <c3306746-aacd-5ed8-95d6-a3186ec2089f@arm.com>
-References: <20180425233121.13270-1-jeremy.linton@arm.com>
- <20180425233121.13270-8-jeremy.linton@arm.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH v3 2/3] acpi: apei: Do not panic() on PCIe errors
+ reported through GHES
+Date: Thu, 26 Apr 2018 13:19:46 +0200
+Message-ID: <20180426111946.GA15009@pd.tnic>
+References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
+ <20180425203957.18224-1-mr.nuke.me@gmail.com>
+ <20180425203957.18224-3-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425233121.13270-8-jeremy.linton@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180425203957.18224-3-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-kernel@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Apr 25, 2018 at 03:39:50PM -0500, Alexandru Gagniuc wrote:
+> @@ -932,7 +971,7 @@ static void __process_error(struct ghes *ghes)
+>  static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  {
+>  	struct ghes *ghes;
+> -	int sev, ret = NMI_DONE;
+> +	int sev, asev, ret = NMI_DONE;
+>  
+>  	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
+>  		return ret;
+> @@ -945,8 +984,9 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>  			ret = NMI_HANDLED;
+>  		}
+>  
+> +		asev = ghes_actual_severity(ghes);
+>  		sev = ghes_severity(ghes->estatus->error_severity);
 
+So renaming ghes_deferrable_severity() to ghes_actual_severity() is not
+a big change. And that's not what I meant.
 
-On 26/04/18 00:31, Jeremy Linton wrote:
-> Call ACPI cache parsing routines from base cacheinfo code if ACPI
-> is enable. Also stub out cache_setup_acpi() so that individual
-> architectures can enable ACPI topology parsing.
-> 
+I'd like to see here:
 
-[...]
+		 sev = ghes_severity(ghes);
 
-> +#ifndef CONFIG_ACPI
-> +static inline int acpi_find_last_cache_level(unsigned int cpu)
-> +{
-> +	/* ACPI kernels should be built with PPTT support */
+and inside you do all the required mapping/severity processing/etc. And
+you can rename the current ghes_severity() to ghes_map_cper_severity()
+or whatever...
 
-This sounds incorrect for x86. But I understand why you have it there.
-Does it makes sense to change above to .. ?
+> -		if (sev >= GHES_SEV_PANIC) {
+> +		if ((sev >= GHES_SEV_PANIC) && (asev >= GHES_SEV_PANIC)) {
 
-#if !defined(CONFIG_ACPI) || (defined(CONFIG_ACPI) && !(CONFIG_ACPI_PPTT))
+... so that this change doesn't happen and there are not two severities
+queried but a single one.
 
 -- 
-Regards,
-Sudeep
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
