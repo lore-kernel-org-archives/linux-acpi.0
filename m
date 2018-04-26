@@ -1,31 +1,74 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH v3 3/3] acpi: apei: Warn when GHES marks correctable
- errors as "fatal"
-Date: Thu, 26 Apr 2018 20:03:35 +0200
-Message-ID: <20180426180335.GA11100@pd.tnic>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
- <20180425203957.18224-1-mr.nuke.me@gmail.com>
- <20180425203957.18224-4-mr.nuke.me@gmail.com>
- <20180426112057.GB15009@pd.tnic>
- <e58482cf-37f6-808b-4382-fcf24c6f8db8@gmail.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v8 04/13] arm64/acpi: Create arch specific cpu to acpi id
+ helper
+Date: Thu, 26 Apr 2018 13:33:14 -0500
+Message-ID: <ee956bd3-37d7-b9ac-af55-dc297397476d@arm.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com>
+ <20180425233121.13270-5-jeremy.linton@arm.com>
+ <16324b54-42d4-d9bc-6d57-de52431dc209@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <e58482cf-37f6-808b-4382-fcf24c6f8db8@gmail.com>
+In-Reply-To: <16324b54-42d4-d9bc-6d57-de52431dc209@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Alex G." <mr.nuke.me@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-kernel@vger.kernel.org, devel@acpica.org
+To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 26, 2018 at 12:47:30PM -0500, Alex G. wrote:
-> " Borislav, if you don't like the third patch in the series, feel free to
-> leave it out. THings will work beautifully with or without it."
+Hi,
 
-Then don't send it.
+On 04/26/2018 05:27 AM, Sudeep Holla wrote:
+> 
+> 
+> On 26/04/18 00:31, Jeremy Linton wrote:
+>> Its helpful to be able to lookup the acpi_processor_id associated
+>> with a logical cpu. Provide an arm64 helper to do this.
+>>
+> 
+> As I pointed out in the earlier version, this patch is not required.
+> The acpi_id stored in the acpi_processor can be used for this.
+> Won't the below change make it work ? I can't think of any reason why it
+> shouldn't.
 
--- 
-Regards/Gruss,
-    Boris.
+So, I only noticed your previous email last night on the mail archive, 
+as I was applying your review/ack tags and couldn't find a response for 
+this patch, seem the spam/etc filters need some further tweaking!
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+At that point, I was pretty sure the suggestion wasn't going to work out 
+of the box as a lot of this code is running fairly early in the boot 
+process. I spent a bit of time and plugged the change in to verify that 
+assertion, and yes the per_cpu processor/acpi bits aren't setup early 
+enough to be used by much of this code. It is being called from 
+init_cpu_topology()/smp_prepare_cpus() which precedes 
+do_basic_setup/do_initcalls() which is what runs the acpi_init() 
+sequence which ends up eventually allocating the required data 
+structures. So without restructuring the core boot sequence, this seems 
+like a reasonable solution.
+
+
+Thanks,
+
+
+> 
+> Regards,
+> Sudeep
+> 
+> -->8
+> 
+> diff --git i/drivers/acpi/pptt.c w/drivers/acpi/pptt.c
+> index 0fc4b2654665..f421f58b4ae6 100644
+> --- i/drivers/acpi/pptt.c
+> +++ w/drivers/acpi/pptt.c
+> @@ -432,7 +432,7 @@ static void cache_setup_acpi_cpu(struct
+> acpi_table_header *table,
+>   {
+>          struct acpi_pptt_cache *found_cache;
+>          struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+> -       u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
+> +       u32 acpi_cpu_id = per_cpu(processors, cpu)->acpi_id;
+>          struct cacheinfo *this_leaf;
+>          unsigned int index = 0;
+>          struct acpi_pptt_processor *cpu_node = NULL;
+> 
