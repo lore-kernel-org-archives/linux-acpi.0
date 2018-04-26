@@ -1,189 +1,339 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH v8 00/13] Support PPTT for ARM64
-Date: Thu, 26 Apr 2018 09:57:17 +0200
-Message-ID: <CAKv+Gu-_QN1rHmz_554ha2srAv=ZyB+syiVEzdQ280juo2NFwg@mail.gmail.com>
-References: <20180425233121.13270-1-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1] device property: Get rid of union aliasing
+Date: Thu, 26 Apr 2018 13:23:56 +0300
+Message-ID: <20180426102356.77394-1-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, austinwc@codeaurora.org, tn
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26 April 2018 at 01:31, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-> used to describe the processor and cache topology. Ideally it is
-> used to extend/override information provided by the hardware, but
-> right now ARM64 is entirely dependent on firmware provided tables.
->
-> This patch parses the table for the cache topology and CPU topology.
-> When we enable ACPI/PPTT for arm64 we map the package_id to the
-> PPTT node flagged as the physical package by the firmware.
-> This results in topologies that match what the remainder of the
-> system expects. Finally, we update the scheduler MC domain so that
-> it generally reflects the LLC unless the LLC is too large for the
-> NUMA domain (or package).
->
+The commit
 
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org> # SynQuacer
+  318a19718261 ("device property: refactor built-in properties support")
 
-Machine (7974MB)
-  Package L#0 + L3 L#0 (4096KB)
-    L2 L#0 (256KB)
-      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
-      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
-    L2 L#1 (256KB)
-      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
-      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
-    L2 L#2 (256KB)
-      L1d L#4 (32KB) + L1i L#4 (32KB) + Core L#4 + PU L#4 (P#4)
-      L1d L#5 (32KB) + L1i L#5 (32KB) + Core L#5 + PU L#5 (P#5)
-    L2 L#3 (256KB)
-      L1d L#6 (32KB) + L1i L#6 (32KB) + Core L#6 + PU L#6 (P#6)
-      L1d L#7 (32KB) + L1i L#7 (32KB) + Core L#7 + PU L#7 (P#7)
-    L2 L#4 (256KB)
-      L1d L#8 (32KB) + L1i L#8 (32KB) + Core L#8 + PU L#8 (P#8)
-      L1d L#9 (32KB) + L1i L#9 (32KB) + Core L#9 + PU L#9 (P#9)
-    L2 L#5 (256KB)
-      L1d L#10 (32KB) + L1i L#10 (32KB) + Core L#10 + PU L#10 (P#10)
-      L1d L#11 (32KB) + L1i L#11 (32KB) + Core L#11 + PU L#11 (P#11)
-    L2 L#6 (256KB)
-      L1d L#12 (32KB) + L1i L#12 (32KB) + Core L#12 + PU L#12 (P#12)
-      L1d L#13 (32KB) + L1i L#13 (32KB) + Core L#13 + PU L#13 (P#13)
-    L2 L#7 (256KB)
-      L1d L#14 (32KB) + L1i L#14 (32KB) + Core L#14 + PU L#14 (P#14)
-      L1d L#15 (32KB) + L1i L#15 (32KB) + Core L#15 + PU L#15 (P#15)
-    L2 L#8 (256KB)
-      L1d L#16 (32KB) + L1i L#16 (32KB) + Core L#16 + PU L#16 (P#16)
-      L1d L#17 (32KB) + L1i L#17 (32KB) + Core L#17 + PU L#17 (P#17)
-    L2 L#9 (256KB)
-      L1d L#18 (32KB) + L1i L#18 (32KB) + Core L#18 + PU L#18 (P#18)
-      L1d L#19 (32KB) + L1i L#19 (32KB) + Core L#19 + PU L#19 (P#19)
-    L2 L#10 (256KB)
-      L1d L#20 (32KB) + L1i L#20 (32KB) + Core L#20 + PU L#20 (P#20)
-      L1d L#21 (32KB) + L1i L#21 (32KB) + Core L#21 + PU L#21 (P#21)
-    L2 L#11 (256KB)
-      L1d L#22 (32KB) + L1i L#22 (32KB) + Core L#22 + PU L#22 (P#22)
-      L1d L#23 (32KB) + L1i L#23 (32KB) + Core L#23 + PU L#23 (P#23)
-  HostBridge L#0
-    PCIBridge
-      PCIBridge
-        PCI 1b21:0612
-          Block(Removable Media Device) L#0 "sr0"
-          Block(Disk) L#1 "sda"
-      PCIBridge
-        PCI 168c:0032
-          Net L#2 "wlp3s0"
-  HostBridge L#4
-    PCI 10de:128b
-      GPU L#3 "renderD128"
-      GPU L#4 "card0"
-      GPU L#5 "controlD64"
+went way too far and brought a union aliasing. Partially revert it here
+to get rid of union aliasing.
 
+Note, Apple properties support is still utilizing this trick.
 
-> For example on juno:
-> [root@mammon-juno-rh topology]# lstopo-no-graphics
->   Package L#0
->     L2 L#0 (1024KB)
->       L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
->       L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
->       L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
->       L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
->     L2 L#1 (2048KB)
->       L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
->       L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
->   HostBridge L#0
->     PCIBridge
->       PCIBridge
->         PCIBridge
->           PCI 1095:3132
->             Block(Disk) L#0 "sda"
->         PCIBridge
->           PCI 1002:68f9
->             GPU L#1 "renderD128"
->             GPU L#2 "card0"
->             GPU L#3 "controlD64"
->         PCIBridge
->           PCI 11ab:4380
->             Net L#4 "enp8s0"
->
-> Git tree at:
-> http://linux-arm.org/git?p=linux-jlinton.git
-> branch: pptt_v8
->
-> v7->v8:
-> Modify the logic used to select the MC domain (the change
->   shouldn't modify the sched domains on any existing machines
->   compared to v7, only how they are built)
-> Reduce the severity of some parsing messages.
-> Fix s390 link problem.
-> Further checks to deal with broken PPTT tables.
-> Various style tweaks, SPDX license addition, etc.
->
-> v6->v7:
-> Add additional patch to use the last cache level within the NUMA
->   or socket as the MC domain. This assures the MC domain is
->   equal or smaller than the DIE.
->
-> Various formatting/etc review comments.
->
-> Rebase to 4.16rc2
->
-> v5->v6:
-> Add additional patches which re-factor how the initial DT code sets
->   up the cacheinfo structure so that its not as dependent on the
->   of_node stored in that tree. Once that is done we rename it
->   for use with the ACPI code.
->
-> Additionally there were a fair number of minor name/location/etc
->   tweaks scattered about made in response to review comments.
->
-> v4->v5:
-> Update the cache type from NOCACHE to UNIFIED when all the cache
->   attributes we update are valid. This fixes a problem where caches
->   which are entirely created by the PPTT don't show up in lstopo.
->
-> Give the PPTT its own firmware_node in the cache structure instead of
->   sharing it with the of_node.
->
-> Move some pieces around between patches.
->
-> (see previous cover letters for futher changes)
->
-> Jeremy Linton (13):
->   drivers: base: cacheinfo: move cache_setup_of_node()
->   drivers: base: cacheinfo: setup DT cache properties early
->   cacheinfo: rename of_node to fw_token
->   arm64/acpi: Create arch specific cpu to acpi id helper
->   ACPI/PPTT: Add Processor Properties Topology Table parsing
->   ACPI: Enable PPTT support on ARM64
->   drivers: base cacheinfo: Add support for ACPI based firmware tables
->   arm64: Add support for ACPI based firmware tables
->   ACPI/PPTT: Add topology parsing code
->   arm64: topology: rename cluster_id
->   arm64: topology: enable ACPI/PPTT based CPU topology
->   ACPI: Add PPTT to injectable table list
->   arm64: topology: divorce MC scheduling domain from core_siblings
->
->  arch/arm64/Kconfig                |   1 +
->  arch/arm64/include/asm/acpi.h     |   4 +
->  arch/arm64/include/asm/topology.h |   6 +-
->  arch/arm64/kernel/cacheinfo.c     |  15 +-
->  arch/arm64/kernel/topology.c      | 103 +++++-
->  arch/riscv/kernel/cacheinfo.c     |   1 -
->  drivers/acpi/Kconfig              |   3 +
->  drivers/acpi/Makefile             |   1 +
->  drivers/acpi/pptt.c               | 678 ++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/tables.c             |   2 +-
->  drivers/base/cacheinfo.c          | 157 ++++-----
->  include/linux/acpi.h              |   4 +
->  include/linux/cacheinfo.h         |  18 +-
->  13 files changed, 886 insertions(+), 107 deletions(-)
->  create mode 100644 drivers/acpi/pptt.c
->
-> --
-> 2.13.6
->
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/property.c                 | 99 ++++++++++++++++++++-----
+ drivers/firmware/efi/apple-properties.c |  8 +-
+ include/linux/property.h                | 52 +++++++------
+ 3 files changed, 112 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 8f205f6461ed..de19d7cc073b 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -56,6 +56,67 @@ pset_prop_get(const struct property_set *pset, const char *name)
+ 	return NULL;
+ }
+ 
++static const void *property_get_pointer(const struct property_entry *prop)
++{
++	switch (prop->type) {
++	case DEV_PROP_U8:
++		if (prop->is_array)
++			return prop->pointer.u8_data;
++		return &prop->value.u8_data;
++	case DEV_PROP_U16:
++		if (prop->is_array)
++			return prop->pointer.u16_data;
++		return &prop->value.u16_data;
++	case DEV_PROP_U32:
++		if (prop->is_array)
++			return prop->pointer.u32_data;
++		return &prop->value.u32_data;
++	case DEV_PROP_U64:
++		if (prop->is_array)
++			return prop->pointer.u64_data;
++		return &prop->value.u64_data;
++	default:
++		if (prop->is_array)
++			return prop->pointer.str;
++		return &prop->value.str;
++	}
++}
++
++static void property_set_pointer(struct property_entry *prop, const void *pointer)
++{
++	switch (prop->type) {
++	case DEV_PROP_U8:
++		if (prop->is_array)
++			prop->pointer.u8_data = pointer;
++		else
++			prop->value.u8_data = *((u8 *)pointer);
++		break;
++	case DEV_PROP_U16:
++		if (prop->is_array)
++			prop->pointer.u16_data = pointer;
++		else
++			prop->value.u16_data = *((u16 *)pointer);
++		break;
++	case DEV_PROP_U32:
++		if (prop->is_array)
++			prop->pointer.u32_data = pointer;
++		else
++			prop->value.u32_data = *((u32 *)pointer);
++		break;
++	case DEV_PROP_U64:
++		if (prop->is_array)
++			prop->pointer.u64_data = pointer;
++		else
++			prop->value.u64_data = *((u64 *)pointer);
++		break;
++	default:
++		if (prop->is_array)
++			prop->pointer.str = pointer;
++		else
++			prop->value.str = pointer;
++	}
++}
++
+ static const void *pset_prop_find(const struct property_set *pset,
+ 				  const char *propname, size_t length)
+ {
+@@ -65,10 +126,7 @@ static const void *pset_prop_find(const struct property_set *pset,
+ 	prop = pset_prop_get(pset, propname);
+ 	if (!prop)
+ 		return ERR_PTR(-EINVAL);
+-	if (prop->is_array)
+-		pointer = prop->pointer.raw_data;
+-	else
+-		pointer = &prop->value.raw_data;
++	pointer = property_get_pointer(prop);
+ 	if (!pointer)
+ 		return ERR_PTR(-ENODATA);
+ 	if (length > prop->length)
+@@ -698,16 +756,17 @@ EXPORT_SYMBOL_GPL(fwnode_property_get_reference_args);
+ 
+ static void property_entry_free_data(const struct property_entry *p)
+ {
++	const void *pointer = property_get_pointer(p);
+ 	size_t i, nval;
+ 
+ 	if (p->is_array) {
+-		if (p->is_string && p->pointer.str) {
++		if (p->type == DEV_PROP_STRING && p->pointer.str) {
+ 			nval = p->length / sizeof(const char *);
+ 			for (i = 0; i < nval; i++)
+ 				kfree(p->pointer.str[i]);
+ 		}
+-		kfree(p->pointer.raw_data);
+-	} else if (p->is_string) {
++		kfree(pointer);
++	} else if (p->type == DEV_PROP_STRING) {
+ 		kfree(p->value.str);
+ 	}
+ 	kfree(p->name);
+@@ -716,7 +775,7 @@ static void property_entry_free_data(const struct property_entry *p)
+ static int property_copy_string_array(struct property_entry *dst,
+ 				      const struct property_entry *src)
+ {
+-	char **d;
++	const char **d;
+ 	size_t nval = src->length / sizeof(*d);
+ 	int i;
+ 
+@@ -734,40 +793,44 @@ static int property_copy_string_array(struct property_entry *dst,
+ 		}
+ 	}
+ 
+-	dst->pointer.raw_data = d;
++	dst->pointer.str = d;
+ 	return 0;
+ }
+ 
+ static int property_entry_copy_data(struct property_entry *dst,
+ 				    const struct property_entry *src)
+ {
++	const void *pointer = property_get_pointer(src);
++	const void *new;
+ 	int error;
+ 
+ 	if (src->is_array) {
+ 		if (!src->length)
+ 			return -ENODATA;
+ 
+-		if (src->is_string) {
++		if (src->type == DEV_PROP_STRING) {
+ 			error = property_copy_string_array(dst, src);
+ 			if (error)
+ 				return error;
++			new = dst->pointer.str;
+ 		} else {
+-			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
+-							src->length, GFP_KERNEL);
+-			if (!dst->pointer.raw_data)
++			new = kmemdup(pointer, src->length, GFP_KERNEL);
++			if (!new)
+ 				return -ENOMEM;
+ 		}
+-	} else if (src->is_string) {
+-		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
+-		if (!dst->value.str && src->value.str)
++	} else if (src->type == DEV_PROP_STRING) {
++		new = kstrdup(src->value.str, GFP_KERNEL);
++		if (!new && src->value.str)
+ 			return -ENOMEM;
+ 	} else {
+-		dst->value.raw_data = src->value.raw_data;
++		new = pointer;
+ 	}
+ 
+ 	dst->length = src->length;
+ 	dst->is_array = src->is_array;
+-	dst->is_string = src->is_string;
++	dst->type = src->type;
++
++	property_set_pointer(dst, new);
+ 
+ 	dst->name = kstrdup(src->name, GFP_KERNEL);
+ 	if (!dst->name)
+diff --git a/drivers/firmware/efi/apple-properties.c b/drivers/firmware/efi/apple-properties.c
+index adaa9a3714b9..b2c2d5a45f91 100644
+--- a/drivers/firmware/efi/apple-properties.c
++++ b/drivers/firmware/efi/apple-properties.c
+@@ -13,6 +13,9 @@
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ *
++ * FIXME: The approach is still based on union aliasing and should be
++ * replaced by a proper resource provider.
+  */
+ 
+ #define pr_fmt(fmt) "apple-properties: " fmt
+@@ -96,12 +99,13 @@ static void __init unmarshal_key_value_pairs(struct dev_header *dev_header,
+ 		entry[i].name = key;
+ 		entry[i].length = val_len - sizeof(val_len);
+ 		entry[i].is_array = !!entry[i].length;
+-		entry[i].pointer.raw_data = ptr + key_len + sizeof(val_len);
++		entry[i].type = DEV_PROP_U8;
++		entry[i].pointer.u8_data = ptr + key_len + sizeof(val_len);
+ 
+ 		if (dump_properties) {
+ 			dev_info(dev, "property: %s\n", entry[i].name);
+ 			print_hex_dump(KERN_INFO, pr_fmt(), DUMP_PREFIX_OFFSET,
+-				16, 1, entry[i].pointer.raw_data,
++				16, 1, entry[i].pointer.u8_data,
+ 				entry[i].length, true);
+ 		}
+ 
+diff --git a/include/linux/property.h b/include/linux/property.h
+index 2eea4b310fc2..ac8a1ebc4c1b 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -178,7 +178,7 @@ static inline int fwnode_property_read_u64(const struct fwnode_handle *fwnode,
+  * @name: Name of the property.
+  * @length: Length of data making up the value.
+  * @is_array: True when the property is an array.
+- * @is_string: True when property is a string.
++ * @type: Type of the data in unions.
+  * @pointer: Pointer to the property (an array of items of the given type).
+  * @value: Value of the property (when it is a single item of the given type).
+  */
+@@ -186,10 +186,9 @@ struct property_entry {
+ 	const char *name;
+ 	size_t length;
+ 	bool is_array;
+-	bool is_string;
++	enum dev_prop_type type;
+ 	union {
+ 		union {
+-			const void *raw_data;
+ 			const u8 *u8_data;
+ 			const u16 *u16_data;
+ 			const u32 *u32_data;
+@@ -197,7 +196,6 @@ struct property_entry {
+ 			const char * const *str;
+ 		} pointer;
+ 		union {
+-			unsigned long long raw_data;
+ 			u8 u8_data;
+ 			u16 u16_data;
+ 			u32 u32_data;
+@@ -213,55 +211,55 @@ struct property_entry {
+  * and structs.
+  */
+ 
+-#define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
+-(struct property_entry) {					\
+-	.name = _name_,						\
+-	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
+-	.is_array = true,					\
+-	.is_string = false,					\
+-	{ .pointer = { ._type_##_data = _val_ } },		\
++#define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _Type_, _val_)	\
++(struct property_entry) {						\
++	.name = _name_,							\
++	.length = ARRAY_SIZE(_val_) * sizeof(_type_),			\
++	.is_array = true,						\
++	.type = DEV_PROP_##_Type_,					\
++	{ .pointer = { ._type_##_data = _val_ } },			\
+ }
+ 
+ #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
+-	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u8, _val_)
++	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u8, U8, _val_)
+ #define PROPERTY_ENTRY_U16_ARRAY(_name_, _val_)			\
+-	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u16, _val_)
++	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u16, U16, _val_)
+ #define PROPERTY_ENTRY_U32_ARRAY(_name_, _val_)			\
+-	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u32, _val_)
++	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u32, U32, _val_)
+ #define PROPERTY_ENTRY_U64_ARRAY(_name_, _val_)			\
+-	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u64, _val_)
++	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u64, U64, _val_)
+ 
+ #define PROPERTY_ENTRY_STRING_ARRAY(_name_, _val_)		\
+ (struct property_entry) {					\
+ 	.name = _name_,						\
+ 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
+ 	.is_array = true,					\
+-	.is_string = true,					\
++	.type = DEV_PROP_STRING,				\
+ 	{ .pointer = { .str = _val_ } },			\
+ }
+ 
+-#define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
+-(struct property_entry) {				\
+-	.name = _name_,					\
+-	.length = sizeof(_type_),			\
+-	.is_string = false,				\
+-	{ .value = { ._type_##_data = _val_ } },	\
++#define PROPERTY_ENTRY_INTEGER(_name_, _type_, _Type_, _val_)	\
++(struct property_entry) {					\
++	.name = _name_,						\
++	.length = sizeof(_type_),				\
++	.type = DEV_PROP_##_Type_,				\
++	{ .value = { ._type_##_data = _val_ } },		\
+ }
+ 
+ #define PROPERTY_ENTRY_U8(_name_, _val_)		\
+-	PROPERTY_ENTRY_INTEGER(_name_, u8, _val_)
++	PROPERTY_ENTRY_INTEGER(_name_, u8, U8, _val_)
+ #define PROPERTY_ENTRY_U16(_name_, _val_)		\
+-	PROPERTY_ENTRY_INTEGER(_name_, u16, _val_)
++	PROPERTY_ENTRY_INTEGER(_name_, u16, U16, _val_)
+ #define PROPERTY_ENTRY_U32(_name_, _val_)		\
+-	PROPERTY_ENTRY_INTEGER(_name_, u32, _val_)
++	PROPERTY_ENTRY_INTEGER(_name_, u32, U32, _val_)
+ #define PROPERTY_ENTRY_U64(_name_, _val_)		\
+-	PROPERTY_ENTRY_INTEGER(_name_, u64, _val_)
++	PROPERTY_ENTRY_INTEGER(_name_, u64, U64, _val_)
+ 
+ #define PROPERTY_ENTRY_STRING(_name_, _val_)		\
+ (struct property_entry) {				\
+ 	.name = _name_,					\
+ 	.length = sizeof(_val_),			\
+-	.is_string = true,				\
++	.type = DEV_PROP_STRING,			\
+ 	{ .value = { .str = _val_ } },			\
+ }
+ 
+-- 
+2.17.0
