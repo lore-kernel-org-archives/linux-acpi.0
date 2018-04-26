@@ -1,15 +1,15 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 04/13] arm64/acpi: Create arch specific cpu to acpi id
- helper
-Date: Thu, 26 Apr 2018 11:27:01 +0100
-Message-ID: <16324b54-42d4-d9bc-6d57-de52431dc209@arm.com>
+Subject: Re: [PATCH v8 07/13] drivers: base cacheinfo: Add support for ACPI
+ based firmware tables
+Date: Thu, 26 Apr 2018 12:05:56 +0100
+Message-ID: <c3306746-aacd-5ed8-95d6-a3186ec2089f@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
- <20180425233121.13270-5-jeremy.linton@arm.com>
+ <20180425233121.13270-8-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425233121.13270-5-jeremy.linton@arm.com>
+In-Reply-To: <20180425233121.13270-8-jeremy.linton@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
@@ -19,31 +19,23 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 On 26/04/18 00:31, Jeremy Linton wrote:
-> Its helpful to be able to lookup the acpi_processor_id associated
-> with a logical cpu. Provide an arm64 helper to do this.
+> Call ACPI cache parsing routines from base cacheinfo code if ACPI
+> is enable. Also stub out cache_setup_acpi() so that individual
+> architectures can enable ACPI topology parsing.
 > 
 
-As I pointed out in the earlier version, this patch is not required.
-The acpi_id stored in the acpi_processor can be used for this.
-Won't the below change make it work ? I can't think of any reason why it
-shouldn't.
+[...]
 
+> +#ifndef CONFIG_ACPI
+> +static inline int acpi_find_last_cache_level(unsigned int cpu)
+> +{
+> +	/* ACPI kernels should be built with PPTT support */
+
+This sounds incorrect for x86. But I understand why you have it there.
+Does it makes sense to change above to .. ?
+
+#if !defined(CONFIG_ACPI) || (defined(CONFIG_ACPI) && !(CONFIG_ACPI_PPTT))
+
+-- 
 Regards,
 Sudeep
-
--->8
-
-diff --git i/drivers/acpi/pptt.c w/drivers/acpi/pptt.c
-index 0fc4b2654665..f421f58b4ae6 100644
---- i/drivers/acpi/pptt.c
-+++ w/drivers/acpi/pptt.c
-@@ -432,7 +432,7 @@ static void cache_setup_acpi_cpu(struct
-acpi_table_header *table,
- {
-        struct acpi_pptt_cache *found_cache;
-        struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
--       u32 acpi_cpu_id = get_acpi_id_for_cpu(cpu);
-+       u32 acpi_cpu_id = per_cpu(processors, cpu)->acpi_id;
-        struct cacheinfo *this_leaf;
-        unsigned int index = 0;
-        struct acpi_pptt_processor *cpu_node = NULL;
