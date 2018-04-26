@@ -1,13 +1,13 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management fixes for v4.17-rc3
-Date: Thu, 26 Apr 2018 16:42:42 +0200
-Message-ID: <CAJZ5v0isQnkPq-47G4n5C3vyNoY2xWokzVTC35MBSPGivfxqjQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI fixes for v4.17-rc3
+Date: Thu, 26 Apr 2018 16:44:56 +0200
+Message-ID: <CAJZ5v0i9VLKS5bz8R8EGWjBQaHEsm-jOYwHAAWNt+eS8301cvA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus,
@@ -15,54 +15,64 @@ Hi Linus,
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.17-rc3
+ acpi-4.17-rc3
 
-with top-most commit e140c4af1b63125dff629e8339793390201e2470
+with top-most commit bd6dff55de7acb2e5065e69706400c41b1bd0521
 
- Merge branches 'acpi-pm' and 'pm-cpufreq'
+ Merge branches 'acpi-watchdog', 'acpi-button' and 'acpi-video'
 
 on top of commit 6d08b06e67cd117f6992c46611dfb4ce267cd71e
 
  Linux 4.17-rc2
 
-to receive power management fixes for 4.17-rc3.
+to receive ACPI fixes for 4.17-rc3.
 
-These are a Low Power S0 Idle quirk, a hibernation handling fix for
-the PCI bus type and a brcmstb-avs-cpufreq driver fixup removing
-development debug code from it.
+These are two watchdog-related fixes, fix for a backlight regression
+from the 4.16 cycle that unfortunately was propagated to -stable and
+a button module modification to prevent graphics driver modules from
+failing to load due to unmet dependencies if ACPI is disabled from
+the kernel command line.
 
 Specifics:
 
- - Blacklist the Low Power S0 Idle _DSM on ThinkPad X1 Tablet(2016)
-   where it causes issues and make it use ACPI S3 which works instead
-   of the non-working suspend-to-idle by default (Chen Yu).
+ - Change the ACPI subsystem initialization ordering to initialize
+   the WDAT watchodg before reserving PNP motherboard resources so
+   as to allow the watchdog to allocate its resources before the PNP
+   code gets to them and prevents it from working correctly (Mika
+   Westerberg).
 
- - Fix the handling of hibernation in the PCI core for devices with
-   the DPM_FLAG_SMART_SUSPEND flag set to fix a regression affecting
-   intel-lpss I2C devices (Mika Westerberg).
+ - Add a quirk for Lenovo Z50-70 to use the iTCO watchdog instead of
+   the WDAT one which conflicts with the RTC on that platform (Mika
+   Westerberg).
 
- - Drop development debug code from the brcmstb-avs-cpufreq driver
-   (Markus Mayer).
+ - Avoid breaking backlight handling on Dell XPS 13 2013 model by
+   allowing laptops to use the ACPI backlight by default even if they
+   are Windows 8-ready in principle (Hans de Goede).
+
+ - Prevent the ACPI button module from failing to load if ACPI is
+   disabled via the kernel command line so as to allow graphics
+   driver modules depending on the ACPI button module to load in
+   that case (Ard Biesheuvel).
 
 Thanks!
 
 
 ---------------
 
-Chen Yu (1):
-      ACPI / PM: Blacklist Low Power S0 Idle _DSM for ThinkPad X1 Tablet(2016)
+Ard Biesheuvel (1):
+      ACPI / button: make module loadable when booted in non-ACPI mode
 
-Markus Mayer (1):
-      cpufreq: brcmstb-avs-cpufreq: remove development debug support
+Hans de Goede (1):
+      ACPI / video: Only default only_lcd to true on Win8-ready _desktops_
 
-Mika Westerberg (1):
-      PCI / PM: Do not clear state_saved in pci_pm_freeze() when smart
-suspend is set
+Mika Westerberg (2):
+      ACPI / scan: Initialize watchdog before PNP
+      ACPI / watchdog: Prefer iTCO_wdt on Lenovo Z50-70
 
 ---------------
 
- drivers/acpi/sleep.c                  |  13 ++
- drivers/cpufreq/Kconfig.arm           |  10 --
- drivers/cpufreq/brcmstb-avs-cpufreq.c | 323 +---------------------------------
- drivers/pci/pci-driver.c              |   5 +-
- 4 files changed, 17 insertions(+), 334 deletions(-)
+ drivers/acpi/acpi_video.c    | 27 ++++++++++++++++++--
+ drivers/acpi/acpi_watchdog.c | 59 ++++++++++++++++++++++++++++++++++++--------
+ drivers/acpi/button.c        | 24 +++++++++++++++++-
+ drivers/acpi/scan.c          |  2 +-
+ 4 files changed, 98 insertions(+), 14 deletions(-)
