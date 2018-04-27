@@ -1,95 +1,30 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
- devices
-Date: Fri, 27 Apr 2018 10:17:45 +0100
-Message-ID: <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
-References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
- <1524218846-169934-2-git-send-email-john.garry@huawei.com>
- <20180420130727.GV2173@lahna.fi.intel.com>
- <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
- <20180420135222.GY2173@lahna.fi.intel.com>
- <75eae3ac-228f-d6a4-bb0e-4bd27e35c55d@huawei.com>
- <09e3aa95-86ae-ca30-7bb5-a9704d296b43@huawei.com>
- <20180426140808.GK2173@lahna.fi.intel.com>
- <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v1] device property: Get rid of union aliasing
+Date: Fri, 27 Apr 2018 12:56:08 +0200
+Message-ID: <CAJZ5v0jgQwQCSqAfnap+pLBqBy-aMTORU=P3g5J77GK46-xOBQ@mail.gmail.com>
+References: <20180426102356.77394-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
+In-Reply-To: <20180426102356.77394-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: andriy.shevchenko@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, lee.jones@linaro.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26/04/2018 15:23, John Garry wrote:
-
-+
-
-> On 26/04/2018 15:08, Mika Westerberg wrote:
->> On Thu, Apr 26, 2018 at 02:49:49PM +0100, John Garry wrote:
->>> diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
->>> index 2d4611e..b04425b 100644
->>> --- a/drivers/bus/hisi_lpc.c
->>> +++ b/drivers/bus/hisi_lpc.c
->>> @@ -18,6 +18,8 @@
->>>  #include <linux/of_platform.h>
->>>  #include <linux/pci.h>
->>>  #include <linux/slab.h>
->>> +#include <linux/serial_8250.h>
->>> +#include "../tty/serial/8250/8250.h"
->>>
->>>  #define DRV_NAME "hisi-lpc"
->>>
->>> @@ -345,6 +347,7 @@ static void hisi_lpc_comm_outs(void *hostdata,
->>> unsigned
->>> long pio,
->>>  #define MFD_CHILD_NAME_LEN (ACPI_ID_LEN +
->>> sizeof(MFD_CHILD_NAME_PREFIX) -
->>> 1)
->>>
->>>  struct hisi_lpc_mfd_cell {
->>> +    struct plat_serial8250_port serial8250_port;
->>>      struct mfd_cell_acpi_match acpi_match;
->>>      char name[MFD_CHILD_NAME_LEN];
->>>      char pnpid[ACPI_ID_LEN];
->>> @@ -513,10 +516,31 @@ static int hisi_lpc_acpi_probe(struct device
->>> *hostdev)
->>>          dev_warn(&child->dev, "set resource fail (%d)\n", ret);
->>>              return ret;
->>>          }
->>> +    if (!strcmp(acpi_device_hid(child), "HISI1031")) {
->>
+On Thu, Apr 26, 2018 at 12:23 PM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> The commit
 >
-> Hi Mika,
+>   318a19718261 ("device property: refactor built-in properties support")
 >
->> Hmm, there is a way in struct mfd_cell to match child devices using _HID
->> so is there something preventing you from using that?
+> went way too far and brought a union aliasing. Partially revert it here
+> to get rid of union aliasing.
 >
-> Not that I know about. Can you describe this method? I guess I also
-> don't need to set the mfd_cell pnpid either for this special case device.
->
+> Note, Apple properties support is still utilizing this trick.
 
-So we using the mfd_cell to match child devices using _HID. At a glance, 
-I don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
+Can you please resend this with a slightly more detailed description
+of what's going on in the changelog?
 
-Anyway we don't use static tables as we need to update the resources of 
-the cell dynamically. However I do look at a driver like 
-intel_quark_i2c_gpio.c, and this dynamically modifies the value of 
-global mfd_cell array here:
-https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
-
-I know the cell array is only used at probe time, but this did not look 
-to be good standard practice to me.
-
-Thanks,
-John
-
-> Thanks,
-> John
->
->
->>
->> .
->>
->
+Someone reading git logs in the future would have a really hard time
+with decoding the above, and the last sentence in particular. :-)
