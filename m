@@ -1,121 +1,138 @@
-From: James Morse <james.morse@arm.com>
-Subject: [PATCH v3 12/12] arm64: acpi: Make apei_claim_sea() synchronise with
- APEI's irq work
-Date: Fri, 27 Apr 2018 16:35:10 +0100
-Message-ID: <20180427153510.5799-13-james.morse@arm.com>
-References: <20180427153510.5799-1-james.morse@arm.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v8 05/13] ACPI/PPTT: Add Processor Properties Topology
+ Table parsing
+Date: Fri, 27 Apr 2018 11:20:44 -0500
+Message-ID: <b750e86b-bc51-0440-b48d-0e8d3177fa8d@arm.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com>
+ <20180425233121.13270-6-jeremy.linton@arm.com>
+ <CAJZ5v0jjPnyC0vm-Fb8y2hw1B9Uc2J5sZrtZYzt_ENT2Sini3A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20180427153510.5799-1-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-acpi@vger.kernel.org
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jjPnyC0vm-Fb8y2hw1B9Uc2J5sZrtZYzt_ENT2Sini3A@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, austinwc
 List-Id: linux-acpi@vger.kernel.org
 
-APEI is unable to do all of its error handling work in nmi-context, so
-it defers non-fatal work onto the irq_work queue. arch_irq_work_raise()
-sends an IPI to the calling cpu, but we can't guarantee this will be
-taken before we return.
+Hi,
 
-Unless we interrupted a context with irqs-masked, we can call
-irq_work_run() to do the work now. Otherwise return -EINPROGRESS to
-indicate ghes_notify_sea() found some work to do, but it hasn't
-finished yet.
+Thanks for taking a look at this.
 
-With this we can take apei_claim_sea() returning '0' to mean this
-external-abort was also notification of a firmware-first RAS error,
-and that APEI has processed the CPER records.
+On 04/27/2018 06:02 AM, Rafael J. Wysocki wrote:
+> On Thu, Apr 26, 2018 at 1:31 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
+>> ACPI 6.2 adds a new table, which describes how processing units
+>> are related to each other in tree like fashion. Caches are
+>> also sprinkled throughout the tree and describe the properties
+>> of the caches in relation to other caches and processing units.
+>>
+>> Add the code to parse the cache hierarchy and report the total
+>> number of levels of cache for a given core using
+>> acpi_find_last_cache_level() as well as fill out the individual
+>> cores cache information with cache_setup_acpi() once the
+>> cpu_cacheinfo structure has been populated by the arch specific
+>> code.
+>>
+>> An additional patch later in the set adds the ability to report
+>> peers in the topology using find_acpi_cpu_topology()
+>> to report a unique ID for each processing unit at a given level
+>> in the tree. These unique id's can then be used to match related
+>> processing units which exist as threads, within a given
+>> package, etc.
+>>
+>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>   drivers/acpi/pptt.c | 518 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 518 insertions(+)
+>>   create mode 100644 drivers/acpi/pptt.c
+>>
+>> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+>> new file mode 100644
+>> index 000000000000..cced71ef851a
+>> --- /dev/null
+>> +++ b/drivers/acpi/pptt.c
+>> @@ -0,0 +1,518 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>> +/*
+>> + * pptt.c - parsing of Processor Properties Topology Table
+>> + *
+>> + * Copyright (C) 2018, ARM
+>> + *
+>> + * This file implements parsing of Processor Properties Topology Table (PPTT)
+>> + * which is optionally used to describe the processor and cache topology.
+>> + * Due to the relative pointers used throughout the table, this doesn't
+>> + * leverage the existing subtable parsing in the kernel.
+>> + *
+>> + * The PPTT structure is an inverted tree, with each node potentially
+>> + * holding one or two inverted tree data structures describing
+>> + * the caches available at that level. Each cache structure optionally
+>> + * contains properties describing the cache at a given level which can be
+>> + * used to override hardware probed values.
+>> + */
+>> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
+>> +
+>> +#include <linux/acpi.h>
+>> +#include <linux/cacheinfo.h>
+>> +#include <acpi/processor.h>
+>> +
+>> +/**
+>> + * fetch_pptt_subtable() - Find/Verify that the PPTT ref is a valid subtable
+> 
+> The parens above are at least redundant (if not harmful).  Everywhere
+> else in a similar context too.
 
-Signed-off-by: James Morse <james.morse@arm.com>
-Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-CC: Xie XiuQi <xiexiuqi@huawei.com>
-CC: gengdongjiu <gengdongjiu@huawei.com>
----
-Changes since v2:
- * Removed IS_ENABLED() check, done by the caller unless we have a dummy
-   definition.
+The kerneldoc ones? I guess i'm confused the kernel doc example in 
+doc-guide/kernel-doc has
 
- arch/arm64/kernel/acpi.c | 19 +++++++++++++++++++
- arch/arm64/mm/fault.c    |  9 ++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
+* function_name() - Brief description of function.
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 6a4823a3eb5e..a51a7abd98e0 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -22,6 +22,7 @@
- #include <linux/init.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
-+#include <linux/irq_work.h>
- #include <linux/memblock.h>
- #include <linux/of_fdt.h>
- #include <linux/smp.h>
-@@ -275,10 +276,14 @@ int apei_claim_sea(struct pt_regs *regs)
- {
- 	int err = -ENOENT;
- 	unsigned long current_flags = arch_local_save_flags();
-+	unsigned long interrupted_flags = current_flags;
- 
- 	if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
- 		return err;
- 
-+	if (regs)
-+		interrupted_flags = regs->pstate;
-+
- 	/*
- 	 * APEI expects an NMI-like notification to always be called
- 	 * in NMI context.
-@@ -287,6 +292,20 @@ int apei_claim_sea(struct pt_regs *regs)
- 	nmi_enter();
- 	err = ghes_notify_sea();
- 	nmi_exit();
-+
-+	/*
-+	 * APEI NMI-like notifications are deferred to irq_work. Unless
-+	 * we interrupted irqs-masked code, we can do that now.
-+	 */
-+	if (!err) {
-+		if (!arch_irqs_disabled_flags(interrupted_flags)) {
-+			local_daif_restore(DAIF_PROCCTX_NOIRQ);
-+			irq_work_run();
-+		} else {
-+			err = -EINPROGRESS;
-+		}
-+	}
-+
- 	local_daif_restore(current_flags);
- 
- 	return err;
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index d7e89da0e5df..0232e9064144 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -568,11 +568,10 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- 	inf = esr_to_fault_info(esr);
- 
--	/*
--	 * Return value ignored as we rely on signal merging.
--	 * Future patches will make this more robust.
--	 */
--	apei_claim_sea(regs);
-+	if (apei_claim_sea(regs) == 0) {
-+		/* APEI claimed this as a firmware-first notification */
-+		return 0;
-+	}
- 
- 	info.si_signo = inf->sig;
- 	info.si_errno = 0;
--- 
-2.16.2
+
+> 
+> Also kerneldoc comments document function arguments too as a rule, so
+> please do that here and wherever you use kerneldoc comments in the
+> patchset.
+
+Ok, sure.
+
+> 
+>> + *
+>> + * Given the PPTT table, find and verify that the subtable entry
+>> + * is located within the table
+>> + *
+>> + * Return: acpi_subtable_header* or NULL
+>> + */
+>> +static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
+>> +                                                       u32 pptt_ref)
+>> +{
+>> +       struct acpi_subtable_header *entry;
+>> +
+>> +       /* there isn't a subtable at reference 0 */
+>> +       if (pptt_ref < sizeof(struct acpi_subtable_header))
+>> +               return NULL;
+>> +
+>> +       if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
+>> +               return NULL;
+>> +
+>> +       entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr, pptt_ref);
+>> +
+>> +       if (entry->length == 0)
+>> +               return NULL;
+>> +
+>> +       if (pptt_ref + entry->length > table_hdr->length)
+>> +               return NULL;
+>> +
+>> +       return entry;
+>> +}
+> 
+> Apart from the above I'm not entirely sure why you need the changes in
+> patch [09/13] to go in a separate patch.  All of them are new code
+> going into the file created by this patch, so why not to put them
+> here?
+
+
+Ok, I was doing that because Lorenzo asked for it, but he hasn't said 
+much so I will collapse it back together. That makes me happy, as 
+splitting chunks between patches is a pain anyway.
