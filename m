@@ -1,97 +1,153 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] ACPI / scan: Fix regression related to X-Gene UARTs
-Date: Fri, 27 Apr 2018 14:24:44 -0400
-Message-ID: <1524853484.5602.32.camel@redhat.com>
-References: <20180420032947.23023-1-msalter@redhat.com>
-         <CAJZ5v0g5iB1zoz7S0KBvimqj_ZEQLNX_LZ8g3vBoythJ_ZzjaA@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Bug? pcie_aspm=off cause less power consumption as default
+Date: Fri, 27 Apr 2018 14:53:13 -0500
+Message-ID: <20180427195313.GH8199@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180422171647.7v65zrlwhya5mq7v@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0g5iB1zoz7S0KBvimqj_ZEQLNX_LZ8g3vBoythJ_ZzjaA@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20180422171647.7v65zrlwhya5mq7v@pali>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: =?ISO-8859-1?Q?Fr=E9d=E9ric?= Danis <frederic.danis.oss@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vidya Sagar <vidyas@nvidia.com>, Rajat Jain <rajatja@google.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2018-04-22 at 11:34 +0200, Rafael J. Wysocki wrote:
-> On Fri, Apr 20, 2018 at 5:29 AM, Mark Salter <msalter@redhat.com> wrote:
-> > Commit e361d1f85855 ("ACPI / scan: Fix enumeration for special UART
-> > devices") caused a regression with some X-Gene based platforms (Mustang
-> > and M400) with invalid DSDT.
+Hi Pali,
+
+On Sun, Apr 22, 2018 at 07:16:47PM +0200, Pali Rohár wrote:
+> Hi!
 > 
-> I'm not convinced that making changes to the core ACPI device
-> enumeration code in order to cover up for firmware bugs is the right
-> approach.
-
-It is unfortunate but the firmware bug predates the change which uncovered
-it, so previously working systems no longer work.
-
+> To increase runtime on battery of my Dell Latitude E6440 laptop I tried
+> different tweaks and settings. And I come up to the conclusion that
+> adding pcie_aspm=off to the kernel command line decrease power
+> consumption by approx. 2 Watts as opposite to adding pcie_aspm=force or
+> nothing (letting ASPM in default state).
 > 
-> > The DSDT makes it appear that the UART
-> > device is also a slave device attached to itself. With the above commit
-> > the UART won't be enumerated by ACPI scan (slave serial devices shouldn't
-> > be). So check for X-Gene UART device and skip slace device check on it.
-> > 
-> > Signed-off-by: Mark Salter <msalter@redhat.com>
-> > ---
-> >  drivers/acpi/scan.c | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> > index cc234e6a6297..1dcdd0122862 100644
-> > --- a/drivers/acpi/scan.c
-> > +++ b/drivers/acpi/scan.c
-> > @@ -1551,6 +1551,14 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
-> >              fwnode_property_present(&device->fwnode, "baud")))
-> >                 return true;
-> > 
-> > +       /*
-> > +        * Firmware on some arm64 X-Gene platforms will make the UART
-> > +        * device appear as both a UART and a slave of that UART. Just
-> > +        * bail out here for X-Gene UARTs.
-> > +        */
-> > +       if (!strcmp(acpi_device_hid(device), "APMC0D08"))
-> > +               return false;
+> I suspect that this is a clear kernel bug as I cannot understand how
+> turning off powersave feature ASPM could lead to decrease of power
+> consumption. Turning powersave off should either not impact or increase
+> power consumption.
 > 
-> Is the device ID never to be used outside of the broken configurations?
+> Moreover one I put laptop into ACPI S3 sleep and resume it, then power
+> consumption increase. The only way to decrease it is to power it off and
+> power on again. Very impractical, specially as ACPI sleep is there to
+> prevent power off and on.
 > 
-> Even if that's the plan, how are you going to guarantee that anyway?
-
-The device ID will always be used for X-Gene UARTs. Whether the DSDT is
-broken or not wouldn't matter because the end result would be the same
-(the UART being treated as master rather than a serial bus slave).
-The broken firmware looks like this:
-
-        Device (URT0)
-        {
-            Name (_HID, "APMC0D08")  // _HID: Hardware ID
-            ...
-            Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
-            {
-                Memory32Fixed (ReadWrite,
-                    0x1C020000,         // Address Base
-                    0x00000100,         // Address Length
-                    )
-                UartSerialBusV2 (0x0001C200, DataBitsEight, StopBitsOne,
-                    0x00, LittleEndian, ParityTypeNone, FlowControlNone,
-                    0x0010, 0x0010, "URT0",
-                    0x00, ResourceConsumer, , Exclusive,
-                    )
-                Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive, ,, )
-                {
-                    0x0000006D,
-                }
-            })
-            ...
-        }
-
-So "URT0" has a UartSerialBusV2 resource which references itself as the bus master.
-            
-
+> Tests:
 > 
-> > +
-> >         INIT_LIST_HEAD(&resource_list);
-> >         acpi_dev_get_resources(device, &resource_list,
-> >                                acpi_check_serial_bus_slave,
-> > --
+> Laptop on battery with pcie_aspm=off has average 8.50 Watts in idle.
+> After suspend+resume it has 11.20 Watts (power off + on is needed to get
+> back for 8.50 Watts).
+> 
+> Laptop on battery with pcie_aspm=force and with powersave aspm policy
+> it has average 11.20 Watts in idle. After suspend+resume it is 11.30
+> Watts in idle. With default policy it has 11.15 Watts and with
+> performance policy it has 11.70 Watts.
+> 
+> When pcie_aspm is not specified at all, then average power consumption
+> in idle is 8.90 Watts. And after suspend+resume it is 9.30 Watts.
+> 
+> So what is happening there? Such results are really strange and
+> apparently I'm not alone, see discussion in kernel bugzilla:
+> https://bugzilla.kernel.org/show_bug.cgi?id=62181#c23
+> 
+> I'm using Debian Stretch with its default kernel. But I remember that
+> power consumption with defaults or with pcie_aspm=force was around 10-11
+> Watts even with older kernel versions.
+> 
+> Debian Stretch has currently this kernel:
+> 4.9.0-6-amd64 #1 SMP Debian 4.9.82-1+deb9u3 (2018-03-02) x86_64 GNU/Linux
+> 
+> with this configuration:
+> 
+> $ grep ASPM /boot/config-4.9.0-6-amd64
+> CONFIG_PCIEASPM=y
+> # CONFIG_PCIEASPM_DEBUG is not set
+> CONFIG_PCIEASPM_DEFAULT=y
+> # CONFIG_PCIEASPM_POWERSAVE is not set
+> # CONFIG_PCIEASPM_PERFORMANCE is not set
+> 
+> In dmesg are these ASPM strings:
+> 
+> $ dmesg | grep ASPM
+> 
+> pcie_aspm=off
+> [    0.000000] PCIe ASPM is disabled
+> [    0.119127] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+> [    0.163351] acpi PNP0A08:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
+> 
+> pcie_aspm=force
+> [    0.000000] PCIe ASPM is forcibly enabled
+> [    0.118985] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+> [    0.162322] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [    0.162621] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
+> 
+> (none)
+> [    0.120064] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
+> [    0.163424] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
+> [    0.163724] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
+> [    3.294357] iwlwifi 0000:03:00.0: can't disable ASPM; OS doesn't have ASPM control
+> 
+> In attachments I'm sending output from lspci -vv -nn, maybe it could
+> contain some useful information.
+> 
+> Another strange thing which I spotted in lspci output is that Root Host
+> bridge at 00:00.0 pci address totally disappeared after suspend+resume.
+> I hope such thing is not normal.
+> 
+> So I see there at 3 bugs:
+> 
+> 1) Power consumption increase after suspend+resume when pcie_aspm=off or
+> default
+> 
+> 2) Power consumption is higher in pcie_aspm=force or default mode as in
+> pcie_aspm=off
+> 
+> 3) PCI host bridge disappear after suspend+resume.
+> 
+> Do you have any idea what is happening here?
+
+No, but I agree it looks totally nonsensical.  I tried to pull out the
+hardware ASPM settings from all your lspci info (thanks very much for
+collecting all that).  Here's what I got.  The same/disabled comments
+are relative to the "default" baseline:
+
+                                default,      force       force             force     default      pcie_aspm=off  force pwrsave
+                              pcie_aspm=off   default   performance        powersave  after resume  after resume  after resume
+  notes                                                                               [1,2,3]       [1,2,3,5]     [1,2,3,4,5]
+  power usage                8.90W, 8.50(off) 11.15W    11.70W             11.20W     9.30W         11.20W        11.30W
+  00:01.0 RP [bus 01] GPU    L0s L1 ClockPM-  same      disabled           same       same          same          same
+  00:1c.0 RP [bus 02] empty  L0s L1 ClockPM-  same      same               same       same          same          same
+  00:1c.2 RP [bus 03] NIC    L1     ClockPM-  disabled  disabled           disabled   same          same          disabled
+  00:1c.4 RP [bus 04] empty  L0s L1 ClockPM-  same      same               same       same          same          same
+  00:1c.5 RP [bus 05] empty  L0s L1 ClockPM-  same      same               same       same          same          same
+  00:1c.7 RP [bus 06] SD/MMC L1     ClockPM-  same      disabled           same       same          same          L0s L1
+  01:00.0 Radeon GPU         ? [6]            ?         ?                  ?          ?             ?             ?
+  03:00.0 Centrino NIC       L1     ClockPM-  disabled  disabled           disabled   same          same          disabled
+  06:00.0 SD/MMC card        L1     ClockPM+  same      disabled ClockPM-  L0s L1     same          same          L0s L1
+
+  [1] 00:00.0 device absent
+  [2] 00:01.0 LnkCtl AutWidDis+, SltSta PresDet+
+  [3] 00:1c.2 SecStatus <MAbort-, SltSta LinkState+
+      00:1c.7 SecStatus <MAbort-, SltSta LinkState+
+      03:00.0 DevSta CorrErr-, UnsuppReq-
+  [4] 00:1c.2 LnkCtl ASPM Disabled
+      00:1c.7 LnkCtl L0s L1 Enabled
+      03:00.0 LnkCtl ASPM Disabled
+      06:00.0 LnkCtl ASPM L0s L1 Enabled
+  [5] 06:00.0 LTR max snoop 71680ns -> 566ns
+  [6] 01:00.0 seems completely powered off, probably because you're
+      using integrated video
+
+I haven't made sense out of any of this yet, except that the "force
+performance" column seems plausible: if we want performance, we should
+disable ASPM across the board.
+
+I don't really know where to start here.  Maybe we can focus on
+understanding one tiny piece.  Can you apply the following patch and
+try just the "force powersave" situation?  Please collect the entire
+dmesg log and "lspci -vv" output.
+
+Bjorn
