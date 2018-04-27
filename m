@@ -1,17 +1,17 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 07/13] drivers: base cacheinfo: Add support for ACPI
- based firmware tables
-Date: Fri, 27 Apr 2018 13:49:51 +0100
-Message-ID: <14062628-d6bb-2e46-fd7c-edce814b5d22@arm.com>
+Subject: Re: [PATCH v8 04/13] arm64/acpi: Create arch specific cpu to acpi id
+ helper
+Date: Fri, 27 Apr 2018 14:08:14 +0100
+Message-ID: <a00dd78c-6e94-26a2-1515-c677a032e6ce@arm.com>
 References: <20180425233121.13270-1-jeremy.linton@arm.com>
- <20180425233121.13270-8-jeremy.linton@arm.com>
- <c3306746-aacd-5ed8-95d6-a3186ec2089f@arm.com>
- <48bd3299-a95a-8aa6-524d-b3aa01dd9ef2@arm.com>
+ <20180425233121.13270-5-jeremy.linton@arm.com>
+ <16324b54-42d4-d9bc-6d57-de52431dc209@arm.com>
+ <ee956bd3-37d7-b9ac-af55-dc297397476d@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <48bd3299-a95a-8aa6-524d-b3aa01dd9ef2@arm.com>
+In-Reply-To: <ee956bd3-37d7-b9ac-af55-dc297397476d@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
@@ -20,56 +20,44 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 26/04/18 19:57, Jeremy Linton wrote:
+On 26/04/18 19:33, Jeremy Linton wrote:
 > Hi,
 > 
-> On 04/26/2018 06:05 AM, Sudeep Holla wrote:
+> On 04/26/2018 05:27 AM, Sudeep Holla wrote:
 >>
 >>
 >> On 26/04/18 00:31, Jeremy Linton wrote:
->>> Call ACPI cache parsing routines from base cacheinfo code if ACPI
->>> is enable. Also stub out cache_setup_acpi() so that individual
->>> architectures can enable ACPI topology parsing.
+>>> Its helpful to be able to lookup the acpi_processor_id associated
+>>> with a logical cpu. Provide an arm64 helper to do this.
 >>>
 >>
->> [...]
->>
->>> +#ifndef CONFIG_ACPI
->>> +static inline int acpi_find_last_cache_level(unsigned int cpu)
->>> +{
->>> +    /* ACPI kernels should be built with PPTT support */
->>
->> This sounds incorrect for x86. But I understand why you have it there.
->> Does it makes sense to change above to .. ?
->>
->> #if !defined(CONFIG_ACPI) || (defined(CONFIG_ACPI) &&
->> !(CONFIG_ACPI_PPTT))
->>
-> I'm not sure what that buys us, if anything you want more non-users of
-> the function to be falling through to the function prototype rather than
-> the static inline. The only place any of this matters (as long as the
-> compiler/linker is tossing the static inline) is arm64 because its the
-> only arch making a call to acpi_find_last_cache_level(). ACPI_PPTT is
-> also only visible on arm64 at the moment due to being wrapped in a if
-> ARM64 in the Kconfig
+>> As I pointed out in the earlier version, this patch is not required.
+>> The acpi_id stored in the acpi_processor can be used for this.
+>> Won't the below change make it work ? I can't think of any reason why it
+>> shouldn't.
+> 
+> So, I only noticed your previous email last night on the mail archive,
+> as I was applying your review/ack tags and couldn't find a response for
+> this patch, seem the spam/etc filters need some further tweaking!
+>
+
+Ah that's bad.
+
+> At that point, I was pretty sure the suggestion wasn't going to work out
+> of the box as a lot of this code is running fairly early in the boot
+> process. I spent a bit of time and plugged the change in to verify that
+> assertion, and yes the per_cpu processor/acpi bits aren't setup early
+> enough to be used by much of this code. It is being called from
+> init_cpu_topology()/smp_prepare_cpus() which precedes
+> do_basic_setup/do_initcalls() which is what runs the acpi_init()
+> sequence which ends up eventually allocating the required data
+> structures. So without restructuring the core boot sequence, this seems
+> like a reasonable solution.
 > 
 
-Fair enough.
-
-> Put another way, I wouldn't expect an arch to have a 'user' visible
-> option to enable/disable parsing the PPTT. If an arch can handle
-> ACPI/PPTT topology then I would expect it to be fixed to the CONFIG_ACPI
-> state. What happens when acpi_find_last_cache_level() is called should
-> only be dependent on whether ACPI is enabled, the PPTT parser itself
-> will handle the cases of a missing table.
-
-Agreed. But technically that statement is still incorrect as x86 ACPI
-build need not have PPTT enabled. IMO you can reword it, but I will
-leave that to Rafael :)
-
-Other than that, it looks good.
-
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+OK makes sense. I completely ignored topology related patches as I
+haven't looked at them yet and assumed cacheinfo is the only user. Sorry
+for that.
 
 -- 
 Regards,
