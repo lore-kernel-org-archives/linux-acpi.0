@@ -1,30 +1,114 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v1] device property: Get rid of union aliasing
-Date: Fri, 27 Apr 2018 12:56:08 +0200
-Message-ID: <CAJZ5v0jgQwQCSqAfnap+pLBqBy-aMTORU=P3g5J77GK46-xOBQ@mail.gmail.com>
-References: <20180426102356.77394-1-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v8 05/13] ACPI/PPTT: Add Processor Properties Topology
+ Table parsing
+Date: Fri, 27 Apr 2018 13:02:00 +0200
+Message-ID: <CAJZ5v0jjPnyC0vm-Fb8y2hw1B9Uc2J5sZrtZYzt_ENT2Sini3A@mail.gmail.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com> <20180425233121.13270-6-jeremy.linton@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180426102356.77394-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20180425233121.13270-6-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, austinwc
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Apr 26, 2018 at 12:23 PM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> The commit
+On Thu, Apr 26, 2018 at 1:31 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
+> ACPI 6.2 adds a new table, which describes how processing units
+> are related to each other in tree like fashion. Caches are
+> also sprinkled throughout the tree and describe the properties
+> of the caches in relation to other caches and processing units.
 >
->   318a19718261 ("device property: refactor built-in properties support")
+> Add the code to parse the cache hierarchy and report the total
+> number of levels of cache for a given core using
+> acpi_find_last_cache_level() as well as fill out the individual
+> cores cache information with cache_setup_acpi() once the
+> cpu_cacheinfo structure has been populated by the arch specific
+> code.
 >
-> went way too far and brought a union aliasing. Partially revert it here
-> to get rid of union aliasing.
+> An additional patch later in the set adds the ability to report
+> peers in the topology using find_acpi_cpu_topology()
+> to report a unique ID for each processing unit at a given level
+> in the tree. These unique id's can then be used to match related
+> processing units which exist as threads, within a given
+> package, etc.
 >
-> Note, Apple properties support is still utilizing this trick.
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  drivers/acpi/pptt.c | 518 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 518 insertions(+)
+>  create mode 100644 drivers/acpi/pptt.c
+>
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> new file mode 100644
+> index 000000000000..cced71ef851a
+> --- /dev/null
+> +++ b/drivers/acpi/pptt.c
+> @@ -0,0 +1,518 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * pptt.c - parsing of Processor Properties Topology Table
+> + *
+> + * Copyright (C) 2018, ARM
+> + *
+> + * This file implements parsing of Processor Properties Topology Table (PPTT)
+> + * which is optionally used to describe the processor and cache topology.
+> + * Due to the relative pointers used throughout the table, this doesn't
+> + * leverage the existing subtable parsing in the kernel.
+> + *
+> + * The PPTT structure is an inverted tree, with each node potentially
+> + * holding one or two inverted tree data structures describing
+> + * the caches available at that level. Each cache structure optionally
+> + * contains properties describing the cache at a given level which can be
+> + * used to override hardware probed values.
+> + */
+> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/cacheinfo.h>
+> +#include <acpi/processor.h>
+> +
+> +/**
+> + * fetch_pptt_subtable() - Find/Verify that the PPTT ref is a valid subtable
 
-Can you please resend this with a slightly more detailed description
-of what's going on in the changelog?
+The parens above are at least redundant (if not harmful).  Everywhere
+else in a similar context too.
 
-Someone reading git logs in the future would have a really hard time
-with decoding the above, and the last sentence in particular. :-)
+Also kerneldoc comments document function arguments too as a rule, so
+please do that here and wherever you use kerneldoc comments in the
+patchset.
+
+> + *
+> + * Given the PPTT table, find and verify that the subtable entry
+> + * is located within the table
+> + *
+> + * Return: acpi_subtable_header* or NULL
+> + */
+> +static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
+> +                                                       u32 pptt_ref)
+> +{
+> +       struct acpi_subtable_header *entry;
+> +
+> +       /* there isn't a subtable at reference 0 */
+> +       if (pptt_ref < sizeof(struct acpi_subtable_header))
+> +               return NULL;
+> +
+> +       if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
+> +               return NULL;
+> +
+> +       entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr, pptt_ref);
+> +
+> +       if (entry->length == 0)
+> +               return NULL;
+> +
+> +       if (pptt_ref + entry->length > table_hdr->length)
+> +               return NULL;
+> +
+> +       return entry;
+> +}
+
+Apart from the above I'm not entirely sure why you need the changes in
+patch [09/13] to go in a separate patch.  All of them are new code
+going into the file created by this patch, so why not to put them
+here?
