@@ -1,56 +1,95 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v8 07/13] drivers: base cacheinfo: Add support for ACPI
- based firmware tables
-Date: Thu, 26 Apr 2018 13:57:00 -0500
-Message-ID: <48bd3299-a95a-8aa6-524d-b3aa01dd9ef2@arm.com>
-References: <20180425233121.13270-1-jeremy.linton@arm.com>
- <20180425233121.13270-8-jeremy.linton@arm.com>
- <c3306746-aacd-5ed8-95d6-a3186ec2089f@arm.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
+ devices
+Date: Fri, 27 Apr 2018 10:17:45 +0100
+Message-ID: <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
+References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
+ <1524218846-169934-2-git-send-email-john.garry@huawei.com>
+ <20180420130727.GV2173@lahna.fi.intel.com>
+ <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
+ <20180420135222.GY2173@lahna.fi.intel.com>
+ <75eae3ac-228f-d6a4-bb0e-4bd27e35c55d@huawei.com>
+ <09e3aa95-86ae-ca30-7bb5-a9704d296b43@huawei.com>
+ <20180426140808.GK2173@lahna.fi.intel.com>
+ <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c3306746-aacd-5ed8-95d6-a3186ec2089f@arm.com>
-Content-Language: en-US
+In-Reply-To: <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: andriy.shevchenko@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, lee.jones@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+On 26/04/2018 15:23, John Garry wrote:
 
-On 04/26/2018 06:05 AM, Sudeep Holla wrote:
-> 
-> 
-> On 26/04/18 00:31, Jeremy Linton wrote:
->> Call ACPI cache parsing routines from base cacheinfo code if ACPI
->> is enable. Also stub out cache_setup_acpi() so that individual
->> architectures can enable ACPI topology parsing.
++
+
+> On 26/04/2018 15:08, Mika Westerberg wrote:
+>> On Thu, Apr 26, 2018 at 02:49:49PM +0100, John Garry wrote:
+>>> diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
+>>> index 2d4611e..b04425b 100644
+>>> --- a/drivers/bus/hisi_lpc.c
+>>> +++ b/drivers/bus/hisi_lpc.c
+>>> @@ -18,6 +18,8 @@
+>>>  #include <linux/of_platform.h>
+>>>  #include <linux/pci.h>
+>>>  #include <linux/slab.h>
+>>> +#include <linux/serial_8250.h>
+>>> +#include "../tty/serial/8250/8250.h"
+>>>
+>>>  #define DRV_NAME "hisi-lpc"
+>>>
+>>> @@ -345,6 +347,7 @@ static void hisi_lpc_comm_outs(void *hostdata,
+>>> unsigned
+>>> long pio,
+>>>  #define MFD_CHILD_NAME_LEN (ACPI_ID_LEN +
+>>> sizeof(MFD_CHILD_NAME_PREFIX) -
+>>> 1)
+>>>
+>>>  struct hisi_lpc_mfd_cell {
+>>> +    struct plat_serial8250_port serial8250_port;
+>>>      struct mfd_cell_acpi_match acpi_match;
+>>>      char name[MFD_CHILD_NAME_LEN];
+>>>      char pnpid[ACPI_ID_LEN];
+>>> @@ -513,10 +516,31 @@ static int hisi_lpc_acpi_probe(struct device
+>>> *hostdev)
+>>>          dev_warn(&child->dev, "set resource fail (%d)\n", ret);
+>>>              return ret;
+>>>          }
+>>> +    if (!strcmp(acpi_device_hid(child), "HISI1031")) {
 >>
-> 
-> [...]
-> 
->> +#ifndef CONFIG_ACPI
->> +static inline int acpi_find_last_cache_level(unsigned int cpu)
->> +{
->> +	/* ACPI kernels should be built with PPTT support */
-> 
-> This sounds incorrect for x86. But I understand why you have it there.
-> Does it makes sense to change above to .. ?
-> 
-> #if !defined(CONFIG_ACPI) || (defined(CONFIG_ACPI) && !(CONFIG_ACPI_PPTT))
-> 
-I'm not sure what that buys us, if anything you want more non-users of 
-the function to be falling through to the function prototype rather than 
-the static inline. The only place any of this matters (as long as the 
-compiler/linker is tossing the static inline) is arm64 because its the 
-only arch making a call to acpi_find_last_cache_level(). ACPI_PPTT is 
-also only visible on arm64 at the moment due to being wrapped in a if 
-ARM64 in the Kconfig
+>
+> Hi Mika,
+>
+>> Hmm, there is a way in struct mfd_cell to match child devices using _HID
+>> so is there something preventing you from using that?
+>
+> Not that I know about. Can you describe this method? I guess I also
+> don't need to set the mfd_cell pnpid either for this special case device.
+>
 
-Put another way, I wouldn't expect an arch to have a 'user' visible 
-option to enable/disable parsing the PPTT. If an arch can handle 
-ACPI/PPTT topology then I would expect it to be fixed to the CONFIG_ACPI 
-state. What happens when acpi_find_last_cache_level() is called should 
-only be dependent on whether ACPI is enabled, the PPTT parser itself 
-will handle the cases of a missing table.
+So we using the mfd_cell to match child devices using _HID. At a glance, 
+I don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
+
+Anyway we don't use static tables as we need to update the resources of 
+the cell dynamically. However I do look at a driver like 
+intel_quark_i2c_gpio.c, and this dynamically modifies the value of 
+global mfd_cell array here:
+https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
+
+I know the cell array is only used at probe time, but this did not look 
+to be good standard practice to me.
+
+Thanks,
+John
+
+> Thanks,
+> John
+>
+>
+>>
+>> .
+>>
+>
