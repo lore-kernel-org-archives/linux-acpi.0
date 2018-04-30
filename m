@@ -1,92 +1,111 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
- devices
-Date: Mon, 30 Apr 2018 06:36:11 +0100
-Message-ID: <20180430053611.GA11990@dell>
-References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
- <1524218846-169934-2-git-send-email-john.garry@huawei.com>
- <20180420130727.GV2173@lahna.fi.intel.com>
- <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
- <20180420135222.GY2173@lahna.fi.intel.com>
- <75eae3ac-228f-d6a4-bb0e-4bd27e35c55d@huawei.com>
- <09e3aa95-86ae-ca30-7bb5-a9704d296b43@huawei.com>
- <20180426140808.GK2173@lahna.fi.intel.com>
- <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
- <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
+From: Akshu Agrawal <akshu.agrawal@amd.com>
+Subject: [PATCH] ACPI: APD: Add AMD misc clock handler support
+Date: Mon, 30 Apr 2018 15:10:05 +0800
+Message-ID: <1525072206-17956-1-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, andriy.shevchenko@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
+Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 27 Apr 2018, John Garry wrote:
-> On 26/04/2018 15:23, John Garry wrote:
-> > On 26/04/2018 15:08, Mika Westerberg wrote:
-> > > On Thu, Apr 26, 2018 at 02:49:49PM +0100, John Garry wrote:
-> > > > diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
-> > > > index 2d4611e..b04425b 100644
-> > > > --- a/drivers/bus/hisi_lpc.c
-> > > > +++ b/drivers/bus/hisi_lpc.c
-> > > > @@ -18,6 +18,8 @@
-> > > >  #include <linux/of_platform.h>
-> > > >  #include <linux/pci.h>
-> > > >  #include <linux/slab.h>
-> > > > +#include <linux/serial_8250.h>
-> > > > +#include "../tty/serial/8250/8250.h"
-> > > > 
-> > > >  #define DRV_NAME "hisi-lpc"
-> > > > 
-> > > > @@ -345,6 +347,7 @@ static void hisi_lpc_comm_outs(void *hostdata,
-> > > > unsigned
-> > > > long pio,
-> > > >  #define MFD_CHILD_NAME_LEN (ACPI_ID_LEN +
-> > > > sizeof(MFD_CHILD_NAME_PREFIX) -
-> > > > 1)
-> > > > 
-> > > >  struct hisi_lpc_mfd_cell {
-> > > > +    struct plat_serial8250_port serial8250_port;
-> > > >      struct mfd_cell_acpi_match acpi_match;
-> > > >      char name[MFD_CHILD_NAME_LEN];
-> > > >      char pnpid[ACPI_ID_LEN];
-> > > > @@ -513,10 +516,31 @@ static int hisi_lpc_acpi_probe(struct device
-> > > > *hostdev)
-> > > >          dev_warn(&child->dev, "set resource fail (%d)\n", ret);
-> > > >              return ret;
-> > > >          }
-> > > > +    if (!strcmp(acpi_device_hid(child), "HISI1031")) {
-> > > 
-> > 
-> > Hi Mika,
-> > 
-> > > Hmm, there is a way in struct mfd_cell to match child devices using _HID
-> > > so is there something preventing you from using that?
-> > 
-> > Not that I know about. Can you describe this method? I guess I also
-> > don't need to set the mfd_cell pnpid either for this special case device.
-> > 
-> 
-> So we using the mfd_cell to match child devices using _HID. At a glance, I
-> don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
-> 
-> Anyway we don't use static tables as we need to update the resources of the
-> cell dynamically. However I do look at a driver like intel_quark_i2c_gpio.c,
-> and this dynamically modifies the value of global mfd_cell array here:
-> https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
-> 
-> I know the cell array is only used at probe time, but this did not look to
-> be good standard practice to me.
+AMD SoC exposes clock for general purpose use. The clock registration
+is done in clk-st driver. The MMIO mapping are passed on to the
+clock driver for accessing the registers.
+The misc clock handler will create MMIO mappings to access the
+clock registers and enable the clock driver to expose the clock
+for use of drivers which will connect to it.
 
-Lots of drivers do this to supply dynamic data.  If there is no other
-sane way of providing such data, it's fine to do.  Although each
-situation should be dealt with on a case-by-case basis.
+Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+---
+ drivers/acpi/acpi_apd.c | 54 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
+diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+index d553b00..6328031 100644
+--- a/drivers/acpi/acpi_apd.c
++++ b/drivers/acpi/acpi_apd.c
+@@ -11,6 +11,7 @@
+  */
+ 
+ #include <linux/clk-provider.h>
++#include <linux/platform_data/clk-st.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_domain.h>
+ #include <linux/clkdev.h>
+@@ -72,6 +73,54 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
+ }
+ 
+ #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
++
++static int misc_check_res(struct acpi_resource *ares, void *data)
++{
++	struct resource res;
++
++	return !acpi_dev_resource_memory(ares, &res);
++}
++
++static int st_misc_setup(struct apd_private_data *pdata)
++{
++	struct acpi_device *adev = pdata->adev;
++	struct platform_device *clkdev;
++	struct st_clk_data *clk_data;
++	struct resource_entry *rentry;
++	struct list_head resource_list;
++	int ret;
++
++	clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data), GFP_KERNEL);
++	if (!clk_data)
++		return -ENOMEM;
++
++	INIT_LIST_HEAD(&resource_list);
++	ret = acpi_dev_get_resources(adev, &resource_list, misc_check_res,
++				     NULL);
++	if (ret < 0) {
++		devm_kfree(&adev->dev, clk_data);
++		return -ENOMEM;
++	}
++
++	list_for_each_entry(rentry, &resource_list, node) {
++		clk_data->base = ioremap(rentry->res->start,
++					 resource_size(rentry->res));
++		break;
++	}
++
++	acpi_dev_free_resource_list(&resource_list);
++
++	clkdev = platform_device_register_data(&adev->dev, "clk-st",
++					       PLATFORM_DEVID_NONE, clk_data,
++					       sizeof(*clk_data));
++	if (IS_ERR(clkdev)) {
++		kfree(clk_data);
++		return PTR_ERR(clkdev);
++	}
++
++	return 0;
++}
++
+ static const struct apd_device_desc cz_i2c_desc = {
+ 	.setup = acpi_apd_setup,
+ 	.fixed_clk_rate = 133000000,
+@@ -94,6 +143,10 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
+ 	.fixed_clk_rate = 48000000,
+ 	.properties = uart_properties,
+ };
++
++static const struct apd_device_desc st_misc_desc = {
++	.setup = st_misc_setup,
++};
+ #endif
+ 
+ #ifdef CONFIG_ARM64
+@@ -179,6 +232,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
+ 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
+ 	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
+ 	{ "AMD0030", },
++	{ "AMD0040", APD_ADDR(st_misc_desc)},
+ #endif
+ #ifdef CONFIG_ARM64
+ 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
 -- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+1.9.1
