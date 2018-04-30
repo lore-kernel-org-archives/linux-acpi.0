@@ -1,53 +1,74 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] tools: power/acpi, revert to LD = gcc
-Date: Mon, 30 Apr 2018 10:00:54 +0200
-Message-ID: <6842093.byeXVzAmGC@aspire.rjw.lan>
-References: <54661ff7-5c2a-473b-e08c-1cd267353c03@martingkelly.com> <20180424074344.23029-1-jslaby@suse.cz>
+Subject: Re: [PATCH v2] ACPI / button: make module loadable when booted in non-ACPI mode
+Date: Mon, 30 Apr 2018 10:04:16 +0200
+Message-ID: <2286238.nKNuTerCUV@aspire.rjw.lan>
+References: <20180423091656.26257-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180424074344.23029-1-jslaby@suse.cz>
+In-Reply-To: <20180423091656.26257-1-ard.biesheuvel@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: linux-kernel@vger.kernel.org, Martin Kelly <martin@martingkelly.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, arnd@arndb.de, broonie@kernel.org, lorenzo.pieralisi@arm.com, bill.fletcher@linaro.org, linux-arm-kernel@lists.infradead.org, graeme.gregory@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, April 24, 2018 9:43:44 AM CEST Jiri Slaby wrote:
-> Commit 7ed1c1901fe5 (tools: fix cross-compile var clobbering) removed
-> setting of LD to $(CROSS_COMPILE)gcc. This broke build of acpica
-> (acpidump) in power/acpi:
->  ld: unrecognized option '-D_LINUX'
+On Monday, April 23, 2018 11:16:56 AM CEST Ard Biesheuvel wrote:
+> Modules such as nouveau.ko and i915.ko have a link time dependency on
+> acpi_lid_open(), and due to its use of acpi_bus_register_driver(),
+> the button.ko module that provides it is only loadable when booted in
+> ACPI mode. However, the ACPI button driver can be built into the core
+> kernel as well, in which case the dependency can always be satisfied,
+> and the dependent modules can be loaded regardless of whether the
+> system was booted in ACPI mode or not.
 > 
-> The tools pass CFLAGS to the linker (incl. -D_LINUX), so revert this
-> particular change and let LD be $(CC) again. Note that the old behaviour
-> was a bit different, it used $(CROSS_COMPILE)gcc which was eliminated by
-> the commit 7ed1c1901fe5. We use $(CC) for that reason.
+> So let's fix this asymmetry by making the ACPI button driver loadable
+> as a module even if not booted in ACPI mode, so it can provide the
+> acpi_lid_open() symbol in the same way as when built into the kernel.
 > 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Martin Kelly <martin@martingkelly.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Erik Schmauss <erik.schmauss@intel.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: devel@acpica.org
+> Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 > ---
->  tools/power/acpi/Makefile.config | 1 +
->  1 file changed, 1 insertion(+)
+> v2: invert acpi_disabled logic and move comment into __acpi_bus_register_driver
 > 
-> diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-> index 2cccbba64418..f304be71c278 100644
-> --- a/tools/power/acpi/Makefile.config
-> +++ b/tools/power/acpi/Makefile.config
-> @@ -56,6 +56,7 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
->  # to compile vs uClibc, that can be done here as well.
->  CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
->  CROSS_COMPILE ?= $(CROSS)
-> +LD = $(CC)
->  HOSTCC = gcc
+> Could we perhaps get this into -stable as well? It is not a classic
+> regression, but it completely breaks, e.g., Fedora when booting in
+> DT mode on an ARM system.
+> 
+>  drivers/acpi/button.c | 24 +++++++++++++++++++-
+>  1 file changed, 23 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> index e1eee7a60fad..f33242e4fe6c 100644
+> --- a/drivers/acpi/button.c
+> +++ b/drivers/acpi/button.c
+> @@ -635,4 +635,26 @@ module_param_call(lid_init_state,
+>  		  NULL, 0644);
+>  MODULE_PARM_DESC(lid_init_state, "Behavior for reporting LID initial state");
 >  
->  # check if compiler option is supported
+> -module_acpi_driver(acpi_button_driver);
+> +static int __acpi_bus_register_driver(struct acpi_driver *driver)
+> +{
+> +	/*
+> +	 * Modules such as nouveau.ko and i915.ko have a link time dependency
+> +	 * on acpi_lid_open(), and would therefore not be loadable on ACPI
+> +	 * capable kernels booted in non-ACPI mode if we use the ordinary
+> +	 * acpi_bus_[un]register_driver routines here (which only work when
+> +	 * booted in ACPI mode) and build this driver as a module. So provide
+> +	 * our own versions instead.
+> +	 */
+> +	if (acpi_disabled)
+> +		return 0;
+> +	return acpi_bus_register_driver(driver);
+> +}
+> +
+> +static void __acpi_bus_unregister_driver(struct acpi_driver *driver)
+> +{
+> +	if (!acpi_disabled)
+> +		acpi_bus_unregister_driver(driver);
+> +}
+> +
+> +module_driver(acpi_button_driver, __acpi_bus_register_driver,
+> +	      __acpi_bus_unregister_driver);
 > 
 
-Applied, thanks!
+Applied (with some minor modifications) and merged into 4.17-rc3, thanks!
