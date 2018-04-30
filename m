@@ -1,111 +1,89 @@
-From: Akshu Agrawal <akshu.agrawal@amd.com>
-Subject: [PATCH] ACPI: APD: Add AMD misc clock handler support
-Date: Mon, 30 Apr 2018 15:10:05 +0800
-Message-ID: <1525072206-17956-1-git-send-email-akshu.agrawal@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v8 05/13] ACPI/PPTT: Add Processor Properties Topology Table parsing
+Date: Mon, 30 Apr 2018 09:59:27 +0200
+Message-ID: <14124257.1v74WDqhJi@aspire.rjw.lan>
+References: <20180425233121.13270-1-jeremy.linton@arm.com> <CAJZ5v0jjPnyC0vm-Fb8y2hw1B9Uc2J5sZrtZYzt_ENT2Sini3A@mail.gmail.com> <b750e86b-bc51-0440-b48d-0e8d3177fa8d@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <b750e86b-bc51-0440-b48d-0e8d3177fa8d@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, austinwc
 List-Id: linux-acpi@vger.kernel.org
 
-AMD SoC exposes clock for general purpose use. The clock registration
-is done in clk-st driver. The MMIO mapping are passed on to the
-clock driver for accessing the registers.
-The misc clock handler will create MMIO mappings to access the
-clock registers and enable the clock driver to expose the clock
-for use of drivers which will connect to it.
+On Friday, April 27, 2018 6:20:44 PM CEST Jeremy Linton wrote:
+> Hi,
+> 
+> Thanks for taking a look at this.
+> 
+> On 04/27/2018 06:02 AM, Rafael J. Wysocki wrote:
+> > On Thu, Apr 26, 2018 at 1:31 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
+> >> ACPI 6.2 adds a new table, which describes how processing units
+> >> are related to each other in tree like fashion. Caches are
+> >> also sprinkled throughout the tree and describe the properties
+> >> of the caches in relation to other caches and processing units.
+> >>
+> >> Add the code to parse the cache hierarchy and report the total
+> >> number of levels of cache for a given core using
+> >> acpi_find_last_cache_level() as well as fill out the individual
+> >> cores cache information with cache_setup_acpi() once the
+> >> cpu_cacheinfo structure has been populated by the arch specific
+> >> code.
+> >>
+> >> An additional patch later in the set adds the ability to report
+> >> peers in the topology using find_acpi_cpu_topology()
+> >> to report a unique ID for each processing unit at a given level
+> >> in the tree. These unique id's can then be used to match related
+> >> processing units which exist as threads, within a given
+> >> package, etc.
+> >>
+> >> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> >> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+> >> ---
+> >>   drivers/acpi/pptt.c | 518 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+> >>   1 file changed, 518 insertions(+)
+> >>   create mode 100644 drivers/acpi/pptt.c
+> >>
+> >> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> >> new file mode 100644
+> >> index 000000000000..cced71ef851a
+> >> --- /dev/null
+> >> +++ b/drivers/acpi/pptt.c
+> >> @@ -0,0 +1,518 @@
+> >> +// SPDX-License-Identifier: GPL-2.0
+> >> +/*
+> >> + * pptt.c - parsing of Processor Properties Topology Table
+> >> + *
+> >> + * Copyright (C) 2018, ARM
+> >> + *
+> >> + * This file implements parsing of Processor Properties Topology Table (PPTT)
+> >> + * which is optionally used to describe the processor and cache topology.
+> >> + * Due to the relative pointers used throughout the table, this doesn't
+> >> + * leverage the existing subtable parsing in the kernel.
+> >> + *
+> >> + * The PPTT structure is an inverted tree, with each node potentially
+> >> + * holding one or two inverted tree data structures describing
+> >> + * the caches available at that level. Each cache structure optionally
+> >> + * contains properties describing the cache at a given level which can be
+> >> + * used to override hardware probed values.
+> >> + */
+> >> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
+> >> +
+> >> +#include <linux/acpi.h>
+> >> +#include <linux/cacheinfo.h>
+> >> +#include <acpi/processor.h>
+> >> +
+> >> +/**
+> >> + * fetch_pptt_subtable() - Find/Verify that the PPTT ref is a valid subtable
+> > 
+> > The parens above are at least redundant (if not harmful).  Everywhere
+> > else in a similar context too.
+> 
+> The kerneldoc ones? I guess i'm confused the kernel doc example in 
+> doc-guide/kernel-doc has
+> 
+> * function_name() - Brief description of function.
 
-Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
----
- drivers/acpi/acpi_apd.c | 54 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
-
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index d553b00..6328031 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -11,6 +11,7 @@
-  */
- 
- #include <linux/clk-provider.h>
-+#include <linux/platform_data/clk-st.h>
- #include <linux/platform_device.h>
- #include <linux/pm_domain.h>
- #include <linux/clkdev.h>
-@@ -72,6 +73,54 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- }
- 
- #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+
-+static int misc_check_res(struct acpi_resource *ares, void *data)
-+{
-+	struct resource res;
-+
-+	return !acpi_dev_resource_memory(ares, &res);
-+}
-+
-+static int st_misc_setup(struct apd_private_data *pdata)
-+{
-+	struct acpi_device *adev = pdata->adev;
-+	struct platform_device *clkdev;
-+	struct st_clk_data *clk_data;
-+	struct resource_entry *rentry;
-+	struct list_head resource_list;
-+	int ret;
-+
-+	clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data), GFP_KERNEL);
-+	if (!clk_data)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list, misc_check_res,
-+				     NULL);
-+	if (ret < 0) {
-+		devm_kfree(&adev->dev, clk_data);
-+		return -ENOMEM;
-+	}
-+
-+	list_for_each_entry(rentry, &resource_list, node) {
-+		clk_data->base = ioremap(rentry->res->start,
-+					 resource_size(rentry->res));
-+		break;
-+	}
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	clkdev = platform_device_register_data(&adev->dev, "clk-st",
-+					       PLATFORM_DEVID_NONE, clk_data,
-+					       sizeof(*clk_data));
-+	if (IS_ERR(clkdev)) {
-+		kfree(clk_data);
-+		return PTR_ERR(clkdev);
-+	}
-+
-+	return 0;
-+}
-+
- static const struct apd_device_desc cz_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 133000000,
-@@ -94,6 +143,10 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- 	.fixed_clk_rate = 48000000,
- 	.properties = uart_properties,
- };
-+
-+static const struct apd_device_desc st_misc_desc = {
-+	.setup = st_misc_setup,
-+};
- #endif
- 
- #ifdef CONFIG_ARM64
-@@ -179,6 +232,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
- 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMD0030", },
-+	{ "AMD0040", APD_ADDR(st_misc_desc)},
- #endif
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
--- 
-1.9.1
+Well, OK, the parens not harmful, then, but it works without them.
