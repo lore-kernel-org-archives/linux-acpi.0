@@ -1,8 +1,8 @@
-From: Lee Jones <lee.jones@linaro.org>
+From: John Garry <john.garry@huawei.com>
 Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
  devices
-Date: Mon, 30 Apr 2018 10:26:59 +0100
-Message-ID: <20180430092659.GA5147@dell>
+Date: Mon, 30 Apr 2018 10:35:13 +0100
+Message-ID: <6e71041d-1fc5-40b1-11b2-4af2f2d9c569@huawei.com>
 References: <20180420130727.GV2173@lahna.fi.intel.com>
  <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
  <20180420135222.GY2173@lahna.fi.intel.com>
@@ -13,101 +13,55 @@ References: <20180420130727.GV2173@lahna.fi.intel.com>
  <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
  <20180430053611.GA11990@dell>
  <67a620ee-fd1f-4b5e-aa91-9f280a63807b@huawei.com>
+ <20180430092659.GA5147@dell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <67a620ee-fd1f-4b5e-aa91-9f280a63807b@huawei.com>
+In-Reply-To: <20180430092659.GA5147@dell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
+To: Lee Jones <lee.jones@linaro.org>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, andriy.shevchenko@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 30 Apr 2018, John Garry wrote:
+>>>> So we using the mfd_cell to match child devices using _HID. At a glance, I
+>>>> don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
+>>>>
+>>>> Anyway we don't use static tables as we need to update the resources of the
+>>>> cell dynamically. However I do look at a driver like intel_quark_i2c_gpio.c,
+>>>> and this dynamically modifies the value of global mfd_cell array here:
+>>>> https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
+>>>>
+>>>> I know the cell array is only used at probe time, but this did not look to
+>>>> be good standard practice to me.
+>>>
+>>> Lots of drivers do this to supply dynamic data.  If there is no other
+>>> sane way of providing such data, it's fine to do.  Although each
+>>> situation should be dealt with on a case-by-case basis.
+>>>
+>>
+>> Hi Lee,
+>>
+>> Thanks for your input.
+>>
+>> I do see others drivers which use dynamic mem for the mfd_cells (like
+>> cros_ec_dev.c), so what we're doing in this driver already is not totally
+>> unchartered territory. But creating the MFD cells from the ACPI table could
+>> be ...
+>
+> Right.  I don't normally like mixing platform data technologies (MFD,
+> ACPI and DT).  I normally NACK patches which take information from
+> Device Tree and populate MFD cells with it.  ACPI would be the same I
+> guess.
 
-> On 30/04/2018 06:36, Lee Jones wrote:
-> > On Fri, 27 Apr 2018, John Garry wrote:
-> > > On 26/04/2018 15:23, John Garry wrote:
-> > > > On 26/04/2018 15:08, Mika Westerberg wrote:
-> > > > > On Thu, Apr 26, 2018 at 02:49:49PM +0100, John Garry wrote:
-> > > > > > diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
-> > > > > > index 2d4611e..b04425b 100644
-> > > > > > --- a/drivers/bus/hisi_lpc.c
-> > > > > > +++ b/drivers/bus/hisi_lpc.c
-> > > > > > @@ -18,6 +18,8 @@
-> > > > > >  #include <linux/of_platform.h>
-> > > > > >  #include <linux/pci.h>
-> > > > > >  #include <linux/slab.h>
-> > > > > > +#include <linux/serial_8250.h>
-> > > > > > +#include "../tty/serial/8250/8250.h"
-> > > > > > 
-> > > > > >  #define DRV_NAME "hisi-lpc"
-> > > > > > 
-> > > > > > @@ -345,6 +347,7 @@ static void hisi_lpc_comm_outs(void *hostdata,
-> > > > > > unsigned
-> > > > > > long pio,
-> > > > > >  #define MFD_CHILD_NAME_LEN (ACPI_ID_LEN +
-> > > > > > sizeof(MFD_CHILD_NAME_PREFIX) -
-> > > > > > 1)
-> > > > > > 
-> > > > > >  struct hisi_lpc_mfd_cell {
-> > > > > > +    struct plat_serial8250_port serial8250_port;
-> > > > > >      struct mfd_cell_acpi_match acpi_match;
-> > > > > >      char name[MFD_CHILD_NAME_LEN];
-> > > > > >      char pnpid[ACPI_ID_LEN];
-> > > > > > @@ -513,10 +516,31 @@ static int hisi_lpc_acpi_probe(struct device
-> > > > > > *hostdev)
-> > > > > >          dev_warn(&child->dev, "set resource fail (%d)\n", ret);
-> > > > > >              return ret;
-> > > > > >          }
-> > > > > > +    if (!strcmp(acpi_device_hid(child), "HISI1031")) {
-> > > > > 
-> > > > 
-> > > > Hi Mika,
-> > > > 
-> > > > > Hmm, there is a way in struct mfd_cell to match child devices using _HID
-> > > > > so is there something preventing you from using that?
-> > > > 
-> > > > Not that I know about. Can you describe this method? I guess I also
-> > > > don't need to set the mfd_cell pnpid either for this special case device.
-> > > > 
-> > > 
-> > > So we using the mfd_cell to match child devices using _HID. At a glance, I
-> > > don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
-> > > 
-> > > Anyway we don't use static tables as we need to update the resources of the
-> > > cell dynamically. However I do look at a driver like intel_quark_i2c_gpio.c,
-> > > and this dynamically modifies the value of global mfd_cell array here:
-> > > https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
-> > > 
-> > > I know the cell array is only used at probe time, but this did not look to
-> > > be good standard practice to me.
-> > 
-> > Lots of drivers do this to supply dynamic data.  If there is no other
-> > sane way of providing such data, it's fine to do.  Although each
-> > situation should be dealt with on a case-by-case basis.
-> > 
-> 
-> Hi Lee,
-> 
-> Thanks for your input.
-> 
-> I do see others drivers which use dynamic mem for the mfd_cells (like
-> cros_ec_dev.c), so what we're doing in this driver already is not totally
-> unchartered territory. But creating the MFD cells from the ACPI table could
-> be ...
+Oh, well that is what we have in this driver. So what's the preferred 
+approach? Just not use MFD model at all if ACPI/DT needs to be scanned 
+for data to create the cells?
 
-Right.  I don't normally like mixing platform data technologies (MFD,
-ACPI and DT).  I normally NACK patches which take information from
-Device Tree and populate MFD cells with it.  ACPI would be the same I
-guess.
+Thanks,
+John
 
-> Anyway, I'll cc you in my next patchset and maybe you can kindly check it.
-> 
-
--- 
-Lee Jones [李琼斯]
-Linaro Services Technical Lead
-Linaro.org │ Open source software for ARM SoCs
-Follow Linaro: Facebook | Twitter | Blog
+>
+>> Anyway, I'll cc you in my next patchset and maybe you can kindly check it.
+>>
+>
