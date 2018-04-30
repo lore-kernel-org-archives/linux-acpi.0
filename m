@@ -1,172 +1,75 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: Bug? pcie_aspm=off cause less power consumption as default
-Date: Mon, 30 Apr 2018 16:49:54 -0500
-Message-ID: <20180430214954.GH95643@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180422171647.7v65zrlwhya5mq7v@pali>
- <20180427195313.GH8199@bhelgaas-glaptop.roam.corp.google.com>
- <20180430212321.hwvdhwk2hhjbd7nw@pali>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 1/3] ACPI: improve function documentation for
+ acpi_parse_entries_array()
+Date: Mon, 30 Apr 2018 17:27:15 -0600
+Message-ID: <b3cc349d-d264-c0cf-9141-8e421a139b46@redhat.com>
+References: <20180424193505.6934-1-ahs3@redhat.com>
+ <20180424193505.6934-2-ahs3@redhat.com>
+ <CAJZ5v0h+TcJg5iNFOFQYiXKmuN3+PWe8akx_0BT6jdfZ71yNwg@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180430212321.hwvdhwk2hhjbd7nw@pali>
+In-Reply-To: <CAJZ5v0h+TcJg5iNFOFQYiXKmuN3+PWe8akx_0BT6jdfZ71yNwg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vidya Sagar <vidyas@nvidia.com>, Rajat Jain <rajatja@google.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 30, 2018 at 11:23:21PM +0200, Pali Rohár wrote:
-> On Friday 27 April 2018 14:53:13 Bjorn Helgaas wrote:
-> > Can you apply the following patch and try just the "force powersave" situation?
+On 04/27/2018 05:04 AM, Rafael J. Wysocki wrote:
+> On Tue, Apr 24, 2018 at 9:35 PM, Al Stone <ahs3@redhat.com> wrote:
+>> I found the description of the table_size argument to the function
+>> acpi_parse_entries_array() unclear and ambiguous.  This is a minor
+>> documentation change to improve that description so I don't misuse
+>> the argument again in the future, and it is hopefully clearer to
+>> other future users.
+>>
+>> Signed-off-by: Al Stone <ahs3@redhat.com>
+>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> Cc: Len Brown <lenb@kernel.org>
+>> ---
+>>  drivers/acpi/tables.c | 6 ++++--
+>>  1 file changed, 4 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>> index 849c4fb19b03..21535762b890 100644
+>> --- a/drivers/acpi/tables.c
+>> +++ b/drivers/acpi/tables.c
+>> @@ -222,7 +222,9 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>>   * acpi_parse_entries_array - for each proc_num find a suitable subtable
+>>   *
+>>   * @id: table id (for debugging purposes)
+>> - * @table_size: single entry size
+>> + * @table_size: size of the root table; i.e., the offset from the very
+>> + *              first byte of the complete ACPI table, to the first byte
+>> + *              of the first subtable
 > 
-> Hi! You forgot to attach that patch.
+> But alas this needs to be one line.
+> 
+> You can add more details in the comment body below.
 
-Oops, I sure did!  I must have been subconsciously dreading analyzing the
-resulting data :)  Here's the patch:
+Whups.  Right.  Will do.
+
+>>   * @table_header: where does the table start?
+>>   * @proc: array of acpi_subtable_proc struct containing entry id
+>>   *        and associated handler with it
+>> @@ -400,7 +402,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+>>                 return -ENODEV;
+>>  }
+> 
+> Thanks,
+> Rafael
+> 
 
 
-diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-index c687c817b47d..d5fef9b0a541 100644
---- a/drivers/pci/pcie/aspm.c
-+++ b/drivers/pci/pcie/aspm.c
-@@ -155,10 +155,13 @@ static void pcie_set_clkpm_nocheck(struct pcie_link_state *link, int enable)
- 	struct pci_bus *linkbus = link->pdev->subordinate;
- 	u32 val = enable ? PCI_EXP_LNKCTL_CLKREQ_EN : 0;
- 
--	list_for_each_entry(child, &linkbus->devices, bus_list)
-+	list_for_each_entry(child, &linkbus->devices, bus_list) {
- 		pcie_capability_clear_and_set_word(child, PCI_EXP_LNKCTL,
- 						   PCI_EXP_LNKCTL_CLKREQ_EN,
- 						   val);
-+		pci_info(child, "set PCI_EXP_LNKCTL %#06x %s\n", val,
-+			 __func__);
-+	}
- 	link->clkpm_enabled = !!enable;
- }
- 
-@@ -184,12 +187,16 @@ static void pcie_clkpm_cap_init(struct pcie_link_state *link, int blacklist)
- 	/* All functions should have the same cap and state, take the worst */
- 	list_for_each_entry(child, &linkbus->devices, bus_list) {
- 		pcie_capability_read_dword(child, PCI_EXP_LNKCAP, &reg32);
-+		pci_info(child, "rd  PCI_EXP_LNKCAP %#010x %s\n", reg32,
-+			 __func__);
- 		if (!(reg32 & PCI_EXP_LNKCAP_CLKPM)) {
- 			capable = 0;
- 			enabled = 0;
- 			break;
- 		}
- 		pcie_capability_read_word(child, PCI_EXP_LNKCTL, &reg16);
-+		pci_info(child, "rd  PCI_EXP_LNKCTL %#06x %s\n", reg16,
-+			 __func__);
- 		if (!(reg16 & PCI_EXP_LNKCTL_CLKREQ_EN))
- 			enabled = 0;
- 	}
-@@ -229,12 +236,16 @@ static void pcie_aspm_configure_common_clock(struct pcie_link_state *link)
- 
- 	/* Port might be already in common clock mode */
- 	pcie_capability_read_word(parent, PCI_EXP_LNKCTL, &reg16);
-+	pci_info(parent, "rd  PCI_EXP_LNKCTL %#06x %s\n", reg16,
-+		 __func__);
- 	if (same_clock && (reg16 & PCI_EXP_LNKCTL_CCC)) {
- 		bool consistent = true;
- 
- 		list_for_each_entry(child, &linkbus->devices, bus_list) {
- 			pcie_capability_read_word(child, PCI_EXP_LNKCTL,
- 						  &reg16);
-+			pci_info(child, "rd  PCI_EXP_LNKCTL %#06x %s loop 1\n", reg16,
-+				 __func__);
- 			if (!(reg16 & PCI_EXP_LNKCTL_CCC)) {
- 				consistent = false;
- 				break;
-@@ -248,26 +259,36 @@ static void pcie_aspm_configure_common_clock(struct pcie_link_state *link)
- 	/* Configure downstream component, all functions */
- 	list_for_each_entry(child, &linkbus->devices, bus_list) {
- 		pcie_capability_read_word(child, PCI_EXP_LNKCTL, &reg16);
-+		pci_info(child, "rd  PCI_EXP_LNKCTL %#06x %s loop 2\n", reg16,
-+			 __func__);
- 		child_reg[PCI_FUNC(child->devfn)] = reg16;
- 		if (same_clock)
- 			reg16 |= PCI_EXP_LNKCTL_CCC;
- 		else
- 			reg16 &= ~PCI_EXP_LNKCTL_CCC;
- 		pcie_capability_write_word(child, PCI_EXP_LNKCTL, reg16);
-+		pci_info(child, "wr  PCI_EXP_LNKCTL %#06x %s loop 2\n", reg16,
-+			 __func__);
- 	}
- 
- 	/* Configure upstream component */
- 	pcie_capability_read_word(parent, PCI_EXP_LNKCTL, &reg16);
-+	pci_info(parent, "rd  PCI_EXP_LNKCTL %#06x %s\n", reg16,
-+		 __func__);
- 	parent_reg = reg16;
- 	if (same_clock)
- 		reg16 |= PCI_EXP_LNKCTL_CCC;
- 	else
- 		reg16 &= ~PCI_EXP_LNKCTL_CCC;
- 	pcie_capability_write_word(parent, PCI_EXP_LNKCTL, reg16);
-+	pci_info(parent, "wr  PCI_EXP_LNKCTL %#06x %s\n", reg16,
-+		 __func__);
- 
- 	/* Retrain link */
- 	reg16 |= PCI_EXP_LNKCTL_RL;
- 	pcie_capability_write_word(parent, PCI_EXP_LNKCTL, reg16);
-+	pci_info(parent, "wr  PCI_EXP_LNKCTL %#06x %s retrain\n", reg16,
-+		 __func__);
- 
- 	/* Wait for link training end. Break out after waiting for timeout */
- 	start_jiffies = jiffies;
-@@ -284,10 +305,15 @@ static void pcie_aspm_configure_common_clock(struct pcie_link_state *link)
- 
- 	/* Training failed. Restore common clock configurations */
- 	pci_err(parent, "ASPM: Could not configure common clock\n");
--	list_for_each_entry(child, &linkbus->devices, bus_list)
-+	list_for_each_entry(child, &linkbus->devices, bus_list) {
- 		pcie_capability_write_word(child, PCI_EXP_LNKCTL,
- 					   child_reg[PCI_FUNC(child->devfn)]);
-+		pci_info(child, "wr  PCI_EXP_LNKCTL %#06x %s restore\n",
-+			 child_reg[PCI_FUNC(child->devfn)], __func__);
-+	}
- 	pcie_capability_write_word(parent, PCI_EXP_LNKCTL, parent_reg);
-+	pci_info(parent, "wr  PCI_EXP_LNKCTL %#06x %s restore\n", parent_reg,
-+		 __func__);
- }
- 
- /* Convert L0s latency encoding to ns */
-@@ -383,10 +409,14 @@ static void pcie_get_aspm_reg(struct pci_dev *pdev,
- 	u32 reg32;
- 
- 	pcie_capability_read_dword(pdev, PCI_EXP_LNKCAP, &reg32);
-+	pci_info(pdev, "rd  PCI_EXP_LNKCAP %#010x %s\n", reg32,
-+		 __func__);
- 	info->support = (reg32 & PCI_EXP_LNKCAP_ASPMS) >> 10;
- 	info->latency_encoding_l0s = (reg32 & PCI_EXP_LNKCAP_L0SEL) >> 12;
- 	info->latency_encoding_l1  = (reg32 & PCI_EXP_LNKCAP_L1EL) >> 15;
- 	pcie_capability_read_word(pdev, PCI_EXP_LNKCTL, &reg16);
-+	pci_info(pdev, "rd  PCI_EXP_LNKCTL %#06x %s\n", reg16,
-+		 __func__);
- 	info->enabled = reg16 & PCI_EXP_LNKCTL_ASPMC;
- 
- 	/* Read L1 PM substate capabilities */
-@@ -690,8 +720,12 @@ static void pcie_config_aspm_l1ss(struct pcie_link_state *link, u32 state)
- 	if (enable_req & (ASPM_STATE_L1_1 | ASPM_STATE_L1_2)) {
- 		pcie_capability_clear_and_set_word(child, PCI_EXP_LNKCTL,
- 						   PCI_EXP_LNKCTL_ASPM_L1, 0);
-+		pci_info(child, "clr PCI_EXP_LNKCTL %#06x %s\n",
-+			 PCI_EXP_LNKCTL_ASPM_L1, __func__);
- 		pcie_capability_clear_and_set_word(parent, PCI_EXP_LNKCTL,
- 						   PCI_EXP_LNKCTL_ASPM_L1, 0);
-+		pci_info(parent, "clr PCI_EXP_LNKCTL %#06x %s\n",
-+			 PCI_EXP_LNKCTL_ASPM_L1, __func__);
- 	}
- 
- 	if (enable_req & ASPM_STATE_L1_2_MASK) {
-@@ -739,6 +773,8 @@ static void pcie_config_aspm_dev(struct pci_dev *pdev, u32 val)
- {
- 	pcie_capability_clear_and_set_word(pdev, PCI_EXP_LNKCTL,
- 					   PCI_EXP_LNKCTL_ASPMC, val);
-+	pci_info(pdev, "set PCI_EXP_LNKCTL %#06x %s\n",
-+		 val, __func__);
- }
- 
- static void pcie_config_aspm_link(struct pcie_link_state *link, u32 state)
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
