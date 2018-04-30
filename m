@@ -1,89 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v8 05/13] ACPI/PPTT: Add Processor Properties Topology Table parsing
-Date: Mon, 30 Apr 2018 09:59:27 +0200
-Message-ID: <14124257.1v74WDqhJi@aspire.rjw.lan>
-References: <20180425233121.13270-1-jeremy.linton@arm.com> <CAJZ5v0jjPnyC0vm-Fb8y2hw1B9Uc2J5sZrtZYzt_ENT2Sini3A@mail.gmail.com> <b750e86b-bc51-0440-b48d-0e8d3177fa8d@arm.com>
+Subject: Re: [PATCH 1/1] tools: power/acpi, revert to LD = gcc
+Date: Mon, 30 Apr 2018 10:00:54 +0200
+Message-ID: <6842093.byeXVzAmGC@aspire.rjw.lan>
+References: <54661ff7-5c2a-473b-e08c-1cd267353c03@martingkelly.com> <20180424074344.23029-1-jslaby@suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b750e86b-bc51-0440-b48d-0e8d3177fa8d@arm.com>
+In-Reply-To: <20180424074344.23029-1-jslaby@suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, austinwc
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: linux-kernel@vger.kernel.org, Martin Kelly <martin@martingkelly.com>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, April 27, 2018 6:20:44 PM CEST Jeremy Linton wrote:
-> Hi,
+On Tuesday, April 24, 2018 9:43:44 AM CEST Jiri Slaby wrote:
+> Commit 7ed1c1901fe5 (tools: fix cross-compile var clobbering) removed
+> setting of LD to $(CROSS_COMPILE)gcc. This broke build of acpica
+> (acpidump) in power/acpi:
+>  ld: unrecognized option '-D_LINUX'
 > 
-> Thanks for taking a look at this.
+> The tools pass CFLAGS to the linker (incl. -D_LINUX), so revert this
+> particular change and let LD be $(CC) again. Note that the old behaviour
+> was a bit different, it used $(CROSS_COMPILE)gcc which was eliminated by
+> the commit 7ed1c1901fe5. We use $(CC) for that reason.
 > 
-> On 04/27/2018 06:02 AM, Rafael J. Wysocki wrote:
-> > On Thu, Apr 26, 2018 at 1:31 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> >> ACPI 6.2 adds a new table, which describes how processing units
-> >> are related to each other in tree like fashion. Caches are
-> >> also sprinkled throughout the tree and describe the properties
-> >> of the caches in relation to other caches and processing units.
-> >>
-> >> Add the code to parse the cache hierarchy and report the total
-> >> number of levels of cache for a given core using
-> >> acpi_find_last_cache_level() as well as fill out the individual
-> >> cores cache information with cache_setup_acpi() once the
-> >> cpu_cacheinfo structure has been populated by the arch specific
-> >> code.
-> >>
-> >> An additional patch later in the set adds the ability to report
-> >> peers in the topology using find_acpi_cpu_topology()
-> >> to report a unique ID for each processing unit at a given level
-> >> in the tree. These unique id's can then be used to match related
-> >> processing units which exist as threads, within a given
-> >> package, etc.
-> >>
-> >> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> >> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
-> >> ---
-> >>   drivers/acpi/pptt.c | 518 ++++++++++++++++++++++++++++++++++++++++++++++++++++
-> >>   1 file changed, 518 insertions(+)
-> >>   create mode 100644 drivers/acpi/pptt.c
-> >>
-> >> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> >> new file mode 100644
-> >> index 000000000000..cced71ef851a
-> >> --- /dev/null
-> >> +++ b/drivers/acpi/pptt.c
-> >> @@ -0,0 +1,518 @@
-> >> +// SPDX-License-Identifier: GPL-2.0
-> >> +/*
-> >> + * pptt.c - parsing of Processor Properties Topology Table
-> >> + *
-> >> + * Copyright (C) 2018, ARM
-> >> + *
-> >> + * This file implements parsing of Processor Properties Topology Table (PPTT)
-> >> + * which is optionally used to describe the processor and cache topology.
-> >> + * Due to the relative pointers used throughout the table, this doesn't
-> >> + * leverage the existing subtable parsing in the kernel.
-> >> + *
-> >> + * The PPTT structure is an inverted tree, with each node potentially
-> >> + * holding one or two inverted tree data structures describing
-> >> + * the caches available at that level. Each cache structure optionally
-> >> + * contains properties describing the cache at a given level which can be
-> >> + * used to override hardware probed values.
-> >> + */
-> >> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
-> >> +
-> >> +#include <linux/acpi.h>
-> >> +#include <linux/cacheinfo.h>
-> >> +#include <acpi/processor.h>
-> >> +
-> >> +/**
-> >> + * fetch_pptt_subtable() - Find/Verify that the PPTT ref is a valid subtable
-> > 
-> > The parens above are at least redundant (if not harmful).  Everywhere
-> > else in a similar context too.
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Martin Kelly <martin@martingkelly.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Erik Schmauss <erik.schmauss@intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: devel@acpica.org
+> ---
+>  tools/power/acpi/Makefile.config | 1 +
+>  1 file changed, 1 insertion(+)
 > 
-> The kerneldoc ones? I guess i'm confused the kernel doc example in 
-> doc-guide/kernel-doc has
+> diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
+> index 2cccbba64418..f304be71c278 100644
+> --- a/tools/power/acpi/Makefile.config
+> +++ b/tools/power/acpi/Makefile.config
+> @@ -56,6 +56,7 @@ INSTALL_SCRIPT = ${INSTALL_PROGRAM}
+>  # to compile vs uClibc, that can be done here as well.
+>  CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
+>  CROSS_COMPILE ?= $(CROSS)
+> +LD = $(CC)
+>  HOSTCC = gcc
+>  
+>  # check if compiler option is supported
 > 
-> * function_name() - Brief description of function.
 
-Well, OK, the parens not harmful, then, but it works without them.
+Applied, thanks!
