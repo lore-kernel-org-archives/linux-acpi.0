@@ -1,153 +1,92 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: Bug? pcie_aspm=off cause less power consumption as default
-Date: Fri, 27 Apr 2018 14:53:13 -0500
-Message-ID: <20180427195313.GH8199@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180422171647.7v65zrlwhya5mq7v@pali>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [RFC PATCH 1/2] ACPI / PNP: Don't add "enumeration_by_parent"
+ devices
+Date: Mon, 30 Apr 2018 06:36:11 +0100
+Message-ID: <20180430053611.GA11990@dell>
+References: <1524218846-169934-1-git-send-email-john.garry@huawei.com>
+ <1524218846-169934-2-git-send-email-john.garry@huawei.com>
+ <20180420130727.GV2173@lahna.fi.intel.com>
+ <27c3f84e-4d53-4b6b-7382-04908082ed01@huawei.com>
+ <20180420135222.GY2173@lahna.fi.intel.com>
+ <75eae3ac-228f-d6a4-bb0e-4bd27e35c55d@huawei.com>
+ <09e3aa95-86ae-ca30-7bb5-a9704d296b43@huawei.com>
+ <20180426140808.GK2173@lahna.fi.intel.com>
+ <15443a87-2622-01ee-f7f2-426a51ca0f11@huawei.com>
+ <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180422171647.7v65zrlwhya5mq7v@pali>
+In-Reply-To: <44e047a2-93e1-9eff-45b8-d538a7ae9092@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vidya Sagar <vidyas@nvidia.com>, Rajat Jain <rajatja@google.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: John Garry <john.garry@huawei.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, andriy.shevchenko@linux.intel.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, lenb@kernel.org, lorenzo.pieralisi@arm.com, linux-kernel@vger.kernel.org, arnd@arndb.de, graeme.gregory@linaro.org, helgaas@kernel.org, linuxarm@huawei.com, z.liuxinliang@hisilicon.com, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Pali,
+On Fri, 27 Apr 2018, John Garry wrote:
+> On 26/04/2018 15:23, John Garry wrote:
+> > On 26/04/2018 15:08, Mika Westerberg wrote:
+> > > On Thu, Apr 26, 2018 at 02:49:49PM +0100, John Garry wrote:
+> > > > diff --git a/drivers/bus/hisi_lpc.c b/drivers/bus/hisi_lpc.c
+> > > > index 2d4611e..b04425b 100644
+> > > > --- a/drivers/bus/hisi_lpc.c
+> > > > +++ b/drivers/bus/hisi_lpc.c
+> > > > @@ -18,6 +18,8 @@
+> > > >  #include <linux/of_platform.h>
+> > > >  #include <linux/pci.h>
+> > > >  #include <linux/slab.h>
+> > > > +#include <linux/serial_8250.h>
+> > > > +#include "../tty/serial/8250/8250.h"
+> > > > 
+> > > >  #define DRV_NAME "hisi-lpc"
+> > > > 
+> > > > @@ -345,6 +347,7 @@ static void hisi_lpc_comm_outs(void *hostdata,
+> > > > unsigned
+> > > > long pio,
+> > > >  #define MFD_CHILD_NAME_LEN (ACPI_ID_LEN +
+> > > > sizeof(MFD_CHILD_NAME_PREFIX) -
+> > > > 1)
+> > > > 
+> > > >  struct hisi_lpc_mfd_cell {
+> > > > +    struct plat_serial8250_port serial8250_port;
+> > > >      struct mfd_cell_acpi_match acpi_match;
+> > > >      char name[MFD_CHILD_NAME_LEN];
+> > > >      char pnpid[ACPI_ID_LEN];
+> > > > @@ -513,10 +516,31 @@ static int hisi_lpc_acpi_probe(struct device
+> > > > *hostdev)
+> > > >          dev_warn(&child->dev, "set resource fail (%d)\n", ret);
+> > > >              return ret;
+> > > >          }
+> > > > +    if (!strcmp(acpi_device_hid(child), "HISI1031")) {
+> > > 
+> > 
+> > Hi Mika,
+> > 
+> > > Hmm, there is a way in struct mfd_cell to match child devices using _HID
+> > > so is there something preventing you from using that?
+> > 
+> > Not that I know about. Can you describe this method? I guess I also
+> > don't need to set the mfd_cell pnpid either for this special case device.
+> > 
+> 
+> So we using the mfd_cell to match child devices using _HID. At a glance, I
+> don't actually see other drivers to use mfd_cell_acpi_match.pnpid .
+> 
+> Anyway we don't use static tables as we need to update the resources of the
+> cell dynamically. However I do look at a driver like intel_quark_i2c_gpio.c,
+> and this dynamically modifies the value of global mfd_cell array here:
+> https://elixir.bootlin.com/linux/latest/source/drivers/mfd/intel_quark_i2c_gpio.c#L266
+> 
+> I know the cell array is only used at probe time, but this did not look to
+> be good standard practice to me.
 
-On Sun, Apr 22, 2018 at 07:16:47PM +0200, Pali Roh�r wrote:
-> Hi!
-> 
-> To increase runtime on battery of my Dell Latitude E6440 laptop I tried
-> different tweaks and settings. And I come up to the conclusion that
-> adding pcie_aspm=off to the kernel command line decrease power
-> consumption by approx. 2 Watts as opposite to adding pcie_aspm=force or
-> nothing (letting ASPM in default state).
-> 
-> I suspect that this is a clear kernel bug as I cannot understand how
-> turning off powersave feature ASPM could lead to decrease of power
-> consumption. Turning powersave off should either not impact or increase
-> power consumption.
-> 
-> Moreover one I put laptop into ACPI S3 sleep and resume it, then power
-> consumption increase. The only way to decrease it is to power it off and
-> power on again. Very impractical, specially as ACPI sleep is there to
-> prevent power off and on.
-> 
-> Tests:
-> 
-> Laptop on battery with pcie_aspm=off has average 8.50 Watts in idle.
-> After suspend+resume it has 11.20 Watts (power off + on is needed to get
-> back for 8.50 Watts).
-> 
-> Laptop on battery with pcie_aspm=force and with powersave aspm policy
-> it has average 11.20 Watts in idle. After suspend+resume it is 11.30
-> Watts in idle. With default policy it has 11.15 Watts and with
-> performance policy it has 11.70 Watts.
-> 
-> When pcie_aspm is not specified at all, then average power consumption
-> in idle is 8.90 Watts. And after suspend+resume it is 9.30 Watts.
-> 
-> So what is happening there? Such results are really strange and
-> apparently I'm not alone, see discussion in kernel bugzilla:
-> https://bugzilla.kernel.org/show_bug.cgi?id=62181#c23
-> 
-> I'm using Debian Stretch with its default kernel. But I remember that
-> power consumption with defaults or with pcie_aspm=force was around 10-11
-> Watts even with older kernel versions.
-> 
-> Debian Stretch has currently this kernel:
-> 4.9.0-6-amd64 #1 SMP Debian 4.9.82-1+deb9u3 (2018-03-02) x86_64 GNU/Linux
-> 
-> with this configuration:
-> 
-> $ grep ASPM /boot/config-4.9.0-6-amd64
-> CONFIG_PCIEASPM=y
-> # CONFIG_PCIEASPM_DEBUG is not set
-> CONFIG_PCIEASPM_DEFAULT=y
-> # CONFIG_PCIEASPM_POWERSAVE is not set
-> # CONFIG_PCIEASPM_PERFORMANCE is not set
-> 
-> In dmesg are these ASPM strings:
-> 
-> $ dmesg | grep ASPM
-> 
-> pcie_aspm=off
-> [    0.000000] PCIe ASPM is disabled
-> [    0.119127] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
-> [    0.163351] acpi PNP0A08:00: _OSC: not requesting OS control; OS requires [ExtendedConfig ASPM ClockPM MSI]
-> 
-> pcie_aspm=force
-> [    0.000000] PCIe ASPM is forcibly enabled
-> [    0.118985] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
-> [    0.162322] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
-> [    0.162621] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
-> 
-> (none)
-> [    0.120064] ACPI FADT declares the system doesn't support PCIe ASPM, so disable it
-> [    0.163424] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM ClockPM Segments MSI]
-> [    0.163724] acpi PNP0A08:00: FADT indicates ASPM is unsupported, using BIOS configuration
-> [    3.294357] iwlwifi 0000:03:00.0: can't disable ASPM; OS doesn't have ASPM control
-> 
-> In attachments I'm sending output from lspci -vv -nn, maybe it could
-> contain some useful information.
-> 
-> Another strange thing which I spotted in lspci output is that Root Host
-> bridge at 00:00.0 pci address totally disappeared after suspend+resume.
-> I hope such thing is not normal.
-> 
-> So I see there at 3 bugs:
-> 
-> 1) Power consumption increase after suspend+resume when pcie_aspm=off or
-> default
-> 
-> 2) Power consumption is higher in pcie_aspm=force or default mode as in
-> pcie_aspm=off
-> 
-> 3) PCI host bridge disappear after suspend+resume.
-> 
-> Do you have any idea what is happening here?
+Lots of drivers do this to supply dynamic data.  If there is no other
+sane way of providing such data, it's fine to do.  Although each
+situation should be dealt with on a case-by-case basis.
 
-No, but I agree it looks totally nonsensical.  I tried to pull out the
-hardware ASPM settings from all your lspci info (thanks very much for
-collecting all that).  Here's what I got.  The same/disabled comments
-are relative to the "default" baseline:
-
-                                default,      force       force             force     default      pcie_aspm=off  force pwrsave
-                              pcie_aspm=off   default   performance        powersave  after resume  after resume  after resume
-  notes                                                                               [1,2,3]       [1,2,3,5]     [1,2,3,4,5]
-  power usage                8.90W, 8.50(off) 11.15W    11.70W             11.20W     9.30W         11.20W        11.30W
-  00:01.0 RP [bus 01] GPU    L0s L1 ClockPM-  same      disabled           same       same          same          same
-  00:1c.0 RP [bus 02] empty  L0s L1 ClockPM-  same      same               same       same          same          same
-  00:1c.2 RP [bus 03] NIC    L1     ClockPM-  disabled  disabled           disabled   same          same          disabled
-  00:1c.4 RP [bus 04] empty  L0s L1 ClockPM-  same      same               same       same          same          same
-  00:1c.5 RP [bus 05] empty  L0s L1 ClockPM-  same      same               same       same          same          same
-  00:1c.7 RP [bus 06] SD/MMC L1     ClockPM-  same      disabled           same       same          same          L0s L1
-  01:00.0 Radeon GPU         ? [6]            ?         ?                  ?          ?             ?             ?
-  03:00.0 Centrino NIC       L1     ClockPM-  disabled  disabled           disabled   same          same          disabled
-  06:00.0 SD/MMC card        L1     ClockPM+  same      disabled ClockPM-  L0s L1     same          same          L0s L1
-
-  [1] 00:00.0 device absent
-  [2] 00:01.0 LnkCtl AutWidDis+, SltSta PresDet+
-  [3] 00:1c.2 SecStatus <MAbort-, SltSta LinkState+
-      00:1c.7 SecStatus <MAbort-, SltSta LinkState+
-      03:00.0 DevSta CorrErr-, UnsuppReq-
-  [4] 00:1c.2 LnkCtl ASPM Disabled
-      00:1c.7 LnkCtl L0s L1 Enabled
-      03:00.0 LnkCtl ASPM Disabled
-      06:00.0 LnkCtl ASPM L0s L1 Enabled
-  [5] 06:00.0 LTR max snoop 71680ns -> 566ns
-  [6] 01:00.0 seems completely powered off, probably because you're
-      using integrated video
-
-I haven't made sense out of any of this yet, except that the "force
-performance" column seems plausible: if we want performance, we should
-disable ASPM across the board.
-
-I don't really know where to start here.  Maybe we can focus on
-understanding one tiny piece.  Can you apply the following patch and
-try just the "force powersave" situation?  Please collect the entire
-dmesg log and "lspci -vv" output.
-
-Bjorn
+-- 
+Lee Jones [李琼斯]
+Linaro Services Technical Lead
+Linaro.org │ Open source software for ARM SoCs
+Follow Linaro: Facebook | Twitter | Blog
