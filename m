@@ -1,73 +1,35 @@
-From: Joseph Salisbury <joseph.salisbury@canonical.com>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Mon, 30 Apr 2018 10:22:27 -0400
-Message-ID: <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
- <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
- <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
+From: David Howells <dhowells@redhat.com>
+Subject: Re: simplify procfs code for seq_file instances V2
+Date: Mon, 30 Apr 2018 16:38:18 +0100
+Message-ID: <15622.1525102698@warthog.procyon.org.uk>
+References: <20180425154827.32251-1-hch@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20180425154827.32251-1-hch@lst.de>
+Content-ID: <15621.1525102698.1@warthog.procyon.org.uk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, mika.westerberg@linux.intel.comBjorn Helgaas <bhelgaas@google.com>
+To: Christoph Hellwig <hch@lst.de>
+Cc: dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, linux-ext4@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
-> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
-> <joseph.salisbury@canonical.com> wrote:
->> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
->>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
->>> <joseph.salisbury@canonical.com> wrote:
->>>> Hi Rafael,
->>>>
->>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
->>>> bisect, it was found that reverting the following two commits resolved
->>>> this bug:
->>>>
->>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
->>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
->>>>
->>>> This is a regression introduced in v4.13-rc1 and still exists in
->>>> mainline.  The bug causes the battery to drain when the system is
->>>> powered down and unplugged, which does not happed prior to these two
->>>> commits.
->>> What system and what do you mean by "powered down"?  How much time
->>> does it take for the battery to drain now?
->> By powered down, the bug reporter is saying physically powered off and
->> unplugged.  The system is a HP laptop:
->>
->> dmi.chassis.vendor: HP
->> dmi.product.family: 103C_5335KV HP Notebook
->> dmi.product.name: HP Notebook
->> vendor_id    : GenuineIntel
->> cpu family    : 6
->>
->>
->>>> The bisect actually pointed to commit de3ef1e, but reverting
->>>> these two commits fixes the issue.
->>>>
->>>> I was hoping to get your feedback, since you are the patch author.  Do
->>>> you think gathering any additional data will help diagnose this issue,
->>>> or would it be best to submit a revert request?
->>> First, reverting these is not an option or you will break systems
->>> relying on them now.  4.13 is three releases back at this point.
->>>
->>> Second, your issue appears to be related to the suspend/shutdown path
->>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
->>> change in pci_enable_wake() causes the problem to happen.  Can you try
->>> to revert this one alone and see if that helps?
->> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
->> tested.  However, the test kernel still exhibited the bug.
-> So essentially the bisection result cannot be trusted.
+Note that your kernel hits the:
 
-We performed some more testing and confirmed just a revert of the
-following commit resolves the bug:
+	inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
+	swapper/0/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
+		(ptrval) (fs_reclaim){?.+.}, at: fs_reclaim_acquire+0x12/0x35
+	{HARDIRQ-ON-W} state was registered at:
+	  fs_reclaim_acquire+0x32/0x35
+	  kmem_cache_alloc_node_trace+0x49/0x2cf
+	  alloc_worker+0x1d/0x49
+	  init_rescuer.part.7+0x19/0x8f
+	  workqueue_init+0xc0/0x1fe
+	  kernel_init_freeable+0xdc/0x433
+	  kernel_init+0xa/0xf5
+	  ret_from_fork+0x24/0x30
 
-0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
+bug, as described here:
 
-Can you think of any suggestions to help debug further?
+	https://groups.google.com/forum/#!msg/syzkaller-bugs/sJC3Y3hOM08/aO3z9JXoAgAJ
+
+David
