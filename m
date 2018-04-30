@@ -1,35 +1,63 @@
-From: David Howells <dhowells@redhat.com>
-Subject: Re: simplify procfs code for seq_file instances V2
-Date: Mon, 30 Apr 2018 16:38:18 +0100
-Message-ID: <15622.1525102698@warthog.procyon.org.uk>
-References: <20180425154827.32251-1-hch@lst.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 0/2] PCI/ASPM: Tighten up ASPM L1.2 and LTR usage
+Date: Mon, 30 Apr 2018 16:02:56 -0500
+Message-ID: <20180430210256.GE95643@bhelgaas-glaptop.roam.corp.google.com>
+References: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180425154827.32251-1-hch@lst.de>
-Content-ID: <15621.1525102698.1@warthog.procyon.org.uk>
+Content-Disposition: inline
+In-Reply-To: <152417080402.76853.4258398181136860884.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: dhowells@redhat.com, Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, linux-ext4@vger.kernel.org, Alexey Dobriyan <adobriyan@gmail.com>, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
+To: linux-pci@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Sinan Kaya <okaya@codeaurora.org>, Rajat Jain <rajatja@google.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Ray Jui <ray.jui@broadcom.com>, Keith Busch <keith.busch@intel.com>, linux-acpi@vger.kernel.org, linux-nvme@lists.infradead.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Note that your kernel hits the:
+On Thu, Apr 19, 2018 at 04:05:19PM -0500, Bjorn Helgaas wrote:
+> The ASPM L1.2 substate depends on LTR information.  Per the PCI
+> Firmware spec, the OS is supposed to negotiate with the platform for
+> control of the LTR feature, but previously we didn't do that.
+> 
+> In addition, we must not enable LTR in an endpoint unless the Root
+> Complex and all intermediate switches also support LTR.  We already
+> took care of that in pci_configure_ltr(), but we didn't ensure that
+> LTR was enabled before allowing ASPM L1.2 to be enabled.
+> 
+> These patches fix both of these issues.  Or rather, they *should* fix
+> them.  I don't have hardware to test them, so any help with testing
+> would be appreciated.
+> 
+> I think the most likely issue would be a platform where the hardware
+> supports LTR and the ASPM L1.2 substate, but the BIOS doesn't support
+> LTR in _OSC.  In that case, we previously could have enabled ASPM L1.2
+> (though it probably wouldn't work correctly), and after these patches,
+> we should not enable ASPM L1.2.
+> 
+> You can look for issues by comparing dmesg and "lspci -vv" output
+> before and after these patches.
+> 
+> It would also be interesting to collect an acpidump from platforms
+> that support LTR, even if there's no endpoint that supports ASPM L1.2.
+> The acpidump should show that _OSC supports LTR.
+> 
+> I included some NVMe folks because these were motivated by Srinath's
+> recent report of LTR and ASPM issues with a Samsung NVMe SSD
+> Controller SM961/PM961 device, so this is sort of FYI in case you see
+> similar issues or are in a position to test these.
+> 
+> ---
+> 
+> Bjorn Helgaas (2):
+>       PCI/ASPM: Disable ASPM L1.2 Substate if we don't have LTR
+>       PCI/ACPI: Request LTR control from platform before using it
+> 
+> 
+>  drivers/acpi/pci_root.c |    7 +++++++
+>  drivers/pci/pcie/aspm.c |    9 +++++++++
+>  drivers/pci/probe.c     |    5 +++++
+>  include/linux/acpi.h    |    3 ++-
+>  include/linux/pci.h     |    1 +
+>  5 files changed, 24 insertions(+), 1 deletion(-)
 
-	inconsistent {HARDIRQ-ON-W} -> {IN-HARDIRQ-W} usage.
-	swapper/0/0 [HC1[1]:SC0[0]:HE0:SE1] takes:
-		(ptrval) (fs_reclaim){?.+.}, at: fs_reclaim_acquire+0x12/0x35
-	{HARDIRQ-ON-W} state was registered at:
-	  fs_reclaim_acquire+0x32/0x35
-	  kmem_cache_alloc_node_trace+0x49/0x2cf
-	  alloc_worker+0x1d/0x49
-	  init_rescuer.part.7+0x19/0x8f
-	  workqueue_init+0xc0/0x1fe
-	  kernel_init_freeable+0xdc/0x433
-	  kernel_init+0xa/0xf5
-	  ret_from_fork+0x24/0x30
-
-bug, as described here:
-
-	https://groups.google.com/forum/#!msg/syzkaller-bugs/sJC3Y3hOM08/aO3z9JXoAgAJ
-
-David
+Applied to pci/aspm for v4.18 with Rafael's reviewed-by and Srinath's
+tested-by (on first patch).
