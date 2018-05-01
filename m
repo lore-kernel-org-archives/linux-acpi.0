@@ -1,61 +1,87 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: [PATCH v3 1/3] ACPI: improve function documentation for acpi_parse_entries_array()
-Date: Mon, 30 Apr 2018 18:39:05 -0600
-Message-ID: <20180501003907.4322-2-ahs3@redhat.com>
-References: <20180501003907.4322-1-ahs3@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
+Date: Tue, 1 May 2018 10:34:29 +0200
+Message-ID: <CAJZ5v0iPsoxCLxsq156RvyZ1cWtM9jNMLUPMnE3cqi5r1jk8jg@mail.gmail.com>
+References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
+ <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
+ <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com> <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
+ <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180501003907.4322-1-ahs3@redhat.com>
+In-Reply-To: <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Joseph Salisbury <joseph.salisbury@canonical.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-I found the description of the table_size argument to the function
-acpi_parse_entries_array() unclear and ambiguous.  This is a minor
-documentation change to improve that description so I don't misuse
-the argument again in the future, and it is hopefully clearer to
-other future users.
+On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
+<joseph.salisbury@canonical.com> wrote:
+> On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
+>> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
+>> <joseph.salisbury@canonical.com> wrote:
+>>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
+>>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
+>>>> <joseph.salisbury@canonical.com> wrote:
+>>>>> Hi Rafael,
+>>>>>
+>>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
+>>>>> bisect, it was found that reverting the following two commits resolved
+>>>>> this bug:
+>>>>>
+>>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
+>>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
+>>>>>
+>>>>> This is a regression introduced in v4.13-rc1 and still exists in
+>>>>> mainline.  The bug causes the battery to drain when the system is
+>>>>> powered down and unplugged, which does not happed prior to these two
+>>>>> commits.
+>>>> What system and what do you mean by "powered down"?  How much time
+>>>> does it take for the battery to drain now?
+>>> By powered down, the bug reporter is saying physically powered off and
+>>> unplugged.  The system is a HP laptop:
+>>>
+>>> dmi.chassis.vendor: HP
+>>> dmi.product.family: 103C_5335KV HP Notebook
+>>> dmi.product.name: HP Notebook
+>>> vendor_id    : GenuineIntel
+>>> cpu family    : 6
+>>>
+>>>
+>>>>> The bisect actually pointed to commit de3ef1e, but reverting
+>>>>> these two commits fixes the issue.
+>>>>>
+>>>>> I was hoping to get your feedback, since you are the patch author.  Do
+>>>>> you think gathering any additional data will help diagnose this issue,
+>>>>> or would it be best to submit a revert request?
+>>>> First, reverting these is not an option or you will break systems
+>>>> relying on them now.  4.13 is three releases back at this point.
+>>>>
+>>>> Second, your issue appears to be related to the suspend/shutdown path
+>>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
+>>>> change in pci_enable_wake() causes the problem to happen.  Can you try
+>>>> to revert this one alone and see if that helps?
+>>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
+>>> tested.  However, the test kernel still exhibited the bug.
+>> So essentially the bisection result cannot be trusted.
+>
+> We performed some more testing and confirmed just a revert of the
+> following commit resolves the bug:
+>
+> 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
 
-Signed-off-by: Al Stone <ahs3@redhat.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- drivers/acpi/tables.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+Thanks for confirming this!
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 849c4fb19b03..4a3410aa6540 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -222,7 +222,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-  * acpi_parse_entries_array - for each proc_num find a suitable subtable
-  *
-  * @id: table id (for debugging purposes)
-- * @table_size: single entry size
-+ * @table_size: size of the root table
-  * @table_header: where does the table start?
-  * @proc: array of acpi_subtable_proc struct containing entry id
-  *        and associated handler with it
-@@ -233,6 +233,11 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-  * on it. Assumption is that there's only single handler for particular
-  * entry id.
-  *
-+ * The table_size is not the size of the complete ACPI table (the length
-+ * field in the header struct), but only the size of the root table; i.e.,
-+ * the offset from the very first byte of the complete ACPI table, to the
-+ * first byte of the very first subtable.
-+ *
-  * On success returns sum of all matching entries for all proc handlers.
-  * Otherwise, -ENODEV or -EINVAL is returned.
-  */
-@@ -400,7 +405,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
- 		return -ENODEV;
- }
- 
--/* 
-+/*
-  * The BIOS is supposed to supply a single APIC/MADT,
-  * but some report two.  Provide a knob to use either.
-  * (don't you wish instance 0 and 1 were not the same?)
--- 
-2.14.3
+> Can you think of any suggestions to help debug further?
+
+The root cause of the regression is likely the change in
+pci_enable_wake() removing the device_may_wakeup() check from it.
+
+Probably, one of the drivers in the platform calls pci_enable_wake()
+directly from its ->shutdown() callback and that causes the device to
+be set up for system wakeup which in turn causes the power draw while
+the system is off to increase.
+
+I would look at the PCI drivers used on that platform to find which of
+them call pci_enable_wake() directly from ->shutdown() and I would
+make these calls conditional on device_may_wakeup().
