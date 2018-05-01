@@ -1,116 +1,172 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Tue, 1 May 2018 14:55:01 -0500
-Message-ID: <20180501195501.GB11698@bhelgaas-glaptop.roam.corp.google.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
- <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
- <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
- <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com>
- <CAJZ5v0iPsoxCLxsq156RvyZ1cWtM9jNMLUPMnE3cqi5r1jk8jg@mail.gmail.com>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v3 00/12] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Tue, 1 May 2018 16:15:39 -0400
+Message-ID: <6d047f8a-e8e9-7751-f8b1-e132511d590c@codeaurora.org>
+References: <20180427153510.5799-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0iPsoxCLxsq156RvyZ1cWtM9jNMLUPMnE3cqi5r1jk8jg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Joseph Salisbury <joseph.salisbury@canonical.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180427153510.5799-1-james.morse@arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org
+Cc: jonathan.zhang@cavium.com, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 01, 2018 at 10:34:29AM +0200, Rafael J. Wysocki wrote:
-> On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
-> <joseph.salisbury@canonical.com> wrote:
-> > On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
-> >> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
-> >> <joseph.salisbury@canonical.com> wrote:
-> >>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
-> >>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
-> >>>> <joseph.salisbury@canonical.com> wrote:
-> >>>>> Hi Rafael,
-> >>>>>
-> >>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
-> >>>>> bisect, it was found that reverting the following two commits resolved
-> >>>>> this bug:
-> >>>>>
-> >>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
-> >>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
-> >>>>>
-> >>>>> This is a regression introduced in v4.13-rc1 and still exists in
-> >>>>> mainline.  The bug causes the battery to drain when the system is
-> >>>>> powered down and unplugged, which does not happed prior to these two
-> >>>>> commits.
-> >>>> What system and what do you mean by "powered down"?  How much time
-> >>>> does it take for the battery to drain now?
-> >>> By powered down, the bug reporter is saying physically powered off and
-> >>> unplugged.  The system is a HP laptop:
-> >>>
-> >>> dmi.chassis.vendor: HP
-> >>> dmi.product.family: 103C_5335KV HP Notebook
-> >>> dmi.product.name: HP Notebook
-> >>> vendor_id    : GenuineIntel
-> >>> cpu family    : 6
-> >>>
-> >>>
-> >>>>> The bisect actually pointed to commit de3ef1e, but reverting
-> >>>>> these two commits fixes the issue.
-> >>>>>
-> >>>>> I was hoping to get your feedback, since you are the patch author.  Do
-> >>>>> you think gathering any additional data will help diagnose this issue,
-> >>>>> or would it be best to submit a revert request?
-> >>>> First, reverting these is not an option or you will break systems
-> >>>> relying on them now.  4.13 is three releases back at this point.
-> >>>>
-> >>>> Second, your issue appears to be related to the suspend/shutdown path
-> >>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
-> >>>> change in pci_enable_wake() causes the problem to happen.  Can you try
-> >>>> to revert this one alone and see if that helps?
-> >>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
-> >>> tested.  However, the test kernel still exhibited the bug.
-> >> So essentially the bisection result cannot be trusted.
-> >
-> > We performed some more testing and confirmed just a revert of the
-> > following commit resolves the bug:
-> >
-> > 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
-> 
-> Thanks for confirming this!
-> 
-> > Can you think of any suggestions to help debug further?
-> 
-> The root cause of the regression is likely the change in
-> pci_enable_wake() removing the device_may_wakeup() check from it.
-> 
-> Probably, one of the drivers in the platform calls pci_enable_wake()
-> directly from its ->shutdown() callback and that causes the device to
-> be set up for system wakeup which in turn causes the power draw while
-> the system is off to increase.
-> 
-> I would look at the PCI drivers used on that platform to find which of
-> them call pci_enable_wake() directly from ->shutdown() and I would
-> make these calls conditional on device_may_wakeup().
+Hi James,
 
-I took a quick look with
+I tested this and verified that the NULL pointer issue that I reported on the 
+initial version is fixed.
 
-  git grep -E "pci_enable_wake\(.*[^0]\);|device_may_wakeup"
+I don't currently have a way to test the SDEI parts of this, but for all other 
+patches:
 
-and didn't notice any pci_enable_wake() callers that called
-device_may_wakeup() first.
+Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-Probably a dumb question, but would it make sense to restore the
-device_may_wakeup() check in pci_enable_wake(), e.g.,
+Thanks!
+Tyler
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index e597655a5643..9fa64c175f92 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -1932,6 +1932,9 @@ int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
- {
- 	int ret = 0;
- 
-+	if (enable && !device_may_wakeup(&dev->dev))
-+		return -EINVAL;
-+
- 	/*
- 	 * Bridges can only signal wakeup on behalf of subordinate devices,
- 	 * but that is set up elsewhere, so skip them.
+
+On 4/27/2018 11:34 AM, James Morse wrote:
+> The aim of this series is to wire arm64's SDEI into APEI.
+>
+> Nothing much has changed since v2, patch 3 is new and the KVM IS_ENABLED()
+> stuff has been cleaned up. Otherwise things are noted in each patch.
+>
+> This touches a few trees, so I'm not sure how best it should be merged.
+> Patches 11 and 12 are reducing a race that is made worse by patch 4, I'd
+> like them to arrive together, even though patch 11 doesn't depend on anything
+> else in the series. (patches 11&12 could be moved to after 8 if that makes
+> things easier)
+>
+>
+> The earlier boiler-plate:
+>
+> What's SDEI? Its ARM's "Software Delegated Exception Interface" [0]. It's
+> used by firmware to tell the OS about firmware-first RAS events.
+>
+> These Software exceptions can interrupt anything, so I describe them as
+> NMI-like. They aren't the only NMI-like way to notify the OS about
+> firmware-first RAS events, the ACPI spec also defines 'NOTFIY_SEA' and
+> 'NOTIFY_SEI'.
+>
+> (Acronyms: SEA, Synchronous External Abort. The CPU requested some memory,
+> but the owner of that memory said no. These are always synchronous with the
+> instruction that caused them. SEI, System-Error Interrupt, commonly called
+> SError. This is an asynchronous external abort, the memory-owner didn't say no
+> at the right point. Collectively these things are called external-aborts
+> How is firmware involved? It traps these and re-injects them into the kernel
+> once its written the CPER records).
+>
+>
+> APEI's GHES code only expects one source of NMI. If a platform implements
+> more than one of these mechanisms, APEI needs to handle the interaction.
+> 'SEA' and 'SEI' can interact as 'SEI' is asynchronous. SDEI can interact
+> with itself: its exceptions can be 'normal' or 'critical', and firmware
+> could use both types for RAS. (errors using normal, 'panic-now' using
+> critical).
+>
+> What does this series do?
+> Patches 1-4 refactor APEIs 'estatus queue' so it can be used for all
+> NMI-like notifications. This defers the NMI work to irq_work, which will
+> happen when we next unmask interrupts.
+>
+> Patches 5&6 move the arch and KVM code around so that NMI-like notifications
+> are always called in_nmi().
+>
+> Patch 7 changes the 'irq or nmi?' path through ghes_copy_tofrom_phys()
+> to be per-ghes. When called in_nmi(), the struct ghes is expected to
+> provide a fixmap slot and lock that is safe to use. NMI-like notifications
+> that mask each other can share these resources. Those that interact should
+> have their own fixmap slot and lock.
+>
+> Patch 8 renames NOTIFY_SEA's use of NOTIFY_NMI's infrastructure, as we're
+> about to have multiple NMI-like users that can't share resources.
+>
+> Pathes 9&10 add the SDEI helper, and notify methods for APEI.
+>
+> After this, adding further firmware-first pieces for arm64 is simple
+> (and safe), and all our NMI-like notifications behave the same as x86's
+> NOTIFY_NMI.
+>
+> All of this makes the race between memory_failure_queue() and
+> ret_to_user worse, as there is now always irq_work involved.
+>
+> Patch 11 makes the reschedule to memory_failure() run as soon as possible.
+> Patch 12 makes sure the arch code knows whether the irq_work has run by
+> the time do_sea() returns. We can skip the signalling step if it has as
+> APEI has done its work.
+>
+>
+> ghes.c became clearer to me when I worked out that it has three sets of
+> functions with 'estatus' in the name. One is a pool of memory that can be
+> allocated-from atomically. This is grown/shrunk when new NMI users are
+> allocated.
+> The second is the estatus-cache, which holds recent notifications so it
+> can suppress notifications we've already handled.
+> The last it the estatus-queue, which holds data from NMI-like notifications
+> (in pool memory) to be processed from irq_work.
+>
+>
+> Testing?
+> Tested with the SDEI FVP based software model and a mocked up NOTFIY_SEA using
+> KVM. I've added a case where 'corrected errors' are discovered at probe time
+> to exercise ghes_probe() during boot. I've only build tested this on x86.
+>
+>
+> Thanks,
+>
+> James
+>
+> [0] http://infocenter.arm.com/help/topic/com.arm.doc.den0054a/ARM_DEN0054A_Software_Delegated_Exception_Interface.pdf
+>
+>
+> James Morse (12):
+>    ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+>    ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+>    ACPI / APEI: don't wait to serialise with oops messages when
+>      panic()ing
+>    ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+>    KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+>    arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+>    ACPI / APEI: Make the nmi_fixmap_idx per-ghes to allow multiple
+>      in_nmi() users
+>    ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+>    firmware: arm_sdei: Add ACPI GHES registration helper
+>    ACPI / APEI: Add support for the SDEI GHES Notification type
+>    mm/memory-failure: increase queued recovery work's priority
+>    arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+>
+>   arch/arm/include/asm/kvm_ras.h       |  14 +
+>   arch/arm/include/asm/system_misc.h   |   5 -
+>   arch/arm64/include/asm/acpi.h        |   5 +-
+>   arch/arm64/include/asm/daifflags.h   |   1 +
+>   arch/arm64/include/asm/fixmap.h      |   8 +-
+>   arch/arm64/include/asm/kvm_ras.h     |  24 ++
+>   arch/arm64/include/asm/system_misc.h |   2 -
+>   arch/arm64/kernel/acpi.c             |  49 ++++
+>   arch/arm64/mm/fault.c                |  30 +-
+>   drivers/acpi/apei/ghes.c             | 517 ++++++++++++++++++++---------------
+>   drivers/firmware/arm_sdei.c          |  77 ++++++
+>   include/acpi/ghes.h                  |   4 +
+>   include/linux/arm_sdei.h             |   8 +
+>   mm/memory-failure.c                  |  11 +-
+>   virt/kvm/arm/mmu.c                   |   4 +-
+>   15 files changed, 499 insertions(+), 260 deletions(-)
+>   create mode 100644 arch/arm/include/asm/kvm_ras.h
+>   create mode 100644 arch/arm64/include/asm/kvm_ras.h
+>
+
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
