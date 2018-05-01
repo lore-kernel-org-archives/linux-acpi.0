@@ -1,50 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: APD: Add AMD misc clock handler support
-Date: Tue, 01 May 2018 11:33:17 +0200
-Message-ID: <2276656.jNytOrKoqF@aspire.rjw.lan>
-References: <1525072206-17956-1-git-send-email-akshu.agrawal@amd.com> <201804301633.FxGiqS4Z%fengguang.wu@intel.com> <096a504f-1d86-afc8-c6db-6ee1073a755c@amd.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH v3 01/12] ACPI / APEI: Move the estatus queue code up,
+ and under its own ifdef
+Date: Tue, 01 May 2018 11:43:19 +0100
+Message-ID: <877eonr708.fsf@e105922-lin.cambridge.arm.com>
+References: <20180427153510.5799-1-james.morse@arm.com>
+ <20180427153510.5799-2-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <096a504f-1d86-afc8-c6db-6ee1073a755c@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org, djkurtz@chromium.org, Alexander.Deucher@amd.com, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180427153510.5799-2-james.morse@arm.com> (James Morse's
+ message of "Fri, 27 Apr 2018 16:34:59 +0100")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, April 30, 2018 11:40:08 AM CEST Agrawal, Akshu wrote:
-> 
-> On 4/30/2018 2:23 PM, kbuild test robot wrote:
-> > Hi Akshu,
-> > 
-> > Thank you for the patch! Yet something to improve:
-> > 
-> > [auto build test ERROR on pm/linux-next]
-> > [also build test ERROR on v4.17-rc3 next-20180426]
-> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> > 
-> > url:    https://github.com/0day-ci/linux/commits/Akshu-Agrawal/ACPI-APD-Add-AMD-misc-clock-handler-support/20180430-152810
-> > base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
-> > config: x86_64-acpi-redef (attached as .config)
-> > compiler: gcc-7 (Debian 7.3.0-16) 7.3.0
-> > reproduce:
-> >          # save the attached .config to linux build tree
-> >          make ARCH=x86_64
-> > 
-> > All errors (new ones prefixed by >>):
-> > 
-> >>> drivers//acpi/acpi_apd.c:14:10: fatal error: linux/platform_data/clk-st.h: No such file or directory
-> >      #include <linux/platform_data/clk-st.h>
-> >               ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-> >     compilation terminated.
-> > 
-> 
-> This patch is dependent on https://patchwork.kernel.org/patch/10370955/
-> The above patch adds the required include file.
+Hi James,
 
-So please resend it when the requisite patch is merged and add the dependency
-information to its changelog.
+James Morse <james.morse@arm.com> writes:
+
+> To support asynchronous NMI-like notifications on arm64 we need to use
+> the estatus-queue. These patches refactor it to allow multiple APEI
+> notification types to use it.
+>
+> First we move the estatus-queue code higher in the file so that any
+> notify_foo() handler can make use of it.
+>
+> This patch moves code around ... and makes the following trivial change:
+> Freshen the dated comment above ghes_estatus_llist. printk() is no
+> longer the issue, its the helpers like memory_failure_queue() that
+> still aren't nmi safe.
+>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+>
+
+
+> Notes for cover letter:
+> ghes.c has three things all called 'estatus'. One is a pool of memory
+> that has a static size, and is grown/shrunk when new NMI users are
+> allocated.
+> The second is the cache, this holds recent notifications so we can
+> suppress notifications we've already handled.
+> The last is the queue, which hold data from NMI notifications (in pool
+> memory) that can't be handled immediatly.
+
+
+I am guessing you intended to drop the notes before sending the patch
+out.
+
+Calling this out as it'd make sense to clean-this up if the series is
+ready for merging.
 
 Thanks,
-Rafael
+Punit
+
+[...]
