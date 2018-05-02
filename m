@@ -1,66 +1,131 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [RFC PATCH v3 3/3] acpi: apei: Warn when GHES marks correctable
- errors as "fatal"
-Date: Wed, 2 May 2018 14:29:40 -0500
-Message-ID: <2e1b1d18-08b5-fa85-be7b-ab29ac2195b3@gmail.com>
-References: <20180416215903.7318-1-mr.nuke.me@gmail.com>
- <20180425203957.18224-1-mr.nuke.me@gmail.com>
- <20180425203957.18224-4-mr.nuke.me@gmail.com>
- <20180426112057.GB15009@pd.tnic> <20180502191029.hcvf56xbdna7oi4k@devuan>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v8 13/13] arm64: topology: divorce MC scheduling domain
+ from core_siblings
+Date: Wed, 2 May 2018 17:32:54 -0500
+Message-ID: <f3ec56a3-6352-5098-2e78-60f76a8b15b7@arm.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com>
+ <20180425233121.13270-14-jeremy.linton@arm.com>
+ <62677b95-faf5-4908-abc9-428ef39ea912@arm.com>
+ <20180502114916.GW4589@e105550-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180502191029.hcvf56xbdna7oi4k@devuan>
+In-Reply-To: <20180502114916.GW4589@e105550-lin.cambridge.arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>, Borislav Petkov <bp@alien8.de>
-Cc: linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-kernel@vger.kernel.org, devel@acpica.org
+To: Morten Rasmussen <morten.rasmussen@arm.com>, Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Catalin.Marinas@arm.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, jhugo@qti.qualcomm.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, timur@qti.qualcomm.com, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/02/2018 02:10 PM, Pavel Machek wrote:
-> On Thu 2018-04-26 13:20:57, Borislav Petkov wrote:
->> On Wed, Apr 25, 2018 at 03:39:51PM -0500, Alexandru Gagniuc wrote:
->>> There seems to be a culture amongst BIOS teams to want to crash the
->>> OS when an error can't be handled in firmware. Marking GHES errors as
->>> "fatal" is a very common way to do this.
+Hi,
+
+On 05/02/2018 06:49 AM, Morten Rasmussen wrote:
+> On Tue, May 01, 2018 at 03:33:33PM +0100, Sudeep Holla wrote:
+>>
+>>
+>> On 26/04/18 00:31, Jeremy Linton wrote:
+>>> Now that we have an accurate view of the physical topology
+>>> we need to represent it correctly to the scheduler. Generally MC
+>>> should equal the LLC in the system, but there are a number of
+>>> special cases that need to be dealt with.
 >>>
->>> However, a number of errors reported by GHES may be fatal in the sense
->>> a device or link is lost, but are not fatal to the system. When there
->>> is a disagreement with firmware about the handleability of an error,
->>> print a warning message.
-> 
-> 
+>>> In the case of NUMA in socket, we need to assure that the sched
+>>> domain we build for the MC layer isn't larger than the DIE above it.
+>>> Similarly for LLC's that might exist in cross socket interconnect or
+>>> directory hardware we need to assure that MC is shrunk to the socket
+>>> or NUMA node.
+>>>
+>>> This patch builds a sibling mask for the LLC, and then picks the
+>>> smallest of LLC, socket siblings, or NUMA node siblings, which
+>>> gives us the behavior described above. This is ever so slightly
+>>> different than the similar alternative where we look for a cache
+>>> layer less than or equal to the socket/NUMA siblings.
+>>>
+>>> The logic to pick the MC layer affects all arm64 machines, but
+>>> only changes the behavior for DT/MPIDR systems if the NUMA domain
+>>> is smaller than the core siblings (generally set to the cluster).
+>>> Potentially this fixes a possible bug in DT systems, but really
+>>> it only affects ACPI systems where the core siblings is correctly
+>>> set to the socket siblings. Thus all currently available ACPI
+>>> systems should have MC equal to LLC, including the NUMA in socket
+>>> machines where the LLC is partitioned between the NUMA nodes.
+>>>
+>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>> ---
+>>>   arch/arm64/include/asm/topology.h |  2 ++
+>>>   arch/arm64/kernel/topology.c      | 32 +++++++++++++++++++++++++++++++-
+>>>   2 files changed, 33 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+>>> index 6b10459e6905..df48212f767b 100644
+>>> --- a/arch/arm64/include/asm/topology.h
+>>> +++ b/arch/arm64/include/asm/topology.h
+>>> @@ -8,8 +8,10 @@ struct cpu_topology {
+>>>   	int thread_id;
+>>>   	int core_id;
+>>>   	int package_id;
+>>> +	int llc_id;
+>>>   	cpumask_t thread_sibling;
+>>>   	cpumask_t core_sibling;
+>>> +	cpumask_t llc_siblings;
+>>>   };
+>>>   
+>>>   extern struct cpu_topology cpu_topology[NR_CPUS];
+>>> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+>>> index bd1aae438a31..20b4341dc527 100644
+>>> --- a/arch/arm64/kernel/topology.c
+>>> +++ b/arch/arm64/kernel/topology.c
+>>> @@ -13,6 +13,7 @@
+>>>   
+>>>   #include <linux/acpi.h>
+>>>   #include <linux/arch_topology.h>
+>>> +#include <linux/cacheinfo.h>
+>>>   #include <linux/cpu.h>
+>>>   #include <linux/cpumask.h>
+>>>   #include <linux/init.h>
+>>> @@ -214,7 +215,19 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+>>>   
+>>>   const struct cpumask *cpu_coregroup_mask(int cpu)
+>>>   {
+>>> -	return &cpu_topology[cpu].core_sibling;
+>>> +	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
 >>> +
->>> +	if ((sev >= GHES_SEV_PANIC) && (ghes_actual_severity(ghes) < sev)) {
->>> +		pr_warn("FIRMWARE BUG: Firmware sent fatal error that we were able to correct");
->>> +		pr_warn("BROKEN FIRMWARE: Complain to your hardware vendor");
+>>> +	/* Find the smaller of NUMA, core or LLC siblings */
+>>> +	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+>>> +		/* not numa in package, lets use the package siblings */
+>>> +		core_mask = &cpu_topology[cpu].core_sibling;
+>>> +	}
+>>> +	if (cpu_topology[cpu].llc_id != -1) {
+>>> +		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
+>>> +			core_mask = &cpu_topology[cpu].llc_siblings;
+>>> +	}
+>>> +
+>>> +	return core_mask;
+>>>   }
+>>>   
+>>>   static void update_siblings_masks(unsigned int cpuid)
+>>> @@ -226,6 +239,9 @@ static void update_siblings_masks(unsigned int cpuid)
+>>>   	for_each_possible_cpu(cpu) {
+>>>   		cpu_topo = &cpu_topology[cpu];
+>>>   
+>>> +		if (cpuid_topo->llc_id == cpu_topo->llc_id)
+>>> +			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
+>>> +
 >>
->> Pasting the same comment from last time since you missed it:
->>
->> "No, I don't want any of that crap issuing stuff in dmesg and then people
->> opening bugs and running around and trying to replace hardware.
+>> Would this not result in cpuid_topo->llc_siblings = cpu_possible_mask
+>> on DT systems where llc_id is not set/defaults to -1 and still pass the
+>> condition. Does it make sense to add additional -1 check ?
 > 
-> We want to see warnings. Maybe they can be toned done. We even have
-> dedicated distros for firmware testing.
-
-I'm told that had we had this warning when the r740 BIOS was in
-development, we would have solved a lot of the issues that I'm currently
-working on. That would, in turn, have exposed bigger issues, and we
-would have had a platform to fix and test those bigger issues.
-
-Hardware vendors who test on linux might be scratching their heads at
-this error, though they tend to figure out what they're doing wrong, and
-fix it.
-
-One argument against was "expensive support calls", on which I call BS.
-The firmware resources are expensive, but those are there whether or not
-the customers call to complain.
-
-Alex
-
->> Good mailing practices for 400: avoid top-posting and trim the reply.
+> I don't think mask will be used by the current code if llc_id == -1 as
+> the user does the check. Is it better to have the mask empty than
+> default to cpu_possible_mask? If we require all users to implement a
+> check it shouldn't matter.
 > 
-> Good mailing practices -- limit use of four letter words on public lists.
 
-Then can't show word 'four'.
+Right.
+
+There is also the other way of thinking about it, which is if you remove 
+the if llc_id == -1 check in cpu_coregroup_mask() does it make more 
+sense to have llc_siblings default equal all the cores, or just the one 
+being requested?
