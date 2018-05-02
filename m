@@ -1,104 +1,97 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Wed, 2 May 2018 12:41:03 +0200
-Message-ID: <CAJZ5v0geYMuzcEhCKcaCHNP-j_ceeyZM0CqEaOTeE3jqVd6zaA@mail.gmail.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
- <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com> <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
- <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com> <CAJZ5v0iPsoxCLxsq156RvyZ1cWtM9jNMLUPMnE3cqi5r1jk8jg@mail.gmail.com>
- <20180501195501.GB11698@bhelgaas-glaptop.roam.corp.google.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: prefer bool over int for predicates
+Date: Wed, 02 May 2018 12:51:05 +0200
+Message-ID: <1824583.Oe7ze6gOva@aspire.rjw.lan>
+References: <20180408084627.xignebybfxyds2t5@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180501195501.GB11698@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <20180408084627.xignebybfxyds2t5@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Joey Pabalinas <joeypabalinas@gmail.com>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 1, 2018 at 9:55 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, May 01, 2018 at 10:34:29AM +0200, Rafael J. Wysocki wrote:
->> On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
->> <joseph.salisbury@canonical.com> wrote:
->> > On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
->> >> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
->> >> <joseph.salisbury@canonical.com> wrote:
->> >>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
->> >>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
->> >>>> <joseph.salisbury@canonical.com> wrote:
->> >>>>> Hi Rafael,
->> >>>>>
->> >>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
->> >>>>> bisect, it was found that reverting the following two commits resolved
->> >>>>> this bug:
->> >>>>>
->> >>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
->> >>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
->> >>>>>
->> >>>>> This is a regression introduced in v4.13-rc1 and still exists in
->> >>>>> mainline.  The bug causes the battery to drain when the system is
->> >>>>> powered down and unplugged, which does not happed prior to these two
->> >>>>> commits.
->> >>>> What system and what do you mean by "powered down"?  How much time
->> >>>> does it take for the battery to drain now?
->> >>> By powered down, the bug reporter is saying physically powered off and
->> >>> unplugged.  The system is a HP laptop:
->> >>>
->> >>> dmi.chassis.vendor: HP
->> >>> dmi.product.family: 103C_5335KV HP Notebook
->> >>> dmi.product.name: HP Notebook
->> >>> vendor_id    : GenuineIntel
->> >>> cpu family    : 6
->> >>>
->> >>>
->> >>>>> The bisect actually pointed to commit de3ef1e, but reverting
->> >>>>> these two commits fixes the issue.
->> >>>>>
->> >>>>> I was hoping to get your feedback, since you are the patch author.  Do
->> >>>>> you think gathering any additional data will help diagnose this issue,
->> >>>>> or would it be best to submit a revert request?
->> >>>> First, reverting these is not an option or you will break systems
->> >>>> relying on them now.  4.13 is three releases back at this point.
->> >>>>
->> >>>> Second, your issue appears to be related to the suspend/shutdown path
->> >>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
->> >>>> change in pci_enable_wake() causes the problem to happen.  Can you try
->> >>>> to revert this one alone and see if that helps?
->> >>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
->> >>> tested.  However, the test kernel still exhibited the bug.
->> >> So essentially the bisection result cannot be trusted.
->> >
->> > We performed some more testing and confirmed just a revert of the
->> > following commit resolves the bug:
->> >
->> > 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
->>
->> Thanks for confirming this!
->>
->> > Can you think of any suggestions to help debug further?
->>
->> The root cause of the regression is likely the change in
->> pci_enable_wake() removing the device_may_wakeup() check from it.
->>
->> Probably, one of the drivers in the platform calls pci_enable_wake()
->> directly from its ->shutdown() callback and that causes the device to
->> be set up for system wakeup which in turn causes the power draw while
->> the system is off to increase.
->>
->> I would look at the PCI drivers used on that platform to find which of
->> them call pci_enable_wake() directly from ->shutdown() and I would
->> make these calls conditional on device_may_wakeup().
->
-> I took a quick look with
->
->   git grep -E "pci_enable_wake\(.*[^0]\);|device_may_wakeup"
->
-> and didn't notice any pci_enable_wake() callers that called
-> device_may_wakeup() first.
+On Sunday, April 8, 2018 10:46:27 AM CEST Joey Pabalinas wrote:
+> 
+> --dohnnvt2hwn6rmo4
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> Content-Transfer-Encoding: quoted-printable
+> 
+> Prefer bool over int for variables / returns which are
+> predicate expressions to make it explicit that these
+> expressions are evaluating simple "yes or no?" queries.
 
-I've just look at a bunch of network drivers doing that.
+In new code - yes.
 
-It looks like I may need to restore __pci_enable_wake() with an extra
-"runtime" argument for internal use.
+But changing old code just for this purpose is at least questionable.
 
-Joseph, can you ask the reporter to test the Bjorn's patch, please?
+> This makes it more obvious which expressions are _not_
+> that simple and require more attention, e.g. an `int ret`
+> meant to hold 0 or -ENOENT as a return value or an
+> `unsigned nmemb` meant to refer to the number of valid
+> members in some arbitrary array.
+> 
+> Change relevant variable / return types from int to bool and
+> prefer a true / false value for predicate expressions versus
+> a plain 1 / 0 value.
+
+This makes a bunch of unrelated changes without a clear pattern
+in many places and I'm not convinced that the reason is good enough.
+
+> Signed-off-by: Joey Pabalinas <joeypabalinas@gmail.com>
+> 
+>  drivers/acpi/battery.c  |  4 ++--
+>  drivers/acpi/ec.c       | 20 +++++++++-----------
+>  drivers/acpi/pci_root.c | 17 ++++++-----------
+>  drivers/acpi/scan.c     |  6 +++---
+>  include/acpi/acpi_bus.h |  2 +-
+>  5 files changed, 21 insertions(+), 28 deletions(-)
+> 
+> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+> index bdb24d636d9acc9c1a..f1a5fb5252969f0478 100644
+> --- a/drivers/acpi/battery.c
+> +++ b/drivers/acpi/battery.c
+> @@ -1416,7 +1416,7 @@ static int acpi_battery_add(struct acpi_device *devic=
+> e)
+>  	battery->pm_nb.notifier_call =3D battery_notify;
+>  	register_pm_notifier(&battery->pm_nb);
+> =20
+
+Broken whitespace.
+
+> -	device_init_wakeup(&device->dev, 1);
+> +	device_init_wakeup(&device->dev, true);
+> =20
+>  	return result;
+> =20
+> @@ -1434,7 +1434,7 @@ static int acpi_battery_remove(struct acpi_device *de=
+> vice)
+> =20
+>  	if (!device || !acpi_driver_data(device))
+>  		return -EINVAL;
+> -	device_init_wakeup(&device->dev, 0);
+> +	device_init_wakeup(&device->dev, false);
+>  	battery =3D acpi_driver_data(device);
+>  	unregister_pm_notifier(&battery->pm_nb);
+>  #ifdef CONFIG_ACPI_PROCFS_POWER
+> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+> index 30a5729565575f83cb..d4a564ab9cdd53046c 100644
+> --- a/drivers/acpi/ec.c
+> +++ b/drivers/acpi/ec.c
+> @@ -350,7 +350,7 @@ static inline bool acpi_ec_is_gpe_raised(struct acpi_ec=
+>  *ec)
+>  	acpi_event_status gpe_status =3D 0;
+> =20
+>  	(void)acpi_get_gpe_status(NULL, ec->gpe, &gpe_status);
+> -	return (gpe_status & ACPI_EVENT_FLAG_STATUS_SET) ? true : false;
+> +	return gpe_status & ACPI_EVENT_FLAG_STATUS_SET;
+
+And this isn't entirely correct even.
+
+You should apply !! to the expression to get the same result really.
+
+Thanks,
+Rafael
