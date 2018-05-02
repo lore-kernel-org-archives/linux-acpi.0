@@ -1,107 +1,118 @@
-From: Joseph Salisbury <joseph.salisbury@canonical.com>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Wed, 2 May 2018 07:12:39 -0400
-Message-ID: <d83a8403-1916-29bc-20ea-fe21b8ff8c2f@canonical.com>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
- <CAJZ5v0j8GAatWoAra37y3c-ti2Ft5am75KONgEkjB6AaypkCqg@mail.gmail.com>
- <ae84e595-dede-1409-4aff-3a29a310f2ba@canonical.com>
- <CAJZ5v0gapMMf=KqBAoDTv0SUBeusrUFPyEz6Z4k8Y3Szizdm5Q@mail.gmail.com>
- <1f67f00a-8141-f9af-2120-c78f7cfecb1d@canonical.com>
- <CAJZ5v0iPsoxCLxsq156RvyZ1cWtM9jNMLUPMnE3cqi5r1jk8jg@mail.gmail.com>
- <20180501195501.GB11698@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0geYMuzcEhCKcaCHNP-j_ceeyZM0CqEaOTeE3jqVd6zaA@mail.gmail.com>
+From: Morten Rasmussen <morten.rasmussen@arm.com>
+Subject: Re: [PATCH v8 13/13] arm64: topology: divorce MC scheduling domain
+ from core_siblings
+Date: Wed, 2 May 2018 12:49:16 +0100
+Message-ID: <20180502114916.GW4589@e105550-lin.cambridge.arm.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com>
+ <20180425233121.13270-14-jeremy.linton@arm.com>
+ <62677b95-faf5-4908-abc9-428ef39ea912@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0geYMuzcEhCKcaCHNP-j_ceeyZM0CqEaOTeE3jqVd6zaA@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <62677b95-faf5-4908-abc9-428ef39ea912@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Catalin.Marinas@arm.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, jhugo@qti.qualcomm.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, timur@qti.qualcomm.com, hanjun.guo@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/02/2018 06:41 AM, Rafael J. Wysocki wrote:
-> On Tue, May 1, 2018 at 9:55 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> On Tue, May 01, 2018 at 10:34:29AM +0200, Rafael J. Wysocki wrote:
->>> On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
->>> <joseph.salisbury@canonical.com> wrote:
->>>> On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
->>>>> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
->>>>> <joseph.salisbury@canonical.com> wrote:
->>>>>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
->>>>>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
->>>>>>> <joseph.salisbury@canonical.com> wrote:
->>>>>>>> Hi Rafael,
->>>>>>>>
->>>>>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
->>>>>>>> bisect, it was found that reverting the following two commits resolved
->>>>>>>> this bug:
->>>>>>>>
->>>>>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
->>>>>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
->>>>>>>>
->>>>>>>> This is a regression introduced in v4.13-rc1 and still exists in
->>>>>>>> mainline.  The bug causes the battery to drain when the system is
->>>>>>>> powered down and unplugged, which does not happed prior to these two
->>>>>>>> commits.
->>>>>>> What system and what do you mean by "powered down"?  How much time
->>>>>>> does it take for the battery to drain now?
->>>>>> By powered down, the bug reporter is saying physically powered off and
->>>>>> unplugged.  The system is a HP laptop:
->>>>>>
->>>>>> dmi.chassis.vendor: HP
->>>>>> dmi.product.family: 103C_5335KV HP Notebook
->>>>>> dmi.product.name: HP Notebook
->>>>>> vendor_id    : GenuineIntel
->>>>>> cpu family    : 6
->>>>>>
->>>>>>
->>>>>>>> The bisect actually pointed to commit de3ef1e, but reverting
->>>>>>>> these two commits fixes the issue.
->>>>>>>>
->>>>>>>> I was hoping to get your feedback, since you are the patch author.  Do
->>>>>>>> you think gathering any additional data will help diagnose this issue,
->>>>>>>> or would it be best to submit a revert request?
->>>>>>> First, reverting these is not an option or you will break systems
->>>>>>> relying on them now.  4.13 is three releases back at this point.
->>>>>>>
->>>>>>> Second, your issue appears to be related to the suspend/shutdown path
->>>>>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
->>>>>>> change in pci_enable_wake() causes the problem to happen.  Can you try
->>>>>>> to revert this one alone and see if that helps?
->>>>>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
->>>>>> tested.  However, the test kernel still exhibited the bug.
->>>>> So essentially the bisection result cannot be trusted.
->>>> We performed some more testing and confirmed just a revert of the
->>>> following commit resolves the bug:
->>>>
->>>> 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
->>> Thanks for confirming this!
->>>
->>>> Can you think of any suggestions to help debug further?
->>> The root cause of the regression is likely the change in
->>> pci_enable_wake() removing the device_may_wakeup() check from it.
->>>
->>> Probably, one of the drivers in the platform calls pci_enable_wake()
->>> directly from its ->shutdown() callback and that causes the device to
->>> be set up for system wakeup which in turn causes the power draw while
->>> the system is off to increase.
->>>
->>> I would look at the PCI drivers used on that platform to find which of
->>> them call pci_enable_wake() directly from ->shutdown() and I would
->>> make these calls conditional on device_may_wakeup().
->> I took a quick look with
->>
->>   git grep -E "pci_enable_wake\(.*[^0]\);|device_may_wakeup"
->>
->> and didn't notice any pci_enable_wake() callers that called
->> device_may_wakeup() first.
-> I've just look at a bunch of network drivers doing that.
->
-> It looks like I may need to restore __pci_enable_wake() with an extra
-> "runtime" argument for internal use.
->
-> Joseph, can you ask the reporter to test the Bjorn's patch, please?
+On Tue, May 01, 2018 at 03:33:33PM +0100, Sudeep Holla wrote:
+> 
+> 
+> On 26/04/18 00:31, Jeremy Linton wrote:
+> > Now that we have an accurate view of the physical topology
+> > we need to represent it correctly to the scheduler. Generally MC
+> > should equal the LLC in the system, but there are a number of
+> > special cases that need to be dealt with.
+> > 
+> > In the case of NUMA in socket, we need to assure that the sched
+> > domain we build for the MC layer isn't larger than the DIE above it.
+> > Similarly for LLC's that might exist in cross socket interconnect or
+> > directory hardware we need to assure that MC is shrunk to the socket
+> > or NUMA node.
+> > 
+> > This patch builds a sibling mask for the LLC, and then picks the
+> > smallest of LLC, socket siblings, or NUMA node siblings, which
+> > gives us the behavior described above. This is ever so slightly
+> > different than the similar alternative where we look for a cache
+> > layer less than or equal to the socket/NUMA siblings.
+> > 
+> > The logic to pick the MC layer affects all arm64 machines, but
+> > only changes the behavior for DT/MPIDR systems if the NUMA domain
+> > is smaller than the core siblings (generally set to the cluster).
+> > Potentially this fixes a possible bug in DT systems, but really
+> > it only affects ACPI systems where the core siblings is correctly
+> > set to the socket siblings. Thus all currently available ACPI
+> > systems should have MC equal to LLC, including the NUMA in socket
+> > machines where the LLC is partitioned between the NUMA nodes.
+> > 
+> > Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> > ---
+> >  arch/arm64/include/asm/topology.h |  2 ++
+> >  arch/arm64/kernel/topology.c      | 32 +++++++++++++++++++++++++++++++-
+> >  2 files changed, 33 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/arch/arm64/include/asm/topology.h b/arch/arm64/include/asm/topology.h
+> > index 6b10459e6905..df48212f767b 100644
+> > --- a/arch/arm64/include/asm/topology.h
+> > +++ b/arch/arm64/include/asm/topology.h
+> > @@ -8,8 +8,10 @@ struct cpu_topology {
+> >  	int thread_id;
+> >  	int core_id;
+> >  	int package_id;
+> > +	int llc_id;
+> >  	cpumask_t thread_sibling;
+> >  	cpumask_t core_sibling;
+> > +	cpumask_t llc_siblings;
+> >  };
+> >  
+> >  extern struct cpu_topology cpu_topology[NR_CPUS];
+> > diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> > index bd1aae438a31..20b4341dc527 100644
+> > --- a/arch/arm64/kernel/topology.c
+> > +++ b/arch/arm64/kernel/topology.c
+> > @@ -13,6 +13,7 @@
+> >  
+> >  #include <linux/acpi.h>
+> >  #include <linux/arch_topology.h>
+> > +#include <linux/cacheinfo.h>
+> >  #include <linux/cpu.h>
+> >  #include <linux/cpumask.h>
+> >  #include <linux/init.h>
+> > @@ -214,7 +215,19 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+> >  
+> >  const struct cpumask *cpu_coregroup_mask(int cpu)
+> >  {
+> > -	return &cpu_topology[cpu].core_sibling;
+> > +	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
+> > +
+> > +	/* Find the smaller of NUMA, core or LLC siblings */
+> > +	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+> > +		/* not numa in package, lets use the package siblings */
+> > +		core_mask = &cpu_topology[cpu].core_sibling;
+> > +	}
+> > +	if (cpu_topology[cpu].llc_id != -1) {
+> > +		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
+> > +			core_mask = &cpu_topology[cpu].llc_siblings;
+> > +	}
+> > +
+> > +	return core_mask;
+> >  }
+> >  
+> >  static void update_siblings_masks(unsigned int cpuid)
+> > @@ -226,6 +239,9 @@ static void update_siblings_masks(unsigned int cpuid)
+> >  	for_each_possible_cpu(cpu) {
+> >  		cpu_topo = &cpu_topology[cpu];
+> >  
+> > +		if (cpuid_topo->llc_id == cpu_topo->llc_id)
+> > +			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
+> > +
+> 
+> Would this not result in cpuid_topo->llc_siblings = cpu_possible_mask
+> on DT systems where llc_id is not set/defaults to -1 and still pass the
+> condition. Does it make sense to add additional -1 check ?
 
-Yes, I'll get him a test kernel and respond with the results.
+I don't think mask will be used by the current code if llc_id == -1 as
+the user does the check. Is it better to have the mask empty than
+default to cpu_possible_mask? If we require all users to implement a
+check it shouldn't matter.
