@@ -1,196 +1,161 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
-Date: Fri, 04 May 2018 13:14:50 +0200
-Message-ID: <3450120.zJjNP64voh@aspire.rjw.lan>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com> <20180503191126.GA15790@bhelgaas-glaptop.roam.corp.google.com> <CAJZ5v0gMY03BWN8D0Of=+bHf22jUgnmyDF8_OsRtQTX-YuMdew@mail.gmail.com>
+From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Subject: Re: [PATCH v8 00/13] Support PPTT for ARM64
+Date: Fri, 4 May 2018 19:34:40 +0800
+Message-ID: <35ce144b-4386-7bd8-f401-8643400fb7a1@huawei.com>
+References: <20180425233121.13270-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gMY03BWN8D0Of=+bHf22jUgnmyDF8_OsRtQTX-YuMdew@mail.gmail.com>
+In-Reply-To: <20180425233121.13270-1-jeremy.linton@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Joseph Salisbury <joseph.salisbury@canonical.com>
-Cc: Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, May 3, 2018 11:29:18 PM CEST Rafael J. Wysocki wrote:
-> On Thu, May 3, 2018 at 9:11 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > On Thu, May 03, 2018 at 02:29:02PM -0400, Joseph Salisbury wrote:
-> >> On 05/02/2018 06:41 AM, Rafael J. Wysocki wrote:
-> >> > On Tue, May 1, 2018 at 9:55 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> >> >> On Tue, May 01, 2018 at 10:34:29AM +0200, Rafael J. Wysocki wrote:
-> >> >>> On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
-> >> >>> <joseph.salisbury@canonical.com> wrote:
-> >> >>>> On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
-> >> >>>>> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
-> >> >>>>> <joseph.salisbury@canonical.com> wrote:
-> >> >>>>>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
-> >> >>>>>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
-> >> >>>>>>> <joseph.salisbury@canonical.com> wrote:
-> >> >>>>>>>> Hi Rafael,
-> >> >>>>>>>>
-> >> >>>>>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
-> >> >>>>>>>> bisect, it was found that reverting the following two commits resolved
-> >> >>>>>>>> this bug:
-> >> >>>>>>>>
-> >> >>>>>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
-> >> >>>>>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
-> >> >>>>>>>>
-> >> >>>>>>>> This is a regression introduced in v4.13-rc1 and still exists in
-> >> >>>>>>>> mainline.  The bug causes the battery to drain when the system is
-> >> >>>>>>>> powered down and unplugged, which does not happed prior to these two
-> >> >>>>>>>> commits.
-> >> >>>>>>> What system and what do you mean by "powered down"?  How much time
-> >> >>>>>>> does it take for the battery to drain now?
-> >> >>>>>> By powered down, the bug reporter is saying physically powered off and
-> >> >>>>>> unplugged.  The system is a HP laptop:
-> >> >>>>>>
-> >> >>>>>> dmi.chassis.vendor: HP
-> >> >>>>>> dmi.product.family: 103C_5335KV HP Notebook
-> >> >>>>>> dmi.product.name: HP Notebook
-> >> >>>>>> vendor_id    : GenuineIntel
-> >> >>>>>> cpu family    : 6
-> >> >>>>>>
-> >> >>>>>>
-> >> >>>>>>>> The bisect actually pointed to commit de3ef1e, but reverting
-> >> >>>>>>>> these two commits fixes the issue.
-> >> >>>>>>>>
-> >> >>>>>>>> I was hoping to get your feedback, since you are the patch author.  Do
-> >> >>>>>>>> you think gathering any additional data will help diagnose this issue,
-> >> >>>>>>>> or would it be best to submit a revert request?
-> >> >>>>>>> First, reverting these is not an option or you will break systems
-> >> >>>>>>> relying on them now.  4.13 is three releases back at this point.
-> >> >>>>>>>
-> >> >>>>>>> Second, your issue appears to be related to the suspend/shutdown path
-> >> >>>>>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
-> >> >>>>>>> change in pci_enable_wake() causes the problem to happen.  Can you try
-> >> >>>>>>> to revert this one alone and see if that helps?
-> >> >>>>>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
-> >> >>>>>> tested.  However, the test kernel still exhibited the bug.
-> >> >>>>> So essentially the bisection result cannot be trusted.
-> >> >>>> We performed some more testing and confirmed just a revert of the
-> >> >>>> following commit resolves the bug:
-> >> >>>>
-> >> >>>> 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
-> >> >>> Thanks for confirming this!
-> >> >>>
-> >> >>>> Can you think of any suggestions to help debug further?
-> >> >>> The root cause of the regression is likely the change in
-> >> >>> pci_enable_wake() removing the device_may_wakeup() check from it.
-> >> >>>
-> >> >>> Probably, one of the drivers in the platform calls pci_enable_wake()
-> >> >>> directly from its ->shutdown() callback and that causes the device to
-> >> >>> be set up for system wakeup which in turn causes the power draw while
-> >> >>> the system is off to increase.
-> >> >>>
-> >> >>> I would look at the PCI drivers used on that platform to find which of
-> >> >>> them call pci_enable_wake() directly from ->shutdown() and I would
-> >> >>> make these calls conditional on device_may_wakeup().
-> >> >> I took a quick look with
-> >> >>
-> >> >>   git grep -E "pci_enable_wake\(.*[^0]\);|device_may_wakeup"
-> >> >>
-> >> >> and didn't notice any pci_enable_wake() callers that called
-> >> >> device_may_wakeup() first.
-> >> > I've just look at a bunch of network drivers doing that.
-> >> >
-> >> > It looks like I may need to restore __pci_enable_wake() with an extra
-> >> > "runtime" argument for internal use.
-> >> >
-> >> > Joseph, can you ask the reporter to test the Bjorn's patch, please?
-> >>
-> >> The bug reporter has testing Bjorn's patch.  It did in fact resolve the
-> >> bug.  Thanks for the quick help, Rafael and Bjorn!
-> >
-> > Just as a word of caution, I think Rafael said my patch was not the
-> > right fix because it would break something else.  So I would wait for
-> > a better patch from Rafael before actually resolving this issue.
+Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+
+Tested on D05 board. 'lscpu' prints the following info:
+localhost:~ # lscpu
+Architecture:          aarch64
+Byte Order:            Little Endian
+CPU(s):                64
+On-line CPU(s) list:   0-63
+Thread(s) per core:    1
+Core(s) per socket:    32
+Socket(s):             2
+NUMA node(s):          4
+L1d cache:             32K
+L1i cache:             48K
+L2 cache:              1024K
+L3 cache:              16384K
+NUMA node0 CPU(s):     0-15
+NUMA node1 CPU(s):     16-31
+NUMA node2 CPU(s):     32-47
+NUMA node3 CPU(s):     48-63
+
+'sched_domain' is as follows
+localhost:~ # cat /proc/schedstat
+version 15
+timestamp 4294936236
+cpu0 0 0 0 0 0 0 2471285600 2634828800 4813
+domain0 00000000,0000ffff 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+domain1 00000000,ffffffff 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+domain2 ffffffff,ffffffff 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+
+On 2018/4/26 7:31, Jeremy Linton wrote:
+> ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+> used to describe the processor and cache topology. Ideally it is
+> used to extend/override information provided by the hardware, but
+> right now ARM64 is entirely dependent on firmware provided tables.
 > 
-> I'll do my best to provide one in the next couple of days.
-
-Something like the appended one (compiled-only at this point).
-
-Joseph, this should be functionally equivalent to the Bjorn's patch except
-for the runtime PM part which is irrelevant for the issue in question, but
-please ask the reported to test this one too.
-
-If it is confirmed to work, I'll repost it with a proper changelog.
-
----
- drivers/pci/pci.c |   31 ++++++++++++++++++++++++-------
- 1 file changed, 24 insertions(+), 7 deletions(-)
-
-Index: linux-pm/drivers/pci/pci.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci.c
-+++ linux-pm/drivers/pci/pci.c
-@@ -1910,7 +1910,7 @@ void pci_pme_active(struct pci_dev *dev,
- EXPORT_SYMBOL(pci_pme_active);
- 
- /**
-- * pci_enable_wake - enable PCI device as wakeup event source
-+ * __pci_enable_wake - enable PCI device as wakeup event source
-  * @dev: PCI device affected
-  * @state: PCI state from which device will issue wakeup events
-  * @enable: True to enable event generation; false to disable
-@@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(pci_pme_active);
-  * Error code depending on the platform is returned if both the platform and
-  * the native mechanism fail to enable the generation of wake-up events
-  */
--int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
-+static int __pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
- {
- 	int ret = 0;
- 
-@@ -1969,6 +1969,23 @@ int pci_enable_wake(struct pci_dev *dev,
- 
- 	return ret;
- }
-+
-+/**
-+ * pci_enable_wake - enable PCI device as wakeup event source
-+ * @pci_dev: Target device
-+ * @state: PCI state from which device will issue wakeup events
-+ * @enable: Whether or not to enable event generation
-+ *
-+ * If @enable is set and device_may_wakeup() returns false for the device, it
-+ * will not be enabled to generate wakeup events.
-+ */
-+int pci_enable_wake(struct pci_dev *pci_dev, pci_power_t state, bool enable)
-+{
-+	if (enable && !device_may_wakeup(&pci_dev->dev))
-+		return -EINVAL;
-+
-+	return __pci_enable_wake(pci_dev, state, enable);
-+}
- EXPORT_SYMBOL(pci_enable_wake);
- 
- /**
-@@ -1981,9 +1998,9 @@ EXPORT_SYMBOL(pci_enable_wake);
-  * should not be called twice in a row to enable wake-up due to PCI PM vs ACPI
-  * ordering constraints.
-  *
-- * This function only returns error code if the device is not capable of
-- * generating PME# from both D3_hot and D3_cold, and the platform is unable to
-- * enable wake-up power for it.
-+ * This function only returns error code if the device is not allowed to wake
-+ * up the system from sleep or it is not capable of generating PME# from both
-+ * D3_hot and D3_cold and the platform is unable to enable wake-up power for it.
-  */
- int pci_wake_from_d3(struct pci_dev *dev, bool enable)
- {
-@@ -2114,12 +2131,12 @@ int pci_finish_runtime_suspend(struct pc
- 
- 	dev->runtime_d3cold = target_state == PCI_D3cold;
- 
--	pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
-+	__pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
- 
- 	error = pci_set_power_state(dev, target_state);
- 
- 	if (error) {
--		pci_enable_wake(dev, target_state, false);
-+		__pci_enable_wake(dev, target_state, false);
- 		dev->runtime_d3cold = false;
- 	}
- 
+> This patch parses the table for the cache topology and CPU topology.
+> When we enable ACPI/PPTT for arm64 we map the package_id to the
+> PPTT node flagged as the physical package by the firmware.
+> This results in topologies that match what the remainder of the
+> system expects. Finally, we update the scheduler MC domain so that
+> it generally reflects the LLC unless the LLC is too large for the
+> NUMA domain (or package).
+> 
+> For example on juno:
+> [root@mammon-juno-rh topology]# lstopo-no-graphics
+>   Package L#0
+>     L2 L#0 (1024KB)
+>       L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+>       L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+>       L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+>       L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+>     L2 L#1 (2048KB)
+>       L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+>       L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+>   HostBridge L#0
+>     PCIBridge
+>       PCIBridge
+>         PCIBridge
+>           PCI 1095:3132
+>             Block(Disk) L#0 "sda"
+>         PCIBridge
+>           PCI 1002:68f9
+>             GPU L#1 "renderD128"
+>             GPU L#2 "card0"
+>             GPU L#3 "controlD64"
+>         PCIBridge
+>           PCI 11ab:4380
+>             Net L#4 "enp8s0"
+> 
+> Git tree at:
+> http://linux-arm.org/git?p=linux-jlinton.git
+> branch: pptt_v8
+> 
+> v7->v8:
+> Modify the logic used to select the MC domain (the change
+>   shouldn't modify the sched domains on any existing machines
+>   compared to v7, only how they are built)
+> Reduce the severity of some parsing messages.
+> Fix s390 link problem.
+> Further checks to deal with broken PPTT tables.
+> Various style tweaks, SPDX license addition, etc.
+> 
+> v6->v7:
+> Add additional patch to use the last cache level within the NUMA
+>   or socket as the MC domain. This assures the MC domain is
+>   equal or smaller than the DIE.
+>   
+> Various formatting/etc review comments.
+> 
+> Rebase to 4.16rc2
+> 
+> v5->v6:
+> Add additional patches which re-factor how the initial DT code sets
+>   up the cacheinfo structure so that its not as dependent on the
+>   of_node stored in that tree. Once that is done we rename it
+>   for use with the ACPI code.
+> 
+> Additionally there were a fair number of minor name/location/etc
+>   tweaks scattered about made in response to review comments.
+> 
+> v4->v5:
+> Update the cache type from NOCACHE to UNIFIED when all the cache
+>   attributes we update are valid. This fixes a problem where caches
+>   which are entirely created by the PPTT don't show up in lstopo.
+> 
+> Give the PPTT its own firmware_node in the cache structure instead of
+>   sharing it with the of_node.
+> 
+> Move some pieces around between patches.
+> 
+> (see previous cover letters for futher changes)
+> 
+> Jeremy Linton (13):
+>   drivers: base: cacheinfo: move cache_setup_of_node()
+>   drivers: base: cacheinfo: setup DT cache properties early
+>   cacheinfo: rename of_node to fw_token
+>   arm64/acpi: Create arch specific cpu to acpi id helper
+>   ACPI/PPTT: Add Processor Properties Topology Table parsing
+>   ACPI: Enable PPTT support on ARM64
+>   drivers: base cacheinfo: Add support for ACPI based firmware tables
+>   arm64: Add support for ACPI based firmware tables
+>   ACPI/PPTT: Add topology parsing code
+>   arm64: topology: rename cluster_id
+>   arm64: topology: enable ACPI/PPTT based CPU topology
+>   ACPI: Add PPTT to injectable table list
+>   arm64: topology: divorce MC scheduling domain from core_siblings
+> 
+>  arch/arm64/Kconfig                |   1 +
+>  arch/arm64/include/asm/acpi.h     |   4 +
+>  arch/arm64/include/asm/topology.h |   6 +-
+>  arch/arm64/kernel/cacheinfo.c     |  15 +-
+>  arch/arm64/kernel/topology.c      | 103 +++++-
+>  arch/riscv/kernel/cacheinfo.c     |   1 -
+>  drivers/acpi/Kconfig              |   3 +
+>  drivers/acpi/Makefile             |   1 +
+>  drivers/acpi/pptt.c               | 678 ++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/tables.c             |   2 +-
+>  drivers/base/cacheinfo.c          | 157 ++++-----
+>  include/linux/acpi.h              |   4 +
+>  include/linux/cacheinfo.h         |  18 +-
+>  13 files changed, 886 insertions(+), 107 deletions(-)
+>  create mode 100644 drivers/acpi/pptt.c
+> 
