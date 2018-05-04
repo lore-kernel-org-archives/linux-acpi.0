@@ -1,35 +1,77 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v8 00/13] Support PPTT for ARM64
-Date: Fri, 4 May 2018 12:44:59 +0100
-Message-ID: <493de8bf-b59e-cfac-6e34-f4c1443ee0fe@arm.com>
-References: <20180425233121.13270-1-jeremy.linton@arm.com>
- <050a01d3e37f$57678470$06368d50$@codeaurora.org>
+From: Shiju Jose <shiju.jose@huawei.com>
+Subject: RE: [RFC PATCH v4 2/3] acpi: apei: Rename ghes_severity() to
+ ghes_cper_severity()
+Date: Fri, 4 May 2018 11:56:03 +0000
+Message-ID: <86258A5CC0A3704780874CF6004BA8A64EE2C974@FRAEML521-MBX.china.huawei.com>
+References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
+ <20180430213358.8319-1-mr.nuke.me@gmail.com>
+ <20180430213358.8319-2-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <050a01d3e37f$57678470$06368d50$@codeaurora.org>
+In-Reply-To: <20180430213358.8319-2-mr.nuke.me@gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: vkilari@codeaurora.org, 'Jeremy Linton' <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@qti.qualcomm.com, timur@qti.qualcomm.com, ard.biesheuvel@linaro.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>, "bp@alien8.de" <bp@alien8.de>
+Cc: "alex_gagniuc@dellteam.com" <alex_gagniuc@dellteam.com>, "austin_bolen@dell.com" <austin_bolen@dell.com>, "shyam_iyer@dell.com" <shyam_iyer@dell.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, gengdongjiu <gengdongjiu@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-edac@vger.kernel.org" <linux-edac@vger.kernel.org>, devel@a
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Vijaya Kumar,
+Hi Alex,
 
-On 04/05/18 09:10, vkilari@codeaurora.org wrote:
+> -----Original Message-----
+> From: Alexandru Gagniuc [mailto:mr.nuke.me@gmail.com]
+> Sent: 30 April 2018 22:34
+> To: bp@alien8.de
+> Cc: alex_gagniuc@dellteam.com; austin_bolen@dell.com;
+> shyam_iyer@dell.com; Alexandru Gagniuc; Rafael J. Wysocki; Len Brown;
+> Tony Luck; Mauro Carvalho Chehab; Robert Moore; Erik Schmauss; Tyler
+> Baicar; Will Deacon; James Morse; Shiju Jose; Jonathan (Zhixiong) Zhang;
+> gengdongjiu; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+> linux-edac@vger.kernel.org; devel@acpica.org
+> Subject: [RFC PATCH v4 2/3] acpi: apei: Rename ghes_severity() to
+> ghes_cper_severity()
+> 
+> ghes_severity() is a misnomer in this case, as it implies the severity
+> of the entire GHES structure. Instead, it maps one CPER value to a
+> monotonically increasing number. ghes_cper_severity() is clearer.
+> 
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 17 ++++++++---------
+>  1 file changed, 8 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index f9b53a6f55f3..c9f1971333c1 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -271,7 +271,7 @@ static void ghes_fini(struct ghes *ghes)
+>  		unmap_gen_v2(ghes);
+>  }
+> 
+> -static inline int ghes_severity(int severity)
+> +static inline int ghes_cper_severity(int severity)
+
+[...]
+>  	else
+>  		ratelimit = &ratelimit_uncorrected;
+> @@ -705,9 +705,8 @@ static int ghes_proc(struct ghes *ghes)
+>  	if (rc)
+>  		goto out;
+> 
+> -	if (ghes_severity(ghes->estatus->error_severity) >=
+> GHES_SEV_PANIC) {
+> +	if (ghes_cper_severity(ghes->estatus->error_severity) >=
+> GHES_SEV_PANIC)
+>  		__ghes_panic(ghes);
+
+PCIe AER fatal errors result panic here.
+I think ghes_cper_severity to be replaced with ghes_severity in the ghes_proc function as well in the patch 
+"acpi: apei: Do not panic() on PCIe errors reported through GHES"?
+> -	}
 > 
 [...]
+> 2.14.3
 
-CPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
-> used to
->> describe the processor and cache topology. Ideally it is used to
-> extend/override
-
-FYI, these messages go no where to the git commit log. Only individual
-patch logs/messages will go and not the cover letter ones. Check if you
-are happy with those.
-
--- 
-Regards,
-Sudeep
+Thanks,
+Shiju
