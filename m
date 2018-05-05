@@ -1,27 +1,61 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v3 1/2] clk: x86: Add ST oscout platform clock
-Date: Fri, 04 May 2018 20:11:02 -0700
-Message-ID: <152548986202.138124.14463361929719361009@swboyd.mtv.corp.google.com>
-References: <1525453639-30575-1-git-send-email-akshu.agrawal@amd.com>
- <1525453639-30575-2-git-send-email-akshu.agrawal@amd.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 01/12] ACPI / APEI: Move the estatus queue code up,
+ and under its own ifdef
+Date: Sat, 5 May 2018 11:58:05 +0200
+Message-ID: <20180505095805.GB3708@pd.tnic>
+References: <20180427153510.5799-1-james.morse@arm.com>
+ <20180427153510.5799-2-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1525453639-30575-2-git-send-email-akshu.agrawal@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20180427153510.5799-2-james.morse@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Quoting Akshu Agrawal (2018-05-04 10:07:18)
-> Stoney SoC provides oscout clock. This clock can support 25Mhz and
-> 48Mhz of frequency.
-> The clock is available for general system use.
-> =
-
-> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+On Fri, Apr 27, 2018 at 04:34:59PM +0100, James Morse wrote:
+> To support asynchronous NMI-like notifications on arm64 we need to use
+> the estatus-queue. These patches refactor it to allow multiple APEI
+> notification types to use it.
+> 
+> First we move the estatus-queue code higher in the file so that any
+> notify_foo() handler can make use of it.
+> 
+> This patch moves code around ... and makes the following trivial change:
+> Freshen the dated comment above ghes_estatus_llist. printk() is no
+> longer the issue, its the helpers like memory_failure_queue() that
+> still aren't nmi safe.
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> 
+> Notes for cover letter:
+> ghes.c has three things all called 'estatus'. One is a pool of memory
+> that has a static size, and is grown/shrunk when new NMI users are
+> allocated.
+> The second is the cache, this holds recent notifications so we can
+> suppress notifications we've already handled.
+> The last is the queue, which hold data from NMI notifications (in pool
+> memory) that can't be handled immediatly.
 > ---
-> v2: config change, added SPDX tag and used clk_hw_register_.
-> v3: Fix kbuild warning for checking of NULL pointer
+>  drivers/acpi/apei/ghes.c | 265 ++++++++++++++++++++++++-----------------------
+>  1 file changed, 137 insertions(+), 128 deletions(-)
 
-I replied on some older patch. Same comments apply still.
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
