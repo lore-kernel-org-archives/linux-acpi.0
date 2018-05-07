@@ -1,7 +1,7 @@
 From: Akshu Agrawal <akshu.agrawal@amd.com>
-Subject: [PATCH v2 2/2] ACPI: APD: Add AMD misc clock handler support
-Date: Mon,  7 May 2018 18:13:33 +0800
-Message-ID: <1525688013-9928-3-git-send-email-akshu.agrawal@amd.com>
+Subject: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
+Date: Mon,  7 May 2018 18:13:32 +0800
+Message-ID: <1525688013-9928-2-git-send-email-akshu.agrawal@amd.com>
 References: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -11,100 +11,145 @@ Sender: linux-kernel-owner@vger.kernel.org
 Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, sboyd@kernel.org, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-AMD SoC exposes clock for general purpose use. The clock registration
-is done in clk-st driver. The MMIO mapping are passed on to the
-clock driver for accessing the registers.
-The misc clock handler will create MMIO mappings to access the
-clock registers and enable the clock driver to expose the clock
-for use of drivers which will connect to it.
+Stoney SoC provides oscout clock. This clock can support 25Mhz and
+48Mhz of frequency.
+The clock is available for general system use.
 
 Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
 ---
-v2: Submitted with dependent patch, removed unneeded kfree for devm_kzalloc
- drivers/acpi/acpi_apd.c | 50 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 50 insertions(+)
+v2: config change, added SPDX tag and used clk_hw_register_.
+v3: Fix kbuild warning for checking of NULL pointer
+v4: unregister clk_hw in driver remove, add .suppress_bind_attrs
+ drivers/clk/x86/Makefile             |  3 +-
+ drivers/clk/x86/clk-st.c             | 85 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/clk-st.h | 17 ++++++++
+ 3 files changed, 104 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/clk/x86/clk-st.c
+ create mode 100644 include/linux/platform_data/clk-st.h
 
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index d553b00..88b8a3e 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -11,6 +11,7 @@
-  */
- 
- #include <linux/clk-provider.h>
+diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
+index 1367afb..00303bc 100644
+--- a/drivers/clk/x86/Makefile
++++ b/drivers/clk/x86/Makefile
+@@ -1,3 +1,4 @@
++obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
++obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)	+= clk-st.o
+ clk-x86-lpss-objs		:= clk-lpt.o
+ obj-$(CONFIG_X86_INTEL_LPSS)	+= clk-x86-lpss.o
+-obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
+diff --git a/drivers/clk/x86/clk-st.c b/drivers/clk/x86/clk-st.c
+new file mode 100644
+index 0000000..8a7795c
+--- /dev/null
++++ b/drivers/clk/x86/clk-st.c
+@@ -0,0 +1,85 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * clock framework for AMD Stoney based clocks
++ *
++ * Copyright 2018 Advanced Micro Devices, Inc.
++ */
++
++#include <linux/clk.h>
++#include <linux/clkdev.h>
++#include <linux/clk-provider.h>
 +#include <linux/platform_data/clk-st.h>
- #include <linux/platform_device.h>
- #include <linux/pm_domain.h>
- #include <linux/clkdev.h>
-@@ -72,6 +73,50 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- }
- 
- #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
++#include <linux/platform_device.h>
 +
-+static int misc_check_res(struct acpi_resource *ares, void *data)
++/* Clock Driving Strength 2 register */
++#define CLKDRVSTR2	0x28
++/* Clock Control 1 register */
++#define MISCCLKCNTL1	0x40
++/* Auxiliary clock1 enable bit */
++#define OSCCLKENB	2
++/* 25Mhz auxiliary output clock freq bit */
++#define OSCOUT1CLK25MHZ	16
++
++#define ST_CLK_48M	0
++#define ST_CLK_25M	1
++#define ST_CLK_MUX	2
++#define ST_CLK_GATE	3
++#define ST_MAX_CLKS	4
++
++static const char * const clk_oscout1_parents[] = { "clk48MHz", "clk25MHz" };
++
++static int st_clk_probe(struct platform_device *pdev)
 +{
-+	struct resource res;
++	struct st_clk_data *st_data;
++	struct clk_hw **hws;
 +
-+	return !acpi_dev_resource_memory(ares, &res);
-+}
++	st_data = dev_get_platdata(&pdev->dev);
++	if (!st_data || !st_data->base)
++		return -EINVAL;
 +
-+static int st_misc_setup(struct apd_private_data *pdata)
-+{
-+	struct acpi_device *adev = pdata->adev;
-+	struct platform_device *clkdev;
-+	struct st_clk_data *clk_data;
-+	struct resource_entry *rentry;
-+	struct list_head resource_list;
-+	int ret;
-+
-+	clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data), GFP_KERNEL);
-+	if (!clk_data)
++	hws = devm_kzalloc(&pdev->dev, sizeof(*hws) * ST_MAX_CLKS, GFP_KERNEL);
++	if (!hws)
 +		return -ENOMEM;
 +
-+	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list, misc_check_res,
-+				     NULL);
-+	if (ret < 0)
-+		return -ENOMEM;
++	hws[ST_CLK_48M] = clk_hw_register_fixed_rate(NULL, "clk48MHz", NULL, 0,
++						     48000000);
++	hws[ST_CLK_25M] = clk_hw_register_fixed_rate(NULL, "clk25MHz", NULL, 0,
++						     25000000);
 +
-+	list_for_each_entry(rentry, &resource_list, node) {
-+		clk_data->base = ioremap(rentry->res->start,
-+					 resource_size(rentry->res));
-+		break;
-+	}
++	hws[ST_CLK_MUX] = clk_hw_register_mux(NULL, "oscout1_mux",
++		clk_oscout1_parents, ARRAY_SIZE(clk_oscout1_parents),
++		0, st_data->base + CLKDRVSTR2, OSCOUT1CLK25MHZ, 3, 0, NULL);
 +
-+	acpi_dev_free_resource_list(&resource_list);
++	clk_set_parent(hws[ST_CLK_MUX]->clk, hws[ST_CLK_25M]->clk);
 +
-+	clkdev = platform_device_register_data(&adev->dev, "clk-st",
-+					       PLATFORM_DEVID_NONE, clk_data,
-+					       sizeof(*clk_data));
-+	if (IS_ERR(clkdev))
-+		return PTR_ERR(clkdev);
++	hws[ST_CLK_GATE] = clk_hw_register_gate(NULL, "oscout1", "oscout1_mux",
++		0, st_data->base + MISCCLKCNTL1, OSCCLKENB,
++		CLK_GATE_SET_TO_DISABLE, NULL);
 +
++	clk_hw_register_clkdev(hws[ST_CLK_GATE], "oscout1", NULL);
++
++	platform_set_drvdata(pdev, hws);
 +	return 0;
 +}
 +
- static const struct apd_device_desc cz_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 133000000,
-@@ -94,6 +139,10 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- 	.fixed_clk_rate = 48000000,
- 	.properties = uart_properties,
- };
++static int st_clk_remove(struct platform_device *pdev)
++{
++	struct clk_hw **hws;
++	int i;
 +
-+static const struct apd_device_desc st_misc_desc = {
-+	.setup = st_misc_setup,
++	hws = platform_get_drvdata(pdev);
++
++	for (i = 0; i < ST_MAX_CLKS; i++)
++		clk_hw_unregister(hws[i]);
++	return 0;
++}
++
++static struct platform_driver st_clk_driver = {
++	.driver = {
++		.name = "clk-st",
++		.suppress_bind_attrs = true,
++	},
++	.probe = st_clk_probe,
++	.remove = st_clk_remove,
 +};
- #endif
- 
- #ifdef CONFIG_ARM64
-@@ -179,6 +228,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
- 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMD0030", },
-+	{ "AMD0040", APD_ADDR(st_misc_desc)},
- #endif
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
++builtin_platform_driver(st_clk_driver);
+diff --git a/include/linux/platform_data/clk-st.h b/include/linux/platform_data/clk-st.h
+new file mode 100644
+index 0000000..188184d
+--- /dev/null
++++ b/include/linux/platform_data/clk-st.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * clock framework for AMD Stoney based clock
++ *
++ * Copyright 2018 Advanced Micro Devices, Inc.
++ */
++
++#ifndef __CLK_ST_H
++#define __CLK_ST_H
++
++#include <linux/compiler.h>
++
++struct st_clk_data {
++	void __iomem *base;
++};
++
++#endif /* __CLK_ST_H */
 -- 
 1.9.1
