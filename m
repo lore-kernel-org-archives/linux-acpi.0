@@ -1,64 +1,36 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: Re: [PATCH v2 1/2] PCI ACPI: Avoid panic when PCI IO resource's size
- is not page aligned
-Date: Mon, 7 May 2018 16:06:13 +0800
-Message-ID: <a8398da8-2f69-5694-69d6-224b547a378a@huawei.com>
-References: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
- <3699960.UXjPS91TgB@aspire.rjw.lan>
+From: Akshu Agrawal <akshu.agrawal@amd.com>
+Subject: [PATCH v2 0/2] Add support for general system clock on ST AMD platform
+Date: Mon,  7 May 2018 18:13:31 +0800
+Message-ID: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3699960.UXjPS91TgB@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: bhelgaas@google.com, lenb@kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, sboyd@kernel.org, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+AMD ST/CZ platform provides a general system clock which can be used
+by any driver. Registration of this clock will done in clk-st driver.
+While the ACPI misc device will create the required MMIO mappings
+and pass the same to the clk-st driver. The clk-st driver will
+use the address to enable/disable and set frequency.
 
+Changelog:
+v2:
+  clk: x86: Add ST oscout platform clock: v3->v4 unregister clk_hw
+  ACPI: APD: Add AMD misc clock handler support: No change (v2)
 
-On 2018/5/1 17:28, Rafael J. Wysocki wrote:
->>  drivers/acpi/pci_root.c | 2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> > 
->> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> > index 6fc204a..b758ca3 100644
->> > --- a/drivers/acpi/pci_root.c
->> > +++ b/drivers/acpi/pci_root.c
->> > @@ -746,7 +746,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
->> >  		goto err;
->> >  
->> >  	res->start = port;
->> > -	res->end = port + length - 1;
->> > +	res->end = PAGE_ALIGN(port + length) - 1;
-> Shouldn't pci_remap_iospace() sanitize its arguments instead?
+Akshu Agrawal (2):
+  clk: x86: Add ST oscout platform clock
+  ACPI: APD: Add AMD misc clock handler support
 
-Yeah, I thought that pci_remap_iospace() will be called at many place, and presently I
-had not seen any problem at other place except acpi_pci_root_remap_iospace(). Anyway,
-sanitize arguments in pci_remap_iospace() can resolve the problem more thoroughly, but
-should more common, right?
+ drivers/acpi/acpi_apd.c              | 50 ++++++++++++++++++++
+ drivers/clk/x86/Makefile             |  1 +
+ drivers/clk/x86/clk-st.c             | 88 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/clk-st.h | 35 ++++++++++++++
+ 4 files changed, 174 insertions(+)
+ create mode 100644 drivers/clk/x86/clk-st.c
+ create mode 100644 include/linux/platform_data/clk-st.h
 
-Therefore, is the follow change ok from your point of view?
-
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index e597655..8607298 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3527,6 +3527,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
-        if (res->end > IO_SPACE_LIMIT)
-                return -EINVAL;
-
-+       if (!PAGE_ALIGNED(vaddr) || !PAGE_ALIGNED(resource_size(res)))
-+               return -EINVAL;
-+
-        return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
-                                  pgprot_device(PAGE_KERNEL));
- #else
-
-Thanks
-Yisheng
-
-> 
->> >  	entry->offset = port - pci_addr;
->> >  
->> >  	if (pci_remap_iospace(res, cpu_addr) < 0)
+-- 
+1.9.1
