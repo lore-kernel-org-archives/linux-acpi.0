@@ -1,59 +1,119 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/2] PCI ACPI: Avoid panic when PCI IO resource's size
- is not page aligned
-Date: Tue, 8 May 2018 23:20:23 +0200
-Message-ID: <CAJZ5v0h4DLNBJz1QmgmCitj2_UfMBLxboZ2i9rpFZ4+qZPf+eA@mail.gmail.com>
-References: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
- <3699960.UXjPS91TgB@aspire.rjw.lan> <a8398da8-2f69-5694-69d6-224b547a378a@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Regression] PCI / PM: Simplify device wakeup settings code
+Date: Wed, 09 May 2018 00:13:37 +0200
+Message-ID: <2702274.xkNDNdUuIr@aspire.rjw.lan>
+References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com> <3450120.zJjNP64voh@aspire.rjw.lan> <405049ce-5ea4-48b6-40da-4775daa94aea@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <a8398da8-2f69-5694-69d6-224b547a378a@huawei.com>
+In-Reply-To: <405049ce-5ea4-48b6-40da-4775daa94aea@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yisheng Xie <xieyisheng1@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Jon Masters <jcm@redhat.com>, Toshi Kani <toshi.kani@hpe.com>, tanxiaojun@huawei.com, Zhou Wang <wangzhou1@hisilicon.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: Joseph Salisbury <joseph.salisbury@canonical.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 7, 2018 at 10:06 AM, Yisheng Xie <xieyisheng1@huawei.com> wrote:
->
->
-> On 2018/5/1 17:28, Rafael J. Wysocki wrote:
->>>  drivers/acpi/pci_root.c | 2 +-
->>> >  1 file changed, 1 insertion(+), 1 deletion(-)
->>> >
->>> > diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->>> > index 6fc204a..b758ca3 100644
->>> > --- a/drivers/acpi/pci_root.c
->>> > +++ b/drivers/acpi/pci_root.c
->>> > @@ -746,7 +746,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
->>> >            goto err;
->>> >
->>> >    res->start = port;
->>> > -  res->end = port + length - 1;
->>> > +  res->end = PAGE_ALIGN(port + length) - 1;
->> Shouldn't pci_remap_iospace() sanitize its arguments instead?
->
-> Yeah, I thought that pci_remap_iospace() will be called at many place, and presently I
-> had not seen any problem at other place except acpi_pci_root_remap_iospace(). Anyway,
-> sanitize arguments in pci_remap_iospace() can resolve the problem more thoroughly, but
-> should more common, right?
->
-> Therefore, is the follow change ok from your point of view?
->
-> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-> index e597655..8607298 100644
-> --- a/drivers/pci/pci.c
-> +++ b/drivers/pci/pci.c
-> @@ -3527,6 +3527,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
->         if (res->end > IO_SPACE_LIMIT)
->                 return -EINVAL;
->
-> +       if (!PAGE_ALIGNED(vaddr) || !PAGE_ALIGNED(resource_size(res)))
-> +               return -EINVAL;
-> +
->         return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
->                                   pgprot_device(PAGE_KERNEL));
->  #else
+On Monday, May 7, 2018 6:15:01 PM CEST Joseph Salisbury wrote:
+> On 05/04/2018 07:14 AM, Rafael J. Wysocki wrote:
+> > On Thursday, May 3, 2018 11:29:18 PM CEST Rafael J. Wysocki wrote:
+> >> On Thu, May 3, 2018 at 9:11 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> >>> On Thu, May 03, 2018 at 02:29:02PM -0400, Joseph Salisbury wrote:
+> >>>> On 05/02/2018 06:41 AM, Rafael J. Wysocki wrote:
+> >>>>> On Tue, May 1, 2018 at 9:55 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> >>>>>> On Tue, May 01, 2018 at 10:34:29AM +0200, Rafael J. Wysocki wrote:
+> >>>>>>> On Mon, Apr 30, 2018 at 4:22 PM, Joseph Salisbury
+> >>>>>>> <joseph.salisbury@canonical.com> wrote:
+> >>>>>>>> On 04/16/2018 11:58 AM, Rafael J. Wysocki wrote:
+> >>>>>>>>> On Mon, Apr 16, 2018 at 5:31 PM, Joseph Salisbury
+> >>>>>>>>> <joseph.salisbury@canonical.com> wrote:
+> >>>>>>>>>> On 04/13/2018 05:34 PM, Rafael J. Wysocki wrote:
+> >>>>>>>>>>> On Fri, Apr 13, 2018 at 7:56 PM, Joseph Salisbury
+> >>>>>>>>>>> <joseph.salisbury@canonical.com> wrote:
+> >>>>>>>>>>>> Hi Rafael,
+> >>>>>>>>>>>>
+> >>>>>>>>>>>> A kernel bug report was opened against Ubuntu [0].  After a kernel
+> >>>>>>>>>>>> bisect, it was found that reverting the following two commits resolved
+> >>>>>>>>>>>> this bug:
+> >>>>>>>>>>>>
+> >>>>>>>>>>>> 0ce3fcaff929 ("PCI / PM: Restore PME Enable after config space restoration")
+> >>>>>>>>>>>> 0847684cfc5f("PCI / PM: Simplify device wakeup settings code")
+> >>>>>>>>>>>>
+> >>>>>>>>>>>> This is a regression introduced in v4.13-rc1 and still exists in
+> >>>>>>>>>>>> mainline.  The bug causes the battery to drain when the system is
+> >>>>>>>>>>>> powered down and unplugged, which does not happed prior to these two
+> >>>>>>>>>>>> commits.
+> >>>>>>>>>>> What system and what do you mean by "powered down"?  How much time
+> >>>>>>>>>>> does it take for the battery to drain now?
+> >>>>>>>>>> By powered down, the bug reporter is saying physically powered off and
+> >>>>>>>>>> unplugged.  The system is a HP laptop:
+> >>>>>>>>>>
+> >>>>>>>>>> dmi.chassis.vendor: HP
+> >>>>>>>>>> dmi.product.family: 103C_5335KV HP Notebook
+> >>>>>>>>>> dmi.product.name: HP Notebook
+> >>>>>>>>>> vendor_id    : GenuineIntel
+> >>>>>>>>>> cpu family    : 6
+> >>>>>>>>>>
+> >>>>>>>>>>
+> >>>>>>>>>>>> The bisect actually pointed to commit de3ef1e, but reverting
+> >>>>>>>>>>>> these two commits fixes the issue.
+> >>>>>>>>>>>>
+> >>>>>>>>>>>> I was hoping to get your feedback, since you are the patch author.  Do
+> >>>>>>>>>>>> you think gathering any additional data will help diagnose this issue,
+> >>>>>>>>>>>> or would it be best to submit a revert request?
+> >>>>>>>>>>> First, reverting these is not an option or you will break systems
+> >>>>>>>>>>> relying on them now.  4.13 is three releases back at this point.
+> >>>>>>>>>>>
+> >>>>>>>>>>> Second, your issue appears to be related to the suspend/shutdown path
+> >>>>>>>>>>> whereas commit 0ce3fcaff929 is mostly about resume, so presumably the
+> >>>>>>>>>>> change in pci_enable_wake() causes the problem to happen.  Can you try
+> >>>>>>>>>>> to revert this one alone and see if that helps?
+> >>>>>>>>>> A test kernel with commits 0ce3fcaff929 and de3ef1eb1cd0 reverted was
+> >>>>>>>>>> tested.  However, the test kernel still exhibited the bug.
+> >>>>>>>>> So essentially the bisection result cannot be trusted.
+> >>>>>>>> We performed some more testing and confirmed just a revert of the
+> >>>>>>>> following commit resolves the bug:
+> >>>>>>>>
+> >>>>>>>> 0847684cfc5f0 ("PCI / PM: Simplify device wakeup settings code")
+> >>>>>>> Thanks for confirming this!
+> >>>>>>>
+> >>>>>>>> Can you think of any suggestions to help debug further?
+> >>>>>>> The root cause of the regression is likely the change in
+> >>>>>>> pci_enable_wake() removing the device_may_wakeup() check from it.
+> >>>>>>>
+> >>>>>>> Probably, one of the drivers in the platform calls pci_enable_wake()
+> >>>>>>> directly from its ->shutdown() callback and that causes the device to
+> >>>>>>> be set up for system wakeup which in turn causes the power draw while
+> >>>>>>> the system is off to increase.
+> >>>>>>>
+> >>>>>>> I would look at the PCI drivers used on that platform to find which of
+> >>>>>>> them call pci_enable_wake() directly from ->shutdown() and I would
+> >>>>>>> make these calls conditional on device_may_wakeup().
+> >>>>>> I took a quick look with
+> >>>>>>
+> >>>>>>   git grep -E "pci_enable_wake\(.*[^0]\);|device_may_wakeup"
+> >>>>>>
+> >>>>>> and didn't notice any pci_enable_wake() callers that called
+> >>>>>> device_may_wakeup() first.
+> >>>>> I've just look at a bunch of network drivers doing that.
+> >>>>>
+> >>>>> It looks like I may need to restore __pci_enable_wake() with an extra
+> >>>>> "runtime" argument for internal use.
+> >>>>>
+> >>>>> Joseph, can you ask the reporter to test the Bjorn's patch, please?
+> >>>> The bug reporter has testing Bjorn's patch.  It did in fact resolve the
+> >>>> bug.  Thanks for the quick help, Rafael and Bjorn!
+> >>> Just as a word of caution, I think Rafael said my patch was not the
+> >>> right fix because it would break something else.  So I would wait for
+> >>> a better patch from Rafael before actually resolving this issue.
+> >> I'll do my best to provide one in the next couple of days.
+> > Something like the appended one (compiled-only at this point).
+> >
+> > Joseph, this should be functionally equivalent to the Bjorn's patch except
+> > for the runtime PM part which is irrelevant for the issue in question, but
+> > please ask the reported to test this one too.
+> >
+> > If it is confirmed to work, I'll repost it with a proper changelog.
+> The bug reporter confirms that your latest patch also resolves the bug. 
+> Thanks!
 
-I'd rather apply PAGE_ALIGN() to the arguments of ioremap_page_range()
-and call it anyway.  It will fail if the mapping cannot be created.
+Thanks for the confirmation.
