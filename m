@@ -1,76 +1,26 @@
-From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-Subject: RE: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
-Date: Tue, 8 May 2018 15:38:14 +0000
-Message-ID: <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
-References: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
- <1525688013-9928-2-git-send-email-akshu.agrawal@amd.com>
- <BN6PR12MB1809A66A78024F2E519A1A34F79B0@BN6PR12MB1809.namprd12.prod.outlook.com>
- <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] acpi: scan: Fix a possible data race in acpi_scan_hotplug_enabled
+Date: Tue, 8 May 2018 22:17:04 +0200
+Message-ID: <CAJZ5v0jqW0yuSOSrgy1=dWARPHmaxtG4fvkZj=pX+fPcTTJh1A@mail.gmail.com>
+References: <20180508030811.12256-1-baijiaju1990@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
-Content-Language: en-US
+In-Reply-To: <20180508030811.12256-1-baijiaju1990@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>
-Cc: "djkurtz@chromium.org" <djkurtz@chromium.org>, "mturquette@baylibre.com" <mturquette@baylibre.com>, "sboyd@kernel.org" <sboyd@kernel.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "airlied@redhat.com" <airlied@redhat.com>, "Liu, Shaoyun" <Shaoyun.Liu@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBZ3Jhd2FsLCBBa3NodQ0KPiBT
-ZW50OiBUdWVzZGF5LCBNYXkgOCwgMjAxOCAxMjowNCBBTQ0KPiBUbzogRGV1Y2hlciwgQWxleGFu
-ZGVyIDxBbGV4YW5kZXIuRGV1Y2hlckBhbWQuY29tPg0KPiBDYzogZGprdXJ0ekBjaHJvbWl1bS5v
-cmc7IG10dXJxdWV0dGVAYmF5bGlicmUuY29tOyBzYm95ZEBrZXJuZWwub3JnOw0KPiBLb2VuaWcs
-IENocmlzdGlhbiA8Q2hyaXN0aWFuLktvZW5pZ0BhbWQuY29tPjsgYWlybGllZEByZWRoYXQuY29t
-OyBMaXUsDQo+IFNoYW95dW4gPFNoYW95dW4uTGl1QGFtZC5jb20+OyBsaW51eC1rZXJuZWxAdmdl
-ci5rZXJuZWwub3JnOyBsaW51eC0NCj4gY2xrQHZnZXIua2VybmVsLm9yZzsgcmp3QHJqd3lzb2Nr
-aS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnDQo+
-IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMS8yXSBjbGs6IHg4NjogQWRkIFNUIG9zY291dCBwbGF0
-Zm9ybSBjbG9jaw0KPiANCj4gDQo+IA0KPiBPbiA1LzgvMjAxOCAzOjE0IEFNLCBEZXVjaGVyLCBB
-bGV4YW5kZXIgd3JvdGU6DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZy
-b206IEFncmF3YWwsIEFrc2h1DQo+ID4+IFNlbnQ6IE1vbmRheSwgTWF5IDcsIDIwMTggNjoxNCBB
-TQ0KPiA+PiBDYzogZGprdXJ0ekBjaHJvbWl1bS5vcmc7IEFncmF3YWwsIEFrc2h1IDxBa3NodS5B
-Z3Jhd2FsQGFtZC5jb20+Ow0KPiA+PiBEZXVjaGVyLCBBbGV4YW5kZXIgPEFsZXhhbmRlci5EZXVj
-aGVyQGFtZC5jb20+Ow0KPiA+PiBtdHVycXVldHRlQGJheWxpYnJlLmNvbTsgc2JveWRAa2VybmVs
-Lm9yZzsgS29lbmlnLCBDaHJpc3RpYW4NCj4gPj4gPENocmlzdGlhbi5Lb2VuaWdAYW1kLmNvbT47
-IGFpcmxpZWRAcmVkaGF0LmNvbTsgTGl1LCBTaGFveXVuDQo+ID4+IDxTaGFveXVuLkxpdUBhbWQu
-Y29tPjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+ID4+IGNsa0B2Z2Vy
-Lmtlcm5lbC5vcmc7IHJqd0Byand5c29ja2kubmV0OyBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LQ0K
-PiA+PiBhY3BpQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBbUEFUQ0ggdjQgMS8yXSBj
-bGs6IHg4NjogQWRkIFNUIG9zY291dCBwbGF0Zm9ybSBjbG9jaw0KPiA+Pg0KPiA+PiBTdG9uZXkg
-U29DIHByb3ZpZGVzIG9zY291dCBjbG9jay4gVGhpcyBjbG9jayBjYW4gc3VwcG9ydCAyNU1oeiBh
-bmQNCj4gPj4gNDhNaHogb2YgZnJlcXVlbmN5Lg0KPiA+PiBUaGUgY2xvY2sgaXMgYXZhaWxhYmxl
-IGZvciBnZW5lcmFsIHN5c3RlbSB1c2UuDQo+ID4+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IEFrc2h1
-IEFncmF3YWwgPGFrc2h1LmFncmF3YWxAYW1kLmNvbT4NCj4gPj4gLS0tDQo+ID4+IHYyOiBjb25m
-aWcgY2hhbmdlLCBhZGRlZCBTUERYIHRhZyBhbmQgdXNlZCBjbGtfaHdfcmVnaXN0ZXJfLg0KPiA+
-PiB2MzogRml4IGtidWlsZCB3YXJuaW5nIGZvciBjaGVja2luZyBvZiBOVUxMIHBvaW50ZXINCj4g
-Pj4gdjQ6IHVucmVnaXN0ZXIgY2xrX2h3IGluIGRyaXZlciByZW1vdmUsIGFkZCAuc3VwcHJlc3Nf
-YmluZF9hdHRycw0KPiA+PiAgZHJpdmVycy9jbGsveDg2L01ha2VmaWxlICAgICAgICAgICAgIHwg
-IDMgKy0NCj4gPj4gIGRyaXZlcnMvY2xrL3g4Ni9jbGstc3QuYyAgICAgICAgICAgICB8IDg1DQo+
-ID4+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+PiAgaW5jbHVkZS9s
-aW51eC9wbGF0Zm9ybV9kYXRhL2Nsay1zdC5oIHwgMTcgKysrKysrKysNCj4gPj4gIDMgZmlsZXMg
-Y2hhbmdlZCwgMTA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkgIGNyZWF0ZSBtb2RlDQo+
-ID4+IDEwMDY0NCBkcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMgIGNyZWF0ZSBtb2RlIDEwMDY0NA0K
-PiA+PiBpbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvY2xrLXN0LmgNCj4gPj4NCj4gPj4gZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvY2xrL3g4Ni9NYWtlZmlsZSBiL2RyaXZlcnMvY2xrL3g4Ni9NYWtl
-ZmlsZQ0KPiA+PiBpbmRleCAxMzY3YWZiLi4wMDMwM2JjIDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2
-ZXJzL2Nsay94ODYvTWFrZWZpbGUNCj4gPj4gKysrIGIvZHJpdmVycy9jbGsveDg2L01ha2VmaWxl
-DQo+ID4+IEBAIC0xLDMgKzEsNCBAQA0KPiA+PiArb2JqLSQoQ09ORklHX1BNQ19BVE9NKQkJKz0g
-Y2xrLXBtYy1hdG9tLm8NCj4gPj4gK29iai0kKENPTkZJR19YODZfQU1EX1BMQVRGT1JNX0RFVklD
-RSkJKz0gY2xrLXN0Lm8NCj4gPj4gIGNsay14ODYtbHBzcy1vYmpzCQk6PSBjbGstbHB0Lm8NCj4g
-Pj4gIG9iai0kKENPTkZJR19YODZfSU5URUxfTFBTUykJKz0gY2xrLXg4Ni1scHNzLm8NCj4gPj4g
-LW9iai0kKENPTkZJR19QTUNfQVRPTSkJCSs9IGNsay1wbWMtYXRvbS5vDQo+ID4+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMgYi9kcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMg
-bmV3DQo+ID4+IGZpbGUgbW9kZQ0KPiA+PiAxMDA2NDQgaW5kZXggMDAwMDAwMC4uOGE3Nzk1Yw0K
-PiA+PiAtLS0gL2Rldi9udWxsDQo+ID4+ICsrKyBiL2RyaXZlcnMvY2xrL3g4Ni9jbGstc3QuYw0K
-PiA+PiBAQCAtMCwwICsxLDg1IEBADQo+ID4+ICsvLyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjog
-R1BMLTIuMA0KPiA+DQo+ID4gU2hvdWxkIHRoaXMgYmUgTUlUPyAgVGhlIG9yaWdpbmFsIGxpY2Vu
-c2Ugd2FzIE1JVC4NCj4gPg0KPiA+IEFsZXgNCj4gPg0KPiANCj4gV2UgYXJlIGFkZGluZyBTUERY
-IHRhZywgd2hpbGUgbGljZW5zZSByZW1haW5zIHNhbWUgR1BMLTIuMA0KPiANCj4gV2hhdCBJIGhh
-dmUgcmVhZCBpcyB0aGlzIGlzICJ0byBwcm92aWRlIGxpY2Vuc2UgaWRlbnRpZmllcnMgaW5zaWRl
-IHRoZSBzb3VyY2UNCj4gY29kZSB0aGF0IGNvdWxkIGJlIGVhc2lseSBwYXJzZWQgYnkgbWFjaGlu
-ZXMgYW5kIHdvdWxkIGFsbG93IGNoZWNraW5nIGZvcg0KPiBsaWNlbnNlIGNvbXBsaWFuY2Ugb2Yg
-YW4gb3BlbiBzb3VyY2UgcHJvamVjdCBlYXNpZXIuIg0KDQpNeSBwb2ludCBhcyBqdXN0IHRoYXQg
-dGhlIG9yaWdpbmFsIGxpY2Vuc2Ugb24gdGhlIGZpbGUgdGhhdCB5b3UgZmlyc3Qgc2VudCBvdXQg
-d2FzIE1JVCBzbyB0aGUgU1BEWCB0YWcgc2hvdWxkIGJlIE1JVCByYXRoZXIgdGhhbiBHUEwuICBF
-LmcuLA0KU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE1JVA0KDQpBbGV4DQo=
+On Tue, May 8, 2018 at 5:08 AM, Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
+> The write operation to "hotplug->enabled" is protected by
+> the lock on line 1760, but the read operation to
+> this data on line 1755 is not protected by the lock.
+> Thus, there may exist a data race for "hotplug->enabled".
+
+Either it does exist, or it doesn't.
+
+If it exists, it needs to be fixed.  If it doesn't exist, nothing
+needs to be done.
+
+Which is the case?
