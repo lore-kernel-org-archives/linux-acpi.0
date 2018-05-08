@@ -1,373 +1,76 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2] device property: Get rid of union aliasing
-Date: Tue,  8 May 2018 16:15:47 +0300
-Message-ID: <20180508131547.44366-1-andriy.shevchenko@linux.intel.com>
+From: "Deucher, Alexander" <Alexander.Deucher@amd.com>
+Subject: RE: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
+Date: Tue, 8 May 2018 15:38:14 +0000
+Message-ID: <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
+References: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
+ <1525688013-9928-2-git-send-email-akshu.agrawal@amd.com>
+ <BN6PR12MB1809A66A78024F2E519A1A34F79B0@BN6PR12MB1809.namprd12.prod.outlook.com>
+ <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>
+Cc: "djkurtz@chromium.org" <djkurtz@chromium.org>, "mturquette@baylibre.com" <mturquette@baylibre.com>, "sboyd@kernel.org" <sboyd@kernel.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "airlied@redhat.com" <airlied@redhat.com>, "Liu, Shaoyun" <Shaoyun.Liu@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The commit
-
-  318a19718261 ("device property: refactor built-in properties support")
-
-went way too far and brought a union aliasing. Partially revert it here
-to get rid of union aliasing.
-
-Note, Apple properties support is still utilizing this trick.
-
-What union aliasing is?
-~~~~~~~~~~~~~~~~~~~~~~~
-The C99 standard in section 6.2.5 paragraph 20 defines union type as
-"an overlapping nonempty set of member objects". It also states in
-section 6.7.2.1 paragraph 14 that "the value of at most one of the
-members can be stored in a union object at any time'.
-
-Union aliasing is a type punning mechanism using union members to store
-as one type and read back as another.
-
-Why it's not good?
-~~~~~~~~~~~~~~~~~~
-Section 6.2.6.1 paragraph 6 says that a union object may not be a trap
-representation, although its member objects may be.
-
-Meanwhile annex J.1 says that "the value of a union member other than
-the last one stored into" is unspecified [removed in C11].
-
-In TC3, a footnote is added which specifies that accessing a member of a
-union other than the last one stored causes "the object representation"
-to be re-interpreted in the new type and specifically refers to this as
-"type punning". This conflicts to some degree with Annex J.1.
-
-While it's working in Linux with GCC, the use of union members to do
-type punning is not clear area in the C standard and might lead to
-unspecified behaviour.
-
-More information is available in this [1] blog post.
-
-[1]: https://davmac.wordpress.com/2010/02/26/c99-revisited/
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-
-- extend commit message to explain what union aliasing is and why it's not good
-
- drivers/base/property.c                 | 99 ++++++++++++++++++++-----
- drivers/firmware/efi/apple-properties.c |  8 +-
- include/linux/property.h                | 52 +++++++------
- 3 files changed, 112 insertions(+), 47 deletions(-)
-
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 8f205f6461ed..de19d7cc073b 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -56,6 +56,67 @@ pset_prop_get(const struct property_set *pset, const char *name)
- 	return NULL;
- }
- 
-+static const void *property_get_pointer(const struct property_entry *prop)
-+{
-+	switch (prop->type) {
-+	case DEV_PROP_U8:
-+		if (prop->is_array)
-+			return prop->pointer.u8_data;
-+		return &prop->value.u8_data;
-+	case DEV_PROP_U16:
-+		if (prop->is_array)
-+			return prop->pointer.u16_data;
-+		return &prop->value.u16_data;
-+	case DEV_PROP_U32:
-+		if (prop->is_array)
-+			return prop->pointer.u32_data;
-+		return &prop->value.u32_data;
-+	case DEV_PROP_U64:
-+		if (prop->is_array)
-+			return prop->pointer.u64_data;
-+		return &prop->value.u64_data;
-+	default:
-+		if (prop->is_array)
-+			return prop->pointer.str;
-+		return &prop->value.str;
-+	}
-+}
-+
-+static void property_set_pointer(struct property_entry *prop, const void *pointer)
-+{
-+	switch (prop->type) {
-+	case DEV_PROP_U8:
-+		if (prop->is_array)
-+			prop->pointer.u8_data = pointer;
-+		else
-+			prop->value.u8_data = *((u8 *)pointer);
-+		break;
-+	case DEV_PROP_U16:
-+		if (prop->is_array)
-+			prop->pointer.u16_data = pointer;
-+		else
-+			prop->value.u16_data = *((u16 *)pointer);
-+		break;
-+	case DEV_PROP_U32:
-+		if (prop->is_array)
-+			prop->pointer.u32_data = pointer;
-+		else
-+			prop->value.u32_data = *((u32 *)pointer);
-+		break;
-+	case DEV_PROP_U64:
-+		if (prop->is_array)
-+			prop->pointer.u64_data = pointer;
-+		else
-+			prop->value.u64_data = *((u64 *)pointer);
-+		break;
-+	default:
-+		if (prop->is_array)
-+			prop->pointer.str = pointer;
-+		else
-+			prop->value.str = pointer;
-+	}
-+}
-+
- static const void *pset_prop_find(const struct property_set *pset,
- 				  const char *propname, size_t length)
- {
-@@ -65,10 +126,7 @@ static const void *pset_prop_find(const struct property_set *pset,
- 	prop = pset_prop_get(pset, propname);
- 	if (!prop)
- 		return ERR_PTR(-EINVAL);
--	if (prop->is_array)
--		pointer = prop->pointer.raw_data;
--	else
--		pointer = &prop->value.raw_data;
-+	pointer = property_get_pointer(prop);
- 	if (!pointer)
- 		return ERR_PTR(-ENODATA);
- 	if (length > prop->length)
-@@ -698,16 +756,17 @@ EXPORT_SYMBOL_GPL(fwnode_property_get_reference_args);
- 
- static void property_entry_free_data(const struct property_entry *p)
- {
-+	const void *pointer = property_get_pointer(p);
- 	size_t i, nval;
- 
- 	if (p->is_array) {
--		if (p->is_string && p->pointer.str) {
-+		if (p->type == DEV_PROP_STRING && p->pointer.str) {
- 			nval = p->length / sizeof(const char *);
- 			for (i = 0; i < nval; i++)
- 				kfree(p->pointer.str[i]);
- 		}
--		kfree(p->pointer.raw_data);
--	} else if (p->is_string) {
-+		kfree(pointer);
-+	} else if (p->type == DEV_PROP_STRING) {
- 		kfree(p->value.str);
- 	}
- 	kfree(p->name);
-@@ -716,7 +775,7 @@ static void property_entry_free_data(const struct property_entry *p)
- static int property_copy_string_array(struct property_entry *dst,
- 				      const struct property_entry *src)
- {
--	char **d;
-+	const char **d;
- 	size_t nval = src->length / sizeof(*d);
- 	int i;
- 
-@@ -734,40 +793,44 @@ static int property_copy_string_array(struct property_entry *dst,
- 		}
- 	}
- 
--	dst->pointer.raw_data = d;
-+	dst->pointer.str = d;
- 	return 0;
- }
- 
- static int property_entry_copy_data(struct property_entry *dst,
- 				    const struct property_entry *src)
- {
-+	const void *pointer = property_get_pointer(src);
-+	const void *new;
- 	int error;
- 
- 	if (src->is_array) {
- 		if (!src->length)
- 			return -ENODATA;
- 
--		if (src->is_string) {
-+		if (src->type == DEV_PROP_STRING) {
- 			error = property_copy_string_array(dst, src);
- 			if (error)
- 				return error;
-+			new = dst->pointer.str;
- 		} else {
--			dst->pointer.raw_data = kmemdup(src->pointer.raw_data,
--							src->length, GFP_KERNEL);
--			if (!dst->pointer.raw_data)
-+			new = kmemdup(pointer, src->length, GFP_KERNEL);
-+			if (!new)
- 				return -ENOMEM;
- 		}
--	} else if (src->is_string) {
--		dst->value.str = kstrdup(src->value.str, GFP_KERNEL);
--		if (!dst->value.str && src->value.str)
-+	} else if (src->type == DEV_PROP_STRING) {
-+		new = kstrdup(src->value.str, GFP_KERNEL);
-+		if (!new && src->value.str)
- 			return -ENOMEM;
- 	} else {
--		dst->value.raw_data = src->value.raw_data;
-+		new = pointer;
- 	}
- 
- 	dst->length = src->length;
- 	dst->is_array = src->is_array;
--	dst->is_string = src->is_string;
-+	dst->type = src->type;
-+
-+	property_set_pointer(dst, new);
- 
- 	dst->name = kstrdup(src->name, GFP_KERNEL);
- 	if (!dst->name)
-diff --git a/drivers/firmware/efi/apple-properties.c b/drivers/firmware/efi/apple-properties.c
-index adaa9a3714b9..b2c2d5a45f91 100644
---- a/drivers/firmware/efi/apple-properties.c
-+++ b/drivers/firmware/efi/apple-properties.c
-@@ -13,6 +13,9 @@
-  *
-  * You should have received a copy of the GNU General Public License
-  * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ *
-+ * FIXME: The approach is still based on union aliasing and should be
-+ * replaced by a proper resource provider.
-  */
- 
- #define pr_fmt(fmt) "apple-properties: " fmt
-@@ -96,12 +99,13 @@ static void __init unmarshal_key_value_pairs(struct dev_header *dev_header,
- 		entry[i].name = key;
- 		entry[i].length = val_len - sizeof(val_len);
- 		entry[i].is_array = !!entry[i].length;
--		entry[i].pointer.raw_data = ptr + key_len + sizeof(val_len);
-+		entry[i].type = DEV_PROP_U8;
-+		entry[i].pointer.u8_data = ptr + key_len + sizeof(val_len);
- 
- 		if (dump_properties) {
- 			dev_info(dev, "property: %s\n", entry[i].name);
- 			print_hex_dump(KERN_INFO, pr_fmt(), DUMP_PREFIX_OFFSET,
--				16, 1, entry[i].pointer.raw_data,
-+				16, 1, entry[i].pointer.u8_data,
- 				entry[i].length, true);
- 		}
- 
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 2eea4b310fc2..ac8a1ebc4c1b 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -178,7 +178,7 @@ static inline int fwnode_property_read_u64(const struct fwnode_handle *fwnode,
-  * @name: Name of the property.
-  * @length: Length of data making up the value.
-  * @is_array: True when the property is an array.
-- * @is_string: True when property is a string.
-+ * @type: Type of the data in unions.
-  * @pointer: Pointer to the property (an array of items of the given type).
-  * @value: Value of the property (when it is a single item of the given type).
-  */
-@@ -186,10 +186,9 @@ struct property_entry {
- 	const char *name;
- 	size_t length;
- 	bool is_array;
--	bool is_string;
-+	enum dev_prop_type type;
- 	union {
- 		union {
--			const void *raw_data;
- 			const u8 *u8_data;
- 			const u16 *u16_data;
- 			const u32 *u32_data;
-@@ -197,7 +196,6 @@ struct property_entry {
- 			const char * const *str;
- 		} pointer;
- 		union {
--			unsigned long long raw_data;
- 			u8 u8_data;
- 			u16 u16_data;
- 			u32 u32_data;
-@@ -213,55 +211,55 @@ struct property_entry {
-  * and structs.
-  */
- 
--#define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
--(struct property_entry) {					\
--	.name = _name_,						\
--	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
--	.is_array = true,					\
--	.is_string = false,					\
--	{ .pointer = { ._type_##_data = _val_ } },		\
-+#define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _Type_, _val_)	\
-+(struct property_entry) {						\
-+	.name = _name_,							\
-+	.length = ARRAY_SIZE(_val_) * sizeof(_type_),			\
-+	.is_array = true,						\
-+	.type = DEV_PROP_##_Type_,					\
-+	{ .pointer = { ._type_##_data = _val_ } },			\
- }
- 
- #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
--	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u8, _val_)
-+	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u8, U8, _val_)
- #define PROPERTY_ENTRY_U16_ARRAY(_name_, _val_)			\
--	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u16, _val_)
-+	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u16, U16, _val_)
- #define PROPERTY_ENTRY_U32_ARRAY(_name_, _val_)			\
--	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u32, _val_)
-+	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u32, U32, _val_)
- #define PROPERTY_ENTRY_U64_ARRAY(_name_, _val_)			\
--	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u64, _val_)
-+	PROPERTY_ENTRY_INTEGER_ARRAY(_name_, u64, U64, _val_)
- 
- #define PROPERTY_ENTRY_STRING_ARRAY(_name_, _val_)		\
- (struct property_entry) {					\
- 	.name = _name_,						\
- 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
- 	.is_array = true,					\
--	.is_string = true,					\
-+	.type = DEV_PROP_STRING,				\
- 	{ .pointer = { .str = _val_ } },			\
- }
- 
--#define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
--(struct property_entry) {				\
--	.name = _name_,					\
--	.length = sizeof(_type_),			\
--	.is_string = false,				\
--	{ .value = { ._type_##_data = _val_ } },	\
-+#define PROPERTY_ENTRY_INTEGER(_name_, _type_, _Type_, _val_)	\
-+(struct property_entry) {					\
-+	.name = _name_,						\
-+	.length = sizeof(_type_),				\
-+	.type = DEV_PROP_##_Type_,				\
-+	{ .value = { ._type_##_data = _val_ } },		\
- }
- 
- #define PROPERTY_ENTRY_U8(_name_, _val_)		\
--	PROPERTY_ENTRY_INTEGER(_name_, u8, _val_)
-+	PROPERTY_ENTRY_INTEGER(_name_, u8, U8, _val_)
- #define PROPERTY_ENTRY_U16(_name_, _val_)		\
--	PROPERTY_ENTRY_INTEGER(_name_, u16, _val_)
-+	PROPERTY_ENTRY_INTEGER(_name_, u16, U16, _val_)
- #define PROPERTY_ENTRY_U32(_name_, _val_)		\
--	PROPERTY_ENTRY_INTEGER(_name_, u32, _val_)
-+	PROPERTY_ENTRY_INTEGER(_name_, u32, U32, _val_)
- #define PROPERTY_ENTRY_U64(_name_, _val_)		\
--	PROPERTY_ENTRY_INTEGER(_name_, u64, _val_)
-+	PROPERTY_ENTRY_INTEGER(_name_, u64, U64, _val_)
- 
- #define PROPERTY_ENTRY_STRING(_name_, _val_)		\
- (struct property_entry) {				\
- 	.name = _name_,					\
- 	.length = sizeof(_val_),			\
--	.is_string = true,				\
-+	.type = DEV_PROP_STRING,			\
- 	{ .value = { .str = _val_ } },			\
- }
- 
--- 
-2.17.0
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBZ3Jhd2FsLCBBa3NodQ0KPiBT
+ZW50OiBUdWVzZGF5LCBNYXkgOCwgMjAxOCAxMjowNCBBTQ0KPiBUbzogRGV1Y2hlciwgQWxleGFu
+ZGVyIDxBbGV4YW5kZXIuRGV1Y2hlckBhbWQuY29tPg0KPiBDYzogZGprdXJ0ekBjaHJvbWl1bS5v
+cmc7IG10dXJxdWV0dGVAYmF5bGlicmUuY29tOyBzYm95ZEBrZXJuZWwub3JnOw0KPiBLb2VuaWcs
+IENocmlzdGlhbiA8Q2hyaXN0aWFuLktvZW5pZ0BhbWQuY29tPjsgYWlybGllZEByZWRoYXQuY29t
+OyBMaXUsDQo+IFNoYW95dW4gPFNoYW95dW4uTGl1QGFtZC5jb20+OyBsaW51eC1rZXJuZWxAdmdl
+ci5rZXJuZWwub3JnOyBsaW51eC0NCj4gY2xrQHZnZXIua2VybmVsLm9yZzsgcmp3QHJqd3lzb2Nr
+aS5uZXQ7IGxlbmJAa2VybmVsLm9yZzsgbGludXgtDQo+IGFjcGlAdmdlci5rZXJuZWwub3JnDQo+
+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMS8yXSBjbGs6IHg4NjogQWRkIFNUIG9zY291dCBwbGF0
+Zm9ybSBjbG9jaw0KPiANCj4gDQo+IA0KPiBPbiA1LzgvMjAxOCAzOjE0IEFNLCBEZXVjaGVyLCBB
+bGV4YW5kZXIgd3JvdGU6DQo+ID4+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZy
+b206IEFncmF3YWwsIEFrc2h1DQo+ID4+IFNlbnQ6IE1vbmRheSwgTWF5IDcsIDIwMTggNjoxNCBB
+TQ0KPiA+PiBDYzogZGprdXJ0ekBjaHJvbWl1bS5vcmc7IEFncmF3YWwsIEFrc2h1IDxBa3NodS5B
+Z3Jhd2FsQGFtZC5jb20+Ow0KPiA+PiBEZXVjaGVyLCBBbGV4YW5kZXIgPEFsZXhhbmRlci5EZXVj
+aGVyQGFtZC5jb20+Ow0KPiA+PiBtdHVycXVldHRlQGJheWxpYnJlLmNvbTsgc2JveWRAa2VybmVs
+Lm9yZzsgS29lbmlnLCBDaHJpc3RpYW4NCj4gPj4gPENocmlzdGlhbi5Lb2VuaWdAYW1kLmNvbT47
+IGFpcmxpZWRAcmVkaGF0LmNvbTsgTGl1LCBTaGFveXVuDQo+ID4+IDxTaGFveXVuLkxpdUBhbWQu
+Y29tPjsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtDQo+ID4+IGNsa0B2Z2Vy
+Lmtlcm5lbC5vcmc7IHJqd0Byand5c29ja2kubmV0OyBsZW5iQGtlcm5lbC5vcmc7IGxpbnV4LQ0K
+PiA+PiBhY3BpQHZnZXIua2VybmVsLm9yZw0KPiA+PiBTdWJqZWN0OiBbUEFUQ0ggdjQgMS8yXSBj
+bGs6IHg4NjogQWRkIFNUIG9zY291dCBwbGF0Zm9ybSBjbG9jaw0KPiA+Pg0KPiA+PiBTdG9uZXkg
+U29DIHByb3ZpZGVzIG9zY291dCBjbG9jay4gVGhpcyBjbG9jayBjYW4gc3VwcG9ydCAyNU1oeiBh
+bmQNCj4gPj4gNDhNaHogb2YgZnJlcXVlbmN5Lg0KPiA+PiBUaGUgY2xvY2sgaXMgYXZhaWxhYmxl
+IGZvciBnZW5lcmFsIHN5c3RlbSB1c2UuDQo+ID4+DQo+ID4+IFNpZ25lZC1vZmYtYnk6IEFrc2h1
+IEFncmF3YWwgPGFrc2h1LmFncmF3YWxAYW1kLmNvbT4NCj4gPj4gLS0tDQo+ID4+IHYyOiBjb25m
+aWcgY2hhbmdlLCBhZGRlZCBTUERYIHRhZyBhbmQgdXNlZCBjbGtfaHdfcmVnaXN0ZXJfLg0KPiA+
+PiB2MzogRml4IGtidWlsZCB3YXJuaW5nIGZvciBjaGVja2luZyBvZiBOVUxMIHBvaW50ZXINCj4g
+Pj4gdjQ6IHVucmVnaXN0ZXIgY2xrX2h3IGluIGRyaXZlciByZW1vdmUsIGFkZCAuc3VwcHJlc3Nf
+YmluZF9hdHRycw0KPiA+PiAgZHJpdmVycy9jbGsveDg2L01ha2VmaWxlICAgICAgICAgICAgIHwg
+IDMgKy0NCj4gPj4gIGRyaXZlcnMvY2xrL3g4Ni9jbGstc3QuYyAgICAgICAgICAgICB8IDg1DQo+
+ID4+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+PiAgaW5jbHVkZS9s
+aW51eC9wbGF0Zm9ybV9kYXRhL2Nsay1zdC5oIHwgMTcgKysrKysrKysNCj4gPj4gIDMgZmlsZXMg
+Y2hhbmdlZCwgMTA0IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkgIGNyZWF0ZSBtb2RlDQo+
+ID4+IDEwMDY0NCBkcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMgIGNyZWF0ZSBtb2RlIDEwMDY0NA0K
+PiA+PiBpbmNsdWRlL2xpbnV4L3BsYXRmb3JtX2RhdGEvY2xrLXN0LmgNCj4gPj4NCj4gPj4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvY2xrL3g4Ni9NYWtlZmlsZSBiL2RyaXZlcnMvY2xrL3g4Ni9NYWtl
+ZmlsZQ0KPiA+PiBpbmRleCAxMzY3YWZiLi4wMDMwM2JjIDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2
+ZXJzL2Nsay94ODYvTWFrZWZpbGUNCj4gPj4gKysrIGIvZHJpdmVycy9jbGsveDg2L01ha2VmaWxl
+DQo+ID4+IEBAIC0xLDMgKzEsNCBAQA0KPiA+PiArb2JqLSQoQ09ORklHX1BNQ19BVE9NKQkJKz0g
+Y2xrLXBtYy1hdG9tLm8NCj4gPj4gK29iai0kKENPTkZJR19YODZfQU1EX1BMQVRGT1JNX0RFVklD
+RSkJKz0gY2xrLXN0Lm8NCj4gPj4gIGNsay14ODYtbHBzcy1vYmpzCQk6PSBjbGstbHB0Lm8NCj4g
+Pj4gIG9iai0kKENPTkZJR19YODZfSU5URUxfTFBTUykJKz0gY2xrLXg4Ni1scHNzLm8NCj4gPj4g
+LW9iai0kKENPTkZJR19QTUNfQVRPTSkJCSs9IGNsay1wbWMtYXRvbS5vDQo+ID4+IGRpZmYgLS1n
+aXQgYS9kcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMgYi9kcml2ZXJzL2Nsay94ODYvY2xrLXN0LmMg
+bmV3DQo+ID4+IGZpbGUgbW9kZQ0KPiA+PiAxMDA2NDQgaW5kZXggMDAwMDAwMC4uOGE3Nzk1Yw0K
+PiA+PiAtLS0gL2Rldi9udWxsDQo+ID4+ICsrKyBiL2RyaXZlcnMvY2xrL3g4Ni9jbGstc3QuYw0K
+PiA+PiBAQCAtMCwwICsxLDg1IEBADQo+ID4+ICsvLyBTUERYLUxpY2Vuc2UtSWRlbnRpZmllcjog
+R1BMLTIuMA0KPiA+DQo+ID4gU2hvdWxkIHRoaXMgYmUgTUlUPyAgVGhlIG9yaWdpbmFsIGxpY2Vu
+c2Ugd2FzIE1JVC4NCj4gPg0KPiA+IEFsZXgNCj4gPg0KPiANCj4gV2UgYXJlIGFkZGluZyBTUERY
+IHRhZywgd2hpbGUgbGljZW5zZSByZW1haW5zIHNhbWUgR1BMLTIuMA0KPiANCj4gV2hhdCBJIGhh
+dmUgcmVhZCBpcyB0aGlzIGlzICJ0byBwcm92aWRlIGxpY2Vuc2UgaWRlbnRpZmllcnMgaW5zaWRl
+IHRoZSBzb3VyY2UNCj4gY29kZSB0aGF0IGNvdWxkIGJlIGVhc2lseSBwYXJzZWQgYnkgbWFjaGlu
+ZXMgYW5kIHdvdWxkIGFsbG93IGNoZWNraW5nIGZvcg0KPiBsaWNlbnNlIGNvbXBsaWFuY2Ugb2Yg
+YW4gb3BlbiBzb3VyY2UgcHJvamVjdCBlYXNpZXIuIg0KDQpNeSBwb2ludCBhcyBqdXN0IHRoYXQg
+dGhlIG9yaWdpbmFsIGxpY2Vuc2Ugb24gdGhlIGZpbGUgdGhhdCB5b3UgZmlyc3Qgc2VudCBvdXQg
+d2FzIE1JVCBzbyB0aGUgU1BEWCB0YWcgc2hvdWxkIGJlIE1JVCByYXRoZXIgdGhhbiBHUEwuICBF
+LmcuLA0KU1BEWC1MaWNlbnNlLUlkZW50aWZpZXI6IE1JVA0KDQpBbGV4DQo=
