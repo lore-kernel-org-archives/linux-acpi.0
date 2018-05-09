@@ -1,122 +1,106 @@
-From: Daniel Kurtz <djkurtz@chromium.org>
-Subject: Re: [PATCH v3 2/2] ACPI: APD: Add AMD misc clock handler support
-Date: Wed, 09 May 2018 15:59:14 +0000
-Message-ID: <CAGS+omCy8B343pW-b26aEuRLyYHiQjMO2Rph4L6_x37uJ7r6vA@mail.gmail.com>
-References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com> <1525859941-23654-3-git-send-email-akshu.agrawal@amd.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: simplify procfs code for seq_file instances V2
+Date: Wed, 9 May 2018 19:53:31 +0300
+Message-ID: <20180509165331.GC16034@avx2>
+References: <20180425154827.32251-1-hch@lst.de> <20180506171948.GA769@avx2>
+ <20180506174531.GK30522@ZenIV.linux.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1525859941-23654-3-git-send-email-akshu.agrawal@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Akshu Agrawal <akshu.agrawal@amd.com>
-Cc: Alexander.Deucher@amd.com, Mike Turquette <mturquette@baylibre.com>, sboyd@kernel.org, christian.koenig@amd.com, Dave Airlie <airlied@redhat.com>, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+Content-Disposition: inline
+In-Reply-To: <20180506174531.GK30522@ZenIV.linux.org.uk>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 9, 2018 at 4:01 AM Akshu Agrawal <akshu.agrawal@amd.com> wrote:
+On Sun, May 06, 2018 at 06:45:31PM +0100, Al Viro wrote:
+> On Sun, May 06, 2018 at 08:19:49PM +0300, Alexey Dobriyan wrote:
 
-> AMD SoC exposes clock for general purpose use. The clock registration
-> is done in clk-st driver. The MMIO mapping are passed on to the
-> clock driver for accessing the registers.
-> The misc clock handler will create MMIO mappings to access the
-> clock registers and enable the clock driver to expose the clock
-> for use of drivers which will connect to it.
+> > @@ -62,9 +62,9 @@ struct proc_dir_entry {
+> >  	umode_t mode;
+> >  	u8 namelen;
+> >  #ifdef CONFIG_64BIT
+> > -#define SIZEOF_PDE_INLINE_NAME	(192-139)
+> > +#define SIZEOF_PDE_INLINE_NAME	(192-155)
+> >  #else
+> > -#define SIZEOF_PDE_INLINE_NAME	(128-87)
+> > +#define SIZEOF_PDE_INLINE_NAME	(128-95)
+> 
+> >  #endif
+> >  	char inline_name[SIZEOF_PDE_INLINE_NAME];
+> >  } __randomize_layout;
+> 
+> *UGH*
 
-> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+I agree. Maintaining these numbers is a pain point.
+Who knew people were going to start adding fields right away.
 
-Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
+> Both to the original state and that kind of "adjustments".
+> Incidentally, with __bugger_layout in there these expressions
+> are simply wrong.
 
-> ---
-> v2: Submitted with dependent patch, removed unneeded kfree for
-devm_kzalloc
-> v3: used devm_ioremap and fix coccinelle warning
->   drivers/acpi/acpi_apd.c | 47
-+++++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 47 insertions(+)
+Struct randomization is exempt from maintaining sizeof as they are already
+screwing cachelines and everything. But if patch works with lockdep and
+randomization -- even better.
 
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index d553b00..2664452 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -11,6 +11,7 @@
->    */
+> If nothing else, I would suggest turning the last one into
+> 	char inline_name[];
+> in hope that layout won't get... randomized that much and
+> used
+> 
+> #ifdef CONFIG_64BIT
+> #define PDE_SIZE 192
+> #else
+> #define PDE_SIZE 128
+> #endif
+> 
+> union __proc_dir_entry {
+> 	char pad[PDE_SIZE];
+> 	struct proc_dir_entry real;
+> };
+> 
+> #define SIZEOF_PDE_INLINE_NAME (PDE_SIZE - offsetof(struct proc_dir_entry, inline_name))
+> 
+> for constants, adjusted sizeof and sizeof_field when creating
+> proc_dir_entry_cache and turned proc_root into
+> 
+> union __proc_dir_entry __proc_root = { .real = {
+>         .low_ino        = PROC_ROOT_INO,
+>         .namelen        = 5,
+>         .mode           = S_IFDIR | S_IRUGO | S_IXUGO,
+>         .nlink          = 2,
+>         .refcnt         = REFCOUNT_INIT(1),
+>         .proc_iops      = &proc_root_inode_operations,
+>         .proc_fops      = &proc_root_operations,
+>         .parent         = &__proc_root.real,
+>         .subdir         = RB_ROOT,
+>         .name           = __proc_root.real.inline_name,
+>         .inline_name    = "/proc",
+> }};
+> 
+> #define proc_root __proc_root.real
+> (or actually used __proc_root.real in all of a 6 places where it remains).
+> 
+> > -	size_t state_size = PDE(inode)->state_size;
+> > +	unsigned int state_size = PDE(inode)->state_size;
+> 
+> <shakes head>
+> You and your "size_t is evil" crusade...
 
->   #include <linux/clk-provider.h>
-> +#include <linux/platform_data/clk-st.h>
->   #include <linux/platform_device.h>
->   #include <linux/pm_domain.h>
->   #include <linux/clkdev.h>
-> @@ -72,6 +73,47 @@ static int acpi_apd_setup(struct apd_private_data
-*pdata)
->   }
+[nods]
 
->   #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +
-> +static int misc_check_res(struct acpi_resource *ares, void *data)
-> +{
-> +       struct resource res;
-> +
-> +       return !acpi_dev_resource_memory(ares, &res);
-> +}
-> +
-> +static int st_misc_setup(struct apd_private_data *pdata)
-> +{
-> +       struct acpi_device *adev = pdata->adev;
-> +       struct platform_device *clkdev;
-> +       struct st_clk_data *clk_data;
-> +       struct resource_entry *rentry;
-> +       struct list_head resource_list;
-> +       int ret;
-> +
-> +       clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data),
-GFP_KERNEL);
-> +       if (!clk_data)
-> +               return -ENOMEM;
-> +
-> +       INIT_LIST_HEAD(&resource_list);
-> +       ret = acpi_dev_get_resources(adev, &resource_list, misc_check_res,
-> +                                    NULL);
-> +       if (ret < 0)
-> +               return -ENOENT;
-> +
-> +       list_for_each_entry(rentry, &resource_list, node) {
-> +               clk_data->base = devm_ioremap(&adev->dev,
-rentry->res->start,
-> +                                             resource_size(rentry->res));
-> +               break;
-> +       }
-> +
-> +       acpi_dev_free_resource_list(&resource_list);
-> +
-> +       clkdev = platform_device_register_data(&adev->dev, "clk-st",
-> +                                              PLATFORM_DEVID_NONE,
-clk_data,
-> +                                              sizeof(*clk_data));
-> +       return PTR_ERR_OR_ZERO(clkdev);
-> +}
-> +
->   static const struct apd_device_desc cz_i2c_desc = {
->          .setup = acpi_apd_setup,
->          .fixed_clk_rate = 133000000,
-> @@ -94,6 +136,10 @@ static int acpi_apd_setup(struct apd_private_data
-*pdata)
->          .fixed_clk_rate = 48000000,
->          .properties = uart_properties,
->   };
-> +
-> +static const struct apd_device_desc st_misc_desc = {
-> +       .setup = st_misc_setup,
-> +};
->   #endif
-
->   #ifdef CONFIG_ARM64
-> @@ -179,6 +225,7 @@ static int acpi_apd_create_device(struct acpi_device
-*adev,
->          { "AMD0020", APD_ADDR(cz_uart_desc) },
->          { "AMDI0020", APD_ADDR(cz_uart_desc) },
->          { "AMD0030", },
-> +       { "AMD0040", APD_ADDR(st_misc_desc)},
->   #endif
->   #ifdef CONFIG_ARM64
->          { "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-> --
-> 1.9.1
+        unsigned long           flags;          /* error bits */
+        unsigned long           i_state;
+        unsigned long           s_blocksize;
+        unsigned long           s_flags;
+        unsigned long           s_iflags;       /* internal SB_I_* flags */
