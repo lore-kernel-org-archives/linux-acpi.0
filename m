@@ -1,410 +1,162 @@
-From: "Elliott, Robert (Persistent Memory)" <elliott-ZPxbGqLxI0U@public.gmane.org>
-Subject: RE: [PATCH v2] acpi: nfit: document sysfs interface
-Date: Wed, 9 May 2018 15:54:55 +0000
-Message-ID: <AT5PR8401MB116920E461A2489D1DA52CB6AB990@AT5PR8401MB1169.NAMPRD84.PROD.OUTLOOK.COM>
-References: <20180223125448.GA16909@mordor.localdomain>
+From: Daniel Kurtz <djkurtz@chromium.org>
+Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
+Date: Wed, 09 May 2018 15:58:06 +0000
+Message-ID: <CAGS+omCB=b-PDos0uWY6k1nWpMkjSQ3TpSMAe8WSdrXByAG2Uw@mail.gmail.com>
+References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com> <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <20180223125448.GA16909-BxiFm0zuoZpSq9BJjBFyUp/QNRX+jHPU@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len
- Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Akshu Agrawal <akshu.agrawal@amd.com>
+Cc: Alexander.Deucher@amd.com, Mike Turquette <mturquette@baylibre.com>, sboyd@kernel.org, christian.koenig@amd.com, Dave Airlie <airlied@redhat.com>, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, May 9, 2018 at 4:01 AM Akshu Agrawal <akshu.agrawal@amd.com> wrote:
+
+> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+> 48Mhz of frequency.
+> The clock is available for general system use.
+
+> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+
+Reviewed-by: Daniel Kurtz <djkurtz@chromium.org>
 
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org] On Behalf Of
-> Aishwarya Pant
-> Sent: Friday, February 23, 2018 6:55 AM
-> To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; Rafael J. Wysocki
-> <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>; Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>; linux-
-> nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org; linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-
-> kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Jonathan Corbet <corbet-T1hC0tSOHrs@public.gmane.org>; Greg KH
-> <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
-> Cc: Julia Lawall <julia.lawall-L2FTfq7BK8M@public.gmane.org>
-> Subject: [PATCH v2] acpi: nfit: document sysfs interface
-> 
-> This is an attempt to document the nfit sysfs interface. The
-> descriptions have been collected from git commit logs and the ACPI
-> specification 6.2.
-> 
-> Signed-off-by: Aishwarya Pant <aishpant-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 > ---
-> Changes in v2:
-> - Add descriptions for range_index and ecc_unit_size
-> - Edit various descriptions as suggested
-> 
->  Documentation/ABI/testing/sysfs-bus-nfit | 233
-> +++++++++++++++++++++++++++++++
->  1 file changed, 233 insertions(+)
->  create mode 100644 Documentation/ABI/testing/sysfs-bus-nfit
-> 
-> diff --git a/Documentation/ABI/testing/sysfs-bus-nfit
-> b/Documentation/ABI/testing/sysfs-bus-nfit
+> v2: config change, added SPDX tag and used clk_hw_register_.
+> v3: Fix kbuild warning for checking of NULL pointer
+> v4: unregister clk_hw in driver remove, add .suppress_bind_attrs
+> v5: Fix license, used static array
+>   drivers/clk/x86/Makefile             |  3 +-
+>   drivers/clk/x86/clk-st.c             | 77
+++++++++++++++++++++++++++++++++++++
+>   include/linux/platform_data/clk-st.h | 17 ++++++++
+>   3 files changed, 96 insertions(+), 1 deletion(-)
+>   create mode 100644 drivers/clk/x86/clk-st.c
+>   create mode 100644 include/linux/platform_data/clk-st.h
+
+> diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
+> index 1367afb..00303bc 100644
+> --- a/drivers/clk/x86/Makefile
+> +++ b/drivers/clk/x86/Makefile
+> @@ -1,3 +1,4 @@
+> +obj-$(CONFIG_PMC_ATOM)         += clk-pmc-atom.o
+> +obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)  += clk-st.o
+>   clk-x86-lpss-objs              := clk-lpt.o
+>   obj-$(CONFIG_X86_INTEL_LPSS)   += clk-x86-lpss.o
+> -obj-$(CONFIG_PMC_ATOM)         += clk-pmc-atom.o
+> diff --git a/drivers/clk/x86/clk-st.c b/drivers/clk/x86/clk-st.c
 > new file mode 100644
-> index 000000000000..619eb8ca0f99
+> index 0000000..fb62f39
 > --- /dev/null
-> +++ b/Documentation/ABI/testing/sysfs-bus-nfit
-> @@ -0,0 +1,233 @@
-> +For all of the nmem device attributes under nfit/*, see the 'NVDIMM
-> Firmware
-> +Interface Table (NFIT)' section in the ACPI specification
-> +(http://www.uefi.org/specifications) for more details.
+> +++ b/drivers/clk/x86/clk-st.c
+> @@ -0,0 +1,77 @@
+> +// SPDX-License-Identifier: MIT
+> +/*
+> + * clock framework for AMD Stoney based clocks
+> + *
+> + * Copyright 2018 Advanced Micro Devices, Inc.
+> + */
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/serial
-> +Date:		Jun, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Serial number of the NVDIMM (non-volatile dual in-line
-> +		memory module), assigned by the module vendor.
-
-The endianness should be indicated. 
-
-After some churn, I think it is always presented as big-endian now
-(originally printed using the CPU's native endianness).
-
+> +#include <linux/clk.h>
+> +#include <linux/clkdev.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/platform_data/clk-st.h>
+> +#include <linux/platform_device.h>
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/handle
-> +Date:		Apr, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) The address (given by the _ADR object) of the device on
-> its
-> +		parent bus of the NVDIMM device containing the NVDIMM region.
+> +/* Clock Driving Strength 2 register */
+> +#define CLKDRVSTR2     0x28
+> +/* Clock Control 1 register */
+> +#define MISCCLKCNTL1   0x40
+> +/* Auxiliary clock1 enable bit */
+> +#define OSCCLKENB      2
+> +/* 25Mhz auxiliary output clock freq bit */
+> +#define OSCOUT1CLK25MHZ        16
 > +
+> +#define ST_CLK_48M     0
+> +#define ST_CLK_25M     1
+> +#define ST_CLK_MUX     2
+> +#define ST_CLK_GATE    3
+> +#define ST_MAX_CLKS    4
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/device
-> +Date:		Apr, 2015
-> +KernelVersion:	v4.1
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Device id for the NVDIMM, assigned by the module vendor.
-
-Since "device" is confusing (a problem with the ACPI field name), this should 
-state that it is the "Identifier for the NVDIMM", i.e., the module itself,
-not some device on the module.
-
+> +static const char * const clk_oscout1_parents[] = { "clk48MHz",
+"clk25MHz" };
+> +static struct clk_hw *hws[ST_MAX_CLKS];
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/rev_id
-> +Date:		Jun, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Revision of the NVDIMM, assigned by the module vendor.
+> +static int st_clk_probe(struct platform_device *pdev)
+> +{
+> +       struct st_clk_data *st_data;
 > +
+> +       st_data = dev_get_platdata(&pdev->dev);
+> +       if (!st_data || !st_data->base)
+> +               return -EINVAL;
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/phys_id
-> +Date:		Apr, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Handle (i.e., instance number) for the SMBIOS (system
-> +		management BIOS) Memory Device structure describing the NVDIMM
-> +		containing the NVDIMM region.
-
-Perhaps mention "dmidecode" as a tool to see the SMBIOS structures?
-
+> +       hws[ST_CLK_48M] = clk_hw_register_fixed_rate(NULL, "clk48MHz",
+NULL, 0,
+> +                                                    48000000);
+> +       hws[ST_CLK_25M] = clk_hw_register_fixed_rate(NULL, "clk25MHz",
+NULL, 0,
+> +                                                    25000000);
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/flags
-> +Date:		Jun, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) The flags in the NFIT memory device sub-structure
-> indicate
-> +		the state of the data on the nvdimm relative to its energy
-> +		source or last "flush to persistence".
-
-Capitalize nvdimm.
-
-The bits in this field are more varied than that description, though,
-and you can't predict what future standards will toss into this field.
-A more generic description might be better.
-
+> +       hws[ST_CLK_MUX] = clk_hw_register_mux(NULL, "oscout1_mux",
+> +               clk_oscout1_parents, ARRAY_SIZE(clk_oscout1_parents),
+> +               0, st_data->base + CLKDRVSTR2, OSCOUT1CLK25MHZ, 3, 0,
+NULL);
 > +
-> +		The attribute is a translation of the 'NVDIMM State Flags'
-> field
-> +		in section 5.2.25.3 'NVDIMM Region Mapping' Structure of the
-> +		ACPI specification 6.2.
+> +       clk_set_parent(hws[ST_CLK_MUX]->clk, hws[ST_CLK_25M]->clk);
 > +
-> +		The health states are "save_fail", "restore_fail", "flush_fail",
-> +		"not_armed", "smart_event", "map_fail" and "smart_notify".
+> +       hws[ST_CLK_GATE] = clk_hw_register_gate(NULL, "oscout1",
+"oscout1_mux",
+> +               0, st_data->base + MISCCLKCNTL1, OSCCLKENB,
+> +               CLK_GATE_SET_TO_DISABLE, NULL);
 > +
+> +       clk_hw_register_clkdev(hws[ST_CLK_GATE], "oscout1", NULL);
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/format
-> +What:		/sys/bus/nd/devices/nmemX/nfit/format1
-> +What:		/sys/bus/nd/devices/nmemX/nfit/formats
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) The interface codes indicate support for persistent
-> memory
-> +		mapped directly into system physical address space and / or a
-> +		block aperture access mechanism to the NVDIMM media.
-> +		The 'formats' attribute displays the number of supported
-> +		interfaces.
+> +       return 0;
+> +}
 > +
-> +		This layout is compatible with existing libndctl binaries that
-> +		only expect one code per-dimm as they will ignore
-> +		nmemX/nfit/formats and nmemX/nfit/formatN.
+> +static int st_clk_remove(struct platform_device *pdev)
+> +{
+> +       int i;
 > +
+> +       for (i = 0; i < ST_MAX_CLKS; i++)
+> +               clk_hw_unregister(hws[i]);
+> +       return 0;
+> +}
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/vendor
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Vendor id of the NVDIMM.
-
-Clarify that this is a JEDEC manufacturer ID code from JEP106, not an identifier
-assigned by the PCI SIG, IEEE, or other organization.
-
-Clarify that it uses the two-byte format defined in JESD21C Page 4.1.2 (the SPD
-standard), and that it includes the parity bit.
-
-Suggestion:
-"Identifier indicating the vendor of the NVDIMM. This is a JEDEC manufacturer
-ID code assigned in JEP106 and expressed in the two-byte format defined in
-JESD21C for Serial Presence Data (SPD)."
-
-
+> +static struct platform_driver st_clk_driver = {
+> +       .driver = {
+> +               .name = "clk-st",
+> +               .suppress_bind_attrs = true,
+> +       },
+> +       .probe = st_clk_probe,
+> +       .remove = st_clk_remove,
+> +};
+> +builtin_platform_driver(st_clk_driver);
+> diff --git a/include/linux/platform_data/clk-st.h
+b/include/linux/platform_data/clk-st.h
+> new file mode 100644
+> index 0000000..7cdb6a4
+> --- /dev/null
+> +++ b/include/linux/platform_data/clk-st.h
+> @@ -0,0 +1,17 @@
+> +/* SPDX-License-Identifier: MIT */
+> +/*
+> + * clock framework for AMD Stoney based clock
+> + *
+> + * Copyright 2018 Advanced Micro Devices, Inc.
+> + */
 > +
+> +#ifndef __CLK_ST_H
+> +#define __CLK_ST_H
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/dsm_mask
-> +Date:		May, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) The bitmask indicates the supported device specific
-> control
-> +		functions relative to the NVDIMM command family supported by
-> the
-> +		device
-
-What is the endianness of this bitmask?
-
+> +#include <linux/compiler.h>
 > +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/family
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Displays the NVDIMM family command sets. Values
-> +		0, 1, 2 and 3 correspond to NVDIMM_FAMILY_INTEL,
-> +		NVDIMM_FAMILY_HPE1, NVDIMM_FAMILY_HPE2 and NVDIMM_FAMILY_MSFT
-> +		respectively.
+> +struct st_clk_data {
+> +       void __iomem *base;
+> +};
 > +
-> +		See the specifications for these command families here:
-> +		http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
-> +		https://github.com/HewlettPackard/hpe-
-> nvm/blob/master/Documentation/
-> +		https://msdn.microsoft.com/library/windows/hardware/mt604741"
-> +
-> +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/id
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) ACPI specification 6.2 section 5.2.25.9, defines an
-> +		identifier for an NVDIMM, which refelects the id attribute.
-
-reflects is spelled wrong.
-
-As time goes by, it might be hard to find a specific old revision of
-the specification, and the section numbers will probably have changed.
-Refer to the section name ("NVDIMM Representation Format") and provide
-other clues.
-
-Suggestion:
-
-An identifier for the NVDIMM using the NVDIMM Representation Format
-specified by ACPI.
-
-If the manufacturing location and manufacturing date fields are valid,
-this includes the contents of SPD bytes 320 to 328:
-      printf format: %02x%02x-%02x-%02x%02x-%02x%02x%02x%02x
-	contents:
-		JEDEC manufacturer ID byte 0 (including the parity bit)
-		JEDEC manufacturer ID byte 1
-		manufacturing location
-		manufacturing date byte 0: year 
-		manufacturing date byte 1: week
-		serial number byte 0
-		serial number byte 1
-		serial number byte 2
-		serial number byte 3
-
-If the manufacturing location and manufacturing date fields are not valid,
-those are omitted:
-      printf format: %02x%02x-%02x%02x%02x%02x
-	contents:
-		JEDEC manufacturer ID byte 0 (including the parity bit)
-		JEDEC manufacturer ID byte 1
-		serial number byte 0
-		serial number byte 1
-		serial number byte 2
-		serial number byte 3
-
-
-> +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_vendor
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Sub-system vendor id of the NVDIMM non-volatile memory
-> +		subsystem controller.
-
-Use
-"Vendor of the NVDIMM non-volatile memory subsystem controller. This is a
-JEDEC manufacturer ID code assigned in JEP106 and expressed in the two-byte
-format defined in JESD21C for Serial Presence Data (SPD)."
-
-> +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_rev_id
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Sub-system revision id of the NVDIMM non-volatile memory
-> subsystem
-> +		controller, assigned by the non-volatile memory subsystem
-> +		controller vendor.
-
-Use
-"Revision of the NVDIMM non-volatile memory subsystem controller, ...".
-
-> +
-> +What:		/sys/bus/nd/devices/nmemX/nfit/subsystem_device
-> +Date:		Apr, 2016
-> +KernelVersion:	v4.7
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Sub-system device id for the NVDIMM non-volatile memory
-> +		subsystem controller, assigned by the non-volatile memory
-> +		subsystem controller vendor.
-
-Use
-"Identifier for the NVDIMM non-volatile memory subsystem controller, ...".
-
-The "device" and "subsystem" terms can cause confusion because they are
-backwards from PCI:
-    NVDIMM: the module contains the subsystem
-    PCI card: the subsystem contains the device
-
-ACPI uses "Device ID" for a module ID, adding to the confusion.
-
-The best we can do is to overlook the poorly chosen field names and
-ensure the definitions of their content is clear.
-
-
-> +
-> +What:		/sys/bus/nd/devices/ndbusX/nfit/revision
-> +Date:		Jun, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) ACPI NFIT table revision number.
-> +
-> +
-> +What:		/sys/bus/nd/devices/ndbusX/nfit/scrub
-> +Date:		Sep, 2016
-> +KernelVersion:	v4.9
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RW) This shows the number of full Address Range Scrubs (ARS)
-> +		that have been completed since driver load time. Userspace can
-> +		wait on this using select/poll etc. A '+' at the end indicates
-> +		an ARS is in progress
-> +
-> +		Writing a value of 1 triggers an ARS scan.
-> +
-> +
-> +What:		/sys/bus/nd/devices/ndbusX/nfit/hw_error_scrub
-> +Date:		Sep, 2016
-> +KernelVersion:	v4.9
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RW) Provides a way to toggle the behavior between just adding
-> +		the address (cache line) where the MCE happened to the poison
-> +		list and doing a full scrub. The former (selective insertion
-> of
-> +		the address) is done unconditionally.
-> +
-> +		This attribute can have the following values written to it:
-> +
-> +		'0': Switch to the default mode where an exception will only
-> +		insert the address of the memory error into the poison and
-> +		badblocks lists.
-> +		'1': Enable a full scrub to happen if an exception for a
-> memory
-> +		error is received.
-> +
-> +
-> +What:		/sys/bus/nd/devices/ndbusX/nfit/dsm_mask
-> +Date:		Jun, 2017
-> +KernelVersion:	v4.13
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) The bitmask indicates the supported bus specific control
-> +		functions. See the section named 'NVDIMM Root Device _DSMs' in
-> +		the ACPI specification.
-
-What is the endianness of this bitmask?
-
-> +
-> +What:		/sys/bus/nd/devices/regionX/nfit/range_index
-> +Date:		Jun, 2015
-> +KernelVersion:	v4.2
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) A unique number provided by the BIOS to identify an
-> address
-> +		range. Used by NVDIMM Region Mapping Structure to uniquely
-> refer
-> +		to this structure. Value of 0 is reserved and not used as an
-> +		index.
-> +
-> +
-> +What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
-> +Date:		Aug, 2017
-> +KernelVersion:	v4.14
-> +Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> +Description:
-> +		(RO) Size of a write request to a DIMM that will not incur a
-> +		read-modify-write cycle at the memory controller.
-> +
-> +		When the nfit driver initializes it runs an ARS (Address Range
-> +		Scrub) operation across every pmem range. Part of that process
-> +		involves determining the ARS capabilities of a given address
-> +		range. One of the capabilities that is reported is the 'Clear
-> +		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
-> +		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
-> +		This property indicates the boundary at which the NVDIMM may
-> +		need to perform read-modify-write cycles to maintain ECC
-> (Error
-> +		Correcting Code) blocks.
+> +#endif /* __CLK_ST_H */
 > --
-> 2.16.2
-> 
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
+> 1.9.1
