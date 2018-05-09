@@ -1,49 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: add missing newline to printk
-Date: Wed, 09 May 2018 11:54:06 +0200
-Message-ID: <89768760.ar4GnIqtnF@aspire.rjw.lan>
-References: <20180410171038.GA4189@laszlth>
+From: Akshu Agrawal <akshu.agrawal@amd.com>
+Subject: [PATCH v3 0/2] Add support for general system clock on ST AMD platform
+Date: Wed,  9 May 2018 17:58:59 +0800
+Message-ID: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180410171038.GA4189@laszlth>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Laszlo Toth <laszlth@gmail.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, sboyd@kernel.org, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, April 10, 2018 7:10:38 PM CEST Laszlo Toth wrote:
-> ...and restore reverse xmas tree while at it.
-> 
-> Signed-off-by: Laszlo Toth <laszlth@gmail.com>
-> ---
->  drivers/acpi/reboot.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-> index 71769fd..6fa9c2a 100644
-> --- a/drivers/acpi/reboot.c
-> +++ b/drivers/acpi/reboot.c
-> @@ -8,8 +8,8 @@ void acpi_reboot(void)
->  {
->  	struct acpi_generic_address *rr;
->  	struct pci_bus *bus0;
-> -	u8 reset_value;
->  	unsigned int devfn;
-> +	u8 reset_value;
->  
->  	if (acpi_disabled)
->  		return;
-> @@ -40,7 +40,7 @@ void acpi_reboot(void)
->  		/* Form PCI device/function pair. */
->  		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
->  				  (rr->address >> 16) & 0xffff);
-> -		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.");
-> +		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.\n");
->  		/* Write the value that resets us. */
->  		pci_bus_write_config_byte(bus0, devfn,
->  				(rr->address & 0xffff), reset_value);
-> 
+AMD ST/CZ platform provides a general system clock which can be used
+by any driver. Registration of this clock will done in clk-st driver.
+While the ACPI misc device will create the required MMIO mappings
+and pass the same to the clk-st driver. The clk-st driver will
+use the address to enable/disable and set frequency.
 
-Applied, thanks!
+Changelog:
+v2:
+  clk: x86: Add ST oscout platform clock: v3->v4 unregister clk_hw
+  ACPI: APD: Add AMD misc clock handler support: No change (v2)
+v3:
+  clk: x86: Add ST oscout platform clock:
+		v4->v5 use static array, change license
+  ACPI: APD: Add AMD misc clock handler support:
+		v2->v3 use devm_ioremap, fix warning
+
+Akshu Agrawal (2):
+  clk: x86: Add ST oscout platform clock
+  ACPI: APD: Add AMD misc clock handler support
+
+ drivers/acpi/acpi_apd.c              | 50 ++++++++++++++++++++
+ drivers/clk/x86/Makefile             |  1 +
+ drivers/clk/x86/clk-st.c             | 88 ++++++++++++++++++++++++++++++++++++
+ include/linux/platform_data/clk-st.h | 35 ++++++++++++++
+ 4 files changed, 174 insertions(+)
+ create mode 100644 drivers/clk/x86/clk-st.c
+ create mode 100644 include/linux/platform_data/clk-st.h
+
+-- 
+1.9.1
