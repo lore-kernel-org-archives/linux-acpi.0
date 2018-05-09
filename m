@@ -1,106 +1,40 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] PCI / PM: Check device_may_wakeup() in pci_enable_wake()
-Date: Wed, 09 May 2018 00:18:32 +0200
-Message-ID: <1823373.ea0yBGqyI6@aspire.rjw.lan>
-References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
+From: Jia-Ju Bai <baijiaju1990@gmail.com>
+Subject: Re: [PATCH] acpi: scan: Fix a possible data race in
+ acpi_scan_hotplug_enabled
+Date: Wed, 9 May 2018 11:17:38 +0800
+Message-ID: <1b7f1bff-b38b-fe10-3e1c-2b465b36f193@gmail.com>
+References: <20180508030811.12256-1-baijiaju1990@gmail.com>
+ <CAJZ5v0jqW0yuSOSrgy1=dWARPHmaxtG4fvkZj=pX+fPcTTJh1A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
+In-Reply-To: <CAJZ5v0jqW0yuSOSrgy1=dWARPHmaxtG4fvkZj=pX+fPcTTJh1A@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joseph Salisbury <joseph.salisbury@canonical.com>, bhelgaas@google.com
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Commit 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
-went too far and dropped the device_may_wakeup() check from
-pci_enable_wake() which causes wakeup to be enabled during system
-suspend, hibernation or shutdown for some PCI devices that are not
-allowed by user space to wake up the system from sleep (or power off).
 
-As a result of this excessive power is drawn by some of the affected
-systems while in sleep states or off.
+On 2018/5/9 4:17, Rafael J. Wysocki wrote:
+> On Tue, May 8, 2018 at 5:08 AM, Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
+>> The write operation to "hotplug->enabled" is protected by
+>> the lock on line 1760, but the read operation to
+>> this data on line 1755 is not protected by the lock.
+>> Thus, there may exist a data race for "hotplug->enabled".
+> Either it does exist, or it doesn't.
+>
+> If it exists, it needs to be fixed.  If it doesn't exist, nothing
+> needs to be done.
+>
+> Which is the case?
 
-Restore the device_may_wakeup() check in pci_enable_wake(), but make
-sure that the PCI bus type's runtime suspend callback will not call
-device_may_wakeup() which is about system wakeup from sleep and not
-about device wakeup from runtime suspend.
+I only read the code and find this possible data race.
+It is not found in real driver execution.
+I am not sure of it, so I use "may" and "possible" here.
 
-Fixes: 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
-Reported-by: Joseph Salisbury <joseph.salisbury@canonical.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/pci/pci.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
 
-Index: linux-pm/drivers/pci/pci.c
-===================================================================
---- linux-pm.orig/drivers/pci/pci.c
-+++ linux-pm/drivers/pci/pci.c
-@@ -1910,7 +1910,7 @@ void pci_pme_active(struct pci_dev *dev,
- EXPORT_SYMBOL(pci_pme_active);
- 
- /**
-- * pci_enable_wake - enable PCI device as wakeup event source
-+ * __pci_enable_wake - enable PCI device as wakeup event source
-  * @dev: PCI device affected
-  * @state: PCI state from which device will issue wakeup events
-  * @enable: True to enable event generation; false to disable
-@@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(pci_pme_active);
-  * Error code depending on the platform is returned if both the platform and
-  * the native mechanism fail to enable the generation of wake-up events
-  */
--int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
-+static int __pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
- {
- 	int ret = 0;
- 
-@@ -1969,6 +1969,23 @@ int pci_enable_wake(struct pci_dev *dev,
- 
- 	return ret;
- }
-+
-+/**
-+ * pci_enable_wake - change wakeup settings for a PCI device
-+ * @pci_dev: Target device
-+ * @state: PCI state from which device will issue wakeup events
-+ * @enable: Whether or not to enable event generation
-+ *
-+ * If @enable is set, check device_may_wakeup() for the device before calling
-+ * __pci_enable_wake() for it.
-+ */
-+int pci_enable_wake(struct pci_dev *pci_dev, pci_power_t state, bool enable)
-+{
-+	if (enable && !device_may_wakeup(&pci_dev->dev))
-+		return -EINVAL;
-+
-+	return __pci_enable_wake(pci_dev, state, enable);
-+}
- EXPORT_SYMBOL(pci_enable_wake);
- 
- /**
-@@ -1981,9 +1998,9 @@ EXPORT_SYMBOL(pci_enable_wake);
-  * should not be called twice in a row to enable wake-up due to PCI PM vs ACPI
-  * ordering constraints.
-  *
-- * This function only returns error code if the device is not capable of
-- * generating PME# from both D3_hot and D3_cold, and the platform is unable to
-- * enable wake-up power for it.
-+ * This function only returns error code if the device is not allowed to wake
-+ * up the system from sleep or it is not capable of generating PME# from both
-+ * D3_hot and D3_cold and the platform is unable to enable wake-up power for it.
-  */
- int pci_wake_from_d3(struct pci_dev *dev, bool enable)
- {
-@@ -2114,7 +2131,7 @@ int pci_finish_runtime_suspend(struct pc
- 
- 	dev->runtime_d3cold = target_state == PCI_D3cold;
- 
--	pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
-+	__pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
- 
- 	error = pci_set_power_state(dev, target_state);
- 
+Best wishes,
+Jia-Ju Bai
