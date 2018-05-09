@@ -1,89 +1,102 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: Re: [PATCH v2 1/2] PCI ACPI: Avoid panic when PCI IO resource's size
- is not page aligned
-Date: Wed, 9 May 2018 11:46:50 +0800
-Message-ID: <31dd8592-635c-ec88-2734-2fa9d4ce373e@huawei.com>
-References: <1522480343-37669-1-git-send-email-xieyisheng1@huawei.com>
- <3699960.UXjPS91TgB@aspire.rjw.lan>
- <a8398da8-2f69-5694-69d6-224b547a378a@huawei.com>
- <CAJZ5v0h4DLNBJz1QmgmCitj2_UfMBLxboZ2i9rpFZ4+qZPf+eA@mail.gmail.com>
+From: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>
+Subject: Re: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
+Date: Wed, 9 May 2018 10:17:07 +0530
+Message-ID: <1a90185b-cec7-f9aa-c273-0f0f5f381b82@amd.com>
+References: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
+ <1525688013-9928-2-git-send-email-akshu.agrawal@amd.com>
+ <BN6PR12MB1809A66A78024F2E519A1A34F79B0@BN6PR12MB1809.namprd12.prod.outlook.com>
+ <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
+ <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0h4DLNBJz1QmgmCitj2_UfMBLxboZ2i9rpFZ4+qZPf+eA@mail.gmail.com>
+In-Reply-To: <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <guohanjun@huawei.com>, Jon Masters <jcm@redhat.com>, Toshi Kani <toshi.kani@hpe.com>, tanxiaojun@huawei.com, Zhou Wang <wangzhou1@hisilicon.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: "Deucher, Alexander" <Alexander.Deucher@amd.com>
+Cc: "djkurtz@chromium.org" <djkurtz@chromium.org>, "mturquette@baylibre.com" <mturquette@baylibre.com>, "sboyd@kernel.org" <sboyd@kernel.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "airlied@redhat.com" <airlied@redhat.com>, "Liu, Shaoyun" <Shaoyun.Liu@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
 
-On 2018/5/9 5:20, Rafael J. Wysocki wrote:
-> On Mon, May 7, 2018 at 10:06 AM, Yisheng Xie <xieyisheng1@huawei.com> wrote:
+
+On 5/8/2018 9:08 PM, Deucher, Alexander wrote:
+>> -----Original Message-----
+>> From: Agrawal, Akshu
+>> Sent: Tuesday, May 8, 2018 12:04 AM
+>> To: Deucher, Alexander <Alexander.Deucher@amd.com>
+>> Cc: djkurtz@chromium.org; mturquette@baylibre.com; sboyd@kernel.org;
+>> Koenig, Christian <Christian.Koenig@amd.com>; airlied@redhat.com; Liu,
+>> Shaoyun <Shaoyun.Liu@amd.com>; linux-kernel@vger.kernel.org; linux-
+>> clk@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org; linux-
+>> acpi@vger.kernel.org
+>> Subject: Re: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
 >>
 >>
->> On 2018/5/1 17:28, Rafael J. Wysocki wrote:
->>>>  drivers/acpi/pci_root.c | 2 +-
->>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->>>>> index 6fc204a..b758ca3 100644
->>>>> --- a/drivers/acpi/pci_root.c
->>>>> +++ b/drivers/acpi/pci_root.c
->>>>> @@ -746,7 +746,7 @@ static void acpi_pci_root_remap_iospace(struct resource_entry *entry)
->>>>>            goto err;
->>>>>
->>>>>    res->start = port;
->>>>> -  res->end = port + length - 1;
->>>>> +  res->end = PAGE_ALIGN(port + length) - 1;
->>> Shouldn't pci_remap_iospace() sanitize its arguments instead?
 >>
->> Yeah, I thought that pci_remap_iospace() will be called at many place, and presently I
->> had not seen any problem at other place except acpi_pci_root_remap_iospace(). Anyway,
->> sanitize arguments in pci_remap_iospace() can resolve the problem more thoroughly, but
->> should more common, right?
+>> On 5/8/2018 3:14 AM, Deucher, Alexander wrote:
+>>>> -----Original Message-----
+>>>> From: Agrawal, Akshu
+>>>> Sent: Monday, May 7, 2018 6:14 AM
+>>>> Cc: djkurtz@chromium.org; Agrawal, Akshu <Akshu.Agrawal@amd.com>;
+>>>> Deucher, Alexander <Alexander.Deucher@amd.com>;
+>>>> mturquette@baylibre.com; sboyd@kernel.org; Koenig, Christian
+>>>> <Christian.Koenig@amd.com>; airlied@redhat.com; Liu, Shaoyun
+>>>> <Shaoyun.Liu@amd.com>; linux-kernel@vger.kernel.org; linux-
+>>>> clk@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org; linux-
+>>>> acpi@vger.kernel.org
+>>>> Subject: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
+>>>>
+>>>> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+>>>> 48Mhz of frequency.
+>>>> The clock is available for general system use.
+>>>>
+>>>> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+>>>> ---
+>>>> v2: config change, added SPDX tag and used clk_hw_register_.
+>>>> v3: Fix kbuild warning for checking of NULL pointer
+>>>> v4: unregister clk_hw in driver remove, add .suppress_bind_attrs
+>>>>  drivers/clk/x86/Makefile             |  3 +-
+>>>>  drivers/clk/x86/clk-st.c             | 85
+>>>> ++++++++++++++++++++++++++++++++++++
+>>>>  include/linux/platform_data/clk-st.h | 17 ++++++++
+>>>>  3 files changed, 104 insertions(+), 1 deletion(-)  create mode
+>>>> 100644 drivers/clk/x86/clk-st.c  create mode 100644
+>>>> include/linux/platform_data/clk-st.h
+>>>>
+>>>> diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
+>>>> index 1367afb..00303bc 100644
+>>>> --- a/drivers/clk/x86/Makefile
+>>>> +++ b/drivers/clk/x86/Makefile
+>>>> @@ -1,3 +1,4 @@
+>>>> +obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
+>>>> +obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)	+= clk-st.o
+>>>>  clk-x86-lpss-objs		:= clk-lpt.o
+>>>>  obj-$(CONFIG_X86_INTEL_LPSS)	+= clk-x86-lpss.o
+>>>> -obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
+>>>> diff --git a/drivers/clk/x86/clk-st.c b/drivers/clk/x86/clk-st.c new
+>>>> file mode
+>>>> 100644 index 0000000..8a7795c
+>>>> --- /dev/null
+>>>> +++ b/drivers/clk/x86/clk-st.c
+>>>> @@ -0,0 +1,85 @@
+>>>> +// SPDX-License-Identifier: GPL-2.0
+>>>
+>>> Should this be MIT?  The original license was MIT.
+>>>
+>>> Alex
+>>>
 >>
->> Therefore, is the follow change ok from your point of view?
+>> We are adding SPDX tag, while license remains same GPL-2.0
 >>
->> diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
->> index e597655..8607298 100644
->> --- a/drivers/pci/pci.c
->> +++ b/drivers/pci/pci.c
->> @@ -3527,6 +3527,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
->>         if (res->end > IO_SPACE_LIMIT)
->>                 return -EINVAL;
->>
->> +       if (!PAGE_ALIGNED(vaddr) || !PAGE_ALIGNED(resource_size(res)))
->> +               return -EINVAL;
->> +
->>         return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
->>                                   pgprot_device(PAGE_KERNEL));
->>  #else
+>> What I have read is this is "to provide license identifiers inside the source
+>> code that could be easily parsed by machines and would allow checking for
+>> license compliance of an open source project easier."
 > 
-> I'd rather apply PAGE_ALIGN() to the arguments of ioremap_page_range()
-> and call it anyway.  It will fail if the mapping cannot be created.
+> My point as just that the original license on the file that you first sent out was MIT so the SPDX tag should be MIT rather than GPL.  E.g.,
+> SPDX-License-Identifier: MIT
 > 
-Hmm, here is a corner case which take 64k page size as an example:
- step 1. someone call pci_remap_iospace() with res:
-		res->start 0x1000, resource_size(res) 0x1000
-	after PAGE_ALIGN(), the arguments of ioremap_page_range() will be
-		addr: (PCI_IOBASE + PAGE_SIZE), end: (PCI_IOBASE + 2*PAGE_SIZE)
-	and ioremap_page_range will be ok.
+Oh right it should be MIT, will change it.
 
- step 2. another one call pci_remap_iospace() with res:
-		res->start 0x2000, resource_size(res) 0x1000
-	after PAGE_ALIGN(), the arguments of ioremap_page_range() also will be:
-		addr: (PCI_IOBASE + PAGE_SIZE), end: (PCI_IOBASE + 2*PAGE_SIZE)
-	then ioremap_page_range() will also trigger BUG_ON(!pte_none(*pte));
-	for the pte is not none after step 1, right?
-
- ps, if let addr = vaddr && PAGE_MASK, above case seems also will trigger BUG_ON.
-
-Actually, I am not sure whether the above case is exist in real system.
-
-Thanks
-Yisheng
-
-> .
-> 
+Thanks,
+Akshu
