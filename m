@@ -1,102 +1,40 @@
-From: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>
-Subject: Re: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
-Date: Wed, 9 May 2018 10:17:07 +0530
-Message-ID: <1a90185b-cec7-f9aa-c273-0f0f5f381b82@amd.com>
-References: <1525688013-9928-1-git-send-email-akshu.agrawal@amd.com>
- <1525688013-9928-2-git-send-email-akshu.agrawal@amd.com>
- <BN6PR12MB1809A66A78024F2E519A1A34F79B0@BN6PR12MB1809.namprd12.prod.outlook.com>
- <82d294fc-d108-a32a-1ada-2763f40dac01@amd.com>
- <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] acpi: scan: Fix a possible data race in acpi_scan_hotplug_enabled
+Date: Wed, 9 May 2018 09:53:56 +0200
+Message-ID: <CAJZ5v0gT2aHE5xXgCYXD1DRkMFJZeHJSg+zVHnxsJ69-d+qrxQ@mail.gmail.com>
+References: <20180508030811.12256-1-baijiaju1990@gmail.com>
+ <CAJZ5v0jqW0yuSOSrgy1=dWARPHmaxtG4fvkZj=pX+fPcTTJh1A@mail.gmail.com> <1b7f1bff-b38b-fe10-3e1c-2b465b36f193@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <BN6PR12MB18094F5327A8DA2F560383E6F79A0@BN6PR12MB1809.namprd12.prod.outlook.com>
-Content-Language: en-US
+In-Reply-To: <1b7f1bff-b38b-fe10-3e1c-2b465b36f193@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Deucher, Alexander" <Alexander.Deucher@amd.com>
-Cc: "djkurtz@chromium.org" <djkurtz@chromium.org>, "mturquette@baylibre.com" <mturquette@baylibre.com>, "sboyd@kernel.org" <sboyd@kernel.org>, "Koenig, Christian" <Christian.Koenig@amd.com>, "airlied@redhat.com" <airlied@redhat.com>, "Liu, Shaoyun" <Shaoyun.Liu@amd.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-clk@vger.kernel.org" <linux-clk@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jia-Ju Bai <baijiaju1990@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 5/8/2018 9:08 PM, Deucher, Alexander wrote:
->> -----Original Message-----
->> From: Agrawal, Akshu
->> Sent: Tuesday, May 8, 2018 12:04 AM
->> To: Deucher, Alexander <Alexander.Deucher@amd.com>
->> Cc: djkurtz@chromium.org; mturquette@baylibre.com; sboyd@kernel.org;
->> Koenig, Christian <Christian.Koenig@amd.com>; airlied@redhat.com; Liu,
->> Shaoyun <Shaoyun.Liu@amd.com>; linux-kernel@vger.kernel.org; linux-
->> clk@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org; linux-
->> acpi@vger.kernel.org
->> Subject: Re: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
+On Wed, May 9, 2018 at 5:17 AM, Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
+>
+>
+> On 2018/5/9 4:17, Rafael J. Wysocki wrote:
 >>
->>
->>
->> On 5/8/2018 3:14 AM, Deucher, Alexander wrote:
->>>> -----Original Message-----
->>>> From: Agrawal, Akshu
->>>> Sent: Monday, May 7, 2018 6:14 AM
->>>> Cc: djkurtz@chromium.org; Agrawal, Akshu <Akshu.Agrawal@amd.com>;
->>>> Deucher, Alexander <Alexander.Deucher@amd.com>;
->>>> mturquette@baylibre.com; sboyd@kernel.org; Koenig, Christian
->>>> <Christian.Koenig@amd.com>; airlied@redhat.com; Liu, Shaoyun
->>>> <Shaoyun.Liu@amd.com>; linux-kernel@vger.kernel.org; linux-
->>>> clk@vger.kernel.org; rjw@rjwysocki.net; lenb@kernel.org; linux-
->>>> acpi@vger.kernel.org
->>>> Subject: [PATCH v4 1/2] clk: x86: Add ST oscout platform clock
->>>>
->>>> Stoney SoC provides oscout clock. This clock can support 25Mhz and
->>>> 48Mhz of frequency.
->>>> The clock is available for general system use.
->>>>
->>>> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
->>>> ---
->>>> v2: config change, added SPDX tag and used clk_hw_register_.
->>>> v3: Fix kbuild warning for checking of NULL pointer
->>>> v4: unregister clk_hw in driver remove, add .suppress_bind_attrs
->>>>  drivers/clk/x86/Makefile             |  3 +-
->>>>  drivers/clk/x86/clk-st.c             | 85
->>>> ++++++++++++++++++++++++++++++++++++
->>>>  include/linux/platform_data/clk-st.h | 17 ++++++++
->>>>  3 files changed, 104 insertions(+), 1 deletion(-)  create mode
->>>> 100644 drivers/clk/x86/clk-st.c  create mode 100644
->>>> include/linux/platform_data/clk-st.h
->>>>
->>>> diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
->>>> index 1367afb..00303bc 100644
->>>> --- a/drivers/clk/x86/Makefile
->>>> +++ b/drivers/clk/x86/Makefile
->>>> @@ -1,3 +1,4 @@
->>>> +obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
->>>> +obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)	+= clk-st.o
->>>>  clk-x86-lpss-objs		:= clk-lpt.o
->>>>  obj-$(CONFIG_X86_INTEL_LPSS)	+= clk-x86-lpss.o
->>>> -obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
->>>> diff --git a/drivers/clk/x86/clk-st.c b/drivers/clk/x86/clk-st.c new
->>>> file mode
->>>> 100644 index 0000000..8a7795c
->>>> --- /dev/null
->>>> +++ b/drivers/clk/x86/clk-st.c
->>>> @@ -0,0 +1,85 @@
->>>> +// SPDX-License-Identifier: GPL-2.0
+>> On Tue, May 8, 2018 at 5:08 AM, Jia-Ju Bai <baijiaju1990@gmail.com> wrote:
 >>>
->>> Should this be MIT?  The original license was MIT.
->>>
->>> Alex
->>>
+>>> The write operation to "hotplug->enabled" is protected by
+>>> the lock on line 1760, but the read operation to
+>>> this data on line 1755 is not protected by the lock.
+>>> Thus, there may exist a data race for "hotplug->enabled".
 >>
->> We are adding SPDX tag, while license remains same GPL-2.0
+>> Either it does exist, or it doesn't.
 >>
->> What I have read is this is "to provide license identifiers inside the source
->> code that could be easily parsed by machines and would allow checking for
->> license compliance of an open source project easier."
-> 
-> My point as just that the original license on the file that you first sent out was MIT so the SPDX tag should be MIT rather than GPL.  E.g.,
-> SPDX-License-Identifier: MIT
-> 
-Oh right it should be MIT, will change it.
+>> If it exists, it needs to be fixed.  If it doesn't exist, nothing
+>> needs to be done.
+>>
+>> Which is the case?
+>
+>
+> I only read the code and find this possible data race.
+> It is not found in real driver execution.
+> I am not sure of it, so I use "may" and "possible" here.
 
-Thanks,
-Akshu
+It looks like you are not actually sure what you are doing then.
