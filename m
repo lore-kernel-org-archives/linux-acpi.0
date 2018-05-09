@@ -1,106 +1,114 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: simplify procfs code for seq_file instances V2
-Date: Wed, 9 May 2018 19:53:31 +0300
-Message-ID: <20180509165331.GC16034@avx2>
-References: <20180425154827.32251-1-hch@lst.de> <20180506171948.GA769@avx2>
- <20180506174531.GK30522@ZenIV.linux.org.uk>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] PCI / PM: Check device_may_wakeup() in pci_enable_wake()
+Date: Thu, 10 May 2018 00:34:46 +0200
+Message-ID: <CAJZ5v0hUcwG1xQ3DacD91kjdZAjreA09a=1M-3vz7uoBL+La7Q@mail.gmail.com>
+References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com> <1823373.ea0yBGqyI6@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <20180506174531.GK30522@ZenIV.linux.org.uk>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: linux-rtc@vger.kernel.org, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ide@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, jfs-discussion@lists.sourceforge.net, linux-afs@lists.infradead.org, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, netfilter-devel@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, Andrew Morton <akpm@linux-foundation.org>, linux-ext4@vger.kernel.org, Christoph Hellwig <hch@lst.de>, megaraidlinux.pdl@broadcom.com, drbd-dev@lists.linbit.com
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1823373.ea0yBGqyI6@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Joseph Salisbury <joseph.salisbury@canonical.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, May 06, 2018 at 06:45:31PM +0100, Al Viro wrote:
-> On Sun, May 06, 2018 at 08:19:49PM +0300, Alexey Dobriyan wrote:
+On Wed, May 9, 2018 at 12:18 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>
+> Commit 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
+> went too far and dropped the device_may_wakeup() check from
+> pci_enable_wake() which causes wakeup to be enabled during system
+> suspend, hibernation or shutdown for some PCI devices that are not
+> allowed by user space to wake up the system from sleep (or power off).
+>
+> As a result of this excessive power is drawn by some of the affected
+> systems while in sleep states or off.
+>
+> Restore the device_may_wakeup() check in pci_enable_wake(), but make
+> sure that the PCI bus type's runtime suspend callback will not call
+> device_may_wakeup() which is about system wakeup from sleep and not
+> about device wakeup from runtime suspend.
+>
+> Fixes: 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
+> Reported-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> > @@ -62,9 +62,9 @@ struct proc_dir_entry {
-> >  	umode_t mode;
-> >  	u8 namelen;
-> >  #ifdef CONFIG_64BIT
-> > -#define SIZEOF_PDE_INLINE_NAME	(192-139)
-> > +#define SIZEOF_PDE_INLINE_NAME	(192-155)
-> >  #else
-> > -#define SIZEOF_PDE_INLINE_NAME	(128-87)
-> > +#define SIZEOF_PDE_INLINE_NAME	(128-95)
-> 
-> >  #endif
-> >  	char inline_name[SIZEOF_PDE_INLINE_NAME];
-> >  } __randomize_layout;
-> 
-> *UGH*
+Bjorn, any concerns here?
 
-I agree. Maintaining these numbers is a pain point.
-Who knew people were going to start adding fields right away.
-
-> Both to the original state and that kind of "adjustments".
-> Incidentally, with __bugger_layout in there these expressions
-> are simply wrong.
-
-Struct randomization is exempt from maintaining sizeof as they are already
-screwing cachelines and everything. But if patch works with lockdep and
-randomization -- even better.
-
-> If nothing else, I would suggest turning the last one into
-> 	char inline_name[];
-> in hope that layout won't get... randomized that much and
-> used
-> 
-> #ifdef CONFIG_64BIT
-> #define PDE_SIZE 192
-> #else
-> #define PDE_SIZE 128
-> #endif
-> 
-> union __proc_dir_entry {
-> 	char pad[PDE_SIZE];
-> 	struct proc_dir_entry real;
-> };
-> 
-> #define SIZEOF_PDE_INLINE_NAME (PDE_SIZE - offsetof(struct proc_dir_entry, inline_name))
-> 
-> for constants, adjusted sizeof and sizeof_field when creating
-> proc_dir_entry_cache and turned proc_root into
-> 
-> union __proc_dir_entry __proc_root = { .real = {
->         .low_ino        = PROC_ROOT_INO,
->         .namelen        = 5,
->         .mode           = S_IFDIR | S_IRUGO | S_IXUGO,
->         .nlink          = 2,
->         .refcnt         = REFCOUNT_INIT(1),
->         .proc_iops      = &proc_root_inode_operations,
->         .proc_fops      = &proc_root_operations,
->         .parent         = &__proc_root.real,
->         .subdir         = RB_ROOT,
->         .name           = __proc_root.real.inline_name,
->         .inline_name    = "/proc",
-> }};
-> 
-> #define proc_root __proc_root.real
-> (or actually used __proc_root.real in all of a 6 places where it remains).
-> 
-> > -	size_t state_size = PDE(inode)->state_size;
-> > +	unsigned int state_size = PDE(inode)->state_size;
-> 
-> <shakes head>
-> You and your "size_t is evil" crusade...
-
-[nods]
-
-        unsigned long           flags;          /* error bits */
-        unsigned long           i_state;
-        unsigned long           s_blocksize;
-        unsigned long           s_flags;
-        unsigned long           s_iflags;       /* internal SB_I_* flags */
+> ---
+>  drivers/pci/pci.c |   29 +++++++++++++++++++++++------
+>  1 file changed, 23 insertions(+), 6 deletions(-)
+>
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -1910,7 +1910,7 @@ void pci_pme_active(struct pci_dev *dev,
+>  EXPORT_SYMBOL(pci_pme_active);
+>
+>  /**
+> - * pci_enable_wake - enable PCI device as wakeup event source
+> + * __pci_enable_wake - enable PCI device as wakeup event source
+>   * @dev: PCI device affected
+>   * @state: PCI state from which device will issue wakeup events
+>   * @enable: True to enable event generation; false to disable
+> @@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(pci_pme_active);
+>   * Error code depending on the platform is returned if both the platform and
+>   * the native mechanism fail to enable the generation of wake-up events
+>   */
+> -int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+> +static int __pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+>  {
+>         int ret = 0;
+>
+> @@ -1969,6 +1969,23 @@ int pci_enable_wake(struct pci_dev *dev,
+>
+>         return ret;
+>  }
+> +
+> +/**
+> + * pci_enable_wake - change wakeup settings for a PCI device
+> + * @pci_dev: Target device
+> + * @state: PCI state from which device will issue wakeup events
+> + * @enable: Whether or not to enable event generation
+> + *
+> + * If @enable is set, check device_may_wakeup() for the device before calling
+> + * __pci_enable_wake() for it.
+> + */
+> +int pci_enable_wake(struct pci_dev *pci_dev, pci_power_t state, bool enable)
+> +{
+> +       if (enable && !device_may_wakeup(&pci_dev->dev))
+> +               return -EINVAL;
+> +
+> +       return __pci_enable_wake(pci_dev, state, enable);
+> +}
+>  EXPORT_SYMBOL(pci_enable_wake);
+>
+>  /**
+> @@ -1981,9 +1998,9 @@ EXPORT_SYMBOL(pci_enable_wake);
+>   * should not be called twice in a row to enable wake-up due to PCI PM vs ACPI
+>   * ordering constraints.
+>   *
+> - * This function only returns error code if the device is not capable of
+> - * generating PME# from both D3_hot and D3_cold, and the platform is unable to
+> - * enable wake-up power for it.
+> + * This function only returns error code if the device is not allowed to wake
+> + * up the system from sleep or it is not capable of generating PME# from both
+> + * D3_hot and D3_cold and the platform is unable to enable wake-up power for it.
+>   */
+>  int pci_wake_from_d3(struct pci_dev *dev, bool enable)
+>  {
+> @@ -2114,7 +2131,7 @@ int pci_finish_runtime_suspend(struct pc
+>
+>         dev->runtime_d3cold = target_state == PCI_D3cold;
+>
+> -       pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
+> +       __pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
+>
+>         error = pci_set_power_state(dev, target_state);
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
