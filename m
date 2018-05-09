@@ -1,108 +1,33 @@
-From: Akshu Agrawal <akshu.agrawal@amd.com>
-Subject: [PATCH v3 2/2] ACPI: APD: Add AMD misc clock handler support
-Date: Wed,  9 May 2018 17:59:01 +0800
-Message-ID: <1525859941-23654-3-git-send-email-akshu.agrawal@amd.com>
-References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: fd3e45436660 ("ACPI / NUMA: ia64: Parse all entries of SRAT
+ memory affinity table")
+Date: Wed, 9 May 2018 14:24:54 +0200
+Message-ID: <20180509122454.GR32366@dhcp22.suse.cz>
+References: <20180411104832.GF23400@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
+Content-Disposition: inline
+In-Reply-To: <20180411104832.GF23400@dhcp22.suse.cz>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, sboyd@kernel.org, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>
+Cc: Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, tiantao6@huawei.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-AMD SoC exposes clock for general purpose use. The clock registration
-is done in clk-st driver. The MMIO mapping are passed on to the
-clock driver for accessing the registers.
-The misc clock handler will create MMIO mappings to access the
-clock registers and enable the clock driver to expose the clock
-for use of drivers which will connect to it.
+On Wed 11-04-18 12:48:32, Michal Hocko wrote:
+> Hi,
+> my attention was brought to the %subj commit and either I am missing
+> something or the patch is quite dubious. What is it actually trying to
+> fix? If a BIOS/FW provides more memblocks than the limit then we would
+> get misleading numa topology (numactl -H output) but is the situation
+> much better with it applied? Numa init code will refuse to init more
+> memblocks than the limit and falls back to dummy_numa_init (AFAICS)
+> which will break the topology again and numactl -H will have a
+> misleading output anyway.
+> 
+> So why is the patch an improvement at all?
 
-Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
----
-v2: Submitted with dependent patch, removed unneeded kfree for devm_kzalloc
-v3: used devm_ioremap and fix coccinelle warning
- drivers/acpi/acpi_apd.c | 47 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
-
-diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-index d553b00..2664452 100644
---- a/drivers/acpi/acpi_apd.c
-+++ b/drivers/acpi/acpi_apd.c
-@@ -11,6 +11,7 @@
-  */
- 
- #include <linux/clk-provider.h>
-+#include <linux/platform_data/clk-st.h>
- #include <linux/platform_device.h>
- #include <linux/pm_domain.h>
- #include <linux/clkdev.h>
-@@ -72,6 +73,47 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- }
- 
- #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-+
-+static int misc_check_res(struct acpi_resource *ares, void *data)
-+{
-+	struct resource res;
-+
-+	return !acpi_dev_resource_memory(ares, &res);
-+}
-+
-+static int st_misc_setup(struct apd_private_data *pdata)
-+{
-+	struct acpi_device *adev = pdata->adev;
-+	struct platform_device *clkdev;
-+	struct st_clk_data *clk_data;
-+	struct resource_entry *rentry;
-+	struct list_head resource_list;
-+	int ret;
-+
-+	clk_data = devm_kzalloc(&adev->dev, sizeof(*clk_data), GFP_KERNEL);
-+	if (!clk_data)
-+		return -ENOMEM;
-+
-+	INIT_LIST_HEAD(&resource_list);
-+	ret = acpi_dev_get_resources(adev, &resource_list, misc_check_res,
-+				     NULL);
-+	if (ret < 0)
-+		return -ENOENT;
-+
-+	list_for_each_entry(rentry, &resource_list, node) {
-+		clk_data->base = devm_ioremap(&adev->dev, rentry->res->start,
-+					      resource_size(rentry->res));
-+		break;
-+	}
-+
-+	acpi_dev_free_resource_list(&resource_list);
-+
-+	clkdev = platform_device_register_data(&adev->dev, "clk-st",
-+					       PLATFORM_DEVID_NONE, clk_data,
-+					       sizeof(*clk_data));
-+	return PTR_ERR_OR_ZERO(clkdev);
-+}
-+
- static const struct apd_device_desc cz_i2c_desc = {
- 	.setup = acpi_apd_setup,
- 	.fixed_clk_rate = 133000000,
-@@ -94,6 +136,10 @@ static int acpi_apd_setup(struct apd_private_data *pdata)
- 	.fixed_clk_rate = 48000000,
- 	.properties = uart_properties,
- };
-+
-+static const struct apd_device_desc st_misc_desc = {
-+	.setup = st_misc_setup,
-+};
- #endif
- 
- #ifdef CONFIG_ARM64
-@@ -179,6 +225,7 @@ static int acpi_apd_create_device(struct acpi_device *adev,
- 	{ "AMD0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMDI0020", APD_ADDR(cz_uart_desc) },
- 	{ "AMD0030", },
-+	{ "AMD0040", APD_ADDR(st_misc_desc)},
- #endif
- #ifdef CONFIG_ARM64
- 	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+ping? I would be tempted to simply revert the patch as a wrong fix.
 -- 
-1.9.1
+Michal Hocko
+SUSE Labs
