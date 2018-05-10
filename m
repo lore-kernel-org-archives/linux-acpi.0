@@ -1,78 +1,115 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: fd3e45436660 ("ACPI / NUMA: ia64: Parse all entries of SRAT
- memory affinity table")
-Date: Thu, 10 May 2018 10:22:19 +0200
-Message-ID: <20180510082219.GH32366@dhcp22.suse.cz>
-References: <20180411104832.GF23400@dhcp22.suse.cz>
- <20180509122454.GR32366@dhcp22.suse.cz>
- <CAKTKpr5uPuZUHBnQtDwpGA_d=WTx_5O2SF_+WStO6OMVNe77QQ@mail.gmail.com>
- <20180509125611.GT32366@dhcp22.suse.cz>
- <CAKTKpr59axOTxFL1eGCR7nvmERYuxKS=DmVX0jTmt53EobmeGw@mail.gmail.com>
- <20180510073054.GD32366@dhcp22.suse.cz>
- <CAKTKpr6u2+KA_MJRWnH6x_Uc-HgFRdBYL7P3ZJCwQri4TL8vrA@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI / PM: Check device_may_wakeup() in pci_enable_wake()
+Date: Thu, 10 May 2018 08:03:43 -0500
+Message-ID: <20180510130343.GA173327@bhelgaas-glaptop.roam.corp.google.com>
+References: <56a8953c-d833-837c-57d5-fe758d4db02a@canonical.com>
+ <1823373.ea0yBGqyI6@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAKTKpr6u2+KA_MJRWnH6x_Uc-HgFRdBYL7P3ZJCwQri4TL8vrA@mail.gmail.com>
+In-Reply-To: <1823373.ea0yBGqyI6@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ganapatrao Kulkarni <gklkml16@gmail.com>
-Cc: Ganapatrao Kulkarni <ganapatrao.kulkarni@cavium.com>, Tony Luck <tony.luck@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, tiantao6@huawei.com, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Joseph Salisbury <joseph.salisbury@canonical.com>, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, 1745646@bugs.launchpad.net, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 10-05-18 13:36:11, Ganapatrao Kulkarni wrote:
-> On Thu, May 10, 2018 at 1:00 PM, Michal Hocko <mhocko@kernel.org> wrote:
-> > On Thu 10-05-18 08:27:35, Ganapatrao Kulkarni wrote:
-> >> On Wed, May 9, 2018 at 6:26 PM, Michal Hocko <mhocko@kernel.org> wrote:
-> >> > On Wed 09-05-18 18:07:16, Ganapatrao Kulkarni wrote:
-> >> >> Hi Michal
-> >> >>
-> >> >>
-> >> >> On Wed, May 9, 2018 at 5:54 PM, Michal Hocko <mhocko@kernel.org> wrote:
-> >> >> > On Wed 11-04-18 12:48:32, Michal Hocko wrote:
-> >> >> >> Hi,
-> >> >> >> my attention was brought to the %subj commit and either I am missing
-> >> >> >> something or the patch is quite dubious. What is it actually trying to
-> >> >> >> fix? If a BIOS/FW provides more memblocks than the limit then we would
-> >> >> >> get misleading numa topology (numactl -H output) but is the situation
-> >> >> >> much better with it applied? Numa init code will refuse to init more
-> >> >> >> memblocks than the limit and falls back to dummy_numa_init (AFAICS)
-> >> >> >> which will break the topology again and numactl -H will have a
-> >> >> >> misleading output anyway.
-> >> >>
-> >> >> IIRC, the MEMBLOCK beyond max limit getting dropped from visible
-> >> >> memory(partial drop from a node).
-> >> >> this patch removed any upper limit on memblocks and allowed to parse
-> >> >> all entries of SRAT.
-> >> >
-> >> > Yeah I've understood that much. My question is, however, why do we care
-> >> > about parsing the NUMA topology when we fallback into a single NUMA node
-> >> > anyway? Or do I misunderstand the code? I do not have any platform with
-> >> > that many memblocks.
-> >>
-> >> IMHO, this fix is very much logical by removing the SRAT parsing restriction.
-> >> below is the crash log which made us to debug and eventually fix with
-> >> this patch.
-> >
-> > Ohh, I am not saying that the current code handles too many memblocks
-> > correctly. I just think that your fix is not correct or incomplete at
-> > least. Assuming that my understanding is correct which you haven't
-> > disputed yet. So can we focus on the proper solution now? Do we actually
-> > need the memblock restrictions? We do not need those for reserved
-> > memblocks so I do not see any real reason to simply remove the
-> > restriction altogether. Have you explored that option?
+On Wed, May 09, 2018 at 12:18:32AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> my logic was simple, when i added this patch, when the cap on max
-> memblocks is arch specific, why to restrict SRAT parsing which is not
-> arch specific.
+> Commit 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
+> went too far and dropped the device_may_wakeup() check from
+> pci_enable_wake() which causes wakeup to be enabled during system
+> suspend, hibernation or shutdown for some PCI devices that are not
+> allowed by user space to wake up the system from sleep (or power off).
+> 
+> As a result of this excessive power is drawn by some of the affected
+> systems while in sleep states or off.
+> 
+> Restore the device_may_wakeup() check in pci_enable_wake(), but make
+> sure that the PCI bus type's runtime suspend callback will not call
+> device_may_wakeup() which is about system wakeup from sleep and not
+> about device wakeup from runtime suspend.
+> 
+> Fixes: 0847684cfc5f0 (PCI / PM: Simplify device wakeup settings code)
+> Reported-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Because there are other parts which are still restricted and that we
-want to have all parts in sync.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-> other way around argument is, why the restriction added in the first
-> place itself!
+0847684cfc5f0 appeared in v4.13, which raises the question of whether
+this problem is important enough for a stable backport.  Up to you :)
 
-Exactly. So have you explored that path?
--- 
-Michal Hocko
-SUSE Labs
+> ---
+>  drivers/pci/pci.c |   29 +++++++++++++++++++++++------
+>  1 file changed, 23 insertions(+), 6 deletions(-)
+> 
+> Index: linux-pm/drivers/pci/pci.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci.c
+> +++ linux-pm/drivers/pci/pci.c
+> @@ -1910,7 +1910,7 @@ void pci_pme_active(struct pci_dev *dev,
+>  EXPORT_SYMBOL(pci_pme_active);
+>  
+>  /**
+> - * pci_enable_wake - enable PCI device as wakeup event source
+> + * __pci_enable_wake - enable PCI device as wakeup event source
+>   * @dev: PCI device affected
+>   * @state: PCI state from which device will issue wakeup events
+>   * @enable: True to enable event generation; false to disable
+> @@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(pci_pme_active);
+>   * Error code depending on the platform is returned if both the platform and
+>   * the native mechanism fail to enable the generation of wake-up events
+>   */
+> -int pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+> +static int __pci_enable_wake(struct pci_dev *dev, pci_power_t state, bool enable)
+>  {
+>  	int ret = 0;
+>  
+> @@ -1969,6 +1969,23 @@ int pci_enable_wake(struct pci_dev *dev,
+>  
+>  	return ret;
+>  }
+> +
+> +/**
+> + * pci_enable_wake - change wakeup settings for a PCI device
+> + * @pci_dev: Target device
+> + * @state: PCI state from which device will issue wakeup events
+> + * @enable: Whether or not to enable event generation
+> + *
+> + * If @enable is set, check device_may_wakeup() for the device before calling
+> + * __pci_enable_wake() for it.
+> + */
+> +int pci_enable_wake(struct pci_dev *pci_dev, pci_power_t state, bool enable)
+> +{
+> +	if (enable && !device_may_wakeup(&pci_dev->dev))
+> +		return -EINVAL;
+> +
+> +	return __pci_enable_wake(pci_dev, state, enable);
+> +}
+>  EXPORT_SYMBOL(pci_enable_wake);
+>  
+>  /**
+> @@ -1981,9 +1998,9 @@ EXPORT_SYMBOL(pci_enable_wake);
+>   * should not be called twice in a row to enable wake-up due to PCI PM vs ACPI
+>   * ordering constraints.
+>   *
+> - * This function only returns error code if the device is not capable of
+> - * generating PME# from both D3_hot and D3_cold, and the platform is unable to
+> - * enable wake-up power for it.
+> + * This function only returns error code if the device is not allowed to wake
+> + * up the system from sleep or it is not capable of generating PME# from both
+> + * D3_hot and D3_cold and the platform is unable to enable wake-up power for it.
+>   */
+>  int pci_wake_from_d3(struct pci_dev *dev, bool enable)
+>  {
+> @@ -2114,7 +2131,7 @@ int pci_finish_runtime_suspend(struct pc
+>  
+>  	dev->runtime_d3cold = target_state == PCI_D3cold;
+>  
+> -	pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
+> +	__pci_enable_wake(dev, target_state, pci_dev_run_wake(dev));
+>  
+>  	error = pci_set_power_state(dev, target_state);
+>  
+> 
