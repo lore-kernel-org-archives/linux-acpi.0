@@ -1,121 +1,127 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: [PATCH v2 40/40] iommu/arm-smmu-v3: Add support for PCI PASID
-Date: Fri, 11 May 2018 20:06:41 +0100
-Message-ID: <20180511190641.23008-41-jean-philippe.brucker@arm.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180511190641.23008-1-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH v9 01/12] drivers: base: cacheinfo: move cache_setup_of_node()
+Date: Fri, 11 May 2018 18:57:56 -0500
+Message-ID: <20180511235807.30834-2-jeremy.linton@arm.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Enable PASID for PCI devices that support it. Unlike PRI, we can't enable
-PASID lazily in iommu_sva_device_init(), because it has to be enabled
-before ATS, and because we have to allocate substream tables early.
+In preparation for the next patch, and to aid in
+review of that patch, lets move cache_setup_of_node
+further down in the module without any changes.
 
-Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
+Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- drivers/iommu/arm-smmu-v3.c | 54 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ drivers/base/cacheinfo.c | 80 ++++++++++++++++++++++++------------------------
+ 1 file changed, 40 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
-index 0edbb8d19579..ac6e69f25893 100644
---- a/drivers/iommu/arm-smmu-v3.c
-+++ b/drivers/iommu/arm-smmu-v3.c
-@@ -2542,6 +2542,52 @@ static bool arm_smmu_sid_in_range(struct arm_smmu_device *smmu, u32 sid)
- 	return sid < limit;
+diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+index edf726267282..09ccef7ddc99 100644
+--- a/drivers/base/cacheinfo.c
++++ b/drivers/base/cacheinfo.c
+@@ -32,46 +32,6 @@ struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu)
  }
  
-+static int arm_smmu_enable_pasid(struct arm_smmu_master_data *master)
-+{
-+	int ret;
-+	int features;
-+	u8 pasid_bits;
-+	int num_pasids;
-+	struct pci_dev *pdev;
-+
-+	if (!dev_is_pci(master->dev))
-+		return -ENOSYS;
-+
-+	pdev = to_pci_dev(master->dev);
-+
-+	features = pci_pasid_features(pdev);
-+	if (features < 0)
-+		return -ENOSYS;
-+
-+	num_pasids = pci_max_pasids(pdev);
-+	if (num_pasids <= 0)
-+		return -ENOSYS;
-+
-+	pasid_bits = min_t(u8, ilog2(num_pasids), master->smmu->ssid_bits);
-+
-+	dev_dbg(&pdev->dev, "device supports %#x PASID bits [%s%s]\n", pasid_bits,
-+		(features & PCI_PASID_CAP_EXEC) ? "x" : "",
-+		(features & PCI_PASID_CAP_PRIV) ? "p" : "");
-+
-+	ret = pci_enable_pasid(pdev, features);
-+	return ret ? ret : pasid_bits;
-+}
-+
-+static void arm_smmu_disable_pasid(struct arm_smmu_master_data *master)
-+{
-+	struct pci_dev *pdev;
-+
-+	if (!dev_is_pci(master->dev))
-+		return;
-+
-+	pdev = to_pci_dev(master->dev);
-+
-+	if (!pdev->pasid_enabled)
-+		return;
-+
-+	pci_disable_pasid(pdev);
-+}
-+
- static int arm_smmu_enable_ats(struct arm_smmu_master_data *master)
+ #ifdef CONFIG_OF
+-static int cache_setup_of_node(unsigned int cpu)
+-{
+-	struct device_node *np;
+-	struct cacheinfo *this_leaf;
+-	struct device *cpu_dev = get_cpu_device(cpu);
+-	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+-	unsigned int index = 0;
+-
+-	/* skip if of_node is already populated */
+-	if (this_cpu_ci->info_list->of_node)
+-		return 0;
+-
+-	if (!cpu_dev) {
+-		pr_err("No cpu device for CPU %d\n", cpu);
+-		return -ENODEV;
+-	}
+-	np = cpu_dev->of_node;
+-	if (!np) {
+-		pr_err("Failed to find cpu%d device node\n", cpu);
+-		return -ENOENT;
+-	}
+-
+-	while (index < cache_leaves(cpu)) {
+-		this_leaf = this_cpu_ci->info_list + index;
+-		if (this_leaf->level != 1)
+-			np = of_find_next_cache_node(np);
+-		else
+-			np = of_node_get(np);/* cpu node itself */
+-		if (!np)
+-			break;
+-		this_leaf->of_node = np;
+-		index++;
+-	}
+-
+-	if (index != cache_leaves(cpu)) /* not all OF nodes populated */
+-		return -ENOENT;
+-
+-	return 0;
+-}
+-
+ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+ 					   struct cacheinfo *sib_leaf)
  {
- 	size_t stu;
-@@ -2712,6 +2758,11 @@ static int arm_smmu_add_device(struct device *dev)
- 		master->ste.can_stall = true;
+@@ -202,6 +162,46 @@ static void cache_of_override_properties(unsigned int cpu)
+ 		cache_associativity(this_leaf);
  	}
- 
-+	/* PASID must be enabled before ATS */
-+	ret = arm_smmu_enable_pasid(master);
-+	if (ret > 0)
-+		master->ssid_bits = ret;
-+
- 	arm_smmu_enable_ats(master);
- 
- 	ret = iommu_device_link(&smmu->iommu, dev);
-@@ -2740,6 +2791,7 @@ static int arm_smmu_add_device(struct device *dev)
- 
- err_disable_ats:
- 	arm_smmu_disable_ats(master);
-+	arm_smmu_disable_pasid(master);
- 
- err_free_master:
- 	kfree(master);
-@@ -2769,7 +2821,9 @@ static void arm_smmu_remove_device(struct device *dev)
- 	arm_smmu_remove_master(smmu, master);
- 	iommu_device_unlink(&smmu->iommu, dev);
- 	arm_smmu_disable_pri(master);
-+	/* PASID must be disabled after ATS */
- 	arm_smmu_disable_ats(master);
-+	arm_smmu_disable_pasid(master);
- 	kfree(master);
- 	iommu_fwspec_free(dev);
  }
++
++static int cache_setup_of_node(unsigned int cpu)
++{
++	struct device_node *np;
++	struct cacheinfo *this_leaf;
++	struct device *cpu_dev = get_cpu_device(cpu);
++	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
++	unsigned int index = 0;
++
++	/* skip if of_node is already populated */
++	if (this_cpu_ci->info_list->of_node)
++		return 0;
++
++	if (!cpu_dev) {
++		pr_err("No cpu device for CPU %d\n", cpu);
++		return -ENODEV;
++	}
++	np = cpu_dev->of_node;
++	if (!np) {
++		pr_err("Failed to find cpu%d device node\n", cpu);
++		return -ENOENT;
++	}
++
++	while (index < cache_leaves(cpu)) {
++		this_leaf = this_cpu_ci->info_list + index;
++		if (this_leaf->level != 1)
++			np = of_find_next_cache_node(np);
++		else
++			np = of_node_get(np);/* cpu node itself */
++		if (!np)
++			break;
++		this_leaf->of_node = np;
++		index++;
++	}
++
++	if (index != cache_leaves(cpu)) /* not all OF nodes populated */
++		return -ENOENT;
++
++	return 0;
++}
+ #else
+ static void cache_of_override_properties(unsigned int cpu) { }
+ static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
 -- 
-2.17.0
+2.13.6
