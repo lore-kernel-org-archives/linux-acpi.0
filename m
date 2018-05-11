@@ -1,75 +1,224 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 08/12] arm64: Add support for ACPI based firmware tables
-Date: Fri, 11 May 2018 18:58:03 -0500
-Message-ID: <20180511235807.30834-9-jeremy.linton@arm.com>
+Subject: [PATCH v9 02/12] drivers: base: cacheinfo: setup DT cache properties
+ early
+Date: Fri, 11 May 2018 18:57:57 -0500
+Message-ID: <20180511235807.30834-3-jeremy.linton@arm.com>
 References: <20180511235807.30834-1-jeremy.linton@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-acpi@vger.kernel.org
-Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
+Cc: Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Catalin.Marinas@arm.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Jeremy Linton <jeremy.linton@arm.com>, hanjun.guo@linaro.org, Sudeep.Holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-The /sys cache entries should support ACPI/PPTT generated cache
-topology information.  For arm64, if ACPI is enabled, determine
-the max number of cache levels and populate them using the PPTT
-table if one is available.
+The original intent in cacheinfo was that an architecture
+specific populate_cache_leaves() would probe the hardware
+and then cache_shared_cpu_map_setup() and
+cache_override_properties() would provide firmware help to
+extend/expand upon what was probed. Arm64 was really
+the only architecture that was working this way, and
+with the removal of most of the hardware probing logic it
+became clear that it was possible to simplify the logic a bit.
+
+This patch combines the walk of the DT nodes with the
+code updating the cache size/line_size and nr_sets.
+cache_override_properties() (which was DT specific) is
+then removed. The result is that cacheinfo.of_node is
+no longer used as a temporary place to hold DT references
+for future calls that update cache properties. That change
+helps to clarify its one remaining use (matching
+cacheinfo nodes that represent shared caches) which
+will be used by the ACPI/PPTT code in the following patches.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
 Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
 Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- arch/arm64/kernel/cacheinfo.c | 15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ arch/riscv/kernel/cacheinfo.c |  1 -
+ drivers/base/cacheinfo.c      | 65 +++++++++++++++++++------------------------
+ 2 files changed, 29 insertions(+), 37 deletions(-)
 
-diff --git a/arch/arm64/kernel/cacheinfo.c b/arch/arm64/kernel/cacheinfo.c
-index 380f2e2fbed5..0bf0a835122f 100644
---- a/arch/arm64/kernel/cacheinfo.c
-+++ b/arch/arm64/kernel/cacheinfo.c
-@@ -17,6 +17,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/cacheinfo.h>
- #include <linux/of.h>
- 
-@@ -46,7 +47,7 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
- 
- static int __init_cache_level(unsigned int cpu)
+diff --git a/arch/riscv/kernel/cacheinfo.c b/arch/riscv/kernel/cacheinfo.c
+index 10ed2749e246..0bc86e5f8f3f 100644
+--- a/arch/riscv/kernel/cacheinfo.c
++++ b/arch/riscv/kernel/cacheinfo.c
+@@ -20,7 +20,6 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+ 			 struct device_node *node,
+ 			 enum cache_type type, unsigned int level)
  {
--	unsigned int ctype, level, leaves, of_level;
-+	unsigned int ctype, level, leaves, fw_level;
- 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+-	this_leaf->of_node = node;
+ 	this_leaf->level = level;
+ 	this_leaf->type = type;
+ 	/* not a sector cache */
+diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+index 09ccef7ddc99..a872523e8951 100644
+--- a/drivers/base/cacheinfo.c
++++ b/drivers/base/cacheinfo.c
+@@ -71,7 +71,7 @@ static inline int get_cacheinfo_idx(enum cache_type type)
+ 	return type;
+ }
  
- 	for (level = 1, leaves = 0; level <= MAX_CACHE_LEVEL; level++) {
-@@ -59,15 +60,19 @@ static int __init_cache_level(unsigned int cpu)
- 		leaves += (ctype == CACHE_TYPE_SEPARATE) ? 2 : 1;
+-static void cache_size(struct cacheinfo *this_leaf)
++static void cache_size(struct cacheinfo *this_leaf, struct device_node *np)
+ {
+ 	const char *propname;
+ 	const __be32 *cache_size;
+@@ -80,13 +80,14 @@ static void cache_size(struct cacheinfo *this_leaf)
+ 	ct_idx = get_cacheinfo_idx(this_leaf->type);
+ 	propname = cache_type_info[ct_idx].size_prop;
+ 
+-	cache_size = of_get_property(this_leaf->of_node, propname, NULL);
++	cache_size = of_get_property(np, propname, NULL);
+ 	if (cache_size)
+ 		this_leaf->size = of_read_number(cache_size, 1);
+ }
+ 
+ /* not cache_line_size() because that's a macro in include/linux/cache.h */
+-static void cache_get_line_size(struct cacheinfo *this_leaf)
++static void cache_get_line_size(struct cacheinfo *this_leaf,
++				struct device_node *np)
+ {
+ 	const __be32 *line_size;
+ 	int i, lim, ct_idx;
+@@ -98,7 +99,7 @@ static void cache_get_line_size(struct cacheinfo *this_leaf)
+ 		const char *propname;
+ 
+ 		propname = cache_type_info[ct_idx].line_size_props[i];
+-		line_size = of_get_property(this_leaf->of_node, propname, NULL);
++		line_size = of_get_property(np, propname, NULL);
+ 		if (line_size)
+ 			break;
+ 	}
+@@ -107,7 +108,7 @@ static void cache_get_line_size(struct cacheinfo *this_leaf)
+ 		this_leaf->coherency_line_size = of_read_number(line_size, 1);
+ }
+ 
+-static void cache_nr_sets(struct cacheinfo *this_leaf)
++static void cache_nr_sets(struct cacheinfo *this_leaf, struct device_node *np)
+ {
+ 	const char *propname;
+ 	const __be32 *nr_sets;
+@@ -116,7 +117,7 @@ static void cache_nr_sets(struct cacheinfo *this_leaf)
+ 	ct_idx = get_cacheinfo_idx(this_leaf->type);
+ 	propname = cache_type_info[ct_idx].nr_sets_prop;
+ 
+-	nr_sets = of_get_property(this_leaf->of_node, propname, NULL);
++	nr_sets = of_get_property(np, propname, NULL);
+ 	if (nr_sets)
+ 		this_leaf->number_of_sets = of_read_number(nr_sets, 1);
+ }
+@@ -135,32 +136,27 @@ static void cache_associativity(struct cacheinfo *this_leaf)
+ 		this_leaf->ways_of_associativity = (size / nr_sets) / line_size;
+ }
+ 
+-static bool cache_node_is_unified(struct cacheinfo *this_leaf)
++static bool cache_node_is_unified(struct cacheinfo *this_leaf,
++				  struct device_node *np)
+ {
+-	return of_property_read_bool(this_leaf->of_node, "cache-unified");
++	return of_property_read_bool(np, "cache-unified");
+ }
+ 
+-static void cache_of_override_properties(unsigned int cpu)
++static void cache_of_set_props(struct cacheinfo *this_leaf,
++			       struct device_node *np)
+ {
+-	int index;
+-	struct cacheinfo *this_leaf;
+-	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+-
+-	for (index = 0; index < cache_leaves(cpu); index++) {
+-		this_leaf = this_cpu_ci->info_list + index;
+-		/*
+-		 * init_cache_level must setup the cache level correctly
+-		 * overriding the architecturally specified levels, so
+-		 * if type is NONE at this stage, it should be unified
+-		 */
+-		if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+-		    cache_node_is_unified(this_leaf))
+-			this_leaf->type = CACHE_TYPE_UNIFIED;
+-		cache_size(this_leaf);
+-		cache_get_line_size(this_leaf);
+-		cache_nr_sets(this_leaf);
+-		cache_associativity(this_leaf);
+-	}
++	/*
++	 * init_cache_level must setup the cache level correctly
++	 * overriding the architecturally specified levels, so
++	 * if type is NONE at this stage, it should be unified
++	 */
++	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
++	    cache_node_is_unified(this_leaf, np))
++		this_leaf->type = CACHE_TYPE_UNIFIED;
++	cache_size(this_leaf, np);
++	cache_get_line_size(this_leaf, np);
++	cache_nr_sets(this_leaf, np);
++	cache_associativity(this_leaf);
+ }
+ 
+ static int cache_setup_of_node(unsigned int cpu)
+@@ -193,6 +189,7 @@ static int cache_setup_of_node(unsigned int cpu)
+ 			np = of_node_get(np);/* cpu node itself */
+ 		if (!np)
+ 			break;
++		cache_of_set_props(this_leaf, np);
+ 		this_leaf->of_node = np;
+ 		index++;
+ 	}
+@@ -203,7 +200,6 @@ static int cache_setup_of_node(unsigned int cpu)
+ 	return 0;
+ }
+ #else
+-static void cache_of_override_properties(unsigned int cpu) { }
+ static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
+ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+ 					   struct cacheinfo *sib_leaf)
+@@ -286,12 +282,6 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
+ 	}
+ }
+ 
+-static void cache_override_properties(unsigned int cpu)
+-{
+-	if (of_have_populated_dt())
+-		return cache_of_override_properties(cpu);
+-}
+-
+ static void free_cache_attributes(unsigned int cpu)
+ {
+ 	if (!per_cpu_cacheinfo(cpu))
+@@ -325,6 +315,10 @@ static int detect_cache_attributes(unsigned int cpu)
+ 	if (per_cpu_cacheinfo(cpu) == NULL)
+ 		return -ENOMEM;
+ 
++	/*
++	 * populate_cache_leaves() may completely setup the cache leaves and
++	 * shared_cpu_map or it may leave it partially setup.
++	 */
+ 	ret = populate_cache_leaves(cpu);
+ 	if (ret)
+ 		goto free_ci;
+@@ -338,7 +332,6 @@ static int detect_cache_attributes(unsigned int cpu)
+ 		goto free_ci;
  	}
  
--	of_level = of_find_last_cache_level(cpu);
--	if (level < of_level) {
-+	if (acpi_disabled)
-+		fw_level = of_find_last_cache_level(cpu);
-+	else
-+		fw_level = acpi_find_last_cache_level(cpu);
-+
-+	if (level < fw_level) {
- 		/*
- 		 * some external caches not specified in CLIDR_EL1
- 		 * the information may be available in the device tree
- 		 * only unified external caches are considered here
- 		 */
--		leaves += (of_level - level);
--		level = of_level;
-+		leaves += (fw_level - level);
-+		level = fw_level;
- 	}
+-	cache_override_properties(cpu);
+ 	return 0;
  
- 	this_cpu_ci->num_levels = level;
+ free_ci:
 -- 
 2.13.6
