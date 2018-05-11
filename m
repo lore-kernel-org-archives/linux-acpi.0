@@ -1,7 +1,7 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 07/12] drivers: base cacheinfo: Add support for ACPI based firmware tables
-Date: Fri, 11 May 2018 18:58:02 -0500
-Message-ID: <20180511235807.30834-8-jeremy.linton@arm.com>
+Subject: [PATCH v9 04/12] arm64/acpi: Create arch specific cpu to acpi id helper
+Date: Fri, 11 May 2018 18:57:59 -0500
+Message-ID: <20180511235807.30834-5-jeremy.linton@arm.com>
 References: <20180511235807.30834-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
@@ -10,95 +10,33 @@ To: linux-acpi@vger.kernel.org
 Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Call ACPI cache parsing routines from base cacheinfo code if ACPI
-is enabled. Also stub out cache_setup_acpi and acpi_find_last_cache_level
-so that individual architectures can enable ACPI topology parsing.
+Its helpful to be able to lookup the acpi_processor_id associated
+with a logical cpu. Provide an arm64 helper to do this.
 
 Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
 Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
 Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
 Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 ---
- drivers/base/cacheinfo.c  | 14 ++++++++++----
- include/linux/cacheinfo.h | 17 +++++++++++++++++
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ arch/arm64/include/asm/acpi.h | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index 597aacb233fc..2880e2ab01f5 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -206,7 +206,7 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- 					   struct cacheinfo *sib_leaf)
- {
- 	/*
--	 * For non-DT systems, assume unique level 1 cache, system-wide
-+	 * For non-DT/ACPI systems, assume unique level 1 caches, system-wide
- 	 * shared caches for all other levels. This will be used only if
- 	 * arch specific code has not populated shared_cpu_map
- 	 */
-@@ -214,6 +214,11 @@ static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- }
- #endif
- 
-+int __weak cache_setup_acpi(unsigned int cpu)
-+{
-+	return -ENOTSUPP;
-+}
-+
- static int cache_shared_cpu_map_setup(unsigned int cpu)
- {
- 	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
-@@ -227,8 +232,8 @@ static int cache_shared_cpu_map_setup(unsigned int cpu)
- 	if (of_have_populated_dt())
- 		ret = cache_setup_of_node(cpu);
- 	else if (!acpi_disabled)
--		/* No cache property/hierarchy support yet in ACPI */
--		ret = -ENOTSUPP;
-+		ret = cache_setup_acpi(cpu);
-+
- 	if (ret)
- 		return ret;
- 
-@@ -279,7 +284,8 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
- 			cpumask_clear_cpu(cpu, &sib_leaf->shared_cpu_map);
- 			cpumask_clear_cpu(sibling, &this_leaf->shared_cpu_map);
- 		}
--		of_node_put(this_leaf->fw_token);
-+		if (of_have_populated_dt())
-+			of_node_put(this_leaf->fw_token);
- 	}
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 32f465a80e4e..0db62a4cbce2 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -86,6 +86,10 @@ static inline bool acpi_has_cpu_in_madt(void)
  }
  
-diff --git a/include/linux/cacheinfo.h b/include/linux/cacheinfo.h
-index 0c6f658054d2..89397e30e269 100644
---- a/include/linux/cacheinfo.h
-+++ b/include/linux/cacheinfo.h
-@@ -97,6 +97,23 @@ int func(unsigned int cpu)					\
- struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu);
- int init_cache_level(unsigned int cpu);
- int populate_cache_leaves(unsigned int cpu);
-+int cache_setup_acpi(unsigned int cpu);
-+#ifndef CONFIG_ACPI
-+/*
-+ * acpi_find_last_cache_level is only called on ACPI enabled
-+ * platforms using the PPTT for topology. This means that if
-+ * the platform supports other firmware configuration methods
-+ * we need to stub out the call when ACPI is disabled.
-+ * ACPI enabled platforms not using PPTT won't be making calls
-+ * to this function so we need not worry about them.
-+ */
-+static inline int acpi_find_last_cache_level(unsigned int cpu)
+ struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
++static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
 +{
-+	return 0;
++	return	acpi_cpu_get_madt_gicc(cpu)->uid;
 +}
-+#else
-+int acpi_find_last_cache_level(unsigned int cpu);
-+#endif
  
- const struct attribute_group *cache_get_priv_group(struct cacheinfo *this_leaf);
- 
+ static inline void arch_fix_phys_package_id(int num, u32 slot) { }
+ void __init acpi_init_cpus(void);
 -- 
 2.13.6
