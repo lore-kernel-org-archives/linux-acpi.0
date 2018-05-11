@@ -1,64 +1,42 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH v4 2/3] acpi: apei: Rename ghes_severity() to
- ghes_cper_severity()
-Date: Fri, 11 May 2018 17:58:33 +0200
-Message-ID: <20180511155833.GE12705@pd.tnic>
+Subject: Re: [RFC PATCH v4 3/3] acpi: apei: Do not panic() on PCIe errors
+ reported through GHES
+Date: Fri, 11 May 2018 18:02:53 +0200
+Message-ID: <20180511160253.GF12705@pd.tnic>
 References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
  <20180430213358.8319-1-mr.nuke.me@gmail.com>
- <20180430213358.8319-2-mr.nuke.me@gmail.com>
- <20180511153947.GC12705@pd.tnic>
- <56d445b2-ace3-6ee2-9699-f2a684518de9@gmail.com>
+ <20180430213358.8319-3-mr.nuke.me@gmail.com>
+ <20180511154039.GD12705@pd.tnic>
+ <8e3c0cc6-9c5c-85ce-650c-8f498f5907da@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56d445b2-ace3-6ee2-9699-f2a684518de9@gmail.com>
+In-Reply-To: <8e3c0cc6-9c5c-85ce-650c-8f498f5907da@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Alex G." <mr.nuke.me@gmail.com>
 Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 11, 2018 at 10:45:49AM -0500, Alex G. wrote:
-> 
-> 
-> On 05/11/2018 10:39 AM, Borislav Petkov wrote:
-> > On Mon, Apr 30, 2018 at 04:33:51PM -0500, Alexandru Gagniuc wrote:
-> >> ghes_severity() is a misnomer in this case, as it implies the severity
-> >> of the entire GHES structure. Instead, it maps one CPER value to a
-> >> monotonically increasing number.
-> > 
-> > ... as opposed to CPER severity which is something else or what is this
-> > formulation trying to express?
-> > 
-> 
-> CPER madness goes like this:
+On Fri, May 11, 2018 at 10:54:09AM -0500, Alex G. wrote:
+> That being clarified, should I replace "crackmonkey" with "broken" in
+> the commit message?
 
-Let's slow down first. Why is it a "CPER madness"? Maybe this is clear
-in your head but I'm not in it.
+Keep your opinion *outside* of commit messages - their goal is to
+explain *why* the change is being made in strictly technical language so
+that when someone looks at git history, someone can know *why*.
 
-> 	0 - Recoverable
-> 	1 - Fatal
-> 	2 - Corrected
-> 	3 - None
+> Borislav, I sense some confusion. AER is not a "reporting" driver. It
+> handles the errors. You can't leave these errors unhandled. They
+> propagate to the root complex and can cause fatal MCEs when not handled.
+> The window to handle the error is pretty large, so it's not a concern
+> when you're handling it.
 
-If you're quoting this:
-
-enum {
-        CPER_SEV_RECOVERABLE,
-        CPER_SEV_FATAL,
-        CPER_SEV_CORRECTED,
-        CPER_SEV_INFORMATIONAL,
-};
-
-that last 3 is informational.
-
-> As you can see, the numbering was created by crackmonkeys. GHES_* is an
-> internal enum that goes up in order of severity, as you'd expect.
-
-So what are you trying to tell me - that those CPER numbers are not
-increasing?!
-
-Why does that even matter?
+I think *you* didn't get it: IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER) is not
+enough of a check to confirm that there actually *is* an AER driver to
+handle the errors. If you really want to make sure the driver is loaded
+and functioning, then you need an explicit registering mechanism or some
+other way of checking it really is there and handling errors.
 
 -- 
 Regards/Gruss,
