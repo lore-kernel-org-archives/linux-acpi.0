@@ -1,127 +1,103 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 01/12] drivers: base: cacheinfo: move cache_setup_of_node()
-Date: Fri, 11 May 2018 18:57:56 -0500
-Message-ID: <20180511235807.30834-2-jeremy.linton@arm.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com>
+Subject: [PATCH v9 00/12] Support PPTT for ARM64
+Date: Fri, 11 May 2018 18:57:55 -0500
+Message-ID: <20180511235807.30834-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
 Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In preparation for the next patch, and to aid in
-review of that patch, lets move cache_setup_of_node
-further down in the module without any changes.
+ACPI 6.2 adds the Processor Properties Topology Table (PPTT), which is
+used to describe the processor and cache topology. Ideally it is
+used to extend/override information provided by the hardware, but
+right now ARM64 is entirely dependent on firmware provided tables.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- drivers/base/cacheinfo.c | 80 ++++++++++++++++++++++++------------------------
- 1 file changed, 40 insertions(+), 40 deletions(-)
+This patch parses the table for the cache topology and CPU topology.
+When we enable ACPI/PPTT for arm64 we map the package_id to the
+PPTT node flagged as the physical package by the firmware.
+This results in topologies that match what the remainder of the
+system expects. Finally, we update the scheduler MC domain so that
+it generally reflects the LLC unless the LLC is too large for the
+NUMA domain (or package).
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index edf726267282..09ccef7ddc99 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -32,46 +32,6 @@ struct cpu_cacheinfo *get_cpu_cacheinfo(unsigned int cpu)
- }
- 
- #ifdef CONFIG_OF
--static int cache_setup_of_node(unsigned int cpu)
--{
--	struct device_node *np;
--	struct cacheinfo *this_leaf;
--	struct device *cpu_dev = get_cpu_device(cpu);
--	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
--	unsigned int index = 0;
--
--	/* skip if of_node is already populated */
--	if (this_cpu_ci->info_list->of_node)
--		return 0;
--
--	if (!cpu_dev) {
--		pr_err("No cpu device for CPU %d\n", cpu);
--		return -ENODEV;
--	}
--	np = cpu_dev->of_node;
--	if (!np) {
--		pr_err("Failed to find cpu%d device node\n", cpu);
--		return -ENOENT;
--	}
--
--	while (index < cache_leaves(cpu)) {
--		this_leaf = this_cpu_ci->info_list + index;
--		if (this_leaf->level != 1)
--			np = of_find_next_cache_node(np);
--		else
--			np = of_node_get(np);/* cpu node itself */
--		if (!np)
--			break;
--		this_leaf->of_node = np;
--		index++;
--	}
--
--	if (index != cache_leaves(cpu)) /* not all OF nodes populated */
--		return -ENOENT;
--
--	return 0;
--}
--
- static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
- 					   struct cacheinfo *sib_leaf)
- {
-@@ -202,6 +162,46 @@ static void cache_of_override_properties(unsigned int cpu)
- 		cache_associativity(this_leaf);
- 	}
- }
-+
-+static int cache_setup_of_node(unsigned int cpu)
-+{
-+	struct device_node *np;
-+	struct cacheinfo *this_leaf;
-+	struct device *cpu_dev = get_cpu_device(cpu);
-+	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
-+	unsigned int index = 0;
-+
-+	/* skip if of_node is already populated */
-+	if (this_cpu_ci->info_list->of_node)
-+		return 0;
-+
-+	if (!cpu_dev) {
-+		pr_err("No cpu device for CPU %d\n", cpu);
-+		return -ENODEV;
-+	}
-+	np = cpu_dev->of_node;
-+	if (!np) {
-+		pr_err("Failed to find cpu%d device node\n", cpu);
-+		return -ENOENT;
-+	}
-+
-+	while (index < cache_leaves(cpu)) {
-+		this_leaf = this_cpu_ci->info_list + index;
-+		if (this_leaf->level != 1)
-+			np = of_find_next_cache_node(np);
-+		else
-+			np = of_node_get(np);/* cpu node itself */
-+		if (!np)
-+			break;
-+		this_leaf->of_node = np;
-+		index++;
-+	}
-+
-+	if (index != cache_leaves(cpu)) /* not all OF nodes populated */
-+		return -ENOENT;
-+
-+	return 0;
-+}
- #else
- static void cache_of_override_properties(unsigned int cpu) { }
- static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
+For example on juno:
+[root@mammon-juno-rh topology]# lstopo-no-graphics
+  Package L#0
+    L2 L#0 (1024KB)
+      L1d L#0 (32KB) + L1i L#0 (32KB) + Core L#0 + PU L#0 (P#0)
+      L1d L#1 (32KB) + L1i L#1 (32KB) + Core L#1 + PU L#1 (P#1)
+      L1d L#2 (32KB) + L1i L#2 (32KB) + Core L#2 + PU L#2 (P#2)
+      L1d L#3 (32KB) + L1i L#3 (32KB) + Core L#3 + PU L#3 (P#3)
+    L2 L#1 (2048KB)
+      L1d L#4 (32KB) + L1i L#4 (48KB) + Core L#4 + PU L#4 (P#4)
+      L1d L#5 (32KB) + L1i L#5 (48KB) + Core L#5 + PU L#5 (P#5)
+  HostBridge L#0
+    PCIBridge
+      PCIBridge
+        PCIBridge
+          PCI 1095:3132
+            Block(Disk) L#0 "sda"
+        PCIBridge
+          PCI 1002:68f9
+            GPU L#1 "renderD128"
+            GPU L#2 "card0"
+            GPU L#3 "controlD64"
+        PCIBridge
+          PCI 11ab:4380
+            Net L#4 "enp8s0"
+
+Git tree at:
+http://linux-arm.org/git?p=linux-jlinton.git
+branch: pptt_v9
+
+v8->v9:
+ Add further ack/tested by's (thanks everyone)
+ kerneldoc, general comment and patch description tweaks.
+ Squash the pptt.c module (#5 & #13) back together.
+ remove a redundant () in an if, and rename a variable.
+
+v7->v8:
+ Modify the logic used to select the MC domain (the change
+   shouldn't modify the sched domains on any existing machines
+   compared to v7, only how they are built)
+ Reduce the severity of some parsing messages.
+ Fix s390 link problem.
+ Further checks to deal with broken PPTT tables.
+ Various style tweaks, SPDX license addition, etc.
+
+(see previous cover letters for further changes)
+
+
+Jeremy Linton (12):
+  drivers: base: cacheinfo: move cache_setup_of_node()
+  drivers: base: cacheinfo: setup DT cache properties early
+  cacheinfo: rename of_node to fw_token
+  arm64/acpi: Create arch specific cpu to acpi id helper
+  ACPI/PPTT: Add Processor Properties Topology Table parsing
+  ACPI: Enable PPTT support on ARM64
+  drivers: base cacheinfo: Add support for ACPI based firmware tables
+  arm64: Add support for ACPI based firmware tables
+  arm64: topology: rename cluster_id
+  arm64: topology: enable ACPI/PPTT based CPU topology
+  ACPI: Add PPTT to injectable table list
+  arm64: topology: divorce MC scheduling domain from core_siblings
+
+ arch/arm64/Kconfig                |   1 +
+ arch/arm64/include/asm/acpi.h     |   4 +
+ arch/arm64/include/asm/topology.h |   6 +-
+ arch/arm64/kernel/cacheinfo.c     |  15 +-
+ arch/arm64/kernel/topology.c      | 107 ++++++-
+ arch/riscv/kernel/cacheinfo.c     |   1 -
+ drivers/acpi/Kconfig              |   3 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/pptt.c               | 655 ++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c             |   2 +-
+ drivers/base/cacheinfo.c          | 157 ++++-----
+ include/linux/acpi.h              |   4 +
+ include/linux/cacheinfo.h         |  25 +-
+ 13 files changed, 874 insertions(+), 107 deletions(-)
+ create mode 100644 drivers/acpi/pptt.c
+
 -- 
 2.13.6
