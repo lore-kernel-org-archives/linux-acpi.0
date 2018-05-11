@@ -1,42 +1,184 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [RFC PATCH v4 3/3] acpi: apei: Do not panic() on PCIe errors
- reported through GHES
-Date: Fri, 11 May 2018 12:56:02 -0500
-Message-ID: <356deea6-3b66-4e85-f4ab-feeb3dce8e8e@gmail.com>
-References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
- <20180430213358.8319-1-mr.nuke.me@gmail.com>
- <20180430213358.8319-3-mr.nuke.me@gmail.com> <20180511154039.GD12705@pd.tnic>
- <8e3c0cc6-9c5c-85ce-650c-8f498f5907da@gmail.com>
- <20180511160253.GF12705@pd.tnic>
- <45b7be09-c9b3-8006-6ea0-36b4ff38607c@gmail.com>
- <20180511162951.GH12705@pd.tnic>
- <95bcbc2d-0f8c-e51a-f0fc-08ea8c5fca26@gmail.com>
- <20180511174112.GI12705@pd.tnic>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH v2 00/40] Shared Virtual Addressing for the IOMMU
+Date: Fri, 11 May 2018 20:06:01 +0100
+Message-ID: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511174112.GI12705@pd.tnic>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org, devel@acpica.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/11/2018 12:41 PM, Borislav Petkov wrote:
-> On Fri, May 11, 2018 at 12:01:52PM -0500, Alex G. wrote:
->> I understand your concern with unhandled AER errors evolving into MCE's.
->> That's extremely rare, but when it happens you still panic due to the
->> MCE.
-> 
-> I don't like leaving holes in the handling of PCIe errors. You need to
-> handle only those errors which are caused by hot-removal and not affect
-> other error types. Or do a comprehensive PCIe errors handling of all
-> errors in the AER driver.
+This is version 2 of the Shared Virtual Addressing (SVA) series, which
+adds process address space management (1-6) and I/O page faults (7-9) to
+the IOMMU core. It also includes two example users of the API: VFIO as
+device driver (10-13), and Arm SMMUv3 as IOMMU driver (14-40).
 
-Forget about how AER works, and worry about parity with native AER. If
-AER is buggy, it will have the same bug in native and FFS cases. Right
-now we're paranoid, over-babying the errors, and don't even make it to
-the handler. How is this better?
+The series is getting bulky and although it will remove lots of context,
+I'll probably split next version into IOMMU, VFIO and SMMU changes. This
+time around I also Cc'd the mm list even though get_maintainers doesn't
+pick it up, because I'd like to export a few symbols in patches 10-12
+and because of the recent interest in sharing mm with devices [1], which
+seems somewhat related.
 
-Alex
+Major changes since v1 [2]:
+
+* Removed bind_group(). Only bind_device() is supported. Supporting
+  multi-device groups is difficult and unnecessary at the moment.
+
+* Reworked the I/O Page Fault code to support multiple queues. IOMMU
+  driver now registers IOPF queues as needed (for example one per IOMMU
+  device), then attach devices that require IOPF (for example, in
+  sva_device_init)
+
+* mm_exit callback is allowed to sleep. It is now registered with
+  init_sva_device_init() instead of a separate function.
+
+* Remove IOMMU_SVA_FEAT_PASID, making PASID support mandatory for now.
+  If a future series implements !PASID, it will have to introduce flag
+  IOMMU_SVA_FEAT_NO_PASID.
+
+* Removed the atomic/blocking handler distinction for now. It is a bit
+  irrelevant here and can be added back later.
+
+* Tried to address all comments. Please let me know if I missed
+  something.
+
+The series relies on Jacob Pan's fault reporting work, currently under
+discussion [3].
+
+You can pull everything from:
+     git://linux-arm.org/linux-jpb.git sva/v2
+Branch sva/debug contains tracepoints and other tools that I found
+useful for validation.
+
+[1] https://lwn.net/Articles/753481/
+[2] https://www.mail-archive.com/iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org/msg21813.html
+[3] IOMMU and VT-d driver support for Shared Virtual Address (SVA)
+    https://www.mail-archive.com/iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org/msg22640.html
+                                ---
+
+If you're unfamiliar with SVM/SVA, a wordy description copied from
+previous version follows.
+
+Shared Virtual Addressing (SVA) is the ability to share process address
+spaces with devices. It is called "SVM" (Shared Virtual Memory) by OpenCL
+and some IOMMU architectures, but since that abbreviation is already used
+for AMD virtualisation in Linux (Secure Virtual Machine), we prefer the
+less ambiguous "SVA".
+
+Sharing process address spaces with devices allows to rely on core kernel
+memory management for DMA, removing some complexity from application and
+device drivers. After binding to a device, applications can instruct it to
+perform DMA on buffers obtained with malloc.
+
+The device, bus and IOMMU must support the following features:
+
+* Multiple address spaces per device, for example using the PCI PASID
+  (Process Address Space ID) extension. The IOMMU driver allocates a
+  PASID and the device uses it in DMA transactions.
+
+* I/O Page Faults (IOPF), for example PCI PRI (Page Request Interface) or
+  Arm SMMU stall. The core mm handles translation faults from the IOMMU.
+
+* MMU and IOMMU implement compatible page table formats.
+
+This series requires to support all three features. Upcoming patches will
+enable private PASID management, which doesn't share page tables and
+augments the map/unmap API with PASIDs.
+
+Although we don't have any performance measurement at the moment, SVA will
+likely be slower than classical DMA since it relies on page faults,
+whereas classical DMA pins all pages in memory. SVA mostly aims at
+simplifying DMA management, but also improves security by isolating
+address spaces in devices.
+
+Jean-Philippe Brucker (40):
+  iommu: Introduce Shared Virtual Addressing API
+  iommu/sva: Bind process address spaces to devices
+  iommu/sva: Manage process address spaces
+  iommu/sva: Add a mm_exit callback for device drivers
+  iommu/sva: Track mm changes with an MMU notifier
+  iommu/sva: Search mm by PASID
+  iommu: Add a page fault handler
+  iommu/iopf: Handle mm faults
+  iommu/sva: Register page fault handler
+  mm: export symbol mm_access
+  mm: export symbol find_get_task_by_vpid
+  mm: export symbol mmput_async
+  vfio: Add support for Shared Virtual Addressing
+  dt-bindings: document stall and PASID properties for IOMMU masters
+  iommu/of: Add stall and pasid properties to iommu_fwspec
+  arm64: mm: Pin down ASIDs for sharing mm with devices
+  iommu/arm-smmu-v3: Link domains and devices
+  iommu/io-pgtable-arm: Factor out ARM LPAE register defines
+  iommu: Add generic PASID table library
+  iommu/arm-smmu-v3: Move context descriptor code
+  iommu/arm-smmu-v3: Add support for Substream IDs
+  iommu/arm-smmu-v3: Add second level of context descriptor table
+  iommu/arm-smmu-v3: Share process page tables
+  iommu/arm-smmu-v3: Seize private ASID
+  iommu/arm-smmu-v3: Add support for VHE
+  iommu/arm-smmu-v3: Enable broadcast TLB maintenance
+  iommu/arm-smmu-v3: Add SVA feature checking
+  iommu/arm-smmu-v3: Implement mm operations
+  iommu/arm-smmu-v3: Add support for Hardware Translation Table Update
+  iommu/arm-smmu-v3: Register I/O Page Fault queue
+  iommu/arm-smmu-v3: Improve add_device error handling
+  iommu/arm-smmu-v3: Maintain a SID->device structure
+  iommu/arm-smmu-v3: Add stall support for platform devices
+  ACPI/IORT: Check ATS capability in root complex nodes
+  iommu/arm-smmu-v3: Add support for PCI ATS
+  iommu/arm-smmu-v3: Hook up ATC invalidation to mm ops
+  iommu/arm-smmu-v3: Disable tagged pointers
+  PCI: Make "PRG Response PASID Required" handling common
+  iommu/arm-smmu-v3: Add support for PRI
+  iommu/arm-smmu-v3: Add support for PCI PASID
+
+ .../devicetree/bindings/iommu/iommu.txt       |   24 +
+ MAINTAINERS                                   |    6 +-
+ arch/arm64/include/asm/mmu.h                  |    1 +
+ arch/arm64/include/asm/mmu_context.h          |   11 +-
+ arch/arm64/mm/context.c                       |   92 +-
+ drivers/acpi/arm64/iort.c                     |   11 +
+ drivers/iommu/Kconfig                         |   29 +
+ drivers/iommu/Makefile                        |    4 +
+ drivers/iommu/amd_iommu.c                     |   19 +-
+ drivers/iommu/arm-smmu-v3-context.c           |  700 ++++++++
+ drivers/iommu/arm-smmu-v3.c                   | 1438 ++++++++++++++---
+ drivers/iommu/io-pgfault.c                    |  445 +++++
+ drivers/iommu/io-pgtable-arm.c                |   49 +-
+ drivers/iommu/io-pgtable-arm.h                |   54 +
+ drivers/iommu/iommu-pasid-table.c             |   52 +
+ drivers/iommu/iommu-pasid-table.h             |  177 ++
+ drivers/iommu/iommu-sva.c                     |  792 +++++++++
+ drivers/iommu/iommu.c                         |   84 +
+ drivers/iommu/of_iommu.c                      |   12 +
+ drivers/pci/ats.c                             |   17 +
+ drivers/vfio/vfio_iommu_type1.c               |  449 ++++-
+ include/linux/iommu.h                         |  184 +++
+ include/linux/pci-ats.h                       |    8 +
+ include/uapi/linux/pci_regs.h                 |    1 +
+ include/uapi/linux/vfio.h                     |   76 +
+ kernel/fork.c                                 |   15 +
+ kernel/pid.c                                  |    1 +
+ 27 files changed, 4469 insertions(+), 282 deletions(-)
+ create mode 100644 drivers/iommu/arm-smmu-v3-context.c
+ create mode 100644 drivers/iommu/io-pgfault.c
+ create mode 100644 drivers/iommu/io-pgtable-arm.h
+ create mode 100644 drivers/iommu/iommu-pasid-table.c
+ create mode 100644 drivers/iommu/iommu-pasid-table.h
+ create mode 100644 drivers/iommu/iommu-sva.c
+
+-- 
+2.17.0
