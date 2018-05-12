@@ -1,42 +1,36 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v9 04/12] arm64/acpi: Create arch specific cpu to acpi id helper
-Date: Fri, 11 May 2018 18:57:59 -0500
-Message-ID: <20180511235807.30834-5-jeremy.linton@arm.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [RFC PATCH v4 1/3] EDAC, GHES: Remove unused argument to
+ ghes_edac_report_mem_error
+Date: Sat, 12 May 2018 11:00:33 +0200
+Message-ID: <20180512090033.GA27593@pd.tnic>
+References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
+ <20180430213358.8319-1-mr.nuke.me@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
+Content-Disposition: inline
+In-Reply-To: <20180430213358.8319-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-Its helpful to be able to lookup the acpi_processor_id associated
-with a logical cpu. Provide an arm64 helper to do this.
+On Mon, Apr 30, 2018 at 04:33:50PM -0500, Alexandru Gagniuc wrote:
+> The use of the 'ghes' argument was removed in a previous commit, but
+> function signature was not updated to reflect this.
+> 
+> Fixes: 0fe5f281f749 ("EDAC, ghes: Model a single, logical memory controller")
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 2 +-
+>  drivers/edac/ghes_edac.c | 3 +--
+>  include/acpi/ghes.h      | 5 ++---
+>  3 files changed, 4 insertions(+), 6 deletions(-)
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
-Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
----
- arch/arm64/include/asm/acpi.h | 4 ++++
- 1 file changed, 4 insertions(+)
+Applied, thanks.
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 32f465a80e4e..0db62a4cbce2 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -86,6 +86,10 @@ static inline bool acpi_has_cpu_in_madt(void)
- }
- 
- struct acpi_madt_generic_interrupt *acpi_cpu_get_madt_gicc(int cpu);
-+static inline u32 get_acpi_id_for_cpu(unsigned int cpu)
-+{
-+	return	acpi_cpu_get_madt_gicc(cpu)->uid;
-+}
- 
- static inline void arch_fix_phys_package_id(int num, u32 slot) { }
- void __init acpi_init_cpus(void);
 -- 
-2.13.6
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
