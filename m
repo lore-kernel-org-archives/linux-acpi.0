@@ -1,52 +1,274 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v9 11/12] ACPI: Add PPTT to injectable table list
-Date: Sat, 12 May 2018 12:10:40 +0200
-Message-ID: <CAJZ5v0giM0W6KJtxArLLm90gi136pBoc_dz0H-5wg24b_ih0Yg@mail.gmail.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-12-jeremy.linton@arm.com>
+Subject: Re: [PATCH v3 3/3] mailbox: ACPI: erroneous error message when
+ parsing the ACPI PCCT
+Date: Sat, 12 May 2018 13:49:22 +0200
+Message-ID: <CAJZ5v0i8SbH-m4fBkH5a-pOV5t+TN4OrW=0X+GA+g7SeWvQKtA@mail.gmail.com>
+References: <20180501003907.4322-1-ahs3@redhat.com> <20180501003907.4322-4-ahs3@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511235807.30834-12-jeremy.linton@arm.com>
+In-Reply-To: <20180501003907.4322-4-ahs3@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.co>
+To: Al Stone <ahs3@redhat.com>, Prashanth Prakash <pprakash@codeaurora.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 12, 2018 at 1:58 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> Add ACPI_SIG_PPTT to the table so initrd's can override the
-> system topology.
+On Tue, May 1, 2018 at 2:39 AM, Al Stone <ahs3@redhat.com> wrote:
+> There have been multiple reports of the following error message:
 >
-> Signed-off-by: Geoffrey Blake <geoffrey.blake@arm.com>
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
-> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> [    0.068293] Error parsing PCC subspaces from PCCT
+>
+> This error message is not correct.  In multiple cases examined, the PCCT
+> (Platform Communications Channel Table) concerned is actually properly
+> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+> is making the assumption that the only valid PCCT is one that contains
+> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+> types are counted and as long as there is at least one of the desired
+> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+> are found, regardless of whether or not any other subtable types are
+> present, the error mentioned above is reported.
+>
+> In the cases reported to me personally, the PCCT contains exactly one
+> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+> acpi_pcc_probe() does not count it as a valid subtable, so believes
+> there to be no valid subtables, and hence outputs the error message.
+>
+> An example of the PCCT being reported as erroneous yet perfectly fine
+> is the following:
+>
+>                     Signature : "PCCT"
+>                  Table Length : 0000006E
+>                      Revision : 05
+>                      Checksum : A9
+>                        Oem ID : "XXXXXX"
+>                  Oem Table ID : "XXXXX   "
+>                  Oem Revision : 00002280
+>               Asl Compiler ID : "XXXX"
+>         Asl Compiler Revision : 00000002
+>
+>         Flags (decoded below) : 00000001
+>                      Platform : 1
+>                      Reserved : 0000000000000000
+>
+>                 Subtable Type : 00 [Generic Communications Subspace]
+>                        Length : 3E
+>
+>                      Reserved : 000000000000
+>                  Base Address : 00000000DCE43018
+>                Address Length : 0000000000001000
+>
+>             Doorbell Register : [Generic Address Structure]
+>                      Space ID : 01 [SystemIO]
+>                     Bit Width : 08
+>                    Bit Offset : 00
+>          Encoded Access Width : 01 [Byte Access:8]
+>                       Address : 0000000000001842
+>
+>                 Preserve Mask : 00000000000000FD
+>                    Write Mask : 0000000000000002
+>               Command Latency : 00001388
+>           Maximum Access Rate : 00000000
+>       Minimum Turnaround Time : 0000
+>
+> To fix this, we count up all of the possible subtable types for the
+> PCCT, and only report an error when there are none (which could mean
+> either no subtables, or no valid subtables), or there are too many.
+> We also change the logic so that if there is a valid subtable, we
+> do try to initialize it per the PCCT subtable contents.  This is a
+> change in functionality; previously, the probe would have returned
+> right after the error message and would not have tried to use any
+> other subtable definition.
+>
+> Tested on my personal laptop which showed the error previously; the
+> error message no longer appears and the laptop appears to operate
+> normally.
+>
+> Signed-off-by: Al Stone <ahs3@redhat.com>
+> Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
 
-I'm assuming that this will be routed along with the rest of the series, so
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Prashanth, any commens or concerns regarding this?
 
 > ---
->  drivers/acpi/tables.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+>  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
+>  1 file changed, 63 insertions(+), 33 deletions(-)
 >
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 849c4fb19b03..30d93bf7c6a2 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -457,7 +457,7 @@ static const char * const table_sigs[] = {
->         ACPI_SIG_UEFI, ACPI_SIG_WAET, ACPI_SIG_WDAT, ACPI_SIG_WDDT,
->         ACPI_SIG_WDRT, ACPI_SIG_DSDT, ACPI_SIG_FADT, ACPI_SIG_PSDT,
->         ACPI_SIG_RSDT, ACPI_SIG_XSDT, ACPI_SIG_SSDT, ACPI_SIG_IORT,
-> -       ACPI_SIG_NFIT, ACPI_SIG_HMAT, NULL };
-> +       ACPI_SIG_NFIT, ACPI_SIG_HMAT, ACPI_SIG_PPTT, NULL };
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 3ef7f036ceea..72af37d7e95e 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -372,13 +372,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
+>         .send_data = pcc_send_data,
+>  };
 >
->  #define ACPI_HEADER_SIZE sizeof(struct acpi_table_header)
+> +/*
+> + *
+> + * count_pcc_subspaces -- Count PCC subspaces not used in reduced HW systems.
+> + * @header: Pointer to the ACPI subtable header under the PCCT.
+> + * @end: End of subtable entry.
+> + *
+> + * Return: If we find a PCC subspace entry that is one of the types used
+> + *     in reduced hardware systems, return -EINVAL.  Otherwise, return 0.
+> + *
+> + * This gets called for each subtable in the PCC table.
+> + */
+> +static int count_pcc_subspaces(struct acpi_subtable_header *header,
+> +               const unsigned long end)
+> +{
+> +       struct acpi_pcct_subspace *pcct_ss = (struct acpi_pcct_subspace *) header;
+> +
+> +       if ((pcct_ss->header.type <= ACPI_PCCT_TYPE_RESERVED) &&
+> +           (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) &&
+> +           (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
+> +               return 0;
+> +
+> +       return -EINVAL;
+> +}
+> +
+>  /**
+> - * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
+> - *             entries. There should be one entry per PCC client.
+> + * parse_pcc_subspaces -- Count PCC subspaces used only in reduced HW systems.
+>   * @header: Pointer to the ACPI subtable header under the PCCT.
+>   * @end: End of subtable entry.
+>   *
+> - * Return: 0 for Success, else errno.
+> + * Return: If we find a PCC subspace entry that is one of the types used
+> + *     in reduced hardware systems, return 0.  Otherwise, return -EINVAL.
+>   *
+>   * This gets called for each entry in the PCC table.
+>   */
+> @@ -393,10 +417,8 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>                 if ((pcct_ss->header.type !=
+>                                 ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
+>                     && (pcct_ss->header.type !=
+> -                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
+> -                       pr_err("Incorrect PCC Subspace type detected\n");
+> +                               ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
+>                         return -EINVAL;
+> -               }
+>         }
+>
+>         return 0;
+> @@ -449,8 +471,8 @@ static int __init acpi_pcc_probe(void)
+>         struct acpi_table_header *pcct_tbl;
+>         struct acpi_subtable_header *pcct_entry;
+>         struct acpi_table_pcct *acpi_pcct_tbl;
+> +       struct acpi_subtable_proc proc[ACPI_PCCT_TYPE_RESERVED];
+>         int count, i, rc;
+> -       int sum = 0;
+>         acpi_status status = AE_OK;
+>
+>         /* Search for PCCT */
+> @@ -459,43 +481,45 @@ static int __init acpi_pcc_probe(void)
+>         if (ACPI_FAILURE(status) || !pcct_tbl)
+>                 return -ENODEV;
+>
+> -       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+> -                       sizeof(struct acpi_table_pcct),
+> -                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+> -                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> -       sum += (count > 0) ? count : 0;
+> -
+> -       count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+> -                       sizeof(struct acpi_table_pcct),
+> -                       ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+> -                       parse_pcc_subspace, MAX_PCC_SUBSPACES);
+> -       sum += (count > 0) ? count : 0;
+> +       /* Set up the subtable handlers */
+> +       for (i = ACPI_PCCT_TYPE_GENERIC_SUBSPACE;
+> +            i < ACPI_PCCT_TYPE_RESERVED; i++) {
+> +               proc[i].id = i;
+> +               proc[i].count = 0;
+> +               if (i == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE ||
+> +                   i == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)
+> +                       proc[i].handler = parse_pcc_subspace;
+> +               else
+> +                       proc[i].handler = count_pcc_subspaces;
+> +       }
+>
+> -       if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
+> -               pr_err("Error parsing PCC subspaces from PCCT\n");
+> +       count = acpi_table_parse_entries_array(ACPI_SIG_PCCT,
+> +                       sizeof(struct acpi_table_pcct), proc,
+> +                       ACPI_PCCT_TYPE_RESERVED, MAX_PCC_SUBSPACES);
+> +       if (count == 0 || count > MAX_PCC_SUBSPACES) {
+> +               pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
+>                 return -EINVAL;
+>         }
+>
+> -       pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
+> -                       sum, GFP_KERNEL);
+> +       pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) * count, GFP_KERNEL);
+>         if (!pcc_mbox_channels) {
+>                 pr_err("Could not allocate space for PCC mbox channels\n");
+>                 return -ENOMEM;
+>         }
+>
+> -       pcc_doorbell_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+> +       pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+>         if (!pcc_doorbell_vaddr) {
+>                 rc = -ENOMEM;
+>                 goto err_free_mbox;
+>         }
+>
+> -       pcc_doorbell_ack_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
+> +       pcc_doorbell_ack_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+>         if (!pcc_doorbell_ack_vaddr) {
+>                 rc = -ENOMEM;
+>                 goto err_free_db_vaddr;
+>         }
+>
+> -       pcc_doorbell_irq = kcalloc(sum, sizeof(int), GFP_KERNEL);
+> +       pcc_doorbell_irq = kcalloc(count, sizeof(int), GFP_KERNEL);
+>         if (!pcc_doorbell_irq) {
+>                 rc = -ENOMEM;
+>                 goto err_free_db_ack_vaddr;
+> @@ -509,18 +533,24 @@ static int __init acpi_pcc_probe(void)
+>         if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+>                 pcc_mbox_ctrl.txdone_irq = true;
+>
+> -       for (i = 0; i < sum; i++) {
+> +       for (i = 0; i < count; i++) {
+>                 struct acpi_generic_address *db_reg;
+> -               struct acpi_pcct_hw_reduced *pcct_ss;
+> +               struct acpi_pcct_subspace *pcct_ss;
+>                 pcc_mbox_channels[i].con_priv = pcct_entry;
+>
+> -               pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+> +               if (pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE ||
+> +                   pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
+> +                       struct acpi_pcct_hw_reduced *pcct_hrss;
+> +
+> +                       pcct_hrss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+>
+> -               if (pcc_mbox_ctrl.txdone_irq) {
+> -                       rc = pcc_parse_subspace_irq(i, pcct_ss);
+> -                       if (rc < 0)
+> -                               goto err;
+> +                       if (pcc_mbox_ctrl.txdone_irq) {
+> +                               rc = pcc_parse_subspace_irq(i, pcct_hrss);
+> +                               if (rc < 0)
+> +                                       goto err;
+> +                       }
+>                 }
+> +               pcct_ss = (struct acpi_pcct_subspace *) pcct_entry;
+>
+>                 /* If doorbell is in system memory cache the virt address */
+>                 db_reg = &pcct_ss->doorbell_register;
+> @@ -531,7 +561,7 @@ static int __init acpi_pcc_probe(void)
+>                         ((unsigned long) pcct_entry + pcct_entry->length);
+>         }
+>
+> -       pcc_mbox_ctrl.num_chans = sum;
+> +       pcc_mbox_ctrl.num_chans = count;
+>
+>         pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
 >
 > --
-> 2.13.6
+> 2.14.3
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
