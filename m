@@ -1,36 +1,124 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [RFC PATCH v4 1/3] EDAC, GHES: Remove unused argument to
- ghes_edac_report_mem_error
-Date: Sat, 12 May 2018 11:00:33 +0200
-Message-ID: <20180512090033.GA27593@pd.tnic>
-References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
- <20180430213358.8319-1-mr.nuke.me@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v9 05/12] ACPI/PPTT: Add Processor Properties Topology
+ Table parsing
+Date: Sat, 12 May 2018 12:09:40 +0200
+Message-ID: <CAJZ5v0h4OeTaG2h0Q1c8zX93tici_nfLftpEyKWSkXoztHuUDg@mail.gmail.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-6-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180430213358.8319-1-mr.nuke.me@gmail.com>
+In-Reply-To: <20180511235807.30834-6-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-edac@vger.kernel.org, devel@acpica.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.co>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Apr 30, 2018 at 04:33:50PM -0500, Alexandru Gagniuc wrote:
-> The use of the 'ghes' argument was removed in a previous commit, but
-> function signature was not updated to reflect this.
-> 
-> Fixes: 0fe5f281f749 ("EDAC, ghes: Model a single, logical memory controller")
-> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+On Sat, May 12, 2018 at 1:58 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
+> ACPI 6.2 adds a new table, which describes how processing units
+> are related to each other in tree like fashion. Caches are
+> also sprinkled throughout the tree and describe the properties
+> of the caches in relation to other caches and processing units.
+>
+> Add the code to parse the cache hierarchy and report the total
+> number of levels of cache for a given core using
+> acpi_find_last_cache_level() as well as fill out the individual
+> cores cache information with cache_setup_acpi() once the
+> cpu_cacheinfo structure has been populated by the arch specific
+> code.
+>
+> An additional patch later in the set adds the ability to report
+> peers in the topology using find_acpi_cpu_topology()
+> to report a unique ID for each processing unit at a given level
+> in the tree. These unique id's can then be used to match related
+> processing units which exist as threads, within a given
+> package, etc.
+>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
+> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+> Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
+> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
 > ---
->  drivers/acpi/apei/ghes.c | 2 +-
->  drivers/edac/ghes_edac.c | 3 +--
->  include/acpi/ghes.h      | 5 ++---
->  3 files changed, 4 insertions(+), 6 deletions(-)
+>  drivers/acpi/pptt.c  | 655 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h |   4 +
+>  2 files changed, 659 insertions(+)
+>  create mode 100644 drivers/acpi/pptt.c
+>
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> new file mode 100644
+> index 000000000000..e5ea1974d1e3
+> --- /dev/null
+> +++ b/drivers/acpi/pptt.c
+> @@ -0,0 +1,655 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * pptt.c - parsing of Processor Properties Topology Table (PPTT)
+> + *
+> + * Copyright (C) 2018, ARM
+> + *
+> + * This file implements parsing of the Processor Properties Topology Table
+> + * which is optionally used to describe the processor and cache topology.
+> + * Due to the relative pointers used throughout the table, this doesn't
+> + * leverage the existing subtable parsing in the kernel.
+> + *
+> + * The PPTT structure is an inverted tree, with each node potentially
+> + * holding one or two inverted tree data structures describing
+> + * the caches available at that level. Each cache structure optionally
+> + * contains properties describing the cache at a given level which can be
+> + * used to override hardware probed values.
+> + */
+> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/cacheinfo.h>
+> +#include <acpi/processor.h>
+> +
+> +static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
+> +                                                       u32 pptt_ref)
+> +{
+> +       struct acpi_subtable_header *entry;
+> +
+> +       /* there isn't a subtable at reference 0 */
+> +       if (pptt_ref < sizeof(struct acpi_subtable_header))
+> +               return NULL;
+> +
+> +       if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
+> +               return NULL;
+> +
+> +       entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr, pptt_ref);
+> +
+> +       if (entry->length == 0)
+> +               return NULL;
+> +
+> +       if (pptt_ref + entry->length > table_hdr->length)
+> +               return NULL;
+> +
+> +       return entry;
+> +}
+> +
+> +static struct acpi_pptt_processor *fetch_pptt_node(struct acpi_table_header *table_hdr,
+> +                                                  u32 pptt_ref)
+> +{
+> +       return (struct acpi_pptt_processor *)fetch_pptt_subtable(table_hdr, pptt_ref);
+> +}
+> +
+> +static struct acpi_pptt_cache *fetch_pptt_cache(struct acpi_table_header *table_hdr,
+> +                                               u32 pptt_ref)
+> +{
+> +       return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr, pptt_ref);
 
-Applied, thanks.
+I don't think you really need the explicit type cast here and above,
+but that's very minor.
 
--- 
-Regards/Gruss,
-    Boris.
+> +}
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Please feel free to add
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+to the patch and route it through the arch tree as needed.
+
+Thanks,
+Rafael
