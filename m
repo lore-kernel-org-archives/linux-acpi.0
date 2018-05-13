@@ -1,97 +1,113 @@
-From: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] thinkpad_acpi: document the battery
- controls
-Date: Sun, 13 May 2018 17:30:24 +0200
-Message-ID: <20180513153024.GA5142@thinkpad>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: PROBLEM: "ACPI Error: Method parse/execution failed" and "ACPI
+ BIOS Error (bug): Failure looking up" related
+Date: Mon, 14 May 2018 01:34:53 +0300
+Message-ID: <CAHp75Vc4FhSOfyN=UG=xXNOH6C4JUpnfMh9+Mp1_FiM44F0FtA@mail.gmail.com>
+References: <CAG=yYwkWt9bbKVWD93YT2S3jFQCt7s5yV7gxOw=JScFJtgO0NA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAG=yYwkWt9bbKVWD93YT2S3jFQCt7s5yV7gxOw=JScFJtgO0NA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeffrin Thalakkottoor <jeffrin@rajagiritech.edu.in>
+Cc: Robert Moore <robert.moore@intel.com>, erik.schmauss@intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-VGhpcyBkb2N1bWVudHMgdGhlIG5ldyBiYXR0ZXJ5IGNvbnRyb2xzIGFuZCB3ZWFyIGxldmVsaW5n
-IHN1cHBvcnQKZm9yIExlbm92byBUaGlua1BhZCBsYXB0b3BzLgoKU2lnbmVkLW9mZi1ieTogT2du
-amVuIEdhbGljIDxzbWNsdDMwcEBnbWFpbC5jb20+Ci0tLQogRG9jdW1lbnRhdGlvbi9sYXB0b3Bz
-L3RoaW5rcGFkLWFjcGkudHh0IHwgNzAgKysrKysrKysrKysrKysrKysrKysrKysrLQogMSBmaWxl
-IGNoYW5nZWQsIDY5IGluc2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKCmRpZmYgLS1naXQgYS9E
-b2N1bWVudGF0aW9uL2xhcHRvcHMvdGhpbmtwYWQtYWNwaS50eHQgYi9Eb2N1bWVudGF0aW9uL2xh
-cHRvcHMvdGhpbmtwYWQtYWNwaS50eHQKaW5kZXggMDBiNmRmZWQuLjM0OTFkNDZmIDEwMDY0NAot
-LS0gYS9Eb2N1bWVudGF0aW9uL2xhcHRvcHMvdGhpbmtwYWQtYWNwaS50eHQKKysrIGIvRG9jdW1l
-bnRhdGlvbi9sYXB0b3BzL3RoaW5rcGFkLWFjcGkudHh0CkBAIC0xLDYgKzEsNiBAQAogCQkgICAg
-IFRoaW5rUGFkIEFDUEkgRXh0cmFzIERyaXZlcgogCi0gICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgVmVyc2lvbiAwLjI1CisgICAgICAgICAgICAgICAgICAgICAgICAgICAgVmVyc2lvbiAwLjI3
-CiAgICAgICAgICAgICAgICAgICAgICAgICBPY3RvYmVyIDE2dGgsICAyMDEzCiAKICAgICAgICAg
-ICAgICAgIEJvcmlzbGF2IERlaWFub3YgPGJvcmlzbGF2QHVzZXJzLnNmLm5ldD4KQEAgLTQ2LDYg
-KzQ2LDkgQEAgZGV0YWlsZWQgZGVzY3JpcHRpb24pOgogCS0gRmFuIGNvbnRyb2wgYW5kIG1vbml0
-b3Jpbmc6IGZhbiBzcGVlZCwgZmFuIGVuYWJsZS9kaXNhYmxlCiAJLSBXQU4gZW5hYmxlIGFuZCBk
-aXNhYmxlCiAJLSBVV0IgZW5hYmxlIGFuZCBkaXNhYmxlCisJLSBCYXR0ZXJ5IHdlYXIgY29udHJv
-bCAoYmF0dGVyeSBzdGFydCBhbmQgc3RvcCB0aHJlc2hvbGQpCisJLSBCYXR0ZXJ5IGluaGliaXQg
-Y2hhcmdlCisJLSBCYXR0ZXJ5IGZvcmNlIGRpc2NoYXJnZQogCiBBIGNvbXBhdGliaWxpdHkgdGFi
-bGUgYnkgbW9kZWwgYW5kIGZlYXR1cmUgaXMgbWFpbnRhaW5lZCBvbiB0aGUgd2ViCiBzaXRlLCBo
-dHRwOi8vaWJtLWFjcGkuc2YubmV0Ly4gSSBhcHByZWNpYXRlIGFueSBzdWNjZXNzIG9yIGZhaWx1
-cmUKQEAgLTE0ODMsMyArMTQ4Niw2OCBAQCBTeXNmcyBpbnRlcmZhY2UgY2hhbmdlbG9nOgogMHgw
-MzAwMDA6CVRoZXJtYWwgYW5kIGZhbiBzeXNmcyBhdHRyaWJ1dGVzIHdlcmUgbW92ZWQgdG8gdGhl
-IGh3bW9uCiAJCWRldmljZSBpbnN0ZWFkIG9mIGJlaW5nIGF0dGFjaGVkIHRvIHRoZSBiYWNraW5n
-IHBsYXRmb3JtCiAJCWRldmljZS4KKworCitCYXR0ZXJ5IHdlYXIgY29udHJvbCAoY2hhcmdlIGFu
-ZCBzdG9wIHRocmVzaG9sZHMpCistLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQorCitTaW5jZSBMaW51eCA0LjE3IHRwYWNwaSBzdXBwb3J0cyBzZXR0aW5n
-IG9mIGNoYXJnZSBzdGFydCBhbmQgc3RvcCB0aHJlc2hvbGRzIG9uIGNlcnRhaW4KK0xlbm92byBU
-aGlua1BhZCBsYXB0b3BzLiBUaGlzIGZlYXR1cmUgaXMgZXhwb3NlZCB2aWEgYSBuZXcgQVBJIGZy
-b20gdGhlIEFDUEkgYmF0dGVyeSBkcml2ZXIKK2Fsc28gbmV3IGluIExpbnV4IDQuMTcuCisKK1Ro
-ZSBuZXcgYmF0dGVyeSBBUEkgYWxsb3dzIGRldmVsb3BlcnMgdG8gZXh0ZW5kZWQgdGhlIHN0YW5k
-YXJkIGF0dHJpYnV0ZXMgb2ZmZXJlZCBieSB0aGUKK2dlbmVyaWMgQUNQSSBiYXR0ZXJ5IGRyaXZl
-ciBhbmQgYWRkIGN1c3RvbSBhdHRyaWJ1dGVzIGZyb20gb3RoZXIgZHJpdmVycy4gdGhpbmtwYWRf
-YWNwaQorbGV2ZXJhZ2VzIHRoaXMgQVBJIGFuZCBleHBvc2VzIGEgZmV3IGN1c3RvbSBhdHRyaWJ1
-dGVzIGZvciB3ZWFyIGNvbnRyb2wgb2YgdGhlIGJhdHRlcnkuCisKK1dlYXIgY29udHJvbCBpcyBk
-ZXNpZ25lZCB0byBzdG9wIHRoZSBjaGFyZ2luZyBvZiB0aGUgYmF0dGVyeSBhdCBhIGNlcnRhaW4g
-dGhyZXNob2xkIGFuZCB0aHVzCitzdG9wIHRoZSBjZWxsIGZyb20gd2VhcmluZyBvdXQgZnJvbSBj
-b25zdGFudCBjaGFyZ2UgY3ljbGVzLiBTbyBpZiB5b3UgcHV0IHRoZSB0aHJlc2hvbGQgYXQKKzUw
-JSwgdGhlIGNoYXJnZSB3aWxsIG9ubHkgY2hhcmdlIHRoZSBiYXR0ZXJ5IHdoZW4gaXQgaXMgYmVs
-b3cgNTAlIGFuZCBpdCB3aWxsIHN0b3AgYXQgNTAlLgorCitBIGxvd2VyIGxldmVsIGlzIGFsc28g
-ZXhwb3NlZCwgdGh1cyBjcmVhdGluZyBhIGNoYXJnZXIgImRlYWQgem9uZSIsIGEgem9uZSB3aGVy
-ZSB0aGUgY2hhcmdlciBkb2VzCitub3RoaW5nIGFuZCB0aGUgYmF0dGVyeSBpcyBpbiBpZGxlIGFz
-IGlmIGl0IHdhcyByZW1vdmVkIGZyb20gdGhlIFRoaW5rcGFkLgorCitGb3IgZXhhbXBsZSwgdGhp
-cyBpcyB3aGF0IGhhcHBlbnMgd2hlbiB5b3Ugc2V0IHRoZSB2YWx1ZXMgdG8gNDAlIGFuZCA2NSU6
-CisKKyAgICAgICAgICAgIOKUjCAgICAgIERpc2NoYXJnaW5nICAgICAg4pSQCisJICAgIOKUgiAg
-ICAgICAgICAgICAgICAgICAgICAg4pSCCitbMCUtLS0tLS0tLTQwJSAgICAgICA2NSUtLS0tLS0t
-LS0tLTEwMCVdIEJhdHRlcnkgMQorIOKUgiAgICAgICAgICAgICAgICAgICAg4pSCCisg4pSUICAg
-ICAgQ2hhcmdpbmcgICAgICDilJgKKworV2hlbiBwbHVnZ2VkIGludG8gQUMgYW5kIGlmIHRoZSBw
-ZXJjZW50YWdlIGlzIGJldHdlZW4gNDAlIGFuZCAxMDAlIHRoZSBiYXR0ZXJ5IGlzIGluIGlkbGUu
-CisKK1RoZSBhdHRyaWJ1dGVzOgorLS0tLS0tLS0tLS0tLS0tCisKKy9zeXMvY2xhc3MvcG93ZXJf
-c3VwcGx5L0JBVHgvY2hhcmdlX3N0YXJ0X3RocmVzaG9sZCBbaW50LCA8MCwgPjk5XQorCitUaGlz
-IHNldHMgdGhlIGxvd2VyIGNoYXJnZSBzdG9wIHRocmVzaG9sZCBmb3IgdGhlIGJhdHRlcnkuIEl0
-cyBhIGludGVnZXIgYW5kIHZhbGlkIHZhbHVlcyBhcmUgZnJvbQorMCUgdG8gOTklLgorCisvc3lz
-L2NsYXNzL3Bvd2VyX3N1cHBseS9CQVR4L2NoYXJnZV9zdG9wX3RocmVzaG9sZCBbaW50LCA8MSwg
-PjEwMF0KKworVGhpcyBzZXRzIHRoZSB1cHBlciBjaGFyZ2UgdGhyZXNob2xkIGZvciB0aGUgYmF0
-dGVyeS4gSXRzIGEgaW50ZWdlciBhbmQgdGhlIHZhbHVlIHZhbHVlcyBhcmUgZnJvbQorMSUgdG8g
-MTAwJS4KKworU2V0dGluZyB0aGUgbG93ZXIgbGltaXQgdG8gMCUgYW5kIHRoZSB1cHBlciBsaW1p
-dCB0byAxMDAlIGRpc2FibGVzIHRoZSB3ZWFyIGxldmVsaW5nIGNvbnRyb2wgZmVhdHVyZS4KKwor
-CitCYXR0ZXJ5IGNoYXJnZSBpbmhpYml0aW5nCistLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQor
-CitQcmV2ZW50aW5nIHRoZSBiYXR0ZXJ5IGZyb20gY2hhcmdpbmcgaXMgYWxzbyBhdmFpbGFibGUg
-YXMgYSBtYW51YWwgb3ZlcnJpZGUgb3ZlciB0aGUgc2V0dGluZ3MuIEl0cyBleHBvc2VkIHZpYQor
-dGhlIGdlbmVyaWMgQUNQSSBkcml2ZXI6CisKKy9zeXMvY2xhc3MvcG93ZXJfc3VwcGx5L0JBVHgv
-aW5oaWJpdF9jaGFyZ2UgW2ludCwgMSwgMF0KKworU2V0dGluZyBpdCB0byAxIHByZXZlbnRzIHRo
-ZSBiYXR0ZXJ5IGZyb20gY2hhcmdpbmcuCisKK0JhdHRlcnkgZm9yY2UgZGlzY2hhcmdpbmcKKy0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCisKK1RoZXJlIGlzIGFsc28gc3VwcG9ydCBmb3IgQUMg
-b3ZlcnJpZGluZy4gVGhpcyBtZWFucyB0aGF0IHlvdSBjYW4gZm9yY2UgdGhlIGJhdHRlcnkgdG8g
-ZGlzY2hhcmdlCitldmVuIHdoZW4gQUMgaXMgYXR0YWNoZWQuIFRoaXMgaXMgYWxzbyBleHBvc2Vk
-IHZpYSB0aGUgZ2VuZXJpYyBBQ1BJIGRyaXZlcjoKKworL3N5cy9jbGFzcy9wb3dlcl9zdXBwbHkv
-QkFUeC9mb3JjZV9kaXNjaGFyZ2UgW2ludCwgMSwgMF0KKworU2V0dGluZyBpdCB0byAxIGZvcmNl
-cyB0aGUgYmF0dGVyeSB0byBkaXNjaGFyZ2Ugb24gQUMuCi0tIAoyLjE3LjAKCgotLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0KQ2hlY2sgb3V0IHRoZSB2aWJyYW50IHRlY2ggY29tbXVuaXR5IG9uIG9uZSBv
-ZiB0aGUgd29ybGQncyBtb3N0CmVuZ2FnaW5nIHRlY2ggc2l0ZXMsIFNsYXNoZG90Lm9yZyEgaHR0
-cDovL3NkbS5saW5rL3NsYXNoZG90Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fCmlibS1hY3BpLWRldmVsIG1haWxpbmcgbGlzdAppYm0tYWNwaS1kZXZlbEBs
-aXN0cy5zb3VyY2Vmb3JnZS5uZXQKaHR0cHM6Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMv
-bGlzdGluZm8vaWJtLWFjcGktZGV2ZWwK
+On Sun, May 13, 2018 at 5:20 PM, Jeffrin Thalakkottoor
+<jeffrin@rajagiritech.edu.in> wrote:
+> hello ,
+>
+> the error from "dmesg -l err"  related ...
+>
+> ------------------------------------------------------------------------------------------------->
+>
+> [    1.709950] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.710045] ACPI Error: Method parse/execution failed
+> \_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
+> [    1.710208] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.710267] ACPI Error: Method parse/execution failed
+> \_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
+> [    1.710338] acpi PNP0C0B:00: Failed to set initial power state
+> [    1.710846] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.710938] ACPI Error: Method parse/execution failed
+> \_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
+> [    1.711588] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.711681] ACPI Error: Method parse/execution failed
+> \_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
+> [    1.711960] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.712054] ACPI Error: Method parse/execution failed
+> \_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
+> [    1.712471] ACPI BIOS Error (bug): Failure looking up
+> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+> [    1.712552] ACPI Error: Method parse/execution failed
+> \_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
+>
+> ----------------------------------------------------------------------------------------------------->
+>
+
+Is there any regressions or change in behaviour due to which these
+messages are printed out? If so, which regressions you are pointing
+out?
+
+>
+>
+> $awk -f scripts/ver_linux
+> If some fields are empty or look unusual you may have an old version.
+> Compare to the current minimal requirements in Documentation/Changes.
+>
+> Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
+>
+> GNU Make            4.2.1
+> Binutils            2.30
+> Util-linux          2.31.1
+> Mount                2.31.1
+> Linux C Library      2.27
+> Dynamic linker (ldd) 2.27
+> readlink: missing operand
+> Try 'readlink --help' for more information.
+> Procps              3.3.14
+> Kbd                  2.0.4
+> Console-tools        2.0.4
+> Sh-utils            8.28
+> Udev                238
+> Modules Loaded      ac acpi_pad acpi_thermal_rel ahci autofs4 battery
+> binfmt_misc bluetooth bnep btbcm btintel btrfs btrtl btusb button
+> cdrom cfg80211 cmac coretemp cpuid crc32c_intel crc32_pclmul
+> crct10dif_pclmul cryptd drm drm_kms_helper ecdh_generic efi_pstore
+> efivarfs efivars ehci_hcd ehci_pci evdev fan fat fuse
+> ghash_clmulni_intel hid hp_wireless hp_wmi i2c_algo_bit i2c_hid
+> i2c_i801 i915 int3400_thermal int340x_thermal_zone intel_cstate
+> intel_pch_thermal intel_powerclamp intel_rapl intel_rapl_perf
+> intel_soc_dts_iosf intel_uncore ip_tables irqbypass
+> iTCO_vendor_support iTCO_wdt joydev kvm kvm_intel libahci libata
+> libcrc32c loop lp lpc_ich media mei mei_me mfd_core mii nls_ascii
+> nls_cp437 parport parport_pc pcspkr ppdev processor_thermal_device
+> psmouse r8169 raid6_pq rfcomm rfkill scsi_mod sd_mod serio_raw sg
+> shpchp snd snd_hda_codec snd_hda_codec_generic snd_hda_codec_hdmi
+> snd_hda_codec_realtek snd_hda_core snd_hda_intel snd_hwdep snd_pcm
+> snd_timer soundcore sparse_keymap sr_mod sunrpc thermal usbcore
+> uvcvideo vfat video videobuf2_common videobuf2_memops videobuf2_v4l2
+> videobuf2_vmalloc videodev wl wmi wmi_bmof x86_pkg_temp_thermal xfs
+> xhci_hcd xhci_pci xor x_tables xxhash zstd_compress zstd_decompress
+>
+>
+> $uname -a
+> Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
+> $
+>
+> Reported-by: Jeffrin Jose T  <jeffrin@rajagiritech.edu.in>
+>
+> --
+> software engineer
+> rajagiri school of engineering and technology
+
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
