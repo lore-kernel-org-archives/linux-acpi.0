@@ -1,75 +1,63 @@
-From: Larry Finger <Larry.Finger@lwfinger.net>
-Subject: [RFC] acpi: Declare memory allocations in acpi_ut_create_internal_object_dbg as non-leaks
-Date: Sat, 12 May 2018 09:59:38 -0500
-Message-ID: <20180512145938.7936-1-Larry.Finger@lwfinger.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/3] mailbox: ACPI: Remove incorrect error message about parsing PCCT
+Date: Sun, 13 May 2018 10:30:05 +0200
+Message-ID: <190779407.lJoETU6Q66@aspire.rjw.lan>
+References: <20180501003907.4322-1-ahs3@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180501003907.4322-1-ahs3@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Larry Finger <Larry.Finger@lwfinger.net>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Prashanth Prakash <pprakash@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In kernel 4.17.0-rcX, kmemleak reports 9 leaks with tracebacks similat to
-the following:
+On Tuesday, May 1, 2018 2:39:04 AM CEST Al Stone wrote:
+> This set of patches provide some cleanup in ACPI for minor issues
+> found while correcting a bogus error message (the first two patches),
+> and the correction for the error message itself (patch 3/3).  Note
+> that patches 1/3 and 2/3 are not required for 3/3 to work: 1/3 only
+> changes a comment and 2/3 makes an ACPI table parsing loop a wee bit
+> more robust.
+> 
+> For patch 3/3, many systems on boot have been reporting "Error parsing
+> PCC subspaces from PCCT" which turns out to not be an error at all.
+> The issue is that the probe for ACPI mailboxes defined in the PCCT
+> (Platform Communications Channel Table) makes a faulty assumption about
+> the content of the PCCT.  What's more, when the error is reported, no
+> further PCC mailboxes are set up, even when they have been defined
+> in the PCCT.  So, in the reported cases, there was no error and the
+> data in the PCCT was being ignored.  This is described in more detail
+> in patch 3/3.
+> 
+> Since these patches primarily involve ACPI usages, it may make
+> sense for all of them to go through the linux-acpi tree; clearly,
+> this is up to the maintainers, though.
+> 
+> v3:
+>   -- properly format docbook info in patch 1/3
+>   -- remove extra parens in patch 2/3
+>   -- clean up formatting, remove pr_warn() calls used in debugging but
+>      providing no value, clean up docbook info for count_pcc_subspaces()
+>      and parse_pcc_subspaces(), all in patch 3/3
+> 
+> v2:
+>   -- removed one extraneous '+' in a comment in patch 3/3
+>   -- fixed an if test that had a predicate that kbuild pointed out would
+>      always be zero
+> 
+> Al Stone (3):
+>   ACPI: improve function documentation for acpi_parse_entries_array()
+>   ACPI: ensure acpi_parse_entries_array() does not access non-existent
+>     table data
+>   mailbox: ACPI: erroneous error message when parsing the ACPI PCCT
+> 
+>  drivers/acpi/tables.c | 12 ++++---
+>  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
+>  2 files changed, 71 insertions(+), 37 deletions(-)
 
-unreferenced object 0xffff880224a077e0 (size 72):
-  comm "swapper/0", pid 1, jiffies 4294892358 (age 1022.636s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 0e 01 01 00 00 00 00 01  ................
-    00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<000000004f506615>] acpi_ut_create_internal_object_dbg+0x4d/0x10e
-    [<000000006e7730e3>] acpi_ds_build_internal_object+0xed/0x1cd
-    [<00000000272b7c73>] acpi_ds_build_internal_package_obj+0x245/0x3a2
-    [<000000000b64c50e>] acpi_ds_eval_data_object_operands+0x17b/0x21b
-    [<00000000589647ac>] acpi_ds_exec_end_op+0x433/0x6c1
-    [<000000001d69bcbf>] acpi_ps_parse_loop+0x926/0x9be
-    [<000000005d6fa97d>] acpi_ps_parse_aml+0x1a2/0x4af
-    [<00000000c4bef823>] acpi_ps_execute_table+0xbb/0x119
-    [<00000000fd9632e4>] acpi_ns_execute_table+0x20c/0x260
-    [<00000000e6ae17ac>] acpi_ns_parse_table+0x7d/0x1b3
-    [<0000000008e1e148>] acpi_ns_load_table+0x8d/0x1c0
-    [<000000009fc8346f>] acpi_tb_load_namespace+0x176/0x278
-    [<0000000073f98b3b>] acpi_load_tables+0x6e/0xfd
-    [<00000000d2ef13d2>] acpi_init+0x8c/0x340
-    [<000000007da19d8d>] do_one_initcall+0x46/0x1fa
-    [<0000000024681a1d>] kernel_init_freeable+0x1a2/0x237
+I've applied [1-2/3] and I'm waiting on input from Prashanth on the [3/3].
 
-According to gdb, the offending code is
-              object =
-                  acpi_ut_allocate_object_desc_dbg(module_name, line_number,
-                                                   component_id);
-
-As it is not possible to unload the acpi code to test that this is a real
-leak and not a false positive, and that only these 9 appear no matter how
-long the system is up, a kmemleak_not_leak(object) call is inserted.
-
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
----
- drivers/acpi/acpica/utobject.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
-index 5b78fe08d7d7..ae6d8cc18cec 100644
---- a/drivers/acpi/acpica/utobject.c
-+++ b/drivers/acpi/acpica/utobject.c
-@@ -8,6 +8,7 @@
-  *****************************************************************************/
- 
- #include <acpi/acpi.h>
-+#include <linux/kmemleak.h>
- #include "accommon.h"
- #include "acnamesp.h"
- 
-@@ -70,6 +71,7 @@ union acpi_operand_object *acpi_ut_create_internal_object_dbg(const char
- 	if (!object) {
- 		return_PTR(NULL);
- 	}
-+	kmemleak_not_leak(object);
- 
- 	switch (type) {
- 	case ACPI_TYPE_REGION:
--- 
-2.16.3
+Thanks,
+Rafael
