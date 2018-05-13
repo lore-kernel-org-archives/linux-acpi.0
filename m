@@ -1,63 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/3] mailbox: ACPI: Remove incorrect error message about parsing PCCT
-Date: Sun, 13 May 2018 10:30:05 +0200
-Message-ID: <190779407.lJoETU6Q66@aspire.rjw.lan>
-References: <20180501003907.4322-1-ahs3@redhat.com>
+Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads on idle cpus
+Date: Sun, 13 May 2018 11:30:52 +0200
+Message-ID: <8775668.fKKdjnIWAU@aspire.rjw.lan>
+References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180501003907.4322-1-ahs3@redhat.com>
+In-Reply-To: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Prashanth Prakash <pprakash@codeaurora.org>
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, May 1, 2018 2:39:04 AM CEST Al Stone wrote:
-> This set of patches provide some cleanup in ACPI for minor issues
-> found while correcting a bogus error message (the first two patches),
-> and the correction for the error message itself (patch 3/3).  Note
-> that patches 1/3 and 2/3 are not required for 3/3 to work: 1/3 only
-> changes a comment and 2/3 makes an ACPI table parsing loop a wee bit
-> more robust.
-> 
-> For patch 3/3, many systems on boot have been reporting "Error parsing
-> PCC subspaces from PCCT" which turns out to not be an error at all.
-> The issue is that the probe for ACPI mailboxes defined in the PCCT
-> (Platform Communications Channel Table) makes a faulty assumption about
-> the content of the PCCT.  What's more, when the error is reported, no
-> further PCC mailboxes are set up, even when they have been defined
-> in the PCCT.  So, in the reported cases, there was no error and the
-> data in the PCCT was being ignored.  This is described in more detail
-> in patch 3/3.
-> 
-> Since these patches primarily involve ACPI usages, it may make
-> sense for all of them to go through the linux-acpi tree; clearly,
-> this is up to the maintainers, though.
-> 
-> v3:
->   -- properly format docbook info in patch 1/3
->   -- remove extra parens in patch 2/3
->   -- clean up formatting, remove pr_warn() calls used in debugging but
->      providing no value, clean up docbook info for count_pcc_subspaces()
->      and parse_pcc_subspaces(), all in patch 3/3
-> 
-> v2:
->   -- removed one extraneous '+' in a comment in patch 3/3
->   -- fixed an if test that had a predicate that kbuild pointed out would
->      always be zero
-> 
-> Al Stone (3):
->   ACPI: improve function documentation for acpi_parse_entries_array()
->   ACPI: ensure acpi_parse_entries_array() does not access non-existent
->     table data
->   mailbox: ACPI: erroneous error message when parsing the ACPI PCCT
-> 
->  drivers/acpi/tables.c | 12 ++++---
->  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
->  2 files changed, 71 insertions(+), 37 deletions(-)
+On Saturday, May 5, 2018 1:53:22 PM CEST Chen Yu wrote:
+> According to current implementation of acpi_pad driver,
+> it does not make sense to spawn any power saving threads
+> on the cpus which are already idle - it might bring
+> unnecessary overhead on these idle cpus and causes power
+> waste. So verify the condition that if the number of 'busy'
+> cpus exceeds the amount of the 'forced idle' cpus is met.
+> This is applicable due to round-robin attribute of the
+> power saving threads, otherwise ignore the setting/ACPI
+> notification.
 
-I've applied [1-2/3] and I'm waiting on input from Prashanth on the [3/3].
+OK, but CPUs are busy, because they are running tasks.  If acpi_pad
+kthreads run on them, the tasks they are running will migrate to the
+currently idle CPUs (unless they have specific CPU affinity) and the
+throttling will not really be effective.
+
+I would think that acpi_pad should ensure that the requested number of
+CPUs will not run anything other than throttling kthreads.  Isn't that
+the case?
 
 Thanks,
 Rafael
