@@ -1,98 +1,182 @@
-From: Jeffrin Thalakkottoor <jeffrin@rajagiritech.edu.in>
-Subject: PROBLEM: "ACPI Error: Method parse/execution failed" and "ACPI BIOS
- Error (bug): Failure looking up" related
-Date: Sun, 13 May 2018 19:50:27 +0530
-Message-ID: <CAG=yYwkWt9bbKVWD93YT2S3jFQCt7s5yV7gxOw=JScFJtgO0NA@mail.gmail.com>
+From: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] thinkpad_acpi: add support for
+ inhibit_charge
+Date: Sun, 13 May 2018 17:29:37 +0200
+Message-ID: <20180513152937.GA5072@thinkpad>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: robert.moore@intel.com, erik.schmauss@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, lkml <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-hello ,
+Lenovo ThinkPad systems support the prevention of
+battery charging via a manual override called Inhibit Charge.
 
-the error from "dmesg -l err"  related ...
+This patch adds support for that attribute and exposes it via the
+battery ACPI driver in the generic location:
 
-------------------------------------------------------------------------------------------------->
+/sys/class/power_supply/BATX/inhibit_charge
 
-[    1.709950] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
-[    1.710045] ACPI Error: Method parse/execution failed
-\_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
-[    1.710208] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
-[    1.710267] ACPI Error: Method parse/execution failed
-\_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
-[    1.710338] acpi PNP0C0B:00: Failed to set initial power state
-[    1.710846] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
-[    1.710938] ACPI Error: Method parse/execution failed
-\_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
-[    1.711588] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
-[    1.711681] ACPI Error: Method parse/execution failed
-\_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
-[    1.711960] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
-[    1.712054] ACPI Error: Method parse/execution failed
-\_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
-[    1.712471] ACPI BIOS Error (bug): Failure looking up
-[\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
-[    1.712552] ACPI Error: Method parse/execution failed
-\_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
+Signed-off-by: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/platform/x86/thinkpad_acpi.c | 66 +++++++++++++++++++++++++++-
+ 1 file changed, 64 insertions(+), 2 deletions(-)
 
------------------------------------------------------------------------------------------------------>
-
-
-
-$awk -f scripts/ver_linux
-If some fields are empty or look unusual you may have an old version.
-Compare to the current minimal requirements in Documentation/Changes.
-
-Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
-
-GNU Make            4.2.1
-Binutils            2.30
-Util-linux          2.31.1
-Mount                2.31.1
-Linux C Library      2.27
-Dynamic linker (ldd) 2.27
-readlink: missing operand
-Try 'readlink --help' for more information.
-Procps              3.3.14
-Kbd                  2.0.4
-Console-tools        2.0.4
-Sh-utils            8.28
-Udev                238
-Modules Loaded      ac acpi_pad acpi_thermal_rel ahci autofs4 battery
-binfmt_misc bluetooth bnep btbcm btintel btrfs btrtl btusb button
-cdrom cfg80211 cmac coretemp cpuid crc32c_intel crc32_pclmul
-crct10dif_pclmul cryptd drm drm_kms_helper ecdh_generic efi_pstore
-efivarfs efivars ehci_hcd ehci_pci evdev fan fat fuse
-ghash_clmulni_intel hid hp_wireless hp_wmi i2c_algo_bit i2c_hid
-i2c_i801 i915 int3400_thermal int340x_thermal_zone intel_cstate
-intel_pch_thermal intel_powerclamp intel_rapl intel_rapl_perf
-intel_soc_dts_iosf intel_uncore ip_tables irqbypass
-iTCO_vendor_support iTCO_wdt joydev kvm kvm_intel libahci libata
-libcrc32c loop lp lpc_ich media mei mei_me mfd_core mii nls_ascii
-nls_cp437 parport parport_pc pcspkr ppdev processor_thermal_device
-psmouse r8169 raid6_pq rfcomm rfkill scsi_mod sd_mod serio_raw sg
-shpchp snd snd_hda_codec snd_hda_codec_generic snd_hda_codec_hdmi
-snd_hda_codec_realtek snd_hda_core snd_hda_intel snd_hwdep snd_pcm
-snd_timer soundcore sparse_keymap sr_mod sunrpc thermal usbcore
-uvcvideo vfat video videobuf2_common videobuf2_memops videobuf2_v4l2
-videobuf2_vmalloc videodev wl wmi wmi_bmof x86_pkg_temp_thermal xfs
-xhci_hcd xhci_pci xor x_tables xxhash zstd_compress zstd_decompress
-
-
-$uname -a
-Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
-$
-
-Reported-by: Jeffrin Jose T  <jeffrin@rajagiritech.edu.in>
-
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index da1ca485..b8b74889 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -9233,6 +9233,11 @@ static struct ibm_struct mute_led_driver_data = {
+ #define GET_STOP	"BCSG"
+ #define SET_STOP	"BCSS"
+ 
++#define SET_INHIBIT	"BICS"
++#define GET_INHIBIT	"BICG"
++
++#define INHIBIT_ATTR	"inhibit_charge"
++
+ #define START_ATTR "charge_start_threshold"
+ #define STOP_ATTR  "charge_stop_threshold"
+ 
+@@ -9251,6 +9256,7 @@ enum {
+ 	/* This is used in the get/set helpers */
+ 	THRESHOLD_START,
+ 	THRESHOLD_STOP,
++	INHIBIT_CHARGE
+ };
+ 
+ struct tpacpi_battery_data {
+@@ -9258,6 +9264,7 @@ struct tpacpi_battery_data {
+ 	int start_support;
+ 	int charge_stop;
+ 	int stop_support;
++	int inhibit_support;
+ };
+ 
+ struct tpacpi_battery_driver_data {
+@@ -9315,6 +9322,13 @@ static int tpacpi_battery_get(int what, int battery, int *ret)
+ 		if (*ret == 0)
+ 			*ret = 100;
+ 		return 0;
++	case INHIBIT_CHARGE:
++		if ACPI_FAILURE(tpacpi_battery_acpi_eval(GET_INHIBIT, ret, battery))
++			return -ENODEV;
++
++		/* The inhibit charge status is in the first bit */
++		*ret = *ret & 0x01;
++		return 0;
+ 	default:
+ 		pr_crit("wrong parameter: %d", what);
+ 		return -EINVAL;
+@@ -9343,6 +9357,21 @@ static int tpacpi_battery_set(int what, int battery, int value)
+ 			return -ENODEV;
+ 		}
+ 		return 0;
++	case INHIBIT_CHARGE:
++		/* When setting inhbitit charge, we set a default vaulue of
++		 * always breaking on AC detach and the effective time is set to
++		 * be permanent.
++		 * The battery ID is in bits 4-5, 2 bits and the effective time
++		 * is in bits 8-23, 2 bytes. A time of FFFF indicates forever.
++		 */
++		param = value;
++		param |= battery << 4;
++		param |= 0xFFFF << 8;
++		if ACPI_FAILURE(tpacpi_battery_acpi_eval(SET_INHIBIT, &ret, param)) {
++			pr_err("failed to set inhibit charge on %d", battery);
++			return -ENODEV;
++		}
++		return 0;
+ 	default:
+ 		pr_crit("wrong parameter: %d", what);
+ 		return -EINVAL;
+@@ -9359,6 +9388,8 @@ static int tpacpi_battery_probe(int battery)
+ 	 * 2) Check for support
+ 	 * 3) Get the current stop threshold
+ 	 * 4) Check for support
++	 * 5) Check for inhibit charge support
++	 * 6) Get the current inhibit charge status
+ 	 */
+ 	if (acpi_has_method(hkey_handle, GET_START)) {
+ 		if ACPI_FAILURE(tpacpi_battery_acpi_eval(GET_START, &ret, battery)) {
+@@ -9395,10 +9426,16 @@ static int tpacpi_battery_probe(int battery)
+ 			return -ENODEV;
+ 		}
+ 	}
+-	pr_info("battery %d registered (start %d, stop %d)",
++	if (acpi_has_method(hkey_handle, GET_INHIBIT))
++		if (!ACPI_FAILURE(tpacpi_battery_acpi_eval(GET_INHIBIT, &ret, battery)))
++			/* Support is marked in bit 5 */
++			battery_info.batteries[battery].inhibit_support = ret & BIT(5);
++
++	pr_info("battery %d registered (start %d, stop %d, inhibit: %d)",
+ 			battery,
+ 			battery_info.batteries[battery].charge_start,
+-			battery_info.batteries[battery].charge_stop);
++			battery_info.batteries[battery].charge_stop,
++			battery_info.batteries[battery].inhibit_support);
+ 
+ 	return 0;
+ }
+@@ -9484,6 +9521,15 @@ static ssize_t tpacpi_battery_store(int what,
+ 		if (tpacpi_battery_set(THRESHOLD_STOP, battery, value))
+ 			return -EINVAL;
+ 		return count;
++	case INHIBIT_CHARGE:
++		if (!battery_info.batteries[battery].inhibit_support)
++			return -ENODEV;
++		/* The only valid values are 1 and 0 */
++		if (value != 0 && value != 1)
++			return -EINVAL;
++		if (tpacpi_battery_set(INHIBIT_CHARGE, battery, value))
++			return -ENODEV;
++		return count;
+ 	default:
+ 		pr_crit("Wrong parameter: %d", what);
+ 		return -EINVAL;
+@@ -9546,12 +9592,28 @@ static ssize_t charge_stop_threshold_store(struct device *dev,
+ 	return tpacpi_battery_store(THRESHOLD_STOP, dev, buf, count);
+ }
+ 
++static ssize_t inhibit_charge_store(struct device *dev,
++				struct device_attribute *attr,
++				const char *buf, size_t count)
++{
++	return tpacpi_battery_store(INHIBIT_CHARGE, dev, buf, count);
++}
++
++static ssize_t inhibit_charge_show(struct device *device,
++				struct device_attribute *attr,
++				char *buf)
++{
++	return tpacpi_battery_show(INHIBIT_CHARGE, device, buf);
++}
++
+ static DEVICE_ATTR_RW(charge_start_threshold);
+ static DEVICE_ATTR_RW(charge_stop_threshold);
++static DEVICE_ATTR_RW(inhibit_charge);
+ 
+ static struct attribute *tpacpi_battery_attrs[] = {
+ 	&dev_attr_charge_start_threshold.attr,
+ 	&dev_attr_charge_stop_threshold.attr,
++	&dev_attr_inhibit_charge.attr,
+ 	NULL,
+ };
+ 
 -- 
-software engineer
-rajagiri school of engineering and technology
+2.17.0
+
+
+------------------------------------------------------------------------------
+Check out the vibrant tech community on one of the world's most
+engaging tech sites, Slashdot.org! http://sdm.link/slashdot
