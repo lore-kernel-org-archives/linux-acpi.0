@@ -1,63 +1,97 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH v5 0/2] acpi: apei: Improve PCIe error handling with FFS
-Date: Mon, 14 May 2018 09:59:27 -0500
-Message-ID: <20180514145933.10291-1-mr.nuke.me@gmail.com>
+Subject: [PATCH v5 1/2] acpi: apei: Rename ghes_severity() to ghes_cper_severity()
+Date: Mon, 14 May 2018 09:59:28 -0500
+Message-ID: <20180514145933.10291-2-mr.nuke.me@gmail.com>
 References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
+ <20180514145933.10291-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180430212836.7807-1-mr.nuke.me@gmail.com>
+In-Reply-To: <20180514145933.10291-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: bp@alien8.de
 Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The purpose of these changes is to see if we can safely de-escalate
-the situation and notify the appropriate error handler. Since FFS
-reports errors through NMIs or other non-standard mechanism, we have
-to be just a little more careful with reporting the error.
+ghes_severity() is a misnomer in this case, as it implies the severity
+of the entire GHES structure. Instead, it maps one CPER value to a
+GHES_SEV* value. ghes_cper_severity() is clearer.
 
-We're concerned with things, such as being able to cross the NMI/IRQ
-boundary, or being able to safely schedule work and notify the
-appropriate subsystem. Once the notification is sent, our job is done.
-I'm explicitly _NOT_ concerned with whether the error is handled or
-not, especially since such concern reduces to a call to __ghes_panic().
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/acpi/apei/ghes.c | 17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-There are rare cases that prevent us from de-escalating to lesser
-contexts, such as uncorrectable memory errors in kernel. In these sort
-of cases, trying to leave the NMI might cause a triple fault. James
-Morse explained this very well when discussing v1 of this series. In
-and only in such cases, we are justified to panic().
-
-Once the error is safely sent its merry way, it's really up to the
-error handler to panic() or continue. For example, aer_recover_queue()
-might for ungodly reasons fail. However, it's up to the AER code to
-decide whether failing to queue an error for handling is panic worthy.
-
-Changes since v4:
- - Fix Freudian slip and use GHES_ instead of CPER_ enum
- - Rephrased comments to clarify what we don't care about
-
-Changes since v3:
- - Renamed ghes_severity to something more concrete
- - Reorganized code to make it look like more than just a rename
- - Remembered to remove last patch in the series
-
-Changes since v2:
- - Due to popular request, simple is chosen over flexible
- - Removed splitting of handlers into irq safe portion.
- - Change behavior only for PCIe errors
-
-Changes since v1:
- - Due to popular request, the panic() is left in the NMI handler
- - GHES AER handler is split into NMI and non-NMI portions
- - ghes_notify_nmi() does not panic on deferrable errors
- - The handlers are put in a mapping and given a common call signature
-
-Alexandru Gagniuc (2):
-  acpi: apei: Rename ghes_severity() to ghes_cper_severity()
-  acpi: apei: Do not panic() on PCIe errors reported through GHES
-
- drivers/acpi/apei/ghes.c | 63 +++++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 52 insertions(+), 11 deletions(-)
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 1efefe919555..7c1a16b106ba 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -271,7 +271,7 @@ static void ghes_fini(struct ghes *ghes)
+ 		unmap_gen_v2(ghes);
+ }
+ 
+-static inline int ghes_severity(int severity)
++static inline int ghes_cper_severity(int severity)
+ {
+ 	switch (severity) {
+ 	case CPER_SEV_INFORMATIONAL:
+@@ -388,7 +388,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
+ #ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
+ 	unsigned long pfn;
+ 	int flags = -1;
+-	int sec_sev = ghes_severity(gdata->error_severity);
++	int sec_sev = ghes_cper_severity(gdata->error_severity);
+ 	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
+ 
+ 	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
+@@ -468,10 +468,10 @@ static void ghes_do_proc(struct ghes *ghes,
+ 	guid_t *fru_id = &NULL_UUID_LE;
+ 	char *fru_text = "";
+ 
+-	sev = ghes_severity(estatus->error_severity);
++	sev = ghes_cper_severity(estatus->error_severity);
+ 	apei_estatus_for_each_section(estatus, gdata) {
+ 		sec_type = (guid_t *)gdata->section_type;
+-		sec_sev = ghes_severity(gdata->error_severity);
++		sec_sev = ghes_cper_severity(gdata->error_severity);
+ 		if (gdata->validation_bits & CPER_SEC_VALID_FRU_ID)
+ 			fru_id = (guid_t *)gdata->fru_id;
+ 
+@@ -512,7 +512,7 @@ static void __ghes_print_estatus(const char *pfx,
+ 	char pfx_seq[64];
+ 
+ 	if (pfx == NULL) {
+-		if (ghes_severity(estatus->error_severity) <=
++		if (ghes_cper_severity(estatus->error_severity) <=
+ 		    GHES_SEV_CORRECTED)
+ 			pfx = KERN_WARNING;
+ 		else
+@@ -534,7 +534,7 @@ static int ghes_print_estatus(const char *pfx,
+ 	static DEFINE_RATELIMIT_STATE(ratelimit_uncorrected, 5*HZ, 2);
+ 	struct ratelimit_state *ratelimit;
+ 
+-	if (ghes_severity(estatus->error_severity) <= GHES_SEV_CORRECTED)
++	if (ghes_cper_severity(estatus->error_severity) <= GHES_SEV_CORRECTED)
+ 		ratelimit = &ratelimit_corrected;
+ 	else
+ 		ratelimit = &ratelimit_uncorrected;
+@@ -705,9 +705,8 @@ static int ghes_proc(struct ghes *ghes)
+ 	if (rc)
+ 		goto out;
+ 
+-	if (ghes_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC) {
++	if (ghes_cper_severity(ghes->estatus->error_severity) >= GHES_SEV_PANIC)
+ 		__ghes_panic(ghes);
+-	}
+ 
+ 	if (!ghes_estatus_cached(ghes->estatus)) {
+ 		if (ghes_print_estatus(NULL, ghes->generic, ghes->estatus))
+@@ -945,7 +944,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ 			ret = NMI_HANDLED;
+ 		}
+ 
+-		sev = ghes_severity(ghes->estatus->error_severity);
++		sev = ghes_cper_severity(ghes->estatus->error_severity);
+ 		if (sev >= GHES_SEV_PANIC) {
+ 			oops_begin();
+ 			ghes_print_queued_estatus();
 -- 
 2.14.3
