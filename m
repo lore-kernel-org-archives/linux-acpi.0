@@ -1,36 +1,63 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v9 04/12] arm64/acpi: Create arch specific cpu to acpi id
- helper
-Date: Mon, 14 May 2018 15:41:28 +0100
-Message-ID: <d64175c1-3ab4-8854-e26e-486ada09e308@arm.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com>
- <20180511235807.30834-5-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH v5 0/2] acpi: apei: Improve PCIe error handling with FFS
+Date: Mon, 14 May 2018 09:59:27 -0500
+Message-ID: <20180514145933.10291-1-mr.nuke.me@gmail.com>
+References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180511235807.30834-5-jeremy.linton@arm.com>
-Content-Language: en-US
+In-Reply-To: <20180430212836.7807-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org
+To: bp@alien8.de
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+The purpose of these changes is to see if we can safely de-escalate
+the situation and notify the appropriate error handler. Since FFS
+reports errors through NMIs or other non-standard mechanism, we have
+to be just a little more careful with reporting the error.
 
+We're concerned with things, such as being able to cross the NMI/IRQ
+boundary, or being able to safely schedule work and notify the
+appropriate subsystem. Once the notification is sent, our job is done.
+I'm explicitly _NOT_ concerned with whether the error is handled or
+not, especially since such concern reduces to a call to __ghes_panic().
 
-On 12/05/18 00:57, Jeremy Linton wrote:
-> Its helpful to be able to lookup the acpi_processor_id associated
-> with a logical cpu. Provide an arm64 helper to do this.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
-> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-> Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
-> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+There are rare cases that prevent us from de-escalating to lesser
+contexts, such as uncorrectable memory errors in kernel. In these sort
+of cases, trying to leave the NMI might cause a triple fault. James
+Morse explained this very well when discussing v1 of this series. In
+and only in such cases, we are justified to panic().
 
-Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Once the error is safely sent its merry way, it's really up to the
+error handler to panic() or continue. For example, aer_recover_queue()
+might for ungodly reasons fail. However, it's up to the AER code to
+decide whether failing to queue an error for handling is panic worthy.
+
+Changes since v4:
+ - Fix Freudian slip and use GHES_ instead of CPER_ enum
+ - Rephrased comments to clarify what we don't care about
+
+Changes since v3:
+ - Renamed ghes_severity to something more concrete
+ - Reorganized code to make it look like more than just a rename
+ - Remembered to remove last patch in the series
+
+Changes since v2:
+ - Due to popular request, simple is chosen over flexible
+ - Removed splitting of handlers into irq safe portion.
+ - Change behavior only for PCIe errors
+
+Changes since v1:
+ - Due to popular request, the panic() is left in the NMI handler
+ - GHES AER handler is split into NMI and non-NMI portions
+ - ghes_notify_nmi() does not panic on deferrable errors
+ - The handlers are put in a mapping and given a common call signature
+
+Alexandru Gagniuc (2):
+  acpi: apei: Rename ghes_severity() to ghes_cper_severity()
+  acpi: apei: Do not panic() on PCIe errors reported through GHES
+
+ drivers/acpi/apei/ghes.c | 63 +++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 52 insertions(+), 11 deletions(-)
 
 -- 
-Regards,
-Sudeep
+2.14.3
