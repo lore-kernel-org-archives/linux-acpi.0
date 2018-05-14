@@ -1,103 +1,108 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH v5 2/2] acpi: apei: Do not panic() on PCIe errors reported through GHES
-Date: Mon, 14 May 2018 09:59:29 -0500
-Message-ID: <20180514145933.10291-3-mr.nuke.me@gmail.com>
-References: <20180430212836.7807-1-mr.nuke.me@gmail.com>
- <20180514145933.10291-1-mr.nuke.me@gmail.com>
+From: Yu Chen <yu.c.chen@intel.com>
+Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads
+ on idle cpus
+Date: Mon, 14 May 2018 23:45:23 +0800
+Message-ID: <20180514154523.GA17331@sandybridge-desktop>
+References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
+ <8775668.fKKdjnIWAU@aspire.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180514145933.10291-1-mr.nuke.me@gmail.com>
+Content-Disposition: inline
+In-Reply-To: <8775668.fKKdjnIWAU@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bp@alien8.de
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The policy was to panic() when GHES said that an error is "Fatal".
-This logic is wrong for several reasons, as it doesn't take into
-account what caused the error.
+On Sun, May 13, 2018 at 11:30:52AM +0200, Rafael J. Wysocki wrote:
+> On Saturday, May 5, 2018 1:53:22 PM CEST Chen Yu wrote:
+> > According to current implementation of acpi_pad driver,
+> > it does not make sense to spawn any power saving threads
+> > on the cpus which are already idle - it might bring
+> > unnecessary overhead on these idle cpus and causes power
+> > waste. So verify the condition that if the number of 'busy'
+> > cpus exceeds the amount of the 'forced idle' cpus is met.
+> > This is applicable due to round-robin attribute of the
+> > power saving threads, otherwise ignore the setting/ACPI
+> > notification.
+> 
+> OK, but CPUs are busy, because they are running tasks.  If acpi_pad
+> kthreads run on them, the tasks they are running will migrate to the
+> currently idle CPUs (unless they have specific CPU affinity) and the
+> throttling will not really be effective.
+>
+OK, I think this makes sense, I missed the load balance scenario.
+> I would think that acpi_pad should ensure that the requested number of
+> CPUs will not run anything other than throttling kthreads.  Isn't that
+> the case?
+> 
+Do you mean, we should check if the number of 'idle'(rather than the 'busy' one
+in this patch) cpus is larger than the requested one? Then I think we should also
+add a patch to use the play_idle() as power_clamp to treat the throttling kthreads
+as idle threads thus to stop system tick. Such as the patch Jacob proposed:
 
-PCIe fatal errors indicate that the link to a device is either
-unstable or unusable. They don't indicate that the machine is on fire,
-and they are not severe enough that we need to panic(). Instead of
-relying on crackmonkey firmware, evaluate the error severity based on
-what caused the error (GHES subsections).
-
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 48 +++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 45 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 7c1a16b106ba..9baaab798020 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -425,8 +425,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
-  * GHES_SEV_RECOVERABLE -> AER_NONFATAL
-  * GHES_SEV_RECOVERABLE && CPER_SEC_RESET -> AER_FATAL
-  *     These both need to be reported and recovered from by the AER driver.
-- * GHES_SEV_PANIC does not make it to this handling since the kernel must
-- *     panic.
-+ * GHES_SEV_PANIC -> AER_FATAL
-  */
- static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
+Index: linux/drivers/acpi/acpi_pad.c
+===================================================================
+--- linux.orig/drivers/acpi/acpi_pad.c
++++ linux/drivers/acpi/acpi_pad.c
+@@ -144,7 +144,6 @@ static unsigned int round_robin_time = 1
+ static int power_saving_thread(void *data)
  {
-@@ -459,6 +458,49 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- #endif
- }
+ 	struct sched_param param = {.sched_priority = 1};
+-	int do_sleep;
+ 	unsigned int tsk_index = (unsigned long)data;
+ 	u64 last_jiffies = 0;
  
-+/* PCIe errors should not cause a panic. */
-+static int ghes_sec_pcie_severity(struct acpi_hest_generic_data *gdata)
-+{
-+	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-+
-+	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
-+	    IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
-+		return GHES_SEV_RECOVERABLE;
-+
-+	return ghes_cper_severity(gdata->error_severity);
-+}
-+
-+/*
-+ * The severity field in the status block is an unreliable metric for the
-+ * severity. A more reliable way is to look at each subsection and see how safe
-+ * it is to call the approproate error handler.
-+ * We're not conerned with handling the error. We're concerned with being able
-+ * to notify an error handler by crossing the NMI/IRQ boundary, being able to
-+ * schedule_work, and so forth.
-+ *   - SEC_PCIE: All PCIe errors can be handled by AER.
-+ */
-+static int ghes_severity(struct ghes *ghes)
-+{
-+	int worst_sev, sec_sev;
-+	struct acpi_hest_generic_data *gdata;
-+	const guid_t *section_type;
-+	const struct acpi_hest_generic_status *estatus = ghes->estatus;
-+
-+	worst_sev = GHES_SEV_NO;
-+	apei_estatus_for_each_section(estatus, gdata) {
-+		section_type = (guid_t *)gdata->section_type;
-+		sec_sev = ghes_cper_severity(gdata->error_severity);
-+
-+		if (guid_equal(section_type, &CPER_SEC_PCIE))
-+			sec_sev = ghes_sec_pcie_severity(gdata);
-+
-+		worst_sev = max(worst_sev, sec_sev);
-+	}
-+
-+	return worst_sev;
-+}
-+
- static void ghes_do_proc(struct ghes *ghes,
- 			 const struct acpi_hest_generic_status *estatus)
- {
-@@ -944,7 +986,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 			ret = NMI_HANDLED;
+@@ -160,33 +159,13 @@ static int power_saving_thread(void *dat
+ 			round_robin_cpu(tsk_index);
  		}
  
--		sev = ghes_cper_severity(ghes->estatus->error_severity);
-+		sev = ghes_severity(ghes);
- 		if (sev >= GHES_SEV_PANIC) {
- 			oops_begin();
- 			ghes_print_queued_estatus();
--- 
-2.14.3
+-		do_sleep = 0;
+-
+-		expire_time = jiffies + HZ * (100 - idle_pct) / 100;
+-
+-		while (!need_resched()) {
+-			if (tsc_detected_unstable && !tsc_marked_unstable) {
+-				/* TSC could halt in idle, so notify users */
+-				mark_tsc_unstable("TSC halts in idle");
+-				tsc_marked_unstable = 1;
+-			}
+-			local_irq_disable();
+-			tick_broadcast_enable();
+-			tick_broadcast_enter();
+-			stop_critical_timings();
+-
+-			mwait_idle_with_hints(power_saving_mwait_eax, 1);
+-
+-			start_critical_timings();
+-			tick_broadcast_exit();
+-			local_irq_enable();
+-
+-			if (time_before(expire_time, jiffies)) {
+-				do_sleep = 1;
+-				break;
+-			}
++		if (tsc_detected_unstable && !tsc_marked_unstable) {
++			/* TSC could halt in idle, so notify users */
++			mark_tsc_unstable("TSC halts in idle");
++			tsc_marked_unstable = 1;
+ 		}
+ 
++		play_idle(jiffies_to_msecs(HZ * (100 - idle_pct) / 100));
+ 		/*
+ 		 * current sched_rt has threshold for rt task running time.
+ 		 * When a rt task uses 95% CPU time, the rt thread will be
+@@ -196,8 +175,7 @@ static int power_saving_thread(void *dat
+ 		 * borrow CPU time from this CPU and cause RT task use > 95%
+ 		 * CPU time. To make 'avoid starvation' work, takes a nap here.
+ 		 */
+-		if (unlikely(do_sleep))
+-			schedule_timeout_killable(HZ * idle_pct / 100);
++		schedule_timeout_killable(HZ * idle_pct / 100);
+ 
+ 		/* If an external event has set the need_resched flag, then
+ 		 * we need to deal with it, or this loop will continue to
+> Thanks,
+> Rafael
+> 
