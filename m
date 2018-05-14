@@ -1,62 +1,64 @@
-From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/3] thinkpad_acpi: document the
- battery controls
-Date: Mon, 14 May 2018 15:41:18 +0200
-Message-ID: <20180514134118.GD6417@thinkpad>
-References: <20180513153024.GA5142@thinkpad>
- <20180514120302.knhohskga6x6ji3s@khazad-dum.debian.net>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2 1/2] pwm: lpss: platform: Save/restore the ctrl
+ register over a suspend/resume
+Date: Mon, 14 May 2018 15:08:32 +0100
+Message-ID: <fc46e2ab-13c6-4dfd-6539-703acec5555a@redhat.com>
+References: <20180426121024.22023-1-hdegoede@redhat.com>
+ <2943907.WSHDcS9sfS@aspire.rjw.lan> <20180514115032.GF18312@ulmo>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180514120302.knhohskga6x6ji3s-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180514115032.GF18312@ulmo>
+Content-Language: en-US
+Sender: stable-owner@vger.kernel.org
+To: Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 14, 2018 at 09:03:02AM -0300, Henrique de Moraes Holschuh wrote:
-> On Sun, 13 May 2018, Ognjen Galic wrote:
-> > +Battery force discharging
-> > +--------------------------
-> > +
-> > +There is also support for AC overriding. This means that you can force the battery to discharge
-> > +even when AC is attached. This is also exposed via the generic ACPI driver:
-> > +
-> > +/sys/class/power_supply/BATx/force_discharge [int, 1, 0]
-> > +
-> > +Setting it to 1 forces the battery to discharge on AC.
-> 
-> This is used to run a battery "fuel gauge" callibration cycle.
-> 
-> One has to set the limits to 0,100 (i.e. disable the anti-wear
-> limiters), trigger a force_discharge, and wait until it discharges to
-> zero.  At that point, the EC is supposed to reset the force_discharge
-> bit by itself, and then you have to wait the battery to charge back to
-> full.
+Hi,
 
-That's the intended use case for this patches via an upcoming program I
-am writing for userspace.
-
+On 05/14/2018 12:50 PM, Thierry Reding wrote:
+> On Thu, May 10, 2018 at 05:25:10PM +0200, Rafael J. Wysocki wrote:
+>> On Thursday, April 26, 2018 2:10:23 PM CEST Hans de Goede wrote:
+>>> On some devices the contents of the ctrl register get lost over a
+>>> suspend/resume and the PWM comes back up disabled after the resume.
+>>>
+>>> This is seen on some Bay Trail devices with the PWM in ACPI enumerated
+>>> mode, so it shows up as a platform device instead of a PCI device.
+>>>
+>>> If we still think it is enabled and then try to change the duty-cycle
+>>> after this, we end up with a "PWM_SW_UPDATE was not cleared" error and
+>>> the PWM is stuck in that state from then on.
+>>>
+>>> This commit adds suspend and resume pm callbacks to the pwm-lpss-platform
+>>> code, which save/restore the ctrl register over a suspend/resume, fixing
+>>> this.
+>>>
+>>> Note that:
+>>>
+>>> 1) There is no need to do this over a runtime suspend, since we
+>>> only runtime suspend when disabled and then we properly set the enable
+>>> bit and reprogram the timings when we re-enable the PWM.
+>>>
+>>> 2) This may be happening on more systems then we realize, but has been
+>>> covered up sofar by a bug in the acpi-lpss.c code which was save/restoring
+>>> the regular device registers instead of the lpss private registers due to
+>>> lpss_device_desc.prv_offset not being set. This is fixed by a later patch
+>>> in this series.
+>>>
+>>> Cc: stable@vger.kernel.org
+>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>>
+>> Andy, Thierry, any comments or concerns regarding this series?
 > 
-> (and at least on older thinkpads, where you had to use SMAPI to do the
-> above, it didn't need much help from the operating system.  Once a
-> couple years you could just set force_discharge on both batteries (with
-> the thing connected to AC), shutdown the operating system, and go to
-> sleep.  By morning, it would be fully charged and both gauges
-> calibrated, still powered off, ready to go :P ).
-> 
-> -- 
->   Henrique Holschuh
+> Hans said in the cover letter of the first version of this series that
+> he preferred to merge both patches through the PWM tree because of the
+> dependency. So I'm waiting for an Acked-by from you on the ACPI bits.
 
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+The other way around (both through ACPI) would work too, but yes it
+would be good to keep them together,
+
+Regards,
+
+Hans
