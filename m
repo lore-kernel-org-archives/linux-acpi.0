@@ -1,41 +1,173 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] device property: Get rid of union aliasing
-Date: Mon, 14 May 2018 23:55:32 +0300
-Message-ID: <CAHp75VfzFSZpCw1tsiWcLL9GHDvCMb076eXXJELTF1bPmJwEAw@mail.gmail.com>
-References: <20180508131547.44366-1-andriy.shevchenko@linux.intel.com>
- <20180514121817.GA27869@wunner.de> <f2109d06a0755dd2d9dc807c1e13dd2c19903905.camel@linux.intel.com>
- <20180514154017.GA6734@wunner.de> <ddd9eae5cf848df9c25a49001845a3d80e429a6f.camel@linux.intel.com>
- <CAJZ5v0iD3-gmOsRtH6H+EHz-wXyW_xJV+U_vbM94oVdz1=gkPg@mail.gmail.com>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v3 3/3] mailbox: ACPI: erroneous error message when
+ parsing the ACPI PCCT
+Date: Mon, 14 May 2018 15:04:30 -0600
+Message-ID: <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org>
+References: <20180501003907.4322-1-ahs3@redhat.com>
+ <20180501003907.4322-4-ahs3@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iD3-gmOsRtH6H+EHz-wXyW_xJV+U_vbM94oVdz1=gkPg@mail.gmail.com>
+In-Reply-To: <20180501003907.4322-4-ahs3@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi <linux-efi@vger.kernel.org>, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Al Stone <ahs3@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, May 14, 2018 at 11:44 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Mon, May 14, 2018 at 6:13 PM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
->> On Mon, 2018-05-14 at 17:40 +0200, Lukas Wunner wrote:
->>> On Mon, May 14, 2018 at 03:48:09PM +0300, Andy Shevchenko wrote:
 
->>> Well if that is your concern then you need to prevent functions which
->>> retrieve properties to use the wrong type.
->>>
->>> E.g. to prevent retrieval of the u8 array as string, you'd have to
->>> amend drivers/base/property.c:pset_prop_read_string_array() to
->>> check the type of the property found and return -EINVAL if it's not
->>> string.
->>
->> I think it's doable. I will hack a new version later this week.
+
+On 4/30/2018 6:39 PM, Al Stone wrote:
+> There have been multiple reports of the following error message:
 >
-> So I'm assuming that I should disregard this patch and wait for an
-> update, right?
+> [    0.068293] Error parsing PCC subspaces from PCCT
+>
+> This error message is not correct.  In multiple cases examined, the PCCT
+> (Platform Communications Channel Table) concerned is actually properly
+> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+> is making the assumption that the only valid PCCT is one that contains
+> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+> types are counted and as long as there is at least one of the desired
+> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+> are found, regardless of whether or not any other subtable types are
+> present, the error mentioned above is reported.
+>
+> In the cases reported to me personally, the PCCT contains exactly one
+> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+> acpi_pcc_probe() does not count it as a valid subtable, so believes
+> there to be no valid subtables, and hence outputs the error message.
+>
+> An example of the PCCT being reported as erroneous yet perfectly fine
+> is the following:
+>
+>                     Signature : "PCCT"
+>                  Table Length : 0000006E
+>                      Revision : 05
+>                      Checksum : A9
+>                        Oem ID : "XXXXXX"
+>                  Oem Table ID : "XXXXX   "
+>                  Oem Revision : 00002280
+>               Asl Compiler ID : "XXXX"
+>         Asl Compiler Revision : 00000002
+>
+>         Flags (decoded below) : 00000001
+>                      Platform : 1
+>                      Reserved : 0000000000000000
+>
+>                 Subtable Type : 00 [Generic Communications Subspace]
+>                        Length : 3E
+>
+>                      Reserved : 000000000000
+>                  Base Address : 00000000DCE43018
+>                Address Length : 0000000000001000
+>
+>             Doorbell Register : [Generic Address Structure]
+>                      Space ID : 01 [SystemIO]
+>                     Bit Width : 08
+>                    Bit Offset : 00
+>          Encoded Access Width : 01 [Byte Access:8]
+>                       Address : 0000000000001842
+>
+>                 Preserve Mask : 00000000000000FD
+>                    Write Mask : 0000000000000002
+>               Command Latency : 00001388
+>           Maximum Access Rate : 00000000
+>       Minimum Turnaround Time : 0000
+>
+> To fix this, we count up all of the possible subtable types for the
+> PCCT, and only report an error when there are none (which could mean
+> either no subtables, or no valid subtables), or there are too many.
+> We also change the logic so that if there is a valid subtable, we
+> do try to initialize it per the PCCT subtable contents.  This is a
+> change in functionality; previously, the probe would have returned
+> right after the error message and would not have tried to use any
+> other subtable definition.
+>
+> Tested on my personal laptop which showed the error previously; the
+> error message no longer appears and the laptop appears to operate
+> normally.
+>
+> Signed-off-by: Al Stone <ahs3@redhat.com>
+> Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> ---
+>  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
+>  1 file changed, 63 insertions(+), 33 deletions(-)
+>
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 3ef7f036ceea..72af37d7e95e 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -372,13 +372,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
+>  	.send_data = pcc_send_data,
+>  };
+>  
+> +/*
+> + *
+> + * count_pcc_subspaces -- Count PCC subspaces not used in reduced HW systems.
+> + * @header: Pointer to the ACPI subtable header under the PCCT.
+> + * @end: End of subtable entry.
+> + *
+> + * Return: If we find a PCC subspace entry that is one of the types used
+> + *	in reduced hardware systems, return -EINVAL.  Otherwise, return 0.
+> + *
+> + * This gets called for each subtable in the PCC table.
+> + */
+> +static int count_pcc_subspaces(struct acpi_subtable_header *header,
+> +		const unsigned long end)
+> +{
+> +	struct acpi_pcct_subspace *pcct_ss = (struct acpi_pcct_subspace *) header;
+> +
+> +	if ((pcct_ss->header.type <= ACPI_PCCT_TYPE_RESERVED) &&
+> +	    (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) &&
+> +	    (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
+> +		return 0;
+> +
+> +	return -EINVAL;
+> +}
+> +
+>  /**
+> - * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
+> - *		entries. There should be one entry per PCC client.
+> + * parse_pcc_subspaces -- Count PCC subspaces used only in reduced HW systems.
+>   * @header: Pointer to the ACPI subtable header under the PCCT.
+>   * @end: End of subtable entry.
+>   *
+> - * Return: 0 for Success, else errno.
+> + * Return: If we find a PCC subspace entry that is one of the types used
+> + *	in reduced hardware systems, return 0.  Otherwise, return -EINVAL.
+>   *
+>   * This gets called for each entry in the PCC table.
+>   */
+> @@ -393,10 +417,8 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+>  		if ((pcct_ss->header.type !=
+>  				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
+>  		    && (pcct_ss->header.type !=
+> -				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
+> -			pr_err("Incorrect PCC Subspace type detected\n");
+> +				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
+>  			return -EINVAL;
+> -		}
+>  	}
+>  
+>  	return 0;
+Can't we combine  parse_pcc_subspace and count_pcc_subspaces into a
+single function? parse_pcc_subspace can return 0 for supported subspace
+types and -EINVAL for others.
 
-Right.
+The limitation on number of subspaces(max = 256) applies to all types of PCC
+subspaces (see Table 14-351 in ACPI 6.2).  The MAX_PCC_SUBSPACES check in
+ parse_pcc_subspace seems invalid as pcc_mbox_ctrl.num_chans will not be
+initialized yet at that moment.
 
--- 
-With Best Regards,
-Andy Shevchenko
+Given above, I think it is probably better to update parse_pcc_subspace to
+only check for a valid PCC subspace type. The check to make sure overall count
+of subspace is  less than 256 is already present following the call to
+acpi_table_parse_entries_array().
+
+--
+Thanks,
+Prashanth
