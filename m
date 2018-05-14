@@ -1,108 +1,52 @@
-From: Yu Chen <yu.c.chen@intel.com>
-Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads
- on idle cpus
-Date: Mon, 14 May 2018 23:45:23 +0800
-Message-ID: <20180514154523.GA17331@sandybridge-desktop>
-References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
- <8775668.fKKdjnIWAU@aspire.rjw.lan>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2] device property: Get rid of union aliasing
+Date: Mon, 14 May 2018 17:40:17 +0200
+Message-ID: <20180514154017.GA6734@wunner.de>
+References: <20180508131547.44366-1-andriy.shevchenko@linux.intel.com>
+ <20180514121817.GA27869@wunner.de>
+ <f2109d06a0755dd2d9dc807c1e13dd2c19903905.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <8775668.fKKdjnIWAU@aspire.rjw.lan>
+In-Reply-To: <f2109d06a0755dd2d9dc807c1e13dd2c19903905.camel@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, May 13, 2018 at 11:30:52AM +0200, Rafael J. Wysocki wrote:
-> On Saturday, May 5, 2018 1:53:22 PM CEST Chen Yu wrote:
-> > According to current implementation of acpi_pad driver,
-> > it does not make sense to spawn any power saving threads
-> > on the cpus which are already idle - it might bring
-> > unnecessary overhead on these idle cpus and causes power
-> > waste. So verify the condition that if the number of 'busy'
-> > cpus exceeds the amount of the 'forced idle' cpus is met.
-> > This is applicable due to round-robin attribute of the
-> > power saving threads, otherwise ignore the setting/ACPI
-> > notification.
+On Mon, May 14, 2018 at 03:48:09PM +0300, Andy Shevchenko wrote:
+> On Mon, 2018-05-14 at 14:18 +0200, Lukas Wunner wrote:
+> > On Tue, May 08, 2018 at 04:15:47PM +0300, Andy Shevchenko wrote:
+> > > --- a/drivers/firmware/efi/apple-properties.c
+> > > +++ b/drivers/firmware/efi/apple-properties.c
+> > > @@ -13,6 +13,9 @@
+> > > + * FIXME: The approach is still based on union aliasing and should be
+> > > + * replaced by a proper resource provider.
+> > 
+> > Why?  All Apple EFI properties are either boolean or u8 arrays.
+> > You've correctly changed this file to always supply u8 arrays,
+> > so I don't see where union aliasing is happening here?
 > 
-> OK, but CPUs are busy, because they are running tasks.  If acpi_pad
-> kthreads run on them, the tasks they are running will migrate to the
-> currently idle CPUs (unless they have specific CPU affinity) and the
-> throttling will not really be effective.
->
-OK, I think this makes sense, I missed the load balance scenario.
-> I would think that acpi_pad should ensure that the requested number of
-> CPUs will not run anything other than throttling kthreads.  Isn't that
-> the case?
-> 
-Do you mean, we should check if the number of 'idle'(rather than the 'busy' one
-in this patch) cpus is larger than the requested one? Then I think we should also
-add a patch to use the play_idle() as power_clamp to treat the throttling kthreads
-as idle threads thus to stop system tick. Such as the patch Jacob proposed:
+> Okay, for now I can see only Thunderbolt user of these properties (is it
+> correct?) in upstream which uses u8 arrays indeed.
 
-Index: linux/drivers/acpi/acpi_pad.c
-===================================================================
---- linux.orig/drivers/acpi/acpi_pad.c
-+++ linux/drivers/acpi/acpi_pad.c
-@@ -144,7 +144,6 @@ static unsigned int round_robin_time = 1
- static int power_saving_thread(void *data)
- {
- 	struct sched_param param = {.sched_priority = 1};
--	int do_sleep;
- 	unsigned int tsk_index = (unsigned long)data;
- 	u64 last_jiffies = 0;
- 
-@@ -160,33 +159,13 @@ static int power_saving_thread(void *dat
- 			round_robin_cpu(tsk_index);
- 		}
- 
--		do_sleep = 0;
--
--		expire_time = jiffies + HZ * (100 - idle_pct) / 100;
--
--		while (!need_resched()) {
--			if (tsc_detected_unstable && !tsc_marked_unstable) {
--				/* TSC could halt in idle, so notify users */
--				mark_tsc_unstable("TSC halts in idle");
--				tsc_marked_unstable = 1;
--			}
--			local_irq_disable();
--			tick_broadcast_enable();
--			tick_broadcast_enter();
--			stop_critical_timings();
--
--			mwait_idle_with_hints(power_saving_mwait_eax, 1);
--
--			start_critical_timings();
--			tick_broadcast_exit();
--			local_irq_enable();
--
--			if (time_before(expire_time, jiffies)) {
--				do_sleep = 1;
--				break;
--			}
-+		if (tsc_detected_unstable && !tsc_marked_unstable) {
-+			/* TSC could halt in idle, so notify users */
-+			mark_tsc_unstable("TSC halts in idle");
-+			tsc_marked_unstable = 1;
- 		}
- 
-+		play_idle(jiffies_to_msecs(HZ * (100 - idle_pct) / 100));
- 		/*
- 		 * current sched_rt has threshold for rt task running time.
- 		 * When a rt task uses 95% CPU time, the rt thread will be
-@@ -196,8 +175,7 @@ static int power_saving_thread(void *dat
- 		 * borrow CPU time from this CPU and cause RT task use > 95%
- 		 * CPU time. To make 'avoid starvation' work, takes a nap here.
- 		 */
--		if (unlikely(do_sleep))
--			schedule_timeout_killable(HZ * idle_pct / 100);
-+		schedule_timeout_killable(HZ * idle_pct / 100);
- 
- 		/* If an external event has set the need_resched flag, then
- 		 * we need to deal with it, or this loop will continue to
-> Thanks,
-> Rafael
-> 
+That is correct, thunderbolt.ko is so far the only user.
+
+
+> Though the implementation is quite fragile in this sense, because it
+> doesn't discourage people to use device_property_read_string() in case
+> when it's indeed a string (I saw these kind of properties in the very
+> dump you posted on your GH page).
+
+Well if that is your concern then you need to prevent functions which
+retrieve properties to use the wrong type.
+
+E.g. to prevent retrieval of the u8 array as string, you'd have to
+amend drivers/base/property.c:pset_prop_read_string_array() to
+check the type of the property found and return -EINVAL if it's not
+string.
+
+Thanks,
+
+Lukas
