@@ -1,53 +1,66 @@
-From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] thinkpad_acpi: add support for
- inhibit_charge
-Date: Mon, 14 May 2018 13:41:33 +0300
-Message-ID: <CAHp75VdPOH7J1X4ZXmRsQ1yrB5n5RRmhPneWOnu7TFOAysgE6Q@mail.gmail.com>
-References: <20180513152937.GA5072@thinkpad>
- <20180514094620.wfoom4mwwyqb7qe5@localhost>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 1/2] pwm: lpss: platform: Save/restore the ctrl
+ register over a suspend/resume
+Date: Mon, 14 May 2018 14:10:26 +0300
+Message-ID: <f7f33c55d61f19769cf055605e32ece76482f74b.camel@linux.intel.com>
+References: <20180426121024.22023-1-hdegoede@redhat.com>
+         <2943907.WSHDcS9sfS@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20180514094620.wfoom4mwwyqb7qe5@localhost>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <2943907.WSHDcS9sfS@aspire.rjw.lan>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Thierry Reding <thierry.reding@gmail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBNYXkgMTQsIDIwMTggYXQgMTI6NDYgUE0sIENocmlzdG9waCBCw7ZobXdhbGRlcgo8
-Y2hyaXN0b3BoQGJvZWhtd2FsZGVyLmF0PiB3cm90ZToKPiBPbiBTdW4sIE1heSAxMywgMjAxOCBh
-dCAwNToyOTozN1BNICswMjAwLCBPZ25qZW4gR2FsaWMgd3JvdGU6Cj4+IExlbm92byBUaGlua1Bh
-ZCBzeXN0ZW1zIHN1cHBvcnQgdGhlIHByZXZlbnRpb24gb2YKPj4gYmF0dGVyeSBjaGFyZ2luZyB2
-aWEgYSBtYW51YWwgb3ZlcnJpZGUgY2FsbGVkIEluaGliaXQgQ2hhcmdlLgo+Pgo+PiBUaGlzIHBh
-dGNoIGFkZHMgc3VwcG9ydCBmb3IgdGhhdCBhdHRyaWJ1dGUgYW5kIGV4cG9zZXMgaXQgdmlhIHRo
-ZQo+PiBiYXR0ZXJ5IEFDUEkgZHJpdmVyIGluIHRoZSBnZW5lcmljIGxvY2F0aW9uOgo+Pgo+PiAv
-c3lzL2NsYXNzL3Bvd2VyX3N1cHBseS9CQVRYL2luaGliaXRfY2hhcmdlCgo+PiArICAgICAgICAg
-ICAgIC8qIFdoZW4gc2V0dGluZyBpbmhiaXRpdCBjaGFyZ2UsIHdlIHNldCBhIGRlZmF1bHQgdmF1
-bHVlIG9mCj4KPiBUaGlzIGNvbW1lbnQgZG9lcyBub3QgYWRoZXJlIHRvIHRoZSBMaW51eCBjb2Rp
-bmcgc3R5bGUKCldoaWxlIHlvdSBhcmUgcmlnaHQgaW4gcHJpbmNpcGxlLCB0aGUgd2hvbGUgZHJp
-dmVyIGlzIHNvIG9sZCBhbmQgdXNlcwp0aGlzIHN0eWxlLiBTbywgZm9yIHN1Y2ggY2FzZXMgd2Us
-IGFzIG1haW50YWluZXJzLCBwcmVmZXIgbGVzcwpkZXZpYXRpb24gd29yaywgaS5lLiBrZWVwaW5n
-IHRoZQpzdHlsZSBpcyBhIGdvb2QgdGhpbmcgdG8gZG8uCgo+PiArICAgICAgICAgICAgIC8qIFRo
-ZSBvbmx5IHZhbGlkIHZhbHVlcyBhcmUgMSBhbmQgMCAqLwo+PiArICAgICAgICAgICAgIGlmICh2
-YWx1ZSAhPSAwICYmIHZhbHVlICE9IDEpCj4KPiBJJ20gbm90IHN1cmUsIGJ1dCBtYXliZSBgaWYg
-KHZhbHVlIDwgMilgIGlzIGJldHRlciBoZXJlPwoKU2luY2UgaXQncyBhYm91dCBpbnRlZ2VyLWFz
-LWEtYm9vbGVhbiwgdGVzdCBmb3IgYml0IDAgd291bGQgYmUKc3VmZmljaWVudCwgaS5lLiB+QklU
-KDApLiBUaG91Z2gsIEkgZmluZCB0aGlzIGZvcm0gbm90IHNvIHJlYWRhYmxlCnNpbmNlIHRoZSBp
-bnB1dCBjb21lcyBhY3R1YWxseSBmcm9tIHRoZSB1c2VyLgpJdCB3b3VsZCBiZSBuaWNlIHRvIGhh
-dmUganVzdCBrc3RydG9ib29sKCkgY2FsbGVkIGluc3RlYWQgZm9yIHN1Y2gKb3B0aW9ucywgYnV0
-IHNlZSBhYm92ZS4gSXQgd291bGQgbmVlZCBhIChodWdlKSByZWZhY3RvcmluZyBvZiB0aGUKZHJp
-dmVyIGZpcnN0LgoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVua28KCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLQpDaGVjayBvdXQgdGhlIHZpYnJhbnQgdGVjaCBjb21tdW5pdHkgb24g
-b25lIG9mIHRoZSB3b3JsZCdzIG1vc3QKZW5nYWdpbmcgdGVjaCBzaXRlcywgU2xhc2hkb3Qub3Jn
-ISBodHRwOi8vc2RtLmxpbmsvc2xhc2hkb3QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KaWJtLWFjcGktZGV2ZWwgbWFpbGluZyBsaXN0CmlibS1hY3BpLWRl
-dmVsQGxpc3RzLnNvdXJjZWZvcmdlLm5ldApodHRwczovL2xpc3RzLnNvdXJjZWZvcmdlLm5ldC9s
-aXN0cy9saXN0aW5mby9pYm0tYWNwaS1kZXZlbAo=
+On Thu, 2018-05-10 at 17:25 +0200, Rafael J. Wysocki wrote:
+> On Thursday, April 26, 2018 2:10:23 PM CEST Hans de Goede wrote:
+> > On some devices the contents of the ctrl register get lost over a
+> > suspend/resume and the PWM comes back up disabled after the resume.
+> > 
+> > This is seen on some Bay Trail devices with the PWM in ACPI
+> > enumerated
+> > mode, so it shows up as a platform device instead of a PCI device.
+> > 
+> > If we still think it is enabled and then try to change the duty-
+> > cycle
+> > after this, we end up with a "PWM_SW_UPDATE was not cleared" error
+> > and
+> > the PWM is stuck in that state from then on.
+> > 
+> > This commit adds suspend and resume pm callbacks to the pwm-lpss-
+> > platform
+> > code, which save/restore the ctrl register over a suspend/resume,
+> > fixing
+> > this.
+> > 
+> > Note that:
+> > 
+> > 1) There is no need to do this over a runtime suspend, since we
+> > only runtime suspend when disabled and then we properly set the
+> > enable
+> > bit and reprogram the timings when we re-enable the PWM.
+> > 
+> > 2) This may be happening on more systems then we realize, but has
+> > been
+> > covered up sofar by a bug in the acpi-lpss.c code which was
+> > save/restoring
+> > the regular device registers instead of the lpss private registers
+> > due to
+> > lpss_device_desc.prv_offset not being set. This is fixed by a later
+> > patch
+> > in this series.
+> > 
+> > Cc: stable@vger.kernel.org
+> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Andy, Thierry, any comments or concerns regarding this series?
+
+Fine by me:
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
