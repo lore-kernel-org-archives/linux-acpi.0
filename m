@@ -1,62 +1,229 @@
-From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace
-	lookup
-Date: Tue, 15 May 2018 16:56:43 +0200
-Message-ID: <20180515145643.GA661@lst.de>
-References: <20180425154827.32251-1-hch@lst.de>
-	<20180425154827.32251-12-hch@lst.de> <878t8y46sy.fsf@xmission.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v9 02/12] drivers: base: cacheinfo: setup DT cache
+ properties early
+Date: Tue, 15 May 2018 12:15:08 -0500
+Message-ID: <78b08b68-ff57-8dd8-6eb1-00548f275eac@arm.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com>
+ <20180511235807.30834-3-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <878t8y46sy.fsf-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
-List-Unsubscribe: <http://lists.linbit.com/mailman/options/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linbit.com/pipermail/drbd-dev>
-List-Post: <mailto:drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-List-Help: <mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linbit.com/mailman/listinfo/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=subscribe>
-Sender: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-Errors-To: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-To: "Eric W. Biederman" <ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jfs-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180511235807.30834-3-jeremy.linton@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Sudeep.Holla@arm.com, linux-arm-kernel@lists.infradead.org, Lorenzo.Pieralisi@arm.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, Will.Deacon@arm.com, Catalin.Marinas@arm.com, gregkh@linuxfoundation.org, Mark.Rutland@arm.com, linux-kernel@vger.kernel.org, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, ahs3@redhat.com, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, palmer@sifive.com, lenb@kernel.org, john.garry@huawei.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, jhugo@codeaurora.org, ard.biesheuvel@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, May 05, 2018 at 07:37:33AM -0500, Eric W. Biederman wrote:
-> Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> writes:
-> 
-> > The shole seq_file sequence already operates under a single RCU lock pair,
-> > so move the pid namespace lookup into it, and stop grabbing a reference
-> > and remove all kinds of boilerplate code.
-> 
-> This is wrong.
-> 
-> Move task_active_pid_ns(current) from open to seq_start actually means
-> that the results if you pass this proc file between callers the results
-> will change.  So this breaks file descriptor passing.
-> 
-> Open is a bad place to access current.  In the middle of read/write is
-> broken.
-> 
-> 
-> In this particular instance looking up the pid namespace with
-> task_active_pid_ns was a personal brain fart.  What the code should be
-> doing (with an appropriate helper) is:
-> 
-> struct pid_namespace *pid_ns = inode->i_sb->s_fs_info;
-> 
-> Because each mount of proc is bound to a pid namespace.  Looking up the
-> pid namespace from the super_block is a much better way to go.
+Hi Greg,
 
-What do you have in mind for the helper?  For now I've thrown it in
-opencoded into my working tree, but I'd be glad to add a helper.
+Have you had a chance to look at the cachinfo parts of this patch?
 
-struct pid_namespace *proc_pid_namespace(struct inode *inode)
-{
-	// maybe warn on for s_magic not on procfs??
-	return inode->i_sb->s_fs_info;
-}
+Comments?
 
-?
+Thanks,
+
+
+
+
+On 05/11/2018 06:57 PM, Jeremy Linton wrote:
+> The original intent in cacheinfo was that an architecture
+> specific populate_cache_leaves() would probe the hardware
+> and then cache_shared_cpu_map_setup() and
+> cache_override_properties() would provide firmware help to
+> extend/expand upon what was probed. Arm64 was really
+> the only architecture that was working this way, and
+> with the removal of most of the hardware probing logic it
+> became clear that it was possible to simplify the logic a bit.
+> 
+> This patch combines the walk of the DT nodes with the
+> code updating the cache size/line_size and nr_sets.
+> cache_override_properties() (which was DT specific) is
+> then removed. The result is that cacheinfo.of_node is
+> no longer used as a temporary place to hold DT references
+> for future calls that update cache properties. That change
+> helps to clarify its one remaining use (matching
+> cacheinfo nodes that represent shared caches) which
+> will be used by the ACPI/PPTT code in the following patches.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+> Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
+> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+> Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
+> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> ---
+>   arch/riscv/kernel/cacheinfo.c |  1 -
+>   drivers/base/cacheinfo.c      | 65 +++++++++++++++++++------------------------
+>   2 files changed, 29 insertions(+), 37 deletions(-)
+> 
+> diff --git a/arch/riscv/kernel/cacheinfo.c b/arch/riscv/kernel/cacheinfo.c
+> index 10ed2749e246..0bc86e5f8f3f 100644
+> --- a/arch/riscv/kernel/cacheinfo.c
+> +++ b/arch/riscv/kernel/cacheinfo.c
+> @@ -20,7 +20,6 @@ static void ci_leaf_init(struct cacheinfo *this_leaf,
+>   			 struct device_node *node,
+>   			 enum cache_type type, unsigned int level)
+>   {
+> -	this_leaf->of_node = node;
+>   	this_leaf->level = level;
+>   	this_leaf->type = type;
+>   	/* not a sector cache */
+> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+> index 09ccef7ddc99..a872523e8951 100644
+> --- a/drivers/base/cacheinfo.c
+> +++ b/drivers/base/cacheinfo.c
+> @@ -71,7 +71,7 @@ static inline int get_cacheinfo_idx(enum cache_type type)
+>   	return type;
+>   }
+>   
+> -static void cache_size(struct cacheinfo *this_leaf)
+> +static void cache_size(struct cacheinfo *this_leaf, struct device_node *np)
+>   {
+>   	const char *propname;
+>   	const __be32 *cache_size;
+> @@ -80,13 +80,14 @@ static void cache_size(struct cacheinfo *this_leaf)
+>   	ct_idx = get_cacheinfo_idx(this_leaf->type);
+>   	propname = cache_type_info[ct_idx].size_prop;
+>   
+> -	cache_size = of_get_property(this_leaf->of_node, propname, NULL);
+> +	cache_size = of_get_property(np, propname, NULL);
+>   	if (cache_size)
+>   		this_leaf->size = of_read_number(cache_size, 1);
+>   }
+>   
+>   /* not cache_line_size() because that's a macro in include/linux/cache.h */
+> -static void cache_get_line_size(struct cacheinfo *this_leaf)
+> +static void cache_get_line_size(struct cacheinfo *this_leaf,
+> +				struct device_node *np)
+>   {
+>   	const __be32 *line_size;
+>   	int i, lim, ct_idx;
+> @@ -98,7 +99,7 @@ static void cache_get_line_size(struct cacheinfo *this_leaf)
+>   		const char *propname;
+>   
+>   		propname = cache_type_info[ct_idx].line_size_props[i];
+> -		line_size = of_get_property(this_leaf->of_node, propname, NULL);
+> +		line_size = of_get_property(np, propname, NULL);
+>   		if (line_size)
+>   			break;
+>   	}
+> @@ -107,7 +108,7 @@ static void cache_get_line_size(struct cacheinfo *this_leaf)
+>   		this_leaf->coherency_line_size = of_read_number(line_size, 1);
+>   }
+>   
+> -static void cache_nr_sets(struct cacheinfo *this_leaf)
+> +static void cache_nr_sets(struct cacheinfo *this_leaf, struct device_node *np)
+>   {
+>   	const char *propname;
+>   	const __be32 *nr_sets;
+> @@ -116,7 +117,7 @@ static void cache_nr_sets(struct cacheinfo *this_leaf)
+>   	ct_idx = get_cacheinfo_idx(this_leaf->type);
+>   	propname = cache_type_info[ct_idx].nr_sets_prop;
+>   
+> -	nr_sets = of_get_property(this_leaf->of_node, propname, NULL);
+> +	nr_sets = of_get_property(np, propname, NULL);
+>   	if (nr_sets)
+>   		this_leaf->number_of_sets = of_read_number(nr_sets, 1);
+>   }
+> @@ -135,32 +136,27 @@ static void cache_associativity(struct cacheinfo *this_leaf)
+>   		this_leaf->ways_of_associativity = (size / nr_sets) / line_size;
+>   }
+>   
+> -static bool cache_node_is_unified(struct cacheinfo *this_leaf)
+> +static bool cache_node_is_unified(struct cacheinfo *this_leaf,
+> +				  struct device_node *np)
+>   {
+> -	return of_property_read_bool(this_leaf->of_node, "cache-unified");
+> +	return of_property_read_bool(np, "cache-unified");
+>   }
+>   
+> -static void cache_of_override_properties(unsigned int cpu)
+> +static void cache_of_set_props(struct cacheinfo *this_leaf,
+> +			       struct device_node *np)
+>   {
+> -	int index;
+> -	struct cacheinfo *this_leaf;
+> -	struct cpu_cacheinfo *this_cpu_ci = get_cpu_cacheinfo(cpu);
+> -
+> -	for (index = 0; index < cache_leaves(cpu); index++) {
+> -		this_leaf = this_cpu_ci->info_list + index;
+> -		/*
+> -		 * init_cache_level must setup the cache level correctly
+> -		 * overriding the architecturally specified levels, so
+> -		 * if type is NONE at this stage, it should be unified
+> -		 */
+> -		if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+> -		    cache_node_is_unified(this_leaf))
+> -			this_leaf->type = CACHE_TYPE_UNIFIED;
+> -		cache_size(this_leaf);
+> -		cache_get_line_size(this_leaf);
+> -		cache_nr_sets(this_leaf);
+> -		cache_associativity(this_leaf);
+> -	}
+> +	/*
+> +	 * init_cache_level must setup the cache level correctly
+> +	 * overriding the architecturally specified levels, so
+> +	 * if type is NONE at this stage, it should be unified
+> +	 */
+> +	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+> +	    cache_node_is_unified(this_leaf, np))
+> +		this_leaf->type = CACHE_TYPE_UNIFIED;
+> +	cache_size(this_leaf, np);
+> +	cache_get_line_size(this_leaf, np);
+> +	cache_nr_sets(this_leaf, np);
+> +	cache_associativity(this_leaf);
+>   }
+>   
+>   static int cache_setup_of_node(unsigned int cpu)
+> @@ -193,6 +189,7 @@ static int cache_setup_of_node(unsigned int cpu)
+>   			np = of_node_get(np);/* cpu node itself */
+>   		if (!np)
+>   			break;
+> +		cache_of_set_props(this_leaf, np);
+>   		this_leaf->of_node = np;
+>   		index++;
+>   	}
+> @@ -203,7 +200,6 @@ static int cache_setup_of_node(unsigned int cpu)
+>   	return 0;
+>   }
+>   #else
+> -static void cache_of_override_properties(unsigned int cpu) { }
+>   static inline int cache_setup_of_node(unsigned int cpu) { return 0; }
+>   static inline bool cache_leaves_are_shared(struct cacheinfo *this_leaf,
+>   					   struct cacheinfo *sib_leaf)
+> @@ -286,12 +282,6 @@ static void cache_shared_cpu_map_remove(unsigned int cpu)
+>   	}
+>   }
+>   
+> -static void cache_override_properties(unsigned int cpu)
+> -{
+> -	if (of_have_populated_dt())
+> -		return cache_of_override_properties(cpu);
+> -}
+> -
+>   static void free_cache_attributes(unsigned int cpu)
+>   {
+>   	if (!per_cpu_cacheinfo(cpu))
+> @@ -325,6 +315,10 @@ static int detect_cache_attributes(unsigned int cpu)
+>   	if (per_cpu_cacheinfo(cpu) == NULL)
+>   		return -ENOMEM;
+>   
+> +	/*
+> +	 * populate_cache_leaves() may completely setup the cache leaves and
+> +	 * shared_cpu_map or it may leave it partially setup.
+> +	 */
+>   	ret = populate_cache_leaves(cpu);
+>   	if (ret)
+>   		goto free_ci;
+> @@ -338,7 +332,6 @@ static int detect_cache_attributes(unsigned int cpu)
+>   		goto free_ci;
+>   	}
+>   
+> -	cache_override_properties(cpu);
+>   	return 0;
+>   
+>   free_ci:
+> 
