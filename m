@@ -1,138 +1,92 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v9 05/12] ACPI/PPTT: Add Processor Properties Topology
- Table parsing
-Date: Tue, 15 May 2018 16:42:32 -0500
-Message-ID: <7cefb087-f41a-0a73-ef77-b560d338be4b@arm.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com>
- <20180511235807.30834-6-jeremy.linton@arm.com>
- <CAJZ5v0h4OeTaG2h0Q1c8zX93tici_nfLftpEyKWSkXoztHuUDg@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v3 2/3] ACPI: ensure acpi_parse_entries_array() does not
+ access non-existent table data
+Date: Tue, 15 May 2018 15:53:41 -0600
+Message-ID: <04afae30-7012-ebb9-cd0e-3ec39bfd955c@redhat.com>
+References: <20180501003907.4322-1-ahs3@redhat.com>
+ <20180501003907.4322-3-ahs3@redhat.com>
+ <CAJZ5v0j2qnB-CohTzdFzd1mgp0QAphxgTkXa9wVivh02JYnACA@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0h4OeTaG2h0Q1c8zX93tici_nfLftpEyKWSkXoztHuUDg@mail.gmail.com>
+In-Reply-To: <CAJZ5v0j2qnB-CohTzdFzd1mgp0QAphxgTkXa9wVivh02JYnACA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.co>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 05/12/2018 05:09 AM, Rafael J. Wysocki wrote:
-> On Sat, May 12, 2018 at 1:58 AM, Jeremy Linton <jeremy.linton@arm.com> wrote:
->> ACPI 6.2 adds a new table, which describes how processing units
->> are related to each other in tree like fashion. Caches are
->> also sprinkled throughout the tree and describe the properties
->> of the caches in relation to other caches and processing units.
+On 05/15/2018 11:19 AM, Rafael J. Wysocki wrote:
+> On Tue, May 1, 2018 at 2:39 AM, Al Stone <ahs3@redhat.com> wrote:
+>> For ACPI tables that have subtables, acpi_parse_entries_array() gets used
+>> to step through each of the subtables in memory.  The primary loop for this
+>> was checking that the beginning location of the subtable being examined
+>> plus the length of struct acpi_subtable_header was not beyond the end of
+>> the complete ACPI table; if it wasn't, the subtable could be examined, but
+>> if it was the loop would terminate as it should.
 >>
->> Add the code to parse the cache hierarchy and report the total
->> number of levels of cache for a given core using
->> acpi_find_last_cache_level() as well as fill out the individual
->> cores cache information with cache_setup_acpi() once the
->> cpu_cacheinfo structure has been populated by the arch specific
->> code.
+>> In the middle of this subtable loop, a callback is used to examine the
+>> subtable in detail.
 >>
->> An additional patch later in the set adds the ability to report
->> peers in the topology using find_acpi_cpu_topology()
->> to report a unique ID for each processing unit at a given level
->> in the tree. These unique id's can then be used to match related
->> processing units which exist as threads, within a given
->> package, etc.
+>> Should the callback function try to examine elements of the subtable that
+>> are located past the subtable header, and the ACPI table containing this
+>> subtable has an incorrect length, it is possible to access either invalid
+>> or protected memory and cause a fault.  And, the length of struct
+>> acpi_subtable_header will always be smaller than the length of the actual
+>> subtable.
 >>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> Tested-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
->> Tested-by: Vijaya Kumar K <vkilari@codeaurora.org>
->> Tested-by: Xiongfeng Wang <wangxiongfeng2@huawei.com>
->> Tested-by: Tomasz Nowicki <Tomasz.Nowicki@cavium.com>
->> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
->> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+>> To fix this, we make the main loop check that the beginning of the
+>> subtable being examined plus the actual length of the subtable does
+>> not go past the end of the enclosing ACPI table.  While this cannot
+>> protect us from malicious callback functions, it can prevent us from
+>> failing because of some poorly constructed ACPI tables.
+>>
+>> Found by inspection.  There is no functional change to existing code
+>> that is known to work when calling acpi_parse_entries_array().
+>>
+>> Signed-off-by: Al Stone <ahs3@redhat.com>
+>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> Cc: Len Brown <lenb@kernel.org>
 >> ---
->>   drivers/acpi/pptt.c  | 655 +++++++++++++++++++++++++++++++++++++++++++++++++++
->>   include/linux/acpi.h |   4 +
->>   2 files changed, 659 insertions(+)
->>   create mode 100644 drivers/acpi/pptt.c
+>>  drivers/acpi/tables.c | 3 +--
+>>  1 file changed, 1 insertion(+), 2 deletions(-)
 >>
->> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
->> new file mode 100644
->> index 000000000000..e5ea1974d1e3
->> --- /dev/null
->> +++ b/drivers/acpi/pptt.c
->> @@ -0,0 +1,655 @@
->> +// SPDX-License-Identifier: GPL-2.0
->> +/*
->> + * pptt.c - parsing of Processor Properties Topology Table (PPTT)
->> + *
->> + * Copyright (C) 2018, ARM
->> + *
->> + * This file implements parsing of the Processor Properties Topology Table
->> + * which is optionally used to describe the processor and cache topology.
->> + * Due to the relative pointers used throughout the table, this doesn't
->> + * leverage the existing subtable parsing in the kernel.
->> + *
->> + * The PPTT structure is an inverted tree, with each node potentially
->> + * holding one or two inverted tree data structures describing
->> + * the caches available at that level. Each cache structure optionally
->> + * contains properties describing the cache at a given level which can be
->> + * used to override hardware probed values.
->> + */
->> +#define pr_fmt(fmt) "ACPI PPTT: " fmt
->> +
->> +#include <linux/acpi.h>
->> +#include <linux/cacheinfo.h>
->> +#include <acpi/processor.h>
->> +
->> +static struct acpi_subtable_header *fetch_pptt_subtable(struct acpi_table_header *table_hdr,
->> +                                                       u32 pptt_ref)
->> +{
->> +       struct acpi_subtable_header *entry;
->> +
->> +       /* there isn't a subtable at reference 0 */
->> +       if (pptt_ref < sizeof(struct acpi_subtable_header))
->> +               return NULL;
->> +
->> +       if (pptt_ref + sizeof(struct acpi_subtable_header) > table_hdr->length)
->> +               return NULL;
->> +
->> +       entry = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr, pptt_ref);
->> +
->> +       if (entry->length == 0)
->> +               return NULL;
->> +
->> +       if (pptt_ref + entry->length > table_hdr->length)
->> +               return NULL;
->> +
->> +       return entry;
->> +}
->> +
->> +static struct acpi_pptt_processor *fetch_pptt_node(struct acpi_table_header *table_hdr,
->> +                                                  u32 pptt_ref)
->> +{
->> +       return (struct acpi_pptt_processor *)fetch_pptt_subtable(table_hdr, pptt_ref);
->> +}
->> +
->> +static struct acpi_pptt_cache *fetch_pptt_cache(struct acpi_table_header *table_hdr,
->> +                                               u32 pptt_ref)
->> +{
->> +       return (struct acpi_pptt_cache *)fetch_pptt_subtable(table_hdr, pptt_ref);
+>> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+>> index 4a3410aa6540..82c3e2c52dd9 100644
+>> --- a/drivers/acpi/tables.c
+>> +++ b/drivers/acpi/tables.c
+>> @@ -274,8 +274,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+>>         entry = (struct acpi_subtable_header *)
+>>             ((unsigned long)table_header + table_size);
+>>
+>> -       while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+>> -              table_end) {
+>> +       while ((unsigned long)entry + entry->length <= table_end) {
+>>                 if (max_entries && count >= max_entries)
+>>                         break;
+>>
+>> --
 > 
-> I don't think you really need the explicit type cast here and above,
-> but that's very minor.
+> This breaks the CPU enumeration on my Dell XPS13 9360 (possibly among
+> other things), so I'm dropping it.  I can send you acpidump output
+> from that machine if need be.
 > 
->> +}
+> Thanks,
+> Rafael
 > 
-> Please feel free to add
-> 
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> to the patch and route it through the arch tree as needed.
 
-Thanks for looking at this (and the ack of course)!
+Yes, please.  My fear is that there are a bunch of MADT tables in the real world
+that aren't quite right so that while this may be theoretically correct, it may
+be wrong as a practical matter.
 
-As an FYI, the in my build without the type cast, the 
--Werror=incompatible-pointer-types (sourced from the root Makefile) 
-triggers an error.
-
-
-
-thanks again.
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
