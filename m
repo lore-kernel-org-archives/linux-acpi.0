@@ -1,200 +1,159 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 3/3] mailbox: ACPI: erroneous error message when
- parsing the ACPI PCCT
-Date: Tue, 15 May 2018 10:00:17 +0200
-Message-ID: <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
-References: <20180501003907.4322-1-ahs3@redhat.com> <20180501003907.4322-4-ahs3@redhat.com>
- <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org> <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
+Date: Tue, 15 May 2018 11:32:22 +0200
+Message-ID: <20362702.FCbsg9xPKv@aspire.rjw.lan>
+References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com> <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
+In-Reply-To: <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Prakash, Prashanth" <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Akshu Agrawal <akshu.agrawal@amd.com>
+Cc: djkurtz@chromium.org, Alexander.Deucher@amd.com, mturquette@baylibre.com, sboyd@kernel.org, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 15, 2018 at 12:49 AM, Al Stone <ahs3@redhat.com> wrote:
-> On 05/14/2018 03:04 PM, Prakash, Prashanth wrote:
->>
->>
->> On 4/30/2018 6:39 PM, Al Stone wrote:
->>> There have been multiple reports of the following error message:
->>>
->>> [    0.068293] Error parsing PCC subspaces from PCCT
->>>
->>> This error message is not correct.  In multiple cases examined, the PCCT
->>> (Platform Communications Channel Table) concerned is actually properly
->>> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
->>> is making the assumption that the only valid PCCT is one that contains
->>> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
->>> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
->>> types are counted and as long as there is at least one of the desired
->>> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
->>> are found, regardless of whether or not any other subtable types are
->>> present, the error mentioned above is reported.
->>>
->>> In the cases reported to me personally, the PCCT contains exactly one
->>> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
->>> acpi_pcc_probe() does not count it as a valid subtable, so believes
->>> there to be no valid subtables, and hence outputs the error message.
->>>
->>> An example of the PCCT being reported as erroneous yet perfectly fine
->>> is the following:
->>>
->>>                     Signature : "PCCT"
->>>                  Table Length : 0000006E
->>>                      Revision : 05
->>>                      Checksum : A9
->>>                        Oem ID : "XXXXXX"
->>>                  Oem Table ID : "XXXXX   "
->>>                  Oem Revision : 00002280
->>>               Asl Compiler ID : "XXXX"
->>>         Asl Compiler Revision : 00000002
->>>
->>>         Flags (decoded below) : 00000001
->>>                      Platform : 1
->>>                      Reserved : 0000000000000000
->>>
->>>                 Subtable Type : 00 [Generic Communications Subspace]
->>>                        Length : 3E
->>>
->>>                      Reserved : 000000000000
->>>                  Base Address : 00000000DCE43018
->>>                Address Length : 0000000000001000
->>>
->>>             Doorbell Register : [Generic Address Structure]
->>>                      Space ID : 01 [SystemIO]
->>>                     Bit Width : 08
->>>                    Bit Offset : 00
->>>          Encoded Access Width : 01 [Byte Access:8]
->>>                       Address : 0000000000001842
->>>
->>>                 Preserve Mask : 00000000000000FD
->>>                    Write Mask : 0000000000000002
->>>               Command Latency : 00001388
->>>           Maximum Access Rate : 00000000
->>>       Minimum Turnaround Time : 0000
->>>
->>> To fix this, we count up all of the possible subtable types for the
->>> PCCT, and only report an error when there are none (which could mean
->>> either no subtables, or no valid subtables), or there are too many.
->>> We also change the logic so that if there is a valid subtable, we
->>> do try to initialize it per the PCCT subtable contents.  This is a
->>> change in functionality; previously, the probe would have returned
->>> right after the error message and would not have tried to use any
->>> other subtable definition.
->>>
->>> Tested on my personal laptop which showed the error previously; the
->>> error message no longer appears and the laptop appears to operate
->>> normally.
->>>
->>> Signed-off-by: Al Stone <ahs3@redhat.com>
->>> Cc: Jassi Brar <jassisinghbrar@gmail.com>
->>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>> Cc: Len Brown <lenb@kernel.org>
->>> ---
->>>  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
->>>  1 file changed, 63 insertions(+), 33 deletions(-)
->>>
->>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->>> index 3ef7f036ceea..72af37d7e95e 100644
->>> --- a/drivers/mailbox/pcc.c
->>> +++ b/drivers/mailbox/pcc.c
->>> @@ -372,13 +372,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
->>>      .send_data = pcc_send_data,
->>>  };
->>>
->>> +/*
->>> + *
->>> + * count_pcc_subspaces -- Count PCC subspaces not used in reduced HW systems.
->>> + * @header: Pointer to the ACPI subtable header under the PCCT.
->>> + * @end: End of subtable entry.
->>> + *
->>> + * Return: If we find a PCC subspace entry that is one of the types used
->>> + *  in reduced hardware systems, return -EINVAL.  Otherwise, return 0.
->>> + *
->>> + * This gets called for each subtable in the PCC table.
->>> + */
->>> +static int count_pcc_subspaces(struct acpi_subtable_header *header,
->>> +            const unsigned long end)
->>> +{
->>> +    struct acpi_pcct_subspace *pcct_ss = (struct acpi_pcct_subspace *) header;
->>> +
->>> +    if ((pcct_ss->header.type <= ACPI_PCCT_TYPE_RESERVED) &&
->>> +        (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) &&
->>> +        (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
->>> +            return 0;
->>> +
->>> +    return -EINVAL;
->>> +}
->>> +
->>>  /**
->>> - * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
->>> - *          entries. There should be one entry per PCC client.
->>> + * parse_pcc_subspaces -- Count PCC subspaces used only in reduced HW systems.
->>>   * @header: Pointer to the ACPI subtable header under the PCCT.
->>>   * @end: End of subtable entry.
->>>   *
->>> - * Return: 0 for Success, else errno.
->>> + * Return: If we find a PCC subspace entry that is one of the types used
->>> + *  in reduced hardware systems, return 0.  Otherwise, return -EINVAL.
->>>   *
->>>   * This gets called for each entry in the PCC table.
->>>   */
->>> @@ -393,10 +417,8 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
->>>              if ((pcct_ss->header.type !=
->>>                              ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
->>>                  && (pcct_ss->header.type !=
->>> -                            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
->>> -                    pr_err("Incorrect PCC Subspace type detected\n");
->>> +                            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
->>>                      return -EINVAL;
->>> -            }
->>>      }
->>>
->>>      return 0;
->> Can't we combine  parse_pcc_subspace and count_pcc_subspaces into a
->> single function? parse_pcc_subspace can return 0 for supported subspace
->> types and -EINVAL for others.
->
-> I did think about that.  The issue is that we have subspaces that are only
-> valid in reduced hardware systems, and subspaces that are not.  It might make
-> sense to use different names, as in 'count_reduced_hw_subspaces()' and
-> 'count_general_subspaces()' (or something like those) but we do have the two
-> separate classes and hardware belonging to each of those classes.
->
-> That being said, you raise a good point: this would only be useful if the
-> mailbox code needed to know the classes of subspaces were different; I saw
-> no such code but I could have missed it.  If you're aware of any such cases,
-> let me know.  Otherwise, I'll combine the two counting routines and test it.
->
->> The limitation on number of subspaces(max = 256) applies to all types of PCC
->> subspaces (see Table 14-351 in ACPI 6.2).  The MAX_PCC_SUBSPACES check in
->>  parse_pcc_subspace seems invalid as pcc_mbox_ctrl.num_chans will not be
->> initialized yet at that moment.
->
-> Good catch.  Thanks.  That test was there prior to my patches, but I'll pull
-> it out.
->
->> Given above, I think it is probably better to update parse_pcc_subspace to
->> only check for a valid PCC subspace type. The check to make sure overall count
->> of subspace is  less than 256 is already present following the call to
->> acpi_table_parse_entries_array().
->>
->> --
->> Thanks,
->> Prashanth
->>
->
-> Thanks, Prashanth.
->
-> Rafael: do you want me to just re-send this patch or the whole series?  Either
-> way works for me; what's easiest for you since the first two have been applied?
+On Wednesday, May 9, 2018 11:59:00 AM CEST Akshu Agrawal wrote:
+> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+> 48Mhz of frequency.
+> The clock is available for general system use.
+> 
+> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
 
-Just this patch, please.
+I'm not sure if the Stephen Boyd's comments on one of the previous
+versions of this patch have been addressed.  Have they?
 
-I've applied the other two already.
+In any case, if I'm expected to take this, I need an ACK from Stephen on it.
 
 Thanks,
 Rafael
+
+> ---
+> v2: config change, added SPDX tag and used clk_hw_register_.
+> v3: Fix kbuild warning for checking of NULL pointer
+> v4: unregister clk_hw in driver remove, add .suppress_bind_attrs
+> v5: Fix license, used static array
+>  drivers/clk/x86/Makefile             |  3 +-
+>  drivers/clk/x86/clk-st.c             | 77 ++++++++++++++++++++++++++++++++++++
+>  include/linux/platform_data/clk-st.h | 17 ++++++++
+>  3 files changed, 96 insertions(+), 1 deletion(-)
+>  create mode 100644 drivers/clk/x86/clk-st.c
+>  create mode 100644 include/linux/platform_data/clk-st.h
+> 
+> diff --git a/drivers/clk/x86/Makefile b/drivers/clk/x86/Makefile
+> index 1367afb..00303bc 100644
+> --- a/drivers/clk/x86/Makefile
+> +++ b/drivers/clk/x86/Makefile
+> @@ -1,3 +1,4 @@
+> +obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
+> +obj-$(CONFIG_X86_AMD_PLATFORM_DEVICE)	+= clk-st.o
+>  clk-x86-lpss-objs		:= clk-lpt.o
+>  obj-$(CONFIG_X86_INTEL_LPSS)	+= clk-x86-lpss.o
+> -obj-$(CONFIG_PMC_ATOM)		+= clk-pmc-atom.o
+> diff --git a/drivers/clk/x86/clk-st.c b/drivers/clk/x86/clk-st.c
+> new file mode 100644
+> index 0000000..fb62f39
+> --- /dev/null
+> +++ b/drivers/clk/x86/clk-st.c
+> @@ -0,0 +1,77 @@
+> +// SPDX-License-Identifier: MIT
+> +/*
+> + * clock framework for AMD Stoney based clocks
+> + *
+> + * Copyright 2018 Advanced Micro Devices, Inc.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/clkdev.h>
+> +#include <linux/clk-provider.h>
+> +#include <linux/platform_data/clk-st.h>
+> +#include <linux/platform_device.h>
+> +
+> +/* Clock Driving Strength 2 register */
+> +#define CLKDRVSTR2	0x28
+> +/* Clock Control 1 register */
+> +#define MISCCLKCNTL1	0x40
+> +/* Auxiliary clock1 enable bit */
+> +#define OSCCLKENB	2
+> +/* 25Mhz auxiliary output clock freq bit */
+> +#define OSCOUT1CLK25MHZ	16
+> +
+> +#define ST_CLK_48M	0
+> +#define ST_CLK_25M	1
+> +#define ST_CLK_MUX	2
+> +#define ST_CLK_GATE	3
+> +#define ST_MAX_CLKS	4
+> +
+> +static const char * const clk_oscout1_parents[] = { "clk48MHz", "clk25MHz" };
+> +static struct clk_hw *hws[ST_MAX_CLKS];
+> +
+> +static int st_clk_probe(struct platform_device *pdev)
+> +{
+> +	struct st_clk_data *st_data;
+> +
+> +	st_data = dev_get_platdata(&pdev->dev);
+> +	if (!st_data || !st_data->base)
+> +		return -EINVAL;
+> +
+> +	hws[ST_CLK_48M] = clk_hw_register_fixed_rate(NULL, "clk48MHz", NULL, 0,
+> +						     48000000);
+> +	hws[ST_CLK_25M] = clk_hw_register_fixed_rate(NULL, "clk25MHz", NULL, 0,
+> +						     25000000);
+> +
+> +	hws[ST_CLK_MUX] = clk_hw_register_mux(NULL, "oscout1_mux",
+> +		clk_oscout1_parents, ARRAY_SIZE(clk_oscout1_parents),
+> +		0, st_data->base + CLKDRVSTR2, OSCOUT1CLK25MHZ, 3, 0, NULL);
+> +
+> +	clk_set_parent(hws[ST_CLK_MUX]->clk, hws[ST_CLK_25M]->clk);
+> +
+> +	hws[ST_CLK_GATE] = clk_hw_register_gate(NULL, "oscout1", "oscout1_mux",
+> +		0, st_data->base + MISCCLKCNTL1, OSCCLKENB,
+> +		CLK_GATE_SET_TO_DISABLE, NULL);
+> +
+> +	clk_hw_register_clkdev(hws[ST_CLK_GATE], "oscout1", NULL);
+> +
+> +	return 0;
+> +}
+> +
+> +static int st_clk_remove(struct platform_device *pdev)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < ST_MAX_CLKS; i++)
+> +		clk_hw_unregister(hws[i]);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver st_clk_driver = {
+> +	.driver = {
+> +		.name = "clk-st",
+> +		.suppress_bind_attrs = true,
+> +	},
+> +	.probe = st_clk_probe,
+> +	.remove = st_clk_remove,
+> +};
+> +builtin_platform_driver(st_clk_driver);
+> diff --git a/include/linux/platform_data/clk-st.h b/include/linux/platform_data/clk-st.h
+> new file mode 100644
+> index 0000000..7cdb6a4
+> --- /dev/null
+> +++ b/include/linux/platform_data/clk-st.h
+> @@ -0,0 +1,17 @@
+> +/* SPDX-License-Identifier: MIT */
+> +/*
+> + * clock framework for AMD Stoney based clock
+> + *
+> + * Copyright 2018 Advanced Micro Devices, Inc.
+> + */
+> +
+> +#ifndef __CLK_ST_H
+> +#define __CLK_ST_H
+> +
+> +#include <linux/compiler.h>
+> +
+> +struct st_clk_data {
+> +	void __iomem *base;
+> +};
+> +
+> +#endif /* __CLK_ST_H */
+> 
