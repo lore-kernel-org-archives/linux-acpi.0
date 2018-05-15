@@ -1,42 +1,25 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v9 02/12] drivers: base: cacheinfo: setup DT cache
- properties early
-Date: Tue, 15 May 2018 22:32:37 +0300
-Message-ID: <CAHp75VciOAMX1HWifZ+K9GiVicZRFrwHaGteJFVe1uFrh+qu0w@mail.gmail.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-3-jeremy.linton@arm.com>
- <78b08b68-ff57-8dd8-6eb1-00548f275eac@arm.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
+Date: Tue, 15 May 2018 14:11:37 -0700
+Message-ID: <152641869759.237094.11560670016483664442@swboyd.mtv.corp.google.com>
+References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
+ <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <78b08b68-ff57-8dd8-6eb1-00548f275eac@arm.com>
+In-Reply-To: <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, Xiongfeng Wang <wangxiongfeng2@huawei.com>, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Len Brown <lenb@kernel.org>, John Garry <joh>
+Cc: djkurtz@chromium.org, akshu.agrawal@amd.com, Alexander.Deucher@amd.com, mturquette@baylibre.com, christian.koenig@amd.com, airlied@redhat.com, Shaoyun.Liu@amd.com, linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 15, 2018 at 8:15 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> On 05/11/2018 06:57 PM, Jeremy Linton wrote:
+Quoting Akshu Agrawal (2018-05-09 02:59:00)
+> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+> 48Mhz of frequency.
+> The clock is available for general system use.
+> =
 
->>   -     cache_size = of_get_property(this_leaf->of_node, propname, NULL);
->> +       cache_size = of_get_property(np, propname, NULL);
->>         if (cache_size)
->>                 this_leaf->size = of_read_number(cache_size, 1);
+> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+> ---
 
-Can't you switch to of_read_property_uXX() variant here?
-
->> -               line_size = of_get_property(this_leaf->of_node, propname,
->> NULL);
->> +               line_size = of_get_property(np, propname, NULL);
-
-Ditto.
-
->>   -     nr_sets = of_get_property(this_leaf->of_node, propname, NULL);
->> +       nr_sets = of_get_property(np, propname, NULL);
->>         if (nr_sets)
->>                 this_leaf->number_of_sets = of_read_number(nr_sets, 1);
-
-Ditto.
-
--- 
-With Best Regards,
-Andy Shevchenko
+Reviewed-by: Stephen Boyd <sboyd@kernel.org>
