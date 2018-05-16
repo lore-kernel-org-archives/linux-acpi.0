@@ -1,92 +1,52 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 2/3] ACPI: ensure acpi_parse_entries_array() does not
- access non-existent table data
-Date: Tue, 15 May 2018 15:53:41 -0600
-Message-ID: <04afae30-7012-ebb9-cd0e-3ec39bfd955c@redhat.com>
-References: <20180501003907.4322-1-ahs3@redhat.com>
- <20180501003907.4322-3-ahs3@redhat.com>
- <CAJZ5v0j2qnB-CohTzdFzd1mgp0QAphxgTkXa9wVivh02JYnACA@mail.gmail.com>
-Reply-To: ahs3@redhat.com
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
+Date: Wed, 16 May 2018 10:23:27 +0200
+Message-ID: <CAJZ5v0gKvMFSyZy3K11d1P8+5ZBNk2ecFAuRTrQ_3obYJM8iTw@mail.gmail.com>
+References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
+ <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com> <20362702.FCbsg9xPKv@aspire.rjw.lan>
+ <9f31fc22-b97f-0241-30cd-798ee03b2f1d@amd.com> <152641886428.237094.9491189918943948420@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j2qnB-CohTzdFzd1mgp0QAphxgTkXa9wVivh02JYnACA@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <152641886428.237094.9491189918943948420@swboyd.mtv.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Daniel Kurtz <djkurtz@chromium.org>, Alex Deucher <Alexander.Deucher@amd.com>, Michael Turquette <mturquette@baylibre.com>, =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Dave Airlie <airlied@redhat.com>, Shaoyun.Liu@amd.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/15/2018 11:19 AM, Rafael J. Wysocki wrote:
-> On Tue, May 1, 2018 at 2:39 AM, Al Stone <ahs3@redhat.com> wrote:
->> For ACPI tables that have subtables, acpi_parse_entries_array() gets used
->> to step through each of the subtables in memory.  The primary loop for this
->> was checking that the beginning location of the subtable being examined
->> plus the length of struct acpi_subtable_header was not beyond the end of
->> the complete ACPI table; if it wasn't, the subtable could be examined, but
->> if it was the loop would terminate as it should.
+On Tue, May 15, 2018 at 11:14 PM, Stephen Boyd <sboyd@kernel.org> wrote:
+> Quoting Agrawal, Akshu (2018-05-15 02:39:08)
 >>
->> In the middle of this subtable loop, a callback is used to examine the
->> subtable in detail.
 >>
->> Should the callback function try to examine elements of the subtable that
->> are located past the subtable header, and the ACPI table containing this
->> subtable has an incorrect length, it is possible to access either invalid
->> or protected memory and cause a fault.  And, the length of struct
->> acpi_subtable_header will always be smaller than the length of the actual
->> subtable.
+>> On 5/15/2018 3:02 PM, Rafael J. Wysocki wrote:
+>> > On Wednesday, May 9, 2018 11:59:00 AM CEST Akshu Agrawal wrote:
+>> >> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+>> >> 48Mhz of frequency.
+>> >> The clock is available for general system use.
+>> >>
+>> >> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+>> >
+>> > I'm not sure if the Stephen Boyd's comments on one of the previous
+>> > versions of this patch have been addressed.  Have they?
+>> >
+>> > In any case, if I'm expected to take this, I need an ACK from Stephen on it.
+>> >
+>> > Thanks,
+>> > Rafael
+>> >
 >>
->> To fix this, we make the main loop check that the beginning of the
->> subtable being examined plus the actual length of the subtable does
->> not go past the end of the enclosing ACPI table.  While this cannot
->> protect us from malicious callback functions, it can prevent us from
->> failing because of some poorly constructed ACPI tables.
+>> All comments of Stephen Boyd and Daniel Kurtz have been addressed.
 >>
->> Found by inspection.  There is no functional change to existing code
->> that is known to work when calling acpi_parse_entries_array().
+>> Stephen, if you are Ok with this can you please ACK it.
 >>
->> Signed-off-by: Al Stone <ahs3@redhat.com>
->> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->> Cc: Len Brown <lenb@kernel.org>
->> ---
->>  drivers/acpi/tables.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 4a3410aa6540..82c3e2c52dd9 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -274,8 +274,7 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
->>         entry = (struct acpi_subtable_header *)
->>             ((unsigned long)table_header + table_size);
->>
->> -       while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
->> -              table_end) {
->> +       while ((unsigned long)entry + entry->length <= table_end) {
->>                 if (max_entries && count >= max_entries)
->>                         break;
->>
->> --
-> 
-> This breaks the CPU enumeration on my Dell XPS13 9360 (possibly among
-> other things), so I'm dropping it.  I can send you acpidump output
-> from that machine if need be.
-> 
-> Thanks,
-> Rafael
-> 
+>
+> It could go via clk tree and meet up with the acpi patch in -next right?
+> I'm fine with it going through acpi path though so whichever way works.
 
-Yes, please.  My fear is that there are a bunch of MADT tables in the real world
-that aren't quite right so that while this may be theoretically correct, it may
-be wrong as a practical matter.
+It's better if it goes in as a series IMO and then if it goes via
+ACPI, the clock dependency will be clear from the git history.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+So if you don't mind, I'll queue this series up for 4.18.
+
+Thanks,
+Rafael
