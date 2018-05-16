@@ -1,222 +1,620 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 3/3] mailbox: ACPI: erroneous error message when
- parsing the ACPI PCCT
-Date: Wed, 16 May 2018 16:03:38 -0600
-Message-ID: <8eb33906-070b-4fb0-1f1e-00c40507c457@redhat.com>
-References: <20180501003907.4322-1-ahs3@redhat.com>
- <20180501003907.4322-4-ahs3@redhat.com>
- <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org>
- <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
- <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
-Reply-To: ahs3@redhat.com
+From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 03/40] iommu/sva: Manage process address spaces
+Date: Wed, 16 May 2018 16:31:17 -0700
+Message-ID: <20180516163117.622693ea@jacob-builder>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-4-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Prakash, Prashanth" <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180511190641.23008-4-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/15/2018 02:00 AM, Rafael J. Wysocki wrote:
-> On Tue, May 15, 2018 at 12:49 AM, Al Stone <ahs3@redhat.com> wrote:
->> On 05/14/2018 03:04 PM, Prakash, Prashanth wrote:
->>>
->>>
->>> On 4/30/2018 6:39 PM, Al Stone wrote:
->>>> There have been multiple reports of the following error message:
->>>>
->>>> [    0.068293] Error parsing PCC subspaces from PCCT
->>>>
->>>> This error message is not correct.  In multiple cases examined, the PCCT
->>>> (Platform Communications Channel Table) concerned is actually properly
->>>> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
->>>> is making the assumption that the only valid PCCT is one that contains
->>>> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
->>>> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
->>>> types are counted and as long as there is at least one of the desired
->>>> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
->>>> are found, regardless of whether or not any other subtable types are
->>>> present, the error mentioned above is reported.
->>>>
->>>> In the cases reported to me personally, the PCCT contains exactly one
->>>> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
->>>> acpi_pcc_probe() does not count it as a valid subtable, so believes
->>>> there to be no valid subtables, and hence outputs the error message.
->>>>
->>>> An example of the PCCT being reported as erroneous yet perfectly fine
->>>> is the following:
->>>>
->>>>                     Signature : "PCCT"
->>>>                  Table Length : 0000006E
->>>>                      Revision : 05
->>>>                      Checksum : A9
->>>>                        Oem ID : "XXXXXX"
->>>>                  Oem Table ID : "XXXXX   "
->>>>                  Oem Revision : 00002280
->>>>               Asl Compiler ID : "XXXX"
->>>>         Asl Compiler Revision : 00000002
->>>>
->>>>         Flags (decoded below) : 00000001
->>>>                      Platform : 1
->>>>                      Reserved : 0000000000000000
->>>>
->>>>                 Subtable Type : 00 [Generic Communications Subspace]
->>>>                        Length : 3E
->>>>
->>>>                      Reserved : 000000000000
->>>>                  Base Address : 00000000DCE43018
->>>>                Address Length : 0000000000001000
->>>>
->>>>             Doorbell Register : [Generic Address Structure]
->>>>                      Space ID : 01 [SystemIO]
->>>>                     Bit Width : 08
->>>>                    Bit Offset : 00
->>>>          Encoded Access Width : 01 [Byte Access:8]
->>>>                       Address : 0000000000001842
->>>>
->>>>                 Preserve Mask : 00000000000000FD
->>>>                    Write Mask : 0000000000000002
->>>>               Command Latency : 00001388
->>>>           Maximum Access Rate : 00000000
->>>>       Minimum Turnaround Time : 0000
->>>>
->>>> To fix this, we count up all of the possible subtable types for the
->>>> PCCT, and only report an error when there are none (which could mean
->>>> either no subtables, or no valid subtables), or there are too many.
->>>> We also change the logic so that if there is a valid subtable, we
->>>> do try to initialize it per the PCCT subtable contents.  This is a
->>>> change in functionality; previously, the probe would have returned
->>>> right after the error message and would not have tried to use any
->>>> other subtable definition.
->>>>
->>>> Tested on my personal laptop which showed the error previously; the
->>>> error message no longer appears and the laptop appears to operate
->>>> normally.
->>>>
->>>> Signed-off-by: Al Stone <ahs3@redhat.com>
->>>> Cc: Jassi Brar <jassisinghbrar@gmail.com>
->>>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>>> Cc: Len Brown <lenb@kernel.org>
->>>> ---
->>>>  drivers/mailbox/pcc.c | 96 +++++++++++++++++++++++++++++++++------------------
->>>>  1 file changed, 63 insertions(+), 33 deletions(-)
->>>>
->>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->>>> index 3ef7f036ceea..72af37d7e95e 100644
->>>> --- a/drivers/mailbox/pcc.c
->>>> +++ b/drivers/mailbox/pcc.c
->>>> @@ -372,13 +372,37 @@ static const struct mbox_chan_ops pcc_chan_ops = {
->>>>      .send_data = pcc_send_data,
->>>>  };
->>>>
->>>> +/*
->>>> + *
->>>> + * count_pcc_subspaces -- Count PCC subspaces not used in reduced HW systems.
->>>> + * @header: Pointer to the ACPI subtable header under the PCCT.
->>>> + * @end: End of subtable entry.
->>>> + *
->>>> + * Return: If we find a PCC subspace entry that is one of the types used
->>>> + *  in reduced hardware systems, return -EINVAL.  Otherwise, return 0.
->>>> + *
->>>> + * This gets called for each subtable in the PCC table.
->>>> + */
->>>> +static int count_pcc_subspaces(struct acpi_subtable_header *header,
->>>> +            const unsigned long end)
->>>> +{
->>>> +    struct acpi_pcct_subspace *pcct_ss = (struct acpi_pcct_subspace *) header;
->>>> +
->>>> +    if ((pcct_ss->header.type <= ACPI_PCCT_TYPE_RESERVED) &&
->>>> +        (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE) &&
->>>> +        (pcct_ss->header.type != ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
->>>> +            return 0;
->>>> +
->>>> +    return -EINVAL;
->>>> +}
->>>> +
->>>>  /**
->>>> - * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
->>>> - *          entries. There should be one entry per PCC client.
->>>> + * parse_pcc_subspaces -- Count PCC subspaces used only in reduced HW systems.
->>>>   * @header: Pointer to the ACPI subtable header under the PCCT.
->>>>   * @end: End of subtable entry.
->>>>   *
->>>> - * Return: 0 for Success, else errno.
->>>> + * Return: If we find a PCC subspace entry that is one of the types used
->>>> + *  in reduced hardware systems, return 0.  Otherwise, return -EINVAL.
->>>>   *
->>>>   * This gets called for each entry in the PCC table.
->>>>   */
->>>> @@ -393,10 +417,8 @@ static int parse_pcc_subspace(struct acpi_subtable_header *header,
->>>>              if ((pcct_ss->header.type !=
->>>>                              ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
->>>>                  && (pcct_ss->header.type !=
->>>> -                            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
->>>> -                    pr_err("Incorrect PCC Subspace type detected\n");
->>>> +                            ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2))
->>>>                      return -EINVAL;
->>>> -            }
->>>>      }
->>>>
->>>>      return 0;
->>> Can't we combine  parse_pcc_subspace and count_pcc_subspaces into a
->>> single function? parse_pcc_subspace can return 0 for supported subspace
->>> types and -EINVAL for others.
->>
->> I did think about that.  The issue is that we have subspaces that are only
->> valid in reduced hardware systems, and subspaces that are not.  It might make
->> sense to use different names, as in 'count_reduced_hw_subspaces()' and
->> 'count_general_subspaces()' (or something like those) but we do have the two
->> separate classes and hardware belonging to each of those classes.
->>
->> That being said, you raise a good point: this would only be useful if the
->> mailbox code needed to know the classes of subspaces were different; I saw
->> no such code but I could have missed it.  If you're aware of any such cases,
->> let me know.  Otherwise, I'll combine the two counting routines and test it.
->>
->>> The limitation on number of subspaces(max = 256) applies to all types of PCC
->>> subspaces (see Table 14-351 in ACPI 6.2).  The MAX_PCC_SUBSPACES check in
->>>  parse_pcc_subspace seems invalid as pcc_mbox_ctrl.num_chans will not be
->>> initialized yet at that moment.
->>
->> Good catch.  Thanks.  That test was there prior to my patches, but I'll pull
->> it out.
->>
->>> Given above, I think it is probably better to update parse_pcc_subspace to
->>> only check for a valid PCC subspace type. The check to make sure overall count
->>> of subspace is  less than 256 is already present following the call to
->>> acpi_table_parse_entries_array().
->>>
->>> --
->>> Thanks,
->>> Prashanth
->>>
->>
->> Thanks, Prashanth.
->>
->> Rafael: do you want me to just re-send this patch or the whole series?  Either
->> way works for me; what's easiest for you since the first two have been applied?
-> 
-> Just this patch, please.
-> 
-> I've applied the other two already.
-> 
-> Thanks,
-> Rafael
-> 
+On Fri, 11 May 2018 20:06:04 +0100
+Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
 
-An FYI: I tested v4 of this patch with and without patch 2/3 of this
-set (which has already been withdrawn); both cases removed the mostly
-incorrect error message.
+> Allocate IOMMU mm structures and binding them to devices. Four
+> operations are added to IOMMU drivers:
+> 
+> * mm_alloc(): to create an io_mm structure and perform architecture-
+>   specific operations required to grab the process (for instance on
+> ARM, pin down the CPU ASID so that the process doesn't get assigned a
+> new ASID on rollover).
+> 
+>   There is a single valid io_mm structure per Linux mm. Future
+> extensions may also use io_mm for kernel-managed address spaces,
+> populated with map()/unmap() calls instead of bound to process
+> address spaces. This patch focuses on "shared" io_mm.
+> 
+> * mm_attach(): attach an mm to a device. The IOMMU driver checks that
+> the device is capable of sharing an address space, and writes the
+> PASID table entry to install the pgd.
+> 
+>   Some IOMMU drivers will have a single PASID table per domain, for
+>   convenience. Other can implement it differently but to help these
+>   drivers, mm_attach and mm_detach take 'attach_domain' and
+>   'detach_domain' parameters, that tell whether they need to set and
+> clear the PASID entry or only send the required TLB invalidations.
+> 
+> * mm_detach(): detach an mm from a device. The IOMMU driver removes
+> the PASID table entry and invalidates the IOTLBs.
+> 
+> * mm_free(): free a structure allocated by mm_alloc(), and let arch
+>   release the process.
+> 
+> mm_attach and mm_detach operations are serialized with a spinlock.
+> When trying to optimize this code, we should at least prevent
+> concurrent attach()/detach() on the same domain (so multi-level PASID
+> table code can allocate tables lazily). mm_alloc() can sleep, but
+> mm_free must not (because we'll have to call it from call_srcu later
+> on).
+> 
+> At the moment we use an IDR for allocating PASIDs and retrieving
+> contexts. We also use a single spinlock. These can be refined and
+> optimized later (a custom allocator will be needed for top-down PASID
+> allocation).
+> 
+> Keeping track of address spaces requires the use of MMU notifiers.
+> Handling process exit with regard to unbind() is tricky, so it is
+> left for another patch and we explicitly fail mm_alloc() for the
+> moment.
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> 
+> ---
+> v1->v2: sanity-check of flags
+> ---
+>  drivers/iommu/iommu-sva.c | 380
+> +++++++++++++++++++++++++++++++++++++- drivers/iommu/iommu.c     |
+> 1 + include/linux/iommu.h     |  28 +++
+>  3 files changed, 406 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/iommu/iommu-sva.c b/drivers/iommu/iommu-sva.c
+> index 8d98f9c09864..6ac679c48f3c 100644
+> --- a/drivers/iommu/iommu-sva.c
+> +++ b/drivers/iommu/iommu-sva.c
+> @@ -5,8 +5,298 @@
+>   * Copyright (C) 2018 ARM Ltd.
+>   */
+>  
+> +#include <linux/idr.h>
+>  #include <linux/iommu.h>
+> +#include <linux/sched/mm.h>
+>  #include <linux/slab.h>
+> +#include <linux/spinlock.h>
+> +
+> +/**
+> + * DOC: io_mm model
+> + *
+> + * The io_mm keeps track of process address spaces shared between
+> CPU and IOMMU.
+> + * The following example illustrates the relation between structures
+> + * iommu_domain, io_mm and iommu_bond. An iommu_bond is a link
+> between io_mm and
+> + * device. A device can have multiple io_mm and an io_mm may be
+> bound to
+> + * multiple devices.
+> + *              ___________________________
+> + *             |  IOMMU domain A           |
+> + *             |  ________________         |
+> + *             | |  IOMMU group   |        +------- io_pgtables
+> + *             | |                |        |
+> + *             | |   dev 00:00.0 ----+------- bond --- io_mm X
+> + *             | |________________|   \    |
+> + *             |                       '----- bond ---.
+> + *             |___________________________|           \
+> + *              ___________________________             \
+> + *             |  IOMMU domain B           |           io_mm Y
+> + *             |  ________________         |           / /
+> + *             | |  IOMMU group   |        |          / /
+> + *             | |                |        |         / /
+> + *             | |   dev 00:01.0 ------------ bond -' /
+> + *             | |   dev 00:01.1 ------------ bond --'
+> + *             | |________________|        |
+> + *             |                           +------- io_pgtables
+> + *             |___________________________|
+> + *
+> + * In this example, device 00:00.0 is in domain A, devices 00:01.*
+> are in domain
+> + * B. All devices within the same domain access the same address
+> spaces. Device
+> + * 00:00.0 accesses address spaces X and Y, each corresponding to an
+> mm_struct.
+> + * Devices 00:01.* only access address space Y. In addition each
+> + * IOMMU_DOMAIN_DMA domain has a private address space, io_pgtable,
+> that is
+> + * managed with iommu_map()/iommu_unmap(), and isn't shared with the
+> CPU MMU.
+> + *
+> + * To obtain the above configuration, users would for instance issue
+> the
+> + * following calls:
+> + *
+> + *     iommu_sva_bind_device(dev 00:00.0, mm X, ...) -> PASID 1
+> + *     iommu_sva_bind_device(dev 00:00.0, mm Y, ...) -> PASID 2
+> + *     iommu_sva_bind_device(dev 00:01.0, mm Y, ...) -> PASID 2
+> + *     iommu_sva_bind_device(dev 00:01.1, mm Y, ...) -> PASID 2
+> + *
+> + * A single Process Address Space ID (PASID) is allocated for each
+> mm. In the
+> + * example, devices use PASID 1 to read/write into address space X
+> and PASID 2
+> + * to read/write into address space Y.
+> + *
+> + * Hardware tables describing this configuration in the IOMMU would
+> typically
+> + * look like this:
+> + *
+> + *                                PASID tables
+> + *                                 of domain A
+> + *                              .->+--------+
+> + *                             / 0 |        |-------> io_pgtable
+> + *                            /    +--------+
+> + *            Device tables  /   1 |        |-------> pgd X
+> + *              +--------+  /      +--------+
+> + *      00:00.0 |      A |-'     2 |        |--.
+> + *              +--------+         +--------+   \
+> + *              :        :       3 |        |    \
+> + *              +--------+         +--------+     --> pgd Y
+> + *      00:01.0 |      B |--.                    /
+> + *              +--------+   \                  |
+> + *      00:01.1 |      B |----+   PASID tables  |
+> + *              +--------+     \   of domain B  |
+> + *                              '->+--------+   |
+> + *                               0 |        |-- | --> io_pgtable
+> + *                                 +--------+   |
+> + *                               1 |        |   |
+> + *                                 +--------+   |
+> + *                               2 |        |---'
+> + *                                 +--------+
+> + *                               3 |        |
+> + *                                 +--------+
+> + *
+I am a little confused about domain vs. pasid relationship. If
+each domain represents a address space, should there be a domain for
+each pasid?
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+> + * With this model, a single call binds all devices in a given
+> domain to an
+> + * address space. Other devices in the domain will get the same bond
+> implicitly.
+> + * However, users must issue one bind() for each device, because
+> IOMMUs may
+> + * implement SVA differently. Furthermore, mandating one bind() per
+> device
+> + * allows the driver to perform sanity-checks on device capabilities.
+> + *
+> + * On Arm and AMD IOMMUs, entry 0 of the PASID table can be used to
+> hold
+> + * non-PASID translations. In this case PASID 0 is reserved and
+> entry 0 points
+> + * to the io_pgtable base. On Intel IOMMU, the io_pgtable base would
+> be held in
+> + * the device table and PASID 0 would be available to the allocator.
+> + */
+> +
+> +struct iommu_bond {
+> +	struct io_mm		*io_mm;
+> +	struct device		*dev;
+> +	struct iommu_domain	*domain;
+> +
+> +	struct list_head	mm_head;
+> +	struct list_head	dev_head;
+> +	struct list_head	domain_head;
+> +
+> +	void			*drvdata;
+> +};
+> +
+> +/*
+> + * Because we're using an IDR, PASIDs are limited to 31 bits (the
+> sign bit is
+> + * used for returning errors). In practice implementations will use
+> at most 20
+> + * bits, which is the PCI limit.
+> + */
+> +static DEFINE_IDR(iommu_pasid_idr);
+> +
+> +/*
+> + * For the moment this is an all-purpose lock. It serializes
+> + * access/modifications to bonds, access/modifications to the PASID
+> IDR, and
+> + * changes to io_mm refcount as well.
+> + */
+> +static DEFINE_SPINLOCK(iommu_sva_lock);
+> +
+> +static struct io_mm *
+> +io_mm_alloc(struct iommu_domain *domain, struct device *dev,
+> +	    struct mm_struct *mm, unsigned long flags)
+> +{
+> +	int ret;
+> +	int pasid;
+> +	struct io_mm *io_mm;
+> +	struct iommu_sva_param *param = dev->iommu_param->sva_param;
+> +
+> +	if (!domain->ops->mm_alloc || !domain->ops->mm_free)
+> +		return ERR_PTR(-ENODEV);
+> +
+> +	io_mm = domain->ops->mm_alloc(domain, mm, flags);
+> +	if (IS_ERR(io_mm))
+> +		return io_mm;
+> +	if (!io_mm)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	/*
+> +	 * The mm must not be freed until after the driver frees the
+> io_mm
+> +	 * (which may involve unpinning the CPU ASID for instance,
+> requiring a
+> +	 * valid mm struct.)
+> +	 */
+> +	mmgrab(mm);
+> +
+> +	io_mm->flags		= flags;
+> +	io_mm->mm		= mm;
+> +	io_mm->release		= domain->ops->mm_free;
+> +	INIT_LIST_HEAD(&io_mm->devices);
+> +
+> +	idr_preload(GFP_KERNEL);
+> +	spin_lock(&iommu_sva_lock);
+> +	pasid = idr_alloc(&iommu_pasid_idr, io_mm, param->min_pasid,
+> +			  param->max_pasid + 1, GFP_ATOMIC);
+> +	io_mm->pasid = pasid;
+> +	spin_unlock(&iommu_sva_lock);
+> +	idr_preload_end();
+> +
+> +	if (pasid < 0) {
+> +		ret = pasid;
+> +		goto err_free_mm;
+> +	}
+> +
+> +	/* TODO: keep track of mm. For the moment, abort. */
+> +	ret = -ENOSYS;
+> +	spin_lock(&iommu_sva_lock);
+> +	idr_remove(&iommu_pasid_idr, io_mm->pasid);
+> +	spin_unlock(&iommu_sva_lock);
+> +
+> +err_free_mm:
+> +	domain->ops->mm_free(io_mm);
+> +	mmdrop(mm);
+> +
+> +	return ERR_PTR(ret);
+> +}
+> +
+> +static void io_mm_free(struct io_mm *io_mm)
+> +{
+> +	struct mm_struct *mm = io_mm->mm;
+> +
+> +	io_mm->release(io_mm);
+> +	mmdrop(mm);
+> +}
+> +
+> +static void io_mm_release(struct kref *kref)
+> +{
+> +	struct io_mm *io_mm;
+> +
+> +	io_mm = container_of(kref, struct io_mm, kref);
+> +	WARN_ON(!list_empty(&io_mm->devices));
+> +
+> +	idr_remove(&iommu_pasid_idr, io_mm->pasid);
+> +
+> +	io_mm_free(io_mm);
+> +}
+> +
+> +/*
+> + * Returns non-zero if a reference to the io_mm was successfully
+> taken.
+> + * Returns zero if the io_mm is being freed and should not be used.
+> + */
+> +static int io_mm_get_locked(struct io_mm *io_mm)
+> +{
+> +	if (io_mm)
+> +		return kref_get_unless_zero(&io_mm->kref);
+> +
+> +	return 0;
+> +}
+> +
+> +static void io_mm_put_locked(struct io_mm *io_mm)
+> +{
+> +	kref_put(&io_mm->kref, io_mm_release);
+> +}
+> +
+> +static void io_mm_put(struct io_mm *io_mm)
+> +{
+> +	spin_lock(&iommu_sva_lock);
+> +	io_mm_put_locked(io_mm);
+> +	spin_unlock(&iommu_sva_lock);
+> +}
+> +
+> +static int io_mm_attach(struct iommu_domain *domain, struct device
+> *dev,
+> +			struct io_mm *io_mm, void *drvdata)
+> +{
+> +	int ret;
+> +	bool attach_domain = true;
+> +	int pasid = io_mm->pasid;
+> +	struct iommu_bond *bond, *tmp;
+> +	struct iommu_sva_param *param = dev->iommu_param->sva_param;
+> +
+> +	if (!domain->ops->mm_attach || !domain->ops->mm_detach)
+> +		return -ENODEV;
+> +
+> +	if (pasid > param->max_pasid || pasid < param->min_pasid)
+> +		return -ERANGE;
+> +
+> +	bond = kzalloc(sizeof(*bond), GFP_KERNEL);
+> +	if (!bond)
+> +		return -ENOMEM;
+> +
+> +	bond->domain		= domain;
+> +	bond->io_mm		= io_mm;
+> +	bond->dev		= dev;
+> +	bond->drvdata		= drvdata;
+> +
+> +	spin_lock(&iommu_sva_lock);
+> +	/*
+> +	 * Check if this io_mm is already bound to the domain. In
+> which case the
+> +	 * IOMMU driver doesn't have to install the PASID table
+> entry.
+> +	 */
+> +	list_for_each_entry(tmp, &domain->mm_list, domain_head) {
+> +		if (tmp->io_mm == io_mm) {
+> +			attach_domain = false;
+> +			break;
+> +		}
+> +	}
+> +
+> +	ret = domain->ops->mm_attach(domain, dev, io_mm,
+> attach_domain);
+> +	if (ret) {
+> +		kfree(bond);
+> +		spin_unlock(&iommu_sva_lock);
+> +		return ret;
+> +	}
+> +
+> +	list_add(&bond->mm_head, &io_mm->devices);
+> +	list_add(&bond->domain_head, &domain->mm_list);
+> +	list_add(&bond->dev_head, &param->mm_list);
+> +	spin_unlock(&iommu_sva_lock);
+> +
+> +	return 0;
+> +}
+> +
+> +static void io_mm_detach_locked(struct iommu_bond *bond)
+> +{
+> +	struct iommu_bond *tmp;
+> +	bool detach_domain = true;
+> +	struct iommu_domain *domain = bond->domain;
+> +
+> +	list_for_each_entry(tmp, &domain->mm_list, domain_head) {
+> +		if (tmp->io_mm == bond->io_mm && tmp->dev !=
+> bond->dev) {
+> +			detach_domain = false;
+> +			break;
+> +		}
+> +	}
+> +
+> +	domain->ops->mm_detach(domain, bond->dev, bond->io_mm,
+> detach_domain); +
+> +	list_del(&bond->mm_head);
+> +	list_del(&bond->domain_head);
+> +	list_del(&bond->dev_head);
+> +	io_mm_put_locked(bond->io_mm);
+> +
+> +	kfree(bond);
+> +}
+>  
+>  /**
+>   * iommu_sva_device_init() - Initialize Shared Virtual Addressing
+> for a device @@ -47,6 +337,7 @@ int iommu_sva_device_init(struct
+> device *dev, unsigned long features, 
+>  	param->features		= features;
+>  	param->max_pasid	= max_pasid;
+> +	INIT_LIST_HEAD(&param->mm_list);
+>  
+>  	/*
+>  	 * IOMMU driver updates the limits depending on the IOMMU
+> and device @@ -114,13 +405,87 @@
+> EXPORT_SYMBOL_GPL(iommu_sva_device_shutdown); int
+> __iommu_sva_bind_device(struct device *dev, struct mm_struct *mm, int
+> *pasid, unsigned long flags, void *drvdata) {
+> -	return -ENOSYS; /* TODO */
+> +	int i, ret = 0;
+> +	struct io_mm *io_mm = NULL;
+> +	struct iommu_domain *domain;
+> +	struct iommu_bond *bond = NULL, *tmp;
+> +	struct iommu_sva_param *param = dev->iommu_param->sva_param;
+> +
+> +	domain = iommu_get_domain_for_dev(dev);
+> +	if (!domain)
+> +		return -EINVAL;
+> +
+> +	/*
+> +	 * The device driver does not call sva_device_init/shutdown
+> and
+> +	 * bind/unbind concurrently, so no need to take the param
+> lock.
+> +	 */
+> +	if (WARN_ON_ONCE(!param) || (flags & ~param->features))
+> +		return -EINVAL;
+> +
+> +	/* If an io_mm already exists, use it */
+> +	spin_lock(&iommu_sva_lock);
+> +	idr_for_each_entry(&iommu_pasid_idr, io_mm, i) {
+> +		if (io_mm->mm == mm && io_mm_get_locked(io_mm)) {
+> +			/* ... Unless it's already bound to this
+> device */
+> +			list_for_each_entry(tmp, &io_mm->devices,
+> mm_head) {
+> +				if (tmp->dev == dev) {
+> +					bond = tmp;
+> +					io_mm_put_locked(io_mm);
+> +					break;
+> +				}
+> +			}
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iommu_sva_lock);
+> +
+> +	if (bond)
+> +		return -EEXIST;
+> +
+> +	/* Require identical features within an io_mm for now */
+> +	if (io_mm && (flags != io_mm->flags)) {
+> +		io_mm_put(io_mm);
+> +		return -EDOM;
+> +	}
+> +
+> +	if (!io_mm) {
+> +		io_mm = io_mm_alloc(domain, dev, mm, flags);
+> +		if (IS_ERR(io_mm))
+> +			return PTR_ERR(io_mm);
+> +	}
+> +
+> +	ret = io_mm_attach(domain, dev, io_mm, drvdata);
+> +	if (ret)
+> +		io_mm_put(io_mm);
+> +	else
+> +		*pasid = io_mm->pasid;
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(__iommu_sva_bind_device);
+>  
+>  int __iommu_sva_unbind_device(struct device *dev, int pasid)
+>  {
+> -	return -ENOSYS; /* TODO */
+> +	int ret = -ESRCH;
+> +	struct iommu_domain *domain;
+> +	struct iommu_bond *bond = NULL;
+> +	struct iommu_sva_param *param = dev->iommu_param->sva_param;
+> +
+> +	domain = iommu_get_domain_for_dev(dev);
+> +	if (!param || WARN_ON(!domain))
+> +		return -EINVAL;
+> +
+> +	spin_lock(&iommu_sva_lock);
+> +	list_for_each_entry(bond, &param->mm_list, dev_head) {
+> +		if (bond->io_mm->pasid == pasid) {
+> +			io_mm_detach_locked(bond);
+> +			ret = 0;
+> +			break;
+> +		}
+> +	}
+> +	spin_unlock(&iommu_sva_lock);
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(__iommu_sva_unbind_device);
+>  
+> @@ -132,6 +497,15 @@ EXPORT_SYMBOL_GPL(__iommu_sva_unbind_device);
+>   */
+>  void __iommu_sva_unbind_dev_all(struct device *dev)
+>  {
+> -	/* TODO */
+> +	struct iommu_sva_param *param;
+> +	struct iommu_bond *bond, *next;
+> +
+> +	param = dev->iommu_param->sva_param;
+> +	if (param) {
+> +		spin_lock(&iommu_sva_lock);
+> +		list_for_each_entry_safe(bond, next,
+> &param->mm_list, dev_head)
+> +			io_mm_detach_locked(bond);
+> +		spin_unlock(&iommu_sva_lock);
+> +	}
+>  }
+>  EXPORT_SYMBOL_GPL(__iommu_sva_unbind_dev_all);
+> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+> index bd2819deae5b..333801e1519c 100644
+> --- a/drivers/iommu/iommu.c
+> +++ b/drivers/iommu/iommu.c
+> @@ -1463,6 +1463,7 @@ static struct iommu_domain
+> *__iommu_domain_alloc(struct bus_type *bus, domain->type = type;
+>  	/* Assume all sizes by default; the driver may override this
+> later */ domain->pgsize_bitmap  = bus->iommu_ops->pgsize_bitmap;
+> +	INIT_LIST_HEAD(&domain->mm_list);
+>  
+>  	return domain;
+>  }
+> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> index da59c20c4f12..d5f21719a5a0 100644
+> --- a/include/linux/iommu.h
+> +++ b/include/linux/iommu.h
+> @@ -100,6 +100,20 @@ struct iommu_domain {
+>  	void *handler_token;
+>  	struct iommu_domain_geometry geometry;
+>  	void *iova_cookie;
+> +
+> +	struct list_head mm_list;
+> +};
+> +
+> +struct io_mm {
+> +	int			pasid;
+> +	/* IOMMU_SVA_FEAT_* */
+> +	unsigned long		flags;
+> +	struct list_head	devices;
+> +	struct kref		kref;
+> +	struct mm_struct	*mm;
+> +
+> +	/* Release callback for this mm */
+> +	void (*release)(struct io_mm *io_mm);
+>  };
+>  
+>  enum iommu_cap {
+> @@ -216,6 +230,7 @@ struct iommu_sva_param {
+>  	unsigned long features;
+>  	unsigned int min_pasid;
+>  	unsigned int max_pasid;
+> +	struct list_head mm_list;
+>  };
+>  
+>  /**
+> @@ -227,6 +242,11 @@ struct iommu_sva_param {
+>   * @detach_dev: detach device from an iommu domain
+>   * @sva_device_init: initialize Shared Virtual Adressing for a device
+>   * @sva_device_shutdown: shutdown Shared Virtual Adressing for a
+> device
+> + * @mm_alloc: allocate io_mm
+> + * @mm_free: free io_mm
+> + * @mm_attach: attach io_mm to a device. Install PASID entry if
+> necessary
+> + * @mm_detach: detach io_mm from a device. Remove PASID entry and
+> + *             flush associated TLB entries.
+>   * @map: map a physically contiguous memory region to an iommu domain
+>   * @unmap: unmap a physically contiguous memory region from an iommu
+> domain
+>   * @map_sg: map a scatter-gather list of physically contiguous
+> memory chunks @@ -268,6 +288,14 @@ struct iommu_ops {
+>  			       struct iommu_sva_param *param);
+>  	void (*sva_device_shutdown)(struct device *dev,
+>  				    struct iommu_sva_param *param);
+> +	struct io_mm *(*mm_alloc)(struct iommu_domain *domain,
+> +				  struct mm_struct *mm,
+> +				  unsigned long flags);
+> +	void (*mm_free)(struct io_mm *io_mm);
+> +	int (*mm_attach)(struct iommu_domain *domain, struct device
+> *dev,
+> +			 struct io_mm *io_mm, bool attach_domain);
+> +	void (*mm_detach)(struct iommu_domain *domain, struct device
+> *dev,
+> +			  struct io_mm *io_mm, bool detach_domain);
+>  	int (*map)(struct iommu_domain *domain, unsigned long iova,
+>  		   phys_addr_t paddr, size_t size, int prot);
+>  	size_t (*unmap)(struct iommu_domain *domain, unsigned long
+> iova,
+
+[Jacob Pan]
