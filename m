@@ -1,87 +1,119 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v4 00/12] APEI in_nmi() rework and arm64 SDEI wire-up
-Date: Wed, 16 May 2018 17:46:04 +0100
-Message-ID: <15bfc50c-c789-bd79-7495-d040a354d306@arm.com>
-References: <20180516162829.14348-1-james.morse@arm.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/2] ACPICA: Introduce acpi_dispatch_gpe()
+Date: Wed, 16 May 2018 19:18:56 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E3B776DF31@ORSMSX108.amr.corp.intel.com>
+References: <2406722.gU2bUHd7bl@aspire.rjw.lan>
+ <1877957.ohNgiH8Sko@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20180516162829.14348-1-james.morse@arm.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1877957.ohNgiH8Sko@aspire.rjw.lan>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-acpi@vger.kernel.org
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Wang, Wendy" <wendy.wang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 16/05/18 17:28, James Morse wrote:
-> The aim of this series is to wire arm64's SDEI into APEI.
+I'm not sure why this is necessary, please explain.
 
-... and I missed the 'l' from the beginning of the well know inux-mm@kvack.org
-mailing list. I won't increase the spam by resending, please fix it when
-pointing out my other mistakes!
+Is the implication here that some driver is going to poll on acpi_dispatch_gpe?
 
-Thanks,
-
-James
+Bob
 
 
-> Since v3 the NMI fixmap entries and locks have moved into their own
-> structure. This moves the indirection up from the 'lock', which should
-> be more acceptable to polite society.
-> Changes are noted in each patch.
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Wednesday, May 16, 2018 5:12 AM
+> To: Linux ACPI <linux-acpi@vger.kernel.org>
+> Cc: Zhang, Rui <rui.zhang@intel.com>; Linux PM <linux-
+> pm@vger.kernel.org>; LKML <linux-kernel@vger.kernel.org>; Schmauss, Erik
+> <erik.schmauss@intel.com>; Moore, Robert <robert.moore@intel.com>; Wang,
+> Wendy <wendy.wang@intel.com>
+> Subject: [PATCH 1/2] ACPICA: Introduce acpi_dispatch_gpe()
 > 
-> This touches a few trees, so I'm not sure how best it should be merged.
-> Patches 11 and 12 are reducing a race that is made worse by patch 4, I'd
-> like them to arrive together, even though patch 11 doesn't depend on anything
-> else in the series. A partial merge of this would  be 1-3 and 11.
-
-[...]
-
-> Patch 11 makes the reschedule to memory_failure() run as soon as possible.
-
-[...]
-
-> James Morse (12):
->   ACPI / APEI: Move the estatus queue code up, and under its own ifdef
->   ACPI / APEI: Generalise the estatus queue's add/remove and notify code
->   ACPI / APEI: don't wait to serialise with oops messages when
->     panic()ing
->   ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
->   KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
->   arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
->   ACPI / APEI: Make the nmi_fixmap_idx per-ghes to allow multiple
->     in_nmi() users
->   ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
->   firmware: arm_sdei: Add ACPI GHES registration helper
->   ACPI / APEI: Add support for the SDEI GHES Notification type
->   mm/memory-failure: increase queued recovery work's priority
->   arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
->  arch/arm/include/asm/kvm_ras.h       |  14 +
->  arch/arm/include/asm/system_misc.h   |   5 -
->  arch/arm64/include/asm/acpi.h        |   4 +
->  arch/arm64/include/asm/daifflags.h   |   1 +
->  arch/arm64/include/asm/fixmap.h      |   8 +-
->  arch/arm64/include/asm/kvm_ras.h     |  24 ++
->  arch/arm64/include/asm/system_misc.h |   2 -
->  arch/arm64/kernel/acpi.c             |  49 ++++
->  arch/arm64/mm/fault.c                |  30 +-
->  drivers/acpi/apei/ghes.c             | 518 ++++++++++++++++++++---------------
->  drivers/firmware/arm_sdei.c          |  67 +++++
->  include/acpi/ghes.h                  |  17 ++
->  include/linux/arm_sdei.h             |   8 +
->  mm/memory-failure.c                  |  11 +-
->  virt/kvm/arm/mmu.c                   |   4 +-
->  15 files changed, 503 insertions(+), 259 deletions(-)
->  create mode 100644 arch/arm/include/asm/kvm_ras.h
->  create mode 100644 arch/arm64/include/asm/kvm_ras.h
+> Introduce acpi_dispatch_gpe() as a wrapper around acpi_ev_detect_gpe()
+> for checking if the given GPE (as represented by a GPE device handle and
+> a GPE number) is currently active and dispatching it (if that's the
+> case) outside of interrupt context.
 > 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/acpica/evgpe.c   |    6 ++++++
+>  drivers/acpi/acpica/evxfgpe.c |   22 ++++++++++++++++++++++
+>  include/acpi/acpixf.h         |    1 +
+>  3 files changed, 29 insertions(+)
+> 
+> Index: linux-pm/drivers/acpi/acpica/evgpe.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpica/evgpe.c
+> +++ linux-pm/drivers/acpi/acpica/evgpe.c
+> @@ -634,6 +634,12 @@ acpi_ev_detect_gpe(struct acpi_namespace
+> 
+>  	flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
+> 
+> +	if (!gpe_event_info) {
+> +		gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device,
+> gpe_number);
+> +		if (!gpe_event_info)
+> +			goto error_exit;
+> +	}
+> +
+>  	/* Get the info block for the entire GPE register */
+> 
+>  	gpe_register_info = gpe_event_info->register_info;
+> Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
+> +++ linux-pm/drivers/acpi/acpica/evxfgpe.c
+> @@ -639,6 +639,28 @@ ACPI_EXPORT_SYMBOL(acpi_get_gpe_status)
+> 
+> 
+> /***********************************************************************
+> ********
+>   *
+> + * FUNCTION:    acpi_gispatch_gpe
+> + *
+> + * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for
+> GPE0/GPE1
+> + *              gpe_number          - GPE level within the GPE block
+> + *
+> + * RETURN:      None
+> + *
+> + * DESCRIPTION: Detect and dispatch a General Purpose Event to either a
+> function
+> + *              (e.g. EC) or method (e.g. _Lxx/_Exx) handler.
+> + *
+> +
+> +***********************************************************************
+> +*******/ void acpi_dispatch_gpe(acpi_handle gpe_device, u32 gpe_number)
+> +{
+> +	ACPI_FUNCTION_TRACE(acpi_dispatch_gpe);
+> +
+> +	acpi_ev_detect_gpe(gpe_device, NULL, gpe_number); }
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_dispatch_gpe)
+> +
+> +/**********************************************************************
+> +*********
+> + *
+>   * FUNCTION:    acpi_finish_gpe
+>   *
+>   * PARAMETERS:  gpe_device          - Namespace node for the GPE Block
+> Index: linux-pm/include/acpi/acpixf.h
+> ===================================================================
+> --- linux-pm.orig/include/acpi/acpixf.h
+> +++ linux-pm/include/acpi/acpixf.h
+> @@ -753,6 +753,7 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_sta
+>  						     u32 gpe_number,
+>  						     acpi_event_status
+>  						     *event_status))
+> +void acpi_dispatch_gpe(acpi_handle gpe_device, u32 gpe_number);
+>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> acpi_disable_all_gpes(void))
+> ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> acpi_enable_all_runtime_gpes(void))
+>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+> acpi_enable_all_wakeup_gpes(void))
