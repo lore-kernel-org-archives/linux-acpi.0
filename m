@@ -1,61 +1,258 @@
-From: Stephen Boyd <sboyd@kernel.org>
-Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
-Date: Wed, 16 May 2018 14:18:26 -0700
-Message-ID: <152650550674.210890.11671394176812686200@swboyd.mtv.corp.google.com>
-References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
- <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
- <20362702.FCbsg9xPKv@aspire.rjw.lan>
- <9f31fc22-b97f-0241-30cd-798ee03b2f1d@amd.com>
- <152641886428.237094.9491189918943948420@swboyd.mtv.corp.google.com>
- <CAJZ5v0gKvMFSyZy3K11d1P8+5ZBNk2ecFAuRTrQ_3obYJM8iTw@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: [PATCH v4 3/3] mailbox: ACPI: erroneous error message when parsing
+ the ACPI, PCCT
+Date: Wed, 16 May 2018 16:01:41 -0600
+Message-ID: <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
+References: <20180501003907.4322-1-ahs3@redhat.com>
+ <20180501003907.4322-4-ahs3@redhat.com>
+ <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org>
+ <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
+ <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
+Reply-To: ahs3@redhat.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gKvMFSyZy3K11d1P8+5ZBNk2ecFAuRTrQ_3obYJM8iTw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Daniel Kurtz <djkurtz@chromium.org>, Alex Deucher <Alexander.Deucher@amd.com>, Michael Turquette <mturquette@baylibre.com>, =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Dave Airlie <airlied@redhat.com>, Shaoyun.Liu@amd.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: "Prakash, Prashanth" <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Quoting Rafael J. Wysocki (2018-05-16 01:23:27)
-> On Tue, May 15, 2018 at 11:14 PM, Stephen Boyd <sboyd@kernel.org> wrote:
-> > Quoting Agrawal, Akshu (2018-05-15 02:39:08)
-> >>
-> >>
-> >> On 5/15/2018 3:02 PM, Rafael J. Wysocki wrote:
-> >> > On Wednesday, May 9, 2018 11:59:00 AM CEST Akshu Agrawal wrote:
-> >> >> Stoney SoC provides oscout clock. This clock can support 25Mhz and
-> >> >> 48Mhz of frequency.
-> >> >> The clock is available for general system use.
-> >> >>
-> >> >> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
-> >> >
-> >> > I'm not sure if the Stephen Boyd's comments on one of the previous
-> >> > versions of this patch have been addressed.  Have they?
-> >> >
-> >> > In any case, if I'm expected to take this, I need an ACK from Stephe=
-n on it.
-> >> >
-> >> > Thanks,
-> >> > Rafael
-> >> >
-> >>
-> >> All comments of Stephen Boyd and Daniel Kurtz have been addressed.
-> >>
-> >> Stephen, if you are Ok with this can you please ACK it.
-> >>
-> >
-> > It could go via clk tree and meet up with the acpi patch in -next right?
-> > I'm fine with it going through acpi path though so whichever way works.
-> =
+There have been multiple reports of the following error message:
 
-> It's better if it goes in as a series IMO and then if it goes via
-> ACPI, the clock dependency will be clear from the git history.
-> =
+[    0.068293] Error parsing PCC subspaces from PCCT
 
-> So if you don't mind, I'll queue this series up for 4.18.
-> =
+This error message is not correct.  In multiple cases examined, the PCCT
+(Platform Communications Channel Table) concerned is actually properly
+constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+is making the assumption that the only valid PCCT is one that contains
+subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+types are counted and as long as there is at least one of the desired
+types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+are found, regardless of whether or not any other subtable types are
+present, the error mentioned above is reported.
 
+In the cases reported to me personally, the PCCT contains exactly one
+subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+acpi_pcc_probe() does not count it as a valid subtable, so believes
+there to be no valid subtables, and hence outputs the error message.
 
-Ok
+An example of the PCCT being reported as erroneous yet perfectly fine
+is the following:
+
+                    Signature : "PCCT"
+                 Table Length : 0000006E
+                     Revision : 05
+                     Checksum : A9
+                       Oem ID : "XXXXXX"
+                 Oem Table ID : "XXXXX   "
+                 Oem Revision : 00002280
+              Asl Compiler ID : "XXXX"
+        Asl Compiler Revision : 00000002
+
+        Flags (decoded below) : 00000001
+                     Platform : 1
+                     Reserved : 0000000000000000
+
+                Subtable Type : 00 [Generic Communications Subspace]
+                       Length : 3E
+
+                     Reserved : 000000000000
+                 Base Address : 00000000DCE43018
+               Address Length : 0000000000001000
+
+            Doorbell Register : [Generic Address Structure]
+                     Space ID : 01 [SystemIO]
+                    Bit Width : 08
+                   Bit Offset : 00
+         Encoded Access Width : 01 [Byte Access:8]
+                      Address : 0000000000001842
+
+                Preserve Mask : 00000000000000FD
+                   Write Mask : 0000000000000002
+              Command Latency : 00001388
+          Maximum Access Rate : 00000000
+      Minimum Turnaround Time : 0000
+
+To fix this, we count up all of the possible subtable types for the
+PCCT, and only report an error when there are none (which could mean
+either no subtables, or no valid subtables), or there are too many.
+We also change the logic so that if there is a valid subtable, we
+do try to initialize it per the PCCT subtable contents.  This is a
+change in functionality; previously, the probe would have returned
+right after the error message and would not have tried to use any
+other subtable definition.
+
+Tested on my personal laptop which showed the error previously; the
+error message no longer appears and the laptop appears to operate
+normally.
+
+Signed-off-by: Al Stone <ahs3@redhat.com>
+Cc: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+---
+ drivers/mailbox/pcc.c | 81 ++++++++++++++++++++-----------------------
+ 1 file changed, 38 insertions(+), 43 deletions(-)
+
+diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+index 3ef7f036ceea..fc3c237daef2 100644
+--- a/drivers/mailbox/pcc.c
++++ b/drivers/mailbox/pcc.c
+@@ -373,33 +373,24 @@ static const struct mbox_chan_ops pcc_chan_ops = {
+ };
+
+ /**
+- * parse_pcc_subspace - Parse the PCC table and verify PCC subspace
+- *		entries. There should be one entry per PCC client.
++ * parse_pcc_subspaces -- Count PCC subspaces defined
+  * @header: Pointer to the ACPI subtable header under the PCCT.
+  * @end: End of subtable entry.
+  *
+- * Return: 0 for Success, else errno.
++ * Return: If we find a PCC subspace entry of a valid type, return 0.
++ *	Otherwise, return -EINVAL.
+  *
+  * This gets called for each entry in the PCC table.
+  */
+ static int parse_pcc_subspace(struct acpi_subtable_header *header,
+ 		const unsigned long end)
+ {
+-	struct acpi_pcct_hw_reduced *pcct_ss;
+-
+-	if (pcc_mbox_ctrl.num_chans <= MAX_PCC_SUBSPACES) {
+-		pcct_ss = (struct acpi_pcct_hw_reduced *) header;
++	struct acpi_pcct_subspace *ss = (struct acpi_pcct_subspace *) header;
+
+-		if ((pcct_ss->header.type !=
+-				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE)
+-		    && (pcct_ss->header.type !=
+-				ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2)) {
+-			pr_err("Incorrect PCC Subspace type detected\n");
+-			return -EINVAL;
+-		}
+-	}
++	if (ss->header.type < ACPI_PCCT_TYPE_RESERVED)
++		return 0;
+
+-	return 0;
++	return -EINVAL;
+ }
+
+ /**
+@@ -449,8 +440,8 @@ static int __init acpi_pcc_probe(void)
+ 	struct acpi_table_header *pcct_tbl;
+ 	struct acpi_subtable_header *pcct_entry;
+ 	struct acpi_table_pcct *acpi_pcct_tbl;
++	struct acpi_subtable_proc proc[ACPI_PCCT_TYPE_RESERVED];
+ 	int count, i, rc;
+-	int sum = 0;
+ 	acpi_status status = AE_OK;
+
+ 	/* Search for PCCT */
+@@ -459,43 +450,41 @@ static int __init acpi_pcc_probe(void)
+ 	if (ACPI_FAILURE(status) || !pcct_tbl)
+ 		return -ENODEV;
+
+-	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+-			sizeof(struct acpi_table_pcct),
+-			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE,
+-			parse_pcc_subspace, MAX_PCC_SUBSPACES);
+-	sum += (count > 0) ? count : 0;
+-
+-	count = acpi_table_parse_entries(ACPI_SIG_PCCT,
+-			sizeof(struct acpi_table_pcct),
+-			ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2,
+-			parse_pcc_subspace, MAX_PCC_SUBSPACES);
+-	sum += (count > 0) ? count : 0;
++	/* Set up the subtable handlers */
++	for (i = ACPI_PCCT_TYPE_GENERIC_SUBSPACE;
++	     i < ACPI_PCCT_TYPE_RESERVED; i++) {
++		proc[i].id = i;
++		proc[i].count = 0;
++		proc[i].handler = parse_pcc_subspace;
++	}
+
+-	if (sum == 0 || sum >= MAX_PCC_SUBSPACES) {
+-		pr_err("Error parsing PCC subspaces from PCCT\n");
++	count = acpi_table_parse_entries_array(ACPI_SIG_PCCT,
++			sizeof(struct acpi_table_pcct), proc,
++			ACPI_PCCT_TYPE_RESERVED, MAX_PCC_SUBSPACES);
++	if (count == 0 || count > MAX_PCC_SUBSPACES) {
++		pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
+ 		return -EINVAL;
+ 	}
+
+-	pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) *
+-			sum, GFP_KERNEL);
++	pcc_mbox_channels = kzalloc(sizeof(struct mbox_chan) * count, GFP_KERNEL);
+ 	if (!pcc_mbox_channels) {
+ 		pr_err("Could not allocate space for PCC mbox channels\n");
+ 		return -ENOMEM;
+ 	}
+
+-	pcc_doorbell_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
++	pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+ 	if (!pcc_doorbell_vaddr) {
+ 		rc = -ENOMEM;
+ 		goto err_free_mbox;
+ 	}
+
+-	pcc_doorbell_ack_vaddr = kcalloc(sum, sizeof(void *), GFP_KERNEL);
++	pcc_doorbell_ack_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
+ 	if (!pcc_doorbell_ack_vaddr) {
+ 		rc = -ENOMEM;
+ 		goto err_free_db_vaddr;
+ 	}
+
+-	pcc_doorbell_irq = kcalloc(sum, sizeof(int), GFP_KERNEL);
++	pcc_doorbell_irq = kcalloc(count, sizeof(int), GFP_KERNEL);
+ 	if (!pcc_doorbell_irq) {
+ 		rc = -ENOMEM;
+ 		goto err_free_db_ack_vaddr;
+@@ -509,18 +498,24 @@ static int __init acpi_pcc_probe(void)
+ 	if (acpi_pcct_tbl->flags & ACPI_PCCT_DOORBELL)
+ 		pcc_mbox_ctrl.txdone_irq = true;
+
+-	for (i = 0; i < sum; i++) {
++	for (i = 0; i < count; i++) {
+ 		struct acpi_generic_address *db_reg;
+-		struct acpi_pcct_hw_reduced *pcct_ss;
++		struct acpi_pcct_subspace *pcct_ss;
+ 		pcc_mbox_channels[i].con_priv = pcct_entry;
+
+-		pcct_ss = (struct acpi_pcct_hw_reduced *) pcct_entry;
++		if (pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE ||
++		    pcct_entry->type == ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE_TYPE2) {
++			struct acpi_pcct_hw_reduced *pcct_hrss;
++
++			pcct_hrss = (struct acpi_pcct_hw_reduced *) pcct_entry;
+
+-		if (pcc_mbox_ctrl.txdone_irq) {
+-			rc = pcc_parse_subspace_irq(i, pcct_ss);
+-			if (rc < 0)
+-				goto err;
++			if (pcc_mbox_ctrl.txdone_irq) {
++				rc = pcc_parse_subspace_irq(i, pcct_hrss);
++				if (rc < 0)
++					goto err;
++			}
+ 		}
++		pcct_ss = (struct acpi_pcct_subspace *) pcct_entry;
+
+ 		/* If doorbell is in system memory cache the virt address */
+ 		db_reg = &pcct_ss->doorbell_register;
+@@ -531,7 +526,7 @@ static int __init acpi_pcc_probe(void)
+ 			((unsigned long) pcct_entry + pcct_entry->length);
+ 	}
+
+-	pcc_mbox_ctrl.num_chans = sum;
++	pcc_mbox_ctrl.num_chans = count;
+
+ 	pr_info("Detected %d PCC Subspaces\n", pcc_mbox_ctrl.num_chans);
+
+-- 
+2.17.0
