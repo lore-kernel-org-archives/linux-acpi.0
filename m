@@ -1,14 +1,14 @@
 From: James Morse <james.morse@arm.com>
-Subject: [PATCH v4 12/12] arm64: acpi: Make apei_claim_sea() synchronise with
- APEI's irq work
-Date: Wed, 16 May 2018 17:28:29 +0100
-Message-ID: <20180516162829.14348-13-james.morse@arm.com>
+Subject: Re: [PATCH v4 00/12] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Wed, 16 May 2018 17:46:04 +0100
+Message-ID: <15bfc50c-c789-bd79-7495-d040a354d306@arm.com>
 References: <20180516162829.14348-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 In-Reply-To: <20180516162829.14348-1-james.morse@arm.com>
+Content-Language: en-US
 List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
  <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
 List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
@@ -19,104 +19,69 @@ List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
 Errors-To: kvmarm-bounces@lists.cs.columbia.edu
 Sender: kvmarm-bounces@lists.cs.columbia.edu
 To: linux-acpi@vger.kernel.org
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, inux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, Punit Agrawal <punit.agrawal@arm.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-APEI is unable to do all of its error handling work in nmi-context, so
-it defers non-fatal work onto the irq_work queue. arch_irq_work_raise()
-sends an IPI to the calling cpu, but we can't guarantee this will be
-taken before we return.
+On 16/05/18 17:28, James Morse wrote:
+> The aim of this series is to wire arm64's SDEI into APEI.
 
-Unless we interrupted a context with irqs-masked, we can call
-irq_work_run() to do the work now. Otherwise return -EINPROGRESS to
-indicate ghes_notify_sea() found some work to do, but it hasn't
-finished yet.
+... and I missed the 'l' from the beginning of the well know inux-mm@kvack.org
+mailing list. I won't increase the spam by resending, please fix it when
+pointing out my other mistakes!
 
-With this we can take apei_claim_sea() returning '0' to mean this
-external-abort was also notification of a firmware-first RAS error,
-and that APEI has processed the CPER records.
+Thanks,
 
-Signed-off-by: James Morse <james.morse@arm.com>
-Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-CC: Xie XiuQi <xiexiuqi@huawei.com>
-CC: gengdongjiu <gengdongjiu@huawei.com>
----
-Changes since v2:
- * Removed IS_ENABLED() check, done by the caller unless we have a dummy
-   definition.
+James
 
- arch/arm64/kernel/acpi.c | 19 +++++++++++++++++++
- arch/arm64/mm/fault.c    |  9 ++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index df2c6bff8c58..9ef2d91f0000 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -22,6 +22,7 @@
- #include <linux/init.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
-+#include <linux/irq_work.h>
- #include <linux/memblock.h>
- #include <linux/of_fdt.h>
- #include <linux/smp.h>
-@@ -275,10 +276,14 @@ int apei_claim_sea(struct pt_regs *regs)
- {
- 	int err = -ENOENT;
- 	unsigned long current_flags = arch_local_save_flags();
-+	unsigned long interrupted_flags = current_flags;
- 
- 	if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
- 		return err;
- 
-+	if (regs)
-+		interrupted_flags = regs->pstate;
-+
- 	/*
- 	 * SEA can interrupt SError, mask it and describe this as an NMI so
- 	 * that APEI defers the handling.
-@@ -287,6 +292,20 @@ int apei_claim_sea(struct pt_regs *regs)
- 	nmi_enter();
- 	err = ghes_notify_sea();
- 	nmi_exit();
-+
-+	/*
-+	 * APEI NMI-like notifications are deferred to irq_work. Unless
-+	 * we interrupted irqs-masked code, we can do that now.
-+	 */
-+	if (!err) {
-+		if (!arch_irqs_disabled_flags(interrupted_flags)) {
-+			local_daif_restore(DAIF_PROCCTX_NOIRQ);
-+			irq_work_run();
-+		} else {
-+			err = -EINPROGRESS;
-+		}
-+	}
-+
- 	local_daif_restore(current_flags);
- 
- 	return err;
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index d7e89da0e5df..0232e9064144 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -568,11 +568,10 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- 	inf = esr_to_fault_info(esr);
- 
--	/*
--	 * Return value ignored as we rely on signal merging.
--	 * Future patches will make this more robust.
--	 */
--	apei_claim_sea(regs);
-+	if (apei_claim_sea(regs) == 0) {
-+		/* APEI claimed this as a firmware-first notification */
-+		return 0;
-+	}
- 
- 	info.si_signo = inf->sig;
- 	info.si_errno = 0;
--- 
-2.16.2
+> Since v3 the NMI fixmap entries and locks have moved into their own
+> structure. This moves the indirection up from the 'lock', which should
+> be more acceptable to polite society.
+> Changes are noted in each patch.
+> 
+> This touches a few trees, so I'm not sure how best it should be merged.
+> Patches 11 and 12 are reducing a race that is made worse by patch 4, I'd
+> like them to arrive together, even though patch 11 doesn't depend on anything
+> else in the series. A partial merge of this would  be 1-3 and 11.
+
+[...]
+
+> Patch 11 makes the reschedule to memory_failure() run as soon as possible.
+
+[...]
+
+> James Morse (12):
+>   ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+>   ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+>   ACPI / APEI: don't wait to serialise with oops messages when
+>     panic()ing
+>   ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+>   KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+>   arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+>   ACPI / APEI: Make the nmi_fixmap_idx per-ghes to allow multiple
+>     in_nmi() users
+>   ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+>   firmware: arm_sdei: Add ACPI GHES registration helper
+>   ACPI / APEI: Add support for the SDEI GHES Notification type
+>   mm/memory-failure: increase queued recovery work's priority
+>   arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+> 
+>  arch/arm/include/asm/kvm_ras.h       |  14 +
+>  arch/arm/include/asm/system_misc.h   |   5 -
+>  arch/arm64/include/asm/acpi.h        |   4 +
+>  arch/arm64/include/asm/daifflags.h   |   1 +
+>  arch/arm64/include/asm/fixmap.h      |   8 +-
+>  arch/arm64/include/asm/kvm_ras.h     |  24 ++
+>  arch/arm64/include/asm/system_misc.h |   2 -
+>  arch/arm64/kernel/acpi.c             |  49 ++++
+>  arch/arm64/mm/fault.c                |  30 +-
+>  drivers/acpi/apei/ghes.c             | 518 ++++++++++++++++++++---------------
+>  drivers/firmware/arm_sdei.c          |  67 +++++
+>  include/acpi/ghes.h                  |  17 ++
+>  include/linux/arm_sdei.h             |   8 +
+>  mm/memory-failure.c                  |  11 +-
+>  virt/kvm/arm/mmu.c                   |   4 +-
+>  15 files changed, 503 insertions(+), 259 deletions(-)
+>  create mode 100644 arch/arm/include/asm/kvm_ras.h
+>  create mode 100644 arch/arm64/include/asm/kvm_ras.h
+> 
