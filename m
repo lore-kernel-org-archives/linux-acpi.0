@@ -1,128 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/2] ACPICA: Introduce acpi_dispatch_gpe()
-Date: Wed, 16 May 2018 23:03:09 +0200
-Message-ID: <CAJZ5v0hAzkyMA4Kku9p6_TcmOXDniVSqGRKmkDvsJsW26SOKFQ@mail.gmail.com>
-References: <2406722.gU2bUHd7bl@aspire.rjw.lan> <1877957.ohNgiH8Sko@aspire.rjw.lan>
- <94F2FBAB4432B54E8AACC7DFDE6C92E3B776DF31@ORSMSX108.amr.corp.intel.com>
+From: Stephen Boyd <sboyd@kernel.org>
+Subject: Re: [PATCH v5 1/2] clk: x86: Add ST oscout platform clock
+Date: Wed, 16 May 2018 14:18:26 -0700
+Message-ID: <152650550674.210890.11671394176812686200@swboyd.mtv.corp.google.com>
+References: <1525859941-23654-1-git-send-email-akshu.agrawal@amd.com>
+ <1525859941-23654-2-git-send-email-akshu.agrawal@amd.com>
+ <20362702.FCbsg9xPKv@aspire.rjw.lan>
+ <9f31fc22-b97f-0241-30cd-798ee03b2f1d@amd.com>
+ <152641886428.237094.9491189918943948420@swboyd.mtv.corp.google.com>
+ <CAJZ5v0gKvMFSyZy3K11d1P8+5ZBNk2ecFAuRTrQ_3obYJM8iTw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E3B776DF31@ORSMSX108.amr.corp.intel.com>
+In-Reply-To: <CAJZ5v0gKvMFSyZy3K11d1P8+5ZBNk2ecFAuRTrQ_3obYJM8iTw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "Schmauss, Erik" <erik.schmauss@intel.com>, "Wang, Wendy" <wendy.wang@intel.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Agrawal, Akshu" <Akshu.Agrawal@amd.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Daniel Kurtz <djkurtz@chromium.org>, Alex Deucher <Alexander.Deucher@amd.com>, Michael Turquette <mturquette@baylibre.com>, =?utf-8?q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>, Dave Airlie <airlied@redhat.com>, Shaoyun.Liu@amd.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-clk <linux-clk@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 16, 2018 at 9:18 PM, Moore, Robert <robert.moore@intel.com> wrote:
-> I'm not sure why this is necessary, please explain.
->
-> Is the implication here that some driver is going to poll on acpi_dispatch_gpe?
+Quoting Rafael J. Wysocki (2018-05-16 01:23:27)
+> On Tue, May 15, 2018 at 11:14 PM, Stephen Boyd <sboyd@kernel.org> wrote:
+> > Quoting Agrawal, Akshu (2018-05-15 02:39:08)
+> >>
+> >>
+> >> On 5/15/2018 3:02 PM, Rafael J. Wysocki wrote:
+> >> > On Wednesday, May 9, 2018 11:59:00 AM CEST Akshu Agrawal wrote:
+> >> >> Stoney SoC provides oscout clock. This clock can support 25Mhz and
+> >> >> 48Mhz of frequency.
+> >> >> The clock is available for general system use.
+> >> >>
+> >> >> Signed-off-by: Akshu Agrawal <akshu.agrawal@amd.com>
+> >> >
+> >> > I'm not sure if the Stephen Boyd's comments on one of the previous
+> >> > versions of this patch have been addressed.  Have they?
+> >> >
+> >> > In any case, if I'm expected to take this, I need an ACK from Stephe=
+n on it.
+> >> >
+> >> > Thanks,
+> >> > Rafael
+> >> >
+> >>
+> >> All comments of Stephen Boyd and Daniel Kurtz have been addressed.
+> >>
+> >> Stephen, if you are Ok with this can you please ACK it.
+> >>
+> >
+> > It could go via clk tree and meet up with the acpi patch in -next right?
+> > I'm fine with it going through acpi path though so whichever way works.
+> =
 
-Not a driver, but the core part of resume from suspend-to-idle and it
-needs to call it for the EC GPE specifically to avoid missing events
-that will be discarded on some platforms if the EC is not poked at
-within specific time since when the GPE status changed.
+> It's better if it goes in as a series IMO and then if it goes via
+> ACPI, the clock dependency will be clear from the git history.
+> =
 
-IOW, the use case is in patch [2/2]. :-)
+> So if you don't mind, I'll queue this series up for 4.18.
+> =
 
-I do realize, however, that you may not want this upstream as it is
-strictly Linux-specific and will probably stay this way forever
-(suspend-to-idle is a Linux concept and I'm not aware of any OSes
-doing it).
 
->> -----Original Message-----
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Sent: Wednesday, May 16, 2018 5:12 AM
->> To: Linux ACPI <linux-acpi@vger.kernel.org>
->> Cc: Zhang, Rui <rui.zhang@intel.com>; Linux PM <linux-
->> pm@vger.kernel.org>; LKML <linux-kernel@vger.kernel.org>; Schmauss, Erik
->> <erik.schmauss@intel.com>; Moore, Robert <robert.moore@intel.com>; Wang,
->> Wendy <wendy.wang@intel.com>
->> Subject: [PATCH 1/2] ACPICA: Introduce acpi_dispatch_gpe()
->>
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> Introduce acpi_dispatch_gpe() as a wrapper around acpi_ev_detect_gpe()
->> for checking if the given GPE (as represented by a GPE device handle and
->> a GPE number) is currently active and dispatching it (if that's the
->> case) outside of interrupt context.
->>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> ---
->>  drivers/acpi/acpica/evgpe.c   |    6 ++++++
->>  drivers/acpi/acpica/evxfgpe.c |   22 ++++++++++++++++++++++
->>  include/acpi/acpixf.h         |    1 +
->>  3 files changed, 29 insertions(+)
->>
->> Index: linux-pm/drivers/acpi/acpica/evgpe.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/evgpe.c
->> +++ linux-pm/drivers/acpi/acpica/evgpe.c
->> @@ -634,6 +634,12 @@ acpi_ev_detect_gpe(struct acpi_namespace
->>
->>       flags = acpi_os_acquire_lock(acpi_gbl_gpe_lock);
->>
->> +     if (!gpe_event_info) {
->> +             gpe_event_info = acpi_ev_get_gpe_event_info(gpe_device,
->> gpe_number);
->> +             if (!gpe_event_info)
->> +                     goto error_exit;
->> +     }
->> +
->>       /* Get the info block for the entire GPE register */
->>
->>       gpe_register_info = gpe_event_info->register_info;
->> Index: linux-pm/drivers/acpi/acpica/evxfgpe.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/evxfgpe.c
->> +++ linux-pm/drivers/acpi/acpica/evxfgpe.c
->> @@ -639,6 +639,28 @@ ACPI_EXPORT_SYMBOL(acpi_get_gpe_status)
->>
->>
->> /***********************************************************************
->> ********
->>   *
->> + * FUNCTION:    acpi_gispatch_gpe
->> + *
->> + * PARAMETERS:  gpe_device          - Parent GPE Device. NULL for
->> GPE0/GPE1
->> + *              gpe_number          - GPE level within the GPE block
->> + *
->> + * RETURN:      None
->> + *
->> + * DESCRIPTION: Detect and dispatch a General Purpose Event to either a
->> function
->> + *              (e.g. EC) or method (e.g. _Lxx/_Exx) handler.
->> + *
->> +
->> +***********************************************************************
->> +*******/ void acpi_dispatch_gpe(acpi_handle gpe_device, u32 gpe_number)
->> +{
->> +     ACPI_FUNCTION_TRACE(acpi_dispatch_gpe);
->> +
->> +     acpi_ev_detect_gpe(gpe_device, NULL, gpe_number); }
->> +
->> +ACPI_EXPORT_SYMBOL(acpi_dispatch_gpe)
->> +
->> +/**********************************************************************
->> +*********
->> + *
->>   * FUNCTION:    acpi_finish_gpe
->>   *
->>   * PARAMETERS:  gpe_device          - Namespace node for the GPE Block
->> Index: linux-pm/include/acpi/acpixf.h
->> ===================================================================
->> --- linux-pm.orig/include/acpi/acpixf.h
->> +++ linux-pm/include/acpi/acpixf.h
->> @@ -753,6 +753,7 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_sta
->>                                                    u32 gpe_number,
->>                                                    acpi_event_status
->>                                                    *event_status))
->> +void acpi_dispatch_gpe(acpi_handle gpe_device, u32 gpe_number);
->>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
->> acpi_disable_all_gpes(void))
->> ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
->> acpi_enable_all_runtime_gpes(void))
->>  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
->> acpi_enable_all_wakeup_gpes(void))
->
+Ok
