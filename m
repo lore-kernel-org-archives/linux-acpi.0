@@ -1,18 +1,11 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v3 07/12] ACPI / APEI: Make the nmi_fixmap_idx per-ghes to
- allow multiple in_nmi() users
-Date: Wed, 16 May 2018 11:38:16 -0400
-Message-ID: <39bde8c5-4dfb-c1b9-02a4-ba467539ea24@codeaurora.org>
-References: <20180427153510.5799-1-james.morse@arm.com>
- <20180427153510.5799-8-james.morse@arm.com> <20180505122719.GE3708@pd.tnic>
- <1511cfcc-dcd1-b3c5-01c7-6b6b8fb65b05@arm.com>
- <20180516110348.GA17092@pd.tnic>
+From: James Morse <james.morse@arm.com>
+Subject: [PATCH v4 00/12] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Wed, 16 May 2018 17:28:17 +0100
+Message-ID: <20180516162829.14348-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180516110348.GA17092@pd.tnic>
-Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,61 +15,138 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Punit Agrawal <punit.agrawal@arm.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, inux-mm@kvack.org, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, Punit Agrawal <punit.agrawal@arm.com>, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/16/2018 7:05 AM, Borislav Petkov wrote:
-> On Tue, May 08, 2018 at 09:45:01AM +0100, James Morse wrote:
->> Alternatively, I can put the fixmap-page and spinlock in some 'struct
->> ghes_notification' that only the NMI-like struct-ghes need. This is just moving
->> the indirection up a level, but it does pair the lock with the thing it locks,
->> and gets rid of assigning spinlock pointers.
-> Keeping the lock and what it protects in one place certainly sounds
-> better. I guess you could so something like this:
->
-> struct ghes_fixmap {
->   union {
->    raw_spinlock_t nmi_lock;
->     spinlock_t lock;
->   };
->   void __iomem *(map)(struct ghes_fixmap *);
-> };
->
-> and assign the proper ghes_ioremap function to ->map.
->
-> The spin_lock_irqsave() call in ghes_copy_tofrom_phys() is kinda
-> questionable. Because we should have disabled interrupts so that you can
-> do
->
-> spin_lock(map->lock);
->
-> Except that we do get called with IRQs on and looking at that call of
-> ghes_proc() at the end of ghes_probe(), that's a deadlock waiting to
-> happen.
->
-> And that comes from:
->
->    77b246b32b2c ("acpi: apei: check for pending errors when probing GHES entries")
->
-> Tyler, this can't work in any context: imagine the GHES NMI or IRQ or
-> the timer fires while that ghes_proc() runs...
->
-> What's up?
-Hello Boris,
+The aim of this series is to wire arm64's SDEI into APEI.
 
-I haven't seen a deadlock from that, but it looks possible. What if the 
-ghes_proc() call in ghes_probe()
-is moved before the second switch statement? That way it is before the 
-NMI/IRQ/poll is setup. At quick
-glance I think that should avoid the deadlock and still provide the 
-functionality that call was added for. I
-can test that out if you all agree.
+Since v3 the NMI fixmap entries and locks have moved into their own
+structure. This moves the indirection up from the 'lock', which should
+be more acceptible to polite society.
+Changes are noted in each patch.
+
+This touches a few trees, so I'm not sure how best it should be merged.
+Patches 11 and 12 are reducing a race that is made worse by patch 4, I'd
+like them to arrive together, even though patch 11 doesn't depend on anything
+else in the series. A partial merge of this would  be 1-3 and 11.
+
+
+The earlier boiler-plate:
+
+What's SDEI? Its ARM's "Software Delegated Exception Interface" [0]. It's
+used by firmware to tell the OS about firmware-first RAS events.
+
+These Software exceptions can interrupt anything, so I describe them as
+NMI-like. They aren't the only NMI-like way to notify the OS about
+firmware-first RAS events, the ACPI spec also defines 'NOTFIY_SEA' and
+'NOTIFY_SEI'.
+
+(Acronyms: SEA, Synchronous External Abort. The CPU requested some memory,
+but the owner of that memory said no. These are always synchronous with the
+instruction that caused them. SEI, System-Error Interrupt, commonly called
+SError. This is an asynchronous external abort, the memory-owner didn't say no
+at the right point. Collectively these things are called external-aborts
+How is firmware involved? It traps these and re-injects them into the kernel
+once its written the CPER records).
+
+APEI's GHES code only expects one source of NMI. If a platform implements
+more than one of these mechanisms, APEI needs to handle the interaction.
+'SEA' and 'SEI' can interact as 'SEI' is asynchronous. SDEI can interact
+with itself: its exceptions can be 'normal' or 'critical', and firmware
+could use both types for RAS. (errors using normal, 'panic-now' using
+critical).
+
+What does this series do?
+Patches 1-4 refactor APEIs 'estatus queue' so it can be used for all
+NMI-like notifications. This defers the NMI work to irq_work, which will
+happen when we next unmask interrupts.
+
+Patches 5&6 move the arch and KVM code around so that NMI-like notifications
+are always called in_nmi().
+
+Patch 7 changes the 'irq or nmi?' path through ghes_copy_tofrom_phys()
+to be per-ghes. When called in_nmi(), the struct ghes is expected to
+provide a fixmap slot and lock that is safe to use. NMI-like notifications
+that mask each other can share these resources. Those that interact should
+have their own fixmap slot and lock.
+
+Patch 8 renames NOTIFY_SEA's use of NOTIFY_NMI's infrastructure, as we're
+about to have multiple NMI-like users that can't share resources.
+
+Pathes 9&10 add the SDEI helper, and notify methods for APEI.
+
+After this, adding further firmware-first pieces for arm64 is simple
+(and safe), and all our NMI-like notifications behave the same as x86's
+NOTIFY_NMI.
+
+All of this makes the race between memory_failure_queue() and
+ret_to_user worse, as there is now always irq_work involved.
+
+Patch 11 makes the reschedule to memory_failure() run as soon as possible.
+Patch 12 makes sure the arch code knows whether the irq_work has run by
+the time do_sea() returns. We can skip the signalling step if it has as
+APEI has done its work.
+
+
+ghes.c became clearer to me when I worked out that it has three sets of
+functions with 'estatus' in the name. One is a pool of memory that can be
+allocated-from atomically. This is grown/shrunk when new NMI users are
+allocated.
+The second is the estatus-cache, which holds recent notifications so it
+can suppress notifications we've already handled.
+The last it the estatus-queue, which holds data from NMI-like notifications
+(in pool memory) to be processed from irq_work.
+
+
+Testing?
+Tested with the SDEI FVP based software model and a mocked up NOTFIY_SEA using
+KVM. I've added a case where 'corrected errors' are discovered at probe time
+to exercise ghes_probe() during boot. I've only build tested this on x86.
+
 
 Thanks,
-Tyler
+
+James
+
+[0] http://infocenter.arm.com/help/topic/com.arm.doc.den0054a/ARM_DEN0054A_Software_Delegated_Exception_Interface.pdf
+
+
+
+James Morse (12):
+  ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+  ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+  ACPI / APEI: don't wait to serialise with oops messages when
+    panic()ing
+  ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+  KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+  arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+  ACPI / APEI: Make the nmi_fixmap_idx per-ghes to allow multiple
+    in_nmi() users
+  ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+  firmware: arm_sdei: Add ACPI GHES registration helper
+  ACPI / APEI: Add support for the SDEI GHES Notification type
+  mm/memory-failure: increase queued recovery work's priority
+  arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+
+ arch/arm/include/asm/kvm_ras.h       |  14 +
+ arch/arm/include/asm/system_misc.h   |   5 -
+ arch/arm64/include/asm/acpi.h        |   4 +
+ arch/arm64/include/asm/daifflags.h   |   1 +
+ arch/arm64/include/asm/fixmap.h      |   8 +-
+ arch/arm64/include/asm/kvm_ras.h     |  24 ++
+ arch/arm64/include/asm/system_misc.h |   2 -
+ arch/arm64/kernel/acpi.c             |  49 ++++
+ arch/arm64/mm/fault.c                |  30 +-
+ drivers/acpi/apei/ghes.c             | 518 ++++++++++++++++++++---------------
+ drivers/firmware/arm_sdei.c          |  67 +++++
+ include/acpi/ghes.h                  |  17 ++
+ include/linux/arm_sdei.h             |   8 +
+ mm/memory-failure.c                  |  11 +-
+ virt/kvm/arm/mmu.c                   |   4 +-
+ 15 files changed, 503 insertions(+), 259 deletions(-)
+ create mode 100644 arch/arm/include/asm/kvm_ras.h
+ create mode 100644 arch/arm64/include/asm/kvm_ras.h
 
 -- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+2.16.2
