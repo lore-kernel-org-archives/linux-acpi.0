@@ -1,50 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v9 05/12] ACPI/PPTT: Add Processor Properties Topology
- Table parsing
-Date: Wed, 16 May 2018 10:24:54 +0200
-Message-ID: <CAJZ5v0jE4JJbcK-BiFg_JVf00JZCvbMFRnrkTdJTOwz0vW_ZMg@mail.gmail.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-6-jeremy.linton@arm.com>
- <CAJZ5v0h4OeTaG2h0Q1c8zX93tici_nfLftpEyKWSkXoztHuUDg@mail.gmail.com> <7cefb087-f41a-0a73-ef77-b560d338be4b@arm.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3] device property: Get rid of union aliasing
+Date: Wed, 16 May 2018 12:41:33 +0300
+Message-ID: <20180516094133.GN32438@lahna.fi.intel.com>
+References: <20180515173202.84296-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7cefb087-f41a-0a73-ef77-b560d338be4b@arm.com>
+Content-Disposition: inline
+In-Reply-To: <20180515173202.84296-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <Sudeep.Holla@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Morten Rasmussen <Morten.Rasmussen@arm.com>, palmer@sifive.com, Len Brown <lenb@kern>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 15, 2018 at 11:42 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> Hi,
->
->
-> On 05/12/2018 05:09 AM, Rafael J. Wysocki wrote:
->>
->> On Sat, May 12, 2018 at 1:58 AM, Jeremy Linton <jeremy.linton@arm.com>
->> wrote:
->>>
+On Tue, May 15, 2018 at 08:32:02PM +0300, Andy Shevchenko wrote:
+> The commit
+> 
+>   318a19718261 ("device property: refactor built-in properties support")
+> 
+> went way too far and brought a union aliasing. Partially revert it here
+> to get rid of union aliasing.
+> 
+> Note, all Apple properties are considered as u8 arrays. To get a value
+> of any of them the caller must use device_property_read_u8_array().
+> 
+> What union aliasing is?
+> ~~~~~~~~~~~~~~~~~~~~~~~
+> The C99 standard in section 6.2.5 paragraph 20 defines union type as
+> "an overlapping nonempty set of member objects". It also states in
+> section 6.7.2.1 paragraph 14 that "the value of at most one of the
+> members can be stored in a union object at any time'.
+> 
+> Union aliasing is a type punning mechanism using union members to store
+> as one type and read back as another.
+> 
+> Why it's not good?
+> ~~~~~~~~~~~~~~~~~~
+> Section 6.2.6.1 paragraph 6 says that a union object may not be a trap
+> representation, although its member objects may be.
+> 
+> Meanwhile annex J.1 says that "the value of a union member other than
+> the last one stored into" is unspecified [removed in C11].
+> 
+> In TC3, a footnote is added which specifies that accessing a member of a
+> union other than the last one stored causes "the object representation"
+> to be re-interpreted in the new type and specifically refers to this as
+> "type punning". This conflicts to some degree with Annex J.1.
+> 
+> While it's working in Linux with GCC, the use of union members to do
+> type punning is not clear area in the C standard and might lead to
+> unspecified behaviour.
+> 
+> More information is available in this [1] blog post.
+> 
+> [1]: https://davmac.wordpress.com/2010/02/26/c99-revisited/
+> 
+> Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-[cut]
-
->>
->>
->> I don't think you really need the explicit type cast here and above,
->> but that's very minor.
->>
->>> +}
->>
->>
->> Please feel free to add
->>
->> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> to the patch and route it through the arch tree as needed.
->
->
-> Thanks for looking at this (and the ack of course)!
->
-> As an FYI, the in my build without the type cast, the
-> -Werror=incompatible-pointer-types (sourced from the root Makefile) triggers
-> an error.
-
-Fair enough.
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
