@@ -1,45 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: add missing prototype for =?UTF-8?B?4oCYYXJjaF9wb3N0X2FjcGlfc3Vic3lzX2luaXTigJk=?=
-Date: Thu, 17 May 2018 12:15:04 +0200
-Message-ID: <1741093.hO3EZQahsV@aspire.rjw.lan>
-References: <20180505203603.4071-1-malat@debian.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 3/3] mailbox: ACPI: erroneous error message when
+ parsing the ACPI, PCCT
+Date: Thu, 17 May 2018 12:24:45 +0200
+Message-ID: <CAJZ5v0i7fR+rAk4eRm0jV8Ot93juq8NZarsoJRX+7RV6-yELKw@mail.gmail.com>
+References: <20180501003907.4322-1-ahs3@redhat.com> <20180501003907.4322-4-ahs3@redhat.com>
+ <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org> <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
+ <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com> <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180505203603.4071-1-malat@debian.org>
+In-Reply-To: <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mathieu Malaterre <malat@debian.org>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Prakash, Prashanth" <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, May 5, 2018 10:36:03 PM CEST Mathieu Malaterre wrote:
-> In commit e7ff3a47630d ("x86/amd: Check for the C1E bug post ACPI subsystem
-> init") a new function ‘arch_post_acpi_subsys_init’ was introduced. This
-> weak function can potentially be overridden on a per arch basis, introduce
-> the prototype for clarity.
-> 
-> Silence the following gcc warning (W=1):
-> 
->   init/main.c:484:20: warning: no previous prototype for ‘arch_post_acpi_subsys_init’ [-Wmissing-prototypes]
-> 
-> Signed-off-by: Mathieu Malaterre <malat@debian.org>
-> ---
->  include/linux/acpi.h | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 15bfb15c2fa5..cb4d7b6b085c 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -578,6 +578,7 @@ int acpi_match_platform_list(const struct acpi_platform_list *plat);
->  
->  extern void acpi_early_init(void);
->  extern void acpi_subsystem_init(void);
-> +extern void arch_post_acpi_subsys_init(void);
->  
->  extern int acpi_nvs_register(__u64 start, __u64 size);
->  
-> 
+On Thu, May 17, 2018 at 12:01 AM, Al Stone <ahs3@redhat.com> wrote:
+> There have been multiple reports of the following error message:
+>
+> [    0.068293] Error parsing PCC subspaces from PCCT
+>
+> This error message is not correct.  In multiple cases examined, the PCCT
+> (Platform Communications Channel Table) concerned is actually properly
+> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+> is making the assumption that the only valid PCCT is one that contains
+> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+> types are counted and as long as there is at least one of the desired
+> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+> are found, regardless of whether or not any other subtable types are
+> present, the error mentioned above is reported.
+>
+> In the cases reported to me personally, the PCCT contains exactly one
+> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+> acpi_pcc_probe() does not count it as a valid subtable, so believes
+> there to be no valid subtables, and hence outputs the error message.
+>
+> An example of the PCCT being reported as erroneous yet perfectly fine
+> is the following:
+>
+>                     Signature : "PCCT"
+>                  Table Length : 0000006E
+>                      Revision : 05
+>                      Checksum : A9
+>                        Oem ID : "XXXXXX"
+>                  Oem Table ID : "XXXXX   "
+>                  Oem Revision : 00002280
+>               Asl Compiler ID : "XXXX"
+>         Asl Compiler Revision : 00000002
+>
+>         Flags (decoded below) : 00000001
+>                      Platform : 1
+>                      Reserved : 0000000000000000
+>
+>                 Subtable Type : 00 [Generic Communications Subspace]
+>                        Length : 3E
+>
+>                      Reserved : 000000000000
+>                  Base Address : 00000000DCE43018
+>                Address Length : 0000000000001000
+>
+>             Doorbell Register : [Generic Address Structure]
+>                      Space ID : 01 [SystemIO]
+>                     Bit Width : 08
+>                    Bit Offset : 00
+>          Encoded Access Width : 01 [Byte Access:8]
+>                       Address : 0000000000001842
+>
+>                 Preserve Mask : 00000000000000FD
+>                    Write Mask : 0000000000000002
+>               Command Latency : 00001388
+>           Maximum Access Rate : 00000000
+>       Minimum Turnaround Time : 0000
+>
+> To fix this, we count up all of the possible subtable types for the
+> PCCT, and only report an error when there are none (which could mean
+> either no subtables, or no valid subtables), or there are too many.
+> We also change the logic so that if there is a valid subtable, we
+> do try to initialize it per the PCCT subtable contents.  This is a
+> change in functionality; previously, the probe would have returned
+> right after the error message and would not have tried to use any
+> other subtable definition.
+>
+> Tested on my personal laptop which showed the error previously; the
+> error message no longer appears and the laptop appears to operate
+> normally.
 
-Applied, thanks!
+I'd like to know the Prashanth's opinion here.
