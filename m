@@ -1,74 +1,84 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH 0/1] Remove the check of duplicate processors
-Date: Thu, 17 May 2018 17:46:57 +0800
-Message-ID: <20180517094658.18707-1-douly.fnst@cn.fujitsu.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 16/40] arm64: mm: Pin down ASIDs for sharing mm with
+	devices
+Date: Thu, 17 May 2018 11:01:55 +0100
+Message-ID: <81662b4f-2210-665f-21cf-7679bfa9f97a@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-17-jean-philippe.brucker@arm.com>
+	<20180515141658.vivrgcyww2pxumye@armageddon.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, hpa@zytor.com, peterz@infradead.org, Dou Liyang <douly.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180515141658.vivrgcyww2pxumye-+1aNUgJU5qkijLcmloz0ER/iLCjYCKR+VpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>
+Cc: bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-There is a bug in CPU hotplug code, I have two simple fix method, but I can't
-ensure which one is better. So sent it out,  seek help.
+On 15/05/18 15:16, Catalin Marinas wrote:
+> Hi Jean-Philippe,
+> 
+> On Fri, May 11, 2018 at 08:06:17PM +0100, Jean-Philippe Brucker wrote:
+>> +unsigned long mm_context_get(struct mm_struct *mm)
+>> +{
+>> +	unsigned long flags;
+>> +	u64 asid;
+>> +
+>> +	raw_spin_lock_irqsave(&cpu_asid_lock, flags);
+>> +
+>> +	asid = atomic64_read(&mm->context.id);
+>> +
+>> +	if (mm->context.pinned) {
+>> +		mm->context.pinned++;
+>> +		asid &= ~ASID_MASK;
+>> +		goto out_unlock;
+>> +	}
+>> +
+>> +	if (nr_pinned_asids >= max_pinned_asids) {
+>> +		asid = 0;
+>> +		goto out_unlock;
+>> +	}
+>> +
+>> +	if (!asid_gen_match(asid)) {
+>> +		/*
+>> +		 * We went through one or more rollover since that ASID was
+>> +		 * used. Ensure that it is still valid, or generate a new one.
+>> +		 * The cpu argument isn't used by new_context.
+>> +		 */
+>> +		asid = new_context(mm, 0);
+>> +		atomic64_set(&mm->context.id, asid);
+>> +	}
+>> +
+>> +	asid &= ~ASID_MASK;
+>> +
+>> +	nr_pinned_asids++;
+>> +	__set_bit(asid2idx(asid), pinned_asid_map);
+>> +	mm->context.pinned++;
+>> +
+>> +out_unlock:
+>> +	raw_spin_unlock_irqrestore(&cpu_asid_lock, flags);
+>> +
+>> +	return asid;
+>> +}
+> 
+> With CONFIG_UNMAP_KERNEL_AT_EL0 (a.k.a. KPTI), the hardware ASID has bit
+> 0 set automatically when entering user space (and cleared when getting
+> back to the kernel). If the returned asid value here is going to be used
+> as is in the calling code, you should probably set bit 0 when KPTI is
+> enabled.
+> 
 
-We found some processors which have the same processor ID but in different
-PXM in ACPI namespace. such as this:
+Oh right, I'll change this
 
-proc_id   |    pxm
---------------------
-0       <->     0
-1       <->     0
-2       <->     1
-3       <->     1
-......
-89      <->     0
-89      <->     1
-89      <->     2
-89      <->     3
-......
-
-So we create a mechanism to validate them. make the processor(ID=89)
-as invalid. And once a processor be hotplugged physically, we check its
-processor id.
-
-    Commit 8e089eaa1999 ("acpi: Provide mechanism to validate processors in the ACPI tables")
-    Commit a77d6cd96849 ("acpi/processor: Check for duplicate processor ids at hotplug time")
-
-Recently, I found the check mechanism has a bug, it didn't use the
-acpi_processor_ids_walk() right and always gave us a wrong result.
-First, I fixed it by modifying the value with AE_OK which is the
-standard acpi_status value.
- 
-    https://lkml.org/lkml/2018/3/20/273
-
-But, now, I even think this check is useless. my reasons are following:
-
-    1). Based on the practical effect, It works well, and no bug be reported
-    2). Based on the code, the duplicate cases can be dealed with by
-
-       if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id))
-
-That seems more reasonable, let's see the following case:
-
-                          Before the patch,             After the patch
-
-the first processor(ID=89)
-hot-add                        failed                        success
-
-the others processor(ID=89)
-hot-add                        failed                        failed
-
-
-So, What's your idea about it.
-
-Dou Liyang (1):
-  acpi/processor: Remove the check of duplicates processor ids
-
- drivers/acpi/acpi_processor.c | 126 ------------------------------------------
- include/linux/acpi.h          |   3 -
- 2 files changed, 129 deletions(-)
-
--- 
-2.14.3
+Thanks,
+Jean
