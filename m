@@ -1,38 +1,83 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
-Date: Thu, 17 May 2018 18:05:24 +0100
-Message-ID: <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v3 07/12] ACPI / APEI: Make the nmi_fixmap_idx per-ghes to
+ allow multiple in_nmi() users
+Date: Thu, 17 May 2018 19:11:21 +0100
+Message-ID: <8a6fa0e4-98c5-6880-1611-f1ab0534bbbc@arm.com>
+References: <20180427153510.5799-1-james.morse@arm.com>
+ <20180427153510.5799-8-james.morse@arm.com> <20180505122719.GE3708@pd.tnic>
+ <1511cfcc-dcd1-b3c5-01c7-6b6b8fb65b05@arm.com>
+ <20180516110348.GA17092@pd.tnic>
+ <7c871e15-689c-226d-760d-dd92614de2e9@arm.com>
+ <20180517133653.GA27738@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-acpi@vger.kernel.org, Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180517133653.GA27738@pd.tnic>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 11, 2018 at 06:57:55PM -0500, Jeremy Linton wrote:
-> Jeremy Linton (12):
->   drivers: base: cacheinfo: move cache_setup_of_node()
->   drivers: base: cacheinfo: setup DT cache properties early
->   cacheinfo: rename of_node to fw_token
->   arm64/acpi: Create arch specific cpu to acpi id helper
->   ACPI/PPTT: Add Processor Properties Topology Table parsing
->   ACPI: Enable PPTT support on ARM64
->   drivers: base cacheinfo: Add support for ACPI based firmware tables
->   arm64: Add support for ACPI based firmware tables
->   arm64: topology: rename cluster_id
->   arm64: topology: enable ACPI/PPTT based CPU topology
->   ACPI: Add PPTT to injectable table list
->   arm64: topology: divorce MC scheduling domain from core_siblings
+Hi Borislav,
 
-Queued for 4.18 (without Sudeep's latest property_read_u64 cacheinfo
-patch - http://lkml.kernel.org/r/20180517154701.GA20281@e107155-lin; I
-can add it separately).
+On 17/05/18 14:36, Borislav Petkov wrote:
+> On Wed, May 16, 2018 at 03:51:14PM +0100, James Morse wrote:
+>> I thought this was safe because its just ghes_copy_tofrom_phys()s access to the
+>> fixmap slots that needs mutual exclusion.
 
-Thanks.
+and here is where I was wrong: I was only looking at reading the data, we then
+dump it in struct ghes assuming it can only be notified on once CPU at a time. Oops.
 
--- 
-Catalin
+> For example:
+
+> ghes->estatus from above, before the NMI fired, has gotten some nice
+> scribbling over. AFAICT.
+
+Yup, thanks for the example!
+
+
+> Now, I don't know whether this can happen with the ARM facilities but if
+> they're NMI-like, I don't see why not.
+
+NOTIFY_SEA is synchronous so the error has to be something to do with the
+instruction that was interrupted. In your example this would mean the APEI
+code/data was corrupted, which there is little point trying to handle.
+
+NOTIFY_{SEI, SDEI} on the other hand are asynchronous, so this could happen.
+
+
+> Which means, that this code is not really reentrant and if should be
+> fixed to be callable from different contexts, then it should use private
+> buffers and be careful about locking.
+
+... I need to go through this thing again to work out how the firmware-buffers
+map on to estatus=>ghes ...
+
+
+> Oh, and that
+> 
+> 	if (in_nmi)
+> 		lock()
+> 	else
+> 		lock_irqsave()
+> 
+> pattern is really yucky. And it is an explosion waiting to happen.
+
+The whole in_nmi()=>other-lock think looks like a hack to make a warning go
+away. We could get the notification to take whatever lock is appropriate further
+out, but it may mean some code duplication. (I'll put it on my list...)
+
+
+Thanks,
+
+James
