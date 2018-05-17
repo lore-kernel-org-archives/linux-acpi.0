@@ -1,71 +1,38 @@
-From: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
-Date: Thu, 17 May 2018 10:00:23 -0700
-Message-ID: <20180517100023.43585c42@jacob-builder>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
- <20180511190641.23008-2-jean-philippe.brucker@arm.com>
- <20180516134150.34fc8857@jacob-builder>
- <96c1e0f0-0aa7-badf-123e-cbb1b05e645e@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
+Date: Thu, 17 May 2018 18:05:24 +0100
+Message-ID: <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <96c1e0f0-0aa7-badf-123e-cbb1b05e645e@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Cc: "xieyisheng1@huawei.com" <xieyisheng1@huawei.com>, "liubo95@huawei.com" <liubo95@huawei.com>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "xuzaibo@huawei.com" <xuzaibo@huawei.com>, "jonathan.cameron@huawei.com" <jonathan.cameron@huawei.com>, Will Deacon <Will.Deacon@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "yi.l.liu@intel.com" <yi.l.liu@intel.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, "tn@semihalf.com" <tn@semihalf.com>, "joro@8bytes.org" <joro@8bytes.org>, "robdclark@gmail.com" <robdclark@gmail.com>, "bharatku@xilinx.com" <bharatku@xilinx.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liudongdong3@huawei.com" <liudongdong3@huawei.com>, "rfranz@cavium.com" <rfranz@cavium.com>, "devicetree@vger.kernel.org" <devicetree@vger.ker>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180511235807.30834-1-jeremy.linton@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-acpi@vger.kernel.org, Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, ahs3@redhat.com, lenb@kernel.org, john.garry@huawei.com, wangxiongfeng2@huawei.com, Dietmar.Eggemann@arm.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 17 May 2018 11:02:02 +0100
-Jean-Philippe Brucker <jean-philippe.brucker@arm.com> wrote:
+On Fri, May 11, 2018 at 06:57:55PM -0500, Jeremy Linton wrote:
+> Jeremy Linton (12):
+>   drivers: base: cacheinfo: move cache_setup_of_node()
+>   drivers: base: cacheinfo: setup DT cache properties early
+>   cacheinfo: rename of_node to fw_token
+>   arm64/acpi: Create arch specific cpu to acpi id helper
+>   ACPI/PPTT: Add Processor Properties Topology Table parsing
+>   ACPI: Enable PPTT support on ARM64
+>   drivers: base cacheinfo: Add support for ACPI based firmware tables
+>   arm64: Add support for ACPI based firmware tables
+>   arm64: topology: rename cluster_id
+>   arm64: topology: enable ACPI/PPTT based CPU topology
+>   ACPI: Add PPTT to injectable table list
+>   arm64: topology: divorce MC scheduling domain from core_siblings
 
-> Hi Jacob,
-> 
-> Thanks for reviewing this
-> 
-> On 16/05/18 21:41, Jacob Pan wrote:
->  [...]  
-> > seems the min_pasid never gets used. do you really need it?  
-> 
-> Yes, the SMMU sets it to 1 in patch 28/40, because it needs to reserve
-> PASID 0
-> 
->  [...]  
-> > should it be !features?  
-> 
-> This checks if the user sets any unsupported bit in features. No
-> feature is supported right now, but patch 09/40 adds
-> IOMMU_SVA_FEAT_IOPF, and changes this line to "features &
-> ~IOMMU_SVA_FEAT_IOPF"
-> 
-> >> +	mutex_lock(&dev->iommu_param->lock);
-> >> +	param = dev->iommu_param->sva_param;
-> >> +	dev->iommu_param->sva_param = NULL;
-> >> +	mutex_unlock(&dev->iommu_param->lock);
-> >> +	if (!param)
-> >> +		return -ENODEV;
-> >> +
-> >> +	if (domain->ops->sva_device_shutdown)
-> >> +		domain->ops->sva_device_shutdown(dev, param);  
-> > seems a little mismatch here, do you need pass the param. I don't
-> > think there is anything else model specific iommu driver need to do
-> > for the param.  
-> 
-> SMMU doesn't use it, but maybe it would remind other IOMMU driver
-> which features were enabled, so they don't have to keep track of that
-> themselves? I can remove it if it isn't useful
-> 
-If there is a use case, I guess iommu driver can always retrieve the
-param from struct device.
-> Thanks,
-> Jean
+Queued for 4.18 (without Sudeep's latest property_read_u64 cacheinfo
+patch - http://lkml.kernel.org/r/20180517154701.GA20281@e107155-lin; I
+can add it separately).
 
-[Jacob Pan]
+Thanks.
+
+-- 
+Catalin
