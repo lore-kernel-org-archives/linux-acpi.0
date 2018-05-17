@@ -1,83 +1,37 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v3 07/12] ACPI / APEI: Make the nmi_fixmap_idx per-ghes to
- allow multiple in_nmi() users
-Date: Thu, 17 May 2018 19:11:21 +0100
-Message-ID: <8a6fa0e4-98c5-6880-1611-f1ab0534bbbc@arm.com>
-References: <20180427153510.5799-1-james.morse@arm.com>
- <20180427153510.5799-8-james.morse@arm.com> <20180505122719.GE3708@pd.tnic>
- <1511cfcc-dcd1-b3c5-01c7-6b6b8fb65b05@arm.com>
- <20180516110348.GA17092@pd.tnic>
- <7c871e15-689c-226d-760d-dd92614de2e9@arm.com>
- <20180517133653.GA27738@pd.tnic>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace lookup
+Date: Thu, 17 May 2018 14:14:57 -0500
+Message-ID: <87efiahz66.fsf@xmission.com>
+References: <20180425154827.32251-1-hch@lst.de>
+        <20180425154827.32251-12-hch@lst.de> <878t8y46sy.fsf@xmission.com>
+        <20180515145643.GA661@lst.de> <871seakg0u.fsf@xmission.com>
+        <20180517064220.GA24300@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180517133653.GA27738@pd.tnic>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180517064220.GA24300@lst.de> (Christoph Hellwig's message of
+        "Thu, 17 May 2018 08:42:20 +0200")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Borislav,
+Christoph Hellwig <hch@lst.de> writes:
 
-On 17/05/18 14:36, Borislav Petkov wrote:
-> On Wed, May 16, 2018 at 03:51:14PM +0100, James Morse wrote:
->> I thought this was safe because its just ghes_copy_tofrom_phys()s access to the
->> fixmap slots that needs mutual exclusion.
+> On Thu, May 17, 2018 at 12:28:01AM -0500, Eric W. Biederman wrote:
+>> > struct pid_namespace *proc_pid_namespace(struct inode *inode)
+>> > {
+>> > 	// maybe warn on for s_magic not on procfs??
+>> > 	return inode->i_sb->s_fs_info;
+>> > }
+>> 
+>> That should work.  Ideally out of line for the proc_fs.h version.
+>> Basically it should be a cousin of PDE_DATA.
+>
+> The version in Al's tree is inline and without the warning as
+> I didn't want to drag in the magic.h include.  Please look at it for
+> additional comments, I can send incremental fixups if needed.
 
-and here is where I was wrong: I was only looking at reading the data, we then
-dump it in struct ghes assuming it can only be notified on once CPU at a time. Oops.
+Sounds good.
 
-> For example:
-
-> ghes->estatus from above, before the NMI fired, has gotten some nice
-> scribbling over. AFAICT.
-
-Yup, thanks for the example!
-
-
-> Now, I don't know whether this can happen with the ARM facilities but if
-> they're NMI-like, I don't see why not.
-
-NOTIFY_SEA is synchronous so the error has to be something to do with the
-instruction that was interrupted. In your example this would mean the APEI
-code/data was corrupted, which there is little point trying to handle.
-
-NOTIFY_{SEI, SDEI} on the other hand are asynchronous, so this could happen.
-
-
-> Which means, that this code is not really reentrant and if should be
-> fixed to be callable from different contexts, then it should use private
-> buffers and be careful about locking.
-
-... I need to go through this thing again to work out how the firmware-buffers
-map on to estatus=>ghes ...
-
-
-> Oh, and that
-> 
-> 	if (in_nmi)
-> 		lock()
-> 	else
-> 		lock_irqsave()
-> 
-> pattern is really yucky. And it is an explosion waiting to happen.
-
-The whole in_nmi()=>other-lock think looks like a hack to make a warning go
-away. We could get the notification to take whatever lock is appropriate further
-out, but it may mean some code duplication. (I'll put it on my list...)
-
-
-Thanks,
-
-James
+Eric
