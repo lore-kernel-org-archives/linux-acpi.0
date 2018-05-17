@@ -1,37 +1,104 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [PATCH 11/40] ipv6/flowlabel: simplify pid namespace lookup
-Date: Thu, 17 May 2018 14:14:57 -0500
-Message-ID: <87efiahz66.fsf@xmission.com>
-References: <20180425154827.32251-1-hch@lst.de>
-        <20180425154827.32251-12-hch@lst.de> <878t8y46sy.fsf@xmission.com>
-        <20180515145643.GA661@lst.de> <871seakg0u.fsf@xmission.com>
-        <20180517064220.GA24300@lst.de>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v4 3/3] mailbox: ACPI: erroneous error message when
+ parsing the ACPI, PCCT
+Date: Thu, 17 May 2018 13:48:39 -0600
+Message-ID: <85c95aad-fefb-50f4-8a06-eec25415db2a@codeaurora.org>
+References: <20180501003907.4322-1-ahs3@redhat.com>
+ <20180501003907.4322-4-ahs3@redhat.com>
+ <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org>
+ <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
+ <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com>
+ <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
+ <CAJZ5v0i7fR+rAk4eRm0jV8Ot93juq8NZarsoJRX+7RV6-yELKw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180517064220.GA24300@lst.de> (Christoph Hellwig's message of
-        "Thu, 17 May 2018 08:42:20 +0200")
+In-Reply-To: <CAJZ5v0i7fR+rAk4eRm0jV8Ot93juq8NZarsoJRX+7RV6-yELKw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <ahs3@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Christoph Hellwig <hch@lst.de> writes:
 
-> On Thu, May 17, 2018 at 12:28:01AM -0500, Eric W. Biederman wrote:
->> > struct pid_namespace *proc_pid_namespace(struct inode *inode)
->> > {
->> > 	// maybe warn on for s_magic not on procfs??
->> > 	return inode->i_sb->s_fs_info;
->> > }
->> 
->> That should work.  Ideally out of line for the proc_fs.h version.
->> Basically it should be a cousin of PDE_DATA.
->
-> The version in Al's tree is inline and without the warning as
-> I didn't want to drag in the magic.h include.  Please look at it for
-> additional comments, I can send incremental fixups if needed.
+On 5/17/2018 4:24 AM, Rafael J. Wysocki wrote:
+> On Thu, May 17, 2018 at 12:01 AM, Al Stone <ahs3@redhat.com> wrote:
+>> There have been multiple reports of the following error message:
+>>
+>> [    0.068293] Error parsing PCC subspaces from PCCT
+>>
+>> This error message is not correct.  In multiple cases examined, the PCCT
+>> (Platform Communications Channel Table) concerned is actually properly
+>> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+>> is making the assumption that the only valid PCCT is one that contains
+>> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+>> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+>> types are counted and as long as there is at least one of the desired
+>> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+>> are found, regardless of whether or not any other subtable types are
+>> present, the error mentioned above is reported.
+>>
+>> In the cases reported to me personally, the PCCT contains exactly one
+>> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+>> acpi_pcc_probe() does not count it as a valid subtable, so believes
+>> there to be no valid subtables, and hence outputs the error message.
+>>
+>> An example of the PCCT being reported as erroneous yet perfectly fine
+>> is the following:
+>>
+>>                     Signature : "PCCT"
+>>                  Table Length : 0000006E
+>>                      Revision : 05
+>>                      Checksum : A9
+>>                        Oem ID : "XXXXXX"
+>>                  Oem Table ID : "XXXXX   "
+>>                  Oem Revision : 00002280
+>>               Asl Compiler ID : "XXXX"
+>>         Asl Compiler Revision : 00000002
+>>
+>>         Flags (decoded below) : 00000001
+>>                      Platform : 1
+>>                      Reserved : 0000000000000000
+>>
+>>                 Subtable Type : 00 [Generic Communications Subspace]
+>>                        Length : 3E
+>>
+>>                      Reserved : 000000000000
+>>                  Base Address : 00000000DCE43018
+>>                Address Length : 0000000000001000
+>>
+>>             Doorbell Register : [Generic Address Structure]
+>>                      Space ID : 01 [SystemIO]
+>>                     Bit Width : 08
+>>                    Bit Offset : 00
+>>          Encoded Access Width : 01 [Byte Access:8]
+>>                       Address : 0000000000001842
+>>
+>>                 Preserve Mask : 00000000000000FD
+>>                    Write Mask : 0000000000000002
+>>               Command Latency : 00001388
+>>           Maximum Access Rate : 00000000
+>>       Minimum Turnaround Time : 0000
+>>
+>> To fix this, we count up all of the possible subtable types for the
+>> PCCT, and only report an error when there are none (which could mean
+>> either no subtables, or no valid subtables), or there are too many.
+>> We also change the logic so that if there is a valid subtable, we
+>> do try to initialize it per the PCCT subtable contents.  This is a
+>> change in functionality; previously, the probe would have returned
+>> right after the error message and would not have tried to use any
+>> other subtable definition.
+>>
+>> Tested on my personal laptop which showed the error previously; the
+>> error message no longer appears and the laptop appears to operate
+>> normally.
+> I'd like to know the Prashanth's opinion here.
 
-Sounds good.
+Looks good.
 
-Eric
+Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
+
+--
+Thanks,
+Prashanth
