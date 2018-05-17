@@ -1,89 +1,98 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 3/3] mailbox: ACPI: erroneous error message when
- parsing the ACPI, PCCT
-Date: Thu, 17 May 2018 12:24:45 +0200
-Message-ID: <CAJZ5v0i7fR+rAk4eRm0jV8Ot93juq8NZarsoJRX+7RV6-yELKw@mail.gmail.com>
-References: <20180501003907.4322-1-ahs3@redhat.com> <20180501003907.4322-4-ahs3@redhat.com>
- <17197481-bd76-f2ec-9d6e-4cd0d94b9265@codeaurora.org> <bb9eefb1-a22b-9fc1-4a51-d067bdbe3f99@redhat.com>
- <CAJZ5v0itXwbatAwaXTumW17nxLVEKWTWhh1wqOiUqFmBSdjzzA@mail.gmail.com> <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 07/12] ACPI / APEI: Make the nmi_fixmap_idx per-ghes
+ to allow multiple in_nmi() users
+Date: Thu, 17 May 2018 15:36:53 +0200
+Message-ID: <20180517133653.GA27738@pd.tnic>
+References: <20180427153510.5799-1-james.morse@arm.com>
+ <20180427153510.5799-8-james.morse@arm.com>
+ <20180505122719.GE3708@pd.tnic>
+ <1511cfcc-dcd1-b3c5-01c7-6b6b8fb65b05@arm.com>
+ <20180516110348.GA17092@pd.tnic>
+ <7c871e15-689c-226d-760d-dd92614de2e9@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b3a31c5a-7090-ff15-c90d-dfeab221471f@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Prakash, Prashanth" <pprakash@codeaurora.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <7c871e15-689c-226d-760d-dd92614de2e9@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Christoffer Dall <cdall@kernel.org>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 17, 2018 at 12:01 AM, Al Stone <ahs3@redhat.com> wrote:
-> There have been multiple reports of the following error message:
->
-> [    0.068293] Error parsing PCC subspaces from PCCT
->
-> This error message is not correct.  In multiple cases examined, the PCCT
-> (Platform Communications Channel Table) concerned is actually properly
-> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
-> is making the assumption that the only valid PCCT is one that contains
-> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
-> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
-> types are counted and as long as there is at least one of the desired
-> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
-> are found, regardless of whether or not any other subtable types are
-> present, the error mentioned above is reported.
->
-> In the cases reported to me personally, the PCCT contains exactly one
-> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
-> acpi_pcc_probe() does not count it as a valid subtable, so believes
-> there to be no valid subtables, and hence outputs the error message.
->
-> An example of the PCCT being reported as erroneous yet perfectly fine
-> is the following:
->
->                     Signature : "PCCT"
->                  Table Length : 0000006E
->                      Revision : 05
->                      Checksum : A9
->                        Oem ID : "XXXXXX"
->                  Oem Table ID : "XXXXX   "
->                  Oem Revision : 00002280
->               Asl Compiler ID : "XXXX"
->         Asl Compiler Revision : 00000002
->
->         Flags (decoded below) : 00000001
->                      Platform : 1
->                      Reserved : 0000000000000000
->
->                 Subtable Type : 00 [Generic Communications Subspace]
->                        Length : 3E
->
->                      Reserved : 000000000000
->                  Base Address : 00000000DCE43018
->                Address Length : 0000000000001000
->
->             Doorbell Register : [Generic Address Structure]
->                      Space ID : 01 [SystemIO]
->                     Bit Width : 08
->                    Bit Offset : 00
->          Encoded Access Width : 01 [Byte Access:8]
->                       Address : 0000000000001842
->
->                 Preserve Mask : 00000000000000FD
->                    Write Mask : 0000000000000002
->               Command Latency : 00001388
->           Maximum Access Rate : 00000000
->       Minimum Turnaround Time : 0000
->
-> To fix this, we count up all of the possible subtable types for the
-> PCCT, and only report an error when there are none (which could mean
-> either no subtables, or no valid subtables), or there are too many.
-> We also change the logic so that if there is a valid subtable, we
-> do try to initialize it per the PCCT subtable contents.  This is a
-> change in functionality; previously, the probe would have returned
-> right after the error message and would not have tried to use any
-> other subtable definition.
->
-> Tested on my personal laptop which showed the error previously; the
-> error message no longer appears and the laptop appears to operate
-> normally.
+On Wed, May 16, 2018 at 03:51:14PM +0100, James Morse wrote:
+> The first two overload existing architectural behavior, the third improves all
+> this with a third standard option. Its the standard story!
 
-I'd like to know the Prashanth's opinion here.
+:-)
+
+> I thought this was safe because its just ghes_copy_tofrom_phys()s access to the
+> fixmap slots that needs mutual exclusion.
+>
+> Polled and all the IRQ flavours are kept apart by the spin_lock_irqsave(), and
+> the NMIs have their own fixmap entry. (This is fine until there is more than
+> once source of NMI)
+
+For example:
+
+ghes_probe()
+
+	switch (generic->notify.type) {
+
+	...
+
+        case ACPI_HEST_NOTIFY_NMI:
+		ghes_nmi_add(ghes);
+	}
+
+	...
+
+	ghes_proc();
+	  ghes_read_estatus();
+		 spin_lock_irqsave(&ghes_ioremap_lock_irq, flags);
+
+		 memcpy...
+
+	-> NMI
+
+		ghes_notify_nmi();
+		 ghes_read_estatus();
+		 ..
+		   if (in_nmi) {
+			   raw_spin_lock(&ghes_ioremap_lock_nmi);
+
+		...
+	<- NMI
+
+ghes->estatus from above, before the NMI fired, has gotten some nice
+scribbling over. AFAICT.
+
+Now, I don't know whether this can happen with the ARM facilities but if
+they're NMI-like, I don't see why not.
+
+Which means, that this code is not really reentrant and if should be
+fixed to be callable from different contexts, then it should use private
+buffers and be careful about locking.
+
+Oh, and that
+
+	if (in_nmi)
+		lock()
+	else
+		lock_irqsave()
+
+pattern is really yucky. And it is an explosion waiting to happen.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
