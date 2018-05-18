@@ -1,40 +1,48 @@
-From: Lars Ellenberg <lars.ellenberg-63ez5xqkn6DQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 28/42] drbd: switch to proc_create_single
-Date: Fri, 18 May 2018 14:55:54 +0200
-Message-ID: <20180518125554.GA9238@soda.linbit>
-References: <20180516094346.20506-1-hch@lst.de>
-	<20180516094346.20506-29-hch@lst.de>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: `ucsi_acpi: probe of USBC000:00 failed with error -12` on Dell
+ XPS 13 9360/9370
+Date: Fri, 18 May 2018 17:15:43 +0200
+Message-ID: <20180518151543.GA6501@kroah.com>
+References: <9365397f-7206-728e-ee76-146629bfd186@molgen.mpg.de>
+ <20180515160047.GB26720@kroah.com>
+ <69da4aa4-3d4b-0ffc-81ce-500713cd3743@molgen.mpg.de>
+ <20180516080226.GC3536@kroah.com>
+ <20180516115814.GB11469@kuha.fi.intel.com>
+ <df6610738db046e9bd1db77d4346cfc3@ausx13mpc120.AMER.DELL.COM>
+ <20180517085930.GD11469@kuha.fi.intel.com>
+ <40707f34-e0a6-3114-36a3-6603bdcd8d82@molgen.mpg.de>
+ <20180518104000.GA13595@kuha.fi.intel.com>
+ <20180518150823.GA14756@kuha.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180516094346.20506-29-hch-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <http://lists.linbit.com/mailman/options/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linbit.com/pipermail/drbd-dev>
-List-Post: <mailto:drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org>
-List-Help: <mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.linbit.com/mailman/listinfo/drbd-dev>,
-	<mailto:drbd-dev-request-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org?subject=subscribe>
-Sender: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-Errors-To: drbd-dev-bounces-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: linux-rtc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alessandro Zummo <a.zummo-BfzFCNDTiLLj+vYz1yj4TQ@public.gmane.org>, Alexandre Belloni <alexandre.belloni-LDxbnhwyfcJBDgjK7y7TUQ@public.gmane.org>, devel-gWbeCf7V1WCQmaza687I9mD2FQJk+8+b@public.gmane.org, linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Jiri Slaby <jslaby-IBi9RG/b67k@public.gmane.org>, megaraidlinux.pdl-dY08KVG/lbpWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexey Dobriyan <adobriyan-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexander Viro <viro-RmSDqhL/yNMiFSDQTTA3OLVCufUGDwFn@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-afs-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, jfs-discussion-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, drbd-dev-cunTk1MwBs8qoQakbn7OcQ@public.gmane.org
+In-Reply-To: <20180518150823.GA14756@kuha.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Menzel <pmenzel+linux-usb@molgen.mpg.de>, Mario Limonciello <mario.limonciello@dell.com>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, Thorsten Leemhuis <linux@leemhuis.info>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 16, 2018 at 11:43:32AM +0200, Christoph Hellwig wrote:
-> And stop messing with try_module_get on THIS_MODULE, which doesn't make
-> any sense here.
+On Fri, May 18, 2018 at 06:08:24PM +0300, Heikki Krogerus wrote:
+> 
+> Rafael, the problem here with these Dell laptops is that a memory page
+> that is used as a mailbox for special communication between EC FW and
+> OS (called UCSI mailbox) should be in uncached memory, but the memory
+> is marked as cached.
+> 
+> I'm actually not even sure if the cache mode is something that is set
+> based on information from ACPI tables, or is it something that the
+> BIOS handles separately?
+> 
+> If it's information coming from ACPI tables, can we help pin point the
+> place the BIOS guys at Dell should fix?
 
-The idea was to increase module count on /proc/drbd access.
+Given that Windows works with this same set of ACPI tables, perhaps the
+requirement isn't that this memory location be uncached?
 
-If someone holds /proc/drbd open, previously rmmod would
-"succeed" in starting the unload, but then block on remove_proc_entry,
-leading to a situation where the lsmod does not show drbd anymore,
-but /proc/drbd being still there (but no longer accessible).
+We shouldn't have to fix up ACPI tables just for Linux, we've been down
+that path before :(
 
-I'd rather have rmmod fail up front in this case.
-And try_module_get() seemed most appropriate.
+thanks,
 
-    Lars
+greg k-h
