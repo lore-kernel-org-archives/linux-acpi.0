@@ -1,48 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v4.17-rc6
-Date: Fri, 18 May 2018 10:03:15 +0200
-Message-ID: <CAJZ5v0gzh68Y3TwONGkGrCNGt8WY+f1rtjeEw0hgFyRr1sFyDQ@mail.gmail.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: [PATCH 38/42] isdn: replace ->proc_fops with ->proc_show
+Date: Fri, 18 May 2018 10:43:46 +0200
+Message-ID: <4e7091873e8a220c454a7ce5a3f52edc5b5c3e3a.camel@tiscali.nl>
+References: <20180516094346.20506-1-hch@lst.de>
+         <20180516094346.20506-39-hch@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20180516094346.20506-39-hch@lst.de>
+Sender: netdev-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Alexey Dobriyan <adobriyan@gmail.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jiri Slaby <jslaby@suse.com>, Alessandro Zummo <a.zummo@towertech.it>, Alexandre Belloni <alexandre.belloni@bootlin.com>, linux-acpi@vger.kernel.org, drbd-dev@lists.linbit.com, linux-ide@vger.kernel.org, netdev@vger.kernel.org, linux-rtc@vger.kernel.org, megaraidlinux.pdl@broadcom.com, linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org, linux-afs@lists.infradead.org, linux-ext4@vger.kernel.org, jfs-discussion@lists.sourceforge.net, netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Hi Christoph,
 
-Please pull from the tag
+(I don't think the patches of this series ever hit the ISDN related addresses
+still found in MAINTAINERS. And now I might be a bit late.) 
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.17-rc6
+Christoph Hellwig schreef op wo 16-05-2018 om 11:43 [+0200]:
+> diff --git a/drivers/isdn/gigaset/capi.c b/drivers/isdn/gigaset/capi.c
+> index ccec7778cad2..dac5cd35e901 100644
+> --- a/drivers/isdn/gigaset/capi.c
+> +++ b/drivers/isdn/gigaset/capi.c
+> @@ -2437,19 +2437,6 @@ static int gigaset_proc_show(struct seq_file *m, void *v)
+>  	return 0;
+>  }
+>  
+> -static int gigaset_proc_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, gigaset_proc_show, PDE_DATA(inode));
+> -}
+> -
+> -static const struct file_operations gigaset_proc_fops = {
+> -	.owner		= THIS_MODULE,
+> -	.open		= gigaset_proc_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+> -
+>  /**
+>   * gigaset_isdn_regdev() - register device to LL
+>   * @cs:		device descriptor structure.
+> @@ -2478,8 +2465,7 @@ int gigaset_isdn_regdev(struct cardstate *cs, const char *isdnid)
+>  	iif->ctr.register_appl = gigaset_register_appl;
+>  	iif->ctr.release_appl  = gigaset_release_appl;
+>  	iif->ctr.send_message  = gigaset_send_message;
+> -	iif->ctr.procinfo      = gigaset_procinfo;
 
-with top-most commit 7b34c0fb1b51a6377752fc971e57577eeb102d60
+Is this intentional? You didn't touch the procinfo method in the other ISDN
+drivers, as far as I can see.
 
- ACPICA: Add deferred package support for the Load and loadTable operators
+(If it was intentional, gigaset_procinfo() can of course be removed.)
 
-on top of commit 67b8d5c7081221efa252e111cd52532ec6d4266f
+> -	iif->ctr.proc_fops = &gigaset_proc_fops;
+> +	iif->ctr.proc_show     = gigaset_proc_show,
+>  	INIT_LIST_HEAD(&iif->appls);
+>  	skb_queue_head_init(&iif->sendqueue);
+>  	atomic_set(&iif->sendqlen, 0);
 
- Linux 4.17-rc5
-
-to receive an ACPI fix for 4.17-rc6.
-
-This fixes an ACPICA regression introduced in this cycle and related
-to the handling of package objects loaded by the Load and loadTable
-AML operators that are not initialized properly after recent changes
-(Bob Moore).
-
-Thanks!
+Thanks,
 
 
----------------
-
-Bob Moore (1):
-      ACPICA: Add deferred package support for the Load and loadTable operators
-
----------------
-
- drivers/acpi/acpica/acnamesp.h |  4 +++
- drivers/acpi/acpica/exconfig.c | 14 ++++++++
- drivers/acpi/acpica/nsinit.c   | 76 +++++++++++++++++++++++++++++++-----------
- 3 files changed, 74 insertions(+), 20 deletions(-)
+Paul Bolle
