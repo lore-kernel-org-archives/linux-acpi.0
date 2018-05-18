@@ -1,55 +1,67 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: `ucsi_acpi: probe of USBC000:00 failed with error -12` on Dell
- XPS 13 9360/9370
-Date: Sat, 19 May 2018 00:28:57 +0300
-Message-ID: <20180518212857.GA21732@kuha.fi.intel.com>
-References: <69da4aa4-3d4b-0ffc-81ce-500713cd3743@molgen.mpg.de>
- <20180516080226.GC3536@kroah.com>
- <20180516115814.GB11469@kuha.fi.intel.com>
- <df6610738db046e9bd1db77d4346cfc3@ausx13mpc120.AMER.DELL.COM>
- <20180517085930.GD11469@kuha.fi.intel.com>
- <40707f34-e0a6-3114-36a3-6603bdcd8d82@molgen.mpg.de>
- <20180518104000.GA13595@kuha.fi.intel.com>
- <20180518150823.GA14756@kuha.fi.intel.com>
- <20180518151543.GA6501@kroah.com>
- <CAJZ5v0hbpgvvmvCvxEVGed8VcOXoO1TTEXK9zsXxCGP4wLqrZA@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v9 02/12] drivers: base: cacheinfo: setup DT cache
+ properties early
+Date: Sat, 19 May 2018 00:50:08 +0300
+Message-ID: <CAHp75VfEYcPdECmDDOd8CLBBXGpcwSUGQRr0x8VTb1-7j51_0Q@mail.gmail.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-3-jeremy.linton@arm.com>
+ <78b08b68-ff57-8dd8-6eb1-00548f275eac@arm.com> <CAHp75VciOAMX1HWifZ+K9GiVicZRFrwHaGteJFVe1uFrh+qu0w@mail.gmail.com>
+ <a64ed431-0f60-2711-4138-eeefc7ba2d8b@arm.com> <20180517154701.GA20281@e107155-lin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hbpgvvmvCvxEVGed8VcOXoO1TTEXK9zsXxCGP4wLqrZA@mail.gmail.com>
+In-Reply-To: <20180517154701.GA20281@e107155-lin>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Menzel <pmenzel+linux-usb@molgen.mpg.de>, Mario Limonciello <mario.limonciello@dell.com>, "open list:ULTRA-WIDEBAND (UWB) SUBSYSTEM:" <linux-usb@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Thorsten Leemhuis <linux@leemhuis.info>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, Xiongfeng Wang <wangxiongfeng2@huawei.com>, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Len Brown <lenb@kernel.org>John Garry <j>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, May 18, 2018 at 10:04:02PM +0200, Rafael J. Wysocki wrote:
-> On Fri, May 18, 2018 at 5:15 PM, Greg Kroah-Hartman
-> > Given that Windows works with this same set of ACPI tables, perhaps the
-> > requirement isn't that this memory location be uncached?
-> >
-> > We shouldn't have to fix up ACPI tables just for Linux, we've been down
-> > that path before :(
-> 
-> Yes, pretty much.
+On Thu, May 17, 2018 at 6:47 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
 
-That's not what I'm suggesting. AFAIK these Dell laptops are the only
-ones with this problem, so if we accept this, I fear it means we have
-to start maintaining DMI quirk table in the driver, and then:
+> Is below patch does what you were looking for ?
 
-if (dell)
-        ioremap_cache()
-else
-        ioremap_nocache()
+Somewhat.
+See below for some minors.
 
-I was really hoping we could avoid that. Or is there something else we
-can do in the driver?
+> of_property_read_u64 searches for a property in a device node and read
+> a 64-bit value from it. Instead of using of_get_property to get the
+> property and then read 64-bit value using of_read_number, we can make
+> use of of_property_read_u64.
 
-I have no idea how the windows driver works, so I will double check
-and test this next week, but our driver has really worked fine so far.
+Suggested-by?
+
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 
 
-Thanks,
+> -       cache_size = of_get_property(np, propname, NULL);
+> -       if (cache_size)
+> -               this_leaf->size = of_read_number(cache_size, 1);
+> +       if (!of_property_read_u64(np, propname, &cache_size))
+> +               this_leaf->size = cache_size;
+
+I suppose it's something like this
+
+ret = of_property_...(..., &this_leaf->VAR);
+if (ret)
+ warning / set default / etc
+
+>                 propname = cache_type_info[ct_idx].line_size_props[i];
+> -               line_size = of_get_property(np, propname, NULL);
+> -               if (line_size)
+> +               line_size = of_property_read_u64(np, propname, &line_size);
+> +               if (line_size) {
+
+ret = ...
+if (ret) {
+
+> +                       this_leaf->coherency_line_size = line_size;
+>                         break;
+> +               }
+
+> +       if (!of_property_read_u64(np, propname, &nr_sets))
+> +               this_leaf->number_of_sets = nr_sets;
+
+As in first case.
 
 -- 
-heikki
+With Best Regards,
+Andy Shevchenko
