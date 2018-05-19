@@ -1,67 +1,54 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v9 02/12] drivers: base: cacheinfo: setup DT cache
- properties early
-Date: Sat, 19 May 2018 00:50:08 +0300
-Message-ID: <CAHp75VfEYcPdECmDDOd8CLBBXGpcwSUGQRr0x8VTb1-7j51_0Q@mail.gmail.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180511235807.30834-3-jeremy.linton@arm.com>
- <78b08b68-ff57-8dd8-6eb1-00548f275eac@arm.com> <CAHp75VciOAMX1HWifZ+K9GiVicZRFrwHaGteJFVe1uFrh+qu0w@mail.gmail.com>
- <a64ed431-0f60-2711-4138-eeefc7ba2d8b@arm.com> <20180517154701.GA20281@e107155-lin>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH 4/5] acpi/processor: Fix the return value of
+ acpi_processor_ids_walk()
+Date: Sat, 19 May 2018 17:06:29 +0200 (CEST)
+Message-ID: <alpine.DEB.2.21.1805191704150.1599@nanos.tec.linutronix.de>
+References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com> <20180320110432.28127-5-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180517154701.GA20281@e107155-lin>
+In-Reply-To: <20180320110432.28127-5-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Jeremy Linton <jeremy.linton@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Rutland <Mark.Rutland@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-riscv@lists.infradead.org, Xiongfeng Wang <wangxiongfeng2@huawei.com>, vkilari@codeaurora.org, Al Stone <ahs3@redhat.com>, Dietmar.Eggemann@arm.com, Morten.Rasmussen@arm.com, Palmer Dabbelt <palmer@sifive.com>, Len Brown <lenb@kernel.org>John Garry <j>
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: LKML <linux-kernel@vger.kernel.org>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 17, 2018 at 6:47 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+On Tue, 20 Mar 2018, Dou Liyang wrote:
 
-> Is below patch does what you were looking for ?
+> ACPI driver should make sure all the processor IDs in their ACPI Namespace
+> are unique for CPU hotplug. the driver performs a depth-first walk of the
+> namespace tree and calls the acpi_processor_ids_walk().
+> 
+> But, the acpi_processor_ids_walk() will return true if one processor is
+> checked, that cause the walk break after walking pass the first processor.
+> 
+> Repace the value with AE_OK which is the standard acpi_status value.
+> 
+> Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for processor enumeration")
+> 
+> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+> ---
+>  drivers/acpi/acpi_processor.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 449d86d39965..db5bdb59639c 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -663,11 +663,11 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
+>  	}
+>  
+>  	processor_validated_ids_update(uid);
+> -	return true;
+> +	return AE_OK;
+>  
+>  err:
+>  	acpi_handle_info(handle, "Invalid processor object\n");
+> -	return false;
+> +	return AE_OK;
 
-Somewhat.
-See below for some minors.
+I'm not sure whether this is the right return value here. Rafael?
 
-> of_property_read_u64 searches for a property in a device node and read
-> a 64-bit value from it. Instead of using of_get_property to get the
-> property and then read 64-bit value using of_read_number, we can make
-> use of of_property_read_u64.
+Thanks,
 
-Suggested-by?
-
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-
-
-> -       cache_size = of_get_property(np, propname, NULL);
-> -       if (cache_size)
-> -               this_leaf->size = of_read_number(cache_size, 1);
-> +       if (!of_property_read_u64(np, propname, &cache_size))
-> +               this_leaf->size = cache_size;
-
-I suppose it's something like this
-
-ret = of_property_...(..., &this_leaf->VAR);
-if (ret)
- warning / set default / etc
-
->                 propname = cache_type_info[ct_idx].line_size_props[i];
-> -               line_size = of_get_property(np, propname, NULL);
-> -               if (line_size)
-> +               line_size = of_property_read_u64(np, propname, &line_size);
-> +               if (line_size) {
-
-ret = ...
-if (ret) {
-
-> +                       this_leaf->coherency_line_size = line_size;
->                         break;
-> +               }
-
-> +       if (!of_property_read_u64(np, propname, &nr_sets))
-> +               this_leaf->number_of_sets = nr_sets;
-
-As in first case.
-
--- 
-With Best Regards,
-Andy Shevchenko
+	tglx
