@@ -1,87 +1,128 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: =?gb2312?B?tPC4tDogW1BBVENIIHY0IDExLzEyXSBtbS9tZW1vcnktZmFpbHVyZTogaW5j?=
- =?gb2312?Q?rease_queued_recovery_work's_priority?=
-Date: Sun, 20 May 2018 07:13:40 +0000
-Message-ID: <0184EA26B2509940AA629AE1405DD7F201C714B6@DGGEMA503-MBX.china.huawei.com>
-References: <20180516162829.14348-1-james.morse@arm.com>
- <20180516162829.14348-12-james.morse@arm.com>
+From: Jeffrin Thalakkottoor <jeffrin@rajagiritech.edu.in>
+Subject: Re: PROBLEM: "ACPI Error: Method parse/execution failed" and "ACPI
+ BIOS Error (bug): Failure looking up" related
+Date: Sun, 20 May 2018 16:05:51 +0530
+Message-ID: <CAG=yYwk2TcRwLX3nQis+u+WUhmt63ikBQFoCFAAiwir8eowfgw@mail.gmail.com>
+References: <CAG=yYwkWt9bbKVWD93YT2S3jFQCt7s5yV7gxOw=JScFJtgO0NA@mail.gmail.com>
+ <CAHp75Vc4FhSOfyN=UG=xXNOH6C4JUpnfMh9+Mp1_FiM44F0FtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20180516162829.14348-12-james.morse@arm.com>
-Content-Language: zh-CN
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "jonathan.zhang@cavium.com" <jonathan.zhang@cavium.com>, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, "inux-mm@kvack.org" <inux-mm@kvack.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75Vc4FhSOfyN=UG=xXNOH6C4JUpnfMh9+Mp1_FiM44F0FtA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Robert Moore <robert.moore@intel.com>, erik.schmauss@intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> 
-> arm64 can take an NMI-like error notification when user-space steps in some corrupt memory. APEI's GHES code will call
-> memory_failure_queue() to schedule the recovery work. We then return to user-space, possibly taking the fault again.
-> 
-> Currently the arch code unconditionally signals user-space from this path, so we don't get stuck in this loop, but the affected process never
-> benefits from memory_failure()s recovery work. To fix this we need to know the recovery work will run before we get back to user-space.
-> 
-> Increase the priority of the recovery work by scheduling it on the system_highpri_wq, then try to bump the current task off this CPU so that
-> the recover work starts immediately.
-> 
-> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: James Morse <james.morse@arm.com>
-> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> CC: Xie XiuQi <xiexiuqi@huawei.com>
-> CC: gengdongjiu <gengdongjiu@huawei.com>
+as far as i know , may be there is not much change in system behavior.
+i just found these messages during boot time
+i did not find this message in a typical 4.9.x kernel
 
-Tested-by: gengdongjiu <gengdongjiu@huawei.com>
 
-> ---
->  mm/memory-failure.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
-> 
-> diff --git a/mm/memory-failure.c b/mm/memory-failure.c index 9d142b9b86dc..f0e69d7ac406 100644
-> --- a/mm/memory-failure.c
-> +++ b/mm/memory-failure.c
-> @@ -55,6 +55,7 @@
->  #include <linux/hugetlb.h>
->  #include <linux/memory_hotplug.h>
->  #include <linux/mm_inline.h>
-> +#include <linux/preempt.h>
->  #include <linux/kfifo.h>
->  #include <linux/ratelimit.h>
->  #include "internal.h"
-> @@ -1333,6 +1334,7 @@ static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
->   */
->  void memory_failure_queue(unsigned long pfn, int flags)  {
-> +	int cpu = smp_processor_id();
->  	struct memory_failure_cpu *mf_cpu;
->  	unsigned long proc_flags;
->  	struct memory_failure_entry entry = {
-> @@ -1342,11 +1344,14 @@ void memory_failure_queue(unsigned long pfn, int flags)
-> 
->  	mf_cpu = &get_cpu_var(memory_failure_cpu);
->  	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-> -	if (kfifo_put(&mf_cpu->fifo, entry))
-> -		schedule_work_on(smp_processor_id(), &mf_cpu->work);
-> -	else
-> +	if (kfifo_put(&mf_cpu->fifo, entry)) {
-> +		queue_work_on(cpu, system_highpri_wq, &mf_cpu->work);
-> +		set_tsk_need_resched(current);
-> +		preempt_set_need_resched();
-> +	} else {
->  		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
->  		       pfn);
-> +	}
->  	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
->  	put_cpu_var(memory_failure_cpu);
->  }
+
+On Mon, May 14, 2018 at 4:04 AM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Sun, May 13, 2018 at 5:20 PM, Jeffrin Thalakkottoor
+> <jeffrin@rajagiritech.edu.in> wrote:
+>> hello ,
+>>
+>> the error from "dmesg -l err"  related ...
+>>
+>> ------------------------------------------------------------------------------------------------->
+>>
+>> [    1.709950] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.710045] ACPI Error: Method parse/execution failed
+>> \_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
+>> [    1.710208] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECWT], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.710267] ACPI Error: Method parse/execution failed
+>> \_TZ.FN00._ON, AE_NOT_FOUND (20180313/psparse-516)
+>> [    1.710338] acpi PNP0C0B:00: Failed to set initial power state
+>> [    1.710846] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.710938] ACPI Error: Method parse/execution failed
+>> \_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
+>> [    1.711588] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.711681] ACPI Error: Method parse/execution failed
+>> \_TZ.TZ00._TMP, AE_NOT_FOUND (20180313/psparse-516)
+>> [    1.711960] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.712054] ACPI Error: Method parse/execution failed
+>> \_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
+>> [    1.712471] ACPI BIOS Error (bug): Failure looking up
+>> [\_SB.PCI0.LPCB.HEC.ECRD], AE_NOT_FOUND (20180313/psargs-330)
+>> [    1.712552] ACPI Error: Method parse/execution failed
+>> \_TZ.TZ01._TMP, AE_NOT_FOUND (20180313/psparse-516)
+>>
+>> ----------------------------------------------------------------------------------------------------->
+>>
+>
+> Is there any regressions or change in behaviour due to which these
+> messages are printed out? If so, which regressions you are pointing
+> out?
+>
+>>
+>>
+>> $awk -f scripts/ver_linux
+>> If some fields are empty or look unusual you may have an old version.
+>> Compare to the current minimal requirements in Documentation/Changes.
+>>
+>> Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
+>>
+>> GNU Make            4.2.1
+>> Binutils            2.30
+>> Util-linux          2.31.1
+>> Mount                2.31.1
+>> Linux C Library      2.27
+>> Dynamic linker (ldd) 2.27
+>> readlink: missing operand
+>> Try 'readlink --help' for more information.
+>> Procps              3.3.14
+>> Kbd                  2.0.4
+>> Console-tools        2.0.4
+>> Sh-utils            8.28
+>> Udev                238
+>> Modules Loaded      ac acpi_pad acpi_thermal_rel ahci autofs4 battery
+>> binfmt_misc bluetooth bnep btbcm btintel btrfs btrtl btusb button
+>> cdrom cfg80211 cmac coretemp cpuid crc32c_intel crc32_pclmul
+>> crct10dif_pclmul cryptd drm drm_kms_helper ecdh_generic efi_pstore
+>> efivarfs efivars ehci_hcd ehci_pci evdev fan fat fuse
+>> ghash_clmulni_intel hid hp_wireless hp_wmi i2c_algo_bit i2c_hid
+>> i2c_i801 i915 int3400_thermal int340x_thermal_zone intel_cstate
+>> intel_pch_thermal intel_powerclamp intel_rapl intel_rapl_perf
+>> intel_soc_dts_iosf intel_uncore ip_tables irqbypass
+>> iTCO_vendor_support iTCO_wdt joydev kvm kvm_intel libahci libata
+>> libcrc32c loop lp lpc_ich media mei mei_me mfd_core mii nls_ascii
+>> nls_cp437 parport parport_pc pcspkr ppdev processor_thermal_device
+>> psmouse r8169 raid6_pq rfcomm rfkill scsi_mod sd_mod serio_raw sg
+>> shpchp snd snd_hda_codec snd_hda_codec_generic snd_hda_codec_hdmi
+>> snd_hda_codec_realtek snd_hda_core snd_hda_intel snd_hwdep snd_pcm
+>> snd_timer soundcore sparse_keymap sr_mod sunrpc thermal usbcore
+>> uvcvideo vfat video videobuf2_common videobuf2_memops videobuf2_v4l2
+>> videobuf2_vmalloc videodev wl wmi wmi_bmof x86_pkg_temp_thermal xfs
+>> xhci_hcd xhci_pci xor x_tables xxhash zstd_compress zstd_decompress
+>>
+>>
+>> $uname -a
+>> Linux debian 4.17.0-rc4+ #24 SMP Sat May 12 19:26:27 IST 2018 x86_64 GNU/Linux
+>> $
+>>
+>> Reported-by: Jeffrin Jose T  <jeffrin@rajagiritech.edu.in>
+>>
+>> --
+>> software engineer
+>> rajagiri school of engineering and technology
+>
+>
+>
 > --
-> 2.16.2
+> With Best Regards,
+> Andy Shevchenko
+
+
+
+-- 
+software engineer
+rajagiri school of engineering and technology
