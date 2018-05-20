@@ -1,121 +1,87 @@
-From: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Subject: Re: [PATCH v2 35/40] iommu/arm-smmu-v3: Add support for PCI ATS
-Date: Sat, 19 May 2018 13:25:06 -0400
-Message-ID: <922474e8-0aa5-e022-0502-f1e51b0d4859@codeaurora.org>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-36-jean-philippe.brucker@arm.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: =?gb2312?B?tPC4tDogW1BBVENIIHY0IDExLzEyXSBtbS9tZW1vcnktZmFpbHVyZTogaW5j?=
+ =?gb2312?Q?rease_queued_recovery_work's_priority?=
+Date: Sun, 20 May 2018 07:12:17 +0000
+Message-ID: <0184EA26B2509940AA629AE1405DD7F201C714A0@DGGEMA503-MBX.china.huawei.com>
+References: <20180516162829.14348-1-james.morse@arm.com>
+ <20180516162829.14348-12-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180511190641.23008-36-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180516162829.14348-12-james.morse@arm.com>
+Content-Language: zh-CN
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "jonathan.zhang@cavium.com" <jonathan.zhang@cavium.com>, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, "inux-mm@kvack.org" <inux-mm@kvack.org>, Xiexiuqi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, "kvmarm@lists.cs.columbia.edu" <kvmarm@lists.cs.columbia.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/11/2018 3:06 PM, Jean-Philippe Brucker wrote:
-> PCIe devices can implement their own TLB, named Address Translation Cache
-> (ATC). Enable Address Translation Service (ATS) for devices that support
-> it and send them invalidation requests whenever we invalidate the IOTLBs.
 > 
->   Range calculation
->   -----------------
+> arm64 can take an NMI-like error notification when user-space steps in some corrupt memory. APEI's GHES code will call
+> memory_failure_queue() to schedule the recovery work. We then return to user-space, possibly taking the fault again.
 > 
-> The invalidation packet itself is a bit awkward: range must be naturally
-> aligned, which means that the start address is a multiple of the range
-> size. In addition, the size must be a power of two number of 4k pages. We
-> have a few options to enforce this constraint:
+> Currently the arch code unconditionally signals user-space from this path, so we don't get stuck in this loop, but the affected process never
+> benefits from memory_failure()s recovery work. To fix this we need to know the recovery work will run before we get back to user-space.
 > 
-> (1) Find the smallest naturally aligned region that covers the requested
->     range. This is simple to compute and only takes one ATC_INV, but it
->     will spill on lots of neighbouring ATC entries.
+> Increase the priority of the recovery work by scheduling it on the system_highpri_wq, then try to bump the current task off this CPU so that
+> the recover work starts immediately.
 > 
-> (2) Align the start address to the region size (rounded up to a power of
->     two), and send a second invalidation for the next range of the same
->     size. Still not great, but reduces spilling.
-> 
-> (3) Cover the range exactly with the smallest number of naturally aligned
->     regions. This would be interesting to implement but as for (2),
->     requires multiple ATC_INV.
-> 
-> As I suspect ATC invalidation packets will be a very scarce resource, I'll
-> go with option (1) for now, and only send one big invalidation. We can
-> move to (2), which is both easier to read and more gentle with the ATC,
-> once we've observed on real systems that we can send multiple smaller
-> Invalidation Requests for roughly the same price as a single big one.
-> 
-> Note that with io-pgtable, the unmap function is called for each page, so
-> this doesn't matter. The problem shows up when sharing page tables with
-> the MMU.
-> 
->   Timeout
->   -------
-> 
-> ATC invalidation is allowed to take up to 90 seconds, according to the
-> PCIe spec, so it is possible to hit the SMMU command queue timeout during
-> normal operations.
-> 
-> Some SMMU implementations will raise a CERROR_ATC_INV_SYNC when a CMD_SYNC
-> fails because of an ATC invalidation. Some will just abort the CMD_SYNC.
-> Others might let CMD_SYNC complete and have an asynchronous IMPDEF
-> mechanism to record the error. When we receive a CERROR_ATC_INV_SYNC, we
-> could retry sending all ATC_INV since last successful CMD_SYNC. When a
-> CMD_SYNC fails without CERROR_ATC_INV_SYNC, we could retry sending *all*
-> commands since last successful CMD_SYNC.
-> 
-> We cannot afford to wait 90 seconds in iommu_unmap, let alone MMU
-> notifiers. So we'd have to introduce a more clever system if this timeout
-> becomes a problem, like keeping hold of mappings and invalidating in the
-> background. Implementing safe delayed invalidations is a very complex
-> problem and deserves a series of its own. We'll assess whether more work
-> is needed to properly handle ATC invalidation timeouts once this code runs
-> on real hardware.
-> 
->   Misc
->   ----
-> 
-> I didn't put ATC and TLB invalidations in the same functions for three
-> reasons:
-> 
-> * TLB invalidation by range is batched and committed with a single sync.
->   Batching ATC invalidation is inconvenient, endpoints limit the number of
->   inflight invalidations. We'd have to count the number of invalidations
->   queued and send a sync periodically. In addition, I suspect we always
->   need a sync between TLB and ATC invalidation for the same page.
-> 
-> * Doing ATC invalidation outside tlb_inv_range also allows to send less
->   requests, since TLB invalidations are done per page or block, while ATC
->   invalidations target IOVA ranges.
-> 
-> * TLB invalidation by context is performed when freeing the domain, at
->   which point there isn't any device attached anymore.
-> 
-> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Xie XiuQi <xiexiuqi@huawei.com>
+> CC: gengdongjiu <gengdongjiu@huawei.com>
 
+Tested-by: gengdongjiu <gengdongjiu@huawei.com>
 
-Nothing specific about this patch but just a general observation. Last time I
-looked at the code, it seemed to require both ATS and PRI support from a given
-hardware.
-
-I think you can assume that for ATS 1.1 specification but ATS 1.0 specification
-allows a system to have ATS+PASID without PRI. 
-
-QDF2400 is ATS 1.0 compatible as an example. 
-
-Is this an assumption / my misinterpretation?
-
-
--- 
-Sinan Kaya
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+> ---
+>  mm/memory-failure.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c index 9d142b9b86dc..f0e69d7ac406 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -55,6 +55,7 @@
+>  #include <linux/hugetlb.h>
+>  #include <linux/memory_hotplug.h>
+>  #include <linux/mm_inline.h>
+> +#include <linux/preempt.h>
+>  #include <linux/kfifo.h>
+>  #include <linux/ratelimit.h>
+>  #include "internal.h"
+> @@ -1333,6 +1334,7 @@ static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
+>   */
+>  void memory_failure_queue(unsigned long pfn, int flags)  {
+> +	int cpu = smp_processor_id();
+>  	struct memory_failure_cpu *mf_cpu;
+>  	unsigned long proc_flags;
+>  	struct memory_failure_entry entry = {
+> @@ -1342,11 +1344,14 @@ void memory_failure_queue(unsigned long pfn, int flags)
+> 
+>  	mf_cpu = &get_cpu_var(memory_failure_cpu);
+>  	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+> -	if (kfifo_put(&mf_cpu->fifo, entry))
+> -		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+> -	else
+> +	if (kfifo_put(&mf_cpu->fifo, entry)) {
+> +		queue_work_on(cpu, system_highpri_wq, &mf_cpu->work);
+> +		set_tsk_need_resched(current);
+> +		preempt_set_need_resched();
+> +	} else {
+>  		pr_err("Memory failure: buffer overflow when queuing memory failure at %#lx\n",
+>  		       pfn);
+> +	}
+>  	spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
+>  	put_cpu_var(memory_failure_cpu);
+>  }
+> --
+> 2.16.2
