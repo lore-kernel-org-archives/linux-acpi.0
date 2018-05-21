@@ -1,47 +1,88 @@
-From: Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
-Subject: Re: [PATCH 2/3] thinkpad_acpi: add support for
- force_discharge
-Date: Mon, 21 May 2018 07:31:12 -0600
-Message-ID: <20180521133112.GA4578@kevinolos>
-References: <20180513153000.GA5117@thinkpad>
+From: Tyler Baicar <tbaicar@codeaurora.org>
+Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
+ through GHES
+Date: Mon, 21 May 2018 10:27:49 -0400
+Message-ID: <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
+References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
+ <20180521135003.32459-3-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180513153000.GA5117@thinkpad>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180521135003.32459-3-mr.nuke.me@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>, bp@alien8.de
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 2018-05-13 at 17:30 +0200, Ognjen Galic wrote:
-> Lenovo ThinkPad systems have a feature that lets you
-> force the battery to discharge regardless if AC is attached
-> or not.
-> 
-> This patch implements that feature and exposes it via the generic
-> ACPI battery driver.
+On 5/21/2018 9:49 AM, Alexandru Gagniuc wrote:
+> +/* PCIe errors should not cause a panic. */
+> +static int ghes_sec_pcie_severity(struct acpi_hest_generic_data *gdata)
+> +{
+> +	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+> +
+> +	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+> +	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
+> +	    IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
+> +		return GHES_SEV_RECOVERABLE;
+> +
+> +	return ghes_cper_severity(gdata->error_severity);
+> +}
+> +
+> +/*
+> + * The severity field in the status block is an unreliable metric for the
+> + * severity. A more reliable way is to look at each subsection and see how safe
+> + * it is to call the approproate error handler.
+> + * We're not conerned with handling the error. We're concerned with being able
+> + * to notify an error handler by crossing the NMI/IRQ boundary, being able to
+> + * schedule_work, and so forth.
+> + *   - SEC_PCIE: All PCIe errors can be handled by AER.
+> + */
+> +static int ghes_severity(struct ghes *ghes)
+> +{
+> +	int worst_sev, sec_sev;
+> +	struct acpi_hest_generic_data *gdata;
+> +	const guid_t *section_type;
+> +	const struct acpi_hest_generic_status *estatus = ghes->estatus;
+> +
+> +	worst_sev = GHES_SEV_NO;
+> +	apei_estatus_for_each_section(estatus, gdata) {
+> +		section_type = (guid_t *)gdata->section_type;
+> +		sec_sev = ghes_cper_severity(gdata->error_severity);
+> +
+> +		if (guid_equal(section_type, &CPER_SEC_PCIE))
+> +			sec_sev = ghes_sec_pcie_severity(gdata);
+> +
+> +		worst_sev = max(worst_sev, sec_sev);
+> +	}
+> +
+> +	return worst_sev;
+> +}
+> +
+>   static void ghes_do_proc(struct ghes *ghes,
+>   			 const struct acpi_hest_generic_status *estatus)
+>   {
+> @@ -944,7 +986,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>   			ret = NMI_HANDLED;
+>   		}
+>   
+> -		sev = ghes_cper_severity(ghes->estatus->error_severity);
+> +		sev = ghes_severity(ghes);
+Hello Alex,
 
-On a T430 (2342-CTO) I can confirm that both force_discharge and
-inhibit_charge behave as expected, both when the battery is above and
-below charge_start_threshold.  Input validation also works
-as-expected.  The only oddity I noticed is that force_discharge has a
-delay taking effect (<1 sec) transitioning from 0 to 1 (but not 1 to
-0).
+There is a compile warning if CONFIG_HAVE_ACPI_APEI_NMI is not selected.
 
-Tested-by: Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
+   CC      drivers/acpi/apei/ghes.o
+drivers/acpi/apei/ghes.c:483:12: warning: ‘ghes_severity’ defined but not used 
+[-Wunused-function]
+  static int ghes_severity(struct ghes *ghes)
+             ^~~~~~~~~~~~~
 
-Thanks for working on this!
-Kevin
+Thanks,
+Tyler
 
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+-- 
+Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
