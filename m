@@ -1,106 +1,65 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v2] drivers: base: cacheinfo: use OF property_read_u32 instead of get_property,read_number
-Date: Mon, 21 May 2018 13:53:09 +0100
-Message-ID: <1526907189-10031-1-git-send-email-sudeep.holla@arm.com>
-References: <1526898749-17263-1-git-send-email-sudeep.holla@arm.com>
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH v6 0/2]  acpi: apei: Improve PCIe error handling with FFS
+Date: Mon, 21 May 2018 08:49:57 -0500
+Message-ID: <20180521135003.32459-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1526898749-17263-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: bp@alien8.de
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-of_property_read_u32 searches for a property in a device node and read
-a 32-bit value from it. Instead of using of_get_property to get the
-property and then read 32-bit value using of_read_number, we can
-simplify it by using of_property_read_u32.
+The purpose of these changes is to see if we can safely de-escalate
+the situation and notify the appropriate error handler. Since FFS
+reports errors through NMIs or other non-standard mechanism, we have
+to be just a little more careful with reporting the error.
 
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/base/cacheinfo.c | 24 ++++++++++--------------
- 1 file changed, 10 insertions(+), 14 deletions(-)
+We're concerned with things, such as being able to cross the NMI/IRQ
+boundary, or being able to safely schedule work and notify the
+appropriate subsystem. Once the notification is sent, our job is done.
+I'm explicitly _NOT_ concerned with whether the error is handled or
+not, especially since such concern reduces to a call to __ghes_panic().
 
-Hi Andy,
+There are rare cases that prevent us from de-escalating to lesser
+contexts, such as uncorrectable memory errors in kernel. In these sort
+of cases, trying to leave the NMI might cause a triple fault. James
+Morse explained this very well when discussing v1 of this series. In
+and only in such cases, we are justified to panic().
 
-Ignore my comment on compile errors error with Werror=incompatible-pointer-types
-I was so hung up on _u64 version and didn't realise that we were using 32-bit
-with of_read_number originally.
+Once the error is safely sent its merry way, it's really up to the
+error handler to panic() or continue. For example, aer_recover_queue()
+might for ungodly reasons fail. However, it's up to the AER code to
+decide whether failing to queue an error for handling is panic worthy.
 
-Regards,
-Sudeep
+Changes since v5:
+ - Removed zoological references from commit message
 
-v1->v2:
-	- Replaced use of of_property_read_u64 with of_property_read_u32
-	- Also removed the local variables as Andy initially suggested
+Changes since v4:
+ - Fix Freudian slip and use GHES_ instead of CPER_ enum
+ - Rephrased comments to clarify what we don't care about
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index 2880e2ab01f5..5d5b5988e88b 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -74,52 +74,48 @@ static inline int get_cacheinfo_idx(enum cache_type type)
- static void cache_size(struct cacheinfo *this_leaf, struct device_node *np)
- {
- 	const char *propname;
--	const __be32 *cache_size;
- 	int ct_idx;
+Changes since v3:
+ - Renamed ghes_severity to something more concrete
+ - Reorganized code to make it look like more than just a rename
+ - Remembered to remove last patch in the series
 
- 	ct_idx = get_cacheinfo_idx(this_leaf->type);
- 	propname = cache_type_info[ct_idx].size_prop;
+Changes since v2:
+ - Due to popular request, simple is chosen over flexible
+ - Removed splitting of handlers into irq safe portion.
+ - Change behavior only for PCIe errors
 
--	cache_size = of_get_property(np, propname, NULL);
--	if (cache_size)
--		this_leaf->size = of_read_number(cache_size, 1);
-+	if (of_property_read_u32(np, propname, &this_leaf->size))
-+		this_leaf->size = 0;
- }
+Changes since v1:
+ - Due to popular request, the panic() is left in the NMI handler
+ - GHES AER handler is split into NMI and non-NMI portions
+ - ghes_notify_nmi() does not panic on deferrable errors
+ - The handlers are put in a mapping and given a common call signature
 
- /* not cache_line_size() because that's a macro in include/linux/cache.h */
- static void cache_get_line_size(struct cacheinfo *this_leaf,
- 				struct device_node *np)
- {
--	const __be32 *line_size;
- 	int i, lim, ct_idx;
 
- 	ct_idx = get_cacheinfo_idx(this_leaf->type);
- 	lim = ARRAY_SIZE(cache_type_info[ct_idx].line_size_props);
+Alexandru Gagniuc (2):
+  acpi: apei: Rename ghes_severity() to ghes_cper_severity()
+  acpi: apei: Do not panic() on PCIe errors reported through GHES
 
- 	for (i = 0; i < lim; i++) {
-+		int ret;
-+		u32 line_size;
- 		const char *propname;
+ drivers/acpi/apei/ghes.c | 63 +++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 52 insertions(+), 11 deletions(-)
 
- 		propname = cache_type_info[ct_idx].line_size_props[i];
--		line_size = of_get_property(np, propname, NULL);
--		if (line_size)
-+		ret = of_property_read_u32(np, propname, &line_size);
-+		if (!ret) {
-+			this_leaf->coherency_line_size = line_size;
- 			break;
-+		}
- 	}
--
--	if (line_size)
--		this_leaf->coherency_line_size = of_read_number(line_size, 1);
- }
-
- static void cache_nr_sets(struct cacheinfo *this_leaf, struct device_node *np)
- {
- 	const char *propname;
--	const __be32 *nr_sets;
- 	int ct_idx;
-
- 	ct_idx = get_cacheinfo_idx(this_leaf->type);
- 	propname = cache_type_info[ct_idx].nr_sets_prop;
-
--	nr_sets = of_get_property(np, propname, NULL);
--	if (nr_sets)
--		this_leaf->number_of_sets = of_read_number(nr_sets, 1);
-+	if (of_property_read_u32(np, propname, &this_leaf->number_of_sets))
-+		this_leaf->number_of_sets = 0;
- }
-
- static void cache_associativity(struct cacheinfo *this_leaf)
---
-2.7.4
+-- 
+2.14.3
