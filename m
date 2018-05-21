@@ -1,88 +1,52 @@
-From: Tyler Baicar <tbaicar@codeaurora.org>
-Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
- through GHES
-Date: Mon, 21 May 2018 10:27:49 -0400
-Message-ID: <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
-References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
- <20180521135003.32459-3-mr.nuke.me@gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 02/40] iommu/sva: Bind process address spaces to devices
+Date: Mon, 21 May 2018 15:43:11 +0100
+Message-ID: <19001b20-93de-6bf5-c72a-783e5d20b1bc@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-3-jean-philippe.brucker@arm.com>
+	<20180517141058.00001c76@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180521135003.32459-3-mr.nuke.me@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180517141058.00001c76-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>, bp@alien8.de
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jonathan Cameron <Jonathan.Cameron-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Cc: bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 5/21/2018 9:49 AM, Alexandru Gagniuc wrote:
-> +/* PCIe errors should not cause a panic. */
-> +static int ghes_sec_pcie_severity(struct acpi_hest_generic_data *gdata)
-> +{
-> +	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-> +
-> +	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-> +	    pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
-> +	    IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
-> +		return GHES_SEV_RECOVERABLE;
-> +
-> +	return ghes_cper_severity(gdata->error_severity);
-> +}
-> +
-> +/*
-> + * The severity field in the status block is an unreliable metric for the
-> + * severity. A more reliable way is to look at each subsection and see how safe
-> + * it is to call the approproate error handler.
-> + * We're not conerned with handling the error. We're concerned with being able
-> + * to notify an error handler by crossing the NMI/IRQ boundary, being able to
-> + * schedule_work, and so forth.
-> + *   - SEC_PCIE: All PCIe errors can be handled by AER.
-> + */
-> +static int ghes_severity(struct ghes *ghes)
-> +{
-> +	int worst_sev, sec_sev;
-> +	struct acpi_hest_generic_data *gdata;
-> +	const guid_t *section_type;
-> +	const struct acpi_hest_generic_status *estatus = ghes->estatus;
-> +
-> +	worst_sev = GHES_SEV_NO;
-> +	apei_estatus_for_each_section(estatus, gdata) {
-> +		section_type = (guid_t *)gdata->section_type;
-> +		sec_sev = ghes_cper_severity(gdata->error_severity);
-> +
-> +		if (guid_equal(section_type, &CPER_SEC_PCIE))
-> +			sec_sev = ghes_sec_pcie_severity(gdata);
-> +
-> +		worst_sev = max(worst_sev, sec_sev);
-> +	}
-> +
-> +	return worst_sev;
-> +}
-> +
->   static void ghes_do_proc(struct ghes *ghes,
->   			 const struct acpi_hest_generic_status *estatus)
->   {
-> @@ -944,7 +986,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
->   			ret = NMI_HANDLED;
->   		}
->   
-> -		sev = ghes_cper_severity(ghes->estatus->error_severity);
-> +		sev = ghes_severity(ghes);
-Hello Alex,
+On 17/05/18 14:10, Jonathan Cameron wrote:
+> On Fri, 11 May 2018 20:06:03 +0100
+> Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
+> 
+>> Add bind() and unbind() operations to the IOMMU API. Bind() returns a
+>> PASID that drivers can program in hardware, to let their devices access an
+>> mm. This patch only adds skeletons for the device driver API, most of the
+>> implementation is still missing.
+>>
+>> IOMMU groups with more than one device aren't supported for SVA at the
+>> moment. There may be P2P traffic between devices within a group, which
+>> cannot be seen by an IOMMU (note that supporting PASID doesn't add any
+>> form of isolation with regard to P2P). Supporting groups would require
+>> calling bind() for all bound processes every time a device is added to a
+>> group, to perform sanity checks (e.g. ensure that new devices support
+>> PASIDs at least as big as those already allocated in the group).
+> 
+> Is it worth adding an explicit comment on this reasoning (or a minimal subset
+> of it) at the check for the number of devices in the group?
+> It's well laid out here, but might not be so obvious if someone is reading
+> the code in the future.
 
-There is a compile warning if CONFIG_HAVE_ACPI_APEI_NMI is not selected.
-
-   CC      drivers/acpi/apei/ghes.o
-drivers/acpi/apei/ghes.c:483:12: warning: ‘ghes_severity’ defined but not used 
-[-Wunused-function]
-  static int ghes_severity(struct ghes *ghes)
-             ^~~~~~~~~~~~~
+Sure, I'll add something
 
 Thanks,
-Tyler
-
--- 
-Qualcomm Datacenter Technologies, Inc. as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Jean
