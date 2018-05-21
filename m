@@ -1,51 +1,39 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 35/40] iommu/arm-smmu-v3: Add support for PCI ATS
-Date: Mon, 21 May 2018 15:52:39 +0100
-Message-ID: <08f53ea4-bd39-a567-9c79-f4381e5fb461@arm.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-36-jean-philippe.brucker@arm.com>
-	<922474e8-0aa5-e022-0502-f1e51b0d4859@codeaurora.org>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
+ through GHES
+Date: Mon, 21 May 2018 12:40:41 -0500
+Message-ID: <a2d37208-a8d1-0995-5915-2eb4a0ab2fa4@gmail.com>
+References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
+ <20180521135003.32459-3-mr.nuke.me@gmail.com>
+ <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <922474e8-0aa5-e022-0502-f1e51b0d4859-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Sinan Kaya <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
-Cc: "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tyler Baicar <tbaicar@codeaurora.org>, bp@alien8.de
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Sinan,
 
-On 19/05/18 18:25, Sinan Kaya wrote:
-> Nothing specific about this patch but just a general observation. Last time I
-> looked at the code, it seemed to require both ATS and PRI support from a given
-> hardware.
+
+On 05/21/2018 09:27 AM, Tyler Baicar wrote:
+> On 5/21/2018 9:49 AM, Alexandru Gagniuc wrote:
+(snip)
+> Hello Alex,
 > 
-> I think you can assume that for ATS 1.1 specification but ATS 1.0 specification
-> allows a system to have ATS+PASID without PRI. 
-
-As far as I know, the latest ATS spec also states that "device that
-supports ATS need not support PRI". I'm referring to the version
-integrated into PCIe v4.0r1.0, which I think corresponds to ATS 1.1.
-
-> QDF2400 is ATS 1.0 compatible as an example. 
+> There is a compile warning if CONFIG_HAVE_ACPI_APEI_NMI is not selected.
 > 
-> Is this an assumption / my misinterpretation?
+>   CC      drivers/acpi/apei/ghes.o
+> drivers/acpi/apei/ghes.c:483:12: warning: ‘ghes_severity’ defined but
+> not used [-Wunused-function]
+>  static int ghes_severity(struct ghes *ghes)
+>             ^~~~~~~~~~~~~
 
-In this series you can enable ATS and PASID without PRI. The SMMU
-enables ATS and PASID in add_device() if supported. Then PRI is only
-enabled if users request IOMMU_SVA_FEAT_IOPF in sva_init_device(). If
-the device driver pins all DMA memory, it can use PASID without PRI.
+Thanks for finding that. It's an easy fix. Staged for v7.
 
-Thanks,
-Jean
+> Thanks,
+> Tyler
+> 
