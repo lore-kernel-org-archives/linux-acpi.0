@@ -1,37 +1,107 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 1/2] acpi: apei: Rename ghes_severity() to
- ghes_cper_severity()
-Date: Tue, 22 May 2018 15:50:15 +0200
-Message-ID: <20180522135015.GF5512@pd.tnic>
+From: "Alex G." <mr.nuke.me@gmail.com>
+Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
+ through GHES
+Date: Tue, 22 May 2018 09:32:55 -0500
+Message-ID: <5a72a503-e8d5-c317-89b4-86e574c48064@gmail.com>
 References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
- <20180521135003.32459-2-mr.nuke.me@gmail.com>
- <CAJZ5v0hKfgTOJb47NjeOP1BBPXPjWqdfu_TXVwWMzOHicEx0Xw@mail.gmail.com>
- <53d0ba88-6929-a7cf-6c3e-4ca389f7249a@gmail.com>
+ <20180521135003.32459-3-mr.nuke.me@gmail.com>
+ <CAJZ5v0h+U1zNK+LdOH_pU7kb+c6VK7erZCRqaV2WauDE2cwc6w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53d0ba88-6929-a7cf-6c3e-4ca389f7249a@gmail.com>
+In-Reply-To: <CAJZ5v0h+U1zNK+LdOH_pU7kb+c6VK7erZCRqaV2WauDE2cwc6w@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Alex G." <mr.nuke.me@gmail.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, May 22, 2018 at 08:38:39AM -0500, Alex G. wrote:
-> > It looks like the *real* reason for this change is that you
-> > re-introduce ghes_severity() as a different function in the second
-> > patch.
+On 05/22/2018 04:02 AM, Rafael J. Wysocki wrote:
+> On Mon, May 21, 2018 at 3:49 PM, Alexandru Gagniuc <mr.nuke.me@gmail.com> wrote:
+>> The policy was to panic() when GHES said that an error is "Fatal".
+>> This logic is wrong for several reasons, as it doesn't account for the
+>> cause of the error.
+>>
+>> PCIe fatal errors indicate that the link to a device is either
+>> unstable or unusable. They don't indicate that the machine is on fire,
 > 
-> /me holds fist at Borislav
+> But they very well may indicate just that AFAICS.
 
-That was a misunderstanding with Rafael and me - we fixed it on IRC.
+I guess it's possible to set a machine on fire, and get a PCIe error as
+one of the links melts. Although in that case, I doubt how we try to
+handle the error makes a difference. Sarcasm aside, my point is that it
+makes little sense to crash a machine when we lose a PCIe link.
 
-But this is not the real problem with your approach - it is the marking
-of all PCIe errors as recoverable, regardless of the signature. That's a
-no-no, IMO.
 
--- 
-Regards/Gruss,
-    Boris.
+>> and they are not severe enough to justify a panic(). Do not blindly
+>> rely on firmware to evaluate the severity for us. Instead, look at
+>> the error severity based on what caused the error (GHES subsections).
+> 
+> Which bit also comes from the firmware, right?  So why is it regarded
+> as a better source of information?
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+It's less bad (not using 'better') because it relates more closely to
+the error than the specific mechanism through which it is reported. The
+header severity is an artificial concept that firmware has to make up,
+whereas the subsection severity usually comes directly from hardware.
+
+> Or are you trying to say that both of the pieces of information in
+> question should be consistent with each other?  But if they aren't,
+> which one should we trust more and why?
+
+The header severity is letting someone else make the decisions for you.
+
+(snip)
+>> +/* PCIe errors should not cause a panic. */
+> 
+> This comment is not sufficient and it should go inside of the function.
+
+What would make a "sufficient" comment?
+
+>> +static int ghes_sec_pcie_severity(struct acpi_hest_generic_data *gdata)
+>> +{
+>> +       struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+>> +
+>> +       if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+>> +           pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
+>> +           IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
+>> +               return GHES_SEV_RECOVERABLE;
+> 
+> You have not explained convincingly enough why the above condition
+> makes sense at all.
+
+Is this a test? I think it's self-explanatory:
+How can you invoke a handler when you don't have a source for the error?
+Or how can you invoke a handler when you don't have that handler?
+
+>> +
+>> +       return ghes_cper_severity(gdata->error_severity);
+>> +}
+>> +
+>> +/*
+>> + * The severity field in the status block is an unreliable metric for the
+>> + * severity. A more reliable way is to look at each subsection and see how safe
+>> + * it is to call the approproate error handler.
+>> + * We're not conerned with handling the error. We're concerned with being able
+>> + * to notify an error handler by crossing the NMI/IRQ boundary, being able to
+>> + * schedule_work, and so forth.
+>> + *   - SEC_PCIE: All PCIe errors can be handled by AER.
+> 
+> Make this comment a proper kerneldoc or move it inside of the function.
+
+I don't like moving long comments inside a function, as it breaks code
+flow. Above-function explanation is also consistent with how
+ghes_handle_aer() is documented.
+
+Rafael, thank you very much for taking the time to review these patches.
+Although, after reading through your emails, I'm at a loss on how you
+want to to solve the problem. It appears everyone has a very strong and
+different opinion how to proceed.
+
+I think the biggest problem is having a policy to panic on "fatal"
+errors, instead of letting the error handler make that decision. I'd
+much rather kill that stupid policy, but people seem to like it for some
+reason.
+
+Alex
