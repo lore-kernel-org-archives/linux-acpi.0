@@ -1,27 +1,125 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 1/2] acpi: apei: Rename ghes_severity() to ghes_cper_severity()
-Date: Tue, 22 May 2018 10:55:29 +0200
-Message-ID: <CAJZ5v0hKfgTOJb47NjeOP1BBPXPjWqdfu_TXVwWMzOHicEx0Xw@mail.gmail.com>
-References: <20180521135003.32459-1-mr.nuke.me@gmail.com> <20180521135003.32459-2-mr.nuke.me@gmail.com>
+Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
+ through GHES
+Date: Tue, 22 May 2018 11:02:16 +0200
+Message-ID: <CAJZ5v0h+U1zNK+LdOH_pU7kb+c6VK7erZCRqaV2WauDE2cwc6w@mail.gmail.com>
+References: <20180521135003.32459-1-mr.nuke.me@gmail.com> <20180521135003.32459-3-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180521135003.32459-2-mr.nuke.me@gmail.com>
+In-Reply-To: <20180521135003.32459-3-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 Cc: Borislav Petkov <bp@alien8.de>, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 On Mon, May 21, 2018 at 3:49 PM, Alexandru Gagniuc <mr.nuke.me@gmail.com> wrote:
-> ghes_severity() is a misnomer in this case, as it implies the severity
-> of the entire GHES structure. Instead, it maps one CPER value to a
-> GHES_SEV* value. ghes_cper_severity() is clearer.
+> The policy was to panic() when GHES said that an error is "Fatal".
+> This logic is wrong for several reasons, as it doesn't account for the
+> cause of the error.
+>
+> PCIe fatal errors indicate that the link to a device is either
+> unstable or unusable. They don't indicate that the machine is on fire,
 
-It looks like the *real* reason for this change is that you
-re-introduce ghes_severity() as a different function in the second
-patch.
+But they very well may indicate just that AFAICS.
 
-There are a couple of reasons to avoid that, one of them being that
-people will now have to remember what the function did in which kernel
-versions.  Also, the current name is good enough IMO, so I'm not going
-to apply this patch.
+> and they are not severe enough to justify a panic(). Do not blindly
+> rely on firmware to evaluate the severity for us. Instead, look at
+> the error severity based on what caused the error (GHES subsections).
+
+Which bit also comes from the firmware, right?  So why is it regarded
+as a better source of information?
+
+Or are you trying to say that both of the pieces of information in
+question should be consistent with each other?  But if they aren't,
+which one should we trust more and why?
+
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 48 +++++++++++++++++++++++++++++++++++++++++++++---
+>  1 file changed, 45 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 7c1a16b106ba..9baaab798020 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -425,8 +425,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
+>   * GHES_SEV_RECOVERABLE -> AER_NONFATAL
+>   * GHES_SEV_RECOVERABLE && CPER_SEC_RESET -> AER_FATAL
+>   *     These both need to be reported and recovered from by the AER driver.
+> - * GHES_SEV_PANIC does not make it to this handling since the kernel must
+> - *     panic.
+> + * GHES_SEV_PANIC -> AER_FATAL
+>   */
+>  static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
+>  {
+> @@ -459,6 +458,49 @@ static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
+>  #endif
+>  }
+>
+> +/* PCIe errors should not cause a panic. */
+
+This comment is not sufficient and it should go inside of the function.
+
+> +static int ghes_sec_pcie_severity(struct acpi_hest_generic_data *gdata)
+> +{
+> +       struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
+> +
+> +       if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
+> +           pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
+> +           IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
+> +               return GHES_SEV_RECOVERABLE;
+
+You have not explained convincingly enough why the above condition
+makes sense at all.
+
+> +
+> +       return ghes_cper_severity(gdata->error_severity);
+> +}
+> +
+> +/*
+> + * The severity field in the status block is an unreliable metric for the
+> + * severity. A more reliable way is to look at each subsection and see how safe
+> + * it is to call the approproate error handler.
+> + * We're not conerned with handling the error. We're concerned with being able
+> + * to notify an error handler by crossing the NMI/IRQ boundary, being able to
+> + * schedule_work, and so forth.
+> + *   - SEC_PCIE: All PCIe errors can be handled by AER.
+
+Make this comment a proper kerneldoc or move it inside of the function.
+
+> + */
+> +static int ghes_severity(struct ghes *ghes)
+> +{
+> +       int worst_sev, sec_sev;
+> +       struct acpi_hest_generic_data *gdata;
+> +       const guid_t *section_type;
+> +       const struct acpi_hest_generic_status *estatus = ghes->estatus;
+> +
+> +       worst_sev = GHES_SEV_NO;
+> +       apei_estatus_for_each_section(estatus, gdata) {
+> +               section_type = (guid_t *)gdata->section_type;
+> +               sec_sev = ghes_cper_severity(gdata->error_severity);
+> +
+> +               if (guid_equal(section_type, &CPER_SEC_PCIE))
+> +                       sec_sev = ghes_sec_pcie_severity(gdata);
+> +
+> +               worst_sev = max(worst_sev, sec_sev);
+> +       }
+> +
+> +       return worst_sev;
+> +}
+> +
+>  static void ghes_do_proc(struct ghes *ghes,
+>                          const struct acpi_hest_generic_status *estatus)
+>  {
+> @@ -944,7 +986,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+>                         ret = NMI_HANDLED;
+>                 }
+>
+> -               sev = ghes_cper_severity(ghes->estatus->error_severity);
+> +               sev = ghes_severity(ghes);
+>                 if (sev >= GHES_SEV_PANIC) {
+>                         oops_begin();
+>                         ghes_print_queued_estatus();
+> --
