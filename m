@@ -1,48 +1,42 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [PATCH v6 1/2] acpi: apei: Rename ghes_severity() to
- ghes_cper_severity()
-Date: Tue, 22 May 2018 13:49:04 -0500
-Message-ID: <9d4b10fa-dcd8-8071-e68b-24536b24e780@gmail.com>
-References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
- <20180521135003.32459-2-mr.nuke.me@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v6 1/2] acpi: apei: Rename ghes_severity() to ghes_cper_severity()
+Date: Tue, 22 May 2018 23:20:53 +0200
+Message-ID: <CAJZ5v0gF4XtEWyWV-Dwu6NttN8R-a4VPOSp0EsFaQF7tvHk_Lg@mail.gmail.com>
+References: <20180521135003.32459-1-mr.nuke.me@gmail.com> <20180521135003.32459-2-mr.nuke.me@gmail.com>
  <CAJZ5v0hKfgTOJb47NjeOP1BBPXPjWqdfu_TXVwWMzOHicEx0Xw@mail.gmail.com>
- <53d0ba88-6929-a7cf-6c3e-4ca389f7249a@gmail.com>
- <20180522135015.GF5512@pd.tnic>
- <0b758a1c-90e3-6f76-4f83-1e22c8fc9cd6@gmail.com>
- <20180522145426.GG5512@pd.tnic> <20180522175742.GA3543@agluck-desk>
- <CAJZ5v0j1E-kg3RPcasSJn=uZj9uaZcL4Zw9tp4mJgnsbWcPWbw@mail.gmail.com>
- <5dc58180-d3c0-a9f0-282f-4be433c94052@gmail.com>
- <20180522184532.GA4360@agluck-desk>
+ <53d0ba88-6929-a7cf-6c3e-4ca389f7249a@gmail.com> <CAJZ5v0hOC5P79OGAfutLcWzRuh+r9wrf2i3LOVs5VfGqbmoitA@mail.gmail.com>
+ <27199a35-922b-c57d-3c50-e9954a5d80a0@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180522184532.GA4360@agluck-desk>
-Content-Language: en-US
+In-Reply-To: <27199a35-922b-c57d-3c50-e9954a5d80a0@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@alien8.de>, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: "Alex G." <mr.nuke.me@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Borislav Petkov <bp@alien8.de>, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/22/2018 01:45 PM, Luck, Tony wrote:
-> On Tue, May 22, 2018 at 01:19:34PM -0500, Alex G. wrote:
->> Firmware started passing "fatal" GHES headers with the explicit intent of
->> crashing an OS. At the same time, we've learnt how to handle these errors in
->> a number of cases. With DPC (coming soon to firmware-first) the error is
->> contained, and a non-issue.
-> 
-> Perhaps DPC is the change that you need to emphasize as to
-> why things are different now, so we can change the default
-> Linux behavior.
-> 
-> With the h/w guaranteeing that corrupt data is contained, we
-> should be safe to disregard BIOS indications of "fatal" problems
-> that could be anything and might show up in unknown ways some
-> time later if we keep running.
+On Tue, May 22, 2018 at 8:20 PM, Alex G. <mr.nuke.me@gmail.com> wrote:
+> On 05/22/2018 01:13 PM, Rafael J. Wysocki wrote:
+> (snip)
+>>
+>> Of course, you are free to have a differing opinion and I don't have
+>> to convince you about my point.  You need to convince me about your
+>> point to get the patch in through my tree, which you haven't done so
+>> far.
+>
+>
+> My point is that crossing your arms and saying "impress me" doesn't give me
+> a good idea of how you'd like to see the problem resolved.
 
-Sure. DPC is much harder to contest as a reason. However, the AER path
-benefits as well from this change in behavior. I'm certain there are
-other classes of errors that benefit as well from the change, though I
-haven't had the time or the inclination to look for them.
+I do not recall having said "impress me" at any time during our
+conversation so far.
 
-Alex
+Also this problem space is not the one I'm focusing on and I can't
+tell you how to address the problem you want to address in that space
+from the top of my head.  I can only look at what you post and decide
+whether or not I agree with that.  It has to be well documented and
+convincing enough, however, and it hasn't been so far in my view.  As
+a rule, I'd rather not apply patches that I don't feel confident of.
+
+Tony seems to agree with you, so maybe work with him on making your
+case stronger.
