@@ -1,39 +1,84 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [PATCH v6 2/2] acpi: apei: Do not panic() on PCIe errors reported
- through GHES
-Date: Mon, 21 May 2018 12:40:41 -0500
-Message-ID: <a2d37208-a8d1-0995-5915-2eb4a0ab2fa4@gmail.com>
-References: <20180521135003.32459-1-mr.nuke.me@gmail.com>
- <20180521135003.32459-3-mr.nuke.me@gmail.com>
- <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
+From: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH 4/5] acpi/processor: Fix the return value of
+ acpi_processor_ids_walk()
+Date: Tue, 22 May 2018 09:47:36 +0800
+Message-ID: <7c33b3bd-7e9d-1583-737c-d2edd457bd1a@cn.fujitsu.com>
+References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
+ <20180320110432.28127-5-douly.fnst@cn.fujitsu.com>
+ <alpine.DEB.2.21.1805191704150.1599@nanos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"; format=flowed
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <737bea6a-2f0e-e573-754e-2e410c34013e@codeaurora.org>
+In-Reply-To: <alpine.DEB.2.21.1805191704150.1599@nanos.tec.linutronix.de>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tyler Baicar <tbaicar@codeaurora.org>, bp@alien8.de
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Shiju Jose <shiju.jose@huawei.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-doc@vger.kernel.org, Ingo Molnar <mingo@kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 05/21/2018 09:27 AM, Tyler Baicar wrote:
-> On 5/21/2018 9:49 AM, Alexandru Gagniuc wrote:
-(snip)
-> Hello Alex,
+At 05/19/2018 11:06 PM, Thomas Gleixner wrote:
+> On Tue, 20 Mar 2018, Dou Liyang wrote:
 > 
-> There is a compile warning if CONFIG_HAVE_ACPI_APEI_NMI is not selected.
+>> ACPI driver should make sure all the processor IDs in their ACPI Namespace
+>> are unique for CPU hotplug. the driver performs a depth-first walk of the
+>> namespace tree and calls the acpi_processor_ids_walk().
+>>
+>> But, the acpi_processor_ids_walk() will return true if one processor is
+>> checked, that cause the walk break after walking pass the first processor.
+>>
+>> Repace the value with AE_OK which is the standard acpi_status value.
+>>
+>> Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for processor enumeration")
+>>
+>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
+>> ---
+>>   drivers/acpi/acpi_processor.c | 4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+>> index 449d86d39965..db5bdb59639c 100644
+>> --- a/drivers/acpi/acpi_processor.c
+>> +++ b/drivers/acpi/acpi_processor.c
+>> @@ -663,11 +663,11 @@ static acpi_status __init (acpi_handle handle,
+>>   	}
+>>   
+>>   	processor_validated_ids_update(uid);
+>> -	return true;
+>> +	return AE_OK;
+>>   
+>>   err:
+>>   	acpi_handle_info(handle, "Invalid processor object\n");
+>> -	return false;
+>> +	return AE_OK;
 > 
->   CC      drivers/acpi/apei/ghes.o
-> drivers/acpi/apei/ghes.c:483:12: warning: ‘ghes_severity’ defined but
-> not used [-Wunused-function]
->  static int ghes_severity(struct ghes *ghes)
->             ^~~~~~~~~~~~~
+> I'm not sure whether this is the right return value here. Rafael?
+> 
+Hi, Thomas, Rafael,
 
-Thanks for finding that. It's an easy fix. Staged for v7.
+Yes, I used AE_OK to make sure it can skip the invalid objects and
+continue to do the following other objects, I'm also not sure.
 
-> Thanks,
-> Tyler
-> 
+For this bug, recently, I sent another patch to remove this check code
+away.
+
+    https://lkml.org/lkml/2018/5/17/320
+
+IMO, the duplicate IDs can be avoid by the other code
+
+    if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id)) ---- 1)
+
+As the mapping of cpu_id(pr->id) and processor_id is fixed, when
+hot-plugging a physical CPU, if its processor_id is duplicated with the
+present, the above condition 1) will be 0, and Linux will do not add
+this CPU.
+
+And, when every time the system starts, this code will be executed, it
+will waste more time with the increase in the number of CPU.
+
+So I prefer to remove this code.
+
+Thanks,
+	dou
