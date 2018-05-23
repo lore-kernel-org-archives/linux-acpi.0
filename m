@@ -1,70 +1,113 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 4/5] acpi/processor: Fix the return value of acpi_processor_ids_walk()
-Date: Wed, 23 May 2018 10:08:28 +0200
-Message-ID: <CAJZ5v0hVUL0OdErMrKZyEST-LqboDfvVXYDMGiiuvTXewMCEnQ@mail.gmail.com>
-References: <20180320110432.28127-1-douly.fnst@cn.fujitsu.com>
- <20180320110432.28127-5-douly.fnst@cn.fujitsu.com> <alpine.DEB.2.21.1805191704150.1599@nanos.tec.linutronix.de>
- <7c33b3bd-7e9d-1583-737c-d2edd457bd1a@cn.fujitsu.com> <425bceb1-a03c-06da-f39c-1299662fb6b0@cn.fujitsu.com>
+From: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
+Date: Wed, 23 May 2018 17:38:43 +0800
+Message-ID: <5B0536A3.1000304@huawei.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <425bceb1-a03c-06da-f39c-1299662fb6b0@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, LKML <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180511190641.23008-14-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, liguozhu <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 23, 2018 at 3:34 AM, Dou Liyang <douly.fnst@cn.fujitsu.com> wrote:
-> At 05/22/2018 09:47 AM, Dou Liyang wrote:
->>
->>
->>
->> At 05/19/2018 11:06 PM, Thomas Gleixner wrote:
->>>
->>> On Tue, 20 Mar 2018, Dou Liyang wrote:
->>>
->>>> ACPI driver should make sure all the processor IDs in their ACPI
->>>> Namespace
->>>> are unique for CPU hotplug. the driver performs a depth-first walk of
->>>> the
->>>> namespace tree and calls the acpi_processor_ids_walk().
->>>>
->>>> But, the acpi_processor_ids_walk() will return true if one processor is
->>>> checked, that cause the walk break after walking pass the first
->>>> processor.
->>>>
->>>> Repace the value with AE_OK which is the standard acpi_status value.
->>>>
->>>> Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for
->>>> processor enumeration")
->>>>
->>>> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
->>>> ---
->>>>   drivers/acpi/acpi_processor.c | 4 ++--
->>>>   1 file changed, 2 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/acpi_processor.c
->>>> b/drivers/acpi/acpi_processor.c
->>>> index 449d86d39965..db5bdb59639c 100644
->>>> --- a/drivers/acpi/acpi_processor.c
->>>> +++ b/drivers/acpi/acpi_processor.c
->>>> @@ -663,11 +663,11 @@ static acpi_status __init (acpi_handle handle,
->>>>       }
->>>>       processor_validated_ids_update(uid);
->>>> -    return true;
->>>> +    return AE_OK;
->>>>   err:
->>>>       acpi_handle_info(handle, "Invalid processor object\n");
->>>> -    return false;
->>>> +    return AE_OK;
->>>
->>>
->>> I'm not sure whether this is the right return value here. Rafael?
->>>
->
-> +Cc Rafael's common used email address.
->
-> I am sorry, I created the cc list using ./script/get_maintainers.pl ...
-> and didn't check it.
+Hi,
 
-No worries, I saw your messages, but thanks!
+On 2018/5/12 3:06, Jean-Philippe Brucker wrote:
+> Add two new ioctls for VFIO containers. VFIO_IOMMU_BIND_PROCESS creates a
+> bond between a container and a process address space, identified by a
+> Process Address Space ID (PASID). Devices in the container append this
+> PASID to DMA transactions in order to access the process' address space.
+> The process page tables are shared with the IOMMU, and mechanisms such as
+> PCI ATS/PRI are used to handle faults. VFIO_IOMMU_UNBIND_PROCESS removes a
+> bond created with VFIO_IOMMU_BIND_PROCESS.
+>
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+>
+>
+>
+>
+>
+>
+> +static int vfio_iommu_bind_group(struct vfio_iommu *iommu,
+> +				 struct vfio_group *group,
+> +				 struct vfio_mm *vfio_mm)
+> +{
+> +	int ret;
+> +	bool enabled_sva = false;
+> +	struct vfio_iommu_sva_bind_data data = {
+> +		.vfio_mm	= vfio_mm,
+> +		.iommu		= iommu,
+> +		.count		= 0,
+> +	};
+> +
+> +	if (!group->sva_enabled) {
+> +		ret = iommu_group_for_each_dev(group->iommu_group, NULL,
+> +					       vfio_iommu_sva_init);
+Do we need to do *sva_init here or do anything to avoid repeated initiation?
+while another process already did initiation at this device, I think 
+that current process will get an EEXIST.
+
+Thanks.
+> +		if (ret)
+> +			return ret;
+> +
+> +		group->sva_enabled = enabled_sva = true;
+> +	}
+> +
+> +	ret = iommu_group_for_each_dev(group->iommu_group, &data,
+> +				       vfio_iommu_sva_bind_dev);
+> +	if (ret && data.count > 1)
+> +		iommu_group_for_each_dev(group->iommu_group, vfio_mm,
+> +					 vfio_iommu_sva_unbind_dev);
+> +	if (ret && enabled_sva) {
+> +		iommu_group_for_each_dev(group->iommu_group, NULL,
+> +					 vfio_iommu_sva_shutdown);
+> +		group->sva_enabled = false;
+> +	}
+> +
+> +	return ret;
+> +}
+>
+>
+>   
+> @@ -1442,6 +1636,10 @@ static int vfio_iommu_type1_attach_group(void *iommu_data,
+>   	if (ret)
+>   		goto out_detach;
+>   
+> +	ret = vfio_iommu_replay_bind(iommu, group);
+> +	if (ret)
+> +		goto out_detach;
+> +
+>   	if (resv_msi) {
+>   		ret = iommu_get_msi_cookie(domain->domain, resv_msi_base);
+>   		if (ret)
+> @@ -1547,6 +1745,11 @@ static void vfio_iommu_type1_detach_group(void *iommu_data,
+>   			continue;
+>   
+>   		iommu_detach_group(domain->domain, iommu_group);
+> +		if (group->sva_enabled) {
+> +			iommu_group_for_each_dev(iommu_group, NULL,
+> +						 vfio_iommu_sva_shutdown);
+> +			group->sva_enabled = false;
+> +		}
+Here, why shut down here? If another process is working on the device, 
+there may be a crash?
+
+Thanks.
+>   		list_del(&group->next);
+>   		kfree(group);
+>   		/*
+> @@ -1562,6 +1765,7 @@ static void vfio_iommu_type1_detach_group(void *iommu_data,
+>
