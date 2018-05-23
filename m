@@ -1,65 +1,95 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3] device property: Get rid of union aliasing
-Date: Wed, 23 May 2018 13:33:00 +0200
-Message-ID: <1613149.qu9zDKzsAX@aspire.rjw.lan>
-References: <20180515173202.84296-1-andriy.shevchenko@linux.intel.com> <20180516094133.GN32438@lahna.fi.intel.com>
+Subject: Re: [PATCH v4 3/3] mailbox: ACPI: erroneous error message when parsing the ACPI, PCCT
+Date: Wed, 23 May 2018 13:34:52 +0200
+Message-ID: <2687795.J2teDkkjhM@aspire.rjw.lan>
+References: <20180501003907.4322-1-ahs3@redhat.com> <CAJZ5v0i7fR+rAk4eRm0jV8Ot93juq8NZarsoJRX+7RV6-yELKw@mail.gmail.com> <85c95aad-fefb-50f4-8a06-eec25415db2a@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180516094133.GN32438@lahna.fi.intel.com>
+In-Reply-To: <85c95aad-fefb-50f4-8a06-eec25415db2a@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, Sakari Ailus <sakari.ailus@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, Al Stone <ahs3@redhat.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Jassi Brar <jassisinghbrar@gmail.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, May 16, 2018 11:41:33 AM CEST Mika Westerberg wrote:
-> On Tue, May 15, 2018 at 08:32:02PM +0300, Andy Shevchenko wrote:
-> > The commit
-> > 
-> >   318a19718261 ("device property: refactor built-in properties support")
-> > 
-> > went way too far and brought a union aliasing. Partially revert it here
-> > to get rid of union aliasing.
-> > 
-> > Note, all Apple properties are considered as u8 arrays. To get a value
-> > of any of them the caller must use device_property_read_u8_array().
-> > 
-> > What union aliasing is?
-> > ~~~~~~~~~~~~~~~~~~~~~~~
-> > The C99 standard in section 6.2.5 paragraph 20 defines union type as
-> > "an overlapping nonempty set of member objects". It also states in
-> > section 6.7.2.1 paragraph 14 that "the value of at most one of the
-> > members can be stored in a union object at any time'.
-> > 
-> > Union aliasing is a type punning mechanism using union members to store
-> > as one type and read back as another.
-> > 
-> > Why it's not good?
-> > ~~~~~~~~~~~~~~~~~~
-> > Section 6.2.6.1 paragraph 6 says that a union object may not be a trap
-> > representation, although its member objects may be.
-> > 
-> > Meanwhile annex J.1 says that "the value of a union member other than
-> > the last one stored into" is unspecified [removed in C11].
-> > 
-> > In TC3, a footnote is added which specifies that accessing a member of a
-> > union other than the last one stored causes "the object representation"
-> > to be re-interpreted in the new type and specifically refers to this as
-> > "type punning". This conflicts to some degree with Annex J.1.
-> > 
-> > While it's working in Linux with GCC, the use of union members to do
-> > type punning is not clear area in the C standard and might lead to
-> > unspecified behaviour.
-> > 
-> > More information is available in this [1] blog post.
-> > 
-> > [1]: https://davmac.wordpress.com/2010/02/26/c99-revisited/
-> > 
-> > Acked-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Thursday, May 17, 2018 9:48:39 PM CEST Prakash, Prashanth wrote:
 > 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> --
+> On 5/17/2018 4:24 AM, Rafael J. Wysocki wrote:
+> > On Thu, May 17, 2018 at 12:01 AM, Al Stone <ahs3@redhat.com> wrote:
+> >> There have been multiple reports of the following error message:
+> >>
+> >> [    0.068293] Error parsing PCC subspaces from PCCT
+> >>
+> >> This error message is not correct.  In multiple cases examined, the PCCT
+> >> (Platform Communications Channel Table) concerned is actually properly
+> >> constructed; the problem is that acpi_pcc_probe() which reads the PCCT
+> >> is making the assumption that the only valid PCCT is one that contains
+> >> subtables of one of two types: ACPI_PCCT_TYPE_HW_REDUCED_SUBSPACE or
+> >> ACPI_PCCT_TYPE_HW_REDUCED_TYPE2.  The number of subtables of these
+> >> types are counted and as long as there is at least one of the desired
+> >> types, the acpi_pcc_probe() succeeds.  When no subtables of these types
+> >> are found, regardless of whether or not any other subtable types are
+> >> present, the error mentioned above is reported.
+> >>
+> >> In the cases reported to me personally, the PCCT contains exactly one
+> >> subtable of type ACPI_PCCT_TYPE_GENERIC_SUBSPACE.  The function
+> >> acpi_pcc_probe() does not count it as a valid subtable, so believes
+> >> there to be no valid subtables, and hence outputs the error message.
+> >>
+> >> An example of the PCCT being reported as erroneous yet perfectly fine
+> >> is the following:
+> >>
+> >>                     Signature : "PCCT"
+> >>                  Table Length : 0000006E
+> >>                      Revision : 05
+> >>                      Checksum : A9
+> >>                        Oem ID : "XXXXXX"
+> >>                  Oem Table ID : "XXXXX   "
+> >>                  Oem Revision : 00002280
+> >>               Asl Compiler ID : "XXXX"
+> >>         Asl Compiler Revision : 00000002
+> >>
+> >>         Flags (decoded below) : 00000001
+> >>                      Platform : 1
+> >>                      Reserved : 0000000000000000
+> >>
+> >>                 Subtable Type : 00 [Generic Communications Subspace]
+> >>                        Length : 3E
+> >>
+> >>                      Reserved : 000000000000
+> >>                  Base Address : 00000000DCE43018
+> >>                Address Length : 0000000000001000
+> >>
+> >>             Doorbell Register : [Generic Address Structure]
+> >>                      Space ID : 01 [SystemIO]
+> >>                     Bit Width : 08
+> >>                    Bit Offset : 00
+> >>          Encoded Access Width : 01 [Byte Access:8]
+> >>                       Address : 0000000000001842
+> >>
+> >>                 Preserve Mask : 00000000000000FD
+> >>                    Write Mask : 0000000000000002
+> >>               Command Latency : 00001388
+> >>           Maximum Access Rate : 00000000
+> >>       Minimum Turnaround Time : 0000
+> >>
+> >> To fix this, we count up all of the possible subtable types for the
+> >> PCCT, and only report an error when there are none (which could mean
+> >> either no subtables, or no valid subtables), or there are too many.
+> >> We also change the logic so that if there is a valid subtable, we
+> >> do try to initialize it per the PCCT subtable contents.  This is a
+> >> change in functionality; previously, the probe would have returned
+> >> right after the error message and would not have tried to use any
+> >> other subtable definition.
+> >>
+> >> Tested on my personal laptop which showed the error previously; the
+> >> error message no longer appears and the laptop appears to operate
+> >> normally.
+> > I'd like to know the Prashanth's opinion here.
+> 
+> Looks good.
+> 
+> Reviewed-by: Prashanth Prakash <pprakash@codeaurora.org>
 
 Applied, thanks!
