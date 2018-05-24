@@ -1,45 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: David Hildenbrand <david@redhat.com>
 Subject: Re: [PATCH RFCv2 1/4] ACPI: NUMA: export pxm_to_node
-Date: Thu, 24 May 2018 10:12:30 +0200
-Message-ID: <CAJZ5v0jar8TqC5MGRPcAVZfM3LmmoSV3fT3Sgok=r6D9cDG0+w@mail.gmail.com>
-References: <20180523182404.11433-1-david@redhat.com> <20180523182404.11433-2-david@redhat.com>
+Date: Thu, 24 May 2018 10:33:32 +0200
+Message-ID: <5342a59c-4ca1-2cf5-a1d4-07a6d6f03587@redhat.com>
+References: <20180523182404.11433-1-david@redhat.com>
+ <20180523182404.11433-2-david@redhat.com>
+ <CAJZ5v0jar8TqC5MGRPcAVZfM3LmmoSV3fT3Sgok=r6D9cDG0+w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180523182404.11433-2-david@redhat.com>
+In-Reply-To: <CAJZ5v0jar8TqC5MGRPcAVZfM3LmmoSV3fT3Sgok=r6D9cDG0+w@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Hildenbrand <david@redhat.com>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Linux Memory Management List <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, May 23, 2018 at 8:24 PM, David Hildenbrand <david@redhat.com> wrote:
-> Will be needed by paravirtualized memory devices.
+On 24.05.2018 10:12, Rafael J. Wysocki wrote:
+> On Wed, May 23, 2018 at 8:24 PM, David Hildenbrand <david@redhat.com> wrote:
+>> Will be needed by paravirtualized memory devices.
+> 
+> That's a little information.
+> 
+> It would be good to see the entire series at least.
 
-That's a little information.
+It's part of this series (guess you only received the cover letter and
+this patch). Here a link to the patch using it:
 
-It would be good to see the entire series at least.
+https://lkml.org/lkml/2018/5/23/803
 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  drivers/acpi/numa.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index 85167603b9c9..7ffee2959350 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -50,6 +50,7 @@ int pxm_to_node(int pxm)
->                 return NUMA_NO_NODE;
->         return pxm_to_node_map[pxm];
->  }
-> +EXPORT_SYMBOL(pxm_to_node);
 
-EXPORT_SYMBOL_GPL(), please.
+> 
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Cc: Len Brown <lenb@kernel.org>
+>> Cc: linux-acpi@vger.kernel.org
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
+>> ---
+>>  drivers/acpi/numa.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+>> index 85167603b9c9..7ffee2959350 100644
+>> --- a/drivers/acpi/numa.c
+>> +++ b/drivers/acpi/numa.c
+>> @@ -50,6 +50,7 @@ int pxm_to_node(int pxm)
+>>                 return NUMA_NO_NODE;
+>>         return pxm_to_node_map[pxm];
+>>  }
+>> +EXPORT_SYMBOL(pxm_to_node);
+> 
+> EXPORT_SYMBOL_GPL(), please.
 
->
->  int node_to_pxm(int node)
->  {
-> --
+Yes, will do, thanks!
+
+> 
+>>
+>>  int node_to_pxm(int node)
+>>  {
+>> --
+
+
+-- 
+
+Thanks,
+
+David / dhildenb
