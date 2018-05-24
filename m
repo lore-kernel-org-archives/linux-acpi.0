@@ -1,63 +1,37 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFCv2 1/4] ACPI: NUMA: export pxm_to_node
-Date: Thu, 24 May 2018 11:04:43 +0200
-Message-ID: <173eaf59-0f48-c1d0-2317-840dcb932ba7@redhat.com>
-References: <20180523182404.11433-1-david@redhat.com>
- <20180523182404.11433-2-david@redhat.com>
- <CAJZ5v0jar8TqC5MGRPcAVZfM3LmmoSV3fT3Sgok=r6D9cDG0+w@mail.gmail.com>
- <5342a59c-4ca1-2cf5-a1d4-07a6d6f03587@redhat.com>
- <CAJZ5v0grgYRi24oyFP0xcjip5Z5apLE5ozn8znahdtkqKvD_MA@mail.gmail.com>
- <9cf4c5f3-f1ee-67c2-967e-07aa568685c4@redhat.com>
- <CAJZ5v0ionYbXse8++6c80FXajVKYLSYD7hC5RntygKJ9+PQpYg@mail.gmail.com>
+From: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Subject: Re: [PATCH 2/3] thinkpad_acpi: add support for
+ force_discharge
+Date: Thu, 24 May 2018 08:35:55 -0300
+Message-ID: <20180524113555.wrwpdun64ai4cqwj@khazad-dum.debian.net>
+References: <20180513153000.GA5117@thinkpad> <20180521133112.GA4578@kevinolos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0ionYbXse8++6c80FXajVKYLSYD7hC5RntygKJ9+PQpYg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux Memory Management List <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180521133112.GA4578@kevinolos>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>
+Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ognjen Galic <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 24.05.2018 11:01, Rafael J. Wysocki wrote:
-> On Thu, May 24, 2018 at 10:54 AM, David Hildenbrand <david@redhat.com> wrote:
->> On 24.05.2018 10:47, Rafael J. Wysocki wrote:
->>> On Thu, May 24, 2018 at 10:33 AM, David Hildenbrand <david@redhat.com> wrote:
->>>> On 24.05.2018 10:12, Rafael J. Wysocki wrote:
->>>>> On Wed, May 23, 2018 at 8:24 PM, David Hildenbrand <david@redhat.com> wrote:
->>>>>> Will be needed by paravirtualized memory devices.
->>>>>
->>>>> That's a little information.
->>>>>
->>>>> It would be good to see the entire series at least.
->>>>
->>>> It's part of this series (guess you only received the cover letter and
->>>> this patch). Here a link to the patch using it:
->>>>
->>>> https://lkml.org/lkml/2018/5/23/803
->>>
->>> OK, thanks!
->>>
->>> It looks like you have a reason to use it in there, but please note
->>> that CONFIG_ACPI_NUMA depends on CONFIG_NUMA, so you don't need to use
->>> the latter directly in the #ifdef.  Also wouldn't IS_ENABLED() work
->>> there?
->>
->> Thanks for the tip on CONFIG_ACPI_NUMA. Wouldn't IS_ENABLED() require to
->> have a dummy implementation of pxm_to_node() in case drivers/acpi/numa.c
->> is not compiled?
-> 
-> Yes, it would.
-> 
-> But since you want export it, you can very well add one, can't you?
-> I'd even say that it would be prudent to do so.
-> 
+On Mon, 21 May 2018, Kevin Locke wrote:
+> as-expected.  The only oddity I noticed is that force_discharge has a
+> delay taking effect (<1 sec) transitioning from 0 to 1 (but not 1 to
+> 0).
 
-Sure, can do that :)
+The EC can take its sweet time to obey any such requests ;-)
 
 -- 
+  Henrique Holschuh
 
-Thanks,
-
-David / dhildenb
+------------------------------------------------------------------------------
+Check out the vibrant tech community on one of the world's most
+engaging tech sites, Slashdot.org! http://sdm.link/slashdot
