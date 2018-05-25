@@ -1,117 +1,393 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
-Date: Fri, 25 May 2018 10:47:43 +0100
-Message-ID: <fea420ff-e738-e2ed-ab1e-a3f4dde4b6ef@arm.com>
+From: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v2 39/40] iommu/arm-smmu-v3: Add support for PRI
+Date: Fri, 25 May 2018 14:08:11 +0000
+Message-ID: <BLUPR0201MB150513BBAA161355DE9B3A48A5690@BLUPR0201MB1505.namprd02.prod.outlook.com>
 References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
- <20180511190641.23008-14-jean-philippe.brucker@arm.com>
- <5B0536A3.1000304@huawei.com> <cd13f60d-b282-3804-4ca7-2d34476c597f@arm.com>
- <5B06B17C.1090809@huawei.com> <205c1729-8026-3efe-c363-d37d7150d622@arm.com>
- <5B077765.30703@huawei.com>
+	<20180511190641.23008-40-jean-philippe.brucker@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <5B077765.30703@huawei.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180511190641.23008-40-jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Xu Zaibo <xuzaibo@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: "bharatku@xilinx.com" <bharatku@xilinx.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "ilias.apalodimas@linaro.org" <ilias.apalodimas@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "rgummal@xilinx.com" <rgummal@xilinx.com>, "rfranz@cavium.com" <rfranz@cavium.com>, "liguozhu@hisilicon.com" <liguozhu@hisilicon.com>, "christian.koenig@amd.com" <christian.koenig@amd.com>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Cc: "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "will.deacon-5wv7dgnIgG8@public.gmane.org" <will.deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ravikiran Gummaluri <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 25/05/18 03:39, Xu Zaibo wrote:
-> Hi,
 > 
-> On 2018/5/24 23:04, Jean-Philippe Brucker wrote:
->> On 24/05/18 13:35, Xu Zaibo wrote:
->>>> Right, sva_init() must be called once for any device that intends to use
->>>> bind(). For the second process though, group->sva_enabled will be true
->>>> so we won't call sva_init() again, only bind().
->>> Well, while I create mediated devices based on one parent device to support multiple
->>> processes(a new process will create a new 'vfio_group' for the corresponding mediated device,
->>> and 'sva_enabled' cannot work any more), in fact, *sva_init and *sva_shutdown are basically
->>> working on parent device, so, as a result, I just only need sva initiation and shutdown on the
->>> parent device only once. So I change the two as following:
->>>
->>> @@ -551,8 +565,18 @@ int iommu_sva_device_init(struct device *dev, unsigned long features,
->>>        if (features & ~IOMMU_SVA_FEAT_IOPF)
->>>           return -EINVAL;
->>>
->>> +    /* If already exists, do nothing  */
->>> +    mutex_lock(&dev->iommu_param->lock);
->>> +    if (dev->iommu_param->sva_param) {
->>> +        mutex_unlock(&dev->iommu_param->lock);
->>> +        return 0;
->>> +    }
->>> +    mutex_unlock(&dev->iommu_param->lock);
->>>
->>>       if (features & IOMMU_SVA_FEAT_IOPF) {
->>>           ret = iommu_register_device_fault_handler(dev, iommu_queue_iopf,
->>>
->>>
->>> @@ -621,6 +646,14 @@ int iommu_sva_device_shutdown(struct device *dev)
->>>       if (!domain)
->>>           return -ENODEV;
->>>
->>> +    /* If any other process is working on the device, shut down does nothing. */
->>> +    mutex_lock(&dev->iommu_param->lock);
->>> +    if (!list_empty(&dev->iommu_param->sva_param->mm_list)) {
->>> +        mutex_unlock(&dev->iommu_param->lock);
->>> +        return 0;
->>> +    }
->>> +    mutex_unlock(&dev->iommu_param->lock);
->> I don't think iommu-sva.c is the best place for this, it's probably
->> better to implement an intermediate layer (the mediating driver), that
->> calls iommu_sva_device_init() and iommu_sva_device_shutdown() once. Then
->> vfio-pci would still call these functions itself, but for mdev the
->> mediating driver keeps a refcount of groups, and calls device_shutdown()
->> only when freeing the last mdev.
->>
->> A device driver (non mdev in this example) expects to be able to free
->> all its resources after sva_device_shutdown() returns. Imagine the
->> mm_list isn't empty (mm_exit() is running late), and instead of waiting
->> in unbind_dev_all() below, we return 0 immediately. Then the calling
->> driver frees its resources, and the mm_exit callback along with private
->> data passed to bind() disappear. If a mm_exit() is still running in
->> parallel, then it will try to access freed data and corrupt memory. So
->> in this function if mm_list isn't empty, the only thing we can do is wait.
->>
-> I still don't understand why we should 'unbind_dev_all', is it possible 
-> to do a 'unbind_dev_pasid'?
+> For PCI devices that support it, enable the PRI capability and handle PRI Page
+> Requests with the generic fault handler. It is enabled on demand by
+> iommu_sva_device_init().
+> 
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+> 
+> ---
+> v1->v2:
+> * Terminate the page request and disable PRI if no handler is registered
+> * Enable and disable PRI in sva_device_init/shutdown, instead of
+>   add/remove_device
+> ---
+>  drivers/iommu/arm-smmu-v3.c | 192 +++++++++++++++++++++++++++-------
+> --
+>  1 file changed, 145 insertions(+), 47 deletions(-)
+> 
+> diff --git a/drivers/iommu/arm-smmu-v3.c b/drivers/iommu/arm-smmu-v3.c
+> index 6cb69ace371b..0edbb8d19579 100644
+> --- a/drivers/iommu/arm-smmu-v3.c
+> +++ b/drivers/iommu/arm-smmu-v3.c
+> @@ -248,6 +248,7 @@
+>  #define STRTAB_STE_1_S1COR		GENMASK_ULL(5, 4)
+>  #define STRTAB_STE_1_S1CSH		GENMASK_ULL(7, 6)
+> 
+> +#define STRTAB_STE_1_PPAR		(1UL << 18)
+>  #define STRTAB_STE_1_S1STALLD		(1UL << 27)
+> 
+>  #define STRTAB_STE_1_EATS		GENMASK_ULL(29, 28)
+> @@ -309,6 +310,9 @@
+>  #define CMDQ_PRI_0_SID			GENMASK_ULL(63, 32)
+>  #define CMDQ_PRI_1_GRPID		GENMASK_ULL(8, 0)
+>  #define CMDQ_PRI_1_RESP			GENMASK_ULL(13, 12)
+> +#define CMDQ_PRI_1_RESP_FAILURE
+> 	FIELD_PREP(CMDQ_PRI_1_RESP, 0UL)
+> +#define CMDQ_PRI_1_RESP_INVALID
+> 	FIELD_PREP(CMDQ_PRI_1_RESP, 1UL)
+> +#define CMDQ_PRI_1_RESP_SUCCESS
+> 	FIELD_PREP(CMDQ_PRI_1_RESP, 2UL)
+> 
+>  #define CMDQ_RESUME_0_SID		GENMASK_ULL(63, 32)
+>  #define CMDQ_RESUME_0_ACTION_RETRY	(1UL << 12)
+> @@ -383,12 +387,6 @@ module_param_named(disable_ats_check,
+> disable_ats_check, bool, S_IRUGO);
+> MODULE_PARM_DESC(disable_ats_check,
+>  	"By default, the SMMU checks whether each incoming transaction
+> marked as translated is allowed by the stream configuration. This option
+> disables the check.");
+> 
+> -enum pri_resp {
+> -	PRI_RESP_DENY = 0,
+> -	PRI_RESP_FAIL = 1,
+> -	PRI_RESP_SUCC = 2,
+> -};
+> -
+>  enum arm_smmu_msi_index {
+>  	EVTQ_MSI_INDEX,
+>  	GERROR_MSI_INDEX,
+> @@ -471,7 +469,7 @@ struct arm_smmu_cmdq_ent {
+>  			u32			sid;
+>  			u32			ssid;
+>  			u16			grpid;
+> -			enum pri_resp		resp;
+> +			enum page_response_code	resp;
+>  		} pri;
+> 
+>  		#define CMDQ_OP_RESUME		0x44
+> @@ -556,6 +554,7 @@ struct arm_smmu_strtab_ent {
+>  	struct arm_smmu_s2_cfg		*s2_cfg;
+> 
+>  	bool				can_stall;
+> +	bool				prg_resp_needs_ssid;
+>  };
+> 
+>  struct arm_smmu_strtab_cfg {
+> @@ -907,14 +906,18 @@ static int arm_smmu_cmdq_build_cmd(u64 *cmd,
+> struct arm_smmu_cmdq_ent *ent)
+>  		cmd[0] |= FIELD_PREP(CMDQ_PRI_0_SID, ent->pri.sid);
+>  		cmd[1] |= FIELD_PREP(CMDQ_PRI_1_GRPID, ent->pri.grpid);
+>  		switch (ent->pri.resp) {
+> -		case PRI_RESP_DENY:
+> -		case PRI_RESP_FAIL:
+> -		case PRI_RESP_SUCC:
+> +		case IOMMU_PAGE_RESP_FAILURE:
+> +			cmd[1] |= CMDQ_PRI_1_RESP_FAILURE;
+> +			break;
+> +		case IOMMU_PAGE_RESP_INVALID:
+> +			cmd[1] |= CMDQ_PRI_1_RESP_INVALID;
+> +			break;
+> +		case IOMMU_PAGE_RESP_SUCCESS:
+> +			cmd[1] |= CMDQ_PRI_1_RESP_SUCCESS;
+>  			break;
+>  		default:
+>  			return -EINVAL;
+>  		}
+> -		cmd[1] |= FIELD_PREP(CMDQ_PRI_1_RESP, ent->pri.resp);
+>  		break;
+>  	case CMDQ_OP_RESUME:
+>  		cmd[0] |= FIELD_PREP(CMDQ_RESUME_0_SID, ent-
+> >resume.sid); @@ -1114,8 +1117,15 @@ static int
+> arm_smmu_page_response(struct device *dev,
+>  		cmd.resume.sid		= sid;
+>  		cmd.resume.stag		= resp->page_req_group_id;
+>  		cmd.resume.resp		= resp->resp_code;
+> +	} else if (master->can_fault) {
+> +		cmd.opcode		= CMDQ_OP_PRI_RESP;
+> +		cmd.substream_valid	= resp->pasid_present &&
+> +					  master->ste.prg_resp_needs_ssid;
+> +		cmd.pri.sid		= sid;
+> +		cmd.pri.ssid		= resp->pasid;
+> +		cmd.pri.grpid		= resp->page_req_group_id;
+> +		cmd.pri.resp		= resp->resp_code;
+>  	} else {
+> -		/* TODO: put PRI response here */
+>  		return -ENODEV;
+>  	}
+> 
+> @@ -1236,6 +1246,9 @@ static void arm_smmu_write_strtab_ent(struct
+> arm_smmu_device *smmu, u32 sid,
+>  			 FIELD_PREP(STRTAB_STE_1_S1CSH,
+> ARM_SMMU_SH_ISH) |
+>  			 FIELD_PREP(STRTAB_STE_1_STRW, strw));
+> 
+> +		if (ste->prg_resp_needs_ssid)
+> +			dst[1] |= STRTAB_STE_1_PPAR;
+> +
+>  		if (smmu->features & ARM_SMMU_FEAT_STALLS &&
+>  		   !(smmu->features & ARM_SMMU_FEAT_STALL_FORCE) &&
+>  		   !ste->can_stall)
+> @@ -1471,39 +1484,54 @@ static irqreturn_t arm_smmu_evtq_thread(int
+> irq, void *dev)
+> 
+>  static void arm_smmu_handle_ppr(struct arm_smmu_device *smmu, u64
+> *evt)  {
+> -	u32 sid, ssid;
+> -	u16 grpid;
+> -	bool ssv, last;
+> -
+> -	sid = FIELD_GET(PRIQ_0_SID, evt[0]);
+> -	ssv = FIELD_GET(PRIQ_0_SSID_V, evt[0]);
+> -	ssid = ssv ? FIELD_GET(PRIQ_0_SSID, evt[0]) : 0;
+> -	last = FIELD_GET(PRIQ_0_PRG_LAST, evt[0]);
+> -	grpid = FIELD_GET(PRIQ_1_PRG_IDX, evt[1]);
+> -
+> -	dev_info(smmu->dev, "unexpected PRI request received:\n");
+> -	dev_info(smmu->dev,
+> -		 "\tsid 0x%08x.0x%05x: [%u%s] %sprivileged %s%s%s access
+> at iova 0x%016llx\n",
+> -		 sid, ssid, grpid, last ? "L" : "",
+> -		 evt[0] & PRIQ_0_PERM_PRIV ? "" : "un",
+> -		 evt[0] & PRIQ_0_PERM_READ ? "R" : "",
+> -		 evt[0] & PRIQ_0_PERM_WRITE ? "W" : "",
+> -		 evt[0] & PRIQ_0_PERM_EXEC ? "X" : "",
+> -		 evt[1] & PRIQ_1_ADDR_MASK);
+> -
+> -	if (last) {
+> -		struct arm_smmu_cmdq_ent cmd = {
+> -			.opcode			=
+> CMDQ_OP_PRI_RESP,
+> -			.substream_valid	= ssv,
+> -			.pri			= {
+> -				.sid	= sid,
+> -				.ssid	= ssid,
+> -				.grpid	= grpid,
+> -				.resp	= PRI_RESP_DENY,
+> -			},
+> +	u32 sid = FIELD_PREP(PRIQ_0_SID, evt[0]);
+> +
+> +	struct arm_smmu_master_data *master;
+> +	struct iommu_fault_event fault = {
+> +		.type			= IOMMU_FAULT_PAGE_REQ,
+> +		.last_req		= FIELD_GET(PRIQ_0_PRG_LAST,
+> evt[0]),
+> +		.pasid_valid		= FIELD_GET(PRIQ_0_SSID_V, evt[0]),
+> +		.pasid			= FIELD_GET(PRIQ_0_SSID, evt[0]),
+> +		.page_req_group_id	= FIELD_GET(PRIQ_1_PRG_IDX,
+> evt[1]),
+> +		.addr			= evt[1] & PRIQ_1_ADDR_MASK,
+> +	};
+> +
+> +	if (evt[0] & PRIQ_0_PERM_READ)
+> +		fault.prot |= IOMMU_FAULT_READ;
+> +	if (evt[0] & PRIQ_0_PERM_WRITE)
+> +		fault.prot |= IOMMU_FAULT_WRITE;
+> +	if (evt[0] & PRIQ_0_PERM_EXEC)
+> +		fault.prot |= IOMMU_FAULT_EXEC;
+> +	if (evt[0] & PRIQ_0_PERM_PRIV)
+> +		fault.prot |= IOMMU_FAULT_PRIV;
+> +
+> +	/* Discard Stop PASID marker, it isn't used */
+> +	if (!(fault.prot & (IOMMU_FAULT_READ|IOMMU_FAULT_WRITE)) &&
+> +	    fault.last_req)
+> +		return;
+> +
+> +	master = arm_smmu_find_master(smmu, sid);
+> +	if (WARN_ON(!master))
+> +		return;
+> +
+> +	if (iommu_report_device_fault(master->dev, &fault)) {
+> +		/*
+> +		 * No handler registered, so subsequent faults won't produce
+> +		 * better results. Try to disable PRI.
+> +		 */
+> +		struct page_response_msg page_response = {
+> +			.addr			= fault.addr,
+> +			.pasid			= fault.pasid,
+> +			.pasid_present		= fault.pasid_valid,
+> +			.page_req_group_id	= fault.page_req_group_id,
+> +			.resp_code		=
+> IOMMU_PAGE_RESP_FAILURE,
+>  		};
+> 
+> -		arm_smmu_cmdq_issue_cmd(smmu, &cmd);
+> +		dev_warn(master->dev,
+> +			 "PPR 0x%x:0x%llx 0x%x: nobody cared, disabling
+> PRI\n",
+> +			 fault.pasid_valid ? fault.pasid : 0, fault.addr,
+> +			 fault.prot);
+> +		arm_smmu_page_response(master->dev, &page_response);
+>  	}
+>  }
+> 
+> @@ -1529,6 +1557,11 @@ static irqreturn_t arm_smmu_priq_thread(int irq,
+> void *dev)
+>  		}
+> 
+>  		if (queue_sync_prod(q) == -EOVERFLOW)
+> +			/*
+> +			 * TODO: flush pending faults, since the SMMU might
+> have
+> +			 * auto-responded to the Last request of a pending
+> +			 * group
+> +			 */
+>  			dev_err(smmu->dev, "PRIQ overflow detected --
+> requests lost\n");
+>  	} while (!queue_empty(q));
+> 
+> @@ -1577,7 +1610,8 @@ static int arm_smmu_flush_queues(void *cookie,
+> struct device *dev)
+>  		master = dev->iommu_fwspec->iommu_priv;
+>  		if (master->ste.can_stall)
+>  			arm_smmu_flush_queue(smmu, &smmu->evtq.q,
+> "evtq");
+> -		/* TODO: add support for PRI */
+> +		else if (master->can_fault)
+> +			arm_smmu_flush_queue(smmu, &smmu->priq.q,
+> "priq");
+>  		return 0;
+>  	}
+> 
+> @@ -2301,6 +2335,59 @@ arm_smmu_iova_to_phys(struct iommu_domain
+> *domain, dma_addr_t iova)
+>  	return ops->iova_to_phys(ops, iova);
+>  }
+> 
+> +static int arm_smmu_enable_pri(struct arm_smmu_master_data *master) {
+> +	int ret, pos;
+> +	struct pci_dev *pdev;
+> +	/*
+> +	 * TODO: find a good inflight PPR number. We should divide the PRI
+> queue
+> +	 * by the number of PRI-capable devices, but it's impossible to know
+> +	 * about current and future (hotplugged) devices. So we're at risk of
+> +	 * dropping PPRs (and leaking pending requests in the FQ).
+> +	 */
+> +	size_t max_inflight_pprs = 16;
+> +	struct arm_smmu_device *smmu = master->smmu;
+> +
+> +	if (!(smmu->features & ARM_SMMU_FEAT_PRI) ||
+> !dev_is_pci(master->dev))
+> +		return -ENOSYS;
+> +
+> +	pdev = to_pci_dev(master->dev);
+> +
+> +	ret = pci_reset_pri(pdev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = pci_enable_pri(pdev, max_inflight_pprs);
+> +	if (ret) {
+> +		dev_err(master->dev, "cannot enable PRI: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	master->can_fault = true;
+> +	master->ste.prg_resp_needs_ssid =
+> pci_prg_resp_requires_prefix(pdev);
 
-Not in sva_device_shutdown(), it needs to clean up everything. For
-example you want to physically unplug the device, or assign it to a VM.
-To prevent any leak sva_device_shutdown() needs to remove all bonds. In
-theory there shouldn't be any, since either the driver did unbind_dev(),
-or all process exited. This is a safety net.
+Any reason why this is not cleared in arm_smmu_disable_pri ?
 
-> Then we can do other things instead of waiting that user may not like. :)
-
-They may not like it, but it's for their own good :) At the moment we're
-waiting that:
-
-* All exit_mm() callback for this device have finished. If we don't wait
-  then the caller will free the private data passed to bind and the
-  mm_exit() callback while they are still being used.
-
-* All page requests targeting this device are dealt with. If we don't
-  wait then some requests, that are lingering in the IOMMU PRI queue,
-  may hit the next contexts bound to this device, possibly in a
-  different VM. It may not be too risky (though probably exploitable in
-  some way), but is incredibly messy.
-
-All of this is bounded in time, and normally should be over pretty fast
-unless the device driver's exit_mm() does something strange. If the
-driver did the right thing, there shouldn't be any wait here (although
-there may be one in unbind_dev() for the same reasons - prevent use
-after free).
-
-Thanks,
-Jean
+> +
+> +	dev_dbg(master->dev, "enabled PRI\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static void arm_smmu_disable_pri(struct arm_smmu_master_data
+> *master) {
+> +	struct pci_dev *pdev;
+> +
+> +	if (!dev_is_pci(master->dev))
+> +		return;
+> +
+> +	pdev = to_pci_dev(master->dev);
+> +
+> +	if (!pdev->pri_enabled)
+> +		return;
+> +
+> +	pci_disable_pri(pdev);
+> +	dev_dbg(master->dev, "disabled PRI\n");
+> +	master->can_fault = false;
+> +}
+> +
+>  static int arm_smmu_sva_init(struct device *dev, struct iommu_sva_param
+> *param)  {
+>  	int ret;
+> @@ -2314,11 +2401,15 @@ static int arm_smmu_sva_init(struct device
+> *dev, struct iommu_sva_param *param)
+>  		return -EINVAL;
+> 
+>  	if (param->features & IOMMU_SVA_FEAT_IOPF) {
+> -		if (!master->can_fault)
+> -			return -EINVAL;
+> +		arm_smmu_enable_pri(master);
+> +		if (!master->can_fault) {
+> +			ret = -ENODEV;
+> +			goto err_disable_pri;
+> +		}
+> +
+>  		ret = iopf_queue_add_device(master->smmu->iopf_queue,
+> dev);
+>  		if (ret)
+> -			return ret;
+> +			goto err_disable_pri;
+>  	}
+> 
+>  	if (!param->max_pasid)
+> @@ -2329,11 +2420,17 @@ static int arm_smmu_sva_init(struct device
+> *dev, struct iommu_sva_param *param)
+>  	param->max_pasid = min(param->max_pasid, (1U << master-
+> >ssid_bits) - 1);
+> 
+>  	return 0;
+> +
+> +err_disable_pri:
+> +	arm_smmu_disable_pri(master);
+> +
+> +	return ret;
+>  }
+> 
+>  static void arm_smmu_sva_shutdown(struct device *dev,
+>  				  struct iommu_sva_param *param)
+>  {
+> +	arm_smmu_disable_pri(dev->iommu_fwspec->iommu_priv);
+>  	iopf_queue_remove_device(dev);
+>  }
+> 
+> @@ -2671,6 +2768,7 @@ static void arm_smmu_remove_device(struct
+> device *dev)
+>  	iommu_group_remove_device(dev);
+>  	arm_smmu_remove_master(smmu, master);
+>  	iommu_device_unlink(&smmu->iommu, dev);
+> +	arm_smmu_disable_pri(master);
+>  	arm_smmu_disable_ats(master);
+>  	kfree(master);
+>  	iommu_fwspec_free(dev);
+> --
+> 2.17.0
