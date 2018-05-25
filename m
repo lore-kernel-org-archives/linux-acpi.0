@@ -1,61 +1,117 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH 2/2] ACPI: EC: Dispatch the EC GPE directly on s2idle wake
-Date: Fri, 25 May 2018 11:24:37 +0200
-Message-ID: <CAPDyKFrs9kXOuE5ft2fX83mjUtf_5FyANeWFxeRNyg3yGRk-pA@mail.gmail.com>
-References: <3221007.8CUDle5b3u@aspire.rjw.lan> <201805181421.jU5hI6Bo%fengguang.wu@intel.com>
- <CAPDyKFpnrPeG23Q+i6ASCeohGR3vfGQRwQzjwGsKE=c4TyAiQA@mail.gmail.com>
- <CAJZ5v0jFmVd_SkvgoXmi2Psqg5ALJRDsKzV8PiFysHQt9f0uog@mail.gmail.com> <CAJZ5v0j_mLPw2VT6GbAxSDizu4Rr94muweiBs6ZhLuUJe2O7vQ@mail.gmail.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
+Date: Fri, 25 May 2018 10:47:43 +0100
+Message-ID: <fea420ff-e738-e2ed-ab1e-a3f4dde4b6ef@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+ <20180511190641.23008-14-jean-philippe.brucker@arm.com>
+ <5B0536A3.1000304@huawei.com> <cd13f60d-b282-3804-4ca7-2d34476c597f@arm.com>
+ <5B06B17C.1090809@huawei.com> <205c1729-8026-3efe-c363-d37d7150d622@arm.com>
+ <5B077765.30703@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j_mLPw2VT6GbAxSDizu4Rr94muweiBs6ZhLuUJe2O7vQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, kbuild-all@01.org, Linux ACPI <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>, "Wang, Wendy" <wendy.wang@intel.com>, kbuild test robot <lkp@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <5B077765.30703@huawei.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Xu Zaibo <xuzaibo@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc: "bharatku@xilinx.com" <bharatku@xilinx.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, "dwmw2@infradead.org" <dwmw2@infradead.org>, "ilias.apalodimas@linaro.org" <ilias.apalodimas@linaro.org>, Will Deacon <Will.Deacon@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "rgummal@xilinx.com" <rgummal@xilinx.com>, "rfranz@cavium.com" <rfranz@cavium.com>, "liguozhu@hisilicon.com" <liguozhu@hisilicon.com>, "christian.koenig@amd.com" <christian.koenig@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 25 May 2018 at 10:48, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Fri, May 25, 2018 at 10:08 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->> On Fri, May 25, 2018 at 8:49 AM, Ulf Hansson <ulf.hansson@linaro.org> wrote:
->>> Rafael,
+On 25/05/18 03:39, Xu Zaibo wrote:
+> Hi,
+> 
+> On 2018/5/24 23:04, Jean-Philippe Brucker wrote:
+>> On 24/05/18 13:35, Xu Zaibo wrote:
+>>>> Right, sva_init() must be called once for any device that intends to use
+>>>> bind(). For the second process though, group->sva_enabled will be true
+>>>> so we won't call sva_init() again, only bind().
+>>> Well, while I create mediated devices based on one parent device to support multiple
+>>> processes(a new process will create a new 'vfio_group' for the corresponding mediated device,
+>>> and 'sva_enabled' cannot work any more), in fact, *sva_init and *sva_shutdown are basically
+>>> working on parent device, so, as a result, I just only need sva initiation and shutdown on the
+>>> parent device only once. So I change the two as following:
 >>>
->>> On 18 May 2018 at 08:10, kbuild test robot <lkp@intel.com> wrote:
->>>> Hi Rafael,
->>>>
->>>> I love your patch! Yet something to improve:
->>>>
->>>> [auto build test ERROR on pm/linux-next]
->>>> [also build test ERROR on v4.17-rc5]
->>>> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->>>>
->>>> url:    https://github.com/0day-ci/linux/commits/Rafael-J-Wysocki/ACPI-PM-Dispatch-EC-GPE-early-on-s2idle-resume-if-LPS0-_DSM-is-used/20180518-070817
->>>> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
->>>> config: arm64-defconfig (attached as .config)
->>>> compiler: aarch64-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
->>>> reproduce:
->>>>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
->>>>         chmod +x ~/bin/make.cross
->>>>         # save the attached .config to linux build tree
->>>>         make.cross ARCH=arm64
->>>>
->>>> All errors (new ones prefixed by >>):
->>>>
->>>>    drivers/acpi/ec.o: In function `acpi_ec_dispatch_gpe':
->>>>>> ec.c:(.text+0x239c): undefined reference to `acpi_dispatch_gpe'
->>>>    ec.c:(.text+0x239c): relocation truncated to fit: R_AARCH64_CALL26 against undefined symbol `acpi_dispatch_gpe'
->>>>
->>>> ---
->>>> 0-DAY kernel test infrastructure                Open Source Technology Center
->>>> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>>> @@ -551,8 +565,18 @@ int iommu_sva_device_init(struct device *dev, unsigned long features,
+>>>        if (features & ~IOMMU_SVA_FEAT_IOPF)
+>>>           return -EINVAL;
 >>>
->>> This breaks arm64 builds, would you mind to drop the offending patch
->>> from your linux-next branch?
+>>> +    /* If already exists, do nothing  */
+>>> +    mutex_lock(&dev->iommu_param->lock);
+>>> +    if (dev->iommu_param->sva_param) {
+>>> +        mutex_unlock(&dev->iommu_param->lock);
+>>> +        return 0;
+>>> +    }
+>>> +    mutex_unlock(&dev->iommu_param->lock);
+>>>
+>>>       if (features & IOMMU_SVA_FEAT_IOPF) {
+>>>           ret = iommu_register_device_fault_handler(dev, iommu_queue_iopf,
+>>>
+>>>
+>>> @@ -621,6 +646,14 @@ int iommu_sva_device_shutdown(struct device *dev)
+>>>       if (!domain)
+>>>           return -ENODEV;
+>>>
+>>> +    /* If any other process is working on the device, shut down does nothing. */
+>>> +    mutex_lock(&dev->iommu_param->lock);
+>>> +    if (!list_empty(&dev->iommu_param->sva_param->mm_list)) {
+>>> +        mutex_unlock(&dev->iommu_param->lock);
+>>> +        return 0;
+>>> +    }
+>>> +    mutex_unlock(&dev->iommu_param->lock);
+>> I don't think iommu-sva.c is the best place for this, it's probably
+>> better to implement an intermediate layer (the mediating driver), that
+>> calls iommu_sva_device_init() and iommu_sva_device_shutdown() once. Then
+>> vfio-pci would still call these functions itself, but for mdev the
+>> mediating driver keeps a refcount of groups, and calls device_shutdown()
+>> only when freeing the last mdev.
 >>
->> Not really, but I can fix it.
->
-> Should be fixed now, sorry for the breakage.
+>> A device driver (non mdev in this example) expects to be able to free
+>> all its resources after sva_device_shutdown() returns. Imagine the
+>> mm_list isn't empty (mm_exit() is running late), and instead of waiting
+>> in unbind_dev_all() below, we return 0 immediately. Then the calling
+>> driver frees its resources, and the mm_exit callback along with private
+>> data passed to bind() disappear. If a mm_exit() is still running in
+>> parallel, then it will try to access freed data and corrupt memory. So
+>> in this function if mm_list isn't empty, the only thing we can do is wait.
+>>
+> I still don't understand why we should 'unbind_dev_all', is it possible 
+> to do a 'unbind_dev_pasid'?
 
-Thanks, yes it builds fine now!
+Not in sva_device_shutdown(), it needs to clean up everything. For
+example you want to physically unplug the device, or assign it to a VM.
+To prevent any leak sva_device_shutdown() needs to remove all bonds. In
+theory there shouldn't be any, since either the driver did unbind_dev(),
+or all process exited. This is a safety net.
 
-Kind regards
-Uffe
+> Then we can do other things instead of waiting that user may not like. :)
+
+They may not like it, but it's for their own good :) At the moment we're
+waiting that:
+
+* All exit_mm() callback for this device have finished. If we don't wait
+  then the caller will free the private data passed to bind and the
+  mm_exit() callback while they are still being used.
+
+* All page requests targeting this device are dealt with. If we don't
+  wait then some requests, that are lingering in the IOMMU PRI queue,
+  may hit the next contexts bound to this device, possibly in a
+  different VM. It may not be too risky (though probably exploitable in
+  some way), but is incredibly messy.
+
+All of this is bounded in time, and normally should be over pretty fast
+unless the device driver's exit_mm() does something strange. If the
+driver did the right thing, there shouldn't be any wait here (although
+there may be one in unbind_dev() for the same reasons - prevent use
+after free).
+
+Thanks,
+Jean
