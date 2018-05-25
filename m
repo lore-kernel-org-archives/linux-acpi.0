@@ -1,57 +1,54 @@
-From: Ilias Apalodimas <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 03/40] iommu/sva: Manage process address spaces
-Date: Fri, 25 May 2018 09:33:11 +0300
-Message-ID: <20180525063311.GA11605@apalos>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-4-jean-philippe.brucker@arm.com>
-	<20180516163117.622693ea@jacob-builder>
-	<de478769-9f7a-d40b-a55e-e2c63ad883e8@arm.com>
-	<20180522094334.71f0e36b@jacob-builder>
-	<f73b4a0e-669e-8483-88d7-1b2c8a2b9934@arm.com>
-	<20180524115039.GA10260@apalos>
-	<19e82a74-429a-3f86-119e-32b12082d0ff@arm.com>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH 2/2] ACPI: EC: Dispatch the EC GPE directly on s2idle wake
+Date: Fri, 25 May 2018 08:49:32 +0200
+Message-ID: <CAPDyKFpnrPeG23Q+i6ASCeohGR3vfGQRwQzjwGsKE=c4TyAiQA@mail.gmail.com>
+References: <3221007.8CUDle5b3u@aspire.rjw.lan> <201805181421.jU5hI6Bo%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <19e82a74-429a-3f86-119e-32b12082d0ff-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Cc: "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201805181421.jU5hI6Bo%fengguang.wu@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: kbuild-all@01.org, Linux ACPI <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>, Bob Moore <robert.moore@intel.com>, "Wang, Wendy" <wendy.wang@intel.com>, kbuild test robot <lkp@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 24, 2018 at 04:04:39PM +0100, Jean-Philippe Brucker wrote:
-> On 24/05/18 12:50, Ilias Apalodimas wrote:
-> >> Interesting, I hadn't thought about this use-case before. At first I
-> >> thought you were talking about mdev devices assigned to VMs, but I think
-> >> you're referring to mdevs assigned to userspace drivers instead? Out of
-> >> curiosity, is it only theoretical or does someone actually need this?
-> > 
-> > There has been some non upstreamed efforts to have mdev and produce userspace
-> > drivers. Huawei is using it on what they call "wrapdrive" for crypto devices and
-> > we did a proof of concept for ethernet interfaces. At the time we choose not to
-> > involve the IOMMU for the reason you mentioned, but having it there would be
-> > good.
-> 
-> I'm guessing there were good reasons to do it that way but I wonder, is
-> it not simpler to just have the kernel driver create a /dev/foo, with a
-> standard ioctl/mmap/poll interface? Here VFIO adds a layer of
-> indirection, and since the mediating driver has to implement these
-> operations already, what is gained?
-The best reason i can come up with is "common code". You already have one API
-doing that for you so we replicate it in a /dev file?
-The mdev approach still needs extentions to support what we tried to do (i.e
-mdev bus might need yo have access on iommu_ops), but as far as i undestand it's
-a possible case.
-> 
-> Thanks,
-> Jean
+Rafael,
+
+On 18 May 2018 at 08:10, kbuild test robot <lkp@intel.com> wrote:
+> Hi Rafael,
+>
+> I love your patch! Yet something to improve:
+>
+> [auto build test ERROR on pm/linux-next]
+> [also build test ERROR on v4.17-rc5]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+>
+> url:    https://github.com/0day-ci/linux/commits/Rafael-J-Wysocki/ACPI-PM-Dispatch-EC-GPE-early-on-s2idle-resume-if-LPS0-_DSM-is-used/20180518-070817
+> base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> config: arm64-defconfig (attached as .config)
+> compiler: aarch64-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+> reproduce:
+>         wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         make.cross ARCH=arm64
+>
+> All errors (new ones prefixed by >>):
+>
+>    drivers/acpi/ec.o: In function `acpi_ec_dispatch_gpe':
+>>> ec.c:(.text+0x239c): undefined reference to `acpi_dispatch_gpe'
+>    ec.c:(.text+0x239c): relocation truncated to fit: R_AARCH64_CALL26 against undefined symbol `acpi_dispatch_gpe'
+>
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+
+This breaks arm64 builds, would you mind to drop the offending patch
+from your linux-next branch?
+
+In case you haven't got time to check, I think the problem is caused
+by CONFIG_ACPI_REDUCED_HARDWARE_ONLY being set for arm64 builds. I can
+try to fix the problem, if you are busy and want help with it?
+
+Kind regards
+Uffe
