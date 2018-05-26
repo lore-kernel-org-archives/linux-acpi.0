@@ -1,105 +1,155 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH v7 3/3] acpi: apei: Do not panic() on PCIe errors reported through GHES
-Date: Fri, 25 May 2018 10:53:48 -0500
-Message-ID: <20180525155352.22350-4-mr.nuke.me@gmail.com>
-References: <20180525155352.22350-1-mr.nuke.me@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180525155352.22350-1-mr.nuke.me@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 07/40] iommu: Add a page fault handler
+Date: Fri, 25 May 2018 17:35:44 -0700
+Message-ID: <20180525173544.05638510@jacob-builder>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-8-jean-philippe.brucker@arm.com>
+	<20180518110434.150a0e64@jacob-builder>
+	<8a640794-a6f3-fa01-82a9-06479a6f779a@arm.com>
+	<20180522163521.413e60c6@jacob-builder>
+	<bdf9f221-ab97-2168-d072-b7f6a0dba840@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <bdf9f221-ab97-2168-d072-b7f6a0dba840-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Cc: "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-As previously noted, the policy to panic on any "Fatal" GHES error is
-not suitable for several classes of errors. The most notable is
-error containment. The correct policy is to achieve identical behavior
-to native error handling -- i.e. when not reported through GHES. This,
-in special cases, may not be possible, as we have to exit NMIs, which
-requires these special considerations
+On Thu, 24 May 2018 12:44:38 +0100
+Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org> wrote:
 
-PCIe AER errors are contained and reported at the root port. On DPC
-capable hardware, containment can be done by all downstream ports. DPC
-also has the added advantage of preventing future errors. Since these
-errors stop at the root port, we can do all the work we need to exit
-NMI and reach the error handler.
+> On 23/05/18 00:35, Jacob Pan wrote:
+> >>>> +			/* Insert *before* the last fault */
+> >>>> +			list_move(&fault->head, &group->faults);
+> >>>> +	}
+> >>>> +    
+> >>> If you already sorted the group list with last fault at the end,
+> >>> why do you need a separate entry to track the last fault?    
+> >>
+> >> Not sure I understand your question, sorry. Do you mean why the
+> >> iopf_group.last_fault? Just to avoid one more kzalloc.
+> >>  
+> > kind of :) what i thought was that why can't the last_fault
+> > naturally be the last entry in your group fault list? then there is
+> > no need for special treatment in terms of allocation of the last
+> > fault. just my preference.  
+> 
+> But we need a kzalloc for the last fault anyway, so I thought I'd just
+> piggy-back on the group allocation. And if I don't add the last fault
+> at the end of group->faults, then it's iopf_handle_group that requires
+> special treatment. I'm still not sure I understood your question
+> though, could you send me a patch that does it?
+> 
+> >>>> +
+> >>>> +	queue->flush(queue->flush_arg, dev);
+> >>>> +
+> >>>> +	/*
+> >>>> +	 * No need to clear the partial list. All PRGs
+> >>>> containing the PASID that
+> >>>> +	 * needs to be decommissioned are whole (the device
+> >>>> driver made sure of
+> >>>> +	 * it before this function was called). They have been
+> >>>> submitted to the
+> >>>> +	 * queue by the above flush().
+> >>>> +	 */    
+> >>> So you are saying device driver need to make sure LPIG PRQ is
+> >>> submitted in the flush call above such that partial list is
+> >>> cleared?    
+> >>
+> >> Not exactly, it's the IOMMU driver that makes sure all LPIG in its
+> >> queues are submitted by the above flush call. In more details the
+> >> flow is:
+> >>
+> >> * Either device driver calls unbind()/sva_device_shutdown(), or the
+> >> process exits.
+> >> * If the device driver called, then it already told the device to
+> >> stop using the PASID. Otherwise we use the mm_exit() callback to
+> >> tell the device driver to stop using the PASID.
+Sorry I still need more clarification. For the PASID termination
+initiated by vfio unbind, I don't see device driver given a chance to
+stop PASID. Seems just call __iommu_sva_unbind_device() which already
+assume device stopped issuing DMA with the PASID.
+So it is the vfio unbind caller responsible for doing driver callback
+to stop DMA on a given PASID?
 
-This patch does away with the mindless crashing of the system, and
-correctly invokes the AER handler. When AER is not enabled, or the
-firmware doesn't provide sufficient information to identify the source
-of the error, the original panic() behavior is maintained.
+> >> * In either case, when receiving a stop request from the driver,
+> >> the device sends the LPIGs to the IOMMU queue.
+> >> * Then, the flush call above ensures that the IOMMU reports the
+> >> LPIG with iommu_report_device_fault.
+> >> * While submitting all LPIGs for this PASID to the work queue,
+> >> ipof_queue_fault also picked up all partial faults, so the partial
+> >> list is clean.
+> >>
+> >> Maybe I should improve this comment?
+> >>  
+> > thanks for explaining. LPIG submission is done by device
+> > asynchronously w.r.t. driver stopping/decommission PASID.  
+> 
+> Hmm, it should really be synchronous, otherwise there is no way to
+> know when the PASID can be decommissioned. We need a guarantee such
+> as the one in 6.20.1 of the PCIe spec, "Managing PASID TLP Prefix
+> Usage":
+> 
+> "When the stop request mechanism indicates completion, the Function
+> has:
+> * Completed all Non-Posted Requests associated with this PASID.
+> * Flushed to the host all Posted Requests addressing host memory in
+> all TCs that were used by the PASID."
+> 
+> That's in combination with "The function shall [...] finish
+> transmitting any multi-page Page Request Messages for this PASID
+> (i.e. send the Page Request Message with the L bit Set)." from the
+> ATS spec.
+> 
+I am not contesting on the device side, what I meant was from the
+host IOMMU driver perspective, LPIG is received via IOMMU host queue,
+therefore asynchronous. Not sure about ARM, but on VT-d LPIG submission
+could meet queue full condition. So per VT-d spec, iommu will generate a
+successful auto response to the device. At this point, assume we
+already stopped the given PASID on the device, there might not be
+another LPIG sent for the device. Therefore, you could have a partial
+list. I think we can just drop the requests in the partial list for
+that PASID until the PASID gets re-allocated.
 
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 43 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 1b22e18168f5..f7126f6d8d52 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -425,7 +425,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
-  * GHES_SEV_RECOVERABLE -> AER_NONFATAL
-  * GHES_SEV_RECOVERABLE && CPER_SEC_RESET -> AER_FATAL
-  *     These both need to be reported and recovered from by the AER driver.
-- * GHES_SEV_FATAL does not make it to this handler
-+ * GHES_SEV_FATAL -> AER_FATAL
-  */
- static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- {
-@@ -837,6 +837,45 @@ static inline void ghes_sea_remove(struct ghes *ghes) { }
- static struct llist_head ghes_estatus_llist;
- static struct irq_work ghes_proc_irq_work;
- 
-+/* PCIe AER errors are safe if AER section contains enough info. */
-+static int ghes_pcie_has_safe_handler(struct acpi_hest_generic_data *gdata)
-+{
-+	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-+
-+	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+		pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
-+		IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * Do we have an error handler that we can safely reach? We're concerned with
-+ * being able to notify an error handler by crossing the NMI/IRQ boundary,
-+ * being able to schedule_work, and so forth.
-+ */
-+static int ghes_has_fatal_handler(struct ghes *ghes)
-+{
-+	int worst_sev, sec_sev;
-+	bool safe = true;
-+	struct acpi_hest_generic_data *gdata;
-+	const guid_t *section_type;
-+	const struct acpi_hest_generic_status *estatus = ghes->estatus;
-+
-+	apei_estatus_for_each_section(estatus, gdata) {
-+		section_type = (guid_t *)gdata->section_type;
-+
-+		if (guid_equal(section_type, &CPER_SEC_PCIE))
-+			safe = ghes_pcie_has_safe_handler(gdata);
-+
-+		if (!safe)
-+			break;
-+	}
-+
-+	return safe;
-+}
-+
- /*
-  * NMI may be triggered on any CPU, so ghes_in_nmi is used for
-  * having only one concurrent reader.
-@@ -944,7 +983,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 		}
- 
- 		sev = ghes_cper_severity(ghes->estatus->error_severity);
--		if (sev >= GHES_SEV_FATAL) {
-+		if ((sev >= GHES_SEV_FATAL) && !ghes_has_fatal_handler(ghes)) {
- 			oops_begin();
- 			ghes_print_queued_estatus();
- 			__ghes_panic(ghes);
--- 
-2.14.3
+> (If I remember correctly a PRI Page Request is a Posted Request.) Only
+> after this stop request completes can the driver call unbind(), or
+> return from exit_mm(). Then we know that if there was a LPIG for that
+> PASID, it is in the IOMMU's PRI queue (or already completed) once we
+> call flush().
+> 
+agreed.
+> > so if we were to use this
+> > flow on vt-d, which does not stall page request queue, then we
+> > should use the iommu model specific flush() callback to ensure LPIG
+> > is received? There could be queue full condition and retry. I am
+> > just trying to understand how and where we can make sure LPIG is
+> > received and all groups are whole.  
+> 
+> For SMMU in patch 30, the flush() callback waits until the PRI queue
+> is empty or, when the PRI thread is running in parallel, until the
+> thread has done a full circle (handled as many faults as the queue
+> size). It's really unpleasant to implement because the flush()
+> callback takes a lock to inspect the hardware state, but I don't
+> think we have a choice.
+> 
+yes, vt-d has similar situation in page request queue. one option is to
+track queue head (SW update) to make sure one complete cycle when queue
+tail(HW update) crosses. Or we(suggested by Ashok Raj) can take a
+snapshot of the entire queue and process (drops PRQs belong to the
+terminated PASID) without holding the queue.
+
+Thanks,
+
+Jacob
