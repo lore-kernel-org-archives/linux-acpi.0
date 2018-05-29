@@ -1,231 +1,82 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [RESEND RFC PATCH] acpi/processor: Remove the check of duplicate processors
-Date: Mon, 28 May 2018 17:08:41 +0800
-Message-ID: <20180528090841.18185-1-douly.fnst@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC] acpi: Declare memory allocations in acpi_ut_create_internal_object_dbg as non-leaks
+Date: Tue, 29 May 2018 11:03:43 +0200
+Message-ID: <2350680.J6FZTH4xBM@aspire.rjw.lan>
+References: <20180512145938.7936-1-Larry.Finger@lwfinger.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180512145938.7936-1-Larry.Finger@lwfinger.net>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: tglx@linutronix.de, mingo@redhat.com, rafael@kernel.org, lenb@kernel.org, hpa@zytor.com, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-We found there are some processors which have the same processor ID
-but in different PXM in the ACPI namespace. such as this:
+On Saturday, May 12, 2018 4:59:38 PM CEST Larry Finger wrote:
+> In kernel 4.17.0-rcX, kmemleak reports 9 leaks with tracebacks similat to
+> the following:
+> 
+> unreferenced object 0xffff880224a077e0 (size 72):
+>   comm "swapper/0", pid 1, jiffies 4294892358 (age 1022.636s)
+>   hex dump (first 32 bytes):
+>     00 00 00 00 00 00 00 00 0e 01 01 00 00 00 00 01  ................
+>     00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00  ................
+>   backtrace:
+>     [<000000004f506615>] acpi_ut_create_internal_object_dbg+0x4d/0x10e
+>     [<000000006e7730e3>] acpi_ds_build_internal_object+0xed/0x1cd
+>     [<00000000272b7c73>] acpi_ds_build_internal_package_obj+0x245/0x3a2
+>     [<000000000b64c50e>] acpi_ds_eval_data_object_operands+0x17b/0x21b
+>     [<00000000589647ac>] acpi_ds_exec_end_op+0x433/0x6c1
+>     [<000000001d69bcbf>] acpi_ps_parse_loop+0x926/0x9be
+>     [<000000005d6fa97d>] acpi_ps_parse_aml+0x1a2/0x4af
+>     [<00000000c4bef823>] acpi_ps_execute_table+0xbb/0x119
+>     [<00000000fd9632e4>] acpi_ns_execute_table+0x20c/0x260
+>     [<00000000e6ae17ac>] acpi_ns_parse_table+0x7d/0x1b3
+>     [<0000000008e1e148>] acpi_ns_load_table+0x8d/0x1c0
+>     [<000000009fc8346f>] acpi_tb_load_namespace+0x176/0x278
+>     [<0000000073f98b3b>] acpi_load_tables+0x6e/0xfd
+>     [<00000000d2ef13d2>] acpi_init+0x8c/0x340
+>     [<000000007da19d8d>] do_one_initcall+0x46/0x1fa
+>     [<0000000024681a1d>] kernel_init_freeable+0x1a2/0x237
+> 
+> According to gdb, the offending code is
+>               object =
+>                   acpi_ut_allocate_object_desc_dbg(module_name, line_number,
+>                                                    component_id);
+> 
+> As it is not possible to unload the acpi code to test that this is a real
+> leak and not a false positive, and that only these 9 appear no matter how
+> long the system is up, a kmemleak_not_leak(object) call is inserted.
+> 
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+> ---
+>  drivers/acpi/acpica/utobject.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
+> index 5b78fe08d7d7..ae6d8cc18cec 100644
+> --- a/drivers/acpi/acpica/utobject.c
+> +++ b/drivers/acpi/acpica/utobject.c
+> @@ -8,6 +8,7 @@
+>   *****************************************************************************/
+>  
+>  #include <acpi/acpi.h>
+> +#include <linux/kmemleak.h>
+>  #include "accommon.h"
+>  #include "acnamesp.h"
+>  
+> @@ -70,6 +71,7 @@ union acpi_operand_object *acpi_ut_create_internal_object_dbg(const char
+>  	if (!object) {
+>  		return_PTR(NULL);
+>  	}
+> +	kmemleak_not_leak(object);
+>  
+>  	switch (type) {
+>  	case ACPI_TYPE_REGION:
+> 
 
-proc_id   |    pxm
---------------------
-0       <->     0
-1       <->     0
-2       <->     1
-3       <->     1
-......
-89      <->     0
-89      <->     1
-89      <->     2
-89      <->     3
-......
-
-So we create a mechanism to validate them. make the processor(ID=89)
-as invalid. And once a processor be hotplugged physically, we check its
-processor id.
-
-    Commit 8e089eaa1999 ("acpi: Provide mechanism to validate processors in the ACPI tables")
-    Commit a77d6cd96849 ("acpi/processor: Check for duplicate processor ids at hotplug time")
-
-Recently, I found the check mechanism has a bug, it didn't use the
-acpi_processor_ids_walk() right and always gave us a wrong result.
-First, I fixed it by modifying the value with AE_OK which is the
-standard acpi_status value.
-
-    https://lkml.org/lkml/2018/3/20/273
-
-But, now, I even think this check is useless. my reasons are following:
-
-    1). Based on the practical tests, It works well, and no bug be reported
-    2). Based on the code, the duplicate cases can be dealed with by
-
-       if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id))
-
-That seems more reasonable, let's see the following case:
-
-                          Before the patch,             After the patch
-
-the first processor(ID=89)
-hot-add                        failed                        success
-
-the others processor(ID=89)
-hot-add                        failed                        failed
-
-So, Remove the check code.
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
-
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c | 126 ------------------------------------------
- include/linux/acpi.h          |   3 -
- 2 files changed, 129 deletions(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 449d86d39965..8358708e0bbb 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -281,13 +281,6 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 		pr->acpi_id = value;
- 	}
- 
--	if (acpi_duplicate_processor_id(pr->acpi_id)) {
--		dev_err(&device->dev,
--			"Failed to get unique processor _UID (0x%x)\n",
--			pr->acpi_id);
--		return -ENODEV;
--	}
--
- 	pr->phys_id = acpi_get_phys_id(pr->handle, device_declaration,
- 					pr->acpi_id);
- 	if (invalid_phys_cpuid(pr->phys_id))
-@@ -579,127 +572,8 @@ static struct acpi_scan_handler processor_container_handler = {
- 	.attach = acpi_processor_container_attach,
- };
- 
--/* The number of the unique processor IDs */
--static int nr_unique_ids __initdata;
--
--/* The number of the duplicate processor IDs */
--static int nr_duplicate_ids;
--
--/* Used to store the unique processor IDs */
--static int unique_processor_ids[] __initdata = {
--	[0 ... NR_CPUS - 1] = -1,
--};
--
--/* Used to store the duplicate processor IDs */
--static int duplicate_processor_ids[] = {
--	[0 ... NR_CPUS - 1] = -1,
--};
--
--static void __init processor_validated_ids_update(int proc_id)
--{
--	int i;
--
--	if (nr_unique_ids == NR_CPUS||nr_duplicate_ids == NR_CPUS)
--		return;
--
--	/*
--	 * Firstly, compare the proc_id with duplicate IDs, if the proc_id is
--	 * already in the IDs, do nothing.
--	 */
--	for (i = 0; i < nr_duplicate_ids; i++) {
--		if (duplicate_processor_ids[i] == proc_id)
--			return;
--	}
--
--	/*
--	 * Secondly, compare the proc_id with unique IDs, if the proc_id is in
--	 * the IDs, put it in the duplicate IDs.
--	 */
--	for (i = 0; i < nr_unique_ids; i++) {
--		if (unique_processor_ids[i] == proc_id) {
--			duplicate_processor_ids[nr_duplicate_ids] = proc_id;
--			nr_duplicate_ids++;
--			return;
--		}
--	}
--
--	/*
--	 * Lastly, the proc_id is a unique ID, put it in the unique IDs.
--	 */
--	unique_processor_ids[nr_unique_ids] = proc_id;
--	nr_unique_ids++;
--}
--
--static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
--						  u32 lvl,
--						  void *context,
--						  void **rv)
--{
--	acpi_status status;
--	acpi_object_type acpi_type;
--	unsigned long long uid;
--	union acpi_object object = { 0 };
--	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
--
--	status = acpi_get_type(handle, &acpi_type);
--	if (ACPI_FAILURE(status))
--		return false;
--
--	switch (acpi_type) {
--	case ACPI_TYPE_PROCESSOR:
--		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
--		if (ACPI_FAILURE(status))
--			goto err;
--		uid = object.processor.proc_id;
--		break;
--
--	case ACPI_TYPE_DEVICE:
--		status = acpi_evaluate_integer(handle, "_UID", NULL, &uid);
--		if (ACPI_FAILURE(status))
--			goto err;
--		break;
--	default:
--		goto err;
--	}
--
--	processor_validated_ids_update(uid);
--	return true;
--
--err:
--	acpi_handle_info(handle, "Invalid processor object\n");
--	return false;
--
--}
--
--static void __init acpi_processor_check_duplicates(void)
--{
--	/* check the correctness for all processors in ACPI namespace */
--	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
--						ACPI_UINT32_MAX,
--						acpi_processor_ids_walk,
--						NULL, NULL, NULL);
--	acpi_get_devices(ACPI_PROCESSOR_DEVICE_HID, acpi_processor_ids_walk,
--						NULL, NULL);
--}
--
--bool acpi_duplicate_processor_id(int proc_id)
--{
--	int i;
--
--	/*
--	 * compare the proc_id with duplicate IDs, if the proc_id is already
--	 * in the duplicate IDs, return true, otherwise, return false.
--	 */
--	for (i = 0; i < nr_duplicate_ids; i++) {
--		if (duplicate_processor_ids[i] == proc_id)
--			return true;
--	}
--	return false;
--}
--
- void __init acpi_processor_init(void)
- {
--	acpi_processor_check_duplicates();
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
- 	acpi_scan_add_handler(&processor_container_handler);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 15bfb15c2fa5..068dcfe6768b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -285,9 +285,6 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- 	return phys_id == PHYS_CPUID_INVALID;
- }
- 
--/* Validate the processor object's proc_id */
--bool acpi_duplicate_processor_id(int proc_id);
--
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, u32 acpi_id,
--- 
-2.14.3
+I've decided to apply this patch, thanks!
