@@ -1,89 +1,52 @@
-From: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
-Date: Tue, 29 May 2018 20:24:28 +0800
-Message-ID: <5B0D467C.90206@huawei.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
-	<5B0536A3.1000304@huawei.com>
-	<cd13f60d-b282-3804-4ca7-2d34476c597f@arm.com>
-	<5B06B17C.1090809@huawei.com>
-	<205c1729-8026-3efe-c363-d37d7150d622@arm.com>
-	<5B077765.30703@huawei.com>
-	<fea420ff-e738-e2ed-ab1e-a3f4dde4b6ef@arm.com>
-	<5B08DA21.3070507@huawei.com>
-	<99ff4f89-86ef-a251-894c-8aa8a47d2a69@arm.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Subject: [PATCH v3 2/2] PCI: Check phys_addr for pci_remap_iospace
+Date: Tue, 29 May 2018 20:18:19 +0800
+Message-ID: <1527596299-57567-2-git-send-email-xieyisheng1@huawei.com>
+References: <1527596299-57567-1-git-send-email-xieyisheng1@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <99ff4f89-86ef-a251-894c-8aa8a47d2a69-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
-Cc: "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org" <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1527596299-57567-1-git-send-email-xieyisheng1@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yisheng Xie <xieyisheng1@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAyMDE4LzUvMjkgMTk6NTUsIEplYW4tUGhpbGlwcGUgQnJ1Y2tlciB3cm90ZToKPiAo
-SWYgcG9zc2libGUsIHBsZWFzZSByZXBseSBpbiBwbGFpbiB0ZXh0IHRvIHRoZSBsaXN0LiBSZWFk
-aW5nIHRoaXMgaW4gYQo+IHRleHQtb25seSByZWFkZXIgaXMgY29uZnVzaW5nLCBiZWNhdXNlIGFs
-bCBxdW90ZXMgaGF2ZSB0aGUgc2FtZSBsZXZlbCkKU29ycnkgZm9yIHRoYXTvvIwgSSBoYXZlIHJl
-c2V0IHRoZSB0aHVuZGVyYmlyZCwgOikgdGhhbmtzLgo+IE9uIDI2LzA1LzE4IDA0OjUzLCBYdSBa
-YWlibyB3cm90ZToKPj4gSSBndWVzcyB0aGVyZSBtYXkgYmUgc29tZSBtaXN1bmRlcnN0YW5kaW5n
-cyA6KS4KPj4KPj4gIEZyb20gdGhlIGN1cnJlbnQgcGF0Y2hlcywgJ2lvbW11X3N2YV9kZXZpY2Vf
-c2h1dGRvd24nIGlzIGNhbGxlZCBieSAndmZpb19pb21tdV9zdmFfc2h1dGRvd24nLCB3aGljaAo+
-PiBpcyBtYWlubHkgdXNlZCBieSAndmZpb19pb21tdV90eXBlMV9kZXRhY2hfZ3JvdXAnIHRoYXQg
-aXMgZmluYWxseSBjYWxsZWQgYnkgcHJvY2Vzc2VzJyByZWxlYXNlIG9mIHZmaW8gZmFjaWxpdGl5
-Cj4+IGF1dG9tYXRpY2FsbHkgb3IgY2FsbGVkIGJ5ICdWRklPX0dST1VQX1VOU0VUX0NPTlRBSU5F
-UicgbWFudWFsbHkgaW4gdGhlIHByb2Nlc3Nlcy4KPj4KPj4gU28sIGp1c3QgaW1hZ2UgdGhhdCAy
-IHByb2Nlc3NlcyBpcyB3b3JraW5nIG9uIHRoZSBkZXZpY2Ugd2l0aCBJT1BGIGZlYXR1cmUsIGFu
-ZCB0aGUgMiBkbyB0aGUgZm9sbG93aW5nIHRvIGVuYWJsZSBTVkE6Cj4+Cj4+ICAgICAgMS5vcGVu
-KCIvZGV2L3ZmaW8vdmZpbyIpIDsKPj4KPj4gICAgIDIub3BlbiB0aGUgZ3JvdXAgb2YgdGhlIGRl
-dmNpZSBieSBjYWxsaW5nIG9wZW4oIi9kZXYvdmZpby94IiksIGJ1dCBub3csCj4+ICAgICAgIEkg
-dGhpbmsgdGhlIHNlY29uZCBwcm9jZXNzZXMgd2lsbCBmYWlsIHRvIG9wZW4gdGhlIGdyb3VwIGJl
-Y2F1c2UgY3VycmVudCBWRklPIHRoaW5rcyB0aGF0IG9uZSBncm91cCBvbmx5IGNhbiBiZSB1c2Vk
-IGJ5IG9uZSBwcm9jZXNzL3ZtLAo+PiAgICAgICBhdCBwcmVzZW50LCBJIHVzZSBtZWRpYXRlZCBk
-ZXZpY2UgdG8gY3JlYXRlIG1vcmUgZ3JvdXBzIG9uIHRoZSBwYXJlbnQgZGV2aWNlIHRvIHN1cHBv
-cnQgbXVsdGlwbGUgcHJvY2Vzc2VzOwo+Pgo+PiAgICAgIDMuVkZJT19HUk9VUF9TRVRfQ09OVEFJ
-TkVSOwo+Pgo+PiAgICAgIDQuVkZJT19TRVRfSU9NTVU7Cj4+Cj4+ICAgICAgNS5WRklPX0lPTU1V
-X0JJTkQ7Cj4gSSBoYXZlIGEgY29uY2VybiByZWdhcmRpbmcgeW91ciBkcml2ZXIuIFdpdGggbWRl
-diB5b3UgY2FuJ3QgYWxsb3cKPiBwcm9jZXNzZXMgdG8gcHJvZ3JhbSB0aGUgUEFTSUQgdGhlbXNl
-bHZlcywgc2luY2UgdGhlIHBhcmVudCBkZXZpY2UgaGFzIGEKPiBzaW5nbGUgUEFTSUQgdGFibGUu
-IFlvdSBsb3NlIGFsbCBpc29sYXRpb24gc2luY2UgcHJvY2Vzc2VzIGNvdWxkIHdyaXRlCj4gYW55
-IHZhbHVlIGluIHRoZSBQQVNJRCBmaWVsZCBhbmQgYWNjZXNzIGFkZHJlc3Mgc3BhY2VzIG9mIG90
-aGVyCj4gcHJvY2Vzc2VzIGJvdW5kIHRvIHRoaXMgcGFyZW50IGRldmljZSAoZXZlbiBpZiB0aGUg
-QklORCBjYWxsIHdhcyBmb3IKPiBvdGhlciBtZGV2cykuClllcywgaWYgd3JhcGRyaXZlIGRvIG5v
-dGhpbmcgb24gdGhpcyBQQVNJRCBzZXR0aW5nIHByb2NlZHVyZSBpbiBrZXJuZWwgCnNwYWNlLCBJ
-IHRoaW5rCnRoZXJlIGRlZmluaXRlbHkgZXhpc3RzIHRoaXMgc2VjdXJpdHkgcmlzay4KPiBUaGUg
-d3JhcCBkcml2ZXIgaGFzIHRvIG1lZGlhdGUgY2FsbHMgdG8gYmluZCgpLCBhbmQgZWl0aGVyIHBy
-b2dyYW0gdGhlCj4gUEFTSUQgaW50byB0aGUgZGV2aWNlIGl0c2VsZiwgb3IgYXQgbGVhc3QgY2hl
-Y2sgdGhhdCwgd2hlbiByZWNlaXZpbmcgYQo+IFNFVF9QQVNJRCBpb2N0bCBmcm9tIGEgcHJvY2Vz
-cywgdGhlIGdpdmVuIFBBU0lEIHdhcyBhY3R1YWxseSBhbGxvY2F0ZWQKPiB0byB0aGUgcHJvY2Vz
-cy4KWWVzLCBnb29kIGFkdmljZSwgdGhhbmtzLgo+Cj4+ICAgICAgNi5EbyBzb21lIHdvcmtzIHdp
-dGggdGhlIGhhcmR3YXJlIHdvcmtpbmcgdW5pdCBmaWxsZWQgYnkgUEFTSUQgb24gdGhlIGRldmlj
-ZTsKPj4KPj4gICAgIDcuVkZJT19JT01NVV9VTkJJTkQ7Cj4+Cj4+ICAgICAgOC5WRklPX0dST1VQ
-X1VOU0VUX0NPTlRBSU5FUjstLS1oZXJlLCBoYXZlIHRvIHNsZWVwIHRvIHdhaXQgYW5vdGhlciBw
-cm9jZXNzIHRvIGZpbmlzaCB3b3JrcyBvZiB0aGUgc3RlcCA2Owo+Pgo+PiAgICAgIDkuIGNsb3Nl
-KGdyb3VwKTsgY2xvc2UoY29udGFpbm5lcik7Cj4+Cj4+Cj4+IFNvLCBteSBpZGVhIGlzOiBJZiBp
-dCBpcyBwb3NzaWJsZSB0byBqdXN0IHJlbGVhc2UgdGhlIHBhcmFtcyBvciBmYWNpbGl0aWVzIHRo
-YXQgb25seSBiZWxvbmcgdG8gdGhlIGN1cnJlbnQgcHJvY2VzcyB3aGlsZSB0aGUgcHJvY2VzcyBz
-aHV0ZG93biB0aGUgZGV2aWNlLAo+PiBhbmQgd2hpbGUgdGhlIGxhc3QgcHJvY2VzcyByZWxlYXNl
-cyB0aGVtIGFsbC4gVGhlbiwgYXMgaW4gdGhlIGFib3ZlIHN0ZXAgOCwgd2UKPj4gZG9uJ3QgbmVl
-ZCB0byB3YWl0LCBvciBtYXliZSB3YWl0IGZvciBhIHZlcnkgbG9uZyB0aW1lIGlmIHRoZSBvdGhl
-ciBwcm9jZXNzIGlzIGRvaW5nIGxvdHMgb2Ygd29yayBvbiB0aGUgZGV2aWNlLgo+IEdpdmVuIHRo
-YXQgeW91IG5lZWQgdG8gbm90aWZ5IHRoZSBtZWRpYXRpbmcgZHJpdmVyIG9mIElPTU1VX0JJTkQg
-Y2FsbHMKPiBhcyBleHBsYWluZWQgYWJvdmUsIHlvdSBjb3VsZCBkbyBzb21ldGhpbmcgc2ltaWxh
-ciBmb3Igc2h1dGRvd246IGZyb20KPiB0aGUgbWRldiBkcml2ZXIsIGNhbGwgaW9tbXVfc3ZhX3No
-dXRkb3duX2RldmljZSgpIG9ubHkgZm9yIHRoZSBsYXN0IG1kZXYuCkN1cnJlbnRseSwgSSBhZGQg
-YW4gQVBJIHRvIGNoZWNrIGlmIGl0IGlzIHRoZSBsYXN0IG1kZXYgaW4gd3JhcGRyaXZlLCBhcyAK
-dmZpbyBzaHV0ZG93bnMgdGhlIGRldmljZSwKaXQgY2FsbCB0aGUgQVBJIHRvIGRvIHRoZSBjaGVj
-ayBhdCBmaXJzdC4KClRoYW5rcwpaYWlibwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlzdAppb21tdUBsaXN0cy5saW51eC1m
-b3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9s
-aXN0aW5mby9pb21tdQ==
+If phys_addr is not page aligned, ioremap_page_range() will align down it
+when get pfn by phys_addr >> PAGE_SHIFT. An example in arm64 system with
+64KB page size:
+
+ phys_addr:  0xefff8000
+ res->start: 0x0
+ res->end:   0x0ffff
+ PCI_IOBASE: 0xffff7fdffee00000
+
+This will remap virtual address 0xffff7fdffee00000 to phys_addr 0xefff0000,
+but what we really want is 0xefff8000, which makes later IO access to a
+mess. And users may even donot know this until find some odd phenemenon.
+
+This patch checks whether phys_addr is PAGE_ALIGNED or not to find the
+primary scene.
+
+Signed-off-by: Zhou Wang <wangzhou1@hisilicon.com>
+Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
+---
+ drivers/pci/pci.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index 0eb0381..117ca6a 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -3547,6 +3547,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
+ 	if (!PAGE_ALIGNED(vaddr) || !PAGE_ALIGNED(resource_size(res)))
+ 		return -EINVAL;
+ 
++	if (!PAGE_ALIGNED(phys_addr))
++		return -EINVAL;
++
+ 	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
+ 				  pgprot_device(PAGE_KERNEL));
+ #else
+-- 
+1.7.12.4
