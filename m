@@ -1,88 +1,121 @@
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v3 1/2] PCI: Avoid panic when PCI IO resource's size is not page aligned
-Date: Tue, 29 May 2018 20:18:18 +0800
-Message-ID: <1527596299-57567-1-git-send-email-xieyisheng1@huawei.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
+Date: Tue, 29 May 2018 14:18:40 +0100
+Message-ID: <551905a6-eaa8-97df-06ec-1ceedfbc164f@arm.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com>
+ <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
+ <CAMuHMdWJWj3a0MZgEi7VJTUJRNoeR+X3eoN8A-sW6fwimEr6Fg@mail.gmail.com>
+ <09fb3fe7-d703-43f1-74f7-f8cb5ff1f67a@arm.com>
+ <CAMuHMdXgiMeD4uF+j8W+CpNwYYK2W_8xqk_=vGBiW=bUvKeq7w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAMuHMdXgiMeD4uF+j8W+CpNwYYK2W_8xqk_=vGBiW=bUvKeq7w@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, guohanjun@huawei.com, jcm@redhat.com, toshi.kani@hpe.com, tanxiaojun@huawei.com, wangzhou1@hisilicon.com
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Yisheng Xie <xieyisheng1@huawei.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Palmer Dabbelt <palmer@sifive.com>, Will Deacon <Will.Deacon@arm.com>, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, jhugo@codeaurora.org, Al Stone <ahs3@redhat.com>, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, wangxiongfeng2@huawei.com, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg KH <gregkh@linuxfo>
 List-Id: linux-acpi@vger.kernel.org
 
-Zhou reported a bug on Hisilicon arm64 D06 platform with 64KB page size:
 
- [    2.470908] kernel BUG at lib/ioremap.c:72!
- [    2.475079] Internal error: Oops - BUG: 0 [#1] PREEMPT SMP
- [    2.480551] Modules linked in:
- [    2.483594] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.16.0-rc7-00062-g0b41260-dirty #23
- [    2.491756] Hardware name: Huawei D06/D06, BIOS Hisilicon D06 UEFI Nemo 2.0 RC0 - B120 03/23/2018
- [    2.500614] pstate: 80c00009 (Nzcv daif +PAN +UAO)
- [    2.505395] pc : ioremap_page_range+0x268/0x36c
- [    2.509912] lr : pci_remap_iospace+0xe4/0x100
- [...]
- [    2.603733] Call trace:
- [    2.606168]  ioremap_page_range+0x268/0x36c
- [    2.610337]  pci_remap_iospace+0xe4/0x100
- [    2.614334]  acpi_pci_probe_root_resources+0x1d4/0x214
- [    2.619460]  pci_acpi_root_prepare_resources+0x18/0xa8
- [    2.624585]  acpi_pci_root_create+0x98/0x214
- [    2.628843]  pci_acpi_scan_root+0x124/0x20c
- [    2.633013]  acpi_pci_root_add+0x224/0x494
- [    2.637096]  acpi_bus_attach+0xf8/0x200
- [    2.640918]  acpi_bus_attach+0x98/0x200
- [    2.644740]  acpi_bus_attach+0x98/0x200
- [    2.648562]  acpi_bus_scan+0x48/0x9c
- [    2.652125]  acpi_scan_init+0x104/0x268
- [    2.655948]  acpi_init+0x308/0x374
- [    2.659337]  do_one_initcall+0x48/0x14c
- [    2.663160]  kernel_init_freeable+0x19c/0x250
- [    2.667504]  kernel_init+0x10/0x100
- [    2.670979]  ret_from_fork+0x10/0x18
 
-The cause is the size of PCI IO resource is 32KB, which is 4K aligned but
-not 64KB aligned, however, ioremap_page_range() request the range as page
-aligned or it will trigger a BUG_ON() on ioremap_pte_range() it calls, as
-ioremap_pte_range increase the addr by PAGE_SIZE, which makes addr != end
-until trigger BUG_ON, if its incoming end is not page aligned. More detail
-trace is as following:
+On 29/05/18 12:56, Geert Uytterhoeven wrote:
+> Hi Sudeep,
+> 
+> On Tue, May 29, 2018 at 1:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>> On 29/05/18 11:48, Geert Uytterhoeven wrote:
+>>> On Thu, May 17, 2018 at 7:05 PM, Catalin Marinas
+>>> <catalin.marinas@arm.com> wrote:
+>>>> On Fri, May 11, 2018 at 06:57:55PM -0500, Jeremy Linton wrote:
+>>>>> Jeremy Linton (12):
+>>>>>   drivers: base: cacheinfo: move cache_setup_of_node()
+>>>>>   drivers: base: cacheinfo: setup DT cache properties early
+>>>>>   cacheinfo: rename of_node to fw_token
+>>>>>   arm64/acpi: Create arch specific cpu to acpi id helper
+>>>>>   ACPI/PPTT: Add Processor Properties Topology Table parsing
+>>>>>   ACPI: Enable PPTT support on ARM64
+>>>>>   drivers: base cacheinfo: Add support for ACPI based firmware tables
+>>>>>   arm64: Add support for ACPI based firmware tables
+>>>>>   arm64: topology: rename cluster_id
+>>>>>   arm64: topology: enable ACPI/PPTT based CPU topology
+>>>>>   ACPI: Add PPTT to injectable table list
+>>>>>   arm64: topology: divorce MC scheduling domain from core_siblings
+>>>>
+>>>> Queued for 4.18 (without Sudeep's latest property_read_u64 cacheinfo
+>>>> patch - http://lkml.kernel.org/r/20180517154701.GA20281@e107155-lin; I
+>>>> can add it separately).
+>>>
+>>> This is now commit 37c3ec2d810f87ea ("arm64: topology: divorce MC
+>>> scheduling domain from core_siblings") in arm64/for-next/core, causing
+>>> system suspend on big.LITTLE systems to hang after shutting down the first
+>>> CPU:
+>>>
+>>>     $ echo mem > /sys/power/state
+>>>     PM: suspend entry (deep)
+>>>     PM: Syncing filesystems ... done.
+>>>     Freezing user space processes ... (elapsed 0.001 seconds) done.
+>>>     OOM killer disabled.
+>>>     Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
+>>>     Disabling non-boot CPUs ...
+>>>     CPU1: shutdown
+>>>     psci: CPU1 killed.
+>>>
+>>
+>> Is it OK to assume the suspend failed just after shutting down one CPU
+>> or it's failing during resume ? It depends on whether you had console
+>> disabled or not.
+> 
+> I have no-console-suspend enabled.
+> It's failing during suspend, the next lines should be:
+> 
+>     CPU2: shutdown
+>     psci: CPU2 killed.
+>     ...
+> 
 
- ioremap_page_range
- -> ioremap_p4d_range
-    -> ioremap_p4d_range
-       -> ioremap_pud_range
-          -> ioremap_pmd_range
-             -> ioremap_pte_range
+OK, I was hoping to be something during resume as this patch has nothing
+executed during suspend. Do you see any change in topology before and
+after this patch applied. I am interested in the output of:
 
-This patch avoid panic by return -EINVAL if vaddr or resource size is not
-page aligned.
+$ grep "" /sys/devices/system/cpu/cpu*/topology/*
 
-Reported-by: Zhou Wang <wangzhou1@hisilicon.com>
-Tested-by: Xiaojun Tan <tanxiaojun@huawei.com>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
----
-v3:
- - pci_remap_iospace() sanitize its arguments instead - per Rafael
+>>> For me, it fails on the following big.LITTLE systems:
+>>>
+>>>     R-Car H3 ES2.0 (4xCA57 + 4xCA53)
+>>>     R-Car M3-W (2xCA57 + 4xCA53)
+>>>
+>>
+>> Interesting, is it PSCI based system suspend ?
+> 
+> Yes it is.
+> 
+> Suspend-to-idle, which doesn't offline CPUs, still works.
+> 
 
-v2:
- - Let the caller of ioremap_page_range() align the request by PAGE_SIZE - per Toshi
+>From DT, I guess this platform doesn't have any idle states.
+Does this use genpd power domains ? I see power-domains in the DT, so
+asking to get more info. Do you have any out of tree patches especially
+if they are depending on some topology cpumasks ?
 
- drivers/pci/pci.c | 3 +++
- 1 file changed, 3 insertions(+)
+>>> System supend still works fine on systems with big cores only:
+>>>
+>>>     R-Car H3 ES1.0 (4xCA57 (4xCA53 disabled in firmware))
+>>>     R-Car M3-N (2xCA57)
+>>>
+>>> Reverting this commit fixes the issue for me.
+>>
+>> I can't find anything that relates to system suspend in these patches
+>> unless they are messing with something during CPU hot plug-in back
+>> during resume.
+> 
+> It's only the last patch that introduces the breakage.
+> 
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index dbfe7c4..0eb0381 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3544,6 +3544,9 @@ int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr)
- 	if (res->end > IO_SPACE_LIMIT)
- 		return -EINVAL;
- 
-+	if (!PAGE_ALIGNED(vaddr) || !PAGE_ALIGNED(resource_size(res)))
-+		return -EINVAL;
-+
- 	return ioremap_page_range(vaddr, vaddr + resource_size(res), phys_addr,
- 				  pgprot_device(PAGE_KERNEL));
- #else
+As specified in the commit log, it won't change any behavior for DT
+systems if it's non-NUMA or single node system. So I am still wondering
+what could trigger this regression.
+
 -- 
-1.7.12.4
+Regards,
+Sudeep
