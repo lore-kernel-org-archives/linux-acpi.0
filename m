@@ -1,102 +1,89 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
-Date: Tue, 29 May 2018 13:56:05 +0200
-Message-ID: <CAMuHMdXgiMeD4uF+j8W+CpNwYYK2W_8xqk_=vGBiW=bUvKeq7w@mail.gmail.com>
-References: <20180511235807.30834-1-jeremy.linton@arm.com> <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
- <CAMuHMdWJWj3a0MZgEi7VJTUJRNoeR+X3eoN8A-sW6fwimEr6Fg@mail.gmail.com> <09fb3fe7-d703-43f1-74f7-f8cb5ff1f67a@arm.com>
+From: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
+Date: Tue, 29 May 2018 20:24:28 +0800
+Message-ID: <5B0D467C.90206@huawei.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
+	<5B0536A3.1000304@huawei.com>
+	<cd13f60d-b282-3804-4ca7-2d34476c597f@arm.com>
+	<5B06B17C.1090809@huawei.com>
+	<205c1729-8026-3efe-c363-d37d7150d622@arm.com>
+	<5B077765.30703@huawei.com>
+	<fea420ff-e738-e2ed-ab1e-a3f4dde4b6ef@arm.com>
+	<5B08DA21.3070507@huawei.com>
+	<99ff4f89-86ef-a251-894c-8aa8a47d2a69@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <09fb3fe7-d703-43f1-74f7-f8cb5ff1f67a@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Palmer Dabbelt <palmer@sifive.com>, Will Deacon <Will.Deacon@arm.com>, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, jhugo@codeaurora.org, Al Stone <ahs3@redhat.com>, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, wangxiongfeng2@huawei.com, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg KH <gregkh@linuxfoundation.org>"Rafael J. Wysocki" <r>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <99ff4f89-86ef-a251-894c-8aa8a47d2a69-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Cc: "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org" <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Sudeep,
-
-On Tue, May 29, 2018 at 1:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> On 29/05/18 11:48, Geert Uytterhoeven wrote:
->> On Thu, May 17, 2018 at 7:05 PM, Catalin Marinas
->> <catalin.marinas@arm.com> wrote:
->>> On Fri, May 11, 2018 at 06:57:55PM -0500, Jeremy Linton wrote:
->>>> Jeremy Linton (12):
->>>>   drivers: base: cacheinfo: move cache_setup_of_node()
->>>>   drivers: base: cacheinfo: setup DT cache properties early
->>>>   cacheinfo: rename of_node to fw_token
->>>>   arm64/acpi: Create arch specific cpu to acpi id helper
->>>>   ACPI/PPTT: Add Processor Properties Topology Table parsing
->>>>   ACPI: Enable PPTT support on ARM64
->>>>   drivers: base cacheinfo: Add support for ACPI based firmware tables
->>>>   arm64: Add support for ACPI based firmware tables
->>>>   arm64: topology: rename cluster_id
->>>>   arm64: topology: enable ACPI/PPTT based CPU topology
->>>>   ACPI: Add PPTT to injectable table list
->>>>   arm64: topology: divorce MC scheduling domain from core_siblings
->>>
->>> Queued for 4.18 (without Sudeep's latest property_read_u64 cacheinfo
->>> patch - http://lkml.kernel.org/r/20180517154701.GA20281@e107155-lin; I
->>> can add it separately).
->>
->> This is now commit 37c3ec2d810f87ea ("arm64: topology: divorce MC
->> scheduling domain from core_siblings") in arm64/for-next/core, causing
->> system suspend on big.LITTLE systems to hang after shutting down the first
->> CPU:
->>
->>     $ echo mem > /sys/power/state
->>     PM: suspend entry (deep)
->>     PM: Syncing filesystems ... done.
->>     Freezing user space processes ... (elapsed 0.001 seconds) done.
->>     OOM killer disabled.
->>     Freezing remaining freezable tasks ... (elapsed 0.001 seconds) done.
->>     Disabling non-boot CPUs ...
->>     CPU1: shutdown
->>     psci: CPU1 killed.
->>
->
-> Is it OK to assume the suspend failed just after shutting down one CPU
-> or it's failing during resume ? It depends on whether you had console
-> disabled or not.
-
-I have no-console-suspend enabled.
-It's failing during suspend, the next lines should be:
-
-    CPU2: shutdown
-    psci: CPU2 killed.
-    ...
-
->> For me, it fails on the following big.LITTLE systems:
->>
->>     R-Car H3 ES2.0 (4xCA57 + 4xCA53)
->>     R-Car M3-W (2xCA57 + 4xCA53)
->>
->
-> Interesting, is it PSCI based system suspend ?
-
-Yes it is.
-
-Suspend-to-idle, which doesn't offline CPUs, still works.
-
->> System supend still works fine on systems with big cores only:
->>
->>     R-Car H3 ES1.0 (4xCA57 (4xCA53 disabled in firmware))
->>     R-Car M3-N (2xCA57)
->>
->> Reverting this commit fixes the issue for me.
->
-> I can't find anything that relates to system suspend in these patches
-> unless they are messing with something during CPU hot plug-in back
-> during resume.
-
-It's only the last patch that introduces the breakage.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+SGksCgpPbiAyMDE4LzUvMjkgMTk6NTUsIEplYW4tUGhpbGlwcGUgQnJ1Y2tlciB3cm90ZToKPiAo
+SWYgcG9zc2libGUsIHBsZWFzZSByZXBseSBpbiBwbGFpbiB0ZXh0IHRvIHRoZSBsaXN0LiBSZWFk
+aW5nIHRoaXMgaW4gYQo+IHRleHQtb25seSByZWFkZXIgaXMgY29uZnVzaW5nLCBiZWNhdXNlIGFs
+bCBxdW90ZXMgaGF2ZSB0aGUgc2FtZSBsZXZlbCkKU29ycnkgZm9yIHRoYXTvvIwgSSBoYXZlIHJl
+c2V0IHRoZSB0aHVuZGVyYmlyZCwgOikgdGhhbmtzLgo+IE9uIDI2LzA1LzE4IDA0OjUzLCBYdSBa
+YWlibyB3cm90ZToKPj4gSSBndWVzcyB0aGVyZSBtYXkgYmUgc29tZSBtaXN1bmRlcnN0YW5kaW5n
+cyA6KS4KPj4KPj4gIEZyb20gdGhlIGN1cnJlbnQgcGF0Y2hlcywgJ2lvbW11X3N2YV9kZXZpY2Vf
+c2h1dGRvd24nIGlzIGNhbGxlZCBieSAndmZpb19pb21tdV9zdmFfc2h1dGRvd24nLCB3aGljaAo+
+PiBpcyBtYWlubHkgdXNlZCBieSAndmZpb19pb21tdV90eXBlMV9kZXRhY2hfZ3JvdXAnIHRoYXQg
+aXMgZmluYWxseSBjYWxsZWQgYnkgcHJvY2Vzc2VzJyByZWxlYXNlIG9mIHZmaW8gZmFjaWxpdGl5
+Cj4+IGF1dG9tYXRpY2FsbHkgb3IgY2FsbGVkIGJ5ICdWRklPX0dST1VQX1VOU0VUX0NPTlRBSU5F
+UicgbWFudWFsbHkgaW4gdGhlIHByb2Nlc3Nlcy4KPj4KPj4gU28sIGp1c3QgaW1hZ2UgdGhhdCAy
+IHByb2Nlc3NlcyBpcyB3b3JraW5nIG9uIHRoZSBkZXZpY2Ugd2l0aCBJT1BGIGZlYXR1cmUsIGFu
+ZCB0aGUgMiBkbyB0aGUgZm9sbG93aW5nIHRvIGVuYWJsZSBTVkE6Cj4+Cj4+ICAgICAgMS5vcGVu
+KCIvZGV2L3ZmaW8vdmZpbyIpIDsKPj4KPj4gICAgIDIub3BlbiB0aGUgZ3JvdXAgb2YgdGhlIGRl
+dmNpZSBieSBjYWxsaW5nIG9wZW4oIi9kZXYvdmZpby94IiksIGJ1dCBub3csCj4+ICAgICAgIEkg
+dGhpbmsgdGhlIHNlY29uZCBwcm9jZXNzZXMgd2lsbCBmYWlsIHRvIG9wZW4gdGhlIGdyb3VwIGJl
+Y2F1c2UgY3VycmVudCBWRklPIHRoaW5rcyB0aGF0IG9uZSBncm91cCBvbmx5IGNhbiBiZSB1c2Vk
+IGJ5IG9uZSBwcm9jZXNzL3ZtLAo+PiAgICAgICBhdCBwcmVzZW50LCBJIHVzZSBtZWRpYXRlZCBk
+ZXZpY2UgdG8gY3JlYXRlIG1vcmUgZ3JvdXBzIG9uIHRoZSBwYXJlbnQgZGV2aWNlIHRvIHN1cHBv
+cnQgbXVsdGlwbGUgcHJvY2Vzc2VzOwo+Pgo+PiAgICAgIDMuVkZJT19HUk9VUF9TRVRfQ09OVEFJ
+TkVSOwo+Pgo+PiAgICAgIDQuVkZJT19TRVRfSU9NTVU7Cj4+Cj4+ICAgICAgNS5WRklPX0lPTU1V
+X0JJTkQ7Cj4gSSBoYXZlIGEgY29uY2VybiByZWdhcmRpbmcgeW91ciBkcml2ZXIuIFdpdGggbWRl
+diB5b3UgY2FuJ3QgYWxsb3cKPiBwcm9jZXNzZXMgdG8gcHJvZ3JhbSB0aGUgUEFTSUQgdGhlbXNl
+bHZlcywgc2luY2UgdGhlIHBhcmVudCBkZXZpY2UgaGFzIGEKPiBzaW5nbGUgUEFTSUQgdGFibGUu
+IFlvdSBsb3NlIGFsbCBpc29sYXRpb24gc2luY2UgcHJvY2Vzc2VzIGNvdWxkIHdyaXRlCj4gYW55
+IHZhbHVlIGluIHRoZSBQQVNJRCBmaWVsZCBhbmQgYWNjZXNzIGFkZHJlc3Mgc3BhY2VzIG9mIG90
+aGVyCj4gcHJvY2Vzc2VzIGJvdW5kIHRvIHRoaXMgcGFyZW50IGRldmljZSAoZXZlbiBpZiB0aGUg
+QklORCBjYWxsIHdhcyBmb3IKPiBvdGhlciBtZGV2cykuClllcywgaWYgd3JhcGRyaXZlIGRvIG5v
+dGhpbmcgb24gdGhpcyBQQVNJRCBzZXR0aW5nIHByb2NlZHVyZSBpbiBrZXJuZWwgCnNwYWNlLCBJ
+IHRoaW5rCnRoZXJlIGRlZmluaXRlbHkgZXhpc3RzIHRoaXMgc2VjdXJpdHkgcmlzay4KPiBUaGUg
+d3JhcCBkcml2ZXIgaGFzIHRvIG1lZGlhdGUgY2FsbHMgdG8gYmluZCgpLCBhbmQgZWl0aGVyIHBy
+b2dyYW0gdGhlCj4gUEFTSUQgaW50byB0aGUgZGV2aWNlIGl0c2VsZiwgb3IgYXQgbGVhc3QgY2hl
+Y2sgdGhhdCwgd2hlbiByZWNlaXZpbmcgYQo+IFNFVF9QQVNJRCBpb2N0bCBmcm9tIGEgcHJvY2Vz
+cywgdGhlIGdpdmVuIFBBU0lEIHdhcyBhY3R1YWxseSBhbGxvY2F0ZWQKPiB0byB0aGUgcHJvY2Vz
+cy4KWWVzLCBnb29kIGFkdmljZSwgdGhhbmtzLgo+Cj4+ICAgICAgNi5EbyBzb21lIHdvcmtzIHdp
+dGggdGhlIGhhcmR3YXJlIHdvcmtpbmcgdW5pdCBmaWxsZWQgYnkgUEFTSUQgb24gdGhlIGRldmlj
+ZTsKPj4KPj4gICAgIDcuVkZJT19JT01NVV9VTkJJTkQ7Cj4+Cj4+ICAgICAgOC5WRklPX0dST1VQ
+X1VOU0VUX0NPTlRBSU5FUjstLS1oZXJlLCBoYXZlIHRvIHNsZWVwIHRvIHdhaXQgYW5vdGhlciBw
+cm9jZXNzIHRvIGZpbmlzaCB3b3JrcyBvZiB0aGUgc3RlcCA2Owo+Pgo+PiAgICAgIDkuIGNsb3Nl
+KGdyb3VwKTsgY2xvc2UoY29udGFpbm5lcik7Cj4+Cj4+Cj4+IFNvLCBteSBpZGVhIGlzOiBJZiBp
+dCBpcyBwb3NzaWJsZSB0byBqdXN0IHJlbGVhc2UgdGhlIHBhcmFtcyBvciBmYWNpbGl0aWVzIHRo
+YXQgb25seSBiZWxvbmcgdG8gdGhlIGN1cnJlbnQgcHJvY2VzcyB3aGlsZSB0aGUgcHJvY2VzcyBz
+aHV0ZG93biB0aGUgZGV2aWNlLAo+PiBhbmQgd2hpbGUgdGhlIGxhc3QgcHJvY2VzcyByZWxlYXNl
+cyB0aGVtIGFsbC4gVGhlbiwgYXMgaW4gdGhlIGFib3ZlIHN0ZXAgOCwgd2UKPj4gZG9uJ3QgbmVl
+ZCB0byB3YWl0LCBvciBtYXliZSB3YWl0IGZvciBhIHZlcnkgbG9uZyB0aW1lIGlmIHRoZSBvdGhl
+ciBwcm9jZXNzIGlzIGRvaW5nIGxvdHMgb2Ygd29yayBvbiB0aGUgZGV2aWNlLgo+IEdpdmVuIHRo
+YXQgeW91IG5lZWQgdG8gbm90aWZ5IHRoZSBtZWRpYXRpbmcgZHJpdmVyIG9mIElPTU1VX0JJTkQg
+Y2FsbHMKPiBhcyBleHBsYWluZWQgYWJvdmUsIHlvdSBjb3VsZCBkbyBzb21ldGhpbmcgc2ltaWxh
+ciBmb3Igc2h1dGRvd246IGZyb20KPiB0aGUgbWRldiBkcml2ZXIsIGNhbGwgaW9tbXVfc3ZhX3No
+dXRkb3duX2RldmljZSgpIG9ubHkgZm9yIHRoZSBsYXN0IG1kZXYuCkN1cnJlbnRseSwgSSBhZGQg
+YW4gQVBJIHRvIGNoZWNrIGlmIGl0IGlzIHRoZSBsYXN0IG1kZXYgaW4gd3JhcGRyaXZlLCBhcyAK
+dmZpbyBzaHV0ZG93bnMgdGhlIGRldmljZSwKaXQgY2FsbCB0aGUgQVBJIHRvIGRvIHRoZSBjaGVj
+ayBhdCBmaXJzdC4KClRoYW5rcwpaYWlibwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlzdAppb21tdUBsaXN0cy5saW51eC1m
+b3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlvbi5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pb21tdQ==
