@@ -1,82 +1,102 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC] acpi: Declare memory allocations in acpi_ut_create_internal_object_dbg as non-leaks
-Date: Tue, 29 May 2018 11:03:43 +0200
-Message-ID: <2350680.J6FZTH4xBM@aspire.rjw.lan>
-References: <20180512145938.7936-1-Larry.Finger@lwfinger.net>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 07/40] iommu: Add a page fault handler
+Date: Tue, 29 May 2018 11:00:21 +0100
+Message-ID: <6bd83326-2da0-1250-3dfc-7d6fbf58d701@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-8-jean-philippe.brucker@arm.com>
+	<20180518110434.150a0e64@jacob-builder>
+	<8a640794-a6f3-fa01-82a9-06479a6f779a@arm.com>
+	<20180522163521.413e60c6@jacob-builder>
+	<bdf9f221-ab97-2168-d072-b7f6a0dba840@arm.com>
+	<20180525173544.05638510@jacob-builder>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180512145938.7936-1-Larry.Finger@lwfinger.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180525173544.05638510@jacob-builder>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, May 12, 2018 4:59:38 PM CEST Larry Finger wrote:
-> In kernel 4.17.0-rcX, kmemleak reports 9 leaks with tracebacks similat to
-> the following:
-> 
-> unreferenced object 0xffff880224a077e0 (size 72):
->   comm "swapper/0", pid 1, jiffies 4294892358 (age 1022.636s)
->   hex dump (first 32 bytes):
->     00 00 00 00 00 00 00 00 0e 01 01 00 00 00 00 01  ................
->     00 00 00 80 00 00 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<000000004f506615>] acpi_ut_create_internal_object_dbg+0x4d/0x10e
->     [<000000006e7730e3>] acpi_ds_build_internal_object+0xed/0x1cd
->     [<00000000272b7c73>] acpi_ds_build_internal_package_obj+0x245/0x3a2
->     [<000000000b64c50e>] acpi_ds_eval_data_object_operands+0x17b/0x21b
->     [<00000000589647ac>] acpi_ds_exec_end_op+0x433/0x6c1
->     [<000000001d69bcbf>] acpi_ps_parse_loop+0x926/0x9be
->     [<000000005d6fa97d>] acpi_ps_parse_aml+0x1a2/0x4af
->     [<00000000c4bef823>] acpi_ps_execute_table+0xbb/0x119
->     [<00000000fd9632e4>] acpi_ns_execute_table+0x20c/0x260
->     [<00000000e6ae17ac>] acpi_ns_parse_table+0x7d/0x1b3
->     [<0000000008e1e148>] acpi_ns_load_table+0x8d/0x1c0
->     [<000000009fc8346f>] acpi_tb_load_namespace+0x176/0x278
->     [<0000000073f98b3b>] acpi_load_tables+0x6e/0xfd
->     [<00000000d2ef13d2>] acpi_init+0x8c/0x340
->     [<000000007da19d8d>] do_one_initcall+0x46/0x1fa
->     [<0000000024681a1d>] kernel_init_freeable+0x1a2/0x237
-> 
-> According to gdb, the offending code is
->               object =
->                   acpi_ut_allocate_object_desc_dbg(module_name, line_number,
->                                                    component_id);
-> 
-> As it is not possible to unload the acpi code to test that this is a real
-> leak and not a false positive, and that only these 9 appear no matter how
-> long the system is up, a kmemleak_not_leak(object) call is inserted.
-> 
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
-> ---
->  drivers/acpi/acpica/utobject.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
-> index 5b78fe08d7d7..ae6d8cc18cec 100644
-> --- a/drivers/acpi/acpica/utobject.c
-> +++ b/drivers/acpi/acpica/utobject.c
-> @@ -8,6 +8,7 @@
->   *****************************************************************************/
->  
->  #include <acpi/acpi.h>
-> +#include <linux/kmemleak.h>
->  #include "accommon.h"
->  #include "acnamesp.h"
->  
-> @@ -70,6 +71,7 @@ union acpi_operand_object *acpi_ut_create_internal_object_dbg(const char
->  	if (!object) {
->  		return_PTR(NULL);
->  	}
-> +	kmemleak_not_leak(object);
->  
->  	switch (type) {
->  	case ACPI_TYPE_REGION:
-> 
+On 26/05/18 01:35, Jacob Pan wrote:
+>>>> Not exactly, it's the IOMMU driver that makes sure all LPIG in its
+>>>> queues are submitted by the above flush call. In more details the
+>>>> flow is:
+>>>>
+>>>> * Either device driver calls unbind()/sva_device_shutdown(), or the
+>>>> process exits.
+>>>> * If the device driver called, then it already told the device to
+>>>> stop using the PASID. Otherwise we use the mm_exit() callback to
+>>>> tell the device driver to stop using the PASID.
+> Sorry I still need more clarification. For the PASID termination
+> initiated by vfio unbind, I don't see device driver given a chance to
+> stop PASID. Seems just call __iommu_sva_unbind_device() which already
+> assume device stopped issuing DMA with the PASID.
+> So it is the vfio unbind caller responsible for doing driver callback
+> to stop DMA on a given PASID?
 
-I've decided to apply this patch, thanks!
+Yes, but I don't know how to implement this. Since PCI doesn't formalize
+the PASID stop mechanism and the device doesn't have a kernel driver,
+VFIO would need help from the userspace driver for stopping PASID
+(notify the userspace driver when an other process exits).
+
+
+>>>> * In either case, when receiving a stop request from the driver,
+>>>> the device sends the LPIGs to the IOMMU queue.
+>>>> * Then, the flush call above ensures that the IOMMU reports the
+>>>> LPIG with iommu_report_device_fault.
+>>>> * While submitting all LPIGs for this PASID to the work queue,
+>>>> ipof_queue_fault also picked up all partial faults, so the partial
+>>>> list is clean.
+>>>>
+>>>> Maybe I should improve this comment?
+>>>>  
+>>> thanks for explaining. LPIG submission is done by device
+>>> asynchronously w.r.t. driver stopping/decommission PASID.  
+>>
+>> Hmm, it should really be synchronous, otherwise there is no way to
+>> know when the PASID can be decommissioned. We need a guarantee such
+>> as the one in 6.20.1 of the PCIe spec, "Managing PASID TLP Prefix
+>> Usage":
+>>
+>> "When the stop request mechanism indicates completion, the Function
+>> has:
+>> * Completed all Non-Posted Requests associated with this PASID.
+>> * Flushed to the host all Posted Requests addressing host memory in
+>> all TCs that were used by the PASID."
+>>
+>> That's in combination with "The function shall [...] finish
+>> transmitting any multi-page Page Request Messages for this PASID
+>> (i.e. send the Page Request Message with the L bit Set)." from the
+>> ATS spec.
+>>
+> I am not contesting on the device side, what I meant was from the
+> host IOMMU driver perspective, LPIG is received via IOMMU host queue,
+> therefore asynchronous. Not sure about ARM, but on VT-d LPIG submission
+> could meet queue full condition. So per VT-d spec, iommu will generate a
+> successful auto response to the device. At this point, assume we
+> already stopped the given PASID on the device, there might not be
+> another LPIG sent for the device. Therefore, you could have a partial
+> list. I think we can just drop the requests in the partial list for
+> that PASID until the PASID gets re-allocated.
+
+Indeed, I'll add this in next version. For a complete solution to the
+queue-full condition (which seems to behave the same way on ARM) I was
+thinking the IOMMU driver should also have a method for removing all
+partial faults when detecting a queue overflow. Since it doesn't know
+which PRGs did receive an auto-response, all it can do is remove all
+partial faults, for all devices using this queue. But freeing the stuck
+partial faults in flush() and remove_device() should be good enough
+
+Thanks,
+Jean
