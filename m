@@ -1,7 +1,7 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
 Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
-Date: Tue, 29 May 2018 15:48:36 -0500
-Message-ID: <18579a87-0154-ff90-5ee6-02453c97c47b@arm.com>
+Date: Tue, 29 May 2018 16:52:04 -0500
+Message-ID: <a79f5acc-51f2-cd7c-5abf-c7c1df8064a1@arm.com>
 References: <20180511235807.30834-1-jeremy.linton@arm.com>
  <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
  <CAMuHMdWJWj3a0MZgEi7VJTUJRNoeR+X3eoN8A-sW6fwimEr6Fg@mail.gmail.com>
@@ -10,73 +10,130 @@ References: <20180511235807.30834-1-jeremy.linton@arm.com>
  <551905a6-eaa8-97df-06ec-1ceedfbc164f@arm.com>
  <20180529150823.GD17159@arm.com>
  <CAMuHMdU0yET6+-FfS8e9HJdKB7h0gDn7kzWGpJZV=UiWn5fLkA@mail.gmail.com>
- <20180529201623.GA591@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180529201623.GA591@arm.com>
+In-Reply-To: <CAMuHMdU0yET6+-FfS8e9HJdKB7h0gDn7kzWGpJZV=UiWn5fLkA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Geert Uytterhoeven <geert@linux-m68k.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>, Will Deacon <will.deacon@arm.com>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mark Rutland <Mark.Rutland@arm.com>, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, Palmer Dabbelt <palmer@sifive.com>, linux-riscv@lists.infradead.org, Morten.Rasmussen@arm.com, vkilari@codeaurora.org, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, jhugo@codeaurora.org, Al Stone <ahs3@redhat.com>, Len Brown <lenb@kernel.org>, John Garry <john.garry@huawei.com>, wangxiongfeng2@huawei.com, Dietmar Eggemann <Dietmar.Eggemann@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>Linux
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/29/2018 03:16 PM, Will Deacon wrote:
-> Hi Geert,
+Hi,
+
+On 05/29/2018 10:51 AM, Geert Uytterhoeven wrote:
+> Hi Will,
 > 
-> On Tue, May 29, 2018 at 05:51:29PM +0200, Geert Uytterhoeven wrote:
->> On Tue, May 29, 2018 at 5:08 PM, Will Deacon <will.deacon@arm.com> wrote:
->>> On Tue, May 29, 2018 at 02:18:40PM +0100, Sudeep Holla wrote:
->>>> On 29/05/18 12:56, Geert Uytterhoeven wrote:
->>>>> On Tue, May 29, 2018 at 1:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>>>>> On 29/05/18 11:48, Geert Uytterhoeven wrote:
->>>>>>> System supend still works fine on systems with big cores only:
->>>>>>>
->>>>>>>      R-Car H3 ES1.0 (4xCA57 (4xCA53 disabled in firmware))
->>>>>>>      R-Car M3-N (2xCA57)
->>>>>>>
->>>>>>> Reverting this commit fixes the issue for me.
+> On Tue, May 29, 2018 at 5:08 PM, Will Deacon <will.deacon@arm.com> wrote:
+>> On Tue, May 29, 2018 at 02:18:40PM +0100, Sudeep Holla wrote:
+>>> On 29/05/18 12:56, Geert Uytterhoeven wrote:
+>>>> On Tue, May 29, 2018 at 1:14 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>>>> On 29/05/18 11:48, Geert Uytterhoeven wrote:
+>>>>>> System supend still works fine on systems with big cores only:
 >>>>>>
->>>>>> I can't find anything that relates to system suspend in these patches
->>>>>> unless they are messing with something during CPU hot plug-in back
->>>>>> during resume.
+>>>>>>      R-Car H3 ES1.0 (4xCA57 (4xCA53 disabled in firmware))
+>>>>>>      R-Car M3-N (2xCA57)
+>>>>>>
+>>>>>> Reverting this commit fixes the issue for me.
 >>>>>
->>>>> It's only the last patch that introduces the breakage.
->>>>>
+>>>>> I can't find anything that relates to system suspend in these patches
+>>>>> unless they are messing with something during CPU hot plug-in back
+>>>>> during resume.
 >>>>
->>>> As specified in the commit log, it won't change any behavior for DT
->>>> systems if it's non-NUMA or single node system. So I am still wondering
->>>> what could trigger this regression.
+>>>> It's only the last patch that introduces the breakage.
+>>>>
 >>>
->>> I wonder if we're somehow giving an uninitialised/invalid NUMA configuration
->>> to the scheduler, although I can't see how this would happen.
->>>
->>> Geert -- if you enable CONFIG_DEBUG_PER_CPU_MAPS=y and apply the diff below
->>> do you see anything shouting in dmesg?
+>>> As specified in the commit log, it won't change any behavior for DT
+>>> systems if it's non-NUMA or single node system. So I am still wondering
+>>> what could trigger this regression.
 >>
->> Thanks, but unfortunately it doesn't help.
->> I added some debug code to print cpumask, but so far I don't see anything
->> suspicious.
+>> I wonder if we're somehow giving an uninitialised/invalid NUMA configuration
+>> to the scheduler, although I can't see how this would happen.
+>>
+>> Geert -- if you enable CONFIG_DEBUG_PER_CPU_MAPS=y and apply the diff below
+>> do you see anything shouting in dmesg?
 > 
-> Damn, sorry for wasting your time. For the record, Catalin's been seeing
-> boot failures under KVM on a non-big/LITTLE machine that bisect reliably
-> to this patch, but we've also not been able to explain them. Worse, adding
-> so much as a printk makes the problem disappear.
+> Thanks, but unfortunately it doesn't help.
+> I added some debug code to print cpumask, but so far I don't see anything
+> suspicious.
 
+I suspect most of the problem is related to the node mask changing at 
+unexpected times (particularly cores being removed from the mask). Once 
+I understand that more, there may be a simpler patch.
 
+OTOH, I've been testing with this, and with it, I can't seem to 
+duplicate the problem with CONFIG_NUMA disabled I found.
 
-I was about to post a patch to remove the numa check if CONFIG_NUMA 
-disabled. But that seems pointless if the its happening with numa 
-enabled. So assuming, its the removal of the core from the numa mask 
-which is causing problems. It looks like numa_clear_node() might cause 
-similar problems when numa is enabled. In my case the problem I see is 
-NULL dereference in __bitmap_intersect called from select_task_rq_fair. 
-That said, I only see the problem when CONFIG_NUMA isn't set.
+diff --git a/arch/arm64/include/asm/topology.h 
+b/arch/arm64/include/asm/topology.h
+index df48212f767b..7450ef5ed733 100644
+--- a/arch/arm64/include/asm/topology.h
++++ b/arch/arm64/include/asm/topology.h
+@@ -12,6 +12,7 @@ struct cpu_topology {
+         cpumask_t thread_sibling;
+         cpumask_t core_sibling;
+         cpumask_t llc_siblings;
++       cpumask_t node_siblings; /* maintain a stable node sibling list */
+  };
 
-So, I've also got another work around which caches the numa node to the 
-cpu_topology and then only builds it when store_cpu_topology() is 
-called. That should stabilize the numa mask, and assure that the bit 
-maps are correct when the scheduler requests them.
+  extern struct cpu_topology cpu_topology[NR_CPUS];
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index f3e2e3aec0b0..f4eb80852d78 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -677,8 +677,9 @@ void __init smp_prepare_cpus(unsigned int max_cpus)
+         init_cpu_topology();
 
-Do you guys want that patch, or are we looking for a deeper root cause?
+         this_cpu = smp_processor_id();
+-       store_cpu_topology(this_cpu);
+         numa_store_cpu_info(this_cpu);
++       store_cpu_topology(this_cpu);
++
+
+         /*
+          * If UP is mandated by "nosmp" (which implies "maxcpus=0"), 
+don't set
+diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+index 7415c166281f..6819c764537d 100644
+--- a/arch/arm64/kernel/topology.c
++++ b/arch/arm64/kernel/topology.c
+@@ -215,7 +215,7 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+
+  const struct cpumask *cpu_coregroup_mask(int cpu)
+  {
+-       const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
++       const cpumask_t *core_mask = &cpu_topology[cpu].node_siblings;
+
+         /* Find the smaller of NUMA, core or LLC siblings */
+         if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+@@ -233,12 +233,16 @@ const struct cpumask *cpu_coregroup_mask(int cpu)
+  static void update_siblings_masks(unsigned int cpuid)
+  {
+         struct cpu_topology *cpu_topo, *cpuid_topo = &cpu_topology[cpuid];
++       int node = cpu_to_node(cpuid);
+         int cpu;
+
+         /* update core and thread sibling masks */
+         for_each_possible_cpu(cpu) {
+                 cpu_topo = &cpu_topology[cpu];
+
++               if (cpu_to_node(cpu) == node)
++                       cpumask_set_cpu(cpu, &cpu_topo->node_siblings);
++
+                 if (cpuid_topo->llc_id == cpu_topo->llc_id)
+                         cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
+
+@@ -311,6 +315,9 @@ static void __init reset_cpu_topology(void)
+                 cpumask_clear(&cpu_topo->llc_siblings);
+                 cpumask_set_cpu(cpu, &cpu_topo->llc_siblings);
+
++               cpumask_clear(&cpu_topo->node_siblings);
++               cpumask_set_cpu(cpu, &cpu_topo->node_siblings);
++
+                 cpumask_clear(&cpu_topo->core_sibling);
+                 cpumask_set_cpu(cpu, &cpu_topo->core_sibling);
+                 cpumask_clear(&cpu_topo->thread_sibling);
+-- 
+2.14.3
