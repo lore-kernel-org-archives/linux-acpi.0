@@ -1,86 +1,83 @@
 From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [PATCH v1 1/2] ACPI / APEI: Add SEI notification type support
- for ARMv8
-Date: Thu, 31 May 2018 11:52:52 +0100
-Message-ID: <20180531105252.it67drvnsfz62pqa@lakrids.cambridge.arm.com>
+Subject: Re: [PATCH v1 2/2] arm64: handle NOTIFY_SEI notification by the APEI
+ driver
+Date: Thu, 31 May 2018 12:01:15 +0100
+Message-ID: <20180531110115.uglmicy3nzwfoyx3@lakrids.cambridge.arm.com>
 References: <1527770506-8076-1-git-send-email-gengdongjiu@huawei.com>
- <1527770506-8076-2-git-send-email-gengdongjiu@huawei.com>
+ <1527770506-8076-3-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1527770506-8076-2-git-send-email-gengdongjiu@huawei.com>
+In-Reply-To: <1527770506-8076-3-git-send-email-gengdongjiu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, robert.moore@intel.com, erik.schmauss@intel.com, dave.martin@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>, james.morse@arm.com
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, robert.moore@intel.com, erik.schmauss@intel.com, dave.martin@arm.com, ard.biesheuvel@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 31, 2018 at 08:41:45PM +0800, Dongjiu Geng wrote:
-> +#ifdef CONFIG_ACPI_APEI_SEI
-> +static LIST_HEAD(ghes_sei);
-> +
-> +/*
-> + * Return 0 only if one of the SEI error sources successfully reported an error
-> + * record sent from the firmware.
-> + */
-> +int ghes_notify_sei(void)
-> +{
-> +	struct ghes *ghes;
+On Thu, May 31, 2018 at 08:41:46PM +0800, Dongjiu Geng wrote:
+> When kernel or KVM gets the NOTIFY_SEI notification, it firstly
+> calls the APEI driver to handle this notification.
+> 
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> ---
+>  arch/arm64/kernel/traps.c | 15 +++++++++++++++
+>  1 file changed, 15 insertions(+)
+> ---
+> change since https://www.spinics.net/lists/kvm/msg168919.html
+> 
+> 1. Remove the handle_guest_sei() helper
+> 
+> 
+> diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+> index 8bbdc17..676e40c 100644
+> --- a/arch/arm64/kernel/traps.c
+> +++ b/arch/arm64/kernel/traps.c
+> @@ -50,6 +50,7 @@
+>  #include <asm/exception.h>
+>  #include <asm/system_misc.h>
+>  #include <asm/sysreg.h>
+> +#include <acpi/ghes.h>
+
+Nit: please place newline before the new include, since it comes from a
+different directory (and we do so in fault.c).
+
+>  static const char *handler[]= {
+>  	"Synchronous Abort",
+> @@ -701,6 +702,20 @@ void __noreturn arm64_serror_panic(struct pt_regs *regs, u32 esr)
+>  bool arm64_is_fatal_ras_serror(struct pt_regs *regs, unsigned int esr)
+>  {
+>  	u32 aet = arm64_ras_serror_get_severity(esr);
 > +	int ret = -ENOENT;
 > +
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(ghes, &ghes_sei, list) {
-> +		if (!ghes_proc(ghes))
-> +			ret = 0;
+> +	if (IS_ENABLED(CONFIG_ACPI_APEI_SEI)) {
+> +		if (interrupts_enabled(regs))
+> +			nmi_enter();
+> +
+> +		ret = ghes_notify_sei();
+> +
+> +		if (interrupts_enabled(regs))
+> +			nmi_exit();
+> +
+> +		if (!ret)
+> +			return false;
 > +	}
-> +	rcu_read_unlock();
-> +	return ret;
-> +}
-> +
-> +static void ghes_sei_add(struct ghes *ghes)
-> +{
-> +	mutex_lock(&ghes_list_mutex);
-> +	list_add_rcu(&ghes->list, &ghes_sei);
-> +	mutex_unlock(&ghes_list_mutex);
-> +}
-> +
-> +static void ghes_sei_remove(struct ghes *ghes)
-> +{
-> +	mutex_lock(&ghes_list_mutex);
-> +	list_del_rcu(&ghes->list);
-> +	mutex_unlock(&ghes_list_mutex);
-> +	synchronize_rcu();
-> +}
-> +#else /* CONFIG_ACPI_APEI_SEI */
-> +static inline void ghes_sei_add(struct ghes *ghes) { }
-> +static inline void ghes_sei_remove(struct ghes *ghes) { }
-> +#endif /* CONFIG_ACPI_APEI_SEI */
-> +
->  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
->  /*
 
-> index 8feb0c8..9ba59e2 100644
-> --- a/include/acpi/ghes.h
-> +++ b/include/acpi/ghes.h
-> @@ -120,5 +120,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
->  	     section = acpi_hest_get_next(section))
->  
->  int ghes_notify_sea(void);
-> +int ghes_notify_sei(void);
+In do_serror() we already handle nmi_{enter,exit}(), so there's no need
+for that here.
 
-It would be nice to have a stub definition when !CONFIG_ACPI_APEI_SEI,
-e.g.
+TBH, I don't understand why do_sea() does that conditionally today.
+Unless there's some constraint I'm missing, I think it would make more
+sense to do that regardless of whether the interrupted context had
+interrupts enabled. James -- does that make sense to you?
 
-#ifdef CONFIG_ACPI_APEI_SEI
-int ghes_notify_sei(void);
-#else
-static in int ghes_notify_sei(void) { return -ENOENT; }
-#endif
+If you update the prior patch with a stub for !CONFIG_ACPI_APEI_SEI, you
+can simplify all of the above additions down to:
 
-... as callers could simply call this without additional checks.
+	if (!ghes_notify_sei())
+		return;
 
-As a cleanup, similar would be nice for ghes_notify_sea() with
-CONFIG_ACPI_APEI_SEA.
+... which would look a lot nicer.
 
 Thanks,
 Mark.
