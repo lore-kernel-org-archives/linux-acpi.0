@@ -1,99 +1,39 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v1 1/2] ACPI / APEI: Add SEI notification type support for
- ARMv8
-Date: Fri, 1 Jun 2018 18:07:52 +0800
-Message-ID: <5aed8a29-a2c2-5080-d954-90c7f817ada1@huawei.com>
-References: <1527770506-8076-1-git-send-email-gengdongjiu@huawei.com>
- <1527770506-8076-2-git-send-email-gengdongjiu@huawei.com>
- <20180531105252.it67drvnsfz62pqa@lakrids.cambridge.arm.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 21/40] iommu/arm-smmu-v3: Add support for Substream IDs
+Date: Fri, 1 Jun 2018 11:46:07 +0100
+Message-ID: <be58739e-ed03-396f-c7ac-19a3195aef87@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-22-jean-philippe.brucker@arm.com>
+	<BLUPR0201MB1505AA55707BE2E13392FFAFA5630@BLUPR0201MB1505.namprd02.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180531105252.it67drvnsfz62pqa@lakrids.cambridge.arm.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <BLUPR0201MB1505AA55707BE2E13392FFAFA5630-hRBPhS1iNj/g9tdZWAsUFxrHTHEw16jenBOFsp37pqbUKgpGm//BTAC/G2K4zDHf@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, robert.moore@intel.com, erik.schmauss@intel.com, dave.martin@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bharat Kumar Gogada <bharatku-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Cc: "xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, Ravikiran Gummaluri <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark,
-   Thanks for the comments.
+On 31/05/18 12:01, Bharat Kumar Gogada wrote:
+>>  static void arm_smmu_sync_cd(void *cookie, int ssid, bool leaf)  {
+>> +	struct arm_smmu_cmdq_ent cmd = {
+>> +		.opcode	= CMDQ_OP_CFGI_CD_ALL,
+> 
+> Hi Jean, here CMDQ_OP_CFGI_CD opcode 0x5. 
 
-On 2018/5/31 18:52, Mark Rutland wrote:
-> On Thu, May 31, 2018 at 08:41:45PM +0800, Dongjiu Geng wrote:
->> +#ifdef CONFIG_ACPI_APEI_SEI
->> +static LIST_HEAD(ghes_sei);
->> +
->> +/*
->> + * Return 0 only if one of the SEI error sources successfully reported an error
->> + * record sent from the firmware.
->> + */
->> +int ghes_notify_sei(void)
->> +{
->> +	struct ghes *ghes;
->> +	int ret = -ENOENT;
->> +
->> +	rcu_read_lock();
->> +	list_for_each_entry_rcu(ghes, &ghes_sei, list) {
->> +		if (!ghes_proc(ghes))
->> +			ret = 0;
->> +	}
->> +	rcu_read_unlock();
->> +	return ret;
->> +}
->> +
->> +static void ghes_sei_add(struct ghes *ghes)
->> +{
->> +	mutex_lock(&ghes_list_mutex);
->> +	list_add_rcu(&ghes->list, &ghes_sei);
->> +	mutex_unlock(&ghes_list_mutex);
->> +}
->> +
->> +static void ghes_sei_remove(struct ghes *ghes)
->> +{
->> +	mutex_lock(&ghes_list_mutex);
->> +	list_del_rcu(&ghes->list);
->> +	mutex_unlock(&ghes_list_mutex);
->> +	synchronize_rcu();
->> +}
->> +#else /* CONFIG_ACPI_APEI_SEI */
->> +static inline void ghes_sei_add(struct ghes *ghes) { }
->> +static inline void ghes_sei_remove(struct ghes *ghes) { }
->> +#endif /* CONFIG_ACPI_APEI_SEI */
->> +
->>  #ifdef CONFIG_HAVE_ACPI_APEI_NMI
->>  /*
-> 
->> index 8feb0c8..9ba59e2 100644
->> --- a/include/acpi/ghes.h
->> +++ b/include/acpi/ghes.h
->> @@ -120,5 +120,6 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
->>  	     section = acpi_hest_get_next(section))
->>  
->>  int ghes_notify_sea(void);
->> +int ghes_notify_sei(void);
-> 
-> It would be nice to have a stub definition when !CONFIG_ACPI_APEI_SEI,
-> e.g.
-> 
-> #ifdef CONFIG_ACPI_APEI_SEI
-> int ghes_notify_sei(void);
-> #else
-> static in int ghes_notify_sei(void) { return -ENOENT; }
-> #endif
-> 
-> ... as callers could simply call this without additional checks.
-> 
-> As a cleanup, similar would be nice for ghes_notify_sea() with
-> CONFIG_ACPI_APEI_SEA.
+Woops, nice catch!
 
-I think your suggestion is better, I will do the cleanup include the ghes_notify_sea().
-thanks again.
+I pushed fixes for all comments so far to branch sva/current
 
-> 
-> Thanks,
-> Mark.
-> 
-> .
-> 
+Thanks,
+Jean
