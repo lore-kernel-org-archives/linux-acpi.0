@@ -1,77 +1,82 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v1 2/2] arm64: handle NOTIFY_SEI notification by the APEI
- driver
-Date: Thu, 31 May 2018 17:51:31 +0100
-Message-ID: <71afa669-e3c5-979e-da5b-1d9cb7056fd6@arm.com>
-References: <1527770506-8076-1-git-send-email-gengdongjiu@huawei.com>
- <1527770506-8076-3-git-send-email-gengdongjiu@huawei.com>
- <20180531110115.uglmicy3nzwfoyx3@lakrids.cambridge.arm.com>
+From: Daniel J Blueman <daniel@quora.org>
+Subject: 4.14.44: BUG_ON(!list_empty(&sem->wait_list));
+Date: Fri, 1 Jun 2018 10:20:53 +0800
+Message-ID: <CAMVG2svkh9AcLKg+A4M7+XuvdROcx4vOcZQwnTTwqLuBU-vaXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180531110115.uglmicy3nzwfoyx3@lakrids.cambridge.arm.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Rutland <mark.rutland@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, robert.moore@intel.com, erik.schmauss@intel.com, dave.martin@arm.com, ard.biesheuvel@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Cc: mario.limonciello@dell.com, jared.dominguez@dell.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark, Dongjiu Geng,
+Plugging in a USB-C power source on my Dell XPS 9550 trips an ACPI
+BUG_ON [1], reproducible with mainline 4.14.44, suggesting other
+threads are waiting for semaphore acquisition due to
+"BUG_ON(!list_empty(&sem->wait_list))".
 
-On 31/05/18 12:01, Mark Rutland wrote:
-> In do_serror() we already handle nmi_{enter,exit}(), so there's no need
-> for that here.
+This is the current 1.7.0 BIOS with Ubuntu 18.04 userspace, plugging
+in an LG 27UD88 (also with the current firmware) monitor USB-C
+connection which apparently advertises 60W charging (x1,
+PowerDelivery, DisplayPort alternative mode, data). The same issues
+reproduce on a Dell Precision 5510 with Ubuntu 16.04, the shipped
+kernel and 4.14.44.
 
-Even better: nmi_enter() has a BUG_ON(in_nmi()).
-
-
-> TBH, I don't understand why do_sea() does that conditionally today.
-> Unless there's some constraint I'm missing, 
-
-APEI uses a different fixmap entry and locks when in_nmi(). This was because we
-may interrupt the irq-masked region in APEI that was using the regular memory.
-(e.g. the 'polled' notification, or something backed by an interrupt.) But,
-Borislav has spotted other things in here that are broken[0]. I'm working on
-rolling all that into 'v5' of the in_nmi() rework stuff.
-
-We currently get away with this on arm because 'SEA' is the only NMI-like thing,
-and it occurs synchronously. The problem cases are all also cases where the
-kernel text is corrupt, which we can't possibly hope to handle.
-
-For NOTIFY_SDEI and NOTIFY_SEI this is the wrong pattern as these are
-asynchronous. do_serror() has already done most of the work for NOTIFY_SEI, but
-we need to use the estatus queue in APEI, which is currently x86 only.
-
-
-> I think it would make more
-> sense to do that regardless of whether the interrupted context had
-> interrupts enabled. James -- does that make sense to you?
-> 
-> If you update the prior patch with a stub for !CONFIG_ACPI_APEI_SEI, you
-> can simplify all of the above additions down to:
-> 
-> 	if (!ghes_notify_sei())
-> 		return;
-> 
-> ... which would look a lot nicer.
-
-The code that calls ghes_notify_sei() may need calling by KVM too, but its
-default action to an 'unclaimed' SError will be different.
-Because of the race between memory_failure() and return-to-userspace, we may
-need to kick the irq work queue (if we can), as we return from do_serror(). [1]
-and [2] provide an example for NOTIFY_SEA. SDEI does this by returning to the
-kernel through the IRQ handler, (which handles the KVM case too).
-
-
-I think this series is unsafe until we can use the estatus queue in APEI. Its
-also missing the handling for an SError interrupting a KVM guest.
-
+I can enable ACPI debugging if useful? Perhaps ACPI_DB_MUTEX or other
+levels would be appropriate?
 
 Thanks,
+  Daniel
 
-James
+-- [1]
 
-[0] https://www.spinics.net/lists/arm-kernel/msg653332.html
-[1] https://www.spinics.net/lists/arm-kernel/msg649237.html
-[2] https://www.spinics.net/lists/arm-kernel/msg649239.html
+kernel BUG at /home/kernel/COD/linux/drivers/acpi/osl.c:1201
+invalid opcode: 0000 [#1] SMP PTI
+Modules linked in: [...]
+CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 4.14.44-041444-generic
+#201805251612
+Hardware name: Dell Inc. XPS 15 9550/, BIOS 1.7.0 02/23/2018
+task: ffff9bc2ab6b9740 task.stack: ffffbOca80034000
+RIP: 0010:acpi_os_delete_semaphore+0x6d/0x70
+RSP: 0018:ffffbOca80037be8 EFLAGS: 00010283
+RAX: ffffbOca83f8fc40 RBX: ffff9bc238b5dbe0 RCX: 0000000000000000
+RDX: ffff9bc238b5dbe8 RSI: 0000000000000000 RDI: ffff9bc238b5dbe0
+RBP: ffff9bc2adlc0990 ROB: ffff9bc2bdc25f20 R09: ffff9bc29ee56300
+R10: ffffe03bd2796440 R11: ffff9bc2ad183fa0 R12: ffff9bc22f1321e0
+R13: 0000000000000001 R14: 0000000000000001 R15: ffff9bc22f132eb0
+FS: 00007fc03886f940(0000) GS:ffff9bc2bdc00000(0000) knlGS:0000000000000000
+CS: 0010 DS: 0000 ES: 0000 CRO: 0000000080050033
+CR2: 00007ffc645e70f8 CR3: 000000049e120001 CR4: 00000000003606f0
+Call Trace:
+acpi_ex_system_reset_event+0x3f/0x65
+acpi_ex_opcode_1A_OT_0R+0x70/0xfa
+acpi_ds_exec_end_op+0x15d/0x71b
+acpi_ps_parse_loop+0x929/0x9d6
+? acpi_ds_result_push+0x82/0x1d2
+acpi_ps_parse_aml+0x1a2/0x4af
+acpi_ps_execute_method+0x1ef/0x2ab
+acpi_ns_evaluate+0x2e4/0x41d
+acpi_evaluate_object+0x1cb/0x38e
+acpi_enter_sleep_state_prep+0xae/0x13a
+acpi_sleep_prepare.part.2+0x2e/0x40
+acpi_power_off_prepare+0xf/0x20
+[38871.1925361 kernel_power_off+0x42/0x70
+SYSC_reboot+0x12f/0x210
+? handle_mm_fault+0xea/0x1e0
+[38871.1925861 ? do_writev+0x5e/0xf0
+? do_writev+0x5e/0xf0
+do_syscall_64+0x6e/0x120
+entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+RIP: 0033:0x7fc03839b373
+RSP: 002b:00007ffc645e70f8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a9
+RAX: ffffffffffffffda RBX: 000000004321fedc RCX: 00007fc03839b373
+ROX: 000000004321fedc RSI: 0000000028121969 RDI: 00000000fee1dead
+RBP: 00007ffc645e7160 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000002 R11: 0000000000000202 R12: 00007ffc645e7168
+R13: 0000000000000000 R14: 0000001b00000004 R15: 00007ffc645e7458
+Code: b8 00 04 00 00 48 c7 c1 c3 91 28 ab 48 c7 c2 20 91 28 ab be of
+04 00 00 bf 00 00 00 01 03 41 85 04 00 58 eb b0 b8 01 10 00 00 c3 <Of>
+Ob 90 Of if 44 00 00 80 3d 74 CO 97 01 00 41 54 55 53 Of 84
+RIP: acpi_os_delete_semaphore+0x6d/0x70 RSP: ffffb0ca80037be8
+-- 
+Daniel J Blueman
