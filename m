@@ -1,52 +1,26 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: [PATCH v1 2/2] PCI: shpchp: Fix AMD POGO identification
-Date: Sat, 02 Jun 2018 00:42:12 -0500
-Message-ID: <152791813206.257724.14863139556803168986.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1 1/2] PCI: shpchp: Use dev_printk() for OSHP-related
+ messages
+Date: Sat, 2 Jun 2018 21:48:23 +0300
+Message-ID: <20180602184823.GT15419@lahna.fi.intel.com>
 References: <152791788214.257724.13044360353832574147.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <152791812599.257724.10989340037255897378.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152791788214.257724.13044360353832574147.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Content-Disposition: inline
+In-Reply-To: <152791812599.257724.10989340037255897378.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bjorn Helgaas <bhelgaas@google.com>
+On Sat, Jun 02, 2018 at 12:42:06AM -0500, Bjorn Helgaas wrote:
+> From: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> Use dev_printk() for messages related to requesting control of SHPC hotplug
+> via the OSHP method.
+> 
+> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 
-The fix for an AMD POGO erratum related to SHPC incorrectly identified the
-device.  The workaround should be applied only for AMD POGO devices, but it
-was instead applied to:
-
-  - all AMD bridges, and
-  - all devices from any vendor with device ID 0x7458
-
-Fixes: 53044f357448 ("[PATCH] PCI Hotplug: shpchp: AMD POGO errata fix")
-Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- drivers/pci/hotplug/shpchp_ctrl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/pci/hotplug/shpchp_ctrl.c b/drivers/pci/hotplug/shpchp_ctrl.c
-index bedda5bda910..1047b56e5730 100644
---- a/drivers/pci/hotplug/shpchp_ctrl.c
-+++ b/drivers/pci/hotplug/shpchp_ctrl.c
-@@ -585,13 +585,13 @@ static int shpchp_enable_slot (struct slot *p_slot)
- 	ctrl_dbg(ctrl, "%s: p_slot->pwr_save %x\n", __func__, p_slot->pwr_save);
- 	p_slot->hpc_ops->get_latch_status(p_slot, &getstatus);
- 
--	if (((p_slot->ctrl->pci_dev->vendor == PCI_VENDOR_ID_AMD) ||
--	    (p_slot->ctrl->pci_dev->device == PCI_DEVICE_ID_AMD_POGO_7458))
-+	if ((p_slot->ctrl->pci_dev->vendor == PCI_VENDOR_ID_AMD &&
-+	     p_slot->ctrl->pci_dev->device == PCI_DEVICE_ID_AMD_POGO_7458)
- 	     && p_slot->ctrl->num_slots == 1) {
--		/* handle amd pogo errata; this must be done before enable  */
-+		/* handle AMD POGO errata; this must be done before enable  */
- 		amd_pogo_errata_save_misc_reg(p_slot);
- 		retval = board_added(p_slot);
--		/* handle amd pogo errata; this must be done after enable  */
-+		/* handle AMD POGO errata; this must be done after enable  */
- 		amd_pogo_errata_restore_misc_reg(p_slot);
- 	} else
- 		retval = board_added(p_slot);
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
