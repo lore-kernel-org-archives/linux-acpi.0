@@ -1,61 +1,112 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v1 2/2] PCI: shpchp: Fix AMD POGO identification
-Date: Sun, 3 Jun 2018 09:59:18 +0200
-Message-ID: <CAJZ5v0hHHR_559P1vF+9g_vmKkPSWjm9pv5zmjBq9qQ7vDhjOg@mail.gmail.com>
-References: <152791788214.257724.13044360353832574147.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <152791813206.257724.14863139556803168986.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: Remove ecc_unit_size
+Date: Sun, 03 Jun 2018 12:55:34 -0700
+Message-ID: <152805573421.36904.10280982218277525255.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152791813206.257724.14863139556803168986.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario Limonciello <Mario.Limonciello@dell.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jun 2, 2018 at 7:42 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> From: Bjorn Helgaas <bhelgaas@google.com>
->
-> The fix for an AMD POGO erratum related to SHPC incorrectly identified the
-> device.  The workaround should be applied only for AMD POGO devices, but it
-> was instead applied to:
->
->   - all AMD bridges, and
->   - all devices from any vendor with device ID 0x7458
->
-> Fixes: 53044f357448 ("[PATCH] PCI Hotplug: shpchp: AMD POGO errata fix")
-> Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+The "Clear Error Unit" may be smaller than the ECC unit size on some
+devices. For example, poison may be tracked at 64-byte alignment even
+though the ECC unit is larger. Unless / until the ACPI specification
+provides a non-ambiguous way to communicate this property do not expose
+this to userspace.
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Software that had been using this property must already be prepared for
+the case where the property is not provided on older kernels, so it is
+safe to remove this attribute.
 
-> ---
->  drivers/pci/hotplug/shpchp_ctrl.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/pci/hotplug/shpchp_ctrl.c b/drivers/pci/hotplug/shpchp_ctrl.c
-> index bedda5bda910..1047b56e5730 100644
-> --- a/drivers/pci/hotplug/shpchp_ctrl.c
-> +++ b/drivers/pci/hotplug/shpchp_ctrl.c
-> @@ -585,13 +585,13 @@ static int shpchp_enable_slot (struct slot *p_slot)
->         ctrl_dbg(ctrl, "%s: p_slot->pwr_save %x\n", __func__, p_slot->pwr_save);
->         p_slot->hpc_ops->get_latch_status(p_slot, &getstatus);
->
-> -       if (((p_slot->ctrl->pci_dev->vendor == PCI_VENDOR_ID_AMD) ||
-> -           (p_slot->ctrl->pci_dev->device == PCI_DEVICE_ID_AMD_POGO_7458))
-> +       if ((p_slot->ctrl->pci_dev->vendor == PCI_VENDOR_ID_AMD &&
-> +            p_slot->ctrl->pci_dev->device == PCI_DEVICE_ID_AMD_POGO_7458)
->              && p_slot->ctrl->num_slots == 1) {
-> -               /* handle amd pogo errata; this must be done before enable  */
-> +               /* handle AMD POGO errata; this must be done before enable  */
->                 amd_pogo_errata_save_misc_reg(p_slot);
->                 retval = board_added(p_slot);
-> -               /* handle amd pogo errata; this must be done after enable  */
-> +               /* handle AMD POGO errata; this must be done after enable  */
->                 amd_pogo_errata_restore_misc_reg(p_slot);
->         } else
->                 retval = board_added(p_slot);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ Documentation/ABI/removed/sysfs-bus-nfit |   17 +++++++++++++++++
+ Documentation/ABI/testing/sysfs-bus-nfit |   19 -------------------
+ drivers/acpi/nfit/core.c                 |   11 -----------
+ 3 files changed, 17 insertions(+), 30 deletions(-)
+ create mode 100644 Documentation/ABI/removed/sysfs-bus-nfit
+
+diff --git a/Documentation/ABI/removed/sysfs-bus-nfit b/Documentation/ABI/removed/sysfs-bus-nfit
+new file mode 100644
+index 000000000000..ae8c1ca53828
+--- /dev/null
++++ b/Documentation/ABI/removed/sysfs-bus-nfit
+@@ -0,0 +1,17 @@
++What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
++Date:		Aug, 2017
++KernelVersion:	v4.14 (Removed v4.18)
++Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
++Description:
++		(RO) Size of a write request to a DIMM that will not incur a
++		read-modify-write cycle at the memory controller.
++
++		When the nfit driver initializes it runs an ARS (Address Range
++		Scrub) operation across every pmem range. Part of that process
++		involves determining the ARS capabilities of a given address
++		range. One of the capabilities that is reported is the 'Clear
++		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
++		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
++		This property indicates the boundary at which the NVDIMM may
++		need to perform read-modify-write cycles to maintain ECC (Error
++		Correcting Code) blocks.
+diff --git a/Documentation/ABI/testing/sysfs-bus-nfit b/Documentation/ABI/testing/sysfs-bus-nfit
+index 619eb8ca0f99..a1cb44dcb908 100644
+--- a/Documentation/ABI/testing/sysfs-bus-nfit
++++ b/Documentation/ABI/testing/sysfs-bus-nfit
+@@ -212,22 +212,3 @@ Description:
+ 		range. Used by NVDIMM Region Mapping Structure to uniquely refer
+ 		to this structure. Value of 0 is reserved and not used as an
+ 		index.
+-
+-
+-What:		/sys/bus/nd/devices/regionX/nfit/ecc_unit_size
+-Date:		Aug, 2017
+-KernelVersion:	v4.14
+-Contact:	linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+-Description:
+-		(RO) Size of a write request to a DIMM that will not incur a
+-		read-modify-write cycle at the memory controller.
+-
+-		When the nfit driver initializes it runs an ARS (Address Range
+-		Scrub) operation across every pmem range. Part of that process
+-		involves determining the ARS capabilities of a given address
+-		range. One of the capabilities that is reported is the 'Clear
+-		Uncorrectable Error Range Length Unit Size' (see: ACPI 6.2
+-		section 9.20.7.4 Function Index 1 - Query ARS Capabilities).
+-		This property indicates the boundary at which the NVDIMM may
+-		need to perform read-modify-write cycles to maintain ECC (Error
+-		Correcting Code) blocks.
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e2235ed3e4be..b87252bf4571 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1978,19 +1978,8 @@ static ssize_t range_index_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(range_index);
+ 
+-static ssize_t ecc_unit_size_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
+-{
+-	struct nd_region *nd_region = to_nd_region(dev);
+-	struct nfit_spa *nfit_spa = nd_region_provider_data(nd_region);
+-
+-	return sprintf(buf, "%d\n", nfit_spa->clear_err_unit);
+-}
+-static DEVICE_ATTR_RO(ecc_unit_size);
+-
+ static struct attribute *acpi_nfit_region_attributes[] = {
+ 	&dev_attr_range_index.attr,
+-	&dev_attr_ecc_unit_size.attr,
+ 	NULL,
+ };
