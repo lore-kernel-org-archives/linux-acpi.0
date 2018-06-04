@@ -1,37 +1,53 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v1 0/2] PCI: shpchp: Minor fixes
-Date: Mon, 4 Jun 2018 12:49:24 -0500
-Message-ID: <20180604174924.GB30381@bhelgaas-glaptop.roam.corp.google.com>
-References: <152791788214.257724.13044360353832574147.stgit@bhelgaas-glaptop.roam.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Ravi Chandra Sadineni <ravisadineni@chromium.org>
+Subject: [PATCH] ACPI LID: increment wakeup count only when notified.
+Date: Mon,  4 Jun 2018 11:26:12 -0700
+Message-ID: <20180604182612.72699-1-ravisadineni@chromium.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <152791788214.257724.13044360353832574147.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mario.Limonciello@dell.com, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Lukas Wunner <lukas@wunner.de>
+To: rjw@rjwysocki.net, lenb@kernel.org, ravisadineni@chromium.org, ravisadineni@google.com
+Cc: dmitry.torokhov@gmail.com, tbroch@google.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rajatja@google.com, bleung@google.com, furquan@chromium.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jun 02, 2018 at 12:41:59AM -0500, Bjorn Helgaas wrote:
-> An AMD POGO check in shpchp incorrectly included any device with device ID
-> 0x7458, no matter what the vendor.
-> 
-> Also, use pci_info() instead of dbg() for messages related to OSHP.
-> They're important enough that they should appear in dmesg.
-> 
-> I intend to include these along with Mika's shpchp updates.
-> 
-> ---
-> 
-> Bjorn Helgaas (2):
->       PCI: shpchp: Use dev_printk() for OSHP-related messages
->       PCI: shpchp: Fix AMD POGO identification
-> 
-> 
->  drivers/pci/hotplug/acpi_pcihp.c  |   13 ++++++-------
->  drivers/pci/hotplug/shpchp_ctrl.c |    8 ++++----
->  2 files changed, 10 insertions(+), 11 deletions(-)
+Currently ACPI LID increments wakeup count irrespective of the wake source.
+This is because we call acpi_lid_initialize_state on every resume.
+Userland deamons using wakeup_count to identify the potential wake
+source for the last wake will be thrown off by this. Instead increment
+the wakeup count only when there is a FIXED_HARDWARE/NOTFIY_STATUS event.
 
-I applied these with reviewed-by from Mika and Rafael to pci/hotplug for
-v4.18.
+Signed-off-by: Ravi Chandra Sadineni <ravisadineni@chromium.org>
+---
+ drivers/acpi/button.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index f1cc4f9d31cd9..d40fef7241f08 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -235,9 +235,6 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+ 		button->last_time = ktime_get();
+ 	}
+ 
+-	if (state)
+-		acpi_pm_wakeup_event(&device->dev);
+-
+ 	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
+ 	if (ret == NOTIFY_DONE)
+ 		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+@@ -417,6 +414,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 		/* fall through */
+ 	case ACPI_BUTTON_NOTIFY_STATUS:
+ 		input = button->input;
++		acpi_pm_wakeup_event(&device->dev);
+ 		if (button->type == ACPI_BUTTON_TYPE_LID) {
+ 			mutex_lock(&button->input->mutex);
+ 			users = button->input->users;
+@@ -426,7 +424,6 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 		} else {
+ 			int keycode;
+ 
+-			acpi_pm_wakeup_event(&device->dev);
+ 			if (button->suspended)
+ 				break;
+ 
+-- 
+2.17.1.1185.g55be947832-goog
