@@ -1,46 +1,38 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework update for v4.18-rc1
-Date: Mon, 4 Jun 2018 13:31:01 +0200
-Message-ID: <CAJZ5v0jq45atkapwSjJ4DkHhB1bfOA-Sh1TiA3dPXwKyFTBheA@mail.gmail.com>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v2 0/2] support to set VSESR_EL2 by user space
+Date: Tue, 5 Jun 2018 03:45:40 +0800
+Message-ID: <1528141542-44048-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, james.morse@arm.com, gengdongjiu@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+This series patch is separated from https://www.spinics.net/lists/kvm/msg168917.html
 
-Please pull from the tag
+1. Detect whether KVM can set set guest SError syndrome
+2. Support to Set VSESR_EL2 and inject SError by user space.
+3. Support live migration to keep SError pending state and VSESR_EL2 value
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- dp-4.18-rc1
+The user space patch is here: https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg06965.html
 
-with top-most commit 63dcc7090137a893322432e156d66be3ce104615
+Dongjiu Geng (2):
+  arm64: KVM: export the capability to set guest SError syndrome
+  arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
 
- device property: Get rid of union aliasing
+ Documentation/virtual/kvm/api.txt    | 42 +++++++++++++++++++++++++++++++++---
+ arch/arm/include/asm/kvm_host.h      |  6 ++++++
+ arch/arm/kvm/guest.c                 | 12 +++++++++++
+ arch/arm64/include/asm/kvm_emulate.h |  5 +++++
+ arch/arm64/include/asm/kvm_host.h    |  7 ++++++
+ arch/arm64/include/uapi/asm/kvm.h    | 13 +++++++++++
+ arch/arm64/kvm/guest.c               | 35 ++++++++++++++++++++++++++++++
+ arch/arm64/kvm/inject_fault.c        |  6 +++---
+ arch/arm64/kvm/reset.c               |  4 ++++
+ include/uapi/linux/kvm.h             |  1 +
+ virt/kvm/arm/arm.c                   | 19 ++++++++++++++++
+ 11 files changed, 144 insertions(+), 6 deletions(-)
 
-on top of commit 67b8d5c7081221efa252e111cd52532ec6d4266f
-
- Linux 4.17-rc5
-
-to receive a device properties framework update for 4.18-rc1.
-
-This modifies the device properties framework to remove union
-aliasing from it (Andy Shevchenko).
-
-Thanks!
-
-
----------------
-
-Andy Shevchenko (1):
-      device property: Get rid of union aliasing
-
----------------
-
- drivers/base/property.c                 | 104 ++++++++++++++++++++++++++------
- drivers/firmware/efi/apple-properties.c |   8 ++-
- include/linux/property.h                |  52 ++++++++--------
- 3 files changed, 117 insertions(+), 47 deletions(-)
+-- 
+2.7.4
