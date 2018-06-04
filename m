@@ -1,107 +1,43 @@
-From: mrnuke <mr.nuke.me@gmail.com>
-Subject: [PATCH v8 3/3] acpi: apei: Do not panic() on PCIe errors reported through GHES
-Date: Mon,  4 Jun 2018 10:04:40 -0500
-Message-ID: <20180604150443.1265-4-mrnuke@austins740xd.dell>
-References: <20180604150443.1265-1-mrnuke@austins740xd.dell>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v9 00/12] Support PPTT for ARM64
+Date: Mon, 4 Jun 2018 16:12:24 +0100
+Message-ID: <20180604151223.tmwllb72lqopff2y@armageddon.cambridge.arm.com>
+References: <20180511235807.30834-1-jeremy.linton@arm.com>
+ <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180604150443.1265-1-mrnuke@austins740xd.dell>
+Content-Disposition: inline
+In-Reply-To: <20180517170523.h7tuvbzdfluuidcz@armageddon.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, tony.luck@intel.com
-Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Mark.Rutland@arm.com, austinwc@codeaurora.org, tnowicki@caviumnetworks.com, palmer@sifive.com, Will.Deacon@arm.com, linux-riscv@lists.infradead.org, wangxiongfeng2@huawei.com, vkilari@codeaurora.org, Lorenzo.Pieralisi@arm.com, jhugo@codeaurora.org, Morten.Rasmussen@arm.com, linux-acpi@vger.kernel.org, lenb@kernel.org, john.garry@huawei.com, ahs3@redhat.com, linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Sudeep.Holla@arm.com, Dietmar.Eggemann@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+On Thu, May 17, 2018 at 06:05:24PM +0100, Catalin Marinas wrote:
+> On Fri, May 11, 2018 at 06:57:55PM -0500, Jeremy Linton wrote:
+> > Jeremy Linton (12):
+> >   drivers: base: cacheinfo: move cache_setup_of_node()
+> >   drivers: base: cacheinfo: setup DT cache properties early
+> >   cacheinfo: rename of_node to fw_token
+> >   arm64/acpi: Create arch specific cpu to acpi id helper
+> >   ACPI/PPTT: Add Processor Properties Topology Table parsing
+> >   ACPI: Enable PPTT support on ARM64
+> >   drivers: base cacheinfo: Add support for ACPI based firmware tables
+> >   arm64: Add support for ACPI based firmware tables
+> >   arm64: topology: rename cluster_id
+> >   arm64: topology: enable ACPI/PPTT based CPU topology
+> >   ACPI: Add PPTT to injectable table list
+> >   arm64: topology: divorce MC scheduling domain from core_siblings
+> 
+> Queued for 4.18 (without Sudeep's latest property_read_u64 cacheinfo
+> patch - http://lkml.kernel.org/r/20180517154701.GA20281@e107155-lin; I
+> can add it separately).
 
-As previously noted, the policy to panic on any "Fatal" GHES error is
-not suitable for several classes of errors. The most notable is
-error containment. The correct policy is to achieve identical behavior
-to native error handling -- i.e. when not reported through GHES. This,
-in special cases, may not be possible, as we have to exit NMIs, which
-requires these special considerations
+I'm going to revert patch 12 in this series (arm64: topology: divorce MC
+scheduling domain from core_siblings) until the problem is understood
+and a fix proposed and tested. It's likely that the PPTT for arm64 will
+only be fully enabled in 4.19.
 
-PCIe AER errors are contained and reported at the root port. On DPC
-capable hardware, containment can be done by all downstream ports. DPC
-also has the added advantage of preventing future errors. Since these
-errors stop at the root port, we can do all the work we need to exit
-NMI and reach the error handler.
-
-This patch does away with the mindless crashing of the system, and
-correctly invokes the AER handler. When AER is not enabled, or the
-firmware doesn't provide sufficient information to identify the source
-of the error, the original panic() behavior is maintained.
-
-Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
----
- drivers/acpi/apei/ghes.c | 43 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 41 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 1b22e18168f5..f7126f6d8d52 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -425,7 +425,7 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
-  * GHES_SEV_RECOVERABLE -> AER_NONFATAL
-  * GHES_SEV_RECOVERABLE && CPER_SEC_RESET -> AER_FATAL
-  *     These both need to be reported and recovered from by the AER driver.
-- * GHES_SEV_FATAL does not make it to this handler
-+ * GHES_SEV_FATAL -> AER_FATAL
-  */
- static void ghes_handle_aer(struct acpi_hest_generic_data *gdata)
- {
-@@ -837,6 +837,45 @@ static inline void ghes_sea_remove(struct ghes *ghes) { }
- static struct llist_head ghes_estatus_llist;
- static struct irq_work ghes_proc_irq_work;
- 
-+/* PCIe AER errors are safe if AER section contains enough info. */
-+static int ghes_pcie_has_safe_handler(struct acpi_hest_generic_data *gdata)
-+{
-+	struct cper_sec_pcie *pcie_err = acpi_hest_get_payload(gdata);
-+
-+	if (pcie_err->validation_bits & CPER_PCIE_VALID_DEVICE_ID &&
-+		pcie_err->validation_bits & CPER_PCIE_VALID_AER_INFO &&
-+		IS_ENABLED(CONFIG_ACPI_APEI_PCIEAER))
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * Do we have an error handler that we can safely reach? We're concerned with
-+ * being able to notify an error handler by crossing the NMI/IRQ boundary,
-+ * being able to schedule_work, and so forth.
-+ */
-+static int ghes_has_fatal_handler(struct ghes *ghes)
-+{
-+	int worst_sev, sec_sev;
-+	bool safe = true;
-+	struct acpi_hest_generic_data *gdata;
-+	const guid_t *section_type;
-+	const struct acpi_hest_generic_status *estatus = ghes->estatus;
-+
-+	apei_estatus_for_each_section(estatus, gdata) {
-+		section_type = (guid_t *)gdata->section_type;
-+
-+		if (guid_equal(section_type, &CPER_SEC_PCIE))
-+			safe = ghes_pcie_has_safe_handler(gdata);
-+
-+		if (!safe)
-+			break;
-+	}
-+
-+	return safe;
-+}
-+
- /*
-  * NMI may be triggered on any CPU, so ghes_in_nmi is used for
-  * having only one concurrent reader.
-@@ -944,7 +983,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 		}
- 
- 		sev = ghes_cper_severity(ghes->estatus->error_severity);
--		if (sev >= GHES_SEV_FATAL) {
-+		if ((sev >= GHES_SEV_FATAL) && !ghes_has_fatal_handler(ghes)) {
- 			oops_begin();
- 			ghes_print_queued_estatus();
- 			__ghes_panic(ghes);
 -- 
-2.14.3
+Catalin
