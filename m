@@ -1,85 +1,63 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v2 1/2] arm64: KVM: export the capability to set guest SError
- syndrome
-Date: Tue, 5 Jun 2018 03:45:41 +0800
-Message-ID: <1528141542-44048-2-git-send-email-gengdongjiu@huawei.com>
-References: <1528141542-44048-1-git-send-email-gengdongjiu@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1528141542-44048-1-git-send-email-gengdongjiu@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, james.morse@arm.com, gengdongjiu@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: mrnuke <mr.nuke.me@gmail.com>
+Subject: [PATCH v8 0/3]  acpi: apei: Drop panic() on
+Date: Mon,  4 Jun 2018 10:04:37 -0500
+Message-ID: <20180604150443.1265-1-mrnuke@austins740xd.dell>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, tony.luck@intel.com
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, mrnuke <mrnuke@austins740xd.dell>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Mauro Carvalho Chehab <mchehab@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-edac@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-For the arm64 RAS Extension, user space can inject a virtual-SError
-with specified ESR. So user space needs to know whether KVM support
-to inject such SError, this interface adds this query for this capability.
+FFS (firmware-first) handling through APEI seems to have developed a policy
+to panic() on any fatal errors. This policy is completely independent of
+the non-FFS case and inconsistent the native behavior of error handlers.
+A number of handlers will cope with fatal errors just fine when the APEI
+code path is not used.
 
-KVM will check whether system support RAS Extension, if supported, KVM
-returns true to user space, otherwise returns false.
+The purpose of this series is to obsolete this phoronic policy, with
+the motivation to enable identical handling of PCIe errors to native
+reporting.
 
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-Reviewed-by: James Morse <james.morse@arm.com>
----
- Documentation/virtual/kvm/api.txt | 11 +++++++++++
- arch/arm64/kvm/reset.c            |  3 +++
- include/uapi/linux/kvm.h          |  1 +
- 3 files changed, 15 insertions(+)
+Changes since v7:
+ - Now applies and complies on shiny v4.17
 
-diff --git a/Documentation/virtual/kvm/api.txt b/Documentation/virtual/kvm/api.txt
-index 758bf40..fdac969 100644
---- a/Documentation/virtual/kvm/api.txt
-+++ b/Documentation/virtual/kvm/api.txt
-@@ -4603,3 +4603,14 @@ Architectures: s390
- This capability indicates that kvm will implement the interfaces to handle
- reset, migration and nested KVM for branch prediction blocking. The stfle
- facility 82 should not be provided to the guest without this capability.
-+
-+8.14 KVM_CAP_ARM_SET_SERROR_ESR
-+
-+Architectures: arm, arm64
-+
-+This capability indicates that userspace can specify the syndrome value reported
-+to the guest OS when guest takes a virtual SError interrupt exception.
-+If KVM has this capability, userspace can only specify the ISS field for the ESR
-+syndrome, it can not specify the EC field which is not under control by KVM.
-+If this virtual SError is taken to EL1 using AArch64, this value will be reported
-+in ISS filed of ESR_EL1.
-diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
-index 3256b92..38c8a64 100644
---- a/arch/arm64/kvm/reset.c
-+++ b/arch/arm64/kvm/reset.c
-@@ -77,6 +77,9 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
- 	case KVM_CAP_ARM_PMU_V3:
- 		r = kvm_arm_support_pmu_v3();
- 		break;
-+	case KVM_CAP_ARM_INJECT_SERROR_ESR:
-+		r = cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
-+		break;
- 	case KVM_CAP_SET_GUEST_DEBUG:
- 	case KVM_CAP_VCPU_ATTRIBUTES:
- 		r = 1;
-diff --git a/include/uapi/linux/kvm.h b/include/uapi/linux/kvm.h
-index b02c41e..e88f976 100644
---- a/include/uapi/linux/kvm.h
-+++ b/include/uapi/linux/kvm.h
-@@ -948,6 +948,7 @@ struct kvm_ppc_resize_hpt {
- #define KVM_CAP_S390_BPB 152
- #define KVM_CAP_GET_MSR_FEATURES 153
- #define KVM_CAP_HYPERV_EVENTFD 154
-+#define KVM_CAP_ARM_INJECT_SERROR_ESR 155
- 
- #ifdef KVM_CAP_IRQ_ROUTING
- 
+Changes since v6:
+ - Fixed silly compilation warning
+ - Dropped concept of "degrading" error severity
+
+Changes since v5:
+ - Removed zoological references from commit message
+
+Changes since v4:
+ - Fix Freudian slip and use GHES_ instead of CPER_ enum
+ - Rephrased comments to clarify what we don't care about
+
+Changes since v3:
+ - Renamed ghes_severity to something more concrete
+ - Reorganized code to make it look like more than just a rename
+ - Remembered to remove last patch in the series
+
+Changes since v2:
+ - Due to popular request, simple is chosen over flexible
+ - Removed splitting of handlers into irq safe portion.
+ - Change behavior only for PCIe errors
+
+Changes since v1:
+ - Due to popular request, the panic() is left in the NMI handler
+ - GHES AER handler is split into NMI and non-NMI portions
+ - ghes_notify_nmi() does not panic on deferrable errors
+ - The handlers are put in a mapping and given a common call signature
+
+Alexandru Gagniuc (3):
+  acpi: apei: Rename GHES_SEV_PANIC to GHES_SEV_FATAL
+  acpi: apei: Rename ghes_severity() to ghes_cper_severity()
+  acpi: apei: Do not panic() on PCIe errors reported through GHES
+
+ arch/x86/kernel/cpu/mcheck/mce-apei.c |  2 +-
+ drivers/acpi/apei/ghes.c              | 65 +++++++++++++++++++++++++++--------
+ drivers/edac/ghes_edac.c              |  2 +-
+ include/acpi/ghes.h                   |  2 +-
+ 4 files changed, 54 insertions(+), 17 deletions(-)
+
 -- 
-2.7.4
+2.14.3
