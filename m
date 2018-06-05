@@ -1,78 +1,115 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: 4.14.44: BUG_ON(!list_empty(&sem->wait_list));
-Date: Mon, 4 Jun 2018 21:47:20 +0000
-Message-ID: <d3ff641eb0e84e25a9e1470743b3483b@ausx13mpc120.AMER.DELL.COM>
+From: Daniel J Blueman <daniel@quora.org>
+Subject: Re: 4.14.44: BUG_ON(!list_empty(&sem->wait_list));
+Date: Tue, 5 Jun 2018 13:48:17 +0800
+Message-ID: <CAMVG2st4QArJ-pC4+De2tKcL6tZzfhL3V0y+XC6NL4WMWg-ciA@mail.gmail.com>
 References: <CAMVG2svkh9AcLKg+A4M7+XuvdROcx4vOcZQwnTTwqLuBU-vaXw@mail.gmail.com>
+ <d3ff641eb0e84e25a9e1470743b3483b@ausx13mpc120.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMVG2svkh9AcLKg+A4M7+XuvdROcx4vOcZQwnTTwqLuBU-vaXw@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <d3ff641eb0e84e25a9e1470743b3483b@ausx13mpc120.AMER.DELL.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: daniel@quora.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: Jared.Dominguez@dell.com
+To: Mario.Limonciello@dell.com
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Jared.Dominguez@dell.com
 List-Id: linux-acpi@vger.kernel.org
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEYW5pZWwgSiBCbHVlbWFuIFtt
-YWlsdG86ZGFuaWVsQHF1b3JhLm9yZ10NCj4gU2VudDogVGh1cnNkYXksIE1heSAzMSwgMjAxOCA5
-OjIxIFBNDQo+IFRvOiBMaW51eCBLZXJuZWw7IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnDQo+
-IENjOiBMaW1vbmNpZWxsbywgTWFyaW87IERvbWluZ3VleiwgSmFyZWQNCj4gU3ViamVjdDogNC4x
-NC40NDogQlVHX09OKCFsaXN0X2VtcHR5KCZzZW0tPndhaXRfbGlzdCkpOw0KPiANCj4gUGx1Z2dp
-bmcgaW4gYSBVU0ItQyBwb3dlciBzb3VyY2Ugb24gbXkgRGVsbCBYUFMgOTU1MCB0cmlwcyBhbiBB
-Q1BJDQo+IEJVR19PTiBbMV0sIHJlcHJvZHVjaWJsZSB3aXRoIG1haW5saW5lIDQuMTQuNDQsIHN1
-Z2dlc3Rpbmcgb3RoZXINCj4gdGhyZWFkcyBhcmUgd2FpdGluZyBmb3Igc2VtYXBob3JlIGFjcXVp
-c2l0aW9uIGR1ZSB0bw0KPiAiQlVHX09OKCFsaXN0X2VtcHR5KCZzZW0tPndhaXRfbGlzdCkpIi4N
-Cj4gDQo+IFRoaXMgaXMgdGhlIGN1cnJlbnQgMS43LjAgQklPUyB3aXRoIFVidW50dSAxOC4wNCB1
-c2Vyc3BhY2UsIHBsdWdnaW5nDQo+IGluIGFuIExHIDI3VUQ4OCAoYWxzbyB3aXRoIHRoZSBjdXJy
-ZW50IGZpcm13YXJlKSBtb25pdG9yIFVTQi1DDQo+IGNvbm5lY3Rpb24gd2hpY2ggYXBwYXJlbnRs
-eSBhZHZlcnRpc2VzIDYwVyBjaGFyZ2luZyAoeDEsDQo+IFBvd2VyRGVsaXZlcnksIERpc3BsYXlQ
-b3J0IGFsdGVybmF0aXZlIG1vZGUsIGRhdGEpLiBUaGUgc2FtZSBpc3N1ZXMNCj4gcmVwcm9kdWNl
-IG9uIGEgRGVsbCBQcmVjaXNpb24gNTUxMCB3aXRoIFVidW50dSAxNi4wNCwgdGhlIHNoaXBwZWQN
-Cj4ga2VybmVsIGFuZCA0LjE0LjQ0Lg0KPiANCj4gSSBjYW4gZW5hYmxlIEFDUEkgZGVidWdnaW5n
-IGlmIHVzZWZ1bD8gUGVyaGFwcyBBQ1BJX0RCX01VVEVYIG9yIG90aGVyDQo+IGxldmVscyB3b3Vs
-ZCBiZSBhcHByb3ByaWF0ZT8NCg0KSSB0aGluayBtb3N0IHVzZWZ1bCB3b3VsZCBiZSBpZiB0aGlz
-IGNhbiBzdGlsbCByZXByb2R1Y2Ugd2l0aCA0LjE3Lg0KDQo+IA0KPiBUaGFua3MsDQo+ICAgRGFu
-aWVsDQo+IA0KPiAtLSBbMV0NCj4gDQo+IGtlcm5lbCBCVUcgYXQgL2hvbWUva2VybmVsL0NPRC9s
-aW51eC9kcml2ZXJzL2FjcGkvb3NsLmM6MTIwMQ0KPiBpbnZhbGlkIG9wY29kZTogMDAwMCBbIzFd
-IFNNUCBQVEkNCj4gTW9kdWxlcyBsaW5rZWQgaW46IFsuLi5dDQo+IENQVTogMCBQSUQ6IDEgQ29t
-bTogc3lzdGVtZC1zaHV0ZG93IE5vdCB0YWludGVkIDQuMTQuNDQtMDQxNDQ0LWdlbmVyaWMNCj4g
-IzIwMTgwNTI1MTYxMg0KPiBIYXJkd2FyZSBuYW1lOiBEZWxsIEluYy4gWFBTIDE1IDk1NTAvLCBC
-SU9TIDEuNy4wIDAyLzIzLzIwMTgNCj4gdGFzazogZmZmZjliYzJhYjZiOTc0MCB0YXNrLnN0YWNr
-OiBmZmZmYk9jYTgwMDM0MDAwDQo+IFJJUDogMDAxMDphY3BpX29zX2RlbGV0ZV9zZW1hcGhvcmUr
-MHg2ZC8weDcwDQo+IFJTUDogMDAxODpmZmZmYk9jYTgwMDM3YmU4IEVGTEFHUzogMDAwMTAyODMN
-Cj4gUkFYOiBmZmZmYk9jYTgzZjhmYzQwIFJCWDogZmZmZjliYzIzOGI1ZGJlMCBSQ1g6IDAwMDAw
-MDAwMDAwMDAwMDANCj4gUkRYOiBmZmZmOWJjMjM4YjVkYmU4IFJTSTogMDAwMDAwMDAwMDAwMDAw
-MCBSREk6IGZmZmY5YmMyMzhiNWRiZTANCj4gUkJQOiBmZmZmOWJjMmFkbGMwOTkwIFJPQjogZmZm
-ZjliYzJiZGMyNWYyMCBSMDk6IGZmZmY5YmMyOWVlNTYzMDANCj4gUjEwOiBmZmZmZTAzYmQyNzk2
-NDQwIFIxMTogZmZmZjliYzJhZDE4M2ZhMCBSMTI6IGZmZmY5YmMyMmYxMzIxZTANCj4gUjEzOiAw
-MDAwMDAwMDAwMDAwMDAxIFIxNDogMDAwMDAwMDAwMDAwMDAwMSBSMTU6IGZmZmY5YmMyMmYxMzJl
-YjANCj4gRlM6IDAwMDA3ZmMwMzg4NmY5NDAoMDAwMCkgR1M6ZmZmZjliYzJiZGMwMDAwMCgwMDAw
-KQ0KPiBrbmxHUzowMDAwMDAwMDAwMDAwMDAwDQo+IENTOiAwMDEwIERTOiAwMDAwIEVTOiAwMDAw
-IENSTzogMDAwMDAwMDA4MDA1MDAzMw0KPiBDUjI6IDAwMDA3ZmZjNjQ1ZTcwZjggQ1IzOiAwMDAw
-MDAwNDllMTIwMDAxIENSNDogMDAwMDAwMDAwMDM2MDZmMA0KPiBDYWxsIFRyYWNlOg0KPiBhY3Bp
-X2V4X3N5c3RlbV9yZXNldF9ldmVudCsweDNmLzB4NjUNCj4gYWNwaV9leF9vcGNvZGVfMUFfT1Rf
-MFIrMHg3MC8weGZhDQo+IGFjcGlfZHNfZXhlY19lbmRfb3ArMHgxNWQvMHg3MWINCj4gYWNwaV9w
-c19wYXJzZV9sb29wKzB4OTI5LzB4OWQ2DQo+ID8gYWNwaV9kc19yZXN1bHRfcHVzaCsweDgyLzB4
-MWQyDQo+IGFjcGlfcHNfcGFyc2VfYW1sKzB4MWEyLzB4NGFmDQo+IGFjcGlfcHNfZXhlY3V0ZV9t
-ZXRob2QrMHgxZWYvMHgyYWINCj4gYWNwaV9uc19ldmFsdWF0ZSsweDJlNC8weDQxZA0KPiBhY3Bp
-X2V2YWx1YXRlX29iamVjdCsweDFjYi8weDM4ZQ0KPiBhY3BpX2VudGVyX3NsZWVwX3N0YXRlX3By
-ZXArMHhhZS8weDEzYQ0KPiBhY3BpX3NsZWVwX3ByZXBhcmUucGFydC4yKzB4MmUvMHg0MA0KPiBh
-Y3BpX3Bvd2VyX29mZl9wcmVwYXJlKzB4Zi8weDIwDQo+IFszODg3MS4xOTI1MzYxIGtlcm5lbF9w
-b3dlcl9vZmYrMHg0Mi8weDcwDQo+IFNZU0NfcmVib290KzB4MTJmLzB4MjEwDQo+ID8gaGFuZGxl
-X21tX2ZhdWx0KzB4ZWEvMHgxZTANCj4gWzM4ODcxLjE5MjU4NjEgPyBkb193cml0ZXYrMHg1ZS8w
-eGYwDQo+ID8gZG9fd3JpdGV2KzB4NWUvMHhmMA0KPiBkb19zeXNjYWxsXzY0KzB4NmUvMHgxMjAN
-Cj4gZW50cnlfU1lTQ0FMTF82NF9hZnRlcl9od2ZyYW1lKzB4M2QvMHhhMg0KPiBSSVA6IDAwMzM6
-MHg3ZmMwMzgzOWIzNzMNCj4gUlNQOiAwMDJiOjAwMDA3ZmZjNjQ1ZTcwZjggRUZMQUdTOiAwMDAw
-MDIwMiBPUklHX1JBWDogMDAwMDAwMDAwMDAwMDBhOQ0KPiBSQVg6IGZmZmZmZmZmZmZmZmZmZGEg
-UkJYOiAwMDAwMDAwMDQzMjFmZWRjIFJDWDogMDAwMDdmYzAzODM5YjM3Mw0KPiBST1g6IDAwMDAw
-MDAwNDMyMWZlZGMgUlNJOiAwMDAwMDAwMDI4MTIxOTY5IFJESTogMDAwMDAwMDBmZWUxZGVhZA0K
-PiBSQlA6IDAwMDA3ZmZjNjQ1ZTcxNjAgUjA4OiAwMDAwMDAwMDAwMDAwMDAwIFIwOTogMDAwMDAw
-MDAwMDAwMDAwMA0KPiBSMTA6IDAwMDAwMDAwMDAwMDAwMDIgUjExOiAwMDAwMDAwMDAwMDAwMjAy
-IFIxMjogMDAwMDdmZmM2NDVlNzE2OA0KPiBSMTM6IDAwMDAwMDAwMDAwMDAwMDAgUjE0OiAwMDAw
-MDAxYjAwMDAwMDA0IFIxNTogMDAwMDdmZmM2NDVlNzQ1OA0KPiBDb2RlOiBiOCAwMCAwNCAwMCAw
-MCA0OCBjNyBjMSBjMyA5MSAyOCBhYiA0OCBjNyBjMiAyMCA5MSAyOCBhYiBiZSBvZg0KPiAwNCAw
-MCAwMCBiZiAwMCAwMCAwMCAwMSAwMyA0MSA4NSAwNCAwMCA1OCBlYiBiMCBiOCAwMSAxMCAwMCAw
-MCBjMyA8T2Y+DQo+IE9iIDkwIE9mIGlmIDQ0IDAwIDAwIDgwIDNkIDc0IENPIDk3IDAxIDAwIDQx
-IDU0IDU1IDUzIE9mIDg0DQo+IFJJUDogYWNwaV9vc19kZWxldGVfc2VtYXBob3JlKzB4NmQvMHg3
-MCBSU1A6IGZmZmZiMGNhODAwMzdiZTgNCj4gLS0NCj4gRGFuaWVsIEogQmx1ZW1hbg0K
+On 5 June 2018 at 05:47,  <Mario.Limonciello@dell.com> wrote:
+>> -----Original Message-----
+>> From: Daniel J Blueman [mailto:daniel@quora.org]
+>> Sent: Thursday, May 31, 2018 9:21 PM
+>> To: Linux Kernel; linux-acpi@vger.kernel.org
+>> Cc: Limonciello, Mario; Dominguez, Jared
+>> Subject: 4.14.44: BUG_ON(!list_empty(&sem->wait_list));
+>>
+>> Plugging in a USB-C power source on my Dell XPS 9550 trips an ACPI
+>> BUG_ON [1], reproducible with mainline 4.14.44, suggesting other
+>> threads are waiting for semaphore acquisition due to
+>> "BUG_ON(!list_empty(&sem->wait_list))".
+>>
+>> This is the current 1.7.0 BIOS with Ubuntu 18.04 userspace, plugging
+>> in an LG 27UD88 (also with the current firmware) monitor USB-C
+>> connection which apparently advertises 60W charging (x1,
+>> PowerDelivery, DisplayPort alternative mode, data). The same issues
+>> reproduce on a Dell Precision 5510 with Ubuntu 16.04, the shipped
+>> kernel and 4.14.44.
+>>
+>> I can enable ACPI debugging if useful? Perhaps ACPI_DB_MUTEX or other
+>> levels would be appropriate?
+>
+> I think most useful would be if this can still reproduce with 4.17.
+
+Fair suggestion!
+
+I can achieve 100% reproducibility of the same backtrace on a clean
+Ubuntu 18.04 install with 4.17 mainline [1]:
+
+1. disable grub 'quiet' parameter, disconnect charger and power off laptop to S5
+2. power on laptop from S5
+3. suspend via closing lid
+4. resume by opening lid
+5. connect LG 27UD88 via USB-C
+6. wait 20s
+7. disconnect LG 27UD88
+8. run 'systemctl poweroff'
+9. observe the same backtrace from acpi_os_delete_semaphore
+
+I don't observe the issue when using an Apple 87W USB-C Power Adapter,
+so it may reproduce on other monitors advertising USB-C DisplayPort
+alternate mode.
+
+Thanks,
+  Daniel
+
+[1] http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.17/linux-image-unsigned-4.17.0-041700-generic_4.17.0-041700.201806041953_amd64.deb
+
+>> kernel BUG at /home/kernel/COD/linux/drivers/acpi/osl.c:1201
+>> invalid opcode: 0000 [#1] SMP PTI
+>> Modules linked in: [...]
+>> CPU: 0 PID: 1 Comm: systemd-shutdow Not tainted 4.14.44-041444-generic
+>> #201805251612
+>> Hardware name: Dell Inc. XPS 15 9550/, BIOS 1.7.0 02/23/2018
+>> task: ffff9bc2ab6b9740 task.stack: ffffbOca80034000
+>> RIP: 0010:acpi_os_delete_semaphore+0x6d/0x70
+>> RSP: 0018:ffffbOca80037be8 EFLAGS: 00010283
+>> RAX: ffffbOca83f8fc40 RBX: ffff9bc238b5dbe0 RCX: 0000000000000000
+>> RDX: ffff9bc238b5dbe8 RSI: 0000000000000000 RDI: ffff9bc238b5dbe0
+>> RBP: ffff9bc2adlc0990 ROB: ffff9bc2bdc25f20 R09: ffff9bc29ee56300
+>> R10: ffffe03bd2796440 R11: ffff9bc2ad183fa0 R12: ffff9bc22f1321e0
+>> R13: 0000000000000001 R14: 0000000000000001 R15: ffff9bc22f132eb0
+>> FS: 00007fc03886f940(0000) GS:ffff9bc2bdc00000(0000)
+>> knlGS:0000000000000000
+>> CS: 0010 DS: 0000 ES: 0000 CRO: 0000000080050033
+>> CR2: 00007ffc645e70f8 CR3: 000000049e120001 CR4: 00000000003606f0
+>> Call Trace:
+>> acpi_ex_system_reset_event+0x3f/0x65
+>> acpi_ex_opcode_1A_OT_0R+0x70/0xfa
+>> acpi_ds_exec_end_op+0x15d/0x71b
+>> acpi_ps_parse_loop+0x929/0x9d6
+>> ? acpi_ds_result_push+0x82/0x1d2
+>> acpi_ps_parse_aml+0x1a2/0x4af
+>> acpi_ps_execute_method+0x1ef/0x2ab
+>> acpi_ns_evaluate+0x2e4/0x41d
+>> acpi_evaluate_object+0x1cb/0x38e
+>> acpi_enter_sleep_state_prep+0xae/0x13a
+>> acpi_sleep_prepare.part.2+0x2e/0x40
+>> acpi_power_off_prepare+0xf/0x20
+>> [38871.1925361 kernel_power_off+0x42/0x70
+>> SYSC_reboot+0x12f/0x210
+>> ? handle_mm_fault+0xea/0x1e0
+>> [38871.1925861 ? do_writev+0x5e/0xf0
+>> ? do_writev+0x5e/0xf0
+>> do_syscall_64+0x6e/0x120
+>> entry_SYSCALL_64_after_hwframe+0x3d/0xa2
+>> RIP: 0033:0x7fc03839b373
+>> RSP: 002b:00007ffc645e70f8 EFLAGS: 00000202 ORIG_RAX: 00000000000000a9
+>> RAX: ffffffffffffffda RBX: 000000004321fedc RCX: 00007fc03839b373
+>> ROX: 000000004321fedc RSI: 0000000028121969 RDI: 00000000fee1dead
+>> RBP: 00007ffc645e7160 R08: 0000000000000000 R09: 0000000000000000
+>> R10: 0000000000000002 R11: 0000000000000202 R12: 00007ffc645e7168
+>> R13: 0000000000000000 R14: 0000001b00000004 R15: 00007ffc645e7458
+>> Code: b8 00 04 00 00 48 c7 c1 c3 91 28 ab 48 c7 c2 20 91 28 ab be of
+>> 04 00 00 bf 00 00 00 01 03 41 85 04 00 58 eb b0 b8 01 10 00 00 c3 <Of>
+>> Ob 90 Of if 44 00 00 80 3d 74 CO 97 01 00 41 54 55 53 Of 84
+>> RIP: acpi_os_delete_semaphore+0x6d/0x70 RSP: ffffb0ca80037be8
+-- 
+Daniel J Blueman
