@@ -1,38 +1,69 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v2 2/3] ACPI / PPTT: fix build when CONFIG_ACPI_PPTT is
- not enabled
-Date: Tue, 5 Jun 2018 18:08:12 +0100
-Message-ID: <20180605170812.d5ewm5crou3qnkuh@armageddon.cambridge.arm.com>
-References: <1528209304-3280-1-git-send-email-sudeep.holla@arm.com>
- <1528209304-3280-2-git-send-email-sudeep.holla@arm.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [GIT PULL] Device properties framework update for v4.18-rc1
+Date: Tue, 5 Jun 2018 10:30:21 -0700
+Message-ID: <CA+55aFyoxvrA-7X_8ZfQXd1=GfLT96ZaHAM+o5gKwOOfiy_HDA@mail.gmail.com>
+References: <CAJZ5v0jq45atkapwSjJ4DkHhB1bfOA-Sh1TiA3dPXwKyFTBheA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1528209304-3280-2-git-send-email-sudeep.holla@arm.com>
+In-Reply-To: <CAJZ5v0jq45atkapwSjJ4DkHhB1bfOA-Sh1TiA3dPXwKyFTBheA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Jeremy Linton <jeremy.linton@arm.com>, linux-kernel@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, Hanjun Guo <hanjun.guo@linaro.org>, Morten Rasmussen <morten.rasmussen@arm.com>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 05, 2018 at 03:35:03PM +0100, Sudeep Holla wrote:
-> Though CONFIG_ACPI_PPTT is selected by platforms and nor user visible,
-> it may be useful to support the build with CONFIG_ACPI_PPTT disabled.
-> 
-> This patch adds the missing dummy/boiler plate implementation to fix
-> the build.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
->  include/linux/acpi.h      | 15 +++++++++++++++
->  include/linux/cacheinfo.h |  2 +-
->  2 files changed, 16 insertions(+), 1 deletion(-)
+On Mon, Jun 4, 2018 at 4:31 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+>  device property: Get rid of union aliasing
 
-I queued this patch for now, it's a good clean-up regardless of whether
-we disable PPTT temporarily or not.
+Honestly, this looks questionable to me.
 
-Thanks.
+I'm not talking about the changes themselves - I can live with them.
+But the _rationale_ is pure and utter garbage, and dangerously so.
 
--- 
-Catalin
+The fact is, using a union to do type punning is the traditional AND
+STANDARD way to do type punning in gcc. In fact, it is the
+*documented* way to do it for gcc, when you are a f*cking moron and
+use "-fstrict-aliasing" and need to undo the braindamage that that
+piece of garbage C standard imposes.
+
+So the commit message that talks about how horrible union aliasing is
+is pushing a story that is simply wrong. Using the standard to push it
+- the same standard that came up with the completely mis-guided
+aliasing rules - is not a valid argument.
+
+Andy, what is the background for trying to push this idiocy? Don't
+tell me "the C standard is unclear". The C standard is _clearly_ bogus
+shit (see above on strict aliasing rules), and when it is bogus
+garbage, it needs to be explicitly ignored, and it needs per-compiler
+workarounds for braindamage. The exact same situation is true when
+there is some lack of clarity.
+
+This is why we use -fwrapv, -fno-strict-aliasing etc. The standard
+simply is not *important*, when it is in direct conflict with reality
+and reliable code generation.
+
+The *fact* is that gcc documents type punning through unions as the
+"right way". You may disagree with that, but putting some theoretical
+standards language over the *explicit* and long-time documentation of
+the main compiler we use is pure and utter bullshit.
+
+I've said this before, and I'll say it again: a standards paper is
+just so much toilet paper when it conflicts with reality. It has
+absolutely _zero_ relevance. In fact, I'll take real toilet paper over
+standards any day, because at least that way I won't have splinters
+and ink up my arse.
+
+So I want to see actual real arguments, not "the standard is unclear".
+When documented gcc behavior says one thing, and the standard might be
+unclear, we really don't care one whit about the lack of clarity in
+some standard.
+
+So what's the _real_ reason for avoiding union aliasing?
+
+There are competent people on standards bodies. But they aren't
+_always_ competent, and the translation of intent to English isn't
+always perfect either. So standards are not some kind of holy book
+that has to be revered. Standards too need to be questioned.
+
+                 Linus
