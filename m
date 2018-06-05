@@ -1,41 +1,75 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 3/3] arm64: disable ACPI PPTT support temporarily
-Date: Tue, 5 Jun 2018 16:27:55 +0100
-Message-ID: <a93212e3-7965-9ae2-34b0-407f04590567@arm.com>
+Subject: Re: [PATCH v2 2/3] ACPI / PPTT: fix build when CONFIG_ACPI_PPTT is
+ not enabled
+Date: Tue, 5 Jun 2018 16:33:59 +0100
+Message-ID: <83b1b038-c4c1-0199-2cb0-fb5343f0e3f5@arm.com>
 References: <1528209304-3280-1-git-send-email-sudeep.holla@arm.com>
- <1528209304-3280-3-git-send-email-sudeep.holla@arm.com>
- <CAJZ5v0hn+sya29bZJzksDEDt2QPZDY36Hwn=ckw3ikTGp7T1Zw@mail.gmail.com>
+ <1528209304-3280-2-git-send-email-sudeep.holla@arm.com>
+ <CAJZ5v0gqQNHCuaeduQ8oQtGNUQcZxK171nDfyMNi1VVfnVsMqQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hn+sya29bZJzksDEDt2QPZDY36Hwn=ckw3ikTGp7T1Zw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gqQNHCuaeduQ8oQtGNUQcZxK171nDfyMNi1VVfnVsMqQ@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Morten Rasmussen <morten.rasmussen@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>, Will Deacon <will.deacon@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Morten Rasmussen <morten.rasmussen@arm.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Geert Uytterhoeven <geert@linux-m68k.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 05/06/18 16:02, Rafael J. Wysocki wrote:
+On 05/06/18 16:00, Rafael J. Wysocki wrote:
 > On Tue, Jun 5, 2018 at 4:35 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->> Currently, ARM64 doesn't support updating the CPU topology masks on
->> CPU hotplug operations. ACPI PPTT support rely on that missing feature
->> which is technically not incorrect. Instead of reverting all the PPTT
->> support, let's keep it simple and disable ACPI PPTT support on ARM64
->> for time-being until the topology updates are added for CPU hotplug
->> operations.
+>> Though CONFIG_ACPI_PPTT is selected by platforms and nor user visible,
+>> it may be useful to support the build with CONFIG_ACPI_PPTT disabled.
+>>
+>> This patch adds the missing dummy/boiler plate implementation to fix
+>> the build.
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>> ---
+>>  include/linux/acpi.h      | 15 +++++++++++++++
+>>  include/linux/cacheinfo.h |  2 +-
+>>  2 files changed, 16 insertions(+), 1 deletion(-)
+>>
+>> Hi Rafael,
+>>
+>> If you are fine with this, can you provide Ack, so that we route this
+>> through ARM64 tree where most of the ACPI PPTT support is present.
+>>
+>> Regards,
+>> Sudeep
+>>
+>> v1->v2:
+>>         - removed duplicate definition for acpi_find_last_cache_level
+>>
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 8f2cdb0eca71..4b35a66383f9 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -1299,8 +1299,23 @@ static inline int lpit_read_residency_count_address(u64 *address)
+>>  }
+>>  #endif
+>>
+>> +#ifdef CONFIG_ACPI_PPTT
+>>  int find_acpi_cpu_topology(unsigned int cpu, int level);
+>>  int find_acpi_cpu_topology_package(unsigned int cpu);
+>>  int find_acpi_cpu_cache_topology(unsigned int cpu, int level);
+>> +#else
+>> +static inline int find_acpi_cpu_topology(unsigned int cpu, int level)
+>> +{
+>> +       return -EINVAL;
 > 
-> When is that going to happen?
-> > Nobody else uses PPTT now.
+> Why -EINVAL?
 > 
 
-No we need it on ARM64. I have even the fixes for the original issue
-but it's bit invasive and too late as we are already in the merge
-window. It needs to be tested on NUMA platforms, I have asked for that
-explicitly.
+I am not sure either. I used to return -ENOTSUPP, but IIRC someone
+suggested to use it only for syscalls. Also I just based it on other
+existing functions in acpi.h
 
+I am open for any alternatives if you think that is better here.
 -- 
 Regards,
 Sudeep
