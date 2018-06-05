@@ -1,43 +1,56 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] Device properties framework update for v4.18-rc1
-Date: Tue, 5 Jun 2018 10:39:23 -0700
-Message-ID: <CA+55aFw8yUOweiQSEp-ZHzEeSAGggZ0-Ksy0e4GQgEhKvmwLog@mail.gmail.com>
-References: <CAJZ5v0jq45atkapwSjJ4DkHhB1bfOA-Sh1TiA3dPXwKyFTBheA@mail.gmail.com>
- <CA+55aFyoxvrA-7X_8ZfQXd1=GfLT96ZaHAM+o5gKwOOfiy_HDA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: [PATCH] arm64: topology: Avoid checking numa mask for scheduler MC selection
+Date: Tue,  5 Jun 2018 14:08:37 -0500
+Message-ID: <20180605190837.493505-1-jeremy.linton@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CA+55aFyoxvrA-7X_8ZfQXd1=GfLT96ZaHAM+o5gKwOOfiy_HDA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Sudeep.Holla@arm.com
+Cc: Will.Deacon@arm.com, Catalin.Marinas@arm.com, Robin.Murphy@arm.com, Morten.Rasmussen@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, geert@linux-m68k.org, linux-acpi@vger.kernel.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 5, 2018 at 10:30 AM Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Honestly, this looks questionable to me.
->
-> I'm not talking about the changes themselves - I can live with them.
-> But the _rationale_ is pure and utter garbage, and dangerously so.
+The numa mask subset check has problems if !CONFIG_NUMA, over hotplug
+operations or during early boot. Lets disable the NUMA siblings checks
+for the time being, as NUMA in socket machines have LLC's that will
+assure that the scheduler topology isn't "borken".
 
-Side note: I've merged it, and it's going through my build tests, so
-it's really not that I hate the code.
+Futher, as a defensive mechanism during hotplug, lets assure that the
+LLC siblings are also masked.
 
-But I really find that kind of one-sided rationale that ignores
-reality unacceptable.
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+---
+ arch/arm64/kernel/topology.c | 11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-And I find it dangerous, because it *sounds* so "obviously correct" to
-people who don't know any better. If you don't know that gcc
-explicitly says that you should use unions to do type punning to avoid
-aliasing issues, you might believe that union type punning is a bad
-thing from that commit message.
-
-So it's dangerously misleading, because lots of people have a
-dangerous reverence for paper over reality.
-
-In programming, "Appeal to Standards" should be considered a potential
-logical fallacy. Standards have their place, but they definitely have
-their caveats too.
-
-                    Linus
+diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+index 7415c166281f..f845a8617812 100644
+--- a/arch/arm64/kernel/topology.c
++++ b/arch/arm64/kernel/topology.c
+@@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+ 
+ const struct cpumask *cpu_coregroup_mask(int cpu)
+ {
+-	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
++	const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
+ 
+-	/* Find the smaller of NUMA, core or LLC siblings */
+-	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+-		/* not numa in package, lets use the package siblings */
+-		core_mask = &cpu_topology[cpu].core_sibling;
+-	}
+ 	if (cpu_topology[cpu].llc_id != -1) {
+ 		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
+ 			core_mask = &cpu_topology[cpu].llc_siblings;
+@@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
+ 	for_each_possible_cpu(cpu) {
+ 		cpu_topo = &cpu_topology[cpu];
+ 
+-		if (cpuid_topo->llc_id == cpu_topo->llc_id)
++		if (cpuid_topo->llc_id == cpu_topo->llc_id) {
+ 			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
++			cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
++		}
+ 
+ 		if (cpuid_topo->package_id != cpu_topo->package_id)
+ 			continue;
+-- 
+2.14.3
