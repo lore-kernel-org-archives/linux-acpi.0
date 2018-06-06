@@ -1,71 +1,46 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH v2] arm64: topology: Avoid checking numa mask for scheduler MC selection
-Date: Wed,  6 Jun 2018 11:38:46 -0500
-Message-ID: <20180606163846.495725-1-jeremy.linton@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2] arm64: topology: Avoid checking numa mask for
+ scheduler MC selection
+Date: Wed, 6 Jun 2018 18:18:12 +0100
+Message-ID: <20180606171811.lro2u3g6rawxvskm@armageddon.cambridge.arm.com>
+References: <20180606163846.495725-1-jeremy.linton@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180606163846.495725-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep.Holla@arm.com
-Cc: Will.Deacon@arm.com, Catalin.Marinas@arm.com, Robin.Murphy@arm.com, Morten.Rasmussen@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, geert@linux-m68k.org, linux-acpi@vger.kernel.org, ard.biesheuvel@linaro.org, Jeremy Linton <jeremy.linton@arm.com>
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Sudeep.Holla@arm.com, ard.biesheuvel@linaro.org, Will.Deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, geert@linux-m68k.org, Robin.Murphy@arm.com, Morten.Rasmussen@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The numa mask subset check can often lead to system hang or crash during
-CPU hotplug and system suspend operation if NUMA is disabled. This is
-mostly observed on HMP systems where the CPU compute capacities are
-different and ends up in different scheduler domains. Since
-cpumask_of_node is returned instead core_sibling, the scheduler is
-confused with incorrect cpumasks(e.g. one CPU in two different sched
-domains at the same time) on CPU hotplug.
+On Wed, Jun 06, 2018 at 11:38:46AM -0500, Jeremy Linton wrote:
+> The numa mask subset check can often lead to system hang or crash during
+> CPU hotplug and system suspend operation if NUMA is disabled. This is
+> mostly observed on HMP systems where the CPU compute capacities are
+> different and ends up in different scheduler domains. Since
+> cpumask_of_node is returned instead core_sibling, the scheduler is
+> confused with incorrect cpumasks(e.g. one CPU in two different sched
+> domains at the same time) on CPU hotplug.
+> 
+> Lets disable the NUMA siblings checks for the time being, as NUMA in
+> socket machines have LLC's that will assure that the scheduler topology
+> isn't "borken".
+> 
+> The NUMA check exists to assure that if a LLC within a socket crosses
+> NUMA nodes/chiplets the scheduler domains remain consistent. This code will
+> likely have to be re-enabled in the near future once the NUMA mask story
+> is sorted.  At the moment its not necessary because the NUMA in socket
+> machines LLC's are contained within the NUMA domains.
+> 
+> Further, as a defensive mechanism during hot-plug, lets assure that the
+> LLC siblings are also masked.
+> 
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 
-Lets disable the NUMA siblings checks for the time being, as NUMA in
-socket machines have LLC's that will assure that the scheduler topology
-isn't "borken".
+Thanks for this. I queued it for this merging window.
 
-The NUMA check exists to assure that if a LLC within a socket crosses
-NUMA nodes/chiplets the scheduler domains remain consistent. This code will
-likely have to be re-enabled in the near future once the NUMA mask story
-is sorted.  At the moment its not necessary because the NUMA in socket
-machines LLC's are contained within the NUMA domains.
-
-Further, as a defensive mechanism during hot-plug, lets assure that the
-LLC siblings are also masked.
-
-Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
----
- arch/arm64/kernel/topology.c | 11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
-
-diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-index 7415c166281f..f845a8617812 100644
---- a/arch/arm64/kernel/topology.c
-+++ b/arch/arm64/kernel/topology.c
-@@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
- 
- const struct cpumask *cpu_coregroup_mask(int cpu)
- {
--	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
-+	const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
- 
--	/* Find the smaller of NUMA, core or LLC siblings */
--	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
--		/* not numa in package, lets use the package siblings */
--		core_mask = &cpu_topology[cpu].core_sibling;
--	}
- 	if (cpu_topology[cpu].llc_id != -1) {
- 		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
- 			core_mask = &cpu_topology[cpu].llc_siblings;
-@@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
- 	for_each_possible_cpu(cpu) {
- 		cpu_topo = &cpu_topology[cpu];
- 
--		if (cpuid_topo->llc_id == cpu_topo->llc_id)
-+		if (cpuid_topo->llc_id == cpu_topo->llc_id) {
- 			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
-+			cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
-+		}
- 
- 		if (cpuid_topo->package_id != cpu_topo->package_id)
- 			continue;
 -- 
-2.14.3
+Catalin
