@@ -1,92 +1,44 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] arm64: topology: Avoid checking numa mask for scheduler
- MC selection
-Date: Wed, 6 Jun 2018 11:05:40 +0100
-Message-ID: <3c8a541d-78a1-389a-112c-494f7c1a543d@arm.com>
-References: <20180605190837.493505-1-jeremy.linton@arm.com>
+From: Jakub Racek <jracek@redhat.com>
+Subject: [4.17 regression] Performance drop on kernel-4.17 visible on Stream,
+ Linpack and NAS parallel benchmarks
+Date: Wed, 6 Jun 2018 14:27:32 +0200
+Message-ID: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180605190837.493505-1-jeremy.linton@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Will.Deacon@arm.com, Catalin.Marinas@arm.com, Robin.Murphy@arm.com, Morten.Rasmussen@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, geert@linux-m68k.org, linux-acpi@vger.kernel.org, ard.biesheuvel@linaro.org
+To: linux-kernel@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, jracek@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
+There is a huge performance regression on the 2 and 4 NUMA node systems on stream 
+benchmark with 4.17 kernel compared to 4.16 kernel. 
+Stream, Linpack and NAS parallel benchmarks show upto 50% performance drop.
 
-On 05/06/18 20:08, Jeremy Linton wrote:
-> The numa mask subset check has problems if !CONFIG_NUMA, over hotplug
-> operations or during early boot. Lets disable the NUMA siblings checks
-> for the time being, as NUMA in socket machines have LLC's that will
-> assure that the scheduler topology isn't "borken".
-> 
+When running for example 20 stream processes in parallel, we see the following behavior:
 
-^ broken ? (not sure if usage of borken is intentional :))
+* all processes are started at NODE #1
+* memory is also allocated on NODE #1
+* roughly half of the processes are moved to the NODE #0 very quickly. 
+* however, memory is not moved to NODE #0 and stays allocated on NODE #1
 
-> Futher, as a defensive mechanism during hotplug, lets assure that the
+As the result, half of the processes are running on NODE#0 with memory being still 
+allocated on NODE#1. This leads to non-local memory accesses
+on the high Remote-To-Local Memory Access Ratio on the numatop charts.  
 
-^ Further
+So it seems that 4.17 is not doing a good job to move the memory to the right NUMA
+node after the process has been moved.
 
-> LLC siblings are also masked.
->
+----8<----
 
-Also add the symptoms of the issue we say as Geert suggested me.
-Something like:
-" This often leads to system hang or crash during CPU hotplug and system
-suspend operation. This is mostly observed on HMP systems where the
-CPU compute capacities are different and ends up in different scheduler
-domains. Since cpumask_of_node is returned instead core_sibling, the
-scheduler is confused with incorrect cpumasks(e.g. one CPU in two
-different sched domains at the same time) on CPU hotplug."
+The above is an excerpt from performance testing on 4.16 and 4.17 kernels.
 
-You can add Reported-by: Geert... ?
+For now I'm merely making sure the problem is reported.
 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/arm64/kernel/topology.c | 11 ++++-------
->  1 file changed, 4 insertions(+), 7 deletions(-)
-> 
-> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> index 7415c166281f..f845a8617812 100644
-> --- a/arch/arm64/kernel/topology.c
-> +++ b/arch/arm64/kernel/topology.c
-> @@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
->  
->  const struct cpumask *cpu_coregroup_mask(int cpu)
->  {
-> -	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
-> +	const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
->  
-> -	/* Find the smaller of NUMA, core or LLC siblings */
-> -	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
-> -		/* not numa in package, lets use the package siblings */
-> -		core_mask = &cpu_topology[cpu].core_sibling;
-> -	}
->  	if (cpu_topology[cpu].llc_id != -1) {
->  		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
->  			core_mask = &cpu_topology[cpu].llc_siblings;
-> @@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
->  	for_each_possible_cpu(cpu) {
->  		cpu_topo = &cpu_topology[cpu];
->  
-> -		if (cpuid_topo->llc_id == cpu_topo->llc_id)
-> +		if (cpuid_topo->llc_id == cpu_topo->llc_id) {
->  			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
-> +			cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
-> +		}
->  
->  		if (cpuid_topo->package_id != cpu_topo->package_id)
->  			continue;
-> 
+Thank you.
 
-Looks good to me for now. I might need to tweek it a bit when I add the
-support to update topology on hotplug. But that's for latter. For now,
-
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-
--- 
-Regards,
-Sudeep
+Best regards,
+Jakub Racek
