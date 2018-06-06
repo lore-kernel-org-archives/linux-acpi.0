@@ -1,88 +1,92 @@
-From: Thierry Reding <thierry.reding@gmail.com>
-Subject: Re: [PATCH v2 1/2] pwm: lpss: platform: Save/restore the ctrl
- register over a suspend/resume
-Date: Wed, 6 Jun 2018 10:03:51 +0200
-Message-ID: <20180606080351.GA11810@ulmo>
-References: <20180426121024.22023-1-hdegoede@redhat.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH] arm64: topology: Avoid checking numa mask for scheduler
+ MC selection
+Date: Wed, 6 Jun 2018 11:05:40 +0100
+Message-ID: <3c8a541d-78a1-389a-112c-494f7c1a543d@arm.com>
+References: <20180605190837.493505-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="7AUc2qLy4jB3hD7Z"
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180426121024.22023-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-pwm@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180605190837.493505-1-jeremy.linton@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Will.Deacon@arm.com, Catalin.Marinas@arm.com, Robin.Murphy@arm.com, Morten.Rasmussen@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, geert@linux-m68k.org, linux-acpi@vger.kernel.org, ard.biesheuvel@linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
 
---7AUc2qLy4jB3hD7Z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-On Thu, Apr 26, 2018 at 02:10:23PM +0200, Hans de Goede wrote:
-> On some devices the contents of the ctrl register get lost over a
-> suspend/resume and the PWM comes back up disabled after the resume.
->=20
-> This is seen on some Bay Trail devices with the PWM in ACPI enumerated
-> mode, so it shows up as a platform device instead of a PCI device.
->=20
-> If we still think it is enabled and then try to change the duty-cycle
-> after this, we end up with a "PWM_SW_UPDATE was not cleared" error and
-> the PWM is stuck in that state from then on.
->=20
-> This commit adds suspend and resume pm callbacks to the pwm-lpss-platform
-> code, which save/restore the ctrl register over a suspend/resume, fixing
-> this.
->=20
-> Note that:
->=20
-> 1) There is no need to do this over a runtime suspend, since we
-> only runtime suspend when disabled and then we properly set the enable
-> bit and reprogram the timings when we re-enable the PWM.
->=20
-> 2) This may be happening on more systems then we realize, but has been
-> covered up sofar by a bug in the acpi-lpss.c code which was save/restoring
-> the regular device registers instead of the lpss private registers due to
-> lpss_device_desc.prv_offset not being set. This is fixed by a later patch
-> in this series.
->=20
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+On 05/06/18 20:08, Jeremy Linton wrote:
+> The numa mask subset check has problems if !CONFIG_NUMA, over hotplug
+> operations or during early boot. Lets disable the NUMA siblings checks
+> for the time being, as NUMA in socket machines have LLC's that will
+> assure that the scheduler topology isn't "borken".
+> 
+
+^ broken ? (not sure if usage of borken is intentional :))
+
+> Futher, as a defensive mechanism during hotplug, lets assure that the
+
+^ Further
+
+> LLC siblings are also masked.
+>
+
+Also add the symptoms of the issue we say as Geert suggested me.
+Something like:
+" This often leads to system hang or crash during CPU hotplug and system
+suspend operation. This is mostly observed on HMP systems where the
+CPU compute capacities are different and ends up in different scheduler
+domains. Since cpumask_of_node is returned instead core_sibling, the
+scheduler is confused with incorrect cpumasks(e.g. one CPU in two
+different sched domains at the same time) on CPU hotplug."
+
+You can add Reported-by: Geert... ?
+
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
-> Changes in v2:
-> -Add Cc: stable@vger.kernel.org to make sure this goes into stable
->  together with "ACPI / LPSS: Add missing prv_offset setting for byt/cht
->  PWM devices" which depends on this
-> ---
->  drivers/pwm/pwm-lpss-platform.c |  5 +++++
->  drivers/pwm/pwm-lpss.c          | 30 ++++++++++++++++++++++++++++++
->  drivers/pwm/pwm-lpss.h          |  2 ++
->  3 files changed, 37 insertions(+)
+>  arch/arm64/kernel/topology.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> index 7415c166281f..f845a8617812 100644
+> --- a/arch/arm64/kernel/topology.c
+> +++ b/arch/arm64/kernel/topology.c
+> @@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+>  
+>  const struct cpumask *cpu_coregroup_mask(int cpu)
+>  {
+> -	const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
+> +	const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
+>  
+> -	/* Find the smaller of NUMA, core or LLC siblings */
+> -	if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+> -		/* not numa in package, lets use the package siblings */
+> -		core_mask = &cpu_topology[cpu].core_sibling;
+> -	}
+>  	if (cpu_topology[cpu].llc_id != -1) {
+>  		if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
+>  			core_mask = &cpu_topology[cpu].llc_siblings;
+> @@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
+>  	for_each_possible_cpu(cpu) {
+>  		cpu_topo = &cpu_topology[cpu];
+>  
+> -		if (cpuid_topo->llc_id == cpu_topo->llc_id)
+> +		if (cpuid_topo->llc_id == cpu_topo->llc_id) {
+>  			cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
+> +			cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
+> +		}
+>  
+>  		if (cpuid_topo->package_id != cpu_topo->package_id)
+>  			continue;
+> 
 
-Applied, thanks.
+Looks good to me for now. I might need to tweek it a bit when I add the
+support to update topology on hotplug. But that's for latter. For now,
 
-Thierry
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
 
---7AUc2qLy4jB3hD7Z
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlsXlWQACgkQ3SOs138+
-s6GL8w/9GUfLl7kLvAPfHJuyKdTfjIEEUJLJyEL4eGy7YDfsEU9CU9Faaaw9c7US
-PKip6BLJ4jnlQdmkMIGqIFg7bHFu5ldEPDYQSVN92+VrdnXsn6etWUAYaExNJyri
-6hNoupkD94TQwF7ASKqDHNEStixXTjsqRDVBKJTWkqlyEXCkzslp5vFx3sU24tM7
-nYzH/EekQOSEE67WktJQEdZ50MIwL2kn2GQfuvNiPCmh3tS0Hz/904BaqdJaqHSj
-h6qr/Xn4XJajSa8GiDYfiiHUwNZcg8tOexpbeXsrJFTYDLRIntFFJl2IGEmxC4b6
-BxpoEtkd2gsS89aZXRu5NQvpH7y+8h2w47pC5BX23GK2FiEZzfovW/X+Iv6Ys/bR
-ZcwXv/i25Pj0GCd20lo7XyUsUI9Q+V4DinKt7K4ai9qyxl+hOL6vl7x/JlbgIIZX
-jPqcIcJ+Rzv9cThrztexhFAErDr2YP/TT+Sn7/W9t+kB/H12L29Ou+Jl+UIYQzYY
-lGYBMMo11j6RHXNgNwv2u3rxzYCwSv5lOy0q5trMrR04PeP6ZM9HmfrVvk6P4E4v
-kDDP2TXNRKi4ZVPKCnaY22v/M/38Z5uPEI3YvfatS2IafabIQ+6pt/CRapL9DVaN
-yCeI4X5UMEhdkQV4BpuVIch4UJ9JbC2gC+TgwkeQ2Mzz13/DolE=
-=BI9V
------END PGP SIGNATURE-----
-
---7AUc2qLy4jB3hD7Z--
+-- 
+Regards,
+Sudeep
