@@ -1,66 +1,39 @@
-From: =?UTF-8?Q?Jakub_Ra=c4=8dek?= <jracek@redhat.com>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Thu, 7 Jun 2018 13:19:26 +0200
-Message-ID: <cd26794b-cb82-919c-053d-9bcb6e3d78d8@redhat.com>
-References: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
- <20180607110713.GJ32433@dhcp22.suse.cz>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH v4 0/2] support exception state migration and set VSESR_EL2 by user space
+Date: Fri, 8 Jun 2018 04:03:51 +0800
+Message-ID: <1528401833-29963-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180607110713.GJ32433@dhcp22.suse.cz>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Hocko <mhocko@kernel.org>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mel Gorman <mgorman@suse.de>, linux-mm@kvack.org
+To: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, james.morse@arm.com, gengdongjiu@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+This series patch is separated from https://www.spinics.net/lists/kvm/msg168917.html
 
-On 06/07/2018 01:07 PM, Michal Hocko wrote:
-> [CCing Mel and MM mailing list]
-> 
-> On Wed 06-06-18 14:27:32, Jakub Racek wrote:
->> Hi,
->>
->> There is a huge performance regression on the 2 and 4 NUMA node systems on
->> stream benchmark with 4.17 kernel compared to 4.16 kernel. Stream, Linpack
->> and NAS parallel benchmarks show upto 50% performance drop.
->>
->> When running for example 20 stream processes in parallel, we see the following behavior:
->>
->> * all processes are started at NODE #1
->> * memory is also allocated on NODE #1
->> * roughly half of the processes are moved to the NODE #0 very quickly. *
->> however, memory is not moved to NODE #0 and stays allocated on NODE #1
->>
->> As the result, half of the processes are running on NODE#0 with memory being
->> still allocated on NODE#1. This leads to non-local memory accesses
->> on the high Remote-To-Local Memory Access Ratio on the numatop charts.
->>
->> So it seems that 4.17 is not doing a good job to move the memory to the right NUMA
->> node after the process has been moved.
->>
->> ----8<----
->>
->> The above is an excerpt from performance testing on 4.16 and 4.17 kernels.
->>
->> For now I'm merely making sure the problem is reported.
-> 
-> Do you have numa balancing enabled?
-> 
+1. Detect whether KVM can set set guest SError syndrome
+2. Support to Set VSESR_EL2 and inject SError by user space.
+3. Support live migration to keep SError pending state and VSESR_EL2 value
 
-Yes. The relevant settings are:
+The user space patch is here: https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg06965.html
 
-kernel.numa_balancing = 1
-kernel.numa_balancing_scan_delay_ms = 1000
-kernel.numa_balancing_scan_period_max_ms = 60000
-kernel.numa_balancing_scan_period_min_ms = 1000
-kernel.numa_balancing_scan_size_mb = 256
+Dongjiu Geng (2):
+  arm64: KVM: export the capability to set guest SError syndrome
+  arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
 
+ Documentation/virtual/kvm/api.txt    | 42 +++++++++++++++++++++++++++++++++---
+ arch/arm/include/asm/kvm_host.h      |  6 ++++++
+ arch/arm/include/uapi/asm/kvm.h      | 12 +++++++++++
+ arch/arm/kvm/guest.c                 | 12 +++++++++++
+ arch/arm64/include/asm/kvm_emulate.h |  5 +++++
+ arch/arm64/include/asm/kvm_host.h    |  7 ++++++
+ arch/arm64/include/uapi/asm/kvm.h    | 13 +++++++++++
+ arch/arm64/kvm/guest.c               | 36 +++++++++++++++++++++++++++++++
+ arch/arm64/kvm/inject_fault.c        |  6 +++---
+ arch/arm64/kvm/reset.c               |  4 ++++
+ include/uapi/linux/kvm.h             |  1 +
+ virt/kvm/arm/arm.c                   | 19 ++++++++++++++++
+ 12 files changed, 157 insertions(+), 6 deletions(-)
 
 -- 
-Best regards,
-Jakub Racek
-FMK
+2.7.4
