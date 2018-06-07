@@ -1,49 +1,49 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI LID: increment wakeup count only when notified.
-Date: Thu, 7 Jun 2018 01:21:24 +0200
-Message-ID: <CAJZ5v0gXqyKQ5yTtqFYzv=KW2o+b4vGiUYiWWn+iT=zY-mU9xw@mail.gmail.com>
-References: <20180604182612.72699-1-ravisadineni@chromium.org>
- <CAJZ5v0jBTpUzqEj1CeQ0CKH7zVRkgj1qJffoSujEZWi0HXABXw@mail.gmail.com> <20180606231130.GA57957@decatoncale.mtv.corp.google.com>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Thu, 7 Jun 2018 13:07:13 +0200
+Message-ID: <20180607110713.GJ32433@dhcp22.suse.cz>
+References: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606231130.GA57957@decatoncale.mtv.corp.google.com>
+Content-Disposition: inline
+In-Reply-To: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Benson Leung <bleung@google.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ravi Chandra Sadineni <ravisadineni@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ravi Chandra Sadineni <ravisadineni@google.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Todd Broch <tbroch@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Furquan Shaikh <furquan@chromium.org>, Benson Leung <bleung@chromium.org>
+To: Jakub Racek <jracek@redhat.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Mel Gorman <mgorman@suse.de>, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jun 7, 2018 at 1:11 AM, Benson Leung <bleung@google.com> wrote:
-> Hi Rafael,
->
-> On Wed, Jun 06, 2018 at 09:00:43AM +0200, Rafael J. Wysocki wrote:
->> > @@ -417,6 +414,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
->> >                 /* fall through */
->> >         case ACPI_BUTTON_NOTIFY_STATUS:
->> >                 input = button->input;
->> > +               acpi_pm_wakeup_event(&device->dev);
->>
->> Not really.
->>
->> There already is an acpi_pm_wakeup_event() call in the else branch below.
->>
->
-> Ravi removes that other call below.
+[CCing Mel and MM mailing list]
 
-OK, I missed that, not sure why, sorry.
+On Wed 06-06-18 14:27:32, Jakub Racek wrote:
+> Hi,
+> 
+> There is a huge performance regression on the 2 and 4 NUMA node systems on
+> stream benchmark with 4.17 kernel compared to 4.16 kernel. Stream, Linpack
+> and NAS parallel benchmarks show upto 50% performance drop.
+> 
+> When running for example 20 stream processes in parallel, we see the following behavior:
+> 
+> * all processes are started at NODE #1
+> * memory is also allocated on NODE #1
+> * roughly half of the processes are moved to the NODE #0 very quickly. *
+> however, memory is not moved to NODE #0 and stays allocated on NODE #1
+> 
+> As the result, half of the processes are running on NODE#0 with memory being
+> still allocated on NODE#1. This leads to non-local memory accesses
+> on the high Remote-To-Local Memory Access Ratio on the numatop charts.
+> 
+> So it seems that 4.17 is not doing a good job to move the memory to the right NUMA
+> node after the process has been moved.
+> 
+> ----8<----
+> 
+> The above is an excerpt from performance testing on 4.16 and 4.17 kernels.
+> 
+> For now I'm merely making sure the problem is reported.
 
-> The intent for this is to call
-> acpi_pm_wakeup_event() regardless if the button->type is ACPI_BUTTON_TYPE_LID,
-> in case that event is ACPI_BUTTON_NOTIFY_STATUS.
-
-Well, the patch really drops the acpi_pm_wakeup_event() call from
-acpi_lid_notify_state() and so it has to ensure that this function
-will be called here for ACPI_BUTTON_NOTIFY_STATUS regardless of the
-button->type value.
-
-That's fine, but still the changelog doesn't make it clear why the
-acpi_pm_wakeup_event() call in acpi_lid_notify_state() is not
-necessary in general.
-
-Thanks,
-Rafael
+Do you have numa balancing enabled?
+-- 
+Michal Hocko
+SUSE Labs
