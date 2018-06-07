@@ -1,96 +1,50 @@
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH v2] arm64: topology: Avoid checking numa mask for
- scheduler MC selection
-Date: Thu, 7 Jun 2018 16:25:47 +0200
-Message-ID: <CAMuHMdXW4M5CNS3wvb1R8v7ioGX7Q3ODcfgcdn2Ok3FRedTMZA@mail.gmail.com>
-References: <20180606163846.495725-1-jeremy.linton@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH] PCI/AER: Fix aerdrv loading with "pcie_ports=native" parameter
+Date: Thu,  7 Jun 2018 14:33:40 -0500
+Message-ID: <20180607193341.18891-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180606163846.495725-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Robin Murphy <Robin.Murphy@arm.com>, Morten.Rasmussen@arm.com, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, keith.busch@intel.com, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Jeremy,
+According to the documentation, "pcie_ports=native", linux should use
+native AER and DPC services. While that is true for the _OSC method
+parsing, this is not the only place that is checked. Should the HEST
+table list PCIe ports as firmware-first, linux will not use native
+services.
 
-On Wed, Jun 6, 2018 at 6:38 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
-> The numa mask subset check can often lead to system hang or crash during
-> CPU hotplug and system suspend operation if NUMA is disabled. This is
+This happens because aer_acpi_firmware_first() doesn't take
+'pcie_ports' into account. This is wrong. DPC uses the same logic when
+it decides whether to load or not, so fixing this also fixes DPC not
+loading.
 
-Also during boot, if CONFIG_ARM_PSCI_CHECKER=y.
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/pci/pcie/aer/aerdrv_acpi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-> mostly observed on HMP systems where the CPU compute capacities are
-> different and ends up in different scheduler domains. Since
-> cpumask_of_node is returned instead core_sibling, the scheduler is
-> confused with incorrect cpumasks(e.g. one CPU in two different sched
-> domains at the same time) on CPU hotplug.
->
-> Lets disable the NUMA siblings checks for the time being, as NUMA in
-> socket machines have LLC's that will assure that the scheduler topology
-> isn't "borken".
->
-> The NUMA check exists to assure that if a LLC within a socket crosses
-> NUMA nodes/chiplets the scheduler domains remain consistent. This code will
-> likely have to be re-enabled in the near future once the NUMA mask story
-> is sorted.  At the moment its not necessary because the NUMA in socket
-> machines LLC's are contained within the NUMA domains.
->
-> Further, as a defensive mechanism during hot-plug, lets assure that the
-> LLC siblings are also masked.
->
-> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
-> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-
-Thanks!
-
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
-
-> ---
->  arch/arm64/kernel/topology.c | 11 ++++-------
->  1 file changed, 4 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
-> index 7415c166281f..f845a8617812 100644
-> --- a/arch/arm64/kernel/topology.c
-> +++ b/arch/arm64/kernel/topology.c
-> @@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
->
->  const struct cpumask *cpu_coregroup_mask(int cpu)
->  {
-> -       const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
-> +       const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
->
-> -       /* Find the smaller of NUMA, core or LLC siblings */
-> -       if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
-> -               /* not numa in package, lets use the package siblings */
-> -               core_mask = &cpu_topology[cpu].core_sibling;
-> -       }
->         if (cpu_topology[cpu].llc_id != -1) {
->                 if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
->                         core_mask = &cpu_topology[cpu].llc_siblings;
-> @@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
->         for_each_possible_cpu(cpu) {
->                 cpu_topo = &cpu_topology[cpu];
->
-> -               if (cpuid_topo->llc_id == cpu_topo->llc_id)
-> +               if (cpuid_topo->llc_id == cpu_topo->llc_id) {
->                         cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
-> +                       cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
-> +               }
->
->                 if (cpuid_topo->package_id != cpu_topo->package_id)
->                         continue;
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
+diff --git a/drivers/pci/pcie/aer/aerdrv_acpi.c b/drivers/pci/pcie/aer/aerdrv_acpi.c
+index 08c87de13cb8..4b491851a781 100644
+--- a/drivers/pci/pcie/aer/aerdrv_acpi.c
++++ b/drivers/pci/pcie/aer/aerdrv_acpi.c
+@@ -101,7 +101,7 @@ static void aer_set_firmware_first(struct pci_dev *pci_dev)
+ 
+ 	rc = apei_hest_parse(aer_hest_parse, &info);
+ 
+-	if (rc)
++	if (rc || pcie_ports_native)
+ 		pci_dev->__aer_firmware_first = 0;
+ 	else
+ 		pci_dev->__aer_firmware_first = info.firmware_first;
+@@ -135,6 +135,8 @@ bool aer_acpi_firmware_first(void)
+ 		apei_hest_parse(aer_hest_parse, &info);
+ 		aer_firmware_first = info.firmware_first;
+ 		parsed = true;
++		if (pcie_ports_native)
++			aer_firmware_first = 0;
+ 	}
+ 	return aer_firmware_first;
+ }
 -- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+2.14.3
