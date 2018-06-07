@@ -1,57 +1,96 @@
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Thu, 7 Jun 2018 13:39:15 +0100
-Message-ID: <20180607123915.avrqbpp4adgj7ck4@techsingularity.net>
-References: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v2] arm64: topology: Avoid checking numa mask for
+ scheduler MC selection
+Date: Thu, 7 Jun 2018 16:25:47 +0200
+Message-ID: <CAMuHMdXW4M5CNS3wvb1R8v7ioGX7Q3ODcfgcdn2Ok3FRedTMZA@mail.gmail.com>
+References: <20180606163846.495725-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180606122731.GB27707@jra-laptop.brq.redhat.com>
+In-Reply-To: <20180606163846.495725-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jakub Racek <jracek@redhat.com>
-Cc: linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Robin Murphy <Robin.Murphy@arm.com>, Morten.Rasmussen@arm.com, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Linux-Renesas <linux-renesas-soc@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 06, 2018 at 02:27:32PM +0200, Jakub Racek wrote:
-> There is a huge performance regression on the 2 and 4 NUMA node systems on
-> stream benchmark with 4.17 kernel compared to 4.16 kernel. Stream, Linpack
-> and NAS parallel benchmarks show upto 50% performance drop.
-> 
+Hi Jeremy,
 
-I have not observed this yet but NAS is the only one I'll see and that could
-be a week or more away before I have data. I'll keep an eye out at least.
+On Wed, Jun 6, 2018 at 6:38 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
+> The numa mask subset check can often lead to system hang or crash during
+> CPU hotplug and system suspend operation if NUMA is disabled. This is
 
-> When running for example 20 stream processes in parallel, we see the following behavior:
-> 
-> * all processes are started at NODE #1
-> * memory is also allocated on NODE #1
-> * roughly half of the processes are moved to the NODE #0 very quickly. *
-> however, memory is not moved to NODE #0 and stays allocated on NODE #1
-> 
+Also during boot, if CONFIG_ARM_PSCI_CHECKER=y.
 
-Ok, 20 processes getting rescheduled to another node is not unreasonable
-from a load-balancing perspective but memory locality is not always taken
-into account. You also don't state what parallelisation method you used
-for STREAM and it's relevant because of how tasks end up communicating
-and what that means for placement.
+> mostly observed on HMP systems where the CPU compute capacities are
+> different and ends up in different scheduler domains. Since
+> cpumask_of_node is returned instead core_sibling, the scheduler is
+> confused with incorrect cpumasks(e.g. one CPU in two different sched
+> domains at the same time) on CPU hotplug.
+>
+> Lets disable the NUMA siblings checks for the time being, as NUMA in
+> socket machines have LLC's that will assure that the scheduler topology
+> isn't "borken".
+>
+> The NUMA check exists to assure that if a LLC within a socket crosses
+> NUMA nodes/chiplets the scheduler domains remain consistent. This code will
+> likely have to be re-enabled in the near future once the NUMA mask story
+> is sorted.  At the moment its not necessary because the NUMA in socket
+> machines LLC's are contained within the NUMA domains.
+>
+> Further, as a defensive mechanism during hot-plug, lets assure that the
+> LLC siblings are also masked.
+>
+> Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+> Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 
-The only automatic NUMA balancing patch I can think of that has a high
-chance of being a factor is 7347fc87dfe6b7315e74310ee1243dc222c68086
-but I cannot see how STREAM would be affected as I severely doubt
-the processes are communicating heavily (unless openmp and then it's
-a maybe). It might affect NAS because that does a lot of wakeups
-via futex that has "interesting" characteristics (either openmp or
-openmpi). 082f764a2f3f2968afa1a0b04a1ccb1b70633844 might also be a factor
-but it's doubtful. I don't know about Linpack as I've never characterised
-it so I don't know how it behaves.
+Thanks!
 
-There are a few patches that affect utilisation calculation which might
-affect the load balancer but I can't pinpoint a single likely candidate.
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
 
-Given that STREAM is usually short-lived, is bisection an option?
+> ---
+>  arch/arm64/kernel/topology.c | 11 ++++-------
+>  1 file changed, 4 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm64/kernel/topology.c b/arch/arm64/kernel/topology.c
+> index 7415c166281f..f845a8617812 100644
+> --- a/arch/arm64/kernel/topology.c
+> +++ b/arch/arm64/kernel/topology.c
+> @@ -215,13 +215,8 @@ EXPORT_SYMBOL_GPL(cpu_topology);
+>
+>  const struct cpumask *cpu_coregroup_mask(int cpu)
+>  {
+> -       const cpumask_t *core_mask = cpumask_of_node(cpu_to_node(cpu));
+> +       const cpumask_t *core_mask = &cpu_topology[cpu].core_sibling;
+>
+> -       /* Find the smaller of NUMA, core or LLC siblings */
+> -       if (cpumask_subset(&cpu_topology[cpu].core_sibling, core_mask)) {
+> -               /* not numa in package, lets use the package siblings */
+> -               core_mask = &cpu_topology[cpu].core_sibling;
+> -       }
+>         if (cpu_topology[cpu].llc_id != -1) {
+>                 if (cpumask_subset(&cpu_topology[cpu].llc_siblings, core_mask))
+>                         core_mask = &cpu_topology[cpu].llc_siblings;
+> @@ -239,8 +234,10 @@ static void update_siblings_masks(unsigned int cpuid)
+>         for_each_possible_cpu(cpu) {
+>                 cpu_topo = &cpu_topology[cpu];
+>
+> -               if (cpuid_topo->llc_id == cpu_topo->llc_id)
+> +               if (cpuid_topo->llc_id == cpu_topo->llc_id) {
+>                         cpumask_set_cpu(cpu, &cpuid_topo->llc_siblings);
+> +                       cpumask_set_cpu(cpuid, &cpu_topo->llc_siblings);
+> +               }
+>
+>                 if (cpuid_topo->package_id != cpu_topo->package_id)
+>                         continue;
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 -- 
-Mel Gorman
-SUSE Labs
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
