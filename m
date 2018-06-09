@@ -1,13 +1,14 @@
 From: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Subject: Re: [GIT PULL] libnvdimm for 4.18
-Date: Fri, 8 Jun 2018 17:19:05 -0700
-Message-ID: <CA+55aFy_fiF2bwW=0gL4g8uL5099hWarL4+Q9djmDEuwRR2KKw@mail.gmail.com>
+Date: Fri, 8 Jun 2018 17:26:55 -0700
+Message-ID: <CA+55aFyTXHxaRQhsCwgicFw6=xk80Bjw92tgfmmRP4HQ-AhSvw@mail.gmail.com>
 References: <1528502307.25740.14.camel@intel.com>
+ <CA+55aFy_fiF2bwW=0gL4g8uL5099hWarL4+Q9djmDEuwRR2KKw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1528502307.25740.14.camel-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CA+55aFy_fiF2bwW=0gL4g8uL5099hWarL4+Q9djmDEuwRR2KKw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -21,17 +22,34 @@ To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 8, 2018 at 4:58 PM Williams, Dan J <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Fri, Jun 8, 2018 at 5:19 PM Linus Torvalds
+<torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
 >
-> Not included in this pull, but still targeting this cycle, is support
-> for handling memory media errors (poison) consumed via userspace dax
-> mappings.
+> If I get stuff that looks at all complex at the end of the merge
+> window, I will just cackle unpleasantly while I press the big 'D' key
+> on my keyboard.
 
-Note that since I'm going to be traveling much of next week, I'm going
-to be even less open to late pull requests than usual.
+Side note: looking at what I just pulled, there was close to a D key here too.
 
-If I get stuff that looks at all complex at the end of the merge
-window, I will just cackle unpleasantly while I press the big 'D' key
-on my keyboard.
+Dammit, the top commit in your tree is a merge. And the merge message
+for that merge is this:
 
-          Linus
+    Merge branch 'for-4.18/mcsafe' into libnvdimm-for-next
+
+That's it. One line. That doesn't say anything at all.
+
+That kind of uninformative commit message wouldn't be remotely
+acceptable for a regular simple one-liner patch.
+
+WHY THE HELL DO PEOPLE CONTINUE TO THINK THAT IT'S OK FOR MERGES?
+
+Dammit. Merges are *more* complex than random usual patches. They need
+proper commit messages. Yet you have two merges there with absolutely
+*no* information in the commit message.
+
+If you can't be bothered to write an informative commit message for a
+merge, you damn well shouldn't do the merge.
+
+It really is that simple.
+
+                     Linus
