@@ -1,137 +1,64 @@
-From: Pu Wen <puwen@hygon.cn>
-Subject: [PATCH 10/11] driver/edac: Add support for Hygon's Dhyana Family 18h processor
-Date: Sat,  9 Jun 2018 21:24:30 +0800
-Message-ID: <1528550670-28529-1-git-send-email-puwen@hygon.cn>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bp@alien8.de, mchehab@kernel.org, zhangpanyong@hygon.cn
-Cc: rjw@rjwysocki.net, viresh.kumar@linaro.org, lenb@kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, peterz@infradead.org, tony.luck@intel.com, pbonzini@redhat.com, rkrcmar@redhat.com, boris.ostrovsky@oracle.com, jgross@suse.com, trenn@suse.com, shuah@kernel.org, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-x86_64@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-pm@vger.kernel.org, kvm@vger.kernel.org, xen-devel@lists.xenproject.org, Pu Wen <puwen@hygon.cn>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [GIT PULL] libnvdimm for 4.18
+Date: Sat, 9 Jun 2018 08:17:27 -0700
+Message-ID: <CAPcyv4hPTyfSO5pncQ84cPrTe4sUJ+jA6cMHXm-6ocvLGKr65A@mail.gmail.com>
+References: <1528502307.25740.14.camel@intel.com>
+ <CA+55aFy_fiF2bwW=0gL4g8uL5099hWarL4+Q9djmDEuwRR2KKw@mail.gmail.com>
+ <CA+55aFyTXHxaRQhsCwgicFw6=xk80Bjw92tgfmmRP4HQ-AhSvw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <CA+55aFyTXHxaRQhsCwgicFw6=xk80Bjw92tgfmmRP4HQ-AhSvw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch enables the EDAC driver support to Hygon Family 18h CPU:
-- Add MCE support for Hygon Family 18h.
-- Add HYGON_F18_CPUS in amd_families enum to enable Hygon Family 18h support.
-- Add HYGON_F18_CPUS in family_types[] to support Hygon Family 18h.
-- Add Hygon Family 18h support in determine_memory_type(), per_family_init()
-  and scrub rate codes.
-- Add X86_VENDOR_HYGON in amd64_cpuids[].
+On Fri, Jun 8, 2018 at 5:26 PM, Linus Torvalds
+<torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
+> On Fri, Jun 8, 2018 at 5:19 PM Linus Torvalds
+> <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org> wrote:
+>>
+>> If I get stuff that looks at all complex at the end of the merge
+>> window, I will just cackle unpleasantly while I press the big 'D' key
+>> on my keyboard.
+>
+> Side note: looking at what I just pulled, there was close to a D key here too.
+>
+> Dammit, the top commit in your tree is a merge. And the merge message
+> for that merge is this:
+>
+>     Merge branch 'for-4.18/mcsafe' into libnvdimm-for-next
+>
+> That's it. One line. That doesn't say anything at all.
+>
+> That kind of uninformative commit message wouldn't be remotely
+> acceptable for a regular simple one-liner patch.
+>
+> WHY THE HELL DO PEOPLE CONTINUE TO THINK THAT IT'S OK FOR MERGES?
+>
+> Dammit. Merges are *more* complex than random usual patches. They need
+> proper commit messages. Yet you have two merges there with absolutely
+> *no* information in the commit message.
+>
+> If you can't be bothered to write an informative commit message for a
+> merge, you damn well shouldn't do the merge.
+>
+> It really is that simple.
 
-Signed-off-by: Pu Wen <puwen@hygon.cn>
----
- drivers/edac/amd64_edac.c | 20 +++++++++++++++++++-
- drivers/edac/amd64_edac.h |  4 ++++
- drivers/edac/mce_amd.c    |  4 +++-
- 3 files changed, 26 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/edac/amd64_edac.c b/drivers/edac/amd64_edac.c
-index 329cb96..a2e02c5 100644
---- a/drivers/edac/amd64_edac.c
-+++ b/drivers/edac/amd64_edac.c
-@@ -211,7 +211,7 @@ static int __set_scrub_rate(struct amd64_pvt *pvt, u32 new_bw, u32 min_rate)
- 
- 	scrubval = scrubrates[i].scrubval;
- 
--	if (pvt->fam == 0x17) {
-+	if (pvt->fam == 0x17 || pvt->fam == 0x18) {
- 		__f17h_set_scrubval(pvt, scrubval);
- 	} else if (pvt->fam == 0x15 && pvt->model == 0x60) {
- 		f15h_select_dct(pvt, 0);
-@@ -264,6 +264,7 @@ static int get_scrub_rate(struct mem_ctl_info *mci)
- 		break;
- 
- 	case 0x17:
-+	case 0x18:
- 		amd64_read_pci_cfg(pvt->F6, F17H_SCR_BASE_ADDR, &scrubval);
- 		if (scrubval & BIT(0)) {
- 			amd64_read_pci_cfg(pvt->F6, F17H_SCR_LIMIT_ADDR, &scrubval);
-@@ -1044,6 +1045,7 @@ static void determine_memory_type(struct amd64_pvt *pvt)
- 		goto ddr3;
- 
- 	case 0x17:
-+	case 0x18:
- 		if ((pvt->umc[0].dimm_cfg | pvt->umc[1].dimm_cfg) & BIT(5))
- 			pvt->dram_type = MEM_LRDDR4;
- 		else if ((pvt->umc[0].dimm_cfg | pvt->umc[1].dimm_cfg) & BIT(4))
-@@ -2200,6 +2202,16 @@ static struct amd64_family_type family_types[] = {
- 			.dbam_to_cs		= f17_base_addr_to_cs_size,
- 		}
- 	},
-+	[HYGON_F18_CPUS] = {
-+		/* Hygon F18h uses the same AMD F17h support */
-+		.ctl_name = "Hygon_F18h",
-+		.f0_id = PCI_DEVICE_ID_HYGON_18H_DF_F0,
-+		.f6_id = PCI_DEVICE_ID_HYGON_18H_DF_F6,
-+		.ops = {
-+			.early_channel_count	= f17_early_channel_count,
-+			.dbam_to_cs		= f17_base_addr_to_cs_size,
-+		}
-+	},
- };
- 
- /*
-@@ -3192,6 +3204,11 @@ static struct amd64_family_type *per_family_init(struct amd64_pvt *pvt)
- 		pvt->ops	= &family_types[F17_CPUS].ops;
- 		break;
- 
-+	case 0x18:
-+		fam_type	= &family_types[HYGON_F18_CPUS];
-+		pvt->ops	= &family_types[HYGON_F18_CPUS].ops;
-+		break;
-+
- 	default:
- 		amd64_err("Unsupported family!\n");
- 		return NULL;
-@@ -3428,6 +3445,7 @@ static const struct x86_cpu_id amd64_cpuids[] = {
- 	{ X86_VENDOR_AMD, 0x15, X86_MODEL_ANY,	X86_FEATURE_ANY, 0 },
- 	{ X86_VENDOR_AMD, 0x16, X86_MODEL_ANY,	X86_FEATURE_ANY, 0 },
- 	{ X86_VENDOR_AMD, 0x17, X86_MODEL_ANY,	X86_FEATURE_ANY, 0 },
-+	{ X86_VENDOR_HYGON, 0x18, X86_MODEL_ANY, X86_FEATURE_ANY, 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(x86cpu, amd64_cpuids);
-diff --git a/drivers/edac/amd64_edac.h b/drivers/edac/amd64_edac.h
-index 1d4b74e..3dec27d 100644
---- a/drivers/edac/amd64_edac.h
-+++ b/drivers/edac/amd64_edac.h
-@@ -116,6 +116,9 @@
- #define PCI_DEVICE_ID_AMD_17H_DF_F0	0x1460
- #define PCI_DEVICE_ID_AMD_17H_DF_F6	0x1466
- 
-+#define PCI_DEVICE_ID_HYGON_18H_DF_F0	PCI_DEVICE_ID_AMD_17H_DF_F0
-+#define PCI_DEVICE_ID_HYGON_18H_DF_F6	PCI_DEVICE_ID_AMD_17H_DF_F6
-+
- /*
-  * Function 1 - Address Map
-  */
-@@ -281,6 +284,7 @@ enum amd_families {
- 	F16_CPUS,
- 	F16_M30H_CPUS,
- 	F17_CPUS,
-+	HYGON_F18_CPUS,
- 	NUM_FAMILIES,
- };
- 
-diff --git a/drivers/edac/mce_amd.c b/drivers/edac/mce_amd.c
-index 2ab4d61..c605089 100644
---- a/drivers/edac/mce_amd.c
-+++ b/drivers/edac/mce_amd.c
-@@ -1059,7 +1059,8 @@ static int __init mce_amd_init(void)
- {
- 	struct cpuinfo_x86 *c = &boot_cpu_data;
- 
--	if (c->x86_vendor != X86_VENDOR_AMD)
-+	if (c->x86_vendor != X86_VENDOR_AMD &&
-+	    c->x86_vendor != X86_VENDOR_HYGON)
- 		return -ENODEV;
- 
- 	fam_ops = kzalloc(sizeof(struct amd_decoder_ops), GFP_KERNEL);
-@@ -1113,6 +1114,7 @@ static int __init mce_amd_init(void)
- 		break;
- 
- 	case 0x17:
-+	case 0x18:
- 		xec_mask = 0x3f;
- 		if (!boot_cpu_has(X86_FEATURE_SMCA)) {
- 			printk(KERN_WARNING "Decoding supported only on Scalable MCA processors.\n");
--- 
-2.7.4
+Well, crap. I've been doing it the wrong way for a while. Do you have
+a preference for more pull requests or just splitting what is now a
+top level tag message into a summary changelog per branch when I merge
+the ready branches for the merge window? I had been assuming that the
+arrangement you have with Ingo / Thomas to pull individual topics was
+a privilege for the tip tree and not necessarily something everyone
+that sends you pulls should be doing.
