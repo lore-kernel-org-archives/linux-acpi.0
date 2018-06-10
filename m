@@ -1,50 +1,42 @@
-From: Tristian Celestin <tristiancelestin@fastmail.com>
-Subject: [PATCH] acpi/x86: enable touchscreen on Dell Venue Pro 7139
-Date: Sat,  9 Jun 2018 18:18:06 -0400
-Message-ID: <1528582686-18577-1-git-send-email-tristiancelestin@fastmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tristian Celestin <tristiancelestin@fastmail.com>
+From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/3] thinkpad_acpi: add support for
+ force_discharge
+Date: Sun, 10 Jun 2018 09:25:55 +0200
+Message-ID: <20180610072555.GA16179@thinkpad>
+References: <20180513153000.GA5117@thinkpad> <20180521133112.GA4578@kevinolos>
+ <20180524113555.wrwpdun64ai4cqwj@khazad-dum.debian.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180524113555.wrwpdun64ai4cqwj-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
+Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Permanently enable the SYNA7500 touchscreen device on the Dell
-Venue Pro 7139. The DSDT hides the touchscreen ACPI device on
-the 7139 in the same fashion as the 7130, and needs to
-be enabled in the same way.
+On Thu, May 24, 2018 at 08:35:55AM -0300, Henrique de Moraes Holschuh wrote:
+> On Mon, 21 May 2018, Kevin Locke wrote:
+> > as-expected.  The only oddity I noticed is that force_discharge has a
+> > delay taking effect (<1 sec) transitioning from 0 to 1 (but not 1 to
+> > 0).
+> 
+> The EC can take its sweet time to obey any such requests ;-)
+> 
 
-Signed-off-by: Tristian Celestin <tristiancelestin@fastmail.com>
----
- drivers/acpi/x86/utils.c | 12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+What is the status on this patch? Do I need some revisional work or?
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index ec5b0f1..3a13b2a 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -62,14 +62,20 @@ struct always_present_id {
- 	 */
- 	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
- 	/*
--	 * On the Dell Venue 11 Pro 7130 the DSDT hides the touchscreen ACPI
--	 * device until a certain time after _SB.PCI0.GFX0.LCD.LCD1._ON gets
--	 * called has passed *and* _STA has been called at least 3 times since.
-+	 * On the Dell Venue 11 Pro 7130 and 7139, the DSDT hides
-+	 * the touchscreen ACPI device until a certain time
-+	 * after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed
-+	 * *and* _STA has been called at least 3 times since.
- 	 */
- 	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
- 		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
- 		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
- 	      }),
-+	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7139"),
-+	      }),
-+
- 	/*
- 	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
- 	 * drivers sometimes cause crashes under Windows and this is how the
--- 
-1.8.3.1
+> -- 
+>   Henrique Holschuh
+
+------------------------------------------------------------------------------
+Check out the vibrant tech community on one of the world's most
+engaging tech sites, Slashdot.org! http://sdm.link/slashdot
