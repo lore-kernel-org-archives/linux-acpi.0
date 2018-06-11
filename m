@@ -1,81 +1,74 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH RESEND v4 2/2] arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
-Date: Mon, 11 Jun 2018 14:36:42 +0100
-Message-ID: <af93e4b1-80d5-33be-d5ed-312c3ea1d715@arm.com>
-References: <1528487320-2873-1-git-send-email-gengdongjiu@huawei.com>
- <1528487320-2873-3-git-send-email-gengdongjiu@huawei.com>
- <86zi04875t.wl-marc.zyngier@arm.com>
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Mon, 11 Jun 2018 15:11:13 +0100
+Message-ID: <20180611141113.pfuttg7npch3jtg6@techsingularity.net>
+References: <CAE4VaGBRFBM-uZEE=DdUzQkcNmpnUHdjK-7hgEeywmG8bvOOgw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <86zi04875t.wl-marc.zyngier@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAE4VaGBRFBM-uZEE=DdUzQkcNmpnUHdjK-7hgEeywmG8bvOOgw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jirka Hladky <jhladky@redhat.com>
+Cc: Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "kkolakow@redhat.com" <kkolakow@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Dongjiu Geng,
-
-On 09/06/18 13:40, Marc Zyngier wrote:
-> On Fri, 08 Jun 2018 20:48:40 +0100, Dongjiu Geng wrote:
->> For the migrating VMs, user space may need to know the exception
->> state. For example, in the machine A, KVM make an SError pending,
->> when migrate to B, KVM also needs to pend an SError.
->>
->> This new IOCTL exports user-invisible states related to SError.
->> Together with appropriate user space changes, user space can get/set
->> the SError exception state to do migrate/snapshot/suspend.
-
->> diff --git a/arch/arm64/include/uapi/asm/kvm.h b/arch/arm64/include/uapi/asm/kvm.h
->> index 04b3256..df4faee 100644
->> --- a/arch/arm64/include/uapi/asm/kvm.h
->> +++ b/arch/arm64/include/uapi/asm/kvm.h
->> @@ -153,6 +154,18 @@ struct kvm_sync_regs {
->>  struct kvm_arch_memory_slot {
->>  };
->>  
->> +/* for KVM_GET/SET_VCPU_EVENTS */
->> +struct kvm_vcpu_events {
->> +	struct {
->> +		__u8 serror_pending;
->> +		__u8 serror_has_esr;
->> +		/* Align it to 8 bytes */
->> +		__u8 pad[6];
->> +		__u64 serror_esr;
->> +	} exception;
->> +	__u32 reserved[12];
->> +};
-
->> diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
->> index 56a0260..4426915 100644
->> --- a/arch/arm64/kvm/guest.c
->> +++ b/arch/arm64/kvm/guest.c
-
->> +int kvm_arm_vcpu_set_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events)
->> +{
->> +	bool serror_pending = events->exception.serror_pending;
->> +	bool has_esr = events->exception.serror_has_esr;
->> +
->> +	if (serror_pending && has_esr) {
->> +		if (!cpus_have_const_cap(ARM64_HAS_RAS_EXTN))
->> +			return -EINVAL;
->> +
->> +		kvm_set_sei_esr(vcpu, events->exception.serror_esr);
->> +	} else if (serror_pending) {
->> +		kvm_inject_vabt(vcpu);
->> +	}
->> +
->> +	return 0;
+On Mon, Jun 11, 2018 at 12:04:34PM +0200, Jirka Hladky wrote:
+> Hi Mel,
 > 
-> There was an earlier request to check that all the padding is set to
-> zero. I still think this makes sense.
+> your suggestion about the commit which has caused the regression was right
+> - it's indeed this commit:
+> 
+> 2c83362734dad8e48ccc0710b5cd2436a0323893
+> 
+> The question now is what can be done to improve the results. I have made
+> stream to run longer and I see that data are moved very slowly from NODE#1
+> to NODE#0.
+> 
 
-I agree, not just the exception.padding[], but reserved[] too.
+Ok, this is somewhat expected although I suspect the scan rate slowed a lot
+in the early phase of the program and that's why the migration is slow --
+slow scan means fewer samples and takes longer to reach the 2-pass filter.
 
+> The process has started on NODE#1 where all memory has been allocated.
+> Right after the start, the process has been moved to NODE#0 but only part
+> of the memory has been moved to that node. numa_preferred_nid has stayed 1
+> for 30 seconds. The numa_preferred_nid has changed to 0 at
+> 2018-Jun-09_03h35m58s and most of the memory has been finally reallocated.
+> See the logs below.
+> 
+> Could we try to make numa_preferred_nid to change faster?
+> 
 
-Thanks,
+What catches us is that each element in itself makes sense, it's just not a
+universal win. The identified patch makes a reasonable choice in that fork
+shouldn't necessary spread across the machine as it hurts short-lived
+or communicating processes. Unfortunately, if a load is NUMA-aware
+and the processes are independent then automatic NUMA balancing has to
+take action which means there is a period of time where performance is
+sub-optimal. Similarly, the load balancer is making a reasonable decision
+when a socket gets overloaded. Fixing any part of it for STREAM will end
+up regressing something else.
 
-James
+The numa_preferred_nid can probably be changed faster by adjusting the scan
+rate. Unfortunately, it comes with the penalty that system CPU overhead
+will be higher and stalls in the process increase to handle the PTE updates
+and the subsequent faults. This might help STREAM but anything that is
+latency sensitive will be hurt. Worse, if a socket is over-saturated and
+there is a high frequency of cross-node migrations to load balance then
+the scan rate might always stay at the max frequency and a very high cost
+incurred so we end up with another class of regression.
+
+Srikar Dronamra did have a series with two patches that increase the scan
+rate when there is a cross-node migration. It may be the case that it
+also has the impact of changing numa_preferred_nid faster but it has a
+real risk of introducing regressions. Still, for the purposes of testing
+you might be interested in testing the following two patches?
+
+Srikar Dronamra [PATCH 17/19] sched/numa: Pass destination cpu as a parameter to migrate_task_rq
+Srikar Dronamra [PATCH 18/19] sched/numa: Reset scan rate whenever task moves across nodes
+
+-- 
+Mel Gorman
+SUSE Labs
