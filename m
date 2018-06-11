@@ -1,91 +1,85 @@
-From: Ravi Chandra Sadineni <ravisadineni@google.com>
-Subject: Re: [PATCH] ACPI LID: increment wakeup count only when notified.
-Date: Mon, 11 Jun 2018 10:59:03 -0700
-Message-ID: <CAOGSYL0dCWZvA1TYTFMWwJ7QGSSmwQcWxmJ+JZerxxt6=vx9Sg@mail.gmail.com>
-References: <20180604182612.72699-1-ravisadineni@chromium.org>
- <CAJZ5v0jBTpUzqEj1CeQ0CKH7zVRkgj1qJffoSujEZWi0HXABXw@mail.gmail.com>
- <20180606231130.GA57957@decatoncale.mtv.corp.google.com> <CAJZ5v0gXqyKQ5yTtqFYzv=KW2o+b4vGiUYiWWn+iT=zY-mU9xw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: Possible regression caused by commit a192aa923b66a
+Date: Mon, 11 Jun 2018 23:52:34 +0200
+Message-ID: <CAJZ5v0jiWugSt98MXOLUKAsig=uWFsTHK1Mntvy6z0JfiWt9sQ@mail.gmail.com>
+References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com> <CAJZ5v0iyNo+ZZ1O0_j4p6w-+eS1W9MUYs-vjeNHVENFVhReGzw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed; boundary="000000000000703623056e64c488"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gXqyKQ5yTtqFYzv=KW2o+b4vGiUYiWWn+iT=zY-mU9xw@mail.gmail.com>
+In-Reply-To: <CAJZ5v0iyNo+ZZ1O0_j4p6w-+eS1W9MUYs-vjeNHVENFVhReGzw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Benson Leung <bleung@google.com>, Ravi Chandra Sadineni <ravisadineni@chromium.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Todd Broch <tbroch@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Furquan Shaikh <furquan@chromium.org>, Benson Leung <bleung@chromium.org>
+To: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+--000000000000703623056e64c488
+Content-Type: text/plain; charset="UTF-8"
 
-Hopefully this will clear things a bit.
-
-1. Why is this patch needed ?
- Consider the following scenario.
-      1. User left the device idle for some time.
-      2. A deamon in the userland that controls suspend policy might
-suspend the device. The lid is still open.
-      3. Now the user returns and wakes the system up by pressing a
-key. The system resumes.
-      4. In the current implementation we call pm_wakeup_event() (if
-the lid is open) irrespective of whether we have received a notify
-signal.
-      5. The deamon in the userland tries to identify what might woken
-the system up based on the wakeup_count.
-      6. The deamon sees a wakeup_count  increment for both keyboard
-and lid and is confused.
- This patch is an attempt to address the same.
-
-2. Will it break any existing logic ?
-   AFAIK pm_wakeup_event() serves 2 purposes.
-               1. Helps preventing a race between system wide suspend
-and wakeup event.
-               2. Helps identifying the device that woke the system up.
-
-As far as preventing races during suspend is concerned, in the
-existing implementation, we increment the wakeup_count only when there
-is a lid open. Thus only lid open can prevent the system from
-suspending (if lid is a wake enabled device). But with my previous
-change, we will end up incrementing the wakeup_count for both lid
-close and lid open. Fixed this in V2,  so that we do not  increment
-the wakeup_count when there is a lid close.
-
-And currently we cannot identify if the lid is the reason for wake
-anyway.  So this patch can only make things better here.
-
-Thanks,
-Ravi
-
-On Wed, Jun 6, 2018 at 4:21 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> On Thu, Jun 7, 2018 at 1:11 AM, Benson Leung <bleung@google.com> wrote:
+On Mon, Jun 11, 2018 at 10:09 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> On Mon, Jun 11, 2018 at 8:26 AM, Kai-Heng Feng
+> <kai.heng.feng@canonical.com> wrote:
 >> Hi Rafael,
 >>
->> On Wed, Jun 06, 2018 at 09:00:43AM +0200, Rafael J. Wysocki wrote:
->>> > @@ -417,6 +414,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
->>> >                 /* fall through */
->>> >         case ACPI_BUTTON_NOTIFY_STATUS:
->>> >                 input = button->input;
->>> > +               acpi_pm_wakeup_event(&device->dev);
->>>
->>> Not really.
->>>
->>> There already is an acpi_pm_wakeup_event() call in the else branch below.
->>>
+>> There's a regression report [1] that says commit a192aa923b66a ("ACPI /
+>> LPSS: Consolidate runtime PM and system sleep handling") is the first bad
+>> commit.
 >>
->> Ravi removes that other call below.
+>> From the looks of it, it didn't introduce any behavioral change. So your
+>> help is appreciated.
+>>
+>> [1] https://bugs.launchpad.net/bugs/1774950
 >
-> OK, I missed that, not sure why, sorry.
->
->> The intent for this is to call
->> acpi_pm_wakeup_event() regardless if the button->type is ACPI_BUTTON_TYPE_LID,
->> in case that event is ACPI_BUTTON_NOTIFY_STATUS.
->
-> Well, the patch really drops the acpi_pm_wakeup_event() call from
-> acpi_lid_notify_state() and so it has to ensure that this function
-> will be called here for ACPI_BUTTON_NOTIFY_STATUS regardless of the
-> button->type value.
->
-> That's fine, but still the changelog doesn't make it clear why the
-> acpi_pm_wakeup_event() call in acpi_lid_notify_state() is not
-> necessary in general.
->
-> Thanks,
-> Rafael
+> Well, the only difference is the iosf quirk AFAICS, but that should be
+> easy enough to check.  I'll try to cut a patch for that later today.
+
+If the iosf quirk is the source of the problem, the attached patch should help.
+
+--000000000000703623056e64c488
+Content-Type: text/x-patch; charset="US-ASCII"; name="acpi-lpss-pm-debug.patch"
+Content-Disposition: attachment; filename="acpi-lpss-pm-debug.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_jiasl9xg0
+
+LS0tCiBkcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMgfCAgIDE3ICsrKysrKysrKystLS0tLS0tCiAx
+IGZpbGUgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgNyBkZWxldGlvbnMoLSkKCkluZGV4OiBs
+aW51eC1wbS9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMKPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQotLS0gbGludXgtcG0u
+b3JpZy9kcml2ZXJzL2FjcGkvYWNwaV9scHNzLmMKKysrIGxpbnV4LXBtL2RyaXZlcnMvYWNwaS9h
+Y3BpX2xwc3MuYwpAQCAtOTQwLDkgKzk0MCwxMCBAQCBzdGF0aWMgdm9pZCBscHNzX2lvc2ZfZXhp
+dF9kM19zdGF0ZSh2b2lkCiAJbXV0ZXhfdW5sb2NrKCZscHNzX2lvc2ZfbXV0ZXgpOwogfQogCi1z
+dGF0aWMgaW50IGFjcGlfbHBzc19zdXNwZW5kKHN0cnVjdCBkZXZpY2UgKmRldiwgYm9vbCB3YWtl
+dXApCitzdGF0aWMgaW50IGFjcGlfbHBzc19zdXNwZW5kKHN0cnVjdCBkZXZpY2UgKmRldiwgYm9v
+bCBydW50aW1lKQogewogCXN0cnVjdCBscHNzX3ByaXZhdGVfZGF0YSAqcGRhdGEgPSBhY3BpX2Ry
+aXZlcl9kYXRhKEFDUElfQ09NUEFOSU9OKGRldikpOworCWJvb2wgd2FrZXVwID0gcnVudGltZSB8
+fCBkZXZpY2VfbWF5X3dha2V1cChkZXYpOwogCWludCByZXQ7CiAKIAlpZiAocGRhdGEtPmRldl9k
+ZXNjLT5mbGFncyAmIExQU1NfU0FWRV9DVFgpCkBAIC05NTUsMTMgKzk1NiwxNCBAQCBzdGF0aWMg
+aW50IGFjcGlfbHBzc19zdXNwZW5kKHN0cnVjdCBkZXZpCiAJICogd3Jvbmcgc3RhdHVzIGZvciBk
+ZXZpY2VzIGJlaW5nIGFib3V0IHRvIGJlIHBvd2VyZWQgb2ZmLiBTZWUKIAkgKiBscHNzX2lvc2Zf
+ZW50ZXJfZDNfc3RhdGUoKSBmb3IgZnVydGhlciBpbmZvcm1hdGlvbi4KIAkgKi8KLQlpZiAobHBz
+c19xdWlya3MgJiBMUFNTX1FVSVJLX0FMV0FZU19QT1dFUl9PTiAmJiBpb3NmX21iaV9hdmFpbGFi
+bGUoKSkKKwlpZiAocnVudGltZSAmJiBscHNzX3F1aXJrcyAmIExQU1NfUVVJUktfQUxXQVlTX1BP
+V0VSX09OICYmCisJICAgIGlvc2ZfbWJpX2F2YWlsYWJsZSgpKQogCQlscHNzX2lvc2ZfZW50ZXJf
+ZDNfc3RhdGUoKTsKIAogCXJldHVybiByZXQ7CiB9CiAKLXN0YXRpYyBpbnQgYWNwaV9scHNzX3Jl
+c3VtZShzdHJ1Y3QgZGV2aWNlICpkZXYpCitzdGF0aWMgaW50IGFjcGlfbHBzc19yZXN1bWUoc3Ry
+dWN0IGRldmljZSAqZGV2LCBib29sIHJ1bnRpbWUpCiB7CiAJc3RydWN0IGxwc3NfcHJpdmF0ZV9k
+YXRhICpwZGF0YSA9IGFjcGlfZHJpdmVyX2RhdGEoQUNQSV9DT01QQU5JT04oZGV2KSk7CiAJaW50
+IHJldDsKQEAgLTk3MCw3ICs5NzIsOCBAQCBzdGF0aWMgaW50IGFjcGlfbHBzc19yZXN1bWUoc3Ry
+dWN0IGRldmljCiAJICogVGhpcyBjYWxsIGlzIGtlcHQgZmlyc3QgdG8gYmUgaW4gc3ltbWV0cnkg
+d2l0aAogCSAqIGFjcGlfbHBzc19ydW50aW1lX3N1c3BlbmQoKSBvbmUuCiAJICovCi0JaWYgKGxw
+c3NfcXVpcmtzICYgTFBTU19RVUlSS19BTFdBWVNfUE9XRVJfT04gJiYgaW9zZl9tYmlfYXZhaWxh
+YmxlKCkpCisJaWYgKHJ1bnRpbWUgJiYgbHBzc19xdWlya3MgJiBMUFNTX1FVSVJLX0FMV0FZU19Q
+T1dFUl9PTiAmJgorCSAgICBpb3NmX21iaV9hdmFpbGFibGUoKSkKIAkJbHBzc19pb3NmX2V4aXRf
+ZDNfc3RhdGUoKTsKIAogCXJldCA9IGFjcGlfZGV2X3Jlc3VtZShkZXYpOwpAQCAtOTk0LDEyICs5
+OTcsMTIgQEAgc3RhdGljIGludCBhY3BpX2xwc3Nfc3VzcGVuZF9sYXRlKHN0cnVjdAogCQlyZXR1
+cm4gMDsKIAogCXJldCA9IHBtX2dlbmVyaWNfc3VzcGVuZF9sYXRlKGRldik7Ci0JcmV0dXJuIHJl
+dCA/IHJldCA6IGFjcGlfbHBzc19zdXNwZW5kKGRldiwgZGV2aWNlX21heV93YWtldXAoZGV2KSk7
+CisJcmV0dXJuIHJldCA/IHJldCA6IGFjcGlfbHBzc19zdXNwZW5kKGRldiwgZmFsc2UpOwogfQog
+CiBzdGF0aWMgaW50IGFjcGlfbHBzc19yZXN1bWVfZWFybHkoc3RydWN0IGRldmljZSAqZGV2KQog
+ewotCWludCByZXQgPSBhY3BpX2xwc3NfcmVzdW1lKGRldik7CisJaW50IHJldCA9IGFjcGlfbHBz
+c19yZXN1bWUoZGV2LCBmYWxzZSk7CiAKIAlyZXR1cm4gcmV0ID8gcmV0IDogcG1fZ2VuZXJpY19y
+ZXN1bWVfZWFybHkoZGV2KTsKIH0KQEAgLTEwMTQsNyArMTAxNyw3IEBAIHN0YXRpYyBpbnQgYWNw
+aV9scHNzX3J1bnRpbWVfc3VzcGVuZChzdHIKIAogc3RhdGljIGludCBhY3BpX2xwc3NfcnVudGlt
+ZV9yZXN1bWUoc3RydWN0IGRldmljZSAqZGV2KQogewotCWludCByZXQgPSBhY3BpX2xwc3NfcmVz
+dW1lKGRldik7CisJaW50IHJldCA9IGFjcGlfbHBzc19yZXN1bWUoZGV2LCB0cnVlKTsKIAogCXJl
+dHVybiByZXQgPyByZXQgOiBwbV9nZW5lcmljX3J1bnRpbWVfcmVzdW1lKGRldik7CiB9Cg==
+--000000000000703623056e64c488--
