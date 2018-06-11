@@ -1,42 +1,28 @@
-From: Ognjen =?utf-8?B?R2FsacSH?= <smclt30p-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/3] thinkpad_acpi: add support for
- force_discharge
-Date: Sun, 10 Jun 2018 09:25:55 +0200
-Message-ID: <20180610072555.GA16179@thinkpad>
-References: <20180513153000.GA5117@thinkpad> <20180521133112.GA4578@kevinolos>
- <20180524113555.wrwpdun64ai4cqwj@khazad-dum.debian.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: Possible regression caused by commit a192aa923b66a
+Date: Mon, 11 Jun 2018 14:26:12 +0800
+Message-ID: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com>
+Mime-Version: 1.0 (Mac OS X Mail 11.4 \(3445.8.2\))
+Content-Type: text/plain;
+        charset=us-ascii;
+        delsp=yes;
+        format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20180524113555.wrwpdun64ai4cqwj-ZGHd14iZgfaRjzvQDGKj+xxZW9W5cXbT@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Henrique de Moraes Holschuh <hmh-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>
-Cc: Platform Driver <platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, Linux PM <linux-pm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sebastian Reichel <sre-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph =?iso-8859-1?Q?B=F6hmwalder?= <christoph-KeW1gJXA36yNJhrcwGid2A@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org, Kevin Locke <kevin-yFOG++GfaLUI8/NkjqMgMw@public.gmane.org>, Andy Shevchenko <andy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, perryhelionsemail@gmail.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, May 24, 2018 at 08:35:55AM -0300, Henrique de Moraes Holschuh wrote:
-> On Mon, 21 May 2018, Kevin Locke wrote:
-> > as-expected.  The only oddity I noticed is that force_discharge has a
-> > delay taking effect (<1 sec) transitioning from 0 to 1 (but not 1 to
-> > 0).
-> 
-> The EC can take its sweet time to obey any such requests ;-)
-> 
+Hi Rafael,
 
-What is the status on this patch? Do I need some revisional work or?
+There's a regression report [1] that says commit a192aa923b66a ("ACPI /  
+LPSS: Consolidate runtime PM and system sleep handling") is the first bad  
+commit.
 
-> -- 
->   Henrique Holschuh
+ From the looks of it, it didn't introduce any behavioral change. So your  
+help is appreciated.
 
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+[1] https://bugs.launchpad.net/bugs/1774950
+
+Kai-Heng
