@@ -1,26 +1,36 @@
 From: gengdongjiu <gengdongjiu@huawei.com>
 Subject: Re: [PATCH RESEND v4 2/2] arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
-Date: Tue, 12 Jun 2018 20:42:12 +0800
-Message-ID: <2d44eee4-b79b-cc7c-8ae9-fbac00c8b6a2@huawei.com>
+Date: Tue, 12 Jun 2018 21:06:45 +0800
+Message-ID: <d404c732-64e5-43c1-eecf-cf63f91e33f9@huawei.com>
 References: <1528487320-2873-1-git-send-email-gengdongjiu@huawei.com>
  <1528487320-2873-3-git-send-email-gengdongjiu@huawei.com>
- <20180609111745.GJ5097@C02W217FHV2R.local>
+ <86zi04875t.wl-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180609111745.GJ5097@C02W217FHV2R.local>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <86zi04875t.wl-marc.zyngier@arm.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoffer Dall <christoffer.dall@arm.com>
-Cc: rkrcmar@redhat.com, corbet@lwn.net, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, james.morse@arm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, kvm@vger.kernel.org, corbet@lwn.net, catalin.marinas@arm.com, rkrcmar@redhat.com, will.deacon@arm.com, linux@armlinux.org.uk, christoffer.dall@arm.com, linux-acpi@vger.kernel.org, james.morse@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Christoffer,
-   Thanks for the review.
+Hi Marc
+   thanks for the review.
 
-On 2018/6/9 19:17, Christoffer Dall wrote:
-> On Sat, Jun 09, 2018 at 03:48:40AM +0800, Dongjiu Geng wrote:
+On 2018/6/9 20:40, Marc Zyngier wrote:
+> On Fri, 08 Jun 2018 20:48:40 +0100,
+> Dongjiu Geng wrote:
+>>
 >> For the migrating VMs, user space may need to know the exception
 >> state. For example, in the machine A, KVM make an SError pending,
 >> when migrate to B, KVM also needs to pend an SError.
@@ -123,9 +133,6 @@ On 2018/6/9 19:17, Christoffer Dall wrote:
 >>  
 >> -Capability: KVM_CAP_VCPU_EVENTS
 >> +Capebility: KVM_CAP_VCPU_EVENTS
-> 
-> nit: unintended change?
-> 
 >>  Extended by: KVM_CAP_INTR_SHADOW
 >> -Architectures: x86
 >> +Architectures: x86, arm, arm64
@@ -302,21 +309,19 @@ On 2018/6/9 19:17, Christoffer Dall wrote:
 >> +	events->exception.serror_pending = !!(vcpu->arch.hcr_el2 & HCR_VSE);
 >> +	events->exception.serror_has_esr =
 >> +					cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
-> 
-> nit: no need to wrap this line so strangely, just keep it on a single
-> line (regardless of going slightly over the 80 chars limit).
-  Ok, will fix it.
-> 
 >> +
 >> +	if (events->exception.serror_pending &&
 >> +		events->exception.serror_has_esr)
-> 
-> same here
-   OK, will fix it.
-> 
 >> +		events->exception.serror_esr = vcpu_get_vsesr(vcpu);
 >> +	else
 >> +		events->exception.serror_esr = 0;
+> 
+> Other than the alignment issues that Christoffer already commented on,
+> you can perfectly remove the "else" clause altogether (we've just
+> zeroed the whole structure).
+yes, you are right. it should be moved, thanks for the pointing out.
+
+> 
 >> +
 >> +	return 0;
 >> +}
@@ -337,91 +342,15 @@ On 2018/6/9 19:17, Christoffer Dall wrote:
 >> +	}
 >> +
 >> +	return 0;
->> +}
->> +
->>  int __attribute_const__ kvm_target_cpu(void)
->>  {
->>  	unsigned long implementor = read_cpuid_implementor();
->> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
->> index d8e7165..a55e91d 100644
->> --- a/arch/arm64/kvm/inject_fault.c
->> +++ b/arch/arm64/kvm/inject_fault.c
->> @@ -164,9 +164,9 @@ void kvm_inject_undefined(struct kvm_vcpu *vcpu)
->>  		inject_undef64(vcpu);
->>  }
->>  
->> -static void pend_guest_serror(struct kvm_vcpu *vcpu, u64 esr)
->> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 esr)
->>  {
->> -	vcpu_set_vsesr(vcpu, esr);
->> +	vcpu_set_vsesr(vcpu, esr & ESR_ELx_ISS_MASK);
->>  	*vcpu_hcr(vcpu) |= HCR_VSE;
->>  }
->>  
->> @@ -184,5 +184,5 @@ static void pend_guest_serror(struct kvm_vcpu *vcpu, u64 esr)
->>   */
->>  void kvm_inject_vabt(struct kvm_vcpu *vcpu)
->>  {
->> -	pend_guest_serror(vcpu, ESR_ELx_ISV);
->> +	kvm_set_sei_esr(vcpu, ESR_ELx_ISV);
->>  }
->> diff --git a/arch/arm64/kvm/reset.c b/arch/arm64/kvm/reset.c
->> index 38c8a64..20e919a 100644
->> --- a/arch/arm64/kvm/reset.c
->> +++ b/arch/arm64/kvm/reset.c
->> @@ -82,6 +82,7 @@ int kvm_arch_dev_ioctl_check_extension(struct kvm *kvm, long ext)
->>  		break;
->>  	case KVM_CAP_SET_GUEST_DEBUG:
->>  	case KVM_CAP_VCPU_ATTRIBUTES:
->> +	case KVM_CAP_VCPU_EVENTS:
->>  		r = 1;
->>  		break;
->>  	default:
->> diff --git a/virt/kvm/arm/arm.c b/virt/kvm/arm/arm.c
->> index a4c1b76..79ecba9 100644
->> --- a/virt/kvm/arm/arm.c
->> +++ b/virt/kvm/arm/arm.c
->> @@ -1107,6 +1107,25 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
->>  		r = kvm_arm_vcpu_has_attr(vcpu, &attr);
->>  		break;
->>  	}
->> +	case KVM_GET_VCPU_EVENTS: {
->> +		struct kvm_vcpu_events events;
->> +
->> +		if (kvm_arm_vcpu_get_events(vcpu, &events))
->> +			return -EINVAL;
->> +
->> +		if (copy_to_user(argp, &events, sizeof(events)))
->> +			return -EFAULT;
->> +
->> +		return 0;
->> +	}
->> +	case KVM_SET_VCPU_EVENTS: {
->> +		struct kvm_vcpu_events events;
->> +
->> +		if (copy_from_user(&events, argp, sizeof(events)))
->> +			return -EFAULT;
->> +
->> +		return kvm_arm_vcpu_set_events(vcpu, &events);
->> +	}
->>  	default:
->>  		r = -EINVAL;
->>  	}
->> -- 
->> 2.7.4
->>
 > 
-> I'll leave it to James to comment on the specifics of the RAS
-> interaction, but I think the two patches should be re-ordered, so that
-> the capability patch comes last, after the functionality has been
-> introduced.
-ok, I will reorder them in the next version.
+> There was an earlier request to check that all the padding is set to
+> zero. I still think this makes sense.
+previously I think it may be not needed to check that all the padding is set to
+zero. so not added it. but now I consider it again, it should be make sense to check that.
+so I will added them. thanks for the mention again.
 
 > 
-> Otherwise this looks reasonable enough.
-> 
 > Thanks,
-> -Christoffer
 > 
-> .
+> 	M.
 > 
