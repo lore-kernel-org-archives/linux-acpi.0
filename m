@@ -1,36 +1,34 @@
 From: gengdongjiu <gengdongjiu@huawei.com>
 Subject: Re: [PATCH RESEND v4 2/2] arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
-Date: Tue, 12 Jun 2018 21:06:45 +0800
-Message-ID: <d404c732-64e5-43c1-eecf-cf63f91e33f9@huawei.com>
+Date: Tue, 12 Jun 2018 22:50:02 +0800
+Message-ID: <f7f59176-16a1-3b24-5acc-87bf1b4c1490@huawei.com>
 References: <1528487320-2873-1-git-send-email-gengdongjiu@huawei.com>
  <1528487320-2873-3-git-send-email-gengdongjiu@huawei.com>
- <86zi04875t.wl-marc.zyngier@arm.com>
+ <45e94aae-ed9f-1fb7-f10e-d95c2f969ddd@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <86zi04875t.wl-marc.zyngier@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <45e94aae-ed9f-1fb7-f10e-d95c2f969ddd@arm.com>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, kvm@vger.kernel.org, corbet@lwn.net, catalin.marinas@arm.com, rkrcmar@redhat.com, will.deacon@arm.com, linux@armlinux.org.uk, christoffer.dall@arm.com, linux-acpi@vger.kernel.org, james.morse@arm.com, linux-arm-kernel@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marc
-   thanks for the review.
+Hi James,
+  thanks for the review.
 
-On 2018/6/9 20:40, Marc Zyngier wrote:
-> On Fri, 08 Jun 2018 20:48:40 +0100,
-> Dongjiu Geng wrote:
->>
+On 2018/6/11 21:36, James Morse wrote:
+> Hi Dongjiu Geng,
+> 
+> Please only put 'RESEND' in the subject if the patch content is identical.
+> This patch is not the same as v4.
+
+Yes, it should
+
+> 
+> On 08/06/18 20:48, Dongjiu Geng wrote:
 >> For the migrating VMs, user space may need to know the exception
 >> state. For example, in the machine A, KVM make an SError pending,
 >> when migrate to B, KVM also needs to pend an SError.
@@ -38,59 +36,7 @@ On 2018/6/9 20:40, Marc Zyngier wrote:
 >> This new IOCTL exports user-invisible states related to SError.
 >> Together with appropriate user space changes, user space can get/set
 >> the SError exception state to do migrate/snapshot/suspend.
->>
->> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->> ---
->> change since v3:
->> 1. Fix the memset() issue in the kvm_arm_vcpu_get_events()
->>
->> change since v2:
->> 1. Add kvm_vcpu_events structure definition for arm platform to avoid the build errors.
->>
->> change since v1:
->> Address Marc's comments, thanks Marc's review
->> 1. serror_has_esr always true when ARM64_HAS_RAS_EXTN is set
->> 2. remove Spurious blank line in kvm_arm_vcpu_set_events()
->> 3. rename pend_guest_serror() to kvm_set_sei_esr()
->> 4. Make kvm_arm_vcpu_get_events() did all the work rather than having this split responsibility.
->> 5.  using sizeof(events) instead of sizeof(struct kvm_vcpu_events)
->>
->> this series patch is separated from https://www.spinics.net/lists/kvm/msg168917.html
->> The user space patch is here: https://lists.gnu.org/archive/html/qemu-devel/2018-05/msg06965.html
->>
->> change since V12:
->> 1. change (vcpu->arch.hcr_el2 & HCR_VSE) to !!(vcpu->arch.hcr_el2 & HCR_VSE) in kvm_arm_vcpu_get_events()
->>
->> Change since V11:
->> Address James's comments, thanks James
->> 1. Align the struct of kvm_vcpu_events to 64 bytes
->> 2. Avoid exposing the stale ESR value in the kvm_arm_vcpu_get_events()
->> 3. Change variables 'injected' name to 'serror_pending' in the kvm_arm_vcpu_set_events()
->> 4. Change to sizeof(events) from sizeof(struct kvm_vcpu_events) in kvm_arch_vcpu_ioctl()
->>
->> Change since V10:
->> Address James's comments, thanks James
->> 1. Merge the helper function with the user.
->> 2. Move the ISS_MASK into pend_guest_serror() to clear top bits
->> 3. Make kvm_vcpu_events struct align to 4 bytes
->> 4. Add something check in the kvm_arm_vcpu_set_events()
->> 5. Check kvm_arm_vcpu_get/set_events()'s return value.
->> 6. Initialise kvm_vcpu_events to 0 so that padding transferred to user-space doesn't
->>    contain kernel stack.
->> ---
->>  Documentation/virtual/kvm/api.txt    | 31 ++++++++++++++++++++++++++++---
->>  arch/arm/include/asm/kvm_host.h      |  6 ++++++
->>  arch/arm/include/uapi/asm/kvm.h      | 12 ++++++++++++
->>  arch/arm/kvm/guest.c                 | 12 ++++++++++++
->>  arch/arm64/include/asm/kvm_emulate.h |  5 +++++
->>  arch/arm64/include/asm/kvm_host.h    |  7 +++++++
->>  arch/arm64/include/uapi/asm/kvm.h    | 13 +++++++++++++
->>  arch/arm64/kvm/guest.c               | 36 ++++++++++++++++++++++++++++++++++++
->>  arch/arm64/kvm/inject_fault.c        |  6 +++---
->>  arch/arm64/kvm/reset.c               |  1 +
->>  virt/kvm/arm/arm.c                   | 19 +++++++++++++++++++
->>  11 files changed, 142 insertions(+), 6 deletions(-)
->>
+> 
 >> diff --git a/Documentation/virtual/kvm/api.txt b/Documentation/virtual/kvm/api.txt
 >> index fdac969..8896737 100644
 >> --- a/Documentation/virtual/kvm/api.txt
@@ -102,6 +48,11 @@ On 2018/6/9 20:40, Marc Zyngier wrote:
 >> -Architectures: x86
 >> +Architectures: x86, arm, arm64
 >>  Type: vm ioctl
+> 
+> Isn't this actually a per-vcpu ioctl? Can we fix the documentation?
+  I will modify the original documentation
+> 
+> 
 >>  Parameters: struct kvm_vcpu_event (out)
 >>  Returns: 0 on success, -1 on error
 >>  
@@ -133,10 +84,21 @@ On 2018/6/9 20:40, Marc Zyngier wrote:
 >>  
 >> -Capability: KVM_CAP_VCPU_EVENTS
 >> +Capebility: KVM_CAP_VCPU_EVENTS
+> 
+> (please fix this)
+   Ok, will fix this
+> 
+> 
 >>  Extended by: KVM_CAP_INTR_SHADOW
 >> -Architectures: x86
 >> +Architectures: x86, arm, arm64
 >>  Type: vm ioctl
+> 
+> (this is also a vcpu ioctl)
+  will fix
+
+> 
+> 
 >>  Parameters: struct kvm_vcpu_event (in)
 >>  Returns: 0 on success, -1 on error
 >>  
@@ -152,29 +114,32 @@ On 2018/6/9 20:40, Marc Zyngier wrote:
 >> +ARM, ARM64:
 >> +
 >> +Set pending SError exceptions as well as related states of the vcpu.
->> +
->> +See KVM_GET_VCPU_EVENTS for the data structure.
->> +
->>  
->>  4.33 KVM_GET_DEBUGREGS
->>  
->> diff --git a/arch/arm/include/asm/kvm_host.h b/arch/arm/include/asm/kvm_host.h
->> index c7c28c8..39f9901 100644
->> --- a/arch/arm/include/asm/kvm_host.h
->> +++ b/arch/arm/include/asm/kvm_host.h
->> @@ -213,6 +213,12 @@ unsigned long kvm_arm_num_regs(struct kvm_vcpu *vcpu);
->>  int kvm_arm_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices);
->>  int kvm_arm_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
->>  int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
->> +int kvm_arm_vcpu_get_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events);
->> +
->> +int kvm_arm_vcpu_set_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events);
->> +
->>  unsigned long kvm_call_hyp(void *hypfn, ...);
->>  void force_vm_exit(const cpumask_t *mask);
->>  
+> 
+> There are some deliberate choices here I think we should document:
+> | This API can't be used to clear a pending SError.
+> 
+> If there already was an SError pending, this API just overwrites it with the new
+> one. The architecture has some rules about merging multiple SError. (details in
+> 2.5.3 Multiple SError interrupts of [0])
+> 
+> I don't think KVM needs to enforce these, as they are implementation-defined if
+> one of the ESR is implementation-defined... the part that matters is reporting
+> the 'most severe' RAS ESR if there are multiple pending. As only user-space ever
+> sets these, let's make it user-spaces problem to do.
+> 
+> I think we should recommend user-space always reads the pending values and
+> applies its merging-multiple-SError logic. (I assume your Qemu patches do this).
+
+
+ I will check whether QEMU can be possible to do such things, anyway this patch
+ not need to do such merging.
+
+> Something like:
+> | User-space should first use KVM_GET_VCPU_EVENTS in case KVM has made an SError
+> | pending as part of its device emulation. When both values are architected RAS
+> | SError ESR values, the new ESR should reflect the combined effect of both
+> | errors.>
+> 
 >> diff --git a/arch/arm/include/uapi/asm/kvm.h b/arch/arm/include/uapi/asm/kvm.h
 >> index caae484..c3e6975 100644
 >> --- a/arch/arm/include/uapi/asm/kvm.h
@@ -195,137 +160,17 @@ On 2018/6/9 20:40, Marc Zyngier wrote:
 >> +	__u32 reserved[12];
 >> +};
 >> +
->>  /* If you need to interpret the index values, here is the key: */
->>  #define KVM_REG_ARM_COPROC_MASK		0x000000000FFF0000
->>  #define KVM_REG_ARM_COPROC_SHIFT	16
->> diff --git a/arch/arm/kvm/guest.c b/arch/arm/kvm/guest.c
->> index a18f33e..c685f0e 100644
->> --- a/arch/arm/kvm/guest.c
->> +++ b/arch/arm/kvm/guest.c
->> @@ -261,6 +261,18 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
->>  	return -EINVAL;
->>  }
->>  
->> +int kvm_arm_vcpu_get_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->> +int kvm_arm_vcpu_set_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events)
->> +{
->> +	return -EINVAL;
->> +}
->> +
->>  int __attribute_const__ kvm_target_cpu(void)
->>  {
->>  	switch (read_cpuid_part()) {
->> diff --git a/arch/arm64/include/asm/kvm_emulate.h b/arch/arm64/include/asm/kvm_emulate.h
->> index 1dab3a9..18f61ff 100644
->> --- a/arch/arm64/include/asm/kvm_emulate.h
->> +++ b/arch/arm64/include/asm/kvm_emulate.h
->> @@ -81,6 +81,11 @@ static inline unsigned long *vcpu_hcr(struct kvm_vcpu *vcpu)
->>  	return (unsigned long *)&vcpu->arch.hcr_el2;
->>  }
->>  
->> +static inline unsigned long vcpu_get_vsesr(struct kvm_vcpu *vcpu)
->> +{
->> +	return vcpu->arch.vsesr_el2;
->> +}
->> +
->>  static inline void vcpu_set_vsesr(struct kvm_vcpu *vcpu, u64 vsesr)
->>  {
->>  	vcpu->arch.vsesr_el2 = vsesr;
->> diff --git a/arch/arm64/include/asm/kvm_host.h b/arch/arm64/include/asm/kvm_host.h
->> index 469de8a..357304a 100644
->> --- a/arch/arm64/include/asm/kvm_host.h
->> +++ b/arch/arm64/include/asm/kvm_host.h
->> @@ -335,6 +335,11 @@ unsigned long kvm_arm_num_regs(struct kvm_vcpu *vcpu);
->>  int kvm_arm_copy_reg_indices(struct kvm_vcpu *vcpu, u64 __user *indices);
->>  int kvm_arm_get_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
->>  int kvm_arm_set_reg(struct kvm_vcpu *vcpu, const struct kvm_one_reg *reg);
->> +int kvm_arm_vcpu_get_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events);
->> +
->> +int kvm_arm_vcpu_set_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events);
->>  
->>  #define KVM_ARCH_WANT_MMU_NOTIFIER
->>  int kvm_unmap_hva(struct kvm *kvm, unsigned long hva);
->> @@ -363,6 +368,8 @@ void handle_exit_early(struct kvm_vcpu *vcpu, struct kvm_run *run,
->>  int kvm_perf_init(void);
->>  int kvm_perf_teardown(void);
->>  
->> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 syndrome);
->> +
->>  struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
->>  
->>  void __kvm_set_tpidr_el2(u64 tpidr_el2);
->> diff --git a/arch/arm64/include/uapi/asm/kvm.h b/arch/arm64/include/uapi/asm/kvm.h
->> index 04b3256..df4faee 100644
->> --- a/arch/arm64/include/uapi/asm/kvm.h
->> +++ b/arch/arm64/include/uapi/asm/kvm.h
->> @@ -39,6 +39,7 @@
->>  #define __KVM_HAVE_GUEST_DEBUG
->>  #define __KVM_HAVE_IRQ_LINE
->>  #define __KVM_HAVE_READONLY_MEM
->> +#define __KVM_HAVE_VCPU_EVENTS
->>  
->>  #define KVM_COALESCED_MMIO_PAGE_OFFSET 1
->>  
->> @@ -153,6 +154,18 @@ struct kvm_sync_regs {
->>  struct kvm_arch_memory_slot {
->>  };
->>  
->> +/* for KVM_GET/SET_VCPU_EVENTS */
->> +struct kvm_vcpu_events {
->> +	struct {
->> +		__u8 serror_pending;
->> +		__u8 serror_has_esr;
->> +		/* Align it to 8 bytes */
->> +		__u8 pad[6];
->> +		__u64 serror_esr;
->> +	} exception;
->> +	__u32 reserved[12];
->> +};
->> +
->>  /* If you need to interpret the index values, here is the key: */
->>  #define KVM_REG_ARM_COPROC_MASK		0x000000000FFF0000
->>  #define KVM_REG_ARM_COPROC_SHIFT	16
->> diff --git a/arch/arm64/kvm/guest.c b/arch/arm64/kvm/guest.c
->> index 56a0260..4426915 100644
->> --- a/arch/arm64/kvm/guest.c
->> +++ b/arch/arm64/kvm/guest.c
->> @@ -289,6 +289,42 @@ int kvm_arch_vcpu_ioctl_set_sregs(struct kvm_vcpu *vcpu,
->>  	return -EINVAL;
->>  }
->>  
->> +int kvm_arm_vcpu_get_events(struct kvm_vcpu *vcpu,
->> +			struct kvm_vcpu_events *events)
->> +{
->> +	memset(events, 0, sizeof(*events));
->> +
->> +	events->exception.serror_pending = !!(vcpu->arch.hcr_el2 & HCR_VSE);
->> +	events->exception.serror_has_esr =
->> +					cpus_have_const_cap(ARM64_HAS_RAS_EXTN);
->> +
->> +	if (events->exception.serror_pending &&
->> +		events->exception.serror_has_esr)
->> +		events->exception.serror_esr = vcpu_get_vsesr(vcpu);
->> +	else
->> +		events->exception.serror_esr = 0;
 > 
-> Other than the alignment issues that Christoffer already commented on,
-> you can perfectly remove the "else" clause altogether (we've just
-> zeroed the whole structure).
-yes, you are right. it should be moved, thanks for the pointing out.
-
+> You haven't defined __KVM_HAVE_VCPU_EVENTS for 32bit, so presumably this struct
+> will never be used. Why is it here?
+  if not add it for 32 bits. the 32 arm platform will build Fail, whether you have good
+   idea to avoid this Failure if not add this struct for the 32 bit?
+> (I agree if we ever provide it on 32bit, the struct layout should be the same.
+> Is this only here to force that to happen?)
 > 
->> +
->> +	return 0;
->> +}
->> +
+> [...]
+> 
+> 
 >> +int kvm_arm_vcpu_set_events(struct kvm_vcpu *vcpu,
 >> +			struct kvm_vcpu_events *events)
 >> +{
@@ -337,20 +182,66 @@ yes, you are right. it should be moved, thanks for the pointing out.
 >> +			return -EINVAL;
 >> +
 >> +		kvm_set_sei_esr(vcpu, events->exception.serror_esr);
->> +	} else if (serror_pending) {
->> +		kvm_inject_vabt(vcpu);
->> +	}
->> +
->> +	return 0;
 > 
-> There was an earlier request to check that all the padding is set to
-> zero. I still think this makes sense.
-previously I think it may be not needed to check that all the padding is set to
-zero. so not added it. but now I consider it again, it should be make sense to check that.
-so I will added them. thanks for the mention again.
+> kvm_set_sei_esr() will silently discard the top 40 bits of serror_esr, (which is
+> correct, we shouldn't copy them into hardware without know what they do).
+> 
+> Could we please force user-space to zero these bits, we can advertise extra CAPs
+> if new features turn up in that space, instead of user-space passing <something>
+> and relying on the kernel to remove it.
 
+  yes, I can zero these bits in the  user-space and not depend on kernel to remove it.
+
+> 
+> (Background: VSESR is a 64bit register that holds the value to go in a 32bit
+> register. I suspect the top-half could get re-used for control values or
+> something we don't want to give user-space)
+  do you mean when user-space get the VSESR value through KVM_GET_VCPU_EVENTS it only return the low-half 32 bits?
+
+> 
+> 
+>> diff --git a/arch/arm64/kvm/inject_fault.c b/arch/arm64/kvm/inject_fault.c
+>> index d8e7165..a55e91d 100644
+>> --- a/arch/arm64/kvm/inject_fault.c
+>> +++ b/arch/arm64/kvm/inject_fault.c
+>> @@ -164,9 +164,9 @@ void kvm_inject_undefined(struct kvm_vcpu *vcpu)
+>>  		inject_undef64(vcpu);
+>>  }
+>>  
+>> -static void pend_guest_serror(struct kvm_vcpu *vcpu, u64 esr)
+>> +void kvm_set_sei_esr(struct kvm_vcpu *vcpu, u64 esr)
+>>  {
+>> -	vcpu_set_vsesr(vcpu, esr);
+>> +	vcpu_set_vsesr(vcpu, esr & ESR_ELx_ISS_MASK);
+>>  	*vcpu_hcr(vcpu) |= HCR_VSE;
+>>  }
+>>  
+> 
+>> diff --git a/virt/kvm/arm/arm.c b/virt/kvm/arm/arm.c
+>> index a4c1b76..79ecba9 100644
+>> --- a/virt/kvm/arm/arm.c
+>> +++ b/virt/kvm/arm/arm.c
+>> @@ -1107,6 +1107,25 @@ long kvm_arch_vcpu_ioctl(struct file *filp,
+> 
+>> +	case KVM_SET_VCPU_EVENTS: {
+>> +		struct kvm_vcpu_events events;
+>> +
+>> +		if (copy_from_user(&events, argp, sizeof(events)))
+>> +			return -EFAULT;
+>> +
+>> +		return kvm_arm_vcpu_set_events(vcpu, &events);
+>> +	}
+> 
+> Please check the padding[] and reserved[] are zero, otherwise we can't re-use these.
+  Ok, thanks
+> 
 > 
 > Thanks,
 > 
-> 	M.
+> James
+> 
+> [0]
+> https://static.docs.arm.com/ddi0587/a/RAS%20Extension-release%20candidate_march_29.pdf
+> 
+> .
 > 
