@@ -1,42 +1,121 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Avoid PM quirks on suspend and resume from
- S3
-Date: Wed, 13 Jun 2018 15:58:27 +0300
-Message-ID: <20180613125827.GZ2384@lahna.fi.intel.com>
-References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com>
- <2505591.oRh3ktjo9V@aspire.rjw.lan>
- <A05971DC-4453-4615-9AE9-8C4608569427@canonical.com>
- <1568228.RgPNub1osy@aspire.rjw.lan>
- <6a387b8b67497fa4a656c252a010d6d4e72e7774.camel@linux.intel.com>
+From: Geoff Levand <geoff@infradead.org>
+Subject: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Wed, 13 Jun 2018 11:22:30 -0700
+Message-ID: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <6a387b8b67497fa4a656c252a010d6d4e72e7774.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Kai Heng Feng <kai.heng.feng@canonical.com>, Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 13, 2018 at 03:53:07PM +0300, Andy Shevchenko wrote:
-> On Wed, 2018-06-13 at 13:17 +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > It is reported that commit a192aa923b66a (ACPI / LPSS: Consolidate
-> > runtime PM and system sleep handling) introduced a system suspend
-> > regression on some machines, but the only functional change made by
-> > it was to cause the PM quirks in the LPSS to also be used during
-> > system suspend and resume.  While that should always work for
-> > suspend-to-idle, it turns out to be problematic for S3
-> > (suspend-to-RAM).
-> > 
-> > To address that issue restore the previous S3 suspend and resume
-> > behavior of the LPSS to avoid applying PM quirks then.
-> > 
-> 
-> LGTM,
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
+a work-around for HPE ProLiant m400 APEI firmware problems.
 
-Also,
+The work-around disables APEI when CONFIG_ACPI_APEI is set and
+m400 firmware is detected.  Without this fixup m400 systems
+experience errors like these on startup:
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+  [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
+  [Hardware Error]: event severity: fatal
+  [Hardware Error]:  Error 0, type: fatal
+  [Hardware Error]:   section_type: memory error
+  [Hardware Error]:   error_status: 0x0000000000001300
+  [Hardware Error]:   error_type: 10, invalid address
+  Kernel panic - not syncing: Fatal hardware error!
+
+Signed-off-by: Geoff Levand <geoff@infradead.org>
+---
+Hi,
+
+It seems unlikely there will be any m400 firmware updates to fix
+this problem.  APEI support is desired for new ARM64 servers coming
+to market.  Distros are now forced to have their own fixes, not
+enable APEI, or let m400 users fend for themselves.
+
+Please consider.
+
+-Geoff
+
+ arch/arm64/kernel/acpi.c | 40 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 36 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index 7b09487ff8fb..3c315c2c7476 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -31,6 +31,8 @@
+ #include <asm/cpu_ops.h>
+ #include <asm/smp_plat.h>
+ 
++#include <acpi/apei.h>
++
+ #ifdef CONFIG_ACPI_APEI
+ # include <linux/efi.h>
+ # include <asm/pgtable.h>
+@@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
+ 	return ret;
+ }
+ 
++/*
++ * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
++ * problems.
++ */
++static void __init acpi_fixup_m400_quirks(void)
++{
++	acpi_status status;
++	struct acpi_table_header *header;
++#if !defined(CONFIG_ACPI_APEI)
++	int hest_disable = HEST_DISABLED;
++#endif
++
++	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
++		return;
++
++	status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
++
++	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
++		!strncmp(header->oem_table_id, "ProLiant", 8) &&
++		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
++		hest_disable = HEST_DISABLED;
++		pr_info("Disabled APEI for m400.\n");
++	}
++
++	acpi_put_table(header);
++}
++
+ /*
+  * acpi_boot_table_init() called from setup_arch(), always.
+  *	1. find RSDP and get its address, and then find XSDT
+@@ -232,11 +261,14 @@ void __init acpi_boot_table_init(void)
+ 	if (acpi_disabled) {
+ 		if (earlycon_acpi_spcr_enable)
+ 			early_init_dt_scan_chosen_stdout();
+-	} else {
+-		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+-		if (IS_ENABLED(CONFIG_ACPI_BGRT))
+-			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
++		return;
+ 	}
++
++	acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
++	if (IS_ENABLED(CONFIG_ACPI_BGRT))
++		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
++
++	acpi_fixup_m400_quirks();
+ }
+ 
+ #ifdef CONFIG_ACPI_APEI
+-- 
+2.14.1
