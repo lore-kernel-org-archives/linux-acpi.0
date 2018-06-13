@@ -1,81 +1,137 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH RESEND v4 2/2] arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
-Date: Tue, 12 Jun 2018 23:48:16 +0800
-Message-ID: <2455dc33-ae8d-79e6-e915-4181050e1e65@huawei.com>
-References: <1528487320-2873-1-git-send-email-gengdongjiu@huawei.com>
- <1528487320-2873-3-git-send-email-gengdongjiu@huawei.com>
- <45e94aae-ed9f-1fb7-f10e-d95c2f969ddd@arm.com>
- <f7f59176-16a1-3b24-5acc-87bf1b4c1490@huawei.com>
- <6887237f-d252-5b9e-02cb-5a44fef27080@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+From: Kai Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: Possible regression caused by commit a192aa923b66a
+Date: Wed, 13 Jun 2018 10:45:23 +0800
+Message-ID: <A05971DC-4453-4615-9AE9-8C4608569427@canonical.com>
+References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com>
+ <CAJZ5v0iyNo+ZZ1O0_j4p6w-+eS1W9MUYs-vjeNHVENFVhReGzw@mail.gmail.com>
+ <CAJZ5v0jiWugSt98MXOLUKAsig=uWFsTHK1Mntvy6z0JfiWt9sQ@mail.gmail.com>
+ <2505591.oRh3ktjo9V@aspire.rjw.lan>
+Mime-Version: 1.0 (Mac OS X Mail 11.4 \(3445.8.2\))
+Content-Type: text/plain;
+        charset=us-ascii;
+        delsp=yes;
+        format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <6887237f-d252-5b9e-02cb-5a44fef27080@arm.com>
-Content-Language: en-US
+In-Reply-To: <2505591.oRh3ktjo9V@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Rafael,
 
-
-On 2018/6/12 23:29, James Morse wrote:
-> Hi gengdongjiu,
-> 
-> On 12/06/18 15:50, gengdongjiu wrote:
->> On 2018/6/11 21:36, James Morse wrote:
->>> On 08/06/18 20:48, Dongjiu Geng wrote:
->>>> For the migrating VMs, user space may need to know the exception
->>>> state. For example, in the machine A, KVM make an SError pending,
->>>> when migrate to B, KVM also needs to pend an SError.
+> On Jun 12, 2018, at 5:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> On Monday, June 11, 2018 11:52:34 PM CEST Rafael J. Wysocki wrote:
+>> --000000000000703623056e64c488
+>> Content-Type: text/plain; charset="UTF-8"
+>>
+>> On Mon, Jun 11, 2018 at 10:09 AM, Rafael J. Wysocki <rafael@kernel.org>  
+>> wrote:
+>>> On Mon, Jun 11, 2018 at 8:26 AM, Kai-Heng Feng
+>>> <kai.heng.feng@canonical.com> wrote:
+>>>> Hi Rafael,
 >>>>
->>>> This new IOCTL exports user-invisible states related to SError.
->>>> Together with appropriate user space changes, user space can get/set
->>>> the SError exception state to do migrate/snapshot/suspend.
-> 
-> 
->>>> diff --git a/arch/arm/include/uapi/asm/kvm.h b/arch/arm/include/uapi/asm/kvm.h
->>>> index caae484..c3e6975 100644
->>>> --- a/arch/arm/include/uapi/asm/kvm.h
->>>> +++ b/arch/arm/include/uapi/asm/kvm.h
->>>> @@ -124,6 +124,18 @@ struct kvm_sync_regs {
->>>>  struct kvm_arch_memory_slot {
->>>>  };
->>>>  
->>>> +/* for KVM_GET/SET_VCPU_EVENTS */
->>>> +struct kvm_vcpu_events {
->>>> +	struct {
->>>> +		__u8 serror_pending;
->>>> +		__u8 serror_has_esr;
->>>> +		/* Align it to 8 bytes */
->>>> +		__u8 pad[6];
->>>> +		__u64 serror_esr;
->>>> +	} exception;
->>>> +	__u32 reserved[12];
->>>> +};
->>>> +
+>>>> There's a regression report [1] that says commit a192aa923b66a ("ACPI /
+>>>> LPSS: Consolidate runtime PM and system sleep handling") is the first  
+>>>> bad
+>>>> commit.
+>>>>
+>>>> From the looks of it, it didn't introduce any behavioral change. So your
+>>>> help is appreciated.
+>>>>
+>>>> [1] https://bugs.launchpad.net/bugs/1774950
 >>>
->>> You haven't defined __KVM_HAVE_VCPU_EVENTS for 32bit, so presumably this struct
->>> will never be used. Why is it here?
-> 
->>   if not add it for 32 bits. the 32 arm platform will build Fail, whether you have good
->>    idea to avoid this Failure if not add this struct for the 32 bit?
-> 
-> How does this 32bit code build without this patch?
-> If do you provide the struct, how will that code build with older headers?
-> 
-> As far as I can see, this is what the __KVM_HAVE_VCPU_EVENTS define is for.
-> 
-> This should be both, or neither. Having just the struct is useless.
-It because the caller of kvm_arm_vcpu_get/set_events() is in "virt/kvm/arm/arm.c".
-the virt/kvm/arm/arm.c will used by both arm64 and arm.
-so It needs to add kvm_arm_vcpu_get/set_events() for the 32 bits, however, kvm_arm_vcpu_get/set_events() will directly return,
+>>> Well, the only difference is the iosf quirk AFAICS, but that should be
+>>> easy enough to check.  I'll try to cut a patch for that later today.
+>>
+>> If the iosf quirk is the source of the problem, the attached patch  
+>> should help.
+>
+> The one below should be slightly better, please test this one.
 
-I attached the build erros below:
-https://lkml.org/lkml/2018/6/4/918
-https://lkml.org/lkml/2018/6/4/873
+Affected users reported that this patch solves the issue for them.
 
+Kai-Heng
 
-[..]
-I will continue check below comments, thanks
+>
+> ---
+>  drivers/acpi/acpi_lpss.c |   18 +++++++++++-------
+>  1 file changed, 11 insertions(+), 7 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/acpi_lpss.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpi_lpss.c
+> +++ linux-pm/drivers/acpi/acpi_lpss.c
+> @@ -22,6 +22,7 @@
+>  #include <linux/pm_domain.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/pwm.h>
+> +#include <linux/suspend.h>
+>  #include <linux/delay.h>
+>
+>  #include "internal.h"
+> @@ -940,9 +941,10 @@ static void lpss_iosf_exit_d3_state(void
+>  	mutex_unlock(&lpss_iosf_mutex);
+>  }
+>
+> -static int acpi_lpss_suspend(struct device *dev, bool wakeup)
+> +static int acpi_lpss_suspend(struct device *dev, bool runtime)
+>  {
+>  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> +	bool wakeup = runtime || device_may_wakeup(dev);
+>  	int ret;
+>
+>  	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+> @@ -955,13 +957,14 @@ static int acpi_lpss_suspend(struct devi
+>  	 * wrong status for devices being about to be powered off. See
+>  	 * lpss_iosf_enter_d3_state() for further information.
+>  	 */
+> -	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+> +	if ((runtime || !pm_suspend_via_firmware()) &&
+> +	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+>  		lpss_iosf_enter_d3_state();
+>
+>  	return ret;
+>  }
+>
+> -static int acpi_lpss_resume(struct device *dev)
+> +static int acpi_lpss_resume(struct device *dev, bool runtime)
+>  {
+>  	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+>  	int ret;
+> @@ -970,7 +973,8 @@ static int acpi_lpss_resume(struct devic
+>  	 * This call is kept first to be in symmetry with
+>  	 * acpi_lpss_runtime_suspend() one.
+>  	 */
+> -	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+> +	if ((runtime || !pm_resume_via_firmware()) &&
+> +	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+>  		lpss_iosf_exit_d3_state();
+>
+>  	ret = acpi_dev_resume(dev);
+> @@ -994,12 +998,12 @@ static int acpi_lpss_suspend_late(struct
+>  		return 0;
+>
+>  	ret = pm_generic_suspend_late(dev);
+> -	return ret ? ret : acpi_lpss_suspend(dev, device_may_wakeup(dev));
+> +	return ret ? ret : acpi_lpss_suspend(dev, false);
+>  }
+>
+>  static int acpi_lpss_resume_early(struct device *dev)
+>  {
+> -	int ret = acpi_lpss_resume(dev);
+> +	int ret = acpi_lpss_resume(dev, false);
+>
+>  	return ret ? ret : pm_generic_resume_early(dev);
+>  }
+> @@ -1014,7 +1018,7 @@ static int acpi_lpss_runtime_suspend(str
+>
+>  static int acpi_lpss_runtime_resume(struct device *dev)
+>  {
+> -	int ret = acpi_lpss_resume(dev);
+> +	int ret = acpi_lpss_resume(dev, true);
+>
+>  	return ret ? ret : pm_generic_runtime_resume(dev);
+>  }
