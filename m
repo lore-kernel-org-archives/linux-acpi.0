@@ -1,96 +1,112 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] More ACPI updates for v4.18-rc1
-Date: Wed, 13 Jun 2018 13:03:39 +0200
-Message-ID: <CAJZ5v0gp-g2EW1QXagwDQvmt55C14N6s+7or-8c7LebB2FK5LA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / LPSS: Avoid PM quirks on suspend and resume from S3
+Date: Wed, 13 Jun 2018 13:17:26 +0200
+Message-ID: <1568228.RgPNub1osy@aspire.rjw.lan>
+References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com> <2505591.oRh3ktjo9V@aspire.rjw.lan> <A05971DC-4453-4615-9AE9-8C4608569427@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <A05971DC-4453-4615-9AE9-8C4608569427@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Kai Heng Feng <kai.heng.feng@canonical.com>, Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Please pull from the tag
+It is reported that commit a192aa923b66a (ACPI / LPSS: Consolidate
+runtime PM and system sleep handling) introduced a system suspend
+regression on some machines, but the only functional change made by
+it was to cause the PM quirks in the LPSS to also be used during
+system suspend and resume.  While that should always work for
+suspend-to-idle, it turns out to be problematic for S3
+(suspend-to-RAM).
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.18-rc1-2
+To address that issue restore the previous S3 suspend and resume
+behavior of the LPSS to avoid applying PM quirks then.
 
-with top-most commit 674455326ee397bc8334920533f71090b61fa594
+Fixes: a192aa923b66a (ACPI / LPSS: Consolidate runtime PM and system sleep handling)
+Link: https://bugs.launchpad.net/bugs/1774950
+Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Tested-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_lpss.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
- Merge branch 'acpica'
-
-on top of commit f4fe74cc909bf811cd9cc7fd84f5a7514e06a7e1
-
- Merge tag 'acpi-4.18-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive additional ACPI updates for 4.18-rc1.
-
-These update the ACPICA code in the kernel to upstream revision
-20180531 including one important AML parser fix and updates
-related to the IORT table, make the kernel recognize the
-"Windows 2017.2" _OSI string and update the customized methods
-documentation.
-
-Specifics:
-
- - Update the ACPICA code in the kernel to upstream revision
-   20180531 including:
-   * AML parser fix to continue loading tables after detecting an AML
-     error (Erik Schmauss).
-   * AML parser debug option to dump parse trees (Bob Moore).
-   * Debugger updates (Bob Moore).
-   * Initial bits of Unload () operator deprecation (Bob Moore).
-   * Updates related to the IORT table (Robin Murphy).
-
- - Make Linux respond to the "Windows 2017.2" _OSI string which
-   allows native Thunderbolt enumeration to be used on Dell systems
-   and was unsafe before recent changes in the PCI subsystem (Mario
-   Limonciello).
-
- - Update the ACPI method customization feature documentation (Erik
-   Schmauss).
-
-Thanks!
-
-
----------------
-
-Bob Moore (5):
-      ACPICA: Debugger: Add count of namespace nodes after namespace dump
-      ACPICA: AML Parser: Add debug option to dump parse trees
-      ACPICA: Debugger: Reduce verbosity for module-level code errors.
-      ACPICA: Interpreter: Begin deprecation of Unload operator
-      ACPICA: Update version to 20180531
-
-Erik Schmauss (2):
-      ACPI / Documentation: update ACPI customize method feature docs
-      ACPICA: AML parser: attempt to continue loading table after error
-
-Mario Limonciello (1):
-      ACPICA: Recognize the _OSI string "Windows 2017.2"
-
-Robin Murphy (2):
-      ACPICA: IORT: Update for revision D
-      ACPICA: IORT: Add PMCG node supprt
-
----------------
-
- Documentation/acpi/method-customizing.txt | 10 +++---
- drivers/acpi/acpica/dbnames.c             |  1 +
- drivers/acpi/acpica/dbobject.c            | 23 +++++++++++++-
- drivers/acpi/acpica/dsdebug.c             | 12 ++++++--
- drivers/acpi/acpica/exconfig.c            | 11 +++++++
- drivers/acpi/acpica/nsdump.c              |  3 ++
- drivers/acpi/acpica/psloop.c              | 51 ++++++++++++++++++++++++++++++-
- drivers/acpi/acpica/psobject.c            | 30 ++++++++++++++++++
- drivers/acpi/acpica/pswalk.c              | 34 +++++++++++++++++++--
- drivers/acpi/acpica/uterror.c             | 10 +++---
- drivers/acpi/acpica/utosi.c               |  1 +
- include/acpi/acoutput.h                   |  4 ++-
- include/acpi/acpixf.h                     |  2 +-
- include/acpi/actbl2.h                     | 25 +++++++++++----
- include/acpi/actypes.h                    |  1 +
- 15 files changed, 192 insertions(+), 26 deletions(-)
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -22,6 +22,7 @@
+ #include <linux/pm_domain.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/pwm.h>
++#include <linux/suspend.h>
+ #include <linux/delay.h>
+ 
+ #include "internal.h"
+@@ -940,9 +941,10 @@ static void lpss_iosf_exit_d3_state(void
+ 	mutex_unlock(&lpss_iosf_mutex);
+ }
+ 
+-static int acpi_lpss_suspend(struct device *dev, bool wakeup)
++static int acpi_lpss_suspend(struct device *dev, bool runtime)
+ {
+ 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
++	bool wakeup = runtime || device_may_wakeup(dev);
+ 	int ret;
+ 
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+@@ -955,13 +957,14 @@ static int acpi_lpss_suspend(struct devi
+ 	 * wrong status for devices being about to be powered off. See
+ 	 * lpss_iosf_enter_d3_state() for further information.
+ 	 */
+-	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
++	if ((runtime || !pm_suspend_via_firmware()) &&
++	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+ 		lpss_iosf_enter_d3_state();
+ 
+ 	return ret;
+ }
+ 
+-static int acpi_lpss_resume(struct device *dev)
++static int acpi_lpss_resume(struct device *dev, bool runtime)
+ {
+ 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+ 	int ret;
+@@ -970,7 +973,8 @@ static int acpi_lpss_resume(struct devic
+ 	 * This call is kept first to be in symmetry with
+ 	 * acpi_lpss_runtime_suspend() one.
+ 	 */
+-	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
++	if ((runtime || !pm_resume_via_firmware()) &&
++	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+ 		lpss_iosf_exit_d3_state();
+ 
+ 	ret = acpi_dev_resume(dev);
+@@ -994,12 +998,12 @@ static int acpi_lpss_suspend_late(struct
+ 		return 0;
+ 
+ 	ret = pm_generic_suspend_late(dev);
+-	return ret ? ret : acpi_lpss_suspend(dev, device_may_wakeup(dev));
++	return ret ? ret : acpi_lpss_suspend(dev, false);
+ }
+ 
+ static int acpi_lpss_resume_early(struct device *dev)
+ {
+-	int ret = acpi_lpss_resume(dev);
++	int ret = acpi_lpss_resume(dev, false);
+ 
+ 	return ret ? ret : pm_generic_resume_early(dev);
+ }
+@@ -1014,7 +1018,7 @@ static int acpi_lpss_runtime_suspend(str
+ 
+ static int acpi_lpss_runtime_resume(struct device *dev)
+ {
+-	int ret = acpi_lpss_resume(dev);
++	int ret = acpi_lpss_resume(dev, true);
+ 
+ 	return ret ? ret : pm_generic_runtime_resume(dev);
+ }
