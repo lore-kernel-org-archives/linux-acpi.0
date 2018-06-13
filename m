@@ -1,121 +1,56 @@
-From: Geoff Levand <geoff@infradead.org>
-Subject: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Wed, 13 Jun 2018 11:22:30 -0700
-Message-ID: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 00/11] Add support for Hygon's Dhyana Family 18h processor
+Date: Wed, 13 Jun 2018 22:51:29 +0200
+Message-ID: <20180613205129.GD26375@zn.tnic>
+References: <1528550410-28080-1-git-send-email-puwen@hygon.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1528550410-28080-1-git-send-email-puwen@hygon.cn>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pu Wen <puwen@hygon.cn>
+Cc: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, peterz@infradead.org, tony.luck@intel.com, pbonzini@redhat.com, rkrcmar@redhat.com, boris.ostrovsky@oracle.com, jgross@suse.com, rjw@rjwysocki.net, lenb@kernel.org, viresh.kumar@linaro.org, mchehab@kernel.org, trenn@suse.com, shuah@kernel.org, zhangpanyong@hygon.cn, linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-x86_64@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-pm@vger.kernel.org, kvm@vger.kernel.org, xen-devel@lists.xenproject.org
 List-Id: linux-acpi@vger.kernel.org
 
-Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
-a work-around for HPE ProLiant m400 APEI firmware problems.
+On Sat, Jun 09, 2018 at 09:20:10PM +0800, Pu Wen wrote:
+> As a new x86 CPU Vendor, Chengdu Haiguang IC Design Co., Ltd (Hygon)
+> is a Joint Venture between AMD and Haiguang Information Technology Co.,
+> Ltd., and aims at providing high performance x86 processor for China
+> server market.
+> 
+> The first generation Hygon's processor(Dhyana) originates from AMD
+> technology and shares most of the architecture with AMD's family 17h,
+> but with different CPU Vendor ID("HygonGenuine")/PCIE Device Vendor ID
+> (0x1D94)/Family series number(Family 18h).
+> 
+> To enable the support of Linux kernel to Hygon's CPU, we added a new
+> vendor type (X86_VENDOR_HYGON, with value of 9) in arch/x86/include/
+> asm/processor.h, and shared most of kernel support codes with AMD
+> family 17h.
+> 
+> These patches have been applied and tested successfully in Hygon's
+> Dhyana SoC silicon. Also tested on AMD's EPYC (Family 17h) processor
+> works fine and makes no harm to existing codes.
 
-The work-around disables APEI when CONFIG_ACPI_APEI is set and
-m400 firmware is detected.  Without this fixup m400 systems
-experience errors like these on startup:
+Well, I don't like this diffstat:
 
-  [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
-  [Hardware Error]: event severity: fatal
-  [Hardware Error]:  Error 0, type: fatal
-  [Hardware Error]:   section_type: memory error
-  [Hardware Error]:   error_status: 0x0000000000001300
-  [Hardware Error]:   error_type: 10, invalid address
-  Kernel panic - not syncing: Fatal hardware error!
+ 37 files changed, 183 insertions(+), 56 deletions(-)
 
-Signed-off-by: Geoff Levand <geoff@infradead.org>
----
-Hi,
+which adds a lot of code checking this new vendor. But then it adds in
+the AMD paths and I don't see it being any different from an AMD CPU. So
+it does the same a Zen does but then it is Hygon.
 
-It seems unlikely there will be any m400 firmware updates to fix
-this problem.  APEI support is desired for new ARM64 servers coming
-to market.  Distros are now forced to have their own fixes, not
-enable APEI, or let m400 users fend for themselves.
+So I'd prefer to *not* sprinkle those X86_VENDOR_HYGON checks everywhere
+but simply have the vendor be X86_VENDOR_AMD and only the user-visible
+reporting to show that it is Hygon. Because to the kernel it is an AMD
+CPU - only the superficial attributes are something else. Oh well, and
+PCI device IDs but that's like another CPU revision.
 
-Please consider.
+Thx.
 
--Geoff
-
- arch/arm64/kernel/acpi.c | 40 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 36 insertions(+), 4 deletions(-)
-
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 7b09487ff8fb..3c315c2c7476 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -31,6 +31,8 @@
- #include <asm/cpu_ops.h>
- #include <asm/smp_plat.h>
- 
-+#include <acpi/apei.h>
-+
- #ifdef CONFIG_ACPI_APEI
- # include <linux/efi.h>
- # include <asm/pgtable.h>
-@@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
- 	return ret;
- }
- 
-+/*
-+ * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
-+ * problems.
-+ */
-+static void __init acpi_fixup_m400_quirks(void)
-+{
-+	acpi_status status;
-+	struct acpi_table_header *header;
-+#if !defined(CONFIG_ACPI_APEI)
-+	int hest_disable = HEST_DISABLED;
-+#endif
-+
-+	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
-+		return;
-+
-+	status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
-+
-+	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
-+		!strncmp(header->oem_table_id, "ProLiant", 8) &&
-+		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
-+		hest_disable = HEST_DISABLED;
-+		pr_info("Disabled APEI for m400.\n");
-+	}
-+
-+	acpi_put_table(header);
-+}
-+
- /*
-  * acpi_boot_table_init() called from setup_arch(), always.
-  *	1. find RSDP and get its address, and then find XSDT
-@@ -232,11 +261,14 @@ void __init acpi_boot_table_init(void)
- 	if (acpi_disabled) {
- 		if (earlycon_acpi_spcr_enable)
- 			early_init_dt_scan_chosen_stdout();
--	} else {
--		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
--		if (IS_ENABLED(CONFIG_ACPI_BGRT))
--			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-+		return;
- 	}
-+
-+	acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
-+	if (IS_ENABLED(CONFIG_ACPI_BGRT))
-+		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-+
-+	acpi_fixup_m400_quirks();
- }
- 
- #ifdef CONFIG_ACPI_APEI
 -- 
-2.14.1
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
