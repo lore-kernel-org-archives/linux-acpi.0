@@ -1,14 +1,14 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
+From: James Morse <james.morse@arm.com>
 Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Fri, 15 Jun 2018 10:51:09 +0100
-Message-ID: <20180615095109.GA4380@xora-sinquacker>
+Date: Fri, 15 Jun 2018 12:14:59 +0100
+Message-ID: <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
 References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
 In-Reply-To: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -22,7 +22,9 @@ To: Geoff Levand <geoff@infradead.org>
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
+Hi Geoff,
+
+On 13/06/18 19:22, Geoff Levand wrote:
 > Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
 > a work-around for HPE ProLiant m400 APEI firmware problems.
 > 
@@ -35,25 +37,35 @@ On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
 >   [Hardware Error]:  Error 0, type: fatal
 >   [Hardware Error]:   section_type: memory error
 >   [Hardware Error]:   error_status: 0x0000000000001300
+
+"Access to a memory address which is not mapped to any component"
+
+
 >   [Hardware Error]:   error_type: 10, invalid address
 >   Kernel panic - not syncing: Fatal hardware error!
-> 
-> Signed-off-by: Geoff Levand <geoff@infradead.org>
-> ---
-> Hi,
-> 
+
+Why is this a problem?
+
+Surely this is a valid description of an error.
+(okay its not particularly useful without the physical address, but the address
+is optional in that structure)
+
+When does this happen during boot? This looks like a driver mapping some
+non-existent physical address space to see if its device is present...
+unsurprisingly this doesn't go well.
+(might also be a typo in the DSDT)
+
+Can't we pin down the driver that does this and fix it. Its either wrong for
+everyone, or still broken after you disable APEI.
+
+
 > It seems unlikely there will be any m400 firmware updates to fix
-> this problem.  APEI support is desired for new ARM64 servers coming
-> to market.  Distros are now forced to have their own fixes, not
-> enable APEI, or let m400 users fend for themselves.
-> 
-> Please consider.
-> 
-> -Geoff
-> 
->  arch/arm64/kernel/acpi.c | 40 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 36 insertions(+), 4 deletions(-)
-> 
+> this problem.
+
+What is the problem? This patch looks like it shoots the messenger for bringing
+bad news.
+
+
 > diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
 > index 7b09487ff8fb..3c315c2c7476 100644
 > --- a/arch/arm64/kernel/acpi.c
@@ -82,6 +94,10 @@ On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
 > +#if !defined(CONFIG_ACPI_APEI)
 > +	int hest_disable = HEST_DISABLED;
 > +#endif
+
+Yuck.
+
+
 > +
 > +	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
 > +		return;
@@ -90,7 +106,19 @@ On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
 > +
 > +	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
 > +		!strncmp(header->oem_table_id, "ProLiant", 8) &&
+
+You should match the affected range of OEM table revisions too, that way a
+firmware upgrade should start working, instead of being permanently disabled
+because we think its unlikely.
+
+
 > +		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
+
+How is the CPU implementer relevant?
+
+You suggest a firmware-update would make this issue go away...
+
+
 > +		hest_disable = HEST_DISABLED;
 > +		pr_info("Disabled APEI for m400.\n");
 > +	}
@@ -101,30 +129,11 @@ On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
 >  /*
 >   * acpi_boot_table_init() called from setup_arch(), always.
 >   *	1. find RSDP and get its address, and then find XSDT
-> @@ -232,11 +261,14 @@ void __init acpi_boot_table_init(void)
->  	if (acpi_disabled) {
->  		if (earlycon_acpi_spcr_enable)
->  			early_init_dt_scan_chosen_stdout();
-> -	} else {
-> -		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
-> -		if (IS_ENABLED(CONFIG_ACPI_BGRT))
-> -			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-> +		return;
->  	}
-> +
-> +	acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
-> +	if (IS_ENABLED(CONFIG_ACPI_BGRT))
-> +		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
-> +
-> +	acpi_fixup_m400_quirks();
->  }
->  
->  #ifdef CONFIG_ACPI_APEI
 
-Quirk actually make code nicer to read.
+Nothing arch-specific here. You're adding this to arch/arm64 because
+drivers/acpi/apei doesn't have an existing quirks table?
 
-Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
 
-Thanks we needed this having 90+ m400s
+Thanks,
 
-Graeme
+James
