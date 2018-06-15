@@ -1,7 +1,8 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] libnvdimm: Introduce locked DIMM capacity support
-Date: Thu, 14 Jun 2018 17:37:19 -0700
-Message-ID: <152902303977.10541.4641412754161257441.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 2/3] acpi,
+ nfit: Prefer _DSM over _LSR for namespace label reads
+Date: Thu, 14 Jun 2018 17:37:25 -0700
+Message-ID: <152902304504.10541.15111766266820956936.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,121 +22,45 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-When a DIMM is locked its namespace label area may not be. Introduce the
-distinction of locked namespaces to allow namespace enumeration while
-the capacity is locked.
+The _LSR method indicates locked status via error-code-3 returned in the
+_LSR payload. When any error is returned the payload of _LSR is
+truncated to a zero-length buffer.
+
+The _DSM path in comparison allows system software to retrieve the
+locked status *and* namespace label area contents.
 
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/nvdimm/dimm.c           |   24 ++++++++++++++++++++++--
- drivers/nvdimm/namespace_devs.c |   23 +++++++++++++++++++++++
- drivers/nvdimm/nd.h             |    1 +
- 3 files changed, 46 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit/core.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/nvdimm/dimm.c b/drivers/nvdimm/dimm.c
-index 233907889f96..6c8fb7590838 100644
---- a/drivers/nvdimm/dimm.c
-+++ b/drivers/nvdimm/dimm.c
-@@ -34,6 +34,9 @@ static int nvdimm_probe(struct device *dev)
- 		return rc;
- 	}
- 
-+	/* reset locked, to be validated below... */
-+	nvdimm_clear_locked(dev);
-+
- 	ndd = kzalloc(sizeof(*ndd), GFP_KERNEL);
- 	if (!ndd)
- 		return -ENOMEM;
-@@ -48,12 +51,30 @@ static int nvdimm_probe(struct device *dev)
- 	get_device(dev);
- 	kref_init(&ndd->kref);
- 
-+	/*
-+	 * EACCES failures reading the namespace label-area-properties
-+	 * are interpreted as the DIMM capacity being locked but the
-+	 * namespace labels themselves being accessible.
-+	 */
- 	rc = nvdimm_init_nsarea(ndd);
--	if (rc == -EACCES)
-+	if (rc == -EACCES) {
-+		/*
-+		 * See nvdimm_namespace_common_probe() where we fail to
-+		 * allow namespaces to probe while the DIMM is locked,
-+		 * but we do allow for namespace enumeration.
-+		 */
- 		nvdimm_set_locked(dev);
-+		rc = 0;
-+	}
- 	if (rc)
- 		goto err;
- 
-+	/*
-+	 * EACCES failures reading the namespace label-data are
-+	 * interpreted as the label area being locked in addition to the
-+	 * DIMM capacity. We fail the dimm probe to prevent regions from
-+	 * attempting to parse the label area.
-+	 */
- 	rc = nvdimm_init_config_data(ndd);
- 	if (rc == -EACCES)
- 		nvdimm_set_locked(dev);
-@@ -72,7 +93,6 @@ static int nvdimm_probe(struct device *dev)
- 		if (rc == 0)
- 			nvdimm_set_aliasing(dev);
- 	}
--	nvdimm_clear_locked(dev);
- 	nvdimm_bus_unlock(dev);
- 
- 	if (rc)
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 28afdd668905..cb322f2bc605 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1144,6 +1144,26 @@ resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
- }
- EXPORT_SYMBOL(nvdimm_namespace_capacity);
- 
-+bool nvdimm_namespace_locked(struct nd_namespace_common *ndns)
-+{
-+	int i;
-+	bool locked = false;
-+	struct device *dev = &ndns->dev;
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+
-+	for (i = 0; i < nd_region->ndr_mappings; i++) {
-+		struct nd_mapping *nd_mapping = &nd_region->mapping[i];
-+		struct nvdimm *nvdimm = nd_mapping->nvdimm;
-+
-+		if (test_bit(NDD_LOCKED, &nvdimm->flags)) {
-+			dev_dbg(dev, "%s locked\n", nvdimm_name(nvdimm));
-+			locked = true;
-+		}
-+	}
-+	return locked;
-+}
-+EXPORT_SYMBOL(nvdimm_namespace_locked);
-+
- static ssize_t size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index e2235ed3e4be..5ce3b0221073 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1694,7 +1694,7 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
  {
-@@ -1695,6 +1715,9 @@ struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
- 		}
- 	}
+ 	struct acpi_device *adev, *adev_dimm;
+ 	struct device *dev = acpi_desc->dev;
+-	unsigned long dsm_mask;
++	unsigned long dsm_mask, label_mask;
+ 	const guid_t *guid;
+ 	int i;
+ 	int family = -1;
+@@ -1766,6 +1766,16 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 					1ULL << i))
+ 			set_bit(i, &nfit_mem->dsm_mask);
  
-+	if (nvdimm_namespace_locked(ndns))
-+		return ERR_PTR(-EACCES);
++	/*
++	 * Prefer the NVDIMM_FAMILY_INTEL label read commands if present
++	 * due to their better semantics handling locked capacity.
++	 */
++	label_mask = 1 << ND_CMD_GET_CONFIG_SIZE | 1 << ND_CMD_GET_CONFIG_DATA
++		| 1 << ND_CMD_SET_CONFIG_DATA;
++	if (family == NVDIMM_FAMILY_INTEL
++			&& (dsm_mask & label_mask) == label_mask)
++		return 0;
 +
- 	size = nvdimm_namespace_capacity(ndns);
- 	if (size < ND_MIN_NAMESPACE_SIZE) {
- 		dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 32e0364b48b9..9d17abd9f8d0 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -357,6 +357,7 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
- 		struct nd_label_id *label_id, resource_size_t start,
- 		resource_size_t n);
- resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
-+bool nvdimm_namespace_locked(struct nd_namespace_common *ndns);
- struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev);
- int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns);
- int nvdimm_namespace_detach_btt(struct nd_btt *nd_btt);
+ 	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
+ 			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
+ 		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
