@@ -1,8 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] tools/testing/nvdimm: Fix support for emulating controller
- temperature
-Date: Thu, 14 Jun 2018 17:30:23 -0700
-Message-ID: <152902262388.10279.6032527372904228835.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 0/3] libvdimm: Support namespace enumeration while locked
+Date: Thu, 14 Jun 2018 17:37:14 -0700
+Message-ID: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
@@ -17,29 +16,37 @@ List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
 Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In addition to populating the value the payload also needs to set the
-"controller temperature valid" flag.
+The NVDIMM_FAMILY_INTEL DSM path for manipulating labels explicitly
+allows reading the namespace label area while the DIMM is locked. In
+contrast the ACPI _LSR method for reading labels only indicates if the
+label area is locked and returns no data.
 
-Fixes: cdd77d3e1930 ("nfit, libnvdimm: deprecate the generic SMART ioctl")
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+It naturally follows that if the namespace label area is locked, the
+DIMM is locked since the driver is prevented from discovering namespace
+boundaries.
+
+On platforms where both mechanisms are available, prefer the
+NVDIMM_FAMILY_INTEL implementation and support enumerating namespace
+boundaries while the DIMM is locked.
+
+In addition to ACPI capability detection and the libnvdimm core change
+to fail probe of locked namespaces, provide a capability to inject this
+semantic difference via nfit_test.
+
 ---
- tools/testing/nvdimm/test/nfit.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 6f19d6e28f5f..15dc280eb3ae 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1321,7 +1321,8 @@ static void smart_init(struct nfit_test *t)
- 			| ND_INTEL_SMART_ALARM_VALID
- 			| ND_INTEL_SMART_USED_VALID
- 			| ND_INTEL_SMART_SHUTDOWN_VALID
--			| ND_INTEL_SMART_MTEMP_VALID,
-+			| ND_INTEL_SMART_MTEMP_VALID
-+			| ND_INTEL_SMART_CTEMP_VALID,
- 		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
- 		.media_temperature = 23 * 16,
- 		.ctrl_temperature = 25 * 16,
+Dan Williams (3):
+      libnvdimm: Introduce locked DIMM capacity support
+      acpi, nfit: Prefer _DSM over _LSR for namespace label reads
+      tools/testing/nvdimm: Make DSM failure code injection an override
+
+
+ drivers/acpi/nfit/core.c         |   12 +++++++++
+ drivers/nvdimm/dimm.c            |   24 +++++++++++++++++--
+ drivers/nvdimm/namespace_devs.c  |   23 ++++++++++++++++++
+ drivers/nvdimm/nd.h              |    1 +
+ tools/testing/nvdimm/test/nfit.c |   49 +++++++++++++++++++++++++-------------
+ 5 files changed, 89 insertions(+), 20 deletions(-)
