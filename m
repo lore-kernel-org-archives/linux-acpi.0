@@ -1,154 +1,170 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v1 2/2] arm64: handle NOTIFY_SEI notification by the APEI
- driver
-Date: Fri, 15 Jun 2018 17:49:59 +0100
-Message-ID: <917a1e1d-23cc-bab7-4a9c-c1766b36f3bc@arm.com>
-References: <1527770506-8076-1-git-send-email-gengdongjiu@huawei.com>
- <1527770506-8076-3-git-send-email-gengdongjiu@huawei.com>
- <20180531110115.uglmicy3nzwfoyx3@lakrids.cambridge.arm.com>
- <71afa669-e3c5-979e-da5b-1d9cb7056fd6@arm.com>
- <f000549e-bd9c-323d-bcf9-04c2df029670@huawei.com>
+From: Geoff Levand <geoff@infradead.org>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Fri, 15 Jun 2018 10:17:18 -0700
+Message-ID: <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+ <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <f000549e-bd9c-323d-bcf9-04c2df029670@huawei.com>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdongjiu@huawei.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, catalin.marinas@arm.com, will.deacon@arm.com, rjw@rjwysocki.net, lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, robert.moore@intel.com, erik.schmauss@intel.com, dave.martin@arm.com, ard.biesheuvel@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi gengdongjiu,
+Hi James,
 
-On 01/06/18 08:21, gengdongjiu wrote:
-> On 2018/6/1 0:51, James Morse wrote:
->> On 31/05/18 12:01, Mark Rutland wrote:
->>> In do_serror() we already handle nmi_{enter,exit}(), so there's no need
->>> for that here.
+Just for background, this is a well known bug in the m400's AEPI/HEST
+firmware.  There are a number of fixes out there the different distros
+have.  I just put together this patch to unify things and have a
+common 'upstream' fix.
+
+On 06/15/2018 04:14 AM, James Morse wrote:
+> On 13/06/18 19:22, Geoff Levand wrote:
+>> Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
+>> a work-around for HPE ProLiant m400 APEI firmware problems.
 >>
->> Even better: nmi_enter() has a BUG_ON(in_nmi()).
-> 
-> There are two places call the arm64_is_fatal_ras_serror():
-> 1. do_serror()
-> 2. kvm_handle_guest_serror()
-> 
-> Yes, the do_serror() already handle nmi_{enter,exit}(), so the arm64_is_fatal_ras_serror() does not need to handle it again.
-
-> For the kvm_handle_guest_serror(), it does not handle the nmi_{enter,exit}(),
-> so should we add nmi_{enter,exit}() in  kvm_handle_guest_serror() before calling
-> arm64_is_fatal_ras_serror()?
-
-kvm_handle_guest_serror() never interrupts anything, so its not an NMI, this is
-why the KVM code doesn't do this today. We can take another SError from there
-without issue.
-
-But once we call APEI, it needs to prevent re-entrance, so SError has to be
-masked. If we're using the estatus-queue (which we should), then we should
-always call the notification helper in the same context. If do_serror() is
-in_nmi(), then we should fake it up in the appropriate helper.
-
-Given the latest review comments from Borislav, the in_nmi() weirdness in APEI
-may all disappear, in which case all that matters is we call APEI with SError
-masked.
-
-
-> > For the NOTIFY_SEA, I do not know why handle_guest_sea() does not handle
-> the nmi_{enter,exit}(). James, does we miss it in handle_guest_sea()?
-
-The exception went to the hypervisor, it only interrupted the guest. KVM returns
-to process context, and KVM then goes on to call handle_guest_sea().
-
-nmi_enter() is to tell things like printk() that we may have interrupted its
-IRQ-masked regions, and it can't take any locks to do the work. We know this is
-never true for KVM at this point.
-
-
->>> TBH, I don't understand why do_sea() does that conditionally today.
->>> Unless there's some constraint I'm missing, 
+>> The work-around disables APEI when CONFIG_ACPI_APEI is set and
+>> m400 firmware is detected.  Without this fixup m400 systems
+>> experience errors like these on startup:
 >>
->> APEI uses a different fixmap entry and locks when in_nmi(). This was because we
->> may interrupt the irq-masked region in APEI that was using the regular memory.
->> (e.g. the 'polled' notification, or something backed by an interrupt.) But,
->> Borislav has spotted other things in here that are broken[0]. I'm working on
->> rolling all that into 'v5' of the in_nmi() rework stuff.
->>
->> We currently get away with this on arm because 'SEA' is the only NMI-like thing,
->> and it occurs synchronously. The problem cases are all also cases where the
->> kernel text is corrupt, which we can't possibly hope to handle.
->>
->> For NOTIFY_SDEI and NOTIFY_SEI this is the wrong pattern as these are
->> asynchronous. do_serror() has already done most of the work for NOTIFY_SEI, but
->> we need to use the estatus queue in APEI, which is currently x86 only.
-
-> I think this patch can based on you 'v5' of the in_nmi() rework stuff
-
-I think NOTIFY_SEI needs the estatus-queue, so yes. But the KVM changes mean
-this will need doing as a separate series.
-
-
->>> I think it would make more
->>> sense to do that regardless of whether the interrupted context had
->>> interrupts enabled. James -- does that make sense to you?
->>>
->>> If you update the prior patch with a stub for !CONFIG_ACPI_APEI_SEI, you
->>> can simplify all of the above additions down to:
->>>
->>> 	if (!ghes_notify_sei())
->>> 		return;
->>>
->>> ... which would look a lot nicer.
->>
->> The code that calls ghes_notify_sei() may need calling by KVM too, but its
->> default action to an 'unclaimed' SError will be different.
->> Because of the race between memory_failure() and return-to-userspace, we may
->> need to kick the irq work queue (if we can), as we return from do_serror(). [1]
->> and [2] provide an example for NOTIFY_SEA. SDEI does this by returning to the
->> kernel through the IRQ handler, (which handles the KVM case too).
-
-> I can kick the IRQ work queue as you do for the NOTIFY_SEA and NOTIFY_SDEI.
-
-(NOTIFY_SDEI has its own tricks: it returns to the kernel through the IRQ VBAR
-entry)
-
-I think this needs something like the apei_claim_sea() in that series, probably
-with some __ version called from do_serror() to avoid the BUG_ON(in_nmi()).
-
-
->> I think this series is unsafe until we can use the estatus queue in APEI. Its
->> also missing the handling for an SError interrupting a KVM guest.
+>>   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
+>>   [Hardware Error]: event severity: fatal
+>>   [Hardware Error]:  Error 0, type: fatal
+>>   [Hardware Error]:   section_type: memory error
+>>   [Hardware Error]:   error_status: 0x0000000000001300
 > 
-> how about this series is based on your patches that uses the estatus queue in APEI to make it safe?
+> "Access to a memory address which is not mapped to any component"
 > 
-> when an SError interrupting a KVM guest, it will trap to hypervisor, hypervisor will call
-> below software stack to handle it:
-> kvm_handle_guest_serror()->arm64_is_fatal_ras_serror()->ghes_notify_sei()
 > 
-> so it already handles the case that an SError interrupting a KVM guest.
+>>   [Hardware Error]:   error_type: 10, invalid address
+>>   Kernel panic - not syncing: Fatal hardware error!
+> 
+> Why is this a problem?
+> 
+> Surely this is a valid description of an error.
 
-It already calls it at some point... this was called out in the cover-letter
-(and maybe commit messages) of the series that added that code: We will need to
-do more once this is used as a notification from firmware.
+The firmware bug causes this failure, not bad hardware.
 
-That series was about unmasking SError as much as possible, and enabling IESB.
-We then had to handle any case where we may now take an SError, but without
-kernel-first support (which requires some topology information) all we could do
-is ignore corrected/restartable errors, and panic() otherwise. This isn't
-actually trying to handle the error.
+> (okay its not particularly useful without the physical address, but the address
+> is optional in that structure)
+> 
+> When does this happen during boot? This looks like a driver mapping some
+> non-existent physical address space to see if its device is present...
+> unsurprisingly this doesn't go well.
+> (might also be a typo in the DSDT)
+> 
+> Can't we pin down the driver that does this and fix it. Its either wrong for
+> everyone, or still broken after you disable APEI.
+> 
+> 
+>> It seems unlikely there will be any m400 firmware updates to fix
+>> this problem.
+> 
+> What is the problem? This patch looks like it shoots the messenger for bringing
+> bad news.
+ 
+The news is incorrect, so this patch disables the source (APEI code).
 
-KVM calls this code quite late. Now that we are trying to handle the error, the
-'when' matters. SError is unmasked when we return to the run-loop, we may take
-another, less severe, SError before checking the value we had from guest-exit.
-We unmask interrupts, we may take an interrupt and run some other code, while
-holding an SError ESR that says the system can't be trusted anymore.
+>> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+>> index 7b09487ff8fb..3c315c2c7476 100644
+>> --- a/arch/arm64/kernel/acpi.c
+>> +++ b/arch/arm64/kernel/acpi.c
+>> @@ -31,6 +31,8 @@
+>>  #include <asm/cpu_ops.h>
+>>  #include <asm/smp_plat.h>
+>>  
+>> +#include <acpi/apei.h>
+>> +
+>>  #ifdef CONFIG_ACPI_APEI
+>>  # include <linux/efi.h>
+>>  # include <asm/pgtable.h>
+>> @@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
+>>  	return ret;
+>>  }
+>>  
+>> +/*
+>> + * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
+>> + * problems.
+>> + */
+>> +static void __init acpi_fixup_m400_quirks(void)
+>> +{
+>> +	acpi_status status;
+>> +	struct acpi_table_header *header;
+>> +#if !defined(CONFIG_ACPI_APEI)
+>> +	int hest_disable = HEST_DISABLED;
+>> +#endif
+> 
+> Yuck.
 
-(incidentally ... firmware should avoid making two NOTIFY_SEI pending for the
-system at the same time. The SError doesn't tell us which GHES or set of CPER
-records correspond with this error, so we have to walk the list and process
-whatever we find. Two CPUs doing this at the same time will do the wrong thing
-if the CPU-context on one of them matters.).
+Yes, unfortunately, the hest code conditionally defines hest_disable.
 
+>> +
+>> +	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
+>> +		return;
+>> +
+>> +	status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
+>> +
+>> +	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
+>> +		!strncmp(header->oem_table_id, "ProLiant", 8) &&
+> 
+> You should match the affected range of OEM table revisions too, that way a
+> firmware upgrade should start working, instead of being permanently disabled
+> because we think its unlikely.
 
-Thanks,
+The m400 has reached end of life. No one really expects to see any firmware
+update.  I don't know what the effected OEM table revisions are, and I don't
+think there is an active platform maintainer who could give that info either.
 
-James
+If someone can provide the info. I'll update the fix.
+
+>> +		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
+> 
+> How is the CPU implementer relevant?
+
+That was just a copy of what other fixes had.  Should I remove it?
+
+> You suggest a firmware-update would make this issue go away...
+> 
+> 
+>> +		hest_disable = HEST_DISABLED;
+>> +		pr_info("Disabled APEI for m400.\n");
+>> +	}
+>> +
+>> +	acpi_put_table(header);
+>> +}
+>> +
+>>  /*
+>>   * acpi_boot_table_init() called from setup_arch(), always.
+>>   *	1. find RSDP and get its address, and then find XSDT
+> 
+> Nothing arch-specific here. You're adding this to arch/arm64 because
+> drivers/acpi/apei doesn't have an existing quirks table?
+
+There was a fix submitted that had it in drivers/acpi/scan.c, but the
+ACPI maintainer said he didn't want the fix in the main ACPI code.
+See:
+
+  https://lkml.org/lkml/2018/4/19/1020 (ACPI / scan: Fix regression related to X-Gene UARTs)
+
+The m400 is an arm64 platform, so it seems most appropriate to
+have it in arch/arm64/kernel/acpi.c.  I followed what was done
+for x86 quirks (into arch/x86/kernel/acpi/boot.c), and what was
+suggested here: 
+
+  https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=900581 (linux: Enable Buster kernel features for newer ARM64 servers)
+
+Thanks for the review.
+
+-Geoff
