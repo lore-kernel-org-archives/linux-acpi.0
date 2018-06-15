@@ -1,67 +1,45 @@
-From: okaya@codeaurora.org
-Subject: Re: ACPI support in common clock framework
-Date: Thu, 14 Jun 2018 07:07:47 -0400
-Message-ID: <977a6d1c83b4084b949162258bb1007a@codeaurora.org>
-References: <CABe79T6zQ_7Ycws5b=xaQ3edpVn1QPQyWd9p24eqLGpYbdtt0A@mail.gmail.com>
- <CAHp75VdSW1po7fVv+A6ATTU7CkN-4nQ1haQSCq7b_+ZR9tNXCQ@mail.gmail.com>
- <CABe79T5i8zUcBJnFmM-pAvzXf2CZXesh4NqxSGFj8f0Z-c8m1g@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] tools/testing/nvdimm: Fix support for emulating controller
+ temperature
+Date: Thu, 14 Jun 2018 17:30:23 -0700
+Message-ID: <152902262388.10279.6032527372904228835.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CABe79T5i8zUcBJnFmM-pAvzXf2CZXesh4NqxSGFj8f0Z-c8m1g@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Srinath Mannam <srinath.mannam@broadcom.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, Stephen Boyd <sboyd@kernel.org>, linux-clk@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi-owner@vger.kernel.org
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018-06-14 06:58, Srinath Mannam wrote:
-> Thank you Andy,
-> 
-> Regards,
-> Srinath.
-> 
-> On Wed, Jun 13, 2018 at 1:43 PM, Andy Shevchenko
-> <andy.shevchenko@gmail.com> wrote:
->> +Cc: Rafael, ACPI ML
->> 
->> On Wed, Jun 13, 2018 at 7:14 AM, Srinath Mannam
->> <srinath.mannam@broadcom.com> wrote:
->>> Hi Michael, Stephen,
->>> 
->>> We are adding ACPI support in our Linux based platform.
->>> At present our clock hierarchy using common clock framework through 
->>> DTS.
->>> Now we required ACPI support in common clock framework to upgrade our 
->>> platform.
->>> 
->>> For example, clk_get API called in many drivers to get clock device 
->>> is
->>> tightly coupled with DT framework.
->>> 
->>> Please let us know, if anybody in Open Source community have plans to
->>> add ACPI support for common clock framework.
->>> If not please suggest us alternative method to use common clock
->>> framework in ACPI use case.
+In addition to populating the value the payload also needs to set the
+"controller temperature valid" flag.
 
-Are you hooking up clk apis to PS0/PS3 calls?
+Fixes: cdd77d3e1930 ("nfit, libnvdimm: deprecate the generic SMART ioctl")
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ tools/testing/nvdimm/test/nfit.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Clk api didn't play nice with acpi until now.
-
->>> 
->>> Thanks in advance.
->>> 
->>> Regards,
->>> Srinath.
->> 
->> 
->> 
->> --
->> With Best Regards,
->> Andy Shevchenko
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" 
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 6f19d6e28f5f..15dc280eb3ae 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1321,7 +1321,8 @@ static void smart_init(struct nfit_test *t)
+ 			| ND_INTEL_SMART_ALARM_VALID
+ 			| ND_INTEL_SMART_USED_VALID
+ 			| ND_INTEL_SMART_SHUTDOWN_VALID
+-			| ND_INTEL_SMART_MTEMP_VALID,
++			| ND_INTEL_SMART_MTEMP_VALID
++			| ND_INTEL_SMART_CTEMP_VALID,
+ 		.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
+ 		.media_temperature = 23 * 16,
+ 		.ctrl_temperature = 25 * 16,
