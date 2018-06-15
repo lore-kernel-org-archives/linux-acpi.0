@@ -1,64 +1,130 @@
-From: Tristian Celestin <tristiancelestin@fastmail.com>
-Subject: [PATCH] Default to s2idle in all machines supporting LP S0.
-Date: Fri, 15 Jun 2018 04:50:18 -0400
-Message-ID: <1529052618-370-1-git-send-email-tristiancelestin@fastmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Tristian Celestin <tristiancelestin@fastmail.com>
+From: Graeme Gregory <graeme.gregory@linaro.org>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Fri, 15 Jun 2018 10:51:09 +0100
+Message-ID: <20180615095109.GA4380@xora-sinquacker>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Geoff Levand <geoff@infradead.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Dell Venue Pro 7140 supports the Low Power S0 Idle state, but does not
-support any of the _DSM functions that the current heuristic checks
-for. Since suspend-to-mem can not be safely performed on this machine,
-and since the bitfield check can't cover this case, it is safer
-to enable s2idle by default by checking for the presence of the _DSM
-alone and removing the bitfield check.
+On Wed, Jun 13, 2018 at 11:22:30AM -0700, Geoff Levand wrote:
+> Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
+> a work-around for HPE ProLiant m400 APEI firmware problems.
+> 
+> The work-around disables APEI when CONFIG_ACPI_APEI is set and
+> m400 firmware is detected.  Without this fixup m400 systems
+> experience errors like these on startup:
+> 
+>   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
+>   [Hardware Error]: event severity: fatal
+>   [Hardware Error]:  Error 0, type: fatal
+>   [Hardware Error]:   section_type: memory error
+>   [Hardware Error]:   error_status: 0x0000000000001300
+>   [Hardware Error]:   error_type: 10, invalid address
+>   Kernel panic - not syncing: Fatal hardware error!
+> 
+> Signed-off-by: Geoff Levand <geoff@infradead.org>
+> ---
+> Hi,
+> 
+> It seems unlikely there will be any m400 firmware updates to fix
+> this problem.  APEI support is desired for new ARM64 servers coming
+> to market.  Distros are now forced to have their own fixes, not
+> enable APEI, or let m400 users fend for themselves.
+> 
+> Please consider.
+> 
+> -Geoff
+> 
+>  arch/arm64/kernel/acpi.c | 40 ++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 36 insertions(+), 4 deletions(-)
+> 
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 7b09487ff8fb..3c315c2c7476 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -31,6 +31,8 @@
+>  #include <asm/cpu_ops.h>
+>  #include <asm/smp_plat.h>
+>  
+> +#include <acpi/apei.h>
+> +
+>  #ifdef CONFIG_ACPI_APEI
+>  # include <linux/efi.h>
+>  # include <asm/pgtable.h>
+> @@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
+>  	return ret;
+>  }
+>  
+> +/*
+> + * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
+> + * problems.
+> + */
+> +static void __init acpi_fixup_m400_quirks(void)
+> +{
+> +	acpi_status status;
+> +	struct acpi_table_header *header;
+> +#if !defined(CONFIG_ACPI_APEI)
+> +	int hest_disable = HEST_DISABLED;
+> +#endif
+> +
+> +	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
+> +		return;
+> +
+> +	status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
+> +
+> +	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
+> +		!strncmp(header->oem_table_id, "ProLiant", 8) &&
+> +		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
+> +		hest_disable = HEST_DISABLED;
+> +		pr_info("Disabled APEI for m400.\n");
+> +	}
+> +
+> +	acpi_put_table(header);
+> +}
+> +
+>  /*
+>   * acpi_boot_table_init() called from setup_arch(), always.
+>   *	1. find RSDP and get its address, and then find XSDT
+> @@ -232,11 +261,14 @@ void __init acpi_boot_table_init(void)
+>  	if (acpi_disabled) {
+>  		if (earlycon_acpi_spcr_enable)
+>  			early_init_dt_scan_chosen_stdout();
+> -	} else {
+> -		acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+> -		if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> -			acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+> +		return;
+>  	}
+> +
+> +	acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+> +	if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> +		acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+> +
+> +	acpi_fixup_m400_quirks();
+>  }
+>  
+>  #ifdef CONFIG_ACPI_APEI
 
-Signed-off-by: Tristian Celestin <tristiancelestin@fastmail.com>
----
- drivers/acpi/sleep.c | 22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+Quirk actually make code nicer to read.
 
-diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-index 974e584..d0ddd4d 100644
---- a/drivers/acpi/sleep.c
-+++ b/drivers/acpi/sleep.c
-@@ -718,9 +718,6 @@ static int acpi_suspend_begin_old(suspend_state_t pm_state)
- #define ACPI_LPS0_ENTRY		5
- #define ACPI_LPS0_EXIT		6
- 
--#define ACPI_LPS0_SCREEN_MASK	((1 << ACPI_LPS0_SCREEN_OFF) | (1 << ACPI_LPS0_SCREEN_ON))
--#define ACPI_LPS0_PLATFORM_MASK	((1 << ACPI_LPS0_ENTRY) | (1 << ACPI_LPS0_EXIT))
--
- static acpi_handle lps0_device_handle;
- static guid_t lps0_dsm_guid;
- static char lps0_dsm_func_mask;
-@@ -924,17 +921,14 @@ static int lps0_device_attach(struct acpi_device *adev,
- 	if (out_obj && out_obj->type == ACPI_TYPE_BUFFER) {
- 		char bitmask = *(char *)out_obj->buffer.pointer;
- 
--		if ((bitmask & ACPI_LPS0_PLATFORM_MASK) == ACPI_LPS0_PLATFORM_MASK ||
--		    (bitmask & ACPI_LPS0_SCREEN_MASK) == ACPI_LPS0_SCREEN_MASK) {
--			lps0_dsm_func_mask = bitmask;
--			lps0_device_handle = adev->handle;
--			/*
--			 * Use suspend-to-idle by default if the default
--			 * suspend mode was not set from the command line.
--			 */
--			if (mem_sleep_default > PM_SUSPEND_MEM)
--				mem_sleep_current = PM_SUSPEND_TO_IDLE;
--		}
-+		lps0_dsm_func_mask = bitmask;
-+		lps0_device_handle = adev->handle;
-+		/*
-+		 * Use suspend-to-idle by default if the default
-+		 * suspend mode was not set from the command line.
-+		 */
-+		if (mem_sleep_default > PM_SUSPEND_MEM)
-+			mem_sleep_current = PM_SUSPEND_TO_IDLE;
- 
- 		acpi_handle_debug(adev->handle, "_DSM function mask: 0x%x\n",
- 				  bitmask);
--- 
-1.8.3.1
+Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+
+Thanks we needed this having 90+ m400s
+
+Graeme
