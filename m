@@ -1,139 +1,111 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Fri, 15 Jun 2018 12:14:59 +0100
-Message-ID: <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
-References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Fri, 15 Jun 2018 12:25:22 +0100
+Message-ID: <20180615112522.3wujbq7bajof57qx@techsingularity.net>
+References: <CAE4VaGBRFBM-uZEE=DdUzQkcNmpnUHdjK-7hgEeywmG8bvOOgw@mail.gmail.com>
+ <20180611141113.pfuttg7npch3jtg6@techsingularity.net>
+ <CAE4VaGCMS2pXfPVSnMbudexv_m5wRCTuBKA5ijh2x==11uQg9g@mail.gmail.com>
+ <20180614083640.dekqhsopoefnfhb4@techsingularity.net>
+ <CAE4VaGCzB99es_TpAaYvtjX8fqzFA=7HX-ezqgO6FaEB5if4zg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Geoff Levand <geoff@infradead.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAE4VaGCzB99es_TpAaYvtjX8fqzFA=7HX-ezqgO6FaEB5if4zg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jirka Hladky <jhladky@redhat.com>
+Cc: Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "kkolakow@redhat.com" <kkolakow@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Geoff,
-
-On 13/06/18 19:22, Geoff Levand wrote:
-> Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
-> a work-around for HPE ProLiant m400 APEI firmware problems.
+On Fri, Jun 15, 2018 at 01:07:32AM +0200, Jirka Hladky wrote:
+> >
+> > In terms of the speed of migration, it may be worth checking how often the
+> > mm_numa_migrate_ratelimit tracepoint is triggered with bonus points for
+> > using
+> > the nr_pages to calculate how many pages get throttled from migrating. If
+> > it's high frequency then you could test increasing ratelimit_pages (which
+> > is set at compile time despite not being a macro). It still may not work
+> > for tasks that are too short-lived to have enough time to identify a
+> > misplacement and migration.
 > 
-> The work-around disables APEI when CONFIG_ACPI_APEI is set and
-> m400 firmware is detected.  Without this fixup m400 systems
-> experience errors like these on startup:
 > 
->   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
->   [Hardware Error]: event severity: fatal
->   [Hardware Error]:  Error 0, type: fatal
->   [Hardware Error]:   section_type: memory error
->   [Hardware Error]:   error_status: 0x0000000000001300
+> I have done testing on 2 NUMA and 4 NUMA servers, all equipped with the
+> same CPUs ( Gold 6126) with 48 and 96 cores respectively.
+> 
+> I have used ft.C.x and ft.D.x tests with 20 threads on 2 NUMA box and 32
+> threads on 4 NUMA box. (This is where I see the biggest perf. drop between
+> 4.16 and 4.17 kernels).  While ft.C is a short-lived test (it takes few
+> seconds to finish), ft.D is a long test with runtime over 3 minutes with 20
+> threads and 4.5 minutes with 20 threads.
+> 
 
-"Access to a memory address which is not mapped to any component"
+Understood.
 
+> I have used this command to run the test:
+> 
+> OMP_NUM_THREADS=${THREADS} trace-cmd record -e
+> migrate:mm_numa_migrate_ratelimit -o
+> ${DIR}/${BIN}_${THREADS}_threads_with_trace.trace.dat ./${BIN}
+> 
 
->   [Hardware Error]:   error_type: 10, invalid address
->   Kernel panic - not syncing: Fatal hardware error!
+Ok, the fact you're using OpenMP instead of MPI is an important detail.
+OpenMP threads inherit the numa_preferred_nid from their parent while
+MPI are usually processes and do not inherit the preferred nid. They
+also inherit the page tables so even though there is a preferred nid,
+they also potentially handle NUMA hinting faults. This has an important
+impact on what the hints look like if there is a window before a thread
+gets migrated to another socket.
 
-Why is this a problem?
+> I can see that 2c83362734dad8e48ccc0710b5cd2436a0323893 has caused big
+> increase in number of mm_numa_migrate_ratelimit events.
+> 
 
-Surely this is a valid description of an error.
-(okay its not particularly useful without the physical address, but the address
-is optional in that structure)
+That implies the threads are getting throttled and, for NAS at least,
+indicate why migration is slow. It doesn't apply to stream.
 
-When does this happen during boot? This looks like a driver mapping some
-non-existent physical address space to see if its device is present...
-unsurprisingly this doesn't go well.
-(might also be a typo in the DSDT)
+> I have tested following 3 kernels: 4.16, 4.16_p1
+> (2c83362734dad8e48ccc0710b5cd2436a0323893) and 4.16_p2 (4.16_p1 + 2 patched
+> from Srikar Dronamra).
+> 
+> There is clear performance drop going from 4.16 to 4.16_p1. 4.16_p2 shows a
+> small improvement over 4.16_p1 for ft.C but additional perf. drop for ft.D
+> on 4 NUMA node server.
+> 
 
-Can't we pin down the driver that does this and fix it. Its either wrong for
-everyone, or still broken after you disable APEI.
+Ok, so as expected a higher scan rate is not necessarily a good thing.
+I've observed before that often it simply increases system CPU usage
+without any improvement in locality.
 
+> I think you have mentioned that you are using NAS benchmark but you don't
+> see the regression.
 
-> It seems unlikely there will be any m400 firmware updates to fix
-> this problem.
+Correct.
 
-What is the problem? This patch looks like it shoots the messenger for bringing
-bad news.
+> I do wonder if you run NAS with the number of
+> threads being roughly 1/3 of the available cores - this is the scenario
+> where I consistently see big perf. drop caused by
+> 2c83362734dad8e48ccc0710b5cd2436a0323893.
+> 
 
+It's possible. Until relatively recently, the NAS configurations used as
+many CPUs as possible rounded down to a power-of-two or square number
+where required if MPI was in use. Due to the fact that saturating the
+machine alters how MPI behaves (and is not great for openMP either),
+I added configurations that used half of the CPUs. However, that would
+mean it fits too nicely within sockets. I've added another set for one
+third of the CPUs and scheduled the tests. Unfortunately, they will not
+complete quickly as my test grid has a massive backlog of work.
 
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index 7b09487ff8fb..3c315c2c7476 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -31,6 +31,8 @@
->  #include <asm/cpu_ops.h>
->  #include <asm/smp_plat.h>
->  
-> +#include <acpi/apei.h>
-> +
->  #ifdef CONFIG_ACPI_APEI
->  # include <linux/efi.h>
->  # include <asm/pgtable.h>
-> @@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
->  	return ret;
->  }
->  
-> +/*
-> + * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
-> + * problems.
-> + */
-> +static void __init acpi_fixup_m400_quirks(void)
-> +{
-> +	acpi_status status;
-> +	struct acpi_table_header *header;
-> +#if !defined(CONFIG_ACPI_APEI)
-> +	int hest_disable = HEST_DISABLED;
-> +#endif
+> Results are bellow:
+> 
 
-Yuck.
+Nice one, thanks. It's fairly clear that rate limiting may be a major
+component and it's worth testing with the ratelimit increased. Given that
+there have been a lot of improvements on locality and corner cases since
+the rate limit was first introduced, it may also be worth considering
+elimintating the rate limiting entirely and see what falls out.
 
-
-> +
-> +	if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
-> +		return;
-> +
-> +	status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
-> +
-> +	if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
-> +		!strncmp(header->oem_table_id, "ProLiant", 8) &&
-
-You should match the affected range of OEM table revisions too, that way a
-firmware upgrade should start working, instead of being permanently disabled
-because we think its unlikely.
-
-
-> +		MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
-
-How is the CPU implementer relevant?
-
-You suggest a firmware-update would make this issue go away...
-
-
-> +		hest_disable = HEST_DISABLED;
-> +		pr_info("Disabled APEI for m400.\n");
-> +	}
-> +
-> +	acpi_put_table(header);
-> +}
-> +
->  /*
->   * acpi_boot_table_init() called from setup_arch(), always.
->   *	1. find RSDP and get its address, and then find XSDT
-
-Nothing arch-specific here. You're adding this to arch/arm64 because
-drivers/acpi/apei doesn't have an existing quirks table?
-
-
-Thanks,
-
-James
+-- 
+Mel Gorman
+SUSE Labs
