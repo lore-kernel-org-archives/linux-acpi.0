@@ -1,149 +1,127 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] tools/testing/nvdimm: Make DSM failure code injection
- an override
-Date: Thu, 14 Jun 2018 17:37:30 -0700
-Message-ID: <152902305016.10541.6695000206945040942.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <152902303439.10541.13027910074116606464.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Riku Voipio <riku.voipio@linaro.org>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Fri, 15 Jun 2018 11:47:43 +0300
+Message-ID: <CAAqcGHn7wYHJQ+Ue90LFExRTJ1Yh0BW3Wb2PC2+-5pc3xECxhg@mail.gmail.com>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <152902303439.10541.13027910074116606464.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: geoff@infradead.org
+Cc: lorenzo.pieralisi@arm.com, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, msalter@redhat.com, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In order to emulate the behavior of the NVDIMM_FAMILY_INTEL DSMs
-nfit_test needs the ability to execute the DSM and then override the
-return code.
+On Wed, 13 Jun 2018 at 21:22, Geoff Levand <geoff@infradead.org> wrote:
+>
+> Adds a new ACPI init routine acpi_fixup_m400_quirks that adds
+> a work-around for HPE ProLiant m400 APEI firmware problems.
+>
+> The work-around disables APEI when CONFIG_ACPI_APEI is set and
+> m400 firmware is detected.  Without this fixup m400 systems
+> experience errors like these on startup:
+>
+>   [Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
+>   [Hardware Error]: event severity: fatal
+>   [Hardware Error]:  Error 0, type: fatal
+>   [Hardware Error]:   section_type: memory error
+>   [Hardware Error]:   error_status: 0x0000000000001300
+>   [Hardware Error]:   error_type: 10, invalid address
+>   Kernel panic - not syncing: Fatal hardware error!
+>
+> Signed-off-by: Geoff Levand <geoff@infradead.org>
+> ---
+> Hi,
+>
+> It seems unlikely there will be any m400 firmware updates to fix
+> this problem.  APEI support is desired for new ARM64 servers coming
+> to market.  Distros are now forced to have their own fixes, not
+> enable APEI, or let m400 users fend for themselves.
 
-Split the current return code injection from get_dimm() and apply at
-after the function has executed to override the return status.
+Thanks for working on this. This patch works well on m400 with APEI enabled.
 
-Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- tools/testing/nvdimm/test/nfit.c |   49 +++++++++++++++++++++++++-------------
- 1 file changed, 32 insertions(+), 17 deletions(-)
+Tested-by: Riku Voipio <riku.voipio@linaro.org>
 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 4ea385be528f..6f19d6e28f5f 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -882,6 +882,16 @@ static int nd_intel_test_cmd_set_lss_status(struct nfit_test *t,
- 	return 0;
- }
- 
-+static int override_return_code(int dimm, unsigned int func, int rc)
-+{
-+	if ((1 << func) & dimm_fail_cmd_flags[dimm]) {
-+		if (dimm_fail_cmd_code[dimm])
-+			return dimm_fail_cmd_code[dimm];
-+		return -EIO;
-+	}
-+	return rc;
-+}
-+
- static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- {
- 	int i;
-@@ -892,13 +902,6 @@ static int get_dimm(struct nfit_mem *nfit_mem, unsigned int func)
- 			break;
- 	if (i >= ARRAY_SIZE(handle))
- 		return -ENXIO;
--
--	if ((1 << func) & dimm_fail_cmd_flags[i]) {
--		if (dimm_fail_cmd_code[i])
--			return dimm_fail_cmd_code[i];
--		return -EIO;
--	}
--
- 	return i;
- }
- 
-@@ -937,48 +940,59 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 
- 			switch (func) {
- 			case ND_INTEL_ENABLE_LSS_STATUS:
--				return nd_intel_test_cmd_set_lss_status(t,
-+				rc = nd_intel_test_cmd_set_lss_status(t,
- 						buf, buf_len);
-+				break;
- 			case ND_INTEL_FW_GET_INFO:
--				return nd_intel_test_get_fw_info(t, buf,
-+				rc = nd_intel_test_get_fw_info(t, buf,
- 						buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_FW_START_UPDATE:
--				return nd_intel_test_start_update(t, buf,
-+				rc = nd_intel_test_start_update(t, buf,
- 						buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_FW_SEND_DATA:
--				return nd_intel_test_send_data(t, buf,
-+				rc = nd_intel_test_send_data(t, buf,
- 						buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_FW_FINISH_UPDATE:
--				return nd_intel_test_finish_fw(t, buf,
-+				rc = nd_intel_test_finish_fw(t, buf,
- 						buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_FW_FINISH_QUERY:
--				return nd_intel_test_finish_query(t, buf,
-+				rc = nd_intel_test_finish_query(t, buf,
- 						buf_len, i - t->dcr_idx);
-+				break;
- 			case ND_INTEL_SMART:
--				return nfit_test_cmd_smart(buf, buf_len,
-+				rc = nfit_test_cmd_smart(buf, buf_len,
- 						&t->smart[i - t->dcr_idx]);
-+				break;
- 			case ND_INTEL_SMART_THRESHOLD:
--				return nfit_test_cmd_smart_threshold(buf,
-+				rc = nfit_test_cmd_smart_threshold(buf,
- 						buf_len,
- 						&t->smart_threshold[i -
- 							t->dcr_idx]);
-+				break;
- 			case ND_INTEL_SMART_SET_THRESHOLD:
--				return nfit_test_cmd_smart_set_threshold(buf,
-+				rc = nfit_test_cmd_smart_set_threshold(buf,
- 						buf_len,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
- 						&t->pdev.dev, t->dimm_dev[i]);
-+				break;
- 			case ND_INTEL_SMART_INJECT:
--				return nfit_test_cmd_smart_inject(buf,
-+				rc = nfit_test_cmd_smart_inject(buf,
- 						buf_len,
- 						&t->smart_threshold[i -
- 							t->dcr_idx],
- 						&t->smart[i - t->dcr_idx],
- 						&t->pdev.dev, t->dimm_dev[i]);
-+				break;
- 			default:
- 				return -ENOTTY;
- 			}
-+			return override_return_code(i, func, rc);
- 		}
- 
- 		if (!test_bit(cmd, &cmd_mask)
-@@ -1004,6 +1018,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
- 		default:
- 			return -ENOTTY;
- 		}
-+		return override_return_code(i, func, rc);
- 	} else {
- 		struct ars_state *ars_state = &t->ars_state;
- 		struct nd_cmd_pkg *call_pkg = buf;
+> -Geoff
+>
+>  arch/arm64/kernel/acpi.c | 40 ++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 36 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index 7b09487ff8fb..3c315c2c7476 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -31,6 +31,8 @@
+>  #include <asm/cpu_ops.h>
+>  #include <asm/smp_plat.h>
+>
+> +#include <acpi/apei.h>
+> +
+>  #ifdef CONFIG_ACPI_APEI
+>  # include <linux/efi.h>
+>  # include <asm/pgtable.h>
+> @@ -177,6 +179,33 @@ static int __init acpi_fadt_sanity_check(void)
+>         return ret;
+>  }
+>
+> +/*
+> + * acpi_fixup_m400_quirks - Work-around for HPE ProLiant m400 APEI firmware
+> + * problems.
+> + */
+> +static void __init acpi_fixup_m400_quirks(void)
+> +{
+> +       acpi_status status;
+> +       struct acpi_table_header *header;
+> +#if !defined(CONFIG_ACPI_APEI)
+> +       int hest_disable = HEST_DISABLED;
+> +#endif
+> +
+> +       if (!IS_ENABLED(CONFIG_ACPI_APEI) || hest_disable != HEST_ENABLED)
+> +               return;
+> +
+> +       status = acpi_get_table(ACPI_SIG_HEST, 0, &header);
+> +
+> +       if (ACPI_SUCCESS(status) && !strncmp(header->oem_id, "HPE   ", 6) &&
+> +               !strncmp(header->oem_table_id, "ProLiant", 8) &&
+> +               MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
+> +               hest_disable = HEST_DISABLED;
+> +               pr_info("Disabled APEI for m400.\n");
+> +       }
+> +
+> +       acpi_put_table(header);
+> +}
+> +
+>  /*
+>   * acpi_boot_table_init() called from setup_arch(), always.
+>   *     1. find RSDP and get its address, and then find XSDT
+> @@ -232,11 +261,14 @@ void __init acpi_boot_table_init(void)
+>         if (acpi_disabled) {
+>                 if (earlycon_acpi_spcr_enable)
+>                         early_init_dt_scan_chosen_stdout();
+> -       } else {
+> -               acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+> -               if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> -                       acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+> +               return;
+>         }
+> +
+> +       acpi_parse_spcr(earlycon_acpi_spcr_enable, true);
+> +       if (IS_ENABLED(CONFIG_ACPI_BGRT))
+> +               acpi_table_parse(ACPI_SIG_BGRT, acpi_parse_bgrt);
+> +
+> +       acpi_fixup_m400_quirks();
+>  }
+>
+>  #ifdef CONFIG_ACPI_APEI
+> --
+> 2.14.1
+>
