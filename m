@@ -1,51 +1,71 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Fri, 15 Jun 2018 15:14:03 -0400
-Message-ID: <a42567729ff860fb9abf43575e1c21cac8e1df8a.camel@redhat.com>
-References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
- <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
- <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
- <5120aa9f167c19712c01dc812f689eaef23bf0c5.camel@redhat.com>
- <7a1768e2-bab5-c9f3-51b4-2131c9009498@infradead.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: ACPI support in common clock framework
+Date: Sat, 16 Jun 2018 17:50:18 +0200
+Message-ID: <CAJZ5v0gA76NwwgRnuztY+dUOKXS+__-7Ghw7Azb-84h_eMRt4w@mail.gmail.com>
+References: <CABe79T6zQ_7Ycws5b=xaQ3edpVn1QPQyWd9p24eqLGpYbdtt0A@mail.gmail.com>
+ <CAHp75VdSW1po7fVv+A6ATTU7CkN-4nQ1haQSCq7b_+ZR9tNXCQ@mail.gmail.com>
+ <CAJZ5v0iJcTg=X_j-4nap9d_H4jq2rwOETT8Sukx6UL5UsDKjgA@mail.gmail.com> <152908459103.16708.4012421602830600322@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <7a1768e2-bab5-c9f3-51b4-2131c9009498@infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Geoff Levand <geoff@infradead.org>, James Morse <james.morse@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <152908459103.16708.4012421602830600322@swboyd.mtv.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Srinath Mannam <srinath.mannam@broadcom.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2018-06-15 at 11:15 -0700, Geoff Levand wrote:
-> Hi Mark,
-> 
-> On 06/15/2018 10:33 AM, Mark Salter wrote:
-> > On Fri, 2018-06-15 at 10:17 -0700, Geoff Levand wrote:
-> > > > > +            MIDR_IMPLEMENTOR(read_cpuid_id()) == ARM_CPU_IMP_APM) {
-> > > > 
-> > > > How is the CPU implementer relevant?
-> > > 
-> > > That was just a copy of what other fixes had.  Should I remove it?
-> > 
-> > It was there because HPE ProLiant strings are generic and you may end up
-> > disabling platforms which would otherwise work. It is the ProLiant system
-> > based on the APM chipset which is the problem. Thus the check for cpu
-> > implementor.
-> 
-> Your original fix that had this cpu implementor check was in the main
-> ACPI code, so would be built for other arches.  This is now in
-> arch/arm64/kernel/acpi.c, which will only be built for arm64.  Is that
-> enough to limit it, or do we still need the check?
+On Fri, Jun 15, 2018 at 7:43 PM, Stephen Boyd <sboyd@kernel.org> wrote:
+> Quoting Rafael J. Wysocki (2018-06-13 01:27:39)
+>> On Wed, Jun 13, 2018 at 10:13 AM, Andy Shevchenko
+>> <andy.shevchenko@gmail.com> wrote:
+>> > +Cc: Rafael, ACPI ML
+>> >
+>> > On Wed, Jun 13, 2018 at 7:14 AM, Srinath Mannam
+>> > <srinath.mannam@broadcom.com> wrote:
+>> >> Hi Michael, Stephen,
+>> >>
+>> >> We are adding ACPI support in our Linux based platform.
+>> >> At present our clock hierarchy using common clock framework through DTS.
+>> >> Now we required ACPI support in common clock framework to upgrade our platform.
+>> >>
+>> >> For example, clk_get API called in many drivers to get clock device is
+>> >> tightly coupled with DT framework.
+>> >>
+>> >> Please let us know, if anybody in Open Source community have plans to
+>> >> add ACPI support for common clock framework.
+>>
+>> There are no plans for doing that AFAICS.
+>>
+>> Moreover, it generally would not be consistent with ACPI power
+>> management defined by the specification.
+>
+> This matches my understanding.
+>
+>>
+>> >> If not please suggest us alternative method to use common clock
+>> >> framework in ACPI use case.
+>>
+>> The problem with using the clock framework on systems with ACPI is
+>> that, in general, the clock manipulation is expected to be carried out
+>> by ACPI power management and therefore it is "owned" by AML.
+>> Currently, there are no defined methods for synchronizing the AML's
+>> use of clocks for power management with what the OS may do with them
+>> directly.
+>>
+>> In theory, that can be worked around to some extent by representing
+>> clocks as power resources in ASL (even though the provider information
+>> would be missing then) and manipulating those power resources directly
+>> from the OS.  I'm not aware of anyone doing that successfully,
+>> however.
+>>
+>> For simple power management it should be sufficient to let drivers
+>> rely on the ACPI PM domain which should happen automatically in the
+>> majority of cases anyway.
+>>
+>
+> Is this for clk_enable/disable? What about clk_set_rate() or
+> clk_set_phase()? Is ACPI's AML taking care of that?
 
-The original code was protected by #ifdef ARM64. But yes, HPE has announced
-another aarch64 ProLiant system based on Cavium ThunderX2. So we need to
-allow everything but the APM XGene based ProLiant products.
+That's for clk_enable/disable AFAICS.
+
+AML doesn't manage device performance states at all.
