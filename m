@@ -1,71 +1,53 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: ACPI support in common clock framework
-Date: Sat, 16 Jun 2018 17:50:18 +0200
-Message-ID: <CAJZ5v0gA76NwwgRnuztY+dUOKXS+__-7Ghw7Azb-84h_eMRt4w@mail.gmail.com>
-References: <CABe79T6zQ_7Ycws5b=xaQ3edpVn1QPQyWd9p24eqLGpYbdtt0A@mail.gmail.com>
- <CAHp75VdSW1po7fVv+A6ATTU7CkN-4nQ1haQSCq7b_+ZR9tNXCQ@mail.gmail.com>
- <CAJZ5v0iJcTg=X_j-4nap9d_H4jq2rwOETT8Sukx6UL5UsDKjgA@mail.gmail.com> <152908459103.16708.4012421602830600322@swboyd.mtv.corp.google.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH RESEND v4 2/2] arm/arm64: KVM: Add
+ KVM_GET/SET_VCPU_EVENTS
+Date: Sun, 17 Jun 2018 01:30:20 +0000
+Message-ID: <0184EA26B2509940AA629AE1405DD7F201CE33F0@DGGEMA503-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <152908459103.16708.4012421602830600322@swboyd.mtv.corp.google.com>
+Content-Language: zh-CN
 Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Srinath Mannam <srinath.mannam@broadcom.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: James Morse <james.morse@arm.com>
+Cc: "rkrcmar@redhat.com" <rkrcmar@redhat.com>, "corbet@lwn.net" <corbet@lwn.net>, "christoffer.dall@arm.com" <christoffer.dall@arm.com>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "linux@armlinux.org.uk" <linux@armlinux.org.uk>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 15, 2018 at 7:43 PM, Stephen Boyd <sboyd@kernel.org> wrote:
-> Quoting Rafael J. Wysocki (2018-06-13 01:27:39)
->> On Wed, Jun 13, 2018 at 10:13 AM, Andy Shevchenko
->> <andy.shevchenko@gmail.com> wrote:
->> > +Cc: Rafael, ACPI ML
->> >
->> > On Wed, Jun 13, 2018 at 7:14 AM, Srinath Mannam
->> > <srinath.mannam@broadcom.com> wrote:
->> >> Hi Michael, Stephen,
->> >>
->> >> We are adding ACPI support in our Linux based platform.
->> >> At present our clock hierarchy using common clock framework through DTS.
->> >> Now we required ACPI support in common clock framework to upgrade our platform.
->> >>
->> >> For example, clk_get API called in many drivers to get clock device is
->> >> tightly coupled with DT framework.
->> >>
->> >> Please let us know, if anybody in Open Source community have plans to
->> >> add ACPI support for common clock framework.
->>
->> There are no plans for doing that AFAICS.
->>
->> Moreover, it generally would not be consistent with ACPI power
->> management defined by the specification.
->
-> This matches my understanding.
->
->>
->> >> If not please suggest us alternative method to use common clock
->> >> framework in ACPI use case.
->>
->> The problem with using the clock framework on systems with ACPI is
->> that, in general, the clock manipulation is expected to be carried out
->> by ACPI power management and therefore it is "owned" by AML.
->> Currently, there are no defined methods for synchronizing the AML's
->> use of clocks for power management with what the OS may do with them
->> directly.
->>
->> In theory, that can be worked around to some extent by representing
->> clocks as power resources in ASL (even though the provider information
->> would be missing then) and manipulating those power resources directly
->> from the OS.  I'm not aware of anyone doing that successfully,
->> however.
->>
->> For simple power management it should be sufficient to let drivers
->> rely on the ACPI PM domain which should happen automatically in the
->> majority of cases anyway.
->>
->
-> Is this for clk_enable/disable? What about clk_set_rate() or
-> clk_set_phase()? Is ACPI's AML taking care of that?
-
-That's for clk_enable/disable AFAICS.
-
-AML doesn't manage device performance states at all.
+PiA+Pj4+PiAtLS0gYS9hcmNoL2FybS9pbmNsdWRlL3VhcGkvYXNtL2t2bS5oDQo+ID4+Pj4+ICsr
+KyBiL2FyY2gvYXJtL2luY2x1ZGUvdWFwaS9hc20va3ZtLmgNCj4gPj4+Pj4gQEAgLTEyNCw2ICsx
+MjQsMTggQEAgc3RydWN0IGt2bV9zeW5jX3JlZ3MgeyAgc3RydWN0DQo+ID4+Pj4+IGt2bV9hcmNo
+X21lbW9yeV9zbG90IHsgIH07DQo+ID4+Pj4+DQo+ID4+Pj4+ICsvKiBmb3IgS1ZNX0dFVC9TRVRf
+VkNQVV9FVkVOVFMgKi8gc3RydWN0IGt2bV92Y3B1X2V2ZW50cyB7DQo+ID4+Pj4+ICsJc3RydWN0
+IHsNCj4gPj4+Pj4gKwkJX191OCBzZXJyb3JfcGVuZGluZzsNCj4gPj4+Pj4gKwkJX191OCBzZXJy
+b3JfaGFzX2VzcjsNCj4gPj4+Pj4gKwkJLyogQWxpZ24gaXQgdG8gOCBieXRlcyAqLw0KPiA+Pj4+
+PiArCQlfX3U4IHBhZFs2XTsNCj4gPj4+Pj4gKwkJX191NjQgc2Vycm9yX2VzcjsNCj4gPj4+Pj4g
+Kwl9IGV4Y2VwdGlvbjsNCj4gPj4+Pj4gKwlfX3UzMiByZXNlcnZlZFsxMl07DQo+ID4+Pj4+ICt9
+Ow0KPiA+Pj4+PiArDQo+ID4+Pj4NCj4gPj4+PiBZb3UgaGF2ZW4ndCBkZWZpbmVkIF9fS1ZNX0hB
+VkVfVkNQVV9FVkVOVFMgZm9yIDMyYml0LCBzbyBwcmVzdW1hYmx5DQo+ID4+Pj4gdGhpcyBzdHJ1
+Y3Qgd2lsbCBuZXZlciBiZSB1c2VkLiBXaHkgaXMgaXQgaGVyZT8NCj4gPj4NCj4gPj4+ICAgaWYg
+bm90IGFkZCBpdCBmb3IgMzIgYml0cy4gdGhlIDMyIGFybSBwbGF0Zm9ybSB3aWxsIGJ1aWxkIEZh
+aWwsIHdoZXRoZXIgeW91IGhhdmUgZ29vZA0KPiA+Pj4gICAgaWRlYSB0byBhdm9pZCB0aGlzIEZh
+aWx1cmUgaWYgbm90IGFkZCB0aGlzIHN0cnVjdCBmb3IgdGhlIDMyIGJpdD8NCj4gPj4NCj4gPj4g
+SG93IGRvZXMgdGhpcyAzMmJpdCBjb2RlIGJ1aWxkIHdpdGhvdXQgdGhpcyBwYXRjaD8NCj4gPj4g
+SWYgZG8geW91IHByb3ZpZGUgdGhlIHN0cnVjdCwgaG93IHdpbGwgdGhhdCBjb2RlIGJ1aWxkIHdp
+dGggb2xkZXIgaGVhZGVycz8NCj4gPj4NCj4gPj4gQXMgZmFyIGFzIEkgY2FuIHNlZSwgdGhpcyBp
+cyB3aGF0IHRoZSBfX0tWTV9IQVZFX1ZDUFVfRVZFTlRTIGRlZmluZSBpcyBmb3IuDQo+ID4+DQo+
+ID4+IFRoaXMgc2hvdWxkIGJlIGJvdGgsIG9yIG5laXRoZXIuIEhhdmluZyBqdXN0IHRoZSBzdHJ1
+Y3QgaXMgdXNlbGVzcy4NCj4gPiBJdCBiZWNhdXNlIHRoZSBjYWxsZXIgb2Yga3ZtX2FybV92Y3B1
+X2dldC9zZXRfZXZlbnRzKCkgaXMgaW4gInZpcnQva3ZtL2FybS9hcm0uYyIuDQo+ID4gdGhlIHZp
+cnQva3ZtL2FybS9hcm0uYyB3aWxsIHVzZWQgYnkgYm90aCBhcm02NCBhbmQgYXJtLg0KPiA+IHNv
+IEl0IG5lZWRzIHRvIGFkZCBrdm1fYXJtX3ZjcHVfZ2V0L3NldF9ldmVudHMoKSBmb3IgdGhlIDMy
+IGJpdHMsDQo+ID4gaG93ZXZlciwga3ZtX2FybV92Y3B1X2dldC9zZXRfZXZlbnRzKCkgd2lsbCBk
+aXJlY3RseSByZXR1cm4sDQo+IA0KPiBTbyB5b3UgYXJlIGFkZGluZyBhIHVhcGkgc3RydWN0IHRo
+YXQgdXNlci1zcGFjZSBjYW4ndCBhY3R1YWxseSB1c2UsIHRvIGF2b2lkIGEga2VybmVsIGJ1aWxk
+LWVycm9yLiBGaW5lLCBpdCBqdXN0IGxvb2tzIHJlYWxseSBzdHJhbmdlLg0KPiANCj4gMzJiaXQg
+dXNlci1zcGFjZSBzaG91bGRuJ3QgdHJ5IHRvIGNhbGwgdGhpcyBhcyBjaGVjay1leHRlbnNpb24g
+cmVwb3J0cyBpdCBhcyBub3QgcHJlc2VudC4gSWYgaXQgZG9lcywgaXQgZ2V0cyAtRUlOVkFMIGJh
+Y2ssIHdoaWNoIGlzIGFsc28gdGhlDQo+IGRlZmF1bHQgZm9yIGt2bV9hcmNoX3ZjcHVfaW9jdGwo
+KS4NCg0KSXQgaW5kZWVkIGxvb2tzIHN0cmFuZ2UuIEJlY2F1c2UgInZpcnQva3ZtL2FybS9hcm0u
+YyIgaXMgc2hhcmVkIGJ5IGFybTY0IGFuZCBhcm0zMiwgaWYgbm90IGFkZGluZywgaXQgd2lsbCBi
+dWlsZC1lcnJvci4gRG8geW91IGhhdmUgYSBiZXR0ZXIgaWRlYSB0byBhdm9pZCBhZGRpbmcgaW4g
+YXJtMzI/IA0KSSBzdGlsbCBub3QgdGhpbmsgb3V0IGEgZ29vZCBtZXRob2QuIDMyIHVzZXItc3Bh
+Y2Ugd2lsbCBub3QgY2FsbCB0aGlzIEtWTV9HRVQvU0VUX1ZDUFVfRVZFTlRTIElPQ1RMIGFzIGNo
+ZWNrLWV4dGVuc2lvbiByZXBvcnRzIGl0IGFzIG5vdCBwcmVzZW50Lg0KDQo+IA0KPiANCj4gVGhh
+bmtzLA0KPiANCj4gSmFtZXMNCg==
