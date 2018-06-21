@@ -1,68 +1,147 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.18-rc2
-Date: Thu, 21 Jun 2018 15:31:17 +0200
-Message-ID: <CAJZ5v0iUU3WUZQ7NDR2dbxzOSGf3vrXr=7r5zQzSEwh1qokxgQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH 1/3] acpi: Add helper for deactivating memory region
+Date: Thu, 21 Jun 2018 16:43:17 +0300
+Message-ID: <20180621134319.32133-2-heikki.krogerus@linux.intel.com>
+References: <20180621134319.32133-1-heikki.krogerus@linux.intel.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180621134319.32133-1-heikki.krogerus@linux.intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Menzel <pmenzel+linux-usb@molgen.mpg.de>, Mario Limonciello <mario.limonciello@dell.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Sometimes memory resource may be overlapping with
+SystemMemory Operation Region by design, for example if the
+memory region is used as a mailbox for communication with a
+firmware in the system. One occasion of such mailboxes is
+USB Type-C Connector System Software Interface (UCSI).
 
-Please pull from the tag
+With regions like that, it is important that the driver is
+able to map the memory with the requirements it has. For
+example, the driver should be allowed to map the memory as
+non-cached memory. However, if the operation region has been
+accessed before the driver has mapped the memory, the memory
+has been marked as write-back by the time the driver is
+loaded. That means the driver will fail to map the memory
+if it expects non-cached memory.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.18-rc2
+To work around the problem, introducing helper that the
+drivers can use to temporarily deactivate (unmap)
+SystemMemory Operation Regions that overlap with their
+IO memory.
 
-with top-most commit e50f182c9094f95ecfd52a7f33e7e7320e85eb49
+Fixes: 8243edf44152 ("usb: typec: ucsi: Add ACPI driver")
+Cc: stable@vger.kernel.org
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+---
+ drivers/acpi/osl.c   | 72 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h |  3 ++
+ 2 files changed, 75 insertions(+)
 
- Merge branches 'acpi-soc' and 'acpi-processor'
-
-on top of commit ce397d215ccd07b8ae3f71db689aedb85d56ab40
-
- Linux 4.18-rc1
-
-to receive ACPI fixes for 4.18-rc2.
-
-These fix a suspend/resume regression in the ACPI driver for Intel
-SoCs (LPSS), add a new system wakeup quirk to the ACPI EC driver and
-fix an inline stub of a function in the ACPI processor driver that
-diverged from the original.
-
-Specifics:
-
- - Fix a suspend/resume regression in the ACPI driver for Intel SoCs
-   (LPSS) to make it work on systems where some power management
-   quirks should only be applied for runtime PM and suspend-to-idle
-   and not for suspend-to-RAM (Rafael Wysocki).
-
- - Add a system wakeup quirk for Thinkpad X1 Carbon 6th to the ACPI
-   EC driver to avoid drainig battery too fast while suspended to
-   idle on those systems (Mika Westerberg).
-
- - Fix an inline stub of acpi_processor_ppc_has_changed() to match
-   the original function definition (Brian Norris).
-
-Thanks!
-
-
----------------
-
-Brian Norris (1):
-      ACPI / processor: Finish making acpi_processor_ppc_has_changed() void
-
-Mika Westerberg (1):
-      ACPI / EC: Use ec_no_wakeup on Thinkpad X1 Carbon 6th
-
-Rafael J. Wysocki (1):
-      ACPI / LPSS: Avoid PM quirks on suspend and resume from S3
-
----------------
-
- drivers/acpi/acpi_lpss.c | 18 +++++++++++-------
- drivers/acpi/ec.c        | 20 ++++++++++++++++++++
- include/acpi/processor.h |  3 +--
- 3 files changed, 32 insertions(+), 9 deletions(-)
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 7ca41bf023c9..8df9abfa947b 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -45,6 +45,8 @@
+ #include <linux/uaccess.h>
+ #include <linux/io-64-nonatomic-lo-hi.h>
+ 
++#include "acpica/accommon.h"
++#include "acpica/acnamesp.h"
+ #include "internal.h"
+ 
+ #define _COMPONENT		ACPI_OS_SERVICES
+@@ -1490,6 +1492,76 @@ int acpi_check_region(resource_size_t start, resource_size_t n,
+ }
+ EXPORT_SYMBOL(acpi_check_region);
+ 
++static acpi_status acpi_deactivate_mem_region(acpi_handle handle, u32 level,
++					      void *_res, void **return_value)
++{
++	struct acpi_mem_space_context **mem_ctx;
++	union acpi_operand_object *handler_obj;
++	union acpi_operand_object *region_obj2;
++	union acpi_operand_object *region_obj;
++	struct resource *res = _res;
++	acpi_status status;
++
++	region_obj = acpi_ns_get_attached_object(handle);
++	if (!region_obj)
++		return AE_OK;
++
++	handler_obj = region_obj->region.handler;
++	if (!handler_obj)
++		return AE_OK;
++
++	if (region_obj->region.space_id != ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		return AE_OK;
++
++	if (!(region_obj->region.flags & AOPOBJ_SETUP_COMPLETE))
++		return AE_OK;
++
++	region_obj2 = acpi_ns_get_secondary_object(region_obj);
++	if (!region_obj2)
++		return AE_OK;
++
++	mem_ctx = (void *)&region_obj2->extra.region_context;
++
++	if (!(mem_ctx[0]->address >= res->start &&
++	      mem_ctx[0]->address < res->end))
++		return AE_OK;
++
++	status = handler_obj->address_space.setup(region_obj,
++						  ACPI_REGION_DEACTIVATE,
++						  NULL, (void **)mem_ctx);
++	if (ACPI_SUCCESS(status))
++		region_obj->region.flags &= ~(AOPOBJ_SETUP_COMPLETE);
++
++	return status;
++}
++
++/**
++ * acpi_release_memory - Release any mappings done to a memory region
++ * @handle: Handle to namespace node
++ * @res: Memory resource
++ * @level: A level that terminates the search
++ *
++ * Walks through @handle and unmaps all SystemMemory Operation Regions that
++ * overlap with @res and that have already been activated (mapped).
++ *
++ * This is a helper that allows drivers to place special requirements on memory
++ * region that may overlap with operation regions, primarily allowing them to
++ * safely map the region as non-cached memory.
++ *
++ * The unmapped Operation Regions will be automatically remapped next time they
++ * are called, so the drivers do not need to do anything else.
++ */
++acpi_status acpi_release_memory(acpi_handle handle, struct resource *res,
++				u32 level)
++{
++	if (!(res->flags & IORESOURCE_MEM))
++		return AE_TYPE;
++
++	return acpi_walk_namespace(ACPI_TYPE_REGION, handle, level,
++				   acpi_deactivate_mem_region, NULL, res, NULL);
++}
++EXPORT_SYMBOL_GPL(acpi_release_memory);
++
+ /*
+  * Let drivers know whether the resource checks are effective
+  */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4b35a66383f9..e54f40974eb0 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -443,6 +443,9 @@ int acpi_check_resource_conflict(const struct resource *res);
+ int acpi_check_region(resource_size_t start, resource_size_t n,
+ 		      const char *name);
+ 
++acpi_status acpi_release_memory(acpi_handle handle, struct resource *res,
++				u32 level);
++
+ int acpi_resources_are_enforced(void);
+ 
+ #ifdef CONFIG_HIBERNATION
+-- 
+2.17.1
