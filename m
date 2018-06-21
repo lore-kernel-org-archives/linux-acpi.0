@@ -1,49 +1,110 @@
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Thu, 21 Jun 2018 10:23:32 +0100
-Message-ID: <20180621092331.p2pmaiu6563kp5u2@techsingularity.net>
-References: <20180614083640.dekqhsopoefnfhb4@techsingularity.net>
- <CAE4VaGCzB99es_TpAaYvtjX8fqzFA=7HX-ezqgO6FaEB5if4zg@mail.gmail.com>
- <20180615112522.3wujbq7bajof57qx@techsingularity.net>
- <CAE4VaGBtasbDBoZ-c5R-AY++Y1BXgjrE7DwN0zOt113xmV95xw@mail.gmail.com>
- <20180615135212.wq45co7ootvdeo2f@techsingularity.net>
- <CAE4VaGAdXNYXMUn4eQgMqQtLKfp6-YHMa1NUSpL-L078oX7C-w@mail.gmail.com>
- <CAE4VaGBeTpxd1phR4rVAjqOXuLgLWPtVMPoRSOcG3HXfWDF=8w@mail.gmail.com>
- <20180619151803.bu6pehdu6wbd6l5x@techsingularity.net>
- <CAE4VaGAPOfy0RtQehKoe+443C1GRrJXCveBFgcAZ1nChVavp1g@mail.gmail.com>
- <CAE4VaGBMeL82SJK53gtcWkor-9eXeLX6VP9juw=FW=BOyp+hMA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] ACPI LID: increment wakeup count only when notified.
+Date: Thu, 21 Jun 2018 15:11:00 +0200
+Message-ID: <1626382.ruNcc2KUiW@aspire.rjw.lan>
+References: <CAJZ5v0gXqyKQ5yTtqFYzv=KW2o+b4vGiUYiWWn+iT=zY-mU9xw@mail.gmail.com> <20180611175759.181681-1-ravisadineni@chromium.org> <CAOGSYL371YSqpqdzqHUC+UxvMtxTc0q=YFPRcT-SeSHO5Pepeg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAE4VaGBMeL82SJK53gtcWkor-9eXeLX6VP9juw=FW=BOyp+hMA@mail.gmail.com>
+In-Reply-To: <CAOGSYL371YSqpqdzqHUC+UxvMtxTc0q=YFPRcT-SeSHO5Pepeg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jirka Hladky <jhladky@redhat.com>
-Cc: Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "kkolakow@redhat.com" <kkolakow@redhat.com>
+To: Ravi Chandra Sadineni <ravisadineni@google.com>
+Cc: Ravi Chandra Sadineni <ravisadineni@chromium.org>, Len Brown <lenb@kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Todd Broch <tbroch@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Rajat Jain <rajatja@google.com>, Benson Leung <bleung@google.com>, Furquan Shaikh <furquan@chromium.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jun 20, 2018 at 07:25:19PM +0200, Jirka Hladky wrote:
-> Hi Mel and others,
+On Wednesday, June 20, 2018 5:45:50 PM CEST Ravi Chandra Sadineni wrote:
+> Hi Rafael,
 > 
-> I would like to let you know that I have tested following patch
+> Is this good to be merged ?
+
+Not for 4.18, so please give me some time here.
+
+> If you see any problem with the patch, can you
+> please let me know.
+
+I will.
+
+Thanks,
+Rafael
+
+
+> On Mon, Jun 11, 2018 at 10:57 AM, Ravi Chandra Sadineni <
+> ravisadineni@chromium.org> wrote:
 > 
-
-Understood. FWIW, there is a lot in flight at the moment but the first
-likely patch is removing rate limiting entirely and see what falls out.
-The rest of the experiment series deals with fast-scan-start, reset of
-preferred_nid on cross-node load balancing and dealing with THP false
-sharing but it's all preliminary and untested.
-
-Furthermore, matters have been complicated by the posting of "Fixes for
-sched/numa_balancing". My own testing indicates that this helped which
-means that I need to review this first and then rebase anything else on
-top of it.
-
-I would also suggest you test that series paying particular attention to
-whether it a) improves performance and b) how close it gets to the
-revert in terms of overall performance.
-
--- 
-Mel Gorman
-SUSE Labs
+> > Currently ACPI LID increments wakeup count irrespective of the wake source.
+> > This is because we call acpi_lid_initialize_state on every resume.
+> > Userland deamons using wakeup_count to identify the potential wake
+> > source for the last wake will be thrown off by this. Instead increment
+> > the wakeup count only when there is a FIXED_HARDWARE/NOTFIY_STATUS event.
+> >
+> > Signed-off-by: Ravi Chandra Sadineni <ravisadineni@chromium.org>
+> > ---
+> >  V2: Increment the wakeup count only when the lid is open.
+> >
+> >  drivers/acpi/button.c | 13 +++++++------
+> >  1 file changed, 7 insertions(+), 6 deletions(-)
+> >
+> > diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+> > index 2345a5ee2dbbc..d2fe03e4faf05 100644
+> > --- a/drivers/acpi/button.c
+> > +++ b/drivers/acpi/button.c
+> > @@ -235,9 +235,6 @@ static int acpi_lid_notify_state(struct acpi_device
+> > *device, int state)
+> >                 button->last_time = ktime_get();
+> >         }
+> >
+> > -       if (state)
+> > -               acpi_pm_wakeup_event(&device->dev);
+> > -
+> >         ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+> > device);
+> >         if (ret == NOTIFY_DONE)
+> >                 ret = blocking_notifier_call_chain(&acpi_lid_notifier,
+> > state,
+> > @@ -366,7 +363,8 @@ int acpi_lid_open(void)
+> >  }
+> >  EXPORT_SYMBOL(acpi_lid_open);
+> >
+> > -static int acpi_lid_update_state(struct acpi_device *device)
+> > +static int acpi_lid_update_state(struct acpi_device *device,
+> > +                                bool is_notification)
+> >  {
+> >         int state;
+> >
+> > @@ -374,6 +372,9 @@ static int acpi_lid_update_state(struct acpi_device
+> > *device)
+> >         if (state < 0)
+> >                 return state;
+> >
+> > +       if (state && is_notification)
+> > +               acpi_pm_wakeup_event(&device->dev);
+> > +
+> >         return acpi_lid_notify_state(device, state);
+> >  }
+> >
+> > @@ -384,7 +385,7 @@ static void acpi_lid_initialize_state(struct
+> > acpi_device *device)
+> >                 (void)acpi_lid_notify_state(device, 1);
+> >                 break;
+> >         case ACPI_BUTTON_LID_INIT_METHOD:
+> > -               (void)acpi_lid_update_state(device);
+> > +               (void)acpi_lid_update_state(device, false);
+> >                 break;
+> >         case ACPI_BUTTON_LID_INIT_IGNORE:
+> >         default:
+> > @@ -409,7 +410,7 @@ static void acpi_button_notify(struct acpi_device
+> > *device, u32 event)
+> >                         users = button->input->users;
+> >                         mutex_unlock(&button->input->mutex);
+> >                         if (users)
+> > -                               acpi_lid_update_state(device);
+> > +                               acpi_lid_update_state(device, true);
+> >                 } else {
+> >                         int keycode;
+> >
+> > --
+> > 2.18.0.rc1.242.g61856ae69a-goog
+> >
+> >
+> 
