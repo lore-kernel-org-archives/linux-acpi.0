@@ -1,10 +1,8 @@
 From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: [RFC V2 1/3] ACPI: add support for sentinel-delimited probe tables
-Date: Fri, 22 Jun 2018 15:46:30 -0400
-Message-ID: <1529696792-16903-2-git-send-email-agustinv@codeaurora.org>
-References: <1529696792-16903-1-git-send-email-agustinv@codeaurora.org>
+Subject: [RFC V3 1/3] ACPI: add support for sentinel-delimited probe tables
+Date: Fri, 22 Jun 2018 15:49:06 -0400
+Message-ID: <1529696948-16991-1-git-send-email-agustinv@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1529696792-16903-1-git-send-email-agustinv@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: timur@codeaurora.org, agustinv@codeaurora.org
