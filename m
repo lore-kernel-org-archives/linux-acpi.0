@@ -1,63 +1,108 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 2/3] usb: typec: ucsi: acpi: Workaround for cache mode issue
-Date: Thu, 21 Jun 2018 16:43:18 +0300
-Message-ID: <20180621134319.32133-3-heikki.krogerus@linux.intel.com>
-References: <20180621134319.32133-1-heikki.krogerus@linux.intel.com>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20180621134319.32133-1-heikki.krogerus@linux.intel.com>
-Sender: stable-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Paul Menzel <pmenzel+linux-usb@molgen.mpg.de>, Mario Limonciello <mario.limonciello@dell.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Fri, 22 Jun 2018 11:19:24 -0400
+Message-ID: <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+ <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
+ <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
+ <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
+ <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
+ <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
+ <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: James Morse <james.morse@arm.com>, Geoff Levand <geoff@infradead.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-This fixes an issue where the driver fails with an error:
+On Tue, 2018-06-19 at 11:21 +0100, James Morse wrote:
+> Hi Mark,
+> 
+> On 18/06/18 23:18, Mark Salter wrote:
+> > On Mon, 2018-06-18 at 11:04 -0700, Geoff Levand wrote:
+> > > Thanks for all the comments, but my lack of access to an m400 platform, and
+> > > my lack of knowledge about the m400 limits what I can comment on and what I
+> > > can do.  
+> > 
+> > I can take another look at this on an m400 here.
+> 
+> Thanks!
+> 
+> 
+> > I don't believe it is a
+> > memory access to physical space with nothing attached to it.
+> 
+> That is what the CPER records are describing though.
 
-	ioremap error for 0x3f799000-0x3f79a000, requested 0x2, got 0x0
+Yes.
 
-On some platforms the UCSI ACPI mailbox SystemMemory
-Operation Region may be setup before the driver has been
-loaded. That will lead into the driver failing to map the
-mailbox region, as it has been already marked as write-back
-memory. acpi_os_ioremap() for x86 uses ioremap_cache()
-unconditionally.
+> 
+> 
+> > I seem to recall
+> > an errata with xgene-1 where such accesses cause the cpu to halt. But I could
+> > be misremembering that. I have no trouble believing the firmware ras code was
+> > untested. It is probably some boilerplate code built in before ras was supported
+> > in kernel.
+> 
+> It would be interesting to know which GHES this error is being found in, and
+> whether the Error Status Block points anywhere (or at an empty block) when Linux
+> is started from UEFI.
+> 
+> If there is something in the Error Status Block out of UEFI, then this must be
+> something triggered by UEFI, or a bug that can be fixed by UEFI clearing out the
+> CPER records.
+> 
+> https://bugzilla.redhat.com/show_bug.cgi?id=1285107
+> suggests redhat can rebuild the UEFI firmware for this box.
+> 
+> 
+> If there is nothing in the Error Status Block when Linux is started, surely
+> Linux is doing something to cause this to happen. I'd like to find out what, as
+> its probably a software bug.
+> 
+> 
+> (The case where disabling HEST would be the right thing to do is if there is a
+> bogus GHES->GAS entry in GHES.0, the access to which causes GHES.1 to be
+> populated with 'Access to an address not mapped to any component', which we find
+> next. If this is the case it would be better to check GHES entries against the
+> UEFI memory map to check this is memory, and it was reserved.)
+> 
+> 
+> > But the problem occurs early enough in boot where there can't be
+> > that many things that would cause a problem on m400 and not mustang so I'll
+> > look again.
+> 
+> Playing spot the difference in the dmesg, I'd check for smoke coming out of:
+> > acpiphp: ACPI Hot Plug PCI Controller Driver version: 0.5
+> > xgene-gpio APMC0D14:00: X-Gene GPIO driver registered.
+> > pcie_pme: probe of 0000:00:00.0:pcie001 failed with error -22
 
-When the issue happens, the embedded controller has a
-pending query event for the UCSI notification right after
-boot-up which causes the operation region to be setup before
-UCSI driver has been loaded.
+I've eliminated these by building a kernel with minimalized config and hacks (ACPI
+requires PCI, so I added code to prevent the root complexe from being probed). I
+also eliminated all the xgene-specific devices from the config (network, sata,
+etc). Still hit the ghes panic.
 
-The fix is to notify acpi core that the driver is about to
-access memory region which potentially overlaps with an
-operation region right before mapping it.
-acpi_release_memory() will check if the memory has already
-been setup (mapped) by acpi core, and deactivate it (unmap)
-if it has. The driver is then able to map the memory with
-ioremap_nocache() and set the memtype to uncached for the
-region.
+I'm going to hack something to get to the ghes info earlier in boot and
+check the things you mention above wrt Error Status Block and GHES.0.
 
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Fixes: 8243edf44152 ("usb: typec: ucsi: Add ACPI driver")
-Cc: stable@vger.kernel.org
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/usb/typec/ucsi/ucsi_acpi.c | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/usb/typec/ucsi/ucsi_acpi.c b/drivers/usb/typec/ucsi/ucsi_acpi.c
-index 44eb4e1ea817..a18112a83fae 100644
---- a/drivers/usb/typec/ucsi/ucsi_acpi.c
-+++ b/drivers/usb/typec/ucsi/ucsi_acpi.c
-@@ -79,6 +79,11 @@ static int ucsi_acpi_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
-+	/* This will make sure we can use ioremap_nocache() */
-+	status = acpi_release_memory(ACPI_HANDLE(&pdev->dev), res, 1);
-+	if (ACPI_FAILURE(status))
-+		return -ENOMEM;
-+
- 	/*
- 	 * NOTE: The memory region for the data structures is used also in an
- 	 * operation region, which means ACPI has already reserved it. Therefore
--- 
-2.17.1
+> 
+> If the firmware description of the GIC is wrong in someway, disabling KVM may be
+> worth testing too.
+> 
+> 
+> Thanks,
+> 
+> James
