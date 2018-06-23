@@ -1,162 +1,79 @@
-From: Agustin Vega-Frias <agustinv@codeaurora.org>
-Subject: [RFC V3 2/3] arm_pmu: acpi: add support for CPU PMU variant detection
-Date: Fri, 22 Jun 2018 15:49:07 -0400
-Message-ID: <1529696948-16991-2-git-send-email-agustinv@codeaurora.org>
-References: <1529696948-16991-1-git-send-email-agustinv@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1529696948-16991-1-git-send-email-agustinv@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: timur@codeaurora.org, agustinv@codeaurora.org
+From: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ACPI / battery: safe unregistering of hooks
+Date: Sat, 23 Jun 2018 11:08:51 +0200
+Message-ID: <20180623090851.GA5525@Mindship-03>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
+List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
+ <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
+Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-DT allows CPU PMU variant detection via the PMU device compatible
-property. ACPI does not have an equivalent mechanism so we introduce
-a probe table to allow this via a device nested inside the CPU device
-in the DSDT:
+As unregistering a hook takes it off the hook list, we should use a safe
+for_each loop when we potentially unregister a hook.
 
-Device (CPU0)
-{
-    Name (_HID, "ACPI0007" /* Processor Device */)
-    ...
-    Device (PMU0)
-    {
-        Name (_HID, "QCOM8150") /* Qualcomm Falkor PMU device */
-
-        /*
-         * The device might also contain _DSD properties to indicate other
-         * IMPLEMENTATION DEFINED PMU features.
-         */
-        Name (_DSD, Package ()
-        {
-            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-            Package ()
-            {
-                ...
-            }
-        })
-    }
-}
-
-With this in place we can declare the variant:
-
-    ACPI_DECLARE_PMU_VARIANT(qcom_falkor, "QCOM8150", falkor_pmu_init);
-
-The init function is called after the default PMU initialization and is
-passed a pointer to the arm_pmu structure and a pointer to the PMU device.
-The init function can then override arm_pmu callbacks and attributes and
-query more properties from the PMU device.
-
-Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
+Signed-off-by: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/perf/arm_pmu_acpi.c       | 27 +++++++++++++++++++++++++++
- include/asm-generic/vmlinux.lds.h |  1 +
- include/linux/acpi.h              | 11 +++++++++++
- include/linux/perf/arm_pmu.h      |  1 +
- 4 files changed, 40 insertions(+)
+ drivers/acpi/battery.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/perf/arm_pmu_acpi.c b/drivers/perf/arm_pmu_acpi.c
-index 0f19751..6b0ca71 100644
---- a/drivers/perf/arm_pmu_acpi.c
-+++ b/drivers/perf/arm_pmu_acpi.c
-@@ -220,6 +220,26 @@ static int arm_pmu_acpi_cpu_starting(unsigned int cpu)
- 	return 0;
- }
- 
-+/*
-+ * Check if the given child device of the CPU device matches a PMU variant
-+ * device declared with ACPI_DECLARE_PMU_VARIANT, if so, pass the arm_pmu
-+ * structure and the matching device for further initialization.
-+ */
-+static int arm_pmu_variant_init(struct device *dev, void *data)
-+{
-+	extern struct acpi_device_id ACPI_PROBE_TABLE(pmu);
-+	unsigned int cpu = *((unsigned int *)data);
-+	const struct acpi_device_id *id;
-+
-+	id = acpi_match_device(&ACPI_PROBE_TABLE(pmu), dev);
-+	if (id) {
-+		armpmu_acpi_init_fn fn = (armpmu_acpi_init_fn)id->driver_data;
-+
-+		return fn(per_cpu(probed_pmus, cpu), dev);
-+	}
-+	return 0;
-+}
-+
- int arm_pmu_acpi_probe(armpmu_init_fn init_fn)
- {
- 	int pmu_idx = 0;
-@@ -240,6 +260,7 @@ int arm_pmu_acpi_probe(armpmu_init_fn init_fn)
- 	 */
- 	for_each_possible_cpu(cpu) {
- 		struct arm_pmu *pmu = per_cpu(probed_pmus, cpu);
-+		struct device *dev = get_cpu_device(cpu);
- 		char *base_name;
- 
- 		if (!pmu || pmu->name)
-@@ -254,6 +275,10 @@ int arm_pmu_acpi_probe(armpmu_init_fn init_fn)
- 			return ret;
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index b0113a58..d79ad844 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -717,10 +717,11 @@ void battery_hook_register(struct acpi_battery_hook *hook)
+ 			 */
+ 			pr_err("extension failed to load: %s", hook->name);
+ 			__battery_hook_unregister(hook, 0);
+-			return;
++			goto end;
  		}
- 
-+		ret = device_for_each_child(dev, &cpu, arm_pmu_variant_init);
-+		if (ret == -ENODEV)
-+			pr_warn("Failed PMU re-init, fallback to plain PMUv3");
-+
- 		base_name = pmu->name;
- 		pmu->name = kasprintf(GFP_KERNEL, "%s_%d", base_name, pmu_idx++);
- 		if (!pmu->name) {
-@@ -290,3 +315,5 @@ static int arm_pmu_acpi_init(void)
- 	return ret;
+ 	}
+ 	pr_info("new extension: %s\n", hook->name);
++end:
+ 	mutex_unlock(&hook_mutex);
  }
- subsys_initcall(arm_pmu_acpi_init)
-+
-+ACPI_DECLARE_PMU_SENTINEL();
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 5894049..f1be62a 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -600,6 +600,7 @@
- 	IRQCHIP_OF_MATCH_TABLE()					\
- 	ACPI_PROBE_TABLE(irqchip)					\
- 	ACPI_PROBE_TABLE(timer)						\
-+	ACPI_PROBE_TABLE(pmu)						\
- 	EARLYCON_TABLE()
+ EXPORT_SYMBOL_GPL(battery_hook_register);
+@@ -732,7 +733,7 @@ EXPORT_SYMBOL_GPL(battery_hook_register);
+ */
+ static void battery_hook_add_battery(struct acpi_battery *battery)
+ {
+-	struct acpi_battery_hook *hook_node;
++	struct acpi_battery_hook *hook_node, *tmp;
  
- #define INIT_TEXT							\
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 15bfb15..9c410cf 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1153,6 +1153,17 @@ struct acpi_probe_entry {
- 					  (&ACPI_PROBE_TABLE_END(t) -	\
- 					   &ACPI_PROBE_TABLE(t)));	\
- 	})
-+
-+#define ACPI_DECLARE_PMU_VARIANT(name, hid, init_fn)			\
-+	static const struct acpi_device_id __acpi_probe_##name		\
-+		__used __section(__pmu_acpi_probe_table)		\
-+		= { .id = hid, .driver_data = (kernel_ulong_t)init_fn }
-+
-+#define ACPI_DECLARE_PMU_SENTINEL()					\
-+	static const struct acpi_device_id __acpi_probe_sentinel	\
-+		__used __section(__pmu_acpi_probe_table_end)		\
-+		= { .id = "", .driver_data = 0 }
-+
- #else
- static inline int acpi_dev_get_property(struct acpi_device *adev,
- 					const char *name, acpi_object_type type,
-diff --git a/include/linux/perf/arm_pmu.h b/include/linux/perf/arm_pmu.h
-index 40036a5..ff43d65 100644
---- a/include/linux/perf/arm_pmu.h
-+++ b/include/linux/perf/arm_pmu.h
-@@ -123,6 +123,7 @@ int armpmu_map_event(struct perf_event *event,
- 		     u32 raw_event_mask);
- 
- typedef int (*armpmu_init_fn)(struct arm_pmu *);
-+typedef int (*armpmu_acpi_init_fn)(struct arm_pmu *, struct device *);
- 
- struct pmu_probe_info {
- 	unsigned int cpuid;
+ 	mutex_lock(&hook_mutex);
+ 	INIT_LIST_HEAD(&battery->list);
+@@ -744,15 +745,15 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
+ 	 * when a battery gets hotplugged or initialized
+ 	 * during the battery module initialization.
+ 	 */
+-	list_for_each_entry(hook_node, &battery_hook_list, list) {
++	list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
+ 		if (hook_node->add_battery(battery->bat)) {
+ 			/*
+ 			 * The notification of the extensions has failed, to
+ 			 * prevent further errors we will unload the extension.
+ 			 */
+-			__battery_hook_unregister(hook_node, 0);
+ 			pr_err("error in extension, unloading: %s",
+ 					hook_node->name);
++			__battery_hook_unregister(hook_node, 0);
+ 		}
+ 	}
+ 	mutex_unlock(&hook_mutex);
 -- 
-Qualcomm Datacenter Technologies, Inc. on behalf of the Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the Code Aurora Forum, a Linux Foundation Collaborative Project.
+2.18.0
+
+
+------------------------------------------------------------------------------
+Check out the vibrant tech community on one of the world's most
+engaging tech sites, Slashdot.org! http://sdm.link/slashdot
