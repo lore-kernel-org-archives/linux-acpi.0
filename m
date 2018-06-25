@@ -1,36 +1,294 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH v5 0/2] support exception state migration and set VSESR_EL2 by user space
-Date: Tue, 26 Jun 2018 04:58:27 +0800
-Message-ID: <1529960309-2513-1-git-send-email-gengdongjiu@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] arm64: numa: rework ACPI NUMA initialization
+Date: Mon, 25 Jun 2018 14:05:52 +0100
+Message-ID: <20180625130552.5636-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, james.morse@arm.com, gengdongjiu@huawei.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>, Hanjun Guo <guohanjun@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This series patch is separated from https://www.spinics.net/lists/kvm/msg168917.html
+Current ACPI ARM64 NUMA initialization code in
 
-1. Detect whether KVM can set set guest SError syndrome
-2. Support to Set VSESR_EL2 and inject SError by user space.
-3. Support live migration to keep SError pending state and VSESR_EL2 value
+acpi_numa_gicc_affinity_init()
 
-The user space patch is here: https://www.mail-archive.com/qemu-devel@nongnu.org/msg539534.html
+carries out NUMA nodes creation and cpu<->node mappings at the same time
+in the arch backend so that a single SRAT walk is needed to parse both
+pieces of information.  This implies that the cpu<->node mappings must
+be stashed in an array (sized NR_CPUS) so that SMP code can later use
+the stashed values to avoid another SRAT table walk to set-up the early
+cpu<->node mappings.
 
-Dongjiu Geng (2):
-  arm/arm64: KVM: Add KVM_GET/SET_VCPU_EVENTS
-  arm64: KVM: export the capability to set guest SError syndrome
+If the kernel is configured with a NR_CPUS value less than the actual
+processor entries in the SRAT (and MADT), the logic in
+acpi_numa_gicc_affinity_init() is broken in that the cpu<->node mapping
+is only carried out (and stashed for future use) only for a number of
+SRAT entries up to NR_CPUS, which do not necessarily correspond to the
+possible cpus detected at SMP initialization in
+acpi_map_gic_cpu_interface() (ie MADT and SRAT processor entries order
+is not enforced), which leaves the kernel with broken cpu<->node
+mappings.
 
- Documentation/virtual/kvm/api.txt    | 44 ++++++++++++++++++++++++++++++++----
- arch/arm64/include/asm/kvm_emulate.h |  5 ++++
- arch/arm64/include/asm/kvm_host.h    |  7 ++++++
- arch/arm64/include/uapi/asm/kvm.h    | 13 +++++++++++
- arch/arm64/kvm/guest.c               | 43 +++++++++++++++++++++++++++++++++++
- arch/arm64/kvm/inject_fault.c        |  6 ++---
- arch/arm64/kvm/reset.c               |  4 ++++
- include/uapi/linux/kvm.h             |  1 +
- virt/kvm/arm/arm.c                   | 21 +++++++++++++++++
- 9 files changed, 137 insertions(+), 7 deletions(-)
+Furthermore, given the current ACPI NUMA code parsing logic in
+acpi_numa_gicc_affinity_init(), PXM domains for CPUs that are not parsed
+because they exceed NR_CPUS entries are not mapped to NUMA nodes (ie the
+PXM corresponding node is not created in the kernel) leaving the system
+with a broken NUMA topology.
 
+Rework the ACPI ARM64 NUMA initialization process so that the NUMA
+nodes creation and cpu<->node mappings are decoupled. cpu<->node
+mappings are moved to SMP initialization code (where they are needed),
+at the cost of an extra SRAT walk so that ACPI NUMA mappings can be
+batched before being applied, fixing current parsing pitfalls.
+
+Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and
+SLIT")
+Link: http://lkml.kernel.org/r/1527768879-88161-2-git-send-email-xiexiuqi@huawei.com
+Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+Cc: Jeremy Linton <jeremy.linton@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
+---
+ arch/arm64/include/asm/acpi.h |  6 ++-
+ arch/arm64/kernel/acpi_numa.c | 88 ++++++++++++++++++++++++++-----------------
+ arch/arm64/kernel/smp.c       | 39 +++++++++++++------
+ 3 files changed, 85 insertions(+), 48 deletions(-)
+
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 0db62a4cbce2..d1c290f29b6f 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -134,10 +134,12 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+ 
+ #ifdef CONFIG_ACPI_NUMA
+ int arm64_acpi_numa_init(void);
+-int acpi_numa_get_nid(unsigned int cpu, u64 hwid);
++int acpi_numa_get_nid(unsigned int cpu);
++void acpi_map_cpus_to_nodes(void);
+ #else
+ static inline int arm64_acpi_numa_init(void) { return -ENOSYS; }
+-static inline int acpi_numa_get_nid(unsigned int cpu, u64 hwid) { return NUMA_NO_NODE; }
++static inline int acpi_numa_get_nid(unsigned int cpu) { return NUMA_NO_NODE; }
++static inline void acpi_map_cpus_to_nodes(void) { }
+ #endif /* CONFIG_ACPI_NUMA */
+ 
+ #define ACPI_TABLE_UPGRADE_MAX_PHYS MEMBLOCK_ALLOC_ACCESSIBLE
+diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+index d190a7b231bf..4f4f1815e047 100644
+--- a/arch/arm64/kernel/acpi_numa.c
++++ b/arch/arm64/kernel/acpi_numa.c
+@@ -26,36 +26,73 @@
+ #include <linux/module.h>
+ #include <linux/topology.h>
+ 
+-#include <acpi/processor.h>
+ #include <asm/numa.h>
+ 
+-static int cpus_in_srat;
++static int acpi_early_node_map[NR_CPUS] __initdata = { NUMA_NO_NODE };
+ 
+-struct __node_cpu_hwid {
+-	u32 node_id;    /* logical node containing this CPU */
+-	u64 cpu_hwid;   /* MPIDR for this CPU */
+-};
++int __init acpi_numa_get_nid(unsigned int cpu)
++{
++	return acpi_early_node_map[cpu];
++}
++
++static inline int get_cpu_for_acpi_id(u32 uid)
++{
++	int cpu;
++
++	for (cpu = 0; cpu < nr_cpu_ids; cpu++)
++		if (uid == get_acpi_id_for_cpu(cpu))
++			return cpu;
+ 
+-static struct __node_cpu_hwid early_node_cpu_hwid[NR_CPUS] = {
+-[0 ... NR_CPUS - 1] = {NUMA_NO_NODE, PHYS_CPUID_INVALID} };
++	return -EINVAL;
++}
+ 
+-int acpi_numa_get_nid(unsigned int cpu, u64 hwid)
++static int __init acpi_parse_gicc_pxm(struct acpi_subtable_header *header,
++				      const unsigned long end)
+ {
+-	int i;
++	struct acpi_srat_gicc_affinity *pa;
++	int cpu, pxm, node;
+ 
+-	for (i = 0; i < cpus_in_srat; i++) {
+-		if (hwid == early_node_cpu_hwid[i].cpu_hwid)
+-			return early_node_cpu_hwid[i].node_id;
+-	}
++	if (srat_disabled())
++		return -EINVAL;
++
++	pa = (struct acpi_srat_gicc_affinity *)header;
++	if (!pa)
++		return -EINVAL;
++
++	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
++		return 0;
+ 
+-	return NUMA_NO_NODE;
++	pxm = pa->proximity_domain;
++	node = pxm_to_node(pxm);
++
++	/*
++	 * If we can't map the UID to a logical cpu this
++	 * means that the UID is not part of possible cpus
++	 * so we do not need a NUMA mapping for it, skip
++	 * the SRAT entry and keep parsing.
++	 */
++	cpu = get_cpu_for_acpi_id(pa->acpi_processor_uid);
++	if (cpu < 0)
++		return 0;
++
++	acpi_early_node_map[cpu] = node;
++	pr_info("SRAT: PXM %d -> MPIDR 0x%llx -> Node %d\n", pxm,
++		cpu_logical_map(cpu), node);
++
++	return 0;
++}
++
++void __init acpi_map_cpus_to_nodes(void)
++{
++	acpi_table_parse_entries(ACPI_SIG_SRAT, sizeof(struct acpi_table_srat),
++					    ACPI_SRAT_TYPE_GICC_AFFINITY,
++					    acpi_parse_gicc_pxm, 0);
+ }
+ 
+ /* Callback for Proximity Domain -> ACPI processor UID mapping */
+ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+ {
+ 	int pxm, node;
+-	phys_cpuid_t mpidr;
+ 
+ 	if (srat_disabled())
+ 		return;
+@@ -70,12 +107,6 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+ 	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
+ 		return;
+ 
+-	if (cpus_in_srat >= NR_CPUS) {
+-		pr_warn_once("SRAT: cpu_to_node_map[%d] is too small, may not be able to use all cpus\n",
+-			     NR_CPUS);
+-		return;
+-	}
+-
+ 	pxm = pa->proximity_domain;
+ 	node = acpi_map_pxm_to_node(pxm);
+ 
+@@ -85,20 +116,7 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+ 		return;
+ 	}
+ 
+-	mpidr = acpi_map_madt_entry(pa->acpi_processor_uid);
+-	if (mpidr == PHYS_CPUID_INVALID) {
+-		pr_err("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
+-			pxm, pa->acpi_processor_uid);
+-		bad_srat();
+-		return;
+-	}
+-
+-	early_node_cpu_hwid[cpus_in_srat].node_id = node;
+-	early_node_cpu_hwid[cpus_in_srat].cpu_hwid =  mpidr;
+ 	node_set(node, numa_nodes_parsed);
+-	cpus_in_srat++;
+-	pr_info("SRAT: PXM %d -> MPIDR 0x%Lx -> Node %d\n",
+-		pxm, mpidr, node);
+ }
+ 
+ int __init arm64_acpi_numa_init(void)
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 2faa9863d2e5..64e3490749e5 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -518,7 +518,6 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+ 		}
+ 		bootcpu_valid = true;
+ 		cpu_madt_gicc[0] = *processor;
+-		early_map_cpu_to_node(0, acpi_numa_get_nid(0, hwid));
+ 		return;
+ 	}
+ 
+@@ -541,8 +540,6 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+ 	 */
+ 	acpi_set_mailbox_entry(cpu_count, processor);
+ 
+-	early_map_cpu_to_node(cpu_count, acpi_numa_get_nid(cpu_count, hwid));
+-
+ 	cpu_count++;
+ }
+ 
+@@ -562,8 +559,34 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+ 
+ 	return 0;
+ }
++
++static void __init acpi_parse_and_init_cpus(void)
++{
++	int i;
++
++	/*
++	 * do a walk of MADT to determine how many CPUs
++	 * we have including disabled CPUs, and get information
++	 * we need for SMP init.
++	 */
++	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
++				      acpi_parse_gic_cpu_interface, 0);
++
++	/*
++	 * In ACPI, SMP and CPU NUMA information is provided in separate
++	 * static tables, namely the MADT and the SRAT.
++	 *
++	 * Thus, it is simpler to first create the cpu logical map through
++	 * an MADT walk and then map the logical cpus to their node ids
++	 * as separate steps.
++	 */
++	acpi_map_cpus_to_nodes();
++
++	for (i = 0; i < nr_cpu_ids; i++)
++		early_map_cpu_to_node(i, acpi_numa_get_nid(i));
++}
+ #else
+-#define acpi_table_parse_madt(...)	do { } while (0)
++#define acpi_parse_and_init_cpus(...)	do { } while (0)
+ #endif
+ 
+ /*
+@@ -636,13 +659,7 @@ void __init smp_init_cpus(void)
+ 	if (acpi_disabled)
+ 		of_parse_and_init_cpus();
+ 	else
+-		/*
+-		 * do a walk of MADT to determine how many CPUs
+-		 * we have including disabled CPUs, and get information
+-		 * we need for SMP init
+-		 */
+-		acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+-				      acpi_parse_gic_cpu_interface, 0);
++		acpi_parse_and_init_cpus();
+ 
+ 	if (cpu_count > nr_cpu_ids)
+ 		pr_warn("Number of cores (%d) exceeds configured maximum of %u - clipping\n",
 -- 
-2.7.4
+2.15.0
