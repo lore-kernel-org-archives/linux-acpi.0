@@ -1,79 +1,54 @@
-From: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI / battery: safe unregistering of hooks
-Date: Sat, 23 Jun 2018 11:08:51 +0200
-Message-ID: <20180623090851.GA5525@Mindship-03>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: [PATCH] xen/ACPI: don't upload Px/Cx data for disabled
+ processors
+Date: Mon, 25 Jun 2018 04:17:35 -0600
+Message-ID: <5B30C13F02000078001CD68D@prv1-mh.provo.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
 Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: Len Brown <lenb@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Juergen Gross <jgross@suse.com>
+Cc: xen-devel <xen-devel@lists.xenproject.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-As unregistering a hook takes it off the hook list, we should use a safe
-for_each loop when we potentially unregister a hook.
-
-Signed-off-by: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/acpi/battery.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b0113a58..d79ad844 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -717,10 +717,11 @@ void battery_hook_register(struct acpi_battery_hook *hook)
- 			 */
- 			pr_err("extension failed to load: %s", hook->name);
- 			__battery_hook_unregister(hook, 0);
--			return;
-+			goto end;
- 		}
- 	}
- 	pr_info("new extension: %s\n", hook->name);
-+end:
- 	mutex_unlock(&hook_mutex);
- }
- EXPORT_SYMBOL_GPL(battery_hook_register);
-@@ -732,7 +733,7 @@ EXPORT_SYMBOL_GPL(battery_hook_register);
- */
- static void battery_hook_add_battery(struct acpi_battery *battery)
- {
--	struct acpi_battery_hook *hook_node;
-+	struct acpi_battery_hook *hook_node, *tmp;
- 
- 	mutex_lock(&hook_mutex);
- 	INIT_LIST_HEAD(&battery->list);
-@@ -744,15 +745,15 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
- 	 * when a battery gets hotplugged or initialized
- 	 * during the battery module initialization.
- 	 */
--	list_for_each_entry(hook_node, &battery_hook_list, list) {
-+	list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
- 		if (hook_node->add_battery(battery->bat)) {
- 			/*
- 			 * The notification of the extensions has failed, to
- 			 * prevent further errors we will unload the extension.
- 			 */
--			__battery_hook_unregister(hook_node, 0);
- 			pr_err("error in extension, unloading: %s",
- 					hook_node->name);
-+			__battery_hook_unregister(hook_node, 0);
- 		}
- 	}
- 	mutex_unlock(&hook_mutex);
--- 
-2.18.0
-
-
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+VGhpcyBpcyB1bm5lY2Vzc2FyeSBhbmQgdHJpZ2dlcnMgYSB3YXJuaW5nIGluIHRoZSBoeXBlcnZp
+c29yLgoKT2Z0ZW4gc3lzdGVtcyBoYXZlIG1vcmUgcHJvY2Vzc29yIGVudHJpZXMgaW4gdGhlaXIg
+QUNQSSB0YWJsZXMgdGhhbiBhcmUKYWN0dWFsbHkgaW5zdGFsbGVkL2FjdGl2ZS4gVGhlIEFDUElf
+U1RBX0RFVklDRV9QUkVTRU5UIGJpdCBjYW5ub3QgYmUKcmVsaWFibHkgdXNlZCwgYnV0IHRoZSBB
+Q1BJX01BRFRfRU5BQkxFRCBiaXQgY2FuLiBJbiBvcmRlciB0byBub3QKaW50cm9kdWNlIG5ldyBm
+dW5jdGlvbnMgaW4gdGhlIG1haW4gQUNQSSBwcm9jZXNzb3IgZHJpdmVyIGNvZGUsIHNpbXBseQp1
+c2UgYWNwaV9nZXRfcGh5c19pZCgpLCB3aGljaCBkb2VzIG1vcmUgdGhhbiB3ZSBuZWVkLCBidXQg
+d2hpY2ggY2hlY2tzCnRoZSBNQURUIGVuYWJsZWQgYml0IGluIHRoZSBwcm9jZXNzLiBBbnkgQ1BV
+IGZvciB3aGljaCB3ZSBjYW4ndApkZXRlcm1pbmUgdGhlIEFQSUMgSUQgaXMgdW5saWtlbHkgdG8g
+d29yayBwcm9wZXJseSBhbnl3YXksIHNvIHRoZSBleHRyYQpjaGVja3MgZG9uZSBieSBhY3BpX2dl
+dF9waHlzX2lkKCkgc2hvdWxkIGRvIG5vIGhhcm0uCgpTaWduZWQtb2ZmLWJ5OiBKYW4gQmV1bGlj
+aCA8amJldWxpY2hAc3VzZS5jb20+Ci0tLQogZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMg
+ICAgfCAgICAxICsKIGRyaXZlcnMveGVuL3hlbi1hY3BpLXByb2Nlc3Nvci5jIHwgICAgNiArKysr
+KysKIDIgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspCgotLS0gNC4xOC1yYzIvZHJpdmVy
+cy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKKysrIDQuMTgtcmMyLXhlbi1BQ1BJLXByb2Nlc3Nvci1z
+a2lwLWRpc2FibGVkL2RyaXZlcnMvYWNwaS9wcm9jZXNzb3JfY29yZS5jCkBAIC0yMDUsNiArMjA1
+LDcgQEAgcGh5c19jcHVpZF90IGFjcGlfZ2V0X3BoeXNfaWQoYWNwaV9oYW5kbAogCiAJcmV0dXJu
+IHBoeXNfaWQ7CiB9CitFWFBPUlRfU1lNQk9MX0dQTChhY3BpX2dldF9waHlzX2lkKTsKIAogaW50
+IGFjcGlfbWFwX2NwdWlkKHBoeXNfY3B1aWRfdCBwaHlzX2lkLCB1MzIgYWNwaV9pZCkKIHsKLS0t
+IDQuMTgtcmMyL2RyaXZlcnMveGVuL3hlbi1hY3BpLXByb2Nlc3Nvci5jCisrKyA0LjE4LXJjMi14
+ZW4tQUNQSS1wcm9jZXNzb3Itc2tpcC1kaXNhYmxlZC9kcml2ZXJzL3hlbi94ZW4tYWNwaS1wcm9j
+ZXNzb3IuYwpAQCAtMzYyLDYgKzM2MiwxMiBAQCByZWFkX2FjcGlfaWQoYWNwaV9oYW5kbGUgaGFu
+ZGxlLCB1MzIgbHZsCiAJZGVmYXVsdDoKIAkJcmV0dXJuIEFFX09LOwogCX0KKwlpZiAoaW52YWxp
+ZF9waHlzX2NwdWlkKGFjcGlfZ2V0X3BoeXNfaWQoaGFuZGxlLAorCQkJCQkJYWNwaV90eXBlID09
+IEFDUElfVFlQRV9ERVZJQ0UsCisJCQkJCQlhY3BpX2lkKSkpIHsKKwkJcHJfZGVidWcoIkNQVSB3
+aXRoIEFDUEkgSUQgJXUgaXMgdW5hdmFpbGFibGVcbiIsIGFjcGlfaWQpOworCQlyZXR1cm4gQUVf
+T0s7CisJfQogCS8qIFRoZXJlIGFyZSBtb3JlIEFDUEkgUHJvY2Vzc29yIG9iamVjdHMgdGhhbiBp
+biB4MkFQSUMgb3IgTUFEVC4KIAkgKiBUaGlzIGNhbiBoYXBwZW4gd2l0aCBpbmNvcnJlY3QgQUNQ
+SSBTU0RUIGRlY2xlcmF0aW9ucy4gKi8KIAlpZiAoYWNwaV9pZCA+PSBucl9hY3BpX2JpdHMpIHsK
+CgoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4t
+ZGV2ZWwgbWFpbGluZyBsaXN0Clhlbi1kZXZlbEBsaXN0cy54ZW5wcm9qZWN0Lm9yZwpodHRwczov
+L2xpc3RzLnhlbnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8veGVuLWRldmVs
