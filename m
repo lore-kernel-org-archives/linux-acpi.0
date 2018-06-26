@@ -1,22 +1,11 @@
 From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Tue, 26 Jun 2018 15:51:32 +0100
-Message-ID: <950b3034-08a8-38b9-b8f9-514d3e2519fa@arm.com>
-References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
- <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
- <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
- <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
- <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
- <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
- <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
- <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
- <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
+Subject: [PATCH v5 00/20] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Tue, 26 Jun 2018 18:00:56 +0100
+Message-ID: <20180626170116.25825-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
-Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -26,58 +15,135 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Salter <msalter1887@gmail.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, James Morse <james.morse@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mark,
+The aim of this series is to wire arm64's SDEI into APEI.
 
-Thanks for shed-ing some light on what is going on here!
+On arm64 we have three APEI notifications that are NMI-like, and
+in the unlikely event that all three are supported by a platform,
+they can interrupt each other.
+The GHES driver shouldn't have to deal with this, so this series aims
+to make it re-entrant.
 
-On 25/06/18 16:34, Mark Salter wrote:
-> On Fri, 2018-06-22 at 11:19 -0400, Mark Salter wrote:
->> I'm going to hack something to get to the ghes info earlier in boot and
->> check the things you mention above wrt Error Status Block and GHES.0.
-> 
-> So I had to end up instrumenting the EFI stub to see where the error came
-> from. At the start of the stub, there is no GHES.2 error. The error first
-> shows up after the stub's call to ExitBootServices returns.
+To do that, we refactor the estatus queue to allow multiple notifications
+to use it, then convert NOTIFY_SEA to always be described as NMI-like,
+and to use the estatus queue.
 
-What's the notification type of GHES.2? I'm guessing POLLed or some kind of IRQ.
+>From here we push the locking and fixmap choices out to the notification
+functions, and remove the use of per-ghes estatus and flags. This removes
+the in_nmi() 'timebomb' in ghes_copy_tofrom_phys().
 
-These systems don't have EL3, so the CPU must continue running while something
-external generates the CPER records. The records being visible is the last point
-the faulty-access could have been made, with the window of time depending on how
-fast this external-thing receives and processes the error.
+Things get sticky when an NMI notification needs to know how big the
+CPER records might be, before reading it. This series splits
+ghes_estatus_read() to let us peek at the buffer. A side effect of this
+is the 20byte header will get read twice. (how does it work today? it
+reads the records into a per-ghes worst-case sized buffer, allocates
+the correct size and copies the records. in_nmi() use of this per-ghes
+buffer needs eliminating).
+
+One alternative was to trust firmware's 'max raw data length' and use
+that to allocate 'enough' memory. We don't use this value today, so its
+probably wrong on some sytem somewhere.
+
+Since v4 patches 5,8-15 are new, otherwise changes are noted in the patch.
 
 
-> So it looks
-> like the firmware itself is causing the error. There's still a chance that
-> the stub is doing something wrong with the memory map passed to the
-> firmware, so I'll try to eliminate that as well.
+The earlier boiler-plate:
 
-adding delay loops will help prove the EFIStub is innocent.
+What's SDEI? Its ARM's "Software Delegated Exception Interface" [0]. It's
+used by firmware to tell the OS about firmware-first RAS events.
 
-Are there any optional drivers being loaded by UEFI? (can you remove any USB
-mass storage drives for instance).
+These Software exceptions can interrupt anything, so I describe them as
+NMI-like. They aren't the only NMI-like way to notify the OS about
+firmware-first RAS events, the ACPI spec also defines 'NOTFIY_SEA' and
+'NOTIFY_SEI'.
 
-Are redhat able to rebuild UEFI on these systems? (Can it be fixed?)
+(Acronyms: SEA, Synchronous External Abort. The CPU requested some memory,
+but the owner of that memory said no. These are always synchronous with the
+instruction that caused them. SEI, System-Error Interrupt, commonly called
+SError. This is an asynchronous external abort, the memory-owner didn't say no
+at the right point. Collectively these things are called external-aborts
+How is firmware involved? It traps these and re-injects them into the kernel
+once its written the CPER records).
 
-https://bugzilla.redhat.com/show_bug.cgi?id=1285107 is about the m400
-description of the GIC, comments 15 and 16 show a UEFI patch to something other
-than the upstream platforms tree[0], and new firmware being tested.
-(although this may be wishful thinking)
+APEI's GHES code only expects one source of NMI. If a platform implements
+more than one of these mechanisms, APEI needs to handle the interaction.
+'SEA' and 'SEI' can interact as 'SEI' is asynchronous. SDEI can interact
+with itself: its exceptions can be 'normal' or 'critical', and firmware
+could use both types for RAS. (errors using normal, 'panic-now' using
+critical).
 
-It looks like quirking this based on the DMI platform name and UEFI version will
-be what we need. We could discard anything in the error status block areas at
-ghes_probe() time based on this quirk, but we may have missed other problems
-during boot, giving a false sense of security.
+
+ghes.c became clearer to me when I worked out that it has three sets of
+functions with 'estatus' in the name. One is a pool of memory that can be
+allocated-from atomically. This is grown/shrunk when new NMI users are
+allocated.
+The second is the estatus-cache, which holds recent notifications so it
+can suppress notifications we've already handled.
+The last it the estatus-queue, which holds data from NMI-like notifications
+(in pool memory) to be processed from irq_work.
+
+
+Testing?
+Tested with the SDEI FVP based software model and a mocked up NOTFIY_SEA using
+KVM. I've added a case where 'corrected errors' are discovered at probe time
+to exercise ghes_probe() during boot. I've only build tested this on x86.
+
+This series based on v4.18-rc2 can be retrieved from:
+git://linux-arm.org/linux-jm.git -b apei_sdei/v5
 
 
 Thanks,
 
 James
 
+[0] http://infocenter.arm.com/help/topic/com.arm.doc.den0054a/ARM_DEN0054A_Software_Delegated_Exception_Interface.pdf
 
-[0] Might be wrong, but this is where I look:
-https://github.com/tianocore/edk2-platforms.git
+James Morse (20):
+  ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+  ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+  ACPI / APEI: don't wait to serialise with oops messages when
+    panic()ing
+  ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+  ACPI / APEI: Make estatus queue a Kconfig symbol
+  KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+  arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+  ACPI / APEI: Move locking to the notification helper
+  ACPI / APEI: Let the notification helper specify the fixmap slot
+  ACPI / APEI: preparatory split of ghes->estatus
+  ACPI / APEI: Remove silent flag from ghes_read_estatus()
+  ACPI / APEI: Don't store CPER records physical address in struct ghes
+  ACPI / APEI: Don't update struct ghes' flags in read/clear estatus
+  ACPI / APEI: Split ghes_read_estatus() to read CPER length
+  ACPI / APEI: Only use queued estatus entry during _in_nmi_notify_one()
+  ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+  firmware: arm_sdei: Add ACPI GHES registration helper
+  ACPI / APEI: Add support for the SDEI GHES Notification type
+  mm/memory-failure: increase queued recovery work's priority
+  arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+
+ arch/arm/include/asm/kvm_ras.h       |  14 +
+ arch/arm/include/asm/system_misc.h   |   5 -
+ arch/arm64/include/asm/acpi.h        |   4 +
+ arch/arm64/include/asm/daifflags.h   |   1 +
+ arch/arm64/include/asm/fixmap.h      |   8 +-
+ arch/arm64/include/asm/kvm_ras.h     |  25 ++
+ arch/arm64/include/asm/system_misc.h |   2 -
+ arch/arm64/kernel/acpi.c             |  49 ++
+ arch/arm64/mm/fault.c                |  30 +-
+ drivers/acpi/apei/Kconfig            |  11 +
+ drivers/acpi/apei/ghes.c             | 649 ++++++++++++++++-----------
+ drivers/firmware/Kconfig             |   1 +
+ drivers/firmware/arm_sdei.c          |  66 +++
+ include/acpi/ghes.h                  |   2 -
+ include/linux/arm_sdei.h             |   9 +
+ mm/memory-failure.c                  |  11 +-
+ virt/kvm/arm/mmu.c                   |   4 +-
+ 17 files changed, 591 insertions(+), 300 deletions(-)
+ create mode 100644 arch/arm/include/asm/kvm_ras.h
+ create mode 100644 arch/arm64/include/asm/kvm_ras.h
+
+-- 
+2.17.1
