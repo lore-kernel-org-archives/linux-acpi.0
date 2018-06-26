@@ -1,54 +1,53 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
-Date: Tue, 26 Jun 2018 19:19:29 +0200
-Message-ID: <CAJZ5v0gt+4FiiBxEjdsEYLT+dQq=Q=mC7JtZPsYxps0_a1w-rg@mail.gmail.com>
-References: <35587465.8Nave9aG7d@aspire.rjw.lan> <20180626140115.GA146680@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0jc5oJzEX6QVDVjsQLmLxXHg3PSyepbh50dLXOtnHPgrA@mail.gmail.com> <20180626171406.GC146680@bhelgaas-glaptop.roam.corp.google.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: ACPI support in common clock framework
+Date: Tue, 26 Jun 2018 20:27:43 +0300
+Message-ID: <CAHp75VfJQOZ9K=SusdDpV5NGeSnCvLvcg9w7nqqiyudH7+QGgA@mail.gmail.com>
+References: <CABe79T6zQ_7Ycws5b=xaQ3edpVn1QPQyWd9p24eqLGpYbdtt0A@mail.gmail.com>
+ <CAHp75VdSW1po7fVv+A6ATTU7CkN-4nQ1haQSCq7b_+ZR9tNXCQ@mail.gmail.com>
+ <CAJZ5v0iJcTg=X_j-4nap9d_H4jq2rwOETT8Sukx6UL5UsDKjgA@mail.gmail.com>
+ <152908459103.16708.4012421602830600322@swboyd.mtv.corp.google.com>
+ <CAJZ5v0gA76NwwgRnuztY+dUOKXS+__-7Ghw7Azb-84h_eMRt4w@mail.gmail.com>
+ <152994466823.143105.11787470853817181844@swboyd.mtv.corp.google.com>
+ <914341e7-ca94-054d-6127-522b745006b4@arm.com> <152996983664.143105.1441423217241075965@swboyd.mtv.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180626171406.GC146680@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <152996983664.143105.1441423217241075965@swboyd.mtv.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, n0000b.n000b@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: Stephen Boyd <sboyd@kernel.org>
+Cc: Srinath Mannam <srinath.mannam@broadcom.com>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk <linux-clk@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 7:14 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Jun 26, 2018 at 04:22:00PM +0200, Rafael J. Wysocki wrote:
->> On Tue, Jun 26, 2018 at 4:01 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> > On Tue, Jun 26, 2018 at 12:06:01PM +0200, Rafael J. Wysocki wrote:
->> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
->> >> +     /*
->> >> +      * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
->> >> +      * confuses the platform firmware, so avoid doing that, unless the
->> >> +      * bridge has a driver that should take care of PM handling.
->> >> +      */
->> >> +     if (pci_is_bridge(dev) && !dev->driver)
->> >> +             return true;
+On Tue, Jun 26, 2018 at 2:37 AM, Stephen Boyd <sboyd@kernel.org> wrote:
+> Quoting Sudeep Holla (2018-06-25 10:15:45)
+>>
+>>
+>> On 25/06/18 17:37, Stephen Boyd wrote:
+>> > Quoting Rafael J. Wysocki (2018-06-16 08:50:18)
+>> >> On Fri, Jun 15, 2018 at 7:43 PM, Stephen Boyd <sboyd@kernel.org> wrote:
+>> >>>
+>> >>> Is this for clk_enable/disable? What about clk_set_rate() or
+>> >>> clk_set_phase()? Is ACPI's AML taking care of that?
+>> >>
+>> >> That's for clk_enable/disable AFAICS.
+>> >>
+>> >> AML doesn't manage device performance states at all.
 >> >
->> > It sounds like the question of whether leaving a bridge in D3 confuses
->> > the firmware has a platform-specific answer.
+>> > Alright. We may need to add a better way for device drivers to get
+>> > handles to clk pointers on ACPI firmware so they can change frequencies
+>> > or phase, etc.
 >>
->> Well, it may confuse the platform firmware in general.
->>
->> > How does the driver PM handling know how to do the right thing?
->>
->> For endpoints this is not an issue as they always have been expected
->> to be in D3 before passing control to the platform firmware on S3
->> entry, but we've never done that for bridges by default, except for
->> PCIe ports with PM enabled (in which case the driver decides whether
->> or not to enable it).
+>> Is there any specific usecase/device needing this in the kernel ? SPI
+>> slaves ?
 >
-> If there's any spec reference for the expected power states of devices
-> when entering S3, that would be useful here.  I can't tell if there's
-> any guidance for this or if it's just figured out experimentally.
+> Mark Brown has been pushing x86 folks to use clk framework for audio
+> drivers in ASoC. I haven't seen other uses besides that really.
 
-It is not direct, but Section 16.1.6 of ACPI 6.2 says this in step 4
-of the system suspend outline:
+All LPSS code based on fixed rate clocks created by some platform
+code. Since we have no board files for modern x86 platforms the clock
+providers and consumers often are located in the same / adjoining
+drivers.
 
-OSPM places all device drivers into their respective Dx state. If the
-device is enabled for wake,
-it enters the Dx state associated with the wake capability. If the
-device is not enabled to wake
-the system, it enters the D3 state.
+-- 
+With Best Regards,
+Andy Shevchenko
