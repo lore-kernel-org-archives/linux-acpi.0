@@ -1,104 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] ACPI LID: increment wakeup count only when notified.
-Date: Tue, 26 Jun 2018 11:55:15 +0200
-Message-ID: <2352530.ePvj7nqZEq@aspire.rjw.lan>
-References: <CAJZ5v0gXqyKQ5yTtqFYzv=KW2o+b4vGiUYiWWn+iT=zY-mU9xw@mail.gmail.com> <20180611175759.181681-1-ravisadineni@chromium.org>
+Subject: [PATCH] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
+Date: Tue, 26 Jun 2018 12:06:01 +0200
+Message-ID: <35587465.8Nave9aG7d@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180611175759.181681-1-ravisadineni@chromium.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ravi Chandra Sadineni <ravisadineni@chromium.org>
-Cc: lenb@kernel.org, ravisadineni@google.com, dmitry.torokhov@gmail.com, tbroch@google.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rajatja@google.com, bleung@google.com, furquan@chromium.org
+To: Linux PCI <linux-pci@vger.kernel.org>
+Cc: n0000b.n000b@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, June 11, 2018 7:57:59 PM CEST Ravi Chandra Sadineni wrote:
-> Currently ACPI LID increments wakeup count irrespective of the wake source.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-What exactly does the above mean?
+It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
+handling for devices with no callbacks) introduced a system suspend
+regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
+port) to stay in D3 over suspend-to-RAM, which is a side effect of
+setting power.direct_complete for the children of that bridge that
+have no PM callbacks.
 
-> This is because we call acpi_lid_initialize_state on every resume.
+On the majority of systems PCI bridges are not allowed to be
+runtime-suspended (the power/control sysfs attribute is set to "on"
+for them by default), but user space can change that setting and if
+it does so and a given bridge has no children with PM callbacks, the
+direct_complete optimization will be applied to it and it will stay
+in suspend over system suspend.  Apparently, that confuses the
+platform firmware on the affected machine and that may very well
+happen elsewhere, so avoid the direct_complete optimization for
+PCI bridges with no drivers (if there is a driver, it should take
+care of the PM handling) on suspend-to-RAM altogether (that should
+not matter for suspend-to-idle as platform firmware is not involved
+in it).
 
-I guess "because acpi_lid_initialize_state() is called on every system
-resume and it triggers acpi_lid_notify_state() which invokes
-acpi_pm_wakeup_event() for the lid device, the lid's wakeup count is
-incremented even if the lid was not the source of the event that woke up
-the system", right?
+Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
+Reported-by: n0000b.n000b@gmail.com
+Tested-by: n0000b.n000b@gmail.com
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/pci-acpi.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-> Userland deamons using wakeup_count to identify the potential wake
-> source for the last wake will be thrown off by this.
-
-Something like: "That behavior confuses user space deamons using
-wakeup_count to identify the potential system wakeup source."
-
-> Instead increment
-> the wakeup count only when there is a FIXED_HARDWARE/NOTFIY_STATUS event.
-
-So "to avoid that confusion, only trigger acpi_pm_wakeup_event() in the
-acpi_button_notify() path and don't do that in the acpi_lid_initialize_state()
-path."
-
-> Signed-off-by: Ravi Chandra Sadineni <ravisadineni@chromium.org>
-> ---
->  V2: Increment the wakeup count only when the lid is open.
-> 
->  drivers/acpi/button.c | 13 +++++++------
->  1 file changed, 7 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
-> index 2345a5ee2dbbc..d2fe03e4faf05 100644
-> --- a/drivers/acpi/button.c
-> +++ b/drivers/acpi/button.c
-> @@ -235,9 +235,6 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
->  		button->last_time = ktime_get();
->  	}
->  
-> -	if (state)
-> -		acpi_pm_wakeup_event(&device->dev);
-> -
->  	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
->  	if (ret == NOTIFY_DONE)
->  		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
-> @@ -366,7 +363,8 @@ int acpi_lid_open(void)
->  }
->  EXPORT_SYMBOL(acpi_lid_open);
->  
-> -static int acpi_lid_update_state(struct acpi_device *device)
-> +static int acpi_lid_update_state(struct acpi_device *device,
-> +				 bool is_notification)
-
-Please rename "is_notification" to "signal_wakeup" or similar.
-
->  {
->  	int state;
->  
-> @@ -374,6 +372,9 @@ static int acpi_lid_update_state(struct acpi_device *device)
->  	if (state < 0)
->  		return state;
->  
-> +	if (state && is_notification)
-> +		acpi_pm_wakeup_event(&device->dev);
-> +
->  	return acpi_lid_notify_state(device, state);
->  }
->  
-> @@ -384,7 +385,7 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
->  		(void)acpi_lid_notify_state(device, 1);
->  		break;
->  	case ACPI_BUTTON_LID_INIT_METHOD:
-> -		(void)acpi_lid_update_state(device);
-> +		(void)acpi_lid_update_state(device, false);
->  		break;
->  	case ACPI_BUTTON_LID_INIT_IGNORE:
->  	default:
-> @@ -409,7 +410,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
->  			users = button->input->users;
->  			mutex_unlock(&button->input->mutex);
->  			if (users)
-> -				acpi_lid_update_state(device);
-> +				acpi_lid_update_state(device, true);
->  		} else {
->  			int keycode;
->  
-> 
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -638,6 +638,14 @@ static bool acpi_pci_need_resume(struct
+ 	if (acpi_target_system_state() == ACPI_STATE_S0)
+ 		return false;
+ 
++	/*
++	 * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
++	 * confuses the platform firmware, so avoid doing that, unless the
++	 * bridge has a driver that should take care of PM handling.
++	 */
++	if (pci_is_bridge(dev) && !dev->driver)
++		return true;
++
+ 	return !!adev->power.flags.dsw_present;
+ }
+ 
