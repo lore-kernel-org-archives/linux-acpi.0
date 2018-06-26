@@ -1,100 +1,83 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
-Date: Tue, 26 Jun 2018 16:22:00 +0200
-Message-ID: <CAJZ5v0jc5oJzEX6QVDVjsQLmLxXHg3PSyepbh50dLXOtnHPgrA@mail.gmail.com>
-References: <35587465.8Nave9aG7d@aspire.rjw.lan> <20180626140115.GA146680@bhelgaas-glaptop.roam.corp.google.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Tue, 26 Jun 2018 15:51:32 +0100
+Message-ID: <950b3034-08a8-38b9-b8f9-514d3e2519fa@arm.com>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+ <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
+ <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
+ <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
+ <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
+ <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
+ <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
+ <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
+ <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180626140115.GA146680@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, n0000b.n000b@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Mark Salter <msalter1887@gmail.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 4:01 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Jun 26, 2018 at 12:06:01PM +0200, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
->> handling for devices with no callbacks) introduced a system suspend
->> regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
->> port) to stay in D3 over suspend-to-RAM, which is a side effect of
->> setting power.direct_complete for the children of that bridge that
->> have no PM callbacks.
->>
->> On the majority of systems PCI bridges are not allowed to be
->> runtime-suspended (the power/control sysfs attribute is set to "on"
->> for them by default), but user space can change that setting and if
->> it does so and a given bridge has no children with PM callbacks, the
->> direct_complete optimization will be applied to it and it will stay
->> in suspend over system suspend.  Apparently, that confuses the
->
-> "stay in D3 over system suspend"? (just to be explicit about what "in
-> suspend" means)
+Hi Mark,
 
-OK
+Thanks for shed-ing some light on what is going on here!
 
->> platform firmware on the affected machine and that may very well
->> happen elsewhere, so avoid the direct_complete optimization for
->> PCI bridges with no drivers (if there is a driver, it should take
->> care of the PM handling) on suspend-to-RAM altogether (that should
->> not matter for suspend-to-idle as platform firmware is not involved
->> in it).
->>
->> Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
->> Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
->> Reported-by: n0000b.n000b@gmail.com
->> Tested-by: n0000b.n000b@gmail.com
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> ---
->>  drivers/pci/pci-acpi.c |    8 ++++++++
->>  1 file changed, 8 insertions(+)
->>
->> Index: linux-pm/drivers/pci/pci-acpi.c
->> ===================================================================
->> --- linux-pm.orig/drivers/pci/pci-acpi.c
->> +++ linux-pm/drivers/pci/pci-acpi.c
->> @@ -638,6 +638,14 @@ static bool acpi_pci_need_resume(struct
->>       if (acpi_target_system_state() == ACPI_STATE_S0)
->>               return false;
->>
->> +     /*
->> +      * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
->> +      * confuses the platform firmware, so avoid doing that, unless the
->> +      * bridge has a driver that should take care of PM handling.
->> +      */
->> +     if (pci_is_bridge(dev) && !dev->driver)
->> +             return true;
->
-> It sounds like the question of whether leaving a bridge in D3 confuses
-> the firmware has a platform-specific answer.
+On 25/06/18 16:34, Mark Salter wrote:
+> On Fri, 2018-06-22 at 11:19 -0400, Mark Salter wrote:
+>> I'm going to hack something to get to the ghes info earlier in boot and
+>> check the things you mention above wrt Error Status Block and GHES.0.
+> 
+> So I had to end up instrumenting the EFI stub to see where the error came
+> from. At the start of the stub, there is no GHES.2 error. The error first
+> shows up after the stub's call to ExitBootServices returns.
 
-Well, it may confuse the platform firmware in general.
+What's the notification type of GHES.2? I'm guessing POLLed or some kind of IRQ.
 
-> How does the driver PM handling know how to do the right thing?
+These systems don't have EL3, so the CPU must continue running while something
+external generates the CPER records. The records being visible is the last point
+the faulty-access could have been made, with the window of time depending on how
+fast this external-thing receives and processes the error.
 
-For endpoints this is not an issue as they always have been expected
-to be in D3 before passing control to the platform firmware on S3
-entry, but we've never done that for bridges by default, except for
-PCIe ports with PM enabled (in which case the driver decides whether
-or not to enable it).
 
-> Does it need to know whether
-> it's safe to put the device in D3?  Or maybe a device is never put in
-> D3 for system suspend if it has a driver?
+> So it looks
+> like the firmware itself is causing the error. There's still a chance that
+> the stub is doing something wrong with the memory map passed to the
+> firmware, so I'll try to eliminate that as well.
 
-As per the above, endpoints should be OK (or they are quirky if not),
-but bridges are sort of a gray area.  PCIe ports for which we enable
-PM should be fine, for the rest it's better to be conservative and
-resume them IMO.
+adding delay loops will help prove the EFIStub is innocent.
 
-> But I'm just kibbitzing; since you merged c62ec4610c40, I'm happy if
-> you also merge this:
->
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->
->>       return !!adev->power.flags.dsw_present;
->>  }
+Are there any optional drivers being loaded by UEFI? (can you remove any USB
+mass storage drives for instance).
 
-Thanks!
+Are redhat able to rebuild UEFI on these systems? (Can it be fixed?)
+
+https://bugzilla.redhat.com/show_bug.cgi?id=1285107 is about the m400
+description of the GIC, comments 15 and 16 show a UEFI patch to something other
+than the upstream platforms tree[0], and new firmware being tested.
+(although this may be wishful thinking)
+
+It looks like quirking this based on the DMI platform name and UEFI version will
+be what we need. We could discard anything in the error status block areas at
+ghes_probe() time based on this quirk, but we may have missed other problems
+during boot, giving a false sense of security.
+
+
+Thanks,
+
+James
+
+
+[0] Might be wrong, but this is where I look:
+https://github.com/tianocore/edk2-platforms.git
