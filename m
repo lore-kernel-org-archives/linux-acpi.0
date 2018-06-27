@@ -1,137 +1,297 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Wed, 27 Jun 2018 10:48:58 +0200
-Message-ID: <CAKv+Gu9VfK8itWr5EoOGAdSA-OkrXystw-sbooOq2ZOpFwi9vw@mail.gmail.com>
-References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
- <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
- <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
- <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
- <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
- <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
- <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
- <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
- <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
- <950b3034-08a8-38b9-b8f9-514d3e2519fa@arm.com>
- <257bbf8d90669921cede5b2e7555b9523311b795.camel@redhat.com>
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Wed, 27 Jun 2018 09:49:55 +0100
+Message-ID: <20180627084954.73ucqvac62v5gje4@techsingularity.net>
+References: <CAE4VaGBtasbDBoZ-c5R-AY++Y1BXgjrE7DwN0zOt113xmV95xw@mail.gmail.com>
+ <20180615135212.wq45co7ootvdeo2f@techsingularity.net>
+ <CAE4VaGAdXNYXMUn4eQgMqQtLKfp6-YHMa1NUSpL-L078oX7C-w@mail.gmail.com>
+ <CAE4VaGBeTpxd1phR4rVAjqOXuLgLWPtVMPoRSOcG3HXfWDF=8w@mail.gmail.com>
+ <20180619151803.bu6pehdu6wbd6l5x@techsingularity.net>
+ <CAE4VaGAPOfy0RtQehKoe+443C1GRrJXCveBFgcAZ1nChVavp1g@mail.gmail.com>
+ <CAE4VaGBMeL82SJK53gtcWkor-9eXeLX6VP9juw=FW=BOyp+hMA@mail.gmail.com>
+ <20180621092331.p2pmaiu6563kp5u2@techsingularity.net>
+ <CAE4VaGCQV+cS-vhdLyMwzftbB-xBHPt4Y4chg_0ykLHTE9cRfw@mail.gmail.com>
+ <CAE4VaGDHcZbnDpJ+FiQLfA1DRftY0j_GJSnh3FDRi34OztVH6Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <257bbf8d90669921cede5b2e7555b9523311b795.camel@redhat.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Mark Salter <msalter@redhat.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAE4VaGDHcZbnDpJ+FiQLfA1DRftY0j_GJSnh3FDRi34OztVH6Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jirka Hladky <jhladky@redhat.com>
+Cc: Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "kkolakow@redhat.com" <kkolakow@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26 June 2018 at 22:20, Mark Salter <msalter@redhat.com> wrote:
-> On Tue, 2018-06-26 at 15:51 +0100, James Morse wrote:
->> Hi Mark,
->>
->> Thanks for shed-ing some light on what is going on here!
->>
->> On 25/06/18 16:34, Mark Salter wrote:
->> > On Fri, 2018-06-22 at 11:19 -0400, Mark Salter wrote:
->> > > I'm going to hack something to get to the ghes info earlier in boot and
->> > > check the things you mention above wrt Error Status Block and GHES.0.
->> >
->> > So I had to end up instrumenting the EFI stub to see where the error came
->> > from. At the start of the stub, there is no GHES.2 error. The error first
->> > shows up after the stub's call to ExitBootServices returns.
->>
->> What's the notification type of GHES.2? I'm guessing POLLed or some kind of IRQ.
->
-> SCI
->
-> Here's the HEST entry:
->
-> [028h 0040   2]                Subtable Type : 0009 [Generic Hardware Error Source]
-> [02Ah 0042   2]                    Source Id : 0002
-> [02Ch 0044   2]            Related Source Id : FFFF
-> [02Eh 0046   1]                     Reserved : 00
-> [02Fh 0047   1]                      Enabled : 01
-> [030h 0048   4]       Records To Preallocate : 00000001
-> [034h 0052   4]      Max Sections Per Record : 00000001
-> [038h 0056   4]          Max Raw Data Length : 00000AEC
->
-> [03Ch 0060  12]         Error Status Address : [Generic Address Structure]
-> [03Ch 0060   1]                     Space ID : 00 [SystemMemory]
-> [03Dh 0061   1]                    Bit Width : 40
-> [03Eh 0062   1]                   Bit Offset : 00
-> [03Fh 0063   1]         Encoded Access Width : 04 [QWord Access:64]
-> [040h 0064   8]                      Address : 0000004FF7E9F0E0
->
+On Wed, Jun 27, 2018 at 12:18:37AM +0200, Jirka Hladky wrote:
+> Hi Mel,
+> 
+> we have results for the "Fixes for sched/numa_balancing" series and overall
+> it looks very promising.
+> 
+> We see improvements in the range 15-20% for the stream benchmark and
+> upto 60% for the OpenMP NAS benchmark. While NAS results are noisy (have
+> quite big variations)  we see improvements on a wide range of 2 and 4 NUMA
+> systems.  More importantly, we don't see any regressions. I have posted
+> screenshots of the median differences on 4 NUMA servers for NAS benchmark
+> with
+> 
+> 4x Gold 6126 CPU @ 2.60GHz
+> 4x E5-4627 v2 @ 3.30GHz
+> 
+> to illustrate the typical results.
+> 
+> How are things looking at your side?
+> 
 
-This is a reserved region in the memory map. Does that apply to the
-other occurrences as well?
+I saw similar results in that it was a general win. I'm also trialing
+the following monolithic patch on top if you want to try it. The timing
+of this will depend on when/if numa_blancing fixes get picked up and I'm
+still waiting on test results to come through. Unfortunately, on Friday,
+I'll be unavailable for two weeks so this may drag on a bit.  The expanded
+set of patches is at
 
-> There are 9 others all identical except for Source ID and address.
->
->> These systems don't have EL3, so the CPU must continue running while something
->> external generates the CPER records. The records being visible is the last point
->> the faulty-access could have been made, with the window of time depending on how
->> fast this external-thing receives and processes the error.
->
-> There's a System Control Processor (slimpro) on the SoC which can interact with
-> the CPU in various ways and which has access to memory and other hw.
->
->>
->>
->> > So it looks
->> > like the firmware itself is causing the error. There's still a chance that
->> > the stub is doing something wrong with the memory map passed to the
->> > firmware, so I'll try to eliminate that as well.
->>
->> adding delay loops will help prove the EFIStub is innocent.
->
-> Didn't change anything.
->
->>
->> Are there any optional drivers being loaded by UEFI? (can you remove any USB
->> mass storage drives for instance).
->
-> The only storage is pci based. There is a USB port but doesn't look like
-> anything is attached to it. I don't have physical access to it. It is one on
-> many moonshot cartridges in a chassis several hundred miles away.
->
->>
->> Are redhat able to rebuild UEFI on these systems? (Can it be fixed?)
->
-> No.
->
->>
->> https://bugzilla.redhat.com/show_bug.cgi?id=1285107 is about the m400
->> description of the GIC, comments 15 and 16 show a UEFI patch to something other
->> than the upstream platforms tree[0], and new firmware being tested.
->> (although this may be wishful thinking)
->
-> HPe would respond to bug reports until m400 reached EOL. They have been pretty
-> clear that no more firmware updates will be done.
->
->>
->> It looks like quirking this based on the DMI platform name and UEFI version will
->> be what we need. We could discard anything in the error status block areas at
->> ghes_probe() time based on this quirk, but we may have missed other problems
->> during boot, giving a false sense of security.
->>
->>
->> Thanks,
->>
->> James
->>
->>
->> [0] Might be wrong, but this is where I look:
->> https://github.com/tianocore/edk2-platforms.git
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+git://git.kernel.org/pub/scm/linux/kernel/git/mel/linux.git sched-numa-fast-crossnode-v1r12
+
+If the results are positive, I'll update the series and post it as a
+RFC. Monolithic patch on top of fixes for sched/numa_balancing is as follows.
+
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 0dbe1d5bb936..eea5f82ca447 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -669,11 +669,6 @@ typedef struct pglist_data {
+ 	struct task_struct *kcompactd;
+ #endif
+ #ifdef CONFIG_NUMA_BALANCING
+-	/* Rate limiting time interval */
+-	unsigned long numabalancing_migrate_next_window;
+-
+-	/* Number of pages migrated during the rate limiting time interval */
+-	unsigned long numabalancing_migrate_nr_pages;
+ 	int active_node_migrate;
+ #endif
+ 	/*
+diff --git a/include/trace/events/migrate.h b/include/trace/events/migrate.h
+index 711372845945..de8c73f9abcf 100644
+--- a/include/trace/events/migrate.h
++++ b/include/trace/events/migrate.h
+@@ -71,32 +71,6 @@ TRACE_EVENT(mm_migrate_pages,
+ 		__print_symbolic(__entry->reason, MIGRATE_REASON))
+ );
+ 
+-TRACE_EVENT(mm_numa_migrate_ratelimit,
+-
+-	TP_PROTO(struct task_struct *p, int dst_nid, unsigned long nr_pages),
+-
+-	TP_ARGS(p, dst_nid, nr_pages),
+-
+-	TP_STRUCT__entry(
+-		__array(	char,		comm,	TASK_COMM_LEN)
+-		__field(	pid_t,		pid)
+-		__field(	int,		dst_nid)
+-		__field(	unsigned long,	nr_pages)
+-	),
+-
+-	TP_fast_assign(
+-		memcpy(__entry->comm, p->comm, TASK_COMM_LEN);
+-		__entry->pid		= p->pid;
+-		__entry->dst_nid	= dst_nid;
+-		__entry->nr_pages	= nr_pages;
+-	),
+-
+-	TP_printk("comm=%s pid=%d dst_nid=%d nr_pages=%lu",
+-		__entry->comm,
+-		__entry->pid,
+-		__entry->dst_nid,
+-		__entry->nr_pages)
+-);
+ #endif /* _TRACE_MIGRATE_H */
+ 
+ /* This part must be outside protection */
+diff --git a/kernel/sched/fair.c b/kernel/sched/fair.c
+index 6ca3be059872..c020af2c58ec 100644
+--- a/kernel/sched/fair.c
++++ b/kernel/sched/fair.c
+@@ -1394,6 +1394,17 @@ bool should_numa_migrate_memory(struct task_struct *p, struct page * page,
+ 	int last_cpupid, this_cpupid;
+ 
+ 	this_cpupid = cpu_pid_to_cpupid(dst_cpu, current->pid);
++	last_cpupid = page_cpupid_xchg_last(page, this_cpupid);
++
++	/*
++	 * Allow first faults or private faults to migrate immediately early in
++	 * the lifetime of a task. The magic number 4 is based on waiting for
++	 * two full passes of the "multi-stage node selection" test that is
++	 * executed below.
++	 */
++	if ((p->numa_preferred_nid == -1 || p->numa_scan_seq <= 4) &&
++	    (cpupid_pid_unset(last_cpupid) || cpupid_match_pid(p, last_cpupid)))
++		return true;
+ 
+ 	/*
+ 	 * Multi-stage node selection is used in conjunction with a periodic
+@@ -1412,7 +1423,6 @@ bool should_numa_migrate_memory(struct task_struct *p, struct page * page,
+ 	 * This quadric squishes small probabilities, making it less likely we
+ 	 * act on an unlikely task<->page relation.
+ 	 */
+-	last_cpupid = page_cpupid_xchg_last(page, this_cpupid);
+ 	if (!cpupid_pid_unset(last_cpupid) &&
+ 				cpupid_to_nid(last_cpupid) != dst_nid)
+ 		return false;
+@@ -6702,6 +6712,9 @@ static void migrate_task_rq_fair(struct task_struct *p, int new_cpu __maybe_unus
+ 	p->se.exec_start = 0;
+ 
+ #ifdef CONFIG_NUMA_BALANCING
++	if (!static_branch_likely(&sched_numa_balancing))
++		return;
++
+ 	if (!p->mm || (p->flags & PF_EXITING))
+ 		return;
+ 
+@@ -6709,8 +6722,26 @@ static void migrate_task_rq_fair(struct task_struct *p, int new_cpu __maybe_unus
+ 		int src_nid = cpu_to_node(task_cpu(p));
+ 		int dst_nid = cpu_to_node(new_cpu);
+ 
+-		if (src_nid != dst_nid)
+-			p->numa_scan_period = task_scan_start(p);
++		if (src_nid == dst_nid)
++			return;
++
++		/*
++		 * Allow resets if faults have been trapped before one scan
++		 * has completed. This is most likely due to a new task that
++		 * is pulled cross-node due to wakeups or load balancing.
++		 */
++		if (p->numa_scan_seq) {
++			/*
++			 * Avoid scan adjustments if moving to the preferred
++			 * node or if the task was not previously running on
++			 * the preferred node.
++			 */
++			if (dst_nid == p->numa_preferred_nid ||
++			    (p->numa_preferred_nid != -1 && src_nid != p->numa_preferred_nid))
++				return;
++		}
++
++		p->numa_scan_period = task_scan_start(p);
+ 	}
+ #endif
+ }
+diff --git a/mm/migrate.c b/mm/migrate.c
+index c7749902a160..f935f4781036 100644
+--- a/mm/migrate.c
++++ b/mm/migrate.c
+@@ -1856,54 +1856,6 @@ static struct page *alloc_misplaced_dst_page(struct page *page,
+ 	return newpage;
+ }
+ 
+-/*
+- * page migration rate limiting control.
+- * Do not migrate more than @pages_to_migrate in a @migrate_interval_millisecs
+- * window of time. Default here says do not migrate more than 1280M per second.
+- */
+-static unsigned int migrate_interval_millisecs __read_mostly = 100;
+-static unsigned int ratelimit_pages __read_mostly = 128 << (20 - PAGE_SHIFT);
+-
+-/* Returns true if the node is migrate rate-limited after the update */
+-static bool numamigrate_update_ratelimit(pg_data_t *pgdat,
+-					unsigned long nr_pages)
+-{
+-	unsigned long next_window, interval;
+-
+-	next_window = READ_ONCE(pgdat->numabalancing_migrate_next_window);
+-	interval = msecs_to_jiffies(migrate_interval_millisecs);
+-
+-	/*
+-	 * Rate-limit the amount of data that is being migrated to a node.
+-	 * Optimal placement is no good if the memory bus is saturated and
+-	 * all the time is being spent migrating!
+-	 */
+-	if (time_after(jiffies, next_window)) {
+-		if (xchg(&pgdat->numabalancing_migrate_nr_pages, 0)) {
+-			do {
+-				next_window += interval;
+-			} while (unlikely(time_after(jiffies, next_window)));
+-
+-			WRITE_ONCE(pgdat->numabalancing_migrate_next_window,
+-							       next_window);
+-		}
+-	}
+-	if (pgdat->numabalancing_migrate_nr_pages > ratelimit_pages) {
+-		trace_mm_numa_migrate_ratelimit(current, pgdat->node_id,
+-								nr_pages);
+-		return true;
+-	}
+-
+-	/*
+-	 * This is an unlocked non-atomic update so errors are possible.
+-	 * The consequences are failing to migrate when we potentiall should
+-	 * have which is not severe enough to warrant locking. If it is ever
+-	 * a problem, it can be converted to a per-cpu counter.
+-	 */
+-	pgdat->numabalancing_migrate_nr_pages += nr_pages;
+-	return false;
+-}
+-
+ static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ {
+ 	int page_lru;
+@@ -1976,14 +1928,6 @@ int migrate_misplaced_page(struct page *page, struct vm_area_struct *vma,
+ 	if (page_is_file_cache(page) && PageDirty(page))
+ 		goto out;
+ 
+-	/*
+-	 * Rate-limit the amount of data that is being migrated to a node.
+-	 * Optimal placement is no good if the memory bus is saturated and
+-	 * all the time is being spent migrating!
+-	 */
+-	if (numamigrate_update_ratelimit(pgdat, 1))
+-		goto out;
+-
+ 	isolated = numamigrate_isolate_page(pgdat, page);
+ 	if (!isolated)
+ 		goto out;
+@@ -2030,14 +1974,6 @@ int migrate_misplaced_transhuge_page(struct mm_struct *mm,
+ 	unsigned long mmun_start = address & HPAGE_PMD_MASK;
+ 	unsigned long mmun_end = mmun_start + HPAGE_PMD_SIZE;
+ 
+-	/*
+-	 * Rate-limit the amount of data that is being migrated to a node.
+-	 * Optimal placement is no good if the memory bus is saturated and
+-	 * all the time is being spent migrating!
+-	 */
+-	if (numamigrate_update_ratelimit(pgdat, HPAGE_PMD_NR))
+-		goto out_dropref;
+-
+ 	new_page = alloc_pages_node(node,
+ 		(GFP_TRANSHUGE_LIGHT | __GFP_THISNODE),
+ 		HPAGE_PMD_ORDER);
+@@ -2134,7 +2070,6 @@ int migrate_misplaced_transhuge_page(struct mm_struct *mm,
+ 
+ out_fail:
+ 	count_vm_events(PGMIGRATE_FAIL, HPAGE_PMD_NR);
+-out_dropref:
+ 	ptl = pmd_lock(mm, pmd);
+ 	if (pmd_same(*pmd, entry)) {
+ 		entry = pmd_modify(entry, vma->vm_page_prot);
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index a4fc9b0798df..9049e7b26e92 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -6211,11 +6211,6 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat)
+ 	int nid = pgdat->node_id;
+ 
+ 	pgdat_resize_init(pgdat);
+-#ifdef CONFIG_NUMA_BALANCING
+-	pgdat->numabalancing_migrate_nr_pages = 0;
+-	pgdat->active_node_migrate = 0;
+-	pgdat->numabalancing_migrate_next_window = jiffies;
+-#endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	spin_lock_init(&pgdat->split_queue_lock);
+ 	INIT_LIST_HEAD(&pgdat->split_queue);
+
+-- 
+Mel Gorman
+SUSE Labs
