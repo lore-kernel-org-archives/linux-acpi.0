@@ -1,16 +1,23 @@
-From: James Morse <james.morse@arm.com>
-Subject: Re: [PATCH v5 12/20] ACPI / APEI: Don't store CPER records physical
- address in struct ghes
-Date: Wed, 27 Jun 2018 09:40:21 +0100
-Message-ID: <5a35a9d3-c536-998d-7a76-e18206305ea6@arm.com>
-References: <20180626170116.25825-13-james.morse@arm.com>
- <201806270332.vrWmASbO%fengguang.wu@intel.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
+Date: Wed, 27 Jun 2018 10:48:58 +0200
+Message-ID: <CAKv+Gu9VfK8itWr5EoOGAdSA-OkrXystw-sbooOq2ZOpFwi9vw@mail.gmail.com>
+References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
+ <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
+ <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
+ <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
+ <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
+ <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
+ <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
+ <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
+ <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
+ <950b3034-08a8-38b9-b8f9-514d3e2519fa@arm.com>
+ <257bbf8d90669921cede5b2e7555b9523311b795.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <201806270332.vrWmASbO%fengguang.wu@intel.com>
-Content-Language: en-US
+In-Reply-To: <257bbf8d90669921cede5b2e7555b9523311b795.camel@redhat.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,108 +27,111 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: Mark Salter <msalter@redhat.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 26/06/18 21:55, kbuild test robot wrote:
->         # save the attached .config to linux build tree
->         make ARCH=i386 
+On 26 June 2018 at 22:20, Mark Salter <msalter@redhat.com> wrote:
+> On Tue, 2018-06-26 at 15:51 +0100, James Morse wrote:
+>> Hi Mark,
+>>
+>> Thanks for shed-ing some light on what is going on here!
+>>
+>> On 25/06/18 16:34, Mark Salter wrote:
+>> > On Fri, 2018-06-22 at 11:19 -0400, Mark Salter wrote:
+>> > > I'm going to hack something to get to the ghes info earlier in boot and
+>> > > check the things you mention above wrt Error Status Block and GHES.0.
+>> >
+>> > So I had to end up instrumenting the EFI stub to see where the error came
+>> > from. At the start of the stub, there is no GHES.2 error. The error first
+>> > shows up after the stub's call to ExitBootServices returns.
+>>
+>> What's the notification type of GHES.2? I'm guessing POLLed or some kind of IRQ.
+>
+> SCI
+>
+> Here's the HEST entry:
+>
+> [028h 0040   2]                Subtable Type : 0009 [Generic Hardware Error Source]
+> [02Ah 0042   2]                    Source Id : 0002
+> [02Ch 0044   2]            Related Source Id : FFFF
+> [02Eh 0046   1]                     Reserved : 00
+> [02Fh 0047   1]                      Enabled : 01
+> [030h 0048   4]       Records To Preallocate : 00000001
+> [034h 0052   4]      Max Sections Per Record : 00000001
+> [038h 0056   4]          Max Raw Data Length : 00000AEC
+>
+> [03Ch 0060  12]         Error Status Address : [Generic Address Structure]
+> [03Ch 0060   1]                     Space ID : 00 [SystemMemory]
+> [03Dh 0061   1]                    Bit Width : 40
+> [03Eh 0062   1]                   Bit Offset : 00
+> [03Fh 0063   1]         Encoded Access Width : 04 [QWord Access:64]
+> [040h 0064   8]                      Address : 0000004FF7E9F0E0
+>
 
-Gah, guess who forgot about 32bit.
+This is a reserved region in the memory map. Does that apply to the
+other occurrences as well?
 
-
-> All errors (new ones prefixed by >>):
-> 
->    drivers/acpi/apei/ghes.c: In function 'ghes_read_estatus':
->>> drivers/acpi/apei/ghes.c:300:17: error: passing argument 1 of 'apei_read' from incompatible pointer type [-Werror=incompatible-pointer-types]
->      rc = apei_read(buf_paddr, &g->error_status_address);
->                     ^~~~~~~~~
-
-This takes a u64 pointer even on 32bit systems, because that's the size of the
-GAS structure in the spec. (I wonder what it expects you to do if the high bits
-are set...)
-
-I'll fix this locally[0].
-
-
-Thanks,
-
-James
-
-
-
-[0] phys_addr_t is a good thing, lets not use it:
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b7b335450a6b..930adecd87d4 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -267,7 +267,7 @@ static inline int ghes_severity(int severity)
-        }
- }
-
--static void ghes_copy_tofrom_phys(void *buffer, phys_addr_t paddr, u32 len,
-+static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
-                                  int from_phys, int fixmap_idx)
- {
-        void __iomem *vaddr;
-@@ -292,7 +292,7 @@ static void ghes_copy_tofrom_phys(void *buffer, phys_addr_t
-paddr, u32 len,
-
- /* read the CPER block returning its address and size */
- static int ghes_peek_estatus(struct ghes *ghes, int fixmap_idx,
--                            phys_addr_t *buf_paddr, u32 *buf_len)
-+                            u64 *buf_paddr, u32 *buf_len)
- {
-        struct acpi_hest_generic *g = ghes->generic;
-        struct acpi_hest_generic_status estatus;
-
-@@ -337,7 +337,7 @@ static int ghes_peek_estatus(struct ghes *ghes, int fixmap_idx,
- }
-
- static int __ghes_read_estatus(struct acpi_hest_generic_status *estatus,
--                              phys_addr_t buf_paddr, size_t buf_len,
-+                              u64 buf_paddr, size_t buf_len,
-                               int fixmap_idx)
- {
-        ghes_copy_tofrom_phys(estatus, buf_paddr, buf_len, 1, fixmap_idx);
-@@ -353,7 +353,7 @@ static int __ghes_read_estatus(struct
-acpi_hest_generic_status *estatus,
-
- static int ghes_read_estatus(struct ghes *ghes,
-                             struct acpi_hest_generic_status *estatus,
--                            phys_addr_t *buf_paddr, int fixmap_idx)
-+                            u64 *buf_paddr, int fixmap_idx)
- {
-        int rc;
-        u32 buf_len;
-@@ -366,7 +366,7 @@ static int ghes_read_estatus(struct ghes *ghes,
- }
-
- static void ghes_clear_estatus(struct acpi_hest_generic_status *estatus,
--                              phys_addr_t buf_paddr, int fixmap_idx)
-+                              u64 buf_paddr, int fixmap_idx)
- {
-        estatus->block_status = 0;
-        if (buf_paddr)
-@@ -716,9 +716,9 @@ static void ghes_print_queued_estatus(void)
-
- static int _in_nmi_notify_one(struct ghes *ghes, int fixmap_idx)
- {
-+       u64 buf_paddr;
-        int sev, rc = 0;
-        u32 len, node_len;
--       phys_addr_t buf_paddr;
-        struct ghes_estatus_node *estatus_node;
-        struct acpi_hest_generic_status *estatus;
-
-@@ -876,8 +876,8 @@ static int ghes_ack_error(struct acpi_hest_generic_v2 *gv2)
- static int ghes_proc(struct ghes *ghes)
- {
-        int rc;
-+       u64 buf_paddr;
-        unsigned long flags;
--       phys_addr_t buf_paddr;
-        struct acpi_hest_generic_status *estatus = ghes->estatus;
-
-        spin_lock_irqsave(&ghes_notify_lock_irq, flags);
+> There are 9 others all identical except for Source ID and address.
+>
+>> These systems don't have EL3, so the CPU must continue running while something
+>> external generates the CPER records. The records being visible is the last point
+>> the faulty-access could have been made, with the window of time depending on how
+>> fast this external-thing receives and processes the error.
+>
+> There's a System Control Processor (slimpro) on the SoC which can interact with
+> the CPU in various ways and which has access to memory and other hw.
+>
+>>
+>>
+>> > So it looks
+>> > like the firmware itself is causing the error. There's still a chance that
+>> > the stub is doing something wrong with the memory map passed to the
+>> > firmware, so I'll try to eliminate that as well.
+>>
+>> adding delay loops will help prove the EFIStub is innocent.
+>
+> Didn't change anything.
+>
+>>
+>> Are there any optional drivers being loaded by UEFI? (can you remove any USB
+>> mass storage drives for instance).
+>
+> The only storage is pci based. There is a USB port but doesn't look like
+> anything is attached to it. I don't have physical access to it. It is one on
+> many moonshot cartridges in a chassis several hundred miles away.
+>
+>>
+>> Are redhat able to rebuild UEFI on these systems? (Can it be fixed?)
+>
+> No.
+>
+>>
+>> https://bugzilla.redhat.com/show_bug.cgi?id=1285107 is about the m400
+>> description of the GIC, comments 15 and 16 show a UEFI patch to something other
+>> than the upstream platforms tree[0], and new firmware being tested.
+>> (although this may be wishful thinking)
+>
+> HPe would respond to bug reports until m400 reached EOL. They have been pretty
+> clear that no more firmware updates will be done.
+>
+>>
+>> It looks like quirking this based on the DMI platform name and UEFI version will
+>> be what we need. We could discard anything in the error status block areas at
+>> ghes_probe() time based on this quirk, but we may have missed other problems
+>> during boot, giving a false sense of security.
+>>
+>>
+>> Thanks,
+>>
+>> James
+>>
+>>
+>> [0] Might be wrong, but this is where I look:
+>> https://github.com/tianocore/edk2-platforms.git
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
