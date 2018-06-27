@@ -1,142 +1,45 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] arm64/acpi: Add fixup for HPE m400 quirks
-Date: Wed, 27 Jun 2018 08:25:31 -0400
-Message-ID: <45b96b937687b199bdbd6966491ab23f50bb20e7.camel@redhat.com>
-References: <51d3d738-cdf5-2992-bba5-c3e1f34096c2@infradead.org>
- <098e6d53-8dc7-439f-7165-adbe0e7c4941@arm.com>
- <8a3034b9-6cf3-5182-717f-dd1dc8a087aa@infradead.org>
- <5b03f754-3a98-c01d-3e2a-615a8b1ea537@arm.com>
- <0cbc68d5-9a8f-1734-4eea-d1f037927137@infradead.org>
- <cb5aa4ee12422ecc5f6530f3a74bcfa553b42c80.camel@redhat.com>
- <a59fa0f8-4123-bcd9-670a-8885d34f37ed@arm.com>
- <0be5ce017286a4ec494e0f0969bb10126b8501ce.camel@redhat.com>
- <bd5fc825573c3394b80365ad2dc47bde7b22044a.camel@gmail.com>
- <950b3034-08a8-38b9-b8f9-514d3e2519fa@arm.com>
- <257bbf8d90669921cede5b2e7555b9523311b795.camel@redhat.com>
- <CAKv+Gu9VfK8itWr5EoOGAdSA-OkrXystw-sbooOq2ZOpFwi9vw@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: small dmesg regression in kernel 4.17.3
+Date: Wed, 27 Jun 2018 20:28:33 +0300
+Message-ID: <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
+References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKv+Gu9VfK8itWr5EoOGAdSA-OkrXystw-sbooOq2ZOpFwi9vw@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?Q?Toralf_F=C3=B6rster?= <toralf.foerster@gmx.de>, erik.schmauss@intel.com
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2018-06-27 at 10:48 +0200, Ard Biesheuvel wrote:
-> On 26 June 2018 at 22:20, Mark Salter <msalter@redhat.com> wrote:
-> > On Tue, 2018-06-26 at 15:51 +0100, James Morse wrote:
-> > > Hi Mark,
-> > > 
-> > > Thanks for shed-ing some light on what is going on here!
-> > > 
-> > > On 25/06/18 16:34, Mark Salter wrote:
-> > > > On Fri, 2018-06-22 at 11:19 -0400, Mark Salter wrote:
-> > > > > I'm going to hack something to get to the ghes info earlier in boot and
-> > > > > check the things you mention above wrt Error Status Block and GHES.0.
-> > > > 
-> > > > So I had to end up instrumenting the EFI stub to see where the error came
-> > > > from. At the start of the stub, there is no GHES.2 error. The error first
-> > > > shows up after the stub's call to ExitBootServices returns.
-> > > 
-> > > What's the notification type of GHES.2? I'm guessing POLLed or some kind of IRQ.
-> > 
-> > SCI
-> > 
-> > Here's the HEST entry:
-> > 
-> > [028h 0040   2]                Subtable Type : 0009 [Generic Hardware Error Source]
-> > [02Ah 0042   2]                    Source Id : 0002
-> > [02Ch 0044   2]            Related Source Id : FFFF
-> > [02Eh 0046   1]                     Reserved : 00
-> > [02Fh 0047   1]                      Enabled : 01
-> > [030h 0048   4]       Records To Preallocate : 00000001
-> > [034h 0052   4]      Max Sections Per Record : 00000001
-> > [038h 0056   4]          Max Raw Data Length : 00000AEC
-> > 
-> > [03Ch 0060  12]         Error Status Address : [Generic Address Structure]
-> > [03Ch 0060   1]                     Space ID : 00 [SystemMemory]
-> > [03Dh 0061   1]                    Bit Width : 40
-> > [03Eh 0062   1]                   Bit Offset : 00
-> > [03Fh 0063   1]         Encoded Access Width : 04 [QWord Access:64]
-> > [040h 0064   8]                      Address : 0000004FF7E9F0E0
-> > 
-> 
-> This is a reserved region in the memory map. Does that apply to the
-> other occurrences as well?
++Cc: Erik
 
-Yes, they are all in the same reserved region.
+On Tue, Jun 26, 2018 at 8:57 PM, Toralf F=C3=B6rster <toralf.foerster@gmx.d=
+e> wrote:
+> The attached dmesg contains non printable chars 0x01 33 around "ACPI BIOS=
+ Error (bug): Could not resolve" which is a new issue compared to the dmesg=
+ of 4.17.2
+>
+> System is a stable hardened Gentoo Linux at a ThinkPad T440s.
 
-> 
-> > There are 9 others all identical except for Source ID and address.
-> > 
-> > > These systems don't have EL3, so the CPU must continue running while something
-> > > external generates the CPER records. The records being visible is the last point
-> > > the faulty-access could have been made, with the window of time depending on how
-> > > fast this external-thing receives and processes the error.
-> > 
-> > There's a System Control Processor (slimpro) on the SoC which can interact with
-> > the CPU in various ways and which has access to memory and other hw.
-> > 
-> > > 
-> > > 
-> > > > So it looks
-> > > > like the firmware itself is causing the error. There's still a chance that
-> > > > the stub is doing something wrong with the memory map passed to the
-> > > > firmware, so I'll try to eliminate that as well.
-> > > 
-> > > adding delay loops will help prove the EFIStub is innocent.
-> > 
-> > Didn't change anything.
-> > 
-> > > 
-> > > Are there any optional drivers being loaded by UEFI? (can you remove any USB
-> > > mass storage drives for instance).
-> > 
-> > The only storage is pci based. There is a USB port but doesn't look like
-> > anything is attached to it. I don't have physical access to it. It is one on
-> > many moonshot cartridges in a chassis several hundred miles away.
-> > 
-> > > 
-> > > Are redhat able to rebuild UEFI on these systems? (Can it be fixed?)
-> > 
-> > No.
-> > 
-> > > 
-> > > https://bugzilla.redhat.com/show_bug.cgi?id=1285107 is about the m400
-> > > description of the GIC, comments 15 and 16 show a UEFI patch to something other
-> > > than the upstream platforms tree[0], and new firmware being tested.
-> > > (although this may be wishful thinking)
-> > 
-> > HPe would respond to bug reports until m400 reached EOL. They have been pretty
-> > clear that no more firmware updates will be done.
-> > 
-> > > 
-> > > It looks like quirking this based on the DMI platform name and UEFI version will
-> > > be what we need. We could discard anything in the error status block areas at
-> > > ghes_probe() time based on this quirk, but we may have missed other problems
-> > > during boot, giving a false sense of security.
-> > > 
-> > > 
-> > > Thanks,
-> > > 
-> > > James
-> > > 
-> > > 
-> > > [0] Might be wrong, but this is where I look:
-> > > https://github.com/tianocore/edk2-platforms.git
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+I bet the below commit makes this.
+
+commit 2e78935d1e27d31955ad2dad4abe6c453cf669fd
+Author: Erik Schmauss <erik.schmauss@intel.com>
+Date:   Fri Jun 1 12:06:43 2018 -0700
+
+   ACPICA: AML parser: attempt to continue loading table after error
+
+
+So, it does add leading '\n' which flushes buffers followed by
+printing the message you see. But, I'm guessing now, kernel adds a
+default level since it's going to dmesg which you can see as
+unprintable symbols.
+Personally I'm not a fan of leading '\n':s since it brings more pain
+than fixing something. It has special meaning (flushing buffers) and
+many developers forget this.
+
+--=20
+With Best Regards,
+Andy Shevchenko
