@@ -1,66 +1,127 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
-Date: Wed, 27 Jun 2018 09:16:27 +0200
-Message-ID: <CAJZ5v0huyohQP1FF+9kbwCKFrJ5zJE_rCddqg7+V1msdpLZZOQ@mail.gmail.com>
-References: <35587465.8Nave9aG7d@aspire.rjw.lan> <20180626140115.GA146680@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0jc5oJzEX6QVDVjsQLmLxXHg3PSyepbh50dLXOtnHPgrA@mail.gmail.com>
- <20180626171406.GC146680@bhelgaas-glaptop.roam.corp.google.com>
- <CAJZ5v0gt+4FiiBxEjdsEYLT+dQq=Q=mC7JtZPsYxps0_a1w-rg@mail.gmail.com> <20180626203214.GA181504@bhelgaas-glaptop.roam.corp.google.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v5 12/20] ACPI / APEI: Don't store CPER records physical
+ address in struct ghes
+Date: Wed, 27 Jun 2018 09:40:21 +0100
+Message-ID: <5a35a9d3-c536-998d-7a76-e18206305ea6@arm.com>
+References: <20180626170116.25825-13-james.morse@arm.com>
+ <201806270332.vrWmASbO%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180626203214.GA181504@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, n0000b.n000b@gmail.com, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <201806270332.vrWmASbO%fengguang.wu@intel.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 26, 2018 at 10:32 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Tue, Jun 26, 2018 at 07:19:29PM +0200, Rafael J. Wysocki wrote:
->> On Tue, Jun 26, 2018 at 7:14 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> > On Tue, Jun 26, 2018 at 04:22:00PM +0200, Rafael J. Wysocki wrote:
->> >> On Tue, Jun 26, 2018 at 4:01 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->> >> > On Tue, Jun 26, 2018 at 12:06:01PM +0200, Rafael J. Wysocki wrote:
->> >> >> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> >
->> >> >> +     /*
->> >> >> +      * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
->> >> >> +      * confuses the platform firmware, so avoid doing that, unless the
->> >> >> +      * bridge has a driver that should take care of PM handling.
->> >> >> +      */
->> >> >> +     if (pci_is_bridge(dev) && !dev->driver)
->> >> >> +             return true;
->> >> >
->> >> > It sounds like the question of whether leaving a bridge in D3 confuses
->> >> > the firmware has a platform-specific answer.
->> >>
->> >> Well, it may confuse the platform firmware in general.
->> >>
->> >> > How does the driver PM handling know how to do the right thing?
->> >>
->> >> For endpoints this is not an issue as they always have been expected
->> >> to be in D3 before passing control to the platform firmware on S3
->> >> entry, but we've never done that for bridges by default, except for
->> >> PCIe ports with PM enabled (in which case the driver decides whether
->> >> or not to enable it).
->> >
->> > If there's any spec reference for the expected power states of devices
->> > when entering S3, that would be useful here.  I can't tell if there's
->> > any guidance for this or if it's just figured out experimentally.
->>
->> It is not direct, but Section 16.1.6 of ACPI 6.2 says this in step 4
->> of the system suspend outline:
->>
->> OSPM places all device drivers into their respective Dx state. If the
->> device is enabled for wake,
->> it enters the Dx state associated with the wake capability. If the
->> device is not enabled to wake
->> the system, it enters the D3 state.
->
-> Thanks, that's a very useful citation!
+On 26/06/18 21:55, kbuild test robot wrote:
+>         # save the attached .config to linux build tree
+>         make ARCH=i386 
 
-You're welcome! :-)
+Gah, guess who forgot about 32bit.
 
-I actually need to withdraw the $subject patch as it doesn't help (I
-misread the reporters response) and the one that does work is a bit
-too intrusive IMO, so I'll investigate this a bit more.
+
+> All errors (new ones prefixed by >>):
+> 
+>    drivers/acpi/apei/ghes.c: In function 'ghes_read_estatus':
+>>> drivers/acpi/apei/ghes.c:300:17: error: passing argument 1 of 'apei_read' from incompatible pointer type [-Werror=incompatible-pointer-types]
+>      rc = apei_read(buf_paddr, &g->error_status_address);
+>                     ^~~~~~~~~
+
+This takes a u64 pointer even on 32bit systems, because that's the size of the
+GAS structure in the spec. (I wonder what it expects you to do if the high bits
+are set...)
+
+I'll fix this locally[0].
+
+
+Thanks,
+
+James
+
+
+
+[0] phys_addr_t is a good thing, lets not use it:
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index b7b335450a6b..930adecd87d4 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -267,7 +267,7 @@ static inline int ghes_severity(int severity)
+        }
+ }
+
+-static void ghes_copy_tofrom_phys(void *buffer, phys_addr_t paddr, u32 len,
++static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+                                  int from_phys, int fixmap_idx)
+ {
+        void __iomem *vaddr;
+@@ -292,7 +292,7 @@ static void ghes_copy_tofrom_phys(void *buffer, phys_addr_t
+paddr, u32 len,
+
+ /* read the CPER block returning its address and size */
+ static int ghes_peek_estatus(struct ghes *ghes, int fixmap_idx,
+-                            phys_addr_t *buf_paddr, u32 *buf_len)
++                            u64 *buf_paddr, u32 *buf_len)
+ {
+        struct acpi_hest_generic *g = ghes->generic;
+        struct acpi_hest_generic_status estatus;
+
+@@ -337,7 +337,7 @@ static int ghes_peek_estatus(struct ghes *ghes, int fixmap_idx,
+ }
+
+ static int __ghes_read_estatus(struct acpi_hest_generic_status *estatus,
+-                              phys_addr_t buf_paddr, size_t buf_len,
++                              u64 buf_paddr, size_t buf_len,
+                               int fixmap_idx)
+ {
+        ghes_copy_tofrom_phys(estatus, buf_paddr, buf_len, 1, fixmap_idx);
+@@ -353,7 +353,7 @@ static int __ghes_read_estatus(struct
+acpi_hest_generic_status *estatus,
+
+ static int ghes_read_estatus(struct ghes *ghes,
+                             struct acpi_hest_generic_status *estatus,
+-                            phys_addr_t *buf_paddr, int fixmap_idx)
++                            u64 *buf_paddr, int fixmap_idx)
+ {
+        int rc;
+        u32 buf_len;
+@@ -366,7 +366,7 @@ static int ghes_read_estatus(struct ghes *ghes,
+ }
+
+ static void ghes_clear_estatus(struct acpi_hest_generic_status *estatus,
+-                              phys_addr_t buf_paddr, int fixmap_idx)
++                              u64 buf_paddr, int fixmap_idx)
+ {
+        estatus->block_status = 0;
+        if (buf_paddr)
+@@ -716,9 +716,9 @@ static void ghes_print_queued_estatus(void)
+
+ static int _in_nmi_notify_one(struct ghes *ghes, int fixmap_idx)
+ {
++       u64 buf_paddr;
+        int sev, rc = 0;
+        u32 len, node_len;
+-       phys_addr_t buf_paddr;
+        struct ghes_estatus_node *estatus_node;
+        struct acpi_hest_generic_status *estatus;
+
+@@ -876,8 +876,8 @@ static int ghes_ack_error(struct acpi_hest_generic_v2 *gv2)
+ static int ghes_proc(struct ghes *ghes)
+ {
+        int rc;
++       u64 buf_paddr;
+        unsigned long flags;
+-       phys_addr_t buf_paddr;
+        struct acpi_hest_generic_status *estatus = ghes->estatus;
+
+        spin_lock_irqsave(&ghes_notify_lock_irq, flags);
