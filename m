@@ -1,45 +1,84 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: small dmesg regression in kernel 4.17.3
-Date: Wed, 27 Jun 2018 20:28:33 +0300
-Message-ID: <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
-References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+From: Ravi Chandra Sadineni <ravisadineni@chromium.org>
+Subject: [PATCH V3] ACPI LID: increment wakeup count only when notified.
+Date: Wed, 27 Jun 2018 10:55:02 -0700
+Message-ID: <20180627175502.178725-1-ravisadineni@chromium.org>
+References: <2352530.ePvj7nqZEq@aspire.rjw.lan>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
+In-Reply-To: <2352530.ePvj7nqZEq@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Toralf_F=C3=B6rster?= <toralf.foerster@gmx.de>, erik.schmauss@intel.com
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, ravisadineni@chromium.org, ravisadineni@google.com
+Cc: dmitry.torokhov@gmail.com, tbroch@google.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rajatja@google.com, bleung@google.com, furquan@chromium.org
 List-Id: linux-acpi@vger.kernel.org
 
-+Cc: Erik
+Because acpi_lid_initialize_state() is called on every system
+resume and it triggers acpi_lid_notify_state() which invokes
+acpi_pm_wakeup_event() for the lid device, the lid's wakeup count is
+incremented even if the lid was not the source of the event that woke up
+the system. That behavior confuses user space deamons using
+wakeup_count to identify the potential system wakeup source. To avoid
+the confusion, only trigger acpi_pm_wakeup_event() in the
+acpi_button_notify() path and don't do that in the
+acpi_lid_initialize_state() path.
 
-On Tue, Jun 26, 2018 at 8:57 PM, Toralf F=C3=B6rster <toralf.foerster@gmx.d=
-e> wrote:
-> The attached dmesg contains non printable chars 0x01 33 around "ACPI BIOS=
- Error (bug): Could not resolve" which is a new issue compared to the dmesg=
- of 4.17.2
->
-> System is a stable hardened Gentoo Linux at a ThinkPad T440s.
+Signed-off-by: Ravi Chandra Sadineni <ravisadineni@chromium.org>
+---
+ v3:  Change is_notification to signal_wakeup
+ V2: Increment the wakeup count only when the lid is open.
 
-I bet the below commit makes this.
+ drivers/acpi/button.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-commit 2e78935d1e27d31955ad2dad4abe6c453cf669fd
-Author: Erik Schmauss <erik.schmauss@intel.com>
-Date:   Fri Jun 1 12:06:43 2018 -0700
-
-   ACPICA: AML parser: attempt to continue loading table after error
-
-
-So, it does add leading '\n' which flushes buffers followed by
-printing the message you see. But, I'm guessing now, kernel adds a
-default level since it's going to dmesg which you can see as
-unprintable symbols.
-Personally I'm not a fan of leading '\n':s since it brings more pain
-than fixing something. It has special meaning (flushing buffers) and
-many developers forget this.
-
---=20
-With Best Regards,
-Andy Shevchenko
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 2345a5ee2dbbc..40ed3ec9fc94c 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -235,9 +235,6 @@ static int acpi_lid_notify_state(struct acpi_device *device, int state)
+ 		button->last_time = ktime_get();
+ 	}
+ 
+-	if (state)
+-		acpi_pm_wakeup_event(&device->dev);
+-
+ 	ret = blocking_notifier_call_chain(&acpi_lid_notifier, state, device);
+ 	if (ret == NOTIFY_DONE)
+ 		ret = blocking_notifier_call_chain(&acpi_lid_notifier, state,
+@@ -366,7 +363,8 @@ int acpi_lid_open(void)
+ }
+ EXPORT_SYMBOL(acpi_lid_open);
+ 
+-static int acpi_lid_update_state(struct acpi_device *device)
++static int acpi_lid_update_state(struct acpi_device *device,
++				 bool signal_wakeup)
+ {
+ 	int state;
+ 
+@@ -374,6 +372,9 @@ static int acpi_lid_update_state(struct acpi_device *device)
+ 	if (state < 0)
+ 		return state;
+ 
++	if (state && signal_wakeup)
++		acpi_pm_wakeup_event(&device->dev);
++
+ 	return acpi_lid_notify_state(device, state);
+ }
+ 
+@@ -384,7 +385,7 @@ static void acpi_lid_initialize_state(struct acpi_device *device)
+ 		(void)acpi_lid_notify_state(device, 1);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_METHOD:
+-		(void)acpi_lid_update_state(device);
++		(void)acpi_lid_update_state(device, false);
+ 		break;
+ 	case ACPI_BUTTON_LID_INIT_IGNORE:
+ 	default:
+@@ -409,7 +410,7 @@ static void acpi_button_notify(struct acpi_device *device, u32 event)
+ 			users = button->input->users;
+ 			mutex_unlock(&button->input->mutex);
+ 			if (users)
+-				acpi_lid_update_state(device);
++				acpi_lid_update_state(device, true);
+ 		} else {
+ 			int keycode;
+ 
+-- 
+2.18.0.rc2.346.g013aa6912e-goog
