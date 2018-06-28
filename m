@@ -1,92 +1,68 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH] ACPI: properties: expose device properties
- through sysfs
-Date: Thu, 28 Jun 2018 16:03:06 +0300
-Message-ID: <20180628130306.2yu42sez52q65nra@mwanda>
-References: <1530121294-13916-1-git-send-email-curt@cumulusnetworks.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
+ firmwware
+Date: Thu, 28 Jun 2018 15:24:07 +0100
+Message-ID: <bb444c46-b9a1-ad33-51a5-01d838494e07@arm.com>
+References: <20180628100656.10692-1-james.morse@arm.com>
+ <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <kbuild-bounces@lists.01.org>
-Content-Disposition: inline
-In-Reply-To: <1530121294-13916-1-git-send-email-curt@cumulusnetworks.com>
-List-Unsubscribe: <https://lists.01.org/mailman/options/kbuild>,
- <mailto:kbuild-request@lists.01.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/kbuild/>
-List-Post: <mailto:kbuild@lists.01.org>
-List-Help: <mailto:kbuild-request@lists.01.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/kbuild>,
- <mailto:kbuild-request@lists.01.org?subject=subscribe>
-Errors-To: kbuild-bounces@lists.01.org
-Sender: "kbuild" <kbuild-bounces@lists.01.org>
-To: kbuild@01.org, Curt Brune <curt@cumulusnetworks.com>
-Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, kbuild-all@01.org, sakari.ailus@linux.intel.com
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-[ We are working on a bug in the kbuild scripts but right now the
-  warnings aren't getting displayed so it's up to me to find a bug
-  Smatch *would* have complained about.  - dan ]
+Hi Ard,
 
-Hi Curt,
+On 28/06/18 11:25, Ard Biesheuvel wrote:
+> I understand the desire to keep running these M400s as long as they
+> have some life left in them, but the reality is that they are end of
+> life already, and not many were manufactured to begin with.
 
-Thank you for the patch! Perhaps something to improve:
+Sure, all this would really avoid is users having to specify 'disable_hest' on
+the cmdline. If these things are as rare as they sound, all the users are
+probably experts quite capable of doing this, and must have been doing this
+since v4.13.
 
-url:    https://github.com/0day-ci/linux/commits/Curt-Brune/ACPI-properties-expose-device-properties-through-sysfs/20180628-023020
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+[...]
 
-# https://github.com/0day-ci/linux/commit/ac7a4f1b39af207f1fc7630f13d9e04314efae60
-git remote add linux-review https://github.com/0day-ci/linux
-git remote update linux-review
-git checkout ac7a4f1b39af207f1fc7630f13d9e04314efae60
-vim +/sysfs_name +822 drivers/acpi/device_sysfs.c
+> As for the efi.h patch: I don't object to adding code that makes the
+> spec revision available, but note that this is *not* a firmware build
+> number, and so it should not be used as such.
 
-ac7a4f1b Curt Brune 2018-06-27  789  
-ac7a4f1b Curt Brune 2018-06-27  790  static void acpi_property_remove_attr(struct acpi_device *adev,
-ac7a4f1b Curt Brune 2018-06-27  791  				      const char *property)
-ac7a4f1b Curt Brune 2018-06-27  792  {
-ac7a4f1b Curt Brune 2018-06-27  793  	struct attribute attr = { 0 };
-ac7a4f1b Curt Brune 2018-06-27  794  	const union acpi_object *obj;
-ac7a4f1b Curt Brune 2018-06-27  795  	struct acpi_reference_args args;
-ac7a4f1b Curt Brune 2018-06-27  796  	char *sysfs_name;
-ac7a4f1b Curt Brune 2018-06-27  797  	int idx;
-ac7a4f1b Curt Brune 2018-06-27  798  	int err;
-ac7a4f1b Curt Brune 2018-06-27  799  
-ac7a4f1b Curt Brune 2018-06-27  800  	err = acpi_dev_get_property(adev, property, ACPI_TYPE_ANY, &obj);
-ac7a4f1b Curt Brune 2018-06-27  801  	if (err)
-ac7a4f1b Curt Brune 2018-06-27  802  		return;
-ac7a4f1b Curt Brune 2018-06-27  803  
-ac7a4f1b Curt Brune 2018-06-27  804  	attr.name = property;
-ac7a4f1b Curt Brune 2018-06-27  805  	sysfs_remove_file(&adev->data.kobj, &attr);
-ac7a4f1b Curt Brune 2018-06-27  806  
-ac7a4f1b Curt Brune 2018-06-27  807  	idx = 0;
-ac7a4f1b Curt Brune 2018-06-27  808  	while (__acpi_dev_get_property_reference(adev, property, idx,
-ac7a4f1b Curt Brune 2018-06-27  809  						 &args) == 0) {
-ac7a4f1b Curt Brune 2018-06-27  810  		if (idx == 0)
-ac7a4f1b Curt Brune 2018-06-27  811  			sysfs_name = kasprintf(GFP_KERNEL, "%s", property);
-ac7a4f1b Curt Brune 2018-06-27  812  		else
-ac7a4f1b Curt Brune 2018-06-27  813  			sysfs_name = kasprintf(GFP_KERNEL, "%s%u", property,
-ac7a4f1b Curt Brune 2018-06-27  814  					       idx);
-ac7a4f1b Curt Brune 2018-06-27  815  		if (!sysfs_name)
-ac7a4f1b Curt Brune 2018-06-27  816  			continue;
-ac7a4f1b Curt Brune 2018-06-27  817  
-ac7a4f1b Curt Brune 2018-06-27  818  		sysfs_remove_link(&adev->data.kobj, sysfs_name);
-ac7a4f1b Curt Brune 2018-06-27  819  		kfree(sysfs_name);
-                                                      ^^^^^^^^^^
-ac7a4f1b Curt Brune 2018-06-27  820  
-ac7a4f1b Curt Brune 2018-06-27  821  		if (args.nargs > 0) {
-ac7a4f1b Curt Brune 2018-06-27 @822  			attr.name = kasprintf(GFP_KERNEL, "%s_args",
-ac7a4f1b Curt Brune 2018-06-27  823  					      sysfs_name);
-                                                                              ^^^^^^^^^^
-Use after free.
+Ah, I thought it was, from:
+| efi.runtime_version = efi.systab->hdr.revision;
 
-ac7a4f1b Curt Brune 2018-06-27  824  			if (!attr.name)
-ac7a4f1b Curt Brune 2018-06-27  825  				continue;
-ac7a4f1b Curt Brune 2018-06-27  826  
-ac7a4f1b Curt Brune 2018-06-27  827  			sysfs_remove_file(&adev->data.kobj, &attr);
-ac7a4f1b Curt Brune 2018-06-27  828  			kfree(attr.name);
-ac7a4f1b Curt Brune 2018-06-27  829  		}
-ac7a4f1b Curt Brune 2018-06-27  830  
-ac7a4f1b Curt Brune 2018-06-27  831  		idx++;
-ac7a4f1b Curt Brune 2018-06-27  832  	}
-ac7a4f1b Curt Brune 2018-06-27  833  }
-ac7a4f1b Curt Brune 2018-06-27  834  
+I read this like an ACPI OEM revision, which obviously its not.
+(its was also motivated by something I can pick out of dmesg on the bug reports)
+
+So this is the wrong thing to do. Matching BIOS build dates is clearly silly,
+and doesn't scale to a range.
+
+
+> Also, given that m400 is
+> EOL and unmaintained, no firmware updates are expected, and so
+> assuming that there will be a UEFI 2.7 based update in the future
+> seems rather optimistic.
+
+Not just a future release (although I am forever optimistic), but I was trying
+not to match older versions without evidence that they are affected.
+
+I mistakenly thought this was something approximating a firmware build version.
+
+
+Thanks,
+
+James
