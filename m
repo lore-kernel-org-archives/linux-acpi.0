@@ -1,88 +1,92 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH] arm64: numa: rework ACPI NUMA initialization
-Date: Thu, 28 Jun 2018 20:55:30 +0800
-Message-ID: <aeb3d665-4135-f6ea-7f65-13b08983673e@huawei.com>
-References: <20180625130552.5636-1-lorenzo.pieralisi@arm.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH] ACPI: properties: expose device properties
+ through sysfs
+Date: Thu, 28 Jun 2018 16:03:06 +0300
+Message-ID: <20180628130306.2yu42sez52q65nra@mwanda>
+References: <1530121294-13916-1-git-send-email-curt@cumulusnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180625130552.5636-1-lorenzo.pieralisi@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org
-Cc: Xie XiuQi <xiexiuqi@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+Return-path: <kbuild-bounces@lists.01.org>
+Content-Disposition: inline
+In-Reply-To: <1530121294-13916-1-git-send-email-curt@cumulusnetworks.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/kbuild>,
+ <mailto:kbuild-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/kbuild/>
+List-Post: <mailto:kbuild@lists.01.org>
+List-Help: <mailto:kbuild-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/kbuild>,
+ <mailto:kbuild-request@lists.01.org?subject=subscribe>
+Errors-To: kbuild-bounces@lists.01.org
+Sender: "kbuild" <kbuild-bounces@lists.01.org>
+To: kbuild@01.org, Curt Brune <curt@cumulusnetworks.com>
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, kbuild-all@01.org, sakari.ailus@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018/6/25 21:05, Lorenzo Pieralisi wrote:
-> Current ACPI ARM64 NUMA initialization code in
-> 
-> acpi_numa_gicc_affinity_init()
-> 
-> carries out NUMA nodes creation and cpu<->node mappings at the same time
-> in the arch backend so that a single SRAT walk is needed to parse both
-> pieces of information.  This implies that the cpu<->node mappings must
-> be stashed in an array (sized NR_CPUS) so that SMP code can later use
-> the stashed values to avoid another SRAT table walk to set-up the early
-> cpu<->node mappings.
-> 
-> If the kernel is configured with a NR_CPUS value less than the actual
-> processor entries in the SRAT (and MADT), the logic in
-> acpi_numa_gicc_affinity_init() is broken in that the cpu<->node mapping
-> is only carried out (and stashed for future use) only for a number of
-> SRAT entries up to NR_CPUS, which do not necessarily correspond to the
-> possible cpus detected at SMP initialization in
-> acpi_map_gic_cpu_interface() (ie MADT and SRAT processor entries order
-> is not enforced), which leaves the kernel with broken cpu<->node
-> mappings.
-> 
-> Furthermore, given the current ACPI NUMA code parsing logic in
-> acpi_numa_gicc_affinity_init(), PXM domains for CPUs that are not parsed
-> because they exceed NR_CPUS entries are not mapped to NUMA nodes (ie the
-> PXM corresponding node is not created in the kernel) leaving the system
-> with a broken NUMA topology.
-> 
-> Rework the ACPI ARM64 NUMA initialization process so that the NUMA
-> nodes creation and cpu<->node mappings are decoupled. cpu<->node
-> mappings are moved to SMP initialization code (where they are needed),
-> at the cost of an extra SRAT walk so that ACPI NUMA mappings can be
-> batched before being applied, fixing current parsing pitfalls.
-> 
-> Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and
-> SLIT")
-> Link: http://lkml.kernel.org/r/1527768879-88161-2-git-send-email-xiexiuqi@huawei.com
-> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Punit Agrawal <punit.agrawal@arm.com>
-> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <guohanjun@huawei.com>
-> Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-> Cc: Jeremy Linton <jeremy.linton@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Xie XiuQi <xiexiuqi@huawei.com>
-> ---
->  arch/arm64/include/asm/acpi.h |  6 ++-
->  arch/arm64/kernel/acpi_numa.c | 88 ++++++++++++++++++++++++++-----------------
->  arch/arm64/kernel/smp.c       | 39 +++++++++++++------
->  3 files changed, 85 insertions(+), 48 deletions(-)
+[ We are working on a bug in the kbuild scripts but right now the
+  warnings aren't getting displayed so it's up to me to find a bug
+  Smatch *would* have complained about.  - dan ]
 
-Looks good to me,
+Hi Curt,
 
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+Thank you for the patch! Perhaps something to improve:
 
-Tested on D05 with NR_CPUS=48 (with last NUMA node boot
-without CPUs), the system works fine. If Xiuqi can test
-this patch on D06 with memory-less node, that would be
-more helpful.
+url:    https://github.com/0day-ci/linux/commits/Curt-Brune/ACPI-properties-expose-device-properties-through-sysfs/20180628-023020
+base:   https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
 
-Thanks
-Hanjun
+# https://github.com/0day-ci/linux/commit/ac7a4f1b39af207f1fc7630f13d9e04314efae60
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout ac7a4f1b39af207f1fc7630f13d9e04314efae60
+vim +/sysfs_name +822 drivers/acpi/device_sysfs.c
+
+ac7a4f1b Curt Brune 2018-06-27  789  
+ac7a4f1b Curt Brune 2018-06-27  790  static void acpi_property_remove_attr(struct acpi_device *adev,
+ac7a4f1b Curt Brune 2018-06-27  791  				      const char *property)
+ac7a4f1b Curt Brune 2018-06-27  792  {
+ac7a4f1b Curt Brune 2018-06-27  793  	struct attribute attr = { 0 };
+ac7a4f1b Curt Brune 2018-06-27  794  	const union acpi_object *obj;
+ac7a4f1b Curt Brune 2018-06-27  795  	struct acpi_reference_args args;
+ac7a4f1b Curt Brune 2018-06-27  796  	char *sysfs_name;
+ac7a4f1b Curt Brune 2018-06-27  797  	int idx;
+ac7a4f1b Curt Brune 2018-06-27  798  	int err;
+ac7a4f1b Curt Brune 2018-06-27  799  
+ac7a4f1b Curt Brune 2018-06-27  800  	err = acpi_dev_get_property(adev, property, ACPI_TYPE_ANY, &obj);
+ac7a4f1b Curt Brune 2018-06-27  801  	if (err)
+ac7a4f1b Curt Brune 2018-06-27  802  		return;
+ac7a4f1b Curt Brune 2018-06-27  803  
+ac7a4f1b Curt Brune 2018-06-27  804  	attr.name = property;
+ac7a4f1b Curt Brune 2018-06-27  805  	sysfs_remove_file(&adev->data.kobj, &attr);
+ac7a4f1b Curt Brune 2018-06-27  806  
+ac7a4f1b Curt Brune 2018-06-27  807  	idx = 0;
+ac7a4f1b Curt Brune 2018-06-27  808  	while (__acpi_dev_get_property_reference(adev, property, idx,
+ac7a4f1b Curt Brune 2018-06-27  809  						 &args) == 0) {
+ac7a4f1b Curt Brune 2018-06-27  810  		if (idx == 0)
+ac7a4f1b Curt Brune 2018-06-27  811  			sysfs_name = kasprintf(GFP_KERNEL, "%s", property);
+ac7a4f1b Curt Brune 2018-06-27  812  		else
+ac7a4f1b Curt Brune 2018-06-27  813  			sysfs_name = kasprintf(GFP_KERNEL, "%s%u", property,
+ac7a4f1b Curt Brune 2018-06-27  814  					       idx);
+ac7a4f1b Curt Brune 2018-06-27  815  		if (!sysfs_name)
+ac7a4f1b Curt Brune 2018-06-27  816  			continue;
+ac7a4f1b Curt Brune 2018-06-27  817  
+ac7a4f1b Curt Brune 2018-06-27  818  		sysfs_remove_link(&adev->data.kobj, sysfs_name);
+ac7a4f1b Curt Brune 2018-06-27  819  		kfree(sysfs_name);
+                                                      ^^^^^^^^^^
+ac7a4f1b Curt Brune 2018-06-27  820  
+ac7a4f1b Curt Brune 2018-06-27  821  		if (args.nargs > 0) {
+ac7a4f1b Curt Brune 2018-06-27 @822  			attr.name = kasprintf(GFP_KERNEL, "%s_args",
+ac7a4f1b Curt Brune 2018-06-27  823  					      sysfs_name);
+                                                                              ^^^^^^^^^^
+Use after free.
+
+ac7a4f1b Curt Brune 2018-06-27  824  			if (!attr.name)
+ac7a4f1b Curt Brune 2018-06-27  825  				continue;
+ac7a4f1b Curt Brune 2018-06-27  826  
+ac7a4f1b Curt Brune 2018-06-27  827  			sysfs_remove_file(&adev->data.kobj, &attr);
+ac7a4f1b Curt Brune 2018-06-27  828  			kfree(attr.name);
+ac7a4f1b Curt Brune 2018-06-27  829  		}
+ac7a4f1b Curt Brune 2018-06-27  830  
+ac7a4f1b Curt Brune 2018-06-27  831  		idx++;
+ac7a4f1b Curt Brune 2018-06-27  832  	}
+ac7a4f1b Curt Brune 2018-06-27  833  }
+ac7a4f1b Curt Brune 2018-06-27  834  
