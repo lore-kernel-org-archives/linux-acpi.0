@@ -1,60 +1,48 @@
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
- firmwware
-Date: Thu, 28 Jun 2018 22:56:29 +0200
-Message-ID: <CAKv+Gu8OkHZJL8FXhsfQP8JodWLTFg5kz4wVcDPVWTs-29buug@mail.gmail.com>
-References: <20180628100656.10692-1-james.morse@arm.com>
- <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
- <ef039f0c-dea2-80d7-e6fa-481f3452a600@infradead.org>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: small dmesg regression in kernel 4.17.3
+Date: Thu, 28 Jun 2018 22:13:54 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
+References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
+ <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <ef039f0c-dea2-80d7-e6fa-481f3452a600@infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Geoff Levand <geoff@infradead.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, =?utf-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>, "Moore, Robert" <robert.moore@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 28 June 2018 at 18:15, Geoff Levand <geoff@infradead.org> wrote:
-> Hi Ard,
->
-> On 06/28/2018 03:25 AM, Ard Biesheuvel wrote:
->
->> Given how the upstream kernel is aimed at future development, I don't
->> think we should fix this in the upstream kernel at all. Distros are
->> free to do what they like, of course, and I'm sure RedHat already have
->> a fix for this in their downstream kernel.
->
-> Debian expects the kernel to work correctly, and so won't add a fix.
-> That means CONFIG_ACPI_APEI can't be enabled, and so users must either
-> go without APEI or use a custom built kernel. See:
->
->   https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=900581
->
-
-Hi Geoff,
-
-I am aware of the context of this discussion, and I feel your pain,
-given that you don't care about m400 in the first place.
-
-So I guess we should take this up with the Debian folks directly. They
-apparently do care about m400, and are reluctant to have to add
-'hest_disable=1' to the kernel command line.
-
-But that does not make it an upstream problem. The fact that this is
-an EOL platform of which only a couple of hundred are in circulation,
-combined with the fact that there is a trivial workaround available
-(the command line option) makes it a non-issue in my opinion,
-especially given the fact that not a single distro ships pristine
-mainline kernels, and so they can carry the quirk themselves.
-
-I
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtv
+IFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBK
+dW5lIDI3LCAyMDE4IDEwOjI5IEFNDQo+IFRvOiBUb3JhbGYgRsO2cnN0ZXIgPHRvcmFsZi5mb2Vy
+c3RlckBnbXguZGU+OyBTY2htYXVzcywgRXJpaw0KPiA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+
+DQo+IENjOiBBQ1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
+Zz47IExpbnV4IEtlcm5lbCA8bGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1
+YmplY3Q6IFJlOiBzbWFsbCBkbWVzZyByZWdyZXNzaW9uIGluIGtlcm5lbCA0LjE3LjMNCj4gDQo+
+ICtDYzogRXJpaw0KPiANCj4gT24gVHVlLCBKdW4gMjYsIDIwMTggYXQgODo1NyBQTSwgVG9yYWxm
+IEbDtnJzdGVyIDx0b3JhbGYuZm9lcnN0ZXJAZ214LmRlPg0KPiB3cm90ZToNCj4gPiBUaGUgYXR0
+YWNoZWQgZG1lc2cgY29udGFpbnMgbm9uIHByaW50YWJsZSBjaGFycyAweDAxIDMzIGFyb3VuZCAi
+QUNQSQ0KPiA+IEJJT1MgRXJyb3IgKGJ1Zyk6IENvdWxkIG5vdCByZXNvbHZlIiB3aGljaCBpcyBh
+IG5ldyBpc3N1ZSBjb21wYXJlZCB0bw0KPiA+IHRoZSBkbWVzZyBvZiA0LjE3LjINCj4gPg0KPiA+
+IFN5c3RlbSBpcyBhIHN0YWJsZSBoYXJkZW5lZCBHZW50b28gTGludXggYXQgYSBUaGlua1BhZCBU
+NDQwcy4NCj4gDQo+IEkgYmV0IHRoZSBiZWxvdyBjb21taXQgbWFrZXMgdGhpcy4NCj4gDQo+IGNv
+bW1pdCAyZTc4OTM1ZDFlMjdkMzE5NTVhZDJkYWQ0YWJlNmM0NTNjZjY2OWZkDQo+IEF1dGhvcjog
+RXJpayBTY2htYXVzcyA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IERhdGU6ICAgRnJpIEp1
+biAxIDEyOjA2OjQzIDIwMTggLTA3MDANCj4gDQo+ICAgIEFDUElDQTogQU1MIHBhcnNlcjogYXR0
+ZW1wdCB0byBjb250aW51ZSBsb2FkaW5nIHRhYmxlIGFmdGVyIGVycm9yDQo+IA0KPiANCkhpIEFu
+ZHksDQoNCj4gU28sIGl0IGRvZXMgYWRkIGxlYWRpbmcgJ1xuJyB3aGljaCBmbHVzaGVzIGJ1ZmZl
+cnMgZm9sbG93ZWQgYnkgcHJpbnRpbmcgdGhlDQo+IG1lc3NhZ2UgeW91IHNlZS4gQnV0LCBJJ20g
+Z3Vlc3Npbmcgbm93LCBrZXJuZWwgYWRkcyBhIGRlZmF1bHQgbGV2ZWwgc2luY2UgaXQncw0KPiBn
+b2luZyB0byBkbWVzZyB3aGljaCB5b3UgY2FuIHNlZSBhcyB1bnByaW50YWJsZSBzeW1ib2xzLg0K
+DQpXaGF0IGRvIHlvdSBtZWFuIGJ5IGEgZGVmYXVsdCBsZXZlbD8NCg0KPiBQZXJzb25hbGx5IEkn
+bSBub3QgYSBmYW4gb2YgbGVhZGluZyAnXG4nOnMgc2luY2UgaXQgYnJpbmdzIG1vcmUgcGFpbiB0
+aGFuIGZpeGluZw0KPiBzb21ldGhpbmcuIEl0IGhhcyBzcGVjaWFsIG1lYW5pbmcgKGZsdXNoaW5n
+IGJ1ZmZlcnMpIGFuZCBtYW55IGRldmVsb3BlcnMgZm9yZ2V0DQo+IHRoaXMuDQoNClRoaXMgbGVh
+ZGluZyAnXG4nIG1hZGUgaXQgaW4gTGludXgga2VybmVsIHVuaW50ZW50aW9uYWxseS4gSXQgd2Fz
+IG9yaWdpbmFsbHkgaW50ZW5kZWQgYXMgYSBjaGFuZ2UgZm9yIGFjcGlleGVjIGFuZCBpdCBtYWtl
+cyB0aGUgZG1lc2cgbG9vayBzdHJhbmdlLiBJJ2xsIHNlbmQgb3V0IGEgZml4Lg0KDQpUaGFua3Mg
+Zm9yIHJlcG9ydGluZyBpdCwNCg0KRXJpaw0KPiANCj4gLS0NCj4gV2l0aCBCZXN0IFJlZ2FyZHMs
+DQo+IEFuZHkgU2hldmNoZW5rbw0K
