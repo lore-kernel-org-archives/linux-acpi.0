@@ -1,12 +1,13 @@
 From: James Morse <james.morse@arm.com>
-Subject: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
- firmwware
-Date: Thu, 28 Jun 2018 11:06:54 +0100
-Message-ID: <20180628100656.10692-1-james.morse@arm.com>
+Subject: [RFC/RFT PATCH 1/2] efi: Add helper to retrieve runtime version number
+Date: Thu, 28 Jun 2018 11:06:55 +0100
+Message-ID: <20180628100656.10692-2-james.morse@arm.com>
+References: <20180628100656.10692-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180628100656.10692-1-james.morse@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -20,44 +21,40 @@ To: linux-acpi@vger.kernel.org
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are reports[0] that HPE's 'ProLiant m400 Server' (aka moonshot) has
-broken RAS support, and adding disable_hest to the kernel cmdline is the
-only way to make the board boot if APEI support is built into the kernel.
+Some RAS errors are related to an invalid hardware access that was
+made by software. Sometimes this happens before the kernel runs.
 
-After Mark Salter's investigation[1] we know that UEFI's ExitBootServices
-is doing something that causes a fatal error to be written to GHES.2.
-Once the kernel finds this, it falsely assume it was due to something that
-happened during boot, and panic()s.
+For example, HPE's ProLiant m400 Server (aka moonshot) trips the
+platforms RAS mechanism during ExitBootServices. Once the kernel
+probes the RAS error descriptor regions, it finds a stale 'fatal
+error', and hits the deck.
 
-This series adds a DMI quirks table to hest.c, and adds a helper that lets
-us query the UEFI system table version, to set hest_disabled on this
-platform.
+Quirking this platform based on the DMI data doesn't capture that
+the bug lies in the platforms UEFI firmware. Expose the runtime
+version, originally retrieved from the EFI system table's header
+revision field, so that any future or unaffected platform firmware
+isn't swept up too.
 
-Testing the HEST table vendor and revision is a problem as this would
-match all 'HPE ProLiant', some of which may be a totally different CPU
-architecture.
+Signed-off-by: James Morse <james.morse@arm.com>
+---
+ include/linux/efi.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-
-I don't have access to an m400, these DMI and UEFI values were taken from
-the crashlog report at [0], then tested with the equivalent fields on
-Seattle.
-
-
-Thanks,
-
-James
-
-[0] https://bugzilla.redhat.com/show_bug.cgi?id=1574718
-[1] https://www.spinics.net/lists/arm-kernel/msg660956.html
-
-James Morse (2):
-  efi: Add helper to retrieve runtime version number
-  ACPI / APEI: Add DMI matching quirks for platforms that require
-    hest_disable
-
- drivers/acpi/apei/hest.c | 38 ++++++++++++++++++++++++++++++++++++++
- include/linux/efi.h      |  5 +++++
- 2 files changed, 43 insertions(+)
-
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 56add823f190..42ddf8399814 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -966,6 +966,11 @@ extern struct efi {
+ 	unsigned long flags;
+ } efi;
+ 
++static inline unsigned int efi_get_runtime_version(void)
++{
++	return efi.runtime_version;
++}
++
+ extern struct mm_struct efi_mm;
+ 
+ static inline int
 -- 
 2.17.1
