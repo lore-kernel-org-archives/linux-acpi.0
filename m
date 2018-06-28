@@ -1,8 +1,8 @@
-From: James Morse <james.morse@arm.com>
+From: Geoff Levand <geoff@infradead.org>
 Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
  firmwware
-Date: Thu, 28 Jun 2018 15:24:07 +0100
-Message-ID: <bb444c46-b9a1-ad33-51a5-01d838494e07@arm.com>
+Date: Thu, 28 Jun 2018 09:15:28 -0700
+Message-ID: <ef039f0c-dea2-80d7-e6fa-481f3452a600@infradead.org>
 References: <20180628100656.10692-1-james.morse@arm.com>
  <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
 Mime-Version: 1.0
@@ -20,49 +20,23 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+To: Ard Biesheuvel <ard.biesheuvel@linaro.org>, James Morse <james.morse@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi Ard,
 
-On 28/06/18 11:25, Ard Biesheuvel wrote:
-> I understand the desire to keep running these M400s as long as they
-> have some life left in them, but the reality is that they are end of
-> life already, and not many were manufactured to begin with.
+On 06/28/2018 03:25 AM, Ard Biesheuvel wrote:
 
-Sure, all this would really avoid is users having to specify 'disable_hest' on
-the cmdline. If these things are as rare as they sound, all the users are
-probably experts quite capable of doing this, and must have been doing this
-since v4.13.
+> Given how the upstream kernel is aimed at future development, I don't
+> think we should fix this in the upstream kernel at all. Distros are
+> free to do what they like, of course, and I'm sure RedHat already have
+> a fix for this in their downstream kernel. 
 
-[...]
+Debian expects the kernel to work correctly, and so won't add a fix.
+That means CONFIG_ACPI_APEI can't be enabled, and so users must either
+go without APEI or use a custom built kernel. See:
 
-> As for the efi.h patch: I don't object to adding code that makes the
-> spec revision available, but note that this is *not* a firmware build
-> number, and so it should not be used as such.
+  https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=900581
 
-Ah, I thought it was, from:
-| efi.runtime_version = efi.systab->hdr.revision;
-
-I read this like an ACPI OEM revision, which obviously its not.
-(its was also motivated by something I can pick out of dmesg on the bug reports)
-
-So this is the wrong thing to do. Matching BIOS build dates is clearly silly,
-and doesn't scale to a range.
-
-
-> Also, given that m400 is
-> EOL and unmaintained, no firmware updates are expected, and so
-> assuming that there will be a UEFI 2.7 based update in the future
-> seems rather optimistic.
-
-Not just a future release (although I am forever optimistic), but I was trying
-not to match older versions without evidence that they are affected.
-
-I mistakenly thought this was something approximating a firmware build version.
-
-
-Thanks,
-
-James
+-Geoff
