@@ -1,106 +1,61 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
 Subject: Re: small dmesg regression in kernel 4.17.3
-Date: Fri, 29 Jun 2018 11:31:59 +0200
-Message-ID: <3440214.eqW5gfvlOh@aspire.rjw.lan>
-References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de> <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com> <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
+Date: Fri, 29 Jun 2018 13:43:13 +0300
+Message-ID: <CAHp75Vcp=uNrQDxGFgPjji4HxEQDR+DGeK5UgtG46ZYiV0Ag5Q@mail.gmail.com>
+References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de> <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Schmauss, Erik" <erik.schmauss@intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>
+Cc: =?UTF-8?Q?Toralf_F=C3=B6rster?= <toralf.foerster@gmx.de>, "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, June 29, 2018 12:13:54 AM CEST Schmauss, Erik wrote:
-> 
-> > -----Original Message-----
-> > From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
-> > Sent: Wednesday, June 27, 2018 10:29 AM
-> > To: Toralf Förster <toralf.foerster@gmx.de>; Schmauss, Erik
-> > <erik.schmauss@intel.com>
-> > Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Linux Kernel <linux-
-> > kernel@vger.kernel.org>
-> > Subject: Re: small dmesg regression in kernel 4.17.3
-> > 
-> > +Cc: Erik
-> > 
-> > On Tue, Jun 26, 2018 at 8:57 PM, Toralf Förster <toralf.foerster@gmx.de>
-> > wrote:
-> > > The attached dmesg contains non printable chars 0x01 33 around "ACPI
-> > > BIOS Error (bug): Could not resolve" which is a new issue compared to
-> > > the dmesg of 4.17.2
-> > >
-> > > System is a stable hardened Gentoo Linux at a ThinkPad T440s.
-> > 
-> > I bet the below commit makes this.
-> > 
-> > commit 2e78935d1e27d31955ad2dad4abe6c453cf669fd
-> > Author: Erik Schmauss <erik.schmauss@intel.com>
-> > Date:   Fri Jun 1 12:06:43 2018 -0700
-> > 
-> >    ACPICA: AML parser: attempt to continue loading table after error
-> > 
-> > 
+On Fri, Jun 29, 2018 at 1:13 AM, Schmauss, Erik <erik.schmauss@intel.com> w=
+rote:
+>> On Tue, Jun 26, 2018 at 8:57 PM, Toralf F=C3=B6rster <toralf.foerster@gm=
+x.de>
+>> wrote:
+>> > The attached dmesg contains non printable chars 0x01 33 around "ACPI
+>> > BIOS Error (bug): Could not resolve" which is a new issue compared to
+>> > the dmesg of 4.17.2
+>> >
+>> > System is a stable hardened Gentoo Linux at a ThinkPad T440s.
+>>
+>> I bet the below commit makes this.
+>>
+>> commit 2e78935d1e27d31955ad2dad4abe6c453cf669fd
+>> Author: Erik Schmauss <erik.schmauss@intel.com>
+>> Date:   Fri Jun 1 12:06:43 2018 -0700
+>>
+>>    ACPICA: AML parser: attempt to continue loading table after error
+>>
+>>
 > Hi Andy,
-> 
-> > So, it does add leading '\n' which flushes buffers followed by printing the
-> > message you see. But, I'm guessing now, kernel adds a default level since it's
-> > going to dmesg which you can see as unprintable symbols.
-> 
+>
+>> So, it does add leading '\n' which flushes buffers followed by printing =
+the
+>> message you see. But, I'm guessing now, kernel adds a default level sinc=
+e it's
+>> going to dmesg which you can see as unprintable symbols.
+>
 > What do you mean by a default level?
-> 
-> > Personally I'm not a fan of leading '\n':s since it brings more pain than fixing
-> > something. It has special meaning (flushing buffers) and many developers forget
-> > this.
-> 
-> This leading '\n' made it in Linux kernel unintentionally. It was originally intended as a change for acpiexec and it makes the dmesg look strange. I'll send out a fix.
 
-Which would be something like the patch below I suppose?
+I can't find fast the better example, though if you look at  printk_get_lev=
+el()
+https://elixir.bootlin.com/linux/latest/source/include/linux/printk.h#L16
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: [PATCH] ACPICA: Drop leading newlines from error messages
+it will shed a light on a format. Thus, 0x01 0x33 means start of the
+kernel error message (error is a level).
 
-Commit 5088814a6e93 (ACPICA: AML parser: attempt to continue loading
-table after error) unintentionally added leading newlines to error
-messages emitted by ACPICA which caused unexpected things to be
-printed to the kernel log.  Drop these newlines (which effectively
-reverts the part of commit 5088814a6e93 adding them).
+Kernel messaging protocol is defined in
+https://elixir.bootlin.com/linux/latest/source/include/linux/kern_levels.h
 
-Fixes: 5088814a6e93 (ACPICA: AML parser: attempt to continue loading table after error)
-Reported-by: Toralf Förster <toralf.foerster@gmx.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpica/uterror.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+This is my understanding on what's going on (I might be mistaken).
 
-Index: linux-pm/drivers/acpi/acpica/uterror.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/uterror.c
-+++ linux-pm/drivers/acpi/acpica/uterror.c
-@@ -182,19 +182,19 @@ acpi_ut_prefixed_namespace_error(const c
- 	switch (lookup_status) {
- 	case AE_ALREADY_EXISTS:
- 
--		acpi_os_printf("\n" ACPI_MSG_BIOS_ERROR);
-+		acpi_os_printf(ACPI_MSG_BIOS_ERROR);
- 		message = "Failure creating";
- 		break;
- 
- 	case AE_NOT_FOUND:
- 
--		acpi_os_printf("\n" ACPI_MSG_BIOS_ERROR);
-+		acpi_os_printf(ACPI_MSG_BIOS_ERROR);
- 		message = "Could not resolve";
- 		break;
- 
- 	default:
- 
--		acpi_os_printf("\n" ACPI_MSG_ERROR);
-+		acpi_os_printf(ACPI_MSG_ERROR);
- 		message = "Failure resolving";
- 		break;
- 	}
+--=20
+With Best Regards,
+Andy Shevchenko
