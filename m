@@ -1,11 +1,11 @@
 From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: [PATCH v1 1/2] PCI: Document patch submission hints
-Date: Fri, 29 Jun 2018 15:27:39 -0500
-Message-ID: <153030405971.57832.12860154795039493576.stgit@bhelgaas-glaptop.roam.corp.google.com>
+Subject: [PATCH v1 2/2] PCI: Document ACPI description of PCI host bridges
+Date: Fri, 29 Jun 2018 15:27:46 -0500
+Message-ID: <153030406630.57832.11564334393458981467.stgit@bhelgaas-glaptop.roam.corp.google.com>
 References: <153030390808.57832.2200774416664543563.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <153030390808.57832.2200774416664543563.stgit@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
@@ -15,184 +15,214 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bjorn Helgaas <bhelgaas@google.com>
 
-Add hints about how to write PCI patches and changelogs.
+Add a writeup about how PCI host bridges should be described in ACPI
+using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
 
 Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 ---
- Documentation/PCI/00-INDEX               |    2 
- Documentation/PCI/submitting-patches.txt |  153 ++++++++++++++++++++++++++++++
- 2 files changed, 155 insertions(+)
- create mode 100644 Documentation/PCI/submitting-patches.txt
+ Documentation/PCI/00-INDEX      |    2 
+ Documentation/PCI/acpi-info.txt |  183 +++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 185 insertions(+)
+ create mode 100644 Documentation/PCI/acpi-info.txt
 
 diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
-index 00c9a90b6f38..0f1d1de087f1 100644
+index 0f1d1de087f1..fc6af2957e55 100644
 --- a/Documentation/PCI/00-INDEX
 +++ b/Documentation/PCI/00-INDEX
-@@ -12,6 +12,8 @@ pci.txt
- 	- info on the PCI subsystem for device driver authors
- pcieaer-howto.txt
- 	- the PCI Express Advanced Error Reporting Driver Guide HOWTO
-+submitting-patches.txt
-+	- hints about how to submit PCI patches
- endpoint/pci-endpoint.txt
- 	- guide to add endpoint controller driver and endpoint function driver.
- endpoint/pci-endpoint-cfs.txt
-diff --git a/Documentation/PCI/submitting-patches.txt b/Documentation/PCI/submitting-patches.txt
+@@ -1,5 +1,7 @@
+ 00-INDEX
+ 	- this file
++acpi-info.txt
++	- info on how PCI host bridges are represented in ACPI
+ MSI-HOWTO.txt
+ 	- the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
+ PCIEBUS-HOWTO.txt
+diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
 new file mode 100644
-index 000000000000..d6a694182446
+index 000000000000..9b8e7b560b50
 --- /dev/null
-+++ b/Documentation/PCI/submitting-patches.txt
-@@ -0,0 +1,153 @@
-+Start with Documentation/process/submitting-patches.rst for general
-+guidance.
++++ b/Documentation/PCI/acpi-info.txt
+@@ -0,0 +1,183 @@
++	    ACPI considerations for PCI host bridges
 +
-+These are things I look at when reviewing patches.  Most of the technical
-+things are obvious or covered elsewhere.  Some things here are cosmetic
-+personal preferences, but consistency makes maintenance easier.  I silently
-+fix up most of the trivial things, so don't get too hung up on the details.
++The general rule is that the ACPI namespace should describe everything the
++OS might use unless there's another way for the OS to find it [1, 2].
 +
-+Write the patch:
++For example, there's no standard hardware mechanism for enumerating PCI
++host bridges, so ACPI must describe each host bridge, the method for
++accessing PCI config space below it, the address space windows the bridge
++forwards to PCI, and the routing of legacy INTx interrupts.
 +
-+  - Make each patch small but complete by itself.  Don't worry about making
-+    patches *too* small; it's trivial for me to squash patches together if
-+    necessary.
++PCI devices *below* the host bridge generally do not need to be described
++via ACPI because the OS can discover them via the standard PCI enumeration
++mechanism, which uses config accesses to discover and identify the device
++and read and size its BARs.
 +
-+  - Make sure the kernel builds after every patch.  You can't introduce a
-+    problem in one patch and fix it in a subsequent patch.  If one of the
-+    autobuilders finds a build issue, I'll revert the patch unless you send
-+    a fix.
++ACPI resource description is done via _CRS objects of devices in the ACPI
++namespace [2].   The _CRS is like a generalized PCI BAR: the OS can read
++_CRS and figure out what resource is being consumed even if it doesn't have
++a driver for the device [3].  That's important because it means an old OS
++can work correctly even on a system with new devices unknown to the OS.
++The new devices might not do anything, but the OS can at least make sure no
++resources conflict with them.
 +
-+  - Please do send whitespace and coding style fixes, but don't mix them
-+    with other substantive changes.  It's easier for people to backport
-+    fixes if whitespace changes are at the end of a series.
++Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
++reserving address space!  The static tables are for things the OS needs to
++know early in boot, before it can parse the ACPI namespace.  If a new table
++is defined, an old OS needs to operate correctly even though it ignores the
++table.  _CRS allows that because it is generic and understood by the old
++OS; a static table does not.
 +
-+  - Wrap code and comments to fit in 80 columns.  Exception: I prefer
-+    printk strings to be in one piece for searchability, so don't split
-+    quoted strings to make them fit in 80 columns.
++If the OS is expected to manage a non-discoverable device described via
++ACPI, that device will have a specific _HID/_CID that tells the OS what
++driver to bind to it, and the _CRS tells the OS and the driver where the
++device's registers are.
 +
-+  - Follow the existing style for code, names, and indentation.  When
-+    you're finished, the file should look like it was all written by one
-+    person.
++PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
++describe all the address space they consume.  This includes all the windows
++they forward down to the PCI bus, as well as bridge registers that are not
++forwarded to PCI.  The bridge registers include things like secondary/
++subordinate bus registers that determine the bus range below the bridge,
++window registers that describe the apertures, etc.  These are all
++device-specific, non-architected things, so the only way a PNP0A03/PNP0A08
++driver can manage them is via _PRS/_CRS/_SRS, which contain the
++device-specific details.  The bridge registers also include ECAM space,
++since it is consumed by the bridge.
 +
-+Write the changelog title (first line of the changelog):
++ACPI defines a Consumer/Producer bit to distinguish the bridge registers
++("Consumer") from the bridge apertures ("Producer") [4, 5], but early
++BIOSes didn't use that bit correctly.  The result is that the current ACPI
++spec defines Consumer/Producer only for the Extended Address Space
++descriptors; the bit should be ignored in the older QWord/DWord/Word
++Address Space descriptors.  Consequently, OSes have to assume all
++QWord/DWord/Word descriptors are windows.
 +
-+  - Follow the existing convention  Run "git log --oneline <file>" and make
-+    your subject line match previous changes in format, capitalization, and
-+    sentence structure.  For example, native host bridge driver patch
-+    titles look like this:
++Prior to the addition of Extended Address Space descriptors, the failure of
++Consumer/Producer meant there was no way to describe bridge registers in
++the PNP0A03/PNP0A08 device itself.  The workaround was to describe the
++bridge registers (including ECAM space) in PNP0C02 catch-all devices [6].
++With the exception of ECAM, the bridge register space is device-specific
++anyway, so the generic PNP0A03/PNP0A08 driver (pci_root.c) has no need to
++know about it.  
 +
-+      PCI: vmd: Remove IRQ affinity so we can allocate more IRQs
-+      PCI: mediatek: Add MSI support for MT2712 and MT7622
-+      PCI: rockchip: Remove IRQ domain if probe fails
++New architectures should be able to use "Consumer" Extended Address Space
++descriptors in the PNP0A03 device for bridge registers, including ECAM,
++although a strict interpretation of [6] might prohibit this.  Old x86 and
++ia64 kernels assume all address space descriptors, including "Consumer"
++Extended Address Space ones, are windows, so it would not be safe to
++describe bridge registers this way on those architectures.
 +
-+  - Write a complete sentence, starting with a capitalized verb.
++PNP0C02 "motherboard" devices are basically a catch-all.  There's no
++programming model for them other than "don't use these resources for
++anything else."  So a PNP0C02 _CRS should claim any address space that is
++(1) not claimed by _CRS under any other device object in the ACPI namespace
++and (2) should not be assigned by the OS to something else.
 +
-+  - Include specific details, e.g., write "Add XYZ controller support"
-+    instead of "add support for new generation controller".
++The PCIe spec requires the Enhanced Configuration Access Method (ECAM)
++unless there's a standard firmware interface for config access, e.g., the
++ia64 SAL interface [7].  A host bridge consumes ECAM memory address space
++and converts memory accesses into PCI configuration accesses.  The spec
++defines the ECAM address space layout and functionality; only the base of
++the address space is device-specific.  An ACPI OS learns the base address
++from either the static MCFG table or a _CBA method in the PNP0A03 device.
 +
-+  - Do not include a trailing period in the title.
++The MCFG table must describe the ECAM space of non-hot pluggable host
++bridges [8].  Since MCFG is a static table and can't be updated by hotplug,
++a _CBA method in the PNP0A03 device describes the ECAM space of a
++hot-pluggable host bridge [9].  Note that for both MCFG and _CBA, the base
++address always corresponds to bus 0, even if the bus range below the bridge
++(which is reported via _CRS) doesn't start at 0.
 +
-+Write the changelog:
 +
-+  - Make the changelog readable without the title.  The changelog is not a
-+    continuation of the title, so it should make sense by itself.  Always
-+    include a changelog, even if it is the same as the title.
++[1] ACPI 6.2, sec 6.1:
++    For any device that is on a non-enumerable type of bus (for example, an
++    ISA bus), OSPM enumerates the devices' identifier(s) and the ACPI
++    system firmware must supply an _HID object ... for each device to
++    enable OSPM to do that.
 +
-+  - Explain the change (not just "Fix a problem"), but do it as concisely
-+    as possible.  Include function names, references to sections of the
-+    spec, URLs for bug reports, etc.  This makes reviewing and future
-+    maintenance easier.
++[2] ACPI 6.2, sec 3.7:
++    The OS enumerates motherboard devices simply by reading through the
++    ACPI Namespace looking for devices with hardware IDs.
 +
-+  - Capitalize initialisms ("PCI", "IRQ", "ID", "MSI", etc) in all English
-+    text, including title, changelog, and comments.  These are usually
-+    written in lower-case in the C code, but please follow normal English
-+    conventions in text.
++    Each device enumerated by ACPI includes ACPI-defined objects in the
++    ACPI Namespace that report the hardware resources the device could
++    occupy [_PRS], an object that reports the resources that are currently
++    used by the device [_CRS], and objects for configuring those resources
++    [_SRS].  The information is used by the Plug and Play OS (OSPM) to
++    configure the devices.
 +
-+  - Include "()" after function names and "[]" after array names as a
-+    visual clue that these refer to something in the code.
++[3] ACPI 6.2, sec 6.2:
++    OSPM uses device configuration objects to configure hardware resources
++    for devices enumerated via ACPI.  Device configuration objects provide
++    information about current and possible resource requirements, the
++    relationship between shared resources, and methods for configuring
++    hardware resources.
 +
-+  - Include dmesg output and stack trace when relevant.  Prune details that
-+    aren't relevant, e.g., you can usually remove timestamps and function
-+    addresses.  The objective is to concisely illustrate the issue and make
-+    it discoverable by search engines.
++    When OSPM enumerates a device, it calls _PRS to determine the resource
++    requirements of the device.  It may also call _CRS to find the current
++    resource settings for the device.  Using this information, the Plug and
++    Play system determines what resources the device should consume and
++    sets those resources by calling the device’s _SRS control method.
 +
-+  - Use spaces (not tabs) in the changelog because "git log" indents the
-+    changelog and things aligned with tabs won't stay aligned.
++    In ACPI, devices can consume resources (for example, legacy keyboards),
++    provide resources (for example, a proprietary PCI bridge), or do both.
++    Unless otherwise specified, resources for a device are assumed to be
++    taken from the nearest matching resource above the device in the device
++    hierarchy.
 +
-+  - Wrap changelogs to fit in 80 columns when shown by "git show", which
-+    adds 4 spaces.  I use "textwidth=75" in vim.
++[4] ACPI 6.2, sec 6.4.3.5.1, 2, 3, 4:
++    QWord/DWord/Word Address Space Descriptor (.1, .2, .3)
++    General Flags: Bit [0] Ignored
 +
-+  - Order tags as suggested by Ingo [1] (extended):
++    Extended Address Space Descriptor (.4)
++    General Flags: Bit [0] Consumer/Producer:
++	1–This device consumes this resource
++	0–This device produces and consumes this resource
 +
-+      Fixes:
-+      Link:
-+      Reported-by:
-+      Tested-by:
-+      Signed-off-by: (author)
-+      Signed-off-by: (chain)
-+      Reviewed-by:
-+      Acked-by:
-+      Cc: stable@vger.kernel.org	# 3.4+
-+      Cc: (other)
++[5] ACPI 6.2, sec 19.6.43:
++    ResourceUsage specifies whether the Memory range is consumed by
++    this device (ResourceConsumer) or passed on to child devices
++    (ResourceProducer).  If nothing is specified, then
++    ResourceConsumer is assumed.
 +
-+  - Include a "Fixes:" reference when you're fixing a previous commit and
-+    copy the author of the previous commit.  This helps people figure out
-+    where a change needs to be backported.
++[6] PCI Firmware 3.2, sec 4.1.2:
++    If the operating system does not natively comprehend reserving the
++    MMCFG region, the MMCFG region must be reserved by firmware.  The
++    address range reported in the MCFG table or by _CBA method (see Section
++    4.1.3) must be reserved by declaring a motherboard resource.  For most
++    systems, the motherboard resource would appear at the root of the ACPI
++    namespace (under \_SB) in a node with a _HID of EISAID (PNP0C02), and
++    the resources in this case should not be claimed in the root PCI bus’s
++    _CRS.  The resources can optionally be returned in Int15 E820 or
++    EFIGetMemoryMap as reserved memory but must always be reported through
++    ACPI as a motherboard resource.
 +
-+  - Include specific commit references when possible, e.g., 'e77f847df54c
-+    ("PCI: rockchip: Add Rockchip PCIe controller support")'.  I use this
-+    alias to generate them:
++[7] PCI Express 4.0, sec 7.2.2:
++    For systems that are PC-compatible, or that do not implement a
++    processor-architecture-specific firmware interface standard that allows
++    access to the Configuration Space, the ECAM is required as defined in
++    this section.
 +
-+      alias gsr='git --no-pager show -s --abbrev-commit --abbrev=12 --pretty=format:"%h (\"%s\")%n"'
++[8] PCI Firmware 3.2, sec 4.1.2:
++    The MCFG table is an ACPI table that is used to communicate the base
++    addresses corresponding to the non-hot removable PCI Segment Groups
++    range within a PCI Segment Group available to the operating system at
++    boot. This is required for the PC-compatible systems.
 +
-+  - Include bugzilla URLs if available (kernel.org bugzilla preferred),
-+    e.g.,
++    The MCFG table is only used to communicate the base addresses
++    corresponding to the PCI Segment Groups available to the system at
++    boot.
 +
-+      Link: https://bugzilla.redhat.com/show_bug.cgi?id=1409201
++[9] PCI Firmware 3.2, sec 4.1.3:
++    The _CBA (Memory mapped Configuration Base Address) control method is
++    an optional ACPI object that returns the 64-bit memory mapped
++    configuration base address for the hot plug capable host bridge. The
++    base address returned by _CBA is processor-relative address. The _CBA
++    control method evaluates to an Integer.
 +
-+  - Include problem report URLs.  Use kernel.org URLs, e.g.,
-+    http://lkml.kernel.org/r/<Message-ID>, because they don't depend on
-+    other mirror sites:
-+
-+      Link: http://lkml.kernel.org/r/4bcbcbc1-7c79-09f0-5071-bc2f53bf6574@kernel.dk
-+
-+  - Include specific references to the spec when possible, e.g., "PCIe
-+    r3.1, sec 7.8.2".  If you're talking about something mentioned in the
-+    spec, use the same name and capitalization as the spec.
-+
-+  - Include a "Cc: stable@vger.kernel.org" tag if you want one, and
-+    indicate which kernels need it.
-+
-+Post the patch:
-+
-+  - Use scripts/get_maintainer.pl to find the maintainers of files you're
-+    changing, and copy the maintainers and authors of recent or related
-+    changes.
-+
-+  - Always copy linux-pci@vger.kernel.org and linux-kernel@vger.kernel.org.
-+    I don't apply patches that haven't appeared on the linux-pci mailing
-+    list, even if you send them to me directly.  This is partly to make
-+    sure everyone has a chance to review it and partly because I use the
-+    Patchwork tracker [2], which only tracks things on the linux-pci list.
-+
-+  - If you send more than one patch and they're related, always include a
-+    "[0/n]" cover letter.  This makes it easy for me to reply to the cover
-+    letter saying "I applied this series."  I use "stg -e -v v1 --to=...
-+    patch1..patchN".
-+
-+  - If you post a new version, please make sure it includes "[v2]" or
-+    similar in the subject line.  If it's a series, I want a new version
-+    of the entire series.  I don't want updates of individual patches
-+    within the series -- that's too hard for me to keep track of.  It's
-+    perfectly fine if some patches in a v2 series are the same as in the
-+    initial posting.
-+
-+  - If you want the patch in the current release, include a cover letter
-+    and tell me that.  Otherwise, I assume all patches are intended for the
-+    next merge window.
-+
-+  - If you're really gung-ho, you can go to Patchwork [2] and mark your
-+    superseded patches as "Superseded" so I don't have to do that myself.
-+
-+[1] http://lkml.kernel.org/r/20120711080446.GA17713@gmail.com
-+[2] https://patchwork.ozlabs.org/project/linux-pci/list/
++    This control method appears under a host bridge object. When the _CBA
++    method appears under an active host bridge object, the operating system
++    evaluates this structure to identify the memory mapped configuration
++    base address corresponding to the PCI Segment Group for the bus number
++    range specified in _CRS method. An ACPI name space object that contains
++    the _CBA method must also contain a corresponding _SEG method.
