@@ -1,76 +1,106 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH v2] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
-Date: Fri, 29 Jun 2018 10:34:40 +0200
-Message-ID: <2518711.SfHWAsyaFM@aspire.rjw.lan>
-References: <35587465.8Nave9aG7d@aspire.rjw.lan>
+Subject: Re: small dmesg regression in kernel 4.17.3
+Date: Fri, 29 Jun 2018 11:31:59 +0200
+Message-ID: <3440214.eqW5gfvlOh@aspire.rjw.lan>
+References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de> <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com> <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <35587465.8Nave9aG7d@aspire.rjw.lan>
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: n0000b.n000b@gmail.com, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Toralf =?ISO-8859-1?Q?F=F6rster?= <toralf.foerster@gmx.de>, "Moore, Robert" <robert.moore@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>, Guenter Roeck <linux@roeck-us.net>
 List-Id: linux-acpi@vger.kernel.org
 
+On Friday, June 29, 2018 12:13:54 AM CEST Schmauss, Erik wrote:
+> 
+> > -----Original Message-----
+> > From: Andy Shevchenko [mailto:andy.shevchenko@gmail.com]
+> > Sent: Wednesday, June 27, 2018 10:29 AM
+> > To: Toralf Förster <toralf.foerster@gmx.de>; Schmauss, Erik
+> > <erik.schmauss@intel.com>
+> > Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Linux Kernel <linux-
+> > kernel@vger.kernel.org>
+> > Subject: Re: small dmesg regression in kernel 4.17.3
+> > 
+> > +Cc: Erik
+> > 
+> > On Tue, Jun 26, 2018 at 8:57 PM, Toralf Förster <toralf.foerster@gmx.de>
+> > wrote:
+> > > The attached dmesg contains non printable chars 0x01 33 around "ACPI
+> > > BIOS Error (bug): Could not resolve" which is a new issue compared to
+> > > the dmesg of 4.17.2
+> > >
+> > > System is a stable hardened Gentoo Linux at a ThinkPad T440s.
+> > 
+> > I bet the below commit makes this.
+> > 
+> > commit 2e78935d1e27d31955ad2dad4abe6c453cf669fd
+> > Author: Erik Schmauss <erik.schmauss@intel.com>
+> > Date:   Fri Jun 1 12:06:43 2018 -0700
+> > 
+> >    ACPICA: AML parser: attempt to continue loading table after error
+> > 
+> > 
+> Hi Andy,
+> 
+> > So, it does add leading '\n' which flushes buffers followed by printing the
+> > message you see. But, I'm guessing now, kernel adds a default level since it's
+> > going to dmesg which you can see as unprintable symbols.
+> 
+> What do you mean by a default level?
+> 
+> > Personally I'm not a fan of leading '\n':s since it brings more pain than fixing
+> > something. It has special meaning (flushing buffers) and many developers forget
+> > this.
+> 
+> This leading '\n' made it in Linux kernel unintentionally. It was originally intended as a change for acpiexec and it makes the dmesg look strange. I'll send out a fix.
+
+Which would be something like the patch below I suppose?
+
+---
 From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH] ACPICA: Drop leading newlines from error messages
 
-It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
-handling for devices with no callbacks) introduced a system suspend
-regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
-port) to stay in D3 over suspend-to-RAM, which is a side effect of
-setting power.direct_complete for the children of that bridge that
-have no PM callbacks.
+Commit 5088814a6e93 (ACPICA: AML parser: attempt to continue loading
+table after error) unintentionally added leading newlines to error
+messages emitted by ACPICA which caused unexpected things to be
+printed to the kernel log.  Drop these newlines (which effectively
+reverts the part of commit 5088814a6e93 adding them).
 
-On the majority of systems PCI bridges are not allowed to be
-runtime-suspended (the power/control sysfs attribute is set to "on"
-for them by default), but user space can change that setting and if
-it does so and a given bridge has no children with PM callbacks, the
-direct_complete optimization will be applied to it and it will stay
-in suspend over system suspend.  Apparently, that confuses the
-platform firmware on the affected machine and that may very well
-happen elsewhere, so avoid the direct_complete optimization for
-PCI bridges with no drivers (if there is a driver, it should take
-care of the PM handling) on suspend-to-RAM altogether (that should
-not matter for suspend-to-idle as platform firmware is not involved
-in it).
-
-Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
-Reported-by: n0000b.n000b@gmail.com
-Tested-by: n0000b.n000b@gmail.com
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Fixes: 5088814a6e93 (ACPICA: AML parser: attempt to continue loading table after error)
+Reported-by: Toralf Förster <toralf.foerster@gmx.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
+ drivers/acpi/acpica/uterror.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
--> v2: Make the patch work for PCI bridges without ACPI companion objects.
-
-Since that doesn't really change the idea etc, but only makes the check
-to be made earlier, I've added the Reviewed-by and Acked-by tags given to
-the previous version.  If that's not right, please let me know.
-
----
- drivers/pci/pci-acpi.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
-Index: linux-pm/drivers/pci/pci-acpi.c
+Index: linux-pm/drivers/acpi/acpica/uterror.c
 ===================================================================
---- linux-pm.orig/drivers/pci/pci-acpi.c
-+++ linux-pm/drivers/pci/pci-acpi.c
-@@ -629,6 +629,15 @@ static bool acpi_pci_need_resume(struct
- {
- 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+--- linux-pm.orig/drivers/acpi/acpica/uterror.c
++++ linux-pm/drivers/acpi/acpica/uterror.c
+@@ -182,19 +182,19 @@ acpi_ut_prefixed_namespace_error(const c
+ 	switch (lookup_status) {
+ 	case AE_ALREADY_EXISTS:
  
-+	/*
-+	 * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
-+	 * confuses the platform firmware, so avoid doing that, unless the
-+	 * bridge has a driver that should take care of PM handling.
-+	 */
-+	if (pci_is_bridge(dev) && !dev->driver &&
-+	    acpi_target_system_state() != ACPI_STATE_S0)
-+		return true;
-+
- 	if (!adev || !acpi_device_power_manageable(adev))
- 		return false;
+-		acpi_os_printf("\n" ACPI_MSG_BIOS_ERROR);
++		acpi_os_printf(ACPI_MSG_BIOS_ERROR);
+ 		message = "Failure creating";
+ 		break;
  
+ 	case AE_NOT_FOUND:
+ 
+-		acpi_os_printf("\n" ACPI_MSG_BIOS_ERROR);
++		acpi_os_printf(ACPI_MSG_BIOS_ERROR);
+ 		message = "Could not resolve";
+ 		break;
+ 
+ 	default:
+ 
+-		acpi_os_printf("\n" ACPI_MSG_ERROR);
++		acpi_os_printf(ACPI_MSG_ERROR);
+ 		message = "Failure resolving";
+ 		break;
+ 	}
