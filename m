@@ -1,48 +1,76 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: small dmesg regression in kernel 4.17.3
-Date: Thu, 28 Jun 2018 22:13:54 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED53BB35DC6@ORSMSX110.amr.corp.intel.com>
-References: <8837a9e2-e614-e2bf-ed32-6d49de4dd4ed@gmx.de>
- <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: Re: [RESEND PATCH v3 2/2] thermal: core: introduce thermal zone
+ device mode control
+Date: Thu, 28 Jun 2018 17:33:02 -0700
+Message-ID: <20180629003302.GT129942@google.com>
+References: <20180226144118.24693-1-enric.balletbo@collabora.com>
+ <20180226144118.24693-2-enric.balletbo@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcQbj7trhupZB7wUnt4QWbsqZZDa-1WvFnSD8ciMCYF6A@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180226144118.24693-2-enric.balletbo@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, =?utf-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>, "Moore, Robert" <robert.moore@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel <linux-kernel@vger.kernel.org>
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: rui.zhang@intel.com, rjw@rjwysocki.net, groeck@chromium.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, snanda@chromium.org, lenb@kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBTaGV2Y2hlbmtv
-IFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDogV2VkbmVzZGF5LCBK
-dW5lIDI3LCAyMDE4IDEwOjI5IEFNDQo+IFRvOiBUb3JhbGYgRsO2cnN0ZXIgPHRvcmFsZi5mb2Vy
-c3RlckBnbXguZGU+OyBTY2htYXVzcywgRXJpaw0KPiA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+
-DQo+IENjOiBBQ1BJIERldmVsIE1hbGluZyBMaXN0IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
-Zz47IExpbnV4IEtlcm5lbCA8bGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQo+IFN1
-YmplY3Q6IFJlOiBzbWFsbCBkbWVzZyByZWdyZXNzaW9uIGluIGtlcm5lbCA0LjE3LjMNCj4gDQo+
-ICtDYzogRXJpaw0KPiANCj4gT24gVHVlLCBKdW4gMjYsIDIwMTggYXQgODo1NyBQTSwgVG9yYWxm
-IEbDtnJzdGVyIDx0b3JhbGYuZm9lcnN0ZXJAZ214LmRlPg0KPiB3cm90ZToNCj4gPiBUaGUgYXR0
-YWNoZWQgZG1lc2cgY29udGFpbnMgbm9uIHByaW50YWJsZSBjaGFycyAweDAxIDMzIGFyb3VuZCAi
-QUNQSQ0KPiA+IEJJT1MgRXJyb3IgKGJ1Zyk6IENvdWxkIG5vdCByZXNvbHZlIiB3aGljaCBpcyBh
-IG5ldyBpc3N1ZSBjb21wYXJlZCB0bw0KPiA+IHRoZSBkbWVzZyBvZiA0LjE3LjINCj4gPg0KPiA+
-IFN5c3RlbSBpcyBhIHN0YWJsZSBoYXJkZW5lZCBHZW50b28gTGludXggYXQgYSBUaGlua1BhZCBU
-NDQwcy4NCj4gDQo+IEkgYmV0IHRoZSBiZWxvdyBjb21taXQgbWFrZXMgdGhpcy4NCj4gDQo+IGNv
-bW1pdCAyZTc4OTM1ZDFlMjdkMzE5NTVhZDJkYWQ0YWJlNmM0NTNjZjY2OWZkDQo+IEF1dGhvcjog
-RXJpayBTY2htYXVzcyA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IERhdGU6ICAgRnJpIEp1
-biAxIDEyOjA2OjQzIDIwMTggLTA3MDANCj4gDQo+ICAgIEFDUElDQTogQU1MIHBhcnNlcjogYXR0
-ZW1wdCB0byBjb250aW51ZSBsb2FkaW5nIHRhYmxlIGFmdGVyIGVycm9yDQo+IA0KPiANCkhpIEFu
-ZHksDQoNCj4gU28sIGl0IGRvZXMgYWRkIGxlYWRpbmcgJ1xuJyB3aGljaCBmbHVzaGVzIGJ1ZmZl
-cnMgZm9sbG93ZWQgYnkgcHJpbnRpbmcgdGhlDQo+IG1lc3NhZ2UgeW91IHNlZS4gQnV0LCBJJ20g
-Z3Vlc3Npbmcgbm93LCBrZXJuZWwgYWRkcyBhIGRlZmF1bHQgbGV2ZWwgc2luY2UgaXQncw0KPiBn
-b2luZyB0byBkbWVzZyB3aGljaCB5b3UgY2FuIHNlZSBhcyB1bnByaW50YWJsZSBzeW1ib2xzLg0K
-DQpXaGF0IGRvIHlvdSBtZWFuIGJ5IGEgZGVmYXVsdCBsZXZlbD8NCg0KPiBQZXJzb25hbGx5IEkn
-bSBub3QgYSBmYW4gb2YgbGVhZGluZyAnXG4nOnMgc2luY2UgaXQgYnJpbmdzIG1vcmUgcGFpbiB0
-aGFuIGZpeGluZw0KPiBzb21ldGhpbmcuIEl0IGhhcyBzcGVjaWFsIG1lYW5pbmcgKGZsdXNoaW5n
-IGJ1ZmZlcnMpIGFuZCBtYW55IGRldmVsb3BlcnMgZm9yZ2V0DQo+IHRoaXMuDQoNClRoaXMgbGVh
-ZGluZyAnXG4nIG1hZGUgaXQgaW4gTGludXgga2VybmVsIHVuaW50ZW50aW9uYWxseS4gSXQgd2Fz
-IG9yaWdpbmFsbHkgaW50ZW5kZWQgYXMgYSBjaGFuZ2UgZm9yIGFjcGlleGVjIGFuZCBpdCBtYWtl
-cyB0aGUgZG1lc2cgbG9vayBzdHJhbmdlLiBJJ2xsIHNlbmQgb3V0IGEgZml4Lg0KDQpUaGFua3Mg
-Zm9yIHJlcG9ydGluZyBpdCwNCg0KRXJpaw0KPiANCj4gLS0NCj4gV2l0aCBCZXN0IFJlZ2FyZHMs
-DQo+IEFuZHkgU2hldmNoZW5rbw0K
+Hi,
+
+I stumbled across this patch since I'm currently poking around with
+early thermal bringup on a platform and this patch has been integrated
+in our development tree.
+
+I'm seeing some unexpected behaviors, which could entirely due to
+wrong expectation from my side. I only have some basic working
+knowledge of the thermal framework, just want to double check and
+perhaps learn a thing or two.
+
+On Mon, Feb 26, 2018 at 03:41:18PM +0100, Enric Balletbo i Serra wrote:
+> From: Zhang Rui <rui.zhang@intel.com>
+> 
+> Thermal "mode" sysfs attribute is introduced to enable/disable a thermal
+> zone, and .get_mode()/.set_mode() callback is introduced for platform
+> thermal driver to enable/disable the hardware thermal control logic. And
+> thermal core takes no action upon thermal zone enable/disable.
+> 
+> Actually, this is not quite right because thermal core still pokes those
+> disabled thermal zones occasionally, e.g. upon system resume.
+> 
+> To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
+> to represent the thermal zone mode, and several decisions have been made
+> based on this flag, including
+> 1. check the thermal zone mode right after it's registered.
+> 2. skip updating thermal zone if the zone is disabled
+> 3. stop the polling timer when the thermal zone is disabled
+> 
+> Note: basically, this patch doesn't affect the existing always-enabled
+> thermal zones much, with just one exception -
+> thermal zone .get_mode() must be well prepared to reflect the real thermal
+> zone status upon the thermal zone registration.
+
+>From my perspective this looks like a pretty significant change. For
+the platform I'm working on I added a thermal zone to the device tree,
+with the expectation that it would be enabled. Judging from the code
+without this patch this expectation seems to be naive, since
+of-thermal.c sets tz->mode to THERMAL_DEVICE_DISABLED, so apparently
+either userspace or some driver should call _set_mode(tz,
+THERMAL_DEVICE_ENABLED). However even without this the thermal zone
+appears to be active (I didn't really test end-to-end yet, but at
+least thermal_zone_device_update() is called and calls
+handle_thermal_trip()). Not sure why this is the case with
+THERMAL_DEVICE_DISABLED, but before I learned about the existence of
+the flag my expectation was that the zone would be enabled.
+
+With this patch thermal_zone_device_update() is skipped if the zone
+hasn't been explictly enabled, which may be consistent with the state
+of 'tz->mode', but effectively changes the previous/current behavior.
+
+Not sure if I'm just dumbly overlooking something obvious or if there
+is an actual problem with of_thermal (and maybe others).
+
+Any insights?
+
+Thanks
+
+Matthias
