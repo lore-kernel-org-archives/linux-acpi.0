@@ -1,76 +1,76 @@
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: Re: [RESEND PATCH v3 2/2] thermal: core: introduce thermal zone
- device mode control
-Date: Thu, 28 Jun 2018 17:33:02 -0700
-Message-ID: <20180629003302.GT129942@google.com>
-References: <20180226144118.24693-1-enric.balletbo@collabora.com>
- <20180226144118.24693-2-enric.balletbo@collabora.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH v2] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
+Date: Fri, 29 Jun 2018 10:34:40 +0200
+Message-ID: <2518711.SfHWAsyaFM@aspire.rjw.lan>
+References: <35587465.8Nave9aG7d@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180226144118.24693-2-enric.balletbo@collabora.com>
+In-Reply-To: <35587465.8Nave9aG7d@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc: rui.zhang@intel.com, rjw@rjwysocki.net, groeck@chromium.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, snanda@chromium.org, lenb@kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org
+To: Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: n0000b.n000b@gmail.com, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I stumbled across this patch since I'm currently poking around with
-early thermal bringup on a platform and this patch has been integrated
-in our development tree.
+It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
+handling for devices with no callbacks) introduced a system suspend
+regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
+port) to stay in D3 over suspend-to-RAM, which is a side effect of
+setting power.direct_complete for the children of that bridge that
+have no PM callbacks.
 
-I'm seeing some unexpected behaviors, which could entirely due to
-wrong expectation from my side. I only have some basic working
-knowledge of the thermal framework, just want to double check and
-perhaps learn a thing or two.
+On the majority of systems PCI bridges are not allowed to be
+runtime-suspended (the power/control sysfs attribute is set to "on"
+for them by default), but user space can change that setting and if
+it does so and a given bridge has no children with PM callbacks, the
+direct_complete optimization will be applied to it and it will stay
+in suspend over system suspend.  Apparently, that confuses the
+platform firmware on the affected machine and that may very well
+happen elsewhere, so avoid the direct_complete optimization for
+PCI bridges with no drivers (if there is a driver, it should take
+care of the PM handling) on suspend-to-RAM altogether (that should
+not matter for suspend-to-idle as platform firmware is not involved
+in it).
 
-On Mon, Feb 26, 2018 at 03:41:18PM +0100, Enric Balletbo i Serra wrote:
-> From: Zhang Rui <rui.zhang@intel.com>
-> 
-> Thermal "mode" sysfs attribute is introduced to enable/disable a thermal
-> zone, and .get_mode()/.set_mode() callback is introduced for platform
-> thermal driver to enable/disable the hardware thermal control logic. And
-> thermal core takes no action upon thermal zone enable/disable.
-> 
-> Actually, this is not quite right because thermal core still pokes those
-> disabled thermal zones occasionally, e.g. upon system resume.
-> 
-> To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
-> to represent the thermal zone mode, and several decisions have been made
-> based on this flag, including
-> 1. check the thermal zone mode right after it's registered.
-> 2. skip updating thermal zone if the zone is disabled
-> 3. stop the polling timer when the thermal zone is disabled
-> 
-> Note: basically, this patch doesn't affect the existing always-enabled
-> thermal zones much, with just one exception -
-> thermal zone .get_mode() must be well prepared to reflect the real thermal
-> zone status upon the thermal zone registration.
+Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
+Reported-by: n0000b.n000b@gmail.com
+Tested-by: n0000b.n000b@gmail.com
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
->From my perspective this looks like a pretty significant change. For
-the platform I'm working on I added a thermal zone to the device tree,
-with the expectation that it would be enabled. Judging from the code
-without this patch this expectation seems to be naive, since
-of-thermal.c sets tz->mode to THERMAL_DEVICE_DISABLED, so apparently
-either userspace or some driver should call _set_mode(tz,
-THERMAL_DEVICE_ENABLED). However even without this the thermal zone
-appears to be active (I didn't really test end-to-end yet, but at
-least thermal_zone_device_update() is called and calls
-handle_thermal_trip()). Not sure why this is the case with
-THERMAL_DEVICE_DISABLED, but before I learned about the existence of
-the flag my expectation was that the zone would be enabled.
+-> v2: Make the patch work for PCI bridges without ACPI companion objects.
 
-With this patch thermal_zone_device_update() is skipped if the zone
-hasn't been explictly enabled, which may be consistent with the state
-of 'tz->mode', but effectively changes the previous/current behavior.
+Since that doesn't really change the idea etc, but only makes the check
+to be made earlier, I've added the Reviewed-by and Acked-by tags given to
+the previous version.  If that's not right, please let me know.
 
-Not sure if I'm just dumbly overlooking something obvious or if there
-is an actual problem with of_thermal (and maybe others).
+---
+ drivers/pci/pci-acpi.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Any insights?
-
-Thanks
-
-Matthias
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -629,6 +629,15 @@ static bool acpi_pci_need_resume(struct
+ {
+ 	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+ 
++	/*
++	 * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
++	 * confuses the platform firmware, so avoid doing that, unless the
++	 * bridge has a driver that should take care of PM handling.
++	 */
++	if (pci_is_bridge(dev) && !dev->driver &&
++	    acpi_target_system_state() != ACPI_STATE_S0)
++		return true;
++
+ 	if (!adev || !acpi_device_power_manageable(adev))
+ 		return false;
+ 
