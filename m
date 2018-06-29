@@ -1,78 +1,90 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
- ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-Date: Fri, 29 Jun 2018 13:18:16 -0500
-Message-ID: <955705e0-1d31-2c4b-3c5a-9c10603e36f8@arm.com>
-References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] PCI / ACPI / PM: Resume bridges w/o drivers on
+ suspend-to-RAM
+Date: Fri, 29 Jun 2018 14:19:30 -0500
+Message-ID: <20180629191930.GA40928@bhelgaas-glaptop.roam.corp.google.com>
+References: <35587465.8Nave9aG7d@aspire.rjw.lan>
+ <2518711.SfHWAsyaFM@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <2518711.SfHWAsyaFM@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, catalin.marinas@arm.com, will.deacon@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, n0000b.n000b@gmail.com, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 06/29/2018 11:17 AM, Sudeep Holla wrote:
-> Currently we use the ACPI processor ID only for the leaf/processor nodes
-> as the specification states it must match the value of ACPI processor ID
-> field in the processor’s entry in the MADT.
+On Fri, Jun 29, 2018 at 10:34:40AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> However, if a PPTT structure represents processors group, it match a
-> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
-> flag describe whether the ACPI processor ID is valid.
+> It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
+> handling for devices with no callbacks) introduced a system suspend
+> regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
+> port) to stay in D3 over suspend-to-RAM, which is a side effect of
+> setting power.direct_complete for the children of that bridge that
+> have no PM callbacks.
 > 
-> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
-> consistent instead of using table offset as it's currently done for non
-> leaf nodes.
+> On the majority of systems PCI bridges are not allowed to be
+> runtime-suspended (the power/control sysfs attribute is set to "on"
+> for them by default), but user space can change that setting and if
+> it does so and a given bridge has no children with PM callbacks, the
+> direct_complete optimization will be applied to it and it will stay
+> in suspend over system suspend.  Apparently, that confuses the
+> platform firmware on the affected machine and that may very well
+> happen elsewhere, so avoid the direct_complete optimization for
+> PCI bridges with no drivers (if there is a driver, it should take
+> care of the PM handling) on suspend-to-RAM altogether (that should
+> not matter for suspend-to-idle as platform firmware is not involved
+> in it).
 > 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
+> Reported-by: n0000b.n000b@gmail.com
+> Tested-by: n0000b.n000b@gmail.com
+> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > ---
->   drivers/acpi/pptt.c | 10 ++++++++--
->   1 file changed, 8 insertions(+), 2 deletions(-)
 > 
-> Hi,
+> -> v2: Make the patch work for PCI bridges without ACPI companion objects.
 > 
-> There's ongoing discussion on assigning ID based in OS using simple
-> counters. It can never be consistent with firmware's view. So if the
-> firmware provides valid UID for non-processors node, we must use it.
-> 
-> Regards,
-> Sudeep
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index e5ea1974d1e3..d1e26cb599bf 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -481,8 +481,14 @@ static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
->   	if (cpu_node) {
->   		cpu_node = acpi_find_processor_package_id(table, cpu_node,
->   							  level, flag);
-> -		/* Only the first level has a guaranteed id */
-> -		if (level == 0)
-> +		/*
-> +		 * As per specification if the processor structure represents
-> +		 * an actual processor, then ACPI processor ID must be valid.
-> +		 * For processor containers ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
-> +		 * should be set if the UID is valid
-> +		 */
-> +		if (level == 0 ||
-> +		    cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID)
->   			return cpu_node->acpi_processor_id;
+> Since that doesn't really change the idea etc, but only makes the check
+> to be made earlier, I've added the Reviewed-by and Acked-by tags given to
+> the previous version.  If that's not right, please let me know.
 
-While, for some machines this likely helps create more human readable 
-ID's... What happens when the ID namespaces conflict with each other?
+Keeping my ack is fine, and I assume you'll apply this.
 
-AKA, I'm a little shy of this change because your going from something 
-we can guarantee is unique to depending on an portion of the PPTT 
-definition that has a couple different ways that it can be interpreted.
+It would be nice to see that ACPI spec reference (the spec version and
+section number, not necessarily all the text) in the changelog or
+maybe even a comment in the code.
 
-OTOH the change is probably safe at the moment because i don't think 
-anyone has partially marked nodes at a given PPTT "level" valid, or put 
-structures that aren't part of the PE/cache's in the tree (outside of my 
-juno test tree with the GPU's/etc).
+> ---
+>  drivers/pci/pci-acpi.c |    9 +++++++++
+>  1 file changed, 9 insertions(+)
+> 
+> Index: linux-pm/drivers/pci/pci-acpi.c
+> ===================================================================
+> --- linux-pm.orig/drivers/pci/pci-acpi.c
+> +++ linux-pm/drivers/pci/pci-acpi.c
+> @@ -629,6 +629,15 @@ static bool acpi_pci_need_resume(struct
+>  {
+>  	struct acpi_device *adev = ACPI_COMPANION(&dev->dev);
+>  
+> +	/*
+> +	 * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend
+> +	 * confuses the platform firmware, so avoid doing that, unless the
+> +	 * bridge has a driver that should take care of PM handling.
+> +	 */
+> +	if (pci_is_bridge(dev) && !dev->driver &&
+> +	    acpi_target_system_state() != ACPI_STATE_S0)
+> +		return true;
+> +
+>  	if (!adev || !acpi_device_power_manageable(adev))
+>  		return false;
+>  
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
