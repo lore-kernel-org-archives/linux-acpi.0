@@ -1,63 +1,91 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2] PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
-Date: Sat, 30 Jun 2018 23:15:33 +0200
-Message-ID: <CAJZ5v0gmfVWA51Rxk8=veA5UmFD4rCEUba7fq=SwTVY-WDjofQ@mail.gmail.com>
-References: <35587465.8Nave9aG7d@aspire.rjw.lan> <2518711.SfHWAsyaFM@aspire.rjw.lan>
- <20180629191930.GA40928@bhelgaas-glaptop.roam.corp.google.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] PCI/AER: Fix aerdrv loading with "pcie_ports=native"
+ parameter
+Date: Sat, 30 Jun 2018 16:31:40 -0500
+Message-ID: <20180630213140.GG9547@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180619195835.5423-1-mr.nuke.me@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180629191930.GA40928@bhelgaas-glaptop.roam.corp.google.com>
+Content-Disposition: inline
+In-Reply-To: <20180619195835.5423-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, n0000b.n000b@gmail.com, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Lukas Wunner <lukas@wunner.de>
+To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Frederick Lawler <fred@fredlawl.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Oza Pawandeep <poza@codeaurora.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 29, 2018 at 9:19 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
-> On Fri, Jun 29, 2018 at 10:34:40AM +0200, Rafael J. Wysocki wrote:
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> It is reported that commit c62ec4610c40 (PM / core: Fix direct_complete
->> handling for devices with no callbacks) introduced a system suspend
->> regression on Samsung 305V4A by allowing a PCI bridge (not a PCIe
->> port) to stay in D3 over suspend-to-RAM, which is a side effect of
->> setting power.direct_complete for the children of that bridge that
->> have no PM callbacks.
->>
->> On the majority of systems PCI bridges are not allowed to be
->> runtime-suspended (the power/control sysfs attribute is set to "on"
->> for them by default), but user space can change that setting and if
->> it does so and a given bridge has no children with PM callbacks, the
->> direct_complete optimization will be applied to it and it will stay
->> in suspend over system suspend.  Apparently, that confuses the
->> platform firmware on the affected machine and that may very well
->> happen elsewhere, so avoid the direct_complete optimization for
->> PCI bridges with no drivers (if there is a driver, it should take
->> care of the PM handling) on suspend-to-RAM altogether (that should
->> not matter for suspend-to-idle as platform firmware is not involved
->> in it).
->>
->> Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
->> Link: https://bugzilla.kernel.org/show_bug.cgi?id=199941
->> Reported-by: n0000b.n000b@gmail.com
->> Tested-by: n0000b.n000b@gmail.com
->> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> ---
->>
->> -> v2: Make the patch work for PCI bridges without ACPI companion objects.
->>
->> Since that doesn't really change the idea etc, but only makes the check
->> to be made earlier, I've added the Reviewed-by and Acked-by tags given to
->> the previous version.  If that's not right, please let me know.
->
-> Keeping my ack is fine, and I assume you'll apply this.
+[+cc Borislav, linux-acpi, since this involves APEI/HEST]
 
-I will, thanks!
+On Tue, Jun 19, 2018 at 02:58:20PM -0500, Alexandru Gagniuc wrote:
+> According to the documentation, "pcie_ports=native", linux should use
+> native AER and DPC services. While that is true for the _OSC method
+> parsing, this is not the only place that is checked. Should the HEST
+> table list PCIe ports as firmware-first, linux will not use native
+> services.
 
-> It would be nice to see that ACPI spec reference (the spec version and
-> section number, not necessarily all the text) in the changelog or
-> maybe even a comment in the code.
+Nothing in ACPI-land looks at pcie_ports_native.  How should ACPI
+things work in the "pcie_ports=native" case?  I guess we still have to
+expect to receive error records from the firmware, because it may
+certainly send us non-PCI errors (machine checks, etc) and maybe even
+some PCI errors (even if the Linux AER driver claims AER interrupts,
+we don't know what notification mechanisms the firmware may be using).
 
-OK
+I guess best-case, we'll get ACPI error records for all non-PCI
+things, and the Linux AER driver will see all the AER errors.
+Worst-case, I don't really know what to expect.  Duplicate reporting
+of AER errors via firmware and Linux AER driver?  Some kind of
+confusion about who acknowledges and clears them?
+
+Out of curiosity, what is your use case for "pcie_ports=native"?
+Presumably there's something that works better when using it, and
+things work even *better* with this patch?
+
+I know people do use it, because I often see it mentioned in forums
+and bug reports, but I really don't expect it to work very well
+because we're ignoring the usage model the firmware is designed
+around.  My unproven suspicion is that most uses are in the black
+magic category of "there's a bug here, and we don't know how to fix
+it, but pcie_ports=native makes it work better".
+
+Obviously I would much rather find and fix those bugs so people
+wouldn't have to stumble over the problem in the first place.
+
+> This happens because aer_acpi_firmware_first() doesn't take
+> 'pcie_ports' into account. This is wrong. DPC uses the same logic when
+> it decides whether to load or not, so fixing this also fixes DPC not
+> loading.
+> 
+> Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+> ---
+>  drivers/pci/pcie/aer.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> Changes since v1:
+>  - Re-tested with latest and greatest (v4.18-rc1) -- works great
+> 
+> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+> index a2e88386af28..98ced0f7c850 100644
+> --- a/drivers/pci/pcie/aer.c
+> +++ b/drivers/pci/pcie/aer.c
+> @@ -291,7 +291,7 @@ static void aer_set_firmware_first(struct pci_dev *pci_dev)
+>  
+>  	rc = apei_hest_parse(aer_hest_parse, &info);
+>  
+> -	if (rc)
+> +	if (rc || pcie_ports_native)
+>  		pci_dev->__aer_firmware_first = 0;
+>  	else
+>  		pci_dev->__aer_firmware_first = info.firmware_first;
+> @@ -327,6 +327,9 @@ bool aer_acpi_firmware_first(void)
+>  		apei_hest_parse(aer_hest_parse, &info);
+>  		aer_firmware_first = info.firmware_first;
+>  		parsed = true;
+> +		if (pcie_ports_native)
+> +			aer_firmware_first = 0;
+> +
+>  	}
+>  	return aer_firmware_first;
+>  }
+> -- 
+> 2.14.3
+> 
