@@ -1,78 +1,41 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
- ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-Date: Mon, 2 Jul 2018 08:23:47 -0500
-Message-ID: <2d723ddc-e3c0-6024-8dcf-cdccd50a383e@arm.com>
-References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
+From: Juergen Gross <jgross@suse.com>
+Subject: Re: [PATCH] xen/ACPI: don't upload Px/Cx data for
+ disabled processors
+Date: Mon, 2 Jul 2018 15:51:21 +0200
+Message-ID: <b007f4c7-b533-d7c3-c622-2163966189fa@suse.com>
+References: <5B30C13F02000078001CD68D@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, catalin.marinas@arm.com, will.deacon@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <5B30C13F02000078001CD68D@suse.com>
+Content-Language: de-DE
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: Jan Beulich <JBeulich@suse.com>, Len Brown <lenb@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: xen-devel <xen-devel@lists.xenproject.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 06/29/2018 11:17 AM, Sudeep Holla wrote:
-> Currently we use the ACPI processor ID only for the leaf/processor nodes
-> as the specification states it must match the value of ACPI processor ID
-> field in the processor’s entry in the MADT.
-> 
-> However, if a PPTT structure represents processors group, it match a
-> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
-> flag describe whether the ACPI processor ID is valid.
-> 
-> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
-> consistent instead of using table offset as it's currently done for non
-> leaf nodes.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> ---
->   drivers/acpi/pptt.c | 10 ++++++++--
->   1 file changed, 8 insertions(+), 2 deletions(-)
-> 
-> Hi,
-> 
-> There's ongoing discussion on assigning ID based in OS using simple
-> counters. It can never be consistent with firmware's view. So if the
-> firmware provides valid UID for non-processors node, we must use it.
-> 
-> Regards,
-> Sudeep
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index e5ea1974d1e3..d1e26cb599bf 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -481,8 +481,14 @@ static int topology_get_acpi_cpu_tag(struct acpi_table_header *table,
->   	if (cpu_node) {
->   		cpu_node = acpi_find_processor_package_id(table, cpu_node,
->   							  level, flag);
-> -		/* Only the first level has a guaranteed id */
-> -		if (level == 0)
-> +		/*
-> +		 * As per specification if the processor structure represents
-> +		 * an actual processor, then ACPI processor ID must be valid.
-> +		 * For processor containers ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
-> +		 * should be set if the UID is valid
-> +		 */
-> +		if (level == 0 ||
-> +		    cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID)
->   			return cpu_node->acpi_processor_id;
->   		return ACPI_PTR_DIFF(cpu_node, table);
->   	}
-> 
-
-Ok sure,
-
-Acked-by: Jeremy Linton <jeremy.linton@arm.com>
-
-
-PS: To table implementers, the spec today mandates that setting the 
-valid flag on a non leaf node means there is a matching _UID processor 
-container in DSDT/SSDT.
+T24gMjUvMDYvMTggMTI6MTcsIEphbiBCZXVsaWNoIHdyb3RlOgo+IFRoaXMgaXMgdW5uZWNlc3Nh
+cnkgYW5kIHRyaWdnZXJzIGEgd2FybmluZyBpbiB0aGUgaHlwZXJ2aXNvci4KPiAKPiBPZnRlbiBz
+eXN0ZW1zIGhhdmUgbW9yZSBwcm9jZXNzb3IgZW50cmllcyBpbiB0aGVpciBBQ1BJIHRhYmxlcyB0
+aGFuIGFyZQo+IGFjdHVhbGx5IGluc3RhbGxlZC9hY3RpdmUuIFRoZSBBQ1BJX1NUQV9ERVZJQ0Vf
+UFJFU0VOVCBiaXQgY2Fubm90IGJlCj4gcmVsaWFibHkgdXNlZCwgYnV0IHRoZSBBQ1BJX01BRFRf
+RU5BQkxFRCBiaXQgY2FuLiBJbiBvcmRlciB0byBub3QKPiBpbnRyb2R1Y2UgbmV3IGZ1bmN0aW9u
+cyBpbiB0aGUgbWFpbiBBQ1BJIHByb2Nlc3NvciBkcml2ZXIgY29kZSwgc2ltcGx5Cj4gdXNlIGFj
+cGlfZ2V0X3BoeXNfaWQoKSwgd2hpY2ggZG9lcyBtb3JlIHRoYW4gd2UgbmVlZCwgYnV0IHdoaWNo
+IGNoZWNrcwo+IHRoZSBNQURUIGVuYWJsZWQgYml0IGluIHRoZSBwcm9jZXNzLiBBbnkgQ1BVIGZv
+ciB3aGljaCB3ZSBjYW4ndAo+IGRldGVybWluZSB0aGUgQVBJQyBJRCBpcyB1bmxpa2VseSB0byB3
+b3JrIHByb3Blcmx5IGFueXdheSwgc28gdGhlIGV4dHJhCj4gY2hlY2tzIGRvbmUgYnkgYWNwaV9n
+ZXRfcGh5c19pZCgpIHNob3VsZCBkbyBubyBoYXJtLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEphbiBC
+ZXVsaWNoIDxqYmV1bGljaEBzdXNlLmNvbT4KClJldmlld2VkLWJ5OiBKdWVyZ2VuIEdyb3NzIDxq
+Z3Jvc3NAc3VzZS5jb20+CgoKSnVlcmdlbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMu
+eGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL3hlbi1kZXZlbA==
