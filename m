@@ -1,31 +1,34 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
  ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-Date: Mon, 2 Jul 2018 11:01:49 +0100
-Message-ID: <a6c51606-05a5-84ce-8e6b-c66c7f2c77f2@arm.com>
+Date: Mon, 2 Jul 2018 11:08:16 +0100
+Message-ID: <6d30ca76-37bd-e206-2bd4-b4f703a22672@arm.com>
 References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
- <20180630071620.gszzib7oha3jn3j2@hawk.localdomain>
+ <955705e0-1d31-2c4b-3c5a-9c10603e36f8@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180630071620.gszzib7oha3jn3j2@hawk.localdomain>
+In-Reply-To: <955705e0-1d31-2c4b-3c5a-9c10603e36f8@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andrew Jones <drjones@redhat.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jeremy Linton <jeremy.linton@arm.com>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, catalin.marinas@arm.com, will.deacon@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, catalin.marinas@arm.com, will.deacon@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 30/06/18 08:16, Andrew Jones wrote:
-> On Fri, Jun 29, 2018 at 05:17:57PM +0100, Sudeep Holla wrote:
+On 29/06/18 19:18, Jeremy Linton wrote:
+> Hi,
+> 
+> On 06/29/2018 11:17 AM, Sudeep Holla wrote:
 >> Currently we use the ACPI processor ID only for the leaf/processor nodes
 >> as the specification states it must match the value of ACPI processor ID
 >> field in the processor’s entry in the MADT.
 >>
 >> However, if a PPTT structure represents processors group, it match a
->> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
+>> processor container UID in the namespace and
+>> ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
 >> flag describe whether the ACPI processor ID is valid.
 >>
 >> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
@@ -35,36 +38,66 @@ On 30/06/18 08:16, Andrew Jones wrote:
 >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 >> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 >> ---
->>  drivers/acpi/pptt.c | 10 ++++++++--
->>  1 file changed, 8 insertions(+), 2 deletions(-)
+>>   drivers/acpi/pptt.c | 10 ++++++++--
+>>   1 file changed, 8 insertions(+), 2 deletions(-)
 >>
 >> Hi,
 >>
 >> There's ongoing discussion on assigning ID based in OS using simple
 >> counters. It can never be consistent with firmware's view. So if the
 >> firmware provides valid UID for non-processors node, we must use it.
+>>
+>> Regards,
+>> Sudeep
+>>
+>> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+>> index e5ea1974d1e3..d1e26cb599bf 100644
+>> --- a/drivers/acpi/pptt.c
+>> +++ b/drivers/acpi/pptt.c
+>> @@ -481,8 +481,14 @@ static int topology_get_acpi_cpu_tag(struct
+>> acpi_table_header *table,
+>>       if (cpu_node) {
+>>           cpu_node = acpi_find_processor_package_id(table, cpu_node,
+>>                                 level, flag);
+>> -        /* Only the first level has a guaranteed id */
+>> -        if (level == 0)
+>> +        /*
+>> +         * As per specification if the processor structure represents
+>> +         * an actual processor, then ACPI processor ID must be valid.
+>> +         * For processor containers ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
+>> +         * should be set if the UID is valid
+>> +         */
+>> +        if (level == 0 ||
+>> +            cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID)
+>>               return cpu_node->acpi_processor_id;
 > 
-> I agree with this. I've been so focused on the fact that the ACPI offsets
-> are arbitrary, and thus counters can't be worse, that I nearly forgot how
-> these IDs are actually defined:
+> While, for some machines this likely helps create more human readable
+> ID's... What happens when the ID namespaces conflict with each other?
 > 
 
-Yes, it's platform dependent and I now realize that I never explicitly
-mentioned that, let alone emphasize on that. I was for UID for the same
-reason.
+That's entirely left to the platform firmware. It should help userspace
+to identify the topology in a way firmware is describing and no more
+than that. If users use them for anything more, it's at their own risk.
 
-[...]
-
-> 
-> When the valid flag is set we'll now return a [hopefully] correct platform
-> dependent ID, but when it's not we'll return an ACPI table offset. How
-> will users of the ID know? Also, it's possible to return -ENOENT for the
-> ID when calling find_acpi_cpu_topology(). How can we distinguish that from
-> an arbitrary platform dependent ID?
+> AKA, I'm a little shy of this change because your going from something
+> we can guarantee is unique to depending on an portion of the PPTT
+> definition that has a couple different ways that it can be interpreted.
 > 
 
-But why should one need to distinguish that ? Even offset is kind of
-sparsely distributed UID.
+No, I am not guaranteeing anything here. I am just passing valid UID if
+present to the caller. Interpretation is left to the caller and in ARM64
+we should just use(at least my preference) the value as is for sysfs
+topology.
+
+> OTOH the change is probably safe at the moment because i don't think
+> anyone has partially marked nodes at a given PPTT "level" valid, or put
+> structures that aren't part of the PE/cache's in the tree (outside of my
+> juno test tree with the GPU's/etc).
+> 
+
+Even if they are present, I don't see issue. If that's how firmware
+presents the CPU topology, that should be exactly the way we too need to.
+
 -- 
 Regards,
 Sudeep
