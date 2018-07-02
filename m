@@ -1,79 +1,49 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH v5 2/2] arm64: KVM: export the capability to set guest
- SError syndrome
-Date: Mon, 2 Jul 2018 12:18:02 +0800
-Message-ID: <fd33f8b6-db05-f956-a1fc-ecb4fa3f1b79@huawei.com>
-References: <1529960309-2513-1-git-send-email-gengdongjiu@huawei.com>
- <1529960309-2513-3-git-send-email-gengdongjiu@huawei.com>
- <bca12032-c465-1d10-f7d4-71fc044ac695@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
+ is set
+Date: Mon, 2 Jul 2018 11:06:22 +0200
+Message-ID: <CAJZ5v0gnspK3soa5j8iqU9QDM78MMBbz8YC9s7TOJ5Qwh7=mZg@mail.gmail.com>
+References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <bca12032-c465-1d10-f7d4-71fc044ac695@arm.com>
-Content-Language: en-US
+In-Reply-To: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>
-Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Jeremy Linton <jeremy.linton@arm.com>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
+On Fri, Jun 29, 2018 at 6:17 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+> Currently we use the ACPI processor ID only for the leaf/processor nodes
+> as the specification states it must match the value of ACPI processor ID
+> field in the processor=E2=80=99s entry in the MADT.
+>
+> However, if a PPTT structure represents processors group, it match a
+> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_=
+VALID
+> flag describe whether the ACPI processor ID is valid.
+>
+> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
+> consistent instead of using table offset as it's currently done for non
+> leaf nodes.
+>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> ---
+>  drivers/acpi/pptt.c | 10 ++++++++--
+>  1 file changed, 8 insertions(+), 2 deletions(-)
+>
+> Hi,
+>
+> There's ongoing discussion on assigning ID based in OS using simple
+> counters. It can never be consistent with firmware's view. So if the
+> firmware provides valid UID for non-processors node, we must use it.
 
-On 2018/6/29 23:58, James Morse wrote:
-> Hi Dongjiu Geng,
-> 
-> This patch doesn't apply on v4.18-rc2.
-> 
-> Documentation/virtual/kvm/api.txt already has a 8.18 section. I guess you based
-> this on v4.17.
+OK
 
-Yes, indeed I based on v4.17.
+Do you regard this as a fix for the recently merged PPTT material?  If
+so, I should apply it as a fix for 4.18.
 
-> 
-> For posting patches, please use the latest 'rc' from Linus' tree, (or the
-> maintainer's tree listed in MAINTAINERS for the tree you are targeting if the
-> maintainer has started to pick up patches).
-Ok, I will rebase it using the latest 'rc' from Linus' tree. thanks for the reminder.
-
-
-> 
-> 
-> Thanks,
-> 
-> James
-> 
-> 
-> On 25/06/18 21:58, Dongjiu Geng wrote:
->> For the arm64 RAS Extension, user space can inject a virtual-SError
->> with specified ESR. So user space needs to know whether KVM support
->> to inject such SError, this interface adds this query for this capability.
->>
->> KVM will check whether system support RAS Extension, if supported, KVM
->> returns true to user space, otherwise returns false.
-> 
-> 
->> diff --git a/Documentation/virtual/kvm/api.txt b/Documentation/virtual/kvm/api.txt
->> index 3732097..86b3808 100644
->> --- a/Documentation/virtual/kvm/api.txt
->> +++ b/Documentation/virtual/kvm/api.txt
->> @@ -4628,3 +4628,14 @@ Architectures: s390
->>  This capability indicates that kvm will implement the interfaces to handle
->>  reset, migration and nested KVM for branch prediction blocking. The stfle
->>  facility 82 should not be provided to the guest without this capability.
->> +
->> +8.14 KVM_CAP_ARM_SET_SERROR_ESR
->> +
->> +Architectures: arm, arm64
->> +
->> +This capability indicates that userspace can specify the syndrome value reported
->> +to the guest OS when guest takes a virtual SError interrupt exception.
->> +If KVM has this capability, userspace can only specify the ISS field for the ESR
->> +syndrome, it can not specify the EC field which is not under control by KVM.
->> +If this virtual SError is taken to EL1 using AArch64, this value will be reported
->> +in ISS filed of ESR_EL1.
-> 
-> 
-> 
-> 
-> .
-> 
+Thanks,
+Rafael
