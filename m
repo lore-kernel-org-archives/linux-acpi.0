@@ -1,73 +1,79 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v1 1/2] PCI: Document patch submission hints
-Date: Sun, 1 Jul 2018 19:45:08 +0200
-Message-ID: <20180701174508.GB28249@wunner.de>
-References: <153030390808.57832.2200774416664543563.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <153030405971.57832.12860154795039493576.stgit@bhelgaas-glaptop.roam.corp.google.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH v5 2/2] arm64: KVM: export the capability to set guest
+ SError syndrome
+Date: Mon, 2 Jul 2018 12:18:02 +0800
+Message-ID: <fd33f8b6-db05-f956-a1fc-ecb4fa3f1b79@huawei.com>
+References: <1529960309-2513-1-git-send-email-gengdongjiu@huawei.com>
+ <1529960309-2513-3-git-send-email-gengdongjiu@huawei.com>
+ <bca12032-c465-1d10-f7d4-71fc044ac695@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <153030405971.57832.12860154795039493576.stgit@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <bca12032-c465-1d10-f7d4-71fc044ac695@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: James Morse <james.morse@arm.com>
+Cc: rkrcmar@redhat.com, corbet@lwn.net, christoffer.dall@arm.com, marc.zyngier@arm.com, linux@armlinux.org.uk, catalin.marinas@arm.com, will.deacon@arm.com, kvm@vger.kernel.org, linux-doc@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 29, 2018 at 03:27:39PM -0500, Bjorn Helgaas wrote:
-> --- /dev/null
-> +++ b/Documentation/PCI/submitting-patches.txt
-> @@ -0,0 +1,153 @@
-> +Start with Documentation/process/submitting-patches.rst for general
-> +guidance.
-> +
-> +These are things I look at when reviewing patches.
+Hi James,
 
-For an uninitiated reader who doesn't know that you're currently the
-(sole) maintainer of the PCI subsystem, this sentence might look odd.
-Who's "I"?  What happens if you onboard co-maintainers, are you
-going to change this to "we"?
+On 2018/6/29 23:58, James Morse wrote:
+> Hi Dongjiu Geng,
+> 
+> This patch doesn't apply on v4.18-rc2.
+> 
+> Documentation/virtual/kvm/api.txt already has a 8.18 section. I guess you based
+> this on v4.17.
 
+Yes, indeed I based on v4.17.
 
-> +  - Wrap code and comments to fit in 80 columns.  Exception: I prefer
-> +    printk strings to be in one piece for searchability, so don't split
-> +    quoted strings to make them fit in 80 columns.
-
-This is a duplication of Documentation/process/coding-style.rst, section 2.
+> 
+> For posting patches, please use the latest 'rc' from Linus' tree, (or the
+> maintainer's tree listed in MAINTAINERS for the tree you are targeting if the
+> maintainer has started to pick up patches).
+Ok, I will rebase it using the latest 'rc' from Linus' tree. thanks for the reminder.
 
 
-> +  - Follow the existing convention  Run "git log --oneline <file>" and make
-> +    your subject line match previous changes in format, capitalization, and
-> +    sentence structure.  For example, native host bridge driver patch
-> +    titles look like this:
-> +
-> +      PCI: vmd: Remove IRQ affinity so we can allocate more IRQs
-> +      PCI: mediatek: Add MSI support for MT2712 and MT7622
-> +      PCI: rockchip: Remove IRQ domain if probe fails
-
-A quick "git log --oneline --no-merges drivers/pci" shows that the prefixes
-in use aren't consistent at all:  Sometimes a slash is used to separate
-"PCI" from the subpart touched by the patch, sometimes a colon, e.g.
-"PCI/AER: " versus "PCI: shpchp: ".  Your own patches aren't consistent
-in that respect.  Sometimes, only "PCI: " is given as prefix, even though
-the commit only touches a subpart such as "sysfs", so could easily specify
-more precisely what it's touching.
-
-If you value consistency, it would be good to codify the preferred form
-right here.
-
-
-> +  - Include specific details, e.g., write "Add XYZ controller support"
-> +    instead of "add support for new generation controller".
-
-Why not simply "Support XYZ controller"?  One word less, more succinct.
-
-
-> +  - Always copy linux-pci@vger.kernel.org and linux-kernel@vger.kernel.org.
-
-I'd drop linux-kernel here.  The volume on that list is already like
-drinking from a firehose, I doubt it adds much value to cc it.
-
-Thanks,
-
-Lukas
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> 
+> On 25/06/18 21:58, Dongjiu Geng wrote:
+>> For the arm64 RAS Extension, user space can inject a virtual-SError
+>> with specified ESR. So user space needs to know whether KVM support
+>> to inject such SError, this interface adds this query for this capability.
+>>
+>> KVM will check whether system support RAS Extension, if supported, KVM
+>> returns true to user space, otherwise returns false.
+> 
+> 
+>> diff --git a/Documentation/virtual/kvm/api.txt b/Documentation/virtual/kvm/api.txt
+>> index 3732097..86b3808 100644
+>> --- a/Documentation/virtual/kvm/api.txt
+>> +++ b/Documentation/virtual/kvm/api.txt
+>> @@ -4628,3 +4628,14 @@ Architectures: s390
+>>  This capability indicates that kvm will implement the interfaces to handle
+>>  reset, migration and nested KVM for branch prediction blocking. The stfle
+>>  facility 82 should not be provided to the guest without this capability.
+>> +
+>> +8.14 KVM_CAP_ARM_SET_SERROR_ESR
+>> +
+>> +Architectures: arm, arm64
+>> +
+>> +This capability indicates that userspace can specify the syndrome value reported
+>> +to the guest OS when guest takes a virtual SError interrupt exception.
+>> +If KVM has this capability, userspace can only specify the ISS field for the ESR
+>> +syndrome, it can not specify the EC field which is not under control by KVM.
+>> +If this virtual SError is taken to EL1 using AArch64, this value will be reported
+>> +in ISS filed of ESR_EL1.
+> 
+> 
+> 
+> 
+> .
+> 
