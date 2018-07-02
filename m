@@ -1,41 +1,63 @@
-From: Juergen Gross <jgross@suse.com>
-Subject: Re: [PATCH] xen/ACPI: don't upload Px/Cx data for
- disabled processors
-Date: Mon, 2 Jul 2018 15:51:21 +0200
-Message-ID: <b007f4c7-b533-d7c3-c622-2163966189fa@suse.com>
-References: <5B30C13F02000078001CD68D@suse.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
+ ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
+Date: Mon, 2 Jul 2018 09:41:54 -0500
+Message-ID: <45daa83a-08de-24e5-c3de-35046afa33a1@arm.com>
+References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
+ <CAJZ5v0gnspK3soa5j8iqU9QDM78MMBbz8YC9s7TOJ5Qwh7=mZg@mail.gmail.com>
+ <3895a0d8-9cca-2512-a06e-0ee2ac7db773@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <5B30C13F02000078001CD68D@suse.com>
-Content-Language: de-DE
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: Jan Beulich <JBeulich@suse.com>, Len Brown <lenb@kernel.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: xen-devel <xen-devel@lists.xenproject.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3895a0d8-9cca-2512-a06e-0ee2ac7db773@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjUvMDYvMTggMTI6MTcsIEphbiBCZXVsaWNoIHdyb3RlOgo+IFRoaXMgaXMgdW5uZWNlc3Nh
-cnkgYW5kIHRyaWdnZXJzIGEgd2FybmluZyBpbiB0aGUgaHlwZXJ2aXNvci4KPiAKPiBPZnRlbiBz
-eXN0ZW1zIGhhdmUgbW9yZSBwcm9jZXNzb3IgZW50cmllcyBpbiB0aGVpciBBQ1BJIHRhYmxlcyB0
-aGFuIGFyZQo+IGFjdHVhbGx5IGluc3RhbGxlZC9hY3RpdmUuIFRoZSBBQ1BJX1NUQV9ERVZJQ0Vf
-UFJFU0VOVCBiaXQgY2Fubm90IGJlCj4gcmVsaWFibHkgdXNlZCwgYnV0IHRoZSBBQ1BJX01BRFRf
-RU5BQkxFRCBiaXQgY2FuLiBJbiBvcmRlciB0byBub3QKPiBpbnRyb2R1Y2UgbmV3IGZ1bmN0aW9u
-cyBpbiB0aGUgbWFpbiBBQ1BJIHByb2Nlc3NvciBkcml2ZXIgY29kZSwgc2ltcGx5Cj4gdXNlIGFj
-cGlfZ2V0X3BoeXNfaWQoKSwgd2hpY2ggZG9lcyBtb3JlIHRoYW4gd2UgbmVlZCwgYnV0IHdoaWNo
-IGNoZWNrcwo+IHRoZSBNQURUIGVuYWJsZWQgYml0IGluIHRoZSBwcm9jZXNzLiBBbnkgQ1BVIGZv
-ciB3aGljaCB3ZSBjYW4ndAo+IGRldGVybWluZSB0aGUgQVBJQyBJRCBpcyB1bmxpa2VseSB0byB3
-b3JrIHByb3Blcmx5IGFueXdheSwgc28gdGhlIGV4dHJhCj4gY2hlY2tzIGRvbmUgYnkgYWNwaV9n
-ZXRfcGh5c19pZCgpIHNob3VsZCBkbyBubyBoYXJtLgo+IAo+IFNpZ25lZC1vZmYtYnk6IEphbiBC
-ZXVsaWNoIDxqYmV1bGljaEBzdXNlLmNvbT4KClJldmlld2VkLWJ5OiBKdWVyZ2VuIEdyb3NzIDxq
-Z3Jvc3NAc3VzZS5jb20+CgoKSnVlcmdlbgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KWGVuLWRldmVsIG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMu
-eGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3Rp
-bmZvL3hlbi1kZXZlbA==
+Hi,
+
+On 07/02/2018 04:57 AM, Sudeep Holla wrote:
+> 
+> 
+> On 02/07/18 10:06, Rafael J. Wysocki wrote:
+>> On Fri, Jun 29, 2018 at 6:17 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>> Currently we use the ACPI processor ID only for the leaf/processor nodes
+>>> as the specification states it must match the value of ACPI processor ID
+>>> field in the processor’s entry in the MADT.
+>>>
+>>> However, if a PPTT structure represents processors group, it match a
+>>> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
+>>> flag describe whether the ACPI processor ID is valid.
+>>>
+>>> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
+>>> consistent instead of using table offset as it's currently done for non
+>>> leaf nodes.
+>>>
+>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>> ---
+>>>   drivers/acpi/pptt.c | 10 ++++++++--
+>>>   1 file changed, 8 insertions(+), 2 deletions(-)
+>>>
+>>> Hi,
+>>>
+>>> There's ongoing discussion on assigning ID based in OS using simple
+>>> counters. It can never be consistent with firmware's view. So if the
+>>> firmware provides valid UID for non-processors node, we must use it.
+>>
+>> OK
+>>
+>> Do you regard this as a fix for the recently merged PPTT material?  If
+>> so, I should apply it as a fix for 4.18.
+>>
+> 
+> Yes, it should be considered as fix IMO.
+
+Do we know which machines are affected?
+
+I'm mostly agnostic to this patch because I believe its effectively a 
+NOP. But that said, it could have a functional change, which implies 
+there is some risk.
