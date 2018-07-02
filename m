@@ -1,25 +1,25 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
 Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
  ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-Date: Mon, 2 Jul 2018 10:57:47 +0100
-Message-ID: <3895a0d8-9cca-2512-a06e-0ee2ac7db773@arm.com>
+Date: Mon, 2 Jul 2018 11:01:49 +0100
+Message-ID: <a6c51606-05a5-84ce-8e6b-c66c7f2c77f2@arm.com>
 References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
- <CAJZ5v0gnspK3soa5j8iqU9QDM78MMBbz8YC9s7TOJ5Qwh7=mZg@mail.gmail.com>
+ <20180630071620.gszzib7oha3jn3j2@hawk.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gnspK3soa5j8iqU9QDM78MMBbz8YC9s7TOJ5Qwh7=mZg@mail.gmail.com>
+In-Reply-To: <20180630071620.gszzib7oha3jn3j2@hawk.localdomain>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Jeremy Linton <jeremy.linton@arm.com>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Andrew Jones <drjones@redhat.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jeremy Linton <jeremy.linton@arm.com>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, catalin.marinas@arm.com, will.deacon@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 02/07/18 10:06, Rafael J. Wysocki wrote:
-> On Fri, Jun 29, 2018 at 6:17 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+On 30/06/18 08:16, Andrew Jones wrote:
+> On Fri, Jun 29, 2018 at 05:17:57PM +0100, Sudeep Holla wrote:
 >> Currently we use the ACPI processor ID only for the leaf/processor nodes
 >> as the specification states it must match the value of ACPI processor ID
 >> field in the processor’s entry in the MADT.
@@ -44,14 +44,27 @@ On 02/07/18 10:06, Rafael J. Wysocki wrote:
 >> counters. It can never be consistent with firmware's view. So if the
 >> firmware provides valid UID for non-processors node, we must use it.
 > 
-> OK
-> 
-> Do you regard this as a fix for the recently merged PPTT material?  If
-> so, I should apply it as a fix for 4.18.
+> I agree with this. I've been so focused on the fact that the ACPI offsets
+> are arbitrary, and thus counters can't be worse, that I nearly forgot how
+> these IDs are actually defined:
 > 
 
-Yes, it should be considered as fix IMO.
+Yes, it's platform dependent and I now realize that I never explicitly
+mentioned that, let alone emphasize on that. I was for UID for the same
+reason.
 
+[...]
+
+> 
+> When the valid flag is set we'll now return a [hopefully] correct platform
+> dependent ID, but when it's not we'll return an ACPI table offset. How
+> will users of the ID know? Also, it's possible to return -ENOENT for the
+> ID when calling find_acpi_cpu_topology(). How can we distinguish that from
+> an arbitrary platform dependent ID?
+> 
+
+But why should one need to distinguish that ? Even offset is kind of
+sparsely distributed UID.
 -- 
 Regards,
 Sudeep
