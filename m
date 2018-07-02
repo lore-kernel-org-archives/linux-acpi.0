@@ -1,125 +1,97 @@
-From: "Alex G." <mr.nuke.me@gmail.com>
-Subject: Re: [PATCH v2] PCI/AER: Fix aerdrv loading with "pcie_ports=native"
- parameter
-Date: Mon, 2 Jul 2018 09:52:41 -0500
-Message-ID: <225720dd-d1d7-ab4a-6103-ff32b88cc9c2@gmail.com>
-References: <20180619195835.5423-1-mr.nuke.me@gmail.com>
- <20180630213140.GG9547@bhelgaas-glaptop.roam.corp.google.com>
- <fdc547c3-e4f7-4967-7216-9379e6d28139@gmail.com>
- <20180702131645.GA15983@bhelgaas-glaptop.roam.corp.google.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: 4.18rc3 TX2 boot failure with "ACPICA: AML parser: attempt to
+ continue loading table after error"
+Date: Mon, 2 Jul 2018 16:41:42 -0500
+Message-ID: <c49a3666-7d23-6a05-703c-1273d79a00cd@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180702131645.GA15983@bhelgaas-glaptop.roam.corp.google.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Frederick Lawler <fred@fredlawl.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Oza Pawandeep <poza@codeaurora.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
+To: erik.schmauss@intel.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
+
+I'm experiencing two problems with commit 5088814a6e931 which is 
+"ACPICA: AML parser: attempt to continue loading table after error"
+
+The first is this boot failure on a thunderX2:
+
+[   10.770098] ACPI Error: Ignore error and continue table load 
+(20180531/psobject-604)
+     [   10.777926] Unable to handle kernel NULL pointer dereference at 
+virtual address 0000000000000000
+     [   10.786809] Mem abort info:
+     [   10.789623]   ESR = 0x96000004
+     [   10.792702]   Exception class = DABT (current EL), IL = 32 bits
+     [   10.798682]   SET = 0, FnV = 0
+     [   10.801760]   EA = 0, S1PTW = 0
+     [   10.804925] Data abort info:
+     [   10.807827]   ISV = 0, ISS = 0x00000004
+     [   10.811698]   CM = 0, WnR = 0
+     [   10.814689] [0000000000000000] user address but active_mm is swapper
+     [   10.821108] Internal error: Oops: 96000004 [#1] SMP
+     [   10.826032] Modules linked in:
+     [   10.829113] CPU: 30 PID: 1 Comm: swapper/0 Not tainted 
+4.18.0-rc3PPTT4k+ #53
+     [   10.836234] Hardware name: Default string Cavium 
+ThunderX2/Default string, BIOS L50_5.13_1.0.0 05/16/2018
+     [   10.845905] pstate: 00400009 (nzcv daif +PAN -UAO)
+     [   10.850746] pc : acpi_ps_peek_opcode+0x1c/0x40
+     [   10.855231] lr : acpi_ps_create_op+0x54/0x278
+     [   10.859627] sp : ffff000009a8ba30
+     [   10.862969] x29: ffff000009a8ba30 x28: 0000000054445353
+     [   10.868334] x27: 0000000000004008 x26: 0000000000000000
+     [   10.873698] x25: ffff000009767f23 x24: ffff000008d59000
+     [   10.879063] x23: ffff802672799030 x22: ffff000009a8bb28
+     [   10.884427] x21: 0000000000000000 x20: ffff000008d59000
+     [   10.889791] x19: ffff802672799030 x18: ffffffffffffffff
+     [   10.895155] x17: 0000000000000013 x16: 0000000000000000
+     [   10.900519] x15: ffff000008d59708 x14: 2d7463656a626f73
+     [   10.905883] x13: 702f313335303831 x12: 3032282064616f6c
+     [   10.911246] x11: 20656c6261742065 x10: 756e69746e6f6320
+     [   10.916610] x9 : 0000000000000058 x8 : ffff000008570998
+     [   10.921974] x7 : 203a726f72724520 x6 : 0000000000000334
+     [   10.927338] x5 : 0000000000000012 x4 : 0000000000000000
+     [   10.932701] x3 : 0000000000000000 x2 : ffff000009a8bb28
+     [   10.938065] x1 : 0000000000000000 x0 : ffff000008505790
+     [   10.943430] Process swapper/0 (pid: 1, stack limit = 
+0x(____ptrval____))
+     [   10.950199] Call trace:
+     [   10.952663]  acpi_ps_peek_opcode+0x1c/0x40
+     [   10.956797]  acpi_ps_create_op+0x54/0x278
+     [   10.960842]  acpi_ps_parse_loop+0x1b4/0x6c8
+     [   10.965063]  acpi_ps_parse_aml+0xe0/0x2b4
+     [   10.969108]  acpi_ps_execute_table+0xa0/0x104
+     [   10.973505]  acpi_ns_execute_table+0x120/0x194
+     [   10.977989]  acpi_ns_parse_table+0x34/0x68
+     [   10.982122]  acpi_ns_load_table+0x4c/0xbc
+     [   10.986169]  acpi_tb_load_namespace+0x1d4/0x240
+     [   10.990744]  acpi_load_tables+0x50/0xbc
+     [   10.994614]  acpi_init+0xb8/0x374
+     [   10.997959]  do_one_initcall+0x54/0x208
+     [   11.001829]  kernel_init_freeable+0x224/0x300
+     [   11.006229]  kernel_init+0x18/0x118
+     [   11.009747]  ret_from_fork+0x10/0x18
+     [   11.013354] Code: aa0003f3 aa1e03e0 d503201f f9400661 (39400020)
+     [   11.019535] ---[ end trace 2bd8068593cf8acc ]---
+     [   11.024195] Kernel panic - not syncing: Fatal exception
+     [   11.029488] SMP: stopping secondary CPUs
+     [   11.033480] ---[ end Kernel panic - not syncing: Fatal exception 
+]---
+
+Which does appear to be the result of some bad data in the table, but it 
+was working with 4.17, and reverting this commit solves the problem.
+
+Also the messages now newly being prefixed with '\n' are slightly 
+corrupted like:
+
+"3ACPI BIOS Error (bug):"
+
+because the KERN_XXX macro is being encoded after the CR which keeps it 
+from being processed correctly.
 
 
-On 07/02/2018 08:16 AM, Bjorn Helgaas wrote:
-> On Sat, Jun 30, 2018 at 11:39:00PM -0500, Alex G wrote:
->> On 06/30/2018 04:31 PM, Bjorn Helgaas wrote:
->>> [+cc Borislav, linux-acpi, since this involves APEI/HEST]
->>
->> Borislav is not the relevant maintainer here, since we're not contingent on
->> APEI handling. I think Keith has a lot more experience with this part of the
->> kernel.
-> 
-> Thanks for adding Keith.
-> 
->>> On Tue, Jun 19, 2018 at 02:58:20PM -0500, Alexandru Gagniuc wrote:
->>>> According to the documentation, "pcie_ports=native", linux should use
->>>> native AER and DPC services. While that is true for the _OSC method
->>>> parsing, this is not the only place that is checked. Should the HEST
->>>> table list PCIe ports as firmware-first, linux will not use native
->>>> services.
->>>
->>> Nothing in ACPI-land looks at pcie_ports_native.  How should ACPI
->>> things work in the "pcie_ports=native" case?  I guess we still have to
->>> expect to receive error records from the firmware, because it may
->>> certainly send us non-PCI errors (machine checks, etc) and maybe even
->>> some PCI errors (even if the Linux AER driver claims AER interrupts,
->>> we don't know what notification mechanisms the firmware may be using).
->>
->> I think ACPI land shouldn't care about this. We care about it from the PCIe
->> stand point at the interface with ACPI. FW might see a delta in the sense
->> that we request control of some features via _OSC, which we otherwise would
->> not do without pcie_ports=native.
->>
->>> I guess best-case, we'll get ACPI error records for all non-PCI
->>> things, and the Linux AER driver will see all the AER errors.
->>
->> It might affect FW's ability to catch errors, but that's dependent on the
->> root port implementation.
->>
->>> Worst-case, I don't really know what to expect.  Duplicate reporting
->>> of AER errors via firmware and Linux AER driver?  Some kind of
->>> confusion about who acknowledges and clears them?
->>
->> Once user enters pcie_ports=native, all bets are off: you broke the contract
->> you have with the FW -- whether or not you have this patch.
->>
->>> Out of curiosity, what is your use case for "pcie_ports=native"?
->>> Presumably there's something that works better when using it, and
->>> things work even *better* with this patch?
->>
->> Corectness. It bothers me that actual behavior does not match the
->> documentation:
->>
->>  native  Use native PCIe services associated with PCIe ports
->>                         unconditionally.
->>
->>
->>> I know people do use it, because I often see it mentioned in forums
->>> and bug reports, but I really don't expect it to work very well
->>> because we're ignoring the usage model the firmware is designed
->>> around.  My unproven suspicion is that most uses are in the black
->>> magic category of "there's a bug here, and we don't know how to fix
->>> it, but pcie_ports=native makes it work better".
->>
->> There exist cases that firmware didn't consider. I would not call them
->> "firmware bugs", but there are cases where the user understands the platform
->> better than firmware.
->> Example: on certain PCIe switches, a hardware PCIe error may bring the
->> switch downstream ports into a state where they stop notifying hotplug
->> events. Depending on the platform, firmware may or may not fix this
->> condition, but "pcie_ports=native" enables DPC. DPC contains the error
->> without the switch downstream port entering the weird error state in the
->> first place.
->>
->> All bets are off at this point.
-> 
-> If a user needs "pcie_ports=native", I claim that's a user experience
-> problem, and the underlying cause is a hardware, firmware, or OS
-> defect.
-> 
-> I have no doubt the situation you describe is real, but this doesn't
-> make any progress toward resolving the user experience problem.  In
-> fact, it propagates the folklore that using "pcie_ports=native" is an
-> appropriate final solution.  It's fine as a temporary workaround while
-> we figure out a better solution, but we need some mechanism for
-> analyzing the problem and eventually removing the need to use
-> "pcie_ports=native".
-
-Speaking of user experience, I'd argue that it's a horrible experience
-for the kernel to _not_ do what it is asked.
-
-I'm going to go fix the little comment about the patch. I had the same
-dilemma when I wrote it, but didn't find it too noteworthy. It makes
-more sense now that you mentioned it.
-
-Alex
-
-> I have a minor comment on the patch, but I think it makes sense.  This
-> might be a good time to resurrect Prarit's "taint-on-pci-parameters"
-> patch.  If somebody uses "pcie_ports=native", I think it makes sense
-> to taint the kernel both because (1) we broke the contract with the
-> firmware and we don't really know what to expect, and (2) it's an
-> opportunity to encourage the user to raise a bug report.
-> 
-> Bjorn
-> 
+Thanks,
