@@ -1,70 +1,110 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: use ACPI ID whenever
- ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-Date: Mon, 2 Jul 2018 13:52:24 +0100
-Message-ID: <8fe4ee5c-23b8-12bb-3f2e-5589ca4de24b@arm.com>
-References: <1530289077-2444-1-git-send-email-sudeep.holla@arm.com>
- <CAJZ5v0gnspK3soa5j8iqU9QDM78MMBbz8YC9s7TOJ5Qwh7=mZg@mail.gmail.com>
- <3895a0d8-9cca-2512-a06e-0ee2ac7db773@arm.com>
- <CAJZ5v0gh0-psU7bbLf5zDGW5adQNALSdWdedbCgDoh1F-peh0g@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] PCI/AER: Fix aerdrv loading with "pcie_ports=native"
+ parameter
+Date: Mon, 2 Jul 2018 08:16:45 -0500
+Message-ID: <20180702131645.GA15983@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180619195835.5423-1-mr.nuke.me@gmail.com>
+ <20180630213140.GG9547@bhelgaas-glaptop.roam.corp.google.com>
+ <fdc547c3-e4f7-4967-7216-9379e6d28139@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gh0-psU7bbLf5zDGW5adQNALSdWdedbCgDoh1F-peh0g@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <fdc547c3-e4f7-4967-7216-9379e6d28139@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Jeremy Linton <jeremy.linton@arm.com>, shunyong.yang@hxt-semitech.com, yu.zheng@hxt-semitech.com, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Andrew Jones <drjones@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Alex G <mr.nuke.me@gmail.com>
+Cc: bhelgaas@google.com, keith.busch@intel.com, alex_gagniuc@dellteam.com, austin_bolen@dell.com, shyam_iyer@dell.com, Frederick Lawler <fred@fredlawl.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Oza Pawandeep <poza@codeaurora.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 02/07/18 12:01, Rafael J. Wysocki wrote:
-> On Mon, Jul 2, 2018 at 11:57 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>
->>
->> On 02/07/18 10:06, Rafael J. Wysocki wrote:
->>> On Fri, Jun 29, 2018 at 6:17 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>>> Currently we use the ACPI processor ID only for the leaf/processor nodes
->>>> as the specification states it must match the value of ACPI processor ID
->>>> field in the processor’s entry in the MADT.
->>>>
->>>> However, if a PPTT structure represents processors group, it match a
->>>> processor container UID in the namespace and ACPI_PPTT_ACPI_PROCESSOR_ID_VALID
->>>> flag describe whether the ACPI processor ID is valid.
->>>>
->>>> Lets use UID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set to be
->>>> consistent instead of using table offset as it's currently done for non
->>>> leaf nodes.
->>>>
->>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->>>> ---
->>>>  drivers/acpi/pptt.c | 10 ++++++++--
->>>>  1 file changed, 8 insertions(+), 2 deletions(-)
->>>>
->>>> Hi,
->>>>
->>>> There's ongoing discussion on assigning ID based in OS using simple
->>>> counters. It can never be consistent with firmware's view. So if the
->>>> firmware provides valid UID for non-processors node, we must use it.
->>>
->>> OK
->>>
->>> Do you regard this as a fix for the recently merged PPTT material?  If
->>> so, I should apply it as a fix for 4.18.
->>>
->>
->> Yes, it should be considered as fix IMO.
+On Sat, Jun 30, 2018 at 11:39:00PM -0500, Alex G wrote:
+> On 06/30/2018 04:31 PM, Bjorn Helgaas wrote:
+> > [+cc Borislav, linux-acpi, since this involves APEI/HEST]
 > 
-> So any chance to provide a Fixes: tag?
+> Borislav is not the relevant maintainer here, since we're not contingent on
+> APEI handling. I think Keith has a lot more experience with this part of the
+> kernel.
 
-Sure, since it was in the same release, I didn't add it.
+Thanks for adding Keith.
 
-Fixes: 2bd00bcd73e5 ("ACPI/PPTT: Add Processor Properties Topology Table
-parsing")
+> > On Tue, Jun 19, 2018 at 02:58:20PM -0500, Alexandru Gagniuc wrote:
+> > > According to the documentation, "pcie_ports=native", linux should use
+> > > native AER and DPC services. While that is true for the _OSC method
+> > > parsing, this is not the only place that is checked. Should the HEST
+> > > table list PCIe ports as firmware-first, linux will not use native
+> > > services.
+> > 
+> > Nothing in ACPI-land looks at pcie_ports_native.  How should ACPI
+> > things work in the "pcie_ports=native" case?  I guess we still have to
+> > expect to receive error records from the firmware, because it may
+> > certainly send us non-PCI errors (machine checks, etc) and maybe even
+> > some PCI errors (even if the Linux AER driver claims AER interrupts,
+> > we don't know what notification mechanisms the firmware may be using).
+> 
+> I think ACPI land shouldn't care about this. We care about it from the PCIe
+> stand point at the interface with ACPI. FW might see a delta in the sense
+> that we request control of some features via _OSC, which we otherwise would
+> not do without pcie_ports=native.
+> 
+> > I guess best-case, we'll get ACPI error records for all non-PCI
+> > things, and the Linux AER driver will see all the AER errors.
+> 
+> It might affect FW's ability to catch errors, but that's dependent on the
+> root port implementation.
+> 
+> > Worst-case, I don't really know what to expect.  Duplicate reporting
+> > of AER errors via firmware and Linux AER driver?  Some kind of
+> > confusion about who acknowledges and clears them?
+> 
+> Once user enters pcie_ports=native, all bets are off: you broke the contract
+> you have with the FW -- whether or not you have this patch.
+> 
+> > Out of curiosity, what is your use case for "pcie_ports=native"?
+> > Presumably there's something that works better when using it, and
+> > things work even *better* with this patch?
+> 
+> Corectness. It bothers me that actual behavior does not match the
+> documentation:
+> 
+>  native  Use native PCIe services associated with PCIe ports
+>                         unconditionally.
+> 
+> 
+> > I know people do use it, because I often see it mentioned in forums
+> > and bug reports, but I really don't expect it to work very well
+> > because we're ignoring the usage model the firmware is designed
+> > around.  My unproven suspicion is that most uses are in the black
+> > magic category of "there's a bug here, and we don't know how to fix
+> > it, but pcie_ports=native makes it work better".
+> 
+> There exist cases that firmware didn't consider. I would not call them
+> "firmware bugs", but there are cases where the user understands the platform
+> better than firmware.
+> Example: on certain PCIe switches, a hardware PCIe error may bring the
+> switch downstream ports into a state where they stop notifying hotplug
+> events. Depending on the platform, firmware may or may not fix this
+> condition, but "pcie_ports=native" enables DPC. DPC contains the error
+> without the switch downstream port entering the weird error state in the
+> first place.
+> 
+> All bets are off at this point.
 
--- 
-Regards,
-Sudeep
+If a user needs "pcie_ports=native", I claim that's a user experience
+problem, and the underlying cause is a hardware, firmware, or OS
+defect.
+
+I have no doubt the situation you describe is real, but this doesn't
+make any progress toward resolving the user experience problem.  In
+fact, it propagates the folklore that using "pcie_ports=native" is an
+appropriate final solution.  It's fine as a temporary workaround while
+we figure out a better solution, but we need some mechanism for
+analyzing the problem and eventually removing the need to use
+"pcie_ports=native".
+
+I have a minor comment on the patch, but I think it makes sense.  This
+might be a good time to resurrect Prarit's "taint-on-pci-parameters"
+patch.  If somebody uses "pcie_ports=native", I think it makes sense
+to taint the kernel both because (1) we broke the contract with the
+firmware and we don't really know what to expect, and (2) it's an
+opportunity to encourage the user to raise a bug report.
+
+Bjorn
