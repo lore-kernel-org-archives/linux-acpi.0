@@ -1,29 +1,111 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
-Date: Tue, 3 Jul 2018 14:06:01 +0100
-Message-ID: <20180703130601.GA1010@e107155-lin>
-References: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
+ firmwware
+Date: Tue, 3 Jul 2018 17:17:27 +0200
+Message-ID: <CAKv+Gu8VYZ1dCggPjakcvqOxfUCeCAABEADmF2Bm-q3=y3J4ng@mail.gmail.com>
+References: <20180628100656.10692-1-james.morse@arm.com>
+ <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
+ <1530607466.9841.124.camel@debian.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Srinath Mannam <srinath.mannam@broadcom.com>
-Cc: rafael@kernel.org, lenb@kernel.org, andy.shevchenko@gmail.com, ray.jui@broadcom.com, vladimir.olovyannikov@broadcom.com, vikram.prakash@broadcom.com, scott.branden@broadcom.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1530607466.9841.124.camel@debian.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Ian Campbell <ijc@debian.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 03, 2018 at 02:52:40PM +0530, Srinath Mannam wrote:
-> This patch provides a function, to get of_device_id after
-> matching with ACPI device _DSD object compatible property
-> in the case driver does not contain acpi_device_id list
-> and driver probe called for ACPI device ID PRP0001 with
-> compatible property match with of_device_id compatible.
+On 3 July 2018 at 10:44, Ian Campbell <ijc@debian.org> wrote:
+> On Thu, 2018-06-28 at 12:25 +0200, Ard Biesheuvel wrote:
+>> I understand the desire to keep running these M400s as long as they
+>> have some life left in them, but the reality is that they are end of
+>> life already, and not many were manufactured to begin with.
+>
+> Linux has a long history of supporting such devices so long as there is
+> someone around willing to keep them running (witness for example how
+> long x86/voyager lived with just 1 in existence in a motivated
+> developer's basement, probably some number of entire architectures and
+> I bet a not insubstantial chunk of the platform support in arch/arm).
 >
 
-So, IIUC you are adding this to get of_device_id and then fetch data ptr
-from it. Can we see the user in some driver ?
+I wonder how many such quirks fall into the 'user cannot be bothered
+to add a kernel command line option' category.
 
---
-Regards,
-Sudeep
+>> Given how the upstream kernel is aimed at future development,
+>
+> That might be true in some sense but I don't think it can be said to
+> extends to "not worried about running on existing hardware".
+>
+>>  I don't
+>> think we should fix this in the upstream kernel at all. Distros are
+>> free to do what they like, of course, and I'm sure RedHat already have
+>> a fix for this in their downstream kernel. But putting this upstream
+>> means we will never be able to remove it again,
+>
+> Quirks are pretty self contained and should be very unobtrusive to the
+> common code paths though. Also I expect that quirks _can_ be removed
+> once the platform has actually died in reality (not just no longer
+> produced) or becomes too much of a burden for other reasons (which AIUI
+> is what eventually happened to Voyager).
+>
+>>  which would be
+>> especially unfortunate given that it is the first ever DMI quirk for
+>> arm64, which we tried *very* hard to avoid, also because we don't
+>> initialize the DMI framework as early as x86 does, and so once we open
+>> the floodgates,
+>
+> The "flood" is inversely proportional to the quality of the firmware
+> certification and it isn't too overwhelming on x86, which historically
+> had next to no certification apart from "runs Windows", so it seems
+> unlikely to me that on arm64, where some attempts have been made at
+> validation and test suites from very near the start, that the flood
+> will be all that overwhelming.
+>
+>>  we will run into issues where we will need to reorder
+>> the init sequence to make DMI data available early enough.
+>
+>> a) DMI quirks will be permitted on arm64
+>> b) we care about m400 enough to put this quirk in the upstream kernel
+>
+> In general arm64 Linux is going to need to be able to cope with
+> firmware in the field which is either rubbish to some degree or which
+> predates the addition of some support in the kernel and turns out not
+> to be fully functional when that support is enabled (the latter it
+> seems being what happened in the m400 case).
+>
+> So, I think DMI quirks are probably, in reality, inevitable unless you
+> think firmware authors are going to be infaliable or the
+> testing/certification suites never has any gaps in it.
+>
+
+Oh, obviously. But this is exactly my point about flood gates: we know
+we need implement support for them, but that fact alone does not
+justify adding quirks for dead platforms for issues that can be
+trivially worked around.
+
+On a related note: what we *could* do to accommodate platforms such as
+m400 that are affected by quirks that can be worked around by a
+command line parameter: we could teach the stub to look at the
+contents of the 'LinuxExtraArgs' EFI environment variable and append
+it to the kernel command line. This is trivial to implement, given
+that we already manipulate and parse the command line in the stub, and
+would allow for a 'fix and forget' tweak to be applied to such
+platforms., without having to accumulate quirks for broken platforms
+that are difficult to remove later.
+
+> Given that, the overhead of then supporting m400 seems pretty trivial.
+>
+> That said, maybe there are more appropriate mechanisms than DMI on
+> arm64 for detecting and activating quirks?
+>
+> Cheers,
+> Ian.
