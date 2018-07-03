@@ -1,8 +1,8 @@
 From: Andy Shevchenko <andy.shevchenko@gmail.com>
 Subject: Re: [PATCH] ACPI: bus.c: Let acpi_device_get_match_data() return DT
  compatibility data
-Date: Wed, 4 Jul 2018 00:36:45 +0300
-Message-ID: <CAHp75Vck_1FcPQogmT5vd-47Uy3o9_bSVpNwxVaj3ckHZL3Ccg@mail.gmail.com>
+Date: Wed, 4 Jul 2018 01:31:26 +0300
+Message-ID: <CAHp75VeKbXA1wtJr_u0y+Ndjouf2GH51UHsLcsC6s32kWtA3zw@mail.gmail.com>
 References: <93a290d7082ed2e4d3e2b91dc7f6e941c9242a41.1530600804.git.nikolaus.voss@loewensteinmedical.de>
  <CAHp75Vdn-Fn_bwgBjvnLa_s2LORgdEjLH0jpRvVDjwyxKOLEBw@mail.gmail.com>
 Mime-Version: 1.0
@@ -25,15 +25,11 @@ On Wed, Jul 4, 2018 at 12:31 AM, Andy Shevchenko
 >
 > I'm not sure what you are trying to achieve here.
 > This works solely for ACPI case.
-> For PRP0001 (which is just a _temporary_ solution for device in
-> question) we have special code path in SPI and I2C cores.
->
-> https://elixir.bootlin.com/linux/v4.18-rc3/ident/acpi_driver_match_device
 
-Just have to add, that PRP0001 is enumerated via OF per se.
-It means the driver in question must have compatible strings and
-MODULE_DEVICE_TABLE(of,...).
-Also don't forget to enable CONFIG_OF in your kernel.
+Okay, now, after a bit of browsing sources, I got your problem.
+Indeed, we have acpi_of_match_device() which returns matched OF item,
+but no caller is interested in it...
+
 
 -- 
 With Best Regards,
