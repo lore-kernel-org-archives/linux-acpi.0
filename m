@@ -1,50 +1,50 @@
 From: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
-Subject: Re: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
-Date: Wed, 4 Jul 2018 12:17:20 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1807041205290.8629@fox.voss.local>
-References: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com> <CAHp75VfPvCD7xpp73jbya4ONN=wxpVGNpOfNeqZYjfyirms0PA@mail.gmail.com> <CABe79T7EeyzKS97zeQ5akoSaZX0=hMgHxw4XkLCQW15eRR=14Q@mail.gmail.com> <CAHp75Vef97XB-M=+xUxsGqzgPrADcUmLTLRdWE+PcVxtTQLN4g@mail.gmail.com>
- <8518137d-c859-657e-844f-51720f6ef8dd@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Subject: [PATCH] ACPI: bus.c: Let acpi_device_get_match_data() return DT
+ compatibility data
+Date: Tue, 3 Jul 2018 08:09:24 +0200
+Message-ID: <20180704102240.2C00942D43@mail.steuer-voss.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <8518137d-c859-657e-844f-51720f6ef8dd@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Srinath Mannam <srinath.mannam@broadcom.com>, "Voss, Dr. Nikolaus" <Nikolaus.Dr.Voss@loewensteinmedical.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nv@vosn.de
+To: Sudeep Holla <sudeep.holla@arm.com>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Srinath Mannam <srinath.mannam@broadcom.com>, nv@vosn.de
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 4 Jul 2018, Sudeep Holla wrote:
-> On 04/07/18 10:32, Andy Shevchenko wrote:
->> On Wed, Jul 4, 2018 at 6:37 AM, Srinath Mannam
->> <srinath.mannam@broadcom.com> wrote:
->>> Hi Sudeep, Andy,
->>>
->>> Yes, This patch is to get of_device_id and then fetch data pointer.
->>>
->>> To add ACPI support in multiple drivers which are device-tree based
->>> and has list of of_device_ids, by using this function
->>> very minimal changes and can avoid acpi_device_id list in the driver.
->>> I will send driver changes where this function used to add ACPI
->>> support in following patches.
->>>
->>> Below are the changes added to add ACPI support in sdhci iproc driver
->>> using this function.
->>
->> So, did you get an ACPI ID for it?
->> That's how proper ACPI support should be done.
->>
->> P.S. What you are trying to do is being discussed with Nikolaus in [1].
->> I have to NAK your approach in any case. Sorry.
->>
->
-> +1 on NACK for this and anything else that abuse PRP0001 as a short cut
-> approach.
+When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
+of_device_id table "compatible" strings in DSD, a pointer to the
+corresponding DT table entry should be returned instead of a null
+pointer. An acpi_device_id match still takes precedence.
 
-This is no abuse but exactly what PRP0001 is meant for. The basic idea of 
-PRP0001 is to reuse DT "compatible" strings in ACPI namespace, see 
-Documentation/acpi/enumeration.txt. Reusing also means getting 
-access to the of_device_id.
+Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+---
+ drivers/acpi/bus.c | 15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-Allocating an ACPI id for an already existing DT driver is redundant, isn't it?
-
-Niko
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 84b4a62018eb..c2deffea842e 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -832,13 +832,18 @@ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
+ const void *acpi_device_get_match_data(const struct device *dev)
+ {
+-	const struct acpi_device_id *match;
++	const struct acpi_device_id *acpi_id = NULL;
++	const struct of_device_id *of_id = NULL;
++	const struct device_driver *drv = dev->driver;
+ 
+-	match = acpi_match_device(dev->driver->acpi_match_table, dev);
+-	if (!match)
++	__acpi_match_device(acpi_companion_match(dev), drv->acpi_match_table,
++			    drv->of_match_table, &acpi_id, &of_id);
++	if (acpi_id)
++		return (const void*)acpi_id->driver_data;
++	else if (of_id)
++		return (const void*)of_id->data;
++	else
+ 		return NULL;
+-
+-	return (const void *)match->driver_data;
+ }
+ EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
+ 
+-- 
+2.17.1
