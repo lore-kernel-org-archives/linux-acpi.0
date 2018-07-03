@@ -1,42 +1,86 @@
-From: Ian Campbell <ijc@debian.org>
-Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
- firmwware
-Date: Tue, 03 Jul 2018 09:46:18 +0100
-Message-ID: <1530607578.9841.126.camel@debian.org>
-References: <20180628100656.10692-1-james.morse@arm.com>
- <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
- <ef039f0c-dea2-80d7-e6fa-481f3452a600@infradead.org>
- <CAKv+Gu8OkHZJL8FXhsfQP8JodWLTFg5kz4wVcDPVWTs-29buug@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKv+Gu8OkHZJL8FXhsfQP8JodWLTFg5kz4wVcDPVWTs-29buug@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Geoff Levand <geoff@infradead.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+From: Srinath Mannam <srinath.mannam@broadcom.com>
+Subject: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
+Date: Tue,  3 Jul 2018 14:52:40 +0530
+Message-ID: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rafael@kernel.org, lenb@kernel.org, andy.shevchenko@gmail.com
+Cc: ray.jui@broadcom.com, vladimir.olovyannikov@broadcom.com, vikram.prakash@broadcom.com, scott.branden@broadcom.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Srinath Mannam <srinath.mannam@broadcom.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2018-06-28 at 22:56 +0200, Ard Biesheuvel wrote:
-> But that does not make it an upstream problem. The fact that this is
-> an EOL platform of which only a couple of hundred are in circulation,
-> combined with the fact that there is a trivial workaround available
-> (the command line option) makes it a non-issue in my opinion,
-> especially given the fact that not a single distro ships pristine
-> mainline kernels, and so they can carry the quirk themselves.
+This patch provides a function, to get of_device_id after
+matching with ACPI device _DSD object compatible property
+in the case driver does not contain acpi_device_id list
+and driver probe called for ACPI device ID PRP0001 with
+compatible property match with of_device_id compatible.
 
-I think that's rather unfortunate given that many distros (Debian
-included, AIUI Fedora too, I'm sure others) try to ship kernels as
-close to mainline as possible and the general steer from the kernel
-community to try and do so whenever possible, to track stable releases
-early and often etc.
+Signed-off-by: Srinath Mannam <srinath.mannam@broadcom.com>
+---
+ drivers/acpi/bus.c   | 23 +++++++++++++++++++++++
+ include/linux/acpi.h | 10 ++++++++++
+ 2 files changed, 33 insertions(+)
 
-Ian.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 84b4a62..e676bf7 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -830,6 +830,29 @@ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ }
+ EXPORT_SYMBOL_GPL(acpi_match_device);
+ 
++/**
++ * acpi_match_of_device_id - Match a struct device in given of_device_id list
++ * @ids: Array of struct of_device_id object to match against.
++ * @dev: The device structure to match.
++ *
++ * Check if @dev has a valid ACPI handle and if there is a struct acpi_device
++ * object for that handle and use that object to match against a given list of
++ * device IDs.
++ *
++ * Return a pointer to the first matching ID on success or %NULL on failure.
++ */
++const
++struct of_device_id *acpi_match_of_device_id(const struct of_device_id *ids,
++					     const struct device *dev)
++{
++	const struct of_device_id *id = NULL;
++
++	__acpi_match_device(acpi_companion_match(dev), NULL, ids, NULL, &id);
++	return id;
++}
++EXPORT_SYMBOL_GPL(acpi_match_of_device_id);
++
++
+ const void *acpi_device_get_match_data(const struct device *dev)
+ {
+ 	const struct acpi_device_id *match;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 4b35a66..2f24800 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -589,6 +589,10 @@ extern int acpi_nvs_for_each_region(int (*func)(__u64, __u64, void *),
+ const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
+ 					       const struct device *dev);
+ 
++const
++struct of_device_id *acpi_match_of_device_id(const struct of_device_id *ids,
++					     const struct device *dev);
++
+ const void *acpi_device_get_match_data(const struct device *dev);
+ extern bool acpi_driver_match_device(struct device *dev,
+ 				     const struct device_driver *drv);
+@@ -775,6 +779,12 @@ static inline const struct acpi_device_id *acpi_match_device(
+ 	return NULL;
+ }
+ 
++static inline const struct of_device_id *acpi_match_of_device_id(
++	const struct of_device_id *ids, const struct device *dev)
++{
++	return NULL;
++}
++
+ static inline const void *acpi_device_get_match_data(const struct device *dev)
+ {
+ 	return NULL;
+-- 
+2.7.4
