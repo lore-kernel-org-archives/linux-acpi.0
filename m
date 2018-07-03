@@ -1,75 +1,82 @@
-From: Ian Campbell <ijc@debian.org>
-Subject: Re: [RFC/RFT PATCH 0/2] disable_hest quirk on HP m400 with bad UEFI
- firmwware
-Date: Tue, 03 Jul 2018 20:47:15 +0100
-Message-ID: <1530647235.31922.33.camel@debian.org>
-References: <20180628100656.10692-1-james.morse@arm.com>
- <CAKv+Gu9ZHAGzcfgHShM1qvZ3qf4gb1pD_XfoceJu9Qy+5_pEsg@mail.gmail.com>
- <1530607466.9841.124.camel@debian.org>
- <CAKv+Gu8VYZ1dCggPjakcvqOxfUCeCAABEADmF2Bm-q3=y3J4ng@mail.gmail.com>
- <1530632871.9841.139.camel@debian.org> <20180703171251.GC11614@red-moon>
- <1530638172.31922.25.camel@debian.org> <20180703173943.GA11764@red-moon>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: 4.18rc3 TX2 boot failure with "ACPICA: AML parser: attempt to
+ continue loading table after error"
+Date: Tue, 3 Jul 2018 20:31:35 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED53BB365F0@ORSMSX110.amr.corp.intel.com>
+References: <c49a3666-7d23-6a05-703c-1273d79a00cd@arm.com>
+ <CAJZ5v0h5+O8xf_EqRPfdvtjQ7BvxLp8veaxB-7WsD8wq7RUFpA@mail.gmail.com>
+ <9a9ef2bc-a66f-2af7-8766-b74426f062a6@arm.com>
+ <CAJZ5v0j+9QOw1s3W07QRPDRydsdw7uSAgpvOwF_5302+zeViOg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180703173943.GA11764@red-moon>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Geoff Levand <geoff@infradead.org>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0j+9QOw1s3W07QRPDRydsdw7uSAgpvOwF_5302+zeViOg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Jeremy Linton <jeremy.linton@arm.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 2018-07-03 at 18:39 +0100, Lorenzo Pieralisi wrote:
-> On Tue, Jul 03, 2018 at 06:16:12PM +0100, Ian Campbell wrote:
-> > On Tue, 2018-07-03 at 18:12 +0100, Lorenzo Pieralisi wrote:
-> > > I do not think anybody is preventing that, it is just that we do
-> not
-> > > see the reason for adding a DMI quirk to the mainline kernel to
-> enable
-> > > a platform with broken firmware that cripples one of the main
-> feature
-> > > it is supposed to implement, we can go on forever about this but
-> that's
-> > > the gist.
-> > 
-> > The quirk turns off a broken feature on the platform where it is
-> > broken, not everywhere, there's no "crippling" of the feature.
-> > 
-> > Or are you suggesting that you have in mind a way to fix this which
-> > makes HEST work even on m400 and renders the quirk unnecessary?
-> 
-> HEST error reporting is broken on those platforms and it is one
-> of the main features we expect from FW in ACPI systems, that
-> glossing over the legacy nature of m400 platforms.
-> 
-> What I do not understand, and Ard pointed that out already, is why we
-> should add a DMI quirk to the mainline kernel (that he tried/is trying
-> very hard to prevent since ACPI for ARM64 was merged) to enable a legacy
-> platform with missing/broken (HEST) key FW functionality in a
-> distribution.
-> 
-> If we answer that question we can merge this series but I see no
-> compelling reason for the time being.
-
-These systems still exist in the real world and enabling HEST in the
-(generic) kernel configuration causes a regression on those systems.
-
-The advice from upstream Linux maintainers for many years has been for
-distros to remain as close as possible to upstream and to take stable
-updates early and often. Telling distros to carry patches because a
-platform is no longer produced seems to me to be completely counter to
-that.
-
-Is it the policy now that users of a platform should no longer upgrade
-their kernels once the manufacturer has decided the platform is EOL, or
-shortly after when the kernel decides it is no longer worth supporting?
-
-Ian.
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBK
+dWx5IDMsIDIwMTggMTI6NTIgQU0NCj4gVG86IEplcmVteSBMaW50b24gPGplcmVteS5saW50b25A
+YXJtLmNvbT4NCj4gQ2M6IFJhZmFlbCBKLiBXeXNvY2tpIDxyYWZhZWxAa2VybmVsLm9yZz47IFNj
+aG1hdXNzLCBFcmlrDQo+IDxlcmlrLnNjaG1hdXNzQGludGVsLmNvbT47IGxpbnV4LWFjcGlAdmdl
+ci5rZXJuZWwub3JnOyBsaW51eC0NCj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgUmFmYWVsIEog
+LiBXeXNvY2tpIDxyandAcmp3eXNvY2tpLm5ldD47IGxpbnV4LWFybS0NCj4ga2VybmVsQGxpc3Rz
+LmluZnJhZGVhZC5vcmc7IExvcmVuem8gUGllcmFsaXNpIDxsb3JlbnpvLnBpZXJhbGlzaUBhcm0u
+Y29tPg0KPiBTdWJqZWN0OiBSZTogNC4xOHJjMyBUWDIgYm9vdCBmYWlsdXJlIHdpdGggIkFDUElD
+QTogQU1MIHBhcnNlcjogYXR0ZW1wdCB0bw0KPiBjb250aW51ZSBsb2FkaW5nIHRhYmxlIGFmdGVy
+IGVycm9yIg0KPiANCj4gT24gVHVlLCBKdWwgMywgMjAxOCBhdCAxMjozMCBBTSwgSmVyZW15IExp
+bnRvbiA8amVyZW15LmxpbnRvbkBhcm0uY29tPg0KPiB3cm90ZToNCj4gPiBIaSwNCj4gPg0KPiA+
+IE9uIDA3LzAyLzIwMTggMDQ6NTIgUE0sIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+Pg0K
+PiA+PiBPbiBNb24sIEp1bCAyLCAyMDE4IGF0IDExOjQxIFBNLCBKZXJlbXkgTGludG9uDQo+ID4+
+IDxqZXJlbXkubGludG9uQGFybS5jb20+DQo+ID4+IHdyb3RlOg0KPiA+Pj4NCj4gPj4+IEhpLA0K
+PiA+Pj4NCj4gPj4+IEknbSBleHBlcmllbmNpbmcgdHdvIHByb2JsZW1zIHdpdGggY29tbWl0IDUw
+ODg4MTRhNmU5MzEgd2hpY2ggaXMNCj4gIkFDUElDQToNCj4gPj4+IEFNTCBwYXJzZXI6IGF0dGVt
+cHQgdG8gY29udGludWUgbG9hZGluZyB0YWJsZSBhZnRlciBlcnJvciINCj4gPj4+DQo+ID4+PiBU
+aGUgZmlyc3QgaXMgdGhpcyBib290IGZhaWx1cmUgb24gYSB0aHVuZGVyWDI6DQo+ID4+Pg0KPiA+
+Pj4gWyAgIDEwLjc3MDA5OF0gQUNQSSBFcnJvcjogSWdub3JlIGVycm9yIGFuZCBjb250aW51ZSB0
+YWJsZSBsb2FkDQo+ID4+PiAoMjAxODA1MzEvcHNvYmplY3QtNjA0KQ0KPiA+Pj4gICAgICBbICAg
+MTAuNzc3OTI2XSBVbmFibGUgdG8gaGFuZGxlIGtlcm5lbCBOVUxMIHBvaW50ZXIgZGVyZWZlcmVu
+Y2UgYXQNCj4gPj4+ICAgICAgWyAgIDEwLjk1MDE5OV0gQ2FsbCB0cmFjZToNCj4gPj4+DQo+ID4+
+PiAgICAgIFsgICAxMC45NTI2NjNdICBhY3BpX3BzX3BlZWtfb3Bjb2RlKzB4MWMvMHg0MA0KPiA+
+Pj4gICAgICBbICAgMTAuOTU2Nzk3XSAgYWNwaV9wc19jcmVhdGVfb3ArMHg1NC8weDI3OA0KPiA+
+Pj4gICAgICBbICAgMTAuOTYwODQyXSAgYWNwaV9wc19wYXJzZV9sb29wKzB4MWI0LzB4NmM4DQo+
+ID4+PiAgICAgIFsgICAxMC45NjUwNjNdICBhY3BpX3BzX3BhcnNlX2FtbCsweGUwLzB4MmI0DQo+
+ID4+PiAgICAgIFsgICAxMC45NjkxMDhdICBhY3BpX3BzX2V4ZWN1dGVfdGFibGUrMHhhMC8weDEw
+NA0KPiA+Pj4gICAgICBbICAgMTAuOTczNTA1XSAgYWNwaV9uc19leGVjdXRlX3RhYmxlKzB4MTIw
+LzB4MTk0DQo+ID4+PiAgICAgIFsgICAxMC45Nzc5ODldICBhY3BpX25zX3BhcnNlX3RhYmxlKzB4
+MzQvMHg2OA0KPiA+Pj4gICAgICBbICAgMTAuOTgyMTIyXSAgYWNwaV9uc19sb2FkX3RhYmxlKzB4
+NGMvMHhiYw0KPiA+Pj4gICAgICBbICAgMTAuOTg2MTY5XSAgYWNwaV90Yl9sb2FkX25hbWVzcGFj
+ZSsweDFkNC8weDI0MA0KPiA+Pj4gICAgICBbICAgMTAuOTkwNzQ0XSAgYWNwaV9sb2FkX3RhYmxl
+cysweDUwLzB4YmMNCj4gPj4+ICAgICAgWyAgIDEwLjk5NDYxNF0gIGFjcGlfaW5pdCsweGI4LzB4
+Mzc0DQo+ID4+PiAgICAgIFsgICAxMC45OTc5NTldICBkb19vbmVfaW5pdGNhbGwrMHg1NC8weDIw
+OA0KPiA+Pj4gICAgICBbICAgMTEuMDAxODI5XSAga2VybmVsX2luaXRfZnJlZWFibGUrMHgyMjQv
+MHgzMDANCj4gPj4+ICAgICAgWyAgIDExLjAwNjIyOV0gIGtlcm5lbF9pbml0KzB4MTgvMHgxMTgN
+Cj4gPj4+ICAgICAgWyAgIDExLjAwOTc0N10gIHJldF9mcm9tX2ZvcmsrMHgxMC8weDE4DQo+ID4+
+PiAgICAgIFsgICAxMS4wMTMzNTRdIENvZGU6IGFhMDAwM2YzIGFhMWUwM2UwIGQ1MDMyMDFmIGY5
+NDAwNjYxICgzOTQwMDAyMCkNCj4gPj4+ICAgICAgWyAgIDExLjAxOTUzNV0gLS0tWyBlbmQgdHJh
+Y2UgMmJkODA2ODU5M2NmOGFjYyBdLS0tDQo+ID4+PiAgICAgIFsgICAxMS4wMjQxOTVdIEtlcm5l
+bCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBGYXRhbCBleGNlcHRpb24NCj4gPj4+ICAgICAgWyAgIDEx
+LjAyOTQ4OF0gU01QOiBzdG9wcGluZyBzZWNvbmRhcnkgQ1BVcw0KPiA+Pj4gICAgICBbICAgMTEu
+MDMzNDgwXSAtLS1bIGVuZCBLZXJuZWwgcGFuaWMgLSBub3Qgc3luY2luZzogRmF0YWwgZXhjZXB0
+aW9uDQo+ID4+PiBdLS0tDQo+ID4+Pg0KPiA+Pj4gV2hpY2ggZG9lcyBhcHBlYXIgdG8gYmUgdGhl
+IHJlc3VsdCBvZiBzb21lIGJhZCBkYXRhIGluIHRoZSB0YWJsZSwNCj4gPj4+IGJ1dCBpdCB3YXMg
+d29ya2luZyB3aXRoIDQuMTcsIGFuZCByZXZlcnRpbmcgdGhpcyBjb21taXQgc29sdmVzIHRoZQ0K
+PiA+Pj4gcHJvYmxlbS4NCj4gPj4NCj4gPj4NCj4gPj4gQnV0IHRoaXMgY29tbWl0IGZpeGVzIGFu
+b3RoZXIgcmVncmVzc2lvbiB3aGljaCB3YXMgbW9yZSB3aWRlc3ByZWFkLg0KPiA+Pg0KPiA+PiBB
+cHBhcmVudGx5LCB3ZSBjYW4ndCB3b3JrIGFyb3VuZCBhbGwgb2YgdGhlIGVycm9ycyBpbiB0aGUg
+dGFibGVzIG91dA0KPiA+PiB0aGVyZSBhdCB0aGUgc2FtZSB0aW1lLiA6LS8NCj4gPg0KPiA+DQo+
+ID4gTlAsIExldCBtZSBzZWUgaWYgSSBjYW4gY29tZSB1cCB3aXRoIGEgd2F5IHRvIGhhcmRlbiB0
+aGUNCj4gPiBwYXJzZV9sb29wL2NyZWF0ZV9vcCBjb2RlIGVub3VnaCB0aGF0IGl0IGRvZXNuJ3Qg
+Y3Jhc2ggdGhlIG1hY2hpbmUuDQo+IA0KPiBTdXJlLiAgSSdsbCBsb29rIGF0IGl0IHRvby4NCg0K
+SSBpdCBsb29rcyBsaWtlIHRoZXJlIGFyZSBlcnJvciBjYXNlcyB0aGF0IGhhdmUgeWV0IHRvIGJl
+IGltcGxlbWVudGVkLi4uDQpKZXJlbXksIGNvdWxkIHNlbmQgYW4gQUNQSSBkdW1wIG9mIHRoaXMg
+dGh1bmRlclgyIG1hY2hpbmU/DQoNClRoYW5rcywNCkVyaWsNCg0KPiAtLQ0KPiBUbyB1bnN1YnNj
+cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNw
+aSIgaW4gdGhlIGJvZHkgb2YNCj4gYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
+cmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdA0KPiBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
+ZG9tby1pbmZvLmh0bWwNCg==
