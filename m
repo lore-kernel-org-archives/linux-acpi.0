@@ -1,48 +1,126 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
-Date: Wed, 4 Jul 2018 11:53:49 +0100
-Message-ID: <20180704105349.GA14665@e107155-lin>
-References: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
- <CAHp75VfPvCD7xpp73jbya4ONN=wxpVGNpOfNeqZYjfyirms0PA@mail.gmail.com>
- <CABe79T7EeyzKS97zeQ5akoSaZX0=hMgHxw4XkLCQW15eRR=14Q@mail.gmail.com>
- <CAHp75Vef97XB-M=+xUxsGqzgPrADcUmLTLRdWE+PcVxtTQLN4g@mail.gmail.com>
- <8518137d-c859-657e-844f-51720f6ef8dd@arm.com>
- <alpine.DEB.2.20.1807041205290.8629@fox.voss.local>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH] arm64: numa: rework ACPI NUMA initialization
+Date: Wed, 4 Jul 2018 12:23:08 +0100
+Message-ID: <e8ddb2a4-ead5-e0b5-3078-c7c0fc4ed7b3@huawei.com>
+References: <20180625130552.5636-1-lorenzo.pieralisi@arm.com>
+ <aeb3d665-4135-f6ea-7f65-13b08983673e@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1807041205290.8629@fox.voss.local>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Srinath Mannam <srinath.mannam@broadcom.com>, "Voss, Dr. Nikolaus" <Nikolaus.Dr.Voss@loewensteinmedical.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, nv@vosn.de
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <aeb3d665-4135-f6ea-7f65-13b08983673e@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <guohanjun@huawei.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org
+Cc: Xie XiuQi <xiexiuqi@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 04, 2018 at 12:17:20PM +0200, Nikolaus Voss wrote:
-> On Wed, 4 Jul 2018, Sudeep Holla wrote:
-> >
-
-[...]
-
-> >+1 on NACK for this and anything else that abuse PRP0001 as a short cut
-> >approach.
+On 28/06/2018 13:55, Hanjun Guo wrote:
+> On 2018/6/25 21:05, Lorenzo Pieralisi wrote:
+>> Current ACPI ARM64 NUMA initialization code in
+>>
+>> acpi_numa_gicc_affinity_init()
+>>
+>> carries out NUMA nodes creation and cpu<->node mappings at the same time
+>> in the arch backend so that a single SRAT walk is needed to parse both
+>> pieces of information.  This implies that the cpu<->node mappings must
+>> be stashed in an array (sized NR_CPUS) so that SMP code can later use
+>> the stashed values to avoid another SRAT table walk to set-up the early
+>> cpu<->node mappings.
+>>
+>> If the kernel is configured with a NR_CPUS value less than the actual
+>> processor entries in the SRAT (and MADT), the logic in
+>> acpi_numa_gicc_affinity_init() is broken in that the cpu<->node mapping
+>> is only carried out (and stashed for future use) only for a number of
+>> SRAT entries up to NR_CPUS, which do not necessarily correspond to the
+>> possible cpus detected at SMP initialization in
+>> acpi_map_gic_cpu_interface() (ie MADT and SRAT processor entries order
+>> is not enforced), which leaves the kernel with broken cpu<->node
+>> mappings.
+>>
+>> Furthermore, given the current ACPI NUMA code parsing logic in
+>> acpi_numa_gicc_affinity_init(), PXM domains for CPUs that are not parsed
+>> because they exceed NR_CPUS entries are not mapped to NUMA nodes (ie the
+>> PXM corresponding node is not created in the kernel) leaving the system
+>> with a broken NUMA topology.
+>>
+>> Rework the ACPI ARM64 NUMA initialization process so that the NUMA
+>> nodes creation and cpu<->node mappings are decoupled. cpu<->node
+>> mappings are moved to SMP initialization code (where they are needed),
+>> at the cost of an extra SRAT walk so that ACPI NUMA mappings can be
+>> batched before being applied, fixing current parsing pitfalls.
+>>
+>> Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and
+>> SLIT")
+>> Link: http://lkml.kernel.org/r/1527768879-88161-2-git-send-email-xiexiuqi@huawei.com
+>> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
+>> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>> Cc: Punit Agrawal <punit.agrawal@arm.com>
+>> Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+>> Cc: Will Deacon <will.deacon@arm.com>
+>> Cc: Hanjun Guo <guohanjun@huawei.com>
+>> Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+>> Cc: Jeremy Linton <jeremy.linton@arm.com>
+>> Cc: Catalin Marinas <catalin.marinas@arm.com>
+>> Cc: Xie XiuQi <xiexiuqi@huawei.com>
+>> ---
+>>  arch/arm64/include/asm/acpi.h |  6 ++-
+>>  arch/arm64/kernel/acpi_numa.c | 88 ++++++++++++++++++++++++++-----------------
+>>  arch/arm64/kernel/smp.c       | 39 +++++++++++++------
+>>  3 files changed, 85 insertions(+), 48 deletions(-)
 >
-> This is no abuse but exactly what PRP0001 is meant for. The basic idea of
-> PRP0001 is to reuse DT "compatible" strings in ACPI namespace, see
-> Documentation/acpi/enumeration.txt. Reusing also means getting access to the
-> of_device_id.
+> Looks good to me,
+>
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+>
+> Tested on D05 with NR_CPUS=48 (with last NUMA node boot
+> without CPUs), the system works fine. If Xiuqi can test
+> this patch on D06 with memory-less node, that would be
+> more helpful.
 >
 
-Sorry for not being descriptive. It has been discussed a lot in past and
-I assume someone would had gone through them, so gave no information in
-my response.
+Hi Lorenzo,
 
-> Allocating an ACPI id for an already existing DT driver is redundant, isn't it?
+Thanks for this. I have noticed we now miss this log, which I think was 
+somewhat useful:
+ACPI: NUMA: SRAT: cpu_to_node_map[5] is too small, may not be able to 
+use all cpus
+
+(I tested arbitary 5 CPUs)
+
+For example, the default ARM64 defconfig specifies NR_CPUs default at 
+64, while some boards now have > 64 CPUs, so this info would be missed 
+with a vanilla kernel, right?
+
+Also, please note that we now have this log:
+[    0.390565] smp: Brought up 4 nodes, 5 CPUs
+
+while before we had:
+[    0.390561] smp: Brought up 1 node, 5 CPUs
+
+Maybe my understanding is wrong, but I find this misleading as only 1 
+node was "Brought up".
+
+But the patch fixes our crash on D06:
+Tested-by: John Garry <john.garry@huawei.com>
+
+Thanks very much,
+John
+
+> Thanks
+> Hanjun
 >
-
-I think Andy had provided the summary and the intentions. Rafael has also
-confirmed, I have nothing else to add.
-
---
-Regards,
-Sudeep
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> .
+>
