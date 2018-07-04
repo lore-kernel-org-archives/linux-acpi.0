@@ -1,64 +1,75 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v5 00/20] APEI in_nmi() rework and arm64 SDEI wire-up
-Date: Wed, 4 Jul 2018 15:37:28 +0100
-Message-ID: <20180704143727.GI4828@arm.com>
-References: <20180626170116.25825-1-james.morse@arm.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2] ACPI: bus.c: Let acpi_device_get_match_data() return
+ DT compatibility data
+Date: Wed, 4 Jul 2018 17:40:34 +0300
+Message-ID: <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
+References: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20180626170116.25825-1-james.morse@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Rafael Wysocki <rjw@rjwysocki.net>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Nikolaus Voss <nv@vosn.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Xiongfeng Wang <xiongfeng.wang@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Nikolaus Voss <nikolaus.vo>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James,
+On Tue, Jul 3, 2018 at 9:09 AM, Nikolaus Voss <nv@vosn.de> wrote:
+> When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
+> of_device_id table "compatible" strings in DSD, a pointer to the
+> corresponding DT table entry should be returned instead of a null
+> pointer. An acpi_device_id match still takes precedence.
+>
 
-On Tue, Jun 26, 2018 at 06:00:56PM +0100, James Morse wrote:
-> The aim of this series is to wire arm64's SDEI into APEI.
-> 
-> On arm64 we have three APEI notifications that are NMI-like, and
-> in the unlikely event that all three are supported by a platform,
-> they can interrupt each other.
-> The GHES driver shouldn't have to deal with this, so this series aims
-> to make it re-entrant.
-> 
-> To do that, we refactor the estatus queue to allow multiple notifications
-> to use it, then convert NOTIFY_SEA to always be described as NMI-like,
-> and to use the estatus queue.
-> 
-> From here we push the locking and fixmap choices out to the notification
-> functions, and remove the use of per-ghes estatus and flags. This removes
-> the in_nmi() 'timebomb' in ghes_copy_tofrom_phys().
-> 
-> Things get sticky when an NMI notification needs to know how big the
-> CPER records might be, before reading it. This series splits
-> ghes_estatus_read() to let us peek at the buffer. A side effect of this
-> is the 20byte header will get read twice. (how does it work today? it
-> reads the records into a per-ghes worst-case sized buffer, allocates
-> the correct size and copies the records. in_nmi() use of this per-ghes
-> buffer needs eliminating).
-> 
-> One alternative was to trust firmware's 'max raw data length' and use
-> that to allocate 'enough' memory. We don't use this value today, so its
-> probably wrong on some sytem somewhere.
-> 
-> Since v4 patches 5,8-15 are new, otherwise changes are noted in the patch.
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-The little bits touching arch/arm64/ all look fine to me here, but it looks
-like other patches need review separately and ultimately I suspect you're
-going to route it via some other tree.
+with a caveat that this is only an improvement for a _temporary_
+PRP0001 users like I2C or SPI slave devices.
+Please, don't consider this change as a valid point to (ab)use PRP0001
+in a cases where devices are not "hotpluggable".
 
-Let me know if you need me to help with anything.
+> v2: improve readability (as suggested by Andy Shevchenko)
+>
+> Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+> ---
+>  drivers/acpi/bus.c | 15 ++++++++++++---
+>  1 file changed, 12 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 84b4a62018eb..58575fdace78 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -832,13 +832,22 @@ EXPORT_SYMBOL_GPL(acpi_match_device);
+>
+>  const void *acpi_device_get_match_data(const struct device *dev)
+>  {
+> -       const struct acpi_device_id *match;
+> +       const struct acpi_device_id *acpi_id = NULL;
+> +       const struct of_device_id *of_id = NULL;
+> +       const struct device_driver *drv = dev->driver;
+> +       bool match;
+> +
+> +       match = __acpi_match_device(acpi_companion_match(dev),
+> +                                   drv->acpi_match_table,
+> +                                   drv->of_match_table, &acpi_id, &of_id);
+>
+> -       match = acpi_match_device(dev->driver->acpi_match_table, dev);
+>         if (!match)
+>                 return NULL;
+> +
+> +       if (of_id)
+> +               return (const void*)of_id->data;
+>
+> -       return (const void *)match->driver_data;
+> +       return (const void*)acpi_id->driver_data;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
+>
+> --
+> 2.17.1
+>
 
-Will
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
