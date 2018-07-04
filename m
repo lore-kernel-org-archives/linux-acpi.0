@@ -1,103 +1,56 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] ACPI / battery: safe unregistering of
- hooks
-Date: Wed, 4 Jul 2018 11:43:37 +0200
-Message-ID: <CAJZ5v0hwsR1KeDq60oD6a_NQYeENsRzeoF1qWOoGm9-arpassg@mail.gmail.com>
-References: <20180623090851.GA5525@Mindship-03>
- <20180704092927.GA6544@Mindship-05.localdomain>
+From: Srinath Mannam <srinath.mannam@broadcom.com>
+Subject: Re: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
+Date: Wed, 4 Jul 2018 15:11:23 +0530
+Message-ID: <CABe79T6dH7qmfmrT5nT4GYpMRocb5CZRnPWsscp7KtEwTZiYYQ@mail.gmail.com>
+References: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
+ <CAHp75VfPvCD7xpp73jbya4ONN=wxpVGNpOfNeqZYjfyirms0PA@mail.gmail.com>
+ <CABe79T7EeyzKS97zeQ5akoSaZX0=hMgHxw4XkLCQW15eRR=14Q@mail.gmail.com>
+ <CAHp75Vef97XB-M=+xUxsGqzgPrADcUmLTLRdWE+PcVxtTQLN4g@mail.gmail.com> <8518137d-c859-657e-844f-51720f6ef8dd@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20180704092927.GA6544-7Pk1HLXsvWqf6HGZUO+WniZi+YwRKgec@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8518137d-c859-657e-844f-51720f6ef8dd@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 4, 2018 at 11:29 AM, Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Sat, Jun 23, 2018 at 11:08:51AM +0200, Jouke Witteveen wrote:
->> As unregistering a hook takes it off the hook list, we should use a safe
->> for_each loop when we potentially unregister a hook.
->>
->> Signed-off-by: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->
-> I would like to draw attention to this patch. It fixes a very noticable
-> regression for owners of Thinkpad 13 laptops. The thinkpad_acpi driver
-> currently does not support that line of laptops [1]. As a result, users
-> cannot boot the 4.17 kernel on those machines.
->
-> [1] https://bugzilla.kernel.org/show_bug.cgi?id=200333#c1
+Hi Sudeep, Andy,
 
-Well, care to put that information into  the patch changelog and
-resend it, then?
+Thank you for all the valuable information and knowledge.
 
-Ideally, can you identify the kernel commit which introduced the regression?
+Regards,
+Srinath.
 
+On Wed, Jul 4, 2018 at 3:08 PM, Sudeep Holla <sudeep.holla@arm.com> wrote:
 >
->>  drivers/acpi/battery.c | 9 +++++----
->>  1 file changed, 5 insertions(+), 4 deletions(-)
+>
+> On 04/07/18 10:32, Andy Shevchenko wrote:
+>> On Wed, Jul 4, 2018 at 6:37 AM, Srinath Mannam
+>> <srinath.mannam@broadcom.com> wrote:
+>>> Hi Sudeep, Andy,
+>>>
+>>> Yes, This patch is to get of_device_id and then fetch data pointer.
+>>>
+>>> To add ACPI support in multiple drivers which are device-tree based
+>>> and has list of of_device_ids, by using this function
+>>> very minimal changes and can avoid acpi_device_id list in the driver.
+>>> I will send driver changes where this function used to add ACPI
+>>> support in following patches.
+>>>
+>>> Below are the changes added to add ACPI support in sdhci iproc driver
+>>> using this function.
 >>
->> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
->> index b0113a58..d79ad844 100644
->> --- a/drivers/acpi/battery.c
->> +++ b/drivers/acpi/battery.c
->> @@ -717,10 +717,11 @@ void battery_hook_register(struct acpi_battery_hook *hook)
->>                        */
->>                       pr_err("extension failed to load: %s", hook->name);
->>                       __battery_hook_unregister(hook, 0);
->> -                     return;
->> +                     goto end;
->>               }
->>       }
->>       pr_info("new extension: %s\n", hook->name);
->> +end:
->>       mutex_unlock(&hook_mutex);
->>  }
->>  EXPORT_SYMBOL_GPL(battery_hook_register);
->> @@ -732,7 +733,7 @@ EXPORT_SYMBOL_GPL(battery_hook_register);
->>  */
->>  static void battery_hook_add_battery(struct acpi_battery *battery)
->>  {
->> -     struct acpi_battery_hook *hook_node;
->> +     struct acpi_battery_hook *hook_node, *tmp;
+>> So, did you get an ACPI ID for it?
+>> That's how proper ACPI support should be done.
 >>
->>       mutex_lock(&hook_mutex);
->>       INIT_LIST_HEAD(&battery->list);
->> @@ -744,15 +745,15 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
->>        * when a battery gets hotplugged or initialized
->>        * during the battery module initialization.
->>        */
->> -     list_for_each_entry(hook_node, &battery_hook_list, list) {
->> +     list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
->>               if (hook_node->add_battery(battery->bat)) {
->>                       /*
->>                        * The notification of the extensions has failed, to
->>                        * prevent further errors we will unload the extension.
->>                        */
->> -                     __battery_hook_unregister(hook_node, 0);
->>                       pr_err("error in extension, unloading: %s",
->>                                       hook_node->name);
->> +                     __battery_hook_unregister(hook_node, 0);
->>               }
->>       }
->>       mutex_unlock(&hook_mutex);
->> --
->> 2.18.0
+>> P.S. What you are trying to do is being discussed with Nikolaus in [1].
+>> I have to NAK your approach in any case. Sorry.
 >>
+>
+> +1 on NACK for this and anything else that abuse PRP0001 as a short cut
+> approach.
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+> Regards,
+> Sudeep
