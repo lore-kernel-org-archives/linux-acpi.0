@@ -1,72 +1,162 @@
-From: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
-Subject: Re: [PATCH] ACPI: bus.c: Let acpi_device_get_match_data() return DT
- compatibility data
-Date: Wed, 4 Jul 2018 15:00:02 +0200 (CEST)
-Message-ID: <alpine.DEB.2.20.1807041459110.11004@fox.voss.local>
-References: <93a290d7082ed2e4d3e2b91dc7f6e941c9242a41.1530600804.git.nikolaus.voss@loewensteinmedical.de> <CAHp75VcHDWFpxupECf+tgn7S1esJ6SyPtCXeKG93LDVKRv91mA@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] arm64: numa: rework ACPI NUMA initialization
+Date: Wed, 4 Jul 2018 14:21:13 +0100
+Message-ID: <20180704132113.GA12592@red-moon>
+References: <20180625130552.5636-1-lorenzo.pieralisi@arm.com>
+ <aeb3d665-4135-f6ea-7f65-13b08983673e@huawei.com>
+ <e8ddb2a4-ead5-e0b5-3078-c7c0fc4ed7b3@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcHDWFpxupECf+tgn7S1esJ6SyPtCXeKG93LDVKRv91mA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Xiongfeng Wang <xiongfeng.wang@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <e8ddb2a4-ead5-e0b5-3078-c7c0fc4ed7b3@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: John Garry <john.garry@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Xie XiuQi <xiexiuqi@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, Punit Agrawal <punit.agrawal@arm.com>, Will Deacon <will.deacon@arm.com>, Linuxarm <linuxarm@huawei.com>, Jeremy Linton <jeremy.linton@arm.com>, mhocko@kernel.org, linux-acpi@vger.kernel.org, Jonathan Cameron <jonathan.cameron@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 4 Jul 2018, Andy Shevchenko wrote:
-> On Tue, Jul 3, 2018 at 9:09 AM, Nikolaus Voss
-> <nikolaus.voss@loewensteinmedical.de> wrote:
->
-> Thanks for the patch, now I completely got it and agree on approach.
-> Few comments below.
->
->> When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
->> of_device_id table "compatible" strings in DSD, a pointer to the
->
-> _DSD
->
->> corresponding DT table entry should be returned instead of a null
->> pointer. An acpi_device_id match still takes precedence.
->
->>  const void *acpi_device_get_match_data(const struct device *dev)
->>  {
->> -       const struct acpi_device_id *match;
->> +       const struct acpi_device_id *acpi_id = NULL;
->> +       const struct of_device_id *of_id = NULL;
->> +       const struct device_driver *drv = dev->driver;
->>
->> -       match = acpi_match_device(dev->driver->acpi_match_table, dev);
->> -       if (!match)
->
->> +       __acpi_match_device(acpi_companion_match(dev), drv->acpi_match_table,
->> +                           drv->of_match_table, &acpi_id, &of_id);
->
-> Perhaps,
->
-> bool match;
->
-> match = __acpi_match_device(..);
-> if (!match)
-> return NULL;
->
-> ...
->> +       if (acpi_id)
->> +               return (const void*)acpi_id->driver_data;
->> +       else if (of_id)
->> +               return (const void*)of_id->data;
->
-> Actually (dbesides redundant 'else') there is no difference in which
-> order you test these.
-> Thus, perhaps
->
-> if (of_id)
-> return ...of_id...;
->
-> return ...acpi_id...;
->
->> -       return (const void *)match->driver_data;
->>  }
+[+Michal]
 
-Thanks for reviewing and feedback, posted v2...
+On Wed, Jul 04, 2018 at 12:23:08PM +0100, John Garry wrote:
+> On 28/06/2018 13:55, Hanjun Guo wrote:
+> >On 2018/6/25 21:05, Lorenzo Pieralisi wrote:
+> >>Current ACPI ARM64 NUMA initialization code in
+> >>
+> >>acpi_numa_gicc_affinity_init()
+> >>
+> >>carries out NUMA nodes creation and cpu<->node mappings at the same time
+> >>in the arch backend so that a single SRAT walk is needed to parse both
+> >>pieces of information.  This implies that the cpu<->node mappings must
+> >>be stashed in an array (sized NR_CPUS) so that SMP code can later use
+> >>the stashed values to avoid another SRAT table walk to set-up the early
+> >>cpu<->node mappings.
+> >>
+> >>If the kernel is configured with a NR_CPUS value less than the actual
+> >>processor entries in the SRAT (and MADT), the logic in
+> >>acpi_numa_gicc_affinity_init() is broken in that the cpu<->node mapping
+> >>is only carried out (and stashed for future use) only for a number of
+> >>SRAT entries up to NR_CPUS, which do not necessarily correspond to the
+> >>possible cpus detected at SMP initialization in
+> >>acpi_map_gic_cpu_interface() (ie MADT and SRAT processor entries order
+> >>is not enforced), which leaves the kernel with broken cpu<->node
+> >>mappings.
+> >>
+> >>Furthermore, given the current ACPI NUMA code parsing logic in
+> >>acpi_numa_gicc_affinity_init(), PXM domains for CPUs that are not parsed
+> >>because they exceed NR_CPUS entries are not mapped to NUMA nodes (ie the
+> >>PXM corresponding node is not created in the kernel) leaving the system
+> >>with a broken NUMA topology.
+> >>
+> >>Rework the ACPI ARM64 NUMA initialization process so that the NUMA
+> >>nodes creation and cpu<->node mappings are decoupled. cpu<->node
+> >>mappings are moved to SMP initialization code (where they are needed),
+> >>at the cost of an extra SRAT walk so that ACPI NUMA mappings can be
+> >>batched before being applied, fixing current parsing pitfalls.
+> >>
+> >>Fixes: d8b47fca8c23 ("arm64, ACPI, NUMA: NUMA support based on SRAT and
+> >>SLIT")
+> >>Link: http://lkml.kernel.org/r/1527768879-88161-2-git-send-email-xiexiuqi@huawei.com
+> >>Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
+> >>Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>Cc: Punit Agrawal <punit.agrawal@arm.com>
+> >>Cc: Jonathan Cameron <jonathan.cameron@huawei.com>
+> >>Cc: Will Deacon <will.deacon@arm.com>
+> >>Cc: Hanjun Guo <guohanjun@huawei.com>
+> >>Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+> >>Cc: Jeremy Linton <jeremy.linton@arm.com>
+> >>Cc: Catalin Marinas <catalin.marinas@arm.com>
+> >>Cc: Xie XiuQi <xiexiuqi@huawei.com>
+> >>---
+> >> arch/arm64/include/asm/acpi.h |  6 ++-
+> >> arch/arm64/kernel/acpi_numa.c | 88 ++++++++++++++++++++++++++-----------------
+> >> arch/arm64/kernel/smp.c       | 39 +++++++++++++------
+> >> 3 files changed, 85 insertions(+), 48 deletions(-)
+> >
+> >Looks good to me,
+> >
+> >Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >
+> >Tested on D05 with NR_CPUS=48 (with last NUMA node boot
+> >without CPUs), the system works fine. If Xiuqi can test
+> >this patch on D06 with memory-less node, that would be
+> >more helpful.
+> >
+> 
+> Hi Lorenzo,
+> 
+> Thanks for this. I have noticed we now miss this log, which I think
+> was somewhat useful:
+> ACPI: NUMA: SRAT: cpu_to_node_map[5] is too small, may not be able
+> to use all cpus
+> 
+> (I tested arbitary 5 CPUs)
+> 
+> For example, the default ARM64 defconfig specifies NR_CPUs default
+> at 64, while some boards now have > 64 CPUs, so this info would be
+> missed with a vanilla kernel, right?
 
-Niko
+I did that on purpose since the aim of this patch is to remove
+that restriction, we should not be limited by the NR_CPUS when
+we parse the SRAT, that's what this patch does.
+
+> Also, please note that we now have this log:
+> [    0.390565] smp: Brought up 4 nodes, 5 CPUs
+> 
+> while before we had:
+> [    0.390561] smp: Brought up 1 node, 5 CPUs
+> 
+> Maybe my understanding is wrong, but I find this misleading as only
+> 1 node was "Brought up".
+
+Well, that's exactly where the problem lies. This patch allows the
+kernel to inizialize NUMA nodes associated with CPUs that are not
+"brought up" with the current kernel owing to the NR_CPUS restrictions.
+
+So I think this patch still does the right thing. I reworked
+the code mechanically since it looked wrong to me but I have
+to confess I do not understand the NUMA internals in-depth either.
+
+AFAICS the original problem was that, by making the NUMA parsing
+dependent on the NR_CPUS we were not "bringing online" NUMA nodes
+that are associated with CPUs and this caused memory allocation
+failures. If this patch fixes the problem that means that we
+actually "bring up" the required NUMA nodes (and create
+zonelist for them) correctly. So the update smp: log above should
+be right.
+
+I CC'ed Michal since he knows core NUMA internals much better than I do,
+thoughts appreciated, thanks.
+
+Lorenzo
+
+> But the patch fixes our crash on D06:
+> Tested-by: John Garry <john.garry@huawei.com>
+> 
+> Thanks very much,
+> John
+> 
+> >Thanks
+> >Hanjun
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >.
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
