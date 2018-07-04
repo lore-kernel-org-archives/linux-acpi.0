@@ -1,89 +1,56 @@
-From: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] ACPI / battery: Safe unregistering of
- hooks
-Date: Wed, 4 Jul 2018 12:27:15 +0200
-Message-ID: <20180704102715.GA9067@Mindship-05.localdomain>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFC PATCH] ACPI: bus: match of_device_id using acpi device
+Date: Wed, 4 Jul 2018 12:28:27 +0200
+Message-ID: <CAJZ5v0i1qO+jBWjypEcwJAkajSedqHJA4iyHiazNz7QT62mKLQ@mail.gmail.com>
+References: <1530609760-8919-1-git-send-email-srinath.mannam@broadcom.com>
+ <CAHp75VfPvCD7xpp73jbya4ONN=wxpVGNpOfNeqZYjfyirms0PA@mail.gmail.com>
+ <CABe79T7EeyzKS97zeQ5akoSaZX0=hMgHxw4XkLCQW15eRR=14Q@mail.gmail.com>
+ <CAHp75Vef97XB-M=+xUxsGqzgPrADcUmLTLRdWE+PcVxtTQLN4g@mail.gmail.com>
+ <8518137d-c859-657e-844f-51720f6ef8dd@arm.com> <alpine.DEB.2.20.1807041205290.8629@fox.voss.local>
+ <CAHp75VeuoTM=RoUgk0qWyiRJYk2AncVhxKDvms_2Hv0yE=g8uQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VeuoTM=RoUgk0qWyiRJYk2AncVhxKDvms_2Hv0yE=g8uQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Srinath Mannam <srinath.mannam@broadcom.com>, "Voss, Dr. Nikolaus" <Nikolaus.Dr.Voss@loewensteinmedical.de>, "Rafael J. Wysocki" <rafael@kernel.org>, Len Brown <lenb@kernel.org>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, nv@vosn.de
 List-Id: linux-acpi@vger.kernel.org
 
-A hooking API was implemented for 4.17 in fa93854f7a7ed63d followed by
-hooks for Thinkpad laptops in 2801b9683f740012. The Thinkpad drivers
-did not support the Thinkpad 13 and the hooking API crashes on
-unsupported batteries by altering a list of hooks during unsafe
-iteration. Thus, Thinkpad 13 laptops could no longer boot.
+On Wed, Jul 4, 2018 at 12:24 PM, Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+> On Wed, Jul 4, 2018 at 1:17 PM, Nikolaus Voss
+> <nikolaus.voss@loewensteinmedical.de> wrote:
+>> On Wed, 4 Jul 2018, Sudeep Holla wrote:
+>>> On 04/07/18 10:32, Andy Shevchenko wrote:
+>>>> On Wed, Jul 4, 2018 at 6:37 AM, Srinath Mannam
+>>>> <srinath.mannam@broadcom.com> wrote:
+>
+>>> +1 on NACK for this and anything else that abuse PRP0001 as a short cut
+>>> approach.
+>> This is no abuse but exactly what PRP0001 is meant for. The basic idea of
+>> PRP0001 is to reuse DT "compatible" strings in ACPI namespace, see
+>> Documentation/acpi/enumeration.txt. Reusing also means getting access to the
+>> of_device_id.
+>
+> The idea was for almost DIY and / or manufacturer to develop a
+> prototype without modifying match code and faking ACPI IDs.
+> That's why the target of PRP0001 is almost sensors connected to I2C and SPI.
+>
+> That's why I agreed on your patch to help with this. But! The proper
+> solution for the devices (device manufacturer) is to allocate an ACPI
+> ID and provide a corresponding table to the driver.
+>
+> This is my understanding of that exercise. Rafael can correct me.
 
-Additionally, a lock was kept in place and debugging information was
-printed out of order.
+You are right.
 
-Signed-off-by: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
+>> Allocating an ACPI id for an already existing DT driver is redundant, isn't
+>> it?
+>
+> It is not.
 
-This time with a more informative commit message (no functional changes).
+Again, right.
 
- drivers/acpi/battery.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-index b0113a58..d79ad844 100644
---- a/drivers/acpi/battery.c
-+++ b/drivers/acpi/battery.c
-@@ -717,10 +717,11 @@ void battery_hook_register(struct acpi_battery_hook *hook)
- 			 */
- 			pr_err("extension failed to load: %s", hook->name);
- 			__battery_hook_unregister(hook, 0);
--			return;
-+			goto end;
- 		}
- 	}
- 	pr_info("new extension: %s\n", hook->name);
-+end:
- 	mutex_unlock(&hook_mutex);
- }
- EXPORT_SYMBOL_GPL(battery_hook_register);
-@@ -732,7 +733,7 @@ EXPORT_SYMBOL_GPL(battery_hook_register);
- */
- static void battery_hook_add_battery(struct acpi_battery *battery)
- {
--	struct acpi_battery_hook *hook_node;
-+	struct acpi_battery_hook *hook_node, *tmp;
- 
- 	mutex_lock(&hook_mutex);
- 	INIT_LIST_HEAD(&battery->list);
-@@ -744,15 +745,15 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
- 	 * when a battery gets hotplugged or initialized
- 	 * during the battery module initialization.
- 	 */
--	list_for_each_entry(hook_node, &battery_hook_list, list) {
-+	list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
- 		if (hook_node->add_battery(battery->bat)) {
- 			/*
- 			 * The notification of the extensions has failed, to
- 			 * prevent further errors we will unload the extension.
- 			 */
--			__battery_hook_unregister(hook_node, 0);
- 			pr_err("error in extension, unloading: %s",
- 					hook_node->name);
-+			__battery_hook_unregister(hook_node, 0);
- 		}
- 	}
- 	mutex_unlock(&hook_mutex);
--- 
-2.18.0
-
-
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+Thanks,
+Rafael
