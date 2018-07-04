@@ -1,75 +1,94 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2] ACPI: bus.c: Let acpi_device_get_match_data() return
- DT compatibility data
-Date: Wed, 4 Jul 2018 17:40:34 +0300
-Message-ID: <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
-References: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de>
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: [RFC PATCH 0/2] efi: add contents of LinuxExtraArgs EFI var to
+ command line
+Date: Wed,  4 Jul 2018 17:49:17 +0200
+Message-ID: <20180704154919.18564-1-ard.biesheuvel@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Nikolaus Voss <nv@vosn.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Xiongfeng Wang <xiongfeng.wang@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Nikolaus Voss <nikolaus.vo>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-efi@vger.kernel.org
+Cc: mark.rutland@arm.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Geoff Levand <geoff@infradead.org>, catalin.marinas@arm.com, Riku Voipio <riku.voipio@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, will.deacon@arm.com, leif.lindholm@linaro.org, linux-acpi@vger.kernel.org, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org, Ian Campbell <ijc@debian.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 3, 2018 at 9:09 AM, Nikolaus Voss <nv@vosn.de> wrote:
-> When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
-> of_device_id table "compatible" strings in DSD, a pointer to the
-> corresponding DT table entry should be returned instead of a null
-> pointer. An acpi_device_id match still takes precedence.
->
+As noted by Ian, many DMI based quirks for x86 ACPI machines disable
+features that can also be disabled via the kernel command line. Similarly,
+a quirk is under discussion for a arm64 ACPI machine [0] that explodes
+when enabling support for hardware error reporting via the ACPI HEST table.
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+When support for DMI tables was introduced to arm64 and ARM, the agreement
+was that they are informational only, i.e., provided to userland to describe
+the platform, not for keying off of to enable quirks in the kernel.
 
-with a caveat that this is only an improvement for a _temporary_
-PRP0001 users like I2C or SPI slave devices.
-Please, don't consider this change as a valid point to (ab)use PRP0001
-in a cases where devices are not "hotpluggable".
+There are a couple of reasons for this:
+- Unlike the x86 architecture, where virtually all platforms are PC variants,
+  and the presence of ACPI and DMI tables may be assumed, the arm64 architecture
+  is much more heterogeneous, and none of UEFI, ACPI or DMI or actually mandated
+  or especially common across arm64 platforms; using DMI only makes sense for
+  working around a limited subset of platform issues that have to do with
+  firmware running on platforms that bother to implement it in the first place.
+- DMI is not initialized as early as it is on x86, and doing so is not trivial.
+  This means that even on ACPI/DMI machines, some issues may require quirks that
+  are enabled in a different way, or we need to refactor the DMI support so that
+  we can enable it as early as x86 does.
+- Using DMI tables fundamentally means quirking *after* the fact, which makes it
+  a moving target. Some quirks may require the DMI match table to be updated if
+  someone happens to change a string in the DMI tables when shipping a mostly
+  identical platform.
 
-> v2: improve readability (as suggested by Andy Shevchenko)
->
-> Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
-> ---
->  drivers/acpi/bus.c | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 84b4a62018eb..58575fdace78 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -832,13 +832,22 @@ EXPORT_SYMBOL_GPL(acpi_match_device);
->
->  const void *acpi_device_get_match_data(const struct device *dev)
->  {
-> -       const struct acpi_device_id *match;
-> +       const struct acpi_device_id *acpi_id = NULL;
-> +       const struct of_device_id *of_id = NULL;
-> +       const struct device_driver *drv = dev->driver;
-> +       bool match;
-> +
-> +       match = __acpi_match_device(acpi_companion_match(dev),
-> +                                   drv->acpi_match_table,
-> +                                   drv->of_match_table, &acpi_id, &of_id);
->
-> -       match = acpi_match_device(dev->driver->acpi_match_table, dev);
->         if (!match)
->                 return NULL;
-> +
-> +       if (of_id)
-> +               return (const void*)of_id->data;
->
-> -       return (const void *)match->driver_data;
-> +       return (const void*)acpi_id->driver_data;
->  }
->  EXPORT_SYMBOL_GPL(acpi_device_get_match_data);
->
-> --
-> 2.17.1
->
+So instead, let's provide these platforms with the facilities required to enable
+such quirks at the platform level. Especially for UEFI systems, if upgrading
+firmware is a reasonable prerequisite for being able to upgrade to the latest
+kernel, having to run a script that sets a UEFI variable (either via the Linux
+command line of from the UEFI shell) should not be an unreasonable requirement
+either, and so we can solve part of this issue by configuring extra command line
+arguments persistenly from the firmware environment. This solves all the above
+issues in an unintrusive manner, given that the kernel command line is already
+made available extremely early in the boot, and the fact that it already permits
+a wide range of configuration options and overrides to be set, including the
+'hest_disable=1' option that works around the issue addressed by [0].
 
+Note that this deviates from the current common practice on x86. I am aware
+that the distros want everything to be the same in this regard, but I don't
+think the x86 maintainers will refer to the DMI quirks infrastructure as a
+shining example of functionality that should be ported across architectures.
 
+ACPI on arm64 is intended to support a narrowly defined class of server systems,
+as opposed to the wide range of Windows-logo hardware that arch/x86 aims to
+support, and a lot of time and effort has been going into validation against
+Linux itself. This means the likelihood that we will need a quirks
+infrastructure as elaborate as the x86 one is low, and so it would be my 
+preference to defer introducing it until the moment where we have exhausted
+all other options.
+
+[0] https://marc.info/?l=linux-acpi&m=153018042727125&w=2
+
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Geoff Levand <geoff@infradead.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Riku Voipio <riku.voipio@linaro.org>
+Cc: James Morse <james.morse@arm.com>
+Cc: Ian Campbell <ijc@debian.org>
+
+Ard Biesheuvel (2):
+  efi/libstub: refactor load option command line processing for reuse
+  efi/libstub: taken contents of LinuxExtraArgs UEFI variable into
+    account
+
+ .../firmware/efi/libstub/efi-stub-helper.c    | 94 +++++++++++++++----
+ include/linux/efi.h                           |  1 +
+ 2 files changed, 77 insertions(+), 18 deletions(-)
 
 -- 
-With Best Regards,
-Andy Shevchenko
+2.17.1
