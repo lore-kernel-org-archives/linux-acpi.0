@@ -1,11 +1,13 @@
-From: Rahul Ramasubramanian <rahulr@codeaurora.org>
-Subject: [RFC V1] perf: qcom: add DDR bandwidth PMU support
-Date: Wed,  4 Jul 2018 12:57:32 -0400
-Message-ID: <1530723452-11640-1-git-send-email-rahulr@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 00/20] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Thu, 05 Jul 2018 11:50:33 +0200
+Message-ID: <4409985.sv3PbRGN0l@aspire.rjw.lan>
+References: <20180626170116.25825-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20180626170116.25825-1-james.morse@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,1194 +17,140 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, will.deacon@arm.com, mark.rutland@arm.com, jeremy.linton@arm.com, catalin.marinas@arm.com, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, rafael@kernel.org
-Cc: rahulr@codeaurora.org, agustinv@codeaurora.org
+To: James Morse <james.morse@arm.com>, Tony Luck <tony.luck@intel.com>
+Cc: jonathan.zhang@cavium.com, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Measuring DDR bandwidth allows for an accurate measurement
-of memory throughput achieved for a given workload. It also
-breaks down the traffic measurement on a per DDR channel basis.
+On Tuesday, June 26, 2018 7:00:56 PM CEST James Morse wrote:
+> The aim of this series is to wire arm64's SDEI into APEI.
+> 
+> On arm64 we have three APEI notifications that are NMI-like, and
+> in the unlikely event that all three are supported by a platform,
+> they can interrupt each other.
+> The GHES driver shouldn't have to deal with this, so this series aims
+> to make it re-entrant.
+> 
+> To do that, we refactor the estatus queue to allow multiple notifications
+> to use it, then convert NOTIFY_SEA to always be described as NMI-like,
+> and to use the estatus queue.
+> 
+> From here we push the locking and fixmap choices out to the notification
+> functions, and remove the use of per-ghes estatus and flags. This removes
+> the in_nmi() 'timebomb' in ghes_copy_tofrom_phys().
+> 
+> Things get sticky when an NMI notification needs to know how big the
+> CPER records might be, before reading it. This series splits
+> ghes_estatus_read() to let us peek at the buffer. A side effect of this
+> is the 20byte header will get read twice. (how does it work today? it
+> reads the records into a per-ghes worst-case sized buffer, allocates
+> the correct size and copies the records. in_nmi() use of this per-ghes
+> buffer needs eliminating).
+> 
+> One alternative was to trust firmware's 'max raw data length' and use
+> that to allocate 'enough' memory. We don't use this value today, so its
+> probably wrong on some sytem somewhere.
+> 
+> Since v4 patches 5,8-15 are new, otherwise changes are noted in the patch.
+> 
+> 
+> The earlier boiler-plate:
+> 
+> What's SDEI? Its ARM's "Software Delegated Exception Interface" [0]. It's
+> used by firmware to tell the OS about firmware-first RAS events.
+> 
+> These Software exceptions can interrupt anything, so I describe them as
+> NMI-like. They aren't the only NMI-like way to notify the OS about
+> firmware-first RAS events, the ACPI spec also defines 'NOTFIY_SEA' and
+> 'NOTIFY_SEI'.
+> 
+> (Acronyms: SEA, Synchronous External Abort. The CPU requested some memory,
+> but the owner of that memory said no. These are always synchronous with the
+> instruction that caused them. SEI, System-Error Interrupt, commonly called
+> SError. This is an asynchronous external abort, the memory-owner didn't say no
+> at the right point. Collectively these things are called external-aborts
+> How is firmware involved? It traps these and re-injects them into the kernel
+> once its written the CPER records).
+> 
+> APEI's GHES code only expects one source of NMI. If a platform implements
+> more than one of these mechanisms, APEI needs to handle the interaction.
+> 'SEA' and 'SEI' can interact as 'SEI' is asynchronous. SDEI can interact
+> with itself: its exceptions can be 'normal' or 'critical', and firmware
+> could use both types for RAS. (errors using normal, 'panic-now' using
+> critical).
+> 
+> 
+> ghes.c became clearer to me when I worked out that it has three sets of
+> functions with 'estatus' in the name. One is a pool of memory that can be
+> allocated-from atomically. This is grown/shrunk when new NMI users are
+> allocated.
+> The second is the estatus-cache, which holds recent notifications so it
+> can suppress notifications we've already handled.
+> The last it the estatus-queue, which holds data from NMI-like notifications
+> (in pool memory) to be processed from irq_work.
+> 
+> 
+> Testing?
+> Tested with the SDEI FVP based software model and a mocked up NOTFIY_SEA using
+> KVM. I've added a case where 'corrected errors' are discovered at probe time
+> to exercise ghes_probe() during boot. I've only build tested this on x86.
+> 
+> This series based on v4.18-rc2 can be retrieved from:
+> git://linux-arm.org/linux-jm.git -b apei_sdei/v5
+> 
+> 
+> Thanks,
+> 
+> James
+> 
+> [0] http://infocenter.arm.com/help/topic/com.arm.doc.den0054a/ARM_DEN0054A_Software_Delegated_Exception_Interface.pdf
+> 
+> James Morse (20):
+>   ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+>   ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+>   ACPI / APEI: don't wait to serialise with oops messages when
+>     panic()ing
+>   ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+>   ACPI / APEI: Make estatus queue a Kconfig symbol
+>   KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+>   arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+>   ACPI / APEI: Move locking to the notification helper
+>   ACPI / APEI: Let the notification helper specify the fixmap slot
+>   ACPI / APEI: preparatory split of ghes->estatus
+>   ACPI / APEI: Remove silent flag from ghes_read_estatus()
+>   ACPI / APEI: Don't store CPER records physical address in struct ghes
+>   ACPI / APEI: Don't update struct ghes' flags in read/clear estatus
+>   ACPI / APEI: Split ghes_read_estatus() to read CPER length
+>   ACPI / APEI: Only use queued estatus entry during _in_nmi_notify_one()
+>   ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+>   firmware: arm_sdei: Add ACPI GHES registration helper
+>   ACPI / APEI: Add support for the SDEI GHES Notification type
+>   mm/memory-failure: increase queued recovery work's priority
+>   arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+> 
+>  arch/arm/include/asm/kvm_ras.h       |  14 +
+>  arch/arm/include/asm/system_misc.h   |   5 -
+>  arch/arm64/include/asm/acpi.h        |   4 +
+>  arch/arm64/include/asm/daifflags.h   |   1 +
+>  arch/arm64/include/asm/fixmap.h      |   8 +-
+>  arch/arm64/include/asm/kvm_ras.h     |  25 ++
+>  arch/arm64/include/asm/system_misc.h |   2 -
+>  arch/arm64/kernel/acpi.c             |  49 ++
+>  arch/arm64/mm/fault.c                |  30 +-
+>  drivers/acpi/apei/Kconfig            |  11 +
+>  drivers/acpi/apei/ghes.c             | 649 ++++++++++++++++-----------
+>  drivers/firmware/Kconfig             |   1 +
+>  drivers/firmware/arm_sdei.c          |  66 +++
+>  include/acpi/ghes.h                  |   2 -
+>  include/linux/arm_sdei.h             |   9 +
+>  mm/memory-failure.c                  |  11 +-
+>  virt/kvm/arm/mmu.c                   |   4 +-
+>  17 files changed, 591 insertions(+), 300 deletions(-)
+>  create mode 100644 arch/arm/include/asm/kvm_ras.h
+>  create mode 100644 arch/arm64/include/asm/kvm_ras.h
 
-Signed-off-by: Rahul Ramasubramanian <rahulr@codeaurora.org>
-Signed-off-by: Agustin Vega-Frias <agustinv@codeaurora.org>
----
- drivers/perf/Kconfig                      |  10 +
- drivers/perf/Makefile                     |   1 +
- drivers/perf/qcom_bandwidth_perf_events.c | 970 ++++++++++++++++++++++++++++++
- drivers/perf/qcom_bandwidth_perf_events.h | 156 +++++
- 4 files changed, 1137 insertions(+)
- create mode 100644 drivers/perf/qcom_bandwidth_perf_events.c
- create mode 100644 drivers/perf/qcom_bandwidth_perf_events.h
+Tony, I need your help with reviewing the APEI-related material here.
+Can you please have a look at this series and let me know if there are
+any concerns regarding it?
 
-diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
-index 08ebaf7..3c9f7e9 100644
---- a/drivers/perf/Kconfig
-+++ b/drivers/perf/Kconfig
-@@ -87,6 +87,16 @@ config QCOM_L3_PMU
- 	   Adds the L3 cache PMU into the perf events subsystem for
- 	   monitoring L3 cache events.
- 
-+config QCOM_BANDWIDTH_PMU
-+	bool "Qualcomm Technologies Memory Bandwidth PMU"
-+	depends on ARCH_QCOM && ARM64 && ACPI
-+	select QCOM_IRQ_COMBINER
-+	help
-+	   Provides support for the memory bandwidth performance monitor unit (PMU)
-+	   in Qualcomm Technologies processors.
-+	   Adds the Memory Bandwidth PMU into the perf events subsystem for
-+	   monitoring memory bandwidth events.
-+
- config XGENE_PMU
-         depends on ARCH_XGENE
-         bool "APM X-Gene SoC PMU"
-diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
-index b3902bd..50c20ec 100644
---- a/drivers/perf/Makefile
-+++ b/drivers/perf/Makefile
-@@ -7,5 +7,6 @@ obj-$(CONFIG_ARM_PMU_ACPI) += arm_pmu_acpi.o
- obj-$(CONFIG_HISI_PMU) += hisilicon/
- obj-$(CONFIG_QCOM_L2_PMU)	+= qcom_l2_pmu.o
- obj-$(CONFIG_QCOM_L3_PMU) += qcom_l3_pmu.o
-+obj-$(CONFIG_QCOM_BANDWIDTH_PMU) += qcom_bandwidth_perf_events.o
- obj-$(CONFIG_XGENE_PMU) += xgene_pmu.o
- obj-$(CONFIG_ARM_SPE_PMU) += arm_spe_pmu.o
-diff --git a/drivers/perf/qcom_bandwidth_perf_events.c b/drivers/perf/qcom_bandwidth_perf_events.c
-new file mode 100644
-index 0000000..bcc5667
---- /dev/null
-+++ b/drivers/perf/qcom_bandwidth_perf_events.c
-@@ -0,0 +1,970 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/* Copyright (c) 2018, The Linux Foundation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+/*
-+ * This driver adds support for perf events to monitor the DDR
-+ * bandwidth in Qualcomm Technologies chips. Each switch in the
-+ * interconnect is connected to tthe memory controller and contains a
-+ * performace monitoring unit (PMU) that the driver exposes
-+ * through the perf events framework.
-+ *
-+ * The PMU Event Counters
-+ * - Event counters, which count occurrences of a configured event.
-+ *
-+ * These resources are exposed as perf counting events, there is no
-+ * support for sampling based on events exposed by the driver. Event
-+ * counters are always accumulating.
-+ * Events associated with event counters are the following:
-+ * ddr-read-bytes: The driver scales the raw pmu count to provide the
-+ * number of bytes read from a specific memory controller.
-+ *
-+ * ddr-write-bytes: The driver scales the raw pmu count to provide the
-+ * number of bytes read from a specific memory controller.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/bitops.h>
-+#include <linux/gpio/consumer.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/irq.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/of.h>
-+#include <linux/acpi.h>
-+#include <linux/perf_event.h>
-+#include <linux/platform_device.h>
-+#include "qcom_bandwidth_perf_events.h"
-+
-+
-+
-+/*
-+ * Structures representing a HW PMU and other associated resources
-+ */
-+
-+/*
-+ * Represents an event counter
-+ *
-+ * This type is used to make these operations polymorphic depending on the
-+ * type of hardware resources an event uses. The general idea is to associate
-+ * a perf_event with a switch_pmu_counter via the index contained in its
-+ * hw_perf_event. To accomplish this, an array of switch_pmu_counters is used
-+ * and event counters use the  BANDWIDTH_NUM_EVENT_COUNTERS indexes, so the
-+ *   event counter index is found by the using the index directly:
-+ */
-+struct switch_pmu_counter {
-+	struct perf_event	*event;
-+	/* Called to start event monitoring */
-+	void (*start)(struct perf_event *event);
-+	/* Called to stop event monitoring (optional) */
-+	void (*stop)(struct perf_event *event, int flags);
-+	/* Called when the counter overflows (optional) */
-+	void (*wrap)(struct perf_event *event);
-+	/* Called to update the perf_event */
-+	void (*update)(struct perf_event *event);
-+};
-+
-+/*
-+ * Represents the hardware PMU
-+ *
-+ * This type inherits from the core perf events struct pmu and adds data
-+ * to manage the PMU resources.
-+ */
-+struct switch_pmu {
-+	/* Base perf pmu */
-+	struct pmu	perf_pmu;
-+	/* CPU mask exported for user space tools via sysfs */
-+	cpumask_t       cpu;
-+	/* Node for the hotplug notifier hlist */
-+	struct hlist_node     node;
-+	/* Register base address */
-+	void __iomem	*regs;
-+	/* Spinlock used to protect indexed accesses to event counters */
-+	raw_spinlock_t	ecsel_lock;
-+
-+	/* Bitmap to track counter use */
-+	unsigned long	used_mask[BITS_TO_LONGS(BANDWIDTH_NUM_TOTAL_COUNTERS)];
-+	/* Counter resources */
-+	struct switch_pmu_counter counters[BANDWIDTH_NUM_TOTAL_COUNTERS];
-+};
-+
-+#define FIRST_EVENT_COUNTER 0
-+
-+#define to_switch_pmu(p) (container_of(p, struct switch_pmu, perf_pmu))
-+
-+static int cpuhp_state_num;
-+
-+/*
-+ * Decoding of settings from perf_event_attr
-+ *
-+ * Common bits:
-+ *
-+ * The config format for perf events associated with event counters is:
-+ * - config: bits 0-3:event selector, bits 16-22:source selector
-+ * - config1: bits 0-21,24-30:filter config, bits 32-45,48-54:filter enable
-+ *
-+ */
-+
-+#define PERF_EVENT_ATTR_EXTRACTOR(_name, _config, _size, _shift)	\
-+	static inline u32 get_##_name(struct perf_event *event)         \
-+	{								\
-+		return (event->attr._config >> _shift)                  \
-+			& GENMASK(_size - 1, 0);                            \
-+	}
-+
-+PERF_EVENT_ATTR_EXTRACTOR(ec_event_sel, config, 4, 0);
-+PERF_EVENT_ATTR_EXTRACTOR(ec_event_lc, config, 1, 32);
-+PERF_EVENT_ATTR_EXTRACTOR(ec_source_sel, config, 7, 16);
-+
-+
-+/*
-+ * Implementation of global HW PMU operations
-+ */
-+
-+static inline int event_num_counters(struct perf_event *event)
-+{
-+	return (get_ec_event_lc(event) == 0) ? 1 : 2;
-+}
-+
-+static
-+bool switch_pmu__inuse(struct switch_pmu *pmu)
-+{
-+	/* Check if a given PMU is already in use by IMC */
-+	return readl_relaxed(pmu->regs + BANDWIDTH_EC_ENABLE_SET) == 0xF000;
-+
-+}
-+
-+static
-+void switch_pmu__reset(struct switch_pmu *pmu)
-+{
-+	u32 all = GENMASK(BANDWIDTH_NUM_EVENT_COUNTERS - 1, 0);
-+
-+	if (!switch_pmu__inuse(pmu)) {
-+		/* Enable access by writing the LAR key */
-+		writel_relaxed(BANDWIDTH_LAR_KEY, pmu->regs + BANDWIDTH_LAR);
-+
-+
-+		/* Disable IRQonMSB */
-+
-+		writel_relaxed(0x0, pmu->regs + BANDWIDTH_EC_IRQ_CONTROL);
-+
-+		/*
-+		 * Assert reset to the EC hardware, use writel to ensure the
-+		 * CLEAR commands have been seen by the device before this
-+		 * write.
-+		 */
-+
-+		writel(SET(GLOBAL_RESET, 1), pmu->regs +
-+			BANDWIDTH_EC_GLOBAL_CONTROL);
-+
-+		/*
-+		 * De-assert reset to the EC hardware, use writel to ensure
-+		 *  the reset command has been seen by the device.
-+		 */
-+
-+		writel(SET(GLOBAL_RESET, 0), pmu->regs +
-+			BANDWIDTH_EC_GLOBAL_CONTROL);
-+		writel(SET(RETRIEVAL_MODE, 1)
-+			| SET(GLOBAL_ENABLE, 1) | SET(GLOBAL_TRIGOVRD, 1),
-+			pmu->regs + BANDWIDTH_EC_GLOBAL_CONTROL);
-+	}
-+
-+	/* clear the interuppts and event counters */
-+	writel_relaxed(all, pmu->regs + BANDWIDTH_EC_ENABLE_CLEAR);
-+	writel_relaxed(all, pmu->regs + BANDWIDTH_EC_INTERRUPT_ENABLE_CLEAR);
-+};
-+
-+/*
-+ * Event counter operations
-+ */
-+
-+static inline
-+void switch_pmu__ec_set_event(struct switch_pmu *pmu, u8 cntr, u32 event)
-+{
-+
-+	writel_relaxed(event, pmu->regs + qcom_bandwidth_ec_source_sel(cntr));
-+}
-+
-+static inline
-+void switch_pmu__ec_enable(struct switch_pmu *pmu, u32 cntr)
-+{
-+	writel_relaxed(SET(ECENSET(cntr), 1), pmu->regs +
-+		BANDWIDTH_EC_ENABLE_SET);
-+}
-+
-+static inline
-+void switch_pmu__ec_disable(struct switch_pmu *pmu, u32 cntr)
-+{
-+	writel_relaxed(SET(ECENSET(cntr), 1),
-+		    pmu->regs + BANDWIDTH_EC_ENABLE_CLEAR);
-+}
-+
-+static inline
-+void switch_pmu__ec_enable_interrupt(struct switch_pmu *pmu, u32 cntr)
-+{
-+	u32 val = readl_relaxed(pmu->regs + BANDWIDTH_EC_IRQ_CONTROL);
-+
-+	writel_relaxed(val | BIT(cntr), pmu->regs + BANDWIDTH_EC_IRQ_CONTROL);
-+	writel_relaxed(SET(ECINTENCLR(cntr), 1),
-+		    pmu->regs + BANDWIDTH_EC_INTERRUPT_ENABLE_SET);
-+}
-+
-+static inline
-+void switch_pmu__ec_disable_interrupt(struct switch_pmu *pmu, u32 cntr)
-+{
-+	u32 val = readl_relaxed(pmu->regs + BANDWIDTH_EC_IRQ_CONTROL);
-+
-+	writel(val & ~BIT(cntr), pmu->regs + BANDWIDTH_EC_IRQ_CONTROL);
-+	writel(SET(ECINTENCLR(cntr), 1),
-+		    pmu->regs + BANDWIDTH_EC_INTERRUPT_ENABLE_CLEAR);
-+}
-+
-+static inline
-+u32 switch_pmu__ec_read_ovsr(struct switch_pmu *pmu)
-+{
-+	return readl_relaxed(pmu->regs + BANDWIDTH_EC_OVF_STATUS);
-+}
-+
-+static inline
-+void switch_pmu__ec_write_ovsr(struct switch_pmu *pmu, u32 value)
-+{
-+	writel_relaxed(value, pmu->regs + BANDWIDTH_EC_OVF_STATUS);
-+}
-+
-+static inline
-+bool switch_pmu__any_event_counter_overflowed(u32 ovsr)
-+{
-+	return (ovsr & GENMASK(BANDWIDTH_NUM_EVENT_COUNTERS - 1, 0)) != 0;
-+}
-+
-+static inline
-+int switch_pmu__ec_has_overflowed(u32 ovsr, u8 cntr)
-+{
-+	return GET(ECOVF(cntr), ovsr) != 0;
-+}
-+
-+static inline
-+void switch_pmu__ec_set_value(struct switch_pmu *pmu, u8 cntr, u32 value)
-+{
-+	unsigned long flags;
-+	bool reenable = false;
-+
-+	/*
-+	 * Quirk: The counter needs to be disabled before updating.
-+	 */
-+	if ((readl_relaxed(pmu->regs + BANDWIDTH_EC_ENABLE_SET) &
-+		    SET(ECENSET(cntr), 1)) != 0) {
-+		switch_pmu__ec_disable(pmu, cntr);
-+		reenable = true;
-+	}
-+
-+	raw_spin_lock_irqsave(&pmu->ecsel_lock, flags);
-+	writel_relaxed(SET(ECSEL, cntr), pmu->regs + BANDWIDTH_EC_COUNTER_SEL);
-+
-+	/*
-+	 * Use writel because the write to BANDWIDTH_EC_COUNTER_SEL needs
-+	 * to be observed before the write to BANDWIDTH_EC_COUNT.
-+	 */
-+
-+	writel(value, pmu->regs + BANDWIDTH_EC_COUNT);
-+	raw_spin_unlock_irqrestore(&pmu->ecsel_lock, flags);
-+
-+	if (reenable)
-+		switch_pmu__ec_enable(pmu, cntr);
-+}
-+
-+static inline
-+u32 switch_pmu__ec_get_value(struct switch_pmu *pmu, u8 cntr)
-+{
-+	u32 result;
-+	u32 sel;
-+	unsigned long flags;
-+	unsigned long num_attempts = 0;
-+
-+	do {
-+		raw_spin_lock_irqsave(&pmu->ecsel_lock, flags);
-+		writel_relaxed(SET(ECSEL, cntr), pmu->regs +
-+			BANDWIDTH_EC_COUNTER_SEL);
-+
-+		/*
-+		 * The write to BANDWIDTH_EC_COUNTER_SEL needs to be observed
-+		 * before the read to BANDWIDTH_EC_COUNT.
-+		 */
-+		mb();
-+
-+		result = readl_relaxed(pmu->regs + BANDWIDTH_EC_COUNT);
-+		raw_spin_unlock_irqrestore(&pmu->ecsel_lock, flags);
-+		num_attempts++;
-+		sel = readl_relaxed(pmu->regs + BANDWIDTH_EC_COUNTER_SEL);
-+	} while ((sel != SET(ECSEL, cntr))
-+		&& (num_attempts <= DDRBW_MAX_RETRIES));
-+
-+	/* Exit gracefully to avoid freeze */
-+	if (num_attempts >= DDRBW_MAX_RETRIES)
-+		return DDR_BW_READ_FAIL;
-+
-+	return result;
-+}
-+
-+static inline
-+bool switch_pmu__any_event_counter_active(struct switch_pmu *pmu)
-+{
-+	int idx = find_next_bit(pmu->used_mask, BANDWIDTH_NUM_TOTAL_COUNTERS,
-+		    FIRST_EVENT_COUNTER);
-+
-+	return idx != BANDWIDTH_NUM_TOTAL_COUNTERS;
-+}
-+
-+/*
-+ * Event counter switch_pmu_counter method implementation.
-+ */
-+
-+static
-+void switch_pmu__32bit_event_counter_update(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+	u32 delta, prev, now;
-+
-+	do {
-+		prev = (u32)local64_read(&event->hw.prev_count);
-+		now = switch_pmu__ec_get_value(pmu, ec_idx);
-+	} while (local64_cmpxchg(&event->hw.prev_count, prev, now) != prev);
-+
-+	delta = now - prev;
-+	local64_add(delta, &event->count);
-+}
-+
-+static
-+void switch_pmu__64bit_event_counter_update(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	int idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+	u32 hi, lo;
-+	u64 prev, now;
-+
-+	do {
-+		prev = local64_read(&event->hw.prev_count);
-+		do {
-+			hi = switch_pmu__ec_get_value(pmu, idx + 1);
-+			lo = switch_pmu__ec_get_value(pmu, idx);
-+		} while (hi != switch_pmu__ec_get_value(pmu, idx + 1));
-+		now = ((u64)hi << 32) | lo;
-+	} while (local64_cmpxchg(&event->hw.prev_count, prev, now) != prev);
-+
-+	local64_add(now - prev, &event->count);
-+}
-+
-+static
-+void switch_pmu__event_counter_program(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+	u32 ev_type = SET(ECSOURCESEL, get_ec_source_sel(event)) |
-+		    SET(ECEVENTSEL, get_ec_event_sel(event));
-+
-+	event->hw.state = 0;
-+
-+	local64_set(&event->hw.prev_count, 0);
-+	switch_pmu__ec_set_value(pmu, ec_idx, 0);
-+	switch_pmu__ec_set_event(pmu, ec_idx, ev_type);
-+}
-+
-+static
-+void enable_64bit_ganging(struct perf_event *event, u32 idx)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+
-+	/* according to errata doc, this needs to be done
-+	 * for the odd counter
-+	 */
-+	u16 gang_regs;
-+	u32 ev_type = SET(ECSOURCESEL, 0x0) | SET(ECEVENTSEL, 0xf);
-+
-+	switch_pmu__ec_set_event(pmu, idx, ev_type);
-+
-+	/* enable ganging RMW */
-+	gang_regs = readl_relaxed(pmu->regs + BANDWIDTH_EC_GANG);
-+	gang_regs |= BIT(idx);
-+	writel_relaxed(gang_regs, pmu->regs + BANDWIDTH_EC_GANG);
-+
-+}
-+
-+static
-+void disable_64bit_ganging(struct perf_event *event, u32 idx)
-+{
-+	u16 gang_regs;
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+
-+	gang_regs = readl_relaxed(pmu->regs + BANDWIDTH_EC_GANG);
-+	gang_regs = gang_regs & ~BIT(idx);
-+	writel_relaxed(gang_regs, pmu->regs + BANDWIDTH_EC_GANG);
-+
-+}
-+static
-+void switch_pmu_event_32bit_counter_start(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+
-+	switch_pmu__event_counter_program(pmu->counters[ec_idx].event);
-+	switch_pmu__ec_enable_interrupt(pmu, ec_idx);
-+	switch_pmu__ec_enable(pmu, ec_idx);
-+}
-+
-+static
-+void switch_pmu_event_64bit_counter_start(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+
-+	switch_pmu__event_counter_program(pmu->counters[ec_idx].event);
-+	enable_64bit_ganging(event, ec_idx + 1);
-+	switch_pmu__ec_enable(pmu, ec_idx);
-+	switch_pmu__ec_enable(pmu, ec_idx + 1);
-+}
-+
-+static
-+void switch_pmu_event_32bit_counter_stop(struct perf_event *event, int flags)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+
-+	switch_pmu__ec_disable_interrupt(pmu, ec_idx);
-+	switch_pmu__ec_disable(pmu, ec_idx);
-+}
-+
-+static
-+void switch_pmu_event_64bit_counter_stop(struct perf_event *event, int flags)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	u32 ec_idx = event->hw.idx - FIRST_EVENT_COUNTER;
-+
-+	switch_pmu__ec_disable_interrupt(pmu, ec_idx);
-+	switch_pmu__ec_disable(pmu, ec_idx);
-+	switch_pmu__ec_disable_interrupt(pmu, ec_idx + 1);
-+	switch_pmu__ec_disable(pmu, ec_idx + 1);
-+	disable_64bit_ganging(event, ec_idx + 1);
-+}
-+
-+static
-+void switch_pmu_event_32bit_counter_wrap(struct perf_event *event)
-+{
-+	switch_pmu__32bit_event_counter_update(event);
-+}
-+
-+/*
-+ * Core abstract PMU functions and management of the software counters.
-+ */
-+
-+static
-+void switch_pmu__nop(struct pmu *perf_pmu)
-+{
-+}
-+
-+static
-+int switch_pmu__reserve_event_counter(struct switch_pmu *pmu,
-+		    struct perf_event *event, int sz)
-+{
-+	int idx;
-+
-+	idx = bitmap_find_free_region(pmu->used_mask,
-+	    BANDWIDTH_NUM_TOTAL_COUNTERS, sz);
-+	if (idx < 0)
-+		return -EAGAIN;
-+	return idx;
-+}
-+
-+/*
-+ * We must NOT create groups containing events from multiple hardware PMUs,
-+ * although mixing different software and hardware PMUs is allowed.
-+ */
-+static bool switch_pmu__validate_event_group(struct perf_event *event)
-+{
-+	struct perf_event *leader = event->group_leader;
-+	struct perf_event *sibling;
-+	int counters = 0;
-+
-+	if (leader->pmu != event->pmu && !is_software_event(leader))
-+		return false;
-+
-+	counters = event_num_counters(event);
-+	counters += event_num_counters(leader);
-+
-+	for_each_sibling_event(sibling, leader) {
-+		if (is_software_event(sibling))
-+			continue;
-+		if (sibling->pmu != event->pmu)
-+			return false;
-+		counters += event_num_counters(sibling);
-+	}
-+
-+	/*
-+	 * If the group requires more counters than the HW has, it
-+	 * cannot ever be scheduled.
-+	 */
-+	return counters <= BANDWIDTH_NUM_TOTAL_COUNTERS;
-+}
-+static
-+int switch_pmu__event_init(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+
-+	/*
-+	 * Is the event for this PMU?
-+	 */
-+	if (event->attr.type != event->pmu->type)
-+		return -ENOENT;
-+
-+	/*
-+	 * We cannot filter accurately so we just don't allow it at all.
-+	 */
-+	if (event->attr.exclude_user || event->attr.exclude_kernel ||
-+		    event->attr.exclude_hv || event->attr.exclude_idle)
-+		return -EINVAL;
-+
-+	hwc->idx = -1;
-+
-+	/* Sampling not supported these are system counters/events */
-+	if (hwc->sample_period)
-+		return -EINVAL;
-+
-+	/*
-+	 * Task mode not available, these are system counters not attributable
-+	 * to any CPU and therefore cannot attribute per-task.
-+	 */
-+	if (event->cpu < 0)
-+		return -EINVAL;
-+	/* set event cpu to the cpumask*/
-+	event->cpu = cpumask_first(&pmu->cpu);
-+
-+	/* Validate the group */
-+	if (!switch_pmu__validate_event_group(event))
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static
-+int switch_pmu__event_add(struct perf_event *event, int flags)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+	int idx;
-+	int err = 0;
-+	int sz;
-+
-+	sz = get_ec_event_lc(event);
-+
-+	/* Try to find a hardware resource for this event */
-+	idx = switch_pmu__reserve_event_counter(pmu, event, sz);
-+	if (idx < 0) {
-+		err = idx;
-+		goto out;
-+	}
-+
-+	hwc->idx = idx;
-+	hwc->state = PERF_HES_STOPPED | PERF_HES_UPTODATE;
-+
-+	if (sz == 0) {
-+		pmu->counters[idx] = (struct switch_pmu_counter) {
-+			.event = event,
-+			.start = switch_pmu_event_32bit_counter_start,
-+			.stop = switch_pmu_event_32bit_counter_stop,
-+			.wrap = switch_pmu_event_32bit_counter_wrap,
-+			.update = switch_pmu__32bit_event_counter_update,
-+		};
-+
-+	} else {
-+		pmu->counters[idx] = (struct switch_pmu_counter) {
-+			.event = event,
-+			.start = switch_pmu_event_64bit_counter_start,
-+			.stop = switch_pmu_event_64bit_counter_stop,
-+			.update = switch_pmu__64bit_event_counter_update,
-+			.wrap = NULL
-+		};
-+		pmu->counters[idx + 1] = pmu->counters[idx];
-+	}
-+
-+	if (flags & PERF_EF_START)
-+		pmu->counters[idx].start(pmu->counters[idx].event);
-+
-+out:
-+	return err;
-+}
-+
-+static
-+void switch_pmu__event_start(struct perf_event *event, int flags)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+
-+	pmu->counters[hwc->idx].start(pmu->counters[hwc->idx].event);
-+}
-+
-+static
-+void switch_pmu__event_stop(struct perf_event *event, int flags)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+	struct switch_pmu_counter *c = &pmu->counters[hwc->idx];
-+
-+
-+	if (!(hwc->state & PERF_HES_STOPPED)) {
-+		if (c->stop)
-+			c->stop(c->event, flags);
-+
-+		if (flags & PERF_EF_UPDATE)
-+			c->update(c->event);
-+		hwc->state |= PERF_HES_STOPPED | PERF_HES_UPTODATE;
-+	}
-+}
-+
-+static
-+void switch_pmu__event_del(struct perf_event *event, int flags)
-+{
-+
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+	struct switch_pmu_counter *c = &pmu->counters[hwc->idx];
-+	struct switch_pmu_counter *cl = &pmu->counters[hwc->idx + 1];
-+	int sz;
-+
-+	sz = get_ec_event_lc(event);
-+
-+	if (c->stop)
-+		c->stop(c->event, flags | PERF_EF_UPDATE);
-+	c->update(c->event);
-+	c->event = NULL;
-+	bitmap_release_region(pmu->used_mask, hwc->idx, sz);
-+
-+	/* Null set the upper counter when the long counter was enabled*/
-+	if (sz)
-+		cl->event = NULL;
-+}
-+
-+
-+static
-+void switch_pmu__event_read(struct perf_event *event)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(event->pmu);
-+	struct hw_perf_event *hwc = &event->hw;
-+
-+	pmu->counters[hwc->idx].update(pmu->counters[hwc->idx].event);
-+}
-+
-+static
-+int dummy_event_idx(struct perf_event *event)
-+{
-+	return 0;
-+}
-+
-+static
-+bool switch_pmu__ec_handle_irq(struct switch_pmu *pmu)
-+{
-+	bool handled = false;
-+	u32 ovs = switch_pmu__ec_read_ovsr(pmu);
-+	int idx;
-+
-+	switch_pmu__ec_write_ovsr(pmu, ovs);
-+
-+	if (!switch_pmu__any_event_counter_overflowed(ovs))
-+		return handled;
-+
-+	for (idx = 0; idx < BANDWIDTH_NUM_EVENT_COUNTERS; ++idx) {
-+		struct switch_pmu_counter *counter;
-+
-+		if (!switch_pmu__ec_has_overflowed(ovs, idx))
-+			continue;
-+		counter = &pmu->counters[idx + FIRST_EVENT_COUNTER];
-+		if (!counter->event)
-+			continue;
-+		counter->wrap(counter->event);
-+		handled = true;
-+	}
-+
-+	return handled;
-+}
-+
-+
-+static
-+irqreturn_t switch_pmu__handle_irq(int irq_num, void *data)
-+{
-+	bool handled = false;
-+	struct switch_pmu *pmu = data;
-+
-+	if (switch_pmu__any_event_counter_active(pmu))
-+		handled = switch_pmu__ec_handle_irq(pmu);
-+
-+	/*
-+	 * Handle the pending perf events.
-+	 *
-+	 * Note: this call *must* be run with interrupts disabled. For
-+	 * platforms that can have the PMU interrupts raised as an NMI, this
-+	 * will not work.
-+	 */
-+
-+	irq_work_run();
-+
-+	return handled ? IRQ_HANDLED : IRQ_NONE;
-+}
-+
-+/*
-+ * Fixed attribute groups exposed for perf in the format group.
-+ *
-+ * The config format for perf events associated with event counters is:
-+ * - config: bits 0-3:event selector, bits 16-22:source selector
-+ * - config1: bits 0-21,24-30:filter config, bits 32-45,48-54:filter enable
-+ *
-+ */
-+
-+/* Event counters */
-+
-+#define DDRBW_ATTR(_name, _str)					\
-+	(&((struct perf_pmu_events_attr[]){				\
-+	   {.attr = __ATTR(_name, 0444, perf_event_sysfs_show, NULL),\
-+	.id = 0,						\
-+	.event_str = _str }					\
-+	})[0].attr.attr)
-+
-+
-+static struct attribute *qcom_bandwidth_pmu_formats[] = {
-+	DDRBW_ATTR(ecsourcesel, "config:16-22"),
-+	DDRBW_ATTR(eceventsel, "config:0-3"),
-+	DDRBW_ATTR(lc, "config:32"),
-+	NULL,
-+};
-+
-+static struct attribute_group qcom_bandwidth_pmu_format_group = {
-+	.name = "format",
-+	.attrs = qcom_bandwidth_pmu_formats,
-+};
-+
-+static ssize_t qcom_bandwidth_pmu_cpumask_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct switch_pmu *pmu = to_switch_pmu(dev_get_drvdata(dev));
-+
-+	return cpumap_print_to_pagebuf(true, buf, &pmu->cpu);
-+}
-+
-+static struct device_attribute qcom_bandwidth_pmu_cpumask_attr =
-+	__ATTR(cpumask, 0444, qcom_bandwidth_pmu_cpumask_show, NULL);
-+
-+static struct attribute *qcom_bandwidth_pmu_cpumask_attrs[] = {
-+	&qcom_bandwidth_pmu_cpumask_attr.attr,
-+	NULL,
-+};
-+
-+static struct attribute_group qcom_bandwidth_pmu_cpumask_attr_group = {
-+	.attrs = qcom_bandwidth_pmu_cpumask_attrs,
-+};
-+
-+
-+static struct attribute *qcom_ddrbw_pmu_events[] = {
-+	DDRBW_ATTR(ddr-read-beats, "ecsourcesel=0x14, eceventsel=0"),
-+	DDRBW_ATTR(ddr-read-beats.unit, "Bytes"),
-+	DDRBW_ATTR(ddr-read-beats.scale, "32"),
-+	DDRBW_ATTR(ddr-write-beats, "ecsourcesel=0x15, eceventsel=0"),
-+	DDRBW_ATTR(ddr-write-beats.unit, "Bytes"),
-+	DDRBW_ATTR(ddr-write-beats.scale, "32"),
-+	NULL
-+};
-+
-+static struct attribute_group qcom_bandwidth_pmu_events_group = {
-+	.name = "events",
-+	.attrs = qcom_ddrbw_pmu_events,
-+};
-+
-+static const struct attribute_group **init_attribute_groups(void)
-+{
-+	static const struct attribute_group *result[4];
-+
-+	result[0] = &qcom_bandwidth_pmu_format_group;
-+	result[1] = &qcom_bandwidth_pmu_cpumask_attr_group;
-+	result[2] = &qcom_bandwidth_pmu_events_group;
-+	result[3] = NULL;
-+	return result;
-+}
-+
-+static const struct attribute_group **attr_groups;
-+
-+/*
-+ * Device probing and initialization.
-+ */
-+
-+static int qcom_bandwidth_pmu_offline_cpu(unsigned int cpu,
-+	struct hlist_node *node)
-+{
-+	struct switch_pmu *pmu = hlist_entry_safe(node,
-+		struct switch_pmu, node);
-+	unsigned int target;
-+
-+	if (!cpumask_test_and_clear_cpu(cpu, &pmu->cpu))
-+		return 0;
-+	target = cpumask_any_but(cpu_online_mask, cpu);
-+	if (target >= nr_cpu_ids)
-+		return 0;
-+	perf_pmu_migrate_context(&pmu->perf_pmu, cpu, target);
-+	cpumask_set_cpu(target, &pmu->cpu);
-+	return 0;
-+}
-+
-+static const struct acpi_device_id qcom_bandwidth_pmu_acpi_match[] = {
-+	{ "QCOM80C1", },
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(acpi, qcom_bandwidth_pmu_acpi_match);
-+
-+static int qcom_bandwidth_pmu_probe(struct platform_device *pdev)
-+{
-+	int result, irq, err;
-+	struct resource *regs_rc;
-+	struct switch_pmu *pmu;
-+	unsigned long uid;
-+	struct acpi_device *device;
-+	char *name;
-+
-+	regs_rc = platform_get_resource(pdev, IORESOURCE_MEM, RES_BW);
-+
-+	name = devm_kzalloc(&pdev->dev, DDRBW_PMU_NAME_LEN, GFP_KERNEL);
-+	if (!name)
-+		return -ENOMEM;
-+
-+	pmu = devm_kzalloc(&pdev->dev, sizeof(*pmu), GFP_KERNEL);
-+	if (!pmu)
-+		return -ENOMEM;
-+
-+	*pmu = (struct switch_pmu) {
-+		.perf_pmu = {
-+			/* Tag this as a SW context to disable multiplexing */
-+			.task_ctx_nr	= perf_invalid_context,
-+
-+			.pmu_enable	= switch_pmu__nop,
-+			.pmu_disable	= switch_pmu__nop,
-+			.event_init	= switch_pmu__event_init,
-+			.add		= switch_pmu__event_add,
-+			.del		= switch_pmu__event_del,
-+			.start		= switch_pmu__event_start,
-+			.stop		= switch_pmu__event_stop,
-+			.read		= switch_pmu__event_read,
-+
-+			.event_idx	= dummy_event_idx,
-+
-+			.attr_groups	= attr_groups
-+		},
-+		.counters = {
-+			[0 ... BANDWIDTH_NUM_TOTAL_COUNTERS - 1] {}
-+		}
-+	};
-+
-+	raw_spin_lock_init(&pmu->ecsel_lock);
-+
-+	pmu->regs = devm_ioremap_resource(&pdev->dev, regs_rc);
-+	if (IS_ERR(pmu->regs)) {
-+		dev_err(&pdev->dev, "Can't map regs @%pa!\n",
-+		    &regs_rc->start);
-+		return PTR_ERR(pmu->regs);
-+	}
-+
-+	irq = platform_get_irq(pdev, IRQ_BW);
-+	if (irq <= 0) {
-+		dev_err(&pdev->dev, "Failed to get valid irq\n");
-+		return -ENODEV;
-+	}
-+
-+	if (acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &device))
-+		return -ENODEV;
-+
-+	if (kstrtol(device->pnp.unique_id, 10, &uid) < 0) {
-+		dev_err(&pdev->dev, "unable to read ACPI uid\n");
-+		return -ENODEV;
-+	}
-+
-+	snprintf(name, DDRBW_PMU_NAME_LEN, DDRBW_PMU_NAME_FORMAT, uid);
-+	pmu->perf_pmu.name = name;
-+
-+	err = devm_request_irq(&pdev->dev, irq, switch_pmu__handle_irq,
-+		    IRQF_NOBALANCING, pmu->perf_pmu.name, pmu);
-+	if (err) {
-+		dev_err(&pdev->dev, "Unable to request IRQ%d\n", irq);
-+		return err;
-+	}
-+
-+	/* Designate the probing CPU as the context for the PMU */
-+	cpumask_set_cpu(smp_processor_id(), &pmu->cpu);
-+
-+	switch_pmu__reset(pmu);
-+	result = perf_pmu_register(&pmu->perf_pmu, pmu->perf_pmu.name, -1);
-+
-+	if (result < 0) {
-+		dev_err(&pdev->dev, "Failed to register(%d)\n", result);
-+		return result;
-+	}
-+	dev_info(&pdev->dev, "Registered %s PMU, type: %d\n",
-+		pmu->perf_pmu.name, pmu->perf_pmu.type);
-+
-+	/* Add this instance to the list used by the offline callback */
-+	cpuhp_state_add_instance_nocalls(cpuhp_state_num, &pmu->node);
-+
-+	platform_set_drvdata(pdev, pmu);
-+
-+	return result;
-+}
-+
-+static int qcom_bandwidth_pmu_remove(struct platform_device *pdev)
-+{
-+	struct switch_pmu *pmu = platform_get_drvdata(pdev);
-+
-+	cpuhp_state_remove_instance_nocalls(cpuhp_state_num, &pmu->node);
-+	perf_pmu_unregister(&pmu->perf_pmu);
-+	return 0;
-+}
-+
-+static struct platform_driver qcom_bandwidth_pmu_driver = {
-+	.driver = {
-+		.name = "qcom-bandwidth-pmu-v1",
-+		.owner = THIS_MODULE,
-+		.acpi_match_table = ACPI_PTR(qcom_bandwidth_pmu_acpi_match),
-+	},
-+	.probe = qcom_bandwidth_pmu_probe,
-+	.remove = qcom_bandwidth_pmu_remove,
-+};
-+
-+static int __init register_qcom_bandwidth_pmu_driver(void)
-+{
-+	if (attr_groups == NULL)
-+		attr_groups = init_attribute_groups();
-+
-+	/* Install a hook to update the context CPU in case it goes offline */
-+	cpuhp_state_num = cpuhp_setup_state_multi(CPUHP_AP_ONLINE_DYN,
-+		"perf/qcom/msw:online", NULL, qcom_bandwidth_pmu_offline_cpu);
-+	if (cpuhp_state_num < 0)
-+		return cpuhp_state_num;
-+
-+	return platform_driver_register(&qcom_bandwidth_pmu_driver);
-+}
-+
-+static void __exit unregister_qcom_bandwidth_pmu_driver(void)
-+{
-+	cpuhp_remove_multi_state(cpuhp_state_num);
-+	platform_driver_unregister(&qcom_bandwidth_pmu_driver);
-+}
-+
-+module_init(register_qcom_bandwidth_pmu_driver);
-+module_exit(unregister_qcom_bandwidth_pmu_driver);
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/perf/qcom_bandwidth_perf_events.h b/drivers/perf/qcom_bandwidth_perf_events.h
-new file mode 100644
-index 0000000..120a10b
---- /dev/null
-+++ b/drivers/perf/qcom_bandwidth_perf_events.h
-@@ -0,0 +1,156 @@
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#ifndef _QCOM_BANDWIDTH_PERF_EVENTS_H_
-+#define _QCOM_BANDWIDTH_PERF_EVENTS_H_
-+
-+#include<linux/bitops.h>
-+
-+/*
-+ * General constants
-+ */
-+
-+
-+#define BANDWIDTH_NUM_EVENT_COUNTERS    12
-+#define BANDWIDTH_NUM_TOTAL_COUNTERS    BANDWIDTH_NUM_EVENT_COUNTERS
-+#define BANDWIDTH_LAR_KEY               0xC5ACCE55
-+
-+/*
-+ * Register offsets
-+ */
-+
-+/* ID and Coresight registers */
-+
-+#define BANDWIDTH_LAR           0xFB0
-+
-+
-+/* Event counter registers */
-+
-+/*
-+ * Because of interleaving, some gaps in the map exists
-+ * (7th bit cannot be used).
-+ * To accommodate this mapping,
-+ * we have different offsets for different sets of counters.
-+ */
-+
-+
-+static inline u32 qcom_bandwidth_ec_source_sel(u8 __cntr)
-+{
-+	if (__cntr >= 0 && __cntr <= 2)
-+		return (0x240 + ((__cntr) & 0xF) * 24);
-+	else if (__cntr >= 3 && __cntr <= 7)
-+		return (0x2C0 + ((__cntr) & 0xF) * 24);
-+	else if (__cntr >= 8 && __cntr <= 13)
-+		return (0x340 + ((__cntr) & 0xF) * 24);
-+	else
-+		return (0x3C0 + ((__cntr) & 0xF) * 24);
-+}
-+
-+
-+#define BANDWIDTH_EC_GLOBAL_CONTROL             0xA00
-+#define BANDWIDTH_EC_ENABLE_SET                 0xA10
-+#define BANDWIDTH_EC_ENABLE_CLEAR               0xA18
-+#define BANDWIDTH_EC_INTERRUPT_ENABLE_SET       0xA20
-+#define BANDWIDTH_EC_INTERRUPT_ENABLE_CLEAR     0xA28
-+#define BANDWIDTH_EC_TRIGGER_THRESHOLD_LO       0xA30
-+#define BANDWIDTH_EC_TRIGGER_THRESHOLD_HI       0xC30
-+#define BANDWIDTH_EC_GANG                       0xE30
-+#define BANDWIDTH_EC_GANG_CONFIG0               0xE38
-+#define BANDWIDTH_EC_GANG_CONFIG1               0xE40
-+#define BANDWIDTH_EC_GANG_CONFIG2               0xE48
-+#define BANDWIDTH_EC_OVF_STATUS                 0xF00
-+#define BANDWIDTH_EC_COUNTER_SEL                0xF08
-+#define BANDWIDTH_EC_COUNT                      0xF10
-+#define BANDWIDTH_EC_SWINC                      0x1320
-+#define BANDWIDTH_EC_IRQ_CONTROL                0x1358
-+
-+/* IRQ/resource position in ACPI */
-+#define IRQ_BW                  2
-+#define RES_BW                  4
-+#define DDRBW_PMU_NAME_FORMAT   "bwddr_0_%ld"
-+#define DDRBW_PMU_NAME_LEN      11
-+#define DDRBW_MAX_RETRIES       3
-+#define DDR_BW_READ_FAIL        0
-+/*
-+ * Bit field definitions, defined as (<size>, <shift>)
-+ * Please note that fields that take up the whole register
-+ * are not included here, as those can be set/read directly.
-+ */
-+
-+/* BANDWIDTH_EC_SOURCE_SEL */
-+#define ECSOURCESEL                     (7, 16)
-+#define ECEVENTSEL                      (4,  0)
-+
-+
-+
-+/* BANDWIDTH_EC_GLOBAL_CONTROL/MONACO_TC_GLOBAL_CONTROL */
-+
-+#define GLOBAL_TRIGOVRD                 (1, 4)
-+#define CAPTURE                         (1, 3)
-+#define RETRIEVAL_MODE                  (1, 2)
-+#define GLOBAL_RESET                    (1, 1)
-+#define GLOBAL_ENABLE                   (1, 0)
-+
-+/* MONACO_EC_ROLLOVER_CONTROL */
-+
-+#define ECSATURATEEN(__cntr)            (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_ENABLE_SET */
-+
-+#define ECENSET(__cntr)                 (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_ENABLE_CLEAR */
-+
-+#define ECENCLEAR(__cntr)               (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_INTERRUPT_ENABLE_SET */
-+
-+#define ECINTENSET(__cntr)              (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_INTERRUPT_ENABLE_CLEAR */
-+
-+#define ECINTENCLR(__cntr)              (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_GANG */
-+
-+#define ECGANGEN(__pair)                (1, (((__pair) & 0x7) * 2 + 1))
-+
-+/* MONACO_EC_OVF_STATUS */
-+
-+#define ECOVF(__cntr)                   (1, ((__cntr) & 0xF))
-+
-+/* MONACO_EC_COUNTER_SEL */
-+
-+#define ECSEL                           (4, 0)
-+
-+/* MONACO_EC_SWINC */
-+
-+#define ECSWINC(__cntr)                 (1, ((__cntr) & 0xF))
-+
-+
-+/* MONACO_LSR */
-+
-+#define NTT                             (1,  2)
-+#define SLK                             (1,  1)
-+#define SLI                             (1,  0)
-+
-+/*
-+ * Bit field manipulation macros.
-+ * These use the bitfield definitions above to set or get the given field.
-+ */
-+
-+#define __SIZE(__sz, __sh) __sz
-+#define __SHIFT(__sz, __sh) __sh
-+#define __SETI(__b, __s, __v) ((u32)(((__v) & GENMASK((__b - 1), 0)) << (__s)))
-+#define __CLRI(__b, __s, __v) ((u32)((__v) & ~(GENMASK((__b - 1) + __s, __s))))
-+#define __GETI(__b, __s, __v) ((u32)(((__v) >> (__s)) & GENMASK((__b - 1), 0)))
-+
-+/* Return a value with the given bitfield set to the given value */
-+#define SET(__f, __v) __SETI(__SIZE __f, __SHIFT __f, (__v))
-+
-+/* Return a value with the given bitfield set to zero */
-+#define CLR(__f, __v) __CLRI(__SIZE __f, __SHIFT __f, (__v))
-+
-+/* Retrieve the given bitfield from the given value */
-+#define GET(__f, __v) __GETI(__SIZE __f, __SHIFT __f, (__v))
-+
-+#endif
--- 
-1.9.1
+Thanks,
+Rafael
