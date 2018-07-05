@@ -1,67 +1,57 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v4.18-rc4
-Date: Thu, 5 Jul 2018 13:32:35 +0200
-Message-ID: <CAJZ5v0jT8iYaPLmrHWshDppHhZr3sqhrtFeTVzD6S=dvTdZ+CA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi/x86: enable touchscreen on Dell Venue Pro 7139
+Date: Thu, 05 Jul 2018 13:33:56 +0200
+Message-ID: <1929463.ctoOnHkgrM@aspire.rjw.lan>
+References: <1528582686-18577-1-git-send-email-tristiancelestin@fastmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1528582686-18577-1-git-send-email-tristiancelestin@fastmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Tristian Celestin <tristiancelestin@fastmail.com>
+Cc: lenb@kernel.org, andriy.shevchenko@linux.intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Sunday, June 10, 2018 12:18:06 AM CEST Tristian Celestin wrote:
+> Permanently enable the SYNA7500 touchscreen device on the Dell
+> Venue Pro 7139. The DSDT hides the touchscreen ACPI device on
+> the 7139 in the same fashion as the 7130, and needs to
+> be enabled in the same way.
+> 
+> Signed-off-by: Tristian Celestin <tristiancelestin@fastmail.com>
+> ---
+>  drivers/acpi/x86/utils.c | 12 +++++++++---
+>  1 file changed, 9 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
+> index ec5b0f1..3a13b2a 100644
+> --- a/drivers/acpi/x86/utils.c
+> +++ b/drivers/acpi/x86/utils.c
+> @@ -62,14 +62,20 @@ struct always_present_id {
+>  	 */
+>  	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
+>  	/*
+> -	 * On the Dell Venue 11 Pro 7130 the DSDT hides the touchscreen ACPI
+> -	 * device until a certain time after _SB.PCI0.GFX0.LCD.LCD1._ON gets
+> -	 * called has passed *and* _STA has been called at least 3 times since.
+> +	 * On the Dell Venue 11 Pro 7130 and 7139, the DSDT hides
+> +	 * the touchscreen ACPI device until a certain time
+> +	 * after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed
+> +	 * *and* _STA has been called at least 3 times since.
+>  	 */
+>  	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
+>  		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
+>  	      }),
+> +	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7139"),
+> +	      }),
+> +
+>  	/*
+>  	 * The GPD win BIOS dated 20170221 has disabled the accelerometer, the
+>  	 * drivers sometimes cause crashes under Windows and this is how the
+> 
 
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.18-rc4
-
-with top-most commit df958569dbaa398f525057729717e44809ac4306
-
- Merge branches 'acpi-tables' and 'acpica'
-
-on top of commit 021c91791a5e7e85c567452f1be3e4c2c6cb6063
-
- Linux 4.18-rc3
-
-to receive ACPI fixes for 4.18-rc4.
-
-These fix a recent ACPICA regression, fix a battery driver regression
-introduced during the 4.17 cycle and fix up the recently added
-support for the PPTT ACPI table.
-
-Specifics:
-
- - Revert part of a recent ACPICA regression fix that added leading
-   newlines to ACPICA error messages and made the kernel log look
-   broken (Rafael Wysocki).
-
- - Fix an ACPI battery driver regression introduced during the 4.17
-   cycle due to incorrect error handling that made Thinkpad 13
-   laptops crash on boot (Jouke Witteveen).
-
- - Fix up the recently added PPTT ACPI table support by covering
-   the case when a PPTT structure represents a processors group
-   correctly (Sudeep Holla).
-
-Thanks!
-
-
----------------
-
-Jouke Witteveen (1):
-      ACPI / battery: Safe unregistering of hooks
-
-Rafael J. Wysocki (1):
-      ACPICA: Drop leading newlines from error messages
-
-Sudeep Holla (1):
-      ACPI / PPTT: use ACPI ID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
-
----------------
-
- drivers/acpi/acpica/uterror.c |  6 +++---
- drivers/acpi/battery.c        |  9 +++++----
- drivers/acpi/pptt.c           | 10 ++++++++--
- 3 files changed, 16 insertions(+), 9 deletions(-)
+Applied, thanks!
