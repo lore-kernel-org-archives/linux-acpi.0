@@ -1,13 +1,13 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management fixes for v4.18-rc4
-Date: Thu, 5 Jul 2018 13:31:27 +0200
-Message-ID: <CAJZ5v0hTE4OMOQ7wJ0S5eEwK+ZzYo4HVaGHvJiDPVA4xJc2hyQ@mail.gmail.com>
+Subject: [GIT PULL] ACPI fixes for v4.18-rc4
+Date: Thu, 5 Jul 2018 13:32:35 +0200
+Message-ID: <CAJZ5v0jT8iYaPLmrHWshDppHhZr3sqhrtFeTVzD6S=dvTdZ+CA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 Hi Linus,
@@ -15,46 +15,53 @@ Hi Linus,
 Please pull from the tag
 
  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm-4.18-rc4
+ acpi-4.18-rc4
 
-with top-most commit 88b96088e94ec66f6c9015eee28cb9d053be69c0
+with top-most commit df958569dbaa398f525057729717e44809ac4306
 
- Merge branch 'pm-pci'
+ Merge branches 'acpi-tables' and 'acpica'
 
 on top of commit 021c91791a5e7e85c567452f1be3e4c2c6cb6063
 
  Linux 4.18-rc3
 
-to receive power management fixes for 4.18-rc4.
+to receive ACPI fixes for 4.18-rc4.
 
-These fix a PCI power management regression introduced during the
-4.17 cycle and fix up the recently added support for devices in
-multiple power domains.
+These fix a recent ACPICA regression, fix a battery driver regression
+introduced during the 4.17 cycle and fix up the recently added
+support for the PPTT ACPI table.
 
 Specifics:
 
- - Resume parallel PCI (non-PCIe) bridges on suspend-to-RAM (ACP S3)
-   to avoid confusing the platform firmware which started to happen
-   after a core power management regression fix that went in during
-   the 4.17 cycle (Rafael Wysocki).
+ - Revert part of a recent ACPICA regression fix that added leading
+   newlines to ACPICA error messages and made the kernel log look
+   broken (Rafael Wysocki).
 
- - Fix up the recently added support for devices in multiple power
-   domains by avoiding to power up the entire domain unnecessarily
-   when attaching a device to it (Ulf Hansson).
+ - Fix an ACPI battery driver regression introduced during the 4.17
+   cycle due to incorrect error handling that made Thinkpad 13
+   laptops crash on boot (Jouke Witteveen).
+
+ - Fix up the recently added PPTT ACPI table support by covering
+   the case when a PPTT structure represents a processors group
+   correctly (Sudeep Holla).
 
 Thanks!
 
 
 ---------------
 
-Rafael J. Wysocki (1):
-      PCI / ACPI / PM: Resume bridges w/o drivers on suspend-to-RAM
+Jouke Witteveen (1):
+      ACPI / battery: Safe unregistering of hooks
 
-Ulf Hansson (1):
-      PM / Domains: Don't power on at attach for the multi PM domain case
+Rafael J. Wysocki (1):
+      ACPICA: Drop leading newlines from error messages
+
+Sudeep Holla (1):
+      ACPI / PPTT: use ACPI ID whenever ACPI_PPTT_ACPI_PROCESSOR_ID_VALID is set
 
 ---------------
 
- drivers/base/power/domain.c | 16 +++++++++-------
- drivers/pci/pci-acpi.c      | 12 ++++++++++++
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ drivers/acpi/acpica/uterror.c |  6 +++---
+ drivers/acpi/battery.c        |  9 +++++----
+ drivers/acpi/pptt.c           | 10 ++++++++--
+ 3 files changed, 16 insertions(+), 9 deletions(-)
