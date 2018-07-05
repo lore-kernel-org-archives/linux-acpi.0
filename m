@@ -1,96 +1,79 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v2] ACPI / battery: Safe unregistering
- of hooks
-Date: Thu, 05 Jul 2018 13:31:45 +0200
-Message-ID: <2025377.rs5XtHeBcY@aspire.rjw.lan>
-References: <20180704102715.GA9067@Mindship-05.localdomain>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v5 00/20] APEI in_nmi() rework and arm64 SDEI wire-up
+Date: Thu, 5 Jul 2018 16:42:51 +0100
+Message-ID: <1246af75-eaf4-e306-2276-65859be053e6@arm.com>
+References: <20180626170116.25825-1-james.morse@arm.com>
+ <4409985.sv3PbRGN0l@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <20180704102715.GA9067-7Pk1HLXsvWqf6HGZUO+WniZi+YwRKgec@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/options/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
- <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <4409985.sv3PbRGN0l@aspire.rjw.lan>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>
+Cc: jonathan.zhang@cavium.com, Punit Agrawal <punit.agrawal@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, July 4, 2018 12:27:15 PM CEST Jouke Witteveen wrote:
-> A hooking API was implemented for 4.17 in fa93854f7a7ed63d followed by
-> hooks for Thinkpad laptops in 2801b9683f740012. The Thinkpad drivers
-> did not support the Thinkpad 13 and the hooking API crashes on
-> unsupported batteries by altering a list of hooks during unsafe
-> iteration. Thus, Thinkpad 13 laptops could no longer boot.
-> 
-> Additionally, a lock was kept in place and debugging information was
-> printed out of order.
-> 
-> Signed-off-by: Jouke Witteveen <j.witteveen-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> 
-> This time with a more informative commit message (no functional changes).
-> 
->  drivers/acpi/battery.c | 9 +++++----
->  1 file changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
-> index b0113a58..d79ad844 100644
-> --- a/drivers/acpi/battery.c
-> +++ b/drivers/acpi/battery.c
-> @@ -717,10 +717,11 @@ void battery_hook_register(struct acpi_battery_hook *hook)
->  			 */
->  			pr_err("extension failed to load: %s", hook->name);
->  			__battery_hook_unregister(hook, 0);
-> -			return;
-> +			goto end;
->  		}
->  	}
->  	pr_info("new extension: %s\n", hook->name);
-> +end:
->  	mutex_unlock(&hook_mutex);
->  }
->  EXPORT_SYMBOL_GPL(battery_hook_register);
-> @@ -732,7 +733,7 @@ EXPORT_SYMBOL_GPL(battery_hook_register);
->  */
->  static void battery_hook_add_battery(struct acpi_battery *battery)
->  {
-> -	struct acpi_battery_hook *hook_node;
-> +	struct acpi_battery_hook *hook_node, *tmp;
->  
->  	mutex_lock(&hook_mutex);
->  	INIT_LIST_HEAD(&battery->list);
-> @@ -744,15 +745,15 @@ static void battery_hook_add_battery(struct acpi_battery *battery)
->  	 * when a battery gets hotplugged or initialized
->  	 * during the battery module initialization.
->  	 */
-> -	list_for_each_entry(hook_node, &battery_hook_list, list) {
-> +	list_for_each_entry_safe(hook_node, tmp, &battery_hook_list, list) {
->  		if (hook_node->add_battery(battery->bat)) {
->  			/*
->  			 * The notification of the extensions has failed, to
->  			 * prevent further errors we will unload the extension.
->  			 */
-> -			__battery_hook_unregister(hook_node, 0);
->  			pr_err("error in extension, unloading: %s",
->  					hook_node->name);
-> +			__battery_hook_unregister(hook_node, 0);
->  		}
->  	}
->  	mutex_unlock(&hook_mutex);
-> 
+Hi guys,
 
-Applied and pushed for 4.18-rc4.
+On 05/07/18 10:50, Rafael J. Wysocki wrote:
+> On Tuesday, June 26, 2018 7:00:56 PM CEST James Morse wrote:
+>> The aim of this series is to wire arm64's SDEI into APEI.
+>>
+>> On arm64 we have three APEI notifications that are NMI-like, and
+>> in the unlikely event that all three are supported by a platform,
+>> they can interrupt each other.
+>> The GHES driver shouldn't have to deal with this, so this series aims
+>> to make it re-entrant.
+>>
+>> To do that, we refactor the estatus queue to allow multiple notifications
+>> to use it, then convert NOTIFY_SEA to always be described as NMI-like,
+>> and to use the estatus queue.
+>>
+>> From here we push the locking and fixmap choices out to the notification
+>> functions, and remove the use of per-ghes estatus and flags. This removes
+>> the in_nmi() 'timebomb' in ghes_copy_tofrom_phys().
+>>
+>> Things get sticky when an NMI notification needs to know how big the
+>> CPER records might be, before reading it. This series splits
+>> ghes_estatus_read() to let us peek at the buffer. A side effect of this
+>> is the 20byte header will get read twice. (how does it work today? it
+>> reads the records into a per-ghes worst-case sized buffer, allocates
+>> the correct size and copies the records. in_nmi() use of this per-ghes
+>> buffer needs eliminating).
+>>
+>> One alternative was to trust firmware's 'max raw data length' and use
+>> that to allocate 'enough' memory. We don't use this value today, so its
+>> probably wrong on some sytem somewhere.
+>>
+>> Since v4 patches 5,8-15 are new, otherwise changes are noted in the patch.
 
-Thanks!
+> Tony, I need your help with reviewing the APEI-related material here.
+> Can you please have a look at this series and let me know if there are
+> any concerns regarding it?
+
+Thanks.
+
+I think the only context from earlier versions is where Borislav spotted some
+issues with the ghes_proc() call at probe time and NMI-like notifications.
+
+>From https://www.spinics.net/lists/arm-kernel/msg653332.html :
+| Which means, that this code is not really reentrant and if should be
+| fixed to be callable from different contexts, then it should use private
+| buffers and be careful about locking.
+
+... the patches for which have bloated this series.
 
 
+Thanks,
 
-------------------------------------------------------------------------------
-Check out the vibrant tech community on one of the world's most
-engaging tech sites, Slashdot.org! http://sdm.link/slashdot
+James
