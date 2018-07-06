@@ -1,130 +1,122 @@
-From: =?UTF-8?Q?Thomas_H=c3=a4nig?= <haenig@cosifan.de>
-Subject: Re: [REGRESSION 4.17] Spurious wakeup / reboot with power button
-Date: Fri, 6 Jul 2018 19:57:06 +0200
-Message-ID: <c04bb990-8921-90c5-e298-bf68e3c9cd33@cosifan.de>
-References: <s5hk1qaf9hv.wl-tiwai@suse.de>
- <7049b672-859c-e049-a391-f66e4336d4a9@cosifan.de>
- <CAJZ5v0ikijT8MRHRsTAZ=FGPbkTu4QeJENBCeaa7BDP_E964UQ@mail.gmail.com>
- <1704080.gFTvVrrZA1@aspire.rjw.lan> <s5hbmbksg6f.wl-tiwai@suse.de>
+From: Matthias Kaehlcke <mka@chromium.org>
+Subject: Re: [RESEND PATCH v3 2/2] thermal: core: introduce thermal zone
+ device mode control
+Date: Fri, 6 Jul 2018 11:22:11 -0700
+Message-ID: <20180706182211.GI129942@google.com>
+References: <20180226144118.24693-1-enric.balletbo@collabora.com>
+ <20180226144118.24693-2-enric.balletbo@collabora.com>
+ <20180629003302.GT129942@google.com>
+ <20180703171325.GC129942@google.com>
+ <f06cea77-f0bf-07bf-b8c6-6835cf0be999@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <s5hbmbksg6f.wl-tiwai@suse.de>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <f06cea77-f0bf-07bf-b8c6-6835cf0be999@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Takashi Iwai <tiwai@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Erik Schmauss <erik.schmauss@intel.com>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
+Cc: rui.zhang@intel.com, rjw@rjwysocki.net, groeck@chromium.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, snanda@chromium.org, lenb@kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Enric,
 
-
-Am 06.07.2018 um 14:27 schrieb Takashi Iwai:
-> On Fri, 06 Jul 2018 14:13:04 +0200,
-> Rafael J. Wysocki wrote:
->>
->> On Friday, July 6, 2018 1:21:50 PM CEST Rafael J. Wysocki wrote:
->>> On Fri, Jul 6, 2018 at 1:12 PM, Thomas Hänig <haenig@cosifan.de> wrote:
->>
->> [cut]
->>  
->>> So the latest patch:
->>>
->>> https://patchwork.kernel.org/patch/10511211/
->>>
->>> should work for you (please verify) and the change in
->>> drivers/acpi/sleep.c in it most likely is not necessary.
->>>
->>> If you can confirm that this one works for you, I'll send a smaller
->>> one with the acpi_hw_legacy_sleep() part alone.
->>
->> Well, scratch this, sorry.
->>
->> The power button probably is a fixed event and it won't be effected by
->> that patch.
->>
->> Instead, please test the patch below.
+On Wed, Jul 04, 2018 at 12:36:39PM +0200, Enric Balletbo i Serra wrote:
+> Hi Matthias,
 > 
-> FWIW, the test kernel on OBS home:tiwai:bsc1099930-3 was refreshed
-> with this one.  The release number will be *.g2351e2d.
+> Sorry for late reply, my memory is bad so I need to look at this again. The
+> patch was send some time ago and there are pending changes to do but then I
+> switched. I'll take a look, but did you saw why this patch was not merged [1]?
+> Maybe that could answer some of your questions.
 > 
+> Best regards,
+>  Enric
 > 
-> Takashi
-> 
->>
->> ---
->>  drivers/acpi/acpica/hwsleep.c |   15 +++++++++++----
->>  1 file changed, 11 insertions(+), 4 deletions(-)
->>
->> Index: linux-pm/drivers/acpi/acpica/hwsleep.c
->> ===================================================================
->> --- linux-pm.orig/drivers/acpi/acpica/hwsleep.c
->> +++ linux-pm/drivers/acpi/acpica/hwsleep.c
->> @@ -51,16 +51,23 @@ acpi_status acpi_hw_legacy_sleep(u8 slee
->>  		return_ACPI_STATUS(status);
->>  	}
->>  
->> -	/*
->> -	 * 1) Disable all GPEs
->> -	 * 2) Enable all wakeup GPEs
->> -	 */
->> +	/* Disable all GPEs */
->>  	status = acpi_hw_disable_all_gpes();
->>  	if (ACPI_FAILURE(status)) {
->>  		return_ACPI_STATUS(status);
->>  	}
->> +	/*
->> +	 * If the target sleep state is S5, clear all GPEs and fixed events too
->> +	 */
->> +	if (sleep_state == ACPI_STATE_S5) {
->> +		status = acpi_hw_clear_acpi_status();
->> +		if (ACPI_FAILURE(status)) {
->> +			return_ACPI_STATUS(status);
->> +		}
->> +	}
->>  	acpi_gbl_system_awake_and_running = FALSE;
->>  
->> +	 /* Enable all wakeup GPEs */
->>  	status = acpi_hw_enable_all_wakeup_gpes();
->>  	if (ACPI_FAILURE(status)) {
->>  		return_ACPI_STATUS(status);
->>
-Hello Takashi,
-with the kernel built by you the system shuts down when pressing the
-power button and stays off too!  :-)
+> [1] https://lkml.org/lkml/2018/2/27/910
 
-So the above mentioned patch to hwsleep.c seems to do the trick.
+I missed this, thanks for the pointer!
 
-Regards and thanks a lot @all!
-Thomas
-
-thomas@tslb:~> uname -a
-Linux tslb 4.17.4-2.g2351e2d-default #1 SMP PREEMPT Fri Jul 6 12:24:35
-UTC 2018 (2351e2d) x86_64 x86_64 x86_64 GNU/Linux
-
-
-thomas@tslb:~> rpm -qi kernel-default-4.17.4-2.1.g2351e2d.x86_64
-Name        : kernel-default
-Version     : 4.17.4
-Release     : 2.1.g2351e2d
-Architecture: x86_64
-Install Date: Fr 06 Jul 2018 19:43:38 CEST
-Group       : System/Kernel
-Size        : 360100489
-License     : GPL-2.0
-Signature   : RSA/SHA256, Fr 06 Jul 2018 16:47:25 CEST, Key ID
-4bf05f46f6e74bf5
-Source RPM  : kernel-default-4.17.4-2.1.g2351e2d.nosrc.rpm
-Build Date  : Fr 06 Jul 2018 16:42:04 CEST
-Build Host  : lamb63
-Relocations : (not relocatable)
-Vendor      : obs://build.opensuse.org/home:tiwai
-URL         : http://www.kernel.org/
-Summary     : The Standard Kernel
-Description :
-The standard kernel for both uniprocessor and multiprocessor systems.
-
-Source Timestamp: 2018-07-06 14:24:35 +0200
-GIT Revision: 2351e2d70cbcb963c461d55abeee967ea9a940ea
-GIT Branch: users/tiwai/stable/bsc1099930
-Distribution: home:tiwai:bsc1099930-3
+> On 03/07/18 19:13, Matthias Kaehlcke wrote:
+> > On Thu, Jun 28, 2018 at 05:33:02PM -0700, Matthias Kaehlcke wrote:
+> >> Hi,
+> >>
+> >> I stumbled across this patch since I'm currently poking around with
+> >> early thermal bringup on a platform and this patch has been integrated
+> >> in our development tree.
+> >>
+> >> I'm seeing some unexpected behaviors, which could entirely due to
+> >> wrong expectation from my side. I only have some basic working
+> >> knowledge of the thermal framework, just want to double check and
+> >> perhaps learn a thing or two.
+> >>
+> >> On Mon, Feb 26, 2018 at 03:41:18PM +0100, Enric Balletbo i Serra wrote:
+> >>> From: Zhang Rui <rui.zhang@intel.com>
+> >>>
+> >>> Thermal "mode" sysfs attribute is introduced to enable/disable a thermal
+> >>> zone, and .get_mode()/.set_mode() callback is introduced for platform
+> >>> thermal driver to enable/disable the hardware thermal control logic. And
+> >>> thermal core takes no action upon thermal zone enable/disable.
+> >>>
+> >>> Actually, this is not quite right because thermal core still pokes those
+> >>> disabled thermal zones occasionally, e.g. upon system resume.
+> >>>
+> >>> To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
+> >>> to represent the thermal zone mode, and several decisions have been made
+> >>> based on this flag, including
+> >>> 1. check the thermal zone mode right after it's registered.
+> >>> 2. skip updating thermal zone if the zone is disabled
+> >>> 3. stop the polling timer when the thermal zone is disabled
+> >>>
+> >>> Note: basically, this patch doesn't affect the existing always-enabled
+> >>> thermal zones much, with just one exception -
+> >>> thermal zone .get_mode() must be well prepared to reflect the real thermal
+> >>> zone status upon the thermal zone registration.
+> >>
+> >> From my perspective this looks like a pretty significant change. For
+> >> the platform I'm working on I added a thermal zone to the device tree,
+> >> with the expectation that it would be enabled. Judging from the code
+> >> without this patch this expectation seems to be naive, since
+> >> of-thermal.c sets tz->mode to THERMAL_DEVICE_DISABLED, so apparently
+> >> either userspace or some driver should call _set_mode(tz,
+> >> THERMAL_DEVICE_ENABLED). However even without this the thermal zone
+> >> appears to be active (I didn't really test end-to-end yet, but at
+> >> least thermal_zone_device_update() is called and calls
+> >> handle_thermal_trip()). Not sure why this is the case with
+> >> THERMAL_DEVICE_DISABLED, but before I learned about the existence of
+> >> the flag my expectation was that the zone would be enabled.
+> >>
+> >> With this patch thermal_zone_device_update() is skipped if the zone
+> >> hasn't been explictly enabled, which may be consistent with the state
+> >> of 'tz->mode', but effectively changes the previous/current behavior.
+> >>
+> >> Not sure if I'm just dumbly overlooking something obvious or if there
+> >> is an actual problem with of_thermal (and maybe others).
+> > 
+> > The problem is that there are now two 'mode' fields, tzd->mode and the
+> > other typically tzd->devdata->mode, and tzd->mode is never set to enabled.
+> > 
+> >> thermal zone .get_mode() must be well prepared to reflect the real thermal
+> >> zone status upon the thermal zone registration.
+> > 
+> > For of_thermal tzd->mode is initialized with the result of .get_mode()
+> > when the zone is registered. At this time no sensor has been added
+> > to the zone, hence the zone is disabled. When a sensor is added later
+> > tzd->devdata->mode is set to enabled, however tzd->mode remains disabled:
+> > 
+> > tzd->mode = DISABLED
+> > tzd->devdata->mode = DISABLED
+> > 
+> > of_parse_thermal_zones
+> >   thermal_zone_device_register
+> >     tzd->mode = tzd->get_mode() // => DISABLED
+> > 
+> > <sensor>_probe
+> >   thermal_zone_of_sensor_register
+> >     tzd->set_mode(THERMAL_DEVICE_ENABLED)
+> >       tzd->devdata->mode = ENABLED
+> > 
+> > One way to fix this for of_thermal could be to setting tzd->mode in
+> > .set_mode() in addition to setting tzd->devdata->mode. However this
+> > feels like a workaround/hack. Personally I find it confusing to have
+> > two mode fields for a thermal zone device. Maybe tzd->mode should
+> > replace tzd->devdata->mode?
+> > 
