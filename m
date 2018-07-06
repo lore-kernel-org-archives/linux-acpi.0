@@ -1,122 +1,127 @@
-From: Matthias Kaehlcke <mka@chromium.org>
-Subject: Re: [RESEND PATCH v3 2/2] thermal: core: introduce thermal zone
- device mode control
-Date: Fri, 6 Jul 2018 11:22:11 -0700
-Message-ID: <20180706182211.GI129942@google.com>
-References: <20180226144118.24693-1-enric.balletbo@collabora.com>
- <20180226144118.24693-2-enric.balletbo@collabora.com>
- <20180629003302.GT129942@google.com>
- <20180703171325.GC129942@google.com>
- <f06cea77-f0bf-07bf-b8c6-6835cf0be999@collabora.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: Fix scrub idle detection
+Date: Fri, 06 Jul 2018 11:20:13 -0700
+Message-ID: <153090121374.28055.14156217568809004334.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <f06cea77-f0bf-07bf-b8c6-6835cf0be999@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Enric Balletbo i Serra <enric.balletbo@collabora.com>
-Cc: rui.zhang@intel.com, rjw@rjwysocki.net, groeck@chromium.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, snanda@chromium.org, lenb@kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-pm@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Enric,
+The notification of scrub completion happens within the scrub workqueue.
+That can clearly race someone running scrub_show() and work_busy()
+before the workqueue has a chance to flush the recently completed work.
+Add a flag to reliably indicate the idle vs busy state. Without this
+change applications using poll(2) to wait for scrub-completion may
+falsely wakeup and read ARS as being busy even though the thread is
+going idle and then hang indefinitely.
 
-On Wed, Jul 04, 2018 at 12:36:39PM +0200, Enric Balletbo i Serra wrote:
-> Hi Matthias,
-> 
-> Sorry for late reply, my memory is bad so I need to look at this again. The
-> patch was send some time ago and there are pending changes to do but then I
-> switched. I'll take a look, but did you saw why this patch was not merged [1]?
-> Maybe that could answer some of your questions.
-> 
-> Best regards,
->  Enric
-> 
-> [1] https://lkml.org/lkml/2018/2/27/910
+Fixes: bc6ba8085842 ("nfit, address-range-scrub: rework and simplify ARS...")
+Cc: <stable-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Reported-by: Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Lukasz Dorau <lukasz.dorau-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/core.c |   37 ++++++++++++++++++++++++++-----------
+ drivers/acpi/nfit/nfit.h |    1 +
+ 2 files changed, 27 insertions(+), 11 deletions(-)
 
-I missed this, thanks for the pointer!
-
-> On 03/07/18 19:13, Matthias Kaehlcke wrote:
-> > On Thu, Jun 28, 2018 at 05:33:02PM -0700, Matthias Kaehlcke wrote:
-> >> Hi,
-> >>
-> >> I stumbled across this patch since I'm currently poking around with
-> >> early thermal bringup on a platform and this patch has been integrated
-> >> in our development tree.
-> >>
-> >> I'm seeing some unexpected behaviors, which could entirely due to
-> >> wrong expectation from my side. I only have some basic working
-> >> knowledge of the thermal framework, just want to double check and
-> >> perhaps learn a thing or two.
-> >>
-> >> On Mon, Feb 26, 2018 at 03:41:18PM +0100, Enric Balletbo i Serra wrote:
-> >>> From: Zhang Rui <rui.zhang@intel.com>
-> >>>
-> >>> Thermal "mode" sysfs attribute is introduced to enable/disable a thermal
-> >>> zone, and .get_mode()/.set_mode() callback is introduced for platform
-> >>> thermal driver to enable/disable the hardware thermal control logic. And
-> >>> thermal core takes no action upon thermal zone enable/disable.
-> >>>
-> >>> Actually, this is not quite right because thermal core still pokes those
-> >>> disabled thermal zones occasionally, e.g. upon system resume.
-> >>>
-> >>> To fix this, a new flag 'mode' is introduced in struct thermal_zone_device
-> >>> to represent the thermal zone mode, and several decisions have been made
-> >>> based on this flag, including
-> >>> 1. check the thermal zone mode right after it's registered.
-> >>> 2. skip updating thermal zone if the zone is disabled
-> >>> 3. stop the polling timer when the thermal zone is disabled
-> >>>
-> >>> Note: basically, this patch doesn't affect the existing always-enabled
-> >>> thermal zones much, with just one exception -
-> >>> thermal zone .get_mode() must be well prepared to reflect the real thermal
-> >>> zone status upon the thermal zone registration.
-> >>
-> >> From my perspective this looks like a pretty significant change. For
-> >> the platform I'm working on I added a thermal zone to the device tree,
-> >> with the expectation that it would be enabled. Judging from the code
-> >> without this patch this expectation seems to be naive, since
-> >> of-thermal.c sets tz->mode to THERMAL_DEVICE_DISABLED, so apparently
-> >> either userspace or some driver should call _set_mode(tz,
-> >> THERMAL_DEVICE_ENABLED). However even without this the thermal zone
-> >> appears to be active (I didn't really test end-to-end yet, but at
-> >> least thermal_zone_device_update() is called and calls
-> >> handle_thermal_trip()). Not sure why this is the case with
-> >> THERMAL_DEVICE_DISABLED, but before I learned about the existence of
-> >> the flag my expectation was that the zone would be enabled.
-> >>
-> >> With this patch thermal_zone_device_update() is skipped if the zone
-> >> hasn't been explictly enabled, which may be consistent with the state
-> >> of 'tz->mode', but effectively changes the previous/current behavior.
-> >>
-> >> Not sure if I'm just dumbly overlooking something obvious or if there
-> >> is an actual problem with of_thermal (and maybe others).
-> > 
-> > The problem is that there are now two 'mode' fields, tzd->mode and the
-> > other typically tzd->devdata->mode, and tzd->mode is never set to enabled.
-> > 
-> >> thermal zone .get_mode() must be well prepared to reflect the real thermal
-> >> zone status upon the thermal zone registration.
-> > 
-> > For of_thermal tzd->mode is initialized with the result of .get_mode()
-> > when the zone is registered. At this time no sensor has been added
-> > to the zone, hence the zone is disabled. When a sensor is added later
-> > tzd->devdata->mode is set to enabled, however tzd->mode remains disabled:
-> > 
-> > tzd->mode = DISABLED
-> > tzd->devdata->mode = DISABLED
-> > 
-> > of_parse_thermal_zones
-> >   thermal_zone_device_register
-> >     tzd->mode = tzd->get_mode() // => DISABLED
-> > 
-> > <sensor>_probe
-> >   thermal_zone_of_sensor_register
-> >     tzd->set_mode(THERMAL_DEVICE_ENABLED)
-> >       tzd->devdata->mode = ENABLED
-> > 
-> > One way to fix this for of_thermal could be to setting tzd->mode in
-> > .set_mode() in addition to setting tzd->devdata->mode. However this
-> > feels like a workaround/hack. Personally I find it confusing to have
-> > two mode fields for a thermal zone device. Maybe tzd->mode should
-> > replace tzd->devdata->mode?
-> > 
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 471402cee1f1..cd26484d1cee 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -1275,7 +1275,7 @@ static ssize_t scrub_show(struct device *dev,
+ 
+ 		mutex_lock(&acpi_desc->init_mutex);
+ 		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
+-				work_busy(&acpi_desc->dwork.work)
++				acpi_desc->scrub_busy
+ 				&& !acpi_desc->cancel ? "+\n" : "\n");
+ 		mutex_unlock(&acpi_desc->init_mutex);
+ 	}
+@@ -2941,6 +2941,25 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
+ 	return 0;
+ }
+ 
++static void sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
++{
++	lockdep_assert_held(&acpi_desc->init_mutex);
++
++	acpi_desc->scrub_busy = 1;
++	acpi_desc->scrub_tmo = tmo;
++	queue_delayed_work(nfit_wq, &acpi_desc->dwork, tmo * HZ);
++}
++
++static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
++{
++	lockdep_assert_held(&acpi_desc->init_mutex);
++
++	acpi_desc->scrub_busy = 0;
++	acpi_desc->scrub_count++;
++	if (acpi_desc->scrub_count_state)
++		sysfs_notify_dirent(acpi_desc->scrub_count_state);
++}
++
+ static void acpi_nfit_scrub(struct work_struct *work)
+ {
+ 	struct acpi_nfit_desc *acpi_desc;
+@@ -2951,14 +2970,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
+ 	mutex_lock(&acpi_desc->init_mutex);
+ 	query_rc = acpi_nfit_query_poison(acpi_desc);
+ 	tmo = __acpi_nfit_scrub(acpi_desc, query_rc);
+-	if (tmo) {
+-		queue_delayed_work(nfit_wq, &acpi_desc->dwork, tmo * HZ);
+-		acpi_desc->scrub_tmo = tmo;
+-	} else {
+-		acpi_desc->scrub_count++;
+-		if (acpi_desc->scrub_count_state)
+-			sysfs_notify_dirent(acpi_desc->scrub_count_state);
+-	}
++	if (tmo)
++		sched_ars(acpi_desc, tmo);
++	else
++		notify_ars_done(acpi_desc);
+ 	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
+ 	mutex_unlock(&acpi_desc->init_mutex);
+ }
+@@ -3039,7 +3054,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
+ 			break;
+ 		}
+ 
+-	queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
++	sched_ars(acpi_desc, 0);
+ 	return 0;
+ }
+ 
+@@ -3241,7 +3256,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
+ 		}
+ 	}
+ 	if (scheduled) {
+-		queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
++		sched_ars(acpi_desc, 0);
+ 		dev_dbg(dev, "ars_scan triggered\n");
+ 	}
+ 	mutex_unlock(&acpi_desc->init_mutex);
+diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
+index 7d15856a739f..a97ff42fe311 100644
+--- a/drivers/acpi/nfit/nfit.h
++++ b/drivers/acpi/nfit/nfit.h
+@@ -203,6 +203,7 @@ struct acpi_nfit_desc {
+ 	unsigned int max_ars;
+ 	unsigned int scrub_count;
+ 	unsigned int scrub_mode;
++	unsigned int scrub_busy:1;
+ 	unsigned int cancel:1;
+ 	unsigned long dimm_cmd_force_en;
+ 	unsigned long bus_cmd_force_en;
