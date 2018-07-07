@@ -1,131 +1,49 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2] acpi, nfit: Fix scrub idle detection
-Date: Fri, 06 Jul 2018 12:49:46 -0700
-Message-ID: <153090648287.26039.5417546341535448853.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: [PATCH] acpi/button.c: fix defined but not used warning
+Date: Sat, 7 Jul 2018 08:25:01 -0700
+Message-ID: <2e91930f-c762-532b-6607-223385078edb@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: stable@vger.kernel.org, Vishal Verma <vishal.l.verma@intel.com>Vishal Verma <vishal.l.verma@intel.com>, Lukasz Dorau <lukasz.dorau@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The notification of scrub completion happens within the scrub workqueue.
-That can clearly race someone running scrub_show() and work_busy()
-before the workqueue has a chance to flush the recently completed work.
-Add a flag to reliably indicate the idle vs busy state. Without this
-change applications using poll(2) to wait for scrub-completion may
-falsely wakeup and read ARS as being busy even though the thread is
-going idle and then hang indefinitely.
+From: Randy Dunlap <rdunlap@infradead.org>
 
-Fixes: bc6ba8085842 ("nfit, address-range-scrub: rework and simplify ARS...")
-Cc: <stable@vger.kernel.org>
-Reported-by: Vishal Verma <vishal.l.verma@intel.com>
-Tested-by: Vishal Verma <vishal.l.verma@intel.com>
-Reported-by: Lukasz Dorau <lukasz.dorau@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Fix a build warning in the ACPI button driver when CONFIG_PROC_FS
+is not enabled by marking the unused function as __maybe_unused.
+
+../drivers/acpi/button.c:252:12: warning: 'acpi_button_state_seq_show' defined but not used [-Wunused-function]
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
 ---
-Changes in v2:
-* Don't touch ->tmo outside of the workqueue itself, it is a private
-  field for the workqueue to manage. (Vishal)
+ drivers/acpi/button.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
- drivers/acpi/nfit/core.c |   44 +++++++++++++++++++++++++++++++++-----------
- drivers/acpi/nfit/nfit.h |    1 +
- 2 files changed, 34 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 471402cee1f1..b8040fed2a69 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -1275,7 +1275,7 @@ static ssize_t scrub_show(struct device *dev,
+--- linux-next-20180706.orig/drivers/acpi/button.c
++++ linux-next-20180706/drivers/acpi/button.c
+@@ -21,6 +21,7 @@
  
- 		mutex_lock(&acpi_desc->init_mutex);
- 		rc = sprintf(buf, "%d%s", acpi_desc->scrub_count,
--				work_busy(&acpi_desc->dwork.work)
-+				acpi_desc->scrub_busy
- 				&& !acpi_desc->cancel ? "+\n" : "\n");
- 		mutex_unlock(&acpi_desc->init_mutex);
- 	}
-@@ -2941,6 +2941,32 @@ static unsigned int __acpi_nfit_scrub(struct acpi_nfit_desc *acpi_desc,
- 	return 0;
+ #define pr_fmt(fmt) "ACPI: button: " fmt
+ 
++#include <linux/compiler.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/init.h>
+@@ -249,7 +250,8 @@ static int acpi_lid_notify_state(struct
+ 	return ret;
  }
  
-+static void __sched_ars(struct acpi_nfit_desc *acpi_desc, unsigned int tmo)
-+{
-+	lockdep_assert_held(&acpi_desc->init_mutex);
-+
-+	acpi_desc->scrub_busy = 1;
-+	/* note this should only be set from within the workqueue */
-+	if (tmo)
-+		acpi_desc->scrub_tmo = tmo;
-+	queue_delayed_work(nfit_wq, &acpi_desc->dwork, tmo * HZ);
-+}
-+
-+static void sched_ars(struct acpi_nfit_desc *acpi_desc)
-+{
-+	__sched_ars(acpi_desc, 0);
-+}
-+
-+static void notify_ars_done(struct acpi_nfit_desc *acpi_desc)
-+{
-+	lockdep_assert_held(&acpi_desc->init_mutex);
-+
-+	acpi_desc->scrub_busy = 0;
-+	acpi_desc->scrub_count++;
-+	if (acpi_desc->scrub_count_state)
-+		sysfs_notify_dirent(acpi_desc->scrub_count_state);
-+}
-+
- static void acpi_nfit_scrub(struct work_struct *work)
+-static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
++static int __maybe_unused acpi_button_state_seq_show(struct seq_file *seq,
++						     void *offset)
  {
- 	struct acpi_nfit_desc *acpi_desc;
-@@ -2951,14 +2977,10 @@ static void acpi_nfit_scrub(struct work_struct *work)
- 	mutex_lock(&acpi_desc->init_mutex);
- 	query_rc = acpi_nfit_query_poison(acpi_desc);
- 	tmo = __acpi_nfit_scrub(acpi_desc, query_rc);
--	if (tmo) {
--		queue_delayed_work(nfit_wq, &acpi_desc->dwork, tmo * HZ);
--		acpi_desc->scrub_tmo = tmo;
--	} else {
--		acpi_desc->scrub_count++;
--		if (acpi_desc->scrub_count_state)
--			sysfs_notify_dirent(acpi_desc->scrub_count_state);
--	}
-+	if (tmo)
-+		__sched_ars(acpi_desc, tmo);
-+	else
-+		notify_ars_done(acpi_desc);
- 	memset(acpi_desc->ars_status, 0, acpi_desc->max_ars);
- 	mutex_unlock(&acpi_desc->init_mutex);
- }
-@@ -3039,7 +3061,7 @@ static int acpi_nfit_register_regions(struct acpi_nfit_desc *acpi_desc)
- 			break;
- 		}
- 
--	queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
-+	sched_ars(acpi_desc);
- 	return 0;
- }
- 
-@@ -3241,7 +3263,7 @@ int acpi_nfit_ars_rescan(struct acpi_nfit_desc *acpi_desc, unsigned long flags)
- 		}
- 	}
- 	if (scheduled) {
--		queue_delayed_work(nfit_wq, &acpi_desc->dwork, 0);
-+		sched_ars(acpi_desc);
- 		dev_dbg(dev, "ars_scan triggered\n");
- 	}
- 	mutex_unlock(&acpi_desc->init_mutex);
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 7d15856a739f..a97ff42fe311 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -203,6 +203,7 @@ struct acpi_nfit_desc {
- 	unsigned int max_ars;
- 	unsigned int scrub_count;
- 	unsigned int scrub_mode;
-+	unsigned int scrub_busy:1;
- 	unsigned int cancel:1;
- 	unsigned long dimm_cmd_force_en;
- 	unsigned long bus_cmd_force_en;
+ 	struct acpi_device *device = seq->private;
+ 	int state;
