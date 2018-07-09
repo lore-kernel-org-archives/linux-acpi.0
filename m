@@ -1,40 +1,63 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] ACPI: bus.c: Let acpi_device_get_match_data() return DT compatibility data
-Date: Mon, 09 Jul 2018 11:20:16 +0200
-Message-ID: <18030756.yHdBu7e6UJ@aspire.rjw.lan>
-References: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de> <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Willy Tarreau <w@1wt.eu>
+Subject: [PATCH] ACPI: save NVS memory for ASUS 1025C laptop
+Date: Mon,  9 Jul 2018 14:03:55 +0200
+Message-ID: <1531137835-21581-1-git-send-email-w@1wt.eu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Nikolaus Voss <nv@vosn.de>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Len Brown <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Xiongfeng Wang <xiongfeng.wang@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Nikolaus Voss <nikolau>
+To: Lan Tianyu <tianyu.lan@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Cc: linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org, Willy Tarreau <w@1wt.eu>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, July 4, 2018 4:40:34 PM CEST Andy Shevchenko wrote:
-> On Tue, Jul 3, 2018 at 9:09 AM, Nikolaus Voss <nv@vosn.de> wrote:
-> > When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
-> > of_device_id table "compatible" strings in DSD, a pointer to the
-> > corresponding DT table entry should be returned instead of a null
-> > pointer. An acpi_device_id match still takes precedence.
-> >
-> 
-> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-> 
-> with a caveat that this is only an improvement for a _temporary_
-> PRP0001 users like I2C or SPI slave devices.
-> Please, don't consider this change as a valid point to (ab)use PRP0001
-> in a cases where devices are not "hotpluggable".
-> 
-> > v2: improve readability (as suggested by Andy Shevchenko)
-> >
-> > Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
+Every time I tried to upgrade my laptop from 3.10.x to 4.x I faced an
+issue by which the fan would run at full speed upon resume. Bisecting
+it showed me the issue was introduced in 3.17 by commit 821d6f0359b0
+(ACPI / sleep: Do not save NVS for new machines to accelerate S3). This
+code only affects machines built starting as of 2012, but this Asus
+1025C laptop was made in 2012 and apparently needs the NVS data to be
+saved, otherwise the CPU's thermal state is not properly reported on
+resume and the fan runs at full speed upon resume.
 
-Nikolaus, please resend the v2 with the Andy's tag to linux-acpi@gver.kernel.org
+Here's a very simple way to check if such a machine is affected :
 
-It won't be applied otherwise.
+  # cat /sys/class/thermal/thermal_zone0/temp
+  55000
 
-Thanks,
-Rafael
+  ( now suspend, wait one second and resume )
+
+  # cat /sys/class/thermal/thermal_zone0/temp
+  0
+
+  (and after ~15 seconds the fan starts to spin)
+
+Let's apply the same quirk as commit cbc00c13 (ACPI: save NVS memory
+for Lenovo G50-45) and reuse the function it provides. Note that this
+commit was already backported to 4.9.x but not 4.4.x.
+
+Cc: <linux-acpi@vger.kernel.org>
+Cc: <stable@vger.kernel.org> # 3.17+: requires cbc00c13
+Signed-off-by: Willy Tarreau <w@1wt.eu>
+---
+ drivers/acpi/sleep.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 974e584..af54d7b 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -338,6 +338,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
+ 		},
+ 	},
++	{
++	.callback = init_nvs_save_s3,
++	.ident = "Asus 1025C",
++	.matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "1025C"),
++		},
++	},
+ 	/*
+ 	 * https://bugzilla.kernel.org/show_bug.cgi?id=189431
+ 	 * Lenovo G50-45 is a platform later than 2012, but needs nvs memory
+-- 
+2.8.0.rc2.1.gbe9624a
