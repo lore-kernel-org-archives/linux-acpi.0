@@ -1,109 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: 4.18rc3 TX2 boot failure with "ACPICA: AML parser: attempt to continue loading table after error"
-Date: Sun, 08 Jul 2018 11:14:20 +0200
-Message-ID: <6074707.jx9F3QFrWC@aspire.rjw.lan>
-References: <c49a3666-7d23-6a05-703c-1273d79a00cd@arm.com>
+Subject: Re: [PATCH v2] ACPI: bus.c: Let acpi_device_get_match_data() return DT compatibility data
+Date: Mon, 09 Jul 2018 11:20:16 +0200
+Message-ID: <18030756.yHdBu7e6UJ@aspire.rjw.lan>
+References: <950e8d0caf9f5f55df07eba8a11b2fa8cba9f9e1.1530708691.git.nikolaus.voss@loewensteinmedical.de> <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c49a3666-7d23-6a05-703c-1273d79a00cd@arm.com>
+In-Reply-To: <CAHp75Vd2u9o50h3VQQrJZfu6fYhxydG4gRD4U5u+LuxTUScSwQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: erik.schmauss@intel.com, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Nikolaus Voss <nv@vosn.de>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Len Brown <lenb@kernel.org>, Jonathan Cameron <jic23@kernel.org>, Hartmut Knaack <knaack.h@gmx.de>, Lars-Peter Clausen <lars@metafoo.de>, Peter Meerwald-Stadler <pmeerw@pmeerw.net>, Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Xiongfeng Wang <xiongfeng.wang@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Ray Jui <ray.jui@broadcom.com>, Vladimir Olovyannikov <vladimir.olovyannikov@broadcom.com>, Vikram Prakash <vikram.prakash@broadcom.com>, Scott Branden <scott.branden@broadcom.com>, Srinath Mannam <srinath.mannam@broadcom.com>, Nikolaus Voss <nikolau>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, July 2, 2018 11:41:42 PM CEST Jeremy Linton wrote:
-> Hi,
+On Wednesday, July 4, 2018 4:40:34 PM CEST Andy Shevchenko wrote:
+> On Tue, Jul 3, 2018 at 9:09 AM, Nikolaus Voss <nv@vosn.de> wrote:
+> > When using ACPI with ACPI_DT_NAMESPACE_HID/ PRP0001 HID and referring to
+> > of_device_id table "compatible" strings in DSD, a pointer to the
+> > corresponding DT table entry should be returned instead of a null
+> > pointer. An acpi_device_id match still takes precedence.
+> >
 > 
-> I'm experiencing two problems with commit 5088814a6e931 which is 
-> "ACPICA: AML parser: attempt to continue loading table after error"
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 > 
-> The first is this boot failure on a thunderX2:
+> with a caveat that this is only an improvement for a _temporary_
+> PRP0001 users like I2C or SPI slave devices.
+> Please, don't consider this change as a valid point to (ab)use PRP0001
+> in a cases where devices are not "hotpluggable".
 > 
-> [   10.770098] ACPI Error: Ignore error and continue table load 
-> (20180531/psobject-604)
->      [   10.777926] Unable to handle kernel NULL pointer dereference at 
-> virtual address 0000000000000000
->      [   10.786809] Mem abort info:
->      [   10.789623]   ESR = 0x96000004
->      [   10.792702]   Exception class = DABT (current EL), IL = 32 bits
->      [   10.798682]   SET = 0, FnV = 0
->      [   10.801760]   EA = 0, S1PTW = 0
->      [   10.804925] Data abort info:
->      [   10.807827]   ISV = 0, ISS = 0x00000004
->      [   10.811698]   CM = 0, WnR = 0
->      [   10.814689] [0000000000000000] user address but active_mm is swapper
->      [   10.821108] Internal error: Oops: 96000004 [#1] SMP
->      [   10.826032] Modules linked in:
->      [   10.829113] CPU: 30 PID: 1 Comm: swapper/0 Not tainted 
-> 4.18.0-rc3PPTT4k+ #53
->      [   10.836234] Hardware name: Default string Cavium 
-> ThunderX2/Default string, BIOS L50_5.13_1.0.0 05/16/2018
->      [   10.845905] pstate: 00400009 (nzcv daif +PAN -UAO)
->      [   10.850746] pc : acpi_ps_peek_opcode+0x1c/0x40
->      [   10.855231] lr : acpi_ps_create_op+0x54/0x278
->      [   10.859627] sp : ffff000009a8ba30
->      [   10.862969] x29: ffff000009a8ba30 x28: 0000000054445353
->      [   10.868334] x27: 0000000000004008 x26: 0000000000000000
->      [   10.873698] x25: ffff000009767f23 x24: ffff000008d59000
->      [   10.879063] x23: ffff802672799030 x22: ffff000009a8bb28
->      [   10.884427] x21: 0000000000000000 x20: ffff000008d59000
->      [   10.889791] x19: ffff802672799030 x18: ffffffffffffffff
->      [   10.895155] x17: 0000000000000013 x16: 0000000000000000
->      [   10.900519] x15: ffff000008d59708 x14: 2d7463656a626f73
->      [   10.905883] x13: 702f313335303831 x12: 3032282064616f6c
->      [   10.911246] x11: 20656c6261742065 x10: 756e69746e6f6320
->      [   10.916610] x9 : 0000000000000058 x8 : ffff000008570998
->      [   10.921974] x7 : 203a726f72724520 x6 : 0000000000000334
->      [   10.927338] x5 : 0000000000000012 x4 : 0000000000000000
->      [   10.932701] x3 : 0000000000000000 x2 : ffff000009a8bb28
->      [   10.938065] x1 : 0000000000000000 x0 : ffff000008505790
->      [   10.943430] Process swapper/0 (pid: 1, stack limit = 
-> 0x(____ptrval____))
->      [   10.950199] Call trace:
->      [   10.952663]  acpi_ps_peek_opcode+0x1c/0x40
->      [   10.956797]  acpi_ps_create_op+0x54/0x278
->      [   10.960842]  acpi_ps_parse_loop+0x1b4/0x6c8
->      [   10.965063]  acpi_ps_parse_aml+0xe0/0x2b4
->      [   10.969108]  acpi_ps_execute_table+0xa0/0x104
->      [   10.973505]  acpi_ns_execute_table+0x120/0x194
->      [   10.977989]  acpi_ns_parse_table+0x34/0x68
->      [   10.982122]  acpi_ns_load_table+0x4c/0xbc
->      [   10.986169]  acpi_tb_load_namespace+0x1d4/0x240
->      [   10.990744]  acpi_load_tables+0x50/0xbc
->      [   10.994614]  acpi_init+0xb8/0x374
->      [   10.997959]  do_one_initcall+0x54/0x208
->      [   11.001829]  kernel_init_freeable+0x224/0x300
->      [   11.006229]  kernel_init+0x18/0x118
->      [   11.009747]  ret_from_fork+0x10/0x18
->      [   11.013354] Code: aa0003f3 aa1e03e0 d503201f f9400661 (39400020)
->      [   11.019535] ---[ end trace 2bd8068593cf8acc ]---
->      [   11.024195] Kernel panic - not syncing: Fatal exception
->      [   11.029488] SMP: stopping secondary CPUs
->      [   11.033480] ---[ end Kernel panic - not syncing: Fatal exception 
-> ]---
-> 
-> Which does appear to be the result of some bad data in the table, but it 
-> was working with 4.17, and reverting this commit solves the problem.
+> > v2: improve readability (as suggested by Andy Shevchenko)
+> >
+> > Signed-off-by: Nikolaus Voss <nikolaus.voss@loewensteinmedical.de>
 
-Does the patch below make any difference?
+Nikolaus, please resend the v2 with the Andy's tag to linux-acpi@gver.kernel.org
 
----
- drivers/acpi/acpica/psobject.c |    3 +++
- 1 file changed, 3 insertions(+)
+It won't be applied otherwise.
 
-Index: linux-pm/drivers/acpi/acpica/psobject.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/psobject.c
-+++ linux-pm/drivers/acpi/acpica/psobject.c
-@@ -39,6 +39,9 @@ static acpi_status acpi_ps_get_aml_opcod
- 	ACPI_FUNCTION_TRACE_PTR(ps_get_aml_opcode, walk_state);
- 
- 	walk_state->aml = walk_state->parser_state.aml;
-+	if (!walk_state->aml)
-+		return AE_CTRL_PARSE_CONTINUE;
-+
- 	walk_state->opcode = acpi_ps_peek_opcode(&(walk_state->parser_state));
- 
- 	/*
+Thanks,
+Rafael
