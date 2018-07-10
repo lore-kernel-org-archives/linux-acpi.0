@@ -1,197 +1,68 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: 4.18rc3 TX2 boot failure with "ACPICA: AML parser: attempt to
- continue loading table after error"
-Date: Tue, 10 Jul 2018 12:04:58 -0500
-Message-ID: <0ee9c533-92af-0474-e5e5-5318a1daddbe@arm.com>
-References: <c49a3666-7d23-6a05-703c-1273d79a00cd@arm.com>
- <2264016.O8iB3BUh2s@aspire.rjw.lan>
- <dc4c68bb-089c-6c99-31df-e8d3587b6029@arm.com>
- <24702482.jSiYyYTB4u@aspire.rjw.lan>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: [RFC PATCH 0/4] Stop losing firmware-set DMA masks
+Date: Tue, 10 Jul 2018 18:17:15 +0100
+Message-ID: <cover.1531239284.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <24702482.jSiYyYTB4u@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Schmauss, Erik" <erik.schmauss@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: hch-jcswGhMUV9g@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/10/2018 11:56 AM, Rafael J. Wysocki wrote:
-> On Tuesday, July 10, 2018 5:04:21 PM CEST Jeremy Linton wrote:
->> Hi,
->>
->> On 07/10/2018 06:25 AM, Rafael J. Wysocki wrote:
->>> On Tuesday, July 10, 2018 1:13:17 PM CEST Rafael J. Wysocki wrote:
->>>> On Tuesday, July 10, 2018 5:44:05 AM CEST Jeremy Linton wrote:
->>>>> Hi,
->>>>>
->>>>> On 07/09/2018 04:28 PM, Rafael J. Wysocki wrote:
->>>>>> On Mon, Jul 9, 2018 at 10:45 PM, Jeremy Linton <jeremy.linton@arm.com> wrote:
->>>>>>> Hi,
->>>>>>>
->>>>>>> First thanks for the patch..
->>>>>>>
->>>>>>> On 07/08/2018 04:14 AM, Rafael J. Wysocki wrote:
->>>>>>>>
->>>>>>>> On Monday, July 2, 2018 11:41:42 PM CEST Jeremy Linton wrote:
->>>>>>>>>
->>>>>>>>> Hi,
->>>>>>>>>
->>>>>>>>> I'm experiencing two problems with commit 5088814a6e931 which is
->>>>>>>>> "ACPICA: AML parser: attempt to continue loading table after error"
->>>>>>>>>
->>>>>>>>> The first is this boot failure on a thunderX2:
->>>>>>>>>
->>>>>>>>> [   10.770098] ACPI Error: Ignore error and continue table load
->>>>>>>
->>>>>>>
->>>>>>> [trimming]
->>>>>>>
->>>>>>>>> ]---
->>>>>>>>>
->>>>>>>>> Which does appear to be the result of some bad data in the table, but it
->>>>>>>>> was working with 4.17, and reverting this commit solves the problem.
->>>>>>>>
->>>>>>>>
->>>>>>>> Does the patch below make any difference?
->>>>>>>>
->>>>>>>> ---
->>>>>>>>      drivers/acpi/acpica/psobject.c |    3 +++
->>>>>>>>      1 file changed, 3 insertions(+)
->>>>>>>>
->>>>>>>> Index: linux-pm/drivers/acpi/acpica/psobject.c
->>>>>>>> ===================================================================
->>>>>>>> --- linux-pm.orig/drivers/acpi/acpica/psobject.c
->>>>>>>> +++ linux-pm/drivers/acpi/acpica/psobject.c
->>>>>>>> @@ -39,6 +39,9 @@ static acpi_status acpi_ps_get_aml_opcod
->>>>>>>>            ACPI_FUNCTION_TRACE_PTR(ps_get_aml_opcode, walk_state);
->>>>>>>>            walk_state->aml = walk_state->parser_state.aml;
->>>>>>>> +       if (!walk_state->aml)
->>>>>>>> +               return AE_CTRL_PARSE_CONTINUE;
->>>>>>>> +
->>>>>>>
->>>>>>>
->>>>>>> Well this seems to avoid the crash, but now it hangs right after on the
->>>>>>> "Ignore error and continue table load" message.
->>>>>>
->>>>>> Well, maybe we should just abort in that case.
->>>>>>
->>>>>> I'm wondering what happens if you replace the return statement in the
->>>>>> patch above with
->>>>>>
->>>>>> return_ACPI_STATUS(AE_AML_BAD_OPCODE)
->>>>>
->>>>> Yes, that is where I went when I applied the patch but I used
->>>>> AE_CTRL_TERMINATE, which terminates the loop in acpi_ps_parse_loop() and
->>>>> that appears to successfully finish/terminate the initial parsing pass.
->>>>> But, it then crashes in acpi_ns_lookup called via the
->>>>> acpi_walk_resources sequences that goes through ut_evalute_object() due
->>>>> to the path/scope_info->scope.node being ACPI_ROOT_OBJECT (-1) and
->>>>> bypassing the null check. Adding a ACPI_ROOT_OBJECT check as well as the
->>>>> null checks in acpi_ns_lookup results in a successful boot. Tracking
->>>>> down how the terminate (or whatever) is leaving the info->prefix_node
->>>>> (in acpi_ns_evaluate) set to ROOT_OBJECT instead of null, is something I
->>>>> don't yet understand.
->>>>>
->>>>> Anyway, I tried Using BAD_OPCODE rather than TERMINATE and it seems to
->>>>> have the same basic result as PARSE_CONTINUE.
->>>>
->>>> OK, thanks!
->>>>
->>>> I evidently didn't look deep enough.
->>>>
->>>> Can you please check the patch below?
->>>>
->>>> I'm not sure if we can pass this broken state to
->>>> acpi_ps_complete_final_op(), so it may be necessary to return
->>>> an error directly when aml_op_start is NULL.
->>>>
->>>> ---
->>>>    drivers/acpi/acpica/psloop.c |    3 +++
->>>>    1 file changed, 3 insertions(+)
->>>>
->>>> Index: linux-pm/drivers/acpi/acpica/psloop.c
->>>> ===================================================================
->>>> --- linux-pm.orig/drivers/acpi/acpica/psloop.c
->>>> +++ linux-pm/drivers/acpi/acpica/psloop.c
->>>> @@ -493,6 +493,9 @@ acpi_status acpi_ps_parse_loop(struct ac
->>>>    		ASL_CV_CAPTURE_COMMENTS(walk_state);
->>>>    
->>>>    		aml_op_start = parser_state->aml;
->>>> +		if (!aml_op_start)
->>>> +			break;
->>>> +
->>>>    		if (!op) {
->>>>    			status =
->>>>    			    acpi_ps_create_op(walk_state, aml_op_start, &op);
->>>>
->>>> --
->>>
->>> So maybe something like this:
->>>
->>> ---
->>>    drivers/acpi/acpica/psloop.c |    3 +++
->>>    1 file changed, 3 insertions(+)
->>>
->>> Index: linux-pm/drivers/acpi/acpica/psloop.c
->>> ===================================================================
->>> --- linux-pm.orig/drivers/acpi/acpica/psloop.c
->>> +++ linux-pm/drivers/acpi/acpica/psloop.c
->>> @@ -494,6 +494,9 @@ acpi_status acpi_ps_parse_loop(struct ac
->>>    
->>>    		aml_op_start = parser_state->aml;
->>>    		if (!op) {
->>> +			if (!aml_op_start)
->>> +				return_ACPI_STATUS(AE_AML_INTERNAL);
->>> +
->>>    			status =
->>>    			    acpi_ps_create_op(walk_state, aml_op_start, &op);
->>>    			if (ACPI_FAILURE(status)) {
->>>
->>>
->>
->> This gets rid of the infinite loop, but its still has the problem with
->> acpi_ns_lookup crashing due to -1 in the scope.node.
-> 
-> OK, so do you mean that something like the patch below is needed for the
-> system to boot?
+Whilst the common firmware code invoked by dma_configure() initialises
+devices' DMA masks according to limitations described by the respective
+properties ("dma-ranges" for OF and _DMA/IORT for ACPI), the nature of
+the dma_set_mask() API leads to that information getting lost when
+well-behaved drivers probe and set a 64-bit mask, since in general
+there's no way to tell the difference between a firmware-described mask
+(which should be respected) and whatever default may have come from the
+bus code (which should be replaced outright). This can break DMA on
+systems with certain IOMMU topologies (e.g. [1]) where the IOMMU driver
+only knows its maximum supported address size, not how many of those
+address bits might actually be wired up between any of its input
+interfaces and the associated DMA master devices. Similarly, some PCIe
+root complexes only have a 32-bit native interface on their host bridge,
+which leads to the same DMA-address-truncation problem in systems with a
+larger physical memory map and RAM above 4GB (e.g. [2]).
 
-Yes, the machine is back to the pre 4.18 behavior (with the addition of 
-a lot of additional ACPI error messages) boot with those two changes.
+These patches attempt to deal with this in the simplest way possible by
+generalising the specific quirk for 32-bit bridges into an arbitrary
+mask which can then also be plumbed into the firmware code. In the
+interest of being minimally invasive, I've only included a point fix
+for the IOMMU issue as seen on arm64 - there may be further tweaks
+needed in DMA ops to catch all possible incarnations of this problem,
+but this initial RFC is mostly about the impact beyond the dma-mapping
+subsystem itself.
 
-> ---
->   drivers/acpi/acpica/nsaccess.c |    3 ++-
->   drivers/acpi/acpica/psloop.c   |    3 +++
->   2 files changed, 5 insertions(+), 1 deletion(-)
-> 
-> Index: linux-pm/drivers/acpi/acpica/psloop.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpica/psloop.c
-> +++ linux-pm/drivers/acpi/acpica/psloop.c
-> @@ -494,6 +494,9 @@ acpi_status acpi_ps_parse_loop(struct ac
->   
->   		aml_op_start = parser_state->aml;
->   		if (!op) {
-> +			if (!aml_op_start)
-> +				return_ACPI_STATUS(AE_AML_INTERNAL);
-> +
->   			status =
->   			    acpi_ps_create_op(walk_state, aml_op_start, &op);
->   			if (ACPI_FAILURE(status)) {
-> Index: linux-pm/drivers/acpi/acpica/nsaccess.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/acpica/nsaccess.c
-> +++ linux-pm/drivers/acpi/acpica/nsaccess.c
-> @@ -286,7 +286,8 @@ acpi_ns_lookup(union acpi_generic_state
->   
->   	/* Get the prefix scope. A null scope means use the root scope */
->   
-> -	if ((!scope_info) || (!scope_info->scope.node)) {
-> +	if ((!scope_info) || (!scope_info->scope.node) ||
-> +	    (scope_info->scope.node == ACPI_ROOT_OBJECT)) {
->   		ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
->   				  "Null scope prefix, using root node (%p)\n",
->   				  acpi_gbl_root_node));
-> 
+Robin.
+
+
+[1] http://lists.infradead.org/pipermail/linux-arm-kernel/2018-May/580804.html
+[2] http://lists.infradead.org/pipermail/linux-arm-kernel/2016-December/474443.html
+
+Robin Murphy (4):
+  dma-mapping: Generalise dma_32bit_limit flag
+  ACPI/IORT: Set bus DMA mask as appropriate
+  of/device: Set bus DMA mask as appropriate
+  iommu/dma: Respect bus DMA limit for IOVAs
+
+ arch/x86/kernel/pci-dma.c | 2 +-
+ drivers/acpi/arm64/iort.c | 1 +
+ drivers/iommu/dma-iommu.c | 3 +++
+ drivers/of/device.c       | 1 +
+ include/linux/device.h    | 6 +++---
+ kernel/dma/direct.c       | 2 +-
+ 6 files changed, 10 insertions(+), 5 deletions(-)
+
+-- 
+2.17.1.dirty
