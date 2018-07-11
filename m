@@ -1,53 +1,40 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [RFC PATCH 1/4] dma-mapping: Generalise dma_32bit_limit flag
-Date: Wed, 11 Jul 2018 17:56:40 +0100
-Message-ID: <868cead9-88a7-e58d-3452-a78e19be5f47@arm.com>
+From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [RFC PATCH 2/4] ACPI/IORT: Set bus DMA mask as appropriate
+Date: Wed, 11 Jul 2018 19:03:55 +0100
+Message-ID: <da218bdf-198e-b064-356d-3354869a670a@arm.com>
 References: <cover.1531239284.git.robin.murphy@arm.com>
- <a85a5fe22fced65b2960251fc6e8d8f1e68f828a.1531239284.git.robin.murphy@arm.com>
- <20180710180433.GB26285@lst.de>
+	<c604b3eae4103ee0ad6da84baa1bc893a81ef5f8.1531239284.git.robin.murphy@arm.com>
+	<20180710180458.GC26285@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180710180433.GB26285@lst.de>
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20180710180458.GC26285-jcswGhMUV9g@public.gmane.org>
 Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: m.szyprowski@samsung.com, iommu@lists.linux-foundation.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, linux-kernel@vger.kernel.org, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com, robh+dt@kernel.org, frowand.list@gmail.com, gregkh@linuxfoundation.org, joro@8bytes.org, x86@kernel.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Cc: devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
 On 10/07/18 19:04, Christoph Hellwig wrote:
-> On Tue, Jul 10, 2018 at 06:17:16PM +0100, Robin Murphy wrote:
->> diff --git a/kernel/dma/direct.c b/kernel/dma/direct.c
->> index 8be8106270c2..95e185347e34 100644
->> --- a/kernel/dma/direct.c
->> +++ b/kernel/dma/direct.c
->> @@ -183,7 +183,7 @@ int dma_direct_supported(struct device *dev, u64 mask)
->>   	 * Various PCI/PCIe bridges have broken support for > 32bit DMA even
->>   	 * if the device itself might support it.
->>   	 */
->> -	if (dev->dma_32bit_limit && mask > DMA_BIT_MASK(32))
->> +	if (dev->bus_dma_mask && mask > dev->bus_dma_mask)
->>   		return 0;
+> On Tue, Jul 10, 2018 at 06:17:17PM +0100, Robin Murphy wrote:
+>> When an explicit DMA limit is described by firmware, we need to remember
+>> it regardless of how drivers might subsequently update their devices'
+>> masks. The new bus_dma_mask field does that.
 > 
-> The comment above this check needs an updated (or just be removed).
+> Shouldn't we also stop presetting the dma mask after this?
 
-Right, I'll give it a tweak. I could also do with actually getting the 
-field name correct in via_no_dac_cb()...
-
-> Also we still have a few architectures not using dma-direct. I guess
-> most were doing fine without such limits anyway, but at least arm
-> will probably need an equivalent check.
-
-Indeed, once we've found an approach that everyone's happy with we can 
-have a more thorough audit of exactly where else it needs to be applied. 
-FWIW I'm not aware of any 32-bit Arm systems affected by this*, but if 
-they do exist then at least there's no risk of regression since they've 
-always been busted.
+I guess initialising the device masks here only really has any effect if 
+drivers fail to set their own, so if we're getting stricter about that 
+then it would make sense to stop; I'll add a couple of patches on top to 
+clean that up.
 
 Robin.
-
-
-* Not counting the somewhat-similar StrongArm DMA controller bug where 
-one bit in the *middle* of the mask is unusable. Let's keep that 
-confined to the Arm dmabounce code and never speak of it...
