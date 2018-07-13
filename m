@@ -1,36 +1,53 @@
-From: Ian Campbell <ijc@debian.org>
-Subject: Re: [RFC PATCH 0/2] efi: add contents of LinuxExtraArgs EFI var to
- command line
-Date: Fri, 13 Jul 2018 11:02:39 +0100
-Message-ID: <1531476159.18353.31.camel@debian.org>
-References: <20180704154919.18564-1-ard.biesheuvel@linaro.org>
- <4bd9bee6-f2b9-3197-c205-fec104fd1090@infradead.org>
- <CAKv+Gu9+RYbtD8Ce_AW_1jvTei6dC5LwiiMgSUWDKLs8f7S+eA@mail.gmail.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC V4 0/3] arm_pmu: acpi: variant support and QCOM Falkor
+ extensions
+Date: Fri, 13 Jul 2018 16:33:19 +0100
+Message-ID: <20180713153318.GB3049@arm.com>
+References: <1530822201-5890-1-git-send-email-agustinv@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAKv+Gu9+RYbtD8Ce_AW_1jvTei6dC5LwiiMgSUWDKLs8f7S+eA@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Geoff Levand <geoff@infradead.org>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Riku Voipio <riku.voipio@linaro.org>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, Leif Lindholm <leif.lindholm@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-efi <linux-efi@vger.kernel.org>, James Morse <james.morse@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1530822201-5890-1-git-send-email-agustinv@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Agustin Vega-Frias <agustinv@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Phani Pabba <pabba@codeaurora.org>, Richard Ruigrok <rruigrok@codeaurora.org>, Vijaya Kilari <vkilari@codeaurora.org>, Jeff Hugo <jhugo@codeaurora.org>, Rahul Ramasubramanian <rahulr@codeaurora.org>, Agustin Vega-Frias <agustin.vega.frias@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, 2018-07-13 at 08:15 +0200, Ard Biesheuvel wrote:
-> I still think we should not be using DMI, though.
+Hi Agustin,
 
-Would a quirk be acceptable if keyed on something other than DMI?
+On Thu, Jul 05, 2018 at 04:23:17PM -0400, Agustin Vega-Frias wrote:
+> This series is a complete re-design of V1 of the QCOM Falkor extensions [1],
+> it introduces a probe table based on the HID of a device nested under the CPU
+> device to allow variant detection and arm_pmu customization.
+> 
+> The first patch adds an additional section at the end of each ACPI probe table.
+> This allows probe tables to be sentinel-delimited and better accommodate some
+> APIs that require such tables.
+> 
+> The second patch adds the PMUv3 ACPI probe table and plumbing to allow drivers
+> to plug into the ACPI PMUv3 probe sequence.
+> 
+> The third patch adds the PC capture extension applicable to Falkor and Saphira
+> CPUs. This shows how an extension that uses sampling events hooks. A similar
+> approach can be used to add RBB support and populate the sample branch stack
+> from it.
+> 
+> The fourth patch adds the matrix-based events extension applicable to Falkor
+> only.
+> 
+> If this found to be a reasonable extension approach other patches will be
+> added to the series to build on the base QCOM extensions.
 
-Are there some other options, perhaps some property of the ACPI tables
-proper? Something which can be queried from UEFI perhaps? (I'm really
-grasping at straws, but maybe someone has a smart idea).
+I'm mostly ok with this approach, but I have a concern with the way in which
+the sysfs interface for carving up the config fields is implemented. If this
+is intended to be a strict extension to the armv8 pmu architecture, then I
+don't think you should be overriding the attr_groups entirely. Rather, you
+should be taking the attr_groups from pmuv3 and then extending them in a way
+which avoids overlapping field allocations by construction.
 
-Ian.
+As it stands, you already have an overlap between the pcc bit and the
+chained counter bit which Suzuki has implemented and it will be very easy to
+introduce API breakage if we don't enforce this as part of the design.
+
+Will
