@@ -1,98 +1,94 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Support address size limit for root complexes
-Date: Mon, 16 Jul 2018 16:34:51 +0100
-Message-ID: <23accf9d-9886-c044-4bb5-1d176b086e9f@arm.com>
-References: <b52cdefb7a3f631340b98dcd38a274ae277bd561.1531239023.git.robin.murphy@arm.com>
- <20180716151051.GB19945@red-moon>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [PATCH] ACPICA: Clear status of all events when entering S5
+Date: Mon, 16 Jul 2018 17:59:27 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED53BB4D759@ORSMSX110.amr.corp.intel.com>
+References: <s5hk1qaf9hv.wl-tiwai@suse.de>
+ <1704080.gFTvVrrZA1@aspire.rjw.lan>
+ <6f01a906-b27c-0e1a-e9f6-fa27c015faa3@cosifan.de>
+ <2396867.eZQXUlvGZn@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180716151051.GB19945@red-moon>
-Content-Language: en-GB
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2396867.eZQXUlvGZn@aspire.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: =?iso-8859-1?Q?Thomas_H=E4nig?= <haenig@cosifan.de>, Takashi Iwai <tiwai@suse.de>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018-07-16 4:10 PM, Lorenzo Pieralisi wrote:
-> On Tue, Jul 10, 2018 at 05:13:45PM +0100, Robin Murphy wrote:
->> IORT revision D allows PCI root complex nodes to specify a memory
->> address size limit equivalently to named components, to help describe
->> straightforward integrations which don't really warrant a full-blown
->> _DMA method. Now that our headers are up-to-date, plumb it in.
->>
->> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
->> ---
->>   drivers/acpi/arm64/iort.c | 25 +++++++++++++++++++++++--
->>   1 file changed, 23 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 7a3a541046ed..4a66896e2aa3 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -947,6 +947,24 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
->>   	return 0;
->>   }
->>   
->> +static int rc_dma_get_range(struct device *dev, u64 *size)
->> +{
->> +	struct acpi_iort_node *node;
->> +	struct acpi_iort_root_complex *rc;
->> +
->> +	node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
->> +			      iort_match_node_callback, dev);
->> +	if (!node || node->revision < 1)
->> +		return -ENODEV;
->> +
->> +	rc = (struct acpi_iort_root_complex *)node->node_data;
->> +
->> +	*size = rc->memory_address_limit >= 64 ? U64_MAX :
->> +			1ULL<<rc->memory_address_limit;
->> +
->> +	return 0;
->> +}
->> +
->>   /**
->>    * iort_dma_setup() - Set-up device DMA parameters.
->>    *
->> @@ -975,10 +993,13 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
->>   
->>   	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->>   
->> -	if (dev_is_pci(dev))
->> +	if (dev_is_pci(dev)) {
->>   		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
->> -	else
->> +		if (ret == -ENODEV)
->> +			ret = rc_dma_get_range(dev, &size);
+
+> -----Original Message-----
+> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> Sent: Sunday, July 8, 2018 2:10 AM
+> To: Linux ACPI <linux-acpi@vger.kernel.org>
+> Cc: Thomas Hänig <haenig@cosifan.de>; Takashi Iwai <tiwai@suse.de>;
+> Schmauss, Erik <erik.schmauss@intel.com>; Linux PM <linux-
+> pm@vger.kernel.org>; Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+> Subject: [PATCH] ACPICA: Clear status of all events when entering S5
 > 
-> Thank you for putting together the patch.
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> The question is whether it is OK to ignore the IORT address limits
-> when _DMA is actually specified. It is a sort of grey area that
-> has to be clarified, maybe we can add a check to detect a size
-> mismatch, I do not know if something should be added at IORT spec
-> level to clarify its relation to the _DMA object, if present.
+> After commit 18996f2db918 (ACPICA: Events: Stop unconditionally clearing ACPI
+> IRQs during suspend/resume) the status of ACPI events is not cleared any more
+> when entering the ACPI S5 system state (power
+> off) which causes some systems to power up immediately after turing off power
+> in certain situations.
+> 
+> That is a functional regression, so address it by making the code clear the status
+> of all ACPI events again when entering S5 (for system-wide suspend or
+> hibernation the clearing of the status of all events is not desirable, as it might
+> cause the kernel to miss wakeup events sometimes).
+> 
+> Fixes: 18996f2db918 (ACPICA: Events: Stop unconditionally clearing ACPI IRQs
+> during suspend/resume)
+> Reported-by: Takashi Iwai <tiwai@suse.de>
+> Tested-by: Thomas Hänig <haenig@cosifan.de>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+> 
+> Resend https://patchwork.kernel.org/patch/10511451/ with a changelig and
+> tags.
+> 
+> ---
+>  drivers/acpi/acpica/hwsleep.c |   15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/acpica/hwsleep.c
+> =================================================================
+> ==
+> --- linux-pm.orig/drivers/acpi/acpica/hwsleep.c
+> +++ linux-pm/drivers/acpi/acpica/hwsleep.c
+> @@ -51,16 +51,23 @@ acpi_status acpi_hw_legacy_sleep(u8 slee
+>  		return_ACPI_STATUS(status);
+>  	}
+> 
+> -	/*
+> -	 * 1) Disable all GPEs
+> -	 * 2) Enable all wakeup GPEs
+> -	 */
+> +	/* Disable all GPEs */
+>  	status = acpi_hw_disable_all_gpes();
+>  	if (ACPI_FAILURE(status)) {
+>  		return_ACPI_STATUS(status);
+>  	}
+> +	/*
+> +	 * If the target sleep state is S5, clear all GPEs and fixed events too
+> +	 */
+> +	if (sleep_state == ACPI_STATE_S5) {
+> +		status = acpi_hw_clear_acpi_status();
+> +		if (ACPI_FAILURE(status)) {
+> +			return_ACPI_STATUS(status);
+> +		}
+> +	}
+>  	acpi_gbl_system_awake_and_running = FALSE;
+> 
+> +	 /* Enable all wakeup GPEs */
+>  	status = acpi_hw_enable_all_wakeup_gpes();
+>  	if (ACPI_FAILURE(status)) {
+>  		return_ACPI_STATUS(status);
 
-Yeah, I'm assuming that _DMA would be used to describe conditions more 
-specific than the simple address size limit (i.e. bridge windows), so 
-even if both are present, the range inferred from _DMA will always be 
-less than or equal to that inferred from IORT, and thus rather than 
-explicitly calculating the intersection of the two we can simply do this 
-short-circuit.
+Rafael, I've created an ACPICA pull request containing this patch.
 
-If IORT accurately reflects the total number of usable address bits, 
-then I can't see that it would ever make sense for _DMA to specify an 
-address range which exceeds that; I guess it comes down to how much 
-effort we want to spend verifying firmware instead of trusting it.
-
-Robin.
+Thanks,
+Erik
