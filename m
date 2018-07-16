@@ -1,63 +1,95 @@
-From: =?UTF-8?B?Si4gQWd1c3TDrW4gVmVnYS1GcsOtYXM=?=
-        <agustin.vega.frias@gmail.com>
-Subject: Re: [RFC V4 0/3] arm_pmu: acpi: variant support and QCOM Falkor extensions
-Date: Sun, 15 Jul 2018 15:35:45 -0500
-Message-ID: <CAGbRU0QLSpNEtcryuPPZE98zAo7peEmcDqcQiLi1zO6cfKML2A@mail.gmail.com>
-References: <1530822201-5890-1-git-send-email-agustinv@codeaurora.org> <20180713153318.GB3049@arm.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] ACPI/IORT: Support address size limit for root complexes
+Date: Mon, 16 Jul 2018 16:10:51 +0100
+Message-ID: <20180716151051.GB19945@red-moon>
+References: <b52cdefb7a3f631340b98dcd38a274ae277bd561.1531239023.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180713153318.GB3049@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>
-Cc: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Phani Pabba <pabba@codeaurora.org>, Richard Ruigrok <rruigrok@codeaurora.org>, Vijaya Kilari <vkilari@codeaurora.org>, Jeff Hugo <jhugo@codeaurora.org>, Rahul Ramasubramanian <rahulr@codeaurora.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <b52cdefb7a3f631340b98dcd38a274ae277bd561.1531239023.git.robin.murphy@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Will,
+On Tue, Jul 10, 2018 at 05:13:45PM +0100, Robin Murphy wrote:
+> IORT revision D allows PCI root complex nodes to specify a memory
+> address size limit equivalently to named components, to help describe
+> straightforward integrations which don't really warrant a full-blown
+> _DMA method. Now that our headers are up-to-date, plumb it in.
+> 
+> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> ---
+>  drivers/acpi/arm64/iort.c | 25 +++++++++++++++++++++++--
+>  1 file changed, 23 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 7a3a541046ed..4a66896e2aa3 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -947,6 +947,24 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
+>  	return 0;
+>  }
+>  
+> +static int rc_dma_get_range(struct device *dev, u64 *size)
+> +{
+> +	struct acpi_iort_node *node;
+> +	struct acpi_iort_root_complex *rc;
+> +
+> +	node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> +			      iort_match_node_callback, dev);
+> +	if (!node || node->revision < 1)
+> +		return -ENODEV;
+> +
+> +	rc = (struct acpi_iort_root_complex *)node->node_data;
+> +
+> +	*size = rc->memory_address_limit >= 64 ? U64_MAX :
+> +			1ULL<<rc->memory_address_limit;
+> +
+> +	return 0;
+> +}
+> +
+>  /**
+>   * iort_dma_setup() - Set-up device DMA parameters.
+>   *
+> @@ -975,10 +993,13 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+>  
+>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+>  
+> -	if (dev_is_pci(dev))
+> +	if (dev_is_pci(dev)) {
+>  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+> -	else
+> +		if (ret == -ENODEV)
+> +			ret = rc_dma_get_range(dev, &size);
 
-On Fri, Jul 13, 2018 at 10:33 AM, Will Deacon <will.deacon@arm.com> wrote:
+Thank you for putting together the patch.
 
-[snip]
-
-> I'm mostly ok with this approach, but I have a concern with the way in wh=
-ich
-> the sysfs interface for carving up the config fields is implemented. If t=
-his
-> is intended to be a strict extension to the armv8 pmu architecture, then =
-I
-> don't think you should be overriding the attr_groups entirely. Rather, yo=
-u
-> should be taking the attr_groups from pmuv3 and then extending them in a =
-way
-> which avoids overlapping field allocations by construction.
->
-> As it stands, you already have an overlap between the pcc bit and the
-> chained counter bit which Suzuki has implemented and it will be very easy=
- to
-> introduce API breakage if we don't enforce this as part of the design.
->
-> Will
-
-FYI, I left Qualcomm on July 6, one of my former colleagues will submit
-new iterations of this series. I will continue to comment on this and futur=
-e
-patchsets as a courtesy to my former colleagues and the community.
-
-Thanks for pointing out the sysfs issue. My suggestion on how to address it=
- is:
-
-1. Reserve config and config1 for architectural format attributes and
-   config2 for extension format attributes.
-2. Add a struct attribute ** parameter to the extension init function so
-   extensions can return the new attributes.
-3. The extension framework code in arm_pmu_acpi.c can then allocate a new
-   attribute array to contain the base and extension attributes and ensure
-   all the new attributes are on config2.
-
-Though a more elaborate approach can be implemented to find conflicts in
-bit usage within config fields, it would require much more code for a
-relatively simple problem. Thoughts?
+The question is whether it is OK to ignore the IORT address limits
+when _DMA is actually specified. It is a sort of grey area that
+has to be clarified, maybe we can add a check to detect a size
+mismatch, I do not know if something should be added at IORT spec
+level to clarify its relation to the _DMA object, if present.
 
 Thanks,
-Agust=C3=ADn
+Lorenzo
+
+> +	} else {
+>  		ret = nc_dma_get_range(dev, &size);
+> +	}
+>  
+>  	if (!ret) {
+>  		msb = fls64(dmaaddr + size - 1);
+> -- 
+> 2.17.1.dirty
+> 
