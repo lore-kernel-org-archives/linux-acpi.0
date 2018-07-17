@@ -1,112 +1,70 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: Clear status of all events when entering S5
-Date: Tue, 17 Jul 2018 09:23:23 +0200
-Message-ID: <CAJZ5v0gzK6bbQvmbhBwcTapC_DNR5wkxAymNQAs1_E4ESfXxFw@mail.gmail.com>
-References: <s5hk1qaf9hv.wl-tiwai@suse.de> <1704080.gFTvVrrZA1@aspire.rjw.lan>
- <6f01a906-b27c-0e1a-e9f6-fa27c015faa3@cosifan.de> <2396867.eZQXUlvGZn@aspire.rjw.lan>
- <CF6A88132359CE47947DB4C6E1709ED53BB4D759@ORSMSX110.amr.corp.intel.com>
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Tue, 17 Jul 2018 11:03:30 +0100
+Message-ID: <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net>
+References: <CAE4VaGAPOfy0RtQehKoe+443C1GRrJXCveBFgcAZ1nChVavp1g@mail.gmail.com>
+ <CAE4VaGBMeL82SJK53gtcWkor-9eXeLX6VP9juw=FW=BOyp+hMA@mail.gmail.com>
+ <20180621092331.p2pmaiu6563kp5u2@techsingularity.net>
+ <CAE4VaGCQV+cS-vhdLyMwzftbB-xBHPt4Y4chg_0ykLHTE9cRfw@mail.gmail.com>
+ <CAE4VaGDHcZbnDpJ+FiQLfA1DRftY0j_GJSnh3FDRi34OztVH6Q@mail.gmail.com>
+ <20180627084954.73ucqvac62v5gje4@techsingularity.net>
+ <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
+ <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
+ <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
+ <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=iso-8859-15
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53BB4D759@ORSMSX110.amr.corp.intel.com>
+Content-Disposition: inline
+In-Reply-To: <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Schmauss, Erik" <erik.schmauss@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, =?UTF-8?Q?Thomas_H=C3=A4nig?= <haenig@cosifan.de>, Takashi Iwai <tiwai@suse.de>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Jirka Hladky <jhladky@redhat.com>
+Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 16, 2018 at 7:59 PM, Schmauss, Erik <erik.schmauss@intel.com> w=
-rote:
->
->> -----Original Message-----
->> From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
->> Sent: Sunday, July 8, 2018 2:10 AM
->> To: Linux ACPI <linux-acpi@vger.kernel.org>
->> Cc: Thomas H=C3=A4nig <haenig@cosifan.de>; Takashi Iwai <tiwai@suse.de>;
->> Schmauss, Erik <erik.schmauss@intel.com>; Linux PM <linux-
->> pm@vger.kernel.org>; Linux Kernel Mailing List <linux-kernel@vger.kernel=
-.org>
->> Subject: [PATCH] ACPICA: Clear status of all events when entering S5
->>
->> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>
->> After commit 18996f2db918 (ACPICA: Events: Stop unconditionally clearing=
- ACPI
->> IRQs during suspend/resume) the status of ACPI events is not cleared any=
- more
->> when entering the ACPI S5 system state (power
->> off) which causes some systems to power up immediately after turing off =
-power
->> in certain situations.
->>
->> That is a functional regression, so address it by making the code clear =
-the status
->> of all ACPI events again when entering S5 (for system-wide suspend or
->> hibernation the clearing of the status of all events is not desirable, a=
-s it might
->> cause the kernel to miss wakeup events sometimes).
->>
->> Fixes: 18996f2db918 (ACPICA: Events: Stop unconditionally clearing ACPI =
-IRQs
->> during suspend/resume)
->> Reported-by: Takashi Iwai <tiwai@suse.de>
->> Tested-by: Thomas H=C3=A4nig <haenig@cosifan.de>
->> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> ---
->>
->> Resend https://patchwork.kernel.org/patch/10511451/ with a changelig and
->> tags.
->>
->> ---
->>  drivers/acpi/acpica/hwsleep.c |   15 +++++++++++----
->>  1 file changed, 11 insertions(+), 4 deletions(-)
->>
->> Index: linux-pm/drivers/acpi/acpica/hwsleep.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> =3D=3D
->> --- linux-pm.orig/drivers/acpi/acpica/hwsleep.c
->> +++ linux-pm/drivers/acpi/acpica/hwsleep.c
->> @@ -51,16 +51,23 @@ acpi_status acpi_hw_legacy_sleep(u8 slee
->>               return_ACPI_STATUS(status);
->>       }
->>
->> -     /*
->> -      * 1) Disable all GPEs
->> -      * 2) Enable all wakeup GPEs
->> -      */
->> +     /* Disable all GPEs */
->>       status =3D acpi_hw_disable_all_gpes();
->>       if (ACPI_FAILURE(status)) {
->>               return_ACPI_STATUS(status);
->>       }
->> +     /*
->> +      * If the target sleep state is S5, clear all GPEs and fixed event=
-s too
->> +      */
->> +     if (sleep_state =3D=3D ACPI_STATE_S5) {
->> +             status =3D acpi_hw_clear_acpi_status();
->> +             if (ACPI_FAILURE(status)) {
->> +                     return_ACPI_STATUS(status);
->> +             }
->> +     }
->>       acpi_gbl_system_awake_and_running =3D FALSE;
->>
->> +      /* Enable all wakeup GPEs */
->>       status =3D acpi_hw_enable_all_wakeup_gpes();
->>       if (ACPI_FAILURE(status)) {
->>               return_ACPI_STATUS(status);
->
-> Rafael, I've created an ACPICA pull request containing this patch.
+On Tue, Jul 17, 2018 at 10:45:51AM +0200, Jirka Hladky wrote:
+> Hi Mel,
+> 
+> we have compared 4.18 + git://
+> git.kernel.org/pub/scm/linux/kernel/git/mel/linux.git
+> sched-numa-fast-crossnode-v1r12 against 4.16 kernel and performance results
+> look very good!
+> 
 
-OK, thanks!
+Excellent, thanks to both Kamil and yourself for collecting the data.
+It's helpful to have independent verification.
 
-The patch is in the mainline kernel tree already at this point, so
-that's an upstream only thing.
+> We see performance gains about 10-20% for SPECjbb2005. NAS results are a
+> little bit noisy but show overall performance gains as well (total runtime
+> for reduced from 6 hours 34 minutes to 6 hours 26 minutes to give you a
+> specific example).
 
-Can you please also do likewise for
-https://patchwork.kernel.org/patch/10495943/ ?
+Great.
 
-Thanks,
-Rafael
+> The only benchmark showing a slight regression is stream
+> - but the regression is just a few percents ( upto 10%) and I think it's
+> not a real concern given that it's an artificial benchmark.
+> 
+
+Agreed.
+
+> How is your testing going? Do you think
+> that sched-numa-fast-crossnode-v1r12 series can make it into the 4.18?
+> 
+
+My own testing completed and the results are within expectations and I
+saw no red flags. Unfortunately, I consider it unlikely they'll be merged
+for 4.18. Srikar Dronamraju's series is likely to need another update
+and I would need to rebase my patches on top of that. Given the scope
+and complexity, I find it unlikely they would be accepted for an -rc,
+particularly this late of an rc. Whether we hit the 4.19 merge window or
+not will depend on when Srikar's series gets updated.
+
+> Thanks a lot for your efforts to improve the performance!
+
+My pleasure.
+
+-- 
+Mel Gorman
+SUSE Labs
