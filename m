@@ -1,70 +1,104 @@
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Tue, 17 Jul 2018 11:03:30 +0100
-Message-ID: <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net>
-References: <CAE4VaGAPOfy0RtQehKoe+443C1GRrJXCveBFgcAZ1nChVavp1g@mail.gmail.com>
- <CAE4VaGBMeL82SJK53gtcWkor-9eXeLX6VP9juw=FW=BOyp+hMA@mail.gmail.com>
- <20180621092331.p2pmaiu6563kp5u2@techsingularity.net>
- <CAE4VaGCQV+cS-vhdLyMwzftbB-xBHPt4Y4chg_0ykLHTE9cRfw@mail.gmail.com>
- <CAE4VaGDHcZbnDpJ+FiQLfA1DRftY0j_GJSnh3FDRi34OztVH6Q@mail.gmail.com>
- <20180627084954.73ucqvac62v5gje4@techsingularity.net>
- <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
- <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
- <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
- <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH] ACPI/IORT: Support address size limit for root complexes
+Date: Wed, 18 Jul 2018 17:36:22 +0100
+Message-ID: <20180718163622.GA21924@red-moon>
+References: <b52cdefb7a3f631340b98dcd38a274ae277bd561.1531239023.git.robin.murphy@arm.com>
+ <20180716151051.GB19945@red-moon>
+ <23accf9d-9886-c044-4bb5-1d176b086e9f@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jirka Hladky <jhladky@redhat.com>
-Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+In-Reply-To: <23accf9d-9886-c044-4bb5-1d176b086e9f@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 17, 2018 at 10:45:51AM +0200, Jirka Hladky wrote:
-> Hi Mel,
+[+Catalin, Will]
+
+On Mon, Jul 16, 2018 at 04:34:51PM +0100, Robin Murphy wrote:
+> On 2018-07-16 4:10 PM, Lorenzo Pieralisi wrote:
+> >On Tue, Jul 10, 2018 at 05:13:45PM +0100, Robin Murphy wrote:
+> >>IORT revision D allows PCI root complex nodes to specify a memory
+> >>address size limit equivalently to named components, to help describe
+> >>straightforward integrations which don't really warrant a full-blown
+> >>_DMA method. Now that our headers are up-to-date, plumb it in.
+> >>
+> >>Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+> >>---
+> >>  drivers/acpi/arm64/iort.c | 25 +++++++++++++++++++++++--
+> >>  1 file changed, 23 insertions(+), 2 deletions(-)
+> >>
+> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> >>index 7a3a541046ed..4a66896e2aa3 100644
+> >>--- a/drivers/acpi/arm64/iort.c
+> >>+++ b/drivers/acpi/arm64/iort.c
+> >>@@ -947,6 +947,24 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
+> >>  	return 0;
+> >>  }
+> >>+static int rc_dma_get_range(struct device *dev, u64 *size)
+> >>+{
+> >>+	struct acpi_iort_node *node;
+> >>+	struct acpi_iort_root_complex *rc;
+> >>+
+> >>+	node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
+> >>+			      iort_match_node_callback, dev);
+> >>+	if (!node || node->revision < 1)
+> >>+		return -ENODEV;
+> >>+
+> >>+	rc = (struct acpi_iort_root_complex *)node->node_data;
+> >>+
+> >>+	*size = rc->memory_address_limit >= 64 ? U64_MAX :
+> >>+			1ULL<<rc->memory_address_limit;
+> >>+
+> >>+	return 0;
+> >>+}
+> >>+
+> >>  /**
+> >>   * iort_dma_setup() - Set-up device DMA parameters.
+> >>   *
+> >>@@ -975,10 +993,13 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+> >>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+> >>-	if (dev_is_pci(dev))
+> >>+	if (dev_is_pci(dev)) {
+> >>  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+> >>-	else
+> >>+		if (ret == -ENODEV)
+> >>+			ret = rc_dma_get_range(dev, &size);
+> >
+> >Thank you for putting together the patch.
+> >
+> >The question is whether it is OK to ignore the IORT address limits
+> >when _DMA is actually specified. It is a sort of grey area that
+> >has to be clarified, maybe we can add a check to detect a size
+> >mismatch, I do not know if something should be added at IORT spec
+> >level to clarify its relation to the _DMA object, if present.
 > 
-> we have compared 4.18 + git://
-> git.kernel.org/pub/scm/linux/kernel/git/mel/linux.git
-> sched-numa-fast-crossnode-v1r12 against 4.16 kernel and performance results
-> look very good!
+> Yeah, I'm assuming that _DMA would be used to describe conditions
+> more specific than the simple address size limit (i.e. bridge
+> windows), so even if both are present, the range inferred from _DMA
+> will always be less than or equal to that inferred from IORT, and
+> thus rather than explicitly calculating the intersection of the two
+> we can simply do this short-circuit.
 > 
+> If IORT accurately reflects the total number of usable address bits,
+> then I can't see that it would ever make sense for _DMA to specify
+> an address range which exceeds that; I guess it comes down to how
+> much effort we want to spend verifying firmware instead of trusting
+> it.
 
-Excellent, thanks to both Kamil and yourself for collecting the data.
-It's helpful to have independent verification.
+I agree with this reasoning and the patch looks fine, I have not
+queued anything for this cycle for IORT so I would ask Will/Catalin
+to pick it up (if we still have time for v4.19):
 
-> We see performance gains about 10-20% for SPECjbb2005. NAS results are a
-> little bit noisy but show overall performance gains as well (total runtime
-> for reduced from 6 hours 34 minutes to 6 hours 26 minutes to give you a
-> specific example).
-
-Great.
-
-> The only benchmark showing a slight regression is stream
-> - but the regression is just a few percents ( upto 10%) and I think it's
-> not a real concern given that it's an artificial benchmark.
-> 
-
-Agreed.
-
-> How is your testing going? Do you think
-> that sched-numa-fast-crossnode-v1r12 series can make it into the 4.18?
-> 
-
-My own testing completed and the results are within expectations and I
-saw no red flags. Unfortunately, I consider it unlikely they'll be merged
-for 4.18. Srikar Dronamraju's series is likely to need another update
-and I would need to rebase my patches on top of that. Given the scope
-and complexity, I find it unlikely they would be accepted for an -rc,
-particularly this late of an rc. Whether we hit the 4.19 merge window or
-not will depend on when Srikar's series gets updated.
-
-> Thanks a lot for your efforts to improve the performance!
-
-My pleasure.
-
--- 
-Mel Gorman
-SUSE Labs
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
