@@ -1,104 +1,70 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Support address size limit for root complexes
-Date: Wed, 18 Jul 2018 17:36:22 +0100
-Message-ID: <20180718163622.GA21924@red-moon>
-References: <b52cdefb7a3f631340b98dcd38a274ae277bd561.1531239023.git.robin.murphy@arm.com>
- <20180716151051.GB19945@red-moon>
- <23accf9d-9886-c044-4bb5-1d176b086e9f@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: save NVS memory for ASUS 1025C laptop
+Date: Thu, 19 Jul 2018 12:54:09 +0200
+Message-ID: <4593492.JrdWhbroZC@aspire.rjw.lan>
+References: <1531137835-21581-1-git-send-email-w@1wt.eu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <23accf9d-9886-c044-4bb5-1d176b086e9f@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1531137835-21581-1-git-send-email-w@1wt.eu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Willy Tarreau <w@1wt.eu>
+Cc: Lan Tianyu <tianyu.lan@intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, stable@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[+Catalin, Will]
-
-On Mon, Jul 16, 2018 at 04:34:51PM +0100, Robin Murphy wrote:
-> On 2018-07-16 4:10 PM, Lorenzo Pieralisi wrote:
-> >On Tue, Jul 10, 2018 at 05:13:45PM +0100, Robin Murphy wrote:
-> >>IORT revision D allows PCI root complex nodes to specify a memory
-> >>address size limit equivalently to named components, to help describe
-> >>straightforward integrations which don't really warrant a full-blown
-> >>_DMA method. Now that our headers are up-to-date, plumb it in.
-> >>
-> >>Signed-off-by: Robin Murphy <robin.murphy@arm.com>
-> >>---
-> >>  drivers/acpi/arm64/iort.c | 25 +++++++++++++++++++++++--
-> >>  1 file changed, 23 insertions(+), 2 deletions(-)
-> >>
-> >>diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> >>index 7a3a541046ed..4a66896e2aa3 100644
-> >>--- a/drivers/acpi/arm64/iort.c
-> >>+++ b/drivers/acpi/arm64/iort.c
-> >>@@ -947,6 +947,24 @@ static int nc_dma_get_range(struct device *dev, u64 *size)
-> >>  	return 0;
-> >>  }
-> >>+static int rc_dma_get_range(struct device *dev, u64 *size)
-> >>+{
-> >>+	struct acpi_iort_node *node;
-> >>+	struct acpi_iort_root_complex *rc;
-> >>+
-> >>+	node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
-> >>+			      iort_match_node_callback, dev);
-> >>+	if (!node || node->revision < 1)
-> >>+		return -ENODEV;
-> >>+
-> >>+	rc = (struct acpi_iort_root_complex *)node->node_data;
-> >>+
-> >>+	*size = rc->memory_address_limit >= 64 ? U64_MAX :
-> >>+			1ULL<<rc->memory_address_limit;
-> >>+
-> >>+	return 0;
-> >>+}
-> >>+
-> >>  /**
-> >>   * iort_dma_setup() - Set-up device DMA parameters.
-> >>   *
-> >>@@ -975,10 +993,13 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
-> >>  	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-> >>-	if (dev_is_pci(dev))
-> >>+	if (dev_is_pci(dev)) {
-> >>  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
-> >>-	else
-> >>+		if (ret == -ENODEV)
-> >>+			ret = rc_dma_get_range(dev, &size);
-> >
-> >Thank you for putting together the patch.
-> >
-> >The question is whether it is OK to ignore the IORT address limits
-> >when _DMA is actually specified. It is a sort of grey area that
-> >has to be clarified, maybe we can add a check to detect a size
-> >mismatch, I do not know if something should be added at IORT spec
-> >level to clarify its relation to the _DMA object, if present.
+On Monday, July 9, 2018 2:03:55 PM CEST Willy Tarreau wrote:
+> Every time I tried to upgrade my laptop from 3.10.x to 4.x I faced an
+> issue by which the fan would run at full speed upon resume. Bisecting
+> it showed me the issue was introduced in 3.17 by commit 821d6f0359b0
+> (ACPI / sleep: Do not save NVS for new machines to accelerate S3). This
+> code only affects machines built starting as of 2012, but this Asus
+> 1025C laptop was made in 2012 and apparently needs the NVS data to be
+> saved, otherwise the CPU's thermal state is not properly reported on
+> resume and the fan runs at full speed upon resume.
 > 
-> Yeah, I'm assuming that _DMA would be used to describe conditions
-> more specific than the simple address size limit (i.e. bridge
-> windows), so even if both are present, the range inferred from _DMA
-> will always be less than or equal to that inferred from IORT, and
-> thus rather than explicitly calculating the intersection of the two
-> we can simply do this short-circuit.
+> Here's a very simple way to check if such a machine is affected :
 > 
-> If IORT accurately reflects the total number of usable address bits,
-> then I can't see that it would ever make sense for _DMA to specify
-> an address range which exceeds that; I guess it comes down to how
-> much effort we want to spend verifying firmware instead of trusting
-> it.
+>   # cat /sys/class/thermal/thermal_zone0/temp
+>   55000
+> 
+>   ( now suspend, wait one second and resume )
+> 
+>   # cat /sys/class/thermal/thermal_zone0/temp
+>   0
+> 
+>   (and after ~15 seconds the fan starts to spin)
+> 
+> Let's apply the same quirk as commit cbc00c13 (ACPI: save NVS memory
+> for Lenovo G50-45) and reuse the function it provides. Note that this
+> commit was already backported to 4.9.x but not 4.4.x.
+> 
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: <stable@vger.kernel.org> # 3.17+: requires cbc00c13
+> Signed-off-by: Willy Tarreau <w@1wt.eu>
+> ---
+>  drivers/acpi/sleep.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+> index 974e584..af54d7b 100644
+> --- a/drivers/acpi/sleep.c
+> +++ b/drivers/acpi/sleep.c
+> @@ -338,6 +338,14 @@ static const struct dmi_system_id acpisleep_dmi_table[] __initconst = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "K54HR"),
+>  		},
+>  	},
+> +	{
+> +	.callback = init_nvs_save_s3,
+> +	.ident = "Asus 1025C",
+> +	.matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "ASUSTeK COMPUTER INC."),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "1025C"),
+> +		},
+> +	},
+>  	/*
+>  	 * https://bugzilla.kernel.org/show_bug.cgi?id=189431
+>  	 * Lenovo G50-45 is a platform later than 2012, but needs nvs memory
+> 
 
-I agree with this reasoning and the patch looks fine, I have not
-queued anything for this cycle for IORT so I would ask Will/Catalin
-to pick it up (if we still have time for v4.19):
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Applied, thanks!
