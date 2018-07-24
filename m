@@ -1,78 +1,37 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: [PATCH v2 7/7] OF: Don't set default coherent DMA mask
-Date: Mon, 23 Jul 2018 23:16:12 +0100
-Message-ID: <66c08e4df2032fde82a2f97544f41fd3a2f24a94.1532382222.git.robin.murphy@arm.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: linux-next-20180723: battery status funny after bootup
+Date: Tue, 24 Jul 2018 10:27:08 +0200
+Message-ID: <CAJZ5v0g=Ey6ZiyjA3NWS_C5zXBUydJNaKOZDbRNFYUGEc8YuaQ@mail.gmail.com>
+References: <20180723214917.GA3733@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <cover.1532382222.git.robin.murphy@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: hch@lst.de, m.szyprowski@samsung.com
-Cc: lorenzo.pieralisi@arm.com, gregkh@linuxfoundation.org, joro@8bytes.org, x86@kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, robh+dt@kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, frowand.list@gmail.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180723214917.GA3733@amd>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we can track upstream DMA constraints properly with
-bus_dma_mask instead of trying (and failing) to maintain it in
-coherent_dma_mask, it doesn't make much sense for the firmware code to
-be touching the latter at all. It's merely papering over bugs wherein a
-driver has failed to call dma_set_coherent_mask() *and* the bus code has
-not initialised any default value.
+On Mon, Jul 23, 2018 at 11:49 PM, Pavel Machek <pavel@ucw.cz> wrote:
+>
+> pavel@amd:~$ cat /proc/acpi/battery/BAT0/state
+> present:                 yes
+> capacity state:          ok
+> charging state:          charged
+> present rate:            0 mW
+> remaining capacity:      0 mWh
+> present voltage:         0 mV
+> pavel@amd:~$ uname -a
+> Linux amd 4.18.0-rc6-next-20180723+ #141 SMP Mon Jul 23 22:11:47 CEST
+> 2018 i686 GNU/Linux
+>
+> It will correct itself if I unplug/replug the AC adapter, I
+> believe. Gnome2 battery monitor also looks confused.
 
-We don't really want to encourage more drivers coercing dma_mask so
-we'll continue to fix that up if necessary, but add a warning to help
-flush out any such buggy bus code that remains.
+There are two battery changes in linux-next now that are not present
+in the mainline
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: Frank Rowand <frowand.list@gmail.com>
-Signed-off-by: Robin Murphy <robin.murphy@arm.com>
----
- drivers/of/device.c | 20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+2a2aad34362b ACPI: battery: remove redundant old_present check on insertion
+706ac4aa536f ACPI: battery: use cache_time as cache "enabled"
 
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 0d39633e8545..5957cd4fa262 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -127,20 +127,20 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
- 	}
- 
- 	/*
--	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
--	 * setup the correct supported mask.
-+	 * If @dev is expected to be DMA-capable then the bus code that created
-+	 * it should have initialised its dma_mask pointer by this point. For
-+	 * now, we'll continue the legacy behaviour of coercing it to the
-+	 * coherent mask if not, but we'll no longer do so quietly.
- 	 */
--	if (!dev->coherent_dma_mask)
--		dev->coherent_dma_mask = DMA_BIT_MASK(32);
--	/*
--	 * Set it to coherent_dma_mask by default if the architecture
--	 * code has not set it.
--	 */
--	if (!dev->dma_mask)
-+	if (!dev->dma_mask) {
-+		dev_warn(dev, "DMA mask not set\n");
- 		dev->dma_mask = &dev->coherent_dma_mask;
-+	}
- 
--	if (!size)
-+	if (!size && dev->coherent_dma_mask)
- 		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-+	else if (!size)
-+		size = 1ULL << 32;
- 
- 	dev->dma_pfn_offset = offset;
- 
--- 
-2.17.1.dirty
+Does reverting any of them help?  Or is the problem present in the mainline too?
