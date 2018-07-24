@@ -1,57 +1,74 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: linux-next-20180723: battery status funny after bootup
-Date: Tue, 24 Jul 2018 11:21:20 +0200
-Message-ID: <CAJZ5v0g0b2ucGEn3+hhEgw4FVJP4oV1D+99a3jTNjq4av_qsDg@mail.gmail.com>
-References: <20180723214917.GA3733@amd> <CAJZ5v0g=Ey6ZiyjA3NWS_C5zXBUydJNaKOZDbRNFYUGEc8YuaQ@mail.gmail.com>
- <20180724091226.GB22465@amd>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] arm64: fix ACPI dependencies
+Date: Tue, 24 Jul 2018 11:33:17 +0200
+Message-ID: <20180724093345.1575921-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180724091226.GB22465@amd>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, lucas.magasweran@ieee.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, kernel list <linux-kernel@vger.kernel.org>, Linux-pm mailing list <linux-pm@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, linux-kernel@vger.kernel.org, AKASHI Takahiro <takahiro.akashi@linaro.org>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jul 24, 2018 at 11:12 AM, Pavel Machek <pavel@ucw.cz> wrote:
-> On Tue 2018-07-24 10:27:08, Rafael J. Wysocki wrote:
->> On Mon, Jul 23, 2018 at 11:49 PM, Pavel Machek <pavel@ucw.cz> wrote:
->> >
->> > pavel@amd:~$ cat /proc/acpi/battery/BAT0/state
->> > present:                 yes
->> > capacity state:          ok
->> > charging state:          charged
->> > present rate:            0 mW
->> > remaining capacity:      0 mWh
->> > present voltage:         0 mV
->> > pavel@amd:~$ uname -a
->> > Linux amd 4.18.0-rc6-next-20180723+ #141 SMP Mon Jul 23 22:11:47 CEST
->> > 2018 i686 GNU/Linux
->> >
->> > It will correct itself if I unplug/replug the AC adapter, I
->> > believe. Gnome2 battery monitor also looks confused.
->>
->> There are two battery changes in linux-next now that are not present
->> in the mainline
->>
->> 2a2aad34362b ACPI: battery: remove redundant old_present check on insertion
->> 706ac4aa536f ACPI: battery: use cache_time as cache "enabled"
->>
->> Does reverting any of them help?  Or is the problem present in the
->> mainline too?
->
-> Thanks for pointers! Not it mainline, I'd notice that.
->
-> I reverted 706ac4aa536f , and on the next boot:
->
-> pavel@amd:~$ cat /proc/acpi/battery/BAT0/state
-> present:                 yes
-> capacity state:          ok
-> charging state:          charged
-> present rate:            0 mW
-> remaining capacity:      37150 mWh
-> present voltage:         16400 mV
->
-> ..plus icon was ok from the start.
+Kconfig reports a warning on x86 builds after the ARM64 dependency
+was added.
 
-OK, I'll drop 706ac4aa536f then, thanks!
+drivers/acpi/Kconfig:6:error: recursive dependency detected!
+drivers/acpi/Kconfig:6:       symbol ACPI depends on EFI
+
+This rephrases the dependency to keep the ARM64 details out of the
+shared Kconfig file, so Kconfig no longer gets confused by it.
+
+Fixes: 5bcd44083a08 ("drivers: acpi: add dependency of EFI for arm64")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ arch/arm64/Kconfig   | 1 +
+ drivers/acpi/Kconfig | 5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index cdcaa6a798b2..2f987a938405 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -1267,6 +1267,7 @@ config EFI
+ 	bool "UEFI runtime support"
+ 	depends on OF && !CPU_BIG_ENDIAN
+ 	depends on KERNEL_MODE_NEON
++	select ARCH_SUPPORTS_ACPI
+ 	select LIBFDT
+ 	select UCS2_STRING
+ 	select EFI_PARAMS_FROM_FDT
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index a8da730fabc6..0cda51c5d433 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -6,7 +6,7 @@
+ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on !IA64_HP_SIM
+-	depends on IA64 || X86 || (ARM64 && EFI)
++	depends on IA64 || X86 || ARCH_SUPPORTS_ACPI
+ 	depends on PCI
+ 	select PNP
+ 	default y if (IA64 || X86)
+@@ -41,6 +41,9 @@ menuconfig ACPI
+ 	  <http://www.acpi.info>
+ 	  <http://www.uefi.org/acpi/specs>
+ 
++config ARCH_SUPPORTS_ACPI
++	bool
++
+ if ACPI
+ 
+ config ACPI_LEGACY_TABLES_LOOKUP
+-- 
+2.18.0
