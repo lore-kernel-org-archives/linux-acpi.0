@@ -1,38 +1,55 @@
-From: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] Stop losing firmware-set DMA masks
-Date: Wed, 25 Jul 2018 15:58:39 +0200
-Message-ID: <CAKv+Gu_V-4ow5fF=CJG+BVLeNrcMs_e0ba3C6m-JKFwpr3O84g@mail.gmail.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
-	<20180725113122.GD24736@lst.de>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC V4 0/3] arm_pmu: acpi: variant support and QCOM Falkor
+ extensions
+Date: Wed, 25 Jul 2018 16:16:41 +0100
+Message-ID: <20180725151641.GC6866@arm.com>
+References: <1530822201-5890-1-git-send-email-agustinv@codeaurora.org>
+ <20180713153318.GB3049@arm.com>
+ <CAGbRU0QLSpNEtcryuPPZE98zAo7peEmcDqcQiLi1zO6cfKML2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180725113122.GD24736-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, the arch/x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, linux-arm-kernel <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAGbRU0QLSpNEtcryuPPZE98zAo7peEmcDqcQiLi1zO6cfKML2A@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?iso-8859-1?Q?J=2E_Agust=EDn_Vega-Fr=EDas?= <agustin.vega.frias@gmail.com>
+Cc: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Phani Pabba <pabba@codeaurora.org>, Richard Ruigrok <rruigrok@codeaurora.org>, Vijaya Kilari <vkilari@codeaurora.org>, Jeff Hugo <jhugo@codeaurora.org>, Rahul Ramasubramanian <rahulr@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 25 July 2018 at 13:31, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
-> Hi Robin,
->
-> this series looks fine to me.  Do you want me to pull this into the
-> dma-mapping tree?  I'd like to see a few more ACKs from the ACPI/OF/
-> IOMMU maintainers though.
->
+On Sun, Jul 15, 2018 at 03:35:45PM -0500, J. Agustín Vega-Frías wrote:
+> On Fri, Jul 13, 2018 at 10:33 AM, Will Deacon <will.deacon@arm.com> wrote:
+> > I'm mostly ok with this approach, but I have a concern with the way in which
+> > the sysfs interface for carving up the config fields is implemented. If this
+> > is intended to be a strict extension to the armv8 pmu architecture, then I
+> > don't think you should be overriding the attr_groups entirely. Rather, you
+> > should be taking the attr_groups from pmuv3 and then extending them in a way
+> > which avoids overlapping field allocations by construction.
+> >
+> > As it stands, you already have an overlap between the pcc bit and the
+> > chained counter bit which Suzuki has implemented and it will be very easy to
+> > introduce API breakage if we don't enforce this as part of the design.
+> >
+> > Will
+> 
+> FYI, I left Qualcomm on July 6, one of my former colleagues will submit
+> new iterations of this series. I will continue to comment on this and future
+> patchsets as a courtesy to my former colleagues and the community.
+> 
+> Thanks for pointing out the sysfs issue. My suggestion on how to address it is:
+> 
+> 1. Reserve config and config1 for architectural format attributes and
+>    config2 for extension format attributes.
+> 2. Add a struct attribute ** parameter to the extension init function so
+>    extensions can return the new attributes.
+> 3. The extension framework code in arm_pmu_acpi.c can then allocate a new
+>    attribute array to contain the base and extension attributes and ensure
+>    all the new attributes are on config2.
+> 
+> Though a more elaborate approach can be implemented to find conflicts in
+> bit usage within config fields, it would require much more code for a
+> relatively simple problem. Thoughts?
 
-This fixes the issue I reported with the on-SoC NIC of the Socionext
-SynQuacer, so assuming it works as advertised:
+As long as you're happy to live inside config2, that sounds sensible to me.
 
-Acked-by: Ard Biesheuvel <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-
-for the series.
+Will
