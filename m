@@ -1,55 +1,91 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [RFC V4 0/3] arm_pmu: acpi: variant support and QCOM Falkor
- extensions
-Date: Wed, 25 Jul 2018 16:16:41 +0100
-Message-ID: <20180725151641.GC6866@arm.com>
-References: <1530822201-5890-1-git-send-email-agustinv@codeaurora.org>
- <20180713153318.GB3049@arm.com>
- <CAGbRU0QLSpNEtcryuPPZE98zAo7peEmcDqcQiLi1zO6cfKML2A@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 6/7] ACPI/IORT: Don't set default coherent DMA mask
+Date: Wed, 25 Jul 2018 16:27:47 +0100
+Message-ID: <20180725152747.GA5080@red-moon>
+References: <cover.1532382222.git.robin.murphy@arm.com>
+	<3525869e8e7530128bf9718ae8af7d7564b3c684.1532382222.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAGbRU0QLSpNEtcryuPPZE98zAo7peEmcDqcQiLi1zO6cfKML2A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?iso-8859-1?Q?J=2E_Agust=EDn_Vega-Fr=EDas?= <agustin.vega.frias@gmail.com>
-Cc: Agustin Vega-Frias <agustinv@codeaurora.org>, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Phani Pabba <pabba@codeaurora.org>, Richard Ruigrok <rruigrok@codeaurora.org>, Vijaya Kilari <vkilari@codeaurora.org>, Jeff Hugo <jhugo@codeaurora.org>, Rahul Ramasubramanian <rahulr@codeaurora.org>
+In-Reply-To: <3525869e8e7530128bf9718ae8af7d7564b3c684.1532382222.git.robin.murphy-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jul 15, 2018 at 03:35:45PM -0500, J. Agustín Vega-Frías wrote:
-> On Fri, Jul 13, 2018 at 10:33 AM, Will Deacon <will.deacon@arm.com> wrote:
-> > I'm mostly ok with this approach, but I have a concern with the way in which
-> > the sysfs interface for carving up the config fields is implemented. If this
-> > is intended to be a strict extension to the armv8 pmu architecture, then I
-> > don't think you should be overriding the attr_groups entirely. Rather, you
-> > should be taking the attr_groups from pmuv3 and then extending them in a way
-> > which avoids overlapping field allocations by construction.
-> >
-> > As it stands, you already have an overlap between the pcc bit and the
-> > chained counter bit which Suzuki has implemented and it will be very easy to
-> > introduce API breakage if we don't enforce this as part of the design.
-> >
-> > Will
-> 
-> FYI, I left Qualcomm on July 6, one of my former colleagues will submit
-> new iterations of this series. I will continue to comment on this and future
-> patchsets as a courtesy to my former colleagues and the community.
-> 
-> Thanks for pointing out the sysfs issue. My suggestion on how to address it is:
-> 
-> 1. Reserve config and config1 for architectural format attributes and
->    config2 for extension format attributes.
-> 2. Add a struct attribute ** parameter to the extension init function so
->    extensions can return the new attributes.
-> 3. The extension framework code in arm_pmu_acpi.c can then allocate a new
->    attribute array to contain the base and extension attributes and ensure
->    all the new attributes are on config2.
-> 
-> Though a more elaborate approach can be implemented to find conflicts in
-> bit usage within config fields, it would require much more code for a
-> relatively simple problem. Thoughts?
+On Mon, Jul 23, 2018 at 11:16:11PM +0100, Robin Murphy wrote:
+> Now that we can track upstream DMA constraints properly with
+> bus_dma_mask instead of trying (and failing) to maintain it in
+> coherent_dma_mask, it doesn't make much sense for the firmware code to
+> be touching the latter at all. It's merely papering over bugs wherein a
+> driver has failed to call dma_set_coherent_mask() *and* the bus code has
+> not initialised any default value.
 
-As long as you're happy to live inside config2, that sounds sensible to me.
+Nit: I do not think the driver had a chance to probe and therefore call
+dma_set_coherent_mask() before iort_dma_setup() is executed, right ?
 
-Will
+Anyway, the patch makes perfect sense:
+
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+
+> We don't really want to encourage more drivers coercing dma_mask so
+> we'll continue to fix that up if necessary, but add a warning to help
+> flush out any such buggy bus code that remains.
+> 
+> CC: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> CC: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> CC: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
+> Signed-off-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 22 +++++++++++-----------
+>  1 file changed, 11 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index bc51cff5505e..08f26db2da7e 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -978,20 +978,20 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+>  	int ret, msb;
+>  
+>  	/*
+> -	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
+> -	 * setup the correct supported mask.
+> +	 * If @dev is expected to be DMA-capable then the bus code that created
+> +	 * it should have initialised its dma_mask pointer by this point. For
+> +	 * now, we'll continue the legacy behaviour of coercing it to the
+> +	 * coherent mask if not, but we'll no longer do so quietly.
+>  	 */
+> -	if (!dev->coherent_dma_mask)
+> -		dev->coherent_dma_mask = DMA_BIT_MASK(32);
+> -
+> -	/*
+> -	 * Set it to coherent_dma_mask by default if the architecture
+> -	 * code has not set it.
+> -	 */
+> -	if (!dev->dma_mask)
+> +	if (!dev->dma_mask) {
+> +		dev_warn(dev, "DMA mask not set\n");
+>  		dev->dma_mask = &dev->coherent_dma_mask;
+> +	}
+>  
+> -	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+> +	if (dev->coherent_dma_mask)
+> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
+> +	else
+> +		size = 1ULL << 32;
+>  
+>  	if (dev_is_pci(dev)) {
+>  		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
+> -- 
+> 2.17.1.dirty
+> 
