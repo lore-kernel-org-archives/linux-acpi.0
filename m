@@ -1,68 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: Avoid PM quirks on suspend and resume from S3
-Date: Thu, 26 Jul 2018 10:50:35 +0200
-Message-ID: <24724042.UC9DsrE2FJ@aspire.rjw.lan>
-References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com> <CAJZ5v0ifKcipGG0sM0iK0p4K0-V-PyoL-JfTH6uVVWoCA-eXnw@mail.gmail.com> <76C1A830-EEE1-486B-9B06-6C915C269278@canonical.com>
+From: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
+Subject: Re: [PATCH v2 5/7] iommu/dma: Respect bus DMA limit for IOVAs
+Date: Thu, 26 Jul 2018 10:58:21 +0200
+Message-ID: <20180726085821.GB23310@lst.de>
+References: <cover.1532382222.git.robin.murphy@arm.com>
+	<d370670edae9c9c537a5280c5e7c96bf3ec7ed8f.1532382222.git.robin.murphy@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <76C1A830-EEE1-486B-9B06-6C915C269278@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kai-Heng Feng <kai.heng.feng@canonical.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PM <linux-pm@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <d370670edae9c9c537a5280c5e7c96bf3ec7ed8f.1532382222.git.robin.murphy-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, July 26, 2018 10:15:03 AM CEST Kai-Heng Feng wrote:
-> 
-> > On 2018Jul26, at 16:14, Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > 
-> > On Thu, Jul 26, 2018 at 5:46 AM, Kai-Heng Feng
-> > <kai.heng.feng@canonical.com> wrote:
-> >> Hi Rafael,
-> >> 
-> >>> On 2018Jul24, at 18:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >>> 
-> >>> On Tuesday, July 24, 2018 11:13:42 AM CEST Rafael J. Wysocki wrote:
-> >>>> On Tuesday, July 24, 2018 10:46:09 AM CEST Kai Heng Feng wrote:
-> >>>>> Hi Rafael,
-> >>>>> 
-> >>>>>> On Jun 13, 2018, at 7:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >>>>>> 
-> >>>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >>>>>> 
-> >>>>>> It is reported that commit a192aa923b66a (ACPI / LPSS: Consolidate
-> >>>>>> runtime PM and system sleep handling) introduced a system suspend
-> >>>>>> regression on some machines, but the only functional change made by
-> >>>>>> it was to cause the PM quirks in the LPSS to also be used during
-> >>>>>> system suspend and resume.  While that should always work for
-> >>>>>> suspend-to-idle, it turns out to be problematic for S3
-> >>>>>> (suspend-to-RAM).
-> >>>>>> 
-> >>>>>> To address that issue restore the previous S3 suspend and resume
-> >>>>>> behavior of the LPSS to avoid applying PM quirks then.
-> >>>>> 
-> >>>>> The users reported that this patch does fix the S3 issue, but the S4 still
-> >>>>> fails.
-> >>>>> 
-> >>>>> Please refer to [1] for more for user's testing result.
-> >>>>> 
-> >>>>> [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1774950/comments/60
-> >>>> 
-> >>>> Please ask the users to test the patch below, then, on top of the $subject one.
-> >>> 
-> >>> There was a mistake in the previous patch I posted, sorry about that.
-> >>> 
-> >>> Please test this one instead:
-> >> 
-> >> The result is positive, thanks!
-> > 
-> > Good, thanks!
-> > 
-> > I assume that S3 still works with this patch applied too.
-> 
-> Yes, S3 continues to work with this patch.
+On Mon, Jul 23, 2018 at 11:16:10PM +0100, Robin Murphy wrote:
+> Bonus question: Now that we're collecing DMA API code in kernel/dma/
+> do we want to reevaluate dma-iommu? On the one hand it's the bulk of a
+> dma_ops implementation so should perhaps move, but on the other it's
+> entirely IOMMU-specific code so should perhaps stay where it is... :/
 
-OK, thanks!
-
-Let me resend the patch with a proper subject and changelog, then.
+I think drivers/iommu/ is the right place for it.  Higher priorities
+would be to actually make it a complete dma_map_ops implementation,
+which should be doable by next merge window, and to actually use it
+for non-arm(64) iommu drivers..
