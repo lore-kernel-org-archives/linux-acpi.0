@@ -1,12 +1,12 @@
 From: Dongjiu Geng <gengdongjiu@huawei.com>
 Subject: [PATCH] arm64: clean the additional checks before calling ghes_notify_sea()
-Date: Thu, 26 Jul 2018 17:01:25 -0400
-Message-ID: <1532638885-45708-1-git-send-email-gengdongjiu@huawei.com>
+Date: Thu, 26 Jul 2018 17:01:47 -0400
+Message-ID: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, lenb@kernel.org, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
+To: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, lenb@kernel.org, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, gengdongjiu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
 In order to remove the additional check before calling the
