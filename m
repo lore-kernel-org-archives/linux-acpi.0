@@ -1,61 +1,45 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH] arm64: clean the additional checks before calling ghes_notify_sea()
-Date: Thu, 26 Jul 2018 17:01:47 -0400
-Message-ID: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fix for v4.18-rc7
+Date: Thu, 26 Jul 2018 16:13:24 +0200
+Message-ID: <CAJZ5v0i=npm4hTb6M2cC=mDOhvnhmcsFPEGywhfuHchi20uwmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, lenb@kernel.org, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, gengdongjiu@huawei.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-In order to remove the additional check before calling the
-ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+Hi Linus,
 
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
----
+Please pull from the tag
 
-This cleanup is ever mentioned by Mark Rutland in [1]
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.18-rc7
 
-[1]:
-https://lkml.org/lkml/2018/5/31/289
----
- arch/arm64/mm/fault.c | 7 +------
- include/acpi/ghes.h   | 4 ++++
- 2 files changed, 5 insertions(+), 6 deletions(-)
+with top-most commit 73c2a01c52b657f4a0ead6c95f64c5279efbd000
 
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index b8eecc7..9ffe01d 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- int handle_guest_sea(phys_addr_t addr, unsigned int esr)
- {
--	int ret = -ENOENT;
--
--	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
--		ret = ghes_notify_sea();
--
--	return ret;
-+	return ghes_notify_sea();
- }
- 
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 1624e2b..82cb4eb 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
- 	     section = acpi_hest_get_next(section))
- 
-+#ifdef CONFIG_ACPI_APEI_SEA
- int ghes_notify_sea(void);
-+#else
-+static inline int ghes_notify_sea(void) { return -ENOENT; }
-+#endif
- 
- #endif /* GHES_H */
--- 
-1.9.1
+ ACPICA: AML Parser: ignore dispatcher error status during table load
+
+on top of commit d72e90f33aa4709ebecc5005562f52335e106a60
+
+ Linux 4.18-rc6
+
+to receive an ACPI fix for 4.18-rc7.
+
+This fixes a recent ACPICA regression causing the AML parser to get
+confused and fail in some situations involving incorrect AML in an
+ACPI table (Erik Schmauss).
+
+Thanks!
+
+
+---------------
+
+Schmauss, Erik (1):
+      ACPICA: AML Parser: ignore dispatcher error status during table load
+
+---------------
+
+ drivers/acpi/acpica/psloop.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
