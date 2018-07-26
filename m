@@ -1,101 +1,165 @@
-From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 6/7] ACPI/IORT: Don't set default coherent DMA mask
-Date: Wed, 25 Jul 2018 16:43:07 +0100
-Message-ID: <05613456-ed7f-98d3-aef3-25fd1da9e6f6@arm.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
-	<3525869e8e7530128bf9718ae8af7d7564b3c684.1532382222.git.robin.murphy@arm.com>
-	<20180725152747.GA5080@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180725152747.GA5080@red-moon>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+From: Kai-Heng Feng <kai.heng.feng@canonical.com>
+Subject: Re: [PATCH] ACPI / LPSS: Avoid PM quirks on suspend and resume from
+ S3
+Date: Thu, 26 Jul 2018 11:46:18 +0800
+Message-ID: <68768884-983A-40EF-B7B4-F19AF4261879@canonical.com>
+References: <DEA1AE84-B0FD-481E-8E0D-788CD4EF59AE@canonical.com>
+ <ABABA247-9C33-4311-ADA5-D0D00B810C6C@canonical.com>
+ <4689933.j1ecWYeVj2@aspire.rjw.lan> <1855125.Q8EGVqeZWv@aspire.rjw.lan>
+Mime-Version: 1.0 (Mac OS X Mail 11.5 \(3445.9.1\))
+Content-Type: text/plain;
+        charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1855125.Q8EGVqeZWv@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, P HeLiOn <perryhelionsemail@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux PM <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018-07-25 4:27 PM, Lorenzo Pieralisi wrote:
-> On Mon, Jul 23, 2018 at 11:16:11PM +0100, Robin Murphy wrote:
->> Now that we can track upstream DMA constraints properly with
->> bus_dma_mask instead of trying (and failing) to maintain it in
->> coherent_dma_mask, it doesn't make much sense for the firmware code to
->> be touching the latter at all. It's merely papering over bugs wherein a
->> driver has failed to call dma_set_coherent_mask() *and* the bus code has
->> not initialised any default value.
+Hi Rafael,
+
+> On 2018Jul24, at 18:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 > 
-> Nit: I do not think the driver had a chance to probe and therefore call
-> dma_set_coherent_mask() before iort_dma_setup() is executed, right ?
-
-Indeed, dma_configure() should be invoked shortly before the driver's 
-.probe() routine, so at this point the struct device has only been 
-touched by the bus code which created it. Anyone managing to call it on 
-a device which already has a driver bound is doing something horribly wrong.
-
-> Anyway, the patch makes perfect sense:
+> On Tuesday, July 24, 2018 11:13:42 AM CEST Rafael J. Wysocki wrote:
+>> On Tuesday, July 24, 2018 10:46:09 AM CEST Kai Heng Feng wrote:
+>>> Hi Rafael,
+>>> 
+>>>> On Jun 13, 2018, at 7:17 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>>> 
+>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>> 
+>>>> It is reported that commit a192aa923b66a (ACPI / LPSS: Consolidate
+>>>> runtime PM and system sleep handling) introduced a system suspend
+>>>> regression on some machines, but the only functional change made by
+>>>> it was to cause the PM quirks in the LPSS to also be used during
+>>>> system suspend and resume.  While that should always work for
+>>>> suspend-to-idle, it turns out to be problematic for S3
+>>>> (suspend-to-RAM).
+>>>> 
+>>>> To address that issue restore the previous S3 suspend and resume
+>>>> behavior of the LPSS to avoid applying PM quirks then.
+>>> 
+>>> The users reported that this patch does fix the S3 issue, but the S4 still  
+>>> fails.
+>>> 
+>>> Please refer to [1] for more for user's testing result.
+>>> 
+>>> [1] https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1774950/comments/60
+>> 
+>> Please ask the users to test the patch below, then, on top of the $subject one.
 > 
-> Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
+> There was a mistake in the previous patch I posted, sorry about that.
+> 
+> Please test this one instead:
 
-Thanks,
-Robin.
+The result is positive, thanks!
 
->> We don't really want to encourage more drivers coercing dma_mask so
->> we'll continue to fix that up if necessary, but add a warning to help
->> flush out any such buggy bus code that remains.
->>
->> CC: Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>
->> CC: Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->> CC: Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>
->> Signed-off-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
->> ---
->>   drivers/acpi/arm64/iort.c | 22 +++++++++++-----------
->>   1 file changed, 11 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index bc51cff5505e..08f26db2da7e 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -978,20 +978,20 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
->>   	int ret, msb;
->>   
->>   	/*
->> -	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
->> -	 * setup the correct supported mask.
->> +	 * If @dev is expected to be DMA-capable then the bus code that created
->> +	 * it should have initialised its dma_mask pointer by this point. For
->> +	 * now, we'll continue the legacy behaviour of coercing it to the
->> +	 * coherent mask if not, but we'll no longer do so quietly.
->>   	 */
->> -	if (!dev->coherent_dma_mask)
->> -		dev->coherent_dma_mask = DMA_BIT_MASK(32);
->> -
->> -	/*
->> -	 * Set it to coherent_dma_mask by default if the architecture
->> -	 * code has not set it.
->> -	 */
->> -	if (!dev->dma_mask)
->> +	if (!dev->dma_mask) {
->> +		dev_warn(dev, "DMA mask not set\n");
->>   		dev->dma_mask = &dev->coherent_dma_mask;
->> +	}
->>   
->> -	size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->> +	if (dev->coherent_dma_mask)
->> +		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->> +	else
->> +		size = 1ULL << 32;
->>   
->>   	if (dev_is_pci(dev)) {
->>   		ret = acpi_dma_get_range(dev, &dmaaddr, &offset, &size);
->> -- 
->> 2.17.1.dirty
->>
+Kai-Heng
+
+> 
+> ---
+> drivers/acpi/acpi_lpss.c |   26 +++++++++++++++++---------
+> 1 file changed, 17 insertions(+), 9 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/acpi_lpss.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/acpi_lpss.c
+> +++ linux-pm/drivers/acpi/acpi_lpss.c
+> @@ -879,6 +879,7 @@ static void acpi_lpss_dismiss(struct dev
+> #define LPSS_GPIODEF0_DMA_LLP		BIT(13)
+> 
+> static DEFINE_MUTEX(lpss_iosf_mutex);
+> +static bool lpss_iosf_d3_entered;
+> 
+> static void lpss_iosf_enter_d3_state(void)
+> {
+> @@ -921,6 +922,9 @@ static void lpss_iosf_enter_d3_state(voi
+> 
+> 	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
+> 			LPSS_IOSF_GPIODEF0, value1, mask1);
+> +
+> +	lpss_iosf_d3_entered = true;
+> +
+> exit:
+> 	mutex_unlock(&lpss_iosf_mutex);
+> }
+> @@ -935,6 +939,11 @@ static void lpss_iosf_exit_d3_state(void
+> 
+> 	mutex_lock(&lpss_iosf_mutex);
+> 
+> +	if (!lpss_iosf_d3_entered)
+> +		goto exit;
+> +
+> +	lpss_iosf_d3_entered = false;
+> +
+> 	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
+> 			LPSS_IOSF_GPIODEF0, value1, mask1);
+> 
+> @@ -944,13 +953,13 @@ static void lpss_iosf_exit_d3_state(void
+> 	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO1, MBI_CFG_WRITE,
+> 			LPSS_IOSF_PMCSR, value2, mask2);
+> 
+> +exit:
+> 	mutex_unlock(&lpss_iosf_mutex);
+> }
+> 
+> -static int acpi_lpss_suspend(struct device *dev, bool runtime)
+> +static int acpi_lpss_suspend(struct device *dev, bool wakeup)
+> {
+> 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> -	bool wakeup = runtime || device_may_wakeup(dev);
+> 	int ret;
+> 
+> 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+> @@ -963,14 +972,14 @@ static int acpi_lpss_suspend(struct devi
+> 	 * wrong status for devices being about to be powered off. See
+> 	 * lpss_iosf_enter_d3_state() for further information.
+> 	 */
+> -	if ((runtime || !pm_suspend_via_firmware()) &&
+> +	if (acpi_target_system_state() == ACPI_STATE_S0 &&
+> 	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+> 		lpss_iosf_enter_d3_state();
+> 
+> 	return ret;
+> }
+> 
+> -static int acpi_lpss_resume(struct device *dev, bool runtime)
+> +static int acpi_lpss_resume(struct device *dev)
+> {
+> 	struct lpss_private_data *pdata = acpi_driver_data(ACPI_COMPANION(dev));
+> 	int ret;
+> @@ -979,8 +988,7 @@ static int acpi_lpss_resume(struct devic
+> 	 * This call is kept first to be in symmetry with
+> 	 * acpi_lpss_runtime_suspend() one.
+> 	 */
+> -	if ((runtime || !pm_resume_via_firmware()) &&
+> -	    lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+> +	if (lpss_quirks & LPSS_QUIRK_ALWAYS_POWER_ON && iosf_mbi_available())
+> 		lpss_iosf_exit_d3_state();
+> 
+> 	ret = acpi_dev_resume(dev);
+> @@ -1004,12 +1012,12 @@ static int acpi_lpss_suspend_late(struct
+> 		return 0;
+> 
+> 	ret = pm_generic_suspend_late(dev);
+> -	return ret ? ret : acpi_lpss_suspend(dev, false);
+> +	return ret ? ret : acpi_lpss_suspend(dev, device_may_wakeup(dev));
+> }
+> 
+> static int acpi_lpss_resume_early(struct device *dev)
+> {
+> -	int ret = acpi_lpss_resume(dev, false);
+> +	int ret = acpi_lpss_resume(dev);
+> 
+> 	return ret ? ret : pm_generic_resume_early(dev);
+> }
+> @@ -1024,7 +1032,7 @@ static int acpi_lpss_runtime_suspend(str
+> 
+> static int acpi_lpss_runtime_resume(struct device *dev)
+> {
+> -	int ret = acpi_lpss_resume(dev, true);
+> +	int ret = acpi_lpss_resume(dev);
+> 
+> 	return ret ? ret : pm_generic_runtime_resume(dev);
+> }
