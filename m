@@ -1,45 +1,70 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v4.18-rc7
-Date: Thu, 26 Jul 2018 16:13:24 +0200
-Message-ID: <CAJZ5v0i=npm4hTb6M2cC=mDOhvnhmcsFPEGywhfuHchi20uwmQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: David Archuleta <darchuletajr@gmail.com>
+Subject: [PATCH] acpi: processor_throttling: fixed a few brace coding style issues.
+Date: Thu, 26 Jul 2018 13:23:41 -0700
+Message-ID: <20180726202341.9816-1-darchuletajr@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, darchuletajr <darchuletajr@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+From: darchuletajr <darchuletajr@gmail.com>
 
-Please pull from the tag
+Fixed a few brace coding style issues found by running
+./scripts/checkpatch
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.18-rc7
+Signed-off-by: David Archuleta Jr. <darchuletajr@gmail.com>
+---
+ drivers/acpi/processor_throttling.c | 12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-with top-most commit 73c2a01c52b657f4a0ead6c95f64c5279efbd000
-
- ACPICA: AML Parser: ignore dispatcher error status during table load
-
-on top of commit d72e90f33aa4709ebecc5005562f52335e106a60
-
- Linux 4.18-rc6
-
-to receive an ACPI fix for 4.18-rc7.
-
-This fixes a recent ACPICA regression causing the AML parser to get
-confused and fail in some situations involving incorrect AML in an
-ACPI table (Erik Schmauss).
-
-Thanks!
-
-
----------------
-
-Schmauss, Erik (1):
-      ACPICA: AML Parser: ignore dispatcher error status during table load
-
----------------
-
- drivers/acpi/acpica/psloop.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+diff --git a/drivers/acpi/processor_throttling.c b/drivers/acpi/processor_throttling.c
+index fbc936cf2025..75cc179b352b 100644
+--- a/drivers/acpi/processor_throttling.c
++++ b/drivers/acpi/processor_throttling.c
+@@ -298,9 +298,8 @@ static int acpi_processor_get_platform_limit(struct acpi_processor *pr)
+ 
+ 	status = acpi_evaluate_integer(pr->handle, "_TPC", NULL, &tpc);
+ 	if (ACPI_FAILURE(status)) {
+-		if (status != AE_NOT_FOUND) {
++		if (status != AE_NOT_FOUND)
+ 			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TPC"));
+-		}
+ 		return -ENODEV;
+ 	}
+ 
+@@ -431,9 +430,8 @@ static int acpi_processor_get_throttling_control(struct acpi_processor *pr)
+ 
+ 	status = acpi_evaluate_object(pr->handle, "_PTC", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+-		if (status != AE_NOT_FOUND) {
++		if (status != AE_NOT_FOUND)
+ 			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _PTC"));
+-		}
+ 		return -ENODEV;
+ 	}
+ 
+@@ -516,9 +514,8 @@ static int acpi_processor_get_throttling_states(struct acpi_processor *pr)
+ 
+ 	status = acpi_evaluate_object(pr->handle, "_TSS", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+-		if (status != AE_NOT_FOUND) {
++		if (status != AE_NOT_FOUND)
+ 			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TSS"));
+-		}
+ 		return -ENODEV;
+ 	}
+ 
+@@ -596,9 +593,8 @@ static int acpi_processor_get_tsd(struct acpi_processor *pr)
+ 
+ 	status = acpi_evaluate_object(pr->handle, "_TSD", NULL, &buffer);
+ 	if (ACPI_FAILURE(status)) {
+-		if (status != AE_NOT_FOUND) {
++		if (status != AE_NOT_FOUND)
+ 			ACPI_EXCEPTION((AE_INFO, status, "Evaluating _TSD"));
+-		}
+ 		return -ENODEV;
+ 	}
+ 
+-- 
+2.18.0
