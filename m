@@ -1,33 +1,61 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Avoid PM quirks on suspend and resume from
- hibernation
-Date: Thu, 26 Jul 2018 12:59:25 +0300
-Message-ID: <20180726095925.GU2534@lahna.fi.intel.com>
-References: <1645662.bYMTJFObNO@aspire.rjw.lan>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH] arm64: clean the additional checks before calling ghes_notify_sea()
+Date: Thu, 26 Jul 2018 17:01:25 -0400
+Message-ID: <1532638885-45708-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1645662.bYMTJFObNO@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Kai-Heng Feng <kai.heng.feng@canonical.com>, Linux PM <linux-pm@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>
+To: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, lenb@kernel.org, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jul 26, 2018 at 10:58:20AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> Commit a09c59130688 (ACPI / LPSS: Avoid PM quirks on suspend and
-> resume from S3) modified the ACPI driver for Intel SoCs (LPSS) to
-> avoid applying PM quirks on suspend and resume from S3 to address
-> system-wide suspend and resume problems on some systems, but it is
-> reported that the same issue also affects hibernation, so extend
-> the approach used by that commit to cover hibernation as well.
-> 
-> Fixes: a09c59130688 (ACPI / LPSS: Avoid PM quirks on suspend and resume from S3)
-> Link: https://bugs.launchpad.net/bugs/1774950
-> Reported-by: Kai-Heng Feng <kai.heng.feng@canonical.com>
-> Cc: 4.15+ <stable@vger.kernel.org> # 4.15+
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+In order to remove the additional check before calling the
+ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+---
+
+This cleanup is ever mentioned by Mark Rutland in [1]
+
+[1]:
+https://lkml.org/lkml/2018/5/31/289
+---
+ arch/arm64/mm/fault.c | 7 +------
+ include/acpi/ghes.h   | 4 ++++
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index b8eecc7..9ffe01d 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+ 
+ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+ {
+-	int ret = -ENOENT;
+-
+-	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+-		ret = ghes_notify_sea();
+-
+-	return ret;
++	return ghes_notify_sea();
+ }
+ 
+ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 1624e2b..82cb4eb 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+ 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+ 	     section = acpi_hest_get_next(section))
+ 
++#ifdef CONFIG_ACPI_APEI_SEA
+ int ghes_notify_sea(void);
++#else
++static inline int ghes_notify_sea(void) { return -ENOENT; }
++#endif
+ 
+ #endif /* GHES_H */
+-- 
+1.9.1
