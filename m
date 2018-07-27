@@ -1,116 +1,165 @@
-From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 7/7] OF: Don't set default coherent DMA mask
-Date: Fri, 27 Jul 2018 21:42:14 +0100
-Message-ID: <6d18c0fb-58ed-e4a7-32a4-8bcfa4dc3761@arm.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
-	<66c08e4df2032fde82a2f97544f41fd3a2f24a94.1532382222.git.robin.murphy@arm.com>
-	<4ed75bc9-1694-2bcb-2ea9-3f2a04f33f54@ti.com>
-	<92d6b010-b5c0-fc59-0668-5b455e26c912@ti.com>
-	<c7a9c7ae-1f4a-af9d-df78-1f48bb5c28a5@arm.com>
-	<20180727181302.GC17271@n2100.armlinux.org.uk>
-	<affa2718-5f3a-7439-db25-ce171a99414a@ti.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v1 2/2] PCI: Document ACPI description of PCI host bridges
+Date: Fri, 27 Jul 2018 16:01:48 -0500
+Message-ID: <20180727210147.GE173328@bhelgaas-glaptop.roam.corp.google.com>
+References: <153030390808.57832.2200774416664543563.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <153030406630.57832.11564334393458981467.stgit@bhelgaas-glaptop.roam.corp.google.com>
+ <CAJZ5v0iBZRJuh8Yu03p-k_rR_oxr9rJiOvRmvXpOxPjScM+w1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <affa2718-5f3a-7439-db25-ce171a99414a-l0cyMroinI0@public.gmane.org>
-Content-Language: en-GB
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0iBZRJuh8Yu03p-k_rR_oxr9rJiOvRmvXpOxPjScM+w1Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018-07-27 7:45 PM, Grygorii Strashko wrote:
-[...]
-> But I have a question to all:
-> - The patch [1] sets default DMA mask to DMA_BIT_MASK(32)
-> +	dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-> +	if (!dev->dev.dma_mask)
-> +		dev->dev.dma_mask = &dev->dev.coherent_dma_mask;
+On Wed, Jul 04, 2018 at 11:40:52AM +0200, Rafael J. Wysocki wrote:
+> On Fri, Jun 29, 2018 at 10:27 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > From: Bjorn Helgaas <bhelgaas@google.com>
+> >
+> > Add a writeup about how PCI host bridges should be described in ACPI
+> > using PNP0A03/PNP0A08 devices, PNP0C02 devices, and the MCFG table.
+> >
+> > Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> > ---
+> >  Documentation/PCI/00-INDEX      |    2
+> >  Documentation/PCI/acpi-info.txt |  183 +++++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 185 insertions(+)
+> >  create mode 100644 Documentation/PCI/acpi-info.txt
+> >
+> > diff --git a/Documentation/PCI/00-INDEX b/Documentation/PCI/00-INDEX
+> > index 0f1d1de087f1..fc6af2957e55 100644
+> > --- a/Documentation/PCI/00-INDEX
+> > +++ b/Documentation/PCI/00-INDEX
+> > @@ -1,5 +1,7 @@
+> >  00-INDEX
+> >         - this file
+> > +acpi-info.txt
+> > +       - info on how PCI host bridges are represented in ACPI
+> >  MSI-HOWTO.txt
+> >         - the Message Signaled Interrupts (MSI) Driver Guide HOWTO and FAQ.
+> >  PCIEBUS-HOWTO.txt
+> > diff --git a/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
+> > new file mode 100644
+> > index 000000000000..9b8e7b560b50
+> > --- /dev/null
+> > +++ b/Documentation/PCI/acpi-info.txt
+> > @@ -0,0 +1,183 @@
+> > +           ACPI considerations for PCI host bridges
+> > +
+> > +The general rule is that the ACPI namespace should describe everything the
+> > +OS might use unless there's another way for the OS to find it [1, 2].
+> > +
+> > +For example, there's no standard hardware mechanism for enumerating PCI
+> > +host bridges, so ACPI must describe each host bridge, the method for
+> > +accessing PCI config space below it, the address space windows the bridge
+> > +forwards to PCI, and the routing of legacy INTx interrupts.
+> > +
+> > +PCI devices *below* the host bridge generally do not need to be described
+> > +via ACPI because the OS can discover them via the standard PCI enumeration
+> > +mechanism, which uses config accesses to discover and identify the device
+> > +and read and size its BARs.
 > 
-> this will also work the same way for ARM64
+> While they can be discovered without ACPI, power management or hotplug
+> may depend on it.
 > 
-> - But of_dma_configure() still have code which does:
-> 	dev->coherent_dma_mask &= mask;
-> 	*dev->dma_mask &= mask;
+> Also things like _PRT come to mind here.
+
+Good point.  I added some text for these items (see below).
+
+> > +ACPI resource description is done via _CRS objects of devices in the ACPI
+> > +namespace [2].   The _CRS is like a generalized PCI BAR: the OS can read
+> > +_CRS and figure out what resource is being consumed even if it doesn't have
+> > +a driver for the device [3].  That's important because it means an old OS
+> > +can work correctly even on a system with new devices unknown to the OS.
+> > +The new devices might not do anything, but the OS can at least make sure no
+> > +resources conflict with them.
+> > +
+> > +Static tables like MCFG, HPET, ECDT, etc., are *not* mechanisms for
+> > +reserving address space!  The static tables are for things the OS needs to
+> > +know early in boot, before it can parse the ACPI namespace.  If a new table
+> > +is defined, an old OS needs to operate correctly even though it ignores the
+> > +table.  _CRS allows that because it is generic and understood by the old
+> > +OS; a static table does not.
+> > +
+> > +If the OS is expected to manage a non-discoverable device described via
+> > +ACPI, that device will have a specific _HID/_CID that tells the OS what
+> > +driver to bind to it, and the _CRS tells the OS and the driver where the
+> > +device's registers are.
+> > +
+> > +PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
+> > +describe all the address space they consume.  This includes all the windows
+> > +they forward down to the PCI bus, as well as bridge registers that are not
 > 
-> As result, DMA mask supplied from DT will always be truncated
->   to 32 bit for platform devices. for example:
-> 
-> soc0: soc0 {
->          compatible = "simple-bus";
->          #address-cells = <2>;
->          #size-cells = <2>;
->          ranges;
-> +        dma-ranges = <0 0 0 0 0x10000 0>;
-> 
-> ^ 48 bit DMA mask expected to be generated and assigned.
-> 
-> But real mask will be DMA_BIT_MASK(32). As result, any
-> DMA capable driver will have be modified to do dma_set_xxx_mask(),
-> which disregards DT DMA configuration (especially for HW modules
-> which are used on ARM32 and ARM64).
+> I believe you mean registers of the host bridge itself here, but it is
+> somewhat unclear if that applies to bridges below it too.
 
-That has always been the case. Drivers which want to use 
-larger-than-32-bit masks *must* explicitly say so. The issue that the DT 
-dma-ranges (and ACPI equivalents) cannot be preserved in the device DMA 
-masks is the entire purpose of this series. At the moment there's only a 
-couple of point fixes for specific places with known problems, but this 
-is just the start of some ongoing work.
+Right, I do mean host bridge registers for all the "bridge"
+occurrences in this paragraph.  I changed all these references to
+"host bridge".
 
-> Could it be considered to do one the changes below?
-> 
-> 1) assign mask in case of dt
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index 5957cd4..f7dc121 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -150,8 +150,8 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
->           */
->          mask = DMA_BIT_MASK(ilog2(dma_addr + size - 1) + 1);
->          dev->bus_dma_mask = mask;
-> -       dev->coherent_dma_mask &= mask;
-> -       *dev->dma_mask &= mask;
-> +       dev->coherent_dma_mask = mask;
-> +       *dev->dma_mask = mask;
->   
->          coherent = of_dma_is_coherent(np);
+PCI-to-PCI bridges below the host bridge are just like any other PCI
+device, of course.  Their config registers are accessed via the normal
+config accessors and their MMIO space (if any) would be included in
+the host bridge's apertures.
 
-No, because that leads to a risk of DMA address truncation in hardware 
-(and thus at worst random memory corruption) when drivers expect the 
-default mask to be 32-bit and fail to explicitly set it as such.
+> > +forwarded to PCI.  The bridge registers include things like secondary/
+> > +subordinate bus registers that determine the bus range below the bridge,
+> > +window registers that describe the apertures, etc.  These are all
+> > +device-specific, non-architected things, so the only way a PNP0A03/PNP0A08
+> > +driver can manage them is via _PRS/_CRS/_SRS, which contain the
+> > +device-specific details.  The bridge registers also include ECAM space,
+> > +since it is consumed by the bridge.
 
-> 2) use BITS_PER_LONG for default DMA mask for of_platform devices
-> 
-> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-> index 7ba90c2..3f326e2 100644
-> --- a/drivers/of/platform.c
-> +++ b/drivers/of/platform.c
-> @@ -185,7 +185,7 @@ static struct platform_device *of_platform_device_create_pdata(
->          if (!dev)
->                  goto err_clear_flag;
->   
-> -       dev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
-> +       dev->dev.coherent_dma_mask = DMA_BIT_MASK(BITS_PER_LONG);
->          if (!dev->dev.dma_mask)
->                  dev->dev.dma_mask = &dev->dev.coherent_dma_mask;
+I made the following changes (hand-edited to remove trivial changes):
 
-No, because that leads to a risk of DMA address truncation in hardware 
-(and thus at worst random memory corruption) when drivers expect the 
-default mask to be 32-bit and fail to explicitly set it as such.
-
-> 3) ...
-
-Remember when we found out how many drivers expect the default mask to 
-be 32-bit and fail to explicitly set it as such, because they all broke 
-when some chump set it to 0 in linux-next for a day? ;)
-
-Robin.
+diff -u b/Documentation/PCI/acpi-info.txt b/Documentation/PCI/acpi-info.txt
+--- b/Documentation/PCI/acpi-info.txt
++++ b/Documentation/PCI/acpi-info.txt
+@@ -1,17 +1,21 @@
+ 
+ For example, there's no standard hardware mechanism for enumerating PCI
+-host bridges, so ACPI must describe each host bridge, the method for
+-accessing PCI config space below it, the address space windows the bridge
+-forwards to PCI, and the routing of legacy INTx interrupts.
+-
+-PCI devices *below* the host bridge generally do not need to be described
+-via ACPI because the OS can discover them via the standard PCI enumeration
+-mechanism, which uses config accesses to discover and identify the device
+-and read and size its BARs.
++host bridges, so the ACPI namespace must describe each host bridge, the
++method for accessing PCI config space below it, the address space windows
++the host bridge forwards to PCI (using _CRS), and the routing of legacy
++INTx interrupts (using _PRT).
++
++PCI devices, which are below the host bridge, generally do not need to be
++described via ACPI.  The OS can discover them via the standard PCI
++enumeration mechanism, using config accesses to discover and identify
++devices and read and size their BARs.  However, ACPI may describe PCI
++devices if it provides power management or hotplug functionality for them
++or if the device has INTx interrupts connected by platform interrupt
++controllers and a _PRT is needed to describe those connections.
+ 
+@@ -35,14 +39,14 @@
+ 
+ PCI host bridges are PNP0A03 or PNP0A08 devices.  Their _CRS should
+ describe all the address space they consume.  This includes all the windows
+-they forward down to the PCI bus, as well as bridge registers that are not
+-forwarded to PCI.  The bridge registers include things like secondary/
+-subordinate bus registers that determine the bus range below the bridge,
+-window registers that describe the apertures, etc.  These are all
+-device-specific, non-architected things, so the only way a PNP0A03/PNP0A08
+-driver can manage them is via _PRS/_CRS/_SRS, which contain the
+-device-specific details.  The bridge registers also include ECAM space,
+-since it is consumed by the bridge.
++they forward down to the PCI bus, as well as registers of the host bridge
++itself that are not forwarded to PCI.  The host bridge registers include
++things like secondary/subordinate bus registers that determine the bus
++range below the bridge, window registers that describe the apertures, etc.
++These are all device-specific, non-architected things, so the only way a
++PNP0A03/PNP0A08 driver can manage them is via _PRS/_CRS/_SRS, which contain
++the device-specific details.  The host bridge registers also include ECAM
++space, since it is consumed by the host bridge.
