@@ -1,156 +1,72 @@
-From: Grygorii Strashko <grygorii.strashko@ti.com>
-Subject: Re: [PATCH v2 7/7] OF: Don't set default coherent DMA mask
-Date: Thu, 26 Jul 2018 19:22:35 -0500
-Message-ID: <92d6b010-b5c0-fc59-0668-5b455e26c912@ti.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
- <66c08e4df2032fde82a2f97544f41fd3a2f24a94.1532382222.git.robin.murphy@arm.com>
- <4ed75bc9-1694-2bcb-2ea9-3f2a04f33f54@ti.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] arm64: clean the additional checks before calling
+ ghes_notify_sea()
+Date: Fri, 27 Jul 2018 11:06:18 +0100
+Message-ID: <20180727100617.GB25592@arm.com>
+References: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <4ed75bc9-1694-2bcb-2ea9-3f2a04f33f54@ti.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Robin Murphy <robin.murphy@arm.com>, hch@lst.de, m.szyprowski@samsung.com
-Cc: lorenzo.pieralisi@arm.com, gregkh@linuxfoundation.org, joro@8bytes.org, x86@kernel.org, linux-acpi@vger.kernel.org, iommu@lists.linux-foundation.org, robh+dt@kernel.org, hanjun.guo@linaro.org, sudeep.holla@arm.com, frowand.list@gmail.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: catalin.marinas@arm.com, mark.rutland@arm.com, lenb@kernel.org, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Jul 26, 2018 at 05:01:47PM -0400, Dongjiu Geng wrote:
+> In order to remove the additional check before calling the
+> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+> 
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> ---
 
+Acked-by: Will Deacon <will.deacon@arm.com>
 
-On 07/26/2018 06:52 PM, Grygorii Strashko wrote:
-> 
-> 
-> On 07/23/2018 05:16 PM, Robin Murphy wrote:
->> Now that we can track upstream DMA constraints properly with
->> bus_dma_mask instead of trying (and failing) to maintain it in
->> coherent_dma_mask, it doesn't make much sense for the firmware code to
->> be touching the latter at all. It's merely papering over bugs wherein a
->> driver has failed to call dma_set_coherent_mask() *and* the bus code has
->> not initialised any default value.
->>
->> We don't really want to encourage more drivers coercing dma_mask so
->> we'll continue to fix that up if necessary, but add a warning to help
->> flush out any such buggy bus code that remains.
->>
->> CC: Rob Herring <robh+dt@kernel.org>
->> CC: Frank Rowand <frowand.list@gmail.com>
->> Signed-off-by: Robin Murphy <robin.murphy@arm.com>
->> ---
->>    drivers/of/device.c | 20 ++++++++++----------
->>    1 file changed, 10 insertions(+), 10 deletions(-)
->>
->> diff --git a/drivers/of/device.c b/drivers/of/device.c
->> index 0d39633e8545..5957cd4fa262 100644
->> --- a/drivers/of/device.c
->> +++ b/drivers/of/device.c
->> @@ -127,20 +127,20 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
->>    	}
->>    
->>    	/*
->> -	 * Set default coherent_dma_mask to 32 bit.  Drivers are expected to
->> -	 * setup the correct supported mask.
->> +	 * If @dev is expected to be DMA-capable then the bus code that created
->> +	 * it should have initialised its dma_mask pointer by this point. For
->> +	 * now, we'll continue the legacy behaviour of coercing it to the
->> +	 * coherent mask if not, but we'll no longer do so quietly.
->>    	 */
->> -	if (!dev->coherent_dma_mask)
->> -		dev->coherent_dma_mask = DMA_BIT_MASK(32);
->> -	/*
->> -	 * Set it to coherent_dma_mask by default if the architecture
->> -	 * code has not set it.
->> -	 */
->> -	if (!dev->dma_mask)
->> +	if (!dev->dma_mask) {
->> +		dev_warn(dev, "DMA mask not set\n");
->>    		dev->dma_mask = &dev->coherent_dma_mask;
->> +	}
->>    
->> -	if (!size)
->> +	if (!size && dev->coherent_dma_mask)
->>    		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
->> +	else if (!size)
->> +		size = 1ULL << 32;
->>    
->>    	dev->dma_pfn_offset = offset;
->>    
->>
-> 
-> the result of this change is pretty strange as for me :(
-> Resulted code:
-> 
-> 	/*
-> 	 * If @dev is expected to be DMA-capable then the bus code that created
-> 	 * it should have initialised its dma_mask pointer by this point. For
-> 	 * now, we'll continue the legacy behaviour of coercing it to the
-> 	 * coherent mask if not, but we'll no longer do so quietly.
-> 	 */
-> 	if (!dev->dma_mask) {
-> 		dev_warn(dev, "DMA mask not set\n");
-> 		dev->dma_mask = &dev->coherent_dma_mask;
-> ^this will always produce warning in case of platform-bus or if there are no bus driver.
-> even if DT contains correct definition of dma-range
-> 	}
-> 
-> 	if (!size && dev->coherent_dma_mask)
-> 
-> ^ coherent_dma_mask is zero, so size will not be calculated
-pls, ignore this particular comment 
+Will
 
-> 		size = max(dev->coherent_dma_mask, dev->coherent_dma_mask + 1);
-> 	else if (!size)
-> 		size = 1ULL << 32;
+> This cleanup is ever mentioned by Mark Rutland in [1]
 > 
-> 	dev->dma_pfn_offset = offset;
+> [1]:
+> https://lkml.org/lkml/2018/5/31/289
+> ---
+>  arch/arm64/mm/fault.c | 7 +------
+>  include/acpi/ghes.h   | 4 ++++
+>  2 files changed, 5 insertions(+), 6 deletions(-)
 > 
-> 	/*
-> 	 * Limit coherent and dma mask based on size and default mask
-> 	 * set by the driver.
-> 	 */
-> 	mask = DMA_BIT_MASK(ilog2(dma_addr + size - 1) + 1);
-> 	dev->bus_dma_mask = mask;
-> 	dev->coherent_dma_mask &= mask;
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index b8eecc7..9ffe01d 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>  
+>  int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+>  {
+> -	int ret = -ENOENT;
+> -
+> -	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+> -		ret = ghes_notify_sea();
+> -
+> -	return ret;
+> +	return ghes_notify_sea();
+>  }
+>  
+>  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 1624e2b..82cb4eb 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+>  	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+>  	     section = acpi_hest_get_next(section))
+>  
+> +#ifdef CONFIG_ACPI_APEI_SEA
+>  int ghes_notify_sea(void);
+> +#else
+> +static inline int ghes_notify_sea(void) { return -ENOENT; }
+> +#endif
+>  
+>  #endif /* GHES_H */
+> -- 
+> 1.9.1
 > 
-> ^^ if nobody set coherent_dma_mask before it will stay null forever unless drivers
-> will overwrite it. Again even if DT has correct definition for dma-range.
-> 
-> 	*dev->dma_mask &= mask;
-> 
-> 	coherent = of_dma_is_coherent(np);
-> 	dev_dbg(dev, "device is%sdma coherent\n",
-> 		coherent ? " " : " not ");
-> 
-> 
-
-FYI, with below diff i can boot at least:
-
-diff --git a/drivers/of/device.c b/drivers/of/device.c
-index 5957cd4..f7dc121 100644
---- a/drivers/of/device.c
-+++ b/drivers/of/device.c
-@@ -150,8 +150,8 @@ int of_dma_configure(struct device *dev, struct device_node *np, bool force_dma)
-         */
-        mask = DMA_BIT_MASK(ilog2(dma_addr + size - 1) + 1);
-        dev->bus_dma_mask = mask;
--       dev->coherent_dma_mask &= mask;
--       *dev->dma_mask &= mask;
-+       dev->coherent_dma_mask = mask;
-+       *dev->dma_mask = mask;
- 
-        coherent = of_dma_is_coherent(np);
-        dev_dbg(dev, "device is%sdma coherent\n",
-
-
-
--- 
-regards,
--grygorii
