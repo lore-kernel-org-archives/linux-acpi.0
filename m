@@ -1,18 +1,18 @@
 From: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
 Subject: Re: [PATCH v2 7/7] OF: Don't set default coherent DMA mask
-Date: Fri, 27 Jul 2018 20:29:18 +0100
-Message-ID: <5b64c3c1-f18d-4db1-e764-d0cbdc8fa326@arm.com>
+Date: Fri, 27 Jul 2018 20:46:06 +0100
+Message-ID: <d3a4e0c3-a2cf-ec29-bfad-10b86e2e071c@arm.com>
 References: <cover.1532382222.git.robin.murphy@arm.com>
 	<66c08e4df2032fde82a2f97544f41fd3a2f24a94.1532382222.git.robin.murphy@arm.com>
 	<4ed75bc9-1694-2bcb-2ea9-3f2a04f33f54@ti.com>
 	<92d6b010-b5c0-fc59-0668-5b455e26c912@ti.com>
 	<c7a9c7ae-1f4a-af9d-df78-1f48bb5c28a5@arm.com>
-	<20180727181302.GC17271@n2100.armlinux.org.uk>
+	<108a6254-1257-5daf-deaa-69bc4db2ec77@ti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
 Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180727181302.GC17271-l+eeeJia6m9URfEZ8mYm6t73F7V6hmMc@public.gmane.org>
+In-Reply-To: <108a6254-1257-5daf-deaa-69bc4db2ec77-l0cyMroinI0@public.gmane.org>
 Content-Language: en-GB
 List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
@@ -23,56 +23,68 @@ List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
 	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
 Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
 Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>
-Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, hch-jcswGhMUV9g@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Grygorii Strashko <grygorii.strashko-l0cyMroinI0@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, m.szyprowski-Sze3O3UU22JBDgjK7y7TUQ@public.gmane.org, Russell King - ARM Linux <linux-I+IVW8TIWO2tmTQ+vhA3Yw@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org, frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018-07-27 7:13 PM, Russell King - ARM Linux wrote:
-> On Fri, Jul 27, 2018 at 12:36:00PM +0100, Robin Murphy wrote:
->> That is intentional. Consider a 32-bit device on a bus with an upstream DMA
->> range of 40 bits (which could easily happen with e.g. PCI). If the firmware
->> code gives that device 40-bit DMA masks and the driver doesn't change them,
->> then DMA is not going to work correctly. Therefore the firmware code cannot
->> safely make {coherent_}dma_mask larger than the default value passed in, and
->> if the default is 0 then that should be fixed in whatever code created the
->> device, not worked around later.
-> 
-> I think you're missing the point.
-
-No, I'm just failing to make it clearly enough. Sorry about that.
-
-> When OF creates platform devices, they are created without any DMA masks
-> what so ever.  It is only during device probe that dma_configure() gets
-> called, which then calls of_dma_configure(), where the DMA mask for any
-> DT declared device is setup.
-
-Indeed, because the DMA mask initialisation which was originally part of 
-OF platform device creation got factored out into of_dma_configure(), 
-then of_dma_configure() got repurposed into a 
-non-platform-device-specific helper, then DMA configuration got 
-generalised more and moved from device creation to probe time, and it 
-now transpires that what looked like an unnecessary vestigial leftover 
-was in fact some OF-platform-specific code all along. Which, having now 
-made that realisitaion, I've put back where it originally was and 
-conceptually should be.
-
-> What this means is that your change has broken all existing DT devices
-> that are trying to use DMA, because they now end up with a zero coherent
-> DMA mask and/or streaming DMA mask.
-
-All existing DT devices that are trying to use DMA *without first 
-calling dma_set_mask() etc. as the API expects* - I could point you at 
-lines 166-171 of DMA-API-HOWTO.txt, but given that the last person to 
-touch half this stuff was you, that feels almost impolite. It appears 
-all the drivers on the machines I boot-tested are well-behaved and do do 
-that. In a few hours we'll have a useful datapoint from the kernelci.org 
-boot logs about how many aren't and don't. Happy accidents 'n'all...
-
-> Your original idea behind the patch may be a sound one, but since the
-> implementation has caused a regression, the implementation is obviously
-> broken, and that needs fixing or reworking in some way.
-
-Already done: 
-http://git.infradead.org/users/hch/dma-mapping.git/commitdiff/a5516219b10218a87abb3352c82248ce3088e94a
-
-Robin.
+T24gMjAxOC0wNy0yNyA2OjM0IFBNLCBHcnlnb3JpaSBTdHJhc2hrbyB3cm90ZToKPiBPbiAwNy8y
+Ny8yMDE4IDA2OjM2IEFNLCBSb2JpbiBNdXJwaHkgd3JvdGU6Cj4+IE9uIDI3LzA3LzE4IDAxOjIy
+LCBHcnlnb3JpaSBTdHJhc2hrbyB3cm90ZToKPj4gWy4uLl0KPj4+PiB0aGUgcmVzdWx0IG9mIHRo
+aXMgY2hhbmdlIGlzIHByZXR0eSBzdHJhbmdlIGFzIGZvciBtZSA6KAo+Pj4+IFJlc3VsdGVkIGNv
+ZGU6Cj4+Pj4KPj4+PiDCoMKgwqDCoC8qCj4+Pj4gwqDCoMKgwqAgKiBJZiBAZGV2IGlzIGV4cGVj
+dGVkIHRvIGJlIERNQS1jYXBhYmxlIHRoZW4gdGhlIGJ1cyBjb2RlIHRoYXQgCj4+Pj4gY3JlYXRl
+ZAo+Pj4+IMKgwqDCoMKgICogaXQgc2hvdWxkIGhhdmUgaW5pdGlhbGlzZWQgaXRzIGRtYV9tYXNr
+IHBvaW50ZXIgYnkgdGhpcyAKPj4+PiBwb2ludC4gRm9yCj4+Pj4gwqDCoMKgwqAgKiBub3csIHdl
+J2xsIGNvbnRpbnVlIHRoZSBsZWdhY3kgYmVoYXZpb3VyIG9mIGNvZXJjaW5nIGl0IHRvIHRoZQo+
+Pj4+IMKgwqDCoMKgICogY29oZXJlbnQgbWFzayBpZiBub3QsIGJ1dCB3ZSdsbCBubyBsb25nZXIg
+ZG8gc28gcXVpZXRseS4KPj4+PiDCoMKgwqDCoCAqLwo+Pj4+IMKgwqDCoMKgaWYgKCFkZXYtPmRt
+YV9tYXNrKSB7Cj4+Pj4gwqDCoMKgwqDCoMKgwqAgZGV2X3dhcm4oZGV2LCAiRE1BIG1hc2sgbm90
+IHNldFxuIik7Cj4+Pj4gwqDCoMKgwqDCoMKgwqAgZGV2LT5kbWFfbWFzayA9ICZkZXYtPmNvaGVy
+ZW50X2RtYV9tYXNrOwo+Pj4+IF50aGlzIHdpbGwgYWx3YXlzIHByb2R1Y2Ugd2FybmluZyBpbiBj
+YXNlIG9mIHBsYXRmb3JtLWJ1cyBvciBpZiAKPj4+PiB0aGVyZSBhcmUgbm8gYnVzIGRyaXZlci4K
+Pj4+PiBldmVuIGlmIERUIGNvbnRhaW5zIGNvcnJlY3QgZGVmaW5pdGlvbiBvZiBkbWEtcmFuZ2UK
+Pj4+PiDCoMKgwqDCoH0KPj4+Pgo+Pj4+IMKgwqDCoMKgaWYgKCFzaXplICYmIGRldi0+Y29oZXJl
+bnRfZG1hX21hc2spCj4+Pj4KPj4+PiBeIGNvaGVyZW50X2RtYV9tYXNrIGlzIHplcm8sIHNvIHNp
+emUgd2lsbCBub3QgYmUgY2FsY3VsYXRlZAo+Pj4gcGxzLCBpZ25vcmUgdGhpcyBwYXJ0aWN1bGFy
+IGNvbW1lbnQKPj4+Cj4+Pj4gwqDCoMKgwqDCoMKgwqAgc2l6ZSA9IG1heChkZXYtPmNvaGVyZW50
+X2RtYV9tYXNrLCBkZXYtPmNvaGVyZW50X2RtYV9tYXNrICsgMSk7Cj4+Pj4gwqDCoMKgwqBlbHNl
+IGlmICghc2l6ZSkKPj4+PiDCoMKgwqDCoMKgwqDCoCBzaXplID0gMVVMTCA8PCAzMjsKPj4+Pgo+
+Pj4+IMKgwqDCoMKgZGV2LT5kbWFfcGZuX29mZnNldCA9IG9mZnNldDsKPj4+Pgo+Pj4+IMKgwqDC
+oMKgLyoKPj4+PiDCoMKgwqDCoCAqIExpbWl0IGNvaGVyZW50IGFuZCBkbWEgbWFzayBiYXNlZCBv
+biBzaXplIGFuZCBkZWZhdWx0IG1hc2sKPj4+PiDCoMKgwqDCoCAqIHNldCBieSB0aGUgZHJpdmVy
+Lgo+Pj4+IMKgwqDCoMKgICovCj4+Pj4gwqDCoMKgwqBtYXNrID0gRE1BX0JJVF9NQVNLKGlsb2cy
+KGRtYV9hZGRyICsgc2l6ZSAtIDEpICsgMSk7Cj4+Pj4gwqDCoMKgwqBkZXYtPmJ1c19kbWFfbWFz
+ayA9IG1hc2s7Cj4+Pj4gwqDCoMKgwqBkZXYtPmNvaGVyZW50X2RtYV9tYXNrICY9IG1hc2s7Cj4+
+Pj4KPj4+PiBeXiBpZiBub2JvZHkgc2V0IGNvaGVyZW50X2RtYV9tYXNrIGJlZm9yZSBpdCB3aWxs
+IHN0YXkgbnVsbCBmb3JldmVyIAo+Pj4+IHVubGVzcyBkcml2ZXJzCj4+Pj4gd2lsbCBvdmVyd3Jp
+dGUgaXQuIEFnYWluIGV2ZW4gaWYgRFQgaGFzIGNvcnJlY3QgZGVmaW5pdGlvbiBmb3IgCj4+Pj4g
+ZG1hLXJhbmdlLgo+Pgo+PiBUaGF0IGlzIGludGVudGlvbmFsLiBDb25zaWRlciBhIDMyLWJpdCBk
+ZXZpY2Ugb24gYSBidXMgd2l0aCBhbiAKPj4gdXBzdHJlYW0gRE1BIHJhbmdlIG9mIDQwIGJpdHMg
+KHdoaWNoIGNvdWxkIGVhc2lseSBoYXBwZW4gd2l0aCBlLmcuIAo+PiBQQ0kpLiBJZiB0aGUgZmly
+bXdhcmUgY29kZSBnaXZlcyB0aGF0IGRldmljZSA0MC1iaXQgRE1BIG1hc2tzIGFuZCB0aGUgCj4+
+IGRyaXZlciBkb2Vzbid0IGNoYW5nZSB0aGVtLCB0aGVuIERNQSBpcyBub3QgZ29pbmcgdG8gd29y
+ayBjb3JyZWN0bHkuIAo+PiBUaGVyZWZvcmUgdGhlIGZpcm13YXJlIGNvZGUgY2Fubm90IHNhZmVs
+eSBtYWtlIHtjb2hlcmVudF99ZG1hX21hc2sgCj4+IGxhcmdlciB0aGFuIHRoZSBkZWZhdWx0IHZh
+bHVlIHBhc3NlZCBpbiwgYW5kIGlmIHRoZSBkZWZhdWx0IGlzIDAgdGhlbiAKPj4gdGhhdCBzaG91
+bGQgYmUgZml4ZWQgaW4gd2hhdGV2ZXIgY29kZSBjcmVhdGVkIHRoZSBkZXZpY2UsIG5vdCB3b3Jr
+ZWQgCj4+IGFyb3VuZCBsYXRlci4KPiAKPiBDb3VsZCB5b3UgY2xhcmlmeSB3aGF0IGRvIHlvdSBt
+ZWFuICJmaXJtd2FyZSIgaGVyZT8KCkJ5ICJmaXJtd2FyZSBjb2RlIiBpbiB0aGlzIGNvbnRleHQg
+SSBtZWFuIG9mX2RtYV9jb25maWd1cmUoKSwgCmFjcGlfZG1hX2NvbmZpZ3VyZSgpIGFuZCBhbnl0
+aGluZyBlbHNlIHdoaWNoIG1heSBhbHNvIGRvIHRoZSBlcXVpdmFsZW50IAppbiBmdXR1cmUsIGku
+ZS4gdGhlIGNvZGUgd2hpY2ggcHJvY2Vzc2VzIGRtYSBjb2hlcmVuY3kgYXR0cmlidXRlcyBhbmQg
+CmFkZHJlc3NpbmcgcmVzdHJpY3Rpb25zIGZyb20gdGhlIGZpcm13YXJlLXByb3ZpZGVkIG1hY2hp
+bmUgZGVzY3JpcHRpb24uIApEVCBpcyBjb25jZXB0dWFsbHkgZmlybXdhcmUsIHJlZ2FyZGxlc3Mg
+b2YgaG93IGVtYmVkZGVkIEFSTSBib290bG9hZGVycyAKbWlnaHQgcHJvdmlkZSBpdC4KCj4gT24g
+bW9zdCBBUk0zMiBwbGF0Zm9ybXMgdGhlcmUgaXMgb25seSBEVCArIGtlcm5lbC4KPiBBbmQgRFQg
+aXMgdXN1YWxseSBvbmx5IG9uZSBzb3VyY2Ugb2YgaW5mb3JtYXRpb24gYWJvdXQgRFQgY29uZmln
+dXJhdGlvbi4KPiBTcnksIGJ1dCBzZWVtcyB0aGlzIGNoYW5nZXMgbWFrZXMgaW1wb3NzaWJsZSB1
+c2luZyBEVCBmb3IgRE1BIHBhcmFtZXRlcnMgCj4gY29uZmlndXJhdGlvbiBhbnkgbW9yZS4KCldl
+bGwsIGl0IHdhcyBhbHNvIGltcG9zc2libGUgaW4gZ2VuZXJhbCBiZWZvcmUuIG9mX2RtYV9jb25m
+aWd1cmUoKSBoYXMgCmluIHByYWN0aWNlIG5ldmVyIGJlZW4gYWJsZSB0byBzZXQgZGV2aWNlIG1h
+c2tzIHRvIHdpZGVyIHRoYW4gMzIgYml0cy4gCkV2ZW4gaWYgaXQgZGlkLCB0aGF0IHdvdWxkIGp1
+c3QgbGVhZCB0byBicmVha2FnZSBlbHNld2hlcmUsIGFzIGFib3ZlLiAKVGhlcmUnbGwgZG91YnRs
+ZXNzIGJlIGEgZmV3IG1vcmUgcm91bmRzIG9mIHdoYWNrLWEtbW9sZSB1bnRpbCAqYWxsKkIgdGhl
+IApicm9rZW5uZXNzIGhhcyBiZWVuIGZsdXNoZWQgb3V0LgoKUm9iaW4uCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlzdAppb21t
+dUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91bmRhdGlv
+bi5vcmcvbWFpbG1hbi9saXN0aW5mby9pb21tdQ==
