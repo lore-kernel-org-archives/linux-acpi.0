@@ -1,90 +1,61 @@
-From: Oleksandr Natalenko <oleksandr@natalenko.name>
-Subject: RE: [GIT PULL] ACPI fix for v4.18-rc7
-Date: Sat, 28 Jul 2018 18:59:12 +0200
-Message-ID: <db31a9d497ce2ef0f4b51eeb76729278@natalenko.name>
-References: <CF6A88132359CE47947DB4C6E1709ED53BB4FB62@ORSMSX110.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+From: Erik Schmauss <erik.schmauss@intel.com>
+Subject: [PATCH] ACPICA: AML Parser: ignore control method status in module-level code
+Date: Sat, 28 Jul 2018 14:05:19 -0700
+Message-ID: <20180728210519.20195-1-erik.schmauss@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53BB4FB62@ORSMSX110.amr.corp.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: erik.schmauss@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rafael@kernel.org, torvalds@linux-foundation.org
+To: linux-acpi@vger.kernel.org, rafael@kernel.org
+Cc: gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, oleksandr@natalenko.name, torvalds@linux-foundation.org, Erik Schmauss <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi.
+Previous change in the AML parser code blindly set all non-successful
+dispatcher statuses to AE_OK. This approach is incorrect because
+successful control method invocations from module-level return
+AE_CTRL_TRANSFER. Overwriting AE_OK to this status causes the AML
+parser to think that there was no return value from the control
+method invocation.
 
-> From a828a091828599154d8f6e8bfee1495a3df5cf34 Mon Sep 17 00:00:00 2001
-> From: Erik Schmauss <erik.schmauss@intel.com>
-> Date: Fri, 27 Jul 2018 15:37:35 -0700
-> From: Erik Schmauss <erik.schmauss@intel.com>
-> Subject: [PATCH 1] ACPICA: AML Parser: ignore control method status in 
-> module-level code
-> 
-> Previous change in the AML parser code blindly set all non-successful
-> dispatcher statuses to AE_OK. This approach is incorrect because
-> successful control method invocations from module-level return
-> AE_CTRL_TRANSFER. Overwriting AE_OK to this status causes the AML
-> parser to think that there was no return value from the control
-> method invocation.
-> 
-> fixes: 73c2a01c52b6 (ACPICA: AML Parser: ignore dispatcher error status 
-> during table load)
-> 
-> Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-> Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-> ---
->  psloop.c |   19 ++++++++++++-------
->  1 file changed, 12 insertions(+), 7 deletions(-)
-> 
-> diff -Nurp linux.before_name/drivers/acpi/acpica/psloop.c 
-> linux.after_name/drivers/acpi/acpica/psloop.c
-> --- linux.before_name/drivers/acpi/acpica/psloop.c	2018-07-27 
-> 15:53:31.073522915 -0700
-> +++ linux.after_name/drivers/acpi/acpica/psloop.c	2018-07-27 
-> 15:53:25.320522527 -0700
-> @@ -714,15 +714,20 @@ acpi_status acpi_ps_parse_loop(struct ac
->  			} else
->  			    if ((walk_state->
->  				 parse_flags & ACPI_PARSE_MODULE_LEVEL)
-> +				&& status != AE_CTRL_TRANSFER
->  				&& ACPI_FAILURE(status)) {
->  				/*
-> -				 * ACPI_PARSE_MODULE_LEVEL means that we are loading a table by
-> -				 * executing it as a control method. However, if we encounter
-> -				 * an error while loading the table, we need to keep trying to
-> -				 * load the table rather than aborting the table load. Set the
-> -				 * status to AE_OK to proceed with the table load. If we get a
-> -				 * failure at this point, it means that the dispatcher got an
-> -				 * error while processing Op (most likely an AML operand error.
-> +				 * ACPI_PARSE_MODULE_LEVEL flag means that we are currently
-> +				 * loading a table by executing it as a control method.
-> +				 * However, if we encounter an error while loading the table,
-> +				 * we need to keep trying to load the table rather than
-> +				 * aborting the table load (setting the status to AE_OK
-> +				 * continues the table load). If we get a failure at this
-> +				 * point, it means that the dispatcher got an error while
-> +				 * processing Op (most likely an AML operand error) or a
-> +				 * control method was called from module level and the
-> +				 * dispatcher returned AE_CTRL_TRANSFER. In the latter case,
-> +				 * leave the status alone, there's nothing wrong with it.
->  				 */
->  				status = AE_OK;
->  			}
+fixes: 73c2a01c52b6 (ACPICA: AML Parser: ignore dispatcher error status during table load)
 
-Faced the same on my Dell Vostro 3360 with v4.17.11 update, and 
-confirming that this patch fixes the issue for me too.
-
-Thus,
-
+Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
+Tested-by: Linus Torvalds <torvalds@linux-foundation.org>
 Tested-by: Oleksandr Natalenko <oleksandr@natalenko.name>
+Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+---
+ drivers/acpi/acpica/psloop.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-Also, please Cc Greg once you do a submission, so v4.17 stable branch 
-will be fixed too.
-
-Thanks.
-
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index ee840be150b5..44f35ab3347d 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -709,15 +709,20 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 			} else
+ 			    if ((walk_state->
+ 				 parse_flags & ACPI_PARSE_MODULE_LEVEL)
++				&& status != AE_CTRL_TRANSFER
+ 				&& ACPI_FAILURE(status)) {
+ 				/*
+-				 * ACPI_PARSE_MODULE_LEVEL means that we are loading a table by
+-				 * executing it as a control method. However, if we encounter
+-				 * an error while loading the table, we need to keep trying to
+-				 * load the table rather than aborting the table load. Set the
+-				 * status to AE_OK to proceed with the table load. If we get a
+-				 * failure at this point, it means that the dispatcher got an
+-				 * error while processing Op (most likely an AML operand error.
++				 * ACPI_PARSE_MODULE_LEVEL flag means that we are currently
++				 * loading a table by executing it as a control method.
++				 * However, if we encounter an error while loading the table,
++				 * we need to keep trying to load the table rather than
++				 * aborting the table load (setting the status to AE_OK
++				 * continues the table load). If we get a failure at this
++				 * point, it means that the dispatcher got an error while
++				 * processing Op (most likely an AML operand error) or a
++				 * control method was called from module level and the
++				 * dispatcher returned AE_CTRL_TRANSFER. In the latter case,
++				 * leave the status alone, there's nothing wrong with it.
+ 				 */
+ 				status = AE_OK;
+ 			}
 -- 
-   Oleksandr Natalenko (post-factum)
+2.17.1
