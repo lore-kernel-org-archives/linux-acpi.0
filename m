@@ -1,68 +1,71 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPICA: AML Parser: ignore control method status in
- module-level code
-Date: Sun, 29 Jul 2018 12:25:26 +0200
-Message-ID: <CAJZ5v0jQuBSFDZXtrWmmsKHexuk-0X5pHMkbQAJ3sqPJGH7EQQ@mail.gmail.com>
-References: <20180728210519.20195-1-erik.schmauss@intel.com>
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH v2 0/7] Stop losing firmware-set DMA masks
+Date: Sun, 29 Jul 2018 14:32:10 +0200
+Message-ID: <CAK8P3a3HDJ6svNN_cwvegxu20yNv8+tvc0D1A6Ooeq8agawbFg@mail.gmail.com>
+References: <cover.1532382222.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180728210519.20195-1-erik.schmauss@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Erik Schmauss <erik.schmauss@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, oleksandr@natalenko.name, Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <cover.1532382222.git.robin.murphy-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: gregkh <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, the arch/x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:IOMMU DRIVERS" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jul 28, 2018 at 11:05 PM, Erik Schmauss <erik.schmauss@intel.com> wrote:
-> Previous change in the AML parser code blindly set all non-successful
-> dispatcher statuses to AE_OK. This approach is incorrect because
-> successful control method invocations from module-level return
-> AE_CTRL_TRANSFER. Overwriting AE_OK to this status causes the AML
-> parser to think that there was no return value from the control
-> method invocation.
+On Tue, Jul 24, 2018 at 12:16 AM, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org> wrote:
+> Whilst the common firmware code invoked by dma_configure() initialises
+> devices' DMA masks according to limitations described by the respective
+> properties ("dma-ranges" for OF and _DMA/IORT for ACPI), the nature of
+> the dma_set_mask() API leads to that information getting lost when
+> well-behaved drivers probe and set a 64-bit mask, since in general
+> there's no way to tell the difference between a firmware-described mask
+> (which should be respected) and whatever default may have come from the
+> bus code (which should be replaced outright). This can break DMA on
+> systems with certain IOMMU topologies (e.g. [1]) where the IOMMU driver
+> only knows its maximum supported address size, not how many of those
+> address bits might actually be wired up between any of its input
+> interfaces and the associated DMA master devices. Similarly, some PCIe
+> root complexes only have a 32-bit native interface on their host bridge,
+> which leads to the same DMA-address-truncation problem in systems with a
+> larger physical memory map and RAM above 4GB (e.g. [2]).
 >
-> fixes: 73c2a01c52b6 (ACPICA: AML Parser: ignore dispatcher error status during table load)
->
-> Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-> Tested-by: Linus Torvalds <torvalds@linux-foundation.org>
-> Tested-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-> Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
-> ---
->  drivers/acpi/acpica/psloop.c | 19 ++++++++++++-------
->  1 file changed, 12 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-> index ee840be150b5..44f35ab3347d 100644
-> --- a/drivers/acpi/acpica/psloop.c
-> +++ b/drivers/acpi/acpica/psloop.c
-> @@ -709,15 +709,20 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
->                         } else
->                             if ((walk_state->
->                                  parse_flags & ACPI_PARSE_MODULE_LEVEL)
-> +                               && status != AE_CTRL_TRANSFER
->                                 && ACPI_FAILURE(status)) {
->                                 /*
-> -                                * ACPI_PARSE_MODULE_LEVEL means that we are loading a table by
-> -                                * executing it as a control method. However, if we encounter
-> -                                * an error while loading the table, we need to keep trying to
-> -                                * load the table rather than aborting the table load. Set the
-> -                                * status to AE_OK to proceed with the table load. If we get a
-> -                                * failure at this point, it means that the dispatcher got an
-> -                                * error while processing Op (most likely an AML operand error.
-> +                                * ACPI_PARSE_MODULE_LEVEL flag means that we are currently
-> +                                * loading a table by executing it as a control method.
-> +                                * However, if we encounter an error while loading the table,
-> +                                * we need to keep trying to load the table rather than
-> +                                * aborting the table load (setting the status to AE_OK
-> +                                * continues the table load). If we get a failure at this
-> +                                * point, it means that the dispatcher got an error while
-> +                                * processing Op (most likely an AML operand error) or a
-> +                                * control method was called from module level and the
-> +                                * dispatcher returned AE_CTRL_TRANSFER. In the latter case,
-> +                                * leave the status alone, there's nothing wrong with it.
->                                  */
->                                 status = AE_OK;
->                         }
-> --
+> These patches attempt to deal with this in the simplest way possible by
+> generalising the specific quirk for 32-bit bridges into an arbitrary
+> mask which can then also be plumbed into the firmware code. In the
+> interest of being minimally invasive, I've only included a point fix
+> for the IOMMU issue as seen on arm64 - there may be further tweaks
+> needed in DMA ops (e.g. in arch/arm/ and other OF users) to catch all
+> possible incarnations of this problem, but at least any that I'm not
+> fixing here have always been broken. It is also noteworthy that
+> of_dma_get_range() has never worked properly for the way PCI host
+> bridges are passed into of_dma_configure() - I'll be working on
+> further patches to sort that out once this part is done.
 
-Applied, thanks!
+Thanks a lot for working on this, this has bugged me for many years,
+and I've discussed possible solutions with lots of people over time.
+
+I /think/ all your patches are good, but I'm currently travelling and don't
+have a chance to review the resulting overall implementation.
+Could you summarize what happens in the following corner cases of
+DT dma-ranges after your changes (with a driver not setting a mask,
+setting a 64-bit mask and setting a 24-bit mask, respectively)?
+
+a) a device with no dma-ranges property anywhere in its parents
+b) a device with with a 64-bit dma-ranges translation in its parent
+   but none in its grandparent
+c) a device with no dma-ranges in its parent but a 64-bit mask
+   in its grandparent
+d) a device with a 24-bit mask in its parent.
+
+Thanks,
+
+      Arnd
