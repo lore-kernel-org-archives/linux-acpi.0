@@ -1,72 +1,60 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v1 1/2] PCI: Document patch submission hints
-Date: Mon, 30 Jul 2018 16:56:46 -0500
-Message-ID: <20180730215646.GD45322@bhelgaas-glaptop.roam.corp.google.com>
-References: <153030390808.57832.2200774416664543563.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <153030405971.57832.12860154795039493576.stgit@bhelgaas-glaptop.roam.corp.google.com>
- <20180701174508.GB28249@wunner.de>
- <20180712155946.GB28466@bhelgaas-glaptop.roam.corp.google.com>
- <20180730143136.GA4093@wunner.de>
+From: Mike Travis <mike.travis-ZPxbGqLxI0U@public.gmane.org>
+Subject: [PATCH 1/1] x86, pmem,
+ acpi: Remove excessive ACPI Large Reference Count warnings
+Date: Mon, 30 Jul 2018 14:55:46 -0500
+Message-ID: <20180730195548.580717146@stormcage.americas.sgi.com>
+References: <20180730195545.795802877@stormcage.americas.sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180730143136.GA4093@wunner.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline; filename=incr-acpi-ref-cnt-warning
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erik Schmauss <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Dimitri Sivanich <dimitri.sivanich-ZPxbGqLxI0U@public.gmane.org>, Russ Anderson <russ.anderson-ZPxbGqLxI0U@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jul 30, 2018 at 04:31:36PM +0200, Lukas Wunner wrote:
-> On Thu, Jul 12, 2018 at 10:59:46AM -0500, Bjorn Helgaas wrote:
-> > But on reflection, I think the overall value of this writeup is
-> > minimal.  It's a lot of repetition of things already documented
-> > elsewhere and most of it boils down to "pay attention to existing
-> > practice and don't do things differently unless you're innovating and
-> > adding value."  That *should* be obvious, and if it's not, I doubt
-> > that adding one more thing to read is going to make it more obvious.
-> 
-> So my opinion is that your writeup does contain valid points that are
-> worth documenting:  For an open source project, a top priority is to
-> attract and retain contributors who improve the bus factor, who keep
-> the code base alive and maintained, thereby avoiding bit rot.
-> 
-> Knowledge diffusion, including documentation of best practices and
-> conventions, goes a long way towards that goal.  Your writeup was
-> mainly from a maintainer perspective: "consistency makes maintenance
-> easier".  But consistency is also valuable from a contributor
-> perspective:  It makes it easier to dive into a code base and find
-> your way around, and that includes changelogs in the git history.
-> 
-> There are important bits of knowledge in the writeup, if those can
-> be distilled, the result would very much be valuable to have in the tree.
-> 
-> Example:
-> 
-> > I generally use
-> > "PCI/XXX" for things in the core (mostly capabilities like MSI, AER,
-> > DPC, etc) and "PCI: xxx:" for drivers (shpchp, pciehp, etc).
-> 
-> That was in fact unknown to me.
-> 
-> If you find it difficult to put yourself in the shoes of a contributor,
-> I could try to rework the document and distill the points I find important.
+With the Intel BIOS support for 8 processor sockets with a full complement
+of NVDIMMS potentially installable, and there are empty sockets without
+NVDIMMS, there is an extremely large amount of the following warnings:
 
-I definitely want to make it easy and attractive for people to
-contribute to Linux in general.  I'd be glad for any hints.  You're
-right, it's hard for me to put myself in the shoes of a contributor,
-at least a new one.
+ACPI Warning: Large Reference Count (0x1001) in object ffff99453fc71750,
+	Type=0x0A
 
-I guess I'm hesitant because a lot of the things I included there seem
-like they border on the obsessive, and I don't want to ask
-contributors to make trivial changes to fit in with my personal
-quirks.  Since they're my quirks, I'd rather just silently fix them up
-as I apply patches.
+On a 4 socket system with 4 NVDIMMs there were over 6000 of these warning
+messages and it has been seem on systems from 4 to 32 sockets.
 
-If there were a wider consensus on some things and they could be
-folded into Documentation/process/ somehow, that would be ideal, but
-I'm not sure there would be enough of a consensus, and I don't really
-want to start a big discussion about it.  But maybe there are a few
-things that wouldn't be controversial, I dunno.
+Through some guidance from the BIOS developers and testing, it appears
+that simply bumping up the threshold for warnings from 0x1000 to 0x2000
+eliminates these messages.  Changing them to be ACPI DEBUG messages, or
+even removing them are other options, but it would then defeat the purpose
+of the warnings as the problem would effectively be hidden.
 
-Bjorn
+Reviewed-by: Dimitri Sivanich <dimitri.sivanich-ZPxbGqLxI0U@public.gmane.org>
+Tested-by: Russ Anderson <russ.anderson-ZPxbGqLxI0U@public.gmane.org>
+Signed-off-by: Mike Travis <mike.travis-ZPxbGqLxI0U@public.gmane.org>
+---
+ include/acpi/acconfig.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-4.12.orig/include/acpi/acconfig.h
++++ linux-4.12/include/acpi/acconfig.h
+@@ -123,7 +123,7 @@
+ 
+ /* Maximum object reference count (detects object deletion issues) */
+ 
+-#define ACPI_MAX_REFERENCE_COUNT        0x1000
++#define ACPI_MAX_REFERENCE_COUNT        0x2000
+ 
+ /* Default page size for use in mapping memory for operation regions */
+ 
+
+-- 
