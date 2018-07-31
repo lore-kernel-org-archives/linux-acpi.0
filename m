@@ -1,63 +1,41 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Urgent ACPI fixes for v4.18
-Date: Tue, 31 Jul 2018 11:34:30 +0200
-Message-ID: <CAJZ5v0jeTuS0v=9AmQz0c_qAE6ppHVKvBsa2CXJUiRf5axNuCg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Aaron Ma <aaron.ma@canonical.com>
+Subject: [PATCH] ACPI / EC: Use ec_no_wakeup on ThinkPad X1 Yoga 3rd
+Date: Tue, 31 Jul 2018 18:52:39 +0800
+Message-ID: <20180731105239.22008-1-aaron.ma@canonical.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, rjw@rjwysocki.net, aaron.ma@canonical.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+Like on X1C6, on X1Y3 EC interrupts constantly wake up system from
+s2idle, the power consumption is extremely high.
+So make ec_no_wakeup be true as default to keep system in s2idle mode
+and reduce power consumption.
 
-Please pull from the tag
+Power button works when ec_no_wakeup=true.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-urgent-4.18
+Signed-off-by: Aaron Ma <aaron.ma@canonical.com>
+---
+ drivers/acpi/ec.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-with top-most commit 5f95d39b4246c034838b10f5a4ee50be5b984b95
-
- Merge branch 'acpi-soc'
-
-on top of commit 73c2a01c52b657f4a0ead6c95f64c5279efbd000
-
- ACPICA: AML Parser: ignore dispatcher error status during table load
-
-to receive urgent ACPI fixes for final 4.18.
-
-These fix a recent ACPICA regression affecting control method
-execution at the table level and an earlier hibernation regression
-in the ACPI driver for Intel SoCs (LPSS) that was missed by a
-previous fix in this cycle.
-
-Specifics:
-
- - Fix a recent ACPICA regression introduced by a previous fix
-   that caused control method execution at the table level to be
-   mishandled by mistake (Erik Schmauss).
-
- - Fix a hibernation regression from the 4.15 cycle in the ACPI
-   driver for Intel SoCs (LPSS) that caused the platform firmware
-   to be confused during resume from hibernation by the driver's
-   PM quirks which was fixed for system-wide suspend/resume (ACPI
-   S3) earlier in this cycle, but that previous fix missed the
-   hibernation (ACPI S4) case (Rafael Wysocki).
-
-Thanks!
-
-
----------------
-
-Erik Schmauss (1):
-      ACPICA: AML Parser: ignore control method status in module-level code
-
-Rafael J. Wysocki (1):
-      ACPI / LPSS: Avoid PM quirks on suspend and resume from hibernation
-
----------------
-
- drivers/acpi/acpi_lpss.c     | 26 +++++++++++++++++---------
- drivers/acpi/acpica/psloop.c | 19 ++++++++++++-------
- 2 files changed, 29 insertions(+), 16 deletions(-)
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 917f77f4cb55..6291d5c77267 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -2045,6 +2045,13 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
+ 			DMI_MATCH(DMI_PRODUCT_FAMILY, "Thinkpad X1 Carbon 6th"),
+ 		},
+ 	},
++	{
++		.ident = "ThinkPad X1 Yoga 3rd",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++			DMI_MATCH(DMI_PRODUCT_FAMILY, "ThinkPad X1 Yoga 3rd"),
++		},
++	},
+ 	{ },
+ };
+ 
+-- 
+2.17.1
