@@ -1,60 +1,63 @@
-From: Mike Travis <mike.travis-ZPxbGqLxI0U@public.gmane.org>
-Subject: [PATCH 1/1] x86, pmem,
- acpi: Remove excessive ACPI Large Reference Count warnings
-Date: Mon, 30 Jul 2018 14:55:46 -0500
-Message-ID: <20180730195548.580717146@stormcage.americas.sgi.com>
-References: <20180730195545.795802877@stormcage.americas.sgi.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Urgent ACPI fixes for v4.18
+Date: Tue, 31 Jul 2018 11:34:30 +0200
+Message-ID: <CAJZ5v0jeTuS0v=9AmQz0c_qAE6ppHVKvBsa2CXJUiRf5axNuCg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline; filename=incr-acpi-ref-cnt-warning
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Erik Schmauss <erik.schmauss-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Dimitri Sivanich <dimitri.sivanich-ZPxbGqLxI0U@public.gmane.org>, Russ Anderson <russ.anderson-ZPxbGqLxI0U@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devel-E0kO6a4B6psdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-With the Intel BIOS support for 8 processor sockets with a full complement
-of NVDIMMS potentially installable, and there are empty sockets without
-NVDIMMS, there is an extremely large amount of the following warnings:
+Hi Linus,
 
-ACPI Warning: Large Reference Count (0x1001) in object ffff99453fc71750,
-	Type=0x0A
+Please pull from the tag
 
-On a 4 socket system with 4 NVDIMMs there were over 6000 of these warning
-messages and it has been seem on systems from 4 to 32 sockets.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-urgent-4.18
 
-Through some guidance from the BIOS developers and testing, it appears
-that simply bumping up the threshold for warnings from 0x1000 to 0x2000
-eliminates these messages.  Changing them to be ACPI DEBUG messages, or
-even removing them are other options, but it would then defeat the purpose
-of the warnings as the problem would effectively be hidden.
+with top-most commit 5f95d39b4246c034838b10f5a4ee50be5b984b95
 
-Reviewed-by: Dimitri Sivanich <dimitri.sivanich-ZPxbGqLxI0U@public.gmane.org>
-Tested-by: Russ Anderson <russ.anderson-ZPxbGqLxI0U@public.gmane.org>
-Signed-off-by: Mike Travis <mike.travis-ZPxbGqLxI0U@public.gmane.org>
----
- include/acpi/acconfig.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Merge branch 'acpi-soc'
 
---- linux-4.12.orig/include/acpi/acconfig.h
-+++ linux-4.12/include/acpi/acconfig.h
-@@ -123,7 +123,7 @@
- 
- /* Maximum object reference count (detects object deletion issues) */
- 
--#define ACPI_MAX_REFERENCE_COUNT        0x1000
-+#define ACPI_MAX_REFERENCE_COUNT        0x2000
- 
- /* Default page size for use in mapping memory for operation regions */
- 
+on top of commit 73c2a01c52b657f4a0ead6c95f64c5279efbd000
 
--- 
+ ACPICA: AML Parser: ignore dispatcher error status during table load
+
+to receive urgent ACPI fixes for final 4.18.
+
+These fix a recent ACPICA regression affecting control method
+execution at the table level and an earlier hibernation regression
+in the ACPI driver for Intel SoCs (LPSS) that was missed by a
+previous fix in this cycle.
+
+Specifics:
+
+ - Fix a recent ACPICA regression introduced by a previous fix
+   that caused control method execution at the table level to be
+   mishandled by mistake (Erik Schmauss).
+
+ - Fix a hibernation regression from the 4.15 cycle in the ACPI
+   driver for Intel SoCs (LPSS) that caused the platform firmware
+   to be confused during resume from hibernation by the driver's
+   PM quirks which was fixed for system-wide suspend/resume (ACPI
+   S3) earlier in this cycle, but that previous fix missed the
+   hibernation (ACPI S4) case (Rafael Wysocki).
+
+Thanks!
+
+
+---------------
+
+Erik Schmauss (1):
+      ACPICA: AML Parser: ignore control method status in module-level code
+
+Rafael J. Wysocki (1):
+      ACPI / LPSS: Avoid PM quirks on suspend and resume from hibernation
+
+---------------
+
+ drivers/acpi/acpi_lpss.c     | 26 +++++++++++++++++---------
+ drivers/acpi/acpica/psloop.c | 19 ++++++++++++-------
+ 2 files changed, 29 insertions(+), 16 deletions(-)
