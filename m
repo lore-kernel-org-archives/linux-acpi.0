@@ -1,7 +1,7 @@
-From: oceanhe@zoho.com.cn
-Subject: [PATCH] ACPI: nfit: remove redundant assignment if nfit_mem found
-Date: Thu,  2 Aug 2018 02:33:11 -0400
-Message-ID: <1533191591-20453-1-git-send-email-oceanhe@zoho.com.cn>
+From: oceanhehy@gmail.com
+Subject: [PATCH v2] ACPI: nfit: remove redundant assignment if nfit_mem found
+Date: Thu,  2 Aug 2018 04:44:04 -0400
+Message-ID: <1533199444-29607-1-git-send-email-oceanhehy@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, vishal.l.verma@intel.com, dave.jiang@intel.com, rjw@rjwysocki.net, lenb@kernel.org
@@ -16,6 +16,10 @@ codes.
 
 Signed-off-by: Ocean He <hehy1@lenovo.com>
 ---
+v1: https://patchwork.kernel.org/patch/10553277/
+v2: Sorry for noise. I got an email problem, so I have to resend to loop 
+linux-nvdimm@lists.01.org.
+
  drivers/acpi/nfit/core.c | 4 +---
  1 file changed, 1 insertion(+), 3 deletions(-)
 
