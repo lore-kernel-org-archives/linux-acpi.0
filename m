@@ -1,83 +1,126 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] arm64: clean the additional checks before calling
- ghes_notify_sea()
-Date: Mon, 6 Aug 2018 15:26:24 +0100
-Message-ID: <20180806142623.GA15275@arm.com>
-References: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
- <20180727100617.GB25592@arm.com>
- <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
+From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [External]  Re: [PATCH] ACPI: nfit: return -ENODEV if fail to
+ find NFIT at startup
+Date: Mon, 6 Aug 2018 17:18:38 +0000
+Message-ID: <1533575914.25865.2.camel@intel.com>
+References: <1533289198-11400-1-git-send-email-oceanhehy@gmail.com>
+ <1533316299.8557.71.camel@intel.com>
+ <HK0PR03MB3170E6D5D62D14B02F39FAE089200@HK0PR03MB3170.apcprd03.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdj.1984@gmail.com>
-Cc: Dongjiu Geng <gengdongjiu@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, mark.rutland@arm.com, Len Brown <lenb@kernel.org>, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <HK0PR03MB3170E6D5D62D14B02F39FAE089200-7SfLTKn9UgQizmvzqrKYQ682SN/2zMuYvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
+Content-Language: en-US
+Content-ID: <540CCDD9AF417548BEAD19DBDABC3FF3-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org" <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 05, 2018 at 10:35:03AM +0800, gengdongjiu wrote:
-> 2018-07-27 18:06 GMT+08:00 Will Deacon <will.deacon@arm.com>:
-> > On Thu, Jul 26, 2018 at 05:01:47PM -0400, Dongjiu Geng wrote:
-> >> In order to remove the additional check before calling the
-> >> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
-> >>
-> >> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> >> ---
-> >
-> > Acked-by: Will Deacon <will.deacon@arm.com>
+On Mon, 2018-08-06 at 07:15 +0000, Ocean HY1 He wrote:
+> > -----Original Message-----
+> > From: Verma, Vishal L <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> > Sent: Saturday, August 04, 2018 1:12 AM
+> > To: Williams, Dan J <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org;
+> > oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; Jiang, Dave <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>; lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org;
+> > rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org
+> > Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org; linux-
+> > acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Ocean HY1 He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
+> > Subject: [External] Re: [PATCH] ACPI: nfit: return -ENODEV if fail to find NFIT at
+> > startup
+> > 
+> > 
+> > On Fri, 2018-08-03 at 05:39 -0400, Ocean He wrote:
+> > > From: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
+> > > 
+> > > In the beginning of acpi_nfit_add, if fail to find NFIT table then
+> > > should
+> > > return -ENODEV, instead of 0.
+> > > 
+> > > Signed-off-by: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  drivers/acpi/nfit/core.c | 2 +-
+> > >  1 file changed, 1 insertion(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> > > index 7c47900..1790d7c 100644
+> > > --- a/drivers/acpi/nfit/core.c
+> > > +++ b/drivers/acpi/nfit/core.c
+> > > @@ -3355,7 +3355,7 @@ static int acpi_nfit_add(struct acpi_device
+> > > *adev)
+> > >  	if (ACPI_FAILURE(status)) {
+> > >  		/* This is ok, we could have an nvdimm hotplugged
+> > > later */
+> > >  		dev_dbg(dev, "failed to find NFIT at startup\n");
+> > > -		return 0;
+> > > +		return -ENODEV;
+> > 
+> > Hm, the comment directly above this says this is ok..
+> > Has this caused any problems in practice?
+> > 
 > 
-> Will,
->      This patch will be applied, right? thanks
+> Thanks for your comments. After going through related codes and some test, I am 
+> now thinking it's right to keep "return 0" if NFIT not found at boot time.
+> 
+> Per chapter 9.20.2 NVDIMM Root Device in ACPI 6.2 spec:
+> The NVDIMM root device is represented by an ACPI namespace device with a _HID 
+> of "ACPI0012". This device allows the OS to trigger enumeration of NVDIMMs 
+> through NFIT at boot time and re-enumeration at root level via the _FIT method 
+> during runtime. 
+> 
+> The acpi_nfit_driver is registered to ACPI bus to support "ACPI0012". 
+> The acpi_nfit_driver.acpi_nfit_add is used to enumerate NVDIMMs through NFIT 
+> at boot time; The acpi_nfit_driver.acpi_nfit_notify is used to enumerate 
+> NVDIMMs during runtime.
+> 
+> In my Lenovo ThinkSystem SR630 which support NVDIMMs, If I remove 
+> all NVDIMMs, the NFIT table is gone after system boot up. If keep "return 0" 
+> in acpi_nfit_add, then acpi_nfit_driver would still be attached to "ACPI0012". 
+> Once a NVDIMM is hotplugged into system during runtime, then 
+> acpi_nfit_driver.acpi_nfit_notify can be called to enumerate NVDIMMs (I could
+> not do hotplug test because firmware doesn't support). 
+> Otherwise, "return -ENODEV" would block NVDIMM enumeration during runtime.
+> 
+> How do you think to adjust annotation as following?
+> 
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 7c47900..1673161 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -3353,7 +3353,13 @@ static int acpi_nfit_add(struct acpi_device *adev)
+>  
+>         status = acpi_get_table(ACPI_SIG_NFIT, 0, &tbl);
+>         if (ACPI_FAILURE(status)) {
+> -               /* This is ok, we could have an nvdimm hotplugged later */
+> +               /* The NVDIMM root device allows OS to trigger enumeration of 
+> +                * NVDIMMs through NFIT at boot time and re-enumeration at 
+> +                * root level via the _FIT method during runtime.
+> +                * This is ok to return 0 here, we could have an nvdimm 
+> +                * hotplugged later and evaluate _FIT method which returns 
+> +                * data in the format of a series of NFIT Structures.
+> +                */
+>                 dev_dbg(dev, "failed to find NFIT at startup\n");
+>                 return 0;
+>         }
 
-I haven't queued it in the arm64 tree, since it touches include/acpi/ghes.h
-and you don't have an ack from the acpi folks. I acked it so that you could
-route it via the acpi tree without me holding you up.
+Yes, this sounds reasonable to me.
 
-Will
+Thanks,
+	-Vishal
 
-> >> This cleanup is ever mentioned by Mark Rutland in [1]
-> >>
-> >> [1]:
-> >> https://lkml.org/lkml/2018/5/31/289
-> >> ---
-> >>  arch/arm64/mm/fault.c | 7 +------
-> >>  include/acpi/ghes.h   | 4 ++++
-> >>  2 files changed, 5 insertions(+), 6 deletions(-)
-> >>
-> >> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> >> index b8eecc7..9ffe01d 100644
-> >> --- a/arch/arm64/mm/fault.c
-> >> +++ b/arch/arm64/mm/fault.c
-> >> @@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
-> >>
-> >>  int handle_guest_sea(phys_addr_t addr, unsigned int esr)
-> >>  {
-> >> -     int ret = -ENOENT;
-> >> -
-> >> -     if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
-> >> -             ret = ghes_notify_sea();
-> >> -
-> >> -     return ret;
-> >> +     return ghes_notify_sea();
-> >>  }
-> >>
-> >>  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-> >> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-> >> index 1624e2b..82cb4eb 100644
-> >> --- a/include/acpi/ghes.h
-> >> +++ b/include/acpi/ghes.h
-> >> @@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
-> >>            (void *)section - (void *)(estatus + 1) < estatus->data_length; \
-> >>            section = acpi_hest_get_next(section))
-> >>
-> >> +#ifdef CONFIG_ACPI_APEI_SEA
-> >>  int ghes_notify_sea(void);
-> >> +#else
-> >> +static inline int ghes_notify_sea(void) { return -ENOENT; }
-> >> +#endif
-> >>
-> >>  #endif /* GHES_H */
-> >> --
-> >> 1.9.1
-> >>
+> 
+> Ocean.
+> 
+> > >  	}
+> > > 
+> > >  	rc = devm_add_action_or_reset(dev, acpi_nfit_put_table,
+> > > tbl);
