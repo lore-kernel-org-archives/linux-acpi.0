@@ -1,57 +1,83 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH v2 0/7] Stop losing firmware-set DMA masks
-Date: Mon, 6 Aug 2018 14:13:45 +0200
-Message-ID: <CAK8P3a0z8K9GHfg_RtPo9fmyJtVuhUpfSVqoxkoTO6ohG=i4UA@mail.gmail.com>
-References: <cover.1532382222.git.robin.murphy@arm.com>
-	<CAK8P3a3HDJ6svNN_cwvegxu20yNv8+tvc0D1A6Ooeq8agawbFg@mail.gmail.com>
-	<1ccccc4b-7d4c-a3ee-23a2-f108916705e9@arm.com>
-	<CAK8P3a3ZcOeHMR_qFnsBdXED+2X8_AEMKoS5MeAQhbapbGmm9w@mail.gmail.com>
-	<20180806121334.GA5340@lst.de>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] arm64: clean the additional checks before calling
+ ghes_notify_sea()
+Date: Mon, 6 Aug 2018 15:26:24 +0100
+Message-ID: <20180806142623.GA15275@arm.com>
+References: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
+ <20180727100617.GB25592@arm.com>
+ <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20180806121334.GA5340-jcswGhMUV9g@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
-Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, gregkh <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, the arch/x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:IOMMU DRIVERS" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>, Linux ARM <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: gengdongjiu <gengdj.1984@gmail.com>
+Cc: Dongjiu Geng <gengdongjiu@huawei.com>, Catalin Marinas <catalin.marinas@arm.com>, mark.rutland@arm.com, Len Brown <lenb@kernel.org>, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 6, 2018 at 2:08 PM Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> wrote:
->
-> On Mon, Aug 06, 2018 at 12:01:34PM +0200, Arnd Bergmann wrote:
-> > There are a few subtle corner cases here, in particular in which cases
-> > the new dma_set_mask() behavior on arm64 reports success or
-> > failure when truncating the mask to the bus_dma_mask.
->
-> Going forward my plan was to make dma_set_mask() never fail.  The idea
-> is that it sets the mask that the device is capable of, and the core
-> dma code is responsible for also looking at bus_dma_mask and otherwise
-> make things just work.
->
-> Robin brought up the case where a platform can't handle a given limitation
-> ever, e.g. a PCI(e) device with a 24-bit dma mask on a device with a dma
-> offset that means we'll never have any physical memory reachable in that
-> range.  So we'll either still need to allow it to fail for such corner
-> cases or delay such error until later, e.g. when dma_alloc_* (or in the
-> corner case of the corner case dma_map_*) is called.  I'm still undecided
-> which way to go, but not allowing error returns from dma_set_mask and
-> its variants sounds very tempting.
+On Sun, Aug 05, 2018 at 10:35:03AM +0800, gengdongjiu wrote:
+> 2018-07-27 18:06 GMT+08:00 Will Deacon <will.deacon@arm.com>:
+> > On Thu, Jul 26, 2018 at 05:01:47PM -0400, Dongjiu Geng wrote:
+> >> In order to remove the additional check before calling the
+> >> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+> >>
+> >> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> >> ---
+> >
+> > Acked-by: Will Deacon <will.deacon@arm.com>
+> 
+> Will,
+>      This patch will be applied, right? thanks
 
-Another case that I think can happen in practice are devices that need a
-DMA mask smaller than 32-bit wide (either asked for by the driver
-or according to bus limitations) on a platform that has no ZONE_DMA.
+I haven't queued it in the arm64 tree, since it touches include/acpi/ghes.h
+and you don't have an ack from the acpi folks. I acked it so that you could
+route it via the acpi tree without me holding you up.
 
-However, IIRC there was no reason to ever fail a dma_set_mask()
-to something wider than 32 bit even if the resulting mask still stays
-at the default 32-bit mask or something inbetween.
+Will
 
-      Arnd
+> >> This cleanup is ever mentioned by Mark Rutland in [1]
+> >>
+> >> [1]:
+> >> https://lkml.org/lkml/2018/5/31/289
+> >> ---
+> >>  arch/arm64/mm/fault.c | 7 +------
+> >>  include/acpi/ghes.h   | 4 ++++
+> >>  2 files changed, 5 insertions(+), 6 deletions(-)
+> >>
+> >> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> >> index b8eecc7..9ffe01d 100644
+> >> --- a/arch/arm64/mm/fault.c
+> >> +++ b/arch/arm64/mm/fault.c
+> >> @@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+> >>
+> >>  int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+> >>  {
+> >> -     int ret = -ENOENT;
+> >> -
+> >> -     if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+> >> -             ret = ghes_notify_sea();
+> >> -
+> >> -     return ret;
+> >> +     return ghes_notify_sea();
+> >>  }
+> >>
+> >>  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+> >> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> >> index 1624e2b..82cb4eb 100644
+> >> --- a/include/acpi/ghes.h
+> >> +++ b/include/acpi/ghes.h
+> >> @@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+> >>            (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+> >>            section = acpi_hest_get_next(section))
+> >>
+> >> +#ifdef CONFIG_ACPI_APEI_SEA
+> >>  int ghes_notify_sea(void);
+> >> +#else
+> >> +static inline int ghes_notify_sea(void) { return -ENOENT; }
+> >> +#endif
+> >>
+> >>  #endif /* GHES_H */
+> >> --
+> >> 1.9.1
+> >>
