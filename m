@@ -1,57 +1,72 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 3/4] ACPI / x86-utils: Remove status workaround from acpi_device_always_present()
-Date: Tue,  7 Aug 2018 10:05:38 +0200
-Message-ID: <20180807080539.17811-4-hdegoede@redhat.com>
-References: <20180807080539.17811-1-hdegoede@redhat.com>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH RESEND v2] arm64: clean the additional checks before calling ghes_notify_sea()
+Date: Tue, 7 Aug 2018 12:26:15 -0400
+Message-ID: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180807080539.17811-1-hdegoede@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Hans de Goede <hdegoede@redhat.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, John Garry <john.garry@huawei.com>, linux-i2c@vger.kernel.org
+To: will.deacon@arm.com, rafael.j.wysocki@intel.com, james.morse@arm.com, tbaicar@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com
+Cc: gengdongjiu@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we init the status field to ACPI_STA_DEFAULT rather then to 0,
-the workaround for acpi_match_device_ids() always returning -ENOENT when
-status is 0 is no longer needed.
+In order to remove the additional check before calling the
+ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+After this cleanup, we can simply call the ghes_notify_sea() to let
+APEI driver handle the SEA notification.
+
+CC: Tyler Baicar <tbaicar@codeaurora.org>
+CC: James Morse <james.morse@arm.com>
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
 ---
- drivers/acpi/x86/utils.c | 10 ----------
- 1 file changed, 10 deletions(-)
+This cleanup is ever mentioned by Mark Rutland in [1]
 
-diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-index ec5b0f190231..a4fb97d64b3b 100644
---- a/drivers/acpi/x86/utils.c
-+++ b/drivers/acpi/x86/utils.c
-@@ -103,13 +103,9 @@ static const struct always_present_id always_present_ids[] = {
+[1]:
+https://lkml.org/lkml/2018/5/31/289
+
+Change since v1:
+1. Update the commit messages
+2. CC Tyler and James
+3. Add Acked-by of Will
+---
+ arch/arm64/mm/fault.c | 7 +------
+ include/acpi/ghes.h   | 4 ++++
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index b8eecc7..9ffe01d 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
  
- bool acpi_device_always_present(struct acpi_device *adev)
+ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
  {
--	u32 *status = (u32 *)&adev->status;
--	u32 old_status = *status;
- 	bool ret = false;
- 	unsigned int i;
- 
--	/* acpi_match_device_ids checks status, so set it to default */
--	*status = ACPI_STA_DEFAULT;
- 	for (i = 0; i < ARRAY_SIZE(always_present_ids); i++) {
- 		if (acpi_match_device_ids(adev, always_present_ids[i].hid))
- 			continue;
-@@ -125,15 +121,9 @@ bool acpi_device_always_present(struct acpi_device *adev)
- 		    !dmi_check_system(always_present_ids[i].dmi_ids))
- 			continue;
- 
--		if (old_status != ACPI_STA_DEFAULT) /* Log only once */
--			dev_info(&adev->dev,
--				 "Device [%s] is in always present list\n",
--				 adev->pnp.bus_id);
+-	int ret = -ENOENT;
 -
- 		ret = true;
- 		break;
- 	}
--	*status = old_status;
- 
- 	return ret;
+-	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+-		ret = ghes_notify_sea();
+-
+-	return ret;
++	return ghes_notify_sea();
  }
+ 
+ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 1624e2b..82cb4eb 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+ 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+ 	     section = acpi_hest_get_next(section))
+ 
++#ifdef CONFIG_ACPI_APEI_SEA
+ int ghes_notify_sea(void);
++#else
++static inline int ghes_notify_sea(void) { return -ENOENT; }
++#endif
+ 
+ #endif /* GHES_H */
 -- 
-2.18.0
+1.9.1
