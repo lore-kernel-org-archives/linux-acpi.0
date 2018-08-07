@@ -1,72 +1,72 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH RESEND v2] arm64: clean the additional checks before calling ghes_notify_sea()
-Date: Tue, 7 Aug 2018 12:26:15 -0400
-Message-ID: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v3 1/4] ACPI / scan: Fix acpi_is_indirect_io_slave()
+ always returning false
+Date: Tue, 7 Aug 2018 11:05:13 +0100
+Message-ID: <03dae627-a888-317a-ed43-6c374b1b54eb@huawei.com>
+References: <20180807080539.17811-1-hdegoede@redhat.com>
+ <20180807080539.17811-2-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180807080539.17811-2-hdegoede@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: will.deacon@arm.com, rafael.j.wysocki@intel.com, james.morse@arm.com, tbaicar@codeaurora.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com
-Cc: gengdongjiu@huawei.com
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Wolfram Sang <wsa@the-dreams.de>
+Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-i2c@vger.kernel.org, stable@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Dann Frazier <dann.frazier@canonical.com>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In order to remove the additional check before calling the
-ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+On 07/08/2018 09:05, Hans de Goede wrote:
+> Since commit 63347db0affa ("ACPI / scan: Use acpi_bus_get_status() to
+> initialize ACPI_TYPE_DEVICE devs") the status field of normal acpi_devices
+> gets set to 0 by acpi_bus_type_and_status() and filled with its actual
+> value later when acpi_add_single_object() calls acpi_bus_get_status().
+>
+> This means that status is 0 when acpi_device_enumeration_by_parent()
+> gets called which makes the acpi_match_device_ids() call in
+> acpi_is_indirect_io_slave() always return -ENOENT.
 
-After this cleanup, we can simply call the ghes_notify_sea() to let
-APEI driver handle the SEA notification.
+For for the (child) device the status may be zero, but how about the 
+parent device (which is what we care about)? As I see, we would have set 
+the parent device status present field at this stage.
 
-CC: Tyler Baicar <tbaicar@codeaurora.org>
-CC: James Morse <james.morse@arm.com>
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
----
-This cleanup is ever mentioned by Mark Rutland in [1]
+Thanks,
+John
 
-[1]:
-https://lkml.org/lkml/2018/5/31/289
-
-Change since v1:
-1. Update the commit messages
-2. CC Tyler and James
-3. Add Acked-by of Will
----
- arch/arm64/mm/fault.c | 7 +------
- include/acpi/ghes.h   | 4 ++++
- 2 files changed, 5 insertions(+), 6 deletions(-)
-
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index b8eecc7..9ffe01d 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- int handle_guest_sea(phys_addr_t addr, unsigned int esr)
- {
--	int ret = -ENOENT;
--
--	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
--		ret = ghes_notify_sea();
--
--	return ret;
-+	return ghes_notify_sea();
- }
- 
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 1624e2b..82cb4eb 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
- 	     section = acpi_hest_get_next(section))
- 
-+#ifdef CONFIG_ACPI_APEI_SEA
- int ghes_notify_sea(void);
-+#else
-+static inline int ghes_notify_sea(void) { return -ENOENT; }
-+#endif
- 
- #endif /* GHES_H */
--- 
-1.9.1
+>
+> This commit fixes this by making acpi_bus_type_and_status() set status to
+> ACPI_STA_DEFAULT until acpi_add_single_object() calls acpi_bus_get_status()
+>
+> Fixes: dfda4492322e ("ACPI / scan: Do not enumerate Indirect IO host children")
+> Cc: stable@vger.kernel.org
+> Cc: John Garry <john.garry@huawei.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Dann Frazier <dann.frazier@canonical.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/acpi/scan.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 970dd87d347c..6799d00dd790 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1612,7 +1612,8 @@ static int acpi_add_single_object(struct acpi_device **child,
+>  	 * Note this must be done before the get power-/wakeup_dev-flags calls.
+>  	 */
+>  	if (type == ACPI_BUS_TYPE_DEVICE)
+> -		acpi_bus_get_status(device);
+> +		if (acpi_bus_get_status(device) < 0)
+> +			acpi_set_device_status(device, 0);
+>
+>  	acpi_bus_get_power_flags(device);
+>  	acpi_bus_get_wakeup_device_flags(device);
+> @@ -1690,7 +1691,7 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
+>  		 * acpi_add_single_object updates this once we've an acpi_device
+>  		 * so that acpi_bus_get_status' quirk handling can be used.
+>  		 */
+> -		*sta = 0;
+> +		*sta = ACPI_STA_DEFAULT;
+>  		break;
+>  	case ACPI_TYPE_PROCESSOR:
+>  		*type = ACPI_BUS_TYPE_PROCESSOR;
+>
