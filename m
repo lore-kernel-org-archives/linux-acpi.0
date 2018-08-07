@@ -1,38 +1,46 @@
-From: gengdongjiu <gengdongjiu@huawei.com>
-Subject: Re: [PATCH] arm64: clean the additional checks before calling
- ghes_notify_sea()
-Date: Tue, 7 Aug 2018 14:37:36 +0800
-Message-ID: <2c3baa9e-c647-01a9-cef6-eb61ba6c529c@huawei.com>
-References: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
- <20180727100617.GB25592@arm.com>
- <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
- <20180806142623.GA15275@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v3 0/4] ACPI bugfix + i2c-multi-instantiate pseudo driver
+Date: Tue,  7 Aug 2018 10:05:35 +0200
+Message-ID: <20180807080539.17811-1-hdegoede@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180806142623.GA15275@arm.com>
-Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, gengdongjiu <gengdj.1984@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, mark.rutland@arm.com, Len Brown <lenb@kernel.org>, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Wolfram Sang <wsa@the-dreams.de>
+Cc: Hans de Goede <hdegoede@redhat.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, John Garry <john.garry@huawei.com>, linux-i2c@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi All,
 
+So here is my third attempt at dealing with multiple i2c devices being
+described in a single ACPI fwnode.
 
-On 2018/8/6 22:26, Will Deacon wrote:
->> Will,
->>      This patch will be applied, right? thanks
-> I haven't queued it in the arm64 tree, since it touches include/acpi/ghes.h
-> and you don't have an ack from the acpi folks. I acked it so that you could
-> route it via the acpi tree without me holding you up.
+Like the second attemp This is still based on having a special driver for
+these corner cases which can be a module and only loaded when on hardware
+which needs this.
 
-Thanks the explanation.
-yes, this patch touches the "include/acpi/ghes.h", I will repost this patch to let acpi
-folks review it.
+New this time around is that this now is a platform driver, avoiding the
+need for the I2C_CLIENT_IGNORE_BUSY hack and having 2 i2c-clients at
+the address of the first i2c ACPI resource.
 
+While working on the ACPI changes for enumerating ACPI nodes which
+are handled by the new i2c-multi-instantiate driver as platform devices
+I found a bug caused by a combination of my:
+"ACPI / scan: Use acpi_bus_get_status() to initialize ACPI_TYPE_DEVICE devs"
+and the somewhat (but not much) later added:
+"ACPI / scan: Do not enumerate Indirect IO host children"
+commits, specifically the second one does not work because of the first
+one, I guess it was tested against a kernel without the first commit.
+My changes for enumerating relevant ACPI nodes as platform devices
+hit the same problem.
 
-> 
-> Will
-> 
->>>> This cleanup is ever mentioned by Mark Rutland in [1]
+Thus the first patch of this series is an ACPI bugfix for that problem.
+The second patch changes acpi/scan.c to enumerate relevant ACPI nodes as
+platform devices.
+The third patch is an ACPI cleanup patch made possible by the first patch.
+All 3 these patches are new in this version of this series.
+
+And finally the fourth patch is the actual i2c-multi-instantiate driver,
+now as platform driver living under drivers/platform/x86 .
+
+Regards,
+
+Hans
