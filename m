@@ -1,58 +1,38 @@
-From: Ocean He <oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI: nfit: adjust annotation for why return 0 if fail to
- find NFIT at startup
-Date: Tue,  7 Aug 2018 02:15:31 -0400
-Message-ID: <1533622531-3617-1-git-send-email-oceanhehy@gmail.com>
+From: gengdongjiu <gengdongjiu@huawei.com>
+Subject: Re: [PATCH] arm64: clean the additional checks before calling
+ ghes_notify_sea()
+Date: Tue, 7 Aug 2018 14:37:36 +0800
+Message-ID: <2c3baa9e-c647-01a9-cef6-eb61ba6c529c@huawei.com>
+References: <1532638907-46129-1-git-send-email-gengdongjiu@huawei.com>
+ <20180727100617.GB25592@arm.com>
+ <CAMj-D2Ab9Txk27GDQbOy3X=Qup7BuA3sWSovsOpffpxe6UcBFQ@mail.gmail.com>
+ <20180806142623.GA15275@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180806142623.GA15275@arm.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Will Deacon <will.deacon@arm.com>, gengdongjiu <gengdj.1984@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, mark.rutland@arm.com, Len Brown <lenb@kernel.org>, rafael.j.wysocki@intel.com, erik.schmauss@intel.com, robert.moore@intel.com, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
 
-Add detail explanation why it's ok to return 0 if fail to find NFIT at
-startup, refer to chapter 9.20.2 NVDIMM Root Device in ACPI 6.2 spec.
 
-Signed-off-by: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
----
-v1: https://lists.01.org/pipermail/linux-nvdimm/2018-August/017311.html 
-v2: Per Vishal's comments of v1, it turns out that it's right to keep 
-"return 0" if NFIT not found at boot time. This v2 adjust annotation
-to avoid misunderstanding of "return 0".
+On 2018/8/6 22:26, Will Deacon wrote:
+>> Will,
+>>      This patch will be applied, right? thanks
+> I haven't queued it in the arm64 tree, since it touches include/acpi/ghes.h
+> and you don't have an ack from the acpi folks. I acked it so that you could
+> route it via the acpi tree without me holding you up.
 
- drivers/acpi/nfit/core.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+Thanks the explanation.
+yes, this patch touches the "include/acpi/ghes.h", I will repost this patch to let acpi
+folks review it.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 7c47900..1b982fe 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -3353,7 +3353,13 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 
- 	status = acpi_get_table(ACPI_SIG_NFIT, 0, &tbl);
- 	if (ACPI_FAILURE(status)) {
--		/* This is ok, we could have an nvdimm hotplugged later */
-+		/* The NVDIMM root device allows OS to trigger enumeration of
-+		 * NVDIMMs through NFIT at boot time and re-enumeration at
-+		 * root level via the _FIT method during runtime.
-+		 * This is ok to return 0 here, we could have an nvdimm
-+		 * hotplugged later and evaluate _FIT method which returns
-+		 * data in the format of a series of NFIT Structures.
-+		 */
- 		dev_dbg(dev, "failed to find NFIT at startup\n");
- 		return 0;
- 	}
--- 
-1.8.3.1
+
+> 
+> Will
+> 
+>>>> This cleanup is ever mentioned by Mark Rutland in [1]
