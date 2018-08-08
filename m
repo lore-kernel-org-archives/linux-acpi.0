@@ -1,46 +1,70 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 4/4] i2c: Add multi-instantiate pseudo driver
-Date: Wed, 8 Aug 2018 19:00:14 +0200
-Message-ID: <20180808170014.izjkviwh67hfu3hz@ninjato>
-References: <20180808083006.31919-1-hdegoede@redhat.com>
- <20180808083006.31919-5-hdegoede@redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] arm64: PCI: Remove node-local allocations when
+ initialising host controller
+Date: Wed, 8 Aug 2018 12:22:11 -0500
+Message-ID: <20180808172211.GD49411@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180801173132.19739-1-punit.agrawal@arm.com>
+ <38ad03ba-2658-98c8-1888-0aa3bfb59bd4@arm.com>
+ <20180802143319.GA13512@red-moon>
+ <CAErSpo5i7AAXq4vmfsH2WjheXpzzM1iaehdeM24eQZjzYY39Rg@mail.gmail.com>
+ <87eff85364.fsf@e105922-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ybomuhi25ygzki2d"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180808083006.31919-5-hdegoede@redhat.com>
+In-Reply-To: <87eff85364.fsf@e105922-lin.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, John Garry <john.garry@huawei.com>, linux-i2c@vger.kernel.org
+To: Punit Agrawal <punit.agrawal@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-arm <linux-arm-kernel@lists.infradead.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, linux-pci@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Aug 08, 2018 at 03:44:03PM +0100, Punit Agrawal wrote:
+> Bjorn Helgaas <bhelgaas@google.com> writes:
+> > On Thu, Aug 2, 2018 at 9:33 AM Lorenzo Pieralisi
+> > <lorenzo.pieralisi@arm.com> wrote:
+> >> On Wed, Aug 01, 2018 at 02:38:51PM -0500, Jeremy Linton wrote:
+> >>
+> >> Jiang Liu does not work on the kernel anymore so we won't know
+> >> anytime soon the reasoning behind commit 965cd0e4a5e5
+> >>
+> >> > On 08/01/2018 12:31 PM, Punit Agrawal wrote:
+> >> > >Memory for host controller data structures is allocated local to the
+> >> > >node to which the controller is associated with. This has been the
+> >> > >behaviour since support for ACPI was added in
+> >> > >commit 0cb0786bac15 ("ARM64: PCI: Support ACPI-based PCI host controller").
+> >> >
+> >> > Which was apparently influenced by:
+> >> >
+> >> > 965cd0e4a5e5 x86, PCI, ACPI: Use kmalloc_node() to optimize for performance
+> >> >
+> >> > Was there an actual use-case behind that change?
+> >> >
+> >> > I think this fixes the immediate boot problem, but if there is any
+> >> > perf advantage it seems wise to keep it... Particularly since x86
+> >> > seems to be doing the node sanitation in pci_acpi_root_get_node().
+> >>
+> >> I am struggling to see the perf advantage of allocating a struct
+> >> that the PCI controller will never read/write from a NUMA node that
+> >> is local to the PCI controller, happy to be corrected if there is
+> >> a sound rationale behind that.
+> >
+> > If there is no reason to use kzalloc_node() here, we shouldn't use it.
+> >
+> > But we should use it (or not use it) consistently across arches.  I do
+> > not believe there is an arch-specific reason to be different.
+> > Currently, pci_acpi_scan_root() uses kzalloc_node() on x86 and arm64,
+> > but kzalloc() on ia64.  They all ought to be the same.
+> 
+> From my understanding, arm64 use of kzalloc_node() was derived from the
+> x86 version. Maybe somebody familiar with behaviour on x86 can provide
+> input here.
 
---ybomuhi25ygzki2d
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+If you want to remove use of kzalloc_node(), I'm fine with that as
+long as you do it for x86 at the same time (maybe separate patches,
+but at least in the same series).
 
+I don't see any evidence in 965cd0e4a5e5 ("x86, PCI, ACPI: Use
+kmalloc_node() to optimize for performance") that it actually improves
+performance, so I'd be inclined to just use kzalloc().
 
-$subject still says "i2c:"
-
---ybomuhi25ygzki2d
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAltrIZoACgkQFA3kzBSg
-KbZ5ow/+I15cSouc8w/8+C95suhWRaukkCFX4CQ2OEvSglyqngMP1+m+KjGZuhZm
-08FxGzVAwhHscc/9OSbFnBuFqpDtPFEI+bQLDGeCse0rlEvEQDqfF9QWIwRoTocB
-kDogKAyeBKbiBRocl+zHXkZXEOycVzRTI6Plc4GgrFJKjvGc919vlRB6lPODYQxZ
-psfl7+QJsHjYW5n1XaWHVuwr1tgOoG8aefDZT9davvAx2NqhLvQWWSr6ZOXdsU8Z
-Ywd1h6VBHhHXKMz9DB3O0m+48oGzSUdJHem2KDTrUCLyXDpG4neBhoqGSgksW2qt
-wN/3yqF8pWxFsePOZJy5L9WayEl/GUM3gr0fx2di20oYBL+82cJ6IgtFh8diRPio
-azDWrlckAD0ynmatYHQDPtePAQeTIi/u8Y4K2Rfd73tflMNQXmIiuKdJdF4cLkbd
-m5Vl0wQKrrr3LAJqfFiG+dCzEOahCSYPkf0seO7b+InXtqPCP6cRnYLevTpS5khB
-6bm3JsTHMWKDfRzPQtScFQFwB0JeSDwg6B943187Q7EyDGp/iKSAkzKWK2Pq+TrQ
-+QvcQmoNPPYHGYoPzAfK0w5e6Xq3VgPSacXlUuL+PWFmC6ZwT/Bs/SvS0S+zigTG
-RQiJJvE7xugsGjWuMphF988uTyXNgK6LKW9mUoVt/dSkU7YLasM=
-=FDDC
------END PGP SIGNATURE-----
-
---ybomuhi25ygzki2d--
+Bjorn
