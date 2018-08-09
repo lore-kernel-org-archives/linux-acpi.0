@@ -1,80 +1,46 @@
-From: gengdongjiu <gengdj.1984@gmail.com>
-Subject: Re: [PATCH RESEND v2] arm64: clean the additional checks before
- calling ghes_notify_sea()
-Date: Thu, 9 Aug 2018 20:32:45 +0800
-Message-ID: <CAMj-D2Arv-ZxUMTB_zKKy58CghWsZJbTOcNdiD3KVzxJ-v973g@mail.gmail.com>
-References: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Sinan Kaya <okaya@kernel.org>
+Subject: [PATCH 1/2] PCI/ACPI: correct error message for ASPM disabling
+Date: Thu,  9 Aug 2018 18:46:22 +0000
+Message-ID: <1533840383-7841-1-git-send-email-okaya@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: Borislav Petkov <bp@suse.de>, Will Deacon <will.deacon@arm.com>, rafael.j.wysocki@intel.com, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com
+To: linux-pci@vger.kernel.org
+Cc: Sinan Kaya <okaya@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-CC Borislav
+If _OSC execution fails today for platforms without an _OSC
+entry, code is printing a misleading message saying disabling
+ASPM as follows:
 
+acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
 
-2018-08-08 0:26 GMT+08:00 Dongjiu Geng <gengdongjiu@huawei.com>:
-> In order to remove the additional check before calling the
-> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
->
-> After this cleanup, we can simply call the ghes_notify_sea() to let
-> APEI driver handle the SEA notification.
->
-> CC: Tyler Baicar <tbaicar@codeaurora.org>
-> CC: James Morse <james.morse@arm.com>
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> ---
-> This cleanup is ever mentioned by Mark Rutland in [1]
->
-> [1]:
-> https://lkml.org/lkml/2018/5/31/289
->
-> Change since v1:
-> 1. Update the commit messages
-> 2. CC Tyler and James
-> 3. Add Acked-by of Will
-> ---
->  arch/arm64/mm/fault.c | 7 +------
->  include/acpi/ghes.h   | 4 ++++
->  2 files changed, 5 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-> index b8eecc7..9ffe01d 100644
-> --- a/arch/arm64/mm/fault.c
-> +++ b/arch/arm64/mm/fault.c
-> @@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
->
->  int handle_guest_sea(phys_addr_t addr, unsigned int esr)
->  {
-> -       int ret = -ENOENT;
-> -
-> -       if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
-> -               ret = ghes_notify_sea();
-> -
-> -       return ret;
-> +       return ghes_notify_sea();
->  }
->
->  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-> index 1624e2b..82cb4eb 100644
-> --- a/include/acpi/ghes.h
-> +++ b/include/acpi/ghes.h
-> @@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
->              (void *)section - (void *)(estatus + 1) < estatus->data_length; \
->              section = acpi_hest_get_next(section))
->
-> +#ifdef CONFIG_ACPI_APEI_SEA
->  int ghes_notify_sea(void);
-> +#else
-> +static inline int ghes_notify_sea(void) { return -ENOENT; }
-> +#endif
->
->  #endif /* GHES_H */
-> --
-> 1.9.1
->
+We need to ensure that platform supports ASPM to begin with.
+
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Reported-by: Michael Kelley <mikelley@microsoft.com>
+---
+ drivers/acpi/pci_root.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 7433035..9d738e2 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -455,8 +455,13 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+ 	decode_osc_support(root, "OS supports", support);
+ 	status = acpi_pci_osc_support(root, support);
+ 	if (ACPI_FAILURE(status)) {
+-		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
+-			 acpi_format_exception(status));
++		char *aspm_msg = "";
++
++		if (pcie_aspm_support_enabled())
++			aspm_msg = "; disabling ASPM";
++
++		dev_info(&device->dev, "_OSC failed (%s) %s\n",
++				 acpi_format_exception(status), aspm_msg);
+ 		*no_aspm = 1;
+ 		return;
+ 	}
+-- 
+2.7.4
