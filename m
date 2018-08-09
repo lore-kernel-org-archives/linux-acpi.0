@@ -1,80 +1,45 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH 2/2] PCI/ACPI: allow _OSC presence to be optional for PCI
-Date: Thu,  9 Aug 2018 18:46:23 +0000
-Message-ID: <1533840383-7841-2-git-send-email-okaya@kernel.org>
-References: <1533840383-7841-1-git-send-email-okaya@kernel.org>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH RESEND v2] arm64: clean the additional checks before
+ calling ghes_notify_sea()
+Date: Fri, 10 Aug 2018 06:16:45 +0800
+Message-ID: <CAMj-D2De_LzxMjNT_w-N2iiqBYq4wbdY6vEvjxr5yaAuhBg+jw@mail.gmail.com>
+References: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
+ <CAMj-D2Arv-ZxUMTB_zKKy58CghWsZJbTOcNdiD3KVzxJ-v973g@mail.gmail.com> <CABo9ajBKEWmgh6tBbUnrY8zM3vAH+TKWwBHn-Vz556Up+614Zw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533840383-7841-1-git-send-email-okaya@kernel.org>
+In-Reply-To: <CABo9ajBKEWmgh6tBbUnrY8zM3vAH+TKWwBHn-Vz556Up+614Zw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Tyler Baicar <baicar.tyler@gmail.com>
+Cc: Dongjiu Geng <gengdongjiu@huawei.com>, Borislav Petkov <bp@suse.de>, Will Deacon <will.deacon@arm.com>, rafael.j.wysocki@intel.com, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI Spec 6.0 Section 6.2.11.3 OSC Implementation Example for PCI
-Host Bridge Devices:
+2018-08-10 5:05 GMT+08:00 Tyler Baicar <baicar.tyler@gmail.com>:
+> On Thu, Aug 9, 2018 at 8:32 AM, gengdongjiu <gengdj.1984@gmail.com> wrote:
+>>
+>> 2018-08-08 0:26 GMT+08:00 Dongjiu Geng <gengdongjiu@huawei.com>:
+>> > In order to remove the additional check before calling the
+>> > ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+>> >
+>> > After this cleanup, we can simply call the ghes_notify_sea() to let
+>> > APEI driver handle the SEA notification.
+>> >
+>> > CC: Tyler Baicar <tbaicar@codeaurora.org>
+>> > CC: James Morse <james.morse@arm.com>
+>> > Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>> > Acked-by: Will Deacon <will.deacon@arm.com>
+>> > ---
+>> > This cleanup is ever mentioned by Mark Rutland in [1]
+>> >
+>> > [1]:
+>> > https://lkml.org/lkml/2018/5/31/289
+>> >
+>
+> FWIW - Looks good to me!
 
-For a host bridge device that originates a PCI Express hierarchy,
-the _OSC interface defined in this section is required.
+Thanks very much for this comments and review,
+whether I can get your "Acked-by" or "Reviewed-by"? thanks
 
-For a host bridge device that originates a PCI/PCI-X bus hierarchy,
-inclusion of an _OSC object is optional.
-
-Allow PCI host bridges to bail out silently if _OSC is not found.
-
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Reported-by: Michael Kelley <mikelley@microsoft.com>
----
- drivers/acpi/pci_root.c | 16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 9d738e2..c94ed01 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -421,7 +421,8 @@ acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 req)
- }
- EXPORT_SYMBOL(acpi_pci_osc_control_set);
- 
--static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
-+static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
-+				 bool is_pcie)
- {
- 	u32 support, control, requested;
- 	acpi_status status;
-@@ -460,9 +461,14 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 		if (pcie_aspm_support_enabled())
- 			aspm_msg = "; disabling ASPM";
- 
--		dev_info(&device->dev, "_OSC failed (%s) %s\n",
--				 acpi_format_exception(status), aspm_msg);
- 		*no_aspm = 1;
-+
-+		/* _OSC is optional for PCI host bridges */
-+		if ((status == AE_NOT_FOUND) && !is_pcie)
-+			return;
-+
-+		dev_info(&device->dev, "_OSC failed (%s) %s\n",
-+			 acpi_format_exception(status), aspm_msg);
- 		return;
- 	}
- 
-@@ -538,6 +544,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	acpi_handle handle = device->handle;
- 	int no_aspm = 0;
- 	bool hotadd = system_state == SYSTEM_RUNNING;
-+	bool is_pcie;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
-@@ -595,7 +602,8 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 
- 	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
--	negotiate_os_control(root, &no_aspm);
-+	is_pcie = strcmp(acpi_device_hid(device), "PNP0A08") == 0;
-+	negotiate_os_control(root, &no_aspm, is_pcie);
- 
- 	/*
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
--- 
-2.7.4
+>
+> Thanks,
+> Tyler
