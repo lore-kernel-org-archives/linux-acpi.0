@@ -1,78 +1,80 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v6 4/4] platform/x86: Add ACPI i2c-multi-instantiate
- pseudo driver
-Date: Thu, 9 Aug 2018 14:08:41 +0200
-Message-ID: <9805a950-dfd3-df13-15e8-d60703ce0498@redhat.com>
-References: <20180809114046.21366-1-hdegoede@redhat.com>
- <20180809114046.21366-5-hdegoede@redhat.com>
- <CAJZ5v0jbNTGEXWJ+CtPOKSM=AyB5-3hV-tMCYehj5w87i_2znA@mail.gmail.com>
+From: gengdongjiu <gengdj.1984@gmail.com>
+Subject: Re: [PATCH RESEND v2] arm64: clean the additional checks before
+ calling ghes_notify_sea()
+Date: Thu, 9 Aug 2018 20:32:45 +0800
+Message-ID: <CAMj-D2Arv-ZxUMTB_zKKy58CghWsZJbTOcNdiD3KVzxJ-v973g@mail.gmail.com>
+References: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jbNTGEXWJ+CtPOKSM=AyB5-3hV-tMCYehj5w87i_2znA@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Darren Hart <dvhart@infradead.org>, Wolfram Sang <wsa@the-dreams.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-i2c <linux-i2c@vger.kernel.org>
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: Borislav Petkov <bp@suse.de>, Will Deacon <will.deacon@arm.com>, rafael.j.wysocki@intel.com, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org, linuxarm@huawei.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+CC Borislav
 
-On 09-08-18 13:55, Rafael J. Wysocki wrote:
-> On Thu, Aug 9, 2018 at 1:40 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->> On systems with ACPI instantiated i2c-clients, normally there is 1 fw_node
->> per i2c-device and that fw-node contains 1 I2cSerialBus resource for that 1
->> i2c-device.
->>
->> But in some rare cases the manufacturer has decided to describe multiple
->> i2c-devices in a single ACPI fwnode with multiple I2cSerialBus resources.
->>
->> An earlier attempt to fix this in the i2c-core resulted in a lot of extra
->> code to support this corner-case.
->>
->> This commit introduces a new i2c-multi-instantiate driver which fixes this
->> in a different way. This new driver can be built as a module which will
->> only loaded on affected systems.
->>
->> This driver will instantiate a new i2c-client per I2cSerialBus resource,
->> using the driver_data from the acpi_device_id it is binding to to tell it
->> which chip-type (and optional irq-resource) to use when instantiating.
->>
->> Note this driver depends on a platform device being instantiated for the
->> ACPI fwnode, see the i2c_multi_instantiate_ids list of ACPI device-ids in
->> drivers/acpi/scan.c: acpi_device_enumeration_by_parent().
->>
->> Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> Acked-by: Wolfram Sang <wsa@the-dreams.de>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->> Changes in v2:
->> -Rebase on top of 4.18-rc2
->>
->> Changes in v3:
->> -Change from an i2c-driver using a hack to allow having multiple i2c clients
->>   at the same address to a platform-driver
->>
->> Changes in v4:
->> -Tweak MAINTAINERS entry a bit
->>
->> Changes in v5:
->> -s/no_clients/num_clients/
->> -Change patch Subject prefix to platform/x86
->>
->> Changes in v6:
->> -s/irq_idx/gpio_irq_idx/
-> 
-> And this is the only patch that has changed in v6, right?
 
-Correct.
-
-> Anyway, if you have further updates on top of this series, please send
-> them as incremental patches.
-
-Ok, will do.
-
-Thanks & Regards,
-
-Hans
+2018-08-08 0:26 GMT+08:00 Dongjiu Geng <gengdongjiu@huawei.com>:
+> In order to remove the additional check before calling the
+> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+>
+> After this cleanup, we can simply call the ghes_notify_sea() to let
+> APEI driver handle the SEA notification.
+>
+> CC: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: James Morse <james.morse@arm.com>
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> Acked-by: Will Deacon <will.deacon@arm.com>
+> ---
+> This cleanup is ever mentioned by Mark Rutland in [1]
+>
+> [1]:
+> https://lkml.org/lkml/2018/5/31/289
+>
+> Change since v1:
+> 1. Update the commit messages
+> 2. CC Tyler and James
+> 3. Add Acked-by of Will
+> ---
+>  arch/arm64/mm/fault.c | 7 +------
+>  include/acpi/ghes.h   | 4 ++++
+>  2 files changed, 5 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+> index b8eecc7..9ffe01d 100644
+> --- a/arch/arm64/mm/fault.c
+> +++ b/arch/arm64/mm/fault.c
+> @@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+>
+>  int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+>  {
+> -       int ret = -ENOENT;
+> -
+> -       if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+> -               ret = ghes_notify_sea();
+> -
+> -       return ret;
+> +       return ghes_notify_sea();
+>  }
+>
+>  asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+> diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+> index 1624e2b..82cb4eb 100644
+> --- a/include/acpi/ghes.h
+> +++ b/include/acpi/ghes.h
+> @@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+>              (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+>              section = acpi_hest_get_next(section))
+>
+> +#ifdef CONFIG_ACPI_APEI_SEA
+>  int ghes_notify_sea(void);
+> +#else
+> +static inline int ghes_notify_sea(void) { return -ENOENT; }
+> +#endif
+>
+>  #endif /* GHES_H */
+> --
+> 1.9.1
+>
