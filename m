@@ -1,80 +1,51 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v2 2/2] PCI/ACPI: allow _OSC presence to be optional for PCI
-Date: Fri, 10 Aug 2018 04:32:12 +0000
-Message-ID: <1533875532-24954-2-git-send-email-okaya@kernel.org>
-References: <1533875532-24954-1-git-send-email-okaya@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533875532-24954-1-git-send-email-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] i2c: core: ACPI: Properly set status byte to 0 for multi-byte writes
+Date: Fri, 10 Aug 2018 14:27:14 +0200
+Message-ID: <20180810122714.690-1-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI Spec 6.0 Section 6.2.11.3 OSC Implementation Example for PCI
-Host Bridge Devices:
+acpi_gsb_i2c_write_bytes() returns i2c_transfer()'s return value, which
+is the number of transfers executed on success, so 1.
 
-For a host bridge device that originates a PCI Express hierarchy,
-the _OSC interface defined in this section is required.
+The ACPI code expects us to store 0 in gsb->status for success, not 1.
 
-For a host bridge device that originates a PCI/PCI-X bus hierarchy,
-inclusion of an _OSC object is optional.
+Specifically this breaks the following code in the Thinkpad 8 DSDT:
 
-Allow PCI host bridges to bail out silently if _OSC is not found.
+            ECWR = I2CW = ECWR /* \_SB_.I2C1.BAT0.ECWR */
+            If ((ECST == Zero))
+            {
+                ECRD = I2CR /* \_SB_.I2C1.I2CR */
+            }
 
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Reported-by: Michael Kelley <mikelley@microsoft.com>
+Before this commit we set ECST to 1, causing the read to never happen
+breaking battery monitoring on the Thinkpad 8. Note the Thinkpad 8 also
+has some unrelated issues where i2c transfers are unreliable.
+
+This commit sets status to 0 if it was bigger then 0 (so success),
+mirroring the multi-byte read path, fixing this.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/pci_root.c | 14 +++++++++++---
- 1 file changed, 11 insertions(+), 3 deletions(-)
+ drivers/i2c/i2c-core-acpi.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index e465e72..707aafc 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -421,7 +421,8 @@ acpi_status acpi_pci_osc_control_set(acpi_handle handle, u32 *mask, u32 req)
- }
- EXPORT_SYMBOL(acpi_pci_osc_control_set);
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 7c3b4740b94b..10ad851bd277 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -595,6 +595,8 @@ i2c_acpi_space_handler(u32 function, acpi_physical_address command,
+ 		} else {
+ 			status = acpi_gsb_i2c_write_bytes(client, command,
+ 					gsb->data, info->access_length);
++			if (status > 0)
++				status = 0;
+ 		}
+ 		break;
  
--static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
-+static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
-+				 bool is_pcie)
- {
- 	u32 support, control, requested;
- 	acpi_status status;
-@@ -455,10 +456,15 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 	decode_osc_support(root, "OS supports", support);
- 	status = acpi_pci_osc_support(root, support);
- 	if (ACPI_FAILURE(status)) {
-+		*no_aspm = 1;
-+
-+		/* _OSC is optional for PCI host bridges */
-+		if ((status == AE_NOT_FOUND) && !is_pcie)
-+			return;
-+
- 		dev_info(&device->dev, "_OSC failed (%s)%s\n",
- 			 acpi_format_exception(status),
- 			 pcie_aspm_support_enabled() ? "; disabling ASPM" : "");
--		*no_aspm = 1;
- 		return;
- 	}
- 
-@@ -534,6 +540,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	acpi_handle handle = device->handle;
- 	int no_aspm = 0;
- 	bool hotadd = system_state == SYSTEM_RUNNING;
-+	bool is_pcie;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
- 	if (!root)
-@@ -591,7 +598,8 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 
- 	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
--	negotiate_os_control(root, &no_aspm);
-+	is_pcie = strcmp(acpi_device_hid(device), "PNP0A08") == 0;
-+	negotiate_os_control(root, &no_aspm, is_pcie);
- 
- 	/*
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
 -- 
-2.7.4
+2.18.0
