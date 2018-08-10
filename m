@@ -1,47 +1,22 @@
-From: Tyler Baicar <baicar.tyler@gmail.com>
-Subject: Re: [PATCH RESEND v2] arm64: clean the additional checks before
- calling ghes_notify_sea()
-Date: Thu, 9 Aug 2018 22:14:12 -0400
-Message-ID: <CABo9ajB-FYDxubuJ6=PnoX5D_x4ujm7Snc+OA=AQ-K564JUJoQ@mail.gmail.com>
-References: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
- <CAMj-D2Arv-ZxUMTB_zKKy58CghWsZJbTOcNdiD3KVzxJ-v973g@mail.gmail.com>
- <CABo9ajBKEWmgh6tBbUnrY8zM3vAH+TKWwBHn-Vz556Up+614Zw@mail.gmail.com> <CAMj-D2De_LzxMjNT_w-N2iiqBYq4wbdY6vEvjxr5yaAuhBg+jw@mail.gmail.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH 1/2] PCI/ACPI: correct error message for ASPM disabling
+Date: Thu, 9 Aug 2018 22:15:09 -0400
+Message-ID: <2a8b5c60-45ba-1fc4-d261-fcfbd7f16910@kernel.org>
+References: <1533840383-7841-1-git-send-email-okaya@kernel.org>
+ <307063ff7bbdcc0c3896f027b09245e542764f48.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAMj-D2De_LzxMjNT_w-N2iiqBYq4wbdY6vEvjxr5yaAuhBg+jw@mail.gmail.com>
+In-Reply-To: <307063ff7bbdcc0c3896f027b09245e542764f48.camel@perches.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: gengdongjiu <gengdj.1984@gmail.com>
-Cc: Dongjiu Geng <gengdongjiu@huawei.com>, Borislav Petkov <bp@suse.de>, Will Deacon <will.deacon@arm.com>, rafael.j.wysocki@intel.com, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
+To: Joe Perches <joe@perches.com>, linux-pci@vger.kernel.org
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Aug 9, 2018 at 6:16 PM, gengdongjiu <gengdj.1984@gmail.com> wrote:
-> 2018-08-10 5:05 GMT+08:00 Tyler Baicar <baicar.tyler@gmail.com>:
->> On Thu, Aug 9, 2018 at 8:32 AM, gengdongjiu <gengdj.1984@gmail.com> wrote:
->>>
->>> 2018-08-08 0:26 GMT+08:00 Dongjiu Geng <gengdongjiu@huawei.com>:
->>> > In order to remove the additional check before calling the
->>> > ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
->>> >
->>> > After this cleanup, we can simply call the ghes_notify_sea() to let
->>> > APEI driver handle the SEA notification.
->>> >
->>> > CC: Tyler Baicar <tbaicar@codeaurora.org>
->>> > CC: James Morse <james.morse@arm.com>
->>> > Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
->>> > Acked-by: Will Deacon <will.deacon@arm.com>
->>> > ---
->>> > This cleanup is ever mentioned by Mark Rutland in [1]
->>> >
->>> > [1]:
->>> > https://lkml.org/lkml/2018/5/31/289
->>> >
->>
->> FWIW - Looks good to me!
->
-> Thanks very much for this comments and review,
-> whether I can get your "Acked-by" or "Reviewed-by"? thanks
->
-Sorry, yes!
+On 8/9/2018 8:27 PM, Joe Perches wrote:
+> I think this would read better not using a temporary and
+> using a ternary instead.
 
-Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
+Makes sense.
