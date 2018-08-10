@@ -1,56 +1,47 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 1/2] PCI/ACPI: correct error message for ASPM disabling
-Date: Thu, 09 Aug 2018 17:27:18 -0700
-Message-ID: <307063ff7bbdcc0c3896f027b09245e542764f48.camel@perches.com>
-References: <1533840383-7841-1-git-send-email-okaya@kernel.org>
+From: Tyler Baicar <baicar.tyler@gmail.com>
+Subject: Re: [PATCH RESEND v2] arm64: clean the additional checks before
+ calling ghes_notify_sea()
+Date: Thu, 9 Aug 2018 22:14:12 -0400
+Message-ID: <CABo9ajB-FYDxubuJ6=PnoX5D_x4ujm7Snc+OA=AQ-K564JUJoQ@mail.gmail.com>
+References: <1533659175-47076-1-git-send-email-gengdongjiu@huawei.com>
+ <CAMj-D2Arv-ZxUMTB_zKKy58CghWsZJbTOcNdiD3KVzxJ-v973g@mail.gmail.com>
+ <CABo9ajBKEWmgh6tBbUnrY8zM3vAH+TKWwBHn-Vz556Up+614Zw@mail.gmail.com> <CAMj-D2De_LzxMjNT_w-N2iiqBYq4wbdY6vEvjxr5yaAuhBg+jw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1533840383-7841-1-git-send-email-okaya@kernel.org>
+In-Reply-To: <CAMj-D2De_LzxMjNT_w-N2iiqBYq4wbdY6vEvjxr5yaAuhBg+jw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>, linux-pci@vger.kernel.org
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: gengdongjiu <gengdj.1984@gmail.com>
+Cc: Dongjiu Geng <gengdongjiu@huawei.com>, Borislav Petkov <bp@suse.de>, Will Deacon <will.deacon@arm.com>, rafael.j.wysocki@intel.com, James Morse <james.morse@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2018-08-09 at 18:46 +0000, Sinan Kaya wrote:
-> If _OSC execution fails today for platforms without an _OSC
-> entry, code is printing a misleading message saying disabling
-> ASPM as follows:
-> 
-> acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
-> 
-> We need to ensure that platform supports ASPM to begin with.
-> 
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> Reported-by: Michael Kelley <mikelley@microsoft.com>
-> ---
->  drivers/acpi/pci_root.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-[]
-> @@ -455,8 +455,13 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
->  	decode_osc_support(root, "OS supports", support);
->  	status = acpi_pci_osc_support(root, support);
->  	if (ACPI_FAILURE(status)) {
-> -		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
-> -			 acpi_format_exception(status));
-> +		char *aspm_msg = "";
-> +
-> +		if (pcie_aspm_support_enabled())
-> +			aspm_msg = "; disabling ASPM";
-> +
-> +		dev_info(&device->dev, "_OSC failed (%s) %s\n",
-> +				 acpi_format_exception(status), aspm_msg);
+On Thu, Aug 9, 2018 at 6:16 PM, gengdongjiu <gengdj.1984@gmail.com> wrote:
+> 2018-08-10 5:05 GMT+08:00 Tyler Baicar <baicar.tyler@gmail.com>:
+>> On Thu, Aug 9, 2018 at 8:32 AM, gengdongjiu <gengdj.1984@gmail.com> wrote:
+>>>
+>>> 2018-08-08 0:26 GMT+08:00 Dongjiu Geng <gengdongjiu@huawei.com>:
+>>> > In order to remove the additional check before calling the
+>>> > ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+>>> >
+>>> > After this cleanup, we can simply call the ghes_notify_sea() to let
+>>> > APEI driver handle the SEA notification.
+>>> >
+>>> > CC: Tyler Baicar <tbaicar@codeaurora.org>
+>>> > CC: James Morse <james.morse@arm.com>
+>>> > Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+>>> > Acked-by: Will Deacon <will.deacon@arm.com>
+>>> > ---
+>>> > This cleanup is ever mentioned by Mark Rutland in [1]
+>>> >
+>>> > [1]:
+>>> > https://lkml.org/lkml/2018/5/31/289
+>>> >
+>>
+>> FWIW - Looks good to me!
+>
+> Thanks very much for this comments and review,
+> whether I can get your "Acked-by" or "Reviewed-by"? thanks
+>
+Sorry, yes!
 
-I think this would read better not using a temporary and
-using a ternary instead.
-
-		dev_info(&device->dev, "_OSC failed (%s)%s\n",
-			 acpi_format_exception(status),
-			 pcie_aspm_support_enabled() ? "; disabling ASPM" : "");
-
->  		*no_aspm = 1;
->  		return;
->  	}
+Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
