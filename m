@@ -1,73 +1,76 @@
-From: "Verma, Vishal L" <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] ACPI: nfit: remove redundant assignment if nfit_mem
- found
-Date: Fri, 10 Aug 2018 23:45:35 +0000
-Message-ID: <1533944734.6054.38.camel@intel.com>
-References: <1533199444-29607-1-git-send-email-oceanhehy@gmail.com>
+From: Dongjiu Geng <gengdongjiu@huawei.com>
+Subject: [PATCH RESEND v3] arm64: clean the additional checks before calling ghes_notify_sea()
+Date: Sat, 11 Aug 2018 12:35:47 +0800
+Message-ID: <20180811043547.560-1-gengdongjiu@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <1533199444-29607-1-git-send-email-oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-Content-ID: <DCC5CA9523A00740AB44287C469ACDF3-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: "Williams, Dan J" <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org" <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Jiang, Dave" <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org" <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rjw@rjwysocki.net, bp@suse.de, bp@alien8.de, will.deacon@arm.com, james.morse@arm.com, baicar.tyler@gmail.com, lenb@kernel.org, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com
+Cc: Tyler Baicar <tbaicar@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
+In order to remove the additional check before calling the
+ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
 
-On Thu, 2018-08-02 at 04:44 -0400, oceanhehy-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote:
-> From: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
-> 
-> When nfit_mem is found via list_for_each_entry, it has already been
-> assigned valid value. There is no need to assign it again in the
-> following
-> codes.
-> 
-> Signed-off-by: Ocean He <hehy1-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
-> ---
-> v1: https://patchwork.kernel.org/patch/10553277/
-> v2: Sorry for noise. I got an email problem, so I have to resend to
-> loop 
-> linux-nvdimm-hn68Rpc1hR1TeqIcxkLZrQ@public.gmane.org
-> 
->  drivers/acpi/nfit/core.c | 4 +---
->  1 file changed, 1 insertion(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 7c47900..85dde54 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1048,9 +1048,7 @@ static int __nfit_mem_init(struct
-> acpi_nfit_desc *acpi_desc,
->  				break;
->  			}
->  
-> -		if (found)
-> -			nfit_mem = found;
-> -		else {
-> +		if (!found) {
+After this cleanup, we can simply call the ghes_notify_sea() to let
+APEI driver handle the SEA notification.
 
-Hi Ocean,
+CC: Tyler Baicar <tbaicar@codeaurora.org>
+CC: James Morse <james.morse@arm.com>
+Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
+---
+This cleanup is ever mentioned by Mark Rutland in [1]
 
-While this is technically correct, the old way was easier to read. We
-loop through and find the matching handle. If we found one, then
-nfit_mem was whatever was found. If not, we allocate it.
+[1]:
+https://lkml.org/lkml/2018/5/31/289
 
-With this change, one has to go grok the list_for_.. loop to figure out
-where nfit_mem is coming from. I'd personally prefer to keep the
-existing way..
+change since v2:
+1. Add 'Reviewed-by' of Tyler
 
->  			nfit_mem = devm_kzalloc(acpi_desc->dev,
->  					sizeof(*nfit_mem),
-> GFP_KERNEL);
->  			if (!nfit_mem)
+change since v1:
+1. Update the commit messages
+2. CC Tyler and James
+3. Add 'Acked-by' of Will
+---
+ arch/arm64/mm/fault.c | 7 +------
+ include/acpi/ghes.h   | 4 ++++
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index b8eecc7..9ffe01d 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
+ 
+ int handle_guest_sea(phys_addr_t addr, unsigned int esr)
+ {
+-	int ret = -ENOENT;
+-
+-	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
+-		ret = ghes_notify_sea();
+-
+-	return ret;
++	return ghes_notify_sea();
+ }
+ 
+ asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
+diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
+index 1624e2b..82cb4eb 100644
+--- a/include/acpi/ghes.h
++++ b/include/acpi/ghes.h
+@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
+ 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
+ 	     section = acpi_hest_get_next(section))
+ 
++#ifdef CONFIG_ACPI_APEI_SEA
+ int ghes_notify_sea(void);
++#else
++static inline int ghes_notify_sea(void) { return -ENOENT; }
++#endif
+ 
+ #endif /* GHES_H */
+-- 
+1.9.1
