@@ -1,72 +1,113 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: core: ACPI: Properly set status byte to 0 for
- multi-byte writes
-Date: Sat, 11 Aug 2018 15:11:03 +0200
-Message-ID: <20180811070321.GA2180@kunai>
-References: <20180810122714.690-1-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180810122714.690-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+From: Pu Wen <puwen@hygon.cn>
+Subject: [PATCH v3 00/17] Add support for Hygon Dhyana Family 18h processor
+Date: Sat, 11 Aug 2018 21:25:16 +0800
+Message-ID: <cover.1533989492.git.puwen@hygon.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, bp@alien8.de, pbonzini@redhat.com, tony.luck@intel.com, rkrcmar@redhat.com, boris.ostrovsky@oracle.com, jgross@suse.com, rjw@rjwysocki.net, lenb@kernel.org, viresh.kumar@linaro.org, mchehab@kernel.org, trenn@suse.com, shuah@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-pm@vger.kernel.org, kvm@vger.kernel.org, xen-devel@lists.xenproject.org, Pu Wen <puwen@hygon.cn>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hans,
+As a new x86 CPU Vendor, Chengdu Haiguang IC Design Co., Ltd (Hygon)
+is a Joint Venture between AMD and Haiguang Information Technology Co.,
+Ltd., and aims at providing high performance x86 processor for China
+server market.
 
-thanks for fixing this!
+The first generation Hygon's processor(Dhyana) originates from AMD
+technology and shares most of the architecture with AMD's family 17h,
+but with different CPU Vendor ID("HygonGenuine")/PCIE Device Vendor ID
+(0x1D94)/Family series number (Family 18h).
 
-On Fri, Aug 10, 2018 at 02:27:14PM +0200, Hans de Goede wrote:
-> acpi_gsb_i2c_write_bytes() returns i2c_transfer()'s return value, which
-> is the number of transfers executed on success, so 1.
-> 
-> The ACPI code expects us to store 0 in gsb->status for success, not 1.
-> 
-> Specifically this breaks the following code in the Thinkpad 8 DSDT:
-> 
->             ECWR = I2CW = ECWR /* \_SB_.I2C1.BAT0.ECWR */
->             If ((ECST == Zero))
->             {
->                 ECRD = I2CR /* \_SB_.I2C1.I2CR */
->             }
-> 
-> Before this commit we set ECST to 1, causing the read to never happen
-> breaking battery monitoring on the Thinkpad 8. Note the Thinkpad 8 also
-> has some unrelated issues where i2c transfers are unreliable.
-> 
-> This commit sets status to 0 if it was bigger then 0 (so success),
-> mirroring the multi-byte read path, fixing this.
-> 
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/i2c/i2c-core-acpi.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
-> index 7c3b4740b94b..10ad851bd277 100644
-> --- a/drivers/i2c/i2c-core-acpi.c
-> +++ b/drivers/i2c/i2c-core-acpi.c
-> @@ -595,6 +595,8 @@ i2c_acpi_space_handler(u32 function, acpi_physical_address command,
->  		} else {
->  			status = acpi_gsb_i2c_write_bytes(client, command,
->  					gsb->data, info->access_length);
-> +			if (status > 0)
-> +				status = 0;
+To enable the support of Linux kernel to Hygon's CPU, we added a new
+vendor type (X86_VENDOR_HYGON, with value of 9) in arch/x86/include/
+asm/processor.h, and shared most of kernel support codes with AMD
+family 17h.
 
-I think we should fix the function we are calling (and the read
-function, too). It doesn't make much sense to return the number of
-successful messages when the paramters of the function deal with bytes,
-not messages. Otherwise we probably will have the bug somewhere else
-again.
+This patch series have been applied and tested successfully in Hygon's
+Dhyana SoC silicon. Also tested on AMD's EPYC (Family 17h) processor
+works fine and makes no harm to existing codes.
 
-We should also return 0 only iff all messages were sent, otherwise -EIO
-or something.
 
-Makes sense?
+v2->v3:
+  - Rebased on 4.18-rc8 and tested against it.
+  - Rework vendor checking codes to improve consistency.
 
-Regards,
+v1->v2:
+  - Rebased on 4.18-rc6 and tested against it.
+  - Split the patchset to small series of patches.
+  - Rework patch descriptions.
+  - Create a separated arch/x86/kernel/cpu/hygon.c for Dhyana CPU
+    initialization to reduce long-term maintenance effort.
 
-   Wolfram
+
+Pu Wen (17):
+  x86/cpu: create Dhyana init file and register new cpu_dev to system
+  x86/cache: get cache size/leaves and setup cache cpumap for Dhyana
+  x86/mtrr: get MTRR number and support TOP_MEM2
+  x86/smpboot: smp init nodelay and no flush caches before sleep
+  x86/perfctr: return perf counter and event selection bit offset
+  x86/nops: init ideal_nops for Hygon
+  x86/pci: add Hygon PCI vendor and northbridge support
+  x86/apic: add modern APIC support for Hygon
+  x86/bugs: add lfence mitigation to spectre v2 and no meltdown for
+    Hygon
+  x86/events: enable Hygon support to PMU infrastructure
+  x86/mce: enable Hygon support to MCE infrastructure
+  x86/kvm: enable Hygon support to KVM infrastructure
+  x86/xen: enable Hygon support to Xen
+  driver/acpi: enable Hygon support to ACPI driver
+  driver/cpufreq: enable Hygon support to cpufreq driver
+  driver/edac: enable Hygon support to AMD64 EDAC driver
+  tools/cpupower: enable Hygon support to cpupower tool
+
+ MAINTAINERS                                        |   6 +
+ arch/x86/Kconfig                                   |   2 +-
+ arch/x86/Kconfig.cpu                               |  13 +
+ arch/x86/events/amd/core.c                         |   6 +
+ arch/x86/events/amd/uncore.c                       |  15 +-
+ arch/x86/events/core.c                             |   4 +
+ arch/x86/include/asm/cacheinfo.h                   |   1 +
+ arch/x86/include/asm/kvm_emulate.h                 |   4 +
+ arch/x86/include/asm/mce.h                         |   5 +
+ arch/x86/include/asm/nospec-branch.h               |   4 +-
+ arch/x86/include/asm/processor.h                   |   3 +-
+ arch/x86/include/asm/virtext.h                     |   5 +-
+ arch/x86/kernel/alternative.c                      |   4 +
+ arch/x86/kernel/amd_nb.c                           |  51 ++-
+ arch/x86/kernel/apic/apic.c                        |  19 +-
+ arch/x86/kernel/apic/probe_32.c                    |   1 +
+ arch/x86/kernel/cpu/Makefile                       |   1 +
+ arch/x86/kernel/cpu/bugs.c                         |  28 +-
+ arch/x86/kernel/cpu/cacheinfo.c                    |  31 +-
+ arch/x86/kernel/cpu/common.c                       |   1 +
+ arch/x86/kernel/cpu/cpu.h                          |   1 +
+ arch/x86/kernel/cpu/hygon.c                        | 404 +++++++++++++++++++++
+ arch/x86/kernel/cpu/mcheck/mce-severity.c          |   3 +-
+ arch/x86/kernel/cpu/mcheck/mce.c                   |  21 +-
+ arch/x86/kernel/cpu/mtrr/cleanup.c                 |   3 +-
+ arch/x86/kernel/cpu/mtrr/generic.c                 |   5 +-
+ arch/x86/kernel/cpu/mtrr/mtrr.c                    |   2 +-
+ arch/x86/kernel/cpu/perfctr-watchdog.c             |   2 +
+ arch/x86/kernel/smpboot.c                          |   6 +-
+ arch/x86/kvm/emulate.c                             |  11 +-
+ arch/x86/pci/amd_bus.c                             |   6 +-
+ arch/x86/xen/pmu.c                                 |  15 +-
+ drivers/acpi/acpi_pad.c                            |   1 +
+ drivers/acpi/processor_idle.c                      |   1 +
+ drivers/cpufreq/acpi-cpufreq.c                     |   5 +
+ drivers/cpufreq/amd_freq_sensitivity.c             |   9 +-
+ drivers/edac/amd64_edac.c                          |  45 ++-
+ drivers/edac/amd64_edac.h                          |   5 +
+ drivers/edac/mce_amd.c                             |  12 +-
+ include/linux/pci_ids.h                            |   2 +
+ tools/power/cpupower/utils/cpufreq-info.c          |   6 +-
+ tools/power/cpupower/utils/helpers/amd.c           |   4 +-
+ tools/power/cpupower/utils/helpers/cpuid.c         |   8 +-
+ tools/power/cpupower/utils/helpers/helpers.h       |   2 +-
+ tools/power/cpupower/utils/helpers/misc.c          |   3 +-
+ .../cpupower/utils/idle_monitor/mperf_monitor.c    |   3 +-
+ 46 files changed, 719 insertions(+), 70 deletions(-)
+ create mode 100644 arch/x86/kernel/cpu/hygon.c
+
+-- 
+2.7.4
