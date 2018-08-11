@@ -1,76 +1,72 @@
-From: Dongjiu Geng <gengdongjiu@huawei.com>
-Subject: [PATCH RESEND v3] arm64: clean the additional checks before calling ghes_notify_sea()
-Date: Sat, 11 Aug 2018 12:35:47 +0800
-Message-ID: <20180811043547.560-1-gengdongjiu@huawei.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: core: ACPI: Properly set status byte to 0 for
+ multi-byte writes
+Date: Sat, 11 Aug 2018 15:11:03 +0200
+Message-ID: <20180811070321.GA2180@kunai>
+References: <20180810122714.690-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, bp@suse.de, bp@alien8.de, will.deacon@arm.com, james.morse@arm.com, baicar.tyler@gmail.com, lenb@kernel.org, robert.moore@intel.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gengdongjiu@huawei.com
-Cc: Tyler Baicar <tbaicar@codeaurora.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180810122714.690-1-hdegoede@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-In order to remove the additional check before calling the
-ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+Hi Hans,
 
-After this cleanup, we can simply call the ghes_notify_sea() to let
-APEI driver handle the SEA notification.
+thanks for fixing this!
 
-CC: Tyler Baicar <tbaicar@codeaurora.org>
-CC: James Morse <james.morse@arm.com>
-Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
----
-This cleanup is ever mentioned by Mark Rutland in [1]
+On Fri, Aug 10, 2018 at 02:27:14PM +0200, Hans de Goede wrote:
+> acpi_gsb_i2c_write_bytes() returns i2c_transfer()'s return value, which
+> is the number of transfers executed on success, so 1.
+> 
+> The ACPI code expects us to store 0 in gsb->status for success, not 1.
+> 
+> Specifically this breaks the following code in the Thinkpad 8 DSDT:
+> 
+>             ECWR = I2CW = ECWR /* \_SB_.I2C1.BAT0.ECWR */
+>             If ((ECST == Zero))
+>             {
+>                 ECRD = I2CR /* \_SB_.I2C1.I2CR */
+>             }
+> 
+> Before this commit we set ECST to 1, causing the read to never happen
+> breaking battery monitoring on the Thinkpad 8. Note the Thinkpad 8 also
+> has some unrelated issues where i2c transfers are unreliable.
+> 
+> This commit sets status to 0 if it was bigger then 0 (so success),
+> mirroring the multi-byte read path, fixing this.
+> 
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/i2c/i2c-core-acpi.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+> index 7c3b4740b94b..10ad851bd277 100644
+> --- a/drivers/i2c/i2c-core-acpi.c
+> +++ b/drivers/i2c/i2c-core-acpi.c
+> @@ -595,6 +595,8 @@ i2c_acpi_space_handler(u32 function, acpi_physical_address command,
+>  		} else {
+>  			status = acpi_gsb_i2c_write_bytes(client, command,
+>  					gsb->data, info->access_length);
+> +			if (status > 0)
+> +				status = 0;
 
-[1]:
-https://lkml.org/lkml/2018/5/31/289
+I think we should fix the function we are calling (and the read
+function, too). It doesn't make much sense to return the number of
+successful messages when the paramters of the function deal with bytes,
+not messages. Otherwise we probably will have the bug somewhere else
+again.
 
-change since v2:
-1. Add 'Reviewed-by' of Tyler
+We should also return 0 only iff all messages were sent, otherwise -EIO
+or something.
 
-change since v1:
-1. Update the commit messages
-2. CC Tyler and James
-3. Add 'Acked-by' of Will
----
- arch/arm64/mm/fault.c | 7 +------
- include/acpi/ghes.h   | 4 ++++
- 2 files changed, 5 insertions(+), 6 deletions(-)
+Makes sense?
 
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index b8eecc7..9ffe01d 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -727,12 +727,7 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- int handle_guest_sea(phys_addr_t addr, unsigned int esr)
- {
--	int ret = -ENOENT;
--
--	if (IS_ENABLED(CONFIG_ACPI_APEI_SEA))
--		ret = ghes_notify_sea();
--
--	return ret;
-+	return ghes_notify_sea();
- }
- 
- asmlinkage void __exception do_mem_abort(unsigned long addr, unsigned int esr,
-diff --git a/include/acpi/ghes.h b/include/acpi/ghes.h
-index 1624e2b..82cb4eb 100644
---- a/include/acpi/ghes.h
-+++ b/include/acpi/ghes.h
-@@ -118,6 +118,10 @@ static inline void *acpi_hest_get_next(struct acpi_hest_generic_data *gdata)
- 	     (void *)section - (void *)(estatus + 1) < estatus->data_length; \
- 	     section = acpi_hest_get_next(section))
- 
-+#ifdef CONFIG_ACPI_APEI_SEA
- int ghes_notify_sea(void);
-+#else
-+static inline int ghes_notify_sea(void) { return -ENOENT; }
-+#endif
- 
- #endif /* GHES_H */
--- 
-1.9.1
+Regards,
+
+   Wolfram
