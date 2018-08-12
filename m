@@ -1,60 +1,66 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPICA: Clear status of all events when entering sleep states
-Date: Sun, 12 Aug 2018 12:50:09 +0200
-Message-ID: <1764673.ub23GCSM6t@aspire.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: Paul Menzel <pmenzel@molgen.mpg.de>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v2 1/2] i2c: core: ACPI: Properly set status byte to 0 for multi-byte writes
+Date: Sun, 12 Aug 2018 12:53:20 +0200
+Message-ID: <20180812105321.2668-1-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+acpi_gsb_i2c_write_bytes() returns i2c_transfer()'s return value, which
+is the number of transfers executed on success, so 1.
 
-Commit fa85015c0d95 (ACPICA: Clear status of all events when entering
-S5) made the sleep state entry code in ACPICA clear the status of all
-ACPI events when entering S5 to fix a functional regression reported
-against commit 18996f2db918 (ACPICA: Events: Stop unconditionally
-clearing ACPI IRQs during suspend/resume).  However, it is reported
-now that the regression also affects system states other than S5 on
-some systems and causes them to wake up from sleep prematurely.
+The ACPI code expects us to store 0 in gsb->status for success, not 1.
 
-For this reason, make the code in question clear the status of all
-ACPI events when entering all sleep states (in addition to S5) to
-avoid the premature wakeups (this may cause some wakeup events to
-be missed in theory, but the likelihood of that is small and the
-change here simply restores the previous behavior of the code).
+Specifically this breaks the following code in the Thinkpad 8 DSDT:
 
-Fixes: 18996f2db918 (ACPICA: Events: Stop unconditionally clearing ACPI IRQs during suspend/resume)
-Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
-Cc: 4.17+ <stable@vger.kernel.org> # 4.17+: fa85015c0d95 ACPICA: Clear status ...
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+            ECWR = I2CW = ECWR /* \_SB_.I2C1.BAT0.ECWR */
+            If ((ECST == Zero))
+            {
+                ECRD = I2CR /* \_SB_.I2C1.I2CR */
+            }
+
+Before this commit we set ECST to 1, causing the read to never happen
+breaking battery monitoring on the Thinkpad 8.
+
+This commit makes acpi_gsb_i2c_write_bytes() return 0 when i2c_transfer()
+returns 1, so the single write transfer completed successfully, and
+makes it return -EIO on for other (unexpected) return values >= 0.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/acpi/acpica/hwsleep.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+Changes in v2:
+-Modify the value which acpi_gsb_i2c_write_bytes() returns instead of
+ checking + modifying the return value in its caller
+---
+ drivers/i2c/i2c-core-acpi.c | 11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-Index: linux-pm/drivers/acpi/acpica/hwsleep.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpica/hwsleep.c
-+++ linux-pm/drivers/acpi/acpica/hwsleep.c
-@@ -56,14 +56,9 @@ acpi_status acpi_hw_legacy_sleep(u8 slee
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
--	/*
--	 * If the target sleep state is S5, clear all GPEs and fixed events too
--	 */
--	if (sleep_state == ACPI_STATE_S5) {
--		status = acpi_hw_clear_acpi_status();
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
--		}
-+	status = acpi_hw_clear_acpi_status();
-+	if (ACPI_FAILURE(status)) {
-+		return_ACPI_STATUS(status);
- 	}
- 	acpi_gbl_system_awake_and_running = FALSE;
+diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
+index 7c3b4740b94b..b8f303dea305 100644
+--- a/drivers/i2c/i2c-core-acpi.c
++++ b/drivers/i2c/i2c-core-acpi.c
+@@ -482,11 +482,16 @@ static int acpi_gsb_i2c_write_bytes(struct i2c_client *client,
+ 	msgs[0].buf = buffer;
  
+ 	ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+-	if (ret < 0)
+-		dev_err(&client->adapter->dev, "i2c write failed\n");
+ 
+ 	kfree(buffer);
+-	return ret;
++
++	if (ret < 0) {
++		dev_err(&client->adapter->dev, "i2c write failed: %d\n", ret);
++		return ret;
++	}
++
++	/* 1 transfer must have completed successfully */
++	return (ret == 1) ? 0 : -EIO;
+ }
+ 
+ static acpi_status
+-- 
+2.18.0
