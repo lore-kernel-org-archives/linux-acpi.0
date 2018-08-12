@@ -1,58 +1,60 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 14/17] driver/acpi: enable Hygon support to ACPI driver
-Date: Sun, 12 Aug 2018 12:12:54 +0200
-Message-ID: <CAJZ5v0i=KMjQEqkJmO-XSgnjTUYBepXzOTohQV62sUqXLi+QJw@mail.gmail.com>
-References: <cover.1533989492.git.puwen@hygon.cn> <e282c406c34d5cdc92f7ec0bc12e9406405544d8.1533989493.git.puwen@hygon.cn>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPICA: Clear status of all events when entering sleep states
+Date: Sun, 12 Aug 2018 12:50:09 +0200
+Message-ID: <1764673.ub23GCSM6t@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e282c406c34d5cdc92f7ec0bc12e9406405544d8.1533989493.git.puwen@hygon.cn>
 Sender: linux-kernel-owner@vger.kernel.org
-To: puwen@hygon.cn
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, thomas.lendacky@amd.com, Borislav Petkov <bp@alien8.de>, Paolo Bonzini <pbonzini@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Paul Menzel <pmenzel@molgen.mpg.de>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Erik Schmauss <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 11, 2018 at 3:36 PM Pu Wen <puwen@hygon.cn> wrote:
->
-> For Dhyana processors have NONSTOP TSC feature, so enable the support
-> to ACPI driver.
->
-> Signed-off-by: Pu Wen <puwen@hygon.cn>
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This patch is fine by me, but I'm assuming that the series will be
-handled as a whole, so
+Commit fa85015c0d95 (ACPICA: Clear status of all events when entering
+S5) made the sleep state entry code in ACPICA clear the status of all
+ACPI events when entering S5 to fix a functional regression reported
+against commit 18996f2db918 (ACPICA: Events: Stop unconditionally
+clearing ACPI IRQs during suspend/resume).  However, it is reported
+now that the regression also affects system states other than S5 on
+some systems and causes them to wake up from sleep prematurely.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+For this reason, make the code in question clear the status of all
+ACPI events when entering all sleep states (in addition to S5) to
+avoid the premature wakeups (this may cause some wakeup events to
+be missed in theory, but the likelihood of that is small and the
+change here simply restores the previous behavior of the code).
 
-> ---
->  drivers/acpi/acpi_pad.c       | 1 +
->  drivers/acpi/processor_idle.c | 1 +
->  2 files changed, 2 insertions(+)
->
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index 552c1f7..a47676a 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -70,6 +70,7 @@ static void power_saving_mwait_init(void)
->
->  #if defined(CONFIG_X86)
->         switch (boot_cpu_data.x86_vendor) {
-> +       case X86_VENDOR_HYGON:
->         case X86_VENDOR_AMD:
->         case X86_VENDOR_INTEL:
->                 /*
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index abb559c..b2131c4 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -205,6 +205,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
->  static void tsc_check_state(int state)
->  {
->         switch (boot_cpu_data.x86_vendor) {
-> +       case X86_VENDOR_HYGON:
->         case X86_VENDOR_AMD:
->         case X86_VENDOR_INTEL:
->         case X86_VENDOR_CENTAUR:
-> --
-> 2.7.4
->
+Fixes: 18996f2db918 (ACPICA: Events: Stop unconditionally clearing ACPI IRQs during suspend/resume)
+Reported-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Tested-by: Paul Menzel <pmenzel@molgen.mpg.de>
+Cc: 4.17+ <stable@vger.kernel.org> # 4.17+: fa85015c0d95 ACPICA: Clear status ...
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpica/hwsleep.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpica/hwsleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/hwsleep.c
++++ linux-pm/drivers/acpi/acpica/hwsleep.c
+@@ -56,14 +56,9 @@ acpi_status acpi_hw_legacy_sleep(u8 slee
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+-	/*
+-	 * If the target sleep state is S5, clear all GPEs and fixed events too
+-	 */
+-	if (sleep_state == ACPI_STATE_S5) {
+-		status = acpi_hw_clear_acpi_status();
+-		if (ACPI_FAILURE(status)) {
+-			return_ACPI_STATUS(status);
+-		}
++	status = acpi_hw_clear_acpi_status();
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
+ 	}
+ 	acpi_gbl_system_awake_and_running = FALSE;
+ 
