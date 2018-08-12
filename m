@@ -1,49 +1,39 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / EC: Use ec_no_wakeup on ThinkPad X1 Yoga 3rd
-Date: Sun, 12 Aug 2018 13:14:46 +0200
-Message-ID: <1855499.yJd7R0ESNr@aspire.rjw.lan>
-References: <20180731105239.22008-1-aaron.ma@canonical.com>
+Subject: Re: [PATCH] acpi: bus: Fixed a pointer coding style issue
+Date: Sun, 12 Aug 2018 13:16:53 +0200
+Message-ID: <3140204.5IURiOkdET@aspire.rjw.lan>
+References: <20180808005202.4011-1-thomas.m.a.todd@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180731105239.22008-1-aaron.ma@canonical.com>
+In-Reply-To: <20180808005202.4011-1-thomas.m.a.todd@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Aaron Ma <aaron.ma@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Tom Todd <thomas.m.a.todd@gmail.com>
+Cc: rjw@jwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 31, 2018 12:52:39 PM CEST Aaron Ma wrote:
-> Like on X1C6, on X1Y3 EC interrupts constantly wake up system from
-> s2idle, the power consumption is extremely high.
-> So make ec_no_wakeup be true as default to keep system in s2idle mode
-> and reduce power consumption.
+On Wednesday, August 8, 2018 2:52:02 AM CEST Tom Todd wrote:
+> Fixed a coding style issue.
 > 
-> Power button works when ec_no_wakeup=true.
-> 
-> Signed-off-by: Aaron Ma <aaron.ma@canonical.com>
+> Signed-off-by: Tom Todd <thomas.m.a.todd@gmail.com>
 > ---
->  drivers/acpi/ec.c | 7 +++++++
->  1 file changed, 7 insertions(+)
+>  drivers/acpi/bus.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 > 
-> diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-> index 917f77f4cb55..6291d5c77267 100644
-> --- a/drivers/acpi/ec.c
-> +++ b/drivers/acpi/ec.c
-> @@ -2045,6 +2045,13 @@ static const struct dmi_system_id acpi_ec_no_wakeup[] = {
->  			DMI_MATCH(DMI_PRODUCT_FAMILY, "Thinkpad X1 Carbon 6th"),
->  		},
->  	},
-> +	{
-> +		.ident = "ThinkPad X1 Yoga 3rd",
-> +		.matches = {
-> +			DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +			DMI_MATCH(DMI_PRODUCT_FAMILY, "ThinkPad X1 Yoga 3rd"),
-> +		},
-> +	},
->  	{ },
->  };
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index 84b4a62018eb..73e43d81ec63 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -962,7 +962,7 @@ static int acpi_device_probe(struct device *dev)
+>  	return 0;
+>  }
 >  
+> -static int acpi_device_remove(struct device * dev)
+> +static int acpi_device_remove(struct device *dev)
+>  {
+>  	struct acpi_device *acpi_dev = to_acpi_device(dev);
+>  	struct acpi_driver *acpi_drv = acpi_dev->driver;
 > 
 
-Applied, thanks!
+Applied (with a modified changelog), thanks!
