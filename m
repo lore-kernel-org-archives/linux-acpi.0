@@ -1,47 +1,40 @@
-From: Pu Wen <puwen@hygon.cn>
-Subject: [PATCH v3 14/17] driver/acpi: enable Hygon support to ACPI driver
-Date: Sat, 11 Aug 2018 21:29:38 +0800
-Message-ID: <e282c406c34d5cdc92f7ec0bc12e9406405544d8.1533989493.git.puwen@hygon.cn>
-References: <cover.1533989492.git.puwen@hygon.cn>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH RESEND v3] arm64: clean the additional checks before
+ calling ghes_notify_sea()
+Date: Sun, 12 Aug 2018 11:43:17 +0200
+Message-ID: <CAJZ5v0j=2-h8YggK8w6qjn9qKrDX8jAJ87Axox8LBdnn95Xkvg@mail.gmail.com>
+References: <20180811043547.560-1-gengdongjiu@huawei.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1533989492.git.puwen@hygon.cn>
+In-Reply-To: <20180811043547.560-1-gengdongjiu@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, bp@alien8.de, pbonzini@redhat.com, lenb@kernel.org, rjw@rjwysocki.net
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, Pu Wen <puwen@hygon.cn>
+To: Dongjiu Geng <gengdongjiu@huawei.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, baicar.tyler@gmail.com, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tyler Baicar <tbaicar@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-For Dhyana processors have NONSTOP TSC feature, so enable the support
-to ACPI driver.
+On Sat, Aug 11, 2018 at 6:36 AM Dongjiu Geng <gengdongjiu@huawei.com> wrote:
+>
+> In order to remove the additional check before calling the
+> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+>
+> After this cleanup, we can simply call the ghes_notify_sea() to let
+> APEI driver handle the SEA notification.
+>
+> CC: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: James Morse <james.morse@arm.com>
+> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
+> Acked-by: Will Deacon <will.deacon@arm.com>
+> Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
+> ---
+> This cleanup is ever mentioned by Mark Rutland in [1]
+>
+> [1]:
+> https://lkml.org/lkml/2018/5/31/289
+>
+> change since v2:
+> 1. Add 'Reviewed-by' of Tyler
 
-Signed-off-by: Pu Wen <puwen@hygon.cn>
----
- drivers/acpi/acpi_pad.c       | 1 +
- drivers/acpi/processor_idle.c | 1 +
- 2 files changed, 2 insertions(+)
+I have applied the v2 already.
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 552c1f7..a47676a 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -70,6 +70,7 @@ static void power_saving_mwait_init(void)
- 
- #if defined(CONFIG_X86)
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 		/*
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index abb559c..b2131c4 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -205,6 +205,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- static void tsc_check_state(int state)
- {
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 	case X86_VENDOR_CENTAUR:
--- 
-2.7.4
+Thanks!
