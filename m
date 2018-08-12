@@ -1,40 +1,58 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH RESEND v3] arm64: clean the additional checks before
- calling ghes_notify_sea()
-Date: Sun, 12 Aug 2018 11:43:17 +0200
-Message-ID: <CAJZ5v0j=2-h8YggK8w6qjn9qKrDX8jAJ87Axox8LBdnn95Xkvg@mail.gmail.com>
-References: <20180811043547.560-1-gengdongjiu@huawei.com>
+Subject: Re: [PATCH v3 14/17] driver/acpi: enable Hygon support to ACPI driver
+Date: Sun, 12 Aug 2018 12:12:54 +0200
+Message-ID: <CAJZ5v0i=KMjQEqkJmO-XSgnjTUYBepXzOTohQV62sUqXLi+QJw@mail.gmail.com>
+References: <cover.1533989492.git.puwen@hygon.cn> <e282c406c34d5cdc92f7ec0bc12e9406405544d8.1533989493.git.puwen@hygon.cn>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180811043547.560-1-gengdongjiu@huawei.com>
+In-Reply-To: <e282c406c34d5cdc92f7ec0bc12e9406405544d8.1533989493.git.puwen@hygon.cn>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dongjiu Geng <gengdongjiu@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, James Morse <james.morse@arm.com>, baicar.tyler@gmail.com, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Linux ARM <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Tyler Baicar <tbaicar@codeaurora.org>
+To: puwen@hygon.cn
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, thomas.lendacky@amd.com, Borislav Petkov <bp@alien8.de>, Paolo Bonzini <pbonzini@redhat.com>, Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-arch <linux-arch@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Aug 11, 2018 at 6:36 AM Dongjiu Geng <gengdongjiu@huawei.com> wrote:
+On Sat, Aug 11, 2018 at 3:36 PM Pu Wen <puwen@hygon.cn> wrote:
 >
-> In order to remove the additional check before calling the
-> ghes_notify_sea(), make stub definition when !CONFIG_ACPI_APEI_SEA.
+> For Dhyana processors have NONSTOP TSC feature, so enable the support
+> to ACPI driver.
 >
-> After this cleanup, we can simply call the ghes_notify_sea() to let
-> APEI driver handle the SEA notification.
->
-> CC: Tyler Baicar <tbaicar@codeaurora.org>
-> CC: James Morse <james.morse@arm.com>
-> Signed-off-by: Dongjiu Geng <gengdongjiu@huawei.com>
-> Acked-by: Will Deacon <will.deacon@arm.com>
-> Reviewed-by: Tyler Baicar <baicar.tyler@gmail.com>
+> Signed-off-by: Pu Wen <puwen@hygon.cn>
+
+This patch is fine by me, but I'm assuming that the series will be
+handled as a whole, so
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 > ---
-> This cleanup is ever mentioned by Mark Rutland in [1]
+>  drivers/acpi/acpi_pad.c       | 1 +
+>  drivers/acpi/processor_idle.c | 1 +
+>  2 files changed, 2 insertions(+)
 >
-> [1]:
-> https://lkml.org/lkml/2018/5/31/289
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index 552c1f7..a47676a 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -70,6 +70,7 @@ static void power_saving_mwait_init(void)
 >
-> change since v2:
-> 1. Add 'Reviewed-by' of Tyler
-
-I have applied the v2 already.
-
-Thanks!
+>  #if defined(CONFIG_X86)
+>         switch (boot_cpu_data.x86_vendor) {
+> +       case X86_VENDOR_HYGON:
+>         case X86_VENDOR_AMD:
+>         case X86_VENDOR_INTEL:
+>                 /*
+> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+> index abb559c..b2131c4 100644
+> --- a/drivers/acpi/processor_idle.c
+> +++ b/drivers/acpi/processor_idle.c
+> @@ -205,6 +205,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+>  static void tsc_check_state(int state)
+>  {
+>         switch (boot_cpu_data.x86_vendor) {
+> +       case X86_VENDOR_HYGON:
+>         case X86_VENDOR_AMD:
+>         case X86_VENDOR_INTEL:
+>         case X86_VENDOR_CENTAUR:
+> --
+> 2.7.4
+>
