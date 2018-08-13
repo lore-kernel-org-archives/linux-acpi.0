@@ -1,88 +1,55 @@
-From: "Schmauss, Erik" <erik.schmauss@intel.com>
-Subject: RE: [PATCH 05/11] ACPICA: AML Parser: skip opcodes that open a
- scope upon parse failure
-Date: Mon, 13 Aug 2018 17:52:49 +0000
-Message-ID: <CF6A88132359CE47947DB4C6E1709ED53BB67573@ORSMSX110.amr.corp.intel.com>
+From: Greg KH <greg@kroah.com>
+Subject: Re: [PATCH 05/11] ACPICA: AML Parser: skip opcodes that open a scope
+ upon parse failure
+Date: Mon, 13 Aug 2018 20:51:24 +0200
+Message-ID: <20180813185124.GA5606@kroah.com>
 References: <20180810214304.13475-1-erik.schmauss@intel.com>
  <20180810214304.13475-6-erik.schmauss@intel.com>
  <CAJZ5v0j1TSF39Y5xt4T3OsTfOFjafUiXvQOAjedxV8sA0Mn6-w@mail.gmail.com>
+ <CF6A88132359CE47947DB4C6E1709ED53BB67573@ORSMSX110.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j1TSF39Y5xt4T3OsTfOFjafUiXvQOAjedxV8sA0Mn6-w@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CF6A88132359CE47947DB4C6E1709ED53BB67573@ORSMSX110.amr.corp.intel.com>
 Sender: stable-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, stable <stable@vger.kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: "Schmauss, Erik" <erik.schmauss@intel.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, stable <stable@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUmFmYWVsIEouIFd5c29j
-a2kgW21haWx0bzpyYWZhZWxAa2VybmVsLm9yZ10NCj4gU2VudDogU3VuZGF5LCBBdWd1c3QgMTIs
-IDIwMTggMjo0NyBBTQ0KPiBUbzogU2NobWF1c3MsIEVyaWsgPGVyaWsuc2NobWF1c3NAaW50ZWwu
-Y29tPg0KPiBDYzogQUNQSSBEZXZlbCBNYWxpbmcgTGlzdCA8bGludXgtYWNwaUB2Z2VyLmtlcm5l
-bC5vcmc+OyBSYWZhZWwgSi4gV3lzb2NraQ0KPiA8cmp3QHJqd3lzb2NraS5uZXQ+DQo+IFN1Ympl
-Y3Q6IFJlOiBbUEFUQ0ggMDUvMTFdIEFDUElDQTogQU1MIFBhcnNlcjogc2tpcCBvcGNvZGVzIHRo
-YXQgb3BlbiBhIHNjb3BlDQo+IHVwb24gcGFyc2UgZmFpbHVyZQ0KPiANCj4gT24gRnJpLCBBdWcg
-MTAsIDIwMTggYXQgMTE6NDUgUE0gRXJpayBTY2htYXVzcyA8ZXJpay5zY2htYXVzc0BpbnRlbC5j
-b20+DQo+IHdyb3RlOg0KPiA+DQo+ID4gVGhpcyBjaGFuZ2Ugc2tpcHMgdGhlIGVudGlyZSBsZW5n
-dGggb2Ygb3Bjb2RlcyB0aGF0IG9wZW4gYSBzY29wZQ0KPiA+IChEZXZpY2UsIFNjb3BlLCBQcm9j
-ZXNzb3IsIGV0YykgaWYgdGhlIGNyZWF0aW9uIG9mIHRoZSBvcCBmYWlscy4gVGhlDQo+ID4gZmFp
-bHVyZSBjb3VsZCBiZSBjYXVzZWQgYnkgdmFyaW91cyBlcnJvcnMgaW5jbHVkaW5nIEFFX0FMUkVB
-RFlfRVhJU1RTDQo+ID4gYW5kIEFFX05PVF9GT1VORC4NCj4gPg0KPiA+IFJlcG9ydGVkLWJ5OiBK
-ZXJlbXkgTGludG9uIDxqZXJlbXkubGludG9uQGFybS5jb20+DQo+ID4gVGVzdGVkLWJ5OiBKZXJl
-bXkgTGludG9uIDxqZXJlbXkubGludG9uQGFybS5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTogRXJp
-ayBTY2htYXVzcyA8ZXJpay5zY2htYXVzc0BpbnRlbC5jb20+DQo+IA0KPiBJIHRoaW5rIHRoYXQg
-d2Ugc2hvdWxkIHByb3BhZ2F0ZSB0aGlzIGZpeCB0byB0aGUgInN0YWJsZSIga2VybmVsIHNlcmll
-cywgYXQgbGVhc3QNCj4gNC4xNy55IGFuZCBuZXdlci4gIERvIHlvdSBhZ3JlZT8NCg0KWWVzLCBJ
-IGFncmVlLg0KDQpIaSBHcmVnLCBwbGVhc2UgYWRkIHRoaXMgdG8gdGhlIHN0YWJsZSBrZXJuZWwN
-Cg0KPiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9wc2xvb3AuYyB8IDE3ICsr
-KysrKysrKysrLS0tLS0tDQo+ID4gIDEgZmlsZSBjaGFuZ2VkLCAxMSBpbnNlcnRpb25zKCspLCA2
-IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2Ev
-cHNsb29wLmMNCj4gPiBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvcHNsb29wLmMgaW5kZXggMjBiNjE0
-MmRhMTgzLi4zNThmY2RkMWY4YTUgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGlj
-YS9wc2xvb3AuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvcHNsb29wLmMNCj4gPiBA
-QCAtMjIsNiArMjIsNyBAQA0KPiA+ICAjaW5jbHVkZSAiYWNkaXNwYXQuaCINCj4gPiAgI2luY2x1
-ZGUgImFtbGNvZGUuaCINCj4gPiAgI2luY2x1ZGUgImFjY29udmVydC5oIg0KPiA+ICsjaW5jbHVk
-ZSAiYWNuYW1lc3AuaCINCj4gPg0KPiA+ICAjZGVmaW5lIF9DT01QT05FTlQgICAgICAgICAgQUNQ
-SV9QQVJTRVINCj4gPiAgQUNQSV9NT0RVTEVfTkFNRSgicHNsb29wIikNCj4gPiBAQCAtNTI3LDEy
-ICs1MjgsMTggQEAgYWNwaV9zdGF0dXMgYWNwaV9wc19wYXJzZV9sb29wKHN0cnVjdA0KPiBhY3Bp
-X3dhbGtfc3RhdGUgKndhbGtfc3RhdGUpDQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBpZiAoQUNQSV9GQUlMVVJFKHN0YXR1cykpIHsNCj4gPiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgcmV0dXJuX0FDUElfU1RBVFVTKHN0YXR1cyk7DQo+ID4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ID4gLSAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICBpZiAod2Fsa19zdGF0ZS0+b3Bjb2RlID09IEFNTF9TQ09QRV9PUCkgew0KPiA+
-ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaWYgKGFjcGlfbnNfb3BlbnNfc2NvcGUN
-Cj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoYWNwaV9wc19nZXRfb3Bj
-b2RlX2luZm8NCj4gPiArDQo+ID4gKyAod2Fsa19zdGF0ZS0+b3Bjb2RlKS0+b2JqZWN0X3R5cGUp
-KSB7DQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIC8qDQo+ID4g
-LSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqIElmIHRoZSBzY29wZSBv
-cCBmYWlscyB0byBwYXJzZSwgc2tpcCB0aGUgYm9keSBvZiB0aGUNCj4gPiAtICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICogc2NvcGUgb3AgYmVjYXVzZSB0aGUgcGFyc2Ug
-ZmFpbHVyZSBpbmRpY2F0ZXMgdGhhdCB0aGUNCj4gPiAtICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICogZGV2aWNlIG1heSBub3QgZXhpc3QuDQo+ID4gKyAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqIElmIHRoZSBzY29wZS9kZXZpY2Ugb3AgZmFp
-bHMgdG8gcGFyc2UsIHNraXAgdGhlIGJvZHkgb2YNCj4gPiArICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICogdGhlIHNjb3BlIG9wIGJlY2F1c2UgdGhlIHBhcnNlIGZhaWx1
-cmUgaW5kaWNhdGVzIHRoYXQNCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICogdGhlIGRldmljZSBtYXkgbm90IGV4aXN0Lg0KPiA+ICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgKi8NCj4gPiArICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgQUNQSV9FUlJPUigoQUVfSU5GTywNCj4gPiArICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIlNraXAgcGFyc2luZyBvcGNvZGUg
-JXMiLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBhY3BpX3BzX2dldF9vcGNvZGVfbmFtZQ0KPiA+ICsNCj4gPiArICh3YWxrX3N0YXRlLT5v
-cGNvZGUpKSk7DQo+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHdh
-bGtfc3RhdGUtPnBhcnNlcl9zdGF0ZS5hbWwgPQ0KPiA+ICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgd2Fsa19zdGF0ZS0+YW1sICsgMTsNCj4gPiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgd2Fsa19zdGF0ZS0+cGFyc2VyX3N0YXRlLmFt
-bCA9DQo+ID4gQEAgLTU0MCw4ICs1NDcsNiBAQCBhY3BpX3N0YXR1cyBhY3BpX3BzX3BhcnNlX2xv
-b3Aoc3RydWN0DQo+IGFjcGlfd2Fsa19zdGF0ZSAqd2Fsa19zdGF0ZSkNCj4gPiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICgmd2Fsa19zdGF0ZS0+cGFyc2VyX3N0
-YXRlKTsNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgd2Fsa19z
-dGF0ZS0+YW1sID0NCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHdhbGtfc3RhdGUtPnBhcnNlcl9zdGF0ZS5hbWw7DQo+ID4gLSAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIEFDUElfRVJST1IoKEFFX0lORk8sDQo+ID4gLSAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICJTa2lwcGluZyBTY29w
-ZSBibG9jayIpKTsNCj4gPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0NCj4gPg0K
-PiA+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgY29udGludWU7DQo+ID4gLS0NCj4g
-PiAyLjE3LjENCj4gPg0K
+On Mon, Aug 13, 2018 at 05:52:49PM +0000, Schmauss, Erik wrote:
+> 
+> 
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rafael@kernel.org]
+> > Sent: Sunday, August 12, 2018 2:47 AM
+> > To: Schmauss, Erik <erik.schmauss@intel.com>
+> > Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>; Rafael J. Wysocki
+> > <rjw@rjwysocki.net>
+> > Subject: Re: [PATCH 05/11] ACPICA: AML Parser: skip opcodes that open a scope
+> > upon parse failure
+> > 
+> > On Fri, Aug 10, 2018 at 11:45 PM Erik Schmauss <erik.schmauss@intel.com>
+> > wrote:
+> > >
+> > > This change skips the entire length of opcodes that open a scope
+> > > (Device, Scope, Processor, etc) if the creation of the op fails. The
+> > > failure could be caused by various errors including AE_ALREADY_EXISTS
+> > > and AE_NOT_FOUND.
+> > >
+> > > Reported-by: Jeremy Linton <jeremy.linton@arm.com>
+> > > Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> > > Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+> > 
+> > I think that we should propagate this fix to the "stable" kernel series, at least
+> > 4.17.y and newer.  Do you agree?
+> 
+> Yes, I agree.
+> 
+> Hi Greg, please add this to the stable kernel
+
+What commit id should I add to the stable kernel?
+
+thanks,
+
+greg k-h
