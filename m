@@ -1,182 +1,62 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI updates for v4.19-rc1
-Date: Tue, 14 Aug 2018 12:27:21 +0200
-Message-ID: <CAJZ5v0iet7uBBQgygjm=m0DtosdCCOtELCJdWcC3hZw4UUQ40w@mail.gmail.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Ping: [PATCH] xen/ACPI: don't upload Px/Cx data for
+ disabled processors
+Date: Wed, 15 Aug 2018 00:24:02 -0600
+Message-ID: <5B73C70202000078001DE1A2@prv1-mh.provo.novell.com>
+References: <5B30C13F02000078001CD68D@prv1-mh.provo.novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <5B30C13F02000078001CD68D@prv1-mh.provo.novell.com>
+Content-Disposition: inline
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: Len Brown <lenb@kernel.org>, rjw@rjwysocki.net
+Cc: Juergen Gross <jgross@suse.com>, xen-devel <xen-devel@lists.xenproject.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
-
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.19-rc1
-
-with top-most commit 76f7d6c07acd7a694ccc97355d37637f6677de51
-
- Merge branches 'acpi-button', 'acpi-battery' and 'acpi-osi'
-
-on top of commit 1ffaddd029c867d134a1dde39f540dcc8c52e274
-
- Linux 4.18-rc8
-
-to receive the first batch of ACPI updates for 4.19-rc1.
-
-These revert two ACPICA commits that are not needed any more, rework
-the property graphs support in ACPI to be more aligned with the
-analogous DT code, add some new quirks and remove one that isn't
-needed any more, add a special platform driver to enumerate multiple
-I2C devices hooked up to the same device object in the ACPI tables
-and update the battery and button drivers.
-
-Specifics:
-
- - Revert two ACPICA commits that are not needed any more (Erik
-   Schmauss).
-
- - Rework property graph support in the ACPI device properties
-   framework to make it behave more like the analogous DT code
-   and update the documentation of it (Sakari Ailus).
-
- - Change the default ACPI device status after initialization
-   to ACPI_STA_DEFAULT instead of 0 (Hans de Goede).
-
- - Add a special platform driver for enumerating multiple I2C devices
-   hooked up to the same object in the ACPI tables (Hans de Goede).
-
- - Fix the ACPI battery driver to avoid reporting full capacity on
-   systems without support for that and clean it up (Hans de Goede,
-   Dmitry Rozhkov, Lucas Rangit Magasweran).
-
- - Add two system wakeup quirks to the ACPI EC driver (Aaron Ma,
-   Mika Westerberg).
-
- - Add the touchscreen on Dell Venue Pro 7139 to the list of "always
-   present" devices to make it work (Tristian Celestin).
-
- - Revert a special tables handling quirk for Dell XPS 9570 and
-   Precision M5530 which is not needed any more (Kai Heng Feng).
-
- - Add support for a new OEM _OSI string to allow system vendors to
-   work around issues with NVidia HDMI audio (Alex Hung).
-
- - Prevent the ACPI button driver from reporting excessive system
-   wakeup events and clean it up (Ravi Chandra Sadineni, Randy Dunlap).
-
- - Clean up two minor code style issues in the ACPI core and GHES
-   handling on ARM64 (Dongjiu Geng, John Garry, Tom Todd).
-
-Thanks!
-
-
----------------
-
-Aaron Ma (1):
-      ACPI / EC: Use ec_no_wakeup on ThinkPad X1 Yoga 3rd
-
-Alex Hung (1):
-      ACPI / OSI: Add OEM _OSI string to enable NVidia HDMI audio
-
-Bob Moore (1):
-      ACPICA: Update version to 20180629
-
-Dmitry Rozhkov (4):
-      ACPI / battery: drop inclusion of init.h
-      ACPI / battery: reorder headers alphabetically
-      ACPI / battery: use specialized print macros
-      ACPI / battery: get rid of negations in conditions
-
-Dongjiu Geng (1):
-      arm64 / ACPI: clean the additional checks before calling ghes_notify_sea()
-
-Erik Schmauss (2):
-      ACPICA: Revert "iASL: change processing of external op namespace
-nodes for correctness"
-      ACPICA: Revert "iASL compiler: allow compilation of externals
-with paths that refer to existing names"
-
-Hans de Goede (5):
-      ACPI / battery: Do not export energy_full[_design] on devices
-without full_charge_capacity
-      ACPI / scan: Initialize status to ACPI_STA_DEFAULT
-      ACPI / scan: Create platform device for fwnodes with multiple i2c devices
-      ACPI / x86: utils: Remove status workaround from
-acpi_device_always_present()
-      platform/x86: Add ACPI i2c-multi-instantiate pseudo driver
-
-John Garry (1):
-      ACPI / scan: Add static attribute to indirect_io_hosts[]
-
-Kai Heng Feng (1):
-      Revert "ACPI / bus: Parse tables as term_list for Dell XPS 9570
-and Precision M5530"
-
-Lucas Rangit Magasweran (1):
-      ACPI: battery: remove redundant old_present check on insertion
-
-Mika Westerberg (1):
-      ACPI / EC: Add another entry for Thinkpad X1 Carbon 6th
-
-Randy Dunlap (1):
-      ACPI / button: fix defined but not used warning
-
-Ravi Chandra Sadineni (1):
-      ACPI / button: increment wakeup count only when notified
-
-Sakari Ailus (11):
-      ACPI: Convert ACPI reference args to generic fwnode reference args
-      ACPI: property: Allow making references to non-device nodes
-      ACPI: property: Document hierarchical data extension references
-      ACPI: property: Make the ACPI graph API private
-      ACPI: property: Allow direct graph endpoint references
-      ACPI: property: Use data node name and reg property for graphs
-      ACPI: property: Document key numbering for hierarchical data
-extension refs
-      ACPI: property: Update documentation for hierarchical data extension 1.1
-      ACPI: property: graph: Fix graph documentation
-      ACPI: property: graph: Improve graph documentation for port/ep numbering
-      ACPI: property: graph: Update graph documentation to use generic
-references
-
-Tom Todd (1):
-      ACPI: bus: Fix a pointer coding style issue
-
-Tristian Celestin (1):
-      ACPI / x86: enable touchscreen on Dell Venue Pro 7139
-
----------------
-
- Documentation/acpi/dsd/data-node-references.txt   |  89 +++++++++
- Documentation/acpi/dsd/graph.txt                  |  72 ++++----
- MAINTAINERS                                       |   6 +
- arch/arm64/mm/fault.c                             |   7 +-
- drivers/acpi/acpica/aclocal.h                     |   1 -
- drivers/acpi/acpica/nsaccess.c                    |   7 -
- drivers/acpi/acpica/nssearch.c                    |   1 -
- drivers/acpi/battery.c                            |  69 ++++---
- drivers/acpi/bus.c                                |  40 +----
- drivers/acpi/button.c                             |  17 +-
- drivers/acpi/ec.c                                 |  14 ++
- drivers/acpi/osi.c                                |   8 +
- drivers/acpi/property.c                           | 209 ++++++++++------------
- drivers/acpi/scan.c                               |  23 ++-
- drivers/acpi/x86/utils.c                          |  22 +--
- drivers/gpio/gpiolib-acpi.c                       |  11 +-
- drivers/infiniband/hw/hns/hns_roce_hw_v1.c        |  10 +-
- drivers/media/v4l2-core/v4l2-fwnode.c             |   2 +-
- drivers/net/ethernet/apm/xgene/xgene_enet_hw.c    |   6 +-
- drivers/net/ethernet/hisilicon/hns/hns_dsaf_mac.c |   6 +-
- drivers/net/ethernet/hisilicon/hns/hns_enet.c     |   8 +-
- drivers/platform/x86/Kconfig                      |  11 ++
- drivers/platform/x86/Makefile                     |   1 +
- drivers/platform/x86/i2c-multi-instantiate.c      | 132 ++++++++++++++
- include/acpi/acpixf.h                             |   2 +-
- include/acpi/ghes.h                               |   4 +
- include/linux/acpi.h                              |  25 +--
- include/linux/fwnode.h                            |   2 +-
- 28 files changed, 528 insertions(+), 277 deletions(-)
+Pj4+IE9uIDI1LjA2LjE4IGF0IDEyOjE3LCAgd3JvdGU6Cj4gVGhpcyBpcyB1bm5lY2Vzc2FyeSBh
+bmQgdHJpZ2dlcnMgYSB3YXJuaW5nIGluIHRoZSBoeXBlcnZpc29yLgo+IAo+IE9mdGVuIHN5c3Rl
+bXMgaGF2ZSBtb3JlIHByb2Nlc3NvciBlbnRyaWVzIGluIHRoZWlyIEFDUEkgdGFibGVzIHRoYW4g
+YXJlCj4gYWN0dWFsbHkgaW5zdGFsbGVkL2FjdGl2ZS4gVGhlIEFDUElfU1RBX0RFVklDRV9QUkVT
+RU5UIGJpdCBjYW5ub3QgYmUKPiByZWxpYWJseSB1c2VkLCBidXQgdGhlIEFDUElfTUFEVF9FTkFC
+TEVEIGJpdCBjYW4uIEluIG9yZGVyIHRvIG5vdAo+IGludHJvZHVjZSBuZXcgZnVuY3Rpb25zIGlu
+IHRoZSBtYWluIEFDUEkgcHJvY2Vzc29yIGRyaXZlciBjb2RlLCBzaW1wbHkKPiB1c2UgYWNwaV9n
+ZXRfcGh5c19pZCgpLCB3aGljaCBkb2VzIG1vcmUgdGhhbiB3ZSBuZWVkLCBidXQgd2hpY2ggY2hl
+Y2tzCj4gdGhlIE1BRFQgZW5hYmxlZCBiaXQgaW4gdGhlIHByb2Nlc3MuIEFueSBDUFUgZm9yIHdo
+aWNoIHdlIGNhbid0Cj4gZGV0ZXJtaW5lIHRoZSBBUElDIElEIGlzIHVubGlrZWx5IHRvIHdvcmsg
+cHJvcGVybHkgYW55d2F5LCBzbyB0aGUgZXh0cmEKPiBjaGVja3MgZG9uZSBieSBhY3BpX2dldF9w
+aHlzX2lkKCkgc2hvdWxkIGRvIG5vIGhhcm0uCj4gCj4gU2lnbmVkLW9mZi1ieTogSmFuIEJldWxp
+Y2ggPGpiZXVsaWNoQHN1c2UuY29tPgo+IC0tLQo+ICBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2Nv
+cmUuYyAgICB8ICAgIDEgKwo+ICBkcml2ZXJzL3hlbi94ZW4tYWNwaS1wcm9jZXNzb3IuYyB8ICAg
+IDYgKysrKysrCj4gIDIgZmlsZXMgY2hhbmdlZCwgNyBpbnNlcnRpb25zKCspCgpXaXRoIErDvHJn
+ZW4ncyBSLWIgaW4gcGxhY2UsIG1heSBJIGFzayBmb3IgYW4gYWNrIGZvciB0aGUgcHJvY2Vzc29y
+X2NvcmUuYwpjaGFuZ2UsIG9yIC0gaW4gY2FzZSB5b3UgZGlzbGlrZSB0aGUgbmV3IGV4cG9ydCAt
+IGFuIGFsdGVybmF0aXZlIHN1Z2dlc3Rpb24/CgpUaGFua3MsIEphbgoKPiAtLS0gNC4xOC1yYzIv
+ZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPiArKysgNC4xOC1yYzIteGVuLUFDUEktcHJv
+Y2Vzc29yLXNraXAtZGlzYWJsZWQvZHJpdmVycy9hY3BpL3Byb2Nlc3Nvcl9jb3JlLmMKPiBAQCAt
+MjA1LDYgKzIwNSw3IEBAIHBoeXNfY3B1aWRfdCBhY3BpX2dldF9waHlzX2lkKGFjcGlfaGFuZGwK
+PiAgCj4gIAlyZXR1cm4gcGh5c19pZDsKPiAgfQo+ICtFWFBPUlRfU1lNQk9MX0dQTChhY3BpX2dl
+dF9waHlzX2lkKTsKPiAgCj4gIGludCBhY3BpX21hcF9jcHVpZChwaHlzX2NwdWlkX3QgcGh5c19p
+ZCwgdTMyIGFjcGlfaWQpCj4gIHsKPiAtLS0gNC4xOC1yYzIvZHJpdmVycy94ZW4veGVuLWFjcGkt
+cHJvY2Vzc29yLmMKPiArKysgCj4gNC4xOC1yYzIteGVuLUFDUEktcHJvY2Vzc29yLXNraXAtZGlz
+YWJsZWQvZHJpdmVycy94ZW4veGVuLWFjcGktcHJvY2Vzc29yLmMKPiBAQCAtMzYyLDYgKzM2Miwx
+MiBAQCByZWFkX2FjcGlfaWQoYWNwaV9oYW5kbGUgaGFuZGxlLCB1MzIgbHZsCj4gIAlkZWZhdWx0
+Ogo+ICAJCXJldHVybiBBRV9PSzsKPiAgCX0KPiArCWlmIChpbnZhbGlkX3BoeXNfY3B1aWQoYWNw
+aV9nZXRfcGh5c19pZChoYW5kbGUsCj4gKwkJCQkJCWFjcGlfdHlwZSA9PSBBQ1BJX1RZUEVfREVW
+SUNFLAo+ICsJCQkJCQlhY3BpX2lkKSkpIHsKPiArCQlwcl9kZWJ1ZygiQ1BVIHdpdGggQUNQSSBJ
+RCAldSBpcyB1bmF2YWlsYWJsZVxuIiwgYWNwaV9pZCk7Cj4gKwkJcmV0dXJuIEFFX09LOwo+ICsJ
+fQo+ICAJLyogVGhlcmUgYXJlIG1vcmUgQUNQSSBQcm9jZXNzb3Igb2JqZWN0cyB0aGFuIGluIHgy
+QVBJQyBvciBNQURULgo+ICAJICogVGhpcyBjYW4gaGFwcGVuIHdpdGggaW5jb3JyZWN0IEFDUEkg
+U1NEVCBkZWNsZXJhdGlvbnMuICovCj4gIAlpZiAoYWNwaV9pZCA+PSBucl9hY3BpX2JpdHMpIHsK
+PiAKPiAKPiAKPiAKCgoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fClhlbi1kZXZlbCBtYWlsaW5nIGxpc3QKWGVuLWRldmVsQGxpc3RzLnhlbnByb2plY3Qu
+b3JnCmh0dHBzOi8vbGlzdHMueGVucHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby94ZW4tZGV2
+ZWw=
