@@ -1,52 +1,65 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: Ping: [PATCH] xen/ACPI: don't upload Px/Cx data for
- disabled processors
-Date: Wed, 15 Aug 2018 17:41:48 -0400
-Message-ID: <2cd98495-6077-d6d9-647f-71238c3cf68a@oracle.com>
-References: <5B30C13F02000078001CD68D@prv1-mh.provo.novell.com>
- <5B73C70202000078001DE1A2@prv1-mh.provo.novell.com>
- <CAJZ5v0gO1qsj6fqYHJfodwQugSSFbRO5zCjyA9cpN=z1RW49vw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] PCI / ACPI / PM: Resume all bridges on suspend-to-RAM
+Date: Thu, 16 Aug 2018 12:56:46 +0200
+Message-ID: <6401388.2t0qD3iTOr@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <xen-devel-bounces@lists.xenproject.org>
-In-Reply-To: <CAJZ5v0gO1qsj6fqYHJfodwQugSSFbRO5zCjyA9cpN=z1RW49vw@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xenproject.org>
-List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
-List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
- <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
-Errors-To: xen-devel-bounces@lists.xenproject.org
-Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
-To: "Rafael J. Wysocki" <rafael@kernel.org>, JBeulich@suse.com
-Cc: Juergen Gross <jgross@suse.com>, xen-devel@lists.xenproject.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux PCI <linux-pci@vger.kernel.org>
+Cc: teika kazura <teika@gmx.com>, Bjorn Helgaas <bhelgaas@google.com>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMDgvMTUvMjAxOCAwMzo1NSBBTSwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gT24gV2Vk
-LCBBdWcgMTUsIDIwMTggYXQgODo0NCBBTSBKYW4gQmV1bGljaCA8SkJldWxpY2hAc3VzZS5jb20+
-IHdyb3RlOgo+Pj4+PiBPbiAyNS4wNi4xOCBhdCAxMjoxNywgIHdyb3RlOgo+Pj4gVGhpcyBpcyB1
-bm5lY2Vzc2FyeSBhbmQgdHJpZ2dlcnMgYSB3YXJuaW5nIGluIHRoZSBoeXBlcnZpc29yLgo+Pj4K
-Pj4+IE9mdGVuIHN5c3RlbXMgaGF2ZSBtb3JlIHByb2Nlc3NvciBlbnRyaWVzIGluIHRoZWlyIEFD
-UEkgdGFibGVzIHRoYW4gYXJlCj4+PiBhY3R1YWxseSBpbnN0YWxsZWQvYWN0aXZlLiBUaGUgQUNQ
-SV9TVEFfREVWSUNFX1BSRVNFTlQgYml0IGNhbm5vdCBiZQo+Pj4gcmVsaWFibHkgdXNlZCwgYnV0
-IHRoZSBBQ1BJX01BRFRfRU5BQkxFRCBiaXQgY2FuLiBJbiBvcmRlciB0byBub3QKPj4+IGludHJv
-ZHVjZSBuZXcgZnVuY3Rpb25zIGluIHRoZSBtYWluIEFDUEkgcHJvY2Vzc29yIGRyaXZlciBjb2Rl
-LCBzaW1wbHkKPj4+IHVzZSBhY3BpX2dldF9waHlzX2lkKCksIHdoaWNoIGRvZXMgbW9yZSB0aGFu
-IHdlIG5lZWQsIGJ1dCB3aGljaCBjaGVja3MKPj4+IHRoZSBNQURUIGVuYWJsZWQgYml0IGluIHRo
-ZSBwcm9jZXNzLiBBbnkgQ1BVIGZvciB3aGljaCB3ZSBjYW4ndAo+Pj4gZGV0ZXJtaW5lIHRoZSBB
-UElDIElEIGlzIHVubGlrZWx5IHRvIHdvcmsgcHJvcGVybHkgYW55d2F5LCBzbyB0aGUgZXh0cmEK
-Pj4+IGNoZWNrcyBkb25lIGJ5IGFjcGlfZ2V0X3BoeXNfaWQoKSBzaG91bGQgZG8gbm8gaGFybS4K
-Pj4+Cj4+PiBTaWduZWQtb2ZmLWJ5OiBKYW4gQmV1bGljaCA8amJldWxpY2hAc3VzZS5jb20+Cj4+
-PiAtLS0KPj4+ICBkcml2ZXJzL2FjcGkvcHJvY2Vzc29yX2NvcmUuYyAgICB8ICAgIDEgKwo+Pj4g
-IGRyaXZlcnMveGVuL3hlbi1hY3BpLXByb2Nlc3Nvci5jIHwgICAgNiArKysrKysKPj4+ICAyIGZp
-bGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygrKQo+PiBXaXRoIErDvHJnZW4ncyBSLWIgaW4gcGxh
-Y2UsIG1heSBJIGFzayBmb3IgYW4gYWNrIGZvciB0aGUgcHJvY2Vzc29yX2NvcmUuYwo+PiBjaGFu
-Z2UsIG9yIC0gaW4gY2FzZSB5b3UgZGlzbGlrZSB0aGUgbmV3IGV4cG9ydCAtIGFuIGFsdGVybmF0
-aXZlIHN1Z2dlc3Rpb24/Cj4gSXQgaXMgZmluZSB0byBleHBvcnQgaXQgSU1PLiAgSWYgeW91IG5l
-ZWQgbXkgQUNLIGZvciB0aGF0LCBwbGVhc2UgZmVlbAo+IGZyZWUgdG8gYWRkIGl0IHRvIHRoZSBw
-YXRjaC4KCgpBcHBsaWVkIHRvIGZvci1saW51cy00LjE5LgoKLWJvcmlzCgpfX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpYZW4tZGV2ZWwgbWFpbGluZyBsaXN0
-Clhlbi1kZXZlbEBsaXN0cy54ZW5wcm9qZWN0Lm9yZwpodHRwczovL2xpc3RzLnhlbnByb2plY3Qu
-b3JnL21haWxtYW4vbGlzdGluZm8veGVuLWRldmVs
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Commit 26112ddc254c (PCI / ACPI / PM: Resume bridges w/o drivers on
+suspend-to-RAM) attempted to fix a functional regression resulting
+from commit c62ec4610c40 (PM / core: Fix direct_complete handling
+for devices with no callbacks) by resuming PCI bridges without
+drivers (that is, "parallel PCI" ones) during system-wide suspend if
+the target system state is not ACPI S0 (working state).
+
+That turns out insufficient, however, as it is reported that, at
+least in one case, the platform firmware gets confused if a PCIe
+root port is suspended before entering the ACPI S3 sleep state.
+
+For this reason, drop the driver check from acpi_pci_need_resume()
+and resume all bridges (including PCIe ports with drivers) during
+system-wide suspend if the target system state is not ACPI S0.
+
+[If the target system state is ACPI S0, it means suspend-to-idle
+ and the platform firmware is not going to be invoked to actually
+ suspend the system, so there is no need to resume the bridges in
+ that case.]
+
+Fixes: c62ec4610c40 (PM / core: Fix direct_complete handling for devices with no callbacks)
+Reported-by: teika kazura <teika@gmx.com>
+Tested-by: teika kazura <teika@gmx.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=200675
+Cc: 4.15+ <stable@vger.kernel.org> # 4.15+: 26112ddc254c (PCI / ACPI / PM: Resume bridges ...)
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/pci/pci-acpi.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+Index: linux-pm/drivers/pci/pci-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/pci/pci-acpi.c
++++ linux-pm/drivers/pci/pci-acpi.c
+@@ -632,13 +632,11 @@ static bool acpi_pci_need_resume(struct
+ 	/*
+ 	 * In some cases (eg. Samsung 305V4A) leaving a bridge in suspend over
+ 	 * system-wide suspend/resume confuses the platform firmware, so avoid
+-	 * doing that, unless the bridge has a driver that should take care of
+-	 * the PM handling.  According to Section 16.1.6 of ACPI 6.2, endpoint
++	 * doing that.  According to Section 16.1.6 of ACPI 6.2, endpoint
+ 	 * devices are expected to be in D3 before invoking the S3 entry path
+ 	 * from the firmware, so they should not be affected by this issue.
+ 	 */
+-	if (pci_is_bridge(dev) && !dev->driver &&
+-	    acpi_target_system_state() != ACPI_STATE_S0)
++	if (pci_is_bridge(dev) && acpi_target_system_state() != ACPI_STATE_S0)
+ 		return true;
+ 
+ 	if (!adev || !acpi_device_power_manageable(adev))
