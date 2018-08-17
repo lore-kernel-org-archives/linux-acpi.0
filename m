@@ -1,105 +1,100 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 08/15] x86: PCI: clean up pcibios_scan_root()
-Date: Fri, 17 Aug 2018 12:26:38 +0200
-Message-ID: <20180817102645.3839621-9-arnd@arndb.de>
-References: <20180817102645.3839621-1-arnd@arndb.de>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH RFC 1/2] drivers/base: export
+ lock_device_hotplug/unlock_device_hotplug
+Date: Fri, 17 Aug 2018 13:04:58 +0200
+Message-ID: <4ac624be-d2d6-5975-821f-b20a475781dc@redhat.com>
+References: <20180817075901.4608-1-david@redhat.com>
+ <20180817075901.4608-2-david@redhat.com> <20180817084146.GB14725@kroah.com>
+ <5a5d73e9-e4aa-ffed-a2e3-8aef64e61923@redhat.com>
+ <CAJZ5v0gkYV8o2Eq+EcGT=OP1tQGPGVVe3n9VGD6z7KAVVqhv9w@mail.gmail.com>
+ <42df9062-f647-3ad6-5a07-be2b99531119@redhat.com>
+ <20180817100604.GA18164@kroah.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
+In-Reply-To: <20180817100604.GA18164@kroah.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
-Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Michal Hocko <mhocko@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Linux Memory Management List <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-s390@vger.kernel.org, sthemmin@microsoft.com, Pavel Tatashin <pasha.tatashin@oracle.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, haiyangz@microsoft.com, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin
 List-Id: linux-acpi@vger.kernel.org
 
-pcibios_scan_root() is now just a wrapper around pci_scan_root_bus(),
-and merging the two into one makes it shorter and more readable.
+On 17.08.2018 12:06, Greg Kroah-Hartman wrote:
+> On Fri, Aug 17, 2018 at 11:41:24AM +0200, David Hildenbrand wrote:
+>> On 17.08.2018 11:03, Rafael J. Wysocki wrote:
+>>> On Fri, Aug 17, 2018 at 10:56 AM David Hildenbrand <david@redhat.com> wrote:
+>>>>
+>>>> On 17.08.2018 10:41, Greg Kroah-Hartman wrote:
+>>>>> On Fri, Aug 17, 2018 at 09:59:00AM +0200, David Hildenbrand wrote:
+>>>>>> From: Vitaly Kuznetsov <vkuznets@redhat.com>
+>>>>>>
+>>>>>> Well require to call add_memory()/add_memory_resource() with
+>>>>>> device_hotplug_lock held, to avoid a lock inversion. Allow external modules
+>>>>>> (e.g. hv_balloon) that make use of add_memory()/add_memory_resource() to
+>>>>>> lock device hotplug.
+>>>>>>
+>>>>>> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+>>>>>> [modify patch description]
+>>>>>> Signed-off-by: David Hildenbrand <david@redhat.com>
+>>>>>> ---
+>>>>>>  drivers/base/core.c | 2 ++
+>>>>>>  1 file changed, 2 insertions(+)
+>>>>>>
+>>>>>> diff --git a/drivers/base/core.c b/drivers/base/core.c
+>>>>>> index 04bbcd779e11..9010b9e942b5 100644
+>>>>>> --- a/drivers/base/core.c
+>>>>>> +++ b/drivers/base/core.c
+>>>>>> @@ -700,11 +700,13 @@ void lock_device_hotplug(void)
+>>>>>>  {
+>>>>>>      mutex_lock(&device_hotplug_lock);
+>>>>>>  }
+>>>>>> +EXPORT_SYMBOL_GPL(lock_device_hotplug);
+>>>>>>
+>>>>>>  void unlock_device_hotplug(void)
+>>>>>>  {
+>>>>>>      mutex_unlock(&device_hotplug_lock);
+>>>>>>  }
+>>>>>> +EXPORT_SYMBOL_GPL(unlock_device_hotplug);
+>>>>>
+>>>>> If these are going to be "global" symbols, let's properly name them.
+>>>>> device_hotplug_lock/unlock would be better.  But I am _really_ nervous
+>>>>> about letting stuff outside of the driver core mess with this, as people
+>>>>> better know what they are doing.
+>>>>
+>>>> The only "problem" is that we have kernel modules (for paravirtualized
+>>>> devices) that call add_memory(). This is Hyper-V right now, but we might
+>>>> have other ones in the future. Without them we would not have to export
+>>>> it. We might also get kernel modules that want to call remove_memory() -
+>>>> which will require the device_hotplug_lock as of now.
+>>>>
+>>>> What we could do is
+>>>>
+>>>> a) add_memory() -> _add_memory() and don't export it
+>>>> b) add_memory() takes the device_hotplug_lock and calls _add_memory() .
+>>>> We export that one.
+>>>> c) Use add_memory() in external modules only
+>>>>
+>>>> Similar wrapper would be needed e.g. for remove_memory() later on.
+>>>
+>>> That would be safer IMO, as it would prevent developers from using
+>>> add_memory() without the lock, say.
+>>>
+>>> If the lock is always going to be required for add_memory(), make it
+>>> hard (or event impossible) to use the latter without it.
+>>>
+>>
+>> If there are no objections, I'll go into that direction. But I'll wait
+>> for more comments regarding the general concept first.
+> 
+> It is the middle of the merge window, and maintainers are really busy
+> right now.  I doubt you will get many review comments just yet...
+> 
 
-We can also take advantage of pci_alloc_host_bridge() doing the
-allocation of the sysdata for us, which helps if we ever want to
-allow hot-unplugging the host bridge itself.
+This has been broken since 2015, so I guess it can wait a bit :)
 
-We might be able to simplify it further using pci_host_probe(),
-but I wasn't sure about the resource registration there.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/x86/pci/common.c | 53 ++++++++++++++-----------------------------
- 1 file changed, 17 insertions(+), 36 deletions(-)
-
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index e740d9aa4024..920d0885434c 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -453,54 +453,35 @@ void __init dmi_check_pciprobe(void)
- 	dmi_check_system(pciprobe_dmi_table);
- }
- 
--static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
--		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+void pcibios_scan_root(int busnum)
- {
-+	struct pci_sysdata *sd;
- 	struct pci_host_bridge *bridge;
- 	int error;
- 
--	bridge = pci_alloc_host_bridge(0);
--	if (!bridge)
--		return NULL;
-+	bridge = pci_alloc_host_bridge(sizeof(sd));
-+	if (!bridge) {
-+		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busnum);
-+		return;
-+	}
-+	sd = pci_host_bridge_priv(bridge);
- 
--	list_splice_init(resources, &bridge->windows);
--	bridge->dev.parent = parent;
--	bridge->sysdata = sysdata;
--	bridge->busnr = bus;
--	bridge->ops = ops;
-+	sd->node = x86_pci_root_bus_node(busnum);
-+	x86_pci_root_bus_resources(busnum, &bridge->windows);
-+	bridge->sysdata = sd;
-+	bridge->busnr = busnum;
-+	bridge->ops = &pci_root_ops;
- 
-+	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
- 	error = pci_scan_root_bus_bridge(bridge);
- 	if (error < 0)
- 		goto err_out;
- 
--	return bridge->bus;
-+	pci_bus_add_devices(bridge->bus);
-+	return;
- 
- err_out:
--	kfree(bridge);
--	return NULL;
--}
--
--void pcibios_scan_root(int busnum)
--{
--	struct pci_bus *bus;
--	struct pci_sysdata *sd;
--	LIST_HEAD(resources);
--
--	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
--	if (!sd) {
--		printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busnum);
--		return;
--	}
--	sd->node = x86_pci_root_bus_node(busnum);
--	x86_pci_root_bus_resources(busnum, &resources);
--	printk(KERN_DEBUG "PCI: Probing PCI hardware (bus %02x)\n", busnum);
--	bus = pci_scan_root_bus(NULL, busnum, &pci_root_ops, sd, &resources);
--	if (!bus) {
--		pci_free_resource_list(&resources);
--		kfree(sd);
--		return;
--	}
--	pci_bus_add_devices(bus);
-+	pci_free_host_bridge(bridge);
- }
- 
- void __init pcibios_set_cache_line_size(void)
 -- 
-2.18.0
+
+Thanks,
+
+David / dhildenb
