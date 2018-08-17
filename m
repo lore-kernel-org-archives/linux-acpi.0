@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 04/15] PCI: export pci_register_host_bridge
-Date: Fri, 17 Aug 2018 12:26:34 +0200
-Message-ID: <20180817102645.3839621-5-arnd@arndb.de>
+Subject: [RFC 10/15] sparc/PCI: simplify pci_scan_one_pbm
+Date: Fri, 17 Aug 2018 12:26:40 +0200
+Message-ID: <20180817102645.3839621-11-arnd@arndb.de>
 References: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
@@ -10,75 +10,115 @@ To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-There are a couple of users of the old pci_create_root_bus() interface,
-which calls pci_register_host_bridge() without actually scanning the bus.
+We no longer need a separate pci_create_root_bus() function, and
+merging it into pci_scan_one_pbm() makes the implementation easier
+to understand.
 
-In order to get those callers a little closer to the current method
-of separating the allocation and probing of the host bridge, this
-exports the internal interface to modules. If all the callers can
-get moved over to pci_host_probe() or pci_scan_root_bus_bridge()
-later, the export can be removed again.
+A possible future cleanup would move the allocation of the
+pci_host_bridge structure into the callers of pci_scan_one_pbm,
+and avoid duplication between pci_host_bridge and pci_pbm_info
+fields.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/pci/probe.c | 25 ++++++++++++++++++++++++-
- include/linux/pci.h |  1 +
- 2 files changed, 25 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/pci.c | 62 ++++++++++++++---------------------------
+ 1 file changed, 21 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index cf169742c03e..5ca7d5941ad0 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -762,7 +762,29 @@ static void pci_set_bus_msi_domain(struct pci_bus *bus)
- 	dev_set_msi_domain(&bus->dev, d);
+diff --git a/arch/sparc/kernel/pci.c b/arch/sparc/kernel/pci.c
+index afbce59d9231..0d34fb2ac55b 100644
+--- a/arch/sparc/kernel/pci.c
++++ b/arch/sparc/kernel/pci.c
+@@ -691,70 +691,50 @@ static void pci_claim_bus_resources(struct pci_bus *bus)
+ 		pci_claim_bus_resources(child_bus);
  }
  
--static int pci_register_host_bridge(struct pci_host_bridge *bridge)
-+/*
-+ * pci_register_host_bridge() - Register a host bridge without scanning
-+ *
-+ * @bridge: a newly allocated host bridge structure
-+ *
-+ * This is the core part of bringing up a new PCI host bridge,
-+ * before we scan for attached devices and register them as
-+ * pci_dev.
-+ *
-+ * For the most part, this is an implementation detail of the
-+ * pci_host_probe() interface, which brings up the entire bus,
-+ * bus some older platforms still call it directly and manually
-+ * scan for devices.
-+ *
-+ * If your driver uses this, try to convert it to using
-+ * pci_host_probe() instead.
-+ *
-+ * Return: zero on suggess, or a negative error code.
-+ * Note: after pci_register_host_bridge() successfully returns,
-+ * the pci_host_bridge device is alive in driver core, and must
-+ * not be freed directly.
-+ */
-+int pci_register_host_bridge(struct pci_host_bridge *bridge)
+-static struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+-		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
++				 struct device *parent)
  {
- 	struct device *parent = bridge->dev.parent;
- 	struct resource_entry *window, *n;
-@@ -877,6 +899,7 @@ static int pci_register_host_bridge(struct pci_host_bridge *bridge)
- 	kfree(bus);
- 	return err;
- }
-+EXPORT_SYMBOL_GPL(pci_register_host_bridge);
+-	int error;
++	struct device_node *node = pbm->op->dev.of_node;
+ 	struct pci_host_bridge *bridge;
++	int ret;
  
- static bool pci_bridge_child_ext_cfg_accessible(struct pci_dev *bridge)
- {
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index d226e06fb5e5..e1337148cf9f 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -909,6 +909,7 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 				    struct pci_ops *ops, void *sysdata,
- 				    struct list_head *resources);
- int pci_host_probe(struct pci_host_bridge *bridge);
-+int pci_register_host_bridge(struct pci_host_bridge *);
- int pci_bus_insert_busn_res(struct pci_bus *b, int bus, int busmax);
- int pci_bus_update_busn_res_end(struct pci_bus *b, int busmax);
- void pci_bus_release_busn_res(struct pci_bus *b);
+ 	bridge = pci_alloc_host_bridge(0);
+ 	if (!bridge)
+ 		return NULL;
+ 
+ 	bridge->dev.parent = parent;
++	bridge->sysdata = pbm;
++	bridge->busnr = pbm->pci_first_busno;
++	bridge->ops = pbm->pci_ops;
+ 
+-	list_splice_init(resources, &bridge->windows);
+-	bridge->sysdata = sysdata;
+-	bridge->busnr = bus;
+-	bridge->ops = ops;
+-
+-	error = pci_register_host_bridge(bridge);
+-	if (error < 0)
+-		goto err_out;
+-
+-	return bridge->bus;
+-
+-err_out:
+-	kfree(bridge);
+-	return NULL;
+-}
+-
+-struct pci_bus *pci_scan_one_pbm(struct pci_pbm_info *pbm,
+-				 struct device *parent)
+-{
+-	LIST_HEAD(resources);
+-	struct device_node *node = pbm->op->dev.of_node;
+-	struct pci_bus *bus;
+-
+-	printk("PCI: Scanning PBM %s\n", node->full_name);
+-
+-	pci_add_resource_offset(&resources, &pbm->io_space,
++	pci_add_resource_offset(&bridge->windows, &pbm->io_space,
+ 				pbm->io_offset);
+-	pci_add_resource_offset(&resources, &pbm->mem_space,
++	pci_add_resource_offset(&bridge->windows, &pbm->mem_space,
+ 				pbm->mem_offset);
+ 	if (pbm->mem64_space.flags)
+-		pci_add_resource_offset(&resources, &pbm->mem64_space,
++		pci_add_resource_offset(&bridge->windows, &pbm->mem64_space,
+ 					pbm->mem64_offset);
+ 	pbm->busn.start = pbm->pci_first_busno;
+ 	pbm->busn.end	= pbm->pci_last_busno;
+ 	pbm->busn.flags	= IORESOURCE_BUS;
+-	pci_add_resource(&resources, &pbm->busn);
+-	bus = pci_create_root_bus(parent, pbm->pci_first_busno, pbm->pci_ops,
+-				  pbm, &resources);
+-	if (!bus) {
++	pci_add_resource(&bridge->windows, &pbm->busn);
++
++	printk("PCI: Scanning PBM %s\n", node->full_name);
++	ret = pci_register_host_bridge(bridge);
++	if (!ret) {
+ 		printk(KERN_ERR "Failed to create bus for %s\n",
+ 		       node->full_name);
+-		pci_free_resource_list(&resources);
++		pci_free_host_bridge(bridge);
+ 		return NULL;
+ 	}
+ 
+-	pci_of_scan_bus(pbm, node, bus);
+-	pci_bus_register_of_sysfs(bus);
++	pci_of_scan_bus(pbm, node, bridge->bus);
++	pci_bus_register_of_sysfs(bridge->bus);
+ 
+-	pci_claim_bus_resources(bus);
++	pci_claim_bus_resources(bridge->bus);
+ 
+-	pci_bus_add_devices(bus);
+-	return bus;
++	pci_bus_add_devices(bridge->bus);
++	return bridge->bus;
+ }
+ 
+ int pcibios_enable_device(struct pci_dev *dev, int mask)
 -- 
 2.18.0
