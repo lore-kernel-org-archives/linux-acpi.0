@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 11/15] PCI: hyperv: convert to pci_scan_root_bus_bridge
-Date: Fri, 17 Aug 2018 12:26:41 +0200
-Message-ID: <20180817102645.3839621-12-arnd@arndb.de>
+Subject: [RFC 03/15] PCI: move pci_scan_root_bus into callers
+Date: Fri, 17 Aug 2018 12:26:33 +0200
+Message-ID: <20180817102645.3839621-4-arnd@arndb.de>
 References: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
@@ -10,57 +10,242 @@ To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-create_root_hv_pci_bus() uses a rather generic method of probing the host
-bridge, which can be simplified by just calling pci_scan_root_bus_bridge()
-after setting up the pci_host_bridge structure.
+There are only six remaining callers of the old pci_scan_root_bus()
+interface. Since we want to expose the pci_host_bridge structure
+everywhere and discourage users from calling the old interfaces, let's
+move the implementation into the respective callsites.
 
-Since we can no longer assign hbus->pci_bus in the middle, I just remove
-that member completely and use the pci_host_bridge instead.
-
-Ideally we'd convert it to pci_host_probe() for simplicity, but
-that is a bit different and I could not easily test it. Using
-pci_scan_root_bus_bridge should not change the behavior at all.
+While this duplicates the source code, it makes the object code smaller
+for almost all users by avoiding the global implementation, and it allows
+further cleanup of the callers.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/pci/controller/pci-hyperv.c | 75 +++++++++++------------------
- 1 file changed, 28 insertions(+), 47 deletions(-)
+ arch/ia64/sn/kernel/io_init.c    | 27 +++++++++++++++++++++++++++
+ arch/microblaze/pci/pci-common.c | 27 +++++++++++++++++++++++++++
+ arch/s390/pci/pci.c              | 27 +++++++++++++++++++++++++++
+ arch/x86/pci/common.c            | 27 +++++++++++++++++++++++++++
+ arch/xtensa/kernel/pci.c         | 27 +++++++++++++++++++++++++++
+ drivers/pci/probe.c              | 28 ----------------------------
+ drivers/pci/xen-pcifront.c       | 27 +++++++++++++++++++++++++++
+ include/linux/pci.h              |  3 ---
+ 8 files changed, 162 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/pci/controller/pci-hyperv.c b/drivers/pci/controller/pci-hyperv.c
-index df7cddea8e30..49586aefa38b 100644
---- a/drivers/pci/controller/pci-hyperv.c
-+++ b/drivers/pci/controller/pci-hyperv.c
-@@ -443,7 +443,7 @@ struct hv_pcibus_device {
- 	struct resource *high_mmio_res;
- 	struct completion *survey_event;
- 	struct completion remove_event;
--	struct pci_bus *pci_bus;
+diff --git a/arch/ia64/sn/kernel/io_init.c b/arch/ia64/sn/kernel/io_init.c
+index d63809a6adfa..e768702a7b45 100644
+--- a/arch/ia64/sn/kernel/io_init.c
++++ b/arch/ia64/sn/kernel/io_init.c
+@@ -213,6 +213,33 @@ sn_io_slot_fixup(struct pci_dev *dev)
+ }
+ EXPORT_SYMBOL(sn_io_slot_fixup);
+ 
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
 +	struct pci_host_bridge *bridge;
- 	spinlock_t config_lock;	/* Avoid two threads writing index page */
- 	spinlock_t device_list_lock;	/* Protect lists below */
- 	void __iomem *cfg_addr;
-@@ -1457,34 +1457,6 @@ static void prepopulate_bars(struct hv_pcibus_device *hbus)
- 	spin_unlock_irqrestore(&hbus->device_list_lock, flags);
++	int error;
++
++	bridge = pci_alloc_host_bridge(0);
++	if (!bridge)
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ /*
+  * sn_pci_controller_fixup() - This routine sets up a bus's resources
+  *			       consistent with the Linux PCI abstraction layer.
+diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
+index f34346d56095..302071385e1b 100644
+--- a/arch/microblaze/pci/pci-common.c
++++ b/arch/microblaze/pci/pci-common.c
+@@ -977,6 +977,33 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
+ 		 (unsigned long)hose->io_base_virt - _IO_BASE);
  }
  
--static struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
++	struct pci_host_bridge *bridge;
++	int error;
++
++	bridge = pci_alloc_host_bridge(0);
++	if (!bridge)
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ static void pcibios_scan_phb(struct pci_controller *hose)
+ {
+ 	LIST_HEAD(resources);
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index 9f6f392a4461..b21205f131ce 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -786,6 +786,33 @@ void pcibios_remove_bus(struct pci_bus *bus)
+ 	kfree(zdev);
+ }
+ 
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
++	struct pci_host_bridge *bridge;
++	int error;
++
++	bridge = pci_alloc_host_bridge(0);
++	if (!bridge)
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ static int zpci_scan_bus(struct zpci_dev *zdev)
+ {
+ 	LIST_HEAD(resources);
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index d4ec117c1142..e740d9aa4024 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -453,6 +453,33 @@ void __init dmi_check_pciprobe(void)
+ 	dmi_check_system(pciprobe_dmi_table);
+ }
+ 
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
++	struct pci_host_bridge *bridge;
++	int error;
++
++	bridge = pci_alloc_host_bridge(0);
++	if (!bridge)
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ void pcibios_scan_root(int busnum)
+ {
+ 	struct pci_bus *bus;
+diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
+index 21f13e9aabe1..5a8fd67e6c5e 100644
+--- a/arch/xtensa/kernel/pci.c
++++ b/arch/xtensa/kernel/pci.c
+@@ -116,6 +116,33 @@ static void __init pci_controller_apertures(struct pci_controller *pci_ctrl,
+ 	}
+ }
+ 
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
++	struct pci_host_bridge *bridge;
++	int error;
++
++	bridge = pci_alloc_host_bridge(0);
++	if (!bridge)
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ static int __init pcibios_init(void)
+ {
+ 	struct pci_controller *pci_ctrl;
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 12c3aa63c34d..cf169742c03e 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -3050,34 +3050,6 @@ int pci_scan_root_bus_bridge(struct pci_host_bridge *bridge)
+ }
+ EXPORT_SYMBOL(pci_scan_root_bus_bridge);
+ 
+-struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
 -		struct pci_ops *ops, void *sysdata, struct list_head *resources)
 -{
--	int error;
 -	struct pci_host_bridge *bridge;
+-	int error;
 -
 -	bridge = pci_alloc_host_bridge(0);
 -	if (!bridge)
 -		return NULL;
 -
--	bridge->dev.parent = parent;
--
 -	list_splice_init(resources, &bridge->windows);
+-	bridge->dev.parent = parent;
 -	bridge->sysdata = sysdata;
 -	bridge->busnr = bus;
 -	bridge->ops = ops;
 -
--	error = pci_register_host_bridge(bridge);
+-	error = pci_scan_root_bus_bridge(bridge);
 -	if (error < 0)
 -		goto err_out;
 -
@@ -70,79 +255,62 @@ index df7cddea8e30..49586aefa38b 100644
 -	kfree(bridge);
 -	return NULL;
 -}
+-EXPORT_SYMBOL(pci_scan_root_bus);
 -
  /**
-  * create_root_hv_pci_bus() - Expose a new root PCI bus
-  * @hbus:	Root PCI bus, as understood by this driver
-@@ -1493,25 +1465,34 @@ static struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
-  */
- static int create_root_hv_pci_bus(struct hv_pcibus_device *hbus)
- {
--	/* Register the device */
--	hbus->pci_bus = pci_create_root_bus(&hbus->hdev->device,
--					    0, /* bus number is always zero */
--					    &hv_pcifront_ops,
--					    &hbus->sysdata,
--					    &hbus->resources_for_children);
--	if (!hbus->pci_bus)
--		return -ENODEV;
+  * pci_rescan_bus_bridge_resize - Scan a PCI bus for devices
+  * @bridge: PCI bridge for the bus to scan
+diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
+index eba6e33147a2..24070e1c5f22 100644
+--- a/drivers/pci/xen-pcifront.c
++++ b/drivers/pci/xen-pcifront.c
+@@ -443,6 +443,33 @@ static int pcifront_scan_bus(struct pcifront_device *pdev,
+ 	return 0;
+ }
+ 
++static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
++		struct pci_ops *ops, void *sysdata, struct list_head *resources)
++{
 +	struct pci_host_bridge *bridge;
-+	int ret;
++	int error;
 +
 +	bridge = pci_alloc_host_bridge(0);
 +	if (!bridge)
-+		return -ENOMEM;
- 
--	hbus->pci_bus->msi = &hbus->msi_chip;
--	hbus->pci_bus->msi->dev = &hbus->hdev->device;
-+	hbus->bridge = bridge;
-+	bridge->dev.parent = &hbus->hdev->device;
-+	list_splice_init(&hbus->resources_for_children, &bridge->windows);
-+	bridge->sysdata = &hbus->sysdata;
-+	bridge->ops = &hv_pcifront_ops;
-+	bridge->msi = &hbus->msi_chip;
-+	bridge->msi->dev = &hbus->hdev->device;
- 
- 	pci_lock_rescan_remove();
--	pci_scan_child_bus(hbus->pci_bus);
--	pci_bus_assign_resources(hbus->pci_bus);
--	pci_bus_add_devices(hbus->pci_bus);
--	pci_unlock_rescan_remove();
-+	/* ideally we should use pci_host_probe here */
-+	ret = pci_scan_root_bus_bridge(bridge);
-+	if (ret < 0) {
-+		pci_free_host_bridge(bridge);
-+		goto error;
-+	}
-+	pci_bus_assign_resources(bridge->bus);
-+	pci_bus_add_devices(bridge->bus);
- 	hbus->state = hv_pcibus_installed;
--	return 0;
-+error:
-+	pci_unlock_rescan_remove();
-+	return ret;
- }
- 
- struct q_res_req_compl {
-@@ -1769,7 +1750,7 @@ static void pci_devices_present_work(struct work_struct *work)
- 		 * because there may have been changes.
- 		 */
- 		pci_lock_rescan_remove();
--		pci_scan_child_bus(hbus->pci_bus);
-+		pci_scan_child_bus(hbus->bridge->bus);
- 		pci_unlock_rescan_remove();
- 		break;
- 
-@@ -2669,8 +2650,8 @@ static int hv_pci_remove(struct hv_device *hdev)
- 	if (hbus->state == hv_pcibus_installed) {
- 		/* Remove the bus from PCI's point of view. */
- 		pci_lock_rescan_remove();
--		pci_stop_root_bus(hbus->pci_bus);
--		pci_remove_root_bus(hbus->pci_bus);
-+		pci_stop_root_bus(hbus->bridge->bus);
-+		pci_remove_root_bus(hbus->bridge->bus);
- 		pci_unlock_rescan_remove();
- 		hbus->state = hv_pcibus_removed;
- 	}
++		return NULL;
++
++	list_splice_init(resources, &bridge->windows);
++	bridge->dev.parent = parent;
++	bridge->sysdata = sysdata;
++	bridge->busnr = bus;
++	bridge->ops = ops;
++
++	error = pci_scan_root_bus_bridge(bridge);
++	if (error < 0)
++		goto err_out;
++
++	return bridge->bus;
++
++err_out:
++	kfree(bridge);
++	return NULL;
++}
++
+ static int pcifront_scan_root(struct pcifront_device *pdev,
+ 				 unsigned int domain, unsigned int bus)
+ {
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index d77ce35a2b33..d226e06fb5e5 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -912,9 +912,6 @@ int pci_host_probe(struct pci_host_bridge *bridge);
+ int pci_bus_insert_busn_res(struct pci_bus *b, int bus, int busmax);
+ int pci_bus_update_busn_res_end(struct pci_bus *b, int busmax);
+ void pci_bus_release_busn_res(struct pci_bus *b);
+-struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
+-				  struct pci_ops *ops, void *sysdata,
+-				  struct list_head *resources);
+ int pci_scan_root_bus_bridge(struct pci_host_bridge *bridge);
+ struct pci_bus *pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev,
+ 				int busnr);
 -- 
 2.18.0
