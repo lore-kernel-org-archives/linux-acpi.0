@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 01/15] PCI: clean up legacy host bridge scan functions
-Date: Fri, 17 Aug 2018 12:26:31 +0200
-Message-ID: <20180817102645.3839621-2-arnd@arndb.de>
+Subject: [RFC 15/15] PCI: make pcibios_add_bus/remove_bus callbacks
+Date: Fri, 17 Aug 2018 12:26:45 +0200
+Message-ID: <20180817102645.3839621-16-arnd@arndb.de>
 References: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
@@ -10,138 +10,158 @@ To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Aside from the modern pci_host_bridge based interfaces, we have a couple
-of interfaces from old times that are still used in a couple of platforms:
-pci_create_root_bus(), pci_scan_bus() and pci_scan_root_bus().
+These are mostly not architecture specific but are meant for particular
+PCI host bridge implementations, in particular for the ACPI version.
 
-As a first step towards getting everybody to use the new interfaces,
-this simplifies the latter two to call the pci_alloc_host_bridge() and
-pci_register_host_bridge()/pci_scan_root_bus_bridge() interfaces directly.
-
-The behavior should be entirely unchanged here, but we can then push
-down the functions into the individual host implementations.
+Turn them both into callback functions that are implemented by the
+APCI PCI implementation as well as the one architecture that overrides
+pcibios_remove_bus.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/pci/probe.c | 86 ++++++++++++++++++++++++---------------------
- 1 file changed, 45 insertions(+), 41 deletions(-)
+ arch/arm64/kernel/pci.c | 10 ----------
+ arch/ia64/pci/pci.c     | 10 ----------
+ arch/s390/pci/pci.c     |  3 ++-
+ arch/x86/pci/common.c   | 10 ----------
+ drivers/acpi/pci_root.c |  2 ++
+ drivers/pci/probe.c     | 12 ++++++++++--
+ include/linux/pci.h     |  2 ++
+ 7 files changed, 16 insertions(+), 33 deletions(-)
 
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 8958a7c32a9f..99fac25efe88 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -191,14 +191,4 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	return bus;
+ }
+ 
+-void pcibios_add_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_add_bus(bus);
+-}
+-
+-void pcibios_remove_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_remove_bus(bus);
+-}
+-
+ #endif
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 511b8a058d80..f47e0920d308 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -367,16 +367,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+ 	platform_pci_fixup_bus(b);
+ }
+ 
+-void pcibios_add_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_add_bus(bus);
+-}
+-
+-void pcibios_remove_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_remove_bus(bus);
+-}
+-
+ void pcibios_set_master (struct pci_dev *dev)
+ {
+ 	/* No special bus mastering setup handling */
+diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
+index b21205f131ce..120beb83b6a5 100644
+--- a/arch/s390/pci/pci.c
++++ b/arch/s390/pci/pci.c
+@@ -769,7 +769,7 @@ static void zpci_free_domain(struct zpci_dev *zdev)
+ 	spin_unlock(&zpci_domain_lock);
+ }
+ 
+-void pcibios_remove_bus(struct pci_bus *bus)
++static void zpci_remove_bus(struct pci_bus *bus)
+ {
+ 	struct zpci_dev *zdev = get_zdev_by_bus(bus);
+ 
+@@ -801,6 +801,7 @@ static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
+ 	bridge->sysdata = sysdata;
+ 	bridge->busnr = bus;
+ 	bridge->ops = ops;
++	bridge->remove_bus = zpci_remove_bus;
+ 
+ 	error = pci_scan_root_bus_bridge(bridge);
+ 	if (error < 0)
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index 920d0885434c..987e6fefd5d3 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -168,16 +168,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+ 		pcibios_fixup_device_resources(dev);
+ }
+ 
+-void pcibios_add_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_add_bus(bus);
+-}
+-
+-void pcibios_remove_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_remove_bus(bus);
+-}
+-
+ /*
+  * Only use DMI information to set this if nothing was passed
+  * on the kernel command line (which was parsed earlier).
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 5da0f70c4e65..cf7a9a7bf1e7 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -911,6 +911,8 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+ 	bridge->busnr = busnum;
+ 	bridge->ops = ops->pci_ops;
+ 	bridge->prepare = acpi_pci_root_bridge_prepare;
++	bridge->add_bus = acpi_pci_add_bus;
++	bridge->remove_bus = acpi_pci_remove_bus;
+ 	pci_set_host_bridge_release(bridge, acpi_pci_root_release_info,
+ 				    info);
+ 
 diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index ec784009a36b..b0f666271245 100644
+index f493d7e299e6..86a678fa8c13 100644
 --- a/drivers/pci/probe.c
 +++ b/drivers/pci/probe.c
-@@ -23,13 +23,6 @@
- #define CARDBUS_LATENCY_TIMER	176	/* secondary latency timer */
- #define CARDBUS_RESERVE_BUSNR	3
- 
--static struct resource busn_resource = {
--	.name	= "PCI busn",
--	.start	= 0,
--	.end	= 255,
--	.flags	= IORESOURCE_BUS,
--};
--
- /* Ugh.  Need to stop exporting this to modules. */
- LIST_HEAD(pci_root_buses);
- EXPORT_SYMBOL(pci_root_buses);
-@@ -3060,53 +3053,64 @@ EXPORT_SYMBOL(pci_scan_root_bus_bridge);
- struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
- 		struct pci_ops *ops, void *sysdata, struct list_head *resources)
- {
--	struct resource_entry *window;
--	bool found = false;
--	struct pci_bus *b;
--	int max;
--
--	resource_list_for_each_entry(window, resources)
--		if (window->res->flags & IORESOURCE_BUS) {
--			found = true;
--			break;
--		}
-+	struct pci_host_bridge *bridge;
-+	int error;
- 
--	b = pci_create_root_bus(parent, bus, ops, sysdata, resources);
--	if (!b)
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
- 		return NULL;
- 
--	if (!found) {
--		dev_info(&b->dev,
--		 "No busn resource found for root bus, will use [bus %02x-ff]\n",
--			bus);
--		pci_bus_insert_busn_res(b, bus, 255);
--	}
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
- 
--	max = pci_scan_child_bus(b);
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
- 
--	if (!found)
--		pci_bus_update_busn_res_end(b, max);
-+	return bridge->bus;
- 
--	return b;
-+err_out:
-+	kfree(bridge);
-+	return NULL;
+@@ -2905,12 +2905,20 @@ unsigned int pci_scan_child_bus(struct pci_bus *bus)
  }
- EXPORT_SYMBOL(pci_scan_root_bus);
+ EXPORT_SYMBOL_GPL(pci_scan_child_bus);
  
-+static struct resource busn_resource = {
-+	.name	= "PCI busn",
-+	.start	= 0,
-+	.end	= 255,
-+	.flags	= IORESOURCE_BUS,
-+};
-+
- struct pci_bus *pci_scan_bus(int bus, struct pci_ops *ops,
- 					void *sysdata)
+-void __weak pcibios_add_bus(struct pci_bus *bus)
++void pcibios_add_bus(struct pci_bus *bus)
  {
--	LIST_HEAD(resources);
--	struct pci_bus *b;
-+	struct pci_host_bridge *bridge;
-+	int error;
- 
--	pci_add_resource(&resources, &ioport_resource);
--	pci_add_resource(&resources, &iomem_resource);
--	pci_add_resource(&resources, &busn_resource);
--	b = pci_create_root_bus(NULL, bus, ops, sysdata, &resources);
--	if (b) {
--		pci_scan_child_bus(b);
--	} else {
--		pci_free_resource_list(&resources);
--	}
--	return b;
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		goto err;
++	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
 +
-+	pci_add_resource(&bridge->windows, &ioport_resource);
-+	pci_add_resource(&bridge->windows, &iomem_resource);
-+	pci_add_resource(&bridge->windows, &busn_resource);
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err;
-+
-+	return bridge->bus;
-+
-+err:
-+	pci_free_host_bridge(bridge);
-+	return NULL;
++	if (bridge->add_bus)
++		bridge->add_bus(bus);
  }
- EXPORT_SYMBOL(pci_scan_bus);
  
+-void __weak pcibios_remove_bus(struct pci_bus *bus)
++void pcibios_remove_bus(struct pci_bus *bus)
+ {
++	struct pci_host_bridge *bridge = pci_find_host_bridge(bus);
++
++	if (bridge->remove_bus)
++		bridge->remove_bus(bus);
+ }
+ 
+ int pci_host_probe(struct pci_host_bridge *bridge)
+diff --git a/include/linux/pci.h b/include/linux/pci.h
+index 24216daef6f8..bc9635313747 100644
+--- a/include/linux/pci.h
++++ b/include/linux/pci.h
+@@ -479,6 +479,8 @@ struct pci_host_bridge {
+ 	void (*bus_add_device)(struct pci_dev *pdev);
+ 	int (*alloc_irq)(struct pci_dev *);
+ 	int (*free_irq)(struct pci_dev *);
++	void (*add_bus)(struct pci_bus *);
++	void (*remove_bus)(struct pci_bus *);
+ 	void		*release_data;
+ 	struct msi_controller *msi;
+ 	unsigned int	ignore_reset_delay:1;	/* For entire hierarchy */
 -- 
 2.18.0
