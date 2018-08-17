@@ -1,89 +1,93 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH RFC 1/2] drivers/base: export
- lock_device_hotplug/unlock_device_hotplug
-Date: Fri, 17 Aug 2018 12:06:04 +0200
-Message-ID: <20180817100604.GA18164@kroah.com>
-References: <20180817075901.4608-1-david@redhat.com>
- <20180817075901.4608-2-david@redhat.com>
- <20180817084146.GB14725@kroah.com>
- <5a5d73e9-e4aa-ffed-a2e3-8aef64e61923@redhat.com>
- <CAJZ5v0gkYV8o2Eq+EcGT=OP1tQGPGVVe3n9VGD6z7KAVVqhv9w@mail.gmail.com>
- <42df9062-f647-3ad6-5a07-be2b99531119@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [RFC 00/15] PCI: turn some __weak functions into callbacks
+Date: Fri, 17 Aug 2018 12:26:30 +0200
+Message-ID: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <42df9062-f647-3ad6-5a07-be2b99531119@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Hildenbrand <david@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Michal Hocko <mhocko@suse.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, Linux Memory Management List <linux-mm@kvack.org>, Paul Mackerras <paulus@samba.org>, linux-s390@vger.kernel.org, sthemmin@microsoft.com, Pavel Tatashin <pasha.tatashin@oracle.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, David Rientjes <rientjes@google.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, haiyangz@microsoft.com, Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, osalvador@suse.de, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Martin
+To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Aug 17, 2018 at 11:41:24AM +0200, David Hildenbrand wrote:
-> On 17.08.2018 11:03, Rafael J. Wysocki wrote:
-> > On Fri, Aug 17, 2018 at 10:56 AM David Hildenbrand <david@redhat.com> wrote:
-> >>
-> >> On 17.08.2018 10:41, Greg Kroah-Hartman wrote:
-> >>> On Fri, Aug 17, 2018 at 09:59:00AM +0200, David Hildenbrand wrote:
-> >>>> From: Vitaly Kuznetsov <vkuznets@redhat.com>
-> >>>>
-> >>>> Well require to call add_memory()/add_memory_resource() with
-> >>>> device_hotplug_lock held, to avoid a lock inversion. Allow external modules
-> >>>> (e.g. hv_balloon) that make use of add_memory()/add_memory_resource() to
-> >>>> lock device hotplug.
-> >>>>
-> >>>> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-> >>>> [modify patch description]
-> >>>> Signed-off-by: David Hildenbrand <david@redhat.com>
-> >>>> ---
-> >>>>  drivers/base/core.c | 2 ++
-> >>>>  1 file changed, 2 insertions(+)
-> >>>>
-> >>>> diff --git a/drivers/base/core.c b/drivers/base/core.c
-> >>>> index 04bbcd779e11..9010b9e942b5 100644
-> >>>> --- a/drivers/base/core.c
-> >>>> +++ b/drivers/base/core.c
-> >>>> @@ -700,11 +700,13 @@ void lock_device_hotplug(void)
-> >>>>  {
-> >>>>      mutex_lock(&device_hotplug_lock);
-> >>>>  }
-> >>>> +EXPORT_SYMBOL_GPL(lock_device_hotplug);
-> >>>>
-> >>>>  void unlock_device_hotplug(void)
-> >>>>  {
-> >>>>      mutex_unlock(&device_hotplug_lock);
-> >>>>  }
-> >>>> +EXPORT_SYMBOL_GPL(unlock_device_hotplug);
-> >>>
-> >>> If these are going to be "global" symbols, let's properly name them.
-> >>> device_hotplug_lock/unlock would be better.  But I am _really_ nervous
-> >>> about letting stuff outside of the driver core mess with this, as people
-> >>> better know what they are doing.
-> >>
-> >> The only "problem" is that we have kernel modules (for paravirtualized
-> >> devices) that call add_memory(). This is Hyper-V right now, but we might
-> >> have other ones in the future. Without them we would not have to export
-> >> it. We might also get kernel modules that want to call remove_memory() -
-> >> which will require the device_hotplug_lock as of now.
-> >>
-> >> What we could do is
-> >>
-> >> a) add_memory() -> _add_memory() and don't export it
-> >> b) add_memory() takes the device_hotplug_lock and calls _add_memory() .
-> >> We export that one.
-> >> c) Use add_memory() in external modules only
-> >>
-> >> Similar wrapper would be needed e.g. for remove_memory() later on.
-> > 
-> > That would be safer IMO, as it would prevent developers from using
-> > add_memory() without the lock, say.
-> > 
-> > If the lock is always going to be required for add_memory(), make it
-> > hard (or event impossible) to use the latter without it.
-> > 
-> 
-> If there are no objections, I'll go into that direction. But I'll wait
-> for more comments regarding the general concept first.
+Hi Bjorn and others,
 
-It is the middle of the merge window, and maintainers are really busy
-right now.  I doubt you will get many review comments just yet...
+Triggered by Christoph's patches, I had another go at converting
+all of the remaining pci host bridge implementations to be based
+on pci_alloc_host_bridge and a separate registration function.
+
+This is made possible through work from Lorenzo and others to
+convert many of the existing drivers, as well as the removal
+of some of the older architectures that nobody used.
+
+I'm adding a bit of duplication into the less maintained code
+here, but it makes everything more consistent, and gives an
+easy place to hook up callback functions etc.
+
+The three parts of this series are:
+
+a) push up the registration into the callers (this is where
+   code gets added)
+b) clean up some of the more common host bridge
+   implementations again to integrate that code better.
+   This could be done for the rest as well, or we could just
+   leave them alone.
+c) start moving the __weak functions into callbacks in
+   pci_host_bridge. This is intentionally incomplete, since
+   it is a lot of work to do it for all those functions,
+   and I want to get consensus on the approach first, as well
+   as maybe get other developers to help out with the rest.
+
+Please have a look.
+
+       Arnd
+
+[1] https://lore.kernel.org/lkml/4288331.jNpl6KXlNO@wuerfel/
+[2] https://patchwork.kernel.org/patch/10555657/
+
+Arnd Bergmann (15):
+  PCI: clean up legacy host bridge scan functions
+  PCI: move pci_scan_bus into callers
+  PCI: move pci_scan_root_bus into callers
+  PCI: export pci_register_host_bridge
+  PCI: move pci_create_root_bus into callers
+  powerpc/pci: fold pci_create_root_bus into pcibios_scan_phb
+  PCI/ACPI: clean up acpi_pci_root_create()
+  x86: PCI: clean up pcibios_scan_root()
+  PCI: xenfront: clean up pcifront_scan_root()
+  sparc/PCI: simplify pci_scan_one_pbm
+  PCI: hyperv: convert to pci_scan_root_bus_bridge
+  PCI: make pcibios_bus_add_device() a callback function
+  PCI: turn pcibios_alloc_irq into a callback
+  PCI: make pcibios_root_bridge_prepare a callback
+  PCI: make pcibios_add_bus/remove_bus callbacks
+
+ arch/arm64/kernel/pci.c               |  40 ++-----
+ arch/ia64/pci/pci.c                   |  25 +----
+ arch/ia64/sn/kernel/io_init.c         |  27 +++++
+ arch/microblaze/pci/pci-common.c      |  27 +++++
+ arch/powerpc/include/asm/pci-bridge.h |   3 +
+ arch/powerpc/kernel/pci-common.c      |  60 +++++------
+ arch/s390/pci/pci.c                   |  30 +++++-
+ arch/sh/drivers/pci/pci.c             |   1 +
+ arch/sh/drivers/pci/pcie-sh7786.c     |   3 +-
+ arch/sh/include/asm/pci.h             |   2 +
+ arch/sparc/kernel/pci.c               |  40 ++++---
+ arch/sparc/kernel/pcic.c              |  35 ++++++
+ arch/x86/pci/acpi.c                   |  15 +--
+ arch/x86/pci/common.c                 |  42 ++++----
+ arch/xtensa/kernel/pci.c              |  27 +++++
+ drivers/acpi/pci_root.c               |  43 +++++---
+ drivers/parisc/dino.c                 |  28 +++++
+ drivers/parisc/lba_pci.c              |  28 +++++
+ drivers/pci/bus.c                     |   8 +-
+ drivers/pci/controller/pci-hyperv.c   |  47 ++++----
+ drivers/pci/controller/vmd.c          |  30 +++++-
+ drivers/pci/hotplug/ibmphp_core.c     |  35 ++++++
+ drivers/pci/pci-driver.c              |  13 ++-
+ drivers/pci/probe.c                   | 150 +++++++++-----------------
+ drivers/pci/xen-pcifront.c            |  40 +++----
+ include/linux/acpi.h                  |   2 +
+ include/linux/pci.h                   |  17 ++-
+ 27 files changed, 514 insertions(+), 304 deletions(-)
+
+-- 
+2.18.0
