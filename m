@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 12/15] PCI: make pcibios_bus_add_device() a callback function
-Date: Fri, 17 Aug 2018 12:26:42 +0200
-Message-ID: <20180817102645.3839621-13-arnd@arndb.de>
+Subject: [RFC 09/15] PCI: xenfront: clean up pcifront_scan_root()
+Date: Fri, 17 Aug 2018 12:26:39 +0200
+Message-ID: <20180817102645.3839621-10-arnd@arndb.de>
 References: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
@@ -10,129 +10,151 @@ To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-Weak functions are confusion, and we can now add callback pointers
-to pci host bridges for any controller, so let's make this one
-a callback rather than a __weak global function.
+Merging pci_scan_root_bus() into pcifront_scan_root() simplifies
+the implementation and makes it more readable. We can allocate
+the pcifront_sd structure along with the bridge structure, which
+helps manage its lifetime rules so we don't free it before the
+device has been released.
+
+There are two small issues that I noticed that could be improved:
+
+- It seems we unregister the 'bus' device that is a child of the
+  'pci_host_bridge' device after we unregister its parent in
+  pcifront_free_roots(), which seems odd.
+- We probably don't need an extra pci_bus_entry list at all,
+  but could instead walk the children of the pcifront_device,
+  which are all pci_host_bridge devices.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/powerpc/kernel/pci-common.c  | 7 +------
- arch/sh/drivers/pci/pci.c         | 1 +
- arch/sh/drivers/pci/pcie-sh7786.c | 3 ++-
- arch/sh/include/asm/pci.h         | 2 ++
- drivers/pci/bus.c                 | 8 +++++++-
- include/linux/pci.h               | 2 +-
- 6 files changed, 14 insertions(+), 9 deletions(-)
+ drivers/pci/xen-pcifront.c | 67 ++++++++++++--------------------------
+ 1 file changed, 21 insertions(+), 46 deletions(-)
 
-diff --git a/arch/powerpc/kernel/pci-common.c b/arch/powerpc/kernel/pci-common.c
-index 096011ec8670..afc9598e4349 100644
---- a/arch/powerpc/kernel/pci-common.c
-+++ b/arch/powerpc/kernel/pci-common.c
-@@ -270,12 +270,6 @@ int pcibios_sriov_disable(struct pci_dev *pdev)
+diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
+index 24070e1c5f22..a5eb6cb02bec 100644
+--- a/drivers/pci/xen-pcifront.c
++++ b/drivers/pci/xen-pcifront.c
+@@ -443,40 +443,12 @@ static int pcifront_scan_bus(struct pcifront_device *pdev,
+ 	return 0;
+ }
  
- #endif /* CONFIG_PCI_IOV */
- 
--void pcibios_bus_add_device(struct pci_dev *pdev)
+-static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
+-		struct pci_ops *ops, void *sysdata, struct list_head *resources)
 -{
--	if (ppc_md.pcibios_bus_add_device)
--		ppc_md.pcibios_bus_add_device(pdev);
+-	struct pci_host_bridge *bridge;
+-	int error;
+-
+-	bridge = pci_alloc_host_bridge(0);
+-	if (!bridge)
+-		return NULL;
+-
+-	list_splice_init(resources, &bridge->windows);
+-	bridge->dev.parent = parent;
+-	bridge->sysdata = sysdata;
+-	bridge->busnr = bus;
+-	bridge->ops = ops;
+-
+-	error = pci_scan_root_bus_bridge(bridge);
+-	if (error < 0)
+-		goto err_out;
+-
+-	return bridge->bus;
+-
+-err_out:
+-	kfree(bridge);
+-	return NULL;
 -}
 -
- static resource_size_t pcibios_io_size(const struct pci_controller *hose)
+ static int pcifront_scan_root(struct pcifront_device *pdev,
+ 				 unsigned int domain, unsigned int bus)
  {
- #ifdef CONFIG_PPC64
-@@ -1617,6 +1611,7 @@ void pcibios_scan_phb(struct pci_controller *hose)
- 	hose->busn.flags = IORESOURCE_BUS;
- 	pci_add_resource(&bridge->windows, &hose->busn);
+-	struct pci_bus *b;
+-	LIST_HEAD(resources);
+ 	struct pcifront_sd *sd = NULL;
+ 	struct pci_bus_entry *bus_entry = NULL;
++	struct pci_host_bridge *bridge;
+ 	int err = 0;
+ 	static struct resource busn_res = {
+ 		.start = 0,
+@@ -498,50 +470,55 @@ static int pcifront_scan_root(struct pcifront_device *pdev,
+ 	dev_info(&pdev->xdev->dev, "Creating PCI Frontend Bus %04x:%02x\n",
+ 		 domain, bus);
  
-+	bridge->bus_add_device = ppc_md->pcibios_bus_add_device;
- 	bridge->dev.parent = hose->parent;
- 	bridge->sysdata = hose;
- 	bridge->busnr = hose->first_busno;
-diff --git a/arch/sh/drivers/pci/pci.c b/arch/sh/drivers/pci/pci.c
-index 8256626bc53c..d5c01a86cde1 100644
---- a/arch/sh/drivers/pci/pci.c
-+++ b/arch/sh/drivers/pci/pci.c
-@@ -65,6 +65,7 @@ static void pcibios_scanbus(struct pci_channel *hose)
- 	bridge->ops = hose->pci_ops;
- 	bridge->swizzle_irq = pci_common_swizzle;
- 	bridge->map_irq = pcibios_map_platform_irq;
-+	bridge->bus_add_device = hose->bus_add_device;
- 
- 	ret = pci_scan_root_bus_bridge(bridge);
- 	if (ret) {
-diff --git a/arch/sh/drivers/pci/pcie-sh7786.c b/arch/sh/drivers/pci/pcie-sh7786.c
-index 3d81a8b80942..ab78356681a0 100644
---- a/arch/sh/drivers/pci/pcie-sh7786.c
-+++ b/arch/sh/drivers/pci/pcie-sh7786.c
-@@ -122,6 +122,7 @@ extern struct pci_ops sh7786_pci_ops;
- 	.reg_base	= start,					\
- 	.mem_offset	= 0,						\
- 	.io_offset	= 0,						\
-+	.bus_add_device = sh7786_pci_bus_add_device,			\
- }
- 
- static struct pci_channel sh7786_pci_channels[] = {
-@@ -488,7 +489,7 @@ int pcibios_map_platform_irq(const struct pci_dev *pdev, u8 slot, u8 pin)
-         return evt2irq(0xae0);
- }
- 
--void pcibios_bus_add_device(struct pci_dev *pdev)
-+static void sh7786_pci_bus_add_device(struct pci_dev *pdev)
- {
- 	pdev->dev.dma_pfn_offset = dma_pfn_offset;
- }
-diff --git a/arch/sh/include/asm/pci.h b/arch/sh/include/asm/pci.h
-index 10a36b1cf2ea..e605141cbcbe 100644
---- a/arch/sh/include/asm/pci.h
-+++ b/arch/sh/include/asm/pci.h
-@@ -35,6 +35,8 @@ struct pci_channel {
- 	/* Optional error handling */
- 	struct timer_list	err_timer, serr_timer;
- 	unsigned int		err_irq, serr_irq;
++	bridge = pci_alloc_host_bridge(sizeof(*sd));
++	if (!bridge)
++		return -ENOMEM;
 +
-+	void (*bus_add_device)(struct pci_dev *pdev);
- };
+ 	bus_entry = kzalloc(sizeof(*bus_entry), GFP_KERNEL);
+-	sd = kzalloc(sizeof(*sd), GFP_KERNEL);
+-	if (!bus_entry || !sd) {
++	sd = pci_host_bridge_priv(bridge);
++	if (!bus_entry) {
+ 		err = -ENOMEM;
+ 		goto err_out;
+ 	}
+-	pci_add_resource(&resources, &ioport_resource);
+-	pci_add_resource(&resources, &iomem_resource);
+-	pci_add_resource(&resources, &busn_res);
++	pci_add_resource(&bridge->windows, &ioport_resource);
++	pci_add_resource(&bridge->windows, &iomem_resource);
++	pci_add_resource(&bridge->windows, &busn_res);
+ 	pcifront_init_sd(sd, domain, bus, pdev);
++	bridge->dev.parent = &pdev->xdev->dev;
++	bridge->sysdata = sd;
++	bridge->busnr = bus;
++	bridge->ops = &pcifront_bus_ops;
  
- /* arch/sh/drivers/pci/pci.c */
-diff --git a/drivers/pci/bus.c b/drivers/pci/bus.c
-index 5cb40b2518f9..45873ac1a49c 100644
---- a/drivers/pci/bus.c
-+++ b/drivers/pci/bus.c
-@@ -299,7 +299,13 @@ bool pci_bus_clip_resource(struct pci_dev *dev, int idx)
+ 	pci_lock_rescan_remove();
  
- void __weak pcibios_resource_survey_bus(struct pci_bus *bus) { }
+-	b = pci_scan_root_bus(&pdev->xdev->dev, bus,
+-				  &pcifront_bus_ops, sd, &resources);
+-	if (!b) {
++	err = pci_scan_root_bus_bridge(bridge);
++	if (err < 0) {
+ 		dev_err(&pdev->xdev->dev,
+ 			"Error creating PCI Frontend Bus!\n");
+-		err = -ENOMEM;
+ 		pci_unlock_rescan_remove();
+-		pci_free_resource_list(&resources);
+ 		goto err_out;
+ 	}
  
--void __weak pcibios_bus_add_device(struct pci_dev *pdev) { }
-+static void pcibios_bus_add_device(struct pci_dev *pdev)
-+{
-+	struct pci_host_bridge *bridge = pci_find_host_bridge(pdev->bus);
-+
-+	if (bridge->bus_add_device)
-+		bridge->bus_add_device(pdev);
-+}
+-	bus_entry->bus = b;
++	bus_entry->bus = bridge->bus;
  
- /**
-  * pci_bus_add_device - start driver for a single device
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 1dd8a3ecf753..d1072690cb4f 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -475,6 +475,7 @@ struct pci_host_bridge {
- 	u8 (*swizzle_irq)(struct pci_dev *, u8 *); /* Platform IRQ swizzler */
- 	int (*map_irq)(const struct pci_dev *, u8, u8);
- 	void (*release_fn)(struct pci_host_bridge *);
-+	void (*bus_add_device)(struct pci_dev *pdev);
- 	void		*release_data;
- 	struct msi_controller *msi;
- 	unsigned int	ignore_reset_delay:1;	/* For entire hierarchy */
-@@ -880,7 +881,6 @@ extern struct list_head pci_root_buses;	/* List of all known PCI buses */
- int no_pci_devices(void);
+ 	list_add(&bus_entry->list, &pdev->root_buses);
  
- void pcibios_resource_survey_bus(struct pci_bus *bus);
--void pcibios_bus_add_device(struct pci_dev *pdev);
- void pcibios_add_bus(struct pci_bus *bus);
- void pcibios_remove_bus(struct pci_bus *bus);
- void pcibios_fixup_bus(struct pci_bus *);
+ 	/* pci_scan_root_bus skips devices which do not have a
+ 	* devfn==0. The pcifront_scan_bus enumerates all devfn. */
+-	err = pcifront_scan_bus(pdev, domain, bus, b);
++	err = pcifront_scan_bus(pdev, domain, bus, bridge->bus);
+ 
+ 	/* Claim resources before going "live" with our devices */
+-	pci_walk_bus(b, pcifront_claim_resource, pdev);
++	pci_walk_bus(bridge->bus, pcifront_claim_resource, pdev);
+ 
+ 	/* Create SysFS and notify udev of the devices. Aka: "going live" */
+-	pci_bus_add_devices(b);
++	pci_bus_add_devices(bridge->bus);
+ 
+ 	pci_unlock_rescan_remove();
+ 	return err;
+ 
+ err_out:
++	pci_free_host_bridge(bridge);
+ 	kfree(bus_entry);
+-	kfree(sd);
+ 
+ 	return err;
+ }
+@@ -605,8 +582,6 @@ static void pcifront_free_roots(struct pcifront_device *pdev)
+ 
+ 		free_root_bus_devs(bus_entry->bus);
+ 
+-		kfree(bus_entry->bus->sysdata);
+-
+ 		device_unregister(bus_entry->bus->bridge);
+ 		pci_remove_bus(bus_entry->bus);
+ 
 -- 
 2.18.0
