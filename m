@@ -1,7 +1,7 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC 03/15] PCI: move pci_scan_root_bus into callers
-Date: Fri, 17 Aug 2018 12:26:33 +0200
-Message-ID: <20180817102645.3839621-4-arnd@arndb.de>
+Subject: [RFC 13/15] PCI: turn pcibios_alloc_irq into a callback
+Date: Fri, 17 Aug 2018 12:26:43 +0200
+Message-ID: <20180817102645.3839621-14-arnd@arndb.de>
 References: <20180817102645.3839621-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
@@ -10,307 +10,93 @@ To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>
 Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-There are only six remaining callers of the old pci_scan_root_bus()
-interface. Since we want to expose the pci_host_bridge structure
-everywhere and discourage users from calling the old interfaces, let's
-move the implementation into the respective callsites.
-
-While this duplicates the source code, it makes the object code smaller
-for almost all users by avoiding the global implementation, and it allows
-further cleanup of the callers.
+Weak functions are a bit confusing, and we can better deal with
+this using a callback function. pcibios_free_irq() is actually
+completely unused, but it seems better to treat it the same way
+as the allocation, unless we want to remove it completely.
 
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/ia64/sn/kernel/io_init.c    | 27 +++++++++++++++++++++++++++
- arch/microblaze/pci/pci-common.c | 27 +++++++++++++++++++++++++++
- arch/s390/pci/pci.c              | 27 +++++++++++++++++++++++++++
- arch/x86/pci/common.c            | 27 +++++++++++++++++++++++++++
- arch/xtensa/kernel/pci.c         | 27 +++++++++++++++++++++++++++
- drivers/pci/probe.c              | 28 ----------------------------
- drivers/pci/xen-pcifront.c       | 27 +++++++++++++++++++++++++++
- include/linux/pci.h              |  3 ---
- 8 files changed, 162 insertions(+), 31 deletions(-)
+ arch/arm64/kernel/pci.c  | 16 +++-------------
+ drivers/pci/pci-driver.c | 13 +++++++++++--
+ include/linux/pci.h      |  2 ++
+ 3 files changed, 16 insertions(+), 15 deletions(-)
 
-diff --git a/arch/ia64/sn/kernel/io_init.c b/arch/ia64/sn/kernel/io_init.c
-index d63809a6adfa..e768702a7b45 100644
---- a/arch/ia64/sn/kernel/io_init.c
-+++ b/arch/ia64/sn/kernel/io_init.c
-@@ -213,6 +213,33 @@ sn_io_slot_fixup(struct pci_dev *dev)
- }
- EXPORT_SYMBOL(sn_io_slot_fixup);
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 0e2ea1c78542..3d196c68e362 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -22,19 +22,6 @@
+ #include <linux/pci-ecam.h>
+ #include <linux/slab.h>
  
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- /*
-  * sn_pci_controller_fixup() - This routine sets up a bus's resources
-  *			       consistent with the Linux PCI abstraction layer.
-diff --git a/arch/microblaze/pci/pci-common.c b/arch/microblaze/pci/pci-common.c
-index f34346d56095..302071385e1b 100644
---- a/arch/microblaze/pci/pci-common.c
-+++ b/arch/microblaze/pci/pci-common.c
-@@ -977,6 +977,33 @@ static void pcibios_setup_phb_resources(struct pci_controller *hose,
- 		 (unsigned long)hose->io_base_virt - _IO_BASE);
- }
- 
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- static void pcibios_scan_phb(struct pci_controller *hose)
- {
- 	LIST_HEAD(resources);
-diff --git a/arch/s390/pci/pci.c b/arch/s390/pci/pci.c
-index 9f6f392a4461..b21205f131ce 100644
---- a/arch/s390/pci/pci.c
-+++ b/arch/s390/pci/pci.c
-@@ -786,6 +786,33 @@ void pcibios_remove_bus(struct pci_bus *bus)
- 	kfree(zdev);
- }
- 
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- static int zpci_scan_bus(struct zpci_dev *zdev)
- {
- 	LIST_HEAD(resources);
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index d4ec117c1142..e740d9aa4024 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -453,6 +453,33 @@ void __init dmi_check_pciprobe(void)
- 	dmi_check_system(pciprobe_dmi_table);
- }
- 
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- void pcibios_scan_root(int busnum)
- {
- 	struct pci_bus *bus;
-diff --git a/arch/xtensa/kernel/pci.c b/arch/xtensa/kernel/pci.c
-index 21f13e9aabe1..5a8fd67e6c5e 100644
---- a/arch/xtensa/kernel/pci.c
-+++ b/arch/xtensa/kernel/pci.c
-@@ -116,6 +116,33 @@ static void __init pci_controller_apertures(struct pci_controller *pci_ctrl,
- 	}
- }
- 
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- static int __init pcibios_init(void)
- {
- 	struct pci_controller *pci_ctrl;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 12c3aa63c34d..cf169742c03e 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -3050,34 +3050,6 @@ int pci_scan_root_bus_bridge(struct pci_host_bridge *bridge)
- }
- EXPORT_SYMBOL(pci_scan_root_bus_bridge);
- 
--struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
--		struct pci_ops *ops, void *sysdata, struct list_head *resources)
+-#ifdef CONFIG_ACPI
+-/*
+- * Try to assign the IRQ number when probing a new device
+- */
+-int pcibios_alloc_irq(struct pci_dev *dev)
 -{
--	struct pci_host_bridge *bridge;
--	int error;
+-	if (!acpi_disabled)
+-		acpi_pci_irq_enable(dev);
 -
--	bridge = pci_alloc_host_bridge(0);
--	if (!bridge)
--		return NULL;
--
--	list_splice_init(resources, &bridge->windows);
--	bridge->dev.parent = parent;
--	bridge->sysdata = sysdata;
--	bridge->busnr = bus;
--	bridge->ops = ops;
--
--	error = pci_scan_root_bus_bridge(bridge);
--	if (error < 0)
--		goto err_out;
--
--	return bridge->bus;
--
--err_out:
--	kfree(bridge);
--	return NULL;
+-	return 0;
 -}
--EXPORT_SYMBOL(pci_scan_root_bus);
+-#endif
 -
- /**
-  * pci_rescan_bus_bridge_resize - Scan a PCI bus for devices
-  * @bridge: PCI bridge for the bus to scan
-diff --git a/drivers/pci/xen-pcifront.c b/drivers/pci/xen-pcifront.c
-index eba6e33147a2..24070e1c5f22 100644
---- a/drivers/pci/xen-pcifront.c
-+++ b/drivers/pci/xen-pcifront.c
-@@ -443,6 +443,33 @@ static int pcifront_scan_bus(struct pcifront_device *pdev,
+ /*
+  * raw_pci_read/write - Platform-specific PCI config space access.
+  */
+@@ -93,6 +80,9 @@ int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+ 
+ 		ACPI_COMPANION_SET(&bridge->dev, adev);
+ 		set_dev_node(bus_dev, acpi_get_node(acpi_device_handle(adev)));
++
++		/* Try to assign the IRQ number when probing a new device */
++		bridge->alloc_irq = acpi_pci_irq_enable;
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/pci/pci-driver.c b/drivers/pci/pci-driver.c
+index bef17c3fca67..c96bc7bd56da 100644
+--- a/drivers/pci/pci-driver.c
++++ b/drivers/pci/pci-driver.c
+@@ -387,13 +387,22 @@ static int __pci_device_probe(struct pci_driver *drv, struct pci_dev *pci_dev)
+ 	return error;
+ }
+ 
+-int __weak pcibios_alloc_irq(struct pci_dev *dev)
++int pcibios_alloc_irq(struct pci_dev *dev)
+ {
++	struct pci_host_bridge *bridge = pci_find_host_bridge(dev->bus);
++
++	if (bridge->alloc_irq)
++		return bridge->alloc_irq(dev);
++
  	return 0;
  }
  
-+static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-+		struct pci_ops *ops, void *sysdata, struct list_head *resources)
-+{
-+	struct pci_host_bridge *bridge;
-+	int error;
-+
-+	bridge = pci_alloc_host_bridge(0);
-+	if (!bridge)
-+		return NULL;
-+
-+	list_splice_init(resources, &bridge->windows);
-+	bridge->dev.parent = parent;
-+	bridge->sysdata = sysdata;
-+	bridge->busnr = bus;
-+	bridge->ops = ops;
-+
-+	error = pci_scan_root_bus_bridge(bridge);
-+	if (error < 0)
-+		goto err_out;
-+
-+	return bridge->bus;
-+
-+err_out:
-+	kfree(bridge);
-+	return NULL;
-+}
-+
- static int pcifront_scan_root(struct pcifront_device *pdev,
- 				 unsigned int domain, unsigned int bus)
+-void __weak pcibios_free_irq(struct pci_dev *dev)
++void pcibios_free_irq(struct pci_dev *dev)
  {
++	struct pci_host_bridge *bridge = pci_find_host_bridge(dev->bus);
++
++	if (bridge->free_irq)
++		bridge->free_irq(dev);
+ }
+ 
+ #ifdef CONFIG_PCI_IOV
 diff --git a/include/linux/pci.h b/include/linux/pci.h
-index d77ce35a2b33..d226e06fb5e5 100644
+index d1072690cb4f..1296d9fcc5da 100644
 --- a/include/linux/pci.h
 +++ b/include/linux/pci.h
-@@ -912,9 +912,6 @@ int pci_host_probe(struct pci_host_bridge *bridge);
- int pci_bus_insert_busn_res(struct pci_bus *b, int bus, int busmax);
- int pci_bus_update_busn_res_end(struct pci_bus *b, int busmax);
- void pci_bus_release_busn_res(struct pci_bus *b);
--struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
--				  struct pci_ops *ops, void *sysdata,
--				  struct list_head *resources);
- int pci_scan_root_bus_bridge(struct pci_host_bridge *bridge);
- struct pci_bus *pci_add_new_bus(struct pci_bus *parent, struct pci_dev *dev,
- 				int busnr);
+@@ -476,6 +476,8 @@ struct pci_host_bridge {
+ 	int (*map_irq)(const struct pci_dev *, u8, u8);
+ 	void (*release_fn)(struct pci_host_bridge *);
+ 	void (*bus_add_device)(struct pci_dev *pdev);
++	int (*alloc_irq)(struct pci_dev *);
++	int (*free_irq)(struct pci_dev *);
+ 	void		*release_data;
+ 	struct msi_controller *msi;
+ 	unsigned int	ignore_reset_delay:1;	/* For entire hierarchy */
 -- 
 2.18.0
