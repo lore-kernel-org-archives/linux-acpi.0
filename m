@@ -1,46 +1,43 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC 08/15] x86: PCI: clean up pcibios_scan_root()
-Date: Mon, 20 Aug 2018 13:26:39 +0200
-Message-ID: <CAJZ5v0htQ0KZ8M1BpE7H7weRS89jJWPtA0xvgAUmN53jx5DSYg@mail.gmail.com>
-References: <20180817102645.3839621-1-arnd@arndb.de> <20180817102645.3839621-9-arnd@arndb.de>
- <CAJZ5v0jjZx3xCbPK5vfx-OCRNtMt59WQOxCYkWNj33Js_2Xi=A@mail.gmail.com> <CAK8P3a1KWn0=xwrqZ+sF27O-WE6paDxQPg6PPZFcgCrgXGaX2A@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC 07/15] PCI/ACPI: clean up acpi_pci_root_create()
+Date: Mon, 20 Aug 2018 13:36:19 +0200
+Message-ID: <CAK8P3a2nHxGTo9ajAweQpoutLhUns8SK0c6NWf4nV=PZhf0j_A@mail.gmail.com>
+References: <20180817102645.3839621-1-arnd@arndb.de> <20180817102645.3839621-8-arnd@arndb.de>
+ <CAJZ5v0iCgQxxuoCB9B4-Ho3xeLwb4v99Xyw-9e-tT53mRD+YVQ@mail.gmail.com>
+ <CAK8P3a31Ds14Ke1qLoMapK1Wq1M4tR6n+nL1VOKzR8+oN0eOBw@mail.gmail.com> <CAJZ5v0gu_agFQBS7UjTMY3FR7woPPN-riJ6frwk1QoetGoVjfA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK8P3a1KWn0=xwrqZ+sF27O-WE6paDxQPg6PPZFcgCrgXGaX2A@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gu_agFQBS7UjTMY3FR7woPPN-riJ6frwk1QoetGoVjfA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Rafael Wysocki <rafael@kernel.org>
+Cc: linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Aug 20, 2018 at 1:17 PM Arnd Bergmann <arnd@arndb.de> wrote:
+On Mon, Aug 20, 2018 at 1:24 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
 >
-> On Mon, Aug 20, 2018 at 10:31 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> > On Fri, Aug 17, 2018 at 12:32 PM Arnd Bergmann <arnd@arndb.de> wrote:
->
-> > > -static struct pci_bus *pci_scan_root_bus(struct device *parent, int bus,
-> > > -               struct pci_ops *ops, void *sysdata, struct list_head *resources)
-> > > +void pcibios_scan_root(int busnum)
-> > >  {
-> > > +       struct pci_sysdata *sd;
-> > >         struct pci_host_bridge *bridge;
-> > >         int error;
-> > >
-> > > -       bridge = pci_alloc_host_bridge(0);
-> > > -       if (!bridge)
-> > > -               return NULL;
-> > > +       bridge = pci_alloc_host_bridge(sizeof(sd));
-> > > +       if (!bridge) {
-> > > +               printk(KERN_ERR "PCI: OOM, skipping PCI bus %02x\n", busnum);
-> > > +               return;
-> > > +       }
-> > > +       sd = pci_host_bridge_priv(bridge);
+> On Mon, Aug 20, 2018 at 1:20 PM Arnd Bergmann <arnd@arndb.de> wrote:
 > >
-> > This looks fishy, as bridge->private is not set at this point AFAICS,
-> > unless one of the previous patches changes that.
+> > On Mon, Aug 20, 2018 at 10:23 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > > On Fri, Aug 17, 2018 at 12:33 PM Arnd Bergmann <arnd@arndb.de> wrote:
+> > > > @@ -909,8 +881,7 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> > > >         int ret, busnum = root->secondary.start;
+> > > >         struct acpi_device *device = root->device;
+> > > >         int node = acpi_get_node(device->handle);
+> > > > -       struct pci_bus *bus;
+> > > > -       struct pci_host_bridge *host_bridge;
+> > > > +       struct pci_host_bridge *bridge;
+> > >
+> > > Why "bridge" and not "host" or even something to stand for "root complex"?
+> > >
+> > > Or maybe it can still be "host_bridge"?
+> >
+> > I did this for consistency with the naming in drivers/pci/probe.c,
+> > which always declares the local variable as 'struct pci_host_bridge *bridge'.
+> > It's easy to change here if you feel strongly about it (I don't).
 >
-> bridge->private what comes after the bridge structure, and it's allocated
-> by pci_alloc_host_bridge() passing the size of the structure we want
-> for this private area.
+> I would leave host_bridge here.  It would make the patch smaller too I think.
 
-I see, sorry for the noise.
+Ok, I've changed my local copy as you suggested now.
+
+      Arnd
