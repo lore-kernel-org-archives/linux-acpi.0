@@ -1,99 +1,144 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 8/9] PCI: hotplug: Embed hotplug_slot
-Date: Mon, 20 Aug 2018 10:17:17 +0200
-Message-ID: <CAJZ5v0g-fNj7ESGMDOiotiGM9ztngCRgpKLfQaXmH+cgObi+iQ@mail.gmail.com>
-References: <cover.1534686484.git.lukas@wunner.de>
- <9918fbca94bcfc03d1560b191d138d3e6664cc86.1534686485.git.lukas@wunner.de>
+Subject: Re: [RFC 07/15] PCI/ACPI: clean up acpi_pci_root_create()
+Date: Mon, 20 Aug 2018 10:23:13 +0200
+Message-ID: <CAJZ5v0iCgQxxuoCB9B4-Ho3xeLwb4v99Xyw-9e-tT53mRD+YVQ@mail.gmail.com>
+References: <20180817102645.3839621-1-arnd@arndb.de> <20180817102645.3839621-8-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <9918fbca94bcfc03d1560b191d138d3e6664cc86.1534686485.git.lukas@wunner.de>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Linux PCI <linux-pci@vger.kernel.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Paul Mackerras <paulus@samba.org>, scott@spiteful.org, sebott@linux.vnet.ibm.com, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, linux-s390@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, gwshan@linux.vnet.ibm.com, okaya@kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, gerald.schaefer@de.ibm.com, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Corentin Chary <corentin.chary@gmail.com>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Andy Shevchenko <andy@infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180817102645.3839621-8-arnd@arndb.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 19, 2018 at 4:46 PM Lukas Wunner <lukas@wunner.de> wrote:
+On Fri, Aug 17, 2018 at 12:33 PM Arnd Bergmann <arnd@arndb.de> wrote:
 >
-> When the PCI hotplug core and its first user, cpqphp, were introduced in
-> February 2002 with historic commit a8a2069f432c, cpqphp allocated a slot
-> struct for its internal use plus a hotplug_slot struct to be registered
-> with the hotplug core and linked the two with pointers:
-> https://git.kernel.org/tglx/history/c/a8a2069f432c
+> The acpi_pci_create_root_bus() can be fully integrated into
+> acpi_pci_root_create(), improving a few things:
 >
-> Nowadays, the predominant pattern in the tree is to embed ("subclass")
-> such structures in one another and cast to the containing struct with
-> container_of().  But it wasn't until July 2002 that container_of() was
-> introduced with historic commit ec4f214232cf:
-> https://git.kernel.org/tglx/history/c/ec4f214232cf
+> * We can call pci_scan_root_bus_bridge(), which registers and
+>   scans the bridge in one step.
+> * After a failure in pci_register_host_bridge(), we correctly
+>   clean up the resources.
+> * The bridge settings (release function, flags, operations etc)
+>   can get set up before registering the bridge.
+> * Further cleanup would be possible, removing duplication between
+>   pci_host_bridge and some ACPI structures.
 >
-> pnv_php, introduced in 2016, did the right thing and embedded struct
-> hotplug_slot in its internal struct pnv_php_slot, but all other drivers
-> cargo-culted cpqphp's design and linked separate structs with pointers.
->
-> Embedding structs is preferrable to linking them with pointers because
-> it requires fewer allocations, thereby reducing overhead and simplifying
-> error paths.  Casting an embedded struct to the containing struct
-> becomes a cheap subtraction rather than a dereference.  And having fewer
-> pointers reduces the risk of them pointing nowhere either accidentally
-> or due to an attack.
->
-> Convert all drivers to embed struct hotplug_slot in their internal slot
-> struct.  The "private" pointer in struct hotplug_slot thereby becomes
-> unused, so drop it.
->
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Scott Murray <scott@spiteful.org>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Gavin Shan <gwshan@linux.vnet.ibm.com>
-> Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-> Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-> Cc: Corentin Chary <corentin.chary@gmail.com>
-> Cc: Darren Hart <dvhart@infradead.org>
-> Cc: Andy Shevchenko <andy@infradead.org>
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/pci/hotplug/acpiphp.h           |  9 ++-
->  drivers/pci/hotplug/acpiphp_core.c      | 28 +++-----
->  drivers/pci/hotplug/acpiphp_ibm.c       |  2 +-
->  drivers/pci/hotplug/cpci_hotplug.h      |  9 ++-
->  drivers/pci/hotplug/cpci_hotplug_core.c | 37 ++++------
->  drivers/pci/hotplug/cpci_hotplug_pci.c  |  6 +-
->  drivers/pci/hotplug/cpqphp.h            |  9 ++-
->  drivers/pci/hotplug/cpqphp_core.c       | 37 ++++------
->  drivers/pci/hotplug/cpqphp_ctrl.c       |  2 -
->  drivers/pci/hotplug/ibmphp.h            |  7 +-
->  drivers/pci/hotplug/ibmphp_core.c       | 92 +++++++++++--------------
->  drivers/pci/hotplug/ibmphp_ebda.c       | 37 +++-------
->  drivers/pci/hotplug/pciehp.h            | 11 ++-
->  drivers/pci/hotplug/pciehp_core.c       | 37 ++++------
->  drivers/pci/hotplug/pciehp_ctrl.c       |  4 +-
->  drivers/pci/hotplug/pciehp_hpc.c        |  8 +--
->  drivers/pci/hotplug/pnv_php.c           |  9 ++-
->  drivers/pci/hotplug/rpaphp.h            |  7 +-
->  drivers/pci/hotplug/rpaphp_core.c       | 14 ++--
->  drivers/pci/hotplug/rpaphp_slot.c       | 15 ++--
->  drivers/pci/hotplug/s390_pci_hpc.c      | 30 ++++----
->  drivers/pci/hotplug/sgi_hotplug.c       | 52 ++++++--------
->  drivers/pci/hotplug/shpchp.h            |  6 +-
->  drivers/pci/hotplug/shpchp_core.c       | 17 ++---
->  drivers/platform/x86/asus-wmi.c         | 26 +++----
->  drivers/platform/x86/eeepc-laptop.c     | 30 ++++----
->  include/linux/pci_hotplug.h             |  3 -
->  27 files changed, 223 insertions(+), 321 deletions(-)
+>  drivers/acpi/pci_root.c | 68 +++++++++++++++--------------------------
+>  1 file changed, 24 insertions(+), 44 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 85dbcf47015b..5f73de3b67c8 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -873,34 +873,6 @@ static void acpi_pci_root_release_info(struct pci_host_bridge *bridge)
+>         __acpi_pci_root_release_info(bridge->release_data);
+>  }
+>
+> -static struct pci_bus *acpi_pci_create_root_bus(struct device *parent, int bus,
+> -               struct pci_ops *ops, void *sysdata, struct list_head *resources)
+> -{
+> -       int error;
+> -       struct pci_host_bridge *bridge;
+> -
+> -       bridge = pci_alloc_host_bridge(0);
+> -       if (!bridge)
+> -               return NULL;
+> -
+> -       bridge->dev.parent = parent;
+> -
+> -       list_splice_init(resources, &bridge->windows);
+> -       bridge->sysdata = sysdata;
+> -       bridge->busnr = bus;
+> -       bridge->ops = ops;
+> -
+> -       error = pci_register_host_bridge(bridge);
+> -       if (error < 0)
+> -               goto err_out;
+> -
+> -       return bridge->bus;
+> -
+> -err_out:
+> -       kfree(bridge);
+> -       return NULL;
+> -}
+> -
+>  struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>                                      struct acpi_pci_root_ops *ops,
+>                                      struct acpi_pci_root_info *info,
+> @@ -909,8 +881,7 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>         int ret, busnum = root->secondary.start;
+>         struct acpi_device *device = root->device;
+>         int node = acpi_get_node(device->handle);
+> -       struct pci_bus *bus;
+> -       struct pci_host_bridge *host_bridge;
+> +       struct pci_host_bridge *bridge;
 
-Good cleanup.
+Why "bridge" and not "host" or even something to stand for "root complex"?
 
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Or maybe it can still be "host_bridge"?
+
+>
+>         info->root = root;
+>         info->bridge = device;
+> @@ -930,30 +901,39 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>
+>         pci_acpi_root_add_resources(info);
+>         pci_add_resource(&info->resources, &root->secondary);
+> -       bus = acpi_pci_create_root_bus(NULL, busnum, ops->pci_ops,
+> -                                 sysdata, &info->resources);
+> -       if (!bus)
+> +
+> +       bridge = pci_alloc_host_bridge(0);
+> +       if (!bridge)
+>                 goto out_release_info;
+>
+> -       host_bridge = to_pci_host_bridge(bus->bridge);
+> +       list_splice_init(&info->resources, &bridge->windows);
+> +       bridge->sysdata = sysdata;
+> +       bridge->busnr = busnum;
+> +       bridge->ops = ops->pci_ops;
+> +       pci_set_host_bridge_release(bridge, acpi_pci_root_release_info,
+> +                                   info);
+> +
+>         if (!(root->osc_control_set & OSC_PCI_EXPRESS_NATIVE_HP_CONTROL))
+> -               host_bridge->native_pcie_hotplug = 0;
+> +               bridge->native_pcie_hotplug = 0;
+>         if (!(root->osc_control_set & OSC_PCI_SHPC_NATIVE_HP_CONTROL))
+> -               host_bridge->native_shpc_hotplug = 0;
+> +               bridge->native_shpc_hotplug = 0;
+>         if (!(root->osc_control_set & OSC_PCI_EXPRESS_AER_CONTROL))
+> -               host_bridge->native_aer = 0;
+> +               bridge->native_aer = 0;
+>         if (!(root->osc_control_set & OSC_PCI_EXPRESS_PME_CONTROL))
+> -               host_bridge->native_pme = 0;
+> +               bridge->native_pme = 0;
+>         if (!(root->osc_control_set & OSC_PCI_EXPRESS_LTR_CONTROL))
+> -               host_bridge->native_ltr = 0;
+> +               bridge->native_ltr = 0;
+> +
+> +       ret = pci_scan_root_bus_bridge(bridge);
+> +       if (ret < 0)
+> +               goto out_release_bridge;
+>
+> -       pci_scan_child_bus(bus);
+> -       pci_set_host_bridge_release(host_bridge, acpi_pci_root_release_info,
+> -                                   info);
+>         if (node != NUMA_NO_NODE)
+> -               dev_printk(KERN_DEBUG, &bus->dev, "on NUMA node %d\n", node);
+> -       return bus;
+> +               dev_printk(KERN_DEBUG, &bridge->bus->dev, "on NUMA node %d\n", node);
+> +       return bridge->bus;
+>
+> +out_release_bridge:
+> +       pci_free_host_bridge(bridge);
+>  out_release_info:
+>         __acpi_pci_root_release_info(info);
+>         return NULL;
+> --
+> 2.18.0
+>
