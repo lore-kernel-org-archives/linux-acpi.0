@@ -1,32 +1,46 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC 00/15] PCI: turn some __weak functions into callbacks
-Date: Tue, 21 Aug 2018 06:14:41 -0700
-Message-ID: <20180821131441.GA6156@infradead.org>
-References: <20180817102645.3839621-1-arnd@arndb.de>
- <20180821061451.GB481@infradead.org>
- <1534851050.14722.3.camel@infradead.org>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Subject: Re: Regression: 18996f2db918 ("ACPICA: Events: Stop unconditionally
+ clearing ACPI IRQs during suspend/resume" breaks resume from suspend
+Date: Tue, 21 Aug 2018 16:34:21 +0200
+Message-ID: <20180821163421.3208af59@kitsune.suse.cz>
+References: <20180820182906.48f7743f@kitsune.suse.cz>
+        <CAJZ5v0hMZ_bmCy7vQBfzu6RNVkCX0V9qRtqYVNmFOefc1TnGCA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1534851050.14722.3.camel@infradead.org>
+In-Reply-To: <CAJZ5v0hMZ_bmCy7vQBfzu6RNVkCX0V9qRtqYVNmFOefc1TnGCA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Christoph Hellwig <hch@infradead.org>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Schmauss, Erik" <erik.schmauss@intel.com>, Lv <lv.zheng@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 21, 2018 at 12:30:50PM +0100, David Woodhouse wrote:
-> On Mon, 2018-08-20 at 23:14 -0700, Christoph Hellwig wrote:
-> > On Fri, Aug 17, 2018 at 12:26:30PM +0200, Arnd Bergmann wrote:
-> > > Hi Bjorn and others,
-> > >†
-> > > Triggered by Christoph's patches, I had another go at converting
-> > > all of the remaining pci host bridge implementations to be based
-> > > on pci_alloc_host_bridge and a separate registration function.
-> > 
-> > I really like the idea behind this series.
-> 
-> Hm... are you turning direct calls into retpolined indirect calls?
+On Tue, 21 Aug 2018 08:50:36 +0200
+"Rafael J. Wysocki" <rafael@kernel.org> wrote:
 
-He does.  But not anywhere near the fast path.
+> On Mon, Aug 20, 2018 at 6:29 PM Michal Such√°nek <msuchanek@suse.de>
+> wrote:
+> >
+> > Hello,
+> >
+> > after commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
+> > clearing ACPI IRQs during suspend/resume") I am no longer able to
+> > resume from suspend.
+> >
+> > Reported in bugzilla
+> > https://bugzilla.kernel.org/show_bug.cgi?id=200841
+> >
+> > Reverting this on top of 4.18 fixes the issue. acpidump output is
+> > attaches in the bugzilla.
+> >
+> > Is there anything else that can be done to diagnose the issue?  
+> 
+> Can you please test the patch at
+> https://patchwork.kernel.org/patch/10563631/ to start with?
+> 
+
+Yes, that works for me.
+
+Thanks
+
+Michal
