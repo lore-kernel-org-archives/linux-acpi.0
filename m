@@ -1,46 +1,51 @@
-From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
-Subject: Re: Regression: 18996f2db918 ("ACPICA: Events: Stop unconditionally
- clearing ACPI IRQs during suspend/resume" breaks resume from suspend
-Date: Tue, 21 Aug 2018 16:34:21 +0200
-Message-ID: <20180821163421.3208af59@kitsune.suse.cz>
-References: <20180820182906.48f7743f@kitsune.suse.cz>
-        <CAJZ5v0hMZ_bmCy7vQBfzu6RNVkCX0V9qRtqYVNmFOefc1TnGCA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH] ACPI: fix menuconfig presentation of ACPI submenu
+Date: Tue, 21 Aug 2018 22:37:33 +0200
+Message-ID: <20180821203750.2394352-1-arnd@arndb.de>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hMZ_bmCy7vQBfzu6RNVkCX0V9qRtqYVNmFOefc1TnGCA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Schmauss, Erik" <erik.schmauss@intel.com>, Lv <lv.zheng@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, devel@acpica.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, 21 Aug 2018 08:50:36 +0200
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+My fix for a recursive Kconfig dependency caused another issue where the
+ACPI specific options end up in the top-level menu in 'menuconfig'. This
+was an unintended side-effect of having a silent option between
+'menuconfig ACPI' and 'if ACPI'.
 
-> On Mon, Aug 20, 2018 at 6:29 PM Michal Suchánek <msuchanek@suse.de>
-> wrote:
-> >
-> > Hello,
-> >
-> > after commit 18996f2db918 ("ACPICA: Events: Stop unconditionally
-> > clearing ACPI IRQs during suspend/resume") I am no longer able to
-> > resume from suspend.
-> >
-> > Reported in bugzilla
-> > https://bugzilla.kernel.org/show_bug.cgi?id=200841
-> >
-> > Reverting this on top of 4.18 fixes the issue. acpidump output is
-> > attaches in the bugzilla.
-> >
-> > Is there anything else that can be done to diagnose the issue?  
-> 
-> Can you please test the patch at
-> https://patchwork.kernel.org/patch/10563631/ to start with?
-> 
+Moving the ARCH_SUPPORTS_ACPI symbol ahead of the ACPI menu solves that
+problem and restores the previous presentation.
 
-Yes, that works for me.
+Reported-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Fixes: 2c870e61132c ("arm64: fix ACPI dependencies")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/acpi/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Thanks
-
-Michal
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 1edca05ee0ae..e92eab1e960c 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -3,6 +3,9 @@
+ # ACPI Configuration
+ #
+ 
++config ARCH_SUPPORTS_ACPI
++	bool
++
+ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on ARCH_SUPPORTS_ACPI
+@@ -40,9 +43,6 @@ menuconfig ACPI
+ 	  <http://www.acpi.info>
+ 	  <http://www.uefi.org/acpi/specs>
+ 
+-config ARCH_SUPPORTS_ACPI
+-	bool
+-
+ if ACPI
+ 
+ config ACPI_LEGACY_TABLES_LOOKUP
+-- 
+2.18.0
