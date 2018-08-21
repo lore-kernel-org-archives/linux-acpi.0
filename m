@@ -1,70 +1,99 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC 00/15] PCI: turn some __weak functions into callbacks
-Date: Tue, 21 Aug 2018 12:07:40 +0200
-Message-ID: <CAK8P3a1_VbhLteRiJe2WDk2FgcPFMLTXv_t5oi2zZ1ywh63cZg@mail.gmail.com>
-References: <20180817102645.3839621-1-arnd@arndb.de> <20180821061451.GB481@infradead.org>
+From: David Hildenbrand <david@redhat.com>
+Subject: [PATCH RFCv2 0/6] mm: online/offline_pages called w.o.
+ mem_hotplug_lock
+Date: Tue, 21 Aug 2018 12:44:12 +0200
+Message-ID: <20180821104418.12710-1-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180821061451.GB481@infradead.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-pci <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: linux-mm@kvack.org
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>, David Hildenbrand <david@redhat.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Aug 21, 2018 at 8:14 AM Christoph Hellwig <hch@infradead.org> wrote:
->
-> On Fri, Aug 17, 2018 at 12:26:30PM +0200, Arnd Bergmann wrote:
-> > Hi Bjorn and others,
-> >
-> > Triggered by Christoph's patches, I had another go at converting
-> > all of the remaining pci host bridge implementations to be based
-> > on pci_alloc_host_bridge and a separate registration function.
->
-> I really like the idea behind this series.
->
-> > I'm adding a bit of duplication into the less maintained code
-> > here, but it makes everything more consistent, and gives an
-> > easy place to hook up callback functions etc.
->
-> I wonder if there is a way to avoid some of that by adding a few
-> more helpers, but even without the helpers that approach looks
-> ok to me.
+This is the same approach as in the first RFC, but this time without
+exporting device_hotplug_lock (requested by Greg) and with some more
+details and documentation regarding locking. Tested only on x86 so far.
 
-Ok, thanks for taking a first look.
+--------------------------------------------------------------------------
 
-One core part that gets duplicated a lot (also in existing drivers)
-is the chunk that could be handled by this:
+Reading through the code and studying how mem_hotplug_lock is to be used,
+I noticed that there are two places where we can end up calling
+device_online()/device_offline() - online_pages()/offline_pages() without
+the mem_hotplug_lock. And there are other places where we call
+device_online()/device_offline() without the device_hotplug_lock.
 
-int pci_host_bridge_init(struct pci_host_bridge *bridge,
-                   struct device *parent, int bus,
-                   struct pci_ops *ops, void *sysdata,
-                   struct list_head *resource_list)
-{
-       if (resources)
-              list_splice_init(resources, &bridge->windows);
-       bridge->dev.parent = parent;
-       bridge->sysdata = sysdata;
-       bridge->busnr = bus;
-       bridge->ops = ops;
-}
+While e.g.
+	echo "online" > /sys/devices/system/memory/memory9/state
+is fine, e.g.
+	echo 1 > /sys/devices/system/memory/memory9/online
+Will not take the mem_hotplug_lock. However the device_lock() and
+device_hotplug_lock.
 
-That would probably help, but we should think carefully about
-the set of fields that we want pass here, specifically because the
-idea of splitting the probing into two parts was to avoid having
-to come up with a new interface every time that list changes
-due to some rework.
+E.g. via memory_probe_store(), we can end up calling
+add_memory()->online_pages() without the device_hotplug_lock. So we can
+have concurrent callers in online_pages(). We e.g. touch in online_pages()
+basically unprotected zone->present_pages then.
 
-For instance, the numa node is something that might get passed
-here, and if we decide to split out the operations into a separate
-pci_host_bridge_ops structure, the pointer to that would also
-be something we'd want to pass this way.
+Looks like there is a longer history to that (see Patch #2 for details),
+and fixing it to work the way it was intended is not really possible. We
+would e.g. have to take the mem_hotplug_lock in device/base/core.c, which
+sounds wrong.
 
-> Do you have a git tree somewhere to play around with the changes?
+Summary: We had a lock inversion on mem_hotplug_lock and device_lock().
+More details can be found in patch 3 and patch 6.
 
-I now uploaded it (with fixes incorporated) to
+I propose the general rules (documentation added in patch 6):
 
-https://git.kernel.org/pub/scm/linux/kernel/git/arnd/playground.git
-pci-probe-rework
+1. add_memory/add_memory_resource() must only be called with
+   device_hotplug_lock.
+2. remove_memory() must only be called with device_hotplug_lock. This is
+   already documented and holds for all callers.
+3. device_online()/device_offline() must only be called with
+   device_hotplug_lock. This is already documented and true for now in core
+   code. Other callers (related to memory hotplug) have to be fixed up.
+4. mem_hotplug_lock is taken inside of add_memory/remove_memory/
+   online_pages/offline_pages.
 
-       arnd
+To me, this looks way cleaner than what we have right now (and easier to
+verify). And looking at the documentation of remove_memory, using
+lock_device_hotplug also for add_memory() feels natural.
+
+
+RFC -> RFCv2:
+- Don't export device_hotplug_lock, provide proper remove_memory/add_memory
+  wrappers.
+- Split up the patches a bit.
+- Try to improve powernv memtrace locking
+- Add some documentation for locking that matches my knowledge
+
+David Hildenbrand (6):
+  mm/memory_hotplug: make remove_memory() take the device_hotplug_lock
+  mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+  mm/memory_hotplug: fix online/offline_pages called w.o.
+    mem_hotplug_lock
+  powerpc/powernv: hold device_hotplug_lock when calling device_online()
+  powerpc/powernv: hold device_hotplug_lock in memtrace_offline_pages()
+  memory-hotplug.txt: Add some details about locking internals
+
+ Documentation/memory-hotplug.txt              | 39 +++++++++++-
+ arch/powerpc/platforms/powernv/memtrace.c     | 14 +++--
+ .../platforms/pseries/hotplug-memory.c        |  8 +--
+ drivers/acpi/acpi_memhotplug.c                |  4 +-
+ drivers/base/memory.c                         | 22 +++----
+ drivers/xen/balloon.c                         |  3 +
+ include/linux/memory_hotplug.h                |  4 +-
+ mm/memory_hotplug.c                           | 59 +++++++++++++++----
+ 8 files changed, 115 insertions(+), 38 deletions(-)
+
+-- 
+2.17.1
