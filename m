@@ -1,39 +1,63 @@
-From: Harlan Lieberman-Berg <harlan@dds.mil>
-Subject: nvs.c: Inappropriately maps TPM space on Dell Inspiron 11 3000
-Date: Wed, 22 Aug 2018 16:12:35 -0400
-Message-ID: <CAO-sURQqNhQ3R+REeTrWTBf=ZARB7RhBFjNdUqGS8rXZdTZp4Q@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] ACPI: fix menuconfig presentation of ACPI submenu
+Date: Thu, 23 Aug 2018 10:23:17 +0200
+Message-ID: <CAJZ5v0gaWhTZFL+MP1D9tGsPAe0R6cqH1RiEjQ37mXE4P7g5Ng@mail.gmail.com>
+References: <20180821203750.2394352-1-arnd@arndb.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180821203750.2394352-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-integrity@vger.kernel.org, Paul Tagliamonte <paultag@dds.mil>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello maintainers,
+On Tue, Aug 21, 2018 at 10:38 PM Arnd Bergmann <arnd@arndb.de> wrote:
+>
+> My fix for a recursive Kconfig dependency caused another issue where the
+> ACPI specific options end up in the top-level menu in 'menuconfig'. This
+> was an unintended side-effect of having a silent option between
+> 'menuconfig ACPI' and 'if ACPI'.
+>
+> Moving the ARCH_SUPPORTS_ACPI symbol ahead of the ACPI menu solves that
+> problem and restores the previous presentation.
+>
+> Reported-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+> Fixes: 2c870e61132c ("arm64: fix ACPI dependencies")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Crossing over from a thread in linux-integrity
-(<CAO-sURTs1dc_5iY+b34Jqj4hxZFdUj9LZxTWhDdvqM8AbEqMAw@mail.gmail.com>),
-the fTPM on the Dell Inspiron 11 3000 reports its TPM registers inside
-ACPI NV space.  This causes the TPM to fail to run as the address
-space has already been mapped by acpi/nvs.c prior to the TPM driver
-loading.
+Applied, thanks!
 
-In discussion with Jarkko and mjg, as well as contacts with the
-manufacturer, this appears to something that Linux should support,
-despite being arguably broken.  Because the fTPM is part of the ODM
-BIOS, this isn't something that can realistically be fixed through
-firmware updates; it's going to be scattered across many different
-devices and many different manufacturers -- and because Windows
-already works around this particular brain-damage, there's not as much
-leverage that can be applied.
+I'll push this to Linus tomorrow.
 
-The full ACPI dump and the output of dmidecode can be found at
-https://gist.github.com/hlieberman-gov/83fa708d41051bafccc553cf0147db4f.
-I have machines that are set-aside for testing, running both Windows
-10 and Debian sid, and I'm happy to help test possible fixes.
-
-Sincerely,
--- 
-Harlan Lieberman-Berg
-Defense Digital Service
+> ---
+>  drivers/acpi/Kconfig | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 1edca05ee0ae..e92eab1e960c 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -3,6 +3,9 @@
+>  # ACPI Configuration
+>  #
+>
+> +config ARCH_SUPPORTS_ACPI
+> +       bool
+> +
+>  menuconfig ACPI
+>         bool "ACPI (Advanced Configuration and Power Interface) Support"
+>         depends on ARCH_SUPPORTS_ACPI
+> @@ -40,9 +43,6 @@ menuconfig ACPI
+>           <http://www.acpi.info>
+>           <http://www.uefi.org/acpi/specs>
+>
+> -config ARCH_SUPPORTS_ACPI
+> -       bool
+> -
+>  if ACPI
+>
+>  config ACPI_LEGACY_TABLES_LOOKUP
+> --
+> 2.18.0
+>
