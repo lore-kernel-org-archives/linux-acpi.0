@@ -1,78 +1,45 @@
-From: Dou Liyang <douly.fnst@cn.fujitsu.com>
-Subject: [PATCH v3] acpi/processor: Fix the return value of acpi_processor_ids_walk()
-Date: Fri, 24 Aug 2018 10:51:26 +0800
-Message-ID: <20180824025126.19231-1-douly.fnst@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Urgent ACPI Kconfig fix for v4.19-rc1
+Date: Fri, 24 Aug 2018 11:37:59 +0200
+Message-ID: <CAJZ5v0iwVRX+MJ0O2yTDo-mjVaZqv0HzEF0o=TqYKKXr2+p4KA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: lenb@kernel.org, rjw@rjwysocki.net, tglx@linutronix.de, rafael@kernel.org, indou.takao@jp.fujitsu.com, Dou Liyang <douly.fnst@cn.fujitsu.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI driver should make sure all the processor IDs in their ACPI Namespace
-are unique. the driver performs a depth-first walk of the namespace tree
-and calls the acpi_processor_ids_walk() to check the duplicate IDs.
+Hi Linus,
 
-But, the acpi_processor_ids_walk() mistakes the return value. If a
-processor is checked, it returns true which causes the walk break
-immediately, and other processors will never be checked.
+Please pull from the tag
 
-Repace the value with AE_OK which is the standard acpi_status value.
-And don't abort the namespace walk even on error.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.19-rc1-3
 
-Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for processor enumeration")
-Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
----
-Changelog:
-  v2 --> v3:
-   - Fix a compiler error reported by LKP
-  v1 --> v2:
-   - Fix the check against duplicate IDs suggested by Rafael.
-  
-  Now，the duplicate IDs only be found in Ivb42 machine, and we have added this check at 
-  linux-4.9. But, we introduced a bug in linux-4.12 by commit 8c8cb30f49b8.
+with top-most commit f5d707ede37a962bc3cb9b3f8531a870dae29e46
 
-  For resolving the bug, firstly, I removed the check[1]. because Linux will compare
-  the coming ID with present processors when it hot-added a physical CPU and will avoid
-  using duplicate IDs.
+ ACPI: fix menuconfig presentation of ACPI submenu
 
-  But, seems we should consider all the possible processors. So, with this patch, All
-  the processors with the same IDs will never be hot-plugged.
+on top of commit df2def49c57b4146520a1f4ca37bc3f494e2cd67
 
-[1] https://lkml.org/lkml/2018/5/28/213
----
- drivers/acpi/acpi_processor.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Merge tag 'acpi-4.19-rc1-2' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 449d86d39965..fc447410ae4d 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -643,7 +643,7 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
- 
- 	status = acpi_get_type(handle, &acpi_type);
- 	if (ACPI_FAILURE(status))
--		return false;
-+		return status;
- 
- 	switch (acpi_type) {
- 	case ACPI_TYPE_PROCESSOR:
-@@ -663,11 +663,12 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
- 	}
- 
- 	processor_validated_ids_update(uid);
--	return true;
-+	return AE_OK;
- 
- err:
-+	/* Exit on error, but don't abort the namespace walk */
- 	acpi_handle_info(handle, "Invalid processor object\n");
--	return false;
-+	return AE_OK;
- 
- }
- 
--- 
-2.14.3
+to receive an urgent ACPI Kconfig fix for 4.19-rc1.
+
+This fixes recent menuconfig breakage causing it to present
+ACPI-specific options incorrectly (Arnd Bergmann).
+
+Thanks!
+
+
+---------------
+
+Arnd Bergmann (1):
+      ACPI: fix menuconfig presentation of ACPI submenu
+
+---------------
+
+ drivers/acpi/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
