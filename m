@@ -1,67 +1,58 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH] mailbox: PCC: handle parse error
-Date: Mon, 27 Aug 2018 14:55:41 -0600
-Message-ID: <e9d05632-dae6-b904-fe62-d617b3dfe3fd@redhat.com>
-References: <1535397548-69588-1-git-send-email-darcari@redhat.com>
-Reply-To: ahs3@redhat.com
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management updates for v4.19-rc2
+Date: Tue, 28 Aug 2018 16:06:53 -0700
+Message-ID: <20180828230651.GA4974@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1535397548-69588-1-git-send-email-darcari@redhat.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Arcari <darcari@redhat.com>, linux-kernel@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Jassi Brar <jassisinghbrar@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/27/2018 01:19 PM, David Arcari wrote:
-> acpi_pcc_probe calls acpi_table_parse_entries_array but fails to check
-> for an error return.  This in turn can result in calling kcalloc with
-> a negative count as well as emitting the following misleading erorr
-> message:
-> 
-> [    2.642015] Could not allocate space for PCC mbox channels
-> 
-> Fixes: 8f8027c5f935 ("mailbox: PCC: erroneous error message when parsing ACPI PCCT")
-> 
-> Signed-off-by: David Arcari <darcari@redhat.com>
-> Cc: Al Stone <ahs3@redhat.com>
-> Cc: Jassi Brar <jassisinghbrar@gmail.com>
-> ---
->  drivers/mailbox/pcc.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> index 311e91b..256f18b 100644
-> --- a/drivers/mailbox/pcc.c
-> +++ b/drivers/mailbox/pcc.c
-> @@ -461,8 +461,11 @@ static int __init acpi_pcc_probe(void)
->  	count = acpi_table_parse_entries_array(ACPI_SIG_PCCT,
->  			sizeof(struct acpi_table_pcct), proc,
->  			ACPI_PCCT_TYPE_RESERVED, MAX_PCC_SUBSPACES);
-> -	if (count == 0 || count > MAX_PCC_SUBSPACES) {
-> -		pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
-> +	if (count <= 0 || count > MAX_PCC_SUBSPACES) {
-> +		if (count < 0)
-> +			pr_warn("Error parsing PCC subspaces from PCCT\n");
-> +		else
-> +			pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
->  		return -EINVAL;
->  	}
->  
-> 
+Hello Linus,
 
-Thanks, David.  Nice catch.
+Please consider pulling from
 
-Reviewed-by: Al Stone <ahs3@redhat.com>
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+to receive Thermal-SoC Management updates for v4.19-rc2 with top-most
+
+152395fd03d4ce1e535a75cdbf58105e50587611:
+
+  thermal: of-thermal: disable passive polling when thermal zone is disabled (2018-08-20 12:00:40 -0700)
+
+on top of commit 2ad0d52699700a91660a406a4046017a2d7f246a:
+
+  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2018-08-19 11:51:45 -0700)
+
+Specifics:
+- Minor fixes on OF thermal, qoriq, and rcar drivers.
+
+On top of my local tests, here are the results from kernelCI:
+Full Boot Summary: https://kernelci.org/boot/all/job/evalenti/branch/for-kernelci/kernel/v4.18-10727-g152395fd03d4/
+Full Build Summary: https://kernelci.org/build/evalenti/branch/for-kernelci/kernel/v4.18-10727-g152395fd03d4/
+
+BR,
+
+Eduardo Valentin
+
+----------------------------------------------------------------
+Anson Huang (1):
+      thermal: of-thermal: disable passive polling when thermal zone is disabled
+
+Fabio Estevam (3):
+      thermal: qoriq: Use devm_thermal_zone_of_sensor_register()
+      thermal: qoriq: Simplify the 'site' variable assignment
+      thermal: qoriq: Switch to SPDX identifier
+
+Kuninori Morimoto (2):
+      thermal: rcar_thermal: convert to SPDX identifiers
+      thermal: rcar_gen3_thermal: convert to SPDX identifiers
+
+ drivers/thermal/of-thermal.c        |  7 +++++--
+ drivers/thermal/qoriq_thermal.c     | 27 ++++++++-------------------
+ drivers/thermal/rcar_gen3_thermal.c | 11 +----------
+ drivers/thermal/rcar_thermal.c      | 16 ++--------------
+ 4 files changed, 16 insertions(+), 45 deletions(-)
