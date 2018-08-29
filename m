@@ -1,84 +1,81 @@
-From: Jean Delvare <jdelvare@suse.de>
-Subject: [PATCH] ACPI / bus: Only call dmi_check_system on X86
-Date: Wed, 29 Aug 2018 19:06:14 +0200
-Message-ID: <20180829190614.5814817b@endymion>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH] platform/x86: Add Intel ISP dummy driver
+Date: Wed, 29 Aug 2018 21:20:11 +0300
+Message-ID: <20180829182011.GG11447@smile.fi.intel.com>
+References: <20180829135744.16205-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20180829135744.16205-1-hdegoede@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Takashi Iwai <tiwai@suse.de>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Calling dmi_check_system() early only works on X86. Other
-architectures initialize the DMI subsystem later so it's not
-ready yet when ACPI itself gets initialized.
+On Wed, Aug 29, 2018 at 03:57:44PM +0200, Hans de Goede wrote:
+> The Image Signal Processor found on Cherry Trail devices is brought up in
+> D0 state on devices which have camera sensors attached to it. The ISP will
+> not enter D3 state again without some massaging of its registers beforehand
+> and the ISP not being in D3 state blocks the SoC from entering S0ix modes.
+> 
+> There was a driver for the ISP in drivers/staging but that got removed
+> again because it never worked. It does not seem likely that a real
+> driver for the ISP will be added to the mainline kernel anytime soon.
+> 
+> This commit adds a dummy driver which contains the necessary magic from
+> the staging driver to powerdown the ISP, so that Cherry Trail devices where
+> the ISP is used will properly use S0ix modes when suspended.
+> 
+> Together with other recent S0ix related fixes this allows S0ix modes to
+> be entered on e.g. a Chuwi Hi8 Pro and a HP x2 210.
+> 
 
-In the best case it results in a useless call to a function which
-will do nothing. But depending on the dmi implementation, it could
-also result in warnings. Best is to not call the function when it
-can't work and isn't needed.
+Thanks for the patch, my comments below.
 
-Additionally, if anyone ever needs to add non-x86 quirks, it would
-surprisingly not work, so document the limitation to avoid confusion.
+>  drivers/platform/x86/intel_isp_dummy.c | 119 +++++++++++++++++++++++++
 
-Signed-off-by: Jean Delvare <jdelvare@suse.de>
-Fixes: cce4f632db20 ("ACPI: fix early DSDT dmi check warnings on ia64")
-Cc: stable@vger.kernel.org
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-Cc: Len Brown <lenb@kernel.org> (supporter:ACPI)
----
- drivers/acpi/bus.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+First of all, I would like to see that this is about pm and pm only, so,
+perhaps
 
---- linux-4.17.orig/drivers/acpi/bus.c	2018-06-03 23:15:21.000000000 +0200
-+++ linux-4.17/drivers/acpi/bus.c	2018-08-29 17:54:09.498532435 +0200
-@@ -35,11 +35,11 @@
- #include <linux/delay.h>
- #ifdef CONFIG_X86
- #include <asm/mpspec.h>
-+#include <linux/dmi.h>
- #endif
- #include <linux/acpi_iort.h>
- #include <linux/pci.h>
- #include <acpi/apei.h>
--#include <linux/dmi.h>
- #include <linux/suspend.h>
- 
- #include "internal.h"
-@@ -109,10 +109,6 @@ static const struct dmi_system_id acpi_q
- 	},
- 	{}
- };
--#else
--static const struct dmi_system_id acpi_quirks_dmi_table[] __initconst = {
--	{}
--};
- #endif
- 
- /* --------------------------------------------------------------------------
-@@ -1060,8 +1056,15 @@ void __init acpi_early_init(void)
- 
- 	acpi_permanent_mmap = true;
- 
--	/* Check machine-specific quirks */
-+#ifdef CONFIG_X86
-+	/*
-+	 * Check machine-specific quirks
-+	 * Note that calling dmi_check_system here on other architectures
-+	 * would not be OK because only x86 intializes dmi early enough.
-+	 * Thankfully only x86 systems need such quirks for now.
-+	 */
- 	dmi_check_system(acpi_quirks_dmi_table);
-+#endif
- 
- 	status = acpi_reallocate_root_table();
- 	if (ACPI_FAILURE(status)) {
+intel_isp_pm ?
 
+OTOH, it would be nice to have less confusing of what ISP we are talking about,
+so,
+
+intel_atomisp2_pm ?
+
+> +config INTEL_ISP_DUMMY
+> +	tristate "Intel ISP dummy driver"
+
+> +	depends on PCI && IOSF_MBI && PM
+
+If someone decides to port this to kernels where ATOMISP driver is still
+available, it might be a conflict here. I dunno if it's a good idea to put
+something like depends !ATOMISP here taking into consideration that it would be
+staled option.
+
+> +	while (1) {
+
+A nit: I would rather put it like
+
+do {
+...
+} while (time_after(...));
+
+> +		/* Wait until ISPSSPM0 bit[25:24] shows 0x3 */
+> +		iosf_mbi_read(BT_MBI_UNIT_PMC, MBI_REG_READ, ISPSSPM0, &val);
+> +		val = (val & ISPSSPM0_ISPSSS_MASK) >> ISPSSPM0_ISPSSS_OFFSET;
+> +		if (val == ISPSSPM0_IUNIT_POWER_OFF)
+> +			break;
+> +
+> +		if (time_after(jiffies, timeout)) {
+> +			dev_err(&dev->dev, "IUNIT power-off timeout.\n");
+> +			return -EBUSY;
+> +		}
+> +		usleep_range(1000, 2000);
+> +	}
 
 -- 
-Jean Delvare
-SUSE L3 Support
+With Best Regards,
+Andy Shevchenko
