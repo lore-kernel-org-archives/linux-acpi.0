@@ -1,80 +1,108 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] platform/x86: Add Intel ISP dummy driver
-Date: Wed, 29 Aug 2018 21:20:11 +0300
-Message-ID: <20180829182011.GG11447@smile.fi.intel.com>
-References: <20180829135744.16205-1-hdegoede@redhat.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH 0/9] PCI hotplug diet
+Date: Thu, 30 Aug 2018 11:50:13 +0300
+Message-ID: <CAHp75Veby=mo5s7QvfEhVLjGYBEL9GDDD_CfBmgS3Y+sxRzwSA@mail.gmail.com>
+References: <cover.1534686484.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180829135744.16205-1-hdegoede@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+In-Reply-To: <cover.1534686484.git.lukas@wunner.de>
+List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
+List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
+List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
+List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
+List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
+ <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
+Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
+Sender: "Linuxppc-dev"
+ <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-s390@vger.kernel.org, linux-pci@vger.kernel.org, Platform Driver <platform-driver-x86@vger.kernel.org>, Keith Busch <keith.busch@intel.com>, Paul Mackerras <paulus@samba.org>, zubarev@us.ibm.com, prarit@redhat.com, scott@spiteful.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, dan.zink@hpe.com, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, gwshan@linux.vnet.ibm.com, jshah@us.ibm.com, okaya@kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, gerald.schaefer@de.ibm.com, Oza Pawandeep <poza@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Corentin Chary <corentin.chary@gmail.com>, "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT" <linuxpp>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 29, 2018 at 03:57:44PM +0200, Hans de Goede wrote:
-> The Image Signal Processor found on Cherry Trail devices is brought up in
-> D0 state on devices which have camera sensors attached to it. The ISP will
-> not enter D3 state again without some massaging of its registers beforehand
-> and the ISP not being in D3 state blocks the SoC from entering S0ix modes.
-> 
-> There was a driver for the ISP in drivers/staging but that got removed
-> again because it never worked. It does not seem likely that a real
-> driver for the ISP will be added to the mainline kernel anytime soon.
-> 
-> This commit adds a dummy driver which contains the necessary magic from
-> the staging driver to powerdown the ISP, so that Cherry Trail devices where
-> the ISP is used will properly use S0ix modes when suspended.
-> 
-> Together with other recent S0ix related fixes this allows S0ix modes to
-> be entered on e.g. a Chuwi Hi8 Pro and a HP x2 210.
-> 
+On Sun, Aug 19, 2018 at 5:35 PM Lukas Wunner <lukas@wunner.de> wrote:
+>
+> Here's PCI hotplug material I've prepared for v4.20:
+>
+> Patches [1/9] to [8/9] reduce the code by 488 lines.  There should be no
+> loss of functionality and no new features, just less and simpler code.
+>
+> Patch [9/9] collects TODOs for hotplug drivers to spur contributions.
+>
+>
+> I've assumed that my patch "PCI: pciehp: Differentiate between surprise
+> and safe removal" (submitted July 31) gets merged before this series:
+> https://patchwork.ozlabs.org/patch/951386/
+>
+> If that patch is not accepted or other pciehp-related patches are merged
+> before this series, I'll have to rebase patch [4/9] ("PCI: pciehp: Unify
+> controller and slot structs").  No big deal, just a heads-up.
+>
 
-Thanks for the patch, my comments below.
+Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
->  drivers/platform/x86/intel_isp_dummy.c | 119 +++++++++++++++++++++++++
+for PDx86 bits
 
-First of all, I would like to see that this is about pm and pm only, so,
-perhaps
+> Thanks,
+>
+> Lukas
+>
+>
+> Lukas Wunner (9):
+>   PCI: Simplify disconnected marking
+>   PCI: pciehp: Drop unnecessary includes
+>   PCI: pciehp: Drop hotplug_slot_ops wrappers
+>   PCI: pciehp: Unify controller and slot structs
+>   PCI: pciehp: Reshuffle controller struct for clarity
+>   PCI: hotplug: Constify hotplug_slot_ops
+>   PCI: hotplug: Drop hotplug_slot_info
+>   PCI: hotplug: Embed hotplug_slot
+>   PCI: hotplug: Document TODOs
+>
+>  arch/powerpc/include/asm/pnv-pci.h      |   2 +-
+>  drivers/pci/hotplug/TODO                |  74 +++++++
+>  drivers/pci/hotplug/acpiphp.h           |  10 +-
+>  drivers/pci/hotplug/acpiphp_core.c      |  36 +---
+>  drivers/pci/hotplug/acpiphp_ibm.c       |   2 +-
+>  drivers/pci/hotplug/cpci_hotplug.h      |  11 +-
+>  drivers/pci/hotplug/cpci_hotplug_core.c | 105 +++-------
+>  drivers/pci/hotplug/cpci_hotplug_pci.c  |   6 +-
+>  drivers/pci/hotplug/cpqphp.h            |   9 +-
+>  drivers/pci/hotplug/cpqphp_core.c       |  59 ++----
+>  drivers/pci/hotplug/cpqphp_ctrl.c       |  31 +--
+>  drivers/pci/hotplug/ibmphp.h            |   9 +-
+>  drivers/pci/hotplug/ibmphp_core.c       | 121 ++++-------
+>  drivers/pci/hotplug/ibmphp_ebda.c       |  70 +------
+>  drivers/pci/hotplug/pci_hotplug_core.c  |  53 ++---
+>  drivers/pci/hotplug/pciehp.h            | 138 ++++++-------
+>  drivers/pci/hotplug/pciehp_core.c       | 127 +++---------
+>  drivers/pci/hotplug/pciehp_ctrl.c       | 255 +++++++++++-------------
+>  drivers/pci/hotplug/pciehp_hpc.c        | 127 ++++--------
+>  drivers/pci/hotplug/pciehp_pci.c        |  24 +--
+>  drivers/pci/hotplug/pnv_php.c           |  35 ++--
+>  drivers/pci/hotplug/rpaphp.h            |  10 +-
+>  drivers/pci/hotplug/rpaphp_core.c       |  20 +-
+>  drivers/pci/hotplug/rpaphp_pci.c        |  11 +-
+>  drivers/pci/hotplug/rpaphp_slot.c       |  22 +-
+>  drivers/pci/hotplug/s390_pci_hpc.c      |  44 ++--
+>  drivers/pci/hotplug/sgi_hotplug.c       |  63 +++---
+>  drivers/pci/hotplug/shpchp.h            |   8 +-
+>  drivers/pci/hotplug/shpchp_core.c       |  48 ++---
+>  drivers/pci/hotplug/shpchp_ctrl.c       |  21 +-
+>  drivers/pci/pci.c                       |   4 +-
+>  drivers/pci/pcie/err.c                  |   8 +-
+>  drivers/pci/slot.c                      |   2 +-
+>  drivers/platform/x86/asus-wmi.c         |  39 +---
+>  drivers/platform/x86/eeepc-laptop.c     |  43 ++--
+>  include/linux/pci_hotplug.h             |  43 +---
+>  36 files changed, 638 insertions(+), 1052 deletions(-)
+>  create mode 100644 drivers/pci/hotplug/TODO
+>
+> --
+> 2.18.0
+>
 
-intel_isp_pm ?
-
-OTOH, it would be nice to have less confusing of what ISP we are talking about,
-so,
-
-intel_atomisp2_pm ?
-
-> +config INTEL_ISP_DUMMY
-> +	tristate "Intel ISP dummy driver"
-
-> +	depends on PCI && IOSF_MBI && PM
-
-If someone decides to port this to kernels where ATOMISP driver is still
-available, it might be a conflict here. I dunno if it's a good idea to put
-something like depends !ATOMISP here taking into consideration that it would be
-staled option.
-
-> +	while (1) {
-
-A nit: I would rather put it like
-
-do {
-...
-} while (time_after(...));
-
-> +		/* Wait until ISPSSPM0 bit[25:24] shows 0x3 */
-> +		iosf_mbi_read(BT_MBI_UNIT_PMC, MBI_REG_READ, ISPSSPM0, &val);
-> +		val = (val & ISPSSPM0_ISPSSS_MASK) >> ISPSSPM0_ISPSSS_OFFSET;
-> +		if (val == ISPSSPM0_IUNIT_POWER_OFF)
-> +			break;
-> +
-> +		if (time_after(jiffies, timeout)) {
-> +			dev_err(&dev->dev, "IUNIT power-off timeout.\n");
-> +			return -EBUSY;
-> +		}
-> +		usleep_range(1000, 2000);
-> +	}
 
 -- 
 With Best Regards,
