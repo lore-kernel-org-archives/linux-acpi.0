@@ -1,114 +1,93 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFCv2 0/6] mm: online/offline_pages called w.o.
- mem_hotplug_lock
-Date: Thu, 30 Aug 2018 14:31:12 +0200
-Message-ID: <37ea507e-b16d-ae8d-4da8-128b621869f2@redhat.com>
-References: <20180821104418.12710-1-david@redhat.com>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH 1/2] i2c: designware: Re-init controllers with pm_disabled
+ set on resume
+Date: Thu, 30 Aug 2018 16:55:04 +0300
+Message-ID: <413b4279-fc24-7334-4290-82ec7bd6e7e7@linux.intel.com>
+References: <20180829130632.31111-1-hdegoede@redhat.com>
+ <20180829160846.GA8462@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180821104418.12710-1-david@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20180829160846.GA8462@smile.fi.intel.com>
 Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: linux-mm@kvack.org
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.c>
+Sender: stable-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, "4 . 15+" <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 21.08.2018 12:44, David Hildenbrand wrote:
-> This is the same approach as in the first RFC, but this time without
-> exporting device_hotplug_lock (requested by Greg) and with some more
-> details and documentation regarding locking. Tested only on x86 so far.
+On 08/29/2018 07:08 PM, Andy Shevchenko wrote:
+> On Wed, Aug 29, 2018 at 03:06:31PM +0200, Hans de Goede wrote:
+>> On Bay Trail and Cherry Trail devices we set the pm_disabled flag for I2C
+>> busses which the OS shares with the PUNIT as these need special handling.
+>> Until now we called dev_pm_syscore_device(dev, true) for I2C controllers
+>> with this flag set to keep these I2C controllers always on.
+>>
+>> After commit 12864ff8545f ("ACPI / LPSS: Avoid PM quirks on suspend and
+>> resume from hibernation"), this no longer works. This commit modifies
+>> lpss_iosf_exit_d3_state() to only run if lpss_iosf_enter_d3_state() has ran
+>> before it, so that it does not run on a resume from hibernate (or from S3).
+>>
+>> On these systems the conditions for lpss_iosf_enter_d3_state() to run
+>> never become true, so lpss_iosf_exit_d3_state() never gets called and
+>> the 2 LPSS DMA controllers never get forced into D0 mode, instead they
+>> are left in their default automatic power-on when needed mode.
+>>
+>> The not forcing of D0 mode for the DMA controllers enables these systems
+>> to properly enter S0ix modes, which is a good thing.
+>>
+>> But after entering S0ix modes the I2C controller connected to the PMIC
+>> no longer works, leading to e.g. broken battery monitoring.
+>>
+>> The _PS3 method for this I2C controller looks like this:
+>>
+>>              Method (_PS3, 0, NotSerialized)  // _PS3: Power State 3
+>>              {
+>>                  If ((((PMID == 0x04) || (PMID == 0x05)) || (PMID == 0x06)))
+>>                  {
+>>                      Return (Zero)
+>>                  }
+>>
+>>                  PSAT |= 0x03
+>>                  Local0 = PSAT /* \_SB_.I2C5.PSAT */
+>>              }
+>>
+>> Where PMID = 0x05, so we enter the Return (Zero) path on these systems.
+>>
+>> So even if we were to not call dev_pm_syscore_device(dev, true) the
+>> I2C controller will be left in D0 rather then be switched to D3.
+>>
+>> Yet on other Bay and Cherry Trail devices S0ix is not entered unless *all*
+>> I2C controllers are in D3 mode. This combined with the I2C controller no
+>> longer working now that we reach S0ix states on these systems leads to me
+>> believing that the PUNIT itself puts the I2C controller in D3 when all
+>> other conditions for entering S0ix states are true.
+>>
+>> Since now the I2C controller is put in D3 over a suspend/resume we must
+>> re-initialize it afterwards and that does indeed fix it no longer working.
+>>
+>> This commit implements this fix by:
+>>
+>> 1) Making the suspend_late callback a no-op if pm_disabled is set and
+>> making the resume_early callback skip the clock re-enable (since it now was
+>> not disabled) while still doing the necessary I2C controller re-init.
+>>
+>> 2) Removing the dev_pm_syscore_device(dev, true) call, so that the suspend
+>> and resume callbacks are actually called. Normally this would cause the
+>> ACPI pm code to call _PS3 putting the I2C controller in D3, wreaking havoc
+>> since it is shared with the PUNIT, but in this special case the _PS3 method
+>> is a no-op so we can safely allow a "fake" suspend / resume.
+>>
 > 
+> Oh, this hardware platform design in a real PITA.
+> Thank you for so good analysis!
+> 
+> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> 
+> for both patches.
+> 
+I tried to see does our Bay Trail and Cherry Trail devices show any 
+issue before this patch but didn't see. They are without the battery and 
+maybe I didn't manage to trigger PUNIT. Anyway for this patch,
 
-I'll be on vacation for two weeks starting on Saturday. If there are no
-comments I'll send this as !RFC once I return.
-
-Thanks!
-
-> --------------------------------------------------------------------------
-> 
-> Reading through the code and studying how mem_hotplug_lock is to be used,
-> I noticed that there are two places where we can end up calling
-> device_online()/device_offline() - online_pages()/offline_pages() without
-> the mem_hotplug_lock. And there are other places where we call
-> device_online()/device_offline() without the device_hotplug_lock.
-> 
-> While e.g.
-> 	echo "online" > /sys/devices/system/memory/memory9/state
-> is fine, e.g.
-> 	echo 1 > /sys/devices/system/memory/memory9/online
-> Will not take the mem_hotplug_lock. However the device_lock() and
-> device_hotplug_lock.
-> 
-> E.g. via memory_probe_store(), we can end up calling
-> add_memory()->online_pages() without the device_hotplug_lock. So we can
-> have concurrent callers in online_pages(). We e.g. touch in online_pages()
-> basically unprotected zone->present_pages then.
-> 
-> Looks like there is a longer history to that (see Patch #2 for details),
-> and fixing it to work the way it was intended is not really possible. We
-> would e.g. have to take the mem_hotplug_lock in device/base/core.c, which
-> sounds wrong.
-> 
-> Summary: We had a lock inversion on mem_hotplug_lock and device_lock().
-> More details can be found in patch 3 and patch 6.
-> 
-> I propose the general rules (documentation added in patch 6):
-> 
-> 1. add_memory/add_memory_resource() must only be called with
->    device_hotplug_lock.
-> 2. remove_memory() must only be called with device_hotplug_lock. This is
->    already documented and holds for all callers.
-> 3. device_online()/device_offline() must only be called with
->    device_hotplug_lock. This is already documented and true for now in core
->    code. Other callers (related to memory hotplug) have to be fixed up.
-> 4. mem_hotplug_lock is taken inside of add_memory/remove_memory/
->    online_pages/offline_pages.
-> 
-> To me, this looks way cleaner than what we have right now (and easier to
-> verify). And looking at the documentation of remove_memory, using
-> lock_device_hotplug also for add_memory() feels natural.
-> 
-> 
-> RFC -> RFCv2:
-> - Don't export device_hotplug_lock, provide proper remove_memory/add_memory
->   wrappers.
-> - Split up the patches a bit.
-> - Try to improve powernv memtrace locking
-> - Add some documentation for locking that matches my knowledge
-> 
-> David Hildenbrand (6):
->   mm/memory_hotplug: make remove_memory() take the device_hotplug_lock
->   mm/memory_hotplug: make add_memory() take the device_hotplug_lock
->   mm/memory_hotplug: fix online/offline_pages called w.o.
->     mem_hotplug_lock
->   powerpc/powernv: hold device_hotplug_lock when calling device_online()
->   powerpc/powernv: hold device_hotplug_lock in memtrace_offline_pages()
->   memory-hotplug.txt: Add some details about locking internals
-> 
->  Documentation/memory-hotplug.txt              | 39 +++++++++++-
->  arch/powerpc/platforms/powernv/memtrace.c     | 14 +++--
->  .../platforms/pseries/hotplug-memory.c        |  8 +--
->  drivers/acpi/acpi_memhotplug.c                |  4 +-
->  drivers/base/memory.c                         | 22 +++----
->  drivers/xen/balloon.c                         |  3 +
->  include/linux/memory_hotplug.h                |  4 +-
->  mm/memory_hotplug.c                           | 59 +++++++++++++++----
->  8 files changed, 115 insertions(+), 38 deletions(-)
-> 
-
-
--- 
-
-Thanks,
-
-David / dhildenb
+Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
