@@ -1,109 +1,114 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 0/9] PCI hotplug diet
-Date: Thu, 30 Aug 2018 11:50:13 +0300
-Message-ID: <CAHp75Veby=mo5s7QvfEhVLjGYBEL9GDDD_CfBmgS3Y+sxRzwSA@mail.gmail.com>
-References: <cover.1534686484.git.lukas@wunner.de>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH RFCv2 0/6] mm: online/offline_pages called w.o.
+ mem_hotplug_lock
+Date: Thu, 30 Aug 2018 14:31:12 +0200
+Message-ID: <37ea507e-b16d-ae8d-4da8-128b621869f2@redhat.com>
+References: <20180821104418.12710-1-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <cover.1534686484.git.lukas@wunner.de>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-s390@vger.kernel.org, linux-pci@vger.kernel.org, Platform Driver <platform-driver-x86@vger.kernel.org>, Keith Busch <keith.busch@intel.com>, Paul Mackerras <paulus@samba.org>, zubarev@us.ibm.com, prarit@redhat.com, scott@spiteful.org, Sebastian Ott <sebott@linux.vnet.ibm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <helgaas@kernel.org>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, dan.zink@hpe.com, acpi4asus-user <acpi4asus-user@lists.sourceforge.net>, gwshan@linux.vnet.ibm.com, jshah@us.ibm.com, okaya@kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>, gerald.schaefer@de.ibm.com, Oza Pawandeep <poza@codeaurora.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Corentin Chary <corentin.chary@gmail.com>, "open list:LINUX FOR POWERPC PA SEMI PWRFICIENT" <linuxpp>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20180821104418.12710-1-david@redhat.com>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: linux-mm@kvack.org
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.c>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Aug 19, 2018 at 5:35 PM Lukas Wunner <lukas@wunner.de> wrote:
->
-> Here's PCI hotplug material I've prepared for v4.20:
->
-> Patches [1/9] to [8/9] reduce the code by 488 lines.  There should be no
-> loss of functionality and no new features, just less and simpler code.
->
-> Patch [9/9] collects TODOs for hotplug drivers to spur contributions.
->
->
-> I've assumed that my patch "PCI: pciehp: Differentiate between surprise
-> and safe removal" (submitted July 31) gets merged before this series:
-> https://patchwork.ozlabs.org/patch/951386/
->
-> If that patch is not accepted or other pciehp-related patches are merged
-> before this series, I'll have to rebase patch [4/9] ("PCI: pciehp: Unify
-> controller and slot structs").  No big deal, just a heads-up.
->
+On 21.08.2018 12:44, David Hildenbrand wrote:
+> This is the same approach as in the first RFC, but this time without
+> exporting device_hotplug_lock (requested by Greg) and with some more
+> details and documentation regarding locking. Tested only on x86 so far.
+> 
 
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+I'll be on vacation for two weeks starting on Saturday. If there are no
+comments I'll send this as !RFC once I return.
 
-for PDx86 bits
+Thanks!
 
-> Thanks,
->
-> Lukas
->
->
-> Lukas Wunner (9):
->   PCI: Simplify disconnected marking
->   PCI: pciehp: Drop unnecessary includes
->   PCI: pciehp: Drop hotplug_slot_ops wrappers
->   PCI: pciehp: Unify controller and slot structs
->   PCI: pciehp: Reshuffle controller struct for clarity
->   PCI: hotplug: Constify hotplug_slot_ops
->   PCI: hotplug: Drop hotplug_slot_info
->   PCI: hotplug: Embed hotplug_slot
->   PCI: hotplug: Document TODOs
->
->  arch/powerpc/include/asm/pnv-pci.h      |   2 +-
->  drivers/pci/hotplug/TODO                |  74 +++++++
->  drivers/pci/hotplug/acpiphp.h           |  10 +-
->  drivers/pci/hotplug/acpiphp_core.c      |  36 +---
->  drivers/pci/hotplug/acpiphp_ibm.c       |   2 +-
->  drivers/pci/hotplug/cpci_hotplug.h      |  11 +-
->  drivers/pci/hotplug/cpci_hotplug_core.c | 105 +++-------
->  drivers/pci/hotplug/cpci_hotplug_pci.c  |   6 +-
->  drivers/pci/hotplug/cpqphp.h            |   9 +-
->  drivers/pci/hotplug/cpqphp_core.c       |  59 ++----
->  drivers/pci/hotplug/cpqphp_ctrl.c       |  31 +--
->  drivers/pci/hotplug/ibmphp.h            |   9 +-
->  drivers/pci/hotplug/ibmphp_core.c       | 121 ++++-------
->  drivers/pci/hotplug/ibmphp_ebda.c       |  70 +------
->  drivers/pci/hotplug/pci_hotplug_core.c  |  53 ++---
->  drivers/pci/hotplug/pciehp.h            | 138 ++++++-------
->  drivers/pci/hotplug/pciehp_core.c       | 127 +++---------
->  drivers/pci/hotplug/pciehp_ctrl.c       | 255 +++++++++++-------------
->  drivers/pci/hotplug/pciehp_hpc.c        | 127 ++++--------
->  drivers/pci/hotplug/pciehp_pci.c        |  24 +--
->  drivers/pci/hotplug/pnv_php.c           |  35 ++--
->  drivers/pci/hotplug/rpaphp.h            |  10 +-
->  drivers/pci/hotplug/rpaphp_core.c       |  20 +-
->  drivers/pci/hotplug/rpaphp_pci.c        |  11 +-
->  drivers/pci/hotplug/rpaphp_slot.c       |  22 +-
->  drivers/pci/hotplug/s390_pci_hpc.c      |  44 ++--
->  drivers/pci/hotplug/sgi_hotplug.c       |  63 +++---
->  drivers/pci/hotplug/shpchp.h            |   8 +-
->  drivers/pci/hotplug/shpchp_core.c       |  48 ++---
->  drivers/pci/hotplug/shpchp_ctrl.c       |  21 +-
->  drivers/pci/pci.c                       |   4 +-
->  drivers/pci/pcie/err.c                  |   8 +-
->  drivers/pci/slot.c                      |   2 +-
->  drivers/platform/x86/asus-wmi.c         |  39 +---
->  drivers/platform/x86/eeepc-laptop.c     |  43 ++--
->  include/linux/pci_hotplug.h             |  43 +---
->  36 files changed, 638 insertions(+), 1052 deletions(-)
->  create mode 100644 drivers/pci/hotplug/TODO
->
-> --
-> 2.18.0
->
+> --------------------------------------------------------------------------
+> 
+> Reading through the code and studying how mem_hotplug_lock is to be used,
+> I noticed that there are two places where we can end up calling
+> device_online()/device_offline() - online_pages()/offline_pages() without
+> the mem_hotplug_lock. And there are other places where we call
+> device_online()/device_offline() without the device_hotplug_lock.
+> 
+> While e.g.
+> 	echo "online" > /sys/devices/system/memory/memory9/state
+> is fine, e.g.
+> 	echo 1 > /sys/devices/system/memory/memory9/online
+> Will not take the mem_hotplug_lock. However the device_lock() and
+> device_hotplug_lock.
+> 
+> E.g. via memory_probe_store(), we can end up calling
+> add_memory()->online_pages() without the device_hotplug_lock. So we can
+> have concurrent callers in online_pages(). We e.g. touch in online_pages()
+> basically unprotected zone->present_pages then.
+> 
+> Looks like there is a longer history to that (see Patch #2 for details),
+> and fixing it to work the way it was intended is not really possible. We
+> would e.g. have to take the mem_hotplug_lock in device/base/core.c, which
+> sounds wrong.
+> 
+> Summary: We had a lock inversion on mem_hotplug_lock and device_lock().
+> More details can be found in patch 3 and patch 6.
+> 
+> I propose the general rules (documentation added in patch 6):
+> 
+> 1. add_memory/add_memory_resource() must only be called with
+>    device_hotplug_lock.
+> 2. remove_memory() must only be called with device_hotplug_lock. This is
+>    already documented and holds for all callers.
+> 3. device_online()/device_offline() must only be called with
+>    device_hotplug_lock. This is already documented and true for now in core
+>    code. Other callers (related to memory hotplug) have to be fixed up.
+> 4. mem_hotplug_lock is taken inside of add_memory/remove_memory/
+>    online_pages/offline_pages.
+> 
+> To me, this looks way cleaner than what we have right now (and easier to
+> verify). And looking at the documentation of remove_memory, using
+> lock_device_hotplug also for add_memory() feels natural.
+> 
+> 
+> RFC -> RFCv2:
+> - Don't export device_hotplug_lock, provide proper remove_memory/add_memory
+>   wrappers.
+> - Split up the patches a bit.
+> - Try to improve powernv memtrace locking
+> - Add some documentation for locking that matches my knowledge
+> 
+> David Hildenbrand (6):
+>   mm/memory_hotplug: make remove_memory() take the device_hotplug_lock
+>   mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+>   mm/memory_hotplug: fix online/offline_pages called w.o.
+>     mem_hotplug_lock
+>   powerpc/powernv: hold device_hotplug_lock when calling device_online()
+>   powerpc/powernv: hold device_hotplug_lock in memtrace_offline_pages()
+>   memory-hotplug.txt: Add some details about locking internals
+> 
+>  Documentation/memory-hotplug.txt              | 39 +++++++++++-
+>  arch/powerpc/platforms/powernv/memtrace.c     | 14 +++--
+>  .../platforms/pseries/hotplug-memory.c        |  8 +--
+>  drivers/acpi/acpi_memhotplug.c                |  4 +-
+>  drivers/base/memory.c                         | 22 +++----
+>  drivers/xen/balloon.c                         |  3 +
+>  include/linux/memory_hotplug.h                |  4 +-
+>  mm/memory_hotplug.c                           | 59 +++++++++++++++----
+>  8 files changed, 115 insertions(+), 38 deletions(-)
+> 
 
 
 -- 
-With Best Regards,
-Andy Shevchenko
+
+Thanks,
+
+David / dhildenb
