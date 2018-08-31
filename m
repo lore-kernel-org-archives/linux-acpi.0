@@ -1,58 +1,186 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
-Date: Fri, 31 Aug 2018 14:34:52 +0100
-Message-ID: <1d5b6529-4e5a-723c-3f1b-dd5a9adb490c@arm.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
-	<5B83B11E.7010807@huawei.com>
+From: Benjamin Tissoires <benjamin.tissoires@redhat.com>
+Subject: Re: [PATCH v2] ACPI: surface3_power: MSHW0011 rev-eng implementation
+Date: Fri, 31 Aug 2018 16:54:41 +0200
+Message-ID: <CAO-hwJ+U+e8a70LskxaSLV_hjWejpqjBWC788mEOOcUg=oxBCw@mail.gmail.com>
+References: <20170629121009.30234-1-benjamin.tissoires@redhat.com>
+ <CAHp75Vdn1-m0gDSHtZXX2A=Q07xG9j1eBiV8iM4e11Qk=oJfZg@mail.gmail.com>
+ <20170630155706.GL26073@mail.corp.redhat.com> <CAHp75VdLU57x2YuDH+SkB1jR3rSpqcVNszhq5fDUVZZt+sqxyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <5B83B11E.7010807-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, liguozhu <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, fanghao11 <fanghao11-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, =?UTF-8?B?57Gz57Gz?= <kenneth-lee-2012-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VdLU57x2YuDH+SkB1jR3rSpqcVNszhq5fDUVZZt+sqxyQ@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Bastien Nocera <hadess@hadess.net>, stephenjust@gmail.com, Sebastian Reichel <sre@kernel.org>, rafael.j.wysocki@intel.com, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, mika.westerberg@linux.intel.com, linux-acpi@vger.kernel.org, devel@acpica.org, linux-pm@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Zaibo,
+Hi Andy,
 
-On 27/08/18 09:06, Xu Zaibo wrote:
->> +struct vfio_iommu_type1_bind_process {
->> +=A0=A0=A0 __u32=A0=A0=A0 flags;
->> +#define VFIO_IOMMU_BIND_PID=A0=A0=A0=A0=A0=A0=A0 (1 << 0)
->> +=A0=A0=A0 __u32=A0=A0=A0 pasid;
-> As I am doing some works on the SVA patch set. I just consider why the
-> user space need this pasid.
-> Maybe, is it much more reasonable to set the pasid into all devices
-> under the vfio container by
-> a call back function from 'vfio_devices'=A0 while
-> 'VFIO_IOMMU_BIND_PROCESS' CMD is executed
-> in kernel land? I am not sure because there exists no suitable call back
-> in 'vfio_device' at present.
+I am resurrecting this thread now that ACPICA seemed to finally have
+fixed the bug that prevent the driver to work.
+The patch I submitted was reverted shortly after, which lead me to
+ignore this review until ACPICA was fixed. It took a lot of effort
+from Hans to have a fix accepted, so now we can hope to upstream this
+driver.
 
-When using vfio-pci, the kernel doesn't know how to program the PASID
-into the device because the only kernel driver for the device is the
-generic vfio-pci module. The PCI specification doesn't describe a way of
-setting up the PASID, it's vendor-specific. Only the userspace
-application owning the device (and calling VFIO_IOMMU_BIND) knows how to
-do it, so we return the allocated PASID.
+On Fri, Jun 30, 2017 at 6:37 PM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+>
+> On Fri, Jun 30, 2017 at 6:57 PM, Benjamin Tissoires
+> <benjamin.tissoires@redhat.com> wrote:
+> > On Jun 29 2017 or thereabouts, Andy Shevchenko wrote:
+> >> On Thu, Jun 29, 2017 at 3:10 PM, Benjamin Tissoires
+> >> <benjamin.tissoires@redhat.com> wrote:
+>
+> >> What devices (laptops, tablets) have it?
+> >> Surface 3. What else?
+> >
+> > So far, Surface 3 only. It's a Microsoft PNPId, so I guess they control
+> > which device has it. Maybe the model after the Surface 3 (reduced
+> > platform) will have such chip, but for now, it's unknown.
+>
+> Please, extend introduction in commit message to state above.
 
-Note that unlike vfio-mdev where applications share slices of a
-function, with vfio-pci one application owns the whole function so it's
-safe to let userspace set the PASID in hardware. With vfio-mdev it's the
-kernel driver that should be in charge of setting the PASID as you
-described, and we wouldn't have a reason to return the PASID in the
-vfio_iommu_type1_bind_process structure.
+OK. On this note, I have been mentioned that the Surface Pro 2017 uses
+a similar mechanism as in it's also using an operation region handler,
+but this time over UART, not I2C :)
 
-Thanks,
-Jean
+>
+> >> > I couldn't manage to get the IRQ correctly triggered, so I am using a
+> >> > good old polling thread to check for changes.
+> >>
+> >> It might be
+>
+> It seems I didn't finished the sentence here.
+>
+> I though it might be actually ACPI event, GPE or direct IRQ (when GPIO
+> chip should not disable it, though if it's the case it likely a BIOS
+> bug for this hardware).
+
+If you don't mind, I'd rather have the polling version that seems to
+be working first. I haven't touched the logs I had from Windows since
+last year, so I am a little bit rusty on debugging this.
+FWIW, /proc/interrupts doesn't change a bit when I unplug/replug the
+power cable.
+
+My guess is that the Windows driver initializes the chip in a
+different way and this enables the cable detection.
+
+>
+> >> > +       help
+> >> > +         Select this option to enable support for ACPI operation
+> >> > +         region of the Surface 3 battery platform driver.
+> >>
+> >> > +/*
+> >> > + * Supports for the power IC on the Surface 3 tablet.
+> >>
+> >> Shouldn't it go to drivers/acpi/pmic folder ?
+> >
+> > Already answered later in the thread, so yes, I'll move it there.
+>
+> Actually Hans did a good point, so, feel free to use drivers/platform/x86.
+
+Roger that!
+
+>
+> >> And did you check if it have actual chip IP vendor name and model?
+> >> Most likely it's a TI (based?) solution.
+> >
+> > As mentioned, I have strictly no idea. I can not crack open the Surface
+> > 3 without breaking the warranty (I already had to return it once because
+> > the disk crashed).
+>
+> We have one indeed cracked (screen is broken for good :-) ), so, I
+> would check what I can find there.
+>
+> > And I do not find anything brand-related under Windows either:
+> > - it's called "Surface Platform Power Driver"
+> > - and the driver is provided by Microsoft
+>
+> Fair enough.
+>
+> >> > +static int mshw0011_bix(struct mshw0011_data *cdata, struct bix *bix)
+> >> > +{
+> >>
+> >> > +       memcpy(bix->serial, buf + 7, 3);
+> >> > +       memcpy(bix->serial + 3, buf, 6);
+> >> > +       bix->serial[9] = '\0';
+> >>
+> >> snprintf()?
+> >
+> > probably :)
+>
+> I would do this until we have an evidence that it contains non-printable symbols
+> (or, in case you want to fix ahead, make the buffer 4 times bigger and use %*pE)
+
+I can't really make the buffer 4 time bigger. The buffer is then used
+by the DSDT table to report the _BIX status, so the length of 10 is
+mandatory.
+It doesn't seem to hurt, and worse case, we will just strip the
+serial, not a big deal IMO.
+
+>
+> >> > +       memcpy(bix->OEM, buf, 3);
+> >> > +       bix->OEM[4] = '\0';
+> >>
+> >> snprintf() ?
+>
+> Ditto.
+>
+> >> > +       snprintf(prefix, ARRAY_SIZE(prefix), "%s: ", bat0->name);
+> >>
+> >> > +       prefix[127] = '\0';
+> >>
+> >> Why?
+> >
+> > Just me being paranoid in case the code doesn't follow the spec... Yeah, I'll
+> > remove it.
+>
+> snprintf() despite n in the name takes care of terminating NUL.
+>
+> >> > +static int mshw0011_probe(struct i2c_client *client,
+> >> > +                         const struct i2c_device_id *id)
+> >> > +{
+> >>
+> >> > +       data->notify_version = version == MSHW0011_EV_2_5;
+> >>
+> >> 0x1ff as version sounds hmm suspicious.
+> >
+> > So after a little bit of digging, it appears those values were taken
+> > from the DSDT:
+> > https://bugzilla.kernel.org/attachment.cgi?id=187171 line 11694.
+> >
+> > It appears 0x3F is EV 2.1 and before, and 0x1FF is EV 2.5 and above.
+> > The returned value is not a version of the chip, just a flag to know
+> > which path we are taking in the DSM.
+> >
+> > The name is probably not the best.
+>
+> 63 and 511 looks too suspicious to be a version. Rather block size, a
+> mask or alike.
+
+I replaced the 'version' by 'mask' in v3. It doesn't hurt to do so.
+
+>
+> >> > +static const struct i2c_device_id mshw0011_id[] = {
+> >> > +       { }
+> >> > +};
+> >> > +MODULE_DEVICE_TABLE(i2c, mshw0011_id);
+> >>
+> >> ->probe_new(), please.
+> >
+> > Correct
+> >
+> >>
+> >> If I2C framework is _still_ broken we need to fix that part.
+> >
+> > I haven't check, so let's see for v3.
+>
+> Cc: Wolfram for v3 and ask him directly. Last time I checked it looks
+> like I2C core doesn't care about ACPI when ->probe_new() is used.
+
+Looks like things are working fine now. So I can just submit the
+driver without bothering the I2C core team :)
+
+Cheers,
+Benjamin
