@@ -1,46 +1,63 @@
-From: William Lieurance <william.lieurance@namikoda.com>
-Subject: [PATCH] ACPI / LPSS: Ensure LPIOEP is always set on resume
-Date: Sat,  1 Sep 2018 12:59:15 -0500
-Message-ID: <20180901175916.28567-1-william.lieurance@namikoda.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: Ensure LPIOEP is always set on resume
+Date: Mon, 03 Sep 2018 10:38:51 +0800
+Message-ID: <1535942331.2072.5.camel@intel.com>
+References: <20180901175916.28567-1-william.lieurance@namikoda.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180901175916.28567-1-william.lieurance@namikoda.com>
 Sender: linux-kernel-owner@vger.kernel.org
-Cc: william.lieurance@namikoda.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: William Lieurance <william.lieurance@namikoda.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-For some number of systems with lpss_quirks enabled, on boot the system
-goes through an acpi_lpss_resume() without a corresponding
-acpi_lpss_suspend() having been called.  In that case, it requires the
-IOSF write to LPSS_IOSF_UNIT_LPIOEP / LPSS_IOSF_GPIODEF0 in order to
-continue booting successfully.
+Hi, William,
 
-Signed-off-by: William Lieurance <william.lieurance@namikoda.com>
+On 六, 2018-09-01 at 12:59 -0500, William Lieurance wrote:
+> For some number of systems with lpss_quirks enabled, on boot the
+> system
+> goes through an acpi_lpss_resume() without a corresponding
+> acpi_lpss_suspend() having been called.
+
+I read the code but didn't find out why this could happen, but if it is
+true, please check if the below patch helps
+
+>From 27fda1ab0d800966b0ec1c444fe356812bd2f04e Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Mon, 3 Sep 2018 10:00:07 +0800
+Subject: [PATCH] ACPI / LPSS: Force lpss quirks on boot
+
+Commit 12864ff8545f ("ACPI / LPSS: Avoid PM quirks on suspend and resume
+from hibernation") bypasses lpss quirks for S3 and S4, by setting a flag
+for S3/S4 in acpi_lpss_suspend(), and check that flag in
+acpi_lpss_resume().
+
+But this overlooks the boot case where acpi_lpss_resume() may get called
+without a corresponding acpi_lpss_suspend() having been called.
+
+Thus force setting the flag during boot.
+
+Fixes: 12864ff8545f (ACPI / LPSS: Avoid PM quirks on suspend and resume from hibernation)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=200989
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/acpi/acpi_lpss.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 9706613eecf9..c7790ba943d4 100644
+index 9706613..bf64cfa 100644
 --- a/drivers/acpi/acpi_lpss.c
 +++ b/drivers/acpi/acpi_lpss.c
-@@ -939,14 +939,14 @@ static void lpss_iosf_exit_d3_state(void)
- 
- 	mutex_lock(&lpss_iosf_mutex);
- 
-+	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
-+			LPSS_IOSF_GPIODEF0, value1, mask1);
-+
- 	if (!lpss_iosf_d3_entered)
- 		goto exit;
- 
- 	lpss_iosf_d3_entered = false;
- 
--	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIOEP, MBI_CR_WRITE,
--			LPSS_IOSF_GPIODEF0, value1, mask1);
--
- 	iosf_mbi_modify(LPSS_IOSF_UNIT_LPIO2, MBI_CFG_WRITE,
- 			LPSS_IOSF_PMCSR, value2, mask2);
- 
--- 
-2.17.1
+@@ -879,7 +879,7 @@ static void acpi_lpss_dismiss(struct device *dev)
+ #define LPSS_GPIODEF0_DMA_LLP		BIT(13)
+ 
+ static DEFINE_MUTEX(lpss_iosf_mutex);
+-static bool lpss_iosf_d3_entered;
++static bool lpss_iosf_d3_entered = true;
+ 
+ static void lpss_iosf_enter_d3_state(void)
+ {
+-- 
+2.7.4
