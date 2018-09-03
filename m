@@ -1,63 +1,161 @@
-From: Zhang Rui <rui.zhang@intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Ensure LPIOEP is always set on resume
-Date: Mon, 03 Sep 2018 10:38:51 +0800
-Message-ID: <1535942331.2072.5.camel@intel.com>
-References: <20180901175916.28567-1-william.lieurance@namikoda.com>
+From: Rashmica <rashmica.g@gmail.com>
+Subject: [PATCH RFCv2 3/6] mm/memory_hotplug: fix
+ online/offline_pages called w.o. mem_hotplug_lock
+Date: Mon, 3 Sep 2018 10:36:24 +1000
+Message-ID: <70372ef5-e332-6c07-f08c-50f8808bde6d@gmail.com>
+References: <20180821104418.12710-1-david@redhat.com>
+ <20180821104418.12710-4-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180901175916.28567-1-william.lieurance@namikoda.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: William Lieurance <william.lieurance@namikoda.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: multipart/mixed; boundary="===============7033227392406503336=="
+Return-path: <xen-devel-bounces@lists.xenproject.org>
+In-Reply-To: <20180821104418.12710-4-david@redhat.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.xenproject.org/mailman/options/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=unsubscribe>
+List-Post: <mailto:xen-devel@lists.xenproject.org>
+List-Help: <mailto:xen-devel-request@lists.xenproject.org?subject=help>
+List-Subscribe: <https://lists.xenproject.org/mailman/listinfo/xen-devel>,
+ <mailto:xen-devel-request@lists.xenproject.org?subject=subscribe>
+Errors-To: xen-devel-bounces@lists.xenproject.org
+Sender: "Xen-devel" <xen-devel-bounces@lists.xenproject.org>
+To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Thomas Gleixner <tglx@linutronix.de>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, Dan Williams <dan.j.williams@intel.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Juergen Gross <jgross@suse.com>, Math
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, William,
+This is a multi-part message in MIME format.
+--===============7033227392406503336==
+Content-Type: multipart/alternative;
+ boundary="------------1093E43F969F497286F217F7"
+Content-Language: en-US
 
-On 六, 2018-09-01 at 12:59 -0500, William Lieurance wrote:
-> For some number of systems with lpss_quirks enabled, on boot the
-> system
-> goes through an acpi_lpss_resume() without a corresponding
-> acpi_lpss_suspend() having been called.
+This is a multi-part message in MIME format.
+--------------1093E43F969F497286F217F7
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 
-I read the code but didn't find out why this could happen, but if it is
-true, please check if the below patch helps
+Hi David,
 
->From 27fda1ab0d800966b0ec1c444fe356812bd2f04e Mon Sep 17 00:00:00 2001
-From: Zhang Rui <rui.zhang@intel.com>
-Date: Mon, 3 Sep 2018 10:00:07 +0800
-Subject: [PATCH] ACPI / LPSS: Force lpss quirks on boot
 
-Commit 12864ff8545f ("ACPI / LPSS: Avoid PM quirks on suspend and resume
-from hibernation") bypasses lpss quirks for S3 and S4, by setting a flag
-for S3/S4 in acpi_lpss_suspend(), and check that flag in
-acpi_lpss_resume().
+On 21/08/18 20:44, David Hildenbrand wrote:
 
-But this overlooks the boot case where acpi_lpss_resume() may get called
-without a corresponding acpi_lpss_suspend() having been called.
+> There seem to be some problems as result of 30467e0b3be ("mm, hotplug:
+> fix concurrent memory hot-add deadlock"), which tried to fix a possible
+> lock inversion reported and discussed in [1] due to the two locks
+> 	a) device_lock()
+> 	b) mem_hotplug_lock
+>
+> While add_memory() first takes b), followed by a) during
+> bus_probe_device(), onlining of memory from user space first took b),
+> followed by a), exposing a possible deadlock.
 
-Thus force setting the flag during boot.
+Do you mean "onlining of memory from user space first took a),
+followed by b)"? 
 
-Fixes: 12864ff8545f (ACPI / LPSS: Avoid PM quirks on suspend and resume from hibernation)
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=200989
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
----
- drivers/acpi/acpi_lpss.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> In [1], and it was decided to not make use of device_hotplug_lock, but
+> rather to enforce a locking order.
+>
+> The problems I spotted related to this:
+>
+> 1. Memory block device attributes: While .state first calls
+>    mem_hotplug_begin() and the calls device_online() - which takes
+>    device_lock() - .online does no longer call mem_hotplug_begin(), so
+>    effectively calls online_pages() without mem_hotplug_lock.
+>
+> 2. device_online() should be called under device_hotplug_lock, however
+>    onlining memory during add_memory() does not take care of that.
+>
+> In addition, I think there is also something wrong about the locking in
+>
+> 3. arch/powerpc/platforms/powernv/memtrace.c calls offline_pages()
+>    without locks. This was introduced after 30467e0b3be. And skimming over
+>    the code, I assume it could need some more care in regards to locking
+>    (e.g. device_online() called without device_hotplug_lock - but I'll
+>    not touch that for now).
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 9706613..bf64cfa 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -879,7 +879,7 @@ static void acpi_lpss_dismiss(struct device *dev)
- #define LPSS_GPIODEF0_DMA_LLP		BIT(13)
- 
- static DEFINE_MUTEX(lpss_iosf_mutex);
--static bool lpss_iosf_d3_entered;
-+static bool lpss_iosf_d3_entered = true;
- 
- static void lpss_iosf_enter_d3_state(void)
- {
--- 
-2.7.4
+Can you mention that you fixed this in later patches?
+
+
+The series looks good to me. Feel free to add my reviewed-by:
+
+Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
+
+
+--------------1093E43F969F497286F217F7
+Content-Type: text/html; charset=utf-8
+Content-Transfer-Encoding: 7bit
+
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  </head>
+  <body text="#000000" bgcolor="#FFFFFF">
+    <div class="moz-cite-prefix">
+      <pre>Hi David,
+
+
+On 21/08/18 20:44, David Hildenbrand wrote:</pre>
+    </div>
+    <blockquote type="cite"
+      cite="mid:20180821104418.12710-4-david@redhat.com">
+      <pre wrap="">There seem to be some problems as result of 30467e0b3be ("mm, hotplug:
+fix concurrent memory hot-add deadlock"), which tried to fix a possible
+lock inversion reported and discussed in [1] due to the two locks
+	a) device_lock()
+	b) mem_hotplug_lock
+
+While add_memory() first takes b), followed by a) during
+bus_probe_device(), onlining of memory from user space first took b),
+followed by a), exposing a possible deadlock.</pre>
+    </blockquote>
+    <pre>Do you mean "onlining of memory from user space first took a),
+followed by b)"? 
+
+</pre>
+    <blockquote type="cite"
+      cite="mid:20180821104418.12710-4-david@redhat.com">
+      <pre wrap="">
+In [1], and it was decided to not make use of device_hotplug_lock, but
+rather to enforce a locking order.
+
+The problems I spotted related to this:
+
+1. Memory block device attributes: While .state first calls
+   mem_hotplug_begin() and the calls device_online() - which takes
+   device_lock() - .online does no longer call mem_hotplug_begin(), so
+   effectively calls online_pages() without mem_hotplug_lock.
+
+2. device_online() should be called under device_hotplug_lock, however
+   onlining memory during add_memory() does not take care of that.
+
+In addition, I think there is also something wrong about the locking in
+
+3. arch/powerpc/platforms/powernv/memtrace.c calls offline_pages()
+   without locks. This was introduced after 30467e0b3be. And skimming over
+   the code, I assume it could need some more care in regards to locking
+   (e.g. device_online() called without device_hotplug_lock - but I'll
+   not touch that for now).</pre>
+    </blockquote>
+    <pre>Can you mention that you fixed this in later patches?
+
+</pre>
+    <br>
+    <pre>The series looks good to me. Feel free to add my reviewed-by:
+
+Reviewed-by: Rashmica Gupta <a class="moz-txt-link-rfc2396E" href="mailto:rashmica.g@gmail.com">&lt;rashmica.g@gmail.com&gt;</a></pre>
+  </body>
+</html>
+
+--------------1093E43F969F497286F217F7--
+
+
+--===============7033227392406503336==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Disposition: inline
+
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KWGVuLWRldmVs
+IG1haWxpbmcgbGlzdApYZW4tZGV2ZWxAbGlzdHMueGVucHJvamVjdC5vcmcKaHR0cHM6Ly9saXN0
+cy54ZW5wcm9qZWN0Lm9yZy9tYWlsbWFuL2xpc3RpbmZvL3hlbi1kZXZlbA==
+
+--===============7033227392406503336==--
