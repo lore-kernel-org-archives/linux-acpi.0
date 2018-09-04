@@ -1,68 +1,60 @@
-From: Sebastian Ott <sebott@linux.ibm.com>
-Subject: Re: [PATCH 8/9] PCI: hotplug: Embed hotplug_slot
-Date: Mon, 3 Sep 2018 19:54:49 +0200 (CEST)
-Message-ID: <alpine.LFD.2.21.1809031953000.1716@schleppi>
-References: <cover.1534686484.git.lukas@wunner.de>
- <9918fbca94bcfc03d1560b191d138d3e6664cc86.1534686485.git.lukas@wunner.de>
+From: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
+Date: Tue, 4 Sep 2018 10:12:37 +0800
+Message-ID: <5B8DEA15.7020404@huawei.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
+	<5B83B11E.7010807@huawei.com>
+	<1d5b6529-4e5a-723c-3f1b-dd5a9adb490c@arm.com>
+	<5B89F818.7060300@huawei.com>
+	<3a961aff-e830-64bb-b6a9-14e08de1abf5@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-In-Reply-To: <9918fbca94bcfc03d1560b191d138d3e6664cc86.1534686485.git.lukas@wunner.de>
-List-Unsubscribe: <https://lists.ozlabs.org/options/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=unsubscribe>
-List-Archive: <http://lists.ozlabs.org/pipermail/linuxppc-dev/>
-List-Post: <mailto:linuxppc-dev@lists.ozlabs.org>
-List-Help: <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=help>
-List-Subscribe: <https://lists.ozlabs.org/listinfo/linuxppc-dev>,
- <mailto:linuxppc-dev-request@lists.ozlabs.org?subject=subscribe>
-Errors-To: linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org
-Sender: "Linuxppc-dev"
- <linuxppc-dev-bounces+glppe-linuxppc-embedded-2=m.gmane.org@lists.ozlabs.org>
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-pci@vger.kernel.org, platform-driver-x86@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Scott Murray <scott@spiteful.org>, Sebastian Ott <sebott@linux.vnet.ibm.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Darren Hart <dvhart@infradead.org>, Len Brown <lenb@kernel.org>, linux-s390@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, Gavin Shan <gwshan@linux.vnet.ibm.com>, Sinan Kaya <okaya@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Gerald Schaefer <gerald.schaefer@de.ibm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Corentin Chary <corentin.chary@gmail.com>, linuxppc-dev@lists.ozlabs.org, Andy Shevchenko <andy@infradead.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <3a961aff-e830-64bb-b6a9-14e08de1abf5-5wv7dgnIgG8@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Cc: "xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org" <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, fanghao11 <fanghao11-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?57Gz57Gz?= <kenneth-lee-2012-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, 19 Aug 2018, Lukas Wunner wrote:
-> When the PCI hotplug core and its first user, cpqphp, were introduced in
-> February 2002 with historic commit a8a2069f432c, cpqphp allocated a slot
-> struct for its internal use plus a hotplug_slot struct to be registered
-> with the hotplug core and linked the two with pointers:
-> https://git.kernel.org/tglx/history/c/a8a2069f432c
-> 
-> Nowadays, the predominant pattern in the tree is to embed ("subclass")
-> such structures in one another and cast to the containing struct with
-> container_of().  But it wasn't until July 2002 that container_of() was
-> introduced with historic commit ec4f214232cf:
-> https://git.kernel.org/tglx/history/c/ec4f214232cf
-> 
-> pnv_php, introduced in 2016, did the right thing and embedded struct
-> hotplug_slot in its internal struct pnv_php_slot, but all other drivers
-> cargo-culted cpqphp's design and linked separate structs with pointers.
-> 
-> Embedding structs is preferrable to linking them with pointers because
-> it requires fewer allocations, thereby reducing overhead and simplifying
-> error paths.  Casting an embedded struct to the containing struct
-> becomes a cheap subtraction rather than a dereference.  And having fewer
-> pointers reduces the risk of them pointing nowhere either accidentally
-> or due to an attack.
-> 
-> Convert all drivers to embed struct hotplug_slot in their internal slot
-> struct.  The "private" pointer in struct hotplug_slot thereby becomes
-> unused, so drop it.
-> 
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Scott Murray <scott@spiteful.org>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Gavin Shan <gwshan@linux.vnet.ibm.com>
-> Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-> Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-> Cc: Corentin Chary <corentin.chary@gmail.com>
-> Cc: Darren Hart <dvhart@infradead.org>
-> Cc: Andy Shevchenko <andy@infradead.org>
 
-for s390_pci_hpc.c:
-Acked-by: Sebastian Ott <sebott@linux.ibm.com>
+
+On 2018/9/3 18:34, Jean-Philippe Brucker wrote:
+> On 01/09/18 03:23, Xu Zaibo wrote:
+>> As one application takes a whole function while using VFIO-PCI, why do
+>> the application and the
+>> function need to enable PASID capability? (Since just one I/O page table
+>> is enough for them.)
+> At the moment the series doesn't provide support for SVA without PASID
+> (on the I/O page fault path, 08/40). In addition the BIND ioctl could be
+> used by the owner application to bind other processes (slaves) and
+> perform sub-assignment. But that feature is incomplete because we don't
+> send stop_pasid notification to the owner when a slave dies.
+>
+So, Could I understand like this?
+
+     1. While the series are finished well, VFIO-PCI device can be held 
+by only one process
+         through binding IOCTL command without PASID (without PASID 
+being exposed user space).
+
+     2. While using VFIO-PCI device to support multiple processes with 
+SVA series, a primary
+         process with multiple secondary processes must be deployed just 
+like DPDK(https://www.dpdk.org/).
+         And, the PASID still has to be exposed to user land.
+
+
+Thanks,
+Zaibo
+
+.
