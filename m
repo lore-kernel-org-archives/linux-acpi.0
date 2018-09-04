@@ -1,60 +1,96 @@
-From: Xu Zaibo <xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 13/40] vfio: Add support for Shared Virtual Addressing
-Date: Tue, 4 Sep 2018 10:12:37 +0800
-Message-ID: <5B8DEA15.7020404@huawei.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-14-jean-philippe.brucker@arm.com>
-	<5B83B11E.7010807@huawei.com>
-	<1d5b6529-4e5a-723c-3f1b-dd5a9adb490c@arm.com>
-	<5B89F818.7060300@huawei.com>
-	<3a961aff-e830-64bb-b6a9-14e08de1abf5@arm.com>
+From: Zhang Rui <rui.zhang@intel.com>
+Subject: [PATCH] ACPI / LPSS: Force lpss quirks on boot
+Date: Tue, 04 Sep 2018 15:17:45 +0800
+Message-ID: <1536045465.2282.21.camel@intel.com>
+References: <20180901175916.28567-1-william.lieurance@namikoda.com>
+         <1535942331.2072.5.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <3a961aff-e830-64bb-b6a9-14e08de1abf5-5wv7dgnIgG8@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
-Cc: "xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org" <liguozhu-C8/M+/jPZTeaMJb+Lgu22Q@public.gmane.org>, fanghao11 <fanghao11-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, =?UTF-8?B?57Gz57Gz?= <kenneth-lee-2012-H32Fclmsjq1BDgjK7y7TUQ@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>, "christian.koenig-5C7GfCeVMHo@public.gmane.org" <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1535942331.2072.5.camel@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: William Lieurance <william.lieurance@namikoda.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 一, 2018-09-03 at 10:38 +0800, Zhang Rui wrote:
+> Hi, William,
+> 
+> On 六, 2018-09-01 at 12:59 -0500, William Lieurance wrote:
+> > 
+> > For some number of systems with lpss_quirks enabled, on boot the
+> > system
+> > goes through an acpi_lpss_resume() without a corresponding
+> > acpi_lpss_suspend() having been called.
+> I read the code but didn't find out why this could happen, but if it
+> is
+> true, please check if the below patch helps
+> 
+> From 27fda1ab0d800966b0ec1c444fe356812bd2f04e Mon Sep 17 00:00:00
+> 2001
+> From: Zhang Rui <rui.zhang@intel.com>
+> Date: Mon, 3 Sep 2018 10:00:07 +0800
+> Subject: [PATCH] ACPI / LPSS: Force lpss quirks on boot
+> 
+> Commit 12864ff8545f ("ACPI / LPSS: Avoid PM quirks on suspend and
+> resume
+> from hibernation") bypasses lpss quirks for S3 and S4, by setting a
+> flag
+> for S3/S4 in acpi_lpss_suspend(), and check that flag in
+> acpi_lpss_resume().
+> 
+> But this overlooks the boot case where acpi_lpss_resume() may get
+> called
+> without a corresponding acpi_lpss_suspend() having been called.
+> 
+> Thus force setting the flag during boot.
+> 
+> Fixes: 12864ff8545f (ACPI / LPSS: Avoid PM quirks on suspend and
+> resume from hibernation)
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=200989
+> Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 
+According to https://bugzilla.kernel.org/show_bug.cgi?id=200989#c6,
+the patch has been confirmed to fix the problem.
+Don't know why the patch does not show up in patchwork.
+Let me resend.
 
-On 2018/9/3 18:34, Jean-Philippe Brucker wrote:
-> On 01/09/18 03:23, Xu Zaibo wrote:
->> As one application takes a whole function while using VFIO-PCI, why do
->> the application and the
->> function need to enable PASID capability? (Since just one I/O page table
->> is enough for them.)
-> At the moment the series doesn't provide support for SVA without PASID
-> (on the I/O page fault path, 08/40). In addition the BIND ioctl could be
-> used by the owner application to bind other processes (slaves) and
-> perform sub-assignment. But that feature is incomplete because we don't
-> send stop_pasid notification to the owner when a slave dies.
->
-So, Could I understand like this?
+>From f07303f10e41c2b61d0d4da5f74e98a3bf8e7147 Mon Sep 17 00:00:00 2001
+From: Zhang Rui <rui.zhang@intel.com>
+Date: Mon, 3 Sep 2018 10:00:07 +0800
+Subject: [PATCH] ACPI / LPSS: Force lpss quirks on boot
 
-     1. While the series are finished well, VFIO-PCI device can be held 
-by only one process
-         through binding IOCTL command without PASID (without PASID 
-being exposed user space).
+Commit 12864ff8545f ("ACPI / LPSS: Avoid PM quirks on suspend and resume
+from hibernation") bypasses lpss quirks for S3 and S4, by setting a flag
+for S3/S4 in acpi_lpss_suspend(), and check that flag in
+acpi_lpss_resume().
 
-     2. While using VFIO-PCI device to support multiple processes with 
-SVA series, a primary
-         process with multiple secondary processes must be deployed just 
-like DPDK(https://www.dpdk.org/).
-         And, the PASID still has to be exposed to user land.
+But this overlooks the boot case where acpi_lpss_resume() may get called
+without a corresponding acpi_lpss_suspend() having been called.
 
+Thus force setting the flag during boot.
 
-Thanks,
-Zaibo
+Fixes: 12864ff8545f (ACPI / LPSS: Avoid PM quirks on suspend and resume from hibernation)
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=200989
+Reported-and-tested-by: William Lieurance <william.lieurance@namikoda.com>
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+---
+ drivers/acpi/acpi_lpss.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-.
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index 9706613..bf64cfa 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -879,7 +879,7 @@ static void acpi_lpss_dismiss(struct device *dev)
+ #define LPSS_GPIODEF0_DMA_LLP		BIT(13)
+ 
+ static DEFINE_MUTEX(lpss_iosf_mutex);
+-static bool lpss_iosf_d3_entered;
++static bool lpss_iosf_d3_entered = true;
+ 
+ static void lpss_iosf_enter_d3_state(void)
+ {
+-- 
+2.7.4
