@@ -1,44 +1,55 @@
-From: Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 03/40] iommu/sva: Manage process address spaces
-Date: Wed, 5 Sep 2018 11:18:35 -0700
-Message-ID: <20180905111835.7f3ae40e@jacob-builder>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-4-jean-philippe.brucker@arm.com>
-	<d785ec89-6743-d0f1-1a7f-85599a033e5b@redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2 1/2] PCI/ACPI: correct error message for ASPM disabling
+Date: Wed, 5 Sep 2018 16:20:28 -0500
+Message-ID: <20180905212028.GS107892@bhelgaas-glaptop.roam.corp.google.com>
+References: <1533875532-24954-1-git-send-email-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <d785ec89-6743-d0f1-1a7f-85599a033e5b-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, xuzaibo-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1533875532-24954-1-git-send-email-okaya@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 5 Sep 2018 14:14:12 +0200
-Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org> wrote:
+On Fri, Aug 10, 2018 at 04:32:11AM +0000, Sinan Kaya wrote:
+> If _OSC execution fails today for platforms without an _OSC
+> entry, code is printing a misleading message saying disabling
+> ASPM as follows:
+> 
+> acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+> 
+> We need to ensure that platform supports ASPM to begin with.
+> 
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> Reported-by: Michael Kelley <mikelley@microsoft.com>
 
-> > + *
-> > + * On Arm and AMD IOMMUs, entry 0 of the PASID table can be used
-> > to hold
-> > + * non-PASID translations. In this case PASID 0 is reserved and
-> > entry 0 points
-> > + * to the io_pgtable base. On Intel IOMMU, the io_pgtable base
-> > would be held in
-> > + * the device table and PASID 0 would be available to the
-> > allocator.
-> > + */  
-> very nice explanation
-With the new Vt-d 3.0 spec., 2nd level IO page table base is no longer
-held in the device context table. Instead it is held in the PASID table
-entry pointed by the RID_PASID field in the device context entry. If
-RID_PASID = 0, then it is the same as ARM and AMD IOMMUs.
-You can refer to ch3.4.3 of the VT-d spec.
+Tentatively applied both to pci/aspm for v4.20, thanks!
+
+Rafael, let me know if you object or would rather put these through your
+tree.
+
+> ---
+>  drivers/acpi/pci_root.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 7433035..e465e72 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -455,8 +455,9 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+>  	decode_osc_support(root, "OS supports", support);
+>  	status = acpi_pci_osc_support(root, support);
+>  	if (ACPI_FAILURE(status)) {
+> -		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
+> -			 acpi_format_exception(status));
+> +		dev_info(&device->dev, "_OSC failed (%s)%s\n",
+> +			 acpi_format_exception(status),
+> +			 pcie_aspm_support_enabled() ? "; disabling ASPM" : "");
+>  		*no_aspm = 1;
+>  		return;
+>  	}
+> -- 
+> 2.7.4
+> 
