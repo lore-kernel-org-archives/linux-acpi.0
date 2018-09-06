@@ -1,37 +1,102 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/2] PCI/ACPI: correct error message for ASPM disabling
-Date: Thu, 6 Sep 2018 11:05:48 +0200
-Message-ID: <CAJZ5v0jA5ibsHseygjOrG_Azw_Xj7y0=TAMks7x-i-yT4+E9QQ@mail.gmail.com>
-References: <1533875532-24954-1-git-send-email-okaya@kernel.org> <20180905212028.GS107892@bhelgaas-glaptop.roam.corp.google.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
+Date: Thu, 6 Sep 2018 12:09:30 +0100
+Message-ID: <03d31ba5-1eda-ea86-8c0c-91d14c86fe83@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-2-jean-philippe.brucker@arm.com>
+	<bf42affd-e9d0-e4fc-6d28-f3c3f7795348@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180905212028.GS107892@bhelgaas-glaptop.roam.corp.google.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: okaya@kernel.org, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <bf42affd-e9d0-e4fc-6d28-f3c3f7795348-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org, christian.koenig-5C7GfCeVMHo@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 5, 2018 at 11:20 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
->
-> On Fri, Aug 10, 2018 at 04:32:11AM +0000, Sinan Kaya wrote:
-> > If _OSC execution fails today for platforms without an _OSC
-> > entry, code is printing a misleading message saying disabling
-> > ASPM as follows:
-> >
-> > acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
-> >
-> > We need to ensure that platform supports ASPM to begin with.
-> >
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > Reported-by: Michael Kelley <mikelley@microsoft.com>
->
-> Tentatively applied both to pci/aspm for v4.20, thanks!
->
-> Rafael, let me know if you object or would rather put these through your tree.
+Hi Eric,
 
-I have no problems with these and they can go in via the PCI tree as
-far as I'm concerned.
+Thanks for reviewing
+
+On 05/09/2018 12:29, Auger Eric wrote:
+>> +int iommu_sva_device_init(struct device *dev, unsigned long features,
+>> +			  unsigned int max_pasid)
+> what about min_pasid?
+
+No one asked for it... The max_pasid parameter is here for drivers that
+have vendor-specific PASID size limits, such as AMD KFD (see
+kfd_iommu_device_init and
+https://patchwork.kernel.org/patch/9989307/#21389571). But in most cases
+the PASID size will only depend on the PCI PASID capability and the
+IOMMU limits, both known by the IOMMU driver, so device drivers won't
+have to set max_pasid.
+
+IOMMU drivers need to set min_pasid in the sva_device_init callback
+because it may be either 1 (e.g. Arm where PASID #0 is reserved) or 0
+(Intel Vt-d rev2), but at the moment I can't see a reason for device
+drivers to override min_pasid
+
+>> +	/*
+>> +	 * IOMMU driver updates the limits depending on the IOMMU and device
+>> +	 * capabilities.
+>> +	 */
+>> +	ret = domain->ops->sva_device_init(dev, param);
+>> +	if (ret)
+>> +		goto err_free_param;
+> So you are likely to call sva_device_init even if it was already called
+> (ie. dev->iommu_param->sva_param is already set). Can't you test whether
+> dev->iommu_param->sva_param is already set first?
+
+Right, that's probably better
+
+>> +/**
+>> + * iommu_sva_device_shutdown() - Shutdown Shared Virtual Addressing for a device
+>> + * @dev: the device
+>> + *
+>> + * Disable SVA. Device driver should ensure that the device isn't performing any
+>> + * DMA while this function is running.
+>> + */
+>> +int iommu_sva_device_shutdown(struct device *dev)
+> Not sure the returned value is required for a shutdown operation.
+
+I don't know either. I like them because they help me debug, but are
+otherwise rather useless if we don't describe precise semantics. The
+caller cannot do anything with it. Given that the corresponding IOMMU op
+is already void, I can change this function to void as well
+
+>> +struct iommu_sva_param {
+> What are the feature values?
+
+At the moment only IOMMU_SVA_FEAT_IOPF, introduced by patch 09
+
+>> +	unsigned long features;
+>> +	unsigned int min_pasid;
+>> +	unsigned int max_pasid;
+>> +};
+>> +
+>>  /**
+>>   * struct iommu_ops - iommu ops and capabilities
+>>   * @capable: check capability
+>> @@ -219,6 +225,8 @@ struct page_response_msg {
+>>   * @domain_free: free iommu domain
+>>   * @attach_dev: attach device to an iommu domain
+>>   * @detach_dev: detach device from an iommu domain
+>> + * @sva_device_init: initialize Shared Virtual Adressing for a device
+> Addressing
+>> + * @sva_device_shutdown: shutdown Shared Virtual Adressing for a device
+> Addressing
+
+Nice catch
 
 Thanks,
-Rafael
+Jean
