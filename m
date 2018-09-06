@@ -1,110 +1,37 @@
-From: Jirka Hladky <jhladky@redhat.com>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Thu, 6 Sep 2018 10:16:28 +0200
-Message-ID: <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com>
-References: <CAE4VaGCQV+cS-vhdLyMwzftbB-xBHPt4Y4chg_0ykLHTE9cRfw@mail.gmail.com>
- <CAE4VaGDHcZbnDpJ+FiQLfA1DRftY0j_GJSnh3FDRi34OztVH6Q@mail.gmail.com>
- <20180627084954.73ucqvac62v5gje4@techsingularity.net> <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
- <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
- <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
- <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
- <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net> <CAE4VaGA_L1AEj+Un0oQEEqZp_jgaFLk+Z=vNoad08oXnU2T1nw@mail.gmail.com>
- <CAE4VaGDTNgu=JX=N7=uZu0Bz_vUdHszZQ9_SQuwrbjRvFjCwZw@mail.gmail.com>
- <20180904090053.GB1719@techsingularity.net> <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 1/2] PCI/ACPI: correct error message for ASPM disabling
+Date: Thu, 6 Sep 2018 11:05:48 +0200
+Message-ID: <CAJZ5v0jA5ibsHseygjOrG_Azw_Xj7y0=TAMks7x-i-yT4+E9QQ@mail.gmail.com>
+References: <1533875532-24954-1-git-send-email-okaya@kernel.org> <20180905212028.GS107892@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
+In-Reply-To: <20180905212028.GS107892@bhelgaas-glaptop.roam.corp.google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: okaya@kernel.org, Linux PCI <linux-pci@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mel,
-
-we have results with 2d4056fafa196e1ab4e7161bae4df76f9602d56d reverted.
-
-  * Compared to 4.18, there is still performance regression -
-especially with NAS (sp_C_x subtest) and SPECjvm2008. On 4 NUMA
-systems, regression is around 10-15%
-  * Compared to 4.19rc1 there is a clear gain across all benchmarks around 20%
-
-While reverting 2d4056fafa196e1ab4e7161bae4df76f9602d56d has helped a
-lot there is another issue as well. Could you please recommend some
-commit prior to 2d4056fafa196e1ab4e7161bae4df76f9602d56d to try?
-
-Regarding the current results, how do we proceed? Could you please
-contact Srikar and ask for the advice or should we contact him
-directly?
-
-Thanks a lot!
-Jirka
-
-On Tue, Sep 4, 2018 at 12:07 PM, Jirka Hladky <jhladky@redhat.com> wrote:
-> Hi Mel,
+On Wed, Sep 5, 2018 at 11:20 PM Bjorn Helgaas <helgaas@kernel.org> wrote:
 >
-> thanks for sharing the background information! We will check if
-> 2d4056fafa196e1ab4e7161bae4df76f9602d56d is causing the current
-> regression in 4.19 rc1 and let you know the outcome.
+> On Fri, Aug 10, 2018 at 04:32:11AM +0000, Sinan Kaya wrote:
+> > If _OSC execution fails today for platforms without an _OSC
+> > entry, code is printing a misleading message saying disabling
+> > ASPM as follows:
+> >
+> > acpi PNP0A03:00: _OSC failed (AE_NOT_FOUND); disabling ASPM
+> >
+> > We need to ensure that platform supports ASPM to begin with.
+> >
+> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> > Reported-by: Michael Kelley <mikelley@microsoft.com>
 >
-> Jirka
+> Tentatively applied both to pci/aspm for v4.20, thanks!
 >
-> On Tue, Sep 4, 2018 at 11:00 AM, Mel Gorman <mgorman@techsingularity.net> wrote:
->> On Mon, Sep 03, 2018 at 05:07:15PM +0200, Jirka Hladky wrote:
->>> Resending in the plain text mode.
->>>
->>> > My own testing completed and the results are within expectations and I
->>> > saw no red flags. Unfortunately, I consider it unlikely they'll be merged
->>> > for 4.18. Srikar Dronamraju's series is likely to need another update
->>> > and I would need to rebase my patches on top of that. Given the scope
->>> > and complexity, I find it unlikely they would be accepted for an -rc,
->>> > particularly this late of an rc. Whether we hit the 4.19 merge window or
->>> > not will depend on when Srikar's series gets updated.
->>>
->>>
->>> Hi Mel,
->>>
->>> we have collaborated back in July on the scheduler patch, improving
->>> the performance by allowing faster memory migration. You came up with
->>> the "sched-numa-fast-crossnode-v1r12" series here:
->>>
->>> https://git.kernel.org/pub/scm/linux/kernel/git/mel/linux.git
->>>
->>> which has shown good performance results both in your and our testing.
->>>
->>
->> I remember.
->>
->>> Do you have some update on the latest status? Is there any plan to
->>> merge this series into 4.19 kernel? We have just tested 4.19.0-0.rc1.1
->>> and based on the results it seems that the patch is not included (and
->>> I don't see it listed in  git shortlog v4.18..v4.19-rc1
->>> ./kernel/sched)
->>>
->>
->> Srikar's series that mine depended upon was only partially merged due to
->> a review bottleneck. He posted a v2 but it was during the merge window
->> and likely will need a v3 to avoid falling through the cracks. When it
->> is merged, I'll rebase my series on top and post it. While I didn't
->> check against 4.19-rc1, I did find that rebasing on top of the partial
->> series in 4.18 did not have as big an improvement.
->>
->>> With 4.19rc1 we see performance drop
->>>   * up to 40% (NAS bench) relatively to  4.18 + sched-numa-fast-crossnode-v1r12
->>>   * up to 20% (NAS, Stream, SPECjbb2005, SPECjvm2008) relatively to 4.18 vanilla
->>> The performance is dropping. It's quite unclear what are the next
->>> steps - should we wait for "sched-numa-fast-crossnode-v1r12" to be
->>> merged or should we start looking at what has caused the drop in
->>> performance going from 4.19rc1 to 4.18?
->>>
->>
->> Both are valid options. If you take the latter option, I suggest looking
->> at whether 2d4056fafa196e1ab4e7161bae4df76f9602d56d is the source of the
->> issue as at least one auto-bisection found that it may be problematic.
->> Whether it is an issue or not depends heavily on the number of threads
->> relative to a socket size.
->>
->> --
->> Mel Gorman
->> SUSE Labs
+> Rafael, let me know if you object or would rather put these through your tree.
+
+I have no problems with these and they can go in via the PCI tree as
+far as I'm concerned.
+
+Thanks,
+Rafael
