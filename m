@@ -1,52 +1,61 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
-Date: Thu, 6 Sep 2018 13:45:36 +0100
-Message-ID: <f0b317d5-e2e9-5478-952c-05e8b97bd68b@arm.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
-	<20180511190641.23008-2-jean-philippe.brucker@arm.com>
-	<bf42affd-e9d0-e4fc-6d28-f3c3f7795348@redhat.com>
-	<03d31ba5-1eda-ea86-8c0c-91d14c86fe83@arm.com>
-	<ed39159c-087e-7e56-7d29-d1de9fa1677f@amd.com>
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Thu, 6 Sep 2018 13:58:43 +0100
+Message-ID: <20180906125843.GC1719@techsingularity.net>
+References: <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
+ <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
+ <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
+ <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
+ <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net>
+ <CAE4VaGA_L1AEj+Un0oQEEqZp_jgaFLk+Z=vNoad08oXnU2T1nw@mail.gmail.com>
+ <CAE4VaGDTNgu=JX=N7=uZu0Bz_vUdHszZQ9_SQuwrbjRvFjCwZw@mail.gmail.com>
+ <20180904090053.GB1719@techsingularity.net>
+ <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
+ <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <ed39159c-087e-7e56-7d29-d1de9fa1677f-5C7GfCeVMHo@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
-Cc: xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org
+Content-Type: text/plain; charset=iso-8859-15
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jirka Hladky <jhladky@redhat.com>
+Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMDYvMDkvMjAxOCAxMjoxMiwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBBbSAwNi4wOS4y
-MDE4IHVtIDEzOjA5IHNjaHJpZWIgSmVhbi1QaGlsaXBwZSBCcnVja2VyOgo+PiBIaSBFcmljLAo+
-Pgo+PiBUaGFua3MgZm9yIHJldmlld2luZwo+Pgo+PiBPbiAwNS8wOS8yMDE4IDEyOjI5LCBBdWdl
-ciBFcmljIHdyb3RlOgo+Pj4+ICtpbnQgaW9tbXVfc3ZhX2RldmljZV9pbml0KHN0cnVjdCBkZXZp
-Y2UgKmRldiwgdW5zaWduZWQgbG9uZyBmZWF0dXJlcywKPj4+PiArwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqAgdW5zaWduZWQgaW50IG1heF9wYXNpZCkKPj4+IHdoYXQgYWJvdXQgbWluX3Bhc2lk
-Pwo+PiBObyBvbmUgYXNrZWQgZm9yIGl0Li4uIFRoZSBtYXhfcGFzaWQgcGFyYW1ldGVyIGlzIGhl
-cmUgZm9yIGRyaXZlcnMgdGhhdAo+PiBoYXZlIHZlbmRvci1zcGVjaWZpYyBQQVNJRCBzaXplIGxp
-bWl0cywgc3VjaCBhcyBBTUQgS0ZEIChzZWUKPj4ga2ZkX2lvbW11X2RldmljZV9pbml0IGFuZAo+
-PiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk5ODkzMDcvIzIxMzg5NTcxKS4g
-QnV0IGluIG1vc3QgY2FzZXMKPj4gdGhlIFBBU0lEIHNpemUgd2lsbCBvbmx5IGRlcGVuZCBvbiB0
-aGUgUENJIFBBU0lEIGNhcGFiaWxpdHkgYW5kIHRoZQo+PiBJT01NVSBsaW1pdHMsIGJvdGgga25v
-d24gYnkgdGhlIElPTU1VIGRyaXZlciwgc28gZGV2aWNlIGRyaXZlcnMgd29uJ3QKPj4gaGF2ZSB0
-byBzZXQgbWF4X3Bhc2lkLgo+Pgo+PiBJT01NVSBkcml2ZXJzIG5lZWQgdG8gc2V0IG1pbl9wYXNp
-ZCBpbiB0aGUgc3ZhX2RldmljZV9pbml0IGNhbGxiYWNrCj4+IGJlY2F1c2UgaXQgbWF5IGJlIGVp
-dGhlciAxIChlLmcuIEFybSB3aGVyZSBQQVNJRCAjMCBpcyByZXNlcnZlZCkgb3IgMAo+PiAoSW50
-ZWwgVnQtZCByZXYyKSwgYnV0IGF0IHRoZSBtb21lbnQgSSBjYW4ndCBzZWUgYSByZWFzb24gZm9y
-IGRldmljZQo+PiBkcml2ZXJzIHRvIG92ZXJyaWRlIG1pbl9wYXNpZAo+IAo+IFNvcnJ5IHRvIHJ1
-aW4geW91ciBkYXksIGJ1dCBpZiBJJ20gbm90IGNvbXBsZXRlbHkgbWlzdGFrZW4gUEFTSUQgemVy
-byBpcwo+IHJlc2VydmVkIGluIHRoZSBBTUQgS0ZEIGFzIHdlbGwuCgpIZWgsIGZhaXIgZW5vdWdo
-LiBJJ2xsIGFkZCB0aGUgbWluX3Bhc2lkIHBhcmFtZXRlcgoKVGhhbmtzLApKZWFuCl9fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmlvbW11IG1haWxpbmcgbGlz
-dAppb21tdUBsaXN0cy5saW51eC1mb3VuZGF0aW9uLm9yZwpodHRwczovL2xpc3RzLmxpbnV4Zm91
-bmRhdGlvbi5vcmcvbWFpbG1hbi9saXN0aW5mby9pb21tdQ==
+On Thu, Sep 06, 2018 at 10:16:28AM +0200, Jirka Hladky wrote:
+> Hi Mel,
+> 
+> we have results with 2d4056fafa196e1ab4e7161bae4df76f9602d56d reverted.
+> 
+>   * Compared to 4.18, there is still performance regression -
+> especially with NAS (sp_C_x subtest) and SPECjvm2008. On 4 NUMA
+> systems, regression is around 10-15%
+>   * Compared to 4.19rc1 there is a clear gain across all benchmarks around 20%
+> 
+
+Ok.
+
+> While reverting 2d4056fafa196e1ab4e7161bae4df76f9602d56d has helped a
+> lot there is another issue as well. Could you please recommend some
+> commit prior to 2d4056fafa196e1ab4e7161bae4df76f9602d56d to try?
+> 
+
+Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
+condition in terms of idle CPU handling that has been problematic.
+
+> Regarding the current results, how do we proceed? Could you please
+> contact Srikar and ask for the advice or should we contact him
+> directly?
+> 
+
+I would suggest contacting Srikar directly. While I'm working on a
+series that touches off some similar areas, there is no guarantee it'll
+be a success as I'm not primarily upstream focused at the moment.
+
+Restarting the thread would also end up with a much more sensible cc
+list.
+
+-- 
+Mel Gorman
+SUSE Labs
