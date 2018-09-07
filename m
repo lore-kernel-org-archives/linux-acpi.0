@@ -1,223 +1,112 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v2 2/4] acpi: arm64: iort helper to find the associated
- smmu of pmcg node
-Date: Fri, 7 Sep 2018 16:42:36 +0100
-Message-ID: <0eda98b8-cd99-1153-e6c3-3de2feca91ba@arm.com>
-References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
- <20180724114515.21764-3-shameerali.kolothum.thodi@huawei.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
+Date: Fri, 7 Sep 2018 16:45:02 +0100
+Message-ID: <65e7accd-4446-19f5-c667-c6407e89cfa6@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-2-jean-philippe.brucker@arm.com>
+	<bf42affd-e9d0-e4fc-6d28-f3c3f7795348@redhat.com>
+	<03d31ba5-1eda-ea86-8c0c-91d14c86fe83@arm.com>
+	<ed39159c-087e-7e56-7d29-d1de9fa1677f@amd.com>
+	<f0b317d5-e2e9-5478-952c-05e8b97bd68b@arm.com>
+	<2fd4a0a1-1a35-bf82-df84-b995cce011d9@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180724114515.21764-3-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
-Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <2fd4a0a1-1a35-bf82-df84-b995cce011d9-5C7GfCeVMHo@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>
+Cc: "xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Robin Murphy <Robin.Murphy-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 24/07/18 12:45, Shameer Kolothum wrote:
-> This adds an helper to retrieve the smmuv3 dev(if any) associated
-> with the PMCG node. This will be used in subsequent SMMUv3 PMU
-> driver patch to name the pmu device.
-
-As before, I think we might as well try to generalise this to the NC/RC 
-case now, rather than have to redo it later once PMCGs for "external" 
-TBUs become a real thing.
-
-Robin.
-
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->   drivers/acpi/arm64/iort.c | 84 ++++++++++++++++++++++++++++++++++++-----------
->   include/linux/acpi_iort.h |  4 +++
->   2 files changed, 69 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index ac4d0d6..7940080 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -42,6 +42,7 @@ struct iort_fwnode {
->   	struct list_head list;
->   	struct acpi_iort_node *iort_node;
->   	struct fwnode_handle *fwnode;
-> +	struct platform_device *pdev;
->   };
->   static LIST_HEAD(iort_fwnode_list);
->   static DEFINE_SPINLOCK(iort_fwnode_lock);
-> @@ -52,12 +53,14 @@ static DEFINE_SPINLOCK(iort_fwnode_lock);
->    *
->    * @node: IORT table node associated with the IOMMU
->    * @fwnode: fwnode associated with the IORT node
-> + * @pdev: platform dev associated with the IORT node if any
->    *
->    * Returns: 0 on success
->    *          <0 on failure
->    */
->   static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
-> -				  struct fwnode_handle *fwnode)
-> +				  struct fwnode_handle *fwnode,
-> +				  struct platform_device *pdev)
->   {
->   	struct iort_fwnode *np;
->   
-> @@ -69,6 +72,7 @@ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
->   	INIT_LIST_HEAD(&np->list);
->   	np->iort_node = iort_node;
->   	np->fwnode = fwnode;
-> +	np->pdev = pdev;
->   
->   	spin_lock(&iort_fwnode_lock);
->   	list_add_tail(&np->list, &iort_fwnode_list);
-> @@ -78,6 +82,31 @@ static inline int iort_set_fwnode(struct acpi_iort_node *iort_node,
->   }
->   
->   /**
-> + * iort_get_pdev() - Retrieve pdev associated with an IORT node
-> + *
-> + * @node: IORT table node to be looked-up
-> + *
-> + * Returns: platform dev pointer on success, NULL on failure
-> + */
-> +static inline struct platform_device *iort_get_pdev(
-> +			struct acpi_iort_node *node)
-> +{
-> +	struct iort_fwnode *curr;
-> +	struct platform_device *pdev = NULL;
-> +
-> +	spin_lock(&iort_fwnode_lock);
-> +	list_for_each_entry(curr, &iort_fwnode_list, list) {
-> +		if (curr->iort_node == node) {
-> +			pdev = curr->pdev;
-> +			break;
-> +		}
-> +	}
-> +	spin_unlock(&iort_fwnode_lock);
-> +
-> +	return pdev;
-> +}
-> +
-> +/**
->    * iort_get_fwnode() - Retrieve fwnode associated with an IORT node
->    *
->    * @node: IORT table node to be looked-up
-> @@ -1347,6 +1376,32 @@ static struct acpi_iort_node *iort_find_pmcg_ref(struct acpi_iort_node *node)
->   	return ref_node;
->   }
->   
-> +/**
-> + * iort_find_pmcg_ref_smmu - helper to retrieve SMMUv3 associated with PMCG
-> + * @dev: PMCG device
-> + *
-> + * Returns: smmu dev associated with the PMCG on success, NULL on failure
-> + */
-> +struct device *iort_find_pmcg_ref_smmu(struct device *dev)
-> +{
-> +	struct acpi_iort_node *node;
-> +	struct acpi_iort_node *ref_node = NULL;
-> +	struct platform_device *pdev = NULL;
-> +
-> +	node = iort_get_iort_node(dev->fwnode);
-> +	if (!node || node->type != ACPI_IORT_NODE_PMCG)
-> +		return NULL;
-> +
-> +	ref_node = iort_find_pmcg_ref(node);
-> +	if (ref_node && ref_node->type == ACPI_IORT_NODE_SMMU_V3)
-> +		pdev = iort_get_pdev(ref_node);
-> +
-> +	if (pdev)
-> +		return &pdev->dev;
-> +
-> +	return NULL;
-> +}
-> +
->   struct iort_dev_config {
->   	const char *name;
->   	int (*dev_init)(struct acpi_iort_node *node);
-> @@ -1453,13 +1508,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->   	if (ret)
->   		goto dev_put;
->   
-> -	fwnode = iort_get_fwnode(node);
-> -
-> +	fwnode = acpi_alloc_fwnode_static();
->   	if (!fwnode) {
->   		ret = -ENODEV;
->   		goto dev_put;
->   	}
->   
-> +	iort_set_fwnode(node, fwnode, pdev);
-> +
->   	pdev->dev.fwnode = fwnode;
->   
->   	if (ops->dev_dma_configure) {
-> @@ -1472,12 +1528,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->   
->   	ret = platform_device_add(pdev);
->   	if (ret)
-> -		goto dma_deconfigure;
-> +		goto out;
->   
->   	return 0;
->   
-> -dma_deconfigure:
-> +out:
->   	acpi_dma_deconfigure(&pdev->dev);
-> +	iort_delete_fwnode(node);
-> +	acpi_free_fwnode_static(fwnode);
->   dev_put:
->   	platform_device_put(pdev);
->   
-> @@ -1519,8 +1577,7 @@ static void __init iort_init_platform_devices(void)
->   {
->   	struct acpi_iort_node *iort_node, *iort_end;
->   	struct acpi_table_iort *iort;
-> -	struct fwnode_handle *fwnode;
-> -	int i, ret;
-> +	int i;
->   	bool acs_enabled = false;
->   	const struct iort_dev_config *ops;
->   
-> @@ -1547,18 +1604,7 @@ static void __init iort_init_platform_devices(void)
->   
->   		ops = iort_get_dev_cfg(iort_node);
->   		if (ops) {
-> -			fwnode = acpi_alloc_fwnode_static();
-> -			if (!fwnode)
-> -				return;
-> -
-> -			iort_set_fwnode(iort_node, fwnode);
-> -
-> -			ret = iort_add_platform_device(iort_node, ops);
-> -			if (ret) {
-> -				iort_delete_fwnode(iort_node);
-> -				acpi_free_fwnode_static(fwnode);
-> -				return;
-> -			}
-> +			iort_add_platform_device(iort_node, ops);
->   		}
->   
->   		iort_node = ACPI_ADD_PTR(struct acpi_iort_node, iort_node,
-> diff --git a/include/linux/acpi_iort.h b/include/linux/acpi_iort.h
-> index 38cd77b..54ccff2 100644
-> --- a/include/linux/acpi_iort.h
-> +++ b/include/linux/acpi_iort.h
-> @@ -36,6 +36,7 @@ u32 iort_msi_map_rid(struct device *dev, u32 req_id);
->   struct irq_domain *iort_get_device_domain(struct device *dev, u32 req_id);
->   void acpi_configure_pmsi_domain(struct device *dev);
->   int iort_pmsi_get_dev_id(struct device *dev, u32 *dev_id);
-> +struct device *iort_find_pmcg_ref_smmu(struct device *dev);
->   /* IOMMU interface */
->   void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *size);
->   const struct iommu_ops *iort_iommu_configure(struct device *dev);
-> @@ -48,6 +49,9 @@ static inline struct irq_domain *iort_get_device_domain(struct device *dev,
->   							u32 req_id)
->   { return NULL; }
->   static inline void acpi_configure_pmsi_domain(struct device *dev) { }
-> +static inline
-> +struct device *iort_find_pmcg_ref_smmu(struct device *dev)
-> +{ return NULL; }
->   /* IOMMU interface */
->   static inline void iort_dma_setup(struct device *dev, u64 *dma_addr,
->   				  u64 *size) { }
-> 
+T24gMDcvMDkvMjAxOCAwOTo1NSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBJIHdpbGwgdGFr
+ZSB0aGlzIGFzIGFuIG9wcG9ydHVuaXR5IHRvIHN1bW1hcml6ZSBzb21lIG9mIHRoZSByZXF1aXJl
+bWVudHMgCj4gd2UgaGF2ZSBmb3IgUEFTSUQgbWFuYWdlbWVudCBmcm9tIHRoZSBhbWRncHUgZHJp
+dmVyIHBvaW50IG9mIHZpZXc6CgpUaGF0J3MgaW5jcmVkaWJseSB1c2VmdWwsIHRoYW5rcyA6KQoK
+PiAxLiBXZSBuZWVkIHRvIGJlIGFibGUgdG8gYWxsb2NhdGUgUEFTSUQgYmV0d2VlbiAxIGFuZCBz
+b21lIG1heGltdW0uIFplcm8gCj4gaXMgcmVzZXJ2ZWQgYXMgZmFyIGFzIEkga25vdywgYnV0IHdl
+IGRvbid0IG5lY2Vzc2FyeSBuZWVkIGEgbWluaW11bS4KClNob3VsZCBiZSBmaW5lLiBUaGUgUEFT
+SUQgcmFuZ2UgaXMgcmVzdHJpY3RlZCBieSB0aGUgUENJIFBBU0lECmNhcGFiaWxpdHksIGZpcm13
+YXJlIGRlc2NyaXB0aW9uIChmb3Igbm9uLVBDSSBkZXZpY2VzKSwgdGhlIElPTU1VCmNhcGFjaXR5
+LCBhbmQgd2hhdCB0aGUgZGV2aWNlIGRyaXZlciBwYXNzZXMgdG8gaW9tbXVfc3ZhX2RldmljZV9p
+bml0LgpOb3QgYWxsIElPTU1VcyByZXNlcnZlIFBBU0lEIDAgKEFNRCBJT01NVSB3aXRob3V0IEdJ
+b1N1cCBkb2Vzbid0LCBpZiBJJ20Kbm90IG1pc3Rha2VuKSwgc28gdGhlIEtGRCBkcml2ZXIgd2ls
+bCBuZWVkIHRvIHBhc3MgbWluX3Bhc2lkPTEgdG8gbWFrZQpzdXJlIHRoYXQgMCBpc24ndCBhbGxv
+Y2F0ZWQuCgo+IDIuIFdlIG5lZWQgdG8gYmUgYWJsZSB0byBhbGxvY2F0ZSBQQVNJRHMgd2l0aG91
+dCBhIHByb2Nlc3MgYWRkcmVzcyBzcGFjZSAKPiBiYWNraW5nIGl0LiBFLmcuIG91ciBoYXJkd2Fy
+ZSB1c2VzIFBBU0lEcyBldmVuIHdpdGhvdXQgU2hhcmVkIFZpcnR1YWwgCj4gQWRkcmVzc2luZyBl
+bmFibGVkIHRvIGRpc3RpbmN0IGNsaWVudHMgZnJvbSBlYWNoIG90aGVyLgo+ICDCoMKgwqAgwqDC
+oMKgIFdvdWxkIGJlIGEgcGl0eSBpZiB3ZSBuZWVkIHRvIHN0aWxsIGhhdmUgYSBzZXBhcmF0ZSBQ
+QVNJRCAKPiBoYW5kbGluZyBiZWNhdXNlIHRoZSBzeXN0ZW0gd2lkZSBpcyBvbmx5IGF2YWlsYWJs
+ZSB3aGVuIElPTU1VIGlzIHR1cm5lZCBvbi4KCkknbSBzdGlsbCBub3Qgc3VyZSBhYm91dCB0aGlz
+IG9uZS4gRnJvbSBteSBwb2ludCBvZiB2aWV3IHdlIHNob3VsZG4ndAphZGQgdG8gdGhlIElPTU1V
+IHN1YnN5c3RlbSBoZWxwZXJzIGZvciBkZXZpY2VzIHdpdGhvdXQgYW4gSU9NTVUuCmlvbW11LXN2
+YSBleHBlY3RzIGV2ZXJ5d2hlcmUgdGhhdCB0aGUgZGV2aWNlIGhhcyBhbiBpb21tdV9kb21haW4s
+IGl0J3MKdGhlIGZpcnN0IHRoaW5nIHdlIGNoZWNrIG9uIGVudHJ5LiBCeXBhc3NpbmcgYWxsIG9m
+IHRoaXMgd291bGQgY2FsbAppZHJfYWxsb2MoKSBkaXJlY3RseSwgYW5kIHdvdWxkbid0IGhhdmUg
+YW55IGNvZGUgaW4gY29tbW9uIHdpdGggdGhlCmN1cnJlbnQgaW9tbXUtc3ZhLiBTbyBpdCBzZWVt
+cyBsaWtlIHlvdSBuZWVkIGEgbGF5ZXIgb24gdG9wIG9mIGlvbW11LXN2YQpjYWxsaW5nIGlkcl9h
+bGxvYygpIHdoZW4gYW4gSU9NTVUgaXNuJ3QgcHJlc2VudCwgYnV0IEkgZG9uJ3QgdGhpbmsgaXQK
+c2hvdWxkIGJlIGluIGRyaXZlcnMvaW9tbXUvCgo+IDMuIEV2ZW4gYWZ0ZXIgZGVzdHJ1Y3Rpb24g
+b2YgYSBwcm9jZXNzIGFkZHJlc3Mgc3BhY2Ugd2UgbmVlZCBzb21lIGdyYWNlIAo+IHBlcmlvZCBi
+ZWZvcmUgYSBQQVNJRCBpcyByZXVzZWQgYmVjYXVzZSBpdCBjYW4gYmUgdGhhdCB0aGUgc3BlY2lm
+aWMgCj4gUEFTSUQgaXMgc3RpbGwgaW4gc29tZSBoYXJkd2FyZSBxdWV1ZXMgZXRjLi4uCj4gIMKg
+wqDCoCDCoMKgwqAgQXQgYmFyZSBtaW5pbXVtIGFsbCBkZXZpY2UgZHJpdmVycyB1c2luZyBwcm9j
+ZXNzIGJpbmRpbmcgbmVlZCAKPiB0byBleHBsaWNpdGx5IG5vdGUgdG8gdGhlIGNvcmUgd2hlbiB0
+aGV5IGFyZSBkb25lIHdpdGggYSBQQVNJRC4KClJpZ2h0LCBtdWNoIG9mIHRoZSBob3JyaWJsZW5l
+c3MgaW4gaW9tbXUtc3ZhIGRlYWxzIHdpdGggdGhpczoKClRoZSBwcm9jZXNzIGRpZXMsIGlvbW11
+LXN2YSBpcyBub3RpZmllZCBhbmQgY2FsbHMgdGhlIG1tX2V4aXQoKSBmdW5jdGlvbgpwYXNzZWQg
+YnkgdGhlIGRldmljZSBkcml2ZXIgdG8gaW9tbXVfc3ZhX2RldmljZV9pbml0KCkuIEluIG1tX2V4
+aXQoKSB0aGUKZGV2aWNlIGRyaXZlciBuZWVkcyB0byBjbGVhciBhbnkgcmVmZXJlbmNlIHRvIHRo
+ZSBQQVNJRCBpbiBoYXJkd2FyZSBhbmQKaW4gaXRzIG93biBzdHJ1Y3R1cmVzLiBXaGVuIHRoZSBk
+ZXZpY2UgZHJpdmVyIHJldHVybnMgZnJvbSBtbV9leGl0KCksIGl0CmVmZmVjdGl2ZWx5IHRlbGxz
+IHRoZSBjb3JlIHRoYXQgaXQgaGFzIGZpbmlzaGVkIHVzaW5nIHRoZSBQQVNJRCwgYW5kCmlvbW11
+LXN2YSBjYW4gcmV1c2UgdGhlIFBBU0lEIGZvciBhbm90aGVyIHByb2Nlc3MuIG1tX2V4aXQoKSBp
+cyBhbGxvd2VkCnRvIGJsb2NrLCBzbyB0aGUgZGV2aWNlIGRyaXZlciBoYXMgdGltZSB0byBjbGVh
+biB1cCBhbmQgZmx1c2ggdGhlIHF1ZXVlcy4KCklmIHRoZSBkZXZpY2UgZHJpdmVyIGZpbmlzaGVz
+IHVzaW5nIHRoZSBQQVNJRCBiZWZvcmUgdGhlIHByb2Nlc3MgZXhpdHMsCml0IGp1c3QgY2FsbHMg
+dW5iaW5kKCkuCgo+IDQuIEl0IHdvdWxkIGJlIG5pY2UgdG8gaGF2ZSB0byBiZSBhYmxlIHRvIHNl
+dCBhICJ2b2lkICoiIGZvciBlYWNoIAo+IFBBU0lEL2RldmljZSBjb21iaW5hdGlvbiB3aGlsZSBi
+aW5kaW5nIHRvIGEgcHJvY2VzcyB3aGljaCB0aGVuIGNhbiBiZSAKPiBxdWVyaWVkIGxhdGVyIG9u
+IGJhc2VkIG9uIHRoZSBQQVNJRC4KPiAgwqDCoMKgIMKgwqDCoCBFLmcuIHdoZW4geW91IGhhdmUg
+YSBwZXIgUEFTSUQvZGV2aWNlIHN0cnVjdHVyZSBhcm91bmQgYW55d2F5LCAKPiBqdXN0IGFkZCBh
+biBleHRyYSBmaWVsZC4KCmlvbW11X3N2YV9iaW5kX2RldmljZSgpIHRha2VzIGEgImRydmRhdGEi
+IHBvaW50ZXIgdGhhdCBpcyBzdG9yZWQKaW50ZXJuYWxseSBmb3IgdGhlIFBBU0lEL2RldmljZSBj
+b21iaW5hdGlvbiAoaW9tbXVfYm9uZCkuIEl0IGlzIHBhc3NlZAp0byBtbV9leGl0KCksIGJ1dCBJ
+IGhhdmVuJ3QgYWRkZWQgYW55dGhpbmcgZm9yIHRoZSBkZXZpY2UgZHJpdmVyIHRvCnF1ZXJ5IGl0
+IGJhY2suCgo+IDUuIEl0IHdvdWxkIGJlIG5pY2UgdG8gaGF2ZSB0byBhbGxvY2F0ZSBtdWx0aXBs
+ZSBQQVNJRHMgZm9yIHRoZSBzYW1lIAo+IHByb2Nlc3MgYWRkcmVzcyBzcGFjZS4KPiAgwqDCoMKg
+IMKgwqDCoCBFLmcuIHNvbWUgdGVhbXMgYXQgQU1EIHdhbnQgdG8gdXNlIGEgc2VwYXJhdGUgR1BV
+IGFkZHJlc3Mgc3BhY2UgCj4gZm9yIHRoZWlyIHVzZXJzcGFjZSBjbGllbnQgbGlicmFyeS4gSSdt
+IHN0aWxsIHRyeWluZyB0byBhdm9pZCB0aGF0LCBidXQgCj4gaXQgaXMgcGVyZmVjdGx5IHBvc3Np
+YmxlIHRoYXQgd2UgYXJlIGdvaW5nIHRvIG5lZWQgdGhhdC4KClR3byBQQVNJRHMgcG9pbnRpbmcg
+dG8gdGhlIHNhbWUgcHJvY2VzcyBwZ2Q/IEF0IGZpcnN0IGdsYW5jZSBpdCBzZWVtcwpmZWFzaWJs
+ZSwgbWF5YmUgd2l0aCBhIGZsYWcgcGFzc2VkIHRvIGJpbmQoKSBhbmQgYSBmZXcgY2hhbmdlcyB0
+bwppbnRlcm5hbCBzdHJ1Y3R1cmVzLiBJdCB3aWxsIGR1cGxpY2F0ZSBBVEMgaW52YWxpZGF0aW9u
+IGNvbW1hbmRzIGZvcgplYWNoIHByb2Nlc3MgYWRkcmVzcyBzcGFjZSBjaGFuZ2UgKG11bm1hcCBl
+dGMpIHNvIHlvdSBtaWdodCB0YWtlIGEKcGVyZm9ybWFuY2UgaGl0LgoKSW50ZWwncyBTVk0gY29k
+ZSBoYXMgdGhlIFNWTV9GTEFHX1BSSVZBVEVfUEFTSUQgd2hpY2ggc2VlbXMgc2ltaWxhciB0bwp3
+aGF0IHlvdSBkZXNjcmliZSwgYnV0IEkgZG9uJ3QgcGxhbiB0byBzdXBwb3J0IGl0IGluIHRoaXMg
+c2VyaWVzICh0aGUKaW9fbW0gbW9kZWwgaXMgYWxyZWFkeSBwcmV0dHkgY29tcGxpY2F0ZWQpLiBJ
+IHRoaW5rIGl0IGNhbiBiZSBhZGRlZAp3aXRob3V0IHRvbyBtdWNoIGVmZm9ydCBpbiBhIGZ1dHVy
+ZSBzZXJpZXMsIHRob3VnaCB3aXRoIGEgZGlmZmVyZW50IGZsYWcKbmFtZSBzaW5jZSB3ZSdkIGxp
+a2UgdG8gdXNlICJwcml2YXRlIFBBU0lEIiBmb3Igc29tZXRoaW5nIGVsc2UKKGh0dHBzOi8vd3d3
+LnNwaW5pY3MubmV0L2xpc3RzL2RyaS1kZXZlbC9tc2cxNzcwMDcuaHRtbCkuCgpUaGFua3MsCkpl
+YW4KCj4gIMKgwqDCoCDCoMKgwqAgQWRkaXRpb25hbCB0byB0aGF0IGl0IGlzIHNvbWV0aW1lcyBx
+dWl0ZSB1c2VmdWwgZm9yIGRlYnVnZ2luZyAKPiB0byBpc29sYXRlIHdoZXJlIGV4YWN0bHkgYW4g
+aW5jb3JyZWN0IGFjY2VzcyAoc2VnZmF1bHQpIGlzIGNvbWluZyBmcm9tLgo+IAo+IExldCBtZSBr
+bm93IGlmIHRoZXJlIGFyZSBzb21lIHByb2JsZW1zIHdpdGggdGhhdCwgZXNwZWNpYWxseSBJIHdh
+bnQgdG8gCj4ga25vdyBpZiB0aGVyZSBpcyBwdXNoYmFjayBvbiAjNSBzbyB0aGF0IEkgY2FuIGZv
+cndhcmQgdGhhdCA6KQo+IAo+IFRoYW5rcywKPiBDaHJpc3RpYW4uCj4gCj4+Cj4+IFRoYW5rcywK
+Pj4gSmVhbgo+IAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X18KaW9tbXUgbWFpbGluZyBsaXN0CmlvbW11QGxpc3RzLmxpbnV4LWZvdW5kYXRpb24ub3JnCmh0
+dHBzOi8vbGlzdHMubGludXhmb3VuZGF0aW9uLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2lvbW11
