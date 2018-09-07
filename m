@@ -1,79 +1,87 @@
-From: Jirka Hladky <jhladky@redhat.com>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Fri, 7 Sep 2018 10:09:07 +0200
-Message-ID: <CAE4VaGAD0NuO+bhQ=BXB-TC71CeyYJ+3WbY30r_vo7NKBQR2Mg@mail.gmail.com>
-References: <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
- <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
- <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
- <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
- <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net> <CAE4VaGA_L1AEj+Un0oQEEqZp_jgaFLk+Z=vNoad08oXnU2T1nw@mail.gmail.com>
- <CAE4VaGDTNgu=JX=N7=uZu0Bz_vUdHszZQ9_SQuwrbjRvFjCwZw@mail.gmail.com>
- <20180904090053.GB1719@techsingularity.net> <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
- <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com> <20180906125843.GC1719@techsingularity.net>
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>
+Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
+Date: Fri, 7 Sep 2018 10:55:31 +0200
+Message-ID: <2fd4a0a1-1a35-bf82-df84-b995cce011d9@amd.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-2-jean-philippe.brucker@arm.com>
+	<bf42affd-e9d0-e4fc-6d28-f3c3f7795348@redhat.com>
+	<03d31ba5-1eda-ea86-8c0c-91d14c86fe83@arm.com>
+	<ed39159c-087e-7e56-7d29-d1de9fa1677f@amd.com>
+	<f0b317d5-e2e9-5478-952c-05e8b97bd68b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180906125843.GC1719@techsingularity.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <f0b317d5-e2e9-5478-952c-05e8b97bd68b-5wv7dgnIgG8@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>, Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org
+Cc: xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org, kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, robin.murphy-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
-> condition in terms of idle CPU handling that has been problematic.
-
-
-We will try that, thanks!
-
->  I would suggest contacting Srikar directly.
-
-
-I will do that right away. Whom should I put on Cc? Just you and
-linux-kernel@vger.kernel.org ? Should I put Ingo and Peter on Cc as
-well?
-
-$scripts/get_maintainer.pl -f kernel/sched
-Ingo Molnar <mingo@redhat.com> (maintainer:SCHEDULER)
-Peter Zijlstra <peterz@infradead.org> (maintainer:SCHEDULER)
-linux-kernel@vger.kernel.org (open list:SCHEDULER)
-
-Jirka
-
-On Thu, Sep 6, 2018 at 2:58 PM, Mel Gorman <mgorman@techsingularity.net> wrote:
-> On Thu, Sep 06, 2018 at 10:16:28AM +0200, Jirka Hladky wrote:
->> Hi Mel,
->>
->> we have results with 2d4056fafa196e1ab4e7161bae4df76f9602d56d reverted.
->>
->>   * Compared to 4.18, there is still performance regression -
->> especially with NAS (sp_C_x subtest) and SPECjvm2008. On 4 NUMA
->> systems, regression is around 10-15%
->>   * Compared to 4.19rc1 there is a clear gain across all benchmarks around 20%
->>
->
-> Ok.
->
->> While reverting 2d4056fafa196e1ab4e7161bae4df76f9602d56d has helped a
->> lot there is another issue as well. Could you please recommend some
->> commit prior to 2d4056fafa196e1ab4e7161bae4df76f9602d56d to try?
->>
->
-> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
-> condition in terms of idle CPU handling that has been problematic.
->
->> Regarding the current results, how do we proceed? Could you please
->> contact Srikar and ask for the advice or should we contact him
->> directly?
->>
->
-> I would suggest contacting Srikar directly. While I'm working on a
-> series that touches off some similar areas, there is no guarantee it'll
-> be a success as I'm not primarily upstream focused at the moment.
->
-> Restarting the thread would also end up with a much more sensible cc
-> list.
->
-> --
-> Mel Gorman
-> SUSE Labs
+QW0gMDYuMDkuMjAxOCB1bSAxNDo0NSBzY2hyaWViIEplYW4tUGhpbGlwcGUgQnJ1Y2tlcjoKPiBP
+biAwNi8wOS8yMDE4IDEyOjEyLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+PiBBbSAwNi4wOS4y
+MDE4IHVtIDEzOjA5IHNjaHJpZWIgSmVhbi1QaGlsaXBwZSBCcnVja2VyOgo+Pj4gSGkgRXJpYywK
+Pj4+Cj4+PiBUaGFua3MgZm9yIHJldmlld2luZwo+Pj4KPj4+IE9uIDA1LzA5LzIwMTggMTI6Mjks
+IEF1Z2VyIEVyaWMgd3JvdGU6Cj4+Pj4+ICtpbnQgaW9tbXVfc3ZhX2RldmljZV9pbml0KHN0cnVj
+dCBkZXZpY2UgKmRldiwgdW5zaWduZWQgbG9uZyBmZWF0dXJlcywKPj4+Pj4gK8KgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIHVuc2lnbmVkIGludCBtYXhfcGFzaWQpCj4+Pj4gd2hhdCBhYm91dCBt
+aW5fcGFzaWQ/Cj4+PiBObyBvbmUgYXNrZWQgZm9yIGl0Li4uIFRoZSBtYXhfcGFzaWQgcGFyYW1l
+dGVyIGlzIGhlcmUgZm9yIGRyaXZlcnMgdGhhdAo+Pj4gaGF2ZSB2ZW5kb3Itc3BlY2lmaWMgUEFT
+SUQgc2l6ZSBsaW1pdHMsIHN1Y2ggYXMgQU1EIEtGRCAoc2VlCj4+PiBrZmRfaW9tbXVfZGV2aWNl
+X2luaXQgYW5kCj4+PiBodHRwczovL3BhdGNod29yay5rZXJuZWwub3JnL3BhdGNoLzk5ODkzMDcv
+IzIxMzg5NTcxKS4gQnV0IGluIG1vc3QgY2FzZXMKPj4+IHRoZSBQQVNJRCBzaXplIHdpbGwgb25s
+eSBkZXBlbmQgb24gdGhlIFBDSSBQQVNJRCBjYXBhYmlsaXR5IGFuZCB0aGUKPj4+IElPTU1VIGxp
+bWl0cywgYm90aCBrbm93biBieSB0aGUgSU9NTVUgZHJpdmVyLCBzbyBkZXZpY2UgZHJpdmVycyB3
+b24ndAo+Pj4gaGF2ZSB0byBzZXQgbWF4X3Bhc2lkLgo+Pj4KPj4+IElPTU1VIGRyaXZlcnMgbmVl
+ZCB0byBzZXQgbWluX3Bhc2lkIGluIHRoZSBzdmFfZGV2aWNlX2luaXQgY2FsbGJhY2sKPj4+IGJl
+Y2F1c2UgaXQgbWF5IGJlIGVpdGhlciAxIChlLmcuIEFybSB3aGVyZSBQQVNJRCAjMCBpcyByZXNl
+cnZlZCkgb3IgMAo+Pj4gKEludGVsIFZ0LWQgcmV2MiksIGJ1dCBhdCB0aGUgbW9tZW50IEkgY2Fu
+J3Qgc2VlIGEgcmVhc29uIGZvciBkZXZpY2UKPj4+IGRyaXZlcnMgdG8gb3ZlcnJpZGUgbWluX3Bh
+c2lkCj4+IFNvcnJ5IHRvIHJ1aW4geW91ciBkYXksIGJ1dCBpZiBJJ20gbm90IGNvbXBsZXRlbHkg
+bWlzdGFrZW4gUEFTSUQgemVybyBpcwo+PiByZXNlcnZlZCBpbiB0aGUgQU1EIEtGRCBhcyB3ZWxs
+Lgo+IEhlaCwgZmFpciBlbm91Z2guIEknbGwgYWRkIHRoZSBtaW5fcGFzaWQgcGFyYW1ldGVyCgpJ
+IHdpbGwgdGFrZSB0aGlzIGFzIGFuIG9wcG9ydHVuaXR5IHRvIHN1bW1hcml6ZSBzb21lIG9mIHRo
+ZSByZXF1aXJlbWVudHMgCndlIGhhdmUgZm9yIFBBU0lEIG1hbmFnZW1lbnQgZnJvbSB0aGUgYW1k
+Z3B1IGRyaXZlciBwb2ludCBvZiB2aWV3OgoKMS4gV2UgbmVlZCB0byBiZSBhYmxlIHRvIGFsbG9j
+YXRlIFBBU0lEIGJldHdlZW4gMSBhbmQgc29tZSBtYXhpbXVtLiBaZXJvIAppcyByZXNlcnZlZCBh
+cyBmYXIgYXMgSSBrbm93LCBidXQgd2UgZG9uJ3QgbmVjZXNzYXJ5IG5lZWQgYSBtaW5pbXVtLgoK
+Mi4gV2UgbmVlZCB0byBiZSBhYmxlIHRvIGFsbG9jYXRlIFBBU0lEcyB3aXRob3V0IGEgcHJvY2Vz
+cyBhZGRyZXNzIHNwYWNlIApiYWNraW5nIGl0LiBFLmcuIG91ciBoYXJkd2FyZSB1c2VzIFBBU0lE
+cyBldmVuIHdpdGhvdXQgU2hhcmVkIFZpcnR1YWwgCkFkZHJlc3NpbmcgZW5hYmxlZCB0byBkaXN0
+aW5jdCBjbGllbnRzIGZyb20gZWFjaCBvdGhlci4KIMKgwqDCoCDCoMKgwqAgV291bGQgYmUgYSBw
+aXR5IGlmIHdlIG5lZWQgdG8gc3RpbGwgaGF2ZSBhIHNlcGFyYXRlIFBBU0lEIApoYW5kbGluZyBi
+ZWNhdXNlIHRoZSBzeXN0ZW0gd2lkZSBpcyBvbmx5IGF2YWlsYWJsZSB3aGVuIElPTU1VIGlzIHR1
+cm5lZCBvbi4KCjMuIEV2ZW4gYWZ0ZXIgZGVzdHJ1Y3Rpb24gb2YgYSBwcm9jZXNzIGFkZHJlc3Mg
+c3BhY2Ugd2UgbmVlZCBzb21lIGdyYWNlIApwZXJpb2QgYmVmb3JlIGEgUEFTSUQgaXMgcmV1c2Vk
+IGJlY2F1c2UgaXQgY2FuIGJlIHRoYXQgdGhlIHNwZWNpZmljIApQQVNJRCBpcyBzdGlsbCBpbiBz
+b21lIGhhcmR3YXJlIHF1ZXVlcyBldGMuLi4KIMKgwqDCoCDCoMKgwqAgQXQgYmFyZSBtaW5pbXVt
+IGFsbCBkZXZpY2UgZHJpdmVycyB1c2luZyBwcm9jZXNzIGJpbmRpbmcgbmVlZCAKdG8gZXhwbGlj
+aXRseSBub3RlIHRvIHRoZSBjb3JlIHdoZW4gdGhleSBhcmUgZG9uZSB3aXRoIGEgUEFTSUQuCgo0
+LiBJdCB3b3VsZCBiZSBuaWNlIHRvIGhhdmUgdG8gYmUgYWJsZSB0byBzZXQgYSAidm9pZCAqIiBm
+b3IgZWFjaCAKUEFTSUQvZGV2aWNlIGNvbWJpbmF0aW9uIHdoaWxlIGJpbmRpbmcgdG8gYSBwcm9j
+ZXNzIHdoaWNoIHRoZW4gY2FuIGJlIApxdWVyaWVkIGxhdGVyIG9uIGJhc2VkIG9uIHRoZSBQQVNJ
+RC4KIMKgwqDCoCDCoMKgwqAgRS5nLiB3aGVuIHlvdSBoYXZlIGEgcGVyIFBBU0lEL2RldmljZSBz
+dHJ1Y3R1cmUgYXJvdW5kIGFueXdheSwgCmp1c3QgYWRkIGFuIGV4dHJhIGZpZWxkLgoKNS4gSXQg
+d291bGQgYmUgbmljZSB0byBoYXZlIHRvIGFsbG9jYXRlIG11bHRpcGxlIFBBU0lEcyBmb3IgdGhl
+IHNhbWUgCnByb2Nlc3MgYWRkcmVzcyBzcGFjZS4KIMKgwqDCoCDCoMKgwqAgRS5nLiBzb21lIHRl
+YW1zIGF0IEFNRCB3YW50IHRvIHVzZSBhIHNlcGFyYXRlIEdQVSBhZGRyZXNzIHNwYWNlIApmb3Ig
+dGhlaXIgdXNlcnNwYWNlIGNsaWVudCBsaWJyYXJ5LiBJJ20gc3RpbGwgdHJ5aW5nIHRvIGF2b2lk
+IHRoYXQsIGJ1dCAKaXQgaXMgcGVyZmVjdGx5IHBvc3NpYmxlIHRoYXQgd2UgYXJlIGdvaW5nIHRv
+IG5lZWQgdGhhdC4KIMKgwqDCoCDCoMKgwqAgQWRkaXRpb25hbCB0byB0aGF0IGl0IGlzIHNvbWV0
+aW1lcyBxdWl0ZSB1c2VmdWwgZm9yIGRlYnVnZ2luZyAKdG8gaXNvbGF0ZSB3aGVyZSBleGFjdGx5
+IGFuIGluY29ycmVjdCBhY2Nlc3MgKHNlZ2ZhdWx0KSBpcyBjb21pbmcgZnJvbS4KCkxldCBtZSBr
+bm93IGlmIHRoZXJlIGFyZSBzb21lIHByb2JsZW1zIHdpdGggdGhhdCwgZXNwZWNpYWxseSBJIHdh
+bnQgdG8gCmtub3cgaWYgdGhlcmUgaXMgcHVzaGJhY2sgb24gIzUgc28gdGhhdCBJIGNhbiBmb3J3
+YXJkIHRoYXQgOikKClRoYW5rcywKQ2hyaXN0aWFuLgoKPgo+IFRoYW5rcywKPiBKZWFuCgpfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwppb21tdSBtYWlsaW5n
+IGxpc3QKaW9tbXVAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcKaHR0cHM6Ly9saXN0cy5saW51
+eGZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vaW9tbXU=
