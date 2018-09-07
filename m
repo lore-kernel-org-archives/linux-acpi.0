@@ -1,60 +1,79 @@
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Subject: Re: [PATCH v2 03/40] iommu/sva: Manage process address spaces
-Date: Thu, 6 Sep 2018 18:40:49 +0100
-Message-ID: <574a1792-7ac5-e4db-6eae-16ef700cba02@arm.com>
-References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
- <20180511190641.23008-4-jean-philippe.brucker@arm.com>
- <d785ec89-6743-d0f1-1a7f-85599a033e5b@redhat.com>
- <20180905111835.7f3ae40e@jacob-builder>
+From: Jirka Hladky <jhladky@redhat.com>
+Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
+ Stream, Linpack and NAS parallel benchmarks
+Date: Fri, 7 Sep 2018 10:09:07 +0200
+Message-ID: <CAE4VaGAD0NuO+bhQ=BXB-TC71CeyYJ+3WbY30r_vo7NKBQR2Mg@mail.gmail.com>
+References: <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
+ <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
+ <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
+ <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
+ <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net> <CAE4VaGA_L1AEj+Un0oQEEqZp_jgaFLk+Z=vNoad08oXnU2T1nw@mail.gmail.com>
+ <CAE4VaGDTNgu=JX=N7=uZu0Bz_vUdHszZQ9_SQuwrbjRvFjCwZw@mail.gmail.com>
+ <20180904090053.GB1719@techsingularity.net> <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
+ <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com> <20180906125843.GC1719@techsingularity.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20180905111835.7f3ae40e@jacob-builder>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Jacob Pan <jacob.jun.pan@linux.intel.com>, Auger Eric <eric.auger@redhat.com>
-Cc: "xieyisheng1@huawei.com" <xieyisheng1@huawei.com>, "ilias.apalodimas@linaro.org" <ilias.apalodimas@linaro.org>, "kvm@vger.kernel.org" <kvm@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "xuzaibo@huawei.com" <xuzaibo@huawei.com>, "jonathan.cameron@huawei.com" <jonathan.cameron@huawei.com>, Will Deacon <Will.Deacon@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>, "yi.l.liu@intel.com" <yi.l.liu@intel.com>, "ashok.raj@intel.com" <ashok.raj@intel.com>, "tn@semihalf.com" <tn@semihalf.com>, "joro@8bytes.org" <joro@8bytes.org>, "robdclark@gmail.com" <robdclark@gmail.com>, "bharatku@xilinx.com" <bharatku@xilinx.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "liudongdong3@huawei.com" <liudongdong3@huawei.com>, "rfranz@cavium.com" <rfranz@cavium.com>"devicetree@vger.kernel.org" <d>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180906125843.GC1719@techsingularity.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mel Gorman <mgorman@techsingularity.net>
+Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 05/09/2018 19:18, Jacob Pan wrote:
-> On Wed, 5 Sep 2018 14:14:12 +0200
-> Auger Eric <eric.auger@redhat.com> wrote:
-> 
->>> + *
->>> + * On Arm and AMD IOMMUs, entry 0 of the PASID table can be used
->>> to hold
->>> + * non-PASID translations. In this case PASID 0 is reserved and
->>> entry 0 points
->>> + * to the io_pgtable base. On Intel IOMMU, the io_pgtable base
->>> would be held in
->>> + * the device table and PASID 0 would be available to the
->>> allocator.
->>> + */  
->> very nice explanation
-> With the new Vt-d 3.0 spec., 2nd level IO page table base is no longer
-> held in the device context table. Instead it is held in the PASID table
-> entry pointed by the RID_PASID field in the device context entry. If
-> RID_PASID = 0, then it is the same as ARM and AMD IOMMUs.
-> You can refer to ch3.4.3 of the VT-d spec.
+> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
+> condition in terms of idle CPU handling that has been problematic.
 
-I could simplify that paragraph by removing the specific implementations:
 
-"In some IOMMUs, entry 0 of the PASID table can be used to hold
-non-PASID translations. In this case PASID 0 is reserved and entry 0
-points to the io_pgtable base. In other IOMMUs the io_pgtable base is
-held in the device table and PASID 0 is available to the allocator."
+We will try that, thanks!
 
-I guess in Linux there isn't any reason to set RID_PASID to a non-zero
-value? Otherwise the iommu-sva allocator will need minor changes.
+>  I would suggest contacting Srikar directly.
 
-Thanks,
-Jean
+
+I will do that right away. Whom should I put on Cc? Just you and
+linux-kernel@vger.kernel.org ? Should I put Ingo and Peter on Cc as
+well?
+
+$scripts/get_maintainer.pl -f kernel/sched
+Ingo Molnar <mingo@redhat.com> (maintainer:SCHEDULER)
+Peter Zijlstra <peterz@infradead.org> (maintainer:SCHEDULER)
+linux-kernel@vger.kernel.org (open list:SCHEDULER)
+
+Jirka
+
+On Thu, Sep 6, 2018 at 2:58 PM, Mel Gorman <mgorman@techsingularity.net> wrote:
+> On Thu, Sep 06, 2018 at 10:16:28AM +0200, Jirka Hladky wrote:
+>> Hi Mel,
+>>
+>> we have results with 2d4056fafa196e1ab4e7161bae4df76f9602d56d reverted.
+>>
+>>   * Compared to 4.18, there is still performance regression -
+>> especially with NAS (sp_C_x subtest) and SPECjvm2008. On 4 NUMA
+>> systems, regression is around 10-15%
+>>   * Compared to 4.19rc1 there is a clear gain across all benchmarks around 20%
+>>
+>
+> Ok.
+>
+>> While reverting 2d4056fafa196e1ab4e7161bae4df76f9602d56d has helped a
+>> lot there is another issue as well. Could you please recommend some
+>> commit prior to 2d4056fafa196e1ab4e7161bae4df76f9602d56d to try?
+>>
+>
+> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
+> condition in terms of idle CPU handling that has been problematic.
+>
+>> Regarding the current results, how do we proceed? Could you please
+>> contact Srikar and ask for the advice or should we contact him
+>> directly?
+>>
+>
+> I would suggest contacting Srikar directly. While I'm working on a
+> series that touches off some similar areas, there is no guarantee it'll
+> be a success as I'm not primarily upstream focused at the moment.
+>
+> Restarting the thread would also end up with a much more sensible cc
+> list.
+>
+> --
+> Mel Gorman
+> SUSE Labs
