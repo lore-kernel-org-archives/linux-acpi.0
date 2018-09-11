@@ -1,94 +1,58 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 4/4] ACPI / x86: utils: Get rid of custom ICPU() macro
-Date: Tue, 11 Sep 2018 13:03:03 +0200
-Message-ID: <6995683.CujeQXBDt3@aspire.rjw.lan>
-References: <20180831091018.17543-1-andriy.shevchenko@linux.intel.com> <20180831091018.17543-4-andriy.shevchenko@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: [PATCH] ACPI/PPTT: Handle architecturally unknown cache types
+Date: Tue, 11 Sep 2018 13:32:14 -0600
+Message-ID: <1536694334-5811-1-git-send-email-jhugo@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180831091018.17543-4-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Ard Biesheuvel <ard.biesheuvel@linaro.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
+Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, August 31, 2018 11:10:18 AM CEST Andy Shevchenko wrote:
-> Replace custom grown macro with generic INTEL_CPU_FAM6_NODATA() one.
-> 
-> No functional change intended.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/acpi/x86/utils.c | 18 ++++++++----------
->  1 file changed, 8 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/acpi/x86/utils.c b/drivers/acpi/x86/utils.c
-> index 06c31ec3cc70..6bb2a4565386 100644
-> --- a/drivers/acpi/x86/utils.c
-> +++ b/drivers/acpi/x86/utils.c
-> @@ -40,8 +40,6 @@ struct always_present_id {
->  	const char *uid;
->  };
->  
-> -#define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
-> -
->  #define ENTRY(hid, uid, cpu_models, dmi...) {				\
->  	{ { hid, }, {} },						\
->  	{ cpu_models, {} },						\
-> @@ -54,24 +52,24 @@ static const struct always_present_id always_present_ids[] = {
->  	 * Bay / Cherry Trail PWM directly poked by GPU driver in win10,
->  	 * but Linux uses a separate PWM driver, harmless if not used.
->  	 */
-> -	ENTRY("80860F09", "1", ICPU(INTEL_FAM6_ATOM_SILVERMONT1), {}),
-> -	ENTRY("80862288", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
-> +	ENTRY("80860F09", "1", INTEL_CPU_FAM6_NODATA(ATOM_SILVERMONT1), {}),
-> +	ENTRY("80862288", "1", INTEL_CPU_FAM6_NODATA(ATOM_AIRMONT), {}),
->  	/*
->  	 * The INT0002 device is necessary to clear wakeup interrupt sources
->  	 * on Cherry Trail devices, without it we get nobody cared IRQ msgs.
->  	 */
-> -	ENTRY("INT0002", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {}),
-> +	ENTRY("INT0002", "1", INTEL_CPU_FAM6_NODATA(ATOM_AIRMONT), {}),
->  	/*
->  	 * On the Dell Venue 11 Pro 7130 and 7139, the DSDT hides
->  	 * the touchscreen ACPI device until a certain time
->  	 * after _SB.PCI0.GFX0.LCD.LCD1._ON gets called has passed
->  	 * *and* _STA has been called at least 3 times since.
->  	 */
-> -	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
-> +	ENTRY("SYNA7500", "1", INTEL_CPU_FAM6_NODATA(HASWELL_ULT), {
->  		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7130"),
->  	      }),
-> -	ENTRY("SYNA7500", "1", ICPU(INTEL_FAM6_HASWELL_ULT), {
-> +	ENTRY("SYNA7500", "1", INTEL_CPU_FAM6_NODATA(HASWELL_ULT), {
->  		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Venue 11 Pro 7139"),
->  	      }),
-> @@ -87,19 +85,19 @@ static const struct always_present_id always_present_ids[] = {
->  	 * was copy-pasted from the GPD win, so it has a disabled KIOX000A
->  	 * node which we should not enable, thus we also check the BIOS date.
->  	 */
-> -	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-> +	ENTRY("KIOX000A", "1", INTEL_CPU_FAM6_NODATA(ATOM_AIRMONT), {
->  		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
->  		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
->  		DMI_MATCH(DMI_BIOS_DATE, "02/21/2017")
->  	      }),
-> -	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-> +	ENTRY("KIOX000A", "1", INTEL_CPU_FAM6_NODATA(ATOM_AIRMONT), {
->  		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
->  		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
->  		DMI_MATCH(DMI_BIOS_DATE, "03/20/2017")
->  	      }),
-> -	ENTRY("KIOX000A", "1", ICPU(INTEL_FAM6_ATOM_AIRMONT), {
-> +	ENTRY("KIOX000A", "1", INTEL_CPU_FAM6_NODATA(ATOM_AIRMONT), {
->  		DMI_MATCH(DMI_BOARD_VENDOR, "AMI Corporation"),
->  		DMI_MATCH(DMI_BOARD_NAME, "Default string"),
->  		DMI_MATCH(DMI_PRODUCT_NAME, "Default string"),
-> 
+The type of a cache might not be specified by architectural mechanisms (ie
+system registers), but its type might be specified in the PPTT.  In this
+case, following the PPTT specification, we should identify the cache as
+the type specified by PPTT.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+This fixes the following lscpu issue where only the cache type sysfs file
+is missing which results in no output providing a poor user experience in
+the above system configuration-
+lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+file or directory
+
+Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
+Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
+Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+---
+ drivers/acpi/pptt.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index d1e26cb..3c6db09 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -401,6 +401,21 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+ 			break;
+ 		}
+ 	}
++	if ((this_leaf->type == CACHE_TYPE_NOCACHE) &&
++	    (found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID)) {
++		switch (found_cache->attributes & ACPI_PPTT_MASK_CACHE_TYPE) {
++		case ACPI_PPTT_CACHE_TYPE_DATA:
++			this_leaf->type = CACHE_TYPE_DATA;
++			break;
++		case ACPI_PPTT_CACHE_TYPE_INSTR:
++			this_leaf->type = CACHE_TYPE_INST;
++			break;
++		case ACPI_PPTT_CACHE_TYPE_UNIFIED:
++		case ACPI_PPTT_CACHE_TYPE_UNIFIED_ALT:
++			this_leaf->type = CACHE_TYPE_UNIFIED;
++			break;
++		}
++	}
+ 	/*
+ 	 * If the above flags are valid, and the cache type is NOCACHE
+ 	 * update the cache type as well.
+-- 
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
