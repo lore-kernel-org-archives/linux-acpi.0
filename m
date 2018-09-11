@@ -1,45 +1,126 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [RFC PATCH] x86/boot: get_acpi_srat_table() can be static
-Date: Tue, 11 Sep 2018 16:55:25 +0800
-Message-ID: <20180911085525.GF8519@localhost.localdomain>
-References: <20180910124015.18073-2-fanc.fnst@cn.fujitsu.com>
- <20180911085226.GA25670@athens>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v2 3/4] perf: add arm64 smmuv3 pmu driver
+Date: Tue, 11 Sep 2018 11:24:54 +0100
+Message-ID: <5b98cd2c-02f7-0934-41c5-1da3e3557896@arm.com>
+References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
+ <20180724114515.21764-4-shameerali.kolothum.thodi@huawei.com>
+ <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838785947@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180911085226.GA25670@athens>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838785947@FRAEML521-MBX.china.huawei.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <fengguang.wu@intel.com>
-Cc: kbuild-all@01.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, linux-kernel@vger.kernel.org, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com, douly.fnst@cn.fujitsu.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
+Cc: "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 11, 2018 at 04:52:26PM +0800, kbuild test robot wrote:
->
->Fixes: cc1a4e2a5474 ("x86/boot: Add acpitb.c to parse acpi tables")
->Signed-off-by: kbuild test robot <fengguang.wu@intel.com>
->---
-> acpitb.c |    2 +-
-> 1 file changed, 1 insertion(+), 1 deletion(-)
->
->diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
->index 66c5154..4ddd732 100644
->--- a/arch/x86/boot/compressed/acpitb.c
->+++ b/arch/x86/boot/compressed/acpitb.c
->@@ -279,7 +279,7 @@ static acpi_physical_address get_rsdp_addr(void)
-> 	return pa;
-> }
+On 10/09/18 17:37, Shameerali Kolothum Thodi wrote:
+[...]
+>>> @@ -0,0 +1,838 @@
+>>> +// SPDX-License-Identifier: GPL-2.0+
+>>> +/* Copyright (c) 2017 The Linux Foundation. All rights reserved.
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or
+>>> +modify
+>>> + * it under the terms of the GNU General Public License version 2 and
+>>> + * only version 2 as published by the Free Software Foundation.
+>>> + *
+>>> + * This program is distributed in the hope that it will be useful,
+>>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>> + * GNU General Public License for more details.
+>>
+>> You don't really need to add the license text as well as SPDX. Except for the fact
+>> that in this case they don't match - which is it?
 > 
->-struct acpi_table_header *get_acpi_srat_table(void)
->+static struct acpi_table_header *get_acpi_srat_table(void)
+> Right. I will stick to SPDX-License-Identifier: GPL-2.0+
 
-Good catch, will add it.
+My question there is about the "+" - the license of the original patch 
+was GPL-2.0, and I'm not sure about the legitimacy of quietly changing 
+it to 2.0-or-later, especially without any visible agreement from 
+previous contributors.
 
-Thanks,
-Chao Fan
+[...]
+>> Also, how relevant is it going to be for future DT support? We don't really want
+>> too many artificial dependencies on the way ACPI support happens to currently
+>> be implemented.
+> 
+> Sorry, it's not clear to me what is proposed here as far as naming the PMU is
+> concerned. Please see below as well.
 
-> {
-> 	char *args = (char *)get_cmd_line_ptr();
-> 	acpi_physical_address acpi_table;
->
->
+Here I mean whether pdev->id is meaningful for OF platform devices in 
+the same way as for IORT devices in terms of uniqueness - it may well 
+be, but if it isn't then we should find a better alternative.
+
+>>> +out:
+>>> +	kfree(temp);
+>>> +	return ret;
+>>> +}
+>>> +
+>>> +
+>>> +static char *smmu_pmu_assign_name(struct smmu_pmu *pmu) {
+>>> +	unsigned long id;
+>>> +	struct device *smmu, *dev = pmu->dev;
+>>> +	char *s_name = NULL, *p_name = NULL;
+>>> +
+>>> +	smmu = iort_find_pmcg_ref_smmu(dev);
+>>> +	if (smmu) {
+>>> +		if (!smmu_pmu_get_dev_id(dev_name(smmu), &id))
+>>> +			s_name = kasprintf(GFP_KERNEL,
+>> "arm_smmu_v3_%lu", id);
+>>> +	}
+>>> +
+>>> +	if (!s_name)
+>>> +		s_name = kasprintf(GFP_KERNEL, "arm_smmu_v3");
+>>
+>> As I touched on before, I think it's worth generalising this from the start, and
+>> trying to resolve the component reference to a struct device rather than
+>> IORT/SMMU specific internals. However it also occurs to me that maybe this
+>> isn't as important as it first seemed - since the auto-numbered ID doesn't
+>> actually say which PMCG is which, the only way for the user to actually identify
+>> which PMU is the correct one to count events for a particular endpoint is still to
+>> grovel up the base address, so as long as the PMU name uniquely correlates to
+>> the PMCG device, I'm not sure anything really matters beyond that.
+> 
+> So If I understand this correctly,
+> 
+> iort_find_pmcg_ref_smmu() should be something like  iort_find_pmcg_ref()
+> which returns the associated struct device for the ref node and then, pmu is
+> named as,
+> 
+> arm_smmu_v3_x_pmcg_y
+> nc_dev_name_x_pmcg_y
+> pciXXXX_pmcg_y  (It’s a bit tricky for RC as we will end up with struct pci_bus)
+> 
+> (where x and y are auto ids)
+> 
+> Please let me know if this is what is proposed here.
+
+That's more or less what I was angling at, but as mentioned I realise 
+it's fundamentally flawed (looking back at the original thread, I see it 
+was me that proposed the idea, quelle suprise!)
+
+Say you want to count events on one particular stream ID - how do you 
+determine which of "arm_smmu_v3_0_pmcg_0" to "arm_smmu_v3_0_pmcg_6" 
+represents the actual TBU that can see that SID? Sure, you have a *bit* 
+more information than if they were just named, say, "arm_pmcg_0" to 
+"arm_pmcg_6", but it's not actually *useful* information because those 
+IDs only really represent the probe order, and that depends entirely on 
+the IORT/DT order and whatever Linux felt like doing.
+
+Thus if going to all this effort to compose a complex name still doesn't 
+actually help the user in most cases, is it worth it? I'm starting to 
+think not.
+
+> It is possible to include the pmcg base address instead of the auto-numbered id
+> as proposed in v1 series.
+
+That's probably the most robust option for now unless anyone can come up 
+with a better idea (I do wonder about doing something horrible with 
+pmu->dev.parent...) My bad for missing that rather subtle point the 
+first time around, sorry everyone!
+
+Robin.
