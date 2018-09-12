@@ -1,93 +1,91 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: Handle architecturally unknown cache types
-Date: Wed, 12 Sep 2018 11:49:55 +0100
-Message-ID: <f8dc2958-a7c7-a633-3a06-97fed7c3510b@arm.com>
-References: <1536694334-5811-1-git-send-email-jhugo@codeaurora.org>
- <f62f22a6-2dd8-f254-dbaf-b9e224099afd@arm.com>
- <e74f2208-ac0d-6c45-8ddb-5b77d6a42fef@codeaurora.org>
+From: Jean-Philippe Brucker <jean-philippe.brucker-5wv7dgnIgG8@public.gmane.org>
+Subject: Re: [PATCH v2 01/40] iommu: Introduce Shared Virtual Addressing API
+Date: Wed, 12 Sep 2018 13:40:43 +0100
+Message-ID: <9445a0be-fb5b-d195-4fdf-7ad6cb36ef4f@arm.com>
+References: <20180511190641.23008-1-jean-philippe.brucker@arm.com>
+	<20180511190641.23008-2-jean-philippe.brucker@arm.com>
+	<bf42affd-e9d0-e4fc-6d28-f3c3f7795348@redhat.com>
+	<03d31ba5-1eda-ea86-8c0c-91d14c86fe83@arm.com>
+	<ed39159c-087e-7e56-7d29-d1de9fa1677f@amd.com>
+	<f0b317d5-e2e9-5478-952c-05e8b97bd68b@arm.com>
+	<2fd4a0a1-1a35-bf82-df84-b995cce011d9@amd.com>
+	<65e7accd-4446-19f5-c667-c6407e89cfa6@arm.com>
+	<5bbc0332-b94b-75cc-ca42-a9b196811daf@amd.com>
+	<20180907142504.5034351e@jacob-builder>
+	<3e3a6797-a233-911b-3a7d-d9b549160960@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e74f2208-ac0d-6c45-8ddb-5b77d6a42fef@codeaurora.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <3e3a6797-a233-911b-3a7d-d9b549160960-5C7GfCeVMHo@public.gmane.org>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jeffrey Hugo <jhugo@codeaurora.org>, Jeremy Linton <jeremy.linton@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig-5C7GfCeVMHo@public.gmane.org>, Jacob Pan <jacob.jun.pan-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: "xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <xieyisheng1-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ilias.apalodimas-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Will Deacon <Will.Deacon-5wv7dgnIgG8@public.gmane.org>, Michal Hocko <mhocko-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org" <okaya-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, "linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, "ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org" <rfranz-YGCgFSpz5w/QT0dZR+AlfA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <kevin.tian-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org" <rgummal-gjFFaj9aHVfQT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org" <liubo95-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <alex.williamson>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 11/09/18 21:38, Jeffrey Hugo wrote:
-> On 9/11/2018 2:16 PM, Jeremy Linton wrote:
->> Hi Jeffrey,
->>
->> (+Sudeep)
->>
-
-[..]
-
->>
->> If you look at the next line of code following this comment its going
->> to update the cache type for fully populated PPTT nodes. Although with
->> the suggested change its only going to activate if someone completely
->> fills out the node and fails to set the valid flag on the cache type. 
-> 
-> Yes, however that case doesn't apply to the scenario we are concerned
-> about, doesn't seem to be fully following the PPTT spec, and seems odd
-> that Linux just assumes that a "fully specified" cache is unified.
-> 
-
-Agreed, but adding code that will never get used is also not so good.
-Do you have systems where this is needed ?
-
->> What I suspect is happening in the reported case is that the nodes in
->> the PPTT table are missing fields we consider to be important. Since
->> that data isn't being filled out anywhere else, so we leave the cache
->> type alone too. This has the effect of hiding sysfs nodes with
->> incomplete information.
->>
->> Also, the lack of the DATA/INST fields is based on the assumption that
->> the only nodes which need their type field updated are outside of the
->> CPU core itself so they are pretty much guaranteed to be UNIFIED. Are
->> you hitting this case?
->>
-> 
-> Yes.  Without this change, we hit the lscpu error in the commit message,
-> and get zero output about the system.  We don't even get information
-> about the caches which are architecturally specified or how many cpus
-> are present.  With this change, we get what we expect out of lscpu (and
-> also lstopo) including the cache(s) which are not architecturally
-> specified.
-> 
-
-lscpu and lstopo are so broken. They just assume everything on CPU0.
-If you hotplug them out, you start seeing issues. So reading and file
-that doesn't exist and then bail out on other essential info though they
-are present, hmmm ...
-
-> I guess I still don't understand why its important for PPTT to list, for
-> example, the sets/ways of a cache in all scenarios.  In the case of a
-> "transparent" cache (implementation defined as not reported per section
-> D3.4.2 of the ARM ARM where the cache cannot be managed by SW), there
-> may not be valid values for sets/ways.  I would argue its better to not
-> report that information, rather than provide bogus information just to
-> make Linux happy, which may break other OSes and provide means for which
-> a user to hang themselves.
-> 
-
-While I agree presenting wrong info is not good, but one of the reasons
-the cache info is present is to provide those info for some applications
-to do optimization based on that(I am told so and not sure if just type
-and size will be good enough) and you seem to agree with that below.
-
-> However, in the case of a transparent cache, the size/type/level/write
-> policy/etc (whatever the firmware provider deems relevant) might be
-> valuable information for the OS to make scheduling decisions, and is
-> certainly valuable for user space utilities for cross-machine/data
-> center level job scheduling.
-> 
-
--- 
-Regards,
-Sudeep
+T24gMDgvMDkvMjAxOCAwODoyOSwgQ2hyaXN0aWFuIEvDtm5pZyB3cm90ZToKPiBZZXMsIGV4YWN0
+bHkuIEkganVzdCBuZWVkIGEgUEFTSUQgd2hpY2ggaXMgbmV2ZXIgdXNlZCBieSB0aGUgT1MgZm9y
+IGEgCj4gcHJvY2VzcyBhbmQgd2UgY2FuIGVhc2lseSBnaXZlIHRoYXQgYmFjayB3aGVuIHRoZSBs
+YXN0IEZEIHJlZmVyZW5jZSBpcyAKPiBjbG9zZWQuCgpBbHJpZ2h0LCBpb21tdS1zdmEgY2FuIGdl
+dCBpdHMgUEFTSUQgZnJvbSB0aGlzIGV4dGVybmFsIGFsbG9jYXRvciBhcwp3ZWxsLCBhcyBsb25n
+IGFzIGl0IGhhcyBhbiBpbnRlcmZhY2Ugc2ltaWxhciB0byBpZHIuIFdoZXJlIHdvdWxkIGl0IGdv
+LApkcml2ZXJzL2Jhc2UvLCBtbS8sIGtlcm5lbC8uLi4/Cgo+Pj4+IFRoZSBwcm9jZXNzIGRpZXMs
+IGlvbW11LXN2YSBpcyBub3RpZmllZCBhbmQgY2FsbHMgdGhlIG1tX2V4aXQoKQo+Pj4+IGZ1bmN0
+aW9uIHBhc3NlZCBieSB0aGUgZGV2aWNlIGRyaXZlciB0byBpb21tdV9zdmFfZGV2aWNlX2luaXQo
+KS4gSW4KPj4+PiBtbV9leGl0KCkgdGhlIGRldmljZSBkcml2ZXIgbmVlZHMgdG8gY2xlYXIgYW55
+IHJlZmVyZW5jZSB0byB0aGUKPj4+PiBQQVNJRCBpbiBoYXJkd2FyZSBhbmQgaW4gaXRzIG93biBz
+dHJ1Y3R1cmVzLiBXaGVuIHRoZSBkZXZpY2UgZHJpdmVyCj4+Pj4gcmV0dXJucyBmcm9tIG1tX2V4
+aXQoKSwgaXQgZWZmZWN0aXZlbHkgdGVsbHMgdGhlIGNvcmUgdGhhdCBpdCBoYXMKPj4+PiBmaW5p
+c2hlZCB1c2luZyB0aGUgUEFTSUQsIGFuZCBpb21tdS1zdmEgY2FuIHJldXNlIHRoZSBQQVNJRCBm
+b3IKPj4+PiBhbm90aGVyIHByb2Nlc3MuIG1tX2V4aXQoKSBpcyBhbGxvd2VkIHRvIGJsb2NrLCBz
+byB0aGUgZGV2aWNlCj4+Pj4gZHJpdmVyIGhhcyB0aW1lIHRvIGNsZWFuIHVwIGFuZCBmbHVzaCB0
+aGUgcXVldWVzLgo+Pj4+Cj4+Pj4gSWYgdGhlIGRldmljZSBkcml2ZXIgZmluaXNoZXMgdXNpbmcg
+dGhlIFBBU0lEIGJlZm9yZSB0aGUgcHJvY2Vzcwo+Pj4+IGV4aXRzLCBpdCBqdXN0IGNhbGxzIHVu
+YmluZCgpLgo+Pj4gRXhhY3RseSB0aGF0J3Mgd2hhdCBNaWNoYWwgSG9ja28gaXMgcHJvYmFibHkg
+Z29pbmcgdG8gbm90IGxpa2UgYXQgYWxsLgo+Pj4KPj4+IENhbiB3ZSBoYXZlIGEgZGlmZmVyZW50
+IGFwcHJvYWNoIHdoZXJlIGVhY2ggZHJpdmVyIGlzIGluZm9ybWVkIGJ5IHRoZQo+Pj4gbW1fZXhp
+dCgpLCBidXQgbmVlZHMgdG8gZXhwbGljaXRseSBjYWxsIHVuYmluZCgpIGJlZm9yZSBhIFBBU0lE
+IGlzCj4+PiByZXVzZWQ/CgpJdCdzIGF3ZnVsIGZyb20gdGhlIElPTU1VIGRyaXZlciBwZXJzcGVj
+dGl2ZS4gSW4gYWRkaXRpb24gdG8gImVuYWJsZWQiCmFuZCAiZGlzYWJsZWQiIFBBU0lEIHN0YXRl
+cywgeW91IGFkZCAiZGlzYWJsZWQgYnV0IERNQSBzdGlsbCBydW5uaW5nCm5vcm1hbGx5Ii4gQmV0
+d2VlbiB0aGF0IG5ldyBzdGF0ZSBhbmQgImRpc2FibGVkIiwgdGhlIElPTU1VIHdpbGwgYmUKZmxv
+b2RlZCBieSB0cmFuc2xhdGlvbiBmYXVsdHMgKG5vbi1yZWNvdmVyYWJsZSBvbmVzKSwgd2hpY2gg
+aXQgbmVlZHMgdG8KaWdub3JlIGluc3RlYWQgb2YgcmVwb3J0aW5nIHRvIHRoZSBrZXJuZWwuIE5v
+dCBhbGwgSU9NTVVzIGNhbiBkZWFsIHdpdGgKdGhpcyBpbiBoYXJkd2FyZSAoU01NVSBhbmQgVlQt
+ZCBjYW4gcXVpZXNjZSB0cmFuc2xhdGlvbiBmYXVsdHMKcGVyLVBBU0lELCBidXQgSSBkb24ndCB0
+aGluayBBTUQgSU9NTVUgY2FuLikgU29tZSBkcml2ZXJzIHdpbGwgaGF2ZSB0bwpmaWx0ZXIgZmF1
+bHQgZXZlbnRzIHRoZW1zZWx2ZXMsIGRlcGVuZGluZyBvbiB0aGUgUEFTSUQgc3RhdGUuCgo+Pj4g
+RHVyaW5nIHRoYXQgdGVhcmRvd24gdHJhbnNpdGlvbiBpdCB3b3VsZCBiZSBpZGVhbCBpZiB0aGF0
+IFBBU0lEIG9ubHkKPj4+IHBvaW50cyB0byBhIGR1bW15IHJvb3QgcGFnZSBkaXJlY3Rvcnkgd2l0
+aCBvbmx5IGludmFsaWQgZW50cmllcy4KPj4+Cj4+IEkgZ3Vlc3MgdGhpcyBjYW4gYmUgdmVuZG9y
+IHNwZWNpZmljLCBJbiBWVC1kIEkgcGxhbiB0byBtYXJrIFBBU0lECj4+IGVudHJ5IG5vdCBwcmVz
+ZW50IGFuZCBkaXNhYmxlIGZhdWx0IHJlcG9ydGluZyB3aGlsZSBkcmFpbmluZyByZW1haW5pbmcK
+Pj4gYWN0aXZpdGllcy4KPgo+IFNvdW5kcyBnb29kIHRvIG1lLgo+IAo+IFBvaW50IGlzIGF0IGxl
+YXN0IGluIHRoZSBjYXNlIHdoZXJlIHRoZSBwcm9jZXNzIHdhcyBraWxsZWQgYnkgdGhlIE9PTSAK
+PiBraWxsZXIgd2Ugc2hvdWxkIG5vdCBibG9jayBpbiBtbV9leGl0KCkuCj4KPiBJbnN0ZWFkIG9w
+ZXJhdGlvbnMgaXNzdWVkIGJ5IHRoZSBwcm9jZXNzIHRvIGEgZGV2aWNlIGRyaXZlciB3aGljaCB1
+c2VzIAo+IFNWQSBuZWVkcyB0byBiZSB0ZXJtaW5hdGVkIGFzIHNvb24gYXMgcG9zc2libGUgdG8g
+bWFrZSBzdXJlIHRoYXQgdGhlIE9PTSAKPiBraWxsZXIgY2FuIGFkdmFuY2UuCgpJIGRvbid0IHNl
+ZSBob3cgd2UncmUgcHJldmVudGluZyB0aGUgT09NIGtpbGxlciBmcm9tIGFkdmFuY2luZywgc28g
+SSdtCmxvb2tpbmcgZm9yIGEgc3Ryb25nZXIgYXJndW1lbnQgdGhhdCBqdXN0aWZpZXMgYWRkaW5n
+IHRoaXMgY29tcGxleGl0eSB0bwpJT01NVSBkcml2ZXJzLiBUaW1lIGxpbWl0IG9mIHRoZSByZWxl
+YXNlIE1NVSBub3RpZmllciwgbG9ja2luZwpyZXF1aXJlbWVudCwgYSBjb25jcmV0ZSBleGFtcGxl
+IHdoZXJlIHRoaW5ncyBicmVhaywgZXZlbiBhIGNvbW1lbnQKc29tZXdoZXJlIGluIG1tLyB3b3Vs
+ZCBkby4uLgoKSW4gbXkgdGVzdHMgSSBjYW4ndCBtYW5hZ2UgdG8gZGlzdHVyYiB0aGUgT09NIGtp
+bGxlciwgYnV0IEkgY291bGQgYmUKbWlzc2luZyBzb21lIHNwZWNpYWwgY2FzZS4gRXZlbiBpZiB0
+aGUgbW1fZXhpdCgpIGNhbGxiYWNrCih1bnJlYWxpc3RpY2FsbHkpIHNsZWVwcyBmb3IgNjAgc2Vj
+b25kcywgdGhlIE9PTSBraWxsZXIgaXNuJ3QgYWZmZWN0ZWQKYmVjYXVzZSBvb21fcmVhcF90YXNr
+X21tKCkgd2lwZXMgdGhlIHZpY3RpbSdzIGFkZHJlc3Mgc3BhY2UgaW4gYW5vdGhlcgp0aHJlYWQs
+IGVpdGhlciBiZWZvcmUgb3Igd2hpbGUgdGhlIHJlbGVhc2Ugbm90aWZpZXIgaXMgcnVubmluZy4K
+ClRoYW5rcywKSmVhbgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwppb21tdSBtYWlsaW5nIGxpc3QKaW9tbXVAbGlzdHMubGludXgtZm91bmRhdGlvbi5vcmcK
+aHR0cHM6Ly9saXN0cy5saW51eGZvdW5kYXRpb24ub3JnL21haWxtYW4vbGlzdGluZm8vaW9tbXU=
