@@ -1,89 +1,50 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/1] pci: Pick up the acpi numa node value if it is
- specified at the device level.
-Date: Wed, 12 Sep 2018 12:32:58 -0500
-Message-ID: <20180912173258.GJ118330@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180912152140.3676-1-Jonathan.Cameron@huawei.com>
- <20180912152140.3676-2-Jonathan.Cameron@huawei.com>
+From: Brice Goglin <brice.goglin@gmail.com>
+Subject: Re: [PATCH] ACPI/PPTT: Handle architecturally unknown cache types
+Date: Thu, 13 Sep 2018 06:51:38 +0100
+Message-ID: <4f253bf4-ef2d-849f-b793-9b0530e72aab@gmail.com>
+References: <1536694334-5811-1-git-send-email-jhugo@codeaurora.org>
+ <f62f22a6-2dd8-f254-dbaf-b9e224099afd@arm.com>
+ <e74f2208-ac0d-6c45-8ddb-5b77d6a42fef@codeaurora.org>
+ <f8dc2958-a7c7-a633-3a06-97fed7c3510b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20180912152140.3676-2-Jonathan.Cameron@huawei.com>
+In-Reply-To: <f8dc2958-a7c7-a633-3a06-97fed7c3510b@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: bhelgaas@google.com, lorenzo.pieralisi@arm.com, linux-pci@vger.kernel.org, linuxarm@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Jeffrey Hugo <jhugo@codeaurora.org>, Jeremy Linton <jeremy.linton@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc ACPI folks, LKML]
+Le 12/09/2018 à 11:49, Sudeep Holla a écrit :
+>
+>> Yes.  Without this change, we hit the lscpu error in the commit message,
+>> and get zero output about the system.  We don't even get information
+>> about the caches which are architecturally specified or how many cpus
+>> are present.  With this change, we get what we expect out of lscpu (and
+>> also lstopo) including the cache(s) which are not architecturally
+>> specified.
+>>
+> lscpu and lstopo are so broken. They just assume everything on CPU0.
+> If you hotplug them out, you start seeing issues. So reading and file
+> that doesn't exist and then bail out on other essential info though they
+> are present, hmmm ...
 
-On Wed, Sep 12, 2018 at 04:21:40PM +0100, Jonathan Cameron wrote:
-> The ACPI specification allows you to provide _PXM entries for devices based
-> on their location on a particular bus.  Let us use that if it is provided
-> rather than just assuming it makes sense to put the device into the proximity
-> domain of the root.
-> 
-> An example DSDT entry that will supply this is:
-> 
->   Device (PCI2)
->   {
->     Name (_HID, "PNP0A08") // PCI Express Root Bridge
->     Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
->     Name(_SEG, 2) // Segment of this Root complex
->     Name(_BBN, 0xF8) // Base Bus Number
->     Name(_CCA, 1)
->     Method (_PXM, 0, NotSerialized) {
->       Return(0x00)
->     }
-> 
-> ...
->     Device (BRI0) {
->       Name (_HID, "19E51610")
->       Name (_ADR, 0)
->       Name (_BBN, 0xF9)
->       Device (CAR0) {
->         Name (_HID, "97109912")
->         Name (_ADR, 0)
->         Method (_PXM, 0, NotSerialized) {
->           Return(0x02)
->         }
->       }
->     }
->   }
-> 
-> Signed-off-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Can you elaborate?
 
-Applied with subject:
+I am not sure cpu0 is supposed to be offlineable on Linux. There's no
+"online" file in /sys/devices/system/cpu/cpu0. That's why former lstopo
+doesn't like CPU0 being hotplugged out. We are actually making that case
+work for another non-standard corner case. But offlining "cpu0" this is
+considered "normal", somebody must add that missing "online" sysfs
+attribute for "cpu0" (change
+https://elixir.bootlin.com/linux/latest/source/drivers/base/cpu.c#L375).
 
-  ACPI/PCI: Pay attention to device-specific _PXM node values
+By the way, did anybody actually see an error with lstopo when there's
+no "type" attribute for L3? I can't reproduce any issue, we just skip
+that specific cache entirely, but everything else appears. If you guys
+want to make that "no_cache" cache appear, I'll make it a Unified cache
+unless you tell me what to show :)
 
-to pci/enumeration for v4.20, thanks!
-
-> ---
->  drivers/pci/pci-acpi.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 738e3546abb1..f2f5f0ddd60e 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -753,10 +753,15 @@ static void pci_acpi_setup(struct device *dev)
->  {
->  	struct pci_dev *pci_dev = to_pci_dev(dev);
->  	struct acpi_device *adev = ACPI_COMPANION(dev);
-> +	int node;
->  
->  	if (!adev)
->  		return;
->  
-> +	node = acpi_get_node(adev->handle);
-> +	if (node != NUMA_NO_NODE)
-> +		set_dev_node(dev, node);
-> +	
->  	pci_acpi_optimize_delay(pci_dev, adev->handle);
->  
->  	pci_acpi_add_pm_notifier(adev, pci_dev);
-> -- 
-> 2.18.0
-> 
-> 
+Brice
