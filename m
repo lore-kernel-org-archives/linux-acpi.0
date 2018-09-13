@@ -1,95 +1,107 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] ACPI/PPTT: Handle architecturally unknown cache types
-Date: Thu, 13 Sep 2018 11:35:25 +0100
-Message-ID: <20180913103525.GA7777@e107155-lin>
-References: <1536694334-5811-1-git-send-email-jhugo@codeaurora.org>
- <f62f22a6-2dd8-f254-dbaf-b9e224099afd@arm.com>
- <e74f2208-ac0d-6c45-8ddb-5b77d6a42fef@codeaurora.org>
- <f8dc2958-a7c7-a633-3a06-97fed7c3510b@arm.com>
- <4f253bf4-ef2d-849f-b793-9b0530e72aab@gmail.com>
- <c7e74980-eb5d-1b2a-8ebb-7210b4f507a2@arm.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: [PATCH v7 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr in immovable memory
+Date: Thu, 13 Sep 2018 18:46:26 +0800
+Message-ID: <20180913104629.5179-1-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <c7e74980-eb5d-1b2a-8ebb-7210b4f507a2@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: James Morse <james.morse@arm.com>, Brice Goglin <brice.goglin@gmail.com>
-Cc: Jeffrey Hugo <jhugo@codeaurora.org>, Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+To: linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, linux-kernel@vger.kernel.org, keescook@chromium.org, bhe@redhat.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com, Chao Fan <fanc.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 13, 2018 at 10:39:10AM +0100, James Morse wrote:
-> Hi Brice,
->
-> On 13/09/18 06:51, Brice Goglin wrote:
-> > Le 12/09/2018 à 11:49, Sudeep Holla a écrit :
-> >>> Yes.  Without this change, we hit the lscpu error in the commit message,
-> >>> and get zero output about the system.  We don't even get information
-> >>> about the caches which are architecturally specified or how many cpus
-> >>> are present.  With this change, we get what we expect out of lscpu (and
-> >>> also lstopo) including the cache(s) which are not architecturally
-> >>> specified.
-> >>>
-> >> lscpu and lstopo are so broken. They just assume everything on CPU0.
-> >> If you hotplug them out, you start seeing issues. So reading and file
-> >> that doesn't exist and then bail out on other essential info though they
-> >> are present, hmmm ...
-> >
-> > Can you elaborate?
-> >
-> > I am not sure cpu0 is supposed to be offlineable on Linux. There's no
-> > "online" file in /sys/devices/system/cpu/cpu0. That's why former lstopo
-> > doesn't like CPU0 being hotplugged out. We are actually making that case
-> > work for another non-standard corner case. But offlining "cpu0" this is
-> > considered "normal", somebody must add that missing "online" sysfs
-> > attribute for "cpu0" (change
-> > https://elixir.bootlin.com/linux/latest/source/drivers/base/cpu.c#L375).
->
-> On x86 you can't normally offline CPU0, its something to do with certain
-> interrupts always being routed to CPU0, (oh, and hibernate).
-> You should be able to enable this behaviour with 'cpu0_hotplug' on the kernel
-> command line.
->
-> (Kconfig's CONFIG_BOOTPARAM_HOTPLUG_CPU0 and CONFIG_DEBUG_HOTPLUG_CPU0 are also
-> worth a look)
->
-> On arm64 at least, cpu0 is just like the others, and can be offlined.
->
+***Background:
+People reported that kaslr may randomly chooses some positions
+which are located in movable memory regions. This will break memory
+hotplug feature and make the movable memory chosen by KASLR can't be
+removed.
 
-Thanks James, for providing all the details.
+***Solutions:
+There should be a method to limit kaslr to choosing immovable memory
+regions, so there are 2 solutions:
+1) Add a kernel parameter to specify the memory regions.
+2) Get the information of memory hot-remove, then kaslr will know the
+   right regions.
+In method 2, information about memory hot-remove is in ACPI
+tables, which will be parsed after start_kernel(), kaslr can't get
+the information.
+In method 1, users should know the regions address and specify in
+kernel parameter.
 
-To add to the issues I spotted with lscpu/lstopo around topology, it ignores
-the updates to topology sibling masks when CPUs are hotplugged in and out.
+In the earliest time, I tried to dig ACPI tabls to solve this problem.
+But I didn't splite the code in 'compressed/' and ACPI code, so the patch
+is hard to follow so refused by community.
+Somebody suggest to add a kernel parameter to specify the
+immovable memory so that limit kaslr in these regions. Then I make
+a new patchset. After several versions, Ingo gave a suggestion:
+https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1634024.html
+Follow Ingo's suggestion, imitate the ACPI code to parse the acpi
+tables, so that the kaslr can get necessary memory information in
+ACPI tables.
+I think ACPI code is an independent part, so copy the codes
+and functions to 'compressed/' directory, so that kaslr won't
+influence the initialization of ACPI.
 
-We have following in lscpu:
-	add_summary_n(tb, _("Core(s) per socket:"),
-			cores_per_socket ?: desc->ncores / desc->nsockets);
+PATCH 1/3 Add acpitb.c to provide functions to parse ACPI code.
+PATCH 2/3 If CONFIG_MEMORY_HOTREMOVE enabled, walk all nodes and
+          store the information of immovable memory regions.
+PATCH 3/3 According to the immovable memory regions, filter the
+          immovable regions which KASLR can choose.
 
-Now when cores_per_socket = 1, (i.e when we don't have procfs entry),
-if ncores = (ncores_max - few_cpus_hotplugged_out), core(s) per socket
-will get computed as less than the actual number.
+***Test results:
+ - I did a very simple test, and it can get the memory information in
+   bios and efi KVM guest machine, and put it by early printk. But no
+   more tests, so it's with RFC tag.
 
-IMO lscpu should be used only when all CPUs are online and it should have
-a warning when all cores are not online.
+v1->v2:
+ -  Simplify some code.
+Follow Baoquan He's suggestion:
+ - Reuse the head file of acpi code.
 
-> > By the way, did anybody actually see an error with lstopo when there's
-> > no "type" attribute for L3? I can't reproduce any issue, we just skip
-> > that specific cache entirely, but everything else appears. If you guys
-> > want to make that "no_cache" cache appear, I'll make it a Unified cache
-> > unless you tell me what to show :)
+v2->v3:
+ - Test in more conditions, so remove the 'RFC' tag.
+ - Change some comments.
 
-IIUC, Jeffrey Hugo did see error as per his initial message:
-"
-This fixes the following lscpu issue where only the cache type sysfs file
-is missing which results in no output providing a poor user experience in
-the above system configuration.
-lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
-file or directory
-"
+v3->v4:
+Follow Thomas Gleixner's suggetsion:
+ - Put the whole efi related function into #define CONFIG_EFI and return
+   false in the other stub.
+ - Simplify two functions in head file.
 
---
-Regards,
-Sudeep
+v4->v5:
+Follow Dou Liyang's suggestion:
+ - Add more comments about some functions based on kernel code.
+ - Change some typo in comments.
+ - Clean useless variable.
+ - Add check for the boundary of array.
+ - Add check for 'movable_node' parameter
 
-[1] https://www.spinics.net/lists/arm-kernel/msg661101.html
+v5->v6:
+Follow Baoquan He's suggestion:
+ - Change some log.
+ - Add the check for acpi_rsdp
+ - Change some code logical to make code clear
+
+v6->v7:
+Follow Rafael's suggestion:
+ - Add more comments and patch log.
+Follow test robot's suggestion:
+ - Add "static" tag for function
+
+Any comments will be welcome.
+
+
+Chao Fan (3):
+  x86/boot: Add acpitb.c to parse acpi tables
+  x86/boot/KASLR: Walk srat tables to filter immovable memory
+  x86/boot/KASLR: Limit kaslr to choosing the immovable memory
+
+ arch/x86/boot/compressed/Makefile |   4 +
+ arch/x86/boot/compressed/acpitb.c | 401 ++++++++++++++++++++++++++++++
+ arch/x86/boot/compressed/kaslr.c  |  76 +++++-
+ arch/x86/boot/compressed/misc.h   |   8 +
+ 4 files changed, 478 insertions(+), 11 deletions(-)
+ create mode 100644 arch/x86/boot/compressed/acpitb.c
+
+-- 
+2.17.1
