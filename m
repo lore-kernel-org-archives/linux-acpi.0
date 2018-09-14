@@ -1,56 +1,46 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH] PM / suspend: Count suspend-to-idle loop as sleep time
-Date: Fri, 14 Sep 2018 14:41:40 +0200 (CEST)
-Message-ID: <alpine.DEB.2.21.1809141438560.10480@nanos.tec.linutronix.de>
-References: <9611469.2z7W9akjOQ@aspire.rjw.lan> <767e9ec4-cc35-9255-360a-4d12736aa4de@nextfour.com> <1831106.CYv9dyYV15@aspire.rjw.lan> <e028742e-cd42-24a7-0da1-4fa12d8c9d7c@nextfour.com> <CAJZ5v0gRjfGDSyZXRwGgF9dOBR9OJbfYE8Dbpqdx6oCMN1XUVA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323329-1763824608-1536928900=:10480"
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: [PATCH v2 0/2] PPTT handle Handle architecturally unknown cache types
+Date: Fri, 14 Sep 2018 10:28:07 -0600
+Message-ID: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0gRjfGDSyZXRwGgF9dOBR9OJbfYE8Dbpqdx6oCMN1XUVA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: mika.penttila@nextfour.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>
+To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
+Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+The ARM Architecture Reference Manual allows for caches to be "invisible" and
+thus not specified in the system registers under some scenarios such as if the
+cache cannot be managed by set/way operations.
 
---8323329-1763824608-1536928900=:10480
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+However, such caches may be specified in the ACPI PPTT table for workload
+performance/scheduling optimizations.
 
-On Fri, 14 Sep 2018, Rafael J. Wysocki wrote:
-> On Fri, Sep 14, 2018 at 11:53 AM Mika Penttilä
+Currently such caches can cause an error in lscpu -
 
-> > >> But doesn't injecting sleep time here make monotonic clock too large
-> > >> by the amount of sleeptime?  tick_freeze() / tick_unfreeze() already
-> > >> injects the sleeptime (otherwise delta would be 0).  > > >
-> > >
-> > > No, it doesn't.
-> > >
-> > > The delta here is the extra time taken by the loop which hasn't been counted
-> > > as sleep time yet.
-> >
+lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+file or directory
 
-> > I said incorrectly monotonic clock, but
-> > timekeeping_inject_sleeptime64() forwards the wall time, by the amount
-> > of delta.  Why wouldn't some other cpu update xtime when one cpu is in
-> > the loop? And if all cpus enter s2idle, tick_unfreeze() injects
-> > sleeptime. My point is that this extra injection makes wall time wrong,
-> > no?
->  
-> OK, you're right.  I got that the other way around.
-> 
-> So, the patch is withdrawn.
+and result in no output, providing a poor user experience.  lstopo is also
+affected as such caches are not included in the output.
 
-I just tried to wrap my brain around that whole thing and utterly
-failed, so I can't give any recommendations right now.
+Address these issues by attempting to be a little more discerning about when
+cache information is provided to userspace, and also utilize all sources for
+cache information when possible.
 
-Rafael, could you please enable some lightweight instrumentation which lets
-me see the longer sequence of events which are leading to this or tell me
-what I need to do to reproduce that myself?
+[v2]
+-Updated cacheinfo per Sudeep's suggestion
+-Integrated the PPTT fix into existing PPTT code per Sudeep's suggestion
 
-Thanks,
+Jeffrey Hugo (2):
+  drivers: base: cacheinfo: Do not populate sysfs for unknown cache
+    types
+  ACPI/PPTT: Handle architecturally unknown cache types
 
-	tglx
---8323329-1763824608-1536928900=:10480--
+ drivers/acpi/pptt.c      | 15 +++++++++++----
+ drivers/base/cacheinfo.c |  2 ++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+-- 
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
