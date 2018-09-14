@@ -1,58 +1,103 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] mailbox: PCC: handle parse error
-Date: Fri, 14 Sep 2018 10:41:06 +0200
-Message-ID: <8358588.tR87Gxe1PI@aspire.rjw.lan>
-References: <1535397548-69588-1-git-send-email-darcari@redhat.com> <e9d05632-dae6-b904-fe62-d617b3dfe3fd@redhat.com>
+Subject: Re: [PATCH] PM / suspend: Count suspend-to-idle loop as sleep time
+Date: Fri, 14 Sep 2018 10:46:35 +0200
+Message-ID: <1831106.CYv9dyYV15@aspire.rjw.lan>
+References: <9611469.2z7W9akjOQ@aspire.rjw.lan> <767e9ec4-cc35-9255-360a-4d12736aa4de@nextfour.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e9d05632-dae6-b904-fe62-d617b3dfe3fd@redhat.com>
+In-Reply-To: <767e9ec4-cc35-9255-360a-4d12736aa4de@nextfour.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ahs3@redhat.com, David Arcari <darcari@redhat.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jassi Brar <jassisinghbrar@gmail.com>
+To: Mika =?ISO-8859-1?Q?Penttil=E4?= <mika.penttila@nextfour.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Thomas Gleixner <tglx@linutronix.de>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, August 27, 2018 10:55:41 PM CEST Al Stone wrote:
-> On 08/27/2018 01:19 PM, David Arcari wrote:
-> > acpi_pcc_probe calls acpi_table_parse_entries_array but fails to check
-> > for an error return.  This in turn can result in calling kcalloc with
-> > a negative count as well as emitting the following misleading erorr
-> > message:
+On Friday, September 14, 2018 10:28:44 AM CEST Mika Penttilä wrote:
+> Hi!
+> 
+> 
+> On 09/14/2018 09:59 AM, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > [    2.642015] Could not allocate space for PCC mbox channels
+> > There is a difference in behavior between suspend-to-idle and
+> > suspend-to-RAM in the timekeeping handling that leads to functional
+> > issues.  Namely, every iteration of the loop in s2idle_loop()
+> > increases the monotinic clock somewhat, even if timekeeping_suspend()
+> > and timekeeping_resume() are invoked from s2idle_enter(), and if
+> > many of them are carried out in a row, the monotonic clock can grow
+> > significantly while the system is regarded as suspended, which
+> > doesn't happen during suspend-to-RAM and so it is unexpected and
+> > leads to confusion and misbehavior in user space (similar to what
+> > ensued when we tried to combine the boottime and monotonic clocks).
 > > 
-> > Fixes: 8f8027c5f935 ("mailbox: PCC: erroneous error message when parsing ACPI PCCT")
+> > To avoid that, count all iterations of the loop in s2idle_loop()
+> > as "sleep time" and adjust the clock for that on exit from
+> > suspend-to-idle.
 > > 
-> > Signed-off-by: David Arcari <darcari@redhat.com>
-> > Cc: Al Stone <ahs3@redhat.com>
-> > Cc: Jassi Brar <jassisinghbrar@gmail.com>
+> > [That also covers systems on which timekeeping is not suspended
+> >  by by s2idle_enter().]
+> > 
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > ---
-> >  drivers/mailbox/pcc.c | 7 +++++--
-> >  1 file changed, 5 insertions(+), 2 deletions(-)
 > > 
-> > diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-> > index 311e91b..256f18b 100644
-> > --- a/drivers/mailbox/pcc.c
-> > +++ b/drivers/mailbox/pcc.c
-> > @@ -461,8 +461,11 @@ static int __init acpi_pcc_probe(void)
-> >  	count = acpi_table_parse_entries_array(ACPI_SIG_PCCT,
-> >  			sizeof(struct acpi_table_pcct), proc,
-> >  			ACPI_PCCT_TYPE_RESERVED, MAX_PCC_SUBSPACES);
-> > -	if (count == 0 || count > MAX_PCC_SUBSPACES) {
-> > -		pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
-> > +	if (count <= 0 || count > MAX_PCC_SUBSPACES) {
-> > +		if (count < 0)
-> > +			pr_warn("Error parsing PCC subspaces from PCCT\n");
-> > +		else
-> > +			pr_warn("Invalid PCCT: %d PCC subspaces\n", count);
-> >  		return -EINVAL;
+> > This is a replacement for https://patchwork.kernel.org/patch/10599209/
+> > 
+> > I decided to count the entire loop in s2idle_loop() as "sleep time" as the
+> > patch is then simpler and it also covers systems where timekeeping is not
+> > suspended in the final step of suspend-to-idle.
+> > 
+> > I dropped the "Fixes:" tag, because the monotonic clock delta problem
+> > has been present on the latter since the very introduction of "freeze"
+> > (as suspend-to-idle was referred to previously) and so this doesn't fix
+> > any particular later commits.
+> > 
+> > ---
+> >  kernel/power/suspend.c |   18 ++++++++++++++++++
+> >  1 file changed, 18 insertions(+)
+> > 
+> > Index: linux-pm/kernel/power/suspend.c
+> > ===================================================================
+> > --- linux-pm.orig/kernel/power/suspend.c
+> > +++ linux-pm/kernel/power/suspend.c
+> > @@ -109,8 +109,12 @@ static void s2idle_enter(void)
+> >  
+> >  static void s2idle_loop(void)
+> >  {
+> > +	ktime_t start, delta;
+> > +
+> >  	pm_pr_dbg("suspend-to-idle\n");
+> >  
+> > +	start = ktime_get();
+> > +
+> >  	for (;;) {
+> >  		int error;
+> >  
+> > @@ -150,6 +154,20 @@ static void s2idle_loop(void)
+> >  		pm_wakeup_clear(false);
 > >  	}
 > >  
-> > 
+> > +	/*
+> > +	 * If the monotonic clock difference between the start of the loop and
+> > +	 * this point is too large, user space may get confused about whether or
+> > +	 * not the system has been suspended and tasks may get killed by
+> > +	 * watchdogs etc., so count the loop as "sleep time" to compensate for
+> > +	 * that.
+> > +	 */
+> > +	delta = ktime_sub(ktime_get(), start);
+> > +	if (ktime_to_ns(delta) > 0) {
+> > +		struct timespec64 timespec64_delta = ktime_to_timespec64(delta);
+> > +
+> > +		timekeeping_inject_sleeptime64(&timespec64_delta);
+> > +	}
 > 
-> Thanks, David.  Nice catch.
-> 
-> Reviewed-by: Al Stone <ahs3@redhat.com>
+> But doesn't injecting sleep time here make monotonic clock too large by the amount of sleeptime? 
+> tick_freeze() / tick_unfreeze() already injects the sleeptime (otherwise delta would be 0).
 
-Patch applied, thanks!
+No, it doesn't.
+
+The delta here is the extra time taken by the loop which hasn't been counted
+as sleep time yet.
+
+Thanks,
+Rafael
