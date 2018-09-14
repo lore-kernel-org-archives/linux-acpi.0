@@ -1,105 +1,62 @@
-From: Jirka Hladky <jhladky@redhat.com>
-Subject: Re: [4.17 regression] Performance drop on kernel-4.17 visible on
- Stream, Linpack and NAS parallel benchmarks
-Date: Fri, 14 Sep 2018 18:50:56 +0200
-Message-ID: <CAE4VaGB9trwCcpNFEMLgJmvvZHgNxtAJF89-6naheKLjFca72w@mail.gmail.com>
-References: <CAE4VaGA9KzX05rdfw2PhEATLisV-NVMc9rOyjzSg-rX1rug9Dw@mail.gmail.com>
- <CABuKy6MUNX85PBVchz_hqXy+FxXU2x0U9ZEZB13rVSLGpWOWvQ@mail.gmail.com>
- <CAE4VaGD12BLS_kk=pRwgTKL8YOU63Nowwa42cEdZObQ=P1MFnA@mail.gmail.com>
- <CAE4VaGArxDYHzg8G203yKjgkuw3mULFSw8yCYbCcqvAUSUxy+A@mail.gmail.com>
- <20180717100329.yfy7igdsrpk5ujf4@techsingularity.net> <CAE4VaGA_L1AEj+Un0oQEEqZp_jgaFLk+Z=vNoad08oXnU2T1nw@mail.gmail.com>
- <CAE4VaGDTNgu=JX=N7=uZu0Bz_vUdHszZQ9_SQuwrbjRvFjCwZw@mail.gmail.com>
- <20180904090053.GB1719@techsingularity.net> <CAE4VaGB-mFfAR_rKUbGx01HLDQtyjHQLNOrm3fc+aSq2D2O2Dg@mail.gmail.com>
- <CAE4VaGATB4M7-osmi0wqovGbZb7os+ukMHi+Lbum3tegpHxGNw@mail.gmail.com>
- <20180906125843.GC1719@techsingularity.net> <CAE4VaGAD0NuO+bhQ=BXB-TC71CeyYJ+3WbY30r_vo7NKBQR2Mg@mail.gmail.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH v2 1/2] drivers: base: cacheinfo: Do not populate sysfs
+ for unknown cache types
+Date: Fri, 14 Sep 2018 12:14:11 -0500
+Message-ID: <3e842dd3-9b92-c56b-c45a-72d99b37f946@arm.com>
+References: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
+ <1536942489-4018-2-git-send-email-jhugo@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAE4VaGAD0NuO+bhQ=BXB-TC71CeyYJ+3WbY30r_vo7NKBQR2Mg@mail.gmail.com>
+In-Reply-To: <1536942489-4018-2-git-send-email-jhugo@codeaurora.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mel Gorman <mgorman@techsingularity.net>
-Cc: Kamil Kolakowski <kkolakow@redhat.com>, Jakub Racek <jracek@redhat.com>, linux-kernel <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>, sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mel,
+Hi,
 
-we have tried to revert following 2 commits:
+On 09/14/2018 11:28 AM, Jeffrey Hugo wrote:
+> If a cache has an unknown type because neither the hardware nor the
+> firmware told us, an entry in the sysfs tree will be made, but the type
+> file will not be present.  lscpu depends on the type file being present
+> for every entry, and will error out without printing system information
+> if lscpu cannot open the type file.
+> 
+> Presenting information about a cache without indicating its type is not
+> useful, therefore if we hit a cache with an unknown type, stop populating
+> sysfs so that userspace has the maximum amount of useful information.
+> 
+> This addresses the following lscpu error, which prevents any output.
+> lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+> file or directory
+> 
+> Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+> ---
+>   drivers/base/cacheinfo.c | 2 ++
+>   1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+> index 5d5b598..cf78fa6 100644
+> --- a/drivers/base/cacheinfo.c
+> +++ b/drivers/base/cacheinfo.c
+> @@ -615,6 +615,8 @@ static int cache_add_dev(unsigned int cpu)
+>   		this_leaf = this_cpu_ci->info_list + i;
+>   		if (this_leaf->disable_sysfs)
+>   			continue;
+> +		if (this_leaf->type == CACHE_TYPE_NOCACHE)
+> +			break;
+>   		cache_groups = cache_get_attribute_groups(this_leaf);
+>   		ci_dev = cpu_device_create(parent, this_leaf, cache_groups,
+>   					   "index%1u", i);
+> 
 
-305c1fac3225
-2d4056fafa196e1ab
+Looks fine to me:
 
-We had to revert 10864a9e222048a862da2c21efa28929a4dfed15 as well.
-
-The performance of the kernel was better than when only
-2d4056fafa196e1ab was reverted but still worse than the performance of
-4.18 kernel.
-
-Since the patch series from Srikar shows very good results we would
-wait till it's merged to mainline kernel and stop the bisecting
-efforts for now. Your patch series sched-numa-fast-crossnode-v1r12 (on
-top of 4.18) is giving in some cases slightly better results than
-Srikar's series so it would be really great if both series could be
-merged together. Removing NUMA migration rate limit helps performance.
-
-Thanks a lot for your help on this!
-Jirka
+Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
 
 
-On Fri, Sep 7, 2018 at 10:09 AM, Jirka Hladky <jhladky@redhat.com> wrote:
->> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
->> condition in terms of idle CPU handling that has been problematic.
->
->
-> We will try that, thanks!
->
->>  I would suggest contacting Srikar directly.
->
->
-> I will do that right away. Whom should I put on Cc? Just you and
-> linux-kernel@vger.kernel.org ? Should I put Ingo and Peter on Cc as
-> well?
->
-> $scripts/get_maintainer.pl -f kernel/sched
-> Ingo Molnar <mingo@redhat.com> (maintainer:SCHEDULER)
-> Peter Zijlstra <peterz@infradead.org> (maintainer:SCHEDULER)
-> linux-kernel@vger.kernel.org (open list:SCHEDULER)
->
-> Jirka
->
-> On Thu, Sep 6, 2018 at 2:58 PM, Mel Gorman <mgorman@techsingularity.net> wrote:
->> On Thu, Sep 06, 2018 at 10:16:28AM +0200, Jirka Hladky wrote:
->>> Hi Mel,
->>>
->>> we have results with 2d4056fafa196e1ab4e7161bae4df76f9602d56d reverted.
->>>
->>>   * Compared to 4.18, there is still performance regression -
->>> especially with NAS (sp_C_x subtest) and SPECjvm2008. On 4 NUMA
->>> systems, regression is around 10-15%
->>>   * Compared to 4.19rc1 there is a clear gain across all benchmarks around 20%
->>>
->>
->> Ok.
->>
->>> While reverting 2d4056fafa196e1ab4e7161bae4df76f9602d56d has helped a
->>> lot there is another issue as well. Could you please recommend some
->>> commit prior to 2d4056fafa196e1ab4e7161bae4df76f9602d56d to try?
->>>
->>
->> Maybe 305c1fac3225dfa7eeb89bfe91b7335a6edd5172. That introduces a weird
->> condition in terms of idle CPU handling that has been problematic.
->>
->>> Regarding the current results, how do we proceed? Could you please
->>> contact Srikar and ask for the advice or should we contact him
->>> directly?
->>>
->>
->> I would suggest contacting Srikar directly. While I'm working on a
->> series that touches off some similar areas, there is no guarantee it'll
->> be a success as I'm not primarily upstream focused at the moment.
->>
->> Restarting the thread would also end up with a much more sensible cc
->> list.
->>
->> --
->> Mel Gorman
->> SUSE Labs
+Thanks,
