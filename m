@@ -1,45 +1,48 @@
 From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: [PATCH v2 0/2] PPTT handle Handle architecturally unknown cache types
-Date: Fri, 14 Sep 2018 10:28:07 -0600
-Message-ID: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
+Subject: [PATCH v2 1/2] drivers: base: cacheinfo: Do not populate sysfs for unknown cache types
+Date: Fri, 14 Sep 2018 10:28:08 -0600
+Message-ID: <1536942489-4018-2-git-send-email-jhugo@codeaurora.org>
+References: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
 Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The ARM Architecture Reference Manual allows for caches to be "invisible" and
-thus not specified in the system registers under some scenarios such as if the
-cache cannot be managed by set/way operations.
+If a cache has an unknown type because neither the hardware nor the
+firmware told us, an entry in the sysfs tree will be made, but the type
+file will not be present.  lscpu depends on the type file being present
+for every entry, and will error out without printing system information
+if lscpu cannot open the type file.
 
-However, such caches may be specified in the ACPI PPTT table for workload
-performance/scheduling optimizations.
+Presenting information about a cache without indicating its type is not
+useful, therefore if we hit a cache with an unknown type, stop populating
+sysfs so that userspace has the maximum amount of useful information.
 
-Currently such caches can cause an error in lscpu -
-
+This addresses the following lscpu error, which prevents any output.
 lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
 file or directory
 
-and result in no output, providing a poor user experience.  lstopo is also
-affected as such caches are not included in the output.
+Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+---
+ drivers/base/cacheinfo.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Address these issues by attempting to be a little more discerning about when
-cache information is provided to userspace, and also utilize all sources for
-cache information when possible.
-
-[v2]
--Updated cacheinfo per Sudeep's suggestion
--Integrated the PPTT fix into existing PPTT code per Sudeep's suggestion
-
-Jeffrey Hugo (2):
-  drivers: base: cacheinfo: Do not populate sysfs for unknown cache
-    types
-  ACPI/PPTT: Handle architecturally unknown cache types
-
- drivers/acpi/pptt.c      | 15 +++++++++++----
- drivers/base/cacheinfo.c |  2 ++
- 2 files changed, 13 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+index 5d5b598..cf78fa6 100644
+--- a/drivers/base/cacheinfo.c
++++ b/drivers/base/cacheinfo.c
+@@ -615,6 +615,8 @@ static int cache_add_dev(unsigned int cpu)
+ 		this_leaf = this_cpu_ci->info_list + i;
+ 		if (this_leaf->disable_sysfs)
+ 			continue;
++		if (this_leaf->type == CACHE_TYPE_NOCACHE)
++			break;
+ 		cache_groups = cache_get_attribute_groups(this_leaf);
+ 		ci_dev = cpu_device_create(parent, this_leaf, cache_groups,
+ 					   "index%1u", i);
 -- 
 Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
