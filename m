@@ -1,7 +1,7 @@
 From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: [PATCH v2 1/2] drivers: base: cacheinfo: Do not populate sysfs for unknown cache types
-Date: Fri, 14 Sep 2018 10:28:08 -0600
-Message-ID: <1536942489-4018-2-git-send-email-jhugo@codeaurora.org>
+Subject: [PATCH v2 2/2] ACPI/PPTT: Handle architecturally unknown cache types
+Date: Fri, 14 Sep 2018 10:28:09 -0600
+Message-ID: <1536942489-4018-3-git-send-email-jhugo@codeaurora.org>
 References: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
@@ -10,39 +10,49 @@ To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-a
 Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-If a cache has an unknown type because neither the hardware nor the
-firmware told us, an entry in the sysfs tree will be made, but the type
-file will not be present.  lscpu depends on the type file being present
-for every entry, and will error out without printing system information
-if lscpu cannot open the type file.
+The type of a cache might not be specified by architectural mechanisms (ie
+system registers), but its type might be specified in the PPTT.  In this
+case, we should populate the type of the cache, rather than leave it
+undefined.
 
-Presenting information about a cache without indicating its type is not
-useful, therefore if we hit a cache with an unknown type, stop populating
-sysfs so that userspace has the maximum amount of useful information.
+This fixes the issue where the cacheinfo driver will not populate sysfs
+for such caches, resulting in the information missing from utilities like
+lstopo and lscpu, thus degrading the user experience.
 
-This addresses the following lscpu error, which prevents any output.
-lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
-file or directory
-
-Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
+Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
+Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
 Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
 ---
- drivers/base/cacheinfo.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/pptt.c | 15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
-index 5d5b598..cf78fa6 100644
---- a/drivers/base/cacheinfo.c
-+++ b/drivers/base/cacheinfo.c
-@@ -615,6 +615,8 @@ static int cache_add_dev(unsigned int cpu)
- 		this_leaf = this_cpu_ci->info_list + i;
- 		if (this_leaf->disable_sysfs)
- 			continue;
-+		if (this_leaf->type == CACHE_TYPE_NOCACHE)
-+			break;
- 		cache_groups = cache_get_attribute_groups(this_leaf);
- 		ci_dev = cpu_device_create(parent, this_leaf, cache_groups,
- 					   "index%1u", i);
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index d1e26cb..bb00ed9 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -402,11 +402,18 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+ 		}
+ 	}
+ 	/*
+-	 * If the above flags are valid, and the cache type is NOCACHE
+-	 * update the cache type as well.
++	 * If cache type is NOCACHE, then the cache hasn't been specified
++	 * via other mechanisms.  Update the type if either the cache has
++	 * been fully specified in PPTT, or a cache type has been provided.
++	 *
++	 * Note, we assume such caches are unified based on conventional system
++	 * design and known examples.  Significant work is required elsewhere to
++	 * fully support data/instruction only type caches which are only
++	 * specified in PPTT.
+ 	 */
+-	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+-	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
++	if ((this_leaf->type == CACHE_TYPE_NOCACHE) &&
++	    (valid_flags == PPTT_CHECKED_ATTRIBUTES ||
++	     found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID))
+ 		this_leaf->type = CACHE_TYPE_UNIFIED;
+ }
+ 
 -- 
 Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
 Qualcomm Technologies, Inc. is a member of the
