@@ -1,80 +1,59 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFCv2 3/6] mm/memory_hotplug: fix online/offline_pages
- called w.o. mem_hotplug_lock
-Date: Mon, 17 Sep 2018 09:32:27 +0200
-Message-ID: <5f80ca56-9f34-4e6e-bc83-8f8b3c888163@redhat.com>
-References: <20180821104418.12710-1-david@redhat.com>
- <20180821104418.12710-4-david@redhat.com>
- <70372ef5-e332-6c07-f08c-50f8808bde6d@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] PM / suspend: Count suspend-to-idle loop as sleep time
+Date: Mon, 17 Sep 2018 10:08:05 +0200
+Message-ID: <CAJZ5v0iw99hWVY6P+uxOwZR4CkJJAbSytKuMr5Qk2-TYvzftCQ@mail.gmail.com>
+References: <9611469.2z7W9akjOQ@aspire.rjw.lan> <767e9ec4-cc35-9255-360a-4d12736aa4de@nextfour.com>
+ <1831106.CYv9dyYV15@aspire.rjw.lan> <e028742e-cd42-24a7-0da1-4fa12d8c9d7c@nextfour.com>
+ <CAJZ5v0gRjfGDSyZXRwGgF9dOBR9OJbfYE8Dbpqdx6oCMN1XUVA@mail.gmail.com> <alpine.DEB.2.21.1809141438560.10480@nanos.tec.linutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <70372ef5-e332-6c07-f08c-50f8808bde6d@gmail.com>
-Content-Language: en-US
+In-Reply-To: <alpine.DEB.2.21.1809141438560.10480@nanos.tec.linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rashmica <rashmica.g@gmail.com>, linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Michael Neuling <mikey@neuling.org>, Balbir
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, mika.penttila@nextfour.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Am 03.09.18 um 02:36 schrieb Rashmica:
-> Hi David,
-> 
-> 
-> On 21/08/18 20:44, David Hildenbrand wrote:
-> 
->> There seem to be some problems as result of 30467e0b3be ("mm, hotplug:
->> fix concurrent memory hot-add deadlock"), which tried to fix a possible
->> lock inversion reported and discussed in [1] due to the two locks
->> 	a) device_lock()
->> 	b) mem_hotplug_lock
->>
->> While add_memory() first takes b), followed by a) during
->> bus_probe_device(), onlining of memory from user space first took b),
->> followed by a), exposing a possible deadlock.
-> 
-> Do you mean "onlining of memory from user space first took a),
-> followed by b)"? 
+On Fri, Sep 14, 2018 at 2:41 PM Thomas Gleixner <tglx@linutronix.de> wrote:
+>
+> On Fri, 14 Sep 2018, Rafael J. Wysocki wrote:
+> > On Fri, Sep 14, 2018 at 11:53 AM Mika Penttilä
+>
+> > > >> But doesn't injecting sleep time here make monotonic clock too large
+> > > >> by the amount of sleeptime?  tick_freeze() / tick_unfreeze() already
+> > > >> injects the sleeptime (otherwise delta would be 0).  > > >
+> > > >
+> > > > No, it doesn't.
+> > > >
+> > > > The delta here is the extra time taken by the loop which hasn't been counted
+> > > > as sleep time yet.
+> > >
+>
+> > > I said incorrectly monotonic clock, but
+> > > timekeeping_inject_sleeptime64() forwards the wall time, by the amount
+> > > of delta.  Why wouldn't some other cpu update xtime when one cpu is in
+> > > the loop? And if all cpus enter s2idle, tick_unfreeze() injects
+> > > sleeptime. My point is that this extra injection makes wall time wrong,
+> > > no?
+> >
+> > OK, you're right.  I got that the other way around.
+> >
+> > So, the patch is withdrawn.
 
-Very right, thanks.
+[Sorry for the delay, personal life intervened.]
 
-> 
->> In [1], and it was decided to not make use of device_hotplug_lock, but
->> rather to enforce a locking order.
->>
->> The problems I spotted related to this:
->>
->> 1. Memory block device attributes: While .state first calls
->>    mem_hotplug_begin() and the calls device_online() - which takes
->>    device_lock() - .online does no longer call mem_hotplug_begin(), so
->>    effectively calls online_pages() without mem_hotplug_lock.
->>
->> 2. device_online() should be called under device_hotplug_lock, however
->>    onlining memory during add_memory() does not take care of that.
->>
->> In addition, I think there is also something wrong about the locking in
->>
->> 3. arch/powerpc/platforms/powernv/memtrace.c calls offline_pages()
->>    without locks. This was introduced after 30467e0b3be. And skimming over
->>    the code, I assume it could need some more care in regards to locking
->>    (e.g. device_online() called without device_hotplug_lock - but I'll
->>    not touch that for now).
-> 
-> Can you mention that you fixed this in later patches?
+> I just tried to wrap my brain around that whole thing and utterly
+> failed, so I can't give any recommendations right now.
 
-Sure!
+Thanks for looking into this!
 
-> 
-> 
-> The series looks good to me. Feel free to add my reviewed-by:
-> 
-> Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
-> 
+> Rafael, could you please enable some lightweight instrumentation which lets
+> me see the longer sequence of events which are leading to this or tell me
+> what I need to do to reproduce that myself?
 
-Thanks, r-b only for this patch or all of the series?
+I will, when I find out more.  The reported issues may just go away
+after fixing some other bugs.
 
--- 
-
-Thanks,
-
-David / dhildenb
+Cheers,
+Rafael
