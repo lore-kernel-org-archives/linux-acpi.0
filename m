@@ -1,59 +1,141 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] PM / suspend: Count suspend-to-idle loop as sleep time
-Date: Mon, 17 Sep 2018 10:08:05 +0200
-Message-ID: <CAJZ5v0iw99hWVY6P+uxOwZR4CkJJAbSytKuMr5Qk2-TYvzftCQ@mail.gmail.com>
-References: <9611469.2z7W9akjOQ@aspire.rjw.lan> <767e9ec4-cc35-9255-360a-4d12736aa4de@nextfour.com>
- <1831106.CYv9dyYV15@aspire.rjw.lan> <e028742e-cd42-24a7-0da1-4fa12d8c9d7c@nextfour.com>
- <CAJZ5v0gRjfGDSyZXRwGgF9dOBR9OJbfYE8Dbpqdx6oCMN1XUVA@mail.gmail.com> <alpine.DEB.2.21.1809141438560.10480@nanos.tec.linutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+From: Pu Wen <puwen@hygon.cn>
+Subject: [PATCH v7 00/16] Add support for Hygon Dhyana Family 18h processor
+Date: Mon, 17 Sep 2018 21:28:54 +0800
+Message-ID: <cover.1537182523.git.puwen@hygon.cn>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.21.1809141438560.10480@nanos.tec.linutronix.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, mika.penttila@nextfour.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Peter Zijlstra <peterz@infradead.org>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>, Vitaly Kuznetsov <vkuznets@redhat.com>
+To: bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, pbonzini@redhat.com, tony.luck@intel.com, rkrcmar@redhat.com, boris.ostrovsky@oracle.com, jgross@suse.com, rjw@rjwysocki.net, lenb@kernel.org, viresh.kumar@linaro.org, mchehab@kernel.org, trenn@suse.com, shuah@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-pm@vger.kernel.org, kvm@vger.kernel.org, xen-devel@lists.xenproject.org, Pu Wen <puwen@hygon.cn>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 14, 2018 at 2:41 PM Thomas Gleixner <tglx@linutronix.de> wrote:
->
-> On Fri, 14 Sep 2018, Rafael J. Wysocki wrote:
-> > On Fri, Sep 14, 2018 at 11:53 AM Mika Penttilä
->
-> > > >> But doesn't injecting sleep time here make monotonic clock too large
-> > > >> by the amount of sleeptime?  tick_freeze() / tick_unfreeze() already
-> > > >> injects the sleeptime (otherwise delta would be 0).  > > >
-> > > >
-> > > > No, it doesn't.
-> > > >
-> > > > The delta here is the extra time taken by the loop which hasn't been counted
-> > > > as sleep time yet.
-> > >
->
-> > > I said incorrectly monotonic clock, but
-> > > timekeeping_inject_sleeptime64() forwards the wall time, by the amount
-> > > of delta.  Why wouldn't some other cpu update xtime when one cpu is in
-> > > the loop? And if all cpus enter s2idle, tick_unfreeze() injects
-> > > sleeptime. My point is that this extra injection makes wall time wrong,
-> > > no?
-> >
-> > OK, you're right.  I got that the other way around.
-> >
-> > So, the patch is withdrawn.
+As a new x86 CPU Vendor, Chengdu Haiguang IC Design Co., Ltd (Hygon)
+is a Joint Venture between AMD and Haiguang Information Technology Co.,
+Ltd., and aims at providing high performance x86 processor for China
+server market.
 
-[Sorry for the delay, personal life intervened.]
+The first generation Hygon's processor(Dhyana) originates from AMD
+technology and shares most of the architecture with AMD's family 17h,
+but with different CPU Vendor ID("HygonGenuine")/PCIE Device Vendor ID
+(0x1D94)/Family series number (Family 18h).
 
-> I just tried to wrap my brain around that whole thing and utterly
-> failed, so I can't give any recommendations right now.
+To enable the support of Linux kernel to Hygon's CPU, we added a new
+vendor type (X86_VENDOR_HYGON, with value of 9) in arch/x86/include/
+asm/processor.h, and shared most of kernel support codes with AMD
+family 17h.
 
-Thanks for looking into this!
+As Hygon will negotiate with AMD to make sure that only Hygon will
+use family 18h, so try to minimize code modification and share most
+codes with AMD under this consideration.
 
-> Rafael, could you please enable some lightweight instrumentation which lets
-> me see the longer sequence of events which are leading to this or tell me
-> what I need to do to reproduce that myself?
+This patch series have been applied and tested successfully on Hygon
+Dhyana SoC silicon. Also tested on AMD EPYC (Family 17h) processor,
+it works fine and makes no harm to the existing codes.
 
-I will, when I find out more.  The reported issues may just go away
-after fixing some other bugs.
 
-Cheers,
-Rafael
+v6->v7:
+  - Rebased on 4.19-rc4 and tested against it.
+  - Add Reviewed-by from Borislav Petkov for patches x86/cpu,
+    x86/cpu/mtrr, perf/x86, x86/pci, x86/apic, x86/mce.
+  - Refine the patch descriptions and fix some typos.
+  - Remove unneeded vendor checking for patch x86/apic.
+  - Restore the user-visible pr_err string in patch x86/bugs.
+
+v5->v6:
+  - Rebased on 4.19-rc3 and tested against it.
+  - Add Reviewed-by from Borislav Petkov for cacheinfo, smpboot,
+    alternative and kvm.
+  - Rework the patch subjects and patch descriptions.
+  - Rework vendor checking for some patches to minimize the code
+    modification.
+
+v4->v5:
+  - Rebased on 4.19-rc1 and tested against it.
+  - Add Reviewed-by from Boris Ostrovsky for Xen.
+  - Rework EDAC patch without vendor checking for minimal modification.
+
+v3->v4:
+  - Rebased on 4.18.3 and tested against it.
+  - Merge patches 05/17 perfctr and 10/17 events in v3 to patch 05/16
+    PMU for better patch function group.
+  - Add hygon_get_topology_early() in patch 01/16.
+  - Rework vendor checking and refine coding style.
+  - Add Acked-by from Bjorn Helgaas for pci.
+  - Add Acked-by from Rafael J. Wysocki for cpufreq and acpi.
+
+v2->v3:
+  - Rebased on 4.18-rc8 and tested against it.
+  - Rework vendor checking codes to improve consistency.
+
+v1->v2:
+  - Rebased on 4.18-rc6 and tested against it.
+  - Split the patch set to small series of patches.
+  - Rework patch descriptions.
+  - Create a separated arch/x86/kernel/cpu/hygon.c for Dhyana CPU
+    initialization to reduce long-term maintenance effort.
+
+
+Pu Wen (16):
+  x86/cpu: Create Hygon Dhyana architecture support file
+  x86/cpu: Get cache info and setup cache cpumap for Hygon Dhyana
+  x86/cpu/mtrr: Support TOP_MEM2 and get MTRR number
+  x86/smpboot: SMP init no delay and not flush caches before sleep
+  perf/x86: Add Hygon Dhyana support to PMU infrastructure
+  x86/alternative: Init ideal_nops for Hygon Dhyana
+  x86/pci: Add Hygon Dhyana support to PCI and north bridge
+  x86/apic: Add Hygon Dhyana support to APIC
+  x86/bugs: Add mitigation to spectre and no meltdown for Hygon Dhyana
+  x86/mce: Add Hygon Dhyana support to MCE infrastructure
+  x86/kvm: Add Hygon Dhyana support to KVM infrastructure
+  x86/xen: Add Hygon Dhyana support to Xen
+  ACPI, x86: Add Hygon Dhyana support
+  cpufreq, x86: Add Hygon Dhyana support
+  EDAC, amd64: Add Hygon Dhyana support
+  cpupower, x86: Add Hygon Dhyana support
+
+ MAINTAINERS                                        |   6 +
+ arch/x86/Kconfig.cpu                               |  14 +
+ arch/x86/events/amd/core.c                         |   4 +
+ arch/x86/events/amd/uncore.c                       |  20 +-
+ arch/x86/events/core.c                             |   4 +
+ arch/x86/include/asm/cacheinfo.h                   |   1 +
+ arch/x86/include/asm/kvm_emulate.h                 |   4 +
+ arch/x86/include/asm/mce.h                         |   2 +
+ arch/x86/include/asm/processor.h                   |   3 +-
+ arch/x86/include/asm/virtext.h                     |   5 +-
+ arch/x86/kernel/alternative.c                      |   4 +
+ arch/x86/kernel/amd_nb.c                           |  47 ++-
+ arch/x86/kernel/apic/apic.c                        |   7 +
+ arch/x86/kernel/apic/probe_32.c                    |   1 +
+ arch/x86/kernel/cpu/Makefile                       |   1 +
+ arch/x86/kernel/cpu/bugs.c                         |   4 +-
+ arch/x86/kernel/cpu/cacheinfo.c                    |  31 +-
+ arch/x86/kernel/cpu/common.c                       |   1 +
+ arch/x86/kernel/cpu/cpu.h                          |   1 +
+ arch/x86/kernel/cpu/hygon.c                        | 411 +++++++++++++++++++++
+ arch/x86/kernel/cpu/mcheck/mce-severity.c          |   3 +-
+ arch/x86/kernel/cpu/mcheck/mce.c                   |  20 +-
+ arch/x86/kernel/cpu/mtrr/cleanup.c                 |   3 +-
+ arch/x86/kernel/cpu/mtrr/mtrr.c                    |   2 +-
+ arch/x86/kernel/cpu/perfctr-watchdog.c             |   2 +
+ arch/x86/kernel/smpboot.c                          |   4 +-
+ arch/x86/kvm/emulate.c                             |  11 +-
+ arch/x86/pci/amd_bus.c                             |   6 +-
+ arch/x86/xen/pmu.c                                 |  12 +-
+ drivers/acpi/acpi_pad.c                            |   1 +
+ drivers/acpi/processor_idle.c                      |   1 +
+ drivers/cpufreq/acpi-cpufreq.c                     |   5 +
+ drivers/cpufreq/amd_freq_sensitivity.c             |   9 +-
+ drivers/edac/amd64_edac.c                          |   8 +-
+ drivers/edac/mce_amd.c                             |   4 +-
+ include/linux/pci_ids.h                            |   2 +
+ tools/power/cpupower/utils/cpufreq-info.c          |   6 +-
+ tools/power/cpupower/utils/helpers/amd.c           |   4 +-
+ tools/power/cpupower/utils/helpers/cpuid.c         |   8 +-
+ tools/power/cpupower/utils/helpers/helpers.h       |   2 +-
+ tools/power/cpupower/utils/helpers/misc.c          |   2 +-
+ .../cpupower/utils/idle_monitor/mperf_monitor.c    |   3 +-
+ 42 files changed, 641 insertions(+), 48 deletions(-)
+ create mode 100644 arch/x86/kernel/cpu/hygon.c
+
+-- 
+2.7.4
