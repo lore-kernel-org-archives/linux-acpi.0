@@ -1,69 +1,104 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 2/2] ACPI/PPTT: Handle architecturally unknown cache
- types
-Date: Mon, 17 Sep 2018 17:17:07 +0100
-Message-ID: <71208e0e-fba9-ad6c-7578-a53fd1aa3f40@arm.com>
-References: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
- <1536942489-4018-3-git-send-email-jhugo@codeaurora.org>
+From: John Garry <john.garry@huawei.com>
+Subject: Re: [PATCH v2 3/4] perf: add arm64 smmuv3 pmu driver
+Date: Mon, 17 Sep 2018 18:10:05 +0100
+Message-ID: <a7481657-1551-8f3e-e679-8bfbee8f1ab4@huawei.com>
+References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
+ <20180724114515.21764-4-shameerali.kolothum.thodi@huawei.com>
+ <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1536942489-4018-3-git-send-email-jhugo@codeaurora.org>
-Content-Language: en-US
+In-Reply-To: <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeffrey Hugo <jhugo@codeaurora.org>, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+To: Robin Murphy <robin.murphy@arm.com>, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, will.deacon@arm.com
+Cc: mark.rutland@arm.com, guohanjun@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
 
+>> +
+>> +#define SMMU_EVENT_ATTR(_name, _id)                      \
+>> +    (&((struct perf_pmu_events_attr[]) {                  \
+>> +        { .attr = __ATTR(_name, 0444, smmu_pmu_event_show, NULL), \
+>> +          .id = _id, }                          \
+>> +    })[0].attr.attr)
+>> +
+>> +static struct attribute *smmu_pmu_events[] = {
+>> +    SMMU_EVENT_ATTR(cycles, SMMU_PMU_CYCLES),
+>> +    SMMU_EVENT_ATTR(transaction, SMMU_PMU_TRANSACTION),
+>> +    SMMU_EVENT_ATTR(tlb_miss, SMMU_PMU_TLB_MISS),
+>> +    SMMU_EVENT_ATTR(config_cache_miss, SMMU_PMU_CONFIG_CACHE_MISS),
+>> +    SMMU_EVENT_ATTR(trans_table_walk, SMMU_PMU_TRANS_TABLE_WALK),
+>> +    SMMU_EVENT_ATTR(config_struct_access,
+>> SMMU_PMU_CONFIG_STRUCT_ACCESS),
+>> +    SMMU_EVENT_ATTR(pcie_ats_trans_rq, SMMU_PMU_PCIE_ATS_TRANS_RQ),
+>> +    SMMU_EVENT_ATTR(pcie_ats_trans_passed,
+>> SMMU_PMU_PCIE_ATS_TRANS_PASSED),
+>> +    NULL
+>> +};
+>> +
+>> +static umode_t smmu_pmu_event_is_visible(struct kobject *kobj,
+>> +                     struct attribute *attr, int unused)
+>> +{
+>> +    struct device *dev = kobj_to_dev(kobj);
+>> +    struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
+>> +    struct perf_pmu_events_attr *pmu_attr;
+>> +
+>> +    pmu_attr = container_of(attr, struct perf_pmu_events_attr,
+>> attr.attr);
+>> +
+>> +    if (test_bit(pmu_attr->id, smmu_pmu->supported_events))
+>> +        return attr->mode;
+>> +
+>> +    return 0;
+>> +}
+>> +static struct attribute_group smmu_pmu_events_group = {
+>> +    .name = "events",
+>> +    .attrs = smmu_pmu_events,
+>> +    .is_visible = smmu_pmu_event_is_visible,
+>> +};
+>> +
+>> +/* Formats */
+>> +PMU_FORMAT_ATTR(event,           "config:0-15");
+>> +PMU_FORMAT_ATTR(filter_stream_id,  "config1:0-31");
+>> +PMU_FORMAT_ATTR(filter_span,       "config1:32");
+>> +PMU_FORMAT_ATTR(filter_enable,       "config1:33");
+>> +
+>> +static struct attribute *smmu_pmu_formats[] = {
+>> +    &format_attr_event.attr,
+>> +    &format_attr_filter_stream_id.attr,
+>> +    &format_attr_filter_span.attr,
+>> +    &format_attr_filter_enable.attr,
+>> +    NULL
+>> +};
+>> +
+>> +static struct attribute_group smmu_pmu_format_group = {
+>> +    .name = "format",
+>> +    .attrs = smmu_pmu_formats,
+>> +};
+>> +
+>> +static const struct attribute_group *smmu_pmu_attr_grps[] = {
+>> +    &smmu_pmu_cpumask_group,
+>> +    &smmu_pmu_events_group,
+>> +    &smmu_pmu_format_group,
+>> +    NULL,
+>> +};
+>> +
 
-On 14/09/18 17:28, Jeffrey Hugo wrote:
-> The type of a cache might not be specified by architectural mechanisms (ie
-> system registers), but its type might be specified in the PPTT.  In this
-> case, we should populate the type of the cache, rather than leave it
-> undefined.
-> 
-> This fixes the issue where the cacheinfo driver will not populate sysfs
-> for such caches, resulting in the information missing from utilities like
-> lstopo and lscpu, thus degrading the user experience.
-> 
-> Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
-> Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
-> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
-> ---
->  drivers/acpi/pptt.c | 15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index d1e26cb..bb00ed9 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -402,11 +402,18 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
->  		}
->  	}
->  	/*
-> -	 * If the above flags are valid, and the cache type is NOCACHE
-> -	 * update the cache type as well.
-> +	 * If cache type is NOCACHE, then the cache hasn't been specified
-> +	 * via other mechanisms.  Update the type if either the cache has
-> +	 * been fully specified in PPTT, or a cache type has been provided.
-> +	 *
-> +	 * Note, we assume such caches are unified based on conventional system
-> +	 * design and known examples.  Significant work is required elsewhere to
-> +	 * fully support data/instruction only type caches which are only
-> +	 * specified in PPTT.
->  	 */
-> -	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
-> -	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
-> +	if ((this_leaf->type == CACHE_TYPE_NOCACHE) &&
-> +	    (valid_flags == PPTT_CHECKED_ATTRIBUTES ||
-> +	     found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID))
->  		this_leaf->type = CACHE_TYPE_UNIFIED;
 
-I thought I did mention that we can drop the valid_flags altogether
-unless Jeremy has reasons not to.
+Question: If we wanted to add proper named event support for the 
+IMPLEMENTATION DEFINED events, how to add (if at all)?
 
--- 
-Regards,
-Sudeep
+So currently the driver only supports the Architected events, which is 
+fine. And we support raw events for the IMPLEMENTATION DEFINED events 
+(0x80-0xFFFF).
+
+But to add named event support for the IMP DEF events, I assume we would 
+want to do something similar to arm64 CPU PMU events - that is, common 
+architected events in kernel pmu driver, and implementation defined 
+events defined in perf tool. However I don't know if it's even feasible 
+considering there does not seem to be a mandatory/standard PMCG ID 
+register to detect the implementation.
+
+Thanks,
+John
