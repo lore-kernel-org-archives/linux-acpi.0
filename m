@@ -1,48 +1,69 @@
-From: Pu Wen <puwen@hygon.cn>
-Subject: [PATCH v7 13/16] ACPI, x86: Add Hygon Dhyana support
-Date: Mon, 17 Sep 2018 21:33:40 +0800
-Message-ID: <c86dbda9e2e2fe9b23078e33dd6a9b291675b673.1537182523.git.puwen@hygon.cn>
-References: <cover.1537182523.git.puwen@hygon.cn>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 2/2] ACPI/PPTT: Handle architecturally unknown cache
+ types
+Date: Mon, 17 Sep 2018 17:17:07 +0100
+Message-ID: <71208e0e-fba9-ad6c-7578-a53fd1aa3f40@arm.com>
+References: <1536942489-4018-1-git-send-email-jhugo@codeaurora.org>
+ <1536942489-4018-3-git-send-email-jhugo@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1537182523.git.puwen@hygon.cn>
+In-Reply-To: <1536942489-4018-3-git-send-email-jhugo@codeaurora.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, lenb@kernel.org, rjw@rjwysocki.net, rafael@kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, Pu Wen <puwen@hygon.cn>
+To: Jeffrey Hugo <jhugo@codeaurora.org>, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Hygon Dhyana CPU has NONSTOP TSC feature, so enable the ACPI
-driver support to it.
 
-Signed-off-by: Pu Wen <puwen@hygon.cn>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_pad.c       | 1 +
- drivers/acpi/processor_idle.c | 1 +
- 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 552c1f7..a47676a 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -70,6 +70,7 @@ static void power_saving_mwait_init(void)
- 
- #if defined(CONFIG_X86)
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 		/*
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index abb559c..b2131c4 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -205,6 +205,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- static void tsc_check_state(int state)
- {
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 	case X86_VENDOR_CENTAUR:
+On 14/09/18 17:28, Jeffrey Hugo wrote:
+> The type of a cache might not be specified by architectural mechanisms (ie
+> system registers), but its type might be specified in the PPTT.  In this
+> case, we should populate the type of the cache, rather than leave it
+> undefined.
+> 
+> This fixes the issue where the cacheinfo driver will not populate sysfs
+> for such caches, resulting in the information missing from utilities like
+> lstopo and lscpu, thus degrading the user experience.
+> 
+> Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
+> Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
+> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+> ---
+>  drivers/acpi/pptt.c | 15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+> index d1e26cb..bb00ed9 100644
+> --- a/drivers/acpi/pptt.c
+> +++ b/drivers/acpi/pptt.c
+> @@ -402,11 +402,18 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+>  		}
+>  	}
+>  	/*
+> -	 * If the above flags are valid, and the cache type is NOCACHE
+> -	 * update the cache type as well.
+> +	 * If cache type is NOCACHE, then the cache hasn't been specified
+> +	 * via other mechanisms.  Update the type if either the cache has
+> +	 * been fully specified in PPTT, or a cache type has been provided.
+> +	 *
+> +	 * Note, we assume such caches are unified based on conventional system
+> +	 * design and known examples.  Significant work is required elsewhere to
+> +	 * fully support data/instruction only type caches which are only
+> +	 * specified in PPTT.
+>  	 */
+> -	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+> -	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
+> +	if ((this_leaf->type == CACHE_TYPE_NOCACHE) &&
+> +	    (valid_flags == PPTT_CHECKED_ATTRIBUTES ||
+> +	     found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID))
+>  		this_leaf->type = CACHE_TYPE_UNIFIED;
+
+I thought I did mention that we can drop the valid_flags altogether
+unless Jeremy has reasons not to.
+
 -- 
-2.7.4
+Regards,
+Sudeep
