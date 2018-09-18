@@ -1,110 +1,86 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v2 3/4] perf: add arm64 smmuv3 pmu driver
-Date: Tue, 18 Sep 2018 12:47:18 +0100
-Message-ID: <20180918114718.GD16498@arm.com>
-References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
- <20180724114515.21764-4-shameerali.kolothum.thodi@huawei.com>
- <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
- <a7481657-1551-8f3e-e679-8bfbee8f1ab4@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: David Hildenbrand <david@redhat.com>
+Subject: [PATCH v1 0/6] mm: online/offline_pages called w.o. mem_hotplug_lock
+Date: Tue, 18 Sep 2018 13:48:16 +0200
+Message-ID: <20180918114822.21926-1-david@redhat.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <a7481657-1551-8f3e-e679-8bfbee8f1ab4@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: John Garry <john.garry@huawei.com>
-Cc: Robin Murphy <robin.murphy@arm.com>, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, David Hildenbrand <david@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, Balbir Singh <bsingharora@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Dan Williams <dan.j.williams@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Haiyang Zhang <haiyangz@microsoft.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, John Allen <jallen@linux.vnet.ibm.com>, Jonathan Corbet <corbet@lwn.net>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Juergen Gross <jgross@suse.com>, Kate Stewart <kstewart@linuxfoundation.org>K
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Sep 17, 2018 at 06:10:05PM +0100, John Garry wrote:
-> 
-> >>+
-> >>+#define SMMU_EVENT_ATTR(_name, _id)                      \
-> >>+    (&((struct perf_pmu_events_attr[]) {                  \
-> >>+        { .attr = __ATTR(_name, 0444, smmu_pmu_event_show, NULL), \
-> >>+          .id = _id, }                          \
-> >>+    })[0].attr.attr)
-> >>+
-> >>+static struct attribute *smmu_pmu_events[] = {
-> >>+    SMMU_EVENT_ATTR(cycles, SMMU_PMU_CYCLES),
-> >>+    SMMU_EVENT_ATTR(transaction, SMMU_PMU_TRANSACTION),
-> >>+    SMMU_EVENT_ATTR(tlb_miss, SMMU_PMU_TLB_MISS),
-> >>+    SMMU_EVENT_ATTR(config_cache_miss, SMMU_PMU_CONFIG_CACHE_MISS),
-> >>+    SMMU_EVENT_ATTR(trans_table_walk, SMMU_PMU_TRANS_TABLE_WALK),
-> >>+    SMMU_EVENT_ATTR(config_struct_access,
-> >>SMMU_PMU_CONFIG_STRUCT_ACCESS),
-> >>+    SMMU_EVENT_ATTR(pcie_ats_trans_rq, SMMU_PMU_PCIE_ATS_TRANS_RQ),
-> >>+    SMMU_EVENT_ATTR(pcie_ats_trans_passed,
-> >>SMMU_PMU_PCIE_ATS_TRANS_PASSED),
-> >>+    NULL
-> >>+};
-> >>+
-> >>+static umode_t smmu_pmu_event_is_visible(struct kobject *kobj,
-> >>+                     struct attribute *attr, int unused)
-> >>+{
-> >>+    struct device *dev = kobj_to_dev(kobj);
-> >>+    struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
-> >>+    struct perf_pmu_events_attr *pmu_attr;
-> >>+
-> >>+    pmu_attr = container_of(attr, struct perf_pmu_events_attr,
-> >>attr.attr);
-> >>+
-> >>+    if (test_bit(pmu_attr->id, smmu_pmu->supported_events))
-> >>+        return attr->mode;
-> >>+
-> >>+    return 0;
-> >>+}
-> >>+static struct attribute_group smmu_pmu_events_group = {
-> >>+    .name = "events",
-> >>+    .attrs = smmu_pmu_events,
-> >>+    .is_visible = smmu_pmu_event_is_visible,
-> >>+};
-> >>+
-> >>+/* Formats */
-> >>+PMU_FORMAT_ATTR(event,           "config:0-15");
-> >>+PMU_FORMAT_ATTR(filter_stream_id,  "config1:0-31");
-> >>+PMU_FORMAT_ATTR(filter_span,       "config1:32");
-> >>+PMU_FORMAT_ATTR(filter_enable,       "config1:33");
-> >>+
-> >>+static struct attribute *smmu_pmu_formats[] = {
-> >>+    &format_attr_event.attr,
-> >>+    &format_attr_filter_stream_id.attr,
-> >>+    &format_attr_filter_span.attr,
-> >>+    &format_attr_filter_enable.attr,
-> >>+    NULL
-> >>+};
-> >>+
-> >>+static struct attribute_group smmu_pmu_format_group = {
-> >>+    .name = "format",
-> >>+    .attrs = smmu_pmu_formats,
-> >>+};
-> >>+
-> >>+static const struct attribute_group *smmu_pmu_attr_grps[] = {
-> >>+    &smmu_pmu_cpumask_group,
-> >>+    &smmu_pmu_events_group,
-> >>+    &smmu_pmu_format_group,
-> >>+    NULL,
-> >>+};
-> >>+
-> 
-> 
-> Question: If we wanted to add proper named event support for the
-> IMPLEMENTATION DEFINED events, how to add (if at all)?
-> 
-> So currently the driver only supports the Architected events, which is fine.
-> And we support raw events for the IMPLEMENTATION DEFINED events
-> (0x80-0xFFFF).
-> 
-> But to add named event support for the IMP DEF events, I assume we would
-> want to do something similar to arm64 CPU PMU events - that is, common
-> architected events in kernel pmu driver, and implementation defined events
-> defined in perf tool. However I don't know if it's even feasible considering
-> there does not seem to be a mandatory/standard PMCG ID register to detect
-> the implementation.
+Reading through the code and studying how mem_hotplug_lock is to be used,
+I noticed that there are two places where we can end up calling
+device_online()/device_offline() - online_pages()/offline_pages() without
+the mem_hotplug_lock. And there are other places where we call
+device_online()/device_offline() without the device_hotplug_lock.
 
-I guess we'd need something from firmware to identify the SMMU/PMU
-implementation, so that we could probe the driver correctly. Once we have
-that, it seems like it's just a matter of exposing a different name to
-userspace, like we do for the CPU PMU.
+While e.g.
+	echo "online" > /sys/devices/system/memory/memory9/state
+is fine, e.g.
+	echo 1 > /sys/devices/system/memory/memory9/online
+Will not take the mem_hotplug_lock. However the device_lock() and
+device_hotplug_lock.
 
-Will
+E.g. via memory_probe_store(), we can end up calling
+add_memory()->online_pages() without the device_hotplug_lock. So we can
+have concurrent callers in online_pages(). We e.g. touch in online_pages()
+basically unprotected zone->present_pages then.
+
+Looks like there is a longer history to that (see Patch #2 for details),
+and fixing it to work the way it was intended is not really possible. We
+would e.g. have to take the mem_hotplug_lock in device/base/core.c, which
+sounds wrong.
+
+Summary: We had a lock inversion on mem_hotplug_lock and device_lock().
+More details can be found in patch 3 and patch 6.
+
+I propose the general rules (documentation added in patch 6):
+
+1. add_memory/add_memory_resource() must only be called with
+   device_hotplug_lock.
+2. remove_memory() must only be called with device_hotplug_lock. This is
+   already documented and holds for all callers.
+3. device_online()/device_offline() must only be called with
+   device_hotplug_lock. This is already documented and true for now in core
+   code. Other callers (related to memory hotplug) have to be fixed up.
+4. mem_hotplug_lock is taken inside of add_memory/remove_memory/
+   online_pages/offline_pages.
+
+To me, this looks way cleaner than what we have right now (and easier to
+verify). And looking at the documentation of remove_memory, using
+lock_device_hotplug also for add_memory() feels natural.
+
+
+RFCv2 -> v1:
+- Dropped an unnecessary _ref from remove_memory() in patch #1
+- Minor patch description fixes.
+- Added rb's
+
+RFC -> RFCv2:
+- Don't export device_hotplug_lock, provide proper remove_memory/add_memory
+  wrappers.
+- Split up the patches a bit.
+- Try to improve powernv memtrace locking
+- Add some documentation for locking that matches my knowledge
+
+David Hildenbrand (6):
+  mm/memory_hotplug: make remove_memory() take the device_hotplug_lock
+  mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+  mm/memory_hotplug: fix online/offline_pages called w.o.
+    mem_hotplug_lock
+  powerpc/powernv: hold device_hotplug_lock when calling device_online()
+  powerpc/powernv: hold device_hotplug_lock in memtrace_offline_pages()
+  memory-hotplug.txt: Add some details about locking internals
+
+ Documentation/memory-hotplug.txt              | 39 +++++++++++-
+ arch/powerpc/platforms/powernv/memtrace.c     | 14 +++--
+ .../platforms/pseries/hotplug-memory.c        |  8 +--
+ drivers/acpi/acpi_memhotplug.c                |  4 +-
+ drivers/base/memory.c                         | 22 +++----
+ drivers/xen/balloon.c                         |  3 +
+ include/linux/memory_hotplug.h                |  4 +-
+ mm/memory_hotplug.c                           | 59 +++++++++++++++----
+ 8 files changed, 115 insertions(+), 38 deletions(-)
+
+-- 
+2.17.1
