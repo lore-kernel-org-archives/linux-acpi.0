@@ -1,84 +1,122 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: [PATCH v1 6/6] memory-hotplug.txt: Add some details about locking internals
-Date: Tue, 18 Sep 2018 13:48:22 +0200
-Message-ID: <20180918114822.21926-7-david@redhat.com>
-References: <20180918114822.21926-1-david@redhat.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v2 3/4] perf: add arm64 smmuv3 pmu driver
+Date: Tue, 18 Sep 2018 13:16:35 +0100
+Message-ID: <527f47d7-20a2-d74a-1b0a-9901b8981f91@arm.com>
+References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
+ <20180724114515.21764-4-shameerali.kolothum.thodi@huawei.com>
+ <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
+ <a7481657-1551-8f3e-e679-8bfbee8f1ab4@huawei.com>
+ <20180918114718.GD16498@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180918114822.21926-1-david@redhat.com>
+In-Reply-To: <20180918114718.GD16498@arm.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, David Hildenbrand <david@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>
+To: Will Deacon <will.deacon@arm.com>, John Garry <john.garry@huawei.com>
+Cc: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-Let's document the magic a bit, especially why device_hotplug_lock is
-required when adding/removing memory and how it all play together with
-requests to online/offline memory from user space.
+On 18/09/18 12:47, Will Deacon wrote:
+> On Mon, Sep 17, 2018 at 06:10:05PM +0100, John Garry wrote:
+>>
+>>>> +
+>>>> +#define SMMU_EVENT_ATTR(_name, _id)                      \
+>>>> +    (&((struct perf_pmu_events_attr[]) {                  \
+>>>> +        { .attr = __ATTR(_name, 0444, smmu_pmu_event_show, NULL), \
+>>>> +          .id = _id, }                          \
+>>>> +    })[0].attr.attr)
+>>>> +
+>>>> +static struct attribute *smmu_pmu_events[] = {
+>>>> +    SMMU_EVENT_ATTR(cycles, SMMU_PMU_CYCLES),
+>>>> +    SMMU_EVENT_ATTR(transaction, SMMU_PMU_TRANSACTION),
+>>>> +    SMMU_EVENT_ATTR(tlb_miss, SMMU_PMU_TLB_MISS),
+>>>> +    SMMU_EVENT_ATTR(config_cache_miss, SMMU_PMU_CONFIG_CACHE_MISS),
+>>>> +    SMMU_EVENT_ATTR(trans_table_walk, SMMU_PMU_TRANS_TABLE_WALK),
+>>>> +    SMMU_EVENT_ATTR(config_struct_access,
+>>>> SMMU_PMU_CONFIG_STRUCT_ACCESS),
+>>>> +    SMMU_EVENT_ATTR(pcie_ats_trans_rq, SMMU_PMU_PCIE_ATS_TRANS_RQ),
+>>>> +    SMMU_EVENT_ATTR(pcie_ats_trans_passed,
+>>>> SMMU_PMU_PCIE_ATS_TRANS_PASSED),
+>>>> +    NULL
+>>>> +};
+>>>> +
+>>>> +static umode_t smmu_pmu_event_is_visible(struct kobject *kobj,
+>>>> +                     struct attribute *attr, int unused)
+>>>> +{
+>>>> +    struct device *dev = kobj_to_dev(kobj);
+>>>> +    struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
+>>>> +    struct perf_pmu_events_attr *pmu_attr;
+>>>> +
+>>>> +    pmu_attr = container_of(attr, struct perf_pmu_events_attr,
+>>>> attr.attr);
+>>>> +
+>>>> +    if (test_bit(pmu_attr->id, smmu_pmu->supported_events))
+>>>> +        return attr->mode;
+>>>> +
+>>>> +    return 0;
+>>>> +}
+>>>> +static struct attribute_group smmu_pmu_events_group = {
+>>>> +    .name = "events",
+>>>> +    .attrs = smmu_pmu_events,
+>>>> +    .is_visible = smmu_pmu_event_is_visible,
+>>>> +};
+>>>> +
+>>>> +/* Formats */
+>>>> +PMU_FORMAT_ATTR(event,           "config:0-15");
+>>>> +PMU_FORMAT_ATTR(filter_stream_id,  "config1:0-31");
+>>>> +PMU_FORMAT_ATTR(filter_span,       "config1:32");
+>>>> +PMU_FORMAT_ATTR(filter_enable,       "config1:33");
+>>>> +
+>>>> +static struct attribute *smmu_pmu_formats[] = {
+>>>> +    &format_attr_event.attr,
+>>>> +    &format_attr_filter_stream_id.attr,
+>>>> +    &format_attr_filter_span.attr,
+>>>> +    &format_attr_filter_enable.attr,
+>>>> +    NULL
+>>>> +};
+>>>> +
+>>>> +static struct attribute_group smmu_pmu_format_group = {
+>>>> +    .name = "format",
+>>>> +    .attrs = smmu_pmu_formats,
+>>>> +};
+>>>> +
+>>>> +static const struct attribute_group *smmu_pmu_attr_grps[] = {
+>>>> +    &smmu_pmu_cpumask_group,
+>>>> +    &smmu_pmu_events_group,
+>>>> +    &smmu_pmu_format_group,
+>>>> +    NULL,
+>>>> +};
+>>>> +
+>>
+>>
+>> Question: If we wanted to add proper named event support for the
+>> IMPLEMENTATION DEFINED events, how to add (if at all)?
+>>
+>> So currently the driver only supports the Architected events, which is fine.
+>> And we support raw events for the IMPLEMENTATION DEFINED events
+>> (0x80-0xFFFF).
+>>
+>> But to add named event support for the IMP DEF events, I assume we would
+>> want to do something similar to arm64 CPU PMU events - that is, common
+>> architected events in kernel pmu driver, and implementation defined events
+>> defined in perf tool. However I don't know if it's even feasible considering
+>> there does not seem to be a mandatory/standard PMCG ID register to detect
+>> the implementation.
+> 
+> I guess we'd need something from firmware to identify the SMMU/PMU
+> implementation, so that we could probe the driver correctly. Once we have
+> that, it seems like it's just a matter of exposing a different name to
+> userspace, like we do for the CPU PMU.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- Documentation/memory-hotplug.txt | 39 +++++++++++++++++++++++++++++++-
- 1 file changed, 38 insertions(+), 1 deletion(-)
+Indeed - in fact a while ago I raised it with the architects that PMCGs 
+don't have an equivalent to IIDR, so you can't interpret the imp-def 
+PMCG_ID_REGS without already knowing what the thing is some other way. 
+For IORT it should already be somewhat feasible to figure out the 
+implementation by way of chasing the node reference to figure out what 
+device the the PMCG is part of, however that might require some sort of 
+API between the PMCG driver and SMMUv3 (and other component) driver(s) 
+to communicate runtime-probed stuff.
 
-diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-hotplug.txt
-index 7f49ebf3ddb2..03aaad7d7373 100644
---- a/Documentation/memory-hotplug.txt
-+++ b/Documentation/memory-hotplug.txt
-@@ -3,7 +3,7 @@ Memory Hotplug
- ==============
- 
- :Created:							Jul 28 2007
--:Updated: Add description of notifier of memory hotplug:	Oct 11 2007
-+:Updated: Add some details about locking internals:		Aug 20 2018
- 
- This document is about memory hotplug including how-to-use and current status.
- Because Memory Hotplug is still under development, contents of this text will
-@@ -495,6 +495,43 @@ further processing of the notification queue.
- 
- NOTIFY_STOP stops further processing of the notification queue.
- 
-+
-+Locking Internals
-+=================
-+
-+When adding/removing memory that uses memory block devices (i.e. ordinary RAM),
-+the device_hotplug_lock should be held to:
-+
-+- synchronize against online/offline requests (e.g. via sysfs). This way, memory
-+  block devices can only be accessed (.online/.state attributes) by user
-+  space once memory has been fully added. And when removing memory, we
-+  know nobody is in critical sections.
-+- synchronize against CPU hotplug and similar (e.g. relevant for ACPI and PPC)
-+
-+Especially, there is a possible lock inversion that is avoided using
-+device_hotplug_lock when adding memory and user space tries to online that
-+memory faster than expected:
-+
-+- device_online() will first take the device_lock(), followed by
-+  mem_hotplug_lock
-+- add_memory_resource() will first take the mem_hotplug_lock, followed by
-+  the device_lock() (while creating the devices, during bus_add_device()).
-+
-+As the device is visible to user space before taking the device_lock(), this
-+can result in a lock inversion.
-+
-+onlining/offlining of memory should be done via device_online()/
-+device_offline() - to make sure it is properly synchronized to actions
-+via sysfs. Holding device_hotplug_lock is advised (to e.g. protect online_type)
-+
-+When adding/removing/onlining/offlining memory or adding/removing
-+heterogeneous/device memory, we should always hold the mem_hotplug_lock to
-+serialise memory hotplug (e.g. access to global/zone variables).
-+
-+In addition, mem_hotplug_lock (in contrast to device_hotplug_lock) allows
-+for a quite efficient get_online_mems/put_online_mems implementation.
-+
-+
- Future Work
- ===========
- 
--- 
-2.17.1
+Robin.
