@@ -1,137 +1,176 @@
-From: John Garry <john.garry@huawei.com>
-Subject: Re: [PATCH v2 3/4] perf: add arm64 smmuv3 pmu driver
-Date: Tue, 18 Sep 2018 14:15:19 +0100
-Message-ID: <254a3626-c904-287c-92a9-bc056aa97ed2@huawei.com>
-References: <20180724114515.21764-1-shameerali.kolothum.thodi@huawei.com>
- <20180724114515.21764-4-shameerali.kolothum.thodi@huawei.com>
- <935f7572-38d7-070a-dba6-3f18189de4d3@arm.com>
- <a7481657-1551-8f3e-e679-8bfbee8f1ab4@huawei.com>
- <20180918114718.GD16498@arm.com>
- <527f47d7-20a2-d74a-1b0a-9901b8981f91@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v1 1/6] mm/memory_hotplug: make remove_memory() take the device_hotplug_lock
+Date: Tue, 18 Sep 2018 23:18:41 +0200
+Message-ID: <CAJZ5v0gDDEvBrNCbB8E3Stq4QE_+6X72Pbu0Wyj8bQoSPXs3WA@mail.gmail.com>
+References: <20180918114822.21926-1-david@redhat.com> <20180918114822.21926-2-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <527f47d7-20a2-d74a-1b0a-9901b8981f91@arm.com>
+In-Reply-To: <20180918114822.21926-2-david@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Will Deacon <will.deacon@arm.com>
-Cc: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: David Hildenbrand <david@redhat.com>
+Cc: Linux Memory Management List <linux-mm@kvack.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, rashmica.g@gmail.com, Michael Neuling <mikey@neuling.org>, Balbir Singh <bsingharora@gmail.com>, nfont@linux.vnet.ibm.com, jallen@linux.vnet.ibm.com, Andrew Morton <akpm@linux-foundation.org>, Michal Hocko <mhocko@suse.com>, Dan Williams <dan.j.wil>
 List-Id: linux-acpi@vger.kernel.org
 
-On 18/09/2018 13:16, Robin Murphy wrote:
-> On 18/09/18 12:47, Will Deacon wrote:
->> On Mon, Sep 17, 2018 at 06:10:05PM +0100, John Garry wrote:
->>>
->>>>> +
->>>>> +#define SMMU_EVENT_ATTR(_name, _id)                      \
->>>>> +    (&((struct perf_pmu_events_attr[]) {                  \
->>>>> +        { .attr = __ATTR(_name, 0444, smmu_pmu_event_show, NULL), \
->>>>> +          .id = _id, }                          \
->>>>> +    })[0].attr.attr)
->>>>> +
->>>>> +static struct attribute *smmu_pmu_events[] = {
->>>>> +    SMMU_EVENT_ATTR(cycles, SMMU_PMU_CYCLES),
->>>>> +    SMMU_EVENT_ATTR(transaction, SMMU_PMU_TRANSACTION),
->>>>> +    SMMU_EVENT_ATTR(tlb_miss, SMMU_PMU_TLB_MISS),
->>>>> +    SMMU_EVENT_ATTR(config_cache_miss, SMMU_PMU_CONFIG_CACHE_MISS),
->>>>> +    SMMU_EVENT_ATTR(trans_table_walk, SMMU_PMU_TRANS_TABLE_WALK),
->>>>> +    SMMU_EVENT_ATTR(config_struct_access,
->>>>> SMMU_PMU_CONFIG_STRUCT_ACCESS),
->>>>> +    SMMU_EVENT_ATTR(pcie_ats_trans_rq, SMMU_PMU_PCIE_ATS_TRANS_RQ),
->>>>> +    SMMU_EVENT_ATTR(pcie_ats_trans_passed,
->>>>> SMMU_PMU_PCIE_ATS_TRANS_PASSED),
->>>>> +    NULL
->>>>> +};
->>>>> +
->>>>> +static umode_t smmu_pmu_event_is_visible(struct kobject *kobj,
->>>>> +                     struct attribute *attr, int unused)
->>>>> +{
->>>>> +    struct device *dev = kobj_to_dev(kobj);
->>>>> +    struct smmu_pmu *smmu_pmu = to_smmu_pmu(dev_get_drvdata(dev));
->>>>> +    struct perf_pmu_events_attr *pmu_attr;
->>>>> +
->>>>> +    pmu_attr = container_of(attr, struct perf_pmu_events_attr,
->>>>> attr.attr);
->>>>> +
->>>>> +    if (test_bit(pmu_attr->id, smmu_pmu->supported_events))
->>>>> +        return attr->mode;
->>>>> +
->>>>> +    return 0;
->>>>> +}
->>>>> +static struct attribute_group smmu_pmu_events_group = {
->>>>> +    .name = "events",
->>>>> +    .attrs = smmu_pmu_events,
->>>>> +    .is_visible = smmu_pmu_event_is_visible,
->>>>> +};
->>>>> +
->>>>> +/* Formats */
->>>>> +PMU_FORMAT_ATTR(event,           "config:0-15");
->>>>> +PMU_FORMAT_ATTR(filter_stream_id,  "config1:0-31");
->>>>> +PMU_FORMAT_ATTR(filter_span,       "config1:32");
->>>>> +PMU_FORMAT_ATTR(filter_enable,       "config1:33");
->>>>> +
->>>>> +static struct attribute *smmu_pmu_formats[] = {
->>>>> +    &format_attr_event.attr,
->>>>> +    &format_attr_filter_stream_id.attr,
->>>>> +    &format_attr_filter_span.attr,
->>>>> +    &format_attr_filter_enable.attr,
->>>>> +    NULL
->>>>> +};
->>>>> +
->>>>> +static struct attribute_group smmu_pmu_format_group = {
->>>>> +    .name = "format",
->>>>> +    .attrs = smmu_pmu_formats,
->>>>> +};
->>>>> +
->>>>> +static const struct attribute_group *smmu_pmu_attr_grps[] = {
->>>>> +    &smmu_pmu_cpumask_group,
->>>>> +    &smmu_pmu_events_group,
->>>>> +    &smmu_pmu_format_group,
->>>>> +    NULL,
->>>>> +};
->>>>> +
->>>
->>>
->>> Question: If we wanted to add proper named event support for the
->>> IMPLEMENTATION DEFINED events, how to add (if at all)?
->>>
->>> So currently the driver only supports the Architected events, which
->>> is fine.
->>> And we support raw events for the IMPLEMENTATION DEFINED events
->>> (0x80-0xFFFF).
->>>
->>> But to add named event support for the IMP DEF events, I assume we would
->>> want to do something similar to arm64 CPU PMU events - that is, common
->>> architected events in kernel pmu driver, and implementation defined
->>> events
->>> defined in perf tool. However I don't know if it's even feasible
->>> considering
->>> there does not seem to be a mandatory/standard PMCG ID register to
->>> detect
->>> the implementation.
->>
->> I guess we'd need something from firmware to identify the SMMU/PMU
->> implementation, so that we could probe the driver correctly. Once we have
->> that, it seems like it's just a matter of exposing a different name to
->> userspace, like we do for the CPU PMU.
+On Tue, Sep 18, 2018 at 1:48 PM David Hildenbrand <david@redhat.com> wrote:
 >
-> Indeed - in fact a while ago I raised it with the architects that PMCGs
-> don't have an equivalent to IIDR, so you can't interpret the imp-def
-> PMCG_ID_REGS without already knowing what the thing is some other way.
-> For IORT it should already be somewhat feasible to figure out the
-> implementation by way of chasing the node reference to figure out what
-> device the the PMCG is part of, however that might require some sort of
-> API between the PMCG driver and SMMUv3 (and other component) driver(s)
-> to communicate runtime-probed stuff.
+> remove_memory() is exported right now but requires the
+> device_hotplug_lock, which is not exported. So let's provide a variant
+> that takes the lock and only export that one.
 >
+> The lock is already held in
+>         arch/powerpc/platforms/pseries/hotplug-memory.c
+>         drivers/acpi/acpi_memhotplug.c
+> So, let's use the locked variant.
+>
+> The lock is not held (but taken in)
+>         arch/powerpc/platforms/powernv/memtrace.c
+> So let's keep using the (now) locked variant.
+>
+> Apart from that, there are not other users in the tree.
+>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Paul Mackerras <paulus@samba.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Rashmica Gupta <rashmica.g@gmail.com>
+> Cc: Michael Neuling <mikey@neuling.org>
+> Cc: Balbir Singh <bsingharora@gmail.com>
+> Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+> Cc: John Allen <jallen@linux.vnet.ibm.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+> Cc: Mathieu Malaterre <malat@debian.org>
+> Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> ---
+>  arch/powerpc/platforms/powernv/memtrace.c       | 2 --
+>  arch/powerpc/platforms/pseries/hotplug-memory.c | 6 +++---
+>  drivers/acpi/acpi_memhotplug.c                  | 2 +-
+>  include/linux/memory_hotplug.h                  | 3 ++-
+>  mm/memory_hotplug.c                             | 9 ++++++++-
+>  5 files changed, 14 insertions(+), 8 deletions(-)
+>
+> diff --git a/arch/powerpc/platforms/powernv/memtrace.c b/arch/powerpc/platforms/powernv/memtrace.c
+> index 51dc398ae3f7..8f1cd4f3bfd5 100644
+> --- a/arch/powerpc/platforms/powernv/memtrace.c
+> +++ b/arch/powerpc/platforms/powernv/memtrace.c
+> @@ -90,9 +90,7 @@ static bool memtrace_offline_pages(u32 nid, u64 start_pfn, u64 nr_pages)
+>         walk_memory_range(start_pfn, end_pfn, (void *)MEM_OFFLINE,
+>                           change_memblock_state);
+>
+> -       lock_device_hotplug();
+>         remove_memory(nid, start_pfn << PAGE_SHIFT, nr_pages << PAGE_SHIFT);
+> -       unlock_device_hotplug();
+>
+>         return true;
+>  }
+> diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
+> index c1578f54c626..b3f54466e25f 100644
+> --- a/arch/powerpc/platforms/pseries/hotplug-memory.c
+> +++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
+> @@ -334,7 +334,7 @@ static int pseries_remove_memblock(unsigned long base, unsigned int memblock_siz
+>         nid = memory_add_physaddr_to_nid(base);
+>
+>         for (i = 0; i < sections_per_block; i++) {
+> -               remove_memory(nid, base, MIN_MEMORY_BLOCK_SIZE);
+> +               __remove_memory(nid, base, MIN_MEMORY_BLOCK_SIZE);
+>                 base += MIN_MEMORY_BLOCK_SIZE;
+>         }
+>
+> @@ -423,7 +423,7 @@ static int dlpar_remove_lmb(struct drmem_lmb *lmb)
+>         block_sz = pseries_memory_block_size();
+>         nid = memory_add_physaddr_to_nid(lmb->base_addr);
+>
+> -       remove_memory(nid, lmb->base_addr, block_sz);
+> +       __remove_memory(nid, lmb->base_addr, block_sz);
+>
+>         /* Update memory regions for memory remove */
+>         memblock_remove(lmb->base_addr, block_sz);
+> @@ -710,7 +710,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
+>
+>         rc = dlpar_online_lmb(lmb);
+>         if (rc) {
+> -               remove_memory(nid, lmb->base_addr, block_sz);
+> +               __remove_memory(nid, lmb->base_addr, block_sz);
+>                 dlpar_remove_device_tree_lmb(lmb);
+>         } else {
+>                 lmb->flags |= DRCONF_MEM_ASSIGNED;
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 6b0d3ef7309c..811148415993 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -282,7 +282,7 @@ static void acpi_memory_remove_memory(struct acpi_memory_device *mem_device)
+>                         nid = memory_add_physaddr_to_nid(info->start_addr);
+>
+>                 acpi_unbind_memory_blocks(info);
+> -               remove_memory(nid, info->start_addr, info->length);
+> +               __remove_memory(nid, info->start_addr, info->length);
+>                 list_del(&info->list);
+>                 kfree(info);
+>         }
+> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> index 34a28227068d..1f096852f479 100644
+> --- a/include/linux/memory_hotplug.h
+> +++ b/include/linux/memory_hotplug.h
+> @@ -301,6 +301,7 @@ extern bool is_mem_section_removable(unsigned long pfn, unsigned long nr_pages);
+>  extern void try_offline_node(int nid);
+>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>  extern void remove_memory(int nid, u64 start, u64 size);
+> +extern void __remove_memory(int nid, u64 start, u64 size);
+>
+>  #else
+>  static inline bool is_mem_section_removable(unsigned long pfn,
+> @@ -317,6 +318,7 @@ static inline int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+>  }
+>
+>  static inline void remove_memory(int nid, u64 start, u64 size) {}
+> +static inline void __remove_memory(int nid, u64 start, u64 size) {}
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+>
+>  extern void __ref free_area_init_core_hotplug(int nid);
+> @@ -330,7 +332,6 @@ extern void move_pfn_range_to_zone(struct zone *zone, unsigned long start_pfn,
+>                 unsigned long nr_pages, struct vmem_altmap *altmap);
+>  extern int offline_pages(unsigned long start_pfn, unsigned long nr_pages);
+>  extern bool is_memblock_offlined(struct memory_block *mem);
+> -extern void remove_memory(int nid, u64 start, u64 size);
+>  extern int sparse_add_one_section(struct pglist_data *pgdat,
+>                 unsigned long start_pfn, struct vmem_altmap *altmap);
+>  extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 38d94b703e9d..b8b1bd970322 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -1873,7 +1873,7 @@ EXPORT_SYMBOL(try_offline_node);
+>   * and online/offline operations before this call, as required by
+>   * try_offline_node().
+>   */
+> -void __ref remove_memory(int nid, u64 start, u64 size)
+> +void __ref __remove_memory(int nid, u64 start, u64 size)
+>  {
+>         int ret;
+>
+> @@ -1902,5 +1902,12 @@ void __ref remove_memory(int nid, u64 start, u64 size)
+>
+>         mem_hotplug_done();
+>  }
+> +
+> +void remove_memory(int nid, u64 start, u64 size)
+> +{
+> +       lock_device_hotplug();
+> +       __remove_memory(nid, start, size);
+> +       unlock_device_hotplug();
+> +}
+>  EXPORT_SYMBOL_GPL(remove_memory);
+>  #endif /* CONFIG_MEMORY_HOTREMOVE */
+> --
 
-OK, so it should be feasiable to achieve this by knowing the associated 
-SMMUv3, but seems a bit painful to support in software.
-
-Thanks,
-John
-
-> Robin.
->
-> .
->
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
