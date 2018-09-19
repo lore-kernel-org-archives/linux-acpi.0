@@ -1,73 +1,37 @@
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 00/22] various dynamic_debug patches
-Date: Thu, 20 Sep 2018 00:04:22 +0200
-Message-ID: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+Subject: [PATCH 15/22] ACPI: use proper DYNAMIC_DEBUG_BRANCH macro
+Date: Thu, 20 Sep 2018 00:04:37 +0200
+Message-ID: <20180919220444.23190-16-linux@rasmusvillemoes.dk>
+References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Jason Baron <jbaron@akamai.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This started as an experiment to see how hard it would be to change
-the four pointers in struct _ddebug into relative offsets, a la
-CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
-pr_debug site (and thus exactly making up for the extra space used by
-the introduction of jump labels in 9049fc74). I stumbled on a few
-things that are probably worth fixing regardless of whether the latter
-half of this series is deemed worthwhile.
+dynamic debug may be implemented via static keys, but ACPI is missing
+out on that runtime benefit since it open-codes one possible definition
+of DYNAMIC_DEBUG_BRANCH.
 
-Patch relationships: 1-2, 3-4, 5-6 and 15-16 can be applied
-individually, though 2, 4 and 6 probably makes most sense in the
-context of the final goal of the series.
+Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+---
+ include/linux/acpi.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-7-12 I believe make sense on their own. Patch 13 again only makes
-sense if we go all the way, and 14 and 17 depend on 13.
-
-18-21 are more preparatory patches, and finally 22 switch over x86-64
-to use CONFIG_DYNAMIC_DEBUG_RELATIVE_POINTERS. I've tested that the
-end result boots under virtme and that the dynamic_debug control file
-has the expected contents.
-
-Rasmus Villemoes (22):
-  linux/device.h: use DYNAMIC_DEBUG_BRANCH in dev_dbg_ratelimited
-  linux/device.h: use unique identifier for each struct _ddebug
-  linux/net.h: use DYNAMIC_DEBUG_BRANCH in net_dbg_ratelimited
-  linux/net.h: use unique identifier for each struct _ddebug
-  linux/printk.h: use DYNAMIC_DEBUG_BRANCH in pr_debug_ratelimited
-  linux/printk.h: use unique identifier for each struct _ddebug
-  dynamic_debug: consolidate DEFINE_DYNAMIC_DEBUG_METADATA definitions
-  dynamic_debug: don't duplicate modname in ddebug_add_module
-  dynamic_debug: use pointer comparison in ddebug_remove_module
-  dynamic_debug: remove unused EXPORT_SYMBOLs
-  dynamic_debug: move pr_err from module.c to ddebug_add_module
-  dynamic_debug: add static inline stub for ddebug_add_module
-  dynamic_debug: refactor dynamic_pr_debug and friends
-  btrfs: implement btrfs_debug* in terms of helper macro
-  ACPI: use proper DYNAMIC_DEBUG_BRANCH macro
-  ACPI: remove unused __acpi_handle_debug macro
-  ACPI: implement acpi_handle_debug in terms of _dynamic_func_call
-  dynamic_debug: introduce accessors for string members of struct
-    _ddebug
-  dynamic_debug: drop use of bitfields in struct _ddebug
-  dynamic_debug: introduce CONFIG_DYNAMIC_DEBUG_RELATIVE_POINTERS
-  x86: jump_label: introduce ASM_STATIC_KEY_INIT_{TRUE,FALSE}
-  x86_64: use relative pointers with dynamic debug
-
- arch/x86/Kconfig                     |   1 +
- arch/x86/include/asm/dynamic_debug.h |  35 +++++++++
- arch/x86/include/asm/jump_label.h    |  18 +++++
- fs/btrfs/ctree.h                     |  34 +++------
- include/linux/acpi.h                 |  11 +--
- include/linux/device.h               |   6 +-
- include/linux/dynamic_debug.h        | 126 +++++++++++++++++++--------------
- include/linux/jump_label.h           |   2 +
- include/linux/net.h                  |   6 +-
- include/linux/printk.h               |   6 +-
- kernel/module.c                      |   6 +-
- lib/Kconfig.debug                    |   3 +
- lib/dynamic_debug.c                  | 133 ++++++++++++++++++++++++-----------
- 13 files changed, 251 insertions(+), 136 deletions(-)
- create mode 100644 arch/x86/include/asm/dynamic_debug.h
-
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index de8d3d3fa651..21e03aa32aae 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -982,7 +982,7 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
+ #define acpi_handle_debug(handle, fmt, ...)				\
+ do {									\
+ 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
+-	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))		\
++	if (DYNAMIC_DEBUG_BRANCH(descriptor))				\
+ 		__acpi_handle_debug(&descriptor, handle, pr_fmt(fmt),	\
+ 				##__VA_ARGS__);				\
+ } while (0)
 -- 
 2.16.4
