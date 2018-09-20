@@ -1,38 +1,32 @@
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: [PATCH 16/22] ACPI: remove unused __acpi_handle_debug macro
-Date: Thu, 20 Sep 2018 00:04:38 +0200
-Message-ID: <20180919220444.23190-17-linux@rasmusvillemoes.dk>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/22] various dynamic_debug patches
+Date: Thu, 20 Sep 2018 10:05:00 +0200
+Message-ID: <4563778.42gAD4asSf@aspire.rjw.lan>
 References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Baron <jbaron@akamai.com>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jason Baron <jbaron@akamai.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-If CONFIG_DYNAMIC_DEBUG is not set, acpi_handle_debug directly invokes
-acpi_handle_printk (if DEBUG) or does a no-printk (if !DEBUG). So this
-macro is never used.
+On Thursday, September 20, 2018 12:04:22 AM CEST Rasmus Villemoes wrote:
+> This started as an experiment to see how hard it would be to change
+> the four pointers in struct _ddebug into relative offsets, a la
+> CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
+> pr_debug site (and thus exactly making up for the extra space used by
+> the introduction of jump labels in 9049fc74). I stumbled on a few
+> things that are probably worth fixing regardless of whether the latter
+> half of this series is deemed worthwhile.
+> 
+> Patch relationships: 1-2, 3-4, 5-6 and 15-16 can be applied
+> individually, though 2, 4 and 6 probably makes most sense in the
+> context of the final goal of the series.
 
-Cc: linux-acpi@vger.kernel.org
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
----
- include/linux/acpi.h | 3 ---
- 1 file changed, 3 deletions(-)
+OK, I can take the [15-16/22] separately.
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 21e03aa32aae..e12d5ef1a054 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -948,9 +948,6 @@ acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
- #if defined(CONFIG_ACPI) && defined(CONFIG_DYNAMIC_DEBUG)
- __printf(3, 4)
- void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const char *fmt, ...);
--#else
--#define __acpi_handle_debug(descriptor, handle, fmt, ...)		\
--	acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);
- #endif
- 
- /*
--- 
-2.16.4
+Thanks,
+Rafael
