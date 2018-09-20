@@ -1,48 +1,35 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 17/22] ACPI: implement acpi_handle_debug in terms of _dynamic_func_call
-Date: Thu, 20 Sep 2018 10:05:30 +0200
-Message-ID: <3017961.RRfiJQt7az@aspire.rjw.lan>
-References: <20180919220444.23190-1-linux@rasmusvillemoes.dk> <20180919220444.23190-18-linux@rasmusvillemoes.dk>
+From: Sedat Dilek <sedat.dilek-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: acpi/iwlwifi: thermal thermal_zone3: failed to read out thermal zone (-61)
+Date: Thu, 20 Sep 2018 15:42:48 +0200
+Message-ID: <CA+icZUXxcxZvyo7ge33E_1PSnjUs7Lq=BdcX2rbB6pYka1S=cA@mail.gmail.com>
+Reply-To: sedat.dilek-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180919220444.23190-18-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Jason Baron <jbaron@akamai.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Zhang Rui <rui.zhang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Johannes Berg <johannes.berg-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Emmanuel Grumbach <emmanuel.grumbach-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Luca Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, September 20, 2018 12:04:39 AM CEST Rasmus Villemoes wrote:
-> With coming changes on x86-64, all dynamic debug descriptors in a
-> translation unit must have distinct names. The macro _dynamic_func_call
-> takes care of that. No functional change.
-> 
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-> ---
->  include/linux/acpi.h | 8 ++------
->  1 file changed, 2 insertions(+), 6 deletions(-)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index e12d5ef1a054..83bacf9039e9 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -977,12 +977,8 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
->  #else
->  #if defined(CONFIG_DYNAMIC_DEBUG)
->  #define acpi_handle_debug(handle, fmt, ...)				\
-> -do {									\
-> -	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);			\
-> -	if (DYNAMIC_DEBUG_BRANCH(descriptor))				\
-> -		__acpi_handle_debug(&descriptor, handle, pr_fmt(fmt),	\
-> -				##__VA_ARGS__);				\
-> -} while (0)
-> +	_dynamic_func_call(fmt, __acpi_handle_debug,			\
-> +			   handle, pr_fmt(fmt), ##__VA_ARGS__)
->  #else
->  #define acpi_handle_debug(handle, fmt, ...)				\
->  ({									\
-> 
+Hi,
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+I am seeing this with Linux v4.18.y and v4.19-rc4.
+
+Investigating thermal_zone3...
+
+# cat /sys/devices/virtual/thermal/thermal_zone3/type
+iwlwifi
+
+I have the following iwlwifi device and firmware installed...
+
+[   10.476589] iwlwifi 0000:04:00.0: loaded firmware version
+36.e91976c0.0 op_mode iwlmvm
+[   10.519441] iwlwifi 0000:04:00.0: Detected Intel(R) Dual Band
+Wireless AC 8265, REV=0x230
+
+What informations do you need and how can I help?
+
+Thanks.
+
+Regards,
+- Sedat -
