@@ -1,72 +1,120 @@
-From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Subject: [PATCH v3 0/3] arm64 SMMUv3 PMU driver with IORT support
-Date: Fri, 21 Sep 2018 16:08:00 +0100
-Message-ID: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
+From: James Morse <james.morse@arm.com>
+Subject: [PATCH v6 00/18] APEI in_nmi() rework
+Date: Fri, 21 Sep 2018 23:16:47 +0100
+Message-ID: <20180921221705.6478-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: lorenzo.pieralisi@arm.com, robin.murphy@arm.com
-Cc: mark.rutland@arm.com, vkilari@codeaurora.org, neil.m.leeder@gmail.com, pabba@codeaurora.org, john.garry@huawei.com, will.deacon@arm.com, rruigrok@codeaurora.org, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: linux-acpi@vger.kernel.org
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This adds a driver for the SMMUv3 PMU into the perf framework.
-It includes an IORT update to support PM Counter Groups.
+Hello,
 
-This is based on the initial work done by Neil Leeder[1]
+The GHES driver has collected quite a few bugs:
 
-SMMUv3 PMCG devices are named as smmuv3_pmcg_<phys_addr_page>
-where <phys_addr_page> is the physical page address of the SMMU PMCG.
-For example, the PMCG at 0xff88840000 is named smmuv3_pmcg_ff88840
+ghes_proc() at ghes_probe() time can be interrupted by an NMI that
+will clobber the ghes->estatus fields, flags, and the buffer_paddr.
 
-Usage example:
-For common arch supported events:
-perf stat -e smmuv3_pmcg_ff88840/transaction,filter_enable=1,
- filter_span=1,filter_stream_id=0x42/ -a pwd
+ghes_copy_tofrom_phys() uses in_nmi() to decide which path to take. arm64's
+SEA taking both paths, depending on what it interrupted.
 
-For IMP DEF events:
-perf stat -e smmuv3_pmcg_ff88840/event=id/ -a pwd
+There is no guarantee that queued memory_failure() errors will be processed
+before this CPU returns to user-space.
 
-Sanity tested on HiSilicon platform. Further testing on supported
-platforms are very much welcome.
+x86 can't TLBI from interrupt-masked code which this driver does all the
+time.
 
-v2 --> v3
 
--Addressed comments from Robin.
--Removed iort helper function to retrieve the PMCG reference smmu.
--PMCG devices are now named using the base address
+This series aims to fix the first three, with an eye to fixing the
+last one with a follow-up series.
 
-v1 --> v2
+Previous postings included the SDEI notification calls, which I haven't
+finished re-testing. This series is big enough as it is.
 
-- Addressed comments from Robin.
-- Added an helper to retrieve the associated smmu dev and named PMUs
-  to make the association visible to user.
-- Added MSI support  for overflow irq
 
-[1]https://www.spinics.net/lists/arm-kernel/msg598591.html
+Any NMIlike notification should always be in_nmi(), and should use the
+ghes estatus cache to hold the CPER records until they can be processed.
 
-Neil Leeder (2):
-  acpi: arm64: add iort support for PMCG
-  perf: add arm64 smmuv3 pmu driver
+The path through GHES should be nmi-safe, without the need to look at
+in_nmi(). Abstract the estatus cache, and re-plumb arm64 to always
+nmi_enter() before making the ghes_notify_sea() call.
 
-Shameer Kolothum (1):
-  perf/smmuv3: Add MSI irq support
+To remove the use of in_nmi(), the locks are pushed out to the notification
+helpers, and the fixmap slot to use is passed in. (A future series could
+change as many nnotification helpers as possible to not mask-irqs, and
+pass in some GHES_FIXMAP_NONE that indicates ioremap() should be used)
 
- drivers/acpi/arm64/iort.c     |  78 ++++-
- drivers/perf/Kconfig          |   9 +
- drivers/perf/Makefile         |   1 +
- drivers/perf/arm_smmuv3_pmu.c | 794 ++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 870 insertions(+), 12 deletions(-)
- create mode 100644 drivers/perf/arm_smmuv3_pmu.c
+Change the now common _in_nmi_notify_one() to use local estatus/paddr/flags,
+instead of clobbering those in the struct ghes.
+
+Finally we try and ensure the memory_failure() work will run before this
+CPU returns to user-space where the error may be triggered again.
+
+
+Changes since v5:
+ * Fixed phys_addr_t/u64 that failed to build on 32bit x86.
+ * Removed buffer/flags from struct ghes, these are now on the stack.
+
+To make future irq/tlbi fixes easier:
+ * Moved the locking further out to make it easier to avoid masking interrupts
+   for notifications where it isn't needed.
+ * Restored map/unmap helpers so they can use ioremap() when interrupts aren't
+   masked.
+
+
+Feedback welcome,
+
+Thanks
+
+James Morse (18):
+  ACPI / APEI: Move the estatus queue code up, and under its own ifdef
+  ACPI / APEI: Generalise the estatus queue's add/remove and notify code
+  ACPI / APEI: don't wait to serialise with oops messages when
+    panic()ing
+  ACPI / APEI: Switch NOTIFY_SEA to use the estatus queue
+  ACPI / APEI: Make estatus queue a Kconfig symbol
+  KVM: arm/arm64: Add kvm_ras.h to collect kvm specific RAS plumbing
+  arm64: KVM/mm: Move SEA handling behind a single 'claim' interface
+  ACPI / APEI: Move locking to the notification helper
+  ACPI / APEI: Let the notification helper specify the fixmap slot
+  ACPI / APEI: preparatory split of ghes->estatus
+  ACPI / APEI: Remove silent flag from ghes_read_estatus()
+  ACPI / APEI: Don't store CPER records physical address in struct ghes
+  ACPI / APEI: Don't update struct ghes' flags in read/clear estatus
+  ACPI / APEI: Split ghes_read_estatus() to read CPER length
+  ACPI / APEI: Only use queued estatus entry during _in_nmi_notify_one()
+  ACPI / APEI: Split fixmap pages for arm64 NMI-like notifications
+  mm/memory-failure: increase queued recovery work's priority
+  arm64: acpi: Make apei_claim_sea() synchronise with APEI's irq work
+
+ arch/arm/include/asm/kvm_ras.h       |  14 +
+ arch/arm/include/asm/system_misc.h   |   5 -
+ arch/arm64/include/asm/acpi.h        |   4 +
+ arch/arm64/include/asm/daifflags.h   |   1 +
+ arch/arm64/include/asm/fixmap.h      |   4 +-
+ arch/arm64/include/asm/kvm_ras.h     |  25 ++
+ arch/arm64/include/asm/system_misc.h |   2 -
+ arch/arm64/kernel/acpi.c             |  48 +++
+ arch/arm64/mm/fault.c                |  25 +-
+ drivers/acpi/apei/Kconfig            |   6 +
+ drivers/acpi/apei/ghes.c             | 564 +++++++++++++++------------
+ include/acpi/ghes.h                  |   2 -
+ mm/memory-failure.c                  |  11 +-
+ virt/kvm/arm/mmu.c                   |   4 +-
+ 14 files changed, 426 insertions(+), 289 deletions(-)
+ create mode 100644 arch/arm/include/asm/kvm_ras.h
+ create mode 100644 arch/arm64/include/asm/kvm_ras.h
 
 -- 
-2.7.4
+2.19.0
