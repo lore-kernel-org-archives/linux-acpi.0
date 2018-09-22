@@ -1,122 +1,48 @@
-From: James Morse <james.morse@arm.com>
-Subject: [PATCH v6 18/18] arm64: acpi: Make apei_claim_sea() synchronise with
- APEI's irq work
-Date: Fri, 21 Sep 2018 23:17:05 +0100
-Message-ID: <20180921221705.6478-19-james.morse@arm.com>
-References: <20180921221705.6478-1-james.morse@arm.com>
+From: Jason Baron <jbaron@akamai.com>
+Subject: Re: [PATCH 00/22] various dynamic_debug patches
+Date: Fri, 21 Sep 2018 20:27:09 -0400
+Message-ID: <b2976966-8c48-2798-b2d6-cf7be45ed25f@akamai.com>
+References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20180921221705.6478-1-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: linux-acpi@vger.kernel.org
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Punit Agrawal <punit.agrawal@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-APEI is unable to do all of its error handling work in nmi-context, so
-it defers non-fatal work onto the irq_work queue. arch_irq_work_raise()
-sends an IPI to the calling cpu, but we can't guarantee this will be
-taken before we return.
+On 09/19/2018 06:04 PM, Rasmus Villemoes wrote:
+> This started as an experiment to see how hard it would be to change
+> the four pointers in struct _ddebug into relative offsets, a la
+> CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
+> pr_debug site (and thus exactly making up for the extra space used by
+> the introduction of jump labels in 9049fc74). I stumbled on a few
+> things that are probably worth fixing regardless of whether the latter
+> half of this series is deemed worthwhile.
+> 
+> Patch relationships: 1-2, 3-4, 5-6 and 15-16 can be applied
+> individually, though 2, 4 and 6 probably makes most sense in the
+> context of the final goal of the series.
+> 
+> 7-12 I believe make sense on their own. Patch 13 again only makes
+> sense if we go all the way, and 14 and 17 depend on 13.
+> 
+> 18-21 are more preparatory patches, and finally 22 switch over x86-64
+> to use CONFIG_DYNAMIC_DEBUG_RELATIVE_POINTERS. I've tested that the
+> end result boots under virtme and that the dynamic_debug control file
+> has the expected contents.
+> 
 
-Unless we interrupted a context with irqs-masked, we can call
-irq_work_run() to do the work now. Otherwise return -EINPROGRESS to
-indicate ghes_notify_sea() found some work to do, but it hasn't
-finished yet.
+I would like to to see all these patches included. Feel free to add:
+Acked-by: Jason Baron <jbaron@akamai.com>
 
-With this we can take apei_claim_sea() returning '0' to mean this
-external-abort was also notification of a firmware-first RAS error,
-and that APEI has processed the CPER records.
+I've been wanting to add DYNAMIC_DEBUG_BRANCH to the
+[dev,net,pr].*ratelimited functions. That should reduce the size of the
+text as well.
 
-Signed-off-by: James Morse <james.morse@arm.com>
-Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-CC: Xie XiuQi <xiexiuqi@huawei.com>
-CC: gengdongjiu <gengdongjiu@huawei.com>
----
-Changes since v2:
- * Removed IS_ENABLED() check, done by the caller unless we have a dummy
-   definition.
----
- arch/arm64/kernel/acpi.c | 19 +++++++++++++++++++
- arch/arm64/mm/fault.c    |  9 ++++-----
- 2 files changed, 23 insertions(+), 5 deletions(-)
+Thanks,
 
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index a9b8bba014b5..09744e2d15a0 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -23,6 +23,7 @@
- #include <linux/init.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
-+#include <linux/irq_work.h>
- #include <linux/memblock.h>
- #include <linux/of_fdt.h>
- #include <linux/smp.h>
-@@ -270,10 +271,14 @@ int apei_claim_sea(struct pt_regs *regs)
- {
- 	int err = -ENOENT;
- 	unsigned long current_flags = arch_local_save_flags();
-+	unsigned long interrupted_flags = current_flags;
- 
- 	if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
- 		return err;
- 
-+	if (regs)
-+		interrupted_flags = regs->pstate;
-+
- 	/*
- 	 * SEA can interrupt SError, mask it and describe this as an NMI so
- 	 * that APEI defers the handling.
-@@ -282,6 +287,20 @@ int apei_claim_sea(struct pt_regs *regs)
- 	nmi_enter();
- 	err = ghes_notify_sea();
- 	nmi_exit();
-+
-+	/*
-+	 * APEI NMI-like notifications are deferred to irq_work. Unless
-+	 * we interrupted irqs-masked code, we can do that now.
-+	 */
-+	if (!err) {
-+		if (!arch_irqs_disabled_flags(interrupted_flags)) {
-+			local_daif_restore(DAIF_PROCCTX_NOIRQ);
-+			irq_work_run();
-+		} else {
-+			err = -EINPROGRESS;
-+		}
-+	}
-+
- 	local_daif_restore(current_flags);
- 
- 	return err;
-diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
-index 2c38776bb71f..97036e01522a 100644
---- a/arch/arm64/mm/fault.c
-+++ b/arch/arm64/mm/fault.c
-@@ -630,11 +630,10 @@ static int do_sea(unsigned long addr, unsigned int esr, struct pt_regs *regs)
- 
- 	inf = esr_to_fault_info(esr);
- 
--	/*
--	 * Return value ignored as we rely on signal merging.
--	 * Future patches will make this more robust.
--	 */
--	apei_claim_sea(regs);
-+	if (apei_claim_sea(regs) == 0) {
-+		/* APEI claimed this as a firmware-first notification */
-+		return 0;
-+	}
- 
- 	clear_siginfo(&info);
- 	info.si_signo = inf->sig;
--- 
-2.19.0
+-Jason
