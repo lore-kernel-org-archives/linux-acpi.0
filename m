@@ -1,48 +1,44 @@
-From: Jason Baron <jbaron@akamai.com>
-Subject: Re: [PATCH 00/22] various dynamic_debug patches
-Date: Fri, 21 Sep 2018 20:27:09 -0400
-Message-ID: <b2976966-8c48-2798-b2d6-cf7be45ed25f@akamai.com>
-References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+From: Kees Cook <keescook@chromium.org>
+Subject: Re: [PATCH v7 1/3] x86/boot: Add acpitb.c to parse acpi tables
+Date: Sat, 22 Sep 2018 08:45:12 -0700
+Message-ID: <CAGXu5j+LxEpoKAkEo8GQa-f729_Ebavgtnv+DA9bxf9XEz2QPQ@mail.gmail.com>
+References: <20180913104629.5179-1-fanc.fnst@cn.fujitsu.com> <20180913104629.5179-2-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
-Content-Language: en-US
+In-Reply-To: <20180913104629.5179-2-fanc.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>, Andrew Morton <akpm@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-efi <linux-efi@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Baoquan He <bhe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/19/2018 06:04 PM, Rasmus Villemoes wrote:
-> This started as an experiment to see how hard it would be to change
-> the four pointers in struct _ddebug into relative offsets, a la
-> CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
-> pr_debug site (and thus exactly making up for the extra space used by
-> the introduction of jump labels in 9049fc74). I stumbled on a few
-> things that are probably worth fixing regardless of whether the latter
-> half of this series is deemed worthwhile.
-> 
-> Patch relationships: 1-2, 3-4, 5-6 and 15-16 can be applied
-> individually, though 2, 4 and 6 probably makes most sense in the
-> context of the final goal of the series.
-> 
-> 7-12 I believe make sense on their own. Patch 13 again only makes
-> sense if we go all the way, and 14 and 17 depend on 13.
-> 
-> 18-21 are more preparatory patches, and finally 22 switch over x86-64
-> to use CONFIG_DYNAMIC_DEBUG_RELATIVE_POINTERS. I've tested that the
-> end result boots under virtme and that the dynamic_debug control file
-> has the expected contents.
-> 
+On Thu, Sep 13, 2018 at 3:46 AM, Chao Fan <fanc.fnst@cn.fujitsu.com> wrote:
+> There is a bug that kaslr may randomly chooses some positions
+> which are located in movable memory regions. This will break memory
+> hotplug feature and make the movable memory chosen by KASLR can't be
+> removed. So dig SRAT table from ACPI tables to get memory information.
+>
+> Imitate the ACPI code of parsing ACPI tables to dig and read ACPI
+> tables. Since some operations are not needed here, functions are
+> simplified. Functions will be used to dig only SRAT tables to get
+> information of memory, so that KASLR can the memory in immovable node.
+>
+> And also, these functions won't influence the initialization of
+> ACPI after start_kernel().
+>
+> Since use physical address directely, so acpi_os_map_memory()
+> and acpi_os_unmap_memory() are not needed.
+>
+> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
+> ---
+>  arch/x86/boot/compressed/Makefile |   4 +
+>  arch/x86/boot/compressed/acpitb.c | 401 ++++++++++++++++++++++++++++++
 
-I would like to to see all these patches included. Feel free to add:
-Acked-by: Jason Baron <jbaron@akamai.com>
+Does this logic live anywhere else in the kernel already? (i.e. could
+other code be reused?)
 
-I've been wanting to add DYNAMIC_DEBUG_BRANCH to the
-[dev,net,pr].*ratelimited functions. That should reduce the size of the
-text as well.
+-Kees
 
-Thanks,
-
--Jason
+-- 
+Kees Cook
+Pixel Security
