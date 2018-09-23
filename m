@@ -1,48 +1,36 @@
-From: Pu Wen <puwen@hygon.cn>
-Subject: [PATCH v8 13/16] ACPI, x86: Add Hygon Dhyana support
-Date: Sun, 23 Sep 2018 17:37:05 +0800
-Message-ID: <cce6ee26f4e2ebbab493433264d89d7cea661284.1537533369.git.puwen@hygon.cn>
-References: <cover.1537533368.git.puwen@hygon.cn>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/3] x86: baytrail/cherrytrail: Rework and move P-Unit PMIC semaphore handling
+Date: Sun, 23 Sep 2018 16:45:07 +0200
+Message-ID: <20180923144510.4564-1-hdegoede@redhat.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1537533368.git.puwen@hygon.cn>
 Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, lenb@kernel.org, rafael@kernel.org, rafael.j.wysocki@intel.com
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-acpi@vger.kernel.org, Pu Wen <puwen@hygon.cn>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The Hygon Dhyana CPU has NONSTOP TSC feature, so enable the ACPI
-driver support to it.
+Hi All,
 
-Signed-off-by: Pu Wen <puwen@hygon.cn>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_pad.c       | 1 +
- drivers/acpi/processor_idle.c | 1 +
- 2 files changed, 2 insertions(+)
+See the commit message of the first patch for the why and what of this
+series.
 
-diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-index 552c1f7..a47676a 100644
---- a/drivers/acpi/acpi_pad.c
-+++ b/drivers/acpi/acpi_pad.c
-@@ -70,6 +70,7 @@ static void power_saving_mwait_init(void)
- 
- #if defined(CONFIG_X86)
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 		/*
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index abb559c..b2131c4 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -205,6 +205,7 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
- static void tsc_check_state(int state)
- {
- 	switch (boot_cpu_data.x86_vendor) {
-+	case X86_VENDOR_HYGON:
- 	case X86_VENDOR_AMD:
- 	case X86_VENDOR_INTEL:
- 	case X86_VENDOR_CENTAUR:
--- 
-2.7.4
+Also the whole purpose of posting this series for now is just to get the
+first patch reviewed and merged.
+
+Once the first patch is merged we can look at using the new
+iosf_mbi_[un]block_punit_i2c_access() functions in various drivers for the
+AXP288 PMIC (and the TI dollarcove PMIC) to only take the P-Unit semaphore
+once around a group of i2c accesses to the PMIC. The second patch is an
+example of this.
+
+The third patch is some trivial cleanup to the i2c-designware driver which
+becomes possible after the first patch is merged. As mentioned in the commit
+message of the first patch, that patch deliberately saves that cleanup for
+later, so that it only touches i2c-designware-baytrail.c and not the main
+i2c-designware*.c files, so that it can be merged through the x86 tree
+without conflicts.
+
+Regards,
+
+Hans
