@@ -1,106 +1,146 @@
-From: Balbir Singh <bsingharora@gmail.com>
-Subject: Re: [PATCH v1 0/6] mm: online/offline_pages called w.o.
- mem_hotplug_lock
-Date: Sun, 23 Sep 2018 12:34:52 +1000
-Message-ID: <20180923023452.GG8537@350D>
-References: <20180918114822.21926-1-david@redhat.com>
- <20180919012207.GD8537@350D>
- <f3a13f6a-b34c-8561-884a-23fd9aa60331@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <f3a13f6a-b34c-8561-884a-23fd9aa60331@redhat.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Hildenbrand <david@redhat.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Jonathan Corbet <corbet@lwn.net>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, V
+From: Pu Wen <puwen@hygon.cn>
+Subject: [PATCH v8 00/16] Add support for Hygon Dhyana Family 18h processor
+Date: Sun, 23 Sep 2018 17:30:47 +0800
+Message-ID: <cover.1537533368.git.puwen@hygon.cn>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, thomas.lendacky@amd.com, pbonzini@redhat.com, tony.luck@intel.com, rkrcmar@redhat.com, boris.ostrovsky@oracle.com, jgross@suse.com, rjw@rjwysocki.net, lenb@kernel.org, viresh.kumar@linaro.org, mchehab@kernel.org, trenn@suse.com, shuah@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-edac@vger.kernel.org, linux-pm@vger.kernel.org, kvm@vger.kernel.org, xen-devel@lists.xenproject.org, Pu Wen <puwen@hygon.cn>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 19, 2018 at 09:35:07AM +0200, David Hildenbrand wrote:
-> Am 19.09.18 um 03:22 schrieb Balbir Singh:
-> > On Tue, Sep 18, 2018 at 01:48:16PM +0200, David Hildenbrand wrote:
-> >> Reading through the code and studying how mem_hotplug_lock is to be used,
-> >> I noticed that there are two places where we can end up calling
-> >> device_online()/device_offline() - online_pages()/offline_pages() without
-> >> the mem_hotplug_lock. And there are other places where we call
-> >> device_online()/device_offline() without the device_hotplug_lock.
-> >>
-> >> While e.g.
-> >> 	echo "online" > /sys/devices/system/memory/memory9/state
-> >> is fine, e.g.
-> >> 	echo 1 > /sys/devices/system/memory/memory9/online
-> >> Will not take the mem_hotplug_lock. However the device_lock() and
-> >> device_hotplug_lock.
-> >>
-> >> E.g. via memory_probe_store(), we can end up calling
-> >> add_memory()->online_pages() without the device_hotplug_lock. So we can
-> >> have concurrent callers in online_pages(). We e.g. touch in online_pages()
-> >> basically unprotected zone->present_pages then.
-> >>
-> >> Looks like there is a longer history to that (see Patch #2 for details),
-> >> and fixing it to work the way it was intended is not really possible. We
-> >> would e.g. have to take the mem_hotplug_lock in device/base/core.c, which
-> >> sounds wrong.
-> >>
-> >> Summary: We had a lock inversion on mem_hotplug_lock and device_lock().
-> >> More details can be found in patch 3 and patch 6.
-> >>
-> >> I propose the general rules (documentation added in patch 6):
-> >>
-> >> 1. add_memory/add_memory_resource() must only be called with
-> >>    device_hotplug_lock.
-> >> 2. remove_memory() must only be called with device_hotplug_lock. This is
-> >>    already documented and holds for all callers.
-> >> 3. device_online()/device_offline() must only be called with
-> >>    device_hotplug_lock. This is already documented and true for now in core
-> >>    code. Other callers (related to memory hotplug) have to be fixed up.
-> >> 4. mem_hotplug_lock is taken inside of add_memory/remove_memory/
-> >>    online_pages/offline_pages.
-> >>
-> >> To me, this looks way cleaner than what we have right now (and easier to
-> >> verify). And looking at the documentation of remove_memory, using
-> >> lock_device_hotplug also for add_memory() feels natural.
-> >>
-> > 
-> > That seems reasonable, but also implies that device_online() would hold
-> > back add/remove memory, could you please also document what mode
-> > read/write the locks need to be held? For example can the device_hotplug_lock
-> > be held in read mode while add/remove memory via (mem_hotplug_lock) is held
-> > in write mode?
-> 
-> device_hotplug_lock is an ordinary mutex. So no option there.
-> 
-> Only mem_hotplug_lock is a per CPU RW mutex. And as of now it only
-> exists to not require get_online_mems()/put_online_mems() to take the
-> device_hotplug_lock. Which is perfectly valid, because these users only
-> care about memory (not any other devices) not suddenly vanish. And that
-> RW lock makes things fast.
-> 
-> Any modifications (online/offline/add/remove) require the
-> mem_hotplug_lock in write.
-> 
-> I can add some more details to documentation in patch #6.
-> 
-> "... we should always hold the mem_hotplug_lock (via
-> mem_hotplug_begin/mem_hotplug_done) in write mode to serialize memory
-> hotplug" ..."
-> 
-> "In addition, mem_hotplug_lock (in contrast to device_hotplug_lock) in
-> read mode allows for a quite efficient get_online_mems/put_online_mems
-> implementation, so code accessing memory can protect from that memory
-> vanishing."
-> 
-> Would that work for you?
+As a new x86 CPU Vendor, Chengdu Haiguang IC Design Co., Ltd (Hygon)
+is a Joint Venture between AMD and Haiguang Information Technology Co.,
+Ltd., and aims at providing high performance x86 processor for China
+server market.
 
-Yes, Thanks
+The first generation Hygon's processor(Dhyana) originates from AMD
+technology and shares most of the architecture with AMD's family 17h,
+but with different CPU Vendor ID("HygonGenuine")/PCIE Device Vendor ID
+(0x1D94)/Family series number (Family 18h).
 
-Balbir Singh.
+To enable the support of Linux kernel to Hygon's CPU, we added a new
+vendor type (X86_VENDOR_HYGON, with value of 9) in arch/x86/include/
+asm/processor.h, and shared most of kernel support codes with AMD
+family 17h.
+
+As Hygon will negotiate with AMD to make sure that only Hygon will
+use family 18h, so try to minimize code modification and share most
+codes with AMD under this consideration.
+
+This patch series have been applied and tested successfully on Hygon
+Dhyana SoC silicon. Also tested on AMD EPYC (Family 17h) processor,
+it works fine and makes no harm to the existing codes.
+
+
+v7->v8:
+  - Fix the issue that patch x86/pci may cause LKP boot test failure
+    on some Intel platform.
+
+v6->v7:
+  - Rebased on 4.19-rc4 and tested against it.
+  - Add Reviewed-by from Borislav Petkov for patches x86/cpu,
+    x86/cpu/mtrr, perf/x86, x86/pci, x86/apic, x86/mce.
+  - Refine the patch descriptions and fix some typos.
+  - Remove unneeded vendor checking for patch x86/apic.
+  - Restore the user-visible pr_err string in patch x86/bugs.
+
+v5->v6:
+  - Rebased on 4.19-rc3 and tested against it.
+  - Add Reviewed-by from Borislav Petkov for cacheinfo, smpboot,
+    alternative and kvm.
+  - Rework the patch subjects and patch descriptions.
+  - Rework vendor checking for some patches to minimize the code
+    modification.
+
+v4->v5:
+  - Rebased on 4.19-rc1 and tested against it.
+  - Add Reviewed-by from Boris Ostrovsky for Xen.
+  - Rework EDAC patch without vendor checking for minimal modification.
+
+v3->v4:
+  - Rebased on 4.18.3 and tested against it.
+  - Merge patches 05/17 perfctr and 10/17 events in v3 to patch 05/16
+    PMU for better patch function group.
+  - Add hygon_get_topology_early() in patch 01/16.
+  - Rework vendor checking and refine coding style.
+  - Add Acked-by from Bjorn Helgaas for pci.
+  - Add Acked-by from Rafael J. Wysocki for cpufreq and acpi.
+
+v2->v3:
+  - Rebased on 4.18-rc8 and tested against it.
+  - Rework vendor checking codes to improve consistency.
+
+v1->v2:
+  - Rebased on 4.18-rc6 and tested against it.
+  - Split the patch set to small series of patches.
+  - Rework patch descriptions.
+  - Create a separated arch/x86/kernel/cpu/hygon.c for Dhyana CPU
+    initialization to reduce long-term maintenance effort.
+
+
+Pu Wen (16):
+  x86/cpu: Create Hygon Dhyana architecture support file
+  x86/cpu: Get cache info and setup cache cpumap for Hygon Dhyana
+  x86/cpu/mtrr: Support TOP_MEM2 and get MTRR number
+  x86/smpboot: SMP init no delay and not flush caches before sleep
+  perf/x86: Add Hygon Dhyana support to PMU infrastructure
+  x86/alternative: Init ideal_nops for Hygon Dhyana
+  x86/pci: Add Hygon Dhyana support to PCI and north bridge
+  x86/apic: Add Hygon Dhyana support to APIC
+  x86/bugs: Add mitigation to spectre and no meltdown for Hygon Dhyana
+  x86/mce: Add Hygon Dhyana support to MCE infrastructure
+  x86/kvm: Add Hygon Dhyana support to KVM infrastructure
+  x86/xen: Add Hygon Dhyana support to Xen
+  ACPI, x86: Add Hygon Dhyana support
+  cpufreq, x86: Add Hygon Dhyana support
+  EDAC, amd64: Add Hygon Dhyana support
+  cpupower, x86: Add Hygon Dhyana support
+
+ MAINTAINERS                                        |   6 +
+ arch/x86/Kconfig.cpu                               |  14 +
+ arch/x86/events/amd/core.c                         |   4 +
+ arch/x86/events/amd/uncore.c                       |  20 +-
+ arch/x86/events/core.c                             |   4 +
+ arch/x86/include/asm/amd_nb.h                      |   3 +
+ arch/x86/include/asm/cacheinfo.h                   |   1 +
+ arch/x86/include/asm/kvm_emulate.h                 |   4 +
+ arch/x86/include/asm/mce.h                         |   2 +
+ arch/x86/include/asm/processor.h                   |   3 +-
+ arch/x86/include/asm/virtext.h                     |   5 +-
+ arch/x86/kernel/alternative.c                      |   4 +
+ arch/x86/kernel/amd_nb.c                           |  47 ++-
+ arch/x86/kernel/apic/apic.c                        |   7 +
+ arch/x86/kernel/apic/probe_32.c                    |   1 +
+ arch/x86/kernel/cpu/Makefile                       |   1 +
+ arch/x86/kernel/cpu/bugs.c                         |   4 +-
+ arch/x86/kernel/cpu/cacheinfo.c                    |  31 +-
+ arch/x86/kernel/cpu/common.c                       |   1 +
+ arch/x86/kernel/cpu/cpu.h                          |   1 +
+ arch/x86/kernel/cpu/hygon.c                        | 411 +++++++++++++++++++++
+ arch/x86/kernel/cpu/mcheck/mce-severity.c          |   3 +-
+ arch/x86/kernel/cpu/mcheck/mce.c                   |  20 +-
+ arch/x86/kernel/cpu/mtrr/cleanup.c                 |   3 +-
+ arch/x86/kernel/cpu/mtrr/mtrr.c                    |   2 +-
+ arch/x86/kernel/cpu/perfctr-watchdog.c             |   2 +
+ arch/x86/kernel/smpboot.c                          |   4 +-
+ arch/x86/kvm/emulate.c                             |  11 +-
+ arch/x86/pci/amd_bus.c                             |   6 +-
+ arch/x86/xen/pmu.c                                 |  12 +-
+ drivers/acpi/acpi_pad.c                            |   1 +
+ drivers/acpi/processor_idle.c                      |   1 +
+ drivers/cpufreq/acpi-cpufreq.c                     |   5 +
+ drivers/cpufreq/amd_freq_sensitivity.c             |   9 +-
+ drivers/edac/amd64_edac.c                          |   8 +-
+ drivers/edac/mce_amd.c                             |   4 +-
+ include/linux/pci_ids.h                            |   2 +
+ tools/power/cpupower/utils/cpufreq-info.c          |   6 +-
+ tools/power/cpupower/utils/helpers/amd.c           |   4 +-
+ tools/power/cpupower/utils/helpers/cpuid.c         |   8 +-
+ tools/power/cpupower/utils/helpers/helpers.h       |   2 +-
+ tools/power/cpupower/utils/helpers/misc.c          |   2 +-
+ .../cpupower/utils/idle_monitor/mperf_monitor.c    |   3 +-
+ 43 files changed, 644 insertions(+), 48 deletions(-)
+ create mode 100644 arch/x86/kernel/cpu/hygon.c
+
+-- 
+2.7.4
