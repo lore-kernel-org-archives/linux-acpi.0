@@ -1,58 +1,62 @@
-From: Balbir Singh <bsingharora@gmail.com>
-Subject: Re: [PATCH v2 5/6] powerpc/powernv: hold device_hotplug_lock when
- calling memtrace_offline_pages()
-Date: Tue, 25 Sep 2018 22:15:04 +1000
-Message-ID: <20180925121504.GH8537@350D>
-References: <20180925091457.28651-1-david@redhat.com>
- <20180925091457.28651-6-david@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 00/18] APEI in_nmi() rework
+Date: Tue, 25 Sep 2018 14:45:26 +0200
+Message-ID: <20180925124526.GD23986@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20180925091457.28651-6-david@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Hildenbrand <david@redhat.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Rashmica Gupta <rashmica.g@gmail.com>, Michael Neuling <mikey@neuling.org>
+In-Reply-To: <20180921221705.6478-1-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 25, 2018 at 11:14:56AM +0200, David Hildenbrand wrote:
-> Let's perform all checking + offlining + removing under
-> device_hotplug_lock, so nobody can mess with these devices via
-> sysfs concurrently.
+On Fri, Sep 21, 2018 at 11:16:47PM +0100, James Morse wrote:
+> Hello,
 > 
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Paul Mackerras <paulus@samba.org>
-> Cc: Michael Ellerman <mpe@ellerman.id.au>
-> Cc: Rashmica Gupta <rashmica.g@gmail.com>
-> Cc: Balbir Singh <bsingharora@gmail.com>
-> Cc: Michael Neuling <mikey@neuling.org>
-> Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-> Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
-> Signed-off-by: David Hildenbrand <david@redhat.com>
-> ---
->  arch/powerpc/platforms/powernv/memtrace.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
+> The GHES driver has collected quite a few bugs:
 > 
-> diff --git a/arch/powerpc/platforms/powernv/memtrace.c b/arch/powerpc/platforms/powernv/memtrace.c
-> index fdd48f1a39f7..d84d09c56af9 100644
-> --- a/arch/powerpc/platforms/powernv/memtrace.c
-> +++ b/arch/powerpc/platforms/powernv/memtrace.c
-> @@ -70,6 +70,7 @@ static int change_memblock_state(struct memory_block *mem, void *arg)
->  	return 0;
->  }
->  
-> +/* called with device_hotplug_lock held */
->  static bool memtrace_offline_pages(u32 nid, u64 start_pfn, u64 nr_pages)
->  {
->  	u64 end_pfn = start_pfn + nr_pages - 1;
-> @@ -111,6 +112,7 @@ static u64 memtrace_alloc_node(u32 nid, u64 size)
->  	end_pfn = round_down(end_pfn - nr_pages, nr_pages);
->  
->  	for (base_pfn = end_pfn; base_pfn > start_pfn; base_pfn -= nr_pages) {
-> +		lock_device_hotplug();
+> ghes_proc() at ghes_probe() time can be interrupted by an NMI that
+> will clobber the ghes->estatus fields, flags, and the buffer_paddr.
+> 
+> ghes_copy_tofrom_phys() uses in_nmi() to decide which path to take. arm64's
+> SEA taking both paths, depending on what it interrupted.
+> 
+> There is no guarantee that queued memory_failure() errors will be processed
+> before this CPU returns to user-space.
+> 
+> x86 can't TLBI from interrupt-masked code which this driver does all the
+> time.
+> 
+> 
+> This series aims to fix the first three, with an eye to fixing the
+> last one with a follow-up series.
+> 
+> Previous postings included the SDEI notification calls, which I haven't
+> finished re-testing. This series is big enough as it is.
 
-Why not grab the lock before the for loop? That way we can avoid bad cases like a
-large node being scanned for a small number of pages (nr_pages). Ideally we need
-a cond_resched() in the loop, but I guess offline_pages() has one.
+Yeah, and everywhere I look, this thing looks overengineered. Like,
+for example, what's the purpose of this ghes_esource_prealloc_size()
+computing a size each time the pool changes size?
 
-Acked-by: Balbir Singh <bsingharora@gmail.com>
+AFAICT, this size can be computed exactly *once* at driver init and be
+done with it. Right?
+
+Or am I missing something subtle?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
