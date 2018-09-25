@@ -1,58 +1,99 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v7 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Tue, 25 Sep 2018 09:12:46 +0800
-Message-ID: <20180925011246.GB12561@localhost.localdomain>
-References: <20180913104629.5179-1-fanc.fnst@cn.fujitsu.com>
- <20180913104629.5179-2-fanc.fnst@cn.fujitsu.com>
- <CAGXu5j+LxEpoKAkEo8GQa-f729_Ebavgtnv+DA9bxf9XEz2QPQ@mail.gmail.com>
+From: Rashmica Gupta <rashmica.g@gmail.com>
+Subject: Re: [PATCH RFCv2 3/6] mm/memory_hotplug: fix online/offline_pages
+ called w.o. mem_hotplug_lock
+Date: Tue, 25 Sep 2018 11:26:51 +1000
+Message-ID: <1537838811.10753.2.camel@gmail.com>
+References: <20180821104418.12710-1-david@redhat.com>
+ <20180821104418.12710-4-david@redhat.com>
+ <70372ef5-e332-6c07-f08c-50f8808bde6d@gmail.com>
+ <5f80ca56-9f34-4e6e-bc83-8f8b3c888163@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAGXu5j+LxEpoKAkEo8GQa-f729_Ebavgtnv+DA9bxf9XEz2QPQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>
-Cc: linux-efi <linux-efi@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, X86 ML <x86@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Baoquan He <bhe@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Ard Biesheuvel <ard.biesheuvel@linaro.org>, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <5f80ca56-9f34-4e6e-bc83-8f8b3c888163@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Michal Hocko <mhocko@suse.com>, linux-doc@vger.kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Paul Mackerras <paulus@samba.org>, Thomas Gleixner <tglx@linutronix.de>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Michael Ellerman <mpe@ellerman.id.au>, Pavel Tatashin <pasha.tatashin@oracle.com>, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Haiyang Zhang <haiyangz@microsoft.com>, Dan Williams <dan.j.williams@intel.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Vlastimil Babka <vbabka@suse.cz>, Oscar Salvador <osalvador@suse.de>, Juergen Gross <jgross@suse.com>, Mathieu Malaterre <malat@debian.org>, Greg
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Sep 22, 2018 at 08:45:12AM -0700, Kees Cook wrote:
->On Thu, Sep 13, 2018 at 3:46 AM, Chao Fan <fanc.fnst@cn.fujitsu.com> wrote:
->> There is a bug that kaslr may randomly chooses some positions
->> which are located in movable memory regions. This will break memory
->> hotplug feature and make the movable memory chosen by KASLR can't be
->> removed. So dig SRAT table from ACPI tables to get memory information.
->>
->> Imitate the ACPI code of parsing ACPI tables to dig and read ACPI
->> tables. Since some operations are not needed here, functions are
->> simplified. Functions will be used to dig only SRAT tables to get
->> information of memory, so that KASLR can the memory in immovable node.
->>
->> And also, these functions won't influence the initialization of
->> ACPI after start_kernel().
->>
->> Since use physical address directely, so acpi_os_map_memory()
->> and acpi_os_unmap_memory() are not needed.
->>
->> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
->> ---
->>  arch/x86/boot/compressed/Makefile |   4 +
->>  arch/x86/boot/compressed/acpitb.c | 401 ++++++++++++++++++++++++++++++
->
->Does this logic live anywhere else in the kernel already? (i.e. could
->other code be reused?)
+On Mon, 2018-09-17 at 09:32 +0200, David Hildenbrand wrote:
+> Am 03.09.18 um 02:36 schrieb Rashmica:
+> > Hi David,
+> > 
+> > 
+> > On 21/08/18 20:44, David Hildenbrand wrote:
+> > 
+> > > There seem to be some problems as result of 30467e0b3be ("mm,
+> > > hotplug:
+> > > fix concurrent memory hot-add deadlock"), which tried to fix a
+> > > possible
+> > > lock inversion reported and discussed in [1] due to the two locks
+> > > 	a) device_lock()
+> > > 	b) mem_hotplug_lock
+> > > 
+> > > While add_memory() first takes b), followed by a) during
+> > > bus_probe_device(), onlining of memory from user space first took
+> > > b),
+> > > followed by a), exposing a possible deadlock.
+> > 
+> > Do you mean "onlining of memory from user space first took a),
+> > followed by b)"? 
+> 
+> Very right, thanks.
+> 
+> > 
+> > > In [1], and it was decided to not make use of
+> > > device_hotplug_lock, but
+> > > rather to enforce a locking order.
+> > > 
+> > > The problems I spotted related to this:
+> > > 
+> > > 1. Memory block device attributes: While .state first calls
+> > >    mem_hotplug_begin() and the calls device_online() - which
+> > > takes
+> > >    device_lock() - .online does no longer call
+> > > mem_hotplug_begin(), so
+> > >    effectively calls online_pages() without mem_hotplug_lock.
+> > > 
+> > > 2. device_online() should be called under device_hotplug_lock,
+> > > however
+> > >    onlining memory during add_memory() does not take care of
+> > > that.
+> > > 
+> > > In addition, I think there is also something wrong about the
+> > > locking in
+> > > 
+> > > 3. arch/powerpc/platforms/powernv/memtrace.c calls
+> > > offline_pages()
+> > >    without locks. This was introduced after 30467e0b3be. And
+> > > skimming over
+> > >    the code, I assume it could need some more care in regards to
+> > > locking
+> > >    (e.g. device_online() called without device_hotplug_lock - but
+> > > I'll
+> > >    not touch that for now).
+> > 
+> > Can you mention that you fixed this in later patches?
+> 
+> Sure!
+> 
+> > 
+> > 
+> > The series looks good to me. Feel free to add my reviewed-by:
+> > 
+> > Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
+> > 
+> 
+> Thanks, r-b only for this patch or all of the series?
 
-Live in uncompressec period, but not completely same.
-The map between physical address and virtual address is not needed here.
-So I thins it's hard to reuse, that's why I made this new file.
-
-Thanks,
-Chao Fan
-
->
->-Kees
->
->-- 
->Kees Cook
->Pixel Security
->
->
+Sorry, I somehow missed this. To all of the series.
+> 
