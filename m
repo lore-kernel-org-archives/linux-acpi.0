@@ -1,73 +1,80 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH v2 5/6] powerpc/powernv: hold device_hotplug_lock when
- calling memtrace_offline_pages()
-Date: Wed, 26 Sep 2018 12:09:10 +0200
-Message-ID: <19de0a52-2abd-6e79-1b8e-dcf17eff3fba@redhat.com>
-References: <20180925091457.28651-1-david@redhat.com>
- <20180925091457.28651-6-david@redhat.com> <20180925121504.GH8537@350D>
+From: Rajat Jain <rajatja@google.com>
+Subject: Re: sdhci driver card-detect is broken because gpiolib can't fallback
+ to _CRS?
+Date: Wed, 26 Sep 2018 12:25:40 -0700
+Message-ID: <CACK8Z6F1jkSN3KXiv+0X2uh61pBkpSMpHrdMHwLarbSAFoHMUA@mail.gmail.com>
+References: <CACK8Z6Ebo0giDifRHBg13pe_mO18vb1n0+LGMoMjkLai6X9MNg@mail.gmail.com>
+ <20180926074756.GD2664@lahna.fi.intel.com> <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180925121504.GH8537@350D>
-Content-Language: en-US
+In-Reply-To: <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Balbir Singh <bsingharora@gmail.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Rashmica Gupta <rashmica.g@gmail.com>, Michael Neuling <mikey@neuling.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Rajat Jain <rajatxjain@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 25/09/2018 14:15, Balbir Singh wrote:
-> On Tue, Sep 25, 2018 at 11:14:56AM +0200, David Hildenbrand wrote:
->> Let's perform all checking + offlining + removing under
->> device_hotplug_lock, so nobody can mess with these devices via
->> sysfs concurrently.
->>
->> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
->> Cc: Paul Mackerras <paulus@samba.org>
->> Cc: Michael Ellerman <mpe@ellerman.id.au>
->> Cc: Rashmica Gupta <rashmica.g@gmail.com>
->> Cc: Balbir Singh <bsingharora@gmail.com>
->> Cc: Michael Neuling <mikey@neuling.org>
->> Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
->> Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
->> Signed-off-by: David Hildenbrand <david@redhat.com>
->> ---
->>  arch/powerpc/platforms/powernv/memtrace.c | 4 +++-
->>  1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/arch/powerpc/platforms/powernv/memtrace.c b/arch/powerpc/platforms/powernv/memtrace.c
->> index fdd48f1a39f7..d84d09c56af9 100644
->> --- a/arch/powerpc/platforms/powernv/memtrace.c
->> +++ b/arch/powerpc/platforms/powernv/memtrace.c
->> @@ -70,6 +70,7 @@ static int change_memblock_state(struct memory_block *mem, void *arg)
->>  	return 0;
->>  }
->>  
->> +/* called with device_hotplug_lock held */
->>  static bool memtrace_offline_pages(u32 nid, u64 start_pfn, u64 nr_pages)
->>  {
->>  	u64 end_pfn = start_pfn + nr_pages - 1;
->> @@ -111,6 +112,7 @@ static u64 memtrace_alloc_node(u32 nid, u64 size)
->>  	end_pfn = round_down(end_pfn - nr_pages, nr_pages);
->>  
->>  	for (base_pfn = end_pfn; base_pfn > start_pfn; base_pfn -= nr_pages) {
->> +		lock_device_hotplug();
-> 
-> Why not grab the lock before the for loop? That way we can avoid bad cases like a
-> large node being scanned for a small number of pages (nr_pages). Ideally we need
-> a cond_resched() in the loop, but I guess offline_pages() has one.
+Hi,
 
-Yes, it does.
+Thanks Mika and Andy for your inputs.
 
-I can move it out of the loop, thanks!
+On Wed, Sep 26, 2018 at 1:42 AM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+>
+> On Wed, Sep 26, 2018 at 10:49 AM Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> >
+> > Hi,
+> >
+> > On Tue, Sep 25, 2018 at 01:54:57PM -0700, Rajat Jain wrote:
+> > > * Use con_id=NULL if it is dealing with a legacy BIOS (i.e. no _DSD
+> > > properties in the ACPI).
+> > > * Use con_id=<actual string> if it is dealing with a modern BIOS (i.e.
+> > > which provides _DSD for the <string> property)
+> >
+> > Or you can use con_id=<actual string> everywhere and supply
+> > acpi_dev_add_driver_gpios() where needed to cover cases where BIOS does
+> > not provide _DSD.
 
-> 
-> Acked-by: Balbir Singh <bsingharora@gmail.com>
-> 
+This sounds like a good idea and I'd like to do this. I have some
+questions though:
 
+1) If the BIOS does provide a _DSD entry for "cd-gpio", and
+additionally driver also uses devm_acpi_dev_add_driver_gpios() to add
+one more entry for the same string "cd-gpio", which one will (should?)
+actually be returned by the gpiolib? The one in BIOS or the one that
+was added by the driver?
 
--- 
+2) Related, I'm trying to understand how can a driver use
+devm_acpi_dev_add_driver_gpios(), for *only* the case where the BIOS
+does not have a _DSD (Or should it really care)? Does the driver need
+to check for _DSD using some other ACPI call?
+
+> See also Documentation/acpi/gpio-properties.txt for
+> > more information.
+>
+> Thanks, Mika. That is exactly the way how I suggested to fix and
+> actually fixed a lot of drivers already.
+>
+> Run `git grep -n -w devm_acpi_dev_add_driver_gpios` to find examples.
+>
+> > In case of SDHCI I think the correct way is to stick using _CRS lookup
+> > only because there typically is just one GpioInt() and I have not seen a
+> > single BIOS yet where they implement _DSD for this besides yours. If
+> > there is not way to change the BIOS implementation then I guess we just
+> > need to amend the driver to call acpi_dev_add_driver_gpios().
+
+Since we shouldn't discourage a BIOS that is trying to do the right
+thing by exposing the details in _DST, I think it would be preferable
+if we can solve this in the kernel.
 
 Thanks,
 
-David / dhildenb
+Rajat
+
+>
+> True.
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
