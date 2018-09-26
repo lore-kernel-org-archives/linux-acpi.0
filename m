@@ -1,48 +1,73 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: sdhci driver card-detect is broken because gpiolib can't fallback
- to _CRS?
-Date: Wed, 26 Sep 2018 11:42:21 +0300
-Message-ID: <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
-References: <CACK8Z6Ebo0giDifRHBg13pe_mO18vb1n0+LGMoMjkLai6X9MNg@mail.gmail.com>
- <20180926074756.GD2664@lahna.fi.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH v2 5/6] powerpc/powernv: hold device_hotplug_lock when
+ calling memtrace_offline_pages()
+Date: Wed, 26 Sep 2018 12:09:10 +0200
+Message-ID: <19de0a52-2abd-6e79-1b8e-dcf17eff3fba@redhat.com>
+References: <20180925091457.28651-1-david@redhat.com>
+ <20180925091457.28651-6-david@redhat.com> <20180925121504.GH8537@350D>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180926074756.GD2664@lahna.fi.intel.com>
+In-Reply-To: <20180925121504.GH8537@350D>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Rajat Jain <rajatja@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dtor@google.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Rajat Jain <rajatxjain@gmail.com>
+To: Balbir Singh <bsingharora@gmail.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Rashmica Gupta <rashmica.g@gmail.com>, Michael Neuling <mikey@neuling.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 26, 2018 at 10:49 AM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> Hi,
->
-> On Tue, Sep 25, 2018 at 01:54:57PM -0700, Rajat Jain wrote:
-> > * Use con_id=NULL if it is dealing with a legacy BIOS (i.e. no _DSD
-> > properties in the ACPI).
-> > * Use con_id=<actual string> if it is dealing with a modern BIOS (i.e.
-> > which provides _DSD for the <string> property)
->
-> Or you can use con_id=<actual string> everywhere and supply
-> acpi_dev_add_driver_gpios() where needed to cover cases where BIOS does
-> not provide _DSD. See also Documentation/acpi/gpio-properties.txt for
-> more information.
+On 25/09/2018 14:15, Balbir Singh wrote:
+> On Tue, Sep 25, 2018 at 11:14:56AM +0200, David Hildenbrand wrote:
+>> Let's perform all checking + offlining + removing under
+>> device_hotplug_lock, so nobody can mess with these devices via
+>> sysfs concurrently.
+>>
+>> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+>> Cc: Paul Mackerras <paulus@samba.org>
+>> Cc: Michael Ellerman <mpe@ellerman.id.au>
+>> Cc: Rashmica Gupta <rashmica.g@gmail.com>
+>> Cc: Balbir Singh <bsingharora@gmail.com>
+>> Cc: Michael Neuling <mikey@neuling.org>
+>> Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+>> Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
+>> Signed-off-by: David Hildenbrand <david@redhat.com>
+>> ---
+>>  arch/powerpc/platforms/powernv/memtrace.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/arch/powerpc/platforms/powernv/memtrace.c b/arch/powerpc/platforms/powernv/memtrace.c
+>> index fdd48f1a39f7..d84d09c56af9 100644
+>> --- a/arch/powerpc/platforms/powernv/memtrace.c
+>> +++ b/arch/powerpc/platforms/powernv/memtrace.c
+>> @@ -70,6 +70,7 @@ static int change_memblock_state(struct memory_block *mem, void *arg)
+>>  	return 0;
+>>  }
+>>  
+>> +/* called with device_hotplug_lock held */
+>>  static bool memtrace_offline_pages(u32 nid, u64 start_pfn, u64 nr_pages)
+>>  {
+>>  	u64 end_pfn = start_pfn + nr_pages - 1;
+>> @@ -111,6 +112,7 @@ static u64 memtrace_alloc_node(u32 nid, u64 size)
+>>  	end_pfn = round_down(end_pfn - nr_pages, nr_pages);
+>>  
+>>  	for (base_pfn = end_pfn; base_pfn > start_pfn; base_pfn -= nr_pages) {
+>> +		lock_device_hotplug();
+> 
+> Why not grab the lock before the for loop? That way we can avoid bad cases like a
+> large node being scanned for a small number of pages (nr_pages). Ideally we need
+> a cond_resched() in the loop, but I guess offline_pages() has one.
 
-Thanks, Mika. That is exactly the way how I suggested to fix and
-actually fixed a lot of drivers already.
+Yes, it does.
 
-Run `git grep -n -w devm_acpi_dev_add_driver_gpios` to find examples.
+I can move it out of the loop, thanks!
 
-> In case of SDHCI I think the correct way is to stick using _CRS lookup
-> only because there typically is just one GpioInt() and I have not seen a
-> single BIOS yet where they implement _DSD for this besides yours. If
-> there is not way to change the BIOS implementation then I guess we just
-> need to amend the driver to call acpi_dev_add_driver_gpios().
+> 
+> Acked-by: Balbir Singh <bsingharora@gmail.com>
+> 
 
-True.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+
+Thanks,
+
+David / dhildenb
