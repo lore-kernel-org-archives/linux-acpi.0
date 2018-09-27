@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/3] acpi, nfit: Introduce nfit_mem flags
-Date: Wed, 26 Sep 2018 21:24:26 -0700
-Message-ID: <153802226609.833068.13167424056547725578.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 3/3] tools/testing/nvdimm: Populate dirty shutdown data
+Date: Wed, 26 Sep 2018 21:24:36 -0700
+Message-ID: <153802227683.833068.14067072355792705345.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,117 +21,108 @@ To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-In preparation for adding a flag to indicate whether a DIMM publishes a
-dirty-shutdown count, convert the existing flags to a bit field.
+Allow the unit tests to verify the retrieval of the dirty shutdown
+count via smart commands, and allow the driver-load-time retrieval of
+the smart health payload to be simulated by nfit_test.
 
 Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/acpi/nfit/core.c |   27 ++++++++++++++++-----------
- drivers/acpi/nfit/nfit.h |    8 ++++++--
- 2 files changed, 22 insertions(+), 13 deletions(-)
+ drivers/acpi/nfit/core.c              |   14 ++++++++------
+ tools/testing/nvdimm/Kbuild           |    1 +
+ tools/testing/nvdimm/acpi_nfit_test.c |    8 ++++++++
+ tools/testing/nvdimm/test/nfit.c      |    3 ++-
+ 4 files changed, 19 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index b7773c70ee81..f6944f9011fd 100644
+index c28b4d0dbe51..3880b5ac40e4 100644
 --- a/drivers/acpi/nfit/core.c
 +++ b/drivers/acpi/nfit/core.c
-@@ -192,18 +192,20 @@ static int xlat_nvdimm_status(struct nvdimm *nvdimm, void *buf, unsigned int cmd
- 		 * In the _LSI, _LSR, _LSW case the locked status is
- 		 * communicated via the read/write commands
- 		 */
--		if (nfit_mem->has_lsr)
-+		if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags))
- 			break;
+@@ -1721,7 +1721,7 @@ static bool acpi_nvdimm_has_method(struct acpi_device *adev, char *method)
+ 	return false;
+ }
  
- 		if (status >> 16 & ND_CONFIG_LOCKED)
- 			return -EACCES;
- 		break;
- 	case ND_CMD_GET_CONFIG_DATA:
--		if (nfit_mem->has_lsr && status == ACPI_LABELS_LOCKED)
-+		if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)
-+				&& status == ACPI_LABELS_LOCKED)
- 			return -EACCES;
- 		break;
- 	case ND_CMD_SET_CONFIG_DATA:
--		if (nfit_mem->has_lsw && status == ACPI_LABELS_LOCKED)
-+		if (test_bit(NFIT_MEM_LSW, &nfit_mem->flags)
-+				&& status == ACPI_LABELS_LOCKED)
- 			return -EACCES;
- 		break;
- 	default:
-@@ -489,14 +491,16 @@ int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc, struct nvdimm *nvdimm,
- 			min_t(u32, 256, in_buf.buffer.length), true);
+-static void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
++__weak void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
+ {
+ 	struct nd_intel_smart smart = { 0 };
+ 	union acpi_object in_buf = {
+@@ -1782,10 +1782,6 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 	int family = -1;
+ 	struct acpi_nfit_control_region *dcr = nfit_mem->dcr;
  
- 	/* call the BIOS, prefer the named methods over _DSM if available */
--	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE && nfit_mem->has_lsr)
-+	if (nvdimm && cmd == ND_CMD_GET_CONFIG_SIZE
-+			&& test_bit(NFIT_MEM_LSR, &nfit_mem->flags))
- 		out_obj = acpi_label_info(handle);
--	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA && nfit_mem->has_lsr) {
-+	else if (nvdimm && cmd == ND_CMD_GET_CONFIG_DATA
-+			&& test_bit(NFIT_MEM_LSR, &nfit_mem->flags)) {
- 		struct nd_cmd_get_config_data_hdr *p = buf;
+-	/* nfit test assumes 1:1 relationship between commands and dsms */
+-	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
+-	nfit_mem->family = NVDIMM_FAMILY_INTEL;
+-
+ 	if (dcr->valid_fields & ACPI_NFIT_CONTROL_MFG_INFO_VALID)
+ 		sprintf(nfit_mem->id, "%04x-%02x-%04x-%08x",
+ 				be16_to_cpu(dcr->vendor_id),
+@@ -1797,9 +1793,15 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
+ 				be16_to_cpu(dcr->vendor_id),
+ 				be32_to_cpu(dcr->serial_number));
  
- 		out_obj = acpi_label_read(handle, p->in_offset, p->in_length);
- 	} else if (nvdimm && cmd == ND_CMD_SET_CONFIG_DATA
--			&& nfit_mem->has_lsw) {
-+			&& test_bit(NFIT_MEM_LSW, &nfit_mem->flags)) {
- 		struct nd_cmd_set_config_hdr *p = buf;
++	/* nfit test assumes 1:1 relationship between commands and dsms */
++	nfit_mem->dsm_mask = acpi_desc->dimm_cmd_force_en;
++	nfit_mem->family = NVDIMM_FAMILY_INTEL;
+ 	adev = to_acpi_dev(acpi_desc);
+-	if (!adev)
++	if (!adev) {
++		/* unit test case */
++		populate_shutdown_status(nfit_mem);
+ 		return 0;
++	}
  
- 		out_obj = acpi_label_write(handle, p->in_offset, p->in_length,
-@@ -1798,12 +1802,13 @@ static int acpi_nfit_add_dimm(struct acpi_nfit_desc *acpi_desc,
- 	if (acpi_nvdimm_has_method(adev_dimm, "_LSI")
- 			&& acpi_nvdimm_has_method(adev_dimm, "_LSR")) {
- 		dev_dbg(dev, "%s: has _LSR\n", dev_name(&adev_dimm->dev));
--		nfit_mem->has_lsr = true;
-+		set_bit(NFIT_MEM_LSR, &nfit_mem->flags);
- 	}
+ 	adev_dimm = acpi_find_child_device(adev, device_handle, false);
+ 	nfit_mem->adev = adev_dimm;
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index a13670d3b389..03f00a6e0841 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -22,6 +22,7 @@ NVDIMM_SRC := $(DRIVERS)/nvdimm
+ ACPI_SRC := $(DRIVERS)/acpi/nfit
+ DAX_SRC := $(DRIVERS)/dax
+ ccflags-y := -I$(src)/$(NVDIMM_SRC)/
++ccflags-y += -I$(src)/$(ACPI_SRC)/
  
--	if (nfit_mem->has_lsr && acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
-+	if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)
-+			&& acpi_nvdimm_has_method(adev_dimm, "_LSW")) {
- 		dev_dbg(dev, "%s: has _LSW\n", dev_name(&adev_dimm->dev));
--		nfit_mem->has_lsw = true;
-+		set_bit(NFIT_MEM_LSW, &nfit_mem->flags);
- 	}
+ obj-$(CONFIG_LIBNVDIMM) += libnvdimm.o
+ obj-$(CONFIG_BLK_DEV_PMEM) += nd_pmem.o
+diff --git a/tools/testing/nvdimm/acpi_nfit_test.c b/tools/testing/nvdimm/acpi_nfit_test.c
+index 43521512e577..fec8fb1b7715 100644
+--- a/tools/testing/nvdimm/acpi_nfit_test.c
++++ b/tools/testing/nvdimm/acpi_nfit_test.c
+@@ -4,5 +4,13 @@
+ #include <linux/module.h>
+ #include <linux/printk.h>
+ #include "watermark.h"
++#include <nfit.h>
  
- 	return 0;
-@@ -1902,11 +1907,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			cmd_mask |= nfit_mem->dsm_mask & NVDIMM_STANDARD_CMDMASK;
- 		}
- 
--		if (nfit_mem->has_lsr) {
-+		if (test_bit(NFIT_MEM_LSR, &nfit_mem->flags)) {
- 			set_bit(ND_CMD_GET_CONFIG_SIZE, &cmd_mask);
- 			set_bit(ND_CMD_GET_CONFIG_DATA, &cmd_mask);
- 		}
--		if (nfit_mem->has_lsw)
-+		if (test_bit(NFIT_MEM_LSW, &nfit_mem->flags))
- 			set_bit(ND_CMD_SET_CONFIG_DATA, &cmd_mask);
- 
- 		flush = nfit_mem->nfit_flush ? nfit_mem->nfit_flush->flush
-diff --git a/drivers/acpi/nfit/nfit.h b/drivers/acpi/nfit/nfit.h
-index 36c8695a3d27..74706d1821df 100644
---- a/drivers/acpi/nfit/nfit.h
-+++ b/drivers/acpi/nfit/nfit.h
-@@ -174,6 +174,11 @@ struct nfit_memdev {
- 	struct acpi_nfit_memory_map memdev[0];
- };
- 
-+enum nfit_mem_flags {
-+	NFIT_MEM_LSR,
-+	NFIT_MEM_LSW,
-+};
+ nfit_test_watermark(acpi_nfit);
 +
- #define NFIT_DIMM_ID_LEN	22
- 
- /* assembled tables for a given dimm/memory-device */
-@@ -195,9 +200,8 @@ struct nfit_mem {
- 	struct acpi_nfit_desc *acpi_desc;
- 	struct resource *flush_wpq;
- 	unsigned long dsm_mask;
-+	unsigned long flags;
- 	int family;
--	bool has_lsr;
--	bool has_lsw;
- 	char id[NFIT_DIMM_ID_LEN+1];
++/* strong / override definition of nfit_intel_shutdown_status */
++void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
++{
++	set_bit(NFIT_MEM_DIRTY_COUNT, &nfit_mem->flags);
++	nfit_mem->dirty_shutdown = 42;
++}
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 61ad16beef6d..c6e72f795f4f 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -149,6 +149,7 @@ static const struct nd_intel_smart smart_def = {
+ 		| ND_INTEL_SMART_ALARM_VALID
+ 		| ND_INTEL_SMART_USED_VALID
+ 		| ND_INTEL_SMART_SHUTDOWN_VALID
++		| ND_INTEL_SMART_SHUTDOWN_COUNT_VALID
+ 		| ND_INTEL_SMART_MTEMP_VALID
+ 		| ND_INTEL_SMART_CTEMP_VALID,
+ 	.health = ND_INTEL_SMART_NON_CRITICAL_HEALTH,
+@@ -161,8 +162,8 @@ static const struct nd_intel_smart smart_def = {
+ 	.ait_status = 1,
+ 	.life_used = 5,
+ 	.shutdown_state = 0,
++	.shutdown_count = 42,
+ 	.vendor_size = 0,
+-	.shutdown_count = 100,
  };
+ 
+ struct nfit_test_fw {
