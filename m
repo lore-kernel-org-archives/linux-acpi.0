@@ -1,85 +1,36 @@
-From: Rajat Jain <rajatja@google.com>
-Subject: Re: sdhci driver card-detect is broken because gpiolib can't fallback
- to _CRS?
-Date: Thu, 27 Sep 2018 10:56:39 -0700
-Message-ID: <CACK8Z6HjFy_5sv_ZRRyfRgCYMYPpuoFqmKekyi7fSLk14YpN6w@mail.gmail.com>
-References: <CACK8Z6Ebo0giDifRHBg13pe_mO18vb1n0+LGMoMjkLai6X9MNg@mail.gmail.com>
- <20180926074756.GD2664@lahna.fi.intel.com> <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
- <CACK8Z6F1jkSN3KXiv+0X2uh61pBkpSMpHrdMHwLarbSAFoHMUA@mail.gmail.com> <CAHp75VcQ0SviZ6vsn_5inn5oZxxj-5ZQq5bC+bXPxuF8KOa_Rg@mail.gmail.com>
+From: Keith Busch <keith.busch-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 3/3] tools/testing/nvdimm: Populate dirty shutdown data
+Date: Thu, 27 Sep 2018 13:37:12 -0600
+Message-ID: <20180927193711.GF19589@localhost.localdomain>
+References: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <153802227683.833068.14067072355792705345.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcQ0SviZ6vsn_5inn5oZxxj-5ZQq5bC+bXPxuF8KOa_Rg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Rajat Jain <rajatxjain@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <153802227683.833068.14067072355792705345.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Sep 27, 2018 at 12:26 AM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Wed, Sep 26, 2018 at 10:26 PM Rajat Jain <rajatja@google.com> wrote:
-> > On Wed, Sep 26, 2018 at 1:42 AM Andy Shevchenko
-> > <andy.shevchenko@gmail.com> wrote:
-> > > On Wed, Sep 26, 2018 at 10:49 AM Mika Westerberg
-> > > <mika.westerberg@linux.intel.com> wrote:
->
-> > > > Or you can use con_id=<actual string> everywhere and supply
-> > > > acpi_dev_add_driver_gpios() where needed to cover cases where BIOS does
-> > > > not provide _DSD.
-> >
-> > This sounds like a good idea and I'd like to do this. I have some
-> > questions though:
-> >
-> > 1) If the BIOS does provide a _DSD entry for "cd-gpio", and
-> > additionally driver also uses devm_acpi_dev_add_driver_gpios() to add
-> > one more entry for the same string "cd-gpio", which one will (should?)
-> > actually be returned by the gpiolib? The one in BIOS or the one that
-> > was added by the driver?
->
-> Of course the one that BIOS provides. This hardcoded mapping tables is
-> a fallback for *old* BIOSes which do not have _DSD.
->
-> > 2) Related, I'm trying to understand how can a driver use
-> > devm_acpi_dev_add_driver_gpios(), for *only* the case where the BIOS
-> > does not have a _DSD (Or should it really care)? Does the driver need
-> > to check for _DSD using some other ACPI call?
->
-> The magic happens internally in ACPI core.
-> Whenever one calls gpiod_get() with a name on ACPI-enabled platform,
-> _DSD would be checked first.
+On Wed, Sep 26, 2018 at 09:24:36PM -0700, Dan Williams wrote:
+> +/* strong / override definition of nfit_intel_shutdown_status */
+> +void nfit_intel_shutdown_status(struct nfit_mem *nfit_mem)
+> +{
+> +	set_bit(NFIT_MEM_DIRTY_COUNT, &nfit_mem->flags);
+> +	nfit_mem->dirty_shutdown = 42;
+> +}
 
-Got it, thanks.
+That's a lot of dirty shutdowns! Better bring a towel.
 
->
-> > > See also Documentation/acpi/gpio-properties.txt for
-> > > > more information.
->
-> > > > In case of SDHCI I think the correct way is to stick using _CRS lookup
-> > > > only because there typically is just one GpioInt() and I have not seen a
-> > > > single BIOS yet where they implement _DSD for this besides yours. If
-> > > > there is not way to change the BIOS implementation then I guess we just
-> > > > need to amend the driver to call acpi_dev_add_driver_gpios().
-> >
-> > Since we shouldn't discourage a BIOS that is trying to do the right
-> > thing by exposing the details in _DST, I think it would be preferable
-> > if we can solve this in the kernel.
->
-> Patches are welcome, I think.
->
-> Btw, is there any existing hardware on the market with such BIOS?
-
-Yes, all the chrome books available in the market (at least the ones
-released in last 3 years) have same ACPI layout (provide _DSD for
-card-detect). They are all working fine today because they use an
-older kernel, but if we update them to the latest kernel, this part
-will be broken.
-
-Thanks,
-
-Rajat Jain
-
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+Reviewed-by: Keith Busch <keith.busch-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
