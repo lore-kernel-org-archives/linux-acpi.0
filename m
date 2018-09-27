@@ -1,88 +1,43 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: [PATCH v3 6/6] memory-hotplug.txt: Add some details about locking internals
-Date: Thu, 27 Sep 2018 11:25:54 +0200
-Message-ID: <20180927092554.13567-7-david@redhat.com>
-References: <20180927092554.13567-1-david@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180927092554.13567-1-david@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, David Hildenbrand <david@redhat.com>, Jonathan Corbet <corbet@lwn.net>, Michal Hocko <mhocko@suse.com>, Andrew Morton <akpm@linux-foundation.org>
+From: Keith Busch <keith.busch-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 0/3] acpi, nfit: Add dirty shutdown count to sysfs
+Date: Thu, 27 Sep 2018 09:21:40 -0600
+Message-ID: <20180927152140.GA19589@localhost.localdomain>
+References: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20180927071135.GB6959@linux-x5ow.site>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20180927071135.GB6959-qw2SdCWA0PpjqqEj2zc+bA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Johannes Thumshirn <jthumshirn-l3A5Bk7waGM@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Let's document the magic a bit, especially why device_hotplug_lock is
-required when adding/removing memory and how it all play together with
-requests to online/offline memory from user space.
+On Thu, Sep 27, 2018 at 09:11:35AM +0200, Johannes Thumshirn wrote:
+> On Wed, Sep 26, 2018 at 09:24:20PM -0700, Dan Williams wrote:
+> > The Intel NVDIMM command specification publishes a dirty-shutdown-count
+> > in addition to the dirty-shutdown / flush-failed indication that comes
+> > from the ACPI NFIT. This is expected to be a common property of NVDIMMs
+> > and is a static hardware health detail to be cached / exported via
+> > sysfs.
+> > 
+> > Add plumbing for retrieving this data at driver load time, publish the
+> > count, and use the dynamically retrieved dirty-shutdown indicator to
+> > augment the existing 'flush_failed' flag.
+> 
+> Is this the same thing as the LSS Latch stuff that went into ndctl?
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
-Signed-off-by: David Hildenbrand <david@redhat.com>
----
- Documentation/memory-hotplug.txt | 42 +++++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+On a related note, the ndctl latch implementation doesn't satisfy all
+the needs, so I expect it'll be reverted
 
-diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-hotplug.txt
-index 7f49ebf3ddb2..ce4faa5530fa 100644
---- a/Documentation/memory-hotplug.txt
-+++ b/Documentation/memory-hotplug.txt
-@@ -3,7 +3,7 @@ Memory Hotplug
- ==============
- 
- :Created:							Jul 28 2007
--:Updated: Add description of notifier of memory hotplug:	Oct 11 2007
-+:Updated: Add some details about locking internals:		Aug 20 2018
- 
- This document is about memory hotplug including how-to-use and current status.
- Because Memory Hotplug is still under development, contents of this text will
-@@ -495,6 +495,46 @@ further processing of the notification queue.
- 
- NOTIFY_STOP stops further processing of the notification queue.
- 
-+
-+Locking Internals
-+=================
-+
-+When adding/removing memory that uses memory block devices (i.e. ordinary RAM),
-+the device_hotplug_lock should be held to:
-+
-+- synchronize against online/offline requests (e.g. via sysfs). This way, memory
-+  block devices can only be accessed (.online/.state attributes) by user
-+  space once memory has been fully added. And when removing memory, we
-+  know nobody is in critical sections.
-+- synchronize against CPU hotplug and similar (e.g. relevant for ACPI and PPC)
-+
-+Especially, there is a possible lock inversion that is avoided using
-+device_hotplug_lock when adding memory and user space tries to online that
-+memory faster than expected:
-+
-+- device_online() will first take the device_lock(), followed by
-+  mem_hotplug_lock
-+- add_memory_resource() will first take the mem_hotplug_lock, followed by
-+  the device_lock() (while creating the devices, during bus_add_device()).
-+
-+As the device is visible to user space before taking the device_lock(), this
-+can result in a lock inversion.
-+
-+onlining/offlining of memory should be done via device_online()/
-+device_offline() - to make sure it is properly synchronized to actions
-+via sysfs. Holding device_hotplug_lock is advised (to e.g. protect online_type)
-+
-+When adding/removing/onlining/offlining memory or adding/removing
-+heterogeneous/device memory, we should always hold the mem_hotplug_lock in
-+write mode to serialise memory hotplug (e.g. access to global/zone
-+variables).
-+
-+In addition, mem_hotplug_lock (in contrast to device_hotplug_lock) in read
-+mode allows for a quite efficient get_online_mems/put_online_mems
-+implementation, so code accessing memory can protect from that memory
-+vanishing.
-+
-+
- Future Work
- ===========
- 
--- 
-2.17.1
+  https://lists.01.org/pipermail/linux-nvdimm/2018-September/017892.html
