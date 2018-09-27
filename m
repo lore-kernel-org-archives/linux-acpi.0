@@ -1,80 +1,47 @@
-From: Rajat Jain <rajatja@google.com>
-Subject: Re: sdhci driver card-detect is broken because gpiolib can't fallback
- to _CRS?
-Date: Wed, 26 Sep 2018 12:25:40 -0700
-Message-ID: <CACK8Z6F1jkSN3KXiv+0X2uh61pBkpSMpHrdMHwLarbSAFoHMUA@mail.gmail.com>
-References: <CACK8Z6Ebo0giDifRHBg13pe_mO18vb1n0+LGMoMjkLai6X9MNg@mail.gmail.com>
- <20180926074756.GD2664@lahna.fi.intel.com> <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 0/3] acpi, nfit: Add dirty shutdown count to sysfs
+Date: Wed, 26 Sep 2018 21:24:20 -0700
+Message-ID: <153802226065.833068.11943510429252969385.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Rajat Jain <rajatxjain@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+The Intel NVDIMM command specification publishes a dirty-shutdown-count
+in addition to the dirty-shutdown / flush-failed indication that comes
+from the ACPI NFIT. This is expected to be a common property of NVDIMMs
+and is a static hardware health detail to be cached / exported via
+sysfs.
 
-Thanks Mika and Andy for your inputs.
+Add plumbing for retrieving this data at driver load time, publish the
+count, and use the dynamically retrieved dirty-shutdown indicator to
+augment the existing 'flush_failed' flag.
 
-On Wed, Sep 26, 2018 at 1:42 AM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Wed, Sep 26, 2018 at 10:49 AM Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> >
-> > Hi,
-> >
-> > On Tue, Sep 25, 2018 at 01:54:57PM -0700, Rajat Jain wrote:
-> > > * Use con_id=NULL if it is dealing with a legacy BIOS (i.e. no _DSD
-> > > properties in the ACPI).
-> > > * Use con_id=<actual string> if it is dealing with a modern BIOS (i.e.
-> > > which provides _DSD for the <string> property)
-> >
-> > Or you can use con_id=<actual string> everywhere and supply
-> > acpi_dev_add_driver_gpios() where needed to cover cases where BIOS does
-> > not provide _DSD.
+---
 
-This sounds like a good idea and I'd like to do this. I have some
-questions though:
+Dan Williams (3):
+      acpi, nfit: Introduce nfit_mem flags
+      acpi, nfit: Collect shutdown status
+      tools/testing/nvdimm: Populate dirty shutdown data
 
-1) If the BIOS does provide a _DSD entry for "cd-gpio", and
-additionally driver also uses devm_acpi_dev_add_driver_gpios() to add
-one more entry for the same string "cd-gpio", which one will (should?)
-actually be returned by the gpiolib? The one in BIOS or the one that
-was added by the driver?
 
-2) Related, I'm trying to understand how can a driver use
-devm_acpi_dev_add_driver_gpios(), for *only* the case where the BIOS
-does not have a _DSD (Or should it really care)? Does the driver need
-to check for _DSD using some other ACPI call?
-
-> See also Documentation/acpi/gpio-properties.txt for
-> > more information.
->
-> Thanks, Mika. That is exactly the way how I suggested to fix and
-> actually fixed a lot of drivers already.
->
-> Run `git grep -n -w devm_acpi_dev_add_driver_gpios` to find examples.
->
-> > In case of SDHCI I think the correct way is to stick using _CRS lookup
-> > only because there typically is just one GpioInt() and I have not seen a
-> > single BIOS yet where they implement _DSD for this besides yours. If
-> > there is not way to change the BIOS implementation then I guess we just
-> > need to amend the driver to call acpi_dev_add_driver_gpios().
-
-Since we shouldn't discourage a BIOS that is trying to do the right
-thing by exposing the details in _DST, I think it would be preferable
-if we can solve this in the kernel.
-
-Thanks,
-
-Rajat
-
->
-> True.
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+ drivers/acpi/nfit/core.c              |  115 ++++++++++++++++++++++++++++-----
+ drivers/acpi/nfit/intel.h             |   34 ++++++++++
+ drivers/acpi/nfit/nfit.h              |   11 +++
+ tools/testing/nvdimm/Kbuild           |    1 
+ tools/testing/nvdimm/acpi_nfit_test.c |    8 ++
+ tools/testing/nvdimm/test/nfit.c      |    3 +
+ tools/testing/nvdimm/test/nfit_test.h |   24 -------
+ 7 files changed, 152 insertions(+), 44 deletions(-)
