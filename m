@@ -1,87 +1,39 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: [PATCH v3 2/2] ACPI/PPTT: Handle architecturally unknown cache types
-Date: Thu, 27 Sep 2018 20:57:57 -0600
-Message-ID: <1538103477-15513-3-git-send-email-jhugo@codeaurora.org>
-References: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: sdhci driver card-detect is broken because gpiolib can't fallback
+ to _CRS?
+Date: Fri, 28 Sep 2018 10:42:07 +0200
+Message-ID: <CACRpkdZZW_HK8uFA=iQQ88DnoR7KX2mYTbO3HMtNBLd-3GpiWQ@mail.gmail.com>
+References: <CACK8Z6Ebo0giDifRHBg13pe_mO18vb1n0+LGMoMjkLai6X9MNg@mail.gmail.com>
+ <20180926074756.GD2664@lahna.fi.intel.com> <CAHp75Vdf7NxFtgZx+hqsA1YZY4szD5Ba9jbyo4CeeDHeaU3YAQ@mail.gmail.com>
+ <CACK8Z6F1jkSN3KXiv+0X2uh61pBkpSMpHrdMHwLarbSAFoHMUA@mail.gmail.com>
+ <CAHp75VcQ0SviZ6vsn_5inn5oZxxj-5ZQq5bC+bXPxuF8KOa_Rg@mail.gmail.com> <CACK8Z6HjFy_5sv_ZRRyfRgCYMYPpuoFqmKekyi7fSLk14YpN6w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org>
+In-Reply-To: <CACK8Z6HjFy_5sv_ZRRyfRgCYMYPpuoFqmKekyi7fSLk14YpN6w@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
-Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
+To: Rajat Jain <rajatja@google.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, rajatxjain@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-The type of a cache might not be specified by architectural mechanisms (ie
-system registers), but its type might be specified in the PPTT.  In this
-case, we should populate the type of the cache, rather than leave it
-undefined.
+On Thu, Sep 27, 2018 at 7:57 PM Rajat Jain <rajatja@google.com> wrote:
 
-This fixes the issue where the cacheinfo driver will not populate sysfs
-for such caches, resulting in the information missing from utilities like
-lstopo and lscpu, thus degrading the user experience.
+> > Patches are welcome, I think.
+> >
+> > Btw, is there any existing hardware on the market with such BIOS?
+>
+> Yes, all the chrome books available in the market (at least the ones
+> released in last 3 years) have same ACPI layout (provide _DSD for
+> card-detect). They are all working fine today because they use an
+> older kernel, but if we update them to the latest kernel, this part
+> will be broken.
 
-Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
-Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
-Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
----
- drivers/acpi/pptt.c | 30 +++++++++++++-----------------
- 1 file changed, 13 insertions(+), 17 deletions(-)
+This is not looking good at all.
 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index d1e26cb..38ac30e 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -357,25 +357,15 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- 				    struct acpi_pptt_cache *found_cache,
- 				    struct acpi_pptt_processor *cpu_node)
- {
--	int valid_flags = 0;
--
- 	this_leaf->fw_token = cpu_node;
--	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
- 		this_leaf->size = found_cache->size;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
- 		this_leaf->coherency_line_size = found_cache->line_size;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID)
- 		this_leaf->number_of_sets = found_cache->number_of_sets;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID)
- 		this_leaf->ways_of_associativity = found_cache->associativity;
--		valid_flags++;
--	}
- 	if (found_cache->flags & ACPI_PPTT_WRITE_POLICY_VALID) {
- 		switch (found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY) {
- 		case ACPI_PPTT_CACHE_POLICY_WT:
-@@ -402,11 +392,17 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- 		}
- 	}
- 	/*
--	 * If the above flags are valid, and the cache type is NOCACHE
--	 * update the cache type as well.
-+	 * If cache type is NOCACHE, then the cache hasn't been specified
-+	 * via other mechanisms.  Update the type if a cache type has been
-+	 * provided.
-+	 *
-+	 * Note, we assume such caches are unified based on conventional system
-+	 * design and known examples.  Significant work is required elsewhere to
-+	 * fully support data/instruction only type caches which are only
-+	 * specified in PPTT.
- 	 */
- 	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
--	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
-+	    found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID)
- 		this_leaf->type = CACHE_TYPE_UNIFIED;
- }
- 
--- 
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Andy should we revert the patch or do you have some other
+quick fix in mind we could do? It seems reverting the patch
+could be bad for the mctrl patches IIUC, but this regression
+seems even more serious.
+
+Yours,
+Linus Walleij
