@@ -1,64 +1,70 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 04/18] ACPI / APEI: Switch NOTIFY_SEA to use the
- estatus queue
-Date: Fri, 28 Sep 2018 19:04:46 +0200
-Message-ID: <20180928170446.GE20768@zn.tnic>
-References: <20180921221705.6478-1-james.morse@arm.com>
- <20180921221705.6478-5-james.morse@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20180921221705.6478-5-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+From: Joe Perches <joe@perches.com>
+Subject: Bad MAINTAINERS pattern in section 'ACPI'
+Date: Fri, 28 Sep 2018 14:50:53 -0700
+Message-ID: <20180928215054.28561-1-joe@perches.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 21, 2018 at 11:16:51PM +0100, James Morse wrote:
-> Now that the estatus queue can be used by more than one notification
-> method, we can move notifications that have NMI-like behaviour over to
-> it, and start abstracting GHES's single in_nmi() path.
-> 
-> Switch NOTIFY_SEA over to use the estatus queue. This makes it behave
-> in the same way as x86's NOTIFY_NMI.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> ---
->  drivers/acpi/apei/ghes.c | 23 +++++++++++------------
->  1 file changed, 11 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index d7c46236b353..150fb184c7cb 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -58,6 +58,10 @@
->  
->  #define GHES_PFX	"GHES: "
->  
-> +#if defined(CONFIG_HAVE_ACPI_APEI_NMI) || defined(CONFIG_ACPI_APEI_SEA)
-> +#define WANT_NMI_ESTATUS_QUEUE	1
-> +#endif
+Please fix this defect appropriately.
 
-Is that just so that you have shorter ifdeffery lines? Because if so, an
-additional level of indirection is silly. Or maybe there's more coming -
-I'll see when I continue going through this set. :)
+linux-next MAINTAINERS section:
 
-Otherwise looks good - trying to reuse the facilities and all. Better. :)
+	308	ACPI
+	309	M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+	310	M:	Len Brown <lenb@kernel.org>
+	311	L:	linux-acpi@vger.kernel.org
+	312	W:	https://01.org/linux-acpi
+	313	Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+	314	T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+	315	B:	https://bugzilla.kernel.org
+	316	S:	Supported
+	317	F:	drivers/acpi/
+	318	F:	drivers/pnp/pnpacpi/
+	319	F:	include/linux/acpi.h
+	320	F:	include/linux/fwnode.h
+	321	F:	include/acpi/
+	322	F:	Documentation/acpi/
+	323	F:	Documentation/ABI/testing/sysfs-bus-acpi
+	324	F:	Documentation/ABI/testing/configfs-acpi
+	325	F:	drivers/pci/*acpi*
+	326	F:	drivers/pci/*/*acpi*
+-->	327	F:	drivers/pci/*/*/*acpi*
+	328	F:	tools/power/acpi/
 
--- 
-Regards/Gruss,
-    Boris.
+Commit that introduced this:
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+commit 15fd830dd310e6cf589478e5e1e7733caf68e777
+ Author: Bjorn Helgaas <bhelgaas@google.com>
+ Date:   Wed Jun 26 13:38:37 2013 -0600
+ 
+     MAINTAINERS: Add ACPI folks for ACPI-related things under drivers/pci
+     
+     Add file patterns so get_maintainers.pl reports both PCI and ACPI folks
+     for ACPI-related things in drivers/pci.
+     
+     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+     Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+ 
+  MAINTAINERS | 3 +++
+  1 file changed, 3 insertions(+)
+
+Last commit with drivers/pci/*/*/*acpi*
+
+commit 256a459370930bed087f92bb763517f8b09407eb
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Fri Jun 8 08:39:45 2018 -0500
+
+    PCI/AER: Squash aerdrv_acpi.c into aerdrv.c
+    
+    Squash aerdrv_acpi.c into aerdrv.c.  No functional change intended.
+    
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+    Reviewed-by: Keith Busch <keith.busch@intel.com>
+
+ drivers/pci/pcie/aer/Makefile      |   1 -
+ drivers/pci/pcie/aer/aerdrv.c      | 122 ++++++++++++++++++++++++++++++++
+ drivers/pci/pcie/aer/aerdrv_acpi.c | 141 -------------------------------------
+ 3 files changed, 122 insertions(+), 142 deletions(-)
