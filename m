@@ -1,109 +1,76 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH v3 2/2] ACPI/PPTT: Handle architecturally unknown cache
- types
-Date: Fri, 28 Sep 2018 16:52:10 -0500
-Message-ID: <377f840c-6c4f-9a17-7aa5-cc2fa4f7b244@arm.com>
-References: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org>
- <1538103477-15513-3-git-send-email-jhugo@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Bad MAINTAINERS pattern in section 'ACPI'
+Date: Fri, 28 Sep 2018 18:06:17 -0500
+Message-ID: <20180928230616.GA150287@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180928215054.28561-1-joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1538103477-15513-3-git-send-email-jhugo@codeaurora.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20180928215054.28561-1-joe@perches.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeffrey Hugo <jhugo@codeaurora.org>, sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+[+cc Tony, Borislav (ACPI APEI reviewers), linux-pci]
 
-On 09/27/2018 09:57 PM, Jeffrey Hugo wrote:
-> The type of a cache might not be specified by architectural mechanisms (ie
-> system registers), but its type might be specified in the PPTT.  In this
-> case, we should populate the type of the cache, rather than leave it
-> undefined. 
+On Fri, Sep 28, 2018 at 02:50:53PM -0700, Joe Perches wrote:
+> Please fix this defect appropriately.
 > 
-> This fixes the issue where the cacheinfo driver will not populate sysfs
-> for such caches, resulting in the information missing from utilities like
-> lstopo and lscpu, thus degrading the user experience.
-
-The code looks fine to me.
-
-Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
-
-Thanks!
-
+> linux-next MAINTAINERS section:
 > 
-> Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
-> Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
+> 	308	ACPI
+> 	309	M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+> 	310	M:	Len Brown <lenb@kernel.org>
+> 	311	L:	linux-acpi@vger.kernel.org
+> 	312	W:	https://01.org/linux-acpi
+> 	313	Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+> 	314	T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+> 	315	B:	https://bugzilla.kernel.org
+> 	316	S:	Supported
+> 	317	F:	drivers/acpi/
+> 	318	F:	drivers/pnp/pnpacpi/
+> 	319	F:	include/linux/acpi.h
+> 	320	F:	include/linux/fwnode.h
+> 	321	F:	include/acpi/
+> 	322	F:	Documentation/acpi/
+> 	323	F:	Documentation/ABI/testing/sysfs-bus-acpi
+> 	324	F:	Documentation/ABI/testing/configfs-acpi
+> 	325	F:	drivers/pci/*acpi*
+> 	326	F:	drivers/pci/*/*acpi*
+> -->	327	F:	drivers/pci/*/*/*acpi*
+> 	328	F:	tools/power/acpi/
 
-PS:
+My proposal to fix this:
 
-Although, if you end up re-spinning this, I think its appropriate to add 
-in the commit message that what this is really working around is 
-firmware that has declined to fill out all the fields in the cache 
-description.
+commit a99051c0d3c59fd259fd76a8bbd9837b76b509d9
+Author: Bjorn Helgaas <bhelgaas@google.com>
+Date:   Fri Sep 28 17:34:21 2018 -0500
 
+    MAINTAINERS: Remove obsolete drivers/pci pattern from ACPI section
+    
+    Prior to 256a45937093 ("PCI/AER: Squash aerdrv_acpi.c into aerdrv.c"),
+    drivers/pci/pcie/aer/aerdrv_acpi.c contained code to parse the ACPI HEST
+    table.  That code now lives in drivers/pci/pcie/aer.c.
+    
+    Remove the "F: drivers/pci/*/*/*acpi*" pattern because it matches nothing.
+    
+    We could add a "F: drivers/pci/pcie/aer.c" pattern to the ACPI APEI
+    section, but that file sees a lot of changes, almost none of which are of
+    interest to the ACPI folks.
+    
+    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
 
-> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
-> ---
->   drivers/acpi/pptt.c | 30 +++++++++++++-----------------
->   1 file changed, 13 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-> index d1e26cb..38ac30e 100644
-> --- a/drivers/acpi/pptt.c
-> +++ b/drivers/acpi/pptt.c
-> @@ -357,25 +357,15 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
->   				    struct acpi_pptt_cache *found_cache,
->   				    struct acpi_pptt_processor *cpu_node)
->   {
-> -	int valid_flags = 0;
-> -
->   	this_leaf->fw_token = cpu_node;
-> -	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
-> +	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
->   		this_leaf->size = found_cache->size;
-> -		valid_flags++;
-> -	}
-> -	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID) {
-> +	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
->   		this_leaf->coherency_line_size = found_cache->line_size;
-> -		valid_flags++;
-> -	}
-> -	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID) {
-> +	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID)
->   		this_leaf->number_of_sets = found_cache->number_of_sets;
-> -		valid_flags++;
-> -	}
-> -	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID) {
-> +	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID)
->   		this_leaf->ways_of_associativity = found_cache->associativity;
-> -		valid_flags++;
-> -	}
->   	if (found_cache->flags & ACPI_PPTT_WRITE_POLICY_VALID) {
->   		switch (found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY) {
->   		case ACPI_PPTT_CACHE_POLICY_WT:
-> @@ -402,11 +392,17 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
->   		}
->   	}
->   	/*
-> -	 * If the above flags are valid, and the cache type is NOCACHE
-> -	 * update the cache type as well.
-> +	 * If cache type is NOCACHE, then the cache hasn't been specified
-> +	 * via other mechanisms.  Update the type if a cache type has been
-> +	 * provided.
-> +	 *
-> +	 * Note, we assume such caches are unified based on conventional system
-> +	 * design and known examples.  Significant work is required elsewhere to
-> +	 * fully support data/instruction only type caches which are only
-> +	 * specified in PPTT.
->   	 */
->   	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
-> -	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
-> +	    found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID)
->   		this_leaf->type = CACHE_TYPE_UNIFIED;
->   }
->   
-> 
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 700408b7bc53..9babd8a0406b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -324,7 +324,6 @@ F:	Documentation/ABI/testing/sysfs-bus-acpi
+ F:	Documentation/ABI/testing/configfs-acpi
+ F:	drivers/pci/*acpi*
+ F:	drivers/pci/*/*acpi*
+-F:	drivers/pci/*/*/*acpi*
+ F:	tools/power/acpi/
+ 
+ ACPI APEI
