@@ -1,87 +1,64 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Fri, 28 Sep 2018 10:02:48 -0700
-Message-ID: <5dba97a5-5a18-5df1-5493-99987679cf3a@linux.intel.com>
-References: <20180928150357.12942-1-david@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 04/18] ACPI / APEI: Switch NOTIFY_SEA to use the
+ estatus queue
+Date: Fri, 28 Sep 2018 19:04:46 +0200
+Message-ID: <20180928170446.GE20768@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-5-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180928150357.12942-1-david@redhat.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>, Len Brown <lenb@kernel.org>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20180921221705.6478-5-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-It's really nice if these kinds of things are broken up.  First, replace
-the old want_memblock parameter, then add the parameter to the
-__add_page() calls.
+On Fri, Sep 21, 2018 at 11:16:51PM +0100, James Morse wrote:
+> Now that the estatus queue can be used by more than one notification
+> method, we can move notifications that have NMI-like behaviour over to
+> it, and start abstracting GHES's single in_nmi() path.
+> 
+> Switch NOTIFY_SEA over to use the estatus queue. This makes it behave
+> in the same way as x86's NOTIFY_NMI.
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  drivers/acpi/apei/ghes.c | 23 +++++++++++------------
+>  1 file changed, 11 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index d7c46236b353..150fb184c7cb 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -58,6 +58,10 @@
+>  
+>  #define GHES_PFX	"GHES: "
+>  
+> +#if defined(CONFIG_HAVE_ACPI_APEI_NMI) || defined(CONFIG_ACPI_APEI_SEA)
+> +#define WANT_NMI_ESTATUS_QUEUE	1
+> +#endif
 
-> +/*
-> + * NONE:     No memory block is to be created (e.g. device memory).
-> + * NORMAL:   Memory block that represents normal (boot or hotplugged) memory
-> + *           (e.g. ACPI DIMMs) that should be onlined either automatically
-> + *           (memhp_auto_online) or manually by user space to select a
-> + *           specific zone.
-> + *           Applicable to memhp_auto_online.
-> + * STANDBY:  Memory block that represents standby memory that should only
-> + *           be onlined on demand by user space (e.g. standby memory on
-> + *           s390x), but never automatically by the kernel.
-> + *           Not applicable to memhp_auto_online.
-> + * PARAVIRT: Memory block that represents memory added by
-> + *           paravirtualized mechanisms (e.g. hyper-v, xen) that will
-> + *           always automatically get onlined. Memory will be unplugged
-> + *           using ballooning, not by relying on the MOVABLE ZONE.
-> + *           Not applicable to memhp_auto_online.
-> + */
-> +enum {
-> +	MEMORY_BLOCK_NONE,
-> +	MEMORY_BLOCK_NORMAL,
-> +	MEMORY_BLOCK_STANDBY,
-> +	MEMORY_BLOCK_PARAVIRT,
-> +};
+Is that just so that you have shorter ifdeffery lines? Because if so, an
+additional level of indirection is silly. Or maybe there's more coming -
+I'll see when I continue going through this set. :)
 
-This does not seem like the best way to expose these.
+Otherwise looks good - trying to reuse the facilities and all. Better. :)
 
-STANDBY, for instance, seems to be essentially a replacement for a check
-against running on s390 in userspace to implement a _typical_ s390
-policy.  It seems rather weird to try to make the userspace policy
-determination easier by telling userspace about the typical s390 policy
-via the kernel.
+-- 
+Regards/Gruss,
+    Boris.
 
-As for the OOM issues, that sounds like something we need to fix by
-refusing to do (or delaying) hot-add operations once we consume too much
-ZONE_NORMAL from memmap[]s rather than trying to indirectly tell
-userspace to hurry thing along.
-
-So, to my eye, we need:
-
- +enum {
- +	MEMORY_BLOCK_NONE,
- +	MEMORY_BLOCK_STANDBY, /* the default */
- +	MEMORY_BLOCK_AUTO_ONLINE,
- +};
-
-and we can probably collapse NONE into AUTO_ONLINE because userspace
-ends up doing the same thing for both: nothing.
-
->  struct memory_block {
->  	unsigned long start_section_nr;
->  	unsigned long end_section_nr;
-> @@ -34,6 +58,7 @@ struct memory_block {
->  	int (*phys_callback)(struct memory_block *);
->  	struct device dev;
->  	int nid;			/* NID for this memory block */
-> +	int type;			/* type of this memory block */
->  };
-
-Shouldn't we just be creating and using an actual named enum type?
+Good mailing practices for 400: avoid top-posting and trim the reply.
