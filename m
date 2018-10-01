@@ -1,66 +1,45 @@
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Mon, 1 Oct 2018 09:24:35 -0700
-Message-ID: <05493150-5e4e-30bd-f772-0c6d88240030@linux.intel.com>
-References: <20180928150357.12942-1-david@redhat.com>
- <5dba97a5-5a18-5df1-5493-99987679cf3a@linux.intel.com>
- <147d20c7-2a07-2305-9b44-76fdb735173b@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 05/18] ACPI / APEI: Make estatus queue a Kconfig symbol
+Date: Mon, 1 Oct 2018 19:59:56 +0200
+Message-ID: <20181001175956.GF7269@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-6-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <147d20c7-2a07-2305-9b44-76fdb735173b@redhat.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Hildenbrand <david@redhat.com>, linux-mm@kvack.org
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>, Len Brown <lenb@kernel.org>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20180921221705.6478-6-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-> How should a policy in user space look like when new memory gets added
-> - on s390x? Not onlining paravirtualized memory is very wrong.
+On Fri, Sep 21, 2018 at 11:16:52PM +0100, James Morse wrote:
+> Now that there are two users of the estatus queue, and likely to be more,
+> make it a Kconfig symbol selected by the appropriate notification. We
+> can move the ARCH_HAVE_NMI_SAFE_CMPXCHG checks in here too.
 
-Because we're going to balloon it away in a moment anyway?
+Ok, question: why do we need to complicate things at all? I mean, why do
+we even need a Kconfig symbol?
 
-We have auto-onlining.  Why isn't that being used on s390?
+This code is being used by two arches now so why not simply build it in
+unconditionally and be done with it. The couple of KB saved are simply
+not worth the effort, especially if it is going to end up being enabled
+on 99% of the setups...
 
+Or?
 
-> So the type of memory is very important here to have in user space.
-> Relying on checks like "isS390()", "isKVMGuest()" or "isHyperVGuest()"
-> to decide whether to online memory and how to online memory is wrong.
-> Only some specific memory types (which I call "normal") are to be
-> handled by user space.
-> 
-> For the other ones, we exactly know what to do:
-> - standby? don't online
+-- 
+Regards/Gruss,
+    Boris.
 
-I think you're horribly conflating the software desire for what the stae
-should be and the hardware itself.
-
->> As for the OOM issues, that sounds like something we need to fix by
->> refusing to do (or delaying) hot-add operations once we consume too much
->> ZONE_NORMAL from memmap[]s rather than trying to indirectly tell
->> userspace to hurry thing along.
-> 
-> That is a moving target and doing that automatically is basically
-> impossible.
-
-Nah.  We know how much metadata we've allocated.  We know how much
-ZONE_NORMAL we are eating.  We can *easily* add something to
-add_memory() that just sleeps until the ratio is not out-of-whack.
-
-> You can add a lot of memory to the movable zone and
-> everything is fine. Suddenly a lot of processes are started - boom.
-> MOVABLE should only every be used if you expect an unplug. And for
-> paravirtualized devices, a "typical" unplug does not exist.
-
-No, it's more complicated than that.  People use MOVABLE, for instance,
-to allow more consistent huge page allocations.  It's certainly not just
-hot-remove.
+Good mailing practices for 400: avoid top-posting and trim the reply.
