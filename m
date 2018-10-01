@@ -1,56 +1,53 @@
-From: Ronald =?iso-8859-1?Q?Tschal=E4r?= <ronald@innovation.ch>
-Subject: [PATCH] ACPI/sbs: Fix GPE storm on recent MacBookPro's.
-Date: Sun, 30 Sep 2018 19:52:51 -0700
-Message-ID: <20181001025251.GA9069@innovation.ch>
+From: Michal Hocko <mhocko@kernel.org>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Mon, 1 Oct 2018 10:40:38 +0200
+Message-ID: <20181001084038.GD18290@dhcp22.suse.cz>
+References: <20180928150357.12942-1-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
 Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <20180928150357.12942-1-david@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Hildenbrand <david@redhat.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Pavel Tatashin <pavel.tatashin@microsoft.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Apple machines, plugging-in or unplugging the power triggers a GPE
-for the EC. Since these machines expose an SBS device, this GPE ends
-up triggering the acpi_sbs_callback(). This in turn tries to get the
-status of the SBS charger. However, on MBP13,* and MBP14,* machines,
-performing the smbus-read operation to get the charger's status triggers
-the EC's GPE again. The result is an endless re-triggering and handling
-of that GPE, consuming significant CPU resources (> 50% in irq).
+On Fri 28-09-18 17:03:57, David Hildenbrand wrote:
+[...]
 
-In the end this is quite similar to commit 3031cddea633 (ACPI / SBS:
-Don't assume the existence of an SBS charger), except that on the above
-machines a status of all 1's is returned. And like there, we just want
-ignore the charger here.
+I haven't read the patch itself but I just wanted to note one thing
+about this part
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=198169
-CC: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: Ronald Tschalär <ronald@innovation.ch>
----
- drivers/acpi/sbs.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+> For paravirtualized devices it is relevant that memory is onlined as
+> quickly as possible after adding - and that it is added to the NORMAL
+> zone. Otherwise, it could happen that too much memory in a row is added
+> (but not onlined), resulting in out-of-memory conditions due to the
+> additional memory for "struct pages" and friends. MOVABLE zone as well
+> as delays might be very problematic and lead to crashes (e.g. zone
+> imbalance).
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index 295b59271189..96c5e27967f4 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -441,9 +441,13 @@ static int acpi_ac_get_present(struct acpi_sbs *sbs)
- 
- 	/*
- 	 * The spec requires that bit 4 always be 1. If it's not set, assume
--	 * that the implementation doesn't support an SBS charger
-+	 * that the implementation doesn't support an SBS charger.
-+	 *
-+	 * And on some MacBooks a status of 0xffff is always returned, no
-+	 * matter whether the charger is plugged in or not, which is also
-+	 * wrong, so ignore the SBS charger for those too.
- 	 */
--	if (!((status >> 4) & 0x1))
-+	if (!((status >> 4) & 0x1) || status == 0xffff)
- 		return -ENODEV;
- 
- 	sbs->charger_present = (status >> 15) & 0x1;
+I have proposed (but haven't finished this due to other stuff) a
+solution for this. Newly added memory can host memmaps itself and then
+you do not have the problem in the first place. For vmemmap it would
+have an advantage that you do not really have to beg for 2MB pages to
+back the whole section but you would get it for free because the initial
+part of the section is by definition properly aligned and unused.
+
+I yet have to think about the whole proposal but I am missing the most
+important part. _Who_ is going to use the new exported information and
+for what purpose. You said that distributions have hard time to
+distinguish different types of onlinining policies but isn't this
+something that is inherently usecase specific?
 -- 
-2.17.1
+Michal Hocko
+SUSE Labs
