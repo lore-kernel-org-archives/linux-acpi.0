@@ -1,45 +1,80 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 05/18] ACPI / APEI: Make estatus queue a Kconfig symbol
-Date: Mon, 1 Oct 2018 19:59:56 +0200
-Message-ID: <20181001175956.GF7269@zn.tnic>
-References: <20180921221705.6478-1-james.morse@arm.com>
- <20180921221705.6478-6-james.morse@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: Bad MAINTAINERS pattern in section 'ACPI'
+Date: Mon, 1 Oct 2018 13:54:13 -0500
+Message-ID: <20181001185413.GB142872@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180928215054.28561-1-joe@perches.com>
+ <20180928230616.GA150287@bhelgaas-glaptop.roam.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180921221705.6478-6-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+In-Reply-To: <20180928230616.GA150287@bhelgaas-glaptop.roam.corp.google.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 21, 2018 at 11:16:52PM +0100, James Morse wrote:
-> Now that there are two users of the estatus queue, and likely to be more,
-> make it a Kconfig symbol selected by the appropriate notification. We
-> can move the ARCH_HAVE_NMI_SAFE_CMPXCHG checks in here too.
+On Fri, Sep 28, 2018 at 06:06:17PM -0500, Bjorn Helgaas wrote:
+> [+cc Tony, Borislav (ACPI APEI reviewers), linux-pci]
+> 
+> On Fri, Sep 28, 2018 at 02:50:53PM -0700, Joe Perches wrote:
+> > Please fix this defect appropriately.
+> > 
+> > linux-next MAINTAINERS section:
+> > 
+> > 	308	ACPI
+> > 	309	M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > 	310	M:	Len Brown <lenb@kernel.org>
+> > 	311	L:	linux-acpi@vger.kernel.org
+> > 	312	W:	https://01.org/linux-acpi
+> > 	313	Q:	https://patchwork.kernel.org/project/linux-acpi/list/
+> > 	314	T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+> > 	315	B:	https://bugzilla.kernel.org
+> > 	316	S:	Supported
+> > 	317	F:	drivers/acpi/
+> > 	318	F:	drivers/pnp/pnpacpi/
+> > 	319	F:	include/linux/acpi.h
+> > 	320	F:	include/linux/fwnode.h
+> > 	321	F:	include/acpi/
+> > 	322	F:	Documentation/acpi/
+> > 	323	F:	Documentation/ABI/testing/sysfs-bus-acpi
+> > 	324	F:	Documentation/ABI/testing/configfs-acpi
+> > 	325	F:	drivers/pci/*acpi*
+> > 	326	F:	drivers/pci/*/*acpi*
+> > -->	327	F:	drivers/pci/*/*/*acpi*
+> > 	328	F:	tools/power/acpi/
+> 
+> My proposal to fix this:
+> 
+> commit a99051c0d3c59fd259fd76a8bbd9837b76b509d9
+> Author: Bjorn Helgaas <bhelgaas@google.com>
+> Date:   Fri Sep 28 17:34:21 2018 -0500
+> 
+>     MAINTAINERS: Remove obsolete drivers/pci pattern from ACPI section
+>     
+>     Prior to 256a45937093 ("PCI/AER: Squash aerdrv_acpi.c into aerdrv.c"),
+>     drivers/pci/pcie/aer/aerdrv_acpi.c contained code to parse the ACPI HEST
+>     table.  That code now lives in drivers/pci/pcie/aer.c.
+>     
+>     Remove the "F: drivers/pci/*/*/*acpi*" pattern because it matches nothing.
+>     
+>     We could add a "F: drivers/pci/pcie/aer.c" pattern to the ACPI APEI
+>     section, but that file sees a lot of changes, almost none of which are of
+>     interest to the ACPI folks.
+>     
+>     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 700408b7bc53..9babd8a0406b 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -324,7 +324,6 @@ F:	Documentation/ABI/testing/sysfs-bus-acpi
+>  F:	Documentation/ABI/testing/configfs-acpi
+>  F:	drivers/pci/*acpi*
+>  F:	drivers/pci/*/*acpi*
+> -F:	drivers/pci/*/*/*acpi*
+>  F:	tools/power/acpi/
+>  
+>  ACPI APEI
 
-Ok, question: why do we need to complicate things at all? I mean, why do
-we even need a Kconfig symbol?
-
-This code is being used by two arches now so why not simply build it in
-unconditionally and be done with it. The couple of KB saved are simply
-not worth the effort, especially if it is going to end up being enabled
-on 99% of the setups...
-
-Or?
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Applied with Rafael's ack to for-linus for v4.19.
