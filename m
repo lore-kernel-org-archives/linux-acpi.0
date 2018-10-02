@@ -1,80 +1,41 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: Bad MAINTAINERS pattern in section 'ACPI'
-Date: Mon, 1 Oct 2018 13:54:13 -0500
-Message-ID: <20181001185413.GB142872@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180928215054.28561-1-joe@perches.com>
- <20180928230616.GA150287@bhelgaas-glaptop.roam.corp.google.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3 1/2] drivers: base: cacheinfo: Do not populate sysfs
+ for unknown cache types
+Date: Tue, 2 Oct 2018 11:49:46 +0100
+Message-ID: <20181002104946.GA1086@e107155-lin>
+References: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org>
+ <1538103477-15513-2-git-send-email-jhugo@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180928230616.GA150287@bhelgaas-glaptop.roam.corp.google.com>
+In-Reply-To: <1538103477-15513-2-git-send-email-jhugo@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, linux-pci@vger.kernel.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>
+Cc: gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 28, 2018 at 06:06:17PM -0500, Bjorn Helgaas wrote:
-> [+cc Tony, Borislav (ACPI APEI reviewers), linux-pci]
+On Thu, Sep 27, 2018 at 08:57:56PM -0600, Jeffrey Hugo wrote:
+> If a cache has an unknown type because neither the hardware nor the
+> firmware told us, an entry in the sysfs tree will be made, but the type
+> file will not be present.  lscpu depends on the type file being present
+> for every entry, and will error out without printing system information
+> if lscpu cannot open the type file.
 > 
-> On Fri, Sep 28, 2018 at 02:50:53PM -0700, Joe Perches wrote:
-> > Please fix this defect appropriately.
-> > 
-> > linux-next MAINTAINERS section:
-> > 
-> > 	308	ACPI
-> > 	309	M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > 	310	M:	Len Brown <lenb@kernel.org>
-> > 	311	L:	linux-acpi@vger.kernel.org
-> > 	312	W:	https://01.org/linux-acpi
-> > 	313	Q:	https://patchwork.kernel.org/project/linux-acpi/list/
-> > 	314	T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-> > 	315	B:	https://bugzilla.kernel.org
-> > 	316	S:	Supported
-> > 	317	F:	drivers/acpi/
-> > 	318	F:	drivers/pnp/pnpacpi/
-> > 	319	F:	include/linux/acpi.h
-> > 	320	F:	include/linux/fwnode.h
-> > 	321	F:	include/acpi/
-> > 	322	F:	Documentation/acpi/
-> > 	323	F:	Documentation/ABI/testing/sysfs-bus-acpi
-> > 	324	F:	Documentation/ABI/testing/configfs-acpi
-> > 	325	F:	drivers/pci/*acpi*
-> > 	326	F:	drivers/pci/*/*acpi*
-> > -->	327	F:	drivers/pci/*/*/*acpi*
-> > 	328	F:	tools/power/acpi/
+> Presenting information about a cache without indicating its type is not
+> useful, therefore if we hit a cache with an unknown type, stop populating
+> sysfs so that userspace has the maximum amount of useful information.
 > 
-> My proposal to fix this:
+> This addresses the following lscpu error, which prevents any output.
+> lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+> file or directory
 > 
-> commit a99051c0d3c59fd259fd76a8bbd9837b76b509d9
-> Author: Bjorn Helgaas <bhelgaas@google.com>
-> Date:   Fri Sep 28 17:34:21 2018 -0500
-> 
->     MAINTAINERS: Remove obsolete drivers/pci pattern from ACPI section
->     
->     Prior to 256a45937093 ("PCI/AER: Squash aerdrv_acpi.c into aerdrv.c"),
->     drivers/pci/pcie/aer/aerdrv_acpi.c contained code to parse the ACPI HEST
->     table.  That code now lives in drivers/pci/pcie/aer.c.
->     
->     Remove the "F: drivers/pci/*/*/*acpi*" pattern because it matches nothing.
->     
->     We could add a "F: drivers/pci/pcie/aer.c" pattern to the ACPI APEI
->     section, but that file sees a lot of changes, almost none of which are of
->     interest to the ACPI folks.
->     
->     Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 700408b7bc53..9babd8a0406b 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -324,7 +324,6 @@ F:	Documentation/ABI/testing/sysfs-bus-acpi
->  F:	Documentation/ABI/testing/configfs-acpi
->  F:	drivers/pci/*acpi*
->  F:	drivers/pci/*/*acpi*
-> -F:	drivers/pci/*/*/*acpi*
->  F:	tools/power/acpi/
->  
->  ACPI APEI
+> Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+> Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
 
-Applied with Rafael's ack to for-linus for v4.19.
+Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
+
+--
+Regards,
+Sudeep
