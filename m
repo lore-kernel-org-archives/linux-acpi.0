@@ -1,43 +1,110 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
-Date: Tue, 2 Oct 2018 17:35:28 +0100
-Message-ID: <1cdc3c01-e8f9-fd60-da88-cc49d22fe0be@arm.com>
-References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
- <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
- <ecc2877c-146c-d70f-efd7-306fe704d55f@arm.com>
- <1dc554eb-7ed2-45b3-109f-8cec286b4525@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RFC 00/15] PCI: turn some __weak functions into callbacks
+Date: Tue, 2 Oct 2018 15:59:03 -0500
+Message-ID: <20181002205903.GD120535@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180817102645.3839621-1-arnd@arndb.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1dc554eb-7ed2-45b3-109f-8cec286b4525@arm.com>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <20180817102645.3839621-1-arnd@arndb.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
-Cc: mark.rutland@arm.com, vkilari@codeaurora.org, neil.m.leeder@gmail.com, pabba@codeaurora.org, john.garry@huawei.com, will.deacon@arm.com, rruigrok@codeaurora.org, linuxarm@huawei.com, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, guohanjun@huawei.com, linux-kernel@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, Christoph Hellwig <hch@infradead.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 02/10/18 17:19, Jean-Philippe Brucker wrote:
-> On 02/10/2018 15:11, Jean-Philippe Brucker wrote:
->>> +	cfgr = readl_relaxed(smmu_pmu->reg_base + SMMU_PMCG_CFGR);
+On Fri, Aug 17, 2018 at 12:26:30PM +0200, Arnd Bergmann wrote:
+> Hi Bjorn and others,
 > 
-> Something I missed previously: when SMMU_PMCG_CFGR.SID_FILTER_TYPE is 1,
-> filtering for all counters is configured by SMMU_PMCG_SMR0 and
-> SMMU_PMCG_EVTYPER0 (instead of having one separate filter per counter).
+> Triggered by Christoph's patches, I had another go at converting
+> all of the remaining pci host bridge implementations to be based
+> on pci_alloc_host_bridge and a separate registration function.
+> 
+> This is made possible through work from Lorenzo and others to
+> convert many of the existing drivers, as well as the removal
+> of some of the older architectures that nobody used.
+> 
+> I'm adding a bit of duplication into the less maintained code
+> here, but it makes everything more consistent, and gives an
+> easy place to hook up callback functions etc.
+> 
+> The three parts of this series are:
+> 
+> a) push up the registration into the callers (this is where
+>    code gets added)
+> b) clean up some of the more common host bridge
+>    implementations again to integrate that code better.
+>    This could be done for the rest as well, or we could just
+>    leave them alone.
+> c) start moving the __weak functions into callbacks in
+>    pci_host_bridge. This is intentionally incomplete, since
+>    it is a lot of work to do it for all those functions,
+>    and I want to get consensus on the approach first, as well
+>    as maybe get other developers to help out with the rest.
+> 
+> Please have a look.
+> 
+>        Arnd
+> 
+> [1] https://lore.kernel.org/lkml/4288331.jNpl6KXlNO@wuerfel/
+> [2] https://patchwork.kernel.org/patch/10555657/
+> 
+> Arnd Bergmann (15):
+>   PCI: clean up legacy host bridge scan functions
+>   PCI: move pci_scan_bus into callers
+>   PCI: move pci_scan_root_bus into callers
+>   PCI: export pci_register_host_bridge
+>   PCI: move pci_create_root_bus into callers
+>   powerpc/pci: fold pci_create_root_bus into pcibios_scan_phb
+>   PCI/ACPI: clean up acpi_pci_root_create()
+>   x86: PCI: clean up pcibios_scan_root()
+>   PCI: xenfront: clean up pcifront_scan_root()
+>   sparc/PCI: simplify pci_scan_one_pbm
+>   PCI: hyperv: convert to pci_scan_root_bus_bridge
+>   PCI: make pcibios_bus_add_device() a callback function
+>   PCI: turn pcibios_alloc_irq into a callback
+>   PCI: make pcibios_root_bridge_prepare a callback
+>   PCI: make pcibios_add_bus/remove_bus callbacks
+> 
+>  arch/arm64/kernel/pci.c               |  40 ++-----
+>  arch/ia64/pci/pci.c                   |  25 +----
+>  arch/ia64/sn/kernel/io_init.c         |  27 +++++
+>  arch/microblaze/pci/pci-common.c      |  27 +++++
+>  arch/powerpc/include/asm/pci-bridge.h |   3 +
+>  arch/powerpc/kernel/pci-common.c      |  60 +++++------
+>  arch/s390/pci/pci.c                   |  30 +++++-
+>  arch/sh/drivers/pci/pci.c             |   1 +
+>  arch/sh/drivers/pci/pcie-sh7786.c     |   3 +-
+>  arch/sh/include/asm/pci.h             |   2 +
+>  arch/sparc/kernel/pci.c               |  40 ++++---
+>  arch/sparc/kernel/pcic.c              |  35 ++++++
+>  arch/x86/pci/acpi.c                   |  15 +--
+>  arch/x86/pci/common.c                 |  42 ++++----
+>  arch/xtensa/kernel/pci.c              |  27 +++++
+>  drivers/acpi/pci_root.c               |  43 +++++---
+>  drivers/parisc/dino.c                 |  28 +++++
+>  drivers/parisc/lba_pci.c              |  28 +++++
+>  drivers/pci/bus.c                     |   8 +-
+>  drivers/pci/controller/pci-hyperv.c   |  47 ++++----
+>  drivers/pci/controller/vmd.c          |  30 +++++-
+>  drivers/pci/hotplug/ibmphp_core.c     |  35 ++++++
+>  drivers/pci/pci-driver.c              |  13 ++-
+>  drivers/pci/probe.c                   | 150 +++++++++-----------------
+>  drivers/pci/xen-pcifront.c            |  40 +++----
+>  include/linux/acpi.h                  |   2 +
+>  include/linux/pci.h                   |  17 ++-
+>  27 files changed, 514 insertions(+), 304 deletions(-)
 
-Oh, I hadn't even noticed it had that mode as well...
+Sorry for the late response to this.
 
-> In that mode with your patch, if the user applies a filter to the first
-> event in the list passed to perf, it will be applied to all events.
-> Filter applied on any subsequent event will be ignored. Could we make
-> this more explicit? Maybe in the probe print that the PMCG is
-> global-filtering, and when attempting to apply a filter to something
-> else than EVCNTR0, return an error?
+I think I'm generally on-board with this.  I admit I'm a little
+hesitant about adding 200 lines of code when this is really more
+"cleanup" than new functionality, but I think a lot of that is because
+this series contains costs (e.g., duplicating code) for everybody but
+only has the corresponding benefits for a few (ACPI, x86, xenfront).
+Those cases are much closer to parity in terms of lines added/removed.
 
-FWIW filtering is always per-counter-group on the SMMUv2 PMU, and it's 
-actually pretty straightforward to cope with - pmu->add() just needs to 
-reject the event if one with an incompatible configuration is already 
-scheduled, so perf core handles it much like having more events than 
-counters, by rotating the mutually-exclusive sets.
+I saw some minor comments that suggested you had some updates, so I'll
+watch for an updated posting.
 
-Robin.
+Bjorn
