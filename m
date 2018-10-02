@@ -1,136 +1,343 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Tue, 2 Oct 2018 15:47:34 +0200
-Message-ID: <20181002134734.GT18290@dhcp22.suse.cz>
-References: <20180928150357.12942-1-david@redhat.com>
- <20181001084038.GD18290@dhcp22.suse.cz>
- <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
+Date: Tue, 2 Oct 2018 15:11:26 +0100
+Message-ID: <ecc2877c-146c-d70f-efd7-306fe704d55f@arm.com>
+References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
+ <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-Content-Disposition: inline
-In-Reply-To: <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: David Hildenbrand <david@redhat.com>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Pavel Tatashin <pavel.tatashin@microsoft.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, robin.murphy@arm.com
+Cc: mark.rutland@arm.com, vkilari@codeaurora.org, neil.m.leeder@gmail.com, pabba@codeaurora.org, john.garry@huawei.com, will.deacon@arm.com, rruigrok@codeaurora.org, linuxarm@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, guohanjun@huawei.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon 01-10-18 11:34:25, David Hildenbrand wrote:
-> On 01/10/2018 10:40, Michal Hocko wrote:
-> > On Fri 28-09-18 17:03:57, David Hildenbrand wrote:
-> > [...]
-> > 
-> > I haven't read the patch itself but I just wanted to note one thing
-> > about this part
-> > 
-> >> For paravirtualized devices it is relevant that memory is onlined as
-> >> quickly as possible after adding - and that it is added to the NORMAL
-> >> zone. Otherwise, it could happen that too much memory in a row is added
-> >> (but not onlined), resulting in out-of-memory conditions due to the
-> >> additional memory for "struct pages" and friends. MOVABLE zone as well
-> >> as delays might be very problematic and lead to crashes (e.g. zone
-> >> imbalance).
-> > 
-> > I have proposed (but haven't finished this due to other stuff) a
-> > solution for this. Newly added memory can host memmaps itself and then
-> > you do not have the problem in the first place. For vmemmap it would
-> > have an advantage that you do not really have to beg for 2MB pages to
-> > back the whole section but you would get it for free because the initial
-> > part of the section is by definition properly aligned and unused.
+Hi Shameer,
+
+I have a few comments below, mostly naive since I don't know anything
+about perf drivers.
+
+On 21/09/2018 16:08, Shameer Kolothum wrote:
+> From: Neil Leeder <nleeder@codeaurora.org>
 > 
-> So the plan is to "host metadata for new memory on the memory itself".
-> Just want to note that this is basically impossible for s390x with the
-> current mechanisms. (added memory is dead, until onlining notifies the
-> hypervisor and memory is allocated). It will also be problematic for
-> paravirtualized memory devices (e.g. XEN's "not backed by the
-> hypervisor" hacks).
-
-OK, I understand that not all usecases can use self memmap hosting
-others do not have much choice left though. You have to allocate from
-somewhere. Well and alternative would be to have no memmap until
-onlining but I am not sure how much work that would be.
-
-> This would only be possible for memory DIMMs, memory that is completely
-> accessible as far as I can see. Or at least, some specified "first part"
-> is accessible.
+> Adds a new driver to support the SMMUv3 PMU and add it into the
+> perf events framework.
 > 
-> Other problems are other metadata like extended struct pages and friends.
-
-I wouldn't really worry about extended struct pages. Those should be
-used for debugging purposes mostly. Ot at least that was the case last
-time I've checked.
-
-> (I really like the idea of adding memory without allocating memory in
-> the hypervisor in the first place, please keep me tuned).
+> Each SMMU node may have multiple PMUs associated with it, each of
+> which may support different events.
 > 
-> And please note: This solves some problematic part ("adding too much
-> memory to the movable zone or not onlining it"), but not the issue of
-> zone imbalance in the first place. And not one issue I try to tackle
-> here: don't add paravirtualized memory to the movable zone.
-
-Zone imbalance is an inherent problem of the highmem zone. It is
-essentially the highmem zone we all loved so much back in 32b days.
-Yes the movable zone doesn't have any addressing limitations so it is a
-bit more relaxed but considering the hotplug scenarios I have seen so
-far people just want to have full NUMA nodes movable to allow replacing
-DIMMs. And then we are back to square one and the zone imbalance issue.
-You have those regardless where memmaps are allocated from.
-
-> > I yet have to think about the whole proposal but I am missing the most
-> > important part. _Who_ is going to use the new exported information and
-> > for what purpose. You said that distributions have hard time to
-> > distinguish different types of onlinining policies but isn't this
-> > something that is inherently usecase specific?
-> > 
+> SMMUv3 PMCG devices are named as smmuv3_pmcg_<phys_addr_page> where
+> <phys_addr_page> is the physical page address of the SMMU PMCG.
+> For example, the PMCG at 0xff88840000 is named smmuv3_pmcg_ff88840
 > 
-> Let's think about a distribution. We have a clash of use cases here
-> (just what you describe). What I propose solves one part of it ("handle
-> what you know how to handle right in the kernel").
+> Filtering by stream id is done by specifying filtering parameters
+> with the event. options are:
+>    filter_enable    - 0 = no filtering, 1 = filtering enabled
+>    filter_span      - 0 = exact match, 1 = pattern match
+>    filter_stream_id - pattern to filter against
+> Further filtering information is available in the SMMU documentation.
 > 
-> 1. Users of DIMMs usually expect that they can be unplugged again. That
-> is why you want to control how to online memory in user space (== add it
-> to the movable zone).
+> Example: perf stat -e smmuv3_pmcg_ff88840/transaction,filter_enable=1,
+>                        filter_span=1,filter_stream_id=0x42/ -a pwd
+> Applies filter pattern 0x42 to transaction events.
+> 
+> SMMU events are not attributable to a CPU, so task mode and sampling
+> are not supported.
+> 
+> Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+> ---
+>  drivers/perf/Kconfig          |   9 +
+>  drivers/perf/Makefile         |   1 +
+>  drivers/perf/arm_smmuv3_pmu.c | 736 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 746 insertions(+)
+>  create mode 100644 drivers/perf/arm_smmuv3_pmu.c
+> 
+> diff --git a/drivers/perf/Kconfig b/drivers/perf/Kconfig
+> index 08ebaf7..34969dd 100644
+> --- a/drivers/perf/Kconfig
+> +++ b/drivers/perf/Kconfig
+> @@ -52,6 +52,15 @@ config ARM_PMU_ACPI
+>  	depends on ARM_PMU && ACPI
+>  	def_bool y
+>  
+> +config ARM_SMMU_V3_PMU
+> +	 bool "ARM SMMUv3 Performance Monitors {Extension}"
 
-Which is only true if you really want to hotremove them. I am not going
-to tell how much I believe in this usecase but movable policy is not
-generally applicable here.
+Why the curly braces? I didn't find that notation in other Kconfig files
 
-> 2. Users of standby memory (s390) expect that memory will never be
-> onlined automatically. It will be onlined manually.
+> +	 depends on ARM64 && ACPI && ARM_SMMU_V3
+> +	   help
+> +	   Provides support for the SMMU version 3 performance monitor unit (PMU)
+> +	   on ARM-based systems.
+> +	   Adds the SMMU PMU into the perf events subsystem for
+> +	   monitoring SMMU performance events.
+> +
+>  config ARM_DSU_PMU
+>  	tristate "ARM DynamIQ Shared Unit (DSU) PMU"
+>  	depends on ARM64
+> diff --git a/drivers/perf/Makefile b/drivers/perf/Makefile
+> index b3902bd..f10a932 100644
+> --- a/drivers/perf/Makefile
+> +++ b/drivers/perf/Makefile
+[...]
+> +/*
+> + * This driver adds support for perf events to use the Performance
+> + * Monitor Counter Groups (PMCG) associated with an SMMUv3 node
+> + * to monitor that node.
+> + *
+> + * SMMUv3 PMCG devices are named as smmuv3_pmcg_<phys_addr_page> where
+> + * <phys_addr_page> is the physical page address of the SMMU PMCG.
+> + * For example, the PMCG at 0xff88840000 is named smmuv3_pmcg_ff88840
+> +
+> + * Filtering by stream id is done by specifying filtering parameters
+> + * with the event. options are:
+> + *   filter_enable    - 0 = no filtering, 1 = filtering enabled
+> + *   filter_span      - 0 = exact match, 1 = pattern match
+> + *   filter_stream_id - pattern to filter against
+> + * Further filtering information is available in the SMMU documentation.
+> + *
+> + * Example: perf stat -e smmuv3_pmcg_ff88840/transaction,filter_enable=1,
+> + *                       filter_span=1,filter_stream_id=0x42/ -a pwd
 
-yeah
+I'm curious, why is pwd used as example? Wouldn't something like netperf
+be a more realistic workload?
 
-> 3. Users of paravirtualized devices (esp. Hyper-V) don't care about
-> memory unplug in the sense of MOVABLE at all. They (or Hyper-V!) will
-> add a whole bunch of memory and expect that everything works fine. So
-> that memory is onlined immediately and that memory is added to the
-> NORMAL zone. Users never want the MOVABLE zone.
+> + * Applies filter pattern 0x42 to transaction events.
 
-Then the immediate question would be why to use memory hotplug for that
-at all? Why don't you simply start with a huge pre-allocated physical
-address space and balloon memory in an out per demand. Why do you want
-to inject new memory during the runtime?
+Adding that this pattern matches SIDs 0x42 and 0x43 might be helpful,
+since span filtering is a bit awkward
 
-> 1. is a reason why distributions usually don't configure
-> "MEMORY_HOTPLUG_DEFAULT_ONLINE", because you really want the option for
-> MOVABLE zone. That however implies, that e.g. for x86, you have to
-> handle all new memory in user space, especially also HyperV memory.
-> There, you then have to check for things like "isHyperV()" to decide
-> "oh, yes, this should definitely not go to the MOVABLE zone".
+[...]
+> +#define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _size, _shift)    \
+> +	static inline u32 get_##_name(struct perf_event *event)         \
+> +	{                                                               \
+> +		return (event->attr._config >> (_shift)) &              \
+> +			GENMASK_ULL((_size) - 1, 0);                    \
 
-Why do you need a generic hotplug rule in the first place? Why don't you
-simply provide different set of rules for different usecases? Let users
-decide which usecase they prefer rather than try to be clever which
-almost always hits weird corner cases.
--- 
-Michal Hocko
-SUSE Labs
+FIELD_GET could make this slightly nicer
+
+> +	}
+> +
+> +SMMU_PMU_EVENT_ATTR_EXTRACTOR(event, config, 16, 0);
+> +SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_stream_id, config1, 32, 0);
+> +SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_span, config1, 1, 32);
+> +SMMU_PMU_EVENT_ATTR_EXTRACTOR(filter_enable, config1, 1, 34);
+
+filter_enable is at bit 33, not 34
+
+[...]
+> +static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
+> +				struct hw_perf_event *hwc)
+> +{
+> +	u32 idx = hwc->idx;
+> +	u64 new;
+> +
+> +	/*
+> +	 * We limit the max period to half the max counter value of the counter
+> +	 * size, so that even in the case of extreme interrupt latency the
+> +	 * counter will (hopefully) not wrap past its initial value.
+> +	 */
+> +	new = smmu_pmu->counter_mask >> 1;
+
+Cool trick :)
+
+> +
+> +	local64_set(&hwc->prev_count, new);
+> +	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+> +}
+> +
+> +static unsigned int smmu_pmu_get_event_idx(struct smmu_pmu *smmu_pmu)
+> +{
+> +	unsigned int idx;
+> +	unsigned int num_ctrs = smmu_pmu->num_counters;
+> +
+> +	idx = find_first_zero_bit(smmu_pmu->used_counters, num_ctrs);
+> +	if (idx == num_ctrs)
+> +		/* The counters are all in use. */
+> +		return -EAGAIN;
+
+Then this function's return type probably shouldn't be unsigned
+
+> +
+> +	set_bit(idx, smmu_pmu->used_counters);
+> +
+> +	return idx;
+> +}
+> +
+> +/*
+> + * Implementation of abstract pmu functionality required by
+> + * the core perf events code.
+> + */
+> +
+> +static int smmu_pmu_event_init(struct perf_event *event)
+> +{
+> +	struct hw_perf_event *hwc = &event->hw;
+> +	struct smmu_pmu *smmu_pmu = to_smmu_pmu(event->pmu);
+> +	struct device *dev = smmu_pmu->dev;
+> +	struct perf_event *sibling;
+> +	u32 event_id;
+> +
+> +	if (event->attr.type != event->pmu->type)
+> +		return -ENOENT;
+> +
+> +	if (hwc->sample_period) {
+> +		dev_dbg_ratelimited(dev, "Sampling not supported\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	if (event->cpu < 0) {
+> +		dev_dbg_ratelimited(dev, "Per-task mode not supported\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	/* We cannot filter accurately so we just don't allow it. */
+> +	if (event->attr.exclude_user || event->attr.exclude_kernel ||
+> +	    event->attr.exclude_hv || event->attr.exclude_idle) {
+> +		dev_dbg_ratelimited(dev, "Can't exclude execution levels\n");
+> +		return -EOPNOTSUPP;
+> +	}
+> +
+> +	/* Verify specified event is supported on this PMU */
+> +	event_id = get_event(event);
+> +	if (((event_id < SMMU_ARCH_MAX_EVENT_ID) &&
+> +	    (!test_bit(event_id, smmu_pmu->supported_events))) ||
+> +	    (event_id > SMMU_IMPDEF_MAX_EVENT_ID)) {
+
+>= ?
+
+> +		dev_dbg_ratelimited(dev, "Invalid event %d for this PMU\n",
+> +				    event_id);
+> +		return -EINVAL;
+> +	}
+
+[...]
+> +static struct attribute *smmu_pmu_events[] = {
+> +	SMMU_EVENT_ATTR(cycles, 0),
+> +	SMMU_EVENT_ATTR(transaction, 1),
+> +	SMMU_EVENT_ATTR(tlb_miss, 2),
+> +	SMMU_EVENT_ATTR(config_cache_miss, 3),
+> +	SMMU_EVENT_ATTR(trans_table_walk, 4),
+
+This name is a bit misleading - as far as I understand the event doesn't
+count table walks, but memory accesses performed during a walk.
+
+> +	SMMU_EVENT_ATTR(config_struct_access, 5),
+> +	SMMU_EVENT_ATTR(pcie_ats_trans_rq, 6),
+> +	SMMU_EVENT_ATTR(pcie_ats_trans_passed, 7),
+> +	NULL
+> +};
+
+[...]
+> +static int smmu_pmu_setup_irq(struct smmu_pmu *pmu)
+> +{
+> +	unsigned long flags = IRQF_NOBALANCING | IRQF_SHARED | IRQF_NO_THREAD;
+
+Why do you need SHARED?
+
+> +	int irq, ret = -ENXIO;
+> +
+> +	irq = pmu->irq;
+> +	if (irq)
+> +		ret = devm_request_irq(pmu->dev, irq, smmu_pmu_handle_irq,
+> +				       flags, "smmuv3-pmu", pmu);
+> +	return ret;
+> +}
+> +
+> +static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
+> +{
+> +	smmu_pmu_disable(&smmu_pmu->pmu);
+> +
+> +	/* Disable counter and interrupt */
+> +	writeq_relaxed(smmu_pmu->counter_present_mask,
+> +		       smmu_pmu->reg_base + SMMU_PMCG_CNTENCLR0);
+> +	writeq_relaxed(smmu_pmu->counter_present_mask,
+> +		       smmu_pmu->reg_base + SMMU_PMCG_INTENCLR0);
+> +	writeq_relaxed(smmu_pmu->counter_present_mask,
+> +		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
+> +
+> +	writeq_relaxed(0, smmu_pmu->reg_base + SMMU_PMCG_IRQ_CFG0);
+
+smmu_pmu_setup_msi clears CFG0 a second time, so this line can be
+deleted in patch 3, or moved to smmu_pmu_setup_msi right away.
+
+> +}
+> +
+> +static int smmu_pmu_probe(struct platform_device *pdev)
+> +{
+> +	struct smmu_pmu *smmu_pmu;
+> +	struct resource *res_0, *res_1;
+> +	u32 cfgr, reg_size;
+> +	u64 ceid_64[2];
+> +	int irq, err;
+> +	char *name;
+> +	struct device *dev = &pdev->dev;
+> +
+> +	smmu_pmu = devm_kzalloc(dev, sizeof(*smmu_pmu), GFP_KERNEL);
+> +	if (!smmu_pmu)
+> +		return -ENOMEM;
+> +
+> +	smmu_pmu->dev = dev;
+> +
+> +	platform_set_drvdata(pdev, smmu_pmu);
+> +	smmu_pmu->pmu = (struct pmu) {
+> +		.task_ctx_nr    = perf_invalid_context,
+> +		.pmu_enable	= smmu_pmu_enable,
+> +		.pmu_disable	= smmu_pmu_disable,
+> +		.event_init	= smmu_pmu_event_init,
+> +		.add		= smmu_pmu_event_add,
+> +		.del		= smmu_pmu_event_del,
+> +		.start		= smmu_pmu_event_start,
+> +		.stop		= smmu_pmu_event_stop,
+> +		.read		= smmu_pmu_event_read,
+> +		.attr_groups	= smmu_pmu_attr_grps,
+> +	};
+> +
+> +	res_0 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	smmu_pmu->reg_base = devm_ioremap_resource(dev, res_0);
+> +	if (IS_ERR(smmu_pmu->reg_base))
+> +		return PTR_ERR(smmu_pmu->reg_base);
+> +
+> +	cfgr = readl_relaxed(smmu_pmu->reg_base + SMMU_PMCG_CFGR);
+> +
+> +	/* Determine if page 1 is present */
+> +	if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS) {
+> +		res_1 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> +		smmu_pmu->reloc_base = devm_ioremap_resource(dev, res_1);
+> +		if (IS_ERR(smmu_pmu->reloc_base))
+> +			return PTR_ERR(smmu_pmu->reloc_base);
+> +	} else {
+> +		smmu_pmu->reloc_base = smmu_pmu->reg_base;
+> +	}
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq > 0)
+> +		smmu_pmu->irq = irq;
+> +
+> +	ceid_64[0] = readq_relaxed(smmu_pmu->reg_base + SMMU_PMCG_CEID0);
+> +	ceid_64[1] = readq_relaxed(smmu_pmu->reg_base + SMMU_PMCG_CEID1);
+> +	bitmap_from_arr32(smmu_pmu->supported_events, (u32 *)ceid_64,
+> +			  SMMU_ARCH_MAX_EVENT_ID);
+> +
+> +	smmu_pmu->num_counters = FIELD_GET(SMMU_PMCG_CFGR_NCTR_MASK, cfgr) + 1;
+> +	smmu_pmu->counter_present_mask = GENMASK(smmu_pmu->num_counters - 1, 0);
+> +
+> +	reg_size = FIELD_GET(SMMU_PMCG_CFGR_SIZE_MASK, cfgr);
+> +	smmu_pmu->counter_mask = GENMASK_ULL(reg_size, 0);
+> +
+> +	smmu_pmu_reset(smmu_pmu);
+> +
+> +	err = smmu_pmu_setup_irq(smmu_pmu);
+> +	if (err) {
+> +		dev_err(dev, "Setup irq failed, PMU @%pa\n", &res_0->start);
+
+You can probably remove "PMU @%pa" from error and info messages, since
+the device name already uniquely identifies it:
+"[    6.168200] arm-smmu-v3-pmu 2b442000.smmu-pmcg: Registered SMMU PMU
+@ 0x000000002b442000 using 4 counters"
+
+Thanks,
+Jean
