@@ -1,48 +1,67 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads on idle cpus
-Date: Wed, 03 Oct 2018 11:38:58 +0200
-Message-ID: <3282057.yGUaGxRyCs@aspire.rjw.lan>
-References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com> <8775668.fKKdjnIWAU@aspire.rjw.lan> <20180514154523.GA17331@sandybridge-desktop>
+From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+Subject: Re: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
+Date: Wed, 3 Oct 2018 10:46:57 +0100
+Message-ID: <6d51a825-325f-5f78-20da-bf27f208fe37@arm.com>
+References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
+ <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
+ <ecc2877c-146c-d70f-efd7-306fe704d55f@arm.com>
+ <5FC3163CFD30C246ABAA99954A238FA838793F4E@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180514154523.GA17331@sandybridge-desktop>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA838793F4E@FRAEML521-MBX.china.huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Yu Chen <yu.c.chen@intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, John Garry <john.garry@huawei.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, May 14, 2018 5:45:23 PM CEST Yu Chen wrote:
-> On Sun, May 13, 2018 at 11:30:52AM +0200, Rafael J. Wysocki wrote:
-> > On Saturday, May 5, 2018 1:53:22 PM CEST Chen Yu wrote:
-> > > According to current implementation of acpi_pad driver,
-> > > it does not make sense to spawn any power saving threads
-> > > on the cpus which are already idle - it might bring
-> > > unnecessary overhead on these idle cpus and causes power
-> > > waste. So verify the condition that if the number of 'busy'
-> > > cpus exceeds the amount of the 'forced idle' cpus is met.
-> > > This is applicable due to round-robin attribute of the
-> > > power saving threads, otherwise ignore the setting/ACPI
-> > > notification.
-> > 
-> > OK, but CPUs are busy, because they are running tasks.  If acpi_pad
-> > kthreads run on them, the tasks they are running will migrate to the
-> > currently idle CPUs (unless they have specific CPU affinity) and the
-> > throttling will not really be effective.
-> >
-> OK, I think this makes sense, I missed the load balance scenario.
-> > I would think that acpi_pad should ensure that the requested number of
-> > CPUs will not run anything other than throttling kthreads.  Isn't that
-> > the case?
-> > 
-> Do you mean, we should check if the number of 'idle'(rather than the 'busy' one
-> in this patch) cpus is larger than the requested one? Then I think we should also
-> add a patch to use the play_idle() as power_clamp to treat the throttling kthreads
-> as idle threads thus to stop system tick. Such as the patch Jacob proposed:
+On 03/10/2018 09:46, Shameerali Kolothum Thodi wrote:
+[...]
+>>> +	/* Verify specified event is supported on this PMU */
+>>> +	event_id = get_event(event);
+>>> +	if (((event_id < SMMU_ARCH_MAX_EVENT_ID) &&
+>>> +	    (!test_bit(event_id, smmu_pmu->supported_events))) ||
+>>> +	    (event_id > SMMU_IMPDEF_MAX_EVENT_ID)) {
+>>
+>>> = ?
+> 
+> I was slightly confused by the spec here as it says,
+> 
+> Performance events are indicated by a numeric ID, in the following ranges:
+> • 0x0000 to 0x007F: Architected events
+> • 0x0080 to 0xFFFF: IMPLEMENTATION DEFINED events
+> 
+> It looks to me the ids are valid including those limits.
 
-I wonder if that can be switched over to the new idle injection framework
-added recently?
+Yes my mistake, I mixed up IMPDEF_MAX_EVENT_ID which is inclusive with
+ARCH_MAX_EVENT_ID which isn't, sorry about that
+
+[...]
+>>> +		dev_err(dev, "Setup irq failed, PMU @%pa\n", &res_0->start);
+>>
+>> You can probably remove "PMU @%pa" from error and info messages, since
+>> the device name already uniquely identifies it:
+>> "[    6.168200] arm-smmu-v3-pmu 2b442000.smmu-pmcg: Registered SMMU
+>> PMU
+>> @ 0x000000002b442000 using 4 counters"
+> 
+> Interesting. What I have is,
+> 
+> [   25.669636] arm-smmu-v3-pmu arm-smmu-v3-pmu.6.auto: Registered SMMU
+> PMU @ 0x0000000148001000 using 8 counters
+> 
+> Are you using the same patches and is booting using ACPI? IIRC, in the iort
+> code  it uses the name "arm-smmu-v3-pmu" and AUTO id to register/add the platform
+> dev. So not sure, how it is printing the address in your case. 
+> 
+> Please check and let me know.
+
+Right, I've been using device tree for my tests, not ACPI. I thought it
+was the core platform code that was creating the names. I guess we could
+add nicer names to IORT but that's probably for a different series, so
+nevermind.
 
 Thanks,
-Rafael
+Jean
