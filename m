@@ -1,67 +1,77 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [PATCH v3 1/2] drivers: base: cacheinfo: Do not populate sysfs
- for unknown cache types
-Date: Wed, 3 Oct 2018 07:47:37 -0600
-Message-ID: <6f773f89-326f-1b27-455d-9cb4bf0892e4@codeaurora.org>
-References: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org>
- <1538103477-15513-2-git-send-email-jhugo@codeaurora.org>
- <256435083.TFCBfdESsY@aspire.rjw.lan>
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Wed, 03 Oct 2018 15:52:24 +0200
+Message-ID: <87zhvvcf3b.fsf@vitty.brq.redhat.com>
+References: <20180928150357.12942-1-david@redhat.com>
+ <20181001084038.GD18290@dhcp22.suse.cz>
+ <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
+ <20181002134734.GT18290@dhcp22.suse.cz>
+ <98fb8d65-b641-2225-f842-8804c6f79a06@redhat.com>
+ <8736tndubn.fsf@vitty.brq.redhat.com> <20181003134444.GH4714@dhcp22.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <256435083.TFCBfdESsY@aspire.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: sudeep.holla@arm.com, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20181003134444.GH4714@dhcp22.suse.cz>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Michal Hocko <mhocko@kernel.org>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, David Hildenbrand <david@redhat.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/3/2018 3:35 AM, Rafael J. Wysocki wrote:
-> On Friday, September 28, 2018 4:57:56 AM CEST Jeffrey Hugo wrote:
->> If a cache has an unknown type because neither the hardware nor the
->> firmware told us, an entry in the sysfs tree will be made, but the type
->> file will not be present.  lscpu depends on the type file being present
->> for every entry, and will error out without printing system information
->> if lscpu cannot open the type file.
->>
->> Presenting information about a cache without indicating its type is not
->> useful, therefore if we hit a cache with an unknown type, stop populating
->> sysfs so that userspace has the maximum amount of useful information.
->>
->> This addresses the following lscpu error, which prevents any output.
->> lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
->> file or directory
->>
->> Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
->> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
->> Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/base/cacheinfo.c | 2 ++
->>   1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
->> index 5d5b598..cf78fa6 100644
->> --- a/drivers/base/cacheinfo.c
->> +++ b/drivers/base/cacheinfo.c
->> @@ -615,6 +615,8 @@ static int cache_add_dev(unsigned int cpu)
->>   		this_leaf = this_cpu_ci->info_list + i;
->>   		if (this_leaf->disable_sysfs)
->>   			continue;
->> +		if (this_leaf->type == CACHE_TYPE_NOCACHE)
->> +			break;
->>   		cache_groups = cache_get_attribute_groups(this_leaf);
->>   		ci_dev = cpu_device_create(parent, this_leaf, cache_groups,
->>   					   "index%1u", i);
->>
-> 
-> Can you please resend this patch with all tags collected so far?
+Michal Hocko <mhocko@kernel.org> writes:
 
-Will do.
+> On Wed 03-10-18 15:38:04, Vitaly Kuznetsov wrote:
+>> David Hildenbrand <david@redhat.com> writes:
+>> 
+>> > On 02/10/2018 15:47, Michal Hocko wrote:
+>> ...
+>> >> 
+>> >> Why do you need a generic hotplug rule in the first place? Why don't you
+>> >> simply provide different set of rules for different usecases? Let users
+>> >> decide which usecase they prefer rather than try to be clever which
+>> >> almost always hits weird corner cases.
+>> >> 
+>> >
+>> > Memory hotplug has to work as reliable as we can out of the box. Letting
+>> > the user make simple decisions like "oh, I am on hyper-V, I want to
+>> > online memory to the normal zone" does not feel right. But yes, we
+>> > should definitely allow to make modifications.
+>> 
+>> Last time I was thinking about the imperfectness of the auto-online
+>> solution we have and any other solution we're able to suggest an idea
+>> came to my mind - what if we add an eBPF attach point to the
+>> auto-onlining mechanism effecively offloading decision-making to
+>> userspace. We'll of couse need to provide all required data (e.g. how
+>> memory blocks are aligned with physical DIMMs as it makes no sense to
+>> online part of DIMM as normal and the rest as movable as it's going to
+>> be impossible to unplug such DIMM anyways).
+>
+> And how does that differ from the notification mechanism we have? Just
+> by not relying on the process scheduling? If yes then this revolves
+> around the implementation detail that you care about time-to-hot-add
+> vs. time-to-online. And that is a solveable problem - just allocate
+> memmaps from the hot-added memory.
+
+It is more than just memmaps (e.g. forking udev process doing memory
+onlining also needs memory) but yes, the main idea is to make the
+onlining synchronous with hotplug.
+
+>
+> As David said some of the memory cannot be onlined without further steps
+> (e.g. when it is standby as David called it) and then I fail to see how
+> eBPF help in any way.
+
+and also, we can fight till the end of days here trying to come up with
+an onlining solution which would work for everyone and eBPF would move
+this decision to distro level.
 
 -- 
-Jeffrey Hugo
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+Vitaly
