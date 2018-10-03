@@ -1,57 +1,35 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
-Date: Wed, 3 Oct 2018 08:52:35 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA838793F64@FRAEML521-MBX.china.huawei.com>
-References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
- <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
- <ecc2877c-146c-d70f-efd7-306fe704d55f@arm.com>
- <1dc554eb-7ed2-45b3-109f-8cec286b4525@arm.com>
- <1cdc3c01-e8f9-fd60-da88-cc49d22fe0be@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/22] various dynamic_debug patches
+Date: Wed, 03 Oct 2018 11:25:40 +0200
+Message-ID: <2308315.5DVx2N1Pa0@aspire.rjw.lan>
+References: <20180919220444.23190-1-linux@rasmusvillemoes.dk> <4563778.42gAD4asSf@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1cdc3c01-e8f9-fd60-da88-cc49d22fe0be@arm.com>
-Content-Language: en-US
+In-Reply-To: <4563778.42gAD4asSf@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, John Garry <john.garry@huawei.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jason Baron <jbaron@akamai.com>, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev@vger.kernel.org, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDAyIE9jdG9iZXIgMjAxOCAxNzoz
-NQ0KPiBUbzogSmVhbi1QaGlsaXBwZSBCcnVja2VyIDxqZWFuLXBoaWxpcHBlLmJydWNrZXJAYXJt
-LmNvbT47IFNoYW1lZXJhbGkNCj4gS29sb3RodW0gVGhvZGkgPHNoYW1lZXJhbGkua29sb3RodW0u
-dGhvZGlAaHVhd2VpLmNvbT47DQo+IGxvcmVuem8ucGllcmFsaXNpQGFybS5jb20NCj4gQ2M6IG1h
-cmsucnV0bGFuZEBhcm0uY29tOyB2a2lsYXJpQGNvZGVhdXJvcmEub3JnOw0KPiBuZWlsLm0ubGVl
-ZGVyQGdtYWlsLmNvbTsgcGFiYmFAY29kZWF1cm9yYS5vcmc7IEpvaG4gR2FycnkNCj4gPGpvaG4u
-Z2FycnlAaHVhd2VpLmNvbT47IHdpbGwuZGVhY29uQGFybS5jb207IHJydWlncm9rQGNvZGVhdXJv
-cmEub3JnOw0KPiBMaW51eGFybSA8bGludXhhcm1AaHVhd2VpLmNvbT47IGxpbnV4LWFjcGlAdmdl
-ci5rZXJuZWwub3JnOyBsaW51eC1hcm0tDQo+IGtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBH
-dW9oYW5qdW4gKEhhbmp1biBHdW8pDQo+IDxndW9oYW5qdW5AaHVhd2VpLmNvbT47IGxpbnV4LWtl
-cm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2MyAyLzNdIHBlcmY6
-IGFkZCBhcm02NCBzbW11djMgcG11IGRyaXZlcg0KPiANCj4gT24gMDIvMTAvMTggMTc6MTksIEpl
-YW4tUGhpbGlwcGUgQnJ1Y2tlciB3cm90ZToNCj4gPiBPbiAwMi8xMC8yMDE4IDE1OjExLCBKZWFu
-LVBoaWxpcHBlIEJydWNrZXIgd3JvdGU6DQo+ID4+PiArCWNmZ3IgPSByZWFkbF9yZWxheGVkKHNt
-bXVfcG11LT5yZWdfYmFzZSArIFNNTVVfUE1DR19DRkdSKTsNCj4gPg0KPiA+IFNvbWV0aGluZyBJ
-IG1pc3NlZCBwcmV2aW91c2x5OiB3aGVuIFNNTVVfUE1DR19DRkdSLlNJRF9GSUxURVJfVFlQRQ0K
-PiBpcyAxLA0KPiA+IGZpbHRlcmluZyBmb3IgYWxsIGNvdW50ZXJzIGlzIGNvbmZpZ3VyZWQgYnkg
-U01NVV9QTUNHX1NNUjAgYW5kDQo+ID4gU01NVV9QTUNHX0VWVFlQRVIwIChpbnN0ZWFkIG9mIGhh
-dmluZyBvbmUgc2VwYXJhdGUgZmlsdGVyIHBlciBjb3VudGVyKS4NCj4gDQo+IE9oLCBJIGhhZG4n
-dCBldmVuIG5vdGljZWQgaXQgaGFkIHRoYXQgbW9kZSBhcyB3ZWxsLi4uDQoNClRoYW5rcyBKZWFu
-LiBNaXNzZWQgdGhhdCBjb21wbGV0ZWx5LiANCiANCj4gPiBJbiB0aGF0IG1vZGUgd2l0aCB5b3Vy
-IHBhdGNoLCBpZiB0aGUgdXNlciBhcHBsaWVzIGEgZmlsdGVyIHRvIHRoZSBmaXJzdA0KPiA+IGV2
-ZW50IGluIHRoZSBsaXN0IHBhc3NlZCB0byBwZXJmLCBpdCB3aWxsIGJlIGFwcGxpZWQgdG8gYWxs
-IGV2ZW50cy4NCj4gPiBGaWx0ZXIgYXBwbGllZCBvbiBhbnkgc3Vic2VxdWVudCBldmVudCB3aWxs
-IGJlIGlnbm9yZWQuIENvdWxkIHdlIG1ha2UNCj4gPiB0aGlzIG1vcmUgZXhwbGljaXQ/IE1heWJl
-IGluIHRoZSBwcm9iZSBwcmludCB0aGF0IHRoZSBQTUNHIGlzDQo+ID4gZ2xvYmFsLWZpbHRlcmlu
-ZywgYW5kIHdoZW4gYXR0ZW1wdGluZyB0byBhcHBseSBhIGZpbHRlciB0byBzb21ldGhpbmcNCj4g
-PiBlbHNlIHRoYW4gRVZDTlRSMCwgcmV0dXJuIGFuIGVycm9yPw0KPiANCj4gRldJVyBmaWx0ZXJp
-bmcgaXMgYWx3YXlzIHBlci1jb3VudGVyLWdyb3VwIG9uIHRoZSBTTU1VdjIgUE1VLCBhbmQgaXQn
-cw0KPiBhY3R1YWxseSBwcmV0dHkgc3RyYWlnaHRmb3J3YXJkIHRvIGNvcGUgd2l0aCAtIHBtdS0+
-YWRkKCkganVzdCBuZWVkcyB0bw0KPiByZWplY3QgdGhlIGV2ZW50IGlmIG9uZSB3aXRoIGFuIGlu
-Y29tcGF0aWJsZSBjb25maWd1cmF0aW9uIGlzIGFscmVhZHkNCj4gc2NoZWR1bGVkLCBzbyBwZXJm
-IGNvcmUgaGFuZGxlcyBpdCBtdWNoIGxpa2UgaGF2aW5nIG1vcmUgZXZlbnRzIHRoYW4NCj4gY291
-bnRlcnMsIGJ5IHJvdGF0aW5nIHRoZSBtdXR1YWxseS1leGNsdXNpdmUgc2V0cy4NCg0KSSB3aWxs
-IHRha2UgYSBsb29rIGFuZCBhZGRyZXNzIHRoaXMgaW4gbmV4dCB2ZXJzaW9uLg0KDQpUaGFua3Ms
-DQpTaGFtZWVyDQo=
+On Thursday, September 20, 2018 10:05:00 AM CEST Rafael J. Wysocki wrote:
+> On Thursday, September 20, 2018 12:04:22 AM CEST Rasmus Villemoes wrote:
+> > This started as an experiment to see how hard it would be to change
+> > the four pointers in struct _ddebug into relative offsets, a la
+> > CONFIG_GENERIC_BUG_RELATIVE_POINTERS, thus saving 16 bytes per
+> > pr_debug site (and thus exactly making up for the extra space used by
+> > the introduction of jump labels in 9049fc74). I stumbled on a few
+> > things that are probably worth fixing regardless of whether the latter
+> > half of this series is deemed worthwhile.
+> > 
+> > Patch relationships: 1-2, 3-4, 5-6 and 15-16 can be applied
+> > individually, though 2, 4 and 6 probably makes most sense in the
+> > context of the final goal of the series.
+> 
+> OK, I can take the [15-16/22] separately.
+
+And they have been applied now.
+
+Thanks,
+Rafael
