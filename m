@@ -1,50 +1,68 @@
-From: Robin Murphy <robin.murphy@arm.com>
+From: John Garry <john.garry@huawei.com>
 Subject: Re: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
-Date: Wed, 3 Oct 2018 11:37:07 +0100
-Message-ID: <2b4a53bc-7839-6826-44ed-6099c732a31a@arm.com>
+Date: Wed, 3 Oct 2018 12:06:41 +0100
+Message-ID: <e3546ab9-269c-c39c-344f-ff2eb9a5336b@huawei.com>
 References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
  <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com
-Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, robin.murphy@arm.com, will.deacon@arm.com, mark.rutland@arm.com
+Cc: guohanjun@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 21/09/18 16:08, Shameer Kolothum wrote:
-[...]
+On 21/09/2018 16:08, Shameer Kolothum wrote:
 > +
-> +	err = cpuhp_state_add_instance_nocalls(cpuhp_state_num,
-> +					       &smmu_pmu->node);
-
-In theory a hotplug event could happen as soon as the instance is 
-registered...
-
-> +	if (err) {
-> +		dev_err(dev, "Error %d registering hotplug, PMU @%pa\n",
-> +			err, &res_0->start);
-> +		return err;
-> +	}
+> +ssize_t smmu_pmu_event_show(struct device *dev,
+> +			    struct device_attribute *attr, char *page)
+> +{
+> +	struct perf_pmu_events_attr *pmu_attr;
 > +
-> +	/* Pick one CPU to be the preferred one to use */
-> +	smmu_pmu->on_cpu = get_cpu();
-
-...so this looks too late, i.e. a race here can result in a bogus call 
-to perf_pmu_migrate_context() with an uninitialised pmu.
-
-Robin.
-
-> +	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
+> +	pmu_attr = container_of(attr, struct perf_pmu_events_attr, attr);
 > +
-> +	err = perf_pmu_register(&smmu_pmu->pmu, name, -1);
-> +	if (err) {
-> +		dev_err(dev, "Error %d registering PMU @%pa\n",
-> +			err, &res_0->start);
-> +		goto out_unregister;
-> +	}
+> +	return sprintf(page, "event=0x%02llx\n", pmu_attr->id);
+> +}
+
+Is there some reason PMU drivers have their own edition of this 
+function? I see a few similar ones here:
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/arm64/kernel/perf_event.c#n309
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/powerpc/perf/core-book3s.c#n1986
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/arch/s390/kernel/perf_event.c#n239
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/perf/qcom_l2_pmu.c#n731
+
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/drivers/perf/qcom_l3_pmu.c#n655
+
+That is apart from the event id width format.
+
+But the leading zeroes seem to be cropped anyway in the perf tool, 
+according to this:
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/tools/perf/util/pmu.c#n335 
+(this was added in 0c24d6fb7db, in June 18)
+
+John
+
 > +
-> +	put_cpu();
+> +#define SMMU_EVENT_ATTR(_name, _id)					  \
+> +	(&((struct perf_pmu_events_attr[]) {				  \
+> +		{ .attr = __ATTR(_name, 0444, smmu_pmu_event_show, NULL), \
+> +		  .id = _id, }						  \
+> +	})[0].attr.attr)
+> +
+> +static struct attribute *smmu_pmu_events[] = {
+> +	SMMU_EVENT_ATTR(cycles, 0),
+> +	SMMU_EVENT_ATTR(transaction, 1),
+> +	SMMU_EVENT_ATTR(tlb_miss, 2),
+> +	SMMU_EVENT_ATTR(config_cache_miss, 3),
+> +	SMMU_EVENT_ATTR(trans_table_walk, 4),
+> +	SMMU_EVENT_ATTR(config_struct_access, 5),
+> +	SMMU_EVENT_ATTR(pcie_ats_trans_rq, 6),
+> +	SMMU_EVENT_ATTR(pcie_ats_trans_passed, 7),
+> +	NULL
+> +};
