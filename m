@@ -1,68 +1,58 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/sbshc: Fix rare oops when removing modules.
-Date: Wed, 03 Oct 2018 11:26:27 +0200
-Message-ID: <6138243.jYEBpdSlFa@aspire.rjw.lan>
-References: <20181001025313.GA9144@innovation.ch>
+Subject: Re: [PATCH v3 1/2] drivers: base: cacheinfo: Do not populate sysfs for unknown cache types
+Date: Wed, 03 Oct 2018 11:35:39 +0200
+Message-ID: <256435083.TFCBfdESsY@aspire.rjw.lan>
+References: <1538103477-15513-1-git-send-email-jhugo@codeaurora.org> <1538103477-15513-2-git-send-email-jhugo@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181001025313.GA9144@innovation.ch>
+In-Reply-To: <1538103477-15513-2-git-send-email-jhugo@codeaurora.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ronald =?ISO-8859-1?Q?Tschal=E4r?= <ronald@innovation.ch>
-Cc: Len Brown <lenb@kernel.org>, Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>
+Cc: sudeep.holla@arm.com, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, October 1, 2018 4:53:13 AM CEST Ronald Tschalär wrote:
-> There was a small race when removing the sbshc module where
-> smbus_alarm() had queued acpi_smbus_callback() for deferred execution
-> but it hadn't been run yet, so that when it did run hc had been freed
-> and the module unloaded, resulting in an invalid paging request.
+On Friday, September 28, 2018 4:57:56 AM CEST Jeffrey Hugo wrote:
+> If a cache has an unknown type because neither the hardware nor the
+> firmware told us, an entry in the sysfs tree will be made, but the type
+> file will not be present.  lscpu depends on the type file being present
+> for every entry, and will error out without printing system information
+> if lscpu cannot open the type file.
 > 
-> A similar race existed when removing the sbs module with regards to
-> acpi_sbs_callback() (which is called from acpi_smbus_callback()).
+> Presenting information about a cache without indicating its type is not
+> useful, therefore if we hit a cache with an unknown type, stop populating
+> sysfs so that userspace has the maximum amount of useful information.
 > 
-> We therefore need to ensure no callbacks are pending or executing before
-> the cleanups are done and the modules are removed.
+> This addresses the following lscpu error, which prevents any output.
+> lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+> file or directory
 > 
-> Signed-off-by: Ronald Tschalär <ronald@innovation.ch>
+> Suggested-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
+> Reviewed-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  drivers/acpi/osl.c   | 1 +
->  drivers/acpi/sbshc.c | 2 ++
->  2 files changed, 3 insertions(+)
+>  drivers/base/cacheinfo.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 8df9abfa947b..9d139727f164 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -1129,6 +1129,7 @@ void acpi_os_wait_events_complete(void)
->  	flush_workqueue(kacpid_wq);
->  	flush_workqueue(kacpi_notify_wq);
->  }
-> +EXPORT_SYMBOL(acpi_os_wait_events_complete);
->  
->  struct acpi_hp_work {
->  	struct work_struct work;
-> diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-> index 7a3431018e0a..5008ead4609a 100644
-> --- a/drivers/acpi/sbshc.c
-> +++ b/drivers/acpi/sbshc.c
-> @@ -196,6 +196,7 @@ int acpi_smbus_unregister_callback(struct acpi_smb_hc *hc)
->  	hc->callback = NULL;
->  	hc->context = NULL;
->  	mutex_unlock(&hc->lock);
-> +	acpi_os_wait_events_complete();
->  	return 0;
->  }
->  
-> @@ -292,6 +293,7 @@ static int acpi_smbus_hc_remove(struct acpi_device *device)
->  
->  	hc = acpi_driver_data(device);
->  	acpi_ec_remove_query_handler(hc->ec, hc->query_bit);
-> +	acpi_os_wait_events_complete();
->  	kfree(hc);
->  	device->driver_data = NULL;
->  	return 0;
+> diff --git a/drivers/base/cacheinfo.c b/drivers/base/cacheinfo.c
+> index 5d5b598..cf78fa6 100644
+> --- a/drivers/base/cacheinfo.c
+> +++ b/drivers/base/cacheinfo.c
+> @@ -615,6 +615,8 @@ static int cache_add_dev(unsigned int cpu)
+>  		this_leaf = this_cpu_ci->info_list + i;
+>  		if (this_leaf->disable_sysfs)
+>  			continue;
+> +		if (this_leaf->type == CACHE_TYPE_NOCACHE)
+> +			break;
+>  		cache_groups = cache_get_attribute_groups(this_leaf);
+>  		ci_dev = cpu_device_create(parent, this_leaf, cache_groups,
+>  					   "index%1u", i);
 > 
 
-Applied, thanks!
+Can you please resend this patch with all tags collected so far?
+
+Patchwork doesn't seem to have picked it up.
+
+Thanks,
+Rafael
