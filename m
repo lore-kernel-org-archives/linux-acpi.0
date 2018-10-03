@@ -1,79 +1,62 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Wed, 3 Oct 2018 19:14:05 +0200
-Message-ID: <06a35970-e478-18f8-eae6-4022925a5192@redhat.com>
-References: <20180928150357.12942-1-david@redhat.com>
- <20181001084038.GD18290@dhcp22.suse.cz>
- <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
- <20181002134734.GT18290@dhcp22.suse.cz>
- <98fb8d65-b641-2225-f842-8804c6f79a06@redhat.com>
- <8736tndubn.fsf@vitty.brq.redhat.com> <20181003134444.GH4714@dhcp22.suse.cz>
- <87zhvvcf3b.fsf@vitty.brq.redhat.com>
- <49456818-238e-2d95-9df6-d1934e9c8b53@linux.intel.com>
- <87tvm3cd5w.fsf@vitty.brq.redhat.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v6 05/18] ACPI / APEI: Make estatus queue a Kconfig symbol
+Date: Wed, 3 Oct 2018 18:50:36 +0100
+Message-ID: <a562d7c4-2e74-3a18-7fb0-ba8f40d2dce4@arm.com>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-6-james.morse@arm.com> <20181001175956.GF7269@zn.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <87tvm3cd5w.fsf@vitty.brq.redhat.com>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <20181001175956.GF7269@zn.tnic>
 Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Vitaly Kuznetsov <vkuznets@redhat.com>, Dave Hansen <dave.hansen@linux.intel.com>, Michal Hocko <mhocko@kernel.org>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Borislav Petkov <bp@alien8.de>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 03/10/2018 16:34, Vitaly Kuznetsov wrote:
-> Dave Hansen <dave.hansen@linux.intel.com> writes:
+Hi Boris,
+
+On 01/10/18 18:59, Borislav Petkov wrote:
+> On Fri, Sep 21, 2018 at 11:16:52PM +0100, James Morse wrote:
+>> Now that there are two users of the estatus queue, and likely to be more,
+>> make it a Kconfig symbol selected by the appropriate notification. We
+>> can move the ARCH_HAVE_NMI_SAFE_CMPXCHG checks in here too.
 > 
->> On 10/03/2018 06:52 AM, Vitaly Kuznetsov wrote:
->>> It is more than just memmaps (e.g. forking udev process doing memory
->>> onlining also needs memory) but yes, the main idea is to make the
->>> onlining synchronous with hotplug.
->>
->> That's a good theoretical concern.
->>
->> But, is it a problem we need to solve in practice?
-> 
-> Yes, unfortunately. It was previously discovered that when we try to
-> hotplug tons of memory to a low memory system (this is a common scenario
-> with VMs) we end up with OOM because for all new memory blocks we need
-> to allocate page tables, struct pages, ... and we need memory to do
-> that. The userspace program doing memory onlining also needs memory to
-> run and in case it prefers to fork to handle hundreds of notfifications
-> ... well, it may get OOMkilled before it manages to online anything.
-> 
-> Allocating all kernel objects from the newly hotplugged blocks would
-> definitely help to manage the situation but as I said this won't solve
-> the 'forking udev' problem completely (it will likely remain in
-> 'extreme' cases only. We can probably work around it by onlining with a
-> dedicated process which doesn't do memory allocation).
-> 
+> Ok, question: why do we need to complicate things at all? I mean, why do
+> we even need a Kconfig symbol?
 
-I guess the problem is even worse. We always have two phases
+Before patch 4, this was behind CONFIG_HAVE_ACPI_APEI_NMI, (so it made use of an
+existing kconfig symbol), and there was only one user x86:NMI.
 
-1. add memory - requires memory allocation
-2. online memory - might require memory allocations e.g. for slab/slub
+The ACPI spec has four ~NMI notifications, so far the support for these in Linux
+has been selectable separately. If you build the kernel without any of them then
+this code would be unused, and generate warnings because all those users are
+behind #ifdef too.
 
-So if we just added memory but don't have sufficient memory to start a
-user space process to trigger onlining, then we most likely also don't
-have sufficient memory to online the memory right away (in some scenarios).
 
-We would have to allocate all new memory for 1 and 2 from the memory to
-be onlined. I guess the latter part is less trivial.
+> This code is being used by two arches now so why not simply build it in
+> unconditionally and be done with it. The couple of KB saved are simply
+> not worth the effort, especially if it is going to end up being enabled
+> on 99% of the setups...
 
-So while onlining the memory from the kernel might make things a little
-more robust, we would still have the chance for OOM / onlining failing.
+I'm all in favour of letting the compiler work it out, but the existing ghes
+code has #ifdef/#else all over the place. This is 'keeping the style'.
+I assumed it was done this way to support an older compiler on x86, (I see that
+jumped from 3.2 to 4.6 with commit cafa0010cd51)
 
--- 
+We could strip the lot away to a few IS_ENABLED() in ghes_probe() and the
+memory_failure()/AER calls if you'd prefer.
+
 
 Thanks,
 
-David / dhildenb
+James
