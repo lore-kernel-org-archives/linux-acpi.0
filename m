@@ -1,100 +1,68 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Thu, 4 Oct 2018 10:13:48 +0200
-Message-ID: <efd50413-4be4-06c4-5ef0-711fdf05db71@redhat.com>
-References: <20181001084038.GD18290@dhcp22.suse.cz>
- <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
- <20181002134734.GT18290@dhcp22.suse.cz>
- <98fb8d65-b641-2225-f842-8804c6f79a06@redhat.com>
- <8736tndubn.fsf@vitty.brq.redhat.com> <20181003134444.GH4714@dhcp22.suse.cz>
- <87zhvvcf3b.fsf@vitty.brq.redhat.com>
- <49456818-238e-2d95-9df6-d1934e9c8b53@linux.intel.com>
- <87tvm3cd5w.fsf@vitty.brq.redhat.com>
- <06a35970-e478-18f8-eae6-4022925a5192@redhat.com>
- <20181004061938.GB22173@dhcp22.suse.cz>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 00/18] APEI in_nmi() rework
+Date: Thu, 4 Oct 2018 17:15:55 +0200
+Message-ID: <20181004151555.GN1864@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180925124526.GD23986@zn.tnic>
+ <c04d1b78-122b-d7f2-5a75-3d9c56386b11@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20181004061938.GB22173@dhcp22.suse.cz>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: Michal Hocko <mhocko@kernel.org>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <c04d1b78-122b-d7f2-5a75-3d9c56386b11@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/10/2018 08:19, Michal Hocko wrote:
-> On Wed 03-10-18 19:14:05, David Hildenbrand wrote:
->> On 03/10/2018 16:34, Vitaly Kuznetsov wrote:
->>> Dave Hansen <dave.hansen@linux.intel.com> writes:
->>>
->>>> On 10/03/2018 06:52 AM, Vitaly Kuznetsov wrote:
->>>>> It is more than just memmaps (e.g. forking udev process doing memory
->>>>> onlining also needs memory) but yes, the main idea is to make the
->>>>> onlining synchronous with hotplug.
->>>>
->>>> That's a good theoretical concern.
->>>>
->>>> But, is it a problem we need to solve in practice?
->>>
->>> Yes, unfortunately. It was previously discovered that when we try to
->>> hotplug tons of memory to a low memory system (this is a common scenario
->>> with VMs) we end up with OOM because for all new memory blocks we need
->>> to allocate page tables, struct pages, ... and we need memory to do
->>> that. The userspace program doing memory onlining also needs memory to
->>> run and in case it prefers to fork to handle hundreds of notfifications
->>> ... well, it may get OOMkilled before it manages to online anything.
->>>
->>> Allocating all kernel objects from the newly hotplugged blocks would
->>> definitely help to manage the situation but as I said this won't solve
->>> the 'forking udev' problem completely (it will likely remain in
->>> 'extreme' cases only. We can probably work around it by onlining with a
->>> dedicated process which doesn't do memory allocation).
->>>
->>
->> I guess the problem is even worse. We always have two phases
->>
->> 1. add memory - requires memory allocation
->> 2. online memory - might require memory allocations e.g. for slab/slub
->>
->> So if we just added memory but don't have sufficient memory to start a
->> user space process to trigger onlining, then we most likely also don't
->> have sufficient memory to online the memory right away (in some scenarios).
->>
->> We would have to allocate all new memory for 1 and 2 from the memory to
->> be onlined. I guess the latter part is less trivial.
->>
->> So while onlining the memory from the kernel might make things a little
->> more robust, we would still have the chance for OOM / onlining failing.
-> 
-> Yes, _theoretically_. Is this a practical problem for reasonable
-> configurations though? I mean, this will never be perfect and we simply
-> cannot support all possible configurations. We should focus on
-> reasonable subset of them. From my practical experience the vast
-> majority of memory is consumed by memmaps (roughly 1.5%). That is not a
-> lot but I agree that allocating that from the zone normal and off node
-> is not great. Especially the second part which is noticeable for whole
-> node hotplug.
-> 
-> I have a feeling that arguing about fork not able to proceed or OOMing
-> for the memory hotplug is a bit of a stretch and a sign a of
-> misconfiguration.
-> 
+On Wed, Oct 03, 2018 at 06:50:38PM +0100, James Morse wrote:
 
-Just to rephrase, I have the same opinion. Something is already messed
-up if we cannot even fork anymore. We will have OOM already all over the
-place before/during/after forking.
+...
+
+> The non-ghes HEST entries have a "number of records to pre-allocate" too, we
+> could make this memory pool something hest.c looks after, but I can't see if the
+> other error sources use those values.
+
+Thanks for the detailed analysis!
+
+> Hmmm, The size is capped to 64K, we could ignore the firmware description of the
+> memory requirements, and allocate SZ_64K each time. Doing it per-GHES is still
+> the only way to avoid allocating nmi-safe memory for irqs.
+
+Right, so I'm thinking a lot simpler: allocate a pool which should
+be large enough to handle all situations and drop all that logic
+which recomputes and reallocates pool size. Just a static thing which
+JustWorks(tm).
+
+For a couple of reasons:
+
+ - you state it above: all those synchronization issues are gone with a
+ prellocated pool
+
+ - 64K per-GHES pool is nothing if you consider the machines this thing
+ runs on - fat servers with lotsa memory. And RAS there *is* important.
+ And TBH 64K is nothing even on a small client sporting gigabytes of
+ memory.
+
+ - code is a lot simpler and cleaner - you don't need all that pool
+ expanding and shrinking. I mean, I'm all for smarter solutions if they
+ have any clear advantages warranting the complication but this is a
+ lot of machinery just so that we can save a couple of KBs. Which, as a
+ whole, sounds just too much to me.
+
+But this is just me.
 
 -- 
+Regards/Gruss,
+    Boris.
 
-Thanks,
-
-David / dhildenb
+Good mailing practices for 400: avoid top-posting and trim the reply.
