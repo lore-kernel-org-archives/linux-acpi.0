@@ -1,98 +1,55 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: [PATCH v4 2/2] ACPI/PPTT: Handle architecturally unknown cache types
-Date: Thu,  4 Oct 2018 09:20:06 -0600
-Message-ID: <1538666406-7504-3-git-send-email-jhugo@codeaurora.org>
-References: <1538666406-7504-1-git-send-email-jhugo@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1538666406-7504-1-git-send-email-jhugo@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
-Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Thu, 4 Oct 2018 17:28:07 +0200
+Message-ID: <20181004172807.1eef3a6b@kitsune.suse.cz>
+References: <20181001084038.GD18290@dhcp22.suse.cz>
+ <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
+ <20181002134734.GT18290@dhcp22.suse.cz>
+ <98fb8d65-b641-2225-f842-8804c6f79a06@redhat.com>
+ <8736tndubn.fsf@vitty.brq.redhat.com>
+ <20181003134444.GH4714@dhcp22.suse.cz>
+ <87zhvvcf3b.fsf@vitty.brq.redhat.com>
+ <49456818-238e-2d95-9df6-d1934e9c8b53@linux.intel.com>
+ <87tvm3cd5w.fsf@vitty.brq.redhat.com>
+ <06a35970-e478-18f8-eae6-4022925a5192@redhat.com>
+ <20181004061938.GB22173@dhcp22.suse.cz>
+ <efd50413-4be4-06c4-5ef0-711fdf05db71@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <efd50413-4be4-06c4-5ef0-711fdf05db71@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Hildenbrand <david@redhat.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Vitaly Kuznetsov <vkuznets@redhat.com>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, linux-s390@v
 List-Id: linux-acpi@vger.kernel.org
 
-The type of a cache might not be specified by architectural mechanisms (ie
-system registers), but its type might be specified in the PPTT.  In this
-case, we should populate the type of the cache, rather than leave it
-undefined.
+On Thu, 4 Oct 2018 10:13:48 +0200
+David Hildenbrand <david@redhat.com> wrote:
 
-This fixes the issue where the cacheinfo driver will not populate sysfs
-for such caches, resulting in the information missing from utilities like
-lstopo and lscpu, thus degrading the user experience.
+ok, so what is the problem here?
 
-Fixes: 2bd00bcd73e5 (ACPI/PPTT: Add Processor Properties Topology Table parsing)
-Reported-by: Vijaya Kumar K <vkilari@codeaurora.org>
-Signed-off-by: Jeffrey Hugo <jhugo@codeaurora.org>
-Reviewed-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/acpi/pptt.c | 33 +++++++++++++--------------------
- 1 file changed, 13 insertions(+), 20 deletions(-)
+Handling the hotplug in userspace through udev may be suboptimal and
+kernel handling might be faster but that's orthogonal to the problem at
+hand.
 
-diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
-index d1e26cb..da031b1 100644
---- a/drivers/acpi/pptt.c
-+++ b/drivers/acpi/pptt.c
-@@ -338,9 +338,6 @@ static struct acpi_pptt_cache *acpi_find_cache_node(struct acpi_table_header *ta
- 	return found;
- }
- 
--/* total number of attributes checked by the properties code */
--#define PPTT_CHECKED_ATTRIBUTES 4
--
- /**
-  * update_cache_properties() - Update cacheinfo for the given processor
-  * @this_leaf: Kernel cache info structure being updated
-@@ -357,25 +354,15 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- 				    struct acpi_pptt_cache *found_cache,
- 				    struct acpi_pptt_processor *cpu_node)
- {
--	int valid_flags = 0;
--
- 	this_leaf->fw_token = cpu_node;
--	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_SIZE_PROPERTY_VALID)
- 		this_leaf->size = found_cache->size;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_LINE_SIZE_VALID)
- 		this_leaf->coherency_line_size = found_cache->line_size;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_NUMBER_OF_SETS_VALID)
- 		this_leaf->number_of_sets = found_cache->number_of_sets;
--		valid_flags++;
--	}
--	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID) {
-+	if (found_cache->flags & ACPI_PPTT_ASSOCIATIVITY_VALID)
- 		this_leaf->ways_of_associativity = found_cache->associativity;
--		valid_flags++;
--	}
- 	if (found_cache->flags & ACPI_PPTT_WRITE_POLICY_VALID) {
- 		switch (found_cache->attributes & ACPI_PPTT_MASK_WRITE_POLICY) {
- 		case ACPI_PPTT_CACHE_POLICY_WT:
-@@ -402,11 +389,17 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
- 		}
- 	}
- 	/*
--	 * If the above flags are valid, and the cache type is NOCACHE
--	 * update the cache type as well.
-+	 * If cache type is NOCACHE, then the cache hasn't been specified
-+	 * via other mechanisms.  Update the type if a cache type has been
-+	 * provided.
-+	 *
-+	 * Note, we assume such caches are unified based on conventional system
-+	 * design and known examples.  Significant work is required elsewhere to
-+	 * fully support data/instruction only type caches which are only
-+	 * specified in PPTT.
- 	 */
- 	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
--	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
-+	    found_cache->flags & ACPI_PPTT_CACHE_TYPE_VALID)
- 		this_leaf->type = CACHE_TYPE_UNIFIED;
- }
- 
--- 
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+The state of the art is to determine what to do with hotplugged memory
+in userspace based on platform and virtualization type.
+
+Changing the default to depend on the driver that added the memory
+rather than platform type should solve the issue of VMs growing
+different types of memory device emulation.
+
+Am I missing something?
+
+Thanks
+
+Michal
