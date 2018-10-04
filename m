@@ -1,211 +1,55 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v3 1/3] acpi: arm64: add iort support for PMCG
-Date: Thu, 4 Oct 2018 18:35:15 +0100
-Message-ID: <7572d65b-1d10-b460-c2c8-4f46e2e0d53c@arm.com>
-References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
- <20180921150803.25444-2-shameerali.kolothum.thodi@huawei.com>
- <20181004164356.GA16278@red-moon>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Thu, 4 Oct 2018 19:50:10 +0200
+Message-ID: <20181004195010.3616fc40@kitsune.suse.cz>
+References: <20181001084038.GD18290@dhcp22.suse.cz>
+ <d54a8509-725f-f771-72f0-15a9d93e8a49@redhat.com>
+ <20181002134734.GT18290@dhcp22.suse.cz>
+ <98fb8d65-b641-2225-f842-8804c6f79a06@redhat.com>
+ <8736tndubn.fsf@vitty.brq.redhat.com>
+ <20181003134444.GH4714@dhcp22.suse.cz>
+ <87zhvvcf3b.fsf@vitty.brq.redhat.com>
+ <49456818-238e-2d95-9df6-d1934e9c8b53@linux.intel.com>
+ <87tvm3cd5w.fsf@vitty.brq.redhat.com>
+ <06a35970-e478-18f8-eae6-4022925a5192@redhat.com>
+ <20181004061938.GB22173@dhcp22.suse.cz>
+ <efd50413-4be4-06c4-5ef0-711fdf05db71@redhat.com>
+ <20181004172807.1eef3a6b@kitsune.suse.cz>
+ <14992b68-5402-9168-0050-b3c6ac4a8c90@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181004164356.GA16278@red-moon>
-Content-Language: en-GB
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <14992b68-5402-9168-0050-b3c6ac4a8c90@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Hildenbrand <david@redhat.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Michal Hocko <mhocko@kernel.org>, linux-mm@kvack.org, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob Herring <robh@kernel.org>, mike.travis@hpe.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 04/10/18 17:43, Lorenzo Pieralisi wrote:
-> On Fri, Sep 21, 2018 at 04:08:01PM +0100, Shameer Kolothum wrote:
->> From: Neil Leeder <nleeder@codeaurora.org>
->>
->> Add support for the SMMU Performance Monitor Counter Group
->> information from ACPI. This is in preparation for its use
->> in the SMMUv3 PMU driver.
->>
->> Signed-off-by: Neil Leeder <nleeder@codeaurora.org>
->> Signed-off-by: Hanjun Guo <guohanjun@huawei.com>
->> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
->> ---
->>   drivers/acpi/arm64/iort.c | 78 +++++++++++++++++++++++++++++++++++++++--------
->>   1 file changed, 66 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
->> index 08f26db..b979c86 100644
->> --- a/drivers/acpi/arm64/iort.c
->> +++ b/drivers/acpi/arm64/iort.c
->> @@ -356,7 +356,8 @@ static struct acpi_iort_node *iort_node_get_id(struct acpi_iort_node *node,
->>   	if (map->flags & ACPI_IORT_ID_SINGLE_MAPPING) {
->>   		if (node->type == ACPI_IORT_NODE_NAMED_COMPONENT ||
->>   		    node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX ||
->> -		    node->type == ACPI_IORT_NODE_SMMU_V3) {
->> +		    node->type == ACPI_IORT_NODE_SMMU_V3 ||
->> +		    node->type == ACPI_IORT_NODE_PMCG) {
->>   			*id_out = map->output_base;
->>   			return parent;
->>   		}
->> @@ -394,6 +395,8 @@ static int iort_get_id_mapping_index(struct acpi_iort_node *node)
->>   		}
->>   
->>   		return smmu->id_mapping_index;
->> +	case ACPI_IORT_NODE_PMCG:
->> +		return 0;
->>   	default:
->>   		return -EINVAL;
->>   	}
->> @@ -1309,6 +1312,50 @@ static bool __init arm_smmu_is_coherent(struct acpi_iort_node *node)
->>   	return smmu->flags & ACPI_IORT_SMMU_COHERENT_WALK;
->>   }
->>   
->> +static void __init arm_smmu_common_dma_configure(struct device *dev,
->> +						enum dev_dma_attr attr)
->> +{
->> +	/* We expect the dma masks to be equivalent for all SMMUs set-ups */
->> +	dev->dma_mask = &dev->coherent_dma_mask;
->> +
->> +	/* Configure DMA for the page table walker */
->> +	acpi_dma_configure(dev, attr);
->> +}
-> 
-> It looks like we can't get rid of this acpi_dma_configure() call
-> given that the platform device we create has no ACPI companion
-> (and I am not looking forward to fabricating one to make the
-> code homogeneous :)).
-
-Yeah, given that this is essentially only for SMMUs, the alternatives 
-all end up looking like too much bother to be worthwhile.
-
-> Still, having two methods per IORT node type (dev_is_coherent() and
-> dev_dma_configure()) does not make much sense, we can merge it into one
-> I think.
-
-Good point - looks the attr from dev_is_coherent is only ever passed 
-through dev_dma_configure, so we may as well just have per-SMMU-type 
-dev_dma_configure methods which retrieve their own relevant coherency 
-directly. FWIW, on v2 I was tempted to suggest just wrapping the DMA 
-setup in "if (node->type != ACPI_IORT_NODE_PMCG)..." rather than messing 
-with more callbacks, but that clearly wouldn't fit well with the local 
-style here.
-
-Robin.
-
-> 
-> Thanks,
-> Lorenzo
-> 
->> +static int __init arm_smmu_v3_pmcg_count_resources(struct acpi_iort_node *node)
->> +{
->> +	struct acpi_iort_pmcg *pmcg;
->> +
->> +	/* Retrieve PMCG specific data */
->> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
->> +
->> +	/*
->> +	 * There are always 2 memory resources.
->> +	 * If the overflow_gsiv is present then add that for a total of 3.
->> +	 */
->> +	return pmcg->overflow_gsiv ? 3 : 2;
->> +}
->> +
->> +static void __init arm_smmu_v3_pmcg_init_resources(struct resource *res,
->> +					       struct acpi_iort_node *node)
->> +{
->> +	struct acpi_iort_pmcg *pmcg;
->> +
->> +	/* Retrieve PMCG specific data */
->> +	pmcg = (struct acpi_iort_pmcg *)node->node_data;
->> +
->> +	res[0].start = pmcg->page0_base_address;
->> +	res[0].end = pmcg->page0_base_address + SZ_4K - 1;
->> +	res[0].flags = IORESOURCE_MEM;
->> +	res[1].start = pmcg->page1_base_address;
->> +	res[1].end = pmcg->page1_base_address + SZ_4K - 1;
->> +	res[1].flags = IORESOURCE_MEM;
->> +
->> +	if (pmcg->overflow_gsiv)
->> +		acpi_iort_register_irq(pmcg->overflow_gsiv, "overflow",
->> +				       ACPI_EDGE_SENSITIVE, &res[2]);
->> +}
->> +
->>   struct iort_dev_config {
->>   	const char *name;
->>   	int (*dev_init)(struct acpi_iort_node *node);
->> @@ -1318,6 +1365,8 @@ struct iort_dev_config {
->>   				     struct acpi_iort_node *node);
->>   	void (*dev_set_proximity)(struct device *dev,
->>   				    struct acpi_iort_node *node);
->> +	void (*dev_dma_configure)(struct device *dev,
->> +					enum dev_dma_attr attr);
->>   };
->>   
->>   static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
->> @@ -1326,23 +1375,34 @@ static const struct iort_dev_config iort_arm_smmu_v3_cfg __initconst = {
->>   	.dev_count_resources = arm_smmu_v3_count_resources,
->>   	.dev_init_resources = arm_smmu_v3_init_resources,
->>   	.dev_set_proximity = arm_smmu_v3_set_proximity,
->> +	.dev_dma_configure = arm_smmu_common_dma_configure,
->>   };
->>   
->>   static const struct iort_dev_config iort_arm_smmu_cfg __initconst = {
->>   	.name = "arm-smmu",
->>   	.dev_is_coherent = arm_smmu_is_coherent,
->>   	.dev_count_resources = arm_smmu_count_resources,
->> -	.dev_init_resources = arm_smmu_init_resources
->> +	.dev_init_resources = arm_smmu_init_resources,
->> +	.dev_dma_configure = arm_smmu_common_dma_configure,
->> +};
->> +
->> +static const struct iort_dev_config iort_arm_smmu_v3_pmcg_cfg __initconst = {
->> +	.name = "arm-smmu-v3-pmu",
->> +	.dev_count_resources = arm_smmu_v3_pmcg_count_resources,
->> +	.dev_init_resources = arm_smmu_v3_pmcg_init_resources,
->>   };
->>   
->>   static __init const struct iort_dev_config *iort_get_dev_cfg(
->>   			struct acpi_iort_node *node)
->>   {
->> +
->>   	switch (node->type) {
->>   	case ACPI_IORT_NODE_SMMU_V3:
->>   		return &iort_arm_smmu_v3_cfg;
->>   	case ACPI_IORT_NODE_SMMU:
->>   		return &iort_arm_smmu_cfg;
->> +	case ACPI_IORT_NODE_PMCG:
->> +		return &iort_arm_smmu_v3_pmcg_cfg;
->>   	default:
->>   		return NULL;
->>   	}
->> @@ -1398,12 +1458,6 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->>   	if (ret)
->>   		goto dev_put;
->>   
->> -	/*
->> -	 * We expect the dma masks to be equivalent for
->> -	 * all SMMUs set-ups
->> -	 */
->> -	pdev->dev.dma_mask = &pdev->dev.coherent_dma_mask;
->> -
->>   	fwnode = iort_get_fwnode(node);
->>   
->>   	if (!fwnode) {
->> @@ -1413,11 +1467,11 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->>   
->>   	pdev->dev.fwnode = fwnode;
->>   
->> -	attr = ops->dev_is_coherent && ops->dev_is_coherent(node) ?
->> +	if (ops->dev_dma_configure) {
->> +		attr = ops->dev_is_coherent && ops->dev_is_coherent(node) ?
->>   			DEV_DMA_COHERENT : DEV_DMA_NON_COHERENT;
->> -
->> -	/* Configure DMA for the page table walker */
->> -	acpi_dma_configure(&pdev->dev, attr);
->> +		ops->dev_dma_configure(&pdev->dev, attr);
->> +	}
->>   
->>   	iort_set_device_domain(&pdev->dev, node);
->>   
->> -- 
->> 2.7.4
->>
->>
+T24gVGh1LCA0IE9jdCAyMDE4IDE3OjQ1OjEzICswMjAwCkRhdmlkIEhpbGRlbmJyYW5kIDxkYXZp
+ZEByZWRoYXQuY29tPiB3cm90ZToKCj4gT24gMDQvMTAvMjAxOCAxNzoyOCwgTWljaGFsIFN1Y2jD
+oW5layB3cm90ZToKCj4gPiAKPiA+IFRoZSBzdGF0ZSBvZiB0aGUgYXJ0IGlzIHRvIGRldGVybWlu
+ZSB3aGF0IHRvIGRvIHdpdGggaG90cGx1Z2dlZAo+ID4gbWVtb3J5IGluIHVzZXJzcGFjZSBiYXNl
+ZCBvbiBwbGF0Zm9ybSBhbmQgdmlydHVhbGl6YXRpb24gdHlwZS4gIAo+IAo+IEV4YWN0bHkuCj4g
+Cj4gPiAKPiA+IENoYW5naW5nIHRoZSBkZWZhdWx0IHRvIGRlcGVuZCBvbiB0aGUgZHJpdmVyIHRo
+YXQgYWRkZWQgdGhlIG1lbW9yeQo+ID4gcmF0aGVyIHRoYW4gcGxhdGZvcm0gdHlwZSBzaG91bGQg
+c29sdmUgdGhlIGlzc3VlIG9mIFZNcyBncm93aW5nCj4gPiBkaWZmZXJlbnQgdHlwZXMgb2YgbWVt
+b3J5IGRldmljZSBlbXVsYXRpb24uICAKPiAKPiBZZXMsIG15IG9yaWdpbmFsIHByb3Bvc2FsICh0
+aGlzIHBhdGNoKSB3YXMgdG8gaGFuZGxlIGl0IGluIHRoZSBrZXJuZWwKPiBmb3Iga25vd24gdHlw
+ZXMuIEJ1dCBhcyB3ZSBsZWFybmVkLCB0aGVyZSBtaWdodCBiZSBzb21lIHVzZSBjYXNlcyB0aGF0
+Cj4gbWlnaHQgc3RpbGwgcmVxdWlyZSB0byBtYWtlIGEgZGVjaXNpb24gaW4gdXNlciBzcGFjZS4K
+PiAKPiBTbyBwcm92aWRpbmcgdGhlIHVzZXIgc3BhY2UgZWl0aGVyIHdpdGggc29tZSB0eXBlIGhp
+bnQgKGF1dG8tb25saW5lCj4gdnMuIHN0YW5kYnkpIG9yIHRoZSBkcml2ZXIgdGhhdCBhZGRlZCBp
+dCAoc3lzdGVtIHZzLiBoeXBlci12IC4uLikKPiB3b3VsZCBzb2x2ZSB0aGUgaXNzdWUuCgpJcyB0
+aGF0IG5vdCBhdmFpbGFibGUgaW4gdGhlIHVkZXYgZXZlbnQ/CgpUaGFua3MKCk1pY2hhbApfX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkZXZlbCBtYWlsaW5n
+IGxpc3QKZGV2ZWxAbGludXhkcml2ZXJwcm9qZWN0Lm9yZwpodHRwOi8vZHJpdmVyZGV2LmxpbnV4
+ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcml2ZXJkZXYtZGV2ZWwK
