@@ -1,68 +1,54 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 00/18] APEI in_nmi() rework
-Date: Thu, 4 Oct 2018 17:15:55 +0200
-Message-ID: <20181004151555.GN1864@zn.tnic>
-References: <20180921221705.6478-1-james.morse@arm.com>
- <20180925124526.GD23986@zn.tnic>
- <c04d1b78-122b-d7f2-5a75-3d9c56386b11@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <c04d1b78-122b-d7f2-5a75-3d9c56386b11@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+From: Jeffrey Hugo <jhugo@codeaurora.org>
+Subject: [PATCH v4 0/2] PPTT handle Handle architecturally unknown cache types
+Date: Thu,  4 Oct 2018 09:20:04 -0600
+Message-ID: <1538666406-7504-1-git-send-email-jhugo@codeaurora.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: sudeep.holla@arm.com, gregkh@linuxfoundation.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, jeremy.linton@arm.com
+Cc: linux-kernel@vger.kernel.org, vkilari@codeaurora.org, Jeffrey Hugo <jhugo@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 03, 2018 at 06:50:38PM +0100, James Morse wrote:
+The ARM Architecture Reference Manual allows for caches to be "invisible" and
+thus not specified in the system registers under some scenarios such as if the
+cache cannot be managed by set/way operations.
 
-...
+However, such caches may be specified in the ACPI PPTT table for workload
+performance/scheduling optimizations.
 
-> The non-ghes HEST entries have a "number of records to pre-allocate" too, we
-> could make this memory pool something hest.c looks after, but I can't see if the
-> other error sources use those values.
+Currently such caches can cause an error in lscpu -
 
-Thanks for the detailed analysis!
+lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
+file or directory
 
-> Hmmm, The size is capped to 64K, we could ignore the firmware description of the
-> memory requirements, and allocate SZ_64K each time. Doing it per-GHES is still
-> the only way to avoid allocating nmi-safe memory for irqs.
+and result in no output, providing a poor user experience.  lstopo is also
+affected as such caches are not included in the output.
 
-Right, so I'm thinking a lot simpler: allocate a pool which should
-be large enough to handle all situations and drop all that logic
-which recomputes and reallocates pool size. Just a static thing which
-JustWorks(tm).
+Address these issues by attempting to be a little more discerning about when
+cache information is provided to userspace, and also utilize all sources for
+cache information when possible.
 
-For a couple of reasons:
+[v4]
+-Collected all current tags and ammended to individual patches
+-Removed PPTT_CHECKED_ATTRIBUTES
 
- - you state it above: all those synchronization issues are gone with a
- prellocated pool
+[v3]
+-removed valid flag in PPTT
+-Added Jeremy Linton's reviewed-by
 
- - 64K per-GHES pool is nothing if you consider the machines this thing
- runs on - fat servers with lotsa memory. And RAS there *is* important.
- And TBH 64K is nothing even on a small client sporting gigabytes of
- memory.
+[v2]
+-Updated cacheinfo per Sudeep's suggestion
+-Integrated the PPTT fix into existing PPTT code per Sudeep's suggestion
 
- - code is a lot simpler and cleaner - you don't need all that pool
- expanding and shrinking. I mean, I'm all for smarter solutions if they
- have any clear advantages warranting the complication but this is a
- lot of machinery just so that we can save a couple of KBs. Which, as a
- whole, sounds just too much to me.
+Jeffrey Hugo (2):
+  drivers: base: cacheinfo: Do not populate sysfs for unknown cache
+    types
+  ACPI/PPTT: Handle architecturally unknown cache types
 
-But this is just me.
+ drivers/acpi/pptt.c      | 15 +++++++++++----
+ drivers/base/cacheinfo.c |  2 ++
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Qualcomm Datacenter Technologies as an affiliate of Qualcomm Technologies, Inc.
+Qualcomm Technologies, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
