@@ -1,63 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPIT: Register attributes based on FADT
-Date: Fri, 05 Oct 2018 11:46:01 +0200
-Message-ID: <2363635.PV2ruU7bBX@aspire.rjw.lan>
-References: <20180928085402.9108-1-rajneesh.bhardwaj@linux.intel.com>
+Subject: Re: [PATCH v3] acpi/processor: Fix the return value of acpi_processor_ids_walk()
+Date: Fri, 05 Oct 2018 11:46:49 +0200
+Message-ID: <2335374.IdaxaSRSxG@aspire.rjw.lan>
+References: <20180824025126.19231-1-douly.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20180928085402.9108-1-rajneesh.bhardwaj@linux.intel.com>
+In-Reply-To: <20180824025126.19231-1-douly.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rajneesh.bhardwaj@intel.com, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+To: Dou Liyang <douly.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, tglx@linutronix.de, rafael@kernel.org, indou.takao@jp.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday, September 28, 2018 10:54:02 AM CEST Rajneesh Bhardwaj wrote:
-> ACPI Low Power S0 Idle capabilities are announced via FADT table and can
-> be used to inform the kernel about the presence of one or more Low Power
-> Idle (LPI) entries as descried in LPIT table. LPIT table can exist
-> independently even if the FADT S0 Idle flag is not set and thus it could
-> confuse user since the following cpuidle attributes are created.
+On Friday, August 24, 2018 4:51:26 AM CEST Dou Liyang wrote:
+> ACPI driver should make sure all the processor IDs in their ACPI Namespace
+> are unique. the driver performs a depth-first walk of the namespace tree
+> and calls the acpi_processor_ids_walk() to check the duplicate IDs.
 > 
-> /sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
-> /sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
+> But, the acpi_processor_ids_walk() mistakes the return value. If a
+> processor is checked, it returns true which causes the walk break
+> immediately, and other processors will never be checked.
 > 
-> Presence or absence of above attributes could mean that the given
-> platform supports S0ix state or not.
+> Repace the value with AE_OK which is the standard acpi_status value.
+> And don't abort the namespace walk even on error.
 > 
-> This change allows to create the above cpuidle attributes only if
-> FADT table supports Low Power S0 Idle.
-> 
-> Cc: Rafael J . Wysocki <rafael.j.wysocki@intel.com>
-> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> Signed-off-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
+> Fixes 8c8cb30f49b8 ("acpi/processor: Implement DEVICE operator for processor enumeration")
+> Signed-off-by: Dou Liyang <douly.fnst@cn.fujitsu.com>
 > ---
->  drivers/acpi/acpi_lpit.c | 6 ++++++
->  1 file changed, 6 insertions(+)
+> Changelog:
+>   v2 --> v3:
+>    - Fix a compiler error reported by LKP
+>   v1 --> v2:
+>    - Fix the check against duplicate IDs suggested by Rafael.
+>   
+>   Now，the duplicate IDs only be found in Ivb42 machine, and we have added this check at 
+>   linux-4.9. But, we introduced a bug in linux-4.12 by commit 8c8cb30f49b8.
 > 
-> diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
-> index cf4fc0161164..e43cb71b6972 100644
-> --- a/drivers/acpi/acpi_lpit.c
-> +++ b/drivers/acpi/acpi_lpit.c
-> @@ -117,11 +117,17 @@ static void lpit_update_residency(struct lpit_residency_info *info,
->  		if (!info->iomem_addr)
->  			return;
+>   For resolving the bug, firstly, I removed the check[1]. because Linux will compare
+>   the coming ID with present processors when it hot-added a physical CPU and will avoid
+>   using duplicate IDs.
+> 
+>   But, seems we should consider all the possible processors. So, with this patch, All
+>   the processors with the same IDs will never be hot-plugged.
+> 
+> [1] https://lkml.org/lkml/2018/5/28/213
+> ---
+>  drivers/acpi/acpi_processor.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+> index 449d86d39965..fc447410ae4d 100644
+> --- a/drivers/acpi/acpi_processor.c
+> +++ b/drivers/acpi/acpi_processor.c
+> @@ -643,7 +643,7 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
 >  
-> +		if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
-> +			return;
-> +
->  		/* Silently fail, if cpuidle attribute group is not present */
->  		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
->  					&dev_attr_low_power_idle_system_residency_us.attr,
->  					"cpuidle");
->  	} else if (info->gaddr.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
-> +		if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
-> +			return;
-> +
->  		/* Silently fail, if cpuidle attribute group is not present */
->  		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
->  					&dev_attr_low_power_idle_cpu_residency_us.attr,
+>  	status = acpi_get_type(handle, &acpi_type);
+>  	if (ACPI_FAILURE(status))
+> -		return false;
+> +		return status;
+>  
+>  	switch (acpi_type) {
+>  	case ACPI_TYPE_PROCESSOR:
+> @@ -663,11 +663,12 @@ static acpi_status __init acpi_processor_ids_walk(acpi_handle handle,
+>  	}
+>  
+>  	processor_validated_ids_update(uid);
+> -	return true;
+> +	return AE_OK;
+>  
+>  err:
+> +	/* Exit on error, but don't abort the namespace walk */
+>  	acpi_handle_info(handle, "Invalid processor object\n");
+> -	return false;
+> +	return AE_OK;
+>  
+>  }
+>  
 > 
 
 Applied, thanks!
