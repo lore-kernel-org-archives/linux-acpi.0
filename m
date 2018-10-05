@@ -1,165 +1,165 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v3 1/3] acpi: arm64: add iort support for PMCG
-Date: Fri, 5 Oct 2018 11:06:45 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA8387956A3@FRAEML521-MBX.china.huawei.com>
-References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
- <20180921150803.25444-2-shameerali.kolothum.thodi@huawei.com>
- <20181004164356.GA16278@red-moon>
- <7572d65b-1d10-b460-c2c8-4f46e2e0d53c@arm.com>
+From: James Morse <james.morse@arm.com>
+Subject: [RFC PATCH 2/2] ACPI / PPTT: cacheinfo: Label caches based on fw_token
+Date: Fri,  5 Oct 2018 16:02:35 +0100
+Message-ID: <20181005150235.13846-3-james.morse@arm.com>
+References: <20181005150235.13846-1-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7572d65b-1d10-b460-c2c8-4f46e2e0d53c@arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181005150235.13846-1-james.morse@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-acpi@vger.kernel.org
+Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jeffrey Hugo <jhugo@codeaurora.org>, Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, James Morse <james.morse@arm.com>, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Hanjun Guo <guohanjun@huawei.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDA0IE9jdG9iZXIgMjAxOCAxODoz
-NQ0KPiBUbzogTG9yZW56byBQaWVyYWxpc2kgPGxvcmVuem8ucGllcmFsaXNpQGFybS5jb20+OyBT
-aGFtZWVyYWxpIEtvbG90aHVtIFRob2RpDQo+IDxzaGFtZWVyYWxpLmtvbG90aHVtLnRob2RpQGh1
-YXdlaS5jb20+DQo+IENjOiB3aWxsLmRlYWNvbkBhcm0uY29tOyBtYXJrLnJ1dGxhbmRAYXJtLmNv
-bTsgR3VvaGFuanVuIChIYW5qdW4gR3VvKQ0KPiA8Z3VvaGFuanVuQGh1YXdlaS5jb20+OyBKb2hu
-IEdhcnJ5IDxqb2huLmdhcnJ5QGh1YXdlaS5jb20+Ow0KPiBwYWJiYUBjb2RlYXVyb3JhLm9yZzsg
-dmtpbGFyaUBjb2RlYXVyb3JhLm9yZzsgcnJ1aWdyb2tAY29kZWF1cm9yYS5vcmc7DQo+IGxpbnV4
-LWFjcGlAdmdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJuZWwub3JnOyBsaW51
-eC1hcm0tDQo+IGtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnOyBMaW51eGFybSA8bGludXhhcm1A
-aHVhd2VpLmNvbT47DQo+IG5laWwubS5sZWVkZXJAZ21haWwuY29tDQo+IFN1YmplY3Q6IFJlOiBb
-UEFUQ0ggdjMgMS8zXSBhY3BpOiBhcm02NDogYWRkIGlvcnQgc3VwcG9ydCBmb3IgUE1DRw0KPiAN
-Cj4gT24gMDQvMTAvMTggMTc6NDMsIExvcmVuem8gUGllcmFsaXNpIHdyb3RlOg0KPiA+IE9uIEZy
-aSwgU2VwIDIxLCAyMDE4IGF0IDA0OjA4OjAxUE0gKzAxMDAsIFNoYW1lZXIgS29sb3RodW0gd3Jv
-dGU6DQo+ID4+IEZyb206IE5laWwgTGVlZGVyIDxubGVlZGVyQGNvZGVhdXJvcmEub3JnPg0KPiA+
-Pg0KPiA+PiBBZGQgc3VwcG9ydCBmb3IgdGhlIFNNTVUgUGVyZm9ybWFuY2UgTW9uaXRvciBDb3Vu
-dGVyIEdyb3VwDQo+ID4+IGluZm9ybWF0aW9uIGZyb20gQUNQSS4gVGhpcyBpcyBpbiBwcmVwYXJh
-dGlvbiBmb3IgaXRzIHVzZQ0KPiA+PiBpbiB0aGUgU01NVXYzIFBNVSBkcml2ZXIuDQo+ID4+DQo+
-ID4+IFNpZ25lZC1vZmYtYnk6IE5laWwgTGVlZGVyIDxubGVlZGVyQGNvZGVhdXJvcmEub3JnPg0K
-PiA+PiBTaWduZWQtb2ZmLWJ5OiBIYW5qdW4gR3VvIDxndW9oYW5qdW5AaHVhd2VpLmNvbT4NCj4g
-Pj4gU2lnbmVkLW9mZi1ieTogU2hhbWVlciBLb2xvdGh1bQ0KPiA8c2hhbWVlcmFsaS5rb2xvdGh1
-bS50aG9kaUBodWF3ZWkuY29tPg0KPiA+PiAtLS0NCj4gPj4gICBkcml2ZXJzL2FjcGkvYXJtNjQv
-aW9ydC5jIHwgNzgNCj4gKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrLS0t
-LS0tLS0NCj4gPj4gICAxIGZpbGUgY2hhbmdlZCwgNjYgaW5zZXJ0aW9ucygrKSwgMTIgZGVsZXRp
-b25zKC0pDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvYXJtNjQvaW9ydC5j
-IGIvZHJpdmVycy9hY3BpL2FybTY0L2lvcnQuYw0KPiA+PiBpbmRleCAwOGYyNmRiLi5iOTc5Yzg2
-IDEwMDY0NA0KPiA+PiAtLS0gYS9kcml2ZXJzL2FjcGkvYXJtNjQvaW9ydC5jDQo+ID4+ICsrKyBi
-L2RyaXZlcnMvYWNwaS9hcm02NC9pb3J0LmMNCj4gPj4gQEAgLTM1Niw3ICszNTYsOCBAQCBzdGF0
-aWMgc3RydWN0IGFjcGlfaW9ydF9ub2RlDQo+ICppb3J0X25vZGVfZ2V0X2lkKHN0cnVjdCBhY3Bp
-X2lvcnRfbm9kZSAqbm9kZSwNCj4gPj4gICAJaWYgKG1hcC0+ZmxhZ3MgJiBBQ1BJX0lPUlRfSURf
-U0lOR0xFX01BUFBJTkcpIHsNCj4gPj4gICAJCWlmIChub2RlLT50eXBlID09IEFDUElfSU9SVF9O
-T0RFX05BTUVEX0NPTVBPTkVOVCB8fA0KPiA+PiAgIAkJICAgIG5vZGUtPnR5cGUgPT0gQUNQSV9J
-T1JUX05PREVfUENJX1JPT1RfQ09NUExFWCB8fA0KPiA+PiAtCQkgICAgbm9kZS0+dHlwZSA9PSBB
-Q1BJX0lPUlRfTk9ERV9TTU1VX1YzKSB7DQo+ID4+ICsJCSAgICBub2RlLT50eXBlID09IEFDUElf
-SU9SVF9OT0RFX1NNTVVfVjMgfHwNCj4gPj4gKwkJICAgIG5vZGUtPnR5cGUgPT0gQUNQSV9JT1JU
-X05PREVfUE1DRykgew0KPiA+PiAgIAkJCSppZF9vdXQgPSBtYXAtPm91dHB1dF9iYXNlOw0KPiA+
-PiAgIAkJCXJldHVybiBwYXJlbnQ7DQo+ID4+ICAgCQl9DQo+ID4+IEBAIC0zOTQsNiArMzk1LDgg
-QEAgc3RhdGljIGludCBpb3J0X2dldF9pZF9tYXBwaW5nX2luZGV4KHN0cnVjdA0KPiBhY3BpX2lv
-cnRfbm9kZSAqbm9kZSkNCj4gPj4gICAJCX0NCj4gPj4NCj4gPj4gICAJCXJldHVybiBzbW11LT5p
-ZF9tYXBwaW5nX2luZGV4Ow0KPiA+PiArCWNhc2UgQUNQSV9JT1JUX05PREVfUE1DRzoNCj4gPj4g
-KwkJcmV0dXJuIDA7DQo+ID4+ICAgCWRlZmF1bHQ6DQo+ID4+ICAgCQlyZXR1cm4gLUVJTlZBTDsN
-Cj4gPj4gICAJfQ0KPiA+PiBAQCAtMTMwOSw2ICsxMzEyLDUwIEBAIHN0YXRpYyBib29sIF9faW5p
-dCBhcm1fc21tdV9pc19jb2hlcmVudChzdHJ1Y3QNCj4gYWNwaV9pb3J0X25vZGUgKm5vZGUpDQo+
-ID4+ICAgCXJldHVybiBzbW11LT5mbGFncyAmIEFDUElfSU9SVF9TTU1VX0NPSEVSRU5UX1dBTEs7
-DQo+ID4+ICAgfQ0KPiA+Pg0KPiA+PiArc3RhdGljIHZvaWQgX19pbml0IGFybV9zbW11X2NvbW1v
-bl9kbWFfY29uZmlndXJlKHN0cnVjdCBkZXZpY2UgKmRldiwNCj4gPj4gKwkJCQkJCWVudW0gZGV2
-X2RtYV9hdHRyIGF0dHIpDQo+ID4+ICt7DQo+ID4+ICsJLyogV2UgZXhwZWN0IHRoZSBkbWEgbWFz
-a3MgdG8gYmUgZXF1aXZhbGVudCBmb3IgYWxsIFNNTVVzIHNldC11cHMgKi8NCj4gPj4gKwlkZXYt
-PmRtYV9tYXNrID0gJmRldi0+Y29oZXJlbnRfZG1hX21hc2s7DQo+ID4+ICsNCj4gPj4gKwkvKiBD
-b25maWd1cmUgRE1BIGZvciB0aGUgcGFnZSB0YWJsZSB3YWxrZXIgKi8NCj4gPj4gKwlhY3BpX2Rt
-YV9jb25maWd1cmUoZGV2LCBhdHRyKTsNCj4gPj4gK30NCj4gPg0KPiA+IEl0IGxvb2tzIGxpa2Ug
-d2UgY2FuJ3QgZ2V0IHJpZCBvZiB0aGlzIGFjcGlfZG1hX2NvbmZpZ3VyZSgpIGNhbGwNCj4gPiBn
-aXZlbiB0aGF0IHRoZSBwbGF0Zm9ybSBkZXZpY2Ugd2UgY3JlYXRlIGhhcyBubyBBQ1BJIGNvbXBh
-bmlvbg0KPiA+IChhbmQgSSBhbSBub3QgbG9va2luZyBmb3J3YXJkIHRvIGZhYnJpY2F0aW5nIG9u
-ZSB0byBtYWtlIHRoZQ0KPiA+IGNvZGUgaG9tb2dlbmVvdXMgOikpLg0KPiANCj4gWWVhaCwgZ2l2
-ZW4gdGhhdCB0aGlzIGlzIGVzc2VudGlhbGx5IG9ubHkgZm9yIFNNTVVzLCB0aGUgYWx0ZXJuYXRp
-dmVzDQo+IGFsbCBlbmQgdXAgbG9va2luZyBsaWtlIHRvbyBtdWNoIGJvdGhlciB0byBiZSB3b3J0
-aHdoaWxlLg0KPiANCj4gPiBTdGlsbCwgaGF2aW5nIHR3byBtZXRob2RzIHBlciBJT1JUIG5vZGUg
-dHlwZSAoZGV2X2lzX2NvaGVyZW50KCkgYW5kDQo+ID4gZGV2X2RtYV9jb25maWd1cmUoKSkgZG9l
-cyBub3QgbWFrZSBtdWNoIHNlbnNlLCB3ZSBjYW4gbWVyZ2UgaXQgaW50byBvbmUNCj4gPiBJIHRo
-aW5rLg0KPiANCj4gR29vZCBwb2ludCAtIGxvb2tzIHRoZSBhdHRyIGZyb20gZGV2X2lzX2NvaGVy
-ZW50IGlzIG9ubHkgZXZlciBwYXNzZWQNCj4gdGhyb3VnaCBkZXZfZG1hX2NvbmZpZ3VyZSwgc28g
-d2UgbWF5IGFzIHdlbGwganVzdCBoYXZlIHBlci1TTU1VLXR5cGUNCj4gZGV2X2RtYV9jb25maWd1
-cmUgbWV0aG9kcyB3aGljaCByZXRyaWV2ZSB0aGVpciBvd24gcmVsZXZhbnQgY29oZXJlbmN5DQo+
-IGRpcmVjdGx5LiBGV0lXLCBvbiB2MiBJIHdhcyB0ZW1wdGVkIHRvIHN1Z2dlc3QganVzdCB3cmFw
-cGluZyB0aGUgRE1BDQo+IHNldHVwIGluICJpZiAobm9kZS0+dHlwZSAhPSBBQ1BJX0lPUlRfTk9E
-RV9QTUNHKS4uLiIgcmF0aGVyIHRoYW4gbWVzc2luZw0KPiB3aXRoIG1vcmUgY2FsbGJhY2tzLCBi
-dXQgdGhhdCBjbGVhcmx5IHdvdWxkbid0IGZpdCB3ZWxsIHdpdGggdGhlIGxvY2FsDQo+IHN0eWxl
-IGhlcmUuDQoNClJpZ2h0LCAgYXR0ciBpcyBwYXNzZWQgdG8gZGV2X2RtYV9jb25maWd1cmUgb25s
-eS4gSSB3aWxsIG1lcmdlIHRoZSBjYWxsYmFja3MNCmFzIHN1Z2dlc3RlZCBpbiB0aGUgbmV4dCBy
-ZXZpc2lvbi4NCg0KVGhhbmtzLA0KU2hhbWVlcg0KDQo+IFJvYmluLg0KPiANCj4gPg0KPiA+IFRo
-YW5rcywNCj4gPiBMb3JlbnpvDQo+ID4NCj4gPj4gK3N0YXRpYyBpbnQgX19pbml0IGFybV9zbW11
-X3YzX3BtY2dfY291bnRfcmVzb3VyY2VzKHN0cnVjdA0KPiBhY3BpX2lvcnRfbm9kZSAqbm9kZSkN
-Cj4gPj4gK3sNCj4gPj4gKwlzdHJ1Y3QgYWNwaV9pb3J0X3BtY2cgKnBtY2c7DQo+ID4+ICsNCj4g
-Pj4gKwkvKiBSZXRyaWV2ZSBQTUNHIHNwZWNpZmljIGRhdGEgKi8NCj4gPj4gKwlwbWNnID0gKHN0
-cnVjdCBhY3BpX2lvcnRfcG1jZyAqKW5vZGUtPm5vZGVfZGF0YTsNCj4gPj4gKw0KPiA+PiArCS8q
-DQo+ID4+ICsJICogVGhlcmUgYXJlIGFsd2F5cyAyIG1lbW9yeSByZXNvdXJjZXMuDQo+ID4+ICsJ
-ICogSWYgdGhlIG92ZXJmbG93X2dzaXYgaXMgcHJlc2VudCB0aGVuIGFkZCB0aGF0IGZvciBhIHRv
-dGFsIG9mIDMuDQo+ID4+ICsJICovDQo+ID4+ICsJcmV0dXJuIHBtY2ctPm92ZXJmbG93X2dzaXYg
-PyAzIDogMjsNCj4gPj4gK30NCj4gPj4gKw0KPiA+PiArc3RhdGljIHZvaWQgX19pbml0IGFybV9z
-bW11X3YzX3BtY2dfaW5pdF9yZXNvdXJjZXMoc3RydWN0IHJlc291cmNlDQo+ICpyZXMsDQo+ID4+
-ICsJCQkJCSAgICAgICBzdHJ1Y3QgYWNwaV9pb3J0X25vZGUgKm5vZGUpDQo+ID4+ICt7DQo+ID4+
-ICsJc3RydWN0IGFjcGlfaW9ydF9wbWNnICpwbWNnOw0KPiA+PiArDQo+ID4+ICsJLyogUmV0cmll
-dmUgUE1DRyBzcGVjaWZpYyBkYXRhICovDQo+ID4+ICsJcG1jZyA9IChzdHJ1Y3QgYWNwaV9pb3J0
-X3BtY2cgKilub2RlLT5ub2RlX2RhdGE7DQo+ID4+ICsNCj4gPj4gKwlyZXNbMF0uc3RhcnQgPSBw
-bWNnLT5wYWdlMF9iYXNlX2FkZHJlc3M7DQo+ID4+ICsJcmVzWzBdLmVuZCA9IHBtY2ctPnBhZ2Uw
-X2Jhc2VfYWRkcmVzcyArIFNaXzRLIC0gMTsNCj4gPj4gKwlyZXNbMF0uZmxhZ3MgPSBJT1JFU09V
-UkNFX01FTTsNCj4gPj4gKwlyZXNbMV0uc3RhcnQgPSBwbWNnLT5wYWdlMV9iYXNlX2FkZHJlc3M7
-DQo+ID4+ICsJcmVzWzFdLmVuZCA9IHBtY2ctPnBhZ2UxX2Jhc2VfYWRkcmVzcyArIFNaXzRLIC0g
-MTsNCj4gPj4gKwlyZXNbMV0uZmxhZ3MgPSBJT1JFU09VUkNFX01FTTsNCj4gPj4gKw0KPiA+PiAr
-CWlmIChwbWNnLT5vdmVyZmxvd19nc2l2KQ0KPiA+PiArCQlhY3BpX2lvcnRfcmVnaXN0ZXJfaXJx
-KHBtY2ctPm92ZXJmbG93X2dzaXYsICJvdmVyZmxvdyIsDQo+ID4+ICsJCQkJICAgICAgIEFDUElf
-RURHRV9TRU5TSVRJVkUsICZyZXNbMl0pOw0KPiA+PiArfQ0KPiA+PiArDQo+ID4+ICAgc3RydWN0
-IGlvcnRfZGV2X2NvbmZpZyB7DQo+ID4+ICAgCWNvbnN0IGNoYXIgKm5hbWU7DQo+ID4+ICAgCWlu
-dCAoKmRldl9pbml0KShzdHJ1Y3QgYWNwaV9pb3J0X25vZGUgKm5vZGUpOw0KPiA+PiBAQCAtMTMx
-OCw2ICsxMzY1LDggQEAgc3RydWN0IGlvcnRfZGV2X2NvbmZpZyB7DQo+ID4+ICAgCQkJCSAgICAg
-c3RydWN0IGFjcGlfaW9ydF9ub2RlICpub2RlKTsNCj4gPj4gICAJdm9pZCAoKmRldl9zZXRfcHJv
-eGltaXR5KShzdHJ1Y3QgZGV2aWNlICpkZXYsDQo+ID4+ICAgCQkJCSAgICBzdHJ1Y3QgYWNwaV9p
-b3J0X25vZGUgKm5vZGUpOw0KPiA+PiArCXZvaWQgKCpkZXZfZG1hX2NvbmZpZ3VyZSkoc3RydWN0
-IGRldmljZSAqZGV2LA0KPiA+PiArCQkJCQllbnVtIGRldl9kbWFfYXR0ciBhdHRyKTsNCj4gPj4g
-ICB9Ow0KPiA+Pg0KPiA+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaW9ydF9kZXZfY29uZmlnIGlv
-cnRfYXJtX3NtbXVfdjNfY2ZnIF9faW5pdGNvbnN0ID0gew0KPiA+PiBAQCAtMTMyNiwyMyArMTM3
-NSwzNCBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGlvcnRfZGV2X2NvbmZpZw0KPiBpb3J0X2FybV9z
-bW11X3YzX2NmZyBfX2luaXRjb25zdCA9IHsNCj4gPj4gICAJLmRldl9jb3VudF9yZXNvdXJjZXMg
-PSBhcm1fc21tdV92M19jb3VudF9yZXNvdXJjZXMsDQo+ID4+ICAgCS5kZXZfaW5pdF9yZXNvdXJj
-ZXMgPSBhcm1fc21tdV92M19pbml0X3Jlc291cmNlcywNCj4gPj4gICAJLmRldl9zZXRfcHJveGlt
-aXR5ID0gYXJtX3NtbXVfdjNfc2V0X3Byb3hpbWl0eSwNCj4gPj4gKwkuZGV2X2RtYV9jb25maWd1
-cmUgPSBhcm1fc21tdV9jb21tb25fZG1hX2NvbmZpZ3VyZSwNCj4gPj4gICB9Ow0KPiA+Pg0KPiA+
-PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3QgaW9ydF9kZXZfY29uZmlnIGlvcnRfYXJtX3NtbXVfY2Zn
-IF9faW5pdGNvbnN0ID0gew0KPiA+PiAgIAkubmFtZSA9ICJhcm0tc21tdSIsDQo+ID4+ICAgCS5k
-ZXZfaXNfY29oZXJlbnQgPSBhcm1fc21tdV9pc19jb2hlcmVudCwNCj4gPj4gICAJLmRldl9jb3Vu
-dF9yZXNvdXJjZXMgPSBhcm1fc21tdV9jb3VudF9yZXNvdXJjZXMsDQo+ID4+IC0JLmRldl9pbml0
-X3Jlc291cmNlcyA9IGFybV9zbW11X2luaXRfcmVzb3VyY2VzDQo+ID4+ICsJLmRldl9pbml0X3Jl
-c291cmNlcyA9IGFybV9zbW11X2luaXRfcmVzb3VyY2VzLA0KPiA+PiArCS5kZXZfZG1hX2NvbmZp
-Z3VyZSA9IGFybV9zbW11X2NvbW1vbl9kbWFfY29uZmlndXJlLA0KPiA+PiArfTsNCj4gPj4gKw0K
-PiA+PiArc3RhdGljIGNvbnN0IHN0cnVjdCBpb3J0X2Rldl9jb25maWcgaW9ydF9hcm1fc21tdV92
-M19wbWNnX2NmZw0KPiBfX2luaXRjb25zdCA9IHsNCj4gPj4gKwkubmFtZSA9ICJhcm0tc21tdS12
-My1wbXUiLA0KPiA+PiArCS5kZXZfY291bnRfcmVzb3VyY2VzID0gYXJtX3NtbXVfdjNfcG1jZ19j
-b3VudF9yZXNvdXJjZXMsDQo+ID4+ICsJLmRldl9pbml0X3Jlc291cmNlcyA9IGFybV9zbW11X3Yz
-X3BtY2dfaW5pdF9yZXNvdXJjZXMsDQo+ID4+ICAgfTsNCj4gPj4NCj4gPj4gICBzdGF0aWMgX19p
-bml0IGNvbnN0IHN0cnVjdCBpb3J0X2Rldl9jb25maWcgKmlvcnRfZ2V0X2Rldl9jZmcoDQo+ID4+
-ICAgCQkJc3RydWN0IGFjcGlfaW9ydF9ub2RlICpub2RlKQ0KPiA+PiAgIHsNCj4gPj4gKw0KPiA+
-PiAgIAlzd2l0Y2ggKG5vZGUtPnR5cGUpIHsNCj4gPj4gICAJY2FzZSBBQ1BJX0lPUlRfTk9ERV9T
-TU1VX1YzOg0KPiA+PiAgIAkJcmV0dXJuICZpb3J0X2FybV9zbW11X3YzX2NmZzsNCj4gPj4gICAJ
-Y2FzZSBBQ1BJX0lPUlRfTk9ERV9TTU1VOg0KPiA+PiAgIAkJcmV0dXJuICZpb3J0X2FybV9zbW11
-X2NmZzsNCj4gPj4gKwljYXNlIEFDUElfSU9SVF9OT0RFX1BNQ0c6DQo+ID4+ICsJCXJldHVybiAm
-aW9ydF9hcm1fc21tdV92M19wbWNnX2NmZzsNCj4gPj4gICAJZGVmYXVsdDoNCj4gPj4gICAJCXJl
-dHVybiBOVUxMOw0KPiA+PiAgIAl9DQo+ID4+IEBAIC0xMzk4LDEyICsxNDU4LDYgQEAgc3RhdGlj
-IGludCBfX2luaXQgaW9ydF9hZGRfcGxhdGZvcm1fZGV2aWNlKHN0cnVjdA0KPiBhY3BpX2lvcnRf
-bm9kZSAqbm9kZSwNCj4gPj4gICAJaWYgKHJldCkNCj4gPj4gICAJCWdvdG8gZGV2X3B1dDsNCj4g
-Pj4NCj4gPj4gLQkvKg0KPiA+PiAtCSAqIFdlIGV4cGVjdCB0aGUgZG1hIG1hc2tzIHRvIGJlIGVx
-dWl2YWxlbnQgZm9yDQo+ID4+IC0JICogYWxsIFNNTVVzIHNldC11cHMNCj4gPj4gLQkgKi8NCj4g
-Pj4gLQlwZGV2LT5kZXYuZG1hX21hc2sgPSAmcGRldi0+ZGV2LmNvaGVyZW50X2RtYV9tYXNrOw0K
-PiA+PiAtDQo+ID4+ICAgCWZ3bm9kZSA9IGlvcnRfZ2V0X2Z3bm9kZShub2RlKTsNCj4gPj4NCj4g
-Pj4gICAJaWYgKCFmd25vZGUpIHsNCj4gPj4gQEAgLTE0MTMsMTEgKzE0NjcsMTEgQEAgc3RhdGlj
-IGludCBfX2luaXQNCj4gaW9ydF9hZGRfcGxhdGZvcm1fZGV2aWNlKHN0cnVjdCBhY3BpX2lvcnRf
-bm9kZSAqbm9kZSwNCj4gPj4NCj4gPj4gICAJcGRldi0+ZGV2LmZ3bm9kZSA9IGZ3bm9kZTsNCj4g
-Pj4NCj4gPj4gLQlhdHRyID0gb3BzLT5kZXZfaXNfY29oZXJlbnQgJiYgb3BzLT5kZXZfaXNfY29o
-ZXJlbnQobm9kZSkgPw0KPiA+PiArCWlmIChvcHMtPmRldl9kbWFfY29uZmlndXJlKSB7DQo+ID4+
-ICsJCWF0dHIgPSBvcHMtPmRldl9pc19jb2hlcmVudCAmJiBvcHMtPmRldl9pc19jb2hlcmVudChu
-b2RlKSA/DQo+ID4+ICAgCQkJREVWX0RNQV9DT0hFUkVOVCA6IERFVl9ETUFfTk9OX0NPSEVSRU5U
-Ow0KPiA+PiAtDQo+ID4+IC0JLyogQ29uZmlndXJlIERNQSBmb3IgdGhlIHBhZ2UgdGFibGUgd2Fs
-a2VyICovDQo+ID4+IC0JYWNwaV9kbWFfY29uZmlndXJlKCZwZGV2LT5kZXYsIGF0dHIpOw0KPiA+
-PiArCQlvcHMtPmRldl9kbWFfY29uZmlndXJlKCZwZGV2LT5kZXYsIGF0dHIpOw0KPiA+PiArCX0N
-Cj4gPj4NCj4gPj4gICAJaW9ydF9zZXRfZGV2aWNlX2RvbWFpbigmcGRldi0+ZGV2LCBub2RlKTsN
-Cj4gPj4NCj4gPj4gLS0NCj4gPj4gMi43LjQNCj4gPj4NCj4gPj4NCg==
+The resctrl ABI requires caches to have a unique id. This number must
+be unique across all caches at this level, but doesn't need to be
+contiguous. (there may be gaps, it may not start at 0).
+See Documentation/x86/intel_rdt_ui.txt::Cache IDs
+
+We want a value that is the same over reboots, and should be the same
+on identical hardware, even if the PPTT is generated in a different
+order. The hardware doesn't give us any indication of which caches are
+shared, so this information must come from firmware tables.
+
+Starting with a cacheinfo's fw_token, we walk the table to find all
+CPUs that share this cpu_node (and thus cache), and take the lowest
+physical id to use as the id for the cache. On arm64 this value
+corresponds to the MPIDR.
+
+This is only done for unified caches, as instruction/data caches would
+generate the same id using this scheme.
+
+Signed-off-by: James Morse <james.morse@arm.com>
+---
+ arch/arm64/include/asm/acpi.h |  6 +++
+ drivers/acpi/pptt.c           | 81 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
+
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 709208dfdc8b..16b9b3d771a8 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -53,6 +53,12 @@ static inline void __iomem *acpi_os_ioremap(acpi_physical_address phys,
+ typedef u64 phys_cpuid_t;
+ #define PHYS_CPUID_INVALID INVALID_HWID
+ 
++/* Shift the relevant bits out of u64 phys_cpuid_t into a u32 */
++#define ARCH_PHYSID_TO_U32(x) (u32)(MPIDR_AFFINITY_LEVEL(x, 0)		|\
++			MPIDR_AFFINITY_LEVEL(x, 1) << MPIDR_LEVEL_BITS  |\
++			MPIDR_AFFINITY_LEVEL(x, 2) << 2*MPIDR_LEVEL_BITS|\
++			MPIDR_AFFINITY_LEVEL(x, 3) << 3*MPIDR_LEVEL_BITS)
++
+ #define acpi_strict 1	/* No out-of-spec workarounds on ARM64 */
+ extern int acpi_disabled;
+ extern int acpi_noirq;
+diff --git a/drivers/acpi/pptt.c b/drivers/acpi/pptt.c
+index d1e26cb599bf..9478f8c28158 100644
+--- a/drivers/acpi/pptt.c
++++ b/drivers/acpi/pptt.c
+@@ -341,6 +341,84 @@ static struct acpi_pptt_cache *acpi_find_cache_node(struct acpi_table_header *ta
+ /* total number of attributes checked by the properties code */
+ #define PPTT_CHECKED_ATTRIBUTES 4
+ 
++/**
++ * acpi_pptt_min_physid_from_cpu_node() - Recursivly find @min_physid for all
++ * leaf CPUs below @cpu_node.
++ * @table_hdr:	Pointer to the head of the PPTT table
++ * @cpu_node:	The point in the toplogy to start the walk
++ * @min_physid:	The min_physid to update with leaf CPUs.
++ */
++void acpi_pptt_min_physid_from_cpu_node(struct acpi_table_header *table_hdr,
++					struct acpi_pptt_processor *cpu_node,
++					phys_cpuid_t *min_physid)
++{
++	bool leaf = true;
++	u32 acpi_processor_id;
++	phys_cpuid_t cpu_node_phys_id;
++	struct acpi_subtable_header *iter;
++	struct acpi_pptt_processor *iter_node;
++	u32 target_node = ACPI_PTR_DIFF(cpu_node, table_hdr);
++	u32 proc_sz = sizeof(struct acpi_pptt_processor *);
++	unsigned long table_end = (unsigned long)table_hdr + table_hdr->length;
++
++	/*
++	 * Walk the PPTT, looking for nodes that reference cpu_node
++	 * as parent.
++	 */
++	iter = ACPI_ADD_PTR(struct acpi_subtable_header, table_hdr,
++			     sizeof(struct acpi_table_pptt));
++
++	while ((unsigned long)iter + proc_sz < table_end) {
++		iter_node = (struct acpi_pptt_processor *)iter;
++
++		if (iter->type == ACPI_PPTT_TYPE_PROCESSOR &&
++		    iter_node->parent == target_node) {
++			leaf = false;
++			acpi_pptt_min_physid_from_cpu_node(table_hdr, iter_node,
++							   min_physid);
++		}
++
++		if (iter->length == 0)
++			return;
++		iter = ACPI_ADD_PTR(struct acpi_subtable_header, iter,
++				    iter->length);
++	}
++
++	if (leaf && cpu_node->flags & ACPI_PPTT_ACPI_PROCESSOR_ID_VALID) {
++		acpi_processor_id = cpu_node->acpi_processor_id;
++		cpu_node_phys_id = acpi_id_to_phys_cpuid(acpi_processor_id);
++		*min_physid = min(*min_physid, cpu_node_phys_id);
++	}
++}
++
++static void acpi_pptt_label_cache(struct cacheinfo *this_leaf)
++{
++	acpi_status status;
++	struct acpi_table_header *table;
++	struct acpi_pptt_processor *cpu_node;
++	phys_cpuid_t min_physid = PHYS_CPUID_INVALID;
++
++	/* Affinity based IDs for non-unified caches would not be unique */
++	if (this_leaf->type != CACHE_TYPE_UNIFIED)
++		return;
++
++	if (!this_leaf->fw_token)
++		return;
++	cpu_node = this_leaf->fw_token;
++
++	status = acpi_get_table(ACPI_SIG_PPTT, 0, &table);
++	if (ACPI_FAILURE(status))
++		return;
++
++	acpi_pptt_min_physid_from_cpu_node(table, cpu_node, &min_physid);
++	acpi_put_table(table);
++
++	WARN_ON_ONCE(min_physid == PHYS_CPUID_INVALID);
++
++	this_leaf->id = ARCH_PHYSID_TO_U32(min_physid);
++	this_leaf->attributes |= CACHE_ID;
++}
++
+ /**
+  * update_cache_properties() - Update cacheinfo for the given processor
+  * @this_leaf: Kernel cache info structure being updated
+@@ -408,6 +486,9 @@ static void update_cache_properties(struct cacheinfo *this_leaf,
+ 	if (this_leaf->type == CACHE_TYPE_NOCACHE &&
+ 	    valid_flags == PPTT_CHECKED_ATTRIBUTES)
+ 		this_leaf->type = CACHE_TYPE_UNIFIED;
++
++	/* Now that the type is known, try and generate an id. */
++	acpi_pptt_label_cache(this_leaf);
+ }
+ 
+ static void cache_setup_acpi_cpu(struct acpi_table_header *table,
+-- 
+2.18.0
