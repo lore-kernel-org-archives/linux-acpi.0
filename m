@@ -1,43 +1,26 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI / ACPI: Mark expected switch fall-through
-Date: Thu, 4 Oct 2018 15:52:19 -0500
-Message-ID: <20181004205219.GJ120535@bhelgaas-glaptop.roam.corp.google.com>
-References: <20181004154041.GA28767@embeddedor.com>
+From: Oscar Salvador <osalvador@techadventures.net>
+Subject: Re: [PATCH v3 3/6] mm/memory_hotplug: fix online/offline_pages
+ called w.o. mem_hotplug_lock
+Date: Fri, 5 Oct 2018 09:07:56 +0200
+Message-ID: <20181005070756.GA27754@techadventures.net>
+References: <20180927092554.13567-1-david@redhat.com>
+ <20180927092554.13567-4-david@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181004154041.GA28767@embeddedor.com>
+In-Reply-To: <20180927092554.13567-4-david@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Hildenbrand <david@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-doc@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-acpi@vger.kernel.org, xen-devel@lists.xenproject.org, devel@linuxdriverproject.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Rashmica Gupta <rashmica.g>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 04, 2018 at 05:40:41PM +0200, Gustavo A. R. Silva wrote:
-> In preparation to enabling -Wimplicit-fallthrough, mark switch cases
-> where we are expecting to fall through.
-> 
-> Addresses-Coverity-ID: 1472052 ("Missing break in switch")
-> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+On Thu, Sep 27, 2018 at 11:25:51AM +0200, David Hildenbrand wrote:
+> Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+> Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
+> Signed-off-by: David Hildenbrand <david@redhat.com>
 
-Applied to pci/misc for v4.20, thanks!
-
-> ---
->  drivers/pci/pci-acpi.c | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 79c8e95..2a4aa64 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -588,6 +588,7 @@ static int acpi_pci_set_power_state(struct pci_dev *dev, pci_power_t state)
->  			error = -EBUSY;
->  			break;
->  		}
-> +		/* Fall through */
->  	case PCI_D0:
->  	case PCI_D1:
->  	case PCI_D2:
-> -- 
-> 2.7.4
-> 
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+-- 
+Oscar Salvador
+SUSE L3
