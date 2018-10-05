@@ -1,59 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 0/2] PPTT handle Handle architecturally unknown cache types
-Date: Fri, 05 Oct 2018 11:45:34 +0200
-Message-ID: <2264331.PzHIdRIQff@aspire.rjw.lan>
-References: <1538666406-7504-1-git-send-email-jhugo@codeaurora.org>
+Subject: Re: [PATCH] ACPI / LPIT: Register attributes based on FADT
+Date: Fri, 05 Oct 2018 11:46:01 +0200
+Message-ID: <2363635.PV2ruU7bBX@aspire.rjw.lan>
+References: <20180928085402.9108-1-rajneesh.bhardwaj@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1538666406-7504-1-git-send-email-jhugo@codeaurora.org>
+In-Reply-To: <20180928085402.9108-1-rajneesh.bhardwaj@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeffrey Hugo <jhugo@codeaurora.org>
-Cc: sudeep.holla@arm.com, gregkh@linuxfoundation.org, linux-acpi@vger.kernel.org, jeremy.linton@arm.com, linux-kernel@vger.kernel.org, vkilari@codeaurora.org
+To: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, rajneesh.bhardwaj@intel.com, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, October 4, 2018 5:20:04 PM CEST Jeffrey Hugo wrote:
-> The ARM Architecture Reference Manual allows for caches to be "invisible" and
-> thus not specified in the system registers under some scenarios such as if the
-> cache cannot be managed by set/way operations.
+On Friday, September 28, 2018 10:54:02 AM CEST Rajneesh Bhardwaj wrote:
+> ACPI Low Power S0 Idle capabilities are announced via FADT table and can
+> be used to inform the kernel about the presence of one or more Low Power
+> Idle (LPI) entries as descried in LPIT table. LPIT table can exist
+> independently even if the FADT S0 Idle flag is not set and thus it could
+> confuse user since the following cpuidle attributes are created.
 > 
-> However, such caches may be specified in the ACPI PPTT table for workload
-> performance/scheduling optimizations.
+> /sys/devices/system/cpu/cpuidle/low_power_idle_cpu_residency_us
+> /sys/devices/system/cpu/cpuidle/low_power_idle_system_residency_us
 > 
-> Currently such caches can cause an error in lscpu -
+> Presence or absence of above attributes could mean that the given
+> platform supports S0ix state or not.
 > 
-> lscpu: cannot open /sys/devices/system/cpu/cpu0/cache/index3/type: No such
-> file or directory
+> This change allows to create the above cpuidle attributes only if
+> FADT table supports Low Power S0 Idle.
 > 
-> and result in no output, providing a poor user experience.  lstopo is also
-> affected as such caches are not included in the output.
+> Cc: Rafael J . Wysocki <rafael.j.wysocki@intel.com>
+> Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+> Signed-off-by: Rajneesh Bhardwaj <rajneesh.bhardwaj@linux.intel.com>
+> ---
+>  drivers/acpi/acpi_lpit.c | 6 ++++++
+>  1 file changed, 6 insertions(+)
 > 
-> Address these issues by attempting to be a little more discerning about when
-> cache information is provided to userspace, and also utilize all sources for
-> cache information when possible.
-> 
-> [v4]
-> -Collected all current tags and ammended to individual patches
-> -Removed PPTT_CHECKED_ATTRIBUTES
-> 
-> [v3]
-> -removed valid flag in PPTT
-> -Added Jeremy Linton's reviewed-by
-> 
-> [v2]
-> -Updated cacheinfo per Sudeep's suggestion
-> -Integrated the PPTT fix into existing PPTT code per Sudeep's suggestion
-> 
-> Jeffrey Hugo (2):
->   drivers: base: cacheinfo: Do not populate sysfs for unknown cache
->     types
->   ACPI/PPTT: Handle architecturally unknown cache types
-> 
->  drivers/acpi/pptt.c      | 15 +++++++++++----
->  drivers/base/cacheinfo.c |  2 ++
->  2 files changed, 13 insertions(+), 4 deletions(-)
-> 
+> diff --git a/drivers/acpi/acpi_lpit.c b/drivers/acpi/acpi_lpit.c
+> index cf4fc0161164..e43cb71b6972 100644
+> --- a/drivers/acpi/acpi_lpit.c
+> +++ b/drivers/acpi/acpi_lpit.c
+> @@ -117,11 +117,17 @@ static void lpit_update_residency(struct lpit_residency_info *info,
+>  		if (!info->iomem_addr)
+>  			return;
+>  
+> +		if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
+> +			return;
+> +
+>  		/* Silently fail, if cpuidle attribute group is not present */
+>  		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
+>  					&dev_attr_low_power_idle_system_residency_us.attr,
+>  					"cpuidle");
+>  	} else if (info->gaddr.space_id == ACPI_ADR_SPACE_FIXED_HARDWARE) {
+> +		if (!(acpi_gbl_FADT.flags & ACPI_FADT_LOW_POWER_S0))
+> +			return;
+> +
+>  		/* Silently fail, if cpuidle attribute group is not present */
+>  		sysfs_add_file_to_group(&cpu_subsys.dev_root->kobj,
+>  					&dev_attr_low_power_idle_cpu_residency_us.attr,
 > 
 
-Both patches applied, thanks!
+Applied, thanks!
