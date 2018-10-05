@@ -1,13 +1,14 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
+From: James Morse <james.morse@arm.com>
 Subject: Re: [RFC PATCH 0/2] ACPI / PPTT: ids for caches
-Date: Fri, 5 Oct 2018 09:20:09 -0600
-Message-ID: <da8a4ae0-b63c-d27f-1f54-af19f058881c@codeaurora.org>
+Date: Fri, 5 Oct 2018 16:54:31 +0100
+Message-ID: <8cfc967e-f386-15f5-8fec-33e6a3b9571e@arm.com>
 References: <20181005150235.13846-1-james.morse@arm.com>
+ <da8a4ae0-b63c-d27f-1f54-af19f058881c@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181005150235.13846-1-james.morse@arm.com>
+In-Reply-To: <da8a4ae0-b63c-d27f-1f54-af19f058881c@codeaurora.org>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
@@ -18,85 +19,79 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>, linux-acpi@vger.kernel.org
-Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Hanjun Guo <guohanjun@huawei.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>
+Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Hanjun Guo <guohanjun@huawei.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Sudeep Holla <sudeep.holla@arm.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/5/2018 9:02 AM, James Morse wrote:
-> Hi guys,
-> 
-> To get resctrl working on arm64, we need to generate 'id's for caches.
-> This is this value that shows up in, e.g.:
-> | /sys/devices/system/cpu/cpu0/cache/index3/id
-> 
-> This value needs to be unique for each level of cache, but doesn't
-> need to be contiguous. (there may be gaps, it may not start at 0).
-> Details in Documentation/x86/intel_rdt_ui.txt::Cache IDs
-> 
-> resctrl receives these values back via its schemata file. e.g.:
-> | echo "L3:0=fff;1=fff" > /sys/fs/resctrl/p1/schemata
-> Where 0 and 1 are the ids of two caches in the system.
-> 
-> These values become ABI, and are likely to be baked into shell scripts.
-> We want a value that is the same over reboots, and should be the same
-> on identical hardware, even if the PPTT is generated in a different
-> order. The hardware doesn't give us any indication of which caches are
-> shared, so this information must come from firmware tables.
-> 
-> This series generates an id from the PPTT topology, based on the lowest
-> MPIDR of the cpus that share a cache.
-> 
-> The remaining problems with this approach are:
->   * the 32bit ID field is full of MPIDR.Aff{0-3}. We don't have space to
->     hide 'i/d/unified', so can only generate ids for unified caches. If we
->     ever get an Aff4 (plenty of RES0 space in there) we can no longer generate
->     an id. Having all these bits accounted for in the initial version doesn't
->     feel like a good ABI choice.
-> 
-> * Existing software is going to assume caches are numbered 0,1,2. This was
->    documented as not guaranteed, and its likely never going to be the case
->    if we generate ids like this.
-> 
-> * The table walk is recursive.
-> 
-> 
-> Fixes for the first two require extra-code to compact the ID range, which would
-> require us generating all the IDs up front, not from hotplug callbacks as has
-> to happen today.
-> 
-> Alternatively, we could try and change the abi to provide a u64 as the
-> cache id. The size isn't documented, and for resctrl userspace can treat
-> it as a string.
-> 
-> Better ideas welcome!
-
-I'm sorry, I'm not familiar with this resctrl, and therefore I don't 
-quite feel like I have a handle on what we need out of the ids file (and 
-the Documentation you pointed to doesn't seem to clarify it for me).
-
-Lets assume we have a trivial 4 core system.  Each core has a private 
-L1i and L1d cache.  Cores 0/1 and 2/3 share a L2.  Cores 0-3 share L3.
-
-If we are assigning ids in the range 1-N, what might we expect the id of 
-each cache to be?
-
-Is this sane (each unique cache instance has a unique id), or have I 
-misunderstood?
-CPU0 L1i - 1
-CPU0 L1d - 2
-CPU1 L1i - 3
-CPU1 L1d - 4
-CPU2 L1i - 5
-CPU2 L1d - 6
-CPU3 L1i - 7
-CPU3 L1d - 8
-CPU0/1 L2 - 9
-CPU2/3 L2 - 10
-        L3 - 11
-
--- 
-Jeffrey Hugo
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+SGkgSmVmZnJleSwKCk9uIDA1LzEwLzE4IDE2OjIwLCBKZWZmcmV5IEh1Z28gd3JvdGU6Cj4gT24g
+MTAvNS8yMDE4IDk6MDIgQU0sIEphbWVzIE1vcnNlIHdyb3RlOgo+PiBUbyBnZXQgcmVzY3RybCB3
+b3JraW5nIG9uIGFybTY0LCB3ZSBuZWVkIHRvIGdlbmVyYXRlICdpZCdzIGZvciBjYWNoZXMuCj4+
+IFRoaXMgaXMgdGhpcyB2YWx1ZSB0aGF0IHNob3dzIHVwIGluLCBlLmcuOgo+PiB8IC9zeXMvZGV2
+aWNlcy9zeXN0ZW0vY3B1L2NwdTAvY2FjaGUvaW5kZXgzL2lkCj4+Cj4+IFRoaXMgdmFsdWUgbmVl
+ZHMgdG8gYmUgdW5pcXVlIGZvciBlYWNoIGxldmVsIG9mIGNhY2hlLCBidXQgZG9lc24ndAo+PiBu
+ZWVkIHRvIGJlIGNvbnRpZ3VvdXMuICh0aGVyZSBtYXkgYmUgZ2FwcywgaXQgbWF5IG5vdCBzdGFy
+dCBhdCAwKS4KPj4gRGV0YWlscyBpbiBEb2N1bWVudGF0aW9uL3g4Ni9pbnRlbF9yZHRfdWkudHh0
+OjpDYWNoZSBJRHMKPj4KPj4gcmVzY3RybCByZWNlaXZlcyB0aGVzZSB2YWx1ZXMgYmFjayB2aWEg
+aXRzIHNjaGVtYXRhIGZpbGUuIGUuZy46Cj4+IHwgZWNobyAiTDM6MD1mZmY7MT1mZmYiID4gL3N5
+cy9mcy9yZXNjdHJsL3AxL3NjaGVtYXRhCj4+IFdoZXJlIDAgYW5kIDEgYXJlIHRoZSBpZHMgb2Yg
+dHdvIGNhY2hlcyBpbiB0aGUgc3lzdGVtLgo+Pgo+PiBUaGVzZSB2YWx1ZXMgYmVjb21lIEFCSSwg
+YW5kIGFyZSBsaWtlbHkgdG8gYmUgYmFrZWQgaW50byBzaGVsbCBzY3JpcHRzLgo+PiBXZSB3YW50
+IGEgdmFsdWUgdGhhdCBpcyB0aGUgc2FtZSBvdmVyIHJlYm9vdHMsIGFuZCBzaG91bGQgYmUgdGhl
+IHNhbWUKPj4gb24gaWRlbnRpY2FsIGhhcmR3YXJlLCBldmVuIGlmIHRoZSBQUFRUIGlzIGdlbmVy
+YXRlZCBpbiBhIGRpZmZlcmVudAo+PiBvcmRlci4gVGhlIGhhcmR3YXJlIGRvZXNuJ3QgZ2l2ZSB1
+cyBhbnkgaW5kaWNhdGlvbiBvZiB3aGljaCBjYWNoZXMgYXJlCj4+IHNoYXJlZCwgc28gdGhpcyBp
+bmZvcm1hdGlvbiBtdXN0IGNvbWUgZnJvbSBmaXJtd2FyZSB0YWJsZXMuCj4+Cj4+IFRoaXMgc2Vy
+aWVzIGdlbmVyYXRlcyBhbiBpZCBmcm9tIHRoZSBQUFRUIHRvcG9sb2d5LCBiYXNlZCBvbiB0aGUg
+bG93ZXN0Cj4+IE1QSURSIG9mIHRoZSBjcHVzIHRoYXQgc2hhcmUgYSBjYWNoZS4KPj4KPj4gVGhl
+IHJlbWFpbmluZyBwcm9ibGVtcyB3aXRoIHRoaXMgYXBwcm9hY2ggYXJlOgo+PiDCoCAqIHRoZSAz
+MmJpdCBJRCBmaWVsZCBpcyBmdWxsIG9mIE1QSURSLkFmZnswLTN9LiBXZSBkb24ndCBoYXZlIHNw
+YWNlIHRvCj4+IMKgwqDCoCBoaWRlICdpL2QvdW5pZmllZCcsIHNvIGNhbiBvbmx5IGdlbmVyYXRl
+IGlkcyBmb3IgdW5pZmllZCBjYWNoZXMuIElmIHdlCj4+IMKgwqDCoCBldmVyIGdldCBhbiBBZmY0
+IChwbGVudHkgb2YgUkVTMCBzcGFjZSBpbiB0aGVyZSkgd2UgY2FuIG5vIGxvbmdlciBnZW5lcmF0
+ZQo+PiDCoMKgwqAgYW4gaWQuIEhhdmluZyBhbGwgdGhlc2UgYml0cyBhY2NvdW50ZWQgZm9yIGlu
+IHRoZSBpbml0aWFsIHZlcnNpb24gZG9lc24ndAo+PiDCoMKgwqAgZmVlbCBsaWtlIGEgZ29vZCBB
+QkkgY2hvaWNlLgo+Pgo+PiAqIEV4aXN0aW5nIHNvZnR3YXJlIGlzIGdvaW5nIHRvIGFzc3VtZSBj
+YWNoZXMgYXJlIG51bWJlcmVkIDAsMSwyLiBUaGlzIHdhcwo+PiDCoMKgIGRvY3VtZW50ZWQgYXMg
+bm90IGd1YXJhbnRlZWQsIGFuZCBpdHMgbGlrZWx5IG5ldmVyIGdvaW5nIHRvIGJlIHRoZSBjYXNl
+Cj4+IMKgwqAgaWYgd2UgZ2VuZXJhdGUgaWRzIGxpa2UgdGhpcy4KPj4KPj4gKiBUaGUgdGFibGUg
+d2FsayBpcyByZWN1cnNpdmUuCj4+Cj4+Cj4+IEZpeGVzIGZvciB0aGUgZmlyc3QgdHdvIHJlcXVp
+cmUgZXh0cmEtY29kZSB0byBjb21wYWN0IHRoZSBJRCByYW5nZSwgd2hpY2ggd291bGQKPj4gcmVx
+dWlyZSB1cyBnZW5lcmF0aW5nIGFsbCB0aGUgSURzIHVwIGZyb250LCBub3QgZnJvbSBob3RwbHVn
+IGNhbGxiYWNrcyBhcyBoYXMKPj4gdG8gaGFwcGVuIHRvZGF5Lgo+Pgo+PiBBbHRlcm5hdGl2ZWx5
+LCB3ZSBjb3VsZCB0cnkgYW5kIGNoYW5nZSB0aGUgYWJpIHRvIHByb3ZpZGUgYSB1NjQgYXMgdGhl
+Cj4+IGNhY2hlIGlkLiBUaGUgc2l6ZSBpc24ndCBkb2N1bWVudGVkLCBhbmQgZm9yIHJlc2N0cmwg
+dXNlcnNwYWNlIGNhbiB0cmVhdAo+PiBpdCBhcyBhIHN0cmluZy4KPj4KPj4gQmV0dGVyIGlkZWFz
+IHdlbGNvbWUhCj4gCj4gSSdtIHNvcnJ5LCBJJ20gbm90IGZhbWlsaWFyIHdpdGggdGhpcyByZXNj
+dHJsLCBhbmQgdGhlcmVmb3JlIEkgZG9uJ3QgcXVpdGUgZmVlbAo+IGxpa2UgSSBoYXZlIGEgaGFu
+ZGxlIG9uIHdoYXQgd2UgbmVlZCBvdXQgb2YgdGhlIGlkcyBmaWxlIChhbmQgdGhlIERvY3VtZW50
+YXRpb24KPiB5b3UgcG9pbnRlZCB0byBkb2Vzbid0IHNlZW0gdG8gY2xhcmlmeSBpdCBmb3IgbWUp
+LgoKPiBMZXRzIGFzc3VtZSB3ZSBoYXZlIGEgdHJpdmlhbCA0IGNvcmUgc3lzdGVtLsKgIEVhY2gg
+Y29yZSBoYXMgYSBwcml2YXRlIEwxaSBhbmQKPiBMMWQgY2FjaGUuwqAgQ29yZXMgMC8xIGFuZCAy
+LzMgc2hhcmUgYSBMMi7CoCBDb3JlcyAwLTMgc2hhcmUgTDMuCgpUaGUgaS9kIGNhY2hlcyB3b3Vs
+ZG4ndCBnZXQgYW4gSUQsIGJlY2F1c2Ugd2UgY2FuJ3QgZWFzaWx5IGdlbmVyYXRlIHVuaXF1ZQp2
+YWx1ZXMgZm9yIHRoZXNlLiAod2l0aCB0aGlzIHNjaGVtZSwgYWxsIHRoZSBpZCBiaXRzIGFyZSBp
+biB1c2UgZm9yIHNoYXJlZAp1bmlmaWVkIGNhY2hlcykuCgpDb3JlcyAwIGFuZCAxIHNob3VsZCBz
+aG93IHRoZSBzYW1lIElEIGZvciB0aGVpciBMMiwgMiBhbmQgMyBzaG91bGQgc2hvdyBhCmRpZmZl
+cmVudCBJRC4gQ29yZXMgMC0zIHNob3VsZCBhbGwgc2hvdyB0aGUgc2FtZSBpZCBmb3IgTDMuCgoK
+PiBJZiB3ZSBhcmUgYXNzaWduaW5nIGlkcyBpbiB0aGUgcmFuZ2UgMS1OLCB3aGF0IG1pZ2h0IHdl
+IGV4cGVjdCB0aGUgaWQgb2YgZWFjaAo+IGNhY2hlIHRvIGJlPwo+IAo+IElzIHRoaXMgc2FuZSAo
+ZWFjaCB1bmlxdWUgY2FjaGUgaW5zdGFuY2UgaGFzIGEgdW5pcXVlIGlkKSwgb3IgaGF2ZSBJIG1p
+c3VuZGVyc3Rvb2Q/Cj4gQ1BVMCBMMWkgLSAxCj4gQ1BVMCBMMWQgLSAyCj4gQ1BVMSBMMWkgLSAz
+Cj4gQ1BVMSBMMWQgLSA0Cj4gQ1BVMiBMMWkgLSA1Cj4gQ1BVMiBMMWQgLSA2Cj4gQ1BVMyBMMWkg
+LSA3Cj4gQ1BVMyBMMWQgLSA4Cgo+IENQVTAvMSBMMiAtIDkKPiBDUFUyLzMgTDIgLSAxMAoKPiDC
+oMKgwqDCoMKgwqAgTDMgLSAxMQoKVGhpcyB3b3VsZCBiZSBzYW5lLiBXZSBkb24ndCBuZWVkIHRv
+IGNvbnRpbnVlIHRoZSBudW1iZXJpbmcgYmV0d2VlbiBMMS9MMi9MMy4KVGhlIGlkIG9ubHkgbmVl
+ZHMgdG8gYmUgdW5pcXVlIGF0IHRoYXQgbGV2ZWwuCgoKVGhlIHByb2JsZW0gaXMgZ2VuZXJhdGlu
+ZyB0aGVzZSBudW1iZXJzIGlmIG9ubHkgc29tZSBvZiB0aGUgQ1BVcyBhcmUgb25saW5lLCBvcgpp
+ZiB0aGUgYWNwaSB0YWJsZXMgYXJlIGdlbmVyYXRlZCBieSBmaXJtd2FyZSBhdCBwb3dlci1vbiBh
+bmQgaGF2ZSBhIGRpZmZlcmVudApsYXlvdXQgZXZlcnkgdGltZS4KV2UgZG9uJ3QgZXZlbiB3YW50
+IHRvIHJlbHkgb24gbGludXgncyBjcHUgbnVtYmVyaW5nLgoKVGhlIHN1Z2dlc3Rpb24gaGVyZSBp
+cyB0byB1c2UgdGhlIHNtYWxsZXN0IE1QSURSLCBhcyB0aGF0J3MgYXMgaGFyZHdhcmUgcHJvcGVy
+dHkKdGhhdCB3b24ndCBjaGFuZ2UgZXZlbiBpZiB0aGUgdGFibGVzIGFyZSBnZW5lcmF0ZWQgZGlm
+ZmVyZW50bHkgZXZlcnkgYm9vdC4KCkFzc3VtaW5nIHR3byBjbHVzdGVycyBpbiB5b3VyIGV4YW1w
+bGUgYWJvdmUsIGl0IHdvdWxkIGxvb2sgbGlrZToKCnwgQ1BVMC8xIChjbHVzdGVyIDApIEwyIC0g
+MHgwCnwgQ1BVMi8zIChjbHVzdGVyIDEpIEwyIC0gMHgxMDAKfCAgICAgICAgICAgICAgICAgICAg
+TDMgLSAweDAKCgoKVGhhbmtzLAoKSmFtZXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFy
+bS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
