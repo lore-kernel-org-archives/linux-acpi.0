@@ -1,148 +1,160 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [RFC PATCH 2/2] ACPI / PPTT: cacheinfo: Label caches based on
- fw_token
-Date: Tue, 9 Oct 2018 12:34:51 -0600
-Message-ID: <236eab50-e1d0-e2f5-fb69-95451c4ccc7e@codeaurora.org>
-References: <20181005150235.13846-1-james.morse@arm.com>
- <20181005150235.13846-3-james.morse@arm.com>
- <a68abfd2-1e28-d9e7-919a-8b3133db4d20@arm.com>
- <10e15b8d-c0c2-b73a-de31-f87ae0d86469@arm.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [RESEND][PATCH] ACPI / CPPC: Add support for guaranteed
+ performance
+Date: Tue, 09 Oct 2018 13:41:57 -0700
+Message-ID: <e534dafea0a138777e46f41b8c33618148a79d57.camel@linux.intel.com>
+References: <20181008165136.9288-1-srinivas.pandruvada@linux.intel.com>
+         <CAJZ5v0h1ir+vU7xzQ15edSO6uNwXzmqXRFkbhPGpUY8gSz+gVg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <10e15b8d-c0c2-b73a-de31-f87ae0d86469@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org
-Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Hanjun Guo <guohanjun@huawei.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0h1ir+vU7xzQ15edSO6uNwXzmqXRFkbhPGpUY8gSz+gVg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, devel@acpica.org, Linux PM <linux-pm@vger.kernel.org>, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMTAvOS8yMDE4IDExOjU4IEFNLCBKYW1lcyBNb3JzZSB3cm90ZToKPiBIaSBKZXJlbXksCj4g
-Cj4gT24gMDkvMTAvMjAxOCAxNzo0NSwgSmVyZW15IExpbnRvbiB3cm90ZToKPj4gT24gMTAvMDUv
-MjAxOCAxMDowMiBBTSwgSmFtZXMgTW9yc2Ugd3JvdGU6Cj4+PiBUaGUgcmVzY3RybCBBQkkgcmVx
-dWlyZXMgY2FjaGVzIHRvIGhhdmUgYSB1bmlxdWUgaWQuIFRoaXMgbnVtYmVyIG11c3QKPj4+IGJl
-IHVuaXF1ZSBhY3Jvc3MgYWxsIGNhY2hlcyBhdCB0aGlzIGxldmVsLCBidXQgZG9lc24ndCBuZWVk
-IHRvIGJlCj4+PiBjb250aWd1b3VzLiAodGhlcmUgbWF5IGJlIGdhcHMsIGl0IG1heSBub3Qgc3Rh
-cnQgYXQgMCkuCj4+PiBTZWUgRG9jdW1lbnRhdGlvbi94ODYvaW50ZWxfcmR0X3VpLnR4dDo6Q2Fj
-aGUgSURzCj4+Pgo+Pj4gV2Ugd2FudCBhIHZhbHVlIHRoYXQgaXMgdGhlIHNhbWUgb3ZlciByZWJv
-b3RzLCBhbmQgc2hvdWxkIGJlIHRoZSBzYW1lCj4+PiBvbiBpZGVudGljYWwgaGFyZHdhcmUsIGV2
-ZW4gaWYgdGhlIFBQVFQgaXMgZ2VuZXJhdGVkIGluIGEgZGlmZmVyZW50Cj4+PiBvcmRlci4gVGhl
-IGhhcmR3YXJlIGRvZXNuJ3QgZ2l2ZSB1cyBhbnkgaW5kaWNhdGlvbiBvZiB3aGljaCBjYWNoZXMg
-YXJlCj4+PiBzaGFyZWQsIHNvIHRoaXMgaW5mb3JtYXRpb24gbXVzdCBjb21lIGZyb20gZmlybXdh
-cmUgdGFibGVzLgo+Pj4KPj4+IFN0YXJ0aW5nIHdpdGggYSBjYWNoZWluZm8ncyBmd190b2tlbiwg
-d2Ugd2FsayB0aGUgdGFibGUgdG8gZmluZCBhbGwKPj4+IENQVXMgdGhhdCBzaGFyZSB0aGlzIGNw
-dV9ub2RlIChhbmQgdGh1cyBjYWNoZSksIGFuZCB0YWtlIHRoZSBsb3dlc3QKPj4+IHBoeXNpY2Fs
-IGlkIHRvIHVzZSBhcyB0aGUgaWQgZm9yIHRoZSBjYWNoZS4gT24gYXJtNjQgdGhpcyB2YWx1ZQo+
-Pj4gY29ycmVzcG9uZHMgdG8gdGhlIE1QSURSLgo+Pj4KPj4+IFRoaXMgaXMgb25seSBkb25lIGZv
-ciB1bmlmaWVkIGNhY2hlcywgYXMgaW5zdHJ1Y3Rpb24vZGF0YSBjYWNoZXMgd291bGQKPj4+IGdl
-bmVyYXRlIHRoZSBzYW1lIGlkIHVzaW5nIHRoaXMgc2NoZW1lLgo+IAo+Pj4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvYWNwaS9wcHR0LmMgYi9kcml2ZXJzL2FjcGkvcHB0dC5jCj4+PiBpbmRleCBkMWUy
-NmNiNTk5YmYuLjk0NzhmOGMyODE1OCAxMDA2NDQKPj4+IC0tLSBhL2RyaXZlcnMvYWNwaS9wcHR0
-LmMKPj4+ICsrKyBiL2RyaXZlcnMvYWNwaS9wcHR0LmMKPj4+IEBAIC0zNDEsNiArMzQxLDg0IEBA
-IHN0YXRpYyBzdHJ1Y3QgYWNwaV9wcHR0X2NhY2hlCj4+PiAqYWNwaV9maW5kX2NhY2hlX25vZGUo
-c3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICp0YQo+Pj4gIMKgIC8qIHRvdGFsIG51bWJlciBvZiBh
-dHRyaWJ1dGVzIGNoZWNrZWQgYnkgdGhlIHByb3BlcnRpZXMgY29kZSAqLwo+Pj4gIMKgICNkZWZp
-bmUgUFBUVF9DSEVDS0VEX0FUVFJJQlVURVMgNAo+Pj4gIMKgICsvKioKPj4+ICsgKiBhY3BpX3Bw
-dHRfbWluX3BoeXNpZF9mcm9tX2NwdV9ub2RlKCkgLSBSZWN1cnNpdmx5IGZpbmQgQG1pbl9waHlz
-aWQgZm9yIGFsbAo+Pj4gKyAqIGxlYWYgQ1BVcyBiZWxvdyBAY3B1X25vZGUuCj4+PiArICogQHRh
-YmxlX2hkcjrCoMKgwqAgUG9pbnRlciB0byB0aGUgaGVhZCBvZiB0aGUgUFBUVCB0YWJsZQo+Pj4g
-KyAqIEBjcHVfbm9kZTrCoMKgwqAgVGhlIHBvaW50IGluIHRoZSB0b3Bsb2d5IHRvIHN0YXJ0IHRo
-ZSB3YWxrCj4+PiArICogQG1pbl9waHlzaWQ6wqDCoMKgIFRoZSBtaW5fcGh5c2lkIHRvIHVwZGF0
-ZSB3aXRoIGxlYWYgQ1BVcy4KPj4+ICsgKi8KPj4+ICt2b2lkIGFjcGlfcHB0dF9taW5fcGh5c2lk
-X2Zyb21fY3B1X25vZGUoc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICp0YWJsZV9oZHIsCj4+PiAr
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc3RydWN0IGFjcGlfcHB0dF9w
-cm9jZXNzb3IgKmNwdV9ub2RlLAo+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgIHBoeXNfY3B1aWRfdCAqbWluX3BoeXNpZCkKPj4+ICt7Cj4+PiArwqDCoMKgIGJvb2wg
-bGVhZiA9IHRydWU7Cj4+PiArwqDCoMKgIHUzMiBhY3BpX3Byb2Nlc3Nvcl9pZDsKPj4+ICvCoMKg
-wqAgcGh5c19jcHVpZF90IGNwdV9ub2RlX3BoeXNfaWQ7Cj4+PiArwqDCoMKgIHN0cnVjdCBhY3Bp
-X3N1YnRhYmxlX2hlYWRlciAqaXRlcjsKPj4+ICvCoMKgwqAgc3RydWN0IGFjcGlfcHB0dF9wcm9j
-ZXNzb3IgKml0ZXJfbm9kZTsKPj4+ICvCoMKgwqAgdTMyIHRhcmdldF9ub2RlID0gQUNQSV9QVFJf
-RElGRihjcHVfbm9kZSwgdGFibGVfaGRyKTsKPj4+ICvCoMKgwqAgdTMyIHByb2Nfc3ogPSBzaXpl
-b2Yoc3RydWN0IGFjcGlfcHB0dF9wcm9jZXNzb3IgKik7Cj4+PiArwqDCoMKgIHVuc2lnbmVkIGxv
-bmcgdGFibGVfZW5kID0gKHVuc2lnbmVkIGxvbmcpdGFibGVfaGRyICsgdGFibGVfaGRyLT5sZW5n
-dGg7Cj4+PiArCj4+PiArwqDCoMKgIC8qCj4+PiArwqDCoMKgwqAgKiBXYWxrIHRoZSBQUFRULCBs
-b29raW5nIGZvciBub2RlcyB0aGF0IHJlZmVyZW5jZSBjcHVfbm9kZQo+Pj4gK8KgwqDCoMKgICog
-YXMgcGFyZW50Lgo+Pj4gK8KgwqDCoMKgICovCj4+PiArwqDCoMKgIGl0ZXIgPSBBQ1BJX0FERF9Q
-VFIoc3RydWN0IGFjcGlfc3VidGFibGVfaGVhZGVyLCB0YWJsZV9oZHIsCj4+PiArwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc2l6ZW9mKHN0cnVjdCBhY3BpX3RhYmxlX3BwdHQpKTsK
-Pj4+ICsKPj4+ICvCoMKgwqAgd2hpbGUgKCh1bnNpZ25lZCBsb25nKWl0ZXIgKyBwcm9jX3N6IDwg
-dGFibGVfZW5kKSB7Cj4+PiArwqDCoMKgwqDCoMKgwqAgaXRlcl9ub2RlID0gKHN0cnVjdCBhY3Bp
-X3BwdHRfcHJvY2Vzc29yICopaXRlcjsKPj4+ICsKPj4+ICvCoMKgwqDCoMKgwqDCoCBpZiAoaXRl
-ci0+dHlwZSA9PSBBQ1BJX1BQVFRfVFlQRV9QUk9DRVNTT1IgJiYKPj4+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgIGl0ZXJfbm9kZS0+cGFyZW50ID09IHRhcmdldF9ub2RlKSB7Cj4+PiArwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCBsZWFmID0gZmFsc2U7Cj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oCBhY3BpX3BwdHRfbWluX3BoeXNpZF9mcm9tX2NwdV9ub2RlKHRhYmxlX2hkciwgaXRlcl9ub2Rl
-LAo+Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoCBtaW5fcGh5c2lkKTsKPj4+ICvCoMKgwqDCoMKgwqDCoCB9Cj4+PiArCj4+PiAr
-wqDCoMKgwqDCoMKgwqAgaWYgKGl0ZXItPmxlbmd0aCA9PSAwKQo+Pj4gK8KgwqDCoMKgwqDCoMKg
-wqDCoMKgwqAgcmV0dXJuOwo+Pj4gK8KgwqDCoMKgwqDCoMKgIGl0ZXIgPSBBQ1BJX0FERF9QVFIo
-c3RydWN0IGFjcGlfc3VidGFibGVfaGVhZGVyLCBpdGVyLAo+Pj4gK8KgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgIGl0ZXItPmxlbmd0aCk7Cj4+PiArwqDCoMKgIH0KPj4+ICsK
-Pj4+ICvCoMKgwqAgaWYgKGxlYWYgJiYgY3B1X25vZGUtPmZsYWdzICYgQUNQSV9QUFRUX0FDUElf
-UFJPQ0VTU09SX0lEX1ZBTElEKSB7Cj4+PiArwqDCoMKgwqDCoMKgwqAgYWNwaV9wcm9jZXNzb3Jf
-aWQgPSBjcHVfbm9kZS0+YWNwaV9wcm9jZXNzb3JfaWQ7Cj4+PiArwqDCoMKgwqDCoMKgwqAgY3B1
-X25vZGVfcGh5c19pZCA9IGFjcGlfaWRfdG9fcGh5c19jcHVpZChhY3BpX3Byb2Nlc3Nvcl9pZCk7
-Cj4+PiArwqDCoMKgwqDCoMKgwqAgKm1pbl9waHlzaWQgPSBtaW4oKm1pbl9waHlzaWQsIGNwdV9u
-b2RlX3BoeXNfaWQpOwo+Pj4gK8KgwqDCoCB9Cj4+PiArfQo+Pgo+PiBUaG8gbWUsIGlzIHNlZW1z
-IGEgcmVsaWFibGUgd2F5IHRvIGFjcXVpcmUgYSBzdGFibGUgaWQuCj4+Cj4+IE15IG9ubHkgaGFu
-Z3VwIGhlcmUgaXMgd2l0aCB0aGUgcmVjdXJzaW9uICh3aGljaCB3YXMgYXZvaWRlZCBlbHNld2hl
-cmUgaW4gdGhpcwo+PiBjb2RlIGRlc3BpdGUgY29uc2lkZXJhYmxlIHNpbXBsaWZpY2F0aW9uIGlu
-IGEgY291cGxlIHBsYWNlcykuIEluIGEgcmVhc29uYWJsZQo+PiB0YWJsZSB0aGUgdHJlZSBkZXB0
-aCBzaG91bGQgYmUgcXVpdGUgbGltaXRlZCAoYW5kIG5vdCBjb250YWluIGFueSBicmFuY2ggbG9v
-cHMpCj4+IGJ1dCBpdCBzZWVtcyBhIG5lZWRsZXNzIHJpc2suIEhvdyBtdWNoIHdvcnNlIGlzIHRo
-ZSBub24tcmVjdXJzaXZlIHZlcnNpb24/Cj4gCj4gSSBoYXZlbid0IHRyaWVkLCB0aGlzIHdhcyBq
-dXN0IHRvIGdldCB0aGUgZGlzY3Vzc2lvbiBhYm91dCB0aGUgY2FjaGUgaWRzIGdvaW5nLgo+IAo+
-IFRoZSBuZWF0ZXN0IHdheSBJIGNhbiB0aGluayBvZiB3b3VsZCBiZSB0byBmaW5kIGVhY2ggY3B1
-LCB0aGVuIHdhbGsgdXAgdGhlCj4gcGFyZW50IHBvaW50ZXJzIHRvIHNlZSBpZiB0aGlzIG5vZGUg
-aXMgb24gdGhlIHBhdGguIFRoaXMgYXZvaWRzIGFsbG9jYXRpbmcKPiBtZW1vcnkgdG8gaG9sZCB0
-aGUgc3R1ZmYgd2UgaGF2ZW4ndCBkb25lIHlldCB3aGVuIHdhbGtpbmcgZG93bi9hcm91bmQuCj4g
-Cj4gCj4+IEFsc28sIHRoZSBmaXJzdCB2ZXJzaW9uIG9mIHRoZSBQUFRUIHNwZWMgY2FuIGJlIHJl
-YWQgdGhhdAo+PiBBQ1BJX1BQVFRfQUNQSV9QUk9DRVNTT1JfSURfVkFMSUQgc2hvdWxkIF9ub3Rf
-IGJlIHNldCBvbiBsZWFmIG5vZGVzLiBTbyBJTUhPIGEKPj4gYmV0dGVyIGNoZWNrIGlzIGp1c3Qg
-d2hldGhlciB0aGUgbGVhZidzIHByb2Nlc3Nvcl9pZCBpcyB2YWxpZCBpbiB0aGUgTUFEVC4KPj4g
-SG9wZWZ1bGx5IHRoaXMgZmxhZyBiZWNvbWVzIG1vcmUgcmVsaWFibGUgaW4gdGltZS4uLgo+IAo+
-IEl0IGNhbiBiZSBzZXQgZm9yIGEgbm9uLWxlYWYgZW50cnksIEkgYXNzdW1lZCBpdCB3b3VsZCBh
-bHdheXMgYmUgc2V0IGZvciBhIGxlYWYuCj4gSXMgYW55b25lIGRvaW5nIHRoaXMgd2l0aCBhIFBQ
-VFQgdGFibGU/CgpRREYyNDAwIHRha2VzIGEgc3RyaWN0IGludGVycHJldGF0aW9uIG9mIHRoZSBz
-cGVjLCBhbmQgZG9lcyBub3Qgc2V0IHRoZSAKZmxhZyBmb3IgbGVhZiBub2Rlcy4gIEkgYmVsaWV2
-ZSB0aGVyZSBhcmUgb3RoZXIgaW1wbGVtZW50YXRpb25zIHdoaWNoIGRvIApzZXQgdGhlIGZsYWcg
-Zm9yIGxlYWYgbm9kZXMuCgo+IAo+IAo+Pj4gK3N0YXRpYyB2b2lkIGFjcGlfcHB0dF9sYWJlbF9j
-YWNoZShzdHJ1Y3QgY2FjaGVpbmZvICp0aGlzX2xlYWYpCj4+PiArewo+Pj4gK8KgwqDCoCBhY3Bp
-X3N0YXR1cyBzdGF0dXM7Cj4+PiArwqDCoMKgIHN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciAqdGFi
-bGU7Cj4+PiArwqDCoMKgIHN0cnVjdCBhY3BpX3BwdHRfcHJvY2Vzc29yICpjcHVfbm9kZTsKPj4+
-ICvCoMKgwqAgcGh5c19jcHVpZF90IG1pbl9waHlzaWQgPSBQSFlTX0NQVUlEX0lOVkFMSUQ7Cj4+
-PiArCj4+PiArwqDCoMKgIC8qIEFmZmluaXR5IGJhc2VkIElEcyBmb3Igbm9uLXVuaWZpZWQgY2Fj
-aGVzIHdvdWxkIG5vdCBiZSB1bmlxdWUgKi8KPj4+ICvCoMKgwqAgaWYgKHRoaXNfbGVhZi0+dHlw
-ZSAhPSBDQUNIRV9UWVBFX1VOSUZJRUQpCj4+PiArwqDCoMKgwqDCoMKgwqAgcmV0dXJuOwo+Pj4g
-Kwo+Pj4gK8KgwqDCoCBpZiAoIXRoaXNfbGVhZi0+ZndfdG9rZW4pCj4+PiArwqDCoMKgwqDCoMKg
-wqAgcmV0dXJuOwo+Pj4gK8KgwqDCoCBjcHVfbm9kZSA9IHRoaXNfbGVhZi0+ZndfdG9rZW47Cj4+
-PiArCj4+PiArwqDCoMKgIHN0YXR1cyA9IGFjcGlfZ2V0X3RhYmxlKEFDUElfU0lHX1BQVFQsIDAs
-ICZ0YWJsZSk7Cj4+PiArwqDCoMKgIGlmIChBQ1BJX0ZBSUxVUkUoc3RhdHVzKSkKPj4+ICvCoMKg
-wqDCoMKgwqDCoCByZXR1cm47Cj4+PiArCj4+PiArwqDCoMKgIGFjcGlfcHB0dF9taW5fcGh5c2lk
-X2Zyb21fY3B1X25vZGUodGFibGUsIGNwdV9ub2RlLCAmbWluX3BoeXNpZCk7Cj4+PiArwqDCoMKg
-IGFjcGlfcHV0X3RhYmxlKHRhYmxlKTsKPj4+ICsKPj4+ICvCoMKgwqAgV0FSTl9PTl9PTkNFKG1p
-bl9waHlzaWQgPT0gUEhZU19DUFVJRF9JTlZBTElEKTsKPj4+ICsKPj4+ICvCoMKgwqAgdGhpc19s
-ZWFmLT5pZCA9IEFSQ0hfUEhZU0lEX1RPX1UzMihtaW5fcGh5c2lkKTsKPj4+ICvCoMKgwqAgdGhp
-c19sZWFmLT5hdHRyaWJ1dGVzIHw9IENBQ0hFX0lEOwo+Pj4gK30KPj4KPj4gVG8gbWUgaXRzIHNl
-ZW1zIGEgbGl0dGxlIG9kZCB0byBiZSBhY3BpX2dldF90YWJsZSgpaW5nIGluc2lkZSB0aGUgUFBU
-VCBwYXJzZQo+PiByb3V0aW5lcyBiZWNhdXNlIHdlIGxvc3QgdGhlIHJlZmVyZW5jZSB2aWEgdGhl
-IGNhbGwgdG8KPj4gdXBkYXRlX2NhY2hlX3Byb3BlcnRpZXMoKS4gUmF0aGVyIGlmIHRoaXMgcm91
-dGluZSB3ZXJlIGNhbGxlZCBmcm9tCj4+IGNhY2hlX3NldHVwX2FjcGlfY3B1KCkgdGhlIHRhYmxl
-IGNvdWxkIGJlIHBhc3NlZCBpbi4KPiAKPiBNYWtlcyBzZW5zZS4gVGhpcyB3YXMganVzdCB0aGUg
-bGFzdCBwb2ludCB0aGUgdHlwZSBjb3VsZCBiZSBzZXQuCj4gCj4gCj4gVGhhbmtzLAo+IAo+IEph
-bWVzCj4gCgoKLS0gCkplZmZyZXkgSHVnbwpRdWFsY29tbSBEYXRhY2VudGVyIFRlY2hub2xvZ2ll
-cyBhcyBhbiBhZmZpbGlhdGUgb2YgUXVhbGNvbW0gClRlY2hub2xvZ2llcywgSW5jLgpRdWFsY29t
-bSBUZWNobm9sb2dpZXMsIEluYy4gaXMgYSBtZW1iZXIgb2YgdGhlCkNvZGUgQXVyb3JhIEZvcnVt
-LCBhIExpbnV4IEZvdW5kYXRpb24gQ29sbGFib3JhdGl2ZSBQcm9qZWN0LgoKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KbGludXgtYXJtLWtlcm5lbCBtYWls
-aW5nIGxpc3QKbGludXgtYXJtLWtlcm5lbEBsaXN0cy5pbmZyYWRlYWQub3JnCmh0dHA6Ly9saXN0
-cy5pbmZyYWRlYWQub3JnL21haWxtYW4vbGlzdGluZm8vbGludXgtYXJtLWtlcm5lbAo=
+On Tue, 2018-10-09 at 09:35 +0200, Rafael J. Wysocki wrote:
+> On Mon, Oct 8, 2018 at 6:55 PM Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> > 
+> > The Continuous Performance Control Package can have guaranteed
+> > performance
+> > field. Add support to read guaranteed performance.
+> 
+> The spec says that it is optional, but you seem to assume that it
+> always will be there.
+> 
+Even if there is some missing optional field, the place will not be
+filled by the next mandatory field as the order of fields is _CPC is
+fixed.
+
+"Optional _CPC package fields that are not supported by the platform
+should be encoded as follows:
+• Integer fields: Integer 0
+• Register fields: the following NULL register descriptor should be
+used:
+ResourceTemplate() {Register {(SystemMemory, 0, 0, 0, 0)}}
+"
+
+> What happens if it is not there?
+Will see 0 acpi_cppc sysfs.
+
+But this may confuse users, so better not to add guaranteed attribute
+to acpi_cppc sysfs.
+
+I will submit v2 of patch series.
+
+Thanks,
+Srinivas
+
+> 
+> > Signed-off-by: Srinivas Pandruvada <
+> > srinivas.pandruvada@linux.intel.com>
+> > ---
+> > No changes. But adding CC to mailing lists.
+> > 
+> >  Documentation/acpi/cppc_sysfs.txt |  2 ++
+> >  drivers/acpi/cppc_acpi.c          | 10 ++++++++--
+> >  include/acpi/cppc_acpi.h          |  1 +
+> >  3 files changed, 11 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/Documentation/acpi/cppc_sysfs.txt
+> > b/Documentation/acpi/cppc_sysfs.txt
+> > index f20fb445135d..812574d30717 100644
+> > --- a/Documentation/acpi/cppc_sysfs.txt
+> > +++ b/Documentation/acpi/cppc_sysfs.txt
+> > @@ -22,6 +22,7 @@ $ ls -lR  /sys/devices/system/cpu/cpu0/acpi_cppc/
+> >  /sys/devices/system/cpu/cpu0/acpi_cppc/:
+> >  total 0
+> >  -r--r--r-- 1 root root 65536 Mar  5 19:38 feedback_ctrs
+> > +-r--r--r-- 1 root root 65536 Mar  5 19:38 guaranteed_perf
+> >  -r--r--r-- 1 root root 65536 Mar  5 19:38 highest_perf
+> >  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_freq
+> >  -r--r--r-- 1 root root 65536 Mar  5 19:38 lowest_nonlinear_perf
+> > @@ -33,6 +34,7 @@ total 0
+> > 
+> >  ----------------------------------------------------------------
+> > ----------------
+> > 
+> > +* guaranteed_perf : Guaranteed performance of this processor
+> > (abstract scale).
+> >  * highest_perf : Highest performance of this processor (abstract
+> > scale).
+> >  * nominal_perf : Highest sustained performance of this processor
+> > (abstract scale).
+> >  * lowest_nonlinear_perf : Lowest performance of this processor
+> > with nonlinear
+> > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> > index d9ce4b162e2c..5babb9402f11 100644
+> > --- a/drivers/acpi/cppc_acpi.c
+> > +++ b/drivers/acpi/cppc_acpi.c
+> > @@ -153,6 +153,7 @@ __ATTR(_name, 0444, show_##_name, NULL)
+> >         }                                                          
+> >      \
+> >         define_one_cppc_ro(member_name)
+> > 
+> > +show_cppc_data(cppc_get_perf_caps, cppc_perf_caps,
+> > guaranteed_perf);
+> >  show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, highest_perf);
+> >  show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, lowest_perf);
+> >  show_cppc_data(cppc_get_perf_caps, cppc_perf_caps, nominal_perf);
+> > @@ -189,6 +190,7 @@ static struct attribute *cppc_attrs[] = {
+> >         &nominal_perf.attr,
+> >         &nominal_freq.attr,
+> >         &lowest_freq.attr,
+> > +       &guaranteed_perf.attr,
+> >         NULL
+> >  };
+> > 
+> > @@ -1061,9 +1063,9 @@ int cppc_get_perf_caps(int cpunum, struct
+> > cppc_perf_caps *perf_caps)
+> >  {
+> >         struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> >         struct cpc_register_resource *highest_reg, *lowest_reg,
+> > -               *lowest_non_linear_reg, *nominal_reg,
+> > +               *lowest_non_linear_reg, *nominal_reg,
+> > *guaranteed_reg,
+> >                 *low_freq_reg = NULL, *nom_freq_reg = NULL;
+> > -       u64 high, low, nom, min_nonlinear, low_f = 0, nom_f = 0;
+> > +       u64 high, low, guaranteed, nom, min_nonlinear, low_f = 0,
+> > nom_f = 0;
+> >         int pcc_ss_id = per_cpu(cpu_pcc_subspace_idx, cpunum);
+> >         struct cppc_pcc_data *pcc_ss_data = NULL;
+> >         int ret = 0, regs_in_pcc = 0;
+> > @@ -1079,6 +1081,7 @@ int cppc_get_perf_caps(int cpunum, struct
+> > cppc_perf_caps *perf_caps)
+> >         nominal_reg = &cpc_desc->cpc_regs[NOMINAL_PERF];
+> >         low_freq_reg = &cpc_desc->cpc_regs[LOWEST_FREQ];
+> >         nom_freq_reg = &cpc_desc->cpc_regs[NOMINAL_FREQ];
+> > +       guaranteed_reg = &cpc_desc->cpc_regs[GUARANTEED_PERF];
+> > 
+> >         /* Are any of the regs PCC ?*/
+> >         if (CPC_IN_PCC(highest_reg) || CPC_IN_PCC(lowest_reg) ||
+> > @@ -1107,6 +1110,9 @@ int cppc_get_perf_caps(int cpunum, struct
+> > cppc_perf_caps *perf_caps)
+> >         cpc_read(cpunum, nominal_reg, &nom);
+> >         perf_caps->nominal_perf = nom;
+> > 
+> > +       cpc_read(cpunum, guaranteed_reg, &guaranteed);
+> > +       perf_caps->guaranteed_perf = guaranteed;
+> > +
+> >         cpc_read(cpunum, lowest_non_linear_reg, &min_nonlinear);
+> >         perf_caps->lowest_nonlinear_perf = min_nonlinear;
+> > 
+> > diff --git a/include/acpi/cppc_acpi.h b/include/acpi/cppc_acpi.h
+> > index 8e0b8250a139..cf59e6210d27 100644
+> > --- a/include/acpi/cppc_acpi.h
+> > +++ b/include/acpi/cppc_acpi.h
+> > @@ -104,6 +104,7 @@ enum cppc_regs {
+> >   * today.
+> >   */
+> >  struct cppc_perf_caps {
+> > +       u32 guaranteed_perf;
+> >         u32 highest_perf;
+> >         u32 nominal_perf;
+> >         u32 lowest_perf;
+> > --
+> > 2.17.1
+> > 
