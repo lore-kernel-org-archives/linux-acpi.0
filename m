@@ -1,55 +1,95 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [RFC PATCH 2/2] ACPI / PPTT: cacheinfo: Label caches based on
- fw_token
-Date: Wed, 10 Oct 2018 08:16:31 -0600
-Message-ID: <d824d1c0-d26b-8b12-ef35-6b760844056f@codeaurora.org>
-References: <20181005150235.13846-1-james.morse@arm.com>
- <20181005150235.13846-3-james.morse@arm.com>
- <a68abfd2-1e28-d9e7-919a-8b3133db4d20@arm.com>
- <10e15b8d-c0c2-b73a-de31-f87ae0d86469@arm.com>
- <236eab50-e1d0-e2f5-fb69-95451c4ccc7e@codeaurora.org>
- <20181010094637.GA13498@e107155-lin>
+From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Subject: [PATCH] ACPI: remove redundant 'default n' from Kconfig
+Date: Wed, 10 Oct 2018 16:41:30 +0200
+Message-ID: <20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da~cRlJN49vs2486624866eucas1p1i@eucas1p1.samsung.com>
+References: <CGME20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da@eucas1p1.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <20181010094637.GA13498@e107155-lin>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, James Morse <james.morse@arm.com>, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Hanjun Guo <guohanjun@huawei.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/10/2018 3:46 AM, Sudeep Holla wrote:
-> On Tue, Oct 09, 2018 at 12:34:51PM -0600, Jeffrey Hugo wrote:
->> On 10/9/2018 11:58 AM, James Morse wrote:
->>>
->>> It can be set for a non-leaf entry, I assumed it would always be set for a leaf.
->>> Is anyone doing this with a PPTT table?
->>
->> QDF2400 takes a strict interpretation of the spec, and does not set the flag
->> for leaf nodes.  I believe there are other implementations which do set the
->> flag for leaf nodes.
->>
-> 
-> IIRC, based on the discussions when this was added, the ACPI Processor
-> ID  *must be* valid for the lead nodes.T he flag bit corresponding
-> to that should be considered as don't care as it's always guaranteed
-> to be valid.
+'default n' is the default value for any bool or tristate Kconfig
+setting so there is no need to write it explicitly.
 
-Correct.
+Also since commit f467c5640c29 ("kconfig: only write '# CONFIG_FOO
+is not set' for visible symbols") the Kconfig behavior is the same
+regardless of 'default n' being present or not:
 
--- 
-Jeffrey Hugo
-Qualcomm Datacenter Technologies as an affiliate of Qualcomm 
-Technologies, Inc.
-Qualcomm Technologies, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+    ...
+    One side effect of (and the main motivation for) this change is making
+    the following two definitions behave exactly the same:
+    
+        config FOO
+                bool
+    
+        config FOO
+                bool
+                default n
+    
+    With this change, neither of these will generate a
+    '# CONFIG_FOO is not set' line (assuming FOO isn't selected/implied).
+    That might make it clearer to people that a bare 'default n' is
+    redundant.
+    ...
+
+Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+---
+ drivers/acpi/Kconfig |    6 ------
+ 1 file changed, 6 deletions(-)
+
+Index: b/drivers/acpi/Kconfig
+===================================================================
+--- a/drivers/acpi/Kconfig	2018-09-26 15:54:31.942819766 +0200
++++ b/drivers/acpi/Kconfig	2018-10-10 16:38:09.691897907 +0200
+@@ -138,7 +138,6 @@ config ACPI_REV_OVERRIDE_POSSIBLE
+ 
+ config ACPI_EC_DEBUGFS
+ 	tristate "EC read/write access through /sys/kernel/debug/ec"
+-	default n
+ 	help
+ 	  Say N to disable Embedded Controller /sys/kernel/debug interface
+ 
+@@ -283,7 +282,6 @@ config ACPI_PROCESSOR
+ config ACPI_IPMI
+ 	tristate "IPMI"
+ 	depends on IPMI_HANDLER
+-	default n
+ 	help
+ 	  This driver enables the ACPI to access the BMC controller. And it
+ 	  uses the IPMI request/response message to communicate with BMC
+@@ -361,7 +359,6 @@ config ACPI_TABLE_UPGRADE
+ 
+ config ACPI_DEBUG
+ 	bool "Debug Statements"
+-	default n
+ 	help
+ 	  The ACPI subsystem can produce debug output.  Saying Y enables this
+ 	  output and increases the kernel size by around 50K.
+@@ -374,7 +371,6 @@ config ACPI_DEBUG
+ config ACPI_PCI_SLOT
+ 	bool "PCI slot detection driver"
+ 	depends on SYSFS
+-	default n
+ 	help
+ 	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
+ 	  slots in the system.  This can help correlate PCI bus addresses,
+@@ -436,7 +432,6 @@ config ACPI_HED
+ config ACPI_CUSTOM_METHOD
+ 	tristate "Allow ACPI methods to be inserted/replaced at run time"
+ 	depends on DEBUG_FS
+-	default n
+ 	help
+ 	  This debug facility allows ACPI AML methods to be inserted and/or
+ 	  replaced without rebooting the system. For details refer to:
+@@ -481,7 +476,6 @@ config ACPI_EXTLOG
+ 	tristate "Extended Error Log support"
+ 	depends on X86_MCE && X86_LOCAL_APIC && EDAC
+ 	select UEFI_CPER
+-	default n
+ 	help
+ 	  Certain usages such as Predictive Failure Analysis (PFA) require
+ 	  more information about the error than what can be described in
