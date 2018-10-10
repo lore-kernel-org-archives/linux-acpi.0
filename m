@@ -1,38 +1,27 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Wed, 10 Oct 2018 17:30:57 +0800
-Message-ID: <20181010093057.GA22088@MiWiFi-R3L-srv>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010085920.GB5533@zn.tnic>
- <20181010090620.GF25297@MiWiFi-R3L-srv>
- <alpine.DEB.2.21.1810101113070.10278@nanos.tec.linutronix.de>
- <20181010091923.GC5533@zn.tnic>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 00/23] various dynamic_debug patches
+Date: Wed, 10 Oct 2018 11:37:41 +0200
+Message-ID: <CAJZ5v0js_Lp6zh3b1O3R_oM6F9RehAj4wr5xz26hTg=A6zHDBQ@mail.gmail.com>
+References: <20180919220444.23190-1-linux@rasmusvillemoes.dk> <20181009112013.14238-1-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181010091923.GC5533@zn.tnic>
+In-Reply-To: <20181009112013.14238-1-linux@rasmusvillemoes.dk>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>, Ingo Molnar <mingo@kernel.org>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com, Masayoshi Mizuma <msys.mizuma@gmail.com>
+To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: jbaron@akamai.com, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev <netdev@vger.kernel.org>, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/10/18 at 11:19am, Borislav Petkov wrote:
-> On Wed, Oct 10, 2018 at 11:14:26AM +0200, Thomas Gleixner wrote:
-> > Yes, it's different, but if the SRAT information is available early, then
-> > the command line parameter can go away because then the required
-> > information for Masa's problem is available as well.
-> 
-> Exactly. And I'd prefer we delayed the command line parameter until we
-> figure out we really need it and not expose it to upstream and then
-> remove it shortly after.
-> 
-> So I'd suggest we move Masa's patches to a separate branch and not send
-> it up this round.
+On Tue, Oct 9, 2018 at 1:20 PM Rasmus Villemoes
+<linux@rasmusvillemoes.dk> wrote:
+>
+> v2: Added various acks/reviews. I'll follow up with rewriting the x86
+> part as asm macros once that work is in mainline.
+>
+> Patches 15, 16 are in next-20181009; in hindsight I should probably
+> have asked Rafael not to pick those.
 
-Yes, sounds more reasonable if we can reuse functions in Chao's patch 1/3
-to solve the padding issue.
+So I have dropped them (which was easy enough to do).
 
-Thanks
-Baoquan
+Thanks,
+Rafael
