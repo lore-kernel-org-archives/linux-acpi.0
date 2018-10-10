@@ -1,27 +1,48 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 00/23] various dynamic_debug patches
-Date: Wed, 10 Oct 2018 11:37:41 +0200
-Message-ID: <CAJZ5v0js_Lp6zh3b1O3R_oM6F9RehAj4wr5xz26hTg=A6zHDBQ@mail.gmail.com>
-References: <20180919220444.23190-1-linux@rasmusvillemoes.dk> <20181009112013.14238-1-linux@rasmusvillemoes.dk>
+Subject: Re: [PATCH v2 15/23] ACPI: use proper DYNAMIC_DEBUG_BRANCH macro
+Date: Wed, 10 Oct 2018 11:38:29 +0200
+Message-ID: <CAJZ5v0jmdnbhzPGbcFarQx-AfpLn72-BqDGowg=p=hEkB+J08w@mail.gmail.com>
+References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
+ <20181009112013.14238-1-linux@rasmusvillemoes.dk> <20181009112013.14238-16-linux@rasmusvillemoes.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181009112013.14238-1-linux@rasmusvillemoes.dk>
+In-Reply-To: <20181009112013.14238-16-linux@rasmusvillemoes.dk>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: jbaron@akamai.com, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, netdev <netdev@vger.kernel.org>, Petr Mladek <pmladek@suse.com>, Steven Rostedt <rostedt@goodmis.org>, linux-btrfs@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
+Cc: jbaron@akamai.com, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 9, 2018 at 1:20 PM Rasmus Villemoes
+On Tue, Oct 9, 2018 at 1:21 PM Rasmus Villemoes
 <linux@rasmusvillemoes.dk> wrote:
 >
-> v2: Added various acks/reviews. I'll follow up with rewriting the x86
-> part as asm macros once that work is in mainline.
+> dynamic debug may be implemented via static keys, but ACPI is missing
+> out on that runtime benefit since it open-codes one possible definition
+> of DYNAMIC_DEBUG_BRANCH.
 >
-> Patches 15, 16 are in next-20181009; in hindsight I should probably
-> have asked Rafael not to pick those.
+> Cc: linux-acpi@vger.kernel.org
+> Acked-by: Jason Baron <jbaron@akamai.com>
+> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-So I have dropped them (which was easy enough to do).
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Thanks,
-Rafael
+> ---
+>  include/linux/acpi.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index de8d3d3fa651..21e03aa32aae 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -982,7 +982,7 @@ void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const c
+>  #define acpi_handle_debug(handle, fmt, ...)                            \
+>  do {                                                                   \
+>         DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);                 \
+> -       if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))          \
+> +       if (DYNAMIC_DEBUG_BRANCH(descriptor))                           \
+>                 __acpi_handle_debug(&descriptor, handle, pr_fmt(fmt),   \
+>                                 ##__VA_ARGS__);                         \
+>  } while (0)
+> --
+> 2.19.1.3.g1d92a00e68
+>
