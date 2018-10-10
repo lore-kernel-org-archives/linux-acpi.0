@@ -1,100 +1,40 @@
-From: Jeffrey Hugo <jhugo@codeaurora.org>
-Subject: Re: [RFC PATCH 0/2] ACPI / PPTT: ids for caches
-Date: Wed, 10 Oct 2018 10:19:49 -0600
-Message-ID: <6f2559a9-99b9-f0f8-392e-633cb3ac591c@codeaurora.org>
-References: <20181005150235.13846-1-james.morse@arm.com>
- <da8a4ae0-b63c-d27f-1f54-af19f058881c@codeaurora.org>
- <8cfc967e-f386-15f5-8fec-33e6a3b9571e@arm.com>
- <4084f44a-f1ed-e027-c838-946bda2f0dc9@codeaurora.org>
- <9b534013-f45e-2348-9a4f-87d3db2b4527@arm.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
+ in immovable memory
+Date: Wed, 10 Oct 2018 19:16:16 +0200
+Message-ID: <20181010171616.GD5533@zn.tnic>
+References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <9b534013-f45e-2348-9a4f-87d3db2b4527@arm.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: James Morse <james.morse@arm.com>
-Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Hanjun Guo <guohanjun@huawei.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Sudeep Holla <sudeep.holla@arm.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMTAvOC8yMDE4IDM6MjYgQU0sIEphbWVzIE1vcnNlIHdyb3RlOgo+IEhpIEplZmZyZXksCj4g
-Cj4gT24gMDUvMTAvMjAxOCAxNzozOSwgSmVmZnJleSBIdWdvIHdyb3RlOgo+PiBPbiAxMC81LzIw
-MTggOTo1NCBBTSwgSmFtZXMgTW9yc2Ugd3JvdGU6Cj4+PiBUaGUgcHJvYmxlbSBpcyBnZW5lcmF0
-aW5nIHRoZXNlIG51bWJlcnMgaWYgb25seSBzb21lIG9mIHRoZSBDUFVzIGFyZSBvbmxpbmUsIG9y
-Cj4+PiBpZiB0aGUgYWNwaSB0YWJsZXMgYXJlIGdlbmVyYXRlZCBieSBmaXJtd2FyZSBhdCBwb3dl
-ci1vbiBhbmQgaGF2ZSBhIGRpZmZlcmVudAo+Pj4gbGF5b3V0IGV2ZXJ5IHRpbWUuCj4+PiBXZSBk
-b24ndCBldmVuIHdhbnQgdG8gcmVseSBvbiBsaW51eCdzIGNwdSBudW1iZXJpbmcuCj4+Pgo+Pj4g
-VGhlIHN1Z2dlc3Rpb24gaGVyZSBpcyB0byB1c2UgdGhlIHNtYWxsZXN0IE1QSURSLCBhcyB0aGF0
-J3MgYXMgaGFyZHdhcmUgcHJvcGVydHkKPj4+IHRoYXQgd29uJ3QgY2hhbmdlIGV2ZW4gaWYgdGhl
-IHRhYmxlcyBhcmUgZ2VuZXJhdGVkIGRpZmZlcmVudGx5IGV2ZXJ5IGJvb3QuCj4+Cj4+IEkgY2Fu
-J3QgdGhpbmsgb2YgYSByZWFzb24gd2h5IGFmZmluaXR5IGxldmVsIDAgd291bGQgZXZlciBjaGFu
-Z2UgZm9yIGEKPiAKPiBhZmZpbml0eSBsZXZlbCBvZiB3aGF0PyBUaGUgY2FjaGVzPyBTdXJlLCB0
-aGF0IHNob3VsZCBiZSBpbXBvc3NpYmxlIHRvIGNoYW5nZS4KPiAKPiAKPj4gcGFydGljdWxhciB0
-aHJlYWQgb3IgY29yZSAoU01UIHZzIG5vbi1TTVQpLCBob3dldmVyIG5vbmUgb2YgdGhlIG90aGVy
-IGFmZmluaXR5Cj4+IGxldmVscyBoYXZlIGEgd2VsbCBkZWZpbmVkIG1lYW5pbmcgKGltcGxlbWVu
-dGF0aW9uIGRlcGVuZGVudCksIGFuZCBjb3VsZCB2ZXJ5Cj4+IHdlbGwgY2hhbmdlIGJvb3QgdG8g
-Ym9vdC4KPiAKPiBBaCwgeW91IG1lYW4gdGhlIGxldmVsIG51bWJlcnMuIFllcywgdGhlc2UgYXJl
-IChxdWFzaSkgZGlzY292ZXJlZCBmcm9tIHRoZQo+IHRhYmxlLCBzbyBjYW4ndCBiZSByZWxpZWQg
-b24uCj4gCj4gSWYgeW91IGluc2VydCBhIG5ldyBsZXZlbCB0aGVuIHRoaXMgd291bGQgc2h1ZmZs
-ZSB0aGUgdXNlci12aXNpYmxlIGluZGV4ZXMgYW5kCj4gbGV2ZWxzLiBJIHdvdWxkIGFyZ3VlIHRo
-aXMgaXMgbm8gbG9uZ2VyIHRoZSBzYW1lIGhhcmR3YXJlLgoKV2VsbCwgc28gaXRzIGNvbW1vbiBp
-biBteSBleHBlcmllbmNlIGZvciB4ODYgc2VydmVyIGhhcmR3YXJlIHRvIGFsbG93IAp0aGUgdXNl
-ciB0byBlbmFibGUvZGlzYWJsZSBTTVQuICBUaGlzIHNlZW1zIHRvIGFsbG93IHRoZSB1c2VyIHRv
-IApjb25maWd1cmUgdGhlIGhhcmR3YXJlIHRvIGJldHRlciBzdWl0IHRoZWlyIHdvcmtsb2Fkcy4K
-CkFwcGx5aW5nIHRoaXMgdG8gQVJNLCBZb3UgbWlnaHQgaGF2ZSBhIHN5c3RlbSB3aGVyZSBpdCBz
-dGFydHMgaW4gbm9uLVNNVCAKbW9kZToKCkFmZjM6IDAKQWZmMjogMApBZmYxOiAwCkFmZjA6IFgK
-Cmhvd2V2ZXIsIGFmdGVyIGNoYW5naW5nIHRoZSBzZXR0aW5nIHRvIGVuYWJsZSBTTVQgYW5kIGEg
-cmVib290OgoKQWZmMzogMApBZmYyOiAwCkFmZjE6IFkKQWZmMDogWAoKSWYgeW91IGJhc2UgdGhl
-IGNhY2hlIGlkcyBvbiBNUElEUiwgdGhlbiB0aGV5IHdvdWxkIGxpa2VseSBjaGFuZ2UgU01UIHZz
-IApub24tU01UIGZvciBleGFtcGxlLiAgSG93ZXZlciwgeW91IHNlZW0gdG8gY29uc2lkZXIgdGhh
-dCBhcyBkaWZmZXJlbnQgCmhhcmR3YXJlLCBhbmQgdGhlcmVmb3JlIGlmIHRoZSBjYWNoZSBpZHMg
-Y2hhbmdlLCBzbyBiZSBpdC4KCj4gCj4gRG9pbmcgdGhpcyBtYXkgYWxyZWFkeSBicmVhayByZXNj
-dHJsIGFzIHRoZSAnTDInIGFuZCAnTDMnIG51bWJlcnMgYXJlIHBhcnQgb2YKPiB0aGUgQUJJLgo+
-IAo+IFRoZSBpZHMgZ2VuZXJhdGVkIHdvdWxkIHN0aWxsIGJlIHVuaXF1ZSBmb3IgYSBsZXZlbC4K
-PiAKPiAKPj4gSSB3b3VsZCBzdHJvbmdseSBhdm9pZCB1c2luZyBNUElEUiwgcGFydGljdWxhcmx5
-IGZvciB0aGUgdXNlY2FzZSB5b3UndmUgZGVzY3JpYmVkLgo+IAo+IElzIHRoZXJlIGFuIGFsdGVy
-bmF0aXZlPyBJdCBuZWVkcyB0byBiZSBhIGhhcmR3YXJlIHByb3BlcnR5IHRvIGluc3VsYXRlIHVz
-IGZyb20KPiB0aGUgdGFibGVzIGJlaW5nIHJlLWdlbmVyYXRlZC4KPiAKPiBJIGFncmVlIHRoZSBN
-UElEUiBudW1iZXJzIGFyZSBsaWtlbHkgdG8gYmUgdWdseSwgKEkgZG9uJ3QgcmVhbGx5IGNhcmUu
-Li4pLgo+IFRoZSB1MzIgaWQgYmVpbmcgZnVsbCBmcm9tIGRheSAxIGlzIG1vcmUgb2YgYSBwcm9i
-bGVtLgoKSSBhZ3JlZSwgaXQgbmVlZHMgdG8gYmUgYSBoYXJkd2FyZSBwcm9wZXJ0eSwgYW5kIGZv
-ciB0aGUgcHVycG9zZXMgb2YgCnVuaXF1ZWx5IGlkZW50aWZ5aW5nIGEgY29yZSwgSSdtIG5vdCBz
-ZWVpbmcgYW4gYWx0ZXJuYXRpdmUgdG8gTVBJRFIuICBJIAp0aGluayB0aGF0IE1QSURSIHNob3Vs
-ZCBiZSBvayBzbyBsb25nIGFzIHdlIGRvbid0IGF0dGVtcHQgdG8gZGVyaXZlIGFueSAKYWRkaXRp
-b25hbCBpbmZvcm1hdGlvbiBmcm9tIGl0LCBvdGhlciB0aGFuIGl0cyBhbiBvcGFxdWUgdmFsdWUg
-d2hpY2ggCnVuaXF1ZWx5IGlkZW50aWZpZXMgYSBjb3JlIChvciB0aHJlYWQpLgoKU2luY2UgeW91
-IGhhdmUgYSB1MzIgY2FjaGUgaWQsIGFuZCBNUElEUiBpcyBhIHU2NCwgSSdtIG5vdCByZWFsbHkg
-CnRocmlsbGVkIHdpdGggdHJ5aW5nIHRvIGphbSBNUElEUiBpbnRvIHRoZSBjYWNoZSBpZC4gIEFs
-c28sIGFzIHlvdSBwb2ludCAKb3V0LCBldmVuIHRob3VnaCBpdHMgbm90IGd1YXJhbnRlZWQsIFNX
-IGlzIGdvaW5nIHRvIGV4cGVjdCB0aGUgY2FjaGUgaWRzIAphcmUgbnVtYmVyZWQgMCwgMSwgMiwg
-ZXRjLiAgSSd2ZSBzZWVuIGlzc3VlcyB3aXRoIHZpcnRpbyB3aGVyZSBNUElEUiAKdmFsdWVzIHdl
-cmUgZXhwb3NlZCB2aWEgc3lzZnMgYXMgdW5pcXVlIENQVSBpZGVudGlmaWVycywgYW5kIGl0IGVu
-ZGVkIHVwIApwcmV2ZW50aW5nIFZNcyBmcm9tIGluaXRpYWxpemluZyBvbiB0aGUgc3lzdGVtLgoK
-SSBzdXNwZWN0IGlkZW50aWZ5aW5nIHRoZSBsaXN0IG9mIE1QSURScyBpbiB0aGUgc3lzdGVtLCBz
-b3J0aW5nIHRoZW0sIAphbmQgdGhlbiBhc3NpZ25pbmcgY2FjaGUgaWRzIGJhc2VkIG9uIHRoZSBz
-b3J0ZWQgbGlzdCBwb3NpdGlvbiB3b3VsZCBiZSAKdGhlIGJlc3Qgc29sdXRpb24sIGlnbm9yaW5n
-IHRoYXQgaW1wbGVtZW50aW5nIGl0IGluIFBQVFQgcGFyc2luZyBpcyAKcHJvYmFibHkgZ29pbmcg
-dG8gYmUgcGFpbmZ1bC4KCj4gCj4gCj4+PiBBc3N1bWluZyB0d28gY2x1c3RlcnMgaW4geW91ciBl
-eGFtcGxlIGFib3ZlLCBpdCB3b3VsZCBsb29rIGxpa2U6Cj4+Pgo+Pj4gfCBDUFUwLzEgKGNsdXN0
-ZXIgMCkgTDIgLSAweDAKPj4+IHwgQ1BVMi8zIChjbHVzdGVyIDEpIEwyIC0gMHgxMDAKPj4+IHzC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBMMyAtIDB4MAo+Pgo+PiBUaGFu
-a3MgZm9yIHRoZSBjbGFyaWZpY2F0aW9uLsKgIEkgdGhpbmsgSSd2ZSBnb3QgZW5vdWdoIHRvIHdy
-YXAgbXkgaGVhZCBhcm91bmQKPj4gdGhpcy7CoCBMZXQgbWUgdGhpbmsgb24gaXQgYSBiaXQgdG8g
-c2VlIGlmIEkgY2FuIGNvbWUgdXAgd2l0aCBhIHN1Z2dlc3Rpb24gKHdlCj4+IGNhbiBkZWJhdGUg
-aG93IGdvb2QgaXQgaXMpLgo+IAo+IFNvdW5kcyBnb29kLgo+IAo+IAo+IFRoYW5rcyEKCgotLSAK
-SmVmZnJleSBIdWdvClF1YWxjb21tIERhdGFjZW50ZXIgVGVjaG5vbG9naWVzIGFzIGFuIGFmZmls
-aWF0ZSBvZiBRdWFsY29tbSAKVGVjaG5vbG9naWVzLCBJbmMuClF1YWxjb21tIFRlY2hub2xvZ2ll
-cywgSW5jLiBpcyBhIG1lbWJlciBvZiB0aGUKQ29kZSBBdXJvcmEgRm9ydW0sIGEgTGludXggRm91
-bmRhdGlvbiBDb2xsYWJvcmF0aXZlIFByb2plY3QuCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51
-eC1hcm0ta2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5v
-cmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On Wed, Oct 10, 2018 at 04:41:16PM +0800, Chao Fan wrote:
+> In the earliest time, I tried to dig ACPI tabls to solve this problem.
+> But I didn't splite the code in 'compressed/' and ACPI code, so the patch
+> is hard to follow so refused by community.
+> Somebody suggest to add a kernel parameter to specify the
+> immovable memory so that limit kaslr in these regions. Then I make
+> a new patchset. After several versions, Ingo gave a suggestion:
+> https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1634024.html
+> Follow Ingo's suggestion, imitate the ACPI code to parse the acpi
+> tables, so that the kaslr can get necessary memory information in
+> ACPI tables.
+> I think ACPI code is an independent part, so copy the codes
+> and functions to 'compressed/' directory, so that kaslr won't
+> influence the initialization of ACPI.
+
+You say "copy". I'm still about to look at the code but can those
+functions be carved out in a separate compilation unit which ACPI *and*
+KASLR can both link with so that there's no duplication?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
