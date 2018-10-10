@@ -1,49 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 16/23] ACPI: remove unused __acpi_handle_debug macro
-Date: Wed, 10 Oct 2018 11:38:49 +0200
-Message-ID: <CAJZ5v0jA8-5gpWR0spqLzBi-hQeXvt4u4Bie9BgOLWfhgErqBA@mail.gmail.com>
-References: <20180919220444.23190-1-linux@rasmusvillemoes.dk>
- <20181009112013.14238-1-linux@rasmusvillemoes.dk> <20181009112013.14238-17-linux@rasmusvillemoes.dk>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [RFC PATCH 2/2] ACPI / PPTT: cacheinfo: Label caches based on
+ fw_token
+Date: Wed, 10 Oct 2018 10:46:37 +0100
+Message-ID: <20181010094637.GA13498@e107155-lin>
+References: <20181005150235.13846-1-james.morse@arm.com>
+ <20181005150235.13846-3-james.morse@arm.com>
+ <a68abfd2-1e28-d9e7-919a-8b3133db4d20@arm.com>
+ <10e15b8d-c0c2-b73a-de31-f87ae0d86469@arm.com>
+ <236eab50-e1d0-e2f5-fb69-95451c4ccc7e@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181009112013.14238-17-linux@rasmusvillemoes.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: jbaron@akamai.com, Andrew Morton <akpm@linux-foundation.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <236eab50-e1d0-e2f5-fb69-95451c4ccc7e@codeaurora.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Jeffrey Hugo <jhugo@codeaurora.org>
+Cc: Vijaya Kumar K <vkilari@codeaurora.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <Tomasz.Nowicki@cavium.com>, Sudeep Holla <sudeep.holla@arm.com>, Jeremy Linton <jeremy.linton@arm.com>, linux-acpi@vger.kernel.org, James Morse <james.morse@arm.com>, Richard Ruigrok <rruigrok@qti.qualcomm.com>, Hanjun Guo <guohanjun@huawei.com>, Xiongfeng Wang <wangxiongfeng2@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 9, 2018 at 1:20 PM Rasmus Villemoes
-<linux@rasmusvillemoes.dk> wrote:
+On Tue, Oct 09, 2018 at 12:34:51PM -0600, Jeffrey Hugo wrote:
+> On 10/9/2018 11:58 AM, James Morse wrote:
+> >
+> > It can be set for a non-leaf entry, I assumed it would always be set for a leaf.
+> > Is anyone doing this with a PPTT table?
 >
-> If CONFIG_DYNAMIC_DEBUG is not set, acpi_handle_debug directly invokes
-> acpi_handle_printk (if DEBUG) or does a no-printk (if !DEBUG). So this
-> macro is never used.
+> QDF2400 takes a strict interpretation of the spec, and does not set the flag
+> for leaf nodes.  I believe there are other implementations which do set the
+> flag for leaf nodes.
 >
-> Cc: linux-acpi@vger.kernel.org
-> Acked-by: Jason Baron <jbaron@akamai.com>
-> Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+IIRC, based on the discussions when this was added, the ACPI Processor
+ID  *must be* valid for the lead nodes.T he flag bit corresponding
+to that should be considered as don't care as it's always guaranteed
+to be valid.
 
-> ---
->  include/linux/acpi.h | 3 ---
->  1 file changed, 3 deletions(-)
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 21e03aa32aae..e12d5ef1a054 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -948,9 +948,6 @@ acpi_handle_printk(const char *level, void *handle, const char *fmt, ...) {}
->  #if defined(CONFIG_ACPI) && defined(CONFIG_DYNAMIC_DEBUG)
->  __printf(3, 4)
->  void __acpi_handle_debug(struct _ddebug *descriptor, acpi_handle handle, const char *fmt, ...);
-> -#else
-> -#define __acpi_handle_debug(descriptor, handle, fmt, ...)              \
-> -       acpi_handle_printk(KERN_DEBUG, handle, fmt, ##__VA_ARGS__);
->  #endif
->
->  /*
-> --
-> 2.19.1.3.g1d92a00e68
->
+--
+Regards,
+Sudeep
