@@ -1,65 +1,188 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v3 2/3] perf: add arm64 smmuv3 pmu driver
-Date: Thu, 11 Oct 2018 11:49:18 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83879AD29@FRAEML521-MBX.china.huawei.com>
-References: <20180921150803.25444-1-shameerali.kolothum.thodi@huawei.com>
- <20180921150803.25444-3-shameerali.kolothum.thodi@huawei.com>
- <d649de4e-e0cc-4188-5e56-fea1488b9d6b@arm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2 1/3] x86: baytrail/cherrytrail: Rework and move P-Unit
+ PMIC bus semaphore code
+Date: Thu, 11 Oct 2018 13:58:23 +0200
+Message-ID: <6c7d650d-b65f-da70-ecef-474137369ae3@redhat.com>
+References: <20181011102627.7418-1-hdegoede@redhat.com>
+ <20181011102627.7418-2-hdegoede@redhat.com>
+ <20181011104151.GA31491@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <d649de4e-e0cc-4188-5e56-fea1488b9d6b@arm.com>
+In-Reply-To: <20181011104151.GA31491@gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>
-Cc: "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4gTXVycGh5IFtt
-YWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDExIE9jdG9iZXIgMjAxOCAxMjoy
-Ng0KPiBUbzogU2hhbWVlcmFsaSBLb2xvdGh1bSBUaG9kaSA8c2hhbWVlcmFsaS5rb2xvdGh1bS50
-aG9kaUBodWF3ZWkuY29tPjsNCj4gbG9yZW56by5waWVyYWxpc2lAYXJtLmNvbQ0KPiBDYzogd2ls
-bC5kZWFjb25AYXJtLmNvbTsgbWFyay5ydXRsYW5kQGFybS5jb207IEd1b2hhbmp1biAoSGFuanVu
-IEd1bykNCj4gPGd1b2hhbmp1bkBodWF3ZWkuY29tPjsgSm9obiBHYXJyeSA8am9obi5nYXJyeUBo
-dWF3ZWkuY29tPjsNCj4gcGFiYmFAY29kZWF1cm9yYS5vcmc7IHZraWxhcmlAY29kZWF1cm9yYS5v
-cmc7IHJydWlncm9rQGNvZGVhdXJvcmEub3JnOw0KPiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9y
-ZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgbGludXgtYXJtLQ0KPiBrZXJuZWxAbGlz
-dHMuaW5mcmFkZWFkLm9yZzsgTGludXhhcm0gPGxpbnV4YXJtQGh1YXdlaS5jb20+Ow0KPiBuZWls
-Lm0ubGVlZGVyQGdtYWlsLmNvbQ0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYzIDIvM10gcGVyZjog
-YWRkIGFybTY0IHNtbXV2MyBwbXUgZHJpdmVyDQo+IA0KPiBIaSBTaGFtZWVyLA0KPiANCj4gT25l
-IG1vcmUgdGhpbmcuLi4NCj4gDQo+IE9uIDIxLzA5LzE4IDE2OjA4LCBTaGFtZWVyIEtvbG90aHVt
-IHdyb3RlOg0KPiBbLi4uXQ0KPiA+ICtzdGF0aWMgaW50IHNtbXVfcG11X3Byb2JlKHN0cnVjdCBw
-bGF0Zm9ybV9kZXZpY2UgKnBkZXYpDQo+ID4gK3sNCj4gPiArCXN0cnVjdCBzbW11X3BtdSAqc21t
-dV9wbXU7DQo+ID4gKwlzdHJ1Y3QgcmVzb3VyY2UgKnJlc18wLCAqcmVzXzE7DQo+ID4gKwl1MzIg
-Y2ZnciwgcmVnX3NpemU7DQo+ID4gKwl1NjQgY2VpZF82NFsyXTsNCj4gPiArCWludCBpcnEsIGVy
-cjsNCj4gPiArCWNoYXIgKm5hbWU7DQo+ID4gKwlzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmcGRldi0+
-ZGV2Ow0KPiA+ICsNCj4gPiArCXNtbXVfcG11ID0gZGV2bV9remFsbG9jKGRldiwgc2l6ZW9mKCpz
-bW11X3BtdSksIEdGUF9LRVJORUwpOw0KPiA+ICsJaWYgKCFzbW11X3BtdSkNCj4gPiArCQlyZXR1
-cm4gLUVOT01FTTsNCj4gPiArDQo+ID4gKwlzbW11X3BtdS0+ZGV2ID0gZGV2Ow0KPiA+ICsNCj4g
-PiArCXBsYXRmb3JtX3NldF9kcnZkYXRhKHBkZXYsIHNtbXVfcG11KTsNCj4gPiArCXNtbXVfcG11
-LT5wbXUgPSAoc3RydWN0IHBtdSkgew0KPiA+ICsJCS50YXNrX2N0eF9uciAgICA9IHBlcmZfaW52
-YWxpZF9jb250ZXh0LA0KPiA+ICsJCS5wbXVfZW5hYmxlCT0gc21tdV9wbXVfZW5hYmxlLA0KPiA+
-ICsJCS5wbXVfZGlzYWJsZQk9IHNtbXVfcG11X2Rpc2FibGUsDQo+ID4gKwkJLmV2ZW50X2luaXQJ
-PSBzbW11X3BtdV9ldmVudF9pbml0LA0KPiA+ICsJCS5hZGQJCT0gc21tdV9wbXVfZXZlbnRfYWRk
-LA0KPiA+ICsJCS5kZWwJCT0gc21tdV9wbXVfZXZlbnRfZGVsLA0KPiA+ICsJCS5zdGFydAkJPSBz
-bW11X3BtdV9ldmVudF9zdGFydCwNCj4gPiArCQkuc3RvcAkJPSBzbW11X3BtdV9ldmVudF9zdG9w
-LA0KPiA+ICsJCS5yZWFkCQk9IHNtbXVfcG11X2V2ZW50X3JlYWQsDQo+ID4gKwkJLmF0dHJfZ3Jv
-dXBzCT0gc21tdV9wbXVfYXR0cl9ncnBzLA0KPiA+ICsJfTsNCj4gPiArDQo+ID4gKwlyZXNfMCA9
-IHBsYXRmb3JtX2dldF9yZXNvdXJjZShwZGV2LCBJT1JFU09VUkNFX01FTSwgMCk7DQo+ID4gKwlz
-bW11X3BtdS0+cmVnX2Jhc2UgPSBkZXZtX2lvcmVtYXBfcmVzb3VyY2UoZGV2LCByZXNfMCk7DQo+
-IA0KPiBXZSBzdGlsbCBuZWVkIHRvIHNvbHZlIHRoZSByZXNvdXJjZS1jbGFpbWluZyBpc3N1ZSB3
-aGVuIG9uZSAob3IgYm90aCkgb2YNCj4gdGhlIFBNQ0cgcGFnZXMgYmVsb25ncyB0byB0aGUgcGFy
-ZW50IGRldmljZSdzIHJlZ2lzdGVyIHNwYWNlLiBJIHJlY2FsbA0KPiB3ZSBjaHVja2VkIGEgZmV3
-IG5hc2NlbnQgaWRlYXMgYWJvdXQgYmVmb3JlOyBkaWQgYW55b25lIG1hbmFnZSB0byBjb21lDQo+
-IHVwIHdpdGggYW55dGhpbmcgY29uY3JldGU/DQoNClJpZ2h0LiBXZSBoYWQgYW4gZWFybHkgdmVy
-c2lvbiBvZiBhbiBldmFsdWF0aW9uIGJvYXJkIHdoZXJlIHdlIGhhZCB0aGlzIGlzc3VlLCANCmJ1
-dCB0aGlzIGhhcyBiZWVuIGZpeGVkIGluIGFuIHVwZGF0ZWQgcmV2aXNpb24gYW5kIGlzIG5vdCBh
-IHByaW9yaXR5IGZvciBub3cuIA0KDQpBZ3JlZSB0aGF0IHRoaXMgaXMgYW4gaXNzdWUgYXMgdGhl
-IHNwZWMgZG9lc27igJl0IGZvcmJpZCB1c2luZyBwYXJlbnQgU01NVSByZWdpc3Rlcg0Kc3BhY2Ug
-YW5kIGl0IGxvb2tzIGxpa2Ugbm90IGFuIGVhc3kgb25lIHRvIHNvbHZlIGVpdGhlci4gVGhlIGlu
-aXRpYWwgaWRlYSB3YXMgc2V0dGluZw0KdGhlIFBNQ0cgYXMgYSBjaGlsZCBkZXYsIGJ1dCB0aGF0
-IGRpZG7igJl0IGhlbHAuDQoNCkkgaGFkIGFuIG9mZiBsaXN0IGRpc2N1c3Npb24gd2l0aCBMb3Jl
-bnpvIG9uIHRoaXMsIGJ1dCBub3RoaW5nIGNvbmNyZXRlLg0KDQpMb3JlbnpvLCANCg0KUGxlYXNl
-IHVwZGF0ZSBpZiB5b3UgaGF2ZSBhbnkgbmV3IGlkZWFzL3Rob3VnaHRzIG9uIHRoaXMuDQoNClRo
-YW5rcywNClNoYW1lZXINCg0KPiBSb2Jpbi4NCg==
+Hi,
+
+On 11-10-18 12:41, Ingo Molnar wrote:
+> 
+> * Hans de Goede <hdegoede@redhat.com> wrote:
+> 
+>> +int iosf_mbi_block_punit_i2c_access(void)
+>> +{
+>> +	unsigned long start, end;
+>> +	int ret = 0;
+>> +	u32 sem;
+>> +
+>> +	if (WARN_ON(!mbi_pdev || !iosf_mbi_sem_address))
+>> +		return -ENXIO;
+>> +
+>> +	mutex_lock(&iosf_mbi_block_punit_i2c_access_count_mutex);
+>> +
+>> +	if (iosf_mbi_block_punit_i2c_access_count > 0)
+>> +		goto out;
+>> +
+>> +	mutex_lock(&iosf_mbi_punit_mutex);
+>> +	blocking_notifier_call_chain(&iosf_mbi_pmic_bus_access_notifier,
+>> +				     MBI_PMIC_BUS_ACCESS_BEGIN, NULL);
+>> +
+>> +	/*
+>> +	 * Disallow the CPU to enter C6 or C7 state, entering these states
+>> +	 * requires the punit to talk to the pmic and if this happens while
+>> +	 * we're holding the semaphore, the SoC hangs.
+>> +	 */
+>> +	pm_qos_update_request(&iosf_mbi_pm_qos, 0);
+>> +
+>> +	/* host driver writes to side band semaphore register */
+>> +	ret = iosf_mbi_write(BT_MBI_UNIT_PMC, MBI_REG_WRITE,
+>> +			     iosf_mbi_sem_address, PUNIT_SEMAPHORE_ACQUIRE);
+>> +	if (ret) {
+>> +		dev_err(&mbi_pdev->dev, "Error punit semaphore request failed\n");
+>> +		goto out;
+>> +	}
+> 
+> Isn't this error path leaking the iosf_mbi_punit_mutex held mutex? The 'out' label only unlocks
+> iosf_mbi_block_punit_i2c_access_count_mutex:
+
+Yes you're right, I messed this up when adding the handling for the new
+iosf_mbi_block_punit_i2c_access_count[_mutex] which is new compared to the
+code from i2c-designware-baytrail.c (the rest of the code is just moved
+from there).
+
+This is fixed in the upcoming v3 of the patch.
+
+>> +	/* host driver waits for bit 0 to be set in semaphore register */
+>> +	start = jiffies;
+>> +	end = start + msecs_to_jiffies(SEMAPHORE_TIMEOUT);
+>> +	do {
+>> +		ret = iosf_mbi_get_sem(&sem);
+>> +		if (!ret && sem) {
+>> +			iosf_mbi_sem_acquired = jiffies;
+>> +			dev_dbg(&mbi_pdev->dev, "punit semaphore acquired after %ums\n",
+>> +				jiffies_to_msecs(jiffies - start));
+>> +			/*
+>> +			 * Success, keep iosf_mbi_punit_mutex locked till
+>> +			 * iosf_mbi_unblock_punit_i2c_access() gets called.
+>> +			 */
+>> +			goto out;
+> 
+> Ditto - although this does claim that this is done intentionally.
+
+Right, we have 2 sets of functions:
+
+iosf_mbi_punit_acquire()
+iosf_mbi_punit_release()
+
+iosf_mbi_block_punit_i2c_access()
+iosf_mbi_unblock_punit_i2c_access()
+
+The first 2 are for code which sends request to the P-Unit
+which may make it access the shared I2C bus to the PMIC, calling
+these will stop any kernel I2C code from accessing the bus.
+
+The latter 2 are for I2C code which wants to access the
+shared I2C bus to the PMIC, such as e.g. the fuel-gauge driver,
+these block any callers of iosf_mbi_punit_acquire() from
+continuing until iosf_mbi_unblock_punit_i2c_access() gets
+called.
+
+Basically we have 2 groups of code trying to access the same
+shared resource (the PMIC I2C bus), code talking to the P-Unit
+(which has its own access to the I2C bus at some level) and
+I2C client drivers (or ACPI OpRegions).
+
+If both happen at the same time bad things happen, so we
+need to arbitrate and exclusively allow accesses of one kind
+at a time. This is implemetned by both type of accesses acquiring
+the iosf_mbi_punit_mutex and keeping it locked over the access,
+hence the exit from the function keeps the mutex locked on success.
+
+>> +		}
+>> +
+>> +		usleep_range(1000, 2000);
+>> +	} while (time_before(jiffies, end));
+>> +
+>> +	ret = -ETIMEDOUT;
+>> +	dev_err(&mbi_pdev->dev, "Error punit semaphore timed out, resetting\n");
+>> +	iosf_mbi_reset_semaphore();
+>> +	mutex_unlock(&iosf_mbi_punit_mutex);
+>> +
+>> +	if (!iosf_mbi_get_sem(&sem))
+>> +		dev_err(&mbi_pdev->dev, "PUNIT SEM: %d\n", sem);
+>> +out:
+>> +	if (!WARN_ON(ret))
+>> +		iosf_mbi_block_punit_i2c_access_count++;
+>> +
+>> +	mutex_unlock(&iosf_mbi_block_punit_i2c_access_count_mutex);
+>> +
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL(iosf_mbi_block_punit_i2c_access);
+> 
+> So this is a rather unusual looking locking pattern.
+> 
+> So if this is all intended and works fine then at minimum the semantics of the function should
+> be explained - right now it has no description whatsoever.
+
+Ok, for v3 I've added the following comment above the new
+iosf_mbi_block_punit_i2c_access() to explain things:
+
+/*
+  * This function blocks P-Unit accesses to the PMIC I2C bus, so that kernel
+  * I2C code, such as e.g. a fuel-gauge driver, can access it safely.
+  *
+  * This function may be called by I2C controller code while an I2C driver has
+  * already blocked P-Unit accesses because it wants them blocked over multiple
+  * i2c-transfers, for e.g. read-modify-write of an I2C client register.
+  *
+  * The P-Unit accesses already being blocked is tracked through the
+  * iosf_mbi_block_punit_i2c_access_count variable which is protected by the
+  * iosf_mbi_block_punit_i2c_access_count_mutex this mutex is hold for the
+  * entire duration of the function.
+  *
+  * If access is not blocked yet, this function takes the following steps:
+  *
+  * 1) Some code sends request to the P-Unit which make it access the PMIC
+  *    I2C bus. Testing has shown that the P-Unit does not check its internal
+  *    PMIC bus semaphore for these requests. Callers of these requests call
+  *    iosf_mbi_punit_acquire()/_release() around their P-Unit accesses, these
+  *    functions lock/unlock the iosf_mbi_punit_mutex.
+  *    As the first step we lock the iosf_mbi_punit_mutex, to wait for any in
+  *    flight requests to finish and to block any new requests.
+  *
+  * 2) Some code makes such P-Unit requests from atomic contexts where it
+  *    cannot call iosf_mbi_punit_acquire() as that may sleep.
+  *    As the second step we call a notifier chain which allows any code
+  *    needing P-Unit resources from atomic context to acquire them before
+  *    we take control over the PMIC I2C bus.
+  *
+  * 3) When CPU cores enter C6 or C7 the P-Unit needs to talk to the PMIC
+  *    if this happens while the kernel itself is accessing the PMIC I2C bus
+  *    the SoC hangs.
+  *    As the third step we call pm_qos_update_request() to disallow the CPU
+  *    to enter C6 or C7.
+  *
+  * 4) The P-Unit has a PMIC bus semaphore which we can request to stop
+  *    autonomous P-Unit tasks from accessing the PMIC I2C bus while we hold it.
+  *    As the fourth and final step we request this semaphore and wait for our
+  *    request to be acknowledged.
+  */
+
+Regards,
+
+Hans
