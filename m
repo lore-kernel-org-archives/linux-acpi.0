@@ -1,96 +1,47 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 07/18] arm64: KVM/mm: Move SEA handling behind a
- single 'claim' interface
-Date: Fri, 12 Oct 2018 12:02:12 +0200
-Message-ID: <20181012100212.GA580@zn.tnic>
-References: <20180921221705.6478-1-james.morse@arm.com>
- <20180921221705.6478-8-james.morse@arm.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
+Date: Fri, 12 Oct 2018 18:03:38 +0800
+Message-ID: <20181012100338.GB1898@localhost.localdomain>
+References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
+ <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
+ <20181011105708.GB25435@zn.tnic>
+ <20181012093638.GA1898@localhost.localdomain>
+ <20181012094655.GB12328@zn.tnic>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20180921221705.6478-8-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+In-Reply-To: <20181012094655.GB12328@zn.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 21, 2018 at 11:16:54PM +0100, James Morse wrote:
-> To split up APEIs in_nmi() path, we need the nmi-like callers to always
-> be in_nmi(). Add a helper to do the work and claim the notification.
-> 
-> When KVM or the arch code takes an exception that might be a RAS
-> notification, it asks the APEI firmware-first code whether it wants
-> to claim the exception. We can then go on to see if (a future)
-> kernel-first mechanism wants to claim the notification, before
-> falling through to the existing default behaviour.
-> 
-> The NOTIFY_SEA code was merged before we had multiple, possibly
-> interacting, NMI-like notifications and the need to consider kernel
-> first in the future. Make the 'claiming' behaviour explicit.
-> 
-> As we're restructuring the APEI code to allow multiple NMI-like
-> notifications, any notification that might interrupt interrupts-masked
-> code must always be wrapped in nmi_enter()/nmi_exit(). This allows APEI
-> to use in_nmi() to use the right fixmap entries.
-> 
-> We mask SError over this window to prevent an asynchronous RAS error
-> arriving and tripping 'nmi_enter()'s BUG_ON(in_nmi()).
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+On Fri, Oct 12, 2018 at 11:46:55AM +0200, Borislav Petkov wrote:
+>On Fri, Oct 12, 2018 at 05:36:38PM +0800, Chao Fan wrote:
+>> Prefer to compile out entire functions, rather than portions of functions or
+>> portions of expressions.  Rather than putting an ifdef in an expression, factor
+>> out part or all of the expression into a separate helper function and apply the
+>> conditional to that function.
+>> 
+>> So I am puzzled. If my understanding is wrong, please let me know.
+>
+>If you do it the way I suggested, you simply have one ifdeffery branch
+>less. And ifdeffery is ugly. So less clutter. Also, this way you do
+>compile out entire functions too.
+>
+>HTH.
 
-...
+Got it, thanks for your rapid reply.
 
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index ed46dc188b22..a9b8bba014b5 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -28,8 +28,10 @@
->  #include <linux/smp.h>
->  #include <linux/serial_core.h>
->  
-> +#include <acpi/ghes.h>
->  #include <asm/cputype.h>
->  #include <asm/cpu_ops.h>
-> +#include <asm/daifflags.h>
->  #include <asm/pgtable.h>
->  #include <asm/smp_plat.h>
->  
-> @@ -257,3 +259,30 @@ pgprot_t __acpi_get_mem_attribute(phys_addr_t addr)
->  		return __pgprot(PROT_NORMAL_NC);
->  	return __pgprot(PROT_DEVICE_nGnRnE);
->  }
-> +
-> +/*
-> + * Claim Synchronous External Aborts as a firmware first notification.
-> + *
-> + * Used by KVM and the arch do_sea handler.
-> + * @regs may be NULL when called from process context.
-> + */
-> +int apei_claim_sea(struct pt_regs *regs)
-> +{
-> +	int err = -ENOENT;
-> +	unsigned long current_flags = arch_local_save_flags();
-> +
-> +	if (!IS_ENABLED(CONFIG_ACPI_APEI_SEA))
-> +		return err;
+Thanks,
+Chao Fan
 
-I don't know what side effects arch_local_save_flags() has on ARM but if
-we return here, it looks to me like useless work.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+>
+>-- 
+>Regards/Gruss,
+>    Boris.
+>
+>Good mailing practices for 400: avoid top-posting and trim the reply.
+>
+>
