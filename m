@@ -1,34 +1,79 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Fri, 12 Oct 2018 11:46:55 +0200
-Message-ID: <20181012094655.GB12328@zn.tnic>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
- <20181011105708.GB25435@zn.tnic>
- <20181012093638.GA1898@localhost.localdomain>
+Subject: Re: [PATCH v6 06/18] KVM: arm/arm64: Add kvm_ras.h to collect kvm
+ specific RAS plumbing
+Date: Fri, 12 Oct 2018 11:57:02 +0200
+Message-ID: <20181012095702.GC12328@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-7-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20181012093638.GA1898@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <20180921221705.6478-7-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 12, 2018 at 05:36:38PM +0800, Chao Fan wrote:
-> Prefer to compile out entire functions, rather than portions of functions or
-> portions of expressions.  Rather than putting an ifdef in an expression, factor
-> out part or all of the expression into a separate helper function and apply the
-> conditional to that function.
+On Fri, Sep 21, 2018 at 11:16:53PM +0100, James Morse wrote:
+> To split up APEIs in_nmi() path, we need any nmi-like callers to always
+> be in_nmi(). KVM shouldn't have to know about this, pull the RAS plumbing
+> out into a header file.
 > 
-> So I am puzzled. If my understanding is wrong, please let me know.
+> Currently guest synchronous external aborts are claimed as RAS
+> notifications by handle_guest_sea(), which is hidden in the arch codes
+> mm/fault.c. 32bit gets a dummy declaration in system_misc.h.
+> 
+> There is going to be more of this in the future if/when we support
+> the SError-based firmware-first notification mechanism and/or
+> kernel-first notifications for both synchronous external abort and
+> SError. Each of these will come with some Kconfig symbols and a
+> handful of header files.
+> 
+> Create a header file for all this.
+> 
+> This patch gives handle_guest_sea() a 'kvm_' prefix, and moves the
+> declarations to kvm_ras.h as preparation for a future patch that moves
+> the ACPI-specific RAS code out of mm/fault.c.
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> ---
+>  arch/arm/include/asm/kvm_ras.h       | 14 ++++++++++++++
+>  arch/arm/include/asm/system_misc.h   |  5 -----
+>  arch/arm64/include/asm/kvm_ras.h     | 11 +++++++++++
+>  arch/arm64/include/asm/system_misc.h |  2 --
+>  arch/arm64/mm/fault.c                |  2 +-
+>  virt/kvm/arm/mmu.c                   |  4 ++--
+>  6 files changed, 28 insertions(+), 10 deletions(-)
+>  create mode 100644 arch/arm/include/asm/kvm_ras.h
+>  create mode 100644 arch/arm64/include/asm/kvm_ras.h
+> 
+> diff --git a/arch/arm/include/asm/kvm_ras.h b/arch/arm/include/asm/kvm_ras.h
+> new file mode 100644
+> index 000000000000..aaff56bf338f
+> --- /dev/null
+> +++ b/arch/arm/include/asm/kvm_ras.h
+> @@ -0,0 +1,14 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +// Copyright (C) 2018 - Arm Ltd
 
-If you do it the way I suggested, you simply have one ifdeffery branch
-less. And ifdeffery is ugly. So less clutter. Also, this way you do
-compile out entire functions too.
+checkpatch is complaining for some reason:
 
-HTH.
+WARNING: Missing or malformed SPDX-License-Identifier tag in line 1
+#66: FILE: arch/arm/include/asm/kvm_ras.h:1:
++// SPDX-License-Identifier: GPL-2.0
 
 -- 
 Regards/Gruss,
