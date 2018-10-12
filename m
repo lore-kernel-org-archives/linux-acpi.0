@@ -1,90 +1,55 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v6 11/18] ACPI / APEI: Remove silent flag from
- ghes_read_estatus()
-Date: Fri, 12 Oct 2018 18:55:53 +0200
-Message-ID: <20181012165553.GE580@zn.tnic>
-References: <20180921221705.6478-1-james.morse@arm.com>
- <20180921221705.6478-12-james.morse@arm.com>
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Subject: Re: [PATCH v3 1/3] x86: baytrail/cherrytrail: Rework and move
+ P-Unit PMIC bus semaphore code
+Date: Fri, 12 Oct 2018 18:08:21 +0100
+Message-ID: <20181012180821.602abd04@alans-desktop>
+References: <20181011142911.13750-1-hdegoede@redhat.com>
+        <20181011142911.13750-2-hdegoede@redhat.com>
+        <20181011213508.40b8ce0e@alans-desktop>
+        <34244947-6b73-55c2-a0e8-b6a66050a612@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20180921221705.6478-12-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <34244947-6b73-55c2-a0e8-b6a66050a612@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Sep 21, 2018 at 11:16:58PM +0100, James Morse wrote:
-> Subsequent patches will split up ghes_read_estatus(), at which
-> point passing around the 'silent' flag gets annoying. This is to
-> suppress prink() messages, which prior to 42a0bb3f7138 ("printk/nmi:
-> generic solution for safe printk in NMI"), were unsafe in NMI context.
-
-Put that commit onto a separate line:
-
-"... which prior to
-
-  42a0bb3f7138 ("printk/nmi: generic solution for safe printk in NMI")
-
-were unsafe ..."
-
-This way it is immediately visible.
-
-In any case, this patch looks like a cleanup so move it to the beginning
-of the queue, I'd say.
-
-> We don't need to do this anymore, remove the flag. printk() messages
-> are batched in a per-cpu buffer and printed via irq-work, or a call
-> back from panic().
+> > It should be.  
 > 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
+> You mean that the problem should be purely academic, IOW that registers touched
+> by the P-Unit are never touched through ACPI Opregions / power-resources?
+
+As far as I am aware. Holding the lock over both is definitely better
+regardless
+
+> >> 2) To safely access the shared I2C bus, we need to do 3 things:
+> >> a) Notify the GPU driver that we are starting a window in which it may not
+> >> access the P-Unit, since the P-Unit seems to ignore the semaphore for
+> >> explicit power-level requests made by the GPU driver  
+> > 
+> > That's not what happens. It's more a problem of
+> > 
+> > We take the SEM
+> > The GPU driver pokes the GPU
+> > The GPU decides it wants to change the power situation
+> > The GPU asks
+> > It blocks on the SEM
+> > 
+> > and the system deadlocks.  
 > 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 586689cbc0fd..ba5344d26a39 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -300,7 +300,7 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
->  
->  static int ghes_read_estatus(struct ghes *ghes,
->  			     struct acpi_hest_generic_status *estatus,
-> -			     int silent, int fixmap_idx)
-> +			     int fixmap_idx)
->  {
->  	struct acpi_hest_generic *g = ghes->generic;
->  	u64 buf_paddr;
-> @@ -309,7 +309,7 @@ static int ghes_read_estatus(struct ghes *ghes,
->  
->  	rc = apei_read(&buf_paddr, &g->error_status_address);
->  	if (rc) {
-> -		if (!silent && printk_ratelimit())
-> +		if (printk_ratelimit())
+> That may be, but why does it deadlock?
 
-Btw, checkpatch complains here:
+As I understand it because the CPU is stuck waiting for the GPU which is
+waiting for the SEM which the CPU is holding. This isn't purely software
+remember.
 
-WARNING: Prefer printk_ratelimited or pr_<level>_ratelimited to printk_ratelimit
-#57: FILE: drivers/acpi/apei/ghes.c:312:
-+               if (printk_ratelimit())
+> I can understand that you are reluctant to change this code, but this
+> commit is not changing the logic, it mostly just moves the code around
+> and I do believe that overall doing this is worthwhile.
 
-WARNING: Prefer printk_ratelimited or pr_<level>_ratelimited to printk_ratelimit
-#66: FILE: drivers/acpi/apei/ghes.c:345:
-+       if (rc && printk_ratelimit())
+Fair enough
 
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Alan
