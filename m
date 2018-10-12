@@ -1,47 +1,53 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Fri, 12 Oct 2018 18:03:38 +0800
-Message-ID: <20181012100338.GB1898@localhost.localdomain>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
- <20181011105708.GB25435@zn.tnic>
- <20181012093638.GA1898@localhost.localdomain>
- <20181012094655.GB12328@zn.tnic>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 08/18] ACPI / APEI: Move locking to the notification
+ helper
+Date: Fri, 12 Oct 2018 13:08:19 +0200
+Message-ID: <20181012110819.GB580@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-9-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20181012094655.GB12328@zn.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <20180921221705.6478-9-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 12, 2018 at 11:46:55AM +0200, Borislav Petkov wrote:
->On Fri, Oct 12, 2018 at 05:36:38PM +0800, Chao Fan wrote:
->> Prefer to compile out entire functions, rather than portions of functions or
->> portions of expressions.  Rather than putting an ifdef in an expression, factor
->> out part or all of the expression into a separate helper function and apply the
->> conditional to that function.
->> 
->> So I am puzzled. If my understanding is wrong, please let me know.
->
->If you do it the way I suggested, you simply have one ifdeffery branch
->less. And ifdeffery is ugly. So less clutter. Also, this way you do
->compile out entire functions too.
->
->HTH.
+On Fri, Sep 21, 2018 at 11:16:55PM +0100, James Morse wrote:
+> ghes_copy_tofrom_phys() takes different locks depending on in_nmi().
+> This doesn't work when we have multiple NMI-like notifications, that
+> can interrupt each other.
+> 
+> Now that NOTIFY_SEA is always called as an NMI, move the lock-taking
+> to the notification helper. The helper will always know which lock
+> to take. This avoids ghes_copy_tofrom_phys() taking a guess based
+> on in_nmi().
+> 
+> This splits NOTIFY_NMI and NOTIFY_SEA to use different locks. All
+> the other notifications use ghes_proc(), and are called in process
+> or IRQ context. Move the spin_lock_irqsave() around their ghes_proc()
+> calls.
 
-Got it, thanks for your rapid reply.
+Right, should ghes_proc() be renamed to ghes_proc_irq() now, to be
+absolutely clear on the processing context it is operating in?
 
-Thanks,
-Chao Fan
+Other than that:
 
->
->-- 
->Regards/Gruss,
->    Boris.
->
->Good mailing practices for 400: avoid top-posting and trim the reply.
->
->
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
