@@ -1,36 +1,90 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: [PATCH v3 3/3] Documentation: intel_pstate: Add base_frequency information
-Date: Fri, 12 Oct 2018 09:44:00 -0700
-Message-ID: <20181012164400.3479-4-srinivas.pandruvada@linux.intel.com>
-References: <20181012164400.3479-1-srinivas.pandruvada@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181012164400.3479-1-srinivas.pandruvada@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: corbet@lwn.net, rjw@rjwysocki.net, lenb@kernel.org, viresh.kumar@linaro.org, robert.moore@intel.com, erik.schmauss@intel.com
-Cc: juri.lelli@redhat.com, linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, devel@acpica.org, pprakash@codeaurora.org, george.cherian@cavium.com, Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 11/18] ACPI / APEI: Remove silent flag from
+ ghes_read_estatus()
+Date: Fri, 12 Oct 2018 18:55:53 +0200
+Message-ID: <20181012165553.GE580@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-12-james.morse@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20180921221705.6478-12-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Updated documentation to explain base_frequency attribute.
+On Fri, Sep 21, 2018 at 11:16:58PM +0100, James Morse wrote:
+> Subsequent patches will split up ghes_read_estatus(), at which
+> point passing around the 'silent' flag gets annoying. This is to
+> suppress prink() messages, which prior to 42a0bb3f7138 ("printk/nmi:
+> generic solution for safe printk in NMI"), were unsafe in NMI context.
 
-Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
----
- Documentation/admin-guide/pm/intel_pstate.rst | 4 ++++
- 1 file changed, 4 insertions(+)
+Put that commit onto a separate line:
 
-diff --git a/Documentation/admin-guide/pm/intel_pstate.rst b/Documentation/admin-guide/pm/intel_pstate.rst
-index 8f1d3de449b5..14a5505e073e 100644
---- a/Documentation/admin-guide/pm/intel_pstate.rst
-+++ b/Documentation/admin-guide/pm/intel_pstate.rst
-@@ -465,6 +465,10 @@ Next, the following policy attributes have special meaning if
- 	policy for the time interval between the last two invocations of the
- 	driver's utilization update callback by the CPU scheduler for that CPU.
- 
-+``base_frequency``
-+	When present, shows the base frequency of the CPU. Any frequency above
-+	this will be in the turbo frequency range.
-+
- The meaning of these attributes in the `passive mode <Passive Mode_>`_ is the
- same as for other scaling drivers.
- 
+"... which prior to
+
+  42a0bb3f7138 ("printk/nmi: generic solution for safe printk in NMI")
+
+were unsafe ..."
+
+This way it is immediately visible.
+
+In any case, this patch looks like a cleanup so move it to the beginning
+of the queue, I'd say.
+
+> We don't need to do this anymore, remove the flag. printk() messages
+> are batched in a per-cpu buffer and printed via irq-work, or a call
+> back from panic().
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 586689cbc0fd..ba5344d26a39 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -300,7 +300,7 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
+>  
+>  static int ghes_read_estatus(struct ghes *ghes,
+>  			     struct acpi_hest_generic_status *estatus,
+> -			     int silent, int fixmap_idx)
+> +			     int fixmap_idx)
+>  {
+>  	struct acpi_hest_generic *g = ghes->generic;
+>  	u64 buf_paddr;
+> @@ -309,7 +309,7 @@ static int ghes_read_estatus(struct ghes *ghes,
+>  
+>  	rc = apei_read(&buf_paddr, &g->error_status_address);
+>  	if (rc) {
+> -		if (!silent && printk_ratelimit())
+> +		if (printk_ratelimit())
+
+Btw, checkpatch complains here:
+
+WARNING: Prefer printk_ratelimited or pr_<level>_ratelimited to printk_ratelimit
+#57: FILE: drivers/acpi/apei/ghes.c:312:
++               if (printk_ratelimit())
+
+WARNING: Prefer printk_ratelimited or pr_<level>_ratelimited to printk_ratelimit
+#66: FILE: drivers/acpi/apei/ghes.c:345:
++       if (rc && printk_ratelimit())
+
+
 -- 
-2.17.1
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
