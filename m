@@ -1,101 +1,102 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 1/3] x86: baytrail/cherrytrail: Rework and move P-Unit
- PMIC bus semaphore code
-Date: Sun, 14 Oct 2018 15:17:24 +0200
-Message-ID: <20181014131724.GA863@kunai>
-References: <20181011142911.13750-1-hdegoede@redhat.com>
- <20181011142911.13750-2-hdegoede@redhat.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] platform/x86: Add Intel ISP dummy driver
+Date: Sun, 14 Oct 2018 17:42:21 +0200
+Message-ID: <ce4d574f-51da-fd41-81ee-b1cb2792ff31@redhat.com>
+References: <20180829135744.16205-1-hdegoede@redhat.com>
+ <20180829182011.GG11447@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="9jxsPFA5p3P2qPhR"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181011142911.13750-2-hdegoede@redhat.com>
+In-Reply-To: <20180829182011.GG11447@smile.fi.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-
---9jxsPFA5p3P2qPhR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Thu, Oct 11, 2018 at 04:29:09PM +0200, Hans de Goede wrote:
-> On some BYT/CHT systems the SoC's P-Unit shares the I2C bus with the
-> kernel. The P-Unit has a semaphore for the PMIC bus which we can take to
-> block it from accessing the shared bus while the kernel wants to access i=
-t.
->=20
-> Currently we have the I2C-controller driver acquiring and releasing the
-> semaphore around each I2C transfer. There are 2 problems with this:
->=20
-> 1) PMIC accesses often come in the form of a read-modify-write on one of
-> the PMIC registers, we currently release the P-Unit's PMIC bus semaphore
-> between the read and the write. If the P-Unit modifies the register during
-> this window?, then we end up overwriting the P-Unit's changes.
-> I believe that this is mostly an academic problem, but I'm not sure.
->=20
-> 2) To safely access the shared I2C bus, we need to do 3 things:
-> a) Notify the GPU driver that we are starting a window in which it may not
-> access the P-Unit, since the P-Unit seems to ignore the semaphore for
-> explicit power-level requests made by the GPU driver
-> b) Make a pm_qos request to force all CPU cores out of C6/C7 since enteri=
-ng
-> C6/C7 while we hold the semaphore hangs the SoC
-> c) Finally take the P-Unit's PMIC bus semaphore
-> All 3 these steps together are somewhat expensive, so ideally if we have
-> a bunch of i2c transfers grouped together we only do this once for the
-> entire group.
->=20
-> Taking the read-modify-write on a PMIC register as example then ideally we
-> would only do all 3 steps once at the beginning and undo all 3 steps once
-> at the end.
->=20
-> For this we need to be able to take the semaphore from within e.g. the PM=
-IC
-> opregion driver, yet we do not want to remove the taking of the semaphore
-> from the I2C-controller driver, as that is still necessary to protect many
-> other code-paths leading to accessing the shared I2C bus.
->=20
-> This means that we first have the PMIC driver acquire the semaphore and
-> then have the I2C controller driver trying to acquire it again.
->=20
-> To make this possible this commit does the following:
->=20
-> 1) Move the semaphore code from being private to the I2C controller driver
-> into the generic iosf_mbi code, which already has other code to deal with
-> the shared bus so that it can be accessed outside of the I2C bus driver.
->=20
-> 2) Rework the code so that it can be called multiple times nested, while
-> still blocking I2C accesses while e.g. the GPU driver has indicated the
-> P-Unit needs the bus through a iosf_mbi_punit_acquire() call.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-
-For the record: once the designware maintainers are okay with this
-change, I am also okay with it going via the x86 platform tree.
+Hi,
 
 
---9jxsPFA5p3P2qPhR
-Content-Type: application/pgp-signature; name="signature.asc"
+On 29-08-18 20:20, Andy Shevchenko wrote:
+> On Wed, Aug 29, 2018 at 03:57:44PM +0200, Hans de Goede wrote:
+>> The Image Signal Processor found on Cherry Trail devices is brought up in
+>> D0 state on devices which have camera sensors attached to it. The ISP will
+>> not enter D3 state again without some massaging of its registers beforehand
+>> and the ISP not being in D3 state blocks the SoC from entering S0ix modes.
+>>
+>> There was a driver for the ISP in drivers/staging but that got removed
+>> again because it never worked. It does not seem likely that a real
+>> driver for the ISP will be added to the mainline kernel anytime soon.
+>>
+>> This commit adds a dummy driver which contains the necessary magic from
+>> the staging driver to powerdown the ISP, so that Cherry Trail devices where
+>> the ISP is used will properly use S0ix modes when suspended.
+>>
+>> Together with other recent S0ix related fixes this allows S0ix modes to
+>> be entered on e.g. a Chuwi Hi8 Pro and a HP x2 210.
+>>
+> 
+> Thanks for the patch, my comments below.
 
------BEGIN PGP SIGNATURE-----
+Thank you for the review and sorry for being a bit slow with responding
+I've been quite busy with other stuff.
 
-iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvDQeAACgkQFA3kzBSg
-Kba8cw//bcFMGnUf5u7LGI5EJg3nCoZhj4aZTu/Z4yxcWFtkgN3duynk3hnf5NiM
-XcbT+8L/nIsvg2JhvBcGFAkFk4qIbMS5sibBWxAjrDpxR2welru8R+gk0kLqyxIL
-LPT81ikAVz/nZ9Qd3smDu8cel6N2uu7bYGHwQdXszdp74prV64ZBbiByaV29zy59
-LjvyW8+mBHszrrbnJu80VjmAhGFb2eYk8n7j/Csa/WdYZMZRxCTxkXzc2wmJva87
-m3ZH132QJ73GLpnY4+Ey1idJyWrob65IXi3A3UklKsbzPWJWAyGuZPlr7O9/Ttx/
-jYUvW7qJrA8+GmwPkbGRx9eL7oAT+ixZDAUEvi2ASxysh6e+pluvZTvM0S1gyU0/
-Fh3fOLu/QmALd7ki3urs7fPJR113JU5eyQeF4FLQu2JUW0KPlLjTL07PlciEOqDK
-hQIjWnGbJTi+5wsrQI0PC2D1GqmBvhT384ZvnT4GAL4kbog7ZAuiBtcKG5lgGOup
-DHWkBHokM2zSMAsbYCnDbBcK4zVC54OR715w6hcFAlld3Tr3UZI0Y764zZ9R6moz
-SPntQgy8ABOVdpOWY4yLZinkxRXDb0sJ8LNefF6C5UoJ7ht//BKvMdustiHE4yr6
-16wk5RxkAnB0jvGMcPrTYhVYXJqvRnYoXfCwJRG26vTQl6ygsFU=
-=iVmh
------END PGP SIGNATURE-----
+>>   drivers/platform/x86/intel_isp_dummy.c | 119 +++++++++++++++++++++++++
+> 
+> First of all, I would like to see that this is about pm and pm only, so,
+> perhaps
+> 
+> intel_isp_pm ?
+> 
+> OTOH, it would be nice to have less confusing of what ISP we are talking about,
+> so,
+> 
+> intel_atomisp2_pm ?
 
---9jxsPFA5p3P2qPhR--
+Works for me, intel_atomisp2_pm it is for v2 of this patch.
+
+>> +config INTEL_ISP_DUMMY
+>> +	tristate "Intel ISP dummy driver"
+> 
+>> +	depends on PCI && IOSF_MBI && PM
+> 
+> If someone decides to port this to kernels where ATOMISP driver is still
+> available, it might be a conflict here. I dunno if it's a good idea to put
+> something like depends !ATOMISP here taking into consideration that it would be
+> staled option.
+
+I don't look adding deps / conflucts on options which are
+not present upstream, so I'm going to keep this as for v2.
+
+> 
+>> +	while (1) {
+> 
+> A nit: I would rather put it like
+> 
+> do {
+> ...
+> } while (time_after(...));
+
+That would need to be time_before then, since the time check is a timeout
+and then I would need to re-check the time outside the loop to see if
+a timeout happened. So I believe it would better to keep this as is.
+
+
+>> +		/* Wait until ISPSSPM0 bit[25:24] shows 0x3 */
+>> +		iosf_mbi_read(BT_MBI_UNIT_PMC, MBI_REG_READ, ISPSSPM0, &val);
+>> +		val = (val & ISPSSPM0_ISPSSS_MASK) >> ISPSSPM0_ISPSSS_OFFSET;
+>> +		if (val == ISPSSPM0_IUNIT_POWER_OFF)
+>> +			break;
+>> +
+>> +		if (time_after(jiffies, timeout)) {
+>> +			dev_err(&dev->dev, "IUNIT power-off timeout.\n");
+>> +			return -EBUSY;
+>> +		}
+>> +		usleep_range(1000, 2000);
+>> +	}
+> 
+
+Regards,
+
+Hans
