@@ -1,161 +1,74 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Mon, 15 Oct 2018 16:26:09 -0400
-Message-ID: <20181015202609.gs6jownxbevs4vzr@gabell>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] acpi, nfit: Further restrict userspace ARS start requests
+Date: Mon, 15 Oct 2018 13:46:01 -0700
+Message-ID: <153963636159.2102929.5769352106580143614.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Chao,
+In addition to not allowing ARS start while the background thread is
+actively running, prevent ARS start while any scrub request is pending.
 
-Let me add some suggestions.
+This aligns the window for ARS start submission with the status of ARS
+reported via sysfs. Previously userspace could sneak its own ARS start
+requests in while sysfs reported -EBUSY.
 
-On Wed, Oct 10, 2018 at 04:41:17PM +0800, Chao Fan wrote:
-> There is a bug that kaslr may randomly chooses some positions
-> which are located in movable memory regions. This will break memory
-> hotplug feature and make the movable memory chosen by KASLR can't be
-> removed. So dig SRAT table from ACPI tables to get memory information.
-> 
-> Imitate the ACPI code of parsing ACPI tables to dig and read ACPI
-> tables. Since some operations are not needed here, functions are
-> simplified. Functions will be used to dig only SRAT tables to get
-> information of memory, so that KASLR can the memory in immovable node.
-> 
-> And also, these functions won't influence the initialization of
-> ACPI after start_kernel().
-> 
-> Since use physical address directely, so acpi_os_map_memory()
-> and acpi_os_unmap_memory() are not needed.
-> 
-> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
-> ---
->  arch/x86/boot/compressed/Makefile |   2 +
->  arch/x86/boot/compressed/acpitb.c | 405 ++++++++++++++++++++++++++++++
->  arch/x86/boot/compressed/misc.h   |   8 +
->  3 files changed, 415 insertions(+)
->  create mode 100644 arch/x86/boot/compressed/acpitb.c
-> 
-...cut...
-> +static struct acpi_table_header *get_acpi_srat_table(void)
-> +{
-> +	char *args = (char *)get_cmd_line_ptr();
-> +	acpi_physical_address acpi_table;
-> +	acpi_physical_address root_table;
-> +	struct acpi_table_header *header;
-> +	struct acpi_table_rsdp *rsdp;
-> +	char *signature;
-> +	u8 *entry;
-> +	u32 count;
-> +	u32 size;
-> +	int i, j;
-> +	u32 len;
-> +
-> +	rsdp = (struct acpi_table_rsdp *)get_rsdp_addr();
-> +	if (!rsdp)
-> +		return NULL;
-> +
-> +	/* Get rsdt or xsdt from rsdp. */
-> +	if (!strstr(args, "acpi=rsdt") &&
-> +	    rsdp->xsdt_physical_address && rsdp->revision > 1) {
-> +		root_table = rsdp->xsdt_physical_address;
-> +		size = ACPI_XSDT_ENTRY_SIZE;
-> +	} else {
-> +		root_table = rsdp->rsdt_physical_address;
-> +		size = ACPI_RSDT_ENTRY_SIZE;
-> +	}
-> +
-> +	/* Get ACPI root table from rsdt or xsdt.*/
-> +	header = (struct acpi_table_header *)root_table;
-> +	len = header->length;
-> +	count = (u32)((len - sizeof(struct acpi_table_header)) / size);
-> +	entry = ACPI_ADD_PTR(u8, header, sizeof(struct acpi_table_header));
-> +
-> +	for (i = 0; i < count; i++) {
-> +		u64 address64;
-> +
-> +		if (size == ACPI_RSDT_ENTRY_SIZE)
-> +			acpi_table = ((acpi_physical_address)
-> +				      (*ACPI_CAST_PTR(u32, entry)));
-> +		else {
-> +			*(u64 *)(void *)&address64 = *(u64 *)(void *)entry;
-> +			acpi_table = (acpi_physical_address) address64;
-> +		}
-> +
-> +		if (acpi_table) {
-> +			header = (struct acpi_table_header *)acpi_table;
+Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/core.c |   21 ++++++++++++++++-----
+ 1 file changed, 16 insertions(+), 5 deletions(-)
 
-> +			signature = header->signature;
-> +
-> +			if (!strncmp(signature, "SRAT", 4))
-
-			if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_SRAT))
-
-> +				return header;
-> +		}
-> +		entry += size;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +#ifdef CONFIG_MEMORY_HOTREMOVE
-> +/*
-> + * According to ACPI table, filter the immvoable memory regions
-> + * and store them in immovable_mem[].
-> + */
-> +void get_immovable_mem(void)
-> +{
-> +	char *args = (char *)get_cmd_line_ptr();
-> +	struct acpi_table_header *table_header;
-> +	struct acpi_subtable_header *table;
-> +	struct acpi_srat_mem_affinity *ma;
-> +	unsigned long table_end;
-> +	int i = 0;
-> +
-> +	if (!strstr(args, "movable_node") || strstr(args, "acpi=off"))
-> +		return;
-> +
-> +	table_header = get_acpi_srat_table();
-> +	if (!table_header)
-> +		return;
-> +
-> +	table_end = (unsigned long)table_header + table_header->length;
-> +
-> +	table = (struct acpi_subtable_header *)
-> +		((unsigned long)table_header + sizeof(struct acpi_table_srat));
-> +
-
-> +	while (((unsigned long)table) + table->length < table_end) {
-
-	while (((unsigned long)table) +
-			sizeof(struct acpi_subtable_header) < table_end) {
-
-> +		if (table->type == 1) {
-
-		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
-
-> +			ma = (struct acpi_srat_mem_affinity *)table;
-> +			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
-> +				immovable_mem[i].start = ma->base_address;
-> +				immovable_mem[i].size = ma->length;
-> +				i++;
-> +			}
-> +
-> +			if (i >= MAX_NUMNODES*2)
-> +				break;
-> +		}
-> +		table = (struct acpi_subtable_header *)
-> +			((unsigned long)table + table->length);
-> +	}
-> +	num_immovable_mem = i;
-> +}
-
-Thanks,
-Masa
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index f7efcd9843e0..0eaf934ca624 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -3364,6 +3364,8 @@ static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 		struct nvdimm *nvdimm, unsigned int cmd)
+ {
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
++	struct nfit_spa *nfit_spa;
++	int rc = 0;
+ 
+ 	if (nvdimm)
+ 		return 0;
+@@ -3373,13 +3375,22 @@ static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
+ 	/*
+ 	 * The kernel and userspace may race to initiate a scrub, but
+ 	 * the scrub thread is prepared to lose that initial race.  It
+-	 * just needs guarantees that any ars it initiates are not
+-	 * interrupted by any intervening start reqeusts from userspace.
++	 * just needs guarantees that any ARS it initiates are not
++	 * interrupted by any intervening start requests from userspace.
+ 	 */
+-	if (work_busy(&acpi_desc->dwork.work))
+-		return -EBUSY;
++	mutex_lock(&acpi_desc->init_mutex);
++	list_for_each_entry(nfit_spa, &acpi_desc->spas, list) {
++		if (test_bit(ARS_REQ_SHORT, &nfit_spa->ars_state)) {
++			rc = -EBUSY;
++			break;
++		} else if (test_bit(ARS_REQ_LONG, &nfit_spa->ars_state)) {
++			rc = -EBUSY;
++			break;
++		}
++	}
++	mutex_unlock(&acpi_desc->init_mutex);
+ 
+-	return 0;
++	return rc;
+ }
+ 
+ /* prevent security commands from being issued via ioctl */
