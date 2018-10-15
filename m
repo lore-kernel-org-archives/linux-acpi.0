@@ -1,100 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: remove redundant 'default n' from Kconfig
-Date: Tue, 16 Oct 2018 11:06:55 +0200
-Message-ID: <3043377.xZJKtzU3Ct@aspire.rjw.lan>
-References: <CGME20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da@eucas1p1.samsung.com> <20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da~cRlJN49vs2486624866eucas1p1i@eucas1p1.samsung.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH 2/2] arm64: acpi: Prepare for longer MADTs
+Date: Mon, 15 Oct 2018 10:29:19 +0100
+Message-ID: <20181015092919.GA1778@e107155-lin>
+References: <20181012192937.3819951-1-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da~cRlJN49vs2486624866eucas1p1i@eucas1p1.samsung.com>
+Content-Disposition: inline
+In-Reply-To: <20181012192937.3819951-1-jeremy.linton@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jeremy Linton <jeremy.linton@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, will.deacon@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, rafael.j.wysocki@intel.com, takahiro.akashi@linaro.org, lorenzo.pieralisi@arm.com, ahs3@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, October 10, 2018 4:41:30 PM CEST Bartlomiej Zolnierkiewicz wrote:
-> 'default n' is the default value for any bool or tristate Kconfig
-> setting so there is no need to write it explicitly.
-> 
-> Also since commit f467c5640c29 ("kconfig: only write '# CONFIG_FOO
-> is not set' for visible symbols") the Kconfig behavior is the same
-> regardless of 'default n' being present or not:
-> 
->     ...
->     One side effect of (and the main motivation for) this change is making
->     the following two definitions behave exactly the same:
->     
->         config FOO
->                 bool
->     
->         config FOO
->                 bool
->                 default n
->     
->     With this change, neither of these will generate a
->     '# CONFIG_FOO is not set' line (assuming FOO isn't selected/implied).
->     That might make it clearer to people that a bare 'default n' is
->     redundant.
->     ...
-> 
-> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+On Fri, Oct 12, 2018 at 02:29:37PM -0500, Jeremy Linton wrote:
+> The BAD_MADT_GICC_ENTRY check is a little too strict because
+> it rejects MADT entries that don't match the currently known
+> lengths. We should remove this restriction to avoid problems
+> if the table length changes. Future code which might depend on
+> additional fields should be written to validate those fields
+> before using them, rather than trying to globally check
+> known MADT version lengths.
+>
+> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
 > ---
->  drivers/acpi/Kconfig |    6 ------
->  1 file changed, 6 deletions(-)
-> 
-> Index: b/drivers/acpi/Kconfig
-> ===================================================================
-> --- a/drivers/acpi/Kconfig	2018-09-26 15:54:31.942819766 +0200
-> +++ b/drivers/acpi/Kconfig	2018-10-10 16:38:09.691897907 +0200
-> @@ -138,7 +138,6 @@ config ACPI_REV_OVERRIDE_POSSIBLE
->  
->  config ACPI_EC_DEBUGFS
->  	tristate "EC read/write access through /sys/kernel/debug/ec"
-> -	default n
->  	help
->  	  Say N to disable Embedded Controller /sys/kernel/debug interface
->  
-> @@ -283,7 +282,6 @@ config ACPI_PROCESSOR
->  config ACPI_IPMI
->  	tristate "IPMI"
->  	depends on IPMI_HANDLER
-> -	default n
->  	help
->  	  This driver enables the ACPI to access the BMC controller. And it
->  	  uses the IPMI request/response message to communicate with BMC
-> @@ -361,7 +359,6 @@ config ACPI_TABLE_UPGRADE
->  
->  config ACPI_DEBUG
->  	bool "Debug Statements"
-> -	default n
->  	help
->  	  The ACPI subsystem can produce debug output.  Saying Y enables this
->  	  output and increases the kernel size by around 50K.
-> @@ -374,7 +371,6 @@ config ACPI_DEBUG
->  config ACPI_PCI_SLOT
->  	bool "PCI slot detection driver"
->  	depends on SYSFS
-> -	default n
->  	help
->  	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
->  	  slots in the system.  This can help correlate PCI bus addresses,
-> @@ -436,7 +432,6 @@ config ACPI_HED
->  config ACPI_CUSTOM_METHOD
->  	tristate "Allow ACPI methods to be inserted/replaced at run time"
->  	depends on DEBUG_FS
-> -	default n
->  	help
->  	  This debug facility allows ACPI AML methods to be inserted and/or
->  	  replaced without rebooting the system. For details refer to:
-> @@ -481,7 +476,6 @@ config ACPI_EXTLOG
->  	tristate "Extended Error Log support"
->  	depends on X86_MCE && X86_LOCAL_APIC && EDAC
->  	select UEFI_CPER
-> -	default n
->  	help
->  	  Certain usages such as Predictive Failure Analysis (PFA) require
->  	  more information about the error than what can be described in
-> 
+>  arch/arm64/include/asm/acpi.h | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+>
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index 709208dfdc8b..4d0946bd485a 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -22,12 +22,12 @@
+>  #include <asm/tlbflush.h>
+>
+>  /* Macros for consistency checks of the GICC subtable of MADT */
+> -#define ACPI_MADT_GICC_LENGTH	\
+> -	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
+> +#define ACPI_MADT_GICC_MIN_LENGTH   ACPI_OFFSET(  \
+> +	struct acpi_madt_generic_interrupt, efficiency_class)
+>
 
-Applied, thanks!
+This makes it 76 always which is fine, just that the first user of
+efficiency_class should check for the length before accessing it.
+No user of efficiency_class yet, so I am fine with this change.
+
+>  #define BAD_MADT_GICC_ENTRY(entry, end)					\
+> -	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
+> -	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
+> +	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
+> +	(unsigned long)(entry) + (entry)->header.length > (end))
+>
+
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+
+--
+Regards,
+Sudeep
