@@ -1,31 +1,72 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v3 3/3] i2c: designware: Cleanup bus lock handling
-Date: Mon, 15 Oct 2018 17:15:47 +0300
-Message-ID: <47ea8d77-83eb-8f13-720c-6dd11fb70428@linux.intel.com>
-References: <20181011142911.13750-1-hdegoede@redhat.com>
- <20181011142911.13750-4-hdegoede@redhat.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH v3 3/3] Documentation: intel_pstate: Add base_frequency
+ information
+Date: Mon, 15 Oct 2018 08:49:24 -0700
+Message-ID: <c89ff15144f0c24187f82db088622d6c8aebd7d7.camel@linux.intel.com>
+References: <20181012164400.3479-1-srinivas.pandruvada@linux.intel.com>
+         <20181012164400.3479-4-srinivas.pandruvada@linux.intel.com>
+         <CAJZ5v0iXOtcNSqPU7NYwG=S_JCdoTFzLRD1qZocWMnFnVJ-oMQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181011142911.13750-4-hdegoede@redhat.com>
-Content-Language: en-US
+In-Reply-To: <CAJZ5v0iXOtcNSqPU7NYwG=S_JCdoTFzLRD1qZocWMnFnVJ-oMQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Wolfram Sang <wsa@the-dreams.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Juri Lelli <juri.lelli@redhat.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, devel@acpica.org, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/11/2018 05:29 PM, Hans de Goede wrote:
-> Now that most of the special Bay- / Cherry-Trail bus lock handling has
-> been moved to the iosf_mbi code we can simplify the remaining code a bit.
+On Mon, 2018-10-15 at 10:53 +0200, Rafael J. Wysocki wrote:
+> On Fri, Oct 12, 2018 at 6:44 PM Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> > 
+> > Updated documentation to explain base_frequency attribute.
+> > 
+> > Signed-off-by: Srinivas Pandruvada <
+> > srinivas.pandruvada@linux.intel.com>
+> > ---
+> >  Documentation/admin-guide/pm/intel_pstate.rst | 4 ++++
+> >  1 file changed, 4 insertions(+)
+> > 
+> > diff --git a/Documentation/admin-guide/pm/intel_pstate.rst
+> > b/Documentation/admin-guide/pm/intel_pstate.rst
+> > index 8f1d3de449b5..14a5505e073e 100644
+> > --- a/Documentation/admin-guide/pm/intel_pstate.rst
+> > +++ b/Documentation/admin-guide/pm/intel_pstate.rst
+> > @@ -465,6 +465,10 @@ Next, the following policy attributes have
+> > special meaning if
+> >         policy for the time interval between the last two
+> > invocations of the
+> >         driver's utilization update callback by the CPU scheduler
+> > for that CPU.
+> > 
+> > +``base_frequency``
+> > +       When present, shows the base frequency of the CPU. Any
+> > frequency above
+> > +       this will be in the turbo frequency range.
+> > +
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->   drivers/i2c/busses/i2c-designware-baytrail.c | 18 ++----------------
->   drivers/i2c/busses/i2c-designware-common.c   |  4 ++--
->   drivers/i2c/busses/i2c-designware-core.h     |  9 ++-------
->   drivers/i2c/busses/i2c-designware-platdrv.c  |  2 --
->   4 files changed, 6 insertions(+), 27 deletions(-)
+> This isn't entirely correct, because base_frequency is not present in
+> the passive mode (and it is not present for the other drivers for
+> that
+> matter).
+That's why it said, "when present". This keeps door open to add to
+other modes too in future if needed.
+
+Thanks,
+Srinivas
+
 > 
-Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> >  The meaning of these attributes in the `passive mode <Passive
+> > Mode_>`_ is the
+> >  same as for other scaling drivers.
+> 
+> Instead, I would say:
+> 
+> "One more policy attribute is present if the `HWP feature is enabled
+> in the processor <Active Mode With HWP_>`_:"
+> 
+> here and I would add the description of the attribute below.
+> 
+> Thanks,
+> Rafael
