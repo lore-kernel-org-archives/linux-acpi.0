@@ -1,53 +1,246 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 3/3] Documentation: intel_pstate: Add base_frequency information
-Date: Mon, 15 Oct 2018 10:53:25 +0200
-Message-ID: <CAJZ5v0iXOtcNSqPU7NYwG=S_JCdoTFzLRD1qZocWMnFnVJ-oMQ@mail.gmail.com>
-References: <20181012164400.3479-1-srinivas.pandruvada@linux.intel.com> <20181012164400.3479-4-srinivas.pandruvada@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI: TAD: Add low-level support for real time capability
+Date: Mon, 15 Oct 2018 13:56:02 +0200
+Message-ID: <3560687.cIWiBQCOek@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181012164400.3479-4-srinivas.pandruvada@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Juri Lelli <juri.lelli@redhat.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, devel@acpica.org, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 12, 2018 at 6:44 PM Srinivas Pandruvada
-<srinivas.pandruvada@linux.intel.com> wrote:
->
-> Updated documentation to explain base_frequency attribute.
->
-> Signed-off-by: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-> ---
->  Documentation/admin-guide/pm/intel_pstate.rst | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/Documentation/admin-guide/pm/intel_pstate.rst b/Documentation/admin-guide/pm/intel_pstate.rst
-> index 8f1d3de449b5..14a5505e073e 100644
-> --- a/Documentation/admin-guide/pm/intel_pstate.rst
-> +++ b/Documentation/admin-guide/pm/intel_pstate.rst
-> @@ -465,6 +465,10 @@ Next, the following policy attributes have special meaning if
->         policy for the time interval between the last two invocations of the
->         driver's utilization update callback by the CPU scheduler for that CPU.
->
-> +``base_frequency``
-> +       When present, shows the base frequency of the CPU. Any frequency above
-> +       this will be in the turbo frequency range.
-> +
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-This isn't entirely correct, because base_frequency is not present in
-the passive mode (and it is not present for the other drivers for that
-matter).
+Add low-level support for the (optional) real time capability of the
+ACPI Time and Alarm Device (TAD) to the ACPI TAD driver.
 
->  The meaning of these attributes in the `passive mode <Passive Mode_>`_ is the
->  same as for other scaling drivers.
+This allows the real time to be acquired or set via sysfs with the
+help of the _GRT and _SRT methods of the TAD, respectively.
 
-Instead, I would say:
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/acpi_tad.c |  201 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 201 insertions(+)
 
-"One more policy attribute is present if the `HWP feature is enabled
-in the processor <Active Mode With HWP_>`_:"
-
-here and I would add the description of the attribute below.
-
-Thanks,
-Rafael
+Index: linux-pm/drivers/acpi/acpi_tad.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_tad.c
++++ linux-pm/drivers/acpi/acpi_tad.c
+@@ -52,6 +52,201 @@ struct acpi_tad_driver_data {
+ 	u32 capabilities;
+ };
+ 
++struct acpi_tad_rt {
++	u16 year;  /* 1900 - 9999 */
++	u8 month;  /* 1 - 12 */
++	u8 day;    /* 1 - 31 */
++	u8 hour;   /* 0 - 23 */
++	u8 minute; /* 0 - 59 */
++	u8 second; /* 0 - 59 */
++	u8 valid;  /* 0 (failed) or 1 (success) for reads, 0 for writes */
++	u16 msec;  /* 1 - 1000 */
++	s16 tz;    /* -1440 to 1440 or 2047 (unspecified) */
++	u8 daylight;
++	u8 padding[3]; /* must be 0 */
++} __packed;
++
++static int acpi_tad_set_real_time(struct device *dev, struct acpi_tad_rt *rt)
++{
++	acpi_handle handle = ACPI_HANDLE(dev);
++	union acpi_object args[] = {
++		{ .type = ACPI_TYPE_BUFFER, },
++	};
++	struct acpi_object_list arg_list = {
++		.pointer = args,
++		.count = ARRAY_SIZE(args),
++	};
++	unsigned long long retval;
++	acpi_status status;
++
++	if (rt->year < 1900 || rt->year > 9999 ||
++	    rt->month < 1 || rt->month > 12 ||
++	    rt->hour > 23 || rt->minute > 59 || rt->second > 59 ||
++	    rt->tz < -1440 || (rt->tz > 1440 && rt->tz != 2047) ||
++	    rt->daylight > 3)
++		return -ERANGE;
++
++	args[0].buffer.pointer = (u8 *)rt;
++	args[0].buffer.length = sizeof(*rt);
++
++	pm_runtime_get_sync(dev);
++
++	status = acpi_evaluate_integer(handle, "_SRT", &arg_list, &retval);
++
++	pm_runtime_put_sync(dev);
++
++	if (ACPI_FAILURE(status) || retval)
++		return -EIO;
++
++	return 0;
++}
++
++static int acpi_tad_get_real_time(struct device *dev, struct acpi_tad_rt *rt)
++{
++	acpi_handle handle = ACPI_HANDLE(dev);
++	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER };
++	union acpi_object *out_obj;
++	struct acpi_tad_rt *data;
++	acpi_status status;
++	int ret = -EIO;
++
++	pm_runtime_get_sync(dev);
++
++	status = acpi_evaluate_object(handle, "_GRT", NULL, &output);
++
++	pm_runtime_put_sync(dev);
++
++	if (ACPI_FAILURE(status))
++		goto out_free;
++
++	out_obj = output.pointer;
++	if (out_obj->type != ACPI_TYPE_BUFFER)
++		goto out_free;
++
++	if (out_obj->buffer.length != sizeof(*rt))
++		goto out_free;
++
++	data = (struct acpi_tad_rt *)(out_obj->buffer.pointer);
++	if (!data->valid)
++		goto out_free;
++
++	memcpy(rt, data, sizeof(*rt));
++	ret = 0;
++
++out_free:
++	ACPI_FREE(output.pointer);
++	return ret;
++}
++
++static char *acpi_tad_rt_next_field(char *s, int *val)
++{
++	char *p;
++
++	p = strchr(s, ':');
++	if (!p)
++		return NULL;
++
++	*p = '\0';
++	if (kstrtoint(s, 10, val))
++		return NULL;
++
++	return p + 1;
++}
++
++static ssize_t time_store(struct device *dev, struct device_attribute *attr,
++			  const char *buf, size_t count)
++{
++	struct acpi_tad_rt rt;
++	char *str, *s;
++	int val, ret = -ENODATA;
++
++	str = kmemdup_nul(buf, count, GFP_KERNEL);
++	if (!str)
++		return -ENOMEM;
++
++	s = acpi_tad_rt_next_field(str, &val);
++	if (!s)
++		goto out_free;
++
++	rt.year = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.month = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.day = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.hour = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.minute = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.second = val;
++
++	s = acpi_tad_rt_next_field(s, &val);
++	if (!s)
++		goto out_free;
++
++	rt.tz = val;
++
++	if (kstrtoint(s, 10, &val))
++		goto out_free;
++
++	rt.daylight = val;
++
++	rt.valid = 0;
++	rt.msec = 0;
++	memset(rt.padding, 0, 3);
++
++	ret = acpi_tad_set_real_time(dev, &rt);
++
++out_free:
++	kfree(str);
++	return ret ? ret : count;
++}
++
++static ssize_t time_show(struct device *dev, struct device_attribute *attr,
++			 char *buf)
++{
++	struct acpi_tad_rt rt;
++	int ret;
++
++	ret = acpi_tad_get_real_time(dev, &rt);
++	if (ret)
++		return ret;
++
++	return sprintf(buf, "%u:%u:%u:%u:%u:%u:%d:%u\n",
++		       rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second,
++		       rt.tz, rt.daylight);
++}
++
++static DEVICE_ATTR(time, S_IRUSR | S_IWUSR, time_show, time_store);
++
++static struct attribute *acpi_tad_time_attrs[] = {
++	&dev_attr_time.attr,
++	NULL,
++};
++static const struct attribute_group acpi_tad_time_attr_group = {
++	.attrs	= acpi_tad_time_attrs,
++};
++
+ static int acpi_tad_wake_set(struct device *dev, char *method, u32 timer_id,
+ 			     u32 value)
+ {
+@@ -447,6 +642,12 @@ static int acpi_tad_probe(struct platfor
+ 		if (ret)
+ 			goto fail;
+ 	}
++
++	if (caps & ACPI_TAD_RT) {
++		ret = sysfs_create_group(&dev->kobj, &acpi_tad_time_attr_group);
++		if (ret)
++			goto fail;
++	}
+ 
+ 	return 0;
+ 
