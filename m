@@ -1,246 +1,73 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI: TAD: Add low-level support for real time capability
-Date: Mon, 15 Oct 2018 13:56:02 +0200
-Message-ID: <3560687.cIWiBQCOek@aspire.rjw.lan>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH v3 1/3] x86: baytrail/cherrytrail: Rework and move P-Unit
+ PMIC bus semaphore code
+Date: Mon, 15 Oct 2018 17:15:40 +0300
+Message-ID: <f040787b-3f64-e338-7a9c-0d44f968f496@linux.intel.com>
+References: <20181011142911.13750-1-hdegoede@redhat.com>
+ <20181011142911.13750-2-hdegoede@redhat.com> <20181014131724.GA863@kunai>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181014131724.GA863@kunai>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-Add low-level support for the (optional) real time capability of the
-ACPI Time and Alarm Device (TAD) to the ACPI TAD driver.
-
-This allows the real time to be acquired or set via sysfs with the
-help of the _GRT and _SRT methods of the TAD, respectively.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/acpi/acpi_tad.c |  201 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 201 insertions(+)
-
-Index: linux-pm/drivers/acpi/acpi_tad.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_tad.c
-+++ linux-pm/drivers/acpi/acpi_tad.c
-@@ -52,6 +52,201 @@ struct acpi_tad_driver_data {
- 	u32 capabilities;
- };
- 
-+struct acpi_tad_rt {
-+	u16 year;  /* 1900 - 9999 */
-+	u8 month;  /* 1 - 12 */
-+	u8 day;    /* 1 - 31 */
-+	u8 hour;   /* 0 - 23 */
-+	u8 minute; /* 0 - 59 */
-+	u8 second; /* 0 - 59 */
-+	u8 valid;  /* 0 (failed) or 1 (success) for reads, 0 for writes */
-+	u16 msec;  /* 1 - 1000 */
-+	s16 tz;    /* -1440 to 1440 or 2047 (unspecified) */
-+	u8 daylight;
-+	u8 padding[3]; /* must be 0 */
-+} __packed;
-+
-+static int acpi_tad_set_real_time(struct device *dev, struct acpi_tad_rt *rt)
-+{
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+	union acpi_object args[] = {
-+		{ .type = ACPI_TYPE_BUFFER, },
-+	};
-+	struct acpi_object_list arg_list = {
-+		.pointer = args,
-+		.count = ARRAY_SIZE(args),
-+	};
-+	unsigned long long retval;
-+	acpi_status status;
-+
-+	if (rt->year < 1900 || rt->year > 9999 ||
-+	    rt->month < 1 || rt->month > 12 ||
-+	    rt->hour > 23 || rt->minute > 59 || rt->second > 59 ||
-+	    rt->tz < -1440 || (rt->tz > 1440 && rt->tz != 2047) ||
-+	    rt->daylight > 3)
-+		return -ERANGE;
-+
-+	args[0].buffer.pointer = (u8 *)rt;
-+	args[0].buffer.length = sizeof(*rt);
-+
-+	pm_runtime_get_sync(dev);
-+
-+	status = acpi_evaluate_integer(handle, "_SRT", &arg_list, &retval);
-+
-+	pm_runtime_put_sync(dev);
-+
-+	if (ACPI_FAILURE(status) || retval)
-+		return -EIO;
-+
-+	return 0;
-+}
-+
-+static int acpi_tad_get_real_time(struct device *dev, struct acpi_tad_rt *rt)
-+{
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+	struct acpi_buffer output = { ACPI_ALLOCATE_BUFFER };
-+	union acpi_object *out_obj;
-+	struct acpi_tad_rt *data;
-+	acpi_status status;
-+	int ret = -EIO;
-+
-+	pm_runtime_get_sync(dev);
-+
-+	status = acpi_evaluate_object(handle, "_GRT", NULL, &output);
-+
-+	pm_runtime_put_sync(dev);
-+
-+	if (ACPI_FAILURE(status))
-+		goto out_free;
-+
-+	out_obj = output.pointer;
-+	if (out_obj->type != ACPI_TYPE_BUFFER)
-+		goto out_free;
-+
-+	if (out_obj->buffer.length != sizeof(*rt))
-+		goto out_free;
-+
-+	data = (struct acpi_tad_rt *)(out_obj->buffer.pointer);
-+	if (!data->valid)
-+		goto out_free;
-+
-+	memcpy(rt, data, sizeof(*rt));
-+	ret = 0;
-+
-+out_free:
-+	ACPI_FREE(output.pointer);
-+	return ret;
-+}
-+
-+static char *acpi_tad_rt_next_field(char *s, int *val)
-+{
-+	char *p;
-+
-+	p = strchr(s, ':');
-+	if (!p)
-+		return NULL;
-+
-+	*p = '\0';
-+	if (kstrtoint(s, 10, val))
-+		return NULL;
-+
-+	return p + 1;
-+}
-+
-+static ssize_t time_store(struct device *dev, struct device_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	struct acpi_tad_rt rt;
-+	char *str, *s;
-+	int val, ret = -ENODATA;
-+
-+	str = kmemdup_nul(buf, count, GFP_KERNEL);
-+	if (!str)
-+		return -ENOMEM;
-+
-+	s = acpi_tad_rt_next_field(str, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.year = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.month = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.day = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.hour = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.minute = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.second = val;
-+
-+	s = acpi_tad_rt_next_field(s, &val);
-+	if (!s)
-+		goto out_free;
-+
-+	rt.tz = val;
-+
-+	if (kstrtoint(s, 10, &val))
-+		goto out_free;
-+
-+	rt.daylight = val;
-+
-+	rt.valid = 0;
-+	rt.msec = 0;
-+	memset(rt.padding, 0, 3);
-+
-+	ret = acpi_tad_set_real_time(dev, &rt);
-+
-+out_free:
-+	kfree(str);
-+	return ret ? ret : count;
-+}
-+
-+static ssize_t time_show(struct device *dev, struct device_attribute *attr,
-+			 char *buf)
-+{
-+	struct acpi_tad_rt rt;
-+	int ret;
-+
-+	ret = acpi_tad_get_real_time(dev, &rt);
-+	if (ret)
-+		return ret;
-+
-+	return sprintf(buf, "%u:%u:%u:%u:%u:%u:%d:%u\n",
-+		       rt.year, rt.month, rt.day, rt.hour, rt.minute, rt.second,
-+		       rt.tz, rt.daylight);
-+}
-+
-+static DEVICE_ATTR(time, S_IRUSR | S_IWUSR, time_show, time_store);
-+
-+static struct attribute *acpi_tad_time_attrs[] = {
-+	&dev_attr_time.attr,
-+	NULL,
-+};
-+static const struct attribute_group acpi_tad_time_attr_group = {
-+	.attrs	= acpi_tad_time_attrs,
-+};
-+
- static int acpi_tad_wake_set(struct device *dev, char *method, u32 timer_id,
- 			     u32 value)
- {
-@@ -447,6 +642,12 @@ static int acpi_tad_probe(struct platfor
- 		if (ret)
- 			goto fail;
- 	}
-+
-+	if (caps & ACPI_TAD_RT) {
-+		ret = sysfs_create_group(&dev->kobj, &acpi_tad_time_attr_group);
-+		if (ret)
-+			goto fail;
-+	}
- 
- 	return 0;
- 
+On 10/14/2018 04:17 PM, Wolfram Sang wrote:
+> On Thu, Oct 11, 2018 at 04:29:09PM +0200, Hans de Goede wrote:
+>> On some BYT/CHT systems the SoC's P-Unit shares the I2C bus with the
+>> kernel. The P-Unit has a semaphore for the PMIC bus which we can take to
+>> block it from accessing the shared bus while the kernel wants to access it.
+>>
+>> Currently we have the I2C-controller driver acquiring and releasing the
+>> semaphore around each I2C transfer. There are 2 problems with this:
+>>
+>> 1) PMIC accesses often come in the form of a read-modify-write on one of
+>> the PMIC registers, we currently release the P-Unit's PMIC bus semaphore
+>> between the read and the write. If the P-Unit modifies the register during
+>> this window?, then we end up overwriting the P-Unit's changes.
+>> I believe that this is mostly an academic problem, but I'm not sure.
+>>
+>> 2) To safely access the shared I2C bus, we need to do 3 things:
+>> a) Notify the GPU driver that we are starting a window in which it may not
+>> access the P-Unit, since the P-Unit seems to ignore the semaphore for
+>> explicit power-level requests made by the GPU driver
+>> b) Make a pm_qos request to force all CPU cores out of C6/C7 since entering
+>> C6/C7 while we hold the semaphore hangs the SoC
+>> c) Finally take the P-Unit's PMIC bus semaphore
+>> All 3 these steps together are somewhat expensive, so ideally if we have
+>> a bunch of i2c transfers grouped together we only do this once for the
+>> entire group.
+>>
+>> Taking the read-modify-write on a PMIC register as example then ideally we
+>> would only do all 3 steps once at the beginning and undo all 3 steps once
+>> at the end.
+>>
+>> For this we need to be able to take the semaphore from within e.g. the PMIC
+>> opregion driver, yet we do not want to remove the taking of the semaphore
+>> from the I2C-controller driver, as that is still necessary to protect many
+>> other code-paths leading to accessing the shared I2C bus.
+>>
+>> This means that we first have the PMIC driver acquire the semaphore and
+>> then have the I2C controller driver trying to acquire it again.
+>>
+>> To make this possible this commit does the following:
+>>
+>> 1) Move the semaphore code from being private to the I2C controller driver
+>> into the generic iosf_mbi code, which already has other code to deal with
+>> the shared bus so that it can be accessed outside of the I2C bus driver.
+>>
+>> 2) Rework the code so that it can be called multiple times nested, while
+>> still blocking I2C accesses while e.g. the GPU driver has indicated the
+>> P-Unit needs the bus through a iosf_mbi_punit_acquire() call.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> For the record: once the designware maintainers are okay with this
+> change, I am also okay with it going via the x86 platform tree.
+> 
+Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
