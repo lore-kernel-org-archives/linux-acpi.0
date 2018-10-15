@@ -1,72 +1,100 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH v3 3/3] Documentation: intel_pstate: Add base_frequency
- information
-Date: Mon, 15 Oct 2018 08:49:24 -0700
-Message-ID: <c89ff15144f0c24187f82db088622d6c8aebd7d7.camel@linux.intel.com>
-References: <20181012164400.3479-1-srinivas.pandruvada@linux.intel.com>
-         <20181012164400.3479-4-srinivas.pandruvada@linux.intel.com>
-         <CAJZ5v0iXOtcNSqPU7NYwG=S_JCdoTFzLRD1qZocWMnFnVJ-oMQ@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v6 17/18] mm/memory-failure: increase queued recovery
+ work's priority
+Date: Mon, 15 Oct 2018 18:49:13 +0200
+Message-ID: <20181015164913.GE11434@zn.tnic>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-18-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0iXOtcNSqPU7NYwG=S_JCdoTFzLRD1qZocWMnFnVJ-oMQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Juri Lelli <juri.lelli@redhat.com>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, devel@acpica.org, Prashanth Prakash <pprakash@codeaurora.org>, George Cherian <george.cherian@cavium.com>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20180921221705.6478-18-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>, Peter Zijlstra <peterz@infradead.org>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 2018-10-15 at 10:53 +0200, Rafael J. Wysocki wrote:
-> On Fri, Oct 12, 2018 at 6:44 PM Srinivas Pandruvada
-> <srinivas.pandruvada@linux.intel.com> wrote:
-> > 
-> > Updated documentation to explain base_frequency attribute.
-> > 
-> > Signed-off-by: Srinivas Pandruvada <
-> > srinivas.pandruvada@linux.intel.com>
-> > ---
-> >  Documentation/admin-guide/pm/intel_pstate.rst | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/Documentation/admin-guide/pm/intel_pstate.rst
-> > b/Documentation/admin-guide/pm/intel_pstate.rst
-> > index 8f1d3de449b5..14a5505e073e 100644
-> > --- a/Documentation/admin-guide/pm/intel_pstate.rst
-> > +++ b/Documentation/admin-guide/pm/intel_pstate.rst
-> > @@ -465,6 +465,10 @@ Next, the following policy attributes have
-> > special meaning if
-> >         policy for the time interval between the last two
-> > invocations of the
-> >         driver's utilization update callback by the CPU scheduler
-> > for that CPU.
-> > 
-> > +``base_frequency``
-> > +       When present, shows the base frequency of the CPU. Any
-> > frequency above
-> > +       this will be in the turbo frequency range.
-> > +
-> 
-> This isn't entirely correct, because base_frequency is not present in
-> the passive mode (and it is not present for the other drivers for
-> that
-> matter).
-That's why it said, "when present". This keeps door open to add to
-other modes too in future if needed.
++ Peter.
 
-Thanks,
-Srinivas
+On Fri, Sep 21, 2018 at 11:17:04PM +0100, James Morse wrote:
+> arm64 can take an NMI-like error notification when user-space steps in
+> some corrupt memory. APEI's GHES code will call memory_failure_queue()
+> to schedule the recovery work. We then return to user-space, possibly
+> taking the fault again.
+> 
+> Currently the arch code unconditionally signals user-space from this
+> path, so we don't get stuck in this loop, but the affected process
+> never benefits from memory_failure()s recovery work. To fix this we
+> need to know the recovery work will run before we get back to user-space.
+> 
+> Increase the priority of the recovery work by scheduling it on the
+> system_highpri_wq, then try to bump the current task off this CPU
+> so that the recovery work starts immediately.
+> 
+> Reported-by: Xie XiuQi <xiexiuqi@huawei.com>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> Tested-by: gengdongjiu <gengdongjiu@huawei.com>
+> CC: Xie XiuQi <xiexiuqi@huawei.com>
+> CC: gengdongjiu <gengdongjiu@huawei.com>
+> ---
+>  mm/memory-failure.c | 11 ++++++++---
+>  1 file changed, 8 insertions(+), 3 deletions(-)
+> 
+> diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+> index 0cd3de3550f0..4e7b115cea5a 100644
+> --- a/mm/memory-failure.c
+> +++ b/mm/memory-failure.c
+> @@ -56,6 +56,7 @@
+>  #include <linux/memory_hotplug.h>
+>  #include <linux/mm_inline.h>
+>  #include <linux/memremap.h>
+> +#include <linux/preempt.h>
+>  #include <linux/kfifo.h>
+>  #include <linux/ratelimit.h>
+>  #include <linux/page-isolation.h>
+> @@ -1454,6 +1455,7 @@ static DEFINE_PER_CPU(struct memory_failure_cpu, memory_failure_cpu);
+>   */
+>  void memory_failure_queue(unsigned long pfn, int flags)
+>  {
+> +	int cpu = smp_processor_id();
+>  	struct memory_failure_cpu *mf_cpu;
+>  	unsigned long proc_flags;
+>  	struct memory_failure_entry entry = {
+> @@ -1463,11 +1465,14 @@ void memory_failure_queue(unsigned long pfn, int flags)
+>  
+>  	mf_cpu = &get_cpu_var(memory_failure_cpu);
+>  	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+> -	if (kfifo_put(&mf_cpu->fifo, entry))
+> -		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+> -	else
+> +	if (kfifo_put(&mf_cpu->fifo, entry)) {
+> +		queue_work_on(cpu, system_highpri_wq, &mf_cpu->work);
+> +		set_tsk_need_resched(current);
+> +		preempt_set_need_resched();
 
-> 
-> >  The meaning of these attributes in the `passive mode <Passive
-> > Mode_>`_ is the
-> >  same as for other scaling drivers.
-> 
-> Instead, I would say:
-> 
-> "One more policy attribute is present if the `HWP feature is enabled
-> in the processor <Active Mode With HWP_>`_:"
-> 
-> here and I would add the description of the attribute below.
-> 
-> Thanks,
-> Rafael
+What guarantees the workqueue would run before the process? I see this:
+
+``WQ_HIGHPRI``
+  Work items of a highpri wq are queued to the highpri
+  worker-pool of the target cpu.  Highpri worker-pools are
+  served by worker threads with elevated nice level.
+
+but is that enough?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
