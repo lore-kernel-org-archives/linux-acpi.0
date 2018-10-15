@@ -1,87 +1,101 @@
-From: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] acpi, nfit: Further restrict userspace ARS start
- requests
-Date: Mon, 15 Oct 2018 14:24:44 -0700
-Message-ID: <38b2dd11-2db8-d1f2-470b-67bc3ec013d0@intel.com>
-References: <153963719771.2140296.1457598322723171137.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH] ACPICA: Fix dispatcher timeout mechanism
+Date: Mon, 15 Oct 2018 15:18:48 -0700
+Message-ID: <20181015221848.256323-1-bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-In-Reply-To: <153963719771.2140296.1457598322723171137.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>
+Cc: Bart Van Assche <bvanassche@acm.org>, Len Brown <lenb@kernel.org>, Fengguang Wu <fengguang.wu@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+This patch avoids that the following warning is reported during hibernation:
 
+WARNING: CPU: 0 PID: 612 at kernel/time/timekeeping.c:751 ktime_get+0x116/0x120
+RIP: 0010:ktime_get+0x116/0x120
+Call Trace:
+ acpi_os_get_timer+0xe/0x30
+ acpi_ds_exec_begin_control_op+0x175/0x1de
+ acpi_ds_exec_begin_op+0x2c7/0x39a
+ acpi_ps_create_op+0x573/0x5e4
+ acpi_ps_parse_loop+0x349/0x1220
+ acpi_ps_parse_aml+0x25b/0x6da
+ acpi_ps_execute_method+0x327/0x41b
+ acpi_ns_evaluate+0x4e9/0x6f5
+ acpi_ut_evaluate_object+0xd9/0x2f2
+ acpi_rs_get_method_data+0x8f/0x114
+ acpi_walk_resources+0x122/0x1b6
+ acpi_pci_link_get_current.isra.2+0x157/0x280
+ acpi_pci_link_set+0x32f/0x4a0
+ irqrouter_resume+0x58/0x80
+ syscore_resume+0x84/0x380
+ hibernation_snapshot+0x20c/0x4f0
+ hibernate+0x22d/0x3a6
+ state_store+0x99/0xa0
+ kobj_attr_store+0x37/0x50
+ sysfs_kf_write+0x87/0xa0
+ kernfs_fop_write+0x1a5/0x240
+ __vfs_write+0xd2/0x410
+ vfs_write+0x101/0x250
+ ksys_write+0xab/0x120
+ __x64_sys_write+0x43/0x50
+ do_syscall_64+0x71/0x220
+ entry_SYSCALL_64_after_hwframe+0x49/0xbe
 
-On 10/15/2018 02:00 PM, Dan Williams wrote:
-> In addition to not allowing ARS start while the background thread is
-> actively running, prevent ARS start while any scrub request is pending.
-> 
-> This aligns the window for ARS start submission with the status of ARS
-> reported via sysfs. Previously userspace could sneak its own ARS start
-> requests in while sysfs reported -EBUSY.
-> 
-> Signed-off-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Fixes: 164a08cee135 ("ACPICA: Dispatcher: Introduce timeout mechanism for infinite loop detection")
+References: https://lists.01.org/pipermail/lkp/2018-April/008406.html
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: linux-acpi@vger.kernel.org
+Cc: stable@vger.kernel.org
+---
+ drivers/acpi/acpica/aclocal.h   | 2 +-
+ drivers/acpi/acpica/dscontrol.c | 9 ++++-----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-Reviewed-by: Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-> ---
-> Changes in v2:
-> * Require acpi_desc->scrub_spa to be NULL to prevent requests being sent
->   while a scrub is active, or whose results are waiting to be reaped.
-> 
->  drivers/acpi/nfit/core.c |   19 ++++++++++++++-----
->  1 file changed, 14 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index f7efcd9843e0..253c0e85554d 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -3364,6 +3364,8 @@ static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
->  		struct nvdimm *nvdimm, unsigned int cmd)
->  {
->  	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
-> +	struct nfit_spa *nfit_spa;
-> +	int rc = 0;
->  
->  	if (nvdimm)
->  		return 0;
-> @@ -3373,13 +3375,20 @@ static int __acpi_nfit_clear_to_send(struct nvdimm_bus_descriptor *nd_desc,
->  	/*
->  	 * The kernel and userspace may race to initiate a scrub, but
->  	 * the scrub thread is prepared to lose that initial race.  It
-> -	 * just needs guarantees that any ars it initiates are not
-> -	 * interrupted by any intervening start reqeusts from userspace.
-> +	 * just needs guarantees that any ARS it initiates are not
-> +	 * interrupted by any intervening start requests from userspace.
->  	 */
-> -	if (work_busy(&acpi_desc->dwork.work))
-> -		return -EBUSY;
-> +	mutex_lock(&acpi_desc->init_mutex);
-> +	list_for_each_entry(nfit_spa, &acpi_desc->spas, list)
-> +		if (acpi_desc->scrub_spa
-> +				|| test_bit(ARS_REQ_SHORT, &nfit_spa->ars_state)
-> +				|| test_bit(ARS_REQ_LONG, &nfit_spa->ars_state)) {
-> +			rc = -EBUSY;
-> +			break;
-> +		}
-> +	mutex_unlock(&acpi_desc->init_mutex);
->  
-> -	return 0;
-> +	return rc;
->  }
->  
->  /* prevent security commands from being issued via ioctl */
-> 
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 0f28a38a43ea..7b093bcbaef5 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -588,7 +588,7 @@ struct acpi_control_state {
+ 	union acpi_parse_object *predicate_op;
+ 	u8 *aml_predicate_start;	/* Start of if/while predicate */
+ 	u8 *package_end;	/* End of if/while block */
+-	u64 loop_timeout;	/* While() loop timeout */
++	unsigned long loop_timeout;	/* While() loop timeout */
+ };
+ 
+ /*
+diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
+index 0da96268deb5..9dbea4549484 100644
+--- a/drivers/acpi/acpica/dscontrol.c
++++ b/drivers/acpi/acpica/dscontrol.c
+@@ -84,8 +84,8 @@ acpi_ds_exec_begin_control_op(struct acpi_walk_state *walk_state,
+ 		control_state->control.package_end =
+ 		    walk_state->parser_state.pkg_end;
+ 		control_state->control.opcode = op->common.aml_opcode;
+-		control_state->control.loop_timeout = acpi_os_get_timer() +
+-		    (u64)(acpi_gbl_max_loop_iterations * ACPI_100NSEC_PER_SEC);
++		control_state->control.loop_timeout = jiffies +
++		    acpi_gbl_max_loop_iterations * HZ;
+ 
+ 		/* Push the control state on this walk's control stack */
+ 
+@@ -179,9 +179,8 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state *walk_state,
+ 			 * written AML when the hardware does not respond within a while
+ 			 * loop and the loop does not implement a timeout.
+ 			 */
+-			if (ACPI_TIME_AFTER(acpi_os_get_timer(),
+-					    control_state->control.
+-					    loop_timeout)) {
++			if (time_after(jiffies,
++				       control_state->control.loop_timeout)) {
+ 				status = AE_AML_LOOP_TIMEOUT;
+ 				break;
+ 			}
+-- 
+2.19.1.331.ge82ca0e54c-goog
