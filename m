@@ -1,57 +1,55 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Tue, 16 Oct 2018 10:48:44 +0800
-Message-ID: <20181016024844.GA12871@localhost.localdomain>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
- <20181011105708.GB25435@zn.tnic>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] ACPICA: Fix dispatcher timeout mechanism
+Date: Tue, 16 Oct 2018 07:04:57 +0200
+Message-ID: <20181016050457.GA6031@kroah.com>
+References: <20181015221848.256323-1-bvanassche@acm.org>
+ <CAJZ5v0jDv3ufH+MOXmrygHkBgu4CgT6DZL38xq1ViGiju8VxqQ@mail.gmail.com>
+ <1539644495.129692.8.camel@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181011105708.GB25435@zn.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <1539644495.129692.8.camel@acm.org>
+Sender: stable-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, kbuild test robot <fengguang.wu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Stable <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 11, 2018 at 12:57:08PM +0200, Borislav Petkov wrote:
->On Wed, Oct 10, 2018 at 04:41:17PM +0800, Chao Fan wrote:
-[...]
->> +#ifdef CONFIG_KEXEC
->> +static bool get_acpi_rsdp(acpi_physical_address *rsdp_addr)
->> +{
->> +	char *args = (char *)get_cmd_line_ptr();
->> +	size_t len = strlen((char *)args);
->> +	char *tmp_cmdline, *param, *val;
->> +	unsigned long long addr = 0;
->> +	char *endptr;
->> +
->> +	if (!strstr(args, "acpi_rsdp="))
->> +		return false;
->> +
->> +	tmp_cmdline = malloc(len+1);
->> +	if (!tmp_cmdline)
->> +		error("Failed to allocate space for tmp_cmdline");
->
->Why do you even need to allocate a tmp cmdline?
->
->Ah, I see what you've done - you've copied handle_mem_options() in
->kaslr.c. Well no, not really.
->
->That functionality needs to get extracted into a separate facility. Oh
->look, there's arch/x86/boot/compressed/cmdline.c which is begging to get
->extended.
->
->:-)
->
+On Mon, Oct 15, 2018 at 04:01:35PM -0700, Bart Van Assche wrote:
+> On Tue, 2018-10-16 at 00:44 +0200, Rafael J. Wysocki wrote:
+> > On Tue, Oct 16, 2018 at 12:19 AM Bart Van Assche <bvanassche@acm.org> wrote:
+> > > 
+> > > This patch avoids that the following warning is reported during hibernation:
+> > 
+> > Well, what exactly is the problem and why is the patch the right way
+> > to address it?
+> 
+> It is not safe to call ktime_get() after having called timekeeping_suspend().
+> 
+> > >  /*
+> > > diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
+> > > index 0da96268deb5..9dbea4549484 100644
+> > > --- a/drivers/acpi/acpica/dscontrol.c
+> > > +++ b/drivers/acpi/acpica/dscontrol.c
+> > > @@ -84,8 +84,8 @@ acpi_ds_exec_begin_control_op(struct acpi_walk_state *walk_state,
+> > >                 control_state->control.package_end =
+> > >                     walk_state->parser_state.pkg_end;
+> > >                 control_state->control.opcode = op->common.aml_opcode;
+> > > -               control_state->control.loop_timeout = acpi_os_get_timer() +
+> > > -                   (u64)(acpi_gbl_max_loop_iterations * ACPI_100NSEC_PER_SEC);
+> > > +               control_state->control.loop_timeout = jiffies +
+> > > +                   acpi_gbl_max_loop_iterations * HZ;
+> > 
+> > jiffies is Linux-specific and so it should not be used in the ACPICA code.
+> 
+> Really? There is plenty of other ACPI code that uses the jiffies counter directly.
+> Why wouldn't it be allowed to use the jiffies counter in this context since there
+> is so much other ACPI code that uses that counter?
 
-Hi Boris,
+acpica is different from acpi.  It is the "core acpi code" that is
+shared across other operating systems.  That is why jiffies does not
+work in it :(
 
-Sorry for disturbing you again, I want to make sure this detail with you.
-You mean that I need splite this as a function and put it to
-cmdline.c, right?
-If my understand is wrong, please let me know.
+thanks,
 
-Thanks,
-Chao Fan
+greg k-h
