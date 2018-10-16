@@ -1,38 +1,79 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v8 1/3] x86/boot: Add acpitb.c to parse acpi tables
-Date: Tue, 16 Oct 2018 14:40:36 +0200
-Message-ID: <20181016124036.GG5212@zn.tnic>
-References: <20181010084119.17539-1-fanc.fnst@cn.fujitsu.com>
- <20181010084119.17539-2-fanc.fnst@cn.fujitsu.com>
- <20181011105708.GB25435@zn.tnic>
- <20181016024844.GA12871@localhost.localdomain>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v4 0/4] arm64 SMMUv3 PMU driver with IORT support
+Date: Tue, 16 Oct 2018 13:49:16 +0100
+Message-ID: <20181016124920.24708-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181016024844.GA12871@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: lorenzo.pieralisi@arm.com, robin.murphy@arm.com, jean-philippe.brucker@arm.com
+Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 16, 2018 at 10:48:44AM +0800, Chao Fan wrote:
-> Sorry for disturbing you again, I want to make sure this detail with you.
-> You mean that I need splite this as a function and put it to
-> cmdline.c, right?
+This adds a driver for the SMMUv3 PMU into the perf framework.
+It includes an IORT update to support PM Counter Groups.
 
-Extract that functionality into a generic helper so that
-handle_mem_options() and your get_acpi_rsdp() can call it instead
-of duplicating the code. Also, why aren't they both using
-cmdline_find_option() directly?
+This is based on the initial work done by Neil Leeder[1]
 
-If something's missing, extend cmdline_find_option() to serve your
-purposes too instead of copying the same code.
+SMMUv3 PMCG devices are named as smmuv3_pmcg_<phys_addr_page>
+where <phys_addr_page> is the physical page address of the SMMU PMCG.
+For example, the PMCG at 0xff88840000 is named smmuv3_pmcg_ff88840
 
-Make more sense?
+Usage example:
+For common arch supported events:
+perf stat -e smmuv3_pmcg_ff88840/transaction,filter_enable=1,
+ filter_span=1,filter_stream_id=0x42/ -a netperf
+
+For IMP DEF events:
+perf stat -e smmuv3_pmcg_ff88840/event=id/ -a netperf
+
+This is sanity tested on a HiSilicon platform that requires
+a quirk to run  it properly. As per HiSilicon erratum  #162001800,
+PMCG event counter registers (SMMU_PMCG_EVCNTRn) on HiSilicon Hip08
+platforms are read only and this prevents the software from setting
+the initial period on event start. Unfortunately we were a bit late
+in the cycle to detect this issue and now require software workaround
+for this. Patch #4 is added to this series to provide a workaround
+for this issue.
+
+Further testing on supported platforms are very much welcome.
+
+v3 --> v4
+
+-Addressed comments from Jean and Robin.
+-Merged dma config callbacks as per Lorenzo's comments(patch #1).
+-Added handling of Global(Counter0) filter settings mode(patch #2).
+-Added patch #4 to address HiSilicon erratum  #162001800
+-
+v2 --> v3
+
+-Addressed comments from Robin.
+-Removed iort helper function to retrieve the PMCG reference smmu.
+-PMCG devices are now named using the base address
+
+v1 --> v2
+
+- Addressed comments from Robin.
+- Added an helper to retrieve the associated smmu dev and named PMUs
+  to make the association visible to user.
+- Added MSI support  for overflow irq
+
+[1]https://www.spinics.net/lists/arm-kernel/msg598591.html
+
+Neil Leeder (2):
+  acpi: arm64: add iort support for PMCG
+  perf: add arm64 smmuv3 pmu driver
+
+Shameer Kolothum (2):
+  perf/smmuv3: Add MSI irq support
+  perf/smmuv3_pmu: Enable HiSilicon Erratum 162001800 quirk
+
+ drivers/acpi/arm64/iort.c     |  97 ++++-
+ drivers/perf/Kconfig          |   9 +
+ drivers/perf/Makefile         |   1 +
+ drivers/perf/arm_smmuv3_pmu.c | 959 ++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1045 insertions(+), 21 deletions(-)
+ create mode 100644 drivers/perf/arm_smmuv3_pmu.c
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.7.4
