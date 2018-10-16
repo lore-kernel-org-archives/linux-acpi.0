@@ -1,39 +1,54 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH 0/5] device property: Introducing software nodes
-Date: Tue, 16 Oct 2018 09:36:33 +0200
-Message-ID: <CAJZ5v0h3uENUqbcb=0HH1wT_0MYQzcHct2d19tiarvXEdRay+Q@mail.gmail.com>
-References: <20181012113934.29942-1-heikki.krogerus@linux.intel.com> <CACRpkdZddvkgL1qwO=35y_Jps0+=QD3nPKQwgMEH+zcCH2NPdg@mail.gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH v6 17/18] mm/memory-failure: increase queued recovery
+ work's priority
+Date: Tue, 16 Oct 2018 09:43:51 +0200
+Message-ID: <20181016074351.GC4030@hirez.programming.kicks-ass.net>
+References: <20180921221705.6478-1-james.morse@arm.com>
+ <20180921221705.6478-18-james.morse@arm.com>
+ <20181015164913.GE11434@zn.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CACRpkdZddvkgL1qwO=35y_Jps0+=QD3nPKQwgMEH+zcCH2NPdg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20181015164913.GE11434@zn.tnic>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: jonathan.zhang@cavium.com, Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Xie XiuQi <xiexiuqi@huawei.com>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Tyler Baicar <tbaicar@codeaurora.org>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, James Morse <james.morse@arm.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 16, 2018 at 9:35 AM Linus Walleij <linus.walleij@linaro.org> wrote:
->
-> On Fri, Oct 12, 2018 at 1:39 PM Heikki Krogerus
-> <heikki.krogerus@linux.intel.com> wrote:
->
-> > To continue the discussion started by Dmitry [1], this is my proposal
-> > that I mentioned in my last mail. In short, the idea is that instead
-> > of trying to extend the support for the currently used struct
-> > property_set, I'm proposing that we introduce a completely new,
-> > independent type of fwnode, and replace the struct property_set with
-> > it. I'm calling the type "software node" here.
->
-> I'm a big fan of this approach.
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> for all patches.
->
-> I don't know who can finally review and merge this though,
-> I guess Rafael?
+On Mon, Oct 15, 2018 at 06:49:13PM +0200, Borislav Petkov wrote:
+> On Fri, Sep 21, 2018 at 11:17:04PM +0100, James Morse wrote:
+> > @@ -1463,11 +1465,14 @@ void memory_failure_queue(unsigned long pfn, int flags)
+> >  
+> >  	mf_cpu = &get_cpu_var(memory_failure_cpu);
+> >  	spin_lock_irqsave(&mf_cpu->lock, proc_flags);
+> > -	if (kfifo_put(&mf_cpu->fifo, entry))
+> > -		schedule_work_on(smp_processor_id(), &mf_cpu->work);
+> > -	else
+> > +	if (kfifo_put(&mf_cpu->fifo, entry)) {
+> > +		queue_work_on(cpu, system_highpri_wq, &mf_cpu->work);
+> > +		set_tsk_need_resched(current);
+> > +		preempt_set_need_resched();
+> 
+> What guarantees the workqueue would run before the process? I see this:
+> 
+> ``WQ_HIGHPRI``
+>   Work items of a highpri wq are queued to the highpri
+>   worker-pool of the target cpu.  Highpri worker-pools are
+>   served by worker threads with elevated nice level.
+> 
+> but is that enough?
 
-Yes, that would be me. :-)
+Nope. Nice just makes it more likely, but no guarantees what so ever.
 
-I no one speaks up against them, I'll pick them up.
-
-Cheers,
-Rafael
+If you want to absolutely run something before we return to userspace,
+would not task_work() be what we're looking for?
