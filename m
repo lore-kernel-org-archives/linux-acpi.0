@@ -1,58 +1,100 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH 0/5] device property: Introducing software nodes
-Date: Tue, 16 Oct 2018 10:44:45 +0200
-Message-ID: <CAJZ5v0gYk1=jOkmF5z2WCCyHCu6ZWX8zOoLSkStvYqHMY2PZnA@mail.gmail.com>
-References: <20181012113934.29942-1-heikki.krogerus@linux.intel.com>
- <CACRpkdZddvkgL1qwO=35y_Jps0+=QD3nPKQwgMEH+zcCH2NPdg@mail.gmail.com>
- <CAJZ5v0h3uENUqbcb=0HH1wT_0MYQzcHct2d19tiarvXEdRay+Q@mail.gmail.com> <20181016084050.GF24771@kuha.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: remove redundant 'default n' from Kconfig
+Date: Tue, 16 Oct 2018 11:06:55 +0200
+Message-ID: <3043377.xZJKtzU3Ct@aspire.rjw.lan>
+References: <CGME20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da@eucas1p1.samsung.com> <20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da~cRlJN49vs2486624866eucas1p1i@eucas1p1.samsung.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181016084050.GF24771@kuha.fi.intel.com>
+In-Reply-To: <20181010144131eucas1p1974d23e4f09a49ed772575b9cc3770da~cRlJN49vs2486624866eucas1p1i@eucas1p1.samsung.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 16, 2018 at 10:40 AM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
->
-> On Tue, Oct 16, 2018 at 09:36:33AM +0200, Rafael J. Wysocki wrote:
-> > On Tue, Oct 16, 2018 at 9:35 AM Linus Walleij <linus.walleij@linaro.org> wrote:
-> > >
-> > > On Fri, Oct 12, 2018 at 1:39 PM Heikki Krogerus
-> > > <heikki.krogerus@linux.intel.com> wrote:
-> > >
-> > > > To continue the discussion started by Dmitry [1], this is my proposal
-> > > > that I mentioned in my last mail. In short, the idea is that instead
-> > > > of trying to extend the support for the currently used struct
-> > > > property_set, I'm proposing that we introduce a completely new,
-> > > > independent type of fwnode, and replace the struct property_set with
-> > > > it. I'm calling the type "software node" here.
-> > >
-> > > I'm a big fan of this approach.
-> > > Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> > > for all patches.
-> > >
-> > > I don't know who can finally review and merge this though,
-> > > I guess Rafael?
-> >
-> > Yes, that would be me. :-)
-> >
-> > I no one speaks up against them, I'll pick them up.
->
-> Let me send a final version of these.
->
-> I need to add one more patch to the series where I remove an extra
-> device_remove_properties() call from platform_device_del().
->
-> It's unnecessary in any case as device_del() calls
-> device_remove_properties() for every device, but as the properties are
-> removed there before the device is removed, we're unable to deduct
-> the final ref count in the "remove" platform notification since our
-> node is no longer bind to the device.
+On Wednesday, October 10, 2018 4:41:30 PM CEST Bartlomiej Zolnierkiewicz wrote:
+> 'default n' is the default value for any bool or tristate Kconfig
+> setting so there is no need to write it explicitly.
+> 
+> Also since commit f467c5640c29 ("kconfig: only write '# CONFIG_FOO
+> is not set' for visible symbols") the Kconfig behavior is the same
+> regardless of 'default n' being present or not:
+> 
+>     ...
+>     One side effect of (and the main motivation for) this change is making
+>     the following two definitions behave exactly the same:
+>     
+>         config FOO
+>                 bool
+>     
+>         config FOO
+>                 bool
+>                 default n
+>     
+>     With this change, neither of these will generate a
+>     '# CONFIG_FOO is not set' line (assuming FOO isn't selected/implied).
+>     That might make it clearer to people that a bare 'default n' is
+>     redundant.
+>     ...
+> 
+> Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> ---
+>  drivers/acpi/Kconfig |    6 ------
+>  1 file changed, 6 deletions(-)
+> 
+> Index: b/drivers/acpi/Kconfig
+> ===================================================================
+> --- a/drivers/acpi/Kconfig	2018-09-26 15:54:31.942819766 +0200
+> +++ b/drivers/acpi/Kconfig	2018-10-10 16:38:09.691897907 +0200
+> @@ -138,7 +138,6 @@ config ACPI_REV_OVERRIDE_POSSIBLE
+>  
+>  config ACPI_EC_DEBUGFS
+>  	tristate "EC read/write access through /sys/kernel/debug/ec"
+> -	default n
+>  	help
+>  	  Say N to disable Embedded Controller /sys/kernel/debug interface
+>  
+> @@ -283,7 +282,6 @@ config ACPI_PROCESSOR
+>  config ACPI_IPMI
+>  	tristate "IPMI"
+>  	depends on IPMI_HANDLER
+> -	default n
+>  	help
+>  	  This driver enables the ACPI to access the BMC controller. And it
+>  	  uses the IPMI request/response message to communicate with BMC
+> @@ -361,7 +359,6 @@ config ACPI_TABLE_UPGRADE
+>  
+>  config ACPI_DEBUG
+>  	bool "Debug Statements"
+> -	default n
+>  	help
+>  	  The ACPI subsystem can produce debug output.  Saying Y enables this
+>  	  output and increases the kernel size by around 50K.
+> @@ -374,7 +371,6 @@ config ACPI_DEBUG
+>  config ACPI_PCI_SLOT
+>  	bool "PCI slot detection driver"
+>  	depends on SYSFS
+> -	default n
+>  	help
+>  	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
+>  	  slots in the system.  This can help correlate PCI bus addresses,
+> @@ -436,7 +432,6 @@ config ACPI_HED
+>  config ACPI_CUSTOM_METHOD
+>  	tristate "Allow ACPI methods to be inserted/replaced at run time"
+>  	depends on DEBUG_FS
+> -	default n
+>  	help
+>  	  This debug facility allows ACPI AML methods to be inserted and/or
+>  	  replaced without rebooting the system. For details refer to:
+> @@ -481,7 +476,6 @@ config ACPI_EXTLOG
+>  	tristate "Extended Error Log support"
+>  	depends on X86_MCE && X86_LOCAL_APIC && EDAC
+>  	select UEFI_CPER
+> -	default n
+>  	help
+>  	  Certain usages such as Predictive Failure Analysis (PFA) require
+>  	  more information about the error than what can be described in
+> 
 
-OK, I'll wait for an update, then.
-
-Thanks,
-Rafael
+Applied, thanks!
