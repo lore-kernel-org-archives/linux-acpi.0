@@ -1,139 +1,56 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Tue, 16 Oct 2018 11:13:54 -0400
-Message-ID: <20181016151353.punyk7exekut2543@gabell>
-References: <20181010091923.GC5533@zn.tnic>
- <20181010093057.GA22088@MiWiFi-R3L-srv>
- <20181010194443.sgdvplwdnltshwwi@gabell>
- <20181011002955.GJ25297@MiWiFi-R3L-srv>
- <20181011055154.GB6667@localhost.localdomain>
- <20181013201958.zfzv5ahhe3xz7bwi@gabell>
- <20181013203429.GE31650@zn.tnic>
- <20181013214550.ag5qzokhkrkwnzsy@gabell>
- <20181013220541.GI31650@zn.tnic>
- <20181015005035.z3xym6nx43hogdge@gabell>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [RFC PATCH 0/5] device property: Introducing software nodes
+Date: Tue, 16 Oct 2018 10:32:44 -0700
+Message-ID: <20181016173244.GB230131@dtor-ws>
+References: <20181012113934.29942-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181015005035.z3xym6nx43hogdge@gabell>
+In-Reply-To: <20181012113934.29942-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>, Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris, Baoquan and all,
+Hi Heikki,
 
-I have created a RFC patch for adjust KASLR padding size.
-This patch is based on Can's v8 patch [1/3], and the Can's patch
-will be changed in the future, so this patch is just RFC.
+On Fri, Oct 12, 2018 at 02:39:29PM +0300, Heikki Krogerus wrote:
+> Hi guys,
+> 
+> To continue the discussion started by Dmitry [1], this is my proposal
+> that I mentioned in my last mail. In short, the idea is that instead
+> of trying to extend the support for the currently used struct
+> property_set, I'm proposing that we introduce a completely new,
+> independent type of fwnode, and replace the struct property_set with
+> it. I'm calling the type "software node" here.
+> 
+> The reason for a complete separation of the software nodes from the
+> generic property handling code is the need to be able to create the
+> nodes independently from the devices that they are bind to.
 
-Welcome to any comments and suggestions. Thanks!
+It would be great it you would provide an example of creating these
+sowftware property sets separately from devices. How do you tie device
+and its properties if they are not created together? For OF we have
+compatibles and phandles for references, ACPI has HIDs and CIDs and
+notion of references as well. What do we use here, especially when
+software node is created in one subsystem (let's say
+drivers/platform/x86), but device is created somewhere else?
 
----
- arch/x86/boot/compressed/acpitb.c     |  8 ++++++-
- arch/x86/include/uapi/asm/bootparam.h |  3 ++-
- arch/x86/mm/kaslr.c                   | 31 ++++++++++++++++++++++++++-
- 3 files changed, 39 insertions(+), 3 deletions(-)
+Another issue that is not clear to me: looking at the USB connector it
+seems you want to have references to fwnodes. How do you resolve them
+when there are nodes of different class. I.e. how do you express
+software fwnode referencing ACPI or DT node when you are supplementing
+ACPI or DT description of a system with these custom/secondary nodes?
+What about the other direction? I.e. can I have a DT system with USB
+connector and augment USB set up with static nodes? Not only
+basic/scalar properties, but links as well?
 
-diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
-index 6b869e3f9780..1504b46f2a04 100644
---- a/arch/x86/boot/compressed/acpitb.c
-+++ b/arch/x86/boot/compressed/acpitb.c
-@@ -367,6 +367,7 @@ void get_immovable_mem(void)
- 	struct acpi_subtable_header *table;
- 	struct acpi_srat_mem_affinity *ma;
- 	unsigned long table_end;
-+	unsigned long long possible_addr, max_possible_addr = 0;
- 	int i = 0;
- 
- 	if (!strstr(args, "movable_node") || strstr(args, "acpi=off"))
-@@ -384,7 +385,11 @@ void get_immovable_mem(void)
- 	while (((unsigned long)table) + table->length < table_end) {
- 		if (table->type == 1) {
- 			ma = (struct acpi_srat_mem_affinity *)table;
--			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
-+			if (ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) {
-+				possible_addr = ma->base_address + ma->length;
-+				if (possible_addr > max_possible_addr)
-+					max_possible_addr = possible_addr;
-+			} else {
- 				immovable_mem[i].start = ma->base_address;
- 				immovable_mem[i].size = ma->length;
- 				i++;
-@@ -397,6 +402,7 @@ void get_immovable_mem(void)
- 			((unsigned long)table + table->length);
- 	}
- 	num_immovable_mem = i;
-+	boot_params->possible_mem_addr = max_possible_addr;
- }
- #else
- void get_immovable_mem(void)
-diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
-index a06cbf019744..c987c725e93a 100644
---- a/arch/x86/include/uapi/asm/bootparam.h
-+++ b/arch/x86/include/uapi/asm/bootparam.h
-@@ -191,7 +191,8 @@ struct boot_params {
- 	__u8  _pad7[0x290-0x1f1-sizeof(struct setup_header)];
- 	__u32 edd_mbr_sig_buffer[EDD_MBR_SIG_MAX];	/* 0x290 */
- 	struct boot_e820_entry e820_table[E820_MAX_ENTRIES_ZEROPAGE]; /* 0x2d0 */
--	__u8  _pad8[48];				/* 0xcd0 */
-+	__u8  _pad8[40];				/* 0xcd0 */
-+	__u64 possible_mem_addr;			/* 0xcf8 */
- 	struct edd_info eddbuf[EDDMAXNR];		/* 0xd00 */
- 	__u8  _pad9[276];				/* 0xeec */
- } __attribute__((packed));
-diff --git a/arch/x86/mm/kaslr.c b/arch/x86/mm/kaslr.c
-index 61db77b0eda9..8c5aca792b51 100644
---- a/arch/x86/mm/kaslr.c
-+++ b/arch/x86/mm/kaslr.c
-@@ -69,6 +69,35 @@ static inline bool kaslr_memory_enabled(void)
- 	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
- }
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+static unsigned int __init kaslr_padding(void)
-+{
-+	unsigned long long max_possible_phys, max_actual_phys, threshold;
-+	unsigned int rand_mem_physical_padding =
-+				CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+
-+	if (!boot_params.possible_mem_addr)
-+		goto out;
-+
-+	max_actual_phys = roundup(PFN_PHYS(max_pfn), 1ULL << TB_SHIFT);
-+	max_possible_phys = roundup(boot_params.possible_mem_addr,
-+					1ULL << TB_SHIFT);
-+	threshold = max_actual_phys +
-+		((unsigned long long)rand_mem_physical_padding << TB_SHIFT);
-+
-+	if (max_possible_phys > threshold)
-+		rand_mem_physical_padding =
-+			(max_possible_phys - max_actual_phys) >> TB_SHIFT;
-+out:
-+	return rand_mem_physical_padding;
-+}
-+#else
-+static unsigned int __init kaslr_padding(void)
-+{
-+	return CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+}
-+#endif
-+
- /* Initialize base and padding for each memory region randomized with KASLR */
- void __init kernel_randomize_memory(void)
- {
-@@ -102,7 +131,7 @@ void __init kernel_randomize_memory(void)
- 	 */
- 	BUG_ON(kaslr_regions[0].base != &page_offset_base);
- 	memory_tb = DIV_ROUND_UP(max_pfn << PAGE_SHIFT, 1UL << TB_SHIFT) +
--		CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+		kaslr_padding();
- 
- 	/* Adapt phyiscal memory region size based on available memory */
- 	if (memory_tb < kaslr_regions[0].size_tb)
+As I said, having and example of using this new code to achieve your
+goal with regard to USB connector would be awesome and clear a lot of my
+questions.
+
+Thanks!
+
 -- 
-2.18.0
-
-- Masa
+Dmitry
