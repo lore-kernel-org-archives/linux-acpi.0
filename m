@@ -1,138 +1,57 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: [PATCH v9 8/8] x86/boot/KASLR: Limit kaslr to choosing the immovable memory
-Date: Wed, 17 Oct 2018 18:20:12 +0800
-Message-ID: <20181017102012.872-9-fanc.fnst@cn.fujitsu.com>
-References: <20181017102012.872-1-fanc.fnst@cn.fujitsu.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 1/3] x86: baytrail/cherrytrail: Rework and move P-Unit
+ PMIC bus semaphore code
+Date: Wed, 17 Oct 2018 12:34:31 +0200
+Message-ID: <20181017103430.GA1563@kunai>
+References: <20181011142911.13750-1-hdegoede@redhat.com>
+ <20181011142911.13750-2-hdegoede@redhat.com>
+ <20181014131724.GA863@kunai>
+ <f040787b-3f64-e338-7a9c-0d44f968f496@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="nFreZHaLTZJo0R7j"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181017102012.872-1-fanc.fnst@cn.fujitsu.com>
+Content-Disposition: inline
+In-Reply-To: <f040787b-3f64-e338-7a9c-0d44f968f496@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com
-Cc: indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com, fanc.fnst@cn.fujitsu.com
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H . Peter Anvin" <hpa@zytor.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-If CONFIG_MEMORY_HOTREMOVE enabled and the amount of immovable
-memory regions is not zero. Calculate the intersection between memory
-regions from e820/efi memory table and immovable memory regions.
 
-Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
----
- arch/x86/boot/compressed/kaslr.c | 72 +++++++++++++++++++++++++++-----
- 1 file changed, 61 insertions(+), 11 deletions(-)
+--nFreZHaLTZJo0R7j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-index 0c3567bc231c..3ebb150f61eb 100644
---- a/arch/x86/boot/compressed/kaslr.c
-+++ b/arch/x86/boot/compressed/kaslr.c
-@@ -101,6 +101,11 @@ static bool memmap_too_large;
- /* Store memory limit specified by "mem=nn[KMG]" or "memmap=nn[KMG]" */
- static unsigned long long mem_limit = ULLONG_MAX;
- 
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+/* Store the immovable memory regions */
-+extern struct mem_vector immovable_mem[MAX_NUMNODES*2];
-+#endif
-+
- 
- enum mem_avoid_index {
- 	MEM_AVOID_ZO_RANGE = 0,
-@@ -577,9 +582,9 @@ static unsigned long slots_fetch_random(void)
- 	return 0;
- }
- 
--static void process_mem_region(struct mem_vector *entry,
--			       unsigned long minimum,
--			       unsigned long image_size)
-+static void slots_count(struct mem_vector *entry,
-+			unsigned long minimum,
-+			unsigned long image_size)
- {
- 	struct mem_vector region, overlap;
- 	unsigned long start_orig, end;
-@@ -655,6 +660,57 @@ static void process_mem_region(struct mem_vector *entry,
- 	}
- }
- 
-+static bool process_mem_region(struct mem_vector *region,
-+			       unsigned long long minimum,
-+			       unsigned long long image_size)
-+{
-+	int i;
-+	/*
-+	 * If no immovable memory found, or MEMORY_HOTREMOVE disabled,
-+	 * walk all the regions, so use region directely.
-+	 */
-+	if (num_immovable_mem == 0) {
-+		slots_count(region, minimum, image_size);
-+
-+		if (slot_area_index == MAX_SLOT_AREA) {
-+			debug_putstr("Aborted e820/efi memmap scan (slot_areas full)!\n");
-+			return 1;
-+		}
-+		return 0;
-+	}
-+
-+#ifdef CONFIG_MEMORY_HOTREMOVE
-+	/*
-+	 * If immovable memory found, filter the intersection between
-+	 * immovable memory and region to slots_count.
-+	 * Otherwise, go on old code.
-+	 */
-+	for (i = 0; i < num_immovable_mem; i++) {
-+		struct mem_vector entry;
-+		unsigned long long start, end, entry_end, region_end;
-+
-+		if (!mem_overlaps(region, &immovable_mem[i]))
-+			continue;
-+
-+		start = immovable_mem[i].start;
-+		end = start + immovable_mem[i].size;
-+		region_end = region->start + region->size;
-+
-+		entry.start = clamp(region->start, start, end);
-+		entry_end = clamp(region_end, start, end);
-+		entry.size = entry_end - entry.start;
-+
-+		slots_count(&entry, minimum, image_size);
-+
-+		if (slot_area_index == MAX_SLOT_AREA) {
-+			debug_putstr("Aborted e820/efi memmap scan (slot_areas full)!\n");
-+			return 1;
-+		}
-+	}
-+	return 0;
-+#endif
-+}
-+
- #ifdef CONFIG_EFI
- /*
-  * Returns true if mirror region found (and must have been processed
-@@ -720,11 +776,8 @@ process_efi_entries(unsigned long minimum, unsigned long image_size)
- 
- 		region.start = md->phys_addr;
- 		region.size = md->num_pages << EFI_PAGE_SHIFT;
--		process_mem_region(&region, minimum, image_size);
--		if (slot_area_index == MAX_SLOT_AREA) {
--			debug_putstr("Aborted EFI scan (slot_areas full)!\n");
-+		if (process_mem_region(&region, minimum, image_size))
- 			break;
--		}
- 	}
- 	return true;
- }
-@@ -751,11 +804,8 @@ static void process_e820_entries(unsigned long minimum,
- 			continue;
- 		region.start = entry->addr;
- 		region.size = entry->size;
--		process_mem_region(&region, minimum, image_size);
--		if (slot_area_index == MAX_SLOT_AREA) {
--			debug_putstr("Aborted e820 scan (slot_areas full)!\n");
-+		if (process_mem_region(&region, minimum, image_size))
- 			break;
--		}
- 	}
- }
- 
--- 
-2.17.2
+
+> > For the record: once the designware maintainers are okay with this
+> > change, I am also okay with it going via the x86 platform tree.
+> >=20
+> Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Tested-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+
+Acked-by: Wolfram Sang <wsa@the-dreams.de>
+
+
+--nFreZHaLTZJo0R7j
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlvHEDMACgkQFA3kzBSg
+KbZ8fQ/9GPZzZB/WIcMzmSZHbX0okCplGqCv2Ad1Xpm1dy0XuwTQJUSwAF+vN365
+rsP3Nr8wyYNLj6EYLS6+jJ0Rh5dGuG8mhgDjYMEny7UBr0pUhjzFOQXN9U0NeFYs
+YF1UyppAaX+uViiPz89bcDc5zj3heoFjjGP2r+0vJUw5uscXEQr+hEA6jw2fAL0n
+RgMuB0audo3sj87pyZd8Aur1/gQEfQ4UBW6Z09BYltvGhwsy6SMA/GtbX2lC7+iJ
+d0G2/TeuzpHDXsc4Bot3kbb69hx3CYnyAirFlC/tnNklZqaykC8qTEpXAL3mcMbE
+B2f4uEq1d86pPqqOmNTkcBhFqTbT+HFLqqdOjCdWrR8vW/qAqts/2RzZhr0c2OUh
+0IN7EJcaNbX2oDuuIN1SYAVll84+SCXQ+PesX8vsxPF6/r0DlMXxFrcuqz1L9n0v
+FnyXMGfnqPmIFIiBSkD17k6nRShZm9U0ZDtJThdhWNt2ObnXe9bVlGBg6+3YVLeZ
+U+2TCcoajrZXLVct8XuBj4LwVsg5r9bSjXE6N+w1prgvUkpw4vLkymCEO9Ki6BqP
+ZtlzXwQCmLd3sKZz+UcqrXm0qeXgbCsmQajHyAYHLevMvKKQma5Wn2iWHSOmefnN
+JQcRhwy/pwZFCcH/I5LIcAVZHJEDYH5RP45rmK44/KanQ9QDcCc=
+=U+Xp
+-----END PGP SIGNATURE-----
+
+--nFreZHaLTZJo0R7j--
