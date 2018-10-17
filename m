@@ -1,46 +1,58 @@
 From: Erik Schmauss <erik.schmauss@intel.com>
-Subject: [PATCH] ACPICA: AML interpreter: add region addresses in global list during initialization
-Date: Wed, 17 Oct 2018 14:09:35 -0700
-Message-ID: <20181017210935.3754-1-erik.schmauss@intel.com>
+Subject: [PATCH] ACPICA: AML Parser: fix parse loop to correctly skip erroneous extended opcodes
+Date: Wed, 17 Oct 2018 14:20:51 -0700
+Message-ID: <20181017212051.11171-1-erik.schmauss@intel.com>
 Return-path: <stable-owner@vger.kernel.org>
 Sender: stable-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, rjw@rjwysocki.net
 Cc: stable@vger.kernel.org, Erik Schmauss <erik.schmauss@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The table load process omitted adding the operation region address
-range to the global list. This omission is problematic because the OS
-queries the global list to check for address range conflicts before
-deciding which drivers to load. This commit may result in warning
-messages that look like the following:
+AML opcodes come in two lengths: 1-byte opcodes and 2-byte, extended opcodes.
+If an error occurs due to illegal opcodes during table load, the AML parser
+needs to continue loading the table. In order to do this, it needs to skip
+parsing of the offending opcode and operands associated with that opcode.
 
-[    7.871761] ACPI Warning: system_IO range 0x00000428-0x0000042F conflicts with op_region 0x00000400-0x0000047F (\PMIO) (20180531/utaddress-213)
-[    7.871769] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
+This change fixes the AML parse loop to correctly skip parsing of incorrect
+extended opcodes. Previously, only the short opcodes were skipped correctly.
 
-However, these messages do not signify regressions. It is a result of
-properly adding address ranges within the global address list.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=200011
-Tested-by: Jean-Marc Lenoir <archlinux@jihemel.com>
 Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
 ---
- drivers/acpi/acpica/dsopcode.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpica/psloop.c | 14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index e9fb0bf3c8d2..78f9de260d5f 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -417,6 +417,10 @@ acpi_ds_eval_region_operands(struct acpi_walk_state *walk_state,
- 			  ACPI_FORMAT_UINT64(obj_desc->region.address),
- 			  obj_desc->region.length));
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 34fc2f7476ed..b0789c483b0f 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -417,6 +417,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 	union acpi_parse_object *op = NULL;	/* current op */
+ 	struct acpi_parse_state *parser_state;
+ 	u8 *aml_op_start = NULL;
++	u8 opcode_length;
  
-+	status = acpi_ut_add_address_range(obj_desc->region.space_id,
-+					   obj_desc->region.address,
-+					   obj_desc->region.length, node);
+ 	ACPI_FUNCTION_TRACE_PTR(ps_parse_loop, walk_state);
+ 
+@@ -540,8 +541,19 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 						    "Skip parsing opcode %s",
+ 						    acpi_ps_get_opcode_name
+ 						    (walk_state->opcode)));
 +
- 	/* Now the address and length are valid for this opregion */
- 
- 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
++					/*
++					 * Determine the opcode length before skipping the opcode.
++					 * An opcode can be 1 byte or 2 bytes in length.
++					 */
++					opcode_length = 1;
++					if ((walk_state->opcode & 0xFF00) ==
++					    AML_EXTENDED_OPCODE) {
++						opcode_length = 2;
++					}
+ 					walk_state->parser_state.aml =
+-					    walk_state->aml + 1;
++					    walk_state->aml + opcode_length;
++
+ 					walk_state->parser_state.aml =
+ 					    acpi_ps_get_next_package_end
+ 					    (&walk_state->parser_state);
 -- 
 2.17.1
