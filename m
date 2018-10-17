@@ -1,150 +1,277 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] ACPI / scan: Create platform device for INT33FE ACPI nodes
-Date: Wed, 17 Oct 2018 10:59:28 +0200
-Message-ID: <20181017085928.13406-2-hdegoede@redhat.com>
-References: <20181017085928.13406-1-hdegoede@redhat.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v4 3/4] perf/smmuv3: Add MSI irq support
+Date: Wed, 17 Oct 2018 09:48:53 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83879F3FB@FRAEML521-MBX.china.huawei.com>
+References: <20181016124920.24708-4-shameerali.kolothum.thodi@huawei.com>
+ <201810171145.mGVw4SgU%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181017085928.13406-1-hdegoede@redhat.com>
+In-Reply-To: <201810171145.mGVw4SgU%fengguang.wu@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
+To: kbuild test robot <lkp@intel.com>
+Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Bay and Cherry Trail devices with a Dollar Cove or Whiskey Cove PMIC
-have an ACPI node with a HID of INT33FE which is a "virtual" battery
-device implementing a standard ACPI battery interface which depends upon
-a proprietary, undocument OpRegion called BMOP. Since we do have docs
-for the actual fuel-gauges used on these boards we instead use native
-fuel-gauge drivers talking directly to the fuel-gauge ICs on boards which
-rely on this INT33FE device for their battery monitoring.
 
-On boards with a Dollar Cove PMIC the INT33FE device's resources (_CRS)
-describe a non-existing I2C client at address 0x6b with a bus-speed of
-100KHz. This is a problem on some boards since there are actual devices
-on that same bus which need a speed of 400KHz to function properly.
 
-This commit adds the INT33FE HID to the list of devices with I2C resources
-which should be enumerated as a platform-device rather then letting the
-i2c-core instantiate an i2c-client matching the first I2C resource,
-so that its bus-speed will not influence the max speed of the I2C bus.
-This fixes e.g. the touchscreen not working on the Teclast X98 II Plus.
+> -----Original Message-----
+> From: kbuild test robot [mailto:lkp@intel.com]
+> Sent: 17 October 2018 04:36
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> Cc: kbuild-all@01.org; lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
+> jean-philippe.brucker@arm.com; will.deacon@arm.com;
+> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
+> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
+> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Linuxarm <linuxarm@huawei.com>;
+> neil.m.leeder@gmail.com
+> Subject: Re: [PATCH v4 3/4] perf/smmuv3: Add MSI irq support
+> 
+> Hi Shameer,
+> 
+> Thank you for the patch! Yet something to improve:
+> 
+> [auto build test ERROR on linux-sof-driver/master]
+> [also build test ERROR on v4.19-rc8 next-20181016]
+> [if your patch is applied to the wrong git tree, please drop us a note to help
+> improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Shameer-Kolothum/arm64-
+> SMMUv3-PMU-driver-with-IORT-support/20181017-063949
+> base:   https://github.com/thesofproject/linux master
+> config: sh-allmodconfig (attached as .config)
+> compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
+> reproduce:
+>         wget https://raw.githubusercontent.com/intel/lkp-
+> tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         GCC_VERSION=7.2.0 make.cross ARCH=sh
+> 
+> All error/warnings (new ones prefixed by >>):
+> 
+>    In file included from include/linux/kernel.h:11:0,
+>                     from include/linux/list.h:9,
+>                     from include/linux/resource_ext.h:17,
+>                     from include/linux/acpi.h:26,
+>                     from drivers//perf/arm_smmuv3_pmu.c:37:
+>    drivers//perf/arm_smmuv3_pmu.c: In function
+> 'smmu_pmu_counter_set_value':
+>    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
+> count-overflow]
+>     #define BIT(nr)   (1UL << (nr))
+>                            ^
+>    drivers//perf/arm_smmuv3_pmu.c:152:31: note: in expansion of macro 'BIT'
+>      if (smmu_pmu->counter_mask & BIT(32))
+>                                   ^~~
+>    drivers//perf/arm_smmuv3_pmu.c: In function
+> 'smmu_pmu_counter_get_value':
+>    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
+> count-overflow]
+>     #define BIT(nr)   (1UL << (nr))
+>                            ^
+>    drivers//perf/arm_smmuv3_pmu.c:162:31: note: in expansion of macro 'BIT'
+>      if (smmu_pmu->counter_mask & BIT(32))
+>                                   ^~~
+>    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_free_msis':
+> >> drivers//perf/arm_smmuv3_pmu.c:601:2: error: implicit declaration of
+> function 'platform_msi_domain_free_irqs'; did you mean
+> 'platform_get_device_id'? [-Werror=implicit-function-declaration]
+>      platform_msi_domain_free_irqs(dev);
+>      ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The INT33FE device on boards with a Whiskey Cove PMIC is somewhat special.
-Its first I2C resource is for a secondary I2C address of the PMIC itself,
-which is already described in an ACPI device with an INT34D3 HID.
+Ok. This is probably because of the COMPILE_TEST added to patch #2 and
+this one will have dependency on PCI/PCI_MSI. I will remove that in next
+revision.
 
-But it has 3 more I2C resources describing 3 other chips for which we do
-need to instantiate I2C clients and which need device-connections added
-between them for things to work properly. This special case is handled by
-the drivers/platform/x86/intel_cht_int33fe.c code.
+Thanks,
+Shameer
 
-Before this commit that code was binding to the i2c-client instantiated
-for the secondary I2C address of the PMIC, since we now instantiate a
-platform device for the INT33FE device instead, this commit also changes
-the intel_cht_int33fe driver from an i2c driver to a platform driver.
-
-This also brings the intel_cht_int33fe drv inline with how we instantiate
-multiple i2c clients from a single ACPI device in other cases, as done
-by the drivers/platform/x86/i2c-multi-instantiate.c code.
-
-Reported-and-tested-by: Alexander Meiler <alex.meiler@protonmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/scan.c                      |  1 +
- drivers/platform/x86/intel_cht_int33fe.c | 24 +++++++++---------------
- 2 files changed, 10 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index e1b6231cfa1c..1dcc48b9d33c 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1550,6 +1550,7 @@ static bool acpi_device_enumeration_by_parent(struct acpi_device *device)
- 	 */
- 	static const struct acpi_device_id i2c_multi_instantiate_ids[] = {
- 		{"BSG1160", },
-+		{"INT33FE", },
- 		{}
- 	};
- 
-diff --git a/drivers/platform/x86/intel_cht_int33fe.c b/drivers/platform/x86/intel_cht_int33fe.c
-index a26f410800c2..f40b1c192106 100644
---- a/drivers/platform/x86/intel_cht_int33fe.c
-+++ b/drivers/platform/x86/intel_cht_int33fe.c
-@@ -24,6 +24,7 @@
- #include <linux/i2c.h>
- #include <linux/interrupt.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- 
-@@ -88,9 +89,9 @@ static const struct property_entry fusb302_props[] = {
- 	{ }
- };
- 
--static int cht_int33fe_probe(struct i2c_client *client)
-+static int cht_int33fe_probe(struct platform_device *pdev)
- {
--	struct device *dev = &client->dev;
-+	struct device *dev = &pdev->dev;
- 	struct i2c_board_info board_info;
- 	struct cht_int33fe_data *data;
- 	struct i2c_client *max17047;
-@@ -207,7 +208,7 @@ static int cht_int33fe_probe(struct i2c_client *client)
- 	if (!data->pi3usb30532)
- 		goto out_unregister_fusb302;
- 
--	i2c_set_clientdata(client, data);
-+	platform_set_drvdata(pdev, data);
- 
- 	return 0;
- 
-@@ -223,9 +224,9 @@ static int cht_int33fe_probe(struct i2c_client *client)
- 	return -EPROBE_DEFER; /* Wait for the i2c-adapter to load */
- }
- 
--static int cht_int33fe_remove(struct i2c_client *i2c)
-+static int cht_int33fe_remove(struct platform_device *pdev)
- {
--	struct cht_int33fe_data *data = i2c_get_clientdata(i2c);
-+	struct cht_int33fe_data *data = platform_get_drvdata(pdev);
- 
- 	i2c_unregister_device(data->pi3usb30532);
- 	i2c_unregister_device(data->fusb302);
-@@ -237,29 +238,22 @@ static int cht_int33fe_remove(struct i2c_client *i2c)
- 	return 0;
- }
- 
--static const struct i2c_device_id cht_int33fe_i2c_id[] = {
--	{ }
--};
--MODULE_DEVICE_TABLE(i2c, cht_int33fe_i2c_id);
--
- static const struct acpi_device_id cht_int33fe_acpi_ids[] = {
- 	{ "INT33FE", },
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, cht_int33fe_acpi_ids);
- 
--static struct i2c_driver cht_int33fe_driver = {
-+static struct platform_driver cht_int33fe_driver = {
- 	.driver	= {
- 		.name = "Intel Cherry Trail ACPI INT33FE driver",
- 		.acpi_match_table = ACPI_PTR(cht_int33fe_acpi_ids),
- 	},
--	.probe_new = cht_int33fe_probe,
-+	.probe = cht_int33fe_probe,
- 	.remove = cht_int33fe_remove,
--	.id_table = cht_int33fe_i2c_id,
--	.disable_i2c_core_irq_mapping = true,
- };
- 
--module_i2c_driver(cht_int33fe_driver);
-+module_platform_driver(cht_int33fe_driver);
- 
- MODULE_DESCRIPTION("Intel Cherry Trail ACPI INT33FE pseudo device driver");
- MODULE_AUTHOR("Hans de Goede <hdegoede@redhat.com>");
--- 
-2.19.0
+>      platform_get_device_id
+>    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_setup_msi':
+> >> drivers//perf/arm_smmuv3_pmu.c:632:8: error: implicit declaration of
+> function 'platform_msi_domain_alloc_irqs'; did you mean
+> 'platform_device_alloc'? [-Werror=implicit-function-declaration]
+>      ret = platform_msi_domain_alloc_irqs(dev, 1, smmu_pmu_write_msi_msg);
+>            ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>            platform_device_alloc
+>    In file included from include/linux/list.h:9:0,
+>                     from include/linux/resource_ext.h:17,
+>                     from include/linux/acpi.h:26,
+>                     from drivers//perf/arm_smmuv3_pmu.c:37:
+>    include/linux/msi.h:114:38: error: 'struct device' has no member named
+> 'msi_list'
+>     #define dev_to_msi_list(dev)  (&(dev)->msi_list)
+>                                          ^
+>    include/linux/kernel.h:961:26: note: in definition of macro 'container_of'
+>      void *__mptr = (void *)(ptr);     \
+>                              ^~~
+>    include/linux/list.h:377:2: note: in expansion of macro 'list_entry'
+>      list_entry((ptr)->next, type, member)
+>      ^~~~~~~~~~
+>    include/linux/msi.h:116:2: note: in expansion of macro 'list_first_entry'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>      ^~~~~~~~~~~~~~~~
+>    include/linux/msi.h:116:19: note: in expansion of macro 'dev_to_msi_list'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>                       ^~~~~~~~~~~~~~~
+> >> drivers//perf/arm_smmuv3_pmu.c:638:9: note: in expansion of macro
+> 'first_msi_entry'
+>      desc = first_msi_entry(dev);
+>             ^~~~~~~~~~~~~~~
+>    In file included from include/linux/ioport.h:13:0,
+>                     from include/linux/acpi.h:25,
+>                     from drivers//perf/arm_smmuv3_pmu.c:37:
+>    include/linux/msi.h:114:38: error: 'struct device' has no member named
+> 'msi_list'
+>     #define dev_to_msi_list(dev)  (&(dev)->msi_list)
+>                                          ^
+>    include/linux/compiler.h:316:19: note: in definition of macro
+> '__compiletime_assert'
+>       bool __cond = !(condition);    \
+>                       ^~~~~~~~~
+>    include/linux/compiler.h:339:2: note: in expansion of macro
+> '_compiletime_assert'
+>      _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+>      ^~~~~~~~~~~~~~~~~~~
+>    include/linux/build_bug.h:45:37: note: in expansion of macro
+> 'compiletime_assert'
+>     #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+>                                         ^~~~~~~~~~~~~~~~~~
+>    include/linux/kernel.h:962:2: note: in expansion of macro
+> 'BUILD_BUG_ON_MSG'
+>      BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
+>      ^~~~~~~~~~~~~~~~
+>    include/linux/kernel.h:962:20: note: in expansion of macro '__same_type'
+>      BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
+>                        ^~~~~~~~~~~
+>    include/linux/list.h:366:2: note: in expansion of macro 'container_of'
+>      container_of(ptr, type, member)
+>      ^~~~~~~~~~~~
+>    include/linux/list.h:377:2: note: in expansion of macro 'list_entry'
+>      list_entry((ptr)->next, type, member)
+>      ^~~~~~~~~~
+>    include/linux/msi.h:116:2: note: in expansion of macro 'list_first_entry'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>      ^~~~~~~~~~~~~~~~
+>    include/linux/msi.h:116:19: note: in expansion of macro 'dev_to_msi_list'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>                       ^~~~~~~~~~~~~~~
+> >> drivers//perf/arm_smmuv3_pmu.c:638:9: note: in expansion of macro
+> 'first_msi_entry'
+>      desc = first_msi_entry(dev);
+>             ^~~~~~~~~~~~~~~
+>    include/linux/msi.h:114:38: error: 'struct device' has no member named
+> 'msi_list'
+>     #define dev_to_msi_list(dev)  (&(dev)->msi_list)
+>                                          ^
+>    include/linux/compiler.h:316:19: note: in definition of macro
+> '__compiletime_assert'
+>       bool __cond = !(condition);    \
+>                       ^~~~~~~~~
+>    include/linux/compiler.h:339:2: note: in expansion of macro
+> '_compiletime_assert'
+>      _compiletime_assert(condition, msg, __compiletime_assert_, __LINE__)
+>      ^~~~~~~~~~~~~~~~~~~
+>    include/linux/build_bug.h:45:37: note: in expansion of macro
+> 'compiletime_assert'
+>     #define BUILD_BUG_ON_MSG(cond, msg) compiletime_assert(!(cond), msg)
+>                                         ^~~~~~~~~~~~~~~~~~
+>    include/linux/kernel.h:962:2: note: in expansion of macro
+> 'BUILD_BUG_ON_MSG'
+>      BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) && \
+>      ^~~~~~~~~~~~~~~~
+>    include/linux/kernel.h:963:6: note: in expansion of macro '__same_type'
+>         !__same_type(*(ptr), void),   \
+>          ^~~~~~~~~~~
+>    include/linux/list.h:366:2: note: in expansion of macro 'container_of'
+>      container_of(ptr, type, member)
+>      ^~~~~~~~~~~~
+>    include/linux/list.h:377:2: note: in expansion of macro 'list_entry'
+>      list_entry((ptr)->next, type, member)
+>      ^~~~~~~~~~
+>    include/linux/msi.h:116:2: note: in expansion of macro 'list_first_entry'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>      ^~~~~~~~~~~~~~~~
+>    include/linux/msi.h:116:19: note: in expansion of macro 'dev_to_msi_list'
+>      list_first_entry(dev_to_msi_list((dev)), struct msi_desc, list)
+>                       ^~~~~~~~~~~~~~~
+> >> drivers//perf/arm_smmuv3_pmu.c:638:9: note: in expansion of macro
+> 'first_msi_entry'
+>      desc = first_msi_entry(dev);
+>             ^~~~~~~~~~~~~~~
+>    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_probe':
+>    drivers//perf/arm_smmuv3_pmu.c:745:64: warning: format '%llx' expects
+> argument of type 'long long unsigned int', but argument 4 has type
+> 'resource_size_t {aka unsigned int}' [-Wformat=]
+>      name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "smmuv3_pmcg_%llx",
+>                                                                 ~~~^
+>                                                                 %x
+>    cc1: some warnings being treated as errors
+> 
+> vim +601 drivers//perf/arm_smmuv3_pmu.c
+> 
+>    596
+>    597	static void smmu_pmu_free_msis(void *data)
+>    598	{
+>    599		struct device *dev = data;
+>    600
+>  > 601		platform_msi_domain_free_irqs(dev);
+>    602	}
+>    603
+>    604	static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct
+> msi_msg *msg)
+>    605	{
+>    606		phys_addr_t doorbell;
+>    607		struct device *dev = msi_desc_to_dev(desc);
+>    608		struct smmu_pmu *pmu = dev_get_drvdata(dev);
+>    609
+>    610		doorbell = (((u64)msg->address_hi) << 32) | msg->address_lo;
+>    611		doorbell &= MSI_CFG0_ADDR_MASK;
+>    612
+>    613		writeq_relaxed(doorbell, pmu->reg_base +
+> SMMU_PMCG_IRQ_CFG0);
+>    614		writel_relaxed(msg->data, pmu->reg_base +
+> SMMU_PMCG_IRQ_CFG1);
+>    615		writel_relaxed(MSI_CFG2_MEMATTR_DEVICE_nGnRE,
+>    616			       pmu->reg_base + SMMU_PMCG_IRQ_CFG2);
+>    617	}
+>    618
+>    619	static void smmu_pmu_setup_msi(struct smmu_pmu *pmu)
+>    620	{
+>    621		struct msi_desc *desc;
+>    622		struct device *dev = pmu->dev;
+>    623		int ret;
+>    624
+>    625		/* Clear MSI address reg */
+>    626		writeq_relaxed(0, pmu->reg_base +
+> SMMU_PMCG_IRQ_CFG0);
+>    627
+>    628		/* MSI supported or not */
+>    629		if (!(readl(pmu->reg_base + SMMU_PMCG_CFGR) &
+> SMMU_PMCG_CFGR_MSI))
+>    630			return;
+>    631
+>  > 632		ret = platform_msi_domain_alloc_irqs(dev, 1,
+> smmu_pmu_write_msi_msg);
+>    633		if (ret) {
+>    634			dev_warn(dev, "failed to allocate MSIs\n");
+>    635			return;
+>    636		}
+>    637
+>  > 638		desc = first_msi_entry(dev);
+>    639		if (desc)
+>    640			pmu->irq = desc->irq;
+>    641
+>    642		/* Add callback to free MSIs on teardown */
+>    643		devm_add_action(dev, smmu_pmu_free_msis, dev);
+>    644	}
+>    645
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
