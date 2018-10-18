@@ -1,257 +1,195 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
  162001800 quirk
-Date: Thu, 18 Oct 2018 12:43:59 +0100
-Message-ID: <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
+Date: Thu, 18 Oct 2018 13:34:11 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8387A0342@FRAEML521-MBX.china.huawei.com>
 References: <20181016124920.24708-1-shameerali.kolothum.thodi@huawei.com>
  <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
+ <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
-Content-Language: en-GB
+In-Reply-To: <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, jean-philippe.brucker@arm.com
-Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
+To: Robin Murphy <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>
+Cc: "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 16/10/18 13:49, Shameer Kolothum wrote:
-> HiSilicon erratum 162001800 describes the limitation of
-> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
-> 
-> On these platforms, the PMCG event counter registers
-> (SMMU_PMCG_EVCNTRn) are read only and as a result it is
-> not possible to set the initial counter period value on
-> event monitor start.
-
-How the... oh well, never mind :(
-
-> To work around this, the current value of the counter is
-> read and is used for delta calculations. This increases
-> the possibility of reporting incorrect values if counter
-> overflow happens and counter passes the initial value.
-> 
-> OEM information from ACPI header is used to identify the
-> affected hardware platform.
-
-I'm guessing they don't implement anything useful for SMMU_PMCG_ID_REGS? 
-(notwithstanding the known chicken-and-egg problem with how to interpret 
-those)
-
-> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
-> ---
->   drivers/perf/arm_smmuv3_pmu.c | 137 +++++++++++++++++++++++++++++++++++++++---
->   1 file changed, 130 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
-> index d927ef8..519545e 100644
-> --- a/drivers/perf/arm_smmuv3_pmu.c
-> +++ b/drivers/perf/arm_smmuv3_pmu.c
-> @@ -96,6 +96,8 @@
->   
->   #define SMMU_PA_SHIFT                   12
->   
-> +#define SMMU_PMU_OPT_EVCNTR_RDONLY	(1 << 0)
-> +
->   static int cpuhp_state_num;
->   
->   struct smmu_pmu {
-> @@ -111,10 +113,55 @@ struct smmu_pmu {
->   	struct device *dev;
->   	void __iomem *reg_base;
->   	void __iomem *reloc_base;
-> +	u32 options;
->   	u64 counter_present_mask;
->   	u64 counter_mask;
->   };
->   
-> +struct erratum_acpi_oem_info {
-> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
-> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> +	u32 oem_revision;
-> +};
-> +
-> +static struct erratum_acpi_oem_info hisi_162001800_oem_info[] = {
-> +	/*
-> +	 * Note that trailing spaces are required to properly match
-> +	 * the OEM table information.
-> +	 */
-> +	{
-> +		.oem_id         = "HISI  ",
-> +		.oem_table_id   = "HIP08   ",
-> +		.oem_revision   = 0,
-> +	},
-> +	{ /* Sentinel indicating the end of the OEM array */ },
-> +};
-> +
-> +enum smmu_pmu_erratum_match_type {
-> +	se_match_acpi_oem,
-> +};
-> +
-> +void hisi_erratum_evcntr_rdonly(struct smmu_pmu *smmu_pmu)
-> +{
-> +	smmu_pmu->options |= SMMU_PMU_OPT_EVCNTR_RDONLY;
-> +}
-> +
-> +struct smmu_pmu_erratum_wa {
-> +	enum smmu_pmu_erratum_match_type match_type;
-> +	const void *id;	/* Indicate the Erratum ID */
-> +	const char *desc_str;
-> +	void (*enable)(struct smmu_pmu *smmu_pmu);
-> +};
-> +
-> +static const struct smmu_pmu_erratum_wa smmu_pmu_wa[] = {
-> +	{
-> +		.match_type = se_match_acpi_oem,
-> +		.id = hisi_162001800_oem_info,
-> +		.desc_str = "HiSilicon erratum 162001800",
-> +		.enable = hisi_erratum_evcntr_rdonly,
-> +	},
-> +};
-> +
-
-There's an awful lot of raw ACPI internals splashed about here - 
-couldn't at least some of it be abstracted behind the IORT code? In 
-fact, can't IORT just set all this stuff up in advance like it does for 
-SMMUs?
-
->   #define to_smmu_pmu(p) (container_of(p, struct smmu_pmu, pmu))
->   
->   #define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start, _end)        \
-> @@ -224,15 +271,20 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
->   	u32 idx = hwc->idx;
->   	u64 new;
->   
-> -	/*
-> -	 * We limit the max period to half the max counter value of the counter
-> -	 * size, so that even in the case of extreme interrupt latency the
-> -	 * counter will (hopefully) not wrap past its initial value.
-> -	 */
-> -	new = smmu_pmu->counter_mask >> 1;
-> +	if (smmu_pmu->options & SMMU_PMU_OPT_EVCNTR_RDONLY) {
-> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
-
-Something's clearly missing, because if this happens to start at 0, the 
-current overflow handling code cannot possibly give the correct count. 
-Much as I hate the reset-to-half-period idiom for being impossible to 
-make sense of, it does make various aspects appear a lot simpler than 
-they really are. Wait, maybe that's yet another reason to hate it...
-
-> +	} else {
-> +		/*
-> +		 * We limit the max period to half the max counter value
-> +		 * of the counter size, so that even in the case of extreme
-> +		 * interrupt latency the counter will (hopefully) not wrap
-> +		 * past its initial value.
-> +		 */
-> +		new = smmu_pmu->counter_mask >> 1;
-> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-> +	}
->   
->   	local64_set(&hwc->prev_count, new);
-> -	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
->   }
->   
->   static void smmu_pmu_get_event_filter(struct perf_event *event, u32 *span,
-> @@ -670,6 +722,69 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
->   		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
->   }
->   
-> +typedef bool (*se_match_fn_t)(const struct smmu_pmu_erratum_wa *,
-> +			      const void *);
-> +
-> +bool smmu_pmu_check_acpi_erratum(const struct smmu_pmu_erratum_wa *wa,
-> +				const void *arg)
-> +{
-> +	static const struct erratum_acpi_oem_info empty_oem_info = {};
-> +	const struct erratum_acpi_oem_info *info = wa->id;
-> +	const struct acpi_table_header *hdr = arg;
-> +
-> +	/* Iterate over the ACPI OEM info array, looking for a match */
-> +	while (memcmp(info, &empty_oem_info, sizeof(*info))) {
-> +		if (!memcmp(info->oem_id, hdr->oem_id, ACPI_OEM_ID_SIZE) &&
-> +		    !memcmp(info->oem_table_id, hdr->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
-> +		    info->oem_revision == hdr->oem_revision)
-> +			return true;
-> +
-> +		info++;
-> +	}
-> +
-> +	return false;
-> +
-> +}
-> +
-> +static void smmu_pmu_enable_errata(struct smmu_pmu *smmu_pmu,
-> +				enum smmu_pmu_erratum_match_type type,
-> +				se_match_fn_t match_fn,
-> +				void *arg)
-> +{
-> +	const struct smmu_pmu_erratum_wa *wa = smmu_pmu_wa;
-> +
-> +	for (; wa->desc_str; wa++) {
-> +		if (wa->match_type != type)
-> +			continue;
-> +
-> +		if (match_fn(wa, arg)) {
-> +			if (wa->enable) {
-> +				wa->enable(smmu_pmu);
-> +				dev_info(smmu_pmu->dev,
-> +					"Enabling workaround for %s\n",
-> +					 wa->desc_str);
-> +			}
-
-Just how many kinds of broken are we expecting here? Is this lifted from 
-the arm64 cpufeature framework, because it seems like absolute overkill 
-for a simple PMU driver which in all reality is only ever going to 
-wiggle a few flags in some data structure.
-
-Robin.
-
-> +		}
-> +	}
-> +}
-> +
-> +static void smmu_pmu_check_workarounds(struct smmu_pmu *smmu_pmu,
-> +				  enum smmu_pmu_erratum_match_type type,
-> +				  void *arg)
-> +{
-> +	se_match_fn_t match_fn = NULL;
-> +
-> +	switch (type) {
-> +	case se_match_acpi_oem:
-> +		match_fn = smmu_pmu_check_acpi_erratum;
-> +		break;
-> +	default:
-> +		return;
-> +	}
-> +
-> +	smmu_pmu_enable_errata(smmu_pmu, type, match_fn, arg);
-> +}
-> +
->   static int smmu_pmu_probe(struct platform_device *pdev)
->   {
->   	struct smmu_pmu *smmu_pmu;
-> @@ -678,6 +793,7 @@ static int smmu_pmu_probe(struct platform_device *pdev)
->   	u64 ceid_64[2];
->   	int irq, err;
->   	char *name;
-> +	struct acpi_table_header *table;
->   	struct device *dev = &pdev->dev;
->   
->   	smmu_pmu = devm_kzalloc(dev, sizeof(*smmu_pmu), GFP_KERNEL);
-> @@ -749,6 +865,13 @@ static int smmu_pmu_probe(struct platform_device *pdev)
->   		return -EINVAL;
->   	}
->   
-> +	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_IORT, 0, &table))) {
-> +		dev_err(dev, "IORT get failed, PMU @%pa\n", &res_0->start);
-> +		return -EINVAL;
-> +	}
-> +
-> +	smmu_pmu_check_workarounds(smmu_pmu, se_match_acpi_oem, table);
-> +
->   	/* Pick one CPU to be the preferred one to use */
->   	smmu_pmu->on_cpu = get_cpu();
->   	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
-> 
+SGkgUm9iaW4sDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogUm9iaW4g
+TXVycGh5IFttYWlsdG86cm9iaW4ubXVycGh5QGFybS5jb21dDQo+IFNlbnQ6IDE4IE9jdG9iZXIg
+MjAxOCAxMjo0NA0KPiBUbzogU2hhbWVlcmFsaSBLb2xvdGh1bSBUaG9kaSA8c2hhbWVlcmFsaS5r
+b2xvdGh1bS50aG9kaUBodWF3ZWkuY29tPjsNCj4gbG9yZW56by5waWVyYWxpc2lAYXJtLmNvbTsg
+amVhbi1waGlsaXBwZS5icnVja2VyQGFybS5jb20NCj4gQ2M6IHdpbGwuZGVhY29uQGFybS5jb207
+IG1hcmsucnV0bGFuZEBhcm0uY29tOyBHdW9oYW5qdW4gKEhhbmp1biBHdW8pDQo+IDxndW9oYW5q
+dW5AaHVhd2VpLmNvbT47IEpvaG4gR2FycnkgPGpvaG4uZ2FycnlAaHVhd2VpLmNvbT47DQo+IHBh
+YmJhQGNvZGVhdXJvcmEub3JnOyB2a2lsYXJpQGNvZGVhdXJvcmEub3JnOyBycnVpZ3Jva0Bjb2Rl
+YXVyb3JhLm9yZzsNCj4gbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWtlcm5lbEB2
+Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS0NCj4ga2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmc7
+IExpbnV4YXJtIDxsaW51eGFybUBodWF3ZWkuY29tPjsNCj4gbmVpbC5tLmxlZWRlckBnbWFpbC5j
+b20NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2NCA0LzRdIHBlcmYvc21tdXYzX3BtdTogRW5hYmxl
+IEhpU2lsaWNvbiBFcnJhdHVtDQo+IDE2MjAwMTgwMCBxdWlyaw0KPiANCj4gT24gMTYvMTAvMTgg
+MTM6NDksIFNoYW1lZXIgS29sb3RodW0gd3JvdGU6DQo+ID4gSGlTaWxpY29uIGVycmF0dW0gMTYy
+MDAxODAwIGRlc2NyaWJlcyB0aGUgbGltaXRhdGlvbiBvZg0KPiA+IFNNTVV2MyBQTUNHIGltcGxl
+bWVudGF0aW9uIG9uIEhpU2lsaWNvbiBIaXAwOCBwbGF0Zm9ybXMuDQo+ID4NCj4gPiBPbiB0aGVz
+ZSBwbGF0Zm9ybXMsIHRoZSBQTUNHIGV2ZW50IGNvdW50ZXIgcmVnaXN0ZXJzDQo+ID4gKFNNTVVf
+UE1DR19FVkNOVFJuKSBhcmUgcmVhZCBvbmx5IGFuZCBhcyBhIHJlc3VsdCBpdCBpcw0KPiA+IG5v
+dCBwb3NzaWJsZSB0byBzZXQgdGhlIGluaXRpYWwgY291bnRlciBwZXJpb2QgdmFsdWUgb24NCj4g
+PiBldmVudCBtb25pdG9yIHN0YXJ0Lg0KPiANCj4gSG93IHRoZS4uLiBvaCB3ZWxsLCBuZXZlciBt
+aW5kIDooDQo+IA0KPiA+IFRvIHdvcmsgYXJvdW5kIHRoaXMsIHRoZSBjdXJyZW50IHZhbHVlIG9m
+IHRoZSBjb3VudGVyIGlzDQo+ID4gcmVhZCBhbmQgaXMgdXNlZCBmb3IgZGVsdGEgY2FsY3VsYXRp
+b25zLiBUaGlzIGluY3JlYXNlcw0KPiA+IHRoZSBwb3NzaWJpbGl0eSBvZiByZXBvcnRpbmcgaW5j
+b3JyZWN0IHZhbHVlcyBpZiBjb3VudGVyDQo+ID4gb3ZlcmZsb3cgaGFwcGVucyBhbmQgY291bnRl
+ciBwYXNzZXMgdGhlIGluaXRpYWwgdmFsdWUuDQo+ID4NCj4gPiBPRU0gaW5mb3JtYXRpb24gZnJv
+bSBBQ1BJIGhlYWRlciBpcyB1c2VkIHRvIGlkZW50aWZ5IHRoZQ0KPiA+IGFmZmVjdGVkIGhhcmR3
+YXJlIHBsYXRmb3JtLg0KPiANCj4gSSdtIGd1ZXNzaW5nIHRoZXkgZG9uJ3QgaW1wbGVtZW50IGFu
+eXRoaW5nIHVzZWZ1bCBmb3INCj4gU01NVV9QTUNHX0lEX1JFR1M/DQo+IChub3R3aXRoc3RhbmRp
+bmcgdGhlIGtub3duIGNoaWNrZW4tYW5kLWVnZyBwcm9ibGVtIHdpdGggaG93IHRvIGludGVycHJl
+dA0KPiB0aG9zZSkNCg0KWW91ciBndWVzcyBpcyByaWdodCA6KA0KIA0KPiA+IFNpZ25lZC1vZmYt
+Ynk6IFNoYW1lZXIgS29sb3RodW0gPHNoYW1lZXJhbGkua29sb3RodW0udGhvZGlAaHVhd2VpLmNv
+bT4NCj4gPiAtLS0NCj4gPiAgIGRyaXZlcnMvcGVyZi9hcm1fc21tdXYzX3BtdS5jIHwgMTM3DQo+
+ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLQ0KPiA+ICAgMSBmaWxl
+IGNoYW5nZWQsIDEzMCBpbnNlcnRpb25zKCspLCA3IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlm
+ZiAtLWdpdCBhL2RyaXZlcnMvcGVyZi9hcm1fc21tdXYzX3BtdS5jDQo+IGIvZHJpdmVycy9wZXJm
+L2FybV9zbW11djNfcG11LmMNCj4gPiBpbmRleCBkOTI3ZWY4Li41MTk1NDVlIDEwMDY0NA0KPiA+
+IC0tLSBhL2RyaXZlcnMvcGVyZi9hcm1fc21tdXYzX3BtdS5jDQo+ID4gKysrIGIvZHJpdmVycy9w
+ZXJmL2FybV9zbW11djNfcG11LmMNCj4gPiBAQCAtOTYsNiArOTYsOCBAQA0KPiA+DQo+ID4gICAj
+ZGVmaW5lIFNNTVVfUEFfU0hJRlQgICAgICAgICAgICAgICAgICAgMTINCj4gPg0KPiA+ICsjZGVm
+aW5lIFNNTVVfUE1VX09QVF9FVkNOVFJfUkRPTkxZCSgxIDw8IDApDQo+ID4gKw0KPiA+ICAgc3Rh
+dGljIGludCBjcHVocF9zdGF0ZV9udW07DQo+ID4NCj4gPiAgIHN0cnVjdCBzbW11X3BtdSB7DQo+
+ID4gQEAgLTExMSwxMCArMTEzLDU1IEBAIHN0cnVjdCBzbW11X3BtdSB7DQo+ID4gICAJc3RydWN0
+IGRldmljZSAqZGV2Ow0KPiA+ICAgCXZvaWQgX19pb21lbSAqcmVnX2Jhc2U7DQo+ID4gICAJdm9p
+ZCBfX2lvbWVtICpyZWxvY19iYXNlOw0KPiA+ICsJdTMyIG9wdGlvbnM7DQo+ID4gICAJdTY0IGNv
+dW50ZXJfcHJlc2VudF9tYXNrOw0KPiA+ICAgCXU2NCBjb3VudGVyX21hc2s7DQo+ID4gICB9Ow0K
+PiA+DQo+ID4gK3N0cnVjdCBlcnJhdHVtX2FjcGlfb2VtX2luZm8gew0KPiA+ICsJY2hhciBvZW1f
+aWRbQUNQSV9PRU1fSURfU0laRSArIDFdOw0KPiA+ICsJY2hhciBvZW1fdGFibGVfaWRbQUNQSV9P
+RU1fVEFCTEVfSURfU0laRSArIDFdOw0KPiA+ICsJdTMyIG9lbV9yZXZpc2lvbjsNCj4gPiArfTsN
+Cj4gPiArDQo+ID4gK3N0YXRpYyBzdHJ1Y3QgZXJyYXR1bV9hY3BpX29lbV9pbmZvIGhpc2lfMTYy
+MDAxODAwX29lbV9pbmZvW10gPSB7DQo+ID4gKwkvKg0KPiA+ICsJICogTm90ZSB0aGF0IHRyYWls
+aW5nIHNwYWNlcyBhcmUgcmVxdWlyZWQgdG8gcHJvcGVybHkgbWF0Y2gNCj4gPiArCSAqIHRoZSBP
+RU0gdGFibGUgaW5mb3JtYXRpb24uDQo+ID4gKwkgKi8NCj4gPiArCXsNCj4gPiArCQkub2VtX2lk
+ICAgICAgICAgPSAiSElTSSAgIiwNCj4gPiArCQkub2VtX3RhYmxlX2lkICAgPSAiSElQMDggICAi
+LA0KPiA+ICsJCS5vZW1fcmV2aXNpb24gICA9IDAsDQo+ID4gKwl9LA0KPiA+ICsJeyAvKiBTZW50
+aW5lbCBpbmRpY2F0aW5nIHRoZSBlbmQgb2YgdGhlIE9FTSBhcnJheSAqLyB9LA0KPiA+ICt9Ow0K
+PiA+ICsNCj4gPiArZW51bSBzbW11X3BtdV9lcnJhdHVtX21hdGNoX3R5cGUgew0KPiA+ICsJc2Vf
+bWF0Y2hfYWNwaV9vZW0sDQo+ID4gK307DQo+ID4gKw0KPiA+ICt2b2lkIGhpc2lfZXJyYXR1bV9l
+dmNudHJfcmRvbmx5KHN0cnVjdCBzbW11X3BtdSAqc21tdV9wbXUpDQo+ID4gK3sNCj4gPiArCXNt
+bXVfcG11LT5vcHRpb25zIHw9IFNNTVVfUE1VX09QVF9FVkNOVFJfUkRPTkxZOw0KPiA+ICt9DQo+
+ID4gKw0KPiA+ICtzdHJ1Y3Qgc21tdV9wbXVfZXJyYXR1bV93YSB7DQo+ID4gKwllbnVtIHNtbXVf
+cG11X2VycmF0dW1fbWF0Y2hfdHlwZSBtYXRjaF90eXBlOw0KPiA+ICsJY29uc3Qgdm9pZCAqaWQ7
+CS8qIEluZGljYXRlIHRoZSBFcnJhdHVtIElEICovDQo+ID4gKwljb25zdCBjaGFyICpkZXNjX3N0
+cjsNCj4gPiArCXZvaWQgKCplbmFibGUpKHN0cnVjdCBzbW11X3BtdSAqc21tdV9wbXUpOw0KPiA+
+ICt9Ow0KPiA+ICsNCj4gPiArc3RhdGljIGNvbnN0IHN0cnVjdCBzbW11X3BtdV9lcnJhdHVtX3dh
+IHNtbXVfcG11X3dhW10gPSB7DQo+ID4gKwl7DQo+ID4gKwkJLm1hdGNoX3R5cGUgPSBzZV9tYXRj
+aF9hY3BpX29lbSwNCj4gPiArCQkuaWQgPSBoaXNpXzE2MjAwMTgwMF9vZW1faW5mbywNCj4gPiAr
+CQkuZGVzY19zdHIgPSAiSGlTaWxpY29uIGVycmF0dW0gMTYyMDAxODAwIiwNCj4gPiArCQkuZW5h
+YmxlID0gaGlzaV9lcnJhdHVtX2V2Y250cl9yZG9ubHksDQo+ID4gKwl9LA0KPiA+ICt9Ow0KPiA+
+ICsNCj4gDQo+IFRoZXJlJ3MgYW4gYXdmdWwgbG90IG9mIHJhdyBBQ1BJIGludGVybmFscyBzcGxh
+c2hlZCBhYm91dCBoZXJlIC0NCj4gY291bGRuJ3QgYXQgbGVhc3Qgc29tZSBvZiBpdCBiZSBhYnN0
+cmFjdGVkIGJlaGluZCB0aGUgSU9SVCBjb2RlPyBJbg0KPiBmYWN0LCBjYW4ndCBJT1JUIGp1c3Qg
+c2V0IGFsbCB0aGlzIHN0dWZmIHVwIGluIGFkdmFuY2UgbGlrZSBpdCBkb2VzIGZvcg0KPiBTTU1V
+cz8NCg0KSG1tbS4uIFNvcnJ5LCBub3QgY2xlYXIgdG8gbWUuIFlvdSBtZWFuIHRvIHNheSBhc3Nv
+Y2lhdGUgdGhlIElPUlQgbm9kZQ0Kd2l0aCBwbGF0Zm9ybSBkZXZpY2UgYW5kIHJldHJpZXZlIGl0
+IGluIGRyaXZlciBqdXN0IGxpa2Ugc21tdSBkb2VzIGZvcg0KIm1vZGVsIiBjaGVja3M/IE5vdCBz
+dXJlIHRoYXQgd29ya3MgaGVyZSBpZiB0aGF04oCZcyB3aGF0IHRoZSBhYm92ZSBtZWFudC4NCiAN
+Cj4gPiAgICNkZWZpbmUgdG9fc21tdV9wbXUocCkgKGNvbnRhaW5lcl9vZihwLCBzdHJ1Y3Qgc21t
+dV9wbXUsIHBtdSkpDQo+ID4NCj4gPiAgICNkZWZpbmUgU01NVV9QTVVfRVZFTlRfQVRUUl9FWFRS
+QUNUT1IoX25hbWUsIF9jb25maWcsIF9zdGFydCwNCj4gX2VuZCkgICAgICAgIFwNCj4gPiBAQCAt
+MjI0LDE1ICsyNzEsMjAgQEAgc3RhdGljIHZvaWQgc21tdV9wbXVfc2V0X3BlcmlvZChzdHJ1Y3QN
+Cj4gc21tdV9wbXUgKnNtbXVfcG11LA0KPiA+ICAgCXUzMiBpZHggPSBod2MtPmlkeDsNCj4gPiAg
+IAl1NjQgbmV3Ow0KPiA+DQo+ID4gLQkvKg0KPiA+IC0JICogV2UgbGltaXQgdGhlIG1heCBwZXJp
+b2QgdG8gaGFsZiB0aGUgbWF4IGNvdW50ZXIgdmFsdWUgb2YgdGhlDQo+IGNvdW50ZXINCj4gPiAt
+CSAqIHNpemUsIHNvIHRoYXQgZXZlbiBpbiB0aGUgY2FzZSBvZiBleHRyZW1lIGludGVycnVwdCBs
+YXRlbmN5IHRoZQ0KPiA+IC0JICogY291bnRlciB3aWxsIChob3BlZnVsbHkpIG5vdCB3cmFwIHBh
+c3QgaXRzIGluaXRpYWwgdmFsdWUuDQo+ID4gLQkgKi8NCj4gPiAtCW5ldyA9IHNtbXVfcG11LT5j
+b3VudGVyX21hc2sgPj4gMTsNCj4gPiArCWlmIChzbW11X3BtdS0+b3B0aW9ucyAmIFNNTVVfUE1V
+X09QVF9FVkNOVFJfUkRPTkxZKSB7DQo+ID4gKwkJbmV3ID0gc21tdV9wbXVfY291bnRlcl9nZXRf
+dmFsdWUoc21tdV9wbXUsIGlkeCk7DQo+IA0KPiBTb21ldGhpbmcncyBjbGVhcmx5IG1pc3Npbmcs
+IGJlY2F1c2UgaWYgdGhpcyBoYXBwZW5zIHRvIHN0YXJ0IGF0IDAsIHRoZQ0KPiBjdXJyZW50IG92
+ZXJmbG93IGhhbmRsaW5nIGNvZGUgY2Fubm90IHBvc3NpYmx5IGdpdmUgdGhlIGNvcnJlY3QgY291
+bnQuDQo+IE11Y2ggYXMgSSBoYXRlIHRoZSByZXNldC10by1oYWxmLXBlcmlvZCBpZGlvbSBmb3Ig
+YmVpbmcgaW1wb3NzaWJsZSB0bw0KPiBtYWtlIHNlbnNlIG9mLCBpdCBkb2VzIG1ha2UgdmFyaW91
+cyBhc3BlY3RzIGFwcGVhciBhIGxvdCBzaW1wbGVyIHRoYW4NCj4gdGhleSByZWFsbHkgYXJlLiBX
+YWl0LCBtYXliZSB0aGF0J3MgeWV0IGFub3RoZXIgcmVhc29uIHRvIGhhdGUgaXQuLi4NCg0KWWVz
+LCAgaWYgdGhlIGNvdW50ZXIgc3RhcnRzIGF0IDAgYW5kIG92ZXJmbG93IGhhcHBlbnMsIGl0IHdv
+bid0IHBvc3NpYmx5IGdpdmUNCnRoZSBjb3JyZWN0IGNvdW50IGNvbXBhcmVkIHRvIHRoZSByZXNl
+dC10by1oYWxmLXBlcmlvZCBsb2dpYy4gU2luY2UgdGhpcyBpcyBhDQo2NCBiaXQgY291bnRlciwg
+anVzdCBob3BlIHRoYXQsIGl0IHdvbid0IG5lY2Vzc2FyaWx5IGhhcHBlbiB0aGF0IG9mdGVuLg0K
+DQo+ID4gKwl9IGVsc2Ugew0KPiA+ICsJCS8qDQo+ID4gKwkJICogV2UgbGltaXQgdGhlIG1heCBw
+ZXJpb2QgdG8gaGFsZiB0aGUgbWF4IGNvdW50ZXIgdmFsdWUNCj4gPiArCQkgKiBvZiB0aGUgY291
+bnRlciBzaXplLCBzbyB0aGF0IGV2ZW4gaW4gdGhlIGNhc2Ugb2YgZXh0cmVtZQ0KPiA+ICsJCSAq
+IGludGVycnVwdCBsYXRlbmN5IHRoZSBjb3VudGVyIHdpbGwgKGhvcGVmdWxseSkgbm90IHdyYXAN
+Cj4gPiArCQkgKiBwYXN0IGl0cyBpbml0aWFsIHZhbHVlLg0KPiA+ICsJCSAqLw0KPiA+ICsJCW5l
+dyA9IHNtbXVfcG11LT5jb3VudGVyX21hc2sgPj4gMTsNCj4gPiArCQlzbW11X3BtdV9jb3VudGVy
+X3NldF92YWx1ZShzbW11X3BtdSwgaWR4LCBuZXcpOw0KPiA+ICsJfQ0KPiA+DQo+ID4gICAJbG9j
+YWw2NF9zZXQoJmh3Yy0+cHJldl9jb3VudCwgbmV3KTsNCj4gPiAtCXNtbXVfcG11X2NvdW50ZXJf
+c2V0X3ZhbHVlKHNtbXVfcG11LCBpZHgsIG5ldyk7DQo+ID4gICB9DQo+ID4NCj4gPiAgIHN0YXRp
+YyB2b2lkIHNtbXVfcG11X2dldF9ldmVudF9maWx0ZXIoc3RydWN0IHBlcmZfZXZlbnQgKmV2ZW50
+LCB1MzINCj4gKnNwYW4sDQo+ID4gQEAgLTY3MCw2ICs3MjIsNjkgQEAgc3RhdGljIHZvaWQgc21t
+dV9wbXVfcmVzZXQoc3RydWN0IHNtbXVfcG11DQo+ICpzbW11X3BtdSkNCj4gPiAgIAkJICAgICAg
+IHNtbXVfcG11LT5yZWxvY19iYXNlICsgU01NVV9QTUNHX09WU0NMUjApOw0KPiA+ICAgfQ0KPiA+
+DQo+ID4gK3R5cGVkZWYgYm9vbCAoKnNlX21hdGNoX2ZuX3QpKGNvbnN0IHN0cnVjdCBzbW11X3Bt
+dV9lcnJhdHVtX3dhICosDQo+ID4gKwkJCSAgICAgIGNvbnN0IHZvaWQgKik7DQo+ID4gKw0KPiA+
+ICtib29sIHNtbXVfcG11X2NoZWNrX2FjcGlfZXJyYXR1bShjb25zdCBzdHJ1Y3QNCj4gc21tdV9w
+bXVfZXJyYXR1bV93YSAqd2EsDQo+ID4gKwkJCQljb25zdCB2b2lkICphcmcpDQo+ID4gK3sNCj4g
+PiArCXN0YXRpYyBjb25zdCBzdHJ1Y3QgZXJyYXR1bV9hY3BpX29lbV9pbmZvIGVtcHR5X29lbV9p
+bmZvID0ge307DQo+ID4gKwljb25zdCBzdHJ1Y3QgZXJyYXR1bV9hY3BpX29lbV9pbmZvICppbmZv
+ID0gd2EtPmlkOw0KPiA+ICsJY29uc3Qgc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICpoZHIgPSBh
+cmc7DQo+ID4gKw0KPiA+ICsJLyogSXRlcmF0ZSBvdmVyIHRoZSBBQ1BJIE9FTSBpbmZvIGFycmF5
+LCBsb29raW5nIGZvciBhIG1hdGNoICovDQo+ID4gKwl3aGlsZSAobWVtY21wKGluZm8sICZlbXB0
+eV9vZW1faW5mbywgc2l6ZW9mKCppbmZvKSkpIHsNCj4gPiArCQlpZiAoIW1lbWNtcChpbmZvLT5v
+ZW1faWQsIGhkci0+b2VtX2lkLCBBQ1BJX09FTV9JRF9TSVpFKQ0KPiAmJg0KPiA+ICsJCSAgICAh
+bWVtY21wKGluZm8tPm9lbV90YWJsZV9pZCwgaGRyLT5vZW1fdGFibGVfaWQsDQo+IEFDUElfT0VN
+X1RBQkxFX0lEX1NJWkUpICYmDQo+ID4gKwkJICAgIGluZm8tPm9lbV9yZXZpc2lvbiA9PSBoZHIt
+Pm9lbV9yZXZpc2lvbikNCj4gPiArCQkJcmV0dXJuIHRydWU7DQo+ID4gKw0KPiA+ICsJCWluZm8r
+KzsNCj4gPiArCX0NCj4gPiArDQo+ID4gKwlyZXR1cm4gZmFsc2U7DQo+ID4gKw0KPiA+ICt9DQo+
+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBzbW11X3BtdV9lbmFibGVfZXJyYXRhKHN0cnVjdCBzbW11
+X3BtdSAqc21tdV9wbXUsDQo+ID4gKwkJCQllbnVtIHNtbXVfcG11X2VycmF0dW1fbWF0Y2hfdHlw
+ZSB0eXBlLA0KPiA+ICsJCQkJc2VfbWF0Y2hfZm5fdCBtYXRjaF9mbiwNCj4gPiArCQkJCXZvaWQg
+KmFyZykNCj4gPiArew0KPiA+ICsJY29uc3Qgc3RydWN0IHNtbXVfcG11X2VycmF0dW1fd2EgKndh
+ID0gc21tdV9wbXVfd2E7DQo+ID4gKw0KPiA+ICsJZm9yICg7IHdhLT5kZXNjX3N0cjsgd2ErKykg
+ew0KPiA+ICsJCWlmICh3YS0+bWF0Y2hfdHlwZSAhPSB0eXBlKQ0KPiA+ICsJCQljb250aW51ZTsN
+Cj4gPiArDQo+ID4gKwkJaWYgKG1hdGNoX2ZuKHdhLCBhcmcpKSB7DQo+ID4gKwkJCWlmICh3YS0+
+ZW5hYmxlKSB7DQo+ID4gKwkJCQl3YS0+ZW5hYmxlKHNtbXVfcG11KTsNCj4gPiArCQkJCWRldl9p
+bmZvKHNtbXVfcG11LT5kZXYsDQo+ID4gKwkJCQkJIkVuYWJsaW5nIHdvcmthcm91bmQgZm9yICVz
+XG4iLA0KPiA+ICsJCQkJCSB3YS0+ZGVzY19zdHIpOw0KPiA+ICsJCQl9DQo+IA0KPiBKdXN0IGhv
+dyBtYW55IGtpbmRzIG9mIGJyb2tlbiBhcmUgd2UgZXhwZWN0aW5nIGhlcmU/IElzIHRoaXMgbGlm
+dGVkIGZyb20NCj4gdGhlIGFybTY0IGNwdWZlYXR1cmUgZnJhbWV3b3JrLCBiZWNhdXNlIGl0IHNl
+ZW1zIGxpa2UgYWJzb2x1dGUgb3ZlcmtpbGwNCj4gZm9yIGEgc2ltcGxlIFBNVSBkcml2ZXIgd2hp
+Y2ggaW4gYWxsIHJlYWxpdHkgaXMgb25seSBldmVyIGdvaW5nIHRvDQo+IHdpZ2dsZSBhIGZldyBm
+bGFncyBpbiBzb21lIGRhdGEgc3RydWN0dXJlLg0KDQpZZXMsIHRoaXMgZXJyYXR1bSBmcmFtZXdv
+cmsgaXMgYmFzZWQgb24gdGhlIGFybV9hcmNoX3RpbWVyIGNvZGUuIEFncmVlIHRoYXQNCnRoaXMg
+aXMgYW4gb3ZlcmtpbGwgaWYgaXQgaXMganVzdCB0byBzdXBwb3J0IHRoaXMgaGFyZHdhcmUuIEkg
+YW0gbm90IHN1cmUgdGhpcyBjYW4gYmUNCmV4dGVuZGVkIHRvIGFkZCB0aGUgSU1QTEVNRU5UQVRJ
+T04gREVGSU5FRCBldmVudHMgaW4gZnV0dXJlKEkgaGF2ZW4ndA0KbG9va2VkIGludG8gdGhhdCBu
+b3cpLiBJZiB0aGlzIGlzIG5vdCB0aGF0IHVzZWZ1bCBpbiB0aGUgbmVhciBmdXR1cmUsIEkgd2ls
+bCByZW1vdmUgdGhlDQpmcmFtZXdvcmsgcGFydCBhbmQgdXNlIHRoZSBPRU0gaW5mbyBkaXJlY3Rs
+eSB0byBzZXQgdGhlIGZsYWcuIFBsZWFzZSBsZXQgbWUga25vdw0KeW91ciB0aG91Z2h0cy4uDQoN
+ClRoYW5rcywNClNoYW1lZXINCg0KPiBSb2Jpbi4NCj4gDQo+ID4gKwkJfQ0KPiA+ICsJfQ0KPiA+
+ICt9DQo+ID4gKw0KPiA+ICtzdGF0aWMgdm9pZCBzbW11X3BtdV9jaGVja193b3JrYXJvdW5kcyhz
+dHJ1Y3Qgc21tdV9wbXUNCj4gKnNtbXVfcG11LA0KPiA+ICsJCQkJICBlbnVtIHNtbXVfcG11X2Vy
+cmF0dW1fbWF0Y2hfdHlwZQ0KPiB0eXBlLA0KPiA+ICsJCQkJICB2b2lkICphcmcpDQo+ID4gK3sN
+Cj4gPiArCXNlX21hdGNoX2ZuX3QgbWF0Y2hfZm4gPSBOVUxMOw0KPiA+ICsNCj4gPiArCXN3aXRj
+aCAodHlwZSkgew0KPiA+ICsJY2FzZSBzZV9tYXRjaF9hY3BpX29lbToNCj4gPiArCQltYXRjaF9m
+biA9IHNtbXVfcG11X2NoZWNrX2FjcGlfZXJyYXR1bTsNCj4gPiArCQlicmVhazsNCj4gPiArCWRl
+ZmF1bHQ6DQo+ID4gKwkJcmV0dXJuOw0KPiA+ICsJfQ0KPiA+ICsNCj4gPiArCXNtbXVfcG11X2Vu
+YWJsZV9lcnJhdGEoc21tdV9wbXUsIHR5cGUsIG1hdGNoX2ZuLCBhcmcpOw0KPiA+ICt9DQo+ID4g
+Kw0KPiA+ICAgc3RhdGljIGludCBzbW11X3BtdV9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNl
+ICpwZGV2KQ0KPiA+ICAgew0KPiA+ICAgCXN0cnVjdCBzbW11X3BtdSAqc21tdV9wbXU7DQo+ID4g
+QEAgLTY3OCw2ICs3OTMsNyBAQCBzdGF0aWMgaW50IHNtbXVfcG11X3Byb2JlKHN0cnVjdCBwbGF0
+Zm9ybV9kZXZpY2UNCj4gKnBkZXYpDQo+ID4gICAJdTY0IGNlaWRfNjRbMl07DQo+ID4gICAJaW50
+IGlycSwgZXJyOw0KPiA+ICAgCWNoYXIgKm5hbWU7DQo+ID4gKwlzdHJ1Y3QgYWNwaV90YWJsZV9o
+ZWFkZXIgKnRhYmxlOw0KPiA+ICAgCXN0cnVjdCBkZXZpY2UgKmRldiA9ICZwZGV2LT5kZXY7DQo+
+ID4NCj4gPiAgIAlzbW11X3BtdSA9IGRldm1fa3phbGxvYyhkZXYsIHNpemVvZigqc21tdV9wbXUp
+LCBHRlBfS0VSTkVMKTsNCj4gPiBAQCAtNzQ5LDYgKzg2NSwxMyBAQCBzdGF0aWMgaW50IHNtbXVf
+cG11X3Byb2JlKHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UNCj4gKnBkZXYpDQo+ID4gICAJCXJldHVy
+biAtRUlOVkFMOw0KPiA+ICAgCX0NCj4gPg0KPiA+ICsJaWYgKEFDUElfRkFJTFVSRShhY3BpX2dl
+dF90YWJsZShBQ1BJX1NJR19JT1JULCAwLCAmdGFibGUpKSkgew0KPiA+ICsJCWRldl9lcnIoZGV2
+LCAiSU9SVCBnZXQgZmFpbGVkLCBQTVUgQCVwYVxuIiwgJnJlc18wLT5zdGFydCk7DQo+ID4gKwkJ
+cmV0dXJuIC1FSU5WQUw7DQo+ID4gKwl9DQo+ID4gKw0KPiA+ICsJc21tdV9wbXVfY2hlY2tfd29y
+a2Fyb3VuZHMoc21tdV9wbXUsIHNlX21hdGNoX2FjcGlfb2VtLA0KPiB0YWJsZSk7DQo+ID4gKw0K
+PiA+ICAgCS8qIFBpY2sgb25lIENQVSB0byBiZSB0aGUgcHJlZmVycmVkIG9uZSB0byB1c2UgKi8N
+Cj4gPiAgIAlzbW11X3BtdS0+b25fY3B1ID0gZ2V0X2NwdSgpOw0KPiA+ICAgCVdBUk5fT04oaXJx
+X3NldF9hZmZpbml0eShzbW11X3BtdS0+aXJxLCBjcHVtYXNrX29mKHNtbXVfcG11LQ0KPiA+b25f
+Y3B1KSkpOw0KPiA+DQo=
