@@ -1,108 +1,279 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/3] x86: baytrail/cherrytrail: Rework and move P-Unit
- PMIC bus semaphore code
-Date: Thu, 18 Oct 2018 10:47:44 +0200
-Message-ID: <3725c161-f256-7bb4-e32b-58384c68f470@redhat.com>
-References: <20180923144510.4564-1-hdegoede@redhat.com>
- <CAJZ5v0iu5eikTw3wOK7wHOVe+xHTv5xPTnQELEyA2oF8sL3S=g@mail.gmail.com>
- <3f72c40f-9751-f74e-2e71-7f9edc7bc115@redhat.com>
- <1830775.U1JO56g8nO@aspire.rjw.lan>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v4 2/4] perf: add arm64 smmuv3 pmu driver
+Date: Thu, 18 Oct 2018 09:26:19 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA83879FFDA@FRAEML521-MBX.china.huawei.com>
+References: <20181016124920.24708-3-shameerali.kolothum.thodi@huawei.com>
+ <201810180536.3mHoIqvz%fengguang.wu@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1830775.U1JO56g8nO@aspire.rjw.lan>
+In-Reply-To: <201810180536.3mHoIqvz%fengguang.wu@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-i2c <linux-i2c@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: kbuild test robot <lkp@intel.com>
+Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
 
-HI,
 
-On 18-10-18 10:38, Rafael J. Wysocki wrote:
-> On Thursday, October 18, 2018 10:34:57 AM CEST Hans de Goede wrote:
->> Hi,
->>
->> On 18-10-18 09:29, Rafael J. Wysocki wrote:
->>> On Sun, Sep 23, 2018 at 4:45 PM Hans de Goede <hdegoede@redhat.com> wrote:
->>>>
->>>> On some BYT/CHT systems the SoC's P-Unit shares the I2C bus with the
->>>> kernel. The P-Unit has a semaphore for the PMIC bus which we can take to
->>>> block it from accessing the shared bus while the kernel wants to access it.
->>>>
->>>> Currently we have the I2C-controller driver acquiring and releasing the
->>>> semaphore around each I2C transfer. There are 2 problems with this:
->>>>
->>>> 1) PMIC accesses often come in the form of a read-modify-write on one of
->>>> the PMIC registers, we currently release the P-Unit's PMIC bus semaphore
->>>> between the read and the write. If the P-Unit modifies the register during
->>>> this window?, then we end up overwriting the P-Unit's changes.
->>>> I believe that this is mostly an academic problem, but I'm not sure.
->>>>
->>>> 2) To safely access the shared I2C bus, we need to do 3 things:
->>>> a) Notify the GPU driver that we are starting a window in which it may not
->>>> access the P-Unit, since the P-Unit seems to ignore the semaphore for
->>>> explicit power-level requests made by the GPU driver
->>>> b) Make a pm_qos request to force all CPU cores out of C6/C7 since entering
->>>> C6/C7 while we hold the semaphore hangs the SoC
->>>> c) Finally take the P-Unit's PMIC bus semaphore
->>>> All 3 these steps together are somewhat expensive, so ideally if we have
->>>> a bunch of i2c transfers grouped together we only do this once for the
->>>> entire group.
->>>>
->>>> Taking the read-modify-write on a PMIC register as example then ideally we
->>>> would only do all 3 steps once at the beginning and undo all 3 steps once
->>>> at the end.
->>>>
->>>> For this we need to be able to take the semaphore from within e.g. the PMIC
->>>> opregion driver, yet we do not want to remove the taking of the semaphore
->>>> from the I2C-controller driver, as that is still necessary to protect many
->>>> other code-paths leading to accessing the shared I2C bus.
->>>>
->>>> This means that we first have the PMIC driver acquire the semaphore and
->>>> then have the I2C controller driver trying to acquire it again.
->>>>
->>>> To make this possible this commit does the following:
->>>>
->>>> 1) Move the semaphore code from being private to the I2C controller driver
->>>> into the generic iosf_mbi code, which already has other code to deal with
->>>> the shared bus so that it can be accessed outside of the I2C bus driver.
->>>>
->>>> 2) Rework the code so that it can be called multiple times nested, while
->>>> still blocking I2C accesses while e.g. the GPU driver has indicated the
->>>> P-Unit needs the bus through a iosf_mbi_punit_acquire() call.
->>>>
->>>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->>>
->>> If there are no objections or concerns regarding this patch, I'm
->>> inclined to take the entire series including it.
->>
->> In that case let me send out a v4, with the following chunk added to the
->> 2nd patch:
->>
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -515,7 +515,7 @@ config CRC_PMIC_OPREGION
->>
->>    config XPOWER_PMIC_OPREGION
->>           bool "ACPI operation region support for XPower AXP288 PMIC"
->> -       depends on MFD_AXP20X_I2C
->> +       depends on MFD_AXP20X_I2C && IOSF_MBI
->>           help
->>             This config adds ACPI operation region support for XPower AXP288 PMIC.
->>
->> This is necessary to avoid compilation issues on non x86 systems (where the
->> asm/iosf_mbi.h header is not available) and on x86 systems in case
->> IOSF_MBI support is not enabled there.  Note that the AXP288 PMIC is
->> connected through the LPSS i2c controller, so either we have IOSF_MBI support
->> selected through the X86_INTEL_LPSS option, or we have a kernel where the
->> opregion will never work anyways.
+
+> -----Original Message-----
+> From: kbuild test robot [mailto:lkp@intel.com]
+> Sent: 17 October 2018 22:53
+> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+> Cc: kbuild-all@01.org; lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
+> jean-philippe.brucker@arm.com; will.deacon@arm.com;
+> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
+> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
+> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
+> kernel@lists.infradead.org; Linuxarm <linuxarm@huawei.com>;
+> neil.m.leeder@gmail.com
+> Subject: Re: [PATCH v4 2/4] perf: add arm64 smmuv3 pmu driver
 > 
-> I'd prefer to get an incremental patch for that at this point.
+> Hi Neil,
+> 
+> Thank you for the patch! Yet something to improve:
+> 
+> [auto build test ERROR on linux-sof-driver/master]
+> [also build test ERROR on v4.19-rc8 next-20181017]
+> [if your patch is applied to the wrong git tree, please drop us a note to help
+> improve the system]
+> 
+> url:    https://github.com/0day-ci/linux/commits/Shameer-Kolothum/arm64-
+> SMMUv3-PMU-driver-with-IORT-support/20181017-063949
+> base:   https://github.com/thesofproject/linux master
+> config: xtensa-allyesconfig (attached as .config)
+> compiler: xtensa-linux-gcc (GCC) 8.1.0
+> reproduce:
+>         wget https://raw.githubusercontent.com/intel/lkp-
+> tests/master/sbin/make.cross -O ~/bin/make.cross
+>         chmod +x ~/bin/make.cross
+>         # save the attached .config to linux build tree
+>         GCC_VERSION=8.1.0 make.cross ARCH=xtensa
+> 
+> All errors (new ones prefixed by >>):
+> 
+>    In file included from include/linux/kernel.h:11,
+>                     from include/linux/list.h:9,
+>                     from include/linux/resource_ext.h:17,
+>                     from include/linux/acpi.h:26,
+>                     from drivers//perf/arm_smmuv3_pmu.c:37:
+>    drivers//perf/arm_smmuv3_pmu.c: In function
+> 'smmu_pmu_counter_set_value':
+>    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
+> count-overflow]
+>     #define BIT(nr)   (1UL << (nr))
+>                            ^~
+>    drivers//perf/arm_smmuv3_pmu.c:145:31: note: in expansion of macro 'BIT'
+>      if (smmu_pmu->counter_mask & BIT(32))
+>                                   ^~~
+>    drivers//perf/arm_smmuv3_pmu.c:146:3: error: implicit declaration of
+> function 'writeq'; did you mean 'writel'? [-Werror=implicit-function-
+> declaration]
+>       writeq(value, smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
+>       ^~~~~~
+>       writel
+>    In file included from include/linux/kernel.h:11,
+>                     from include/linux/list.h:9,
+>                     from include/linux/resource_ext.h:17,
+>                     from include/linux/acpi.h:26,
+>                     from drivers//perf/arm_smmuv3_pmu.c:37:
+>    drivers//perf/arm_smmuv3_pmu.c: In function
+> 'smmu_pmu_counter_get_value':
+>    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
+> count-overflow]
+>     #define BIT(nr)   (1UL << (nr))
+>                            ^~
+>    drivers//perf/arm_smmuv3_pmu.c:155:31: note: in expansion of macro 'BIT'
+>      if (smmu_pmu->counter_mask & BIT(32))
+>                                   ^~~
+>    drivers//perf/arm_smmuv3_pmu.c:156:11: error: implicit declaration of
+> function 'readq'; did you mean 'readl'? [-Werror=implicit-function-declaration]
+>       value = readq(smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
+>               ^~~~~
+>               readl
 
-Ok, then I will prepare and send out an incremental patch for that.
+Right. This again is linked to the COMPILE_TEST added in this version of the series.
+It looks like these functions has dependency on architecture (CONFIG_64BIT). I will 
+take care of this in next revision.
 
-Regards,
+Thanks,
+Shameer
 
-Hans
+>    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_reset':
+>    drivers//perf/arm_smmuv3_pmu.c:607:2: error: implicit declaration of
+> function 'writeq_relaxed'; did you mean 'writel_relaxed'? [-Werror=implicit-
+> function-declaration]
+>      writeq_relaxed(smmu_pmu->counter_present_mask,
+>      ^~~~~~~~~~~~~~
+>      writel_relaxed
+>    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_probe':
+> >> drivers//perf/arm_smmuv3_pmu.c:666:15: error: implicit declaration of
+> function 'readq_relaxed'; did you mean 'readl_relaxed'? [-Werror=implicit-
+> function-declaration]
+>      ceid_64[0] = readq_relaxed(smmu_pmu->reg_base +
+> SMMU_PMCG_CEID0);
+>                   ^~~~~~~~~~~~~
+>                   readl_relaxed
+>    drivers//perf/arm_smmuv3_pmu.c:687:64: warning: format '%llx' expects
+> argument of type 'long long unsigned int', but argument 4 has type
+> 'resource_size_t' {aka 'unsigned int'} [-Wformat=]
+>      name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "smmuv3_pmcg_%llx",
+>                                                                 ~~~^
+>                                                                 %x
+>    cc1: some warnings being treated as errors
+> 
+> vim +666 drivers//perf/arm_smmuv3_pmu.c
+> 
+>    601
+>    602	static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
+>    603	{
+>    604		smmu_pmu_disable(&smmu_pmu->pmu);
+>    605
+>    606		/* Disable counter and interrupt */
+>  > 607		writeq_relaxed(smmu_pmu->counter_present_mask,
+>    608			       smmu_pmu->reg_base +
+> SMMU_PMCG_CNTENCLR0);
+>    609		writeq_relaxed(smmu_pmu->counter_present_mask,
+>    610			       smmu_pmu->reg_base +
+> SMMU_PMCG_INTENCLR0);
+>    611		writeq_relaxed(smmu_pmu->counter_present_mask,
+>    612			       smmu_pmu->reloc_base +
+> SMMU_PMCG_OVSCLR0);
+>    613	}
+>    614
+>    615	static int smmu_pmu_probe(struct platform_device *pdev)
+>    616	{
+>    617		struct smmu_pmu *smmu_pmu;
+>    618		struct resource *res_0, *res_1;
+>    619		u32 cfgr, reg_size;
+>    620		u64 ceid_64[2];
+>    621		int irq, err;
+>    622		char *name;
+>    623		struct device *dev = &pdev->dev;
+>    624
+>    625		smmu_pmu = devm_kzalloc(dev, sizeof(*smmu_pmu),
+> GFP_KERNEL);
+>    626		if (!smmu_pmu)
+>    627			return -ENOMEM;
+>    628
+>    629		smmu_pmu->dev = dev;
+>    630		platform_set_drvdata(pdev, smmu_pmu);
+>    631
+>    632		smmu_pmu->pmu = (struct pmu) {
+>    633			.task_ctx_nr    = perf_invalid_context,
+>    634			.pmu_enable	= smmu_pmu_enable,
+>    635			.pmu_disable	= smmu_pmu_disable,
+>    636			.event_init	= smmu_pmu_event_init,
+>    637			.add		= smmu_pmu_event_add,
+>    638			.del		= smmu_pmu_event_del,
+>    639			.start		= smmu_pmu_event_start,
+>    640			.stop		= smmu_pmu_event_stop,
+>    641			.read		= smmu_pmu_event_read,
+>    642			.attr_groups	= smmu_pmu_attr_grps,
+>    643		};
+>    644
+>    645		res_0 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>    646		smmu_pmu->reg_base = devm_ioremap_resource(dev, res_0);
+>    647		if (IS_ERR(smmu_pmu->reg_base))
+>    648			return PTR_ERR(smmu_pmu->reg_base);
+>    649
+>    650		cfgr = readl_relaxed(smmu_pmu->reg_base +
+> SMMU_PMCG_CFGR);
+>    651
+>    652		/* Determine if page 1 is present */
+>    653		if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS) {
+>    654			res_1 = platform_get_resource(pdev,
+> IORESOURCE_MEM, 1);
+>    655			smmu_pmu->reloc_base =
+> devm_ioremap_resource(dev, res_1);
+>    656			if (IS_ERR(smmu_pmu->reloc_base))
+>    657				return PTR_ERR(smmu_pmu->reloc_base);
+>    658		} else {
+>    659			smmu_pmu->reloc_base = smmu_pmu->reg_base;
+>    660		}
+>    661
+>    662		irq = platform_get_irq(pdev, 0);
+>    663		if (irq > 0)
+>    664			smmu_pmu->irq = irq;
+>    665
+>  > 666		ceid_64[0] = readq_relaxed(smmu_pmu->reg_base +
+> SMMU_PMCG_CEID0);
+>    667		ceid_64[1] = readq_relaxed(smmu_pmu->reg_base +
+> SMMU_PMCG_CEID1);
+>    668		bitmap_from_arr32(smmu_pmu->supported_events, (u32
+> *)ceid_64,
+>    669				  SMMU_ARCH_MAX_EVENTS);
+>    670
+>    671		smmu_pmu->num_counters =
+> FIELD_GET(SMMU_PMCG_CFGR_NCTR_MASK, cfgr) + 1;
+>    672		smmu_pmu->counter_present_mask = GENMASK(smmu_pmu-
+> >num_counters - 1, 0);
+>    673
+>    674		smmu_pmu->sid_filter_global = !!(cfgr &
+> SMMU_PMCG_CFGR_SID_FILTER_TYPE);
+>    675
+>    676		reg_size = FIELD_GET(SMMU_PMCG_CFGR_SIZE_MASK, cfgr);
+>    677		smmu_pmu->counter_mask = GENMASK_ULL(reg_size, 0);
+>    678
+>    679		smmu_pmu_reset(smmu_pmu);
+>    680
+>    681		err = smmu_pmu_setup_irq(smmu_pmu);
+>    682		if (err) {
+>    683			dev_err(dev, "Setup irq failed, PMU @%pa\n", &res_0-
+> >start);
+>    684			return err;
+>    685		}
+>    686
+>    687		name = devm_kasprintf(&pdev->dev, GFP_KERNEL,
+> "smmuv3_pmcg_%llx",
+>    688				      (res_0->start) >> SMMU_PA_SHIFT);
+>    689		if (!name) {
+>    690			dev_err(dev, "Create name failed, PMU @%pa\n",
+> &res_0->start);
+>    691			return -EINVAL;
+>    692		}
+>    693
+>    694		/* Pick one CPU to be the preferred one to use */
+>    695		smmu_pmu->on_cpu = get_cpu();
+>    696		WARN_ON(irq_set_affinity(smmu_pmu->irq,
+> cpumask_of(smmu_pmu->on_cpu)));
+>    697
+>    698		err = cpuhp_state_add_instance_nocalls(cpuhp_state_num,
+>    699						       &smmu_pmu->node);
+>    700		if (err) {
+>    701			dev_err(dev, "Error %d registering hotplug, PMU
+> @%pa\n",
+>    702				err, &res_0->start);
+>    703			goto out_cpuhp_err;
+>    704		}
+>    705
+>    706		err = perf_pmu_register(&smmu_pmu->pmu, name, -1);
+>    707		if (err) {
+>    708			dev_err(dev, "Error %d registering PMU @%pa\n",
+>    709				err, &res_0->start);
+>    710			goto out_unregister;
+>    711		}
+>    712
+>    713		put_cpu();
+>    714		dev_info(dev, "Registered PMU @ %pa using %d counters with
+> %s filter settings\n",
+>    715			 &res_0->start, smmu_pmu->num_counters,
+>    716			 smmu_pmu->sid_filter_global ? "Global(Counter0)" :
+>    717			 "Individual");
+>    718
+>    719		return 0;
+>    720
+>    721	out_unregister:
+>    722		cpuhp_state_remove_instance_nocalls(cpuhp_state_num,
+> &smmu_pmu->node);
+>    723	out_cpuhp_err:
+>    724		put_cpu();
+>    725		return err;
+>    726	}
+>    727
+> 
+> ---
+> 0-DAY kernel test infrastructure                Open Source Technology Center
+> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
