@@ -1,34 +1,42 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v9 3/8] x86/boot: Add efi_get_rsdp_addr() to dig out RSDP
- from EFI table
-Date: Thu, 18 Oct 2018 12:35:39 +0800
-Message-ID: <20181018043539.GF1885@192.168.1.4>
-References: <20181017102012.872-1-fanc.fnst@cn.fujitsu.com>
- <20181017102012.872-4-fanc.fnst@cn.fujitsu.com>
+From: Greg KH <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH] ACPICA: AML interpreter: add region addresses in global
+ list during initialization
+Date: Thu, 18 Oct 2018 07:05:51 +0200
+Message-ID: <20181018050551.GA25258@kroah.com>
+References: <20181017210935.3754-1-erik.schmauss@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181017102012.872-4-fanc.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <20181017210935.3754-1-erik.schmauss@intel.com>
+Sender: stable-owner@vger.kernel.org
+To: Erik Schmauss <erik.schmauss@intel.com>
+Cc: linux-acpi@vger.kernel.org, rjw@rjwysocki.net, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/17/18 at 06:20pm, Chao Fan wrote:
-> There is a bug that kaslr may randomly choose some positions
-> which are located in movable memory regions. This will break memory
-> hotplug feature and make the movable memory chosen by KASLR can't be
-> removed. So dig SRAT table from ACPI tables to get memory information.
-
-This patch is only adding a function efi_get_rsdp_addr() which will be
-used in later patch. Do we need to describe bug here?
-
-Can we focus on what is this function, and why it's written like that,
-and why it's here?
+On Wed, Oct 17, 2018 at 02:09:35PM -0700, Erik Schmauss wrote:
+> The table load process omitted adding the operation region address
+> range to the global list. This omission is problematic because the OS
+> queries the global list to check for address range conflicts before
+> deciding which drivers to load. This commit may result in warning
+> messages that look like the following:
 > 
-> Imitate the ACPI code of parsing ACPI tables to dig and read ACPI
-> tables. Since some operations are not needed here, functions are
-> simplified. Functions will be used to dig only SRAT tables to get
-> information of memory, so that KASLR can the memory in immovable node.
+> [    7.871761] ACPI Warning: system_IO range 0x00000428-0x0000042F conflicts with op_region 0x00000400-0x0000047F (\PMIO) (20180531/utaddress-213)
+> [    7.871769] ACPI: If an ACPI driver is available for this device, you should use it instead of the native driver
 > 
+> However, these messages do not signify regressions. It is a result of
+> properly adding address ranges within the global address list.
+> 
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=200011
+> Tested-by: Jean-Marc Lenoir <archlinux@jihemel.com>
+> Signed-off-by: Erik Schmauss <erik.schmauss@intel.com>
+> ---
+
+<formletter>
+
+This is not the correct way to submit patches for inclusion in the
+stable kernel tree.  Please read:
+    https://www.kernel.org/doc/html/latest/process/stable-kernel-rules.html
+for how to do this properly.
+
+</formletter>
