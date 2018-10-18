@@ -1,279 +1,257 @@
-From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-Subject: RE: [PATCH v4 2/4] perf: add arm64 smmuv3 pmu driver
-Date: Thu, 18 Oct 2018 09:26:19 +0000
-Message-ID: <5FC3163CFD30C246ABAA99954A238FA83879FFDA@FRAEML521-MBX.china.huawei.com>
-References: <20181016124920.24708-3-shameerali.kolothum.thodi@huawei.com>
- <201810180536.3mHoIqvz%fengguang.wu@intel.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
+ 162001800 quirk
+Date: Thu, 18 Oct 2018 12:43:59 +0100
+Message-ID: <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
+References: <20181016124920.24708-1-shameerali.kolothum.thodi@huawei.com>
+ <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <201810180536.3mHoIqvz%fengguang.wu@intel.com>
-Content-Language: en-US
+In-Reply-To: <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "robin.murphy@arm.com" <robin.murphy@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "mark.rutland@arm.com" <mark.rutland@arm.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, John Garry <john.garry@huawei.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linuxarm <linuxarm@huawei.com>
+To: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>, lorenzo.pieralisi@arm.com, jean-philippe.brucker@arm.com
+Cc: will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
+On 16/10/18 13:49, Shameer Kolothum wrote:
+> HiSilicon erratum 162001800 describes the limitation of
+> SMMUv3 PMCG implementation on HiSilicon Hip08 platforms.
+> 
+> On these platforms, the PMCG event counter registers
+> (SMMU_PMCG_EVCNTRn) are read only and as a result it is
+> not possible to set the initial counter period value on
+> event monitor start.
 
+How the... oh well, never mind :(
 
-> -----Original Message-----
-> From: kbuild test robot [mailto:lkp@intel.com]
-> Sent: 17 October 2018 22:53
-> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
-> Cc: kbuild-all@01.org; lorenzo.pieralisi@arm.com; robin.murphy@arm.com;
-> jean-philippe.brucker@arm.com; will.deacon@arm.com;
-> mark.rutland@arm.com; Guohanjun (Hanjun Guo) <guohanjun@huawei.com>;
-> John Garry <john.garry@huawei.com>; pabba@codeaurora.org;
-> vkilari@codeaurora.org; rruigrok@codeaurora.org; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
-> kernel@lists.infradead.org; Linuxarm <linuxarm@huawei.com>;
-> neil.m.leeder@gmail.com
-> Subject: Re: [PATCH v4 2/4] perf: add arm64 smmuv3 pmu driver
+> To work around this, the current value of the counter is
+> read and is used for delta calculations. This increases
+> the possibility of reporting incorrect values if counter
+> overflow happens and counter passes the initial value.
 > 
-> Hi Neil,
-> 
-> Thank you for the patch! Yet something to improve:
-> 
-> [auto build test ERROR on linux-sof-driver/master]
-> [also build test ERROR on v4.19-rc8 next-20181017]
-> [if your patch is applied to the wrong git tree, please drop us a note to help
-> improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Shameer-Kolothum/arm64-
-> SMMUv3-PMU-driver-with-IORT-support/20181017-063949
-> base:   https://github.com/thesofproject/linux master
-> config: xtensa-allyesconfig (attached as .config)
-> compiler: xtensa-linux-gcc (GCC) 8.1.0
-> reproduce:
->         wget https://raw.githubusercontent.com/intel/lkp-
-> tests/master/sbin/make.cross -O ~/bin/make.cross
->         chmod +x ~/bin/make.cross
->         # save the attached .config to linux build tree
->         GCC_VERSION=8.1.0 make.cross ARCH=xtensa
-> 
-> All errors (new ones prefixed by >>):
-> 
->    In file included from include/linux/kernel.h:11,
->                     from include/linux/list.h:9,
->                     from include/linux/resource_ext.h:17,
->                     from include/linux/acpi.h:26,
->                     from drivers//perf/arm_smmuv3_pmu.c:37:
->    drivers//perf/arm_smmuv3_pmu.c: In function
-> 'smmu_pmu_counter_set_value':
->    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
-> count-overflow]
->     #define BIT(nr)   (1UL << (nr))
->                            ^~
->    drivers//perf/arm_smmuv3_pmu.c:145:31: note: in expansion of macro 'BIT'
->      if (smmu_pmu->counter_mask & BIT(32))
->                                   ^~~
->    drivers//perf/arm_smmuv3_pmu.c:146:3: error: implicit declaration of
-> function 'writeq'; did you mean 'writel'? [-Werror=implicit-function-
-> declaration]
->       writeq(value, smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
->       ^~~~~~
->       writel
->    In file included from include/linux/kernel.h:11,
->                     from include/linux/list.h:9,
->                     from include/linux/resource_ext.h:17,
->                     from include/linux/acpi.h:26,
->                     from drivers//perf/arm_smmuv3_pmu.c:37:
->    drivers//perf/arm_smmuv3_pmu.c: In function
-> 'smmu_pmu_counter_get_value':
->    include/linux/bitops.h:7:24: warning: left shift count >= width of type [-Wshift-
-> count-overflow]
->     #define BIT(nr)   (1UL << (nr))
->                            ^~
->    drivers//perf/arm_smmuv3_pmu.c:155:31: note: in expansion of macro 'BIT'
->      if (smmu_pmu->counter_mask & BIT(32))
->                                   ^~~
->    drivers//perf/arm_smmuv3_pmu.c:156:11: error: implicit declaration of
-> function 'readq'; did you mean 'readl'? [-Werror=implicit-function-declaration]
->       value = readq(smmu_pmu->reloc_base + SMMU_PMCG_EVCNTR(idx, 8));
->               ^~~~~
->               readl
+> OEM information from ACPI header is used to identify the
+> affected hardware platform.
 
-Right. This again is linked to the COMPILE_TEST added in this version of the series.
-It looks like these functions has dependency on architecture (CONFIG_64BIT). I will 
-take care of this in next revision.
+I'm guessing they don't implement anything useful for SMMU_PMCG_ID_REGS? 
+(notwithstanding the known chicken-and-egg problem with how to interpret 
+those)
 
-Thanks,
-Shameer
-
->    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_reset':
->    drivers//perf/arm_smmuv3_pmu.c:607:2: error: implicit declaration of
-> function 'writeq_relaxed'; did you mean 'writel_relaxed'? [-Werror=implicit-
-> function-declaration]
->      writeq_relaxed(smmu_pmu->counter_present_mask,
->      ^~~~~~~~~~~~~~
->      writel_relaxed
->    drivers//perf/arm_smmuv3_pmu.c: In function 'smmu_pmu_probe':
-> >> drivers//perf/arm_smmuv3_pmu.c:666:15: error: implicit declaration of
-> function 'readq_relaxed'; did you mean 'readl_relaxed'? [-Werror=implicit-
-> function-declaration]
->      ceid_64[0] = readq_relaxed(smmu_pmu->reg_base +
-> SMMU_PMCG_CEID0);
->                   ^~~~~~~~~~~~~
->                   readl_relaxed
->    drivers//perf/arm_smmuv3_pmu.c:687:64: warning: format '%llx' expects
-> argument of type 'long long unsigned int', but argument 4 has type
-> 'resource_size_t' {aka 'unsigned int'} [-Wformat=]
->      name = devm_kasprintf(&pdev->dev, GFP_KERNEL, "smmuv3_pmcg_%llx",
->                                                                 ~~~^
->                                                                 %x
->    cc1: some warnings being treated as errors
-> 
-> vim +666 drivers//perf/arm_smmuv3_pmu.c
-> 
->    601
->    602	static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
->    603	{
->    604		smmu_pmu_disable(&smmu_pmu->pmu);
->    605
->    606		/* Disable counter and interrupt */
->  > 607		writeq_relaxed(smmu_pmu->counter_present_mask,
->    608			       smmu_pmu->reg_base +
-> SMMU_PMCG_CNTENCLR0);
->    609		writeq_relaxed(smmu_pmu->counter_present_mask,
->    610			       smmu_pmu->reg_base +
-> SMMU_PMCG_INTENCLR0);
->    611		writeq_relaxed(smmu_pmu->counter_present_mask,
->    612			       smmu_pmu->reloc_base +
-> SMMU_PMCG_OVSCLR0);
->    613	}
->    614
->    615	static int smmu_pmu_probe(struct platform_device *pdev)
->    616	{
->    617		struct smmu_pmu *smmu_pmu;
->    618		struct resource *res_0, *res_1;
->    619		u32 cfgr, reg_size;
->    620		u64 ceid_64[2];
->    621		int irq, err;
->    622		char *name;
->    623		struct device *dev = &pdev->dev;
->    624
->    625		smmu_pmu = devm_kzalloc(dev, sizeof(*smmu_pmu),
-> GFP_KERNEL);
->    626		if (!smmu_pmu)
->    627			return -ENOMEM;
->    628
->    629		smmu_pmu->dev = dev;
->    630		platform_set_drvdata(pdev, smmu_pmu);
->    631
->    632		smmu_pmu->pmu = (struct pmu) {
->    633			.task_ctx_nr    = perf_invalid_context,
->    634			.pmu_enable	= smmu_pmu_enable,
->    635			.pmu_disable	= smmu_pmu_disable,
->    636			.event_init	= smmu_pmu_event_init,
->    637			.add		= smmu_pmu_event_add,
->    638			.del		= smmu_pmu_event_del,
->    639			.start		= smmu_pmu_event_start,
->    640			.stop		= smmu_pmu_event_stop,
->    641			.read		= smmu_pmu_event_read,
->    642			.attr_groups	= smmu_pmu_attr_grps,
->    643		};
->    644
->    645		res_0 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->    646		smmu_pmu->reg_base = devm_ioremap_resource(dev, res_0);
->    647		if (IS_ERR(smmu_pmu->reg_base))
->    648			return PTR_ERR(smmu_pmu->reg_base);
->    649
->    650		cfgr = readl_relaxed(smmu_pmu->reg_base +
-> SMMU_PMCG_CFGR);
->    651
->    652		/* Determine if page 1 is present */
->    653		if (cfgr & SMMU_PMCG_CFGR_RELOC_CTRS) {
->    654			res_1 = platform_get_resource(pdev,
-> IORESOURCE_MEM, 1);
->    655			smmu_pmu->reloc_base =
-> devm_ioremap_resource(dev, res_1);
->    656			if (IS_ERR(smmu_pmu->reloc_base))
->    657				return PTR_ERR(smmu_pmu->reloc_base);
->    658		} else {
->    659			smmu_pmu->reloc_base = smmu_pmu->reg_base;
->    660		}
->    661
->    662		irq = platform_get_irq(pdev, 0);
->    663		if (irq > 0)
->    664			smmu_pmu->irq = irq;
->    665
->  > 666		ceid_64[0] = readq_relaxed(smmu_pmu->reg_base +
-> SMMU_PMCG_CEID0);
->    667		ceid_64[1] = readq_relaxed(smmu_pmu->reg_base +
-> SMMU_PMCG_CEID1);
->    668		bitmap_from_arr32(smmu_pmu->supported_events, (u32
-> *)ceid_64,
->    669				  SMMU_ARCH_MAX_EVENTS);
->    670
->    671		smmu_pmu->num_counters =
-> FIELD_GET(SMMU_PMCG_CFGR_NCTR_MASK, cfgr) + 1;
->    672		smmu_pmu->counter_present_mask = GENMASK(smmu_pmu-
-> >num_counters - 1, 0);
->    673
->    674		smmu_pmu->sid_filter_global = !!(cfgr &
-> SMMU_PMCG_CFGR_SID_FILTER_TYPE);
->    675
->    676		reg_size = FIELD_GET(SMMU_PMCG_CFGR_SIZE_MASK, cfgr);
->    677		smmu_pmu->counter_mask = GENMASK_ULL(reg_size, 0);
->    678
->    679		smmu_pmu_reset(smmu_pmu);
->    680
->    681		err = smmu_pmu_setup_irq(smmu_pmu);
->    682		if (err) {
->    683			dev_err(dev, "Setup irq failed, PMU @%pa\n", &res_0-
-> >start);
->    684			return err;
->    685		}
->    686
->    687		name = devm_kasprintf(&pdev->dev, GFP_KERNEL,
-> "smmuv3_pmcg_%llx",
->    688				      (res_0->start) >> SMMU_PA_SHIFT);
->    689		if (!name) {
->    690			dev_err(dev, "Create name failed, PMU @%pa\n",
-> &res_0->start);
->    691			return -EINVAL;
->    692		}
->    693
->    694		/* Pick one CPU to be the preferred one to use */
->    695		smmu_pmu->on_cpu = get_cpu();
->    696		WARN_ON(irq_set_affinity(smmu_pmu->irq,
-> cpumask_of(smmu_pmu->on_cpu)));
->    697
->    698		err = cpuhp_state_add_instance_nocalls(cpuhp_state_num,
->    699						       &smmu_pmu->node);
->    700		if (err) {
->    701			dev_err(dev, "Error %d registering hotplug, PMU
-> @%pa\n",
->    702				err, &res_0->start);
->    703			goto out_cpuhp_err;
->    704		}
->    705
->    706		err = perf_pmu_register(&smmu_pmu->pmu, name, -1);
->    707		if (err) {
->    708			dev_err(dev, "Error %d registering PMU @%pa\n",
->    709				err, &res_0->start);
->    710			goto out_unregister;
->    711		}
->    712
->    713		put_cpu();
->    714		dev_info(dev, "Registered PMU @ %pa using %d counters with
-> %s filter settings\n",
->    715			 &res_0->start, smmu_pmu->num_counters,
->    716			 smmu_pmu->sid_filter_global ? "Global(Counter0)" :
->    717			 "Individual");
->    718
->    719		return 0;
->    720
->    721	out_unregister:
->    722		cpuhp_state_remove_instance_nocalls(cpuhp_state_num,
-> &smmu_pmu->node);
->    723	out_cpuhp_err:
->    724		put_cpu();
->    725		return err;
->    726	}
->    727
-> 
+> Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>   drivers/perf/arm_smmuv3_pmu.c | 137 +++++++++++++++++++++++++++++++++++++++---
+>   1 file changed, 130 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
+> index d927ef8..519545e 100644
+> --- a/drivers/perf/arm_smmuv3_pmu.c
+> +++ b/drivers/perf/arm_smmuv3_pmu.c
+> @@ -96,6 +96,8 @@
+>   
+>   #define SMMU_PA_SHIFT                   12
+>   
+> +#define SMMU_PMU_OPT_EVCNTR_RDONLY	(1 << 0)
+> +
+>   static int cpuhp_state_num;
+>   
+>   struct smmu_pmu {
+> @@ -111,10 +113,55 @@ struct smmu_pmu {
+>   	struct device *dev;
+>   	void __iomem *reg_base;
+>   	void __iomem *reloc_base;
+> +	u32 options;
+>   	u64 counter_present_mask;
+>   	u64 counter_mask;
+>   };
+>   
+> +struct erratum_acpi_oem_info {
+> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
+> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
+> +	u32 oem_revision;
+> +};
+> +
+> +static struct erratum_acpi_oem_info hisi_162001800_oem_info[] = {
+> +	/*
+> +	 * Note that trailing spaces are required to properly match
+> +	 * the OEM table information.
+> +	 */
+> +	{
+> +		.oem_id         = "HISI  ",
+> +		.oem_table_id   = "HIP08   ",
+> +		.oem_revision   = 0,
+> +	},
+> +	{ /* Sentinel indicating the end of the OEM array */ },
+> +};
+> +
+> +enum smmu_pmu_erratum_match_type {
+> +	se_match_acpi_oem,
+> +};
+> +
+> +void hisi_erratum_evcntr_rdonly(struct smmu_pmu *smmu_pmu)
+> +{
+> +	smmu_pmu->options |= SMMU_PMU_OPT_EVCNTR_RDONLY;
+> +}
+> +
+> +struct smmu_pmu_erratum_wa {
+> +	enum smmu_pmu_erratum_match_type match_type;
+> +	const void *id;	/* Indicate the Erratum ID */
+> +	const char *desc_str;
+> +	void (*enable)(struct smmu_pmu *smmu_pmu);
+> +};
+> +
+> +static const struct smmu_pmu_erratum_wa smmu_pmu_wa[] = {
+> +	{
+> +		.match_type = se_match_acpi_oem,
+> +		.id = hisi_162001800_oem_info,
+> +		.desc_str = "HiSilicon erratum 162001800",
+> +		.enable = hisi_erratum_evcntr_rdonly,
+> +	},
+> +};
+> +
+
+There's an awful lot of raw ACPI internals splashed about here - 
+couldn't at least some of it be abstracted behind the IORT code? In 
+fact, can't IORT just set all this stuff up in advance like it does for 
+SMMUs?
+
+>   #define to_smmu_pmu(p) (container_of(p, struct smmu_pmu, pmu))
+>   
+>   #define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start, _end)        \
+> @@ -224,15 +271,20 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
+>   	u32 idx = hwc->idx;
+>   	u64 new;
+>   
+> -	/*
+> -	 * We limit the max period to half the max counter value of the counter
+> -	 * size, so that even in the case of extreme interrupt latency the
+> -	 * counter will (hopefully) not wrap past its initial value.
+> -	 */
+> -	new = smmu_pmu->counter_mask >> 1;
+> +	if (smmu_pmu->options & SMMU_PMU_OPT_EVCNTR_RDONLY) {
+> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
+
+Something's clearly missing, because if this happens to start at 0, the 
+current overflow handling code cannot possibly give the correct count. 
+Much as I hate the reset-to-half-period idiom for being impossible to 
+make sense of, it does make various aspects appear a lot simpler than 
+they really are. Wait, maybe that's yet another reason to hate it...
+
+> +	} else {
+> +		/*
+> +		 * We limit the max period to half the max counter value
+> +		 * of the counter size, so that even in the case of extreme
+> +		 * interrupt latency the counter will (hopefully) not wrap
+> +		 * past its initial value.
+> +		 */
+> +		new = smmu_pmu->counter_mask >> 1;
+> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+> +	}
+>   
+>   	local64_set(&hwc->prev_count, new);
+> -	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
+>   }
+>   
+>   static void smmu_pmu_get_event_filter(struct perf_event *event, u32 *span,
+> @@ -670,6 +722,69 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
+>   		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
+>   }
+>   
+> +typedef bool (*se_match_fn_t)(const struct smmu_pmu_erratum_wa *,
+> +			      const void *);
+> +
+> +bool smmu_pmu_check_acpi_erratum(const struct smmu_pmu_erratum_wa *wa,
+> +				const void *arg)
+> +{
+> +	static const struct erratum_acpi_oem_info empty_oem_info = {};
+> +	const struct erratum_acpi_oem_info *info = wa->id;
+> +	const struct acpi_table_header *hdr = arg;
+> +
+> +	/* Iterate over the ACPI OEM info array, looking for a match */
+> +	while (memcmp(info, &empty_oem_info, sizeof(*info))) {
+> +		if (!memcmp(info->oem_id, hdr->oem_id, ACPI_OEM_ID_SIZE) &&
+> +		    !memcmp(info->oem_table_id, hdr->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
+> +		    info->oem_revision == hdr->oem_revision)
+> +			return true;
+> +
+> +		info++;
+> +	}
+> +
+> +	return false;
+> +
+> +}
+> +
+> +static void smmu_pmu_enable_errata(struct smmu_pmu *smmu_pmu,
+> +				enum smmu_pmu_erratum_match_type type,
+> +				se_match_fn_t match_fn,
+> +				void *arg)
+> +{
+> +	const struct smmu_pmu_erratum_wa *wa = smmu_pmu_wa;
+> +
+> +	for (; wa->desc_str; wa++) {
+> +		if (wa->match_type != type)
+> +			continue;
+> +
+> +		if (match_fn(wa, arg)) {
+> +			if (wa->enable) {
+> +				wa->enable(smmu_pmu);
+> +				dev_info(smmu_pmu->dev,
+> +					"Enabling workaround for %s\n",
+> +					 wa->desc_str);
+> +			}
+
+Just how many kinds of broken are we expecting here? Is this lifted from 
+the arm64 cpufeature framework, because it seems like absolute overkill 
+for a simple PMU driver which in all reality is only ever going to 
+wiggle a few flags in some data structure.
+
+Robin.
+
+> +		}
+> +	}
+> +}
+> +
+> +static void smmu_pmu_check_workarounds(struct smmu_pmu *smmu_pmu,
+> +				  enum smmu_pmu_erratum_match_type type,
+> +				  void *arg)
+> +{
+> +	se_match_fn_t match_fn = NULL;
+> +
+> +	switch (type) {
+> +	case se_match_acpi_oem:
+> +		match_fn = smmu_pmu_check_acpi_erratum;
+> +		break;
+> +	default:
+> +		return;
+> +	}
+> +
+> +	smmu_pmu_enable_errata(smmu_pmu, type, match_fn, arg);
+> +}
+> +
+>   static int smmu_pmu_probe(struct platform_device *pdev)
+>   {
+>   	struct smmu_pmu *smmu_pmu;
+> @@ -678,6 +793,7 @@ static int smmu_pmu_probe(struct platform_device *pdev)
+>   	u64 ceid_64[2];
+>   	int irq, err;
+>   	char *name;
+> +	struct acpi_table_header *table;
+>   	struct device *dev = &pdev->dev;
+>   
+>   	smmu_pmu = devm_kzalloc(dev, sizeof(*smmu_pmu), GFP_KERNEL);
+> @@ -749,6 +865,13 @@ static int smmu_pmu_probe(struct platform_device *pdev)
+>   		return -EINVAL;
+>   	}
+>   
+> +	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_IORT, 0, &table))) {
+> +		dev_err(dev, "IORT get failed, PMU @%pa\n", &res_0->start);
+> +		return -EINVAL;
+> +	}
+> +
+> +	smmu_pmu_check_workarounds(smmu_pmu, se_match_acpi_oem, table);
+> +
+>   	/* Pick one CPU to be the preferred one to use */
+>   	smmu_pmu->on_cpu = get_cpu();
+>   	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
+> 
