@@ -1,263 +1,144 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Mon, 22 Oct 2018 11:42:05 -0400
-Message-ID: <20181022154204.kagmdb55jtoez4ca@gabell>
-References: <20181011055154.GB6667@localhost.localdomain>
- <20181013201958.zfzv5ahhe3xz7bwi@gabell>
- <20181013203429.GE31650@zn.tnic>
- <20181013214550.ag5qzokhkrkwnzsy@gabell>
- <20181013220541.GI31650@zn.tnic>
- <20181015005035.z3xym6nx43hogdge@gabell>
- <20181016151353.punyk7exekut2543@gabell>
- <20181016191113.GI5212@zn.tnic>
- <20181016195429.tovdgqq77gz3eek2@gabell>
- <20181016195902.GK5212@zn.tnic>
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: 4.18: early boot crash in thermal_cooling_device_destroy_sysfs
+Date: Mon, 22 Oct 2018 11:37:25 -0700
+Message-ID: <4a200a32-7d7f-1248-2ecd-74600083b1c1@infradead.org>
+References: <c1e0c7c7-2ed9-39fd-b3e0-aebf4d5839a3@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181016195902.GK5212@zn.tnic>
+In-Reply-To: <c1e0c7c7-2ed9-39fd-b3e0-aebf4d5839a3@infradead.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris,
 
-On Tue, Oct 16, 2018 at 09:59:02PM +0200, Borislav Petkov wrote:
-> On Tue, Oct 16, 2018 at 03:54:30PM -0400, Masayoshi Mizuma wrote:
-> > Ah, sorry, I misunderstood your suggetion...
-> > In parse_setup_data(), the data is picked up from boot_params,
+On 8/16/18 2:33 PM, Randy Dunlap wrote:
+> Hi,
 > 
-> Yes, this is the pointer to the setup_data linked list head. See
+> Sorry for the photo.  That's all I have available so far.
 > 
-> Documentation/ABI/testing/sysfs-kernel-boot_params
-> Documentation/x86/boot.txt
+> https://www.infradead.org/~rdunlap/doc/IMG_20180816_133254743_HDR.jpg
 > 
-> for more information and basically grep the tree for examples.
+> 
+> Does anyone recognize this?
+> 
+> This is an (older) Toshiba laptop.  The kernel .config is mostly an
+> allmodconfig with some DEBUG options disabled and other options enabled
+> so that it can boot without using an initramfs.  (and with COMPILE_TEST
+> disabled :)
+> 
+> 
+> The full kernel .config file is attached.
+> 
+> Thanks,
+> 
 
-I'm trying to store the SRAT info and pass it to kernel_randomize_memory(),
-looks like add_e820ext()/parse_setup_data().
+This is a result of CONFIG_DEBUG_TEST_DRIVER_REMOVE=y.
+[switch from 64-bit to 32-bit machine]
 
-Is the approach useful only EFI environment? I'm not sure how I
-allocate memory to store the data in legacy bios environment...
-On EFI, I can use efi_call_early(allocate_pool, EFI_LOADER_DATA, ...).
 
-Am I missing something? I would appreciate if you could help my
-understanding.
+When using CONFIG_DEBUG_VM=y, it BUGs at:
+[    5.553603] ------------[ cut here ]------------
+[    5.553733] kernel BUG at arch/x86/mm/physaddr.c:75!
+[    5.557788] invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+[    5.558738] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc7 #4
+[    5.558738] Hardware name: Dell Inc. Inspiron 1318                   /0C236D, BIOS A04 01/15/2009
+[    5.558738] EIP: __phys_addr+0x40/0x90
+[    5.558738] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89 d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91 00 00 80 00 39 d0
+[    5.558738] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
+[    5.558738] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP: f40c1e08
+[    5.558738] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210a97
+[    5.558738] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4: 000406d0
+[    5.558738] Call Trace:
+[    5.558738]  kfree+0x1f/0x160
+[    5.558738]  thermal_cooling_device_destroy_sysfs+0x11/0x20
+[    5.558738]  thermal_cooling_device_unregister+0x168/0x180
+[    5.558738]  acpi_pss_perf_exit.isra.4+0x32/0x50
+[    5.558738]  acpi_processor_stop+0x4d/0x60
+[    5.558738]  really_probe+0xa3/0x3e0
+[    5.558738]  driver_probe_device+0x5b/0x120
+[    5.558738]  __driver_attach+0xd9/0x100
+[    5.558738]  ? driver_probe_device+0x120/0x120
+[    5.558738]  bus_for_each_dev+0x56/0x90
+[    5.558738]  driver_attach+0x14/0x20
+[    5.558738]  ? driver_probe_device+0x120/0x120
+[    5.558738]  bus_add_driver+0x117/0x210
+[    5.558738]  driver_register+0x61/0xb0
+[    5.558738]  acpi_processor_driver_init+0x19/0x88
+[    5.558738]  ? acpi_pci_slot_init+0xf/0xf
+[    5.558738]  do_one_initcall+0x3e/0x15a
+[    5.558738]  ? do_early_param+0x75/0x75
+[    5.558738]  kernel_init_freeable+0x170/0x1f3
+[    5.558738]  ? rest_init+0xcd/0xcd
+[    5.558738]  kernel_init+0x8/0xdb
+[    5.558738]  ret_from_fork+0x2e/0x38
+[    5.558738] Modules linked in:
+[    5.625269] _warn_unseeded_randomness: 1 callbacks suppressed
+[    5.625272] random: get_random_bytes called from init_oops_id+0x3a/0x40 with crng_init=0
+[    5.629758] ---[ end trace 65b17bf4d18e7692 ]---
+[    5.631573] EIP: __phys_addr+0x40/0x90
+[    5.633242] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89 d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91 00 00 80 00 39 d0
+[    5.638618] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
+[    5.640703] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP: d4cb13dc
+[    5.642801] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210a97
+[    5.645053] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4: 000406d0
+[    5.647179] Kernel panic - not syncing: Fatal exception
+[    5.648172] Kernel Offset: 0x13000000 from 0xc1000000 (relocation range: 0xc0000000-0xf77fdfff)
+[    5.648172] ---[ end Kernel panic - not syncing: Fatal exception ]---
 
-Following patch is a prototype for EFI enviromnent.
----
- arch/x86/boot/compressed/acpitb.c     | 23 ++++++++++-
- arch/x86/boot/compressed/eboot.c      | 36 +++++++++++++++++
- arch/x86/include/uapi/asm/bootparam.h |  1 +
- arch/x86/mm/kaslr.c                   | 58 ++++++++++++++++++++++++++-
- 4 files changed, 116 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
-index d119663..b79560c 100644
---- a/arch/x86/boot/compressed/acpitb.c
-+++ b/arch/x86/boot/compressed/acpitb.c
-@@ -309,6 +309,20 @@ static struct acpi_table_header *get_acpi_srat_table(void)
- 	return NULL;
- }
+When not using CONFIG_DEBUG_VM, it BUGs in kfree:
+[    5.497864] ------------[ cut here ]------------
+[    5.498215] kernel BUG at mm/slub.c:3901!
+[    5.501739] invalid opcode: 0000 [#1] PREEMPT SMP
+[    5.502720] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc7 #3
+[    5.502720] Hardware name: Dell Inc. Inspiron 1318                   /0C236D, BIOS A04 01/15/2009
+[    5.502720] EIP: kfree+0x117/0x150
+[    5.502720] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89 d9 89 f8 6a 01 53
+[    5.502720] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
+[    5.502720] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP: f4083e10
+[    5.502720] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210246
+[    5.502720] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4: 000406d0
+[    5.502720] Call Trace:
+[    5.502720]  thermal_cooling_device_destroy_sysfs+0x11/0x20
+[    5.502720]  thermal_cooling_device_unregister+0x168/0x180
+[    5.502720]  acpi_pss_perf_exit.isra.4+0x32/0x50
+[    5.502720]  acpi_processor_stop+0x4d/0x60
+[    5.502720]  really_probe+0xa3/0x3e0
+[    5.502720]  driver_probe_device+0x5b/0x120
+[    5.502720]  __driver_attach+0xd9/0x100
+[    5.502720]  ? driver_probe_device+0x120/0x120
+[    5.502720]  bus_for_each_dev+0x56/0x90
+[    5.502720]  driver_attach+0x14/0x20
+[    5.502720]  ? driver_probe_device+0x120/0x120
+[    5.502720]  bus_add_driver+0x117/0x210
+[    5.502720]  driver_register+0x61/0xb0
+[    5.502720]  acpi_processor_driver_init+0x19/0x88
+[    5.502720]  ? acpi_pci_slot_init+0xf/0xf
+[    5.502720]  do_one_initcall+0x3e/0x15a
+[    5.502720]  ? do_early_param+0x75/0x75
+[    5.502720]  kernel_init_freeable+0x170/0x1f3
+[    5.502720]  ? rest_init+0xcd/0xcd
+[    5.502720]  kernel_init+0x8/0xdb
+[    5.502720]  ret_from_fork+0x2e/0x38
+[    5.502720] Modules linked in:
+[    5.567678] _warn_unseeded_randomness: 1 callbacks suppressed
+[    5.567682] random: get_random_bytes called from init_oops_id+0x3a/0x40 with crng_init=0
+[    5.572237] ---[ end trace 1b6e88c03e412db2 ]---
+[    5.574099] EIP: kfree+0x117/0x150
+[    5.575673] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89 d9 89 f8 6a 01 53
+[    5.581124] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
+[    5.583243] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP: cce983dc
+[    5.585347] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210246
+[    5.587600] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4: 000406d0
+[    5.589747] Kernel panic - not syncing: Fatal exception
+[    5.590740] Kernel Offset: 0xb200000 from 0xc1000000 (relocation range: 0xc0000000-0xf77fdfff)
+[    5.590740] ---[ end Kernel panic - not syncing: Fatal exception ]---
 
-+static void store_possible_addr(unsigned long long possible)
-+{
-+	struct setup_data *data;
-+
-+	data = (struct setup_data *)(unsigned long)boot_params->hdr.setup_data;
-+	while (data) {
-+		if (data->type == SETUP_KASLR) {
-+			*(unsigned long long *)data->data = possible;
-+			return;
-+		}
-+		data = (struct setup_data *)(unsigned long)data->next;
-+	}
-+}
-+
- /*
-  * According to ACPI table, filter the immvoable memory regions
-  * and store them in immovable_mem[].
-@@ -319,6 +333,7 @@ void get_immovable_mem(void)
- 	struct acpi_subtable_header *table;
- 	struct acpi_srat_mem_affinity *ma;
- 	unsigned long table_end;
-+	unsigned long long possible_addr, max_possible_addr = 0;
- 	int i = 0;
 
- 	if (!cmdline_find_option_bool("movable_node") ||
-@@ -338,7 +353,12 @@ void get_immovable_mem(void)
- 		       sizeof(struct acpi_subtable_header) < table_end) {
- 		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
- 			ma = (struct acpi_srat_mem_affinity *)table;
--			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
-+
-+			if (ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) {
-+				possible_addr = ma->base_address + ma->length;
-+				if (possible_addr > max_possible_addr)
-+					max_possible_addr = possible_addr;
-+			} else {
- 				immovable_mem[i].start = ma->base_address;
- 				immovable_mem[i].size = ma->length;
- 				i++;
-@@ -351,4 +371,5 @@ void get_immovable_mem(void)
- 			((unsigned long)table + table->length);
- 	}
- 	num_immovable_mem = i;
-+	store_possible_addr(max_possible_addr);
- }
-diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
-index 1458b17..9b95fba 100644
---- a/arch/x86/boot/compressed/eboot.c
-+++ b/arch/x86/boot/compressed/eboot.c
-@@ -192,6 +192,40 @@ static void setup_efi_pci(struct boot_params *params)
- 	efi_call_early(free_pool, pci_handle);
- }
 
-+#ifdef CONFIG_RANDOMIZE_MEMORY
-+static void setup_kaslr(struct boot_params *params)
-+{
-+	struct setup_data *kaslr_data = NULL;
-+	struct setup_data *data;
-+	unsigned long size;
-+	efi_status_t status;
-+
-+	size = sizeof(struct setup_data) + sizeof(unsigned long long);
-+
-+	status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
-+			size, (void **)&kaslr_data);
-+	if (status != EFI_SUCCESS) {
-+		efi_printk(sys_table, "Failed to allocate memory for 'kaslr_data'\n");
-+		return;
-+	}
-+
-+	kaslr_data->type = SETUP_KASLR;
-+	kaslr_data->next = 0;
-+	kaslr_data->len = size;
-+
-+	data = (struct setup_data *)(unsigned long)params->hdr.setup_data;
-+	if (data)
-+		data->next = (unsigned long)kaslr_data;
-+	else {
-+		while (data->next)
-+			data = (struct setup_data *)(unsigned long)data->next;
-+		data->next = (unsigned long)kaslr_data;
-+	}
-+}
-+#else
-+static void setup_kaslr(struct boot_params *params) {}
-+#endif
-+
- static void retrieve_apple_device_properties(struct boot_params *boot_params)
- {
- 	efi_guid_t guid = APPLE_PROPERTIES_PROTOCOL_GUID;
-@@ -770,6 +804,8 @@ efi_main(struct efi_config *c, struct boot_params *boot_params)
-
- 	setup_efi_pci(boot_params);
-
-+	setup_kaslr(boot_params);
-+
- 	setup_quirks(boot_params);
-
- 	status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
-diff --git a/arch/x86/include/uapi/asm/bootparam.h b/arch/x86/include/uapi/asm/bootparam.h
-index a06cbf0..0a44d83 100644
---- a/arch/x86/include/uapi/asm/bootparam.h
-+++ b/arch/x86/include/uapi/asm/bootparam.h
-@@ -10,6 +10,7 @@
- #define SETUP_EFI			4
- #define SETUP_APPLE_PROPERTIES		5
- #define SETUP_JAILHOUSE			6
-+#define SETUP_KASLR			7
-
- /* ram_size flags */
- #define RAMDISK_IMAGE_START_MASK	0x07FF
-diff --git a/arch/x86/mm/kaslr.c b/arch/x86/mm/kaslr.c
-index 61db77b..6f91cf4 100644
---- a/arch/x86/mm/kaslr.c
-+++ b/arch/x86/mm/kaslr.c
-@@ -28,6 +28,7 @@
- #include <asm/pgtable.h>
- #include <asm/setup.h>
- #include <asm/kaslr.h>
-+#include <linux/io.h>
-
- #include "mm_internal.h"
-
-@@ -69,6 +70,61 @@ static inline bool kaslr_memory_enabled(void)
- 	return kaslr_enabled() && !IS_ENABLED(CONFIG_KASAN);
- }
-
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+static unsigned long long __init get_max_possible_addr(void)
-+{
-+	struct setup_data *data;
-+	u64 pa_data;
-+	unsigned long long max = 0;
-+
-+	pa_data = boot_params.hdr.setup_data;
-+	while (pa_data) {
-+		data = early_memremap(pa_data, sizeof(*data));
-+		if (!data)
-+			return 0;
-+
-+		if (data->type == SETUP_KASLR) {
-+			max = *(unsigned long long *)data->data;
-+			early_memunmap(data, sizeof(*data));
-+			return max;
-+		}
-+		pa_data = data->next;
-+		early_memunmap(data, sizeof(*data));
-+	}
-+
-+	return max;
-+}
-+
-+static unsigned int __init kaslr_padding(void)
-+{
-+	unsigned long long max_possible_addr;
-+	unsigned long long max_possible_phys, max_actual_phys, threshold;
-+	unsigned int rand_mem_physical_padding =
-+				CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+
-+	max_possible_addr = get_max_possible_addr();
-+	if (!max_possible_addr)
-+		goto out;
-+
-+	max_actual_phys = roundup(PFN_PHYS(max_pfn), 1ULL << TB_SHIFT);
-+	max_possible_phys = roundup(max_possible_addr,
-+					1ULL << TB_SHIFT);
-+	threshold = max_actual_phys +
-+		((unsigned long long)rand_mem_physical_padding << TB_SHIFT);
-+
-+	if (max_possible_phys > threshold)
-+		rand_mem_physical_padding =
-+			(max_possible_phys - max_actual_phys) >> TB_SHIFT;
-+out:
-+	return rand_mem_physical_padding;
-+}
-+#else
-+static unsigned int __init kaslr_padding(void)
-+{
-+	return CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+}
-+#endif
-+
- /* Initialize base and padding for each memory region randomized with KASLR */
- void __init kernel_randomize_memory(void)
- {
-@@ -102,7 +158,7 @@ void __init kernel_randomize_memory(void)
- 	 */
- 	BUG_ON(kaslr_regions[0].base != &page_offset_base);
- 	memory_tb = DIV_ROUND_UP(max_pfn << PAGE_SHIFT, 1UL << TB_SHIFT) +
--		CONFIG_RANDOMIZE_MEMORY_PHYSICAL_PADDING;
-+		kaslr_padding();
-
- 	/* Adapt phyiscal memory region size based on available memory */
- 	if (memory_tb < kaslr_regions[0].size_tb)
---
-
-Thanks!
-Masa
+-- 
+~Randy
