@@ -1,144 +1,177 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: 4.18: early boot crash in thermal_cooling_device_destroy_sysfs
-Date: Mon, 22 Oct 2018 11:37:25 -0700
-Message-ID: <4a200a32-7d7f-1248-2ecd-74600083b1c1@infradead.org>
-References: <c1e0c7c7-2ed9-39fd-b3e0-aebf4d5839a3@infradead.org>
+From: Rajat Jain <rajatja@google.com>
+Subject: Re: [PATCH] mmc: sdhci-pci: Try "cd" for card-detect lookup before
+ using NULL
+Date: Mon, 22 Oct 2018 16:34:55 -0700
+Message-ID: <CACK8Z6HOsUcPFyf-GguxPxh_Zdj6gCXP=FpGw-vQXJfnM=cquw@mail.gmail.com>
+References: <CACRpkdY7eaYk81CU8gmHKfWB82_qNJur=c=7SCRuW+BNeL=Oiw@mail.gmail.com>
+ <20181018215101.169847-1-rajatja@google.com> <CAHp75Vd_r4QGR5xw2cJigM2J3WStg_0PdynBXMZOyZh+t1znKg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c1e0c7c7-2ed9-39fd-b3e0-aebf4d5839a3@infradead.org>
-Content-Language: en-US
+In-Reply-To: <CAHp75Vd_r4QGR5xw2cJigM2J3WStg_0PdynBXMZOyZh+t1znKg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Andy,
 
-On 8/16/18 2:33 PM, Randy Dunlap wrote:
-> Hi,
-> 
-> Sorry for the photo.  That's all I have available so far.
-> 
-> https://www.infradead.org/~rdunlap/doc/IMG_20180816_133254743_HDR.jpg
-> 
-> 
-> Does anyone recognize this?
-> 
-> This is an (older) Toshiba laptop.  The kernel .config is mostly an
-> allmodconfig with some DEBUG options disabled and other options enabled
-> so that it can boot without using an initramfs.  (and with COMPILE_TEST
-> disabled :)
-> 
-> 
-> The full kernel .config file is attached.
-> 
-> Thanks,
-> 
+Thanks for your review.
 
-This is a result of CONFIG_DEBUG_TEST_DRIVER_REMOVE=y.
-[switch from 64-bit to 32-bit machine]
+On Fri, Oct 19, 2018 at 2:13 AM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+>
+> On Fri, Oct 19, 2018 at 12:53 AM Rajat Jain <rajatja@google.com> wrote:
+> >
+> > Problem:
+> >
+> > The card detect IRQ does not work with modern BIOS (that want
+> > to use DSD to provide the card detect GPIO to the driver).
+> >
+> > Details:
+> >
+>
+> > (Discussion: https://lkml.org/lkml/2018/9/25/1113)
+>
+> We have a Link tag for such references.
+>
+> > The mmc core provides the mmc_gpiod_request_cd() API to let host drivers
+> > request the gpio descriptor for the "card detect" (or carrier detect?) pin.
+>
+> card detect is a right term.
+>
+> > This pin is specified in the ACPI for the SDHC device:
+> >
+> >  * Either as a resource using _CRS. This is a method used by legacy BIOS.
+> >    (The driver needs to tell which resource index).
+> >
+> >  * Or as a named property ("cd-gpio") in DSD (which may internally point
+>
+> cd-gpios (gpio suffix is a legacy).
+>
+> >    to an entry in _CRS). This way, the driver can lookup using a string.
+> >    This is what modern BIOS prefer to use.
+> >
+> > This API finally results in a call to the following code:
+> >
+> > struct gpio_desc *acpi_find_gpio(..., const char *con_id,...)
+> > {
+> > ...
+> >    /* Lookup gpio (using "<con_id>-gpio") in the _DSD */
+> > ...
+> >    if (!acpi_can_fallback_to_crs(adev, con_id))
+> >           return ERR_PTR(-ENOENT);
+> > ...
+> >    /* Falling back to _CRS is allowed, Lookup gpio in the _CRS */
+> > ...
+> > }
+> >
+> > Note that this means that if the ACPI has _DSD properties, the kernel
+> > will never use _CRS for the lookup (Because acpi_can_fallback_to_crs()
+> > will always be false for any device hat has _DSD entries).
+> >
+> > The SDHCI driver is thus currently broken on a modern BIOS
+>
+> > (even if
+> > BIOS provides both _CRS and DSD entries, either of which could be used for
+>
+> _DSD
+>
+> > a successful lookup).
+>
+> This is incorrect. _DSD for GPIOs without any accompanying _CRS
+> doesn't make any sense.
+>
+> > Ironically, none of these will be used for the
+> > lookup currently because:
+> >
+> > * Since the con_id is NULL, acpi_find_gpio() does not find a matching
+> >   entry in DSDT. (The DSDT entry has the property name = "cd-gpio")
+>
+> cd-gpios
+>
+> >
+> > * Because ACPI contains DSDT entries, thus acpi_can_fallback_to_crs()
+> >   returns false (because device properties have been populated from
+> >   DSD), thus the _CRS is never used for the lookup.
+>
+> _DSD
+>
+> >
+> > Fix:
+> >
+> > Try "cd" for lookup in the _DSD before falling back to using NULL so
+> > as to try looking up in the _CRS.
+> >
+> > I've tested this patch successfully with both Legacy BIOS (that
+> > provide only _CRS method) as well as modern BIOS (that provide both
+> > _CRS and DSD). Also the use of "cd" also appears to be farly consistent
+>
+> _DSD
+> fairly
 
+I can fix the commit log to take care of all your review comments.
 
-When using CONFIG_DEBUG_VM=y, it BUGs at:
-[    5.553603] ------------[ cut here ]------------
-[    5.553733] kernel BUG at arch/x86/mm/physaddr.c:75!
-[    5.557788] invalid opcode: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-[    5.558738] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc7 #4
-[    5.558738] Hardware name: Dell Inc. Inspiron 1318                   /0C236D, BIOS A04 01/15/2009
-[    5.558738] EIP: __phys_addr+0x40/0x90
-[    5.558738] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89 d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91 00 00 80 00 39 d0
-[    5.558738] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
-[    5.558738] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP: f40c1e08
-[    5.558738] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210a97
-[    5.558738] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4: 000406d0
-[    5.558738] Call Trace:
-[    5.558738]  kfree+0x1f/0x160
-[    5.558738]  thermal_cooling_device_destroy_sysfs+0x11/0x20
-[    5.558738]  thermal_cooling_device_unregister+0x168/0x180
-[    5.558738]  acpi_pss_perf_exit.isra.4+0x32/0x50
-[    5.558738]  acpi_processor_stop+0x4d/0x60
-[    5.558738]  really_probe+0xa3/0x3e0
-[    5.558738]  driver_probe_device+0x5b/0x120
-[    5.558738]  __driver_attach+0xd9/0x100
-[    5.558738]  ? driver_probe_device+0x120/0x120
-[    5.558738]  bus_for_each_dev+0x56/0x90
-[    5.558738]  driver_attach+0x14/0x20
-[    5.558738]  ? driver_probe_device+0x120/0x120
-[    5.558738]  bus_add_driver+0x117/0x210
-[    5.558738]  driver_register+0x61/0xb0
-[    5.558738]  acpi_processor_driver_init+0x19/0x88
-[    5.558738]  ? acpi_pci_slot_init+0xf/0xf
-[    5.558738]  do_one_initcall+0x3e/0x15a
-[    5.558738]  ? do_early_param+0x75/0x75
-[    5.558738]  kernel_init_freeable+0x170/0x1f3
-[    5.558738]  ? rest_init+0xcd/0xcd
-[    5.558738]  kernel_init+0x8/0xdb
-[    5.558738]  ret_from_fork+0x2e/0x38
-[    5.558738] Modules linked in:
-[    5.625269] _warn_unseeded_randomness: 1 callbacks suppressed
-[    5.625272] random: get_random_bytes called from init_oops_id+0x3a/0x40 with crng_init=0
-[    5.629758] ---[ end trace 65b17bf4d18e7692 ]---
-[    5.631573] EIP: __phys_addr+0x40/0x90
-[    5.633242] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89 d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91 00 00 80 00 39 d0
-[    5.638618] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
-[    5.640703] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP: d4cb13dc
-[    5.642801] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210a97
-[    5.645053] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4: 000406d0
-[    5.647179] Kernel panic - not syncing: Fatal exception
-[    5.648172] Kernel Offset: 0x13000000 from 0xc1000000 (relocation range: 0xc0000000-0xf77fdfff)
-[    5.648172] ---[ end Kernel panic - not syncing: Fatal exception ]---
+>
+> > across other users of this API (other MMC host controller drivers).
+>
+> >         if (slot->cd_idx >= 0) {
+> > -               ret = mmc_gpiod_request_cd(host->mmc, NULL, slot->cd_idx,
+> > +               ret = mmc_gpiod_request_cd(host->mmc, "cd", slot->cd_idx,
+> >                                            slot->cd_override_level, 0, NULL);
+>
+> Yes.
+>
+> > +               if (ret && ret != -EPROBE_DEFER)
+> > +                       ret = mmc_gpiod_request_cd(host->mmc, NULL,
+> > +                                                  slot->cd_idx,
+> > +                                                  slot->cd_override_level,
+> > +                                                  0, NULL);
+>
+> And no. Instead of this part you need to provide an ACPI GPIO mapping table.
 
+Sure, I am willing to do so, and I tried earlier too. However, certain
+doubts arose in my mind when I tried that and I posted my questions
+earlier (https://lkml.org/lkml/2018/9/28/507) but couldn't elicit any
+response. Unfortunately I still do not have answers. My primary
+questions are:
 
-When not using CONFIG_DEBUG_VM, it BUGs in kfree:
-[    5.497864] ------------[ cut here ]------------
-[    5.498215] kernel BUG at mm/slub.c:3901!
-[    5.501739] invalid opcode: 0000 [#1] PREEMPT SMP
-[    5.502720] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0-rc7 #3
-[    5.502720] Hardware name: Dell Inc. Inspiron 1318                   /0C236D, BIOS A04 01/15/2009
-[    5.502720] EIP: kfree+0x117/0x150
-[    5.502720] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89 d9 89 f8 6a 01 53
-[    5.502720] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
-[    5.502720] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP: f4083e10
-[    5.502720] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210246
-[    5.502720] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4: 000406d0
-[    5.502720] Call Trace:
-[    5.502720]  thermal_cooling_device_destroy_sysfs+0x11/0x20
-[    5.502720]  thermal_cooling_device_unregister+0x168/0x180
-[    5.502720]  acpi_pss_perf_exit.isra.4+0x32/0x50
-[    5.502720]  acpi_processor_stop+0x4d/0x60
-[    5.502720]  really_probe+0xa3/0x3e0
-[    5.502720]  driver_probe_device+0x5b/0x120
-[    5.502720]  __driver_attach+0xd9/0x100
-[    5.502720]  ? driver_probe_device+0x120/0x120
-[    5.502720]  bus_for_each_dev+0x56/0x90
-[    5.502720]  driver_attach+0x14/0x20
-[    5.502720]  ? driver_probe_device+0x120/0x120
-[    5.502720]  bus_add_driver+0x117/0x210
-[    5.502720]  driver_register+0x61/0xb0
-[    5.502720]  acpi_processor_driver_init+0x19/0x88
-[    5.502720]  ? acpi_pci_slot_init+0xf/0xf
-[    5.502720]  do_one_initcall+0x3e/0x15a
-[    5.502720]  ? do_early_param+0x75/0x75
-[    5.502720]  kernel_init_freeable+0x170/0x1f3
-[    5.502720]  ? rest_init+0xcd/0xcd
-[    5.502720]  kernel_init+0x8/0xdb
-[    5.502720]  ret_from_fork+0x2e/0x38
-[    5.502720] Modules linked in:
-[    5.567678] _warn_unseeded_randomness: 1 callbacks suppressed
-[    5.567682] random: get_random_bytes called from init_oops_id+0x3a/0x40 with crng_init=0
-[    5.572237] ---[ end trace 1b6e88c03e412db2 ]---
-[    5.574099] EIP: kfree+0x117/0x150
-[    5.575673] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89 d9 89 f8 6a 01 53
-[    5.581124] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX: 00000000
-[    5.583243] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP: cce983dc
-[    5.585347] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068 EFLAGS: 00210246
-[    5.587600] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4: 000406d0
-[    5.589747] Kernel panic - not syncing: Fatal exception
-[    5.590740] Kernel Offset: 0xb200000 from 0xc1000000 (relocation range: 0xc0000000-0xf77fdfff)
-[    5.590740] ---[ end Kernel panic - not syncing: Fatal exception ]---
+1) - It seems that 1 SDHCI device may support multiple slots (looking
+at the code). It is not clear to me if they could share card detect
+interrupts, or should have separate ones? Also, the driver may not
+really know? So should I add 1 or two pins using the
+devm_acpi_dev_add_driver_gpios(). Is some one familiar with SDHC
+driver can answer these questions, it shall be great.
 
+2) I'm not really sure what should I set "active_low" to? Isn't this
+something that should be specified by platform / ACPI too, and driver
+should just be able to say say choose whatever the ACPI says?
 
+struct acpi_gpio_params {
+        unsigned int crs_entry_index;
+        unsigned int line_index;
+        bool active_low;
+};
 
--- 
-~Randy
+Since I do not understand the above two issues, and thus I chose the
+safest path and not disturb the current code so as not to cause any
+regressions.
+
+Please let me know, and I'm happy to re-spin my patch.
+
+Thanks,
+
+Rajat
+
+>
+> See examples, like
+> net/rfkill/rfkill-gpio.c
+>
+> (look for acpi_rfkill_default_gpios)
+>
+> >                 if (ret == -EPROBE_DEFER)
+> >                         goto remove;
+>
+> --
+> With Best Regards,
+> Andy Shevchenko
