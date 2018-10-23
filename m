@@ -1,177 +1,139 @@
-From: Rajat Jain <rajatja@google.com>
-Subject: Re: [PATCH] mmc: sdhci-pci: Try "cd" for card-detect lookup before
- using NULL
-Date: Mon, 22 Oct 2018 16:34:55 -0700
-Message-ID: <CACK8Z6HOsUcPFyf-GguxPxh_Zdj6gCXP=FpGw-vQXJfnM=cquw@mail.gmail.com>
-References: <CACRpkdY7eaYk81CU8gmHKfWB82_qNJur=c=7SCRuW+BNeL=Oiw@mail.gmail.com>
- <20181018215101.169847-1-rajatja@google.com> <CAHp75Vd_r4QGR5xw2cJigM2J3WStg_0PdynBXMZOyZh+t1znKg@mail.gmail.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
+ in immovable memory
+Date: Tue, 23 Oct 2018 10:48:02 +0800
+Message-ID: <20181023024801.GA25978@localhost.localdomain>
+References: <20181013201958.zfzv5ahhe3xz7bwi@gabell>
+ <20181013203429.GE31650@zn.tnic>
+ <20181013214550.ag5qzokhkrkwnzsy@gabell>
+ <20181013220541.GI31650@zn.tnic>
+ <20181015005035.z3xym6nx43hogdge@gabell>
+ <20181016151353.punyk7exekut2543@gabell>
+ <20181016191113.GI5212@zn.tnic>
+ <20181016195429.tovdgqq77gz3eek2@gabell>
+ <20181016195902.GK5212@zn.tnic>
+ <20181022154204.kagmdb55jtoez4ca@gabell>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Vd_r4QGR5xw2cJigM2J3WStg_0PdynBXMZOyZh+t1znKg@mail.gmail.com>
+Content-Disposition: inline
+In-Reply-To: <20181022154204.kagmdb55jtoez4ca@gabell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "Hunter, Adrian" <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>, Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Andy,
+On Mon, Oct 22, 2018 at 11:42:05AM -0400, Masayoshi Mizuma wrote:
+>Hi Boris,
 
-Thanks for your review.
+Hi Mizuma-san,
 
-On Fri, Oct 19, 2018 at 2:13 AM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Fri, Oct 19, 2018 at 12:53 AM Rajat Jain <rajatja@google.com> wrote:
-> >
-> > Problem:
-> >
-> > The card detect IRQ does not work with modern BIOS (that want
-> > to use DSD to provide the card detect GPIO to the driver).
-> >
-> > Details:
-> >
->
-> > (Discussion: https://lkml.org/lkml/2018/9/25/1113)
->
-> We have a Link tag for such references.
->
-> > The mmc core provides the mmc_gpiod_request_cd() API to let host drivers
-> > request the gpio descriptor for the "card detect" (or carrier detect?) pin.
->
-> card detect is a right term.
->
-> > This pin is specified in the ACPI for the SDHC device:
-> >
-> >  * Either as a resource using _CRS. This is a method used by legacy BIOS.
-> >    (The driver needs to tell which resource index).
-> >
-> >  * Or as a named property ("cd-gpio") in DSD (which may internally point
->
-> cd-gpios (gpio suffix is a legacy).
->
-> >    to an entry in _CRS). This way, the driver can lookup using a string.
-> >    This is what modern BIOS prefer to use.
-> >
-> > This API finally results in a call to the following code:
-> >
-> > struct gpio_desc *acpi_find_gpio(..., const char *con_id,...)
-> > {
-> > ...
-> >    /* Lookup gpio (using "<con_id>-gpio") in the _DSD */
-> > ...
-> >    if (!acpi_can_fallback_to_crs(adev, con_id))
-> >           return ERR_PTR(-ENOENT);
-> > ...
-> >    /* Falling back to _CRS is allowed, Lookup gpio in the _CRS */
-> > ...
-> > }
-> >
-> > Note that this means that if the ACPI has _DSD properties, the kernel
-> > will never use _CRS for the lookup (Because acpi_can_fallback_to_crs()
-> > will always be false for any device hat has _DSD entries).
-> >
-> > The SDHCI driver is thus currently broken on a modern BIOS
->
-> > (even if
-> > BIOS provides both _CRS and DSD entries, either of which could be used for
->
-> _DSD
->
-> > a successful lookup).
->
-> This is incorrect. _DSD for GPIOs without any accompanying _CRS
-> doesn't make any sense.
->
-> > Ironically, none of these will be used for the
-> > lookup currently because:
-> >
-> > * Since the con_id is NULL, acpi_find_gpio() does not find a matching
-> >   entry in DSDT. (The DSDT entry has the property name = "cd-gpio")
->
-> cd-gpios
->
-> >
-> > * Because ACPI contains DSDT entries, thus acpi_can_fallback_to_crs()
-> >   returns false (because device properties have been populated from
-> >   DSD), thus the _CRS is never used for the lookup.
->
-> _DSD
->
-> >
-> > Fix:
-> >
-> > Try "cd" for lookup in the _DSD before falling back to using NULL so
-> > as to try looking up in the _CRS.
-> >
-> > I've tested this patch successfully with both Legacy BIOS (that
-> > provide only _CRS method) as well as modern BIOS (that provide both
-> > _CRS and DSD). Also the use of "cd" also appears to be farly consistent
->
-> _DSD
-> fairly
+I have several questions:
 
-I can fix the commit log to take care of all your review comments.
+>+static void store_possible_addr(unsigned long long possible)
+>+{
+>+	struct setup_data *data;
+>+
+>+	data = (struct setup_data *)(unsigned long)boot_params->hdr.setup_data;
+I suggest you add check:
 
+	if (!data) {
+		debug_putstr("No setup_data found.\n");
+		return;
+	}
+
+>+	while (data) {
+>+		if (data->type == SETUP_KASLR) {
+>+			*(unsigned long long *)data->data = possible;
+>+			return;
+>+		}
+>+		data = (struct setup_data *)(unsigned long)data->next;
+>+	}
+>+}
+>+
+> /*
+>  * According to ACPI table, filter the immvoable memory regions
+>  * and store them in immovable_mem[].
+>@@ -319,6 +333,7 @@ void get_immovable_mem(void)
+> 	struct acpi_subtable_header *table;
+> 	struct acpi_srat_mem_affinity *ma;
+> 	unsigned long table_end;
+>+	unsigned long long possible_addr, max_possible_addr = 0;
+> 	int i = 0;
 >
-> > across other users of this API (other MMC host controller drivers).
+> 	if (!cmdline_find_option_bool("movable_node") ||
+>@@ -338,7 +353,12 @@ void get_immovable_mem(void)
+> 		       sizeof(struct acpi_subtable_header) < table_end) {
+> 		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
+> 			ma = (struct acpi_srat_mem_affinity *)table;
+>-			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
+>+
+>+			if (ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) {
+>+				possible_addr = ma->base_address + ma->length;
+>+				if (possible_addr > max_possible_addr)
+>+					max_possible_addr = possible_addr;
+>+			} else {
+> 				immovable_mem[i].start = ma->base_address;
+> 				immovable_mem[i].size = ma->length;
+> 				i++;
+>@@ -351,4 +371,5 @@ void get_immovable_mem(void)
+> 			((unsigned long)table + table->length);
+> 	}
+> 	num_immovable_mem = i;
+>+	store_possible_addr(max_possible_addr);
+> }
+>diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
+>index 1458b17..9b95fba 100644
+>--- a/arch/x86/boot/compressed/eboot.c
+>+++ b/arch/x86/boot/compressed/eboot.c
+>@@ -192,6 +192,40 @@ static void setup_efi_pci(struct boot_params *params)
+> 	efi_call_early(free_pool, pci_handle);
+> }
 >
-> >         if (slot->cd_idx >= 0) {
-> > -               ret = mmc_gpiod_request_cd(host->mmc, NULL, slot->cd_idx,
-> > +               ret = mmc_gpiod_request_cd(host->mmc, "cd", slot->cd_idx,
-> >                                            slot->cd_override_level, 0, NULL);
->
-> Yes.
->
-> > +               if (ret && ret != -EPROBE_DEFER)
-> > +                       ret = mmc_gpiod_request_cd(host->mmc, NULL,
-> > +                                                  slot->cd_idx,
-> > +                                                  slot->cd_override_level,
-> > +                                                  0, NULL);
->
-> And no. Instead of this part you need to provide an ACPI GPIO mapping table.
+>+#ifdef CONFIG_RANDOMIZE_MEMORY
+>+static void setup_kaslr(struct boot_params *params)
+>+{
+>+	struct setup_data *kaslr_data = NULL;
+>+	struct setup_data *data;
+>+	unsigned long size;
+>+	efi_status_t status;
+>+
+>+	size = sizeof(struct setup_data) + sizeof(unsigned long long);
+>+
+>+	status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
+>+			size, (void **)&kaslr_data);
+>+	if (status != EFI_SUCCESS) {
+>+		efi_printk(sys_table, "Failed to allocate memory for 'kaslr_data'\n");
+>+		return;
+>+	}
+>+
+>+	kaslr_data->type = SETUP_KASLR;
+>+	kaslr_data->next = 0;
+>+	kaslr_data->len = size;
+>+
+>+	data = (struct setup_data *)(unsigned long)params->hdr.setup_data;
+>+	if (data)
+>+		data->next = (unsigned long)kaslr_data;
+Why just put the kaslr_data in data->next. You can't make sure
+data->next was NULL.
+>+	else {
+If data is NULL, go to this else{}, so these two lines below work?
+>+		while (data->next)
+>+			data = (struct setup_data *)(unsigned long)data->next;
+>+		data->next = (unsigned long)kaslr_data;
+>+	}
+If my understanding is not wrong, it should be:
 
-Sure, I am willing to do so, and I tried earlier too. However, certain
-doubts arose in my mind when I tried that and I posted my questions
-earlier (https://lkml.org/lkml/2018/9/28/507) but couldn't elicit any
-response. Unfortunately I still do not have answers. My primary
-questions are:
+	data = (struct setup_data *)(unsigned long)params->hdr.setup_data;
+	if (!data)
+		params->hdr.setup_data = (unsigned long)kaslr_data;
+	else {
+		while (data->next)
+			data = (struct setup_data *)(unsigned long)data->next;
+		data->next = (unsigned long)kaslr_data;
+	}
 
-1) - It seems that 1 SDHCI device may support multiple slots (looking
-at the code). It is not clear to me if they could share card detect
-interrupts, or should have separate ones? Also, the driver may not
-really know? So should I add 1 or two pins using the
-devm_acpi_dev_add_driver_gpios(). Is some one familiar with SDHC
-driver can answer these questions, it shall be great.
-
-2) I'm not really sure what should I set "active_low" to? Isn't this
-something that should be specified by platform / ACPI too, and driver
-should just be able to say say choose whatever the ACPI says?
-
-struct acpi_gpio_params {
-        unsigned int crs_entry_index;
-        unsigned int line_index;
-        bool active_low;
-};
-
-Since I do not understand the above two issues, and thus I chose the
-safest path and not disturb the current code so as not to cause any
-regressions.
-
-Please let me know, and I'm happy to re-spin my patch.
+If I misunderstand something, please tell me.
 
 Thanks,
-
-Rajat
-
->
-> See examples, like
-> net/rfkill/rfkill-gpio.c
->
-> (look for acpi_rfkill_default_gpios)
->
-> >                 if (ret == -EPROBE_DEFER)
-> >                         goto remove;
->
-> --
-> With Best Regards,
-> Andy Shevchenko
+Chao Fan
