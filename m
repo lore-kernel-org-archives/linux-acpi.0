@@ -1,51 +1,49 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Thu, 25 Oct 2018 09:40:51 -0400
-Message-ID: <20181025134050.ggiir77ehntikbwg@gabell>
-References: <20181013203429.GE31650@zn.tnic>
- <20181013214550.ag5qzokhkrkwnzsy@gabell>
- <20181013220541.GI31650@zn.tnic>
- <20181015005035.z3xym6nx43hogdge@gabell>
- <20181016151353.punyk7exekut2543@gabell>
- <20181016191113.GI5212@zn.tnic>
- <20181016195429.tovdgqq77gz3eek2@gabell>
- <20181016195902.GK5212@zn.tnic>
- <20181022154204.kagmdb55jtoez4ca@gabell>
- <20181025103345.GF14020@nazgul.tnic>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [PATCH v3 2/2] net: qcom/emac: add phy-handle support for ACPI
+Date: Fri, 26 Oct 2018 02:18:57 +0000
+Message-ID: <0a55d42c839140dd9a5264ab4dae4c8e@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <78719753-77bd-596a-dfc7-ccd676850283@kernel.org>
+ <cover.1540459999.git.dongsheng.wang@hxt-semitech.com>
+ <7935985e49270ad2948b2a52d26510bdf55572e6.1540459999.git.dongsheng.wang@hxt-semitech.com>
+ <20181025192430.GA16785@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181025103345.GF14020@nazgul.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: "timur@kernel.org" <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "robert.moore@intel.com" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Oct 25, 2018 at 12:33:45PM +0200, Borislav Petkov wrote:
-> On Mon, Oct 22, 2018 at 11:42:05AM -0400, Masayoshi Mizuma wrote:
-> > I'm trying to store the SRAT info and pass it to kernel_randomize_memory(),
-> > looks like add_e820ext()/parse_setup_data().
-> > 
-> > Is the approach useful only EFI environment? I'm not sure how I
-> 
-> Does it matter for non-EFI even?
-> 
-> I mean, you want this code only for your use case - when you have
-> movable memory and you're doing kexec, yes?
-> 
-> And those machines are all EFI boxes I'd assume...
+On 2018/10/26 3:24, Andrew Lunn wrote:
+> On Thu, Oct 25, 2018 at 06:09:15PM +0800, Wang Dongsheng wrote:
+>> Use "phy-handle" to porint an internal MDIO device port.
+> Hi Dongsheng
+>
+> You are basically defining how all future ACPI based MAC drivers get
+> access to their PHY. This needs to become part of the ACPI standard,
+> etc.
+>
+> This code should not be hidden away in the emac driver. It needs to be
+> placed somewhere public so other drivers can use it. And it needs good
+> documentation, including an example of what needs to go into the ACPI
+> tables, etc.
+Hi Andrew
 
-My actual use case is for EFI boxes, however, I think it's better to useful
-for legacy BIOS as well because memory hot-plug affinity in SRAT and KASLR
-are available on legacy BIOS.
-Actually, we can create such environment in qemu.
+I saw AppliedMicro(apm) xgene has used "phy-handle" for ACPI method, so
+I guess "phy-handle" has become part of the ACPI standard. But I cannot
+make sure.
+I tried to confirm the property is defined in the document(Like DT
+binding). However, I did not find any documentation on the description
+property definition on the UEFI/ACPICA website.
+But when I was reading Documentation/acpi/DSD-properties-rules.txt, my
+understanding is we should try to conform to DT bindings. So maybe ACPI
+doesn't have such a document, just DT bindings.
 
-I have another idea to solve this issue. Adding a SRAT parsing code
-to arch/x86/mm/kaslr.c. It is useful for both EFI and BIOS and
-also we don't need a new kernel parameter...
-Dose the idea make sense?
+Cheers,
+Dongsheng
 
-Thanks,
-Masa
+> Thanks
+> 	Andrew
+>
