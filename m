@@ -1,75 +1,121 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [PATCH v3 2/2] net: qcom/emac: add phy-handle support for ACPI
-Date: Mon, 29 Oct 2018 13:40:44 +0100
-Message-ID: <20181029124044.GB9174@lunn.ch>
-References: <78719753-77bd-596a-dfc7-ccd676850283@kernel.org>
- <cover.1540459999.git.dongsheng.wang@hxt-semitech.com>
- <7935985e49270ad2948b2a52d26510bdf55572e6.1540459999.git.dongsheng.wang@hxt-semitech.com>
- <20181025192430.GA16785@lunn.ch>
- <0a55d42c839140dd9a5264ab4dae4c8e@HXTBJIDCEMVIW02.hxtcorp.net>
- <ea868a30-13a1-f695-4e34-d873d975ebc9@kernel.org>
- <a1adfc5a696d40388ad9bf982f0ff64d@HXTBJIDCEMVIW02.hxtcorp.net>
- <20181026131301.GC30093@lunn.ch>
- <4f5563ba21604315b93cf128f18ce067@HXTBJIDCEMVIW02.hxtcorp.net>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] mmc: sdhci-pci: Try "cd" for card-detect lookup before
+ using NULL
+Date: Mon, 29 Oct 2018 17:23:24 +0200
+Message-ID: <CAHp75VfMHqT+aAGVaXzXGbzF2=VEABOOaGhkjfV-D0NPbBM+Rw@mail.gmail.com>
+References: <CACRpkdY7eaYk81CU8gmHKfWB82_qNJur=c=7SCRuW+BNeL=Oiw@mail.gmail.com>
+ <20181018215101.169847-1-rajatja@google.com> <CAHp75Vd_r4QGR5xw2cJigM2J3WStg_0PdynBXMZOyZh+t1znKg@mail.gmail.com>
+ <CACK8Z6HOsUcPFyf-GguxPxh_Zdj6gCXP=FpGw-vQXJfnM=cquw@mail.gmail.com>
+ <20181024100230.GQ10650@smile.fi.intel.com> <CAE_wzQ-80NCNbzbFx1eEDwEEOEAbv-5u+W171iUagY2pOahbmw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4f5563ba21604315b93cf128f18ce067@HXTBJIDCEMVIW02.hxtcorp.net>
-Sender: netdev-owner@vger.kernel.org
-To: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
-Cc: Timur Tabi <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "robert.moore@intel.com" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAE_wzQ-80NCNbzbFx1eEDwEEOEAbv-5u+W171iUagY2pOahbmw@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dmitry Torokhov <dtor@google.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rajat Jain <rajatja@google.com>, Adrian Hunter <adrian.hunter@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc <linux-mmc@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 29, 2018 at 02:39:36AM +0000, Wang, Dongsheng wrote:
-> On 2018/10/26 21:12, Andrew Lunn wrote:
-> > On Fri, Oct 26, 2018 at 03:04:25AM +0000, Wang, Dongsheng wrote:
-> >> On 2018/10/26 10:37, Timur Tabi wrote:
-> >>> On 10/25/18 9:18 PM, Wang, Dongsheng wrote:
-> >>>> But when I was reading Documentation/acpi/DSD-properties-rules.txt, my
-> >>>> understanding is we should try to conform to DT bindings. So maybe ACPI
-> >>>> doesn't have such a document, just DT bindings.
-> >>> There was an attempt to document DSDs, but it was abandoned after a while.
-> >>>
-> >>> https://github.com/ahs3/dsd
-> >>>
-> >> Yes, here's a database concept, and I asked some Intel guys, the answer
-> >> I got was there is no such database or document. :(
-> > Hi Dongsheng
+On Wed, Oct 24, 2018 at 9:03 PM Dmitry Torokhov <dtor@google.com> wrote:
+> On Wed, Oct 24, 2018 at 3:02 AM Andy Shevchenko
+> <andy.shevchenko@gmail.com> wrote:
+> > On Mon, Oct 22, 2018 at 04:34:55PM -0700, Rajat Jain wrote:
+> > > On Fri, Oct 19, 2018 at 2:13 AM Andy Shevchenko
+> > > <andy.shevchenko@gmail.com> wrote:
+> > > > On Fri, Oct 19, 2018 at 12:53 AM Rajat Jain <rajatja@google.com> wrote:
 > >
-> > If there is no clear documentation for ACPI, it becomes even more
-> > important that the xgene code is refactored into a central location,
-> > and you make use of it. We really need to avoid every ACPI ethernet
-> > driver doing its own thing.
-> 
-> However, without a document specifying MDIO and phy-handle, it is almost
-> difficult for us to do this. Because maybe the ACPI device or property
-> corresponding to each platform is different.
-> Just like APM looks different to us. APM's MDIO adev doesn't describe
-> the concept of port, and our platform does. Besides, I cannot get the
-> ACPI table of APM or other manufacturers.
-> The table of ACPI cannot be obtained from kernel source as easily as DT.
-> We can't know without a platform to do ACPI dump. Unless some of the
-> manufacturers have pushed the table to upstream.
-> So I think we might have a hard time doing this without a document. And
-> it's likely that this work involves code modifications by BIOS vendors.
+> > > > > across other users of this API (other MMC host controller drivers).
+> > > >
+> > > > >         if (slot->cd_idx >= 0) {
+> > > > > -               ret = mmc_gpiod_request_cd(host->mmc, NULL, slot->cd_idx,
+> > > > > +               ret = mmc_gpiod_request_cd(host->mmc, "cd", slot->cd_idx,
+> > > > >                                            slot->cd_override_level, 0, NULL);
+> > > >
+> > > > Yes.
+> > > >
+> > > > > +               if (ret && ret != -EPROBE_DEFER)
+> > > > > +                       ret = mmc_gpiod_request_cd(host->mmc, NULL,
+> > > > > +                                                  slot->cd_idx,
+> > > > > +                                                  slot->cd_override_level,
+> > > > > +                                                  0, NULL);
+> > > >
+> > > > And no. Instead of this part you need to provide an ACPI GPIO mapping table.
+> > >
+> > > Sure, I am willing to do so, and I tried earlier too. However, certain
+> > > doubts arose in my mind when I tried that and I posted my questions
+> > > earlier (https://lkml.org/lkml/2018/9/28/507) but couldn't elicit any
+> > > response. Unfortunately I still do not have answers. My primary
+> > > questions are:
+> > >
+> > > 1) - It seems that 1 SDHCI device may support multiple slots (looking
+> > > at the code). It is not clear to me if they could share card detect
+> > > interrupts, or should have separate ones?
+> >
+> > This is more likely question to HW engineers of your platform with a caveat
+> > that there should be a way to distinguish exact slot in which card is being
+> > inserted.
+> >
+> > > Also, the driver may not
+> > > really know?
+> >
+> > I think in such case the bug in HW design and / or driver.
+>
+> Why? You can have a shared or dedicated interrupt and the driver does
+> not really need to know if it can poll the status.
 
-Hi Dongsheng
+Yes, that's my point either we get 1:1 mapping between slot and GPIOs
+or have a possibility to read back from some register(s) the actual
+status of all of them, otherwise it's a bad design. Sorry if I wasn't
+clear about it.
 
-There are two different options here.
+> > > So should I add 1 or two pins using the
+> > > devm_acpi_dev_add_driver_gpios().
+> >
+> > This depends on the above, e.g. HW design, ACPI tables.
+>
+> Yes, it depends on the HW design and that is exactly why the approach
+> with devm_acpi_dev_add_driver_gpios() does not work well here: this is
+> a generic driver used on many platforms and you are trying to put the
+> platform knowledge into the driver. Here we are lucky I guess as I do
+> not believe anyone is using more than one slot, so we can have a tavle
+> with a single entry, but actually doing the fallback the way Rajat was
+> proposing is more correct. Or you have a table with N entries, where N
+> is hopefully sufficiently large.
 
-1) Everybody does their own thing, ignoring what everybody else has
-done, and invents their own wheel. There is no shared code, no shared
-description, everybody has their own bugs, etc. ACPI as a standard is
-pointless for Ethernet MDIOs and PHYs because it is not a standard,
-everybody does something different.
+Yes, unfortunately this is the case. We need to keep somewhere the
+list to support old firmwares (see hci_bcm.c as an example how BIOS
+can screw things up).
+Soonish we start _DSD in BIOSes in a correct way (ha-ha), better for everyone.
 
-2) Somebody takes the time to design a concept for Ethernet PHYs and
-MDIO busses using ACPI. They implement the common code, try to modify
-any existing users if possible, and submit the whole thing to become
-part of ACPI 6.3.
+> > > Is some one familiar with SDHC
+> > > driver can answer these questions, it shall be great.
+> >
+> > Actually above questions better to ask in linux-mmc mailing list, which by the
+> > fact is in Cc list already. So, wait for someone to clarify.
+> >
+> >
+> > > 2) I'm not really sure what should I set "active_low" to? Isn't this
+> > > something that should be specified by platform / ACPI too, and driver
+> > > should just be able to say say choose whatever the ACPI says?
+> > >
+> > > struct acpi_gpio_params {
+> > >         unsigned int crs_entry_index;
+> > >         unsigned int line_index;
+> > >         bool active_low;
+> > > };
+> >
+> >
+> > ACPI specification misses this property, that's why we have it in the
+> > structure. In your case it should be provided by _DSD and thus be consistent
+> > with the hardcoded values.
+>
+> Again, you think as if the driver was platform specific; it is not. I
+> have 1000s of systems with different ACPI tables. Let's say half of
+> them use one polarity, and half another. Which polarity do you propose
+> to use?
 
-I would really prefer we go the second route here. It is more initial
-effort, but in the long run, everybody benefits.
+Use one table for one half and another for the rest.
 
-	Andrew
+-- 
+With Best Regards,
+Andy Shevchenko
