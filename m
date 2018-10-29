@@ -1,105 +1,102 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH 1/3] PCI/AER: Option to leave System Error Interrupts
- as-is
-Date: Mon, 29 Oct 2018 16:06:51 -0500
-Message-ID: <20181029210651.GB13681@bhelgaas-glaptop.roam.corp.google.com>
-References: <1540585146-31876-1-git-send-email-jonathan.derrick@intel.com>
+From: Rajat Jain <rajatja@google.com>
+Subject: [PATCH v2] mmc: sdhci-pci: Try "cd" for card-detect lookup before
+ using NULL
+Date: Mon, 29 Oct 2018 15:17:01 -0700
+Message-ID: <20181029221701.51376-1-rajatja@google.com>
+References: <CAA93t1oaZ5zkv+BsGnYZg6pqKv0DzXi3j8oZHUyTyffUWHtHug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1540585146-31876-1-git-send-email-jonathan.derrick@intel.com>
+In-Reply-To: <CAA93t1oaZ5zkv+BsGnYZg6pqKv0DzXi3j8oZHUyTyffUWHtHug@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jon Derrick <jonathan.derrick@intel.com>
-Cc: linux-pci@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, Tyler Baicar <tbaicar@codeaurora.org>, Christoph Hellwig <hch@infradead.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: adrian.hunter@intel.com, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Rajat Jain <rajatja@google.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[+cc Rafael, Len, Tony, Borislav, Tyler, Christoph, linux-acpi, LKML]
+Problem:
 
-On Fri, Oct 26, 2018 at 02:19:04PM -0600, Jon Derrick wrote:
-> Add a bit in pci_host_bridge to indicate to leave the System Error
-> Interrupts as configured by the pre-boot environment. Propagate this to
-> the AER driver which disables System Error Interrupts.
-> 
-> Signed-off-by: Jon Derrick <jonathan.derrick@intel.com>
-> ---
->  drivers/pci/pcie/aer.c | 7 +++++--
->  include/linux/pci.h    | 3 +++
->  2 files changed, 8 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-> index 83180ed..6a4af63 100644
-> --- a/drivers/pci/pcie/aer.c
-> +++ b/drivers/pci/pcie/aer.c
-> @@ -1360,6 +1360,7 @@ static void set_downstream_devices_error_reporting(struct pci_dev *dev,
->  static void aer_enable_rootport(struct aer_rpc *rpc)
->  {
->  	struct pci_dev *pdev = rpc->rpd;
-> +	struct pci_host_bridge *host;
->  	int aer_pos;
->  	u16 reg16;
->  	u32 reg32;
-> @@ -1369,8 +1370,10 @@ static void aer_enable_rootport(struct aer_rpc *rpc)
->  	pcie_capability_write_word(pdev, PCI_EXP_DEVSTA, reg16);
->  
->  	/* Disable system error generation in response to error messages */
-> -	pcie_capability_clear_word(pdev, PCI_EXP_RTCTL,
-> -				   SYSTEM_ERROR_INTR_ON_MESG_MASK);
-> +	host = pci_find_host_bridge(pdev->bus);
-> +	if (!host->no_disable_sys_err)
-> +		pcie_capability_clear_word(pdev, PCI_EXP_RTCTL,
-> +					   SYSTEM_ERROR_INTR_ON_MESG_MASK);
+The card detect IRQ does not work with modern BIOS (that want
+to use _DSD to provide the card detect GPIO to the driver).
 
-If I squint hard enough this sort of makes sense, but it also makes me
-confused about the normal APEI firmware-first model works.
+Details:
 
-In the NON-firmare-first case, firmware isn't involved in handling AER
-errors.  The Linux AER driver fields an interrupt from a Root Port,
-reads AER log registers, etc.
+The mmc core provides the mmc_gpiod_request_cd() API to let host drivers
+request the gpio descriptor for the "card detect" pin.
+This pin is specified in the ACPI for the SDHC device:
 
-In the normal APEI firmware-first case, when the hardware reports an
-AER event, I think firmware gets control first, and *it* reads the AER
-log registers, packages them up, and generates an interrupt to the OS,
-which reads the packaged error state from the firmware via the HEST.
+ * Either as a resource using _CRS. This is a method used by legacy BIOS.
+   (The driver needs to tell which resource index).
 
-If I understand this special Intel VMD firmware-first case correctly,
-firmware gets control first, reads the AER log registers, and
-synthesizes what looks to the OS like a normal AER interrupt.  The
-Linux AER driver gets what it thinks is an interrupt from a Root Port,
-and it reads AER log registers from the hardware just like it does in
-the NON-firmware-first case.
+ * Or as a named property ("cd-gpios"/"cd-gpio") in _DSD (which internally
+   points to an entry in _CRS). This way, the driver can lookup using a
+   string. This is what modern BIOS prefer to use.
 
-My confusion is about how we manage the mechanism by which the
-firmware gets control first.  In the Intel VMD case, it looks like
-firmware fields the System Errors controlled by the Root Control
-register of Root Ports.  This patch adds some framework so we know not
-to touch something set up by firmware.
+This API finally results in a call to the following code:
 
-But in the normal APEI firmware-first case, we disable those System
-Errors in the Root Control registers, so firmware must get control
-some other way.
+struct gpio_desc *acpi_find_gpio(..., const char *con_id,...)
+{
+...
+   /* Lookup gpio (using "<con_id>-gpio") in the _DSD */
+...
+   if (!acpi_can_fallback_to_crs(adev, con_id))
+          return ERR_PTR(-ENOENT);
+...
+   /* Falling back to _CRS is allowed, Lookup gpio in the _CRS */
+...
+}
 
-How does the OS know what mechanism the firmware uses, so it can make
-sure to preserve it?  This patch might be part of the solution, but it
-seems pretty ad hoc, and of course it does nothing for the APEI
-firmware-first case.  How does firmware get control in that case?
+Note that this means that if the ACPI has _DSD properties, the kernel
+will never use _CRS for the lookup (Because acpi_can_fallback_to_crs()
+will always be false for any device hat has _DSD entries).
 
->  	aer_pos = pdev->aer_cap;
->  	/* Clear error status */
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 6925828..6fcfab4 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -484,6 +484,9 @@ struct pci_host_bridge {
->  	unsigned int	native_shpc_hotplug:1;	/* OS may use SHPC hotplug */
->  	unsigned int	native_pme:1;		/* OS may use PCIe PME */
->  	unsigned int	native_ltr:1;		/* OS may use PCIe LTR */
-> +	unsigned int	no_disable_sys_err:1;	/* Don't disable system
-> +						   error interrupts */
-> +
->  	/* Resource alignment requirements */
->  	resource_size_t (*align_resource)(struct pci_dev *dev,
->  			const struct resource *res,
-> -- 
-> 1.8.3.1
-> 
+The SDHCI driver is thus currently broken on a modern BIOS, even if
+BIOS provides both _CRS (for index based lookup) and _DSD entries (for
+string based lookup). Ironically, none of these will be used for the
+lookup currently because:
+
+* Since the con_id is NULL, acpi_find_gpio() does not find a matching
+  entry in DSDT. (The _DSDT entry has the property name = "cd-gpios")
+
+* Because ACPI contains DSDT entries, thus acpi_can_fallback_to_crs()
+  returns false (because device properties have been populated from
+  _DSD), thus the _CRS is never used for the lookup.
+
+Fix:
+
+Try "cd" for lookup in the _DSD before falling back to using NULL so
+as to try looking up in the _CRS.
+
+I've tested this patch successfully with both Legacy BIOS (that
+provide only _CRS method) as well as modern BIOS (that provide both
+_CRS and _DSD). Also the use of "cd" appears to be fairly consistent
+across other users of this API (other MMC host controller drivers).
+
+Link: https://lkml.org/lkml/2018/9/25/1113
+Signed-off-by: Rajat Jain <rajatja@google.com>
+---
+v2: Fix the commit log to take care of Andy's comments.
+
+ drivers/mmc/host/sdhci-pci-core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
+index 7bfd366d970d..e53333c695b3 100644
+--- a/drivers/mmc/host/sdhci-pci-core.c
++++ b/drivers/mmc/host/sdhci-pci-core.c
+@@ -1762,8 +1762,13 @@ static struct sdhci_pci_slot *sdhci_pci_probe_slot(
+ 		device_init_wakeup(&pdev->dev, true);
+ 
+ 	if (slot->cd_idx >= 0) {
+-		ret = mmc_gpiod_request_cd(host->mmc, NULL, slot->cd_idx,
++		ret = mmc_gpiod_request_cd(host->mmc, "cd", slot->cd_idx,
+ 					   slot->cd_override_level, 0, NULL);
++		if (ret && ret != -EPROBE_DEFER)
++			ret = mmc_gpiod_request_cd(host->mmc, NULL,
++						   slot->cd_idx,
++						   slot->cd_override_level,
++						   0, NULL);
+ 		if (ret == -EPROBE_DEFER)
+ 			goto remove;
+ 
+-- 
+2.19.1.568.g152ad8e336-goog
