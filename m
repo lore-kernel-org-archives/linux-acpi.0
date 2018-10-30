@@ -1,102 +1,81 @@
-From: Rajat Jain <rajatja@google.com>
-Subject: [PATCH v2] mmc: sdhci-pci: Try "cd" for card-detect lookup before
- using NULL
-Date: Mon, 29 Oct 2018 15:17:01 -0700
-Message-ID: <20181029221701.51376-1-rajatja@google.com>
-References: <CAA93t1oaZ5zkv+BsGnYZg6pqKv0DzXi3j8oZHUyTyffUWHtHug@mail.gmail.com>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [PATCH v3 2/2] net: qcom/emac: add phy-handle support for ACPI
+Date: Tue, 30 Oct 2018 05:15:21 +0000
+Message-ID: <f203bb0a0d154ede9010889dab313d4e@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <78719753-77bd-596a-dfc7-ccd676850283@kernel.org>
+ <cover.1540459999.git.dongsheng.wang@hxt-semitech.com>
+ <7935985e49270ad2948b2a52d26510bdf55572e6.1540459999.git.dongsheng.wang@hxt-semitech.com>
+ <20181025192430.GA16785@lunn.ch>
+ <0a55d42c839140dd9a5264ab4dae4c8e@HXTBJIDCEMVIW02.hxtcorp.net>
+ <ea868a30-13a1-f695-4e34-d873d975ebc9@kernel.org>
+ <a1adfc5a696d40388ad9bf982f0ff64d@HXTBJIDCEMVIW02.hxtcorp.net>
+ <20181026131301.GC30093@lunn.ch>
+ <4f5563ba21604315b93cf128f18ce067@HXTBJIDCEMVIW02.hxtcorp.net>
+ <20181029124044.GB9174@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAA93t1oaZ5zkv+BsGnYZg6pqKv0DzXi3j8oZHUyTyffUWHtHug@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: adrian.hunter@intel.com, Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Rajat Jain <rajatja@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: Timur Tabi <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "robert.moore@intel.com" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Problem:
+On 2018/10/29 20:40, Andrew Lunn wrote:
+> On Mon, Oct 29, 2018 at 02:39:36AM +0000, Wang, Dongsheng wrote:
+>> On 2018/10/26 21:12, Andrew Lunn wrote:
+>>> On Fri, Oct 26, 2018 at 03:04:25AM +0000, Wang, Dongsheng wrote:
+>>>> On 2018/10/26 10:37, Timur Tabi wrote:
+>>>>> On 10/25/18 9:18 PM, Wang, Dongsheng wrote:
+>>>>>> But when I was reading Documentation/acpi/DSD-properties-rules.txt, my
+>>>>>> understanding is we should try to conform to DT bindings. So maybe ACPI
+>>>>>> doesn't have such a document, just DT bindings.
+>>>>> There was an attempt to document DSDs, but it was abandoned after a while.
+>>>>>
+>>>>> https://github.com/ahs3/dsd
+>>>>>
+>>>> Yes, here's a database concept, and I asked some Intel guys, the answer
+>>>> I got was there is no such database or document. :(
+>>> Hi Dongsheng
+>>>
+>>> If there is no clear documentation for ACPI, it becomes even more
+>>> important that the xgene code is refactored into a central location,
+>>> and you make use of it. We really need to avoid every ACPI ethernet
+>>> driver doing its own thing.
+>> However, without a document specifying MDIO and phy-handle, it is almost
+>> difficult for us to do this. Because maybe the ACPI device or property
+>> corresponding to each platform is different.
+>> Just like APM looks different to us. APM's MDIO adev doesn't describe
+>> the concept of port, and our platform does. Besides, I cannot get the
+>> ACPI table of APM or other manufacturers.
+>> The table of ACPI cannot be obtained from kernel source as easily as DT.
+>> We can't know without a platform to do ACPI dump. Unless some of the
+>> manufacturers have pushed the table to upstream.
+>> So I think we might have a hard time doing this without a document. And
+>> it's likely that this work involves code modifications by BIOS vendors.
+> Hi Dongsheng
+>
+> There are two different options here.
+>
+> 1) Everybody does their own thing, ignoring what everybody else has
+> done, and invents their own wheel. There is no shared code, no shared
+> description, everybody has their own bugs, etc. ACPI as a standard is
+> pointless for Ethernet MDIOs and PHYs because it is not a standard,
+> everybody does something different.
+>
+> 2) Somebody takes the time to design a concept for Ethernet PHYs and
+> MDIO busses using ACPI. They implement the common code, try to modify
+> any existing users if possible, and submit the whole thing to become
+> part of ACPI 6.3.
+>
+> I would really prefer we go the second route here. It is more initial
+> effort, but in the long run, everybody benefits.
 
-The card detect IRQ does not work with modern BIOS (that want
-to use _DSD to provide the card detect GPIO to the driver).
+Yes, I also would like the second one. I will reply in a few days.
 
-Details:
+Cheers,
+Dongsheng
 
-The mmc core provides the mmc_gpiod_request_cd() API to let host drivers
-request the gpio descriptor for the "card detect" pin.
-This pin is specified in the ACPI for the SDHC device:
-
- * Either as a resource using _CRS. This is a method used by legacy BIOS.
-   (The driver needs to tell which resource index).
-
- * Or as a named property ("cd-gpios"/"cd-gpio") in _DSD (which internally
-   points to an entry in _CRS). This way, the driver can lookup using a
-   string. This is what modern BIOS prefer to use.
-
-This API finally results in a call to the following code:
-
-struct gpio_desc *acpi_find_gpio(..., const char *con_id,...)
-{
-...
-   /* Lookup gpio (using "<con_id>-gpio") in the _DSD */
-...
-   if (!acpi_can_fallback_to_crs(adev, con_id))
-          return ERR_PTR(-ENOENT);
-...
-   /* Falling back to _CRS is allowed, Lookup gpio in the _CRS */
-...
-}
-
-Note that this means that if the ACPI has _DSD properties, the kernel
-will never use _CRS for the lookup (Because acpi_can_fallback_to_crs()
-will always be false for any device hat has _DSD entries).
-
-The SDHCI driver is thus currently broken on a modern BIOS, even if
-BIOS provides both _CRS (for index based lookup) and _DSD entries (for
-string based lookup). Ironically, none of these will be used for the
-lookup currently because:
-
-* Since the con_id is NULL, acpi_find_gpio() does not find a matching
-  entry in DSDT. (The _DSDT entry has the property name = "cd-gpios")
-
-* Because ACPI contains DSDT entries, thus acpi_can_fallback_to_crs()
-  returns false (because device properties have been populated from
-  _DSD), thus the _CRS is never used for the lookup.
-
-Fix:
-
-Try "cd" for lookup in the _DSD before falling back to using NULL so
-as to try looking up in the _CRS.
-
-I've tested this patch successfully with both Legacy BIOS (that
-provide only _CRS method) as well as modern BIOS (that provide both
-_CRS and _DSD). Also the use of "cd" appears to be fairly consistent
-across other users of this API (other MMC host controller drivers).
-
-Link: https://lkml.org/lkml/2018/9/25/1113
-Signed-off-by: Rajat Jain <rajatja@google.com>
----
-v2: Fix the commit log to take care of Andy's comments.
-
- drivers/mmc/host/sdhci-pci-core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/mmc/host/sdhci-pci-core.c b/drivers/mmc/host/sdhci-pci-core.c
-index 7bfd366d970d..e53333c695b3 100644
---- a/drivers/mmc/host/sdhci-pci-core.c
-+++ b/drivers/mmc/host/sdhci-pci-core.c
-@@ -1762,8 +1762,13 @@ static struct sdhci_pci_slot *sdhci_pci_probe_slot(
- 		device_init_wakeup(&pdev->dev, true);
- 
- 	if (slot->cd_idx >= 0) {
--		ret = mmc_gpiod_request_cd(host->mmc, NULL, slot->cd_idx,
-+		ret = mmc_gpiod_request_cd(host->mmc, "cd", slot->cd_idx,
- 					   slot->cd_override_level, 0, NULL);
-+		if (ret && ret != -EPROBE_DEFER)
-+			ret = mmc_gpiod_request_cd(host->mmc, NULL,
-+						   slot->cd_idx,
-+						   slot->cd_override_level,
-+						   0, NULL);
- 		if (ret == -EPROBE_DEFER)
- 			goto remove;
- 
--- 
-2.19.1.568.g152ad8e336-goog
+> 	Andrew
+>
