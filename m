@@ -1,23 +1,117 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [GIT PULL] More ACPI updates for v4.20-rc1
-Date: Tue, 30 Oct 2018 09:16:36 -0700
-Message-ID: <CAHk-=wh9Nr_GcPL=PckizP-3-uvZXjm_M0HKQPeMjB+_GWJKiQ@mail.gmail.com>
-References: <CAJZ5v0ihPs+sU+s357sYNYBVmqd1CC2JH6_XvRsJQx1A_J7wJw@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC][PATCH v1] ACPI / scan: Create platform device for BOSC0200
+ ACPI nodes
+Date: Tue, 30 Oct 2018 19:52:32 +0100
+Message-ID: <93b9b138-2e58-8fcc-f86d-688afc3a59c1@redhat.com>
+References: <20181030144706.6737-1-andriy.shevchenko@linux.intel.com>
+ <3e34f7c0-e747-7393-4b79-317b8483f0a6@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0ihPs+sU+s357sYNYBVmqd1CC2JH6_XvRsJQx1A_J7wJw@mail.gmail.com>
+In-Reply-To: <3e34f7c0-e747-7393-4b79-317b8483f0a6@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rafael Wysocki <rafael@kernel.org>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-i2c@vger.kernel.org, x86@kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, linux-iio@vger.kernel.org, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Javier Martinez Canillas <javierm@redhat.com>
+Cc: Steven Presser <steve@pressers.name>, Bastien Nocera <hadess@hadess.net>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Oct 30, 2018 at 1:30 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
->
-> These rework the handling of the P-unit semaphore on Intel
-> Baytrail and Cherrytrail systems to avoid race conditions and
-> excessive overhead related to it (Hans de Goede).
+Hi,
 
-Pulled,
+On 30-10-18 16:27, Hans de Goede wrote:
+> Hi,
+> 
+> On 30-10-18 15:47, Andy Shevchenko wrote:
+>> On some laptops the ACPI device with BOSC0200 _HID is representing
+>> two accelerometers under one node.
+>>
+>> We add an ID to the I2C multi instantiate list to enumerate
+>> all I2C slaves correctly.
+> 
+> I believe that overall the approach here is correct, but I've
+> several (at least 4 different models) devices which use the
+> BOSC0200 _HID but with only 1 accelerometer / 1 I2cSerialBus
+> resource in the _CRS table.
+> 
+> So I believe that you need to add a new optional bool to
+> struct i2c_inst_data and ignore i2c_acpi_new_device()
+> returning NULL when this is set (and set it for the second
+> accelerometer).
+> 
+> i2c_unregister_device can handle NULL, so some entries
+> of the multi->clients[i] array ending up as NULL is not
+> a problem.
+> 
+> Hmm, I have just realized that there is another issue
+> which is a real problem, we have stuff like this:
+> 
+> [hans@shalem linux]$ ack BOSC0200 /lib/udev/hwdb.d/60-sensor.hwdb
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svnHampoo:pnD2D3_Vi8A1:*
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svnHampoo:pnX1D3_C806N:*
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svn*CHUWIINNOVATIONANDTECHNOLOGY*:pnHi10protablet:*
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svnHampoo:pnP02BD6_HI-122LP:*
+> # match the entire dmi-alias, assuming that the use of a BOSC0200 +
+> sensor:modalias:acpi:BOSC0200*:dmi:bvnAmericanMegatrendsInc.:bvr5.11:bd05/07/2016:svnDefaultstring:pnDefaultstring:pvrDefaultstring:rvnHampoo:rnCherryTrailCR:rvrDefaultstring:cvnDefaultstring:ct3:cvrDefaultstring:
+> sensor:modalias:acpi:BOSC0200*:dmi:bvnAmericanMegatrendsInc.:bvr5.11:bd05/28/2016:svnDefaultstring:pnDefaultstring:pvrDefaultstring:rvnHampoo:rnCherryTrailCR:rvrDefaultstring:cvnDefaultstring:ct3:cvrDefaultstring:
+> sensor:modalias:acpi:BOSC0200*:dmi:bvnINSYDECorp.:bvrjumperx.T87.KFBNEE*
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svnJumper:pnEZpad:*:rvr.A006:*
+> sensor:modalias:acpi:BOSC0200:BOSC0200:dmi:*ThinkPadYoga11e3rdGen*
+> sensor:modalias:acpi:*BOSC0200*:dmi:*:svnLENOVO*:pn80XF:*
+> sensor:modalias:acpi:*BOSC0200*:dmi:*:svnLENOVO*:pn80XE:*
+> sensor:modalias:acpi:BOSC0200*:dmi:*:svnLINX*:pnLINX1010B:*
+> 
+> And using i2c-multi-instantiate will change the modalias from
+> acpi:BOSC0200 to i2c:bmc150_accel breaking this.
+> 
+> One way to fix this would be making sure we only use an
+> i2c:bmc150_accel modalias for the second device. This will
+> also allow differentiating between the 2 in hwdb quirks for
+> devices with 2 accelerometers. But the way we currently
+> generate modalias-es does not allow doing this in an
+> easy way. Making this possible will require some changes to
+> show_modalias() and i2c_device_uevent() in
+> drivers/i2c/i2c-core-base.c
 
-                    Linus
+Ok, new idea how about we modify the code in acpi_device_enumeration_by_parent
+to instead of looking at a HID list, to simply count if there is more then
+1 I2cSerialBus resource and if that is the case enumerate the device as
+a platform device for i2c-multi-instantiate.c to handle. This means that
+we will only change the way how the BOSC0200 is enumerated on the
+Yoga 11e and not elsewhere.
+
+This is somewhat likely to trigger a regression somewhere, but we should
+be able to fix those regressions by adding the necessary info to
+i2c-multi-instantiate.c.  Then it could still be a problem because of
+the modalias changing for an i2c device from some other DSDT which we
+are not aware of yet, but that only is a problem if the modalias is
+used in hwdb. The actual driver for the hardware should bind to the
+new modalias too and if not we can fix that.
+
+I believe the amount of devices which turn out to have more then 1
+I2cSerialBus resource will be small and the set of devices which are already
+working somehow (because the 1st resource is the one we care about) and also
+have a hwdb entry will likely be very small and we can help users who
+hit this combo by providing hwdb patches.
+
+...
+
+Hmm, a quick random spot check of a few of the too many DSTDs I have
+turns out that at least the INT34D3 (Intel Whiskey Cove PMIC) will
+be bitten by this. This is trivial to fix though.
+
+And another one is the "CPLM3218" ambient light sensor, which does
+not have an in tree driver, but there is an out of tree one which
+is on my list to upstream...
+
+This will also cause us to stop generating i2c-clients for some of
+the camera sensors on BYT/CHT since some list multiple (some up to 10 ???)
+addresses I guess this is for some sorta auto-probe function in
+the windows drivers.
+
+TL;DR: the idea of just checking for multiple I2cSerialBus resources
+in a single acpi_fwnode is interesting, but might cause more problems
+then I would hope.
+
+Regards,
+
+Hans
