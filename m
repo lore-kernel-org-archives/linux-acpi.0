@@ -1,216 +1,150 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: 4.18: early boot crash in thermal_cooling_device_destroy_sysfs
-Date: Tue, 30 Oct 2018 22:47:32 -0700
-Message-ID: <89eac8ad-ec37-7573-e385-0e1d46364691@infradead.org>
-References: <c1e0c7c7-2ed9-39fd-b3e0-aebf4d5839a3@infradead.org>
- <4a200a32-7d7f-1248-2ecd-74600083b1c1@infradead.org>
- <3743579.MQBqPkux9Q@aspire.rjw.lan>
- <6eaa3393-f7aa-8f1a-a5c4-72aaafa2d1f9@infradead.org>
- <1540948029.2254.57.camel@intel.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v10 0/7] x86/boot/KASLR: Parse ACPI table and limit kaslr
+ in immovable memory
+Date: Wed, 31 Oct 2018 15:42:34 +0800
+Message-ID: <20181031074234.GB6609@localhost.localdomain>
+References: <20181022093720.21426-1-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1540948029.2254.57.camel@intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181022093720.21426-1-fanc.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com
+Cc: indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/30/18 6:07 PM, Zhang Rui wrote:
-> Hi, Randy,
-> 
-> On 五, 2018-10-26 at 20:35 -0700, Randy Dunlap wrote:
->> On 10/26/18 2:14 AM, Rafael J. Wysocki wrote:
->>>
->>> On Monday, October 22, 2018 8:37:25 PM CEST Randy Dunlap wrote:
->>>>
->>>>
->>>> On 8/16/18 2:33 PM, Randy Dunlap wrote:
->>>>>
->>>>> Hi,
->>>>>
->>>>> Sorry for the photo.  That's all I have available so far.
->>>>>
->>>>> https://www.infradead.org/~rdunlap/doc/IMG_20180816_133254743_H
->>>>> DR.jpg
->>>>>
->>>>>
->>>>> Does anyone recognize this?
->>>>>
->>>>> This is an (older) Toshiba laptop.  The kernel .config is
->>>>> mostly an
->>>>> allmodconfig with some DEBUG options disabled and other options
->>>>> enabled
->>>>> so that it can boot without using an initramfs.  (and with
->>>>> COMPILE_TEST
->>>>> disabled :)
->>>>>
->>>>>
->>>>> The full kernel .config file is attached.
->>>>>
->>>>> Thanks,
->>>>>
->>>> This is a result of CONFIG_DEBUG_TEST_DRIVER_REMOVE=y.
->>>> [switch from 64-bit to 32-bit machine]
->>>>
->>>>
->>>> When using CONFIG_DEBUG_VM=y, it BUGs at:
->>>> [    5.553603] ------------[ cut here ]------------
->>>> [    5.553733] kernel BUG at arch/x86/mm/physaddr.c:75!
->>>> [    5.557788] invalid opcode: 0000 [#1] PREEMPT SMP
->>>> DEBUG_PAGEALLOC
->>>> [    5.558738] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.19.0-
->>>> rc7 #4
->>>> [    5.558738] Hardware name: Dell Inc. Inspiron
->>>> 1318                   /0C236D, BIOS A04 01/15/2009
->>>> [    5.558738] EIP: __phys_addr+0x40/0x90
->>>> [    5.558738] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89
->>>> d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3
->>>> 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91
->>>> 00 00 80 00 39 d0
->>>> [    5.558738] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX:
->>>> 00000000
->>>> [    5.558738] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP:
->>>> f40c1e08
->>>> [    5.558738] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->>>> EFLAGS: 00210a97
->>>> [    5.558738] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4:
->>>> 000406d0
->>>> [    5.558738] Call Trace:
->>>> [    5.558738]  kfree+0x1f/0x160
->>>> [    5.558738]  thermal_cooling_device_destroy_sysfs+0x11/0x20
->>>> [    5.558738]  thermal_cooling_device_unregister+0x168/0x180
->>>> [    5.558738]  acpi_pss_perf_exit.isra.4+0x32/0x50
->>>> [    5.558738]  acpi_processor_stop+0x4d/0x60
->>>> [    5.558738]  really_probe+0xa3/0x3e0
->>>> [    5.558738]  driver_probe_device+0x5b/0x120
->>>> [    5.558738]  __driver_attach+0xd9/0x100
->>>> [    5.558738]  ? driver_probe_device+0x120/0x120
->>>> [    5.558738]  bus_for_each_dev+0x56/0x90
->>>> [    5.558738]  driver_attach+0x14/0x20
->>>> [    5.558738]  ? driver_probe_device+0x120/0x120
->>>> [    5.558738]  bus_add_driver+0x117/0x210
->>>> [    5.558738]  driver_register+0x61/0xb0
->>>> [    5.558738]  acpi_processor_driver_init+0x19/0x88
->>>> [    5.558738]  ? acpi_pci_slot_init+0xf/0xf
->>>> [    5.558738]  do_one_initcall+0x3e/0x15a
->>>> [    5.558738]  ? do_early_param+0x75/0x75
->>>> [    5.558738]  kernel_init_freeable+0x170/0x1f3
->>>> [    5.558738]  ? rest_init+0xcd/0xcd
->>>> [    5.558738]  kernel_init+0x8/0xdb
->>>> [    5.558738]  ret_from_fork+0x2e/0x38
->>>> [    5.558738] Modules linked in:
->>>> [    5.625269] _warn_unseeded_randomness: 1 callbacks suppressed
->>>> [    5.625272] random: get_random_bytes called from
->>>> init_oops_id+0x3a/0x40 with crng_init=0
->>>> [    5.629758] ---[ end trace 65b17bf4d18e7692 ]---
->>>> [    5.631573] EIP: __phys_addr+0x40/0x90
->>>> [    5.633242] Code: 00 40 75 2e 8b 15 00 57 23 d5 85 d2 74 12 89
->>>> d9 c1 e9 0c 39 ca 72 5b e8 2e ca ff ff 39 d8 75 4a 89 d8 5b 5d c3
->>>> 8d 74 26 00 90 <0f> 0b 8d b6 00 00 00 00 8b 0d 80 56 23 d5 8d 91
->>>> 00 00 80 00 39 d0
->>>> [    5.638618] EAX: 6b6b6b6b EBX: 6b6b6b6b ECX: 00140011 EDX:
->>>> 00000000
->>>> [    5.640703] ESI: f4890000 EDI: d4a58d60 EBP: f40c1e0c ESP:
->>>> d4cb13dc
->>>> [    5.642801] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->>>> EFLAGS: 00210a97
->>>> [    5.645053] CR0: 80050033 CR2: 00000000 CR3: 14cad000 CR4:
->>>> 000406d0
->>>> [    5.647179] Kernel panic - not syncing: Fatal exception
->>>> [    5.648172] Kernel Offset: 0x13000000 from 0xc1000000
->>>> (relocation range: 0xc0000000-0xf77fdfff)
->>>> [    5.648172] ---[ end Kernel panic - not syncing: Fatal
->>>> exception ]---
->>>>
->>>>
->>>> When not using CONFIG_DEBUG_VM, it BUGs in kfree:
->>>> [    5.497864] ------------[ cut here ]------------
->>>> [    5.498215] kernel BUG at mm/slub.c:3901!
->>>> [    5.501739] invalid opcode: 0000 [#1] PREEMPT SMP
->>>> [    5.502720] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.0-
->>>> rc7 #3
->>>> [    5.502720] Hardware name: Dell Inc. Inspiron
->>>> 1318                   /0C236D, BIOS A04 01/15/2009
->>>> [    5.502720] EIP: kfree+0x117/0x150
->>>> [    5.502720] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31
->>>> 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46
->>>> 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89
->>>> d9 89 f8 6a 01 53
->>>> [    5.502720] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX:
->>>> 00000000
->>>> [    5.502720] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP:
->>>> f4083e10
->>>> [    5.502720] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->>>> EFLAGS: 00210246
->>>> [    5.502720] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4:
->>>> 000406d0
->>>> [    5.502720] Call Trace:
->>>> [    5.502720]  thermal_cooling_device_destroy_sysfs+0x11/0x20
->>>> [    5.502720]  thermal_cooling_device_unregister+0x168/0x180
->>>> [    5.502720]  acpi_pss_perf_exit.isra.4+0x32/0x50
->>>> [    5.502720]  acpi_processor_stop+0x4d/0x60
->>>> [    5.502720]  really_probe+0xa3/0x3e0
->>>> [    5.502720]  driver_probe_device+0x5b/0x120
->>>> [    5.502720]  __driver_attach+0xd9/0x100
->>>> [    5.502720]  ? driver_probe_device+0x120/0x120
->>>> [    5.502720]  bus_for_each_dev+0x56/0x90
->>>> [    5.502720]  driver_attach+0x14/0x20
->>>> [    5.502720]  ? driver_probe_device+0x120/0x120
->>>> [    5.502720]  bus_add_driver+0x117/0x210
->>>> [    5.502720]  driver_register+0x61/0xb0
->>>> [    5.502720]  acpi_processor_driver_init+0x19/0x88
->>>> [    5.502720]  ? acpi_pci_slot_init+0xf/0xf
->>>> [    5.502720]  do_one_initcall+0x3e/0x15a
->>>> [    5.502720]  ? do_early_param+0x75/0x75
->>>> [    5.502720]  kernel_init_freeable+0x170/0x1f3
->>>> [    5.502720]  ? rest_init+0xcd/0xcd
->>>> [    5.502720]  kernel_init+0x8/0xdb
->>>> [    5.502720]  ret_from_fork+0x2e/0x38
->>>> [    5.502720] Modules linked in:
->>>> [    5.567678] _warn_unseeded_randomness: 1 callbacks suppressed
->>>> [    5.567682] random: get_random_bytes called from
->>>> init_oops_id+0x3a/0x40 with crng_init=0
->>>> [    5.572237] ---[ end trace 1b6e88c03e412db2 ]---
->>>> [    5.574099] EIP: kfree+0x117/0x150
->>>> [    5.575673] Code: 74 21 8b 06 31 d2 f6 c4 80 74 04 0f b6 56 31
->>>> 89 f0 e8 7d e0 fa ff e9 7b ff ff ff 8d b4 26 00 00 00 00 90 8b 46
->>>> 04 a8 01 75 d8 <0f> 0b 8d b4 26 00 00 00 00 8b 75 f0 ff 75 ec 89
->>>> d9 89 f8 6a 01 53
->>>> [    5.581124] EAX: 00000100 EBX: 6b6b6b6b ECX: 00140011 EDX:
->>>> 00000000
->>>> [    5.583243] ESI: f67dac70 EDI: ccc4aca0 EBP: f4083e28 ESP:
->>>> cce983dc
->>>> [    5.585347] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->>>> EFLAGS: 00210246
->>>> [    5.587600] CR0: 80050033 CR2: ffd14000 CR3: 0ce94000 CR4:
->>>> 000406d0
->>>> [    5.589747] Kernel panic - not syncing: Fatal exception
->>>> [    5.590740] Kernel Offset: 0xb200000 from 0xc1000000
->>>> (relocation range: 0xc0000000-0xf77fdfff)
->>>> [    5.590740] ---[ end Kernel panic - not syncing: Fatal
->>>> exception ]---
->>>>
->>>>
->>>>
->>>>
->>> This admittedly is a long shot, but does the appended patch help?
->> Thanks for the patch, but:
->> Nope, same crash.
->>
-> 
-> thanks for the report, please confirm if the following patch fixes the
-> problem or not
-> https://git.kernel.org/pub/scm/linux/kernel/git/rzhang/linux.git/commit
-> /?h=next&id=3c587768271e9c20276522025729e4ebca51583b
+Hi all,
 
-Hi,
+Sorry for disturbance.
+No reply to this version for more than one week,
+any comments?
 
-I believe this patch does fix the problem.
-I'll hook up a serial cable tomorrow to confirm/verify this.
+Thanks,
+Chao Fan
 
-thanks,
--- 
-~Randy
+On Mon, Oct 22, 2018 at 05:37:13PM +0800, Chao Fan wrote:
+>***Background:
+>People reported that kaslr may randomly chooses some positions
+>which are located in movable memory regions. This will break memory
+>hotplug feature and make the movable memory chosen by KASLR can't be
+>removed.
+>
+>***Solutions:
+>There should be a method to limit kaslr to choosing immovable memory
+>regions, so there are 2 solutions:
+>1) Add a kernel parameter to specify the memory regions.
+>2) Get the information of memory hot-remove, then kaslr will know the
+>   right regions.
+>In method 2, information about memory hot-remove is in ACPI
+>tables, which will be parsed after start_kernel(), kaslr can't get
+>the information.
+>In method 1, users should know the regions address and specify in
+>kernel parameter.
+>
+>In the earliest time, I tried to dig ACPI tabls to solve this problem.
+>But I didn't splite the code in 'compressed/' and ACPI code, so the patch
+>is hard to follow so refused by community.
+>Somebody suggest to add a kernel parameter to specify the
+>immovable memory so that limit kaslr in these regions. Then I make
+>a new patchset. After several versions, Ingo gave a suggestion:
+>https://www.mail-archive.com/linux-kernel@vger.kernel.org/msg1634024.html
+>Follow Ingo's suggestion, imitate the ACPI code to parse the acpi
+>tables, so that the kaslr can get necessary memory information in
+>ACPI tables.
+>I think ACPI code is an independent part, so imitate the codes
+>and functions to 'compressed/' directory, so that kaslr won't
+>influence the initialization of ACPI.
+>
+>PATCH 1/7 Introduce cmdline_find_option_arg() to detect if option=arg
+>          in cmdline
+>PATCH 2/7 Copy kstrtoull() to compressed period, used to convert memory
+>          address from string to unsigned long long.
+>PATCH 3/7 Add efi_get_rsdp_addr() to dig out RSDP from EFI table when
+>          booting from EFI.
+>PATCH 4/7 Add bios_get_rsdp_addr() to search RSDP in memory when EFI
+>          table not found.
+>PATCH 5/7 Add get_acpi_rsdp() to parse RSDP in cmdline from kexec
+>PATCH 6/7 Dig out SRAT table from RSDP and walk SRAT table to store
+>          the immovable memory regions.
+>PATCH 7/7 Calculate the intersection between memory regions from e820/efi
+>          memory table and immovable memory regions. Limit KASLR choose
+>          these regions for randomization.
+>
+>v1->v2:
+> -  Simplify some code.
+>Follow Baoquan He's suggestion:
+> - Reuse the head file of acpi code.
+>
+>v2->v3:
+> - Test in more conditions, so remove the 'RFC' tag.
+> - Change some comments.
+>
+>v3->v4:
+>Follow Thomas Gleixner's suggetsion:
+> - Put the whole efi related function into #define CONFIG_EFI and return
+>   false in the other stub.
+>
+>v4->v5:
+>Follow Dou Liyang's suggestion:
+> - Add more comments about some functions based on kernel code.
+> - Change some typo in comments.
+> - Clean useless variable.
+> - Add check for the boundary of array.
+> - Add check for 'movable_node' parameter
+>
+>v5->v6:
+>Follow Baoquan He's suggestion:
+> - Change some log.
+> - Add the check for acpi_rsdp
+> - Change some code logical to make code clear
+>
+>v6->v7:
+>Follow Rafael's suggestion:
+> - Add more comments and patch log.
+>Follow test robot's suggestion:
+> - Add "static" tag for function
+>
+>v7-v8:
+>Follow Kees Cook's suggestion:
+> - Use mem_overlaps() to check memory region.
+> - Use #ifdef in the definition of function.
+>
+>v8-v9:
+>Follow Boris' suggetion:
+> - Change code style.
+> - Splite PATCH 1/3 to more path.
+> - Introduce some new function
+> - Use existing function to rework some code
+>Follow Masayoshi's suggetion:
+> - Make code more readable
+>
+>v9->v10:
+>Follow Baoquan's suggestion:
+> - Change some log
+> - Merge last two patch together.
+>
+>Any comments will be welcome.
+>
+>Chao Fan (7):
+>  x86/boot: Introduce cmdline_find_option_arg()to detect if option=arg
+>    in cmdline
+>  x86/boot: Copy kstrtoull() to compressed period
+>  x86/boot: Add efi_get_rsdp_addr() to dig out RSDP from EFI table
+>  x86/boot: Add bios_get_rsdp_addr() to search RSDP in memory
+>  x86/boot: Add get_acpi_rsdp() to parse RSDP in cmdlien from kexec
+>  x86/boot: Dig out SRAT table from RSDP and find immovable memory
+>  x86/boot/KASLR: Limit kaslr to choosing the immovable memory
+>
+> arch/x86/boot/compressed/Makefile  |   4 +
+> arch/x86/boot/compressed/acpitb.c  | 352 +++++++++++++++++++++++++++++
+> arch/x86/boot/compressed/cmdline.c |  15 ++
+> arch/x86/boot/compressed/kaslr.c   |  81 +++++--
+> arch/x86/boot/compressed/misc.c    |  88 ++++++++
+> arch/x86/boot/compressed/misc.h    |  20 ++
+> 6 files changed, 545 insertions(+), 15 deletions(-)
+> create mode 100644 arch/x86/boot/compressed/acpitb.c
+>
+>-- 
+>2.17.2
+>
