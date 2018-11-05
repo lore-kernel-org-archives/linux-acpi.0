@@ -1,45 +1,104 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] ACPI / PMIC: xpower: fix IOSF_MBI dependency
-Date: Mon, 5 Nov 2018 15:33:01 +0200
-Message-ID: <20181105133301.GE10650@smile.fi.intel.com>
-References: <20181102110653.118257-1-arnd@arndb.de>
- <20181102151644.GB10650@smile.fi.intel.com>
- <CAK8P3a2ESTVLG3q0LgDmjqa_LbYhLCeqYW3Jod6WUCh2fwFOZg@mail.gmail.com>
+Subject: Re: [PATCH 1/4] device property: Introduce fwnode_name()
+Date: Mon, 5 Nov 2018 16:37:31 +0200
+Message-ID: <20181105143731.GK10650@smile.fi.intel.com>
+References: <20181105091727.25544-1-heikki.krogerus@linux.intel.com>
+ <20181105091727.25544-2-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAK8P3a2ESTVLG3q0LgDmjqa_LbYhLCeqYW3Jod6WUCh2fwFOZg@mail.gmail.com>
+In-Reply-To: <20181105091727.25544-2-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 02, 2018 at 11:07:34PM +0100, Arnd Bergmann wrote:
-> On 11/2/18, Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> > On Fri, Nov 02, 2018 at 12:06:43PM +0100, Arnd Bergmann wrote:
-
-> >> -	depends on MFD_AXP20X_I2C && IOSF_MBI
-> >> +	depends on MFD_AXP20X_I2C && IOSF_MBI=y
-> >
-> > To me sounds like
-> >
-> > select IOSF_MBI would be more appropriate here.
+On Mon, Nov 05, 2018 at 12:17:24PM +0300, Heikki Krogerus wrote:
+> This helper returns the name of the node. The name is
+> primarily expected to be returned from a new fwnode
+> operation meant for this purpose, but when no name is
+> returned, the helper will also attempt to read a device
+> property "name".
 > 
-> It looks like we have a mix of the two two, with most drivers
-> using 'select' and only a few ones using 'depends on'. Mixing
-> the two often leads to trouble, especially for user-visible
-> symbols.
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> ---
+>  drivers/base/property.c  | 18 ++++++++++++++++++
+>  include/linux/fwnode.h   |  1 +
+>  include/linux/property.h |  2 ++
+>  3 files changed, 21 insertions(+)
 > 
-> Making it a hidden symbol that is always selected is probably
-> fine, but then every driver selecting it must also use 'depends
-> on X86 && PCI'.
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 240ab5230ff6..1e4eb7ab2b84 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -1156,6 +1156,24 @@ void fwnode_handle_put(struct fwnode_handle *fwnode)
+>  }
+>  EXPORT_SYMBOL_GPL(fwnode_handle_put);
+>  
+> +/**
+> + * fwnode_name - Get the name of a device node
+> + * @fwnode: Pointer to the device node.
+> + *
+> + * Returns the node name of @fwnode. If @fwnode does not have a "unit name",
+> + * this code will also attempt to read a string property named "name".
+> + */
+> +const char *fwnode_name(const struct fwnode_handle *fwnode)
+> +{
+> +	const char *name = fwnode_call_ptr_op(fwnode, name);
+> +
+> +	if (!name)
+> +		fwnode_call_int_op(fwnode, property_read_string_array,
+> +				   "name", &name, 1);
 
-I doubt every is a correct word here. Whenever driver uses IOSF_MBI it implies
-X86 and PCI (or should have those dependencies in mind already).
+Is it going to be extended in the future?
 
-But I agree that hide it and select as a library would make more sense than the
-current state of affairs.
+Otherwise I would rather go with (few more LOCs, yes)
+
+	const char *name;
+
+	name = fwnode_call_ptr_op(fwnode, name);
+	if (name)
+		return name;
+
+	fwnode_call_int_op(fwnode, property_read_string_array, "name", &name, 1);
+	return name;
+
+> +	return name;
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_name);
+> +
+>  /**
+>   * fwnode_device_is_available - check if a device is available for use
+>   * @fwnode: Pointer to the fwnode of the device.
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index faebf0ca0686..2e445fed4df4 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -72,6 +72,7 @@ struct fwnode_reference_args {
+>  struct fwnode_operations {
+>  	struct fwnode_handle *(*get)(struct fwnode_handle *fwnode);
+>  	void (*put)(struct fwnode_handle *fwnode);
+> +	const char *(*name)(const struct fwnode_handle *fwnode);
+>  	bool (*device_is_available)(const struct fwnode_handle *fwnode);
+>  	const void *(*device_get_match_data)(const struct fwnode_handle *fwnode,
+>  					     const struct device *dev);
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index ac8a1ebc4c1b..44781d37dd96 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -109,6 +109,8 @@ struct fwnode_handle *device_get_named_child_node(struct device *dev,
+>  struct fwnode_handle *fwnode_handle_get(struct fwnode_handle *fwnode);
+>  void fwnode_handle_put(struct fwnode_handle *fwnode);
+>  
+> +const char *fwnode_name(const struct fwnode_handle *fwnode);
+> +
+>  int fwnode_irq_get(struct fwnode_handle *fwnode, unsigned int index);
+>  
+>  unsigned int device_get_child_node_count(struct device *dev);
+> -- 
+> 2.19.1
+> 
 
 -- 
 With Best Regards,
