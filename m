@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH 3/6] ACPI / glue: Add acpi_platform_notify() function
-Date: Mon,  5 Nov 2018 17:59:25 +0300
-Message-ID: <20181105145928.46819-4-heikki.krogerus@linux.intel.com>
+Subject: [PATCH 5/6] device property: Move device_add_properties() to swnode.c
+Date: Mon,  5 Nov 2018 17:59:27 +0300
+Message-ID: <20181105145928.46819-6-heikki.krogerus@linux.intel.com>
 References: <20181105145928.46819-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,133 +12,413 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Instead of relying on the "platform_notify" callback hook,
-introducing separate notification function
-acpi_platform_notify() and calling that directly from
-drivers core when device entries are added and removed.
+Concentrating struct property_entry processing to
+drivers/base/swnode.c
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/acpi/bus.c      |  1 -
- drivers/acpi/glue.c     | 21 +++++++++++++--------
- drivers/acpi/internal.h |  1 -
- drivers/base/core.c     |  7 +++++++
- include/linux/acpi.h    | 10 ++++++++++
- 5 files changed, 30 insertions(+), 10 deletions(-)
+ drivers/base/property.c | 179 --------------------------------------
+ drivers/base/swnode.c   | 184 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 184 insertions(+), 179 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index bb3d96dea6db..99d820a693a8 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1237,7 +1237,6 @@ static int __init acpi_init(void)
- 		acpi_kobj = NULL;
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 240ab5230ff6..e20642759c67 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -84,44 +84,6 @@ static const void *property_get_pointer(const struct property_entry *prop)
  	}
- 
--	init_acpi_device_notify();
- 	result = acpi_bus_init();
- 	if (result) {
- 		disable_acpi();
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 12ba2bee8789..edd10b3c7ec8 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -296,7 +296,7 @@ int acpi_unbind_one(struct device *dev)
- }
- EXPORT_SYMBOL_GPL(acpi_unbind_one);
- 
--static int acpi_platform_notify(struct device *dev)
-+static int acpi_device_notify(struct device *dev)
- {
- 	struct acpi_bus_type *type = acpi_get_bus_type(dev);
- 	struct acpi_device *adev;
-@@ -343,7 +343,7 @@ static int acpi_platform_notify(struct device *dev)
- 	return ret;
  }
  
--static int acpi_platform_notify_remove(struct device *dev)
-+static int acpi_device_notify_remove(struct device *dev)
+-static void property_set_pointer(struct property_entry *prop, const void *pointer)
+-{
+-	switch (prop->type) {
+-	case DEV_PROP_U8:
+-		if (prop->is_array)
+-			prop->pointer.u8_data = pointer;
+-		else
+-			prop->value.u8_data = *((u8 *)pointer);
+-		break;
+-	case DEV_PROP_U16:
+-		if (prop->is_array)
+-			prop->pointer.u16_data = pointer;
+-		else
+-			prop->value.u16_data = *((u16 *)pointer);
+-		break;
+-	case DEV_PROP_U32:
+-		if (prop->is_array)
+-			prop->pointer.u32_data = pointer;
+-		else
+-			prop->value.u32_data = *((u32 *)pointer);
+-		break;
+-	case DEV_PROP_U64:
+-		if (prop->is_array)
+-			prop->pointer.u64_data = pointer;
+-		else
+-			prop->value.u64_data = *((u64 *)pointer);
+-		break;
+-	case DEV_PROP_STRING:
+-		if (prop->is_array)
+-			prop->pointer.str = pointer;
+-		else
+-			prop->value.str = pointer;
+-		break;
+-	default:
+-		break;
+-	}
+-}
+-
+ static const void *pset_prop_find(const struct property_set *pset,
+ 				  const char *propname, size_t length)
  {
- 	struct acpi_device *adev = ACPI_COMPANION(dev);
- 	struct acpi_bus_type *type;
-@@ -361,12 +361,17 @@ static int acpi_platform_notify_remove(struct device *dev)
- 	return 0;
+@@ -759,147 +721,6 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+ }
+ EXPORT_SYMBOL_GPL(fwnode_property_get_reference_args);
+ 
+-static void property_entry_free_data(const struct property_entry *p)
+-{
+-	const void *pointer = property_get_pointer(p);
+-	size_t i, nval;
+-
+-	if (p->is_array) {
+-		if (p->type == DEV_PROP_STRING && p->pointer.str) {
+-			nval = p->length / sizeof(const char *);
+-			for (i = 0; i < nval; i++)
+-				kfree(p->pointer.str[i]);
+-		}
+-		kfree(pointer);
+-	} else if (p->type == DEV_PROP_STRING) {
+-		kfree(p->value.str);
+-	}
+-	kfree(p->name);
+-}
+-
+-static int property_copy_string_array(struct property_entry *dst,
+-				      const struct property_entry *src)
+-{
+-	const char **d;
+-	size_t nval = src->length / sizeof(*d);
+-	int i;
+-
+-	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
+-	if (!d)
+-		return -ENOMEM;
+-
+-	for (i = 0; i < nval; i++) {
+-		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
+-		if (!d[i] && src->pointer.str[i]) {
+-			while (--i >= 0)
+-				kfree(d[i]);
+-			kfree(d);
+-			return -ENOMEM;
+-		}
+-	}
+-
+-	dst->pointer.str = d;
+-	return 0;
+-}
+-
+-static int property_entry_copy_data(struct property_entry *dst,
+-				    const struct property_entry *src)
+-{
+-	const void *pointer = property_get_pointer(src);
+-	const void *new;
+-	int error;
+-
+-	if (src->is_array) {
+-		if (!src->length)
+-			return -ENODATA;
+-
+-		if (src->type == DEV_PROP_STRING) {
+-			error = property_copy_string_array(dst, src);
+-			if (error)
+-				return error;
+-			new = dst->pointer.str;
+-		} else {
+-			new = kmemdup(pointer, src->length, GFP_KERNEL);
+-			if (!new)
+-				return -ENOMEM;
+-		}
+-	} else if (src->type == DEV_PROP_STRING) {
+-		new = kstrdup(src->value.str, GFP_KERNEL);
+-		if (!new && src->value.str)
+-			return -ENOMEM;
+-	} else {
+-		new = pointer;
+-	}
+-
+-	dst->length = src->length;
+-	dst->is_array = src->is_array;
+-	dst->type = src->type;
+-
+-	property_set_pointer(dst, new);
+-
+-	dst->name = kstrdup(src->name, GFP_KERNEL);
+-	if (!dst->name)
+-		goto out_free_data;
+-
+-	return 0;
+-
+-out_free_data:
+-	property_entry_free_data(dst);
+-	return -ENOMEM;
+-}
+-
+-/**
+- * property_entries_dup - duplicate array of properties
+- * @properties: array of properties to copy
+- *
+- * This function creates a deep copy of the given NULL-terminated array
+- * of property entries.
+- */
+-struct property_entry *
+-property_entries_dup(const struct property_entry *properties)
+-{
+-	struct property_entry *p;
+-	int i, n = 0;
+-
+-	while (properties[n].name)
+-		n++;
+-
+-	p = kcalloc(n + 1, sizeof(*p), GFP_KERNEL);
+-	if (!p)
+-		return ERR_PTR(-ENOMEM);
+-
+-	for (i = 0; i < n; i++) {
+-		int ret = property_entry_copy_data(&p[i], &properties[i]);
+-		if (ret) {
+-			while (--i >= 0)
+-				property_entry_free_data(&p[i]);
+-			kfree(p);
+-			return ERR_PTR(ret);
+-		}
+-	}
+-
+-	return p;
+-}
+-EXPORT_SYMBOL_GPL(property_entries_dup);
+-
+-/**
+- * property_entries_free - free previously allocated array of properties
+- * @properties: array of properties to destroy
+- *
+- * This function frees given NULL-terminated array of property entries,
+- * along with their data.
+- */
+-void property_entries_free(const struct property_entry *properties)
+-{
+-	const struct property_entry *p;
+-
+-	for (p = properties; p->name; p++)
+-		property_entry_free_data(p);
+-
+-	kfree(properties);
+-}
+-EXPORT_SYMBOL_GPL(property_entries_free);
+-
+ /**
+  * pset_free_set - releases memory allocated for copied property set
+  * @pset: Property set to release
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index db60e8edf366..652bab67a906 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -64,6 +64,45 @@ property_entry_get(const struct property_entry *prop, const char *name)
+ 	return NULL;
  }
  
--void __init init_acpi_device_notify(void)
-+int acpi_platform_notify(struct device *dev, enum kobject_action action)
- {
--	if (platform_notify || platform_notify_remove) {
--		printk(KERN_ERR PREFIX "Can't use platform_notify\n");
--		return;
-+	switch (action) {
-+	case KOBJ_ADD:
-+		acpi_device_notify(dev);
++static void
++property_set_pointer(struct property_entry *prop, const void *pointer)
++{
++	switch (prop->type) {
++	case DEV_PROP_U8:
++		if (prop->is_array)
++			prop->pointer.u8_data = pointer;
++		else
++			prop->value.u8_data = *((u8 *)pointer);
 +		break;
-+	case KOBJ_REMOVE:
-+		acpi_device_notify_remove(dev);
++	case DEV_PROP_U16:
++		if (prop->is_array)
++			prop->pointer.u16_data = pointer;
++		else
++			prop->value.u16_data = *((u16 *)pointer);
++		break;
++	case DEV_PROP_U32:
++		if (prop->is_array)
++			prop->pointer.u32_data = pointer;
++		else
++			prop->value.u32_data = *((u32 *)pointer);
++		break;
++	case DEV_PROP_U64:
++		if (prop->is_array)
++			prop->pointer.u64_data = pointer;
++		else
++			prop->value.u64_data = *((u64 *)pointer);
++		break;
++	case DEV_PROP_STRING:
++		if (prop->is_array)
++			prop->pointer.str = pointer;
++		else
++			prop->value.str = pointer;
 +		break;
 +	default:
 +		break;
- 	}
--	platform_notify = acpi_platform_notify;
--	platform_notify_remove = acpi_platform_notify_remove;
-+	return 0;
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 530a3f675490..83a7dfb7d1cf 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -23,7 +23,6 @@
- int early_acpi_osi_init(void);
- int acpi_osi_init(void);
- acpi_status acpi_os_initialize1(void);
--void init_acpi_device_notify(void);
- int acpi_scan_init(void);
- void acpi_pci_root_init(void);
- void acpi_pci_link_init(void);
-diff --git a/drivers/base/core.c b/drivers/base/core.c
-index 3972ef3f080b..260cbdf44f1d 100644
---- a/drivers/base/core.c
-+++ b/drivers/base/core.c
-@@ -8,6 +8,7 @@
-  * Copyright (c) 2006 Novell, Inc.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/device.h>
- #include <linux/err.h>
- #include <linux/fwnode.h>
-@@ -731,6 +732,12 @@ static inline int device_is_not_partition(struct device *dev)
- static int
- device_platform_notify(struct device *dev, enum kobject_action action)
++	}
++}
++
+ static const void *property_get_pointer(const struct property_entry *prop)
  {
-+	int ret;
-+
-+	ret = acpi_platform_notify(dev, action);
-+	if (ret)
-+		return ret;
-+
- 	if (platform_notify && action == KOBJ_ADD)
- 		platform_notify(dev);
- 	else if (platform_notify_remove && action == KOBJ_REMOVE)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ed80f147bd50..4ba2e2d24676 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1313,4 +1313,14 @@ static inline int find_acpi_cpu_cache_topology(unsigned int cpu, int level)
+ 	switch (prop->type) {
+@@ -241,6 +280,151 @@ static int property_entry_read_string_array(const struct property_entry *props,
+ 	return array_len;
  }
- #endif
  
-+#ifdef CONFIG_ACPI
-+extern int acpi_platform_notify(struct device *dev, enum kobject_action action);
-+#else
-+static inline int
-+acpi_platform_notify(struct device *dev, enum kobject_action action)
++static void property_entry_free_data(const struct property_entry *p)
 +{
++	const void *pointer = property_get_pointer(p);
++	size_t i, nval;
++
++	if (p->is_array) {
++		if (p->type == DEV_PROP_STRING && p->pointer.str) {
++			nval = p->length / sizeof(const char *);
++			for (i = 0; i < nval; i++)
++				kfree(p->pointer.str[i]);
++		}
++		kfree(pointer);
++	} else if (p->type == DEV_PROP_STRING) {
++		kfree(p->value.str);
++	}
++	kfree(p->name);
++}
++
++static int property_copy_string_array(struct property_entry *dst,
++				      const struct property_entry *src)
++{
++	const char **d;
++	size_t nval = src->length / sizeof(*d);
++	int i;
++
++	d = kcalloc(nval, sizeof(*d), GFP_KERNEL);
++	if (!d)
++		return -ENOMEM;
++
++	for (i = 0; i < nval; i++) {
++		d[i] = kstrdup(src->pointer.str[i], GFP_KERNEL);
++		if (!d[i] && src->pointer.str[i]) {
++			while (--i >= 0)
++				kfree(d[i]);
++			kfree(d);
++			return -ENOMEM;
++		}
++	}
++
++	dst->pointer.str = d;
 +	return 0;
 +}
-+#endif
 +
- #endif	/*_LINUX_ACPI_H*/
++static int property_entry_copy_data(struct property_entry *dst,
++				    const struct property_entry *src)
++{
++	const void *pointer = property_get_pointer(src);
++	const void *new;
++	int error;
++
++	if (src->is_array) {
++		if (!src->length)
++			return -ENODATA;
++
++		if (src->type == DEV_PROP_STRING) {
++			error = property_copy_string_array(dst, src);
++			if (error)
++				return error;
++			new = dst->pointer.str;
++		} else {
++			new = kmemdup(pointer, src->length, GFP_KERNEL);
++			if (!new)
++				return -ENOMEM;
++		}
++	} else if (src->type == DEV_PROP_STRING) {
++		new = kstrdup(src->value.str, GFP_KERNEL);
++		if (!new && src->value.str)
++			return -ENOMEM;
++	} else {
++		new = pointer;
++	}
++
++	dst->length = src->length;
++	dst->is_array = src->is_array;
++	dst->type = src->type;
++
++	property_set_pointer(dst, new);
++
++	dst->name = kstrdup(src->name, GFP_KERNEL);
++	if (!dst->name)
++		goto out_free_data;
++
++	return 0;
++
++out_free_data:
++	property_entry_free_data(dst);
++	return -ENOMEM;
++}
++
++/**
++ * property_entries_dup - duplicate array of properties
++ * @properties: array of properties to copy
++ *
++ * This function creates a deep copy of the given NULL-terminated array
++ * of property entries.
++ */
++struct property_entry *
++property_entries_dup(const struct property_entry *properties)
++{
++	struct property_entry *p;
++	int i, n = 0;
++	int ret;
++
++	while (properties[n].name)
++		n++;
++
++	p = kcalloc(n + 1, sizeof(*p), GFP_KERNEL);
++	if (!p)
++		return ERR_PTR(-ENOMEM);
++
++	for (i = 0; i < n; i++) {
++		ret = property_entry_copy_data(&p[i], &properties[i]);
++		if (ret) {
++			while (--i >= 0)
++				property_entry_free_data(&p[i]);
++			kfree(p);
++			return ERR_PTR(ret);
++		}
++	}
++
++	return p;
++}
++EXPORT_SYMBOL_GPL(property_entries_dup);
++
++/**
++ * property_entries_free - free previously allocated array of properties
++ * @properties: array of properties to destroy
++ *
++ * This function frees given NULL-terminated array of property entries,
++ * along with their data.
++ */
++void property_entries_free(const struct property_entry *properties)
++{
++	const struct property_entry *p;
++
++	if (!properties)
++		return;
++
++	for (p = properties; p->name; p++)
++		property_entry_free_data(p);
++
++	kfree(properties);
++}
++EXPORT_SYMBOL_GPL(property_entries_free);
++
+ /* -------------------------------------------------------------------------- */
+ /* fwnode operations */
+ 
 -- 
 2.19.1
