@@ -1,72 +1,48 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] ACPI / PMIC: xpower: fix IOSF_MBI dependency
-Date: Mon, 5 Nov 2018 16:16:29 +0100
-Message-ID: <CAK8P3a1NqtY-WH=m9hOO=0=OYEvH8ok5bsgAX7d4hQCzsWAThQ@mail.gmail.com>
-References: <20181102110653.118257-1-arnd@arndb.de> <20181102151644.GB10650@smile.fi.intel.com>
- <CAK8P3a2ESTVLG3q0LgDmjqa_LbYhLCeqYW3Jod6WUCh2fwFOZg@mail.gmail.com> <20181105133301.GE10650@smile.fi.intel.com>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH 3/4] of/property: Introduce of_fwnode_name()
+Date: Mon, 5 Nov 2018 12:50:02 -0600
+Message-ID: <CAL_Jsq+aRAv+9gDKwVi9xYQPYzXK4NMPjzfkuYB08+K6KTYXFg@mail.gmail.com>
+References: <20181105091727.25544-1-heikki.krogerus@linux.intel.com> <20181105091727.25544-4-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181105133301.GE10650@smile.fi.intel.com>
+In-Reply-To: <20181105091727.25544-4-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/5/18, Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> On Fri, Nov 02, 2018 at 11:07:34PM +0100, Arnd Bergmann wrote:
->> On 11/2/18, Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
->> > On Fri, Nov 02, 2018 at 12:06:43PM +0100, Arnd Bergmann wrote:
+On Mon, Nov 5, 2018 at 3:17 AM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
 >
->> >> -	depends on MFD_AXP20X_I2C && IOSF_MBI
->> >> +	depends on MFD_AXP20X_I2C && IOSF_MBI=y
->> >
->> > To me sounds like
->> >
->> > select IOSF_MBI would be more appropriate here.
->>
->> It looks like we have a mix of the two two, with most drivers
->> using 'select' and only a few ones using 'depends on'. Mixing
->> the two often leads to trouble, especially for user-visible
->> symbols.
->>
->> Making it a hidden symbol that is always selected is probably
->> fine, but then every driver selecting it must also use 'depends
->> on X86 && PCI'.
+> Instead of always being forced to read the "name" property
+> in fwnode_name() with of_nodes, implementing the fwnode
+> operation meant for getting the node name.
 >
-> I doubt every is a correct word here. Whenever driver uses IOSF_MBI it
-> implies X86 and PCI (or should have those dependencies in mind already).
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Cc: Rob Herring <robh@kernel.org>
+> ---
+>  drivers/of/property.c | 6 ++++++
 
-I mean it must depend on those two in some form. If a driver uses 'depends on
-IOSF_MBI' today, that is implied through that dependency. Changing it
-to 'select'
-means we have to add that dependency, like
+Please Cc the DT list for DT changes.
 
-diff --git a/drivers/i2c/busses/Kconfig b/drivers/i2c/busses/Kconfig
-index 56ccb1ea7da5..fb750a8a9b77 100644
---- a/drivers/i2c/busses/Kconfig
-+++ b/drivers/i2c/busses/Kconfig
-@@ -489,6 +489,7 @@ config I2C_DESIGNWARE_PLATFORM
-        tristate "Synopsys DesignWare Platform"
-        select I2C_DESIGNWARE_CORE
-        depends on (ACPI && COMMON_CLK) || !ACPI
-+       select IOSF_MBI if I2C_DESIGNWARE_BAYTRAIL
-        help
-          If you say yes to this option, support will be included for the
-          Synopsys DesignWare I2C adapter.
-@@ -520,9 +521,8 @@ config I2C_DESIGNWARE_PCI
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index f46828e3b082..ac7b0b6c2d4d 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -823,6 +823,11 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
+>         of_node_put(to_of_node(fwnode));
+>  }
+>
+> +static const char *of_fwnode_name(const struct fwnode_handle *fwnode)
+> +{
+> +       return to_of_node(fwnode)->name;
 
- config I2C_DESIGNWARE_BAYTRAIL
-        bool "Intel Baytrail I2C semaphore support"
--       depends on ACPI
--       depends on (I2C_DESIGNWARE_PLATFORM=m && IOSF_MBI) || \
--                  (I2C_DESIGNWARE_PLATFORM=y && IOSF_MBI=y)
-+       depends on ACPI && X86 && PCI
-+       depends on I2C_DESIGNWARE_PLATFORM
-        help
-          This driver enables managed host access to the PMIC I2C bus on select
-          Intel BayTrail platforms using the X-Powers AXP288 PMIC. It allows
+I'm trying to get rid of the DT name ptr, so please don't add one. You
+can use of_node_full_name() here instead if "<name>@<unit-address>"
+instead of <name> is fine. Otherwise, you've got to allocate your own
+storage and use "%pOFn" printf specifier.
 
-For anything that already has the dependency, nothing changes.
-
-    Arnd
+Rob
