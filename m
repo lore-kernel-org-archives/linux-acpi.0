@@ -1,79 +1,51 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v10 1/7] x86/boot: Introduce cmdline_find_option_arg()to
- detect if option=arg in cmdline
-Date: Tue, 6 Nov 2018 13:22:53 +0100
-Message-ID: <20181106122253.GG13712@zn.tnic>
-References: <20181022093720.21426-1-fanc.fnst@cn.fujitsu.com>
- <20181022093720.21426-2-fanc.fnst@cn.fujitsu.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH 3/4] of/property: Introduce of_fwnode_name()
+Date: Tue, 6 Nov 2018 14:27:34 +0200
+Message-ID: <20181106122734.GC13048@kuha.fi.intel.com>
+References: <20181105091727.25544-1-heikki.krogerus@linux.intel.com>
+ <20181105091727.25544-4-heikki.krogerus@linux.intel.com>
+ <CAL_Jsq+aRAv+9gDKwVi9xYQPYzXK4NMPjzfkuYB08+K6KTYXFg@mail.gmail.com>
+ <20181106105803.GS10650@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181022093720.21426-2-fanc.fnst@cn.fujitsu.com>
+In-Reply-To: <20181106105803.GS10650@smile.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rob Herring <robh@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 22, 2018 at 05:37:14PM +0800, Chao Fan wrote:
-> Now, there are cmdline_find_option() and cmdline_find_option_bool() in
-> cmdline.c. Sometimes, when detecting such as whether 'acpi=off' is
-> in cmdline, we need to cmdline_find_option() first, then compare
-> the argument. Now splite the operation as a independent function.
-> Introduce a new function cmdline_find_option_arg() to detect whether
-> option is in command line and the value is arg.
-
-For all future commit messages you write:
-
-Use passive tone in your commit message: no "we", etc.
-
-Also, pls read section "2) Describe your changes" in
-Documentation/process/submitting-patches.rst.
-
-> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
-> ---
->  arch/x86/boot/compressed/cmdline.c | 15 +++++++++++++++
->  arch/x86/boot/compressed/misc.h    |  1 +
->  2 files changed, 16 insertions(+)
+On Tue, Nov 06, 2018 at 12:58:03PM +0200, Andy Shevchenko wrote:
+> On Mon, Nov 05, 2018 at 12:50:02PM -0600, Rob Herring wrote:
+> > On Mon, Nov 5, 2018 at 3:17 AM Heikki Krogerus
+> > <heikki.krogerus@linux.intel.com> wrote:
 > 
-> diff --git a/arch/x86/boot/compressed/cmdline.c b/arch/x86/boot/compressed/cmdline.c
-> index af6cda0b7900..61118c69feb8 100644
-> --- a/arch/x86/boot/compressed/cmdline.c
-> +++ b/arch/x86/boot/compressed/cmdline.c
-> @@ -1,5 +1,7 @@
->  // SPDX-License-Identifier: GPL-2.0
->  #include "misc.h"
-> +#define STATIC
-> +#include <linux/decompress/mm.h>
->  
->  #if CONFIG_EARLY_PRINTK || CONFIG_RANDOMIZE_BASE || CONFIG_X86_5LEVEL
->  
-> @@ -30,5 +32,18 @@ int cmdline_find_option_bool(const char *option)
->  {
->  	return __cmdline_find_option_bool(get_cmd_line_ptr(), option);
->  }
-> +bool cmdline_find_option_arg(const char *option, const char *arg, int argsize)
-> +{
-> +	char *buffer = malloc(argsize+1);
-> +	bool find = false;
-> +	int ret;
-> +
-> +	ret = cmdline_find_option(option, buffer, argsize+1);
-> +	if (ret == argsize && !strncmp(buffer, arg, argsize))
-> +		find = true;
-> +
-> +	free(buffer);
-> +	return find;
-> +}
+> > > +static const char *of_fwnode_name(const struct fwnode_handle *fwnode)
+> > > +{
+> > > +       return to_of_node(fwnode)->name;
+> > 
+> > I'm trying to get rid of the DT name ptr, so please don't add one. You
+> > can use of_node_full_name() here instead if "<name>@<unit-address>"
+> > instead of <name> is fine. Otherwise, you've got to allocate your own
+> > storage and use "%pOFn" printf specifier.
+> 
+> If we do this here, we will change a behaviour of the entire set of
+> of_fwnode_get_named_child_node() users.
+> 
+> I think this is out of scope of the series.
 
-I don't think such wrapper is needed. Simply calling
-cmdline_find_option() and then examining the buffer - like other call
-sites do - is perfectly fine.
+You have a point. We must use the same member that was used in
+of_fwnode_get_named_child_node().
 
-Thx.
+The goal of this series if most likely not clear from this patch
+alone, so I'll send a second version and make sure to CC the DT list
+and Rob.
+
+But in any case, I'll keep this part as it is.
+
+
+thanks,
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+heikki
