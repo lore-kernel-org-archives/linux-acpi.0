@@ -1,39 +1,64 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Tue, 6 Nov 2018 22:07:31 +0800
-Message-ID: <20181106140731.GO27491@MiWiFi-R3L-srv>
-References: <20181013220541.GI31650@zn.tnic>
- <20181015005035.z3xym6nx43hogdge@gabell>
- <20181016151353.punyk7exekut2543@gabell>
- <20181016191113.GI5212@zn.tnic>
- <20181016195429.tovdgqq77gz3eek2@gabell>
- <20181016195902.GK5212@zn.tnic>
- <20181022154204.kagmdb55jtoez4ca@gabell>
- <20181025103345.GF14020@nazgul.tnic>
- <20181025134050.ggiir77ehntikbwg@gabell>
- <20181106121023.GF13712@zn.tnic>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 3/4] of/property: Introduce of_fwnode_name()
+Date: Tue, 6 Nov 2018 16:28:10 +0200
+Message-ID: <20181106142810.GX10650@smile.fi.intel.com>
+References: <20181105091727.25544-1-heikki.krogerus@linux.intel.com>
+ <20181105091727.25544-4-heikki.krogerus@linux.intel.com>
+ <CAL_Jsq+aRAv+9gDKwVi9xYQPYzXK4NMPjzfkuYB08+K6KTYXFg@mail.gmail.com>
+ <20181106105803.GS10650@smile.fi.intel.com>
+ <20181106122734.GC13048@kuha.fi.intel.com>
+ <CAL_Jsq+kspp1GYrMjG1cC=CyCa2_jO1suFdD9fn+gOwKRYdhtw@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181106121023.GF13712@zn.tnic>
+In-Reply-To: <CAL_Jsq+kspp1GYrMjG1cC=CyCa2_jO1suFdD9fn+gOwKRYdhtw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masayoshi Mizuma <msys.mizuma@gmail.com>, Borislav Petkov <bp@alien8.de>
-Cc: Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Rob Herring <robh@kernel.org>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/06/18 at 01:10pm, Borislav Petkov wrote:
-> > I have another idea to solve this issue. Adding a SRAT parsing code
-> > to arch/x86/mm/kaslr.c. It is useful for both EFI and BIOS and
-> > also we don't need a new kernel parameter...
-> > Dose the idea make sense?
+On Tue, Nov 06, 2018 at 07:18:14AM -0600, Rob Herring wrote:
+> On Tue, Nov 6, 2018 at 6:27 AM Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> >
+> > On Tue, Nov 06, 2018 at 12:58:03PM +0200, Andy Shevchenko wrote:
+> > > On Mon, Nov 05, 2018 at 12:50:02PM -0600, Rob Herring wrote:
+> > > > On Mon, Nov 5, 2018 at 3:17 AM Heikki Krogerus
+> > > > <heikki.krogerus@linux.intel.com> wrote:
+> > >
+> > > > > +static const char *of_fwnode_name(const struct fwnode_handle *fwnode)
+> > > > > +{
+> > > > > +       return to_of_node(fwnode)->name;
+> > > >
+> > > > I'm trying to get rid of the DT name ptr, so please don't add one. You
+> > > > can use of_node_full_name() here instead if "<name>@<unit-address>"
+> > > > instead of <name> is fine. Otherwise, you've got to allocate your own
+> > > > storage and use "%pOFn" printf specifier.
+> > >
+> > > If we do this here, we will change a behaviour of the entire set of
+> > > of_fwnode_get_named_child_node() users.
+> > >
+> > > I think this is out of scope of the series.
 > 
-> The more automatic stuff we do and we don't have to involve the user,
-> the better.
-> 
-> However, lemme look at Chao's current patchset first - we should not go
-> nuts by putting SRAT parsing everywhere :)
+> No, because you are adding a firmware op for something that's going away.
 
-arch/x86/mm/ident_map.c is a good example, it's shared between
-arch/x86/boot/compressed and arch/x86/mm/init_64.c
+W/o your below explanation it wasn't obvious.
+
+> 
+> > You have a point. We must use the same member that was used in
+> > of_fwnode_get_named_child_node().
+> >
+> > The goal of this series if most likely not clear from this patch
+> > alone, so I'll send a second version and make sure to CC the DT list
+> > and Rob.
+> 
+> Looking at patch 4, if matching the name is what you want to do, then
+> use the DT name matching functions. They were added in 4.19.
+
+Do you mean of_node_name_eq()?
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
