@@ -1,7 +1,7 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Subject: Re: [PATCH 3/4] of/property: Introduce of_fwnode_name()
-Date: Tue, 6 Nov 2018 16:28:10 +0200
-Message-ID: <20181106142810.GX10650@smile.fi.intel.com>
+Date: Tue, 6 Nov 2018 16:40:37 +0200
+Message-ID: <20181106144037.GD13048@kuha.fi.intel.com>
 References: <20181105091727.25544-1-heikki.krogerus@linux.intel.com>
  <20181105091727.25544-4-heikki.krogerus@linux.intel.com>
  <CAL_Jsq+aRAv+9gDKwVi9xYQPYzXK4NMPjzfkuYB08+K6KTYXFg@mail.gmail.com>
@@ -15,7 +15,7 @@ Content-Disposition: inline
 In-Reply-To: <CAL_Jsq+kspp1GYrMjG1cC=CyCa2_jO1suFdD9fn+gOwKRYdhtw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Rob Herring <robh@kernel.org>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 On Tue, Nov 06, 2018 at 07:18:14AM -0600, Rob Herring wrote:
@@ -42,9 +42,6 @@ On Tue, Nov 06, 2018 at 07:18:14AM -0600, Rob Herring wrote:
 > > > I think this is out of scope of the series.
 > 
 > No, because you are adding a firmware op for something that's going away.
-
-W/o your below explanation it wasn't obvious.
-
 > 
 > > You have a point. We must use the same member that was used in
 > > of_fwnode_get_named_child_node().
@@ -56,9 +53,20 @@ W/o your below explanation it wasn't obvious.
 > Looking at patch 4, if matching the name is what you want to do, then
 > use the DT name matching functions. They were added in 4.19.
 
-Do you mean of_node_name_eq()?
+That is something that the of_fwnode_get_named_child_node() needs
+to use (would have needed).
 
+Regardless of what we do with that callback, fwnode_name() needs to
+return the name in from that for example of_node_name_eq() takes as
+the second parameter. So "node-name@unit-address" is not OK. Sorry for
+not realizeing that before.
+
+So I guess we need to either get the "node-name" from that full_name
+member in of_fwnode_name() (Andy, are you OK with that?), or is there
+already a helper that does it for us?
+
+
+Thanks,
 
 -- 
-With Best Regards,
-Andy Shevchenko
+heikki
