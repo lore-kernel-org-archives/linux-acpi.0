@@ -1,26 +1,22 @@
 From: =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@gmail.com>
 Subject: Re: [PATCH] ACPI / battery: Fix reporting "Not charging" when
  capacity is 100%
-Date: Tue, 6 Nov 2018 12:14:08 -0800
-Message-ID: <CA+A7VXUBCp3i18bz+LQ+gVpf_UdZALU=UpHXcCQ8V-eTSwOkJQ@mail.gmail.com>
-References: <20181103065732.12134-1-jprvita@endlessm.com> <566af8d6-638e-8c7b-71b4-a7a8d6e71cdb@redhat.com>
+Date: Tue, 6 Nov 2018 12:34:25 -0800
+Message-ID: <CA+A7VXXUB2CZUyPtaMya7in7ntO_unbqVnaZyfCBT_BXtAxeQQ@mail.gmail.com>
+References: <20181103065732.12134-1-jprvita@endlessm.com> <20181105091917.GD4439@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <566af8d6-638e-8c7b-71b4-a7a8d6e71cdb@redhat.com>
+In-Reply-To: <20181105091917.GD4439@amd>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Daniel Drake <drake@endlessm.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, LKML <linux-kernel@vger.kernel.org>, linux@endlessm.com, =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@endlessm.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Daniel Drake <drake@endlessm.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, LKML <linux-kernel@vger.kernel.org>, linux@endlessm.com, =?UTF-8?Q?Jo=C3=A3o_Paulo_Rechi_Vita?= <jprvita@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Hans, thanks for your quick response,
-
-On Sat, Nov 3, 2018 at 4:28 AM Hans de Goede <hdegoede@redhat.com> wrote:
+On Mon, Nov 5, 2018 at 1:19 AM Pavel Machek <pavel@ucw.cz> wrote:
 >
-> Hi,
->
-> On 03-11-18 07:57, Jo=C3=A3o Paulo Rechi Vita wrote:
+> On Fri 2018-11-02 23:57:32, Jo=C3=A3o Paulo Rechi Vita wrote:
 > > Commit 19fffc8450d4378580a8f019b195c4617083176f fixed reporting
 > > "Discharging" on some machines when AC was connected but the battery wa=
 s
@@ -33,51 +29,45 @@ s
 > >
 > > Signed-off-by: Jo=C3=A3o Paulo Rechi Vita <jprvita@endlessm.com>
 >
-> acpi_battery_handle_discharging() only gets called if the ACPI_BATTERY_ST=
-ATE_DISCHARGING
-> bit is set by the firmware in that case if we are not actually dischargin=
-g
-> returning POWER_SUPPLY_STATUS_NOT_CHARGING is the only correct thing to d=
-o,
-> we should never return POWER_SUPPLY_STATUS_FULL when the
-> ACPI_BATTERY_STATE_DISCHARGING bit is set.
+> We have people trying to modify this and it caused regressions in
+> MATE, IIRC.
 >
 
-I understand the reason behind your original patch, but can you
-elaborate on why would it be wrong to return POWER_SUPPLY_STATUS_FULL
-if the battery is full and we know it is not actually discharging?
-IIUC that is the state returned on hw / firmware that behaves
-correctly when there is AC power and the battery has 100% of charge.
+Do you have any pointers for further information?
 
-> I was about to point you to the upower bug for upower not
-> handling POWER_SUPPLY_STATUS_NOT_CHARGING as well as it
-> could atm, but I see you've already found that and are working
-> on fixing that. That is great, thank you.
+> Plus, I don't think "100% charge" is right test for "battery full". At
+> least on thinkpads, there's configuration option, and it is common
+> _not_ to charge batterry above 95% or so (to increase its lifetime).
 >
 
-Yes, I'm trying to fix this problem, but it touches different points
-across the stack and there are different possible approaches for how
-to present the "Not charging" state to the user. This patch is not
-necessarily part of, although closely related to, the bigger problem
-of better handling "Not charging". It actually addresses the problem
-that the kernel returns "Not charging" when AC is present and the
-battery is fully charged, which seems wrong to me, despite of "Not
-charging" not being strictly defined anywhere (at least that I know
-of).
+This will only affect machines where the firmware wrongly reports the
+battery state as discharging, which the commit mentioned on this
+commit message fixed so we now report it as not charging. From your
+comment it does not sound like thinkpads are in this category. In any
+case deciding to report battery full for any percentage other than
+100% is a policy decision, which is normally left out of the kernel.
 
-> As for this kernel-side fix I do not believe that fixing thus in
-> the kernel is the right thing to do. We try to stay away from
-> heuristics using full_charge_capacity in the kernel since that
-> is not really reliable / deterministic.
+>
+>
+> >        * was plugged in and the device thus did not start a new charge =
+cycle.
+> >        */
+> >       if ((battery_ac_is_broken || power_supply_is_system_supplied()) &=
+&
+> > -         battery->rate_now =3D=3D 0)
+> > +         battery->rate_now =3D=3D 0) {
+> > +             if (battery->capacity_now && battery->full_charge_capacit=
+y &&
+> > +                 battery->capacity_now / battery->full_charge_capacity=
+ =3D=3D 1)
+> > +                     return POWER_SUPPLY_STATUS_FULL;
+>
+> Division? Really?
 >
 
-At first I thought that returning POWER_SUPPLY_STATUS_FULL when the
-battery is full and AC is present was deterministic enough to have it
-in the kernel. But I don't have any prior experience working with this
-kind of hardware, so I may very well be wrong on this assumption. It
-would be great to get some extra clarification though.
+If you look further down in acpi_battery_get_property, that is how the
+capacity property is calculated. Do you have a better suggestion?
 
-Thanks,
 --
 Jo=C3=A3o Paulo Rechi Vita
 http://about.me/jprvita
