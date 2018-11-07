@@ -1,73 +1,100 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v10 2/7] x86/boot: Copy kstrtoull() to compressed period
-Date: Wed, 7 Nov 2018 09:28:02 +0800
-Message-ID: <20181107012802.GC2683@localhost.localdomain>
-References: <20181022093720.21426-1-fanc.fnst@cn.fujitsu.com>
- <20181022093720.21426-3-fanc.fnst@cn.fujitsu.com>
- <20181106191303.GN13712@zn.tnic>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH 4/6] drivers: base: Introducing software nodes
+ to the firmware node framework
+Date: Wed, 7 Nov 2018 07:39:33 +0300
+Message-ID: <20181107043933.wqszrfajrfy6hv7u@mwanda>
+References: <20181105145928.46819-5-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <kbuild-bounces@lists.01.org>
 Content-Disposition: inline
-In-Reply-To: <20181106191303.GN13712@zn.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <20181105145928.46819-5-heikki.krogerus@linux.intel.com>
+List-Unsubscribe: <https://lists.01.org/mailman/options/kbuild>,
+ <mailto:kbuild-request@lists.01.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/kbuild/>
+List-Post: <mailto:kbuild@lists.01.org>
+List-Help: <mailto:kbuild-request@lists.01.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/kbuild>,
+ <mailto:kbuild-request@lists.01.org?subject=subscribe>
+Errors-To: kbuild-bounces@lists.01.org
+Sender: "kbuild" <kbuild-bounces@lists.01.org>
+To: kbuild@01.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, kbuild-all@01.org, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 06, 2018 at 08:13:03PM +0100, Borislav Petkov wrote:
->On Mon, Oct 22, 2018 at 05:37:15PM +0800, Chao Fan wrote:
->> kstrtoull() lives in 'uncompressed' period, used to
->> convert a string to an unsigned long long.
->> Copy to 'compressed' so that we can use it to
->> convert the memory address from sting to unsigned
->
->sting?
+Hi Heikki,
 
-oops, typo, string.
->
->> long long in 'compressed' period.
->> 
->> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
->> ---
->>  arch/x86/boot/compressed/misc.c | 88 +++++++++++++++++++++++++++++++++
->>  arch/x86/boot/compressed/misc.h |  4 ++
->>  2 files changed, 92 insertions(+)
->
->Why do you need to copy things?
->
->You can link that file into compressed/ as lib/kstrtox.c is a library or
->include it similar to what arch/x86/boot/compressed/cmdline.c does.
->
->Still better than copying the code.
+url:    https://github.com/0day-ci/linux/commits/Heikki-Krogerus/device-property-Introducing-software-nodes/20181106-031310
 
-I will have a try, thanks for your suggestion.
+smatch warnings:
+drivers/base/swnode.c:391 fwnode_create_software_node() error: dereferencing freed memory 'swnode'
 
->
->> diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
->> index 008fdc47a29c..40378408d980 100644
->> --- a/arch/x86/boot/compressed/misc.h
->> +++ b/arch/x86/boot/compressed/misc.h
->> @@ -63,6 +63,10 @@ static inline void debug_puthex(const char *s)
->>  
->>  #endif
->>  
->> +#if (defined CONFIG_RANDOMIZE_BASE) && (defined CONFIG_RANDOMIZE_BASE)
->
->CONFIG_RANDOMIZE_BASE twice huh? Once not enough?
+# https://github.com/0day-ci/linux/commit/a8c9678ea46a0171baed68e4ec355a9b3f967458
+git remote add linux-review https://github.com/0day-ci/linux
+git remote update linux-review
+git checkout a8c9678ea46a0171baed68e4ec355a9b3f967458
+vim +/swnode +391 drivers/base/swnode.c
 
-Sorry for that, the second should be CONFIG_MEMORY_HOTREMOVE.
-
-Thanks,
-Chao Fan
-
->
->:-)
->
->-- 
->Regards/Gruss,
->    Boris.
->
->Good mailing practices for 400: avoid top-posting and trim the reply.
->
->
+a8c9678e Heikki Krogerus 2018-11-05  365  
+a8c9678e Heikki Krogerus 2018-11-05  366  struct fwnode_handle *
+a8c9678e Heikki Krogerus 2018-11-05  367  fwnode_create_software_node(const struct property_entry *properties,
+a8c9678e Heikki Krogerus 2018-11-05  368  			    const struct fwnode_handle *parent)
+a8c9678e Heikki Krogerus 2018-11-05  369  {
+a8c9678e Heikki Krogerus 2018-11-05  370  	struct software_node *p = NULL;
+a8c9678e Heikki Krogerus 2018-11-05  371  	struct software_node *swnode;
+a8c9678e Heikki Krogerus 2018-11-05  372  	char node_name[20];
+a8c9678e Heikki Krogerus 2018-11-05  373  	int ret;
+a8c9678e Heikki Krogerus 2018-11-05  374  
+a8c9678e Heikki Krogerus 2018-11-05  375  	if (parent) {
+a8c9678e Heikki Krogerus 2018-11-05  376  		if (IS_ERR(parent))
+a8c9678e Heikki Krogerus 2018-11-05  377  			return ERR_CAST(parent);
+a8c9678e Heikki Krogerus 2018-11-05  378  		if (!is_software_node(parent))
+a8c9678e Heikki Krogerus 2018-11-05  379  			return ERR_PTR(-EINVAL);
+a8c9678e Heikki Krogerus 2018-11-05  380  		p = to_software_node(parent);
+a8c9678e Heikki Krogerus 2018-11-05  381  	}
+a8c9678e Heikki Krogerus 2018-11-05  382  
+a8c9678e Heikki Krogerus 2018-11-05  383  	swnode = kzalloc(sizeof(*swnode), GFP_KERNEL);
+a8c9678e Heikki Krogerus 2018-11-05  384  	if (!swnode)
+a8c9678e Heikki Krogerus 2018-11-05  385  		return ERR_PTR(-ENOMEM);
+a8c9678e Heikki Krogerus 2018-11-05  386  
+a8c9678e Heikki Krogerus 2018-11-05  387  	swnode->id = ida_simple_get(p ? &p->child_ids : &swnode_root_ids, 0, 0,
+a8c9678e Heikki Krogerus 2018-11-05  388  				    GFP_KERNEL);
+a8c9678e Heikki Krogerus 2018-11-05  389  	if (swnode->id < 0) {
+a8c9678e Heikki Krogerus 2018-11-05  390  		kfree(swnode);
+                                                              ^^^^^^
+a8c9678e Heikki Krogerus 2018-11-05 @391  		return ERR_PTR(swnode->id);
+                                                                       ^^^^^^^^^^
+a8c9678e Heikki Krogerus 2018-11-05  392  	}
+a8c9678e Heikki Krogerus 2018-11-05  393  
+a8c9678e Heikki Krogerus 2018-11-05  394  	sprintf(node_name, "node%d", swnode->id);
+a8c9678e Heikki Krogerus 2018-11-05  395  
+a8c9678e Heikki Krogerus 2018-11-05  396  	swnode->kobj.kset = swnode_kset;
+a8c9678e Heikki Krogerus 2018-11-05  397  	swnode->fwnode.ops = &software_node_ops;
+a8c9678e Heikki Krogerus 2018-11-05  398  
+a8c9678e Heikki Krogerus 2018-11-05  399  	ida_init(&swnode->child_ids);
+a8c9678e Heikki Krogerus 2018-11-05  400  	INIT_LIST_HEAD(&swnode->entry);
+a8c9678e Heikki Krogerus 2018-11-05  401  	INIT_LIST_HEAD(&swnode->children);
+a8c9678e Heikki Krogerus 2018-11-05  402  	swnode->parent = p;
+a8c9678e Heikki Krogerus 2018-11-05  403  
+a8c9678e Heikki Krogerus 2018-11-05  404  	if (p)
+a8c9678e Heikki Krogerus 2018-11-05  405  		list_add_tail(&swnode->entry, &p->children);
+a8c9678e Heikki Krogerus 2018-11-05  406  
+a8c9678e Heikki Krogerus 2018-11-05  407  	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+a8c9678e Heikki Krogerus 2018-11-05  408  				   p ? &p->kobj : NULL, node_name);
+a8c9678e Heikki Krogerus 2018-11-05  409  	if (ret) {
+a8c9678e Heikki Krogerus 2018-11-05  410  		kobject_put(&swnode->kobj);
+a8c9678e Heikki Krogerus 2018-11-05  411  		return ERR_PTR(ret);
+a8c9678e Heikki Krogerus 2018-11-05  412  	}
+a8c9678e Heikki Krogerus 2018-11-05  413  
+a8c9678e Heikki Krogerus 2018-11-05  414  	ret = software_node_register_properties(swnode, properties);
+a8c9678e Heikki Krogerus 2018-11-05  415  	if (ret) {
+a8c9678e Heikki Krogerus 2018-11-05  416  		kobject_put(&swnode->kobj);
+a8c9678e Heikki Krogerus 2018-11-05  417  		return ERR_PTR(ret);
+a8c9678e Heikki Krogerus 2018-11-05  418  	}
+a8c9678e Heikki Krogerus 2018-11-05  419  
+a8c9678e Heikki Krogerus 2018-11-05  420  	kobject_uevent(&swnode->kobj, KOBJ_ADD);
+a8c9678e Heikki Krogerus 2018-11-05  421  	return &swnode->fwnode;
+a8c9678e Heikki Krogerus 2018-11-05  422  }
+a8c9678e Heikki Krogerus 2018-11-05  423  EXPORT_SYMBOL_GPL(fwnode_create_software_node);
+a8c9678e Heikki Krogerus 2018-11-05  424  
