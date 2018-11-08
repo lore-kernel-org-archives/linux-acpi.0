@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 3/4] of/property: Add of_fwnode_name()
-Date: Thu,  8 Nov 2018 19:51:55 +0300
-Message-ID: <20181108165156.60073-4-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 4/4] device property: Drop get_named_child_node callback
+Date: Thu,  8 Nov 2018 19:51:56 +0300
+Message-ID: <20181108165156.60073-5-heikki.krogerus@linux.intel.com>
 References: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,41 +12,129 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This implements get_name fwnode op for DT.
+By using fwnode_get_name() in fwnode_get_named_child_node(),
+get_named_child_node implementations become boilerplate.
+Removing all of them.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/of/property.c | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/property.c | 20 +-------------------
+ drivers/base/property.c |  9 ++++++++-
+ drivers/of/property.c   | 15 ---------------
+ include/linux/fwnode.h  |  3 ---
+ 4 files changed, 9 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index f46828e3b082..9bc8fe136fa3 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -823,6 +823,16 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
- 	of_node_put(to_of_node(fwnode));
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 5b4c659c95d4..03cb46018920 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -587,23 +587,6 @@ static int acpi_data_get_property_array(const struct acpi_device_data *data,
+ 	return 0;
  }
  
-+static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf)
-+{
-+	const char *name = kbasename(to_of_node(fwnode)->full_name);
-+	size_t len = strchrnul(name, '@') - name;
-+
-+	snprintf(buf, len + 1, "%s", name);
-+
-+	return 0;
-+}
-+
- static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+-static struct fwnode_handle *
+-acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+-				 const char *childname)
+-{
+-	struct fwnode_handle *child;
+-
+-	/*
+-	 * Find first matching named child node of this fwnode.
+-	 * For ACPI this will be a data only sub-node.
+-	 */
+-	fwnode_for_each_child_node(fwnode, child)
+-		if (acpi_data_node_match(child, childname))
+-			return child;
+-
+-	return NULL;
+-}
+-
+ /**
+  * __acpi_node_get_property_reference - returns handle to the referenced object
+  * @fwnode: Firmware node to get the property from
+@@ -712,7 +695,7 @@ int __acpi_node_get_property_reference(const struct fwnode_handle *fwnode,
+ 			for (ref_fwnode = acpi_fwnode_handle(device);
+ 			     element < end && element->type == ACPI_TYPE_STRING;
+ 			     element++) {
+-				ref_fwnode = acpi_fwnode_get_named_child_node(
++				ref_fwnode = fwnode_get_named_child_node(
+ 					ref_fwnode, element->string.pointer);
+ 				if (!ref_fwnode)
+ 					return -EINVAL;
+@@ -1342,7 +1325,6 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 			acpi_fwnode_property_read_string_array,		\
+ 		.get_parent = acpi_node_get_parent,			\
+ 		.get_next_child_node = acpi_get_next_subnode,		\
+-		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+ 		.get_reference_args = acpi_fwnode_get_reference_args,	\
+ 		.graph_get_next_endpoint =				\
+ 			acpi_graph_get_next_endpoint,			\
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 4db710e2ce34..802f55f9fab9 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -1111,7 +1111,14 @@ struct fwnode_handle *
+ fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+ 			    const char *childname)
  {
- 	return of_device_is_available(to_of_node(fwnode));
-@@ -987,6 +997,7 @@ of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- const struct fwnode_operations of_fwnode_ops = {
- 	.get = of_fwnode_get,
- 	.put = of_fwnode_put,
-+	.get_name = of_fwnode_get_name,
- 	.device_is_available = of_fwnode_device_is_available,
- 	.device_get_match_data = of_fwnode_device_get_match_data,
- 	.property_present = of_fwnode_property_present,
+-	return fwnode_call_ptr_op(fwnode, get_named_child_node, childname);
++	char name[FWNODE_NAME_MAX_SIZE];
++	struct fwnode_handle *child;
++
++	fwnode_for_each_child_node(fwnode, child)
++		if (!fwnode_get_name(child, name) &&
++		    !strcmp(name, childname))
++			return child;
++	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(fwnode_get_named_child_node);
+ 
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index 9bc8fe136fa3..34b157921568 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -895,20 +895,6 @@ of_fwnode_get_next_child_node(const struct fwnode_handle *fwnode,
+ 							    to_of_node(child)));
+ }
+ 
+-static struct fwnode_handle *
+-of_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+-			       const char *childname)
+-{
+-	const struct device_node *node = to_of_node(fwnode);
+-	struct device_node *child;
+-
+-	for_each_available_child_of_node(node, child)
+-		if (!of_node_cmp(child->name, childname))
+-			return of_fwnode_handle(child);
+-
+-	return NULL;
+-}
+-
+ static int
+ of_fwnode_get_reference_args(const struct fwnode_handle *fwnode,
+ 			     const char *prop, const char *nargs_prop,
+@@ -1005,7 +991,6 @@ const struct fwnode_operations of_fwnode_ops = {
+ 	.property_read_string_array = of_fwnode_property_read_string_array,
+ 	.get_parent = of_fwnode_get_parent,
+ 	.get_next_child_node = of_fwnode_get_next_child_node,
+-	.get_named_child_node = of_fwnode_get_named_child_node,
+ 	.get_reference_args = of_fwnode_get_reference_args,
+ 	.graph_get_next_endpoint = of_fwnode_graph_get_next_endpoint,
+ 	.graph_get_remote_endpoint = of_fwnode_graph_get_remote_endpoint,
+diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+index cc234f5d2b40..45df74f91603 100644
+--- a/include/linux/fwnode.h
++++ b/include/linux/fwnode.h
+@@ -92,9 +92,6 @@ struct fwnode_operations {
+ 	struct fwnode_handle *
+ 	(*get_next_child_node)(const struct fwnode_handle *fwnode,
+ 			       struct fwnode_handle *child);
+-	struct fwnode_handle *
+-	(*get_named_child_node)(const struct fwnode_handle *fwnode,
+-				const char *name);
+ 	int (*get_reference_args)(const struct fwnode_handle *fwnode,
+ 				  const char *prop, const char *nargs_prop,
+ 				  unsigned int nargs, unsigned int index,
 -- 
 2.19.1
