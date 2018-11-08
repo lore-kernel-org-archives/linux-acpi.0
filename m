@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v2 2/4] ACPI: property: Add acpi_fwnode_name()
-Date: Thu,  8 Nov 2018 19:51:54 +0300
-Message-ID: <20181108165156.60073-3-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 3/4] of/property: Add of_fwnode_name()
+Date: Thu,  8 Nov 2018 19:51:55 +0300
+Message-ID: <20181108165156.60073-4-heikki.krogerus@linux.intel.com>
 References: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,53 +12,41 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This implements the get_name fwnode op for ACPI.
+This implements get_name fwnode op for DT.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- drivers/acpi/property.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/of/property.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 8c7c4583b52d..5b4c659c95d4 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1219,6 +1219,28 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *__fwnode)
- 	return acpi_graph_get_child_prop_value(fwnode, "endpoint", endpoint_nr);
+diff --git a/drivers/of/property.c b/drivers/of/property.c
+index f46828e3b082..9bc8fe136fa3 100644
+--- a/drivers/of/property.c
++++ b/drivers/of/property.c
+@@ -823,6 +823,16 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
+ 	of_node_put(to_of_node(fwnode));
  }
  
-+static int acpi_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf)
++static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf)
 +{
-+	struct acpi_buffer buffer;
-+	acpi_handle handle;
-+	acpi_status status;
++	const char *name = kbasename(to_of_node(fwnode)->full_name);
++	size_t len = strchrnul(name, '@') - name;
 +
-+	if (is_acpi_data_node(fwnode)) {
-+		sprintf(buf, "%s", to_acpi_data_node(fwnode)->name);
-+		return 0;
-+	}
++	snprintf(buf, len + 1, "%s", name);
 +
-+	handle = to_acpi_device_node(fwnode)->handle;
-+
-+	buffer.length = ACPI_NAME_SIZE + 1;
-+	buffer.pointer = buf;
-+
-+	status = acpi_get_name(handle, ACPI_SINGLE_NAME, &buffer);
-+	if (ACPI_FAILURE(status))
-+		return -ENXIO;
 +	return 0;
 +}
 +
- static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
  {
- 	if (!is_acpi_device_node(fwnode))
-@@ -1310,6 +1332,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 
- #define DECLARE_ACPI_FWNODE_OPS(ops) \
- 	const struct fwnode_operations ops = {				\
-+		.get_name = acpi_fwnode_get_name,			\
- 		.device_is_available = acpi_fwnode_device_is_available, \
- 		.device_get_match_data = acpi_fwnode_device_get_match_data, \
- 		.property_present = acpi_fwnode_property_present,	\
+ 	return of_device_is_available(to_of_node(fwnode));
+@@ -987,6 +997,7 @@ of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ const struct fwnode_operations of_fwnode_ops = {
+ 	.get = of_fwnode_get,
+ 	.put = of_fwnode_put,
++	.get_name = of_fwnode_get_name,
+ 	.device_is_available = of_fwnode_device_is_available,
+ 	.device_get_match_data = of_fwnode_device_get_match_data,
+ 	.property_present = of_fwnode_property_present,
 -- 
 2.19.1
