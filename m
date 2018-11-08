@@ -1,61 +1,49 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Thu, 8 Nov 2018 11:51:29 +0100
-Message-ID: <20181108105129.GA7543@zn.tnic>
-References: <20181016191113.GI5212@zn.tnic>
- <20181016195429.tovdgqq77gz3eek2@gabell>
- <20181016195902.GK5212@zn.tnic>
- <20181022154204.kagmdb55jtoez4ca@gabell>
- <20181025103345.GF14020@nazgul.tnic>
- <20181025134050.ggiir77ehntikbwg@gabell>
- <20181106184519.GA16391@zn.tnic>
- <20181106193636.svyjwuwrlgnpuyyf@gabell>
- <20181106204511.GO13712@zn.tnic>
- <20181106222133.lb7674yzszivzihd@gabell>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: [PATCH v2 0/4] device property: Add fwnode_get_name() helper
+Date: Thu,  8 Nov 2018 19:51:52 +0300
+Message-ID: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181106222133.lb7674yzszivzihd@gabell>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 06, 2018 at 05:21:34PM -0500, Masayoshi Mizuma wrote:
-> On Tue, Nov 06, 2018 at 09:45:11PM +0100, Borislav Petkov wrote:
-> > On Tue, Nov 06, 2018 at 02:36:38PM -0500, Masayoshi Mizuma wrote:
-> > > Yes, I think I can see what you are saying. However, I'm not sure how
-> > > I use the setup_data in legacy BIOS environment.
-> > 
-> > What is "legacy BIOS environment" and what does that have to do with
-> > setup_data?
-> 
-> My proposed patch [1] is useful only for EFI environment. The patch
-> allocates a setup_date structure by efi_call_early() and store the
-> KASLR data into the memory area.
-> 
-> +static void setup_kaslr(struct boot_params *params)
-> +{
-> +	struct setup_data *kaslr_data = NULL;
-> +	struct setup_data *data;
-> +	unsigned long size;
-> +	efi_status_t status;
-> +
-> +	size = sizeof(struct setup_data) + sizeof(unsigned long long);
-> +
-> +	status = efi_call_early(allocate_pool, EFI_LOADER_DATA,
-> +			size, (void **)&kaslr_data);
-> 
-> I'm not sure how I allocate such memory on no EFI environment.
+Hi,
 
-A global definition which doesn't need allocation?
+This is the second version of my proposal for this helper. The
+first version can be checked here:
+https://lkml.org/lkml/2018/11/5/326
 
-Maybe hpa would have another, better idea...
+In order to support also ACPI properly, I decided to change the API.
+The function fwnode_name() is now fwnode_get_name(), and instead of
+returning pointer to the name, the function copies it to a buffer. I
+did that because acpica does not offer a way to get a pointer to the
+node name, and the name is clearly expected to be accessed only with
+the namespace lock held.
+
+I think this is better approach in any case. It will also solve the
+problem of getting rid of the unit-address part from DT node names.
+
+Let me know what you guys think.
+
+--
+heikki
+
+
+Heikki Krogerus (4):
+  device property: Introduce fwnode_get_name()
+  ACPI: property: Add acpi_fwnode_name()
+  of/property: Add of_fwnode_name()
+  device property: Drop get_named_child_node callback
+
+ drivers/acpi/property.c  | 43 ++++++++++++++++++++++------------------
+ drivers/base/property.c  | 34 ++++++++++++++++++++++++++++++-
+ drivers/of/property.c    | 26 ++++++++++--------------
+ include/linux/fwnode.h   |  6 +++---
+ include/linux/property.h |  2 ++
+ 5 files changed, 73 insertions(+), 38 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.19.1
