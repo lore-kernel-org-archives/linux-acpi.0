@@ -1,139 +1,75 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 3/4] of/property: Add of_fwnode_name()
-Date: Fri, 9 Nov 2018 15:34:42 +0200
-Message-ID: <20181109133442.GA28183@kuha.fi.intel.com>
-References: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
- <20181108165156.60073-4-heikki.krogerus@linux.intel.com>
- <CAL_Jsq+4momJb6EoXrAg2LRKzpXMFB30yhBigOiEJ16EjZ05pg@mail.gmail.com>
- <20181108192509.GW10650@smile.fi.intel.com>
- <CAL_JsqLMuiUc8FW=X_OAd5P_tcfPSTOox9Vh6faEwK+Z=S2mjw@mail.gmail.com>
+Subject: [PATCH v2 0/6]  device property: Introducing software nodes
+Date: Fri,  9 Nov 2018 17:21:32 +0300
+Message-ID: <20181109142138.54770-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqLMuiUc8FW=X_OAd5P_tcfPSTOox9Vh6faEwK+Z=S2mjw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>, Linus Walleij <linus.walleij@linaro.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 08, 2018 at 03:18:21PM -0600, Rob Herring wrote:
-> On Thu, Nov 8, 2018 at 1:25 PM Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> >
-> > On Thu, Nov 08, 2018 at 12:23:51PM -0600, Rob Herring wrote:
-> > > On Thu, Nov 8, 2018 at 10:52 AM Heikki Krogerus
-> > > <heikki.krogerus@linux.intel.com> wrote:
-> > > >
-> > > > This implements get_name fwnode op for DT.
-> > > >
-> > > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > > ---
-> > > >  drivers/of/property.c | 11 +++++++++++
-> > > >  1 file changed, 11 insertions(+)
-> > > >
-> > > > diff --git a/drivers/of/property.c b/drivers/of/property.c
-> > > > index f46828e3b082..9bc8fe136fa3 100644
-> > > > --- a/drivers/of/property.c
-> > > > +++ b/drivers/of/property.c
-> > > > @@ -823,6 +823,16 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
-> > > >         of_node_put(to_of_node(fwnode));
-> > > >  }
-> > > >
-> > > > +static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf)
-> > > > +{
-> > > > +       const char *name = kbasename(to_of_node(fwnode)->full_name);
-> > > > +       size_t len = strchrnul(name, '@') - name;
-> > > > +
-> > > > +       snprintf(buf, len + 1, "%s", name);
-> > >
-> > > This can be simplified to:
-> > >
-> > > snprintf(..., "%pOFn", to_of_node(fwnode))
-> > >
-> > > But that presents a problem with knowing the length. Not passing in
-> > > the buf length is not good design because you can't tell if you
-> > > overflow the buffer. Either you can pass in the length of buf or do
-> > > the allocation here. In the latter case, then you can use kasnprintf.
-> > > The downside to doing the allocation here is then get_name() has side
-> > > effect of allocating memory that the caller needs to be aware of.
-> >
-> > Agree on matter of potential overflow.
-> >
-> > I wouldn't limit users with 32 characters for node name if it's not by both
-> > ACPI and DT specifications.
-> 
-> While the DT spec says 31 characters, this has never been enforced. As
-> you might guess, we have node names longer than 31 characters. There's
-> been some discussion about what to do and the consensus seems to be
-> change the spec.
-> 
-> > OTOH allocating and freeing memory in a loop each
-> > time when we would like to go through the child nodes sounds much worse
-> > scenario to me.
-> 
-> Yes, I wrote that before looking at how you were using it... Of
-> course, if you want efficient, then you shouldn't use sprintf either
-> and use of_node_name_eq() as I've suggested.
+Hi,
 
-Since the fwnode API is just a wrapper layer (at least IMO), I don't
-think there should be any assumptions that it provides the optimal
-solution for anything. The low-level APIs should be the ones providing
-the optimal solutions.
+This is the second version of my proposal for "software nodes". There
+was a "dereferencing freed memory" bug in patch 3/5 which is now
+fixed. device_add_properties() and device_remove_properties() no
+longer change places in the code as requested by Andy.
 
-> > Thus, giving a length of the buffer is a good enough compromise.
+The original RFC can be checked from here:
+https://lkml.org/lkml/2018/10/12/518
 
-OK. That's what we'll do then.
+The origin commit message:
 
-> > > However, I think the current API is better. It leaves low-level
-> > > details up to the firmware implementation. But as long as .get_name()
-> > > is not exposed to drivers I don't really care that much.
+To continue the discussion started by Dmitry [1], this is my proposal
+that I mentioned in my last mail. In short, the idea is that instead
+of trying to extend the support for the currently used struct
+property_set, I'm proposing that we introduce a completely new,
+independent type of fwnode, and replace the struct property_set with
+it. I'm calling the type "software node" here.
 
-Side note:
+The reason for a complete separation of the software nodes from the
+generic property handling code is the need to be able to create the
+nodes independently from the devices that they are bind to.
 
-I would prefer that we had something like of_node_name_get() function
-that of_fwnode_get_name() could simply call. I don't know how you want
-that implemented, but I'm expecting you will implement something like
-that in any case once you start removing that ->name member. I figured
-that at that point we can update of_fwnode_get_name() as well.
+The way this works is that every node that is created will have a
+kobject registered. That will take care the ref counting for us, and
+also allow us to for example display the properties in sysfs.
 
-> > I don't think this concept is changed by Heikki's patch series. It provides a
-> > common abstract function on top of more low-level firmware implementation which
-> > I consider a good approach.
-> 
-> Generally, I would agree that's a worthwhile goal. However, in this
-> case you aren't saving anything. We still have at least a DT version
-> of the same thing (of_get_child_by_name). Maybe there's some dream
-> that the fwnode API will become the only one for both drivers and
-> non-drivers, but I really don't see that happening. As long as both DT
-> and fwnode APIs are in use, it is best to keep the APIs aligned.
+There are a few more details in patch 3/5 about the software nodes in
+the commit message.
 
-I don't think that anybody was planning to have the fwnode API as
-the only available API for the drivers. It's just a helper for the
-drivers on top of the low-level APIs, so the low-level APIs really
-need to always stay available for the drivers. There will always be
-corner cases.
+[1] https://lkml.org/lkml/2018/9/17/1067
 
-> There's another aspect that the node name comparison is case
-> insensitive on powerpc (and until 4.20, was for everything but Sparc).
-> I changed it in 4.20 and hopefully don't have to revert. Patch 4 does
-> a case sensitive compare. That probably is fine (as lots of powerpc
-> code already does case sensitive name compares), but no one really
-> knows until we break users.
-
-I actually used stccasecmp() in the first version. I don't know how,
-or why, I've changed it to strcmp(). I'll fix that.
-
-> Another issue is how are disabled nodes dealt with by different
-> firmwares? It's a frequent bug that we don't honor the 'status'
-> property (such as in the very code we're discussing). But then there
-> are some cases were want to ignore it so we can't just go add that
-> check in and we end up needing 2 flavors of everything. You're
-> probably okay though. Most devices with child nodes are
-> enabled/disabled only in the parent device node.
+--
+heikki
 
 
-thanks,
+Heikki Krogerus (6):
+  driver core: platform: Remove duplicated device_remove_properties()
+    call
+  drivers core: Prepare support for multiple platform notifications
+  ACPI / glue: Add acpi_platform_notify() function
+  drivers: base: Introducing software nodes to the firmware node
+    framework
+  device property: Move device_add_properties() to swnode.c
+  device property: Remove struct property_set
+
+ .../ABI/testing/sysfs-devices-software_node   |  10 +
+ drivers/acpi/bus.c                            |   1 -
+ drivers/acpi/glue.c                           |  21 +-
+ drivers/acpi/internal.h                       |   1 -
+ drivers/base/Makefile                         |   2 +-
+ drivers/base/core.c                           |  34 +-
+ drivers/base/platform.c                       |   1 -
+ drivers/base/property.c                       | 511 +------------
+ drivers/base/swnode.c                         | 678 ++++++++++++++++++
+ include/linux/acpi.h                          |  10 +
+ include/linux/property.h                      |  12 +
+ 11 files changed, 768 insertions(+), 513 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-devices-software_node
+ create mode 100644 drivers/base/swnode.c
 
 -- 
-heikki
+2.19.1
