@@ -1,158 +1,176 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v2 3/4] of/property: Add of_fwnode_name()
-Date: Fri, 9 Nov 2018 10:14:49 -0600
-Message-ID: <CABGGiswFe92TLtU6YH3UsQJBbACbHu2w0rmc7FvwURqi_PU+7w@mail.gmail.com>
-References: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
- <20181108165156.60073-4-heikki.krogerus@linux.intel.com> <CAL_Jsq+4momJb6EoXrAg2LRKzpXMFB30yhBigOiEJ16EjZ05pg@mail.gmail.com>
- <20181108192509.GW10650@smile.fi.intel.com> <CAL_JsqLMuiUc8FW=X_OAd5P_tcfPSTOox9Vh6faEwK+Z=S2mjw@mail.gmail.com>
- <20181109133442.GA28183@kuha.fi.intel.com>
+From: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>
+Subject: RE: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
+        162001800 quirk
+Date: Fri, 9 Nov 2018 16:50:40 +0000
+Message-ID: <5FC3163CFD30C246ABAA99954A238FA8387C64F2@FRAEML521-MBX.china.huawei.com>
+References: <20181016124920.24708-1-shameerali.kolothum.thodi@huawei.com>
+        <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
+        <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
+        <5FC3163CFD30C246ABAA99954A238FA8387A0342@FRAEML521-MBX.china.huawei.com>
+ <5FC3163CFD30C246ABAA99954A238FA8387A0575@FRAEML521-MBX.china.huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181109133442.GA28183@kuha.fi.intel.com>
+In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA8387A0575@FRAEML521-MBX.china.huawei.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: heikki.krogerus@linux.intel.com
-Cc: Rob Herring <robh@kernel.org>, andriy.shevchenko@linux.intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, mika.westerberg@linux.intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>
+Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 9, 2018 at 7:34 AM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
->
-> On Thu, Nov 08, 2018 at 03:18:21PM -0600, Rob Herring wrote:
-> > On Thu, Nov 8, 2018 at 1:25 PM Andy Shevchenko
-> > <andriy.shevchenko@linux.intel.com> wrote:
-> > >
-> > > On Thu, Nov 08, 2018 at 12:23:51PM -0600, Rob Herring wrote:
-> > > > On Thu, Nov 8, 2018 at 10:52 AM Heikki Krogerus
-> > > > <heikki.krogerus@linux.intel.com> wrote:
-> > > > >
-> > > > > This implements get_name fwnode op for DT.
-> > > > >
-> > > > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > > > > ---
-> > > > >  drivers/of/property.c | 11 +++++++++++
-> > > > >  1 file changed, 11 insertions(+)
-> > > > >
-> > > > > diff --git a/drivers/of/property.c b/drivers/of/property.c
-> > > > > index f46828e3b082..9bc8fe136fa3 100644
-> > > > > --- a/drivers/of/property.c
-> > > > > +++ b/drivers/of/property.c
-> > > > > @@ -823,6 +823,16 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
-> > > > >         of_node_put(to_of_node(fwnode));
-> > > > >  }
-> > > > >
-> > > > > +static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf)
-> > > > > +{
-> > > > > +       const char *name = kbasename(to_of_node(fwnode)->full_name);
-> > > > > +       size_t len = strchrnul(name, '@') - name;
-> > > > > +
-> > > > > +       snprintf(buf, len + 1, "%s", name);
-> > > >
-> > > > This can be simplified to:
-> > > >
-> > > > snprintf(..., "%pOFn", to_of_node(fwnode))
-> > > >
-> > > > But that presents a problem with knowing the length. Not passing in
-> > > > the buf length is not good design because you can't tell if you
-> > > > overflow the buffer. Either you can pass in the length of buf or do
-> > > > the allocation here. In the latter case, then you can use kasnprintf.
-> > > > The downside to doing the allocation here is then get_name() has side
-> > > > effect of allocating memory that the caller needs to be aware of.
-> > >
-> > > Agree on matter of potential overflow.
-> > >
-> > > I wouldn't limit users with 32 characters for node name if it's not by both
-> > > ACPI and DT specifications.
-> >
-> > While the DT spec says 31 characters, this has never been enforced. As
-> > you might guess, we have node names longer than 31 characters. There's
-> > been some discussion about what to do and the consensus seems to be
-> > change the spec.
-> >
-> > > OTOH allocating and freeing memory in a loop each
-> > > time when we would like to go through the child nodes sounds much worse
-> > > scenario to me.
-> >
-> > Yes, I wrote that before looking at how you were using it... Of
-> > course, if you want efficient, then you shouldn't use sprintf either
-> > and use of_node_name_eq() as I've suggested.
->
-> Since the fwnode API is just a wrapper layer (at least IMO), I don't
-> think there should be any assumptions that it provides the optimal
-> solution for anything. The low-level APIs should be the ones providing
-> the optimal solutions.
->
-> > > Thus, giving a length of the buffer is a good enough compromise.
->
-> OK. That's what we'll do then.
->
-> > > > However, I think the current API is better. It leaves low-level
-> > > > details up to the firmware implementation. But as long as .get_name()
-> > > > is not exposed to drivers I don't really care that much.
->
-> Side note:
->
-> I would prefer that we had something like of_node_name_get() function
-> that of_fwnode_get_name() could simply call. I don't know how you want
-> that implemented, but I'm expecting you will implement something like
-> that in any case once you start removing that ->name member. I figured
-> that at that point we can update of_fwnode_get_name() as well.
-
-I don't plan to implement anything like that. Here's what I'm planning:
-https://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git/log/?h=dt/testing
-
-Which is eliminating the need to access .name by: using %pOFn (mostly
-in 4.20), using of_node_name_eq() wrapper, or using full_name instead.
-The last case generally is cases where the name is not important such
-as request_irq() or irq_chip.name.
-
-> > > I don't think this concept is changed by Heikki's patch series. It provides a
-> > > common abstract function on top of more low-level firmware implementation which
-> > > I consider a good approach.
-> >
-> > Generally, I would agree that's a worthwhile goal. However, in this
-> > case you aren't saving anything. We still have at least a DT version
-> > of the same thing (of_get_child_by_name). Maybe there's some dream
-> > that the fwnode API will become the only one for both drivers and
-> > non-drivers, but I really don't see that happening. As long as both DT
-> > and fwnode APIs are in use, it is best to keep the APIs aligned.
->
-> I don't think that anybody was planning to have the fwnode API as
-> the only available API for the drivers. It's just a helper for the
-> drivers on top of the low-level APIs, so the low-level APIs really
-> need to always stay available for the drivers. There will always be
-> corner cases.
-
-So either it needs to be the only interface to drivers or the fwnode
-and DT APIs need to have the same calls. We don't want drivers to use
-different style/design of API based on picking fwnode or DT API. If
-you have the same calls, there's no point to trying to copy the common
-parts into fwnode code. Then you have 3 implementations of the same
-thing instead of 2.
-
-> > There's another aspect that the node name comparison is case
-> > insensitive on powerpc (and until 4.20, was for everything but Sparc).
-> > I changed it in 4.20 and hopefully don't have to revert. Patch 4 does
-> > a case sensitive compare. That probably is fine (as lots of powerpc
-> > code already does case sensitive name compares), but no one really
-> > knows until we break users.
->
-> I actually used stccasecmp() in the first version. I don't know how,
-> or why, I've changed it to strcmp(). I'll fix that.
-
-That's not what I'm suggesting. I'm saying that is a firmware level
-detail that should remain in firmware code.
-
-I'm actually hoping to move things over to be case sensitive in most
-cases. That may mean having some work-around like:
-
-if (IS_ENABLED(CONFIG_PPC_PMAC))
-  ... strcasecmp()
-else
-  ... strcmp()
-
-Or whatever system needs this. I think it is old PowerMacs, but am not
-really sure. And yeah, that would be ugly, but at least we'd know what
-exactly needs it. Do you want this crap is fwnode code?
-
-Rob
+SGkgUm9iaW4sDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogTGludXhh
+cm0gW21haWx0bzpsaW51eGFybS1ib3VuY2VzQGh1YXdlaS5jb21dIE9uIEJlaGFsZiBPZg0KPiBT
+aGFtZWVyYWxpIEtvbG90aHVtIFRob2RpDQo+IFNlbnQ6IDE4IE9jdG9iZXIgMjAxOCAxNjoyNw0K
+PiBUbzogUm9iaW4gTXVycGh5IDxyb2Jpbi5tdXJwaHlAYXJtLmNvbT47IGxvcmVuem8ucGllcmFs
+aXNpQGFybS5jb207DQo+IGplYW4tcGhpbGlwcGUuYnJ1Y2tlckBhcm0uY29tDQo+IENjOiBtYXJr
+LnJ1dGxhbmRAYXJtLmNvbTsgdmtpbGFyaUBjb2RlYXVyb3JhLm9yZzsNCj4gbmVpbC5tLmxlZWRl
+ckBnbWFpbC5jb207IHBhYmJhQGNvZGVhdXJvcmEub3JnOyB3aWxsLmRlYWNvbkBhcm0uY29tOw0K
+PiBycnVpZ3Jva0Bjb2RlYXVyb3JhLm9yZzsgTGludXhhcm0gPGxpbnV4YXJtQGh1YXdlaS5jb20+
+OyBsaW51eC0NCj4gYWNwaUB2Z2VyLmtlcm5lbC5vcmc7IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMu
+aW5mcmFkZWFkLm9yZzsgbGludXgtDQo+IGtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gU3ViamVj
+dDogUkU6IFtQQVRDSCB2NCA0LzRdIHBlcmYvc21tdXYzX3BtdTogRW5hYmxlIEhpU2lsaWNvbiBF
+cnJhdHVtDQo+IDE2MjAwMTgwMCBxdWlyaw0KIA0KWy4uLl0NCg0KPiANCj4gPiA+ID4gK3N0YXRp
+YyBjb25zdCBzdHJ1Y3Qgc21tdV9wbXVfZXJyYXR1bV93YSBzbW11X3BtdV93YVtdID0gew0KPiA+
+ID4gPiArCXsNCj4gPiA+ID4gKwkJLm1hdGNoX3R5cGUgPSBzZV9tYXRjaF9hY3BpX29lbSwNCj4g
+PiA+ID4gKwkJLmlkID0gaGlzaV8xNjIwMDE4MDBfb2VtX2luZm8sDQo+ID4gPiA+ICsJCS5kZXNj
+X3N0ciA9ICJIaVNpbGljb24gZXJyYXR1bSAxNjIwMDE4MDAiLA0KPiA+ID4gPiArCQkuZW5hYmxl
+ID0gaGlzaV9lcnJhdHVtX2V2Y250cl9yZG9ubHksDQo+ID4gPiA+ICsJfSwNCj4gPiA+ID4gK307
+DQo+ID4gPiA+ICsNCj4gPiA+DQo+ID4gPiBUaGVyZSdzIGFuIGF3ZnVsIGxvdCBvZiByYXcgQUNQ
+SSBpbnRlcm5hbHMgc3BsYXNoZWQgYWJvdXQgaGVyZSAtDQo+ID4gPiBjb3VsZG4ndCBhdCBsZWFz
+dCBzb21lIG9mIGl0IGJlIGFic3RyYWN0ZWQgYmVoaW5kIHRoZSBJT1JUIGNvZGU/IEluDQo+ID4g
+PiBmYWN0LCBjYW4ndCBJT1JUIGp1c3Qgc2V0IGFsbCB0aGlzIHN0dWZmIHVwIGluIGFkdmFuY2Ug
+bGlrZSBpdCBkb2VzIGZvcg0KPiA+ID4gU01NVXM/DQo+ID4NCj4gPiBIbW1tLi4gU29ycnksIG5v
+dCBjbGVhciB0byBtZS4gWW91IG1lYW4gdG8gc2F5IGFzc29jaWF0ZSB0aGUgSU9SVCBub2RlDQo+
+ID4gd2l0aCBwbGF0Zm9ybSBkZXZpY2UgYW5kIHJldHJpZXZlIGl0IGluIGRyaXZlciBqdXN0IGxp
+a2Ugc21tdSBkb2VzIGZvcg0KPiA+ICJtb2RlbCIgY2hlY2tzPyBOb3Qgc3VyZSB0aGF0IHdvcmtz
+IGhlcmUgaWYgdGhhdOKAmXMgd2hhdCB0aGUgYWJvdmUgbWVhbnQuDQo+ID4NCj4gPiA+ID4gICAj
+ZGVmaW5lIHRvX3NtbXVfcG11KHApIChjb250YWluZXJfb2YocCwgc3RydWN0IHNtbXVfcG11LCBw
+bXUpKQ0KPiA+ID4gPg0KPiA+ID4gPiAgICNkZWZpbmUgU01NVV9QTVVfRVZFTlRfQVRUUl9FWFRS
+QUNUT1IoX25hbWUsIF9jb25maWcsIF9zdGFydCwNCj4gPiA+IF9lbmQpICAgICAgICBcDQo+ID4g
+PiA+IEBAIC0yMjQsMTUgKzI3MSwyMCBAQCBzdGF0aWMgdm9pZCBzbW11X3BtdV9zZXRfcGVyaW9k
+KHN0cnVjdA0KPiA+ID4gc21tdV9wbXUgKnNtbXVfcG11LA0KPiA+ID4gPiAgIAl1MzIgaWR4ID0g
+aHdjLT5pZHg7DQo+ID4gPiA+ICAgCXU2NCBuZXc7DQo+ID4gPiA+DQo+ID4gPiA+IC0JLyoNCj4g
+PiA+ID4gLQkgKiBXZSBsaW1pdCB0aGUgbWF4IHBlcmlvZCB0byBoYWxmIHRoZSBtYXggY291bnRl
+ciB2YWx1ZSBvZiB0aGUNCj4gPiA+IGNvdW50ZXINCj4gPiA+ID4gLQkgKiBzaXplLCBzbyB0aGF0
+IGV2ZW4gaW4gdGhlIGNhc2Ugb2YgZXh0cmVtZSBpbnRlcnJ1cHQgbGF0ZW5jeSB0aGUNCj4gPiA+
+ID4gLQkgKiBjb3VudGVyIHdpbGwgKGhvcGVmdWxseSkgbm90IHdyYXAgcGFzdCBpdHMgaW5pdGlh
+bCB2YWx1ZS4NCj4gPiA+ID4gLQkgKi8NCj4gPiA+ID4gLQluZXcgPSBzbW11X3BtdS0+Y291bnRl
+cl9tYXNrID4+IDE7DQo+ID4gPiA+ICsJaWYgKHNtbXVfcG11LT5vcHRpb25zICYgU01NVV9QTVVf
+T1BUX0VWQ05UUl9SRE9OTFkpIHsNCj4gPiA+ID4gKwkJbmV3ID0gc21tdV9wbXVfY291bnRlcl9n
+ZXRfdmFsdWUoc21tdV9wbXUsIGlkeCk7DQo+ID4gPg0KPiA+ID4gU29tZXRoaW5nJ3MgY2xlYXJs
+eSBtaXNzaW5nLCBiZWNhdXNlIGlmIHRoaXMgaGFwcGVucyB0byBzdGFydCBhdCAwLCB0aGUNCj4g
+PiA+IGN1cnJlbnQgb3ZlcmZsb3cgaGFuZGxpbmcgY29kZSBjYW5ub3QgcG9zc2libHkgZ2l2ZSB0
+aGUgY29ycmVjdCBjb3VudC4NCj4gPiA+IE11Y2ggYXMgSSBoYXRlIHRoZSByZXNldC10by1oYWxm
+LXBlcmlvZCBpZGlvbSBmb3IgYmVpbmcgaW1wb3NzaWJsZSB0bw0KPiA+ID4gbWFrZSBzZW5zZSBv
+ZiwgaXQgZG9lcyBtYWtlIHZhcmlvdXMgYXNwZWN0cyBhcHBlYXIgYSBsb3Qgc2ltcGxlciB0aGFu
+DQo+ID4gPiB0aGV5IHJlYWxseSBhcmUuIFdhaXQsIG1heWJlIHRoYXQncyB5ZXQgYW5vdGhlciBy
+ZWFzb24gdG8gaGF0ZSBpdC4uLg0KPiA+DQo+ID4gWWVzLCAgaWYgdGhlIGNvdW50ZXIgc3RhcnRz
+IGF0IDAgYW5kIG92ZXJmbG93IGhhcHBlbnMsIGl0IHdvbid0IHBvc3NpYmx5IGdpdmUNCj4gPiB0
+aGUgY29ycmVjdCBjb3VudCBjb21wYXJlZCB0byB0aGUgcmVzZXQtdG8taGFsZi1wZXJpb2QgbG9n
+aWMuIFNpbmNlIHRoaXMgaXMgYQ0KPiA+IDY0IGJpdCBjb3VudGVyLCBqdXN0IGhvcGUgdGhhdCwg
+aXQgd29uJ3QgbmVjZXNzYXJpbHkgaGFwcGVuIHRoYXQgb2Z0ZW4uDQo+IA0KPiBbLi4uXQ0KPiAN
+Cj4gPiA+ID4gK3N0YXRpYyB2b2lkIHNtbXVfcG11X2VuYWJsZV9lcnJhdGEoc3RydWN0IHNtbXVf
+cG11ICpzbW11X3BtdSwNCj4gPiA+ID4gKwkJCQllbnVtIHNtbXVfcG11X2VycmF0dW1fbWF0Y2hf
+dHlwZSB0eXBlLA0KPiA+ID4gPiArCQkJCXNlX21hdGNoX2ZuX3QgbWF0Y2hfZm4sDQo+ID4gPiA+
+ICsJCQkJdm9pZCAqYXJnKQ0KPiA+ID4gPiArew0KPiA+ID4gPiArCWNvbnN0IHN0cnVjdCBzbW11
+X3BtdV9lcnJhdHVtX3dhICp3YSA9IHNtbXVfcG11X3dhOw0KPiA+ID4gPiArDQo+ID4gPiA+ICsJ
+Zm9yICg7IHdhLT5kZXNjX3N0cjsgd2ErKykgew0KPiA+ID4gPiArCQlpZiAod2EtPm1hdGNoX3R5
+cGUgIT0gdHlwZSkNCj4gPiA+ID4gKwkJCWNvbnRpbnVlOw0KPiA+ID4gPiArDQo+ID4gPiA+ICsJ
+CWlmIChtYXRjaF9mbih3YSwgYXJnKSkgew0KPiA+ID4gPiArCQkJaWYgKHdhLT5lbmFibGUpIHsN
+Cj4gPiA+ID4gKwkJCQl3YS0+ZW5hYmxlKHNtbXVfcG11KTsNCj4gPiA+ID4gKwkJCQlkZXZfaW5m
+byhzbW11X3BtdS0+ZGV2LA0KPiA+ID4gPiArCQkJCQkiRW5hYmxpbmcgd29ya2Fyb3VuZCBmb3Ig
+JXNcbiIsDQo+ID4gPiA+ICsJCQkJCSB3YS0+ZGVzY19zdHIpOw0KPiA+ID4gPiArCQkJfQ0KPiA+
+ID4NCj4gPiA+IEp1c3QgaG93IG1hbnkga2luZHMgb2YgYnJva2VuIGFyZSB3ZSBleHBlY3Rpbmcg
+aGVyZT8gSXMgdGhpcyBsaWZ0ZWQgZnJvbQ0KPiA+ID4gdGhlIGFybTY0IGNwdWZlYXR1cmUgZnJh
+bWV3b3JrLCBiZWNhdXNlIGl0IHNlZW1zIGxpa2UgYWJzb2x1dGUgb3ZlcmtpbGwNCj4gPiA+IGZv
+ciBhIHNpbXBsZSBQTVUgZHJpdmVyIHdoaWNoIGluIGFsbCByZWFsaXR5IGlzIG9ubHkgZXZlciBn
+b2luZyB0bw0KPiA+ID4gd2lnZ2xlIGEgZmV3IGZsYWdzIGluIHNvbWUgZGF0YSBzdHJ1Y3R1cmUu
+DQo+ID4NCj4gPiBZZXMsIHRoaXMgZXJyYXR1bSBmcmFtZXdvcmsgaXMgYmFzZWQgb24gdGhlIGFy
+bV9hcmNoX3RpbWVyIGNvZGUuIEFncmVlDQo+IHRoYXQNCj4gPiB0aGlzIGlzIGFuIG92ZXJraWxs
+IGlmIGl0IGlzIGp1c3QgdG8gc3VwcG9ydCB0aGlzIGhhcmR3YXJlLiBJIGFtIG5vdCBzdXJlIHRo
+aXMgY2FuDQo+IGJlDQo+ID4gZXh0ZW5kZWQgdG8gYWRkIHRoZSBJTVBMRU1FTlRBVElPTiBERUZJ
+TkVEIGV2ZW50cyBpbiBmdXR1cmUoSSBoYXZlbid0DQo+ID4gbG9va2VkIGludG8gdGhhdCBub3cp
+LiBJZiB0aGlzIGlzIG5vdCB0aGF0IHVzZWZ1bCBpbiB0aGUgbmVhciBmdXR1cmUsIEkgd2lsbCBy
+ZW1vdmUNCj4gPiB0aGUNCj4gPiBmcmFtZXdvcmsgcGFydCBhbmQgdXNlIHRoZSBPRU0gaW5mbyBk
+aXJlY3RseSB0byBzZXQgdGhlIGZsYWcuIFBsZWFzZSBsZXQgbWUNCj4gPiBrbm93DQo+ID4geW91
+ciB0aG91Z2h0cy4uDQo+IA0KPiBCZWxvdyBpcyBhbm90aGVyIHRha2Ugb24gdGhpcyBwYXRjaC4g
+UGxlYXNlIGxldCBtZSBrbm93IGlmIHRoaXMgbWFrZXMgYW55DQo+IHNlbnNlLi4NCg0KQ291bGQg
+eW91IHBsZWFzZSBsZXQgbWUga25vdyB3aGV0aGVyIHRoZSBiZWxvdyAic2ltcGxpZmllZCIgdmVy
+c2lvbiBvZg0KZXJyYXR1bSBsb29rcyBhbnkgYmV0dGVyIG9yIG5vdD8gIEFuZCBhcHByZWNpYXRl
+IGFueSBvdGhlciBjb21tZW50cyBvbg0KdGhlIHJlc3Qgb2YgdGhlIHNlcmllcyBhcyB3ZWxsIHNv
+IHRoYXQgSSBjYW4gd29yayBvbiB0aGlzIGFuZCByZXNwaW4uDQoNClRoYW5rcywNClNoYW1lZXIN
+Cg0KPiBUaGFua3MsDQo+IFNoYW1lZXINCj4gDQo+IC0tLS04LS0tLQ0KPiBkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9wZXJmL2FybV9zbW11djNfcG11LmMNCj4gYi9kcml2ZXJzL3BlcmYvYXJtX3NtbXV2
+M19wbXUuYw0KPiBpbmRleCBlZjk0YjkwLi42ZjgxYjk0IDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJz
+L3BlcmYvYXJtX3NtbXV2M19wbXUuYw0KPiArKysgYi9kcml2ZXJzL3BlcmYvYXJtX3NtbXV2M19w
+bXUuYw0KPiBAQCAtOTYsNiArOTYsOCBAQA0KPiANCj4gICNkZWZpbmUgU01NVV9QQV9TSElGVCAg
+ICAgICAgICAgICAgICAgICAxMg0KPiANCj4gKyNkZWZpbmUgU01NVV9QTVVfT1BUX0VWQ05UUl9S
+RE9OTFkJKDEgPDwgMCkNCj4gKw0KPiAgc3RhdGljIGludCBjcHVocF9zdGF0ZV9udW07DQo+IA0K
+PiAgc3RydWN0IHNtbXVfcG11IHsNCj4gQEAgLTExMSwxMCArMTEzLDM4IEBAIHN0cnVjdCBzbW11
+X3BtdSB7DQo+ICAJc3RydWN0IGRldmljZSAqZGV2Ow0KPiAgCXZvaWQgX19pb21lbSAqcmVnX2Jh
+c2U7DQo+ICAJdm9pZCBfX2lvbWVtICpyZWxvY19iYXNlOw0KPiArCXUzMiBvcHRpb25zOw0KPiAg
+CXU2NCBjb3VudGVyX3ByZXNlbnRfbWFzazsNCj4gIAl1NjQgY291bnRlcl9tYXNrOw0KPiAgfTsN
+Cj4gDQo+ICtzdHJ1Y3QgZXJyYXR1bV9hY3BpX29lbV9pbmZvIHsNCj4gKwljaGFyIG9lbV9pZFtB
+Q1BJX09FTV9JRF9TSVpFICsgMV07DQo+ICsJY2hhciBvZW1fdGFibGVfaWRbQUNQSV9PRU1fVEFC
+TEVfSURfU0laRSArIDFdOw0KPiArCXUzMiBvZW1fcmV2aXNpb247DQo+ICsJdm9pZCAoKmVuYWJs
+ZSkoc3RydWN0IHNtbXVfcG11ICpzbW11X3BtdSk7DQo+ICt9Ow0KPiArDQo+ICt2b2lkIGhpc2lf
+ZXJyYXR1bV9ldmNudHJfcmRvbmx5KHN0cnVjdCBzbW11X3BtdSAqc21tdV9wbXUpDQo+ICt7DQo+
+ICsJc21tdV9wbXUtPm9wdGlvbnMgfD0gU01NVV9QTVVfT1BUX0VWQ05UUl9SRE9OTFk7DQo+ICsJ
+ZGV2X2luZm8oc21tdV9wbXUtPmRldiwgIkVuYWJsaW5nIEhpU2lsaWNvbiBlcnJhdHVtDQo+IDE2
+MjAwMTgwMFxuIik7DQo+ICt9DQo+ICsNCj4gK3N0YXRpYyBzdHJ1Y3QgZXJyYXR1bV9hY3BpX29l
+bV9pbmZvIGFjcGlfb2VtX2luZm9bXSA9IHsNCj4gKwkvKg0KPiArCSAqIE5vdGUgdGhhdCB0cmFp
+bGluZyBzcGFjZXMgYXJlIHJlcXVpcmVkIHRvIHByb3Blcmx5IG1hdGNoDQo+ICsJICogdGhlIE9F
+TSB0YWJsZSBpbmZvcm1hdGlvbi4NCj4gKwkgKi8NCj4gKwl7DQo+ICsJCS5vZW1faWQgICAgICAg
+ICA9ICJISVNJICAiLA0KPiArCQkub2VtX3RhYmxlX2lkICAgPSAiSElQMDggICAiLA0KPiArCQku
+b2VtX3JldmlzaW9uICAgPSAwLA0KPiArCQkuZW5hYmxlID0gaGlzaV9lcnJhdHVtX2V2Y250cl9y
+ZG9ubHksDQo+ICsJfSwNCj4gKwl7IC8qIFNlbnRpbmVsIGluZGljYXRpbmcgdGhlIGVuZCBvZiB0
+aGUgT0VNIGFycmF5ICovIH0sDQo+ICt9Ow0KPiArDQo+ICAjZGVmaW5lIHRvX3NtbXVfcG11KHAp
+IChjb250YWluZXJfb2YocCwgc3RydWN0IHNtbXVfcG11LCBwbXUpKQ0KPiANCj4gICNkZWZpbmUg
+U01NVV9QTVVfRVZFTlRfQVRUUl9FWFRSQUNUT1IoX25hbWUsIF9jb25maWcsIF9zdGFydCwgX2Vu
+ZCkNCj4gXA0KPiBAQCAtMjI0LDE1ICsyNTQsMjAgQEAgc3RhdGljIHZvaWQgc21tdV9wbXVfc2V0
+X3BlcmlvZChzdHJ1Y3QNCj4gc21tdV9wbXUgKnNtbXVfcG11LA0KPiAgCXUzMiBpZHggPSBod2Mt
+PmlkeDsNCj4gIAl1NjQgbmV3Ow0KPiANCj4gLQkvKg0KPiAtCSAqIFdlIGxpbWl0IHRoZSBtYXgg
+cGVyaW9kIHRvIGhhbGYgdGhlIG1heCBjb3VudGVyIHZhbHVlIG9mIHRoZQ0KPiBjb3VudGVyDQo+
+IC0JICogc2l6ZSwgc28gdGhhdCBldmVuIGluIHRoZSBjYXNlIG9mIGV4dHJlbWUgaW50ZXJydXB0
+IGxhdGVuY3kgdGhlDQo+IC0JICogY291bnRlciB3aWxsIChob3BlZnVsbHkpIG5vdCB3cmFwIHBh
+c3QgaXRzIGluaXRpYWwgdmFsdWUuDQo+IC0JICovDQo+IC0JbmV3ID0gc21tdV9wbXUtPmNvdW50
+ZXJfbWFzayA+PiAxOw0KPiArCWlmIChzbW11X3BtdS0+b3B0aW9ucyAmIFNNTVVfUE1VX09QVF9F
+VkNOVFJfUkRPTkxZKSB7DQo+ICsJCW5ldyA9IHNtbXVfcG11X2NvdW50ZXJfZ2V0X3ZhbHVlKHNt
+bXVfcG11LCBpZHgpOw0KPiArCX0gZWxzZSB7DQo+ICsJCS8qDQo+ICsJCSAqIFdlIGxpbWl0IHRo
+ZSBtYXggcGVyaW9kIHRvIGhhbGYgdGhlIG1heCBjb3VudGVyIHZhbHVlDQo+ICsJCSAqIG9mIHRo
+ZSBjb3VudGVyIHNpemUsIHNvIHRoYXQgZXZlbiBpbiB0aGUgY2FzZSBvZiBleHRyZW1lDQo+ICsJ
+CSAqIGludGVycnVwdCBsYXRlbmN5IHRoZSBjb3VudGVyIHdpbGwgKGhvcGVmdWxseSkgbm90IHdy
+YXANCj4gKwkJICogcGFzdCBpdHMgaW5pdGlhbCB2YWx1ZS4NCj4gKwkJICovDQo+ICsJCW5ldyA9
+IHNtbXVfcG11LT5jb3VudGVyX21hc2sgPj4gMTsNCj4gKwkJc21tdV9wbXVfY291bnRlcl9zZXRf
+dmFsdWUoc21tdV9wbXUsIGlkeCwgbmV3KTsNCj4gKwl9DQo+IA0KPiAgCWxvY2FsNjRfc2V0KCZo
+d2MtPnByZXZfY291bnQsIG5ldyk7DQo+IC0Jc21tdV9wbXVfY291bnRlcl9zZXRfdmFsdWUoc21t
+dV9wbXUsIGlkeCwgbmV3KTsNCj4gIH0NCj4gDQo+ICBzdGF0aWMgdm9pZCBzbW11X3BtdV9nZXRf
+ZXZlbnRfZmlsdGVyKHN0cnVjdCBwZXJmX2V2ZW50ICpldmVudCwgdTMyICpzcGFuLA0KPiBAQCAt
+NjcwLDYgKzcwNSwyOCBAQCBzdGF0aWMgdm9pZCBzbW11X3BtdV9yZXNldChzdHJ1Y3Qgc21tdV9w
+bXUNCj4gKnNtbXVfcG11KQ0KPiAgCQkgICAgICAgc21tdV9wbXUtPnJlbG9jX2Jhc2UgKyBTTU1V
+X1BNQ0dfT1ZTQ0xSMCk7DQo+ICB9DQo+IA0KPiArc3RhdGljIHZvaWQgc21tdV9wbXVfY2hlY2tf
+YWNwaV93b3JrYXJvdW5kcyhzdHJ1Y3Qgc21tdV9wbXUNCj4gKnNtbXVfcG11KQ0KPiArew0KPiAr
+CXN0YXRpYyBjb25zdCBzdHJ1Y3QgZXJyYXR1bV9hY3BpX29lbV9pbmZvIGVtcHR5X29lbV9pbmZv
+ID0ge307DQo+ICsJY29uc3Qgc3RydWN0IGVycmF0dW1fYWNwaV9vZW1faW5mbyAqaW5mbyA9IGFj
+cGlfb2VtX2luZm87DQo+ICsJc3RydWN0IGFjcGlfdGFibGVfaGVhZGVyICpoZHI7DQo+ICsNCj4g
+KwlpZiAoQUNQSV9GQUlMVVJFKGFjcGlfZ2V0X3RhYmxlKEFDUElfU0lHX0lPUlQsIDAsICZoZHIp
+KSkgew0KPiArCQlkZXZfZXJyKHNtbXVfcG11LT5kZXYsICJmYWlsZWQgdG8gZ2V0IElPUlRcbiIp
+Ow0KPiArCQlyZXR1cm47DQo+ICsJfQ0KPiArDQo+ICsJLyogSXRlcmF0ZSBvdmVyIHRoZSBBQ1BJ
+IE9FTSBpbmZvIGFycmF5LCBsb29raW5nIGZvciBhIG1hdGNoICovDQo+ICsJd2hpbGUgKG1lbWNt
+cChpbmZvLCAmZW1wdHlfb2VtX2luZm8sIHNpemVvZigqaW5mbykpKSB7DQo+ICsJCWlmICghbWVt
+Y21wKGluZm8tPm9lbV9pZCwgaGRyLT5vZW1faWQsIEFDUElfT0VNX0lEX1NJWkUpDQo+ICYmDQo+
+ICsJCSAgICAhbWVtY21wKGluZm8tPm9lbV90YWJsZV9pZCwgaGRyLT5vZW1fdGFibGVfaWQsDQo+
+IEFDUElfT0VNX1RBQkxFX0lEX1NJWkUpICYmDQo+ICsJCQlpbmZvLT5vZW1fcmV2aXNpb24gPT0g
+aGRyLT5vZW1fcmV2aXNpb24pDQo+ICsJCQlpbmZvLT5lbmFibGUoc21tdV9wbXUpOw0KPiArDQo+
+ICsJCWluZm8rKzsNCj4gKwl9DQo+ICt9DQo+ICsNCj4gIHN0YXRpYyBpbnQgc21tdV9wbXVfcHJv
+YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikNCj4gIHsNCj4gIAlzdHJ1Y3Qgc21tdV9w
+bXUgKnNtbXVfcG11Ow0KPiBAQCAtNzQ5LDYgKzgwNiw4IEBAIHN0YXRpYyBpbnQgc21tdV9wbXVf
+cHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZQ0KPiAqcGRldikNCj4gIAkJcmV0dXJuIC1FSU5W
+QUw7DQo+ICAJfQ0KPiANCj4gKwlzbW11X3BtdV9jaGVja19hY3BpX3dvcmthcm91bmRzKHNtbXVf
+cG11KTsNCj4gKw0KPiAgCS8qIFBpY2sgb25lIENQVSB0byBiZSB0aGUgcHJlZmVycmVkIG9uZSB0
+byB1c2UgKi8NCj4gIAlzbW11X3BtdS0+b25fY3B1ID0gZ2V0X2NwdSgpOw0KPiAgCVdBUk5fT04o
+aXJxX3NldF9hZmZpbml0eShzbW11X3BtdS0+aXJxLCBjcHVtYXNrX29mKHNtbXVfcG11LQ0KPiA+
+b25fY3B1KSkpOw0KPiANCj4gX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX18NCj4gTGludXhhcm0gbWFpbGluZyBsaXN0DQo+IExpbnV4YXJtQGh1YXdlaS5jb20N
+Cj4gaHR0cDovL2h1bGsuaHVhd2VpLmNvbS9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4YXJtDQo=
