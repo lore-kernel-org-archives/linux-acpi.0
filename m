@@ -1,211 +1,304 @@
-From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] acpi/nfit,
- device-dax: Identify differentiated memory with a unique numa-node
-Date: Fri, 09 Nov 2018 15:12:57 -0800
-Message-ID: <154180517736.2047781.13819458479548681732.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [RFC PATCH 0/3] acpi: Add acpi mdio support code
+Date: Sat, 10 Nov 2018 09:10:34 +0000
+Message-ID: <6ebdf08060c245a8a44fc4263eb308cc@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <20181029124044.GB9174@lunn.ch>
+ <cover.1541660504.git.dongsheng.wang@hxt-semitech.com>
+ <20181108232353.GL5259@lunn.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Cc: Dave Hansen <dave.hansen-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, =?utf-8?b?SsOpcsO0bWU=?= Glisse <jglisse-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: Andrew Lunn <andrew@lunn.ch>
+Cc: "timur@kernel.org" <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-UGVyc2lzdGVudCBtZW1vcnksIGFzIGRlc2NyaWJlZCBieSB0aGUgQUNQSSBORklUIChOVkRJTU0g
-RmlybXdhcmUKSW50ZXJmYWNlIFRhYmxlKSwgaXMgdGhlIGZpcnN0IGtub3duIGluc3RhbmNlIG9m
-IGEgbWVtb3J5IHJhbmdlCmRlc2NyaWJlZCBieSBhIHVuaXF1ZSAidGFyZ2V0IiBwcm94aW1pdHkg
-ZG9tYWluLiBXaGVyZSAiaW5pdGlhdG9yIiBhbmQKInRhcmdldCIgcHJveGltaXR5IGRvbWFpbnMg
-aXMgYW4gYXBwcm9hY2ggdGhhdCB0aGUgQUNQSSBITUFUCihIZXRlcm9nZW5lb3VzIE1lbW9yeSBB
-dHRyaWJ1dGVzIFRhYmxlKSB1c2VzIHRvIGRlc2NyaWJlZCB0aGUgdW5pcXVlCnBlcmZvcm1hbmNl
-IHByb3BlcnRpZXMgb2YgYSBtZW1vcnkgcmFuZ2UgcmVsYXRpdmUgdG8gYSBnaXZlbiBpbml0aWF0
-b3IKKGUuZy4gQ1BVIG9yIERNQSBkZXZpY2UpLgoKQ3VycmVudGx5IHRoZSBudW1hLW5vZGUgZm9y
-IGEgL2Rldi9wbWVtWCBibG9jay1kZXZpY2Ugb3IgL2Rldi9kYXhYLlkKY2hhci1kZXZpY2UgZm9s
-bG93cyB0aGUgdHJhZGl0aW9uYWwgbm90aW9uIG9mICdudW1hLW5vZGUnIHdoZXJlIHRoZQphdHRy
-aWJ1dGUgY29udmV5cyB0aGUgY2xvc2VzdCBvbmxpbmUgbnVtYS1ub2RlLiBUaGF0IG51bWEtbm9k
-ZSBhdHRyaWJ1dGUKaXMgdXNlZnVsIGZvciBjcHUtYmluZGluZyBhbmQgbWVtb3J5LWJpbmRpbmcg
-cHJvY2Vzc2VzICpuZWFyKiB0aGUKZGV2aWNlLiBIb3dldmVyLCB3aGVuIHRoZSBtZW1vcnkgcmFu
-Z2UgYmFja2luZyBhICdwbWVtJywgb3IgJ2RheCcgZGV2aWNlCmlzIG9ubGluZWQgKG1lbW9yeSBo
-b3QtYWRkKSB0aGUgbWVtb3J5LW9ubHktbnVtYS1ub2RlIHJlcHJlc2VudGluZyB0aGF0CmFkZHJl
-c3MgbmVlZHMgdG8gYmUgZGlmZmVyZW50aWF0ZWQgZnJvbSB0aGUgc2V0IG9mIG9ubGluZSBub2Rl
-cy4gSW4Kb3RoZXIgd29yZHMsIHRoZSBudW1hLW5vZGUgYXNzb2NpYXRpb24gb2YgdGhlIGRldmlj
-ZSBkZXBlbmRzIG9uIHdoZXRoZXIKeW91IGNhbiBiaW5kIHByb2Nlc3NlcyAqbmVhciogdGhlIGNw
-dS1udW1hLW5vZGUgaW4gdGhlIG9mZmxpbmUKZGV2aWNlLWNhc2UsIG9yIGJpbmQgcHJvY2VzcyAq
-b24qIHRoZSBtZW1vcnktcmFuZ2UgZGlyZWN0bHkgYWZ0ZXIgdGhlCmJhY2tpbmcgYWRkcmVzcyBy
-YW5nZSBpcyBvbmxpbmVkLgoKQWxsb3cgZm9yIHRoZSBjYXNlIHRoYXQgcGxhdGZvcm0gZmlybXdh
-cmUgZGVzY3JpYmVzIHBlcnNpc3RlbnQgbWVtb3J5CndpdGggYSB1bmlxdWUgcHJveGltaXR5IGRv
-bWFpbiwgaS5lLiB3aGVuIGl0IGlzIGRpc3RpbmN0IGZyb20gdGhlCnByb3hpbWl0eSBvZiBEUkFN
-IGFuZCBDUFVzIHRoYXQgYXJlIG9uIHRoZSBzYW1lIHNvY2tldC4gUGx1bWIgdGhlIExpbnV4Cm51
-bWEtbm9kZSB0cmFuc2xhdGlvbiBvZiB0aGF0IHByb3hpbWl0eSB0aHJvdWdoIHRoZSBsaWJudmRp
-bW0gcmVnaW9uCmRldmljZSB0byBuYW1lc3BhY2VzIHRoYXQgYXJlIGluIGRldmljZS1kYXggbW9k
-ZS4gV2l0aCB0aGlzIGluIHBsYWNlIHRoZQpwcm9wb3NlZCBrbWVtIGRyaXZlciBbMV0gY2FuIG9w
-dGlvbmFsbHkgZGlzY292ZXIgYSB1bmlxdWUgbnVtYS1ub2RlCm51bWJlciBmb3IgdGhlIGFkZHJl
-c3MgcmFuZ2UgYXMgaXQgdHJhbnNpdGlvbnMgdGhlIG1lbW9yeSBmcm9tIGFuCm9mZmxpbmUgc3Rh
-dGUgbWFuYWdlZCBieSBhIGRldmljZS1kcml2ZXIgdG8gYW4gb25saW5lIG1lbW9yeSByYW5nZQpt
-YW5hZ2VkIGJ5IHRoZSBjb3JlLW1tLgoKWzFdOiBodHRwczovL2xrbWwub3JnL2xrbWwvMjAxOC8x
-MC8yMy85CgpSZXBvcnRlZC1ieTogRmFuIER1IDxmYW4uZHVAaW50ZWwuY29tPgpDYzogTWljaGFl
-bCBFbGxlcm1hbiA8bXBlQGVsbGVybWFuLmlkLmF1PgpDYzogIk9saXZlciBPJ0hhbGxvcmFuIiA8
-b29oYWxsQGdtYWlsLmNvbT4KQ2M6IERhdmUgSGFuc2VuIDxkYXZlLmhhbnNlbkBsaW51eC5pbnRl
-bC5jb20+CkNjOiBKw6lyw7RtZSBHbGlzc2UgPGpnbGlzc2VAcmVkaGF0LmNvbT4KU2lnbmVkLW9m
-Zi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+Ci0tLQogYXJjaC9w
-b3dlcnBjL3BsYXRmb3Jtcy9wc2VyaWVzL3BhcHJfc2NtLmMgfCAgICAxICsKIGRyaXZlcnMvYWNw
-aS9uZml0L2NvcmUuYyAgICAgICAgICAgICAgICAgIHwgICAgOCArKysrKystLQogZHJpdmVycy9h
-Y3BpL251bWEuYyAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxICsKIGRyaXZlcnMvZGF4L2J1
-cy5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgNCArKystCiBkcml2ZXJzL2RheC9idXMu
-aCAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDMgKystCiBkcml2ZXJzL2RheC9kYXgtcHJp
-dmF0ZS5oICAgICAgICAgICAgICAgICB8ICAgIDQgKysrKwogZHJpdmVycy9kYXgvcG1lbS9jb3Jl
-LmMgICAgICAgICAgICAgICAgICAgfCAgICA0ICsrKy0KIGRyaXZlcnMvbnZkaW1tL2U4MjAuYyAg
-ICAgICAgICAgICAgICAgICAgIHwgICAgMSArCiBkcml2ZXJzL252ZGltbS9uZC5oICAgICAgICAg
-ICAgICAgICAgICAgICB8ICAgIDIgKy0KIGRyaXZlcnMvbnZkaW1tL29mX3BtZW0uYyAgICAgICAg
-ICAgICAgICAgIHwgICAgMSArCiBkcml2ZXJzL252ZGltbS9yZWdpb25fZGV2cy5jICAgICAgICAg
-ICAgICB8ICAgIDEgKwogaW5jbHVkZS9saW51eC9saWJudmRpbW0uaCAgICAgICAgICAgICAgICAg
-fCAgICAxICsKIDEyIGZpbGVzIGNoYW5nZWQsIDI1IGluc2VydGlvbnMoKyksIDYgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wc2VyaWVzL3BhcHJfc2Nt
-LmMgYi9hcmNoL3Bvd2VycGMvcGxhdGZvcm1zL3BzZXJpZXMvcGFwcl9zY20uYwppbmRleCBlZTkz
-NzJiNjVjYTUuLjZhMGEzNWI4NzJkMSAxMDA2NDQKLS0tIGEvYXJjaC9wb3dlcnBjL3BsYXRmb3Jt
-cy9wc2VyaWVzL3BhcHJfc2NtLmMKKysrIGIvYXJjaC9wb3dlcnBjL3BsYXRmb3Jtcy9wc2VyaWVz
-L3BhcHJfc2NtLmMKQEAgLTIzMyw2ICsyMzMsNyBAQCBzdGF0aWMgaW50IHBhcHJfc2NtX252ZGlt
-bV9pbml0KHN0cnVjdCBwYXByX3NjbV9wcml2ICpwKQogCW1lbXNldCgmbmRyX2Rlc2MsIDAsIHNp
-emVvZihuZHJfZGVzYykpOwogCW5kcl9kZXNjLmF0dHJfZ3JvdXBzID0gcmVnaW9uX2F0dHJfZ3Jv
-dXBzOwogCW5kcl9kZXNjLm51bWFfbm9kZSA9IGRldl90b19ub2RlKCZwLT5wZGV2LT5kZXYpOwor
-CW5kcl9kZXNjLnRhcmdldF9ub2RlID0gbmRyX2Rlc2MubnVtYV9ub2RlOwogCW5kcl9kZXNjLnJl
-cyA9ICZwLT5yZXM7CiAJbmRyX2Rlc2Mub2Zfbm9kZSA9IHAtPmRuOwogCW5kcl9kZXNjLnByb3Zp
-ZGVyX2RhdGEgPSBwOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQvY29yZS5jIGIvZHJp
-dmVycy9hY3BpL25maXQvY29yZS5jCmluZGV4IGY4YzYzOGYzYzk0Ni4uMjIyNWUzZGUzM2FjIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvbmZpdC9jb3JlLmMKKysrIGIvZHJpdmVycy9hY3BpL25m
-aXQvY29yZS5jCkBAIC0yODI1LDExICsyODI1LDE1IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X3Jl
-Z2lzdGVyX3JlZ2lvbihzdHJ1Y3QgYWNwaV9uZml0X2Rlc2MgKmFjcGlfZGVzYywKIAluZHJfZGVz
-Yy0+cmVzID0gJnJlczsKIAluZHJfZGVzYy0+cHJvdmlkZXJfZGF0YSA9IG5maXRfc3BhOwogCW5k
-cl9kZXNjLT5hdHRyX2dyb3VwcyA9IGFjcGlfbmZpdF9yZWdpb25fYXR0cmlidXRlX2dyb3VwczsK
-LQlpZiAoc3BhLT5mbGFncyAmIEFDUElfTkZJVF9QUk9YSU1JVFlfVkFMSUQpCisJaWYgKHNwYS0+
-ZmxhZ3MgJiBBQ1BJX05GSVRfUFJPWElNSVRZX1ZBTElEKSB7CiAJCW5kcl9kZXNjLT5udW1hX25v
-ZGUgPSBhY3BpX21hcF9weG1fdG9fb25saW5lX25vZGUoCiAJCQkJCQlzcGEtPnByb3hpbWl0eV9k
-b21haW4pOwotCWVsc2UKKwkJbmRyX2Rlc2MtPnRhcmdldF9ub2RlID0gYWNwaV9tYXBfcHhtX3Rv
-X25vZGUoCisJCQkJc3BhLT5wcm94aW1pdHlfZG9tYWluKTsKKwl9IGVsc2UgewogCQluZHJfZGVz
-Yy0+bnVtYV9ub2RlID0gTlVNQV9OT19OT0RFOworCQluZHJfZGVzYy0+dGFyZ2V0X25vZGUgPSBO
-VU1BX05PX05PREU7CisJfQogCiAJLyoKIAkgKiBQZXJzaXN0ZW5jZSBkb21haW4gYml0cyBhcmUg
-aGllcmFyY2hpY2FsLCBpZgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL251bWEuYyBiL2RyaXZl
-cnMvYWNwaS9udW1hLmMKaW5kZXggMjc0Njk5NDYzYjRmLi5iOWQ4NmJhYmIxM2EgMTAwNjQ0Ci0t
-LSBhL2RyaXZlcnMvYWNwaS9udW1hLmMKKysrIGIvZHJpdmVycy9hY3BpL251bWEuYwpAQCAtODQs
-NiArODQsNyBAQCBpbnQgYWNwaV9tYXBfcHhtX3RvX25vZGUoaW50IHB4bSkKIAogCXJldHVybiBu
-b2RlOwogfQorRVhQT1JUX1NZTUJPTChhY3BpX21hcF9weG1fdG9fbm9kZSk7CiAKIC8qKgogICog
-YWNwaV9tYXBfcHhtX3RvX29ubGluZV9ub2RlIC0gTWFwIHByb3hpbWl0eSBJRCB0byBvbmxpbmUg
-bm9kZQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9kYXgvYnVzLmMgYi9kcml2ZXJzL2RheC9idXMuYwpp
-bmRleCA1NjgxNjg1MDAyMTcuLmM2MjBhZDUyZDdlNSAxMDA2NDQKLS0tIGEvZHJpdmVycy9kYXgv
-YnVzLmMKKysrIGIvZHJpdmVycy9kYXgvYnVzLmMKQEAgLTIxNCw3ICsyMTQsNyBAQCBzdGF0aWMg
-dm9pZCBkYXhfcmVnaW9uX3VucmVnaXN0ZXIodm9pZCAqcmVnaW9uKQogfQogCiBzdHJ1Y3QgZGF4
-X3JlZ2lvbiAqYWxsb2NfZGF4X3JlZ2lvbihzdHJ1Y3QgZGV2aWNlICpwYXJlbnQsIGludCByZWdp
-b25faWQsCi0JCXN0cnVjdCByZXNvdXJjZSAqcmVzLCB1bnNpZ25lZCBpbnQgYWxpZ24sCisJCXN0
-cnVjdCByZXNvdXJjZSAqcmVzLCBpbnQgdGFyZ2V0X25vZGUsIHVuc2lnbmVkIGludCBhbGlnbiwK
-IAkJdW5zaWduZWQgbG9uZyBwZm5fZmxhZ3MpCiB7CiAJc3RydWN0IGRheF9yZWdpb24gKmRheF9y
-ZWdpb247CkBAIC0yNDQsNiArMjQ0LDcgQEAgc3RydWN0IGRheF9yZWdpb24gKmFsbG9jX2RheF9y
-ZWdpb24oc3RydWN0IGRldmljZSAqcGFyZW50LCBpbnQgcmVnaW9uX2lkLAogCWRheF9yZWdpb24t
-PmlkID0gcmVnaW9uX2lkOwogCWRheF9yZWdpb24tPmFsaWduID0gYWxpZ247CiAJZGF4X3JlZ2lv
-bi0+ZGV2ID0gcGFyZW50OworCWRheF9yZWdpb24tPnRhcmdldF9ub2RlID0gdGFyZ2V0X25vZGU7
-CiAJaWYgKHN5c2ZzX2NyZWF0ZV9ncm91cHMoJnBhcmVudC0+a29iaiwgZGF4X3JlZ2lvbl9hdHRy
-aWJ1dGVfZ3JvdXBzKSkgewogCQlrZnJlZShkYXhfcmVnaW9uKTsKIAkJcmV0dXJuIE5VTEw7CkBA
-IC0zNDgsNiArMzQ5LDcgQEAgc3RydWN0IGRldl9kYXggKl9fZGV2bV9jcmVhdGVfZGV2X2RheChz
-dHJ1Y3QgZGF4X3JlZ2lvbiAqZGF4X3JlZ2lvbiwgaW50IGlkLAogCiAJZGV2X2RheC0+ZGF4X2Rl
-diA9IGRheF9kZXY7CiAJZGV2X2RheC0+cmVnaW9uID0gZGF4X3JlZ2lvbjsKKwlkZXZfZGF4LT50
-YXJnZXRfbm9kZSA9IGRheF9yZWdpb24tPnRhcmdldF9ub2RlOwogCWtyZWZfZ2V0KCZkYXhfcmVn
-aW9uLT5rcmVmKTsKIAogCWlub2RlID0gZGF4X2lub2RlKGRheF9kZXYpOwpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9kYXgvYnVzLmggYi9kcml2ZXJzL2RheC9idXMuaAppbmRleCBjZTk3NzU1MmZmYjUu
-Ljg2MTllMzI5OTk0MyAxMDA2NDQKLS0tIGEvZHJpdmVycy9kYXgvYnVzLmgKKysrIGIvZHJpdmVy
-cy9kYXgvYnVzLmgKQEAgLTEwLDcgKzEwLDggQEAgc3RydWN0IGRheF9kZXZpY2U7CiBzdHJ1Y3Qg
-ZGF4X3JlZ2lvbjsKIHZvaWQgZGF4X3JlZ2lvbl9wdXQoc3RydWN0IGRheF9yZWdpb24gKmRheF9y
-ZWdpb24pOwogc3RydWN0IGRheF9yZWdpb24gKmFsbG9jX2RheF9yZWdpb24oc3RydWN0IGRldmlj
-ZSAqcGFyZW50LCBpbnQgcmVnaW9uX2lkLAotCQlzdHJ1Y3QgcmVzb3VyY2UgKnJlcywgdW5zaWdu
-ZWQgaW50IGFsaWduLCB1bnNpZ25lZCBsb25nIGZsYWdzKTsKKwkJc3RydWN0IHJlc291cmNlICpy
-ZXMsIGludCB0YXJnZXRfbm9kZSwgdW5zaWduZWQgaW50IGFsaWduLAorCQl1bnNpZ25lZCBsb25n
-IGZsYWdzKTsKIAogZW51bSBkZXZfZGF4X3N1YnN5cyB7CiAJREVWX0RBWF9CVVMsCmRpZmYgLS1n
-aXQgYS9kcml2ZXJzL2RheC9kYXgtcHJpdmF0ZS5oIGIvZHJpdmVycy9kYXgvZGF4LXByaXZhdGUu
-aAppbmRleCBhODJjZTQ4ZjU4ODQuLmE0NTYxMjE0OGNhMCAxMDA2NDQKLS0tIGEvZHJpdmVycy9k
-YXgvZGF4LXByaXZhdGUuaAorKysgYi9kcml2ZXJzL2RheC9kYXgtcHJpdmF0ZS5oCkBAIC0yNiw2
-ICsyNiw3IEBAIHZvaWQgZGF4X2J1c19leGl0KHZvaWQpOwogLyoqCiAgKiBzdHJ1Y3QgZGF4X3Jl
-Z2lvbiAtIG1hcHBpbmcgaW5mcmFzdHJ1Y3R1cmUgZm9yIGRheCBkZXZpY2VzCiAgKiBAaWQ6IGtl
-cm5lbC13aWRlIHVuaXF1ZSByZWdpb24gZm9yIGEgbWVtb3J5IHJhbmdlCisgKiBAdGFyZ2V0X25v
-ZGU6IGVmZmVjdGl2ZSBudW1hIG5vZGUgaWYgdGhpcyBtZW1vcnkgcmFuZ2UgaXMgb25saW5lZAog
-ICogQGtyZWY6IHRvIHBpbiB3aGlsZSBvdGhlciBhZ2VudHMgaGF2ZSBhIG5lZWQgdG8gZG8gbG9v
-a3VwcwogICogQGRldjogcGFyZW50IGRldmljZSBiYWNraW5nIHRoaXMgcmVnaW9uCiAgKiBAYWxp
-Z246IGFsbG9jYXRpb24gYW5kIG1hcHBpbmcgYWxpZ25tZW50IGZvciBjaGlsZCBkYXggZGV2aWNl
-cwpAQCAtMzQsNiArMzUsNyBAQCB2b2lkIGRheF9idXNfZXhpdCh2b2lkKTsKICAqLwogc3RydWN0
-IGRheF9yZWdpb24gewogCWludCBpZDsKKwlpbnQgdGFyZ2V0X25vZGU7CiAJc3RydWN0IGtyZWYg
-a3JlZjsKIAlzdHJ1Y3QgZGV2aWNlICpkZXY7CiAJdW5zaWduZWQgaW50IGFsaWduOwpAQCAtNDYs
-NiArNDgsNyBAQCBzdHJ1Y3QgZGF4X3JlZ2lvbiB7CiAgKiBkYXRhIHdoaWxlIHRoZSBkZXZpY2Ug
-aXMgYWN0aXZhdGVkIGluIHRoZSBkcml2ZXIuCiAgKiBAcmVnaW9uIC0gcGFyZW50IHJlZ2lvbgog
-ICogQGRheF9kZXYgLSBjb3JlIGRheCBmdW5jdGlvbmFsaXR5CisgKiBAdGFyZ2V0X25vZGU6IGVm
-ZmVjdGl2ZSBudW1hIG5vZGUgaWYgZGV2X2RheCBtZW1vcnkgcmFuZ2UgaXMgb25saW5lZAogICog
-QGRldiAtIGRldmljZSBjb3JlCiAgKiBAcGdtYXAgLSBwZ21hcCBmb3IgbWVtbWFwIHNldHVwIC8g
-bGlmZXRpbWUgKGRyaXZlciBvd25lZCkKICAqIEByZWY6IHBnbWFwIHJlZmVyZW5jZSBjb3VudCAo
-ZHJpdmVyIG93bmVkKQpAQCAtNTQsNiArNTcsNyBAQCBzdHJ1Y3QgZGF4X3JlZ2lvbiB7CiBzdHJ1
-Y3QgZGV2X2RheCB7CiAJc3RydWN0IGRheF9yZWdpb24gKnJlZ2lvbjsKIAlzdHJ1Y3QgZGF4X2Rl
-dmljZSAqZGF4X2RldjsKKwlpbnQgdGFyZ2V0X25vZGU7CiAJc3RydWN0IGRldmljZSBkZXY7CiAJ
-c3RydWN0IGRldl9wYWdlbWFwIHBnbWFwOwogCXN0cnVjdCBwZXJjcHVfcmVmIHJlZjsKZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvZGF4L3BtZW0vY29yZS5jIGIvZHJpdmVycy9kYXgvcG1lbS9jb3JlLmMK
-aW5kZXggYmRjZmYxYjE0ZTk1Li5mNzEwMTljZTA2NDcgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZGF4
-L3BtZW0vY29yZS5jCisrKyBiL2RyaXZlcnMvZGF4L3BtZW0vY29yZS5jCkBAIC0yMCw2ICsyMCw3
-IEBAIHN0cnVjdCBkZXZfZGF4ICpfX2RheF9wbWVtX3Byb2JlKHN0cnVjdCBkZXZpY2UgKmRldiwg
-ZW51bSBkZXZfZGF4X3N1YnN5cyBzdWJzeXMpCiAJc3RydWN0IG5kX25hbWVzcGFjZV9jb21tb24g
-Km5kbnM7CiAJc3RydWN0IG5kX2RheCAqbmRfZGF4ID0gdG9fbmRfZGF4KGRldik7CiAJc3RydWN0
-IG5kX3BmbiAqbmRfcGZuID0gJm5kX2RheC0+bmRfcGZuOworCXN0cnVjdCBuZF9yZWdpb24gKm5k
-X3JlZ2lvbiA9IHRvX25kX3JlZ2lvbihkZXYtPnBhcmVudCk7CiAKIAluZG5zID0gbnZkaW1tX25h
-bWVzcGFjZV9jb21tb25fcHJvYmUoZGV2KTsKIAlpZiAoSVNfRVJSKG5kbnMpKQpAQCAtNTIsNyAr
-NTMsOCBAQCBzdHJ1Y3QgZGV2X2RheCAqX19kYXhfcG1lbV9wcm9iZShzdHJ1Y3QgZGV2aWNlICpk
-ZXYsIGVudW0gZGV2X2RheF9zdWJzeXMgc3Vic3lzKQogCW1lbWNweSgmcmVzLCAmcGdtYXAucmVz
-LCBzaXplb2YocmVzKSk7CiAJcmVzLnN0YXJ0ICs9IG9mZnNldDsKIAlkYXhfcmVnaW9uID0gYWxs
-b2NfZGF4X3JlZ2lvbihkZXYsIHJlZ2lvbl9pZCwgJnJlcywKLQkJCWxlMzJfdG9fY3B1KHBmbl9z
-Yi0+YWxpZ24pLCBQRk5fREVWfFBGTl9NQVApOworCQkJbmRfcmVnaW9uLT50YXJnZXRfbm9kZSwg
-bGUzMl90b19jcHUocGZuX3NiLT5hbGlnbiksCisJCQlQRk5fREVWfFBGTl9NQVApOwogCWlmICgh
-ZGF4X3JlZ2lvbikKIAkJcmV0dXJuIEVSUl9QVFIoLUVOT01FTSk7CiAKZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvbnZkaW1tL2U4MjAuYyBiL2RyaXZlcnMvbnZkaW1tL2U4MjAuYwppbmRleCA1MjFlYWY1
-M2E1MmEuLjM2YmU5YjYxOTE4NyAxMDA2NDQKLS0tIGEvZHJpdmVycy9udmRpbW0vZTgyMC5jCisr
-KyBiL2RyaXZlcnMvbnZkaW1tL2U4MjAuYwpAQCAtNDcsNiArNDcsNyBAQCBzdGF0aWMgaW50IGU4
-MjBfcmVnaXN0ZXJfb25lKHN0cnVjdCByZXNvdXJjZSAqcmVzLCB2b2lkICpkYXRhKQogCW5kcl9k
-ZXNjLnJlcyA9IHJlczsKIAluZHJfZGVzYy5hdHRyX2dyb3VwcyA9IGU4MjBfcG1lbV9yZWdpb25f
-YXR0cmlidXRlX2dyb3VwczsKIAluZHJfZGVzYy5udW1hX25vZGUgPSBlODIwX3JhbmdlX3RvX25p
-ZChyZXMtPnN0YXJ0KTsKKwluZHJfZGVzYy50YXJnZXRfbm9kZSA9IG5kcl9kZXNjLm51bWFfbm9k
-ZTsKIAlzZXRfYml0KE5EX1JFR0lPTl9QQUdFTUFQLCAmbmRyX2Rlc2MuZmxhZ3MpOwogCWlmICgh
-bnZkaW1tX3BtZW1fcmVnaW9uX2NyZWF0ZShudmRpbW1fYnVzLCAmbmRyX2Rlc2MpKQogCQlyZXR1
-cm4gLUVOWElPOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vbmQuaCBiL2RyaXZlcnMvbnZk
-aW1tL25kLmgKaW5kZXggZTc5Y2M4ZTVjMTE0Li42MjMyMTY1NDVjYzggMTAwNjQ0Ci0tLSBhL2Ry
-aXZlcnMvbnZkaW1tL25kLmgKKysrIGIvZHJpdmVycy9udmRpbW0vbmQuaApAQCAtMTUzLDcgKzE1
-Myw3IEBAIHN0cnVjdCBuZF9yZWdpb24gewogCXUxNiBuZHJfbWFwcGluZ3M7CiAJdTY0IG5kcl9z
-aXplOwogCXU2NCBuZHJfc3RhcnQ7Ci0JaW50IGlkLCBudW1fbGFuZXMsIHJvLCBudW1hX25vZGU7
-CisJaW50IGlkLCBudW1fbGFuZXMsIHJvLCBudW1hX25vZGUsIHRhcmdldF9ub2RlOwogCXZvaWQg
-KnByb3ZpZGVyX2RhdGE7CiAJc3RydWN0IGtlcm5mc19ub2RlICpiYl9zdGF0ZTsKIAlzdHJ1Y3Qg
-YmFkYmxvY2tzIGJiOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vb2ZfcG1lbS5jIGIvZHJp
-dmVycy9udmRpbW0vb2ZfcG1lbS5jCmluZGV4IDBhNzAxODM3ZGZjMC4uZWNhYWEyNzQzOGUyIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL252ZGltbS9vZl9wbWVtLmMKKysrIGIvZHJpdmVycy9udmRpbW0v
-b2ZfcG1lbS5jCkBAIC02OCw2ICs2OCw3IEBAIHN0YXRpYyBpbnQgb2ZfcG1lbV9yZWdpb25fcHJv
-YmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJbWVtc2V0KCZuZHJfZGVzYywgMCwg
-c2l6ZW9mKG5kcl9kZXNjKSk7CiAJCW5kcl9kZXNjLmF0dHJfZ3JvdXBzID0gcmVnaW9uX2F0dHJf
-Z3JvdXBzOwogCQluZHJfZGVzYy5udW1hX25vZGUgPSBkZXZfdG9fbm9kZSgmcGRldi0+ZGV2KTsK
-KwkJbmRyX2Rlc2MudGFyZ2V0X25vZGUgPSBuZHJfZGVzYy5udW1hX25vZGU7CiAJCW5kcl9kZXNj
-LnJlcyA9ICZwZGV2LT5yZXNvdXJjZVtpXTsKIAkJbmRyX2Rlc2Mub2Zfbm9kZSA9IG5wOwogCQlz
-ZXRfYml0KE5EX1JFR0lPTl9QQUdFTUFQLCAmbmRyX2Rlc2MuZmxhZ3MpOwpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyBiL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZz
-LmMKaW5kZXggMTc0YTQxOGNiMTcxLi44NmNkNDI1Yjc4NmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-bnZkaW1tL3JlZ2lvbl9kZXZzLmMKKysrIGIvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYwpA
-QCAtMTA2MCw2ICsxMDYwLDcgQEAgc3RhdGljIHN0cnVjdCBuZF9yZWdpb24gKm5kX3JlZ2lvbl9j
-cmVhdGUoc3RydWN0IG52ZGltbV9idXMgKm52ZGltbV9idXMsCiAJbmRfcmVnaW9uLT5mbGFncyA9
-IG5kcl9kZXNjLT5mbGFnczsKIAluZF9yZWdpb24tPnJvID0gcm87CiAJbmRfcmVnaW9uLT5udW1h
-X25vZGUgPSBuZHJfZGVzYy0+bnVtYV9ub2RlOworCW5kX3JlZ2lvbi0+dGFyZ2V0X25vZGUgPSBu
-ZHJfZGVzYy0+dGFyZ2V0X25vZGU7CiAJaWRhX2luaXQoJm5kX3JlZ2lvbi0+bnNfaWRhKTsKIAlp
-ZGFfaW5pdCgmbmRfcmVnaW9uLT5idHRfaWRhKTsKIAlpZGFfaW5pdCgmbmRfcmVnaW9uLT5wZm5f
-aWRhKTsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvbGlibnZkaW1tLmggYi9pbmNsdWRlL2xp
-bnV4L2xpYm52ZGltbS5oCmluZGV4IDA5NzA3MmM1YTg1Mi4uOTQxMTAyYzBjODFmIDEwMDY0NAot
-LS0gYS9pbmNsdWRlL2xpbnV4L2xpYm52ZGltbS5oCisrKyBiL2luY2x1ZGUvbGludXgvbGlibnZk
-aW1tLmgKQEAgLTEyNCw2ICsxMjQsNyBAQCBzdHJ1Y3QgbmRfcmVnaW9uX2Rlc2MgewogCXZvaWQg
-KnByb3ZpZGVyX2RhdGE7CiAJaW50IG51bV9sYW5lczsKIAlpbnQgbnVtYV9ub2RlOworCWludCB0
-YXJnZXRfbm9kZTsKIAl1bnNpZ25lZCBsb25nIGZsYWdzOwogCXN0cnVjdCBkZXZpY2Vfbm9kZSAq
-b2Zfbm9kZTsKIH07CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpMaW51eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcK
-aHR0cHM6Ly9saXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
+Hi Andrew,
+
+On 2018/11/9 7:23, Andrew Lunn wrote:
+> On Thu, Nov 08, 2018 at 03:21:29PM +0800, Wang Dongsheng wrote:
+>> Originally I just push "phy-handle" support for ACPI on the QCOM QDF2400
+>> platform. After some discussion and following Andrew's advice, I send
+>> out with a generic version of ACPI.
+>>
+>> Current there is no clear documentation about MDIO/PHY for ACPI, so when
+>> I reading some documents about ACPI [1], I think we just need to reuse the
+>> DT binding in the ACPI.[2]. However, this series of patches are not
+>> fully compatible with all contents specified in DT binding.
+>>
+>> The most important thing about this iseries is link the phy device and
+>> fwnode of acpi. Besides, we need to carry out bus scan at the mdio
+>> register. Therefore, I am not compatible with more DT binding properties
+>> in this series of patches. More support will be in the follow-up patches
+>> support, or some people do the support.
+>>
+>> Example:
+>> Based on ACPI doc:
+>>     Documentation/acpi/dsd/data-node-references.txt
+>>     Documentation/acpi/dsd/graph.txt
+>> With _DSD device properties we can finally do this:
+>>     Device (MDIO) {
+>>         Name (_DSD, Package () {
+>>             ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>>             Package () { Package () { "ethernet-phy@0", PHY0 }, }
+>>         })
+>>         Name (PHY0, Package() {
+>>             ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>             Package () { Package () { "reg", 0x0 }, }
+>>         })
+> I don't know much about ACPI. I do know DT. MDIO busses can have
+> multiple PHYs on them. Is the following valid to list two PHYs?
+>
+>      Device (MDIO) {
+>          Name (_DSD, Package () {
+>              ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>              Package () { Package () { "ethernet-phy@0", PHY0 }, }
+>          })
+>          Name (PHY0, Package() {
+>              ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>              Package () { Package () { "reg", 0x0 }, }
+>          })
+>          Name (_DSD, Package () {
+>              ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>              Package () { Package () { "ethernet-phy@10", PHY1 }, }
+>          })
+>          Name (PHY1, Package() {
+>              ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>              Package () { Package () { "reg", 0x10 }, }
+>          })
+>      }
+
+Multiple PHYs example:
+
+
+    Device (MDIO)
+    {
+        Name (_DSD, Package () {
+        ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+            Package () {
+
+                Package () { "ethernet-phy@0", PHY0 },
+
+                Package () { "ethernet-phy@1", PHY1 },
+                ...
+
+                ...
+
+            }
+        })
+       
+        Name (PHY0, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "reg", 0x0 },
+            }
+        })
+
+
+        Name (PHY1, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "reg", 0x1 },
+            }
+        })
+   }
+
+    Device (MAC0)
+
+    {
+
+        // _DSD: Device-Specific Data
+        Name (_DSD, Package (0x02) {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301") /* Device
+Properties for _DSD */,
+            Package () {
+                Package () { "phy-handle", Package () { \_SB.MDIO,
+"ethernet-phy@0" } },
+                ...
+                ...
+            }
+        })
+
+    }
+
+
+    Device (MAC1)
+
+    {
+
+        // _DSD: Device-Specific Data
+        Name (_DSD, Package (0x02) {
+            ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301") /* Device
+Properties for _DSD */,
+            Package () {
+                Package () { "phy-handle", Package () { \_SB.MDIO,
+"ethernet-phy@1" } },
+                ...
+                ...
+            }
+        })
+
+    }
+
+>
+> An MDIO bus can also have more than PHYs on them. There can be
+> Ethernet switches. Broadcom also have some with generic PHY devices on
+> them, and other odd things. That means whatever is on an MDIO bus is a
+> device in the Linux device model. How does that work? Do we need some
+> form Device (PHY) {}?
+
+ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b") describes a ACPI data node.
+
+The data node can contain property or pointer.
+
+
+Let's look at the table I'm using:
+
+Device (MAC1)
+{
+    // _DSD: Device-Specific Data
+    Name (_DSD, Package (0x02) {
+        ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301") /* Device
+Properties for _DSD */,
+        Package (0x07) {
+            Package () { "phy-handle", Package () { \_SB.MAC1.MDIO,
+"ethernet-phy@1" } },
+            Package () { "dev-refs", \_SB.MAC0 },
+            Package () { "refs0-dev", Package () { \_SB.MAC1.MDIO,
+"refs@0" } },
+            Package () { "refs1-dev", Package () { \_SB.MAC1.MDIO,
+"refs@1" } },
+            ...
+            ...
+        }
+    })
+
+    Device (MDIO)
+    {
+        Name (_DSD, Package () {
+        ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+            Package () {
+                Package () { "ethernet-phy@1", PHY1 },
+                Package () { "refs@0",  REF0},
+                Package () { "refs@1",  REF1},
+            }
+        })
+        
+        //Contain a property
+        Name (PHY1, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "reg", 0x1 },
+            }
+        })
+        
+        //Point to a device
+        Name (REF0, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "child-refs-dev", \_SB.MAC0 },
+            }
+        })
+        
+        //Contain a property and a pointer that point to a device
+        Name (REF1, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "property", 0x5 },
+                Package () { "child-refs-dev", \_SB.MAC0 },
+            }
+        })
+    }
+}
+
+
+>      Device (MDIO) {
+>          Device (PHY) {
+>              Name (_DSD, Package () {
+>                  ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>                  Package () { Package () { "ethernet-phy@0", PHY0 }, }
+>              })
+>              Name (PHY0, Package() {
+>                  ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                  Package () { Package () { "reg", 0x0 }, }
+>              })
+>          }
+>          Device (PHY) {
+>              Name (_DSD, Package () {
+>                  ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>                  Package () { Package () { "ethernet-phy@10", PHY1 }, }
+>              })
+>              Name (PHY1, Package() {
+>                  ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                  Package () { Package () { "reg", 0x10 }, }
+>              })
+>          Device (SWITCH) {
+>              Name (_DSD, Package () {
+>                  ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>                  Package () { Package () { "switch@11", SWITCH0 }, }
+>              })
+>              Name (SWITCH0, Package() {
+>                  ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                  Package () { Package () { "reg", 0x11 }, }
+>              })
+>          }
+
+    Device (MDIO)
+    {
+        Name (_DSD, Package () {
+        ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+            Package () {
+                Package () { "ethernet-phy@1", PHY1 },
+                Package () { "switch@0",  SW00 },
+
+                Package () { "switch@1",  SW01 },
+            }
+        })
+        
+        //Contain a property
+        Name (PHY1, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "reg", 0x1 },
+            }
+        })
+ 
+        Name (SW00, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "reg", 0x0 },
+            }
+        })
+
+        Name (SW01, Package() {
+            ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+            Package () {
+                Package () { "property", 0x5 },
+            }
+        })
+    }
+
+
+>       }
+>
+> I'm just trying to ensure whatever is defined is flexible enough that
+> we really can later support everything which DT does. We have PHYs on
+> MDIO busses, inside switches, which are on MDIO busses, which are
+> inside Ethernet interfaces, etc.
+
+I think it can be satisfied. See the table I'm using above.
+
+
+> An MDIO bus is very similar to an i2c bus. How is that described in
+> ACPI? Anything we can learn from that?
+
+About the data node, I just read the Kernel Documentation/acpi/dsd/
+
+And others learn from ACPI spec.
+
+
+Cheers,
+
+Dongsheng
