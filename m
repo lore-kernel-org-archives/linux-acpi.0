@@ -1,95 +1,47 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI / battery: Fix reporting "Not charging" when
- capacity is 100%
-Date: Sun, 11 Nov 2018 13:22:43 +0100
-Message-ID: <20181111122243.GB28794@amd>
-References: <20181103065732.12134-1-jprvita@endlessm.com>
- <20181105091917.GD4439@amd>
- <CA+A7VXXUB2CZUyPtaMya7in7ntO_unbqVnaZyfCBT_BXtAxeQQ@mail.gmail.com>
- <CAD8Lp46Go79C_xOkzM-hq4umET1M62Ofqw48swn1JNocifET3Q@mail.gmail.com>
- <c883a2be-e772-2e18-f074-d2ad5f27f42b@redhat.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
+ in immovable memory
+Date: Sun, 11 Nov 2018 08:45:57 -0500
+Message-ID: <20181111134556.qxv2v4g7dl5irzo7@gabell>
+References: <20181016195902.GK5212@zn.tnic>
+ <20181022154204.kagmdb55jtoez4ca@gabell>
+ <20181025103345.GF14020@nazgul.tnic>
+ <20181025134050.ggiir77ehntikbwg@gabell>
+ <20181106184519.GA16391@zn.tnic>
+ <20181106193636.svyjwuwrlgnpuyyf@gabell>
+ <20181106204511.GO13712@zn.tnic>
+ <20181106222133.lb7674yzszivzihd@gabell>
+ <20181108105129.GA7543@zn.tnic>
+ <20181110105422.GA20023@zn.tnic>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="neYutvxvOLaeuPCA"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c883a2be-e772-2e18-f074-d2ad5f27f42b@redhat.com>
+In-Reply-To: <20181110105422.GA20023@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Daniel Drake <drake@endlessm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, sebastian.reichel@collabora.co.uk, Linux Kernel <linux-kernel@vger.kernel.org>, linux@endlessm.com, =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@endlessm.com>, =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@gmail.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>, Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
+On Sat, Nov 10, 2018 at 11:54:22AM +0100, Borislav Petkov wrote:
+> On Thu, Nov 08, 2018 at 11:51:29AM +0100, Borislav Petkov wrote:
+> > A global definition which doesn't need allocation?
+> > 
+> > Maybe hpa would have another, better idea...
+> 
+> ...and he has: just put that address in a new field in struct
+> boot_params by converting one of the padding arrays there.
+> 
+> Don't forget to document it in Documentation/x86/zero-page.txt
+> 
+> This way you don't need any of the allocation fun or to use setup_data
+> at all.
 
---neYutvxvOLaeuPCA
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thanks!
+I have the prototype patch to use boot_params [1].
+I will try to brush up it.
 
-On Sun 2018-11-11 12:57:12, Hans de Goede wrote:
-> Hi,
->=20
-> On 11/7/18 5:53 AM, Daniel Drake wrote:
-> >On Mon, Nov 5, 2018 at 1:19 AM Pavel Machek <pavel@ucw.cz> wrote:
-> >>Plus, I don't think "100% charge" is right test for "battery full". At
-> >>least on thinkpads, there's configuration option, and it is common
-> >>_not_ to charge batterry above 95% or so (to increase its lifetime).
-> >
-> >Hans also touched on this area in his response:
-> >
-> >>As for this kernel-side fix I do not believe that fixing thus in
-> >>the kernel is the right thing to do. We try to stay away from
-> >>heuristics using full_charge_capacity in the kernel since that
-> >>is not really reliable / deterministic.
-> >
-> >I'm not fully convinced by this argument though.
-> >
-> >The ACPI spec is not very clear on what conditions you should apply to
-> >decide when the battery is full. Instead, ACPI seems to provide a
-> >pretty decent amount of data, and the decision about whether to
-> >interpret that as "battery full" is left for consumers.
->=20
-> Right, but in this case the "discharging" status bit is explicitly
-> set, to me it feels wrong to report "full", when the firmware
-> is reporting "discharging" IMHO, at best we are "not charging"
-> (on AC, below the threshold where a new charge cycle starts) and
-> that is what we are currently reporting.
->=20
-> Anu heurstics to decide that "not charging" is close enough to full
-> to report it as full to the user belongs in userspace IMHO.
->=20
-> Anyways this ultimately is Rafael's call. If Rafael is ok with this
-> patch then I would like to see Pavel's comment addressed and otherwise
-> it is fine with me.
->=20
-> Note that we will still often get the case where a laptop is charged,
-> reports full, is unplugged for 5 minutes and then replugged and then
-> reports a capacity of 97% combined with "not charging", so we will
-> still need to fix userspace to handle this.
+[1] https://lore.kernel.org/lkml/20181016151353.punyk7exekut2543@gabell
 
-For the record, I don't think I'm okay with this.
-
-There's nothing special about 100% charge.
-
-This changes userland ABI and I don't think it has good enough reasons
-to do that.
-
-Best regards,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---neYutvxvOLaeuPCA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvoHxMACgkQMOfwapXb+vIIUQCguwFYiFzv+drOvbVcJxSDgTjM
-Br0AoLhAGWVQ+vX2BHEfgRYHRu6X1Cf/
-=kwEp
------END PGP SIGNATURE-----
-
---neYutvxvOLaeuPCA--
+Thanks,
+Masa
