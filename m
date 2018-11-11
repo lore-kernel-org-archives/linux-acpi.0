@@ -1,45 +1,69 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v8 0/3] x86/boot/KASLR: Parse ACPI table and limit kaslr
- in immovable memory
-Date: Sat, 10 Nov 2018 11:54:22 +0100
-Message-ID: <20181110105422.GA20023@zn.tnic>
-References: <20181016195429.tovdgqq77gz3eek2@gabell>
- <20181016195902.GK5212@zn.tnic>
- <20181022154204.kagmdb55jtoez4ca@gabell>
- <20181025103345.GF14020@nazgul.tnic>
- <20181025134050.ggiir77ehntikbwg@gabell>
- <20181106184519.GA16391@zn.tnic>
- <20181106193636.svyjwuwrlgnpuyyf@gabell>
- <20181106204511.GO13712@zn.tnic>
- <20181106222133.lb7674yzszivzihd@gabell>
- <20181108105129.GA7543@zn.tnic>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] ACPI / battery: Fix reporting "Not charging" when
+ capacity is 100%
+Date: Sun, 11 Nov 2018 12:30:29 +0100
+Message-ID: <20181111113029.GD27666@amd>
+References: <20181103065732.12134-1-jprvita@endlessm.com>
+ <20181105091917.GD4439@amd>
+ <CA+A7VXXUB2CZUyPtaMya7in7ntO_unbqVnaZyfCBT_BXtAxeQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="UfEAyuTBtIjiZzX6"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181108105129.GA7543@zn.tnic>
+In-Reply-To: <CA+A7VXXUB2CZUyPtaMya7in7ntO_unbqVnaZyfCBT_BXtAxeQQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masayoshi Mizuma <msys.mizuma@gmail.com>, "H. Peter Anvin" <hpa@zytor.com>
-Cc: Baoquan He <bhe@redhat.com>, Ingo Molnar <mingo@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Chao Fan <fanc.fnst@cn.fujitsu.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, mingo@redhat.com, keescook@chromium.org, rjw@rjwysocki.net, lenb@kernel.org, ard.biesheuvel@linaro.org, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@gmail.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, Daniel Drake <drake@endlessm.com>, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, LKML <linux-kernel@vger.kernel.org>, linux@endlessm.com, =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@endlessm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 08, 2018 at 11:51:29AM +0100, Borislav Petkov wrote:
-> A global definition which doesn't need allocation?
-> 
-> Maybe hpa would have another, better idea...
 
-...and he has: just put that address in a new field in struct
-boot_params by converting one of the padding arrays there.
+--UfEAyuTBtIjiZzX6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Don't forget to document it in Documentation/x86/zero-page.txt
+Hi!
 
-This way you don't need any of the allocation fun or to use setup_data
-at all.
+> > >        * was plugged in and the device thus did not start a new charg=
+e cycle.
+> > >        */
+> > >       if ((battery_ac_is_broken || power_supply_is_system_supplied())=
+ &&
+> > > -         battery->rate_now =3D=3D 0)
+> > > +         battery->rate_now =3D=3D 0) {
+> > > +             if (battery->capacity_now && battery->full_charge_capac=
+ity &&
+> > > +                 battery->capacity_now / battery->full_charge_capaci=
+ty =3D=3D 1)
+> > > +                     return POWER_SUPPLY_STATUS_FULL;
+> >
+> > Division? Really?
 
-HTH.
+>=20
+> If you look further down in acpi_battery_get_property, that is how the
+> capacity property is calculated. Do you have a better suggestion?
 
--- 
-Regards/Gruss,
-    Boris.
+if (battery->capacity_now >=3D battery->full_charge_capacity)
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+?
+									Pavel
+
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--UfEAyuTBtIjiZzX6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlvoEtUACgkQMOfwapXb+vI9LACfXmYl9qips5knDC4Qb89sNEr4
+gQAAn1QbGPEm+K7c74zKapszZ12q4eJc
+=rdiM
+-----END PGP SIGNATURE-----
+
+--UfEAyuTBtIjiZzX6--
