@@ -1,103 +1,140 @@
-From: Andrew Lunn <andrew@lunn.ch>
-Subject: Re: [RFC PATCH 1/3] acpi: Add acpi mdio support code
-Date: Mon, 12 Nov 2018 18:25:36 +0100
-Message-ID: <20181112172536.GD5075@lunn.ch>
-References: <20181029124044.GB9174@lunn.ch>
- <cover.1541660504.git.dongsheng.wang@hxt-semitech.com>
- <2bf82b60c52bd3fc38b733e38fd991c9d31af6b9.1541660504.git.dongsheng.wang@hxt-semitech.com>
+From: Masayoshi Mizuma <msys.mizuma@gmail.com>
+Subject: Re: [PATCH v11 3/5] x86/boot: Add get_acpi_rsdp() to parse RSDP in
+ cmdlien from kexec
+Date: Mon, 12 Nov 2018 12:43:44 -0500
+Message-ID: <20181112174343.mvjri2okwboew2nw@gabell>
+References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
+ <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2bf82b60c52bd3fc38b733e38fd991c9d31af6b9.1541660504.git.dongsheng.wang@hxt-semitech.com>
-Sender: netdev-owner@vger.kernel.org
-To: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
-Cc: timur@kernel.org, yu.zheng@hxt-semitech.com, f.fainelli@gmail.com, rjw@rjwysocki.net, linux-acpi@vger.kernel.org, netdev@vger.kernel.org
+In-Reply-To: <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 08, 2018 at 03:22:16PM +0800, Wang Dongsheng wrote:
-> Add support for parsing the ACPI data node for PHY devices on an MDIO bus.
-> The current implementation depend on mdio bus scan.
-> With _DSD device properties we can finally do this:
+Hi Chao,
+
+On Mon, Nov 12, 2018 at 05:46:43PM +0800, Chao Fan wrote:
+> Imitate setup_acpi_rsdp() for the early_param of 'acpi_rsdp'.
+> KEXEC writes the RSDP pointer to cmdline for EFI booting.
+> So if 'acpi_rsdp' found in cmdline, use it directely.
 > 
->     Device (MDIO) {
->         Name (_DSD, Package () {
->             ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
->             Package () { Package () { "ethernet-phy@0", PHY0 }, }
->         })
->         Name (PHY0, Package() {
->             ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->             Package () { Package () { "reg", 0x0 }, }
->         })
->     }
+
+> Since function kstrtoull() is needed, include it in
+> arch/x86/boot/string.h. To solve the definition conflict
+> problem, set BOOT_STRING tag to expose only kstrtoull() and
+> functions used by it. Other functions in lib/kstrtox.c will
+> be covered.
+
+How about the following get_acpi_rsdp()...? It doesn't use kstrtoull().
+
+static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
+{
+#ifdef CONFIG_KEXEC
+        unsigned long addr;
+        char val[32];
+
+        if (cmdline_find_option("acpi_rsdp", val, sizeof(val)) > 0) {
+                char *e;
+
+                if (!strncmp(val, "0x", 2)) {
+                        addr = simple_strtoull(val + 2, &e, 16);
+                        if ((addr == 0) || ((val + 2) == e))
+                                return;
+                        *rsdp_addr = (acpi_physical_address)addr;
+                }
+        }
+#endif
+}
+
+Thanks,
+Masa
+
 > 
->     Device (MACO) {
->         Name (_DSD, Package () {
->             ToUUID ("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->             Package () { Package () { "phy-handle", \_SB.MDIO, "ethernet-phy@0" }, }
->         })
->     }
-> 
-> Documentations:
->     The DT "phy-handle" binding that we reuse for ACPI is documented in
->     Documentation/devicetree/bindings/phy/phy-bindings.txt
-> 
->     Documentation/acpi/dsd/data-node-references.txt
->     Documentation/acpi/dsd/graph.txt
-> 
-> Signed-off-by: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
 > ---
->  drivers/acpi/Kconfig       |   6 ++
->  drivers/acpi/Makefile      |   1 +
->  drivers/acpi/acpi_mdio.c   | 167 +++++++++++++++++++++++++++++++++++++
->  drivers/net/phy/mdio_bus.c |   3 +
->  include/linux/acpi_mdio.h  |  82 ++++++++++++++++++
->  5 files changed, 259 insertions(+)
+>  arch/x86/boot/compressed/acpitb.c | 26 ++++++++++++++++++++++++++
+>  arch/x86/boot/string.h            |  4 ++++
+>  lib/kstrtox.c                     |  4 ++++
+>  3 files changed, 34 insertions(+)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 9705fc986da9..0fefa3410ce9 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -252,6 +252,12 @@ config ACPI_PROCESSOR_IDLE
->  config ACPI_MCFG
->  	bool
+> diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
+> index 50fa65cf824d..5cfb4efa5a19 100644
+> --- a/arch/x86/boot/compressed/acpitb.c
+> +++ b/arch/x86/boot/compressed/acpitb.c
+> @@ -8,6 +8,12 @@
+>  #include <linux/numa.h>
+>  #include <linux/acpi.h>
 >  
-> +config ACPI_MDIO
-> +	def_tristate PHYLIB
-> +	depends on PHYLIB
-> +	help
-> +	  ACPI MDIO bus (Ethernet PHY) accessors
+> +#define STATIC
+> +#include <linux/decompress/mm.h>
 > +
->  config ACPI_CPPC_LIB
->  	bool
->  	depends on ACPI_PROCESSOR
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 6d59aa109a91..ec7461a064fc 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -41,6 +41,7 @@ acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
->  acpi-y				+= pci_root.o pci_link.o pci_irq.o
->  obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
-> +acpi-$(CONFIG_ACPI_MDIO)	+= acpi_mdio.o
->  acpi-y				+= acpi_lpss.o acpi_apd.o
->  acpi-y				+= acpi_platform.o
->  acpi-y				+= acpi_pnp.o
-> diff --git a/drivers/acpi/acpi_mdio.c b/drivers/acpi/acpi_mdio.c
-> new file mode 100644
-> index 000000000000..293bf9a63197
-> --- /dev/null
-
-> +++ b/drivers/acpi/acpi_mdio.c
-> @@ -0,0 +1,167 @@
-> +// SPDX-License-Identifier: GPL-2.0+
-> +// Lots of code in this file is copy from drivers/of/of_mdio.c
-> +// Copyright (c) 2018 Huaxintong Semiconductor Technology Co., Ltd.
-
-I agree with Rafael here. We should try to refactor and combine this
-code. And where possible, we should try to add a uniform fwnode_ API
-which underneath either uses OF or ACPI, depending on the type of the
-node. We already have fwnode_get_mac_address(), fwmode_irq_get(),
-fwnode_get_phy_mode(), so where possible, PHYs should be no different.
-
-      Andrew
+> +#define BOOT_STRING
+> +#include "../string.h"
+> +
+>  /* Search EFI table for RSDP table. */
+>  static void efi_get_rsdp_addr(acpi_physical_address *rsdp_addr)
+>  {
+> @@ -200,3 +206,23 @@ static void bios_get_rsdp_addr(acpi_physical_address *rsdp_addr)
+>  		*rsdp_addr = (acpi_physical_address)address;
+>  	}
+>  }
+> +
+> +static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
+> +{
+> +#ifdef CONFIG_KEXEC
+> +	unsigned long long res;
+> +	int len = 0;
+> +	char *val;
+> +
+> +	val = malloc(19);
+> +	len = cmdline_find_option("acpi_rsdp", val, 19);
+> +
+> +	if (len == -1)
+> +		return;
+> +
+> +	if (len > 0) {
+> +		val[len] = 0;
+> +		*rsdp_addr = (acpi_physical_address)kstrtoull(val, 16, &res);
+> +	}
+> +#endif
+> +}
+> diff --git a/arch/x86/boot/string.h b/arch/x86/boot/string.h
+> index 3d78e27077f4..0ff3edb888e4 100644
+> --- a/arch/x86/boot/string.h
+> +++ b/arch/x86/boot/string.h
+> @@ -30,3 +30,7 @@ extern unsigned long long simple_strtoull(const char *cp, char **endp,
+>  					  unsigned int base);
+>  
+>  #endif /* BOOT_STRING_H */
+> +
+> +#ifdef BOOT_STRING
+> +#include "../../../lib/kstrtox.c"
+> +#endif
+> diff --git a/lib/kstrtox.c b/lib/kstrtox.c
+> index 1006bf70bf74..3804db9eed56 100644
+> --- a/lib/kstrtox.c
+> +++ b/lib/kstrtox.c
+> @@ -126,6 +126,8 @@ int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
+>  }
+>  EXPORT_SYMBOL(kstrtoull);
+>  
+> +#ifndef BOOT_STRING
+> +
+>  /**
+>   * kstrtoll - convert a string to a long long
+>   * @s: The start of the string. The string must be null-terminated, and may also
+> @@ -408,3 +410,5 @@ kstrto_from_user(kstrtou16_from_user,	kstrtou16,	u16);
+>  kstrto_from_user(kstrtos16_from_user,	kstrtos16,	s16);
+>  kstrto_from_user(kstrtou8_from_user,	kstrtou8,	u8);
+>  kstrto_from_user(kstrtos8_from_user,	kstrtos8,	s8);
+> +
+> +#endif
+> -- 
+> 2.19.1
+> 
+> 
+> 
