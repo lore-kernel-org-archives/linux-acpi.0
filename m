@@ -1,140 +1,57 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v11 3/5] x86/boot: Add get_acpi_rsdp() to parse RSDP in
- cmdlien from kexec
-Date: Mon, 12 Nov 2018 12:43:44 -0500
-Message-ID: <20181112174343.mvjri2okwboew2nw@gabell>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
+From: "Raj, Ashok" <ashok.raj@intel.com>
+Subject: Re: [PATCH 2/4] iommu/vt-d: Force IOMMU on for platform opt in hint
+Date: Mon, 12 Nov 2018 09:49:36 -0800
+Message-ID: <20181112174936.GB30341@araj-mobl1.jf.intel.com>
+References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+ <20181112160628.86620-3-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
+In-Reply-To: <20181112160628.86620-3-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: iommu@lists.linux-foundation.org, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Ashok Raj <ashok.raj@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Chao,
-
-On Mon, Nov 12, 2018 at 05:46:43PM +0800, Chao Fan wrote:
-> Imitate setup_acpi_rsdp() for the early_param of 'acpi_rsdp'.
-> KEXEC writes the RSDP pointer to cmdline for EFI booting.
-> So if 'acpi_rsdp' found in cmdline, use it directely.
+On Mon, Nov 12, 2018 at 07:06:26PM +0300, Mika Westerberg wrote:
+> From: Lu Baolu <baolu.lu@linux.intel.com>
 > 
-
-> Since function kstrtoull() is needed, include it in
-> arch/x86/boot/string.h. To solve the definition conflict
-> problem, set BOOT_STRING tag to expose only kstrtoull() and
-> functions used by it. Other functions in lib/kstrtox.c will
-> be covered.
-
-How about the following get_acpi_rsdp()...? It doesn't use kstrtoull().
-
-static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
-{
-#ifdef CONFIG_KEXEC
-        unsigned long addr;
-        char val[32];
-
-        if (cmdline_find_option("acpi_rsdp", val, sizeof(val)) > 0) {
-                char *e;
-
-                if (!strncmp(val, "0x", 2)) {
-                        addr = simple_strtoull(val + 2, &e, 16);
-                        if ((addr == 0) || ((val + 2) == e))
-                                return;
-                        *rsdp_addr = (acpi_physical_address)addr;
-                }
-        }
-#endif
-}
-
-Thanks,
-Masa
-
+> Intel VT-d spec added a new DMA_CTRL_PLATFORM_OPT_IN_FLAG flag
+> in DMAR ACPI table for BIOS to report compliance about platform
+> initiated DMA restricted to RMRR ranges when transferring control
+> to the OS. The OS treats this as a hint that the IOMMU should be
+> enabled to prevent DMA attacks from possible malicious devices.
 > 
-> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
+> A use of this flag is Kernel DMA protection for Thunderbolt[1]
+> which in practice means that IOMMU should be enabled for PCIe
+> devices connected to the Thunderbolt ports. With IOMMU enabled
+> for these devices, all DMA operations are limited in the range
+> reserved for it, thus the DMA attacks are prevented. All these
+> devices are enumerated in the PCI/PCIe module and marked with
+> an is_external flag.
+> 
+> This forces IOMMU to be enabled if DMA_CTRL_PLATFORM_OPT_IN_FLAG
+> is set in DMAR ACPI table and there are PCIe devices marked as
+> is_external in the system. This can be turned off by adding
+> "intel_iommu=off" in the kernel command line, if any problems are
+> found.
+> 
+> [1] https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
+> 
+> Cc: Ashok Raj <ashok.raj@intel.com>
+> Cc: Jacob Pan <jacob.jun.pan@linux.intel.com>
+> Cc: Sohil Mehta <sohil.mehta@intel.com>
+> Signed-off-by: Lu Baolu <baolu.lu@linux.intel.com>
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+Looks good to me
+
+Reviewed-by: Ashok Raj <ashok.raj@intel.com>
+
 > ---
->  arch/x86/boot/compressed/acpitb.c | 26 ++++++++++++++++++++++++++
->  arch/x86/boot/string.h            |  4 ++++
->  lib/kstrtox.c                     |  4 ++++
->  3 files changed, 34 insertions(+)
-> 
-> diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
-> index 50fa65cf824d..5cfb4efa5a19 100644
-> --- a/arch/x86/boot/compressed/acpitb.c
-> +++ b/arch/x86/boot/compressed/acpitb.c
-> @@ -8,6 +8,12 @@
->  #include <linux/numa.h>
->  #include <linux/acpi.h>
->  
-> +#define STATIC
-> +#include <linux/decompress/mm.h>
-> +
-> +#define BOOT_STRING
-> +#include "../string.h"
-> +
->  /* Search EFI table for RSDP table. */
->  static void efi_get_rsdp_addr(acpi_physical_address *rsdp_addr)
->  {
-> @@ -200,3 +206,23 @@ static void bios_get_rsdp_addr(acpi_physical_address *rsdp_addr)
->  		*rsdp_addr = (acpi_physical_address)address;
->  	}
->  }
-> +
-> +static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
-> +{
-> +#ifdef CONFIG_KEXEC
-> +	unsigned long long res;
-> +	int len = 0;
-> +	char *val;
-> +
-> +	val = malloc(19);
-> +	len = cmdline_find_option("acpi_rsdp", val, 19);
-> +
-> +	if (len == -1)
-> +		return;
-> +
-> +	if (len > 0) {
-> +		val[len] = 0;
-> +		*rsdp_addr = (acpi_physical_address)kstrtoull(val, 16, &res);
-> +	}
-> +#endif
-> +}
-> diff --git a/arch/x86/boot/string.h b/arch/x86/boot/string.h
-> index 3d78e27077f4..0ff3edb888e4 100644
-> --- a/arch/x86/boot/string.h
-> +++ b/arch/x86/boot/string.h
-> @@ -30,3 +30,7 @@ extern unsigned long long simple_strtoull(const char *cp, char **endp,
->  					  unsigned int base);
->  
->  #endif /* BOOT_STRING_H */
-> +
-> +#ifdef BOOT_STRING
-> +#include "../../../lib/kstrtox.c"
-> +#endif
-> diff --git a/lib/kstrtox.c b/lib/kstrtox.c
-> index 1006bf70bf74..3804db9eed56 100644
-> --- a/lib/kstrtox.c
-> +++ b/lib/kstrtox.c
-> @@ -126,6 +126,8 @@ int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
->  }
->  EXPORT_SYMBOL(kstrtoull);
->  
-> +#ifndef BOOT_STRING
-> +
->  /**
->   * kstrtoll - convert a string to a long long
->   * @s: The start of the string. The string must be null-terminated, and may also
-> @@ -408,3 +410,5 @@ kstrto_from_user(kstrtou16_from_user,	kstrtou16,	u16);
->  kstrto_from_user(kstrtos16_from_user,	kstrtos16,	s16);
->  kstrto_from_user(kstrtou8_from_user,	kstrtou8,	u8);
->  kstrto_from_user(kstrtos8_from_user,	kstrtos8,	s8);
-> +
-> +#endif
-> -- 
-> 2.19.1
-> 
-> 
-> 
+>  drivers/iommu/dmar.c        | 25 +++++++++++++++++
+>  drivers/iommu/intel-iommu.c | 55 +++++++++++++++++++++++++++++++++++--
+>  include/linux/dmar.h        |  8 ++++++
+>  3 files changed, 86 insertions(+), 2 deletions(-)
+ 
