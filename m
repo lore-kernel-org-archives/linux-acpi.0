@@ -1,48 +1,36 @@
-From: Yehezkel Bernat <yehezkelshb@gmail.com>
-Subject: Re: [PATCH 4/4] thunderbolt: Export IOMMU based DMA protection
- support to userspace
-Date: Mon, 12 Nov 2018 18:59:02 +0200
-Message-ID: <CA+CmpXvZJFk=kYvZybgTtqDWBVP_jSE37tdkQbyGA8U9WOrkoQ@mail.gmail.com>
-References: <20181112160628.86620-1-mika.westerberg@linux.intel.com> <20181112160628.86620-5-mika.westerberg@linux.intel.com>
+From: Andrew Lunn <andrew@lunn.ch>
+Subject: Re: [RFC PATCH 0/3] acpi: Add acpi mdio support code
+Date: Mon, 12 Nov 2018 18:20:19 +0100
+Message-ID: <20181112172019.GC5075@lunn.ch>
+References: <20181029124044.GB9174@lunn.ch>
+ <cover.1541660504.git.dongsheng.wang@hxt-semitech.com>
+ <20181108232353.GL5259@lunn.ch>
+ <6ebdf08060c245a8a44fc4263eb308cc@HXTBJIDCEMVIW02.hxtcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181112160628.86620-5-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, rjw@rjwysocki.net, jacob.jun.pan@intel.com, Andreas Noever <andreas.noever@gmail.com>, michael.jamet@intel.com, lukas@wunner.de, Christian Kellner <ckellner@redhat.com>, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <6ebdf08060c245a8a44fc4263eb308cc@HXTBJIDCEMVIW02.hxtcorp.net>
+Sender: netdev-owner@vger.kernel.org
+To: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Cc: "timur@kernel.org" <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 6:06 PM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> Recent systems shipping with Windows 10 version 1803 or later may
-> support a feature called Kernel DMA protection [1]. In practice this
-> means that Thunderbolt connected devices are placed behind an IOMMU
-> during the whole time it is connected (including during boot) making
-> Thunderbolt security levels redundant. Some of these systems still have
-> Thunderbolt security level set to "user" in order to support OS
-> downgrade (the older version of the OS might not support IOMMU based DMA
-> protection so connecting a device still relies on user approval then).
->
-> Export this information to userspace by introducing a new sysfs
-> attribute (iommu_dma_protection). Based on it userspace tools can make
-> more accurate decision whether or not authorize the connected device.
->
-> In addition update Thunderbolt documentation regarding IOMMU based DMA
-> protection.
->
-> [1] https://docs.microsoft.com/en-us/windows/security/information-protection/kernel-dma-protection-for-thunderbolt
->
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
+> > I'm just trying to ensure whatever is defined is flexible enough that
+> > we really can later support everything which DT does. We have PHYs on
+> > MDIO busses, inside switches, which are on MDIO busses, which are
+> > inside Ethernet interfaces, etc.
+> 
+> I think it can be satisfied. See the table I'm using above.
 
-I can't comment on the IOMMU side, but the Thunderbolt side looks good to me.
+Hi Dongsheng
 
-Just one point:
-Have you considered the option to add this property per (TBT?) device?
-If the kernel may decide to enable/disable the IOMMU or AST per device, maybe
-it should be on this level.
-Or maybe the IOMMU decision isn't going to change (it's system-wide) and the AST
-decision will be communicated per device by a new sysfs attribute anyway, if
-needed?
+
+Since i don't know anything better, i think i have to trust you have
+this correct.
+
+It would be good to document this, so that the next person who needs
+to add ACPI support for a PHY has some documentation to look at.
+Could you add something to Documentation/acpi/dsd?
+
+      Andrew
