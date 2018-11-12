@@ -1,65 +1,60 @@
-From: "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
-Subject: [PATCH] ACPI / APEI: Fix parsing HEST that includes Deferred Machine
- Check subtable
-Date: Mon, 12 Nov 2018 19:00:55 +0000
-Message-ID: <20181112190029.41760-1-Yazen.Ghannam@amd.com>
+From: Yehezkel Bernat <yehezkelshb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/4] PCI / iommu / thunderbolt: IOMMU based DMA protection
+Date: Mon, 12 Nov 2018 21:04:08 +0200
+Message-ID: <CA+CmpXt4cZJRoo8U=pMt7Y65oLpXwpr2oVgbxuFj8C-SU6yZnA@mail.gmail.com>
+References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+	<20181112181214.xaahc5wni4vuwl6h@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "bp@alien8.de" <bp@alien8.de>, "keescook@chromium.org" <keescook@chromium.org>, "Ghannam, Yazen" <Yazen.Ghannam@amd.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20181112181214.xaahc5wni4vuwl6h-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org
+Cc: ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mario Limonciello <Mario.Limonciello-8PEkshWhKlo@public.gmane.org>, michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org, Christian Kellner <ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Yazen Ghannam <yazen.ghannam@amd.com>
+On Mon, Nov 12, 2018 at 8:12 PM Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org> wrote:
+>
+> On Mon, Nov 12, 2018 at 07:06:24PM +0300, Mika Westerberg wrote:
+> > Recent systems shipping with Windows 10 version 1803 or newer may be
+> > utilizing IOMMU to prevent DMA attacks via Thunderbolt ports. This is
+> > different from the previous security level based scheme because the
+> > connected device cannot access system memory outside of the regions
+> > allocated for it by the driver.
+> >
+> > When enabled the BIOS makes sure no device can do DMA outside of RMRR
+> > (Reserved Memory Region Record) regions. This means that during OS boot,
+> > before it enables IOMMU, none of the connected devices can bypass DMA
+> > protection for instance by overwriting the data structures used by the
+> > IOMMU. The BIOS communicates support for this to the OS by setting a new
+> > bit in ACPI DMAR table [1].
+> >
+> > Because these systems utilize an IOMMU to block possible DMA attacks,
+> > typically (but not always) the Thunderbolt security level is set to "none"
+> > which means that all PCIe devices are immediately usable. This also means
+> > that Linux needs to follow Windows 10 and enable IOMMU automatically when
+> > running on such system otherwise connected devices can read/write system
+> > memory pretty much without any restrictions.
+>
+> What if the system is booted from a Thunderbolt-attached disk?
+> Won't this suddenly break with these patches? That would seem like a
+> pretty significant regression.
 
-ACPI 6.2 includes a new definition for a Deferred Machine Check "DMC"
-subtable.
-
-The definition of this subtable was included in following commit:
-
-c042933df2b1 ("ACPICA: Add support for new HEST subtable")
-
-However, the HEST parsing function was not updated to include this new
-subtable. Therefore, Linux will fail to parse the HEST on systems that
-include a DMC entry.
-
-Add the length check for the new DMC subtable so that HEST parsing
-doesn't fail on systems that include it.
-
-Signed-off-by: Yazen Ghannam <yazen.ghannam@amd.com>
----
- drivers/acpi/apei/hest.c | 6 ++++++
- 1 file changed, 6 insertions(+)
-
-diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-index b1e9f81ebeea..0935a0ef37e5 100644
---- a/drivers/acpi/apei/hest.c
-+++ b/drivers/acpi/apei/hest.c
-@@ -53,6 +53,7 @@ static const int hest_esrc_len_tab[ACPI_HEST_TYPE_RESERVE=
-D] =3D {
- 	[ACPI_HEST_TYPE_AER_BRIDGE] =3D sizeof(struct acpi_hest_aer_bridge),
- 	[ACPI_HEST_TYPE_GENERIC_ERROR] =3D sizeof(struct acpi_hest_generic),
- 	[ACPI_HEST_TYPE_GENERIC_ERROR_V2] =3D sizeof(struct acpi_hest_generic_v2)=
-,
-+	[ACPI_HEST_TYPE_IA32_DEFERRED_CHECK] =3D -1,
- };
-=20
- static int hest_esrc_len(struct acpi_hest_header *hest_hdr)
-@@ -75,6 +76,11 @@ static int hest_esrc_len(struct acpi_hest_header *hest_h=
-dr)
- 		mc =3D (struct acpi_hest_ia_machine_check *)hest_hdr;
- 		len =3D sizeof(*mc) + mc->num_hardware_banks *
- 			sizeof(struct acpi_hest_ia_error_bank);
-+	} else if (hest_type =3D=3D ACPI_HEST_TYPE_IA32_DEFERRED_CHECK) {
-+		struct acpi_hest_ia_deferred_check *mc;
-+		mc =3D (struct acpi_hest_ia_deferred_check *)hest_hdr;
-+		len =3D sizeof(*mc) + mc->num_hardware_banks *
-+			sizeof(struct acpi_hest_ia_error_bank);
- 	}
- 	BUG_ON(len =3D=3D -1);
-=20
---=20
-2.17.1
+My assumption is that either it isn't supported on such platforms (at least with
+this security configuration active) so this doesn't break anything, it never
+worked there, or the BIOS configures IOMMU in a way that allows the disk to work
+until the OS will take control and configure the IOMMU according to OS
+decisions.
+In the latter case, the kernel+initrd will be loaded before IOMMU configuration
+will be changed, and then the kernel should be able to config it correctly to
+work. (Unless I really don't understand the mechanism and workflow of using
+IOMMU, which is possible.)
