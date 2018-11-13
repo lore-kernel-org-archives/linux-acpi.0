@@ -1,275 +1,107 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v11 4/5] x86/boot: Dig out SRAT table from RSDP and find
- immovable memory
-Date: Mon, 12 Nov 2018 16:51:59 -0500
-Message-ID: <20181112215158.55jcpbe4fa6jskb5@gabell>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-5-fanc.fnst@cn.fujitsu.com>
+From: Rajat Jain <rajatja@google.com>
+Subject: Re: [PATCH v2] mmc: sdhci-pci: Try "cd" for card-detect lookup before
+ using NULL
+Date: Mon, 12 Nov 2018 17:26:27 -0800
+Message-ID: <CACK8Z6F0xrC340SHmnZHEb2jYizna_ZCeK_NGGeg_7iRb7wUsw@mail.gmail.com>
+References: <CAA93t1oaZ5zkv+BsGnYZg6pqKv0DzXi3j8oZHUyTyffUWHtHug@mail.gmail.com>
+ <20181029221701.51376-1-rajatja@google.com> <CAPDyKFpqzpxUzZe-ekfwg1Nqeg1RFB1bdbSNwrGPwtfNds4p0w@mail.gmail.com>
+ <CAHp75VezX-agNFp2wEHorH7U9NmZgpX-PfXdBbGDETnJY2AFGA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181112094645.4879-5-fanc.fnst@cn.fujitsu.com>
+In-Reply-To: <CAHp75VezX-agNFp2wEHorH7U9NmZgpX-PfXdBbGDETnJY2AFGA@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, "Hunter, Adrian" <adrian.hunter@intel.com>, linux-mmc@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, Rajat Jain <rajatxjain@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Dmitry Torokhov <dtor@google.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 05:46:44PM +0800, Chao Fan wrote:
-> To avoid KASLR extracting kernel on movable memory, slove the
-> conflict between KASLR and movable_node feature, dig the SRAT tables
-> from RSDP pointer. Walk the SRAT tables and store the immovable
-> memory regions in immovable_mem[].
-> 
-> There are three methods to get RSDP pointer: KEXEC condition,
-> EFI confition, BIOS condition.
-> If KEXEC add 'acpi_rsdp' to cmdline, use it.
-> Otherwise, parse EFI table for RSDP.
-> Then, search memory for RSDP.
-> 
-> Imitate from ACPI code, based on acpi_os_get_root_pointer().
-> Process: RSDP->RSDT/XSDT->ACPI root table->SRAT.
-> 
-> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
-> ---
->  arch/x86/boot/compressed/Makefile |   4 +
->  arch/x86/boot/compressed/acpitb.c | 139 ++++++++++++++++++++++++++++++
->  arch/x86/boot/compressed/kaslr.c  |   4 -
->  arch/x86/boot/compressed/misc.h   |  15 ++++
->  4 files changed, 158 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
-> index 466f66c8a7f8..b51f7629b8ef 100644
-> --- a/arch/x86/boot/compressed/Makefile
-> +++ b/arch/x86/boot/compressed/Makefile
-> @@ -84,6 +84,10 @@ ifdef CONFIG_X86_64
->  	vmlinux-objs-y += $(obj)/pgtable_64.o
->  endif
->  
-> +#if (defined CONFIG_MEMORY_HOTREMOVE) && (defined CONFIG_RANDOMIZE_BASE)
-> +vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/acpitb.o
-> +#endif
+On Mon, Nov 12, 2018 at 3:26 AM Andy Shevchenko
+<andy.shevchenko@gmail.com> wrote:
+>
+> On Mon, Nov 12, 2018 at 1:05 PM Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> >
+> > On 29 October 2018 at 23:17, Rajat Jain <rajatja@google.com> wrote:
+> > > Problem:
+> > >
+> > > The card detect IRQ does not work with modern BIOS (that want
+> > > to use _DSD to provide the card detect GPIO to the driver).
+> > >
+> > > Details:
+> > >
+> > > The mmc core provides the mmc_gpiod_request_cd() API to let host drivers
+> > > request the gpio descriptor for the "card detect" pin.
+> > > This pin is specified in the ACPI for the SDHC device:
+> > >
+> > >  * Either as a resource using _CRS. This is a method used by legacy BIOS.
+> > >    (The driver needs to tell which resource index).
+> > >
+> > >  * Or as a named property ("cd-gpios"/"cd-gpio") in _DSD (which internally
+> > >    points to an entry in _CRS). This way, the driver can lookup using a
+> > >    string. This is what modern BIOS prefer to use.
+> > >
+> > > This API finally results in a call to the following code:
+> > >
+> > > struct gpio_desc *acpi_find_gpio(..., const char *con_id,...)
+> > > {
+> > > ...
+> > >    /* Lookup gpio (using "<con_id>-gpio") in the _DSD */
+> > > ...
+> > >    if (!acpi_can_fallback_to_crs(adev, con_id))
+> > >           return ERR_PTR(-ENOENT);
+> > > ...
+> > >    /* Falling back to _CRS is allowed, Lookup gpio in the _CRS */
+> > > ...
+> > > }
+> > >
+> > > Note that this means that if the ACPI has _DSD properties, the kernel
+> > > will never use _CRS for the lookup (Because acpi_can_fallback_to_crs()
+> > > will always be false for any device hat has _DSD entries).
+> > >
+> > > The SDHCI driver is thus currently broken on a modern BIOS, even if
+> > > BIOS provides both _CRS (for index based lookup) and _DSD entries (for
+> > > string based lookup). Ironically, none of these will be used for the
+> > > lookup currently because:
+> > >
+> > > * Since the con_id is NULL, acpi_find_gpio() does not find a matching
+> > >   entry in DSDT. (The _DSDT entry has the property name = "cd-gpios")
+> > >
+> > > * Because ACPI contains DSDT entries, thus acpi_can_fallback_to_crs()
+> > >   returns false (because device properties have been populated from
+> > >   _DSD), thus the _CRS is never used for the lookup.
+> > >
+> > > Fix:
+> > >
+> > > Try "cd" for lookup in the _DSD before falling back to using NULL so
+> > > as to try looking up in the _CRS.
+> > >
+> > > I've tested this patch successfully with both Legacy BIOS (that
+> > > provide only _CRS method) as well as modern BIOS (that provide both
+> > > _CRS and _DSD). Also the use of "cd" appears to be fairly consistent
+> > > across other users of this API (other MMC host controller drivers).
+> > >
+> > > Link: https://lkml.org/lkml/2018/9/25/1113
+> > > Signed-off-by: Rajat Jain <rajatja@google.com>
+> >
+> > Applied for fixes, thanks!
+> >
+> > Should I add a stable tag to this as well?
+>
+> If you go with that it might make sense to have Fixes tag against
+>
+> commit f10e4bf6632b5be11cea875b66ba959833a69258
+> Author: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Date:   Tue May 23 20:03:19 2017 +0300
+>
+>    gpio: acpi: Even more tighten up ACPI GPIO lookups
+>
 
-'#' in Makefile means comment out...
-
-ifdef CONFIG_MEMORY_HOTREMOVE
-        vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/acpitb.o
-endif
-
-> +
->  $(obj)/eboot.o: KBUILD_CFLAGS += -fshort-wchar -mno-red-zone
->  
->  vmlinux-objs-$(CONFIG_EFI_STUB) += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o \
-> diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
-> index 5cfb4efa5a19..161f21a7fb3b 100644
-> --- a/arch/x86/boot/compressed/acpitb.c
-> +++ b/arch/x86/boot/compressed/acpitb.c
-> @@ -14,6 +14,11 @@
->  #define BOOT_STRING
->  #include "../string.h"
->  
-
-> +#ifdef CONFIG_MEMORY_HOTREMOVE
-> +/* Store the immovable memory regions */
-> +struct mem_vector immovable_mem[MAX_NUMNODES*2];
-> +#endif
-
-This #ifdef isn't needed.
-
-Could you please check the other #ifdef statement as well?
+I agree.
 
 Thanks,
-Masa
 
-> +
->  /* Search EFI table for RSDP table. */
->  static void efi_get_rsdp_addr(acpi_physical_address *rsdp_addr)
->  {
-> @@ -226,3 +231,137 @@ static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
->  	}
->  #endif
->  }
-> +
-> +/*
-> + * Used to dig RSDP table from EFI table or BIOS.
-> + * If RSDP table found in EFI table, use it. Or search BIOS.
-> + * Based on acpi_os_get_root_pointer().
-> + */
-> +static acpi_physical_address get_rsdp_addr(void)
-> +{
-> +	acpi_physical_address pa = 0;
-> +
-> +	get_acpi_rsdp(&pa);
-> +
-> +	if (!pa)
-> +		efi_get_rsdp_addr(&pa);
-> +
-> +	if (!pa)
-> +		bios_get_rsdp_addr(&pa);
-> +
-> +	return pa;
-> +}
-> +
-> +static struct acpi_table_header *get_acpi_srat_table(void)
-> +{
-> +	acpi_physical_address acpi_table;
-> +	acpi_physical_address root_table;
-> +	struct acpi_table_header *header;
-> +	struct acpi_table_rsdp *rsdp;
-> +	bool acpi_use_rsdt = false;
-> +	char *signature;
-> +	char arg[10];
-> +	u8 *entry;
-> +	u32 count;
-> +	u32 size;
-> +	int i, j;
-> +	int ret;
-> +	u32 len;
-> +
-> +	rsdp = (struct acpi_table_rsdp *)get_rsdp_addr();
-> +	if (!rsdp)
-> +		return NULL;
-> +
-> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
-> +	if (ret == 4 && !strncmp(arg, "rsdt", 4))
-> +		acpi_use_rsdt = true;
-> +
-> +	/* Get RSDT or XSDT from RSDP. */
-> +	if (!acpi_use_rsdt &&
-> +	    rsdp->xsdt_physical_address && rsdp->revision > 1) {
-> +		root_table = rsdp->xsdt_physical_address;
-> +		size = ACPI_XSDT_ENTRY_SIZE;
-> +	} else {
-> +		root_table = rsdp->rsdt_physical_address;
-> +		size = ACPI_RSDT_ENTRY_SIZE;
-> +	}
-> +
-> +	/* Get ACPI root table from RSDT or XSDT.*/
-> +	header = (struct acpi_table_header *)root_table;
-> +	len = header->length;
-> +	count = (u32)((len - sizeof(struct acpi_table_header)) / size);
-> +	entry = ACPI_ADD_PTR(u8, header, sizeof(struct acpi_table_header));
-> +
-> +	for (i = 0; i < count; i++) {
-> +		u64 address64;
-> +
-> +		if (size == ACPI_RSDT_ENTRY_SIZE)
-> +			acpi_table = ((acpi_physical_address)
-> +				      (*ACPI_CAST_PTR(u32, entry)));
-> +		else {
-> +			*(u64 *)(void *)&address64 = *(u64 *)(void *)entry;
-> +			acpi_table = (acpi_physical_address) address64;
-> +		}
-> +
-> +		if (acpi_table) {
-> +			header = (struct acpi_table_header *)acpi_table;
-> +			signature = header->signature;
-> +
-> +			if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_SRAT))
-> +				return header;
-> +		}
-> +		entry += size;
-> +	}
-> +	return NULL;
-> +}
-> +
-> +/*
-> + * According to ACPI table, filter the immvoable memory regions
-> + * and store them in immovable_mem[].
-> + */
-> +void get_immovable_mem(void)
-> +{
-> +	struct acpi_table_header *table_header;
-> +	struct acpi_subtable_header *table;
-> +	struct acpi_srat_mem_affinity *ma;
-> +	unsigned long table_end;
-> +	char arg[10];
-> +	int i = 0;
-> +	int ret;
-> +
-> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
-> +	if (ret == 3 && !strncmp(arg, "off", 3))
-> +		return;
-> +
-> +	if (!cmdline_find_option_bool("movable_node"))
-> +		return;
-> +
-> +	table_header = get_acpi_srat_table();
-> +	if (!table_header)
-> +		return;
-> +
-> +	table_end = (unsigned long)table_header + table_header->length;
-> +
-> +	table = (struct acpi_subtable_header *)
-> +		((unsigned long)table_header + sizeof(struct acpi_table_srat));
-> +
-> +	while (((unsigned long)table) +
-> +		       sizeof(struct acpi_subtable_header) < table_end) {
-> +		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
-> +			ma = (struct acpi_srat_mem_affinity *)table;
-> +			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
-> +				immovable_mem[i].start = ma->base_address;
-> +				immovable_mem[i].size = ma->length;
-> +				i++;
-> +			}
-> +
-> +			if (i >= MAX_NUMNODES*2) {
-> +				debug_putstr("Too many immovable memory regions, aborted.\n");
-> +				break;
-> +			}
-> +		}
-> +		table = (struct acpi_subtable_header *)
-> +			((unsigned long)table + table->length);
-> +	}
-> +	num_immovable_mem = i;
-> +}
-> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
-> index 9ed9709d9947..b251572e77af 100644
-> --- a/arch/x86/boot/compressed/kaslr.c
-> +++ b/arch/x86/boot/compressed/kaslr.c
-> @@ -87,10 +87,6 @@ static unsigned long get_boot_seed(void)
->  #define KASLR_COMPRESSED_BOOT
->  #include "../../lib/kaslr.c"
->  
-> -struct mem_vector {
-> -	unsigned long long start;
-> -	unsigned long long size;
-> -};
->  
->  /* Only supporting at most 4 unusable memmap regions with kaslr */
->  #define MAX_MEMMAP_REGIONS	4
-> diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
-> index a1d5918765f3..4a3645fda0ed 100644
-> --- a/arch/x86/boot/compressed/misc.h
-> +++ b/arch/x86/boot/compressed/misc.h
-> @@ -77,6 +77,11 @@ void choose_random_location(unsigned long input,
->  			    unsigned long *output,
->  			    unsigned long output_size,
->  			    unsigned long *virt_addr);
-> +struct mem_vector {
-> +	unsigned long long start;
-> +	unsigned long long size;
-> +};
-> +
->  /* cpuflags.c */
->  bool has_cpuflag(int flag);
->  #else
-> @@ -116,3 +121,13 @@ static inline void console_init(void)
->  void set_sev_encryption_mask(void);
->  
->  #endif
-> +
-> +/* acpitb.c */
-> +#ifdef CONFIG_RANDOMIZE_BASE
-> +int num_immovable_mem;
-> +#ifdef CONFIG_MEMORY_HOTREMOVE
-> +/* Store the amount of immovable memory regions */
-> +#define ACPI_MAX_TABLES                128
-> +void get_immovable_mem(void);
-> +#endif
-> +#endif
-> -- 
-> 2.19.1
-> 
-> 
-> 
+Rajat
+
+
+> --
+> With Best Regards,
+> Andy Shevchenko
