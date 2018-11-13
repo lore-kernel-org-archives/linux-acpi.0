@@ -1,288 +1,221 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v11 4/5] x86/boot: Dig out SRAT table from RSDP and find
- immovable memory
-Date: Tue, 13 Nov 2018 10:45:52 +0800
-Message-ID: <20181113024552.GF7453@localhost.localdomain>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-5-fanc.fnst@cn.fujitsu.com>
- <20181112215158.55jcpbe4fa6jskb5@gabell>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181112215158.55jcpbe4fa6jskb5@gabell>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, bp@alien8.de, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 14/44] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+Date: Tue, 13 Nov 2018 00:49:20 -0500
+Message-ID: <20181113054950.77898-14-sashal@kernel.org>
+References: <20181113054950.77898-1-sashal@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181113054950.77898-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: David Hildenbrand <david@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, John Allen <jallen@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.cz>, Mathieu Malaterre <malat@debian.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Balbir Singh <bsingharora@gmail.c>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 04:51:59PM -0500, Masayoshi Mizuma wrote:
->On Mon, Nov 12, 2018 at 05:46:44PM +0800, Chao Fan wrote:
->> To avoid KASLR extracting kernel on movable memory, slove the
->> conflict between KASLR and movable_node feature, dig the SRAT tables
->> from RSDP pointer. Walk the SRAT tables and store the immovable
->> memory regions in immovable_mem[].
->> 
->> There are three methods to get RSDP pointer: KEXEC condition,
->> EFI confition, BIOS condition.
->> If KEXEC add 'acpi_rsdp' to cmdline, use it.
->> Otherwise, parse EFI table for RSDP.
->> Then, search memory for RSDP.
->> 
->> Imitate from ACPI code, based on acpi_os_get_root_pointer().
->> Process: RSDP->RSDT/XSDT->ACPI root table->SRAT.
->> 
->> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
->> ---
->>  arch/x86/boot/compressed/Makefile |   4 +
->>  arch/x86/boot/compressed/acpitb.c | 139 ++++++++++++++++++++++++++++++
->>  arch/x86/boot/compressed/kaslr.c  |   4 -
->>  arch/x86/boot/compressed/misc.h   |  15 ++++
->>  4 files changed, 158 insertions(+), 4 deletions(-)
->> 
->> diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
->> index 466f66c8a7f8..b51f7629b8ef 100644
->> --- a/arch/x86/boot/compressed/Makefile
->> +++ b/arch/x86/boot/compressed/Makefile
->> @@ -84,6 +84,10 @@ ifdef CONFIG_X86_64
->>  	vmlinux-objs-y += $(obj)/pgtable_64.o
->>  endif
->>  
->> +#if (defined CONFIG_MEMORY_HOTREMOVE) && (defined CONFIG_RANDOMIZE_BASE)
->> +vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/acpitb.o
->> +#endif
->
->'#' in Makefile means comment out...
->
->ifdef CONFIG_MEMORY_HOTREMOVE
->        vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/acpitb.o
->endif
->
+From: David Hildenbrand <david@redhat.com>
 
-Thanks,
+[ Upstream commit 8df1d0e4a265f25dc1e7e7624ccdbcb4a6630c89 ]
 
->> +
->>  $(obj)/eboot.o: KBUILD_CFLAGS += -fshort-wchar -mno-red-zone
->>  
->>  vmlinux-objs-$(CONFIG_EFI_STUB) += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o \
->> diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
->> index 5cfb4efa5a19..161f21a7fb3b 100644
->> --- a/arch/x86/boot/compressed/acpitb.c
->> +++ b/arch/x86/boot/compressed/acpitb.c
->> @@ -14,6 +14,11 @@
->>  #define BOOT_STRING
->>  #include "../string.h"
->>  
->
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +/* Store the immovable memory regions */
->> +struct mem_vector immovable_mem[MAX_NUMNODES*2];
->> +#endif
->
->This #ifdef isn't needed.
->
->Could you please check the other #ifdef statement as well?
+add_memory() currently does not take the device_hotplug_lock, however
+is aleady called under the lock from
+	arch/powerpc/platforms/pseries/hotplug-memory.c
+	drivers/acpi/acpi_memhotplug.c
+to synchronize against CPU hot-remove and similar.
 
-Sure, I will check all the #ifdef.
+In general, we should hold the device_hotplug_lock when adding memory to
+synchronize against online/offline request (e.g.  from user space) - which
+already resulted in lock inversions due to device_lock() and
+mem_hotplug_lock - see 30467e0b3be ("mm, hotplug: fix concurrent memory
+hot-add deadlock").  add_memory()/add_memory_resource() will create memory
+block devices, so this really feels like the right thing to do.
 
-Thanks,
-Chao Fan
+Holding the device_hotplug_lock makes sure that a memory block device
+can really only be accessed (e.g. via .online/.state) from user space,
+once the memory has been fully added to the system.
 
->
->Thanks,
->Masa
->
->> +
->>  /* Search EFI table for RSDP table. */
->>  static void efi_get_rsdp_addr(acpi_physical_address *rsdp_addr)
->>  {
->> @@ -226,3 +231,137 @@ static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
->>  	}
->>  #endif
->>  }
->> +
->> +/*
->> + * Used to dig RSDP table from EFI table or BIOS.
->> + * If RSDP table found in EFI table, use it. Or search BIOS.
->> + * Based on acpi_os_get_root_pointer().
->> + */
->> +static acpi_physical_address get_rsdp_addr(void)
->> +{
->> +	acpi_physical_address pa = 0;
->> +
->> +	get_acpi_rsdp(&pa);
->> +
->> +	if (!pa)
->> +		efi_get_rsdp_addr(&pa);
->> +
->> +	if (!pa)
->> +		bios_get_rsdp_addr(&pa);
->> +
->> +	return pa;
->> +}
->> +
->> +static struct acpi_table_header *get_acpi_srat_table(void)
->> +{
->> +	acpi_physical_address acpi_table;
->> +	acpi_physical_address root_table;
->> +	struct acpi_table_header *header;
->> +	struct acpi_table_rsdp *rsdp;
->> +	bool acpi_use_rsdt = false;
->> +	char *signature;
->> +	char arg[10];
->> +	u8 *entry;
->> +	u32 count;
->> +	u32 size;
->> +	int i, j;
->> +	int ret;
->> +	u32 len;
->> +
->> +	rsdp = (struct acpi_table_rsdp *)get_rsdp_addr();
->> +	if (!rsdp)
->> +		return NULL;
->> +
->> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
->> +	if (ret == 4 && !strncmp(arg, "rsdt", 4))
->> +		acpi_use_rsdt = true;
->> +
->> +	/* Get RSDT or XSDT from RSDP. */
->> +	if (!acpi_use_rsdt &&
->> +	    rsdp->xsdt_physical_address && rsdp->revision > 1) {
->> +		root_table = rsdp->xsdt_physical_address;
->> +		size = ACPI_XSDT_ENTRY_SIZE;
->> +	} else {
->> +		root_table = rsdp->rsdt_physical_address;
->> +		size = ACPI_RSDT_ENTRY_SIZE;
->> +	}
->> +
->> +	/* Get ACPI root table from RSDT or XSDT.*/
->> +	header = (struct acpi_table_header *)root_table;
->> +	len = header->length;
->> +	count = (u32)((len - sizeof(struct acpi_table_header)) / size);
->> +	entry = ACPI_ADD_PTR(u8, header, sizeof(struct acpi_table_header));
->> +
->> +	for (i = 0; i < count; i++) {
->> +		u64 address64;
->> +
->> +		if (size == ACPI_RSDT_ENTRY_SIZE)
->> +			acpi_table = ((acpi_physical_address)
->> +				      (*ACPI_CAST_PTR(u32, entry)));
->> +		else {
->> +			*(u64 *)(void *)&address64 = *(u64 *)(void *)entry;
->> +			acpi_table = (acpi_physical_address) address64;
->> +		}
->> +
->> +		if (acpi_table) {
->> +			header = (struct acpi_table_header *)acpi_table;
->> +			signature = header->signature;
->> +
->> +			if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_SRAT))
->> +				return header;
->> +		}
->> +		entry += size;
->> +	}
->> +	return NULL;
->> +}
->> +
->> +/*
->> + * According to ACPI table, filter the immvoable memory regions
->> + * and store them in immovable_mem[].
->> + */
->> +void get_immovable_mem(void)
->> +{
->> +	struct acpi_table_header *table_header;
->> +	struct acpi_subtable_header *table;
->> +	struct acpi_srat_mem_affinity *ma;
->> +	unsigned long table_end;
->> +	char arg[10];
->> +	int i = 0;
->> +	int ret;
->> +
->> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
->> +	if (ret == 3 && !strncmp(arg, "off", 3))
->> +		return;
->> +
->> +	if (!cmdline_find_option_bool("movable_node"))
->> +		return;
->> +
->> +	table_header = get_acpi_srat_table();
->> +	if (!table_header)
->> +		return;
->> +
->> +	table_end = (unsigned long)table_header + table_header->length;
->> +
->> +	table = (struct acpi_subtable_header *)
->> +		((unsigned long)table_header + sizeof(struct acpi_table_srat));
->> +
->> +	while (((unsigned long)table) +
->> +		       sizeof(struct acpi_subtable_header) < table_end) {
->> +		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
->> +			ma = (struct acpi_srat_mem_affinity *)table;
->> +			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
->> +				immovable_mem[i].start = ma->base_address;
->> +				immovable_mem[i].size = ma->length;
->> +				i++;
->> +			}
->> +
->> +			if (i >= MAX_NUMNODES*2) {
->> +				debug_putstr("Too many immovable memory regions, aborted.\n");
->> +				break;
->> +			}
->> +		}
->> +		table = (struct acpi_subtable_header *)
->> +			((unsigned long)table + table->length);
->> +	}
->> +	num_immovable_mem = i;
->> +}
->> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
->> index 9ed9709d9947..b251572e77af 100644
->> --- a/arch/x86/boot/compressed/kaslr.c
->> +++ b/arch/x86/boot/compressed/kaslr.c
->> @@ -87,10 +87,6 @@ static unsigned long get_boot_seed(void)
->>  #define KASLR_COMPRESSED_BOOT
->>  #include "../../lib/kaslr.c"
->>  
->> -struct mem_vector {
->> -	unsigned long long start;
->> -	unsigned long long size;
->> -};
->>  
->>  /* Only supporting at most 4 unusable memmap regions with kaslr */
->>  #define MAX_MEMMAP_REGIONS	4
->> diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
->> index a1d5918765f3..4a3645fda0ed 100644
->> --- a/arch/x86/boot/compressed/misc.h
->> +++ b/arch/x86/boot/compressed/misc.h
->> @@ -77,6 +77,11 @@ void choose_random_location(unsigned long input,
->>  			    unsigned long *output,
->>  			    unsigned long output_size,
->>  			    unsigned long *virt_addr);
->> +struct mem_vector {
->> +	unsigned long long start;
->> +	unsigned long long size;
->> +};
->> +
->>  /* cpuflags.c */
->>  bool has_cpuflag(int flag);
->>  #else
->> @@ -116,3 +121,13 @@ static inline void console_init(void)
->>  void set_sev_encryption_mask(void);
->>  
->>  #endif
->> +
->> +/* acpitb.c */
->> +#ifdef CONFIG_RANDOMIZE_BASE
->> +int num_immovable_mem;
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +/* Store the amount of immovable memory regions */
->> +#define ACPI_MAX_TABLES                128
->> +void get_immovable_mem(void);
->> +#endif
->> +#endif
->> -- 
->> 2.19.1
->> 
->> 
->> 
->
->
+The lock is not held yet in
+	drivers/xen/balloon.c
+	arch/powerpc/platforms/powernv/memtrace.c
+	drivers/s390/char/sclp_cmd.c
+	drivers/hv/hv_balloon.c
+So, let's either use the locked variants or take the lock.
+
+Don't export add_memory_resource(), as it once was exported to be used by
+XEN, which is never built as a module.  If somebody requires it, we also
+have to export a locked variant (as device_hotplug_lock is never
+exported).
+
+Link: http://lkml.kernel.org/r/20180925091457.28651-3-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
+Cc: John Allen <jallen@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mathieu Malaterre <malat@debian.org>
+Cc: Pavel Tatashin <pavel.tatashin@microsoft.com>
+Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Haiyang Zhang <haiyangz@microsoft.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Neuling <mikey@neuling.org>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Stephen Hemminger <sthemmin@microsoft.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ .../platforms/pseries/hotplug-memory.c        |  2 +-
+ drivers/acpi/acpi_memhotplug.c                |  2 +-
+ drivers/base/memory.c                         |  9 ++++++--
+ drivers/xen/balloon.c                         |  3 +++
+ include/linux/memory_hotplug.h                |  1 +
+ mm/memory_hotplug.c                           | 22 ++++++++++++++++---
+ 6 files changed, 32 insertions(+), 7 deletions(-)
+
+diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
+index c1578f54c626..79e074eac486 100644
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c
++++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -702,7 +702,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
+ 	nid = memory_add_physaddr_to_nid(lmb->base_addr);
+ 
+ 	/* Add the memory */
+-	rc = add_memory(nid, lmb->base_addr, block_sz);
++	rc = __add_memory(nid, lmb->base_addr, block_sz);
+ 	if (rc) {
+ 		dlpar_remove_device_tree_lmb(lmb);
+ 		return rc;
+diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+index 6b0d3ef7309c..2ccfbb61ca89 100644
+--- a/drivers/acpi/acpi_memhotplug.c
++++ b/drivers/acpi/acpi_memhotplug.c
+@@ -228,7 +228,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+ 		if (node < 0)
+ 			node = memory_add_physaddr_to_nid(info->start_addr);
+ 
+-		result = add_memory(node, info->start_addr, info->length);
++		result = __add_memory(node, info->start_addr, info->length);
+ 
+ 		/*
+ 		 * If the memory block has been used by the kernel, add_memory()
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 817320c7c4c1..40cac122ec73 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -519,15 +519,20 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
+ 	if (phys_addr & ((pages_per_block << PAGE_SHIFT) - 1))
+ 		return -EINVAL;
+ 
++	ret = lock_device_hotplug_sysfs();
++	if (ret)
++		goto out;
++
+ 	nid = memory_add_physaddr_to_nid(phys_addr);
+-	ret = add_memory(nid, phys_addr,
+-			 MIN_MEMORY_BLOCK_SIZE * sections_per_block);
++	ret = __add_memory(nid, phys_addr,
++			   MIN_MEMORY_BLOCK_SIZE * sections_per_block);
+ 
+ 	if (ret)
+ 		goto out;
+ 
+ 	ret = count;
+ out:
++	unlock_device_hotplug();
+ 	return ret;
+ }
+ 
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index e12bb256036f..6bab019a82b1 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -395,7 +395,10 @@ static enum bp_state reserve_additional_memory(void)
+ 	 * callers drop the mutex before trying again.
+ 	 */
+ 	mutex_unlock(&balloon_mutex);
++	/* add_memory_resource() requires the device_hotplug lock */
++	lock_device_hotplug();
+ 	rc = add_memory_resource(nid, resource, memhp_auto_online);
++	unlock_device_hotplug();
+ 	mutex_lock(&balloon_mutex);
+ 
+ 	if (rc) {
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 34a28227068d..16487052017d 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -322,6 +322,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+ extern void __ref free_area_init_core_hotplug(int nid);
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
++extern int __add_memory(int nid, u64 start, u64 size);
+ extern int add_memory(int nid, u64 start, u64 size);
+ extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int arch_add_memory(int nid, u64 start, u64 size,
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 38d94b703e9d..3e42226407c7 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -1111,7 +1111,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
+ 	return device_online(&mem->dev);
+ }
+ 
+-/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
++/*
++ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
++ * and online/offline operations (triggered e.g. by sysfs).
++ *
++ * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
++ */
+ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ {
+ 	u64 start, size;
+@@ -1180,9 +1185,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ 	mem_hotplug_done();
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(add_memory_resource);
+ 
+-int __ref add_memory(int nid, u64 start, u64 size)
++/* requires device_hotplug_lock, see add_memory_resource() */
++int __ref __add_memory(int nid, u64 start, u64 size)
+ {
+ 	struct resource *res;
+ 	int ret;
+@@ -1196,6 +1201,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 		release_memory_resource(res);
+ 	return ret;
+ }
++
++int add_memory(int nid, u64 start, u64 size)
++{
++	int rc;
++
++	lock_device_hotplug();
++	rc = __add_memory(nid, start, size);
++	unlock_device_hotplug();
++
++	return rc;
++}
+ EXPORT_SYMBOL_GPL(add_memory);
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+-- 
+2.17.1
