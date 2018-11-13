@@ -1,60 +1,57 @@
-From: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Subject: Re: [PATCH v11 3/5] x86/boot: Add get_acpi_rsdp() to parse RSDP in
- cmdlien from kexec
-Date: Tue, 13 Nov 2018 11:11:11 -0500
-Message-ID: <20181113161111.6jwm36fpxk5xjtn5@gabell>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
- <20181112174343.mvjri2okwboew2nw@gabell>
- <20181113021218.GD7453@localhost.localdomain>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH 4/4] thunderbolt: Export IOMMU based DMA protection
+	support to userspace
+Date: Tue, 13 Nov 2018 18:12:58 +0200
+Message-ID: <20181113161258.GE2500@lahna.fi.intel.com>
+References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+	<20181112160628.86620-5-mika.westerberg@linux.intel.com>
+	<CA+CmpXvZJFk=kYvZybgTtqDWBVP_jSE37tdkQbyGA8U9WOrkoQ@mail.gmail.com>
+	<20181113105558.GR2500@lahna.fi.intel.com>
+	<CA+CmpXtre+A-sNT0XBWfdkuq9xJ+j34EGZ0nEpahJCSe3Kvg9A@mail.gmail.com>
+	<20181113114020.GV2500@lahna.fi.intel.com>
+	<CA+CmpXt1cfqjz94=WsggKpNCUw3761-cewa_HTa0ETcYK7o+Hw@mail.gmail.com>
+	<20181113152038.GD2500@lahna.fi.intel.com>
+	<CA+CmpXteN1PJEHMV8rvfeBXK6Eb4z6BgZwa8Ojavi1y9pKN-jA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20181113021218.GD7453@localhost.localdomain>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>, bp@alien8.de
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+In-Reply-To: <CA+CmpXteN1PJEHMV8rvfeBXK6Eb4z6BgZwa8Ojavi1y9pKN-jA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Yehezkel Bernat <yehezkelshb-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Mario Limonciello <Mario.Limonciello-8PEkshWhKlo@public.gmane.org>, michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Christian Kellner <ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org, jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Chao and Boris,
+On Tue, Nov 13, 2018 at 05:38:53PM +0200, Yehezkel Bernat wrote:
+> Good point. But I thought about per-TBT-device decision. If the platform is
+> configured for IOMMU+"user" security level, while approving the device the user
+> may want to set also in which IOMMU group to put all the PCIe devices connected
+> to it. The same goes if kernel is supposed to auto-approve such devices based on
+> an internal table. The point is that we can think on a configuration where the
+> devices aren't tunneled yet and the decision about IOMMU can still be changed.
 
-On Tue, Nov 13, 2018 at 10:12:18AM +0800, Chao Fan wrote:
-> On Mon, Nov 12, 2018 at 12:43:44PM -0500, Masayoshi Mizuma wrote:
-> >How about the following get_acpi_rsdp()...? It doesn't use kstrtoull().
-> >
-> >static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
-> >{
-> >#ifdef CONFIG_KEXEC
-> >        unsigned long addr;
-> >        char val[32];
-> >
-> >        if (cmdline_find_option("acpi_rsdp", val, sizeof(val)) > 0) {
-> >                char *e;
-> >
-> >                if (!strncmp(val, "0x", 2)) {
-> >                        addr = simple_strtoull(val + 2, &e, 16);
-> >                        if ((addr == 0) || ((val + 2) == e))
-> >                                return;
-> >                        *rsdp_addr = (acpi_physical_address)addr;
-> >                }
-> >        }
-> >#endif
-> >}
-> 
-> Thanks for the suggestion.
-> I used this function. In the old version, Boris said simple_strtoull()
-> is the old function and told me use the new kstrtoull().
+Right, some of these systems have security level set to "user" so there
+we could have a way to put the device into passthrough mode before it
+appears on the PCIe bus. That would require some sort of API on the
+IOMMU side, though.
 
-I think it's not very good idea to use kstrtoull() in
-arch/x86/boot/compressed/* because some tricks are needed to
-use the function, looks like Chao is trying...
-It is the simple way here to use simple_strtoull() defined
-in arch/x86/boot/boot.h, I think.
+> As you mentioned this isn't the common configuration anyway, so it probably
+> doesn't worth all this hassle.
 
-I know checkpatch.pl says an warning about simple_strtoull(),
-however, I believe the warning is for simple_strtoull() defined
-in lib/vsprintf.c.
+AFAIK mixing the two is not something they are going to be supporting in
+Windows so I would not expect it to be common. I think the ultimate goal
+is to move away from security levels towards IOMMU DMA protection so in
+future I would expect more and more systems with IOMMU enabled +
+security level set to "none".
 
-Thanks,
-Masa
+So I agree with you that it probably is not worth doing at least without
+having more data about real performance issues around this. ;-)
