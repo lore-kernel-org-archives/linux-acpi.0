@@ -1,45 +1,33 @@
-From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
-Subject: Re: [RFC PATCH 0/3] acpi: Add acpi mdio support code
-Date: Tue, 13 Nov 2018 07:36:50 +0000
-Message-ID: <73a646f1a1984f47b2c15ec4711c6be2@HXTBJIDCEMVIW02.hxtcorp.net>
-References: <20181029124044.GB9174@lunn.ch>
- <cover.1541660504.git.dongsheng.wang@hxt-semitech.com>
- <20181108232353.GL5259@lunn.ch>
- <6ebdf08060c245a8a44fc4263eb308cc@HXTBJIDCEMVIW02.hxtcorp.net>
- <20181112172019.GC5075@lunn.ch>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH 0/4] PCI / iommu / thunderbolt: IOMMU based DMA protection
+Date: Tue, 13 Nov 2018 09:54:24 +0100
+Message-ID: <20181113085424.GC25808@8bytes.org>
+References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: Andrew Lunn <andrew@lunn.ch>, "timur@kernel.org" <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: iommu@lists.linux-foundation.org, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Rafael,
+On Mon, Nov 12, 2018 at 07:06:24PM +0300, Mika Westerberg wrote:
+> Lu Baolu (1):
+>   iommu/vt-d: Force IOMMU on for platform opt in hint
+> 
+> Mika Westerberg (3):
+>   PCI / ACPI: Identify external PCI devices
+>   iommu/vt-d: Do not enable ATS for external devices
+>   thunderbolt: Export IOMMU based DMA protection support to userspace
 
-On 2018/11/13 1:19, Andrew Lunn wrote:
->>> I'm just trying to ensure whatever is defined is flexible enough that
->>> we really can later support everything which DT does. We have PHYs on
->>> MDIO busses, inside switches, which are on MDIO busses, which are
->>> inside Ethernet interfaces, etc.
->> I think it can be satisfied. See the table I'm using above.
-> Hi Dongsheng
->
->
-> Since i don't know anything better, i think i have to trust you have
-> this correct.
->
-> It would be good to document this, so that the next person who needs
-> to add ACPI support for a PHY has some documentation to look at.
-> Could you add something to Documentation/acpi/dsd?
+Looks good to me. Which tree should go this trough? In case its not the
+IOMMU tree, for the iommu-parts:
 
-How about Andrew suggestion? I agree with Andrew.
+	Acked-by: Joerg Roedel <jroedel@suse.de>
+	Reviewed-by: Joerg Roedel <jroedel@suse.de>
 
-Or We need to add the documentation to Documentation/acpi?
-I see that both GPIO and I2C are down here.
+Thanks,
 
-
-Cheers,
-Dongsheng
+	Joerg
