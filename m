@@ -1,34 +1,72 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 4/4] thunderbolt: Export IOMMU based DMA protection
- support to userspace
-Date: Tue, 13 Nov 2018 12:36:16 +0200
-Message-ID: <20181113103616.GQ2500@lahna.fi.intel.com>
-References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
- <20181112160628.86620-5-mika.westerberg@linux.intel.com>
- <d4d2488e85174cff9ab8c641336d5919@ausx13mpc120.AMER.DELL.COM>
+From: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+Subject: [PATCH 1/1] ACPI / tables: add DSDT AmlCode new declaration name support
+Date: Tue, 13 Nov 2018 18:46:23 +0800
+Message-ID: <254f789dee7773b938db7a204ca8800db10e4588.1542105349.git.dongsheng.wang@hxt-semitech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <d4d2488e85174cff9ab8c641336d5919@ausx13mpc120.AMER.DELL.COM>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mario.Limonciello@dell.com
-Cc: iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, rjw@rjwysocki.net, jacob.jun.pan@intel.com, andreas.noever@gmail.com, michael.jamet@intel.com, YehezkelShB@gmail.com, lukas@wunner.de, ckellner@redhat.com, anthony.wong@canonical.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: robert.moore@intel.com, rjw@rjwysocki.net
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 04:22:25PM +0000, Mario.Limonciello@dell.com wrote:
-> > +DMA protection utilizing IOMMU
-> > +------------------------------
-> > +Recent systems shipping with Windows 10 version 1803 or later may support a
-> > +feature called `Kernel DMA Protection for Thunderbolt 3`_.  This means that
-> 
-> Keep in mind there will be systems that ship with Linux that enable this feature too ;)
+The new naming rule is added in acpica version 20180427.
+So the dsdt aml code name changes from "AmlCode" to "dsdt_aml_code".
 
-Yes, you are absolutely right. I sometimes forgot that fact ;-)
+The patch that introduces naming rules is:
+https://github.com/acpica/acpica/commit/f9a88a4c1cd020b6a5475d63b29626852a0b5f37
 
-> It might be better to make it time frame and platform  firmware oriented as it's
-> entirely possible for an OEM to have a field firmware upgrade that may enable this
-> functionality from the platform and allow an end user to upgrade to a sufficiently
-> protected kernel or Windows OS to take advantage of it.
+Tested:
+ACPICA release version 20180427+.
+ARM64: QCOM QDF2400
+GCC: 4.8.5 20150623
 
-I agree. I will update this in the next version.
+Signed-off-by: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+---
+ drivers/acpi/Kconfig  |  2 +-
+ drivers/acpi/tables.c | 10 ++++++++--
+ 2 files changed, 9 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 9705fc986da9..15ab53a52fdc 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -336,7 +336,7 @@ config ACPI_CUSTOM_DSDT_FILE
+ 	  See Documentation/acpi/dsdt-override.txt
+ 
+ 	  Enter the full path name to the file which includes the AmlCode
+-	  declaration.
++	  or dsdt_aml_code declaration.
+ 
+ 	  If unsure, don't enter a file name.
+ 
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index a3d012b08fc5..297020bbaade 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -713,6 +713,9 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+ 					  table_length);
+ }
+ 
++static void *amlcode __attribute__ ((weakref("AmlCode")));
++static void *dsdt_amlcode __attribute__ ((weakref("dsdt_aml_code")));
++
+ acpi_status
+ acpi_os_table_override(struct acpi_table_header *existing_table,
+ 		       struct acpi_table_header **new_table)
+@@ -723,8 +726,11 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
+ 	*new_table = NULL;
+ 
+ #ifdef CONFIG_ACPI_CUSTOM_DSDT
+-	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+-		*new_table = (struct acpi_table_header *)AmlCode;
++	if (!strncmp(existing_table->signature, "DSDT", 4)) {
++		*new_table = (struct acpi_table_header *)&amlcode;
++		if (!(*new_table))
++			*new_table = (struct acpi_table_header *)&dsdt_amlcode;
++	}
+ #endif
+ 	if (*new_table != NULL)
+ 		acpi_table_taint(existing_table);
+-- 
+2.18.0
