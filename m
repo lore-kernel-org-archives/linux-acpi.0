@@ -1,11 +1,11 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.19 14/44] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
-Date: Tue, 13 Nov 2018 00:49:20 -0500
-Message-ID: <20181113054950.77898-14-sashal@kernel.org>
-References: <20181113054950.77898-1-sashal@kernel.org>
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181113054950.77898-1-sashal@kernel.org>
-Sender: stable-owner@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.18 12/39] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+Date: Tue, 13 Nov 2018 00:50:26 -0500
+Message-ID: <20181113055053.78352-12-sashal@kernel.org>
+References: <20181113055053.78352-1-sashal@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181113055053.78352-1-sashal@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: David Hildenbrand <david@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, John Allen <jallen@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.cz>, Mathieu Malaterre <malat@debian.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Balbir Singh <bsingharora@gmail.c>
 List-Id: linux-acpi@vger.kernel.org
@@ -116,7 +116,7 @@ index 6b0d3ef7309c..2ccfbb61ca89 100644
  		/*
  		 * If the memory block has been used by the kernel, add_memory()
 diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 817320c7c4c1..40cac122ec73 100644
+index 622ab8edc035..7307a173dca8 100644
 --- a/drivers/base/memory.c
 +++ b/drivers/base/memory.c
 @@ -519,15 +519,20 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
@@ -143,10 +143,10 @@ index 817320c7c4c1..40cac122ec73 100644
  }
  
 diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index e12bb256036f..6bab019a82b1 100644
+index 065f0b607373..6e39a0c10f93 100644
 --- a/drivers/xen/balloon.c
 +++ b/drivers/xen/balloon.c
-@@ -395,7 +395,10 @@ static enum bp_state reserve_additional_memory(void)
+@@ -401,7 +401,10 @@ static enum bp_state reserve_additional_memory(void)
  	 * callers drop the mutex before trying again.
  	 */
  	mutex_unlock(&balloon_mutex);
@@ -158,11 +158,11 @@ index e12bb256036f..6bab019a82b1 100644
  
  	if (rc) {
 diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 34a28227068d..16487052017d 100644
+index 4e9828cda7a2..5310945b50bb 100644
 --- a/include/linux/memory_hotplug.h
 +++ b/include/linux/memory_hotplug.h
-@@ -322,6 +322,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
- extern void __ref free_area_init_core_hotplug(int nid);
+@@ -321,6 +321,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+ 
  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
  		void *arg, int (*func)(struct memory_block *, void *));
 +extern int __add_memory(int nid, u64 start, u64 size);
@@ -170,10 +170,10 @@ index 34a28227068d..16487052017d 100644
  extern int add_memory_resource(int nid, struct resource *resource, bool online);
  extern int arch_add_memory(int nid, u64 start, u64 size,
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 38d94b703e9d..3e42226407c7 100644
+index 785252397e35..bdaaa450d83f 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1111,7 +1111,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
+@@ -1095,7 +1095,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
  	return device_online(&mem->dev);
  }
  
@@ -187,7 +187,7 @@ index 38d94b703e9d..3e42226407c7 100644
  int __ref add_memory_resource(int nid, struct resource *res, bool online)
  {
  	u64 start, size;
-@@ -1180,9 +1185,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+@@ -1188,9 +1193,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
  	mem_hotplug_done();
  	return ret;
  }
@@ -199,7 +199,7 @@ index 38d94b703e9d..3e42226407c7 100644
  {
  	struct resource *res;
  	int ret;
-@@ -1196,6 +1201,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
+@@ -1204,6 +1209,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
  		release_memory_resource(res);
  	return ret;
  }
