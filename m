@@ -1,221 +1,45 @@
-From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.9 03/17] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
-Date: Tue, 13 Nov 2018 00:52:09 -0500
-Message-ID: <20181113055223.79060-3-sashal@kernel.org>
-References: <20181113055223.79060-1-sashal@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113055223.79060-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: David Hildenbrand <david@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, John Allen <jallen@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.cz>, Mathieu Malaterre <malat@debian.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Balbir Singh <bsingharora@gmail.c>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [RFC PATCH 0/3] acpi: Add acpi mdio support code
+Date: Tue, 13 Nov 2018 07:36:50 +0000
+Message-ID: <73a646f1a1984f47b2c15ec4711c6be2@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <20181029124044.GB9174@lunn.ch>
+ <cover.1541660504.git.dongsheng.wang@hxt-semitech.com>
+ <20181108232353.GL5259@lunn.ch>
+ <6ebdf08060c245a8a44fc4263eb308cc@HXTBJIDCEMVIW02.hxtcorp.net>
+ <20181112172019.GC5075@lunn.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Language: en-US
+Sender: netdev-owner@vger.kernel.org
+To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: Andrew Lunn <andrew@lunn.ch>, "timur@kernel.org" <timur@kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>, "f.fainelli@gmail.com" <f.fainelli@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
+Hello Rafael,
 
-[ Upstream commit 8df1d0e4a265f25dc1e7e7624ccdbcb4a6630c89 ]
+On 2018/11/13 1:19, Andrew Lunn wrote:
+>>> I'm just trying to ensure whatever is defined is flexible enough that
+>>> we really can later support everything which DT does. We have PHYs on
+>>> MDIO busses, inside switches, which are on MDIO busses, which are
+>>> inside Ethernet interfaces, etc.
+>> I think it can be satisfied. See the table I'm using above.
+> Hi Dongsheng
+>
+>
+> Since i don't know anything better, i think i have to trust you have
+> this correct.
+>
+> It would be good to document this, so that the next person who needs
+> to add ACPI support for a PHY has some documentation to look at.
+> Could you add something to Documentation/acpi/dsd?
 
-add_memory() currently does not take the device_hotplug_lock, however
-is aleady called under the lock from
-	arch/powerpc/platforms/pseries/hotplug-memory.c
-	drivers/acpi/acpi_memhotplug.c
-to synchronize against CPU hot-remove and similar.
+How about Andrew suggestion? I agree with Andrew.
 
-In general, we should hold the device_hotplug_lock when adding memory to
-synchronize against online/offline request (e.g.  from user space) - which
-already resulted in lock inversions due to device_lock() and
-mem_hotplug_lock - see 30467e0b3be ("mm, hotplug: fix concurrent memory
-hot-add deadlock").  add_memory()/add_memory_resource() will create memory
-block devices, so this really feels like the right thing to do.
+Or We need to add the documentation to Documentation/acpi?
+I see that both GPIO and I2C are down here.
 
-Holding the device_hotplug_lock makes sure that a memory block device
-can really only be accessed (e.g. via .online/.state) from user space,
-once the memory has been fully added to the system.
 
-The lock is not held yet in
-	drivers/xen/balloon.c
-	arch/powerpc/platforms/powernv/memtrace.c
-	drivers/s390/char/sclp_cmd.c
-	drivers/hv/hv_balloon.c
-So, let's either use the locked variants or take the lock.
-
-Don't export add_memory_resource(), as it once was exported to be used by
-XEN, which is never built as a module.  If somebody requires it, we also
-have to export a locked variant (as device_hotplug_lock is never
-exported).
-
-Link: http://lkml.kernel.org/r/20180925091457.28651-3-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Reviewed-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Reviewed-by: Rashmica Gupta <rashmica.g@gmail.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
-Cc: John Allen <jallen@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mathieu Malaterre <malat@debian.org>
-Cc: Pavel Tatashin <pavel.tatashin@microsoft.com>
-Cc: YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Haiyang Zhang <haiyangz@microsoft.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Michael Neuling <mikey@neuling.org>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>
-Cc: Stephen Hemminger <sthemmin@microsoft.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Sasha Levin <sashal@kernel.org>
----
- .../platforms/pseries/hotplug-memory.c        |  2 +-
- drivers/acpi/acpi_memhotplug.c                |  2 +-
- drivers/base/memory.c                         |  9 ++++++--
- drivers/xen/balloon.c                         |  3 +++
- include/linux/memory_hotplug.h                |  1 +
- mm/memory_hotplug.c                           | 22 ++++++++++++++++---
- 6 files changed, 32 insertions(+), 7 deletions(-)
-
-diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-index c0a0947f43bb..656bbbd731d0 100644
---- a/arch/powerpc/platforms/pseries/hotplug-memory.c
-+++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -616,7 +616,7 @@ static int dlpar_add_lmb(struct of_drconf_cell *lmb)
- 	nid = memory_add_physaddr_to_nid(lmb->base_addr);
- 
- 	/* Add the memory */
--	rc = add_memory(nid, lmb->base_addr, block_sz);
-+	rc = __add_memory(nid, lmb->base_addr, block_sz);
- 	if (rc) {
- 		dlpar_remove_device_tree_lmb(lmb);
- 		dlpar_release_drc(lmb->drc_index);
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 6b0d3ef7309c..2ccfbb61ca89 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -228,7 +228,7 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 		if (node < 0)
- 			node = memory_add_physaddr_to_nid(info->start_addr);
- 
--		result = add_memory(node, info->start_addr, info->length);
-+		result = __add_memory(node, info->start_addr, info->length);
- 
- 		/*
- 		 * If the memory block has been used by the kernel, add_memory()
-diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index c5cdd190b781..9f96f1b43c15 100644
---- a/drivers/base/memory.c
-+++ b/drivers/base/memory.c
-@@ -500,15 +500,20 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
- 	if (phys_addr & ((pages_per_block << PAGE_SHIFT) - 1))
- 		return -EINVAL;
- 
-+	ret = lock_device_hotplug_sysfs();
-+	if (ret)
-+		goto out;
-+
- 	nid = memory_add_physaddr_to_nid(phys_addr);
--	ret = add_memory(nid, phys_addr,
--			 MIN_MEMORY_BLOCK_SIZE * sections_per_block);
-+	ret = __add_memory(nid, phys_addr,
-+			   MIN_MEMORY_BLOCK_SIZE * sections_per_block);
- 
- 	if (ret)
- 		goto out;
- 
- 	ret = count;
- out:
-+	unlock_device_hotplug();
- 	return ret;
- }
- 
-diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-index e4db19e88ab1..a10c64fee9ac 100644
---- a/drivers/xen/balloon.c
-+++ b/drivers/xen/balloon.c
-@@ -358,7 +358,10 @@ static enum bp_state reserve_additional_memory(void)
- 	 * callers drop the mutex before trying again.
- 	 */
- 	mutex_unlock(&balloon_mutex);
-+	/* add_memory_resource() requires the device_hotplug lock */
-+	lock_device_hotplug();
- 	rc = add_memory_resource(nid, resource, memhp_auto_online);
-+	unlock_device_hotplug();
- 	mutex_lock(&balloon_mutex);
- 
- 	if (rc) {
-diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 134a2f69c21a..9469eef30095 100644
---- a/include/linux/memory_hotplug.h
-+++ b/include/linux/memory_hotplug.h
-@@ -272,6 +272,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
- 
- extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
- 		void *arg, int (*func)(struct memory_block *, void *));
-+extern int __add_memory(int nid, u64 start, u64 size);
- extern int add_memory(int nid, u64 start, u64 size);
- extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 0f962cc3f1bf..1e8ba77f642d 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1339,7 +1339,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
- 	return memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
- }
- 
--/* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
-+/*
-+ * NOTE: The caller must call lock_device_hotplug() to serialize hotplug
-+ * and online/offline operations (triggered e.g. by sysfs).
-+ *
-+ * we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG
-+ */
- int __ref add_memory_resource(int nid, struct resource *res, bool online)
- {
- 	u64 start, size;
-@@ -1417,9 +1422,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
- 	mem_hotplug_done();
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(add_memory_resource);
- 
--int __ref add_memory(int nid, u64 start, u64 size)
-+/* requires device_hotplug_lock, see add_memory_resource() */
-+int __ref __add_memory(int nid, u64 start, u64 size)
- {
- 	struct resource *res;
- 	int ret;
-@@ -1433,6 +1438,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
- 		release_memory_resource(res);
- 	return ret;
- }
-+
-+int add_memory(int nid, u64 start, u64 size)
-+{
-+	int rc;
-+
-+	lock_device_hotplug();
-+	rc = __add_memory(nid, start, size);
-+	unlock_device_hotplug();
-+
-+	return rc;
-+}
- EXPORT_SYMBOL_GPL(add_memory);
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
--- 
-2.17.1
+Cheers,
+Dongsheng
