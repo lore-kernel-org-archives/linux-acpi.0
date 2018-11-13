@@ -1,11 +1,11 @@
 From: Sasha Levin <sashal@kernel.org>
-Subject: [PATCH AUTOSEL 4.18 12/39] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
-Date: Tue, 13 Nov 2018 00:50:26 -0500
-Message-ID: <20181113055053.78352-12-sashal@kernel.org>
-References: <20181113055053.78352-1-sashal@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113055053.78352-1-sashal@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH AUTOSEL 4.14 08/26] mm/memory_hotplug: make add_memory() take the device_hotplug_lock
+Date: Tue, 13 Nov 2018 00:51:32 -0500
+Message-ID: <20181113055150.78773-8-sashal@kernel.org>
+References: <20181113055150.78773-1-sashal@kernel.org>
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181113055150.78773-1-sashal@kernel.org>
+Sender: stable-owner@vger.kernel.org
 To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
 Cc: David Hildenbrand <david@redhat.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Juergen Gross <jgross@suse.com>, Nathan Fontenot <nfont@linux.vnet.ibm.com>, John Allen <jallen@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Dan Williams <dan.j.williams@intel.com>, Joonsoo Kim <iamjoonsoo.kim@lge.com>, Vlastimil Babka <vbabka@suse.cz>, Mathieu Malaterre <malat@debian.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, YASUAKI ISHIMATSU <yasu.isimatu@gmail.com>, Balbir Singh <bsingharora@gmail.c>
 List-Id: linux-acpi@vger.kernel.org
@@ -90,10 +90,10 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  6 files changed, 32 insertions(+), 7 deletions(-)
 
 diff --git a/arch/powerpc/platforms/pseries/hotplug-memory.c b/arch/powerpc/platforms/pseries/hotplug-memory.c
-index c1578f54c626..79e074eac486 100644
+index 1d48ab424bd9..c197ea8dde01 100644
 --- a/arch/powerpc/platforms/pseries/hotplug-memory.c
 +++ b/arch/powerpc/platforms/pseries/hotplug-memory.c
-@@ -702,7 +702,7 @@ static int dlpar_add_lmb(struct drmem_lmb *lmb)
+@@ -784,7 +784,7 @@ static int dlpar_add_lmb(struct of_drconf_cell *lmb)
  	nid = memory_add_physaddr_to_nid(lmb->base_addr);
  
  	/* Add the memory */
@@ -116,10 +116,10 @@ index 6b0d3ef7309c..2ccfbb61ca89 100644
  		/*
  		 * If the memory block has been used by the kernel, add_memory()
 diff --git a/drivers/base/memory.c b/drivers/base/memory.c
-index 622ab8edc035..7307a173dca8 100644
+index 1d60b58a8c19..9a9aebb4bd19 100644
 --- a/drivers/base/memory.c
 +++ b/drivers/base/memory.c
-@@ -519,15 +519,20 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
+@@ -517,15 +517,20 @@ memory_probe_store(struct device *dev, struct device_attribute *attr,
  	if (phys_addr & ((pages_per_block << PAGE_SHIFT) - 1))
  		return -EINVAL;
  
@@ -158,22 +158,22 @@ index 065f0b607373..6e39a0c10f93 100644
  
  	if (rc) {
 diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
-index 4e9828cda7a2..5310945b50bb 100644
+index 58e110aee7ab..d36a02935391 100644
 --- a/include/linux/memory_hotplug.h
 +++ b/include/linux/memory_hotplug.h
-@@ -321,6 +321,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+@@ -316,6 +316,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
  
  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
  		void *arg, int (*func)(struct memory_block *, void *));
 +extern int __add_memory(int nid, u64 start, u64 size);
  extern int add_memory(int nid, u64 start, u64 size);
  extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int arch_add_memory(int nid, u64 start, u64 size,
+ extern int arch_add_memory(int nid, u64 start, u64 size, bool want_memblock);
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 785252397e35..bdaaa450d83f 100644
+index d4b5f29906b9..dc60f2f27389 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -1095,7 +1095,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
+@@ -1109,7 +1109,12 @@ static int online_memory_block(struct memory_block *mem, void *arg)
  	return device_online(&mem->dev);
  }
  
@@ -187,7 +187,7 @@ index 785252397e35..bdaaa450d83f 100644
  int __ref add_memory_resource(int nid, struct resource *res, bool online)
  {
  	u64 start, size;
-@@ -1188,9 +1193,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
+@@ -1202,9 +1207,9 @@ int __ref add_memory_resource(int nid, struct resource *res, bool online)
  	mem_hotplug_done();
  	return ret;
  }
@@ -199,7 +199,7 @@ index 785252397e35..bdaaa450d83f 100644
  {
  	struct resource *res;
  	int ret;
-@@ -1204,6 +1209,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
+@@ -1218,6 +1223,17 @@ int __ref add_memory(int nid, u64 start, u64 size)
  		release_memory_resource(res);
  	return ret;
  }
