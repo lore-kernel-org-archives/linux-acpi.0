@@ -1,33 +1,39 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 0/4] PCI / iommu / thunderbolt: IOMMU based DMA protection
-Date: Tue, 13 Nov 2018 09:54:24 +0100
-Message-ID: <20181113085424.GC25808@8bytes.org>
-References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v11 2/5] x86/boot: Add bios_get_rsdp_addr() to search
+ RSDP in memory
+Date: Tue, 13 Nov 2018 11:09:12 +0100
+Message-ID: <20181113100912.GA10502@zn.tnic>
+References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
+ <20181112094645.4879-3-fanc.fnst@cn.fujitsu.com>
+ <20181112152744.GG8167@zn.tnic>
+ <20181113021016.GC7453@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+In-Reply-To: <20181113021016.GC7453@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: iommu@lists.linux-foundation.org, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 12, 2018 at 07:06:24PM +0300, Mika Westerberg wrote:
-> Lu Baolu (1):
->   iommu/vt-d: Force IOMMU on for platform opt in hint
-> 
-> Mika Westerberg (3):
->   PCI / ACPI: Identify external PCI devices
->   iommu/vt-d: Do not enable ATS for external devices
->   thunderbolt: Export IOMMU based DMA protection support to userspace
+On Tue, Nov 13, 2018 at 10:10:16AM +0800, Chao Fan wrote:
+> The 'rover' was named as 'mem_rover', but the length of this line is too
+> long. So shorten it as 'rever' so that they can keep in one line.
 
-Looks good to me. Which tree should go this trough? In case its not the
-IOMMU tree, for the iommu-parts:
+I still have no clue what "rover" or "rever" means...
 
-	Acked-by: Joerg Roedel <jroedel@suse.de>
-	Reviewed-by: Joerg Roedel <jroedel@suse.de>
+> This name came from ACPI driver code, acpi_find_root_pointer().
+> Used for the loop. If you have a better name, please tell me.
 
-Thanks,
+I would if I knew what it meant. If you don't know either, then name it
+to something descriptive so that it is clear what it is when reading the
+code.
 
-	Joerg
+Thx.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
