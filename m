@@ -1,52 +1,67 @@
-From: Yehezkel Bernat <yehezkelshb@gmail.com>
-Subject: Re: [PATCH 4/4] thunderbolt: Export IOMMU based DMA protection
- support to userspace
-Date: Tue, 13 Nov 2018 16:42:58 +0200
-Message-ID: <CA+CmpXt1cfqjz94=WsggKpNCUw3761-cewa_HTa0ETcYK7o+Hw@mail.gmail.com>
-References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
- <20181112160628.86620-5-mika.westerberg@linux.intel.com> <CA+CmpXvZJFk=kYvZybgTtqDWBVP_jSE37tdkQbyGA8U9WOrkoQ@mail.gmail.com>
- <20181113105558.GR2500@lahna.fi.intel.com> <CA+CmpXtre+A-sNT0XBWfdkuq9xJ+j34EGZ0nEpahJCSe3Kvg9A@mail.gmail.com>
- <20181113114020.GV2500@lahna.fi.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [GIT PULL] PCI changes for v4.20
+Date: Tue, 13 Nov 2018 08:47:46 -0600
+Message-ID: <20181113144746.GA69034@google.com>
+References: <20181023173934.GA14918@bhelgaas-glaptop.roam.corp.google.com>
+ <20181113071712.GA2353@gmail.com>
+ <20181113102004.GC10502@zn.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181113114020.GV2500@lahna.fi.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20181113102004.GC10502@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: iommu@lists.linux-foundation.org, joro@8bytes.org, David Woodhouse <dwmw2@infradead.org>, baolu.lu@linux.intel.com, ashok.raj@intel.com, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, jacob.jun.pan@intel.com, Andreas Noever <andreas.noever@gmail.com>, michael.jamet@intel.com, lukas@wunner.de, Christian Kellner <ckellner@redhat.com>, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tom Lendacky <thomas.lendacky@amd.com>, Martin =?iso-8859-1?Q?Hundeb=F8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 13, 2018 at 1:40 PM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
->
-> On Tue, Nov 13, 2018 at 01:13:31PM +0200, Yehezkel Bernat wrote:
-> > On Tue, Nov 13, 2018 at 12:56 PM Mika Westerberg
-> > <mika.westerberg@linux.intel.com> wrote:
-> > >
-> > > > Just one point:
-> > > > Have you considered the option to add this property per (TBT?) device?
-> > >
-> > > No. ;-)
-> > >
-> > > You mean that one device uses security levels and another IOMMU? I don't
-> > > think it is possible without having some sort of table in the IOMMU
-> > > driver telling which devices it needs identity map and which not. Also
-> > > not sure what would be the benefit?
-> >
-> > For performance, of course. If some devices are considered safe (maybe a list
-> > communicated by platform firmware), the kernel may decide to configure them to
-> > passthrough the IOMMU (I think I remember there is such an option, but maybe I'm
-> > wrong.)
->
-> At least I'm not aware of such an option. Windows for example enables
-> IOMMU for everything and I think macOS does the same. In Linux (with
-> these patches) we put all internal devices already passthrough mode so
-> things like internal graphics should not be affected. eGPUs are
-> different thing, though.
+[+cc Martin, Rafael, Len, linux-acpi]
 
-So your point here is "currently we do the IOMMU decisions system-wide; we can
-always add a per-device attribute if needed"?
-Fair enough.
+On Tue, Nov 13, 2018 at 11:20:04AM +0100, Borislav Petkov wrote:
+> On Tue, Nov 13, 2018 at 08:17:12AM +0100, Ingo Molnar wrote:
+> > 
+> > * Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > 
+> > > PCI changes:
+> > > 
+> > >   - Pay attention to device-specific _PXM node values (Jonathan Cameron)
+> > 
+> > There's a new boot regression, my AMD ThreadRipper system (MSI X399 SLI 
+> > PLUS (MS-7B09)) hangs during early bootup, and I have bisected it down to 
+> > this commit:
+> > 
+> >   bad7dcd94f39: ACPI/PCI: Pay attention to device-specific _PXM node values
+> > 
+> > Reverting it solves the hang.
+> > 
+> > Unfortunately there's no console output when it hangs, even with 
+> > earlyprintk. It just hangs after the "loading initrd" line.
+> > 
+> > Config is an Ubuntu-ish config with PROVE_LOCKING=y and a few other debug 
+> > options.
+> > 
+> > All my other testsystems boot fine with similar configs, so it's probably 
+> > something specific to this system.
 
-So for this patch,
-Reviewed-by: Yehezkel Bernat <YehezkelShB@gmail.com>
+Martin reported the same thing [1] (unfortunately the archive didn't
+capture Martin's original emails, I think because they were multi-part
+messages with attachments).
+
+Looks like Martin might have a similar system:
+
+  DMI: To Be Filled By O.E.M. To Be Filled By O.E.M./X399 Taichi, BIOS P3.30 08/14/2018
+  smpboot: CPU0: AMD Ryzen Threadripper 2950X 16-Core Processor (family: 0x17, model: 0x8, stepping: 0x2)
+
+Given how painful this is to debug, I queued up a revert on my
+for-linus branch until we figure out what sanity checks are needed to
+make the original patch safe.
+
+I would expect proximity information to be basically just a hint for
+optimization, not a functional requirement, so it would be really
+interesting to figure out why this causes such a catastrophic failure.
+Maybe there's a way to improve that path as well so it would be more
+robust or at least more debuggable.
+
+Bjorn
+
+[1] https://lore.kernel.org/linux-pci/20180912152140.3676-2-Jonathan.Cameron@huawei.com
