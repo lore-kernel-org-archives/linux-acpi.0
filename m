@@ -1,7 +1,7 @@
 From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 3/7] doc/vm: New documentation for memory performance
-Date: Wed, 14 Nov 2018 15:49:16 -0700
-Message-ID: <20181114224921.12123-4-keith.busch@intel.com>
+Subject: [PATCH 2/7] node: Add heterogenous memory performance
+Date: Wed, 14 Nov 2018 15:49:15 -0700
+Message-ID: <20181114224921.12123-3-keith.busch@intel.com>
 References: <20181114224921.12123-2-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181114224921.12123-2-keith.busch@intel.com>
@@ -10,96 +10,155 @@ To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Platforms may provide system memory where some physical address ranges
-perform differently than others. These heterogeneous memory attributes are
-common to the node that provides the memory and exported by the kernel.
+Heterogeneous memory systems provide memory nodes with latency
+and bandwidth performance attributes that are different from other
+nodes. Create an interface for the kernel to register these attributes
+under the node that provides the memory. If the system provides this
+information, applications can query the node attributes when deciding
+which node to request memory.
 
-Add new documentation providing a brief overview of such systems and
-the attributes the kernel makes available to aid applications wishing
-to query this information.
+When multiple memory initiators exist, accessing the same memory target
+from each may not perform the same as the other. The highest performing
+initiator to a given target is considered to be a local initiator for
+that target. The kernel provides performance attributes only for the
+local initiators.
+
+The memory's compute node should be symlinked in sysfs as one of the
+node's initiators.
+
+The following example shows the new sysfs hierarchy for a node exporting
+performance attributes:
+
+  # tree /sys/devices/system/node/nodeY/initiator_access
+  /sys/devices/system/node/nodeY/initiator_access
+  |-- read_bandwidth
+  |-- read_latency
+  |-- write_bandwidth
+  `-- write_latency
+
+The bandwidth is exported as MB/s and latency is reported in nanoseconds.
 
 Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- Documentation/vm/numaperf.rst | 71 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 71 insertions(+)
- create mode 100644 Documentation/vm/numaperf.rst
+ drivers/base/Kconfig |  8 ++++++++
+ drivers/base/node.c  | 44 ++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/node.h | 22 ++++++++++++++++++++++
+ 3 files changed, 74 insertions(+)
 
-diff --git a/Documentation/vm/numaperf.rst b/Documentation/vm/numaperf.rst
-new file mode 100644
-index 000000000000..5a3ecaff5474
---- /dev/null
-+++ b/Documentation/vm/numaperf.rst
-@@ -0,0 +1,71 @@
-+.. _numaperf:
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index ae213ed2a7c8..2cf67c80046d 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -149,6 +149,14 @@ config DEBUG_TEST_DRIVER_REMOVE
+ 	  unusable. You should say N here unless you are explicitly looking to
+ 	  test this functionality.
+ 
++config HMEM
++	bool
++	default y
++	depends on NUMA
++	help
++	  Enable reporting for heterogenous memory access attributes under
++	  their non-uniform memory nodes.
 +
-+================
-+NUMA Performance
-+================
+ source "drivers/base/test/Kconfig"
+ 
+ config SYS_HYPERVISOR
+diff --git a/drivers/base/node.c b/drivers/base/node.c
+index a9b7512a9502..232535761998 100644
+--- a/drivers/base/node.c
++++ b/drivers/base/node.c
+@@ -59,6 +59,50 @@ static inline ssize_t node_read_cpulist(struct device *dev,
+ static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
+ static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
+ 
++#ifdef CONFIG_HMEM
++const struct attribute_group node_access_attrs_group;
 +
-+Some platforms may have multiple types of memory attached to a single
-+CPU. These disparate memory ranges share some characteristics, such as
-+CPU cache coherence, but may have different performance. For example,
-+different media types and buses affect bandwidth and latency.
++#define ACCESS_ATTR(name) 						\
++static ssize_t name##_show(struct device *dev,				\
++			   struct device_attribute *attr,		\
++			   char *buf)					\
++{									\
++	return sprintf(buf, "%d\n", to_node(dev)->hmem_attrs.name);	\
++}									\
++static DEVICE_ATTR_RO(name);
 +
-+A system supporting such heterogeneous memory groups each memory type
-+under different "nodes" based on similar CPU locality and performance
-+characteristics.  Some memory may share the same node as a CPU, and
-+others are provided as memory-only nodes. While memory only nodes do not
-+provide CPUs, they may still be local to one or more compute nodes. The
-+following diagram shows one such example of two compute noes with local
-+memory and a memory only node for each of compute node:
++ACCESS_ATTR(read_bandwidth)
++ACCESS_ATTR(read_latency)
++ACCESS_ATTR(write_bandwidth)
++ACCESS_ATTR(write_latency)
 +
-+ +------------------+     +------------------+
-+ | Compute Node 0   +-----+ Compute Node 1   |
-+ | Local Node0 Mem  |     | Local Node1 Mem  |
-+ +--------+---------+     +--------+---------+
-+          |                        |
-+ +--------+---------+     +--------+---------+
-+ | Slower Node2 Mem |     | Slower Node3 Mem |
-+ +------------------+     +--------+---------+
++static struct attribute *access_attrs[] = {
++	&dev_attr_read_bandwidth.attr,
++	&dev_attr_read_latency.attr,
++	&dev_attr_write_bandwidth.attr,
++	&dev_attr_write_latency.attr,
++	NULL,
++};
 +
-+A "memory initiator" is a node containing one or more devices such as
-+CPUs or separate memory I/O devices that can initiate memory requests. A
-+"memory target" is a node containing one or more CPU-accessible physical
-+address ranges.
++const struct attribute_group node_access_attrs_group = {
++	.name		= "initiator_access",
++	.attrs		= access_attrs,
++};
 +
-+When multiple memory initiators exist, accessing the same memory
-+target may not perform the same as each other. The highest performing
-+initiator to a given target is considered to be one of that target's
-+local initiators.
++void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs)
++{
++	struct node *node;
 +
-+To aid applications matching memory targets with their initiators,
-+the kernel provide symlinks to each other like the following example::
++	if (WARN_ON_ONCE(!node_online(nid)))
++		return;
++	node = node_devices[nid];
++	node->hmem_attrs = *hmem_attrs;
++	if (sysfs_create_group(&node->dev.kobj, &node_access_attrs_group))
++		pr_info("failed to add performance attribute group to node %d\n",
++			nid);
++}
++#endif
 +
-+	# ls -l /sys/devices/system/node/nodeX/initiator*
-+	/sys/devices/system/node/nodeX/targetY -> ../nodeY
+ #define K(x) ((x) << (PAGE_SHIFT - 10))
+ static ssize_t node_read_meminfo(struct device *dev,
+ 			struct device_attribute *attr, char *buf)
+diff --git a/include/linux/node.h b/include/linux/node.h
+index 1fd734a3fb3f..6a1aa6a153f8 100644
+--- a/include/linux/node.h
++++ b/include/linux/node.h
+@@ -17,14 +17,36 @@
+ 
+ #include <linux/device.h>
+ #include <linux/cpumask.h>
++#include <linux/list.h>
+ #include <linux/workqueue.h>
+ 
++#ifdef CONFIG_HMEM
++/**
++ * struct node_hmem_attrs - heterogeneous memory performance attributes
++ *
++ * read_bandwidth:	Read bandwidth in MB/s
++ * write_bandwidth:	Write bandwidth in MB/s
++ * read_latency:	Read latency in nanoseconds
++ * write_latency:	Write latency in nanoseconds
++ */
++struct node_hmem_attrs {
++	unsigned int read_bandwidth;
++	unsigned int write_bandwidth;
++	unsigned int read_latency;
++	unsigned int write_latency;
++};
++void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs);
++#endif
 +
-+	# ls -l /sys/devices/system/node/nodeY/target*
-+	/sys/devices/system/node/nodeY/initiatorX -> ../nodeX
-+
-+Applications may wish to consider which node they want their memory to
-+be allocated from based on the nodes performance characteristics. If
-+the system provides these attributes, the kernel exports them under the
-+node sysfs hierarchy by appending the initiator_access directory under
-+the node as follows::
-+
-+	/sys/devices/system/node/nodeY/initiator_access/
-+
-+The kernel does not provide performance attributes for non-local memory
-+initiators. The performance characteristics the kernel provides for
-+the local initiators are exported are as follows::
-+
-+	# tree /sys/devices/system/node/nodeY/initiator_access
-+	/sys/devices/system/node/nodeY/initiator_access
-+	|-- read_bandwidth
-+	|-- read_latency
-+	|-- write_bandwidth
-+	`-- write_latency
-+
-+The bandwidth attributes are provided in MiB/second.
-+
-+The latency attributes are provided in nanoseconds.
-+
-+See also: https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+ struct node {
+ 	struct device	dev;
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
+ 	struct work_struct	node_work;
+ #endif
++#ifdef CONFIG_HMEM
++	struct node_hmem_attrs hmem_attrs;
++#endif
+ };
+ 
+ struct memory_block;
 -- 
 2.14.4
