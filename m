@@ -1,7 +1,7 @@
 From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCH 2/7] node: Add heterogenous memory performance
-Date: Wed, 14 Nov 2018 15:49:15 -0700
-Message-ID: <20181114224921.12123-3-keith.busch@intel.com>
+Subject: [PATCH 6/7] acpi: Create subtable parsing infrastructure
+Date: Wed, 14 Nov 2018 15:49:19 -0700
+Message-ID: <20181114224921.12123-7-keith.busch@intel.com>
 References: <20181114224921.12123-2-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181114224921.12123-2-keith.busch@intel.com>
@@ -10,155 +10,144 @@ To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Heterogeneous memory systems provide memory nodes with latency
-and bandwidth performance attributes that are different from other
-nodes. Create an interface for the kernel to register these attributes
-under the node that provides the memory. If the system provides this
-information, applications can query the node attributes when deciding
-which node to request memory.
+Parsing entries in an ACPI table had assumed a generic header structure
+that is most common. There is no standard ACPI header, though, so less
+common types would need custom parsers if they want go walk their
+subtable entry list.
 
-When multiple memory initiators exist, accessing the same memory target
-from each may not perform the same as the other. The highest performing
-initiator to a given target is considered to be a local initiator for
-that target. The kernel provides performance attributes only for the
-local initiators.
-
-The memory's compute node should be symlinked in sysfs as one of the
-node's initiators.
-
-The following example shows the new sysfs hierarchy for a node exporting
-performance attributes:
-
-  # tree /sys/devices/system/node/nodeY/initiator_access
-  /sys/devices/system/node/nodeY/initiator_access
-  |-- read_bandwidth
-  |-- read_latency
-  |-- write_bandwidth
-  `-- write_latency
-
-The bandwidth is exported as MB/s and latency is reported in nanoseconds.
+Create the infrastructure for adding different table types so parsing
+the entries array may be more reused for all ACPI system tables.
 
 Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- drivers/base/Kconfig |  8 ++++++++
- drivers/base/node.c  | 44 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/node.h | 22 ++++++++++++++++++++++
- 3 files changed, 74 insertions(+)
+ drivers/acpi/tables.c | 75 ++++++++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 65 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-index ae213ed2a7c8..2cf67c80046d 100644
---- a/drivers/base/Kconfig
-+++ b/drivers/base/Kconfig
-@@ -149,6 +149,14 @@ config DEBUG_TEST_DRIVER_REMOVE
- 	  unusable. You should say N here unless you are explicitly looking to
- 	  test this functionality.
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 61203eebf3a1..15ee77780f68 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -49,6 +49,19 @@ static struct acpi_table_desc initial_tables[ACPI_MAX_TABLES] __initdata;
  
-+config HMEM
-+	bool
-+	default y
-+	depends on NUMA
-+	help
-+	  Enable reporting for heterogenous memory access attributes under
-+	  their non-uniform memory nodes.
-+
- source "drivers/base/test/Kconfig"
+ static int acpi_apic_instance __initdata;
  
- config SYS_HYPERVISOR
-diff --git a/drivers/base/node.c b/drivers/base/node.c
-index a9b7512a9502..232535761998 100644
---- a/drivers/base/node.c
-+++ b/drivers/base/node.c
-@@ -59,6 +59,50 @@ static inline ssize_t node_read_cpulist(struct device *dev,
- static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
- static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
- 
-+#ifdef CONFIG_HMEM
-+const struct attribute_group node_access_attrs_group;
-+
-+#define ACCESS_ATTR(name) 						\
-+static ssize_t name##_show(struct device *dev,				\
-+			   struct device_attribute *attr,		\
-+			   char *buf)					\
-+{									\
-+	return sprintf(buf, "%d\n", to_node(dev)->hmem_attrs.name);	\
-+}									\
-+static DEVICE_ATTR_RO(name);
-+
-+ACCESS_ATTR(read_bandwidth)
-+ACCESS_ATTR(read_latency)
-+ACCESS_ATTR(write_bandwidth)
-+ACCESS_ATTR(write_latency)
-+
-+static struct attribute *access_attrs[] = {
-+	&dev_attr_read_bandwidth.attr,
-+	&dev_attr_read_latency.attr,
-+	&dev_attr_write_bandwidth.attr,
-+	&dev_attr_write_latency.attr,
-+	NULL,
++enum acpi_subtable_type {
++	ACPI_SUBTABLE_COMMON,
 +};
 +
-+const struct attribute_group node_access_attrs_group = {
-+	.name		= "initiator_access",
-+	.attrs		= access_attrs,
++union acpi_subtable_headers {
++	struct acpi_subtable_header common;
 +};
 +
-+void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs)
++struct acpi_subtable_entry {
++	union acpi_subtable_headers *hdr;
++	enum acpi_subtable_type type;
++};
++
+ /*
+  * Disable table checksum verification for the early stage due to the size
+  * limitation of the current x86 early mapping implementation.
+@@ -217,6 +230,45 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+ 	}
+ }
+ 
++static unsigned long __init
++acpi_get_entry_type(struct acpi_subtable_entry *entry)
 +{
-+	struct node *node;
-+
-+	if (WARN_ON_ONCE(!node_online(nid)))
-+		return;
-+	node = node_devices[nid];
-+	node->hmem_attrs = *hmem_attrs;
-+	if (sysfs_create_group(&node->dev.kobj, &node_access_attrs_group))
-+		pr_info("failed to add performance attribute group to node %d\n",
-+			nid);
++	switch (entry->type) {
++	case ACPI_SUBTABLE_COMMON:
++		return entry->hdr->common.type;
++	}
++	WARN_ONCE(1, "invalid acpi type\n");
++	return 0;
 +}
-+#endif
 +
- #define K(x) ((x) << (PAGE_SHIFT - 10))
- static ssize_t node_read_meminfo(struct device *dev,
- 			struct device_attribute *attr, char *buf)
-diff --git a/include/linux/node.h b/include/linux/node.h
-index 1fd734a3fb3f..6a1aa6a153f8 100644
---- a/include/linux/node.h
-+++ b/include/linux/node.h
-@@ -17,14 +17,36 @@
- 
- #include <linux/device.h>
- #include <linux/cpumask.h>
-+#include <linux/list.h>
- #include <linux/workqueue.h>
- 
-+#ifdef CONFIG_HMEM
-+/**
-+ * struct node_hmem_attrs - heterogeneous memory performance attributes
-+ *
-+ * read_bandwidth:	Read bandwidth in MB/s
-+ * write_bandwidth:	Write bandwidth in MB/s
-+ * read_latency:	Read latency in nanoseconds
-+ * write_latency:	Write latency in nanoseconds
-+ */
-+struct node_hmem_attrs {
-+	unsigned int read_bandwidth;
-+	unsigned int write_bandwidth;
-+	unsigned int read_latency;
-+	unsigned int write_latency;
-+};
-+void node_set_perf_attrs(unsigned int nid, struct node_hmem_attrs *hmem_attrs);
-+#endif
++static unsigned long __init
++acpi_get_entry_length(struct acpi_subtable_entry *entry)
++{
++	switch (entry->type) {
++	case ACPI_SUBTABLE_COMMON:
++		return entry->hdr->common.length;
++	}
++	WARN_ONCE(1, "invalid acpi type\n");
++	return 0;
++}
 +
- struct node {
- 	struct device	dev;
++static unsigned long __init
++acpi_get_subtable_header_length(struct acpi_subtable_entry *entry)
++{
++	switch (entry->type) {
++	case ACPI_SUBTABLE_COMMON:
++		return sizeof(entry->hdr->common);
++	}
++	WARN_ONCE(1, "invalid acpi type\n");
++	return 0;
++}
++
++static enum acpi_subtable_type __init
++acpi_get_subtable_type(char *id)
++{
++	return ACPI_SUBTABLE_COMMON;
++}
++
+ /**
+  * acpi_parse_entries_array - for each proc_num find a suitable subtable
+  *
+@@ -246,8 +298,8 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 		struct acpi_subtable_proc *proc, int proc_num,
+ 		unsigned int max_entries)
+ {
+-	struct acpi_subtable_header *entry;
+-	unsigned long table_end;
++	struct acpi_subtable_entry entry;
++	unsigned long table_end, subtable_len, entry_len;
+ 	int count = 0;
+ 	int errs = 0;
+ 	int i;
+@@ -270,19 +322,21 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
  
- #if defined(CONFIG_MEMORY_HOTPLUG_SPARSE) && defined(CONFIG_HUGETLBFS)
- 	struct work_struct	node_work;
- #endif
-+#ifdef CONFIG_HMEM
-+	struct node_hmem_attrs hmem_attrs;
-+#endif
- };
+ 	/* Parse all entries looking for a match. */
  
- struct memory_block;
+-	entry = (struct acpi_subtable_header *)
++	entry.type = acpi_get_subtable_type(id);
++	entry.hdr = (union acpi_subtable_headers *)
+ 	    ((unsigned long)table_header + table_size);
++	subtable_len = acpi_get_subtable_header_length(&entry);
+ 
+-	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+-	       table_end) {
++	while (((unsigned long)entry.hdr) + subtable_len  < table_end) {
+ 		if (max_entries && count >= max_entries)
+ 			break;
+ 
+ 		for (i = 0; i < proc_num; i++) {
+-			if (entry->type != proc[i].id)
++			if (acpi_get_entry_type(&entry) != proc[i].id)
+ 				continue;
+ 			if (!proc[i].handler ||
+-			     (!errs && proc[i].handler(entry, table_end))) {
++			     (!errs && proc[i].handler(&entry.hdr->common,
++						       table_end))) {
+ 				errs++;
+ 				continue;
+ 			}
+@@ -297,13 +351,14 @@ acpi_parse_entries_array(char *id, unsigned long table_size,
+ 		 * If entry->length is 0, break from this loop to avoid
+ 		 * infinite loop.
+ 		 */
+-		if (entry->length == 0) {
++		entry_len = acpi_get_entry_length(&entry);
++		if (entry_len == 0) {
+ 			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
+ 			return -EINVAL;
+ 		}
+ 
+-		entry = (struct acpi_subtable_header *)
+-		    ((unsigned long)entry + entry->length);
++		entry.hdr = (union acpi_subtable_headers *)
++		    ((unsigned long)entry.hdr + entry_len);
+ 	}
+ 
+ 	if (max_entries && count > max_entries) {
 -- 
 2.14.4
