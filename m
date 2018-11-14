@@ -1,27 +1,56 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 0/6] device property: Introducing software nodes
-Date: Wed, 14 Nov 2018 13:45:56 +0100
-Message-ID: <CACRpkda+wiiCN+B1FM8Lb8_zR25ehnbY718GYKNuZGePsB+fUg@mail.gmail.com>
-References: <20181109142138.54770-1-heikki.krogerus@linux.intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v11 3/5] x86/boot: Add get_acpi_rsdp() to parse RSDP in
+ cmdlien from kexec
+Date: Wed, 14 Nov 2018 19:30:17 +0100
+Message-ID: <20181114183016.GI13926@zn.tnic>
+References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
+ <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
+ <20181112174343.mvjri2okwboew2nw@gabell>
+ <20181113021218.GD7453@localhost.localdomain>
+ <20181113161111.6jwm36fpxk5xjtn5@gabell>
+ <20181113175413.GL10502@zn.tnic>
+ <20181113200615.7dypqvhimxzlloek@gabell>
+ <20181113215156.GP10502@zn.tnic>
+ <20181114061215.GC2875@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181109142138.54770-1-heikki.krogerus@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <20181114061215.GC2875@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 9, 2018 at 3:21 PM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
+On Wed, Nov 14, 2018 at 02:12:16PM +0800, Chao Fan wrote:
+> But isdigit() would be redefine, so:
+> 
+> diff --git a/include/linux/ctype.h b/include/linux/ctype.h
+> index 363b004426db..aba01c385232 100644
+> --- a/include/linux/ctype.h
+> +++ b/include/linux/ctype.h
+> @@ -23,10 +23,12 @@ extern const unsigned char _ctype[];
+>  #define isalnum(c)     ((__ismask(c)&(_U|_L|_D)) != 0)
+>  #define isalpha(c)     ((__ismask(c)&(_U|_L)) != 0)
+>  #define iscntrl(c)     ((__ismask(c)&(_C)) != 0)
+> +#ifndef BOOT_STRING
+>  static inline int isdigit(int c)
+>  {
+>         return '0' <= c && c <= '9';
+>  }
+> +#endif
+>  #define isgraph(c)     ((__ismask(c)&(_P|_U|_L|_D)) != 0)
+>  #define islower(c)     ((__ismask(c)&(_L)) != 0)
+>  #define isprint(c)     ((__ismask(c)&(_P|_U|_L|_D|_SP)) != 0)
+> 
+> Now I can make it.
+> I wonder whether this is OK to cover isdigit() with 'BOOT_STRING' tag.
 
-> This is the second version of my proposal for "software nodes". There
-> was a "dereferencing freed memory" bug in patch 3/5 which is now
-> fixed. device_add_properties() and device_remove_properties() no
-> longer change places in the code as requested by Andy.
+See the beginning of arch/x86/boot/compressed/kaslr.c for a possible way
+to disable boot/ctype.h
 
-The series:
-Acked-by: Linus Walleij <linus.walleij@linaro.org>
+-- 
+Regards/Gruss,
+    Boris.
 
-Yours,
-Linus Walleij
+Good mailing practices for 400: avoid top-posting and trim the reply.
