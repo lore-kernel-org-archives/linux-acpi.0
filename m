@@ -1,27 +1,44 @@
-From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Subject: Re: [GIT PULL] PCI fixes for v4.20
-Date: Wed, 14 Nov 2018 15:16:58 -0500
-Message-ID: <20181114201658.GB25069@pure.paranoia.local>
-References: <20181114062010.GA189193@google.com>
- <20181114200003.14496.1490.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
- <20181114201214.GM13926@zn.tnic>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fix for v4.20-rc3
+Date: Wed, 14 Nov 2018 21:17:37 +0100
+Message-ID: <CAJZ5v0h04bhHbvL3gZ2L5JpnwjGVoFWc_A5YMm4Z5Eid+WQ4oQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181114201214.GM13926@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: pr-tracker-bot@kernel.org, Bjorn Helgaas <helgaas@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?utf-8?Q?Hundeb=C3=B8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2018 at 09:12:14PM +0100, Borislav Petkov wrote:
-> Hey Konstantin,
-> 
-> that bot needs some parsing improvs: "None None".
+Hi Linus,
 
-Correct, this is because the original pull request was for an ssh://
-URL, which I'm not properly handling for the purposes of generating
-responses. I will add some logic to deal with that.
+Please pull from the tag
 
--K
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-4.20-rc3
+
+with top-most commit 017ce359a7187192df5222a00fa3c9055eb3736d
+
+ ACPI / PMIC: xpower: fix IOSF_MBI dependency
+
+on top of commit 651022382c7f8da46cb4872a545ee1da6d097d2a
+
+ Linux 4.20-rc1
+
+to receive an ACPI fix for 4.20-rc3.
+
+This fixes a recently introduced build issue in the xpower PMIC
+driver (Arnd Bergmann).
+
+Thanks!
+
+
+---------------
+
+Arnd Bergmann (1):
+      ACPI / PMIC: xpower: fix IOSF_MBI dependency
+
+---------------
+
+ drivers/acpi/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
