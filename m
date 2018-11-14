@@ -1,110 +1,40 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v11 3/5] x86/boot: Add get_acpi_rsdp() to parse RSDP in
- cmdlien from kexec
-Date: Wed, 14 Nov 2018 14:12:16 +0800
-Message-ID: <20181114061215.GC2875@localhost.localdomain>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-4-fanc.fnst@cn.fujitsu.com>
- <20181112174343.mvjri2okwboew2nw@gabell>
- <20181113021218.GD7453@localhost.localdomain>
- <20181113161111.6jwm36fpxk5xjtn5@gabell>
- <20181113175413.GL10502@zn.tnic>
- <20181113200615.7dypqvhimxzlloek@gabell>
- <20181113215156.GP10502@zn.tnic>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: [GIT PULL] PCI fixes for v4.20
+Date: Wed, 14 Nov 2018 00:20:10 -0600
+Message-ID: <20181114062010.GA189193@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181113215156.GP10502@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>, linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Borislav Petkov <bp@alien8.de>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?iso-8859-1?Q?Hundeb=F8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Boris, Masa, and Baoquan,
+PCI fixes:
 
-On Tue, Nov 13, 2018 at 10:51:56PM +0100, Borislav Petkov wrote:
->On Tue, Nov 13, 2018 at 03:06:16PM -0500, Masayoshi Mizuma wrote:
->> I just felt the BOOT_STRING thing in lib/kstrtox.c confuses...
->> I'm OK for now if it's applied your below comment.
->
->Well, actually, upon a second look, I don't think that including a .c
->file into a header is ok:
->
->diff --git a/arch/x86/boot/string.h b/arch/x86/boot/string.h
->index 3d78e27077f4..0ff3edb888e4 100644
->--- a/arch/x86/boot/string.h
->+++ b/arch/x86/boot/string.h
->@@ -30,3 +30,7 @@ extern unsigned long long simple_strtoull(const char *cp, char **endp,
->                                          unsigned int base);
->
-> #endif /* BOOT_STRING_H */
->+
->+#ifdef BOOT_STRING
->+#include "../../../lib/kstrtox.c"
->+#endif
->
->Chao, why isn't this part of arch/x86/boot/compressed/misc.c ?
->
+  - Revert a _PXM change that causes silent early boot failure on some AMD
+    ThreadRipper systems (Bjorn Helgaas)
 
-Fine, I have put it to misc.c:
 
-diff --git a/arch/x86/boot/compressed/misc.c b/arch/x86/boot/compressed/misc.c
-index 8dd1d5ccae58..714b05b65a33 100644
---- a/arch/x86/boot/compressed/misc.c
-+++ b/arch/x86/boot/compressed/misc.c
-@@ -426,3 +426,7 @@ void fortify_panic(const char *name)
- {
-        error("detected buffer overflow");
- }
-+
-+#ifdef BOOT_STRING
-+#include "../../../../lib/kstrtox.c"
-+#endif
+The following changes since commit 651022382c7f8da46cb4872a545ee1da6d097d2a:
 
-And define it in misc.h:
+  Linux 4.20-rc1 (2018-11-04 15:37:52 -0800)
 
-diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
-index 4a3645fda0ed..98e28c4281ee 100644
---- a/arch/x86/boot/compressed/misc.h
-+++ b/arch/x86/boot/compressed/misc.h
-@@ -131,3 +131,5 @@ int num_immovable_mem;
- void get_immovable_mem(void);
- #endif
- #endif
-+#define BOOT_STRING
-+extern int kstrtoull(const char *s, unsigned int base, unsigned long long *res);
+are available in the Git repository at:
 
-But isdigit() would be redefine, so:
+  ssh://git@gitolite.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git tags/pci-v4.20-fixes-1
 
-diff --git a/include/linux/ctype.h b/include/linux/ctype.h
-index 363b004426db..aba01c385232 100644
---- a/include/linux/ctype.h
-+++ b/include/linux/ctype.h
-@@ -23,10 +23,12 @@ extern const unsigned char _ctype[];
- #define isalnum(c)     ((__ismask(c)&(_U|_L|_D)) != 0)
- #define isalpha(c)     ((__ismask(c)&(_U|_L)) != 0)
- #define iscntrl(c)     ((__ismask(c)&(_C)) != 0)
-+#ifndef BOOT_STRING
- static inline int isdigit(int c)
- {
-        return '0' <= c && c <= '9';
- }
-+#endif
- #define isgraph(c)     ((__ismask(c)&(_P|_U|_L|_D)) != 0)
- #define islower(c)     ((__ismask(c)&(_L)) != 0)
- #define isprint(c)     ((__ismask(c)&(_P|_U|_L|_D|_SP)) != 0)
+for you to fetch changes up to 0d76bcc960e6057750fcf556b65da13f8bbdfd2b:
 
-Now I can make it.
-I wonder whether this is OK to cover isdigit() with 'BOOT_STRING' tag.
+  Revert "ACPI/PCI: Pay attention to device-specific _PXM node values" (2018-11-13 08:38:17 -0600)
 
-Thanks,
-Chao Fan
+----------------------------------------------------------------
+pci-v4.20-fixes-1
 
->-- 
->Regards/Gruss,
->    Boris.
->
->Good mailing practices for 400: avoid top-posting and trim the reply.
->
->
+----------------------------------------------------------------
+Bjorn Helgaas (1):
+      Revert "ACPI/PCI: Pay attention to device-specific _PXM node values"
+
+ drivers/pci/pci-acpi.c | 5 -----
+ 1 file changed, 5 deletions(-)
