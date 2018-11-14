@@ -1,77 +1,27 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [GIT PULL] PCI changes for v4.20
-Date: Wed, 14 Nov 2018 11:21:04 +0100
-Message-ID: <20181114102104.GA57814@gmail.com>
-References: <20181023173934.GA14918@bhelgaas-glaptop.roam.corp.google.com>
- <20181113071712.GA2353@gmail.com>
- <20181113102004.GC10502@zn.tnic>
- <20181113144746.GA69034@google.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 0/6] device property: Introducing software nodes
+Date: Wed, 14 Nov 2018 13:45:56 +0100
+Message-ID: <CACRpkda+wiiCN+B1FM8Lb8_zR25ehnbY718GYKNuZGePsB+fUg@mail.gmail.com>
+References: <20181109142138.54770-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181113144746.GA69034@google.com>
+In-Reply-To: <20181109142138.54770-1-heikki.krogerus@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Linus Torvalds <torvalds@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Bart Van Assche <bvanassche@acm.org>, Jens Axboe <axboe@kernel.dk>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Tom Lendacky <thomas.lendacky@amd.com>, Martin =?iso-8859-1?Q?Hundeb=F8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Nov 9, 2018 at 3:21 PM Heikki Krogerus
+<heikki.krogerus@linux.intel.com> wrote:
 
-* Bjorn Helgaas <helgaas@kernel.org> wrote:
+> This is the second version of my proposal for "software nodes". There
+> was a "dereferencing freed memory" bug in patch 3/5 which is now
+> fixed. device_add_properties() and device_remove_properties() no
+> longer change places in the code as requested by Andy.
 
-> [+cc Martin, Rafael, Len, linux-acpi]
-> 
-> On Tue, Nov 13, 2018 at 11:20:04AM +0100, Borislav Petkov wrote:
-> > On Tue, Nov 13, 2018 at 08:17:12AM +0100, Ingo Molnar wrote:
-> > > 
-> > > * Bjorn Helgaas <helgaas@kernel.org> wrote:
-> > > 
-> > > > PCI changes:
-> > > > 
-> > > >   - Pay attention to device-specific _PXM node values (Jonathan Cameron)
-> > > 
-> > > There's a new boot regression, my AMD ThreadRipper system (MSI X399 SLI 
-> > > PLUS (MS-7B09)) hangs during early bootup, and I have bisected it down to 
-> > > this commit:
-> > > 
-> > >   bad7dcd94f39: ACPI/PCI: Pay attention to device-specific _PXM node values
-> > > 
-> > > Reverting it solves the hang.
-> > > 
-> > > Unfortunately there's no console output when it hangs, even with 
-> > > earlyprintk. It just hangs after the "loading initrd" line.
-> > > 
-> > > Config is an Ubuntu-ish config with PROVE_LOCKING=y and a few other debug 
-> > > options.
-> > > 
-> > > All my other testsystems boot fine with similar configs, so it's probably 
-> > > something specific to this system.
-> 
-> Martin reported the same thing [1] (unfortunately the archive didn't
-> capture Martin's original emails, I think because they were multi-part
-> messages with attachments).
-> 
-> Looks like Martin might have a similar system:
-> 
->   DMI: To Be Filled By O.E.M. To Be Filled By O.E.M./X399 Taichi, BIOS P3.30 08/14/2018
->   smpboot: CPU0: AMD Ryzen Threadripper 2950X 16-Core Processor (family: 0x17, model: 0x8, stepping: 0x2)
-> 
-> Given how painful this is to debug, I queued up a revert on my
-> for-linus branch until we figure out what sanity checks are needed to
-> make the original patch safe.
+The series:
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 
-Thanks!
-
-Took me about a day to bisect this, on this hard to bisect machine. :-/
-
-> I would expect proximity information to be basically just a hint for 
-> optimization, not a functional requirement, so it would be really 
-> interesting to figure out why this causes such a catastrophic failure. 
-> Maybe there's a way to improve that path as well so it would be more 
-> robust or at least more debuggable.
-
-Yeah.
-
-Thanks,
-
-	Ingo
+Yours,
+Linus Walleij
