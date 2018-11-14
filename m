@@ -1,39 +1,59 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [GIT PULL] PCI fixes for v4.20
-Date: Wed, 14 Nov 2018 23:48:39 +0100
-Message-ID: <20181114224839.GP13926@zn.tnic>
-References: <20181114062010.GA189193@google.com>
- <20181114200003.14496.1490.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
- <20181114201214.GM13926@zn.tnic>
- <20181114201658.GB25069@pure.paranoia.local>
- <20181114214601.GO13926@zn.tnic>
- <20181114222154.GA22445@pure.paranoia.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Keith Busch <keith.busch@intel.com>
+Subject: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Wed, 14 Nov 2018 15:49:02 -0700
+Message-ID: <20181114224902.12082-1-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181114222154.GA22445@pure.paranoia.local>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, pr-tracker-bot@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?utf-8?Q?Hundeb=C3=B8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2018 at 05:21:54PM -0500, Konstantin Ryabitsev wrote:
-> For the record, there's nothing wrong with that, it's just a condition
-> that I didn't expect. I have a fix in place that should avoid this in
-> the future.
+This series provides a new sysfs representation for heterogeneous
+system memory.
 
-Actually, I meant the pull request URL.
+The previous series that was specific to HMAT that this series was based
+on was last posted here: https://lkml.org/lkml/2017/12/13/968
 
-Here's some background info:
+Platforms may provide multiple types of cpu attached system memory. The
+memory ranges for each type may have different characteristics that
+applications may wish to know about when considering what node they want
+their memory allocated from. 
 
-https://lkml.kernel.org/r/CA%2B55aFyMxkS=8JzZ%2BROOAFkwR45EKBnQ0GUMQS4f%2Br_-fFWiEA@mail.gmail.com
+It had previously been difficult to describe these setups as memory
+rangers were generally lumped into the NUMA node of the CPUs. New
+platform attributes have been created and in use today that describe
+the more complex memory hierarchies that can be created.
 
-and I kinda see the point of maybe not having your ssh username in the
-URL. Not that it is a big deal for us, k.org users though.
+This series first creates new generic APIs under the kernel's node
+representation. These new APIs can be used to create links among local
+memory and compute nodes and export characteristics about the memory
+nodes. Documentation desribing the new representation are provided.
+
+Finally the series adds a kernel user for these new APIs from parsing
+the ACPI HMAT.
+
+Keith Busch (7):
+  node: Link memory nodes to their compute nodes
+  node: Add heterogenous memory performance
+  doc/vm: New documentation for memory performance
+  node: Add memory caching attributes
+  doc/vm: New documentation for memory cache
+  acpi: Create subtable parsing infrastructure
+  acpi/hmat: Parse and report heterogeneous memory
+
+ Documentation/vm/numacache.rst |  76 ++++++++
+ Documentation/vm/numaperf.rst  |  71 ++++++++
+ drivers/acpi/Kconfig           |   9 +
+ drivers/acpi/Makefile          |   1 +
+ drivers/acpi/hmat.c            | 384 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/tables.c          |  85 +++++++--
+ drivers/base/Kconfig           |   8 +
+ drivers/base/node.c            | 193 +++++++++++++++++++++
+ include/linux/node.h           |  47 +++++
+ 9 files changed, 864 insertions(+), 10 deletions(-)
+ create mode 100644 Documentation/vm/numacache.rst
+ create mode 100644 Documentation/vm/numaperf.rst
+ create mode 100644 drivers/acpi/hmat.c
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.14.4
