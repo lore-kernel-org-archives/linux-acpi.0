@@ -1,60 +1,50 @@
-From: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Subject: Re: [GIT PULL] PCI fixes for v4.20
-Date: Thu, 15 Nov 2018 02:53:30 -0500
-Message-ID: <20181115075330.GA32162@pure.paranoia.local>
-References: <20181114062010.GA189193@google.com>
- <20181114200003.14496.1490.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
- <20181114201214.GM13926@zn.tnic>
- <20181114201658.GB25069@pure.paranoia.local>
- <20181114214601.GO13926@zn.tnic>
- <20181114222154.GA22445@pure.paranoia.local>
- <20181114224839.GP13926@zn.tnic>
- <20181115071252.GB94998@google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Thu, 15 Nov 2018 12:22:39 +0200
+Message-ID: <20181115102239.GU2500@lahna.fi.intel.com>
+References: <20181112160628.86620-1-mika.westerberg@linux.intel.com>
+ <20181112160628.86620-2-mika.westerberg@linux.intel.com>
+ <20181112180203.lx72gjfplb6xlur7@wunner.de>
+ <20181113105636.GB11202@e107981-ln.cambridge.arm.com>
+ <20181113112700.GT2500@lahna.fi.intel.com>
+ <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181115071252.GB94998@google.com>
+In-Reply-To: <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Borislav Petkov <bp@alien8.de>, pr-tracker-bot@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?utf-8?Q?Hundeb=C3=B8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Lukas Wunner <lukas@wunner.de>, iommu@lists.linux-foundation.org, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 15, 2018 at 01:12:53AM -0600, Bjorn Helgaas wrote:
-> > and I kinda see the point of maybe not having your ssh username in the
-> > URL. Not that it is a big deal for us, k.org users though.
+On Tue, Nov 13, 2018 at 11:45:36AM +0000, Lorenzo Pieralisi wrote:
+> On Tue, Nov 13, 2018 at 01:27:00PM +0200, Mika Westerberg wrote:
 > 
-> Sorry, I don't understand the problem.  I have this in my .gitconfig:
+> [...]
 > 
->     [url "ssh://git@gitolite.kernel.org"]
-> 	    insteadOf = https://git.kernel.org
-> 	    insteadOf = http://git.kernel.org
-> 	    insteadOf = git://git.kernel.org
+> > > To be frank the concept (and Microsoft _DSD bindings) seems a bit vague
+> > > and not thoroughly defined and I would question its detection at
+> > > PCI/ACPI core level, I would hope this can be clarified at ACPI
+> > > specification level, at least.
+> > 
+> > I guess that is the way they envision to use _DSD. Instead of having
+> > single UUID that covers all properties (like what we have with device
+> > properties) they have one UUID per property "class". I certainly hope we
+> > don't need to keep extending prp_guids[] array each time they invent
+> > another "class" of properties.
 > 
-> because I thought that was the recommended way (see the end of
-> https://korg.wiki.kernel.org/userdoc/gitolite). But that also makes my
-> request-pull:
-> 
->     $ git request-pull origin/master git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git pci-v4.20-fixes-1
-> 
-> generate the ssh URL above.  If I remove the insteadOf stuff from
-> .gitconfig, request-pull produces this instead:
-> 
->     git://git.kernel.org/pub/scm/linux/kernel/git/helgaas/pci.git tags/pci-v4.20-fixes-1
-> 
-> I'm happy to do either; just tell me which :)
+> It is even worse than that. This is a unilateral/obscure change that
+> won't be part of ACPI specifications (I guess it was easier to add a
+> UUID than add this to the ACPI specifications through the AWSG) but it
+> is still supposed to be applicable to ACPI PCI bindings on any
+> platforms/arches; this way of adding bindings does not work and it
+> has to be rectified.
 
-You didn't really do anything wrong. In *general* I prefer to see
-public URLs if they are sent to public lists, so if you're cc'ing
-something to LKML, I would generally expect the pull request to have a
-public URL like https://git.kernel.org/ instead of a private ssh:// URL
-that is only accessible to people with a kernel.org account.
+I agree.
 
-That's basically all there is to it. It doesn't *really* matter, since
-Linus is the one who will be merging the actual pull request, and he
-certainly has access to internal ssh:// URLs. However, in case someone
-else was interested in reviewing the pull request, it would be more
-friendly to have a public URL for them.
+For the existing property "classes" such as the one here I don't think
+we can do anything. There are systems already with these included in
+their ACPI tables.
 
-Best,
--K
+I wonder if you have any objections regarding this patch?
