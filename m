@@ -1,7 +1,7 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH 1/2] PCI/AER: Do not use APEI/HEST to disable AER services globally
-Date: Thu, 15 Nov 2018 17:16:02 -0600
-Message-ID: <20181115231605.24352-2-mr.nuke.me@gmail.com>
+Subject: [PATCH 2/2] PCI/AER: Determine AER ownership based on _OSC instead of HEST
+Date: Thu, 15 Nov 2018 17:16:03 -0600
+Message-ID: <20181115231605.24352-3-mr.nuke.me@gmail.com>
 References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181115231605.24352-1-mr.nuke.me@gmail.com>
@@ -10,102 +10,91 @@ Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shy
 List-Id: linux-acpi@vger.kernel.org
 
 HEST is used to describe the meaning of errors received as part of ACPI
-Platform Error Interfaces (APEI). HEST is tightly coupled to ownership
-of AER, however the correct way to determine AER ownership is the _OSC
-method.
+Platform Error Interfaces (APEI), however the correct way to determine
+AER ownership is the _OSC method.
 
-_OSC is negotiated per root bus. It's possible to have one HEST
-descriptor for all root busses where AER is owned by firmware, and
-still have root busses that are not firmware-first. In that case we
-would incorrectly disable AER services globally.
-
-Instead of using HEST in making the determination, always request AER
-control via _OSC, and only disable AER when firmware denies control.
+pci_dev->__aer_firmware_first is used to prevent modification of AER
+registers when firmware owns AER. This is synonymous with the AER
+ownership negotiated during _OSC. Thus _OSC is the correct way to
+use to set this flag, not HEST.
 
 Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
 ---
- drivers/acpi/pci_root.c  |  9 ++-------
- drivers/pci/pcie/aer.c   | 25 +------------------------
- include/linux/pci-acpi.h |  6 ------
- 3 files changed, 3 insertions(+), 37 deletions(-)
+ drivers/pci/pcie/aer.c | 57 ++----------------------------------------
+ 1 file changed, 2 insertions(+), 55 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 707aafc7c2aa..32b2053bb0fa 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -491,13 +491,8 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
- 	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_SHPC))
- 		control |= OSC_PCI_SHPC_NATIVE_HP_CONTROL;
- 
--	if (pci_aer_available()) {
--		if (aer_acpi_firmware_first())
--			dev_info(&device->dev,
--				 "PCIe AER handled by firmware\n");
--		else
--			control |= OSC_PCI_EXPRESS_AER_CONTROL;
--	}
-+	if (pci_aer_available())
-+		control |= OSC_PCI_EXPRESS_AER_CONTROL;
- 
- 	requested = control;
- 	status = acpi_pci_osc_control_set(handle, &control,
 diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
-index a90a9194ac4a..ac014151b7a6 100644
+index ac014151b7a6..dd9594e8ed08 100644
 --- a/drivers/pci/pcie/aer.c
 +++ b/drivers/pci/pcie/aer.c
-@@ -316,29 +316,6 @@ int pcie_aer_get_firmware_first(struct pci_dev *dev)
- 	return dev->__aer_firmware_first;
+@@ -240,66 +240,13 @@ static inline bool hest_match_type(struct acpi_hest_header *hest_hdr,
+ 	return false;
  }
  
--static bool aer_firmware_first;
+-struct aer_hest_parse_info {
+-	struct pci_dev *pci_dev;
+-	int firmware_first;
+-};
 -
--/**
-- * aer_acpi_firmware_first - Check if APEI should control AER.
-- */
--bool aer_acpi_firmware_first(void)
+-static int hest_source_is_pcie_aer(struct acpi_hest_header *hest_hdr)
 -{
--	static bool parsed = false;
+-	if (hest_hdr->type == ACPI_HEST_TYPE_AER_ROOT_PORT ||
+-	    hest_hdr->type == ACPI_HEST_TYPE_AER_ENDPOINT ||
+-	    hest_hdr->type == ACPI_HEST_TYPE_AER_BRIDGE)
+-		return 1;
+-	return 0;
+-}
+-
+-static int aer_hest_parse(struct acpi_hest_header *hest_hdr, void *data)
+-{
+-	struct aer_hest_parse_info *info = data;
+-	struct acpi_hest_aer_common *p;
+-	int ff;
+-
+-	if (!hest_source_is_pcie_aer(hest_hdr))
+-		return 0;
+-
+-	p = (struct acpi_hest_aer_common *)(hest_hdr + 1);
+-	ff = !!(p->flags & ACPI_HEST_FIRMWARE_FIRST);
+-
+-	/*
+-	 * If no specific device is supplied, determine whether
+-	 * FIRMWARE_FIRST is set for *any* PCIe device.
+-	 */
+-	if (!info->pci_dev) {
+-		info->firmware_first |= ff;
+-		return 0;
+-	}
+ 
+-	/* Otherwise, check the specific device */
+-	if (p->flags & ACPI_HEST_GLOBAL) {
+-		if (hest_match_type(hest_hdr, info->pci_dev))
+-			info->firmware_first = ff;
+-	} else
+-		if (hest_match_pci(p, info->pci_dev))
+-			info->firmware_first = ff;
+-
+-	return 0;
+-}
+ 
+ static void aer_set_firmware_first(struct pci_dev *pci_dev)
+ {
+-	int rc;
 -	struct aer_hest_parse_info info = {
--		.pci_dev	= NULL,	/* Check all PCIe devices */
+-		.pci_dev	= pci_dev,
 -		.firmware_first	= 0,
 -	};
--
--	if (pcie_ports_native)
--		return false;
--
--	if (!parsed) {
--		apei_hest_parse(aer_hest_parse, &info);
--		aer_firmware_first = info.firmware_first;
--		parsed = true;
--	}
--	return aer_firmware_first;
--}
- #endif
++	struct pci_host_bridge *host = pci_find_host_bridge(pci_dev->bus);
  
- #define	PCI_EXP_AER_FLAGS	(PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE | \
-@@ -1453,7 +1430,7 @@ static struct pcie_port_service_driver aerdriver = {
-  */
- int __init pcie_aer_init(void)
- {
--	if (!pci_aer_available() || aer_acpi_firmware_first())
-+	if (!pci_aer_available())
- 		return -ENXIO;
- 	return pcie_port_service_register(&aerdriver);
+-	rc = apei_hest_parse(aer_hest_parse, &info);
+-
+-	if (rc)
+-		pci_dev->__aer_firmware_first = 0;
+-	else
+-		pci_dev->__aer_firmware_first = info.firmware_first;
++	pci_dev->__aer_firmware_first = !host->native_aer;
+ 	pci_dev->__aer_firmware_first_valid = 1;
  }
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index 8082b612f561..2e9c0b973eba 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -116,10 +116,4 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
- static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
- #endif	/* CONFIG_ACPI */
  
--#ifdef CONFIG_ACPI_APEI
--extern bool aer_acpi_firmware_first(void);
--#else
--static inline bool aer_acpi_firmware_first(void) { return false; }
--#endif
--
- #endif	/* _PCI_ACPI_H_ */
 -- 
 2.17.1
