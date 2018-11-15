@@ -1,74 +1,47 @@
-From: Yehezkel Bernat <yehezkelshb@gmail.com>
-Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
-Date: Thu, 15 Nov 2018 19:58:13 +0200
-Message-ID: <CA+CmpXv9yM6nFdb0mcMPGHS-B_uGbQHYoO6iuefZC8gWoZYD3Q@mail.gmail.com>
-References: <20181112160628.86620-2-mika.westerberg@linux.intel.com>
- <20181112180203.lx72gjfplb6xlur7@wunner.de> <20181113105636.GB11202@e107981-ln.cambridge.arm.com>
- <20181113112700.GT2500@lahna.fi.intel.com> <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
- <20181115102239.GU2500@lahna.fi.intel.com> <20181115111356.GA599@e107981-ln.cambridge.arm.com>
- <20181115113737.GW2500@lahna.fi.intel.com> <20181115120736.pscly6zwd3k2tvd2@wunner.de>
- <20181115121627.GA2500@lahna.fi.intel.com> <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [GIT PULL] PCI fixes for v4.20
+Date: Thu, 15 Nov 2018 19:08:42 +0100
+Message-ID: <20181115180842.GD25056@zn.tnic>
+References: <20181114201214.GM13926@zn.tnic>
+ <20181114201658.GB25069@pure.paranoia.local>
+ <20181114214601.GO13926@zn.tnic>
+ <20181114222154.GA22445@pure.paranoia.local>
+ <20181114224839.GP13926@zn.tnic>
+ <20181115071252.GB94998@google.com>
+ <20181115075330.GA32162@pure.paranoia.local>
+ <20181115150321.GB207836@google.com>
+ <20181115155418.GA25764@pure.paranoia.local>
+ <20181115172706.GA229449@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
+Content-Disposition: inline
+In-Reply-To: <20181115172706.GA229449@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: lorenzo.pieralisi@arm.com
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, lukas@wunner.de, iommu@lists.linux-foundation.org, joro@8bytes.org, David Woodhouse <dwmw2@infradead.org>, baolu.lu@linux.intel.com, ashok.raj@intel.com, Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, jacob.jun.pan@intel.com, Andreas Noever <andreas.noever@gmail.com>, michael.jamet@intel.com, Christian Kellner <ckellner@redhat.com>, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Konstantin Ryabitsev <konstantin@linuxfoundation.org>, pr-tracker-bot@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?utf-8?Q?Hundeb=C3=B8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 15, 2018 at 7:46 PM Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
->
-> On Thu, Nov 15, 2018 at 02:16:27PM +0200, Mika Westerberg wrote:
-> > On Thu, Nov 15, 2018 at 01:07:36PM +0100, Lukas Wunner wrote:
-> > > On Thu, Nov 15, 2018 at 01:37:37PM +0200, Mika Westerberg wrote:
-> > > > On Thu, Nov 15, 2018 at 11:13:56AM +0000, Lorenzo Pieralisi wrote:
-> > > > > I have strong objections to the way these bindings have been forced upon
-> > > > > everybody; if that's the way *generic* ACPI bindings are specified I
-> > > > > wonder why there still exists an ACPI specification and related working
-> > > > > group.
-> > > > >
-> > > > > I personally (but that's Bjorn and Rafael choice) think that this is
-> > > > > not a change that belongs in PCI core, ACPI bindings are ill-defined
-> > > > > and device tree bindings are non-existing.
-> > > >
-> > > > Any idea where should I put it then? These systems are already out there
-> > > > and we need to support them one way or another.
-> > >
-> > > I suppose those are all Thunderbolt, so could be handled by the
-> > > existing ->is_thunderbolt bit?
-> > >
-> > > It was said in this thread that ->is_external is more generic in
-> > > that it could also be used on PCIe slots, however that use case
-> > > doesn't appear to lend itself to the "plug in while laptop owner
-> > > is getting coffee" attack.  To access PCIe slots on a server you
-> > > normally need access to a data center.  On a desktop, you usually
-> > > have to open the case, by which time the coffee may already have
-> > > been fetched.  So frankly the binding seems a bit over-engineered
-> > > to me and yet another thing that BIOS writers may get wrong.
-> >
-> > I would not say it should include PCIe slots but there are other cables
-> > that carry PCIe and I was thinking we could make it to support those as
-> > well.
-> >
-> > I have no problem using is_thunderbolt here, though if we don't want to
-> > support non-Thunderbolt external devices this way.
-> >
-> > However, the question here is more that where I should put the _DSD
-> > parsing code if it is not suitable to be placed inside PCI/ACPI core as
-> > I've done in this patch? ;-)
->
-> Do you really need to parse it if the dev->is_thunderbolt check is enough ?
+On Thu, Nov 15, 2018 at 11:27:06AM -0600, Bjorn Helgaas wrote:
+> Yep, it seems to for me.  Maybe I'm doing something else weird, because I
+> don't see many other pull requests with ssh:// URLs.
 
->From what I know, there are more devices that suffer from similar security
-issues like Thunderbolt, e.g. FireWire [1].
-My assumption is that the same protection may be applied to such devices too,
-even if currently it sounds like vendors care mostly about Thunderbolt (probably
-because it removes the need for user approval for device connection; it becames
-a simple plug-and-play experience).
+So what I've done here is I've added a remote git repo using the
+*public* URL of my repo and so when I use git request-pull, I always
+point to the public one - I need to fetch the tag before, of course, but
+that's trivial - and then the URL is the public one.
 
-Thus, I don't think binding it with dev->is_thunderbolt is the correct
-thing to do.
+I.e,
 
-[1] https://github.com/carmaa/inception
+$ git request-pull master bp-pub <TAG>
+
+This has the additional value of *actually* making sure I've really
+pushed the tag.
+
+HTH.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
