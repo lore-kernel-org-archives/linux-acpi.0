@@ -1,56 +1,111 @@
 From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns AER
-Date: Thu, 15 Nov 2018 17:16:01 -0600
-Message-ID: <20181115231605.24352-1-mr.nuke.me@gmail.com>
+Subject: [PATCH 1/2] PCI/AER: Do not use APEI/HEST to disable AER services globally
+Date: Thu, 15 Nov 2018 17:16:02 -0600
+Message-ID: <20181115231605.24352-2-mr.nuke.me@gmail.com>
+References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181115231605.24352-1-mr.nuke.me@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-Thanks to Keith for pointing out that it doesn't make sense to disable
-AER services when only one device has a FIRMWARE_FIRST HEST.
+HEST is used to describe the meaning of errors received as part of ACPI
+Platform Error Interfaces (APEI). HEST is tightly coupled to ownership
+of AER, however the correct way to determine AER ownership is the _OSC
+method.
 
-AER ownership is an interesting issue brought in by FFS (firmware-first)
-model. In a nutshell if FFS handles AER, then OS should not touch any
-of the AER bits. FW might set things up so that it receives AER
-notifications via SMI. It's theoretically possible to receive SCIs,
-but the exact mechanism is platform-dependent. OS touching AER bits
-when firmware owns them may interfere with these notifications.
+_OSC is negotiated per root bus. It's possible to have one HEST
+descriptor for all root busses where AER is owned by firmware, and
+still have root busses that are not firmware-first. In that case we
+would incorrectly disable AER services globally.
 
-The ACPI mechanism for negotiating control of AER is _OSC, and is
-described in detail in ACPI 6.2 Ch. 6.2.11.3. _OSC is negotiated at
-the root bus level. Any root port, switch, or endpoint under the bus
-would have its AER ownership negotiated in one _OSC call.
+Instead of using HEST in making the determination, always request AER
+control via _OSC, and only disable AER when firmware denies control.
 
-Then there is HEST, which is part of ACPI Platform Error Interfaces
-(APEI). HEST tables describe the errors that FW may report to the OS.
-A types 6,7 and 7 HEST tables describe AER errors from PCIe devices.
-As part of this description, we're told if the error source is FFS.
+Signed-off-by: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+---
+ drivers/acpi/pci_root.c  |  9 ++-------
+ drivers/pci/pcie/aer.c   | 25 +------------------------
+ include/linux/pci-acpi.h |  6 ------
+ 3 files changed, 3 insertions(+), 37 deletions(-)
 
-Information in HEST seems to be redundant, as each error reported by
-FW will have a CPER table that describes it in detail.
-
-Because HEST describes an error source as firmware-first or not, we've
-taken this to mean ownership of AER. Because AER ownership and error
-reporting are coupled, _OSC and HEST usually agree on the matter of
-ownership. However, that doesn't seem to be required by ACPI.
-
-I've asked around a few people at Dell and they unanimously agree that
-_OSC is the correct way to determine ownership of AER. In linux, we
-use the result of _OSC to enable AER services, but we use HEST to
-determine AER ownership. That's inconsistent. This series drops the
-use of HEST in favor of _OSC.
-
-[1] https://lkml.org/lkml/2018/11/15/62
-
-Alexandru Gagniuc (2):
-  PCI/AER: Do not use APEI/HEST to disable AER services globally
-  PCI/AER: Determine AER ownership based on _OSC instead of HEST
-
- drivers/acpi/pci_root.c  |  9 +----
- drivers/pci/pcie/aer.c   | 82 ++--------------------------------------
- include/linux/pci-acpi.h |  6 ---
- 3 files changed, 5 insertions(+), 92 deletions(-)
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 707aafc7c2aa..32b2053bb0fa 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -491,13 +491,8 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm,
+ 	if (IS_ENABLED(CONFIG_HOTPLUG_PCI_SHPC))
+ 		control |= OSC_PCI_SHPC_NATIVE_HP_CONTROL;
+ 
+-	if (pci_aer_available()) {
+-		if (aer_acpi_firmware_first())
+-			dev_info(&device->dev,
+-				 "PCIe AER handled by firmware\n");
+-		else
+-			control |= OSC_PCI_EXPRESS_AER_CONTROL;
+-	}
++	if (pci_aer_available())
++		control |= OSC_PCI_EXPRESS_AER_CONTROL;
+ 
+ 	requested = control;
+ 	status = acpi_pci_osc_control_set(handle, &control,
+diff --git a/drivers/pci/pcie/aer.c b/drivers/pci/pcie/aer.c
+index a90a9194ac4a..ac014151b7a6 100644
+--- a/drivers/pci/pcie/aer.c
++++ b/drivers/pci/pcie/aer.c
+@@ -316,29 +316,6 @@ int pcie_aer_get_firmware_first(struct pci_dev *dev)
+ 	return dev->__aer_firmware_first;
+ }
+ 
+-static bool aer_firmware_first;
+-
+-/**
+- * aer_acpi_firmware_first - Check if APEI should control AER.
+- */
+-bool aer_acpi_firmware_first(void)
+-{
+-	static bool parsed = false;
+-	struct aer_hest_parse_info info = {
+-		.pci_dev	= NULL,	/* Check all PCIe devices */
+-		.firmware_first	= 0,
+-	};
+-
+-	if (pcie_ports_native)
+-		return false;
+-
+-	if (!parsed) {
+-		apei_hest_parse(aer_hest_parse, &info);
+-		aer_firmware_first = info.firmware_first;
+-		parsed = true;
+-	}
+-	return aer_firmware_first;
+-}
+ #endif
+ 
+ #define	PCI_EXP_AER_FLAGS	(PCI_EXP_DEVCTL_CERE | PCI_EXP_DEVCTL_NFERE | \
+@@ -1453,7 +1430,7 @@ static struct pcie_port_service_driver aerdriver = {
+  */
+ int __init pcie_aer_init(void)
+ {
+-	if (!pci_aer_available() || aer_acpi_firmware_first())
++	if (!pci_aer_available())
+ 		return -ENXIO;
+ 	return pcie_port_service_register(&aerdriver);
+ }
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 8082b612f561..2e9c0b973eba 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -116,10 +116,4 @@ static inline void acpi_pci_add_bus(struct pci_bus *bus) { }
+ static inline void acpi_pci_remove_bus(struct pci_bus *bus) { }
+ #endif	/* CONFIG_ACPI */
+ 
+-#ifdef CONFIG_ACPI_APEI
+-extern bool aer_acpi_firmware_first(void);
+-#else
+-static inline bool aer_acpi_firmware_first(void) { return false; }
+-#endif
+-
+ #endif	/* _PCI_ACPI_H_ */
 -- 
 2.17.1
