@@ -1,48 +1,67 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [GIT PULL] PCI fixes for v4.20
-Date: Thu, 15 Nov 2018 11:27:06 -0600
-Message-ID: <20181115172706.GA229449@google.com>
-References: <20181114200003.14496.1490.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
- <20181114201214.GM13926@zn.tnic>
- <20181114201658.GB25069@pure.paranoia.local>
- <20181114214601.GO13926@zn.tnic>
- <20181114222154.GA22445@pure.paranoia.local>
- <20181114224839.GP13926@zn.tnic>
- <20181115071252.GB94998@google.com>
- <20181115075330.GA32162@pure.paranoia.local>
- <20181115150321.GB207836@google.com>
- <20181115155418.GA25764@pure.paranoia.local>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Thu, 15 Nov 2018 17:46:08 +0000
+Message-ID: <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
+References: <20181112160628.86620-2-mika.westerberg@linux.intel.com>
+ <20181112180203.lx72gjfplb6xlur7@wunner.de>
+ <20181113105636.GB11202@e107981-ln.cambridge.arm.com>
+ <20181113112700.GT2500@lahna.fi.intel.com>
+ <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
+ <20181115102239.GU2500@lahna.fi.intel.com>
+ <20181115111356.GA599@e107981-ln.cambridge.arm.com>
+ <20181115113737.GW2500@lahna.fi.intel.com>
+ <20181115120736.pscly6zwd3k2tvd2@wunner.de>
+ <20181115121627.GA2500@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181115155418.GA25764@pure.paranoia.local>
+In-Reply-To: <20181115121627.GA2500@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Konstantin Ryabitsev <konstantin@linuxfoundation.org>
-Cc: Borislav Petkov <bp@alien8.de>, pr-tracker-bot@kernel.org, Linus Torvalds <torvalds@linux-foundation.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Thomas Lendacky <Thomas.Lendacky@amd.com>, Ingo Molnar <mingo@kernel.org>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Peter Zijlstra <a.p.zijlstra@chello.nl>, Martin =?iso-8859-1?Q?Hundeb=F8ll?= <martin@geanix.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Lukas Wunner <lukas@wunner.de>, iommu@lists.linux-foundation.org, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 15, 2018 at 10:54:18AM -0500, Konstantin Ryabitsev wrote:
-> On Thu, Nov 15, 2018 at 09:03:21AM -0600, Bjorn Helgaas wrote:
-> > > You didn't really do anything wrong. In *general* I prefer to see
-> > > public URLs if they are sent to public lists, so if you're cc'ing
-> > > something to LKML, I would generally expect the pull request to have a
-> > > public URL like https://git.kernel.org/ instead of a private ssh:// URL
-> > > that is only accessible to people with a kernel.org account.
+On Thu, Nov 15, 2018 at 02:16:27PM +0200, Mika Westerberg wrote:
+> On Thu, Nov 15, 2018 at 01:07:36PM +0100, Lukas Wunner wrote:
+> > On Thu, Nov 15, 2018 at 01:37:37PM +0200, Mika Westerberg wrote:
+> > > On Thu, Nov 15, 2018 at 11:13:56AM +0000, Lorenzo Pieralisi wrote:
+> > > > I have strong objections to the way these bindings have been forced upon
+> > > > everybody; if that's the way *generic* ACPI bindings are specified I
+> > > > wonder why there still exists an ACPI specification and related working
+> > > > group.
+> > > > 
+> > > > I personally (but that's Bjorn and Rafael choice) think that this is
+> > > > not a change that belongs in PCI core, ACPI bindings are ill-defined
+> > > > and device tree bindings are non-existing.
 > > > 
-> > > That's basically all there is to it. It doesn't *really* matter, since
-> > > Linus is the one who will be merging the actual pull request, and he
-> > > certainly has access to internal ssh:// URLs. However, in case someone
-> > > else was interested in reviewing the pull request, it would be more
-> > > friendly to have a public URL for them.
+> > > Any idea where should I put it then? These systems are already out there
+> > > and we need to support them one way or another.
 > > 
-> > OK, I think I'll remove the insteadOf chunk from my .gitconfig.  Should
-> > https://korg.wiki.kernel.org/userdoc/gitolite be updated to remove or
-> > expand that recommendation?  The only reason I added insteadOf in the first
-> > place was because it sounded like a security improvement.
+> > I suppose those are all Thunderbolt, so could be handled by the
+> > existing ->is_thunderbolt bit?
+> > 
+> > It was said in this thread that ->is_external is more generic in
+> > that it could also be used on PCIe slots, however that use case
+> > doesn't appear to lend itself to the "plug in while laptop owner
+> > is getting coffee" attack.  To access PCIe slots on a server you
+> > normally need access to a data center.  On a desktop, you usually
+> > have to open the case, by which time the coffee may already have
+> > been fetched.  So frankly the binding seems a bit over-engineered
+> > to me and yet another thing that BIOS writers may get wrong.
 > 
-> It is. Does adding the insteadOf rules result in ssh:// URLs when using
-> git-request-pull? I didn't expect that it would.
+> I would not say it should include PCIe slots but there are other cables
+> that carry PCIe and I was thinking we could make it to support those as
+> well.
+> 
+> I have no problem using is_thunderbolt here, though if we don't want to
+> support non-Thunderbolt external devices this way.
+> 
+> However, the question here is more that where I should put the _DSD
+> parsing code if it is not suitable to be placed inside PCI/ACPI core as
+> I've done in this patch? ;-)
 
-Yep, it seems to for me.  Maybe I'm doing something else weird, because I
-don't see many other pull requests with ssh:// URLs.
+Do you really need to parse it if the dev->is_thunderbolt check is enough ?
+
+Thanks,
+Lorenzo
