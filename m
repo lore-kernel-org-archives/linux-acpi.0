@@ -1,62 +1,55 @@
-From: <Mario.Limonciello@dell.com>
-Subject: RE: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
-Date: Thu, 15 Nov 2018 19:33:54 +0000
-Message-ID: <372db397d5384efd8e7264ba8e1b9cbd@ausx13mpc120.AMER.DELL.COM>
-References: <20181112180203.lx72gjfplb6xlur7@wunner.de>
- <20181113105636.GB11202@e107981-ln.cambridge.arm.com>
- <20181113112700.GT2500@lahna.fi.intel.com>
- <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
- <20181115102239.GU2500@lahna.fi.intel.com>
- <20181115111356.GA599@e107981-ln.cambridge.arm.com>
- <20181115113737.GW2500@lahna.fi.intel.com>
- <20181115120736.pscly6zwd3k2tvd2@wunner.de>
- <20181115121627.GA2500@lahna.fi.intel.com>
- <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
- <20181115190054.GD4179@lahna.fi.intel.com>
+From: Matthew Wilcox <willy@infradead.org>
+Subject: Re: [PATCH 1/7] node: Link memory nodes to their compute nodes
+Date: Thu, 15 Nov 2018 12:36:54 -0800
+Message-ID: <20181115203654.GA28246@bombadil.infradead.org>
+References: <20181114224921.12123-2-keith.busch@intel.com>
+ <20181115135710.GD19286@bombadil.infradead.org>
+ <20181115145920.GG11416@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115190054.GD4179@lahna.fi.intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181115145920.GG11416@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: mika.westerberg@linux.intel.com, lorenzo.pieralisi@arm.com
-Cc: lukas@wunner.de, iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, rjw@rjwysocki.net, jacob.jun.pan@intel.com, andreas.noever@gmail.com, michael.jamet@intel.com, YehezkelShB@gmail.com, ckellner@redhat.com, anthony.wong@canonical.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Thu, Nov 15, 2018 at 07:59:20AM -0700, Keith Busch wrote:
+> On Thu, Nov 15, 2018 at 05:57:10AM -0800, Matthew Wilcox wrote:
+> > On Wed, Nov 14, 2018 at 03:49:14PM -0700, Keith Busch wrote:
+> > > Memory-only nodes will often have affinity to a compute node, and
+> > > platforms have ways to express that locality relationship.
+> > > 
+> > > A node containing CPUs or other DMA devices that can initiate memory
+> > > access are referred to as "memory iniators". A "memory target" is a
+> > > node that provides at least one phyiscal address range accessible to a
+> > > memory initiator.
+> > 
+> > I think I may be confused here.  If there is _no_ link from node X to
+> > node Y, does that mean that node X's CPUs cannot access the memory on
+> > node Y?  In my mind, all nodes can access all memory in the system,
+> > just not with uniform bandwidth/latency.
+> 
+> The link is just about which nodes are "local". It's like how nodes have
+> a cpulist. Other CPUs not in the node's list can acces that node's memory,
+> but the ones in the mask are local, and provide useful optimization hints.
 
+So ... let's imagine a hypothetical system (I've never seen one built like
+this, but it doesn't seem too implausible).  Connect four CPU sockets in
+a square, each of which has some regular DIMMs attached to it.  CPU A is
+0 hops to Memory A, one hop to Memory B and Memory C, and two hops from
+Memory D (each CPU only has two "QPI" links).  Then maybe there's some
+special memory extender device attached on the PCIe bus.  Now there's
+Memory B1 and B2 that's attached to CPU B and it's local to CPU B, but
+not as local as Memory B is ... and we'd probably _prefer_ to allocate
+memory for CPU A from Memory B1 than from Memory D.  But ... *mumble*,
+this seems hard.
 
-> -----Original Message-----
-> From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Sent: Thursday, November 15, 2018 1:01 PM
-> To: Lorenzo Pieralisi
-> Cc: Lukas Wunner; iommu@lists.linux-foundation.org; Joerg Roedel; David
-> Woodhouse; Lu Baolu; Ashok Raj; Bjorn Helgaas; Rafael J. Wysocki; Jacob j=
-un Pan;
-> Andreas Noever; Michael Jamet; Yehezkel Bernat; Christian Kellner; Limonc=
-iello,
-> Mario; Anthony Wong; linux-acpi@vger.kernel.org; linux-pci@vger.kernel.or=
-g; linux-
-> kernel@vger.kernel.org
-> Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
->=20
->=20
-> [EXTERNAL EMAIL]
->=20
-> On Thu, Nov 15, 2018 at 05:46:08PM +0000, Lorenzo Pieralisi wrote:
-> > Do you really need to parse it if the dev->is_thunderbolt check is enou=
-gh ?
->=20
-> Yes, we need to parse it one way or another. dev->is_thunderbolt is
-> based on heuristics which do not apply anymore when the thing gets
-> integrated in the SoC.
->=20
-> The _DSD is there already (on existing systems) and is being used by
-> Windows so I don't understand why we cannot take advantage of it? Every
-> new system with Thunderbolt ports will have it.
+I understand you're trying to reflect what the HMAT table is telling you,
+I'm just really fuzzy on who's ultimately consuming this information
+and what decisions they're trying to drive from it.
 
-Furthermore it's entirely in the BIOS writers best interest to do this corr=
-ectly
-as it applies proper policy on Windows as well.
+> Would a node mask would be prefered to symlinks?
 
-I wouldn't be surprised if WHCK failed if it was done wrong.
+I don't have a strong opinion here, but what Dan says makes sense.
