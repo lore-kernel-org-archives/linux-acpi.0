@@ -1,55 +1,56 @@
-From: Matthew Wilcox <willy@infradead.org>
-Subject: Re: [PATCH 1/7] node: Link memory nodes to their compute nodes
-Date: Thu, 15 Nov 2018 12:36:54 -0800
-Message-ID: <20181115203654.GA28246@bombadil.infradead.org>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181115135710.GD19286@bombadil.infradead.org>
- <20181115145920.GG11416@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Subject: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns AER
+Date: Thu, 15 Nov 2018 17:16:01 -0600
+Message-ID: <20181115231605.24352-1-mr.nuke.me@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181115145920.GG11416@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, Alexandru Gagniuc <mr.nuke.me@gmail.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 15, 2018 at 07:59:20AM -0700, Keith Busch wrote:
-> On Thu, Nov 15, 2018 at 05:57:10AM -0800, Matthew Wilcox wrote:
-> > On Wed, Nov 14, 2018 at 03:49:14PM -0700, Keith Busch wrote:
-> > > Memory-only nodes will often have affinity to a compute node, and
-> > > platforms have ways to express that locality relationship.
-> > > 
-> > > A node containing CPUs or other DMA devices that can initiate memory
-> > > access are referred to as "memory iniators". A "memory target" is a
-> > > node that provides at least one phyiscal address range accessible to a
-> > > memory initiator.
-> > 
-> > I think I may be confused here.  If there is _no_ link from node X to
-> > node Y, does that mean that node X's CPUs cannot access the memory on
-> > node Y?  In my mind, all nodes can access all memory in the system,
-> > just not with uniform bandwidth/latency.
-> 
-> The link is just about which nodes are "local". It's like how nodes have
-> a cpulist. Other CPUs not in the node's list can acces that node's memory,
-> but the ones in the mask are local, and provide useful optimization hints.
+Thanks to Keith for pointing out that it doesn't make sense to disable
+AER services when only one device has a FIRMWARE_FIRST HEST.
 
-So ... let's imagine a hypothetical system (I've never seen one built like
-this, but it doesn't seem too implausible).  Connect four CPU sockets in
-a square, each of which has some regular DIMMs attached to it.  CPU A is
-0 hops to Memory A, one hop to Memory B and Memory C, and two hops from
-Memory D (each CPU only has two "QPI" links).  Then maybe there's some
-special memory extender device attached on the PCIe bus.  Now there's
-Memory B1 and B2 that's attached to CPU B and it's local to CPU B, but
-not as local as Memory B is ... and we'd probably _prefer_ to allocate
-memory for CPU A from Memory B1 than from Memory D.  But ... *mumble*,
-this seems hard.
+AER ownership is an interesting issue brought in by FFS (firmware-first)
+model. In a nutshell if FFS handles AER, then OS should not touch any
+of the AER bits. FW might set things up so that it receives AER
+notifications via SMI. It's theoretically possible to receive SCIs,
+but the exact mechanism is platform-dependent. OS touching AER bits
+when firmware owns them may interfere with these notifications.
 
-I understand you're trying to reflect what the HMAT table is telling you,
-I'm just really fuzzy on who's ultimately consuming this information
-and what decisions they're trying to drive from it.
+The ACPI mechanism for negotiating control of AER is _OSC, and is
+described in detail in ACPI 6.2 Ch. 6.2.11.3. _OSC is negotiated at
+the root bus level. Any root port, switch, or endpoint under the bus
+would have its AER ownership negotiated in one _OSC call.
 
-> Would a node mask would be prefered to symlinks?
+Then there is HEST, which is part of ACPI Platform Error Interfaces
+(APEI). HEST tables describe the errors that FW may report to the OS.
+A types 6,7 and 7 HEST tables describe AER errors from PCIe devices.
+As part of this description, we're told if the error source is FFS.
 
-I don't have a strong opinion here, but what Dan says makes sense.
+Information in HEST seems to be redundant, as each error reported by
+FW will have a CPER table that describes it in detail.
+
+Because HEST describes an error source as firmware-first or not, we've
+taken this to mean ownership of AER. Because AER ownership and error
+reporting are coupled, _OSC and HEST usually agree on the matter of
+ownership. However, that doesn't seem to be required by ACPI.
+
+I've asked around a few people at Dell and they unanimously agree that
+_OSC is the correct way to determine ownership of AER. In linux, we
+use the result of _OSC to enable AER services, but we use HEST to
+determine AER ownership. That's inconsistent. This series drops the
+use of HEST in favor of _OSC.
+
+[1] https://lkml.org/lkml/2018/11/15/62
+
+Alexandru Gagniuc (2):
+  PCI/AER: Do not use APEI/HEST to disable AER services globally
+  PCI/AER: Determine AER ownership based on _OSC instead of HEST
+
+ drivers/acpi/pci_root.c  |  9 +----
+ drivers/pci/pcie/aer.c   | 82 ++--------------------------------------
+ include/linux/pci-acpi.h |  6 ---
+ 3 files changed, 5 insertions(+), 92 deletions(-)
+
+-- 
+2.17.1
