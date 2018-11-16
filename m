@@ -1,40 +1,147 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Fri, 16 Nov 2018 12:37:00 +0000
-Message-ID: <ab363e80d45e4c3d91770c1b1010d1ce@AcuMS.aculab.com>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v11 5/5] x86/boot/KASLR: Walk srat tables to filter
+ immovable memory
+Date: Fri, 16 Nov 2018 14:50:39 +0100
+Message-ID: <20181116135039.GE20313@zn.tnic>
+References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
+ <20181112094645.4879-6-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115231605.24352-1-mr.nuke.me@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181112094645.4879-6-fanc.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: 'Alexandru Gagniuc' <mr.nuke.me@gmail.com>
-Cc: "austin_bolen@dell.com" <austin_bolen@dell.com>, "alex_gagniuc@dellteam.com" <alex_gagniuc@dellteam.com>, "keith.busch@intel.com" <keith.busch@intel.com>, "Shyam_Iyer@Dell.com" <Shyam_Iyer@Dell.com>, "lukas@wunner.de" <lukas@wunner.de>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linuxppc-dev@lists.ozlabs.org" <linuxppc-dev@lists.ozlabs.org>
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Alexandru Gagniuc
-> Sent: 15 November 2018 23:16
-...
-> I've asked around a few people at Dell and they unanimously agree that
-> _OSC is the correct way to determine ownership of AER.
+ Subject: Re: [PATCH v11 5/5] x86/boot/KASLR: Walk srat tables to filter immovable memory
 
-This is all very well, but we have systems (they might be Dell ones)
-where failure of a PCIe link (even when all the drivers are removed)
-causes an NMI - and crashes the kernel.
+s/srat/SRAT/g
 
-There are other systems which have AER registers available for
-some of the PCIe devices, but the BIOS ignores them and _OSC
-doesn't let the kernel take control.
-In this case the AER registers can contain useful information
-after a read returns ~0u.
-It would be useful to be able to get this information without
-having to grovel through all the PCIe config space.
+On Mon, Nov 12, 2018 at 05:46:45PM +0800, Chao Fan wrote:
+> KASLR may randomly chooses some positions which are located in movable
 
-	David
+		    choose
 
--
-Registered Address Lakeside, Bramley Road, Mount Farm, Milton Keynes, MK1 1PT, UK
-Registration No: 1397386 (Wales)
+> memory regions. This will break memory hotplug feature and make the
+> movable memory chosen by KASLR can't be removed.
+
+			by KASLR practically immovable.
+
+:)
+
+> The solution is limite KASLR to choose memory regions in immovable
+
+limite?
+
+"to limit"
+
+> node according to SRAT tables.
+> 
+> If CONFIG_MEMORY_HOTREMOVE enabled, walk through the SRAT memory
+
+			   *is* enabled,
+
+> tables and store those immovable memory regions so that KASLR can get
+> where to choose for randomization.
+> 
+> If the amount of immovable memory regions is not zero, which
+> means the immovable memory regions existing. Calculate the intersection
+> between memory regions from e820/efi memory table and immovable memory
+> regions.
+
+This is explaining *what* the patch does and generally doesn't need to
+be in the commit messge as people can read it in the patch itself.
+
+> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
+> ---
+>  arch/x86/boot/compressed/kaslr.c | 77 +++++++++++++++++++++++++++-----
+>  1 file changed, 66 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
+> index b251572e77af..174d2114045e 100644
+> --- a/arch/x86/boot/compressed/kaslr.c
+> +++ b/arch/x86/boot/compressed/kaslr.c
+> @@ -97,6 +97,11 @@ static bool memmap_too_large;
+>  /* Store memory limit specified by "mem=nn[KMG]" or "memmap=nn[KMG]" */
+>  static unsigned long long mem_limit = ULLONG_MAX;
+>  
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +/* Store the immovable memory regions */
+> +extern struct mem_vector immovable_mem[MAX_NUMNODES*2];
+> +#endif
+
+For this and the other occurrences of ifdef CONFIG_MEMORY_HOTREMOVE,
+define empty stubs for those functions in a header and remove the
+ifdeffery at the call sites.
+
+> +
+>  
+>  enum mem_avoid_index {
+>  	MEM_AVOID_ZO_RANGE = 0,
+> @@ -413,6 +418,11 @@ static void mem_avoid_init(unsigned long input, unsigned long input_size,
+>  	/* Mark the memmap regions we need to avoid */
+>  	handle_mem_options();
+>  
+> +#ifdef CONFIG_MEMORY_HOTREMOVE
+> +	/* Mark the immovable regions we need to choose */
+> +	get_immovable_mem();
+> +#endif
+> +
+>  #ifdef CONFIG_X86_VERBOSE_BOOTUP
+>  	/* Make sure video RAM can be used. */
+>  	add_identity_map(0, PMD_SIZE);
+> @@ -568,9 +578,9 @@ static unsigned long slots_fetch_random(void)
+>  	return 0;
+>  }
+>  
+> -static void process_mem_region(struct mem_vector *entry,
+> -			       unsigned long minimum,
+> -			       unsigned long image_size)
+> +static void slots_count(struct mem_vector *entry,
+
+That's a strange rename.
+
+__process_mem_region() makes more sense to me.
+
+> +			unsigned long minimum,
+> +			unsigned long image_size)
+>  {
+>  	struct mem_vector region, overlap;
+>  	unsigned long start_orig, end;
+> @@ -646,6 +656,57 @@ static void process_mem_region(struct mem_vector *entry,
+>  	}
+>  }
+>  
+> +static bool process_mem_region(struct mem_vector *region,
+> +			       unsigned long long minimum,
+> +			       unsigned long long image_size)
+> +{
+> +	int i;
+> +	/*
+> +	 * If no immovable memory found, or MEMORY_HOTREMOVE disabled,
+> +	 * walk all the regions, so use region directely.
+
+"directly"
+
+> +	 */
+> +	if (num_immovable_mem == 0) {
+
+	if (!...
+
+> +		slots_count(region, minimum, image_size);
+> +
+> +		if (slot_area_index == MAX_SLOT_AREA) {
+> +			debug_putstr("Aborted e820/efi memmap scan (slot_areas full)!\n");
+> +			return 1;
+> +		}
+> +		return 0;
+> +	}
+> +
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
