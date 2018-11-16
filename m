@@ -1,34 +1,46 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Thu, 15 Nov 2018 17:49:28 -0800
-Message-ID: <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Fri, 16 Nov 2018 11:57:58 +0530
+Message-ID: <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181115231605.24352-1-mr.nuke.me@gmail.com>
+In-Reply-To: <20181114224902.12082-1-keith.busch@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, Oliver O'Halloran <oohall@gmail.com>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/15/2018 3:16 PM, Alexandru Gagniuc wrote:
-> I've asked around a few people at Dell and they unanimously agree that
-> _OSC is the correct way to determine ownership of AER. In linux, we
-> use the result of _OSC to enable AER services, but we use HEST to
-> determine AER ownership. That's inconsistent. This series drops the
-> use of HEST in favor of _OSC.
+On 11/15/2018 04:19 AM, Keith Busch wrote:
+> This series provides a new sysfs representation for heterogeneous
+> system memory.
 > 
-> [1]https://lkml.org/lkml/2018/11/15/62
+> The previous series that was specific to HMAT that this series was based
+> on was last posted here: https://lkml.org/lkml/2017/12/13/968
+> 
+> Platforms may provide multiple types of cpu attached system memory. The
+> memory ranges for each type may have different characteristics that
+> applications may wish to know about when considering what node they want
+> their memory allocated from. 
+> 
+> It had previously been difficult to describe these setups as memory
+> rangers were generally lumped into the NUMA node of the CPUs. New
+> platform attributes have been created and in use today that describe
+> the more complex memory hierarchies that can be created.
+> 
+> This series first creates new generic APIs under the kernel's node
+> representation. These new APIs can be used to create links among local
+> memory and compute nodes and export characteristics about the memory
+> nodes. Documentation desribing the new representation are provided.
+> 
+> Finally the series adds a kernel user for these new APIs from parsing
+> the ACPI HMAT.
 
-This change breaks the existing systems that rely on the HEST table
-telling the operating system about firmware first presence.
-
-Besides, HEST table has much more granularity about which PCI component
-needs firmware such as global/device/switch.
-
-You should probably circulate these ideas for wider consumption in UEFI
-forum as UEFI owns the HEST table definition.
+Not able to see the patches from this series either on the list or on the
+archive (https://lkml.org/lkml/2018/11/15/331). IIRC last time we discussed
+about this and the concern which I raised was in absence of a broader NUMA
+rework for multi attribute memory it might not a good idea to settle down
+and freeze sysfs interface for the user space. 
