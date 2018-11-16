@@ -1,46 +1,43 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Fri, 16 Nov 2018 11:57:58 +0530
-Message-ID: <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Fri, 16 Nov 2018 09:01:25 +0200
+Message-ID: <20181116070125.GG4179@lahna.fi.intel.com>
+References: <20181113105636.GB11202@e107981-ln.cambridge.arm.com>
+ <20181113112700.GT2500@lahna.fi.intel.com>
+ <20181113114527.GA12821@e107981-ln.cambridge.arm.com>
+ <20181115102239.GU2500@lahna.fi.intel.com>
+ <20181115111356.GA599@e107981-ln.cambridge.arm.com>
+ <20181115113737.GW2500@lahna.fi.intel.com>
+ <20181115120736.pscly6zwd3k2tvd2@wunner.de>
+ <20181115121627.GA2500@lahna.fi.intel.com>
+ <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
+ <20181115190054.GD4179@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114224902.12082-1-keith.busch@intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20181115190054.GD4179@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Lukas Wunner <lukas@wunner.de>, iommu@lists.linux-foundation.org, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/15/2018 04:19 AM, Keith Busch wrote:
-> This series provides a new sysfs representation for heterogeneous
-> system memory.
+On Thu, Nov 15, 2018 at 09:00:54PM +0200, Mika Westerberg wrote:
+> On Thu, Nov 15, 2018 at 05:46:08PM +0000, Lorenzo Pieralisi wrote:
+> > Do you really need to parse it if the dev->is_thunderbolt check is enough ?
 > 
-> The previous series that was specific to HMAT that this series was based
-> on was last posted here: https://lkml.org/lkml/2017/12/13/968
+> Yes, we need to parse it one way or another. dev->is_thunderbolt is
+> based on heuristics which do not apply anymore when the thing gets
+> integrated in the SoC.
 > 
-> Platforms may provide multiple types of cpu attached system memory. The
-> memory ranges for each type may have different characteristics that
-> applications may wish to know about when considering what node they want
-> their memory allocated from. 
-> 
-> It had previously been difficult to describe these setups as memory
-> rangers were generally lumped into the NUMA node of the CPUs. New
-> platform attributes have been created and in use today that describe
-> the more complex memory hierarchies that can be created.
-> 
-> This series first creates new generic APIs under the kernel's node
-> representation. These new APIs can be used to create links among local
-> memory and compute nodes and export characteristics about the memory
-> nodes. Documentation desribing the new representation are provided.
-> 
-> Finally the series adds a kernel user for these new APIs from parsing
-> the ACPI HMAT.
+> The _DSD is there already (on existing systems) and is being used by
+> Windows so I don't understand why we cannot take advantage of it? Every
+> new system with Thunderbolt ports will have it.
 
-Not able to see the patches from this series either on the list or on the
-archive (https://lkml.org/lkml/2018/11/15/331). IIRC last time we discussed
-about this and the concern which I raised was in absence of a broader NUMA
-rework for multi attribute memory it might not a good idea to settle down
-and freeze sysfs interface for the user space. 
+Just to clarify a bit. We can use is_thunderbolt in place of is_external
+if we don't want to deal with other possible "external" devices right now.
+
+However, we still need to parse the _DSD and based on that fill the
+is_thunderbolt for these devices (same way we do for is_external in this
+series). So basically we just get rid of the is_external flag and use
+is_thunderbolt instead.
