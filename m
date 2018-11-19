@@ -1,54 +1,54 @@
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 4/7] node: Add memory caching attributes
-Date: Mon, 19 Nov 2018 09:44:00 +0530
-Message-ID: <91698cef-cdcd-5143-884f-3da5536e156f@arm.com>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-5-keith.busch@intel.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Mon, 19 Nov 2018 11:14:28 +0530
+Message-ID: <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114224921.12123-5-keith.busch@intel.com>
+In-Reply-To: <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 11/15/2018 04:19 AM, Keith Busch wrote:
-> System memory may have side caches to help improve access speed. While
-> the system provided cache is transparent to the software accessing
-> these memory ranges, applications can optimize their own access based
-> on cache attributes.
+On 11/16/2018 10:25 PM, Dave Hansen wrote:
+> On 11/15/18 10:27 PM, Anshuman Khandual wrote:
+>> Not able to see the patches from this series either on the list or on the
+>> archive (https://lkml.org/lkml/2018/11/15/331). IIRC last time we discussed
+>> about this and the concern which I raised was in absence of a broader NUMA
+>> rework for multi attribute memory it might not a good idea to settle down
+>> and freeze sysfs interface for the user space. 
+> 
 
-Cache is not a separate memory attribute. It impacts how the real attributes
-like bandwidth, latency e.g which are already captured in the previous patch.
-What is the purpose of adding this as a separate attribute ? Can you explain
-how this is going to help the user space apart from the hints it has already
-received with bandwidth, latency etc properties.
+Hello Dave,
+
+> This *is* the broader NUMA rework.  I think it's just a bit more
+> incremental that what you originally had in mind.
+
+IIUC NUMA re-work in principle involves these functional changes
+
+1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
+2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
+3. Changing core MM to accommodate multi attribute memory (long term)
+
+The first two set of changes can get the user space applications
+moving by identifying the right nodes and their attributes through
+sysfs interface.
 
 > 
-> In preparation for such systems, provide a new API for the kernel to
-> register these memory side caches under the memory node that provides it.
-
-Under target memory node interface /sys/devices/system/node/nodeY/target* ?
-
+> Did you have an alternative for how you wanted this to look?
 > 
-> The kernel's sysfs representation is modeled from the cpu cacheinfo
-> attributes, as seen from /sys/devices/system/cpu/cpuX/cache/. Unlike CPU
-> cacheinfo, though, a higher node's memory cache level is nearer to the
-> CPU, while lower levels are closer to the backing memory. Also unlike
-> CPU cache, the system handles flushing any dirty cached memory to the
-> last level the memory on a power failure if the range is persistent.
 
-Lets assume that a CPU has got four levels of caches L1, L2, L3, L4 before
-reaching memory. L4 is the backing cache for the memory and L1-L3 is from
-CPU till the system bus. Hence some of them will be represented as CPU
-caches and some of them will be represented as memory caches ?
+No. I did not get enough time this year to rework on the original
+proposal I had. But will be able to help here to make this interface
+more generic, abstract out these properties which is extensible in
+the future.
 
-/sys/devices/system/cpu/cpuX/cache/ --> L1, L2, L3
-/sys/devices/system/node/nodeY/target --> L4 
-
-L4 will be listed even if the node is memory only ?
+- Anshuman
