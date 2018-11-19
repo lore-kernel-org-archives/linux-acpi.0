@@ -1,37 +1,109 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Mon, 19 Nov 2018 12:56:56 -0500
-Message-ID: <ef0a24e4-906e-f6df-c646-1fe47ea0dcc0@kernel.org>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
- <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
- <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
- <20181119165318.GB26595@localhost.localdomain>
- <74f2c527-0890-5e14-5e2d-48934a42dae6@kernel.org>
- <ab2427f1-c1f0-68fe-5335-1494caafdcbb@kernel.org>
- <20181119174127.GE26595@localhost.localdomain>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / platform: Add SMB0001 HID to forbidden_id_list
+Date: Mon, 19 Nov 2018 19:06:01 +0100
+Message-ID: <20181119180601.962-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119174127.GE26595@localhost.localdomain>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Tyler Baicar <baicar.tyler@gmail.com>, mr.nuke.me@gmail.com, helgaas@google.com, austin_bolen@dell.com, alex_gagniuc@dellteam.com, Shyam_Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, Lukas Kahnert <openproggerfreak@gmail.com>, Marc <suaefar@googlemail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/19/2018 12:41 PM, Keith Busch wrote:
->> Still, breaking existing systems that rely on HEST table is not cool.
->> I'd rather have users specify "pcie_ports=native" to skip FF rather than
->> having broken systems by default to be honest.
-> The pcie_ports=native work-around ignores FF to potentially unknown
-> results, though.
-> 
+Many HP AMD based laptops contain an SMB0001 device like this:
 
-How about being able to enable/disable FF in BIOS?
+Device (SMBD)
+{
+    Name (_HID, "SMB0001")  // _HID: Hardware ID
+    Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
+    {
+        IO (Decode16,
+            0x0B20,             // Range Minimum
+            0x0B20,             // Range Maximum
+            0x20,               // Alignment
+            0x20,               // Length
+            )
+        IRQ (Level, ActiveLow, Shared, )
+            {7}
+    })
+}
 
-We can't really turn off firmware first in the kernel without asking help
-from the firmware. Like you said, it causes unpredictable results.
+The legacy style IRQ resource here causes acpi_dev_get_irqresource() to
+be called with legacy=true and this message to show in dmesg:
+ACPI: IRQ 7 override to edge, high
 
-There will be two competing software trying to touch the same registers.
+This causes issues when later on the AMD0030 GPIO device gets enumerated:
+
+Device (GPIO)
+{
+    Name (_HID, "AMDI0030")  // _HID: Hardware ID
+    Name (_CID, "AMDI0030")  // _CID: Compatible ID
+    Name (_UID, Zero)  // _UID: Unique ID
+    Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+    {
+	Name (RBUF, ResourceTemplate ()
+	{
+	    Interrupt (ResourceConsumer, Level, ActiveLow, Shared, ,, )
+	    {
+		0x00000007,
+	    }
+	    Memory32Fixed (ReadWrite,
+		0xFED81500,         // Address Base
+		0x00000400,         // Address Length
+		)
+	})
+	Return (RBUF) /* \_SB_.GPIO._CRS.RBUF */
+    }
+}
+
+Now acpi_dev_get_irqresource() gets called with legacy=false, but because
+of the earlier override of the trigger-type acpi_register_gsi() returns
+-EBUSY (because we try to register the same interrupt with a different
+trigger-type) and we end up setting IORESOURCE_DISABLED in the flags.
+
+The setting of IORESOURCE_DISABLED causes platform_get_irq() to call
+acpi_irq_get() which is not implemented on x86 and returns -EINVAL.
+resulting in the following in dmesg:
+
+amd_gpio AMDI0030:00: Failed to get gpio IRQ: -22
+amd_gpio: probe of AMDI0030:00 failed with error -22
+
+The SMB0001 is a "virtual" device in the sense that the only way the OS
+interacts with it is through calling a couple of methods to do SMBus
+transfers. As such it is weird that it has IO and IRQ resources at all,
+because the driver for it is not expected to ever access the hardware
+directly.
+
+The Linux driver for the SMB0001 device directly binds to the acpi_device
+through the acpi_bus, so we do not need to instantiate a platform_device
+for this ACPI device. This commit adds the SMB0001 HID to the
+forbidden_id_list, avoiding the instantiating of a platform_device for it.
+Not instantiating a platform_device means we will no longer call
+acpi_dev_get_irqresource() for the legacy IRQ resource fixing the probe of
+the AMDI0030 device failing.
+
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1644013
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=198715
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=199523
+Reported-by: Lukas Kahnert <openproggerfreak@gmail.com>
+Tested-by: Marc <suaefar@googlemail.com>
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/acpi_platform.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+index eaa60c94205a..1f32caa87686 100644
+--- a/drivers/acpi/acpi_platform.c
++++ b/drivers/acpi/acpi_platform.c
+@@ -30,6 +30,7 @@ static const struct acpi_device_id forbidden_id_list[] = {
+ 	{"PNP0200",  0},	/* AT DMA Controller */
+ 	{"ACPI0009", 0},	/* IOxAPIC */
+ 	{"ACPI000A", 0},	/* IOAPIC */
++	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
+ 	{"", 0},
+ };
+ 
+-- 
+2.19.1
