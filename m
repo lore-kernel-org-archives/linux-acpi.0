@@ -1,105 +1,36 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: [PATCH 4.18 074/171] acpi/nfit, x86/mce: Validate a MCEs address before using it
-Date: Mon, 19 Nov 2018 17:27:50 +0100
-Message-ID: <20181119162631.595558208@linuxfoundation.org>
-References: <20181119162618.909354448@linuxfoundation.org>
+From: Tyler Baicar <baicar.tyler@gmail.com>
+Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns AER
+Date: Mon, 19 Nov 2018 11:53:05 -0500
+Message-ID: <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
+References: <20181115231605.24352-1-mr.nuke.me@gmail.com> <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119162618.909354448@linuxfoundation.org>
+In-Reply-To: <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, stable@vger.kernel.org, Robert Elliott <elliott@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, Borislav Petkov <bp@suse.de>, Arnd Bergmann <arnd@arndb.de>, Dan Williams <dan.j.williams@intel.com>, Dave Jiang <dave.jiang@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-edac <linux-edac@vger.kernel.org>, linux-nvdimm@lists.01.org, Qiuxu Zhuo <qiuxu.zhuo@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ross Zwisler <zwisler@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Tony Luck <tony.luck@intel.com>, x86-ml <x86@kernel.org>, Yazen Ghannam <yazen.ghannam@amd.com>
+To: okaya@kernel.org
+Cc: mr.nuke.me@gmail.com, helgaas@google.com, austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-4.18-stable review patch.  If anyone has any objections, please let me know.
+On Thu, Nov 15, 2018 at 8:49 PM Sinan Kaya <okaya@kernel.org> wrote:
+>
+> On 11/15/2018 3:16 PM, Alexandru Gagniuc wrote:
+> > I've asked around a few people at Dell and they unanimously agree that
+> > _OSC is the correct way to determine ownership of AER. In linux, we
+> > use the result of _OSC to enable AER services, but we use HEST to
+> > determine AER ownership. That's inconsistent. This series drops the
+> > use of HEST in favor of _OSC.
+> >
+> > [1]https://lkml.org/lkml/2018/11/15/62
+>
+> This change breaks the existing systems that rely on the HEST table
+> telling the operating system about firmware first presence.
+>
+> Besides, HEST table has much more granularity about which PCI component
+> needs firmware such as global/device/switch.
+>
+> You should probably circulate these ideas for wider consumption in UEFI
+> forum as UEFI owns the HEST table definition.
 
-------------------
-
-From: Vishal Verma <vishal.l.verma@intel.com>
-
-commit e8a308e5f47e545e0d41d0686c00f5f5217c5f61 upstream.
-
-The NFIT machine check handler uses the physical address from the mce
-structure, and compares it against information in the ACPI NFIT table
-to determine whether that location lies on an NVDIMM. The mce->addr
-field however may not always be valid, and this is indicated by the
-MCI_STATUS_ADDRV bit in the status field.
-
-Export mce_usable_address() which already performs validation for the
-address, and use it in the NFIT handler.
-
-Fixes: 6839a6d96f4e ("nfit: do an ARS scrub on hitting a latent media error")
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
-Signed-off-by: Borislav Petkov <bp@suse.de>
-CC: Arnd Bergmann <arnd@arndb.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-CC: Dave Jiang <dave.jiang@intel.com>
-CC: elliott@hpe.com
-CC: "H. Peter Anvin" <hpa@zytor.com>
-CC: Ingo Molnar <mingo@redhat.com>
-CC: Len Brown <lenb@kernel.org>
-CC: linux-acpi@vger.kernel.org
-CC: linux-edac <linux-edac@vger.kernel.org>
-CC: linux-nvdimm@lists.01.org
-CC: Qiuxu Zhuo <qiuxu.zhuo@intel.com>
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-CC: Ross Zwisler <zwisler@kernel.org>
-CC: stable <stable@vger.kernel.org>
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Tony Luck <tony.luck@intel.com>
-CC: x86-ml <x86@kernel.org>
-CC: Yazen Ghannam <yazen.ghannam@amd.com>
-Link: http://lkml.kernel.org/r/20181026003729.8420-2-vishal.l.verma@intel.com
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-
----
- arch/x86/include/asm/mce.h       |    1 +
- arch/x86/kernel/cpu/mcheck/mce.c |    3 ++-
- drivers/acpi/nfit/mce.c          |    4 ++++
- 3 files changed, 7 insertions(+), 1 deletion(-)
-
---- a/arch/x86/include/asm/mce.h
-+++ b/arch/x86/include/asm/mce.h
-@@ -217,6 +217,7 @@ static inline int umc_normaddr_to_sysadd
- int mce_available(struct cpuinfo_x86 *c);
- bool mce_is_memory_error(struct mce *m);
- bool mce_is_correctable(struct mce *m);
-+int mce_usable_address(struct mce *m);
- 
- DECLARE_PER_CPU(unsigned, mce_exception_count);
- DECLARE_PER_CPU(unsigned, mce_poll_count);
---- a/arch/x86/kernel/cpu/mcheck/mce.c
-+++ b/arch/x86/kernel/cpu/mcheck/mce.c
-@@ -489,7 +489,7 @@ static void mce_report_event(struct pt_r
-  * be somewhat complicated (e.g. segment offset would require an instruction
-  * parser). So only support physical addresses up to page granuality for now.
-  */
--static int mce_usable_address(struct mce *m)
-+int mce_usable_address(struct mce *m)
- {
- 	if (!(m->status & MCI_STATUS_ADDRV))
- 		return 0;
-@@ -509,6 +509,7 @@ static int mce_usable_address(struct mce
- 
- 	return 1;
- }
-+EXPORT_SYMBOL_GPL(mce_usable_address);
- 
- bool mce_is_memory_error(struct mce *m)
- {
---- a/drivers/acpi/nfit/mce.c
-+++ b/drivers/acpi/nfit/mce.c
-@@ -29,6 +29,10 @@ static int nfit_handle_mce(struct notifi
- 	if (!mce_is_memory_error(mce) || mce_is_correctable(mce))
- 		return NOTIFY_DONE;
- 
-+	/* Verify the address reported in the MCE is valid. */
-+	if (!mce_usable_address(mce))
-+		return NOTIFY_DONE;
-+
- 	/*
- 	 * mce->addr contains the physical addr accessed that caused the
- 	 * machine check. We need to walk through the list of NFITs, and see
+I agree with Sinan, this will break existing systems, and the granularity of the
+HEST definition is more useful than the single bit in _OSC.
