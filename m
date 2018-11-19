@@ -1,359 +1,155 @@
-From: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Subject: Re: [PATCH v11 4/5] x86/boot: Dig out SRAT table from RSDP and find
- immovable memory
-Date: Mon, 19 Nov 2018 10:08:11 +0800
-Message-ID: <20181119020811.GC2336@localhost.localdomain>
-References: <20181112094645.4879-1-fanc.fnst@cn.fujitsu.com>
- <20181112094645.4879-5-fanc.fnst@cn.fujitsu.com>
- <20181116111654.GC20313@zn.tnic>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 1/7] node: Link memory nodes to their compute nodes
+Date: Mon, 19 Nov 2018 08:16:02 +0530
+Message-ID: <79caebd8-ebf1-58b5-31e7-ead3626a1ec7@arm.com>
+References: <20181114224921.12123-2-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181116111654.GC20313@zn.tnic>
+In-Reply-To: <20181114224921.12123-2-keith.busch@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: linux-kernel@vger.kernel.org, x86@kernel.org, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, keescook@chromium.org, bhe@redhat.com, msys.mizuma@gmail.com, indou.takao@jp.fujitsu.com, caoj.fnst@cn.fujitsu.com
+To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 16, 2018 at 12:16:54PM +0100, Borislav Petkov wrote:
->On Mon, Nov 12, 2018 at 05:46:44PM +0800, Chao Fan wrote:
->> To avoid KASLR extracting kernel on movable memory, slove the
->						      ^^^^^
->
->Please introduce a spellchecker into your patch creation workflow.
 
-OK.
 
->
->> conflict between KASLR and movable_node feature, dig the SRAT tables
->
->s/dig/determine/ or "compute SRAT table's address" or so.
->
->Also, replace "dig" with a more suitable verb in all your patches.
+On 11/15/2018 04:19 AM, Keith Busch wrote:
+> Memory-only nodes will often have affinity to a compute node, and
+> platforms have ways to express that locality relationship.
 
-How about "search RSDP pointer"
->
->> from RSDP pointer. Walk the SRAT tables and store the immovable
->> memory regions in immovable_mem[].
->
->		"... in an array called immovable_mem[]."
+It may not have a local affinity to any compute node but it might have a
+valid NUMA distance from all available compute nodes. This is particularly
+true when the coherent device memory which is accessible from all available
+compute nodes without having local affinity to any compute node other than
+the device compute which may or not be represented as a NUMA node in itself.
 
-Looks good.
+But in case of normally system memory also, a memory only node might be far
+from other CPU nodes and may not have CPUs of it's own. In that case there
+is no local affinity anyways.
 
->
->> There are three methods to get RSDP pointer: KEXEC condition,
->> EFI confition, BIOS condition.
->
->"condition" is not the right word here.
->
->> If KEXEC add 'acpi_rsdp' to cmdline, use it.
->> Otherwise, parse EFI table for RSDP.
->> Then, search memory for RSDP.
->> 
->> Imitate from ACPI code, based on acpi_os_get_root_pointer().
->> Process: RSDP->RSDT/XSDT->ACPI root table->SRAT.
->
->What?!
->
->This looks like a comment you've added as a note for yourself but not
->part of the final commit message. If you wanna explain the process, then
->write it out in plain english as if you're explaining it to someone who
->doesn't know what you're doing.
+> 
+> A node containing CPUs or other DMA devices that can initiate memory
+> access are referred to as "memory iniators". A "memory target" is a
 
-OK.
+Memory initiators should also include heterogeneous compute elements like
+GPU cores, FPGA elements etc apart from CPU and DMA engines.
 
->
->> 
->> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
->> ---
->>  arch/x86/boot/compressed/Makefile |   4 +
->>  arch/x86/boot/compressed/acpitb.c | 139 ++++++++++++++++++++++++++++++
->>  arch/x86/boot/compressed/kaslr.c  |   4 -
->>  arch/x86/boot/compressed/misc.h   |  15 ++++
->>  4 files changed, 158 insertions(+), 4 deletions(-)
->> 
->> diff --git a/arch/x86/boot/compressed/Makefile b/arch/x86/boot/compressed/Makefile
->> index 466f66c8a7f8..b51f7629b8ef 100644
->> --- a/arch/x86/boot/compressed/Makefile
->> +++ b/arch/x86/boot/compressed/Makefile
->> @@ -84,6 +84,10 @@ ifdef CONFIG_X86_64
->>  	vmlinux-objs-y += $(obj)/pgtable_64.o
->>  endif
->>  
->> +#if (defined CONFIG_MEMORY_HOTREMOVE) && (defined CONFIG_RANDOMIZE_BASE)
->> +vmlinux-objs-$(CONFIG_RANDOMIZE_BASE) += $(obj)/acpitb.o
->> +#endif
->
->Right, as previously pointed out, this needs that CONFIG_ symbol and
->then you can save yourself most (if not all) of the ifdeffery in the
->rest of the patchset.
+> node that provides at least one phyiscal address range accessible to a
+> memory initiator.
 
-That makes sense, I will do that.
+This definition for "memory target" makes sense. Coherent accesses within
+PA range from all possible "memory initiators" which should also include
+heterogeneous compute elements as mentioned before.
 
->
->> +
->>  $(obj)/eboot.o: KBUILD_CFLAGS += -fshort-wchar -mno-red-zone
->>  
->>  vmlinux-objs-$(CONFIG_EFI_STUB) += $(obj)/eboot.o $(obj)/efi_stub_$(BITS).o \
->> diff --git a/arch/x86/boot/compressed/acpitb.c b/arch/x86/boot/compressed/acpitb.c
->> index 5cfb4efa5a19..161f21a7fb3b 100644
->> --- a/arch/x86/boot/compressed/acpitb.c
->> +++ b/arch/x86/boot/compressed/acpitb.c
->> @@ -14,6 +14,11 @@
->>  #define BOOT_STRING
->>  #include "../string.h"
->>  
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +/* Store the immovable memory regions */
->> +struct mem_vector immovable_mem[MAX_NUMNODES*2];
->> +#endif
->> +
->>  /* Search EFI table for RSDP table. */
->>  static void efi_get_rsdp_addr(acpi_physical_address *rsdp_addr)
->>  {
->> @@ -226,3 +231,137 @@ static void get_acpi_rsdp(acpi_physical_address *rsdp_addr)
->>  	}
->>  #endif
->>  }
->> +
->> +/*
->> + * Used to dig RSDP table from EFI table or BIOS.
->> + * If RSDP table found in EFI table, use it. Or search BIOS.
->> + * Based on acpi_os_get_root_pointer().
->> + */
->> +static acpi_physical_address get_rsdp_addr(void)
->> +{
->> +	acpi_physical_address pa = 0;
->> +
->> +	get_acpi_rsdp(&pa);
->> +
->> +	if (!pa)
->> +		efi_get_rsdp_addr(&pa);
->> +
->> +	if (!pa)
->> +		bios_get_rsdp_addr(&pa);
->> +
->> +	return pa;
->> +}
->> +
->> +static struct acpi_table_header *get_acpi_srat_table(void)
->> +{
->> +	acpi_physical_address acpi_table;
->> +	acpi_physical_address root_table;
->> +	struct acpi_table_header *header;
->> +	struct acpi_table_rsdp *rsdp;
->> +	bool acpi_use_rsdt = false;
->> +	char *signature;
->> +	char arg[10];
->> +	u8 *entry;
->> +	u32 count;
->> +	u32 size;
->> +	int i, j;
->> +	int ret;
->> +	u32 len;
->> +
->> +	rsdp = (struct acpi_table_rsdp *)get_rsdp_addr();
->> +	if (!rsdp)
->> +		return NULL;
->> +
->> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
->> +	if (ret == 4 && !strncmp(arg, "rsdt", 4))
->> +		acpi_use_rsdt = true;
->> +
->> +	/* Get RSDT or XSDT from RSDP. */
->> +	if (!acpi_use_rsdt &&
->> +	    rsdp->xsdt_physical_address && rsdp->revision > 1) {
->> +		root_table = rsdp->xsdt_physical_address;
->> +		size = ACPI_XSDT_ENTRY_SIZE;
->> +	} else {
->> +		root_table = rsdp->rsdt_physical_address;
->> +		size = ACPI_RSDT_ENTRY_SIZE;
->> +	}
->
->Reorganize that code here to get rid of acpi_use_rsdt.
+> 
+> In preparation for these systems, provide a new kernel API to link
+> the target memory node to its initiator compute node with symlinks to
+> each other.
 
-OK.
+Makes sense but how would we really define NUMA placement for various
+heterogeneous compute elements which are connected differently to the
+system bus differently than the CPU and DMA. 
 
->
->> +
->> +	/* Get ACPI root table from RSDT or XSDT.*/
->> +	header = (struct acpi_table_header *)root_table;
->> +	len = header->length;
->
->No checking of that header pointer before dereffing it?
->
->If it is NUL, that gives you a very nasty bug to try to debug in the
->early code.
->
->> +	count = (u32)((len - sizeof(struct acpi_table_header)) / size);
->
->Uuh, no checking for count wrapping around here due to wrong len? That
->would give you a *lot* of looping below if it wraps.
->
->IOW, you need to verify all those values before doing arithmetic with
->them - it is early code and it is BIOS - there's no trusting it.
+> 
+> The following example shows the new sysfs hierarchy setup for memory node
+> 'Y' local to commpute node 'X':
+> 
+>   # ls -l /sys/devices/system/node/nodeX/initiator*
+>   /sys/devices/system/node/nodeX/targetY -> ../nodeY
+> 
+>   # ls -l /sys/devices/system/node/nodeY/target*
+>   /sys/devices/system/node/nodeY/initiatorX -> ../nodeX
 
-I will add the check.
+This inter linking makes sense but once we are able to define all possible
+memory initiators and memory targets as NUMA nodes (which might not very
+trivial) taking into account heterogeneous compute environment. But this
+linking at least establishes the coherency relationship between memory
+initiators and memory targets.
 
->
->Also, it is not "count" but "num_entries" or so.
->
->> +	entry = ACPI_ADD_PTR(u8, header, sizeof(struct acpi_table_header));
->> +
->> +	for (i = 0; i < count; i++) {
->
->That variable i is not needed, right?
->
->	while (num_entries--)
->
->?
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  drivers/base/node.c  | 32 ++++++++++++++++++++++++++++++++
+>  include/linux/node.h |  2 ++
+>  2 files changed, 34 insertions(+)
+> 
+> diff --git a/drivers/base/node.c b/drivers/base/node.c
+> index 86d6cd92ce3d..a9b7512a9502 100644
+> --- a/drivers/base/node.c
+> +++ b/drivers/base/node.c
+> @@ -372,6 +372,38 @@ int register_cpu_under_node(unsigned int cpu, unsigned int nid)
+>  				 kobject_name(&node_devices[nid]->dev.kobj));
+>  }
+>  
+> +int register_memory_node_under_compute_node(unsigned int m, unsigned int p)
+> +{
+> +	int ret;
+> +	char initiator[20], target[17];
 
-Yes
+20, 17 seems arbitrary here.
 
->
->> +		u64 address64;
->> +
->> +		if (size == ACPI_RSDT_ENTRY_SIZE)
->> +			acpi_table = ((acpi_physical_address)
->> +				      (*ACPI_CAST_PTR(u32, entry)));
->> +		else {
->> +			*(u64 *)(void *)&address64 = *(u64 *)(void *)entry;
->> +			acpi_table = (acpi_physical_address) address64;
->> +		}
->> +
->> +		if (acpi_table) {
->
->Now can acpi_table be NUL here?
->
+> +
+> +	if (!node_online(p) || !node_online(m))
+> +		return -ENODEV;
 
-Thank you,
-I will change all of these.
+Just wondering how a NUMA node for group of GPU compute elements will look
+like which are not manage by kernel but are still memory initiators having
+access to a number of memory targets.
 
-Thanks,
-Chao Fan
+> +	if (m == p)
+> +		return 0;
 
->> +			header = (struct acpi_table_header *)acpi_table;
->> +			signature = header->signature;
->> +
->> +			if (ACPI_COMPARE_NAME(header->signature, ACPI_SIG_SRAT))
->> +				return header;
->> +		}
->> +		entry += size;
->> +	}
->> +	return NULL;
->> +}
->> +
->> +/*
->> + * According to ACPI table, filter the immvoable memory regions
->					  ^^^^^^^^^
->Typo.
+Why skip ? Should not we link memory target to it's own node which can be
+it's memory initiator as well. Caller of this linking function might decide
+on whether the memory target is accessible from same NUMA node as a memory
+initiator or not.
+
+> +
+> +	snprintf(initiator, sizeof(initiator), "initiator%d", p);
+> +	snprintf(target, sizeof(target), "target%d", m);
+> +
+> +	ret = sysfs_create_link(&node_devices[p]->dev.kobj,
+> +				&node_devices[m]->dev.kobj,
+> +				target);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = sysfs_create_link(&node_devices[m]->dev.kobj,
+> +				&node_devices[p]->dev.kobj,
+> +				initiator);
+> +	if (ret)
+> +		goto err;
+> +
+> +	return 0;
+> + err:
+> +	sysfs_remove_link(&node_devices[p]->dev.kobj,
+> +			  kobject_name(&node_devices[m]->dev.kobj));
+> +	return ret;
+> +}
+> +
+>  int unregister_cpu_under_node(unsigned int cpu, unsigned int nid)
+>  {
+>  	struct device *obj;
+> diff --git a/include/linux/node.h b/include/linux/node.h
+> index 257bb3d6d014..1fd734a3fb3f 100644
+> --- a/include/linux/node.h
+> +++ b/include/linux/node.h
+> @@ -75,6 +75,8 @@ extern int register_mem_sect_under_node(struct memory_block *mem_blk,
+>  extern int unregister_mem_sect_under_nodes(struct memory_block *mem_blk,
+>  					   unsigned long phys_index);
+>  
+> +extern int register_memory_node_under_compute_node(unsigned int m, unsigned int p);
+> +
+>  #ifdef CONFIG_HUGETLBFS
+>  extern void register_hugetlbfs_with_node(node_registration_func_t doregister,
+>  					 node_registration_func_t unregister);
 >
->> + * and store them in immovable_mem[].
->> + */
->> +void get_immovable_mem(void)
->> +{
->> +	struct acpi_table_header *table_header;
->> +	struct acpi_subtable_header *table;
->> +	struct acpi_srat_mem_affinity *ma;
->> +	unsigned long table_end;
->> +	char arg[10];
->> +	int i = 0;
->> +	int ret;
->> +
->> +	ret = cmdline_find_option("acpi", arg, sizeof(arg));
->> +	if (ret == 3 && !strncmp(arg, "off", 3))
->> +		return;
->> +
->> +	if (!cmdline_find_option_bool("movable_node"))
->> +		return;
->> +
->> +	table_header = get_acpi_srat_table();
->> +	if (!table_header)
->> +		return;
->> +
->> +	table_end = (unsigned long)table_header + table_header->length;
->> +
->> +	table = (struct acpi_subtable_header *)
->> +		((unsigned long)table_header + sizeof(struct acpi_table_srat));
->> +
->> +	while (((unsigned long)table) +
->> +		       sizeof(struct acpi_subtable_header) < table_end) {
->> +		if (table->type == ACPI_SRAT_TYPE_MEMORY_AFFINITY) {
->> +			ma = (struct acpi_srat_mem_affinity *)table;
->> +			if (!(ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)) {
->> +				immovable_mem[i].start = ma->base_address;
->> +				immovable_mem[i].size = ma->length;
->> +				i++;
->> +			}
->> +
->> +			if (i >= MAX_NUMNODES*2) {
->> +				debug_putstr("Too many immovable memory regions, aborted.\n");
->
->"..., aborting."
->
->> +				break;
->> +			}
->> +		}
->> +		table = (struct acpi_subtable_header *)
->> +			((unsigned long)table + table->length);
->> +	}
->> +	num_immovable_mem = i;
->> +}
->> diff --git a/arch/x86/boot/compressed/kaslr.c b/arch/x86/boot/compressed/kaslr.c
->> index 9ed9709d9947..b251572e77af 100644
->> --- a/arch/x86/boot/compressed/kaslr.c
->> +++ b/arch/x86/boot/compressed/kaslr.c
->> @@ -87,10 +87,6 @@ static unsigned long get_boot_seed(void)
->>  #define KASLR_COMPRESSED_BOOT
->>  #include "../../lib/kaslr.c"
->>  
->> -struct mem_vector {
->> -	unsigned long long start;
->> -	unsigned long long size;
->> -};
->>  
->>  /* Only supporting at most 4 unusable memmap regions with kaslr */
->>  #define MAX_MEMMAP_REGIONS	4
->> diff --git a/arch/x86/boot/compressed/misc.h b/arch/x86/boot/compressed/misc.h
->> index a1d5918765f3..4a3645fda0ed 100644
->> --- a/arch/x86/boot/compressed/misc.h
->> +++ b/arch/x86/boot/compressed/misc.h
->> @@ -77,6 +77,11 @@ void choose_random_location(unsigned long input,
->>  			    unsigned long *output,
->>  			    unsigned long output_size,
->>  			    unsigned long *virt_addr);
->> +struct mem_vector {
->> +	unsigned long long start;
->> +	unsigned long long size;
->> +};
->> +
->>  /* cpuflags.c */
->>  bool has_cpuflag(int flag);
->>  #else
->> @@ -116,3 +121,13 @@ static inline void console_init(void)
->>  void set_sev_encryption_mask(void);
->>  
->>  #endif
->> +
->> +/* acpitb.c */
->> +#ifdef CONFIG_RANDOMIZE_BASE
->> +int num_immovable_mem;
->> +#ifdef CONFIG_MEMORY_HOTREMOVE
->> +/* Store the amount of immovable memory regions */
->
->Above says "regions" but define below is "TABLES". Hmmm?
->
->> +#define ACPI_MAX_TABLES                128
->> +void get_immovable_mem(void);
->> +#endif
->> +#endif
->> -- 
->
->-- 
->Regards/Gruss,
->    Boris.
->
->Good mailing practices for 400: avoid top-posting and trim the reply.
->
->
+The code is all good but as mentioned before the primary concern is whether
+this semantics will be able to correctly represent all possible present and
+future heterogeneous compute environments with multi attribute memory. This
+is going to be a kernel API. So apart from various NUMA representation for
+all possible kinds, the interface has to be abstract with generic elements
+and room for future extension.
