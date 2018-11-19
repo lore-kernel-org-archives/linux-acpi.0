@@ -1,54 +1,84 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Mon, 19 Nov 2018 11:14:28 +0530
-Message-ID: <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
- <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 6/7] acpi: Create subtable parsing infrastructure
+Date: Mon, 19 Nov 2018 10:58:12 +0100
+Message-ID: <CAJZ5v0gQCpmRHdSS=xxLSx-+1xbexSFQb_ZxMvZuKUjk6+w5ww@mail.gmail.com>
+References: <20181114224921.12123-2-keith.busch@intel.com> <20181114224921.12123-7-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
-Content-Language: en-US
+In-Reply-To: <20181114224921.12123-7-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Wed, Nov 14, 2018 at 11:53 PM Keith Busch <keith.busch@intel.com> wrote:
+>
+> Parsing entries in an ACPI table had assumed a generic header structure
+> that is most common. There is no standard ACPI header, though, so less
+> common types would need custom parsers if they want go walk their
+> subtable entry list.
+>
+> Create the infrastructure for adding different table types so parsing
+> the entries array may be more reused for all ACPI system tables.
+>
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  drivers/acpi/tables.c | 75 ++++++++++++++++++++++++++++++++++++++++++++-------
+>  1 file changed, 65 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 61203eebf3a1..15ee77780f68 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -49,6 +49,19 @@ static struct acpi_table_desc initial_tables[ACPI_MAX_TABLES] __initdata;
+>
+>  static int acpi_apic_instance __initdata;
+>
+> +enum acpi_subtable_type {
+> +       ACPI_SUBTABLE_COMMON,
+> +};
+> +
+> +union acpi_subtable_headers {
+> +       struct acpi_subtable_header common;
+> +};
+> +
+> +struct acpi_subtable_entry {
+> +       union acpi_subtable_headers *hdr;
+> +       enum acpi_subtable_type type;
+> +};
+> +
+>  /*
+>   * Disable table checksum verification for the early stage due to the size
+>   * limitation of the current x86 early mapping implementation.
+> @@ -217,6 +230,45 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
+>         }
+>  }
+>
+> +static unsigned long __init
+> +acpi_get_entry_type(struct acpi_subtable_entry *entry)
+> +{
+> +       switch (entry->type) {
+> +       case ACPI_SUBTABLE_COMMON:
+> +               return entry->hdr->common.type;
+> +       }
+> +       WARN_ONCE(1, "invalid acpi type\n");
+> +       return 0;
+> +}
+> +
+> +static unsigned long __init
+> +acpi_get_entry_length(struct acpi_subtable_entry *entry)
+> +{
+> +       switch (entry->type) {
+> +       case ACPI_SUBTABLE_COMMON:
+> +               return entry->hdr->common.length;
+> +       }
+> +       WARN_ONCE(1, "invalid acpi type\n");
 
+AFAICS this does a WARN_ONCE() on information obtained from firmware.
 
-On 11/16/2018 10:25 PM, Dave Hansen wrote:
-> On 11/15/18 10:27 PM, Anshuman Khandual wrote:
->> Not able to see the patches from this series either on the list or on the
->> archive (https://lkml.org/lkml/2018/11/15/331). IIRC last time we discussed
->> about this and the concern which I raised was in absence of a broader NUMA
->> rework for multi attribute memory it might not a good idea to settle down
->> and freeze sysfs interface for the user space. 
-> 
+That is not a kernel problem, so generating traces in that case is not
+a good idea IMO.  Moreover, users can't really do much about this in
+the majority of cases, so a pr_info() message should be sufficient.
 
-Hello Dave,
-
-> This *is* the broader NUMA rework.  I think it's just a bit more
-> incremental that what you originally had in mind.
-
-IIUC NUMA re-work in principle involves these functional changes
-
-1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
-2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
-3. Changing core MM to accommodate multi attribute memory (long term)
-
-The first two set of changes can get the user space applications
-moving by identifying the right nodes and their attributes through
-sysfs interface.
-
-> 
-> Did you have an alternative for how you wanted this to look?
-> 
-
-No. I did not get enough time this year to rework on the original
-proposal I had. But will be able to help here to make this interface
-more generic, abstract out these properties which is extensible in
-the future.
-
-- Anshuman
+And similarly below.
