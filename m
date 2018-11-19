@@ -1,56 +1,37 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Mon, 19 Nov 2018 12:32:42 -0500
-Message-ID: <74f2c527-0890-5e14-5e2d-48934a42dae6@kernel.org>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
- <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
- <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
- <20181119165318.GB26595@localhost.localdomain>
+From: Dave Hansen <dave.hansen@intel.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Mon, 19 Nov 2018 09:37:51 -0800
+Message-ID: <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119165318.GB26595@localhost.localdomain>
+In-Reply-To: <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>, Tyler Baicar <baicar.tyler@gmail.com>
-Cc: mr.nuke.me@gmail.com, helgaas@google.com, austin_bolen@dell.com, alex_gagniuc@dellteam.com, Shyam_Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linuxppc-dev@lists.ozlabs.org
+To: Anshuman Khandual <anshuman.khandual@arm.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/19/2018 11:53 AM, Keith Busch wrote:
-> On Mon, Nov 19, 2018 at 11:53:05AM -0500, Tyler Baicar wrote:
->> On Thu, Nov 15, 2018 at 8:49 PM Sinan Kaya <okaya@kernel.org> wrote:
->>>
->>> On 11/15/2018 3:16 PM, Alexandru Gagniuc wrote:
->>>> I've asked around a few people at Dell and they unanimously agree that
->>>> _OSC is the correct way to determine ownership of AER. In linux, we
->>>> use the result of _OSC to enable AER services, but we use HEST to
->>>> determine AER ownership. That's inconsistent. This series drops the
->>>> use of HEST in favor of _OSC.
->>>>
->>>> [1]https://lkml.org/lkml/2018/11/15/62
->>>
->>> This change breaks the existing systems that rely on the HEST table
->>> telling the operating system about firmware first presence.
->>>
->>> Besides, HEST table has much more granularity about which PCI component
->>> needs firmware such as global/device/switch.
->>>
->>> You should probably circulate these ideas for wider consumption in UEFI
->>> forum as UEFI owns the HEST table definition.
->>
->> I agree with Sinan, this will break existing systems, and the granularity of the
->> HEST definition is more useful than the single bit in _OSC.
+On 11/18/18 9:44 PM, Anshuman Khandual wrote:
+> IIUC NUMA re-work in principle involves these functional changes
 > 
-> But we're not using HEST as a fine grain control. We disable native AER
-> handling if *any* device has FF set in HEST, and that just forces people
-> to use pcie_ports=native to get around that.
-> 
+> 1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
 
-I don't see *any* in the code.  aer_hest_parse() does the HEST table parsing.
-It switches to firmware first mode if global flag in HEST is set. Otherwise
-for each BDF in device, hest_match_pci() is used to do a cross-matching against
-HEST table contents.
+This patch set _does_ that, though.
 
-Am I missing something?
+> 2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
+
+It does that as well (a subset at least).
+
+It sounds like the subset that's being exposed is insufficient for yo
+We did that because we think doing anything but a subset in sysfs will
+just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
+attributes, that's at _least_ 1024*1024*4 files if we expose *all*
+combinations.
+
+Do we agree that sysfs is unsuitable for exposing attributes in this manner?
