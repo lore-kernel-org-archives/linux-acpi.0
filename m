@@ -1,14 +1,14 @@
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
-Date: Mon, 19 Nov 2018 09:05:07 +0530
-Message-ID: <91369e94-d389-7cb9-6274-f46c9ec779d3@arm.com>
+Subject: Re: [PATCH 4/7] node: Add memory caching attributes
+Date: Mon, 19 Nov 2018 09:44:00 +0530
+Message-ID: <91698cef-cdcd-5143-884f-3da5536e156f@arm.com>
 References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-3-keith.busch@intel.com>
+ <20181114224921.12123-5-keith.busch@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114224921.12123-3-keith.busch@intel.com>
+In-Reply-To: <20181114224921.12123-5-keith.busch@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
@@ -18,36 +18,37 @@ List-Id: linux-acpi@vger.kernel.org
 
 
 On 11/15/2018 04:19 AM, Keith Busch wrote:
-> Heterogeneous memory systems provide memory nodes with latency
-> and bandwidth performance attributes that are different from other
-> nodes. Create an interface for the kernel to register these attributes
+> System memory may have side caches to help improve access speed. While
+> the system provided cache is transparent to the software accessing
+> these memory ranges, applications can optimize their own access based
+> on cache attributes.
 
-There are other properties like power consumption, reliability which can
-be associated with a particular PA range. Also the set of properties has
-to be extensible for the future.
-
-> under the node that provides the memory. If the system provides this
-> information, applications can query the node attributes when deciding
-> which node to request memory.
-
-Right but each (memory initiator, memory target) should have these above
-mentioned properties enumerated to have an 'property as seen' from kind
-of semantics.
+Cache is not a separate memory attribute. It impacts how the real attributes
+like bandwidth, latency e.g which are already captured in the previous patch.
+What is the purpose of adding this as a separate attribute ? Can you explain
+how this is going to help the user space apart from the hints it has already
+received with bandwidth, latency etc properties.
 
 > 
-> When multiple memory initiators exist, accessing the same memory target
-> from each may not perform the same as the other. The highest performing
-> initiator to a given target is considered to be a local initiator for
-> that target. The kernel provides performance attributes only for the
-> local initiators.
+> In preparation for such systems, provide a new API for the kernel to
+> register these memory side caches under the memory node that provides it.
 
-As mentioned above the interface must enumerate a future extensible set
-of properties for each (memory initiator, memory target) pair available
-on the system.
+Under target memory node interface /sys/devices/system/node/nodeY/target* ?
 
 > 
-> The memory's compute node should be symlinked in sysfs as one of the
-> node's initiators.
+> The kernel's sysfs representation is modeled from the cpu cacheinfo
+> attributes, as seen from /sys/devices/system/cpu/cpuX/cache/. Unlike CPU
+> cacheinfo, though, a higher node's memory cache level is nearer to the
+> CPU, while lower levels are closer to the backing memory. Also unlike
+> CPU cache, the system handles flushing any dirty cached memory to the
+> last level the memory on a power failure if the range is persistent.
 
-Right. IIUC the first patch skips the linking process of for two nodes A
-and B if (A == B) preventing association to local memory initiator.
+Lets assume that a CPU has got four levels of caches L1, L2, L3, L4 before
+reaching memory. L4 is the backing cache for the memory and L1-L3 is from
+CPU till the system bus. Hence some of them will be represented as CPU
+caches and some of them will be represented as memory caches ?
+
+/sys/devices/system/cpu/cpuX/cache/ --> L1, L2, L3
+/sys/devices/system/node/nodeY/target --> L4 
+
+L4 will be listed even if the node is memory only ?
