@@ -1,82 +1,123 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH] ACPI / battery: Fix reporting "Not charging" when
- capacity is 100%
-Date: Tue, 20 Nov 2018 10:16:19 +0100
-Message-ID: <20181120091619.GC16916@amd>
-References: <20181103065732.12134-1-jprvita@endlessm.com>
- <20181105091917.GD4439@amd>
- <CA+A7VXXUB2CZUyPtaMya7in7ntO_unbqVnaZyfCBT_BXtAxeQQ@mail.gmail.com>
- <CAD8Lp46Go79C_xOkzM-hq4umET1M62Ofqw48swn1JNocifET3Q@mail.gmail.com>
- <c883a2be-e772-2e18-f074-d2ad5f27f42b@redhat.com>
- <20181111122243.GB28794@amd>
- <CA+A7VXWwfh-jdiq60kwY65k29BXP6PNOc9=X7b6SYF9=T65UUA@mail.gmail.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: Re: [PATCH 3/7] doc/vm: New documentation for memory performance
+Date: Tue, 20 Nov 2018 14:51:50 +0100
+Message-ID: <20181120135149.GA24627@rapoport-lnx>
+References: <20181114224921.12123-2-keith.busch@intel.com>
+ <20181114224921.12123-4-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="kVXhAStRUZ/+rrGn"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CA+A7VXWwfh-jdiq60kwY65k29BXP6PNOc9=X7b6SYF9=T65UUA@mail.gmail.com>
+In-Reply-To: <20181114224921.12123-4-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Daniel Drake <drake@endlessm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Sebastian Reichel <sebastian.reichel@collabora.co.uk>, LKML <linux-kernel@vger.kernel.org>, linux@endlessm.com, =?iso-8859-1?Q?Jo=E3o?= Paulo Rechi Vita <jprvita@endlessm.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi,
 
---kVXhAStRUZ/+rrGn
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Sorry if I'm jumping too late.
 
-Hi!
+On Wed, Nov 14, 2018 at 03:49:16PM -0700, Keith Busch wrote:
+> Platforms may provide system memory where some physical address ranges
+> perform differently than others. These heterogeneous memory attributes are
+> common to the node that provides the memory and exported by the kernel.
+> 
+> Add new documentation providing a brief overview of such systems and
+> the attributes the kernel makes available to aid applications wishing
+> to query this information.
+> 
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  Documentation/vm/numaperf.rst | 71 +++++++++++++++++++++++++++++++++++++++++++
 
-> > > Anyways this ultimately is Rafael's call. If Rafael is ok with this
-> > > patch then I would like to see Pavel's comment addressed and otherwise
-> > > it is fine with me.
-> > >
->=20
-> If we can get to an agreement on this I'll send a v2 without division.
->=20
-> > > Note that we will still often get the case where a laptop is charged,
-> > > reports full, is unplugged for 5 minutes and then replugged and then
-> > > reports a capacity of 97% combined with "not charging", so we will
-> > > still need to fix userspace to handle this.
-> >
->=20
-> Yes, I agree that should be addressed in userspace, as it is pretty
-> much a policy decision.
+As this document describes user-space interfaces it belongs to
+Documentation/admin-guide/mm.
 
-But it is battery hardware doing this. So you need to take it into
-account.
+>  1 file changed, 71 insertions(+)
+>  create mode 100644 Documentation/vm/numaperf.rst
+> 
+> diff --git a/Documentation/vm/numaperf.rst b/Documentation/vm/numaperf.rst
+> new file mode 100644
+> index 000000000000..5a3ecaff5474
+> --- /dev/null
+> +++ b/Documentation/vm/numaperf.rst
+> @@ -0,0 +1,71 @@
+> +.. _numaperf:
+> +
+> +================
+> +NUMA Performance
+> +================
+> +
+> +Some platforms may have multiple types of memory attached to a single
+> +CPU. These disparate memory ranges share some characteristics, such as
+> +CPU cache coherence, but may have different performance. For example,
+> +different media types and buses affect bandwidth and latency.
+> +
+> +A system supporting such heterogeneous memory groups each memory type
+> +under different "nodes" based on similar CPU locality and performance
+> +characteristics.  Some memory may share the same node as a CPU, and
+> +others are provided as memory-only nodes. While memory only nodes do not
+> +provide CPUs, they may still be local to one or more compute nodes. The
+> +following diagram shows one such example of two compute noes with local
+> +memory and a memory only node for each of compute node:
+> +
+> + +------------------+     +------------------+
+> + | Compute Node 0   +-----+ Compute Node 1   |
+> + | Local Node0 Mem  |     | Local Node1 Mem  |
+> + +--------+---------+     +--------+---------+
+> +          |                        |
+> + +--------+---------+     +--------+---------+
+> + | Slower Node2 Mem |     | Slower Node3 Mem |
+> + +------------------+     +--------+---------+
+> +
+> +A "memory initiator" is a node containing one or more devices such as
+> +CPUs or separate memory I/O devices that can initiate memory requests. A
+> +"memory target" is a node containing one or more CPU-accessible physical
+> +address ranges.
+> +
+> +When multiple memory initiators exist, accessing the same memory
+> +target may not perform the same as each other. The highest performing
+> +initiator to a given target is considered to be one of that target's
+> +local initiators.
+> +
+> +To aid applications matching memory targets with their initiators,
+> +the kernel provide symlinks to each other like the following example::
+> +
+> +	# ls -l /sys/devices/system/node/nodeX/initiator*
+> +	/sys/devices/system/node/nodeX/targetY -> ../nodeY
+> +
+> +	# ls -l /sys/devices/system/node/nodeY/target*
+> +	/sys/devices/system/node/nodeY/initiatorX -> ../nodeX
+> +
+> +Applications may wish to consider which node they want their memory to
+> +be allocated from based on the nodes performance characteristics. If
+> +the system provides these attributes, the kernel exports them under the
+> +node sysfs hierarchy by appending the initiator_access directory under
+> +the node as follows::
+> +
+> +	/sys/devices/system/node/nodeY/initiator_access/
+> +
+> +The kernel does not provide performance attributes for non-local memory
+> +initiators. The performance characteristics the kernel provides for
+> +the local initiators are exported are as follows::
+> +
+> +	# tree /sys/devices/system/node/nodeY/initiator_access
+> +	/sys/devices/system/node/nodeY/initiator_access
+> +	|-- read_bandwidth
+> +	|-- read_latency
+> +	|-- write_bandwidth
+> +	`-- write_latency
+> +
+> +The bandwidth attributes are provided in MiB/second.
+> +
+> +The latency attributes are provided in nanoseconds.
+> +
+> +See also: https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+> -- 
+> 2.14.4
+> 
 
-> > For the record, I don't think I'm okay with this.
-> >
-> > There's nothing special about 100% charge.
-> >
->=20
-> I don't agree there is nothing special about 100% charge. There is a
-> separate state to represent battery full for a reason, which is the
-> user wanting to know when their battery is 100% charged and not being
-> discharged.
-
-Yes, there is full for a reason, and you can be full at 97%, for
-example, as described above.
-
-								Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---kVXhAStRUZ/+rrGn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlvz0OMACgkQMOfwapXb+vJ+igCfXlDGd4AeNoGI/VnrvjZjr2k3
-j0QAn2A4PxgNbz0dlyKlmULTX7yQOJbv
-=Y3VY
------END PGP SIGNATURE-----
-
---kVXhAStRUZ/+rrGn--
+-- 
+Sincerely yours,
+Mike.
