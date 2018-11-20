@@ -1,36 +1,45 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH 3/7] doc/vm: New documentation for memory performance
-Date: Tue, 20 Nov 2018 08:31:15 -0700
-Message-ID: <20181120153115.GD26707@localhost.localdomain>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-4-keith.busch@intel.com>
- <20181120135149.GA24627@rapoport-lnx>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 03/15] platform/x86: i2c-multi-instantiate: Accept errors of i2c_acpi_new_device()
+Date: Tue, 20 Nov 2018 17:59:12 +0200
+Message-ID: <20181120155924.10773-4-andriy.shevchenko@linux.intel.com>
+References: <20181120155924.10773-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181120135149.GA24627@rapoport-lnx>
+In-Reply-To: <20181120155924.10773-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 20, 2018 at 02:51:50PM +0100, Mike Rapoport wrote:
-> On Wed, Nov 14, 2018 at 03:49:16PM -0700, Keith Busch wrote:
-> > Platforms may provide system memory where some physical address ranges
-> > perform differently than others. These heterogeneous memory attributes are
-> > common to the node that provides the memory and exported by the kernel.
-> > 
-> > Add new documentation providing a brief overview of such systems and
-> > the attributes the kernel makes available to aid applications wishing
-> > to query this information.
-> > 
-> > Signed-off-by: Keith Busch <keith.busch@intel.com>
-> > ---
-> >  Documentation/vm/numaperf.rst | 71 +++++++++++++++++++++++++++++++++++++++++++
-> 
-> As this document describes user-space interfaces it belongs to
-> Documentation/admin-guide/mm.
+In the future i2c_acpi_new_device() will return error pointer in some cases.
+Prepare i2c-multi-instantiate driver to support that.
 
-Thanks for the feedback. I'll move this and combine with the memory
-cache doc in the v2.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/platform/x86/i2c-multi-instantiate.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/i2c-multi-instantiate.c
+index 5456581b473c..e3345da82c84 100644
+--- a/drivers/platform/x86/i2c-multi-instantiate.c
++++ b/drivers/platform/x86/i2c-multi-instantiate.c
+@@ -72,9 +72,14 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+ 			board_info.irq = ret;
+ 		}
+ 		multi->clients[i] = i2c_acpi_new_device(dev, i, &board_info);
+-		if (!multi->clients[i]) {
+-			dev_err(dev, "Error creating i2c-client, idx %d\n", i);
++		if (IS_ERR(multi->clients[i]))
++			ret = PTR_ERR(multi->clients[i]);
++		else if (!multi->clients[i])
+ 			ret = -ENODEV;
++		else
++			ret = 0;
++		if (ret) {
++			dev_err(dev, "Error creating i2c-client, idx %d\n", i);
+ 			goto error;
+ 		}
+ 	}
+-- 
+2.19.1
