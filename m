@@ -1,50 +1,74 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Tue, 20 Nov 2018 16:02:21 -0500
-Message-ID: <314e59da-48e1-545b-3ee9-6e5056b90fd9@kernel.org>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
- <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
- <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
- <20181119165318.GB26595@localhost.localdomain>
- <74f2c527-0890-5e14-5e2d-48934a42dae6@kernel.org>
- <ab2427f1-c1f0-68fe-5335-1494caafdcbb@kernel.org>
- <20181119174127.GE26595@localhost.localdomain>
- <ef0a24e4-906e-f6df-c646-1fe47ea0dcc0@kernel.org>
- <20181119181051.GA26707@localhost.localdomain>
- <c0d6535f-324b-557a-3d0e-ccec070459a7@kernel.org>
- <3f923367-2cc1-c0d6-bca6-bf9a03d1b9ca@gmail.com>
- <ef6b19de-dd18-850f-4db9-8ab71b975e94@kernel.org>
- <bb575cfdcd0a4c50b489fb16eccfbff2@ausx13mps321.AMER.DELL.COM>
- <84013a8a-287d-d700-6710-91cc35f507c8@kernel.org>
- <9c9531c7efb846438f03f744b9afc466@ausx13mps321.AMER.DELL.COM>
- <3b18a9fa-7bdd-0fb4-285d-4efb454be50a@kernel.org>
- <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Tue, 20 Nov 2018 22:43:35 +0100
+Message-ID: <35089177.HEBOdrcs2c@aspire.rjw.lan>
+References: <20181113112700.GT2500@lahna.fi.intel.com> <372db397d5384efd8e7264ba8e1b9cbd@ausx13mpc120.AMER.DELL.COM> <20181116105738.GA21277@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
-Content-Language: en-US
+In-Reply-To: <20181116105738.GA21277@red-moon>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alex_Gagniuc@Dellteam.com, mr.nuke.me@gmail.com, keith.busch@intel.com
-Cc: baicar.tyler@gmail.com, Austin.Bolen@dell.com, Shyam.Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Mario.Limonciello@dell.com, mika.westerberg@linux.intel.com, lukas@wunner.de, iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, jacob.jun.pan@intel.com, andreas.noever@gmail.com, michael.jamet@intel.com, YehezkelShB@gmail.com, ckellner@redhat.com, anthony.wong@canonical.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/20/2018 3:44 PM, Alex_Gagniuc@Dellteam.com wrote:
-> I'd prefer "sure" instead of "think". "I think it breaks some system I'm
-> not telling you about" doesn't help much in figuring out how not to
-> break said system(s).:)
+On Friday, November 16, 2018 11:57:38 AM CET Lorenzo Pieralisi wrote:
+> On Thu, Nov 15, 2018 at 07:33:54PM +0000, Mario.Limonciello@dell.com wrote:
+> > 
+> > 
+> > > -----Original Message-----
+> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > Sent: Thursday, November 15, 2018 1:01 PM
+> > > To: Lorenzo Pieralisi
+> > > Cc: Lukas Wunner; iommu@lists.linux-foundation.org; Joerg Roedel; David
+> > > Woodhouse; Lu Baolu; Ashok Raj; Bjorn Helgaas; Rafael J. Wysocki; Jacob jun Pan;
+> > > Andreas Noever; Michael Jamet; Yehezkel Bernat; Christian Kellner; Limonciello,
+> > > Mario; Anthony Wong; linux-acpi@vger.kernel.org; linux-pci@vger.kernel.org; linux-
+> > > kernel@vger.kernel.org
+> > > Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+> > > 
+> > > 
+> > > [EXTERNAL EMAIL]
+> > > 
+> > > On Thu, Nov 15, 2018 at 05:46:08PM +0000, Lorenzo Pieralisi wrote:
+> > > > Do you really need to parse it if the dev->is_thunderbolt check is enough ?
+> > > 
+> > > Yes, we need to parse it one way or another. dev->is_thunderbolt is
+> > > based on heuristics which do not apply anymore when the thing gets
+> > > integrated in the SoC.
+> > > 
+> > > The _DSD is there already (on existing systems) and is being used by
+> > > Windows so I don't understand why we cannot take advantage of it? Every
+> > > new system with Thunderbolt ports will have it.
+> 
+> We have different opinions on this, there is no point in me reiterating
+> it over and over, I am against the approach taken to solve this problem
+> first in defining the bindings outside the ACPI specifications and
+> second by acquiescing to what has been done so that it will be done
+> over and over again.
 
-Sorry, I thought I mentioned why it would break but let me repeat.
+Arguably, however, we are on the receiving end of things here and even if
+we don't use this binding, that won't buy us anything (but it will introduce
+a fair amount of disappointment among both users and OEMs).
 
-The systems I have seen rely on the HEST table presence as an indicator
-to the OS that firmware first is enabled. If you go look at the _OSC bits
-on such systems, it still says OS owns the AER service.
+If Windows uses it, then systems will ship with it regardless of what Linux
+does with it, so your "acquiescing to what has been done" argument leads to
+nowhere in this particular case.  It's just a matter of whether or not
+Linux will provide the same level of functionality as Windows with respect
+to this and IMO it would be impractical to refuse to do that for purely
+formal reasons.
 
-The assumption here is that HEST table has precedence over the _OSC bits.
-That's what needs to be clarified in the UEFI forum.
+> I will raise the point in the appropriate forum, it is up to Bjorn
+> and Rafael to decide on this patch.
 
-If this code is to go in and ignore the HEST table presence, then firmware
-will think that it owns AER service and OS will think that it owns AER
-service too.
+For the record, my opinion is that there's a little choice on whether or not
+to use this extra information that firmware is willing to give us.  It could
+be defined in a better way and so on, but since it is in use anyway, we really
+have nothing to gain by refusing to use it.
+
+Now, where the handling of it belongs to is a separate matter that should be
+decided on its own.
+
+Thanks,
+Rafael
