@@ -1,8 +1,8 @@
-From: <Alex_Gagniuc@Dellteam.com>
+From: Sinan Kaya <okaya@kernel.org>
 Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
  AER
-Date: Tue, 20 Nov 2018 20:44:46 +0000
-Message-ID: <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
+Date: Tue, 20 Nov 2018 16:02:21 -0500
+Message-ID: <314e59da-48e1-545b-3ee9-6e5056b90fd9@kernel.org>
 References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
  <b9a739c8-80bd-e04c-ac19-97bc54f20eff@kernel.org>
  <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
@@ -19,65 +19,32 @@ References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
  <84013a8a-287d-d700-6710-91cc35f507c8@kernel.org>
  <9c9531c7efb846438f03f744b9afc466@ausx13mps321.AMER.DELL.COM>
  <3b18a9fa-7bdd-0fb4-285d-4efb454be50a@kernel.org>
+ <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: okaya@kernel.org, mr.nuke.me@gmail.com, keith.busch@intel.com
+To: Alex_Gagniuc@Dellteam.com, mr.nuke.me@gmail.com, keith.busch@intel.com
 Cc: baicar.tyler@gmail.com, Austin.Bolen@dell.com, Shyam.Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/19/2018 07:54 PM, Sinan Kaya wrote:=0A=
-> On 11/19/2018 6:49 PM, Alex_Gagniuc@Dellteam.com wrote:=0A=
->> On 11/19/2018 02:33 PM, Sinan Kaya wrote:=0A=
->>> However; table assumes governance about for which entities firmware fir=
-st=0A=
->>> should be enabled. There is no cross reference to _OSC or permission=0A=
->>> negotiation like _OST.=0A=
->>=0A=
->> Well, from an OSPM perspective, is FFS something that can be enabled or=
-=0A=
->> disabled? FFS seems to be static to OSPM, which would change the sort of=
-=0A=
->> assumptions we can reasonably make here.=0A=
-> =0A=
-> IMO, it can be enabled/disabled in BIOS. I have seen this implementation =
-before.=0A=
-> If the trigger is the presence of a statically compiled ACPI HEST table (=
-as the=0A=
-> current code does); presence of FFS would be static from OSPM perspective=
-.=0A=
-> BIOS could patch this table or hide it during boot.=0A=
-> =0A=
-> If FFS were to be negotiated via _OSC as indirectly implied in this serie=
-s, then=0A=
-> same BIOS could patch the ACPI table to return different values for the _=
-OSC=0A=
-> return.=0A=
-=0A=
-It is theoretically possible to have proprietary BIOS settings to =0A=
-disable FFS. The platform vendors that I've spoken to do not offer this =0A=
-option. Though even if, hypothetically, BIOS clears the FFS bit in HEST, =
-=0A=
-it won't stop it from commandeering the CPU and doing whatever it wants.=0A=
-=0A=
-Although, I'm not quite sure why we'd want to negotiate FFS itself. FFS =0A=
-is too big of a can of worms (goes far beyond AER error reporting), when =
-=0A=
-what we really care about is if OS can use a specific feature or not.=0A=
->> Cool. While the UEFI Secret Society debates, can we figure out if/how=0A=
->> [patch 1/2] breaks those systems, or is it only [patch 2/2] of this=0A=
->> series that we suspect?=0A=
-> =0A=
-> I went back and looked at both patches. Both of them are removing referen=
-ces to=0A=
-> HEST table. I think both patches are impacted by this discussion.=0A=
-=0A=
-I'd prefer "sure" instead of "think". "I think it breaks some system I'm =
-=0A=
-not telling you about" doesn't help much in figuring out how not to =0A=
-break said system(s). :)=0A=
-=0A=
-Alex=0A=
+On 11/20/2018 3:44 PM, Alex_Gagniuc@Dellteam.com wrote:
+> I'd prefer "sure" instead of "think". "I think it breaks some system I'm
+> not telling you about" doesn't help much in figuring out how not to
+> break said system(s).:)
+
+Sorry, I thought I mentioned why it would break but let me repeat.
+
+The systems I have seen rely on the HEST table presence as an indicator
+to the OS that firmware first is enabled. If you go look at the _OSC bits
+on such systems, it still says OS owns the AER service.
+
+The assumption here is that HEST table has precedence over the _OSC bits.
+That's what needs to be clarified in the UEFI forum.
+
+If this code is to go in and ignore the HEST table presence, then firmware
+will think that it owns AER service and OS will think that it owns AER
+service too.
