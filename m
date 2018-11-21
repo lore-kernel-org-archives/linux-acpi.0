@@ -1,90 +1,84 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
-Date: Wed, 21 Nov 2018 12:40:45 +0000
-Message-ID: <20181121124045.GA21385@e107981-ln.cambridge.arm.com>
-References: <20181113112700.GT2500@lahna.fi.intel.com>
- <372db397d5384efd8e7264ba8e1b9cbd@ausx13mpc120.AMER.DELL.COM>
- <20181116105738.GA21277@red-moon>
- <35089177.HEBOdrcs2c@aspire.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 06/15] i2c: acpi: Assign fwnode for devices created
+ via i2c_acpi_new_device()
+Date: Wed, 21 Nov 2018 15:35:49 +0200
+Message-ID: <20181121133549.GL10650@smile.fi.intel.com>
+References: <20181120155924.10773-1-andriy.shevchenko@linux.intel.com>
+ <20181120155924.10773-7-andriy.shevchenko@linux.intel.com>
+ <c2ad13ad-cf27-2700-a051-4dda56755ebd@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <35089177.HEBOdrcs2c@aspire.rjw.lan>
+In-Reply-To: <c2ad13ad-cf27-2700-a051-4dda56755ebd@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mario.Limonciello@dell.com, mika.westerberg@linux.intel.com, lukas@wunner.de, iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, jacob.jun.pan@intel.com, andreas.noever@gmail.com, michael.jamet@intel.com, YehezkelShB@gmail.com, ckellner@redhat.com, anthony.wong@canonical.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 20, 2018 at 10:43:35PM +0100, Rafael J. Wysocki wrote:
-> On Friday, November 16, 2018 11:57:38 AM CET Lorenzo Pieralisi wrote:
-> > On Thu, Nov 15, 2018 at 07:33:54PM +0000, Mario.Limonciello@dell.com wrote:
-> > > 
-> > > 
-> > > > -----Original Message-----
-> > > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > > Sent: Thursday, November 15, 2018 1:01 PM
-> > > > To: Lorenzo Pieralisi
-> > > > Cc: Lukas Wunner; iommu@lists.linux-foundation.org; Joerg Roedel; David
-> > > > Woodhouse; Lu Baolu; Ashok Raj; Bjorn Helgaas; Rafael J. Wysocki; Jacob jun Pan;
-> > > > Andreas Noever; Michael Jamet; Yehezkel Bernat; Christian Kellner; Limonciello,
-> > > > Mario; Anthony Wong; linux-acpi@vger.kernel.org; linux-pci@vger.kernel.org; linux-
-> > > > kernel@vger.kernel.org
-> > > > Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
-> > > > 
-> > > > 
-> > > > [EXTERNAL EMAIL]
-> > > > 
-> > > > On Thu, Nov 15, 2018 at 05:46:08PM +0000, Lorenzo Pieralisi wrote:
-> > > > > Do you really need to parse it if the dev->is_thunderbolt check is enough ?
-> > > > 
-> > > > Yes, we need to parse it one way or another. dev->is_thunderbolt is
-> > > > based on heuristics which do not apply anymore when the thing gets
-> > > > integrated in the SoC.
-> > > > 
-> > > > The _DSD is there already (on existing systems) and is being used by
-> > > > Windows so I don't understand why we cannot take advantage of it? Every
-> > > > new system with Thunderbolt ports will have it.
+On Wed, Nov 21, 2018 at 12:44:27PM +0100, Hans de Goede wrote:
+> On 20-11-18 16:59, Andy Shevchenko wrote:
+> > i2c_acpi_new_device() doesn't assign fwnode like it's done, for example,
+> > in i2c_acpi_register_devices() path.
 > > 
-> > We have different opinions on this, there is no point in me reiterating
-> > it over and over, I am against the approach taken to solve this problem
-> > first in defining the bindings outside the ACPI specifications and
-> > second by acquiescing to what has been done so that it will be done
-> > over and over again.
+> > Assign fwnode in i2c_acpi_new_device() as it's done elsewhere.
+
+> As already mentioned in my reply to the cover letter, a NACK from me for
+> this one.
 > 
-> Arguably, however, we are on the receiving end of things here and even if
-> we don't use this binding, that won't buy us anything (but it will introduce
-> a fair amount of disappointment among both users and OEMs).
+> The problem is that this causes the fwnode to be shared by all the
+> "struct device"-s (embedded in the i2c-clients created).
 > 
-> If Windows uses it, then systems will ship with it regardless of what Linux
-> does with it, so your "acquiescing to what has been done" argument leads to
-> nowhere in this particular case.  It's just a matter of whether or not
-> Linux will provide the same level of functionality as Windows with respect
-> to this and IMO it would be impractical to refuse to do that for purely
-> formal reasons.
+> This in itself is not necessarily a problem, but it does become a
+> problem when combined with using device_add_properties as
+> intel_cht_int33fe.c does.
 > 
-> > I will raise the point in the appropriate forum, it is up to Bjorn
-> > and Rafael to decide on this patch.
+> Since the info in the ACPI tables for devices which use this
+> driver is pretty terrible, we add a bunch of properties to notify
+> the drivers about how the different parts which make up the Type-C
+> functionality are tied together.
 > 
-> For the record, my opinion is that there's a little choice on whether
-> or not to use this extra information that firmware is willing to give
-> us.  It could be defined in a better way and so on, but since it is in
-> use anyway, we really have nothing to gain by refusing to use it.
+> device_add_properties creates a new fwnode and then calls
+> set_secondary_fwnode. For devices which already have a fwnode
+> assigned (which the i2c-clients will have after this patch)
+> set_secondary_fwnode sets dev->fwnode->secondary to the fwnode
+> which has been newly created to hold the added properties.
+> 
+> Since all i2c-clients instantiated now share dev->fwnode,
+> the result of this is that all i2c-clients created now will
+> have the properties of the last i2c-client instantiated for
+> an acpi-node which describes multiple clients in a single
+> node.
+> 
+> Also the fwnodes created  for the properties of earlier
+> instantiated i2c-clients will be leaked.
 
-AFAIK PCI firmware bindings should go into PCI firmware specifications,
-not Microsoft webpages.
+Thanks for this very detailed problem report.
 
-If we deviate from this model there is no way to tell whether that extra
-information is right or wrong, it is not necessarily about this patch,
-it is about changing the way these bindings are deployed in future
-systems.
+> 
+> I see 2 possible solutions here:
+> 
+> 1) Changing this patch so that i2c_acpi_new_device() does:
+> 
+>         /*
+>          * The fwnode can not be shared between instantiated clients when
+>          * adding device-properties to the instantiated client.
+>          */
+> 	if (!info->properties)
+> 		info->fwnode = acpi_fwnode_handle(adev);
+> 
+> 2) Leave whether info->fwnode should be set or not up to the
+> caller of i2c_acpi_new_device() (info is already passed in as
+> a param). E.g. i2c-multi-instantiate.c could do this (for now,
+> maybe in the future we will also want to add properties for
+> some HIDs).
+> 
+> I think that 1. is the best solution and this is all kernel internal,
+> so we can always revisit this if necessary.
 
-> Now, where the handling of it belongs to is a separate matter that should be
-> decided on its own.
+Heikki told me he has some ideas, but for now I will drop this patch.
 
-I think that the way these bindings were deployed is wrong, I agree this
-is not the right forum to discuss that though. What you will do with
-this patch is not my call anyway, I just expressed my opinion.
 
-Thanks,
-Lorenzo
+-- 
+With Best Regards,
+Andy Shevchenko
