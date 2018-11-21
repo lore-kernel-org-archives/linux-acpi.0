@@ -1,64 +1,90 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v2 0/4] device property: Add fwnode_get_name() helper
-Date: Wed, 21 Nov 2018 14:36:37 +0200
-Message-ID: <20181121123637.GB26377@kuha.fi.intel.com>
-References: <20181108165156.60073-1-heikki.krogerus@linux.intel.com>
- <4687553.lNXoFSueqb@aspire.rjw.lan>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Wed, 21 Nov 2018 12:40:45 +0000
+Message-ID: <20181121124045.GA21385@e107981-ln.cambridge.arm.com>
+References: <20181113112700.GT2500@lahna.fi.intel.com>
+ <372db397d5384efd8e7264ba8e1b9cbd@ausx13mpc120.AMER.DELL.COM>
+ <20181116105738.GA21277@red-moon>
+ <35089177.HEBOdrcs2c@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4687553.lNXoFSueqb@aspire.rjw.lan>
+In-Reply-To: <35089177.HEBOdrcs2c@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Cc: Mario.Limonciello@dell.com, mika.westerberg@linux.intel.com, lukas@wunner.de, iommu@lists.linux-foundation.org, joro@8bytes.org, dwmw2@infradead.org, baolu.lu@linux.intel.com, ashok.raj@intel.com, bhelgaas@google.com, jacob.jun.pan@intel.com, andreas.noever@gmail.com, michael.jamet@intel.com, YehezkelShB@gmail.com, ckellner@redhat.com, anthony.wong@canonical.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 20, 2018 at 11:03:45PM +0100, Rafael J. Wysocki wrote:
-> On Thursday, November 8, 2018 5:51:52 PM CET Heikki Krogerus wrote:
-> > Hi,
+On Tue, Nov 20, 2018 at 10:43:35PM +0100, Rafael J. Wysocki wrote:
+> On Friday, November 16, 2018 11:57:38 AM CET Lorenzo Pieralisi wrote:
+> > On Thu, Nov 15, 2018 at 07:33:54PM +0000, Mario.Limonciello@dell.com wrote:
+> > > 
+> > > 
+> > > > -----Original Message-----
+> > > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > > Sent: Thursday, November 15, 2018 1:01 PM
+> > > > To: Lorenzo Pieralisi
+> > > > Cc: Lukas Wunner; iommu@lists.linux-foundation.org; Joerg Roedel; David
+> > > > Woodhouse; Lu Baolu; Ashok Raj; Bjorn Helgaas; Rafael J. Wysocki; Jacob jun Pan;
+> > > > Andreas Noever; Michael Jamet; Yehezkel Bernat; Christian Kellner; Limonciello,
+> > > > Mario; Anthony Wong; linux-acpi@vger.kernel.org; linux-pci@vger.kernel.org; linux-
+> > > > kernel@vger.kernel.org
+> > > > Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+> > > > 
+> > > > 
+> > > > [EXTERNAL EMAIL]
+> > > > 
+> > > > On Thu, Nov 15, 2018 at 05:46:08PM +0000, Lorenzo Pieralisi wrote:
+> > > > > Do you really need to parse it if the dev->is_thunderbolt check is enough ?
+> > > > 
+> > > > Yes, we need to parse it one way or another. dev->is_thunderbolt is
+> > > > based on heuristics which do not apply anymore when the thing gets
+> > > > integrated in the SoC.
+> > > > 
+> > > > The _DSD is there already (on existing systems) and is being used by
+> > > > Windows so I don't understand why we cannot take advantage of it? Every
+> > > > new system with Thunderbolt ports will have it.
 > > 
-> > This is the second version of my proposal for this helper. The
-> > first version can be checked here:
-> > https://lkml.org/lkml/2018/11/5/326
-> > 
-> > In order to support also ACPI properly, I decided to change the API.
-> > The function fwnode_name() is now fwnode_get_name(), and instead of
-> > returning pointer to the name, the function copies it to a buffer. I
-> > did that because acpica does not offer a way to get a pointer to the
-> > node name, and the name is clearly expected to be accessed only with
-> > the namespace lock held.
-> > 
-> > I think this is better approach in any case. It will also solve the
-> > problem of getting rid of the unit-address part from DT node names.
-> > 
-> > Let me know what you guys think.
-> > 
-> > --
-> > heikki
-> > 
-> > 
-> > Heikki Krogerus (4):
-> >   device property: Introduce fwnode_get_name()
-> >   ACPI: property: Add acpi_fwnode_name()
-> >   of/property: Add of_fwnode_name()
-> >   device property: Drop get_named_child_node callback
-> > 
-> >  drivers/acpi/property.c  | 43 ++++++++++++++++++++++------------------
-> >  drivers/base/property.c  | 34 ++++++++++++++++++++++++++++++-
-> >  drivers/of/property.c    | 26 ++++++++++--------------
-> >  include/linux/fwnode.h   |  6 +++---
-> >  include/linux/property.h |  2 ++
-> >  5 files changed, 73 insertions(+), 38 deletions(-)
-> > 
-> > 
+> > We have different opinions on this, there is no point in me reiterating
+> > it over and over, I am against the approach taken to solve this problem
+> > first in defining the bindings outside the ACPI specifications and
+> > second by acquiescing to what has been done so that it will be done
+> > over and over again.
 > 
-> I will be expecting at least one more iteration of this series to address the
-> Rob's comments.
+> Arguably, however, we are on the receiving end of things here and even if
+> we don't use this binding, that won't buy us anything (but it will introduce
+> a fair amount of disappointment among both users and OEMs).
+> 
+> If Windows uses it, then systems will ship with it regardless of what Linux
+> does with it, so your "acquiescing to what has been done" argument leads to
+> nowhere in this particular case.  It's just a matter of whether or not
+> Linux will provide the same level of functionality as Windows with respect
+> to this and IMO it would be impractical to refuse to do that for purely
+> formal reasons.
+> 
+> > I will raise the point in the appropriate forum, it is up to Bjorn
+> > and Rafael to decide on this patch.
+> 
+> For the record, my opinion is that there's a little choice on whether
+> or not to use this extra information that firmware is willing to give
+> us.  It could be defined in a better way and so on, but since it is in
+> use anyway, we really have nothing to gain by refusing to use it.
 
-Yes, I'll send a new version soon.
+AFAIK PCI firmware bindings should go into PCI firmware specifications,
+not Microsoft webpages.
 
-thanks,
+If we deviate from this model there is no way to tell whether that extra
+information is right or wrong, it is not necessarily about this patch,
+it is about changing the way these bindings are deployed in future
+systems.
 
--- 
-heikki
+> Now, where the handling of it belongs to is a separate matter that should be
+> decided on its own.
+
+I think that the way these bindings were deployed is wrong, I agree this
+is not the right forum to discuss that though. What you will do with
+this patch is not my call anyway, I just expressed my opinion.
+
+Thanks,
+Lorenzo
