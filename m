@@ -1,56 +1,129 @@
-From: <Alex_Gagniuc@Dellteam.com>
-Subject: Re: [PATCH 0/2] PCI/AER: Consistently use _OSC to determine who owns
- AER
-Date: Tue, 20 Nov 2018 22:36:26 +0000
-Message-ID: <e92c6c4f33c84f23ae47137f4ecb11f0@ausx13mps321.AMER.DELL.COM>
-References: <20181115231605.24352-1-mr.nuke.me@gmail.com>
- <CABo9ajD5GJY7MrMjQc3hE=4tpPKpeceMtVEHwCwgjrvJUYjLvg@mail.gmail.com>
- <20181119165318.GB26595@localhost.localdomain>
- <74f2c527-0890-5e14-5e2d-48934a42dae6@kernel.org>
- <ab2427f1-c1f0-68fe-5335-1494caafdcbb@kernel.org>
- <20181119174127.GE26595@localhost.localdomain>
- <ef0a24e4-906e-f6df-c646-1fe47ea0dcc0@kernel.org>
- <20181119181051.GA26707@localhost.localdomain>
- <c0d6535f-324b-557a-3d0e-ccec070459a7@kernel.org>
- <3f923367-2cc1-c0d6-bca6-bf9a03d1b9ca@gmail.com>
- <ef6b19de-dd18-850f-4db9-8ab71b975e94@kernel.org>
- <bb575cfdcd0a4c50b489fb16eccfbff2@ausx13mps321.AMER.DELL.COM>
- <84013a8a-287d-d700-6710-91cc35f507c8@kernel.org>
- <9c9531c7efb846438f03f744b9afc466@ausx13mps321.AMER.DELL.COM>
- <3b18a9fa-7bdd-0fb4-285d-4efb454be50a@kernel.org>
- <e86f04ef8c054d61969862a6e7b72d0d@ausx13mps321.AMER.DELL.COM>
- <314e59da-48e1-545b-3ee9-6e5056b90fd9@kernel.org>
- <4728316eb84446358e0a07bbf1e42b57@ausx13mps321.AMER.DELL.COM>
- <bac2c78a-cd56-7287-e4fd-6042e9b3432c@kernel.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] ACPI / platform: Add SMB0001 HID to forbidden_id_list
+Date: Wed, 21 Nov 2018 11:37:22 +0100
+Message-ID: <df516936-89f4-0fc9-1904-1a719bcd13fe@redhat.com>
+References: <20181119180601.962-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181119180601.962-1-hdegoede@redhat.com>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: okaya@kernel.org, mr.nuke.me@gmail.com, keith.busch@intel.com
-Cc: baicar.tyler@gmail.com, Austin.Bolen@dell.com, Shyam.Iyer@dell.com, lukas@wunner.de, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, ruscur@russell.cc, sbobroff@linux.ibm.com, oohall@gmail.com, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxppc-dev@lists.ozlabs.org
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Lukas Kahnert <openproggerfreak@gmail.com>, Marc <suaefar@googlemail.com>, linux-acpi@vger.kernel.org, linux-input@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/20/2018 04:08 PM, Sinan Kaya wrote:=0A=
-> One version is:=0A=
-> "if HEST table is present, ignore _OSC"=0A=
-> or=0A=
-> Another version is:=0A=
-> "if HEST table is present, make sure that FW sets _OSC bit for AER to=0A=
-> false. Otherwise, warn like crazy that this BIOS is broken and needs=0A=
-> an update and can cause all sorts of trouble"=0A=
-=0A=
-ACPI 6.2 Ch 6.2.11.3, Table 6-197=0A=
-	PCI Express Advanced Error Reporting control=0A=
-=0A=
-	The firmware sets this bit to 1 to grant control over PCI=0A=
-	Express Advanced Error Reporting.=0A=
-	If firmware allows the OS control of this feature, then in the=0A=
-	context of the _OSC method it must ensure that error messages=0A=
-	are routed to device interrupts as described in the PCI=0A=
-	Express Base Specification. Additionally, after control is=0A=
-	transferred to the OS, firmware must not modify the Advanced=0A=
-	Error Reporting Capability. If control of this feature was=0A=
-	requested and denied or was not requested, firmware returns=0A=
-	this bit set to 0.=0A=
+HI,
+
+On 19-11-18 19:06, Hans de Goede wrote:
+> Many HP AMD based laptops contain an SMB0001 device like this:
+> 
+> Device (SMBD)
+> {
+>      Name (_HID, "SMB0001")  // _HID: Hardware ID
+>      Name (_CRS, ResourceTemplate ()  // _CRS: Current Resource Settings
+>      {
+>          IO (Decode16,
+>              0x0B20,             // Range Minimum
+>              0x0B20,             // Range Maximum
+>              0x20,               // Alignment
+>              0x20,               // Length
+>              )
+>          IRQ (Level, ActiveLow, Shared, )
+>              {7}
+>      })
+> }
+> 
+> The legacy style IRQ resource here causes acpi_dev_get_irqresource() to
+> be called with legacy=true and this message to show in dmesg:
+> ACPI: IRQ 7 override to edge, high
+> 
+> This causes issues when later on the AMD0030 GPIO device gets enumerated:
+> 
+> Device (GPIO)
+> {
+>      Name (_HID, "AMDI0030")  // _HID: Hardware ID
+>      Name (_CID, "AMDI0030")  // _CID: Compatible ID
+>      Name (_UID, Zero)  // _UID: Unique ID
+>      Method (_CRS, 0, NotSerialized)  // _CRS: Current Resource Settings
+>      {
+> 	Name (RBUF, ResourceTemplate ()
+> 	{
+> 	    Interrupt (ResourceConsumer, Level, ActiveLow, Shared, ,, )
+> 	    {
+> 		0x00000007,
+> 	    }
+> 	    Memory32Fixed (ReadWrite,
+> 		0xFED81500,         // Address Base
+> 		0x00000400,         // Address Length
+> 		)
+> 	})
+> 	Return (RBUF) /* \_SB_.GPIO._CRS.RBUF */
+>      }
+> }
+> 
+> Now acpi_dev_get_irqresource() gets called with legacy=false, but because
+> of the earlier override of the trigger-type acpi_register_gsi() returns
+> -EBUSY (because we try to register the same interrupt with a different
+> trigger-type) and we end up setting IORESOURCE_DISABLED in the flags.
+> 
+> The setting of IORESOURCE_DISABLED causes platform_get_irq() to call
+> acpi_irq_get() which is not implemented on x86 and returns -EINVAL.
+> resulting in the following in dmesg:
+> 
+> amd_gpio AMDI0030:00: Failed to get gpio IRQ: -22
+> amd_gpio: probe of AMDI0030:00 failed with error -22
+> 
+> The SMB0001 is a "virtual" device in the sense that the only way the OS
+> interacts with it is through calling a couple of methods to do SMBus
+> transfers. As such it is weird that it has IO and IRQ resources at all,
+> because the driver for it is not expected to ever access the hardware
+> directly.
+> 
+> The Linux driver for the SMB0001 device directly binds to the acpi_device
+> through the acpi_bus, so we do not need to instantiate a platform_device
+> for this ACPI device. This commit adds the SMB0001 HID to the
+> forbidden_id_list, avoiding the instantiating of a platform_device for it.
+> Not instantiating a platform_device means we will no longer call
+> acpi_dev_get_irqresource() for the legacy IRQ resource fixing the probe of
+> the AMDI0030 device failing.
+> 
+> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1644013
+> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=198715
+> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=199523
+> Reported-by: Lukas Kahnert <openproggerfreak@gmail.com>
+> Tested-by: Marc <suaefar@googlemail.com>
+> Cc: stable@vger.kernel.org
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+
+A quick status update on this, I've got confirmation from 4 different users
+that this fixes the touchscreen not working on various models AMD based
+HP laptops.
+
+As such it would be nice to get this into 4.20 as a bugfix.
+
+Regards,
+
+Hans
+
+
+
+
+> ---
+>   drivers/acpi/acpi_platform.c | 1 +
+>   1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
+> index eaa60c94205a..1f32caa87686 100644
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -30,6 +30,7 @@ static const struct acpi_device_id forbidden_id_list[] = {
+>   	{"PNP0200",  0},	/* AT DMA Controller */
+>   	{"ACPI0009", 0},	/* IOxAPIC */
+>   	{"ACPI000A", 0},	/* IOAPIC */
+> +	{"SMB0001",  0},	/* ACPI SMBUS virtual device */
+>   	{"", 0},
+>   };
+>   
+> 
