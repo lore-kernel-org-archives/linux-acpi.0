@@ -1,41 +1,54 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 4/7] node: Add memory caching attributes
-Date: Thu, 22 Nov 2018 18:59:21 +0530
-Message-ID: <731533d5-26e1-ade7-1a63-d1f85461d091@arm.com>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-5-keith.busch@intel.com>
- <91698cef-cdcd-5143-884f-3da5536e156f@arm.com>
- <20181119230600.GC26707@localhost.localdomain>
+From: Dave Hansen <dave.hansen@intel.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Thu, 22 Nov 2018 10:01:53 -0800
+Message-ID: <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+ <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181119230600.GC26707@localhost.localdomain>
+In-Reply-To: <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Anshuman Khandual <anshuman.khandual@arm.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 11/20/2018 04:36 AM, Keith Busch wrote:
-> On Mon, Nov 19, 2018 at 09:44:00AM +0530, Anshuman Khandual wrote:
->> On 11/15/2018 04:19 AM, Keith Busch wrote:
->>> System memory may have side caches to help improve access speed. While
->>> the system provided cache is transparent to the software accessing
->>> these memory ranges, applications can optimize their own access based
->>> on cache attributes.
+On 11/22/18 3:52 AM, Anshuman Khandual wrote:
 >>
->> Cache is not a separate memory attribute. It impacts how the real attributes
->> like bandwidth, latency e.g which are already captured in the previous patch.
->> What is the purpose of adding this as a separate attribute ? Can you explain
->> how this is going to help the user space apart from the hints it has already
->> received with bandwidth, latency etc properties.
-> 
-> I am not sure I understand the question here. Access bandwidth and latency
-> are entirely attributes different than what this patch provides. If the
-> system side-caches memory, the associativity, line size, and total size
-> can optionally be used by software to improve performance.
+>> It sounds like the subset that's being exposed is insufficient for yo
+>> We did that because we think doing anything but a subset in sysfs will
+>> just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
+>> attributes, that's at _least_ 1024*1024*4 files if we expose *all*
+>> combinations.
+> Each permutation need not be a separate file inside all possible NODE X
+> (/sys/devices/system/node/nodeX) directories. It can be a top level file
+> enumerating various attribute values for a given (X, Y) node pair based
+> on an offset something like /proc/pid/pagemap.
 
-Okay but then does this belong to this series which about memory attributes ?
+My assumption has been that this kind of thing is too fancy for sysfs:
+
+Documentation/filesystems/sysfs.txt:
+> Attributes should be ASCII text files, preferably with only one value
+> per file. It is noted that it may not be efficient to contain only one
+> value per file, so it is socially acceptable to express an array of
+> values of the same type. 
+> 
+> Mixing types, expressing multiple lines of data, and doing fancy
+> formatting of data is heavily frowned upon. Doing these things may get
+> you publicly humiliated and your code rewritten without notice. 
+
+/proc/pid/pagemap is binary, not one-value-per-file and relatively
+complicated to parse.
+
+Do you really think following something like pagemap is the right model
+for sysfs?
+
+BTW, I'm not saying we don't need *some* interface like you propose.  We
+almost certainly will at some point.  I just don't think it will be in
+sysfs.
