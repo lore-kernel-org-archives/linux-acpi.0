@@ -1,54 +1,86 @@
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Thu, 22 Nov 2018 17:22:19 +0530
-Message-ID: <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
- <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
- <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
- <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
+Date: Thu, 22 Nov 2018 18:52:43 +0530
+Message-ID: <2482fbdf-e672-8d46-edcb-021f7af8d9b7@arm.com>
+References: <20181114224921.12123-2-keith.busch@intel.com>
+ <20181114224921.12123-3-keith.busch@intel.com>
+ <91369e94-d389-7cb9-6274-f46c9ec779d3@arm.com>
+ <20181119154604.GC23062@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+In-Reply-To: <20181119154604.GC23062@localhost.localdomain>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 11/19/2018 11:07 PM, Dave Hansen wrote:
-> On 11/18/18 9:44 PM, Anshuman Khandual wrote:
->> IIUC NUMA re-work in principle involves these functional changes
+On 11/19/2018 09:16 PM, Keith Busch wrote:
+> On Mon, Nov 19, 2018 at 09:05:07AM +0530, Anshuman Khandual wrote:
+>> On 11/15/2018 04:19 AM, Keith Busch wrote:
+>>> Heterogeneous memory systems provide memory nodes with latency
+>>> and bandwidth performance attributes that are different from other
+>>> nodes. Create an interface for the kernel to register these attributes
 >>
->> 1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
+>> There are other properties like power consumption, reliability which can
+>> be associated with a particular PA range. Also the set of properties has
+>> to be extensible for the future.
 > 
-> This patch set _does_ that, though.
+> Sure, I'm just starting with the attributes available from HMAT, 
+> If there are additional possible attributes that make sense to add, I
+> don't see why we can't continue appending them if this patch is okay.
+
+As I mentioned on the other thread
+
+1) The interface needs to be compact to avoid large number of files
+2) Single U64 will be able to handle 8 attributes with 8 bit values
+3) 8 bit value needs needs to be arch independent and abstracted out
+
+I guess 8 attributes should be good enough for all type of memory in
+foreseeable future.
+
+>  
+>>> under the node that provides the memory. If the system provides this
+>>> information, applications can query the node attributes when deciding
+>>> which node to request memory.
+>>
+>> Right but each (memory initiator, memory target) should have these above
+>> mentioned properties enumerated to have an 'property as seen' from kind
+>> of semantics.
+>>
+>>>
+>>> When multiple memory initiators exist, accessing the same memory target
+>>> from each may not perform the same as the other. The highest performing
+>>> initiator to a given target is considered to be a local initiator for
+>>> that target. The kernel provides performance attributes only for the
+>>> local initiators.
+>>
+>> As mentioned above the interface must enumerate a future extensible set
+>> of properties for each (memory initiator, memory target) pair available
+>> on the system.
 > 
->> 2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
-> 
-> It does that as well (a subset at least).
-> 
-> It sounds like the subset that's being exposed is insufficient for yo
-> We did that because we think doing anything but a subset in sysfs will
-> just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
-> attributes, that's at _least_ 1024*1024*4 files if we expose *all*
-> combinations.
-Each permutation need not be a separate file inside all possible NODE X
-(/sys/devices/system/node/nodeX) directories. It can be a top level file
-enumerating various attribute values for a given (X, Y) node pair based
-on an offset something like /proc/pid/pagemap.
+> That seems less friendly to use if forces the application to figure out
+> which CPU is the best for a given memory node rather than just provide
+> that answer directly.
+
+Why ? The application would just have to scan all possible values out
+there and decide for itself. A complete set of attribute values for
+each pair makes the sysfs more comprehensive and gives the application
+more control over it's choices.
 
 > 
-> Do we agree that sysfs is unsuitable for exposing attributes in this manner?
+>>> The memory's compute node should be symlinked in sysfs as one of the
+>>> node's initiators.
+>>
+>> Right. IIUC the first patch skips the linking process of for two nodes A
+>> and B if (A == B) preventing association to local memory initiator.
 > 
+> Right, CPUs and memory sharing a proximity domain are assumed to be
+> local to each other, so not going to set up those links to itself.
 
-Yes, for individual files. But this can be worked around with an offset
-based access from a top level global attributes file as mentioned above.
-Is there any particular advantage of using individual files for each
-given attribute ? I was wondering that a single unsigned long (u64) will
-be able to pack 8 different attributes where each individual attribute
-values can be abstracted out in 8 bits.
+But this will be required for applications to evaluate correctly between
+possible values from all node pairs.
