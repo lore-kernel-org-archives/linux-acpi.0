@@ -1,37 +1,54 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
-Date: Thu, 22 Nov 2018 02:59:34 -0800
-Message-ID: <20181122105934.GA13325@infradead.org>
-References: <20181115111356.GA599@e107981-ln.cambridge.arm.com>
- <20181115113737.GW2500@lahna.fi.intel.com>
- <20181115120736.pscly6zwd3k2tvd2@wunner.de>
- <20181115121627.GA2500@lahna.fi.intel.com>
- <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
- <CA+CmpXv9yM6nFdb0mcMPGHS-B_uGbQHYoO6iuefZC8gWoZYD3Q@mail.gmail.com>
- <20181115191026.GE4179@lahna.fi.intel.com>
- <20181116091804.GA4548@infradead.org>
- <20181116093210.GK4179@lahna.fi.intel.com>
- <20181122104840.GO4179@lahna.fi.intel.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Thu, 22 Nov 2018 17:22:19 +0530
+Message-ID: <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181122104840.GO4179@lahna.fi.intel.com>
+In-Reply-To: <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Christoph Hellwig <hch@infradead.org>, Yehezkel Bernat <yehezkelshb@gmail.com>, ashok.raj@intel.com, Mario Limonciello <Mario.Limonciello@dell.com>, michael.jamet@intel.com, Christian Kellner <ckellner@redhat.com>, rjw@rjwysocki.net, Anthony Wong <anthony.wong@canonical.com>, LKML <linux-kernel@vger.kernel.org>, Andreas Noever <andreas.noever@gmail.com>, iommu@lists.linux-foundation.org, lukas@wunner.de, jacob.jun.pan@intel.com, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
+To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 22, 2018 at 12:48:40PM +0200, Mika Westerberg wrote:
-> We had an internal discussion regarding this and it was suggested that
-> the new flag is called "is_untrusted" instead of "is_external". This
-> covers Thunderbolt devices currently but can be extend to any other PCIe
-> device such as "SD express" ones. When IOMMU is turned on it will then
-> make sure devices with "is_untrusted" set are always using full IOMMU
-> protection.
-> 
-> Any comments, objections? I was going to send v2 with this change
-> included.
 
-Sounds good to me as long as it goes along with a nice fat comment
-explaining it.
+
+On 11/19/2018 11:07 PM, Dave Hansen wrote:
+> On 11/18/18 9:44 PM, Anshuman Khandual wrote:
+>> IIUC NUMA re-work in principle involves these functional changes
+>>
+>> 1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
+> 
+> This patch set _does_ that, though.
+> 
+>> 2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
+> 
+> It does that as well (a subset at least).
+> 
+> It sounds like the subset that's being exposed is insufficient for yo
+> We did that because we think doing anything but a subset in sysfs will
+> just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
+> attributes, that's at _least_ 1024*1024*4 files if we expose *all*
+> combinations.
+Each permutation need not be a separate file inside all possible NODE X
+(/sys/devices/system/node/nodeX) directories. It can be a top level file
+enumerating various attribute values for a given (X, Y) node pair based
+on an offset something like /proc/pid/pagemap.
+
+> 
+> Do we agree that sysfs is unsuitable for exposing attributes in this manner?
+> 
+
+Yes, for individual files. But this can be worked around with an offset
+based access from a top level global attributes file as mentioned above.
+Is there any particular advantage of using individual files for each
+given attribute ? I was wondering that a single unsigned long (u64) will
+be able to pack 8 different attributes where each individual attribute
+values can be abstracted out in 8 bits.
