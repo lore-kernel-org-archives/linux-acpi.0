@@ -1,57 +1,55 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v1 06/15] i2c: acpi: Assign fwnode for devices created
- via i2c_acpi_new_device()
-Date: Wed, 21 Nov 2018 16:15:22 +0200
-Message-ID: <20181121141522.GA16476@kuha.fi.intel.com>
-References: <20181120155924.10773-1-andriy.shevchenko@linux.intel.com>
- <20181120155924.10773-7-andriy.shevchenko@linux.intel.com>
- <c2ad13ad-cf27-2700-a051-4dda56755ebd@redhat.com>
- <20181121133549.GL10650@smile.fi.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 1/4] PCI / ACPI: Identify external PCI devices
+Date: Thu, 22 Nov 2018 12:48:40 +0200
+Message-ID: <20181122104840.GO4179@lahna.fi.intel.com>
+References: <20181115102239.GU2500@lahna.fi.intel.com>
+ <20181115111356.GA599@e107981-ln.cambridge.arm.com>
+ <20181115113737.GW2500@lahna.fi.intel.com>
+ <20181115120736.pscly6zwd3k2tvd2@wunner.de>
+ <20181115121627.GA2500@lahna.fi.intel.com>
+ <20181115174608.GA17691@e107981-ln.cambridge.arm.com>
+ <CA+CmpXv9yM6nFdb0mcMPGHS-B_uGbQHYoO6iuefZC8gWoZYD3Q@mail.gmail.com>
+ <20181115191026.GE4179@lahna.fi.intel.com>
+ <20181116091804.GA4548@infradead.org>
+ <20181116093210.GK4179@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181121133549.GL10650@smile.fi.intel.com>
+In-Reply-To: <20181116093210.GK4179@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: Yehezkel Bernat <yehezkelshb@gmail.com>, ashok.raj@intel.com, Mario Limonciello <Mario.Limonciello@dell.com>, michael.jamet@intel.com, Christian Kellner <ckellner@redhat.com>, rjw@rjwysocki.net, Anthony Wong <anthony.wong@canonical.com>, LKML <linux-kernel@vger.kernel.org>, Andreas Noever <andreas.noever@gmail.com>, iommu@lists.linux-foundation.org, lukas@wunner.de, jacob.jun.pan@intel.com, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi guys,
-
-On Wed, Nov 21, 2018 at 03:35:49PM +0200, Andy Shevchenko wrote:
-> On Wed, Nov 21, 2018 at 12:44:27PM +0100, Hans de Goede wrote:
-
-> > I see 2 possible solutions here:
+On Fri, Nov 16, 2018 at 11:32:10AM +0200, Mika Westerberg wrote:
+> On Fri, Nov 16, 2018 at 01:18:04AM -0800, Christoph Hellwig wrote:
+> > On Thu, Nov 15, 2018 at 09:10:26PM +0200, Mika Westerberg wrote:
+> > > FireWire is kind of different but there are connectors such as
+> > > ExpressCard and NVMe (over U.2 connector) which carry PCIe and are
+> > > relatively easy to access without need for a screwdriver. AFAIK some
+> > > eGPUs are also using some other proprietary (non-TBT) connector that
+> > > carries PCIe.
 > > 
-> > 1) Changing this patch so that i2c_acpi_new_device() does:
-> > 
-> >         /*
-> >          * The fwnode can not be shared between instantiated clients when
-> >          * adding device-properties to the instantiated client.
-> >          */
-> > 	if (!info->properties)
-> > 		info->fwnode = acpi_fwnode_handle(adev);
-> > 
-> > 2) Leave whether info->fwnode should be set or not up to the
-> > caller of i2c_acpi_new_device() (info is already passed in as
-> > a param). E.g. i2c-multi-instantiate.c could do this (for now,
-> > maybe in the future we will also want to add properties for
-> > some HIDs).
-> > 
-> > I think that 1. is the best solution and this is all kernel internal,
-> > so we can always revisit this if necessary.
+> > U.2 is a data center internal form factor with hot plug capability. If
+> > you enable an iommu for that by default you will make a lot of people
+> > very unhappy.
 > 
-> Heikki told me he has some ideas, but for now I will drop this patch.
+> Well, it needs the other bit in ACPI DMAR table to be enabled by default
+> so I don't think anyone in data center domain will notice ;-)
+> 
+> > More importantly NVMe is now used for the current/next generation
+> > Compact Flash and SD cards, which contain full PCIe gen 3 links.
+> 
+> OK, thanks for the information - I did not know that. I guess those
+> belong to the "external" category as well.
 
-I think the only thing that we can do is to assign the ACPI node as the
-secondary node to this kind of mfd "cells". It would most likely
-require some changes to the apci code in Linux kernel, probable
-nothing major, but no driver needs this for now (I think), so we don't
-need to worry about it right now.
+We had an internal discussion regarding this and it was suggested that
+the new flag is called "is_untrusted" instead of "is_external". This
+covers Thunderbolt devices currently but can be extend to any other PCIe
+device such as "SD express" ones. When IOMMU is turned on it will then
+make sure devices with "is_untrusted" set are always using full IOMMU
+protection.
 
-
-thanks,
-
--- 
-heikki
+Any comments, objections? I was going to send v2 with this change
+included.
