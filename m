@@ -1,110 +1,134 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Fri, 23 Nov 2018 12:13:58 +0100
-Message-ID: <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
-References: <20180928150357.12942-1-david@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Fri, 23 Nov 2018 09:15:45 -0800
+Message-ID: <CAPcyv4iP_+BhVD9NqYG_m8thXARbOfPMDpvg4hfxRATWom_MRQ@mail.gmail.com>
+References: <20181114224902.12082-1-keith.busch@intel.com> <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com> <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com> <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+ <CAPcyv4hj61o+TDTSGxYSMMXMn7YiOGP0fj6R-cquPodN4VeT9A@mail.gmail.com> <0194f47c-d1d8-108e-a57f-0316adb9112b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20180928150357.12942-1-david@redhat.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: linux-mm@kvack.org
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Balbir Singh <bsingharora@gmail.com>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, Michael Ellerman <mpe@ellerman.id.au>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, =?UTF-8?Q?Michal_
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <0194f47c-d1d8-108e-a57f-0316adb9112b@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: anshuman.khandual@arm.com
+Cc: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 28.09.18 17:03, David Hildenbrand wrote:
-> How to/when to online hotplugged memory is hard to manage for
-> distributions because different memory types are to be treated differently.
-> Right now, we need complicated udev rules that e.g. check if we are
-> running on s390x, on a physical system or on a virtualized system. But
-> there is also sometimes the demand to really online memory immediately
-> while adding in the kernel and not to wait for user space to make a
-> decision. And on virtualized systems there might be different
-> requirements, depending on "how" the memory was added (and if it will
-> eventually get unplugged again - DIMM vs. paravirtualized mechanisms).
-> 
-> On the one hand, we have physical systems where we sometimes
-> want to be able to unplug memory again - e.g. a DIMM - so we have to online
-> it to the MOVABLE zone optionally. That decision is usually made in user
-> space.
-> 
-> On the other hand, we have memory that should never be onlined
-> automatically, only when asked for by an administrator. Such memory only
-> applies to virtualized environments like s390x, where the concept of
-> "standby" memory exists. Memory is detected and added during boot, so it
-> can be onlined when requested by the admininistrator or some tooling.
-> Only when onlining, memory will be allocated in the hypervisor.
-> 
-> But then, we also have paravirtualized devices (namely xen and hyper-v
-> balloons), that hotplug memory that will never ever be removed from a
-> system right now using offline_pages/remove_memory. If at all, this memory
-> is logically unplugged and handed back to the hypervisor via ballooning.
-> 
-> For paravirtualized devices it is relevant that memory is onlined as
-> quickly as possible after adding - and that it is added to the NORMAL
-> zone. Otherwise, it could happen that too much memory in a row is added
-> (but not onlined), resulting in out-of-memory conditions due to the
-> additional memory for "struct pages" and friends. MOVABLE zone as well
-> as delays might be very problematic and lead to crashes (e.g. zone
-> imbalance).
-> 
-> Therefore, introduce memory block types and online memory depending on
-> it when adding the memory. Expose the memory type to user space, so user
-> space handlers can start to process only "normal" memory. Other memory
-> block types can be ignored. One thing less to worry about in user space.
-> 
+On Thu, Nov 22, 2018 at 11:11 PM Anshuman Khandual
+<anshuman.khandual@arm.com> wrote:
+>
+>
+>
+> On 11/22/2018 11:38 PM, Dan Williams wrote:
+> > On Thu, Nov 22, 2018 at 3:52 AM Anshuman Khandual
+> > <anshuman.khandual@arm.com> wrote:
+> >>
+> >>
+> >>
+> >> On 11/19/2018 11:07 PM, Dave Hansen wrote:
+> >>> On 11/18/18 9:44 PM, Anshuman Khandual wrote:
+> >>>> IIUC NUMA re-work in principle involves these functional changes
+> >>>>
+> >>>> 1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
+> >>>
+> >>> This patch set _does_ that, though.
+> >>>
+> >>>> 2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
+> >>>
+> >>> It does that as well (a subset at least).
+> >>>
+> >>> It sounds like the subset that's being exposed is insufficient for yo
+> >>> We did that because we think doing anything but a subset in sysfs will
+> >>> just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
+> >>> attributes, that's at _least_ 1024*1024*4 files if we expose *all*
+> >>> combinations.
+> >> Each permutation need not be a separate file inside all possible NODE X
+> >> (/sys/devices/system/node/nodeX) directories. It can be a top level file
+> >> enumerating various attribute values for a given (X, Y) node pair based
+> >> on an offset something like /proc/pid/pagemap.
+> >>
+> >>>
+> >>> Do we agree that sysfs is unsuitable for exposing attributes in this manner?
+> >>>
+> >>
+> >> Yes, for individual files. But this can be worked around with an offset
+> >> based access from a top level global attributes file as mentioned above.
+> >> Is there any particular advantage of using individual files for each
+> >> given attribute ? I was wondering that a single unsigned long (u64) will
+> >> be able to pack 8 different attributes where each individual attribute
+> >> values can be abstracted out in 8 bits.
+> >
+> > sysfs has a 4K limit, and in general I don't think there is much
+> > incremental value to go describe the entirety of the system from sysfs
+> > or anywhere else in the kernel for that matter. It's simply too much> information to reasonably consume. Instead the kernel can describe the
+>
+> I agree that it may be some amount of information to parse but is crucial
+> for any task on a heterogeneous system to evaluate (probably re-evaluate
+> if the task moves around) its memory and CPU binding at runtime to make
+> sure it has got the right one.
 
-So I was looking into alternatives.
+Can you provide some more evidence for this statement? It seems that
+not many applications even care about basic numa let alone specific
+memory targeting, at least according to libnumactl users.
 
-1. Provide only "normal" and "standby" memory types to user space. This
-way user space can make smarter decisions about how to online memory.
-Not really sure if this is the right way to go.
+     dnf repoquery --whatrequires numactl-libs
 
+The kernel is the arbiter of memory, something is broken if
+applications *need* to take on this responsibility. Yes, there will be
+applications that want to tune and override the default kernel
+behavior, but this is the exception, not the rule. The applications
+that tend to care about specific memories also tend to be purpose
+built for a given platform, and that lessens their reliance on the
+kernel to enumerate all properties.
 
-2. Use device driver information (as mentioned by Michal S.).
+> > coarse boundaries and some semblance of "best" access initiator for a
+> > given target. That should cover the "80%" case of what applications
+>
+> The current proposal just assumes that the best one is the nearest one.
+> This may be true for bandwidth and latency but may not be true for some
+> other properties. This assumptions should not be there while defining
+> new ABI.
 
-The problem right now is that there are no drivers for memory block
-devices. The "memory" subsystem has no drivers, so the KOBJ_ADD uevent
-will not contain a "DRIVER" information and we ave no idea what kind of
-memory block device we hold in our hands.
+In fact, I tend to agree with you, but in my opinion that's an
+argument to expose even less, not more. If we start with something
+minimal that can be extended over time we lessen the risk of over
+exposing details that don't matter in practice.
 
-$ udevadm info -q all -a /sys/devices/system/memory/memory0
+We're in the middle of a bit of a disaster with the VmFlags export in
+/proc/$pid/smaps precisely because the implementation was too
+comprehensive and applications started depending on details that the
+kernel does not want to guarantee going forward. So there is a real
+risk of being too descriptive in an interface design.
 
-  looking at device '/devices/system/memory/memory0':
-    KERNEL=="memory0"
-    SUBSYSTEM=="memory"
-    DRIVER==""
-    ATTR{online}=="1"
-    ATTR{phys_device}=="0"
-    ATTR{phys_index}=="00000000"
-    ATTR{removable}=="0"
-    ATTR{state}=="online"
-    ATTR{valid_zones}=="none"
+> > want to discover, for the other "20%" we likely need some userspace
+> > library that can go parse these platform specific information sources
+> > and supplement the kernel view. I also think a simpler kernel starting
+> > point gives us room to go pull in more commonly used attributes if it
+> > turns out they are useful, and avoid going down the path of exporting
+> > attributes that have questionable value in practice.
+> >
+>
+> Applications can just query platform information right now and just use
+> them for mbind() without requiring this new interface.
 
+No, they can't today, at least not for the topology details that HMAT
+is describing. The platform-firmware to numa-node translation is
+currently not complete. At a minimum we need a listing of initiator
+ids and target ids. For an ACPI platform that is the proximity-domain
+to numa-node-id translation information. Once that translation is in
+place then a userspace library can consult the platform-specific
+information sources to translate the platform-firmware view to the
+Linux handles for those memories. Am I missing the library that does
+this today?
 
-If we would provide "fake" drivers for the memory block devices we want
-to treat in a special way in user space (e.g. standby memory on s390x),
-user space could use that information to make smarter decisions.
+> We are not even
+> changing any core MM yet. So if it's just about identifying the node's
+> memory properties it can be scanned from platform itself. But I agree
+> we would like the kernel to start adding interfaces for multi attribute
+> memory but all I am saying is that it has to be comprehensive. Some of
+> the attributes have more usefulness now and some have less but the new
+> ABI interface has to accommodate exporting all of these.
 
-Adding such drivers might work. My suggestion would be to let ordinary
-DIMMs be without a driver for now and only special case standby memory
-and eventually paravirtualized memory devices (XEN and Hyper-V).
-
-Any thoughts?
-
-
--- 
-
-Thanks,
-
-David / dhildenb
+I get the sense we are talking past each other, can you give the next
+level of detail on that "has to be comprehensive" statement?
