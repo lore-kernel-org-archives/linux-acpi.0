@@ -1,96 +1,84 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Fri, 23 Nov 2018 12:40:53 +0530
-Message-ID: <0194f47c-d1d8-108e-a57f-0316adb9112b@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
- <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
- <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
- <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
- <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
- <CAPcyv4hj61o+TDTSGxYSMMXMn7YiOGP0fj6R-cquPodN4VeT9A@mail.gmail.com>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [PATCH 1/1] ACPI / tables: add DSDT AmlCode new declaration name
+ support
+Date: Fri, 23 Nov 2018 08:12:35 +0000
+Message-ID: <f5908f1f727c41dfa90038d27734f67f@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <254f789dee7773b938db7a204ca8800db10e4588.1542105349.git.dongsheng.wang@hxt-semitech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4hj61o+TDTSGxYSMMXMn7YiOGP0fj6R-cquPodN4VeT9A@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: "robert.moore@intel.com" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hello Robert,
+
+Do you have any comments about this patch?
+Thanks.
 
 
-On 11/22/2018 11:38 PM, Dan Williams wrote:
-> On Thu, Nov 22, 2018 at 3:52 AM Anshuman Khandual
-> <anshuman.khandual@arm.com> wrote:
->>
->>
->>
->> On 11/19/2018 11:07 PM, Dave Hansen wrote:
->>> On 11/18/18 9:44 PM, Anshuman Khandual wrote:
->>>> IIUC NUMA re-work in principle involves these functional changes
->>>>
->>>> 1. Enumerating compute and memory nodes in heterogeneous environment (short/medium term)
->>>
->>> This patch set _does_ that, though.
->>>
->>>> 2. Enumerating memory node attributes as seen from the compute nodes (short/medium term)
->>>
->>> It does that as well (a subset at least).
->>>
->>> It sounds like the subset that's being exposed is insufficient for yo
->>> We did that because we think doing anything but a subset in sysfs will
->>> just blow up sysfs:  MAX_NUMNODES is as high as 1024, so if we have 4
->>> attributes, that's at _least_ 1024*1024*4 files if we expose *all*
->>> combinations.
->> Each permutation need not be a separate file inside all possible NODE X
->> (/sys/devices/system/node/nodeX) directories. It can be a top level file
->> enumerating various attribute values for a given (X, Y) node pair based
->> on an offset something like /proc/pid/pagemap.
->>
->>>
->>> Do we agree that sysfs is unsuitable for exposing attributes in this manner?
->>>
->>
->> Yes, for individual files. But this can be worked around with an offset
->> based access from a top level global attributes file as mentioned above.
->> Is there any particular advantage of using individual files for each
->> given attribute ? I was wondering that a single unsigned long (u64) will
->> be able to pack 8 different attributes where each individual attribute
->> values can be abstracted out in 8 bits.
-> 
-> sysfs has a 4K limit, and in general I don't think there is much
-> incremental value to go describe the entirety of the system from sysfs
-> or anywhere else in the kernel for that matter. It's simply too much> information to reasonably consume. Instead the kernel can describe the
+Cheers
+Dongsheng
 
-I agree that it may be some amount of information to parse but is crucial
-for any task on a heterogeneous system to evaluate (probably re-evaluate
-if the task moves around) its memory and CPU binding at runtime to make
-sure it has got the right one.
-
-> coarse boundaries and some semblance of "best" access initiator for a
-> given target. That should cover the "80%" case of what applications
-
-The current proposal just assumes that the best one is the nearest one.
-This may be true for bandwidth and latency but may not be true for some
-other properties. This assumptions should not be there while defining
-new ABI.
-
-> want to discover, for the other "20%" we likely need some userspace
-> library that can go parse these platform specific information sources
-> and supplement the kernel view. I also think a simpler kernel starting
-> point gives us room to go pull in more commonly used attributes if it
-> turns out they are useful, and avoid going down the path of exporting
-> attributes that have questionable value in practice.
-> 
-
-Applications can just query platform information right now and just use
-them for mbind() without requiring this new interface. We are not even
-changing any core MM yet. So if it's just about identifying the node's
-memory properties it can be scanned from platform itself. But I agree
-we would like the kernel to start adding interfaces for multi attribute
-memory but all I am saying is that it has to be comprehensive. Some of
-the attributes have more usefulness now and some have less but the new
-ABI interface has to accommodate exporting all of these.
+On 2018/11/13 18:46, Wang, Dongsheng wrote:
+> The new naming rule is added in acpica version 20180427.
+> So the dsdt aml code name changes from "AmlCode" to "dsdt_aml_code".
+>
+> The patch that introduces naming rules is:
+> https://github.com/acpica/acpica/commit/f9a88a4c1cd020b6a5475d63b29626852a0b5f37
+>
+> Tested:
+> ACPICA release version 20180427+.
+> ARM64: QCOM QDF2400
+> GCC: 4.8.5 20150623
+>
+> Signed-off-by: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+> ---
+>  drivers/acpi/Kconfig  |  2 +-
+>  drivers/acpi/tables.c | 10 ++++++++--
+>  2 files changed, 9 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 9705fc986da9..15ab53a52fdc 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -336,7 +336,7 @@ config ACPI_CUSTOM_DSDT_FILE
+>  	  See Documentation/acpi/dsdt-override.txt
+>  
+>  	  Enter the full path name to the file which includes the AmlCode
+> -	  declaration.
+> +	  or dsdt_aml_code declaration.
+>  
+>  	  If unsure, don't enter a file name.
+>  
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index a3d012b08fc5..297020bbaade 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -713,6 +713,9 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+>  					  table_length);
+>  }
+>  
+> +static void *amlcode __attribute__ ((weakref("AmlCode")));
+> +static void *dsdt_amlcode __attribute__ ((weakref("dsdt_aml_code")));
+> +
+>  acpi_status
+>  acpi_os_table_override(struct acpi_table_header *existing_table,
+>  		       struct acpi_table_header **new_table)
+> @@ -723,8 +726,11 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
+>  	*new_table = NULL;
+>  
+>  #ifdef CONFIG_ACPI_CUSTOM_DSDT
+> -	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
+> -		*new_table = (struct acpi_table_header *)AmlCode;
+> +	if (!strncmp(existing_table->signature, "DSDT", 4)) {
+> +		*new_table = (struct acpi_table_header *)&amlcode;
+> +		if (!(*new_table))
+> +			*new_table = (struct acpi_table_header *)&dsdt_amlcode;
+> +	}
+>  #endif
+>  	if (*new_table != NULL)
+>  		acpi_table_taint(existing_table);
