@@ -1,127 +1,34 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Mon, 26 Nov 2018 14:33:29 +0100
-Message-ID: <b64a0e1e-6aaa-66a9-2fb7-12daa6383ce1@redhat.com>
-References: <20180928150357.12942-1-david@redhat.com>
- <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
- <20181123190653.6da91461@kitsune.suse.cz>
- <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v3 3/3] of/property: Add of_fwnode_name()
+Date: Mon, 26 Nov 2018 15:40:26 +0200
+Message-ID: <20181126134026.GA26964@kuha.fi.intel.com>
+References: <20181126114752.69597-1-heikki.krogerus@linux.intel.com>
+ <20181126114752.69597-4-heikki.krogerus@linux.intel.com>
+ <20181126130532.GH10650@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob Herring <robh@kernel.org>, "mike.travis@hpe.com" <mike.trav>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181126130532.GH10650@smile.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjYuMTEuMTggMTM6MzAsIERhdmlkIEhpbGRlbmJyYW5kIHdyb3RlOgo+IE9uIDIzLjExLjE4
-IDE5OjA2LCBNaWNoYWwgU3VjaMOhbmVrIHdyb3RlOgo+PiBPbiBGcmksIDIzIE5vdiAyMDE4IDEy
-OjEzOjU4ICswMTAwCj4+IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEByZWRoYXQuY29tPiB3cm90
-ZToKPj4KPj4+IE9uIDI4LjA5LjE4IDE3OjAzLCBEYXZpZCBIaWxkZW5icmFuZCB3cm90ZToKPj4+
-PiBIb3cgdG8vd2hlbiB0byBvbmxpbmUgaG90cGx1Z2dlZCBtZW1vcnkgaXMgaGFyZCB0byBtYW5h
-Z2UgZm9yCj4+Pj4gZGlzdHJpYnV0aW9ucyBiZWNhdXNlIGRpZmZlcmVudCBtZW1vcnkgdHlwZXMg
-YXJlIHRvIGJlIHRyZWF0ZWQgZGlmZmVyZW50bHkuCj4+Pj4gUmlnaHQgbm93LCB3ZSBuZWVkIGNv
-bXBsaWNhdGVkIHVkZXYgcnVsZXMgdGhhdCBlLmcuIGNoZWNrIGlmIHdlIGFyZQo+Pj4+IHJ1bm5p
-bmcgb24gczM5MHgsIG9uIGEgcGh5c2ljYWwgc3lzdGVtIG9yIG9uIGEgdmlydHVhbGl6ZWQgc3lz
-dGVtLiBCdXQKPj4+PiB0aGVyZSBpcyBhbHNvIHNvbWV0aW1lcyB0aGUgZGVtYW5kIHRvIHJlYWxs
-eSBvbmxpbmUgbWVtb3J5IGltbWVkaWF0ZWx5Cj4+Pj4gd2hpbGUgYWRkaW5nIGluIHRoZSBrZXJu
-ZWwgYW5kIG5vdCB0byB3YWl0IGZvciB1c2VyIHNwYWNlIHRvIG1ha2UgYQo+Pj4+IGRlY2lzaW9u
-LiBBbmQgb24gdmlydHVhbGl6ZWQgc3lzdGVtcyB0aGVyZSBtaWdodCBiZSBkaWZmZXJlbnQKPj4+
-PiByZXF1aXJlbWVudHMsIGRlcGVuZGluZyBvbiAiaG93IiB0aGUgbWVtb3J5IHdhcyBhZGRlZCAo
-YW5kIGlmIGl0IHdpbGwKPj4+PiBldmVudHVhbGx5IGdldCB1bnBsdWdnZWQgYWdhaW4gLSBESU1N
-IHZzLiBwYXJhdmlydHVhbGl6ZWQgbWVjaGFuaXNtcykuCj4+Pj4KPj4+PiBPbiB0aGUgb25lIGhh
-bmQsIHdlIGhhdmUgcGh5c2ljYWwgc3lzdGVtcyB3aGVyZSB3ZSBzb21ldGltZXMKPj4+PiB3YW50
-IHRvIGJlIGFibGUgdG8gdW5wbHVnIG1lbW9yeSBhZ2FpbiAtIGUuZy4gYSBESU1NIC0gc28gd2Ug
-aGF2ZSB0byBvbmxpbmUKPj4+PiBpdCB0byB0aGUgTU9WQUJMRSB6b25lIG9wdGlvbmFsbHkuIFRo
-YXQgZGVjaXNpb24gaXMgdXN1YWxseSBtYWRlIGluIHVzZXIKPj4+PiBzcGFjZS4KPj4+Pgo+Pj4+
-IE9uIHRoZSBvdGhlciBoYW5kLCB3ZSBoYXZlIG1lbW9yeSB0aGF0IHNob3VsZCBuZXZlciBiZSBv
-bmxpbmVkCj4+Pj4gYXV0b21hdGljYWxseSwgb25seSB3aGVuIGFza2VkIGZvciBieSBhbiBhZG1p
-bmlzdHJhdG9yLiBTdWNoIG1lbW9yeSBvbmx5Cj4+Pj4gYXBwbGllcyB0byB2aXJ0dWFsaXplZCBl
-bnZpcm9ubWVudHMgbGlrZSBzMzkweCwgd2hlcmUgdGhlIGNvbmNlcHQgb2YKPj4+PiAic3RhbmRi
-eSIgbWVtb3J5IGV4aXN0cy4gTWVtb3J5IGlzIGRldGVjdGVkIGFuZCBhZGRlZCBkdXJpbmcgYm9v
-dCwgc28gaXQKPj4+PiBjYW4gYmUgb25saW5lZCB3aGVuIHJlcXVlc3RlZCBieSB0aGUgYWRtaW5p
-bmlzdHJhdG9yIG9yIHNvbWUgdG9vbGluZy4KPj4+PiBPbmx5IHdoZW4gb25saW5pbmcsIG1lbW9y
-eSB3aWxsIGJlIGFsbG9jYXRlZCBpbiB0aGUgaHlwZXJ2aXNvci4KPj4+Pgo+Pj4+IEJ1dCB0aGVu
-LCB3ZSBhbHNvIGhhdmUgcGFyYXZpcnR1YWxpemVkIGRldmljZXMgKG5hbWVseSB4ZW4gYW5kIGh5
-cGVyLXYKPj4+PiBiYWxsb29ucyksIHRoYXQgaG90cGx1ZyBtZW1vcnkgdGhhdCB3aWxsIG5ldmVy
-IGV2ZXIgYmUgcmVtb3ZlZCBmcm9tIGEKPj4+PiBzeXN0ZW0gcmlnaHQgbm93IHVzaW5nIG9mZmxp
-bmVfcGFnZXMvcmVtb3ZlX21lbW9yeS4gSWYgYXQgYWxsLCB0aGlzIG1lbW9yeQo+Pj4+IGlzIGxv
-Z2ljYWxseSB1bnBsdWdnZWQgYW5kIGhhbmRlZCBiYWNrIHRvIHRoZSBoeXBlcnZpc29yIHZpYSBi
-YWxsb29uaW5nLgo+Pj4+Cj4+Pj4gRm9yIHBhcmF2aXJ0dWFsaXplZCBkZXZpY2VzIGl0IGlzIHJl
-bGV2YW50IHRoYXQgbWVtb3J5IGlzIG9ubGluZWQgYXMKPj4+PiBxdWlja2x5IGFzIHBvc3NpYmxl
-IGFmdGVyIGFkZGluZyAtIGFuZCB0aGF0IGl0IGlzIGFkZGVkIHRvIHRoZSBOT1JNQUwKPj4+PiB6
-b25lLiBPdGhlcndpc2UsIGl0IGNvdWxkIGhhcHBlbiB0aGF0IHRvbyBtdWNoIG1lbW9yeSBpbiBh
-IHJvdyBpcyBhZGRlZAo+Pj4+IChidXQgbm90IG9ubGluZWQpLCByZXN1bHRpbmcgaW4gb3V0LW9m
-LW1lbW9yeSBjb25kaXRpb25zIGR1ZSB0byB0aGUKPj4+PiBhZGRpdGlvbmFsIG1lbW9yeSBmb3Ig
-InN0cnVjdCBwYWdlcyIgYW5kIGZyaWVuZHMuIE1PVkFCTEUgem9uZSBhcyB3ZWxsCj4+Pj4gYXMg
-ZGVsYXlzIG1pZ2h0IGJlIHZlcnkgcHJvYmxlbWF0aWMgYW5kIGxlYWQgdG8gY3Jhc2hlcyAoZS5n
-LiB6b25lCj4+Pj4gaW1iYWxhbmNlKS4KPj4+Pgo+Pj4+IFRoZXJlZm9yZSwgaW50cm9kdWNlIG1l
-bW9yeSBibG9jayB0eXBlcyBhbmQgb25saW5lIG1lbW9yeSBkZXBlbmRpbmcgb24KPj4+PiBpdCB3
-aGVuIGFkZGluZyB0aGUgbWVtb3J5LiBFeHBvc2UgdGhlIG1lbW9yeSB0eXBlIHRvIHVzZXIgc3Bh
-Y2UsIHNvIHVzZXIKPj4+PiBzcGFjZSBoYW5kbGVycyBjYW4gc3RhcnQgdG8gcHJvY2VzcyBvbmx5
-ICJub3JtYWwiIG1lbW9yeS4gT3RoZXIgbWVtb3J5Cj4+Pj4gYmxvY2sgdHlwZXMgY2FuIGJlIGln
-bm9yZWQuIE9uZSB0aGluZyBsZXNzIHRvIHdvcnJ5IGFib3V0IGluIHVzZXIgc3BhY2UuCj4+Pj4g
-ICAKPj4+Cj4+PiBTbyBJIHdhcyBsb29raW5nIGludG8gYWx0ZXJuYXRpdmVzLgo+Pj4KPj4+IDEu
-IFByb3ZpZGUgb25seSAibm9ybWFsIiBhbmQgInN0YW5kYnkiIG1lbW9yeSB0eXBlcyB0byB1c2Vy
-IHNwYWNlLiBUaGlzCj4+PiB3YXkgdXNlciBzcGFjZSBjYW4gbWFrZSBzbWFydGVyIGRlY2lzaW9u
-cyBhYm91dCBob3cgdG8gb25saW5lIG1lbW9yeS4KPj4+IE5vdCByZWFsbHkgc3VyZSBpZiB0aGlz
-IGlzIHRoZSByaWdodCB3YXkgdG8gZ28uCj4+Pgo+Pj4KPj4+IDIuIFVzZSBkZXZpY2UgZHJpdmVy
-IGluZm9ybWF0aW9uIChhcyBtZW50aW9uZWQgYnkgTWljaGFsIFMuKS4KPj4+Cj4+PiBUaGUgcHJv
-YmxlbSByaWdodCBub3cgaXMgdGhhdCB0aGVyZSBhcmUgbm8gZHJpdmVycyBmb3IgbWVtb3J5IGJs
-b2NrCj4+PiBkZXZpY2VzLiBUaGUgIm1lbW9yeSIgc3Vic3lzdGVtIGhhcyBubyBkcml2ZXJzLCBz
-byB0aGUgS09CSl9BREQgdWV2ZW50Cj4+PiB3aWxsIG5vdCBjb250YWluIGEgIkRSSVZFUiIgaW5m
-b3JtYXRpb24gYW5kIHdlIGF2ZSBubyBpZGVhIHdoYXQga2luZCBvZgo+Pj4gbWVtb3J5IGJsb2Nr
-IGRldmljZSB3ZSBob2xkIGluIG91ciBoYW5kcy4KPj4+Cj4+PiAkIHVkZXZhZG0gaW5mbyAtcSBh
-bGwgLWEgL3N5cy9kZXZpY2VzL3N5c3RlbS9tZW1vcnkvbWVtb3J5MAo+Pj4KPj4+ICAgbG9va2lu
-ZyBhdCBkZXZpY2UgJy9kZXZpY2VzL3N5c3RlbS9tZW1vcnkvbWVtb3J5MCc6Cj4+PiAgICAgS0VS
-TkVMPT0ibWVtb3J5MCIKPj4+ICAgICBTVUJTWVNURU09PSJtZW1vcnkiCj4+PiAgICAgRFJJVkVS
-PT0iIgo+Pj4gICAgIEFUVFJ7b25saW5lfT09IjEiCj4+PiAgICAgQVRUUntwaHlzX2RldmljZX09
-PSIwIgo+Pj4gICAgIEFUVFJ7cGh5c19pbmRleH09PSIwMDAwMDAwMCIKPj4+ICAgICBBVFRSe3Jl
-bW92YWJsZX09PSIwIgo+Pj4gICAgIEFUVFJ7c3RhdGV9PT0ib25saW5lIgo+Pj4gICAgIEFUVFJ7
-dmFsaWRfem9uZXN9PT0ibm9uZSIKPj4+Cj4+Pgo+Pj4gSWYgd2Ugd291bGQgcHJvdmlkZSAiZmFr
-ZSIgZHJpdmVycyBmb3IgdGhlIG1lbW9yeSBibG9jayBkZXZpY2VzIHdlIHdhbnQKPj4+IHRvIHRy
-ZWF0IGluIGEgc3BlY2lhbCB3YXkgaW4gdXNlciBzcGFjZSAoZS5nLiBzdGFuZGJ5IG1lbW9yeSBv
-biBzMzkweCksCj4+PiB1c2VyIHNwYWNlIGNvdWxkIHVzZSB0aGF0IGluZm9ybWF0aW9uIHRvIG1h
-a2Ugc21hcnRlciBkZWNpc2lvbnMuCj4+Pgo+Pj4gQWRkaW5nIHN1Y2ggZHJpdmVycyBtaWdodCB3
-b3JrLiBNeSBzdWdnZXN0aW9uIHdvdWxkIGJlIHRvIGxldCBvcmRpbmFyeQo+Pj4gRElNTXMgYmUg
-d2l0aG91dCBhIGRyaXZlciBmb3Igbm93IGFuZCBvbmx5IHNwZWNpYWwgY2FzZSBzdGFuZGJ5IG1l
-bW9yeQo+Pj4gYW5kIGV2ZW50dWFsbHkgcGFyYXZpcnR1YWxpemVkIG1lbW9yeSBkZXZpY2VzIChY
-RU4gYW5kIEh5cGVyLVYpLgo+Pj4KPj4+IEFueSB0aG91Z2h0cz8KPj4KPj4gSWYgd2UgYXJlIGdv
-aW5nIHRvIGZha2UgdGhlIGRyaXZlciBpbmZvcm1hdGlvbiB3ZSBtYXkgYXMgd2VsbCBhZGQgdGhl
-Cj4+IHR5cGUgYXR0cmlidXRlIGFuZCBiZSBkb25lIHdpdGggaXQuCj4+Cj4+IEkgdGhpbmsgdGhl
-IHByb2JsZW0gd2l0aCB0aGUgcGF0Y2ggd2FzIG1vcmUgd2l0aCB0aGUgc2VtYW50aWMgdGhhbiB0
-aGUKPj4gYXR0cmlidXRlIGl0c2VsZi4KPj4KPj4gV2hhdCBpcyBub3JtYWwsIHBhcmF2aXJ0dWFs
-aXplZCwgYW5kIHN0YW5kYnkgbWVtb3J5Pwo+Pgo+PiBJIGNhbiB1bmRlcnN0YW5kIERJTU0gZGV2
-aWNlLCBiYWxvb24gZGV2aWNlLCBvciB3aGF0ZXZlciBtZWNoYW5pc20gZm9yCj4+IGFkZGluZyBt
-ZW1vcnkgeW91IG1pZ2h0IGhhdmUuCj4+Cj4+IEkgY2FuIHVuZGVyc3RhbmQgIm1lbW9yeSBkZXNp
-Z25hdGVkIGFzIHN0YW5kYnkgYnkgdGhlIGNsdXN0ZXIKPj4gYWRtaW5pc3RyYXRvciIuCj4+Cj4+
-IEhvd2V2ZXIsIERJTU0gdnMgYmFsb29uIGlzIG9ydGhvZ29uYWwgdG8gc3RhbmRieSBhbmQgc2hv
-dWxkIG5vdCBiZQo+PiBjb25mbGF0ZWQgaW50byBvbmUgcHJvcGVydHkuCj4+Cj4+IHBhcmF2aXJ0
-dWFsaXplZCBtZWFucyBub3RoaW5nIGF0IGFsbCBpbiByZWxhdGlvbnNoaXAgdG8gbWVtb3J5IHR5
-cGUgYW5kCj4+IHRoZSBkZXNpcmVkIG9ubGluZSBwb2xpY3kgdG8gbWUuCj4gCj4gUmlnaHQsIHNv
-IHdpdGggd2hhdGV2ZXIgd2UgY29tZSB1cCwgaXQgc2hvdWxkIGFsbG93IHRvIG1ha2UgYSBkZWNp
-c2lvbgo+IGluIHVzZXIgc3BhY2UgYWJvdXQKPiAtIGlmIG1lbW9yeSBpcyB0byBiZSBvbmxpbmVk
-IGF1dG9tYXRpY2FsbHkKCkFuZCBJIHdpbGwgdGhpbmsgYWJvdXQgaWYgd2UgcmVhbGx5IHNob3Vs
-ZCBtb2RlbCBzdGFuZGJ5IG1lbW9yeS4gTWF5YmUKaXQgaXMgcmVhbGx5IGJldHRlciB0byBoYXZl
-IGluIHVzZXIgc3BhY2Ugc29tZXRoaW5nIGxpa2UgKGFzIERhbiBub3RlZCkKCmlmIChpc1MzOTB4
-KCkgJiYgdHlwZSA9PSAiZGltbSIpIHsKCS8qIGRvbid0IG9ubGluZSwgb24gczM5MHggc3lzdGVt
-IERJTU1zIGFyZSBzdGFuZGJ5IG1lbW9yeSAqLwp9CgpUaGUgd2UgY291bGQgaGF2ZSBpbiBhZGRp
-dGlvbgoKaWYgKHR5cGUgPT0gImJhbGxvb24iKSB7CgkvKgoJICogQmFsbG9vbiB3aWxsIG5vdCBi
-ZSB1bnBsdWdnZWQgYnkgb2ZmbGluaW5nIHRoZSB3aG9sZSBibG9jayBhdAoJICogb25jZSwgb25s
-aW5lIGFzICFtb3ZhYmxlLgoJICovCn0KCkJ1dCBJJ2xsIGhhdmUgdG8gdGhpbmsgYWJvdXQgdGhl
-IHdvcmRpbmcgLyB0eXBlcyBldGMuIChJIG5laXRoZXIgbGlrZQoiZGltbSIgbm9yICJiYWxsb29u
-IikuCgotLSAKClRoYW5rcywKCkRhdmlkIC8gZGhpbGRlbmIKX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwgbWFpbGluZyBsaXN0CmRldmVsQGxpbnV4
-ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRldi5saW51eGRyaXZlcnByb2plY3Qub3Jn
-L21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVsCg==
+On Mon, Nov 26, 2018 at 03:05:32PM +0200, Andy Shevchenko wrote:
+> On Mon, Nov 26, 2018 at 02:47:52PM +0300, Heikki Krogerus wrote:
+> > This implements get_name fwnode op for DT.
+> 
+> > +static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf,
+> > +			      size_t len)
+> > +{
+> > +	snprintf(buf, len, "%pOFn", to_of_node(fwnode));
+> 
+> Same concerns.
+
+OK, I'll fix all of these.
+
+thanks,
+
+-- 
+heikki
