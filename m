@@ -1,293 +1,93 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] gpiolib-acpi: Only defer request_irq for GpioInt ACPI event handlers
-Date: Mon, 26 Nov 2018 11:42:31 +0100
-Message-ID: <20181126104231.18322-1-hdegoede@redhat.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH v2 0/4] PCI / iommu / thunderbolt: IOMMU based DMA protection
+Date: Mon, 26 Nov 2018 14:15:22 +0300
+Message-ID: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Return-path: <stable-owner@vger.kernel.org>
-Sender: stable-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vg
 List-Id: linux-acpi@vger.kernel.org
 
-Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
-from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
-call for each event resource.
+Recent systems shipping with Windows 10 version 1803 or newer may be
+utilizing IOMMU to prevent DMA attacks via Thunderbolt ports. This is
+different from the previous security level based scheme because the
+connected device cannot access system memory outside of the regions
+allocated for it by the driver.
 
-This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
-call. This is a problem if some AML code reads the GPIO pin before we
-run the deferred acpi_gpiochip_request_interrupt, because in that case
-acpi_gpio_adr_space_handler() will already have called
-gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
-acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
-register an event handler.
+When enabled the BIOS makes sure no device can do DMA outside of RMRR
+(Reserved Memory Region Record) regions. This means that during OS boot,
+before it enables IOMMU, none of the connected devices can bypass DMA
+protection for instance by overwriting the data structures used by the
+IOMMU. The BIOS communicates support for this to the OS by setting a new
+bit in ACPI DMAR table [1].
 
-acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
-already having claimed the pin, but the other way around does not work.
+Because these systems utilize an IOMMU to block possible DMA attacks,
+typically (but not always) the Thunderbolt security level is set to "none"
+which means that all PCIe devices are immediately usable. This also means
+that Linux needs to follow Windows 10 and enable IOMMU automatically when
+running on such system otherwise connected devices can read/write system
+memory pretty much without any restrictions.
 
-One example of a problem this causes, is the event handler for the OTG
-ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
-in whatever mode it was in during boot and e.g. only allowing charging
-after a reboot.
+Since there is a way to identify PCIe root ports that are "external facing"
+we can put all internal devices to pass through (identity mapping) mode and
+only external devices need to go through full IOMMU mappings. We add a new
+flag "is_untrusted" that is supposed to cover various PCIe devices that may
+be used to conduct DMA attacks.
 
-This commit fixes this by only deferring the request_irq call and the
-initial run of edge-triggered IRQs instead of deferring all of
-acpi_gpiochip_request_interrupt.
+We also make sure PCIe ATS (Address Translation Service) is not enabled for
+devices flagged as untrusted because it could be used to bypass IOMMU
+completely as explained in the changelog of patch 3/4.
 
-Cc: stable@vger.kernel.org
-Fixes: 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event ...")
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/gpio/gpiolib-acpi.c | 136 +++++++++++++++++++-----------------
- 1 file changed, 73 insertions(+), 63 deletions(-)
+Finally we expose this information to userspace so tools such as bolt can
+do more accurate decision whether or not authorize the connected device.
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 55b72fbe1631..bda19373835a 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -22,8 +22,12 @@
- struct acpi_gpio_event {
- 	struct list_head node;
- 	acpi_handle handle;
-+	irq_handler_t handler;
- 	unsigned int pin;
- 	unsigned int irq;
-+	unsigned long irqflags;
-+	bool irq_is_wake;
-+	bool irq_requested;
- 	struct gpio_desc *desc;
- };
- 
-@@ -49,10 +53,10 @@ struct acpi_gpio_chip {
- 
- /*
-  * For gpiochips which call acpi_gpiochip_request_interrupts() before late_init
-- * (so builtin drivers) we register the ACPI GpioInt event handlers from a
-+ * (so builtin drivers) we register the ACPI GpioInt irq-handlers from a
-  * late_initcall_sync handler, so that other builtin drivers can register their
-  * OpRegions before the event handlers can run.  This list contains gpiochips
-- * for which the acpi_gpiochip_request_interrupts() has been deferred.
-+ * for which the acpi_gpiochip_request_irqs() call has been deferred.
-  */
- static DEFINE_MUTEX(acpi_gpio_deferred_req_irqs_lock);
- static LIST_HEAD(acpi_gpio_deferred_req_irqs_list);
-@@ -133,8 +137,43 @@ bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
- }
- EXPORT_SYMBOL_GPL(acpi_gpio_get_irq_resource);
- 
--static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
--						   void *context)
-+static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
-+				      struct acpi_gpio_event *event)
-+{
-+	int ret, value;
-+
-+	ret = request_threaded_irq(event->irq, NULL, event->handler,
-+				   event->irqflags, "ACPI:Event", event);
-+	if (ret) {
-+		dev_err(acpi_gpio->chip->parent,
-+			"Failed to setup interrupt handler for %d\n",
-+			event->irq);
-+		return;
-+	}
-+
-+	if (event->irq_is_wake)
-+		enable_irq_wake(event->irq);
-+
-+	event->irq_requested = true;
-+
-+	/* Make sure we trigger the initial state of edge-triggered IRQs */
-+	value = gpiod_get_raw_value_cansleep(event->desc);
-+	if (((event->irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
-+	    ((event->irqflags & IRQF_TRIGGER_FALLING) && value == 0))
-+		event->handler(event->irq, event);
-+}
-+
-+static void acpi_gpiochip_request_irqs(struct acpi_gpio_chip *acpi_gpio)
-+{
-+	struct acpi_gpio_event *event;
-+
-+	list_for_each_entry(event, &acpi_gpio->events, node)
-+		acpi_gpiochip_request_irq(acpi_gpio, event);
-+}
-+
-+static acpi_status
-+acpi_gpiochip_request_interrupt_desc(struct acpi_resource *ares,
-+				     void *context)
- {
- 	struct acpi_gpio_chip *acpi_gpio = context;
- 	struct gpio_chip *chip = acpi_gpio->chip;
-@@ -143,8 +182,7 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
- 	struct acpi_gpio_event *event;
- 	irq_handler_t handler = NULL;
- 	struct gpio_desc *desc;
--	unsigned long irqflags;
--	int ret, pin, irq, value;
-+	int ret, pin, irq;
- 
- 	if (!acpi_gpio_get_irq_resource(ares, &agpio))
- 		return AE_OK;
-@@ -175,8 +213,6 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
- 
- 	gpiod_direction_input(desc);
- 
--	value = gpiod_get_value_cansleep(desc);
--
- 	ret = gpiochip_lock_as_irq(chip, pin);
- 	if (ret) {
- 		dev_err(chip->parent, "Failed to lock GPIO as interrupt\n");
-@@ -189,64 +225,42 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
- 		goto fail_unlock_irq;
- 	}
- 
--	irqflags = IRQF_ONESHOT;
-+	event = kzalloc(sizeof(*event), GFP_KERNEL);
-+	if (!event)
-+		goto fail_unlock_irq;
-+
-+	event->irqflags = IRQF_ONESHOT;
- 	if (agpio->triggering == ACPI_LEVEL_SENSITIVE) {
- 		if (agpio->polarity == ACPI_ACTIVE_HIGH)
--			irqflags |= IRQF_TRIGGER_HIGH;
-+			event->irqflags |= IRQF_TRIGGER_HIGH;
- 		else
--			irqflags |= IRQF_TRIGGER_LOW;
-+			event->irqflags |= IRQF_TRIGGER_LOW;
- 	} else {
- 		switch (agpio->polarity) {
- 		case ACPI_ACTIVE_HIGH:
--			irqflags |= IRQF_TRIGGER_RISING;
-+			event->irqflags |= IRQF_TRIGGER_RISING;
- 			break;
- 		case ACPI_ACTIVE_LOW:
--			irqflags |= IRQF_TRIGGER_FALLING;
-+			event->irqflags |= IRQF_TRIGGER_FALLING;
- 			break;
- 		default:
--			irqflags |= IRQF_TRIGGER_RISING |
--				    IRQF_TRIGGER_FALLING;
-+			event->irqflags |= IRQF_TRIGGER_RISING |
-+					   IRQF_TRIGGER_FALLING;
- 			break;
- 		}
- 	}
- 
--	event = kzalloc(sizeof(*event), GFP_KERNEL);
--	if (!event)
--		goto fail_unlock_irq;
--
- 	event->handle = evt_handle;
-+	event->handler = handler;
- 	event->irq = irq;
-+	event->irq_is_wake = agpio->wake_capable == ACPI_WAKE_CAPABLE;
- 	event->pin = pin;
- 	event->desc = desc;
- 
--	ret = request_threaded_irq(event->irq, NULL, handler, irqflags,
--				   "ACPI:Event", event);
--	if (ret) {
--		dev_err(chip->parent,
--			"Failed to setup interrupt handler for %d\n",
--			event->irq);
--		goto fail_free_event;
--	}
--
--	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
--		enable_irq_wake(irq);
--
- 	list_add_tail(&event->node, &acpi_gpio->events);
- 
--	/*
--	 * Make sure we trigger the initial state of the IRQ when using RISING
--	 * or FALLING.  Note we run the handlers on late_init, the AML code
--	 * may refer to OperationRegions from other (builtin) drivers which
--	 * may be probed after us.
--	 */
--	if (((irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
--	    ((irqflags & IRQF_TRIGGER_FALLING) && value == 0))
--		handler(event->irq, event);
--
- 	return AE_OK;
- 
--fail_free_event:
--	kfree(event);
- fail_unlock_irq:
- 	gpiochip_unlock_as_irq(chip, pin);
- fail_free_desc:
-@@ -283,6 +297,9 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
- 	if (ACPI_FAILURE(status))
- 		return;
- 
-+	acpi_walk_resources(handle, "_AEI",
-+			    acpi_gpiochip_request_interrupt_desc, acpi_gpio);
-+
- 	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
- 	defer = !acpi_gpio_deferred_req_irqs_done;
- 	if (defer)
-@@ -290,11 +307,8 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
- 			 &acpi_gpio_deferred_req_irqs_list);
- 	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
- 
--	if (defer)
--		return;
--
--	acpi_walk_resources(handle, "_AEI",
--			    acpi_gpiochip_request_interrupt, acpi_gpio);
-+	if (!defer)
-+		acpi_gpiochip_request_irqs(acpi_gpio);
- }
- EXPORT_SYMBOL_GPL(acpi_gpiochip_request_interrupts);
- 
-@@ -331,10 +345,13 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
- 	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
- 		struct gpio_desc *desc;
- 
--		if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
--			disable_irq_wake(event->irq);
-+		if (event->irq_requested) {
-+			if (event->irq_is_wake)
-+				disable_irq_wake(event->irq);
-+
-+			free_irq(event->irq, event);
-+		}
- 
--		free_irq(event->irq, event);
- 		desc = event->desc;
- 		if (WARN_ON(IS_ERR(desc)))
- 			continue;
-@@ -1200,23 +1217,16 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
- 	return con_id == NULL;
- }
- 
--/* Run deferred acpi_gpiochip_request_interrupts() */
--static int acpi_gpio_handle_deferred_request_interrupts(void)
-+/* Run deferred acpi_gpiochip_request_irqs() */
-+static int acpi_gpio_handle_deferred_request_irqs(void)
- {
- 	struct acpi_gpio_chip *acpi_gpio, *tmp;
- 
- 	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
- 	list_for_each_entry_safe(acpi_gpio, tmp,
- 				 &acpi_gpio_deferred_req_irqs_list,
--				 deferred_req_irqs_list_entry) {
--		acpi_handle handle;
--
--		handle = ACPI_HANDLE(acpi_gpio->chip->parent);
--		acpi_walk_resources(handle, "_AEI",
--				    acpi_gpiochip_request_interrupt, acpi_gpio);
--
--		list_del_init(&acpi_gpio->deferred_req_irqs_list_entry);
--	}
-+				 deferred_req_irqs_list_entry)
-+		acpi_gpiochip_request_irqs(acpi_gpio);
- 
- 	acpi_gpio_deferred_req_irqs_done = true;
- 	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-@@ -1224,4 +1234,4 @@ static int acpi_gpio_handle_deferred_request_interrupts(void)
- 	return 0;
- }
- /* We must use _sync so that this runs after the first deferred_probe run */
--late_initcall_sync(acpi_gpio_handle_deferred_request_interrupts);
-+late_initcall_sync(acpi_gpio_handle_deferred_request_irqs);
+I can take these through Thunderbolt tree assuming Bjorn and Rafael are
+fine with these.
+
+[1] https://software.intel.com/sites/default/files/managed/c5/15/vt-directed-io-spec.pdf
+
+Previous version of the patch series can be found here:
+
+  https://www.spinics.net/lists/linux-pci/msg77751.html
+
+Changes from v1:
+
+  * Reword Documentation/admin-guide/thunderbolt.rst to make the feature
+    time frame/platform oriented as there will be systems shipping
+    with Linux installed by default.
+
+  * Rename the flag is_external to is_untrusted so that we could use the
+    same flag to cover all kinds of "untrusted" PCI devices, not just
+    Thunderbolt connected devices. I still parse the _DSD in PCI/ACPI core
+    because that's where we currently handle "HotPlugSupportInD3" as well.
+    Also updated comments in patch [1/4].
+
+  * Added tags from Ashok, Joerg and Yehezkel. I'm assuming they still
+    apply because I did not change the code with the exception of few
+    comments and rename of the flag. Let me know if that's not the case
+    anymore.
+
+Lu Baolu (1):
+  iommu/vt-d: Force IOMMU on for platform opt in hint
+
+Mika Westerberg (3):
+  PCI / ACPI: Identify untrusted PCI devices
+  iommu/vt-d: Do not enable ATS for untrusted devices
+  thunderbolt: Export IOMMU based DMA protection support to userspace
+
+ .../ABI/testing/sysfs-bus-thunderbolt         |  9 +++
+ Documentation/admin-guide/thunderbolt.rst     | 20 +++++++
+ drivers/acpi/property.c                       |  3 +
+ drivers/iommu/dmar.c                          | 25 +++++++++
+ drivers/iommu/intel-iommu.c                   | 56 ++++++++++++++++++-
+ drivers/pci/pci-acpi.c                        | 18 ++++++
+ drivers/pci/probe.c                           | 22 ++++++++
+ drivers/thunderbolt/domain.c                  | 17 ++++++
+ include/linux/dmar.h                          |  8 +++
+ include/linux/pci.h                           |  8 +++
+ 10 files changed, 183 insertions(+), 3 deletions(-)
+
 -- 
 2.19.1
