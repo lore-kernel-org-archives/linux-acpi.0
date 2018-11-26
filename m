@@ -1,45 +1,47 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH 4/7] node: Add memory caching attributes
-Date: Mon, 26 Nov 2018 08:14:47 -0700
-Message-ID: <20181126151446.GK26707@localhost.localdomain>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-5-keith.busch@intel.com>
- <91698cef-cdcd-5143-884f-3da5536e156f@arm.com>
- <20181119230600.GC26707@localhost.localdomain>
- <731533d5-26e1-ade7-1a63-d1f85461d091@arm.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Mon, 26 Nov 2018 21:08:51 +0530
+Message-ID: <1a9e887b-8087-e897-6195-e8df325bd458@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+ <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+ <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
+ <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
+ <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <731533d5-26e1-ade7-1a63-d1f85461d091@arm.com>
+In-Reply-To: <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 22, 2018 at 06:59:21PM +0530, Anshuman Khandual wrote:
-> 
-> 
-> On 11/20/2018 04:36 AM, Keith Busch wrote:
-> > On Mon, Nov 19, 2018 at 09:44:00AM +0530, Anshuman Khandual wrote:
-> >> On 11/15/2018 04:19 AM, Keith Busch wrote:
-> >>> System memory may have side caches to help improve access speed. While
-> >>> the system provided cache is transparent to the software accessing
-> >>> these memory ranges, applications can optimize their own access based
-> >>> on cache attributes.
-> >>
-> >> Cache is not a separate memory attribute. It impacts how the real attributes
-> >> like bandwidth, latency e.g which are already captured in the previous patch.
-> >> What is the purpose of adding this as a separate attribute ? Can you explain
-> >> how this is going to help the user space apart from the hints it has already
-> >> received with bandwidth, latency etc properties.
-> > 
-> > I am not sure I understand the question here. Access bandwidth and latency
-> > are entirely attributes different than what this patch provides. If the
-> > system side-caches memory, the associativity, line size, and total size
-> > can optionally be used by software to improve performance.
-> 
-> Okay but then does this belong to this series which about memory attributes ?
 
-This patch series is about exporting memory attributes, and this system
-memory caching is  one such attribute, so yes, I think it belongs.
+
+On 11/24/2018 12:51 AM, Dave Hansen wrote:
+> On 11/22/18 10:42 PM, Anshuman Khandual wrote:
+>> Are we willing to go in the direction for inclusion of a new system
+>> call, subset of it appears on sysfs etc ? My primary concern is not
+>> how the attribute information appears on the sysfs but lack of it's
+>> completeness.
+> 
+> A new system call makes total sense to me.  I have the same concern
+> about the completeness of what's exposed in sysfs, I just don't see a
+> _route_ to completeness with sysfs itself.  Thus, the minimalist
+> approach as a first step.
+
+Okay if we agree on the need for a new specific system call extracting
+the superset attribute information MAX_NUMNODES * MAX_NUMNODES * U64
+(u64 packs 8 bit values for 8 attributes or something like that) as we
+had discussed before, it makes sense to export a subset of it which can
+be faster but useful for the user space without going through a system
+call. Do you agree on a (system call + sysfs) approach in principle ?
+Also sysfs exported information has to be derived from whats available
+through the system call not the other way round. Hence the starting
+point has to be the system call definition.
