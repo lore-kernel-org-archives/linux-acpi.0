@@ -1,62 +1,101 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Mon, 26 Nov 2018 21:22:13 +0530
-Message-ID: <4b9e30ea-aa8e-cfd7-230b-1d5b0a8837f4@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
- <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
- <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
- <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
- <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
- <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
- <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
- <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
- <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Mon, 26 Nov 2018 16:59:14 +0100
+Message-ID: <2d05e5d1-c5b5-8884-e642-89421685052f@redhat.com>
+References: <20180928150357.12942-1-david@redhat.com>
+ <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
+ <20181123190653.6da91461@kitsune.suse.cz>
+ <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
+ <b64a0e1e-6aaa-66a9-2fb7-12daa6383ce1@redhat.com>
+ <20181126152015.7464c786@naga>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20181126152015.7464c786@naga>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Rob Herring <robh@kernel.org>, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, linux-s390@vger.kernel.org"mike.travis@hpe.com" <mik>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 11/24/2018 02:43 AM, Dan Williams wrote:
-> On Fri, Nov 23, 2018 at 11:21 AM Dave Hansen <dave.hansen@intel.com> wrote:
->>
->> On 11/22/18 10:42 PM, Anshuman Khandual wrote:
->>> Are we willing to go in the direction for inclusion of a new system
->>> call, subset of it appears on sysfs etc ? My primary concern is not
->>> how the attribute information appears on the sysfs but lack of it's
->>> completeness.
->>
->> A new system call makes total sense to me.  I have the same concern
->> about the completeness of what's exposed in sysfs, I just don't see a
->> _route_ to completeness with sysfs itself.  Thus, the minimalist
->> approach as a first step.
-> 
-> Outside of platform-firmware-id to Linux-numa-node-id what other
-> userspace API infrastructure does the kernel need to provide? It seems
-> userspace enumeration of memory attributes is fully enabled once the
-> firmware-to-Linux identification is established.
-
-Which is true if the user space is required to probe the memory attribute
-values for the platform-firmware-id from the platform and then request
-required memory from corresponding Linux-numa-node-id via standard mm
-interfaces like mbind(). But in this patch series we are not mapping
-platform-firmware-id to Linux-numa-node-id. We are exporting properties
-applicable to Linux nodes (Linux-numa-node-id).
-
-Even if platform-firmware-id to Linux-numa-node-id is required it can
-be done through a new file like the following. Applications can just
-take the platform_id node and query platform about it's properties.
-
-/sys/devices/system/node/nodeX/platform_id
-
-This above interface would have been okay as its just an extension of
-the existing node information on sysfs. But thats not the case with
-this proposal.
+T24gMjYuMTEuMTggMTU6MjAsIE1pY2hhbCBTdWNow6FuZWsgd3JvdGU6Cj4gT24gTW9uLCAyNiBO
+b3YgMjAxOCAxNDozMzoyOSArMDEwMAo+IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEByZWRoYXQu
+Y29tPiB3cm90ZToKPiAKPj4gT24gMjYuMTEuMTggMTM6MzAsIERhdmlkIEhpbGRlbmJyYW5kIHdy
+b3RlOgo+Pj4gT24gMjMuMTEuMTggMTk6MDYsIE1pY2hhbCBTdWNow6FuZWsgd3JvdGU6ICAKPiAK
+Pj4+Pgo+Pj4+IElmIHdlIGFyZSBnb2luZyB0byBmYWtlIHRoZSBkcml2ZXIgaW5mb3JtYXRpb24g
+d2UgbWF5IGFzIHdlbGwgYWRkIHRoZQo+Pj4+IHR5cGUgYXR0cmlidXRlIGFuZCBiZSBkb25lIHdp
+dGggaXQuCj4+Pj4KPj4+PiBJIHRoaW5rIHRoZSBwcm9ibGVtIHdpdGggdGhlIHBhdGNoIHdhcyBt
+b3JlIHdpdGggdGhlIHNlbWFudGljIHRoYW4gdGhlCj4+Pj4gYXR0cmlidXRlIGl0c2VsZi4KPj4+
+Pgo+Pj4+IFdoYXQgaXMgbm9ybWFsLCBwYXJhdmlydHVhbGl6ZWQsIGFuZCBzdGFuZGJ5IG1lbW9y
+eT8KPj4+Pgo+Pj4+IEkgY2FuIHVuZGVyc3RhbmQgRElNTSBkZXZpY2UsIGJhbG9vbiBkZXZpY2Us
+IG9yIHdoYXRldmVyIG1lY2hhbmlzbSBmb3IKPj4+PiBhZGRpbmcgbWVtb3J5IHlvdSBtaWdodCBo
+YXZlLgo+Pj4+Cj4+Pj4gSSBjYW4gdW5kZXJzdGFuZCAibWVtb3J5IGRlc2lnbmF0ZWQgYXMgc3Rh
+bmRieSBieSB0aGUgY2x1c3Rlcgo+Pj4+IGFkbWluaXN0cmF0b3IiLgo+Pj4+Cj4+Pj4gSG93ZXZl
+ciwgRElNTSB2cyBiYWxvb24gaXMgb3J0aG9nb25hbCB0byBzdGFuZGJ5IGFuZCBzaG91bGQgbm90
+IGJlCj4+Pj4gY29uZmxhdGVkIGludG8gb25lIHByb3BlcnR5Lgo+Pj4+Cj4+Pj4gcGFyYXZpcnR1
+YWxpemVkIG1lYW5zIG5vdGhpbmcgYXQgYWxsIGluIHJlbGF0aW9uc2hpcCB0byBtZW1vcnkgdHlw
+ZSBhbmQKPj4+PiB0aGUgZGVzaXJlZCBvbmxpbmUgcG9saWN5IHRvIG1lLiAgCj4+Pgo+Pj4gUmln
+aHQsIHNvIHdpdGggd2hhdGV2ZXIgd2UgY29tZSB1cCwgaXQgc2hvdWxkIGFsbG93IHRvIG1ha2Ug
+YSBkZWNpc2lvbgo+Pj4gaW4gdXNlciBzcGFjZSBhYm91dAo+Pj4gLSBpZiBtZW1vcnkgaXMgdG8g
+YmUgb25saW5lZCBhdXRvbWF0aWNhbGx5ICAKPj4KPj4gQW5kIEkgd2lsbCB0aGluayBhYm91dCBp
+ZiB3ZSByZWFsbHkgc2hvdWxkIG1vZGVsIHN0YW5kYnkgbWVtb3J5LiBNYXliZQo+PiBpdCBpcyBy
+ZWFsbHkgYmV0dGVyIHRvIGhhdmUgaW4gdXNlciBzcGFjZSBzb21ldGhpbmcgbGlrZSAoYXMgRGFu
+IG5vdGVkKQo+IAo+IElmIGl0IGlzIHBvc3NpYmxlIHRvIGRlc2lnbmF0ZSB0aGUgbWVtb3J5IGFz
+IHN0YW5kYnkgb3Igb25saW5lIGluIHRoZQo+IHMzOTAgYWRtaW4gaW50ZXJmYWNlIGFuZCB0aGUg
+a2VybmVsIGRvZXMgaGF2ZSBhY2Nlc3MgdG8gdGhpcwo+IGluZm9ybWF0aW9uIGl0IG1ha2VzIHNl
+bnNlIHRvIGZvcndhcmQgaXQgdG8gdXNlcnNwYWNlIChhcyBzZXBhcmF0ZQo+IHMzOTAtc3BlY2lm
+aWMgcHJvcGVydHkpLiBJZiBub3QgdGhlbiB5b3UgbmVlZCB0byBtYWtlIHNvbWUga2luZCBvZgo+
+IGFzc3VtcHRpb24gbGlrZSBiZWxvdyBhbmQgdGhlIHVzZXIgY2FuIHR1bmUgdGhlIHNjcmlwdCBh
+Y2NvcmRpbmcgdG8KPiB0aGVpciB1c2VjYXNlLgoKQWxzbyB0cnVlLCBzdGFuZGJ5IG1lbW9yeSBy
+ZWFsbHkgcmVwcmVzZW50cyBhIGRpc3RpbmN0IHR5cGUgb2YgbWVtb3J5CmJsb2NrIChtZW1vcnkg
+c2VlbXMgdG8gYmUgdGhlcmUgYnV0IHJlYWxseSBpc24ndCkuIFJpZ2h0IG5vdyBJIGFtCnRoaW5r
+aW5nIGFib3V0IHNvbWV0aGluZyBsaWtlIHRoaXMgKHRyaWVkIHRvIGZvcm11bGF0ZSBpdCBvbiBh
+IHZlcnkKZ2VuZXJpYyBsZXZlbCBiZWNhdXNlIHdlIGNhbid0IHByZWRpY3Qgd2hpY2ggbWVjaGFu
+aXNtIG1pZ2h0IHdhbnQgdG8KbWFrZSB1c2Ugb2YgdGhlc2UgdHlwZXMgaW4gdGhlIGZ1dHVyZSku
+CgoKLyoKICogTWVtb3J5IGJsb2NrIHR5cGVzIGFsbG93IHVzZXIgc3BhY2UgdG8gZm9ybXVsYXRl
+IHJ1bGVzIGlmIGFuZCBob3cgdG8KICogb25saW5lIG1lbW9yeSBibG9ja3MuIFRoZSB0eXBlcyBh
+cmUgZXhwb3NlZCB0byB1c2VyIHNwYWNlIGFzIHRleHQKICogc3RyaW5ncyBpbiBzeXNmcy4gV2hp
+bGUgdGhlIHR5cGljYWwgb25saW5lIHN0cmF0ZWdpZXMgYXJlIGRlc2NyaWJlZAogKiBhbG9uZyB3
+aXRoIHRoZSB0eXBlcywgdGhlcmUgYXJlIHVzZSBjYXNlcyB3aGVyZSB0aGF0IGNhbiBkaWZmZXIg
+KGUuZy4KICogdXNlIE1PVkFCTEUgem9uZSBmb3IgbW9yZSByZWxpYWJsZSBodWdlIHBhZ2UgdXNh
+Z2UsIHVzZSBOT1JNQUwgem9uZQogKiBkdWUgdG8gem9uZSBpbWJhbGFuY2Ugb3IgYmVjYXVzZSBt
+ZW1vcnkgdW5wbHVnIGlzIG5vdCBpbnRlbmRlZCkuCiAqCiAqIE1FTU9SWV9CTE9DS19OT05FOgog
+KiAgTm8gbWVtb3J5IGJsb2NrIGlzIHRvIGJlIGNyZWF0ZWQgKGUuZy4gZGV2aWNlIG1lbW9yeSku
+IFVzZWQgaW50ZXJuYWxseQogKiAgb25seS4KICoKICogTUVNT1JZX0JMT0NLX1JFTU9WQUJMRToK
+ICogIFRoaXMgbWVtb3J5IGJsb2NrIHR5cGUgc2hvdWxkIGJlIHRyZWF0ZWQgYXMgaWYgaXQgY2Fu
+IGJlCiAqICByZW1vdmVkL3VucGx1Z2dlZCBmcm9tIHRoZSBzeXN0ZW0gYWdhaW4uIEUuZy4gdGhl
+cmUgaXMgYSBoYXJkd2FyZQogKiAgaW50ZXJmYWNlIHRvIHVucGx1ZyBzdWNoIG1lbW9yeS4gVGhp
+cyBtZW1vcnkgYmxvY2sgdHlwZSBpcyB1c3VhbGx5CiAqICBvbmxpbmVkIHRvIHRoZSBNT1ZBQkxF
+IHpvbmUsIHRvIGUuZy4gbWFrZSBvZmZsaW5pbmcgb2YgaXQgbW9yZQogKiAgcmVsaWFibGUuIEV4
+YW1wbGVzIGluY2x1ZGUgQUNQSSBhbmQgUFBDIERJTU1zLgogKgogKiBNRU1PUllfQkxPQ0tfVU5S
+RU1PVkFCTEU6CiAqICBUaGlzIG1lbW9yeSBibG9jayB0eXBlIHNob3VsZCBiZSB0cmVhdGVkIGFz
+IGlmIGl0IGNhbiBub3QgYmUKICogIHJlbW92ZWQvdW5wbHVnZ2VkIGFnYWluLiBFLmcuIHRoZXJl
+IGlzIG5vIGhhcmR3YXJlIGludGVyZmFjZSB0bwogKiAgdW5wbHVnIHN1Y2ggbWVtb3J5LiBUaGlz
+IG1lbW9yeSBibG9jayB0eXBlIGlzIHVzdWFsbHkgb25saW5lZCB0bwogKiAgdGhlIE5PUk1BTCB6
+b25lLCBhcyBvZmZsaW5pbmcgaXMgbm90IGJlbmVmaWNpYWwuIEV4YW1wbGVzIGluY2x1ZGUgYm9v
+dAogKiAgbWVtb3J5IG9uIG1vc3QgYXJjaGl0ZWN0dXJlcyBhbmQgbWVtb3J5IGFkZGVkIHZpYSBi
+YWxsb29uIGRldmljZXMuCiAqCiAqIE1FTU9SWV9CTE9DS19TVEFOREJZOgogKiAgVGhlIG1lbW9y
+eSBibG9jayB0eXBlIHNob3VsZCBiZSB0cmVhdGVkIGFzIGlmIGl0IGNhbiBiZQogKiAgcmVtb3Zl
+ZC91bnBsdWdnZWQgYWdhaW4sIGhvd2V2ZXIgdGhlIGFjdHVhbCBtZW1vcnkgaG90KHVuKXBsdWcg
+aXMKICogIHBlcmZvcm1lZCBieSBvbmxpbmluZy9vZmZsaW5pbmcuIEluIHZpcnR1YWwgZW52aXJv
+bm1lbnRzLCBzdWNoIG1lbW9yeQogKiAgaXMgdXN1YWxseSBhZGRlZCBkdXJpbmcgYm9vdCBhbmQg
+bmV2ZXIgcmVtb3ZlZC4gT25saW5pbmcgbWVtb3J5IHdpbGwKICogIHJlc3VsdCBpbiBtZW1vcnkg
+Z2V0dGluZyBhbGxvY2F0ZWQgdG8gYSBWTS4gVGhpcyBtZW1vcnkgdHlwZSBpcyB1c3VhbGx5CiAq
+ICBub3Qgb25saW5lZCBhdXRvbWF0aWNhbGx5IGJ1dCBleHBsaWNpdGx5IGJ5IHRoZSBhZG1pbmlz
+dHJhdG9yLiBPbmUKICogIGV4YW1wbGUgaXMgc3RhbmRieSBtZW1vcnkgb24gczM5MHguCiAqLwoK
+PiAKPj4KPj4gaWYgKGlzUzM5MHgoKSAmJiB0eXBlID09ICJkaW1tIikgewo+PiAJLyogZG9uJ3Qg
+b25saW5lLCBvbiBzMzkweCBzeXN0ZW0gRElNTXMgYXJlIHN0YW5kYnkgbWVtb3J5ICovCj4+IH0K
+PiAKPiBUaGFua3MKPiAKPiBNaWNoYWwKPiAKCgotLSAKClRoYW5rcywKCkRhdmlkIC8gZGhpbGRl
+bmIKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwg
+bWFpbGluZyBsaXN0CmRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRl
+di5saW51eGRyaXZlcnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVs
+Cg==
