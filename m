@@ -1,294 +1,79 @@
-From: Robin Murphy <robin.murphy@arm.com>
-Subject: Re: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
- 162001800 quirk
-Date: Mon, 26 Nov 2018 18:45:17 +0000
-Message-ID: <f8e469c3-7ec9-551e-d5bd-6f14b02a8f3f@arm.com>
-References: <20181016124920.24708-1-shameerali.kolothum.thodi@huawei.com>
- <20181016124920.24708-5-shameerali.kolothum.thodi@huawei.com>
- <0d7a984e-5814-a986-cd48-ef0651079e32@arm.com>
- <5FC3163CFD30C246ABAA99954A238FA8387A0342@FRAEML521-MBX.china.huawei.com>
- <5FC3163CFD30C246ABAA99954A238FA8387A0575@FRAEML521-MBX.china.huawei.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 4/7] node: Add memory caching attributes
+Date: Mon, 26 Nov 2018 20:06:19 +0100
+Message-ID: <20181126190619.GA32595@kroah.com>
+References: <20181114224921.12123-2-keith.busch@intel.com>
+ <20181114224921.12123-5-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5FC3163CFD30C246ABAA99954A238FA8387A0575@FRAEML521-MBX.china.huawei.com>
-Content-Language: en-GB
+Content-Disposition: inline
+In-Reply-To: <20181114224921.12123-5-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "jean-philippe.brucker@arm.com" <jean-philippe.brucker@arm.com>
-Cc: "mark.rutland@arm.com" <mark.rutland@arm.com>, "vkilari@codeaurora.org" <vkilari@codeaurora.org>, "neil.m.leeder@gmail.com" <neil.m.leeder@gmail.com>, "pabba@codeaurora.org" <pabba@codeaurora.org>, "will.deacon@arm.com" <will.deacon@arm.com>, "rruigrok@codeaurora.org" <rruigrok@codeaurora.org>, Linuxarm <linuxarm@huawei.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Keith Busch <keith.busch@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Shameer,
-
-Sorry for the delay...
-
-On 18/10/2018 16:27, Shameerali Kolothum Thodi wrote:
+On Wed, Nov 14, 2018 at 03:49:17PM -0700, Keith Busch wrote:
+> System memory may have side caches to help improve access speed. While
+> the system provided cache is transparent to the software accessing
+> these memory ranges, applications can optimize their own access based
+> on cache attributes.
 > 
+> In preparation for such systems, provide a new API for the kernel to
+> register these memory side caches under the memory node that provides it.
 > 
->> -----Original Message-----
->> From: Linuxarm [mailto:linuxarm-bounces@huawei.com] On Behalf Of
->> Shameerali Kolothum Thodi
->> Sent: 18 October 2018 14:34
->> To: Robin Murphy <robin.murphy@arm.com>; lorenzo.pieralisi@arm.com;
->> jean-philippe.brucker@arm.com
->> Cc: mark.rutland@arm.com; vkilari@codeaurora.org;
->> neil.m.leeder@gmail.com; pabba@codeaurora.org; will.deacon@arm.com;
->> rruigrok@codeaurora.org; Linuxarm <linuxarm@huawei.com>; linux-
->> kernel@vger.kernel.org; linux-acpi@vger.kernel.org; linux-arm-
->> kernel@lists.infradead.org
->> Subject: RE: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
->> 162001800 quirk
->>
->> Hi Robin,
->>
->>> -----Original Message-----
->>> From: Robin Murphy [mailto:robin.murphy@arm.com]
->>> Sent: 18 October 2018 12:44
->>> To: Shameerali Kolothum Thodi <shameerali.kolothum.thodi@huawei.com>;
->>> lorenzo.pieralisi@arm.com; jean-philippe.brucker@arm.com
->>> Cc: will.deacon@arm.com; mark.rutland@arm.com; Guohanjun (Hanjun Guo)
->>> <guohanjun@huawei.com>; John Garry <john.garry@huawei.com>;
->>> pabba@codeaurora.org; vkilari@codeaurora.org; rruigrok@codeaurora.org;
->>> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-arm-
->>> kernel@lists.infradead.org; Linuxarm <linuxarm@huawei.com>;
->>> neil.m.leeder@gmail.com
->>> Subject: Re: [PATCH v4 4/4] perf/smmuv3_pmu: Enable HiSilicon Erratum
->>> 162001800 quirk
+> The kernel's sysfs representation is modeled from the cpu cacheinfo
+> attributes, as seen from /sys/devices/system/cpu/cpuX/cache/. Unlike CPU
+> cacheinfo, though, a higher node's memory cache level is nearer to the
+> CPU, while lower levels are closer to the backing memory. Also unlike
+> CPU cache, the system handles flushing any dirty cached memory to the
+> last level the memory on a power failure if the range is persistent.
 > 
-> [...]
+> The exported attributes are the cache size, the line size, associativity,
+> and write back policy.
 > 
->>>> +static const struct smmu_pmu_erratum_wa smmu_pmu_wa[] = {
->>>> +	{
->>>> +		.match_type = se_match_acpi_oem,
->>>> +		.id = hisi_162001800_oem_info,
->>>> +		.desc_str = "HiSilicon erratum 162001800",
->>>> +		.enable = hisi_erratum_evcntr_rdonly,
->>>> +	},
->>>> +};
->>>> +
->>>
->>> There's an awful lot of raw ACPI internals splashed about here -
->>> couldn't at least some of it be abstracted behind the IORT code? In
->>> fact, can't IORT just set all this stuff up in advance like it does for
->>> SMMUs?
->>
->> Hmmm.. Sorry, not clear to me. You mean to say associate the IORT node
->> with platform device and retrieve it in driver just like smmu does for
->> "model" checks? Not sure that works here if that’s what the above meant.
-
-I don't think there's much of interest in the actual IORT node itself, 
-but I can't see that there would be any particular problem with passing 
-either some implementation identifier or just a ready-made set of quirk 
-flags to the PMCG driver via platdata.
-
->>>>    #define to_smmu_pmu(p) (container_of(p, struct smmu_pmu, pmu))
->>>>
->>>>    #define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start,
->>> _end)        \
->>>> @@ -224,15 +271,20 @@ static void smmu_pmu_set_period(struct
->>> smmu_pmu *smmu_pmu,
->>>>    	u32 idx = hwc->idx;
->>>>    	u64 new;
->>>>
->>>> -	/*
->>>> -	 * We limit the max period to half the max counter value of the
->>> counter
->>>> -	 * size, so that even in the case of extreme interrupt latency the
->>>> -	 * counter will (hopefully) not wrap past its initial value.
->>>> -	 */
->>>> -	new = smmu_pmu->counter_mask >> 1;
->>>> +	if (smmu_pmu->options & SMMU_PMU_OPT_EVCNTR_RDONLY) {
->>>> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
->>>
->>> Something's clearly missing, because if this happens to start at 0, the
->>> current overflow handling code cannot possibly give the correct count.
->>> Much as I hate the reset-to-half-period idiom for being impossible to
->>> make sense of, it does make various aspects appear a lot simpler than
->>> they really are. Wait, maybe that's yet another reason to hate it...
->>
->> Yes,  if the counter starts at 0 and overflow happens, it won't possibly give
->> the correct count compared to the reset-to-half-period logic. Since this is a
->> 64 bit counter, just hope that, it won't necessarily happen that often.
-
-OK, if the full 64 counter bits are implemented, then I suppose we're 
-probably OK to assume nobody's going to run a single profiling session 
-over 4+ years or so. It might be worth a comment just to remind 
-ourselves that we're (currently) relying on the counter size to mostly 
-mitigate overflow-related issues in this case.
-
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  drivers/base/node.c  | 117 +++++++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/node.h |  23 ++++++++++
+>  2 files changed, 140 insertions(+)
 > 
-> [...]
-> 
->>>> +static void smmu_pmu_enable_errata(struct smmu_pmu *smmu_pmu,
->>>> +				enum smmu_pmu_erratum_match_type type,
->>>> +				se_match_fn_t match_fn,
->>>> +				void *arg)
->>>> +{
->>>> +	const struct smmu_pmu_erratum_wa *wa = smmu_pmu_wa;
->>>> +
->>>> +	for (; wa->desc_str; wa++) {
->>>> +		if (wa->match_type != type)
->>>> +			continue;
->>>> +
->>>> +		if (match_fn(wa, arg)) {
->>>> +			if (wa->enable) {
->>>> +				wa->enable(smmu_pmu);
->>>> +				dev_info(smmu_pmu->dev,
->>>> +					"Enabling workaround for %s\n",
->>>> +					 wa->desc_str);
->>>> +			}
->>>
->>> Just how many kinds of broken are we expecting here? Is this lifted from
->>> the arm64 cpufeature framework, because it seems like absolute overkill
->>> for a simple PMU driver which in all reality is only ever going to
->>> wiggle a few flags in some data structure.
->>
->> Yes, this erratum framework is based on the arm_arch_timer code. Agree that
->> this is an overkill if it is just to support this hardware. I am not sure this can be
->> extended to add the IMPLEMENTATION DEFINED events in future(I haven't
->> looked into that now). If this is not that useful in the near future, I will remove
->> the
->> framework part and use the OEM info directly to set the flag. Please let me
->> know
->> your thoughts..
-> 
-> Below is another take on this patch. Please let me know if this makes any sense..
-> 
-> Thanks,
-> Shameer
-> 
-> ----8----
-> diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
-> index ef94b90..6f81b94 100644
-> --- a/drivers/perf/arm_smmuv3_pmu.c
-> +++ b/drivers/perf/arm_smmuv3_pmu.c
-> @@ -96,6 +96,8 @@
->   
->   #define SMMU_PA_SHIFT                   12
->   
-> +#define SMMU_PMU_OPT_EVCNTR_RDONLY	(1 << 0)
-> +
->   static int cpuhp_state_num;
->   
->   struct smmu_pmu {
-> @@ -111,10 +113,38 @@ struct smmu_pmu {
->   	struct device *dev;
->   	void __iomem *reg_base;
->   	void __iomem *reloc_base;
-> +	u32 options;
->   	u64 counter_present_mask;
->   	u64 counter_mask;
->   };
->   
-> +struct erratum_acpi_oem_info {
-> +	char oem_id[ACPI_OEM_ID_SIZE + 1];
-> +	char oem_table_id[ACPI_OEM_TABLE_ID_SIZE + 1];
-> +	u32 oem_revision;
-> +	void (*enable)(struct smmu_pmu *smmu_pmu);
+> diff --git a/drivers/base/node.c b/drivers/base/node.c
+> index 232535761998..bb94f1d18115 100644
+> --- a/drivers/base/node.c
+> +++ b/drivers/base/node.c
+> @@ -60,6 +60,12 @@ static DEVICE_ATTR(cpumap,  S_IRUGO, node_read_cpumask, NULL);
+>  static DEVICE_ATTR(cpulist, S_IRUGO, node_read_cpulist, NULL);
+>  
+>  #ifdef CONFIG_HMEM
+> +struct node_cache_obj {
+> +	struct kobject kobj;
+> +	struct list_head node;
+> +	struct node_cache_attrs cache_attrs;
 > +};
-> +
-> +void hisi_erratum_evcntr_rdonly(struct smmu_pmu *smmu_pmu)
-> +{
-> +	smmu_pmu->options |= SMMU_PMU_OPT_EVCNTR_RDONLY;
-> +	dev_info(smmu_pmu->dev, "Enabling HiSilicon erratum 162001800\n");
-> +}
-> +
-> +static struct erratum_acpi_oem_info acpi_oem_info[] = {
-> +	/*
-> +	 * Note that trailing spaces are required to properly match
-> +	 * the OEM table information.
-> +	 */
-> +	{
-> +		.oem_id         = "HISI  ",
-> +		.oem_table_id   = "HIP08   ",
-> +		.oem_revision   = 0,
-> +		.enable = hisi_erratum_evcntr_rdonly,
-> +	},
-> +	{ /* Sentinel indicating the end of the OEM array */ },
-> +};
-> +
->   #define to_smmu_pmu(p) (container_of(p, struct smmu_pmu, pmu))
->   
->   #define SMMU_PMU_EVENT_ATTR_EXTRACTOR(_name, _config, _start, _end)        \
-> @@ -224,15 +254,20 @@ static void smmu_pmu_set_period(struct smmu_pmu *smmu_pmu,
->   	u32 idx = hwc->idx;
->   	u64 new;
->   
-> -	/*
-> -	 * We limit the max period to half the max counter value of the counter
-> -	 * size, so that even in the case of extreme interrupt latency the
-> -	 * counter will (hopefully) not wrap past its initial value.
-> -	 */
-> -	new = smmu_pmu->counter_mask >> 1;
-> +	if (smmu_pmu->options & SMMU_PMU_OPT_EVCNTR_RDONLY) {
-> +		new = smmu_pmu_counter_get_value(smmu_pmu, idx);
-> +	} else {
-> +		/*
-> +		 * We limit the max period to half the max counter value
-> +		 * of the counter size, so that even in the case of extreme
-> +		 * interrupt latency the counter will (hopefully) not wrap
-> +		 * past its initial value.
-> +		 */
-> +		new = smmu_pmu->counter_mask >> 1;
-> +		smmu_pmu_counter_set_value(smmu_pmu, idx, new);
-> +	}
->   
->   	local64_set(&hwc->prev_count, new);
-> -	smmu_pmu_counter_set_value(smmu_pmu, idx, new);
->   }
->   
->   static void smmu_pmu_get_event_filter(struct perf_event *event, u32 *span,
-> @@ -670,6 +705,28 @@ static void smmu_pmu_reset(struct smmu_pmu *smmu_pmu)
->   		       smmu_pmu->reloc_base + SMMU_PMCG_OVSCLR0);
->   }
->   
-> +static void smmu_pmu_check_acpi_workarounds(struct smmu_pmu *smmu_pmu)
-> +{
-> +	static const struct erratum_acpi_oem_info empty_oem_info = {};
-> +	const struct erratum_acpi_oem_info *info = acpi_oem_info;
-> +	struct acpi_table_header *hdr;
-> +
-> +	if (ACPI_FAILURE(acpi_get_table(ACPI_SIG_IORT, 0, &hdr))) {
-> +		dev_err(smmu_pmu->dev, "failed to get IORT\n");
-> +		return;
-> +	}
-> +
-> +	/* Iterate over the ACPI OEM info array, looking for a match */
-> +	while (memcmp(info, &empty_oem_info, sizeof(*info))) {
-> +		if (!memcmp(info->oem_id, hdr->oem_id, ACPI_OEM_ID_SIZE) &&
-> +		    !memcmp(info->oem_table_id, hdr->oem_table_id, ACPI_OEM_TABLE_ID_SIZE) &&
-> +			info->oem_revision == hdr->oem_revision)
-> +			info->enable(smmu_pmu);
-> +
-> +		info++;
-> +	}
-> +}
 
-FWIW, this looks awfully like acpi_match_platform_list()...
+I know you all are off in the weeds designing some new crazy api for
+this instead of this current proposal (sorry, I lost the thread, I'll
+wait for the patches before commenting on it), but I do want to say one
+thing here.
 
-However, I still think that any parsing of IORT fields belongs in 
-iort.c, not in every driver which might ever need to detect a quirk. For 
-starters, that code has iort_table to hand, full knowledge of all the 
-other identifiable components, and a already contains a bunch of 
-system-specific quirk detection which could potentially be shared.
+NEVER use a raw kobject as a child for a 'struct device' unless you
+REALLY REALLY REALLY REALLY know what you are doing and have a VERY good
+reason to do so.
 
-[ side note: do you know if 1620 still has the same ITS quirk as 161x, 
-or is it just the SMMU's MSI output that didn't get updated? ]
+Just use a 'struct device', otherwise you end up having to reinvent all
+of the core logic that struct device provides you, like attribute
+callbacks (which you had to create), and other good stuff like telling
+userspace that a device has shown up so it knows to look at it.
 
-Robin.
+That last one is key, a kobject is suddenly a "black hole" in sysfs as
+far as userspace knows because it does not see them for the most part
+(unless you are mucking around in the filesystem on your own, and
+really, don't do that, use a library like the rest of the world unless
+you really like reinventing everything, which, from your patchset it
+feels like...)
 
-> +
->   static int smmu_pmu_probe(struct platform_device *pdev)
->   {
->   	struct smmu_pmu *smmu_pmu;
-> @@ -749,6 +806,8 @@ static int smmu_pmu_probe(struct platform_device *pdev)
->   		return -EINVAL;
->   	}
->   
-> +	smmu_pmu_check_acpi_workarounds(smmu_pmu);
-> +
->   	/* Pick one CPU to be the preferred one to use */
->   	smmu_pmu->on_cpu = get_cpu();
->   	WARN_ON(irq_set_affinity(smmu_pmu->irq, cpumask_of(smmu_pmu->on_cpu)));
-> 
+Anyway, use 'struct device'.  That's all.
+
+greg k-h
