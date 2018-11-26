@@ -1,96 +1,44 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH] gpiolib-acpi: Only defer request_irq for GpioInt ACPI
- event handlers
-Date: Mon, 26 Nov 2018 14:53:55 +0200
-Message-ID: <20181126125355.GE10650@smile.fi.intel.com>
-References: <20181126104231.18322-1-hdegoede@redhat.com>
+Subject: Re: [PATCH v3 1/3] device property: Introduce fwnode_get_name()
+Date: Mon, 26 Nov 2018 14:56:56 +0200
+Message-ID: <20181126125656.GF10650@smile.fi.intel.com>
+References: <20181126114752.69597-1-heikki.krogerus@linux.intel.com>
+ <20181126114752.69597-2-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181126104231.18322-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <20181126114752.69597-2-heikki.krogerus@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 11:42:31AM +0100, Hans de Goede wrote:
-> Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
-> from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
-> call for each event resource.
-> 
-> This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
-> call. This is a problem if some AML code reads the GPIO pin before we
-> run the deferred acpi_gpiochip_request_interrupt, because in that case
-> acpi_gpio_adr_space_handler() will already have called
-> gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
-> acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
-> register an event handler.
-> 
-> acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
-> already having claimed the pin, but the other way around does not work.
-> 
-> One example of a problem this causes, is the event handler for the OTG
-> ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
-> in whatever mode it was in during boot and e.g. only allowing charging
-> after a reboot.
-> 
-> This commit fixes this by only deferring the request_irq call and the
-> initial run of edge-triggered IRQs instead of deferring all of
-> acpi_gpiochip_request_interrupt.
+On Mon, Nov 26, 2018 at 02:47:50PM +0300, Heikki Krogerus wrote:
+> This helper returns the name of the node. The name is
+> primarily expected to be returned from a new fwnode
+> operation meant for this purpose, but when no name is
+> returned, the helper will also attempt to read a device
+> property "name".
 
-Thanks for a patch with such nice description.
-I have couple of nitpicks and one question below.
-
-
->   * For gpiochips which call acpi_gpiochip_request_interrupts() before late_init
-> - * (so builtin drivers) we register the ACPI GpioInt event handlers from a
-> + * (so builtin drivers) we register the ACPI GpioInt irq-handlers from a
-
-I would rather spell "IRQ handlers"
-
->   * late_initcall_sync handler, so that other builtin drivers can register their
->   * OpRegions before the event handlers can run.  This list contains gpiochips
-> - * for which the acpi_gpiochip_request_interrupts() has been deferred.
-> + * for which the acpi_gpiochip_request_irqs() call has been deferred.
-
->  	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
->  
-> -	if (defer)
-> -		return;
-> -
-> -	acpi_walk_resources(handle, "_AEI",
-> -			    acpi_gpiochip_request_interrupt, acpi_gpio);
-> +	if (!defer)
-> +		acpi_gpiochip_request_irqs(acpi_gpio);
-
-Can we leave above condition and put here just
-
-	acpi_gpiochip_request_irqs(acpi_gpio);
-
-?
-
->  	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
->  		struct gpio_desc *desc;
->  
-> +		if (event->irq_requested) {
-> +			if (event->irq_is_wake)
-> +				disable_irq_wake(event->irq);
+> +int fwnode_get_name(const struct fwnode_handle *fwnode, char *buf, size_t len)
+> +{
+> +	const char *name;
+> +	int ret;
 > +
-> +			free_irq(event->irq, event);
-> +		}
->  
+> +	if (!fwnode_call_int_op(fwnode, get_name, buf, len))
+> +		return 0;
+> +
+> +	ret = fwnode_call_int_op(fwnode, property_read_string_array,
+> +				 "name", &name, 1);
+> +	if (!ret)
+> +		snprintf(buf, len, "%s", name);
 
+What are we going to do in case snprintf has found no room for entire string?
 
->  		desc = event->desc;
->  		if (WARN_ON(IS_ERR(desc)))
-
-I don't remember if I asked already about possible memory leak here.
-Am I reading code right?
-
->  			continue;
-
-Reading more code, I'm even not sure if this condition could ever happen.
+> +
+> +	return ret;
+> +}
 
 -- 
 With Best Regards,
