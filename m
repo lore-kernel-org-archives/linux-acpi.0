@@ -1,7 +1,7 @@
 From: Anshuman Khandual <anshuman.khandual@arm.com>
 Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Mon, 26 Nov 2018 21:08:51 +0530
-Message-ID: <1a9e887b-8087-e897-6195-e8df325bd458@arm.com>
+Date: Mon, 26 Nov 2018 21:22:13 +0530
+Message-ID: <4b9e30ea-aa8e-cfd7-230b-1d5b0a8837f4@arm.com>
 References: <20181114224902.12082-1-keith.busch@intel.com>
  <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
  <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
@@ -11,37 +11,52 @@ References: <20181114224902.12082-1-keith.busch@intel.com>
  <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
  <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
  <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
+ <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
+In-Reply-To: <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>
+Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 11/24/2018 12:51 AM, Dave Hansen wrote:
-> On 11/22/18 10:42 PM, Anshuman Khandual wrote:
->> Are we willing to go in the direction for inclusion of a new system
->> call, subset of it appears on sysfs etc ? My primary concern is not
->> how the attribute information appears on the sysfs but lack of it's
->> completeness.
+On 11/24/2018 02:43 AM, Dan Williams wrote:
+> On Fri, Nov 23, 2018 at 11:21 AM Dave Hansen <dave.hansen@intel.com> wrote:
+>>
+>> On 11/22/18 10:42 PM, Anshuman Khandual wrote:
+>>> Are we willing to go in the direction for inclusion of a new system
+>>> call, subset of it appears on sysfs etc ? My primary concern is not
+>>> how the attribute information appears on the sysfs but lack of it's
+>>> completeness.
+>>
+>> A new system call makes total sense to me.  I have the same concern
+>> about the completeness of what's exposed in sysfs, I just don't see a
+>> _route_ to completeness with sysfs itself.  Thus, the minimalist
+>> approach as a first step.
 > 
-> A new system call makes total sense to me.  I have the same concern
-> about the completeness of what's exposed in sysfs, I just don't see a
-> _route_ to completeness with sysfs itself.  Thus, the minimalist
-> approach as a first step.
+> Outside of platform-firmware-id to Linux-numa-node-id what other
+> userspace API infrastructure does the kernel need to provide? It seems
+> userspace enumeration of memory attributes is fully enabled once the
+> firmware-to-Linux identification is established.
 
-Okay if we agree on the need for a new specific system call extracting
-the superset attribute information MAX_NUMNODES * MAX_NUMNODES * U64
-(u64 packs 8 bit values for 8 attributes or something like that) as we
-had discussed before, it makes sense to export a subset of it which can
-be faster but useful for the user space without going through a system
-call. Do you agree on a (system call + sysfs) approach in principle ?
-Also sysfs exported information has to be derived from whats available
-through the system call not the other way round. Hence the starting
-point has to be the system call definition.
+Which is true if the user space is required to probe the memory attribute
+values for the platform-firmware-id from the platform and then request
+required memory from corresponding Linux-numa-node-id via standard mm
+interfaces like mbind(). But in this patch series we are not mapping
+platform-firmware-id to Linux-numa-node-id. We are exporting properties
+applicable to Linux nodes (Linux-numa-node-id).
+
+Even if platform-firmware-id to Linux-numa-node-id is required it can
+be done through a new file like the following. Applications can just
+take the platform_id node and query platform about it's properties.
+
+/sys/devices/system/node/nodeX/platform_id
+
+This above interface would have been okay as its just an extension of
+the existing node information on sysfs. But thats not the case with
+this proposal.
