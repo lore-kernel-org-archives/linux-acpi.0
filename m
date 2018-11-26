@@ -1,49 +1,129 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v3 3/3] of/property: Add of_fwnode_name()
-Date: Mon, 26 Nov 2018 14:47:52 +0300
-Message-ID: <20181126114752.69597-4-heikki.krogerus@linux.intel.com>
-References: <20181126114752.69597-1-heikki.krogerus@linux.intel.com>
+From: David Hildenbrand <david@redhat.com>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Mon, 26 Nov 2018 13:30:31 +0100
+Message-ID: <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
+References: <20180928150357.12942-1-david@redhat.com>
+ <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
+ <20181123190653.6da91461@kitsune.suse.cz>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181126114752.69597-1-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <20181123190653.6da91461@kitsune.suse.cz>
+Content-Language: en-US
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, linux-s390@vger.kernel.org, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob Herring <robh@kernel.org>, "mike.travis@hpe.com" <mike.trav>
 List-Id: linux-acpi@vger.kernel.org
 
-This implements get_name fwnode op for DT.
-
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/of/property.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
-
-diff --git a/drivers/of/property.c b/drivers/of/property.c
-index f46828e3b082..253ed0e9d804 100644
---- a/drivers/of/property.c
-+++ b/drivers/of/property.c
-@@ -823,6 +823,13 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
- 	of_node_put(to_of_node(fwnode));
- }
- 
-+static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf,
-+			      size_t len)
-+{
-+	snprintf(buf, len, "%pOFn", to_of_node(fwnode));
-+	return 0;
-+}
-+
- static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
- {
- 	return of_device_is_available(to_of_node(fwnode));
-@@ -987,6 +994,7 @@ of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- const struct fwnode_operations of_fwnode_ops = {
- 	.get = of_fwnode_get,
- 	.put = of_fwnode_put,
-+	.get_name = of_fwnode_get_name,
- 	.device_is_available = of_fwnode_device_is_available,
- 	.device_get_match_data = of_fwnode_device_get_match_data,
- 	.property_present = of_fwnode_property_present,
--- 
-2.19.1
+T24gMjMuMTEuMTggMTk6MDYsIE1pY2hhbCBTdWNow6FuZWsgd3JvdGU6Cj4gT24gRnJpLCAyMyBO
+b3YgMjAxOCAxMjoxMzo1OCArMDEwMAo+IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEByZWRoYXQu
+Y29tPiB3cm90ZToKPiAKPj4gT24gMjguMDkuMTggMTc6MDMsIERhdmlkIEhpbGRlbmJyYW5kIHdy
+b3RlOgo+Pj4gSG93IHRvL3doZW4gdG8gb25saW5lIGhvdHBsdWdnZWQgbWVtb3J5IGlzIGhhcmQg
+dG8gbWFuYWdlIGZvcgo+Pj4gZGlzdHJpYnV0aW9ucyBiZWNhdXNlIGRpZmZlcmVudCBtZW1vcnkg
+dHlwZXMgYXJlIHRvIGJlIHRyZWF0ZWQgZGlmZmVyZW50bHkuCj4+PiBSaWdodCBub3csIHdlIG5l
+ZWQgY29tcGxpY2F0ZWQgdWRldiBydWxlcyB0aGF0IGUuZy4gY2hlY2sgaWYgd2UgYXJlCj4+PiBy
+dW5uaW5nIG9uIHMzOTB4LCBvbiBhIHBoeXNpY2FsIHN5c3RlbSBvciBvbiBhIHZpcnR1YWxpemVk
+IHN5c3RlbS4gQnV0Cj4+PiB0aGVyZSBpcyBhbHNvIHNvbWV0aW1lcyB0aGUgZGVtYW5kIHRvIHJl
+YWxseSBvbmxpbmUgbWVtb3J5IGltbWVkaWF0ZWx5Cj4+PiB3aGlsZSBhZGRpbmcgaW4gdGhlIGtl
+cm5lbCBhbmQgbm90IHRvIHdhaXQgZm9yIHVzZXIgc3BhY2UgdG8gbWFrZSBhCj4+PiBkZWNpc2lv
+bi4gQW5kIG9uIHZpcnR1YWxpemVkIHN5c3RlbXMgdGhlcmUgbWlnaHQgYmUgZGlmZmVyZW50Cj4+
+PiByZXF1aXJlbWVudHMsIGRlcGVuZGluZyBvbiAiaG93IiB0aGUgbWVtb3J5IHdhcyBhZGRlZCAo
+YW5kIGlmIGl0IHdpbGwKPj4+IGV2ZW50dWFsbHkgZ2V0IHVucGx1Z2dlZCBhZ2FpbiAtIERJTU0g
+dnMuIHBhcmF2aXJ0dWFsaXplZCBtZWNoYW5pc21zKS4KPj4+Cj4+PiBPbiB0aGUgb25lIGhhbmQs
+IHdlIGhhdmUgcGh5c2ljYWwgc3lzdGVtcyB3aGVyZSB3ZSBzb21ldGltZXMKPj4+IHdhbnQgdG8g
+YmUgYWJsZSB0byB1bnBsdWcgbWVtb3J5IGFnYWluIC0gZS5nLiBhIERJTU0gLSBzbyB3ZSBoYXZl
+IHRvIG9ubGluZQo+Pj4gaXQgdG8gdGhlIE1PVkFCTEUgem9uZSBvcHRpb25hbGx5LiBUaGF0IGRl
+Y2lzaW9uIGlzIHVzdWFsbHkgbWFkZSBpbiB1c2VyCj4+PiBzcGFjZS4KPj4+Cj4+PiBPbiB0aGUg
+b3RoZXIgaGFuZCwgd2UgaGF2ZSBtZW1vcnkgdGhhdCBzaG91bGQgbmV2ZXIgYmUgb25saW5lZAo+
+Pj4gYXV0b21hdGljYWxseSwgb25seSB3aGVuIGFza2VkIGZvciBieSBhbiBhZG1pbmlzdHJhdG9y
+LiBTdWNoIG1lbW9yeSBvbmx5Cj4+PiBhcHBsaWVzIHRvIHZpcnR1YWxpemVkIGVudmlyb25tZW50
+cyBsaWtlIHMzOTB4LCB3aGVyZSB0aGUgY29uY2VwdCBvZgo+Pj4gInN0YW5kYnkiIG1lbW9yeSBl
+eGlzdHMuIE1lbW9yeSBpcyBkZXRlY3RlZCBhbmQgYWRkZWQgZHVyaW5nIGJvb3QsIHNvIGl0Cj4+
+PiBjYW4gYmUgb25saW5lZCB3aGVuIHJlcXVlc3RlZCBieSB0aGUgYWRtaW5pbmlzdHJhdG9yIG9y
+IHNvbWUgdG9vbGluZy4KPj4+IE9ubHkgd2hlbiBvbmxpbmluZywgbWVtb3J5IHdpbGwgYmUgYWxs
+b2NhdGVkIGluIHRoZSBoeXBlcnZpc29yLgo+Pj4KPj4+IEJ1dCB0aGVuLCB3ZSBhbHNvIGhhdmUg
+cGFyYXZpcnR1YWxpemVkIGRldmljZXMgKG5hbWVseSB4ZW4gYW5kIGh5cGVyLXYKPj4+IGJhbGxv
+b25zKSwgdGhhdCBob3RwbHVnIG1lbW9yeSB0aGF0IHdpbGwgbmV2ZXIgZXZlciBiZSByZW1vdmVk
+IGZyb20gYQo+Pj4gc3lzdGVtIHJpZ2h0IG5vdyB1c2luZyBvZmZsaW5lX3BhZ2VzL3JlbW92ZV9t
+ZW1vcnkuIElmIGF0IGFsbCwgdGhpcyBtZW1vcnkKPj4+IGlzIGxvZ2ljYWxseSB1bnBsdWdnZWQg
+YW5kIGhhbmRlZCBiYWNrIHRvIHRoZSBoeXBlcnZpc29yIHZpYSBiYWxsb29uaW5nLgo+Pj4KPj4+
+IEZvciBwYXJhdmlydHVhbGl6ZWQgZGV2aWNlcyBpdCBpcyByZWxldmFudCB0aGF0IG1lbW9yeSBp
+cyBvbmxpbmVkIGFzCj4+PiBxdWlja2x5IGFzIHBvc3NpYmxlIGFmdGVyIGFkZGluZyAtIGFuZCB0
+aGF0IGl0IGlzIGFkZGVkIHRvIHRoZSBOT1JNQUwKPj4+IHpvbmUuIE90aGVyd2lzZSwgaXQgY291
+bGQgaGFwcGVuIHRoYXQgdG9vIG11Y2ggbWVtb3J5IGluIGEgcm93IGlzIGFkZGVkCj4+PiAoYnV0
+IG5vdCBvbmxpbmVkKSwgcmVzdWx0aW5nIGluIG91dC1vZi1tZW1vcnkgY29uZGl0aW9ucyBkdWUg
+dG8gdGhlCj4+PiBhZGRpdGlvbmFsIG1lbW9yeSBmb3IgInN0cnVjdCBwYWdlcyIgYW5kIGZyaWVu
+ZHMuIE1PVkFCTEUgem9uZSBhcyB3ZWxsCj4+PiBhcyBkZWxheXMgbWlnaHQgYmUgdmVyeSBwcm9i
+bGVtYXRpYyBhbmQgbGVhZCB0byBjcmFzaGVzIChlLmcuIHpvbmUKPj4+IGltYmFsYW5jZSkuCj4+
+Pgo+Pj4gVGhlcmVmb3JlLCBpbnRyb2R1Y2UgbWVtb3J5IGJsb2NrIHR5cGVzIGFuZCBvbmxpbmUg
+bWVtb3J5IGRlcGVuZGluZyBvbgo+Pj4gaXQgd2hlbiBhZGRpbmcgdGhlIG1lbW9yeS4gRXhwb3Nl
+IHRoZSBtZW1vcnkgdHlwZSB0byB1c2VyIHNwYWNlLCBzbyB1c2VyCj4+PiBzcGFjZSBoYW5kbGVy
+cyBjYW4gc3RhcnQgdG8gcHJvY2VzcyBvbmx5ICJub3JtYWwiIG1lbW9yeS4gT3RoZXIgbWVtb3J5
+Cj4+PiBibG9jayB0eXBlcyBjYW4gYmUgaWdub3JlZC4gT25lIHRoaW5nIGxlc3MgdG8gd29ycnkg
+YWJvdXQgaW4gdXNlciBzcGFjZS4KPj4+ICAgCj4+Cj4+IFNvIEkgd2FzIGxvb2tpbmcgaW50byBh
+bHRlcm5hdGl2ZXMuCj4+Cj4+IDEuIFByb3ZpZGUgb25seSAibm9ybWFsIiBhbmQgInN0YW5kYnki
+IG1lbW9yeSB0eXBlcyB0byB1c2VyIHNwYWNlLiBUaGlzCj4+IHdheSB1c2VyIHNwYWNlIGNhbiBt
+YWtlIHNtYXJ0ZXIgZGVjaXNpb25zIGFib3V0IGhvdyB0byBvbmxpbmUgbWVtb3J5Lgo+PiBOb3Qg
+cmVhbGx5IHN1cmUgaWYgdGhpcyBpcyB0aGUgcmlnaHQgd2F5IHRvIGdvLgo+Pgo+Pgo+PiAyLiBV
+c2UgZGV2aWNlIGRyaXZlciBpbmZvcm1hdGlvbiAoYXMgbWVudGlvbmVkIGJ5IE1pY2hhbCBTLiku
+Cj4+Cj4+IFRoZSBwcm9ibGVtIHJpZ2h0IG5vdyBpcyB0aGF0IHRoZXJlIGFyZSBubyBkcml2ZXJz
+IGZvciBtZW1vcnkgYmxvY2sKPj4gZGV2aWNlcy4gVGhlICJtZW1vcnkiIHN1YnN5c3RlbSBoYXMg
+bm8gZHJpdmVycywgc28gdGhlIEtPQkpfQUREIHVldmVudAo+PiB3aWxsIG5vdCBjb250YWluIGEg
+IkRSSVZFUiIgaW5mb3JtYXRpb24gYW5kIHdlIGF2ZSBubyBpZGVhIHdoYXQga2luZCBvZgo+PiBt
+ZW1vcnkgYmxvY2sgZGV2aWNlIHdlIGhvbGQgaW4gb3VyIGhhbmRzLgo+Pgo+PiAkIHVkZXZhZG0g
+aW5mbyAtcSBhbGwgLWEgL3N5cy9kZXZpY2VzL3N5c3RlbS9tZW1vcnkvbWVtb3J5MAo+Pgo+PiAg
+IGxvb2tpbmcgYXQgZGV2aWNlICcvZGV2aWNlcy9zeXN0ZW0vbWVtb3J5L21lbW9yeTAnOgo+PiAg
+ICAgS0VSTkVMPT0ibWVtb3J5MCIKPj4gICAgIFNVQlNZU1RFTT09Im1lbW9yeSIKPj4gICAgIERS
+SVZFUj09IiIKPj4gICAgIEFUVFJ7b25saW5lfT09IjEiCj4+ICAgICBBVFRSe3BoeXNfZGV2aWNl
+fT09IjAiCj4+ICAgICBBVFRSe3BoeXNfaW5kZXh9PT0iMDAwMDAwMDAiCj4+ICAgICBBVFRSe3Jl
+bW92YWJsZX09PSIwIgo+PiAgICAgQVRUUntzdGF0ZX09PSJvbmxpbmUiCj4+ICAgICBBVFRSe3Zh
+bGlkX3pvbmVzfT09Im5vbmUiCj4+Cj4+Cj4+IElmIHdlIHdvdWxkIHByb3ZpZGUgImZha2UiIGRy
+aXZlcnMgZm9yIHRoZSBtZW1vcnkgYmxvY2sgZGV2aWNlcyB3ZSB3YW50Cj4+IHRvIHRyZWF0IGlu
+IGEgc3BlY2lhbCB3YXkgaW4gdXNlciBzcGFjZSAoZS5nLiBzdGFuZGJ5IG1lbW9yeSBvbiBzMzkw
+eCksCj4+IHVzZXIgc3BhY2UgY291bGQgdXNlIHRoYXQgaW5mb3JtYXRpb24gdG8gbWFrZSBzbWFy
+dGVyIGRlY2lzaW9ucy4KPj4KPj4gQWRkaW5nIHN1Y2ggZHJpdmVycyBtaWdodCB3b3JrLiBNeSBz
+dWdnZXN0aW9uIHdvdWxkIGJlIHRvIGxldCBvcmRpbmFyeQo+PiBESU1NcyBiZSB3aXRob3V0IGEg
+ZHJpdmVyIGZvciBub3cgYW5kIG9ubHkgc3BlY2lhbCBjYXNlIHN0YW5kYnkgbWVtb3J5Cj4+IGFu
+ZCBldmVudHVhbGx5IHBhcmF2aXJ0dWFsaXplZCBtZW1vcnkgZGV2aWNlcyAoWEVOIGFuZCBIeXBl
+ci1WKS4KPj4KPj4gQW55IHRob3VnaHRzPwo+IAo+IElmIHdlIGFyZSBnb2luZyB0byBmYWtlIHRo
+ZSBkcml2ZXIgaW5mb3JtYXRpb24gd2UgbWF5IGFzIHdlbGwgYWRkIHRoZQo+IHR5cGUgYXR0cmli
+dXRlIGFuZCBiZSBkb25lIHdpdGggaXQuCj4gCj4gSSB0aGluayB0aGUgcHJvYmxlbSB3aXRoIHRo
+ZSBwYXRjaCB3YXMgbW9yZSB3aXRoIHRoZSBzZW1hbnRpYyB0aGFuIHRoZQo+IGF0dHJpYnV0ZSBp
+dHNlbGYuCj4gCj4gV2hhdCBpcyBub3JtYWwsIHBhcmF2aXJ0dWFsaXplZCwgYW5kIHN0YW5kYnkg
+bWVtb3J5Pwo+IAo+IEkgY2FuIHVuZGVyc3RhbmQgRElNTSBkZXZpY2UsIGJhbG9vbiBkZXZpY2Us
+IG9yIHdoYXRldmVyIG1lY2hhbmlzbSBmb3IKPiBhZGRpbmcgbWVtb3J5IHlvdSBtaWdodCBoYXZl
+Lgo+IAo+IEkgY2FuIHVuZGVyc3RhbmQgIm1lbW9yeSBkZXNpZ25hdGVkIGFzIHN0YW5kYnkgYnkg
+dGhlIGNsdXN0ZXIKPiBhZG1pbmlzdHJhdG9yIi4KPiAKPiBIb3dldmVyLCBESU1NIHZzIGJhbG9v
+biBpcyBvcnRob2dvbmFsIHRvIHN0YW5kYnkgYW5kIHNob3VsZCBub3QgYmUKPiBjb25mbGF0ZWQg
+aW50byBvbmUgcHJvcGVydHkuCj4gCj4gcGFyYXZpcnR1YWxpemVkIG1lYW5zIG5vdGhpbmcgYXQg
+YWxsIGluIHJlbGF0aW9uc2hpcCB0byBtZW1vcnkgdHlwZSBhbmQKPiB0aGUgZGVzaXJlZCBvbmxp
+bmUgcG9saWN5IHRvIG1lLgoKUmlnaHQsIHNvIHdpdGggd2hhdGV2ZXIgd2UgY29tZSB1cCwgaXQg
+c2hvdWxkIGFsbG93IHRvIG1ha2UgYSBkZWNpc2lvbgppbiB1c2VyIHNwYWNlIGFib3V0Ci0gaWYg
+bWVtb3J5IGlzIHRvIGJlIG9ubGluZWQgYXV0b21hdGljYWxseQotIHRvIHdoaWNoIHpvbmUgbWVt
+b3J5IGlzIHRvIGJlIG9ubGluZWQKClRoZSBydWxlcyBhcmUgZW5jb2RlZCBpbiB1c2VyIHNwYWNl
+LCB0aGUgdHlwZSB3aWxsIGFsbG93IHRvIG1ha2UgYQpkZWNpc2lvbi4gT25lIGltcG9ydGFudCBw
+YXJ0IHdpbGwgYmUgaWYgdGhlIG1lbW9yeSBjYW4gZXZlbnR1YWxseSBiZQpvZmZsaW5lZCArIHJl
+bW92ZWQgYWdhaW4gKERJTU0gc3R5bGUgdW5wbHVnKSB2cy4gbWVtb3J5IHVucGx1ZyBpcwpoYW5k
+bGVkIGJhbGxvb24tc3R5bGUuCgpBcyB3ZSBsZWFybmVkLCBzb21lIHVzZSBjYXNlcyBtaWdodCBy
+ZXF1aXJlIHRvIGUuZy4gb25saW5lIGJhbGxvb24KbWVtb3J5IHRvIHRoZSBtb3ZhYmxlIHpvbmUg
+aW4gb3JkZXIgdG8gbWFrZSBiZXR0ZXIgdXNlIG9mIGh1Z2UgcGFnZXMuClRoaXMgaGFzIHRvIGJl
+IGhhbmRsZWQgaW4gdXNlciBzcGFjZS4KCkknbGwgdGhpbmsgYWJvdXQgcG9zc2libGUgdHlwZXMu
+Cgo+IAo+IExhc3RseSBJIHdvdWxkIHN1Z2dlc3QgaWYgeW91IGFkZCBhbnkgcHJvcGVydHkgeW91
+IGFkZCBpdCB0byAqYWxsKgo+IG1lbW9yeSB0aGF0IGlzIGhvdHBsdWdnZWQuIFRoYXQgd2F5IHRo
+ZSB1c2Vyc3BhY2UgY2FuIGRldGVjdCBpZiBpdCBjYW4KPiByZWx5IG9uIHRoZSBpbmZvcm1hdGlv
+biBmcm9tIHlvdXIgcGF0Y2ggb3Igbm90LiBMZWF2aW5nIHNvbWUgbWVtb3J5Cj4gdW50YWdnZWQg
+bWFrZXMgdGhpbmdzIG5lZWRsZXNzbHkgdmFndWUuCgpZZXMsIHRoYXQgbWFrZXMgc2Vuc2UuCgpU
+aGFua3MhCgo+IAo+IFRoYW5rcwo+IAo+IE1pY2hhbAo+IAoKCi0tIAoKVGhhbmtzLAoKRGF2aWQg
+LyBkaGlsZGVuYgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+XwpkZXZlbCBtYWlsaW5nIGxpc3QKZGV2ZWxAbGludXhkcml2ZXJwcm9qZWN0Lm9yZwpodHRwOi8v
+ZHJpdmVyZGV2LmxpbnV4ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcml2ZXJk
+ZXYtZGV2ZWwK
