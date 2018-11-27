@@ -1,127 +1,58 @@
-From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
- ACPI errors, lockups
-Date: Tue, 27 Nov 2018 11:36:50 +0200
-Message-ID: <20181127093650.GP2296@lahna.fi.intel.com>
-References: <20181126221005-mutt-send-email-mst@kernel.org>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Tue, 27 Nov 2018 15:45:40 +0530
+Message-ID: <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+ <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+ <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
+ <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
+ <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
+ <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
+ <b9962dfa-924f-77f7-a40f-407dd20e9082@intel.com>
+ <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20181126221005-mutt-send-email-mst-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>
+Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-K2xpbnV4LWFjcGkKCkhpIE1pY2hhZWwsCgpPbiBNb24sIE5vdiAyNiwgMjAxOCBhdCAxMDo1Mzoy
-NlBNIC0wNTAwLCBNaWNoYWVsIFMuIFRzaXJraW4gd3JvdGU6Cj4gU28gYSBuZXcgdGhpbmtwYWQ6
-Cj4gMDE6MDAuMCBWR0EgY29tcGF0aWJsZSBjb250cm9sbGVyOiBOVklESUEgQ29ycG9yYXRpb24g
-R1AxMDdHTE0gW1F1YWRybyBQMjAwMCBNb2JpbGVdIChyZXYgYTEpCj4gCj4gSGFuZ3Mgd2hlbmV2
-ZXIgSSB0cnkgdG8gcG9rZSBhdCB0aGUgY2FyZC4gSXQgc3RhcnRzIGhhcHBpbHkgZW5vdWdoIHdp
-dGgKPiAKPiBbICAgIDMuOTcxNTE1XSBBQ1BJIFdhcm5pbmc6IFxfU0IuUENJMC5HRlgwLl9EU006
-IEFyZ3VtZW50ICM0IHR5cGUgbWlzbWF0Y2ggLSBGb3VuZCBbQnVmZmVyXSwgQUNQSSByZXF1aXJl
-cyBbUGFja2FnZV0gKDIwMTgxMDAzL25zYXJndW1lbnRzLTY2KQo+IFsgICAgMy45NzE1NTNdIEFD
-UEkgV2FybmluZzogXF9TQi5QQ0kwLlBFRzAuUEVHUC5fRFNNOiBBcmd1bWVudCAjNCB0eXBlIG1p
-c21hdGNoIC0gRm91bmQgW0J1ZmZlcl0sIEFDUEkgcmVxdWlyZXMgW1BhY2thZ2VdICgyMDE4MTAw
-My9uc2FyZ3VtZW50cy02NikKPiBbICAgIDMuOTcxNzIxXSBwY2kgMDAwMDowMTowMC4wOiBvcHRp
-bXVzIGNhcGFiaWxpdGllczogZW5hYmxlZCwgc3RhdHVzIGR5bmFtaWMgcG93ZXIsIGhkYSBiaW9z
-IGNvZGVjIHN1cHBvcnRlZAo+IFsgICAgMy45NzE3MjZdIFZHQSBzd2l0Y2hlcm9vOiBkZXRlY3Rl
-ZCBPcHRpbXVzIERTTSBtZXRob2QgXF9TQl8uUENJMC5QRUcwLlBFR1AgaGFuZGxlCj4gWyAgICAz
-Ljk3MTcyN10gbm91dmVhdTogZGV0ZWN0ZWQgUFIgc3VwcG9ydCwgd2lsbCBub3QgdXNlIERTTQo+
-IFsgICAgMy45NzE3NDVdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBlbmFibGluZyBkZXZpY2UgKDAw
-MDYgLT4gMDAwNykKPiBbICAgIDMuOTcxOTIzXSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogTlZJRElB
-IEdQMTA3ICgxMzcwMDBhMSkKPiBbICAgIDQuMDA5ODc1XSBQTTogSW1hZ2Ugbm90IGZvdW5kIChj
-b2RlIC0yMikKPiBbICAgIDQuMTM1NzUyXSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBWUkFN
-OiA0MDk2IE1pQgo+IFsgICAgNC4xMzU3NTNdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IEdB
-UlQ6IDUzNjg3MDkxMiBNaUIKPiBbICAgIDQuMTM1NzU0XSBub3V2ZWF1IDAwMDA6MDE6MDAuMDog
-RFJNOiBCSVQgdGFibGUgJ0EnIG5vdCBmb3VuZAo+IFsgICAgNC4xMzU3NTVdIG5vdXZlYXUgMDAw
-MDowMTowMC4wOiBEUk06IEJJVCB0YWJsZSAnTCcgbm90IGZvdW5kCj4gWyAgICA0LjEzNTc1Nl0g
-bm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogVE1EUyB0YWJsZSB2ZXJzaW9uIDIuMAo+IFsgICAg
-NC4xMzU3NTZdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiB2ZXJzaW9uIDQuMQo+IFsg
-ICAgNC4xMzU3NTddIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAwOiAwMjgw
-MGY3NiAwNDYwMDAyMAo+IFsgICAgNC4xMzU3NThdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06
-IERDQiBvdXRwIDAxOiAwMjAxMWY2MiAwMDAyMDAxMAo+IFsgICAgNC4xMzU3NTldIG5vdXZlYXUg
-MDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAyOiAwMTAyMmY0NiAwNDYwMDAxMAo+IFsgICAg
-NC4xMzU3NjBdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAzOiAwMTAzM2Y1
-NiAwNDYwMDAyMAo+IFsgICAgNC4xMzU3NjFdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERD
-QiBjb25uIDAwOiAwMDAyMDA0Nwo+IFsgICAgNC4xMzU3NjFdIG5vdXZlYXUgMDAwMDowMTowMC4w
-OiBEUk06IERDQiBjb25uIDAxOiAwMDAxMDE2MQo+IFsgICAgNC4xMzU3NjJdIG5vdXZlYXUgMDAw
-MDowMTowMC4wOiBEUk06IERDQiBjb25uIDAyOiAwMDAwMTI0Ngo+IFsgICAgNC4xMzU3NjNdIG5v
-dXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBjb25uIDAzOiAwMDAwMjM0Ngo+IFsgICAgNC41
-MDgzNTVdIFtkcm1dIFN1cHBvcnRzIHZibGFuayB0aW1lc3RhbXAgY2FjaGluZyBSZXYgMiAoMjEu
-MTAuMjAxMykuCj4gWyAgICA0LjUwODM1NV0gW2RybV0gRHJpdmVyIHN1cHBvcnRzIHByZWNpc2Ug
-dmJsYW5rIHRpbWVzdGFtcCBxdWVyeS4KPiBbICAgIDQuNTA5ODEyXSBbZHJtXSBDYW5ub3QgZmlu
-ZCBhbnkgY3J0YyBvciBzaXplcwo+IFsgICAgNC41MTAxNDRdIFtkcm1dIEluaXRpYWxpemVkIG5v
-dXZlYXUgMS4zLjEgMjAxMjA4MDEgZm9yIDAwMDA6MDE6MDAuMCBvbiBtaW5vciAyCj4gCj4gCj4g
-QWx0aG91Z2ggdGhhdCB0eXBlIG1pc21hdGNoIGlzIGEgYml0IHdvcnJ5aW5nLiBBbmQgSSdtIG5v
-dCBzdXJlIHdoYXQKPiBwcmludHMgUE06IEltYWdlIG5vdCBmb3VuZC4KClRoYXQgaXMgZmluZSwg
-aXQganVzdCBzYXlzIGl0IGNhbm5vdCBmaW5kIGEgaGliZXJuYXRpb24gaW1hZ2UgZnJvbSBzd2Fw
-CmRldmljZS4gSSBndWVzcyB5b3UgaGF2ZSByZXN1bWU9Li4uIGluIHRoZSBrZXJuZWwgY29tbWFu
-ZCBsaW5lLgoKPiBCdXQgYWZ0ZXIgYSBzaG9ydCB3aGlsZSBpdCBnZXRzIHByZXR0eSBidXN5Ogo+
-IAo+IAo+IFsgICA1Mi45MTcwMDldIE5vIExvY2FsIFZhcmlhYmxlcyBhcmUgaW5pdGlhbGl6ZWQg
-Zm9yIE1ldGhvZCBbTlZQT10KPiBbICAgNTIuOTE3MDExXSBObyBBcmd1bWVudHMgYXJlIGluaXRp
-YWxpemVkIGZvciBtZXRob2QgW05WUE9dCj4gWyAgIDUyLjkxNzAxMl0gQUNQSSBFcnJvcjogTWV0
-aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgXF9TQi5QQ0kwLlBFRzAuUEVHUC5OVlBPLCBBRV9B
-TUxfTE9PUF9USU1FT1VUICgyMDE4MTAwMy9wc3BhcnNlLTUxNikKPiBbICAgNTIuOTE3MDYzXSBB
-Q1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBcX1NCLlBDSTAuUEdPTiwg
-QUVfQU1MX0xPT1BfVElNRU9VVCAoMjAxODEwMDMvcHNwYXJzZS01MTYpCj4gWyAgIDUyLjkxNzA4
-NF0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgXF9TQi5QQ0kwLlBF
-RzAuUEcwMC5fT04sIEFFX0FNTF9MT09QX1RJTUVPVVQgKDIwMTgxMDAzL3BzcGFyc2UtNTE2KQo+
-IFsgICA1Mi45MTcxMDhdIGFjcGkgZGV2aWNlOjAwOiBGYWlsZWQgdG8gY2hhbmdlIHBvd2VyIHN0
-YXRlIHRvIEQwCgpIZXJlIGl0IHNlZW1zIHRvIGZhaWwgdG8gdHVybiBvbiB0aGUgcG93ZXIgcmVz
-b3VyY2UgZm9yIHRoZSBkZXZpY2UuCgo+IFsgICA1Mi45NjkyODddIHZpZGVvIExOWFZJREVPOjAw
-OiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEMCBmb3IgcGFyZW50IGluICh1bmtu
-b3duKQo+IFsgICA1Mi45NjkyODldIHBjaV9yYXdfc2V0X3Bvd2VyX3N0YXRlOiAyIGNhbGxiYWNr
-cyBzdXBwcmVzc2VkCj4gWyAgIDUyLjk2OTI5MV0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IFJlZnVz
-ZWQgdG8gY2hhbmdlIHBvd2VyIHN0YXRlLCBjdXJyZW50bHkgaW4gRDMKPiBbICAgNTMuMDI5NTE0
-XSB2aWRlbyBMTlhWSURFTzowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gcG93ZXIgc3RhdGUgRDAg
-Zm9yIHBhcmVudCBpbiAodW5rbm93bikKPiBbICAgNTMuMDQxMDI3XSBub3V2ZWF1IDAwMDA6MDE6
-MDAuMDogUmVmdXNlZCB0byBjaGFuZ2UgcG93ZXIgc3RhdGUsIGN1cnJlbnRseSBpbiBEMwo+IFsg
-ICA1My4wNDEwMzVdIHZpZGVvIExOWFZJREVPOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dl
-ciBzdGF0ZSBEMCBmb3IgcGFyZW50IGluICh1bmtub3duKQo+IFsgICA1My4wNTMwMDhdIG5vdXZl
-YXUgMDAwMDowMTowMC4wOiBSZWZ1c2VkIHRvIGNoYW5nZSBwb3dlciBzdGF0ZSwgY3VycmVudGx5
-IGluIEQzCj4gCj4gCj4gQW5kIHRoZW4ga2VybmVsIHByb2NlZWRzIHRvIHRocm93IHVwIGVycm9y
-cyBhdCByYW5kb20gcGxhY2VzLCBlLmcuCj4gCj4gWyAgIDY3LjAyMTg5Ml0gY2ZnODAyMTE6IGZh
-aWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiBbICAgNjcuMDIxODk1XSBjZmc4MDIxMTogZmFp
-bGVkIHRvIGxvYWQgcmVndWxhdG9yeS5kYgo+IFsgICA2Ny4wMjE4OTddIGNmZzgwMjExOiBmYWls
-ZWQgdG8gbG9hZCByZWd1bGF0b3J5LmRiCj4gWyAgIDY3LjAyMTkwMF0gY2ZnODAyMTE6IGZhaWxl
-ZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiBbICAgNjcuMDIxOTI3XSBjZmc4MDIxMTogZmFpbGVk
-IHRvIGxvYWQgcmVndWxhdG9yeS5kYgo+IFsgICA2Ny4wMjE5MjhdIGNmZzgwMjExOiBmYWlsZWQg
-dG8gbG9hZCByZWd1bGF0b3J5LmRiCj4gWyAgIDY3LjAyMTkzMl0gY2ZnODAyMTE6IGZhaWxlZCB0
-byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiBbICAgNjcuMDIxOTM0XSBjZmc4MDIxMTogZmFpbGVkIHRv
-IGxvYWQgcmVndWxhdG9yeS5kYgo+IFsgICA2Ny4wMjQ0NjNdIGNmZzgwMjExOiBmYWlsZWQgdG8g
-bG9hZCByZWd1bGF0b3J5LmRiCj4gWyAgIDk5Ljk4MDYyNV0gaXdsd2lmaSAwMDAwOjAwOjE0LjM6
-IEVycm9yIHNlbmRpbmcgU1RBVElTVElDU19DTUQ6IHRpbWUgb3V0IGFmdGVyIDIwMDBtcy4KPiAK
-PiBmb2xsb3dlZCBieSBzb2Z0IGxvY2t1cHMgYW5kIHNvbWV0aW1lcyBoYXJkIGxvY2t1cHMgaW4g
-cGxhY2VzCj4gbGlrZSBhdHRlbXB0cyB0byB3YWxrIHNrYiBsaXN0cy4KPiAKPiBBZGRpbmcgcnVu
-cG09MCBkb2VzIGF3YXkgd2l0aCB0aGlzIGlzc3VlLgo+IAo+IFRoZSBzcGVjaWZpYyB0ZXN0IHdh
-cyB3aXRoIG5vYWNjZWw9MSAtIGl0IGRvZXMgbm90IHNlZW0gdG8gY2hhbmdlCj4gdGhpbmdzIGZv
-ciBtZS4KPiAKPiBJIHBva2VkIGF0IHRoZSBBQ1BJIG1ldGhvZCBOVlBPIGFuZCB5ZXMgaXQgZG9l
-cyBhY3R1YWxseQo+IHNlZW0gdG8gZXhlY3V0ZSBhIHdoaWxlIGxvb3Agd2FpdGluZyBmb3Igc29t
-ZSByZWdpc3Rlcgo+IHRvIGJlY29tZSAwLiBXaGljaCBJIGd1ZXNzIG5ldmVyIGhhcHBlbnM/IEJl
-Y2F1c2UgY2FyZAo+IGlzIGluIGEgbG93IHBvd2VyIHN0YXRlIGFuZCBzbyByZWFkcyByZXR1cm4g
-ZmZmZmZmZmYgbWF5YmU/CgpZZXMsIGl0IGNvdWxkIGJlIHRoZSBjYXNlLgoKPiBYIGlzbid0IGhh
-cHB5IGV2ZW4gd2l0aCBydW5wbT0wIGJ1dCB0aGF0IG1pZ2h0IGJlIGEgZGlmZmVyZW50Cj4gaXNz
-dWUgLSBJIHRob3VnaHQgcnVucG09MCBtaWdodCBiZSBhbiBlYXNpZXIgcGxhY2UgdG8gc3RhcnQg
-ZGVidWdnaW5nCj4gdGhpbmdzIGdpdmVuIHRoZXJlIGFyZSBsb2dzIG9mIHRoZSBmYWlsdXJlLgo+
-IAo+IFVzaW5nIDQuMjAuMC1yYzMgcmlnaHQgbm93Lgo+IAo+IFVzZXJzcGFjZSBiaXRzIGFyZSBm
-cm9tIGZlZG9yYSAyOToKPiB4b3JnLXgxMS1kcnYtbm91dmVhdS0xLjAuMTUtNi5mYzI5Lng4Nl82
-NAo+IAo+IGZpcm13YXJlIGlzIHByZXR0eSByZWNlbnQ6Cj4gbGludXgtZmlybXdhcmUtMjAxODEw
-MDgtODguZ2l0YzZiNjI2NWQuZmMyOS5ub2FyY2gKPiAKPiBNb3JlIGhpbnRzIGZvciBkZWJ1Z2dp
-bmcgd291bGQgYmUgYXBwcmVjaWF0ZWQuCj4gSWYgYW55b25lIHdhbnRzIG1lIHRvIHBsYXkgd2l0
-aCBhIGRpZmZlcmVudCBrZXJuZWwgdHJlZSwKPiBsZXQgbWUga25vdy4KCkNhbiB5b3Ugc2hhcmUg
-ZnVsbCBkbWVzZyBhbmQgYWNwaWR1bXAgb2YgdGhlIHN5c3RlbT8gSSB3b3VsZCBsaWtlIHRvCmNo
-ZWNrIHRoZSBwb3dlciByZXNvdXJjZSBtZXRob2RzLgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpOb3V2ZWF1IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL25vdXZlYXUK
+
+
+On 11/26/2018 11:38 PM, Dan Williams wrote:
+> On Mon, Nov 26, 2018 at 8:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
+>>
+>> On 11/23/18 1:13 PM, Dan Williams wrote:
+>>>> A new system call makes total sense to me.  I have the same concern
+>>>> about the completeness of what's exposed in sysfs, I just don't see a
+>>>> _route_ to completeness with sysfs itself.  Thus, the minimalist
+>>>> approach as a first step.
+>>> Outside of platform-firmware-id to Linux-numa-node-id what other
+>>> userspace API infrastructure does the kernel need to provide? It seems
+>>> userspace enumeration of memory attributes is fully enabled once the
+>>> firmware-to-Linux identification is established.
+>>
+>> It would be nice not to have each app need to know about each specific
+>> platform's firmware.
+> 
+> The app wouldn't need to know if it uses a common library. Whether the
+> library calls into the kernel or not is an implementation detail. If
+> it is information that only the app cares about and the kernel does
+> not consume, why have a syscall?
+
+If we just care about platform-firmware-id <--> Linux-numa-node-id mapping
+and fetching memory attribute from the platform (and hiding implementation
+details in a library) then the following interface should be sufficient.
+
+/sys/devices/system/node/nodeX/platform_id
+
+But as the series proposes (and rightly so) kernel needs to start providing
+ABI interfaces for memory attributes instead of hiding them in libraries.
