@@ -1,68 +1,36 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/2] arm64: acpi: Prepare for longer MADTs
-Date: Tue, 27 Nov 2018 15:01:50 +0000
-Message-ID: <20181127150150.GA25270@e107981-ln.cambridge.arm.com>
-References: <20181012192937.3819951-1-jeremy.linton@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v4 4/4] driver core: Add fwnode member to struct
+ device_connection
+Date: Tue, 27 Nov 2018 17:07:56 +0200
+Message-ID: <20181127150756.GV10650@smile.fi.intel.com>
+References: <20181127142855.73899-1-heikki.krogerus@linux.intel.com>
+ <20181127142855.73899-5-heikki.krogerus@linux.intel.com>
+ <20181127143237.GA22859@kuha.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181012192937.3819951-1-jeremy.linton@arm.com>
+In-Reply-To: <20181127143237.GA22859@kuha.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, will.deacon@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, rafael.j.wysocki@intel.com, takahiro.akashi@linaro.org, sudeep.holla@arm.com, ahs3@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 12, 2018 at 02:29:37PM -0500, Jeremy Linton wrote:
-> The BAD_MADT_GICC_ENTRY check is a little too strict because
-> it rejects MADT entries that don't match the currently known
-> lengths. We should remove this restriction to avoid problems
-> if the table length changes. Future code which might depend on
-> additional fields should be written to validate those fields
-> before using them, rather than trying to globally check
-> known MADT version lengths.
+On Tue, Nov 27, 2018 at 04:32:37PM +0200, Heikki Krogerus wrote:
+> On Tue, Nov 27, 2018 at 05:28:55PM +0300, Heikki Krogerus wrote:
+> > This will prepare the device connection API for connections
+> > described in firmware.
 > 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  arch/arm64/include/asm/acpi.h | 8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
+> This one does not belong to this series, sorry. Please skip it, or if
+> you prefer, I'll resend.
 
-Hi Jeremy,
+Please, resend. It would reduce amount of confusion,
 
-as mentioned, I added a comment to the macro so that in the future
-we will be able to remember the logic behind it.
+Otherwise the series looks good to me.
 
-I pushed the commit out:
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/madt
 
-Please have a look, if I hear no objections I shall be sending it to
-Will and Catalin to queue it for v4.21.
-
-Thanks,
-Lorenzo
-
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index 709208dfdc8b..4d0946bd485a 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -22,12 +22,12 @@
->  #include <asm/tlbflush.h>
->  
->  /* Macros for consistency checks of the GICC subtable of MADT */
-> -#define ACPI_MADT_GICC_LENGTH	\
-> -	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
-> +#define ACPI_MADT_GICC_MIN_LENGTH   ACPI_OFFSET(  \
-> +	struct acpi_madt_generic_interrupt, efficiency_class)
->  
->  #define BAD_MADT_GICC_ENTRY(entry, end)					\
-> -	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
-> -	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
-> +	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
-> +	(unsigned long)(entry) + (entry)->header.length > (end))
->  
->  /* Basic configuration for ACPI */
->  #ifdef	CONFIG_ACPI
-> -- 
-> 2.14.3
-> 
+-- 
+With Best Regards,
+Andy Shevchenko
