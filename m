@@ -1,77 +1,120 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 2/2] arm64: acpi: Prepare for longer MADTs
-Date: Tue, 27 Nov 2018 10:32:37 -0600
-Message-ID: <9cb71380-6546-4c4b-9075-10e21784d476@arm.com>
-References: <20181012192937.3819951-1-jeremy.linton@arm.com>
- <20181127150150.GA25270@e107981-ln.cambridge.arm.com>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
+Date: Tue, 27 Nov 2018 17:32:41 +0100
+Message-ID: <20181127173241.6dde763e@kitsune.suse.cz>
+References: <20180928150357.12942-1-david@redhat.com>
+ <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
+ <20181123190653.6da91461@kitsune.suse.cz>
+ <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
+ <b64a0e1e-6aaa-66a9-2fb7-12daa6383ce1@redhat.com>
+ <20181126152015.7464c786@naga>
+ <2d05e5d1-c5b5-8884-e642-89421685052f@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181127150150.GA25270@e107981-ln.cambridge.arm.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, catalin.marinas@arm.com, will.deacon@arm.com, ard.biesheuvel@linaro.org, james.morse@arm.com, rafael.j.wysocki@intel.com, takahiro.akashi@linaro.org, sudeep.holla@arm.com, ahs3@redhat.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <2d05e5d1-c5b5-8884-e642-89421685052f@redhat.com>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: David Hildenbrand <david@redhat.com>
+Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob Herring <robh@kernel.org>, "mike.travis@hpe.com" <mike.travis@hpe.com>, Haiyang
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
-
-On 11/27/2018 09:01 AM, Lorenzo Pieralisi wrote:
-> On Fri, Oct 12, 2018 at 02:29:37PM -0500, Jeremy Linton wrote:
->> The BAD_MADT_GICC_ENTRY check is a little too strict because
->> it rejects MADT entries that don't match the currently known
->> lengths. We should remove this restriction to avoid problems
->> if the table length changes. Future code which might depend on
->> additional fields should be written to validate those fields
->> before using them, rather than trying to globally check
->> known MADT version lengths.
->>
->> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   arch/arm64/include/asm/acpi.h | 8 ++++----
->>   1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> Hi Jeremy,
-> 
-> as mentioned, I added a comment to the macro so that in the future
-> we will be able to remember the logic behind it.
-
-It all looks good to me, Thanks!
-
-
-> 
-> I pushed the commit out:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/lpieralisi/linux.git acpi/madt
-> 
-> Please have a look, if I hear no objections I shall be sending it to
-> Will and Catalin to queue it for v4.21.
-> 
-> Thanks,
-> Lorenzo
-> 
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index 709208dfdc8b..4d0946bd485a 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -22,12 +22,12 @@
->>   #include <asm/tlbflush.h>
->>   
->>   /* Macros for consistency checks of the GICC subtable of MADT */
->> -#define ACPI_MADT_GICC_LENGTH	\
->> -	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
->> +#define ACPI_MADT_GICC_MIN_LENGTH   ACPI_OFFSET(  \
->> +	struct acpi_madt_generic_interrupt, efficiency_class)
->>   
->>   #define BAD_MADT_GICC_ENTRY(entry, end)					\
->> -	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
->> -	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
->> +	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
->> +	(unsigned long)(entry) + (entry)->header.length > (end))
->>   
->>   /* Basic configuration for ACPI */
->>   #ifdef	CONFIG_ACPI
->> -- 
->> 2.14.3
->>
+T24gTW9uLCAyNiBOb3YgMjAxOCAxNjo1OToxNCArMDEwMApEYXZpZCBIaWxkZW5icmFuZCA8ZGF2
+aWRAcmVkaGF0LmNvbT4gd3JvdGU6Cgo+IE9uIDI2LjExLjE4IDE1OjIwLCBNaWNoYWwgU3VjaMOh
+bmVrIHdyb3RlOgo+ID4gT24gTW9uLCAyNiBOb3YgMjAxOCAxNDozMzoyOSArMDEwMAo+ID4gRGF2
+aWQgSGlsZGVuYnJhbmQgPGRhdmlkQHJlZGhhdC5jb20+IHdyb3RlOgo+ID4gICAKPiA+PiBPbiAy
+Ni4xMS4xOCAxMzozMCwgRGF2aWQgSGlsZGVuYnJhbmQgd3JvdGU6ICAKPiA+Pj4gT24gMjMuMTEu
+MTggMTk6MDYsIE1pY2hhbCBTdWNow6FuZWsgd3JvdGU6ICAgIAo+ID4gICAKPiA+Pj4+Cj4gPj4+
+PiBJZiB3ZSBhcmUgZ29pbmcgdG8gZmFrZSB0aGUgZHJpdmVyIGluZm9ybWF0aW9uIHdlIG1heSBh
+cyB3ZWxsIGFkZCB0aGUKPiA+Pj4+IHR5cGUgYXR0cmlidXRlIGFuZCBiZSBkb25lIHdpdGggaXQu
+Cj4gPj4+Pgo+ID4+Pj4gSSB0aGluayB0aGUgcHJvYmxlbSB3aXRoIHRoZSBwYXRjaCB3YXMgbW9y
+ZSB3aXRoIHRoZSBzZW1hbnRpYyB0aGFuIHRoZQo+ID4+Pj4gYXR0cmlidXRlIGl0c2VsZi4KPiA+
+Pj4+Cj4gPj4+PiBXaGF0IGlzIG5vcm1hbCwgcGFyYXZpcnR1YWxpemVkLCBhbmQgc3RhbmRieSBt
+ZW1vcnk/Cj4gPj4+Pgo+ID4+Pj4gSSBjYW4gdW5kZXJzdGFuZCBESU1NIGRldmljZSwgYmFsb29u
+IGRldmljZSwgb3Igd2hhdGV2ZXIgbWVjaGFuaXNtIGZvcgo+ID4+Pj4gYWRkaW5nIG1lbW9yeSB5
+b3UgbWlnaHQgaGF2ZS4KPiA+Pj4+Cj4gPj4+PiBJIGNhbiB1bmRlcnN0YW5kICJtZW1vcnkgZGVz
+aWduYXRlZCBhcyBzdGFuZGJ5IGJ5IHRoZSBjbHVzdGVyCj4gPj4+PiBhZG1pbmlzdHJhdG9yIi4K
+PiA+Pj4+Cj4gPj4+PiBIb3dldmVyLCBESU1NIHZzIGJhbG9vbiBpcyBvcnRob2dvbmFsIHRvIHN0
+YW5kYnkgYW5kIHNob3VsZCBub3QgYmUKPiA+Pj4+IGNvbmZsYXRlZCBpbnRvIG9uZSBwcm9wZXJ0
+eS4KPiA+Pj4+Cj4gPj4+PiBwYXJhdmlydHVhbGl6ZWQgbWVhbnMgbm90aGluZyBhdCBhbGwgaW4g
+cmVsYXRpb25zaGlwIHRvIG1lbW9yeSB0eXBlIGFuZAo+ID4+Pj4gdGhlIGRlc2lyZWQgb25saW5l
+IHBvbGljeSB0byBtZS4gICAgCj4gPj4+Cj4gPj4+IFJpZ2h0LCBzbyB3aXRoIHdoYXRldmVyIHdl
+IGNvbWUgdXAsIGl0IHNob3VsZCBhbGxvdyB0byBtYWtlIGEgZGVjaXNpb24KPiA+Pj4gaW4gdXNl
+ciBzcGFjZSBhYm91dAo+ID4+PiAtIGlmIG1lbW9yeSBpcyB0byBiZSBvbmxpbmVkIGF1dG9tYXRp
+Y2FsbHkgICAgCj4gPj4KPiA+PiBBbmQgSSB3aWxsIHRoaW5rIGFib3V0IGlmIHdlIHJlYWxseSBz
+aG91bGQgbW9kZWwgc3RhbmRieSBtZW1vcnkuIE1heWJlCj4gPj4gaXQgaXMgcmVhbGx5IGJldHRl
+ciB0byBoYXZlIGluIHVzZXIgc3BhY2Ugc29tZXRoaW5nIGxpa2UgKGFzIERhbiBub3RlZCkgIAo+
+ID4gCj4gPiBJZiBpdCBpcyBwb3NzaWJsZSB0byBkZXNpZ25hdGUgdGhlIG1lbW9yeSBhcyBzdGFu
+ZGJ5IG9yIG9ubGluZSBpbiB0aGUKPiA+IHMzOTAgYWRtaW4gaW50ZXJmYWNlIGFuZCB0aGUga2Vy
+bmVsIGRvZXMgaGF2ZSBhY2Nlc3MgdG8gdGhpcwo+ID4gaW5mb3JtYXRpb24gaXQgbWFrZXMgc2Vu
+c2UgdG8gZm9yd2FyZCBpdCB0byB1c2Vyc3BhY2UgKGFzIHNlcGFyYXRlCj4gPiBzMzkwLXNwZWNp
+ZmljIHByb3BlcnR5KS4gSWYgbm90IHRoZW4geW91IG5lZWQgdG8gbWFrZSBzb21lIGtpbmQgb2YK
+PiA+IGFzc3VtcHRpb24gbGlrZSBiZWxvdyBhbmQgdGhlIHVzZXIgY2FuIHR1bmUgdGhlIHNjcmlw
+dCBhY2NvcmRpbmcgdG8KPiA+IHRoZWlyIHVzZWNhc2UuICAKPiAKPiBBbHNvIHRydWUsIHN0YW5k
+YnkgbWVtb3J5IHJlYWxseSByZXByZXNlbnRzIGEgZGlzdGluY3QgdHlwZSBvZiBtZW1vcnkKPiBi
+bG9jayAobWVtb3J5IHNlZW1zIHRvIGJlIHRoZXJlIGJ1dCByZWFsbHkgaXNuJ3QpLiBSaWdodCBu
+b3cgSSBhbQo+IHRoaW5raW5nIGFib3V0IHNvbWV0aGluZyBsaWtlIHRoaXMgKHRyaWVkIHRvIGZv
+cm11bGF0ZSBpdCBvbiBhIHZlcnkKPiBnZW5lcmljIGxldmVsIGJlY2F1c2Ugd2UgY2FuJ3QgcHJl
+ZGljdCB3aGljaCBtZWNoYW5pc20gbWlnaHQgd2FudCB0bwo+IG1ha2UgdXNlIG9mIHRoZXNlIHR5
+cGVzIGluIHRoZSBmdXR1cmUpLgo+IAo+IAo+IC8qCj4gICogTWVtb3J5IGJsb2NrIHR5cGVzIGFs
+bG93IHVzZXIgc3BhY2UgdG8gZm9ybXVsYXRlIHJ1bGVzIGlmIGFuZCBob3cgdG8KPiAgKiBvbmxp
+bmUgbWVtb3J5IGJsb2Nrcy4gVGhlIHR5cGVzIGFyZSBleHBvc2VkIHRvIHVzZXIgc3BhY2UgYXMg
+dGV4dAo+ICAqIHN0cmluZ3MgaW4gc3lzZnMuIFdoaWxlIHRoZSB0eXBpY2FsIG9ubGluZSBzdHJh
+dGVnaWVzIGFyZSBkZXNjcmliZWQKPiAgKiBhbG9uZyB3aXRoIHRoZSB0eXBlcywgdGhlcmUgYXJl
+IHVzZSBjYXNlcyB3aGVyZSB0aGF0IGNhbiBkaWZmZXIgKGUuZy4KPiAgKiB1c2UgTU9WQUJMRSB6
+b25lIGZvciBtb3JlIHJlbGlhYmxlIGh1Z2UgcGFnZSB1c2FnZSwgdXNlIE5PUk1BTCB6b25lCj4g
+ICogZHVlIHRvIHpvbmUgaW1iYWxhbmNlIG9yIGJlY2F1c2UgbWVtb3J5IHVucGx1ZyBpcyBub3Qg
+aW50ZW5kZWQpLgo+ICAqCj4gICogTUVNT1JZX0JMT0NLX05PTkU6Cj4gICogIE5vIG1lbW9yeSBi
+bG9jayBpcyB0byBiZSBjcmVhdGVkIChlLmcuIGRldmljZSBtZW1vcnkpLiBVc2VkIGludGVybmFs
+bHkKPiAgKiAgb25seS4KPiAgKgo+ICAqIE1FTU9SWV9CTE9DS19SRU1PVkFCTEU6Cj4gICogIFRo
+aXMgbWVtb3J5IGJsb2NrIHR5cGUgc2hvdWxkIGJlIHRyZWF0ZWQgYXMgaWYgaXQgY2FuIGJlCj4g
+ICogIHJlbW92ZWQvdW5wbHVnZ2VkIGZyb20gdGhlIHN5c3RlbSBhZ2Fpbi4gRS5nLiB0aGVyZSBp
+cyBhIGhhcmR3YXJlCj4gICogIGludGVyZmFjZSB0byB1bnBsdWcgc3VjaCBtZW1vcnkuIFRoaXMg
+bWVtb3J5IGJsb2NrIHR5cGUgaXMgdXN1YWxseQo+ICAqICBvbmxpbmVkIHRvIHRoZSBNT1ZBQkxF
+IHpvbmUsIHRvIGUuZy4gbWFrZSBvZmZsaW5pbmcgb2YgaXQgbW9yZQo+ICAqICByZWxpYWJsZS4g
+RXhhbXBsZXMgaW5jbHVkZSBBQ1BJIGFuZCBQUEMgRElNTXMuCj4gICoKPiAgKiBNRU1PUllfQkxP
+Q0tfVU5SRU1PVkFCTEU6Cj4gICogIFRoaXMgbWVtb3J5IGJsb2NrIHR5cGUgc2hvdWxkIGJlIHRy
+ZWF0ZWQgYXMgaWYgaXQgY2FuIG5vdCBiZQo+ICAqICByZW1vdmVkL3VucGx1Z2dlZCBhZ2Fpbi4g
+RS5nLiB0aGVyZSBpcyBubyBoYXJkd2FyZSBpbnRlcmZhY2UgdG8KPiAgKiAgdW5wbHVnIHN1Y2gg
+bWVtb3J5LiBUaGlzIG1lbW9yeSBibG9jayB0eXBlIGlzIHVzdWFsbHkgb25saW5lZCB0bwo+ICAq
+ICB0aGUgTk9STUFMIHpvbmUsIGFzIG9mZmxpbmluZyBpcyBub3QgYmVuZWZpY2lhbC4gRXhhbXBs
+ZXMgaW5jbHVkZSBib290Cj4gICogIG1lbW9yeSBvbiBtb3N0IGFyY2hpdGVjdHVyZXMgYW5kIG1l
+bW9yeSBhZGRlZCB2aWEgYmFsbG9vbiBkZXZpY2VzLgoKQUZBSUsgYmFsb29uIGRldmljZSBjYW4g
+YmUgaW5mbGF0ZWQgYXMgd2VsbCBzbyB0aGlzIGRvZXMgbm90IHJlYWxseQpkZXNjcmliZSBob3cg
+dGhpcyBtZW1vcnkgdHlwZSB3b3JrcyBpbiBhbnkgbWVhbmluZ2Z1bCB3YXkuIEFsc28gaXQKc2hv
+dWxkIG5vdCBiZSBwb3NzaWJsZSB0byBzZWUgdGhpcyBraW5kIG9mIG1lbW9yeSBmcm9tIHVzZXJz
+cGFjZS4gVGhlCmJhbG9vbiBkcml2ZXIganVzdCB0YWtlcyBleGlzdGluZyBtZW1vcnkgdGhhdCBp
+cyBwcm9wZXJseSBiYWNrZWQsCmFsbG9jYXRlcyBpdCBmb3IgaXRzZWxmLCBhbmQgYWxsb3dzIHRo
+ZSBoeXBlcnZpc29yIHRvIHVzZSBpdC4gVGh1cyBpdApjcmVhdGVzIHRoZSBlcXVpdmFsZW50IHRv
+IHMzOTAgc3RhbmRieSBtZW1vcnkgd2hpY2ggaXMgbm90IGJhY2tlZCBpbgp0aGUgVk0uIFdoZW4g
+bWVtb3J5IGlzIHJlY2xhaW1lZCBmcm9tIGh5cGVydmlzb3IgdGhlIGJhbG9vbiBkcml2ZXIKZnJl
+ZXMgaXQgbWFraW5nIGl0IGF2YWlsYWJsZSB0byB0aGUgVk0ga2VybmVsIGFnYWluLiBIb3dldmVy
+LCB0aGUgd2hvbGUKdGltZSB0aGUgbWVtb3J5IGFwcGVhcnMgcHJlc2VudCBpbiB0aGUgbWFjaGlu
+ZSBhbmQgbm8gaG90cGx1ZyBldmVudHMKc2hvdWxkIGJlIHZpc2libGUgdW5sZXNzIHRoZSBkb2Nz
+IEkgYW0gbG9va2luZyBhdCBhcmUgcmVhbGx5IG91dGRhdGVkLgoKPiAgKgo+ICAqIE1FTU9SWV9C
+TE9DS19TVEFOREJZOgo+ICAqICBUaGUgbWVtb3J5IGJsb2NrIHR5cGUgc2hvdWxkIGJlIHRyZWF0
+ZWQgYXMgaWYgaXQgY2FuIGJlCj4gICogIHJlbW92ZWQvdW5wbHVnZ2VkIGFnYWluLCBob3dldmVy
+IHRoZSBhY3R1YWwgbWVtb3J5IGhvdCh1bilwbHVnIGlzCj4gICogIHBlcmZvcm1lZCBieSBvbmxp
+bmluZy9vZmZsaW5pbmcuIEluIHZpcnR1YWwgZW52aXJvbm1lbnRzLCBzdWNoIG1lbW9yeQo+ICAq
+ICBpcyB1c3VhbGx5IGFkZGVkIGR1cmluZyBib290IGFuZCBuZXZlciByZW1vdmVkLiBPbmxpbmlu
+ZyBtZW1vcnkgd2lsbAo+ICAqICByZXN1bHQgaW4gbWVtb3J5IGdldHRpbmcgYWxsb2NhdGVkIHRv
+IGEgVk0uIFRoaXMgbWVtb3J5IHR5cGUgaXMgdXN1YWxseQo+ICAqICBub3Qgb25saW5lZCBhdXRv
+bWF0aWNhbGx5IGJ1dCBleHBsaWNpdGx5IGJ5IHRoZSBhZG1pbmlzdHJhdG9yLiBPbmUKPiAgKiAg
+ZXhhbXBsZSBpcyBzdGFuZGJ5IG1lbW9yeSBvbiBzMzkweC4KCkFnYWluLCB0aGlzIGRvZXMgbm90
+IG1lYW5pbmdmdWxseSBkZXNjcmliZSB0aGUgbWVtb3J5IHR5cGUuIFRoZXJlIGlzCm5vIG1lbW9y
+eSBvbiBzdGFuZGJ5LiBUaGVyZSBpcyBpbiBmYWN0IG5vIGJhY2tpbmcgYXQgYWxsIHVubGVzcyB5
+b3UKb25saW5lIGl0LiBTbyB0aGlzIHByb2JhYmx5IGlzIHNvbWUga2luZCBvZiBzaGFyZWQgbWVt
+b3J5LiBIb3dldmVyLCB0aGUKKGRlKWFsbG9jYXRpb24gaXMgY29udHJvbGxlZCBkaWZmZXJlbnRs
+eSBjb21wYXJlZCB0byB0aGUgYmFsb29uIGRldmljZS4KVGhlIGNvbmNlcHQgaXMgdmVyeSBzaW1p
+bGFyLCB0aG91Z2guCgpUaGFua3MKCk1pY2hhbApfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpkZXZlbCBtYWlsaW5nIGxpc3QKZGV2ZWxAbGludXhkcml2ZXJw
+cm9qZWN0Lm9yZwpodHRwOi8vZHJpdmVyZGV2LmxpbnV4ZHJpdmVycHJvamVjdC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9kcml2ZXJkZXYtZGV2ZWwK
