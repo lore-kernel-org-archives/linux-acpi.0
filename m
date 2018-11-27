@@ -1,73 +1,67 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v3 05/13] i2c: acpi: Return error pointers from
- i2c_acpi_new_device()
-Date: Tue, 27 Nov 2018 20:30:46 +0100
-Message-ID: <81965d66-56fb-01b1-7d5f-63afd5693778@redhat.com>
-References: <20181127153728.47866-1-andriy.shevchenko@linux.intel.com>
- <20181127153728.47866-6-andriy.shevchenko@linux.intel.com>
- <c6a0201e-d69e-7646-dcae-0b1b6fe42451@redhat.com>
- <20181127192746.GZ10650@smile.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bug] SD card reader in Acer Aspire S5 broken in 4.20-rc
+Date: Tue, 27 Nov 2018 23:32:52 +0100
+Message-ID: <2589393.XVIVmOtOXj@aspire.rjw.lan>
+References: <2960808.4YCFhzuD0k@aspire.rjw.lan> <1675729.7aZxPkvRd8@aspire.rjw.lan> <20181127202514.GB112381@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181127192746.GZ10650@smile.fi.intel.com>
-Content-Language: en-US
+In-Reply-To: <20181127202514.GB112381@google.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Patrick Talbert <ptalbert@redhat.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
-
-On 27-11-18 20:27, Andy Shevchenko wrote:
-> On Tue, Nov 27, 2018 at 05:14:06PM +0100, Hans de Goede wrote:
->> On 27-11-18 16:37, Andy Shevchenko wrote:
->>> The caller would like to know the reason why the i2c_acpi_new_device() fails.
->>> For example, if adapter is not available, it might be in the future and we
->>> would like to re-probe the clients again. But at the same time we would like to
->>> bail out if the error seems unrecoverable, such as invalid argument supplied.
->>> To achieve this, return error pointer in some cases.
+On Tuesday, November 27, 2018 9:25:14 PM CET Bjorn Helgaas wrote:
+> On Mon, Nov 26, 2018 at 11:37:20PM +0100, Rafael J. Wysocki wrote:
+> > On Monday, November 26, 2018 7:03:58 PM CET Rafael J. Wysocki wrote:
+> > > Hi Bjorn,
+> > > 
+> > > The SD card reader in my Acer Aspire S5 doesn't work with 4.20-rc.
+> > > 
+> > > Here's what lspci -v says about it (in a bad kernel):
+> > > 
+> > > 02:00.0 Unassigned class [ff00]: Realtek Semiconductor Co., Ltd. RTS5209 PCI Express Card Reader 
+> > > (rev 01)
+> > >         Subsystem: Acer Incorporated [ALI] Device 0704
+> > >         Flags: bus master, fast devsel, latency 0, IRQ 35
+> > >         Memory at d9001000 (32-bit, non-prefetchable) [size=4K]
+> > >         Capabilities: [40] Power Management version 3
+> > >         Capabilities: [50] MSI: Enable+ Count=1/1 Maskable- 64bit+
+> > >         Capabilities: [70] Express Endpoint, MSI 00
+> > >         Capabilities: [100] Advanced Error Reporting
+> > >         Capabilities: [140] Device Serial Number 00-00-00-01-00-4c-e0-00
+> > >         Kernel driver in use: rtsx_pci
+> > >         Kernel modules: rtsx_pci
 > 
->>>    	acpi_dev_free_resource_list(&resource_list);
->>> -	if (ret < 0 || !info->addr)
->>> -		return NULL;
->>> +	if (!info->addr)
->>> +		return ERR_PTR(-EADDRNOTAVAIL);
->>>    	adapter = i2c_acpi_find_adapter_by_handle(lookup.adapter_handle);
->>>    	if (!adapter)
->>> -		return NULL;
->>> +		return ERR_PTR(-ENODEV);
+> Thanks a lot for bisecting this!
 > 
->> Why not simply return -EPROBE_DEFER here (and simplify the callers a lot).
-> 
->> This is the only case where we really want to defer.
-> 
->>> +	client = i2c_new_device(adapter, info);
->>> +	if (!client)
->>> +		return ERR_PTR(-ENODEV);
->>
->> If you look at i2c_new_device, it can fail because it is
->> out of memory, the i2c slave address is invalid, or
->> their already is an i2c slave with the same address,
->> iow if this were to return an ERR_PTR itself, this
->> would return -ENOMEM, -EINVAL or -EBUSY and never
->> -EPROBE_DEFER.
-> 
-> It would change the behaviour.
+> With a good kernel (v4.19 or v4.20-rc with 17c91487364f reverted),
+> would you mind collecting "lspci -vv" output, the dmesg log with
+> "pci=earlydump", and the FADT dump?
 
-Yes it would change behaviour, for the better, all the errors
-from i2c_new_device() (*) will not go away when we retry later,
-so responding with probe-deferring to them is not useful.
+I'll do that tomorrow.
 
-> In any case, it's only two users and both written by you, so, just to be sure
-> you aware of this change and bless it.
+> I'm interested in the initial state of the device at handoff from
+> BIOS, and what Linux changes even when aspm_disabled is set.
 
-I'm aware and you've my ack for this change.
+OK
 
-Regards,
+> If we can't figure out a way to fix both this issue and the one fixed
+> by 17c91487364f, I guess the fallback will be to revert 17c91487364f
+> since it's better to allow a system that was previously broken to
+> remain broken than it is to break a system that previously worked.
 
-Hans
+Well, depending on how many systems are affected by the issues fixed by
+17c91487364f IMO.
 
+Arguably, if the FADT says "NO_ASPM", then the platform should not need the
+OS to initialize ASPM to work.  I guess a manual workaround (like an extra
+kernel command line option or similar) should suffice in this particular
+case.
 
-*) with exception of -ENOMEM which should never happen
+> But obviously I hope we can figure out a solution that fixes both
+> cases.
+
+Of course.
