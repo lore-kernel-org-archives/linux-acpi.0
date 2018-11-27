@@ -1,63 +1,159 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2 05/13] i2c: acpi: Return error pointers from
- i2c_acpi_new_device()
-Date: Tue, 27 Nov 2018 10:16:25 +0100
-Message-ID: <98674437-9374-32d4-4b25-dedd0cad5bea@redhat.com>
-References: <20181126150858.16901-1-andriy.shevchenko@linux.intel.com>
- <20181126150858.16901-6-andriy.shevchenko@linux.intel.com>
- <20181127090432.GK2296@lahna.fi.intel.com>
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Tue, 27 Nov 2018 15:02:07 +0530
+Message-ID: <6208771a-43da-ecc4-40ed-8e99cd5169fc@arm.com>
+References: <20181114224902.12082-1-keith.busch@intel.com>
+ <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
+ <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
+ <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+ <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
+ <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
+ <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
+ <1a9e887b-8087-e897-6195-e8df325bd458@arm.com>
+ <3b86c5c5-53f2-29bf-48e7-5749c7287dca@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181127090432.GK2296@lahna.fi.intel.com>
+In-Reply-To: <3b86c5c5-53f2-29bf-48e7-5749c7287dca@intel.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
 
-On 27-11-18 10:04, Mika Westerberg wrote:
-> On Mon, Nov 26, 2018 at 05:08:50PM +0200, Andy Shevchenko wrote:
->> The caller would like to know the reason why the i2c_acpi_new_device() fails.
->> For example, if adapter is not available, it might be in the future and we
->> would like to re-probe the clients again. But at the same time we would like to
->> bail out if the error seems unrecoverable, such as out of memory condition.
->> To achieve this, return error pointer in some cases.
+
+On 11/26/2018 10:50 PM, Dave Hansen wrote:
+> On 11/26/18 7:38 AM, Anshuman Khandual wrote:
+>> On 11/24/2018 12:51 AM, Dave Hansen wrote:
+>>> On 11/22/18 10:42 PM, Anshuman Khandual wrote:
+>>>> Are we willing to go in the direction for inclusion of a new system
+>>>> call, subset of it appears on sysfs etc ? My primary concern is not
+>>>> how the attribute information appears on the sysfs but lack of it's
+>>>> completeness.
+>>>
+>>> A new system call makes total sense to me.  I have the same concern
+>>> about the completeness of what's exposed in sysfs, I just don't see a
+>>> _route_ to completeness with sysfs itself.  Thus, the minimalist
+>>> approach as a first step.
 >>
->> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   drivers/i2c/i2c-core-acpi.c | 9 ++++++---
->>   1 file changed, 6 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/i2c/i2c-core-acpi.c b/drivers/i2c/i2c-core-acpi.c
->> index 32affd3fa8bd..af4b5bd5d973 100644
->> --- a/drivers/i2c/i2c-core-acpi.c
->> +++ b/drivers/i2c/i2c-core-acpi.c
->> @@ -387,6 +387,7 @@ struct notifier_block i2c_acpi_notifier = {
->>    * Also see i2c_new_device, which this function calls to create the i2c-client.
->>    *
->>    * Returns a pointer to the new i2c-client, or NULL if the adapter is not found.
->> + * In some cases might return an error pointer.
+>> Okay if we agree on the need for a new specific system call extracting
+>> the superset attribute information MAX_NUMNODES * MAX_NUMNODES * U64
+>> (u64 packs 8 bit values for 8 attributes or something like that) as we
+>> had discussed before, it makes sense to export a subset of it which can
+>> be faster but useful for the user space without going through a system
+>> call. 
 > 
-> I would rather make it return error pointer always. Then the caller can
-> just check for IS_ERR() and not need to deal with the possible NULL. It
-> is also more consistent that way than saying "some cases might return an
-> error pointer" (but some cases you get NULL or even pointer to the
-> created object) ;-)
+> The information that needs to be exported is a bit more than that.  It's
+> not just a binary attribute.
 
-Good one, that will allow for a nice cleanup of the callers, we can make
-i2c_acpi_new_device return -EPROBE_DEFER when the i2c_acpi_find_adapter_by_handle()
-call fails, which is exactly the case when we want to defer.
+Right wont be binary because it would contain a value for an attribute.
 
-One problem is that i2c_new_device() currently simply returns NULL on all
-errors. Andy, you could take a look how much work it is to make that return
-an ERR_PTR too, or just check its return value and return ERR_PTR(-ENXIO) if
-it fails for now...
+> 
+> The information we have from the new ACPI table, for instance, is the
+> read and write bandwidth and latency between two nodes.  They are, IIRC,
+> two-byte values in the ACPI table[1], each.  That's 8 bytes worth of
+> data right there, which wouldn't fit *anything* else.
 
-Regards,
+Hmm I get your point. We would need to have interfaces both system call
+and sysfs where number of attributes and bit field to contain value for
+any attribute can grow in the future with backward compatibility. 
 
-Hans
+> 
+> The list of things we want to export will certainly grow.  That means we
+> need a syscall something like this:
+> 
+> int get_mem_attribute(unsigned long attribute_nr,
+> 		      unsigned long __user * initiator_nmask,
+> 		      unsigned long __user * target_nmask,
+> 		      unsigned long maxnode,
+> 		      unsigned long *attributes_out);
+
+Agreed. I was also thinking something like above syscall interface works
+where attribute_nr can grow as an enum with MAX_MEM_ATTRIBUTES increasing
+but still keeping previous order intact for backward compatibility. But I
+guess we would need to pass a size of an attribute structure (UAPI like
+perf_event_attr) so that it can grow further but then structure packing
+order is maintained for backward compatibility.
+
+int get_mem_attribute(unsigned long attribute_nr,
+		      unsigned long __user * initiator_nmask,
+		      unsigned long __user * target_nmask,
+		      unsigned long maxnode,
+ 		      unsigned long *attributes_out,
+		      size_t attribute_size);
+
+ 
+> 
+> #define MEM_ATTR_READ_BANDWIDTH		1
+> #define MEM_ATTR_WRITE_BANDWIDTH	2
+> #define MEM_ATTR_READ_LATENCY		3
+> #define MEM_ATTR_WRITE_LATENCTY		4
+> #define MEM_ATTR_ENCRYPTION		5
+> 
+> If you want to know the read latency between nodes 4 and 8, you do:
+> 
+> 	ret = get_mem_attr(MEM_ATTR_READ_LATENCY,
+> 			   (1<<4), (1<<8), max, &array);
+> 
+> And the answer shows up at array[0] in this example.  If you had more
+> than one bit set in the two nmasks, you would have a longer array.
+> 
+> The length of the array is the number of bits set in initiator_nmask *
+> the number of bits set in target_nmask * sizeof(ulong).
+
+Right. Hmm, I guess now that the interface is requesting for a single
+attribute it does not have to worry about structure for the attribute
+field. A single ULONG_MAX should be enough to hold value for any given
+attribute and also it does not have to worry much about compatibility.
+This is better.
+
+> 
+> This has the advantage of supporting ULONG_MAX attributes, and scales
+
+Right.
+
+> from asking for one attribute at a time all the way up to dumping the
+> entire system worth of data for a single attribute.  The only downside
+
+Right.
+
+> is that it's one syscall per attribute instead of packing them all
+> together.  But, if we have a small enough number to pack them in one
+> ulong, then I think we can make 64 syscalls without too much trouble.
+
+I agree. It also enables single attribute to have ULONG_MAX length value
+and avoid compatibility issues because of packing order due to multiple
+attributes requested together. This is definitely a cleaner interface.
+
+> 
+>> Do you agree on a (system call + sysfs) approach in principle ?
+>> Also sysfs exported information has to be derived from whats available
+>> through the system call not the other way round. Hence the starting
+>> point has to be the system call definition.
+> 
+> Both the sysfs information *and* what will be exported in any future
+> interfaces are derived from platform-specific information.  They are not
+> derived from one _interface_ or the other.
+> 
+> They obviously need to be consistent, though.
+
+What I meant was the most comprehensive set of information should be
+available to be fetched from the system call. Any other interface like
+sysfs (or some other) will have to be a subset of whats available through
+the system call. It should never be the case where there are information
+available via sysfs but not through system call route. What is exported
+through either syscall or sysfs will always be derived from platform
+specific information.
+
+> 
+> 1. See "Table 5-142 System Locality Latency and Bandwidth Information
+> Structure" here:
+> http://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+> 
+
+In conclusion something like this sort of a system call interface really
+makes sense and can represent superset of memory attribute information.
