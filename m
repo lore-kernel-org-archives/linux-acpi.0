@@ -1,64 +1,101 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Tue, 27 Nov 2018 08:56:09 -0800
-Message-ID: <CAPcyv4iA+yA_OZMUSbJTV=c9=QsRAcLjzLK94uuVsMTaPu6eTg@mail.gmail.com>
-References: <20181114224902.12082-1-keith.busch@intel.com> <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com> <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
- <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com> <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
- <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com> <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
- <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com> <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
- <b9962dfa-924f-77f7-a40f-407dd20e9082@intel.com> <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
- <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
+From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
+Date: Tue, 27 Nov 2018 18:14:43 +0100
+Message-ID: <CAJZ5v0he4BmyJ97=uwVpJtojhe0f5pTq81LBdAQG6RFy6edKrQ@mail.gmail.com>
+References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
+	<20181126111526.56340-2-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: anshuman.khandual@arm.com
-Cc: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20181126111526.56340-2-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Raj,
+	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mario Limonciello <Mario.Limonciello-8PEkshWhKlo@public.gmane.org>, Michael Jamet <michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Yehezkel Bernat <YehezkelShB-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "Pan, Jacob jun" <jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 27, 2018 at 2:15 AM Anshuman Khandual
-<anshuman.khandual@arm.com> wrote:
+On Mon, Nov 26, 2018 at 12:15 PM Mika Westerberg
+<mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
 >
+> Recent systems with Thunderbolt ports may support IOMMU natively. This
+> means that the platform utilizes IOMMU to prevent DMA attacks over
+> externally exposed PCIe root ports (typically Thunderbolt ports)
 >
+> The system BIOS marks these PCIe root ports as being externally facing
+> ports by implementing following ACPI _DSD [1] under the root port in
+> question:
 >
-> On 11/26/2018 11:38 PM, Dan Williams wrote:
-> > On Mon, Nov 26, 2018 at 8:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
-> >>
-> >> On 11/23/18 1:13 PM, Dan Williams wrote:
-> >>>> A new system call makes total sense to me.  I have the same concern
-> >>>> about the completeness of what's exposed in sysfs, I just don't see a
-> >>>> _route_ to completeness with sysfs itself.  Thus, the minimalist
-> >>>> approach as a first step.
-> >>> Outside of platform-firmware-id to Linux-numa-node-id what other
-> >>> userspace API infrastructure does the kernel need to provide? It seems
-> >>> userspace enumeration of memory attributes is fully enabled once the
-> >>> firmware-to-Linux identification is established.
-> >>
-> >> It would be nice not to have each app need to know about each specific
-> >> platform's firmware.
-> >
-> > The app wouldn't need to know if it uses a common library. Whether the
-> > library calls into the kernel or not is an implementation detail. If
-> > it is information that only the app cares about and the kernel does
-> > not consume, why have a syscall?
+>   Name (_DSD, Package () {
+>       ToUUID ("efcc06cc-73ac-4bc3-bff0-76143807c389"),
+>       Package () {
+>           Package () {"ExternalFacingPort", 1},
+>           Package () {"UID", 0 }
+>       }
+>   })
 >
-> If we just care about platform-firmware-id <--> Linux-numa-node-id mapping
-> and fetching memory attribute from the platform (and hiding implementation
-> details in a library) then the following interface should be sufficient.
+> To make it possible for IOMMU code to identify these devices, we look up
+> for this property and mark all children devices (including the root port
+> itself) with a new flag (->is_untrusted). This flag is meant to be used
+> with all PCIe devices (not just Thunderbolt) that cannot be trusted in
+> the same level than integrated devices and may need to put behind full
+> IOMMU protection.
 >
-> /sys/devices/system/node/nodeX/platform_id
+> [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-externally-exposed-pcie-root-ports
 >
-> But as the series proposes (and rightly so) kernel needs to start providing
-> ABI interfaces for memory attributes instead of hiding them in libraries.
+> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> ---
+>  drivers/acpi/property.c |  3 +++
+>  drivers/pci/pci-acpi.c  | 18 ++++++++++++++++++
+>  drivers/pci/probe.c     | 22 ++++++++++++++++++++++
+>  include/linux/pci.h     |  8 ++++++++
+>  4 files changed, 51 insertions(+)
+>
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index 8c7c4583b52d..4bdad32f62c8 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -31,6 +31,9 @@ static const guid_t prp_guids[] = {
+>         /* Hotplug in D3 GUID: 6211e2c0-58a3-4af3-90e1-927a4e0c55a4 */
+>         GUID_INIT(0x6211e2c0, 0x58a3, 0x4af3,
+>                   0x90, 0xe1, 0x92, 0x7a, 0x4e, 0x0c, 0x55, 0xa4),
+> +       /* External facing port GUID: efcc06cc-73ac-4bc3-bff0-76143807c389 */
+> +       GUID_INIT(0xefcc06cc, 0x73ac, 0x4bc3,
+> +                 0xbf, 0xf0, 0x76, 0x14, 0x38, 0x07, 0xc3, 0x89),
+>  };
 
-Yes, I can get on board with sysfs providing a subset of the
-performance description for administrators to discover the common case
-via scripting and leave the exhaustive attribute description to a
-separate interface. I was pushing back on the notion that sysfs must
-be that exhaustive interface... we're making progress.
+One observation here.  Note that I really have no strong opinion on
+that, so this is not an objection, but IMO it is fair to make things
+clear for everybody.
 
-I still think we need /sys/devices/system/node/nodeX/platform_id to
-enable higher order platform enumeration tooling, but that need not be
-the end of the kernel interface description.
+So this causes the External facing port GUID (which already is the
+case with the Hotplug in D3 GUID for that matter) to be practically
+equivalent to the ACPI _DSD device properties GUID.  This means that
+Linux will consider a combination of any of these GUIDs with any
+properties defined for any of them as valid, which need not be the
+case in Windows.
+
+For example, since the ExternalFacingPort property is defined along
+with the External facing port GUID, Windows will likely ignore it if
+it is used in a combination with the Hotplug in D3 GUID or the ACPI
+_DSD device properties GUID.  If the firmware combines the Hotplug in
+D3 GUID or the ACPI _DSD device properties GUID with that property,
+Windows will not regard it as valid, most likely, but Linux will use
+it just fine.  In the face of ASL bugs, which are inevitable (at least
+just because ASL is code written by humans), that may become a real
+problem, as systems successfully tested with Windows may not work with
+Linux as expected and vice versa because of it.
+
+>From the ecosystem purity perspective this should be avoided, but then
+I do realize that this allows code to be re-used and avoids quite a
+bit of complexity.  The likelihood of an ASL bug that will expose this
+issue is arguably small, so maybe it is not a practical concern after
+all.
