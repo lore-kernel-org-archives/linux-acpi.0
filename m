@@ -1,20 +1,21 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Keith Busch <keith.busch@intel.com>
 Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
-Date: Tue, 27 Nov 2018 09:42:54 -0800
-Message-ID: <CAPcyv4hMFc7K=FjHWiMVAiOxVC-s0itPjVTs_-7KrFhg4h_SXQ@mail.gmail.com>
-References: <20181114224921.12123-2-keith.busch@intel.com> <20181114224921.12123-3-keith.busch@intel.com>
+Date: Tue, 27 Nov 2018 10:44:57 -0700
+Message-ID: <20181127174457.GB6401@localhost.localdomain>
+References: <20181114224921.12123-2-keith.busch@intel.com>
+ <20181114224921.12123-3-keith.busch@intel.com>
  <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 11:00 PM Dan Williams <dan.j.williams@intel.com> wrote:
->
+On Mon, Nov 26, 2018 at 11:00:09PM -0800, Dan Williams wrote:
 > On Wed, Nov 14, 2018 at 2:53 PM Keith Busch <keith.busch@intel.com> wrote:
 > >
 > > Heterogeneous memory systems provide memory nodes with latency
@@ -42,7 +43,7 @@ On Mon, Nov 26, 2018 at 11:00 PM Dan Williams <dan.j.williams@intel.com> wrote:
 > >   |-- read_latency
 > >   |-- write_bandwidth
 > >   `-- write_latency
->
+> 
 > With the expectation that there will be nodes that are initiator-only,
 > target-only, or both I think this interface should indicate that. The
 > 1:1 "local" designation of HMAT should not be directly encoded in the
@@ -52,14 +53,16 @@ On Mon, Nov 26, 2018 at 11:00 PM Dan Williams <dan.j.williams@intel.com> wrote:
 > whether sysfs can answer a performance enumeration question or if the
 > application needs to consult an interface with specific knowledge of a
 > given initiator-target pairing.
-
-Sorry, I misread patch1, this series does allow publishing the
-multi-initiator case that shares the same performance profile to a
-given target.
-
+> 
 > It seems a precursor to these patches is arranges for offline node
 > devices to be created for the ACPI proximity domains that are
 > offline-by default for reserved memory ranges.
 
-Likely still need this though because node devices don't tend to show
-up until they have a cpu or online memory.
+The intention is that all initiators symlinked to the memory node share
+the initiator_access attributes, as well as itself the node is its own
+initiator. There's no limit to how many the new kernel interface in
+patch 1/7 allows you to register, so it's not really a 1:1 relationship.
+
+Either instead or in addition to the symlinks, we can export a node_mask
+in the initiator_access directory for which these access attributes
+apply if that makes the intention more clear.
