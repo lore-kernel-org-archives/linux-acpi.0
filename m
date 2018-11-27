@@ -1,7 +1,7 @@
 From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v4 4/4] driver core: Add fwnode member to struct device_connection
-Date: Tue, 27 Nov 2018 17:28:55 +0300
-Message-ID: <20181127142855.73899-5-heikki.krogerus@linux.intel.com>
+Subject: [PATCH v4 2/4] ACPI: property: Add acpi_fwnode_name()
+Date: Tue, 27 Nov 2018 17:28:53 +0300
+Message-ID: <20181127142855.73899-3-heikki.krogerus@linux.intel.com>
 References: <20181127142855.73899-1-heikki.krogerus@linux.intel.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -12,35 +12,58 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This will prepare the device connection API for connections
-described in firmware.
+This implements the get_name fwnode op for ACPI.
 
 Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 ---
- include/linux/device.h | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/property.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 1b25c7a43f4c..25e0409e0b0c 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -757,11 +757,17 @@ struct device_dma_parameters {
+diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+index 8c7c4583b52d..c24cf02e9214 100644
+--- a/drivers/acpi/property.c
++++ b/drivers/acpi/property.c
+@@ -1219,6 +1219,33 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *__fwnode)
+ 	return acpi_graph_get_child_prop_value(fwnode, "endpoint", endpoint_nr);
+ }
  
- /**
-  * struct device_connection - Device Connection Descriptor
-+ * @fwnode: The device node of the connected device
-  * @endpoint: The names of the two devices connected together
-  * @id: Unique identifier for the connection
-  * @list: List head, private, for internal use only
-+ *
-+ * NOTE: @fwnode is not used together with @endpoint. @fwnode is used when
-+ * platform firmware defines the connection. When the connection is registeded
-+ * with device_connection_add() @endpoint is used instead.
-  */
- struct device_connection {
-+	struct fwnode_handle	*fwnode;
- 	const char		*endpoint[2];
- 	const char		*id;
- 	struct list_head	list;
++static int
++acpi_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf, size_t len)
++{
++	struct acpi_buffer buffer;
++	acpi_status status;
++
++	if (is_acpi_data_node(fwnode)) {
++		if (len < strlen(to_acpi_data_node(fwnode)->name) + 1)
++			return -EOVERFLOW;
++		sprintf(buf, "%s", to_acpi_data_node(fwnode)->name);
++		return 0;
++	}
++
++	if (len < ACPI_NAME_SIZE + 1)
++		return -EOVERFLOW;
++
++	buffer.length = ACPI_NAME_SIZE + 1;
++	buffer.pointer = buf;
++
++	status = acpi_get_name(to_acpi_device_node(fwnode)->handle,
++			       ACPI_SINGLE_NAME, &buffer);
++	if (ACPI_FAILURE(status))
++		return -ENXIO;
++
++	return 0;
++}
++
+ static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
+ {
+ 	if (!is_acpi_device_node(fwnode))
+@@ -1310,6 +1337,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
+ 
+ #define DECLARE_ACPI_FWNODE_OPS(ops) \
+ 	const struct fwnode_operations ops = {				\
++		.get_name = acpi_fwnode_get_name,			\
+ 		.device_is_available = acpi_fwnode_device_is_available, \
+ 		.device_get_match_data = acpi_fwnode_device_get_match_data, \
+ 		.property_present = acpi_fwnode_property_present,	\
 -- 
 2.19.2
