@@ -1,57 +1,64 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
-Date: Tue, 27 Nov 2018 17:49:53 +0100
-Message-ID: <CAJZ5v0gxap5qWQTrmrTmzfvL0RerZ1T1MUPyh6b1FAHY9N0Ryw@mail.gmail.com>
-References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
- <20181126111526.56340-2-mika.westerberg@linux.intel.com> <20181127001711.GC212532@google.com>
- <20181127085426.GI2296@lahna.fi.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
+Date: Tue, 27 Nov 2018 08:56:09 -0800
+Message-ID: <CAPcyv4iA+yA_OZMUSbJTV=c9=QsRAcLjzLK94uuVsMTaPu6eTg@mail.gmail.com>
+References: <20181114224902.12082-1-keith.busch@intel.com> <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
+ <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com> <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
+ <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com> <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
+ <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com> <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
+ <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com> <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
+ <b9962dfa-924f-77f7-a40f-407dd20e9082@intel.com> <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
+ <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181127085426.GI2296@lahna.fi.intel.com>
+In-Reply-To: <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Pan, Jacob jun" <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, ckellner@redhat.com, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>ACPI Devel Maling List <lin>
+To: anshuman.khandual@arm.com
+Cc: Dave Hansen <dave.hansen@intel.com>, Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 27, 2018 at 9:54 AM Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
+On Tue, Nov 27, 2018 at 2:15 AM Anshuman Khandual
+<anshuman.khandual@arm.com> wrote:
 >
-> On Mon, Nov 26, 2018 at 06:17:11PM -0600, Bjorn Helgaas wrote:
-> > Hi Mika,
 >
-> Hi,
 >
-> > On Mon, Nov 26, 2018 at 02:15:23PM +0300, Mika Westerberg wrote:
-> > > Recent systems with Thunderbolt ports may support IOMMU natively.
+> On 11/26/2018 11:38 PM, Dan Williams wrote:
+> > On Mon, Nov 26, 2018 at 8:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
+> >>
+> >> On 11/23/18 1:13 PM, Dan Williams wrote:
+> >>>> A new system call makes total sense to me.  I have the same concern
+> >>>> about the completeness of what's exposed in sysfs, I just don't see a
+> >>>> _route_ to completeness with sysfs itself.  Thus, the minimalist
+> >>>> approach as a first step.
+> >>> Outside of platform-firmware-id to Linux-numa-node-id what other
+> >>> userspace API infrastructure does the kernel need to provide? It seems
+> >>> userspace enumeration of memory attributes is fully enabled once the
+> >>> firmware-to-Linux identification is established.
+> >>
+> >> It would be nice not to have each app need to know about each specific
+> >> platform's firmware.
 > >
-> > This sentence doesn't make sense to me.  There's no logical connection
-> > between having an IOMMU and having a Thunderbolt port.
-> >
-> > > This means that the platform utilizes IOMMU to prevent DMA attacks
-> > > over externally exposed PCIe root ports (typically Thunderbolt
-> > > ports)
-> >
-> > Nor this one.  The platform only uses the IOMMU to prevent DMA attacks
-> > if the OS chooses to do that.
+> > The app wouldn't need to know if it uses a common library. Whether the
+> > library calls into the kernel or not is an implementation detail. If
+> > it is information that only the app cares about and the kernel does
+> > not consume, why have a syscall?
 >
-> I guess I'm trying to say here that the recent changes add such support
-> to the platform BIOS that allows the OS to enable IOMMU without being
-> compromised by a malicious device that is already connected. The BIOS
-> sets the new ACPI DMAR bit in that case.
+> If we just care about platform-firmware-id <--> Linux-numa-node-id mapping
+> and fetching memory attribute from the platform (and hiding implementation
+> details in a library) then the following interface should be sufficient.
 >
-> > > The system BIOS marks these PCIe root ports as being externally facing
-> > > ports by implementing following ACPI _DSD [1] under the root port in
-> > > question:
-> >
-> > There's no standard that requires this, so the best we can say is that
-> > a system BIOS *may* mark externally facing ports with this mechanism.
+> /sys/devices/system/node/nodeX/platform_id
 >
-> There is no standard but I'm quite sure this is something that will be
-> required to be implemented properly by the OEM by Microsoft hardware
-> compatibility suite.
+> But as the series proposes (and rightly so) kernel needs to start providing
+> ABI interfaces for memory attributes instead of hiding them in libraries.
 
-I think it would be fair to say that future versions of Windows will
-expect the firmware to identify the "externally facing" root PCIe
-ports as per the above which practically means that it is as good as a
-formal standard in the Windows world.
+Yes, I can get on board with sysfs providing a subset of the
+performance description for administrators to discover the common case
+via scripting and leave the exhaustive attribute description to a
+separate interface. I was pushing back on the notion that sysfs must
+be that exhaustive interface... we're making progress.
+
+I still think we need /sys/devices/system/node/nodeX/platform_id to
+enable higher order platform enumeration tooling, but that need not be
+the end of the kernel interface description.
