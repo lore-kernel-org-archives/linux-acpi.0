@@ -1,58 +1,26 @@
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: Re: [PATCH 0/7] ACPI HMAT memory sysfs representation
-Date: Tue, 27 Nov 2018 15:45:40 +0530
-Message-ID: <325d0e69-053a-ae9c-eede-7cdf28b1dbd6@arm.com>
-References: <20181114224902.12082-1-keith.busch@intel.com>
- <1ed406b2-b85f-8e02-1df0-7c39aa21eca9@arm.com>
- <4ea6e80f-80ba-6992-8aa0-5c2d88996af7@intel.com>
- <b79804b0-32ee-03f9-fa62-a89684d46be6@arm.com>
- <c6abb754-0d82-8739-fe08-24e9402bae75@intel.com>
- <aae34dde-fa70-870a-9b74-fff9e385bfc9@arm.com>
- <f5315662-5c1a-68a3-4d04-21b4b5ca94b1@intel.com>
- <ac942498-8966-6a9b-0e55-c79ae167c679@arm.com>
- <9015e51a-3584-7bb2-cc5e-25b0ec8e5494@intel.com>
- <CAPcyv4jnnnXi9Fqaf-d7AdnKrTMDCWr-e9tAx+G6nphrEPYm=w@mail.gmail.com>
- <b9962dfa-924f-77f7-a40f-407dd20e9082@intel.com>
- <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 05/13] i2c: acpi: Return error pointers from
+ i2c_acpi_new_device()
+Date: Tue, 27 Nov 2018 13:49:53 +0200
+Message-ID: <20181127114953.GQ2296@lahna.fi.intel.com>
+References: <20181126150858.16901-1-andriy.shevchenko@linux.intel.com>
+ <20181126150858.16901-6-andriy.shevchenko@linux.intel.com>
+ <20181127090432.GK2296@lahna.fi.intel.com>
+ <98674437-9374-32d4-4b25-dedd0cad5bea@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4hVFMvut9+Rq7G41yyKzV072U33YEeHNh160VBr3QW-nw@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <98674437-9374-32d4-4b25-dedd0cad5bea@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>
-Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Tue, Nov 27, 2018 at 10:16:25AM +0100, Hans de Goede wrote:
+> One problem is that i2c_new_device() currently simply returns NULL on all
+> errors. Andy, you could take a look how much work it is to make that return
+> an ERR_PTR too, or just check its return value and return ERR_PTR(-ENXIO) if
+> it fails for now...
 
-
-On 11/26/2018 11:38 PM, Dan Williams wrote:
-> On Mon, Nov 26, 2018 at 8:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
->>
->> On 11/23/18 1:13 PM, Dan Williams wrote:
->>>> A new system call makes total sense to me.  I have the same concern
->>>> about the completeness of what's exposed in sysfs, I just don't see a
->>>> _route_ to completeness with sysfs itself.  Thus, the minimalist
->>>> approach as a first step.
->>> Outside of platform-firmware-id to Linux-numa-node-id what other
->>> userspace API infrastructure does the kernel need to provide? It seems
->>> userspace enumeration of memory attributes is fully enabled once the
->>> firmware-to-Linux identification is established.
->>
->> It would be nice not to have each app need to know about each specific
->> platform's firmware.
-> 
-> The app wouldn't need to know if it uses a common library. Whether the
-> library calls into the kernel or not is an implementation detail. If
-> it is information that only the app cares about and the kernel does
-> not consume, why have a syscall?
-
-If we just care about platform-firmware-id <--> Linux-numa-node-id mapping
-and fetching memory attribute from the platform (and hiding implementation
-details in a library) then the following interface should be sufficient.
-
-/sys/devices/system/node/nodeX/platform_id
-
-But as the series proposes (and rightly so) kernel needs to start providing
-ABI interfaces for memory attributes instead of hiding them in libraries.
+I would use -ENODEV here and -EINVAL in case there is no ACPI companion :)
