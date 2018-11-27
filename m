@@ -1,36 +1,42 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v4 4/4] driver core: Add fwnode member to struct
- device_connection
-Date: Tue, 27 Nov 2018 17:07:56 +0200
-Message-ID: <20181127150756.GV10650@smile.fi.intel.com>
-References: <20181127142855.73899-1-heikki.krogerus@linux.intel.com>
- <20181127142855.73899-5-heikki.krogerus@linux.intel.com>
- <20181127143237.GA22859@kuha.fi.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2 05/13] i2c: acpi: Return error pointers from
+ i2c_acpi_new_device()
+Date: Tue, 27 Nov 2018 16:24:41 +0100
+Message-ID: <beaa7a4d-4548-7be9-604d-f9b80dee3980@redhat.com>
+References: <20181126150858.16901-1-andriy.shevchenko@linux.intel.com>
+ <20181126150858.16901-6-andriy.shevchenko@linux.intel.com>
+ <20181127090432.GK2296@lahna.fi.intel.com>
+ <98674437-9374-32d4-4b25-dedd0cad5bea@redhat.com>
+ <20181127114953.GQ2296@lahna.fi.intel.com>
+ <20181127134623.GR10650@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181127143237.GA22859@kuha.fi.intel.com>
+In-Reply-To: <20181127134623.GR10650@smile.fi.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 27, 2018 at 04:32:37PM +0200, Heikki Krogerus wrote:
-> On Tue, Nov 27, 2018 at 05:28:55PM +0300, Heikki Krogerus wrote:
-> > This will prepare the device connection API for connections
-> > described in firmware.
+Hi,
+
+On 27-11-18 14:46, Andy Shevchenko wrote:
+> On Tue, Nov 27, 2018 at 01:49:53PM +0200, Mika Westerberg wrote:
+>> On Tue, Nov 27, 2018 at 10:16:25AM +0100, Hans de Goede wrote:
+>>> One problem is that i2c_new_device() currently simply returns NULL on all
+>>> errors. Andy, you could take a look how much work it is to make that return
+>>> an ERR_PTR too, or just check its return value and return ERR_PTR(-ENXIO) if
+>>> it fails for now...
+>>
+>> I would use -ENODEV here and -EINVAL in case there is no ACPI companion :)
 > 
-> This one does not belong to this series, sorry. Please skip it, or if
-> you prefer, I'll resend.
+> Sounds more traditional than ENXIO.
+> I would go the way Mika proposed if there is no objection.
 
-Please, resend. It would reduce amount of confusion,
+Works for me, go for it.
 
-Otherwise the series looks good to me.
+Regards,
 
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+Han
