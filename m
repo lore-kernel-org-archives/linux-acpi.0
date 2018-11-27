@@ -1,146 +1,57 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFC] mm/memory_hotplug: Introduce memory block types
-Date: Tue, 27 Nov 2018 17:47:47 +0100
-Message-ID: <e5f40780-965b-0b34-9ce7-f63129675380@redhat.com>
-References: <20180928150357.12942-1-david@redhat.com>
- <b01a956b-080c-c643-6473-eb132b9f7200@redhat.com>
- <20181123190653.6da91461@kitsune.suse.cz>
- <fad04d80-4e72-1bd8-3e67-a3f7dd0bc2fa@redhat.com>
- <b64a0e1e-6aaa-66a9-2fb7-12daa6383ce1@redhat.com>
- <20181126152015.7464c786@naga>
- <2d05e5d1-c5b5-8884-e642-89421685052f@redhat.com>
- <20181127173241.6dde763e@kitsune.suse.cz>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
+Date: Tue, 27 Nov 2018 17:49:53 +0100
+Message-ID: <CAJZ5v0gxap5qWQTrmrTmzfvL0RerZ1T1MUPyh6b1FAHY9N0Ryw@mail.gmail.com>
+References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
+ <20181126111526.56340-2-mika.westerberg@linux.intel.com> <20181127001711.GC212532@google.com>
+ <20181127085426.GI2296@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
-In-Reply-To: <20181127173241.6dde763e@kitsune.suse.cz>
-Content-Language: en-US
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
-List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
-List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
- <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
-Errors-To: driverdev-devel-bounces@linuxdriverproject.org
-Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
-To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>
-Cc: Kate Stewart <kstewart@linuxfoundation.org>, Rich Felker <dalias@libc.org>, linux-ia64@vger.kernel.org, linux-sh@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Dave Hansen <dave.hansen@linux.intel.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, linux-mm@kvack.org, Michal Hocko <mhocko@suse.com>, Paul Mackerras <paulus@samba.org>, "H. Peter Anvin" <hpa@zytor.com>, Rashmica Gupta <rashmica.g@gmail.com>, Dan Williams <dan.j.williams@intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Michael Neuling <mikey@neuling.org>, Stephen Hemminger <sthemmin@microsoft.com>, Yoshinori Sato <ysato@users.sourceforge.jp>, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, xen-devel@lists.xenproject.org, Len Brown <lenb@kernel.org>, Pavel Tatashin <pavel.tatashin@microsoft.com>, Rob Herring <robh@kernel.org>, "mike.travis@hpe.com" <mike.travis@hpe.com>, Haiyang
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181127085426.GI2296@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Pan, Jacob jun" <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, ckellner@redhat.com, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>ACPI Devel Maling List <lin>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMjcuMTEuMTggMTc6MzIsIE1pY2hhbCBTdWNow6FuZWsgd3JvdGU6Cj4gT24gTW9uLCAyNiBO
-b3YgMjAxOCAxNjo1OToxNCArMDEwMAo+IERhdmlkIEhpbGRlbmJyYW5kIDxkYXZpZEByZWRoYXQu
-Y29tPiB3cm90ZToKPiAKPj4gT24gMjYuMTEuMTggMTU6MjAsIE1pY2hhbCBTdWNow6FuZWsgd3Jv
-dGU6Cj4+PiBPbiBNb24sIDI2IE5vdiAyMDE4IDE0OjMzOjI5ICswMTAwCj4+PiBEYXZpZCBIaWxk
-ZW5icmFuZCA8ZGF2aWRAcmVkaGF0LmNvbT4gd3JvdGU6Cj4+PiAgIAo+Pj4+IE9uIDI2LjExLjE4
-IDEzOjMwLCBEYXZpZCBIaWxkZW5icmFuZCB3cm90ZTogIAo+Pj4+PiBPbiAyMy4xMS4xOCAxOTow
-NiwgTWljaGFsIFN1Y2jDoW5layB3cm90ZTogICAgCj4+PiAgIAo+Pj4+Pj4KPj4+Pj4+IElmIHdl
-IGFyZSBnb2luZyB0byBmYWtlIHRoZSBkcml2ZXIgaW5mb3JtYXRpb24gd2UgbWF5IGFzIHdlbGwg
-YWRkIHRoZQo+Pj4+Pj4gdHlwZSBhdHRyaWJ1dGUgYW5kIGJlIGRvbmUgd2l0aCBpdC4KPj4+Pj4+
-Cj4+Pj4+PiBJIHRoaW5rIHRoZSBwcm9ibGVtIHdpdGggdGhlIHBhdGNoIHdhcyBtb3JlIHdpdGgg
-dGhlIHNlbWFudGljIHRoYW4gdGhlCj4+Pj4+PiBhdHRyaWJ1dGUgaXRzZWxmLgo+Pj4+Pj4KPj4+
-Pj4+IFdoYXQgaXMgbm9ybWFsLCBwYXJhdmlydHVhbGl6ZWQsIGFuZCBzdGFuZGJ5IG1lbW9yeT8K
-Pj4+Pj4+Cj4+Pj4+PiBJIGNhbiB1bmRlcnN0YW5kIERJTU0gZGV2aWNlLCBiYWxvb24gZGV2aWNl
-LCBvciB3aGF0ZXZlciBtZWNoYW5pc20gZm9yCj4+Pj4+PiBhZGRpbmcgbWVtb3J5IHlvdSBtaWdo
-dCBoYXZlLgo+Pj4+Pj4KPj4+Pj4+IEkgY2FuIHVuZGVyc3RhbmQgIm1lbW9yeSBkZXNpZ25hdGVk
-IGFzIHN0YW5kYnkgYnkgdGhlIGNsdXN0ZXIKPj4+Pj4+IGFkbWluaXN0cmF0b3IiLgo+Pj4+Pj4K
-Pj4+Pj4+IEhvd2V2ZXIsIERJTU0gdnMgYmFsb29uIGlzIG9ydGhvZ29uYWwgdG8gc3RhbmRieSBh
-bmQgc2hvdWxkIG5vdCBiZQo+Pj4+Pj4gY29uZmxhdGVkIGludG8gb25lIHByb3BlcnR5Lgo+Pj4+
-Pj4KPj4+Pj4+IHBhcmF2aXJ0dWFsaXplZCBtZWFucyBub3RoaW5nIGF0IGFsbCBpbiByZWxhdGlv
-bnNoaXAgdG8gbWVtb3J5IHR5cGUgYW5kCj4+Pj4+PiB0aGUgZGVzaXJlZCBvbmxpbmUgcG9saWN5
-IHRvIG1lLiAgICAKPj4+Pj4KPj4+Pj4gUmlnaHQsIHNvIHdpdGggd2hhdGV2ZXIgd2UgY29tZSB1
-cCwgaXQgc2hvdWxkIGFsbG93IHRvIG1ha2UgYSBkZWNpc2lvbgo+Pj4+PiBpbiB1c2VyIHNwYWNl
-IGFib3V0Cj4+Pj4+IC0gaWYgbWVtb3J5IGlzIHRvIGJlIG9ubGluZWQgYXV0b21hdGljYWxseSAg
-ICAKPj4+Pgo+Pj4+IEFuZCBJIHdpbGwgdGhpbmsgYWJvdXQgaWYgd2UgcmVhbGx5IHNob3VsZCBt
-b2RlbCBzdGFuZGJ5IG1lbW9yeS4gTWF5YmUKPj4+PiBpdCBpcyByZWFsbHkgYmV0dGVyIHRvIGhh
-dmUgaW4gdXNlciBzcGFjZSBzb21ldGhpbmcgbGlrZSAoYXMgRGFuIG5vdGVkKSAgCj4+Pgo+Pj4g
-SWYgaXQgaXMgcG9zc2libGUgdG8gZGVzaWduYXRlIHRoZSBtZW1vcnkgYXMgc3RhbmRieSBvciBv
-bmxpbmUgaW4gdGhlCj4+PiBzMzkwIGFkbWluIGludGVyZmFjZSBhbmQgdGhlIGtlcm5lbCBkb2Vz
-IGhhdmUgYWNjZXNzIHRvIHRoaXMKPj4+IGluZm9ybWF0aW9uIGl0IG1ha2VzIHNlbnNlIHRvIGZv
-cndhcmQgaXQgdG8gdXNlcnNwYWNlIChhcyBzZXBhcmF0ZQo+Pj4gczM5MC1zcGVjaWZpYyBwcm9w
-ZXJ0eSkuIElmIG5vdCB0aGVuIHlvdSBuZWVkIHRvIG1ha2Ugc29tZSBraW5kIG9mCj4+PiBhc3N1
-bXB0aW9uIGxpa2UgYmVsb3cgYW5kIHRoZSB1c2VyIGNhbiB0dW5lIHRoZSBzY3JpcHQgYWNjb3Jk
-aW5nIHRvCj4+PiB0aGVpciB1c2VjYXNlLiAgCj4+Cj4+IEFsc28gdHJ1ZSwgc3RhbmRieSBtZW1v
-cnkgcmVhbGx5IHJlcHJlc2VudHMgYSBkaXN0aW5jdCB0eXBlIG9mIG1lbW9yeQo+PiBibG9jayAo
-bWVtb3J5IHNlZW1zIHRvIGJlIHRoZXJlIGJ1dCByZWFsbHkgaXNuJ3QpLiBSaWdodCBub3cgSSBh
-bQo+PiB0aGlua2luZyBhYm91dCBzb21ldGhpbmcgbGlrZSB0aGlzICh0cmllZCB0byBmb3JtdWxh
-dGUgaXQgb24gYSB2ZXJ5Cj4+IGdlbmVyaWMgbGV2ZWwgYmVjYXVzZSB3ZSBjYW4ndCBwcmVkaWN0
-IHdoaWNoIG1lY2hhbmlzbSBtaWdodCB3YW50IHRvCj4+IG1ha2UgdXNlIG9mIHRoZXNlIHR5cGVz
-IGluIHRoZSBmdXR1cmUpLgo+Pgo+Pgo+PiAvKgo+PiAgKiBNZW1vcnkgYmxvY2sgdHlwZXMgYWxs
-b3cgdXNlciBzcGFjZSB0byBmb3JtdWxhdGUgcnVsZXMgaWYgYW5kIGhvdyB0bwo+PiAgKiBvbmxp
-bmUgbWVtb3J5IGJsb2Nrcy4gVGhlIHR5cGVzIGFyZSBleHBvc2VkIHRvIHVzZXIgc3BhY2UgYXMg
-dGV4dAo+PiAgKiBzdHJpbmdzIGluIHN5c2ZzLiBXaGlsZSB0aGUgdHlwaWNhbCBvbmxpbmUgc3Ry
-YXRlZ2llcyBhcmUgZGVzY3JpYmVkCj4+ICAqIGFsb25nIHdpdGggdGhlIHR5cGVzLCB0aGVyZSBh
-cmUgdXNlIGNhc2VzIHdoZXJlIHRoYXQgY2FuIGRpZmZlciAoZS5nLgo+PiAgKiB1c2UgTU9WQUJM
-RSB6b25lIGZvciBtb3JlIHJlbGlhYmxlIGh1Z2UgcGFnZSB1c2FnZSwgdXNlIE5PUk1BTCB6b25l
-Cj4+ICAqIGR1ZSB0byB6b25lIGltYmFsYW5jZSBvciBiZWNhdXNlIG1lbW9yeSB1bnBsdWcgaXMg
-bm90IGludGVuZGVkKS4KPj4gICoKPj4gICogTUVNT1JZX0JMT0NLX05PTkU6Cj4+ICAqICBObyBt
-ZW1vcnkgYmxvY2sgaXMgdG8gYmUgY3JlYXRlZCAoZS5nLiBkZXZpY2UgbWVtb3J5KS4gVXNlZCBp
-bnRlcm5hbGx5Cj4+ICAqICBvbmx5Lgo+PiAgKgo+PiAgKiBNRU1PUllfQkxPQ0tfUkVNT1ZBQkxF
-Ogo+PiAgKiAgVGhpcyBtZW1vcnkgYmxvY2sgdHlwZSBzaG91bGQgYmUgdHJlYXRlZCBhcyBpZiBp
-dCBjYW4gYmUKPj4gICogIHJlbW92ZWQvdW5wbHVnZ2VkIGZyb20gdGhlIHN5c3RlbSBhZ2Fpbi4g
-RS5nLiB0aGVyZSBpcyBhIGhhcmR3YXJlCj4+ICAqICBpbnRlcmZhY2UgdG8gdW5wbHVnIHN1Y2gg
-bWVtb3J5LiBUaGlzIG1lbW9yeSBibG9jayB0eXBlIGlzIHVzdWFsbHkKPj4gICogIG9ubGluZWQg
-dG8gdGhlIE1PVkFCTEUgem9uZSwgdG8gZS5nLiBtYWtlIG9mZmxpbmluZyBvZiBpdCBtb3JlCj4+
-ICAqICByZWxpYWJsZS4gRXhhbXBsZXMgaW5jbHVkZSBBQ1BJIGFuZCBQUEMgRElNTXMuCj4+ICAq
-Cj4+ICAqIE1FTU9SWV9CTE9DS19VTlJFTU9WQUJMRToKPj4gICogIFRoaXMgbWVtb3J5IGJsb2Nr
-IHR5cGUgc2hvdWxkIGJlIHRyZWF0ZWQgYXMgaWYgaXQgY2FuIG5vdCBiZQo+PiAgKiAgcmVtb3Zl
-ZC91bnBsdWdnZWQgYWdhaW4uIEUuZy4gdGhlcmUgaXMgbm8gaGFyZHdhcmUgaW50ZXJmYWNlIHRv
-Cj4+ICAqICB1bnBsdWcgc3VjaCBtZW1vcnkuIFRoaXMgbWVtb3J5IGJsb2NrIHR5cGUgaXMgdXN1
-YWxseSBvbmxpbmVkIHRvCj4+ICAqICB0aGUgTk9STUFMIHpvbmUsIGFzIG9mZmxpbmluZyBpcyBu
-b3QgYmVuZWZpY2lhbC4gRXhhbXBsZXMgaW5jbHVkZSBib290Cj4+ICAqICBtZW1vcnkgb24gbW9z
-dCBhcmNoaXRlY3R1cmVzIGFuZCBtZW1vcnkgYWRkZWQgdmlhIGJhbGxvb24gZGV2aWNlcy4KPiAK
-PiBBRkFJSyBiYWxvb24gZGV2aWNlIGNhbiBiZSBpbmZsYXRlZCBhcyB3ZWxsIHNvIHRoaXMgZG9l
-cyBub3QgcmVhbGx5Cj4gZGVzY3JpYmUgaG93IHRoaXMgbWVtb3J5IHR5cGUgd29ya3MgaW4gYW55
-IG1lYW5pbmdmdWwgd2F5LiBBbHNvIGl0Cj4gc2hvdWxkIG5vdCBiZSBwb3NzaWJsZSB0byBzZWUg
-dGhpcyBraW5kIG9mIG1lbW9yeSBmcm9tIHVzZXJzcGFjZS4gVGhlCj4gYmFsb29uIGRyaXZlciBq
-dXN0IHRha2VzIGV4aXN0aW5nIG1lbW9yeSB0aGF0IGlzIHByb3Blcmx5IGJhY2tlZCwKPiBhbGxv
-Y2F0ZXMgaXQgZm9yIGl0c2VsZiwgYW5kIGFsbG93cyB0aGUgaHlwZXJ2aXNvciB0byB1c2UgaXQu
-IFRodXMgaXQKPiBjcmVhdGVzIHRoZSBlcXVpdmFsZW50IHRvIHMzOTAgc3RhbmRieSBtZW1vcnkg
-d2hpY2ggaXMgbm90IGJhY2tlZCBpbgo+IHRoZSBWTS4gV2hlbiBtZW1vcnkgaXMgcmVjbGFpbWVk
-IGZyb20gaHlwZXJ2aXNvciB0aGUgYmFsb29uIGRyaXZlcgo+IGZyZWVzIGl0IG1ha2luZyBpdCBh
-dmFpbGFibGUgdG8gdGhlIFZNIGtlcm5lbCBhZ2Fpbi4gSG93ZXZlciwgdGhlIHdob2xlCj4gdGlt
-ZSB0aGUgbWVtb3J5IGFwcGVhcnMgcHJlc2VudCBpbiB0aGUgbWFjaGluZSBhbmQgbm8gaG90cGx1
-ZyBldmVudHMKPiBzaG91bGQgYmUgdmlzaWJsZSB1bmxlc3MgdGhlIGRvY3MgSSBhbSBsb29raW5n
-IGF0IGFyZSByZWFsbHkgb3V0ZGF0ZWQuCgpJdCdzIGFsbCBub3Qgb3B0aW1hbCB5ZXQuCgpEb24n
-dCBjb25mdXNlIHdoYXQgSSBkZXNjcmliZSBoZXJlIHdpdGggaW5mbGF0ZWQvZGVmbGF0ZWQgbWVt
-b3J5LiBYRU4KYW5kIEh5cGVyLVYgYWRkICpuZXcqIG1lbW9yeSB0byB0aGUgc3lzdGVtIHVzaW5n
-IGFkZF9tZW1vcnkoKS4gTmV3Cm1lbW9yeSBibG9ja3MuIFRoaXMgbWVtb3J5IHdpbGwgbmV2ZXIg
-YmUgcmVtb3ZlZCB1c2luZyB0aGUgdHlwaWNhbAoib2ZmbGluZSArIHJlbW92ZV9tZW1vcnkoKSIg
-YXBwcm9hY2guIEl0IHdpbGwgYmUgcmVtb3ZlZCB1c2luZwpiYWxsb29uaW5nIChpZiBhdCBhbGwp
-IGFuZCBvbmx5IGluIHBpZWNlcy4gU28gaXQgd2lsbCB1c3VhbGx5IGJlIG9ubGluZWQKdG8gdGhl
-IE5PUk1BTCB6b25lLiAoYnV0IHVzZXJzcGFjZSBjYW4gbGF0ZXIgb24gaW1wbGVtZW50IHdoYXRl
-dmVyIHJ1bGUKaXQgd2FudHMpCgpJIGFtIG5vdCB0YWxraW5nIGFib3V0IGFueSBraW5kIG9mIGlu
-ZmxhdGlvbi9kZWZsYXRpb24uIEkgYW0gdGFsa2luZwphYm91dCBtZW1vcnkgYmxvY2tzIGFkZGVk
-IHRvIHRoZSBzeXN0ZW0gdmlhIGFkZF9tZW1vcnkoKS4KCkluZmxhdGlvbi9kZWZsYXRpb24gZG9l
-cyBub3QgYmVsb25nIGludG8gdGhlIG1lbW9yeSBibG9jayBpbnRlcmZhY2UuCgo+IAo+PiAgKgo+
-PiAgKiBNRU1PUllfQkxPQ0tfU1RBTkRCWToKPj4gICogIFRoZSBtZW1vcnkgYmxvY2sgdHlwZSBz
-aG91bGQgYmUgdHJlYXRlZCBhcyBpZiBpdCBjYW4gYmUKPj4gICogIHJlbW92ZWQvdW5wbHVnZ2Vk
-IGFnYWluLCBob3dldmVyIHRoZSBhY3R1YWwgbWVtb3J5IGhvdCh1bilwbHVnIGlzCj4+ICAqICBw
-ZXJmb3JtZWQgYnkgb25saW5pbmcvb2ZmbGluaW5nLiBJbiB2aXJ0dWFsIGVudmlyb25tZW50cywg
-c3VjaCBtZW1vcnkKPj4gICogIGlzIHVzdWFsbHkgYWRkZWQgZHVyaW5nIGJvb3QgYW5kIG5ldmVy
-IHJlbW92ZWQuIE9ubGluaW5nIG1lbW9yeSB3aWxsCj4+ICAqICByZXN1bHQgaW4gbWVtb3J5IGdl
-dHRpbmcgYWxsb2NhdGVkIHRvIGEgVk0uIFRoaXMgbWVtb3J5IHR5cGUgaXMgdXN1YWxseQo+PiAg
-KiAgbm90IG9ubGluZWQgYXV0b21hdGljYWxseSBidXQgZXhwbGljaXRseSBieSB0aGUgYWRtaW5p
-c3RyYXRvci4gT25lCj4+ICAqICBleGFtcGxlIGlzIHN0YW5kYnkgbWVtb3J5IG9uIHMzOTB4Lgo+
-IAo+IEFnYWluLCB0aGlzIGRvZXMgbm90IG1lYW5pbmdmdWxseSBkZXNjcmliZSB0aGUgbWVtb3J5
-IHR5cGUuIFRoZXJlIGlzCj4gbm8gbWVtb3J5IG9uIHN0YW5kYnkuIFRoZXJlIGlzIGluIGZhY3Qg
-bm8gYmFja2luZyBhdCBhbGwgdW5sZXNzIHlvdQo+IG9ubGluZSBpdC4gU28gdGhpcyBwcm9iYWJs
-eSBpcyBzb21lIGtpbmQgb2Ygc2hhcmVkIG1lbW9yeS4gSG93ZXZlciwgdGhlCj4gKGRlKWFsbG9j
-YXRpb24gaXMgY29udHJvbGxlZCBkaWZmZXJlbnRseSBjb21wYXJlZCB0byB0aGUgYmFsb29uIGRl
-dmljZS4KPiBUaGUgY29uY2VwdCBpcyB2ZXJ5IHNpbWlsYXIsIHRob3VnaC4KCldlIGhhdmUgbWVt
-b3J5IGJsb2NrcyBhbmQgd2UgaGF2ZSB0byBkZXNjcmliZSB0aGVtIHNvbWVob3cuIE9uIHMzOTB4
-CnN0YW5kYnkgbWVtb3J5IGlzIG1vZGVsIHZpYSBtZW1vcnkgYmxvY2tzIHRoYXQgYXJlIG9mZmxp
-bmUgLSB0aGF0IGlzIHRoZQp3YXkgaXQgaXMgbW9kZWxlZC4gSSBhbSBzdGlsbCB0aGlua2luZyBh
-Ym91dCBwb3NzaWJsZSB3YXlzIHRvIGRlc2NyaWJlCnRoaXMgdmlhIGEgbWVtb3J5IHR5cGUuIEFu
-ZCBoZXJlIHRoZSBtZXNzYWdlIHNob3VsZCBiZSAiZG9uJ3Qgb25saW5lCnRoaXMgdW5sZXNzIHlv
-dSBhcmUgYXdhcmUgb2YgdGhlIGNvbnNlcXVlbmNlcywgdGhpcyBpcyBub3QgeW91ciBvcmRpbmFy
-eQpESU1NIi4KCldoaWNoIHR5cGVzIG9mIG1lbW9yeSB3b3VsZCB5b3UgaGF2ZSBpbiBtaW5kPyBU
-aGUgcHJvYmxlbSB3ZSBhcmUgdHJ5aW5nCnRvIHNvbHZlIGlzIHRvIGdpdmUgdXNlciBzcGFjZSBh
-biBpZGVhIG9mIGlmIGFuZCBob3cgdG8gb25saW5lIG1lbW9yeS4KQW5kIHRvIG1ha2UgaXQgYXdh
-cmUgdGhhdCB0aGVyZSBhcmUgZGlmZmVyZW50IHR5cGVzIHRoYXQgYXJlIGV4cGVjdGVkIHRvCmJl
-IGhhbmRsZWQgZGlmZmVyZW50bHkuCgotLSAKClRoYW5rcywKCkRhdmlkIC8gZGhpbGRlbmIKX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZGV2ZWwgbWFpbGlu
-ZyBsaXN0CmRldmVsQGxpbnV4ZHJpdmVycHJvamVjdC5vcmcKaHR0cDovL2RyaXZlcmRldi5saW51
-eGRyaXZlcnByb2plY3Qub3JnL21haWxtYW4vbGlzdGluZm8vZHJpdmVyZGV2LWRldmVsCg==
+On Tue, Nov 27, 2018 at 9:54 AM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> On Mon, Nov 26, 2018 at 06:17:11PM -0600, Bjorn Helgaas wrote:
+> > Hi Mika,
+>
+> Hi,
+>
+> > On Mon, Nov 26, 2018 at 02:15:23PM +0300, Mika Westerberg wrote:
+> > > Recent systems with Thunderbolt ports may support IOMMU natively.
+> >
+> > This sentence doesn't make sense to me.  There's no logical connection
+> > between having an IOMMU and having a Thunderbolt port.
+> >
+> > > This means that the platform utilizes IOMMU to prevent DMA attacks
+> > > over externally exposed PCIe root ports (typically Thunderbolt
+> > > ports)
+> >
+> > Nor this one.  The platform only uses the IOMMU to prevent DMA attacks
+> > if the OS chooses to do that.
+>
+> I guess I'm trying to say here that the recent changes add such support
+> to the platform BIOS that allows the OS to enable IOMMU without being
+> compromised by a malicious device that is already connected. The BIOS
+> sets the new ACPI DMAR bit in that case.
+>
+> > > The system BIOS marks these PCIe root ports as being externally facing
+> > > ports by implementing following ACPI _DSD [1] under the root port in
+> > > question:
+> >
+> > There's no standard that requires this, so the best we can say is that
+> > a system BIOS *may* mark externally facing ports with this mechanism.
+>
+> There is no standard but I'm quite sure this is something that will be
+> required to be implemented properly by the OEM by Microsoft hardware
+> compatibility suite.
+
+I think it would be fair to say that future versions of Windows will
+expect the firmware to identify the "externally facing" root PCIe
+ports as per the above which practically means that it is as good as a
+formal standard in the Windows world.
