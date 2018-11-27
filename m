@@ -1,68 +1,89 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
-Date: Tue, 27 Nov 2018 10:44:57 -0700
-Message-ID: <20181127174457.GB6401@localhost.localdomain>
-References: <20181114224921.12123-2-keith.busch@intel.com>
- <20181114224921.12123-3-keith.busch@intel.com>
- <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [RESEND PATCH] arm64: acpi: Prepare for longer MADTs
+Date: Tue, 27 Nov 2018 17:59:12 +0000
+Message-ID: <20181127175912.2651-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <ahs3@redhat.com>, Jeremy Linton <jeremy.linton@arm.com>, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 11:00:09PM -0800, Dan Williams wrote:
-> On Wed, Nov 14, 2018 at 2:53 PM Keith Busch <keith.busch@intel.com> wrote:
-> >
-> > Heterogeneous memory systems provide memory nodes with latency
-> > and bandwidth performance attributes that are different from other
-> > nodes. Create an interface for the kernel to register these attributes
-> > under the node that provides the memory. If the system provides this
-> > information, applications can query the node attributes when deciding
-> > which node to request memory.
-> >
-> > When multiple memory initiators exist, accessing the same memory target
-> > from each may not perform the same as the other. The highest performing
-> > initiator to a given target is considered to be a local initiator for
-> > that target. The kernel provides performance attributes only for the
-> > local initiators.
-> >
-> > The memory's compute node should be symlinked in sysfs as one of the
-> > node's initiators.
-> >
-> > The following example shows the new sysfs hierarchy for a node exporting
-> > performance attributes:
-> >
-> >   # tree /sys/devices/system/node/nodeY/initiator_access
-> >   /sys/devices/system/node/nodeY/initiator_access
-> >   |-- read_bandwidth
-> >   |-- read_latency
-> >   |-- write_bandwidth
-> >   `-- write_latency
-> 
-> With the expectation that there will be nodes that are initiator-only,
-> target-only, or both I think this interface should indicate that. The
-> 1:1 "local" designation of HMAT should not be directly encoded in the
-> interface, it's just a shortcut for finding at least one initiator in
-> the set that can realize the advertised performance. At least if the
-> interface can enumerate the set of initiators then it becomes clear
-> whether sysfs can answer a performance enumeration question or if the
-> application needs to consult an interface with specific knowledge of a
-> given initiator-target pairing.
-> 
-> It seems a precursor to these patches is arranges for offline node
-> devices to be created for the ACPI proximity domains that are
-> offline-by default for reserved memory ranges.
+From: Jeremy Linton <jeremy.linton@arm.com>
 
-The intention is that all initiators symlinked to the memory node share
-the initiator_access attributes, as well as itself the node is its own
-initiator. There's no limit to how many the new kernel interface in
-patch 1/7 allows you to register, so it's not really a 1:1 relationship.
+The BAD_MADT_GICC_ENTRY check is a little too strict because
+it rejects MADT entries that don't match the currently known
+lengths. We should remove this restriction to avoid problems
+if the table length changes. Future code which might depend on
+additional fields should be written to validate those fields
+before using them, rather than trying to globally check
+known MADT version lengths.
 
-Either instead or in addition to the symlinks, we can export a node_mask
-in the initiator_access directory for which these access attributes
-apply if that makes the intention more clear.
+Link: https://lkml.kernel.org/r/20181012192937.3819951-1-jeremy.linton@arm.com
+Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+[lorenzo.pieralisi@arm.com: added MADT macro comments]
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Al Stone <ahs3@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+Hi Will, Catalin,
+
+resending a patch already posted on public mailing lists[1], I have
+just added a comment to the existing patch for future reference as
+discussed in [1], please consider merging it.
+
+Thanks,
+Lorenzo
+
+[1] https://lore.kernel.org/lkml/20181012192937.3819951-1-jeremy.linton@arm.com/T/#u
+
+ arch/arm64/include/asm/acpi.h | 19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 709208dfdc8b..2def77ec14be 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -22,12 +22,23 @@
+ #include <asm/tlbflush.h>
+ 
+ /* Macros for consistency checks of the GICC subtable of MADT */
+-#define ACPI_MADT_GICC_LENGTH	\
+-	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
++
++/*
++ * MADT GICC minimum length refers to the MADT GICC structure table length as
++ * defined in the earliest ACPI version supported on arm64, ie ACPI 5.1.
++ *
++ * The efficiency_class member was added to the
++ * struct acpi_madt_generic_interrupt to represent the MADT GICC structure
++ * "Processor Power Efficiency Class" field, added in ACPI 6.0 whose offset
++ * is therefore used to delimit the MADT GICC structure minimum length
++ * appropriately.
++ */
++#define ACPI_MADT_GICC_MIN_LENGTH   ACPI_OFFSET(  \
++	struct acpi_madt_generic_interrupt, efficiency_class)
+ 
+ #define BAD_MADT_GICC_ENTRY(entry, end)					\
+-	(!(entry) || (entry)->header.length != ACPI_MADT_GICC_LENGTH ||	\
+-	(unsigned long)(entry) + ACPI_MADT_GICC_LENGTH > (end))
++	(!(entry) || (entry)->header.length < ACPI_MADT_GICC_MIN_LENGTH || \
++	(unsigned long)(entry) + (entry)->header.length > (end))
+ 
+ /* Basic configuration for ACPI */
+ #ifdef	CONFIG_ACPI
+-- 
+2.19.2
