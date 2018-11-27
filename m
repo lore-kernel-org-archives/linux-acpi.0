@@ -1,101 +1,65 @@
-From: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
-Date: Tue, 27 Nov 2018 18:14:43 +0100
-Message-ID: <CAJZ5v0he4BmyJ97=uwVpJtojhe0f5pTq81LBdAQG6RFy6edKrQ@mail.gmail.com>
-References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
-	<20181126111526.56340-2-mika.westerberg@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
+Date: Tue, 27 Nov 2018 09:42:54 -0800
+Message-ID: <CAPcyv4hMFc7K=FjHWiMVAiOxVC-s0itPjVTs_-7KrFhg4h_SXQ@mail.gmail.com>
+References: <20181114224921.12123-2-keith.busch@intel.com> <20181114224921.12123-3-keith.busch@intel.com>
+ <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20181126111526.56340-2-mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Raj,
-	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mario Limonciello <Mario.Limonciello-8PEkshWhKlo@public.gmane.org>, Michael Jamet <michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Yehezkel Bernat <YehezkelShB-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "Pan, Jacob jun" <jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Nov 26, 2018 at 12:15 PM Mika Westerberg
-<mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> wrote:
+On Mon, Nov 26, 2018 at 11:00 PM Dan Williams <dan.j.williams@intel.com> wrote:
 >
-> Recent systems with Thunderbolt ports may support IOMMU natively. This
-> means that the platform utilizes IOMMU to prevent DMA attacks over
-> externally exposed PCIe root ports (typically Thunderbolt ports)
+> On Wed, Nov 14, 2018 at 2:53 PM Keith Busch <keith.busch@intel.com> wrote:
+> >
+> > Heterogeneous memory systems provide memory nodes with latency
+> > and bandwidth performance attributes that are different from other
+> > nodes. Create an interface for the kernel to register these attributes
+> > under the node that provides the memory. If the system provides this
+> > information, applications can query the node attributes when deciding
+> > which node to request memory.
+> >
+> > When multiple memory initiators exist, accessing the same memory target
+> > from each may not perform the same as the other. The highest performing
+> > initiator to a given target is considered to be a local initiator for
+> > that target. The kernel provides performance attributes only for the
+> > local initiators.
+> >
+> > The memory's compute node should be symlinked in sysfs as one of the
+> > node's initiators.
+> >
+> > The following example shows the new sysfs hierarchy for a node exporting
+> > performance attributes:
+> >
+> >   # tree /sys/devices/system/node/nodeY/initiator_access
+> >   /sys/devices/system/node/nodeY/initiator_access
+> >   |-- read_bandwidth
+> >   |-- read_latency
+> >   |-- write_bandwidth
+> >   `-- write_latency
 >
-> The system BIOS marks these PCIe root ports as being externally facing
-> ports by implementing following ACPI _DSD [1] under the root port in
-> question:
->
->   Name (_DSD, Package () {
->       ToUUID ("efcc06cc-73ac-4bc3-bff0-76143807c389"),
->       Package () {
->           Package () {"ExternalFacingPort", 1},
->           Package () {"UID", 0 }
->       }
->   })
->
-> To make it possible for IOMMU code to identify these devices, we look up
-> for this property and mark all children devices (including the root port
-> itself) with a new flag (->is_untrusted). This flag is meant to be used
-> with all PCIe devices (not just Thunderbolt) that cannot be trusted in
-> the same level than integrated devices and may need to put behind full
-> IOMMU protection.
->
-> [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-externally-exposed-pcie-root-ports
->
-> Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-> ---
->  drivers/acpi/property.c |  3 +++
->  drivers/pci/pci-acpi.c  | 18 ++++++++++++++++++
->  drivers/pci/probe.c     | 22 ++++++++++++++++++++++
->  include/linux/pci.h     |  8 ++++++++
->  4 files changed, 51 insertions(+)
->
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index 8c7c4583b52d..4bdad32f62c8 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -31,6 +31,9 @@ static const guid_t prp_guids[] = {
->         /* Hotplug in D3 GUID: 6211e2c0-58a3-4af3-90e1-927a4e0c55a4 */
->         GUID_INIT(0x6211e2c0, 0x58a3, 0x4af3,
->                   0x90, 0xe1, 0x92, 0x7a, 0x4e, 0x0c, 0x55, 0xa4),
-> +       /* External facing port GUID: efcc06cc-73ac-4bc3-bff0-76143807c389 */
-> +       GUID_INIT(0xefcc06cc, 0x73ac, 0x4bc3,
-> +                 0xbf, 0xf0, 0x76, 0x14, 0x38, 0x07, 0xc3, 0x89),
->  };
+> With the expectation that there will be nodes that are initiator-only,
+> target-only, or both I think this interface should indicate that. The
+> 1:1 "local" designation of HMAT should not be directly encoded in the
+> interface, it's just a shortcut for finding at least one initiator in
+> the set that can realize the advertised performance. At least if the
+> interface can enumerate the set of initiators then it becomes clear
+> whether sysfs can answer a performance enumeration question or if the
+> application needs to consult an interface with specific knowledge of a
+> given initiator-target pairing.
 
-One observation here.  Note that I really have no strong opinion on
-that, so this is not an objection, but IMO it is fair to make things
-clear for everybody.
+Sorry, I misread patch1, this series does allow publishing the
+multi-initiator case that shares the same performance profile to a
+given target.
 
-So this causes the External facing port GUID (which already is the
-case with the Hotplug in D3 GUID for that matter) to be practically
-equivalent to the ACPI _DSD device properties GUID.  This means that
-Linux will consider a combination of any of these GUIDs with any
-properties defined for any of them as valid, which need not be the
-case in Windows.
+> It seems a precursor to these patches is arranges for offline node
+> devices to be created for the ACPI proximity domains that are
+> offline-by default for reserved memory ranges.
 
-For example, since the ExternalFacingPort property is defined along
-with the External facing port GUID, Windows will likely ignore it if
-it is used in a combination with the Hotplug in D3 GUID or the ACPI
-_DSD device properties GUID.  If the firmware combines the Hotplug in
-D3 GUID or the ACPI _DSD device properties GUID with that property,
-Windows will not regard it as valid, most likely, but Linux will use
-it just fine.  In the face of ASL bugs, which are inevitable (at least
-just because ASL is code written by humans), that may become a real
-problem, as systems successfully tested with Windows may not work with
-Linux as expected and vice versa because of it.
-
->From the ecosystem purity perspective this should be avoided, but then
-I do realize that this allows code to be re-used and avoids quite a
-bit of complexity.  The likelihood of an ASL bug that will expose this
-issue is arguably small, so maybe it is not a practical concern after
-all.
+Likely still need this though because node devices don't tend to show
+up until they have a cpu or online memory.
