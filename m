@@ -1,55 +1,236 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 2/7] node: Add heterogenous memory performance
-Date: Mon, 26 Nov 2018 23:00:09 -0800
-Message-ID: <CAPcyv4jNpgzpfG1awrxspTeQ1JOK-4-Wu6Kb6cd6NGY6Atj3cg@mail.gmail.com>
-References: <20181114224921.12123-2-keith.busch@intel.com> <20181114224921.12123-3-keith.busch@intel.com>
+From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
+Date: Tue, 27 Nov 2018 10:54:26 +0200
+Message-ID: <20181127085426.GI2296@lahna.fi.intel.com>
+References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
+	<20181126111526.56340-2-mika.westerberg@linux.intel.com>
+	<20181127001711.GC212532@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181114224921.12123-3-keith.busch@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20181127001711.GC212532-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Bjorn Helgaas <helgaas-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Ashok Raj <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mario.Limonciello-8PEkshWhKlo@public.gmane.org, Michael Jamet <michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Christian Kellner <ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yehezkel Bernat <YehezkelShB-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, Jacob jun Pan <jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 14, 2018 at 2:53 PM Keith Busch <keith.busch@intel.com> wrote:
->
-> Heterogeneous memory systems provide memory nodes with latency
-> and bandwidth performance attributes that are different from other
-> nodes. Create an interface for the kernel to register these attributes
-> under the node that provides the memory. If the system provides this
-> information, applications can query the node attributes when deciding
-> which node to request memory.
->
-> When multiple memory initiators exist, accessing the same memory target
-> from each may not perform the same as the other. The highest performing
-> initiator to a given target is considered to be a local initiator for
-> that target. The kernel provides performance attributes only for the
-> local initiators.
->
-> The memory's compute node should be symlinked in sysfs as one of the
-> node's initiators.
->
-> The following example shows the new sysfs hierarchy for a node exporting
-> performance attributes:
->
->   # tree /sys/devices/system/node/nodeY/initiator_access
->   /sys/devices/system/node/nodeY/initiator_access
->   |-- read_bandwidth
->   |-- read_latency
->   |-- write_bandwidth
->   `-- write_latency
+On Mon, Nov 26, 2018 at 06:17:11PM -0600, Bjorn Helgaas wrote:
+> Hi Mika,
 
-With the expectation that there will be nodes that are initiator-only,
-target-only, or both I think this interface should indicate that. The
-1:1 "local" designation of HMAT should not be directly encoded in the
-interface, it's just a shortcut for finding at least one initiator in
-the set that can realize the advertised performance. At least if the
-interface can enumerate the set of initiators then it becomes clear
-whether sysfs can answer a performance enumeration question or if the
-application needs to consult an interface with specific knowledge of a
-given initiator-target pairing.
+Hi,
 
-It seems a precursor to these patches is arranges for offline node
-devices to be created for the ACPI proximity domains that are
-offline-by default for reserved memory ranges.
+> On Mon, Nov 26, 2018 at 02:15:23PM +0300, Mika Westerberg wrote:
+> > Recent systems with Thunderbolt ports may support IOMMU natively.
+> 
+> This sentence doesn't make sense to me.  There's no logical connection
+> between having an IOMMU and having a Thunderbolt port.
+> 
+> > This means that the platform utilizes IOMMU to prevent DMA attacks
+> > over externally exposed PCIe root ports (typically Thunderbolt
+> > ports)
+> 
+> Nor this one.  The platform only uses the IOMMU to prevent DMA attacks
+> if the OS chooses to do that.
+
+I guess I'm trying to say here that the recent changes add such support
+to the platform BIOS that allows the OS to enable IOMMU without being
+compromised by a malicious device that is already connected. The BIOS
+sets the new ACPI DMAR bit in that case.
+
+> > The system BIOS marks these PCIe root ports as being externally facing
+> > ports by implementing following ACPI _DSD [1] under the root port in
+> > question:
+> 
+> There's no standard that requires this, so the best we can say is that
+> a system BIOS *may* mark externally facing ports with this mechanism.
+
+There is no standard but I'm quite sure this is something that will be
+required to be implemented properly by the OEM by Microsoft hardware
+compatibility suite.
+
+> I think it would make sense to say something like:
+> 
+>   A malicious PCI device may use DMA to attack the system.  An
+>   external Thunderbolt port is a convenient point to attach such a
+>   device.  The OS may use an IOMMU to defend against DMA attacks.
+> 
+>   Some BIOSes mark externally facing Root Ports with the this ACPI
+>   _DSD:
+> 
+>     ...
+> 
+>   If we find such a Root Port, mark it and all its children as
+>   "is_untrusted".  The rest of the OS may use this to prevent use of
+>   the device unless we have an IOMMU to prevent malicious DMA [I don't
+>   know your actual policy yet].
+
+OK, I will update the commit message accordingly.
+
+> >   Name (_DSD, Package () {
+> >       ToUUID ("efcc06cc-73ac-4bc3-bff0-76143807c389"),
+> >       Package () {
+> >           Package () {"ExternalFacingPort", 1},
+> > 	  Package () {"UID", 0 }
+> >       }
+> >   })
+> > 
+> > To make it possible for IOMMU code to identify these devices, we look up
+> > for this property and mark all children devices (including the root port
+> > itself) with a new flag (->is_untrusted). This flag is meant to be used
+> > with all PCIe devices (not just Thunderbolt) that cannot be trusted in
+> > the same level than integrated devices and may need to put behind full
+> > IOMMU protection.
+> > 
+> > [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-externally-exposed-pcie-root-ports
+> > 
+> > Signed-off-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> > ---
+> >  drivers/acpi/property.c |  3 +++
+> >  drivers/pci/pci-acpi.c  | 18 ++++++++++++++++++
+> >  drivers/pci/probe.c     | 22 ++++++++++++++++++++++
+> >  include/linux/pci.h     |  8 ++++++++
+> >  4 files changed, 51 insertions(+)
+> > 
+> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> > index 8c7c4583b52d..4bdad32f62c8 100644
+> > --- a/drivers/acpi/property.c
+> > +++ b/drivers/acpi/property.c
+> > @@ -31,6 +31,9 @@ static const guid_t prp_guids[] = {
+> >  	/* Hotplug in D3 GUID: 6211e2c0-58a3-4af3-90e1-927a4e0c55a4 */
+> >  	GUID_INIT(0x6211e2c0, 0x58a3, 0x4af3,
+> >  		  0x90, 0xe1, 0x92, 0x7a, 0x4e, 0x0c, 0x55, 0xa4),
+> > +	/* External facing port GUID: efcc06cc-73ac-4bc3-bff0-76143807c389 */
+> > +	GUID_INIT(0xefcc06cc, 0x73ac, 0x4bc3,
+> > +		  0xbf, 0xf0, 0x76, 0x14, 0x38, 0x07, 0xc3, 0x89),
+> >  };
+> >  
+> >  static const guid_t ads_guid =
+> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > index 921db6f80340..84233cf46fc2 100644
+> > --- a/drivers/pci/pci-acpi.c
+> > +++ b/drivers/pci/pci-acpi.c
+> > @@ -789,6 +789,23 @@ static void pci_acpi_optimize_delay(struct pci_dev *pdev,
+> >  	ACPI_FREE(obj);
+> >  }
+> >  
+> > +static void pci_acpi_set_untrusted(struct pci_dev *dev)
+> > +{
+> > +	u8 val;
+> > +
+> > +	if (pci_pcie_type(dev) != PCI_EXP_TYPE_ROOT_PORT)
+> > +		return;
+> > +	if (device_property_read_u8(&dev->dev, "ExternalFacingPort", &val))
+> > +		return;
+> > +
+> > +	/*
+> > +	 * These root ports expose PCIe (including DMA) outside of the
+> > +	 * system so make sure we treat them and everything behind as
+> > +	 * untrusted.
+> > +	 */
+> > +	dev->is_untrusted = val == 1;
+> 
+> Simpler to parse:
+> 
+>   if (val)
+>     dev->is_untrusted = 1;
+
+OK.
+
+> > +}
+> > +
+> >  static void pci_acpi_setup(struct device *dev)
+> >  {
+> >  	struct pci_dev *pci_dev = to_pci_dev(dev);
+> > @@ -798,6 +815,7 @@ static void pci_acpi_setup(struct device *dev)
+> >  		return;
+> >  
+> >  	pci_acpi_optimize_delay(pci_dev, adev->handle);
+> > +	pci_acpi_set_untrusted(pci_dev);
+> >  
+> >  	pci_acpi_add_pm_notifier(adev, pci_dev);
+> >  	if (!adev->wakeup.flags.valid)
+> > diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> > index b1c05b5054a0..144623ae2e68 100644
+> > --- a/drivers/pci/probe.c
+> > +++ b/drivers/pci/probe.c
+> > @@ -1378,6 +1378,26 @@ static void set_pcie_thunderbolt(struct pci_dev *dev)
+> >  	}
+> >  }
+> >  
+> > +static void set_pcie_untrusted(struct pci_dev *dev)
+> > +{
+> > +	struct pci_dev *parent;
+> > +
+> > +	/*
+> > +	 * Walk up the device hierarchy and check for any upstream bridge
+> > +	 * that has is_untrusted set to true. In that case treat this one
+> > +	 * untrusted as well.
+> > +	 */
+> > +	parent = pci_upstream_bridge(dev);
+> > +	while (parent) {
+> > +		if (parent->is_untrusted) {
+> > +			dev->is_untrusted = true;
+> > +			break;
+> > +		}
+> > +
+> > +		parent = pci_upstream_bridge(parent);
+> > +	}
+> 
+> In what circumstance is this loop needed?  I expected this would be
+> sufficient:
+> 
+>   bridge = pci_upstream_bridge(dev);
+>   if (bridge && bridge->is_untrusted)
+>     dev->is_untrusted = true;
+
+I agree the loop is not necessary. I'll change it in the next version.
+
+> > +}
+> > +
+> >  /**
+> >   * pci_ext_cfg_is_aliased - Is ext config space just an alias of std config?
+> >   * @dev: PCI device
+> > @@ -1638,6 +1658,8 @@ int pci_setup_device(struct pci_dev *dev)
+> >  	/* Need to have dev->cfg_size ready */
+> >  	set_pcie_thunderbolt(dev);
+> >  
+> > +	set_pcie_untrusted(dev);
+> > +
+> >  	/* "Unknown power state" */
+> >  	dev->current_state = PCI_UNKNOWN;
+> >  
+> > diff --git a/include/linux/pci.h b/include/linux/pci.h
+> > index 11c71c4ecf75..3fa73cc6cf68 100644
+> > --- a/include/linux/pci.h
+> > +++ b/include/linux/pci.h
+> > @@ -396,6 +396,14 @@ struct pci_dev {
+> >  	unsigned int	is_hotplug_bridge:1;
+> >  	unsigned int	shpc_managed:1;		/* SHPC owned by shpchp */
+> >  	unsigned int	is_thunderbolt:1;	/* Thunderbolt controller */
+> > +	/*
+> > +	 * Devices marked being untrusted are the ones that can potentially
+> > +	 * execute DMA attacks and similar. They are typically connected
+> > +	 * through external ports such as Thunderbolt but not limited to
+> > +	 * that. When an IOMMU is enabled they should be getting full
+> > +	 * mappings to make sure they cannot access arbitrary memory.
+> > +	 */
+> > +	unsigned int	is_untrusted:1;
+> 
+> We have a mix of "is_X" and "X", but I think "untrusted" is sufficient
+> since "untrusted" is a perfectly good predicate all by itself, i.e.,
+> 
+>   if (dev->untrusted)
+> 
+> reads easily and makes good sense.
+
+Works for me :)
