@@ -1,325 +1,141 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] gpiolib-acpi: Only defer request_irq for GpioInt
- ACPI event handlers
-Date: Wed, 28 Nov 2018 19:34:37 +0200
-Message-ID: <20181128173437.GB10650@smile.fi.intel.com>
-References: <20181128165756.20908-1-hdegoede@redhat.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
+ ACPI errors, lockups
+Date: Wed, 28 Nov 2018 15:30:21 -0500
+Message-ID: <20181128111312-mutt-send-email-mst@kernel.org>
+References: <20181126221005-mutt-send-email-mst@kernel.org>
+ <20181127093650.GP2296@lahna.fi.intel.com>
+ <20181127212550-mutt-send-email-mst@kernel.org>
+ <20181128110857.GW2296@lahna.fi.intel.com>
+ <20181128093527-mutt-send-email-mst@kernel.org>
+ <20181128155544.GD2296@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20181128165756.20908-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+In-Reply-To: <20181128155544.GD2296-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 05:57:55PM +0100, Hans de Goede wrote:
-> Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
-> from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
-> call for each event resource.
-> 
-> This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
-> call. This is a problem if some AML code reads the GPIO pin before we
-> run the deferred acpi_gpiochip_request_interrupt, because in that case
-> acpi_gpio_adr_space_handler() will already have called
-> gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
-> acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
-> register an event handler.
-> 
-> acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
-> already having claimed the pin, but the other way around does not work.
-> 
-> One example of a problem this causes, is the event handler for the OTG
-> ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
-> in whatever mode it was in during boot and e.g. only allowing charging
-> after a reboot.
-> 
-> This commit fixes this by only deferring the request_irq call and the
-> initial run of edge-triggered IRQs instead of deferring all of
-> acpi_gpiochip_request_interrupt.
-> 
-
-Thanks!
-
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-
-> Cc: stable@vger.kernel.org
-> Fixes: 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event ...")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> -add kernel-doc describing struct acpi_gpio_event members (requested by Mika)
-> -s/acpi_gpiochip_request_interrupt_desc/acpi_gpiochip_alloc_event/ (req Mika)
-> -minor style fixups (requested by Andy)
-> ---
->  drivers/gpio/gpiolib-acpi.c | 144 +++++++++++++++++++++---------------
->  1 file changed, 84 insertions(+), 60 deletions(-)
-> 
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index 55b72fbe1631..7f93954c58ea 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -19,11 +19,28 @@
->  
->  #include "gpiolib.h"
->  
-> +/**
-> + * struct acpi_gpio_event - ACPI GPIO event handler data
-> + *
-> + * @node:	  list-entry of the events list of the struct acpi_gpio_chip
-> + * @handle:	  handle of ACPI method to execute when the IRQ triggers
-> + * @handler:	  irq_handler to pass to request_irq when requesting the IRQ
-> + * @pin:	  GPIO pin number on the gpio_chip
-> + * @irq:	  Linux IRQ number for the event, for request_ / free_irq
-> + * @irqflags:     flags to pass to request_irq when requesting the IRQ
-> + * @irq_is_wake:  If the ACPI flags indicate the IRQ is a wakeup source
-> + * @is_requested: True if request_irq has been done
-> + * @desc:	  gpio_desc for the GPIO pin for this event
-> + */
->  struct acpi_gpio_event {
->  	struct list_head node;
->  	acpi_handle handle;
-> +	irq_handler_t handler;
->  	unsigned int pin;
->  	unsigned int irq;
-> +	unsigned long irqflags;
-> +	bool irq_is_wake;
-> +	bool irq_requested;
->  	struct gpio_desc *desc;
->  };
->  
-> @@ -49,10 +66,10 @@ struct acpi_gpio_chip {
->  
->  /*
->   * For gpiochips which call acpi_gpiochip_request_interrupts() before late_init
-> - * (so builtin drivers) we register the ACPI GpioInt event handlers from a
-> + * (so builtin drivers) we register the ACPI GpioInt IRQ handlers from a
->   * late_initcall_sync handler, so that other builtin drivers can register their
->   * OpRegions before the event handlers can run.  This list contains gpiochips
-> - * for which the acpi_gpiochip_request_interrupts() has been deferred.
-> + * for which the acpi_gpiochip_request_irqs() call has been deferred.
->   */
->  static DEFINE_MUTEX(acpi_gpio_deferred_req_irqs_lock);
->  static LIST_HEAD(acpi_gpio_deferred_req_irqs_list);
-> @@ -133,8 +150,42 @@ bool acpi_gpio_get_irq_resource(struct acpi_resource *ares,
->  }
->  EXPORT_SYMBOL_GPL(acpi_gpio_get_irq_resource);
->  
-> -static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
-> -						   void *context)
-> +static void acpi_gpiochip_request_irq(struct acpi_gpio_chip *acpi_gpio,
-> +				      struct acpi_gpio_event *event)
-> +{
-> +	int ret, value;
-> +
-> +	ret = request_threaded_irq(event->irq, NULL, event->handler,
-> +				   event->irqflags, "ACPI:Event", event);
-> +	if (ret) {
-> +		dev_err(acpi_gpio->chip->parent,
-> +			"Failed to setup interrupt handler for %d\n",
-> +			event->irq);
-> +		return;
-> +	}
-> +
-> +	if (event->irq_is_wake)
-> +		enable_irq_wake(event->irq);
-> +
-> +	event->irq_requested = true;
-> +
-> +	/* Make sure we trigger the initial state of edge-triggered IRQs */
-> +	value = gpiod_get_raw_value_cansleep(event->desc);
-> +	if (((event->irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
-> +	    ((event->irqflags & IRQF_TRIGGER_FALLING) && value == 0))
-> +		event->handler(event->irq, event);
-> +}
-> +
-> +static void acpi_gpiochip_request_irqs(struct acpi_gpio_chip *acpi_gpio)
-> +{
-> +	struct acpi_gpio_event *event;
-> +
-> +	list_for_each_entry(event, &acpi_gpio->events, node)
-> +		acpi_gpiochip_request_irq(acpi_gpio, event);
-> +}
-> +
-> +static acpi_status acpi_gpiochip_alloc_event(struct acpi_resource *ares,
-> +					     void *context)
->  {
->  	struct acpi_gpio_chip *acpi_gpio = context;
->  	struct gpio_chip *chip = acpi_gpio->chip;
-> @@ -143,8 +194,7 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->  	struct acpi_gpio_event *event;
->  	irq_handler_t handler = NULL;
->  	struct gpio_desc *desc;
-> -	unsigned long irqflags;
-> -	int ret, pin, irq, value;
-> +	int ret, pin, irq;
->  
->  	if (!acpi_gpio_get_irq_resource(ares, &agpio))
->  		return AE_OK;
-> @@ -175,8 +225,6 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->  
->  	gpiod_direction_input(desc);
->  
-> -	value = gpiod_get_value_cansleep(desc);
-> -
->  	ret = gpiochip_lock_as_irq(chip, pin);
->  	if (ret) {
->  		dev_err(chip->parent, "Failed to lock GPIO as interrupt\n");
-> @@ -189,64 +237,42 @@ static acpi_status acpi_gpiochip_request_interrupt(struct acpi_resource *ares,
->  		goto fail_unlock_irq;
->  	}
->  
-> -	irqflags = IRQF_ONESHOT;
-> +	event = kzalloc(sizeof(*event), GFP_KERNEL);
-> +	if (!event)
-> +		goto fail_unlock_irq;
-> +
-> +	event->irqflags = IRQF_ONESHOT;
->  	if (agpio->triggering == ACPI_LEVEL_SENSITIVE) {
->  		if (agpio->polarity == ACPI_ACTIVE_HIGH)
-> -			irqflags |= IRQF_TRIGGER_HIGH;
-> +			event->irqflags |= IRQF_TRIGGER_HIGH;
->  		else
-> -			irqflags |= IRQF_TRIGGER_LOW;
-> +			event->irqflags |= IRQF_TRIGGER_LOW;
->  	} else {
->  		switch (agpio->polarity) {
->  		case ACPI_ACTIVE_HIGH:
-> -			irqflags |= IRQF_TRIGGER_RISING;
-> +			event->irqflags |= IRQF_TRIGGER_RISING;
->  			break;
->  		case ACPI_ACTIVE_LOW:
-> -			irqflags |= IRQF_TRIGGER_FALLING;
-> +			event->irqflags |= IRQF_TRIGGER_FALLING;
->  			break;
->  		default:
-> -			irqflags |= IRQF_TRIGGER_RISING |
-> -				    IRQF_TRIGGER_FALLING;
-> +			event->irqflags |= IRQF_TRIGGER_RISING |
-> +					   IRQF_TRIGGER_FALLING;
->  			break;
->  		}
->  	}
->  
-> -	event = kzalloc(sizeof(*event), GFP_KERNEL);
-> -	if (!event)
-> -		goto fail_unlock_irq;
-> -
->  	event->handle = evt_handle;
-> +	event->handler = handler;
->  	event->irq = irq;
-> +	event->irq_is_wake = agpio->wake_capable == ACPI_WAKE_CAPABLE;
->  	event->pin = pin;
->  	event->desc = desc;
->  
-> -	ret = request_threaded_irq(event->irq, NULL, handler, irqflags,
-> -				   "ACPI:Event", event);
-> -	if (ret) {
-> -		dev_err(chip->parent,
-> -			"Failed to setup interrupt handler for %d\n",
-> -			event->irq);
-> -		goto fail_free_event;
-> -	}
-> -
-> -	if (agpio->wake_capable == ACPI_WAKE_CAPABLE)
-> -		enable_irq_wake(irq);
-> -
->  	list_add_tail(&event->node, &acpi_gpio->events);
->  
-> -	/*
-> -	 * Make sure we trigger the initial state of the IRQ when using RISING
-> -	 * or FALLING.  Note we run the handlers on late_init, the AML code
-> -	 * may refer to OperationRegions from other (builtin) drivers which
-> -	 * may be probed after us.
-> -	 */
-> -	if (((irqflags & IRQF_TRIGGER_RISING) && value == 1) ||
-> -	    ((irqflags & IRQF_TRIGGER_FALLING) && value == 0))
-> -		handler(event->irq, event);
-> -
->  	return AE_OK;
->  
-> -fail_free_event:
-> -	kfree(event);
->  fail_unlock_irq:
->  	gpiochip_unlock_as_irq(chip, pin);
->  fail_free_desc:
-> @@ -283,6 +309,9 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
->  	if (ACPI_FAILURE(status))
->  		return;
->  
-> +	acpi_walk_resources(handle, "_AEI",
-> +			    acpi_gpiochip_alloc_event, acpi_gpio);
-> +
->  	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
->  	defer = !acpi_gpio_deferred_req_irqs_done;
->  	if (defer)
-> @@ -293,8 +322,7 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
->  	if (defer)
->  		return;
->  
-> -	acpi_walk_resources(handle, "_AEI",
-> -			    acpi_gpiochip_request_interrupt, acpi_gpio);
-> +	acpi_gpiochip_request_irqs(acpi_gpio);
->  }
->  EXPORT_SYMBOL_GPL(acpi_gpiochip_request_interrupts);
->  
-> @@ -331,10 +359,13 @@ void acpi_gpiochip_free_interrupts(struct gpio_chip *chip)
->  	list_for_each_entry_safe_reverse(event, ep, &acpi_gpio->events, node) {
->  		struct gpio_desc *desc;
->  
-> -		if (irqd_is_wakeup_set(irq_get_irq_data(event->irq)))
-> -			disable_irq_wake(event->irq);
-> +		if (event->irq_requested) {
-> +			if (event->irq_is_wake)
-> +				disable_irq_wake(event->irq);
-> +
-> +			free_irq(event->irq, event);
-> +		}
->  
-> -		free_irq(event->irq, event);
->  		desc = event->desc;
->  		if (WARN_ON(IS_ERR(desc)))
->  			continue;
-> @@ -1200,23 +1231,16 @@ bool acpi_can_fallback_to_crs(struct acpi_device *adev, const char *con_id)
->  	return con_id == NULL;
->  }
->  
-> -/* Run deferred acpi_gpiochip_request_interrupts() */
-> -static int acpi_gpio_handle_deferred_request_interrupts(void)
-> +/* Run deferred acpi_gpiochip_request_irqs() */
-> +static int acpi_gpio_handle_deferred_request_irqs(void)
->  {
->  	struct acpi_gpio_chip *acpi_gpio, *tmp;
->  
->  	mutex_lock(&acpi_gpio_deferred_req_irqs_lock);
->  	list_for_each_entry_safe(acpi_gpio, tmp,
->  				 &acpi_gpio_deferred_req_irqs_list,
-> -				 deferred_req_irqs_list_entry) {
-> -		acpi_handle handle;
-> -
-> -		handle = ACPI_HANDLE(acpi_gpio->chip->parent);
-> -		acpi_walk_resources(handle, "_AEI",
-> -				    acpi_gpiochip_request_interrupt, acpi_gpio);
-> -
-> -		list_del_init(&acpi_gpio->deferred_req_irqs_list_entry);
-> -	}
-> +				 deferred_req_irqs_list_entry)
-> +		acpi_gpiochip_request_irqs(acpi_gpio);
->  
->  	acpi_gpio_deferred_req_irqs_done = true;
->  	mutex_unlock(&acpi_gpio_deferred_req_irqs_lock);
-> @@ -1224,4 +1248,4 @@ static int acpi_gpio_handle_deferred_request_interrupts(void)
->  	return 0;
->  }
->  /* We must use _sync so that this runs after the first deferred_probe run */
-> -late_initcall_sync(acpi_gpio_handle_deferred_request_interrupts);
-> +late_initcall_sync(acpi_gpio_handle_deferred_request_irqs);
-> -- 
-> 2.19.1
-> 
-
--- 
-With Best Regards,
-Andy Shevchenko
+T24gV2VkLCBOb3YgMjgsIDIwMTggYXQgMDU6NTU6NDRQTSArMDIwMCwgTWlrYSBXZXN0ZXJiZXJn
+IHdyb3RlOgo+IE9uIFdlZCwgTm92IDI4LCAyMDE4IGF0IDEwOjA5OjIyQU0gLTA1MDAsIE1pY2hh
+ZWwgUy4gVHNpcmtpbiB3cm90ZToKPiA+IFllYSBhbGwgdGhpcyBpcyB3ZWlyZCwgaW4gcGFydGlj
+dWxhciBJIHdvbmRlciB3aHkgZG9lcyBldmVyeW9uZQo+ID4gdXNpbmcgZHNtIGluc2lzdHMgb24g
+c2F5aW5nIEFyZzQKPiA+IHdoZW4gdGhleSBhY3R1YWxseSBtZWFuIEFyZzMuIEFDUEkgbnVtYmVy
+cyBhcmd1bWVudHMgZnJvbSAwLgo+ID4gCj4gPiBTbyBpdCdzIGEgYml0IHVnbHksIGFuZCBtYXli
+ZSB3b3J0aCBmaXhpbmcgYnV0IHVubGlrZWx5IHRvIGJlCj4gPiBhbiBhY3R1YWwgaXNzdWUgc2lt
+cGx5IGJlY2F1c2Ugd2UgZW5kIHVwIG5vdCB1c2luZyBEU00gaW4gdGhlIGVuZC4KPiAKPiBJIGFn
+cmVlLgo+IAo+ID4gUG9raW5nIGF0IHRoZSBwcm9iaW5nIGNvZGUgaW4gbm91dmVhdV9wcjNfcHJl
+c2VudCwgSSBzdGFydGVkIHRvIHdvbmRlcjoKPiA+IHNob3VsZCBJIHRyeSB0byBoYWNrIGl0IHRv
+IGRpc2FibGUgZDNjb2xkIGFuZCBwcjMgYW5kIHNlZSB3aGF0Cj4gPiBoYXBwZW5zPwo+IAo+IEkg
+Z3Vlc3MgaXQgaXMgd29ydGggYSB0cnkuIFlvdSBjYW4gZG8gaXQgZnJvbSBzeXNmcyBmb3IgdGhl
+IGdyYXBoaWNzCj4gUENJIGRldmljZSB0aGVyZSBpcyBhbiBhdHRyaWJ1dGUgZDNjb2xkX2FsbG93
+ZWQgdGhhdCBjb250cm9scyB0aGlzLgo+IAo+IFtzbmlwXQoKQnV0IHByb2JhYmx5IHRvbyBsYXRl
+IGJ5IHRpbWUgbm91dmVhdSBpcyB1cCBhdCBib290PwoKPiA+ID4gPiAwMDoxNC4zIE5ldHdvcmsg
+Y29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gV2lyZWxlc3MtQUMgOTU2MCBbSmVmZmVyc29u
+IFBlYWtdIChyZXYgMTApCj4gPiA+ID4gCj4gPiA+ID4gc28gcmVhbGx5IHNob3VsZG4ndCBiZSBh
+ZmZlY3RlZCwgYnV0IGdvIGZpZ3VyZS4gSWYgZHJpdmVyIHJlYWxseSBpcyBnZXR0aW5nCj4gPiA+
+ID4gYWxsLW9uZXMgZnJvbSB0aGUgZGV2aWNlLCBpdCBqdXN0IG1pZ2h0IHRyeSB0byBwb2tlIGF0
+IGEgd3JvbmcgYjpkLmYgYnkgbWlzdGFrZQo+ID4gPiA+IG1heWJlIC4uLgo+ID4gPiAKPiA+ID4g
+T3IgaXQgdGhlIHBvd2VyIHJlc291cmNlIGlzIHNoYXJlZCBieSB3aWZpIGFzIHdlbGwuCj4gPiAK
+PiA+IElzIHRoZXJlIGEgd2F5IHRvIGZpbmQgb3V0IHRocm91Z2ggZS5nLiBzeXNmcz8KPiAKPiBJ
+dCBpcyBub3Qgc2hhcmVkLCBJIGNoZWNrZWQgZnJvbSB0aGUgYWNwaWR1bXAgeW91IHByb3ZpZGVk
+LiBQb3NzaWJseSB0aGUKPiBpbmZpbml0ZSBsb29wIGluIEFNTCB3aGVuIGV4ZWN1dGluZyBOVlBP
+IG1ldGhvZCBoYXZlIHNvbWUgZWZmZWN0IG9uCj4gdGhpcy4KPiAKPiBbc25pcF0KPiAKPiA+ID4g
+Tm8gbmVlZCB0byBzZW5kLCBJIGNhbiByZWFkIGl0IGZyb20gdGhlIGJ1Z3ppbGxhIGp1c3QgZmlu
+ZS4gQ2FuIHlvdSBhdHRhY2gKPiA+ID4gYWNwaWR1bXAgdGhlcmUgYXMgd2VsbD8KPiA+IAo+ID4g
+RG9uZS4gbHNwY2kgLXggdG9vIGp1c3QgaW4gY2FzZS4KPiAKPiBMb29raW5nIGF0IHRoZSBkbWVz
+ZzoKPiAKPiBbICAgNTIuOTE3MDA5XSBObyBMb2NhbCBWYXJpYWJsZXMgYXJlIGluaXRpYWxpemVk
+IGZvciBNZXRob2QgW05WUE9dCj4gWyAgIDUyLjkxNzAxMV0gTm8gQXJndW1lbnRzIGFyZSBpbml0
+aWFsaXplZCBmb3IgbWV0aG9kIFtOVlBPXQo+IFsgICA1Mi45MTcwMTJdIEFDUEkgRXJyb3I6IE1l
+dGhvZCBwYXJzZS9leGVjdXRpb24gZmFpbGVkIFxfU0IuUENJMC5QRUcwLlBFR1AuTlZQTywgQUVf
+QU1MX0xPT1BfVElNRU9VVCAoMjAxODEwMDMvcHNwYXJzZS01MTYpCj4gWyAgIDUyLjkxNzA2M10g
+QUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgXF9TQi5QQ0kwLlBHT04s
+IEFFX0FNTF9MT09QX1RJTUVPVVQgKDIwMTgxMDAzL3BzcGFyc2UtNTE2KQo+IFsgICA1Mi45MTcw
+ODRdIEFDUEkgRXJyb3I6IE1ldGhvZCBwYXJzZS9leGVjdXRpb24gZmFpbGVkIFxfU0IuUENJMC5Q
+RUcwLlBHMDAuX09OLCBBRV9BTUxfTE9PUF9USU1FT1VUICgyMDE4MTAwMy9wc3BhcnNlLTUxNikK
+PiAKPiBTbyB3aGF0IGhhcHBlbnMgaGVyZSBpcyB0aGF0IExpbnV4IHR1cm5zIG9mZiBwb3dlciBy
+ZXNvdXJjZQo+IFxfU0IuUENJMC5QRUcwLlBHMDAgYnkgY2FsbGluZyBpdHMgX09GRiBtZXRob2Qg
+KGhhcHBlbnMgd2hlbiB0aGUgcm9vdAo+IHBvcnQgaXMgcnVudGltZSBzdXNwZW5kZWQpLiBUaGlz
+IGVuZHMgdXAgY2FsbGluZyBcX1NCLlBDSTAuUEdPTiB3aGljaAo+IGNhbGxzIFxfU0IuUENJMC5Q
+RUcwLlBFR1AuTlZQTy4KPiAKPiBUaGUgbGFzdCBtZXRob2QgbG9va3MgbGlrZSB0aGlzOgo+IAo+
+ICAgICAgICBNZXRob2QgKE5WUE8sIDAsIE5vdFNlcmlhbGl6ZWQpCj4gICAgICAgICB7Cj4gICAg
+ICAgICAgICAgV2hpbGUgKChcX1NCLlBDSTAuUDBMUyA8IDB4MDMpKQo+ICAgICAgICAgICAgIHsK
+PiAgICAgICAgICAgICAgICAgU2xlZXAgKE9uZSkKPiAgICAgICAgICAgICB9Cj4gCj4gU28gYmFz
+aWNhbGx5IGl0IHBvbGxzIFAwTFMgcmVnaXN0ZXIgaW5maW5pdGVseSBpZiB0aGUgcmV0dXJuZWQg
+dmFsdWUgaXMKPiBsZXNzIHRoYW4gMy4gSSBzdXNwZWN0IHRoaXMgaXMgdGhlIGlzc3VlIGFuZCBp
+dCB0aGVuIG1ha2VzIHRoZSBvdGhlcgo+IGxpa2Ugd2lmaSB0byBmYWlsIHRvIGV4ZWN1dGUgaXRz
+IG1ldGhvZHMuCj4gCj4gUDBMUyBjb21lcyBmcm9tIHRoaXMgb3BlcmF0aW9uIHJlZ2lvbjoKPiAK
+PiAgICAgICAgIE9wZXJhdGlvblJlZ2lvbiAoT1BHMCwgU3lzdGVtTWVtb3J5LCAoWEJBUyArIDB4
+ODAwMCksIDB4MTAwMCkKPiAgICAgICAgIEZpZWxkIChPUEcwLCBBbnlBY2MsIE5vTG9jaywgUHJl
+c2VydmUpCj4gICAgICAgICB7Cj4gICAgICAgICAgICAgLi4uCj4gICAgICAgICAgICAgT2Zmc2V0
+ICgweDIxNiksCj4gICAgICAgICAgICAgUDBMUywgICA0LAo+IAo+IFRoaXMgaXMgc29tZSBob3N0
+IGJyaWRnZSByZWdpc3RlciBidXQgbm90IHN1cmUgd2hpY2ggYmVjYXVzZSBYQkFTIHZhbHVlCj4g
+Y2Fubm90IGJlIGRldGVybWluZWQgZnJvbSB0aGUgYWNwaWR1bXAuCgpPaCBJIHRoaW5rIFhCQVMg
+aXMgaW4gU1NEVDQ6CgogICAgT3BlcmF0aW9uUmVnaW9uIChTQU5WLCBTeXN0ZW1NZW1vcnksIDB4
+NEZCRjcwMTgsIDB4MDFGNCkKICAgIEZpZWxkIChTQU5WLCBBbnlBY2MsIExvY2ssIFByZXNlcnZl
+KQogICAgewogICAgICAgIEFTTEIsICAgMzIsIAogICAgICAgIElNT04sICAgOCwgCiAgICAgICAg
+SUdEUywgICA4LCAKICAgICAgICBJQlRULCAgIDgsIAogICAgICAgIElQQVQsICAgOCwgCiAgICAg
+ICAgSVBTQywgICA4LCAKICAgICAgICBJQklBLCAgIDgsIAogICAgICAgIElTU0MsICAgOCwgCiAg
+ICAgICAgSURNUywgICA4LCAKICAgICAgICBJRjFFLCAgIDgsIAogICAgICAgIEhWQ08sICAgOCwg
+CiAgICAgICAgR1NNSSwgICA4LCAKICAgICAgICBQQVZQLCAgIDgsIAogICAgICAgIENBREwsICAg
+OCwgCiAgICAgICAgQ1NURSwgICAxNiwgCiAgICAgICAgTlNURSwgICAxNiwgCiAgICAgICAgTkRJ
+RCwgICA4LCAKICAgICAgICBESUQxLCAgIDMyLCAKICAgICAgICBESUQyLCAgIDMyLCAKICAgICAg
+ICBESUQzLCAgIDMyLCAKICAgICAgICBESUQ0LCAgIDMyLCAKICAgICAgICBESUQ1LCAgIDMyLCAK
+ICAgICAgICBESUQ2LCAgIDMyLCAKICAgICAgICBESUQ3LCAgIDMyLCAKICAgICAgICBESUQ4LCAg
+IDMyLCAKICAgICAgICBESUQ5LCAgIDMyLCAKICAgICAgICBESURBLCAgIDMyLCAKICAgICAgICBE
+SURCLCAgIDMyLCAKICAgICAgICBESURDLCAgIDMyLCAKICAgICAgICBESURELCAgIDMyLCAKICAg
+ICAgICBESURFLCAgIDMyLCAKICAgICAgICBESURGLCAgIDMyLCAKICAgICAgICBESURYLCAgIDMy
+LCAKICAgICAgICBOWEQxLCAgIDMyLCAKICAgICAgICBOWEQyLCAgIDMyLCAKICAgICAgICBOWEQz
+LCAgIDMyLCAKICAgICAgICBOWEQ0LCAgIDMyLCAKICAgICAgICBOWEQ1LCAgIDMyLCAKICAgICAg
+ICBOWEQ2LCAgIDMyLCAKICAgICAgICBOWEQ3LCAgIDMyLCAKICAgICAgICBOWEQ4LCAgIDMyLCAK
+ICAgICAgICBOWERYLCAgIDMyLCAKICAgICAgICBMSURTLCAgIDgsIAogICAgICAgIEtTVjAsICAg
+MzIsIAogICAgICAgIEtTVjEsICAgOCwgCiAgICAgICAgQlJUTCwgICA4LCAKICAgICAgICBBTFNF
+LCAgIDgsIAogICAgICAgIEFMQUYsICAgOCwgCiAgICAgICAgTExPVywgICA4LCAKICAgICAgICBM
+SElILCAgIDgsIAogICAgICAgIEFMRlAsICAgOCwgCiAgICAgICAgSVBUUCwgICA4LCAKICAgICAg
+ICBFRFBWLCAgIDgsIAogICAgICAgIFNHTUQsICAgOCwgCiAgICAgICAgU0dGTCwgICA4LCAKICAg
+ICAgICBTR0dQLCAgIDgsIAogICAgICAgIEhSRTAsICAgOCwgCiAgICAgICAgSFJHMCwgICAzMiwg
+CiAgICAgICAgSFJBMCwgICA4LCAKICAgICAgICBQV0UwLCAgIDgsIAogICAgICAgIFBXRzAsICAg
+MzIsIAogICAgICAgIFBXQTAsICAgOCwgCiAgICAgICAgUDFHUCwgICA4LCAKICAgICAgICBIUkUx
+LCAgIDgsIAogICAgICAgIEhSRzEsICAgMzIsIAogICAgICAgIEhSQTEsICAgOCwgCiAgICAgICAg
+UFdFMSwgICA4LCAKICAgICAgICBQV0cxLCAgIDMyLCAKICAgICAgICBQV0ExLCAgIDgsIAogICAg
+ICAgIFAyR1AsICAgOCwgCiAgICAgICAgSFJFMiwgICA4LCAKICAgICAgICBIUkcyLCAgIDMyLCAK
+ICAgICAgICBIUkEyLCAgIDgsIAogICAgICAgIFBXRTIsICAgOCwgCiAgICAgICAgUFdHMiwgICAz
+MiwgCiAgICAgICAgUFdBMiwgICA4LCAKICAgICAgICBETFBXLCAgIDE2LCAKICAgICAgICBETEhS
+LCAgIDE2LCAKICAgICAgICBFRUNQLCAgIDgsIAogICAgICAgIFhCQVMsICAgMzIsIAogICAgICAg
+IEdCQVMsICAgMTYsIAogICAgICAgIE5WR0EsICAgMzIsIAogICAgICAgIE5WSEEsICAgMzIsIAog
+ICAgICAgIEFNREEsICAgMzIsIAogICAgICAgIExUUlgsICAgOCwgCiAgICAgICAgT0JGWCwgICA4
+LCAKICAgICAgICBMVFJZLCAgIDgsIAogICAgICAgIE9CRlksICAgOCwgCiAgICAgICAgTFRSWiwg
+ICA4LCAKICAgICAgICBPQkZaLCAgIDgsIAogICAgICAgIExUUlcsICAgOCwgCiAgICAgICAgT0JG
+QSwgICA4LCAKICAgICAgICBTTVNMLCAgIDE2LCAKICAgICAgICBTTlNMLCAgIDE2LCAKICAgICAg
+ICBQMFVCLCAgIDgsIAogICAgICAgIFAxVUIsICAgOCwgCiAgICAgICAgUDJVQiwgICA4LCAKICAg
+ICAgICBQM1VCLCAgIDgsIAogICAgICAgIFBDU0wsICAgOCwgCiAgICAgICAgUEJHRSwgICA4LCAK
+ICAgICAgICBNNjRCLCAgIDY0LCAKICAgICAgICBNNjRMLCAgIDY0LCAKICAgICAgICBDUEVYLCAg
+IDMyLCAKICAgICAgICBFRUMxLCAgIDgsIAogICAgICAgIEVFQzIsICAgOCwgCiAgICAgICAgU0JO
+MCwgICA4LCAKICAgICAgICBTQk4xLCAgIDgsIAogICAgICAgIFNCTjIsICAgOCwgCiAgICAgICAg
+TTMyQiwgICAzMiwgCiAgICAgICAgTTMyTCwgICAzMiwgCiAgICAgICAgUDBXSywgICAzMiwgCiAg
+ICAgICAgUDFXSywgICAzMiwgCiAgICAgICAgUDJXSywgICAzMiwgCiAgICAgICAgVlREUywgICA4
+LCAKICAgICAgICBWVEIxLCAgIDMyLCAKICAgICAgICBWVEIyLCAgIDMyLCAKICAgICAgICBWVEIz
+LCAgIDMyLCAKICAgICAgICBWRTFWLCAgIDE2LCAKICAgICAgICBWRTJWLCAgIDE2LCAKICAgICAg
+ICBTQk4zLCAgIDgsIAogICAgICAgIFAzR1AsICAgOCwgCiAgICAgICAgSFJFMywgICA4LCAKICAg
+ICAgICBIUkczLCAgIDMyLCAKICAgICAgICBIUkEzLCAgIDgsIAogICAgICAgIFBXRTMsICAgOCwg
+CiAgICAgICAgUFdHMywgICAzMiwgCiAgICAgICAgUFdBMywgICA4LCAKICAgICAgICBQM1dLLCAg
+IDMyLCAKICAgICAgICBFRUMzLCAgIDgsIAogICAgICAgIFJQSU4sICAgOCwgCiAgICAgICAgUlBC
+QSwgICAzMiwgCiAgICAgICAgT2Zmc2V0ICgweDFGNCkKICAgIH0KCklmIG15IG1hdGggaXMgY29y
+cmVjdCwgdGhpcyBpcyBvZmZzZXQgMTQ1NiBiaXRzLCBpZSAweGI2CmJ5dGVzLCBhbmQgc28gMHg0
+ZmJmNzBjZQoKWEJBUyArIDB4ODAwMCBpcyAweDRmYmZmMGNlID8KCmNhdCAvcHJvYy9pb21lbSBz
+aG93cyB0aGF0IHRoaXMgaXMKNGVlNWYwMDAtNGZjYTBmZmYgOiBBQ1BJIE5vbi12b2xhdGlsZSBT
+dG9yYWdlCgotLSAKTVNUCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fCk5vdXZlYXUgbWFpbGluZyBsaXN0Ck5vdXZlYXVAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
+Cmh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vbm91dmVhdQo=
