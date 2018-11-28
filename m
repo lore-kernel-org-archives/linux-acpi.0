@@ -1,40 +1,49 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v4 4/4] driver core: Add fwnode member to struct
- device_connection
-Date: Wed, 28 Nov 2018 10:34:06 +0200
-Message-ID: <20181128083406.GA32679@kuha.fi.intel.com>
-References: <20181127142855.73899-1-heikki.krogerus@linux.intel.com>
- <20181127142855.73899-5-heikki.krogerus@linux.intel.com>
- <20181127143237.GA22859@kuha.fi.intel.com>
- <20181127150756.GV10650@smile.fi.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] Documentation: admin-guide: PM: Add cpuidle document
+Date: Wed, 28 Nov 2018 10:11:16 +0100
+Message-ID: <CAJZ5v0hnX512AheTwhpj09+eyiyv6txsgGQcT2afWiB2JjjCzw@mail.gmail.com>
+References: <4064391.AYvOMBeiDo@aspire.rjw.lan> <20181128054835.gnhistcfxy25rmwf@vireshk-i7>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181127150756.GV10650@smile.fi.intel.com>
+In-Reply-To: <20181128054835.gnhistcfxy25rmwf@vireshk-i7>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Linux PM <linux-pm@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Giovanni Gherdovich <ggherdovich@suse.cz>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 27, 2018 at 05:07:56PM +0200, Andy Shevchenko wrote:
-> On Tue, Nov 27, 2018 at 04:32:37PM +0200, Heikki Krogerus wrote:
-> > On Tue, Nov 27, 2018 at 05:28:55PM +0300, Heikki Krogerus wrote:
-> > > This will prepare the device connection API for connections
-> > > described in firmware.
-> > 
-> > This one does not belong to this series, sorry. Please skip it, or if
-> > you prefer, I'll resend.
-> 
-> Please, resend. It would reduce amount of confusion,
-> 
-> Otherwise the series looks good to me.
-> 
-> Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Wed, Nov 28, 2018 at 6:48 AM Viresh Kumar <viresh.kumar@linaro.org> wrote:
+>
+> On 26-11-18, 14:11, Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Important information is missing from user/admin cpuidle documentation
+> > available today, so add a new user/admin document for cpuidle containing
+> > current and comprehensive information to admin-guide and drop the old
+> > .txt documents it is replacing.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+> >  Documentation/admin-guide/pm/cpuidle.rst       |  603 +++++++++++++++++++++++++
+> >  Documentation/admin-guide/pm/working-state.rst |    1
+> >  Documentation/cpuidle/core.txt                 |   23
+> >  Documentation/cpuidle/sysfs.txt                |   98 ----
+> >  4 files changed, 604 insertions(+), 121 deletions(-)
+>
+> Nice work Rafael. Minor nits below..
 
-Sure. I'll resend. Thanks Andy!
+Thanks for the typo fixes.  The spellchecker I have here evidently doesn't work.
 
-br,
+[cut]
 
--- 
-heikki
+> Maybe I missed, but I couldn't find any text that says what state 0, 1, ... N
+> mean.
+
+There is a paragraph on that above.
+
+> Like which is the deepest idle state and which one is the shallowest.
+
+But this part is missing, good catch!
+
+Thanks,
+Rafael
