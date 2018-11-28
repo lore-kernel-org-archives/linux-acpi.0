@@ -1,263 +1,345 @@
-From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
- ACPI errors, lockups
-Date: Tue, 27 Nov 2018 21:49:44 -0500
-Message-ID: <20181127212550-mutt-send-email-mst@kernel.org>
-References: <20181126221005-mutt-send-email-mst@kernel.org>
- <20181127093650.GP2296@lahna.fi.intel.com>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH] Documentation: admin-guide: PM: Add cpuidle document
+Date: Wed, 28 Nov 2018 11:18:35 +0530
+Message-ID: <20181128054835.gnhistcfxy25rmwf@vireshk-i7>
+References: <4064391.AYvOMBeiDo@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181127093650.GP2296-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <4064391.AYvOMBeiDo@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jonathan Corbet <corbet@lwn.net>, Linux PM <linux-pm@vger.kernel.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Documentation <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Giovanni Gherdovich <ggherdovich@suse.cz>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVHVlLCBOb3YgMjcsIDIwMTggYXQgMTE6MzY6NTBBTSArMDIwMCwgTWlrYSBXZXN0ZXJiZXJn
-IHdyb3RlOgo+ICtsaW51eC1hY3BpCj4gCj4gSGkgTWljaGFlbCwKPiAKPiBPbiBNb24sIE5vdiAy
-NiwgMjAxOCBhdCAxMDo1MzoyNlBNIC0wNTAwLCBNaWNoYWVsIFMuIFRzaXJraW4gd3JvdGU6Cj4g
-PiBTbyBhIG5ldyB0aGlua3BhZDoKPiA+IDAxOjAwLjAgVkdBIGNvbXBhdGlibGUgY29udHJvbGxl
-cjogTlZJRElBIENvcnBvcmF0aW9uIEdQMTA3R0xNIFtRdWFkcm8gUDIwMDAgTW9iaWxlXSAocmV2
-IGExKQo+ID4gCj4gPiBIYW5ncyB3aGVuZXZlciBJIHRyeSB0byBwb2tlIGF0IHRoZSBjYXJkLiBJ
-dCBzdGFydHMgaGFwcGlseSBlbm91Z2ggd2l0aAo+ID4gCj4gPiBbICAgIDMuOTcxNTE1XSBBQ1BJ
-IFdhcm5pbmc6IFxfU0IuUENJMC5HRlgwLl9EU006IEFyZ3VtZW50ICM0IHR5cGUgbWlzbWF0Y2gg
-LSBGb3VuZCBbQnVmZmVyXSwgQUNQSSByZXF1aXJlcyBbUGFja2FnZV0gKDIwMTgxMDAzL25zYXJn
-dW1lbnRzLTY2KQo+ID4gWyAgICAzLjk3MTU1M10gQUNQSSBXYXJuaW5nOiBcX1NCLlBDSTAuUEVH
-MC5QRUdQLl9EU006IEFyZ3VtZW50ICM0IHR5cGUgbWlzbWF0Y2ggLSBGb3VuZCBbQnVmZmVyXSwg
-QUNQSSByZXF1aXJlcyBbUGFja2FnZV0gKDIwMTgxMDAzL25zYXJndW1lbnRzLTY2KQo+ID4gWyAg
-ICAzLjk3MTcyMV0gcGNpIDAwMDA6MDE6MDAuMDogb3B0aW11cyBjYXBhYmlsaXRpZXM6IGVuYWJs
-ZWQsIHN0YXR1cyBkeW5hbWljIHBvd2VyLCBoZGEgYmlvcyBjb2RlYyBzdXBwb3J0ZWQKPiA+IFsg
-ICAgMy45NzE3MjZdIFZHQSBzd2l0Y2hlcm9vOiBkZXRlY3RlZCBPcHRpbXVzIERTTSBtZXRob2Qg
-XF9TQl8uUENJMC5QRUcwLlBFR1AgaGFuZGxlCj4gPiBbICAgIDMuOTcxNzI3XSBub3V2ZWF1OiBk
-ZXRlY3RlZCBQUiBzdXBwb3J0LCB3aWxsIG5vdCB1c2UgRFNNCgpCVFcgdGhpcyBpcyBhbHNvIGEg
-Yml0IHN0cmFuZ2UuIEl0IHNheXMgaXQgd2lsbCBub3QgdXNlIERTTSAtIGJ1dCBkaWQKaXQgbWF5
-YmUgdXNlIERTTSBwcmV2aW91c2x5PyBUaGUgQUNQSSBXYXJuaW5nIHNlZW1zIHRvIGluZGljYXRl
-IHRoYXQKaXQgZGlkIC4uLgoKQW5kIGp1c3QgdG8gY29tcGxldGUgdGhlIHBpY3R1cmUgaGVyZSdz
-IHRoZSBfRFNNIGZyb20gQUNQSToKCiAgICAgICAgTWV0aG9kIChfRFNNLCA0LCBTZXJpYWxpemVk
-KSAgLy8gX0RTTTogRGV2aWNlLVNwZWNpZmljIE1ldGhvZAogICAgICAgIHsKICAgICAgICAgICAg
-SWYgKChBcmcwID09IFRvVVVJRCAoIjNlNWI0MWM2LWViMWQtNDI2MC05ZDE1LWM3MWZiYWRhZTQx
-NCIpKSkKICAgICAgICAgICAgewogICAgICAgICAgICAgICAgU3dpdGNoIChUb0ludGVnZXIgKEFy
-ZzIpKQogICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgIENhc2UgKFplcm8pCiAg
-ICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgICBJZiAoKEFyZzEgPT0g
-T25lKSkKICAgICAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgUmV0dXJuICgweDAwMDFFN0ZGKQogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAg
-ICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIENhc2UgKE9uZSkKICAgICAgICAgICAg
-ICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgIElmICgoQXJnMSA9PSBPbmUpKQogICAg
-ICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBJZiAoKChT
-MElEID09IE9uZSkgJiYgKE9TWVMgPCAweDA3REYpKSkKICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBJZiAoKChEZXJlZk9mIChBcmcz
-IFtaZXJvXSkgJiAweEZGKSA9PSBPbmUpKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXEdVQU0gKE9uZSkKICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIExvY2FsMCA9IChEZXJlZk9mIChBcmczIFtPbmVdKSAmIDB4RkYpCiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgSWYgKChMb2NhbDAgPT0gWmVybykpCiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBcR1VB
-TSAoWmVybykKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAgICAgICAgICAgICAgSWYgKChEZXJlZk9m
-IChBcmczIFtaZXJvXSkgPT0gWmVybykpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7CiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgTG9jYWwwID0gQ0xJRCAvKiBcX1NCXy5QQ0kw
-LkdGWDAuQ0xJRCAqLwogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIElmICgoMHg4MDAw
-MDAwMCAmIExvY2FsMCkpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgewogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDTElEICY9IDB4MEYKICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgR0xJRCAoQ0xJRCkKICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgICAgICAgICB9CgogICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgUmV0dXJuIChPbmUpCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAg
-ICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgQ2FzZSAoMHgwMikKICAgICAgICAg
-ICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgIElmICgoQXJnMSA9PSBPbmUpKQog
-ICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBSZXR1
-cm4gKE9uZSkKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIH0K
-ICAgICAgICAgICAgICAgICAgICBDYXNlICgweDAzKQogICAgICAgICAgICAgICAgICAgIHsKICAg
-ICAgICAgICAgICAgICAgICAgICAgSWYgKChBcmcxID09IE9uZSkpCiAgICAgICAgICAgICAgICAg
-ICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJldHVybiAoT25lKQogICAgICAg
-ICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAg
-ICAgIENhc2UgKDB4MDQpCiAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAgICAgICAgICAg
-ICAgICBJZiAoKEFyZzEgPT0gT25lKSkKICAgICAgICAgICAgICAgICAgICAgICAgewogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgUmV0dXJuIChPbmUpCiAgICAgICAgICAgICAgICAgICAgICAg
-IH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgQ2FzZSAoMHgwNSkK
-ICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgIElmICgoQXJnMSA9
-PSBPbmUpKQogICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBSZXR1cm4gKE9uZSkKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAg
-ICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBDYXNlICgweDA2KQogICAgICAgICAgICAgICAg
-ICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgSWYgKChBcmcxID09IE9uZSkpCiAgICAgICAg
-ICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJldHVybiAoT25l
-KQogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAg
-ICAgICAgICAgICAgIENhc2UgKDB4MDcpCiAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAg
-ICAgICAgICAgICAgICBJZiAoKEFyZzEgPT0gT25lKSkKICAgICAgICAgICAgICAgICAgICAgICAg
-ewogICAgICAgICAgICAgICAgICAgICAgICAgICAgSUJUVCA9IChEZXJlZk9mIChBcmczIFtaZXJv
-XSkgJiAweEZGKQogICAgICAgICAgICAgICAgICAgICAgICAgICAgUmV0dXJuIChPbmUpCiAgICAg
-ICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAg
-ICAgICAgQ2FzZSAoMHgwOCkKICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAg
-ICAgICAgIElmICgoQXJnMSA9PSBPbmUpKQogICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBJUFNDID0gKERlcmVmT2YgKEFyZzMgW1plcm9dKSAmIDB4
-RkYpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBJZiAoKERlcmVmT2YgKEFyZzMgW09uZV0p
-ICYgMHhGRikpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgSVBBVCA9IChEZXJlZk9mIChBcmczIFtPbmVdKSAmIDB4RkYpCiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgSVBBVC0tCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICB9CgogICAgICAgICAgICAgICAgICAgICAgICAgICAgSUJJQSA9ICgoRGVyZWZPZiAoQXJn
-MyBbMHgwMl0pID4+IDB4MDQpICYgMHgwNykKICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJl
-dHVybiAoT25lKQogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAg
-fQogICAgICAgICAgICAgICAgICAgIENhc2UgKDB4MDkpCiAgICAgICAgICAgICAgICAgICAgewog
-ICAgICAgICAgICAgICAgICAgICAgICBJZiAoKEFyZzEgPT0gT25lKSkKICAgICAgICAgICAgICAg
-ICAgICAgICAgewogICAgICAgICAgICAgICAgICAgICAgICAgICAgUmV0dXJuIChPbmUpCiAgICAg
-ICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAg
-ICAgICAgQ2FzZSAoMHgwQSkKICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAg
-ICAgICAgIElmICgoQXJnMSA9PSBPbmUpKQogICAgICAgICAgICAgICAgICAgICAgICB7CiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBMb2NhbDAgPSAoTElEUyA8PCAweDA4KQogICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgTG9jYWwwICs9IDB4MDEwMAogICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgUmV0dXJuIChMb2NhbDApCiAgICAgICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAg
-ICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgQ2FzZSAoMHgwRCkKICAgICAgICAgICAg
-ICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgIElmICgoQXJnMSA9PSBPbmUpKQogICAg
-ICAgICAgICAgICAgICAgICAgICB7CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBMb2NhbDAg
-PSAoKERlcmVmT2YgKEFyZzMgWzB4MDNdKSA8PCAweDE4KSB8IChEZXJlZk9mICgKICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICBBcmczIFsweDAyXSkgPDwgMHgxMCkpCiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBMb2NhbDAgJj0gMHhFRkZGMDAwMAogICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgTG9jYWwwICY9IChEZXJlZk9mIChEQlRCIFtJQlRUXSkgPDwgMHgxMCkKICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgIExvY2FsMCB8PSBJQlRUCiAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBSZXR1cm4gKExvY2FsMCkKICAgICAgICAgICAgICAgICAgICAgICAgfQogICAgICAg
-ICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBDYXNlICgweDBFKQogICAgICAgICAg
-ICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgSWYgKChBcmcxID09IE9uZSkpCiAg
-ICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAgIExvY2Fs
-MCA9IElQU0MgLyogXElQU0MgKi8KICAgICAgICAgICAgICAgICAgICAgICAgICAgIExvY2FsMCB8
-PSAoSVBBVCA8PCAweDA4KQogICAgICAgICAgICAgICAgICAgICAgICAgICAgTG9jYWwwICs9IDB4
-MDEwMAogICAgICAgICAgICAgICAgICAgICAgICAgICAgTG9jYWwwIHw9IChMSURTIDw8IDB4MTAp
-CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBMb2NhbDAgKz0gMHgwMDAxMDAwMAogICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgTG9jYWwwIHw9IChJQklBIDw8IDB4MTQpCiAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBSZXR1cm4gKExvY2FsMCkKICAgICAgICAgICAgICAgICAgICAgICAg
-fQogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBDYXNlICgweDBGKQog
-ICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgSWYgKChBcmcxID09
-IE9uZSkpCiAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIExvY2FsMCA9IEdJVkQgLyogXF9TQl8uUENJMC5HRlgwLkdJVkQgKi8KICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgIExvY2FsMCBePSBPbmUKICAgICAgICAgICAgICAgICAgICAgICAgICAg
-IExvY2FsMCB8PSAoR01GTiA8PCBPbmUpCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBMb2Nh
-bDAgfD0gMHgxODAwCiAgICAgICAgICAgICAgICAgICAgICAgICAgICBMb2NhbDAgfD0gKElETVMg
-PDwgMHgxMSkKICAgICAgICAgICAgICAgICAgICAgICAgICAgIExvY2FsMCB8PSAoRGVyZWZPZiAo
-RGVyZWZPZiAoQ0RDVCBbSFZDT10pIFtDRFZMXSkgPDwgCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgMHgxNSkKICAgICAgICAgICAgICAgICAgICAgICAgICAgIFJldHVybiAoTG9jYWww
-KQogICAgICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgfQogICAgICAg
-ICAgICAgICAgICAgIENhc2UgKDB4MTApCiAgICAgICAgICAgICAgICAgICAgewogICAgICAgICAg
-ICAgICAgICAgICAgICBJZiAoKEFyZzEgPT0gT25lKSkKICAgICAgICAgICAgICAgICAgICAgICAg
-ewogICAgICAgICAgICAgICAgICAgICAgICAgICAgTmFtZSAoS1NWUCwgUGFja2FnZSAoMHgwMikK
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIHsKICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAweDgwMDAwMDAwLCAKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAweDgwMDAK
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgIH0pCiAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBLU1ZQIFtaZXJvXSA9IEtTVjAgLyogXEtTVjAgKi8KICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgIEtTVlAgW09uZV0gPSBLU1YxIC8qIFxLU1YxICovCiAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBSZXR1cm4gKEtTVlApIC8qIFxfU0JfLlBDSTAuR0ZYMC5fRFNNLktTVlAgKi8KICAgICAg
-ICAgICAgICAgICAgICAgICAgfQogICAgICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAg
-ICB9CiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIFJldHVybiAoQnVmZmVyIChPbmUpCiAgICAg
-ICAgICAgIHsKICAgICAgICAgICAgICAgICAweDAwICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgLy8gLgogICAgICAgICAgICB9KQogICAgICAgIH0KCgpJIGFtIG5v
-dCBzdXJlIHdoYXQgbWFrZXMgaXQgdGhpbmsgdGhhdCBBcmczIGlzIGEgYnVmZmVyIGFuZApub3Qg
-YSBwYWNrYWdlOiBJSVJDIEluZGV4IChkZWNvZGVkIEMtc3R5bGUgaGVyZSBhcyBbXSkgY2FuIGFw
-cGx5CnRvIGVpdGhlci4KCkFtIEkgbWF5YmUgbWlzdW5kZXJzdGFuZGluZyB0aGUgd2FybmluZz8K
-Cgo+ID4gWyAgICAzLjk3MTc0NV0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IGVuYWJsaW5nIGRldmlj
-ZSAoMDAwNiAtPiAwMDA3KQo+ID4gWyAgICAzLjk3MTkyM10gbm91dmVhdSAwMDAwOjAxOjAwLjA6
-IE5WSURJQSBHUDEwNyAoMTM3MDAwYTEpCj4gPiBbICAgIDQuMDA5ODc1XSBQTTogSW1hZ2Ugbm90
-IGZvdW5kIChjb2RlIC0yMikKPiA+IFsgICAgNC4xMzU3NTJdIG5vdXZlYXUgMDAwMDowMTowMC4w
-OiBEUk06IFZSQU06IDQwOTYgTWlCCj4gPiBbICAgIDQuMTM1NzUzXSBub3V2ZWF1IDAwMDA6MDE6
-MDAuMDogRFJNOiBHQVJUOiA1MzY4NzA5MTIgTWlCCj4gPiBbICAgIDQuMTM1NzU0XSBub3V2ZWF1
-IDAwMDA6MDE6MDAuMDogRFJNOiBCSVQgdGFibGUgJ0EnIG5vdCBmb3VuZAo+ID4gWyAgICA0LjEz
-NTc1NV0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogQklUIHRhYmxlICdMJyBub3QgZm91bmQK
-PiA+IFsgICAgNC4xMzU3NTZdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IFRNRFMgdGFibGUg
-dmVyc2lvbiAyLjAKPiA+IFsgICAgNC4xMzU3NTZdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06
-IERDQiB2ZXJzaW9uIDQuMQo+ID4gWyAgICA0LjEzNTc1N10gbm91dmVhdSAwMDAwOjAxOjAwLjA6
-IERSTTogRENCIG91dHAgMDA6IDAyODAwZjc2IDA0NjAwMDIwCj4gPiBbICAgIDQuMTM1NzU4XSBu
-b3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBEQ0Igb3V0cCAwMTogMDIwMTFmNjIgMDAwMjAwMTAK
-PiA+IFsgICAgNC4xMzU3NTldIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAy
-OiAwMTAyMmY0NiAwNDYwMDAxMAo+ID4gWyAgICA0LjEzNTc2MF0gbm91dmVhdSAwMDAwOjAxOjAw
-LjA6IERSTTogRENCIG91dHAgMDM6IDAxMDMzZjU2IDA0NjAwMDIwCj4gPiBbICAgIDQuMTM1NzYx
-XSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBEQ0IgY29ubiAwMDogMDAwMjAwNDcKPiA+IFsg
-ICAgNC4xMzU3NjFdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBjb25uIDAxOiAwMDAx
-MDE2MQo+ID4gWyAgICA0LjEzNTc2Ml0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogRENCIGNv
-bm4gMDI6IDAwMDAxMjQ2Cj4gPiBbICAgIDQuMTM1NzYzXSBub3V2ZWF1IDAwMDA6MDE6MDAuMDog
-RFJNOiBEQ0IgY29ubiAwMzogMDAwMDIzNDYKPiA+IFsgICAgNC41MDgzNTVdIFtkcm1dIFN1cHBv
-cnRzIHZibGFuayB0aW1lc3RhbXAgY2FjaGluZyBSZXYgMiAoMjEuMTAuMjAxMykuCj4gPiBbICAg
-IDQuNTA4MzU1XSBbZHJtXSBEcml2ZXIgc3VwcG9ydHMgcHJlY2lzZSB2YmxhbmsgdGltZXN0YW1w
-IHF1ZXJ5Lgo+ID4gWyAgICA0LjUwOTgxMl0gW2RybV0gQ2Fubm90IGZpbmQgYW55IGNydGMgb3Ig
-c2l6ZXMKPiA+IFsgICAgNC41MTAxNDRdIFtkcm1dIEluaXRpYWxpemVkIG5vdXZlYXUgMS4zLjEg
-MjAxMjA4MDEgZm9yIDAwMDA6MDE6MDAuMCBvbiBtaW5vciAyCj4gPiAKPiA+IAo+ID4gQWx0aG91
-Z2ggdGhhdCB0eXBlIG1pc21hdGNoIGlzIGEgYml0IHdvcnJ5aW5nLiBBbmQgSSdtIG5vdCBzdXJl
-IHdoYXQKPiA+IHByaW50cyBQTTogSW1hZ2Ugbm90IGZvdW5kLgo+IAo+IFRoYXQgaXMgZmluZSwg
-aXQganVzdCBzYXlzIGl0IGNhbm5vdCBmaW5kIGEgaGliZXJuYXRpb24gaW1hZ2UgZnJvbSBzd2Fw
-Cj4gZGV2aWNlLiBJIGd1ZXNzIHlvdSBoYXZlIHJlc3VtZT0uLi4gaW4gdGhlIGtlcm5lbCBjb21t
-YW5kIGxpbmUuCj4gCj4gPiBCdXQgYWZ0ZXIgYSBzaG9ydCB3aGlsZSBpdCBnZXRzIHByZXR0eSBi
-dXN5Ogo+ID4gCj4gPiAKPiA+IFsgICA1Mi45MTcwMDldIE5vIExvY2FsIFZhcmlhYmxlcyBhcmUg
-aW5pdGlhbGl6ZWQgZm9yIE1ldGhvZCBbTlZQT10KPiA+IFsgICA1Mi45MTcwMTFdIE5vIEFyZ3Vt
-ZW50cyBhcmUgaW5pdGlhbGl6ZWQgZm9yIG1ldGhvZCBbTlZQT10KPiA+IFsgICA1Mi45MTcwMTJd
-IEFDUEkgRXJyb3I6IE1ldGhvZCBwYXJzZS9leGVjdXRpb24gZmFpbGVkIFxfU0IuUENJMC5QRUcw
-LlBFR1AuTlZQTywgQUVfQU1MX0xPT1BfVElNRU9VVCAoMjAxODEwMDMvcHNwYXJzZS01MTYpCj4g
-PiBbICAgNTIuOTE3MDYzXSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxl
-ZCBcX1NCLlBDSTAuUEdPTiwgQUVfQU1MX0xPT1BfVElNRU9VVCAoMjAxODEwMDMvcHNwYXJzZS01
-MTYpCj4gPiBbICAgNTIuOTE3MDg0XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9u
-IGZhaWxlZCBcX1NCLlBDSTAuUEVHMC5QRzAwLl9PTiwgQUVfQU1MX0xPT1BfVElNRU9VVCAoMjAx
-ODEwMDMvcHNwYXJzZS01MTYpCj4gPiBbICAgNTIuOTE3MTA4XSBhY3BpIGRldmljZTowMDogRmFp
-bGVkIHRvIGNoYW5nZSBwb3dlciBzdGF0ZSB0byBEMAo+IAo+IEhlcmUgaXQgc2VlbXMgdG8gZmFp
-bCB0byB0dXJuIG9uIHRoZSBwb3dlciByZXNvdXJjZSBmb3IgdGhlIGRldmljZS4KPgo+ID4gWyAg
-IDUyLjk2OTI4N10gdmlkZW8gTE5YVklERU86MDA6IENhbm5vdCB0cmFuc2l0aW9uIHRvIHBvd2Vy
-IHN0YXRlIEQwIGZvciBwYXJlbnQgaW4gKHVua25vd24pCj4gPiBbICAgNTIuOTY5Mjg5XSBwY2lf
-cmF3X3NldF9wb3dlcl9zdGF0ZTogMiBjYWxsYmFja3Mgc3VwcHJlc3NlZAo+ID4gWyAgIDUyLjk2
-OTI5MV0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IFJlZnVzZWQgdG8gY2hhbmdlIHBvd2VyIHN0YXRl
-LCBjdXJyZW50bHkgaW4gRDMKPiA+IFsgICA1My4wMjk1MTRdIHZpZGVvIExOWFZJREVPOjAwOiBD
-YW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEMCBmb3IgcGFyZW50IGluICh1bmtub3du
-KQo+ID4gWyAgIDUzLjA0MTAyN10gbm91dmVhdSAwMDAwOjAxOjAwLjA6IFJlZnVzZWQgdG8gY2hh
-bmdlIHBvd2VyIHN0YXRlLCBjdXJyZW50bHkgaW4gRDMKPiA+IFsgICA1My4wNDEwMzVdIHZpZGVv
-IExOWFZJREVPOjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEMCBmb3IgcGFy
-ZW50IGluICh1bmtub3duKQo+ID4gWyAgIDUzLjA1MzAwOF0gbm91dmVhdSAwMDAwOjAxOjAwLjA6
-IFJlZnVzZWQgdG8gY2hhbmdlIHBvd2VyIHN0YXRlLCBjdXJyZW50bHkgaW4gRDMKPiA+IAo+ID4g
-Cj4gPiBBbmQgdGhlbiBrZXJuZWwgcHJvY2VlZHMgdG8gdGhyb3cgdXAgZXJyb3JzIGF0IHJhbmRv
-bSBwbGFjZXMsIGUuZy4KPiA+IAo+ID4gWyAgIDY3LjAyMTg5Ml0gY2ZnODAyMTE6IGZhaWxlZCB0
-byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+IFsgICA2Ny4wMjE4OTVdIGNmZzgwMjExOiBmYWlsZWQg
-dG8gbG9hZCByZWd1bGF0b3J5LmRiCj4gPiBbICAgNjcuMDIxODk3XSBjZmc4MDIxMTogZmFpbGVk
-IHRvIGxvYWQgcmVndWxhdG9yeS5kYgo+ID4gWyAgIDY3LjAyMTkwMF0gY2ZnODAyMTE6IGZhaWxl
-ZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+IFsgICA2Ny4wMjE5MjddIGNmZzgwMjExOiBmYWls
-ZWQgdG8gbG9hZCByZWd1bGF0b3J5LmRiCj4gPiBbICAgNjcuMDIxOTI4XSBjZmc4MDIxMTogZmFp
-bGVkIHRvIGxvYWQgcmVndWxhdG9yeS5kYgo+ID4gWyAgIDY3LjAyMTkzMl0gY2ZnODAyMTE6IGZh
-aWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+IFsgICA2Ny4wMjE5MzRdIGNmZzgwMjExOiBm
-YWlsZWQgdG8gbG9hZCByZWd1bGF0b3J5LmRiCj4gPiBbICAgNjcuMDI0NDYzXSBjZmc4MDIxMTog
-ZmFpbGVkIHRvIGxvYWQgcmVndWxhdG9yeS5kYgo+ID4gWyAgIDk5Ljk4MDYyNV0gaXdsd2lmaSAw
-MDAwOjAwOjE0LjM6IEVycm9yIHNlbmRpbmcgU1RBVElTVElDU19DTUQ6IHRpbWUgb3V0IGFmdGVy
-IDIwMDBtcy4KCkJUVyB0aGlzIG9uZSBtaWdodCBpbmRpY2F0ZSB0aGF0IHNvbWVob3cgaXdsd2lm
-aSBnb3QgcG93ZXJlZApkb3duIHRvbyBzb21laG93LiBJdCdzIGF0CgowMDoxNC4zIE5ldHdvcmsg
-Y29udHJvbGxlcjogSW50ZWwgQ29ycG9yYXRpb24gV2lyZWxlc3MtQUMgOTU2MCBbSmVmZmVyc29u
-IFBlYWtdIChyZXYgMTApCgpzbyByZWFsbHkgc2hvdWxkbid0IGJlIGFmZmVjdGVkLCBidXQgZ28g
-ZmlndXJlLiBJZiBkcml2ZXIgcmVhbGx5IGlzIGdldHRpbmcKYWxsLW9uZXMgZnJvbSB0aGUgZGV2
-aWNlLCBpdCBqdXN0IG1pZ2h0IHRyeSB0byBwb2tlIGF0IGEgd3JvbmcgYjpkLmYgYnkgbWlzdGFr
-ZQptYXliZSAuLi4KCj4gPiBmb2xsb3dlZCBieSBzb2Z0IGxvY2t1cHMgYW5kIHNvbWV0aW1lcyBo
-YXJkIGxvY2t1cHMgaW4gcGxhY2VzCj4gPiBsaWtlIGF0dGVtcHRzIHRvIHdhbGsgc2tiIGxpc3Rz
-Lgo+ID4gCj4gPiBBZGRpbmcgcnVucG09MCBkb2VzIGF3YXkgd2l0aCB0aGlzIGlzc3VlLgo+ID4g
-Cj4gPiBUaGUgc3BlY2lmaWMgdGVzdCB3YXMgd2l0aCBub2FjY2VsPTEgLSBpdCBkb2VzIG5vdCBz
-ZWVtIHRvIGNoYW5nZQo+ID4gdGhpbmdzIGZvciBtZS4KPiA+IAo+ID4gSSBwb2tlZCBhdCB0aGUg
-QUNQSSBtZXRob2QgTlZQTyBhbmQgeWVzIGl0IGRvZXMgYWN0dWFsbHkKPiA+IHNlZW0gdG8gZXhl
-Y3V0ZSBhIHdoaWxlIGxvb3Agd2FpdGluZyBmb3Igc29tZSByZWdpc3Rlcgo+ID4gdG8gYmVjb21l
-IDAuIFdoaWNoIEkgZ3Vlc3MgbmV2ZXIgaGFwcGVucz8gQmVjYXVzZSBjYXJkCj4gPiBpcyBpbiBh
-IGxvdyBwb3dlciBzdGF0ZSBhbmQgc28gcmVhZHMgcmV0dXJuIGZmZmZmZmZmIG1heWJlPwo+IAo+
-IFllcywgaXQgY291bGQgYmUgdGhlIGNhc2UuCj4gCj4gPiBYIGlzbid0IGhhcHB5IGV2ZW4gd2l0
-aCBydW5wbT0wIGJ1dCB0aGF0IG1pZ2h0IGJlIGEgZGlmZmVyZW50Cj4gPiBpc3N1ZSAtIEkgdGhv
-dWdodCBydW5wbT0wIG1pZ2h0IGJlIGFuIGVhc2llciBwbGFjZSB0byBzdGFydCBkZWJ1Z2dpbmcK
-PiA+IHRoaW5ncyBnaXZlbiB0aGVyZSBhcmUgbG9ncyBvZiB0aGUgZmFpbHVyZS4KPiA+IAo+ID4g
-VXNpbmcgNC4yMC4wLXJjMyByaWdodCBub3cuCj4gPiAKPiA+IFVzZXJzcGFjZSBiaXRzIGFyZSBm
-cm9tIGZlZG9yYSAyOToKPiA+IHhvcmcteDExLWRydi1ub3V2ZWF1LTEuMC4xNS02LmZjMjkueDg2
-XzY0Cj4gPiAKPiA+IGZpcm13YXJlIGlzIHByZXR0eSByZWNlbnQ6Cj4gPiBsaW51eC1maXJtd2Fy
-ZS0yMDE4MTAwOC04OC5naXRjNmI2MjY1ZC5mYzI5Lm5vYXJjaAo+ID4gCj4gPiBNb3JlIGhpbnRz
-IGZvciBkZWJ1Z2dpbmcgd291bGQgYmUgYXBwcmVjaWF0ZWQuCj4gPiBJZiBhbnlvbmUgd2FudHMg
-bWUgdG8gcGxheSB3aXRoIGEgZGlmZmVyZW50IGtlcm5lbCB0cmVlLAo+ID4gbGV0IG1lIGtub3cu
-Cj4gCj4gQ2FuIHlvdSBzaGFyZSBmdWxsIGRtZXNnIGFuZCBhY3BpZHVtcCBvZiB0aGUgc3lzdGVt
-PyBJIHdvdWxkIGxpa2UgdG8KPiBjaGVjayB0aGUgcG93ZXIgcmVzb3VyY2UgbWV0aG9kcy4KClBs
-cyBmaW5kIGl0IGFzIGFuIGF0dGFjaG1lbnQgaGVyZToKaHR0cHM6Ly9idWdzLmZyZWVkZXNrdG9w
-Lm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTA4ODczCgpJZiB5b3UgbGlrZSBJIGNhbiBzZW5kIGl0IHRv
-IHlvdSBkaXJlY3RseSB0b28gLQpzcGFtbWluZyB0aGUgbGlzdCB3aXRoIGl0IGlzbid0IGhlbHBm
-dWwgSSBndWVzcz8KCi0tIApNU1QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KTm91dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3Rv
-cC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2
-ZWF1Cg==
+On 26-11-18, 14:11, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> Important information is missing from user/admin cpuidle documentation
+> available today, so add a new user/admin document for cpuidle containing
+> current and comprehensive information to admin-guide and drop the old
+> .txt documents it is replacing.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  Documentation/admin-guide/pm/cpuidle.rst       |  603 +++++++++++++++++++++++++
+>  Documentation/admin-guide/pm/working-state.rst |    1 
+>  Documentation/cpuidle/core.txt                 |   23 
+>  Documentation/cpuidle/sysfs.txt                |   98 ----
+>  4 files changed, 604 insertions(+), 121 deletions(-)
+
+Nice work Rafael. Minor nits below..
+
+> Index: linux-pm/Documentation/admin-guide/pm/cpuidle.rst
+
+> +The ``menu`` Governor
+> +=====================
+> +
+> +The ``menu`` governor is the default ``CPUIdle`` governor for tickless systems.
+> +It is quite complex, but the basic principle of its design is straightforward.
+> +Namely, when invoked to select an idle state for a CPU (i.e. an idle state that
+> +the CPU will ask the processor hardware to enter), it attempts to predict the
+> +idle duration and uses the predicted value for idle state selection.
+> +
+> +It first obtains the time until the closest timer event with the assumption
+> +that the scheduler tick will be stopped.  That time, referred to as the *sleep
+> +length* in what follows, is the upper bound on the time before the next CPU
+> +wakeup.  It is used to determine the sleep length range, which in turn is needed
+> +to get the sleep length correction factor.
+> +
+> +The ``menu`` governor maintains two arrays of sleep length correction factors.
+> +One of them is used when tasks previously running on the given CPU are waiting
+> +for some I/O operations to complete and the other one is used when that is not
+> +the case.  Each array contains several correction factor values that correspond
+> +to different sleep length ranges organized so that each range represented in the
+> +array is approximately 10 times wider than the previous one.
+> +
+> +The correction factor for the given sleep length range (determined before
+> +selecting the idle state for the CPU) is updated after the CPU has been woken
+> +up and the closer the sleep length is to the observed idle duration, the closer
+> +to 1 the correction factor becomes (it must fall between 0 and 1 inclusive).
+> +The sleep length is multiplied by the correction factor for the range that it
+> +falls into to obtain the first approximation of the predicted idle duration.
+> +
+> +Next, the governor uses a simple pattern recognition algorithm to refine its
+> +idle duration prediction.  Namely, it saves the last 8 observed idle duration
+> +values and, when predicting the idle duration next time, it computes the average
+> +and variance of them.  If the variance is small (smaller than 400 square
+> +milliseconds) or it is small relative to the average (the average is greater
+> +that 6 times the standard deviation), the average is regarded as the "typical
+> +interval" value.  Otherwise, the longest of the saved observed idle duration
+> +values is discarded and the computation is repeated for the remaining ones.
+> +Again, if the variance of them is small (in the above sense), the average is
+> +taken as the "typical interval" value and so on, until either the "typical
+> +interval" is determined or too many data points are disregarded, in which case
+> +the "typical interval" is assumed to equal "infinity" (the maximum unsigned
+> +integer value).  The "typical interval" computed this way is compared with the
+> +sleep length multiplied by the correction factor and the minumum of the two is
+
+                                                            minimum
+
+> +taken as the predicted idle duration.
+> +
+> +Then, the governor computes an extra latency limit to help "interactive"
+> +workloads.  It uses the obsevation that if the exit latency of the selected idle
+
+                           observation
+
+> +state is comparable with the predicted idle duration, the total time spent in
+> +that state probably will be very short and the amount of energy to save by
+> +entering it will be relatively small, so likely it is better to avoid the
+> +overhead related to entering that state and exiting it.  Thus selecting a
+> +shallower state is likely to be a better option then.   The first approximation
+> +of the extra latency limit is the predicted idle duration itself which
+> +additionally is divided by a value depending on the number of tasks that
+> +previously ran on the given CPU and now they are waiting for I/O operations to
+> +complete.  The result of that division is compared with the latency limit coming
+> +from the power management quality of service, or `PM QoS <cpu-pm-qos_>`_,
+> +framework and the minimum of the two is taken as the limit for the idle states'
+> +exit latency.
+> +
+> +Now, the governor is ready to walk the list of idle states and choose one of
+> +them.  For this purpose, it compares the target residency of each state with
+> +the predicted idle duration and the exit latecy of it with the computed latency
+
+                                            latency
+
+> +limit.  It selects the state with the target residency closest to the predicted
+> +idle duration, but still below it, and exit latency that does not exceed the
+> +limit.
+> +
+> +In the final step the governor may still need to refine the idle state selection
+> +if it has not decided to `stop the scheduler tick <idle-cpus-and-tick_>`_.  That
+> +happens if the idle duration predicted by it is less than the tick period and
+> +the tick has not been stopped already (in a previous iteration of the idle
+> +loop).  Then, the sleep length used in the previous computations may not reflect
+> +the real time until the closest timer event and if it really is geater than that
+
+                                                                   greater
+
+> +time, the governor may need to select a shallower state with a suitable target
+> +residency.
+> +
+> +
+
+What about a short section for the ladder governor as well ?
+
+> +.. _idle-states-representation:
+> +
+> +Representation of Idle States
+> +=============================
+> +
+> +For the CPU idle time management purposes all of the physical idle states
+> +supported by the processor have to be represented as a one-dimensional array of
+> +|struct cpuidle_state| objects each allowing an individual (logical) CPU to ask
+> +the processor hardware to enter an idle state of certain properties.  If there
+> +is a hierarchy of units in the processor, one |struct cpuidle_state| object can
+> +cover a combination of idle states supported by the units at different levels of
+> +the hierarchy.  In that case, the `target residency and exit latency parameters
+> +of it <idle-loop_>`_, must reflect the properties of the idle state at the
+> +deepest level (i.e. the idle state of the unit containing all of the other
+> +units).
+> +
+> +For example, take a processor with two cores in a larger unit referred to as
+> +a "module" and suppose that asking the hardware to enter a specific idle state
+> +(say "X") at the "core" level by one core will trigger the module to try to
+> +enter a specific idle state of its own (say "MX") if the other core is in idle
+> +state "X" already.  In other words, asking for idle state "X" at the "core"
+> +level gives the hardware a license to go as deep as to idle state "MX" at the
+> +"module" level, but there is no guarantee that this is going to happen (the core
+> +asking for idle state "X" may just end up in that state by itself instead).
+> +Then, the target residency of the |struct cpuidle_state| object representing
+> +idle state "X" must reflect the minimum time to spend in idle state "MX" of
+> +the module (including the time needed to enter it), because that is the minimum
+> +time the CPU needs to be idle to save any energy in case the hardware enters
+> +that state.  Analogously, the exit latency parameter of that object must cover
+> +the exit time of idle state "MX" of the module (and usually its entry time too),
+> +because that is the maximum delay between a wakeup signal and the time the CPU
+> +will start to execute the first new instruction (assuming that both cores in the
+> +module will always be ready to execute instructions as soon as the module
+> +becomes operational as a whole).
+> +
+> +In addition to the target residency and exit latency idle state parameters
+> +discussed above, the objects representing idle states each contain a few other
+> +parameters describing the idle state and a pointer to the function to run in
+> +order to ask the hardware to enter that state.  Also, for each
+> +|struct cpuidle_state| object, there is a corresponding
+> +:c:type:`struct cpuidle_state_usage <cpuidle_state_usage>` one containig usage
+
+                                                                  containing
+
+> +statistics of the given idle state.  That information is exposed by the kernel
+> +via ``sysfs``.
+> +
+> +For each CPU in the system, there is a :file:`/sys/devices/system/cpu<N>/cpuidle/`
+> +directory in ``sysfs``, where the number ``<N>`` is assigned to the given
+> +CPU at the initialization time.  That directory contains a set of subdirectories
+> +called :file:`state0`, :file:`state1` and so on, up to the number of idle state
+> +objects defined for the given CPU minus one.  Each of these directories contains
+> +a number of files (attributes) representing the properties of the idle state
+> +object corresponding to it, as follows:
+> +
+> +
+> +``desc``
+> +	Description of the idle state.
+> +
+> +``disable``
+> +	Whether or not this idle state is disabled.
+> +
+> +``latency``
+> +	Exit latency of the idle state in microseconds.
+> +
+> +``name``
+> +	Name of the idle state.
+> +
+> +``power``
+> +	Power drawn by hardware in this idle state in milliwatts (if specified,
+> +	0 otherwise).
+> +
+> +``residency``
+> +	Target residency of the idle state in microseconds.
+> +
+> +``time``
+> +	Total time spent in this idle state by the given CPU (as measured by the
+> +	kernel) in microseconds.
+> +
+> +``usage``
+> +	Total number of times the hardware has been asked by the given CPU to
+> +	enter this idle state.
+> +
+> +The :file:`desc` and :file:`name` files both contain strings.  The difference
+> +between them is that the name is expected to be more concise, while the
+> +description may be longer and it may contain white space or special characters.
+> +The other files listed above contain integer numbers.
+> +
+> +The :file:`disable` attribute is the only writeable one.  If it contains 1, the
+> +given idle state is disabled for this particular CPU, which means that the
+> +governor will never select it for this particular CPU and the ``CPUIdle``
+> +driver will never ask the hardware to enter it for that CPU as a result.
+> +However, disabling an idle state for one CPU does not prevent it from being
+> +asked for by the other CPUs, so it must be disabled for all of them in order to
+> +never be asked for by any of them.  [Note that, due to the way the ``ladder``
+> +governor is implemented, disabling an idle state prevents that governor from
+> +selecting any idle states deeper than the disabled one too.]
+> +
+> +If the :file:`disable` attribute contains 0, the given idle state is enabled for
+> +this particular CPU, but it still may be disabled for some or all of the other
+> +CPUs in the system at the same time.  Writing 1 to it causes the idle state to
+> +be disabled for this particular CPU and writing 0 to it allows the governor to
+> +take it into consideration for the given CPU and the driver to ask for it,
+> +unless that state was disabled globally in the driver (in which case it cannot
+> +be used at all).
+> +
+> +The :file:`power` attribute is not defined very well, especially for idle state
+> +objects representing combinations of idle states at different levels of the
+> +hierarchy of units in the processor, and it generally is hard to obtain idle
+> +state power numbers for complex hardware, so :file:`power` often contains 0 (not
+> +available) and if it contains a nonzero number, that number may not be very
+> +accurate and it should not be relied on for anything meaningful.
+> +
+> +The number in the :file:`time` file generally may be greater than the total time
+> +really spent by the given CPU in the given idle state, because it is measured by
+> +the kernel and it may not cover the cases in which the hardware refused to enter
+> +this idle state and entered a shallower one instead of it (or even it did not
+> +enter any idle state at all).  The kernel can only measure the time span between
+> +asking the hardware to enter an idle state and the subsequent wakeup of the CPU
+> +and it cannot say what really happened in the meantime at the hardware level.
+> +Moreover, if the idle state object in question represents a combination of idle
+> +states at different levels of the hierarchy of units in the processor,
+> +the kernel can never say how deep the hardware went down the hierarchy in any
+> +particular case.  For these reasons, the only reliable way to find out how
+> +much time has been spent by the hardware in different idle states supported by
+> +it is to use idle state residency counters in the hardware, if available.
+> +
+> +
+
+Maybe I missed, but I couldn't find any text that says what state 0, 1, ... N
+mean. Like which is the deepest idle state and which one is the shallowest.
+
+> +.. _cpu-pm-qos:
+> +
+> +Power Management Quality of Service for CPUs
+> +============================================
+> +
+> +The power management quality of service (PM QoS) framework in the Linux kernel
+> +allows kernel code and user space processes to set constraints on various
+> +energy-efficiency features of the kernel to prevent performance from dropping
+> +below a required level.  The PM QoS constraints can be set globally, in
+> +predefined categories referred to as PM QoS classes, or against individual
+> +devices.
+> +
+> +CPU idle time management can be affected by PM QoS in two ways, through the
+> +global constraint in the ``PM_QOS_CPU_DMA_LATENCY`` class and through the
+> +resume latency constraints for individual CPUs.  Kernel code (e.g. device
+> +drivers) can set both of them with the help of special internal interfaces
+> +provided by the PM QoS framework.  User space can modify the former by opeining
+
+                                                                          opening
+
+> +the :file:`cpu_dma_latency` special device file under :file:`/dev/` and writing
+> +a binary value (interpreted as a signed 32-bit integer) to it.  In turn, the
+> +resume latency constraint for a CPU can be modified by user space by writing a
+> +string (representing a signed 32-bit integer) to the
+> +:file:`power/pm_qos_resume_latency_us` file under
+> +:file:`/sys/devices/system/cpu/cpu<N>/` in ``sysfs``, where the CPU number
+> +``<N>`` is allocated at the system initialization time.  Negative values
+> +will be rejected in both cases and, also in both cases, the written integer
+> +number will be interpreted as a requested PM QoS constraint in microseconds.
+> +
+> +The requested value is not automatically applied as a new constraint, however,
+> +as it may be less restrictive (greater in this particular case) than another
+> +constraint previously requested by someone else.  For this reason, the PM QoS
+> +framework maintains a list of requests that have been made so far in each
+> +global class and for each device, aggregates them and applies the effective
+> +(minimum in this particular case) value as the new constraint.
+> +
+> +In fact, opening the :file:`cpu_dma_latency` special device file causes a new
+> +PM QoS request to be created and added to the priority list of requests in the
+> +``PM_QOS_CPU_DMA_LATENCY`` class and the file descriptor coming from the
+> +"open" operation represents that request.  If that file descriptor is then
+> +used for writing, the number written to it will be associated with the PM QoS
+> +request represented by it as a new requested constraint value.  Next, the
+> +priority list mechanism will be used to determine the new effective value of
+> +the entire list of requests and that effective value will be set as a new
+> +constraint.  Thus setting a new requested constraint value will only change the
+> +real constraint if the effective "list" value is affected by it.  In particular,
+> +for the ``PM_QOS_CPU_DMA_LATENCY`` class it only affects the real constraint if
+> +it is the minimum of the requested contraints in the list.  The process holding
+
+                                      constraints
+
+> +a file descriptor obtained by opening the :file:`cpu_dma_latency` special device
+> +file controls the PM QoS request associated with that file descriptor, but it
+> +controls this particular PM QoS request only.
+> +
+> +Closing the :file:`cpu_dma_latency` special device file or, more precisely, the
+> +file descriptor obtained while opening it, causes the PM QoS request associated
+> +with that file descriptor to be removed from the ``PM_QOS_CPU_DMA_LATENCY``
+> +class priority list and destroyed.  If that happens, the priority list mechanism
+> +will be used, again, to determine the new effective value for the whole list
+> +and that value will become the new real constraint.
+> +
+> +In turn, for each CPU there is only one resume latency PM QoS request
+> +associated with the :file:`power/pm_qos_resume_latency_us` file under
+> +:file:`/sys/devices/system/cpu/cpu<N>/` in ``sysfs`` and writing to it causes
+> +this single PM QoS request to be updated regardless of which user space
+> +process does that.  In other words, this PM QoS request is shared by the entire
+> +user space, so access to the file associated with it needs to be arbitrated
+> +to avoid confusion.  [Arguably, the only legitimate use of this mechanism in
+> +practice is to pin a process to the CPU in question and let it use the
+> +``sysfs`` interface to control the resume latency constraint for it.]  It
+> +still only is a request, however.  It is a member of a priority list used to
+> +determine the effective value to be set as the resume latency constraint for the
+> +CPU in question every time the list of requests is updated this way or another
+> +(there may be other requests coming from kernel code in that list).
+> +
+> +CPU idle time governors are expected to regard the minimum of the global
+> +effective ``PM_QOS_CPU_DMA_LATENCY`` class constraint and the effective
+> +resume latency constraint for the given CPU as the upper limit for the exit
+> +latency of the idle states they can select for that CPU.  They should never
+> +select any idle states with exit latency beyond that limit.
+> +
+
+-- 
+viresh
