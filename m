@@ -1,33 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
-Date: Wed, 28 Nov 2018 13:39:52 +0200
-Message-ID: <20181128113952.GX2296@lahna.fi.intel.com>
-References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
- <20181126111526.56340-2-mika.westerberg@linux.intel.com>
- <CAJZ5v0he4BmyJ97=uwVpJtojhe0f5pTq81LBdAQG6RFy6edKrQ@mail.gmail.com>
- <20181128105415.GV2296@lahna.fi.intel.com>
- <CAJZ5v0g5h42G-Svc_DZafucb0SyNQGE2ZhnnKnJ5UTjCWCMgxw@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v5 03/15] platform/x86: i2c-multi-instantiate: Accept errors of i2c_acpi_new_device()
+Date: Wed, 28 Nov 2018 13:45:23 +0200
+Message-ID: <20181128114535.80223-4-andriy.shevchenko@linux.intel.com>
+References: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0g5h42G-Svc_DZafucb0SyNQGE2ZhnnKnJ5UTjCWCMgxw@mail.gmail.com>
+In-Reply-To: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, "Raj, Ashok" <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Pan, Jacob jun" <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, ckellner@redhat.com, Mario Limonciello <Mario.Limonciello@dell.com>, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>ACPI Devel Maling List <li>
+To: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 12:24:27PM +0100, Rafael J. Wysocki wrote:
-> I'm not sure if this is worth the extra complexity either, which is
-> why I have no strong opinion here. :-)
-> 
-> Maybe you can add a comment, next to the prp_guids[] definition, to
-> explain that the GUIDs are made equivalent to each other in order to
-> avoid extra complexity in the properties handling code, with the
-> caveat that the kernel will accept certain combinations of GUIDs and
-> properties that are not defined strictly speaking without warning, but
-> those combinations of GUIDs and properties are not expected to be used
-> by firmware and they should be caught by firmware validation tools and
-> reported as errors anyway.
+In the future i2c_acpi_new_device() will return error pointer in some cases.
+Prepare i2c-multi-instantiate driver to support that.
 
-Sure, I'll add the comment in the next version of the series.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/i2c-multi-instantiate.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/platform/x86/i2c-multi-instantiate.c b/drivers/platform/x86/i2c-multi-instantiate.c
+index 5456581b473c..e3345da82c84 100644
+--- a/drivers/platform/x86/i2c-multi-instantiate.c
++++ b/drivers/platform/x86/i2c-multi-instantiate.c
+@@ -72,9 +72,14 @@ static int i2c_multi_inst_probe(struct platform_device *pdev)
+ 			board_info.irq = ret;
+ 		}
+ 		multi->clients[i] = i2c_acpi_new_device(dev, i, &board_info);
+-		if (!multi->clients[i]) {
+-			dev_err(dev, "Error creating i2c-client, idx %d\n", i);
++		if (IS_ERR(multi->clients[i]))
++			ret = PTR_ERR(multi->clients[i]);
++		else if (!multi->clients[i])
+ 			ret = -ENODEV;
++		else
++			ret = 0;
++		if (ret) {
++			dev_err(dev, "Error creating i2c-client, idx %d\n", i);
+ 			goto error;
+ 		}
+ 	}
+-- 
+2.19.2
