@@ -1,76 +1,170 @@
 From: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH v2 1/4] PCI / ACPI: Identify untrusted PCI devices
-Date: Wed, 28 Nov 2018 12:54:15 +0200
-Message-ID: <20181128105415.GV2296@lahna.fi.intel.com>
-References: <20181126111526.56340-1-mika.westerberg@linux.intel.com>
-	<20181126111526.56340-2-mika.westerberg@linux.intel.com>
-	<CAJZ5v0he4BmyJ97=uwVpJtojhe0f5pTq81LBdAQG6RFy6edKrQ@mail.gmail.com>
+Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
+ ACPI errors, lockups
+Date: Wed, 28 Nov 2018 13:08:57 +0200
+Message-ID: <20181128110857.GW2296@lahna.fi.intel.com>
+References: <20181126221005-mutt-send-email-mst@kernel.org>
+ <20181127093650.GP2296@lahna.fi.intel.com>
+ <20181127212550-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0he4BmyJ97=uwVpJtojhe0f5pTq81LBdAQG6RFy6edKrQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Alex Williamson <alex.williamson-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "Raj,
-	Ashok" <ashok.raj-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mario Limonciello <Mario.Limonciello-8PEkshWhKlo@public.gmane.org>, Michael Jamet <michael.jamet-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ckellner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Yehezkel Bernat <YehezkelShB-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Anthony Wong <anthony.wong-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Andreas Noever <andreas.noever-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, Lukas Wunner <lukas-JFq808J9C/izQB+pC5nmwQ@public.gmane.org>, "Pan, Jacob jun" <jacob.jun.pan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux PCI <linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bjorn Helgaas <bhelgaas-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20181127212550-mutt-send-email-mst-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Nov 27, 2018 at 06:14:43PM +0100, Rafael J. Wysocki wrote:
-> > diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> > index 8c7c4583b52d..4bdad32f62c8 100644
-> > --- a/drivers/acpi/property.c
-> > +++ b/drivers/acpi/property.c
-> > @@ -31,6 +31,9 @@ static const guid_t prp_guids[] = {
-> >         /* Hotplug in D3 GUID: 6211e2c0-58a3-4af3-90e1-927a4e0c55a4 */
-> >         GUID_INIT(0x6211e2c0, 0x58a3, 0x4af3,
-> >                   0x90, 0xe1, 0x92, 0x7a, 0x4e, 0x0c, 0x55, 0xa4),
-> > +       /* External facing port GUID: efcc06cc-73ac-4bc3-bff0-76143807c389 */
-> > +       GUID_INIT(0xefcc06cc, 0x73ac, 0x4bc3,
-> > +                 0xbf, 0xf0, 0x76, 0x14, 0x38, 0x07, 0xc3, 0x89),
-> >  };
-> 
-> One observation here.  Note that I really have no strong opinion on
-> that, so this is not an objection, but IMO it is fair to make things
-> clear for everybody.
-> 
-> So this causes the External facing port GUID (which already is the
-> case with the Hotplug in D3 GUID for that matter) to be practically
-> equivalent to the ACPI _DSD device properties GUID.  This means that
-> Linux will consider a combination of any of these GUIDs with any
-> properties defined for any of them as valid, which need not be the
-> case in Windows.
-> 
-> For example, since the ExternalFacingPort property is defined along
-> with the External facing port GUID, Windows will likely ignore it if
-> it is used in a combination with the Hotplug in D3 GUID or the ACPI
-> _DSD device properties GUID.  If the firmware combines the Hotplug in
-> D3 GUID or the ACPI _DSD device properties GUID with that property,
-> Windows will not regard it as valid, most likely, but Linux will use
-> it just fine.  In the face of ASL bugs, which are inevitable (at least
-> just because ASL is code written by humans), that may become a real
-> problem, as systems successfully tested with Windows may not work with
-> Linux as expected and vice versa because of it.
-
-That's a fair point.
-
-> >From the ecosystem purity perspective this should be avoided, but then
-> I do realize that this allows code to be re-used and avoids quite a
-> bit of complexity.  The likelihood of an ASL bug that will expose this
-> issue is arguably small, so maybe it is not a practical concern after
-> all.
-
-One option assuming we want to prevent the potential discrepancy you
-described above is to add ACPI specific property accessors that take
-GUID as parameter. Then it would only look properties inside that
-particular _DSD entry. I'm not sure if it is worth the added complexity,
-though.
+T24gVHVlLCBOb3YgMjcsIDIwMTggYXQgMDk6NDk6NDRQTSAtMDUwMCwgTWljaGFlbCBTLiBUc2ly
+a2luIHdyb3RlOgo+IE9uIFR1ZSwgTm92IDI3LCAyMDE4IGF0IDExOjM2OjUwQU0gKzAyMDAsIE1p
+a2EgV2VzdGVyYmVyZyB3cm90ZToKPiA+ICtsaW51eC1hY3BpCj4gPiAKPiA+IEhpIE1pY2hhZWws
+Cj4gPiAKPiA+IE9uIE1vbiwgTm92IDI2LCAyMDE4IGF0IDEwOjUzOjI2UE0gLTA1MDAsIE1pY2hh
+ZWwgUy4gVHNpcmtpbiB3cm90ZToKPiA+ID4gU28gYSBuZXcgdGhpbmtwYWQ6Cj4gPiA+IDAxOjAw
+LjAgVkdBIGNvbXBhdGlibGUgY29udHJvbGxlcjogTlZJRElBIENvcnBvcmF0aW9uIEdQMTA3R0xN
+IFtRdWFkcm8gUDIwMDAgTW9iaWxlXSAocmV2IGExKQo+ID4gPiAKPiA+ID4gSGFuZ3Mgd2hlbmV2
+ZXIgSSB0cnkgdG8gcG9rZSBhdCB0aGUgY2FyZC4gSXQgc3RhcnRzIGhhcHBpbHkgZW5vdWdoIHdp
+dGgKPiA+ID4gCj4gPiA+IFsgICAgMy45NzE1MTVdIEFDUEkgV2FybmluZzogXF9TQi5QQ0kwLkdG
+WDAuX0RTTTogQXJndW1lbnQgIzQgdHlwZSBtaXNtYXRjaCAtIEZvdW5kIFtCdWZmZXJdLCBBQ1BJ
+IHJlcXVpcmVzIFtQYWNrYWdlXSAoMjAxODEwMDMvbnNhcmd1bWVudHMtNjYpCj4gPiA+IFsgICAg
+My45NzE1NTNdIEFDUEkgV2FybmluZzogXF9TQi5QQ0kwLlBFRzAuUEVHUC5fRFNNOiBBcmd1bWVu
+dCAjNCB0eXBlIG1pc21hdGNoIC0gRm91bmQgW0J1ZmZlcl0sIEFDUEkgcmVxdWlyZXMgW1BhY2th
+Z2VdICgyMDE4MTAwMy9uc2FyZ3VtZW50cy02NikKPiA+ID4gWyAgICAzLjk3MTcyMV0gcGNpIDAw
+MDA6MDE6MDAuMDogb3B0aW11cyBjYXBhYmlsaXRpZXM6IGVuYWJsZWQsIHN0YXR1cyBkeW5hbWlj
+IHBvd2VyLCBoZGEgYmlvcyBjb2RlYyBzdXBwb3J0ZWQKPiA+ID4gWyAgICAzLjk3MTcyNl0gVkdB
+IHN3aXRjaGVyb286IGRldGVjdGVkIE9wdGltdXMgRFNNIG1ldGhvZCBcX1NCXy5QQ0kwLlBFRzAu
+UEVHUCBoYW5kbGUKPiA+ID4gWyAgICAzLjk3MTcyN10gbm91dmVhdTogZGV0ZWN0ZWQgUFIgc3Vw
+cG9ydCwgd2lsbCBub3QgdXNlIERTTQo+IAo+IEJUVyB0aGlzIGlzIGFsc28gYSBiaXQgc3RyYW5n
+ZS4gSXQgc2F5cyBpdCB3aWxsIG5vdCB1c2UgRFNNIC0gYnV0IGRpZAo+IGl0IG1heWJlIHVzZSBE
+U00gcHJldmlvdXNseT8gVGhlIEFDUEkgV2FybmluZyBzZWVtcyB0byBpbmRpY2F0ZSB0aGF0Cj4g
+aXQgZGlkIC4uLgo+IAo+IEFuZCBqdXN0IHRvIGNvbXBsZXRlIHRoZSBwaWN0dXJlIGhlcmUncyB0
+aGUgX0RTTSBmcm9tIEFDUEk6Cj4gCj4gICAgICAgICBNZXRob2QgKF9EU00sIDQsIFNlcmlhbGl6
+ZWQpICAvLyBfRFNNOiBEZXZpY2UtU3BlY2lmaWMgTWV0aG9kCj4gICAgICAgICB7CgouLi4KCj4g
+ICAgICAgICB9Cj4gCj4gCj4gSSBhbSBub3Qgc3VyZSB3aGF0IG1ha2VzIGl0IHRoaW5rIHRoYXQg
+QXJnMyBpcyBhIGJ1ZmZlciBhbmQKPiBub3QgYSBwYWNrYWdlOiBJSVJDIEluZGV4IChkZWNvZGVk
+IEMtc3R5bGUgaGVyZSBhcyBbXSkgY2FuIGFwcGx5Cj4gdG8gZWl0aGVyLgo+IAo+IEFtIEkgbWF5
+YmUgbWlzdW5kZXJzdGFuZGluZyB0aGUgd2FybmluZz8KCkl0IGxvb2tzIGxpa2UgY29taW5nIGZy
+b20gdGhlIG5vdXZlYXUgZHJpdmVyIChhc3N1bWluZyBJJ20gcmVhZGluZyBpdCByaWdodCkuCgpk
+cml2ZXJzL2dwdS9kcm0vbm91dmVhdS9ub3V2ZWF1X2FjcGkuYzo6bm91dmVhdV9vcHRpbXVzX2Rz
+bSgpCgogICAgICAgIHVuaW9uIGFjcGlfb2JqZWN0IGFyZ3Y0ID0gewogICAgICAgICAgICAgICAg
+LmJ1ZmZlci50eXBlID0gQUNQSV9UWVBFX0JVRkZFUiwKICAgICAgICAgICAgICAgIC5idWZmZXIu
+bGVuZ3RoID0gNCwKICAgICAgICAgICAgICAgIC5idWZmZXIucG9pbnRlciA9IGFyZ3NfYnVmZgog
+ICAgICAgIH07CgogICAgICAgIC4uLgoKICAgICAgICBvYmogPSBhY3BpX2V2YWx1YXRlX2RzbV90
+eXBlZChoYW5kbGUsICZub3V2ZWF1X29wX2RzbV9tdWlkLCAweDAwMDAwMTAwLAogICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgIGZ1bmMsICZhcmd2NCwgQUNQSV9UWVBFX0JVRkZF
+Uik7CgoKSXQgcGFzc2VzIEFDUElfVFlQRV9CVUZGRVIgYnV0IEFDUEkgc3BlYyBfRFNNIGV4cGVj
+dHMgcGFja2FnZS4KCj4gPiA+IFsgICAgMy45NzE3NDVdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBl
+bmFibGluZyBkZXZpY2UgKDAwMDYgLT4gMDAwNykKPiA+ID4gWyAgICAzLjk3MTkyM10gbm91dmVh
+dSAwMDAwOjAxOjAwLjA6IE5WSURJQSBHUDEwNyAoMTM3MDAwYTEpCj4gPiA+IFsgICAgNC4wMDk4
+NzVdIFBNOiBJbWFnZSBub3QgZm91bmQgKGNvZGUgLTIyKQo+ID4gPiBbICAgIDQuMTM1NzUyXSBu
+b3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBWUkFNOiA0MDk2IE1pQgo+ID4gPiBbICAgIDQuMTM1
+NzUzXSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBHQVJUOiA1MzY4NzA5MTIgTWlCCj4gPiA+
+IFsgICAgNC4xMzU3NTRdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IEJJVCB0YWJsZSAnQScg
+bm90IGZvdW5kCj4gPiA+IFsgICAgNC4xMzU3NTVdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06
+IEJJVCB0YWJsZSAnTCcgbm90IGZvdW5kCj4gPiA+IFsgICAgNC4xMzU3NTZdIG5vdXZlYXUgMDAw
+MDowMTowMC4wOiBEUk06IFRNRFMgdGFibGUgdmVyc2lvbiAyLjAKPiA+ID4gWyAgICA0LjEzNTc1
+Nl0gbm91dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogRENCIHZlcnNpb24gNC4xCj4gPiA+IFsgICAg
+NC4xMzU3NTddIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAwOiAwMjgwMGY3
+NiAwNDYwMDAyMAo+ID4gPiBbICAgIDQuMTM1NzU4XSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJN
+OiBEQ0Igb3V0cCAwMTogMDIwMTFmNjIgMDAwMjAwMTAKPiA+ID4gWyAgICA0LjEzNTc1OV0gbm91
+dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogRENCIG91dHAgMDI6IDAxMDIyZjQ2IDA0NjAwMDEwCj4g
+PiA+IFsgICAgNC4xMzU3NjBdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBvdXRwIDAz
+OiAwMTAzM2Y1NiAwNDYwMDAyMAo+ID4gPiBbICAgIDQuMTM1NzYxXSBub3V2ZWF1IDAwMDA6MDE6
+MDAuMDogRFJNOiBEQ0IgY29ubiAwMDogMDAwMjAwNDcKPiA+ID4gWyAgICA0LjEzNTc2MV0gbm91
+dmVhdSAwMDAwOjAxOjAwLjA6IERSTTogRENCIGNvbm4gMDE6IDAwMDEwMTYxCj4gPiA+IFsgICAg
+NC4xMzU3NjJdIG5vdXZlYXUgMDAwMDowMTowMC4wOiBEUk06IERDQiBjb25uIDAyOiAwMDAwMTI0
+Ngo+ID4gPiBbICAgIDQuMTM1NzYzXSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogRFJNOiBEQ0IgY29u
+biAwMzogMDAwMDIzNDYKPiA+ID4gWyAgICA0LjUwODM1NV0gW2RybV0gU3VwcG9ydHMgdmJsYW5r
+IHRpbWVzdGFtcCBjYWNoaW5nIFJldiAyICgyMS4xMC4yMDEzKS4KPiA+ID4gWyAgICA0LjUwODM1
+NV0gW2RybV0gRHJpdmVyIHN1cHBvcnRzIHByZWNpc2UgdmJsYW5rIHRpbWVzdGFtcCBxdWVyeS4K
+PiA+ID4gWyAgICA0LjUwOTgxMl0gW2RybV0gQ2Fubm90IGZpbmQgYW55IGNydGMgb3Igc2l6ZXMK
+PiA+ID4gWyAgICA0LjUxMDE0NF0gW2RybV0gSW5pdGlhbGl6ZWQgbm91dmVhdSAxLjMuMSAyMDEy
+MDgwMSBmb3IgMDAwMDowMTowMC4wIG9uIG1pbm9yIDIKPiA+ID4gCj4gPiA+IAo+ID4gPiBBbHRo
+b3VnaCB0aGF0IHR5cGUgbWlzbWF0Y2ggaXMgYSBiaXQgd29ycnlpbmcuIEFuZCBJJ20gbm90IHN1
+cmUgd2hhdAo+ID4gPiBwcmludHMgUE06IEltYWdlIG5vdCBmb3VuZC4KPiA+IAo+ID4gVGhhdCBp
+cyBmaW5lLCBpdCBqdXN0IHNheXMgaXQgY2Fubm90IGZpbmQgYSBoaWJlcm5hdGlvbiBpbWFnZSBm
+cm9tIHN3YXAKPiA+IGRldmljZS4gSSBndWVzcyB5b3UgaGF2ZSByZXN1bWU9Li4uIGluIHRoZSBr
+ZXJuZWwgY29tbWFuZCBsaW5lLgo+ID4gCj4gPiA+IEJ1dCBhZnRlciBhIHNob3J0IHdoaWxlIGl0
+IGdldHMgcHJldHR5IGJ1c3k6Cj4gPiA+IAo+ID4gPiAKPiA+ID4gWyAgIDUyLjkxNzAwOV0gTm8g
+TG9jYWwgVmFyaWFibGVzIGFyZSBpbml0aWFsaXplZCBmb3IgTWV0aG9kIFtOVlBPXQo+ID4gPiBb
+ICAgNTIuOTE3MDExXSBObyBBcmd1bWVudHMgYXJlIGluaXRpYWxpemVkIGZvciBtZXRob2QgW05W
+UE9dCj4gPiA+IFsgICA1Mi45MTcwMTJdIEFDUEkgRXJyb3I6IE1ldGhvZCBwYXJzZS9leGVjdXRp
+b24gZmFpbGVkIFxfU0IuUENJMC5QRUcwLlBFR1AuTlZQTywgQUVfQU1MX0xPT1BfVElNRU9VVCAo
+MjAxODEwMDMvcHNwYXJzZS01MTYpCj4gPiA+IFsgICA1Mi45MTcwNjNdIEFDUEkgRXJyb3I6IE1l
+dGhvZCBwYXJzZS9leGVjdXRpb24gZmFpbGVkIFxfU0IuUENJMC5QR09OLCBBRV9BTUxfTE9PUF9U
+SU1FT1VUICgyMDE4MTAwMy9wc3BhcnNlLTUxNikKPiA+ID4gWyAgIDUyLjkxNzA4NF0gQUNQSSBF
+cnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQgXF9TQi5QQ0kwLlBFRzAuUEcwMC5f
+T04sIEFFX0FNTF9MT09QX1RJTUVPVVQgKDIwMTgxMDAzL3BzcGFyc2UtNTE2KQo+ID4gPiBbICAg
+NTIuOTE3MTA4XSBhY3BpIGRldmljZTowMDogRmFpbGVkIHRvIGNoYW5nZSBwb3dlciBzdGF0ZSB0
+byBEMAo+ID4gCj4gPiBIZXJlIGl0IHNlZW1zIHRvIGZhaWwgdG8gdHVybiBvbiB0aGUgcG93ZXIg
+cmVzb3VyY2UgZm9yIHRoZSBkZXZpY2UuCj4gPgo+ID4gPiBbICAgNTIuOTY5Mjg3XSB2aWRlbyBM
+TlhWSURFTzowMDogQ2Fubm90IHRyYW5zaXRpb24gdG8gcG93ZXIgc3RhdGUgRDAgZm9yIHBhcmVu
+dCBpbiAodW5rbm93bikKPiA+ID4gWyAgIDUyLjk2OTI4OV0gcGNpX3Jhd19zZXRfcG93ZXJfc3Rh
+dGU6IDIgY2FsbGJhY2tzIHN1cHByZXNzZWQKPiA+ID4gWyAgIDUyLjk2OTI5MV0gbm91dmVhdSAw
+MDAwOjAxOjAwLjA6IFJlZnVzZWQgdG8gY2hhbmdlIHBvd2VyIHN0YXRlLCBjdXJyZW50bHkgaW4g
+RDMKPiA+ID4gWyAgIDUzLjAyOTUxNF0gdmlkZW8gTE5YVklERU86MDA6IENhbm5vdCB0cmFuc2l0
+aW9uIHRvIHBvd2VyIHN0YXRlIEQwIGZvciBwYXJlbnQgaW4gKHVua25vd24pCj4gPiA+IFsgICA1
+My4wNDEwMjddIG5vdXZlYXUgMDAwMDowMTowMC4wOiBSZWZ1c2VkIHRvIGNoYW5nZSBwb3dlciBz
+dGF0ZSwgY3VycmVudGx5IGluIEQzCj4gPiA+IFsgICA1My4wNDEwMzVdIHZpZGVvIExOWFZJREVP
+OjAwOiBDYW5ub3QgdHJhbnNpdGlvbiB0byBwb3dlciBzdGF0ZSBEMCBmb3IgcGFyZW50IGluICh1
+bmtub3duKQo+ID4gPiBbICAgNTMuMDUzMDA4XSBub3V2ZWF1IDAwMDA6MDE6MDAuMDogUmVmdXNl
+ZCB0byBjaGFuZ2UgcG93ZXIgc3RhdGUsIGN1cnJlbnRseSBpbiBEMwo+ID4gPiAKPiA+ID4gCj4g
+PiA+IEFuZCB0aGVuIGtlcm5lbCBwcm9jZWVkcyB0byB0aHJvdyB1cCBlcnJvcnMgYXQgcmFuZG9t
+IHBsYWNlcywgZS5nLgo+ID4gPiAKPiA+ID4gWyAgIDY3LjAyMTg5Ml0gY2ZnODAyMTE6IGZhaWxl
+ZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTg5NV0gY2ZnODAyMTE6IGZh
+aWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTg5N10gY2ZnODAyMTE6
+IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTkwMF0gY2ZnODAy
+MTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTkyN10gY2Zn
+ODAyMTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTkyOF0g
+Y2ZnODAyMTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAyMTkz
+Ml0gY2ZnODAyMTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3LjAy
+MTkzNF0gY2ZnODAyMTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAgIDY3
+LjAyNDQ2M10gY2ZnODAyMTE6IGZhaWxlZCB0byBsb2FkIHJlZ3VsYXRvcnkuZGIKPiA+ID4gWyAg
+IDk5Ljk4MDYyNV0gaXdsd2lmaSAwMDAwOjAwOjE0LjM6IEVycm9yIHNlbmRpbmcgU1RBVElTVElD
+U19DTUQ6IHRpbWUgb3V0IGFmdGVyIDIwMDBtcy4KPiAKPiBCVFcgdGhpcyBvbmUgbWlnaHQgaW5k
+aWNhdGUgdGhhdCBzb21laG93IGl3bHdpZmkgZ290IHBvd2VyZWQKPiBkb3duIHRvbyBzb21laG93
+LiBJdCdzIGF0Cj4gCj4gMDA6MTQuMyBOZXR3b3JrIGNvbnRyb2xsZXI6IEludGVsIENvcnBvcmF0
+aW9uIFdpcmVsZXNzLUFDIDk1NjAgW0plZmZlcnNvbiBQZWFrXSAocmV2IDEwKQo+IAo+IHNvIHJl
+YWxseSBzaG91bGRuJ3QgYmUgYWZmZWN0ZWQsIGJ1dCBnbyBmaWd1cmUuIElmIGRyaXZlciByZWFs
+bHkgaXMgZ2V0dGluZwo+IGFsbC1vbmVzIGZyb20gdGhlIGRldmljZSwgaXQganVzdCBtaWdodCB0
+cnkgdG8gcG9rZSBhdCBhIHdyb25nIGI6ZC5mIGJ5IG1pc3Rha2UKPiBtYXliZSAuLi4KCk9yIGl0
+IHRoZSBwb3dlciByZXNvdXJjZSBpcyBzaGFyZWQgYnkgd2lmaSBhcyB3ZWxsLgoKPiA+ID4gZm9s
+bG93ZWQgYnkgc29mdCBsb2NrdXBzIGFuZCBzb21ldGltZXMgaGFyZCBsb2NrdXBzIGluIHBsYWNl
+cwo+ID4gPiBsaWtlIGF0dGVtcHRzIHRvIHdhbGsgc2tiIGxpc3RzLgo+ID4gPiAKPiA+ID4gQWRk
+aW5nIHJ1bnBtPTAgZG9lcyBhd2F5IHdpdGggdGhpcyBpc3N1ZS4KPiA+ID4gCj4gPiA+IFRoZSBz
+cGVjaWZpYyB0ZXN0IHdhcyB3aXRoIG5vYWNjZWw9MSAtIGl0IGRvZXMgbm90IHNlZW0gdG8gY2hh
+bmdlCj4gPiA+IHRoaW5ncyBmb3IgbWUuCj4gPiA+IAo+ID4gPiBJIHBva2VkIGF0IHRoZSBBQ1BJ
+IG1ldGhvZCBOVlBPIGFuZCB5ZXMgaXQgZG9lcyBhY3R1YWxseQo+ID4gPiBzZWVtIHRvIGV4ZWN1
+dGUgYSB3aGlsZSBsb29wIHdhaXRpbmcgZm9yIHNvbWUgcmVnaXN0ZXIKPiA+ID4gdG8gYmVjb21l
+IDAuIFdoaWNoIEkgZ3Vlc3MgbmV2ZXIgaGFwcGVucz8gQmVjYXVzZSBjYXJkCj4gPiA+IGlzIGlu
+IGEgbG93IHBvd2VyIHN0YXRlIGFuZCBzbyByZWFkcyByZXR1cm4gZmZmZmZmZmYgbWF5YmU/Cj4g
+PiAKPiA+IFllcywgaXQgY291bGQgYmUgdGhlIGNhc2UuCj4gPiAKPiA+ID4gWCBpc24ndCBoYXBw
+eSBldmVuIHdpdGggcnVucG09MCBidXQgdGhhdCBtaWdodCBiZSBhIGRpZmZlcmVudAo+ID4gPiBp
+c3N1ZSAtIEkgdGhvdWdodCBydW5wbT0wIG1pZ2h0IGJlIGFuIGVhc2llciBwbGFjZSB0byBzdGFy
+dCBkZWJ1Z2dpbmcKPiA+ID4gdGhpbmdzIGdpdmVuIHRoZXJlIGFyZSBsb2dzIG9mIHRoZSBmYWls
+dXJlLgo+ID4gPiAKPiA+ID4gVXNpbmcgNC4yMC4wLXJjMyByaWdodCBub3cuCj4gPiA+IAo+ID4g
+PiBVc2Vyc3BhY2UgYml0cyBhcmUgZnJvbSBmZWRvcmEgMjk6Cj4gPiA+IHhvcmcteDExLWRydi1u
+b3V2ZWF1LTEuMC4xNS02LmZjMjkueDg2XzY0Cj4gPiA+IAo+ID4gPiBmaXJtd2FyZSBpcyBwcmV0
+dHkgcmVjZW50Ogo+ID4gPiBsaW51eC1maXJtd2FyZS0yMDE4MTAwOC04OC5naXRjNmI2MjY1ZC5m
+YzI5Lm5vYXJjaAo+ID4gPiAKPiA+ID4gTW9yZSBoaW50cyBmb3IgZGVidWdnaW5nIHdvdWxkIGJl
+IGFwcHJlY2lhdGVkLgo+ID4gPiBJZiBhbnlvbmUgd2FudHMgbWUgdG8gcGxheSB3aXRoIGEgZGlm
+ZmVyZW50IGtlcm5lbCB0cmVlLAo+ID4gPiBsZXQgbWUga25vdy4KPiA+IAo+ID4gQ2FuIHlvdSBz
+aGFyZSBmdWxsIGRtZXNnIGFuZCBhY3BpZHVtcCBvZiB0aGUgc3lzdGVtPyBJIHdvdWxkIGxpa2Ug
+dG8KPiA+IGNoZWNrIHRoZSBwb3dlciByZXNvdXJjZSBtZXRob2RzLgo+IAo+IFBscyBmaW5kIGl0
+IGFzIGFuIGF0dGFjaG1lbnQgaGVyZToKPiBodHRwczovL2J1Z3MuZnJlZWRlc2t0b3Aub3JnL3No
+b3dfYnVnLmNnaT9pZD0xMDg4NzMKPiAKPiBJZiB5b3UgbGlrZSBJIGNhbiBzZW5kIGl0IHRvIHlv
+dSBkaXJlY3RseSB0b28gLQo+IHNwYW1taW5nIHRoZSBsaXN0IHdpdGggaXQgaXNuJ3QgaGVscGZ1
+bCBJIGd1ZXNzPwoKTm8gbmVlZCB0byBzZW5kLCBJIGNhbiByZWFkIGl0IGZyb20gdGhlIGJ1Z3pp
+bGxhIGp1c3QgZmluZS4gQ2FuIHlvdSBhdHRhY2gKYWNwaWR1bXAgdGhlcmUgYXMgd2VsbD8KX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91dmVhdSBtYWls
+aW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVl
+ZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
