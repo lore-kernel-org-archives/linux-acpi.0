@@ -1,51 +1,73 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
- uninitialized pointer value
-Date: Thu, 29 Nov 2018 16:49:57 +0000
-Message-ID: <20181129164957.GA637@e107981-ln.cambridge.arm.com>
-References: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
- <c16634d2-b6b7-1251-8b31-82fef94da3e2@huawei.com>
+From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
+ ACPI errors, lockups
+Date: Thu, 29 Nov 2018 12:12:19 -0500
+Message-ID: <20181129115629-mutt-send-email-mst@kernel.org>
+References: <20181126221005-mutt-send-email-mst@kernel.org>
+ <20181127093650.GP2296@lahna.fi.intel.com>
+ <20181127212550-mutt-send-email-mst@kernel.org>
+ <20181128110857.GW2296@lahna.fi.intel.com>
+ <20181128093527-mutt-send-email-mst@kernel.org>
+ <20181128155544.GD2296@lahna.fi.intel.com>
+ <20181128111312-mutt-send-email-mst@kernel.org>
+ <CACO55tuzDgTb2g_ebhm7+A=UjEEDoM09-b5X_7fkznkFjJGiag@mail.gmail.com>
+ <20181128202728-mutt-send-email-mst@kernel.org>
+ <CACO55tutwu+46dmhy7RuqRHSBorundx3ZcgDZCqSwvxN+JU4-g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <c16634d2-b6b7-1251-8b31-82fef94da3e2@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Patrick Bellasi <patrick.bellasi@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+In-Reply-To: <CACO55tutwu+46dmhy7RuqRHSBorundx3ZcgDZCqSwvxN+JU4-g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/nouveau>
+List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
+ <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
+Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
+Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
+To: Karol Herbst <kherbst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: nouveau <nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 07:34:40PM +0800, Hanjun Guo wrote:
-> On 2018/11/29 17:55, Lorenzo Pieralisi wrote:
-> > Running the Clang static analyzer on IORT code detected the following
-> > error:
-> > 
-> > Logic error: Branch condition evaluates to a garbage value
-> > 
-> > in
-> > 
-> > iort_get_platform_device_domain()
-> > 
-> > If the named component associated with a given device has no IORT
-> > mappings, iort_get_platform_device_domain() exits its MSI mapping loop
-> > with msi_parent pointer containing garbage, which can lead to erroneous
-> > code path execution.
-> 
-> Not sure if we have such use cases that named component associated with
-> a given device has no IORT mappings, but this patch still make sense to
-> me,
-
-Yes, it is to make the kernel more robust against questionable (but valid)
-firmware bindings.
-
-Thanks,
-Lorenzo
+T24gVGh1LCBOb3YgMjksIDIwMTggYXQgMTE6NTM6NTNBTSArMDEwMCwgS2Fyb2wgSGVyYnN0IHdy
+b3RlOgo+IE9uIFRodSwgTm92IDI5LCAyMDE4IGF0IDI6MjkgQU0gTWljaGFlbCBTLiBUc2lya2lu
+IDxtc3RAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPgo+ID4gT24gVGh1LCBOb3YgMjksIDIwMTggYXQg
+MTI6MjE6MzFBTSArMDEwMCwgS2Fyb2wgSGVyYnN0IHdyb3RlOgo+ID4gPiB0aGlzIHdhcyBhbHJl
+YWR5IGRlYnVnZ2VkIGFuZCB0aGVyZSBpcyBubyBwb2ludCBpbiBzZWFyY2hpbmcgaW5zaWRlCj4g
+PiA+IHRoZSBGaXJtd2FyZS4gSXQncyBub3QgYSBmaXJtd2FyZSBidWcgb3IgYW55dGhpbmcuCj4g
+PiA+Cj4gPiA+IFRoZSBwcm9wZXIgZml4IGlzIHRvIGRvIHNvbWV0aGluZyBpbnNpZGUgTm91dmVh
+dSBzbyB0aGF0IHdlIGRvbid0Cj4gPiA+IHVwc2V0IHRoZSBkZXZpY2UgYW5kIGJlaW5nIGFibGUg
+dG8gcnVudGltZSByZXN1bWUgaXQgYWdhaW4uCj4gPiA+Cj4gPiA+IFRoZSBpbml0aWFsIHRoaW5n
+IHdlIGRvIGluc2lkZSBOb3V2ZWF1IHRvIGNhdXNlIHRob3NlIGlzc3VlcyBpcyB0byBydW4KPiA+
+ID4gdGhhdCBzbyBjYWxsZWQgIkRFVklOSVQiIHNjcmlwdCBpbnNpZGUgdGhlIHZiaW9zIHRvIGlu
+aXRpYWxpemUgdGhlCj4gPiA+IEdQVSwgcHJvYmxlbSBpcywgaXQgY2hhbmdlcyBzb21ldGhpbmcg
+b24gdGhlIFBDSWUgY29uZmlndXJhdGlvbiBzbwo+ID4gPiB0aGF0IHRoZSBHUFUgaXNuJ3QgYWJs
+ZSB0byBydW50aW1lIHJlc3VtZSBhbnltb3JlLiBJIGFtIGluIGNvbnRhY3QKPiA+ID4gd2l0aCBO
+dmlkaWEgYWJvdXQgdGhhdCBpc3N1ZSBhbmQgaG9wZWZ1bGx5IHdlIGdldCB0aGUgcHJvcGVyIGFu
+c3dlcnMuCj4gPiA+IFdoZW4gSSB3YXMgZGlnZ2luZyBpbnRvIHRoYXQgbXlzZWxmIEkgd2FzIGFi
+bGUgdG8gbWFrZSB0aGUgc2l0dWF0aW9uCj4gPiA+IG1vcmUgc3RhYmxlIGJ5IHNldHRpbmcgdGhl
+IFBDSUUgbGluayBzcGVlZCB0byB0aGUgYm9vdCBkZWZhdWx0cywgYnV0Cj4gPiA+IHRoYXQgd2Fz
+IHN0aWxsIHByZXR0eSB1bnN0YWJsZS4KPiA+ID4KPiA+ID4gQW55d2F5LCBiZWNhdXNlIHRoZSBi
+aW5hcnkgZHJpdmVyIGZhaWxzIGhlcmUgYXMgd2VsbCAodGhyb3VnaAo+ID4gPiBidW1ibGViZWUg
+YW5kIHNvIG9uKSB0aGVyZSBpc24ndCBtdWNoIG9mIHJldmVyc2UgZW5naW5lZXJpbmcgd2UgY2Fu
+IGRvCj4gPiA+IGJlc2lkZXMgZ3Vlc3NpbmcgYW5kIHRyeWluZyBpdCBvbiBsaXRlcmFsbHkgZXZl
+cnkgaGFyZHdhcmUgdW50aWwgaXQKPiA+ID4gd29ya3MuCj4gPiA+Cj4gPiA+IFdlIGFsc28gaGF2
+ZSBhbiB1cHN0cmVhbSBidWcgZm9yIHRoaXMgaXNzdWU6Cj4gPiA+IGh0dHBzOi8vYnVnemlsbGEu
+a2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MTU2MzQxCj4gPgo+ID4gSWYgeW91IGxpa2UgSSBj
+YW4gcHJvYmFibHkgZHVtcCB0aGUgcGNpZSByZWdpc3RlcnMgb24gY2FyZAo+ID4gYW5kL29yIHRo
+ZSBwY2llIHBvcnQgdW5kZXIgd2luZG93cy4gVGhlIGNhcmQgd29ya3MgdGhlcmUgOikKPiA+IExl
+dCBtZSBrbm93Lgo+ID4KPiA+IC0tCj4gPiBNU1QKPiAKPiB0aGUgcHJvYmxlbSBpcywgd2Ugd291
+bGQgbmVlZCB0byBrbm93IHRoZSByZWdpc3RlcnMgcmlnaHQgYmVmb3JlCj4gc3VzcGVuZGluZyB0
+aGUgR1BVLiBJZiBzb21lb25lIHdvdWxkIGJlIGFibGUgdG8gdHJhY2UgYWxsIFBDSWUKPiByZWdp
+c3RlciByZWFkIGFuZCB3cml0ZXMgZm9yIHRoZSBlbnRpcmUgc3VzcGVuZGluZy9yZXN1bWUgcHJv
+Y2VzcywKPiB0aGF0IHdvdWxkIGJlIHZlcnkgaGVscGZ1bC4KCgpXZWxsIEkgY2FuIHBhc3MgdGhl
+IGNhcmQgdG8gYSBWTSwgYW5kIHRyYWNlIGl0IG9uIHRoZSBoeXBlcnZpc29yLCB0aGF0Cmlzbid0
+IGEgcHJvYmxlbS4gIEEgdHJpY2t5IHRoaW5nIGlzIHRoZSBBQ1BJIHRhYmxlcywgd291bGQgbmVl
+ZCB0bwpzb21laG93IGtub3cgd2hpY2ggb25lcyBhcmUgcmVsZXZhbnQgdG8gcGFzcyB0aGVtIHRv
+IGd1ZXN0IC4uLiBpZGVhcyBvbgp0aGF0PwoKLS0gCk1TVApfX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fXwpOb3V2ZWF1IG1haWxpbmcgbGlzdApOb3V2ZWF1QGxp
+c3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL25vdXZlYXUK
