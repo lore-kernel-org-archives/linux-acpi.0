@@ -1,46 +1,66 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 1/2] gpiolib-acpi: Only defer request_irq for GpioInt
- ACPI event handlers
-Date: Thu, 29 Nov 2018 10:53:19 +0200
-Message-ID: <20181129085319.GJ2296@lahna.fi.intel.com>
-References: <20181128165756.20908-1-hdegoede@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
+ uninitialized pointer value
+Date: Thu, 29 Nov 2018 09:55:59 +0000
+Message-ID: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <stable-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181128165756.20908-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Patrick Bellasi <patrick.bellasi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 05:57:55PM +0100, Hans de Goede wrote:
-> Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
-> from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
-> call for each event resource.
-> 
-> This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
-> call. This is a problem if some AML code reads the GPIO pin before we
-> run the deferred acpi_gpiochip_request_interrupt, because in that case
-> acpi_gpio_adr_space_handler() will already have called
-> gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
-> acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
-> register an event handler.
-> 
-> acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
-> already having claimed the pin, but the other way around does not work.
-> 
-> One example of a problem this causes, is the event handler for the OTG
-> ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
-> in whatever mode it was in during boot and e.g. only allowing charging
-> after a reboot.
-> 
-> This commit fixes this by only deferring the request_irq call and the
-> initial run of edge-triggered IRQs instead of deferring all of
-> acpi_gpiochip_request_interrupt.
-> 
-> Cc: stable@vger.kernel.org
-> Fixes: 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event ...")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Running the Clang static analyzer on IORT code detected the following
+error:
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Logic error: Branch condition evaluates to a garbage value
+
+in
+
+iort_get_platform_device_domain()
+
+If the named component associated with a given device has no IORT
+mappings, iort_get_platform_device_domain() exits its MSI mapping loop
+with msi_parent pointer containing garbage, which can lead to erroneous
+code path execution.
+
+Initialize the msi_parent pointer, fixing the bug.
+
+Fixes: d4f54a186667 ("ACPI: platform: setup MSI domain for ACPI based
+platform device")
+Reported-by: Patrick Bellasi <patrick.bellasi@arm.com>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 2a361e22d38d..70f4e80b9246 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -700,7 +700,7 @@ static void iort_set_device_domain(struct device *dev,
+  */
+ static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+ {
+-	struct acpi_iort_node *node, *msi_parent;
++	struct acpi_iort_node *node, *msi_parent = NULL;
+ 	struct fwnode_handle *iort_fwnode;
+ 	struct acpi_iort_its_group *its;
+ 	int i;
+-- 
+2.19.2
