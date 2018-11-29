@@ -1,81 +1,164 @@
-From: Karol Herbst <kherbst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
- ACPI errors, lockups
-Date: Thu, 29 Nov 2018 18:26:51 +0100
-Message-ID: <CACO55tug77zWQz_OOZjsq-4zcZjARr8-bj=dNh-aWWotxurtuw@mail.gmail.com>
-References: <20181126221005-mutt-send-email-mst@kernel.org>
- <20181127093650.GP2296@lahna.fi.intel.com>
- <20181127212550-mutt-send-email-mst@kernel.org>
- <20181128110857.GW2296@lahna.fi.intel.com>
- <20181128093527-mutt-send-email-mst@kernel.org>
- <20181128155544.GD2296@lahna.fi.intel.com>
- <20181128111312-mutt-send-email-mst@kernel.org>
- <CACO55tuzDgTb2g_ebhm7+A=UjEEDoM09-b5X_7fkznkFjJGiag@mail.gmail.com>
- <20181128202728-mutt-send-email-mst@kernel.org>
- <CACO55tutwu+46dmhy7RuqRHSBorundx3ZcgDZCqSwvxN+JU4-g@mail.gmail.com>
- <20181129115629-mutt-send-email-mst@kernel.org>
+From: Ulf Hansson <ulf.hansson@linaro.org>
+Subject: Re: [PATCH v2] Documentation: admin-guide: PM: Add cpuidle document
+Date: Thu, 29 Nov 2018 19:03:09 +0100
+Message-ID: <CAPDyKFqE8PqEnvYkz=VwBrOtqrsCJLvjLsVvV60MDdUjbMWpew@mail.gmail.com>
+References: <9986634.fXZiTbRPzQ@aspire.rjw.lan> <CAPDyKFp_1nCF7nn0dXYbm_kJDo+0rp8O1nGPFH+NrS3wz8RW1Q@mail.gmail.com>
+ <CAJZ5v0gkJMYQEqVScOY_9_MWpWKfw_Ji1csEoiRu+YVy24BrTg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-In-Reply-To: <20181129115629-mutt-send-email-mst-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/nouveau>
-List-Post: <mailto:nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-List-Help: <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/nouveau>,
- <mailto:nouveau-request-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org?subject=subscribe>
-Errors-To: nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org
-Sender: "Nouveau" <nouveau-bounces-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>
-To: mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: nouveau <nouveau-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, dri-devel <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, David Airlie <airlied-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0gkJMYQEqVScOY_9_MWpWKfw_Ji1csEoiRu+YVy24BrTg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, jacob.jun.pan@linux.intel.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, linux-doc@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, ggherdovich@suse.cz, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-eWVhaC4uLiBJIGRvbid0IHRoaW5rIHRoYXQncyBnb25uYSB3b3JrIHRoYXQgbmljZWx5LiBBbnl3
-YXksIHlvdQpwcm9iYWJseSBuZWVkIHRvIGFsbG93IHRoZSBWTSB0byBhY2Nlc3MgYWxsIG9mIEFD
-UEkgaW4gb3JkZXIgdG8KcnVudGltZSBzdXNwZW5kIHRoZSBHUFUgYW5kIG9uIG5ld2VyIGxhcHRv
-cHMgdGhlIHZiaW9zIGlzIHJldHJpZXZlZAp2aWEgQUNQSSBhcyB3ZWxsLiBJdCB3b3VsZCBiZSBw
-cm9iYWJseSBiZXR0ZXIgaWYgdGhlcmUgaXMgYSB3YXkgdG8KdHJhY2UgYWxsIHRoYXQgb24gYSBt
-YWNoaW5lIHJ1bm5pbmcgd2luZG93cyBkaXJlY3RseS4KT24gVGh1LCBOb3YgMjksIDIwMTggYXQg
-NjoxMiBQTSBNaWNoYWVsIFMuIFRzaXJraW4gPG1zdEByZWRoYXQuY29tPiB3cm90ZToKPgo+IE9u
-IFRodSwgTm92IDI5LCAyMDE4IGF0IDExOjUzOjUzQU0gKzAxMDAsIEthcm9sIEhlcmJzdCB3cm90
-ZToKPiA+IE9uIFRodSwgTm92IDI5LCAyMDE4IGF0IDI6MjkgQU0gTWljaGFlbCBTLiBUc2lya2lu
-IDxtc3RAcmVkaGF0LmNvbT4gd3JvdGU6Cj4gPiA+Cj4gPiA+IE9uIFRodSwgTm92IDI5LCAyMDE4
-IGF0IDEyOjIxOjMxQU0gKzAxMDAsIEthcm9sIEhlcmJzdCB3cm90ZToKPiA+ID4gPiB0aGlzIHdh
-cyBhbHJlYWR5IGRlYnVnZ2VkIGFuZCB0aGVyZSBpcyBubyBwb2ludCBpbiBzZWFyY2hpbmcgaW5z
-aWRlCj4gPiA+ID4gdGhlIEZpcm13YXJlLiBJdCdzIG5vdCBhIGZpcm13YXJlIGJ1ZyBvciBhbnl0
-aGluZy4KPiA+ID4gPgo+ID4gPiA+IFRoZSBwcm9wZXIgZml4IGlzIHRvIGRvIHNvbWV0aGluZyBp
-bnNpZGUgTm91dmVhdSBzbyB0aGF0IHdlIGRvbid0Cj4gPiA+ID4gdXBzZXQgdGhlIGRldmljZSBh
-bmQgYmVpbmcgYWJsZSB0byBydW50aW1lIHJlc3VtZSBpdCBhZ2Fpbi4KPiA+ID4gPgo+ID4gPiA+
-IFRoZSBpbml0aWFsIHRoaW5nIHdlIGRvIGluc2lkZSBOb3V2ZWF1IHRvIGNhdXNlIHRob3NlIGlz
-c3VlcyBpcyB0byBydW4KPiA+ID4gPiB0aGF0IHNvIGNhbGxlZCAiREVWSU5JVCIgc2NyaXB0IGlu
-c2lkZSB0aGUgdmJpb3MgdG8gaW5pdGlhbGl6ZSB0aGUKPiA+ID4gPiBHUFUsIHByb2JsZW0gaXMs
-IGl0IGNoYW5nZXMgc29tZXRoaW5nIG9uIHRoZSBQQ0llIGNvbmZpZ3VyYXRpb24gc28KPiA+ID4g
-PiB0aGF0IHRoZSBHUFUgaXNuJ3QgYWJsZSB0byBydW50aW1lIHJlc3VtZSBhbnltb3JlLiBJIGFt
-IGluIGNvbnRhY3QKPiA+ID4gPiB3aXRoIE52aWRpYSBhYm91dCB0aGF0IGlzc3VlIGFuZCBob3Bl
-ZnVsbHkgd2UgZ2V0IHRoZSBwcm9wZXIgYW5zd2Vycy4KPiA+ID4gPiBXaGVuIEkgd2FzIGRpZ2dp
-bmcgaW50byB0aGF0IG15c2VsZiBJIHdhcyBhYmxlIHRvIG1ha2UgdGhlIHNpdHVhdGlvbgo+ID4g
-PiA+IG1vcmUgc3RhYmxlIGJ5IHNldHRpbmcgdGhlIFBDSUUgbGluayBzcGVlZCB0byB0aGUgYm9v
-dCBkZWZhdWx0cywgYnV0Cj4gPiA+ID4gdGhhdCB3YXMgc3RpbGwgcHJldHR5IHVuc3RhYmxlLgo+
-ID4gPiA+Cj4gPiA+ID4gQW55d2F5LCBiZWNhdXNlIHRoZSBiaW5hcnkgZHJpdmVyIGZhaWxzIGhl
-cmUgYXMgd2VsbCAodGhyb3VnaAo+ID4gPiA+IGJ1bWJsZWJlZSBhbmQgc28gb24pIHRoZXJlIGlz
-bid0IG11Y2ggb2YgcmV2ZXJzZSBlbmdpbmVlcmluZyB3ZSBjYW4gZG8KPiA+ID4gPiBiZXNpZGVz
-IGd1ZXNzaW5nIGFuZCB0cnlpbmcgaXQgb24gbGl0ZXJhbGx5IGV2ZXJ5IGhhcmR3YXJlIHVudGls
-IGl0Cj4gPiA+ID4gd29ya3MuCj4gPiA+ID4KPiA+ID4gPiBXZSBhbHNvIGhhdmUgYW4gdXBzdHJl
-YW0gYnVnIGZvciB0aGlzIGlzc3VlOgo+ID4gPiA+IGh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9y
-Zy9zaG93X2J1Zy5jZ2k/aWQ9MTU2MzQxCj4gPiA+Cj4gPiA+IElmIHlvdSBsaWtlIEkgY2FuIHBy
-b2JhYmx5IGR1bXAgdGhlIHBjaWUgcmVnaXN0ZXJzIG9uIGNhcmQKPiA+ID4gYW5kL29yIHRoZSBw
-Y2llIHBvcnQgdW5kZXIgd2luZG93cy4gVGhlIGNhcmQgd29ya3MgdGhlcmUgOikKPiA+ID4gTGV0
-IG1lIGtub3cuCj4gPiA+Cj4gPiA+IC0tCj4gPiA+IE1TVAo+ID4KPiA+IHRoZSBwcm9ibGVtIGlz
-LCB3ZSB3b3VsZCBuZWVkIHRvIGtub3cgdGhlIHJlZ2lzdGVycyByaWdodCBiZWZvcmUKPiA+IHN1
-c3BlbmRpbmcgdGhlIEdQVS4gSWYgc29tZW9uZSB3b3VsZCBiZSBhYmxlIHRvIHRyYWNlIGFsbCBQ
-Q0llCj4gPiByZWdpc3RlciByZWFkIGFuZCB3cml0ZXMgZm9yIHRoZSBlbnRpcmUgc3VzcGVuZGlu
-Zy9yZXN1bWUgcHJvY2VzcywKPiA+IHRoYXQgd291bGQgYmUgdmVyeSBoZWxwZnVsLgo+Cj4KPiBX
-ZWxsIEkgY2FuIHBhc3MgdGhlIGNhcmQgdG8gYSBWTSwgYW5kIHRyYWNlIGl0IG9uIHRoZSBoeXBl
-cnZpc29yLCB0aGF0Cj4gaXNuJ3QgYSBwcm9ibGVtLiAgQSB0cmlja3kgdGhpbmcgaXMgdGhlIEFD
-UEkgdGFibGVzLCB3b3VsZCBuZWVkIHRvCj4gc29tZWhvdyBrbm93IHdoaWNoIG9uZXMgYXJlIHJl
-bGV2YW50IHRvIHBhc3MgdGhlbSB0byBndWVzdCAuLi4gaWRlYXMgb24KPiB0aGF0Pwo+Cj4gLS0K
-PiBNU1QKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KTm91
-dmVhdSBtYWlsaW5nIGxpc3QKTm91dmVhdUBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9s
-aXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9ub3V2ZWF1Cg==
+On Thu, 29 Nov 2018 at 11:28, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Thu, Nov 29, 2018 at 9:07 AM Ulf Hansson <ulf.hansson@linaro.org> wrote:
+> >
+> > On Wed, 28 Nov 2018 at 12:47, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > >
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > >
+> > > Important information is missing from user/admin cpuidle documentation
+> > > available today, so add a new user/admin document for cpuidle containing
+> > > current and comprehensive information to admin-guide and drop the old
+> > > .txt documents it is replacing.
+> > >
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > ---
+> >
+> > Wow! Great work!
+> >
+> > [...]
+> >
+> > > +.. _idle-states-representation:
+> > > +
+> > > +Representation of Idle States
+> > > +=============================
+> > > +
+> > > +For the CPU idle time management purposes all of the physical idle states
+> > > +supported by the processor have to be represented as a one-dimensional array of
+> > > +|struct cpuidle_state| objects each allowing an individual (logical) CPU to ask
+> > > +the processor hardware to enter an idle state of certain properties.  If there
+> > > +is a hierarchy of units in the processor, one |struct cpuidle_state| object can
+> > > +cover a combination of idle states supported by the units at different levels of
+> > > +the hierarchy.  In that case, the `target residency and exit latency parameters
+> > > +of it <idle-loop_>`_, must reflect the properties of the idle state at the
+> > > +deepest level (i.e. the idle state of the unit containing all of the other
+> > > +units).
+> > > +
+> > > +For example, take a processor with two cores in a larger unit referred to as
+> > > +a "module" and suppose that asking the hardware to enter a specific idle state
+> > > +(say "X") at the "core" level by one core will trigger the module to try to
+> > > +enter a specific idle state of its own (say "MX") if the other core is in idle
+> > > +state "X" already.  In other words, asking for idle state "X" at the "core"
+> > > +level gives the hardware a license to go as deep as to idle state "MX" at the
+> > > +"module" level, but there is no guarantee that this is going to happen (the core
+> > > +asking for idle state "X" may just end up in that state by itself instead).
+> >
+> > This is a good description of a HW like x86 and ARM64 (using PSCI in
+> > platform coordinated mode).
+> >
+> > However, for "legacy" ARM products, having at least two cores in a
+> > module, this description does in many cases *not* match how the HW
+> > works. I wonder about other architectures.
+>
+> Well, this is an example and it is very clearly presented this way IMO
+> (it says "for example" upfront and then "suppose" etc).
+>
+> Basically, the purpose of it is to explain that the parameters shown
+> in sysfs may be effective.
+>
+> > My point is, I think it would be fair to mention that the above
+> > description is specific to certain HWs. In other words, for HWs that
+> > leaves the entire state synchronization of the last man standing
+> > algorithm to be managed by a FW, the cpuidle framework plays well. But
+> > for others it has limitations.
+>
+> I can add it after this entire paragraph I think.  Something like
+>
+> "There are processors without direct coordination between different
+> levels of the hierarchy of units inside them, however.  In those cases
+> asking for an idle state at the "core" level does not automatically
+> affect the "module" level, for example, in any way and the CPUIdle
+> driver is responsible for the entire handling of the hierarchy.  Then,
+> the definition of the idle state objects is entirely up to the driver,
+> but still the physical properties of the idle state that the processor
+> hardware finally goes into must always follow the parameters used by
+> the governor for idle state selection (for instance, the actual exit
+> latency of that idle state must not exceed the exit latency parameter
+> of the idle state object selected by the governor)."
+
+I like this! This leaves some room for understanding that cpuidle has
+limitations when in comes down to these kind of platforms, which seems
+like reasonable statement to include.
+
+With that, feel free to add:
+Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+
+>
+> >
+> > > +Then, the target residency of the |struct cpuidle_state| object representing
+> > > +idle state "X" must reflect the minimum time to spend in idle state "MX" of
+> > > +the module (including the time needed to enter it), because that is the minimum
+> > > +time the CPU needs to be idle to save any energy in case the hardware enters
+> > > +that state.  Analogously, the exit latency parameter of that object must cover
+> > > +the exit time of idle state "MX" of the module (and usually its entry time too),
+> > > +because that is the maximum delay between a wakeup signal and the time the CPU
+> > > +will start to execute the first new instruction (assuming that both cores in the
+> > > +module will always be ready to execute instructions as soon as the module
+> > > +becomes operational as a whole).
+> >
+> > For the HW working as you described, this is a nice clarification, thanks!
+> >
+> > [...]
+> >
+> > > +
+> > > +.. _cpu-pm-qos:
+> > > +
+> > > +Power Management Quality of Service for CPUs
+> > > +============================================
+> > > +
+> > > +The power management quality of service (PM QoS) framework in the Linux kernel
+> > > +allows kernel code and user space processes to set constraints on various
+> > > +energy-efficiency features of the kernel to prevent performance from dropping
+> > > +below a required level.  The PM QoS constraints can be set globally, in
+> > > +predefined categories referred to as PM QoS classes, or against individual
+> > > +devices.
+> > > +
+> > > +CPU idle time management can be affected by PM QoS in two ways, through the
+> > > +global constraint in the ``PM_QOS_CPU_DMA_LATENCY`` class and through the
+> >
+> > No objections to the description, it's really nice! However, the
+> > naming of this QOS class, is to me, rather confusing.
+>
+> Yes, it is confusing.
+>
+> > I realize renaming the sysfs node is not an option,
+>
+> That is a device special file, but yes, renaming it is not an option.
+> And since the name of the PM QoS class reflects the name of the device
+> special file associated with it, I'd rather not rename the class
+> either, as that would just move the confusion point, so to speak.
+
+Okay.
+
+>
+> > but maybe we should make a tree wide change to rename the class to something more
+> > descriptive. What do you think?
+>
+> IMO it would be fine to introduce an alternative symbol, say
+>
+> #define PM_QOS_CPU_WAKEUP_LATENCY PM_QOS_CPU_DMA_LATENCY
+>
+> and use the alternative (PM_QOS_CPU_WAKEUP_LATENCY in this case) in
+> the cpuidle subsystem.
+>
+> But that's just cosmetics. :-)
+
+Yes, so then we just rather keep it as is. :-)
+
+Kind regards
+Uffe
