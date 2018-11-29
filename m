@@ -1,66 +1,145 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
- uninitialized pointer value
-Date: Thu, 29 Nov 2018 09:55:59 +0000
-Message-ID: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] Documentation: admin-guide: PM: Add cpuidle document
+Date: Thu, 29 Nov 2018 11:27:52 +0100
+Message-ID: <CAJZ5v0gkJMYQEqVScOY_9_MWpWKfw_Ji1csEoiRu+YVy24BrTg@mail.gmail.com>
+References: <9986634.fXZiTbRPzQ@aspire.rjw.lan> <CAPDyKFp_1nCF7nn0dXYbm_kJDo+0rp8O1nGPFH+NrS3wz8RW1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Patrick Bellasi <patrick.bellasi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAPDyKFp_1nCF7nn0dXYbm_kJDo+0rp8O1nGPFH+NrS3wz8RW1Q@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Giovanni Gherdovich <ggherdovich@suse.cz>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Running the Clang static analyzer on IORT code detected the following
-error:
+On Thu, Nov 29, 2018 at 9:07 AM Ulf Hansson <ulf.hansson@linaro.org> wrote:
+>
+> On Wed, 28 Nov 2018 at 12:47, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> >
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >
+> > Important information is missing from user/admin cpuidle documentation
+> > available today, so add a new user/admin document for cpuidle containing
+> > current and comprehensive information to admin-guide and drop the old
+> > .txt documents it is replacing.
+> >
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > ---
+>
+> Wow! Great work!
+>
+> [...]
+>
+> > +.. _idle-states-representation:
+> > +
+> > +Representation of Idle States
+> > +=============================
+> > +
+> > +For the CPU idle time management purposes all of the physical idle states
+> > +supported by the processor have to be represented as a one-dimensional array of
+> > +|struct cpuidle_state| objects each allowing an individual (logical) CPU to ask
+> > +the processor hardware to enter an idle state of certain properties.  If there
+> > +is a hierarchy of units in the processor, one |struct cpuidle_state| object can
+> > +cover a combination of idle states supported by the units at different levels of
+> > +the hierarchy.  In that case, the `target residency and exit latency parameters
+> > +of it <idle-loop_>`_, must reflect the properties of the idle state at the
+> > +deepest level (i.e. the idle state of the unit containing all of the other
+> > +units).
+> > +
+> > +For example, take a processor with two cores in a larger unit referred to as
+> > +a "module" and suppose that asking the hardware to enter a specific idle state
+> > +(say "X") at the "core" level by one core will trigger the module to try to
+> > +enter a specific idle state of its own (say "MX") if the other core is in idle
+> > +state "X" already.  In other words, asking for idle state "X" at the "core"
+> > +level gives the hardware a license to go as deep as to idle state "MX" at the
+> > +"module" level, but there is no guarantee that this is going to happen (the core
+> > +asking for idle state "X" may just end up in that state by itself instead).
+>
+> This is a good description of a HW like x86 and ARM64 (using PSCI in
+> platform coordinated mode).
+>
+> However, for "legacy" ARM products, having at least two cores in a
+> module, this description does in many cases *not* match how the HW
+> works. I wonder about other architectures.
 
-Logic error: Branch condition evaluates to a garbage value
+Well, this is an example and it is very clearly presented this way IMO
+(it says "for example" upfront and then "suppose" etc).
 
-in
+Basically, the purpose of it is to explain that the parameters shown
+in sysfs may be effective.
 
-iort_get_platform_device_domain()
+> My point is, I think it would be fair to mention that the above
+> description is specific to certain HWs. In other words, for HWs that
+> leaves the entire state synchronization of the last man standing
+> algorithm to be managed by a FW, the cpuidle framework plays well. But
+> for others it has limitations.
 
-If the named component associated with a given device has no IORT
-mappings, iort_get_platform_device_domain() exits its MSI mapping loop
-with msi_parent pointer containing garbage, which can lead to erroneous
-code path execution.
+I can add it after this entire paragraph I think.  Something like
 
-Initialize the msi_parent pointer, fixing the bug.
+"There are processors without direct coordination between different
+levels of the hierarchy of units inside them, however.  In those cases
+asking for an idle state at the "core" level does not automatically
+affect the "module" level, for example, in any way and the CPUIdle
+driver is responsible for the entire handling of the hierarchy.  Then,
+the definition of the idle state objects is entirely up to the driver,
+but still the physical properties of the idle state that the processor
+hardware finally goes into must always follow the parameters used by
+the governor for idle state selection (for instance, the actual exit
+latency of that idle state must not exceed the exit latency parameter
+of the idle state object selected by the governor)."
 
-Fixes: d4f54a186667 ("ACPI: platform: setup MSI domain for ACPI based
-platform device")
-Reported-by: Patrick Bellasi <patrick.bellasi@arm.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
----
- drivers/acpi/arm64/iort.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> > +Then, the target residency of the |struct cpuidle_state| object representing
+> > +idle state "X" must reflect the minimum time to spend in idle state "MX" of
+> > +the module (including the time needed to enter it), because that is the minimum
+> > +time the CPU needs to be idle to save any energy in case the hardware enters
+> > +that state.  Analogously, the exit latency parameter of that object must cover
+> > +the exit time of idle state "MX" of the module (and usually its entry time too),
+> > +because that is the maximum delay between a wakeup signal and the time the CPU
+> > +will start to execute the first new instruction (assuming that both cores in the
+> > +module will always be ready to execute instructions as soon as the module
+> > +becomes operational as a whole).
+>
+> For the HW working as you described, this is a nice clarification, thanks!
+>
+> [...]
+>
+> > +
+> > +.. _cpu-pm-qos:
+> > +
+> > +Power Management Quality of Service for CPUs
+> > +============================================
+> > +
+> > +The power management quality of service (PM QoS) framework in the Linux kernel
+> > +allows kernel code and user space processes to set constraints on various
+> > +energy-efficiency features of the kernel to prevent performance from dropping
+> > +below a required level.  The PM QoS constraints can be set globally, in
+> > +predefined categories referred to as PM QoS classes, or against individual
+> > +devices.
+> > +
+> > +CPU idle time management can be affected by PM QoS in two ways, through the
+> > +global constraint in the ``PM_QOS_CPU_DMA_LATENCY`` class and through the
+>
+> No objections to the description, it's really nice! However, the
+> naming of this QOS class, is to me, rather confusing.
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 2a361e22d38d..70f4e80b9246 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -700,7 +700,7 @@ static void iort_set_device_domain(struct device *dev,
-  */
- static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
- {
--	struct acpi_iort_node *node, *msi_parent;
-+	struct acpi_iort_node *node, *msi_parent = NULL;
- 	struct fwnode_handle *iort_fwnode;
- 	struct acpi_iort_its_group *its;
- 	int i;
--- 
-2.19.2
+Yes, it is confusing.
+
+> I realize renaming the sysfs node is not an option,
+
+That is a device special file, but yes, renaming it is not an option.
+And since the name of the PM QoS class reflects the name of the device
+special file associated with it, I'd rather not rename the class
+either, as that would just move the confusion point, so to speak.
+
+> but maybe we should make a tree wide change to rename the class to something more
+> descriptive. What do you think?
+
+IMO it would be fine to introduce an alternative symbol, say
+
+#define PM_QOS_CPU_WAKEUP_LATENCY PM_QOS_CPU_DMA_LATENCY
+
+and use the alternative (PM_QOS_CPU_WAKEUP_LATENCY in this case) in
+the cpuidle subsystem.
+
+But that's just cosmetics. :-)
