@@ -1,46 +1,31 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fix for v4.20-rc5
-Date: Thu, 29 Nov 2018 21:53:03 +0100
-Message-ID: <CAJZ5v0hn4+dHqFh0LnUzuU76+8py=fYh8ERg5V+XpZu1xbdb_g@mail.gmail.com>
+Subject: Re: [PATCH v5 14/15] ACPI / scan: Create platform device for INT3515
+ ACPI nodes
+Date: Thu, 29 Nov 2018 21:58:51 +0100
+Message-ID: <CAJZ5v0gCyvS+VkGadYBSy34AzAQ4-20Rjeigc3eV7GZ1x79cfQ@mail.gmail.com>
+References: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com> <20181128114535.80223-15-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181128114535.80223-15-andriy.shevchenko@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, jic23@kernel.org, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c <linux-i2c@vger.kernel.org>, Hans de Goede <hdegoede@redhat.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Wed, Nov 28, 2018 at 12:48 PM Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+>
+> The ACPI device with INT3515 _HID is representing a complex USB PD
+> hardware infrastructure which includes several I2C slave ICs.
+>
+> We add an ID to the I2C multi instantiate list to enumerate
+> all I2C slaves correctly.
+>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
 
-Please pull from the tag
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-4.20-rc5
-
-with top-most commit c4f784268210ae5e6749d4ba30d117bd301a70a6
-
- Merge branch 'acpica-fixes'
-
-on top of commit 2bbb5fa37475d7aa5fa62f34db1623f3da2dfdfa
-
- ACPI / platform: Add SMB0001 HID to forbidden_id_list
-
-to receive an ACPI fix for 4.20-rc5.
-
-This fixes a recent regression in ACPICA releted to the Generic
-Serial Bus protocol handling and causing it to read or write too
-little or too much data in some cases, so incorrect data may be
-written to hardware as a result (Hans de Goede).
-
-Thanks!
-
-
----------------
-
-Hans de Goede (1):
-      ACPICA: Fix handling of buffer-size in acpi_ex_write_data_to_field()
-
----------------
-
- drivers/acpi/acpica/exserial.c | 21 ++-------------------
- 1 file changed, 2 insertions(+), 19 deletions(-)
+and I'm assuming that you will route the whole series through the
+platform/x86 drivers tree.
