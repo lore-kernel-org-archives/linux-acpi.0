@@ -1,145 +1,65 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2] Documentation: admin-guide: PM: Add cpuidle document
-Date: Thu, 29 Nov 2018 11:27:52 +0100
-Message-ID: <CAJZ5v0gkJMYQEqVScOY_9_MWpWKfw_Ji1csEoiRu+YVy24BrTg@mail.gmail.com>
-References: <9986634.fXZiTbRPzQ@aspire.rjw.lan> <CAPDyKFp_1nCF7nn0dXYbm_kJDo+0rp8O1nGPFH+NrS3wz8RW1Q@mail.gmail.com>
+From: Karol Herbst <kherbst@redhat.com>
+Subject: Re: [Nouveau] 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
+ ACPI errors, lockups
+Date: Thu, 29 Nov 2018 11:53:53 +0100
+Message-ID: <CACO55tutwu+46dmhy7RuqRHSBorundx3ZcgDZCqSwvxN+JU4-g@mail.gmail.com>
+References: <20181126221005-mutt-send-email-mst@kernel.org>
+ <20181127093650.GP2296@lahna.fi.intel.com>
+ <20181127212550-mutt-send-email-mst@kernel.org>
+ <20181128110857.GW2296@lahna.fi.intel.com>
+ <20181128093527-mutt-send-email-mst@kernel.org>
+ <20181128155544.GD2296@lahna.fi.intel.com>
+ <20181128111312-mutt-send-email-mst@kernel.org>
+ <CACO55tuzDgTb2g_ebhm7+A=UjEEDoM09-b5X_7fkznkFjJGiag@mail.gmail.com>
+ <20181128202728-mutt-send-email-mst@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPDyKFp_1nCF7nn0dXYbm_kJDo+0rp8O1nGPFH+NrS3wz8RW1Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jonathan Corbet <corbet@lwn.net>, Linux PM <linux-pm@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, Peter Zijlstra <peterz@infradead.org>, Daniel Lezcano <daniel.lezcano@linaro.org>, Giovanni Gherdovich <ggherdovich@suse.cz>, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181128202728-mutt-send-email-mst@kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: mst@redhat.com
+Cc: nouveau <nouveau@lists.freedesktop.org>, rjw@rjwysocki.net, dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@redhat.com>, mika.westerberg@linux.intel.com, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 9:07 AM Ulf Hansson <ulf.hansson@linaro.org> wrote:
->
-> On Wed, 28 Nov 2018 at 12:47, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> >
-> > Important information is missing from user/admin cpuidle documentation
-> > available today, so add a new user/admin document for cpuidle containing
-> > current and comprehensive information to admin-guide and drop the old
-> > .txt documents it is replacing.
-> >
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > ---
->
-> Wow! Great work!
->
-> [...]
->
-> > +.. _idle-states-representation:
-> > +
-> > +Representation of Idle States
-> > +=============================
-> > +
-> > +For the CPU idle time management purposes all of the physical idle states
-> > +supported by the processor have to be represented as a one-dimensional array of
-> > +|struct cpuidle_state| objects each allowing an individual (logical) CPU to ask
-> > +the processor hardware to enter an idle state of certain properties.  If there
-> > +is a hierarchy of units in the processor, one |struct cpuidle_state| object can
-> > +cover a combination of idle states supported by the units at different levels of
-> > +the hierarchy.  In that case, the `target residency and exit latency parameters
-> > +of it <idle-loop_>`_, must reflect the properties of the idle state at the
-> > +deepest level (i.e. the idle state of the unit containing all of the other
-> > +units).
-> > +
-> > +For example, take a processor with two cores in a larger unit referred to as
-> > +a "module" and suppose that asking the hardware to enter a specific idle state
-> > +(say "X") at the "core" level by one core will trigger the module to try to
-> > +enter a specific idle state of its own (say "MX") if the other core is in idle
-> > +state "X" already.  In other words, asking for idle state "X" at the "core"
-> > +level gives the hardware a license to go as deep as to idle state "MX" at the
-> > +"module" level, but there is no guarantee that this is going to happen (the core
-> > +asking for idle state "X" may just end up in that state by itself instead).
->
-> This is a good description of a HW like x86 and ARM64 (using PSCI in
-> platform coordinated mode).
->
-> However, for "legacy" ARM products, having at least two cores in a
-> module, this description does in many cases *not* match how the HW
-> works. I wonder about other architectures.
-
-Well, this is an example and it is very clearly presented this way IMO
-(it says "for example" upfront and then "suppose" etc).
-
-Basically, the purpose of it is to explain that the parameters shown
-in sysfs may be effective.
-
-> My point is, I think it would be fair to mention that the above
-> description is specific to certain HWs. In other words, for HWs that
-> leaves the entire state synchronization of the last man standing
-> algorithm to be managed by a FW, the cpuidle framework plays well. But
-> for others it has limitations.
-
-I can add it after this entire paragraph I think.  Something like
-
-"There are processors without direct coordination between different
-levels of the hierarchy of units inside them, however.  In those cases
-asking for an idle state at the "core" level does not automatically
-affect the "module" level, for example, in any way and the CPUIdle
-driver is responsible for the entire handling of the hierarchy.  Then,
-the definition of the idle state objects is entirely up to the driver,
-but still the physical properties of the idle state that the processor
-hardware finally goes into must always follow the parameters used by
-the governor for idle state selection (for instance, the actual exit
-latency of that idle state must not exceed the exit latency parameter
-of the idle state object selected by the governor)."
-
->
-> > +Then, the target residency of the |struct cpuidle_state| object representing
-> > +idle state "X" must reflect the minimum time to spend in idle state "MX" of
-> > +the module (including the time needed to enter it), because that is the minimum
-> > +time the CPU needs to be idle to save any energy in case the hardware enters
-> > +that state.  Analogously, the exit latency parameter of that object must cover
-> > +the exit time of idle state "MX" of the module (and usually its entry time too),
-> > +because that is the maximum delay between a wakeup signal and the time the CPU
-> > +will start to execute the first new instruction (assuming that both cores in the
-> > +module will always be ready to execute instructions as soon as the module
-> > +becomes operational as a whole).
->
-> For the HW working as you described, this is a nice clarification, thanks!
->
-> [...]
->
-> > +
-> > +.. _cpu-pm-qos:
-> > +
-> > +Power Management Quality of Service for CPUs
-> > +============================================
-> > +
-> > +The power management quality of service (PM QoS) framework in the Linux kernel
-> > +allows kernel code and user space processes to set constraints on various
-> > +energy-efficiency features of the kernel to prevent performance from dropping
-> > +below a required level.  The PM QoS constraints can be set globally, in
-> > +predefined categories referred to as PM QoS classes, or against individual
-> > +devices.
-> > +
-> > +CPU idle time management can be affected by PM QoS in two ways, through the
-> > +global constraint in the ``PM_QOS_CPU_DMA_LATENCY`` class and through the
->
-> No objections to the description, it's really nice! However, the
-> naming of this QOS class, is to me, rather confusing.
-
-Yes, it is confusing.
-
-> I realize renaming the sysfs node is not an option,
-
-That is a device special file, but yes, renaming it is not an option.
-And since the name of the PM QoS class reflects the name of the device
-special file associated with it, I'd rather not rename the class
-either, as that would just move the confusion point, so to speak.
-
-> but maybe we should make a tree wide change to rename the class to something more
-> descriptive. What do you think?
-
-IMO it would be fine to introduce an alternative symbol, say
-
-#define PM_QOS_CPU_WAKEUP_LATENCY PM_QOS_CPU_DMA_LATENCY
-
-and use the alternative (PM_QOS_CPU_WAKEUP_LATENCY in this case) in
-the cpuidle subsystem.
-
-But that's just cosmetics. :-)
+T24gVGh1LCBOb3YgMjksIDIwMTggYXQgMjoyOSBBTSBNaWNoYWVsIFMuIFRzaXJraW4gPG1zdEBy
+ZWRoYXQuY29tPiB3cm90ZToKPgo+IE9uIFRodSwgTm92IDI5LCAyMDE4IGF0IDEyOjIxOjMxQU0g
+KzAxMDAsIEthcm9sIEhlcmJzdCB3cm90ZToKPiA+IHRoaXMgd2FzIGFscmVhZHkgZGVidWdnZWQg
+YW5kIHRoZXJlIGlzIG5vIHBvaW50IGluIHNlYXJjaGluZyBpbnNpZGUKPiA+IHRoZSBGaXJtd2Fy
+ZS4gSXQncyBub3QgYSBmaXJtd2FyZSBidWcgb3IgYW55dGhpbmcuCj4gPgo+ID4gVGhlIHByb3Bl
+ciBmaXggaXMgdG8gZG8gc29tZXRoaW5nIGluc2lkZSBOb3V2ZWF1IHNvIHRoYXQgd2UgZG9uJ3QK
+PiA+IHVwc2V0IHRoZSBkZXZpY2UgYW5kIGJlaW5nIGFibGUgdG8gcnVudGltZSByZXN1bWUgaXQg
+YWdhaW4uCj4gPgo+ID4gVGhlIGluaXRpYWwgdGhpbmcgd2UgZG8gaW5zaWRlIE5vdXZlYXUgdG8g
+Y2F1c2UgdGhvc2UgaXNzdWVzIGlzIHRvIHJ1bgo+ID4gdGhhdCBzbyBjYWxsZWQgIkRFVklOSVQi
+IHNjcmlwdCBpbnNpZGUgdGhlIHZiaW9zIHRvIGluaXRpYWxpemUgdGhlCj4gPiBHUFUsIHByb2Js
+ZW0gaXMsIGl0IGNoYW5nZXMgc29tZXRoaW5nIG9uIHRoZSBQQ0llIGNvbmZpZ3VyYXRpb24gc28K
+PiA+IHRoYXQgdGhlIEdQVSBpc24ndCBhYmxlIHRvIHJ1bnRpbWUgcmVzdW1lIGFueW1vcmUuIEkg
+YW0gaW4gY29udGFjdAo+ID4gd2l0aCBOdmlkaWEgYWJvdXQgdGhhdCBpc3N1ZSBhbmQgaG9wZWZ1
+bGx5IHdlIGdldCB0aGUgcHJvcGVyIGFuc3dlcnMuCj4gPiBXaGVuIEkgd2FzIGRpZ2dpbmcgaW50
+byB0aGF0IG15c2VsZiBJIHdhcyBhYmxlIHRvIG1ha2UgdGhlIHNpdHVhdGlvbgo+ID4gbW9yZSBz
+dGFibGUgYnkgc2V0dGluZyB0aGUgUENJRSBsaW5rIHNwZWVkIHRvIHRoZSBib290IGRlZmF1bHRz
+LCBidXQKPiA+IHRoYXQgd2FzIHN0aWxsIHByZXR0eSB1bnN0YWJsZS4KPiA+Cj4gPiBBbnl3YXks
+IGJlY2F1c2UgdGhlIGJpbmFyeSBkcml2ZXIgZmFpbHMgaGVyZSBhcyB3ZWxsICh0aHJvdWdoCj4g
+PiBidW1ibGViZWUgYW5kIHNvIG9uKSB0aGVyZSBpc24ndCBtdWNoIG9mIHJldmVyc2UgZW5naW5l
+ZXJpbmcgd2UgY2FuIGRvCj4gPiBiZXNpZGVzIGd1ZXNzaW5nIGFuZCB0cnlpbmcgaXQgb24gbGl0
+ZXJhbGx5IGV2ZXJ5IGhhcmR3YXJlIHVudGlsIGl0Cj4gPiB3b3Jrcy4KPiA+Cj4gPiBXZSBhbHNv
+IGhhdmUgYW4gdXBzdHJlYW0gYnVnIGZvciB0aGlzIGlzc3VlOgo+ID4gaHR0cHM6Ly9idWd6aWxs
+YS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xNTYzNDEKPgo+IElmIHlvdSBsaWtlIEkgY2Fu
+IHByb2JhYmx5IGR1bXAgdGhlIHBjaWUgcmVnaXN0ZXJzIG9uIGNhcmQKPiBhbmQvb3IgdGhlIHBj
+aWUgcG9ydCB1bmRlciB3aW5kb3dzLiBUaGUgY2FyZCB3b3JrcyB0aGVyZSA6KQo+IExldCBtZSBr
+bm93Lgo+Cj4gLS0KPiBNU1QKCnRoZSBwcm9ibGVtIGlzLCB3ZSB3b3VsZCBuZWVkIHRvIGtub3cg
+dGhlIHJlZ2lzdGVycyByaWdodCBiZWZvcmUKc3VzcGVuZGluZyB0aGUgR1BVLiBJZiBzb21lb25l
+IHdvdWxkIGJlIGFibGUgdG8gdHJhY2UgYWxsIFBDSWUKcmVnaXN0ZXIgcmVhZCBhbmQgd3JpdGVz
+IGZvciB0aGUgZW50aXJlIHN1c3BlbmRpbmcvcmVzdW1lIHByb2Nlc3MsCnRoYXQgd291bGQgYmUg
+dmVyeSBoZWxwZnVsLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
+cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
+ZWwK
