@@ -1,65 +1,49 @@
-From: Karol Herbst <kherbst@redhat.com>
-Subject: Re: [Nouveau] 4.20.0-rc3 nouveau/Quadro P2000 Mobile: runpm causing
- ACPI errors, lockups
-Date: Thu, 29 Nov 2018 11:53:53 +0100
-Message-ID: <CACO55tutwu+46dmhy7RuqRHSBorundx3ZcgDZCqSwvxN+JU4-g@mail.gmail.com>
-References: <20181126221005-mutt-send-email-mst@kernel.org>
- <20181127093650.GP2296@lahna.fi.intel.com>
- <20181127212550-mutt-send-email-mst@kernel.org>
- <20181128110857.GW2296@lahna.fi.intel.com>
- <20181128093527-mutt-send-email-mst@kernel.org>
- <20181128155544.GD2296@lahna.fi.intel.com>
- <20181128111312-mutt-send-email-mst@kernel.org>
- <CACO55tuzDgTb2g_ebhm7+A=UjEEDoM09-b5X_7fkznkFjJGiag@mail.gmail.com>
- <20181128202728-mutt-send-email-mst@kernel.org>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
+ uninitialized pointer value
+Date: Thu, 29 Nov 2018 19:34:40 +0800
+Message-ID: <c16634d2-b6b7-1251-8b31-82fef94da3e2@huawei.com>
+References: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20181128202728-mutt-send-email-mst@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: mst@redhat.com
-Cc: nouveau <nouveau@lists.freedesktop.org>, rjw@rjwysocki.net, dri-devel <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>, David Airlie <airlied@redhat.com>, mika.westerberg@linux.intel.com, lenb@kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael
+ J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Patrick Bellasi <patrick.bellasi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVGh1LCBOb3YgMjksIDIwMTggYXQgMjoyOSBBTSBNaWNoYWVsIFMuIFRzaXJraW4gPG1zdEBy
-ZWRoYXQuY29tPiB3cm90ZToKPgo+IE9uIFRodSwgTm92IDI5LCAyMDE4IGF0IDEyOjIxOjMxQU0g
-KzAxMDAsIEthcm9sIEhlcmJzdCB3cm90ZToKPiA+IHRoaXMgd2FzIGFscmVhZHkgZGVidWdnZWQg
-YW5kIHRoZXJlIGlzIG5vIHBvaW50IGluIHNlYXJjaGluZyBpbnNpZGUKPiA+IHRoZSBGaXJtd2Fy
-ZS4gSXQncyBub3QgYSBmaXJtd2FyZSBidWcgb3IgYW55dGhpbmcuCj4gPgo+ID4gVGhlIHByb3Bl
-ciBmaXggaXMgdG8gZG8gc29tZXRoaW5nIGluc2lkZSBOb3V2ZWF1IHNvIHRoYXQgd2UgZG9uJ3QK
-PiA+IHVwc2V0IHRoZSBkZXZpY2UgYW5kIGJlaW5nIGFibGUgdG8gcnVudGltZSByZXN1bWUgaXQg
-YWdhaW4uCj4gPgo+ID4gVGhlIGluaXRpYWwgdGhpbmcgd2UgZG8gaW5zaWRlIE5vdXZlYXUgdG8g
-Y2F1c2UgdGhvc2UgaXNzdWVzIGlzIHRvIHJ1bgo+ID4gdGhhdCBzbyBjYWxsZWQgIkRFVklOSVQi
-IHNjcmlwdCBpbnNpZGUgdGhlIHZiaW9zIHRvIGluaXRpYWxpemUgdGhlCj4gPiBHUFUsIHByb2Js
-ZW0gaXMsIGl0IGNoYW5nZXMgc29tZXRoaW5nIG9uIHRoZSBQQ0llIGNvbmZpZ3VyYXRpb24gc28K
-PiA+IHRoYXQgdGhlIEdQVSBpc24ndCBhYmxlIHRvIHJ1bnRpbWUgcmVzdW1lIGFueW1vcmUuIEkg
-YW0gaW4gY29udGFjdAo+ID4gd2l0aCBOdmlkaWEgYWJvdXQgdGhhdCBpc3N1ZSBhbmQgaG9wZWZ1
-bGx5IHdlIGdldCB0aGUgcHJvcGVyIGFuc3dlcnMuCj4gPiBXaGVuIEkgd2FzIGRpZ2dpbmcgaW50
-byB0aGF0IG15c2VsZiBJIHdhcyBhYmxlIHRvIG1ha2UgdGhlIHNpdHVhdGlvbgo+ID4gbW9yZSBz
-dGFibGUgYnkgc2V0dGluZyB0aGUgUENJRSBsaW5rIHNwZWVkIHRvIHRoZSBib290IGRlZmF1bHRz
-LCBidXQKPiA+IHRoYXQgd2FzIHN0aWxsIHByZXR0eSB1bnN0YWJsZS4KPiA+Cj4gPiBBbnl3YXks
-IGJlY2F1c2UgdGhlIGJpbmFyeSBkcml2ZXIgZmFpbHMgaGVyZSBhcyB3ZWxsICh0aHJvdWdoCj4g
-PiBidW1ibGViZWUgYW5kIHNvIG9uKSB0aGVyZSBpc24ndCBtdWNoIG9mIHJldmVyc2UgZW5naW5l
-ZXJpbmcgd2UgY2FuIGRvCj4gPiBiZXNpZGVzIGd1ZXNzaW5nIGFuZCB0cnlpbmcgaXQgb24gbGl0
-ZXJhbGx5IGV2ZXJ5IGhhcmR3YXJlIHVudGlsIGl0Cj4gPiB3b3Jrcy4KPiA+Cj4gPiBXZSBhbHNv
-IGhhdmUgYW4gdXBzdHJlYW0gYnVnIGZvciB0aGlzIGlzc3VlOgo+ID4gaHR0cHM6Ly9idWd6aWxs
-YS5rZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD0xNTYzNDEKPgo+IElmIHlvdSBsaWtlIEkgY2Fu
-IHByb2JhYmx5IGR1bXAgdGhlIHBjaWUgcmVnaXN0ZXJzIG9uIGNhcmQKPiBhbmQvb3IgdGhlIHBj
-aWUgcG9ydCB1bmRlciB3aW5kb3dzLiBUaGUgY2FyZCB3b3JrcyB0aGVyZSA6KQo+IExldCBtZSBr
-bm93Lgo+Cj4gLS0KPiBNU1QKCnRoZSBwcm9ibGVtIGlzLCB3ZSB3b3VsZCBuZWVkIHRvIGtub3cg
-dGhlIHJlZ2lzdGVycyByaWdodCBiZWZvcmUKc3VzcGVuZGluZyB0aGUgR1BVLiBJZiBzb21lb25l
-IHdvdWxkIGJlIGFibGUgdG8gdHJhY2UgYWxsIFBDSWUKcmVnaXN0ZXIgcmVhZCBhbmQgd3JpdGVz
-IGZvciB0aGUgZW50aXJlIHN1c3BlbmRpbmcvcmVzdW1lIHByb2Nlc3MsCnRoYXQgd291bGQgYmUg
-dmVyeSBoZWxwZnVsLgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5v
-cmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2
-ZWwK
+On 2018/11/29 17:55, Lorenzo Pieralisi wrote:
+> Running the Clang static analyzer on IORT code detected the following
+> error:
+> 
+> Logic error: Branch condition evaluates to a garbage value
+> 
+> in
+> 
+> iort_get_platform_device_domain()
+> 
+> If the named component associated with a given device has no IORT
+> mappings, iort_get_platform_device_domain() exits its MSI mapping loop
+> with msi_parent pointer containing garbage, which can lead to erroneous
+> code path execution.
+
+Not sure if we have such use cases that named component associated with
+a given device has no IORT mappings, but this patch still make sense to
+me,
+
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
