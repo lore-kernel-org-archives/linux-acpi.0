@@ -1,77 +1,111 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
- uninitialized pointer value
-Date: Fri, 30 Nov 2018 13:21:03 +0000
-Message-ID: <20181130132102.GC9000@arm.com>
-References: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
+From: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+Subject: [PATCH v5 3/4] perf/smmuv3: Add MSI irq support
+Date: Fri, 30 Nov 2018 15:47:50 +0000
+Message-ID: <20181130154751.28580-4-shameerali.kolothum.thodi@huawei.com>
+References: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Patrick Bellasi <patrick.bellasi@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181130154751.28580-1-shameerali.kolothum.thodi@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: lorenzo.pieralisi@arm.com, robin.murphy@arm.com
+Cc: jean-philippe.brucker@arm.com, will.deacon@arm.com, mark.rutland@arm.com, guohanjun@huawei.com, john.garry@huawei.com, pabba@codeaurora.org, vkilari@codeaurora.org, rruigrok@codeaurora.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linuxarm@huawei.com, neil.m.leeder@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 09:55:59AM +0000, Lorenzo Pieralisi wrote:
-> Running the Clang static analyzer on IORT code detected the following
-> error:
-> 
-> Logic error: Branch condition evaluates to a garbage value
-> 
-> in
-> 
-> iort_get_platform_device_domain()
-> 
-> If the named component associated with a given device has no IORT
-> mappings, iort_get_platform_device_domain() exits its MSI mapping loop
-> with msi_parent pointer containing garbage, which can lead to erroneous
-> code path execution.
-> 
-> Initialize the msi_parent pointer, fixing the bug.
-> 
-> Fixes: d4f54a186667 ("ACPI: platform: setup MSI domain for ACPI based
-> platform device")
-> Reported-by: Patrick Bellasi <patrick.bellasi@arm.com>
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> ---
->  drivers/acpi/arm64/iort.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+This adds support for MSI-based counter overflow interrupt.
 
-Acked-by: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Shameer Kolothum <shameerali.kolothum.thodi@huawei.com>
+---
+ drivers/perf/arm_smmuv3_pmu.c | 58 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
-Looks like one for 4.20.
-
-Will
-
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 2a361e22d38d..70f4e80b9246 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -700,7 +700,7 @@ static void iort_set_device_domain(struct device *dev,
->   */
->  static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
->  {
-> -	struct acpi_iort_node *node, *msi_parent;
-> +	struct acpi_iort_node *node, *msi_parent = NULL;
->  	struct fwnode_handle *iort_fwnode;
->  	struct acpi_iort_its_group *its;
->  	int i;
-> -- 
-> 2.19.2
-> 
+diff --git a/drivers/perf/arm_smmuv3_pmu.c b/drivers/perf/arm_smmuv3_pmu.c
+index fb9dcd8..71d10a0 100644
+--- a/drivers/perf/arm_smmuv3_pmu.c
++++ b/drivers/perf/arm_smmuv3_pmu.c
+@@ -68,6 +68,7 @@
+ #define SMMU_PMCG_OVSSET0               0xCC0
+ #define SMMU_PMCG_CFGR                  0xE00
+ #define SMMU_PMCG_CFGR_RELOC_CTRS       BIT(20)
++#define SMMU_PMCG_CFGR_MSI              BIT(21)
+ #define SMMU_PMCG_CFGR_SID_FILTER_TYPE  BIT(23)
+ #define SMMU_PMCG_CFGR_SIZE_MASK        GENMASK(13, 8)
+ #define SMMU_PMCG_CFGR_NCTR_MASK        GENMASK(5, 0)
+@@ -78,6 +79,12 @@
+ #define SMMU_PMCG_IRQ_CTRL              0xE50
+ #define SMMU_PMCG_IRQ_CTRL_IRQEN        BIT(0)
+ #define SMMU_PMCG_IRQ_CFG0              0xE58
++#define SMMU_PMCG_IRQ_CFG1              0xE60
++#define SMMU_PMCG_IRQ_CFG2              0xE64
++
++/* MSI config fields */
++#define MSI_CFG0_ADDR_MASK              GENMASK_ULL(51, 2)
++#define MSI_CFG2_MEMATTR_DEVICE_nGnRE   0x1
+ 
+ #define SMMU_DEFAULT_FILTER_SPAN        1
+ #define SMMU_DEFAULT_FILTER_STREAM_ID   GENMASK(31, 0)
+@@ -587,11 +594,62 @@ static irqreturn_t smmu_pmu_handle_irq(int irq_num, void *data)
+ 	return IRQ_HANDLED;
+ }
+ 
++static void smmu_pmu_free_msis(void *data)
++{
++	struct device *dev = data;
++
++	platform_msi_domain_free_irqs(dev);
++}
++
++static void smmu_pmu_write_msi_msg(struct msi_desc *desc, struct msi_msg *msg)
++{
++	phys_addr_t doorbell;
++	struct device *dev = msi_desc_to_dev(desc);
++	struct smmu_pmu *pmu = dev_get_drvdata(dev);
++
++	doorbell = (((u64)msg->address_hi) << 32) | msg->address_lo;
++	doorbell &= MSI_CFG0_ADDR_MASK;
++
++	writeq_relaxed(doorbell, pmu->reg_base + SMMU_PMCG_IRQ_CFG0);
++	writel_relaxed(msg->data, pmu->reg_base + SMMU_PMCG_IRQ_CFG1);
++	writel_relaxed(MSI_CFG2_MEMATTR_DEVICE_nGnRE,
++		       pmu->reg_base + SMMU_PMCG_IRQ_CFG2);
++}
++
++static void smmu_pmu_setup_msi(struct smmu_pmu *pmu)
++{
++	struct msi_desc *desc;
++	struct device *dev = pmu->dev;
++	int ret;
++
++	/* Clear MSI address reg */
++	writeq_relaxed(0, pmu->reg_base + SMMU_PMCG_IRQ_CFG0);
++
++	/* MSI supported or not */
++	if (!(readl(pmu->reg_base + SMMU_PMCG_CFGR) & SMMU_PMCG_CFGR_MSI))
++		return;
++
++	ret = platform_msi_domain_alloc_irqs(dev, 1, smmu_pmu_write_msi_msg);
++	if (ret) {
++		dev_warn(dev, "failed to allocate MSIs\n");
++		return;
++	}
++
++	desc = first_msi_entry(dev);
++	if (desc)
++		pmu->irq = desc->irq;
++
++	/* Add callback to free MSIs on teardown */
++	devm_add_action(dev, smmu_pmu_free_msis, dev);
++}
++
+ static int smmu_pmu_setup_irq(struct smmu_pmu *pmu)
+ {
+ 	unsigned long flags = IRQF_NOBALANCING | IRQF_SHARED | IRQF_NO_THREAD;
+ 	int irq, ret = -ENXIO;
+ 
++	smmu_pmu_setup_msi(pmu);
++
+ 	irq = pmu->irq;
+ 	if (irq)
+ 		ret = devm_request_irq(pmu->dev, irq, smmu_pmu_handle_irq,
+-- 
+2.7.4
