@@ -1,48 +1,77 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5 09/15] i2c: acpi: Introduce
- i2c_acpi_get_i2c_resource() helper
-Date: Fri, 30 Nov 2018 14:17:54 +0200
-Message-ID: <20181130121754.GO10650@smile.fi.intel.com>
-References: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com>
- <20181128114535.80223-10-andriy.shevchenko@linux.intel.com>
- <20181130095533.GC1079@kunai>
- <20181130105759.GK10650@smile.fi.intel.com>
- <20181130110652.ckj75wrxxaez2sq2@ninjato>
- <20181130114543.GM10650@smile.fi.intel.com>
- <20181130114950.av6pnedcqu27jyjc@ninjato>
- <20181130121231.GO3078@lahna.fi.intel.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH] ACPI/IORT: Fix iort_get_platform_device_domain()
+ uninitialized pointer value
+Date: Fri, 30 Nov 2018 13:21:03 +0000
+Message-ID: <20181130132102.GC9000@arm.com>
+References: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 Content-Disposition: inline
-In-Reply-To: <20181130121231.GO3078@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+In-Reply-To: <20181129095559.26007-1-lorenzo.pieralisi@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Patrick Bellasi <patrick.bellasi@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Nov 30, 2018 at 02:12:31PM +0200, Mika Westerberg wrote:
-> On Fri, Nov 30, 2018 at 12:49:50PM +0100, Wolfram Sang wrote:
-> > 
-> > > > Is this something we have to live with or which can be cleaned up
-> > > > somewhen?
-> > > 
-> > > My opinion that we might need something like
-> > > drivers/acpi/acpi_i2c_lib.c
-> > > drivers/acpi/acpi_gpio_lib.c
-> > > etc.
-> > >
-> > 
-> > Collect all of them in drivers/acpi/acpi_libs.c?
-> > 
-> > > But better to ask Rafael and Mika what they think about this.
+On Thu, Nov 29, 2018 at 09:55:59AM +0000, Lorenzo Pieralisi wrote:
+> Running the Clang static analyzer on IORT code detected the following
+> error:
 > 
-> IMHO all the bus specific ACPI things should go under those buses (so
-> the opposite what is proposed here) but I also don't think any of this
-> is show stopper for the patch series under discussion ;-)
+> Logic error: Branch condition evaluates to a garbage value
+> 
+> in
+> 
+> iort_get_platform_device_domain()
+> 
+> If the named component associated with a given device has no IORT
+> mappings, iort_get_platform_device_domain() exits its MSI mapping loop
+> with msi_parent pointer containing garbage, which can lead to erroneous
+> code path execution.
+> 
+> Initialize the msi_parent pointer, fixing the bug.
+> 
+> Fixes: d4f54a186667 ("ACPI: platform: setup MSI domain for ACPI based
+> platform device")
+> Reported-by: Patrick Bellasi <patrick.bellasi@arm.com>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+>  drivers/acpi/arm64/iort.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thank you guys for your input, let me fix this later, out of this series.
+Acked-by: Will Deacon <will.deacon@arm.com>
 
--- 
-With Best Regards,
-Andy Shevchenko
+Looks like one for 4.20.
+
+Will
+
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 2a361e22d38d..70f4e80b9246 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -700,7 +700,7 @@ static void iort_set_device_domain(struct device *dev,
+>   */
+>  static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+>  {
+> -	struct acpi_iort_node *node, *msi_parent;
+> +	struct acpi_iort_node *node, *msi_parent = NULL;
+>  	struct fwnode_handle *iort_fwnode;
+>  	struct acpi_iort_its_group *its;
+>  	int i;
+> -- 
+> 2.19.2
+> 
