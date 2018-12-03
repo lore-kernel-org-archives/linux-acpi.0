@@ -1,90 +1,57 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5 00/15] i2c-multi-instantiate: Adapt for INT3515 and
- alike
-Date: Mon, 3 Dec 2018 21:44:01 +0200
-Message-ID: <20181203194401.GA10650@smile.fi.intel.com>
-References: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com>
+From: Dave Jiang <dave.jiang@intel.com>
+Subject: Re: [PATCH] acpi/nfit: Fix user-initiated ARS to be "ARS-long" rather
+ than "ARS-short"
+Date: Mon, 3 Dec 2018 13:12:24 -0700
+Message-ID: <6345bd3b-b5c0-eb51-bd81-878cd764e66d@intel.com>
+References: <154386182529.24428.16722249724563229676.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181128114535.80223-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <154386182529.24428.16722249724563229676.stgit@dwillia2-desk3.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Jonathan Cameron <jic23@kernel.org>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
+Cc: Jacek Zloch <jacek.zloch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 01:45:20PM +0200, Andy Shevchenko wrote:
-> Currently i2c-multi-instantiate driver does not support the case
-> of INT3515 USB PD device, where:
-> 
-> - Interrupt() is used instead of GpioInt()
-> - All slaves may be the same from IP point of view
-> - There can be variadic amount of slaves
-> 
-> This series is addressing all above.
-> 
-> Note, series has been smoke tested (Heikki would do BAT or more)
-> on Intel Coffee Lake system.
-> 
-> The idea is to push this either through PDx86 tree (needs Rafael's ACKs) or ACPI.
-> In any case it needs tags from Heikki, Hans, Mika, Wolfram and Jonathan.
-> 
-> Testing and comments are warmly welcome.
 
-Thank you everyone, who helped with this series, pushed to my review and testing queue!
-
-> 
-> In v5:
-> - unmess with patches 3 and 4 (there were squashed by my mistake)
-> - other than above no code change from v4
-> 
-> In v4:
-> - directly return -EPROBE_DEFER from i2c_acpi_new_device()
-> - due to above split error handling simplification to separate patches
-> 
-> In v3:
-> - revisit error codes returned by i2c_acpi_new_device() (Hans, Mika)
-> - add documentation to exported i2c_acpi_get_i2c_resource() (Mika)
-> - drop Hans' Rb tag in patch 5 due to changes
-> - append Mika's Ab tag to patch 6
-> 
-> In v2:
-> - drop patches to copy fwnode and to handle BOSC0200 device
-> - append check for amount of devices listed in the driver's mapping
-> - add Rb tag given by Hans
-> 
-> Andy Shevchenko (15):
->   platform/x86: intel_cht_int33fe: Remove duplicate NULL check
->   platform/x86: intel_cht_int33fe: Accept errors of
->     i2c_acpi_new_device()
->   platform/x86: i2c-multi-instantiate: Accept errors of
->     i2c_acpi_new_device()
->   platform/x86: i2c-multi-instantiate: Defer probe when no adapter found
->   i2c: acpi: Return error pointers from i2c_acpi_new_device()
->   platform/x86: intel_cht_int33fe: Get rid of obsolete conditional
->   platform/x86: i2c-multi-instantiate: Get rid of obsolete conditional
->   i2c: acpi: Use ACPI_FAILURE instead of !ACPI_SUCCESS
->   i2c: acpi: Introduce i2c_acpi_get_i2c_resource() helper
->   platform/x86: i2c-multi-instantiate: Count I2cSerialBus() resources
->   platform/x86: i2c-multi-instantiate: Distinguish IRQ resource type
->   platform/x86: i2c-multi-instantiate: Introduce IOAPIC IRQ support
->   platform/x86: i2c-multi-instantiate: Allow to have same slaves
->   ACPI / scan: Create platform device for INT3515 ACPI nodes
->   iio: inv_mpu6050: Use i2c_acpi_get_i2c_resource() helper
-> 
->  drivers/acpi/scan.c                          |  1 +
->  drivers/i2c/i2c-core-acpi.c                  | 64 +++++++++----
->  drivers/iio/imu/inv_mpu6050/inv_mpu_acpi.c   | 16 ++--
->  drivers/platform/x86/i2c-multi-instantiate.c | 97 ++++++++++++++++----
->  drivers/platform/x86/intel_cht_int33fe.c     | 20 ++--
->  drivers/usb/typec/tps6598x.c                 |  8 +-
->  include/linux/acpi.h                         | 11 +++
->  7 files changed, 157 insertions(+), 60 deletions(-)
-> 
-> --
-> 2.19.2
-> 
-
--- 
-With Best Regards,
-Andy Shevchenko
+On 12/3/2018 11:30 AM, Dan Williams wrote:
+> A "short" ARS (address range scrub) instructs the platform firmware to
+> return known errors. In contrast, a "long" ARS instructs platform
+> firmware to arrange every data address on the DIMM to be read / checked
+> for poisoned data.
+>
+> The conversion of the flags in commit d3abaf43bab8 "acpi, nfit: Fix
+> Address Range Scrub completion tracking", changed the meaning of passing
+> '0' to acpi_nfit_ars_rescan(). Previously '0' meant "not short", now '0'
+> is ARS_REQ_SHORT. Pass ARS_REQ_LONG to restore the expected scrub-type
+> behavior of user-initiated ARS sessions.
+>
+> Fixes: d3abaf43bab8 ("acpi, nfit: Fix Address Range Scrub completion tracking")
+> Reported-by: Jacek Zloch <jacek.zloch@intel.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dave Jiang <dave.jiang@intel.com>
+> ---
+>   drivers/acpi/nfit/core.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+> index 14d9f5bea015..5912d30020c7 100644
+> --- a/drivers/acpi/nfit/core.c
+> +++ b/drivers/acpi/nfit/core.c
+> @@ -1308,7 +1308,7 @@ static ssize_t scrub_store(struct device *dev,
+>   	if (nd_desc) {
+>   		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+>   
+> -		rc = acpi_nfit_ars_rescan(acpi_desc, 0);
+> +		rc = acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
+>   	}
+>   	device_unlock(dev);
+>   	if (rc)
+>
+> _______________________________________________
+> Linux-nvdimm mailing list
+> Linux-nvdimm@lists.01.org
+> https://lists.01.org/mailman/listinfo/linux-nvdimm
