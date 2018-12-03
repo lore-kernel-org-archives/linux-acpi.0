@@ -1,57 +1,47 @@
-From: Dave Jiang <dave.jiang@intel.com>
-Subject: Re: [PATCH] acpi/nfit: Fix user-initiated ARS to be "ARS-long" rather
- than "ARS-short"
-Date: Mon, 3 Dec 2018 13:12:24 -0700
-Message-ID: <6345bd3b-b5c0-eb51-bd81-878cd764e66d@intel.com>
-References: <154386182529.24428.16722249724563229676.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Wei Yang <richard.weiyang@gmail.com>
+Subject: Re: [PATCH RFCv2 1/4] mm/memory_hotplug: Introduce memory block types
+Date: Mon, 3 Dec 2018 20:58:36 +0000
+Message-ID: <20181203205836.7xpab6ljc3kngrqm@master>
+References: <20181130175922.10425-1-david@redhat.com>
+ <20181130175922.10425-2-david@redhat.com>
+ <20181201012507.lxfscl6ho3gc6gnn@master>
+ <af797dbb-0537-19ec-ef31-d72a3f979791@redhat.com>
+Reply-To: Wei Yang <richard.weiyang@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <154386182529.24428.16722249724563229676.stgit@dwillia2-desk3.amr.corp.intel.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <af797dbb-0537-19ec-ef31-d72a3f979791@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org
-Cc: Jacek Zloch <jacek.zloch@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: David Hildenbrand <david@redhat.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org, devel@linuxdriverproject.org, xen-devel@lists.xenproject.org, x86@kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Ingo Molnar <mingo@kernel.org>, Pavel Tatashin <pasha.tatashin@oracle.com>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Banman <andrew.banman@hpe.com>, "mike.travis@hpe.com" <mike.travis@hpe.com>, Oscar Salvador <osalvador@suse.com>, Dave Hansen <dave.hansen@linux.intel.com>, Michal Hocko <mhocko@kernel.org>Michal
 List-Id: linux-acpi@vger.kernel.org
 
+[...]
+>>>
+>>> +	if (type == MEMORY_BLOCK_NONE)
+>>> +		return -EINVAL;
+>> 
+>> No one will pass in this value. Can we omit this check for now?
+>
+>I could move it to patch nr 2 I guess, but as I introduce
+>MEMORY_BLOCK_NONE here it made sense to keep it in here.
+>
 
-On 12/3/2018 11:30 AM, Dan Williams wrote:
-> A "short" ARS (address range scrub) instructs the platform firmware to
-> return known errors. In contrast, a "long" ARS instructs platform
-> firmware to arrange every data address on the DIMM to be read / checked
-> for poisoned data.
+Yes, this make sense to me now.
+
+>(and I think at least for now it makes sense to not squash patch 1 and
+>2, to easier discuss the new user interface/concept introduced in this
+>patch).
 >
-> The conversion of the flags in commit d3abaf43bab8 "acpi, nfit: Fix
-> Address Range Scrub completion tracking", changed the meaning of passing
-> '0' to acpi_nfit_ars_rescan(). Previously '0' meant "not short", now '0'
-> is ARS_REQ_SHORT. Pass ARS_REQ_LONG to restore the expected scrub-type
-> behavior of user-initiated ARS sessions.
+>Thanks!
 >
-> Fixes: d3abaf43bab8 ("acpi, nfit: Fix Address Range Scrub completion tracking")
-> Reported-by: Jacek Zloch <jacek.zloch@intel.com>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dave Jiang <dave.jiang@intel.com>
-> ---
->   drivers/acpi/nfit/core.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+>-- 
 >
-> diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-> index 14d9f5bea015..5912d30020c7 100644
-> --- a/drivers/acpi/nfit/core.c
-> +++ b/drivers/acpi/nfit/core.c
-> @@ -1308,7 +1308,7 @@ static ssize_t scrub_store(struct device *dev,
->   	if (nd_desc) {
->   		struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
->   
-> -		rc = acpi_nfit_ars_rescan(acpi_desc, 0);
-> +		rc = acpi_nfit_ars_rescan(acpi_desc, ARS_REQ_LONG);
->   	}
->   	device_unlock(dev);
->   	if (rc)
+>Thanks,
 >
-> _______________________________________________
-> Linux-nvdimm mailing list
-> Linux-nvdimm@lists.01.org
-> https://lists.01.org/mailman/listinfo/linux-nvdimm
+>David / dhildenb
+
+-- 
+Wei Yang
+Help you, Help me
