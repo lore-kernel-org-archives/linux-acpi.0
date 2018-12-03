@@ -1,8 +1,8 @@
 From: James Morse <james.morse@arm.com>
-Subject: [PATCH v7 02/25] ACPI / APEI: Remove silent flag from
- ghes_read_estatus()
-Date: Mon,  3 Dec 2018 18:05:50 +0000
-Message-ID: <20181203180613.228133-3-james.morse@arm.com>
+Subject: [PATCH v7 03/25] ACPI / APEI: Switch estatus pool to use vmalloc
+ memory
+Date: Mon,  3 Dec 2018 18:05:51 +0000
+Message-ID: <20181203180613.228133-4-james.morse@arm.com>
 References: <20181203180613.228133-1-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,81 +22,83 @@ To: linux-acpi@vger.kernel.org
 Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Subsequent patches will split up ghes_read_estatus(), at which
-point passing around the 'silent' flag gets annoying. This is to
-suppress prink() messages, which prior to commit 42a0bb3f7138
-("printk/nmi: generic solution for safe printk in NMI"), were
-unsafe in NMI context.
+The ghes code is careful to parse and round firmware's advertised
+memory requirements for CPER records, up to a maximum of 64K.
+However when ghes_estatus_pool_expand() does its work, it splits
+the requested size into PAGE_SIZE granules.
 
-This is no longer necessary, remove the flag. printk() messages
-are batched in a per-cpu buffer and printed via irq-work, or a call
-back from panic().
+This means if firmware generates 5K of CPER records, and correctly
+describes this in the table, __process_error() will silently fail as it
+is unable to allocate more than PAGE_SIZE.
+
+Switch the estatus pool to vmalloc() memory. On x86 vmalloc() memory
+may fault and be fixed up by vmalloc_fault(). To prevent this call
+vmalloc_sync_all() before an NMI handler could discover the memory.
 
 Signed-off-by: James Morse <james.morse@arm.com>
 ---
-Changes since v6:
- * Moved earlier in the series,
- * Tinkered with the commit message.
- * switched to pr_warn_ratelimited() to shut checkpatch up
-
-shutup checkpatch
----
- drivers/acpi/apei/ghes.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/acpi/apei/ghes.c | 30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
 diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index ab2dae6fc7e4..e8503c7d721f 100644
+index e8503c7d721f..c15264f2dc4b 100644
 --- a/drivers/acpi/apei/ghes.c
 +++ b/drivers/acpi/apei/ghes.c
-@@ -324,7 +324,7 @@ static void ghes_copy_tofrom_phys(void *buffer, u64 paddr, u32 len,
- 	}
+@@ -170,40 +170,40 @@ static int ghes_estatus_pool_init(void)
+ 	return 0;
  }
  
--static int ghes_read_estatus(struct ghes *ghes, int silent)
-+static int ghes_read_estatus(struct ghes *ghes)
+-static void ghes_estatus_pool_free_chunk_page(struct gen_pool *pool,
++static void ghes_estatus_pool_free_chunk(struct gen_pool *pool,
+ 					      struct gen_pool_chunk *chunk,
+ 					      void *data)
  {
- 	struct acpi_hest_generic *g = ghes->generic;
- 	u64 buf_paddr;
-@@ -333,8 +333,7 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
- 
- 	rc = apei_read(&buf_paddr, &g->error_status_address);
- 	if (rc) {
--		if (!silent && printk_ratelimit())
--			pr_warning(FW_WARN GHES_PFX
-+		pr_warn_ratelimited(FW_WARN GHES_PFX
- "Failed to read error status block address for hardware error source: %d.\n",
- 				   g->header.source_id);
- 		return -EIO;
-@@ -366,9 +365,9 @@ static int ghes_read_estatus(struct ghes *ghes, int silent)
- 	rc = 0;
- 
- err_read_block:
--	if (rc && !silent && printk_ratelimit())
--		pr_warning(FW_WARN GHES_PFX
--			   "Failed to read error status block!\n");
-+	if (rc)
-+		pr_warn_ratelimited(FW_WARN GHES_PFX
-+				    "Failed to read error status block!\n");
- 	return rc;
+-	free_page(chunk->start_addr);
++	vfree((void *)chunk->start_addr);
  }
  
-@@ -700,7 +699,7 @@ static int ghes_proc(struct ghes *ghes)
+ static void ghes_estatus_pool_exit(void)
  {
- 	int rc;
+ 	gen_pool_for_each_chunk(ghes_estatus_pool,
+-				ghes_estatus_pool_free_chunk_page, NULL);
++				ghes_estatus_pool_free_chunk, NULL);
+ 	gen_pool_destroy(ghes_estatus_pool);
+ }
  
--	rc = ghes_read_estatus(ghes, 0);
-+	rc = ghes_read_estatus(ghes);
- 	if (rc)
- 		goto out;
+ static int ghes_estatus_pool_expand(unsigned long len)
+ {
+-	unsigned long i, pages, size, addr;
+-	int ret;
++	unsigned long size, addr;
  
-@@ -937,7 +936,7 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
- 		return ret;
+ 	ghes_estatus_pool_size_request += PAGE_ALIGN(len);
+ 	size = gen_pool_size(ghes_estatus_pool);
+ 	if (size >= ghes_estatus_pool_size_request)
+ 		return 0;
+-	pages = (ghes_estatus_pool_size_request - size) / PAGE_SIZE;
+-	for (i = 0; i < pages; i++) {
+-		addr = __get_free_page(GFP_KERNEL);
+-		if (!addr)
+-			return -ENOMEM;
+-		ret = gen_pool_add(ghes_estatus_pool, addr, PAGE_SIZE, -1);
+-		if (ret)
+-			return ret;
+-	}
  
- 	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
--		if (ghes_read_estatus(ghes, 1)) {
-+		if (ghes_read_estatus(ghes)) {
- 			ghes_clear_estatus(ghes);
- 			continue;
- 		} else {
+-	return 0;
++	addr = (unsigned long)vmalloc(PAGE_ALIGN(len));
++	if (!addr)
++		return -ENOMEM;
++
++	/*
++	 * New allocation must be visible in all pgd before it can be found by
++	 * an NMI allocating from the pool.
++	 */
++	vmalloc_sync_all();
++
++	return gen_pool_add(ghes_estatus_pool, addr, PAGE_ALIGN(len), -1);
+ }
+ 
+ static int map_gen_v2(struct ghes *ghes)
 -- 
 2.19.2
