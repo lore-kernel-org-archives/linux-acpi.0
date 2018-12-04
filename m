@@ -1,67 +1,56 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 1/4] PCI / ACPI: Identify untrusted PCI devices
-Date: Tue, 4 Dec 2018 10:57:35 +0200
-Message-ID: <20181204085735.GR3078@lahna.fi.intel.com>
-References: <20181129155153.35840-1-mika.westerberg@linux.intel.com>
- <20181129155153.35840-2-mika.westerberg@linux.intel.com>
- <20181204002800.GB85090@google.com>
+From: Michal =?UTF-8?B?U3VjaMOhbmVr?= <msuchanek@suse.de>
+Subject: Re: [PATCH RFCv2 3/4] mm/memory_hotplug: Introduce and use more
+ memory types
+Date: Tue, 4 Dec 2018 10:44:54 +0100
+Message-ID: <20181204104454.522a3ba2@naga.suse.cz>
+References: <20181130175922.10425-1-david@redhat.com>
+        <20181130175922.10425-4-david@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181204002800.GB85090@google.com>
+In-Reply-To: <20181130175922.10425-4-david@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: iommu@lists.linux-foundation.org, Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: David Hildenbrand <david@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org, devel@linuxdriverproject.org, xen-devel@lists.xenproject.org, x86@kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.co>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:28:00PM -0600, Bjorn Helgaas wrote:
-> On Thu, Nov 29, 2018 at 06:51:50PM +0300, Mika Westerberg wrote:
-> > A malicious PCI device may use DMA to attack the system. An external
-> > Thunderbolt port is a convenient point to attach such a device. The OS
-> > may use IOMMU to defend against DMA attacks.
-> > 
-> > Recent BIOSes with Thunderbolt ports mark these externally facing root
-> > ports with this ACPI _DSD [1]:
+On Fri, 30 Nov 2018 18:59:21 +0100
+David Hildenbrand <david@redhat.com> wrote:
+
+> Let's introduce new types for different kinds of memory blocks and use
+> them in existing code. As I don't see an easy way to split this up,
+> do it in one hunk for now.
 > 
-> I'm not 100% comfortable with the "Recent BIOSes" wording because that
-> suggests that we can rely on the fact that *all* BIOSes newer than
-> some date X mark these ports.
+> acpi:
+>  Use DIMM or DIMM_UNREMOVABLE depending on hotremove support in the kernel.
+>  Properly change the type when trying to add memory that was already
+>  detected and used during boot (so this memory will correctly end up as
+>  "acpi" in user space).
 > 
-> Since this _DSD usage is Microsoft-specific and not required by either
-> PCIe or ACPI specs, we can't rely on it.  A BIOS that doesn't
-> implement it may not be Windows-certified, but it's perfectly
-> spec-compliant otherwise and we have to keep in mind the possibility
-> that ports without this _DSD may still be externally visible and may
-> still be attack vectors.
-
-OK.
-
-I will change it to "Some BIOSes .." following what you suggested
-earlier. That should make it clear not all BIOSes are required to
-implement this.
-
-> >   Name (_DSD, Package () {
-> >       ToUUID ("efcc06cc-73ac-4bc3-bff0-76143807c389"),
-> >       Package () {
-> >           Package () {"ExternalFacingPort", 1},
-> > 	  Package () {"UID", 0 }
-> >       }
-> >   })
-> > 
-> > If we find such a root port, mark it and all its children as untrusted.
-> > The rest of the OS may use this information to enable DMA protection
-> > against malicious devices. For instance the device may be put behind an
-> > IOMMU to keep it from accessing memory outside of what the driver has
-> > allocated for it.
-> > 
-> > While at it, add a comment on top of prp_guids array explaining the
-> > possible caveat resulting when these GUIDs are treated equivalent.
-> > 
-> > [1] https://docs.microsoft.com/en-us/windows-hardware/drivers/pci/dsd-for-pcie-root-ports#identifying-externally-exposed-pcie-root-ports
-> > 
-> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> pseries:
+>  Use DIMM or DIMM_UNREMOVABLE depending on hotremove support in the kernel.
+>  As far as I see, handling like in the acpi case for existing blocks is
+>  not required.
 > 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> probed memory from user space:
+>  Use DIMM_UNREMOVABLE as there is no interface to get rid of this code
+>  again.
+> 
+> hv_balloon,xen/balloon:
+>  Use BALLOON. As simple as that :)
+> 
+> s390x/sclp:
+>  Use a dedicated type S390X_STANDBY as this type of memory and it's
+>  semantics are very s390x specific.
+> 
+> powernv/memtrace:
+>  Only allow to use BOOT memory for memtrace. I consider this code in
+>  general dangerous, but we have to keep it working ... most probably just
+>  a debug feature.
 
-Thanks!
+I don't think it should be arbitrarily restricted like that.
+
+Thanks
+
+Michal
