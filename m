@@ -1,52 +1,41 @@
 From: Dave Hansen <dave.hansen@intel.com>
 Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Tue, 4 Dec 2018 15:54:22 -0800
-Message-ID: <6e2a1dba-80a8-42bf-127c-2f5c2441c248@intel.com>
+Date: Tue, 4 Dec 2018 15:58:23 -0800
+Message-ID: <ed96fdb0-d8b6-e19b-fe45-532042b712c6@intel.com>
 References: <20181203233509.20671-1-jglisse@redhat.com>
+ <9d745b99-22e3-c1b5-bf4f-d3e83113f57b@intel.com>
+ <20181204184919.GD2937@redhat.com>
+ <20163c1e-00f1-7e02-82c0-7730ceabb9f2@intel.com>
+ <20181204215711.GP2937@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181203233509.20671-1-jglisse@redhat.com>
+In-Reply-To: <20181204215711.GP2937@redhat.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: jglisse@redhat.com, linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Michal
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Michal Hocko <mhocko@kernel.org>, Jon
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/3/18 3:34 PM, jglisse@redhat.com wrote:
-> This patchset use the above scheme to expose system topology through
-> sysfs under /sys/bus/hms/ with:
->     - /sys/bus/hms/devices/v%version-%id-target/ : a target memory,
->       each has a UID and you can usual value in that folder (node id,
->       size, ...)
-> 
->     - /sys/bus/hms/devices/v%version-%id-initiator/ : an initiator
->       (CPU or device), each has a HMS UID but also a CPU id for CPU
->       (which match CPU id in (/sys/bus/cpu/). For device you have a
->       path that can be PCIE BUS ID for instance)
-> 
->     - /sys/bus/hms/devices/v%version-%id-link : an link, each has a
->       UID and a file per property (bandwidth, latency, ...) you also
->       find a symlink to every target and initiator connected to that
->       link.
-> 
->     - /sys/bus/hms/devices/v%version-%id-bridge : a bridge, each has
->       a UID and a file per property (bandwidth, latency, ...) you
->       also find a symlink to all initiators that can use that bridge.
+On 12/4/18 1:57 PM, Jerome Glisse wrote:
+> Fully correct mind if i steal that perfect summary description next time
+> i post ? I am so bad at explaining thing :)
 
-We support 1024 NUMA nodes on x86.  The ACPI HMAT expresses the
-connections between each node.  Let's suppose that each node has some
-CPUs and some memory.
+Go for it!
 
-That means we'll have 1024 target directories in sysfs, 1024 initiator
-directories in sysfs, and 1024*1024 link directories.  Or, would the
-kernel be responsible for "compiling" the firmware-provided information
-down into a more manageable number of links?
+> Intention is to allow program to do everything they do with mbind() today
+> and tomorrow with the HMAT patchset and on top of that to also be able to
+> do what they do today through API like OpenCL, ROCm, CUDA ... So it is one
+> kernel API to rule them all ;)
 
-Some idiot made the mistake of having one sysfs directory per 128MB of
-memory way back when, and now we have hundreds of thousands of
-/sys/devices/system/memory/memoryX directories.  That sucks to manage.
-Isn't this potentially repeating that mistake?
+While I appreciate the exhaustive scope of such a project, I'm really
+worried that if we decided to use this for our "HMAT" use cases, we'll
+be bottlenecked behind this project while *it* goes through 25 revisions
+over 4 or 5 years like HMM did.
 
-Basically, is sysfs the right place to even expose this much data?
+So, should we just "park" the enhancements to the existing NUMA
+interfaces and infrastructure (think /sys/devices/system/node) and wait
+for this to go in?  Do we try to develop them in parallel and make them
+consistent?  Or, do we just ignore each other and make Andrew sort it
+out in a few years? :)
