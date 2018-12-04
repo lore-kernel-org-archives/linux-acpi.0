@@ -1,114 +1,154 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 03/25] ACPI / APEI: Switch estatus pool to use vmalloc
- memory
-Date: Tue, 4 Dec 2018 14:01:24 +0100
-Message-ID: <20181204130124.GE11803@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-4-james.morse@arm.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
+Date: Tue, 4 Dec 2018 09:44:28 -0500
+Message-ID: <20181204144422.GA3917@redhat.com>
+References: <20181203233509.20671-1-jglisse@redhat.com>
+ <d6899765-a3b1-464b-d310-862161e07d98@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-4-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+In-Reply-To: <d6899765-a3b1-464b-d310-862161e07d98@linux.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Dave Hansen <dave.hansen@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Mich
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:05:51PM +0000, James Morse wrote:
-> The ghes code is careful to parse and round firmware's advertised
-> memory requirements for CPER records, up to a maximum of 64K.
-> However when ghes_estatus_pool_expand() does its work, it splits
-> the requested size into PAGE_SIZE granules.
+On Tue, Dec 04, 2018 at 01:14:14PM +0530, Aneesh Kumar K.V wrote:
+> On 12/4/18 5:04 AM, jglisse@redhat.com wrote:
+> > From: Jérôme Glisse <jglisse@redhat.com>
+
+[...]
+
+> > This patchset use the above scheme to expose system topology through
+> > sysfs under /sys/bus/hms/ with:
+> >      - /sys/bus/hms/devices/v%version-%id-target/ : a target memory,
+> >        each has a UID and you can usual value in that folder (node id,
+> >        size, ...)
+> > 
+> >      - /sys/bus/hms/devices/v%version-%id-initiator/ : an initiator
+> >        (CPU or device), each has a HMS UID but also a CPU id for CPU
+> >        (which match CPU id in (/sys/bus/cpu/). For device you have a
+> >        path that can be PCIE BUS ID for instance)
+> > 
+> >      - /sys/bus/hms/devices/v%version-%id-link : an link, each has a
+> >        UID and a file per property (bandwidth, latency, ...) you also
+> >        find a symlink to every target and initiator connected to that
+> >        link.
+> > 
+> >      - /sys/bus/hms/devices/v%version-%id-bridge : a bridge, each has
+> >        a UID and a file per property (bandwidth, latency, ...) you
+> >        also find a symlink to all initiators that can use that bridge.
 > 
-> This means if firmware generates 5K of CPER records, and correctly
-> describes this in the table, __process_error() will silently fail as it
-> is unable to allocate more than PAGE_SIZE.
+> is that version tagging really needed? What changes do you envision with
+> versions?
+
+I kind of dislike it myself but this is really to keep userspace from
+inadvertently using some kind of memory/initiator/link/bridge that it
+should not be using if it does not understand what are the implication.
+
+If it was a file inside the directory there is a big chance that user-
+space will overlook it. So an old program on a new platform with a new
+kind of weird memory like un-coherent memory might start using it and
+get all weird result. If version is in the directory name it kind of
+force userspace to only look at memory/initiator/link/bridge it does
+understand and can use safely.
+
+So i am doing this in hope that it will protect application when new
+type of things pops up. We have too many example where we can not
+evolve something because existing application have bake in assumptions
+about it.
+
+
+[...]
+
+> > 3) Tracking and applying heterogeneous memory policies
+> > ------------------------------------------------------
+> > 
+> > Current memory policy infrastructure is node oriented, instead of
+> > changing that and risking breakage and regression this patchset add a
+> > new heterogeneous policy tracking infra-structure. The expectation is
+> > that existing application can keep using mbind() and all existing
+> > infrastructure under-disturb and unaffected, while new application
+> > will use the new API and should avoid mix and matching both (as they
+> > can achieve the same thing with the new API).
+> > 
+> > Also the policy is not directly tie to the vma structure for a few
+> > reasons:
+> >      - avoid having to split vma for policy that do not cover full vma
+> >      - avoid changing too much vma code
+> >      - avoid growing the vma structure with an extra pointer
+> > So instead this patchset use the mmu_notifier API to track vma liveness
+> > (munmap(),mremap(),...).
+> > 
+> > This patchset is not tie to process memory allocation either (like said
+> > at the begining this is not and end to end patchset but a starting
+> > point). It does however demonstrate how migration to device memory can
+> > work under this scheme (using nouveau as a demonstration vehicle).
+> > 
+> > The overall design is simple, on hbind() call a hms policy structure
+> > is created for the supplied range and hms use the callback associated
+> > with the target memory. This callback is provided by device driver
+> > for device memory or by core HMS for regular main memory. The callback
+> > can decide to migrate the range to the target memories or do nothing
+> > (this can be influenced by flags provided to hbind() too).
+> > 
+> > 
+> > Latter patches can tie page fault with HMS policy to direct memory
+> > allocation to the right target. For now i would rather postpone that
+> > discussion until a consensus is reach on how to move forward on all
+> > the topics presented in this email. Start smalls, grow big ;)
+> > 
+> > 
 > 
-> Switch the estatus pool to vmalloc() memory. On x86 vmalloc() memory
-> may fault and be fixed up by vmalloc_fault(). To prevent this call
-> vmalloc_sync_all() before an NMI handler could discover the memory.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 30 +++++++++++++++---------------
->  1 file changed, 15 insertions(+), 15 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index e8503c7d721f..c15264f2dc4b 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -170,40 +170,40 @@ static int ghes_estatus_pool_init(void)
->  	return 0;
->  }
->  
-> -static void ghes_estatus_pool_free_chunk_page(struct gen_pool *pool,
-> +static void ghes_estatus_pool_free_chunk(struct gen_pool *pool,
->  					      struct gen_pool_chunk *chunk,
->  					      void *data)
->  {
-> -	free_page(chunk->start_addr);
-> +	vfree((void *)chunk->start_addr);
->  }
->  
->  static void ghes_estatus_pool_exit(void)
->  {
->  	gen_pool_for_each_chunk(ghes_estatus_pool,
-> -				ghes_estatus_pool_free_chunk_page, NULL);
-> +				ghes_estatus_pool_free_chunk, NULL);
->  	gen_pool_destroy(ghes_estatus_pool);
->  }
->  
->  static int ghes_estatus_pool_expand(unsigned long len)
->  {
-> -	unsigned long i, pages, size, addr;
-> -	int ret;
-> +	unsigned long size, addr;
->  
->  	ghes_estatus_pool_size_request += PAGE_ALIGN(len);
+> I liked the simplicity of keeping it outside all the existing memory
+> management policy code. But that that is also the drawback isn't it?
+> We now have multiple entities tracking cpu and memory. (This reminded me of
+> how we started with memcg in the early days).
 
-So here we increment with page-aligned len...
+This is a hard choice, the rational is that either application use this
+new API either it use the old one. So the expectation is that both should
+not co-exist in a process. Eventualy both can be consolidated into one
+inside the kernel while maintaining the different userspace API. But i
+feel that it is better to get to that point slowly while we experiment
+with the new API. I feel that we need to gain some experience with the
+new API on real workload to convince ourself that it is something we can
+leave with. If we reach that point than we can work on consolidating
+kernel code into one. In the meantime this experiment does not disrupt
+or regress existing API. I took the cautionary road.
 
->  	size = gen_pool_size(ghes_estatus_pool);
->  	if (size >= ghes_estatus_pool_size_request)
->  		return 0;
-> -	pages = (ghes_estatus_pool_size_request - size) / PAGE_SIZE;
-> -	for (i = 0; i < pages; i++) {
-> -		addr = __get_free_page(GFP_KERNEL);
-> -		if (!addr)
-> -			return -ENOMEM;
-> -		ret = gen_pool_add(ghes_estatus_pool, addr, PAGE_SIZE, -1);
-> -		if (ret)
-> -			return ret;
-> -	}
->  
-> -	return 0;
-> +	addr = (unsigned long)vmalloc(PAGE_ALIGN(len));
-> +	if (!addr)
-> +		return -ENOMEM;
 
-... and if we return here due to the ENOMEM, that increment above
-remains.
+> Once we have these different types of targets, ideally the system should
+> be able to place them in the ideal location based on the affinity of the
+> access. ie. we should automatically place the memory such that
+> initiator can access the target optimally. That is what we try to do with
+> current system with autonuma. (You did mention that you are not looking at
+> how this patch series will evolve to automatic handling of placement right
+> now.) But i guess we want to see if the framework indeed help in achieving
+> that goal. Having HMS outside the core memory
+> handling routines will be a road blocker there?
 
-I see you're reworking all that stuff in the next patches which is cool,
-thx. So I guess we should leave it as is, as the code before was broken
-too.
+So evolving autonuma gonna be a thing on its own, the issue is that auto-
+numa revolve around CPU id and use a handful of bits to try to catch CPU
+access pattern. With device in the mix it is much harder, first using the
+page fault trick of autonuma might not be the best idea, second we can get
+a lot of informations from IOMMU, bridge chipset or device itself on what
+is accessed by who.
 
-IOW,
+So my believe on that front is that its gonna be something different, like
+tracking range of virtual address and maintaining a data structure for
+range (not per page).
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+All this is done in core mm code, i am just keeping out of vma struct or
+other struct to avoid growing them when and wasting thing when thit is not
+in use. So it is very much inside core handling routines, it is just
+optional.
 
--- 
-Regards/Gruss,
-    Boris.
+In any case i believe that explicit placement (where application hbind()
+thing) will be the first main use case. Once we have that figured out (or
+at least once we believe we have it figured out :)) then we can look into
+auto-heterogeneous.
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Cheers,
+Jérôme
