@@ -1,72 +1,56 @@
-From: David Hildenbrand <david@redhat.com>
-Subject: Re: [PATCH RFCv2 3/4] mm/memory_hotplug: Introduce and use more
- memory types
-Date: Tue, 4 Dec 2018 10:47:33 +0100
-Message-ID: <b8e03810-41d6-55cb-9546-62c73c7f4d7f@redhat.com>
-References: <20181130175922.10425-1-david@redhat.com>
- <20181130175922.10425-4-david@redhat.com>
- <20181204104454.522a3ba2@naga.suse.cz>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v7 02/25] ACPI / APEI: Remove silent flag from
+ ghes_read_estatus()
+Date: Tue, 4 Dec 2018 12:36:01 +0100
+Message-ID: <20181204113601.GB11803@zn.tnic>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-3-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181204104454.522a3ba2@naga.suse.cz>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: =?UTF-8?Q?Michal_Such=c3=a1nek?= <msuchanek@suse.de>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, linux-s390@vger.kernel.org, linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org, devel@linuxdriverproject.org, xen-devel@lists.xenproject.org, x86@kernel.org, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "K. Y. Srinivasan" <kys@microsoft.com>, Haiyang Zhang <haiyangz@microsoft.com>, Stephen Hemminger <sthemmin@microsoft.com>, Martin Schwidefsky <schwidefsky@de.ibm.com>, Heiko Carstens <heiko.carstens@de.ibm.com>, Boris Ostrovsky <boris.ostrovsky@oracle.co>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20181203180613.228133-3-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 04.12.18 10:44, Michal Suchánek wrote:
-> On Fri, 30 Nov 2018 18:59:21 +0100
-> David Hildenbrand <david@redhat.com> wrote:
+On Mon, Dec 03, 2018 at 06:05:50PM +0000, James Morse wrote:
+> Subsequent patches will split up ghes_read_estatus(), at which
+> point passing around the 'silent' flag gets annoying. This is to
+> suppress prink() messages, which prior to commit 42a0bb3f7138
+> ("printk/nmi: generic solution for safe printk in NMI"), were
+> unsafe in NMI context.
 > 
->> Let's introduce new types for different kinds of memory blocks and use
->> them in existing code. As I don't see an easy way to split this up,
->> do it in one hunk for now.
->>
->> acpi:
->>  Use DIMM or DIMM_UNREMOVABLE depending on hotremove support in the kernel.
->>  Properly change the type when trying to add memory that was already
->>  detected and used during boot (so this memory will correctly end up as
->>  "acpi" in user space).
->>
->> pseries:
->>  Use DIMM or DIMM_UNREMOVABLE depending on hotremove support in the kernel.
->>  As far as I see, handling like in the acpi case for existing blocks is
->>  not required.
->>
->> probed memory from user space:
->>  Use DIMM_UNREMOVABLE as there is no interface to get rid of this code
->>  again.
->>
->> hv_balloon,xen/balloon:
->>  Use BALLOON. As simple as that :)
->>
->> s390x/sclp:
->>  Use a dedicated type S390X_STANDBY as this type of memory and it's
->>  semantics are very s390x specific.
->>
->> powernv/memtrace:
->>  Only allow to use BOOT memory for memtrace. I consider this code in
->>  general dangerous, but we have to keep it working ... most probably just
->>  a debug feature.
+> This is no longer necessary, remove the flag. printk() messages
+> are batched in a per-cpu buffer and printed via irq-work, or a call
+> back from panic().
 > 
-> I don't think it should be arbitrarily restricted like that.
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+> Changes since v6:
+>  * Moved earlier in the series,
+>  * Tinkered with the commit message.
+>  * switched to pr_warn_ratelimited() to shut checkpatch up
 > 
+> shutup checkpatch
+> ---
+>  drivers/acpi/apei/ghes.c | 15 +++++++--------
+>  1 file changed, 7 insertions(+), 8 deletions(-)
 
-Well code that "randomly" offlines/onlines/removes/adds memory blocks
-that it does not own (hint: nobody else in the kernel does that), should
-be restricted to types we can guarantee to work.
-
-> Thanks
-> 
-> Michal
-> 
-
+Reviewed-by: Borislav Petkov <bp@suse.de>
 
 -- 
+Regards/Gruss,
+    Boris.
 
-Thanks,
-
-David / dhildenb
+Good mailing practices for 400: avoid top-posting and trim the reply.
