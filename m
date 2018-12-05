@@ -1,42 +1,33 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: [PATCH 3/4] iommu/of: Don't call iommu_ops->add_device directly
-Date: Wed,  5 Dec 2018 15:36:45 +0100
-Message-ID: <20181205143646.4876-4-joro@8bytes.org>
+From: Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Subject: Re: [PATCH 2/4] iommu: Consolitate ->add/remove_device() calls
+Date: Wed, 5 Dec 2018 06:54:18 -0800
+Message-ID: <20181205145418.GA14251@infradead.org>
 References: <20181205143646.4876-1-joro@8bytes.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205143646.4876-1-joro@8bytes.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: iommu@lists.linux-foundation.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
+	<20181205143646.4876-3-joro@8bytes.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20181205143646.4876-3-joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Joerg Roedel <jroedel@suse.de>
+> +void  iommu_release_device(struct device *dev)
 
-Make sure to invoke this call-back through the proper
-function of the IOMMU-API.
+Nitpick: there seems to be a double space here.
 
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
----
- drivers/iommu/of_iommu.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> +int iommu_probe_device(struct device *dev);
+> +void  iommu_release_device(struct device *dev);
 
-diff --git a/drivers/iommu/of_iommu.c b/drivers/iommu/of_iommu.c
-index c5dd63072529..4d4847de727e 100644
---- a/drivers/iommu/of_iommu.c
-+++ b/drivers/iommu/of_iommu.c
-@@ -218,10 +218,10 @@ const struct iommu_ops *of_iommu_configure(struct device *dev,
- 		ops = dev->iommu_fwspec->ops;
- 	/*
- 	 * If we have reason to believe the IOMMU driver missed the initial
--	 * add_device callback for dev, replay it to get things in order.
-+	 * probe for dev, replay it to get things in order.
- 	 */
--	if (ops && ops->add_device && dev->bus && !dev->iommu_group)
--		err = ops->add_device(dev);
-+	if (dev->bus && !dev->iommu_group)
-+		err = iommu_probe_device(dev);
- 
- 	/* Ignore all other errors apart from EPROBE_DEFER */
- 	if (err == -EPROBE_DEFER) {
--- 
-2.17.1
+.. and here.
