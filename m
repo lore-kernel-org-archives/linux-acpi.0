@@ -1,34 +1,36 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] x86/kernel: Fix more -Wmissing-prototypes warnings
-Date: Wed, 5 Dec 2018 15:24:48 +0100
-Message-ID: <20181205142448.GH29510@zn.tnic>
-References: <20181205101131.28996-1-bp@alien8.de>
- <20181205224906.824483ea3c5d1d5b7712c99a@kernel.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+From: Joerg Roedel <joro@8bytes.org>
+Subject: [PATCH 0/4] Consolitate iommu_ops->add/remove_device() calls
+Date: Wed,  5 Dec 2018 15:36:42 +0100
+Message-ID: <20181205143646.4876-1-joro@8bytes.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181205224906.824483ea3c5d1d5b7712c99a@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Masami Hiramatsu <mhiramat@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Banman <andrew.banman@hpe.com>, Dimitri Sivanich <dimitri.sivanich@hpe.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Mike Travis <mike.travis@hpe.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>, Yi Wang <wang.yi59@zte.com.cn>, linux-acpi@vger.kernel.org
+To: iommu@lists.linux-foundation.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <joro@8bytes.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 10:49:06PM +0900, Masami Hiramatsu wrote:
-> I would like to put this prototype inside arch/x86/kernel/kprobes/core.c,
-> since that is locally used.
+Hi,
 
-Done.
+this patch-set consolidates the calls to iommu_ops->add_device()
+and remove_device() and the necessary checks into
+probe/release functions that be extended later with more
+setup work.
 
-> Should we declare prototypes for __weak functions? Anyway, we should remove
-> __weak from the prototypes.
+Regards,
 
-And done.
+       Joerg
 
-Thx.
+Joerg Roedel (4):
+  iommu/sysfs: Rename iommu_release_device()
+  iommu: Consolitate ->add/remove_device() calls
+  iommu/of: Don't call iommu_ops->add_device directly
+  ACPI/IORT: Don't call iommu_ops->add_device directly
+
+ drivers/acpi/arm64/iort.c   |  4 +--
+ drivers/iommu/iommu-sysfs.c | 12 ++++-----
+ drivers/iommu/iommu.c       | 54 +++++++++++++++++++------------------
+ drivers/iommu/of_iommu.c    |  6 ++---
+ include/linux/iommu.h       |  3 +++
+ 5 files changed, 42 insertions(+), 37 deletions(-)
 
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.17.1
