@@ -1,121 +1,148 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Wed, 5 Dec 2018 12:53:57 -0500
-Message-ID: <20181205175357.GG3536@redhat.com>
-References: <20181203233509.20671-1-jglisse@redhat.com>
- <6e2a1dba-80a8-42bf-127c-2f5c2441c248@intel.com>
- <20181205001544.GR2937@redhat.com>
- <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
- <20181205021334.GB3045@redhat.com>
- <b3122fdf-02c3-2e9c-1da6-fb873b824d59@intel.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH 2/4] iommu: Consolitate ->add/remove_device() calls
+Date: Wed, 5 Dec 2018 18:20:50 +0000
+Message-ID: <3ca13757-edf8-95cb-6316-73d202f97dbf@arm.com>
+References: <20181205143646.4876-1-joro@8bytes.org>
+ <20181205143646.4876-3-joro@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b3122fdf-02c3-2e9c-1da6-fb873b824d59@intel.com>
+In-Reply-To: <20181205143646.4876-3-joro@8bytes.org>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
+To: Joerg Roedel <joro@8bytes.org>, iommu@lists.linux-foundation.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 09:27:09AM -0800, Dave Hansen wrote:
-> On 12/4/18 6:13 PM, Jerome Glisse wrote:
-> > On Tue, Dec 04, 2018 at 05:06:49PM -0800, Dave Hansen wrote:
-> >> OK, but there are 1024*1024 matrix cells on a systems with 1024
-> >> proximity domains (ACPI term for NUMA node).  So it sounds like you are
-> >> proposing a million-directory approach.
-> > 
-> > No, pseudo code:
-> >     struct list links;
-> > 
-> >     for (unsigned r = 0; r < nrows; r++) {
-> >         for (unsigned c = 0; c < ncolumns; c++) {
-> >             if (!link_find(links, hmat[r][c].bandwidth,
-> >                            hmat[r][c].latency)) {
-> >                 link = link_new(hmat[r][c].bandwidth,
-> >                                 hmat[r][c].latency);
-> >                 // add initiator and target correspond to that row
-> >                 // and columns to this new link
-> >                 list_add(&link, links);
-> >             }
-> >         }
-> >     }
-> > 
-> > So all cells that have same property are under the same link. 
+On 05/12/2018 14:36, Joerg Roedel wrote:
+> From: Joerg Roedel <jroedel@suse.de>
 > 
-> OK, so the "link" here is like a cable.  It's like saying, "we have a
-> network and everything is connected with an ethernet cable that can do
-> 1gbit/sec".
+> Put them into separate functions and call those where the
+> plain ops have been called before.
 > 
-> But, what actually connects an initiator to a target?  I assume we still
-> need to know which link is used for each target/initiator pair.  Where
-> is that enumerated?
-
-ls /sys/bus/hms/devices/v0-0-link/
-node0           power           subsystem       uevent
-uid             bandwidth       latency         v0-1-target
-v0-15-initiator v0-21-target    v0-4-initiator  v0-7-initiator
-v0-10-initiator v0-13-initiator v0-16-initiator v0-2-initiator
-v0-11-initiator v0-14-initiator v0-17-initiator v0-3-initiator
-v0-5-initiator  v0-8-initiator  v0-6-initiator  v0-9-initiator
-v0-12-initiator v0-10-initiator
-
-So above is 16 CPUs (initiators*) and 2 targets all connected
-through a common link. This means that all the initiators
-connected to this link can access all the target connected to
-this link. The bandwidth and latency is best case scenario
-for instance when only one initiator is accessing the target.
-
-Initiator can only access target they share a link with or
-an extended path through a bridge. So if you have an initiator
-connected to link0 and a target connected to link1 and there
-is a bridge link0 to link1 then the initiator can access the
-target memory in link1 but the bandwidth and latency will be
-min(link0.bandwidth, link1.bandwidth, bridge.bandwidth)
-min(link0.latency, link1.latency, bridge.latency)
-
-You can really match one to one a link with bus in your
-system. For instance with PCIE if you only have 16lanes
-PCIE devices you only devince one link directory for all
-your PCIE devices (ignore the PCIE peer to peer scenario
-here). You add a bride between your PCIE link to your
-NUMA node link (the node to which this PCIE root complex
-belongs), this means that PCIE device can access the local
-node memory with given bandwidth and latency (best case).
-
-
+> Signed-off-by: Joerg Roedel <jroedel@suse.de>
+> ---
+>   drivers/iommu/iommu.c | 54 ++++++++++++++++++++++---------------------
+>   include/linux/iommu.h |  3 +++
+>   2 files changed, 31 insertions(+), 26 deletions(-)
 > 
-> I think this just means we need a million symlinks to a "link" instead
-> of a million link directories.  Still not great.
+> diff --git a/drivers/iommu/iommu.c b/drivers/iommu/iommu.c
+> index edbdf5d6962c..ad4dc51eb69c 100644
+> --- a/drivers/iommu/iommu.c
+> +++ b/drivers/iommu/iommu.c
+> @@ -110,6 +110,26 @@ void iommu_device_unregister(struct iommu_device *iommu)
+>   	spin_unlock(&iommu_device_lock);
+>   }
+>   
+> +int iommu_probe_device(struct device *dev)
+> +{
+> +	const struct iommu_ops *ops = dev->bus->iommu_ops;
+> +
+> +	if (!ops->add_device)
+> +		return 0;
+
+Is there any good reason to let .add_device/.remove_device be optional 
+still? Everyone's implemented them for a while now, and on a practical 
+level I don't really see how else we could expect devices to be taken in 
+and out of their appropriate groups correctly.
+
+Robin.
+
+> +
+> +	WARN_ON(dev->iommu_group);
+> +
+> +	return ops->add_device(dev);
+> +}
+> +
+> +void  iommu_release_device(struct device *dev)
+> +{
+> +	const struct iommu_ops *ops = dev->bus->iommu_ops;
+> +
+> +	if (ops->remove_device && dev->iommu_group)
+> +		ops->remove_device(dev);
+> +}
+> +
+>   static struct iommu_domain *__iommu_domain_alloc(struct bus_type *bus,
+>   						 unsigned type);
+>   static int __iommu_attach_device(struct iommu_domain *domain,
+> @@ -1117,16 +1137,7 @@ struct iommu_domain *iommu_group_default_domain(struct iommu_group *group)
+>   
+>   static int add_iommu_group(struct device *dev, void *data)
+>   {
+> -	struct iommu_callback_data *cb = data;
+> -	const struct iommu_ops *ops = cb->ops;
+> -	int ret;
+> -
+> -	if (!ops->add_device)
+> -		return 0;
+> -
+> -	WARN_ON(dev->iommu_group);
+> -
+> -	ret = ops->add_device(dev);
+> +	int ret = iommu_probe_device(dev);
+>   
+>   	/*
+>   	 * We ignore -ENODEV errors for now, as they just mean that the
+> @@ -1141,11 +1152,7 @@ static int add_iommu_group(struct device *dev, void *data)
+>   
+>   static int remove_iommu_group(struct device *dev, void *data)
+>   {
+> -	struct iommu_callback_data *cb = data;
+> -	const struct iommu_ops *ops = cb->ops;
+> -
+> -	if (ops->remove_device && dev->iommu_group)
+> -		ops->remove_device(dev);
+> +	iommu_release_device(dev);
+>   
+>   	return 0;
+>   }
+> @@ -1153,27 +1160,22 @@ static int remove_iommu_group(struct device *dev, void *data)
+>   static int iommu_bus_notifier(struct notifier_block *nb,
+>   			      unsigned long action, void *data)
+>   {
+> +	unsigned long group_action = 0;
+>   	struct device *dev = data;
+> -	const struct iommu_ops *ops = dev->bus->iommu_ops;
+>   	struct iommu_group *group;
+> -	unsigned long group_action = 0;
+>   
+>   	/*
+>   	 * ADD/DEL call into iommu driver ops if provided, which may
+>   	 * result in ADD/DEL notifiers to group->notifier
+>   	 */
+>   	if (action == BUS_NOTIFY_ADD_DEVICE) {
+> -		if (ops->add_device) {
+> -			int ret;
+> +		int ret;
+>   
+> -			ret = ops->add_device(dev);
+> -			return (ret) ? NOTIFY_DONE : NOTIFY_OK;
+> -		}
+> +		ret = iommu_probe_device(dev);
+> +		return (ret) ? NOTIFY_DONE : NOTIFY_OK;
+>   	} else if (action == BUS_NOTIFY_REMOVED_DEVICE) {
+> -		if (ops->remove_device && dev->iommu_group) {
+> -			ops->remove_device(dev);
+> -			return 0;
+> -		}
+> +		iommu_release_device(dev);
+> +		return NOTIFY_OK;
+>   	}
+>   
+>   	/*
+> diff --git a/include/linux/iommu.h b/include/linux/iommu.h
+> index a1d28f42cb77..2357841845bb 100644
+> --- a/include/linux/iommu.h
+> +++ b/include/linux/iommu.h
+> @@ -398,6 +398,9 @@ void iommu_fwspec_free(struct device *dev);
+>   int iommu_fwspec_add_ids(struct device *dev, u32 *ids, int num_ids);
+>   const struct iommu_ops *iommu_ops_from_fwnode(struct fwnode_handle *fwnode);
+>   
+> +int iommu_probe_device(struct device *dev);
+> +void  iommu_release_device(struct device *dev);
+> +
+>   #else /* CONFIG_IOMMU_API */
+>   
+>   struct iommu_ops {};
 > 
-> > Note that userspace can parse all this once during its initialization
-> > and create pools of target to use.
-> 
-> It sounds like you're agreeing that there is too much data in this
-> interface for applications to _regularly_ parse it.  We need some
-> central thing that parses it all and caches the results.
-
-No so there is 2 kinds of applications:
-    1) average one: i am using device {1, 3, 9} give me best memory for
-       those devices
-    2) advance one: what is the topology of this system ? Parse the
-       topology and partition its workload accordingly
-
-For case 1 you can pre-parse stuff but this can be done by helper library
-but for case 2 there is no amount of pre-parsing you can do in kernel, only
-the application knows its own architecture and thus only the application
-knows what matter in the topology. Is the application looking for big
-chunk of memory even if it is slow ? Is it also looking for fast memory
-close to X and Y ? ...
-
-Each application will care about different thing and there is no telling
-what its gonna be.
-
-So what i am saying is that this information is likely to be parse once
-by the application during startup ie the sysfs is not something that
-is continuously read and parse by the application (unless application
-also care about hotplug and then we are talking about the 1% of the 1%).
-
-Cheers,
-Jérôme
