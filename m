@@ -1,209 +1,129 @@
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: Re: [PATCH v7 22/25] ACPI / APEI: Kick the memory_failure() queue for
- synchronous errors
-Date: Wed, 5 Dec 2018 10:02:53 +0800
-Message-ID: <9d153a07-aa7a-6e0c-3bd3-994a66f9639a@huawei.com>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-23-james.morse@arm.com>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
+Date: Tue, 4 Dec 2018 21:13:35 -0500
+Message-ID: <20181205021334.GB3045@redhat.com>
+References: <20181203233509.20671-1-jglisse@redhat.com>
+ <6e2a1dba-80a8-42bf-127c-2f5c2441c248@intel.com>
+ <20181205001544.GR2937@redhat.com>
+ <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-In-Reply-To: <20181203180613.228133-23-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>, Borislav Petkov <bp@alien8.de>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, Wang Xiongfeng <wangxiongfeng2@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi James & Boris,
+On Tue, Dec 04, 2018 at 05:06:49PM -0800, Dave Hansen wrote:
+> On 12/4/18 4:15 PM, Jerome Glisse wrote:
+> > On Tue, Dec 04, 2018 at 03:54:22PM -0800, Dave Hansen wrote:
+> >> Basically, is sysfs the right place to even expose this much data?
+> > 
+> > I definitly want to avoid the memoryX mistake. So i do not want to
+> > see one link directory per device. Taking my simple laptop as an
+> > example with 4 CPUs, a wifi and 2 GPU (the integrated one and a
+> > discret one):
+> > 
+> > link0: cpu0 cpu1 cpu2 cpu3
+> > link1: wifi (2 pcie lane)
+> > link2: gpu0 (unknown number of lane but i believe it has higher
+> >              bandwidth to main memory)
+> > link3: gpu1 (16 pcie lane)
+> > link4: gpu1 and gpu memory
+> > 
+> > So one link directory per number of pcie lane your device have
+> > so that you can differentiate on bandwidth. The main memory is
+> > symlinked inside all the link directory except link4. The GPU
+> > discret memory is only in link4 directory as it is only
+> > accessible by the GPU (we could add it under link3 too with the
+> > non cache coherent property attach to it).
+> 
+> I'm actually really interested in how this proposal scales.  It's quite
+> easy to represent a laptop, but can this scale to the largest systems
+> that we expect to encounter over the next 20 years that this ABI will live?
+> 
+> > The issue then becomes how to convert down the HMAT over verbose
+> > information to populate some reasonable layout for HMS. For that
+> > i would say that create a link directory for each different
+> > matrix cell. As an example let say that each entry in the matrix
+> > has bandwidth and latency then we create a link directory for
+> > each combination of bandwidth and latency. On simple system that
+> > should boils down to a handfull of combination roughly speaking
+> > mirroring the example above of one link directory per number of
+> > PCIE lane for instance.
+> 
+> OK, but there are 1024*1024 matrix cells on a systems with 1024
+> proximity domains (ACPI term for NUMA node).  So it sounds like you are
+> proposing a million-directory approach.
 
-On 2018/12/4 2:06, James Morse wrote:
-> memory_failure() offlines or repairs pages of memory that have been
-> discovered to be corrupt. These may be detected by an external
-> component, (e.g. the memory controller), and notified via an IRQ.
-> In this case the work is queued as not all of memory_failure()s work
-> can happen in IRQ context.
-> 
-> If the error was detected as a result of user-space accessing a
-> corrupt memory location the CPU may take an abort instead. On arm64
-> this is a 'synchronous external abort', and on a firmware first
-> system it is replayed using NOTIFY_SEA.
-> 
-> This notification has NMI like properties, (it can interrupt
-> IRQ-masked code), so the memory_failure() work is queued. If we
-> return to user-space before the queued memory_failure() work is
-> processed, we will take the fault again. This loop may cause platform
-> firmware to exceed some threshold and reboot when Linux could have
-> recovered from this error.
-> 
-> If a ghes notification type indicates that it may be triggered again
-> when we return to user-space, use the task-work and notify-resume
-> hooks to kick the relevant memory_failure() queue before returning
-> to user-space.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> 
-> ---
-> current->mm == &init_mm ? I couldn't find a helper for this.
-> The intent is not to set TIF flags on kernel threads. What happens
-> if a kernel-thread takes on of these? Its just one of the many
-> not-handled-very-well cases we have already, as memory_failure()
-> puts it: "try to be lucky".
-> 
-> I assume that if NOTIFY_NMI is coming from SMM it must suffer from
-> this problem too.
-> ---
->  drivers/acpi/apei/ghes.c | 65 ++++++++++++++++++++++++++++++++++++----
->  1 file changed, 60 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 6cbf9471b2a2..3e7da9243153 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -47,6 +47,7 @@
->  #include <linux/sched/clock.h>
->  #include <linux/uuid.h>
->  #include <linux/ras.h>
-> +#include <linux/task_work.h>
->  
->  #include <acpi/actbl1.h>
->  #include <acpi/ghes.h>
-> @@ -136,6 +137,26 @@ static atomic_t ghes_estatus_cache_alloced;
->  
->  static int ghes_panic_timeout __read_mostly = 30;
->  
-> +static bool ghes_is_synchronous(struct ghes *ghes)
-> +{
-> +	switch (ghes->generic->notify.type) {
-> +	case ACPI_HEST_NOTIFY_NMI:	/* fall through */
-> +	case ACPI_HEST_NOTIFY_SEA:
-> +		/*
-> +		 * These notifications could be repeated if the interrupted
-> +		 * instruction is run again. e.g. a read of bad-memory causing
-> +		 * a trap to platform firmware.
-> +		 */
-> +		return true;
-> +	default:
-> +		/*
-> +		 * Other notifications are asynchronous, and not related to the
-> +		 * interrupted instruction. e.g. an IRQ.
-> +		 */
-> +		return false;
-> +	}
-> +}
-> +
->  static void __iomem *ghes_map(u64 pfn, int fixmap_idx)
->  {
->  	phys_addr_t paddr;
-> @@ -379,14 +400,33 @@ static void ghes_clear_estatus(struct acpi_hest_generic_status *estatus,
->  				      fixmap_idx);
->  }
->  
-> -static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int sev)
-> +struct ghes_memory_failure_work {
-> +	int cpu;
-> +	struct callback_head work;
-> +};
-> +
-> +static void ghes_kick_memory_failure(struct callback_head *head)
-> +{
-> +	struct ghes_memory_failure_work *callback;
-> +
-> +	callback = container_of(head, struct ghes_memory_failure_work, work);
-> +	memory_failure_queue_kick(callback->cpu);
-> +	kfree(callback);
-> +}
-> +
-> +static void ghes_handle_memory_failure(struct ghes *ghes,
-> +				       struct acpi_hest_generic_data *gdata,
-> +				       int sev)
->  {
-> -#ifdef CONFIG_ACPI_APEI_MEMORY_FAILURE
->  	unsigned long pfn;
-> -	int flags = -1;
-> +	int flags = -1, ret;
-> +	struct ghes_memory_failure_work	*callback;
->  	int sec_sev = ghes_severity(gdata->error_severity);
->  	struct cper_sec_mem_err *mem_err = acpi_hest_get_payload(gdata);
->  
-> +	if (!IS_ENABLED(CONFIG_ACPI_APEI_MEMORY_FAILURE))
-> +		return;
-> +
->  	if (!(mem_err->validation_bits & CPER_MEM_VALID_PA))
->  		return;
->  
-> @@ -407,7 +447,22 @@ static void ghes_handle_memory_failure(struct acpi_hest_generic_data *gdata, int
->  
->  	if (flags != -1)
->  		memory_failure_queue(pfn, flags);
+No, pseudo code:
+    struct list links;
 
-We may need to take MF_ACTION_REQUIRED flags for memory_failure() in SEA condition.
-And there is no return value check for memory_failure() in memory_failure_work_func(),
-I'm not sure whether we need to check the return value.
-
-static void memory_failure_work_func(struct work_struct *work)
-{
-        struct memory_failure_cpu *mf_cpu;
-        struct memory_failure_entry entry = { 0, };
-        unsigned long proc_flags;
-        int gotten;
-
-        mf_cpu = container_of(work, struct memory_failure_cpu, work);
-        for (;;) {
-                spin_lock_irqsave(&mf_cpu->lock, proc_flags);
-                gotten = kfifo_get(&mf_cpu->fifo, &entry);
-                spin_unlock_irqrestore(&mf_cpu->lock, proc_flags);
-                if (!gotten)
-                        break;
-                if (entry.flags & MF_SOFT_OFFLINE)
-                        soft_offline_page(pfn_to_page(entry.pfn), entry.flags);
-                else
-                        memory_failure(entry.pfn, entry.flags);
+    for (unsigned r = 0; r < nrows; r++) {
+        for (unsigned c = 0; c < ncolumns; c++) {
+            if (!link_find(links, hmat[r][c].bandwidth,
+                           hmat[r][c].latency)) {
+                link = link_new(hmat[r][c].bandwidth,
+                                hmat[r][c].latency);
+                // add initiator and target correspond to that row
+                // and columns to this new link
+                list_add(&link, links);
+            }
         }
-}
+    }
 
-If the recovery fails here, we need to take other actions, such as force to send a SIGBUS signal.
+So all cells that have same property are under the same link. Do you
+expect all the cell to always have different properties ? On today
+platform it should not be the case. I do expect we will keep seeing
+many initiator/target pair that share same properties as other pair.
+
+But yes if you have system where no initiator/target pair have the
+same properties than you in the worst case you are describing. But
+hey that is the hardware you have then :)
+
+Note that userspace can parse all this once during its initialization
+and create pools of target to use.
 
 
-> -#endif
-> +
-> +	/*
-> +	 * If the notification indicates that it was the interrupted
-> +	 * instruction that caused the error, try to kick the
-> +	 * memory_failure() queue before returning to user-space.
-> +	 */
-> +	if (ghes_is_synchronous(ghes) && current->mm != &init_mm) {
-> +		callback = kzalloc(sizeof(*callback), GFP_ATOMIC);
-> +		if (!callback)
-> +			return;
-> +		callback->work.func = ghes_kick_memory_failure;
-> +		callback->cpu = smp_processor_id();
-> +		ret = task_work_add(current, &callback->work, true);
-> +		if (ret)
-> +			kfree(callback);
-> +	}
->  }
->  
->  /*
-> @@ -480,7 +535,7 @@ static void ghes_do_proc(struct ghes *ghes,
->  			ghes_edac_report_mem_error(sev, mem_err);
->  
->  			arch_apei_report_mem_error(sev, mem_err);
-> -			ghes_handle_memory_failure(gdata, sev);
-> +			ghes_handle_memory_failure(ghes, gdata, sev);
->  		}
->  		else if (guid_equal(sec_type, &CPER_SEC_PCIE)) {
->  			ghes_handle_aer(gdata);
+> We also can't simply say that two CPUs with the same connection to two
+> other CPUs (think a 4-socket QPI-connected system) share the same "link"
+> because they share the same combination of bandwidth and latency.  We
+> need to know that *each* has its own, unique link and do not share link
+> resources.
+
+That is the purpose of the bridge object to inter-connect link.
+To be more exact link is like saying you have 2 arrows with the
+same properties between every node listed in the link. While
+bridge allow to define arrow in just one direction. Maybe i
+should define arrow and node instead of trying to match some of
+the ACPI terminology. This might be easier for people to follow
+than first having to understand the terminology.
+
+The fear i have with HMAT culling is that HMAT does not have the
+information to avoid such culling.
+
+> > I don't think i have a system with an HMAT table if you have one
+> > HMAT table to provide i could show up the end result.
 > 
+> It is new enough (ACPI 6.2) that no publicly-available hardware that
+> exists that implements one (that I know of).  Keith Busch can probably
+> extract one and send it to you or show you how we're faking them with QEMU.
+> 
+> > Note i believe the ACPI HMAT matrix is a bad design for that
+> > reasons ie there is lot of commonality in many of the matrix
+> > entry and many entry also do not make sense (ie initiator not
+> > being able to access all the targets). I feel that link/bridge
+> > is much more compact and allow to represent any directed graph
+> > with multiple arrows from one node to another same node.
+> 
+> I don't disagree.  But, folks are building systems with them and we need
+> to either deal with it, or make its data manageable.  You saw our
+> approach: we cull the data and only expose the bare minimum in sysfs.
 
--- 
-Thanks,
-Xie XiuQi
+Yeah and i intend to cull data too inside HMS.
+
+Cheers,
+Jérôme
