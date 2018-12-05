@@ -1,23 +1,61 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 0/4] PCI / iommu / thunderbolt: IOMMU based DMA
- protection
-Date: Wed, 5 Dec 2018 11:11:45 +0200
-Message-ID: <20181205091145.GH2469@lahna.fi.intel.com>
-References: <20181129155153.35840-1-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Sasha Levin <sashal@kernel.org>
+Subject: [PATCH AUTOSEL 4.19 112/123] ACPI/IORT: Fix iort_get_platform_device_domain() uninitialized pointer value
+Date: Wed,  5 Dec 2018 04:35:44 -0500
+Message-ID: <20181205093555.5386-112-sashal@kernel.org>
+References: <20181205093555.5386-1-sashal@kernel.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181129155153.35840-1-mika.westerberg@linux.intel.com>
+In-Reply-To: <20181205093555.5386-1-sashal@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: iommu@lists.linux-foundation.org
-Cc: Joerg Roedel <joro@8bytes.org>, David Woodhouse <dwmw2@infradead.org>, Lu Baolu <baolu.lu@linux.intel.com>, Ashok Raj <ashok.raj@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jacob jun Pan <jacob.jun.pan@intel.com>, Andreas Noever <andreas.noever@gmail.com>, Michael Jamet <michael.jamet@intel.com>, Yehezkel Bernat <YehezkelShB@gmail.com>, Lukas Wunner <lukas@wunner.de>, Christian Kellner <ckellner@redhat.com>, Mario.Limonciello@dell.com, Anthony Wong <anthony.wong@canonical.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Christoph Hellwig <hch@infradead.org>, Alex Williamson <alex.williamson@redhat.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: stable@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Sasha Levin <sashal@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 29, 2018 at 06:51:49PM +0300, Mika Westerberg wrote:
-> Recent systems with Thunderbolt ports may be utilizing IOMMU to prevent DMA
-> attacks. This is different from the previous security level based scheme
-> because the connected device cannot access system memory outside of the
-> regions allocated for it by the driver.
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Applied all to thunderbolt.git/next with acks from Bjorn and Rafael.
+[ Upstream commit ea2412dc21cc790335d319181dddc43682aef164 ]
+
+Running the Clang static analyzer on IORT code detected the following
+error:
+
+Logic error: Branch condition evaluates to a garbage value
+
+in
+
+iort_get_platform_device_domain()
+
+If the named component associated with a given device has no IORT
+mappings, iort_get_platform_device_domain() exits its MSI mapping loop
+with msi_parent pointer containing garbage, which can lead to erroneous
+code path execution.
+
+Initialize the msi_parent pointer, fixing the bug.
+
+Fixes: d4f54a186667 ("ACPI: platform: setup MSI domain for ACPI based
+platform device")
+Reported-by: Patrick Bellasi <patrick.bellasi@arm.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Sasha Levin <sashal@kernel.org>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 08f26db2da7e..e938576e58cb 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -700,7 +700,7 @@ static void iort_set_device_domain(struct device *dev,
+  */
+ static struct irq_domain *iort_get_platform_device_domain(struct device *dev)
+ {
+-	struct acpi_iort_node *node, *msi_parent;
++	struct acpi_iort_node *node, *msi_parent = NULL;
+ 	struct fwnode_handle *iort_fwnode;
+ 	struct acpi_iort_its_group *its;
+ 	int i;
+-- 
+2.17.1
