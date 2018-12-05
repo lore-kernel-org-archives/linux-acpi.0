@@ -1,28 +1,99 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 2/4] iommu: Consolitate ->add/remove_device() calls
-Date: Wed, 5 Dec 2018 16:14:20 +0100
-Message-ID: <20181205151420.GA16835@8bytes.org>
-References: <20181205143646.4876-1-joro@8bytes.org>
- <20181205143646.4876-3-joro@8bytes.org>
- <20181205145418.GA14251@infradead.org>
+From: Jerome Glisse <jglisse@redhat.com>
+Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
+Date: Wed, 5 Dec 2018 11:09:32 -0500
+Message-ID: <20181205160932.GB3536@redhat.com>
+References: <20181203233509.20671-1-jglisse@redhat.com>
+ <9d745b99-22e3-c1b5-bf4f-d3e83113f57b@intel.com>
+ <20181204184919.GD2937@redhat.com>
+ <d90b88f6-b414-a0f9-d572-35c4d2bb1579@linux.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181205145418.GA14251@infradead.org>
+In-Reply-To: <d90b88f6-b414-a0f9-d572-35c4d2bb1579@linux.ibm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
+To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Mich
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 06:54:18AM -0800, Christoph Hellwig wrote:
-> > +void  iommu_release_device(struct device *dev)
+On Wed, Dec 05, 2018 at 04:57:17PM +0530, Aneesh Kumar K.V wrote:
+> On 12/5/18 12:19 AM, Jerome Glisse wrote:
 > 
-> Nitpick: there seems to be a double space here.
+> > Above example is for migrate. Here is an example for how the
+> > topology is use today:
+> > 
+> >      Application knows that the platform is running on have 16
+> >      GPU split into 2 group of 8 GPUs each. GPU in each group can
+> >      access each other memory with dedicated mesh links between
+> >      each others. Full speed no traffic bottleneck.
+> > 
+> >      Application splits its GPU computation in 2 so that each
+> >      partition runs on a group of interconnected GPU allowing
+> >      them to share the dataset.
+> > 
+> > With HMS:
+> >      Application can query the kernel to discover the topology of
+> >      system it is running on and use it to partition and balance
+> >      its workload accordingly. Same application should now be able
+> >      to run on new platform without having to adapt it to it.
+> > 
 > 
-> > +int iommu_probe_device(struct device *dev);
-> > +void  iommu_release_device(struct device *dev);
-> 
-> .. and here.
+> Will the kernel be ever involved in decision making here? Like the scheduler
+> will we ever want to control how there computation units get scheduled onto
+> GPU groups or GPU?
 
-Right, thanks. I fixed it in my development branch.
+I don;t think you will ever see fine control in software because it
+would go against what GPU are fundamentaly. GPU have 1000 of cores
+and usualy 10 times more thread in flight than core (depends on the
+number of register use by the program or size of their thread local
+storage). By having many more thread in flight the GPU always have
+some threads that are not waiting for memory access and thus always
+have something to schedule next on the core. This scheduling is all
+done in real time and i do not see that as a good fit for any kernel
+CPU code.
+
+That being said higher level and more coarse directive can be given
+to the GPU hardware scheduler like giving priorities to group of
+thread so that they always get schedule first if ready. There is
+a cgroup proposal that goes into the direction of exposing high
+level control over GPU resource like that. I think this is a better
+venue to discuss such topics.
+
+> 
+> > This is kind of naive i expect topology to be hard to use but maybe
+> > it is just me being pesimistics. In any case today we have a chicken
+> > and egg problem. We do not have a standard way to expose topology so
+> > program that can leverage topology are only done for HPC where the
+> > platform is standard for few years. If we had a standard way to expose
+> > the topology then maybe we would see more program using it. At very
+> > least we could convert existing user.
+> > 
+> > 
+> 
+> I am wondering whether we should consider HMAT as a subset of the ideas
+> mentioned in this thread and see whether we can first achieve HMAT
+> representation with your patch series?
+
+I do not want to block HMAT on that. What i am trying to do really
+does not fit in the existing NUMA node this is what i have been trying
+to show even if not everyone is convince by that. Some bulets points
+of why:
+    - memory i care about is not accessible by everyone (backed in
+      assumption in NUMA node)
+    - memory i care about might not be cache coherent (again backed
+      in assumption in NUMA node)
+    - topology matter so that userspace knows what inter-connect is
+      share and what have dedicated links to memory
+    - their can be multiple path between one device and one target
+      memory and each path have different numa distance (or rather
+      properties like bandwidth, latency, ...) again this is does
+      not fit with the NUMA distance thing
+    - memory is not manage by core kernel for reasons i hav explained
+    - ...
+
+The HMAT proposal does not deal with such memory, it is much more
+close to what the current model can describe.
+
+Cheers,
+Jérôme
