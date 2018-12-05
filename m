@@ -1,59 +1,61 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] x86/kernel: Fix more -Wmissing-prototypes warnings
-Date: Wed, 5 Dec 2018 18:15:47 +0100
-Message-ID: <20181205171547.GM29510@zn.tnic>
-References: <20181205101131.28996-1-bp@alien8.de>
- <20181205224906.824483ea3c5d1d5b7712c99a@kernel.org>
- <20181205142448.GH29510@zn.tnic>
- <20181205162526.GB109259@gmail.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
+Date: Wed, 5 Dec 2018 09:27:09 -0800
+Message-ID: <b3122fdf-02c3-2e9c-1da6-fb873b824d59@intel.com>
+References: <20181203233509.20671-1-jglisse@redhat.com>
+ <6e2a1dba-80a8-42bf-127c-2f5c2441c248@intel.com>
+ <20181205001544.GR2937@redhat.com>
+ <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
+ <20181205021334.GB3045@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181205162526.GB109259@gmail.com>
+In-Reply-To: <20181205021334.GB3045@redhat.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>, Masami Hiramatsu <mhiramat@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Banman <andrew.banman@hpe.com>, Dimitri Sivanich <dimitri.sivanich@hpe.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Mike Travis <mike.travis@hpe.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>, Yi Wang <wang.yi59@zte.com.cn>, linux-acpi@vger.kernel.org
+To: Jerome Glisse <jglisse@redhat.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, Logan Gunthorpe <logang@deltatee.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 05:25:26PM +0100, Ingo Molnar wrote:
-> Also, preferably the prototype should be eliminated via proper ordering 
-> of functions from lower level to higher levels.
+On 12/4/18 6:13 PM, Jerome Glisse wrote:
+> On Tue, Dec 04, 2018 at 05:06:49PM -0800, Dave Hansen wrote:
+>> OK, but there are 1024*1024 matrix cells on a systems with 1024
+>> proximity domains (ACPI term for NUMA node).  So it sounds like you are
+>> proposing a million-directory approach.
+> 
+> No, pseudo code:
+>     struct list links;
+> 
+>     for (unsigned r = 0; r < nrows; r++) {
+>         for (unsigned c = 0; c < ncolumns; c++) {
+>             if (!link_find(links, hmat[r][c].bandwidth,
+>                            hmat[r][c].latency)) {
+>                 link = link_new(hmat[r][c].bandwidth,
+>                                 hmat[r][c].latency);
+>                 // add initiator and target correspond to that row
+>                 // and columns to this new link
+>                 list_add(&link, links);
+>             }
+>         }
+>     }
+> 
+> So all cells that have same property are under the same link. 
 
-Well, that trampoline_handler() is special as we call it from inline asm
-and I see Masami has marked it __visible etc.
+OK, so the "link" here is like a cable.  It's like saying, "we have a
+network and everything is connected with an ethernet cable that can do
+1gbit/sec".
 
-So doing this below still builds and the trampoline_handler doesn't get
-discarded but maybe there's a reason for it not being static.
+But, what actually connects an initiator to a target?  I assume we still
+need to know which link is used for each target/initiator pair.  Where
+is that enumerated?
 
-Masami?
+I think this just means we need a million symlinks to a "link" instead
+of a million link directories.  Still not great.
 
----
-diff --git a/arch/x86/kernel/kprobes/core.c b/arch/x86/kernel/kprobes/core.c
-index 6480056d370f..308bf103cc73 100644
---- a/arch/x86/kernel/kprobes/core.c
-+++ b/arch/x86/kernel/kprobes/core.c
-@@ -66,8 +66,6 @@
- 
- #include "common.h"
- 
--void *trampoline_handler(struct pt_regs *regs);
--
- DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
- DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
- 
-@@ -753,7 +751,7 @@ STACK_FRAME_NON_STANDARD(kretprobe_trampoline);
- /*
-  * Called from kretprobe_trampoline
-  */
--__visible __used void *trampoline_handler(struct pt_regs *regs)
-+static __used void *trampoline_handler(struct pt_regs *regs)
- {
- 	struct kretprobe_instance *ri = NULL;
- 	struct hlist_head *head, empty_rp;
+> Note that userspace can parse all this once during its initialization
+> and create pools of target to use.
 
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+It sounds like you're agreeing that there is too much data in this
+interface for applications to _regularly_ parse it.  We need some
+central thing that parses it all and caches the results.
