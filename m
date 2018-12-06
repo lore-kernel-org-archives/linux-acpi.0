@@ -1,16 +1,16 @@
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 14/25] arm64: KVM/mm: Move SEA handling behind a
- single 'claim' interface
-Date: Thu, 6 Dec 2018 16:17:30 +0000
-Message-ID: <20181206161730.GM54495@arrakis.emea.arm.com>
+Subject: Re: [PATCH v7 23/25] arm64: acpi: Make apei_claim_sea() synchronise
+ with APEI's irq work
+Date: Thu, 6 Dec 2018 16:18:17 +0000
+Message-ID: <20181206161817.GN54495@arrakis.emea.arm.com>
 References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-15-james.morse@arm.com>
+ <20181203180613.228133-24-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-15-james.morse@arm.com>
+In-Reply-To: <20181203180613.228133-24-james.morse@arm.com>
 List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
  <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
 List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
@@ -24,30 +24,25 @@ To: James Morse <james.morse@arm.com>
 Cc: Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:06:02PM +0000, James Morse wrote:
-> To split up APEIs in_nmi() path, the caller needs to always be
-> in_nmi(). Add a helper to do the work and claim the notification.
+On Mon, Dec 03, 2018 at 06:06:11PM +0000, James Morse wrote:
+> APEI is unable to do all of its error handling work in nmi-context, so
+> it defers non-fatal work onto the irq_work queue. arch_irq_work_raise()
+> sends an IPI to the calling cpu, but this is not guaranteed to be taken
+> before returning to user-space.
 > 
-> When KVM or the arch code takes an exception that might be a RAS
-> notification, it asks the APEI firmware-first code whether it wants
-> to claim the exception. A future kernel-first mechanism may be queried
-> afterwards, and claim the notification, otherwise we fall through
-> to the existing default behaviour.
+> Unless the exception interrupted a context with irqs-masked,
+> irq_work_run() can run immediately. Otherwise return -EINPROGRESS to
+> indicate ghes_notify_sea() found some work to do, but it hasn't
+> finished yet.
 > 
-> The NOTIFY_SEA code was merged before considering multiple, possibly
-> interacting, NMI-like notifications and the need to consider kernel
-> first in the future. Make the 'claiming' behaviour explicit.
-> 
-> Restructuring the APEI code to allow multiple NMI-like notifications
-> means any notification that might interrupt interrupts-masked
-> code must always be wrapped in nmi_enter()/nmi_exit(). This will
-> allow APEI to use in_nmi() to use the right fixmap entries.
-> 
-> Mask SError over this window to prevent an asynchronous RAS error
-> arriving and tripping 'nmi_enter()'s BUG_ON(in_nmi()).
+> With this apei_claim_sea() returning '0' means this external-abort was
+> also notification of a firmware-first RAS error, and that APEI has
+> processed the CPER records.
 > 
 > Signed-off-by: James Morse <james.morse@arm.com>
-> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
 > Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+> CC: Xie XiuQi <xiexiuqi@huawei.com>
+> CC: gengdongjiu <gengdongjiu@huawei.com>
 
 Acked-by: Catalin Marinas <catalin.marinas@arm.com>
