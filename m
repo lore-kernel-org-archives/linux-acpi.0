@@ -1,7 +1,7 @@
-From: Dave Hansen <dave.hansen@intel.com>
+From: Logan Gunthorpe <logang@deltatee.com>
 Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Thu, 6 Dec 2018 15:09:21 -0800
-Message-ID: <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
+Date: Thu, 6 Dec 2018 16:28:44 -0700
+Message-ID: <935fc14d-91f2-bc2a-f8b5-665e4145e148@deltatee.com>
 References: <20181205001544.GR2937@redhat.com>
  <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
  <20181205021334.GB3045@redhat.com>
@@ -13,57 +13,51 @@ References: <20181205001544.GR2937@redhat.com>
  <c583be1b-17db-1ed3-0f5a-bd119edc8bfe@deltatee.com>
  <f7eb9939-d550-706a-946d-acbb7383172e@intel.com>
  <20181206223935.GG3544@redhat.com>
+ <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181206223935.GG3544@redhat.com>
-Content-Language: en-US
+In-Reply-To: <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
+Content-Language: en-CA
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jerome Glisse <jglisse@redhat.com>
-Cc: Logan Gunthorpe <logang@deltatee.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
+To: Dave Hansen <dave.hansen@intel.com>, Jerome Glisse <jglisse@redhat.com>
+Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Michal Hocko <mhocko@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/6/18 2:39 PM, Jerome Glisse wrote:
-> No if the 4 sockets are connect in a ring fashion ie:
->         Socket0 - Socket1
->            |         |
->         Socket3 - Socket2
+
+
+On 2018-12-06 4:09 p.m., Dave Hansen wrote:
+> This looks great.  But, we don't _have_ this kind of information for any
+> system that I know about or any system available in the near future.
 > 
-> Then you have 4 links:
-> link0: socket0 socket1
-> link1: socket1 socket2
-> link3: socket2 socket3
-> link4: socket3 socket0
+> We basically have two different world views:
+> 1. The system is described point-to-point.  A connects to B @
+>    100GB/s.  B connects to C at 50GB/s.  Thus, C->A should be
+>    50GB/s.
+>    * Less information to convey
+>    * Potentially less precise if the properties are not perfectly
+>      additive.  If A->B=10ns and B->C=20ns, A->C might be >30ns.
+>    * Costs must be calculated instead of being explicitly specified
+> 2. The system is described endpoint-to-endpoint.  A->B @ 100GB/s
+>    B->C @ 50GB/s, A->C @ 50GB/s.
+>    * A *lot* more information to convey O(N^2)?
+>    * Potentially more precise.
+>    * Costs are explicitly specified, not calculated
 > 
-> I do not see how their can be an explosion of link directory, worse
-> case is as many link directories as they are bus for a CPU/device/
-> target.
+> These patches are really tied to world view #1.  But, the HMAT is really
+> tied to world view #1.
 
-This looks great.  But, we don't _have_ this kind of information for any
-system that I know about or any system available in the near future.
+I didn't think this was meant to describe actual real world performance
+between all of the links. If that's the case all of this seems like a
+pipe dream to me.
 
-We basically have two different world views:
-1. The system is described point-to-point.  A connects to B @
-   100GB/s.  B connects to C at 50GB/s.  Thus, C->A should be
-   50GB/s.
-   * Less information to convey
-   * Potentially less precise if the properties are not perfectly
-     additive.  If A->B=10ns and B->C=20ns, A->C might be >30ns.
-   * Costs must be calculated instead of being explicitly specified
-2. The system is described endpoint-to-endpoint.  A->B @ 100GB/s
-   B->C @ 50GB/s, A->C @ 50GB/s.
-   * A *lot* more information to convey O(N^2)?
-   * Potentially more precise.
-   * Costs are explicitly specified, not calculated
+Attributes like cache coherency, atomics, etc should fit well in world
+view #1... and, at best, some kind of flag saying whether or not to use
+a particular link if you care about transfer speed. -- But we don't need
+special "link" directories to describe the properties of existing buses.
 
-These patches are really tied to world view #1.  But, the HMAT is really
-tied to world view #1.
+You're not *really* going to know bandwidth or latency for any of this
+unless you actually measure it on the system in question.
 
-I know you're not a fan of the HMAT.  But it is the firmware reality
-that we are stuck with, until something better shows up.  I just don't
-see a way to convert it into what you have described here.
-
-I'm starting to think that, no matter if the HMAT or some other approach
-gets adopted, we shouldn't be exposing this level of gunk to userspace
-at *all* since it requires adopting one of the world views.
+Logan
