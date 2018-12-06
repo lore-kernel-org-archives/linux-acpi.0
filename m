@@ -1,41 +1,33 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v7 24/25] firmware: arm_sdei: Add ACPI GHES registration
- helper
-Date: Thu, 6 Dec 2018 16:18:45 +0000
-Message-ID: <20181206161844.GO54495@arrakis.emea.arm.com>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-25-james.morse@arm.com>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [PATCH 3/4] iommu/of: Don't call iommu_ops->add_device directly
+Date: Thu, 6 Dec 2018 17:19:45 +0100
+Message-ID: <20181206161945.GK16835@8bytes.org>
+References: <20181205143646.4876-1-joro@8bytes.org>
+ <20181205143646.4876-4-joro@8bytes.org>
+ <41d06767-fe6e-a746-d76a-557259af3034@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-25-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+In-Reply-To: <41d06767-fe6e-a746-d76a-557259af3034@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Robin Murphy <robin.murphy@arm.com>
+Cc: iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:06:12PM +0000, James Morse wrote:
-> APEI's Generic Hardware Error Source structures do not describe
-> whether the SDEI event is shared or private, as this information is
-> discoverable via the API.
+On Wed, Dec 05, 2018 at 06:49:26PM +0000, Robin Murphy wrote:
+> 	if (ops && dev->bus && !dev->iommu_group)
 > 
-> GHES needs to know whether an event is normal or critical to avoid
-> sharing locks or fixmap entries, but GHES shouldn't have to know about
-> the SDEI API.
-> 
-> Add a helper to register the GHES using the appropriate normal or
-> critical callback.
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
+> What I can't quite remember just now is whether it's actually valid to get
+> here with err == 0 but dev->iommu_fwspec->ops == NULL, so it *might* be OK
+> to use "!err" instead of "ops" to make things slightly more obvious - I'll
+> work through the flow tomorrow to double-check.
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Yeah, adding an err == 0 check seems to be the best option here, so that
+iommu-drivers don't get confused when we try to add a device that is not
+managed by an iommu.
+
+
+Regards,
+
+	Joerg
