@@ -1,30 +1,55 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 2/4] iommu: Consolitate ->add/remove_device() calls
-Date: Thu, 6 Dec 2018 16:47:09 +0100
-Message-ID: <20181206154709.GJ16835@8bytes.org>
-References: <20181205143646.4876-1-joro@8bytes.org>
- <20181205143646.4876-3-joro@8bytes.org>
- <3ca13757-edf8-95cb-6316-73d202f97dbf@arm.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v7 13/25] KVM: arm/arm64: Add kvm_ras.h to collect kvm
+ specific RAS plumbing
+Date: Thu, 6 Dec 2018 16:17:08 +0000
+Message-ID: <20181206161707.GL54495@arrakis.emea.arm.com>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-14-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <3ca13757-edf8-95cb-6316-73d202f97dbf@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
+In-Reply-To: <20181203180613.228133-14-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, Marc Zyngier <marc.zyngier@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-mm@kvack.org, linux-acpi@vger.kernel.org, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 06:20:50PM +0000, Robin Murphy wrote:
-> Is there any good reason to let .add_device/.remove_device be optional
-> still? Everyone's implemented them for a while now, and on a practical level
-> I don't really see how else we could expect devices to be taken in and out
-> of their appropriate groups correctly.
+On Mon, Dec 03, 2018 at 06:06:01PM +0000, James Morse wrote:
+> To split up APEIs in_nmi() path, the caller needs to always be
+> in_nmi(). KVM shouldn't have to know about this, pull the RAS plumbing
+> out into a header file.
+> 
+> Currently guest synchronous external aborts are claimed as RAS
+> notifications by handle_guest_sea(), which is hidden in the arch codes
+> mm/fault.c. 32bit gets a dummy declaration in system_misc.h.
+> 
+> There is going to be more of this in the future if/when the kernel
+> supports the SError-based firmware-first notification mechanism and/or
+> kernel-first notifications for both synchronous external abort and
+> SError. Each of these will come with some Kconfig symbols and a
+> handful of header files.
+> 
+> Create a header file for all this.
+> 
+> This patch gives handle_guest_sea() a 'kvm_' prefix, and moves the
+> declarations to kvm_ras.h as preparation for a future patch that moves
+> the ACPI-specific RAS code out of mm/fault.c.
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
+> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
+> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
 
-There is probably no reason anymore to keep add_device/remove_device
-option. I'll check the users and remove the pointer checks if possible.
+For the arm64 bits here:
 
-
-Regards,
-
-	Joerg
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
