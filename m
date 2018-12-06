@@ -1,43 +1,103 @@
-From: Michal Hocko <mhocko@kernel.org>
-Subject: Re: [PATCH] mm/alloc: fallback to first node if the wanted node
- offline
-Date: Thu, 6 Dec 2018 08:23:57 +0100
-Message-ID: <20181206072357.GA1286@dhcp22.suse.cz>
-References: <1543892757-4323-1-git-send-email-kernelfans@gmail.com>
- <20181204072251.GT31738@dhcp22.suse.cz>
- <CAFgQCTv56drDBx-sTr6KdeQNKJnojG3g_a-k8wKe_q2y9w9NtA@mail.gmail.com>
- <20181204085601.GC1286@dhcp22.suse.cz>
- <CAFgQCTuyKBZdwWG=fOECE6J8DbZJsErJOyXTrLT0Kog3ec7vhw@mail.gmail.com>
- <20181205092148.GA1286@dhcp22.suse.cz>
- <CAFgQCTtj4m637tAzConCfeWQXSrWeNY-DLD5=f9-ZSmJMRe31Q@mail.gmail.com>
- <20181205094327.GD1286@dhcp22.suse.cz>
- <CAFgQCTu40HNsFVDVp+iXpPDoQ7VvGdTs8HLVy8=qTU77Bywt3w@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 2/3] ACPI / PMIC: Implement exec_mipi_pmic_seq_element for
+ CHT Whiskey Cove PMIC
+Date: Thu, 6 Dec 2018 09:53:15 +0100
+Message-ID: <a4df490c-27da-900d-f91f-0facfa97445f@redhat.com>
+References: <20181205210311.16865-1-hdegoede@redhat.com>
+ <20181205210311.16865-3-hdegoede@redhat.com>
+ <20181205212532.GV9144@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFgQCTu40HNsFVDVp+iXpPDoQ7VvGdTs8HLVy8=qTU77Bywt3w@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pingfan Liu <kernelfans@gmail.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Vlastimil Babka <vbabka@suse.cz>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Bjorn Helgaas <bhelgaas@google.com>, Jonathan Cameron <Jonathan.Cameron@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181205212532.GV9144@intel.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 06-12-18 11:34:30, Pingfan Liu wrote:
-[...]
-> > I suspect we are looking at two issues here. The first one, and a more
-> > important one is that there is a NUMA affinity configured for the device
-> > to a non-existing node. The second one is that nr_cpus affects
-> > initialization of possible nodes.
-> 
-> The dev->numa_node info is extracted from acpi table, not depends on
-> the instance of numa-node, which may be limited by nr_cpus. Hence the
-> node is existing, just not instanced.
-
-Hmm, binding to memory less node is quite dubious. But OK. I am not sure
-how much sanitization can we do. We need to fallback anyway so we should
-better make sure that all possible nodes are initialized regardless of
-nr_cpus. I will look into that.
-
--- 
-Michal Hocko
-SUSE Labs
+SGkgVmlsbGUsCgpUaGFuayB5b3UgZm9yIHRoZSByZXZpZXcuCgpPbiAwNS0xMi0xOCAyMjoyNSwg
+VmlsbGUgU3lyasOkbMOkIHdyb3RlOgo+IE9uIFdlZCwgRGVjIDA1LCAyMDE4IGF0IDEwOjAzOjA5
+UE0gKzAxMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+IEltcGxlbWVudCB0aGUgZXhlY19taXBp
+X3BtaWNfc2VxX2VsZW1lbnQgY2FsbGJhY2sgZm9yIHRoZSBDSFQgV2hpc2tleSBDb3ZlCj4+IFBN
+SUMuCj4+Cj4+IE9uIHNvbWUgQ0hUIGRldmljZXMgdGhpcyBmaXhlcyB0aGUgTENEIHBhbmVsIG5v
+dCBsaWdodGluZyB1cCB3aGVuIGl0IHdhcwo+PiBub3QgaW5pdGlhbGl6ZWQgYnkgdGhlIEdPUCwg
+YmVjYXVzZSBhbiBleHRlcm5hbCBtb25pdG9yIHdhcyBwbHVnZ2VkIGluIGFuZAo+PiB0aGUgR09Q
+IGluaXRpYWxpemVkIG9ubHkgdGhlIGV4dGVybmFsIG1vbml0b3IuCj4+Cj4+IFNpZ25lZC1vZmYt
+Ynk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+Cj4+IC0tLQo+PiAgIGRyaXZl
+cnMvYWNwaS9wbWljL2ludGVsX3BtaWNfY2h0d2MuYyB8IDIzICsrKysrKysrKysrKysrKysrKysr
+KysrCj4+ICAgMSBmaWxlIGNoYW5nZWQsIDIzIGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfY2h0d2MuYyBiL2RyaXZlcnMvYWNwaS9w
+bWljL2ludGVsX3BtaWNfY2h0d2MuYwo+PiBpbmRleCAwNzhiMDQ0OGYzMGEuLmQwMzU1NDFmMGVk
+MiAxMDA2NDQKPj4gLS0tIGEvZHJpdmVycy9hY3BpL3BtaWMvaW50ZWxfcG1pY19jaHR3Yy5jCj4+
+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfY2h0d2MuYwo+PiBAQCAtMTIsNiAr
+MTIsNyBAQAo+PiAgICNpbmNsdWRlIDxsaW51eC9tZmQvaW50ZWxfc29jX3BtaWMuaD4KPj4gICAj
+aW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4+ICAgI2luY2x1ZGUgPGxpbnV4L3Jl
+Z21hcC5oPgo+PiArI2luY2x1ZGUgPGFzbS91bmFsaWduZWQuaD4KPj4gICAjaW5jbHVkZSAiaW50
+ZWxfcG1pYy5oIgo+PiAgIAo+PiAgICNkZWZpbmUgQ0hUX1dDX1YxUDA1QV9DVFJMCQkweDZlM2IK
+Pj4gQEAgLTIzMSw2ICsyMzIsMjcgQEAgc3RhdGljIGludCBpbnRlbF9jaHRfd2NfcG1pY191cGRh
+dGVfcG93ZXIoc3RydWN0IHJlZ21hcCAqcmVnbWFwLCBpbnQgcmVnLAo+PiAgIAlyZXR1cm4gcmVn
+bWFwX3VwZGF0ZV9iaXRzKHJlZ21hcCwgcmVnLCBiaXRtYXNrLCBvbiA/IDEgOiAwKTsKPj4gICB9
+Cj4+ICAgCj4+ICtzdGF0aWMgdm9pZCBpbnRlbF9jaHRfd2NfZXhlY19taXBpX3BtaWNfc2VxX2Vs
+ZW1lbnQoc3RydWN0IHJlZ21hcCAqcmVnbWFwLAo+PiArCQkJCQkJICAgIGNvbnN0IHU4ICpkYXRh
+KQo+PiArewo+PiArCXUxNiBpMmNfY2xpZW50X2FkZHJlc3MsIHJlZ19hZGRyZXNzLCBhZGRyZXNz
+Owo+PiArCXUzMiB2YWx1ZSwgbWFzazsKPj4gKwo+PiArCWkyY19jbGllbnRfYWRkcmVzcwk9IGdl
+dF91bmFsaWduZWRfYmUxNihkYXRhKTsKPj4gKwlyZWdfYWRkcmVzcwkJPSBnZXRfdW5hbGlnbmVk
+X2JlMTYoZGF0YSArIDIpOwo+PiArCXZhbHVlCQkJPSBnZXRfdW5hbGlnbmVkX2JlMzIoZGF0YSAr
+IDQpOwo+PiArCW1hc2sJCQk9IGdldF91bmFsaWduZWRfYmUzMihkYXRhICsgOCk7Cj4gCj4gVGhp
+cyBkb2Vzbid0IG1hdGNoIHRoZSBkb2NzOgoKV2VsbCBJIGRpZG4ndCBoYXZlIGFjY2VzcyB0byB0
+aGUgZG9jcywgSSBqdXN0IGxvb2tlZCBhdCB0aGUKZGF0YSBhbmQgaW50ZXJwcmV0ZWQgdGhhdCwg
+dGhlIGZpcnN0IGJ5dGUgYmVpbmcgcmVzZXJ2ZWQKZm9yIGZ1dHVyZSB1c2UgdHJpcHBlZCBtZSB1
+cC4KCj4gIkJ5dGUwIOKAkyBQTUlDIEZsYWcKPiAgIEJpdHMgNzowID0gUmVzZXJ2ZWQgZm9yIGZ1
+dHVyZSB1c2UKPiAKPiAgIEJ5dGUyLDEg4oCTIFBNSUMgU2xhdmUgQWRkcmVzcwo+ICAgQml0cyAx
+NTowID0gU2xhdmUgYWRkcmVzcyBmb3IgUE1JQyBhY2Nlc3MKPiAgIEVhY2ggc2xhdmUgY2FuIGFk
+ZHJlc3MgMjU2Ynl0ZSByZWdpc3RlciBzcGFjZSBpbiBnZW5lcmFsCj4gCj4gICBCeXRlcyA2LDUs
+NCwzIOKAkyBEV09SRCAwCj4gICBCaXRzIDMxOjAgPSBQTUlDIFJlZ2lzdGVyIEFkZHJlc3MKPiAK
+PiAgIEJ5dGVzIDEwLDksOCw3IOKAkyBEV09SRCAxCj4gICBCaXRzIDMxOjAgPSBQTUlDIFJlZ2lz
+dGVyIERhdGEKPiAKPiAgIEJ5dGVzIDE0LDEzLDEyLDExIOKAkyBEV09SRCAyCj4gICBCaXRzIDMx
+OjAgPSBQTUlDIFJlZ2lzdGVyIERhdGFNYXNrIgo+IAo+IFRob3VnaCBJIHdvdWxkbid0IGJlIGVu
+dGlyZWx5IHN1cnByaXNlZCBpZiB0aGUgZG9jcyBhcmUgc2ltcGx5Cj4gd3JvbmcuCgpJIHRoaW5r
+IHRoZSBkb2NzIGFyZSBwcm9iYWJseSByaWdodCwgb2YgdGhlIDIgc2VxdWVuY2VzIEknbSBzZWVp
+bmcKdGhlIE9GRiBzZXF1ZW5jZSBoYXMgbW9yZSAwMCBieXRlcywgc28gdGhlIE9OIHNlcXVlbmNl
+IGlzIHRoZSBtb3N0CmludGVyZXN0aW5nLCB0aGlzIGlzOgoKMDAgNmUgMDAgM2MgMDAgMDAgMDAg
+MDEgMDAgMDAgMDAgMDEgMDAgMDAgMDAKCldpdGggbXkgKGJpZyBlbmRpYW4pIGludGVycHJldGF0
+aW9uIHRoYXQgZ2l2ZXM6CgpQTUlDIFNsYXZlIEFkZHJlc3MgICAgICAgMDAgNmUKUE1JQyBSZWdp
+c3RlciBBZGRyZXNzICAgIDAwIDNjClBNSUMgUmVnaXN0ZXIgRGF0YSAgICAgICAwMCAwMCAwMCAw
+MQpQTUlDIFJlZ2lzdGVyIE1hc2sgICAgICAgMDAgMDAgMDAgMDEKCldpdGggdGhlIGRvY3Mgc2xp
+Z2h0bHkgc2hpZnRlZCAobGl0dGxlIGVuZGlhbikgaW50ZXJwcmV0YXRpb24gdGhhdCBnaXZlczoK
+ClJlc2VydmVyZCAgICAgICAgICAgICAgICAwMApQTUlDIFNsYXZlIEFkZHJlc3MgICAgICAgMDAg
+NmUKUE1JQyBSZWdpc3RlciBBZGRyZXNzICAgIDAwIDAwIDAwIDNjClBNSUMgUmVnaXN0ZXIgRGF0
+YSAgICAgICAwMCAwMCAwMCAwMQpQTUlDIFJlZ2lzdGVyIE1hc2sgICAgICAgMDAgMDAgMDAgMDEK
+ClNvIHRoZSAyIGludGVycHJldGF0aW9uIGFncmVlIGZvciB0aGUgZGF0YSB3aGljaCBJJ20gYWN0
+dWFsbHkKc2VlaW5nIHVzZWQgYW5kIHRoZSBkb2NzIGludGVycHJldGF0aW9uIGFjdHVhbGx5IGNv
+bnN1bWVzIGFsbCBieXRlcy4KCkknbGwgcHJlcGFyZSBhIHYyIG9mIHRoaXMgcGF0Y2gtc2V0IHVz
+aW5nIHRoZSBkb2NzIGludGVycHJldGF0aW9uCm9mIHRoZSBieXRlcy4KClJlZ2FyZHMsCgpIYW5z
+CgoKCgoKPiAKPj4gKwo+PiArCWlmICgoaTJjX2NsaWVudF9hZGRyZXNzICYgMHhmZjAwKSB8fCAo
+cmVnX2FkZHJlc3MgJiAweGZmMDApKSB7Cj4+ICsJCXByX3dhcm4oIiVzIHdhcm5pbmcgYWRkcmVz
+c2VzIHRvbyBiaWcgY2xpZW50IDB4JXggcmVnIDB4JXhcbiIsCj4+ICsJCQlfX2Z1bmNfXywgaTJj
+X2NsaWVudF9hZGRyZXNzLCByZWdfYWRkcmVzcyk7Cj4+ICsJCXJldHVybjsKPj4gKwl9Cj4+ICsK
+Pj4gKwlhZGRyZXNzID0gKGkyY19jbGllbnRfYWRkcmVzcyA8PCA4KSB8IHJlZ19hZGRyZXNzOwo+
+PiArCXJlZ21hcF91cGRhdGVfYml0cyhyZWdtYXAsIGFkZHJlc3MsIG1hc2ssIHZhbHVlKTsKPj4g
+K30KPj4gKwo+PiAgIC8qCj4+ICAgICogVGhlIHRoZXJtYWwgdGFibGUgYW5kIG9wcyBhcmUgZW1w
+dHksIHdlIGRvIG5vdCBzdXBwb3J0IHRoZSBUaGVybWFsIG9wcmVnaW9uCj4+ICAgICogKERQVEYp
+IGR1ZSB0byBsYWNraW5nIGRvY3VtZW50YXRpb24uCj4+IEBAIC0yMzgsNiArMjYwLDcgQEAgc3Rh
+dGljIGludCBpbnRlbF9jaHRfd2NfcG1pY191cGRhdGVfcG93ZXIoc3RydWN0IHJlZ21hcCAqcmVn
+bWFwLCBpbnQgcmVnLAo+PiAgIHN0YXRpYyBzdHJ1Y3QgaW50ZWxfcG1pY19vcHJlZ2lvbl9kYXRh
+IGludGVsX2NodF93Y19wbWljX29wcmVnaW9uX2RhdGEgPSB7Cj4+ICAgCS5nZXRfcG93ZXIJCT0g
+aW50ZWxfY2h0X3djX3BtaWNfZ2V0X3Bvd2VyLAo+PiAgIAkudXBkYXRlX3Bvd2VyCQk9IGludGVs
+X2NodF93Y19wbWljX3VwZGF0ZV9wb3dlciwKPj4gKwkuZXhlY19taXBpX3BtaWNfc2VxX2VsZW1l
+bnQgPSBpbnRlbF9jaHRfd2NfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQsCj4+ICAgCS5wb3dl
+cl90YWJsZQkJPSBwb3dlcl90YWJsZSwKPj4gICAJLnBvd2VyX3RhYmxlX2NvdW50CT0gQVJSQVlf
+U0laRShwb3dlcl90YWJsZSksCj4+ICAgfTsKPj4gLS0gCj4+IDIuMTkuMgo+IApfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBs
+aXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
+a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
