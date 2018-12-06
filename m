@@ -1,33 +1,61 @@
-From: Joerg Roedel <joro@8bytes.org>
-Subject: Re: [PATCH 3/4] iommu/of: Don't call iommu_ops->add_device directly
-Date: Thu, 6 Dec 2018 17:19:45 +0100
-Message-ID: <20181206161945.GK16835@8bytes.org>
-References: <20181205143646.4876-1-joro@8bytes.org>
- <20181205143646.4876-4-joro@8bytes.org>
- <41d06767-fe6e-a746-d76a-557259af3034@arm.com>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next][RESEND] drivers: base: remove need for a temporary string for the node name
+Date: Thu,  6 Dec 2018 17:05:57 +0000
+Message-ID: <20181206170557.27834-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <41d06767-fe6e-a746-d76a-557259af3034@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Robin Murphy <robin.murphy@arm.com>
-Cc: iommu@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Joerg Roedel <jroedel@suse.de>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 05, 2018 at 06:49:26PM +0000, Robin Murphy wrote:
-> 	if (ops && dev->bus && !dev->iommu_group)
-> 
-> What I can't quite remember just now is whether it's actually valid to get
-> here with err == 0 but dev->iommu_fwspec->ops == NULL, so it *might* be OK
-> to use "!err" instead of "ops" to make things slightly more obvious - I'll
-> work through the flow tomorrow to double-check.
+From: Colin Ian King <colin.king@canonical.com>
 
-Yeah, adding an err == 0 check seems to be the best option here, so that
-iommu-drivers don't get confused when we try to add a device that is not
-managed by an iommu.
+Currently the node name is being formatting into a temporary string
+node_name, however, kobject_init_and_add allows one to format up
+a node name, so use that instead. This removes the need for the
+node_name string and also cleans up the following warning:
 
+Fixes clang warning:
+warning: format string is not a string literal (potentially
+insecure) [-Wformat-security]
 
-Regards,
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/base/swnode.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-	Joerg
+diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+index 9c63ec8d8ab4..306bb93287af 100644
+--- a/drivers/base/swnode.c
++++ b/drivers/base/swnode.c
+@@ -553,7 +553,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+ {
+ 	struct software_node *p = NULL;
+ 	struct software_node *swnode;
+-	char node_name[20];
+ 	int ret;
+ 
+ 	if (parent) {
+@@ -576,8 +575,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 	}
+ 
+ 	swnode->id = ret;
+-	sprintf(node_name, "node%d", swnode->id);
+-
+ 	swnode->kobj.kset = swnode_kset;
+ 	swnode->fwnode.ops = &software_node_ops;
+ 
+@@ -590,7 +587,7 @@ fwnode_create_software_node(const struct property_entry *properties,
+ 		list_add_tail(&swnode->entry, &p->children);
+ 
+ 	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+-				   p ? &p->kobj : NULL, node_name);
++				   p ? &p->kobj : NULL, "node%d", swnode->id);
+ 	if (ret) {
+ 		kobject_put(&swnode->kobj);
+ 		return ERR_PTR(ret);
+-- 
+2.19.1
