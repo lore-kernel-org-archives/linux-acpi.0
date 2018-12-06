@@ -1,7 +1,7 @@
 From: Dave Hansen <dave.hansen@intel.com>
 Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Thu, 6 Dec 2018 15:34:24 -0800
-Message-ID: <7cda7111-6b13-cb46-d2c0-2cc52cf8a87f@intel.com>
+Date: Thu, 6 Dec 2018 15:38:41 -0800
+Message-ID: <5e6c87d5-e4ef-12e7-32bf-c163f7ff58d7@intel.com>
 References: <20181205001544.GR2937@redhat.com>
  <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
  <20181205021334.GB3045@redhat.com>
@@ -17,7 +17,7 @@ References: <20181205001544.GR2937@redhat.com>
  <935fc14d-91f2-bc2a-f8b5-665e4145e148@deltatee.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <935fc14d-91f2-bc2a-f8b5-665e4145e148@deltatee.com>
 Content-Language: en-US
@@ -27,7 +27,17 @@ Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@
 List-Id: linux-acpi@vger.kernel.org
 
 On 12/6/18 3:28 PM, Logan Gunthorpe wrote:
-> These patches are really tied to world view #1.  But, the HMAT is really
-> tied to world view #1.
+> I didn't think this was meant to describe actual real world performance
+> between all of the links. If that's the case all of this seems like a
+> pipe dream to me.
 
-Whoops, should have been "the HMAT is really tied to world view #2"
+The HMAT discussions (that I was a part of at least) settled on just
+trying to describe what we called "sticker speed".  Nobody had an
+expectation that you *really* had to measure everything.
+
+The best we can do for any of these approaches is approximate things.
+
+> You're not *really* going to know bandwidth or latency for any of this
+> unless you actually measure it on the system in question.
+
+Yeah, agreed.
