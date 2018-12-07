@@ -1,51 +1,101 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH v2 1/2] gpiolib-acpi: Only defer request_irq for GpioInt
- ACPI event handlers
-Date: Fri, 7 Dec 2018 11:02:27 +0100
-Message-ID: <CACRpkdZL5A5MyLr+pBEq+QFARMXbW4FO3H2_t_VTq8XxszPqKA@mail.gmail.com>
-References: <20181128165756.20908-1-hdegoede@redhat.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 1/3] ACPI / PMIC: Add support for
+ executing PMIC MIPI sequence elements
+Date: Fri, 7 Dec 2018 13:39:45 +0200
+Message-ID: <20181207113945.GI2469@lahna.fi.intel.com>
+References: <20181206134705.18554-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181128165756.20908-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20181206134705.18554-1-hdegoede@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 28, 2018 at 5:58 PM Hans de Goede <hdegoede@redhat.com> wrote:
-
-> Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
-> from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
-> call for each event resource.
->
-> This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
-> call. This is a problem if some AML code reads the GPIO pin before we
-> run the deferred acpi_gpiochip_request_interrupt, because in that case
-> acpi_gpio_adr_space_handler() will already have called
-> gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
-> acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
-> register an event handler.
->
-> acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
-> already having claimed the pin, but the other way around does not work.
->
-> One example of a problem this causes, is the event handler for the OTG
-> ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
-> in whatever mode it was in during boot and e.g. only allowing charging
-> after a reboot.
->
-> This commit fixes this by only deferring the request_irq call and the
-> initial run of edge-triggered IRQs instead of deferring all of
-> acpi_gpiochip_request_interrupt.
->
-> Cc: stable@vger.kernel.org
-> Fixes: 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event ...")
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-
-Patch applied for fixes with Andy's and Mika's tags.
-
-Yours,
-Linus Walleij
+T24gVGh1LCBEZWMgMDYsIDIwMTggYXQgMDI6NDc6MDNQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPiBEU0kgTENEIHBhbmVscyBkZXNjcmliZSBhbiBpbml0aWFsaXphdGlvbiBzZXF1ZW5j
+ZSBpbiB0aGUgVmlkZW8gQklPUwo+IFRhYmxlcyB1c2luZyBzbyBjYWxsZWQgTUlQSSBzZXF1ZW5j
+ZXMuIE9uZSBwb3NzaWJsZSBlbGVtZW50IGluIHRoZXNlCj4gc2VxdWVuY2VzIGlzIGEgUE1JQyBz
+cGVjaWZpYyBlbGVtZW50IG9mIDE1IGJ5dGVzLgo+IAo+IEFsdGhvdWdoIHRoaXMgaXMgbm90IHJl
+YWxseSBhbiBBQ1BJIG9wcmVnaW9uLCB0aGUgQUNQSSBvcHJlZ2lvbiBjb2RlIGlzIHRoZQo+IGNs
+b3Nlc3QgdGhpbmcgd2UgaGF2ZS4gV2UgbmVlZCB0byBoYXZlIHN1cHBvcnQgZm9yIHRoZXNlIFBN
+SUMgc3BlY2lmaWMgTUlQSQo+IHNlcXVlbmNlIGVsZW1lbnRzIHNvbXdoZXJlLiBTaW5jZSB3ZSBh
+bHJlYWR5IGluc3RhbnRpYXRlIGEgc3BlY2lhbCBwbGF0Zm9ybQo+IGRldmljZSBmb3IgSW50ZWwg
+UE1JQ3MgZm9yIHRoZSBBQ1BJIFBNSUMgT3BSZWdpb24gaGFuZGxlciB0byBiaW5kIHRvLAo+IHdp
+dGggUE1JQyBzcGVjaWZpYyBpbXBsZW1lbnRhdGlvbnMgb2YgdGhlIE9wUmVnaW9uLCB0aGUgaGFu
+ZGxpbmcgb2YgTUlQSQo+IHNlcXVlbmNlIFBNSUMgZWxlbWVudHMgZml0cyB2ZXJ5IHdlbGwgaW4g
+dGhlIEFDUEkgUE1JQyBPcFJlZ2lvbiBjb2RlLgo+IAo+IFRoaXMgY29tbWl0IGFkZHMgYSBuZXcg
+aW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoKQo+IGZ1bmN0aW9uLCB3
+aGljaCBpcyB0byBiZSBiYWNrZWQgYnkgYSBQTUlDIHNwZWNpZmljCj4gZXhlY19taXBpX3BtaWNf
+c2VxX2VsZW1lbnQgY2FsbGJhY2suIFRoaXMgZnVuY3Rpb24gd2lsbCBiZSBjYWxsZWQgYnkgdGhl
+Cj4gaTkxNSBjb2RlIHRvIGV4ZWN0dXJlIE1JUEkgc2VxdWVuY2UgUE1JQyBlbGVtZW50cy4KPiAK
+PiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+IC0t
+LQo+ICBkcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmMgICAgIHwgMjUgKysrKysrKysrKysr
+KysrKysrKysrKysrKwo+ICBkcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmggICAgIHwgIDEg
+Kwo+ICBpbmNsdWRlL2xpbnV4L21mZC9pbnRlbF9zb2NfcG1pYy5oIHwgIDIgKysKPiAgMyBmaWxl
+cyBjaGFuZ2VkLCAyOCBpbnNlcnRpb25zKCspCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNw
+aS9wbWljL2ludGVsX3BtaWMuYyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuYwo+IGlu
+ZGV4IGNhMThlMGQyM2RmOS4uMGQ5NmNhMDhiYjc5IDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvYWNw
+aS9wbWljL2ludGVsX3BtaWMuYwo+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMu
+Ywo+IEBAIC0xNSw2ICsxNSw3IEBACj4gIAo+ICAjaW5jbHVkZSA8bGludXgvZXhwb3J0Lmg+Cj4g
+ICNpbmNsdWRlIDxsaW51eC9hY3BpLmg+Cj4gKyNpbmNsdWRlIDxsaW51eC9tZmQvaW50ZWxfc29j
+X3BtaWMuaD4KPiAgI2luY2x1ZGUgPGxpbnV4L3JlZ21hcC5oPgo+ICAjaW5jbHVkZSA8YWNwaS9h
+Y3BpX2xwYXQuaD4KPiAgI2luY2x1ZGUgImludGVsX3BtaWMuaCIKPiBAQCAtMzYsNiArMzcsOCBA
+QCBzdHJ1Y3QgaW50ZWxfcG1pY19vcHJlZ2lvbiB7Cj4gIAlzdHJ1Y3QgaW50ZWxfcG1pY19yZWdz
+X2hhbmRsZXJfY3R4IGN0eDsKPiAgfTsKPiAgCj4gK3N0YXRpYyBzdHJ1Y3QgaW50ZWxfcG1pY19v
+cHJlZ2lvbiAqaW50ZWxfcG1pY19vcHJlZ2lvbjsKPiArCj4gIHN0YXRpYyBpbnQgcG1pY19nZXRf
+cmVnX2JpdChpbnQgYWRkcmVzcywgc3RydWN0IHBtaWNfdGFibGUgKnRhYmxlLAo+ICAJCQkgICAg
+aW50IGNvdW50LCBpbnQgKnJlZywgaW50ICpiaXQpCj4gIHsKPiBAQCAtMzA0LDYgKzMwNyw3IEBA
+IGludCBpbnRlbF9wbWljX2luc3RhbGxfb3ByZWdpb25faGFuZGxlcihzdHJ1Y3QgZGV2aWNlICpk
+ZXYsIGFjcGlfaGFuZGxlIGhhbmRsZSwKPiAgCX0KPiAgCj4gIAlvcHJlZ2lvbi0+ZGF0YSA9IGQ7
+Cj4gKwlpbnRlbF9wbWljX29wcmVnaW9uID0gb3ByZWdpb247Cj4gIAlyZXR1cm4gMDsKPiAgCj4g
+IG91dF9yZW1vdmVfdGhlcm1hbF9oYW5kbGVyOgo+IEBAIC0zMTksMyArMzIzLDI0IEBAIGludCBp
+bnRlbF9wbWljX2luc3RhbGxfb3ByZWdpb25faGFuZGxlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIGFj
+cGlfaGFuZGxlIGhhbmRsZSwKPiAgCXJldHVybiByZXQ7Cj4gIH0KPiAgRVhQT1JUX1NZTUJPTF9H
+UEwoaW50ZWxfcG1pY19pbnN0YWxsX29wcmVnaW9uX2hhbmRsZXIpOwo+ICsKClNpbmNlIHRoaXMg
+aXMgZXhwb3J0ZWQsIHBsZWFzZSBhZGQga2VybmVsLWRvYyBoZXJlLgoKPiArdm9pZCBpbnRlbF9z
+b2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudChjb25zdCB1OCAqZGF0YSkKPiArewo+
+ICsJc3RydWN0IGludGVsX3BtaWNfb3ByZWdpb25fZGF0YSAqZDsKPiArCj4gKwlpZiAoIWludGVs
+X3BtaWNfb3ByZWdpb24pIHsKPiArCQlwcl93YXJuKCIlczogTm8gUE1JQyByZWdpc3RlcmVkXG4i
+LCBfX2Z1bmNfXyk7Cj4gKwkJcmV0dXJuOwoKV2h5IG5vdCByZXR1cm4gZXJyb3IgY29kZXMgaW5z
+dGVhZD8KCk90aGVyIG9wcyBpbiBzdHJ1Y3QgaW50ZWxfcG1pY19vcHJlZ2lvbl9kYXRhIHNlZW0g
+dG8gZG8gc28uCgo+ICsJfQo+ICsKPiArCWQgPSBpbnRlbF9wbWljX29wcmVnaW9uLT5kYXRhOwo+
+ICsJaWYgKCFkLT5leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudCkgewo+ICsJCXByX3dhcm4oIiVz
+OiBOb3QgaW1wbGVtZW50ZWRcbiIsIF9fZnVuY19fKTsKPiArCQlyZXR1cm47CgpEaXR0by4KCj4g
+Kwl9Cj4gKwo+ICsJbXV0ZXhfbG9jaygmaW50ZWxfcG1pY19vcHJlZ2lvbi0+bG9jayk7Cj4gKwlk
+LT5leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudChpbnRlbF9wbWljX29wcmVnaW9uLT5yZWdtYXAs
+IGRhdGEpOwo+ICsJbXV0ZXhfdW5sb2NrKCZpbnRlbF9wbWljX29wcmVnaW9uLT5sb2NrKTsKPiAr
+fQo+ICtFWFBPUlRfU1lNQk9MX0dQTChpbnRlbF9zb2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFf
+ZWxlbWVudCk7Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuaCBi
+L2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuaAo+IGluZGV4IDA5NWFmYzk2OTUyZS4uNWE3
+YmIzM2QwNDZhIDEwMDY0NAo+IC0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuaAo+
+ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuaAo+IEBAIC0xNSw2ICsxNSw3IEBA
+IHN0cnVjdCBpbnRlbF9wbWljX29wcmVnaW9uX2RhdGEgewo+ICAJaW50ICgqdXBkYXRlX2F1eCko
+c3RydWN0IHJlZ21hcCAqciwgaW50IHJlZywgaW50IHJhd190ZW1wKTsKPiAgCWludCAoKmdldF9w
+b2xpY3kpKHN0cnVjdCByZWdtYXAgKnIsIGludCByZWcsIGludCBiaXQsIHU2NCAqdmFsdWUpOwo+
+ICAJaW50ICgqdXBkYXRlX3BvbGljeSkoc3RydWN0IHJlZ21hcCAqciwgaW50IHJlZywgaW50IGJp
+dCwgaW50IGVuYWJsZSk7Cj4gKwl2b2lkICgqZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQpKHN0
+cnVjdCByZWdtYXAgKnIsIGNvbnN0IHU4ICpkYXRhKTsKPiAgCXN0cnVjdCBwbWljX3RhYmxlICpw
+b3dlcl90YWJsZTsKPiAgCWludCBwb3dlcl90YWJsZV9jb3VudDsKPiAgCXN0cnVjdCBwbWljX3Rh
+YmxlICp0aGVybWFsX3RhYmxlOwo+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L21mZC9pbnRl
+bF9zb2NfcG1pYy5oIGIvaW5jbHVkZS9saW51eC9tZmQvaW50ZWxfc29jX3BtaWMuaAo+IGluZGV4
+IGVkMWRmYmE1ZTVmOS4uY2UwNGFkN2Q0YjZjIDEwMDY0NAo+IC0tLSBhL2luY2x1ZGUvbGludXgv
+bWZkL2ludGVsX3NvY19wbWljLmgKPiArKysgYi9pbmNsdWRlL2xpbnV4L21mZC9pbnRlbF9zb2Nf
+cG1pYy5oCj4gQEAgLTI2LDQgKzI2LDYgQEAgc3RydWN0IGludGVsX3NvY19wbWljIHsKPiAgCXN0
+cnVjdCBkZXZpY2UgKmRldjsKPiAgfTsKPiAgCj4gK3ZvaWQgaW50ZWxfc29jX3BtaWNfZXhlY19t
+aXBpX3BtaWNfc2VxX2VsZW1lbnQoY29uc3QgdTggKmRhdGEpOwo+ICsKPiAgI2VuZGlmCS8qIF9f
+SU5URUxfU09DX1BNSUNfSF9fICovCj4gLS0gCj4gMi4xOS4yCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwt
+Z2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
+YWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
