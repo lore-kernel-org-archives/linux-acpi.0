@@ -1,73 +1,51 @@
-From: Jerome Glisse <jglisse@redhat.com>
-Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Thu, 6 Dec 2018 19:20:45 -0500
-Message-ID: <20181207002044.GI3544@redhat.com>
-References: <b8fab9a7-62ed-5d8d-3cb1-aea6aacf77fe@intel.com>
- <20181206192050.GC3544@redhat.com>
- <d6508932-377c-a4d1-d4d8-01d0f55b9190@intel.com>
- <c583be1b-17db-1ed3-0f5a-bd119edc8bfe@deltatee.com>
- <f7eb9939-d550-706a-946d-acbb7383172e@intel.com>
- <20181206223935.GG3544@redhat.com>
- <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
- <935fc14d-91f2-bc2a-f8b5-665e4145e148@deltatee.com>
- <5e6c87d5-e4ef-12e7-32bf-c163f7ff58d7@intel.com>
- <cd5cf2a6-7415-eae7-0305-004cc7db994b@deltatee.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [PATCH v2 1/2] gpiolib-acpi: Only defer request_irq for GpioInt
+ ACPI event handlers
+Date: Fri, 7 Dec 2018 11:02:27 +0100
+Message-ID: <CACRpkdZL5A5MyLr+pBEq+QFARMXbW4FO3H2_t_VTq8XxszPqKA@mail.gmail.com>
+References: <20181128165756.20908-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <cd5cf2a6-7415-eae7-0305-004cc7db994b@deltatee.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Logan Gunthorpe <logang@deltatee.com>
-Cc: Dave Hansen <dave.hansen@intel.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <20181128165756.20908-1-hdegoede@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "open list:GPIO SUBSYSTEM" <linux-gpio@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, stable <stable@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Dec 06, 2018 at 04:48:57PM -0700, Logan Gunthorpe wrote:
-> 
-> 
-> On 2018-12-06 4:38 p.m., Dave Hansen wrote:
-> > On 12/6/18 3:28 PM, Logan Gunthorpe wrote:
-> >> I didn't think this was meant to describe actual real world performance
-> >> between all of the links. If that's the case all of this seems like a
-> >> pipe dream to me.
-> > 
-> > The HMAT discussions (that I was a part of at least) settled on just
-> > trying to describe what we called "sticker speed".  Nobody had an
-> > expectation that you *really* had to measure everything.
-> > 
-> > The best we can do for any of these approaches is approximate things.
-> 
-> Yes, though there's a lot of caveats in this assumption alone.
-> Specifically with PCI: the bus may run at however many GB/s but P2P
-> through a CPU's root complexes can slow down significantly (like down to
-> MB/s).
-> 
-> I've seen similar things across QPI: I can sometimes do P2P from
-> PCI->QPI->PCI but the performance doesn't even come close to the sticker
-> speed of any of those buses.
-> 
-> I'm not sure how anyone is going to deal with those issues, but it does
-> firmly place us in world view #2 instead of #1. But, yes, I agree
-> exposing information like in #2 full out to userspace, especially
-> through sysfs, seems like a nightmare and I don't see anything in HMS to
-> help with that. Providing an API to ask for memory (or another resource)
-> that's accessible by a set of initiators and with a set of requirements
-> for capabilities seems more manageable.
+On Wed, Nov 28, 2018 at 5:58 PM Hans de Goede <hdegoede@redhat.com> wrote:
 
-Note that in #1 you have bridge that fully allow to express those path
-limitation. So what you just describe can be fully reported to userspace.
+> Commit 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event handlers
+> from a late_initcall") deferred the entire acpi_gpiochip_request_interrupt
+> call for each event resource.
+>
+> This means it also delays the gpiochip_request_own_desc(..., "ACPI:Event")
+> call. This is a problem if some AML code reads the GPIO pin before we
+> run the deferred acpi_gpiochip_request_interrupt, because in that case
+> acpi_gpio_adr_space_handler() will already have called
+> gpiochip_request_own_desc(..., "ACPI:OpRegion") causing the call from
+> acpi_gpiochip_request_interrupt to fail with -EBUSY and we will fail to
+> register an event handler.
+>
+> acpi_gpio_adr_space_handler is prepared for acpi_gpiochip_request_interrupt
+> already having claimed the pin, but the other way around does not work.
+>
+> One example of a problem this causes, is the event handler for the OTG
+> ID pin on a Prowise PT301 tablet not registering, keeping the port stuck
+> in whatever mode it was in during boot and e.g. only allowing charging
+> after a reboot.
+>
+> This commit fixes this by only deferring the request_irq call and the
+> initial run of edge-triggered IRQs instead of deferring all of
+> acpi_gpiochip_request_interrupt.
+>
+> Cc: stable@vger.kernel.org
+> Fixes: 78d3a92edbfb ("gpiolib-acpi: Register GpioInt ACPI event ...")
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v2:
 
-I explained and given examples on how program adapt their computation to
-the system topology it does exist today and people are even developing new
-programming langage with some of those idea baked in.
+Patch applied for fixes with Andy's and Mika's tags.
 
-So they are people out there that already rely on such information they
-just do not get it from the kernel but from a mix of various device specific
-API and they have to stich everything themself and develop a database of
-quirk and gotcha. My proposal is to provide a coherent kernel API where
-we can sanitize that informations and report it to userspace in a single
-and coherent description.
-
-Cheers,
-Jérôme
+Yours,
+Linus Walleij
