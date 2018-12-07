@@ -1,44 +1,78 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 2/3] ACPI / PMIC: Implement
- exec_mipi_pmic_seq_element for CHT Whiskey Cove PMIC
-Date: Fri, 7 Dec 2018 16:18:05 +0200
-Message-ID: <20181207141805.GI10650@smile.fi.intel.com>
+From: Masami Hiramatsu <mhiramat@kernel.org>
+Subject: Re: [PATCH] x86/kernel: Fix more -Wmissing-prototypes warnings
+Date: Fri, 7 Dec 2018 23:42:10 +0900
+Message-ID: <20181207234210.c29731b7a481c74a4e57220c@kernel.org>
+References: <20181205101131.28996-1-bp@alien8.de>
+        <20181205224906.824483ea3c5d1d5b7712c99a@kernel.org>
+        <20181205142448.GH29510@zn.tnic>
+        <20181205162526.GB109259@gmail.com>
+        <20181205171547.GM29510@zn.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hans de Goede <hdegoede@redhat.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181205171547.GM29510@zn.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Ingo Molnar <mingo@kernel.org>, LKML <linux-kernel@vger.kernel.org>, Andrew Banman <andrew.banman@hpe.com>, Dimitri Sivanich <dimitri.sivanich@hpe.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Mike Travis <mike.travis@hpe.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>, Yi Wang <wang.yi59@zte.com.cn>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-PiBJbXBsZW1lbnQgdGhlIGV4ZWNfbWlwaV9wbWljX3NlcV9lbGVtZW50IGNhbGxiYWNrIGZvciB0
-aGUgQ0hUIFdoaXNrZXkgQ292ZQo+IFBNSUMuCgo+IE9uIHNvbWUgQ0hUIGRldmljZXMgdGhpcyBm
-aXhlcyB0aGUgTENEIHBhbmVsIG5vdCBsaWdodGluZyB1cCB3aGVuIGl0IHdhcwo+IG5vdCBpbml0
-aWFsaXplZCBieSB0aGUgR09QLCBiZWNhdXNlIGFuIGV4dGVybmFsIG1vbml0b3Igd2FzIHBsdWdn
-ZWQgaW4gYW5kCj4gdGhlIEdPUCBpbml0aWFsaXplZCBvbmx5IHRoZSBleHRlcm5hbCBtb25pdG9y
-LgoKPiArCS8qIGJ5dGUgMCBha2EgUE1JQyBGbGFnIGlzIHJlc2VydmVkICovCj4gKwlpMmNfY2xp
-ZW50X2FkZHJlc3MJPSBnZXRfdW5hbGlnbmVkX2xlMTYoZGF0YSArIDEpOwo+ICsJcmVnX2FkZHJl
-c3MJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyAzKTsKPiArCXZhbHVlCQkJPSBnZXRfdW5h
-bGlnbmVkX2xlMzIoZGF0YSArIDcpOwo+ICsJbWFzawkJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRh
-dGEgKyAxMSk7Cj4gKwoKPiArCWlmIChpMmNfY2xpZW50X2FkZHJlc3MgPiAyNTUgfHwgcmVnX2Fk
-ZHJlc3MgPiAyNTUpIHsKCkhtbS4uLiBJIHdvdWxkIHJhdGhlciBsaWtlIHRvIHNlZSBoZXhhZGVj
-aW1hbCBmb3IgYWRkcmVzc2VzIGFuZCBkZWNpbWFsIGZvcgpzb21ldGhpbmcgbGlrZSBjb3VudGFi
-bGUgdmFsdWUgZm9yIGRhdGEuCgo+ICsJCXByX3dhcm4oIiVzIHdhcm5pbmcgYWRkcmVzc2VzIHRv
-byBiaWcgY2xpZW50IDB4JXggcmVnIDB4JXhcbiIsCj4gKwkJCV9fZnVuY19fLCBpMmNfY2xpZW50
-X2FkZHJlc3MsIHJlZ19hZGRyZXNzKTsKPiArCQlyZXR1cm47Cj4gKwl9Cj4gKwo+ICsJYWRkcmVz
-cyA9IChpMmNfY2xpZW50X2FkZHJlc3MgPDwgOCkgfCByZWdfYWRkcmVzczsKPiArCXJlZ21hcF91
-cGRhdGVfYml0cyhyZWdtYXAsIGFkZHJlc3MsIG1hc2ssIHZhbHVlKTsKPiArfQoKLS0gCldpdGgg
-QmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVua28KCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9pbnRlbC1nZngK
+Hi,
+
+On Wed, 5 Dec 2018 18:15:47 +0100
+Borislav Petkov <bp@alien8.de> wrote:
+
+> On Wed, Dec 05, 2018 at 05:25:26PM +0100, Ingo Molnar wrote:
+> > Also, preferably the prototype should be eliminated via proper ordering 
+> > of functions from lower level to higher levels.
+> 
+> Well, that trampoline_handler() is special as we call it from inline asm
+> and I see Masami has marked it __visible etc.
+> 
+> So doing this below still builds and the trampoline_handler doesn't get
+> discarded but maybe there's a reason for it not being static.
+> 
+> Masami?
+
+Hmm, I just thought that the symbol only referred from inline asm should
+be visible. But if it is OK for any version of supported gcc and clang,
+I'm good to remove it. :-) (IOW, I just concerned about older gcc)
+
+Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
+
+Thank you,
+
+> 
+> ---
+> diff --git a/arch/x86/kernel/kprobes/core.c b/arch/x86/kernel/kprobes/core.c
+> index 6480056d370f..308bf103cc73 100644
+> --- a/arch/x86/kernel/kprobes/core.c
+> +++ b/arch/x86/kernel/kprobes/core.c
+> @@ -66,8 +66,6 @@
+>  
+>  #include "common.h"
+>  
+> -void *trampoline_handler(struct pt_regs *regs);
+> -
+>  DEFINE_PER_CPU(struct kprobe *, current_kprobe) = NULL;
+>  DEFINE_PER_CPU(struct kprobe_ctlblk, kprobe_ctlblk);
+>  
+> @@ -753,7 +751,7 @@ STACK_FRAME_NON_STANDARD(kretprobe_trampoline);
+>  /*
+>   * Called from kretprobe_trampoline
+>   */
+> -__visible __used void *trampoline_handler(struct pt_regs *regs)
+> +static __used void *trampoline_handler(struct pt_regs *regs)
+>  {
+>  	struct kretprobe_instance *ri = NULL;
+>  	struct hlist_head *head, empty_rp;
+> 
+> -- 
+> Regards/Gruss,
+>     Boris.
+> 
+> Good mailing practices for 400: avoid top-posting and trim the reply.
+
+
+-- 
+Masami Hiramatsu <mhiramat@kernel.org>
