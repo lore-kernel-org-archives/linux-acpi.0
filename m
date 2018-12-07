@@ -1,10 +1,8 @@
-From: Logan Gunthorpe <logang@deltatee.com>
+From: Jerome Glisse <jglisse@redhat.com>
 Subject: Re: [RFC PATCH 00/14] Heterogeneous Memory System (HMS) and hbind()
-Date: Thu, 6 Dec 2018 16:48:57 -0700
-Message-ID: <cd5cf2a6-7415-eae7-0305-004cc7db994b@deltatee.com>
-References: <20181205001544.GR2937@redhat.com>
- <42006749-7912-1e97-8ccd-945e82cebdde@intel.com>
- <20181205021334.GB3045@redhat.com>
+Date: Thu, 6 Dec 2018 19:15:55 -0500
+Message-ID: <20181207001554.GH3544@redhat.com>
+References: <20181205021334.GB3045@redhat.com>
  <b3122fdf-02c3-2e9c-1da6-fb873b824d59@intel.com>
  <20181205175357.GG3536@redhat.com>
  <b8fab9a7-62ed-5d8d-3cb1-aea6aacf77fe@intel.com>
@@ -14,48 +12,107 @@ References: <20181205001544.GR2937@redhat.com>
  <f7eb9939-d550-706a-946d-acbb7383172e@intel.com>
  <20181206223935.GG3544@redhat.com>
  <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
- <935fc14d-91f2-bc2a-f8b5-665e4145e148@deltatee.com>
- <5e6c87d5-e4ef-12e7-32bf-c163f7ff58d7@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5e6c87d5-e4ef-12e7-32bf-c163f7ff58d7@intel.com>
-Content-Language: en-CA
+Content-Disposition: inline
+In-Reply-To: <c1126d60-95c0-ed34-6314-fcec17ac1c29@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>, Jerome Glisse <jglisse@redhat.com>
-Cc: linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>, Michal Hocko <mhocko@kernel.org>
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>, linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael@kernel.org>, Matthew Wilcox <willy@infradead.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Dan Williams <dan.j.williams@intel.com>, Haggai Eran <haggaie@mellanox.com>, Balbir Singh <bsingharora@gmail.com>, "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Felix Kuehling <felix.kuehling@amd.com>, Philip Yang <Philip.Yang@amd.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Paul Blinzer <Paul.Blinzer@amd.com>, John Hubbard <jhubbard@nvidia.com>, Ralph Campbell <rcampbell@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
 
-
-
-On 2018-12-06 4:38 p.m., Dave Hansen wrote:
-> On 12/6/18 3:28 PM, Logan Gunthorpe wrote:
->> I didn't think this was meant to describe actual real world performance
->> between all of the links. If that's the case all of this seems like a
->> pipe dream to me.
+On Thu, Dec 06, 2018 at 03:09:21PM -0800, Dave Hansen wrote:
+> On 12/6/18 2:39 PM, Jerome Glisse wrote:
+> > No if the 4 sockets are connect in a ring fashion ie:
+> >         Socket0 - Socket1
+> >            |         |
+> >         Socket3 - Socket2
+> > 
+> > Then you have 4 links:
+> > link0: socket0 socket1
+> > link1: socket1 socket2
+> > link3: socket2 socket3
+> > link4: socket3 socket0
+> > 
+> > I do not see how their can be an explosion of link directory, worse
+> > case is as many link directories as they are bus for a CPU/device/
+> > target.
 > 
-> The HMAT discussions (that I was a part of at least) settled on just
-> trying to describe what we called "sticker speed".  Nobody had an
-> expectation that you *really* had to measure everything.
+> This looks great.  But, we don't _have_ this kind of information for any
+> system that I know about or any system available in the near future.
+
+We do not have it in any standard way, it is out there in either
+device driver database, application data base, special platform
+OEM blob burried somewhere in the firmware ...
+
+I want to solve the kernel side of the problem ie how to expose
+this to userspace. How the kernel get that information is an
+orthogonal problem. For now my intention is to have device driver
+register and create the links and bridges that are not enumerated
+by standard firmware.
+
 > 
-> The best we can do for any of these approaches is approximate things.
+> We basically have two different world views:
+> 1. The system is described point-to-point.  A connects to B @
+>    100GB/s.  B connects to C at 50GB/s.  Thus, C->A should be
+>    50GB/s.
+>    * Less information to convey
+>    * Potentially less precise if the properties are not perfectly
+>      additive.  If A->B=10ns and B->C=20ns, A->C might be >30ns.
+>    * Costs must be calculated instead of being explicitly specified
+> 2. The system is described endpoint-to-endpoint.  A->B @ 100GB/s
+>    B->C @ 50GB/s, A->C @ 50GB/s.
+>    * A *lot* more information to convey O(N^2)?
+>    * Potentially more precise.
+>    * Costs are explicitly specified, not calculated
+> 
+> These patches are really tied to world view #1.  But, the HMAT is really
+> tied to world view #1.
+                      ^#2
 
-Yes, though there's a lot of caveats in this assumption alone.
-Specifically with PCI: the bus may run at however many GB/s but P2P
-through a CPU's root complexes can slow down significantly (like down to
-MB/s).
+Note that they are also the bridge object in my proposal. So in my
+proposal you in #1 you have:
+link0: A <-> B with 100GB/s and 10ns latency
+link1: B <-> C with 50GB/s and 20ns latency
 
-I've seen similar things across QPI: I can sometimes do P2P from
-PCI->QPI->PCI but the performance doesn't even come close to the sticker
-speed of any of those buses.
+Now if A can reach C through B then you have bridges (bridge are uni-
+directional unlike link that are bi-directional thought that finer
+point can be discuss this is what allow any kind of directed graph to
+be represented):
+bridge2: link0 -> link1
+bridge3: link1 -> link0
 
-I'm not sure how anyone is going to deal with those issues, but it does
-firmly place us in world view #2 instead of #1. But, yes, I agree
-exposing information like in #2 full out to userspace, especially
-through sysfs, seems like a nightmare and I don't see anything in HMS to
-help with that. Providing an API to ask for memory (or another resource)
-that's accessible by a set of initiators and with a set of requirements
-for capabilities seems more manageable.
+You can also associated properties to bridge (but it is not mandatory).
+So you can say that bridge2 and bridge3 have a latency of 50ns and if
+the addition of latency is enough then you do not specificy it in bridge.
+It is a rule that a path latency is the sum of its individual link
+latency. For bandwidth it is the minimum bandwidth ie what ever is the
+bottleneck for the path.
 
-Logan
+
+> I know you're not a fan of the HMAT.  But it is the firmware reality
+> that we are stuck with, until something better shows up.  I just don't
+> see a way to convert it into what you have described here.
+
+Like i said i am not targetting HMAT system i am targeting system that
+rely today on database spread between driver and application. I want to
+move that knowledge in driver first so that they can teach the core
+kernel and register thing in the core. Providing a standard firmware
+way to provide this information is a different problem (they are some
+loose standard on non ACPI platform AFAIK).
+
+> I'm starting to think that, no matter if the HMAT or some other approach
+> gets adopted, we shouldn't be exposing this level of gunk to userspace
+> at *all* since it requires adopting one of the world views.
+
+I do not see this as exclusive. Yes they are HMAT system "soon" to arrive
+but we already have the more extended view which is just buried under a
+pile of different pieces. I do not see any exclusion between the 2. If
+HMAT is good enough for a whole class of system fine but there is also
+a whole class of system and users that do not fit in that paradigm hence
+my proposal.
+
+Cheers,
+Jérôme
