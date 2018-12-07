@@ -1,49 +1,38 @@
-From: Masami Hiramatsu <mhiramat@kernel.org>
-Subject: Re: [PATCH] x86/kernel: Fix more -Wmissing-prototypes warnings
-Date: Sat, 8 Dec 2018 00:21:22 +0900
-Message-ID: <20181208002122.b84a40b86f4225c9e0795ff2@kernel.org>
-References: <20181205101131.28996-1-bp@alien8.de>
-        <20181205224906.824483ea3c5d1d5b7712c99a@kernel.org>
-        <20181205142448.GH29510@zn.tnic>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: [PATCH 0/2] Refactor dummy DMA ops
+Date: Fri,  7 Dec 2018 16:31:33 +0000
+Message-ID: <cover.1544199754.git.robin.murphy@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181205142448.GH29510@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Banman <andrew.banman@hpe.com>, Dimitri Sivanich <dimitri.sivanich@hpe.com>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Mike Travis <mike.travis@hpe.com>, "Steven Rostedt (VMware)" <rostedt@goodmis.org>, Thomas Gleixner <tglx@linutronix.de>, Yi Wang <wang.yi59@zte.com.cn>, linux-acpi@vger.kernel.org
+To: hch@lst.de
+Cc: iommu@lists.linux-foundation.org, m.szyprowski@samsung.com, catalin.marinas@arm.com, will.deacon@arm.com, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, gregkh@linuxfoundation.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 5 Dec 2018 15:24:48 +0100
-Borislav Petkov <bp@alien8.de> wrote:
+Hi all,
 
-> On Wed, Dec 05, 2018 at 10:49:06PM +0900, Masami Hiramatsu wrote:
-> > I would like to put this prototype inside arch/x86/kernel/kprobes/core.c,
-> > since that is locally used.
-> 
-> Done.
-> 
-> > Should we declare prototypes for __weak functions? Anyway, we should remove
-> > __weak from the prototypes.
-> 
-> And done.
-> 
-> Thx.
+Tangential to Christoph's RFC for mitigating indirect call overhead in
+common DMA mapping scenarios[1], this is a little reshuffle to prevent the
+CONFIG_ACPI_CCA_REQUIRED case from getting in the way. This would best go
+via the dma-mapping tree, so reviews and acks welcome.
 
-OK, I think it is good to me.
+Robin.
 
-Reviewed-by: Masami Hiramatsu <mhiramat@kernel.org>
+[1] https://lore.kernel.org/lkml/20181206153720.10702-1-hch@lst.de/
 
-Thanks,
+Robin Murphy (2):
+  dma-mapping: Factor out dummy DMA ops
+  ACPI / scan: Refactor _CCA enforcement
 
-> 
-> -- 
-> Regards/Gruss,
->     Boris.
-> 
-> Good mailing practices for 400: avoid top-posting and trim the reply.
-
+ arch/arm64/include/asm/dma-mapping.h |  4 +-
+ arch/arm64/mm/dma-mapping.c          | 92 ----------------------------
+ drivers/acpi/scan.c                  |  5 ++
+ drivers/base/platform.c              |  3 +-
+ drivers/pci/pci-driver.c             |  3 +-
+ include/linux/dma-mapping.h          |  1 +
+ kernel/dma/mapping.c                 | 54 ++++++++++++++++
+ 7 files changed, 63 insertions(+), 99 deletions(-)
 
 -- 
-Masami Hiramatsu <mhiramat@kernel.org>
+2.19.1.dirty
