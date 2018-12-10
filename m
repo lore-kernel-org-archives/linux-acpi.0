@@ -1,124 +1,81 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads
- on idle cpus
-Date: Mon, 10 Dec 2018 14:31:53 +0800
-Message-ID: <20181210063153.GO5327@linux-l9pv.suse>
-References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v5 1/3] device property: Introduce fwnode_get_name()
+Date: Mon, 10 Dec 2018 09:36:05 +0200
+Message-ID: <20181210073605.GA24718@kuha.fi.intel.com>
+References: <20181128115952.80890-1-heikki.krogerus@linux.intel.com>
+ <20181128115952.80890-2-heikki.krogerus@linux.intel.com>
+ <20181207172427.GA6642@bogus>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
+In-Reply-To: <20181207172427.GA6642@bogus>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chen Yu <yu.c.chen@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Chen Yu and ACPI experts,
-
-On Sat, May 05, 2018 at 07:53:22PM +0800, Chen Yu wrote:
-> According to current implementation of acpi_pad driver,
-> it does not make sense to spawn any power saving threads
-> on the cpus which are already idle - it might bring
-> unnecessary overhead on these idle cpus and causes power
-> waste. So verify the condition that if the number of 'busy'
-> cpus exceeds the amount of the 'forced idle' cpus is met.
-> This is applicable due to round-robin attribute of the
-> power saving threads, otherwise ignore the setting/ACPI
-> notification.
+On Fri, Dec 07, 2018 at 11:24:27AM -0600, Rob Herring wrote:
+> On Wed, Nov 28, 2018 at 02:59:50PM +0300, Heikki Krogerus wrote:
+> > This helper returns the name of the node. The name is
+> > primarily expected to be returned from a new fwnode
+> > operation meant for this purpose, but when no name is
+> > returned, the helper will also attempt to read a device
+> > property "name".
+> > 
+> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > ---
+> >  drivers/base/property.c  | 36 ++++++++++++++++++++++++++++++++++++
+> >  include/linux/fwnode.h   |  3 +++
+> >  include/linux/property.h |  2 ++
+> >  3 files changed, 41 insertions(+)
+> > 
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index 240ab5230ff6..8bd35b44d9ec 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -1156,6 +1156,42 @@ void fwnode_handle_put(struct fwnode_handle *fwnode)
+> >  }
+> >  EXPORT_SYMBOL_GPL(fwnode_handle_put);
+> >  
+> > +/**
+> > + * fwnode_get_name - Copy the name of an fwnode to a buffer
+> > + * @fwnode: Pointer to the node
+> > + * @buf: Buffer where the name is copied to
+> > + * @len: Size of the buffer
+> > + *
+> > + * Copies the node name of @fwnode to @buf. The routine attempts to first use
+> > + * the get_name fwnode op of @fwnode, and if it fails, the routine attempts to
+> > + * read a property "name".
+> > + *
+> > + * NOTE: @buf must be large enough to accommodate the name and trailing '\0'.
+> > + *
+> > + * Returns 0 on success or errno in case of an error.
+> > + */
+> > +int fwnode_get_name(const struct fwnode_handle *fwnode, char *buf, size_t len)
+> > +{
+> > +	const char *name;
+> > +	int ret;
+> > +
+> > +	ret = fwnode_call_int_op(fwnode, get_name, buf, len);
+> > +	if (ret == 0 || ret == -EOVERFLOW)
+> > +		return ret;
+> > +
+> > +	ret = fwnode_call_int_op(fwnode, property_read_string_array,
+> > +				 "name", &name, 1);
 > 
-> Suggested-by: Lenny Szubowicz <lszubowi@redhat.com>
-> Suggested-by: Len Brown <lenb@kernel.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Lenny Szubowicz <lszubowi@redhat.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Jacob Pan <jacob.jun.pan@linux.intel.com>
-> Cc: Rui Zhang <rui.zhang@intel.com>
-> Cc: linux-acpi@vger.kernel.org
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-
-Do you have any news for this patch? Why it did not merged by kernel
-maineline?
-
-Thanks a lot!
-Joey Lee
-
-> ---
->  drivers/acpi/acpi_pad.c | 52 ++++++++++++++++++++++++++++++++++++++++++++++++-
->  1 file changed, 51 insertions(+), 1 deletion(-)
+> Do you expect this to work on DT? It does today, but I plan to change 
+> that. 'name' is a fake property on FDT.
 > 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index 552c1f7..515e60e 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -254,12 +254,62 @@ static void set_power_saving_task_num(unsigned int num)
->  	}
->  }
->  
-> +/*
-> + * Extra acpi_pad threads should not be created until
-> + * the requested idle count is less than/equals to the
-> + * number of the busy cpus - it does not make sense to
-> + * throttle the idle cpus.
-> + */
-> +#define SAMPLE_INTERVAL_JIF	20
-> +
-> +static u64 get_idle_time(int cpu)
-> +{
-> +	u64 idle, idle_usecs = -1ULL;
-> +
-> +	idle_usecs = get_cpu_idle_time_us(cpu, NULL);
-> +
-> +	if (idle_usecs == -1ULL)
-> +		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
-> +	else
-> +		idle = idle_usecs * NSEC_PER_USEC;
-> +
-> +	return idle;
-> +}
-> +
-> +static bool idle_nr_valid(unsigned int num_cpus)
-> +{
-> +	int busy_nr = 0, i = 0, load_thresh = 100 - idle_pct;
-> +
-> +	if (!num_cpus)
-> +		return true;
-> +
-> +	for_each_online_cpu(i) {
-> +		u64 wall_time, idle_time;
-> +		unsigned int elapsed_delta, idle_delta, load;
-> +
-> +		wall_time = jiffies64_to_nsecs(get_jiffies_64());
-> +		idle_time = get_idle_time(i);
-> +		/* Wait and see... */
-> +		schedule_timeout_uninterruptible(SAMPLE_INTERVAL_JIF);
-> +
-> +		idle_delta = get_idle_time(i) - idle_time;
-> +		elapsed_delta = jiffies64_to_nsecs(get_jiffies_64()) - wall_time;
-> +		idle_delta = (idle_delta > elapsed_delta) ? elapsed_delta : idle_delta;
-> +		load = 100 * (elapsed_delta - idle_delta) / elapsed_delta;
-> +		if (load >= load_thresh)
-> +			busy_nr++;
-> +	}
-> +
-> +	return (busy_nr >= num_cpus) ? true : false;
-> +}
-> +
->  static void acpi_pad_idle_cpus(unsigned int num_cpus)
->  {
->  	get_online_cpus();
->  
->  	num_cpus = min_t(unsigned int, num_cpus, num_online_cpus());
-> -	set_power_saving_task_num(num_cpus);
-> +	if (idle_nr_valid(num_cpus))
-> +		set_power_saving_task_num(num_cpus);
->  
->  	put_online_cpus();
->  }
-> -- 
-> 2.7.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Again, I think this is all working at too low of a level. Name is used 
+> either for matching or an informational string. For matching, this 
+> should remain firmware specific. For imformational strings, 
+> device_node.full_name works.
+
+OK, I'll remove call.
+
+thanks,
+
+-- 
+heikki
