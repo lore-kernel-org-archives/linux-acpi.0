@@ -1,81 +1,62 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v5 1/3] device property: Introduce fwnode_get_name()
-Date: Mon, 10 Dec 2018 09:36:05 +0200
-Message-ID: <20181210073605.GA24718@kuha.fi.intel.com>
-References: <20181128115952.80890-1-heikki.krogerus@linux.intel.com>
- <20181128115952.80890-2-heikki.krogerus@linux.intel.com>
- <20181207172427.GA6642@bogus>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/7] doc/vm: New documentation for memory performance
+Date: Mon, 10 Dec 2018 08:12:23 -0800
+Message-ID: <CAPcyv4jtf8guXutLKnHt9UbyS0-sEZ5pVJfse49xe3gCCkW8dQ@mail.gmail.com>
+References: <20181114224921.12123-2-keith.busch@intel.com> <20181114224921.12123-4-keith.busch@intel.com>
+ <20181115125909.000067aa@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181207172427.GA6642@bogus>
+In-Reply-To: <20181115125909.000067aa@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: jonathan.cameron@huawei.com
+Cc: Keith Busch <keith.busch@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 07, 2018 at 11:24:27AM -0600, Rob Herring wrote:
-> On Wed, Nov 28, 2018 at 02:59:50PM +0300, Heikki Krogerus wrote:
-> > This helper returns the name of the node. The name is
-> > primarily expected to be returned from a new fwnode
-> > operation meant for this purpose, but when no name is
-> > returned, the helper will also attempt to read a device
-> > property "name".
-> > 
-> > Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > ---
-> >  drivers/base/property.c  | 36 ++++++++++++++++++++++++++++++++++++
-> >  include/linux/fwnode.h   |  3 +++
-> >  include/linux/property.h |  2 ++
-> >  3 files changed, 41 insertions(+)
-> > 
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index 240ab5230ff6..8bd35b44d9ec 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -1156,6 +1156,42 @@ void fwnode_handle_put(struct fwnode_handle *fwnode)
-> >  }
-> >  EXPORT_SYMBOL_GPL(fwnode_handle_put);
-> >  
-> > +/**
-> > + * fwnode_get_name - Copy the name of an fwnode to a buffer
-> > + * @fwnode: Pointer to the node
-> > + * @buf: Buffer where the name is copied to
-> > + * @len: Size of the buffer
-> > + *
-> > + * Copies the node name of @fwnode to @buf. The routine attempts to first use
-> > + * the get_name fwnode op of @fwnode, and if it fails, the routine attempts to
-> > + * read a property "name".
-> > + *
-> > + * NOTE: @buf must be large enough to accommodate the name and trailing '\0'.
-> > + *
-> > + * Returns 0 on success or errno in case of an error.
-> > + */
-> > +int fwnode_get_name(const struct fwnode_handle *fwnode, char *buf, size_t len)
-> > +{
-> > +	const char *name;
-> > +	int ret;
+On Thu, Nov 15, 2018 at 4:59 AM Jonathan Cameron
+<jonathan.cameron@huawei.com> wrote:
+>
+> On Wed, 14 Nov 2018 15:49:16 -0700
+> Keith Busch <keith.busch@intel.com> wrote:
+[..]
+> > +The kernel does not provide performance attributes for non-local memory
+> > +initiators. The performance characteristics the kernel provides for
+> > +the local initiators are exported are as follows::
 > > +
-> > +	ret = fwnode_call_int_op(fwnode, get_name, buf, len);
-> > +	if (ret == 0 || ret == -EOVERFLOW)
-> > +		return ret;
+> > +     # tree /sys/devices/system/node/nodeY/initiator_access
+> > +     /sys/devices/system/node/nodeY/initiator_access
+> > +     |-- read_bandwidth
+> > +     |-- read_latency
+> > +     |-- write_bandwidth
+> > +     `-- write_latency
 > > +
-> > +	ret = fwnode_call_int_op(fwnode, property_read_string_array,
-> > +				 "name", &name, 1);
-> 
-> Do you expect this to work on DT? It does today, but I plan to change 
-> that. 'name' is a fake property on FDT.
-> 
-> Again, I think this is all working at too low of a level. Name is used 
-> either for matching or an informational string. For matching, this 
-> should remain firmware specific. For imformational strings, 
-> device_node.full_name works.
+> > +The bandwidth attributes are provided in MiB/second.
+> > +
+> > +The latency attributes are provided in nanoseconds.
+> > +
+> > +See also: https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+>
+> My worry here is we are explicitly making an interface that is only ever
+> providing "local" node information, where local node is not the best
+> defined thing in the world for complex topologies.
+>
+> I have no problem with that making a sensible starting point for providing
+> information userspace knows what to do with, just with an interface that
+> in of itself doesn't make that clear.
+>
+> Perhaps something as simple as
+> /sys/devices/system/nodeY/local_initiatorX
+> /sys/devices/system/nodeX/local_targetY
+>
+> That leaves us the option of coming along later and having a full listing
+> when a userspace requirement has become clear.  Another option would
+> be an exhaustive list of all initiator / memory pairs that exist, with
+> an additional sysfs file giving a list of those that are nearest
+> to avoid every userspace program having to do the search.
 
-OK, I'll remove call.
-
-thanks,
-
--- 
-heikki
+I worry that "local" is an HMAT specific concept when all it is in
+actuality is a place for platform firmware to list the "best" or
+"primary" access initiators. How about "initiator_classX" with some
+documentation that the 0th class captures this primary initiator set.
+That leaves the interface a straightforward way to add more classes in
+the future, but with no strict association to the class number.
