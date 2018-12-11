@@ -1,59 +1,31 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 07/25] ACPI / APEI: Remove spurious GHES_TO_CLEAR check
-Date: Tue, 11 Dec 2018 18:18:30 +0100
-Message-ID: <20181211171830.GL27375@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-8-james.morse@arm.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
+Date: Tue, 11 Dec 2018 12:37:03 -0500
+Message-ID: <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
+References: <20181210181315.5023-1-okaya@kernel.org>
+ <20181210181315.5023-2-okaya@kernel.org> <20181211170957.GA335@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-8-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181211170957.GA335@infradead.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@infradead.org>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:05:55PM +0000, James Morse wrote:
-> ghes_notify_nmi() checks ghes->flags for GHES_TO_CLEAR before going
-> on to __process_error(). This is pointless as ghes_read_estatus()
-> will always set this flag if it returns success, which was checked
-> earlier in the loop. Remove it.
+On 12/11/2018 12:09 PM, Christoph Hellwig wrote:
+> On Mon, Dec 10, 2018 at 06:13:14PM +0000, Sinan Kaya wrote:
+>> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
+>> out calls that depend on PCI.
 > 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 3 ---
->  1 file changed, 3 deletions(-)
+> I think you want to skip building at least all of hwpci.c if CONFIG_PCI
+> is disabled.  Or replace that whole stiking pile of crap with something
+> resembling C code..
 > 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index acf0c37e9af9..f7a0ff1c785a 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -936,9 +936,6 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
->  			__ghes_panic(ghes);
->  		}
->  
-> -		if (!(ghes->flags & GHES_TO_CLEAR))
-> -			continue;
-> -
->  		__process_error(ghes);
->  		ghes_clear_estatus(ghes, buf_paddr);
->  	}
-> -- 
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+I can give it a try but I'm under the impression that we don't touch
+ACPICA code in general.
 
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Feel free to correct me.
