@@ -1,49 +1,53 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 05/25] ACPI / APEI: Make estatus pool allocation a
- static size
-Date: Tue, 11 Dec 2018 17:54:14 +0100
-Message-ID: <20181211165414.GJ27375@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-6-james.morse@arm.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH v2 1/3] ACPI: Allow PCI to be disabled for reboot
+Date: Tue, 11 Dec 2018 11:54:39 -0500
+Message-ID: <4aa65942-bf97-c957-7f77-38bfdf7d1d3a@kernel.org>
+References: <20181208214644.5374-1-okaya@kernel.org>
+ <CAJZ5v0jV+UZ7A46Kiyv6JysoFJ=_ts7O_p3z9F1Uze3OwZdh_Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-6-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0jV+UZ7A46Kiyv6JysoFJ=_ts7O_p3z9F1Uze3OwZdh_Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:05:53PM +0000, James Morse wrote:
-> Adding new NMI-like notifications duplicates the calls that grow
-> and shrink the estatus pool. This is all pretty pointless, as the
-> size is capped to 64K. Allocate this for each ghes and drop
-> the code that grows and shrinks the pool.
+On 12/11/2018 5:12 AM, Rafael J. Wysocki wrote:
+> On Sat, Dec 8, 2018 at 10:47 PM Sinan Kaya <okaya@kernel.org> wrote:
+>>
+>> Make PCI reboot conditional on PCI support being present on the kernel
+>> configuration.
+>>
+>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > 
-> Suggested-by: Borislav Petkov <bp@suse.de>
-> Signed-off-by: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 49 +++++-----------------------------------
->  drivers/acpi/apei/hest.c |  2 +-
->  include/acpi/ghes.h      |  2 +-
->  3 files changed, 8 insertions(+), 45 deletions(-)
+> Same comment as for patch [2/3]: make the subject say clearly that
+> this is about CONFIG_PCI.
 
-Nice and simple, cool. Thanks for doing that.
+Sure
 
-Reviewed-by: Borislav Petkov <bp@suse.de>
+>>          case ACPI_ADR_SPACE_PCI_CONFIG:
+>> +       {
+>> +#ifdef CONFIG_PCI
+>> +               unsigned int devfn;
+>> +               struct pci_bus *bus0;
+>> +
+>>                  /* The reset register can only live on bus 0. */
+>>                  bus0 = pci_find_bus(0, 0);
+>>                  if (!bus0)
+>> @@ -45,7 +48,10 @@ void acpi_reboot(void)
+>>                  pci_bus_write_config_byte(bus0, devfn,
+>>                                  (rr->address & 0xffff), reset_value);
+>>                  break;
+>> -
+>> +#else
+>> +               return;
+> 
+> Why not "break"?
+> 
 
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+I struggled between break and return. Existing code seems to return on failure
+when bus0 is NULL. I assumed it would be more logical to return as someone could
+put some code after here that assumes everything is in order.
