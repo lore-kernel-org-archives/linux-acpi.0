@@ -1,80 +1,43 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCHv2 02/12] acpi/hmat: Parse and report heterogeneous memory
-Date: Tue, 11 Dec 2018 14:50:17 -0800
-Message-ID: <CAPcyv4hmCJLg6mT=Fc1gwz7E7D5Nm5fO0erqqF0yUb=HbvGf6g@mail.gmail.com>
-References: <20181211010310.8551-1-keith.busch@intel.com> <20181211010310.8551-3-keith.busch@intel.com>
- <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
- <20181211165518.GB8101@localhost.localdomain> <CAPcyv4id0mgjdBPPw8Y26rodOEQ=EHfaTrgasU5g4X7u=dS2xw@mail.gmail.com>
- <20181211204451.GD8101@localhost.localdomain>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
+Date: Tue, 11 Dec 2018 23:51:39 +0100
+Message-ID: <CAJZ5v0i+rgLL+KrRs69URbGhUxDK9eUEuLifDWuL2mgpkAv_1g@mail.gmail.com>
+References: <20181210181315.5023-1-okaya@kernel.org> <20181210181315.5023-2-okaya@kernel.org>
+ <20181211170957.GA335@infradead.org> <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
+ <CAJZ5v0ia+eotSZgjbitt7TAT0ECSmTAz1XJhS3Auz5w5Z61SZA@mail.gmail.com>
+ <a9c7cbe1-eef3-40ad-de62-8194df12ca20@kernel.org> <CAJZ5v0g5t4sx6mY=mCPWOdZLbhEAXo5Ah1TZw9jZNJQ-+cgWsw@mail.gmail.com>
+ <6644defb-9199-6467-6e3e-8ce552b56f87@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181211204451.GD8101@localhost.localdomain>
+In-Reply-To: <6644defb-9199-6467-6e3e-8ce552b56f87@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Keith Busch <keith.busch@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+To: okaya@kernel.org
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Christoph Hellwig <hch@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 12:47 PM Keith Busch <keith.busch@intel.com> wrote:
+On Tue, Dec 11, 2018 at 11:22 PM Sinan Kaya <okaya@kernel.org> wrote:
 >
-> On Tue, Dec 11, 2018 at 12:29:45PM -0800, Dan Williams wrote:
-> > On Tue, Dec 11, 2018 at 8:58 AM Keith Busch <keith.busch@intel.com> wrote:
-> > > +static int __init
-> > > +acpi_parse_cache(union acpi_subtable_headers *header, const unsigned long end)
-> > > +{
-> > > +       struct acpi_hmat_cache *cache = (void *)header;
-> > > +       u32 attrs;
-> > > +
-> > > +       attrs = cache->cache_attributes;
-> > > +       if (((attrs & ACPI_HMAT_CACHE_ASSOCIATIVITY) >> 8) ==
-> > > +                                               ACPI_HMAT_CA_DIRECT_MAPPED)
-> > > +               set_bit(cache->memory_PD, node_side_cached);
+> On 12/11/2018 5:16 PM, Rafael J. Wysocki wrote:
+> >> AFAIK, ACPI spec says that AML code running on non-existing op-regions to be
+> >> discarded last time I checked.
+> > I guess you mean "disregarded"?
 > >
-> > I'm not sure I see a use case for 'node_side_cached'. Instead I need
-> > to know if a cache intercepts a "System RAM" resource, because a cache
-> > in front of a reserved address range would not be impacted by page
-> > allocator randomization. Or, are you saying have memblock generically
-> > describes this capability and move the responsibility of acting on
-> > that data to a higher level?
 >
-> The "node_side_cached" array isn't intended to be used directly. It's
-> just holding the PXM's that HMAT says have a side cache so we know which
-> PXM's have that attribute before parsing SRAT's memory affinity.
+> I have seen Linux complain about reads/writes to non-existing I2C opregions
+> before as a read/write failure for every single AML transaction. I was under the
+> impression that we didn't care.
 >
-> The intention was that this is just another attribute of a memory range
-> similiar to hotpluggable. Whoever needs to use it may query it from
-> the memblock, if that makes sense.
->
-> > The other detail to consider is the cache ratio size, but that would
-> > be a follow on feature. The use case is to automatically determine the
-> > ratio to pass to numa_emulation:
+> > So the spec appears to expect the OS to silently ignore the failures
+> > in those cases, so why should an error be returned?
 > >
-> >     cc9aec03e58f x86/numa_emulation: Introduce uniform split capability
 >
-> Will look into that.
+> I can certainly return success for this case when CONFIG_PCI is not present.
 >
-> > > diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> > > index aee299a6aa76..a24c918a4496 100644
-> > > --- a/include/linux/memblock.h
-> > > +++ b/include/linux/memblock.h
-> > > @@ -44,6 +44,7 @@ enum memblock_flags {
-> > >         MEMBLOCK_HOTPLUG        = 0x1,  /* hotpluggable region */
-> > >         MEMBLOCK_MIRROR         = 0x2,  /* mirrored region */
-> > >         MEMBLOCK_NOMAP          = 0x4,  /* don't add to kernel direct mapping */
-> > > +       MEMBLOCK_SIDECACHED     = 0x8,  /* System side caches memory access */
-> >
-> > I'm concerned that we may be stretching memblock past its intended use
-> > case especially for just this randomization case. For example, I think
-> > memblock_find_in_range() gets confused in the presence of
-> > MEMBLOCK_SIDECACHED memblocks.
->
-> Ok, I see. Is there a better structure or interface that you may recommend
-> for your use case to identify which memory ranges contain this attribute?
+> >> I know Linux is noisy about these.
 
-Well, no I don't think there is one. We just need to either audit
-existing memblock users to make sure they are prepared for this new
-type, or move the cache information somewhere else. I'd be inclined to
-just move it to new fields, or a sub-struct in struct memblock_region.
-Then we can put the cache set-way info and near memory size
-information in there as well. Likely need a new
-CONFIG_HAVE_MEMBLOCK_CACHE_INFO gated by the presence of HMAT support.
+Well, users running kernels with CONFIG_PCI unset on platforms
+expecting PCI support to be present in the OS may want to know that I
+suppose, so that would be a good reason to return an error, but
+perhaps just once rather than on every access (maybe unless debugging
+is enabled?).
