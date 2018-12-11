@@ -1,68 +1,75 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v6 0/3] device property: Add fwnode_get_name() helper
-Date: Tue, 11 Dec 2018 15:59:25 +0200
-Message-ID: <20181211135925.GD10650@smile.fi.intel.com>
-References: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
+From: Sergei Shtylyov <sergei.shtylyov-M4DtvfQ/ZS1MRgGoP+s0PdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH 1/6] driver core: Introduce device_iommu_mapped() function
+Date: Tue, 11 Dec 2018 17:59:33 +0300
+Message-ID: <b1344a34-cd5f-f080-fddf-c1548f85af6a@cogentembedded.com>
+References: <20181211134343.10664-1-joro@8bytes.org>
+	<20181211134343.10664-2-joro@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20181211134343.10664-2-joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Content-Language: en-MW
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sam Bobroff <sbobroff-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Russell Currey <ruscur-3Su/lFKaw5ejKv3TNrM5DQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vinod Koul <vkoul-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, jroedel-l3A5Bk7waGM@public.gmane.org, oohall-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 04:14:48PM +0300, Heikki Krogerus wrote:
-> Hi,
-> 
-> Andy, I dropped you Reviewed-by tag because of the last change to this
-> series, so if you could check these again I would much appreciate.
+Hello!
 
-They all looks fine,
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On 12/11/2018 04:43 PM, Joerg Roedel wrote:
 
+> From: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
 > 
-> Changes since v5:
-> - No longer reading "name" device property as fallback.
+> Some places in the kernel check the iommu_group pointer in
+> 'struct device' in order to find ot whether a device is
+> mapped by an IOMMU.
 > 
-> Changes since v4:
-> - No changes. There was an extra patch in v3. This was just a resend
->   of v3 without that extra patch.
+> This is not good way to make this check, as the pointer will
+> be moved to 'struct dev_iommu_data'. This way to make the
+> check is also not very readable.
 > 
-> Changes since v3:
-> - I'm now returning -EOVERFLOW if the buffer is not big enough as
->   proposed by Andy.
+> Introduce an explicit function to perform this check.
 > 
-> This is the cover letter from v3:
+> Cc: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+> Acked-by: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+> Acked-by: Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+> Signed-off-by: Joerg Roedel <jroedel-l3A5Bk7waGM@public.gmane.org>
+> ---
+>  include/linux/device.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
 > 
-> This is the third version of my proposal for this helper. The
-> second version can be checked here:
-> https://lkml.org/lkml/2018/11/8/1005
-> 
-> I'm now passing the length as proposed by both Rob and Andy. I'm also
-> leaving the .get_named_child_node fwnode op untouched.
-> 
-> --
-> heikki
-> 
-> 
-> Heikki Krogerus (3):
->   device property: Introduce fwnode_get_name()
->   ACPI: property: Add acpi_fwnode_name()
->   of/property: Add of_fwnode_name()
-> 
->  drivers/acpi/property.c  | 28 ++++++++++++++++++++++++++++
->  drivers/base/property.c  | 17 +++++++++++++++++
->  drivers/of/property.c    | 13 +++++++++++++
->  include/linux/fwnode.h   |  3 +++
->  include/linux/property.h |  2 ++
->  5 files changed, 63 insertions(+)
-> 
-> -- 
-> 2.19.2
-> 
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 1b25c7a43f4c..6cb4640b6160 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -1058,6 +1058,16 @@ static inline struct device *kobj_to_dev(struct kobject *kobj)
+>  	return container_of(kobj, struct device, kobj);
+>  }
+>  
+> +/**
+> + * device_iommu_mapped - Returns true when the device DMA is translated
+> + *			 by an IOMMU
+> + * @dev: Device to perform the check on
+> + */
+> +static inline bool device_iommu_mapped(struct device *dev)
+> +{
+> +	return (dev->iommu_group != NULL);
 
--- 
-With Best Regards,
-Andy Shevchenko
+   You know that parens are unnecessary here, right? :-)
+
+> +}
+> +
+>  /* Get the wakeup routines, which depend on struct device */
+>  #include <linux/pm_wakeup.h>
+>  
+
+MBR, Sergei
