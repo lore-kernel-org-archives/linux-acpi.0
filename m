@@ -1,112 +1,236 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCHv2 02/12] acpi/hmat: Parse and report heterogeneous memory
-Date: Mon, 10 Dec 2018 22:03:40 -0800
-Message-ID: <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
-References: <20181211010310.8551-1-keith.busch@intel.com> <20181211010310.8551-3-keith.busch@intel.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: Re: [PATCHv2 12/12] doc/mm: New documentation for memory performance
+Date: Tue, 11 Dec 2018 08:45:03 +0200
+Message-ID: <20181211064502.GB3302@rapoport-lnx>
+References: <20181211010310.8551-1-keith.busch@intel.com>
+ <20181211010310.8551-13-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181211010310.8551-3-keith.busch@intel.com>
+Content-Disposition: inline
+In-Reply-To: <20181211010310.8551-13-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Keith Busch <keith.busch@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 5:05 PM Keith Busch <keith.busch@intel.com> wrote:
->
-> Systems may provide different memory types and export this information
-> in the ACPI Heterogeneous Memory Attribute Table (HMAT). Parse these
-> tables provided by the platform and report the memory access and caching
-> attributes.
->
+Hi Keith,
+
+Thanks for the docs! :)
+Some nits below...
+
+On Mon, Dec 10, 2018 at 06:03:10PM -0700, Keith Busch wrote:
+> Platforms may provide system memory where some physical address ranges
+> perform differently than others, or is side cached by the system.
+> 
+> Add documentation describing a high level overview of such systems and the
+> performance and caching attributes the kernel provides for applications
+> wishing to query this information.
+> 
 > Signed-off-by: Keith Busch <keith.busch@intel.com>
 > ---
->  drivers/acpi/Kconfig  |   8 +++
->  drivers/acpi/Makefile |   1 +
->  drivers/acpi/hmat.c   | 192 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/tables.c |   9 +++
->  include/linux/acpi.h  |   1 +
->  5 files changed, 211 insertions(+)
->  create mode 100644 drivers/acpi/hmat.c
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 7cea769c37df..9a05af3a18cf 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -327,6 +327,14 @@ config ACPI_NUMA
->         depends on (X86 || IA64 || ARM64)
->         default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
->
-> +config ACPI_HMAT
-> +       bool "ACPI Heterogeneous Memory Attribute Table Support"
-> +       depends on ACPI_NUMA
-> +       help
-> +        Parses representation of the ACPI Heterogeneous Memory Attributes
-> +        Table (HMAT) and set the memory node relationships and access
-> +        attributes.
-> +
->  config ACPI_CUSTOM_DSDT_FILE
->         string "Custom DSDT Table file to include"
->         default ""
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index edc039313cd6..b5e13499f88b 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -55,6 +55,7 @@ acpi-$(CONFIG_X86)            += x86/apple.o
->  acpi-$(CONFIG_X86)             += x86/utils.o
->  acpi-$(CONFIG_DEBUG_FS)                += debugfs.o
->  acpi-$(CONFIG_ACPI_NUMA)       += numa.o
-> +acpi-$(CONFIG_ACPI_HMAT)       += hmat.o
->  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
->  acpi-y                         += acpi_lpat.o
->  acpi-$(CONFIG_ACPI_LPIT)       += acpi_lpit.o
-> diff --git a/drivers/acpi/hmat.c b/drivers/acpi/hmat.c
+>  Documentation/admin-guide/mm/numaperf.rst | 171 ++++++++++++++++++++++++++++++
+>  1 file changed, 171 insertions(+)
+>  create mode 100644 Documentation/admin-guide/mm/numaperf.rst
+> 
+> diff --git a/Documentation/admin-guide/mm/numaperf.rst b/Documentation/admin-guide/mm/numaperf.rst
 > new file mode 100644
-> index 000000000000..ef3881f0f370
+> index 000000000000..846b3f991e7f
 > --- /dev/null
-> +++ b/drivers/acpi/hmat.c
-[..]
-> +static __init int hmat_init(void)
-> +{
-> +       struct acpi_subtable_proc subtable_proc;
-> +       struct acpi_table_header *tbl;
-> +       enum acpi_hmat_type i;
-> +       acpi_status status;
+> +++ b/Documentation/admin-guide/mm/numaperf.rst
+> @@ -0,0 +1,171 @@
+> +.. _numaperf:
 > +
-> +       if (srat_disabled())
-> +               return 0;
+> +=============
+> +NUMA Locality
+> +=============
 > +
-> +       status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
-> +       if (ACPI_FAILURE(status))
-> +               return 0;
+> +Some platforms may have multiple types of memory attached to a single
+> +CPU. These disparate memory ranges share some characteristics, such as
+> +CPU cache coherence, but may have different performance. For example,
+> +different media types and buses affect bandwidth and latency.
 > +
-> +       if (acpi_table_parse(ACPI_SIG_HMAT, parse_noop))
-> +               goto out_put;
-> +
-> +       memset(&subtable_proc, 0, sizeof(subtable_proc));
-> +       subtable_proc.handler = hmat_parse_subtable;
-> +       for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
-> +               subtable_proc.id = i;
-> +               if (acpi_table_parse_entries_array(ACPI_SIG_HMAT,
-> +                                       sizeof(struct acpi_table_hmat),
-> +                                       &subtable_proc, 1, 0) < 0)
-> +                       goto out_put;
-> +       }
-> + out_put:
-> +       acpi_put_table(tbl);
-> +       return 0;
-> +}
-> +subsys_initcall(hmat_init);
+> +A system supporting such heterogeneous memory by grouping each memory
 
-I have a use case to detect the presence of a memory-side-cache early
-at init time [1]. To me this means that hmat_init() needs to happen as
-a part of acpi_numa_init(). Subsequently I think that also means that
-the sysfs portion needs to be broken out to its own init path that can
-probably run at module_init() priority.
+Maybe "A system supports ..."?
 
-Perhaps we should split this patch set into two? The table parsing
-with an in-kernel user is a bit easier to reason about and can go in
-first. Towards that end can I steal / refllow patches 1 & 2 into the
-memory randomization series? Other ideas how to handle this?
+> +type under different "nodes" based on similar CPU locality and performance
+> +characteristics.  Some memory may share the same node as a CPU, and others
+> +are provided as memory only nodes. While memory only nodes do not provide
+> +CPUs, they may still be directly accessible, or local, to one or more
+> +compute nodes. The following diagram shows one such example of two compute
+> +noes with local memory and a memory only node for each of compute node:
 
-[1]: https://lkml.org/lkml/2018/10/12/309
+                                                ^ attached to each ?
+> +
+> + +------------------+     +------------------+
+> + | Compute Node 0   +-----+ Compute Node 1   |
+> + | Local Node0 Mem  |     | Local Node1 Mem  |
+> + +--------+---------+     +--------+---------+
+> +          |                        |
+> + +--------+---------+     +--------+---------+
+> + | Slower Node2 Mem |     | Slower Node3 Mem |
+> + +------------------+     +--------+---------+
+> +
+> +A "memory initiator" is a node containing one or more devices such as
+> +CPUs or separate memory I/O devices that can initiate memory requests. A
+> +"memory target" is a node containing one or more accessible physical
+> +address ranges from one or more memory initiators.
+
+Maybe "... one or more address ranges accessible from one or more memory
+initiators"
+
+> +
+> +When multiple memory initiators exist, they may not all have the same
+> +performance when accessing a given memory target. The highest performing
+> +initiator to a given target is considered to be one of that target's
+> +local initiators. Any given target may have one or more local initiators,
+> +and any given initiator may have multiple local memory targets.
+> +
+> +To aid applications matching memory targets with their initiators,
+> +the kernel provide symlinks to each other like the following example::
+
+            ^ provides
+> +
+> +	# ls -l /sys/devices/system/node/nodeX/local_target*
+> +	/sys/devices/system/node/nodeX/local_targetY -> ../nodeY
+> +
+> +	# ls -l /sys/devices/system/node/nodeY/local_initiator*
+> +	/sys/devices/system/node/nodeY/local_initiatorX -> ../nodeX
+> +
+> +The linked nodes will also have their node number set in the local_mem
+> +and local_cpu node list and maps.
+> +
+> +An example showing how this may be used to run a particular task on CPUs
+> +and memory that are both local to a particular PCI device can be done
+> +using existing 'numactl' as follows::
+> +
+> +  # NODE=$(cat /sys/devices/pci:0000:00/.../numa_node)
+> +  # numactl --membind=$(cat /sys/devices/node/node${NODE}/local_mem_nodelist) \
+> +      --cpunodebind=$(cat /sys/devices/node/node${NODE}/local_cpu_nodelist) \
+> +      -- <some-program-to-execute>
+> +
+> +================
+> +NUMA Performance
+> +================
+> +
+> +Applications may wish to consider which node they want their memory to
+> +be allocated from based on the node's performance characteristics. If the
+> +system provides these attributes, the kernel exports them under the node
+> +sysfs hierarchy by appending the local_initiator_access directory under
+> +the memory node as follows::
+> +
+> +	/sys/devices/system/node/nodeY/local_initiator_access/
+> +
+> +The kernel does not provide performance attributes for non-local memory
+> +initiators. These attributes apply only to the memory initiator nodes that
+> +have a local_initiatorX link, or are set in the local_cpu_nodelist. A
+> +memory initiator node is considered local to itself if it also is
+> +a memory target and will be set it its node list and map, but won't
+> +contain a symlink to itself.
+> +
+> +The performance characteristics the kernel provides for the local initiators
+> +are exported are as follows::
+> +
+> +	# tree /sys/devices/system/node/nodeY/local_initiator_access
+> +	/sys/devices/system/node/nodeY/local_initiator_access
+> +	|-- read_bandwidth
+> +	|-- read_latency
+> +	|-- write_bandwidth
+> +	`-- write_latency
+> +
+> +The bandwidth attributes are provided in MiB/second.
+> +
+> +The latency attributes are provided in nanoseconds.
+> +
+> +==========
+> +NUMA Cache
+> +==========
+> +
+> +System memory may be constructed in a hierarchy of elements with various
+> +performance characteristics in order to provide large address space
+> +of slower performing memory side-cached by a smaller higher performing
+> +memory. The system physical addresses that initiators are aware of is
+> +provided by the last memory level in the hierarchy, while the system uses
+> +higher performing memory to transparently cache access to progressively
+> +slower levels.
+> +
+> +The term "far memory" is used to denote the last level memory in the
+> +hierarchy. Each increasing cache level provides higher performing
+> +initiator access, and the term "near memory" represents the fastest
+> +cache provided by the system.
+> +
+> +This numbering is different than CPU caches where the cache level (ex:
+> +L1, L2, L3) uses a CPU centric view with each increased level is lower
+> +performing. In contrast, the memory cache level is centric to the last
+> +level memory, so the higher numbered cache level denotes memory nearer
+> +to the CPU, and further from far memory.
+> +
+> +The memory side caches are not directly addressable by software. When
+> +software accesses a system address, the system will return it from the
+
+                                                      ^ satisfy the request
+
+> +near memory cache if it is present. If it is not present, the system
+> +accesses the next level of memory until there is either a hit in that
+> +cache level, or it reaches far memory.
+> +
+> +An application does not need to know about caching attributes in order
+> +to use the system, software may optionally query the memory cache
+> +attributes in order to maximize the performance out of such a setup.
+> +If the system provides a way for the kernel to discover this information,
+> +for example with ACPI HMAT (Heterogeneous Memory Attribute Table),
+> +the kernel will append these attributes to the NUMA node memory target.
+> +
+> +When the kernel first registers a memory cache with a node, the kernel
+> +will create the following directory::
+> +
+> +	/sys/devices/system/node/nodeX/side_cache/
+> +
+> +If that directory is not present, the system either does not not provide
+> +a memory side cache, or that information is not accessible to the kernel.
+> +
+> +The attributes for each level of cache is provided under its cache
+> +level index::
+> +
+> +	/sys/devices/system/node/nodeX/side_cache/indexA/
+> +	/sys/devices/system/node/nodeX/side_cache/indexB/
+> +	/sys/devices/system/node/nodeX/side_cache/indexC/
+> +
+> +Each cache level's directory provides its attributes. For example,
+> +the following is a single cache level and the attributes available for
+> +software to query::
+> +
+> +	# tree sys/devices/system/node/node0/side_cache/
+> +	/sys/devices/system/node/node0/side_cache/
+> +	|-- index1
+> +	|   |-- associativity
+> +	|   |-- level
+> +	|   |-- line_size
+> +	|   |-- size
+> +	|   `-- write_policy
+> +
+> +The "associativity" will be 0 if it is a direct-mapped cache, and non-zero
+> +for any other indexed based, multi-way associativity.
+> +
+> +The "level" is the distance from the far memory, and matches the number
+> +appended to its "index" directory.
+> +
+> +The "line_size" is the number of bytes accessed on a cache miss.
+> +
+> +The "size" is the number of bytes provided by this cache level.
+> +
+> +The "write_policy" will be 0 for write-back, and non-zero for
+> +write-through caching.
+> +
+> +See also: https://www.uefi.org/sites/default/files/resources/ACPI_6_2.pdf
+
+I'd suggest to reference relevant sections rather than entire 1K pages doc ;-)
+
+> -- 
+> 2.14.4
+> 
+
+-- 
+Sincerely yours,
+Mike.
