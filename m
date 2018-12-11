@@ -1,72 +1,37 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv2 02/12] acpi/hmat: Parse and report heterogeneous memory
-Date: Tue, 11 Dec 2018 13:44:51 -0700
-Message-ID: <20181211204451.GD8101@localhost.localdomain>
-References: <20181211010310.8551-1-keith.busch@intel.com>
- <20181211010310.8551-3-keith.busch@intel.com>
- <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
- <20181211165518.GB8101@localhost.localdomain>
- <CAPcyv4id0mgjdBPPw8Y26rodOEQ=EHfaTrgasU5g4X7u=dS2xw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
+Date: Tue, 11 Dec 2018 22:46:34 +0100
+Message-ID: <CAJZ5v0ia+eotSZgjbitt7TAT0ECSmTAz1XJhS3Auz5w5Z61SZA@mail.gmail.com>
+References: <20181210181315.5023-1-okaya@kernel.org> <20181210181315.5023-2-okaya@kernel.org>
+ <20181211170957.GA335@infradead.org> <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4id0mgjdBPPw8Y26rodOEQ=EHfaTrgasU5g4X7u=dS2xw@mail.gmail.com>
+In-Reply-To: <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
+To: okaya@kernel.org
+Cc: Christoph Hellwig <hch@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 12:29:45PM -0800, Dan Williams wrote:
-> On Tue, Dec 11, 2018 at 8:58 AM Keith Busch <keith.busch@intel.com> wrote:
-> > +static int __init
-> > +acpi_parse_cache(union acpi_subtable_headers *header, const unsigned long end)
-> > +{
-> > +       struct acpi_hmat_cache *cache = (void *)header;
-> > +       u32 attrs;
-> > +
-> > +       attrs = cache->cache_attributes;
-> > +       if (((attrs & ACPI_HMAT_CACHE_ASSOCIATIVITY) >> 8) ==
-> > +                                               ACPI_HMAT_CA_DIRECT_MAPPED)
-> > +               set_bit(cache->memory_PD, node_side_cached);
-> 
-> I'm not sure I see a use case for 'node_side_cached'. Instead I need
-> to know if a cache intercepts a "System RAM" resource, because a cache
-> in front of a reserved address range would not be impacted by page
-> allocator randomization. Or, are you saying have memblock generically
-> describes this capability and move the responsibility of acting on
-> that data to a higher level?
+On Tue, Dec 11, 2018 at 6:37 PM Sinan Kaya <okaya@kernel.org> wrote:
+>
+> On 12/11/2018 12:09 PM, Christoph Hellwig wrote:
+> > On Mon, Dec 10, 2018 at 06:13:14PM +0000, Sinan Kaya wrote:
+> >> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
+> >> out calls that depend on PCI.
+> >
+> > I think you want to skip building at least all of hwpci.c if CONFIG_PCI
+> > is disabled.  Or replace that whole stiking pile of crap with something
+> > resembling C code..
+> >
+>
+> I can give it a try but I'm under the impression that we don't touch
+> ACPICA code in general.
+>
+> Feel free to correct me.
 
-The "node_side_cached" array isn't intended to be used directly. It's
-just holding the PXM's that HMAT says have a side cache so we know which
-PXM's have that attribute before parsing SRAT's memory affinity.
+We don't as a rule, but depending on what the patch looks like, we
+might not follow the rule this time.
 
-The intention was that this is just another attribute of a memory range
-similiar to hotpluggable. Whoever needs to use it may query it from
-the memblock, if that makes sense.
-
-> The other detail to consider is the cache ratio size, but that would
-> be a follow on feature. The use case is to automatically determine the
-> ratio to pass to numa_emulation:
-> 
->     cc9aec03e58f x86/numa_emulation: Introduce uniform split capability
-
-Will look into that.
- 
-> > diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-> > index aee299a6aa76..a24c918a4496 100644
-> > --- a/include/linux/memblock.h
-> > +++ b/include/linux/memblock.h
-> > @@ -44,6 +44,7 @@ enum memblock_flags {
-> >         MEMBLOCK_HOTPLUG        = 0x1,  /* hotpluggable region */
-> >         MEMBLOCK_MIRROR         = 0x2,  /* mirrored region */
-> >         MEMBLOCK_NOMAP          = 0x4,  /* don't add to kernel direct mapping */
-> > +       MEMBLOCK_SIDECACHED     = 0x8,  /* System side caches memory access */
-> 
-> I'm concerned that we may be stretching memblock past its intended use
-> case especially for just this randomization case. For example, I think
-> memblock_find_in_range() gets confused in the presence of
-> MEMBLOCK_SIDECACHED memblocks.
-
-Ok, I see. Is there a better structure or interface that you may recommend
-for your use case to identify which memory ranges contain this attribute?
+I wonder though what we do if some AML wants to access PCI config
+space via an opregion in there.  Have you thought about that?
