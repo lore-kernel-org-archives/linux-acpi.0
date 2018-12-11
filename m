@@ -1,32 +1,49 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
-Date: Tue, 11 Dec 2018 11:52:25 -0500
-Message-ID: <50b7ee57-d066-fdd8-e497-259b695aab52@kernel.org>
-References: <20181210181315.5023-1-okaya@kernel.org>
- <20181210181315.5023-2-okaya@kernel.org>
- <CAJZ5v0htmHTgRa9TZ7f0XcGEt_XMmfEYhcQ=N2Lcn1V+TxPzxg@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v7 05/25] ACPI / APEI: Make estatus pool allocation a
+ static size
+Date: Tue, 11 Dec 2018 17:54:14 +0100
+Message-ID: <20181211165414.GJ27375@zn.tnic>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-6-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0htmHTgRa9TZ7f0XcGEt_XMmfEYhcQ=N2Lcn1V+TxPzxg@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+Content-Disposition: inline
+In-Reply-To: <20181203180613.228133-6-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/11/2018 5:07 AM, Rafael J. Wysocki wrote:
-> On Mon, Dec 10, 2018 at 7:13 PM Sinan Kaya <okaya@kernel.org> wrote:
->>
->> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
->> out calls that depend on PCI.
+On Mon, Dec 03, 2018 at 06:05:53PM +0000, James Morse wrote:
+> Adding new NMI-like notifications duplicates the calls that grow
+> and shrink the estatus pool. This is all pretty pointless, as the
+> size is capped to 64K. Allocate this for each ghes and drop
+> the code that grows and shrinks the pool.
 > 
-> I would prefer the subject to say something like "Allow CONFIG_PCI to
-> be unset" or "Allow PCI to be disabled in Kconfig".
-> 
-> It is somewhat ambiguous otherwise and one has to look at the patch to
-> see what it really is about.
-> 
+> Suggested-by: Borislav Petkov <bp@suse.de>
+> Signed-off-by: James Morse <james.morse@arm.com>
+> ---
+>  drivers/acpi/apei/ghes.c | 49 +++++-----------------------------------
+>  drivers/acpi/apei/hest.c |  2 +-
+>  include/acpi/ghes.h      |  2 +-
+>  3 files changed, 8 insertions(+), 45 deletions(-)
 
-Makes sense. I'll update.
+Nice and simple, cool. Thanks for doing that.
+
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
