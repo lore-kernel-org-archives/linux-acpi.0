@@ -1,37 +1,57 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
-Date: Tue, 11 Dec 2018 22:46:34 +0100
-Message-ID: <CAJZ5v0ia+eotSZgjbitt7TAT0ECSmTAz1XJhS3Auz5w5Z61SZA@mail.gmail.com>
-References: <20181210181315.5023-1-okaya@kernel.org> <20181210181315.5023-2-okaya@kernel.org>
- <20181211170957.GA335@infradead.org> <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
+Subject: Re: [PATCH v2 1/3] ACPI: Allow PCI to be disabled for reboot
+Date: Tue, 11 Dec 2018 22:49:05 +0100
+Message-ID: <CAJZ5v0gsq4-pzMrqrKuiUysXbnjc5AfVnY3=2OxQRZPsma=ZMA@mail.gmail.com>
+References: <20181208214644.5374-1-okaya@kernel.org> <CAJZ5v0jV+UZ7A46Kiyv6JysoFJ=_ts7O_p3z9F1Uze3OwZdh_Q@mail.gmail.com>
+ <4aa65942-bf97-c957-7f77-38bfdf7d1d3a@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
+In-Reply-To: <4aa65942-bf97-c957-7f77-38bfdf7d1d3a@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: okaya@kernel.org
-Cc: Christoph Hellwig <hch@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 6:37 PM Sinan Kaya <okaya@kernel.org> wrote:
+On Tue, Dec 11, 2018 at 5:54 PM Sinan Kaya <okaya@kernel.org> wrote:
 >
-> On 12/11/2018 12:09 PM, Christoph Hellwig wrote:
-> > On Mon, Dec 10, 2018 at 06:13:14PM +0000, Sinan Kaya wrote:
-> >> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
-> >> out calls that depend on PCI.
+> On 12/11/2018 5:12 AM, Rafael J. Wysocki wrote:
+> > On Sat, Dec 8, 2018 at 10:47 PM Sinan Kaya <okaya@kernel.org> wrote:
+> >>
+> >> Make PCI reboot conditional on PCI support being present on the kernel
+> >> configuration.
+> >>
+> >> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > >
-> > I think you want to skip building at least all of hwpci.c if CONFIG_PCI
-> > is disabled.  Or replace that whole stiking pile of crap with something
-> > resembling C code..
+> > Same comment as for patch [2/3]: make the subject say clearly that
+> > this is about CONFIG_PCI.
+>
+> Sure
+>
+> >>          case ACPI_ADR_SPACE_PCI_CONFIG:
+> >> +       {
+> >> +#ifdef CONFIG_PCI
+> >> +               unsigned int devfn;
+> >> +               struct pci_bus *bus0;
+> >> +
+> >>                  /* The reset register can only live on bus 0. */
+> >>                  bus0 = pci_find_bus(0, 0);
+> >>                  if (!bus0)
+> >> @@ -45,7 +48,10 @@ void acpi_reboot(void)
+> >>                  pci_bus_write_config_byte(bus0, devfn,
+> >>                                  (rr->address & 0xffff), reset_value);
+> >>                  break;
+> >> -
+> >> +#else
+> >> +               return;
+> >
+> > Why not "break"?
 > >
 >
-> I can give it a try but I'm under the impression that we don't touch
-> ACPICA code in general.
->
-> Feel free to correct me.
+> I struggled between break and return. Existing code seems to return on failure
+> when bus0 is NULL. I assumed it would be more logical to return as someone could
+> put some code after here that assumes everything is in order.
 
-We don't as a rule, but depending on what the patch looks like, we
-might not follow the rule this time.
-
-I wonder though what we do if some AML wants to access PCI config
-space via an opregion in there.  Have you thought about that?
+Well, there's no such code ATM, so there's no practical difference
+between the two and you don't really need the #else branch at all, do
+you?
