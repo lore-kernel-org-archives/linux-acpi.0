@@ -1,166 +1,102 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv2 02/12] acpi/hmat: Parse and report heterogeneous memory
-Date: Tue, 11 Dec 2018 09:55:18 -0700
-Message-ID: <20181211165518.GB8101@localhost.localdomain>
-References: <20181211010310.8551-1-keith.busch@intel.com>
- <20181211010310.8551-3-keith.busch@intel.com>
- <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v7 06/25] ACPI / APEI: Don't store CPER records physical
+ address in struct ghes
+Date: Tue, 11 Dec 2018 18:04:30 +0100
+Message-ID: <20181211170430.GK27375@zn.tnic>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-7-james.morse@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, "Hansen, Dave" <dave.hansen@intel.com>
+In-Reply-To: <20181203180613.228133-7-james.morse@arm.com>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 10, 2018 at 10:03:40PM -0800, Dan Williams wrote:
-> I have a use case to detect the presence of a memory-side-cache early
-> at init time [1]. To me this means that hmat_init() needs to happen as
-> a part of acpi_numa_init(). Subsequently I think that also means that
-> the sysfs portion needs to be broken out to its own init path that can
-> probably run at module_init() priority.
+On Mon, Dec 03, 2018 at 06:05:54PM +0000, James Morse wrote:
+> When CPER records are found the address of the records is stashed
+> in the struct ghes. Once the records have been processed, this
+> address is overwritten with zero so that it won't be processed
+> again without being re-populated by firmware.
 > 
-> Perhaps we should split this patch set into two? The table parsing
-> with an in-kernel user is a bit easier to reason about and can go in
-> first. Towards that end can I steal / refllow patches 1 & 2 into the
-> memory randomization series? Other ideas how to handle this?
+> This goes wrong if a struct ghes can be processed concurrently,
+> as can happen at probe time when an NMI occurs. If the NMI arrives
+> on another CPU, the probing CPU may call ghes_clear_estatus() on the
+> records before the handler had finished with them.
+> Even on the same CPU, once the interrupted handler is resumed, it
+> will call ghes_clear_estatus() on the NMIs records, this memory may
+> have already been re-used by firmware.
 > 
-> [1]: https://lkml.org/lkml/2018/10/12/309
+> Avoid this stashing by letting the caller hold the address. A
+> later patch will do away with the use of ghes->flags in the
+> read/clear code too.
+> 
+> Signed-off-by: James Morse <james.morse@arm.com>
+> 
+> ---
+> Changes since v6:
+>  * Moved earlier in the series
+>  * Added buf_adder = 0 on all the error paths, and test for it in
+>    ghes_estatus_clear() for extra sanity.
+> ---
+>  drivers/acpi/apei/ghes.c | 40 +++++++++++++++++++++++-----------------
+>  include/acpi/ghes.h      |  1 -
+>  2 files changed, 23 insertions(+), 18 deletions(-)
 
-To that end, will something like the following work for you? This just
-needs to happen after patch 1.
+...
 
----
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index f5e09c39ff22..03ef3c8ba4ea 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -40,6 +40,8 @@ static int pxm_to_node_map[MAX_PXM_DOMAINS]
- static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
-+static unsigned long node_side_cached[BITS_TO_LONGS(MAX_PXM_DOMAINS)];
-+
- unsigned char acpi_srat_revision __initdata;
- int acpi_numa __initdata;
- 
-@@ -262,6 +264,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 	u64 start, end;
- 	u32 hotpluggable;
- 	int node, pxm;
-+	bool side_cached;
- 
- 	if (srat_disabled())
- 		goto out_err;
-@@ -308,6 +311,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
- 			(unsigned long long)start, (unsigned long long)end - 1);
- 
-+	side_cached = test_bit(pxm, node_side_cached);
-+	if (side_cached && memblock_mark_sidecached(start, ma->length))
-+		pr_warn("SRAT: Failed to mark side cached range [mem %#010Lx-%#010Lx] in memblock\n",
-+			(unsigned long long)start, (unsigned long long)end - 1);
-+
- 	max_possible_pfn = max(max_possible_pfn, PFN_UP(end - 1));
- 
- 	return 0;
-@@ -411,6 +419,19 @@ acpi_parse_memory_affinity(union acpi_subtable_headers * header,
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_cache(union acpi_subtable_headers *header, const unsigned long end)
-+{
-+	struct acpi_hmat_cache *cache = (void *)header;
-+	u32 attrs;
-+
-+	attrs = cache->cache_attributes;
-+	if (((attrs & ACPI_HMAT_CACHE_ASSOCIATIVITY) >> 8) ==
-+						ACPI_HMAT_CA_DIRECT_MAPPED)
-+		set_bit(cache->memory_PD, node_side_cached);
-+	return 0;
-+}
-+
- static int __init acpi_parse_srat(struct acpi_table_header *table)
- {
- 	struct acpi_table_srat *srat = (struct acpi_table_srat *)table;
-@@ -422,6 +443,11 @@ static int __init acpi_parse_srat(struct acpi_table_header *table)
- 	return 0;
- }
- 
-+static __init int acpi_parse_hmat(struct acpi_table_header *table)
-+{
-+	return 0;
-+}
-+
- static int __init
- acpi_table_parse_srat(enum acpi_srat_type id,
- 		      acpi_tbl_entry_handler handler, unsigned int max_entries)
-@@ -460,6 +486,16 @@ int __init acpi_numa_init(void)
- 					sizeof(struct acpi_table_srat),
- 					srat_proc, ARRAY_SIZE(srat_proc), 0);
- 
-+		if (!acpi_table_parse(ACPI_SIG_HMAT, acpi_parse_hmat)) {
-+			struct acpi_subtable_proc hmat_proc;
-+
-+			memset(&hmat_proc, 0, sizeof(hmat_proc));
-+			hmat_proc.handler = acpi_parse_cache;
-+			hmat_proc.id = ACPI_HMAT_TYPE_CACHE;
-+			acpi_table_parse_entries_array(ACPI_SIG_HMAT,
-+						sizeof(struct acpi_table_hmat),
-+						&hmat_proc, 1, 0);
-+		}
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity, 0);
- 	}
-diff --git a/include/linux/memblock.h b/include/linux/memblock.h
-index aee299a6aa76..a24c918a4496 100644
---- a/include/linux/memblock.h
-+++ b/include/linux/memblock.h
-@@ -44,6 +44,7 @@ enum memblock_flags {
- 	MEMBLOCK_HOTPLUG	= 0x1,	/* hotpluggable region */
- 	MEMBLOCK_MIRROR		= 0x2,	/* mirrored region */
- 	MEMBLOCK_NOMAP		= 0x4,	/* don't add to kernel direct mapping */
-+	MEMBLOCK_SIDECACHED	= 0x8,  /* System side caches memory access */
- };
- 
- /**
-@@ -130,6 +131,7 @@ int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
- int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
- int memblock_mark_nomap(phys_addr_t base, phys_addr_t size);
- int memblock_clear_nomap(phys_addr_t base, phys_addr_t size);
-+int memblock_mark_sidecached(phys_addr_t base, phys_addr_t size);
- enum memblock_flags choose_memblock_flags(void);
- 
- unsigned long memblock_free_all(void);
-@@ -227,6 +229,11 @@ static inline bool memblock_is_nomap(struct memblock_region *m)
- 	return m->flags & MEMBLOCK_NOMAP;
- }
- 
-+static inline bool memblock_is_sidecached(struct memblock_region *m)
-+{
-+	return m->flags & MEMBLOCK_SIDECACHED;
-+}
-+
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
- 			    unsigned long  *end_pfn);
-diff --git a/mm/memblock.c b/mm/memblock.c
-index 9a2d5ae81ae1..827b709afdcd 100644
---- a/mm/memblock.c
-+++ b/mm/memblock.c
-@@ -865,6 +865,11 @@ int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
- 	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
- }
- 
-+int __init_memblock memblock_mark_sidecached(phys_addr_t base, phys_addr_t size)
-+{
-+	return memblock_setclr_flag(base, size, 1, MEMBLOCK_SIDECACHED);
-+}
-+
- /**
-  * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
-  * @base: the base phys addr of the region
---
+> @@ -349,17 +350,20 @@ static int ghes_read_estatus(struct ghes *ghes)
+>  	if (rc)
+>  		pr_warn_ratelimited(FW_WARN GHES_PFX
+>  				    "Failed to read error status block!\n");
+> +
+>  	return rc;
+>  }
+>  
+> -static void ghes_clear_estatus(struct ghes *ghes)
+> +static void ghes_clear_estatus(struct ghes *ghes, u64 buf_paddr)
+>  {
+>  	ghes->estatus->block_status = 0;
+>  	if (!(ghes->flags & GHES_TO_CLEAR))
+>  		return;
+> -	ghes_copy_tofrom_phys(ghes->estatus, ghes->buffer_paddr,
+> -			      sizeof(ghes->estatus->block_status), 0);
+> -	ghes->flags &= ~GHES_TO_CLEAR;
+
+<---- newline here.
+
+> +	if (buf_paddr) {
+
+Also, you can save yourself an indendation level:
+
+	if (!buf_paddr)
+		return;
+
+	ghes_copy...
+
+> +		ghes_copy_tofrom_phys(ghes->estatus, buf_paddr,
+> +				      sizeof(ghes->estatus->block_status), 0);
+> +		ghes->flags &= ~GHES_TO_CLEAR;
+> +	}
+>  }
+
+With that addressed:
+
+Reviewed-by: Borislav Petkov <bp@suse.de>
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
