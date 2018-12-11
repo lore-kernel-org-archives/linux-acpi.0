@@ -1,56 +1,29 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
-Date: Tue, 11 Dec 2018 16:57:32 -0500
-Message-ID: <a9c7cbe1-eef3-40ad-de62-8194df12ca20@kernel.org>
-References: <20181210181315.5023-1-okaya@kernel.org>
- <20181210181315.5023-2-okaya@kernel.org> <20181211170957.GA335@infradead.org>
- <342c5dd9-cb3d-d714-c87f-814a942cf395@kernel.org>
- <CAJZ5v0ia+eotSZgjbitt7TAT0ECSmTAz1XJhS3Auz5w5Z61SZA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] ACPI: Allow PCI to be disabled for reboot
+Date: Tue, 11 Dec 2018 17:00:22 -0500
+Message-ID: <620b7955-de9c-a273-bf1c-5521834e16a6@kernel.org>
+References: <20181208214644.5374-1-okaya@kernel.org>
+ <CAJZ5v0jV+UZ7A46Kiyv6JysoFJ=_ts7O_p3z9F1Uze3OwZdh_Q@mail.gmail.com>
+ <4aa65942-bf97-c957-7f77-38bfdf7d1d3a@kernel.org>
+ <CAJZ5v0gsq4-pzMrqrKuiUysXbnjc5AfVnY3=2OxQRZPsma=ZMA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0ia+eotSZgjbitt7TAT0ECSmTAz1XJhS3Auz5w5Z61SZA@mail.gmail.com>
+In-Reply-To: <CAJZ5v0gsq4-pzMrqrKuiUysXbnjc5AfVnY3=2OxQRZPsma=ZMA@mail.gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/11/2018 4:46 PM, Rafael J. Wysocki wrote:
-> On Tue, Dec 11, 2018 at 6:37 PM Sinan Kaya <okaya@kernel.org> wrote:
->>
->> On 12/11/2018 12:09 PM, Christoph Hellwig wrote:
->>> On Mon, Dec 10, 2018 at 06:13:14PM +0000, Sinan Kaya wrote:
->>>> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
->>>> out calls that depend on PCI.
->>>
->>> I think you want to skip building at least all of hwpci.c if CONFIG_PCI
->>> is disabled.  Or replace that whole stiking pile of crap with something
->>> resembling C code..
->>>
->>
->> I can give it a try but I'm under the impression that we don't touch
->> ACPICA code in general.
->>
->> Feel free to correct me.
-> 
-> We don't as a rule, but depending on what the patch looks like, we
-> might not follow the rule this time.
+On 12/11/2018 4:49 PM, Rafael J. Wysocki wrote:
+>> I struggled between break and return. Existing code seems to return on failure
+>> when bus0 is NULL. I assumed it would be more logical to return as someone could
+>> put some code after here that assumes everything is in order.
+> Well, there's no such code ATM, so there's no practical difference
+> between the two and you don't really need the #else branch at all, do
+> you?
 > 
 
-OK. Good to know. I'll take a stab at it.
-
-> I wonder though what we do if some AML wants to access PCI config
-> space via an opregion in there.  Have you thought about that?
-> 
-
-Return an error.
-
-AFAIK, ACPI spec says that AML code running on non-existing op-regions to be
-discarded last time I checked.
-
-I know Linux is noisy about these.
-
-I did boot QEMU without CONFIG_PCI. There was a bunch of ACPI errors reported
-during boot as expected but boot succeeded. There was no hard lockup/failure.
+OK. I'll go with break.
