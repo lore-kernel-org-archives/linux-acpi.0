@@ -1,90 +1,32 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 04/25] ACPI / APEI: Make hest.c manage the estatus
- memory pool
-Date: Tue, 11 Dec 2018 17:48:02 +0100
-Message-ID: <20181211164802.GI27375@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-5-james.morse@arm.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH v3 2/3] ACPI / OSL: Allow PCI to be disabled
+Date: Tue, 11 Dec 2018 11:52:25 -0500
+Message-ID: <50b7ee57-d066-fdd8-e497-259b695aab52@kernel.org>
+References: <20181210181315.5023-1-okaya@kernel.org>
+ <20181210181315.5023-2-okaya@kernel.org>
+ <CAJZ5v0htmHTgRa9TZ7f0XcGEt_XMmfEYhcQ=N2Lcn1V+TxPzxg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-5-james.morse@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0htmHTgRa9TZ7f0XcGEt_XMmfEYhcQ=N2Lcn1V+TxPzxg@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:05:52PM +0000, James Morse wrote:
-> ghes.c has a memory pool it uses for the estatus cache and the estatus
-> queue. The cache is initialised when registering the platform driver.
-> For the queue, an NMI-like notification has to grow/shrink the pool
-> as it is registered and unregistered.
+On 12/11/2018 5:07 AM, Rafael J. Wysocki wrote:
+> On Mon, Dec 10, 2018 at 7:13 PM Sinan Kaya <okaya@kernel.org> wrote:
+>>
+>> Getting ready to allow PCI to be disabled with ACPI enabled. Stub
+>> out calls that depend on PCI.
 > 
-> This is all pretty noisy when adding new NMI-like notifications, it
-> would be better to replace this with a static pool size based on the
-> number of users.
+> I would prefer the subject to say something like "Allow CONFIG_PCI to
+> be unset" or "Allow PCI to be disabled in Kconfig".
 > 
-> As a precursor, move the call that creates the pool from ghes_init(),
-> into hest.c. Later this will take the number of ghes entries and
-> consolidate the queue allocations.
-> Remove ghes_estatus_pool_exit() as hest.c doesn't have anywhere to put
-> this.
+> It is somewhat ambiguous otherwise and one has to look at the patch to
+> see what it really is about.
 > 
-> The pool is now initialised as part of ACPI's subsys_initcall():
-> (acpi_init(), acpi_scan_init(), acpi_pci_root_init(), acpi_hest_init())
-> Before this patch it happened later as a GHES specific device_initcall().
-> 
-> Signed-off-by: James Morse <james.morse@arm.com>
-> ---
->  drivers/acpi/apei/ghes.c | 33 ++++++---------------------------
->  drivers/acpi/apei/hest.c |  5 +++++
->  include/acpi/ghes.h      |  2 ++
->  3 files changed, 13 insertions(+), 27 deletions(-)
 
-...
-
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index b1e9f81ebeea..da5fabaeb48f 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -32,6 +32,7 @@
->  #include <linux/io.h>
->  #include <linux/platform_device.h>
->  #include <acpi/apei.h>
-> +#include <acpi/ghes.h>
->  
->  #include "apei-internal.h"
->  
-> @@ -200,6 +201,10 @@ static int __init hest_ghes_dev_register(unsigned int ghes_count)
->  	if (!ghes_arr.ghes_devs)
->  		return -ENOMEM;
->  
-> +	rc = ghes_estatus_pool_init();
-> +	if (rc)
-> +		goto out;
-
-Right, this happens before...
-
-> +
->  	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
-
-... this but do we even want to do any memory allocations if we don't
-have any HEST tables or we've been disabled by hest_disable?
-
-IOW, we should swap those two calls, methinks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+Makes sense. I'll update.
