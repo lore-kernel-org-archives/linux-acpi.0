@@ -1,132 +1,112 @@
-From: Yu Chen <yu.c.chen@intel.com>
-Subject: Re: [PATCH][RFC v2] ACPI: acpi_pad: Do not launch acpi_pad threads
- on idle cpus
-Date: Tue, 11 Dec 2018 11:12:21 +0800
-Message-ID: <20181211031220.GA23975@chenyu-desktop>
-References: <1525521202-32519-1-git-send-email-yu.c.chen@intel.com>
- <20181210063153.GO5327@linux-l9pv.suse>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCHv2 02/12] acpi/hmat: Parse and report heterogeneous memory
+Date: Mon, 10 Dec 2018 22:03:40 -0800
+Message-ID: <CAPcyv4gEpxigPqc0PgDE0YCL3Ot+wPfvChAZqUTtdYR2WDxaJg@mail.gmail.com>
+References: <20181211010310.8551-1-keith.busch@intel.com> <20181211010310.8551-3-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181210063153.GO5327@linux-l9pv.suse>
+In-Reply-To: <20181211010310.8551-3-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: joeyli <jlee@suse.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Lenny Szubowicz <lszubowi@redhat.com>, Jacob Pan <jacob.jun.pan@linux.intel.com>, Rui Zhang <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Joey,
-On Mon, Dec 10, 2018 at 02:31:53PM +0800, joeyli wrote:
-> Hi Chen Yu and ACPI experts,
-> 
-> On Sat, May 05, 2018 at 07:53:22PM +0800, Chen Yu wrote:
-> > According to current implementation of acpi_pad driver,
-> > it does not make sense to spawn any power saving threads
-> > on the cpus which are already idle - it might bring
-> > unnecessary overhead on these idle cpus and causes power
-> > waste. So verify the condition that if the number of 'busy'
-> > cpus exceeds the amount of the 'forced idle' cpus is met.
-> > This is applicable due to round-robin attribute of the
-> > power saving threads, otherwise ignore the setting/ACPI
-> > notification.
-> > 
-> > Suggested-by: Lenny Szubowicz <lszubowi@redhat.com>
-> > Suggested-by: Len Brown <lenb@kernel.org>
-> > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > Cc: Lenny Szubowicz <lszubowi@redhat.com>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Jacob Pan <jacob.jun.pan@linux.intel.com>
-> > Cc: Rui Zhang <rui.zhang@intel.com>
-> > Cc: linux-acpi@vger.kernel.org
-> > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> 
-> Do you have any news for this patch? Why it did not merged by kernel
-> maineline?
-> 
-We are evaluating if this could be integrated into idle injection framework.
-May I know if there's any requirement/background from SUSE on this?
+On Mon, Dec 10, 2018 at 5:05 PM Keith Busch <keith.busch@intel.com> wrote:
+>
+> Systems may provide different memory types and export this information
+> in the ACPI Heterogeneous Memory Attribute Table (HMAT). Parse these
+> tables provided by the platform and report the memory access and caching
+> attributes.
+>
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
+> ---
+>  drivers/acpi/Kconfig  |   8 +++
+>  drivers/acpi/Makefile |   1 +
+>  drivers/acpi/hmat.c   | 192 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/tables.c |   9 +++
+>  include/linux/acpi.h  |   1 +
+>  5 files changed, 211 insertions(+)
+>  create mode 100644 drivers/acpi/hmat.c
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 7cea769c37df..9a05af3a18cf 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -327,6 +327,14 @@ config ACPI_NUMA
+>         depends on (X86 || IA64 || ARM64)
+>         default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
+>
+> +config ACPI_HMAT
+> +       bool "ACPI Heterogeneous Memory Attribute Table Support"
+> +       depends on ACPI_NUMA
+> +       help
+> +        Parses representation of the ACPI Heterogeneous Memory Attributes
+> +        Table (HMAT) and set the memory node relationships and access
+> +        attributes.
+> +
+>  config ACPI_CUSTOM_DSDT_FILE
+>         string "Custom DSDT Table file to include"
+>         default ""
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index edc039313cd6..b5e13499f88b 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,6 +55,7 @@ acpi-$(CONFIG_X86)            += x86/apple.o
+>  acpi-$(CONFIG_X86)             += x86/utils.o
+>  acpi-$(CONFIG_DEBUG_FS)                += debugfs.o
+>  acpi-$(CONFIG_ACPI_NUMA)       += numa.o
+> +acpi-$(CONFIG_ACPI_HMAT)       += hmat.o
+>  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y                         += acpi_lpat.o
+>  acpi-$(CONFIG_ACPI_LPIT)       += acpi_lpit.o
+> diff --git a/drivers/acpi/hmat.c b/drivers/acpi/hmat.c
+> new file mode 100644
+> index 000000000000..ef3881f0f370
+> --- /dev/null
+> +++ b/drivers/acpi/hmat.c
+[..]
+> +static __init int hmat_init(void)
+> +{
+> +       struct acpi_subtable_proc subtable_proc;
+> +       struct acpi_table_header *tbl;
+> +       enum acpi_hmat_type i;
+> +       acpi_status status;
+> +
+> +       if (srat_disabled())
+> +               return 0;
+> +
+> +       status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+> +       if (ACPI_FAILURE(status))
+> +               return 0;
+> +
+> +       if (acpi_table_parse(ACPI_SIG_HMAT, parse_noop))
+> +               goto out_put;
+> +
+> +       memset(&subtable_proc, 0, sizeof(subtable_proc));
+> +       subtable_proc.handler = hmat_parse_subtable;
+> +       for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
+> +               subtable_proc.id = i;
+> +               if (acpi_table_parse_entries_array(ACPI_SIG_HMAT,
+> +                                       sizeof(struct acpi_table_hmat),
+> +                                       &subtable_proc, 1, 0) < 0)
+> +                       goto out_put;
+> +       }
+> + out_put:
+> +       acpi_put_table(tbl);
+> +       return 0;
+> +}
+> +subsys_initcall(hmat_init);
 
-Best,
-Ryan(Yu)
-> Thanks a lot!
-> Joey Lee
-> 
-> > ---
-> >  drivers/acpi/acpi_pad.c | 52 ++++++++++++++++++++++++++++++++++++++++++++++++-
-> >  1 file changed, 51 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> > index 552c1f7..515e60e 100644
-> > --- a/drivers/acpi/acpi_pad.c
-> > +++ b/drivers/acpi/acpi_pad.c
-> > @@ -254,12 +254,62 @@ static void set_power_saving_task_num(unsigned int num)
-> >  	}
-> >  }
-> >  
-> > +/*
-> > + * Extra acpi_pad threads should not be created until
-> > + * the requested idle count is less than/equals to the
-> > + * number of the busy cpus - it does not make sense to
-> > + * throttle the idle cpus.
-> > + */
-> > +#define SAMPLE_INTERVAL_JIF	20
-> > +
-> > +static u64 get_idle_time(int cpu)
-> > +{
-> > +	u64 idle, idle_usecs = -1ULL;
-> > +
-> > +	idle_usecs = get_cpu_idle_time_us(cpu, NULL);
-> > +
-> > +	if (idle_usecs == -1ULL)
-> > +		idle = kcpustat_cpu(cpu).cpustat[CPUTIME_IDLE];
-> > +	else
-> > +		idle = idle_usecs * NSEC_PER_USEC;
-> > +
-> > +	return idle;
-> > +}
-> > +
-> > +static bool idle_nr_valid(unsigned int num_cpus)
-> > +{
-> > +	int busy_nr = 0, i = 0, load_thresh = 100 - idle_pct;
-> > +
-> > +	if (!num_cpus)
-> > +		return true;
-> > +
-> > +	for_each_online_cpu(i) {
-> > +		u64 wall_time, idle_time;
-> > +		unsigned int elapsed_delta, idle_delta, load;
-> > +
-> > +		wall_time = jiffies64_to_nsecs(get_jiffies_64());
-> > +		idle_time = get_idle_time(i);
-> > +		/* Wait and see... */
-> > +		schedule_timeout_uninterruptible(SAMPLE_INTERVAL_JIF);
-> > +
-> > +		idle_delta = get_idle_time(i) - idle_time;
-> > +		elapsed_delta = jiffies64_to_nsecs(get_jiffies_64()) - wall_time;
-> > +		idle_delta = (idle_delta > elapsed_delta) ? elapsed_delta : idle_delta;
-> > +		load = 100 * (elapsed_delta - idle_delta) / elapsed_delta;
-> > +		if (load >= load_thresh)
-> > +			busy_nr++;
-> > +	}
-> > +
-> > +	return (busy_nr >= num_cpus) ? true : false;
-> > +}
-> > +
-> >  static void acpi_pad_idle_cpus(unsigned int num_cpus)
-> >  {
-> >  	get_online_cpus();
-> >  
-> >  	num_cpus = min_t(unsigned int, num_cpus, num_online_cpus());
-> > -	set_power_saving_task_num(num_cpus);
-> > +	if (idle_nr_valid(num_cpus))
-> > +		set_power_saving_task_num(num_cpus);
-> >  
-> >  	put_online_cpus();
-> >  }
-> > -- 
-> > 2.7.4
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have a use case to detect the presence of a memory-side-cache early
+at init time [1]. To me this means that hmat_init() needs to happen as
+a part of acpi_numa_init(). Subsequently I think that also means that
+the sysfs portion needs to be broken out to its own init path that can
+probably run at module_init() priority.
+
+Perhaps we should split this patch set into two? The table parsing
+with an in-kernel user is a bit easier to reason about and can go in
+first. Towards that end can I steal / refllow patches 1 & 2 into the
+memory randomization series? Other ideas how to handle this?
+
+[1]: https://lkml.org/lkml/2018/10/12/309
