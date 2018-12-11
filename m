@@ -1,69 +1,58 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: [PATCH v6 2/3] ACPI: property: Add acpi_fwnode_name()
-Date: Tue, 11 Dec 2018 16:14:50 +0300
-Message-ID: <20181211131451.52832-3-heikki.krogerus@linux.intel.com>
-References: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
+From: Joerg Roedel <joro-zLv9SwRftAIdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH 0/6 v2] Introduce device_iommu_mapped() function
+Date: Tue, 11 Dec 2018 14:43:37 +0100
+Message-ID: <20181211134343.10664-1-joro@8bytes.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Rob Herring <robh@kernel.org>, Frank Rowand <frowand.list@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Cc: Mathias Nyman <mathias.nyman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Sam Bobroff <sbobroff-tEXmvtCZX7AybS5Ee8rs3A@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Russell Currey <ruscur-3Su/lFKaw5ejKv3TNrM5DQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sudeep Holla <sudeep.holla-5wv7dgnIgG8@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vinod Koul <vkoul-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, jroedel-l3A5Bk7waGM@public.gmane.org, oohall-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Michael Ellerman <mpe-Gsx/Oe8HsFggBc27wqDAHg@public.gmane.org>, dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-This implements the get_name fwnode op for ACPI.
+Hi,
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
----
- drivers/acpi/property.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+here is the second version of this patch-set. It replaces
+the various (dev->iommu_group) checks with a function call
+which better expresses their intend.
 
-diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-index 77abe0ec4043..27cf3b4a6f9b 100644
---- a/drivers/acpi/property.c
-+++ b/drivers/acpi/property.c
-@@ -1230,6 +1230,33 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *__fwnode)
- 	return acpi_graph_get_child_prop_value(fwnode, "endpoint", endpoint_nr);
- }
- 
-+static int
-+acpi_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf, size_t len)
-+{
-+	struct acpi_buffer buffer;
-+	acpi_status status;
-+
-+	if (is_acpi_data_node(fwnode)) {
-+		if (len < strlen(to_acpi_data_node(fwnode)->name) + 1)
-+			return -EOVERFLOW;
-+		sprintf(buf, "%s", to_acpi_data_node(fwnode)->name);
-+		return 0;
-+	}
-+
-+	if (len < ACPI_NAME_SIZE + 1)
-+		return -EOVERFLOW;
-+
-+	buffer.length = ACPI_NAME_SIZE + 1;
-+	buffer.pointer = buf;
-+
-+	status = acpi_get_name(to_acpi_device_node(fwnode)->handle,
-+			       ACPI_SINGLE_NAME, &buffer);
-+	if (ACPI_FAILURE(status))
-+		return -ENXIO;
-+
-+	return 0;
-+}
-+
- static bool acpi_fwnode_device_is_available(const struct fwnode_handle *fwnode)
- {
- 	if (!is_acpi_device_node(fwnode))
-@@ -1321,6 +1348,7 @@ acpi_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
- 
- #define DECLARE_ACPI_FWNODE_OPS(ops) \
- 	const struct fwnode_operations ops = {				\
-+		.get_name = acpi_fwnode_get_name,			\
- 		.device_is_available = acpi_fwnode_device_is_available, \
- 		.device_get_match_data = acpi_fwnode_device_get_match_data, \
- 		.property_present = acpi_fwnode_property_present,	\
+Changes to the first version are the added patch for
+rcar-dmac, a driver I missed before. I also added all
+Acked-By's I received on the first version.
+
+Please review and provide Acks, if there are no objections.
+I have some iommu patches that depend on these, so I'd like
+to carry this patch-set in the IOMMU tree.
+
+Regards,
+
+	Joerg
+
+Joerg Roedel (6):
+  driver core: Introduce device_iommu_mapped() function
+  iommu/of: Use device_iommu_mapped()
+  ACPI/IORT: Use device_iommu_mapped()
+  powerpc/iommu: Use device_iommu_mapped()
+  xhci: Use device_iommu_mapped()
+  dmaengine: sh: rcar-dmac: Use device_iommu_mapped()
+
+ arch/powerpc/kernel/eeh.c   |  2 +-
+ arch/powerpc/kernel/iommu.c |  6 +++---
+ drivers/acpi/arm64/iort.c   |  2 +-
+ drivers/dma/sh/rcar-dmac.c  |  2 +-
+ drivers/iommu/of_iommu.c    |  2 +-
+ drivers/usb/host/xhci.c     |  2 +-
+ include/linux/device.h      | 10 ++++++++++
+ 7 files changed, 18 insertions(+), 8 deletions(-)
+
 -- 
-2.19.2
+2.17.1
