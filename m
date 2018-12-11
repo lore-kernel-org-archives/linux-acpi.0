@@ -1,16 +1,16 @@
 From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 09/25] ACPI / APEI: Generalise the estatus queue's
- notify code
-Date: Tue, 11 Dec 2018 18:44:49 +0100
-Message-ID: <20181211174449.GM27375@zn.tnic>
+Subject: Re: [PATCH v7 10/25] ACPI / APEI: Tell firmware the estatus queue
+ consumed the records
+Date: Tue, 11 Dec 2018 19:36:34 +0100
+Message-ID: <20181211183634.GO27375@zn.tnic>
 References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-10-james.morse@arm.com>
+ <20181203180613.228133-11-james.morse@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
 Content-Disposition: inline
-In-Reply-To: <20181203180613.228133-10-james.morse@arm.com>
+In-Reply-To: <20181203180613.228133-11-james.morse@arm.com>
 List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
  <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
 List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
@@ -24,67 +24,46 @@ To: James Morse <james.morse@arm.com>
 Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 03, 2018 at 06:05:57PM +0000, James Morse wrote:
-> Refactor the estatus queue's pool notification routine from
-> NOTIFY_NMI's handlers. This will allow another notification
-> method to use the estatus queue without duplicating this code.
+On Mon, Dec 03, 2018 at 06:05:58PM +0000, James Morse wrote:
+> ACPI has a GHESv2 which is used on hardware reduced platforms to
+> explicitly acknowledge that the memory for CPER records has been
+> consumed. This lets an external agent know it can re-use this
+> memory for something else.
 > 
-> This patch adds rcu_read_lock()/rcu_read_unlock() around the list
-
-s/This patch adds/Add/
-
-> list_for_each_entry_rcu() walker. These aren't strictly necessary as
-> the whole nmi_enter/nmi_exit() window is a spooky RCU read-side
-> critical section.
+> Previously notify_nmi and the estatus queue didn't do this as
+> they were never used on hardware reduced platforms. Once we move
+> notify_sea over to use the estatus queue, it may become necessary.
 > 
-> _in_nmi_notify_one() is separate from the rcu-list walker for a later
-> caller that doesn't need to walk a list.
+> Add the call. This is safe for use in NMI context as the
+> read_ack_register is pre-mapped by ghes_new() before the
+> ghes can be added to an RCU list, and then found by the
+> notification handler.
 > 
 > Signed-off-by: James Morse <james.morse@arm.com>
-> Reviewed-by: Punit Agrawal <punit.agrawal@arm.com>
-> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
-> 
 > ---
-> Changes since v6:
->  * Removed pool grow/remove code as this is no longer necessary.
+>  drivers/acpi/apei/ghes.c | 4 ++++
+>  1 file changed, 4 insertions(+)
 > 
-> Changes since v3:
->  * Removed duplicate or redundant paragraphs in commit message.
->  * Fixed the style of a zero check.
-> Changes since v1:
->    * Tidied up _in_nmi_notify_one().
-> ---
->  drivers/acpi/apei/ghes.c | 63 ++++++++++++++++++++++++++--------------
->  1 file changed, 41 insertions(+), 22 deletions(-)
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 366dbdd41ef3..15d94373ba72 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -926,6 +926,10 @@ static int _in_nmi_notify_one(struct ghes *ghes)
+>  	__process_error(ghes);
+>  	ghes_clear_estatus(ghes, buf_paddr);
+>  
+> +	if (is_hest_type_generic_v2(ghes) && ghes_ack_error(ghes->generic_v2))
 
+Since ghes_ack_error() is always prepended with this check, you could
+push it down into the function:
+
+ghes_ack_error(ghes)
 ...
 
-> +static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
-> +{
-> +	int ret = NMI_DONE;
-> +
-> +	if (!atomic_add_unless(&ghes_in_nmi, 1, 1))
-> +		return ret;
-> +
-> +	if (!ghes_estatus_queue_notified(&ghes_nmi))
-> +		ret = NMI_HANDLED;
+	if (!is_hest_type_generic_v2(ghes))
+		return 0;
 
-So this reads kinda the other way around, at least to me:
-
-	"if the queue was *not* notified, the NMI was handled."
-
-Maybe rename to this:
-
-	err = process_queue(&ghes_nmi);
-	if (!err)
-		ret = NMI_HANDLED;
-
-to make it clearer...
-
-And yeah, all those static functions having "ghes_" prefix is just
-encumbering readability for no good reason.
-
-Thx.
+and simplify the two callsites :)
 
 -- 
 Regards/Gruss,
