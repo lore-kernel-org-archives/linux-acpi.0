@@ -1,60 +1,60 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv2 12/12] doc/mm: New documentation for memory performance
-Date: Wed, 12 Dec 2018 07:45:53 -0700
-Message-ID: <20181212144553.GB10780@localhost.localdomain>
-References: <20181211010310.8551-1-keith.busch@intel.com>
- <20181211010310.8551-13-keith.busch@intel.com>
- <681f14eb-def4-bf40-fdfd-b5fb89045132@linux.ibm.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: [PATCH v6 1/5] ACPI: Allow CONFIG_PCI to be unset for reboot
+Date: Wed, 12 Dec 2018 17:19:36 +0000
+Message-ID: <20181212171941.7437-2-okaya@kernel.org>
+References: <20181212171941.7437-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <681f14eb-def4-bf40-fdfd-b5fb89045132@linux.ibm.com>
+In-Reply-To: <20181212171941.7437-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 10:23:24AM +0530, Aneesh Kumar K.V wrote:
-> On 12/11/18 6:33 AM, Keith Busch wrote:
-> > +When multiple memory initiators exist, they may not all have the same
-> > +performance when accessing a given memory target. The highest performing
-> > +initiator to a given target is considered to be one of that target's
-> > +local initiators. Any given target may have one or more local initiators,
-> > +and any given initiator may have multiple local memory targets.
-> > +
-> 
-> Can you also add summary here suggesting node X is compute and Node y is
-> memory target
+Make PCI reboot conditional on PCI support being present on the kernel
+configuration.
 
-Sure thing.
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/acpi/reboot.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 6fa9c2a4cfe9..d75e637ee36a 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -7,8 +7,6 @@
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+-	struct pci_bus *bus0;
+-	unsigned int devfn;
+ 	u8 reset_value;
  
-> > +To aid applications matching memory targets with their initiators,
-> > +the kernel provide symlinks to each other like the following example::
-> > +
-> > +	# ls -l /sys/devices/system/node/nodeX/local_target*
-> > +	/sys/devices/system/node/nodeX/local_targetY -> ../nodeY
-> > +
-> > +	# ls -l /sys/devices/system/node/nodeY/local_initiator*
-> > +	/sys/devices/system/node/nodeY/local_initiatorX -> ../nodeX
-> > +
-> 
-> the patch series had primary_target and primary_initiator
-
-Yeah, I noticed that mistake too. I went through several iterations of
-naming this, and I think it will yet be named something else in the
-final revision to accomodate different access levels since it sounds
-like some people may wish to show more than just the best.
-
-> > +When the kernel first registers a memory cache with a node, the kernel
-> > +will create the following directory::
-> > +
-> > +	/sys/devices/system/node/nodeX/side_cache/
-> > +
-> 
-> This is something even the patch commit message didn't explain we create
-> side_cache directory in memory target nodes or initiator nodes? I assume it
-> is part of memory target nodes. If so to be consistent can you use nodeY?
-
-Right, only memory targets may have memory side caches. Will use more
-consistent symbols.
+ 	if (acpi_disabled)
+@@ -33,6 +31,11 @@ void acpi_reboot(void)
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
++	{
++#ifdef CONFIG_PCI
++		unsigned int devfn;
++		struct pci_bus *bus0;
++
+ 		/* The reset register can only live on bus 0. */
+ 		bus0 = pci_find_bus(0, 0);
+ 		if (!bus0)
+@@ -44,8 +47,9 @@ void acpi_reboot(void)
+ 		/* Write the value that resets us. */
+ 		pci_bus_write_config_byte(bus0, devfn,
+ 				(rr->address & 0xffff), reset_value);
++#endif
+ 		break;
+-
++	}
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+-- 
+2.19.0
