@@ -1,51 +1,37 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 2/5] ACPI / OSL: Stub out acpi_os_read_pci_configuration
- when CONFIG_PCI is unset
-Date: Wed, 12 Dec 2018 10:31:30 +0100
-Message-ID: <CAJZ5v0gCQdAA3ppMhwobniOaCbEknhGie1hbO1QyOjqvCq194A@mail.gmail.com>
-References: <20181212052846.32370-1-okaya@kernel.org> <20181212052846.32370-3-okaya@kernel.org>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH 1/6] driver core: Introduce device_iommu_mapped() function
+Date: Wed, 12 Dec 2018 12:04:35 +0100
+Message-ID: <20181212110435.GC1990@kroah.com>
+References: <20181211134343.10664-1-joro@8bytes.org>
+ <20181211134343.10664-2-joro@8bytes.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181212052846.32370-3-okaya@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181211134343.10664-2-joro@8bytes.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: okaya@kernel.org
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Joerg Roedel <joro@8bytes.org>
+Cc: iommu@lists.linux-foundation.org, Russell Currey <ruscur@russell.cc>, Sam Bobroff <sbobroff@linux.ibm.com>, oohall@gmail.com, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vkoul@kernel.org>, jroedel@suse.de, Mathias Nyman <mathias.nyman@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, linux-usb@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 12, 2018 at 6:29 AM Sinan Kaya <okaya@kernel.org> wrote:
->
-> Getting ready to allow PCI to be disabled with ACPI enabled. Stub out
-> acpi_os_read_pci_configuration function that depend on PCI.
->
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> ---
->  drivers/acpi/osl.c | 4 ++++
->  1 file changed, 4 insertions(+)
->
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index b48874b8e1ea..3e82b50ba811 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -773,6 +773,7 @@ acpi_status
->  acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
->                                u64 *value, u32 width)
->  {
-> +#ifdef CONFIG_PCI
->         int result, size;
->         u32 value32;
->
-> @@ -799,6 +800,9 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
->         *value = value32;
->
->         return (result ? AE_ERROR : AE_OK);
-> +#else
-> +       return pr_warn_once("CONFIG_PCI is disabled\n") ? AE_SUPPORT : AE_OK;
+On Tue, Dec 11, 2018 at 02:43:38PM +0100, Joerg Roedel wrote:
+> From: Joerg Roedel <jroedel@suse.de>
+> 
+> Some places in the kernel check the iommu_group pointer in
+> 'struct device' in order to find ot whether a device is
+> mapped by an IOMMU.
+> 
+> This is not good way to make this check, as the pointer will
+> be moved to 'struct dev_iommu_data'. This way to make the
+> check is also not very readable.
+> 
+> Introduce an explicit function to perform this check.
+> 
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-What about saying "PCI configuration space access is not supported" instead?
+No need to have a cc: line if I have already acked it :)
 
-> +#endif
->  }
->
->  acpi_status
-> --
+thanks,
+
+greg k-h
