@@ -1,71 +1,32 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v4 3/3] drm/i915/intel_dsi_vbt: Add support for
- PMIC MIPI sequences
-Date: Thu, 13 Dec 2018 16:35:33 +0100
-Message-ID: <20181213153533.10949-3-hdegoede@redhat.com>
-References: <20181213153533.10949-1-hdegoede@redhat.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH v7 2/5] ACPI / OSL: Stub out
+ acpi_os_read_pci_configuration when CONFIG_PCI is unset
+Date: Thu, 13 Dec 2018 11:03:58 -0500
+Message-ID: <a24b13db-049d-5027-4c49-81cdc0782c2a@kernel.org>
+References: <20181213044833.23952-1-okaya@kernel.org>
+ <20181213044833.23952-3-okaya@kernel.org>
+ <CAJZ5v0iZa_m8zL+BKrpMNRhPF=6k__jCtiKSk6ZBFDc3pXMi1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20181213153533.10949-1-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0iZa_m8zL+BKrpMNRhPF=6k__jCtiKSk6ZBFDc3pXMi1g@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-QWRkIHN1cHBvcnQgZm9yIFBNSUMgTUlQSSBzZXF1ZW5jZXMgdXNpbmcgdGhlIG5ldwppbnRlbF9z
-b2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudCBmdW5jdGlvbi4KClRoaXMgZml4ZXMg
-dGhlIERTSSBMQ0QgcGFuZWwgbm90IGxpZ2h0aW5nIHVwIHdoZW4gbm90IGluaXRpYWxpemVkIGJ5
-IHRoZQpHT1AgKGJlY2F1c2UgYW4gZXh0ZXJuYWwgbW9uaXRvciB3YXMgY29ubmVjdGVkKSBvbiBH
-UEQgd2luIGFuZCBHUEQgcG9ja2V0CmRldmljZXMuCgpTcGVjaWZpY2FsbHkgdGhlIExDRCBwYW5l
-bCBzZWVtcyB0byBuZWVkIEdQSU8gcGluIDkgb24gdGhlIFBNSUMgdG8gYmUKZHJpdmVuIGhpZ2gs
-IHdoaWNoIGlzIGRvbmUgdGhyb3VnaCBhIFBNSUMgTUlQSSBzZXF1ZW5jZS4gQmVmb3JlIHRoaXMg
-Y29tbWl0CmlmIHRoZSBzZXF1ZW5jZSB3YXMgbm90IGV4ZWN1dGVkIGJ5IHRoZSBHT1AgdGhlIHBp
-biB3b3VsZCBzdGF5IGxvdyBjYXVzaW5nCnRoZSBMQ0QgcGFuZWwgdG8gbm90IHdvcmsuIEhhdmlu
-ZyB0aGUgTUlQSSBzZXF1ZW5jZXMgcHJvcGVybHkgY29udHJvbCB0aGlzCkdQSU8gc2hvdWxkIGFs
-c28gaGVscCBzYXZlIHNvbWUgcG93ZXIgd2hlbiB0aGUgcGFuZWwgaXMgb2ZmLgoKQ2hhbmdlcyBp
-biB2MiwgdjM6Ci1Pbmx5IGNoYW5nZXMgdG8gb3RoZXIgcGF0Y2hlcyBpbiB0aGlzIHBhdGNoLXNl
-dAoKQ2hhbmdlcyBpbiB2NDoKLU1vdmUgZGVjb2Rpbmcgb2YgdGhlIHJhdyAxNSBieXRlcyBQTUlD
-IE1JUEkgc2VxdWVuY2UgZWxlbWVudCBpbnRvCiBpMmMtYWRkcmVzcywgcmVnaXN0ZXItYWRkcmVz
-cywgdmFsdWUgYW5kIG1hc2sgaW50byB0aGUgbWlwaV9leGVjX3BtaWMoKQogZnVuY3Rpb24gaW5z
-dGVhZCBvZiBwYXNzaW5nIHRoZSByYXcgZGF0YSB0bwogaW50ZWxfc29jX3BtaWNfZXhlY19taXBp
-X3BtaWNfc2VxX2VsZW1lbnQoKQoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29l
-ZGVAcmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9kc2lfdmJ0LmMg
-fCAyMiArKysrKysrKysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMjEgaW5zZXJ0aW9u
-cygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2lu
-dGVsX2RzaV92YnQuYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2RzaV92YnQuYwppbmRl
-eCBmMjdhZjQ3YzZlNDkuLmViZTdlMjU2MTRjZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJt
-L2k5MTUvaW50ZWxfZHNpX3ZidC5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2Rz
-aV92YnQuYwpAQCAtMjksOSArMjksMTEgQEAKICNpbmNsdWRlIDxkcm0vZHJtX2VkaWQuaD4KICNp
-bmNsdWRlIDxkcm0vaTkxNV9kcm0uaD4KICNpbmNsdWRlIDxsaW51eC9ncGlvL2NvbnN1bWVyLmg+
-CisjaW5jbHVkZSA8bGludXgvbWZkL2ludGVsX3NvY19wbWljLmg+CiAjaW5jbHVkZSA8bGludXgv
-c2xhYi5oPgogI2luY2x1ZGUgPHZpZGVvL21pcGlfZGlzcGxheS5oPgogI2luY2x1ZGUgPGFzbS9p
-bnRlbC1taWQuaD4KKyNpbmNsdWRlIDxhc20vdW5hbGlnbmVkLmg+CiAjaW5jbHVkZSA8dmlkZW8v
-bWlwaV9kaXNwbGF5Lmg+CiAjaW5jbHVkZSAiaTkxNV9kcnYuaCIKICNpbmNsdWRlICJpbnRlbF9k
-cnYuaCIKQEAgLTM3MSw3ICszNzMsMjUgQEAgc3RhdGljIGNvbnN0IHU4ICptaXBpX2V4ZWNfc3Bp
-KHN0cnVjdCBpbnRlbF9kc2kgKmludGVsX2RzaSwgY29uc3QgdTggKmRhdGEpCiAKIHN0YXRpYyBj
-b25zdCB1OCAqbWlwaV9leGVjX3BtaWMoc3RydWN0IGludGVsX2RzaSAqaW50ZWxfZHNpLCBjb25z
-dCB1OCAqZGF0YSkKIHsKLQlEUk1fREVCVUdfS01TKCJTa2lwcGluZyBQTUlDIGVsZW1lbnQgZXhl
-Y3V0aW9uXG4iKTsKKyNpZmRlZiBDT05GSUdfUE1JQ19PUFJFR0lPTgorCXUzMiB2YWx1ZSwgbWFz
-aywgcmVnX2FkZHJlc3M7CisJdTE2IGkyY19hZGRyZXNzOworCWludCByZXQ7CisKKwkvKiBieXRl
-IDAgYWthIFBNSUMgRmxhZyBpcyByZXNlcnZlZCAqLworCWkyY19hZGRyZXNzCT0gZ2V0X3VuYWxp
-Z25lZF9sZTE2KGRhdGEgKyAxKTsKKwlyZWdfYWRkcmVzcwk9IGdldF91bmFsaWduZWRfbGUzMihk
-YXRhICsgMyk7CisJdmFsdWUJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyA3KTsKKwltYXNr
-CQk9IGdldF91bmFsaWduZWRfbGUzMihkYXRhICsgMTEpOworCisJcmV0ID0gaW50ZWxfc29jX3Bt
-aWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoaTJjX2FkZHJlc3MsCisJCQkJCQkJcmVnX2Fk
-ZHJlc3MsCisJCQkJCQkJdmFsdWUsIG1hc2spOworCWlmIChyZXQpCisJCURSTV9FUlJPUigiJXMg
-ZmFpbGVkLCBlcnJvcjogJWRcbiIsIF9fZnVuY19fLCByZXQpOworI2Vsc2UKKwlEUk1fRVJST1Io
-IllvdXIgaGFyZHdhcmUgcmVxdWlyZXMgQ09ORklHX1BNSUNfT1BSRUdJT04gYW5kIGl0IGlzIG5v
-dCBzZXRcbiIpOworI2VuZGlmCiAKIAlyZXR1cm4gZGF0YSArIDE1OwogfQotLSAKMi4xOS4yCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZngg
-bWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+On 12/13/2018 6:15 AM, Rafael J. Wysocki wrote:
+> On Thu, Dec 13, 2018 at 5:49 AM Sinan Kaya <okaya@kernel.org> wrote:
+>>
+>> Getting ready to allow CONFIG_PCI to be disabled with ACPI enabled. Stub
+>> out acpi_os_read_pci_configuration function that depend on PCI.
+> 
+> Why don't you merge this with the next patch?  Is there any particular
+> reason why they should be separate?
+> 
+
+I could. I thought it would be easier to review small pieces.
+
+Let me know your preference.
