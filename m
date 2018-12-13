@@ -1,42 +1,46 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v7 2/5] ACPI / OSL: Stub out
- acpi_os_read_pci_configuration when CONFIG_PCI is unset
-Date: Thu, 13 Dec 2018 11:28:08 -0500
-Message-ID: <67f817ff-4e81-d971-c92f-897d8f6343b8@kernel.org>
-References: <20181213044833.23952-1-okaya@kernel.org>
- <20181213044833.23952-3-okaya@kernel.org>
- <CAJZ5v0iZa_m8zL+BKrpMNRhPF=6k__jCtiKSk6ZBFDc3pXMi1g@mail.gmail.com>
- <a24b13db-049d-5027-4c49-81cdc0782c2a@kernel.org>
- <CAJZ5v0jHMa=7+L0MhGtD4f0At=CystTb2kEbedQuzzB4WWaDGw@mail.gmail.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management fixes for v4.20-rc7
+Date: Thu, 13 Dec 2018 12:01:49 -0800
+Message-ID: <20181213200146.GA15849@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0jHMa=7+L0MhGtD4f0At=CystTb2kEbedQuzzB4WWaDGw@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/13/2018 11:20 AM, Rafael J. Wysocki wrote:
-> On Thu, Dec 13, 2018 at 5:04 PM Sinan Kaya <okaya@kernel.org> wrote:
->>
->> On 12/13/2018 6:15 AM, Rafael J. Wysocki wrote:
->>> On Thu, Dec 13, 2018 at 5:49 AM Sinan Kaya <okaya@kernel.org> wrote:
->>>>
->>>> Getting ready to allow CONFIG_PCI to be disabled with ACPI enabled. Stub
->>>> out acpi_os_read_pci_configuration function that depend on PCI.
->>>
->>> Why don't you merge this with the next patch?  Is there any particular
->>> reason why they should be separate?
->>>
->>
->> I could. I thought it would be easier to review small pieces.
->>
->> Let me know your preference.
-> 
-> IMO it would be better to merge them.
-> 
+Hello Linus,
 
-OK. I'll  merge and post a new version tonight.
+Consider pulling the following changes since commit 40e020c129cfc991e8ab4736d2665351ffd1468d:
+
+  Linux 4.20-rc6 (2018-12-09 15:31:00 -0800)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+
+for you to fetch changes up to 99c47fcd4daa2b9a1348872ba49226dcdc58cb40:
+
+  thermal: stm32: Fix stm_thermal_read_factory_settings (2018-12-10 20:15:28 -0800)
+
+Specifics:
+- Fixes on STM and HISI thermal drivers
+
+BR,
+
+Eduardo 
+
+----------------------------------------------------------------
+Daniel Lezcano (2):
+      thermal/drivers/hisi: Fix wrong platform_get_irq_byname()
+      thermal/drivers/hisi: Fix number of sensors on hi3660
+
+David HERNANDEZ SANCHEZ (2):
+      thermal: stm32: read factory settings inside stm_thermal_prepare
+      thermal: stm32: Fix stm_thermal_read_factory_settings
+
+ drivers/thermal/hisi_thermal.c   |  4 ++--
+ drivers/thermal/st/stm_thermal.c | 12 ++++++------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
