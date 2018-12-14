@@ -1,31 +1,60 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v8 3/4] PCI/ACPI: Allow ACPI to be built without
- CONFIG_PCI set
-Date: Fri, 14 Dec 2018 11:29:42 -0500
-Message-ID: <578bb84f-ab1d-7e44-a6e1-7b0ff51c743a@kernel.org>
-References: <20181214031252.28707-1-okaya@kernel.org>
- <20181214031252.28707-4-okaya@kernel.org>
- <CAJZ5v0j6u=E5xY-a=_D8wO5u=GOX9of3sG572pMSW+eB_e58Ow@mail.gmail.com>
+Subject: [PATCH v9 1/6] ACPI: Allow CONFIG_PCI to be unset for reboot
+Date: Fri, 14 Dec 2018 16:33:14 +0000
+Message-ID: <20181214163319.27479-2-okaya@kernel.org>
+References: <20181214163319.27479-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j6u=E5xY-a=_D8wO5u=GOX9of3sG572pMSW+eB_e58Ow@mail.gmail.com>
-Content-Language: en-US
+In-Reply-To: <20181214163319.27479-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, "Schmauss, Erik" <erik.schmauss@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Jan Kiszka <jan.kiszka@siemens.com>, otavio.pontes@intel.com, ckoenig.leichtzumerken@gmail.com, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, devel@acpica.org
+To: linux-acpi@vger.kernel.org
+Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/14/2018 4:19 AM, Rafael J. Wysocki wrote:
-> On Fri, Dec 14, 2018 at 4:13 AM Sinan Kaya<okaya@kernel.org>  wrote:
->> We are compiling PCI code today for systems with ACPI and no PCI
->> device present. Remove the useless code and reduce the tight
->> dependency.
->>
->> Signed-off-by: Sinan Kaya<okaya@kernel.org>
-> Bjorn, any objections here?
-> 
+Make PCI reboot conditional on PCI support being present on the kernel
+configuration.
 
-Found a breakage in arm64 build without CONFIG_PCI. I'll post a new version
-soon.
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/acpi/reboot.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 6fa9c2a4cfe9..d75e637ee36a 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -7,8 +7,6 @@
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+-	struct pci_bus *bus0;
+-	unsigned int devfn;
+ 	u8 reset_value;
+ 
+ 	if (acpi_disabled)
+@@ -33,6 +31,11 @@ void acpi_reboot(void)
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
++	{
++#ifdef CONFIG_PCI
++		unsigned int devfn;
++		struct pci_bus *bus0;
++
+ 		/* The reset register can only live on bus 0. */
+ 		bus0 = pci_find_bus(0, 0);
+ 		if (!bus0)
+@@ -44,8 +47,9 @@ void acpi_reboot(void)
+ 		/* Write the value that resets us. */
+ 		pci_bus_write_config_byte(bus0, devfn,
+ 				(rr->address & 0xffff), reset_value);
++#endif
+ 		break;
+-
++	}
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+-- 
+2.19.0
