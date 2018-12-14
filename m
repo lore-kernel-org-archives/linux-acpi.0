@@ -1,179 +1,77 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v9 3/6] PCI/ACPI: Allow ACPI to be built without
- CONFIG_PCI set
-Date: Fri, 14 Dec 2018 15:52:39 -0600
-Message-ID: <20181214215239.GG20725@google.com>
-References: <20181214163319.27479-1-okaya@kernel.org>
- <20181214163319.27479-4-okaya@kernel.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH] acpi / apei: fix NULL deref during init
+Date: Fri, 14 Dec 2018 23:22:36 +0100
+Message-ID: <20181214222236.GK11710@zn.tnic>
+References: <20181214181514.29891-1-tst@schoebel-theuer.de>
+ <20181214202406.GI11710@zn.tnic>
+ <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181214163319.27479-4-okaya@kernel.org>
+In-Reply-To: <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Jan Kiszka <jan.kiszka@siemens.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Otavio Pontes <otavio.pontes@intel.com>, Christian =?iso-8859-1?Q?K=F6nig?= <ckoenig.leichtzumerken@gmail.com>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>, "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>, "open list:ACPI COMPONENT ARCHITECTURE (ACPICA)" <deve>
+To: Thomas Schoebel-Theuer <tst@schoebel-theuer.de>
+Cc: linux-kernel@vger.kernel.org, Laura Abbott <labbott@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 04:33:16PM +0000, Sinan Kaya wrote:
-> We are compiling PCI code today for systems with ACPI and no PCI
-> device present. Remove the useless code and reduce the tight
-> dependency.
-> 
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+On Fri, Dec 14, 2018 at 10:27:25PM +0100, Thomas Schoebel-Theuer wrote:
+> please take a look at the stacktrace. For some reason, and only at that
+> specific hardware, the condition is false, there but later the indicated
+> error exit is taken whose message you can see immediately before the stack
+> trace.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>	# PCI parts
+Yes, but if you say "for some reason", then we still don't know what
+the root cause is. So before we do any fixing, let's find out what the
+problem is first.
 
-Looks like most of this series is ACPI-related, so I assume Rafael
-will pick this up.
+Can you pls run this debugging hunk ontop of -rc6, on the box and send
+me full dmesg? Privately is fine too.
 
-> ---
->  arch/x86/include/asm/pci_x86.h | 7 +++++++
->  drivers/acpi/Kconfig           | 1 -
->  drivers/acpi/Makefile          | 2 +-
->  drivers/acpi/internal.h        | 5 +++++
->  drivers/pci/Makefile           | 2 +-
->  include/acpi/acpi_drivers.h    | 7 +++++++
->  include/linux/acpi.h           | 7 +++++++
->  include/linux/pci.h            | 4 ++++
->  8 files changed, 32 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
-> index 959d618dbb17..73bb404f4d2a 100644
-> --- a/arch/x86/include/asm/pci_x86.h
-> +++ b/arch/x86/include/asm/pci_x86.h
-> @@ -121,7 +121,14 @@ extern void __init dmi_check_pciprobe(void);
->  extern void __init dmi_check_skip_isa_align(void);
->  
->  /* some common used subsys_initcalls */
-> +#ifdef CONFIG_PCI
->  extern int __init pci_acpi_init(void);
-> +#else
-> +static inline int  __init pci_acpi_init(void)
-> +{
-> +	return -EINVAL;
-> +}
-> +#endif
->  extern void __init pcibios_irq_init(void);
->  extern int __init pcibios_init(void);
->  extern int pci_legacy_init(void);
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 7cea769c37df..a0abcb3bd673 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -9,7 +9,6 @@ config ARCH_SUPPORTS_ACPI
->  menuconfig ACPI
->  	bool "ACPI (Advanced Configuration and Power Interface) Support"
->  	depends on ARCH_SUPPORTS_ACPI
-> -	depends on PCI
->  	select PNP
->  	default y if X86
->  	help
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index edc039313cd6..7c6afc111d76 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -39,7 +39,7 @@ acpi-y				+= processor_core.o
->  acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
->  acpi-y				+= ec.o
->  acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
-> -acpi-y				+= pci_root.o pci_link.o pci_irq.o
-> +acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
->  obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
->  acpi-y				+= acpi_lpss.o acpi_apd.o
->  acpi-y				+= acpi_platform.o
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 530a3f675490..b7060dae2789 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -25,8 +25,13 @@ int acpi_osi_init(void);
->  acpi_status acpi_os_initialize1(void);
->  void init_acpi_device_notify(void);
->  int acpi_scan_init(void);
-> +#ifdef CONFIG_PCI
->  void acpi_pci_root_init(void);
->  void acpi_pci_link_init(void);
-> +#else
-> +static inline void acpi_pci_root_init(void) {}
-> +static inline void acpi_pci_link_init(void) {}
-> +#endif
->  void acpi_processor_init(void);
->  void acpi_platform_init(void);
->  void acpi_pnp_init(void);
-> diff --git a/drivers/pci/Makefile b/drivers/pci/Makefile
-> index f2bda77a2df1..657d642fcc67 100644
-> --- a/drivers/pci/Makefile
-> +++ b/drivers/pci/Makefile
-> @@ -11,6 +11,7 @@ ifdef CONFIG_PCI
->  obj-$(CONFIG_PROC_FS)		+= proc.o
->  obj-$(CONFIG_SYSFS)		+= slot.o
->  obj-$(CONFIG_OF)		+= of.o
-> +obj-$(CONFIG_ACPI)		+= pci-acpi.o
->  endif
->  
->  obj-$(CONFIG_PCI_QUIRKS)	+= quirks.o
-> @@ -20,7 +21,6 @@ obj-$(CONFIG_PCI_MSI)		+= msi.o
->  obj-$(CONFIG_PCI_ATS)		+= ats.o
->  obj-$(CONFIG_PCI_IOV)		+= iov.o
->  obj-$(CONFIG_PCI_BRIDGE_EMUL)	+= pci-bridge-emul.o
-> -obj-$(CONFIG_ACPI)		+= pci-acpi.o
->  obj-$(CONFIG_PCI_LABEL)		+= pci-label.o
->  obj-$(CONFIG_X86_INTEL_MID)	+= pci-mid.o
->  obj-$(CONFIG_PCI_SYSCALL)	+= syscall.o
-> diff --git a/include/acpi/acpi_drivers.h b/include/acpi/acpi_drivers.h
-> index 14499757338f..de1804aeaf69 100644
-> --- a/include/acpi/acpi_drivers.h
-> +++ b/include/acpi/acpi_drivers.h
-> @@ -88,7 +88,14 @@ int acpi_pci_link_free_irq(acpi_handle handle);
->  
->  struct pci_bus;
->  
-> +#ifdef CONFIG_PCI
->  struct pci_dev *acpi_get_pci_dev(acpi_handle);
-> +#else
-> +static inline struct pci_dev *acpi_get_pci_dev(acpi_handle handle)
-> +{
-> +	return NULL;
-> +}
-> +#endif
->  
->  /* Arch-defined function to add a bus to the system */
->  
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index ed80f147bd50..eb1fdf4c196a 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -340,7 +340,14 @@ struct pci_dev;
->  int acpi_pci_irq_enable (struct pci_dev *dev);
->  void acpi_penalize_isa_irq(int irq, int active);
->  bool acpi_isa_irq_available(int irq);
-> +#ifdef CONFIG_PCI
->  void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
-> +#else
-> +static inline void acpi_penalize_sci_irq(int irq, int trigger,
-> +					int polarity)
-> +{
-> +}
-> +#endif
->  void acpi_pci_irq_disable (struct pci_dev *dev);
->  
->  extern int ec_read(u8 addr, u8 *val);
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 11c71c4ecf75..51a5a5217667 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -1960,7 +1960,11 @@ int pcibios_set_pcie_reset_state(struct pci_dev *dev,
->  				 enum pcie_reset_state state);
->  int pcibios_add_device(struct pci_dev *dev);
->  void pcibios_release_device(struct pci_dev *dev);
-> +#ifdef CONFIG_PCI
->  void pcibios_penalize_isa_irq(int irq, int active);
-> +#else
-> +static inline void pcibios_penalize_isa_irq(int irq, int active) {}
-> +#endif
->  int pcibios_alloc_irq(struct pci_dev *dev);
->  void pcibios_free_irq(struct pci_dev *dev);
->  resource_size_t pcibios_default_alignment(void);
-> -- 
-> 2.19.0
-> 
+Thx.
+
+---
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index 7389db538c30..5166639b7280 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -667,6 +667,9 @@ void __init pci_mmcfg_early_init(void)
+ 			acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
+ 		__pci_mmcfg_init(1);
+ 
++		pr_info("%s: setting apei filter\n", __func__);
++		dump_stack();
++
+ 		set_apei_filter();
+ 	}
+ }
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index da370e1d31f4..e87b183ca73d 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -494,6 +494,9 @@ int apei_resources_request(struct apei_resources *resources,
+ 	if (rc)
+ 		goto nvs_res_fini;
+ 
++	pr_info("%s: 1, arch_apei_filter_addr: 0x%px\n",
++		__func__, arch_apei_filter_addr);
++
+ 	if (arch_apei_filter_addr) {
+ 		apei_resources_init(&arch_res);
+ 		rc = apei_get_arch_resources(&arch_res);
+@@ -552,6 +555,9 @@ int apei_resources_request(struct apei_resources *resources,
+ 		release_mem_region(res->start, res->end - res->start);
+ 	}
+ arch_res_fini:
++	pr_info("%s: arch_res_fini, arch_apei_filter_addr: 0x%px\n",
++		__func__, arch_apei_filter_addr);
++
+ 	if (arch_apei_filter_addr)
+ 		apei_resources_fini(&arch_res);
+ nvs_res_fini:
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Good mailing practices for 400: avoid top-posting and trim the reply.
