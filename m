@@ -1,71 +1,108 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v5 3/3] drm/i915/intel_dsi_vbt: Add support for
- PMIC MIPI sequences
-Date: Fri, 14 Dec 2018 13:24:17 +0100
-Message-ID: <20181214122417.2729-4-hdegoede@redhat.com>
-References: <20181214122417.2729-1-hdegoede@redhat.com>
+From: James Morse <james.morse@arm.com>
+Subject: Re: [PATCH v7 04/25] ACPI / APEI: Make hest.c manage the estatus
+ memory pool
+Date: Fri, 14 Dec 2018 13:56:16 +0000
+Message-ID: <ad48f9a1-404e-7878-3173-f8a4a417a723@arm.com>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-5-james.morse@arm.com>
+ <20181211164802.GI27375@zn.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20181214122417.2729-1-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, intel-gfx <intel-gfx@lists.freedesktop.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <20181211164802.GI27375@zn.tnic>
+Content-Language: en-GB
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: Borislav Petkov <bp@alien8.de>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-QWRkIHN1cHBvcnQgZm9yIFBNSUMgTUlQSSBzZXF1ZW5jZXMgdXNpbmcgdGhlIG5ldwppbnRlbF9z
-b2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudCBmdW5jdGlvbi4KClRoaXMgZml4ZXMg
-dGhlIERTSSBMQ0QgcGFuZWwgbm90IGxpZ2h0aW5nIHVwIHdoZW4gbm90IGluaXRpYWxpemVkIGJ5
-IHRoZQpHT1AgKGJlY2F1c2UgYW4gZXh0ZXJuYWwgbW9uaXRvciB3YXMgY29ubmVjdGVkKSBvbiBH
-UEQgd2luIGFuZCBHUEQgcG9ja2V0CmRldmljZXMuCgpTcGVjaWZpY2FsbHkgdGhlIExDRCBwYW5l
-bCBzZWVtcyB0byBuZWVkIEdQSU8gcGluIDkgb24gdGhlIFBNSUMgdG8gYmUKZHJpdmVuIGhpZ2gs
-IHdoaWNoIGlzIGRvbmUgdGhyb3VnaCBhIFBNSUMgTUlQSSBzZXF1ZW5jZS4gQmVmb3JlIHRoaXMg
-Y29tbWl0CmlmIHRoZSBzZXF1ZW5jZSB3YXMgbm90IGV4ZWN1dGVkIGJ5IHRoZSBHT1AgdGhlIHBp
-biB3b3VsZCBzdGF5IGxvdyBjYXVzaW5nCnRoZSBMQ0QgcGFuZWwgdG8gbm90IHdvcmsuIEhhdmlu
-ZyB0aGUgTUlQSSBzZXF1ZW5jZXMgcHJvcGVybHkgY29udHJvbCB0aGlzCkdQSU8gc2hvdWxkIGFs
-c28gaGVscCBzYXZlIHNvbWUgcG93ZXIgd2hlbiB0aGUgcGFuZWwgaXMgb2ZmLgoKQ2hhbmdlcyBp
-biB2MiwgdjM6Ci1Pbmx5IGNoYW5nZXMgdG8gb3RoZXIgcGF0Y2hlcyBpbiB0aGlzIHBhdGNoLXNl
-dAoKQ2hhbmdlcyBpbiB2NDoKLU1vdmUgZGVjb2Rpbmcgb2YgdGhlIHJhdyAxNSBieXRlcyBQTUlD
-IE1JUEkgc2VxdWVuY2UgZWxlbWVudCBpbnRvCiBpMmMtYWRkcmVzcywgcmVnaXN0ZXItYWRkcmVz
-cywgdmFsdWUgYW5kIG1hc2sgaW50byB0aGUgbWlwaV9leGVjX3BtaWMoKQogZnVuY3Rpb24gaW5z
-dGVhZCBvZiBwYXNzaW5nIHRoZSByYXcgZGF0YSB0bwogaW50ZWxfc29jX3BtaWNfZXhlY19taXBp
-X3BtaWNfc2VxX2VsZW1lbnQoKQoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29l
-ZGVAcmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9kc2lfdmJ0LmMg
-fCAyMiArKysrKysrKysrKysrKysrKysrKystCiAxIGZpbGUgY2hhbmdlZCwgMjEgaW5zZXJ0aW9u
-cygrKSwgMSBkZWxldGlvbigtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2lu
-dGVsX2RzaV92YnQuYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2RzaV92YnQuYwppbmRl
-eCBmMjdhZjQ3YzZlNDkuLmViZTdlMjU2MTRjZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJt
-L2k5MTUvaW50ZWxfZHNpX3ZidC5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2Rz
-aV92YnQuYwpAQCAtMjksOSArMjksMTEgQEAKICNpbmNsdWRlIDxkcm0vZHJtX2VkaWQuaD4KICNp
-bmNsdWRlIDxkcm0vaTkxNV9kcm0uaD4KICNpbmNsdWRlIDxsaW51eC9ncGlvL2NvbnN1bWVyLmg+
-CisjaW5jbHVkZSA8bGludXgvbWZkL2ludGVsX3NvY19wbWljLmg+CiAjaW5jbHVkZSA8bGludXgv
-c2xhYi5oPgogI2luY2x1ZGUgPHZpZGVvL21pcGlfZGlzcGxheS5oPgogI2luY2x1ZGUgPGFzbS9p
-bnRlbC1taWQuaD4KKyNpbmNsdWRlIDxhc20vdW5hbGlnbmVkLmg+CiAjaW5jbHVkZSA8dmlkZW8v
-bWlwaV9kaXNwbGF5Lmg+CiAjaW5jbHVkZSAiaTkxNV9kcnYuaCIKICNpbmNsdWRlICJpbnRlbF9k
-cnYuaCIKQEAgLTM3MSw3ICszNzMsMjUgQEAgc3RhdGljIGNvbnN0IHU4ICptaXBpX2V4ZWNfc3Bp
-KHN0cnVjdCBpbnRlbF9kc2kgKmludGVsX2RzaSwgY29uc3QgdTggKmRhdGEpCiAKIHN0YXRpYyBj
-b25zdCB1OCAqbWlwaV9leGVjX3BtaWMoc3RydWN0IGludGVsX2RzaSAqaW50ZWxfZHNpLCBjb25z
-dCB1OCAqZGF0YSkKIHsKLQlEUk1fREVCVUdfS01TKCJTa2lwcGluZyBQTUlDIGVsZW1lbnQgZXhl
-Y3V0aW9uXG4iKTsKKyNpZmRlZiBDT05GSUdfUE1JQ19PUFJFR0lPTgorCXUzMiB2YWx1ZSwgbWFz
-aywgcmVnX2FkZHJlc3M7CisJdTE2IGkyY19hZGRyZXNzOworCWludCByZXQ7CisKKwkvKiBieXRl
-IDAgYWthIFBNSUMgRmxhZyBpcyByZXNlcnZlZCAqLworCWkyY19hZGRyZXNzCT0gZ2V0X3VuYWxp
-Z25lZF9sZTE2KGRhdGEgKyAxKTsKKwlyZWdfYWRkcmVzcwk9IGdldF91bmFsaWduZWRfbGUzMihk
-YXRhICsgMyk7CisJdmFsdWUJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyA3KTsKKwltYXNr
-CQk9IGdldF91bmFsaWduZWRfbGUzMihkYXRhICsgMTEpOworCisJcmV0ID0gaW50ZWxfc29jX3Bt
-aWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoaTJjX2FkZHJlc3MsCisJCQkJCQkJcmVnX2Fk
-ZHJlc3MsCisJCQkJCQkJdmFsdWUsIG1hc2spOworCWlmIChyZXQpCisJCURSTV9FUlJPUigiJXMg
-ZmFpbGVkLCBlcnJvcjogJWRcbiIsIF9fZnVuY19fLCByZXQpOworI2Vsc2UKKwlEUk1fRVJST1Io
-IllvdXIgaGFyZHdhcmUgcmVxdWlyZXMgQ09ORklHX1BNSUNfT1BSRUdJT04gYW5kIGl0IGlzIG5v
-dCBzZXRcbiIpOworI2VuZGlmCiAKIAlyZXR1cm4gZGF0YSArIDE1OwogfQotLSAKMi4xOS4yCgpf
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZngg
-bWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+Hi Boris,
+
+On 11/12/2018 16:48, Borislav Petkov wrote:
+> On Mon, Dec 03, 2018 at 06:05:52PM +0000, James Morse wrote:
+>> ghes.c has a memory pool it uses for the estatus cache and the estatus
+>> queue. The cache is initialised when registering the platform driver.
+>> For the queue, an NMI-like notification has to grow/shrink the pool
+>> as it is registered and unregistered.
+>>
+>> This is all pretty noisy when adding new NMI-like notifications, it
+>> would be better to replace this with a static pool size based on the
+>> number of users.
+>>
+>> As a precursor, move the call that creates the pool from ghes_init(),
+>> into hest.c. Later this will take the number of ghes entries and
+>> consolidate the queue allocations.
+>> Remove ghes_estatus_pool_exit() as hest.c doesn't have anywhere to put
+>> this.
+>>
+>> The pool is now initialised as part of ACPI's subsys_initcall():
+>> (acpi_init(), acpi_scan_init(), acpi_pci_root_init(), acpi_hest_init())
+>> Before this patch it happened later as a GHES specific device_initcall().
+
+>> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+>> index b1e9f81ebeea..da5fabaeb48f 100644
+>> --- a/drivers/acpi/apei/hest.c
+>> +++ b/drivers/acpi/apei/hest.c
+>> @@ -32,6 +32,7 @@
+>>  #include <linux/io.h>
+>>  #include <linux/platform_device.h>
+>>  #include <acpi/apei.h>
+>> +#include <acpi/ghes.h>
+>>  
+>>  #include "apei-internal.h"
+>>  
+>> @@ -200,6 +201,10 @@ static int __init hest_ghes_dev_register(unsigned int ghes_count)
+>>  	if (!ghes_arr.ghes_devs)
+>>  		return -ENOMEM;
+>>  
+>> +	rc = ghes_estatus_pool_init();
+>> +	if (rc)
+>> +		goto out;
+> 
+> Right, this happens before...
+> 
+>> +
+>>  	rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
+> 
+> ... this but do we even want to do any memory allocations if we don't
+> have any HEST tables or we've been disabled by hest_disable?
+
+I agree we shouldn't,
+
+
+> IOW, we should swap those two calls, methinks.
+
+/me digs a bit,
+
+ghes_estatus_pool_init() allocates memory from hest_ghes_dev_register().
+Its caller is behind a 'if (!ghes_disable)' in acpi_hest_init(), and is after
+another 2 calls to apei_hest_parse().
+
+If ghes_disable is set, we don't call this thing.
+If hest_disable is set, acpi_hest_init() exits early.
+If we don't have a HEST table, acpi_hest_init() exits early.
+
+... if the HEST table doesn't have any GHES entries, hest_ghes_dev_register() is
+called with ghes_count==0, and does nothing useful. (kmalloc_alloc_array(0,...)
+great!) But we do call ghes_estatus_pool_init().
+
+I think a check that ghes_count is non-zero before calling
+hest_ghes_dev_register() is the cleanest way to avoid this.
+
+I wanted the estatus pool to be initialised before creating the platform devices
+in case the order of these things is changed in the future and they get probed
+immediately, before the pool is initialised.
+
+
+Thanks,
+
+James
