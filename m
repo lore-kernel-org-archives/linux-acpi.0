@@ -1,53 +1,101 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] acpi / apei: fix NULL deref during init
-Date: Fri, 14 Dec 2018 23:54:28 +0100
-Message-ID: <20181214225428.GL11710@zn.tnic>
-References: <20181214181514.29891-1-tst@schoebel-theuer.de>
- <20181214202406.GI11710@zn.tnic>
- <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
- <5ec69dad-7943-343b-5ced-9a962652e14c@schoebel-theuer.de>
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH v9 6/6] PCI: Stub out pci_request_acs() when CONFIG_PCI is
+ not set
+Date: Fri, 14 Dec 2018 23:33:33 +0000
+Message-ID: <c4c4151c-131b-9a97-257a-c4ffb2589b61@arm.com>
+References: <20181214163319.27479-1-okaya@kernel.org>
+ <20181214163319.27479-7-okaya@kernel.org> <20181214222601.GH20725@google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5ec69dad-7943-343b-5ced-9a962652e14c@schoebel-theuer.de>
+In-Reply-To: <20181214222601.GH20725@google.com>
+Content-Language: en-GB
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas =?utf-8?Q?Sch=C3=B6bel-Theuer?= <thomas@schoebel-theuer.de>
-Cc: Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, linux-kernel@vger.kernel.org, Laura Abbott <labbott@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Sinan Kaya <okaya@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 11:42:01PM +0100, Thomas Schöbel-Theuer wrote:
-> Ah, I overlooked that commit e56c92565dfe2 is already providing a different
-> solution to the same problem in newer kernels _only_, as a _side_ effect
-> (not clear to me from the description, but clear from reading the code).
+On 2018-12-14 10:26 pm, Bjorn Helgaas wrote:
+> [+cc Lorenzo, Robin, Logan]
+> 
+> On Fri, Dec 14, 2018 at 04:33:19PM +0000, Sinan Kaya wrote:
+>> ACPI IORT table code relies on pci_request_acs() to be present. Define
+>> a stub function when CONFI_PCI is not set.
+> 
+> This doesn't seem like the simplest approach to me, but I probably
+> don't understand what's going on in IORT.
+> 
+> It looks like *all* of iort_enable_acs() (the caller of
+> pci_request_acs()) is PCI-specific; at least, the whole thing is
+> wrapped in a test for ACPI_IORT_NODE_PCI_ROOT_COMPLEX.  So the whole
+> function could be wrapped in #ifdef CONFIG_PCI.
+> 
+> Here's the caller of iort_enable_acs():
+> 
+>    iort_init_platform_devices
+>      acs_enabled = false
+>      for (i = 0; i < iort->node_count; i++) {
+>        if (!acs_enabled)
+>          acs_enabled = iort_enable_acs(iort_node);
+> 
+> It seems like the acs_enabled state could be encapsulated inside
+> iort_enable_acs().
 
-Damn, I missed the fact that this is not the upstream kernel:
+It could, but with the tiny disadvantage of having to allocate static 
+storage for it to maintain the "don't bother checking if we want ACS if 
+we've already requested it once" logic for multiple root complexes.
 
-CPU: 0 PID: 1 UID: 0 Comm: swapper/0 Not tainted 4.4.0-ui18344.004-uiabi1-infong-amd64 #1
+> Today pci_request_acs() is a system-wide thing, but I don't know why
+> that's the case.  Isn't it conceivable that different PCI hierarchies
+> could have different ACS policies, e.g., because of P2P DMA or
+> something?
 
-> So another alternative would be backporting e56c92565dfe2 to the 4.4 LTS
-> series. Also fine for me.
+I can certainly imagine systems using entirely separate PCI domains for, 
+say, expansion slots vs. on-board/on-chip devices, where the former may 
+be expected to be assigned to VMs or userspace drivers and the latter 
+only ever controlled by the host kernel. Not forcing ACS overhead upon 
+the "non-virtualisable" (or "trusted" vs. "untrusted") domain could 
+perhaps be beneficial in some cases.
 
-That looks like the right fix.
+> Bottom line, pci_request_acs() is being called from what looks like
+> PCI-specific code in IORT, and it would make more sense to me to prune
+> out that code in IORT than to make a stub pci_request_acs().
 
-A note for the next time: do not send a fix for a stable kernel which is
-not upstream:
+Agreed - without CONFIG_PCI the whole of iort_enable_acs() may as well 
+be stubbed out, because it won't achieve anything anyway. The 
+implication is that if we have a root complex whose inbound DMA is 
+controlled by an SMMU, we should enable ACS to make VFIO useful (or in 
+case we want to enforce strict DMA isolation in general), but if Linux 
+is never going to touch any PCI devices there's no point even looking at 
+the RC node(s). TBH I'm pretty dubious about having IORT at all without 
+PCI, but I suppose there could potentially be embedded SoCs which have 
+an ITS and platform MSIs, or use an SMMU for their video/display 
+subsystem, and for some reason demand ACPI-based firmware.
 
->From Documentation/process/stable-kernel-rules.rst:
+Robin.
 
-" - It or an equivalent fix must already exist in Linus' tree (upstream)."
-
-The stable kernels track upstream so if a stable kernel has a problem,
-the first thing one needs to do is to check whether this has been fixed
-upstream and if so, to backport it. This is the case most of the time.
-In the very seldom cases where a separate fix is needed, it needs to be
-handled by asking Greg what to do. :-)
-
-Adding stable@ folks to CC to set me straight if I'm missing something.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+>> ---
+>>   include/linux/pci.h | 4 ++++
+>>   1 file changed, 4 insertions(+)
+>>
+>> diff --git a/include/linux/pci.h b/include/linux/pci.h
+>> index 51a5a5217667..f0f2f55ea93c 100644
+>> --- a/include/linux/pci.h
+>> +++ b/include/linux/pci.h
+>> @@ -2101,7 +2101,11 @@ static inline struct pci_dev *pcie_find_root_port(struct pci_dev *dev)
+>>   	return NULL;
+>>   }
+>>   
+>> +#ifdef CONFIG_PCI
+>>   void pci_request_acs(void);
+>> +#else
+>> +static inline void pci_request_acs(void) {}
+>> +#endif
+>>   bool pci_acs_enabled(struct pci_dev *pdev, u16 acs_flags);
+>>   bool pci_acs_path_enabled(struct pci_dev *start,
+>>   			  struct pci_dev *end, u16 acs_flags);
+>> -- 
+>> 2.19.0
+>>
