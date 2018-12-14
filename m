@@ -1,61 +1,47 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 3/3] of/property: Add of_fwnode_name()
-Date: Fri, 14 Dec 2018 10:36:15 +0100
-Message-ID: <CAJZ5v0hvGL8DnxFAtp3NiuT7ubTBuoKbTzbD9UaZYNpgZLiWaQ@mail.gmail.com>
-References: <20181211131451.52832-1-heikki.krogerus@linux.intel.com> <20181211131451.52832-4-heikki.krogerus@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v4 1/3] ACPI / PMIC: Add support for
+ executing PMIC MIPI sequence elements
+Date: Fri, 14 Dec 2018 11:47:02 +0200
+Message-ID: <20181214094702.GS2469@lahna.fi.intel.com>
+References: <20181213153533.10949-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181211131451.52832-4-heikki.krogerus@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>, Rob Herring <robh@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20181213153533.10949-1-hdegoede@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 11, 2018 at 2:15 PM Heikki Krogerus
-<heikki.krogerus@linux.intel.com> wrote:
->
-> This implements get_name fwnode op for DT.
->
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-
-Rob, any objections here?
-
-> ---
->  drivers/of/property.c | 13 +++++++++++++
->  1 file changed, 13 insertions(+)
->
-> diff --git a/drivers/of/property.c b/drivers/of/property.c
-> index 08430031bd28..5c10fdded473 100644
-> --- a/drivers/of/property.c
-> +++ b/drivers/of/property.c
-> @@ -823,6 +823,18 @@ static void of_fwnode_put(struct fwnode_handle *fwnode)
->         of_node_put(to_of_node(fwnode));
->  }
->
-> +static int of_fwnode_get_name(const struct fwnode_handle *fwnode, char *buf,
-> +                             size_t len)
-> +{
-> +       const struct device_node *node = to_of_node(fwnode);
-> +
-> +       if (len < snprintf(NULL, 0, "%pOFn", node) + 1)
-> +               return -EOVERFLOW;
-> +
-> +       sprintf(buf, "%pOFn", node);
-> +       return 0;
-> +}
-> +
->  static bool of_fwnode_device_is_available(const struct fwnode_handle *fwnode)
->  {
->         return of_device_is_available(to_of_node(fwnode));
-> @@ -987,6 +999,7 @@ of_fwnode_device_get_match_data(const struct fwnode_handle *fwnode,
->  const struct fwnode_operations of_fwnode_ops = {
->         .get = of_fwnode_get,
->         .put = of_fwnode_put,
-> +       .get_name = of_fwnode_get_name,
->         .device_is_available = of_fwnode_device_is_available,
->         .device_get_match_data = of_fwnode_device_get_match_data,
->         .property_present = of_fwnode_property_present,
-> --
-> 2.19.2
->
+T24gVGh1LCBEZWMgMTMsIDIwMTggYXQgMDQ6MzU6MzFQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPiBEU0kgTENEIHBhbmVscyBkZXNjcmliZSBhbiBpbml0aWFsaXphdGlvbiBzZXF1ZW5j
+ZSBpbiB0aGUgVmlkZW8gQklPUwo+IFRhYmxlcyB1c2luZyBzbyBjYWxsZWQgTUlQSSBzZXF1ZW5j
+ZXMuIE9uZSBwb3NzaWJsZSBlbGVtZW50IGluIHRoZXNlCj4gc2VxdWVuY2VzIGlzIGEgUE1JQyBz
+cGVjaWZpYyBlbGVtZW50IG9mIDE1IGJ5dGVzLgo+IAo+IEFsdGhvdWdoIHRoaXMgaXMgbm90IHJl
+YWxseSBhbiBBQ1BJIG9wcmVnaW9uLCB0aGUgQUNQSSBvcHJlZ2lvbiBjb2RlIGlzIHRoZQo+IGNs
+b3Nlc3QgdGhpbmcgd2UgaGF2ZS4gV2UgbmVlZCB0byBoYXZlIHN1cHBvcnQgZm9yIHRoZXNlIFBN
+SUMgc3BlY2lmaWMgTUlQSQo+IHNlcXVlbmNlIGVsZW1lbnRzIHNvbXdoZXJlLiBTaW5jZSB3ZSBh
+bHJlYWR5IGluc3RhbnRpYXRlIGEgc3BlY2lhbCBwbGF0Zm9ybQo+IGRldmljZSBmb3IgSW50ZWwg
+UE1JQ3MgZm9yIHRoZSBBQ1BJIFBNSUMgT3BSZWdpb24gaGFuZGxlciB0byBiaW5kIHRvLAo+IHdp
+dGggUE1JQyBzcGVjaWZpYyBpbXBsZW1lbnRhdGlvbnMgb2YgdGhlIE9wUmVnaW9uLCB0aGUgaGFu
+ZGxpbmcgb2YgTUlQSQo+IHNlcXVlbmNlIFBNSUMgZWxlbWVudHMgZml0cyB2ZXJ5IHdlbGwgaW4g
+dGhlIEFDUEkgUE1JQyBPcFJlZ2lvbiBjb2RlLgo+IAo+IFRoaXMgY29tbWl0IGFkZHMgYSBuZXcg
+aW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoKQo+IGZ1bmN0aW9uLCB3
+aGljaCBpcyB0byBiZSBiYWNrZWQgYnkgYSBQTUlDIHNwZWNpZmljCj4gZXhlY19taXBpX3BtaWNf
+c2VxX2VsZW1lbnQgY2FsbGJhY2suIFRoaXMgZnVuY3Rpb24gd2lsbCBiZSBjYWxsZWQgYnkgdGhl
+Cj4gaTkxNSBjb2RlIHRvIGV4ZWN0dXJlIE1JUEkgc2VxdWVuY2UgUE1JQyBlbGVtZW50cy4KPiAK
+PiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgoKUmV2
+aWV3ZWQtYnk6IE1pa2EgV2VzdGVyYmVyZyA8bWlrYS53ZXN0ZXJiZXJnQGxpbnV4LmludGVsLmNv
+bT4KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwt
+Z2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cg==
