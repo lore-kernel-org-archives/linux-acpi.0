@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v9 2/6] ACPI / OSL: Stub out acpi_os_(read/write)_pci_configurations()
-Date: Fri, 14 Dec 2018 16:33:15 +0000
-Message-ID: <20181214163319.27479-3-okaya@kernel.org>
+Subject: [PATCH v9 5/6] arm64: select ACPI PCI code only both features are enabled
+Date: Fri, 14 Dec 2018 16:33:18 +0000
+Message-ID: <20181214163319.27479-6-okaya@kernel.org>
 References: <20181214163319.27479-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,62 +9,39 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181214163319.27479-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "moderated list:ARM64 PORT
+        AARCH64 ARCHITECTURE" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Getting ready to allow CONFIG_PCI to be unset with ACPI enabled. Stub out
-acpi_os_read_pci_configuration and acpi_os_write_pci_configuration
-functions when CONFIG_PCI is not defined.
+ACPI and PCI are no longer coupled to each other. Specify requirements
+for both when pulling in code.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/acpi/osl.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ arch/arm64/Kconfig | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index b48874b8e1ea..524fd5f33ea4 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -773,6 +773,7 @@ acpi_status
- acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 			       u64 *value, u32 width)
- {
-+#ifdef CONFIG_PCI
- 	int result, size;
- 	u32 value32;
- 
-@@ -799,12 +800,19 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 	*value = value32;
- 
- 	return (result ? AE_ERROR : AE_OK);
-+#else
-+	int rc;
-+
-+	rc = pr_warn_once("PCI configuration space access is not supported\n");
-+	return rc ? AE_SUPPORT : AE_OK;
-+#endif
- }
- 
- acpi_status
- acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 				u64 value, u32 width)
- {
-+#ifdef CONFIG_PCI
- 	int result, size;
- 
- 	switch (width) {
-@@ -826,6 +834,12 @@ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 				reg, size, value);
- 
- 	return (result ? AE_ERROR : AE_OK);
-+#else
-+	int rc;
-+
-+	rc = pr_warn_once("PCI configuration space access is not supported\n");
-+	return rc ? AE_SUPPORT : AE_OK;
-+#endif
- }
- 
- static void acpi_os_execute_deferred(struct work_struct *work)
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index ea2ab0330e3a..bcb6262044d8 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -5,7 +5,7 @@ config ARM64
+ 	select ACPI_GTDT if ACPI
+ 	select ACPI_IORT if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+-	select ACPI_MCFG if ACPI
++	select ACPI_MCFG if (ACPI && PCI)
+ 	select ACPI_SPCR_TABLE if ACPI
+ 	select ACPI_PPTT if ACPI
+ 	select ARCH_CLOCKSOURCE_DATA
+@@ -163,7 +163,7 @@ config ARM64
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select OF_RESERVED_MEM
+-	select PCI_ECAM if ACPI
++	select PCI_ECAM if (ACPI && PCI)
+ 	select POWER_RESET
+ 	select POWER_SUPPLY
+ 	select REFCOUNT_FULL
 -- 
 2.19.0
