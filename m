@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v8 1/4] ACPI: Allow CONFIG_PCI to be unset for reboot
-Date: Fri, 14 Dec 2018 03:12:49 +0000
-Message-ID: <20181214031252.28707-2-okaya@kernel.org>
+Subject: [PATCH v8 4/4] ACPICA: Remove PCI bits from ACPICA when CONFIG_PCI is unset
+Date: Fri, 14 Dec 2018 03:12:52 +0000
+Message-ID: <20181214031252.28707-5-okaya@kernel.org>
 References: <20181214031252.28707-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,52 +9,77 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181214031252.28707-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Anuj Mittal <anuj.mittal@intel.com>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Make PCI reboot conditional on PCI support being present on the kernel
-configuration.
+Now that we allow CONFIG_PCI to be unset, remove useless code from ACPICA
+too.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/acpi/reboot.c | 10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/Makefile    | 2 +-
+ drivers/acpi/acpica/achware.h   | 9 +++++++++
+ include/acpi/platform/aclinux.h | 4 ++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
-index 6fa9c2a4cfe9..d75e637ee36a 100644
---- a/drivers/acpi/reboot.c
-+++ b/drivers/acpi/reboot.c
-@@ -7,8 +7,6 @@
- void acpi_reboot(void)
- {
- 	struct acpi_generic_address *rr;
--	struct pci_bus *bus0;
--	unsigned int devfn;
- 	u8 reset_value;
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index b14621da5413..59700433a96e 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -77,13 +77,13 @@ acpi-y +=		\
+ 	hwacpi.o	\
+ 	hwesleep.o	\
+ 	hwgpe.o		\
+-	hwpci.o		\
+ 	hwregs.o	\
+ 	hwsleep.o	\
+ 	hwvalid.o	\
+ 	hwxface.o	\
+ 	hwxfsleep.o
  
- 	if (acpi_disabled)
-@@ -33,6 +31,11 @@ void acpi_reboot(void)
- 	 * on a device on bus 0. */
- 	switch (rr->space_id) {
- 	case ACPI_ADR_SPACE_PCI_CONFIG:
-+	{
-+#ifdef CONFIG_PCI
-+		unsigned int devfn;
-+		struct pci_bus *bus0;
-+
- 		/* The reset register can only live on bus 0. */
- 		bus0 = pci_find_bus(0, 0);
- 		if (!bus0)
-@@ -44,8 +47,9 @@ void acpi_reboot(void)
- 		/* Write the value that resets us. */
- 		pci_bus_write_config_byte(bus0, devfn,
- 				(rr->address & 0xffff), reset_value);
++acpi-$(CONFIG_PCI) += hwpci.o
+ acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
+ 
+ acpi-y +=		\
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index 43ce67a9da1f..ef99e2fc37f8 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -106,11 +106,20 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ 				 struct acpi_gpe_block_info *gpe_block,
+ 				 void *context);
+ 
++#ifdef ACPI_PCI_CONFIGURED
+ /*
+  * hwpci - PCI configuration support
+  */
+ acpi_status
+ acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
+ 		      acpi_handle root_pci_device, acpi_handle pci_region);
++#else
++static inline acpi_status
++acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id, acpi_handle root_pci_device,
++		      acpi_handle pci_region)
++{
++	return AE_SUPPORT;
++}
 +#endif
- 		break;
--
-+	}
- 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
- 	case ACPI_ADR_SPACE_SYSTEM_IO:
- 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+ 
+ #endif				/* __ACHWARE_H__ */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 7451b3bca83a..e3d21d014fcc 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -33,6 +33,10 @@
+ 
+ /* Kernel specific ACPICA configuration */
+ 
++#ifdef CONFIG_PCI
++#define ACPI_PCI_CONFIGURED
++#endif
++
+ #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
+ #define ACPI_REDUCED_HARDWARE 1
+ #endif
 -- 
 2.19.0
