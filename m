@@ -1,77 +1,75 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] acpi / apei: fix NULL deref during init
-Date: Fri, 14 Dec 2018 23:22:36 +0100
-Message-ID: <20181214222236.GK11710@zn.tnic>
-References: <20181214181514.29891-1-tst@schoebel-theuer.de>
- <20181214202406.GI11710@zn.tnic>
- <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v9 6/6] PCI: Stub out pci_request_acs() when CONFIG_PCI
+ is not set
+Date: Fri, 14 Dec 2018 16:26:01 -0600
+Message-ID: <20181214222601.GH20725@google.com>
+References: <20181214163319.27479-1-okaya@kernel.org>
+ <20181214163319.27479-7-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
+In-Reply-To: <20181214163319.27479-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Schoebel-Theuer <tst@schoebel-theuer.de>
-Cc: linux-kernel@vger.kernel.org, Laura Abbott <labbott@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-acpi@vger.kernel.org, "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Robin Murphy <robin.murphy@arm.com>, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 10:27:25PM +0100, Thomas Schoebel-Theuer wrote:
-> please take a look at the stacktrace. For some reason, and only at that
-> specific hardware, the condition is false, there but later the indicated
-> error exit is taken whose message you can see immediately before the stack
-> trace.
+[+cc Lorenzo, Robin, Logan]
 
-Yes, but if you say "for some reason", then we still don't know what
-the root cause is. So before we do any fixing, let's find out what the
-problem is first.
+On Fri, Dec 14, 2018 at 04:33:19PM +0000, Sinan Kaya wrote:
+> ACPI IORT table code relies on pci_request_acs() to be present. Define
+> a stub function when CONFI_PCI is not set.
 
-Can you pls run this debugging hunk ontop of -rc6, on the box and send
-me full dmesg? Privately is fine too.
+This doesn't seem like the simplest approach to me, but I probably
+don't understand what's going on in IORT.
 
-Thx.
+It looks like *all* of iort_enable_acs() (the caller of
+pci_request_acs()) is PCI-specific; at least, the whole thing is
+wrapped in a test for ACPI_IORT_NODE_PCI_ROOT_COMPLEX.  So the whole
+function could be wrapped in #ifdef CONFIG_PCI.
 
----
-diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
-index 7389db538c30..5166639b7280 100644
---- a/arch/x86/pci/mmconfig-shared.c
-+++ b/arch/x86/pci/mmconfig-shared.c
-@@ -667,6 +667,9 @@ void __init pci_mmcfg_early_init(void)
- 			acpi_sfi_table_parse(ACPI_SIG_MCFG, pci_parse_mcfg);
- 		__pci_mmcfg_init(1);
- 
-+		pr_info("%s: setting apei filter\n", __func__);
-+		dump_stack();
-+
- 		set_apei_filter();
- 	}
- }
-diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
-index da370e1d31f4..e87b183ca73d 100644
---- a/drivers/acpi/apei/apei-base.c
-+++ b/drivers/acpi/apei/apei-base.c
-@@ -494,6 +494,9 @@ int apei_resources_request(struct apei_resources *resources,
- 	if (rc)
- 		goto nvs_res_fini;
- 
-+	pr_info("%s: 1, arch_apei_filter_addr: 0x%px\n",
-+		__func__, arch_apei_filter_addr);
-+
- 	if (arch_apei_filter_addr) {
- 		apei_resources_init(&arch_res);
- 		rc = apei_get_arch_resources(&arch_res);
-@@ -552,6 +555,9 @@ int apei_resources_request(struct apei_resources *resources,
- 		release_mem_region(res->start, res->end - res->start);
- 	}
- arch_res_fini:
-+	pr_info("%s: arch_res_fini, arch_apei_filter_addr: 0x%px\n",
-+		__func__, arch_apei_filter_addr);
-+
- 	if (arch_apei_filter_addr)
- 		apei_resources_fini(&arch_res);
- nvs_res_fini:
+Here's the caller of iort_enable_acs():
 
--- 
-Regards/Gruss,
-    Boris.
+  iort_init_platform_devices
+    acs_enabled = false
+    for (i = 0; i < iort->node_count; i++) {
+      if (!acs_enabled)
+        acs_enabled = iort_enable_acs(iort_node);
 
-Good mailing practices for 400: avoid top-posting and trim the reply.
+It seems like the acs_enabled state could be encapsulated inside
+iort_enable_acs().
+
+Today pci_request_acs() is a system-wide thing, but I don't know why
+that's the case.  Isn't it conceivable that different PCI hierarchies
+could have different ACS policies, e.g., because of P2P DMA or
+something?
+
+Bottom line, pci_request_acs() is being called from what looks like
+PCI-specific code in IORT, and it would make more sense to me to prune
+out that code in IORT than to make a stub pci_request_acs().
+
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  include/linux/pci.h | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 51a5a5217667..f0f2f55ea93c 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -2101,7 +2101,11 @@ static inline struct pci_dev *pcie_find_root_port(struct pci_dev *dev)
+>  	return NULL;
+>  }
+>  
+> +#ifdef CONFIG_PCI
+>  void pci_request_acs(void);
+> +#else
+> +static inline void pci_request_acs(void) {}
+> +#endif
+>  bool pci_acs_enabled(struct pci_dev *pdev, u16 acs_flags);
+>  bool pci_acs_path_enabled(struct pci_dev *start,
+>  			  struct pci_dev *end, u16 acs_flags);
+> -- 
+> 2.19.0
+> 
