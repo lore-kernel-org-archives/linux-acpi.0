@@ -1,85 +1,44 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v9 4/6] ACPICA: Remove PCI bits from ACPICA when CONFIG_PCI is unset
-Date: Fri, 14 Dec 2018 16:33:17 +0000
-Message-ID: <20181214163319.27479-5-okaya@kernel.org>
-References: <20181214163319.27479-1-okaya@kernel.org>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v6 3/3] of/property: Add of_fwnode_name()
+Date: Fri, 14 Dec 2018 11:46:02 -0600
+Message-ID: <CAL_JsqLn3dbt-8Hjoja5AJip7FxLoWLAh0Cuk1eqE3Z8RiaO1A@mail.gmail.com>
+References: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
+ <20181211131451.52832-4-heikki.krogerus@linux.intel.com> <CAJZ5v0hvGL8DnxFAtp3NiuT7ubTBuoKbTzbD9UaZYNpgZLiWaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181214163319.27479-1-okaya@kernel.org>
+In-Reply-To: <CAJZ5v0hvGL8DnxFAtp3NiuT7ubTBuoKbTzbD9UaZYNpgZLiWaQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Anuj Mittal <anuj.mittal@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we allow CONFIG_PCI to be unset, remove useless code from ACPICA
-too.
+On Fri, Dec 14, 2018 at 3:36 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Tue, Dec 11, 2018 at 2:15 PM Heikki Krogerus
+> <heikki.krogerus@linux.intel.com> wrote:
+> >
+> > This implements get_name fwnode op for DT.
+> >
+> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+>
+> Rob, any objections here?
 
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/acpi/acpica/Makefile    | 2 +-
- drivers/acpi/acpica/achware.h   | 9 +++++++++
- include/acpi/platform/aclinux.h | 4 ++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+Yes, what I said in v5.
 
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index b14621da5413..59700433a96e 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -77,13 +77,13 @@ acpi-y +=		\
- 	hwacpi.o	\
- 	hwesleep.o	\
- 	hwgpe.o		\
--	hwpci.o		\
- 	hwregs.o	\
- 	hwsleep.o	\
- 	hwvalid.o	\
- 	hwxface.o	\
- 	hwxfsleep.o
- 
-+acpi-$(CONFIG_PCI) += hwpci.o
- acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
- 
- acpi-y +=		\
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index 43ce67a9da1f..ef99e2fc37f8 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -106,11 +106,20 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 				 struct acpi_gpe_block_info *gpe_block,
- 				 void *context);
- 
-+#ifdef ACPI_PCI_CONFIGURED
- /*
-  * hwpci - PCI configuration support
-  */
- acpi_status
- acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
- 		      acpi_handle root_pci_device, acpi_handle pci_region);
-+#else
-+static inline acpi_status
-+acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id, acpi_handle root_pci_device,
-+		      acpi_handle pci_region)
-+{
-+	return AE_SUPPORT;
-+}
-+#endif
- 
- #endif				/* __ACHWARE_H__ */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 7451b3bca83a..e3d21d014fcc 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -33,6 +33,10 @@
- 
- /* Kernel specific ACPICA configuration */
- 
-+#ifdef CONFIG_PCI
-+#define ACPI_PCI_CONFIGURED
-+#endif
-+
- #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
- #define ACPI_REDUCED_HARDWARE 1
- #endif
--- 
-2.19.0
+At one point this series had a user which was finding a matching node
+by name. Now there is no user, so I can't really say whether this API
+makes sense or not.
+
+There's generally only 2 uses for 'name' at least for DT. The first is
+node matching by name. ICYMI, every case of that in the tree is now
+replaced with of_node_name_eq(). Now the details of matching by node
+name are contained within the DT API. The 2nd use of node names is
+just informational purposes or to fill some other structure's name
+string (e.g. struct resource). In these cases, device_node.full_name
+can be used. The only difference is full_name includes the unit
+address ('@1234' part) if there is one. For these uses, the kernel
+shouldn't generally care what the name actually is, but that's not
+really enforceable.
+
+Rob
