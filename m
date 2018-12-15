@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v10 6/6] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
-Date: Sat, 15 Dec 2018 01:02:47 +0000
-Message-ID: <20181215010247.26101-7-okaya@kernel.org>
+Subject: [PATCH v10 4/6] ACPICA: Remove PCI bits from ACPICA when CONFIG_PCI is unset
+Date: Sat, 15 Dec 2018 01:02:45 +0000
+Message-ID: <20181215010247.26101-5-okaya@kernel.org>
 References: <20181215010247.26101-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,35 +9,77 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181215010247.26101-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, Lv Zheng <lv.zheng@intel.com>, Anuj Mittal <anuj.mittal@intel.com>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
+Now that we allow CONFIG_PCI to be unset, remove useless code from ACPICA
+too.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/acpi/arm64/iort.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/acpi/acpica/Makefile    | 2 +-
+ drivers/acpi/acpica/achware.h   | 9 +++++++++
+ include/acpi/platform/aclinux.h | 4 ++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 70f4e80b9246..d0f68607efe6 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -1437,6 +1437,7 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index b14621da5413..59700433a96e 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -77,13 +77,13 @@ acpi-y +=		\
+ 	hwacpi.o	\
+ 	hwesleep.o	\
+ 	hwgpe.o		\
+-	hwpci.o		\
+ 	hwregs.o	\
+ 	hwsleep.o	\
+ 	hwvalid.o	\
+ 	hwxface.o	\
+ 	hwxfsleep.o
  
- static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
- {
-+#ifdef CONFIG_PCI
- 	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
- 		struct acpi_iort_node *parent;
- 		struct acpi_iort_id_mapping *map;
-@@ -1462,6 +1463,7 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
- 			}
- 		}
- 	}
++acpi-$(CONFIG_PCI) += hwpci.o
+ acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
+ 
+ acpi-y +=		\
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index 43ce67a9da1f..ef99e2fc37f8 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -106,11 +106,20 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ 				 struct acpi_gpe_block_info *gpe_block,
+ 				 void *context);
+ 
++#ifdef ACPI_PCI_CONFIGURED
+ /*
+  * hwpci - PCI configuration support
+  */
+ acpi_status
+ acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
+ 		      acpi_handle root_pci_device, acpi_handle pci_region);
++#else
++static inline acpi_status
++acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id, acpi_handle root_pci_device,
++		      acpi_handle pci_region)
++{
++	return AE_SUPPORT;
++}
 +#endif
  
- 	return false;
- }
+ #endif				/* __ACHWARE_H__ */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 7451b3bca83a..e3d21d014fcc 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -33,6 +33,10 @@
+ 
+ /* Kernel specific ACPICA configuration */
+ 
++#ifdef CONFIG_PCI
++#define ACPI_PCI_CONFIGURED
++#endif
++
+ #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
+ #define ACPI_REDUCED_HARDWARE 1
+ #endif
 -- 
 2.19.0
