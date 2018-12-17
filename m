@@ -1,33 +1,34 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFT][PATCH 0/2] ACPI / PM: Avoid spurious wakeups from
- non-wakeup GPEs in suspend-to-idle
-Date: Mon, 17 Dec 2018 18:50:25 +0200
-Message-ID: <20181217165025.GA2469@lahna.fi.intel.com>
-References: <4307523.O7RPX2KSmk@aspire.rjw.lan>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v10 3/6] PCI/ACPI: Allow ACPI to be built without
+ CONFIG_PCI set
+Date: Mon, 17 Dec 2018 18:00:57 +0100
+Message-ID: <20181217170056.GA20499@gmail.com>
+References: <20181215010247.26101-1-okaya@kernel.org>
+ <20181215010247.26101-4-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4307523.O7RPX2KSmk@aspire.rjw.lan>
+In-Reply-To: <20181215010247.26101-4-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, Jan Kiszka <jan.kiszka@siemens.com>, Andy Shevchenko <andy.shevchenko@gmail.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, Otavio Pontes <otavio.pontes@intel.com>, Christian =?iso-8859-1?Q?K=F6nig?= <ckoenig.leichtzumerken@gmail.com>, "open list:X86 ARCHITECTURE (32-BIT AND 64-BIT)" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 17, 2018 at 12:19:27PM +0100, Rafael J. Wysocki wrote:
-> Hi All,
 
-Hi Rafael,
+* Sinan Kaya <okaya@kernel.org> wrote:
 
-> It turns out that on some systems non-wakeup GPEs cause trouble (see the
-> changelog of patch [1/2]), so they better should be disabled during
-> suspend-to-idle (at least before entering the main loop of it).  This
-> is done in patch [1/2].
+> We are compiling PCI code today for systems with ACPI and no PCI
+> device present. Remove the useless code and reduce the tight
+> dependency.
 > 
-> Patch [2/2] is just a folllow-up.
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com> # PCI parts
 
-I tested both patches on Lenovo Carbon X1 6th generation and one new
-Dell system. Both default to s2idle. I did not see any issues around
-s2idle with the two patches applied.
+If this is targeted for the ACPI tree:
 
-Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+
+Thanks,
+
+	Ingo
