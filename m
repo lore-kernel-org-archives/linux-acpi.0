@@ -1,56 +1,111 @@
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Subject: Re: [PATCH v6 3/3] of/property: Add of_fwnode_name()
-Date: Mon, 17 Dec 2018 14:15:18 +0200
-Message-ID: <20181217121518.GB14121@kuha.fi.intel.com>
-References: <20181211131451.52832-1-heikki.krogerus@linux.intel.com>
- <20181211131451.52832-4-heikki.krogerus@linux.intel.com>
- <CAJZ5v0hvGL8DnxFAtp3NiuT7ubTBuoKbTzbD9UaZYNpgZLiWaQ@mail.gmail.com>
- <CAL_JsqLn3dbt-8Hjoja5AJip7FxLoWLAh0Cuk1eqE3Z8RiaO1A@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v10 6/6] ACPI/IORT: Stub out ACS functions when
+ CONFIG_PCI is not set
+Date: Mon, 17 Dec 2018 12:55:58 +0000
+Message-ID: <20181217125558.GA20864@e107981-ln.cambridge.arm.com>
+References: <20181215010247.26101-1-okaya@kernel.org>
+ <20181215010247.26101-7-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAL_JsqLn3dbt-8Hjoja5AJip7FxLoWLAh0Cuk1eqE3Z8RiaO1A@mail.gmail.com>
+In-Reply-To: <20181215010247.26101-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rob Herring <robh@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Frank Rowand <frowand.list@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 11:46:02AM -0600, Rob Herring wrote:
-> On Fri, Dec 14, 2018 at 3:36 AM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Tue, Dec 11, 2018 at 2:15 PM Heikki Krogerus
-> > <heikki.krogerus@linux.intel.com> wrote:
-> > >
-> > > This implements get_name fwnode op for DT.
-> > >
-> > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> >
-> > Rob, any objections here?
+On Sat, Dec 15, 2018 at 01:02:47AM +0000, Sinan Kaya wrote:
+> Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
 > 
-> Yes, what I said in v5.
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  drivers/acpi/arm64/iort.c | 2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 70f4e80b9246..d0f68607efe6 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1437,6 +1437,7 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  
+>  static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+>  {
+> +#ifdef CONFIG_PCI
+>  	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+>  		struct acpi_iort_node *parent;
+>  		struct acpi_iort_id_mapping *map;
+> @@ -1462,6 +1463,7 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+>  			}
+>  		}
+>  	}
+> +#endif
+>  
+>  	return false;
+>  }
+> -- 
+> 2.19.0
 
-I did address your comment in v5? The helper no longer tries to read
-"name" property if the callback fails.
+I would prefer the ifdef to wrap the function rather than in the
+function.
 
-> At one point this series had a user which was finding a matching node
-> by name. Now there is no user, so I can't really say whether this API
-> makes sense or not.
+Anyway, as an alternative, what about this:
 
-That is a fair point. I choose to not to convert
-fwnode_get_named_child_node() to use this helper because it would mean
-we would have to allocate the buffer there, and I don't know if it's
-worth it.
-
-Let's forget about this for now. I was planning to use this helper for
-matching a requested remote-endpoint (graph) device, but I'm not sure
-if the node name is usable there.
-
-I'll resend these as part of a real user for the API, if I ever have
-one.
-
-
-thanks,
-
--- 
-heikki
+-- >8 --
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 70f4e80b9246..06d4cc888df6 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1435,8 +1435,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+ 	return ret;
+ }
+ 
+-static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
++#ifdef CONFIG_PCI
++static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ {
++	static bool acs_enabled __initdata = false;
++
++	if (acs_enabled)
++		return;
++
+ 	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+ 		struct acpi_iort_node *parent;
+ 		struct acpi_iort_id_mapping *map;
+@@ -1458,13 +1464,15 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ 			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
+ 				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
+ 				pci_request_acs();
+-				return true;
++				acs_enabled = true;
++				return;
+ 			}
+ 		}
+ 	}
+-
+-	return false;
+ }
++#else
++static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
++#endif
+ 
+ static void __init iort_init_platform_devices(void)
+ {
+@@ -1472,7 +1480,6 @@ static void __init iort_init_platform_devices(void)
+ 	struct acpi_table_iort *iort;
+ 	struct fwnode_handle *fwnode;
+ 	int i, ret;
+-	bool acs_enabled = false;
+ 	const struct iort_dev_config *ops;
+ 
+ 	/*
+@@ -1493,8 +1500,7 @@ static void __init iort_init_platform_devices(void)
+ 			return;
+ 		}
+ 
+-		if (!acs_enabled)
+-			acs_enabled = iort_enable_acs(iort_node);
++		iort_enable_acs(iort_node);
+ 
+ 		ops = iort_get_dev_cfg(iort_node);
+ 		if (ops) {
