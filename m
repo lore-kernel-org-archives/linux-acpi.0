@@ -1,55 +1,33 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v10 5/6] arm64: select ACPI PCI code only both features
- are enabled
-Date: Mon, 17 Dec 2018 15:52:53 +0000
-Message-ID: <20181217155252.5ix7m4vz2zeok4xf@mbp>
-References: <20181215010247.26101-1-okaya@kernel.org>
- <20181215010247.26101-6-okaya@kernel.org>
- <2376424.2qzz6yc3ay@aspire.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFT][PATCH 0/2] ACPI / PM: Avoid spurious wakeups from
+ non-wakeup GPEs in suspend-to-idle
+Date: Mon, 17 Dec 2018 18:50:25 +0200
+Message-ID: <20181217165025.GA2469@lahna.fi.intel.com>
+References: <4307523.O7RPX2KSmk@aspire.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <2376424.2qzz6yc3ay@aspire.rjw.lan>
+In-Reply-To: <4307523.O7RPX2KSmk@aspire.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sinan Kaya <okaya@kernel.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, open list <linux-kernel@vger.kernel.org>, "moderated list:ARM64 PORT (AARCH64 ARCHITECTURE)" <linux-arm-kernel@lists.infradead.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 17, 2018 at 11:04:42AM +0100, Rafael J. Wysocki wrote:
-> On Saturday, December 15, 2018 2:02:46 AM CET Sinan Kaya wrote:
-> > ACPI and PCI are no longer coupled to each other. Specify requirements
-> > for both when pulling in code.
-> > 
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > ---
-> >  arch/arm64/Kconfig | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> > index ea2ab0330e3a..bcb6262044d8 100644
-> > --- a/arch/arm64/Kconfig
-> > +++ b/arch/arm64/Kconfig
-> > @@ -5,7 +5,7 @@ config ARM64
-> >  	select ACPI_GTDT if ACPI
-> >  	select ACPI_IORT if ACPI
-> >  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> > -	select ACPI_MCFG if ACPI
-> > +	select ACPI_MCFG if (ACPI && PCI)
-> >  	select ACPI_SPCR_TABLE if ACPI
-> >  	select ACPI_PPTT if ACPI
-> >  	select ARCH_CLOCKSOURCE_DATA
-> > @@ -163,7 +163,7 @@ config ARM64
-> >  	select OF
-> >  	select OF_EARLY_FLATTREE
-> >  	select OF_RESERVED_MEM
-> > -	select PCI_ECAM if ACPI
-> > +	select PCI_ECAM if (ACPI && PCI)
-> >  	select POWER_RESET
-> >  	select POWER_SUPPLY
-> >  	select REFCOUNT_FULL
-> > 
-> 
-> I need a maintainer ACK here.
+On Mon, Dec 17, 2018 at 12:19:27PM +0100, Rafael J. Wysocki wrote:
+> Hi All,
 
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Hi Rafael,
+
+> It turns out that on some systems non-wakeup GPEs cause trouble (see the
+> changelog of patch [1/2]), so they better should be disabled during
+> suspend-to-idle (at least before entering the main loop of it).  This
+> is done in patch [1/2].
+> 
+> Patch [2/2] is just a folllow-up.
+
+I tested both patches on Lenovo Carbon X1 6th generation and one new
+Dell system. Both default to s2idle. I did not see any issues around
+s2idle with the two patches applied.
+
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
