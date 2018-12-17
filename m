@@ -1,46 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v10 6/6] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
-Date: Mon, 17 Dec 2018 11:04:54 +0100
-Message-ID: <2768059.sVLBmlUf0W@aspire.rjw.lan>
-References: <20181215010247.26101-1-okaya@kernel.org> <20181215010247.26101-7-okaya@kernel.org>
+From: "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>
+Subject: Re: [PATCH] ACPI / tables: table upgrade from built-in initrd
+Date: Mon, 17 Dec 2018 10:05:54 +0000
+Message-ID: <2866d2b19d604155b690f1a08df0a4ab@HXTBJIDCEMVIW01.hxtcorp.net>
+References: <1545013184-2487-1-git-send-email-shunyong.yang@hxt-semitech.com>
+ <CAJZ5v0gnmnP1UUisS-4L=gzu3KHbbK8y4Wh_4dqfgmm775=ZkQ@mail.gmail.com>
+ <36fdf717ba5345e2956e48645f6667e6@HXTBJIDCEMVIW01.hxtcorp.net>
+ <CAJZ5v0jWROTTSRT1FFQWXpWn2M=uMRw5SKbwu0doKaeMjSOEnA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181215010247.26101-7-okaya@kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, December 15, 2018 2:02:47 AM CET Sinan Kaya wrote:
-> Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
-> 
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> ---
->  drivers/acpi/arm64/iort.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 70f4e80b9246..d0f68607efe6 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1437,6 +1437,7 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  
->  static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
->  {
-> +#ifdef CONFIG_PCI
->  	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->  		struct acpi_iort_node *parent;
->  		struct acpi_iort_id_mapping *map;
-> @@ -1462,6 +1463,7 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
->  			}
->  		}
->  	}
-> +#endif
->  
->  	return false;
->  }
-> 
+Hi, Rafael,
 
-I need a maintainer ACK here.
+  OK. I will update the description and document.
+
+Thanks.
+Shunyong.
+
+On 2018/12/17 17:31, Rafael J. Wysocki wrote:
+> On Mon, Dec 17, 2018 at 10:18 AM Yang, Shunyong
+> <shunyong.yang@hxt-semitech.com> wrote:
+>>
+>> Hi, Rafael,
+>>   I think "override" is more accurate. I just follow the existing
+>> description of "ACPI_TABLE_UPGRADE" in drivers/acpi/Kconfig.
+>>   Should I change all upgrade/UPGRADE to "override/OVERRIDE" in this patch?
+> 
+> I think that this would be better.
+> 
+> Also, there is some documentation regarding this feature in the kernel
+> tree.  Should it be updated by your patch?
+> 
