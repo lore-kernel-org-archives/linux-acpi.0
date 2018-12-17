@@ -1,65 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][next][RESEND] drivers: base: remove need for a temporary string for the node name
-Date: Mon, 17 Dec 2018 12:39:03 +0100
-Message-ID: <2449257.d8gDasH2Fh@aspire.rjw.lan>
-References: <20181206170557.27834-1-colin.king@canonical.com>
+Subject: Re: [PATCH] ACPI, APEI, EINJ: Change to use DEFINE_SHOW_ATTRIBUTE macro
+Date: Mon, 17 Dec 2018 12:40:19 +0100
+Message-ID: <2171529.ACrt31yYEM@aspire.rjw.lan>
+References: <20181130170106.4031-1-tiny.windzz@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181206170557.27834-1-colin.king@canonical.com>
+In-Reply-To: <20181130170106.4031-1-tiny.windzz@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Yangtao Li <tiny.windzz@gmail.com>
+Cc: lenb@kernel.org, tony.luck@intel.com, bp@alien8.de, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thursday, December 6, 2018 6:05:57 PM CET Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
+On Friday, November 30, 2018 6:01:06 PM CET Yangtao Li wrote:
+> Use DEFINE_SHOW_ATTRIBUTE macro to simplify the code.
 > 
-> Currently the node name is being formatting into a temporary string
-> node_name, however, kobject_init_and_add allows one to format up
-> a node name, so use that instead. This removes the need for the
-> node_name string and also cleans up the following warning:
-> 
-> Fixes clang warning:
-> warning: format string is not a string literal (potentially
-> insecure) [-Wformat-security]
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+> Signed-off-by: Yangtao Li <tiny.windzz@gmail.com>
 > ---
->  drivers/base/swnode.c | 5 +----
->  1 file changed, 1 insertion(+), 4 deletions(-)
+>  drivers/acpi/apei/einj.c | 12 +-----------
+>  1 file changed, 1 insertion(+), 11 deletions(-)
 > 
-> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
-> index 9c63ec8d8ab4..306bb93287af 100644
-> --- a/drivers/base/swnode.c
-> +++ b/drivers/base/swnode.c
-> @@ -553,7 +553,6 @@ fwnode_create_software_node(const struct property_entry *properties,
->  {
->  	struct software_node *p = NULL;
->  	struct software_node *swnode;
-> -	char node_name[20];
->  	int ret;
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index b38737c83a24..fcccbfdbdd1a 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -607,17 +607,7 @@ static int available_error_type_show(struct seq_file *m, void *v)
+>  	return 0;
+>  }
 >  
->  	if (parent) {
-> @@ -576,8 +575,6 @@ fwnode_create_software_node(const struct property_entry *properties,
->  	}
->  
->  	swnode->id = ret;
-> -	sprintf(node_name, "node%d", swnode->id);
+> -static int available_error_type_open(struct inode *inode, struct file *file)
+> -{
+> -	return single_open(file, available_error_type_show, NULL);
+> -}
 > -
->  	swnode->kobj.kset = swnode_kset;
->  	swnode->fwnode.ops = &software_node_ops;
+> -static const struct file_operations available_error_type_fops = {
+> -	.open		= available_error_type_open,
+> -	.read		= seq_read,
+> -	.llseek		= seq_lseek,
+> -	.release	= single_release,
+> -};
+> +DEFINE_SHOW_ATTRIBUTE(available_error_type);
 >  
-> @@ -590,7 +587,7 @@ fwnode_create_software_node(const struct property_entry *properties,
->  		list_add_tail(&swnode->entry, &p->children);
->  
->  	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
-> -				   p ? &p->kobj : NULL, node_name);
-> +				   p ? &p->kobj : NULL, "node%d", swnode->id);
->  	if (ret) {
->  		kobject_put(&swnode->kobj);
->  		return ERR_PTR(ret);
+>  static int error_type_get(void *data, u64 *val)
+>  {
 > 
 
 Applied, thanks!
