@@ -1,53 +1,88 @@
-From: Greg KH <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH] acpi / apei: fix NULL deref during init
-Date: Sat, 15 Dec 2018 09:05:47 +0100
-Message-ID: <20181215080547.GD10074@kroah.com>
-References: <20181214181514.29891-1-tst@schoebel-theuer.de>
- <20181214202406.GI11710@zn.tnic>
- <c8d62037-4a26-e18b-51a3-73fc99e76e5b@schoebel-theuer.de>
- <5ec69dad-7943-343b-5ced-9a962652e14c@schoebel-theuer.de>
- <20181214225428.GL11710@zn.tnic>
+From: Shunyong Yang <shunyong.yang@hxt-semitech.com>
+Subject: [PATCH] ACPI / tables: table upgrade from built-in initrd
+Date: Mon, 17 Dec 2018 10:19:44 +0800
+Message-ID: <1545013184-2487-1-git-send-email-shunyong.yang@hxt-semitech.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181214225428.GL11710@zn.tnic>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Thomas =?iso-8859-1?Q?Sch=F6bel-Theuer?= <thomas@schoebel-theuer.de>, Thomas Schoebel-Theuer <tst@schoebel-theuer.de>, linux-kernel@vger.kernel.org, Laura Abbott <labbott@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Shunyong Yang <shunyong.yang@hxt-semitech.com>, Joey Zheng <yu.zheng@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 11:54:28PM +0100, Borislav Petkov wrote:
-> On Fri, Dec 14, 2018 at 11:42:01PM +0100, Thomas Schöbel-Theuer wrote:
-> > Ah, I overlooked that commit e56c92565dfe2 is already providing a different
-> > solution to the same problem in newer kernels _only_, as a _side_ effect
-> > (not clear to me from the description, but clear from reading the code).
-> 
-> Damn, I missed the fact that this is not the upstream kernel:
-> 
-> CPU: 0 PID: 1 UID: 0 Comm: swapper/0 Not tainted 4.4.0-ui18344.004-uiabi1-infong-amd64 #1
-> 
-> > So another alternative would be backporting e56c92565dfe2 to the 4.4 LTS
-> > series. Also fine for me.
-> 
-> That looks like the right fix.
-> 
-> A note for the next time: do not send a fix for a stable kernel which is
-> not upstream:
-> 
-> >From Documentation/process/stable-kernel-rules.rst:
-> 
-> " - It or an equivalent fix must already exist in Linus' tree (upstream)."
-> 
-> The stable kernels track upstream so if a stable kernel has a problem,
-> the first thing one needs to do is to check whether this has been fixed
-> upstream and if so, to backport it. This is the case most of the time.
-> In the very seldom cases where a separate fix is needed, it needs to be
-> handled by asking Greg what to do. :-)
-> 
-> Adding stable@ folks to CC to set me straight if I'm missing something.
+In some scenario, we need to build initrd with kernel in a single image.
+This can simplify system deployment process by downloading the whole system
+once, such as in IC verification.
 
-Nope, you are correct, thanks!
+This patch adds support to upgrade ACPI tables from built-in initrd.
 
-greg k-h
+Cc: Joey Zheng <yu.zheng@hxt-semitech.com>
+Signed-off-by: Shunyong Yang <shunyong.yang@hxt-semitech.com>
+---
+ drivers/acpi/Kconfig   |  9 +++++++++
+ drivers/acpi/tables.c  | 12 ++++++++++--
+ include/linux/initrd.h |  3 +++
+ 3 files changed, 22 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 7cea769c37df..30976496fe77 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -357,6 +357,15 @@ config ACPI_TABLE_UPGRADE
+ 	  initrd, therefore it's safe to say Y.
+ 	  See Documentation/acpi/initrd_table_override.txt for details
+ 
++config ACPI_TABLE_UPGRADE_VIA_BUILTIN_INITRD
++	bool "Upgrade ACPI tables from built-in initrd"
++	depends on ACPI_TABLE_UPGRADE
++	depends on INITRAMFS_SOURCE!="" && INITRAMFS_COMPRESSION=""
++	def_bool n
++	help
++	  This option provides functionality to upgrade arbitrary ACPI tables
++	  from built-in uncompressed initrd.
++
+ config ACPI_DEBUG
+ 	bool "Debug Statements"
+ 	help
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 61203eebf3a1..88e3a34443da 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -473,14 +473,22 @@ static u8 __init acpi_table_checksum(u8 *buffer, u32 length)
+ 
+ void __init acpi_table_upgrade(void)
+ {
+-	void *data = (void *)initrd_start;
+-	size_t size = initrd_end - initrd_start;
++	void *data;
++	size_t size;
+ 	int sig, no, table_nr = 0, total_offset = 0;
+ 	long offset = 0;
+ 	struct acpi_table_header *table;
+ 	char cpio_path[32] = "kernel/firmware/acpi/";
+ 	struct cpio_data file;
+ 
++	if (IS_ENABLED(CONFIG_ACPI_TABLE_UPGRADE_VIA_BUILTIN_INITRD)) {
++		data = __initramfs_start;
++		size = __initramfs_size;
++	} else {
++		data = (void *)initrd_start;
++		size = initrd_end - initrd_start;
++	}
++
+ 	if (data == NULL || size == 0)
+ 		return;
+ 
+diff --git a/include/linux/initrd.h b/include/linux/initrd.h
+index 84b423044088..02d94aae54c7 100644
+--- a/include/linux/initrd.h
++++ b/include/linux/initrd.h
+@@ -22,3 +22,6 @@
+ extern void free_initrd_mem(unsigned long, unsigned long);
+ 
+ extern unsigned int real_root_dev;
++
++extern char __initramfs_start[];
++extern unsigned long __initramfs_size;
+-- 
+1.8.3.1
