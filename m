@@ -1,49 +1,46 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v10 5/6] arm64: select ACPI PCI code only both features are enabled
-Date: Mon, 17 Dec 2018 11:04:42 +0100
-Message-ID: <2376424.2qzz6yc3ay@aspire.rjw.lan>
-References: <20181215010247.26101-1-okaya@kernel.org> <20181215010247.26101-6-okaya@kernel.org>
+Subject: Re: [PATCH v10 6/6] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
+Date: Mon, 17 Dec 2018 11:04:54 +0100
+Message-ID: <2768059.sVLBmlUf0W@aspire.rjw.lan>
+References: <20181215010247.26101-1-okaya@kernel.org> <20181215010247.26101-7-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181215010247.26101-6-okaya@kernel.org>
+In-Reply-To: <20181215010247.26101-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "moderated list:ARM64 PORT (AARCH64 ARCHITECTURE)" <linux-arm-kernel@lists.infradead.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Saturday, December 15, 2018 2:02:46 AM CET Sinan Kaya wrote:
-> ACPI and PCI are no longer coupled to each other. Specify requirements
-> for both when pulling in code.
+On Saturday, December 15, 2018 2:02:47 AM CET Sinan Kaya wrote:
+> Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
 > 
 > Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > ---
->  arch/arm64/Kconfig | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+>  drivers/acpi/arm64/iort.c | 2 ++
+>  1 file changed, 2 insertions(+)
 > 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index ea2ab0330e3a..bcb6262044d8 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -5,7 +5,7 @@ config ARM64
->  	select ACPI_GTDT if ACPI
->  	select ACPI_IORT if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> -	select ACPI_MCFG if ACPI
-> +	select ACPI_MCFG if (ACPI && PCI)
->  	select ACPI_SPCR_TABLE if ACPI
->  	select ACPI_PPTT if ACPI
->  	select ARCH_CLOCKSOURCE_DATA
-> @@ -163,7 +163,7 @@ config ARM64
->  	select OF
->  	select OF_EARLY_FLATTREE
->  	select OF_RESERVED_MEM
-> -	select PCI_ECAM if ACPI
-> +	select PCI_ECAM if (ACPI && PCI)
->  	select POWER_RESET
->  	select POWER_SUPPLY
->  	select REFCOUNT_FULL
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index 70f4e80b9246..d0f68607efe6 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -1437,6 +1437,7 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+>  
+>  static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+>  {
+> +#ifdef CONFIG_PCI
+>  	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+>  		struct acpi_iort_node *parent;
+>  		struct acpi_iort_id_mapping *map;
+> @@ -1462,6 +1463,7 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+>  			}
+>  		}
+>  	}
+> +#endif
+>  
+>  	return false;
+>  }
 > 
 
 I need a maintainer ACK here.
