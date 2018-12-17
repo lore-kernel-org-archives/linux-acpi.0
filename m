@@ -1,77 +1,65 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] ACPI / tables: add DSDT AmlCode new declaration name support
-Date: Mon, 17 Dec 2018 12:38:34 +0100
-Message-ID: <7887454.AELDQZ8aft@aspire.rjw.lan>
-References: <254f789dee7773b938db7a204ca8800db10e4588.1542105349.git.dongsheng.wang@hxt-semitech.com>
+Subject: Re: [PATCH][next][RESEND] drivers: base: remove need for a temporary string for the node name
+Date: Mon, 17 Dec 2018 12:39:03 +0100
+Message-ID: <2449257.d8gDasH2Fh@aspire.rjw.lan>
+References: <20181206170557.27834-1-colin.king@canonical.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <254f789dee7773b938db7a204ca8800db10e4588.1542105349.git.dongsheng.wang@hxt-semitech.com>
+In-Reply-To: <20181206170557.27834-1-colin.king@canonical.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
-Cc: robert.moore@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rafael@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, November 13, 2018 11:46:23 AM CET Wang Dongsheng wrote:
-> The new naming rule is added in acpica version 20180427.
-> So the dsdt aml code name changes from "AmlCode" to "dsdt_aml_code".
+On Thursday, December 6, 2018 6:05:57 PM CET Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> The patch that introduces naming rules is:
-> https://github.com/acpica/acpica/commit/f9a88a4c1cd020b6a5475d63b29626852a0b5f37
+> Currently the node name is being formatting into a temporary string
+> node_name, however, kobject_init_and_add allows one to format up
+> a node name, so use that instead. This removes the need for the
+> node_name string and also cleans up the following warning:
 > 
-> Tested:
-> ACPICA release version 20180427+.
-> ARM64: QCOM QDF2400
-> GCC: 4.8.5 20150623
+> Fixes clang warning:
+> warning: format string is not a string literal (potentially
+> insecure) [-Wformat-security]
 > 
-> Signed-off-by: Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 > ---
->  drivers/acpi/Kconfig  |  2 +-
->  drivers/acpi/tables.c | 10 ++++++++--
->  2 files changed, 9 insertions(+), 3 deletions(-)
+>  drivers/base/swnode.c | 5 +----
+>  1 file changed, 1 insertion(+), 4 deletions(-)
 > 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 9705fc986da9..15ab53a52fdc 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -336,7 +336,7 @@ config ACPI_CUSTOM_DSDT_FILE
->  	  See Documentation/acpi/dsdt-override.txt
+> diff --git a/drivers/base/swnode.c b/drivers/base/swnode.c
+> index 9c63ec8d8ab4..306bb93287af 100644
+> --- a/drivers/base/swnode.c
+> +++ b/drivers/base/swnode.c
+> @@ -553,7 +553,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+>  {
+>  	struct software_node *p = NULL;
+>  	struct software_node *swnode;
+> -	char node_name[20];
+>  	int ret;
 >  
->  	  Enter the full path name to the file which includes the AmlCode
-> -	  declaration.
-> +	  or dsdt_aml_code declaration.
+>  	if (parent) {
+> @@ -576,8 +575,6 @@ fwnode_create_software_node(const struct property_entry *properties,
+>  	}
 >  
->  	  If unsure, don't enter a file name.
+>  	swnode->id = ret;
+> -	sprintf(node_name, "node%d", swnode->id);
+> -
+>  	swnode->kobj.kset = swnode_kset;
+>  	swnode->fwnode.ops = &software_node_ops;
 >  
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index a3d012b08fc5..297020bbaade 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -713,6 +713,9 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
->  					  table_length);
->  }
+> @@ -590,7 +587,7 @@ fwnode_create_software_node(const struct property_entry *properties,
+>  		list_add_tail(&swnode->entry, &p->children);
 >  
-> +static void *amlcode __attribute__ ((weakref("AmlCode")));
-> +static void *dsdt_amlcode __attribute__ ((weakref("dsdt_aml_code")));
-> +
->  acpi_status
->  acpi_os_table_override(struct acpi_table_header *existing_table,
->  		       struct acpi_table_header **new_table)
-> @@ -723,8 +726,11 @@ acpi_os_table_override(struct acpi_table_header *existing_table,
->  	*new_table = NULL;
->  
->  #ifdef CONFIG_ACPI_CUSTOM_DSDT
-> -	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
-> -		*new_table = (struct acpi_table_header *)AmlCode;
-> +	if (!strncmp(existing_table->signature, "DSDT", 4)) {
-> +		*new_table = (struct acpi_table_header *)&amlcode;
-> +		if (!(*new_table))
-> +			*new_table = (struct acpi_table_header *)&dsdt_amlcode;
-> +	}
->  #endif
->  	if (*new_table != NULL)
->  		acpi_table_taint(existing_table);
+>  	ret = kobject_init_and_add(&swnode->kobj, &software_node_type,
+> -				   p ? &p->kobj : NULL, node_name);
+> +				   p ? &p->kobj : NULL, "node%d", swnode->id);
+>  	if (ret) {
+>  		kobject_put(&swnode->kobj);
+>  		return ERR_PTR(ret);
 > 
 
-Applied with some changelog modifications, thanks!
+Applied, thanks!
