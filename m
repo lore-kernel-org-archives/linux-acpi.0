@@ -1,112 +1,38 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v11 6/7] ACPI/IORT: Stub out ACS functions when
- CONFIG_PCI is not set
-Date: Tue, 18 Dec 2018 12:00:07 +0000
-Message-ID: <20181218115959.GA9090@e107981-ln.cambridge.arm.com>
-References: <20181218025606.32668-1-okaya@kernel.org>
- <20181218025606.32668-7-okaya@kernel.org>
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH][next] gpiolib-acpi: remove unused variable 'err', cleans up build warning
+Date: Tue, 18 Dec 2018 12:28:02 +0000
+Message-ID: <20181218122802.28157-1-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181218025606.32668-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 18, 2018 at 02:56:05AM +0000, Sinan Kaya wrote:
-> Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
-> A quick search reveals the following functions:
-> 1. pci_request_acs()
-> 2. pci_domain_nr()
-> 3. pci_is_root_bus()
-> 4. to_pci_dev()
-> 
-> Both pci_domain_nr() and pci_is_root_bus() are defined in linux/pci.h.
-> pci_domain_nr() is a stub function when CONFIG_PCI is not set and
-> pci_is_root_bus() just returns a reference to a structure member which
-> is still valid without CONFIG_PCI set.
-> 
-> to_pci_dev() is a macro that expands to container_of.
-> 
-> pci_request_acs() is the only code that gets pulled in from drivers/pci/*.c
+From: Colin Ian King <colin.king@canonical.com>
 
-I am not a big fan of these assumptions but we can stub all code
-relying on those behind the CONFIG_PCI guard later, which would result
-in cleaner code too.
+Variable err is defined but never used. Remove it. Cleans up warning:
 
-> 
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> ---
->  drivers/acpi/arm64/iort.c | 21 ++++++++++++++-------
->  1 file changed, 14 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index 70f4e80b9246..beb7e4c05bf5 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -1435,8 +1435,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
->  	return ret;
->  }
->  
-> -static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
-> +#ifdef CONFIG_PCI
-> +static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
->  {
-> +	static bool acs_enabled __initdata;
-> +
-> +	if (acs_enabled)
-> +		return;
-> +
->  	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
->  		struct acpi_iort_node *parent;
->  		struct acpi_iort_id_mapping *map;
-> @@ -1458,13 +1464,16 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
->  			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
->  				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
->  				pci_request_acs();
-> -				return true;
-> +				acs_enabled = true;
-> +				return;
->  			}
->  		}
->  	}
-> -
-> -	return false;
-> +	return;
+warning: unused variable ‘err’ [-Wunused-variable]
 
-Remove this return;
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-With that updated:
-
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-
->  }
-> +#else
-> +static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
-> +#endif
->  
->  static void __init iort_init_platform_devices(void)
->  {
-> @@ -1472,7 +1481,6 @@ static void __init iort_init_platform_devices(void)
->  	struct acpi_table_iort *iort;
->  	struct fwnode_handle *fwnode;
->  	int i, ret;
-> -	bool acs_enabled = false;
->  	const struct iort_dev_config *ops;
->  
->  	/*
-> @@ -1493,8 +1501,7 @@ static void __init iort_init_platform_devices(void)
->  			return;
->  		}
->  
-> -		if (!acs_enabled)
-> -			acs_enabled = iort_enable_acs(iort_node);
-> +		iort_enable_acs(iort_node);
->  
->  		ops = iort_get_dev_cfg(iort_node);
->  		if (ops) {
-> -- 
-> 2.19.0
-> 
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index fb0496e20ff8..259cf6ab969b 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -908,7 +908,6 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
+ 		if (!found) {
+ 			enum gpiod_flags flags = acpi_gpio_to_gpiod_flags(agpio);
+ 			const char *label = "ACPI:OpRegion";
+-			int err;
+ 
+ 			desc = gpiochip_request_own_desc(chip, pin, label,
+ 							 flags);
+-- 
+2.19.1
