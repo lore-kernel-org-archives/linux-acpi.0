@@ -1,30 +1,60 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v10 6/6] ACPI/IORT: Stub out ACS functions when CONFIG_PCI
- is not set
-Date: Tue, 18 Dec 2018 03:46:17 +0100
-Message-ID: <80c186fe-e5ff-1d13-fad5-6386b21b45c4@kernel.org>
-References: <20181215010247.26101-1-okaya@kernel.org>
- <20181215010247.26101-7-okaya@kernel.org>
- <40e31e86-a4ac-d9a6-d752-b04203d5ced7@huawei.com>
+Subject: [PATCH v11 1/7] ACPI: Allow CONFIG_PCI to be unset for reboot
+Date: Tue, 18 Dec 2018 02:56:00 +0000
+Message-ID: <20181218025606.32668-2-okaya@kernel.org>
+References: <20181218025606.32668-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <40e31e86-a4ac-d9a6-d752-b04203d5ced7@huawei.com>
-Content-Language: en-US
+In-Reply-To: <20181218025606.32668-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, linux-acpi@vger.kernel.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/18/2018 3:14 AM, Hanjun Guo wrote:
-> I prefer stub function for iort_enable_acs(), not adding #ifdef/#endif pair inside
-> this function.
+Make PCI reboot conditional on PCI support being present on the kernel
+configuration.
 
-Yes, I'm reworking this per input from Lorenzo.
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/acpi/reboot.c | 10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-> 
-> By the way, there are other pci function called in iort.c, could you explain a
-> little bit why no need to update other function calls in commit message?
-
-I added few words about why other code was not stubbed out.
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 6fa9c2a4cfe9..d75e637ee36a 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -7,8 +7,6 @@
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+-	struct pci_bus *bus0;
+-	unsigned int devfn;
+ 	u8 reset_value;
+ 
+ 	if (acpi_disabled)
+@@ -33,6 +31,11 @@ void acpi_reboot(void)
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
++	{
++#ifdef CONFIG_PCI
++		unsigned int devfn;
++		struct pci_bus *bus0;
++
+ 		/* The reset register can only live on bus 0. */
+ 		bus0 = pci_find_bus(0, 0);
+ 		if (!bus0)
+@@ -44,8 +47,9 @@ void acpi_reboot(void)
+ 		/* Write the value that resets us. */
+ 		pci_bus_write_config_byte(bus0, devfn,
+ 				(rr->address & 0xffff), reset_value);
++#endif
+ 		break;
+-
++	}
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+ 	case ACPI_ADR_SPACE_SYSTEM_IO:
+ 		printk(KERN_DEBUG "ACPI MEMORY or I/O RESET_REG.\n");
+-- 
+2.19.0
