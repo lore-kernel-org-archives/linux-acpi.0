@@ -1,43 +1,37 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v11 6/7] ACPI/IORT: Stub out ACS functions when CONFIG_PCI
- is not set
-Date: Tue, 18 Dec 2018 15:44:23 +0800
-Message-ID: <af6afa64-27b5-3947-387c-5162f190dc3f@huawei.com>
-References: <20181218025606.32668-1-okaya@kernel.org>
- <20181218025606.32668-7-okaya@kernel.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [RFT][PATCH 0/2] ACPI / PM: Avoid spurious wakeups from
+ non-wakeup GPEs in suspend-to-idle
+Date: Tue, 18 Dec 2018 10:50:07 +0100
+Message-ID: <CAJZ5v0hCGoOB36sGDo1cfLN4tHbwmK+YGresjPAFPyXKUdbP=g@mail.gmail.com>
+References: <4307523.O7RPX2KSmk@aspire.rjw.lan> <20181217165025.GA2469@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181218025606.32668-7-okaya@kernel.org>
-Content-Language: en-US
+In-Reply-To: <20181217165025.GA2469@lahna.fi.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>, linux-acpi@vger.kernel.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2018/12/18 10:56, Sinan Kaya wrote:
-> Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
-> A quick search reveals the following functions:
-> 1. pci_request_acs()
-> 2. pci_domain_nr()
-> 3. pci_is_root_bus()
-> 4. to_pci_dev()
-> 
-> Both pci_domain_nr() and pci_is_root_bus() are defined in linux/pci.h.
-> pci_domain_nr() is a stub function when CONFIG_PCI is not set and
-> pci_is_root_bus() just returns a reference to a structure member which
-> is still valid without CONFIG_PCI set.
-> 
-> to_pci_dev() is a macro that expands to container_of.
-> 
-> pci_request_acs() is the only code that gets pulled in from drivers/pci/*.c
+On Mon, Dec 17, 2018 at 5:50 PM Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+>
+> On Mon, Dec 17, 2018 at 12:19:27PM +0100, Rafael J. Wysocki wrote:
+> > Hi All,
+>
+> Hi Rafael,
+>
+> > It turns out that on some systems non-wakeup GPEs cause trouble (see the
+> > changelog of patch [1/2]), so they better should be disabled during
+> > suspend-to-idle (at least before entering the main loop of it).  This
+> > is done in patch [1/2].
+> >
+> > Patch [2/2] is just a folllow-up.
+>
+> I tested both patches on Lenovo Carbon X1 6th generation and one new
+> Dell system. Both default to s2idle. I did not see any issues around
+> s2idle with the two patches applied.
+>
+> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Actually we have pci_for_each_dma_alias() too which is from
-drivers/pci/search.c without stub function in linux/pci.h, but I
-didn't get the compile error at link time, I think the compiler
-just do some optimization to remove the dead code because
-dev_is_pci() is obvious false.
-
-Thanks
-Hanjun
+Thank you!
