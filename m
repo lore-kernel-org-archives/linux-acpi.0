@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v11 2/7] ACPI / OSL: Stub out acpi_os_(read/write)_pci_configurations()
-Date: Tue, 18 Dec 2018 02:56:01 +0000
-Message-ID: <20181218025606.32668-3-okaya@kernel.org>
+Subject: [PATCH v11 4/7] ACPICA: Remove PCI bits from ACPICA when CONFIG_PCI is unset
+Date: Tue, 18 Dec 2018 02:56:03 +0000
+Message-ID: <20181218025606.32668-5-okaya@kernel.org>
 References: <20181218025606.32668-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,62 +9,77 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181218025606.32668-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Anuj Mittal <anuj.mittal@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Getting ready to allow CONFIG_PCI to be unset with ACPI enabled. Stub out
-acpi_os_read_pci_configuration and acpi_os_write_pci_configuration
-functions when CONFIG_PCI is not defined.
+Now that we allow CONFIG_PCI to be unset, remove useless code from ACPICA
+too.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/acpi/osl.c | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ drivers/acpi/acpica/Makefile    | 2 +-
+ drivers/acpi/acpica/achware.h   | 9 +++++++++
+ include/acpi/platform/aclinux.h | 4 ++++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index b48874b8e1ea..524fd5f33ea4 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -773,6 +773,7 @@ acpi_status
- acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 			       u64 *value, u32 width)
- {
-+#ifdef CONFIG_PCI
- 	int result, size;
- 	u32 value32;
+diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
+index b14621da5413..59700433a96e 100644
+--- a/drivers/acpi/acpica/Makefile
++++ b/drivers/acpi/acpica/Makefile
+@@ -77,13 +77,13 @@ acpi-y +=		\
+ 	hwacpi.o	\
+ 	hwesleep.o	\
+ 	hwgpe.o		\
+-	hwpci.o		\
+ 	hwregs.o	\
+ 	hwsleep.o	\
+ 	hwvalid.o	\
+ 	hwxface.o	\
+ 	hwxfsleep.o
  
-@@ -799,12 +800,19 @@ acpi_os_read_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 	*value = value32;
++acpi-$(CONFIG_PCI) += hwpci.o
+ acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
  
- 	return (result ? AE_ERROR : AE_OK);
-+#else
-+	int rc;
-+
-+	rc = pr_warn_once("PCI configuration space access is not supported\n");
-+	return rc ? AE_SUPPORT : AE_OK;
-+#endif
- }
+ acpi-y +=		\
+diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
+index 43ce67a9da1f..ef99e2fc37f8 100644
+--- a/drivers/acpi/acpica/achware.h
++++ b/drivers/acpi/acpica/achware.h
+@@ -106,11 +106,20 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ 				 struct acpi_gpe_block_info *gpe_block,
+ 				 void *context);
  
++#ifdef ACPI_PCI_CONFIGURED
+ /*
+  * hwpci - PCI configuration support
+  */
  acpi_status
- acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 				u64 value, u32 width)
- {
-+#ifdef CONFIG_PCI
- 	int result, size;
- 
- 	switch (width) {
-@@ -826,6 +834,12 @@ acpi_os_write_pci_configuration(struct acpi_pci_id * pci_id, u32 reg,
- 				reg, size, value);
- 
- 	return (result ? AE_ERROR : AE_OK);
+ acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
+ 		      acpi_handle root_pci_device, acpi_handle pci_region);
 +#else
-+	int rc;
-+
-+	rc = pr_warn_once("PCI configuration space access is not supported\n");
-+	return rc ? AE_SUPPORT : AE_OK;
++static inline acpi_status
++acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id, acpi_handle root_pci_device,
++		      acpi_handle pci_region)
++{
++	return AE_SUPPORT;
++}
 +#endif
- }
  
- static void acpi_os_execute_deferred(struct work_struct *work)
+ #endif				/* __ACHWARE_H__ */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 7451b3bca83a..e3d21d014fcc 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -33,6 +33,10 @@
+ 
+ /* Kernel specific ACPICA configuration */
+ 
++#ifdef CONFIG_PCI
++#define ACPI_PCI_CONFIGURED
++#endif
++
+ #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
+ #define ACPI_REDUCED_HARDWARE 1
+ #endif
 -- 
 2.19.0
