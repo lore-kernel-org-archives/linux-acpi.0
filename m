@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v11 4/7] ACPICA: Remove PCI bits from ACPICA when CONFIG_PCI is unset
-Date: Tue, 18 Dec 2018 02:56:03 +0000
-Message-ID: <20181218025606.32668-5-okaya@kernel.org>
+Subject: [PATCH v11 6/7] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
+Date: Tue, 18 Dec 2018 02:56:05 +0000
+Message-ID: <20181218025606.32668-7-okaya@kernel.org>
 References: <20181218025606.32668-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,77 +9,87 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181218025606.32668-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Robert Moore <robert.moore@intel.com>, Erik Schmauss <erik.schmauss@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Anuj Mittal <anuj.mittal@intel.com>, Sebastian Andrzej Siewior <bigeasy@linutronix.de>, "open list:ACPI COMPONENT ARCHITECTURE ACPICA" <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we allow CONFIG_PCI to be unset, remove useless code from ACPICA
-too.
+Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
+A quick search reveals the following functions:
+1. pci_request_acs()
+2. pci_domain_nr()
+3. pci_is_root_bus()
+4. to_pci_dev()
+
+Both pci_domain_nr() and pci_is_root_bus() are defined in linux/pci.h.
+pci_domain_nr() is a stub function when CONFIG_PCI is not set and
+pci_is_root_bus() just returns a reference to a structure member which
+is still valid without CONFIG_PCI set.
+
+to_pci_dev() is a macro that expands to container_of.
+
+pci_request_acs() is the only code that gets pulled in from drivers/pci/*.c
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/acpi/acpica/Makefile    | 2 +-
- drivers/acpi/acpica/achware.h   | 9 +++++++++
- include/acpi/platform/aclinux.h | 4 ++++
- 3 files changed, 14 insertions(+), 1 deletion(-)
+ drivers/acpi/arm64/iort.c | 21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index b14621da5413..59700433a96e 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -77,13 +77,13 @@ acpi-y +=		\
- 	hwacpi.o	\
- 	hwesleep.o	\
- 	hwgpe.o		\
--	hwpci.o		\
- 	hwregs.o	\
- 	hwsleep.o	\
- 	hwvalid.o	\
- 	hwxface.o	\
- 	hwxfsleep.o
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 70f4e80b9246..beb7e4c05bf5 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1435,8 +1435,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+ 	return ret;
+ }
  
-+acpi-$(CONFIG_PCI) += hwpci.o
- acpi-$(ACPI_FUTURE_USAGE) += hwtimer.o
- 
- acpi-y +=		\
-diff --git a/drivers/acpi/acpica/achware.h b/drivers/acpi/acpica/achware.h
-index 43ce67a9da1f..ef99e2fc37f8 100644
---- a/drivers/acpi/acpica/achware.h
-+++ b/drivers/acpi/acpica/achware.h
-@@ -106,11 +106,20 @@ acpi_hw_enable_runtime_gpe_block(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
- 				 struct acpi_gpe_block_info *gpe_block,
- 				 void *context);
- 
-+#ifdef ACPI_PCI_CONFIGURED
- /*
-  * hwpci - PCI configuration support
-  */
- acpi_status
- acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id,
- 		      acpi_handle root_pci_device, acpi_handle pci_region);
-+#else
-+static inline acpi_status
-+acpi_hw_derive_pci_id(struct acpi_pci_id *pci_id, acpi_handle root_pci_device,
-+		      acpi_handle pci_region)
-+{
-+	return AE_SUPPORT;
-+}
-+#endif
- 
- #endif				/* __ACHWARE_H__ */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 7451b3bca83a..e3d21d014fcc 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -33,6 +33,10 @@
- 
- /* Kernel specific ACPICA configuration */
- 
+-static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
 +#ifdef CONFIG_PCI
-+#define ACPI_PCI_CONFIGURED
-+#endif
++static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ {
++	static bool acs_enabled __initdata;
 +
- #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
- #define ACPI_REDUCED_HARDWARE 1
- #endif
++	if (acs_enabled)
++		return;
++
+ 	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+ 		struct acpi_iort_node *parent;
+ 		struct acpi_iort_id_mapping *map;
+@@ -1458,13 +1464,16 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ 			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
+ 				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
+ 				pci_request_acs();
+-				return true;
++				acs_enabled = true;
++				return;
+ 			}
+ 		}
+ 	}
+-
+-	return false;
++	return;
+ }
++#else
++static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
++#endif
+ 
+ static void __init iort_init_platform_devices(void)
+ {
+@@ -1472,7 +1481,6 @@ static void __init iort_init_platform_devices(void)
+ 	struct acpi_table_iort *iort;
+ 	struct fwnode_handle *fwnode;
+ 	int i, ret;
+-	bool acs_enabled = false;
+ 	const struct iort_dev_config *ops;
+ 
+ 	/*
+@@ -1493,8 +1501,7 @@ static void __init iort_init_platform_devices(void)
+ 			return;
+ 		}
+ 
+-		if (!acs_enabled)
+-			acs_enabled = iort_enable_acs(iort_node);
++		iort_enable_acs(iort_node);
+ 
+ 		ops = iort_get_dev_cfg(iort_node);
+ 		if (ops) {
 -- 
 2.19.0
