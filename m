@@ -1,94 +1,49 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v7 04/25] ACPI / APEI: Make hest.c manage the estatus
- memory pool
-Date: Wed, 19 Dec 2018 15:42:34 +0100
-Message-ID: <20181219144234.GA31643@zn.tnic>
-References: <20181203180613.228133-1-james.morse@arm.com>
- <20181203180613.228133-5-james.morse@arm.com>
- <20181211164802.GI27375@zn.tnic>
- <ad48f9a1-404e-7878-3173-f8a4a417a723@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
-Content-Disposition: inline
-In-Reply-To: <ad48f9a1-404e-7878-3173-f8a4a417a723@arm.com>
-List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
-List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
-List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
-List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
-List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
- <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
-Errors-To: kvmarm-bounces@lists.cs.columbia.edu
-Sender: kvmarm-bounces@lists.cs.columbia.edu
-To: James Morse <james.morse@arm.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, linux-acpi@vger.kernel.org, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+From: David Arcari <darcari@redhat.com>
+Subject: [PATCH] ACPI/APEI: Clear GHES block_status before panic()
+Date: Wed, 19 Dec 2018 11:50:52 -0500
+Message-ID: <1545238252-79630-1-git-send-email-darcari@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linux ACPI <linux-acpi@vger.kernel.org>
+Cc: Lenny Szubowicz <lszubowi@redhat.com>, David Arcari <darcari@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, Borislav Petkov <bp@alien8.de>, "Eric W. Biederman" <ebiederm@xmission.com>, Alexandru Gagniuc <mr.nuke.me@gmail.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Dec 14, 2018 at 01:56:16PM +0000, James Morse wrote:
-> /me digs a bit,
-> 
-> ghes_estatus_pool_init() allocates memory from hest_ghes_dev_register().
-> Its caller is behind a 'if (!ghes_disable)' in acpi_hest_init(), and is after
-> another 2 calls to apei_hest_parse().
-> 
-> If ghes_disable is set, we don't call this thing.
-> If hest_disable is set, acpi_hest_init() exits early.
-> If we don't have a HEST table, acpi_hest_init() exits early.
-> 
-> ... if the HEST table doesn't have any GHES entries, hest_ghes_dev_register() is
-> called with ghes_count==0, and does nothing useful. (kmalloc_alloc_array(0,...)
-> great!) But we do call ghes_estatus_pool_init().
-> 
-> I think a check that ghes_count is non-zero before calling
-> hest_ghes_dev_register() is the cleanest way to avoid this.
+From: Lenny Szubowicz <lszubowi@redhat.com>
 
-Grrr, what an effing mess that code is! There's hest_disable *and*
-ghes_disable. Do we really need them both?
+In __ghes_panic() clear the block status in the APEI generic
+error status block for that generic hardware error source before
+calling panic() to prevent a second panic() in the crash kernel
+for exactly the same fatal error.
 
-With my simplifier hat on I wanna say, we should have a single switch -
-apei_disable - and kill those other two. What a damn mess that is.
+Otherwise ghes_probe(), running in the crash kernel, would see
+an unhandled error in the APEI generic error status block and
+panic again, thereby precluding any crash dump.
 
-> I wanted the estatus pool to be initialised before creating the platform devices
-> in case the order of these things is changed in the future and they get probed
-> immediately, before the pool is initialised.
+Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
+Signed-off-by: David Arcari <darcari@redhat.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexandru Gagniuc <mr.nuke.me@gmail.com>
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/acpi/apei/ghes.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-Hmmm.
-
-Actually, I meant flipping those two calls:
-
-        rc = ghes_estatus_pool_init(ghes_count);
-        if (rc)
-                goto out;
-
-        rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
-        if (rc)
-                goto err;
-
-to
-
-        rc = apei_hest_parse(hest_parse_ghes, &ghes_arr);
-        if (rc)
-                goto err;
-
-        rc = ghes_estatus_pool_init(ghes_count);
-        if (rc)
-                goto out;
-
-so as not to alloc the pool unnecessarily if the parsing fails.
-
-Also, AFAICT, the order you have them in now might be a problem anyway
-if
-
-	apei_hest_parse(hest_parse_ghes, &ghes_arr);
-
-fails because then you goto err and and that pool leaks, right?
-
-Thx.
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 02c6fd9..f008ba7 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -691,6 +691,8 @@ static void __ghes_panic(struct ghes *ghes)
+ {
+ 	__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
+ 
++	ghes_clear_estatus(ghes);
++
+ 	/* reboot to log the error! */
+ 	if (!panic_timeout)
+ 		panic_timeout = ghes_panic_timeout;
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+1.8.3.1
