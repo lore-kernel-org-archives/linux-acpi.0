@@ -1,32 +1,77 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v11 2/7] ACPI / OSL: Stub out
- acpi_os_(read/write)_pci_configurations()
-Date: Wed, 19 Dec 2018 23:22:21 +0100
-Message-ID: <24aefa0d-743c-dd06-79b7-ebcc01dbbb12@kernel.org>
-References: <20181218025606.32668-1-okaya@kernel.org>
- <20181218025606.32668-3-okaya@kernel.org>
- <20181218073231.GB8612@infradead.org>
+Subject: [PATCH v12 1/7] ACPI: Move PCI reset to a separate function
+Date: Wed, 19 Dec 2018 22:46:53 +0000
+Message-ID: <20181219224659.4802-2-okaya@kernel.org>
+References: <20181219224659.4802-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181218073231.GB8612@infradead.org>
-Content-Language: en-US
+In-Reply-To: <20181219224659.4802-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/18/2018 8:32 AM, Christoph Hellwig wrote:
->> +
->> +	rc = pr_warn_once("PCI configuration space access is not supported\n");
->> +	return rc ? AE_SUPPORT : AE_OK;
->> +#endif
-> Normally we provide a full separate stub version.  If we have enough
-> of them in a separate file.
-> 
+Getting ready to factor out PCI specific code when CONFIG_PCI is unset.
+Create a acpi_pci_reset() that kick starts PCI specific reset.
 
-I removed the dependent functions from ACPICA and moved #ifdef outside of these
-two function scopes.
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/acpi/reboot.c | 32 +++++++++++++++++++-------------
+ 1 file changed, 19 insertions(+), 13 deletions(-)
 
-Got rid of the inline piece.
+diff --git a/drivers/acpi/reboot.c b/drivers/acpi/reboot.c
+index 6fa9c2a4cfe9..d642a9dede52 100644
+--- a/drivers/acpi/reboot.c
++++ b/drivers/acpi/reboot.c
+@@ -4,11 +4,27 @@
+ #include <linux/acpi.h>
+ #include <acpi/reboot.h>
+ 
++static void acpi_pci_reboot(struct acpi_generic_address *rr, u8 reset_value)
++{
++	unsigned int devfn;
++	struct pci_bus *bus0;
++
++	/* The reset register can only live on bus 0. */
++	bus0 = pci_find_bus(0, 0);
++	if (!bus0)
++		return;
++	/* Form PCI device/function pair. */
++	devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
++			  (rr->address >> 16) & 0xffff);
++	pr_debug("Resetting with ACPI PCI RESET_REG.\n");
++	/* Write the value that resets us. */
++	pci_bus_write_config_byte(bus0, devfn,
++			(rr->address & 0xffff), reset_value);
++}
++
+ void acpi_reboot(void)
+ {
+ 	struct acpi_generic_address *rr;
+-	struct pci_bus *bus0;
+-	unsigned int devfn;
+ 	u8 reset_value;
+ 
+ 	if (acpi_disabled)
+@@ -33,17 +49,7 @@ void acpi_reboot(void)
+ 	 * on a device on bus 0. */
+ 	switch (rr->space_id) {
+ 	case ACPI_ADR_SPACE_PCI_CONFIG:
+-		/* The reset register can only live on bus 0. */
+-		bus0 = pci_find_bus(0, 0);
+-		if (!bus0)
+-			return;
+-		/* Form PCI device/function pair. */
+-		devfn = PCI_DEVFN((rr->address >> 32) & 0xffff,
+-				  (rr->address >> 16) & 0xffff);
+-		printk(KERN_DEBUG "Resetting with ACPI PCI RESET_REG.\n");
+-		/* Write the value that resets us. */
+-		pci_bus_write_config_byte(bus0, devfn,
+-				(rr->address & 0xffff), reset_value);
++		acpi_pci_reboot(rr, reset_value);
+ 		break;
+ 
+ 	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
+-- 
+2.19.0
