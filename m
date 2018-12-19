@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v12 7/7] ACPI: Make PCI slot detection driver depend on PCI
-Date: Wed, 19 Dec 2018 22:46:59 +0000
-Message-ID: <20181219224659.4802-8-okaya@kernel.org>
+Subject: [PATCH v12 6/7] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
+Date: Wed, 19 Dec 2018 22:46:58 +0000
+Message-ID: <20181219224659.4802-7-okaya@kernel.org>
 References: <20181219224659.4802-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,29 +9,87 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181219224659.4802-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Sinan Kaya <okaya@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Since this is ACPI PCI slot detection driver for PCI, it doesn't make sense
-to compile this without PCI support in place.
+Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
+A quick search reveals the following functions:
+1. pci_request_acs()
+2. pci_domain_nr()
+3. pci_is_root_bus()
+4. to_pci_dev()
+
+Both pci_domain_nr() and pci_is_root_bus() are defined in linux/pci.h.
+pci_domain_nr() is a stub function when CONFIG_PCI is not set and
+pci_is_root_bus() just returns a reference to a structure member which
+is still valid without CONFIG_PCI set.
+
+to_pci_dev() is a macro that expands to container_of.
+
+pci_request_acs() is the only code that gets pulled in from drivers/pci/*.c
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 ---
- drivers/acpi/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/arm64/iort.c | 20 +++++++++++++-------
+ 1 file changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index a0abcb3bd673..8b6ff80a69cd 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -369,7 +369,7 @@ config ACPI_DEBUG
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index 70f4e80b9246..2159ad9bf9ed 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -1435,8 +1435,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
+ 	return ret;
+ }
  
- config ACPI_PCI_SLOT
- 	bool "PCI slot detection driver"
--	depends on SYSFS
-+	depends on SYSFS && PCI
- 	help
- 	  This driver creates entries in /sys/bus/pci/slots/ for all PCI
- 	  slots in the system.  This can help correlate PCI bus addresses,
+-static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
++#ifdef CONFIG_PCI
++static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ {
++	static bool acs_enabled __initdata;
++
++	if (acs_enabled)
++		return;
++
+ 	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
+ 		struct acpi_iort_node *parent;
+ 		struct acpi_iort_id_mapping *map;
+@@ -1458,13 +1464,15 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
+ 			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
+ 				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
+ 				pci_request_acs();
+-				return true;
++				acs_enabled = true;
++				return;
+ 			}
+ 		}
+ 	}
+-
+-	return false;
+ }
++#else
++static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
++#endif
+ 
+ static void __init iort_init_platform_devices(void)
+ {
+@@ -1472,7 +1480,6 @@ static void __init iort_init_platform_devices(void)
+ 	struct acpi_table_iort *iort;
+ 	struct fwnode_handle *fwnode;
+ 	int i, ret;
+-	bool acs_enabled = false;
+ 	const struct iort_dev_config *ops;
+ 
+ 	/*
+@@ -1493,8 +1500,7 @@ static void __init iort_init_platform_devices(void)
+ 			return;
+ 		}
+ 
+-		if (!acs_enabled)
+-			acs_enabled = iort_enable_acs(iort_node);
++		iort_enable_acs(iort_node);
+ 
+ 		ops = iort_get_dev_cfg(iort_node);
+ 		if (ops) {
 -- 
 2.19.0
