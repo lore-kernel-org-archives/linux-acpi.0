@@ -1,95 +1,47 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v12 6/7] ACPI/IORT: Stub out ACS functions when CONFIG_PCI is not set
-Date: Wed, 19 Dec 2018 22:46:58 +0000
-Message-ID: <20181219224659.4802-7-okaya@kernel.org>
-References: <20181219224659.4802-1-okaya@kernel.org>
+From: "Schmauss, Erik" <erik.schmauss@intel.com>
+Subject: RE: [PATCHv2 01/12] acpi: Create subtable parsing infrastructure
+Date: Wed, 19 Dec 2018 23:19:30 +0000
+Message-ID: <CF6A88132359CE47947DB4C6E1709ED53C557D62@ORSMSX122.amr.corp.intel.com>
+References: <20181211010310.8551-1-keith.busch@intel.com>
+ <20181211010310.8551-2-keith.busch@intel.com>
+ <CAJZ5v0iqC2CwR2nM7eF6pDcJe2Me-_fFekX=s16-1TGZ6f6gcA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181219224659.4802-1-okaya@kernel.org>
+In-Reply-To: <CAJZ5v0iqC2CwR2nM7eF6pDcJe2Me-_fFekX=s16-1TGZ6f6gcA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Sinan Kaya <okaya@kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, "Busch, Keith" <keith.busch@intel.com>, "Moore, Robert" <robert.moore@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Hansen, Dave" <dave.hansen@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Remove PCI dependent code out of iort.c when CONFIG_PCI is not defined.
-A quick search reveals the following functions:
-1. pci_request_acs()
-2. pci_domain_nr()
-3. pci_is_root_bus()
-4. to_pci_dev()
-
-Both pci_domain_nr() and pci_is_root_bus() are defined in linux/pci.h.
-pci_domain_nr() is a stub function when CONFIG_PCI is not set and
-pci_is_root_bus() just returns a reference to a structure member which
-is still valid without CONFIG_PCI set.
-
-to_pci_dev() is a macro that expands to container_of.
-
-pci_request_acs() is the only code that gets pulled in from drivers/pci/*.c
-
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Acked-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
----
- drivers/acpi/arm64/iort.c | 20 +++++++++++++-------
- 1 file changed, 13 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index 70f4e80b9246..2159ad9bf9ed 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -1435,8 +1435,14 @@ static int __init iort_add_platform_device(struct acpi_iort_node *node,
- 	return ret;
- }
- 
--static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
-+#ifdef CONFIG_PCI
-+static void __init iort_enable_acs(struct acpi_iort_node *iort_node)
- {
-+	static bool acs_enabled __initdata;
-+
-+	if (acs_enabled)
-+		return;
-+
- 	if (iort_node->type == ACPI_IORT_NODE_PCI_ROOT_COMPLEX) {
- 		struct acpi_iort_node *parent;
- 		struct acpi_iort_id_mapping *map;
-@@ -1458,13 +1464,15 @@ static bool __init iort_enable_acs(struct acpi_iort_node *iort_node)
- 			if ((parent->type == ACPI_IORT_NODE_SMMU) ||
- 				(parent->type == ACPI_IORT_NODE_SMMU_V3)) {
- 				pci_request_acs();
--				return true;
-+				acs_enabled = true;
-+				return;
- 			}
- 		}
- 	}
--
--	return false;
- }
-+#else
-+static inline void iort_enable_acs(struct acpi_iort_node *iort_node) { }
-+#endif
- 
- static void __init iort_init_platform_devices(void)
- {
-@@ -1472,7 +1480,6 @@ static void __init iort_init_platform_devices(void)
- 	struct acpi_table_iort *iort;
- 	struct fwnode_handle *fwnode;
- 	int i, ret;
--	bool acs_enabled = false;
- 	const struct iort_dev_config *ops;
- 
- 	/*
-@@ -1493,8 +1500,7 @@ static void __init iort_init_platform_devices(void)
- 			return;
- 		}
- 
--		if (!acs_enabled)
--			acs_enabled = iort_enable_acs(iort_node);
-+		iort_enable_acs(iort_node);
- 
- 		ops = iort_get_dev_cfg(iort_node);
- 		if (ops) {
--- 
-2.19.0
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBUdWVzZGF5LCBE
+ZWNlbWJlciAxMSwgMjAxOCAxOjQ1IEFNDQo+IFRvOiBCdXNjaCwgS2VpdGggPGtlaXRoLmJ1c2No
+QGludGVsLmNvbT4NCj4gQ2M6IExpbnV4IEtlcm5lbCBNYWlsaW5nIExpc3QgPGxpbnV4LWtlcm5l
+bEB2Z2VyLmtlcm5lbC5vcmc+OyBBQ1BJIERldmVsDQo+IE1hbGluZyBMaXN0IDxsaW51eC1hY3Bp
+QHZnZXIua2VybmVsLm9yZz47IExpbnV4IE1lbW9yeSBNYW5hZ2VtZW50IExpc3QNCj4gPGxpbnV4
+LW1tQGt2YWNrLm9yZz47IEdyZWcgS3JvYWgtSGFydG1hbg0KPiA8Z3JlZ2toQGxpbnV4Zm91bmRh
+dGlvbi5vcmc+OyBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+Ow0KPiBIYW5z
+ZW4sIERhdmUgPGRhdmUuaGFuc2VuQGludGVsLmNvbT47IFdpbGxpYW1zLCBEYW4gSg0KPiA8ZGFu
+Lmoud2lsbGlhbXNAaW50ZWwuY29tPg0KPiBTdWJqZWN0OiBSZTogW1BBVENIdjIgMDEvMTJdIGFj
+cGk6IENyZWF0ZSBzdWJ0YWJsZSBwYXJzaW5nIGluZnJhc3RydWN0dXJlDQo+IA0KPiBPbiBUdWUs
+IERlYyAxMSwgMjAxOCBhdCAyOjA1IEFNIEtlaXRoIEJ1c2NoIDxrZWl0aC5idXNjaEBpbnRlbC5j
+b20+DQo+IHdyb3RlOg0KPiA+DQoNCkhpIFJhZmFlbCBhbmQgQm9iLA0KDQo+ID4gUGFyc2luZyBl
+bnRyaWVzIGluIGFuIEFDUEkgdGFibGUgaGFkIGFzc3VtZWQgYSBnZW5lcmljIGhlYWRlcg0KPiA+
+IHN0cnVjdHVyZSB0aGF0IGlzIG1vc3QgY29tbW9uLiBUaGVyZSBpcyBubyBzdGFuZGFyZCBBQ1BJ
+IGhlYWRlciwNCj4gPiB0aG91Z2gsIHNvIGxlc3MgY29tbW9uIHR5cGVzIHdvdWxkIG5lZWQgY3Vz
+dG9tIHBhcnNlcnMgaWYgdGhleSB3YW50IGdvDQo+ID4gdGhyb3VnaCB0aGVpciBzdWItdGFibGUg
+ZW50cnkgbGlzdC4NCj4gDQo+IEl0IGxvb2tzIGxpa2UgdGhlIHByb2JsZW0gYXQgaGFuZCBpcyB0
+aGF0IGFjcGlfaG1hdF9zdHJ1Y3R1cmUgaXMgaW5jb21wYXRpYmxlDQo+IHdpdGggYWNwaV9zdWJ0
+YWJsZV9oZWFkZXIgYmVjYXVzZSBvZiB0aGUgZGlmZmVyZW50IGxheW91dCBhbmQgZmllbGQgc2l6
+ZXMuDQoNCkp1c3Qgb3V0IG9mIGN1cmlvc2l0eSwgd2h5IGRvbid0IHdlIHVzZSBBQ1BJQ0EgY29k
+ZSB0byBwYXJzZSBzdGF0aWMgQUNQSSB0YWJsZXMNCmluIExpbnV4Pw0KDQpXZSBoYXZlIGEgZGlz
+YXNzZW1ibGVyIGZvciBzdGF0aWMgdGFibGVzIHRoYXQgcGFyc2VzIGFsbCBzdXBwb3J0ZWQgdGFi
+bGVzLiBUaGlzDQpzZWVtcyBsaWtlIGEgZHVwbGljYXRpb24gb2YgY29kZS9lZmZvcnQuLi4NCg0K
+RXJpaw0KPiANCj4gSWYgc28sIHBsZWFzZSBzdGF0ZSB0aGF0IGNsZWFybHkgaGVyZS4NCj4gDQo+
+IFdpdGggdGhhdCwgcGxlYXNlIGZlZWwgZnJlZSB0byBhZGQNCj4gDQo+IFJldmlld2VkLWJ5OiBS
+YWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+IA0KPiB0byB0
+aGlzIHBhdGNoLg0K
