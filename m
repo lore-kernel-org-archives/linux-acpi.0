@@ -1,64 +1,50 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH] ACPI/APEI: Clear GHES block_status before panic()
-Date: Thu, 20 Dec 2018 20:24:47 +0100
-Message-ID: <20181220192447.GG31403@zn.tnic>
-References: <1545238252-79630-1-git-send-email-darcari@redhat.com>
+From: Nathan Chancellor <natechancellor@gmail.com>
+Subject: [PATCH] ACPI / tables: Add an ifdef around amlcode and dsdt_amlcode
+Date: Thu, 20 Dec 2018 12:38:56 -0700
+Message-ID: <20181220193856.7833-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1545238252-79630-1-git-send-email-darcari@redhat.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: David Arcari <darcari@redhat.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Lenny Szubowicz <lszubowi@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tony Luck <tony.luck@intel.com>, "Eric W. Biederman" <ebiederm@xmission.com>, Alexandru Gagniuc <mr.nuke.me@gmail.com>, linux-kernel@vger.kernel.org, James Morse <james.morse@arm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Nathan Chancellor <natechancellor@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-+ James.
+Clang warns:
 
-On Wed, Dec 19, 2018 at 11:50:52AM -0500, David Arcari wrote:
-> From: Lenny Szubowicz <lszubowi@redhat.com>
-> 
-> In __ghes_panic() clear the block status in the APEI generic
-> error status block for that generic hardware error source before
-> calling panic() to prevent a second panic() in the crash kernel
-> for exactly the same fatal error.
-> 
-> Otherwise ghes_probe(), running in the crash kernel, would see
-> an unhandled error in the APEI generic error status block and
-> panic again, thereby precluding any crash dump.
-> 
-> Signed-off-by: Lenny Szubowicz <lszubowi@redhat.com>
-> Signed-off-by: David Arcari <darcari@redhat.com>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-> Cc: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  drivers/acpi/apei/ghes.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 02c6fd9..f008ba7 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -691,6 +691,8 @@ static void __ghes_panic(struct ghes *ghes)
->  {
->  	__ghes_print_estatus(KERN_EMERG, ghes->generic, ghes->estatus);
->  
-> +	ghes_clear_estatus(ghes);
-> +
->  	/* reboot to log the error! */
->  	if (!panic_timeout)
->  		panic_timeout = ghes_panic_timeout;
-> -- 
+drivers/acpi/tables.c:715:14: warning: unused variable 'amlcode'
+[-Wunused-variable]
+static void *amlcode __attribute__ ((weakref("AmlCode")));
+             ^
+drivers/acpi/tables.c:716:14: warning: unused variable 'dsdt_amlcode'
+[-Wunused-variable]
+static void *dsdt_amlcode __attribute__ ((weakref("dsdt_aml_code")));
+             ^
+2 warnings generated.
 
-Acked-by: Borislav Petkov <bp@suse.de>
+The only uses of these variables are hiddem behind CONFIG_ACPI_CUSTOM_DSDT
+so do the same thing here.
 
+Fixes: 82e4eb4e9653 ("ACPI / tables: add DSDT AmlCode new declaration name support")
+Signed-off-by: Nathan Chancellor <natechancellor@gmail.com>
+---
+ drivers/acpi/tables.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index ccb90eff00e5..48eabb6c2d4f 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -712,8 +712,10 @@ acpi_os_physical_table_override(struct acpi_table_header *existing_table,
+ 					  table_length);
+ }
+ 
++#ifdef CONFIG_ACPI_CUSTOM_DSDT
+ static void *amlcode __attribute__ ((weakref("AmlCode")));
+ static void *dsdt_amlcode __attribute__ ((weakref("dsdt_aml_code")));
++#endif
+ 
+ acpi_status
+ acpi_os_table_override(struct acpi_table_header *existing_table,
 -- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+2.20.1
