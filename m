@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v1 10/11] x86: select IOSF_MBI only when CONFIG_PCI is set
-Date: Sat, 22 Dec 2018 00:14:51 +0000
-Message-ID: <20181222001452.7474-11-okaya@kernel.org>
+Subject: [PATCH v1 08/11] ASoC: Intel: Make PCI dependency explicit
+Date: Sat, 22 Dec 2018 00:14:49 +0000
+Message-ID: <20181222001452.7474-9-okaya@kernel.org>
 References: <20181222001452.7474-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,30 +9,29 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181222001452.7474-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE 32-BIT AND 64-BIT" <x86@kernel.org>, "open list:X86 ARCHITECTURE 32-BIT AND
-        64-BIT" <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Need CONFIG_PCI to be set in order to be able to use IOSF_MBI
-functionality.
+IOSF_MBI driver depends on CONFIG_PCI set but this is not specified
+anywhere.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- arch/x86/Kconfig | 2 +-
+ sound/soc/intel/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index cc4f0c6ee1ed..322a58ababb0 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -617,7 +617,7 @@ config X86_INTEL_QUARK
- 
- config X86_INTEL_LPSS
- 	bool "Intel Low Power Subsystem Support"
+diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
+index 2fd1b61e8331..b0764b2fe001 100644
+--- a/sound/soc/intel/Kconfig
++++ b/sound/soc/intel/Kconfig
+@@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
+ config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
+ 	tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
+ 	default ACPI
 -	depends on X86 && ACPI
 +	depends on X86 && ACPI && PCI
- 	select COMMON_CLK
- 	select PINCTRL
- 	select IOSF_MBI
+ 	select SND_SST_IPC_ACPI
+ 	select SND_SST_ATOM_HIFI2_PLATFORM
+ 	select SND_SOC_ACPI_INTEL_MATCH
 -- 
 2.19.0
