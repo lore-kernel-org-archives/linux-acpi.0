@@ -1,47 +1,57 @@
 From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 03/11] vga-switcheroo: make PCI dependency explicit
-Date: Sat, 22 Dec 2018 17:40:13 +0100
-Message-ID: <20181222164013.2l7etklpxjrrobnm@wunner.de>
-References: <20181222090720.19234-1-okaya@kernel.org>
- <20181222090720.19234-4-okaya@kernel.org>
+Subject: Re: [PATCH v1 06/11] platform/x86: apple-gmux: hide PCI specific code
+Date: Sat, 22 Dec 2018 09:03:17 +0100
+Message-ID: <20181222080317.qicyihyauia6n63w@wunner.de>
+References: <20181222001452.7474-1-okaya@kernel.org>
+ <20181222001452.7474-7-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20181222090720.19234-4-okaya@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181222001452.7474-7-okaya@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-acpi@vger.kernel.org, Maxime Ripard <maxime.ripard@bootlin.com>, linux-pci@vger.kernel.org, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>, Sean Paul <sean@poorly.run>
+Cc: linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, platform-driver-x86@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gU2F0LCBEZWMgMjIsIDIwMTggYXQgMDk6MDc6MTJBTSArMDAwMCwgU2luYW4gS2F5YSB3cm90
-ZToKPiBUaGlzIGRyaXZlciBkZXBlbmRzIG9uIHRoZSBQQ0kgaW5mcmFzdHJ1Y3R1cmUgYnV0IHRo
-ZSBkZXBlbmRlbmN5IGhhcyBub3QKPiBiZWVuIGV4cGxpY2l0bHkgY2FsbGVkIG91dC4KPiAKPiBT
-aWduZWQtb2ZmLWJ5OiBTaW5hbiBLYXlhIDxva2F5YUBrZXJuZWwub3JnPgo+IFJldmlld2VkLWJ5
-OiBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4KClRoaXMgc2VyaWVzIGRvZXNuJ3QgaGF2
-ZSBhIGNvdmVyIGxldHRlciBzbyBpdCdzIHVuY2xlYXIgdG8gbWUgdGhyb3VnaAp3aGljaCB0cmVl
-IGl0J3Mgc3VwcG9zZWQgdG8gZ28gaW4/ICBFYWNoIHBhdGNoIHRocm91Z2ggdGhlIGluZGl2aWR1
-YWwKc3Vic3lzdGVtIHRyZWUgb3IgYWxsIHRocm91Z2ggdGhlIHNhbWUgdHJlZT8gIElmIHRoZSBm
-b3JtZXIgSSBndWVzcyBJCmNvdWxkIHB1c2ggdGhpcyB0byBkcm0tbWlzYy4uLgoKVGhhbmtzLAoK
-THVrYXMKCj4gLS0tCj4gIGRyaXZlcnMvZ3B1L3ZnYS9LY29uZmlnIHwgMSArCj4gIDEgZmlsZSBj
-aGFuZ2VkLCAxIGluc2VydGlvbigrKQo+IAo+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS92Z2Ev
-S2NvbmZpZyBiL2RyaXZlcnMvZ3B1L3ZnYS9LY29uZmlnCj4gaW5kZXggYjY3N2U1ZDUyNGU2Li5k
-NWYxZDhlMWM2ZjggMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9ncHUvdmdhL0tjb25maWcKPiArKysg
-Yi9kcml2ZXJzL2dwdS92Z2EvS2NvbmZpZwo+IEBAIC0yMSw2ICsyMSw3IEBAIGNvbmZpZyBWR0Ff
-U1dJVENIRVJPTwo+ICAJYm9vbCAiTGFwdG9wIEh5YnJpZCBHcmFwaGljcyAtIEdQVSBzd2l0Y2hp
-bmcgc3VwcG9ydCIKPiAgCWRlcGVuZHMgb24gWDg2Cj4gIAlkZXBlbmRzIG9uIEFDUEkKPiArCWRl
-cGVuZHMgb24gUENJCj4gIAlzZWxlY3QgVkdBX0FSQgo+ICAJaGVscAo+ICAJICBNYW55IGxhcHRv
-cHMgcmVsZWFzZWQgaW4gMjAwOC85LzEwIGhhdmUgdHdvIEdQVXMgd2l0aCBhIG11bHRpcGxleGVy
-Cj4gLS0gCj4gMi4xOS4wCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9w
-Lm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1k
-ZXZlbAo=
+On Sat, Dec 22, 2018 at 12:14:47AM +0000, Sinan Kaya wrote:
+> Code is scanning PCI bus to find out if it is switchable or not. If
+> CONFIG_PCI is not set, assume unswitchable.
+> 
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  drivers/platform/x86/apple-gmux.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
+> index fd2ffebc868f..b552b54bf58b 100644
+> --- a/drivers/platform/x86/apple-gmux.c
+> +++ b/drivers/platform/x86/apple-gmux.c
+> @@ -742,8 +742,12 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
+>  	 * If Thunderbolt is present, the external DP port is not fully
+>  	 * switchable. Force its AUX channel to the discrete GPU.
+>  	 */
+> +#ifdef CONFIG_PCI
+>  	gmux_data->external_switchable =
+>  		!bus_for_each_dev(&pci_bus_type, NULL, NULL, is_thunderbolt);
+> +#else
+> +	gmux_data->external_switchable = false;
+> +#endif
+>  	if (!gmux_data->external_switchable)
+>  		gmux_write8(gmux_data, GMUX_PORT_SWITCH_EXTERNAL, 3);
+
+This driver is only used on 2008+ MacBook Pros and the 2013+ Mac Pro,
+all of which have PCI and are pretty much unusable with CONFIG_PCI=n.
+
+So it is okay to just add "depends on PCI" for this driver, as you did
+with other drivers, and I think that's preferrable to an #ifdef.
+
+You can also drop the "platform/x86: " prefix from the subject if you
+like, all previous commits to this driver just use "apple-gmux: ".
+
+If you are okay with these changes, feel free to add my Reviewed-by
+when respinning.
+
+Thanks,
+
+Lukas
