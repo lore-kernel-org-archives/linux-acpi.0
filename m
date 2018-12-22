@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v1 09/11] mmc: add PCI dependency into IOSF_MBI
-Date: Sat, 22 Dec 2018 00:14:50 +0000
-Message-ID: <20181222001452.7474-10-okaya@kernel.org>
+Subject: [PATCH v1 10/11] x86: select IOSF_MBI only when CONFIG_PCI is set
+Date: Sat, 22 Dec 2018 00:14:51 +0000
+Message-ID: <20181222001452.7474-11-okaya@kernel.org>
 References: <20181222001452.7474-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,29 +9,30 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181222001452.7474-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD MMC, SECURE
-        DIGITAL SD AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, "maintainer:X86 ARCHITECTURE 32-BIT AND 64-BIT" <x86@kernel.org>, "open list:X86 ARCHITECTURE 32-BIT AND
+        64-BIT" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Select IOSF_MBI only when PCI is set.
+Need CONFIG_PCI to be set in order to be able to use IOSF_MBI
+functionality.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- drivers/mmc/host/Kconfig | 2 +-
+ arch/x86/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-index e26b8145efb3..4c5f037b246d 100644
---- a/drivers/mmc/host/Kconfig
-+++ b/drivers/mmc/host/Kconfig
-@@ -117,7 +117,7 @@ config MMC_RICOH_MMC
- config MMC_SDHCI_ACPI
- 	tristate "SDHCI support for ACPI enumerated SDHCI controllers"
- 	depends on MMC_SDHCI && ACPI
--	select IOSF_MBI if X86
-+	select IOSF_MBI if (X86 && PCI)
- 	help
- 	  This selects support for ACPI enumerated SDHCI controllers,
- 	  identified by ACPI Compatibility ID PNP0D40 or specific
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index cc4f0c6ee1ed..322a58ababb0 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -617,7 +617,7 @@ config X86_INTEL_QUARK
+ 
+ config X86_INTEL_LPSS
+ 	bool "Intel Low Power Subsystem Support"
+-	depends on X86 && ACPI
++	depends on X86 && ACPI && PCI
+ 	select COMMON_CLK
+ 	select PINCTRL
+ 	select IOSF_MBI
 -- 
 2.19.0
