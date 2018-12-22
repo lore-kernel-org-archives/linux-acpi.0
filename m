@@ -1,41 +1,37 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v1 01/11] ACPI / LPSS: Add guards against CONFIG_PCI
-Date: Sat, 22 Dec 2018 00:14:42 +0000
-Message-ID: <20181222001452.7474-2-okaya@kernel.org>
+Subject: [PATCH v1 03/11] vga-switcheroo: make PCI dependency explicit
+Date: Sat, 22 Dec 2018 00:14:44 +0000
+Message-ID: <20181222001452.7474-4-okaya@kernel.org>
 References: <20181222001452.7474-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20181222001452.7474-1-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, David Airlie <airlied@linux.ie>, Sinan Kaya <okaya@kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Sean Paul <sean@poorly.run>
 List-Id: linux-acpi@vger.kernel.org
 
-We can now compile ACPI without PCI support. If code depends on CONFIG_PCI,
-it needs to explicitly guard that piece.
-
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/acpi/acpi_lpss.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 5f94c35d165f..4148abcdf9ef 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -534,8 +534,11 @@ static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
- 	dev = bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
- 	if (dev)
- 		return dev;
--
-+#ifdef CONFIG_PCI
- 	return bus_find_device(&pci_bus_type, NULL, &data, match_hid_uid);
-+#else
-+	return NULL;
-+#endif
- }
- 
- static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
--- 
-2.19.0
+VGhpcyBkcml2ZXIgZGVwZW5kcyBvbiB0aGUgUENJIGluZnJhc3RydWN0dXJlIGJ1dCB0aGUgZGVw
+ZW5kZW5jeSBoYXMgbm90CmJlZW4gZXhwbGljaXRseSBjYWxsZWQgb3V0LgoKU2lnbmVkLW9mZi1i
+eTogU2luYW4gS2F5YSA8b2theWFAa2VybmVsLm9yZz4KLS0tCiBkcml2ZXJzL2dwdS92Z2EvS2Nv
+bmZpZyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0IGEv
+ZHJpdmVycy9ncHUvdmdhL0tjb25maWcgYi9kcml2ZXJzL2dwdS92Z2EvS2NvbmZpZwppbmRleCBi
+Njc3ZTVkNTI0ZTYuLmQ1ZjFkOGUxYzZmOCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvdmdhL0tj
+b25maWcKKysrIGIvZHJpdmVycy9ncHUvdmdhL0tjb25maWcKQEAgLTIxLDYgKzIxLDcgQEAgY29u
+ZmlnIFZHQV9TV0lUQ0hFUk9PCiAJYm9vbCAiTGFwdG9wIEh5YnJpZCBHcmFwaGljcyAtIEdQVSBz
+d2l0Y2hpbmcgc3VwcG9ydCIKIAlkZXBlbmRzIG9uIFg4NgogCWRlcGVuZHMgb24gQUNQSQorCWRl
+cGVuZHMgb24gUENJCiAJc2VsZWN0IFZHQV9BUkIKIAloZWxwCiAJICBNYW55IGxhcHRvcHMgcmVs
+ZWFzZWQgaW4gMjAwOC85LzEwIGhhdmUgdHdvIEdQVXMgd2l0aCBhIG11bHRpcGxleGVyCi0tIAoy
+LjE5LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
+aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
+czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
