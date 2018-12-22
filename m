@@ -1,37 +1,38 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v1 03/11] vga-switcheroo: make PCI dependency explicit
-Date: Sat, 22 Dec 2018 00:14:44 +0000
-Message-ID: <20181222001452.7474-4-okaya@kernel.org>
+Subject: [PATCH v1 02/11] ata: make PCI dependency explicit for PATA_ACPI
+Date: Sat, 22 Dec 2018 00:14:43 +0000
+Message-ID: <20181222001452.7474-3-okaya@kernel.org>
 References: <20181222001452.7474-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181222001452.7474-1-okaya@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>, David Airlie <airlied@linux.ie>, Sinan Kaya <okaya@kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Sean Paul <sean@poorly.run>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Jens Axboe <axboe@kernel.dk>, "open list:LIBATA SUBSYSTEM Serial and
+        Parallel ATA drivers" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-VGhpcyBkcml2ZXIgZGVwZW5kcyBvbiB0aGUgUENJIGluZnJhc3RydWN0dXJlIGJ1dCB0aGUgZGVw
-ZW5kZW5jeSBoYXMgbm90CmJlZW4gZXhwbGljaXRseSBjYWxsZWQgb3V0LgoKU2lnbmVkLW9mZi1i
-eTogU2luYW4gS2F5YSA8b2theWFAa2VybmVsLm9yZz4KLS0tCiBkcml2ZXJzL2dwdS92Z2EvS2Nv
-bmZpZyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9ncHUvdmdhL0tjb25maWcgYi9kcml2ZXJzL2dwdS92Z2EvS2NvbmZpZwppbmRleCBi
-Njc3ZTVkNTI0ZTYuLmQ1ZjFkOGUxYzZmOCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvdmdhL0tj
-b25maWcKKysrIGIvZHJpdmVycy9ncHUvdmdhL0tjb25maWcKQEAgLTIxLDYgKzIxLDcgQEAgY29u
-ZmlnIFZHQV9TV0lUQ0hFUk9PCiAJYm9vbCAiTGFwdG9wIEh5YnJpZCBHcmFwaGljcyAtIEdQVSBz
-d2l0Y2hpbmcgc3VwcG9ydCIKIAlkZXBlbmRzIG9uIFg4NgogCWRlcGVuZHMgb24gQUNQSQorCWRl
-cGVuZHMgb24gUENJCiAJc2VsZWN0IFZHQV9BUkIKIAloZWxwCiAJICBNYW55IGxhcHRvcHMgcmVs
-ZWFzZWQgaW4gMjAwOC85LzEwIGhhdmUgdHdvIEdQVXMgd2l0aCBhIG11bHRpcGxleGVyCi0tIAoy
-LjE5LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRy
-aS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+PATA_ACPI is a PCI device driver but the PCI dependency has not been
+explicitly called out.
+
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/ata/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+index 4ca7a6b4eaae..8218db17ebdb 100644
+--- a/drivers/ata/Kconfig
++++ b/drivers/ata/Kconfig
+@@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
+ 
+ config PATA_ACPI
+ 	tristate "ACPI firmware driver for PATA"
+-	depends on ATA_ACPI && ATA_BMDMA
++	depends on ATA_ACPI && ATA_BMDMA && PCI
+ 	help
+ 	  This option enables an ACPI method driver which drives
+ 	  motherboard PATA controller interfaces through the ACPI
+-- 
+2.19.0
