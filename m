@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v1 08/11] ASoC: Intel: Make PCI dependency explicit
-Date: Sat, 22 Dec 2018 00:14:49 +0000
-Message-ID: <20181222001452.7474-9-okaya@kernel.org>
+Subject: [PATCH v1 07/11] drivers: thermal: Hide PCI driver when CONFIG_PCI is unset
+Date: Sat, 22 Dec 2018 00:14:48 +0000
+Message-ID: <20181222001452.7474-8-okaya@kernel.org>
 References: <20181222001452.7474-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,29 +9,57 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181222001452.7474-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Sumeet Pawnikar <sumeet.r.pawnikar@intel.com>, Amit Kucheria <amit.kucheria@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-IOSF_MBI driver depends on CONFIG_PCI set but this is not specified
-anywhere.
+This driver is both a platform and PCI driver. Hide PCI specific pieces
+when CONFIG_PCI is unset.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- sound/soc/intel/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .../intel/int340x_thermal/processor_thermal_device.c      | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
-index 2fd1b61e8331..b0764b2fe001 100644
---- a/sound/soc/intel/Kconfig
-+++ b/sound/soc/intel/Kconfig
-@@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
- config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
- 	tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
- 	default ACPI
--	depends on X86 && ACPI
-+	depends on X86 && ACPI && PCI
- 	select SND_SST_IPC_ACPI
- 	select SND_SST_ATOM_HIFI2_PLATFORM
- 	select SND_SOC_ACPI_INTEL_MATCH
+diff --git a/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c b/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
+index 284cf2c5a8fd..b84a475a1162 100644
+--- a/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
++++ b/drivers/thermal/intel/int340x_thermal/processor_thermal_device.c
+@@ -374,6 +374,7 @@ static int int3401_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_PCI
+ static irqreturn_t proc_thermal_pci_msi_irq(int irq, void *devid)
+ {
+ 	struct proc_thermal_device *proc_priv;
+@@ -482,6 +483,7 @@ static struct pci_driver proc_thermal_pci_driver = {
+ 	.remove		= proc_thermal_pci_remove,
+ 	.id_table	= proc_thermal_pci_ids,
+ };
++#endif
+ 
+ static const struct acpi_device_id int3401_device_ids[] = {
+ 	{"INT3401", 0},
+@@ -505,16 +507,18 @@ static int __init proc_thermal_init(void)
+ 	ret = platform_driver_register(&int3401_driver);
+ 	if (ret)
+ 		return ret;
+-
++#ifdef CONFIG_PCI
+ 	ret = pci_register_driver(&proc_thermal_pci_driver);
+-
++#endif
+ 	return ret;
+ }
+ 
+ static void __exit proc_thermal_exit(void)
+ {
+ 	platform_driver_unregister(&int3401_driver);
++#ifdef CONFIG_PCI
+ 	pci_unregister_driver(&proc_thermal_pci_driver);
++#endif
+ }
+ 
+ module_init(proc_thermal_init);
 -- 
 2.19.0
