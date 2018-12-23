@@ -1,66 +1,46 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 03/11] vga-switcheroo: make PCI dependency explicit
-Date: Sun, 23 Dec 2018 18:15:01 +0100
-Message-ID: <20181223171501.4hwqu6wn4jzwrcmn@wunner.de>
-References: <20181222090720.19234-1-okaya@kernel.org>
- <20181222090720.19234-4-okaya@kernel.org>
- <20181222164013.2l7etklpxjrrobnm@wunner.de>
- <CAK9iUCNkQR=bUhBPYp_3kr6fo7Y0Jtko=BSjU4QozuOs9mA+kQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 01/11] ACPI / LPSS: Add guards against CONFIG_PCI
+Date: Sun, 23 Dec 2018 22:45:09 +0100
+Message-ID: <CAJZ5v0hiBT5Zg5+sQekgjvcOVgfQsXcRutkTNEOEeAFHYYRz4A@mail.gmail.com>
+References: <20181222090720.19234-1-okaya@kernel.org> <20181222090720.19234-2-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <CAK9iUCNkQR=bUhBPYp_3kr6fo7Y0Jtko=BSjU4QozuOs9mA+kQ@mail.gmail.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Sinan Kaya <Okaya@kernel.org>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>, Sean Paul <sean@poorly.run>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181222090720.19234-2-okaya@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: okaya@kernel.org
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gU3VuLCBEZWMgMjMsIDIwMTggYXQgMDI6MDA6MTVBTSArMDMwMCwgU2luYW4gS2F5YSB3cm90
-ZToKPiBPbiBTYXQsIERlYyAyMiwgMjAxOCBhdCA3OjQwIFBNIEx1a2FzIFd1bm5lciA8bHVrYXNA
-d3VubmVyLmRlPiB3cm90ZToKPiA+IE9uIFNhdCwgRGVjIDIyLCAyMDE4IGF0IDA5OjA3OjEyQU0g
-KzAwMDAsIFNpbmFuIEtheWEgd3JvdGU6Cj4gPiA+IFRoaXMgZHJpdmVyIGRlcGVuZHMgb24gdGhl
-IFBDSSBpbmZyYXN0cnVjdHVyZSBidXQgdGhlIGRlcGVuZGVuY3kgaGFzIG5vdAo+ID4gPiBiZWVu
-IGV4cGxpY2l0bHkgY2FsbGVkIG91dC4KPiA+ID4KPiA+ID4gU2lnbmVkLW9mZi1ieTogU2luYW4g
-S2F5YSA8b2theWFAa2VybmVsLm9yZz4KPiA+ID4gUmV2aWV3ZWQtYnk6IEx1a2FzIFd1bm5lciA8
-bHVrYXNAd3VubmVyLmRlPgo+ID4KPiA+IFRoaXMgc2VyaWVzIGRvZXNuJ3QgaGF2ZSBhIGNvdmVy
-IGxldHRlciBzbyBpdCdzIHVuY2xlYXIgdG8gbWUgdGhyb3VnaAo+ID4gd2hpY2ggdHJlZSBpdCdz
-IHN1cHBvc2VkIHRvIGdvIGluPyAgRWFjaCBwYXRjaCB0aHJvdWdoIHRoZSBpbmRpdmlkdWFsCj4g
-PiBzdWJzeXN0ZW0gdHJlZSBvciBhbGwgdGhyb3VnaCB0aGUgc2FtZSB0cmVlPyAgSWYgdGhlIGZv
-cm1lciBJIGd1ZXNzIEkKPiA+IGNvdWxkIHB1c2ggdGhpcyB0byBkcm0tbWlzYy4uLgo+IAo+IEZl
-ZWwgZnJlZSB0byBhcHBseSBpbmRpdmlkdWFsIHBhdGNoZXMgaW5kZXBlbmRlbnRseS4gTGV0IG1l
-IGtub3cgd2hpY2gKPiBvbmUgeW91IGFwcGxpZWQgc28gdGhhdCBJIGNhbiBkcm9wIHRoZW0gb24g
-dGhlIG5leHQgcmV2LgoKSSd2ZSByZWFsaXplZCBvbmx5IG5vdyB0aGF0IHRoaXMgcGF0Y2ggZml4
-ZXMgZmFsbG91dCBvZiBjb21taXQKNWQzMmE2NjU0MWM0ICgiUENJL0FDUEk6IEFsbG93IEFDUEkg
-dG8gYmUgYnVpbHQgd2l0aG91dCBDT05GSUdfUENJIHNldCIpCndoaWNoIGlzIHBhcnQgb2YgUmFm
-YWVsJ3MgYWNwaSBwdWxsIGZvciB2NC4yMS4KClVzdWFsbHkgc3VjaCBmaXhlcyBnbyB0aHJvdWdo
-IHRoZSBzYW1lIHRyZWUgYXMgdGhlIG9mZmVuZGluZyBjb21taXQsCnNvIEknZCBleHBlY3QgUmFw
-aGFlbCB0byBwaWNrIHVwIHRoZSB3aG9sZSBzZXJpZXMgYW5kIGZvcndhcmQgaXQgdG8KTGludXMg
-aW4gdGhlIHNlY29uZCBoYWxmIG9mIHRoZSBtZXJnZSB3aW5kb3cuICBJJ20gbm90IHN1cmUgaWYg
-dGhhdCdzCmhvdyBpdCdsbCBwbGF5IG91dCB0aG91Z2ggZ2l2ZW4gdGhlIGhvbGlkYXlzLgoKQWRk
-aXRpb25hbGx5LCBkcm0tbWlzYyBpcyBjdXJyZW50bHkgaW4gYSBzb21ld2hhdCBjb25mdXNpbmcg
-c3RhdGU6Ck5vcm1hbGx5IGZpeGVzIHRhcmdldGluZyB2NC4yMSBzaG91bGQgaGF2ZSBiZWVuIGFw
-cGxpZWQgdG8KZHJtLW1pc2MtbmV4dC1maXhlcyBmb3IgdGhlIGxhc3QgMiB3ZWVrcywgeWV0IG5v
-IG5ldyBjb21taXRzIGhhdmUKYmVlbiBhcHBsaWVkIHRvIHRoYXQgYnJhbmNoIHNpbmNlIERlY2Vt
-YmVyIDUsIGJ1dCBwbGVudHkgb2Ygc3R1ZmYKdGhhdCBzaG91bGQgaGF2ZSBiZWVuIGFwcGxpZWQg
-KHZhcmlvdXMgZml4ZXMgYW5kIGEgTUFJTlRBSU5FUlMgY2hhbmdlKQp3ZW50IHRvIGRybS1taXNj
-LW5leHQgaW5zdGVhZC4gIFNvIGl0IGxvb2tzIGxpa2UgYSBsb3Qgb2YgZm9sa3MgcGlja2VkCnRo
-ZSB3cm9uZyBicmFuY2ggYW5kIGRybS1taXNjLW5leHQgaXMgbm93IGEgbWl4IG9mIHY0LjIyIGZl
-YXR1cmVzIGFuZAp2NC4yMSBmaXhlcy4gIEkgdGhpbmsgSSBzaG91bGQgcmF0aGVyIG5vdCBhZGQg
-dG8gdGhpcyBtZXNzIGJlZm9yZSBhCmRybS1taXNjIG1haW50YWluZXIgaGFzIGhhZCBhIGNoYW5j
-ZSB0byBzb3J0IGl0IG91dC4KCkknbGwgYmUgc3VyZSB0byBrZWVwIGFuIGV5ZSBvbiB0aGlzIHRo
-b3VnaC4gIFRoZSBmYWxsb3V0IGFkZHJlc3NlZCBieQp0aGUgcGF0Y2ggaXMgbW9zdGx5IGNvbmZp
-bmVkIHRvIHJhbmRjb25maWdzIEkgdGhpbmssIHNvIHdhaXRpbmcgYSBmZXcKbW9yZSBkYXlzIHBy
-b2JhYmx5IHdvbid0IGh1cnQgbXVjaC4KClRoYW5rcywKCkx1a2FzCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJp
-LWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9y
-Zy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Sat, Dec 22, 2018 at 6:49 PM Sinan Kaya <okaya@kernel.org> wrote:
+>
+> We can now compile ACPI without PCI support. If code depends on CONFIG_PCI,
+> it needs to explicitly guard that piece.
+>
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  drivers/acpi/acpi_lpss.c | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 5f94c35d165f..4148abcdf9ef 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -534,8 +534,11 @@ static struct device *acpi_lpss_find_device(const char *hid, const char *uid)
+>         dev = bus_find_device(&platform_bus_type, NULL, &data, match_hid_uid);
+>         if (dev)
+>                 return dev;
+> -
+> +#ifdef CONFIG_PCI
+>         return bus_find_device(&pci_bus_type, NULL, &data, match_hid_uid);
+> +#else
+> +       return NULL;
+> +#endif
+>  }
+
+No.
+
+Please make this driver depend on PCI instead.
+
+>
+>  static bool acpi_lpss_dep(struct acpi_device *adev, acpi_handle handle)
