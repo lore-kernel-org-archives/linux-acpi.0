@@ -1,38 +1,57 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: Re: [PATCH v2 07/11] drivers: thermal: Hide PCI driver when
- CONFIG_PCI is unset
-Date: Sun, 23 Dec 2018 23:23:24 +0100
-Message-ID: <e695ac50-0e7c-6cc4-5f63-42c842787fd7@kernel.org>
+Subject: Re: [PATCH v2 03/11] vga-switcheroo: make PCI dependency explicit
+Date: Mon, 24 Dec 2018 02:13:11 +0300
+Message-ID: <7e3c5fa9-bd21-bb1f-f668-77d55a72d40a@kernel.org>
 References: <20181222090720.19234-1-okaya@kernel.org>
- <20181222090720.19234-8-okaya@kernel.org>
- <CAJZ5v0j6Z42pk16fFGpQz+xvU-gVnarkoafcWJuQPWY=X532YQ@mail.gmail.com>
+ <20181222090720.19234-4-okaya@kernel.org>
+ <20181222164013.2l7etklpxjrrobnm@wunner.de>
+ <CAK9iUCNkQR=bUhBPYp_3kr6fo7Y0Jtko=BSjU4QozuOs9mA+kQ@mail.gmail.com>
+ <20181223171501.4hwqu6wn4jzwrcmn@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j6Z42pk16fFGpQz+xvU-gVnarkoafcWJuQPWY=X532YQ@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20181223171501.4hwqu6wn4jzwrcmn@wunner.de>
 Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, sumeet.r.pawnikar@intel.com, Linux PM <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Maxime Ripard <maxime.ripard@bootlin.com>, "open list:PCI SUBSYSTEM" <linux-pci@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, David Airlie <airlied@linux.ie>, Sean Paul <sean@poorly.run>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/23/2018 10:48 PM, Rafael J. Wysocki wrote:
-> Can you actually test this driver with your new #ifdef stuff and with
-> CONFIG_PCI unset?
-> 
-> Have you really test it in that configuration?
-> 
-
-No, I haven't. Code was compile tested only.
-
-> If not, you shouldn't even post this patch.
-> 
-
-I was hoping the maintainer to chime in. By looking at the code, it was
-registering a platform and PCI driver. I assumed that it was generic code
-that can be used with and without PCI.
-
-> Please make the driver depend on PCI.
-
-I can do that.
+T24gMTIvMjMvMjAxOCA4OjE1IFBNLCBMdWthcyBXdW5uZXIgd3JvdGU6Cj4gT24gU3VuLCBEZWMg
+MjMsIDIwMTggYXQgMDI6MDA6MTVBTSArMDMwMCwgU2luYW4gS2F5YSB3cm90ZToKPj4gT24gU2F0
+LCBEZWMgMjIsIDIwMTggYXQgNzo0MCBQTSBMdWthcyBXdW5uZXIgPGx1a2FzQHd1bm5lci5kZT4g
+d3JvdGU6Cj4+PiBPbiBTYXQsIERlYyAyMiwgMjAxOCBhdCAwOTowNzoxMkFNICswMDAwLCBTaW5h
+biBLYXlhIHdyb3RlOgo+Pj4+IFRoaXMgZHJpdmVyIGRlcGVuZHMgb24gdGhlIFBDSSBpbmZyYXN0
+cnVjdHVyZSBidXQgdGhlIGRlcGVuZGVuY3kgaGFzIG5vdAo+Pj4+IGJlZW4gZXhwbGljaXRseSBj
+YWxsZWQgb3V0Lgo+Pj4+Cj4+Pj4gU2lnbmVkLW9mZi1ieTogU2luYW4gS2F5YSA8b2theWFAa2Vy
+bmVsLm9yZz4KPj4+PiBSZXZpZXdlZC1ieTogTHVrYXMgV3VubmVyIDxsdWthc0B3dW5uZXIuZGU+
+Cj4+Pgo+Pj4gVGhpcyBzZXJpZXMgZG9lc24ndCBoYXZlIGEgY292ZXIgbGV0dGVyIHNvIGl0J3Mg
+dW5jbGVhciB0byBtZSB0aHJvdWdoCj4+PiB3aGljaCB0cmVlIGl0J3Mgc3VwcG9zZWQgdG8gZ28g
+aW4/ICBFYWNoIHBhdGNoIHRocm91Z2ggdGhlIGluZGl2aWR1YWwKPj4+IHN1YnN5c3RlbSB0cmVl
+IG9yIGFsbCB0aHJvdWdoIHRoZSBzYW1lIHRyZWU/ICBJZiB0aGUgZm9ybWVyIEkgZ3Vlc3MgSQo+
+Pj4gY291bGQgcHVzaCB0aGlzIHRvIGRybS1taXNjLi4uCj4+Cj4+IEZlZWwgZnJlZSB0byBhcHBs
+eSBpbmRpdmlkdWFsIHBhdGNoZXMgaW5kZXBlbmRlbnRseS4gTGV0IG1lIGtub3cgd2hpY2gKPj4g
+b25lIHlvdSBhcHBsaWVkIHNvIHRoYXQgSSBjYW4gZHJvcCB0aGVtIG9uIHRoZSBuZXh0IHJldi4K
+PiAKPiBJJ3ZlIHJlYWxpemVkIG9ubHkgbm93IHRoYXQgdGhpcyBwYXRjaCBmaXhlcyBmYWxsb3V0
+IG9mIGNvbW1pdAo+IDVkMzJhNjY1NDFjNCAoIlBDSS9BQ1BJOiBBbGxvdyBBQ1BJIHRvIGJlIGJ1
+aWx0IHdpdGhvdXQgQ09ORklHX1BDSSBzZXQiKQo+IHdoaWNoIGlzIHBhcnQgb2YgUmFmYWVsJ3Mg
+YWNwaSBwdWxsIGZvciB2NC4yMS4KPiAKPiBVc3VhbGx5IHN1Y2ggZml4ZXMgZ28gdGhyb3VnaCB0
+aGUgc2FtZSB0cmVlIGFzIHRoZSBvZmZlbmRpbmcgY29tbWl0LAo+IHNvIEknZCBleHBlY3QgUmFw
+aGFlbCB0byBwaWNrIHVwIHRoZSB3aG9sZSBzZXJpZXMgYW5kIGZvcndhcmQgaXQgdG8KPiBMaW51
+cyBpbiB0aGUgc2Vjb25kIGhhbGYgb2YgdGhlIG1lcmdlIHdpbmRvdy4gIEknbSBub3Qgc3VyZSBp
+ZiB0aGF0J3MKPiBob3cgaXQnbGwgcGxheSBvdXQgdGhvdWdoIGdpdmVuIHRoZSBob2xpZGF5cy4K
+CkknbGwgZG8gZm9sbG93LXVwIHdpdGggUmFmYWVsLiBBcG9sb2dpemUgZm9yIG5vdCBnaXZpbmcg
+dGhlIGZ1bGwgc3RvcnkuClRyeWluZyB0byBnZXQgcGllY2VzIG91dCBpbiB0aGUgbWlkZGxlIG9m
+IHZhY2F0aW9uIGFzIHRoZXJlIHdhcyBhIGJyZWFrYWdlLgpJIGRpZG4ndCBoYXZlIHRpbWUgdG8g
+cG9saXNoLgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18K
+ZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0
+dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
