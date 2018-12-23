@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v3 08/11] ASoC: Intel: atom: Make PCI dependency explicit
-Date: Sun, 23 Dec 2018 23:25:17 +0000
-Message-ID: <20181223232521.11320-9-okaya@kernel.org>
+Subject: [PATCH v3 09/11] mmc: add PCI dependency into IOSF_MBI
+Date: Sun, 23 Dec 2018 23:25:18 +0000
+Message-ID: <20181223232521.11320-10-okaya@kernel.org>
 References: <20181223232521.11320-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,29 +9,29 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181223232521.11320-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD MMC, SECURE
+        DIGITAL SD AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Code does unconditional select for IOSF_MBI. IOSF_MBI driver depends on
-CONFIG_PCI set but this is not specified anywhere.
+Select IOSF_MBI only when PCI is set.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- sound/soc/intel/Kconfig | 2 +-
+ drivers/mmc/host/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
-index 2fd1b61e8331..b0764b2fe001 100644
---- a/sound/soc/intel/Kconfig
-+++ b/sound/soc/intel/Kconfig
-@@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
- config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
- 	tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
- 	default ACPI
--	depends on X86 && ACPI
-+	depends on X86 && ACPI && PCI
- 	select SND_SST_IPC_ACPI
- 	select SND_SST_ATOM_HIFI2_PLATFORM
- 	select SND_SOC_ACPI_INTEL_MATCH
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index e26b8145efb3..4c5f037b246d 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -117,7 +117,7 @@ config MMC_RICOH_MMC
+ config MMC_SDHCI_ACPI
+ 	tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+ 	depends on MMC_SDHCI && ACPI
+-	select IOSF_MBI if X86
++	select IOSF_MBI if (X86 && PCI)
+ 	help
+ 	  This selects support for ACPI enumerated SDHCI controllers,
+ 	  identified by ACPI Compatibility ID PNP0D40 or specific
 -- 
 2.19.0
