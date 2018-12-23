@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v3 06/11] apple-gmux: Make PCI dependency explicit
-Date: Sun, 23 Dec 2018 23:25:15 +0000
-Message-ID: <20181223232521.11320-7-okaya@kernel.org>
+Subject: [PATCH v3 08/11] ASoC: Intel: atom: Make PCI dependency explicit
+Date: Sun, 23 Dec 2018 23:25:17 +0000
+Message-ID: <20181223232521.11320-9-okaya@kernel.org>
 References: <20181223232521.11320-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,29 +9,29 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20181223232521.11320-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This driver depends on the PCI infrastructure but the dependency has not
-been explicitly called out.
+Code does unconditional select for IOSF_MBI. IOSF_MBI driver depends on
+CONFIG_PCI set but this is not specified anywhere.
 
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Reviewed-by: Lukas Wunner <lukas@wunner.de>
 ---
- drivers/platform/x86/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+ sound/soc/intel/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 7afb96cb1cd6..89f4b86244a7 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1136,6 +1136,7 @@ config SAMSUNG_Q10
- config APPLE_GMUX
- 	tristate "Apple Gmux Driver"
- 	depends on ACPI
-+	depends on PCI
- 	depends on PNP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
+diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
+index 2fd1b61e8331..b0764b2fe001 100644
+--- a/sound/soc/intel/Kconfig
++++ b/sound/soc/intel/Kconfig
+@@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
+ config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
+ 	tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
+ 	default ACPI
+-	depends on X86 && ACPI
++	depends on X86 && ACPI && PCI
+ 	select SND_SST_IPC_ACPI
+ 	select SND_SST_ATOM_HIFI2_PLATFORM
+ 	select SND_SOC_ACPI_INTEL_MATCH
 -- 
 2.19.0
