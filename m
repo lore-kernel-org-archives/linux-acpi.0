@@ -1,40 +1,55 @@
-From: YueHaibing <yuehaibing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH -next] acpi, nfit: Remove duplicated include from core.c
-Date: Tue, 25 Dec 2018 02:21:56 +0000
-Message-ID: <1545704516-10147-1-git-send-email-yuehaibing@huawei.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH -next] ACPI/IORT: fix build when CONFIG_IOMMU_API=n
+Date: Tue, 25 Dec 2018 10:44:38 +0800
+Message-ID: <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
+References: <20181224172058.56206-1-cai@lca.pw>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, YueHaibing <yuehaibing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181224172058.56206-1-cai@lca.pw>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Qian Cai <cai@lca.pw>, sfr@canb.auug.org.au, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
+Cc: linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Remove duplicated include.
+Hi Qian,
 
-Signed-off-by: YueHaibing <yuehaibing-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>
----
- drivers/acpi/nfit/core.c | 1 -
- 1 file changed, 1 deletion(-)
+Good catch, minor comments below.
 
-diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
-index 011d3db..328e464 100644
---- a/drivers/acpi/nfit/core.c
-+++ b/drivers/acpi/nfit/core.c
-@@ -26,7 +26,6 @@
- #include <acpi/nfit.h>
- #include "intel.h"
- #include "nfit.h"
--#include "intel.h"
- 
- /*
-  * For readq() and writeq() on 32-bit builds, the hi-lo, lo-hi order is
+On 2018/12/25 1:20, Qian Cai wrote:
+> rivers/acpi/arm64/iort.c:880:1: error: expected identifier or '(' before '{' token
+  ^^
+  drivers
+
+>  { return NULL; }
+>  ^
+> drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops' used but never defined
+>  static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
+>                                        ^~~~~~~~~~~~~~~~~~~~~
+> Signed-off-by: Qian Cai <cai@lca.pw>
+> ---
+>  drivers/acpi/arm64/iort.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> index fdd90ffceb85..5d29783ee5bd 100644
+> --- a/drivers/acpi/arm64/iort.c
+> +++ b/drivers/acpi/arm64/iort.c
+> @@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+>  	return (resv == its->its_count) ? resv : -ENODEV;
+>  }
+>  #else
+> -static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
+> +static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
+>  { return NULL; }
+>  static inline int iort_add_device_replay(const struct iommu_ops *ops,
+>  					 struct device *dev)
+
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Lorenzo, I think this is 4.21-rc1 material if it's OK for you.
+
+Thanks
+Hanjun
