@@ -1,46 +1,57 @@
-From: Sinan Kaya <Okaya@kernel.org>
-Subject: Re: [PATCH v1 06/11] platform/x86: apple-gmux: hide PCI specific code
-Date: Tue, 25 Dec 2018 16:33:43 +0300
-Message-ID: <CAK9iUCMUELeXMaqnXWxGKaEKX6OkfpWxvSxWiGjuNpvxneCk0g@mail.gmail.com>
-References: <20181222001452.7474-1-okaya@kernel.org> <20181222001452.7474-7-okaya@kernel.org>
- <20181222080317.qicyihyauia6n63w@wunner.de> <CAHp75VfTmWN4bTNPaTL2KYYUWARvix67ynx2cKGzhO3o-0VY=g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Kangjie Lu <kjlu@umn.edu>
+Subject: [PATCH] acpi: fix a potential inconsistency caused by double-fetch
+Date: Tue, 25 Dec 2018 15:46:33 -0600
+Message-ID: <20181225214633.69973-1-kjlu@umn.edu>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VfTmWN4bTNPaTL2KYYUWARvix67ynx2cKGzhO3o-0VY=g@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Lukas Wunner <lukas@wunner.de>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: kjlu@umn.edu
+Cc: pakki001@umn.edu, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 24, 2018 at 5:05 AM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
->
->
-> On Saturday, December 22, 2018, Lukas Wunner <lukas@wunner.de> wrote:
->>
->> On Sat, Dec 22, 2018 at 12:14:47AM +0000, Sinan Kaya wrote:
->> > Code is scanning PCI bus to find out if it is switchable or not. If
->> > CONFIG_PCI is not set, assume unswitchable.
->> >
->>
->> You can also drop the "platform/x86: " prefix from the subject if you
->> like, all previous commits to this driver just use "apple-gmux: ".
->>
->> If you are okay with these changes, feel free to add my Reviewed-by
->> when respinning.
->>
-> I'm not okay with dropping prefix. You can but may not, please, remove the prefix.
->
+"user_buf->length" is in user space, and copied in twice. The second
+copy is after it passes the security check. If a user program races to
+change user_buf->length in user space, the data fetched in the second
+copy may invalidate the security check. The fix avoids the double-fetch
+issue by using the value passing the security check.
 
-You mean 'keep the prefix' above, right?
+Signed-off-by: Kangjie Lu <kjlu@umn.edu>
+---
+ drivers/acpi/custom_method.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-What is the consensus?
-
->
-> --
-> With Best Regards,
-> Andy Shevchenko
->
->
+diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+index 4451877f83b6..f75f664301b3 100644
+--- a/drivers/acpi/custom_method.c
++++ b/drivers/acpi/custom_method.c
+@@ -26,17 +26,16 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+ 	static u32 max_size;
+ 	static u32 uncopied_bytes;
+ 
+-	struct acpi_table_header table;
+ 	acpi_status status;
+ 
+ 	if (!(*ppos)) {
+ 		/* parse the table header to get the table length */
+ 		if (count <= sizeof(struct acpi_table_header))
+ 			return -EINVAL;
+-		if (copy_from_user(&table, user_buf,
+-				   sizeof(struct acpi_table_header)))
++		if (get_user(max_size,
++				&(struct acpi_table_header *)user_buf->length))
+ 			return -EFAULT;
+-		uncopied_bytes = max_size = table.length;
++		uncopied_bytes = max_size;
+ 		buf = kzalloc(max_size, GFP_KERNEL);
+ 		if (!buf)
+ 			return -ENOMEM;
+@@ -56,6 +55,8 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+ 		buf = NULL;
+ 		return -EFAULT;
+ 	}
++	/* Ensure table length is not changed in the second copy */
++	(struct acpi_table_header *)(buf + (*ppos))->length = max_size;
+ 
+ 	uncopied_bytes -= count;
+ 	*ppos += count;
+-- 
+2.17.2 (Apple Git-113)
