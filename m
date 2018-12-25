@@ -1,55 +1,43 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH -next] ACPI/IORT: fix build when CONFIG_IOMMU_API=n
-Date: Tue, 25 Dec 2018 10:44:38 +0800
-Message-ID: <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
-References: <20181224172058.56206-1-cai@lca.pw>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 10/11] x86: select IOSF_MBI only when CONFIG_PCI is set
+Date: Tue, 25 Dec 2018 10:13:49 +0100
+Message-ID: <CAJZ5v0is-DSV15AxRyNG93vazzQsY_8vM6crzgZXeEmhTyQBVQ@mail.gmail.com>
+References: <20181223232521.11320-1-okaya@kernel.org> <20181223232521.11320-11-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181224172058.56206-1-cai@lca.pw>
-Content-Language: en-US
+In-Reply-To: <20181223232521.11320-11-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Qian Cai <cai@lca.pw>, sfr@canb.auug.org.au, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, sudeep.holla@arm.com
-Cc: linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+To: okaya@kernel.org
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, the arch/x86 maintainers <x86@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Qian,
+On Mon, Dec 24, 2018 at 12:25 AM Sinan Kaya <okaya@kernel.org> wrote:
+>
+> Need CONFIG_PCI to be set in order to be able to use IOSF_MBI
+> functionality.
+>
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 
-Good catch, minor comments below.
+The subject and changelog here don't match the changes below.  Please fix.
 
-On 2018/12/25 1:20, Qian Cai wrote:
-> rivers/acpi/arm64/iort.c:880:1: error: expected identifier or '(' before '{' token
-  ^^
-  drivers
-
->  { return NULL; }
->  ^
-> drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops' used but never defined
->  static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
->                                        ^~~~~~~~~~~~~~~~~~~~~
-> Signed-off-by: Qian Cai <cai@lca.pw>
 > ---
->  drivers/acpi/arm64/iort.c | 2 +-
+>  arch/x86/Kconfig | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> index fdd90ffceb85..5d29783ee5bd 100644
-> --- a/drivers/acpi/arm64/iort.c
-> +++ b/drivers/acpi/arm64/iort.c
-> @@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
->  	return (resv == its->its_count) ? resv : -ENODEV;
->  }
->  #else
-> -static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
-> +static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
->  { return NULL; }
->  static inline int iort_add_device_replay(const struct iommu_ops *ops,
->  					 struct device *dev)
-
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-
-Lorenzo, I think this is 4.21-rc1 material if it's OK for you.
-
-Thanks
-Hanjun
+>
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index cc4f0c6ee1ed..322a58ababb0 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -617,7 +617,7 @@ config X86_INTEL_QUARK
+>
+>  config X86_INTEL_LPSS
+>         bool "Intel Low Power Subsystem Support"
+> -       depends on X86 && ACPI
+> +       depends on X86 && ACPI && PCI
+>         select COMMON_CLK
+>         select PINCTRL
+>         select IOSF_MBI
+> --
+> 2.19.0
+>
