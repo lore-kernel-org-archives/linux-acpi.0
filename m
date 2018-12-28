@@ -1,91 +1,68 @@
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: [PATCHv3 2/2] x86/kdump: bugfix, make the behavior of crashkernel=X consistent with kaslr
-Date: Fri, 28 Dec 2018 11:00:02 +0800
-Message-ID: <1545966002-3075-3-git-send-email-kernelfans@gmail.com>
+From: Baoquan He <bhe@redhat.com>
+Subject: Re: [PATCHv3 0/2] mm/memblock: reuse memblock bottom-up allocation
+ style
+Date: Fri, 28 Dec 2018 11:39:40 +0800
+Message-ID: <20181228033940.GB1990@MiWiFi-R3L-srv>
 References: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
 In-Reply-To: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org
-Cc: Pingfan Liu <kernelfans@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, Baoquan He <bhe@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Customer reported a bug on a high end server with many pcie devices, where
-kernel bootup with crashkernel=384M, and kaslr is enabled. Even
-though we still see much memory under 896 MB, the finding still failed
-intermittently. Because currently we can only find region under 896 MB,
-if w/0 ',high' specified. Then KASLR breaks 896 MB into several parts
-randomly, and crashkernel reservation need be aligned to 128 MB, that's
-why failure is found. It raises confusion to the end user that sometimes
-crashkernel=X works while sometimes fails.
-If want to make it succeed, customer can change kernel option to
-"crashkernel=384M, high". Just this give "crashkernel=xx@yy" a very
-limited space to behave even though its grammer looks more generic.
-And we can't answer questions raised from customer that confidently:
-1) why it doesn't succeed to reserve 896 MB;
-2) what's wrong with memory region under 4G;
-3) why I have to add ',high', I only require 384 MB, not 3840 MB.
+On 12/28/18 at 11:00am, Pingfan Liu wrote:
+> The bottom-up allocation style is introduced to cope with movable_node,
+> where the limit inferior of allocation starts from kernel's end, due to
+> lack of knowledge of memory hotplug info at this early time.
+> Beside this original aim, 'kexec -c' prefers to reuse this style to alloc mem
 
-This patch simplifies the method suggested in the mail [1]. It just goes
-bottom-up to find a candidate region for crashkernel. The bottom-up may be
-better compatible with the old reservation style, i.e. still want to get
-memory region from 896 MB firstly, then [896 MB, 4G], finally above 4G.
+Wondering what is 'kexec -c'.
 
-There is one trivial thing about the compatibility with old kexec-tools:
-if the reserved region is above 896M, then old tool will fail to load
-bzImage. But without this patch, the old tool also fail since there is no
-memory below 896M can be reserved for crashkernel.
+> at lower address, since if the reserved region is beyond 4G, then it requires
+> extra mem (default is 16M) for swiotlb. But at this time hotplug info has been
 
-[1]: http://lists.infradead.org/pipermail/kexec/2017-October/019571.html
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Daniel Vacek <neelx@redhat.com>
-Cc: Mathieu Malaterre <malat@debian.org>
-Cc: Stefan Agner <stefan@agner.ch>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: yinghai@kernel.org,
-Cc: vgoyal@redhat.com
-Cc: linux-kernel@vger.kernel.org
----
- arch/x86/kernel/setup.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+The default is 256M, not sure if we are talking about the same thing.
 
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index d494b9b..165f9c3 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -541,15 +541,18 @@ static void __init reserve_crashkernel(void)
- 
- 	/* 0 means: find the address automatically */
- 	if (crash_base <= 0) {
-+		bool bottom_up = memblock_bottom_up();
-+
-+		memblock_set_bottom_up(true);
- 		/*
- 		 * Set CRASH_ADDR_LOW_MAX upper bound for crash memory,
- 		 * as old kexec-tools loads bzImage below that, unless
- 		 * "crashkernel=size[KMG],high" is specified.
- 		 */
- 		crash_base = memblock_find_in_range(CRASH_ALIGN,
--						    high ? CRASH_ADDR_HIGH_MAX
--							 : CRASH_ADDR_LOW_MAX,
--						    crash_size, CRASH_ALIGN);
-+			(max_pfn * PAGE_SIZE), crash_size, CRASH_ALIGN);
-+		memblock_set_bottom_up(bottom_up);
-+
- 		if (!crash_base) {
- 			pr_info("crashkernel reservation failed - No suitable area found.\n");
- 			return;
--- 
-2.7.4
+low_size = max(swiotlb_size_or_default() + (8UL << 20), 256UL << 20);
+
+> got, the limit inferior can be extend to 0, which is done by this series
+> 
+> Cc: Tang Chen <tangchen@cn.fujitsu.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Jonathan Corbet <corbet@lwn.net>
+> Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+> Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> Cc: Daniel Vacek <neelx@redhat.com>
+> Cc: Mathieu Malaterre <malat@debian.org>
+> Cc: Stefan Agner <stefan@agner.ch>
+> Cc: Dave Young <dyoung@redhat.com>
+> Cc: Baoquan He <bhe@redhat.com>
+> Cc: yinghai@kernel.org,
+> Cc: vgoyal@redhat.com
+> Cc: linux-kernel@vger.kernel.org
+> 
+> Pingfan Liu (2):
+>   mm/memblock: extend the limit inferior of bottom-up after parsing
+>     hotplug attr
+>   x86/kdump: bugfix, make the behavior of crashkernel=X consistent with
+>     kaslr
+> 
+>  arch/x86/kernel/setup.c  |  9 +++++---
+>  drivers/acpi/numa.c      |  4 ++++
+>  include/linux/memblock.h |  1 +
+>  mm/memblock.c            | 58 +++++++++++++++++++++++++++++-------------------
+>  4 files changed, 46 insertions(+), 26 deletions(-)
+> 
+> -- 
+> 2.7.4
+> 
