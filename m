@@ -1,79 +1,52 @@
-From: Sinan Kaya <Okaya@kernel.org>
-Subject: Re: [PATCH v3 08/11] ASoC: Intel: atom: Make PCI dependency explicit
-Date: Wed, 26 Dec 2018 23:07:04 +0300
-Message-ID: <CAK9iUCMG9YkiZC-yAe0vJ62cJ2tW--KqVtDr3SMLM3zJFpJHSw@mail.gmail.com>
-References: <20181223232521.11320-1-okaya@kernel.org> <20181223232521.11320-9-okaya@kernel.org>
- <39200a36-6592-f010-8309-a249a8d514f4@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: [PATCHv3 0/2] mm/memblock: reuse memblock bottom-up allocation style
+Date: Fri, 28 Dec 2018 11:00:00 +0800
+Message-ID: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <39200a36-6592-f010-8309-a249a8d514f4@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Cc: Linux Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+To: linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org
+Cc: Pingfan Liu <kernelfans@gmail.com>, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, Baoquan He <bhe@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 26, 2018 at 8:35 PM Pierre-Louis Bossart
-<pierre-louis.bossart@linux.intel.com> wrote:
->
->
-> On 12/23/18 5:25 PM, Sinan Kaya wrote:
-> > Code does unconditional select for IOSF_MBI. IOSF_MBI driver depends on
-> > CONFIG_PCI set but this is not specified anywhere.
->
-> Can you please share the .config that exposes this problem? This hasn't
-> changed in a long time and I wonder why this pops up now. You have
-> similar cases elsewhere, e.g. arch/x86/Kconfig
->
-Here is the background :
+The bottom-up allocation style is introduced to cope with movable_node,
+where the limit inferior of allocation starts from kernel's end, due to
+lack of knowledge of memory hotplug info at this early time.
+Beside this original aim, 'kexec -c' prefers to reuse this style to alloc mem
+at lower address, since if the reserved region is beyond 4G, then it requires
+extra mem (default is 16M) for swiotlb. But at this time hotplug info has been
+got, the limit inferior can be extend to 0, which is done by this series
 
-I have a changeset that was added to 4.21-rc1 that decouples  ACPI from
-PCI. PCI was automatically selected when ACPI was chosen before.
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Daniel Vacek <neelx@redhat.com>
+Cc: Mathieu Malaterre <malat@debian.org>
+Cc: Stefan Agner <stefan@agner.ch>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: yinghai@kernel.org,
+Cc: vgoyal@redhat.com
+Cc: linux-kernel@vger.kernel.org
 
-This is no longer true.
+Pingfan Liu (2):
+  mm/memblock: extend the limit inferior of bottom-up after parsing
+    hotplug attr
+  x86/kdump: bugfix, make the behavior of crashkernel=X consistent with
+    kaslr
 
-If a code needs PCI support, it now needs to explicitly state that.
+ arch/x86/kernel/setup.c  |  9 +++++---
+ drivers/acpi/numa.c      |  4 ++++
+ include/linux/memblock.h |  1 +
+ mm/memblock.c            | 58 +++++++++++++++++++++++++++++-------------------
+ 4 files changed, 46 insertions(+), 26 deletions(-)
 
-This allows usecase for smaller kernels and component isolation.
-
-> config X86_INTEL_LPSS
->      bool "Intel Low Power Subsystem Support"
->      depends on X86 && ACPI
->      select COMMON_CLK
->      select PINCTRL
->      select IOSF_MBI
->
-> or for the MMC.
->
-> config MMC_SDHCI_ACPI
->      tristate "SDHCI support for ACPI enumerated SDHCI controllers"
->      depends on MMC_SDHCI && ACPI
->      select IOSF_MBI if X86
->
-> The use of IOSF_MBI is only for the Baytrail-CR detection and there are
-> already in-flight patches to change the code and move it to a helper.
->
-> My understanding is that for compilation you only need CONFIG_x86 since
-> there are fall-back routines available in iosf_mbi.h
->
-> Thanks!
->
-> >
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > ---
-> >   sound/soc/intel/Kconfig | 2 +-
-> >   1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
-> > index 2fd1b61e8331..b0764b2fe001 100644
-> > --- a/sound/soc/intel/Kconfig
-> > +++ b/sound/soc/intel/Kconfig
-> > @@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
-> >   config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
-> >       tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
-> >       default ACPI
-> > -     depends on X86 && ACPI
-> > +     depends on X86 && ACPI && PCI
-> >       select SND_SST_IPC_ACPI
-> >       select SND_SST_ATOM_HIFI2_PLATFORM
-> >       select SND_SOC_ACPI_INTEL_MATCH
+-- 
+2.7.4
