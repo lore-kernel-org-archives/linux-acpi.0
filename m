@@ -1,37 +1,25 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v4 06/11] platform/x86: apple-gmux: Make PCI dependency explicit
-Date: Sun, 30 Dec 2018 19:56:07 +0000
-Message-ID: <20181230195612.6657-7-okaya@kernel.org>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v4 06/11] platform/x86: apple-gmux: Make PCI dependency
+ explicit
+Date: Sun, 30 Dec 2018 21:01:50 +0100
+Message-ID: <20181230200150.pyxg5bv7qcpj7de2@wunner.de>
 References: <20181230195612.6657-1-okaya@kernel.org>
+ <20181230195612.6657-7-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20181230195612.6657-1-okaya@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20181230195612.6657-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This driver depends on the PCI infrastructure but the dependency has not
-been explicitly called out.
+On Sun, Dec 30, 2018 at 07:56:07PM +0000, Sinan Kaya wrote:
+> This driver depends on the PCI infrastructure but the dependency has not
+> been explicitly called out.
+> 
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/platform/x86/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 7afb96cb1cd6..89f4b86244a7 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1136,6 +1136,7 @@ config SAMSUNG_Q10
- config APPLE_GMUX
- 	tristate "Apple Gmux Driver"
- 	depends on ACPI
-+	depends on PCI
- 	depends on PNP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
--- 
-2.19.0
+Reviewed-by: Lukas Wunner <lukas@wunner.de>
