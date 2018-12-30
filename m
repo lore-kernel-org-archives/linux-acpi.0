@@ -1,25 +1,45 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v4 06/11] platform/x86: apple-gmux: Make PCI dependency
- explicit
-Date: Sun, 30 Dec 2018 21:01:50 +0100
-Message-ID: <20181230200150.pyxg5bv7qcpj7de2@wunner.de>
-References: <20181230195612.6657-1-okaya@kernel.org>
- <20181230195612.6657-7-okaya@kernel.org>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: [PATCH] ACPI: Fix build failure when CONFIG_NLS is set to 'n'
+Date: Sun, 30 Dec 2018 20:40:05 +0000
+Message-ID: <20181230204005.6397-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20181230195612.6657-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: linux-next@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 30, 2018 at 07:56:07PM +0000, Sinan Kaya wrote:
-> This driver depends on the PCI infrastructure but the dependency has not
-> been explicitly called out.
-> 
-> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Observing link failure as follows when CONFIG_ACPI is set but
+both CONFIG_NLS and CONFIG_PCI are unset.
 
-Reviewed-by: Lukas Wunner <lukas@wunner.de>
+drivers/acpi/device_sysfs.o: In function `description_show':
+device_sysfs.c:(.text+0x48a): undefined reference to `utf16s_to_utf8s'
+
+This issue has been previously fxed by
+'commit 8a226e00eeed ("PCI: pci-label: Fix build failure when CONFIG_NLS
+is set to 'm' by allmodconfig")' selecting NLS when ACPI is present.
+
+Now that it is possible to have ACPI without PCI, we need an alternative
+select statement inside the ACPI kconfig.
+
+Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/acpi/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 7b65a807b3dd..90ff0a47c12e 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -10,6 +10,7 @@ menuconfig ACPI
+ 	bool "ACPI (Advanced Configuration and Power Interface) Support"
+ 	depends on ARCH_SUPPORTS_ACPI
+ 	select PNP
++	select NLS
+ 	default y if X86
+ 	help
+ 	  Advanced Configuration and Power Interface (ACPI) support for 
+-- 
+2.19.0
