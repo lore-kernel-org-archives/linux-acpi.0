@@ -1,55 +1,40 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v4 01/11] ACPI / LPSS: Make PCI dependency explicit
-Date: Sun, 30 Dec 2018 19:56:02 +0000
-Message-ID: <20181230195612.6657-2-okaya@kernel.org>
+Subject: [PATCH v4 03/11] vga-switcheroo: make PCI dependency explicit
+Date: Sun, 30 Dec 2018 19:56:04 +0000
+Message-ID: <20181230195612.6657-4-okaya@kernel.org>
 References: <20181230195612.6657-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <20181230195612.6657-1-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: Maxime Ripard <maxime.ripard@bootlin.com>, David Airlie <airlied@linux.ie>, Sinan Kaya <okaya@kernel.org>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Sean Paul <sean@poorly.run>
 List-Id: linux-acpi@vger.kernel.org
 
-This code depends on PCI. Compile only when PCI is present.
-
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/acpi/Makefile   | 3 ++-
- drivers/acpi/internal.h | 4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 7c6afc111d76..bb857421c2e8 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -41,7 +41,8 @@ acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
- obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
--acpi-y				+= acpi_lpss.o acpi_apd.o
-+acpi-$(CONFIG_PCI)		+= acpi_lpss.o
-+acpi-y				+= acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 7e6952edb5b0..6a9e1fb8913a 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -81,7 +81,11 @@ void acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
-+#ifdef CONFIG_PCI
- void acpi_lpss_init(void);
-+#else
-+static inline void acpi_lpss_init(void) {}
-+#endif
- 
- void acpi_apd_init(void);
- 
--- 
-2.19.0
+VGhpcyBkcml2ZXIgZGVwZW5kcyBvbiB0aGUgUENJIGluZnJhc3RydWN0dXJlIGJ1dCB0aGUgZGVw
+ZW5kZW5jeSBoYXMgbm90CmJlZW4gZXhwbGljaXRseSBjYWxsZWQgb3V0LgoKRml4ZXM6IDVkMzJh
+NjY1NDFjNDYgKCJQQ0kvQUNQSTogQWxsb3cgQUNQSSB0byBiZSBidWlsdCB3aXRob3V0IENPTkZJ
+R19QQ0kgc2V0IikKU2lnbmVkLW9mZi1ieTogU2luYW4gS2F5YSA8b2theWFAa2VybmVsLm9yZz4K
+UmV2aWV3ZWQtYnk6IEx1a2FzIFd1bm5lciA8bHVrYXNAd3VubmVyLmRlPgpBY2tlZC1ieTogRGFu
+aWVsIFZldHRlciA8ZGFuaWVsLnZldHRlckBmZndsbC5jaD4KLS0tCiBkcml2ZXJzL2dwdS92Z2Ev
+S2NvbmZpZyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9ncHUvdmdhL0tjb25maWcgYi9kcml2ZXJzL2dwdS92Z2EvS2NvbmZpZwppbmRl
+eCBiNjc3ZTVkNTI0ZTYuLmQ1ZjFkOGUxYzZmOCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvdmdh
+L0tjb25maWcKKysrIGIvZHJpdmVycy9ncHUvdmdhL0tjb25maWcKQEAgLTIxLDYgKzIxLDcgQEAg
+Y29uZmlnIFZHQV9TV0lUQ0hFUk9PCiAJYm9vbCAiTGFwdG9wIEh5YnJpZCBHcmFwaGljcyAtIEdQ
+VSBzd2l0Y2hpbmcgc3VwcG9ydCIKIAlkZXBlbmRzIG9uIFg4NgogCWRlcGVuZHMgb24gQUNQSQor
+CWRlcGVuZHMgb24gUENJCiAJc2VsZWN0IFZHQV9BUkIKIAloZWxwCiAJICBNYW55IGxhcHRvcHMg
+cmVsZWFzZWQgaW4gMjAwOC85LzEwIGhhdmUgdHdvIEdQVXMgd2l0aCBhIG11bHRpcGxleGVyCi0t
+IAoyLjE5LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
+dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
