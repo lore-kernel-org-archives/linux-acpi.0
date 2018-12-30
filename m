@@ -1,68 +1,90 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCHv3 0/2] mm/memblock: reuse memblock bottom-up allocation
- style
-Date: Fri, 28 Dec 2018 11:39:40 +0800
-Message-ID: <20181228033940.GB1990@MiWiFi-R3L-srv>
-References: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] ACPI / power: Skip duplicate power-resources in PR tables
+Date: Sun, 30 Dec 2018 18:25:00 +0100
+Message-ID: <20181230172500.17189-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pingfan Liu <kernelfans@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/28/18 at 11:00am, Pingfan Liu wrote:
-> The bottom-up allocation style is introduced to cope with movable_node,
-> where the limit inferior of allocation starts from kernel's end, due to
-> lack of knowledge of memory hotplug info at this early time.
-> Beside this original aim, 'kexec -c' prefers to reuse this style to alloc mem
+Some ACPI tables contain duplicate resources like this:
 
-Wondering what is 'kexec -c'.
+        Name (_PR0, Package (0x04)  // _PR0: Power Resources for D0
+        {
+            P28P,
+            P18P,
+            P18P,
+            CLK4
+        })
 
-> at lower address, since if the reserved region is beyond 4G, then it requires
-> extra mem (default is 16M) for swiotlb. But at this time hotplug info has been
+This causes a WARN_ON in sysfs_add_link_to_group because we end up
+adding a link to the same acpi_device twice:
 
-The default is 256M, not sure if we are talking about the same thing.
+sysfs: cannot create duplicate filename '/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/808622C1:00/OVTI2680:00/power_resources_D0/LNXPOWER:0a'
+CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.12-301.fc29.x86_64 #1
+Hardware name: Insyde CherryTrail/Type2 - Board Product Name, BIOS jumperx.T87.KFBNEEA02 04/13/2016
+Call Trace:
+ dump_stack+0x5c/0x80
+ sysfs_warn_dup.cold.3+0x17/0x2a
+ sysfs_do_create_link_sd.isra.2+0xa9/0xb0
+ sysfs_add_link_to_group+0x30/0x50
+ acpi_power_expose_list+0x74/0xa0
+ acpi_power_add_remove_device+0x50/0xa0
+ acpi_add_single_object+0x26b/0x5f0
+ acpi_bus_check_add+0xc4/0x250
+ ...
 
-low_size = max(swiotlb_size_or_default() + (8UL << 20), 256UL << 20);
+This commit makes acpi_extract_power_resources() check for duplicates and
+simply skips them when found, fixing this.
 
-> got, the limit inferior can be extend to 0, which is done by this series
-> 
-> Cc: Tang Chen <tangchen@cn.fujitsu.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-> Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
-> Cc: Nicholas Piggin <npiggin@gmail.com>
-> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-> Cc: Daniel Vacek <neelx@redhat.com>
-> Cc: Mathieu Malaterre <malat@debian.org>
-> Cc: Stefan Agner <stefan@agner.ch>
-> Cc: Dave Young <dyoung@redhat.com>
-> Cc: Baoquan He <bhe@redhat.com>
-> Cc: yinghai@kernel.org,
-> Cc: vgoyal@redhat.com
-> Cc: linux-kernel@vger.kernel.org
-> 
-> Pingfan Liu (2):
->   mm/memblock: extend the limit inferior of bottom-up after parsing
->     hotplug attr
->   x86/kdump: bugfix, make the behavior of crashkernel=X consistent with
->     kaslr
-> 
->  arch/x86/kernel/setup.c  |  9 +++++---
->  drivers/acpi/numa.c      |  4 ++++
->  include/linux/memblock.h |  1 +
->  mm/memblock.c            | 58 +++++++++++++++++++++++++++++-------------------
->  4 files changed, 46 insertions(+), 26 deletions(-)
-> 
-> -- 
-> 2.7.4
-> 
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/power.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
+index 1b475bc1ae16..bc10a5efc1ba 100644
+--- a/drivers/acpi/power.c
++++ b/drivers/acpi/power.c
+@@ -131,6 +131,23 @@ void acpi_power_resources_list_free(struct list_head *list)
+ 	}
+ }
+ 
++static bool acpi_power_resource_is_dup(union acpi_object *package,
++				       unsigned int start, unsigned int i)
++{
++	acpi_handle rhandle, dup;
++	unsigned int j;
++
++	/* Note the element types have already been checked in our caller */
++	rhandle = package->package.elements[i].reference.handle;
++	for (j = start; j < i; j++) {
++		dup = package->package.elements[j].reference.handle;
++		if (dup == rhandle)
++			return true;
++	}
++
++	return false;
++}
++
+ int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
+ 				 struct list_head *list)
+ {
+@@ -150,6 +167,11 @@ int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
+ 			err = -ENODEV;
+ 			break;
+ 		}
++
++		/* Some ACPI tables contain duplicate resources, skip these */
++		if (acpi_power_resource_is_dup(package, start, i))
++			continue;
++
+ 		err = acpi_add_power_resource(rhandle);
+ 		if (err)
+ 			break;
+-- 
+2.20.1
