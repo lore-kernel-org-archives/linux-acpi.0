@@ -1,48 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v3 09/11] mmc: add PCI dependency into IOSF_MBI
-Date: Mon, 31 Dec 2018 10:40:15 +0100
-Message-ID: <CAJZ5v0hw_=Odpok=6qWVWAfJ0wG7Z8NjwzMCpaFgxYnEAreKcg@mail.gmail.com>
-References: <20181223232521.11320-1-okaya@kernel.org> <20181223232521.11320-10-okaya@kernel.org>
- <CAJZ5v0jFXvGJH_V9gJ8c3T5x80yYHQmk=0WfJi=vvkSJ_aShwg@mail.gmail.com> <CAK9iUCPqqyK7KMvchM4jY_FBgujnQm019J27TpDJjXUXvu5sjQ@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 08/11] ASoC: Intel: atom: Make PCI
+	dependency explicit
+Date: Mon, 31 Dec 2018 17:46:54 +0000
+Message-ID: <20181231174654.GH1846@sirena.org.uk>
+References: <20181230195612.6657-1-okaya@kernel.org>
+ <20181230195612.6657-9-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAK9iUCPqqyK7KMvchM4jY_FBgujnQm019J27TpDJjXUXvu5sjQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <Okaya@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, "Hunter, Adrian" <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, faiz_abbas@ti.com, chunyan.zhang@unisoc.com, Jisheng.Zhang@synaptics.com, ludovic.barre@st.com, Arnd Bergmann <arnd@arndb.de>, alex.smith@imgtec.com, chris.brandt@renesas.com, linux-mmc <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============5095110652645496127=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20181230195612.6657-9-okaya@kernel.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 30, 2018 at 7:57 PM Sinan Kaya <Okaya@kernel.org> wrote:
->
-> On Wed, Dec 26, 2018 at 12:41 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
-> >
-> > On Mon, Dec 24, 2018 at 12:26 AM Sinan Kaya <okaya@kernel.org> wrote:
-> > >
-> > > Select IOSF_MBI only when PCI is set.
-> > >
-> > > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > > ---
-> > >  drivers/mmc/host/Kconfig | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-> > > index e26b8145efb3..4c5f037b246d 100644
-> > > --- a/drivers/mmc/host/Kconfig
-> > > +++ b/drivers/mmc/host/Kconfig
-> > > @@ -117,7 +117,7 @@ config MMC_RICOH_MMC
-> > >  config MMC_SDHCI_ACPI
-> > >         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
-> > >         depends on MMC_SDHCI && ACPI
-> >
-> > It should depend on PCI as well, shouldn't it?
-> >
->
-> I don't think so. The PCI dependency is at IOSF_MBI code so code
-> should select IOSF_MBI only when x86 and pci is defined as below.
->
-> This driver does not depend on PCI.
 
-Are you sure?
+--===============5095110652645496127==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="dMyqICaxQaaUjrCL"
+Content-Disposition: inline
 
-Do you know any systems in which to use it without PCI?
+
+--dMyqICaxQaaUjrCL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Sun, Dec 30, 2018 at 07:56:09PM +0000, Sinan Kaya wrote:
+> Code does unconditional select for IOSF_MBI. IOSF_MBI driver depends on
+> CONFIG_PCI set but this is not specified anywhere.
+
+I don't have the cover letter or anything for this series, what's going
+on with dependencies?
+
+--dMyqICaxQaaUjrCL
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwqVgsACgkQJNaLcl1U
+h9DK0Qf5AdiTvdsqlkSq4ADpfxzrhXV9yrPpE9JaSk42vEizr7qzwrid+GFrVbLv
+7xnKpMDE8DAdWxtRf9UAqj+G3iuj5jU8fGbCeVbYrCxpgZdsJA7YWixJq3XlZ6Iw
+3Hvtscbn2u6N656P4L2fYcIpgFVHvMU3MdVVqs9LO3YknHVV+8j9/i8XKc5/KYx4
+y2yCc5BHiniwsLMeupbyii3HHrAHw4FMGlgeqLqVT9558m3Vj3hwoWhvI/emG8uV
+XhFI4OoiPPDtQlF5SU+fUKOnSjUF3vLNubC6peKLu8euzsC0kn5nNa9wtbDzoQ1c
+N4Tkr2/CS/k/IOD8QLNbkHGjXzuj0w==
+=9M9Q
+-----END PGP SIGNATURE-----
+
+--dMyqICaxQaaUjrCL--
+
+--===============5095110652645496127==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5095110652645496127==--
