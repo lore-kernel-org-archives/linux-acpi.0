@@ -1,47 +1,119 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v5 06/11] platform/x86: apple-gmux: Make PCI dependency
- explicit
-Date: Wed, 2 Jan 2019 19:45:47 +0100
-Message-ID: <20190102184547.cueegmzpwhsvci4b@wunner.de>
-References: <20190102181038.4418-1-okaya@kernel.org>
- <20190102181038.4418-7-okaya@kernel.org>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL v2] Thermal-SoC management updates for v4.21-rc1
+Date: Wed, 2 Jan 2019 12:05:33 -0800
+Message-ID: <20190102200532.GA2320@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190102181038.4418-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 02, 2019 at 06:10:33PM +0000, Sinan Kaya wrote:
-> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> specified directly. This driver depends on the PCI infrastructure but
-> the dependency has not been explicitly called out.
-> 
-> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+Hello Linus,
 
-Reviewed-by: Lukas Wunner <lukas@wunner.de>
+Please consider pulling from
 
-> ---
->  drivers/platform/x86/Kconfig | 1 +
->  1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> index 7afb96cb1cd6..89f4b86244a7 100644
-> --- a/drivers/platform/x86/Kconfig
-> +++ b/drivers/platform/x86/Kconfig
-> @@ -1136,6 +1136,7 @@ config SAMSUNG_Q10
->  config APPLE_GMUX
->  	tristate "Apple Gmux Driver"
->  	depends on ACPI
-> +	depends on PCI
->  	depends on PNP
->  	depends on BACKLIGHT_CLASS_DEVICE
->  	depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
-> -- 
-> 2.19.0
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+
+to receive Thermal-SoC Management updates for v4.21-rc1 with top-most
+
+9d216211fded20fff301d0317af3238d8383634c:
+
+  thermal: generic-adc: Fix adc to temp interpolation (2019-01-02 04:47:23 -0800)
+
+on top of commit 0072a0c14d5b7cb72c611d396f143f5dcd73ebe2:
+
+  Merge tag 'media/v4.20-4' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2018-12-03 11:29:20 -0800)
+
+Specifics:
+- Tegra DT binding documentation for Tegra194
+- Armada now supports ap806 and cp110
+- RCAR thermal now supports R8A774C0 and R8A77990
+- Fixes on thermal_hwmon, IMX, generic-ADC, ST, RCAR, Broadcom, Uniphier, QCOM, Tegra, 
+  PowerClamp, and Armada thermal drivers.
+
+CI:
+Full Boot Summary: https://kernelci.org/boot/all/job/evalenti/branch/for-kernelci/kernel/v4.20-rc5-43-g9d216211fded/
+Full Build Summary: https://kernelci.org/build/evalenti/branch/for-kernelci/kernel/v4.20-rc5-43-g9d216211fded/
+
+Also, made sure to not add new warnings on make allmodconfig, allyesconfig, allnoconfig (including x86 as well).
+
+BR,
+
+----------------------------------------------------------------
+Anson Huang (2):
+      thermal: imx: fix for dependency on cpu-freq
+      thermal: imx: save one condition block for normal case of nvmem initialization
+
+Arnd Bergmann (1):
+      thermal: st: fix Makefile typo
+
+Bjorn Andersson (1):
+      thermal: generic-adc: Fix adc to temp interpolation
+
+Eduardo Valentin (1):
+      thermal: hwmon: inline helpers when CONFIG_THERMAL_HWMON is not set
+
+Fabrizio Castro (2):
+      dt-bindings: thermal: rcar-thermal: add R8A774C0 support
+      thermal: rcar_thermal: add R8A774C0 support
+
+Geert Uytterhoeven (1):
+      dt-bindings: thermal: rcar-gen3-thermal: All variants use 3 interrupts
+
+Julia Lawall (1):
+      thermal: broadcom: use devm_thermal_zone_of_sensor_register
+
+Kunihiko Hayashi (1):
+      thermal: uniphier: Convert to SPDX identifier
+
+Matthias Brugger (1):
+      thermal: bcm2835: enable hwmon explicitly
+
+Miquel Raynal (4):
+      thermal: armada: add overheat interrupt support
+      MAINTAINERS: thermal: add entry for Marvell MVEBU thermal driver
+      dt-bindings: ap806: document the thermal interrupt capabilities
+      dt-bindings: cp110: document the thermal interrupt capabilities
+
+Srinivas Kandagatla (1):
+      thermal: tsens: qcom: do not create duplicate regmap debugfs entries
+
+Thierry Reding (1):
+      dt-bindings: thermal: tegra-bpmp: Add Tegra194 support
+
+Yangtao Li (2):
+      thermal: tegra: soctherm: Change to use DEFINE_SHOW_ATTRIBUTE macro
+      thermal/intel_powerclamp: Change to use DEFINE_SHOW_ATTRIBUTE macro
+
+Yoshihiro Kaneko (2):
+      dt-bindings: thermal: rcar-thermal: add R8A77990 support
+      thermal: rcar_thermal: add R8A77990 support
+
+YueHaibing (1):
+      thermal: armada: Use PTR_ERR_OR_ZERO in armada_thermal_probe_legacy()
+
+ .../arm/marvell/ap806-system-controller.txt        |   7 +
+ .../arm/marvell/cp110-system-controller.txt        |   9 +
+ .../thermal/nvidia,tegra186-bpmp-thermal.txt       |   3 +-
+ .../bindings/thermal/rcar-gen3-thermal.txt         |   3 +-
+ .../devicetree/bindings/thermal/rcar-thermal.txt   |   6 +-
+ MAINTAINERS                                        |   5 +
+ drivers/thermal/Kconfig                            |   2 +-
+ drivers/thermal/armada_thermal.c                   | 280 ++++++++++++++++++++-
+ drivers/thermal/broadcom/bcm2835_thermal.c         |  11 +
+ drivers/thermal/broadcom/brcmstb_thermal.c         |  24 +-
+ drivers/thermal/imx_thermal.c                      |  52 ++--
+ drivers/thermal/intel_powerclamp.c                 |  14 +-
+ drivers/thermal/qcom/tsens-common.c                |  12 +-
+ drivers/thermal/rcar_thermal.c                     |   8 +
+ drivers/thermal/st/Makefile                        |   2 +-
+ drivers/thermal/tegra/soctherm.c                   |  12 +-
+ drivers/thermal/thermal-generic-adc.c              |  12 +-
+ drivers/thermal/thermal_hwmon.h                    |   4 +-
+ drivers/thermal/uniphier_thermal.c                 |  13 +-
+ .../dt-bindings/thermal/tegra194-bpmp-thermal.h    |  15 ++
+ 20 files changed, 400 insertions(+), 94 deletions(-)
+ create mode 100644 include/dt-bindings/thermal/tegra194-bpmp-thermal.h
