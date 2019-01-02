@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v5 08/11] ASoC: Intel: atom: Make PCI dependency explicit
-Date: Wed,  2 Jan 2019 18:10:35 +0000
-Message-ID: <20190102181038.4418-9-okaya@kernel.org>
+Subject: [PATCH v5 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
+Date: Wed,  2 Jan 2019 18:10:36 +0000
+Message-ID: <20190102181038.4418-10-okaya@kernel.org>
 References: <20190102181038.4418-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,34 +9,34 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190102181038.4418-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Faiz Abbas <faiz_abbas@ti.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD MMC, SECURE
+        DIGITAL SD AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
 CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
 satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly. This code relies on IOSF_MBI and IOSF_MBI depends
-on PCI. For this reason, add a direct dependency on CONFIG_PCI to the
-IOSF_MBI driver.
+specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
+on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
 
 Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
 ---
- sound/soc/intel/Kconfig | 2 +-
+ drivers/mmc/host/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
-index 2fd1b61e8331..b0764b2fe001 100644
---- a/sound/soc/intel/Kconfig
-+++ b/sound/soc/intel/Kconfig
-@@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
- config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
- 	tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
- 	default ACPI
--	depends on X86 && ACPI
-+	depends on X86 && ACPI && PCI
- 	select SND_SST_IPC_ACPI
- 	select SND_SST_ATOM_HIFI2_PLATFORM
- 	select SND_SOC_ACPI_INTEL_MATCH
+diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+index e26b8145efb3..1b9401fe94c0 100644
+--- a/drivers/mmc/host/Kconfig
++++ b/drivers/mmc/host/Kconfig
+@@ -116,7 +116,7 @@ config MMC_RICOH_MMC
+ 
+ config MMC_SDHCI_ACPI
+ 	tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+-	depends on MMC_SDHCI && ACPI
++	depends on MMC_SDHCI && ACPI && PCI
+ 	select IOSF_MBI if X86
+ 	help
+ 	  This selects support for ACPI enumerated SDHCI controllers,
 -- 
 2.19.0
