@@ -1,119 +1,141 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL v2] Thermal-SoC management updates for v4.21-rc1
-Date: Wed, 2 Jan 2019 12:05:33 -0800
-Message-ID: <20190102200532.GA2320@localhost.localdomain>
+From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
+Subject: Re: [alsa-devel] [PATCH v5 08/11] ASoC: Intel: atom: Make PCI
+ dependency explicit
+Date: Wed, 2 Jan 2019 14:33:06 -0600
+Message-ID: <57ed1d94-7f89-20e8-3289-7ef7efd18c20@linux.intel.com>
+References: <20190102181038.4418-1-okaya@kernel.org>
+ <20190102181038.4418-9-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+ boundary="------------41396966F0FB1F9C35E77E1D"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <20190102181038.4418-9-okaya@kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>, linux-next@vger.kernel.org
+Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello Linus,
+This is a multi-part message in MIME format.
+--------------41396966F0FB1F9C35E77E1D
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 
-Please consider pulling from
+I have three opens with this ACPI/PCI change
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
+1. the baseline change fails on my cross-compilation checks, see below 
+the result of the attached script (simplification of the one I use to 
+avoid 0day reports).
 
-to receive Thermal-SoC Management updates for v4.21-rc1 with top-most
+2. there are different patterns to express the dependency on PCI e.g.
 
-9d216211fded20fff301d0317af3238d8383634c:
+  config MMC_SDHCI_ACPI
+      tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+      depends on MMC_SDHCI && ACPI
+-    select IOSF_MBI if X86
++    select IOSF_MBI if (X86 && PCI)
 
-  thermal: generic-adc: Fix adc to temp interpolation (2019-01-02 04:47:23 -0800)
+but
 
-on top of commit 0072a0c14d5b7cb72c611d396f143f5dcd73ebe2:
+config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
+      tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
+      default ACPI
+-    depends on X86 && ACPI
++    depends on X86 && ACPI && PCI
+      select SND_SST_IPC_ACPI
+      select SND_SST_ATOM_HIFI2_PLATFORM
+      select SND_SOC_ACPI_INTEL_MATCH
 
-  Merge tag 'media/v4.20-4' of git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media (2018-12-03 11:29:20 -0800)
+IOSF is only needed for Baytrail-CR detection, and the code will compile 
+fine without it, so maybe it'd be a better model if you used the 
+following diff?
 
-Specifics:
-- Tegra DT binding documentation for Tegra194
-- Armada now supports ap806 and cp110
-- RCAR thermal now supports R8A774C0 and R8A77990
-- Fixes on thermal_hwmon, IMX, generic-ADC, ST, RCAR, Broadcom, Uniphier, QCOM, Tegra, 
-  PowerClamp, and Armada thermal drivers.
+diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
+index 2fd1b61e8331..68af0ea5c96c 100644
+--- a/sound/soc/intel/Kconfig
++++ b/sound/soc/intel/Kconfig
+@@ -95,7 +95,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
+         select SND_SST_IPC_ACPI
+         select SND_SST_ATOM_HIFI2_PLATFORM
+         select SND_SOC_ACPI_INTEL_MATCH
+-       select IOSF_MBI
++       select IOSF_MBI if PCI
 
-CI:
-Full Boot Summary: https://kernelci.org/boot/all/job/evalenti/branch/for-kernelci/kernel/v4.20-rc5-43-g9d216211fded/
-Full Build Summary: https://kernelci.org/build/evalenti/branch/for-kernelci/kernel/v4.20-rc5-43-g9d216211fded/
+3. All the Intel machine drivers depend on X86_INTEL_LPSS which depends 
+on PCI. But for Baytrail/Haswell/Broadwell we have only a dependency on 
+ACPI, so we expose drivers that can be selected but fail on probe since 
+there are no machine drivers. I am not sure if we want to be strict and 
+only expose meaningful configurations, or allow for more compilations 
+tests and corner cases?
 
-Also, made sure to not add new warnings on make allmodconfig, allyesconfig, allnoconfig (including x86 as well).
+-Pierre
 
-BR,
 
-----------------------------------------------------------------
-Anson Huang (2):
-      thermal: imx: fix for dependency on cpu-freq
-      thermal: imx: save one condition block for normal case of nvmem initialization
+cross-compilation issue:
 
-Arnd Bergmann (1):
-      thermal: st: fix Makefile typo
+git checkout next-20190102
 
-Bjorn Andersson (1):
-      thermal: generic-adc: Fix adc to temp interpolation
+make CROSS_COMPILE=/opt/gcc-8.1.0-nolibc/ia64-linux/bin/ia64-linux- 
+--jobs=16 allmodconfig ARCH=ia64
+   HOSTCC  scripts/basic/fixdep
+   HOSTCC  scripts/kconfig/conf.o
+   YACC    scripts/kconfig/zconf.tab.c
+   LEX     scripts/kconfig/zconf.lex.c
+   HOSTCC  scripts/kconfig/confdata.o
+   HOSTCC  scripts/kconfig/expr.o
+   HOSTCC  scripts/kconfig/symbol.o
+   YACC    scripts/kconfig/zconf.tab.h
+   HOSTCC  scripts/kconfig/preprocess.o
+   HOSTCC  scripts/kconfig/zconf.tab.o
+   HOSTCC  scripts/kconfig/zconf.lex.o
+   HOSTLD  scripts/kconfig/conf
+scripts/kconfig/conf  --allmodconfig Kconfig
+arch/ia64/Kconfig:128:error: recursive dependency detected!
+arch/ia64/Kconfig:128:    choice <choice> contains symbol IA64_HP_SIM
+arch/ia64/Kconfig:202:    symbol IA64_HP_SIM is part of choice PM
+kernel/power/Kconfig:144:    symbol PM is selected by PM_SLEEP
+kernel/power/Kconfig:104:    symbol PM_SLEEP depends on HIBERNATE_CALLBACKS
+kernel/power/Kconfig:31:    symbol HIBERNATE_CALLBACKS is selected by 
+HIBERNATION
+kernel/power/Kconfig:34:    symbol HIBERNATION depends on SWAP
+init/Kconfig:250:    symbol SWAP depends on BLOCK
+block/Kconfig:5:    symbol BLOCK is selected by UBIFS_FS
+fs/ubifs/Kconfig:1:    symbol UBIFS_FS depends on MISC_FILESYSTEMS
+fs/Kconfig:227:    symbol MISC_FILESYSTEMS is selected by ACPI_APEI
+drivers/acpi/apei/Kconfig:8:    symbol ACPI_APEI depends on ACPI
+drivers/acpi/Kconfig:9:    symbol ACPI depends on ARCH_SUPPORTS_ACPI
+drivers/acpi/Kconfig:6:    symbol ARCH_SUPPORTS_ACPI is selected by 
+IA64_HP_SIM
+arch/ia64/Kconfig:202:    symbol IA64_HP_SIM is part of choice <choice>
+For a resolution refer to Documentation/kbuild/kconfig-language.txt
+subsection "Kconfig recursive dependency limitations"
 
-Eduardo Valentin (1):
-      thermal: hwmon: inline helpers when CONFIG_THERMAL_HWMON is not set
 
-Fabrizio Castro (2):
-      dt-bindings: thermal: rcar-thermal: add R8A774C0 support
-      thermal: rcar_thermal: add R8A774C0 support
+--------------41396966F0FB1F9C35E77E1D
+Content-Type: text/plain; charset=UTF-8;
+ name="cross-check._sh"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="cross-check._sh"
 
-Geert Uytterhoeven (1):
-      dt-bindings: thermal: rcar-gen3-thermal: All variants use 3 interrupts
-
-Julia Lawall (1):
-      thermal: broadcom: use devm_thermal_zone_of_sensor_register
-
-Kunihiko Hayashi (1):
-      thermal: uniphier: Convert to SPDX identifier
-
-Matthias Brugger (1):
-      thermal: bcm2835: enable hwmon explicitly
-
-Miquel Raynal (4):
-      thermal: armada: add overheat interrupt support
-      MAINTAINERS: thermal: add entry for Marvell MVEBU thermal driver
-      dt-bindings: ap806: document the thermal interrupt capabilities
-      dt-bindings: cp110: document the thermal interrupt capabilities
-
-Srinivas Kandagatla (1):
-      thermal: tsens: qcom: do not create duplicate regmap debugfs entries
-
-Thierry Reding (1):
-      dt-bindings: thermal: tegra-bpmp: Add Tegra194 support
-
-Yangtao Li (2):
-      thermal: tegra: soctherm: Change to use DEFINE_SHOW_ATTRIBUTE macro
-      thermal/intel_powerclamp: Change to use DEFINE_SHOW_ATTRIBUTE macro
-
-Yoshihiro Kaneko (2):
-      dt-bindings: thermal: rcar-thermal: add R8A77990 support
-      thermal: rcar_thermal: add R8A77990 support
-
-YueHaibing (1):
-      thermal: armada: Use PTR_ERR_OR_ZERO in armada_thermal_probe_legacy()
-
- .../arm/marvell/ap806-system-controller.txt        |   7 +
- .../arm/marvell/cp110-system-controller.txt        |   9 +
- .../thermal/nvidia,tegra186-bpmp-thermal.txt       |   3 +-
- .../bindings/thermal/rcar-gen3-thermal.txt         |   3 +-
- .../devicetree/bindings/thermal/rcar-thermal.txt   |   6 +-
- MAINTAINERS                                        |   5 +
- drivers/thermal/Kconfig                            |   2 +-
- drivers/thermal/armada_thermal.c                   | 280 ++++++++++++++++++++-
- drivers/thermal/broadcom/bcm2835_thermal.c         |  11 +
- drivers/thermal/broadcom/brcmstb_thermal.c         |  24 +-
- drivers/thermal/imx_thermal.c                      |  52 ++--
- drivers/thermal/intel_powerclamp.c                 |  14 +-
- drivers/thermal/qcom/tsens-common.c                |  12 +-
- drivers/thermal/rcar_thermal.c                     |   8 +
- drivers/thermal/st/Makefile                        |   2 +-
- drivers/thermal/tegra/soctherm.c                   |  12 +-
- drivers/thermal/thermal-generic-adc.c              |  12 +-
- drivers/thermal/thermal_hwmon.h                    |   4 +-
- drivers/thermal/uniphier_thermal.c                 |  13 +-
- .../dt-bindings/thermal/tegra194-bpmp-thermal.h    |  15 ++
- 20 files changed, 400 insertions(+), 94 deletions(-)
- create mode 100644 include/dt-bindings/thermal/tegra194-bpmp-thermal.h
+IyEvYmluL2Jhc2gKCnNldCAtZQoKdGVzdF9mYXN0KCkgewoKICAgIFBMQVRGT1JNPSIkMSIK
+ICAgIG1ha2UgbXJwcm9wZXIKICAgIC4uL21ha2UuY3Jvc3MgYWxsbW9kY29uZmlnIEFSQ0g9
+JFBMQVRGT1JNCiAgICAuLi9tYWtlLmNyb3NzIG9sZGRlZmNvbmZpZyBBUkNIPSRQTEFURk9S
+TSAgICAKICAgIC4uL21ha2UuY3Jvc3MgQVJDSD0kUExBVEZPUk0gbW9kdWxlc19wcmVwYXJl
+Cn0KCnRlc3RfY29tcGlsZSgpIHsKCiAgICBQTEFURk9STT0iJDEiCiAgICBtYWtlIG1ycHJv
+cGVyCiAgICAKICAgIG1ha2UgZGVmY29uZmlnIEFSQ0g9JFBMQVRGT1JNCiAgICAKICAgIGVj
+aG8gIm1vZHVsZXMgZmlyc3QiCiAgICAuLi9tYWtlLmNyb3NzIEFSQ0g9JFBMQVRGT1JNCiAg
+ICBpZiBbICIkUExBVEZPUk0iID0gIng4Nl82NCIgXTsgdGhlbgoJLi4vbWFrZS5jcm9zcyBi
+aW5kZWItcGtnIEFSQ0g9JFBMQVRGT1JNCiAgICBmaQoKCiAgICBlY2hvICJhbGwgeWVzIHNl
+Y29uZCIKICAgIHBlcmwgLXBpLmJhayAtZSAncy89bS89eS9nJyAuY29uZmlnCiAgICAuLi9t
+YWtlLmNyb3NzIG9sZGRlZmNvbmZpZyBBUkNIPSRQTEFURk9STQogICAgLi4vbWFrZS5jcm9z
+cyBBUkNIPSRQTEFURk9STQogICAgaWYgWyAiJFBMQVRGT1JNIiA9ICJ4ODZfNjQiIF07IHRo
+ZW4KCS4uL21ha2UuY3Jvc3MgYmluZGViLXBrZyBBUkNIPSRQTEFURk9STQogICAgZmkKCn0K
+CnRlc3RfcGxhdGZvcm0oKSB7CgogICAgUExBVEZPUk09IiQxIgogICAgICAgCiAgICB0ZXN0
+X2Zhc3QgICAgJFBMQVRGT1JNCiMgICAgdGVzdF9jb21waWxlICRQTEFURk9STQp9Cgp0ZXN0
+X3BsYXRmb3JtIHg4Nl82NAp0ZXN0X3BsYXRmb3JtIGkzODYKdGVzdF9wbGF0Zm9ybSBpYTY0
+CnRlc3RfcGxhdGZvcm0gYXJtCnRlc3RfcGxhdGZvcm0gYXJtNjQKdGVzdF9wbGF0Zm9ybSBz
+aAp0ZXN0X3BsYXRmb3JtIG1pcHMKdGVzdF9wbGF0Zm9ybSBzMzkwCnRlc3RfcGxhdGZvcm0g
+b3BlbnJpc2MKdGVzdF9wbGF0Zm9ybSBzcGFyYwp0ZXN0X3BsYXRmb3JtIHNwYXJjNjQKdGVz
+dF9wbGF0Zm9ybSBtNjhrCgplY2hvICJYLWNvbXBpbGF0aW9uIGNoZWNrIFBBU1MiCg==
+--------------41396966F0FB1F9C35E77E1D--
