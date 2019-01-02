@@ -1,46 +1,59 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Device properties framework fixes for v4.21-rc1
-Date: Wed, 2 Jan 2019 11:33:42 +0100
-Message-ID: <CAJZ5v0h9Xj-gqYfkJFoEyVoFQKm1hBKboPtcvmPzE0OYTLu0sA@mail.gmail.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v3 09/11] mmc: add PCI dependency into IOSF_MBI
+Date: Wed, 2 Jan 2019 16:03:14 +0200
+Message-ID: <21e732e8-84e4-72f9-4142-8e6af54f1346@intel.com>
+References: <20181223232521.11320-1-okaya@kernel.org>
+ <20181223232521.11320-10-okaya@kernel.org>
+ <CAJZ5v0jFXvGJH_V9gJ8c3T5x80yYHQmk=0WfJi=vvkSJ_aShwg@mail.gmail.com>
+ <CAK9iUCPqqyK7KMvchM4jY_FBgujnQm019J27TpDJjXUXvu5sjQ@mail.gmail.com>
+ <CAJZ5v0hw_=Odpok=6qWVWAfJ0wG7Z8NjwzMCpaFgxYnEAreKcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hw_=Odpok=6qWVWAfJ0wG7Z8NjwzMCpaFgxYnEAreKcg@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <Okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, faiz_abbas@ti.com, chunyan.zhang@unisoc.com, Jisheng.Zhang@synaptics.com, ludovic.barre@st.com, Arnd Bergmann <arnd@arndb.de>, alex.smith@imgtec.com, chris.brandt@renesas.com, linux-mmc <linux-mmc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On 31/12/18 11:40 AM, Rafael J. Wysocki wrote:
+> On Sun, Dec 30, 2018 at 7:57 PM Sinan Kaya <Okaya@kernel.org> wrote:
+>>
+>> On Wed, Dec 26, 2018 at 12:41 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>>
+>>> On Mon, Dec 24, 2018 at 12:26 AM Sinan Kaya <okaya@kernel.org> wrote:
+>>>>
+>>>> Select IOSF_MBI only when PCI is set.
+>>>>
+>>>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+>>>> ---
+>>>>  drivers/mmc/host/Kconfig | 2 +-
+>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+>>>> index e26b8145efb3..4c5f037b246d 100644
+>>>> --- a/drivers/mmc/host/Kconfig
+>>>> +++ b/drivers/mmc/host/Kconfig
+>>>> @@ -117,7 +117,7 @@ config MMC_RICOH_MMC
+>>>>  config MMC_SDHCI_ACPI
+>>>>         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+>>>>         depends on MMC_SDHCI && ACPI
+>>>
+>>> It should depend on PCI as well, shouldn't it?
+>>>
+>>
+>> I don't think so. The PCI dependency is at IOSF_MBI code so code
+>> should select IOSF_MBI only when x86 and pci is defined as below.
+>>
+>> This driver does not depend on PCI.
+> 
+> Are you sure?
+> 
+> Do you know any systems in which to use it without PCI?
+> 
 
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- devprop-4.21-rc1-2
-
-with top-most commit f4747b9c68b8864cac32cddc45fdcfdfafb3397c
-
- drivers: base: swnode: check if swnode is NULL before dereferencing it
-
-on top of commit d8924c0d76aaa52e4811b5c64115d9a7f36cc73a
-
- Merge tag 'devprop-4.21-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-to receive device properties framework fixes for v4.21-rc1.
-
-These fix two potential NULL pointer dereferences found by Coverity
-in the software nodes code introduced recently (Colin Ian King).
-
-Thanks!
-
-
----------------
-
-Colin Ian King (2):
-      drivers: base: swnode: check if pointer p is NULL before dereferencing it
-      drivers: base: swnode: check if swnode is NULL before dereferencing it
-
----------------
-
- drivers/base/swnode.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Qualcomm use it and I don't know if those systems have PCI.
+AMD use it but probably also have PCI.  And yes Intel systems (just BYT and
+CHT IIRC) that use this driver will always have PCI.
