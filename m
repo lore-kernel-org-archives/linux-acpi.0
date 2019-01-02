@@ -1,42 +1,47 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v5 02/11] ata: pata_acpi: Make PCI dependency explicit
-Date: Wed,  2 Jan 2019 18:10:29 +0000
-Message-ID: <20190102181038.4418-3-okaya@kernel.org>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v5 06/11] platform/x86: apple-gmux: Make PCI dependency
+ explicit
+Date: Wed, 2 Jan 2019 19:45:47 +0100
+Message-ID: <20190102184547.cueegmzpwhsvci4b@wunner.de>
 References: <20190102181038.4418-1-okaya@kernel.org>
+ <20190102181038.4418-7-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190102181038.4418-1-okaya@kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190102181038.4418-7-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Jens Axboe <axboe@kernel.dk>, "open list:LIBATA SUBSYSTEM Serial and
-        Parallel ATA drivers" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-acpi@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly. PATA_ACPI is a PCI device driver but the PCI
-dependency has not been explicitly called out.
+On Wed, Jan 02, 2019 at 06:10:33PM +0000, Sinan Kaya wrote:
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly. This driver depends on the PCI infrastructure but
+> the dependency has not been explicitly called out.
+> 
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/ata/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Reviewed-by: Lukas Wunner <lukas@wunner.de>
 
-diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-index 4ca7a6b4eaae..8218db17ebdb 100644
---- a/drivers/ata/Kconfig
-+++ b/drivers/ata/Kconfig
-@@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
- 
- config PATA_ACPI
- 	tristate "ACPI firmware driver for PATA"
--	depends on ATA_ACPI && ATA_BMDMA
-+	depends on ATA_ACPI && ATA_BMDMA && PCI
- 	help
- 	  This option enables an ACPI method driver which drives
- 	  motherboard PATA controller interfaces through the ACPI
--- 
-2.19.0
+> ---
+>  drivers/platform/x86/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> index 7afb96cb1cd6..89f4b86244a7 100644
+> --- a/drivers/platform/x86/Kconfig
+> +++ b/drivers/platform/x86/Kconfig
+> @@ -1136,6 +1136,7 @@ config SAMSUNG_Q10
+>  config APPLE_GMUX
+>  	tristate "Apple Gmux Driver"
+>  	depends on ACPI
+> +	depends on PCI
+>  	depends on PNP
+>  	depends on BACKLIGHT_CLASS_DEVICE
+>  	depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
+> -- 
+> 2.19.0
