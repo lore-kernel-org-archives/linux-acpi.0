@@ -1,79 +1,44 @@
-From: Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>
-Subject: Re: [PATCH v5 08/11] ASoC: Intel: atom: Make PCI
- dependency explicit
-Date: Thu, 3 Jan 2019 10:28:28 -0600
-Message-ID: <fd520793-4ec4-2ced-7b00-2cdd3297d74c@linux.intel.com>
-References: <20190102181038.4418-1-okaya@kernel.org>
- <CAK9iUCPWQ=9EgnUFo8BHraEgFwHs3FdbegPLwhT-KHD=r2WBkQ@mail.gmail.com>
- <8c69f8d0-6a95-0011-ff87-8ac9236a992d@linux.intel.com>
- <5797826.UxqLOWUXRU@localhost.localdomain>
- <CAJZ5v0j=i_YN7szXLV8cKLp2XmoqUTQR6EJhRJhWFJzenhzM9Q@mail.gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCHv3 1/2] mm/memblock: extend the limit inferior of
+ bottom-up after parsing hotplug attr
+Date: Thu, 3 Jan 2019 10:47:06 -0800
+Message-ID: <20190103184706.GU2509588@devbig004.ftw2.facebook.com>
+References: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
+ <1545966002-3075-2-git-send-email-kernelfans@gmail.com>
+ <20181231084018.GA28478@rapoport-lnx>
+ <CAFgQCTvQnj7zReFvH_gmfVJdPXE325o+z4Xx76fupvsLR_7H2A@mail.gmail.com>
+ <20190102092749.GA22664@rapoport-lnx>
+ <20190102101804.GD1990@MiWiFi-R3L-srv>
+ <20190102170537.GA3591@rapoport-lnx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAJZ5v0j=i_YN7szXLV8cKLp2XmoqUTQR6EJhRJhWFJzenhzM9Q@mail.gmail.com>
-Content-Language: en-US
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Chandan Rajendra <chandan@linux.ibm.com>
-Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, Sinan Kaya <Okaya@kernel.org>, Jie Yang <yang.jie@linux.intel.com>, Takashi Iwai <tiwai@suse.com>, open list <linux-kernel@vger.kernel.org>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Mark Brown <broonie@kernel.org>, Linux Next Mailing List <linux-next@vger.kernel.org>, Ted Ts'o <tytso@google.com>, Chandan Rajendra <chandan@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20190102170537.GA3591@rapoport-lnx>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Baoquan He <bhe@redhat.com>, Pingfan Liu <kernelfans@gmail.com>, linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.o
 List-Id: linux-acpi@vger.kernel.org
 
+Hello,
 
->>> arch/ia64/Kconfig:126:error: recursive dependency detected!
->>> arch/ia64/Kconfig:126:    choice <choice> contains symbol IA64_HP_SIM
->>> arch/ia64/Kconfig:200:    symbol IA64_HP_SIM is part of choice PM
->>> kernel/power/Kconfig:144:    symbol PM is selected by PM_SLEEP
->>> kernel/power/Kconfig:104:    symbol PM_SLEEP depends on HIBERNATE_CALLBACKS
->>> kernel/power/Kconfig:31:    symbol HIBERNATE_CALLBACKS is selected by
->>> HIBERNATION
->>> kernel/power/Kconfig:34:    symbol HIBERNATION depends on SWAP
->>> init/Kconfig:250:    symbol SWAP depends on BLOCK
->>> block/Kconfig:5:    symbol BLOCK is selected by UBIFS_FS
->>> fs/ubifs/Kconfig:1:    symbol UBIFS_FS depends on MISC_FILESYSTEMS
->>> fs/Kconfig:220:    symbol MISC_FILESYSTEMS is selected by ACPI_APEI
->>> drivers/acpi/apei/Kconfig:8:    symbol ACPI_APEI depends on ACPI
->>> drivers/acpi/Kconfig:9:    symbol ACPI depends on ARCH_SUPPORTS_ACPI
->>> <<<< LOOK HERE
->>> drivers/acpi/Kconfig:6:    symbol ARCH_SUPPORTS_ACPI is selected by
->>> IA64_HP_SIM
->>> arch/ia64/Kconfig:200:    symbol IA64_HP_SIM is part of choice <choice>
->>>
->>> At any rate, a 3 mn git bisect tells me the circular dependency is
->>> exposed by this change:
->>>
->>> f3fd6cd74fedf99b6060f75df00943fda13b65f2 is the first bad commit
->>> commit f3fd6cd74fedf99b6060f75df00943fda13b65f2
->>> Author: Chandan Rajendra <chandan@linux.vnet.ibm.com>
->>> Date:   Sat Dec 8 12:21:38 2018 +0530
->>>
->>>       fscrypt: remove filesystem specific build config option
->>>
->>>       In order to have a common code base for fscrypt "post read" processing
->>>       for all filesystems which support encryption, this commit removes
->>>       filesystem specific build config option (e.g.
->>> CONFIG_EXT4_FS_ENCRYPTION)
->>>       and replaces it with a build option (i.e. CONFIG_FS_ENCRYPTION) whose
->>>       value affects all the filesystems making use of fscrypt.
->>>
->>>       Signed-off-by: Chandan Rajendra <chandan@linux.vnet.ibm.com>
->>>       Signed-off-by: Theodore Ts'o <tytso@mit.edu>
->>>
->> FWIW, The patch at https://patchwork.kernel.org/patch/10725883/ fixes this
->> problem by removing "select BLOCK if FS_ENCRYPTION" from fs/ubifs/Kconfig.
-> OK
->
-> Pierre-Louis, can you check if this patch makes the issue go away for
-> you, please?
+On Wed, Jan 02, 2019 at 07:05:38PM +0200, Mike Rapoport wrote:
+> I agree that currently the bottom-up allocation after the kernel text has
+> issues with KASLR. But this issues are not necessarily related to the
+> memory hotplug. Even with a single memory node, a bottom-up allocation will
+> fail if KASLR would put the kernel near the end of node0.
+> 
+> What I am trying to understand is whether there is a fundamental reason to
+> prevent allocations from [0, kernel_start)?
+> 
+> Maybe Tejun can recall why he suggested to start bottom-up allocations from
+> kernel_end.
 
-Wondering if Chandan provided the right pointer, I wasn't able to apply 
-this patch, but commenting out "select BLOCK if FS_ENCRYPTION" in 
-fs/ubifs/Kconfig makes the circular dependency go away. All good for me.
+That's from 79442ed189ac ("mm/memblock.c: introduce bottom-up
+allocation mode").  I wasn't involved in that patch, so no idea why
+the restrictions were added, but FWIW it doesn't seem necessary to me.
+
+Thanks.
+
+-- 
+tejun
