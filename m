@@ -1,97 +1,75 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] ACPI / power: Skip duplicate power-resources in PR tables
-Date: Thu, 3 Jan 2019 11:09:15 +0100
-Message-ID: <CAJZ5v0gtqU=LOrPN1ZmwTNerjK43Ma_gUM4z6P6wgbPXc_FFJA@mail.gmail.com>
-References: <20181230172500.17189-1-hdegoede@redhat.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5 08/11] ASoC: Intel: atom: Make PCI
+	dependency explicit
+Date: Thu, 3 Jan 2019 12:33:52 +0000
+Message-ID: <20190103123352.GQ1846@sirena.org.uk>
+References: <20190102181038.4418-1-okaya@kernel.org>
+ <20190102181038.4418-9-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <20181230172500.17189-1-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Stable <stable@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============7052627913280738887=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <20190102181038.4418-9-okaya@kernel.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Dec 30, 2018 at 6:25 PM Hans de Goede <hdegoede@redhat.com> wrote:
->
-> Some ACPI tables contain duplicate resources like this:
->
->         Name (_PR0, Package (0x04)  // _PR0: Power Resources for D0
->         {
->             P28P,
->             P18P,
->             P18P,
->             CLK4
->         })
->
-> This causes a WARN_ON in sysfs_add_link_to_group because we end up
-> adding a link to the same acpi_device twice:
->
-> sysfs: cannot create duplicate filename '/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/808622C1:00/OVTI2680:00/power_resources_D0/LNXPOWER:0a'
-> CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.19.12-301.fc29.x86_64 #1
-> Hardware name: Insyde CherryTrail/Type2 - Board Product Name, BIOS jumperx.T87.KFBNEEA02 04/13/2016
-> Call Trace:
->  dump_stack+0x5c/0x80
->  sysfs_warn_dup.cold.3+0x17/0x2a
->  sysfs_do_create_link_sd.isra.2+0xa9/0xb0
->  sysfs_add_link_to_group+0x30/0x50
->  acpi_power_expose_list+0x74/0xa0
->  acpi_power_add_remove_device+0x50/0xa0
->  acpi_add_single_object+0x26b/0x5f0
->  acpi_bus_check_add+0xc4/0x250
->  ...
->
-> This commit makes acpi_extract_power_resources() check for duplicates and
-> simply skips them when found, fixing this.
->
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/power.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
->
-> diff --git a/drivers/acpi/power.c b/drivers/acpi/power.c
-> index 1b475bc1ae16..bc10a5efc1ba 100644
-> --- a/drivers/acpi/power.c
-> +++ b/drivers/acpi/power.c
-> @@ -131,6 +131,23 @@ void acpi_power_resources_list_free(struct list_head *list)
->         }
->  }
->
-> +static bool acpi_power_resource_is_dup(union acpi_object *package,
-> +                                      unsigned int start, unsigned int i)
-> +{
-> +       acpi_handle rhandle, dup;
-> +       unsigned int j;
-> +
-> +       /* Note the element types have already been checked in our caller */
-> +       rhandle = package->package.elements[i].reference.handle;
-> +       for (j = start; j < i; j++) {
-> +               dup = package->package.elements[j].reference.handle;
-> +               if (dup == rhandle)
-> +                       return true;
-> +       }
-> +
-> +       return false;
-> +}
-> +
->  int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
->                                  struct list_head *list)
->  {
-> @@ -150,6 +167,11 @@ int acpi_extract_power_resources(union acpi_object *package, unsigned int start,
->                         err = -ENODEV;
->                         break;
->                 }
-> +
-> +               /* Some ACPI tables contain duplicate resources, skip these */
-> +               if (acpi_power_resource_is_dup(package, start, i))
-> +                       continue;
-> +
->                 err = acpi_add_power_resource(rhandle);
->                 if (err)
->                         break;
-> --
 
-Applied, with some minor modifications in the subject, changelog and comments.
+--===============7052627913280738887==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="GJ7e10BhKqIkML+d"
+Content-Disposition: inline
 
-Thanks!
+
+--GJ7e10BhKqIkML+d
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Wed, Jan 02, 2019 at 06:10:35PM +0000, Sinan Kaya wrote:
+
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly. This code relies on IOSF_MBI and IOSF_MBI depends
+> on PCI. For this reason, add a direct dependency on CONFIG_PCI to the
+> IOSF_MBI driver.
+
+I still don't understand what's going on with dependencies here and
+still don't have the cover letter or anything :( .  As far as I can tell
+the above commit is in Linus' tree so I'd expect I can just apply it
+directly but you were saying that this needs to go via some other tree
+so I'm a bit confused as to what's going on here.
+
+--GJ7e10BhKqIkML+d
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwuAS8ACgkQJNaLcl1U
+h9AfsAf/Y8iYvN5bwrUXaCdE6npcj44ip+VII6wzCtj/kkF12jE3fs038wm47Wy6
+PMwMLgsThOPQ+xnpqR3kKGLVj3NPMXNPEQc88AKH628xL4CnQIlMDkZuTz3kQGBx
+PWC3hm3SpPhqnJ4CMcAFMlkUr8pstJgYfYMrYU2lMKP6lcQnehULZH3CqNrVLCAP
+RnDtVVM+7aG9Q9uSDCDHwyDHW6MGJSbu1Y1qneYBlAzDtRZLv70OPcKBUhOFp2Td
+fV0+F8eu01xcu0OWEPsd6woapz5gWRrWjED4sZ//ORXC4z0S7C8AtquuVstD1pdq
+XmOUm5jv+LM/UqCLQR9jFNkXD8XeyQ==
+=2d4x
+-----END PGP SIGNATURE-----
+
+--GJ7e10BhKqIkML+d--
+
+--===============7052627913280738887==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============7052627913280738887==--
