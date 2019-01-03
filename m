@@ -1,62 +1,41 @@
-From: Sinan Kaya <Okaya@kernel.org>
-Subject: Re: [PATCH v5 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
-Date: Thu, 3 Jan 2019 14:57:40 +0000
-Message-ID: <CAK9iUCOSP+UMW0q0jW_SBgF-5sE-YtYEOaVwON6ndwHeOM7VBQ@mail.gmail.com>
-References: <20190102181038.4418-1-okaya@kernel.org> <20190102181038.4418-10-okaya@kernel.org>
- <b52d51a4-3310-7873-db3d-bf5d0dffb7f8@intel.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RFC PATCH 2/2] PCI/portdrv Hisilicon PCIe transport layer Port
+ PMU driver.
+Date: Thu, 3 Jan 2019 15:44:40 +0000
+Message-ID: <20190103154439.GC16311@edgewater-inn.cambridge.arm.com>
+References: <20181214131055.52253-1-Jonathan.Cameron@huawei.com>
+ <20181214131055.52253-3-Jonathan.Cameron@huawei.com>
+ <20181214235505.GI20725@google.com>
+ <20181217110906.0000003f@huawei.com>
+ <20181217181915.GL20725@google.com>
+ <20181218102127.0000018e@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b52d51a4-3310-7873-db3d-bf5d0dffb7f8@intel.com>
+Content-Disposition: inline
+In-Reply-To: <20181218102127.0000018e@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Adrian Hunter <adrian.hunter@intel.com>
-Cc: Linux Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Shawn Lin <shawn.lin@rock-chips.com>, Faiz Abbas <faiz_abbas@ti.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Geert Uytterhoeven <geert@linux-m68k.org>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Jonathan Cameron <jonathan.cameron@huawei.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, linux-pci@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>, Shaokun Zhang <zhangshaokun@hisilicon.com>, linuxarm@huawei.com, Keith Busch <keith.busch@intel.com>, Zhou Wang <wangzhou1@hisilicon.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, alex.umansky@huawei.com, Eric.Wehage@huawei.com, Logan Gunthorpe <logang@deltatee.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 3, 2019 at 2:50 PM Adrian Hunter <adrian.hunter@intel.com> wrote:
->
-> On 2/01/19 8:10 PM, Sinan Kaya wrote:
-> > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> > satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> > specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
-> > on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
->
-> This driver does not rely on IOSF_MBI
->
+On Tue, Dec 18, 2018 at 10:21:27AM +0000, Jonathan Cameron wrote:
+> On Mon, 17 Dec 2018 12:19:15 -0600
+> Bjorn Helgaas <helgaas@kernel.org> wrote:
+> > Agreed.  I could imagine a drivers/pci/pmu/ directory sort of like
+> > drivers/pci/switch/.
+> 
+> That might work.  Mark, Will what do you think? As long as you and Bjorn
+> agree I don't think it'll really matter which one is chosen.
+> 
+> driver/pci/pmu/ or drivers/perf/pci ?
 
-X86 version does.
+I have a slight preference for the latter since the perf interface for
+PMU drivers is notoriously subtle and error-prone. Keeping PMU drivers
+together can be helpful to spot emerging patterns and makes cross-driver
+changes easier to co-ordinate.
 
-select IOSF_MBI if X86
+However, I'll defer to Bjorn since it's only a minor preference. We'd
+obviously loop in linux-pci + Bjorn on any new submissions.
 
-
-> You wrote on the other email QCOM doesn't use PCI but here you are making
-> them depend on it.  Please explain.
->
-
-I matched the behavior before my change. This code wouldn't be
-available without PCI and ACPI on previous kernel versions and left
-kconfig cleanup as another exercise for some other day.
-
-> >
-> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > ---
-> >  drivers/mmc/host/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-> > index e26b8145efb3..1b9401fe94c0 100644
-> > --- a/drivers/mmc/host/Kconfig
-> > +++ b/drivers/mmc/host/Kconfig
-> > @@ -116,7 +116,7 @@ config MMC_RICOH_MMC
-> >
-> >  config MMC_SDHCI_ACPI
-> >       tristate "SDHCI support for ACPI enumerated SDHCI controllers"
-> > -     depends on MMC_SDHCI && ACPI
-> > +     depends on MMC_SDHCI && ACPI && PCI
-> >       select IOSF_MBI if X86
-> >       help
-> >         This selects support for ACPI enumerated SDHCI controllers,
-> >
->
+Will
