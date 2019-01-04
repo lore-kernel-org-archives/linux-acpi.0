@@ -1,58 +1,272 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH -next] ACPI/IORT: fix build when CONFIG_IOMMU_API=n
-Date: Fri, 4 Jan 2019 16:16:53 +0000
-Message-ID: <20190104161653.GA18795@e107981-ln.cambridge.arm.com>
-References: <20181224172058.56206-1-cai@lca.pw>
- <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: Re: [PATCHv3 1/2] mm/memblock: extend the limit inferior of
+ bottom-up after parsing hotplug attr
+Date: Fri, 4 Jan 2019 18:20:33 +0200
+Message-ID: <20190104162032.GB32252@rapoport-lnx>
+References: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
+ <1545966002-3075-2-git-send-email-kernelfans@gmail.com>
+ <20181231084018.GA28478@rapoport-lnx>
+ <CAFgQCTvQnj7zReFvH_gmfVJdPXE325o+z4Xx76fupvsLR_7H2A@mail.gmail.com>
+ <20190102092749.GA22664@rapoport-lnx>
+ <20190102101804.GD1990@MiWiFi-R3L-srv>
+ <CAFgQCTsf2jYuZDaVRY0KH2gZWEeK9iPKqSwTwFBJaqiCaN3x3w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
+In-Reply-To: <CAFgQCTsf2jYuZDaVRY0KH2gZWEeK9iPKqSwTwFBJaqiCaN3x3w@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Qian Cai <cai@lca.pw>, sfr@canb.auug.org.au, hanjun.guo@linaro.org, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>, linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 25, 2018 at 10:44:38AM +0800, Hanjun Guo wrote:
-> Hi Qian,
+On Fri, Jan 04, 2019 at 01:59:46PM +0800, Pingfan Liu wrote:
+> On Wed, Jan 2, 2019 at 6:18 PM Baoquan He <bhe@redhat.com> wrote:
+> >
+> > On 01/02/19 at 11:27am, Mike Rapoport wrote:
+> > > On Wed, Jan 02, 2019 at 02:47:34PM +0800, Pingfan Liu wrote:
+> > > > On Mon, Dec 31, 2018 at 4:40 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+> > > > >
+> > > > > On Fri, Dec 28, 2018 at 11:00:01AM +0800, Pingfan Liu wrote:
+> > > > > > The bottom-up allocation style is introduced to cope with movable_node,
+> > > > > > where the limit inferior of allocation starts from kernel's end, due to
+> > > > > > lack of knowledge of memory hotplug info at this early time. But if later,
+> > > > > > hotplug info has been got, the limit inferior can be extend to 0.
+> > > > > > 'kexec -c' prefers to reuse this style to alloc mem at lower address,
+> > > > > > since if the reserved region is beyond 4G, then it requires extra mem
+> > > > > > (default is 16M) for swiotlb.
+> > > > >
+> > > > > I fail to understand why the availability of memory hotplug information
+> > > > > would allow to extend the lower limit of bottom-up memblock allocations
+> > > > > below the kernel. The memory in the physical range [0, kernel_start) can be
+> > > > > allocated as soon as the kernel memory is reserved.
+> > > > >
+> > > > Yes, the  [0, kernel_start) can be allocated at this time by some func
+> > > > e.g. memblock_reserve(). But there is trick. For the func like
+> > > > memblock_find_in_range(), this is hotplug attr checking ,,it will
+> > > > check the hotmovable attr in __next_mem_range()
+> > > > {
+> > > > if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
+> > > > continue
+> > > > }.  So the movable memory can be safely skipped.
+> > >
+> > > I still don't see the connection between allocating memory below
+> > > kernel_start and the hotplug info.
+> > >
+> > > The check for 'end > kernel_end' in
+> > >
+> > >       if (memblock_bottom_up() && end > kernel_end)
+> > >
+> > > does not protect against allocation in a hotplugable area.
+> > > If memblock_find_in_range() is called before hotplug info is parsed it can
+> > > return a range in a hotplugable area.
+> > >
+> > > The point I'd like to clarify is why allocating memory in the range [0,
+> > > kernel_start) cannot be done before hotplug info is available and why it is
+> > > safe to allocate that memory afterwards?
+> >
+> > Well, I think that's because we have KASLR. Before KASLR was introdueced,
+> > kernel is put at a low and fixed physical address. Allocating memblock
+> > bottom-up after kernel can make sure those kernel data is in the same node
+> > as kernel text itself before SRAT parsed. While [0, kernel_start) is a
+> > very small range, e.g on x86, it was 16 MB, which is very possibly used
+> > up.
+> >
+> > But now, with KASLR enabled by default, this bottom-up after kernel text
+> > allocation has potential issue. E.g we have node0 (including normal zone),
+> > node1(including movable zone), if KASLR put kernel at top of node0, the
+> > next memblock allocation before SRAT parsed will stamp into movable zone
+> > of node1, hotplug doesn't work well any more consequently. I had
+> > considered this issue previously, but haven't thought of a way to fix
+> > it.
+> >
+> > While it's not related to this patch. About this patchset, I didn't
+> > check it carefully in v2 post, and acked it. In fact the current way is
+> > not good, Pingfan should call __memblock_find_range_bottom_up() directly
+> > for crashkernel reserving. Reasons are:
 > 
-> Good catch, minor comments below.
-> 
-> On 2018/12/25 1:20, Qian Cai wrote:
-> > rivers/acpi/arm64/iort.c:880:1: error: expected identifier or '(' before '{' token
->   ^^
->   drivers
-> 
-> >  { return NULL; }
-> >  ^
-> > drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops' used but never defined
-> >  static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
-> >                                        ^~~~~~~~~~~~~~~~~~~~~
-> > Signed-off-by: Qian Cai <cai@lca.pw>
-> > ---
-> >  drivers/acpi/arm64/iort.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-> > index fdd90ffceb85..5d29783ee5bd 100644
-> > --- a/drivers/acpi/arm64/iort.c
-> > +++ b/drivers/acpi/arm64/iort.c
-> > @@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
-> >  	return (resv == its->its_count) ? resv : -ENODEV;
-> >  }
-> >  #else
-> > -static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
-> > +static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
-> >  { return NULL; }
-> >  static inline int iort_add_device_replay(const struct iommu_ops *ops,
-> >  					 struct device *dev)
-> 
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> Lorenzo, I think this is 4.21-rc1 material if it's OK for you.
+> Good suggestion, thanks. I will send out V4.
 
-It is a bit late for -rc1 but I will send it asap, with a proper Fixes:
-tag that points at the commit that introduced the typo.
+I think we can simply remove the restriction of allocating above the kernel
+in the memblock_find_in_range_node().
+ 
+> Regards,
+> Pingfan
+> > 1)SRAT parsing is done, system restore to take top-down way to do
+> > memblock allocat.
+> > 2)we do need to find range bottom-up if user specify crashkernel=xxM
+> > (without a explicit base address).
+> >
+> > Thanks
+> > Baoquan
+> >
+> > >
+> > > > Thanks for your kindly review.
+> > > >
+> > > > Regards,
+> > > > Pingfan
+> > > >
+> > > > > The extents of the memory node hosting the kernel image can be used to
+> > > > > limit memblok allocations from that particular node, even in top-down mode.
+> > > > >
+> > > > > > Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+> > > > > > Cc: Tang Chen <tangchen@cn.fujitsu.com>
+> > > > > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > > > > > Cc: Len Brown <lenb@kernel.org>
+> > > > > > Cc: Andrew Morton <akpm@linux-foundation.org>
+> > > > > > Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+> > > > > > Cc: Michal Hocko <mhocko@suse.com>
+> > > > > > Cc: Jonathan Corbet <corbet@lwn.net>
+> > > > > > Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+> > > > > > Cc: Pavel Tatashin <pasha.tatashin@oracle.com>
+> > > > > > Cc: Nicholas Piggin <npiggin@gmail.com>
+> > > > > > Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> > > > > > Cc: Daniel Vacek <neelx@redhat.com>
+> > > > > > Cc: Mathieu Malaterre <malat@debian.org>
+> > > > > > Cc: Stefan Agner <stefan@agner.ch>
+> > > > > > Cc: Dave Young <dyoung@redhat.com>
+> > > > > > Cc: Baoquan He <bhe@redhat.com>
+> > > > > > Cc: yinghai@kernel.org,
+> > > > > > Cc: vgoyal@redhat.com
+> > > > > > Cc: linux-kernel@vger.kernel.org
+> > > > > > ---
+> > > > > >  drivers/acpi/numa.c      |  4 ++++
+> > > > > >  include/linux/memblock.h |  1 +
+> > > > > >  mm/memblock.c            | 58 +++++++++++++++++++++++++++++-------------------
+> > > > > >  3 files changed, 40 insertions(+), 23 deletions(-)
+> > > > > >
+> > > > > > diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> > > > > > index 2746994..3eea4e4 100644
+> > > > > > --- a/drivers/acpi/numa.c
+> > > > > > +++ b/drivers/acpi/numa.c
+> > > > > > @@ -462,6 +462,10 @@ int __init acpi_numa_init(void)
+> > > > > >
+> > > > > >               cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
+> > > > > >                                           acpi_parse_memory_affinity, 0);
+> > > > > > +
+> > > > > > +#if defined(CONFIG_X86) || defined(CONFIG_ARM64)
+> > > > > > +             mark_mem_hotplug_parsed();
+> > > > > > +#endif
+> > > > > >       }
+> > > > > >
+> > > > > >       /* SLIT: System Locality Information Table */
+> > > > > > diff --git a/include/linux/memblock.h b/include/linux/memblock.h
+> > > > > > index aee299a..d89ed9e 100644
+> > > > > > --- a/include/linux/memblock.h
+> > > > > > +++ b/include/linux/memblock.h
+> > > > > > @@ -125,6 +125,7 @@ int memblock_reserve(phys_addr_t base, phys_addr_t size);
+> > > > > >  void memblock_trim_memory(phys_addr_t align);
+> > > > > >  bool memblock_overlaps_region(struct memblock_type *type,
+> > > > > >                             phys_addr_t base, phys_addr_t size);
+> > > > > > +void mark_mem_hotplug_parsed(void);
+> > > > > >  int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
+> > > > > >  int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
+> > > > > >  int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
+> > > > > > diff --git a/mm/memblock.c b/mm/memblock.c
+> > > > > > index 81ae63c..a3f5e46 100644
+> > > > > > --- a/mm/memblock.c
+> > > > > > +++ b/mm/memblock.c
+> > > > > > @@ -231,6 +231,12 @@ __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
+> > > > > >       return 0;
+> > > > > >  }
+> > > > > >
+> > > > > > +static bool mem_hotmovable_parsed __initdata_memblock;
+> > > > > > +void __init_memblock mark_mem_hotplug_parsed(void)
+> > > > > > +{
+> > > > > > +     mem_hotmovable_parsed = true;
+> > > > > > +}
+> > > > > > +
+> > > > > >  /**
+> > > > > >   * memblock_find_in_range_node - find free area in given range and node
+> > > > > >   * @size: size of free area to find
+> > > > > > @@ -259,7 +265,7 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t size,
+> > > > > >                                       phys_addr_t end, int nid,
+> > > > > >                                       enum memblock_flags flags)
+> > > > > >  {
+> > > > > > -     phys_addr_t kernel_end, ret;
+> > > > > > +     phys_addr_t kernel_end, ret = 0;
+> > > > > >
+> > > > > >       /* pump up @end */
+> > > > > >       if (end == MEMBLOCK_ALLOC_ACCESSIBLE)
+> > > > > > @@ -270,34 +276,40 @@ phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t size,
+> > > > > >       end = max(start, end);
+> > > > > >       kernel_end = __pa_symbol(_end);
+> > > > > >
+> > > > > > -     /*
+> > > > > > -      * try bottom-up allocation only when bottom-up mode
+> > > > > > -      * is set and @end is above the kernel image.
+> > > > > > -      */
+> > > > > > -     if (memblock_bottom_up() && end > kernel_end) {
+> > > > > > -             phys_addr_t bottom_up_start;
+> > > > > > +     if (memblock_bottom_up()) {
+> > > > > > +             phys_addr_t bottom_up_start = start;
+> > > > > >
+> > > > > > -             /* make sure we will allocate above the kernel */
+> > > > > > -             bottom_up_start = max(start, kernel_end);
+> > > > > > -
+> > > > > > -             /* ok, try bottom-up allocation first */
+> > > > > > -             ret = __memblock_find_range_bottom_up(bottom_up_start, end,
+> > > > > > -                                                   size, align, nid, flags);
+> > > > > > -             if (ret)
+> > > > > > +             if (mem_hotmovable_parsed) {
+> > > > > > +                     ret = __memblock_find_range_bottom_up(
+> > > > > > +                             bottom_up_start, end, size, align, nid,
+> > > > > > +                             flags);
+> > > > > >                       return ret;
+> > > > > >
+> > > > > >               /*
+> > > > > > -              * we always limit bottom-up allocation above the kernel,
+> > > > > > -              * but top-down allocation doesn't have the limit, so
+> > > > > > -              * retrying top-down allocation may succeed when bottom-up
+> > > > > > -              * allocation failed.
+> > > > > > -              *
+> > > > > > -              * bottom-up allocation is expected to be fail very rarely,
+> > > > > > -              * so we use WARN_ONCE() here to see the stack trace if
+> > > > > > -              * fail happens.
+> > > > > > +              * if mem hotplug info is not parsed yet, try bottom-up
+> > > > > > +              * allocation with @end above the kernel image.
+> > > > > >                */
+> > > > > > -             WARN_ONCE(IS_ENABLED(CONFIG_MEMORY_HOTREMOVE),
+> > > > > > +             } else if (!mem_hotmovable_parsed && end > kernel_end) {
+> > > > > > +                     /* make sure we will allocate above the kernel */
+> > > > > > +                     bottom_up_start = max(start, kernel_end);
+> > > > > > +                     ret = __memblock_find_range_bottom_up(
+> > > > > > +                             bottom_up_start, end, size, align, nid,
+> > > > > > +                             flags);
+> > > > > > +                     if (ret)
+> > > > > > +                             return ret;
+> > > > > > +                     /*
+> > > > > > +                      * we always limit bottom-up allocation above the
+> > > > > > +                      * kernel, but top-down allocation doesn't have
+> > > > > > +                      * the limit, so retrying top-down allocation may
+> > > > > > +                      * succeed when bottom-up allocation failed.
+> > > > > > +                      *
+> > > > > > +                      * bottom-up allocation is expected to be fail
+> > > > > > +                      * very rarely, so we use WARN_ONCE() here to see
+> > > > > > +                      * the stack trace if fail happens.
+> > > > > > +                      */
+> > > > > > +                     WARN_ONCE(IS_ENABLED(CONFIG_MEMORY_HOTREMOVE),
+> > > > > >                         "memblock: bottom-up allocation failed, memory hotremove may be affected\n");
+> > > > > > +             }
+> > > > > >       }
+> > > > > >
+> > > > > >       return __memblock_find_range_top_down(start, end, size, align, nid,
+> > > > > > --
+> > > > > > 2.7.4
+> > > > > >
+> > > > >
+> > > > > --
+> > > > > Sincerely yours,
+> > > > > Mike.
+> > > > >
+> > > >
+> > >
+> > > --
+> > > Sincerely yours,
+> > > Mike.
+> > >
+> 
 
-Lorenzo
+-- 
+Sincerely yours,
+Mike.
