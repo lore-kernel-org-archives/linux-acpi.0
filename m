@@ -1,56 +1,58 @@
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: Re: [PATCHv3 1/2] mm/memblock: extend the limit inferior of
- bottom-up after parsing hotplug attr
-Date: Fri, 4 Jan 2019 17:09:29 +0200
-Message-ID: <20190104150929.GA32252@rapoport-lnx>
-References: <1545966002-3075-1-git-send-email-kernelfans@gmail.com>
- <1545966002-3075-2-git-send-email-kernelfans@gmail.com>
- <20181231084018.GA28478@rapoport-lnx>
- <CAFgQCTvQnj7zReFvH_gmfVJdPXE325o+z4Xx76fupvsLR_7H2A@mail.gmail.com>
- <20190102092749.GA22664@rapoport-lnx>
- <20190102101804.GD1990@MiWiFi-R3L-srv>
- <20190102170537.GA3591@rapoport-lnx>
- <20190103184706.GU2509588@devbig004.ftw2.facebook.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH -next] ACPI/IORT: fix build when CONFIG_IOMMU_API=n
+Date: Fri, 4 Jan 2019 16:16:53 +0000
+Message-ID: <20190104161653.GA18795@e107981-ln.cambridge.arm.com>
+References: <20181224172058.56206-1-cai@lca.pw>
+ <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190103184706.GU2509588@devbig004.ftw2.facebook.com>
+In-Reply-To: <31c013ad-1261-7ca4-2434-69911d5d2cb8@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>, Pingfan Liu <kernelfans@gmail.com>, linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.o
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Qian Cai <cai@lca.pw>, sfr@canb.auug.org.au, hanjun.guo@linaro.org, sudeep.holla@arm.com, linux-acpi@vger.kernel.org, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Jan 03, 2019 at 10:47:06AM -0800, Tejun Heo wrote:
-> Hello,
+On Tue, Dec 25, 2018 at 10:44:38AM +0800, Hanjun Guo wrote:
+> Hi Qian,
 > 
-> On Wed, Jan 02, 2019 at 07:05:38PM +0200, Mike Rapoport wrote:
-> > I agree that currently the bottom-up allocation after the kernel text has
-> > issues with KASLR. But this issues are not necessarily related to the
-> > memory hotplug. Even with a single memory node, a bottom-up allocation will
-> > fail if KASLR would put the kernel near the end of node0.
+> Good catch, minor comments below.
+> 
+> On 2018/12/25 1:20, Qian Cai wrote:
+> > rivers/acpi/arm64/iort.c:880:1: error: expected identifier or '(' before '{' token
+>   ^^
+>   drivers
+> 
+> >  { return NULL; }
+> >  ^
+> > drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops' used but never defined
+> >  static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
+> >                                        ^~~~~~~~~~~~~~~~~~~~~
+> > Signed-off-by: Qian Cai <cai@lca.pw>
+> > ---
+> >  drivers/acpi/arm64/iort.c | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
 > > 
-> > What I am trying to understand is whether there is a fundamental reason to
-> > prevent allocations from [0, kernel_start)?
-> > 
-> > Maybe Tejun can recall why he suggested to start bottom-up allocations from
-> > kernel_end.
+> > diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+> > index fdd90ffceb85..5d29783ee5bd 100644
+> > --- a/drivers/acpi/arm64/iort.c
+> > +++ b/drivers/acpi/arm64/iort.c
+> > @@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+> >  	return (resv == its->its_count) ? resv : -ENODEV;
+> >  }
+> >  #else
+> > -static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
+> > +static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
+> >  { return NULL; }
+> >  static inline int iort_add_device_replay(const struct iommu_ops *ops,
+> >  					 struct device *dev)
 > 
-> That's from 79442ed189ac ("mm/memblock.c: introduce bottom-up
-> allocation mode").  I wasn't involved in that patch, so no idea why
-> the restrictions were added, but FWIW it doesn't seem necessary to me.
-
-I should have added the reference [1] at the first place :)
-Thanks!
-
-[1] https://lore.kernel.org/lkml/20130904192215.GG26609@mtj.dyndns.org/
- 
-> Thanks.
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
 > 
-> -- 
-> tejun
-> 
+> Lorenzo, I think this is 4.21-rc1 material if it's OK for you.
 
--- 
-Sincerely yours,
-Mike.
+It is a bit late for -rc1 but I will send it asap, with a proper Fixes:
+tag that points at the commit that introduced the typo.
+
+Lorenzo
