@@ -1,71 +1,33 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v5 06/11] platform/x86: apple-gmux: Make PCI dependency explicit
-Date: Fri, 4 Jan 2019 16:20:56 +0200
-Message-ID: <CAHp75Vfqx6S4fY1UKYEXOR63ROx6hmPO7QkF103QtW5xoYRKoQ@mail.gmail.com>
-References: <20190102181038.4418-1-okaya@kernel.org> <20190102181038.4418-7-okaya@kernel.org>
- <CAHp75Ve0Ex245yt1efqSUS7tUuh6RnUdTowLebvJr-CtKkQSZA@mail.gmail.com>
+From: Sinan Kaya <okaya@kernel.org>
+Subject: Re: [PATCH v5 05/11] platform/x86: intel_pmc: Make PCI dependency
+ explicit
+Date: Fri, 4 Jan 2019 10:07:18 -0500
+Message-ID: <3d6835d2-5064-630f-4e54-49a64bffc58b@kernel.org>
+References: <20190102181038.4418-1-okaya@kernel.org>
+ <20190102181038.4418-6-okaya@kernel.org>
+ <CAHp75VfGe=rdN0JeLoHnPM0XuVunH5RvAmMEqbxFPWA7BmkzEw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75Ve0Ex245yt1efqSUS7tUuh6RnUdTowLebvJr-CtKkQSZA@mail.gmail.com>
+In-Reply-To: <CAHp75VfGe=rdN0JeLoHnPM0XuVunH5RvAmMEqbxFPWA7BmkzEw@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>, Kuppuswamy Sathyanarayanan <sathyanarayanan.kupuswamy@linux.intel.com>, "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>
 Cc: linux-next <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, Platform Driver <platform-driver-x86@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 4, 2019 at 4:12 PM Andy Shevchenko
-<andy.shevchenko@gmail.com> wrote:
->
-> On Wed, Jan 2, 2019 at 8:10 PM Sinan Kaya <okaya@kernel.org> wrote:
-> >
-> > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> > satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> > specified directly. This driver depends on the PCI infrastructure but
-> > the dependency has not been explicitly called out.
-> >
-> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > ---
-> >  drivers/platform/x86/Kconfig | 1 +
-> >  1 file changed, 1 insertion(+)
-> >
-> > diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> > index 7afb96cb1cd6..89f4b86244a7 100644
-> > --- a/drivers/platform/x86/Kconfig
-> > +++ b/drivers/platform/x86/Kconfig
-> > @@ -1136,6 +1136,7 @@ config SAMSUNG_Q10
-> >  config APPLE_GMUX
-> >         tristate "Apple Gmux Driver"
->
-> >         depends on ACPI
-> > +       depends on PCI
->
-> Can you stick with the same pattern you have used for the rest in this series?
-> I.e.
->          depends on ACPI && PCI
+On 1/4/2019 9:20 AM, Andy Shevchenko wrote:
+> Unfortunately, this is not how it should be fixed.
+> 
+> First of all, we (Heikki, Sathya, me —  all in Cc list) that this
+> driver should be refactored and unified with intel_scu_ipc.
+> Then, it has two drivers inside and PCI is just a glue for it which is
+> optional. Thus, needs to be split accordingly.
 
-After satisfying it
+OK. Two questions:
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+1. How should I change this now?
+2. Can you change the Kconfig accordingly after you merge the two drivers?
 
->
->
-> >         depends on PNP
-> >         depends on BACKLIGHT_CLASS_DEVICE
-> >         depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
-> > --
-> > 2.19.0
-> >
->
->
-> --
-> With Best Regards,
-> Andy Shevchenko
-
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+I'm focused on the build failure at this moment.
