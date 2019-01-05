@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v6 06/11] platform/x86: apple-gmux: Make PCI dependency explicit
-Date: Sat,  5 Jan 2019 10:06:01 +0000
-Message-ID: <20190105100606.6673-7-okaya@kernel.org>
+Subject: [PATCH v6 04/11] platform/x86: intel_ips: make PCI dependency explicit
+Date: Sat,  5 Jan 2019 10:05:59 +0000
+Message-ID: <20190105100606.6673-5-okaya@kernel.org>
 References: <20190105100606.6673-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -15,29 +15,28 @@ List-Id: linux-acpi@vger.kernel.org
 After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
 CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
 satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly. This driver depends on the PCI infrastructure but
-the dependency has not been explicitly called out.
+specified directly. Ipss driver is a PCI device driver but this has
+not been mentioned anywhere in Kconfig.
 
 Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
  drivers/platform/x86/Kconfig | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index 7afb96cb1cd6..5e2109c54c7c 100644
+index e3b62c2ee8d1..b36ea14b41ad 100644
 --- a/drivers/platform/x86/Kconfig
 +++ b/drivers/platform/x86/Kconfig
-@@ -1135,7 +1135,7 @@ config SAMSUNG_Q10
+@@ -1009,7 +1009,7 @@ config INTEL_MFLD_THERMAL
  
- config APPLE_GMUX
- 	tristate "Apple Gmux Driver"
+ config INTEL_IPS
+ 	tristate "Intel Intelligent Power Sharing"
 -	depends on ACPI
 +	depends on ACPI && PCI
- 	depends on PNP
- 	depends on BACKLIGHT_CLASS_DEVICE
- 	depends on BACKLIGHT_APPLE=n || BACKLIGHT_APPLE
+ 	---help---
+ 	  Intel Calpella platforms support dynamic power sharing between the
+ 	  CPU and GPU, maximizing performance in a given TDP.  This driver,
 -- 
 2.19.0
