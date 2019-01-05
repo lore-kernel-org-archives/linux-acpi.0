@@ -1,7 +1,7 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v6 04/11] platform/x86: intel_ips: make PCI dependency explicit
-Date: Sat,  5 Jan 2019 10:05:59 +0000
-Message-ID: <20190105100606.6673-5-okaya@kernel.org>
+Subject: [PATCH v6 01/11] ACPI / LPSS: Make PCI dependency explicit
+Date: Sat,  5 Jan 2019 10:05:56 +0000
+Message-ID: <20190105100606.6673-2-okaya@kernel.org>
 References: <20190105100606.6673-1-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
@@ -9,34 +9,49 @@ Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190105100606.6673-1-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-satisfied implicitly through dependencies on CONFIG_ACPI have to be
-specified directly. Ipss driver is a PCI device driver but this has
-not been mentioned anywhere in Kconfig.
+CONFIG_PCI set")', it is possible to build ACPI without any PCI support.
+This code depends on PCI. Compile only when PCI is present.
 
 Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
 Signed-off-by: Sinan Kaya <okaya@kernel.org>
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- drivers/platform/x86/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/Makefile   | 3 ++-
+ drivers/acpi/internal.h | 4 ++++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-index e3b62c2ee8d1..b36ea14b41ad 100644
---- a/drivers/platform/x86/Kconfig
-+++ b/drivers/platform/x86/Kconfig
-@@ -1009,7 +1009,7 @@ config INTEL_MFLD_THERMAL
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 7c6afc111d76..bb857421c2e8 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -41,7 +41,8 @@ acpi-y				+= ec.o
+ acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
+ acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
+ obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
+-acpi-y				+= acpi_lpss.o acpi_apd.o
++acpi-$(CONFIG_PCI)		+= acpi_lpss.o
++acpi-y				+= acpi_apd.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= acpi_pnp.o
+ acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 7e6952edb5b0..6a9e1fb8913a 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -81,7 +81,11 @@ void acpi_debugfs_init(void);
+ #else
+ static inline void acpi_debugfs_init(void) { return; }
+ #endif
++#ifdef CONFIG_PCI
+ void acpi_lpss_init(void);
++#else
++static inline void acpi_lpss_init(void) {}
++#endif
  
- config INTEL_IPS
- 	tristate "Intel Intelligent Power Sharing"
--	depends on ACPI
-+	depends on ACPI && PCI
- 	---help---
- 	  Intel Calpella platforms support dynamic power sharing between the
- 	  CPU and GPU, maximizing performance in a given TDP.  This driver,
+ void acpi_apd_init(void);
+ 
 -- 
 2.19.0
