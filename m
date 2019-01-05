@@ -1,40 +1,41 @@
 From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v6 03/11] vga-switcheroo: make PCI dependency explicit
-Date: Sat,  5 Jan 2019 10:05:58 +0000
-Message-ID: <20190105100606.6673-4-okaya@kernel.org>
+Subject: [PATCH v6 05/11] platform/x86: intel_pmc: Make PCI dependency explicit
+Date: Sat,  5 Jan 2019 10:06:00 +0000
+Message-ID: <20190105100606.6673-6-okaya@kernel.org>
 References: <20190105100606.6673-1-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190105100606.6673-1-okaya@kernel.org>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-next@vger.kernel.org
-Cc: Maxime Ripard <maxime.ripard@bootlin.com>, Sinan Kaya <okaya@kernel.org>, David Airlie <airlied@linux.ie>, open list <linux-kernel@vger.kernel.org>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Sean Paul <sean@poorly.run>
+Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, Darren Hart <dvhart@infradead.org>, Andy Shevchenko <andy@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-VGhpcyBkcml2ZXIgZGVwZW5kcyBvbiB0aGUgUENJIGluZnJhc3RydWN0dXJlIGJ1dCB0aGUgZGVw
-ZW5kZW5jeSBoYXMgbm90CmJlZW4gZXhwbGljaXRseSBjYWxsZWQgb3V0LgoKRml4ZXM6IDVkMzJh
-NjY1NDFjNDYgKCJQQ0kvQUNQSTogQWxsb3cgQUNQSSB0byBiZSBidWlsdCB3aXRob3V0IENPTkZJ
-R19QQ0kgc2V0IikKU2lnbmVkLW9mZi1ieTogU2luYW4gS2F5YSA8b2theWFAa2VybmVsLm9yZz4K
-UmV2aWV3ZWQtYnk6IEx1a2FzIFd1bm5lciA8bHVrYXNAd3VubmVyLmRlPgpBY2tlZC1ieTogRGFu
-aWVsIFZldHRlciA8ZGFuaWVsLnZldHRlckBmZndsbC5jaD4KLS0tCiBkcml2ZXJzL2dwdS92Z2Ev
-S2NvbmZpZyB8IDEgKwogMSBmaWxlIGNoYW5nZWQsIDEgaW5zZXJ0aW9uKCspCgpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9ncHUvdmdhL0tjb25maWcgYi9kcml2ZXJzL2dwdS92Z2EvS2NvbmZpZwppbmRl
-eCBiNjc3ZTVkNTI0ZTYuLmQ1ZjFkOGUxYzZmOCAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvdmdh
-L0tjb25maWcKKysrIGIvZHJpdmVycy9ncHUvdmdhL0tjb25maWcKQEAgLTIxLDYgKzIxLDcgQEAg
-Y29uZmlnIFZHQV9TV0lUQ0hFUk9PCiAJYm9vbCAiTGFwdG9wIEh5YnJpZCBHcmFwaGljcyAtIEdQ
-VSBzd2l0Y2hpbmcgc3VwcG9ydCIKIAlkZXBlbmRzIG9uIFg4NgogCWRlcGVuZHMgb24gQUNQSQor
-CWRlcGVuZHMgb24gUENJCiAJc2VsZWN0IFZHQV9BUkIKIAloZWxwCiAJICBNYW55IGxhcHRvcHMg
-cmVsZWFzZWQgaW4gMjAwOC85LzEwIGhhdmUgdHdvIEdQVXMgd2l0aCBhIG11bHRpcGxleGVyCi0t
-IAoyLjE5LjAKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+satisfied implicitly through dependencies on CONFIG_ACPI have to be
+specified directly. Code relies on PCI for execution. Specify this
+in the Kconfig.
+
+Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+Signed-off-by: Sinan Kaya <okaya@kernel.org>
+---
+ drivers/platform/x86/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+index b36ea14b41ad..7afb96cb1cd6 100644
+--- a/drivers/platform/x86/Kconfig
++++ b/drivers/platform/x86/Kconfig
+@@ -1174,7 +1174,7 @@ config INTEL_SMARTCONNECT
+ 
+ config INTEL_PMC_IPC
+ 	tristate "Intel PMC IPC Driver"
+-	depends on ACPI
++	depends on ACPI && PCI
+ 	---help---
+ 	This driver provides support for PMC control on some Intel platforms.
+ 	The PMC is an ARC processor which defines IPC commands for communication
+-- 
+2.19.0
