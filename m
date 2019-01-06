@@ -1,57 +1,24 @@
-From: Sinan Kaya <okaya@kernel.org>
-Subject: [PATCH v6 01/11] ACPI / LPSS: Make PCI dependency explicit
-Date: Sat,  5 Jan 2019 10:05:56 +0000
-Message-ID: <20190105100606.6673-2-okaya@kernel.org>
-References: <20190105100606.6673-1-okaya@kernel.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: pr-tracker-bot@kernel.org
+Subject: Re: [GIT PULL v2] Thermal-SoC management updates for v4.21-rc1
+Date: Sun, 06 Jan 2019 00:15:02 +0000
+Message-ID: <20190106001502.814.26251.pr-tracker-bot@pdx-korg-gitolite-1.ci.codeaurora.org>
+References: <20190102200532.GA2320@localhost.localdomain>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190105100606.6673-1-okaya@kernel.org>
+In-Reply-To: <20190102200532.GA2320@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-next@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Sinan Kaya <okaya@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Eduardo Valentin <edubezval@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-CONFIG_PCI set")', it is possible to build ACPI without any PCI support.
-This code depends on PCI. Compile only when PCI is present.
+The pull request you sent on Wed, 2 Jan 2019 12:05:33 -0800:
 
-Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-Signed-off-by: Sinan Kaya <okaya@kernel.org>
----
- drivers/acpi/Makefile   | 3 ++-
- drivers/acpi/internal.h | 4 ++++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+> git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 7c6afc111d76..bb857421c2e8 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -41,7 +41,8 @@ acpi-y				+= ec.o
- acpi-$(CONFIG_ACPI_DOCK)	+= dock.o
- acpi-$(CONFIG_PCI)		+= pci_root.o pci_link.o pci_irq.o
- obj-$(CONFIG_ACPI_MCFG)		+= pci_mcfg.o
--acpi-y				+= acpi_lpss.o acpi_apd.o
-+acpi-$(CONFIG_PCI)		+= acpi_lpss.o
-+acpi-y				+= acpi_apd.o
- acpi-y				+= acpi_platform.o
- acpi-y				+= acpi_pnp.o
- acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 7e6952edb5b0..6a9e1fb8913a 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -81,7 +81,11 @@ void acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
-+#ifdef CONFIG_PCI
- void acpi_lpss_init(void);
-+#else
-+static inline void acpi_lpss_init(void) {}
-+#endif
- 
- void acpi_apd_init(void);
- 
+has been merged into torvalds/linux.git:
+https://git.kernel.org/torvalds/c/c280230254635da33703dd8f4a10cad23f640fb0
+
+Thank you!
+
 -- 
-2.19.0
+Deet-doot-dot, I am a bot.
+https://korg.wiki.kernel.org/userdoc/prtracker
