@@ -1,29 +1,104 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 03/11] vga-switcheroo: make PCI dependency explicit
-Date: Mon, 7 Jan 2019 11:53:46 +0100
-Message-ID: <CAJZ5v0hJXSg5iAg4noFaut4AW3V1J0j4N1n1mq2zV3=4Ls5=uQ@mail.gmail.com>
-References: <20181230195612.6657-1-okaya@kernel.org> <20181230195612.6657-4-okaya@kernel.org>
- <20190107103448.GG21184@phenom.ffwll.local>
+Subject: Re: [RFC PATCH 1/4] acpi: change the topo of acpi_table_upgrade()
+Date: Mon, 7 Jan 2019 11:55:48 +0100
+Message-ID: <CAJZ5v0itzGsT-1BoBM+jiewmzhjuEVBJrDANBe+vtsAOiqpm1A@mail.gmail.com>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com> <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190107103448.GG21184@phenom.ffwll.local>
+In-Reply-To: <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, David Airlie <airlied@linux.ie>, Maarten Lankhorst <maarten.lankhorst@linux.intel.com>, Maxime Ripard <maxime.ripard@bootlin.com>, Sean Paul <sean@poorly.run>, "open list:DRM DRIVERS" <dri-devel@lists.freedesktop.org>, open list <linux-kernel@vger.kernel.org>
-Cc: Daniel Vetter <daniel@ffwll.ch>
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: the arch/x86 maintainers <x86@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 11:34 AM Daniel Vetter <daniel@ffwll.ch> wrote:
+On Mon, Jan 7, 2019 at 9:25 AM Pingfan Liu <kernelfans@gmail.com> wrote:
 >
-> On Sun, Dec 30, 2018 at 07:56:04PM +0000, Sinan Kaya wrote:
-> > This driver depends on the PCI infrastructure but the dependency has not
-> > been explicitly called out.
-> >
-> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > Reviewed-by: Lukas Wunner <lukas@wunner.de>
-> > Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> The current acpi_table_upgrade() relies on initrd_start, but this var is
+> only valid after relocate_initrd(). There is requirement to extract the
+> acpi info from initrd before memblock-allocator can work(see [2/4]), hence
+> acpi_table_upgrade() need to accept the input param directly.
 >
-> I'm assuming this goes in through the acpi tree, correct?
+> Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-kernel@vger.kernel.org
 
-I'm going to pick it up.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+> ---
+>  arch/arm64/kernel/setup.c | 2 +-
+>  arch/x86/kernel/setup.c   | 2 +-
+>  drivers/acpi/tables.c     | 4 +---
+>  include/linux/acpi.h      | 4 ++--
+>  4 files changed, 5 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+> index 4b0e123..48cb98c 100644
+> --- a/arch/arm64/kernel/setup.c
+> +++ b/arch/arm64/kernel/setup.c
+> @@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
+>         paging_init();
+>         efi_apply_persistent_mem_reservations();
+>
+> -       acpi_table_upgrade();
+> +       acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
+>
+>         /* Parse the ACPI tables for possible boot-time configuration */
+>         acpi_boot_table_init();
+> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+> index 3d872a5..acbcd62 100644
+> --- a/arch/x86/kernel/setup.c
+> +++ b/arch/x86/kernel/setup.c
+> @@ -1175,8 +1175,8 @@ void __init setup_arch(char **cmdline_p)
+>
+>         reserve_initrd();
+>
+> -       acpi_table_upgrade();
+>
+> +       acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
+>         vsmp_init();
+>
+>         io_delay_init();
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 48eabb6..d29b05c 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+>
+>  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+>
+> -void __init acpi_table_upgrade(void)
+> +void __init acpi_table_upgrade(void *data, size_t size)
+>  {
+> -       void *data = (void *)initrd_start;
+> -       size_t size = initrd_end - initrd_start;
+>         int sig, no, table_nr = 0, total_offset = 0;
+>         long offset = 0;
+>         struct acpi_table_header *table;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 87715f2..44dcbba 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -1272,9 +1272,9 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
+>  #endif
+>
+>  #ifdef CONFIG_ACPI_TABLE_UPGRADE
+> -void acpi_table_upgrade(void);
+> +void acpi_table_upgrade(void *data, size_t size);
+>  #else
+> -static inline void acpi_table_upgrade(void) { }
+> +static inline void acpi_table_upgrade(void *data, size_t size) { }
+>  #endif
+>
+>  #if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
+> --
+> 2.7.4
+>
