@@ -1,58 +1,67 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v6 3/4] ACPI / PMIC: Add generic
- intel_soc_pmic_exec_mipi_pmic_seq_element handling
-Date: Mon, 7 Jan 2019 17:46:16 +0200
-Message-ID: <20190107154616.GQ9170@smile.fi.intel.com>
-References: <20190107111556.4510-1-hdegoede@redhat.com>
- <20190107111556.4510-4-hdegoede@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: [PATCH] ACPI/IORT: Fix build when CONFIG_IOMMU_API=n
+Date: Mon,  7 Jan 2019 16:42:07 +0000
+Message-ID: <20190107164208.27789-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190107111556.4510-4-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Qian Cai <cai@lca.pw>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBKYW4gMDcsIDIwMTkgYXQgMTI6MTU6NTVQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
-cm90ZToKPiBNb3N0IFBNSUMtcyB1c2Ugb25seSBhIHNpbmdsZSBpMmMtYWRkcmVzcywgc28gYWZ0
-ZXIgdmVyaWZ5aW5nIHRoZQo+IGkyYy1hZGRyZXNzIG1hdGNoZXMsIHdlIGNhbiBzaW1wbHkgcGFz
-cyB0aGUgY2FsbCB0byByZWdtYXBfdXBkYXRlX2JpdHMuCj4gCj4gVGhpcyBjb21taXQgYWRkcyBz
-dXBwb3J0IGZvciB0aGlzIGFuZCBob29rcyB0aGlzIHVwIGZvciB0aGUgeHBvd2VyIEFYUDI4OAo+
-IFBNSUMgYnkgc2V0dGluZyB0aGUgbmV3IHBtaWNfaTJjX2FkZHJlc3MgZmllbGQuCj4gCj4gVGhp
-cyBmaXhlcyB0aGUgZm9sbG93aW5nIGVycm9ycyBvbiBkaXNwbGF5IG9uIC8gb2ZmIG9uIGEgSnVt
-cGVyIEV6cGFkCj4gbWluaSAzIGFuZCBhbiBPbmRhIFY4MCBwbHVzIHRhYmxldCwgYm90aCBvZiB3
-aGljaCB1c2UgdGhlIEFYUDI4ODoKPiAKPiBpbnRlbF9zb2NfcG1pY19leGVjX21pcGlfcG1pY19z
-ZXFfZWxlbWVudDogTm90IGltcGxlbWVudGVkCj4gaW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3Bt
-aWNfc2VxX2VsZW1lbnQ6IGkyYy1hZGRyOiAweDM0IHJlZy1hZGRyIC4uLgo+IFtkcm06bWlwaV9l
-eGVjX3BtaWMgW2k5MTVdXSAqRVJST1IqIG1pcGlfZXhlY19wbWljIGZhaWxlZCwgZXJyb3I6IC05
-NQo+IAo+IEluc3RlYWQgb2YgdGhlc2UgZXJyb3JzIG9uIGJvdGggZGV2aWNlcyB3ZSBub3cgY29y
-cmVjdGx5IHR1cm4gb24gLyBvZmYKPiBETERPMyAodGhyb3VnaCBkaXJlY3QgcmVnaXN0ZXIgbWFu
-aXB1bGF0aW9uKS4gT24gdGhlIE9uZGEgVjgwIHBsdXMgdGhpcwo+IGZpeGVzIGFuIGlzc3VlIHdp
-dGggdGhlIGJhY2tsaWdodCBiZWluZyBicmlnaHRlciBhcm91bmQgdGhlIGJvcmRlcnMgYWZ0ZXIK
-PiBhbiBvZmYgLyBvbiBjeWNsZS4gVGhpcyBzaG91bGQgYWxzbyBoZWxwIHRvIHNhdmUgc29tZSBw
-b3dlciB3aGVuIHRoZQo+IGRpc3BsYXkgaXMgb2ZmLgoKPiArCX0gZWxzZSBpZiAoZC0+cG1pY19p
-MmNfYWRkcmVzcykgewo+ICsJCWlmIChpMmNfYWRkcmVzcyA9PSBkLT5wbWljX2kyY19hZGRyZXNz
-KSB7Cj4gKwkJCXJldCA9IHJlZ21hcF91cGRhdGVfYml0cyhpbnRlbF9wbWljX29wcmVnaW9uLT5y
-ZWdtYXAsCj4gKwkJCQkJCSByZWdfYWRkcmVzcywgbWFzaywgdmFsdWUpOwo+ICsJCX0gZWxzZSB7
-Cj4gKwkJCXByX2VycigiJXM6IFVuZXhwZWN0ZWQgaTJjLWFkZHI6IDB4JTAyeCAocmVnLWFkZHIg
-MHgleCB2YWx1ZSAweCV4IG1hc2sgMHgleClcbiIsCj4gKwkJCSAgICAgICBfX2Z1bmNfXywgaTJj
-X2FkZHJlc3MsIHJlZ19hZGRyZXNzLCB2YWx1ZSwgbWFzayk7Cj4gKwkJCXJldCA9IC1FTlhJTzsK
-PiArCQl9Cgo+IC0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfeHBvd2VyLmMKPiAr
-KysgYi9kcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jCj4gKwkucG1pY19pMmNf
-YWRkcmVzcyA9IDB4MzQsCgpDYW4gd2UganVzdCBoYXZlIGEgaG9vayBoZXJlIGluc3RlYWQgb2Yg
-ZXhwb3NpbmcgUE1JQyBJMkMgYWRkcmVzcz8KQW0gSSBtaXNzaW5nIHNvbWV0aGluZyBpbiBjYXNl
-IGl0J3Mgbm90IHBvc3NpYmxlPwoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVu
-a28KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRl
-bC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
-Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+From: Qian Cai <cai@lca.pw>
+
+Commit 8097e53eaba2 ("ACPI/IORT: Use helper functions to access
+dev->iommu_fwspec") changed by mistake the iort_fwspec_iommu_ops() stub
+definition (compiled in when CONFIG_IOMMU_API=n), that caused the
+following compilation failure:
+
+drivers/acpi/arm64/iort.c:880:1: error: expected identifier or
+'(' before '{' token
+ { return NULL; }
+ ^
+drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops'
+used but never defined
+ static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
+                                       ^~~~~~~~~~~~~~~~~~~~~
+
+Fix it.
+
+Fixes: 8097e53eaba2 ("ACPI/IORT: Use helper functions to access dev->iommu_fwspec")
+Signed-off-by: Qian Cai <cai@lca.pw>
+[lorenzo.pieralisi@arm.com: updated tags and log]
+Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Joerg Roedel <jroedel@suse.de>
+---
+ drivers/acpi/arm64/iort.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+index fdd90ffceb85..5d29783ee5bd 100644
+--- a/drivers/acpi/arm64/iort.c
++++ b/drivers/acpi/arm64/iort.c
+@@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
+ 	return (resv == its->its_count) ? resv : -ENODEV;
+ }
+ #else
+-static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
++static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
+ { return NULL; }
+ static inline int iort_add_device_replay(const struct iommu_ops *ops,
+ 					 struct device *dev)
+-- 
+2.19.2
