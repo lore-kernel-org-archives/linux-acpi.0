@@ -1,7 +1,7 @@
 From: Pingfan Liu <kernelfans@gmail.com>
-Subject: [RFC PATCH 1/4] acpi: change the topo of acpi_table_upgrade()
-Date: Mon,  7 Jan 2019 16:24:42 +0800
-Message-ID: <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
+Subject: [RFC PATCH 3/4] x86/mm: set allowed range for memblock allocator
+Date: Mon,  7 Jan 2019 16:24:44 +0800
+Message-ID: <1546849485-27933-4-git-send-email-kernelfans@gmail.com>
 References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
@@ -10,10 +10,11 @@ To: x86@kernel.org, linux-acpi@vger.kernel.org
 Cc: Pingfan Liu <kernelfans@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The current acpi_table_upgrade() relies on initrd_start, but this var is
-only valid after relocate_initrd(). There is requirement to extract the
-acpi info from initrd before memblock-allocator can work(see [2/4]), hence
-acpi_table_upgrade() need to accept the input param directly.
+Due to the incoming divergence of x86_32 and x86_64, there is requirement
+to set the allowed allocating range at the early boot stage.
+This patch also includes minor change to remove redundat cond check, refer
+to memblock_find_in_range_node(), memblock_find_in_range() has already
+protect itself from the case: start > end.
 
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -27,70 +28,71 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org
 ---
- arch/arm64/kernel/setup.c | 2 +-
- arch/x86/kernel/setup.c   | 2 +-
- drivers/acpi/tables.c     | 4 +---
- include/linux/acpi.h      | 4 ++--
- 4 files changed, 5 insertions(+), 7 deletions(-)
+ arch/x86/mm/init.c | 24 +++++++++++++++++-------
+ 1 file changed, 17 insertions(+), 7 deletions(-)
 
-diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-index 4b0e123..48cb98c 100644
---- a/arch/arm64/kernel/setup.c
-+++ b/arch/arm64/kernel/setup.c
-@@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
- 	paging_init();
- 	efi_apply_persistent_mem_reservations();
+diff --git a/arch/x86/mm/init.c b/arch/x86/mm/init.c
+index f905a23..84baa66 100644
+--- a/arch/x86/mm/init.c
++++ b/arch/x86/mm/init.c
+@@ -76,6 +76,14 @@ static unsigned long min_pfn_mapped;
  
--	acpi_table_upgrade();
-+	acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
+ static bool __initdata can_use_brk_pgt = true;
  
- 	/* Parse the ACPI tables for possible boot-time configuration */
- 	acpi_boot_table_init();
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index 3d872a5..acbcd62 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -1175,8 +1175,8 @@ void __init setup_arch(char **cmdline_p)
++static unsigned long min_pfn_allowed;
++static unsigned long max_pfn_allowed;
++void set_alloc_range(unsigned long low, unsigned long high)
++{
++	min_pfn_allowed = low;
++	max_pfn_allowed = high;
++}
++
+ /*
+  * Pages returned are already directly mapped.
+  *
+@@ -100,12 +108,10 @@ __ref void *alloc_low_pages(unsigned int num)
+ 	if ((pgt_buf_end + num) > pgt_buf_top || !can_use_brk_pgt) {
+ 		unsigned long ret = 0;
  
- 	reserve_initrd();
+-		if (min_pfn_mapped < max_pfn_mapped) {
+-			ret = memblock_find_in_range(
+-					min_pfn_mapped << PAGE_SHIFT,
+-					max_pfn_mapped << PAGE_SHIFT,
+-					PAGE_SIZE * num , PAGE_SIZE);
+-		}
++		ret = memblock_find_in_range(
++			min_pfn_allowed << PAGE_SHIFT,
++			max_pfn_allowed << PAGE_SHIFT,
++			PAGE_SIZE * num, PAGE_SIZE);
+ 		if (ret)
+ 			memblock_reserve(ret, PAGE_SIZE * num);
+ 		else if (can_use_brk_pgt)
+@@ -588,14 +594,17 @@ static void __init memory_map_top_down(unsigned long map_start,
+ 			start = map_start;
+ 		mapped_ram_size += init_range_memory_mapping(start,
+ 							last_start);
++		set_alloc_range(min_pfn_mapped, max_pfn_mapped);
+ 		last_start = start;
+ 		min_pfn_mapped = last_start >> PAGE_SHIFT;
+ 		if (mapped_ram_size >= step_size)
+ 			step_size = get_new_step_size(step_size);
+ 	}
  
--	acpi_table_upgrade();
+-	if (real_end < map_end)
++	if (real_end < map_end) {
+ 		init_range_memory_mapping(real_end, map_end);
++		set_alloc_range(min_pfn_mapped, max_pfn_mapped);
++	}
+ }
  
-+	acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
- 	vsmp_init();
+ /**
+@@ -636,6 +645,7 @@ static void __init memory_map_bottom_up(unsigned long map_start,
+ 		}
  
- 	io_delay_init();
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 48eabb6..d29b05c 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+ 		mapped_ram_size += init_range_memory_mapping(start, next);
++		set_alloc_range(min_pfn_mapped, max_pfn_mapped);
+ 		start = next;
  
- #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
- 
--void __init acpi_table_upgrade(void)
-+void __init acpi_table_upgrade(void *data, size_t size)
- {
--	void *data = (void *)initrd_start;
--	size_t size = initrd_end - initrd_start;
- 	int sig, no, table_nr = 0, total_offset = 0;
- 	long offset = 0;
- 	struct acpi_table_header *table;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 87715f2..44dcbba 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1272,9 +1272,9 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
- #endif
- 
- #ifdef CONFIG_ACPI_TABLE_UPGRADE
--void acpi_table_upgrade(void);
-+void acpi_table_upgrade(void *data, size_t size);
- #else
--static inline void acpi_table_upgrade(void) { }
-+static inline void acpi_table_upgrade(void *data, size_t size) { }
- #endif
- 
- #if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
+ 		if (mapped_ram_size >= step_size)
 -- 
 2.7.4
