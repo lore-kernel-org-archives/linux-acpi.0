@@ -1,49 +1,36 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 08/11] ASoC: Intel: atom: Make PCI dependency explicit
-Date: Mon, 7 Jan 2019 12:15:35 +0100
-Message-ID: <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-9-okaya@kernel.org>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v6 0/4] ACPI/i915: Add support for PMIC MIPI
+ sequence elements
+Date: Mon,  7 Jan 2019 12:15:52 +0100
+Message-ID: <20190107111556.4510-1-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190105100606.6673-9-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>, Mark Brown <broonie@kernel.org>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
->
-> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> specified directly. This code relies on IOSF_MBI and IOSF_MBI depends
-> on PCI. For this reason, add a direct dependency on CONFIG_PCI to the
-> IOSF_MBI driver.
->
-> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-
-Sinan, I thought you received an ACK from Pierre-Louis on this one, didn't you?
-
-> ---
->  sound/soc/intel/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/sound/soc/intel/Kconfig b/sound/soc/intel/Kconfig
-> index 99a62ba409df..bd9fd2035c55 100644
-> --- a/sound/soc/intel/Kconfig
-> +++ b/sound/soc/intel/Kconfig
-> @@ -91,7 +91,7 @@ config SND_SST_ATOM_HIFI2_PLATFORM_PCI
->  config SND_SST_ATOM_HIFI2_PLATFORM_ACPI
->         tristate "ACPI HiFi2 (Baytrail, Cherrytrail) Platforms"
->         default ACPI
-> -       depends on X86 && ACPI
-> +       depends on X86 && ACPI && PCI
->         select SND_SST_IPC_ACPI
->         select SND_SST_ATOM_HIFI2_PLATFORM
->         select SND_SOC_ACPI_INTEL_MATCH
-> --
-
-Mark, assuming that the ACK above was given here, do you want me to
-take this patch or do you want to take care of it yourself?
+SGkgQWxsLAoKVGhpcyBwYXRjaC1zZXQgaGFzIGJlZW4gb24gdGhlIGxpc3QgZm9yIGEgd2hpbGUg
+bm93LCBpdCB3b3VsZCBiZSBuaWNlCmlmIHdlIGNhbiBnZXQgdGhpcyBtZXJnZWQuIEkgYWxyZWFk
+eSBoYXZlIGFuIGFjayBmb3IgbWVyZ2luZyB0aGUgQUNQSQpiaXRzIHRocm91Z2ggZHJtLWludGVs
+LW5leHQtcXVldWVkLCBzbyB3ZSByZWFsbHkgbmVlZCBhbiBhY2sgZm9yCnRoZSBsYXN0IDIgcGF0
+Y2hlcyBmcm9tIG9uZSBvZiB0aGUgaW50ZWwtZ2Z4IGZvbGtzIHNvIHRoYXQgSSBjYW4gcHVzaAp0
+aGlzIHRvIGRpbnEuCgpDb21wYXJlZCB0byB2ZXJzaW9uIDUgdGhpcyB2ZXJzaW9uIGhhcyBvbmUg
+bmV3IHBhdGNoOgoiQUNQSSAvIFBNSUM6IEFkZCBnZW5lcmljIGludGVsX3NvY19wbWljX2V4ZWNf
+bWlwaV9wbWljX3NlcV9lbGVtZW50IGhhbmRsaW5nIgp3aGljaCBhZGRzIGEgZ2VuZXJpYyByZWdt
+YXAgYmFzZWQgaGFuZGxlciBhbmQgZW5hYmxlcyB0aGF0IGZvciBBWFAyODgKUE1JQy1zLiBUaGlz
+IG5ldyBwYXRjaCBpcyBvbmUgb2YgdGhlIHBhdGNoZXMgbmVlZGluZyBhIHJldmlldyAvIGFjay4K
+ClRoYW5rcyAmIFJlZ2FyZHMsCgpIYW5zCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
+aW5mby9pbnRlbC1nZngK
