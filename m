@@ -1,11 +1,13 @@
 From: Xiaochun Lee <lixiaochun.2888-9Onoh4P/yGk@public.gmane.org>
 Subject: [PATCH] ACPI/nfit: delete the redundant header file
-Date: Mon,  7 Jan 2019 10:33:35 +0800
-Message-ID: <1546828416-3040-1-git-send-email-lixiaochun.2888@163.com>
+Date: Mon,  7 Jan 2019 10:33:36 +0800
+Message-ID: <1546828416-3040-2-git-send-email-lixiaochun.2888@163.com>
+References: <1546828416-3040-1-git-send-email-lixiaochun.2888@163.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <1546828416-3040-1-git-send-email-lixiaochun.2888-9Onoh4P/yGk@public.gmane.org>
 List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
  <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
 List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
@@ -23,11 +25,22 @@ From: Xiaochun Lee <lixc17-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
 
 The header file "intel.h" is repeated here, So delete one.
 
-Xiaochun Lee (1):
-  ACPI/nfit: delete the redundant header file
-
+Signed-off-by: Xiaochun Lee <lixc17-6jq1YtArVR3QT0dZR+AlfA@public.gmane.org>
+---
  drivers/acpi/nfit/core.c | 1 -
  1 file changed, 1 deletion(-)
 
+diff --git a/drivers/acpi/nfit/core.c b/drivers/acpi/nfit/core.c
+index 011d3db..328e464 100644
+--- a/drivers/acpi/nfit/core.c
++++ b/drivers/acpi/nfit/core.c
+@@ -26,7 +26,6 @@
+ #include <acpi/nfit.h>
+ #include "intel.h"
+ #include "nfit.h"
+-#include "intel.h"
+ 
+ /*
+  * For readq() and writeq() on 32-bit builds, the hi-lo, lo-hi order is
 -- 
 1.8.3.1
