@@ -1,45 +1,80 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 07/11] drivers: thermal: int3406_thermal: Make PCI
- dependency explicit
-Date: Mon, 7 Jan 2019 12:19:51 +0100
-Message-ID: <CAJZ5v0gst1ZDgG-uP9GUUB1ziPnqhfArio3um=wCQjfbeH2_iw@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-8-okaya@kernel.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 08/11] ASoC: Intel: atom: Make PCI
+	dependency explicit
+Date: Mon, 7 Jan 2019 12:19:19 +0000
+Message-ID: <20190107121919.GA9570@sirena.org.uk>
+References: <20190105100606.6673-1-okaya@kernel.org>
+ <20190105100606.6673-9-okaya@kernel.org>
+ <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190105100606.6673-8-okaya@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>, Zhang Rui <rui.zhang@intel.com>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: multipart/mixed; boundary="===============8688111516383424272=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, Sinan Kaya <okaya@kernel.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
->
-> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> specified directly. Need CONFIG_PCI to be set in order to be able to use
-> this driver.
->
-> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> ---
->  drivers/thermal/intel/int340x_thermal/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/thermal/intel/int340x_thermal/Kconfig b/drivers/thermal/intel/int340x_thermal/Kconfig
-> index 0582bd12a239..fba1976d5f8d 100644
-> --- a/drivers/thermal/intel/int340x_thermal/Kconfig
-> +++ b/drivers/thermal/intel/int340x_thermal/Kconfig
-> @@ -31,7 +31,7 @@ if INT340X_THERMAL
->
->  config INT3406_THERMAL
->         tristate "ACPI INT3406 display thermal driver"
-> -       depends on ACPI_VIDEO
-> +       depends on ACPI_VIDEO && PCI
->         help
->           The display thermal device represents the LED/LCD display panel
->           that may or may not include touch support. The main function of
-> --
 
-Rui, any objections here?  And for the [11/11]?
+--===============8688111516383424272==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="y0ulUmNC+osPPQO6"
+Content-Disposition: inline
+
+
+--y0ulUmNC+osPPQO6
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 07, 2019 at 12:15:35PM +0100, Rafael J. Wysocki wrote:
+> On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
+
+> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
+
+> Sinan, I thought you received an ACK from Pierre-Louis on this one, didn't you?
+
+Yes.  I've also applied it already and it's *still* being sent without
+either a cover letter or the rest of the series :(
+
+Sinan:
+
+Please do not submit new versions of already applied patches, please
+submit incremental updates to the existing code.  Modifying existing
+commits creates problems for other users building on top of those
+commits so it's best practice to only change pubished git commits if
+absolutely essential.
+
+--y0ulUmNC+osPPQO6
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwzQ8YACgkQJNaLcl1U
+h9Dk3gf/VSotM7FP5LrgR8nnd8s0QCNxDaJNzQKDeK5QNqcuJTjFXHnueHbqQTN1
+XTK8OXYLK8DYqVDYpv+3HAdYdb1p0U/oEZo1kDof0et7g3+HnWy5h09jWxjREbw9
+GdAVB5B4muqL0O9iAXXGnk+nubHbVccT3Ksf3qRwxQk10ttkjUWiYEGu12B3d08U
+0UmuzpXOmm3TUPvydt+myreT99t22YBTAXgYYR5uESOoFrB88yn+AFu35LNZD3mh
+OgnMFAF5pXoFGAlP0FuLlmDbvW0Y5VUsUKe4iP9iWVK3wTt52bONrao5f98vl9hR
+ydbZSx4dHQ5kMURR4qvl0PQzQc8e5A==
+=HdFs
+-----END PGP SIGNATURE-----
+
+--y0ulUmNC+osPPQO6--
+
+--===============8688111516383424272==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============8688111516383424272==--
