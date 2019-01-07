@@ -1,67 +1,39 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] ACPI/IORT: Fix build when CONFIG_IOMMU_API=n
-Date: Mon,  7 Jan 2019 16:42:07 +0000
-Message-ID: <20190107164208.27789-1-lorenzo.pieralisi@arm.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Subject: Re: [RFC PATCH 0/4] x86_64/mm: remove bottom-up allocation style by
+ pushing forward the parsing of mem hotplug info
+Date: Mon, 7 Jan 2019 09:03:51 -0800
+Message-ID: <7d72567c-2ed8-e2ae-8518-115cd9c8a82a@intel.com>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Joerg Roedel <jroedel@suse.de>, Qian Cai <cai@lca.pw>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>, x86@kernel.org, linux-acpi@vger.kernel.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Qian Cai <cai@lca.pw>
+On 1/7/19 12:24 AM, Pingfan Liu wrote:
+> Background about the defect of the current bottom-up allocation style, take
+> the following scenario:
+>   |  unmovable node |     movable node                           |
+>      | kaslr-kernel |subtree of pgtable for phy<->virt |
+> 
+> Although kaslr-kernel can avoid to stain the movable node. But the
+> pgtable can still stain the movable node. That is a probability problem,
+> with low probability, but still exist. This patch tries to eliminate the
+> probability. With the previous patch, at the point of init_mem_mapping(),
+> memblock allocator can work with the knowledge of acpi memory hotmovable
+> info, and avoid to stain the movable node. As a result,
+> memory_map_bottom_up() is not needed any more.
 
-Commit 8097e53eaba2 ("ACPI/IORT: Use helper functions to access
-dev->iommu_fwspec") changed by mistake the iort_fwspec_iommu_ops() stub
-definition (compiled in when CONFIG_IOMMU_API=n), that caused the
-following compilation failure:
+I'm really missing the basic problem statement.  What's the problem this
+is fixing?  What is the end-user-visible impact of this problem?
 
-drivers/acpi/arm64/iort.c:880:1: error: expected identifier or
-'(' before '{' token
- { return NULL; }
- ^
-drivers/acpi/arm64/iort.c:879:39: warning: 'iort_fwspec_iommu_ops'
-used but never defined
- static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
-                                       ^~~~~~~~~~~~~~~~~~~~~
-
-Fix it.
-
-Fixes: 8097e53eaba2 ("ACPI/IORT: Use helper functions to access dev->iommu_fwspec")
-Signed-off-by: Qian Cai <cai@lca.pw>
-[lorenzo.pieralisi@arm.com: updated tags and log]
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Joerg Roedel <jroedel@suse.de>
----
- drivers/acpi/arm64/iort.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index fdd90ffceb85..5d29783ee5bd 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -876,7 +876,7 @@ int iort_iommu_msi_get_resv_regions(struct device *dev, struct list_head *head)
- 	return (resv == its->its_count) ? resv : -ENODEV;
- }
- #else
--static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev);
-+static inline const struct iommu_ops *iort_fwspec_iommu_ops(struct device *dev)
- { return NULL; }
- static inline int iort_add_device_replay(const struct iommu_ops *ops,
- 					 struct device *dev)
--- 
-2.19.2
+To make memory hot-remove work, we want as much memory as possible to he
+hot-removable, which is basically what movable nodes are used for.  But,
+it sounds like, maybe, that KASLR can place the kernel image inside the
+movable node.  This is somehow related to the bottom-up allocation style
+currently in use.
