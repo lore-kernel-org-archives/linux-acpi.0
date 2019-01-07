@@ -1,15 +1,16 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v6 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
-Date: Mon, 7 Jan 2019 12:17:45 +0100
-Message-ID: <CAJZ5v0gXM3d0uuaQPyeafVS3S1tNbo0gY5TMskpQptNGvmVKzA@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-10-okaya@kernel.org>
+Subject: Re: [PATCH v6 07/11] drivers: thermal: int3406_thermal: Make PCI
+ dependency explicit
+Date: Mon, 7 Jan 2019 12:19:51 +0100
+Message-ID: <CAJZ5v0gst1ZDgG-uP9GUUB1ziPnqhfArio3um=wCQjfbeH2_iw@mail.gmail.com>
+References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-8-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190105100606.6673-10-okaya@kernel.org>
+In-Reply-To: <20190105100606.6673-8-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@kernel.org>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Cercueil <paul@crapouillou.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>, Zhang Rui <rui.zhang@intel.com>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
 On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
@@ -17,28 +18,28 @@ On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
 > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
 > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
 > satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
-> on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
+> specified directly. Need CONFIG_PCI to be set in order to be able to use
+> this driver.
 >
 > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
 > Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > ---
->  drivers/mmc/host/Kconfig | 2 +-
+>  drivers/thermal/intel/int340x_thermal/Kconfig | 2 +-
 >  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
-> index e26b8145efb3..1b9401fe94c0 100644
-> --- a/drivers/mmc/host/Kconfig
-> +++ b/drivers/mmc/host/Kconfig
-> @@ -116,7 +116,7 @@ config MMC_RICOH_MMC
+> diff --git a/drivers/thermal/intel/int340x_thermal/Kconfig b/drivers/thermal/intel/int340x_thermal/Kconfig
+> index 0582bd12a239..fba1976d5f8d 100644
+> --- a/drivers/thermal/intel/int340x_thermal/Kconfig
+> +++ b/drivers/thermal/intel/int340x_thermal/Kconfig
+> @@ -31,7 +31,7 @@ if INT340X_THERMAL
 >
->  config MMC_SDHCI_ACPI
->         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
-> -       depends on MMC_SDHCI && ACPI
-> +       depends on MMC_SDHCI && ACPI && PCI
->         select IOSF_MBI if X86
+>  config INT3406_THERMAL
+>         tristate "ACPI INT3406 display thermal driver"
+> -       depends on ACPI_VIDEO
+> +       depends on ACPI_VIDEO && PCI
 >         help
->           This selects support for ACPI enumerated SDHCI controllers,
+>           The display thermal device represents the LED/LCD display panel
+>           that may or may not include touch support. The main function of
 > --
 
-Any objections against this one from anyone?
+Rui, any objections here?  And for the [11/11]?
