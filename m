@@ -1,7 +1,7 @@
 From: Pingfan Liu <kernelfans@gmail.com>
-Subject: [RFC PATCH 2/4] x86/setup: parse acpi to get hotplug info before init_mem_mapping()
-Date: Mon,  7 Jan 2019 16:24:43 +0800
-Message-ID: <1546849485-27933-3-git-send-email-kernelfans@gmail.com>
+Subject: [RFC PATCH 1/4] acpi: change the topo of acpi_table_upgrade()
+Date: Mon,  7 Jan 2019 16:24:42 +0800
+Message-ID: <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
 References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
@@ -10,12 +10,10 @@ To: x86@kernel.org, linux-acpi@vger.kernel.org
 Cc: Pingfan Liu <kernelfans@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-At present, memblock bottom-up allocation can help us against stamping over
-movable node in very high probability. But if the hotplug info has already
-been parsed, the memblock allocator can step around the movable node by
-itself. This patch pushes the parsing step forward, just ahead of where,
-the memblock allocator can work. Later in this series, the bottom-up
-allocation style can be removed on x86_64.
+The current acpi_table_upgrade() relies on initrd_start, but this var is
+only valid after relocate_initrd(). There is requirement to extract the
+acpi info from initrd before memblock-allocator can work(see [2/4]), hence
+acpi_table_upgrade() need to accept the input param directly.
 
 Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -29,54 +27,70 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org
 ---
- arch/x86/kernel/setup.c | 15 +++++++++++++++
- include/linux/acpi.h    |  1 +
- 2 files changed, 16 insertions(+)
+ arch/arm64/kernel/setup.c | 2 +-
+ arch/x86/kernel/setup.c   | 2 +-
+ drivers/acpi/tables.c     | 4 +---
+ include/linux/acpi.h      | 4 ++--
+ 4 files changed, 5 insertions(+), 7 deletions(-)
 
+diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
+index 4b0e123..48cb98c 100644
+--- a/arch/arm64/kernel/setup.c
++++ b/arch/arm64/kernel/setup.c
+@@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
+ 	paging_init();
+ 	efi_apply_persistent_mem_reservations();
+ 
+-	acpi_table_upgrade();
++	acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
+ 
+ 	/* Parse the ACPI tables for possible boot-time configuration */
+ 	acpi_boot_table_init();
 diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index acbcd62..df4132c 100644
+index 3d872a5..acbcd62 100644
 --- a/arch/x86/kernel/setup.c
 +++ b/arch/x86/kernel/setup.c
-@@ -805,6 +805,20 @@ dump_kernel_offset(struct notifier_block *self, unsigned long v, void *p)
- 	return 0;
- }
+@@ -1175,8 +1175,8 @@ void __init setup_arch(char **cmdline_p)
  
-+/* only need the effect of acpi_numa_memory_affinity_init()
-+ * ->memblock_mark_hotplug()
-+ */
-+static int early_detect_acpi_memhotplug(void)
-+{
-+#ifdef CONFIG_ACPI_NUMA
-+	acpi_table_upgrade(__va(get_ramdisk_image()), get_ramdisk_size());
-+	acpi_table_init();
-+	acpi_numa_init();
-+	acpi_tb_terminate();
-+#endif
-+	return 0;
-+}
-+
- /*
-  * Determine if we were loaded by an EFI loader.  If so, then we have also been
-  * passed the efi memmap, systab, etc., so we should use these data structures
-@@ -1131,6 +1145,7 @@ void __init setup_arch(char **cmdline_p)
- 	trim_platform_memory_ranges();
- 	trim_low_memory_range();
+ 	reserve_initrd();
  
-+	early_detect_acpi_memhotplug();
- 	init_mem_mapping();
+-	acpi_table_upgrade();
  
- 	idt_setup_early_pf();
++	acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
+ 	vsmp_init();
+ 
+ 	io_delay_init();
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 48eabb6..d29b05c 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+ 
+ #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+ 
+-void __init acpi_table_upgrade(void)
++void __init acpi_table_upgrade(void *data, size_t size)
+ {
+-	void *data = (void *)initrd_start;
+-	size_t size = initrd_end - initrd_start;
+ 	int sig, no, table_nr = 0, total_offset = 0;
+ 	long offset = 0;
+ 	struct acpi_table_header *table;
 diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 44dcbba..1b69044 100644
+index 87715f2..44dcbba 100644
 --- a/include/linux/acpi.h
 +++ b/include/linux/acpi.h
-@@ -235,6 +235,7 @@ int acpi_mps_check (void);
- int acpi_numa_init (void);
+@@ -1272,9 +1272,9 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
+ #endif
  
- int acpi_table_init (void);
-+void acpi_tb_terminate(void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 			      int entry_id,
+ #ifdef CONFIG_ACPI_TABLE_UPGRADE
+-void acpi_table_upgrade(void);
++void acpi_table_upgrade(void *data, size_t size);
+ #else
+-static inline void acpi_table_upgrade(void) { }
++static inline void acpi_table_upgrade(void *data, size_t size) { }
+ #endif
+ 
+ #if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
 -- 
 2.7.4
