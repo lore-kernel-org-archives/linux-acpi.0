@@ -1,104 +1,44 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [RFC PATCH 1/4] acpi: change the topo of acpi_table_upgrade()
-Date: Mon, 7 Jan 2019 11:55:48 +0100
-Message-ID: <CAJZ5v0itzGsT-1BoBM+jiewmzhjuEVBJrDANBe+vtsAOiqpm1A@mail.gmail.com>
-References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com> <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
+Subject: Re: [PATCH v5 02/11] ata: pata_acpi: Make PCI dependency explicit
+Date: Mon, 7 Jan 2019 12:12:51 +0100
+Message-ID: <CAJZ5v0gkGaxgr+-CzsabqrfVFQFo_R+G3VEg3qF_sGWa6bT-Dg@mail.gmail.com>
+References: <20190102181038.4418-1-okaya@kernel.org> <20190102181038.4418-3-okaya@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1546849485-27933-2-git-send-email-kernelfans@gmail.com>
+In-Reply-To: <20190102181038.4418-3-okaya@kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pingfan Liu <kernelfans@gmail.com>
-Cc: the arch/x86 maintainers <x86@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Sinan Kaya <okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Jens Axboe <axboe@kernel.dk>, "open list:LIBATA SUBSYSTEM (Serial and Parallel ATA drivers)" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 9:25 AM Pingfan Liu <kernelfans@gmail.com> wrote:
+On Wed, Jan 2, 2019 at 7:11 PM Sinan Kaya <okaya@kernel.org> wrote:
 >
-> The current acpi_table_upgrade() relies on initrd_start, but this var is
-> only valid after relocate_initrd(). There is requirement to extract the
-> acpi info from initrd before memblock-allocator can work(see [2/4]), hence
-> acpi_table_upgrade() need to accept the input param directly.
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly. PATA_ACPI is a PCI device driver but the PCI
+> dependency has not been explicitly called out.
 >
-> Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-kernel@vger.kernel.org
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
 > ---
->  arch/arm64/kernel/setup.c | 2 +-
->  arch/x86/kernel/setup.c   | 2 +-
->  drivers/acpi/tables.c     | 4 +---
->  include/linux/acpi.h      | 4 ++--
->  4 files changed, 5 insertions(+), 7 deletions(-)
+>  drivers/ata/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> index 4b0e123..48cb98c 100644
-> --- a/arch/arm64/kernel/setup.c
-> +++ b/arch/arm64/kernel/setup.c
-> @@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
->         paging_init();
->         efi_apply_persistent_mem_reservations();
+> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+> index 4ca7a6b4eaae..8218db17ebdb 100644
+> --- a/drivers/ata/Kconfig
+> +++ b/drivers/ata/Kconfig
+> @@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
 >
-> -       acpi_table_upgrade();
-> +       acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
->
->         /* Parse the ACPI tables for possible boot-time configuration */
->         acpi_boot_table_init();
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index 3d872a5..acbcd62 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -1175,8 +1175,8 @@ void __init setup_arch(char **cmdline_p)
->
->         reserve_initrd();
->
-> -       acpi_table_upgrade();
->
-> +       acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
->         vsmp_init();
->
->         io_delay_init();
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 48eabb6..d29b05c 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
->
->  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
->
-> -void __init acpi_table_upgrade(void)
-> +void __init acpi_table_upgrade(void *data, size_t size)
->  {
-> -       void *data = (void *)initrd_start;
-> -       size_t size = initrd_end - initrd_start;
->         int sig, no, table_nr = 0, total_offset = 0;
->         long offset = 0;
->         struct acpi_table_header *table;
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 87715f2..44dcbba 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -1272,9 +1272,9 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
->  #endif
->
->  #ifdef CONFIG_ACPI_TABLE_UPGRADE
-> -void acpi_table_upgrade(void);
-> +void acpi_table_upgrade(void *data, size_t size);
->  #else
-> -static inline void acpi_table_upgrade(void) { }
-> +static inline void acpi_table_upgrade(void *data, size_t size) { }
->  #endif
->
->  #if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
+>  config PATA_ACPI
+>         tristate "ACPI firmware driver for PATA"
+> -       depends on ATA_ACPI && ATA_BMDMA
+> +       depends on ATA_ACPI && ATA_BMDMA && PCI
+>         help
+>           This option enables an ACPI method driver which drives
+>           motherboard PATA controller interfaces through the ACPI
 > --
-> 2.7.4
->
+
+Any objections against this one from anyone?
