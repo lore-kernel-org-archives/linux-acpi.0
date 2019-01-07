@@ -1,90 +1,69 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 08/11] ASoC: Intel: atom: Make PCI
-	dependency explicit
-Date: Mon, 7 Jan 2019 15:41:04 +0000
-Message-ID: <20190107154104.GH9570@sirena.org.uk>
-References: <20190105100606.6673-1-okaya@kernel.org>
- <20190105100606.6673-9-okaya@kernel.org>
- <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com>
- <20190107121919.GA9570@sirena.org.uk>
- <CAK9iUCPjMr0m+9HUXEbtUPrsvO84HpZV39CUYYkne=EpY_X+bQ@mail.gmail.com>
+From: Jens Axboe <axboe@kernel.dk>
+Subject: Re: [PATCH v5 02/11] ata: pata_acpi: Make PCI dependency explicit
+Date: Mon, 7 Jan 2019 08:41:56 -0700
+Message-ID: <aa5ecfd1-fbb5-1f7a-500b-9eaee1cd8e0a@kernel.dk>
+References: <20190102181038.4418-1-okaya@kernel.org>
+ <20190102181038.4418-3-okaya@kernel.org>
+ <CAJZ5v0gkGaxgr+-CzsabqrfVFQFo_R+G3VEg3qF_sGWa6bT-Dg@mail.gmail.com>
+ <CGME20190107141740eucas1p15f2975c3d87e7a8fce9daeaea41525d4@eucas1p1.samsung.com>
+ <7d6b9323-7760-944d-daa4-6fc663a32481@samsung.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============5053967930311880098=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <CAK9iUCPjMr0m+9HUXEbtUPrsvO84HpZV39CUYYkne=EpY_X+bQ@mail.gmail.com>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Sinan Kaya <Okaya@kernel.org>
-Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, "Rafael J. Wysocki" <rafael@kernel.org>, open list <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7d6b9323-7760-944d-daa4-6fc663a32481@samsung.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:LIBATA SUBSYSTEM (Serial and Parallel ATA drivers)" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On 1/7/19 7:17 AM, Bartlomiej Zolnierkiewicz wrote:
+> 
+> On 01/07/2019 12:12 PM, Rafael J. Wysocki wrote:
+>> On Wed, Jan 2, 2019 at 7:11 PM Sinan Kaya <okaya@kernel.org> wrote:
+>>>
+>>> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+>>> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+>>> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+>>> specified directly. PATA_ACPI is a PCI device driver but the PCI
+>>> dependency has not been explicitly called out.
+>>>
+>>> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+>>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+>>> ---
+>>>  drivers/ata/Kconfig | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
+>>> index 4ca7a6b4eaae..8218db17ebdb 100644
+>>> --- a/drivers/ata/Kconfig
+>>> +++ b/drivers/ata/Kconfig
+>>> @@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
+>>>
+>>>  config PATA_ACPI
+>>>         tristate "ACPI firmware driver for PATA"
+>>> -       depends on ATA_ACPI && ATA_BMDMA
+>>> +       depends on ATA_ACPI && ATA_BMDMA && PCI
+>>>         help
+>>>           This option enables an ACPI method driver which drives
+>>>           motherboard PATA controller interfaces through the ACPI
+>>> --
+>>
+>> Any objections against this one from anyone?
+> 
+> Patch looks correct to me (pata_acpi is indeed a PCI driver):
+> 
+> Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+> 
+> but it is best to wait for Jens' ACK if you want to merge it
+> through ACPI tree..
 
---===============5053967930311880098==
-Content-Type: multipart/signed; micalg=pgp-sha512;
-	protocol="application/pgp-signature"; boundary="TBNym+cBXeFsS4Vs"
-Content-Disposition: inline
+You can add my:
 
+Reviewed-by: Jens Axboe <axboe@kernel.dk>
 
---TBNym+cBXeFsS4Vs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+if you want to merge it through the ACPI tree.
 
-On Mon, Jan 07, 2019 at 10:16:53AM -0500, Sinan Kaya wrote:
-> On Mon, Jan 7, 2019 at 7:19 AM Mark Brown <broonie@kernel.org> wrote:
-
-> > Yes.  I've also applied it already and it's *still* being sent without
-> > either a cover letter or the rest of the series :(
-
-> There is a cover letter but it is being sent to Linux-acpi and Linux-next only.
-
-> https://patchwork.kernel.org/cover/10749203/
-
-> This means that you are not on either of these mailing lists.
-
-No, it means that neither of those lists is going into my inbox
-directly - the cover letters really need to go through the same route as
-the patches to ensure that they're seen.  People often read the lists at
-different times to their inbox, for example I prioritize reviewing
-things that are in my inbox and look at list traffic less frequently
-when my inbox is busy (as it tends to be most of the time).
-
-> I apologize. I didn't realize that you applied this already. I'll drop
-> this patch
-> in case I need to submit a new revision.
-
-You should have got this mail when it was applied:
-
-http://mailman.alsa-project.org/pipermail/alsa-devel/2019-January/143687.html
-
---TBNym+cBXeFsS4Vs
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwzcw8ACgkQJNaLcl1U
-h9C6bAf/UcLxlzTCRDtcqBbYTaNDpsPQHDXWsqRODlqT15RDtF2y65YwskOLKZox
-E6THXEVyFb/8gXoSlDXTZOR2SkLw8XtijSLgYwz4IhGO19ReRxVipR58hxOjb6Ma
-ImuwYWqMkW37G6qFIf2w2y+jrDOe7Pj8NUCcVpyVHsLkDgWoBIoecb7Y8y3486Ja
-f15LUJs+w9k8cpxmaC1xwJpPxPg9Onj58mLxYYc+zYwMG0kO4ZwI2EjtokrF39EW
-IihDZrJeHyJPOW1HIZ2+3Rw/QqsWMmK9OQdbQoM4wWdRDzmsFIg6u/UlaLErXJ9f
-rwghMtI8AYOy9EN0w/JEK7Aba8piTg==
-=5HWq
------END PGP SIGNATURE-----
-
---TBNym+cBXeFsS4Vs--
-
---===============5053967930311880098==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============5053967930311880098==--
+-- 
+Jens Axboe
