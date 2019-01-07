@@ -1,84 +1,44 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v6 3/4] ACPI / PMIC: Add generic
- intel_soc_pmic_exec_mipi_pmic_seq_element handling
-Date: Mon,  7 Jan 2019 12:15:55 +0100
-Message-ID: <20190107111556.4510-4-hdegoede@redhat.com>
-References: <20190107111556.4510-1-hdegoede@redhat.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v6 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
+Date: Mon, 7 Jan 2019 12:17:45 +0100
+Message-ID: <CAJZ5v0gXM3d0uuaQPyeafVS3S1tNbo0gY5TMskpQptNGvmVKzA@mail.gmail.com>
+References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-10-okaya@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20190107111556.4510-1-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Jani Nikula <jani.nikula@linux.intel.com>, Joonas Lahtinen <joonas.lahtinen@linux.intel.com>, Rodrigo Vivi <rodrigo.vivi@intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190105100606.6673-10-okaya@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Adrian Hunter <adrian.hunter@intel.com>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Cercueil <paul@crapouillou.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-TW9zdCBQTUlDLXMgdXNlIG9ubHkgYSBzaW5nbGUgaTJjLWFkZHJlc3MsIHNvIGFmdGVyIHZlcmlm
-eWluZyB0aGUKaTJjLWFkZHJlc3MgbWF0Y2hlcywgd2UgY2FuIHNpbXBseSBwYXNzIHRoZSBjYWxs
-IHRvIHJlZ21hcF91cGRhdGVfYml0cy4KClRoaXMgY29tbWl0IGFkZHMgc3VwcG9ydCBmb3IgdGhp
-cyBhbmQgaG9va3MgdGhpcyB1cCBmb3IgdGhlIHhwb3dlciBBWFAyODgKUE1JQyBieSBzZXR0aW5n
-IHRoZSBuZXcgcG1pY19pMmNfYWRkcmVzcyBmaWVsZC4KClRoaXMgZml4ZXMgdGhlIGZvbGxvd2lu
-ZyBlcnJvcnMgb24gZGlzcGxheSBvbiAvIG9mZiBvbiBhIEp1bXBlciBFenBhZAptaW5pIDMgYW5k
-IGFuIE9uZGEgVjgwIHBsdXMgdGFibGV0LCBib3RoIG9mIHdoaWNoIHVzZSB0aGUgQVhQMjg4OgoK
-aW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQ6IE5vdCBpbXBsZW1lbnRl
-ZAppbnRlbF9zb2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudDogaTJjLWFkZHI6IDB4
-MzQgcmVnLWFkZHIgLi4uCltkcm06bWlwaV9leGVjX3BtaWMgW2k5MTVdXSAqRVJST1IqIG1pcGlf
-ZXhlY19wbWljIGZhaWxlZCwgZXJyb3I6IC05NQoKSW5zdGVhZCBvZiB0aGVzZSBlcnJvcnMgb24g
-Ym90aCBkZXZpY2VzIHdlIG5vdyBjb3JyZWN0bHkgdHVybiBvbiAvIG9mZgpETERPMyAodGhyb3Vn
-aCBkaXJlY3QgcmVnaXN0ZXIgbWFuaXB1bGF0aW9uKS4gT24gdGhlIE9uZGEgVjgwIHBsdXMgdGhp
-cwpmaXhlcyBhbiBpc3N1ZSB3aXRoIHRoZSBiYWNrbGlnaHQgYmVpbmcgYnJpZ2h0ZXIgYXJvdW5k
-IHRoZSBib3JkZXJzIGFmdGVyCmFuIG9mZiAvIG9uIGN5Y2xlLiBUaGlzIHNob3VsZCBhbHNvIGhl
-bHAgdG8gc2F2ZSBzb21lIHBvd2VyIHdoZW4gdGhlCmRpc3BsYXkgaXMgb2ZmLgoKU2lnbmVkLW9m
-Zi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KLS0tCkNoYW5nZXMgaW4g
-djY6Ci1UaGlzIGlzIGEgbmV3IHBhdGNoIGluIHY2IG9mIHRoaXMgcGF0Y2gtc2V0Ci0tLQogZHJp
-dmVycy9hY3BpL3BtaWMvaW50ZWxfcG1pYy5jICAgICAgICB8IDkgKysrKysrKysrCiBkcml2ZXJz
-L2FjcGkvcG1pYy9pbnRlbF9wbWljLmggICAgICAgIHwgMiArKwogZHJpdmVycy9hY3BpL3BtaWMv
-aW50ZWxfcG1pY194cG93ZXIuYyB8IDEgKwogMyBmaWxlcyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25z
-KCspCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3BtaWMvaW50ZWxfcG1pYy5jIGIvZHJpdmVy
-cy9hY3BpL3BtaWMvaW50ZWxfcG1pYy5jCmluZGV4IDQ3MWFmZWVhODdjMi4uYzE0Y2ZhZWE5MmUy
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmMKKysrIGIvZHJpdmVy
-cy9hY3BpL3BtaWMvaW50ZWxfcG1pYy5jCkBAIC0zNTksNiArMzU5LDE1IEBAIGludCBpbnRlbF9z
-b2NfcG1pY19leGVjX21pcGlfcG1pY19zZXFfZWxlbWVudCh1MTYgaTJjX2FkZHJlc3MsIHUzMiBy
-ZWdfYWRkcmVzcywKIAkJcmV0ID0gZC0+ZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoaW50ZWxf
-cG1pY19vcHJlZ2lvbi0+cmVnbWFwLAogCQkJCQkJICAgIGkyY19hZGRyZXNzLCByZWdfYWRkcmVz
-cywKIAkJCQkJCSAgICB2YWx1ZSwgbWFzayk7CisJfSBlbHNlIGlmIChkLT5wbWljX2kyY19hZGRy
-ZXNzKSB7CisJCWlmIChpMmNfYWRkcmVzcyA9PSBkLT5wbWljX2kyY19hZGRyZXNzKSB7CisJCQly
-ZXQgPSByZWdtYXBfdXBkYXRlX2JpdHMoaW50ZWxfcG1pY19vcHJlZ2lvbi0+cmVnbWFwLAorCQkJ
-CQkJIHJlZ19hZGRyZXNzLCBtYXNrLCB2YWx1ZSk7CisJCX0gZWxzZSB7CisJCQlwcl9lcnIoIiVz
-OiBVbmV4cGVjdGVkIGkyYy1hZGRyOiAweCUwMnggKHJlZy1hZGRyIDB4JXggdmFsdWUgMHgleCBt
-YXNrIDB4JXgpXG4iLAorCQkJICAgICAgIF9fZnVuY19fLCBpMmNfYWRkcmVzcywgcmVnX2FkZHJl
-c3MsIHZhbHVlLCBtYXNrKTsKKwkJCXJldCA9IC1FTlhJTzsKKwkJfQogCX0gZWxzZSB7CiAJCXBy
-X3dhcm4oIiVzOiBOb3QgaW1wbGVtZW50ZWRcbiIsIF9fZnVuY19fKTsKIAkJcHJfd2FybigiJXM6
-IGkyYy1hZGRyOiAweCV4IHJlZy1hZGRyIDB4JXggdmFsdWUgMHgleCBtYXNrIDB4JXhcbiIsCmRp
-ZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljLmggYi9kcml2ZXJzL2FjcGkv
-cG1pYy9pbnRlbF9wbWljLmgKaW5kZXggNWNkMTk1ZmFiY2E4Li44OTM3OTQ3NmExZGYgMTAwNjQ0
-Ci0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWMuaAorKysgYi9kcml2ZXJzL2FjcGkv
-cG1pYy9pbnRlbF9wbWljLmgKQEAgLTIxLDYgKzIxLDggQEAgc3RydWN0IGludGVsX3BtaWNfb3By
-ZWdpb25fZGF0YSB7CiAJaW50IHBvd2VyX3RhYmxlX2NvdW50OwogCXN0cnVjdCBwbWljX3RhYmxl
-ICp0aGVybWFsX3RhYmxlOwogCWludCB0aGVybWFsX3RhYmxlX2NvdW50OworCS8qIEZvciBnZW5l
-cmljIGV4ZWNfbWlwaV9wbWljX3NlcV9lbGVtZW50IGhhbmRsaW5nICovCisJaW50IHBtaWNfaTJj
-X2FkZHJlc3M7CiB9OwogCiBpbnQgaW50ZWxfcG1pY19pbnN0YWxsX29wcmVnaW9uX2hhbmRsZXIo
-c3RydWN0IGRldmljZSAqZGV2LCBhY3BpX2hhbmRsZSBoYW5kbGUsIHN0cnVjdCByZWdtYXAgKnJl
-Z21hcCwgc3RydWN0IGludGVsX3BtaWNfb3ByZWdpb25fZGF0YSAqZCk7CmRpZmYgLS1naXQgYS9k
-cml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jIGIvZHJpdmVycy9hY3BpL3BtaWMv
-aW50ZWxfcG1pY194cG93ZXIuYwppbmRleCBlN2MwMDA2ZTY2MDIuLmEwOTFkNWE4MzkyYyAxMDA2
-NDQKLS0tIGEvZHJpdmVycy9hY3BpL3BtaWMvaW50ZWxfcG1pY194cG93ZXIuYworKysgYi9kcml2
-ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jCkBAIC0yNjUsNiArMjY1LDcgQEAgc3Rh
-dGljIHN0cnVjdCBpbnRlbF9wbWljX29wcmVnaW9uX2RhdGEgaW50ZWxfeHBvd2VyX3BtaWNfb3By
-ZWdpb25fZGF0YSA9IHsKIAkucG93ZXJfdGFibGVfY291bnQgPSBBUlJBWV9TSVpFKHBvd2VyX3Rh
-YmxlKSwKIAkudGhlcm1hbF90YWJsZSA9IHRoZXJtYWxfdGFibGUsCiAJLnRoZXJtYWxfdGFibGVf
-Y291bnQgPSBBUlJBWV9TSVpFKHRoZXJtYWxfdGFibGUpLAorCS5wbWljX2kyY19hZGRyZXNzID0g
-MHgzNCwKIH07CiAKIHN0YXRpYyBhY3BpX3N0YXR1cyBpbnRlbF94cG93ZXJfcG1pY19ncGlvX2hh
-bmRsZXIodTMyIGZ1bmN0aW9uLAotLSAKMi4yMC4xCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBs
-aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
-bi9saXN0aW5mby9pbnRlbC1nZngK
+On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
+>
+> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
+> on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
+>
+> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> ---
+>  drivers/mmc/host/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+> index e26b8145efb3..1b9401fe94c0 100644
+> --- a/drivers/mmc/host/Kconfig
+> +++ b/drivers/mmc/host/Kconfig
+> @@ -116,7 +116,7 @@ config MMC_RICOH_MMC
+>
+>  config MMC_SDHCI_ACPI
+>         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+> -       depends on MMC_SDHCI && ACPI
+> +       depends on MMC_SDHCI && ACPI && PCI
+>         select IOSF_MBI if X86
+>         help
+>           This selects support for ACPI enumerated SDHCI controllers,
+> --
+
+Any objections against this one from anyone?
