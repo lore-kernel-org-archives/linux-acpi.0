@@ -1,42 +1,90 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v6 2/4] ACPI / PMIC: Implement
- exec_mipi_pmic_seq_element for CHT Whiskey Cove PMIC
-Date: Mon, 7 Jan 2019 17:38:08 +0200
-Message-ID: <20190107153808.GP9170@smile.fi.intel.com>
-References: <20190107111556.4510-1-hdegoede@redhat.com>
- <20190107111556.4510-3-hdegoede@redhat.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v6 08/11] ASoC: Intel: atom: Make PCI
+	dependency explicit
+Date: Mon, 7 Jan 2019 15:41:04 +0000
+Message-ID: <20190107154104.GH9570@sirena.org.uk>
+References: <20190105100606.6673-1-okaya@kernel.org>
+ <20190105100606.6673-9-okaya@kernel.org>
+ <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com>
+ <20190107121919.GA9570@sirena.org.uk>
+ <CAK9iUCPjMr0m+9HUXEbtUPrsvO84HpZV39CUYYkne=EpY_X+bQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <20190107111556.4510-3-hdegoede@redhat.com>
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: multipart/mixed; boundary="===============5053967930311880098=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <CAK9iUCPjMr0m+9HUXEbtUPrsvO84HpZV39CUYYkne=EpY_X+bQ@mail.gmail.com>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Sinan Kaya <Okaya@kernel.org>
+Cc: "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, "Rafael J. Wysocki" <rafael@kernel.org>, open list <linux-kernel@vger.kernel.org>, Takashi Iwai <tiwai@suse.com>, Jie Yang <yang.jie@linux.intel.com>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBKYW4gMDcsIDIwMTkgYXQgMTI6MTU6NTRQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
-cm90ZToKPiBJbXBsZW1lbnQgdGhlIGV4ZWNfbWlwaV9wbWljX3NlcV9lbGVtZW50IGNhbGxiYWNr
-IGZvciB0aGUgQ0hUIFdoaXNrZXkgQ292ZQo+IFBNSUMuCj4gCj4gT24gc29tZSBDSFQgZGV2aWNl
-cyB0aGlzIGZpeGVzIHRoZSBMQ0QgcGFuZWwgbm90IGxpZ2h0aW5nIHVwIHdoZW4gaXQgd2FzCj4g
-bm90IGluaXRpYWxpemVkIGJ5IHRoZSBHT1AsIGJlY2F1c2UgYW4gZXh0ZXJuYWwgbW9uaXRvciB3
-YXMgcGx1Z2dlZCBpbiBhbmQKPiB0aGUgR09QIGluaXRpYWxpemVkIG9ubHkgdGhlIGV4dGVybmFs
-IG1vbml0b3IuCgo+ICsJaWYgKGkyY19jbGllbnRfYWRkcmVzcyA+IDB4ZmYgfHwgcmVnX2FkZHJl
-c3MgPiAweGZmKSB7Cj4gKwkJcHJfd2FybigiJXMgd2FybmluZyBhZGRyZXNzZXMgdG9vIGJpZyBj
-bGllbnQgMHgleCByZWcgMHgleFxuIiwKPiArCQkJX19mdW5jX18sIGkyY19jbGllbnRfYWRkcmVz
-cywgcmVnX2FkZHJlc3MpOwoKSSB0cmllZCB0byBwYXJzZSB0aGUgbWVzc2FnZSBhbmQgZmFpbGVk
-LgpQZXJoYXBzIHNvbWV0aGluZyBsaWtlCiIlczogYWRkcmVzc2VzIHRvbyBiaWcgZm9yIGNsaWVu
-dCAweCV4LCByZWcgMHgleFxuIgp3b3VsZCBiZSBlYXNpZXIgdG8gdW5kZXJzdGFuZD8KCj4gKwkJ
-cmV0dXJuIC1FUkFOR0U7Cj4gKwl9CgotLSAKV2l0aCBCZXN0IFJlZ2FyZHMsCkFuZHkgU2hldmNo
-ZW5rbwoKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCklu
-dGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRw
-czovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+
+--===============5053967930311880098==
+Content-Type: multipart/signed; micalg=pgp-sha512;
+	protocol="application/pgp-signature"; boundary="TBNym+cBXeFsS4Vs"
+Content-Disposition: inline
+
+
+--TBNym+cBXeFsS4Vs
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Jan 07, 2019 at 10:16:53AM -0500, Sinan Kaya wrote:
+> On Mon, Jan 7, 2019 at 7:19 AM Mark Brown <broonie@kernel.org> wrote:
+
+> > Yes.  I've also applied it already and it's *still* being sent without
+> > either a cover letter or the rest of the series :(
+
+> There is a cover letter but it is being sent to Linux-acpi and Linux-next only.
+
+> https://patchwork.kernel.org/cover/10749203/
+
+> This means that you are not on either of these mailing lists.
+
+No, it means that neither of those lists is going into my inbox
+directly - the cover letters really need to go through the same route as
+the patches to ensure that they're seen.  People often read the lists at
+different times to their inbox, for example I prioritize reviewing
+things that are in my inbox and look at list traffic less frequently
+when my inbox is busy (as it tends to be most of the time).
+
+> I apologize. I didn't realize that you applied this already. I'll drop
+> this patch
+> in case I need to submit a new revision.
+
+You should have got this mail when it was applied:
+
+http://mailman.alsa-project.org/pipermail/alsa-devel/2019-January/143687.html
+
+--TBNym+cBXeFsS4Vs
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlwzcw8ACgkQJNaLcl1U
+h9C6bAf/UcLxlzTCRDtcqBbYTaNDpsPQHDXWsqRODlqT15RDtF2y65YwskOLKZox
+E6THXEVyFb/8gXoSlDXTZOR2SkLw8XtijSLgYwz4IhGO19ReRxVipR58hxOjb6Ma
+ImuwYWqMkW37G6qFIf2w2y+jrDOe7Pj8NUCcVpyVHsLkDgWoBIoecb7Y8y3486Ja
+f15LUJs+w9k8cpxmaC1xwJpPxPg9Onj58mLxYYc+zYwMG0kO4ZwI2EjtokrF39EW
+IihDZrJeHyJPOW1HIZ2+3Rw/QqsWMmK9OQdbQoM4wWdRDzmsFIg6u/UlaLErXJ9f
+rwghMtI8AYOy9EN0w/JEK7Aba8piTg==
+=5HWq
+-----END PGP SIGNATURE-----
+
+--TBNym+cBXeFsS4Vs--
+
+--===============5053967930311880098==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============5053967930311880098==--
