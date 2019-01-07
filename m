@@ -1,69 +1,58 @@
-From: Jens Axboe <axboe@kernel.dk>
-Subject: Re: [PATCH v5 02/11] ata: pata_acpi: Make PCI dependency explicit
-Date: Mon, 7 Jan 2019 08:41:56 -0700
-Message-ID: <aa5ecfd1-fbb5-1f7a-500b-9eaee1cd8e0a@kernel.dk>
-References: <20190102181038.4418-1-okaya@kernel.org>
- <20190102181038.4418-3-okaya@kernel.org>
- <CAJZ5v0gkGaxgr+-CzsabqrfVFQFo_R+G3VEg3qF_sGWa6bT-Dg@mail.gmail.com>
- <CGME20190107141740eucas1p15f2975c3d87e7a8fce9daeaea41525d4@eucas1p1.samsung.com>
- <7d6b9323-7760-944d-daa4-6fc663a32481@samsung.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v6 3/4] ACPI / PMIC: Add generic
+ intel_soc_pmic_exec_mipi_pmic_seq_element handling
+Date: Mon, 7 Jan 2019 17:46:16 +0200
+Message-ID: <20190107154616.GQ9170@smile.fi.intel.com>
+References: <20190107111556.4510-1-hdegoede@redhat.com>
+ <20190107111556.4510-4-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7d6b9323-7760-944d-daa4-6fc663a32481@samsung.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>
-Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:LIBATA SUBSYSTEM (Serial and Parallel ATA drivers)" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190107111556.4510-4-hdegoede@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/7/19 7:17 AM, Bartlomiej Zolnierkiewicz wrote:
-> 
-> On 01/07/2019 12:12 PM, Rafael J. Wysocki wrote:
->> On Wed, Jan 2, 2019 at 7:11 PM Sinan Kaya <okaya@kernel.org> wrote:
->>>
->>> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
->>> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
->>> satisfied implicitly through dependencies on CONFIG_ACPI have to be
->>> specified directly. PATA_ACPI is a PCI device driver but the PCI
->>> dependency has not been explicitly called out.
->>>
->>> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
->>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
->>> ---
->>>  drivers/ata/Kconfig | 2 +-
->>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
->>> index 4ca7a6b4eaae..8218db17ebdb 100644
->>> --- a/drivers/ata/Kconfig
->>> +++ b/drivers/ata/Kconfig
->>> @@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
->>>
->>>  config PATA_ACPI
->>>         tristate "ACPI firmware driver for PATA"
->>> -       depends on ATA_ACPI && ATA_BMDMA
->>> +       depends on ATA_ACPI && ATA_BMDMA && PCI
->>>         help
->>>           This option enables an ACPI method driver which drives
->>>           motherboard PATA controller interfaces through the ACPI
->>> --
->>
->> Any objections against this one from anyone?
-> 
-> Patch looks correct to me (pata_acpi is indeed a PCI driver):
-> 
-> Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> 
-> but it is best to wait for Jens' ACK if you want to merge it
-> through ACPI tree..
-
-You can add my:
-
-Reviewed-by: Jens Axboe <axboe@kernel.dk>
-
-if you want to merge it through the ACPI tree.
-
--- 
-Jens Axboe
+T24gTW9uLCBKYW4gMDcsIDIwMTkgYXQgMTI6MTU6NTVQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPiBNb3N0IFBNSUMtcyB1c2Ugb25seSBhIHNpbmdsZSBpMmMtYWRkcmVzcywgc28gYWZ0
+ZXIgdmVyaWZ5aW5nIHRoZQo+IGkyYy1hZGRyZXNzIG1hdGNoZXMsIHdlIGNhbiBzaW1wbHkgcGFz
+cyB0aGUgY2FsbCB0byByZWdtYXBfdXBkYXRlX2JpdHMuCj4gCj4gVGhpcyBjb21taXQgYWRkcyBz
+dXBwb3J0IGZvciB0aGlzIGFuZCBob29rcyB0aGlzIHVwIGZvciB0aGUgeHBvd2VyIEFYUDI4OAo+
+IFBNSUMgYnkgc2V0dGluZyB0aGUgbmV3IHBtaWNfaTJjX2FkZHJlc3MgZmllbGQuCj4gCj4gVGhp
+cyBmaXhlcyB0aGUgZm9sbG93aW5nIGVycm9ycyBvbiBkaXNwbGF5IG9uIC8gb2ZmIG9uIGEgSnVt
+cGVyIEV6cGFkCj4gbWluaSAzIGFuZCBhbiBPbmRhIFY4MCBwbHVzIHRhYmxldCwgYm90aCBvZiB3
+aGljaCB1c2UgdGhlIEFYUDI4ODoKPiAKPiBpbnRlbF9zb2NfcG1pY19leGVjX21pcGlfcG1pY19z
+ZXFfZWxlbWVudDogTm90IGltcGxlbWVudGVkCj4gaW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3Bt
+aWNfc2VxX2VsZW1lbnQ6IGkyYy1hZGRyOiAweDM0IHJlZy1hZGRyIC4uLgo+IFtkcm06bWlwaV9l
+eGVjX3BtaWMgW2k5MTVdXSAqRVJST1IqIG1pcGlfZXhlY19wbWljIGZhaWxlZCwgZXJyb3I6IC05
+NQo+IAo+IEluc3RlYWQgb2YgdGhlc2UgZXJyb3JzIG9uIGJvdGggZGV2aWNlcyB3ZSBub3cgY29y
+cmVjdGx5IHR1cm4gb24gLyBvZmYKPiBETERPMyAodGhyb3VnaCBkaXJlY3QgcmVnaXN0ZXIgbWFu
+aXB1bGF0aW9uKS4gT24gdGhlIE9uZGEgVjgwIHBsdXMgdGhpcwo+IGZpeGVzIGFuIGlzc3VlIHdp
+dGggdGhlIGJhY2tsaWdodCBiZWluZyBicmlnaHRlciBhcm91bmQgdGhlIGJvcmRlcnMgYWZ0ZXIK
+PiBhbiBvZmYgLyBvbiBjeWNsZS4gVGhpcyBzaG91bGQgYWxzbyBoZWxwIHRvIHNhdmUgc29tZSBw
+b3dlciB3aGVuIHRoZQo+IGRpc3BsYXkgaXMgb2ZmLgoKPiArCX0gZWxzZSBpZiAoZC0+cG1pY19p
+MmNfYWRkcmVzcykgewo+ICsJCWlmIChpMmNfYWRkcmVzcyA9PSBkLT5wbWljX2kyY19hZGRyZXNz
+KSB7Cj4gKwkJCXJldCA9IHJlZ21hcF91cGRhdGVfYml0cyhpbnRlbF9wbWljX29wcmVnaW9uLT5y
+ZWdtYXAsCj4gKwkJCQkJCSByZWdfYWRkcmVzcywgbWFzaywgdmFsdWUpOwo+ICsJCX0gZWxzZSB7
+Cj4gKwkJCXByX2VycigiJXM6IFVuZXhwZWN0ZWQgaTJjLWFkZHI6IDB4JTAyeCAocmVnLWFkZHIg
+MHgleCB2YWx1ZSAweCV4IG1hc2sgMHgleClcbiIsCj4gKwkJCSAgICAgICBfX2Z1bmNfXywgaTJj
+X2FkZHJlc3MsIHJlZ19hZGRyZXNzLCB2YWx1ZSwgbWFzayk7Cj4gKwkJCXJldCA9IC1FTlhJTzsK
+PiArCQl9Cgo+IC0tLSBhL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfeHBvd2VyLmMKPiAr
+KysgYi9kcml2ZXJzL2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jCj4gKwkucG1pY19pMmNf
+YWRkcmVzcyA9IDB4MzQsCgpDYW4gd2UganVzdCBoYXZlIGEgaG9vayBoZXJlIGluc3RlYWQgb2Yg
+ZXhwb3NpbmcgUE1JQyBJMkMgYWRkcmVzcz8KQW0gSSBtaXNzaW5nIHNvbWV0aGluZyBpbiBjYXNl
+IGl0J3Mgbm90IHBvc3NpYmxlPwoKLS0gCldpdGggQmVzdCBSZWdhcmRzLApBbmR5IFNoZXZjaGVu
+a28KCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRl
+bC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6
+Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
