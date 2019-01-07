@@ -1,90 +1,51 @@
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: Re: [RFC PATCH 2/4] x86/setup: parse acpi to get hotplug info before init_mem_mapping()
-Date: Mon, 7 Jan 2019 20:52:34 +0800
-Message-ID: <CAFgQCTtzKukUpeRy-q91gdCKOtpHY3jjNzdFChx0Fj-9PHBM4Q@mail.gmail.com>
-References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com> <1546849485-27933-3-git-send-email-kernelfans@gmail.com>
+From: Adrian Hunter <adrian.hunter@intel.com>
+Subject: Re: [PATCH v6 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
+Date: Mon, 7 Jan 2019 14:42:09 +0200
+Message-ID: <39fa9438-8928-5a1b-2a86-617df39e4c73@intel.com>
+References: <20190105100606.6673-1-okaya@kernel.org>
+ <20190105100606.6673-10-okaya@kernel.org>
+ <CAJZ5v0gXM3d0uuaQPyeafVS3S1tNbo0gY5TMskpQptNGvmVKzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1546849485-27933-3-git-send-email-kernelfans@gmail.com>
+In-Reply-To: <CAJZ5v0gXM3d0uuaQPyeafVS3S1tNbo0gY5TMskpQptNGvmVKzA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: x86@kernel.org, linux-acpi@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Cercueil <paul@crapouillou.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Wang Dongsheng <dongsheng.wang@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 4:25 PM Pingfan Liu <kernelfans@gmail.com> wrote:
->
-> At present, memblock bottom-up allocation can help us against stamping over
-> movable node in very high probability. But if the hotplug info has already
-> been parsed, the memblock allocator can step around the movable node by
-> itself. This patch pushes the parsing step forward, just ahead of where,
-> the memblock allocator can work. Later in this series, the bottom-up
-> allocation style can be removed on x86_64.
->
-> Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: Borislav Petkov <bp@alien8.de>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> Cc: Andy Lutomirski <luto@kernel.org>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  arch/x86/kernel/setup.c | 15 +++++++++++++++
->  include/linux/acpi.h    |  1 +
->  2 files changed, 16 insertions(+)
->
-> diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> index acbcd62..df4132c 100644
-> --- a/arch/x86/kernel/setup.c
-> +++ b/arch/x86/kernel/setup.c
-> @@ -805,6 +805,20 @@ dump_kernel_offset(struct notifier_block *self, unsigned long v, void *p)
->         return 0;
->  }
->
-> +/* only need the effect of acpi_numa_memory_affinity_init()
-> + * ->memblock_mark_hotplug()
-> + */
-> +static int early_detect_acpi_memhotplug(void)
-> +{
-> +#ifdef CONFIG_ACPI_NUMA
-> +       acpi_table_upgrade(__va(get_ramdisk_image()), get_ramdisk_size());
-> +       acpi_table_init();
-> +       acpi_numa_init();
+On 7/01/19 1:17 PM, Rafael J. Wysocki wrote:
+> On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
+>>
+>> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+>> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+>> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+>> specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
+>> on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
+>>
+>> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+>> ---
+>>  drivers/mmc/host/Kconfig | 2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+>> index e26b8145efb3..1b9401fe94c0 100644
+>> --- a/drivers/mmc/host/Kconfig
+>> +++ b/drivers/mmc/host/Kconfig
+>> @@ -116,7 +116,7 @@ config MMC_RICOH_MMC
+>>
+>>  config MMC_SDHCI_ACPI
+>>         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+>> -       depends on MMC_SDHCI && ACPI
+>> +       depends on MMC_SDHCI && ACPI && PCI
+>>         select IOSF_MBI if X86
+>>         help
+>>           This selects support for ACPI enumerated SDHCI controllers,
+>> --
+> 
+> Any objections against this one from anyone?
 
-As this is RFC version, I do not suppress this extra printk info yet.
-Should do it next version.
-> +       acpi_tb_terminate();
-> +#endif
-> +       return 0;
-> +}
-> +
->  /*
->   * Determine if we were loaded by an EFI loader.  If so, then we have also been
->   * passed the efi memmap, systab, etc., so we should use these data structures
-> @@ -1131,6 +1145,7 @@ void __init setup_arch(char **cmdline_p)
->         trim_platform_memory_ranges();
->         trim_low_memory_range();
->
-> +       early_detect_acpi_memhotplug();
->         init_mem_mapping();
->
->         idt_setup_early_pf();
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 44dcbba..1b69044 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -235,6 +235,7 @@ int acpi_mps_check (void);
->  int acpi_numa_init (void);
->
->  int acpi_table_init (void);
-> +void acpi_tb_terminate(void);
->  int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
->  int __init acpi_table_parse_entries(char *id, unsigned long table_size,
->                               int entry_id,
-> --
-> 2.7.4
->
++ QCOM and AMD contributors
