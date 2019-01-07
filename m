@@ -1,46 +1,81 @@
-From: Sinan Kaya <Okaya@kernel.org>
-Subject: Re: [PATCH v6 08/11] ASoC: Intel: atom: Make PCI dependency explicit
-Date: Mon, 7 Jan 2019 10:16:53 -0500
-Message-ID: <CAK9iUCPjMr0m+9HUXEbtUPrsvO84HpZV39CUYYkne=EpY_X+bQ@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-9-okaya@kernel.org>
- <CAJZ5v0g2bjzjuiDPTbBN8QgvOG0KMC0Ew2QOQH4u2+y6KRo0wQ@mail.gmail.com> <20190107121919.GA9570@sirena.org.uk>
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+Subject: Re: [PATCH v6 4/4] drm/i915/intel_dsi_vbt: Add support
+ for PMIC MIPI sequences
+Date: Mon, 7 Jan 2019 17:31:19 +0200
+Message-ID: <20190107153119.GQ20097@intel.com>
+References: <20190107111556.4510-1-hdegoede@redhat.com>
+ <20190107111556.4510-5-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190107121919.GA9570@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.com>, "moderated list:INTEL ASoC DRIVERS" <alsa-devel@alsa-project.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <20190107111556.4510-5-hdegoede@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 7:19 AM Mark Brown <broonie@kernel.org> wrote:
->
-> On Mon, Jan 07, 2019 at 12:15:35PM +0100, Rafael J. Wysocki wrote:
-> > On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
->
-> > > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> > > Signed-off-by: Sinan Kaya <okaya@kernel.org>
->
-> > Sinan, I thought you received an ACK from Pierre-Louis on this one, didn't you?
->
-> Yes.  I've also applied it already and it's *still* being sent without
-> either a cover letter or the rest of the series :(
-
-There is a cover letter but it is being sent to Linux-acpi and Linux-next only.
-
-https://patchwork.kernel.org/cover/10749203/
-
-This means that you are not on either of these mailing lists.
-
->
-> Sinan:
->
-> Please do not submit new versions of already applied patches, please
-> submit incremental updates to the existing code.  Modifying existing
-> commits creates problems for other users building on top of those
-> commits so it's best practice to only change pubished git commits if
-> absolutely essential.
-
-I apologize. I didn't realize that you applied this already. I'll drop
-this patch
-in case I need to submit a new revision.
+T24gTW9uLCBKYW4gMDcsIDIwMTkgYXQgMTI6MTU6NTZQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPiBBZGQgc3VwcG9ydCBmb3IgUE1JQyBNSVBJIHNlcXVlbmNlcyB1c2luZyB0aGUgbmV3
+Cj4gaW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQgZnVuY3Rpb24uCj4g
+Cj4gVGhpcyBmaXhlcyB0aGUgRFNJIExDRCBwYW5lbCBub3QgbGlnaHRpbmcgdXAgd2hlbiBub3Qg
+aW5pdGlhbGl6ZWQgYnkgdGhlCj4gR09QIChiZWNhdXNlIGFuIGV4dGVybmFsIG1vbml0b3Igd2Fz
+IGNvbm5lY3RlZCkgb24gR1BEIHdpbiBhbmQgR1BEIHBvY2tldAo+IGRldmljZXMuCj4gCj4gU3Bl
+Y2lmaWNhbGx5IHRoZSBMQ0QgcGFuZWwgc2VlbXMgdG8gbmVlZCBHUElPIHBpbiA5IG9uIHRoZSBQ
+TUlDIHRvIGJlCj4gZHJpdmVuIGhpZ2gsIHdoaWNoIGlzIGRvbmUgdGhyb3VnaCBhIFBNSUMgTUlQ
+SSBzZXF1ZW5jZS4gQmVmb3JlIHRoaXMgY29tbWl0Cj4gaWYgdGhlIHNlcXVlbmNlIHdhcyBub3Qg
+ZXhlY3V0ZWQgYnkgdGhlIEdPUCB0aGUgcGluIHdvdWxkIHN0YXkgbG93IGNhdXNpbmcKPiB0aGUg
+TENEIHBhbmVsIHRvIG5vdCB3b3JrLiBIYXZpbmcgdGhlIE1JUEkgc2VxdWVuY2VzIHByb3Blcmx5
+IGNvbnRyb2wgdGhpcwo+IEdQSU8gc2hvdWxkIGFsc28gaGVscCBzYXZlIHNvbWUgcG93ZXIgd2hl
+biB0aGUgcGFuZWwgaXMgb2ZmLgo+IAo+IENoYW5nZXMgaW4gdjIsIHYzOgo+IC1Pbmx5IGNoYW5n
+ZXMgdG8gb3RoZXIgcGF0Y2hlcyBpbiB0aGlzIHBhdGNoLXNldAo+IAo+IENoYW5nZXMgaW4gdjQ6
+Cj4gLU1vdmUgZGVjb2Rpbmcgb2YgdGhlIHJhdyAxNSBieXRlcyBQTUlDIE1JUEkgc2VxdWVuY2Ug
+ZWxlbWVudCBpbnRvCj4gIGkyYy1hZGRyZXNzLCByZWdpc3Rlci1hZGRyZXNzLCB2YWx1ZSBhbmQg
+bWFzayBpbnRvIHRoZSBtaXBpX2V4ZWNfcG1pYygpCj4gIGZ1bmN0aW9uIGluc3RlYWQgb2YgcGFz
+c2luZyB0aGUgcmF3IGRhdGEgdG8KPiAgaW50ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2Vx
+X2VsZW1lbnQoKQo+IAo+IFNpZ25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJl
+ZGhhdC5jb20+CgpSZXZpZXdlZC1ieTogVmlsbGUgU3lyasOkbMOkIDx2aWxsZS5zeXJqYWxhQGxp
+bnV4LmludGVsLmNvbT4KCj4gLS0tCj4gIGRyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2RzaV92
+YnQuYyB8IDIyICsrKysrKysrKysrKysrKysrKysrKy0KPiAgMSBmaWxlIGNoYW5nZWQsIDIxIGlu
+c2VydGlvbnMoKyksIDEgZGVsZXRpb24oLSkKPiAKPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUv
+ZHJtL2k5MTUvaW50ZWxfZHNpX3ZidC5jIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfZHNp
+X3ZidC5jCj4gaW5kZXggM2QxZmExYTAzYTY2Li4yNDA2NjRlZjI5NGMgMTAwNjQ0Cj4gLS0tIGEv
+ZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfZHNpX3ZidC5jCj4gKysrIGIvZHJpdmVycy9ncHUv
+ZHJtL2k5MTUvaW50ZWxfZHNpX3ZidC5jCj4gQEAgLTI5LDkgKzI5LDExIEBACj4gICNpbmNsdWRl
+IDxkcm0vZHJtX2VkaWQuaD4KPiAgI2luY2x1ZGUgPGRybS9pOTE1X2RybS5oPgo+ICAjaW5jbHVk
+ZSA8bGludXgvZ3Bpby9jb25zdW1lci5oPgo+ICsjaW5jbHVkZSA8bGludXgvbWZkL2ludGVsX3Nv
+Y19wbWljLmg+Cj4gICNpbmNsdWRlIDxsaW51eC9zbGFiLmg+Cj4gICNpbmNsdWRlIDx2aWRlby9t
+aXBpX2Rpc3BsYXkuaD4KPiAgI2luY2x1ZGUgPGFzbS9pbnRlbC1taWQuaD4KPiArI2luY2x1ZGUg
+PGFzbS91bmFsaWduZWQuaD4KPiAgI2luY2x1ZGUgImk5MTVfZHJ2LmgiCj4gICNpbmNsdWRlICJp
+bnRlbF9kcnYuaCIKPiAgI2luY2x1ZGUgImludGVsX2RzaS5oIgo+IEBAIC0zOTIsNyArMzk0LDI1
+IEBAIHN0YXRpYyBjb25zdCB1OCAqbWlwaV9leGVjX3NwaShzdHJ1Y3QgaW50ZWxfZHNpICppbnRl
+bF9kc2ksIGNvbnN0IHU4ICpkYXRhKQo+ICAKPiAgc3RhdGljIGNvbnN0IHU4ICptaXBpX2V4ZWNf
+cG1pYyhzdHJ1Y3QgaW50ZWxfZHNpICppbnRlbF9kc2ksIGNvbnN0IHU4ICpkYXRhKQo+ICB7Cj4g
+LQlEUk1fREVCVUdfS01TKCJTa2lwcGluZyBQTUlDIGVsZW1lbnQgZXhlY3V0aW9uXG4iKTsKPiAr
+I2lmZGVmIENPTkZJR19QTUlDX09QUkVHSU9OCj4gKwl1MzIgdmFsdWUsIG1hc2ssIHJlZ19hZGRy
+ZXNzOwo+ICsJdTE2IGkyY19hZGRyZXNzOwo+ICsJaW50IHJldDsKPiArCj4gKwkvKiBieXRlIDAg
+YWthIFBNSUMgRmxhZyBpcyByZXNlcnZlZCAqLwo+ICsJaTJjX2FkZHJlc3MJPSBnZXRfdW5hbGln
+bmVkX2xlMTYoZGF0YSArIDEpOwo+ICsJcmVnX2FkZHJlc3MJPSBnZXRfdW5hbGlnbmVkX2xlMzIo
+ZGF0YSArIDMpOwo+ICsJdmFsdWUJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyA3KTsKPiAr
+CW1hc2sJCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyAxMSk7Cj4gKwo+ICsJcmV0ID0gaW50
+ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQoaTJjX2FkZHJlc3MsCj4gKwkJ
+CQkJCQlyZWdfYWRkcmVzcywKPiArCQkJCQkJCXZhbHVlLCBtYXNrKTsKPiArCWlmIChyZXQpCj4g
+KwkJRFJNX0VSUk9SKCIlcyBmYWlsZWQsIGVycm9yOiAlZFxuIiwgX19mdW5jX18sIHJldCk7Cj4g
+KyNlbHNlCj4gKwlEUk1fRVJST1IoIllvdXIgaGFyZHdhcmUgcmVxdWlyZXMgQ09ORklHX1BNSUNf
+T1BSRUdJT04gYW5kIGl0IGlzIG5vdCBzZXRcbiIpOwo+ICsjZW5kaWYKPiAgCj4gIAlyZXR1cm4g
+ZGF0YSArIDE1Owo+ICB9Cj4gLS0gCj4gMi4yMC4xCj4gCj4gX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX18KPiBJbnRlbC1nZnggbWFpbGluZyBsaXN0Cj4gSW50
+ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwo+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4CgotLSAKVmlsbGUgU3lyasOkbMOkCkludGVs
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdm
+eCBtYWlsaW5nIGxpc3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xp
+c3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
