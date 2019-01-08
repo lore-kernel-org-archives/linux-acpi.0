@@ -1,66 +1,37 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v6 3/4] ACPI / PMIC: Add generic
- intel_soc_pmic_exec_mipi_pmic_seq_element handling
-Date: Tue, 8 Jan 2019 16:35:45 +0100
-Message-ID: <ed2fda33-3728-8585-e56d-7857d9217cc0@redhat.com>
-References: <20190107111556.4510-1-hdegoede@redhat.com>
- <20190107111556.4510-4-hdegoede@redhat.com>
- <20190107154616.GQ9170@smile.fi.intel.com>
- <14fa653e-a7c2-a1cf-ebc2-c1b65f0e26ec@redhat.com>
- <20190108145119.GC9170@smile.fi.intel.com>
+From: Dave Hansen <dave.hansen@intel.com>
+Subject: Re: [RFC PATCH 4/4] x86/mm: remove bottom-up allocation style for
+ x86_64
+Date: Tue, 8 Jan 2019 09:32:59 -0800
+Message-ID: <7706aaac-c00b-8a11-a7a1-cb95b5a01581@intel.com>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
+ <1546849485-27933-5-git-send-email-kernelfans@gmail.com>
+ <57ca63ef-ac5b-edd7-710b-f7ee698207c9@intel.com>
+ <CAFgQCTudfQDAzKGYLAo_TuoEaEExzGn018mRewQ_LZvZbVDU+A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20190108145119.GC9170@smile.fi.intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAFgQCTudfQDAzKGYLAo_TuoEaEExzGn018mRewQ_LZvZbVDU+A@mail.gmail.com>
 Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAwOC0wMS0xOSAxNTo1MSwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+IE9uIFR1ZSwg
-SmFuIDA4LCAyMDE5IGF0IDAyOjQ1OjM5UE0gKzAxMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+
-IE9uIDA3LTAxLTE5IDE2OjQ2LCBBbmR5IFNoZXZjaGVua28gd3JvdGU6Cj4+PiBPbiBNb24sIEph
-biAwNywgMjAxOSBhdCAxMjoxNTo1NVBNICswMTAwLCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+IAo+
-Pj4+ICsJfSBlbHNlIGlmIChkLT5wbWljX2kyY19hZGRyZXNzKSB7Cj4+Pj4gKwkJaWYgKGkyY19h
-ZGRyZXNzID09IGQtPnBtaWNfaTJjX2FkZHJlc3MpIHsKPj4+PiArCQkJcmV0ID0gcmVnbWFwX3Vw
-ZGF0ZV9iaXRzKGludGVsX3BtaWNfb3ByZWdpb24tPnJlZ21hcCwKPj4+PiArCQkJCQkJIHJlZ19h
-ZGRyZXNzLCBtYXNrLCB2YWx1ZSk7Cj4+Pj4gKwkJfSBlbHNlIHsKPj4+PiArCQkJcHJfZXJyKCIl
-czogVW5leHBlY3RlZCBpMmMtYWRkcjogMHglMDJ4IChyZWctYWRkciAweCV4IHZhbHVlIDB4JXgg
-bWFzayAweCV4KVxuIiwKPj4+PiArCQkJICAgICAgIF9fZnVuY19fLCBpMmNfYWRkcmVzcywgcmVn
-X2FkZHJlc3MsIHZhbHVlLCBtYXNrKTsKPj4+PiArCQkJcmV0ID0gLUVOWElPOwo+Pj4+ICsJCX0K
-Pj4+Cj4+Pj4gLS0tIGEvZHJpdmVycy9hY3BpL3BtaWMvaW50ZWxfcG1pY194cG93ZXIuYwo+Pj4+
-ICsrKyBiL2RyaXZlcnMvYWNwaS9wbWljL2ludGVsX3BtaWNfeHBvd2VyLmMKPj4+PiArCS5wbWlj
-X2kyY19hZGRyZXNzID0gMHgzNCwKPj4+Cj4+PiBDYW4gd2UganVzdCBoYXZlIGEgaG9vayBoZXJl
-IGluc3RlYWQgb2YgZXhwb3NpbmcgUE1JQyBJMkMgYWRkcmVzcz8KPj4+IEFtIEkgbWlzc2luZyBz
-b21ldGhpbmcgaW4gY2FzZSBpdCdzIG5vdCBwb3NzaWJsZT8KPj4KPj4gV2UgYWxyZWFkeSBoYXZl
-IGEgaG9vaywgYnV0IGl0IGlzbid0IHJlYWxseSBuZWNlc3NhcnkgdG8gaW1wbGVtZW50Cj4+IHRo
-YXQgZm9yIGVhY2ggbW9kZWwgUE1JQy4gVGhlIE1GRCBkZXZpY2Ugd2hpY2ggaXMgdGhlIFBNSUMn
-cyBwYXJlbnQKPj4gaW4gbW9zdCBjYXNlcyB3aWxsIGdpdmUgdXMgYSByZWdtYXAgdG8gYWNjZXNz
-IHRoZSBQTUlDIHJlZ2lzdGVycyBhbmQKPj4gdGhhdCBhbGxvd3MgdXMgdG8gZG8gYSBnZW5lcmlj
-IGltcGxlbWVudGF0aW9uLgo+Pgo+PiBCdXQgdGhlIE1JUEkgUE1JQyBzZXF1ZW5jZSBpbmNsdWRl
-cyBhbiBpMmMtYWRkcmVzcyBhcyBzb21lIFBNSUNzCj4+IHNwYW4gbXVsdGlwbGUgaTJjLWFkZHJl
-c3Nlcy4gRm9yIHRoZSBzaW1wbGUgc2luZ2xlIGkyYy1hZGRyZXNzIGNhc2UKPj4gdGhlIHJlZ21h
-cCBnaXZlcyB1cyBhY2Nlc3MgdG8gdGhlIHJlZ2lzdGVycyBiZWhpbmQgdGhhdCBzaW5nbGUgYWRk
-cmVzcwo+PiBhbmQgd2UgY2FuIHVzZSBhIGdlbmVyaWMgc29sdXRpb24uIEluIHRoaXMgY2FzZSB3
-ZSBzaG91bGQgdmVyaWZ5IHRoZQo+PiBpMmMtYWRkciBpcyB3aGF0IHdlIGV4cGVjdCwgd2hpY2gg
-aXMgd2hlcmUgdGhlIHBtaWNfaTJjX2FkZHJlc3MgY29tZXMgaW4uCj4gCj4gQnV0IHdlIGFsc28g
-Y2FuIGhhdmUgYSBnZW5lcmljIGhvb2sgaW4gaW50ZWxfcG1pYy5jIGFuZCBhc3NpZ24gaXQgd2hl
-bmV2ZXIKPiBpdCdzIHRoZSBjYXNlPwoKV2UgY291bGQsIGJ1dCB0aGVuIHdlIHN0aWxsIG5lZWQg
-dGhlIHBtaWNfaTJjX2FkZHJlc3MgbWVtYmVyIGFuZCBub3cgdGhlCmhvb2sgd291bGQgbmVlZCB0
-byBwYXNzZWQgYm90aCB0aGUgcmVnbWFwIGFuZCB0aGUgaW50ZWxfcG1pY19vcHJlZ2lvbl9kYXRh
-CnBvaW50ZXIgc28gdGhhdCBpdCBjYW4gdmVyaWZ5IHRoZSBpMmMgYWRkcmVzcyBzbyBoYW5kbGlu
-ZyB0aGUgZ2VuZXJpYyBjYXNlCmRpcmVjdGx5IGluc2lkZSBpbnRlbF9zb2NfcG1pY19leGVjX21p
-cGlfcG1pY19zZXFfZWxlbWVudCBpcyBlYXNpZXIuCgpSZWdhcmRzLAoKSGFucwpfX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBs
-aXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVz
-a3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+On 1/7/19 10:13 PM, Pingfan Liu wrote:
+> On Tue, Jan 8, 2019 at 1:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
+>> Why is this 0x100000 open-coded?  Why is this needed *now*?
+>>
+> 
+> Memory under 1MB should be used by BIOS. For x86_64, after
+> e820__memblock_setup(), the memblock allocator has already been ready
+> to work. But there are two factors to in order to
+> set_alloc_range(0x100000, end). The major one is to be compatible with
+> x86_32, please refer to alloc_low_pages->memblock_find_in_range() uses
+> [min_pfn_mapped, max_pfn_mapped] to limit the range, which is ready to
+> be allocated from. The minor one is to prevent unexpected allocation
+> from memblock allocator through allow_low_pages() at very early stage.
+
+Wow, that's a ton of critical information which was neither commented
+upon or referenced in the changelog.  Can you fix this up in the next
+version, please?
