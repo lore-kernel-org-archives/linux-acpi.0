@@ -1,78 +1,79 @@
-From: Baoquan He <bhe@redhat.com>
-Subject: Re: [PATCHv3 1/2] mm/memblock: extend the limit inferior of
- bottom-up after parsing hotplug attr
-Date: Tue, 8 Jan 2019 16:50:02 +0800
-Message-ID: <20190108085002.GA18718@MiWiFi-R3L-srv>
-References: <1545966002-3075-2-git-send-email-kernelfans@gmail.com>
- <20181231084018.GA28478@rapoport-lnx>
- <CAFgQCTvQnj7zReFvH_gmfVJdPXE325o+z4Xx76fupvsLR_7H2A@mail.gmail.com>
- <20190102092749.GA22664@rapoport-lnx>
- <20190102101804.GD1990@MiWiFi-R3L-srv>
- <20190102170537.GA3591@rapoport-lnx>
- <20190103184706.GU2509588@devbig004.ftw2.facebook.com>
- <20190104150929.GA32252@rapoport-lnx>
- <20190105034450.GE30750@MiWiFi-R3L-srv>
- <20190106062733.GA3728@rapoport-lnx>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [RFC PATCH 0/4] x86_64/mm: remove bottom-up allocation style by
+ pushing forward the parsing of mem hotplug info
+Date: Tue, 8 Jan 2019 18:05:42 +0800
+Message-ID: <20190108100542.GA2216@localhost.localdomain>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190106062733.GA3728@rapoport-lnx>
+In-Reply-To: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Tejun Heo <tj@kernel.org>, Pingfan Liu <kernelfans@gmail.com>, linux-acpi@vger.kernel.org, linux-mm@kvack.org, kexec@lists.infradead.org, Tang Chen <tangchen@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Michal Hocko <mhocko@suse.com>, Jonathan Corbet <corbet@lwn.net>, Yaowei Bai <baiyaowei@cmss.chinamobile.com>, Pavel Tatashin <pasha.tatashin@oracle.com>, Nicholas Piggin <npiggin@gmail.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Daniel Vacek <neelx@redhat.com>, Mathieu Malaterre <malat@debian.org>, Stefan Agner <stefan@agner.ch>, Dave Young <dyoung@redhat.com>, yinghai@kernel.org, vgoyal@redhat.com, linux-kernel@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 01/06/19 at 08:27am, Mike Rapoport wrote:
-> I do not suggest to discard the bottom-up method, I merely suggest to allow
-> it to use [0, kernel_start).
+On Mon, Jan 07, 2019 at 04:24:41PM +0800, Pingfan Liu wrote:
+>Background about the defect of the current bottom-up allocation style, take
+>the following scenario:
+>  |  unmovable node |     movable node                           |
+>     | kaslr-kernel |subtree of pgtable for phy<->virt |
+>
+>Although kaslr-kernel can avoid to stain the movable node. But the
+>pgtable can still stain the movable node. That is a probability problem,
+>with low probability, but still exist. This patch tries to eliminate the
+>probability. With the previous patch, at the point of init_mem_mapping(),
+>memblock allocator can work with the knowledge of acpi memory hotmovable
+>info, and avoid to stain the movable node. As a result,
+>memory_map_bottom_up() is not needed any more.
+>
 
-Sorry for late reply.
+Hi Pingfan,
 
-I misunderstood it, sorry.
+Tang Chen ever tried to do this before adding 'movable_node':
+commit e8d1955258091e4c92d5a975ebd7fd8a98f5d30f
+Author: Tang Chen <tangchen@cn.fujitsu.com>
+Date:   Fri Feb 22 16:33:44 2013 -0800
 
-> > This bottom-up way is taken on many ARCHes, it works well on system if
-> > KASLR is not enabled. Below is the searching result in the current linux
-> > kernel, we can see that all ARCHes have this mechanism, except of
-> > arm/arm64. But now only arm64/mips/x86 have KASLR.
-> > 
-> > W/o KASLR, allocating memblock region above kernle end when hotplug info
-> > is not parsed, looks very reasonable. Since kernel is usually put at
-> > lower address, e.g on x86, it's 16M. My thought is that we need do
-> > memblock allocation around kernel before hotplug info parsed. That is
-> > for system w/o KASLR, we will keep the current bottom-up way; for system
-> > with KASLR, we should allocate memblock region top-down just below
-> > kernel start.
-> 
-> I completely agree. I was thinking about making
-> memblock_find_in_range_node() to do something like
-> 
-> if (memblock_bottom_up()) {
-> 	bottom_up_start = max(start, kernel_end);
+    acpi, memory-hotplug: parse SRAT before memblock is ready
 
-In this way, if start < kernel_end, it will still succeed to find a
-region in bottom-up way after kernel end.
+Then, Lu Yinghai tried to do the similar job, you can see:
+https://lwn.net/Articles/554854/
+for more information. Hope that can help you.
 
-I am still reading code. Just noticed Pingfan sent a RFC patchset to put
-SRAT parsing earlier, not sure if he has tested it in numa system with
-acpi. I doubt that really works.
+Thanks,
+Chao Fan
 
-Thanks
-Baoquan
-
-> 	ret = __memblock_find_range_bottom_up(bottom_up_start, end,
-> 					      size, align, nid, flags);
-
-
-
-> 	if (ret)
-> 		return ret;
-> 
-> 	bottom_up_start = max(start, 0);
-> 	end = kernel_start;
-> 
-> 	ret = __memblock_find_range_top_down(bottom_up_start, end,
-> 					     size, align, nid, flags);
-> 	if (ret)
-> 		return ret;
-> }
+>
+>Cc: Thomas Gleixner <tglx@linutronix.de>
+>Cc: Ingo Molnar <mingo@redhat.com>
+>Cc: Borislav Petkov <bp@alien8.de>
+>Cc: "H. Peter Anvin" <hpa@zytor.com>
+>Cc: Dave Hansen <dave.hansen@linux.intel.com>
+>Cc: Andy Lutomirski <luto@kernel.org>
+>Cc: Peter Zijlstra <peterz@infradead.org>
+>Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>Cc: Len Brown <lenb@kernel.org>
+>Cc: linux-kernel@vger.kernel.org
+>
+>Pingfan Liu (4):
+>  acpi: change the topo of acpi_table_upgrade()
+>  x86/setup: parse acpi to get hotplug info before init_mem_mapping()
+>  x86/mm: set allowed range for memblock allocator
+>  x86/mm: remove bottom-up allocation style for x86_64
+>
+> arch/arm64/kernel/setup.c |   2 +-
+> arch/x86/kernel/setup.c   |  17 ++++-
+> arch/x86/mm/init.c        | 154 +++++++---------------------------------------
+> arch/x86/mm/init_32.c     | 123 ++++++++++++++++++++++++++++++++++++
+> arch/x86/mm/mm_internal.h |   7 +++
+> drivers/acpi/tables.c     |   4 +-
+> include/linux/acpi.h      |   5 +-
+> 7 files changed, 172 insertions(+), 140 deletions(-)
+>
+>-- 
+>2.7.4
+>
+>
+>
