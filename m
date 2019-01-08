@@ -1,67 +1,93 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v5 02/11] ata: pata_acpi: Make PCI dependency explicit
-Date: Mon, 7 Jan 2019 18:52:05 +0100
-Message-ID: <CAJZ5v0i60n1Fp0dJ5kbHgpKuB+Www3ZCOX2GuLnzzhpGCZ1jMA@mail.gmail.com>
-References: <20190102181038.4418-1-okaya@kernel.org> <20190102181038.4418-3-okaya@kernel.org>
- <CAJZ5v0gkGaxgr+-CzsabqrfVFQFo_R+G3VEg3qF_sGWa6bT-Dg@mail.gmail.com>
- <CGME20190107141740eucas1p15f2975c3d87e7a8fce9daeaea41525d4@eucas1p1.samsung.com>
- <7d6b9323-7760-944d-daa4-6fc663a32481@samsung.com> <aa5ecfd1-fbb5-1f7a-500b-9eaee1cd8e0a@kernel.dk>
+From: Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] nfit: Hide unused functions behind CONFIG_X86
+Date: Mon,  7 Jan 2019 21:58:53 -0700
+Message-ID: <20190108045853.5471-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <aa5ecfd1-fbb5-1f7a-500b-9eaee1cd8e0a@kernel.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jens Axboe <axboe@kernel.dk>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "open list:LIBATA SUBSYSTEM (Serial and Parallel ATA drivers)" <linux-ide@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 7, 2019 at 4:42 PM Jens Axboe <axboe@kernel.dk> wrote:
->
-> On 1/7/19 7:17 AM, Bartlomiej Zolnierkiewicz wrote:
-> >
-> > On 01/07/2019 12:12 PM, Rafael J. Wysocki wrote:
-> >> On Wed, Jan 2, 2019 at 7:11 PM Sinan Kaya <okaya@kernel.org> wrote:
-> >>>
-> >>> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> >>> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> >>> satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> >>> specified directly. PATA_ACPI is a PCI device driver but the PCI
-> >>> dependency has not been explicitly called out.
-> >>>
-> >>> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> >>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> >>> ---
-> >>>  drivers/ata/Kconfig | 2 +-
-> >>>  1 file changed, 1 insertion(+), 1 deletion(-)
-> >>>
-> >>> diff --git a/drivers/ata/Kconfig b/drivers/ata/Kconfig
-> >>> index 4ca7a6b4eaae..8218db17ebdb 100644
-> >>> --- a/drivers/ata/Kconfig
-> >>> +++ b/drivers/ata/Kconfig
-> >>> @@ -1091,7 +1091,7 @@ comment "Generic fallback / legacy drivers"
-> >>>
-> >>>  config PATA_ACPI
-> >>>         tristate "ACPI firmware driver for PATA"
-> >>> -       depends on ATA_ACPI && ATA_BMDMA
-> >>> +       depends on ATA_ACPI && ATA_BMDMA && PCI
-> >>>         help
-> >>>           This option enables an ACPI method driver which drives
-> >>>           motherboard PATA controller interfaces through the ACPI
-> >>> --
-> >>
-> >> Any objections against this one from anyone?
-> >
-> > Patch looks correct to me (pata_acpi is indeed a PCI driver):
-> >
-> > Acked-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-> >
-> > but it is best to wait for Jens' ACK if you want to merge it
-> > through ACPI tree..
->
-> You can add my:
->
-> Reviewed-by: Jens Axboe <axboe@kernel.dk>
->
-> if you want to merge it through the ACPI tree.
+On arm64 little endian allyesconfig:
 
-I will do that, thanks!
+drivers/acpi/nfit/intel.c:149:12: warning: unused function 'intel_security_unlock' [-Wunused-function]
+static int intel_security_unlock(struct nvdimm *nvdimm,
+           ^
+drivers/acpi/nfit/intel.c:230:12: warning: unused function 'intel_security_erase' [-Wunused-function]
+static int intel_security_erase(struct nvdimm *nvdimm,
+           ^
+drivers/acpi/nfit/intel.c:279:12: warning: unused function 'intel_security_query_overwrite' [-Wunused-function]
+static int intel_security_query_overwrite(struct nvdimm *nvdimm)
+           ^
+drivers/acpi/nfit/intel.c:316:12: warning: unused function 'intel_security_overwrite' [-Wunused-function]
+static int intel_security_overwrite(struct nvdimm *nvdimm,
+           ^
+4 warnings generated.
+
+These functions are only used in __intel_security_ops when CONFIG_X86 is
+set so only define these functions under that same condition.
+
+Fixes: 4c6926a23b76 ("acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs")
+Signed-off-by: Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/acpi/nfit/intel.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 850b2927b4e7..2ba0f1543940 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -144,6 +144,7 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 	}
+ }
+ 
++#ifdef CONFIG_X86
+ static void nvdimm_invalidate_cache(void);
+ 
+ static int intel_security_unlock(struct nvdimm *nvdimm,
+@@ -186,6 +187,7 @@ static int intel_security_unlock(struct nvdimm *nvdimm,
+ 
+ 	return 0;
+ }
++#endif
+ 
+ static int intel_security_disable(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+@@ -227,6 +229,7 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ 	return 0;
+ }
+ 
++#ifdef CONFIG_X86
+ static int intel_security_erase(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key,
+ 		enum nvdimm_passphrase_type ptype)
+@@ -360,16 +363,10 @@ static int intel_security_overwrite(struct nvdimm *nvdimm,
+  * TODO: define a cross arch wbinvd equivalent when/if
+  * NVDIMM_FAMILY_INTEL command support arrives on another arch.
+  */
+-#ifdef CONFIG_X86
+ static void nvdimm_invalidate_cache(void)
+ {
+ 	wbinvd_on_all_cpus();
+ }
+-#else
+-static void nvdimm_invalidate_cache(void)
+-{
+-	WARN_ON_ONCE("cache invalidation required after unlock\n");
+-}
+ #endif
+ 
+ static const struct nvdimm_security_ops __intel_security_ops = {
+-- 
+2.20.1
