@@ -1,61 +1,65 @@
-From: Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] nfit: Hide unused functions behind CONFIG_X86
-Date: Mon, 7 Jan 2019 22:18:47 -0700
-Message-ID: <20190108051847.GA17285@flashbox>
-References: <20190108045853.5471-1-natechancellor@gmail.com>
- <CAPcyv4gA=qEm81k-f80oBBo9mmPcAg6szYQvtdOWFFWgd=9A4g@mail.gmail.com>
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: Re: [RFC PATCH 0/4] x86_64/mm: remove bottom-up allocation style by
+ pushing forward the parsing of mem hotplug info
+Date: Tue, 8 Jan 2019 13:49:51 +0800
+Message-ID: <CAFgQCTtjD-3z52aETURY9YN-_qfy=u=xSYrdcnmMpSWow3kvjg@mail.gmail.com>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com> <7d72567c-2ed8-e2ae-8518-115cd9c8a82a@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gA=qEm81k-f80oBBo9mmPcAg6szYQvtdOWFFWgd=9A4g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: kbuild test robot <lkp-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-nvdimm <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <7d72567c-2ed8-e2ae-8518-115cd9c8a82a@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dave Hansen <dave.hansen@intel.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 07, 2019 at 09:14:05PM -0800, Dan Williams wrote:
-> On Mon, Jan 7, 2019 at 8:59 PM Nathan Chancellor
-> <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Tue, Jan 8, 2019 at 1:04 AM Dave Hansen <dave.hansen@intel.com> wrote:
+>
+> On 1/7/19 12:24 AM, Pingfan Liu wrote:
+> > Background about the defect of the current bottom-up allocation style, take
+> > the following scenario:
+> >   |  unmovable node |     movable node                           |
+> >      | kaslr-kernel |subtree of pgtable for phy<->virt |
 > >
-> > On arm64 little endian allyesconfig:
-> >
-> > drivers/acpi/nfit/intel.c:149:12: warning: unused function 'intel_security_unlock' [-Wunused-function]
-> > static int intel_security_unlock(struct nvdimm *nvdimm,
-> >            ^
-> > drivers/acpi/nfit/intel.c:230:12: warning: unused function 'intel_security_erase' [-Wunused-function]
-> > static int intel_security_erase(struct nvdimm *nvdimm,
-> >            ^
-> > drivers/acpi/nfit/intel.c:279:12: warning: unused function 'intel_security_query_overwrite' [-Wunused-function]
-> > static int intel_security_query_overwrite(struct nvdimm *nvdimm)
-> >            ^
-> > drivers/acpi/nfit/intel.c:316:12: warning: unused function 'intel_security_overwrite' [-Wunused-function]
-> > static int intel_security_overwrite(struct nvdimm *nvdimm,
-> >            ^
-> > 4 warnings generated.
-> >
-> > These functions are only used in __intel_security_ops when CONFIG_X86 is
-> > set so only define these functions under that same condition.
-> 
-> Thanks for the report, not sure how the kbuild robot missed this. I'd
-> prefer marking the functions __maybe_unused rather than expanding the
-> ifdef guards.
+> > Although kaslr-kernel can avoid to stain the movable node. But the
+> > pgtable can still stain the movable node. That is a probability problem,
+> > with low probability, but still exist. This patch tries to eliminate the
+> > probability. With the previous patch, at the point of init_mem_mapping(),
+> > memblock allocator can work with the knowledge of acpi memory hotmovable
+> > info, and avoid to stain the movable node. As a result,
+> > memory_map_bottom_up() is not needed any more.
+>
+> I'm really missing the basic problem statement.  What's the problem this
+> is fixing?  What is the end-user-visible impact of this problem?
+>
+Sorry for the misaligned figure. It should be
+   |  kaslr-kernel    |subtree of pgtable for phy<->virt    |
+                              |--- boundary between unmovable node and
+movable node
+Where kaslr kernel can be guaranteed to sit inside unmovable node
+after patch: https://lore.kernel.org/patchwork/patch/1029376/. But if
+kaslr kernel is located near the end of the movable node, then
+bottom-up allocator may create pagetable which crosses the  boundary
+between unmovable node and movable node.  It is a probability issue,
+the factors include -1. how big the gap between kernel end and
+unmovable node's end.  -2. how many memory does the system own.
+Alternative way to fix this issue is by increasing the gap by
+boot/compressed/kaslr*. But taking the scenario of PB level memory,
+the pagetable will take server MB even if using 1GB page, so it is
+hard to decide how much should the gap increase.
+In a word, this series fix the probability with certainty, by
+allocating pagetable on unmovable node, instead of following kernel
+end.
 
-allyesconfig defaults to big endian, which doesn't built the nfit folder
-(haven't looked into the dependency chain to see why). I have been
-working with Clang and have a local patch to avoid turning on big endian
-mode with it for now (avoids a few other warnings for now).
+> To make memory hot-remove work, we want as much memory as possible to he
+> hot-removable, which is basically what movable nodes are used for.  But,
+> it sounds like, maybe, that KASLR can place the kernel image inside the
+> movable node.  This is somehow related to the bottom-up allocation style
+> currently in use.
 
-I can send a v2 with that change if you would like.
+Yes, currently kaslr kernel can stain the movable node, but it will
+not do this soon after the patch:
+https://lore.kernel.org/patchwork/patch/1029376/
 
-Thanks for the quick reply,
-Nathan
+Thanks,
+Pingfan
