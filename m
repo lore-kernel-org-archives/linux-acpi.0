@@ -1,66 +1,89 @@
-From: Sinan Kaya <Okaya@kernel.org>
-Subject: Re: [PATCH v6 07/11] drivers: thermal: int3406_thermal: Make PCI
- dependency explicit
-Date: Tue, 8 Jan 2019 08:03:05 -0500
-Message-ID: <CAK9iUCNPD_mVkN-NnuCyCpZ8n17OqfjQxBeo=gUms_SMX91scg@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-8-okaya@kernel.org>
- <CAJZ5v0gst1ZDgG-uP9GUUB1ziPnqhfArio3um=wCQjfbeH2_iw@mail.gmail.com> <1546948685.2072.95.camel@intel.com>
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: Re: [RFC PATCH 0/4] x86_64/mm: remove bottom-up allocation style by
+ pushing forward the parsing of mem hotplug info
+Date: Tue, 8 Jan 2019 21:27:22 +0800
+Message-ID: <CAFgQCTu8C6DFqoUSKyKLZnL1twGr=3k+M4bgwgtcjENm+WHqJg@mail.gmail.com>
+References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com> <20190108100542.GA2216@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1546948685.2072.95.camel@intel.com>
+In-Reply-To: <20190108100542.GA2216@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Eduardo Valentin <edubezval@gmail.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, Amit Kucheria <amit.kucheria@linaro.org>, "open list:THERMAL" <linux-pm@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>, yinghai@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 8, 2019 at 6:58 AM Zhang Rui <rui.zhang@intel.com> wrote:
+On Tue, Jan 8, 2019 at 6:06 PM Chao Fan <fanc.fnst@cn.fujitsu.com> wrote:
 >
-> On =E4=B8=80, 2019-01-07 at 12:19 +0100, Rafael J. Wysocki wrote:
-> > On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
-> > >
-> > >
-> > > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built
-> > > without
-> > > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> > > satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> > > specified directly. Need CONFIG_PCI to be set in order to be able
-> > > to use
-> > > this driver.
-> > >
-> > > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without
-> > > CONFIG_PCI set")
-> > > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > > ---
-> > >  drivers/thermal/intel/int340x_thermal/Kconfig | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >
-> > > diff --git a/drivers/thermal/intel/int340x_thermal/Kconfig
-> > > b/drivers/thermal/intel/int340x_thermal/Kconfig
-> > > index 0582bd12a239..fba1976d5f8d 100644
-> > > --- a/drivers/thermal/intel/int340x_thermal/Kconfig
-> > > +++ b/drivers/thermal/intel/int340x_thermal/Kconfig
-> > > @@ -31,7 +31,7 @@ if INT340X_THERMAL
-> > >
-> > >  config INT3406_THERMAL
-> > >         tristate "ACPI INT3406 display thermal driver"
-> > > -       depends on ACPI_VIDEO
-> > > +       depends on ACPI_VIDEO && PCI
-> > >         help
-> > >           The display thermal device represents the LED/LCD display
-> > > panel
-> > >           that may or may not include touch support. The main
-> > > function of
-> > > --
-> > Rui, any objections here?  And for the [11/11]?
+> On Mon, Jan 07, 2019 at 04:24:41PM +0800, Pingfan Liu wrote:
+> >Background about the defect of the current bottom-up allocation style, take
+> >the following scenario:
+> >  |  unmovable node |     movable node                           |
+> >     | kaslr-kernel |subtree of pgtable for phy<->virt |
+> >
+> >Although kaslr-kernel can avoid to stain the movable node. But the
+> >pgtable can still stain the movable node. That is a probability problem,
+> >with low probability, but still exist. This patch tries to eliminate the
+> >probability. With the previous patch, at the point of init_mem_mapping(),
+> >memblock allocator can work with the knowledge of acpi memory hotmovable
+> >info, and avoid to stain the movable node. As a result,
+> >memory_map_bottom_up() is not needed any more.
+> >
 >
-> CONFIG_INT3406_THERMAL depends on CONFIG_INT340X_THERMAL, so IMO, patch
-> 11 is sufficient.
+> Hi Pingfan,
+>
+> Tang Chen ever tried to do this before adding 'movable_node':
+> commit e8d1955258091e4c92d5a975ebd7fd8a98f5d30f
+> Author: Tang Chen <tangchen@cn.fujitsu.com>
+> Date:   Fri Feb 22 16:33:44 2013 -0800
+>
+>     acpi, memory-hotplug: parse SRAT before memblock is ready
+>
+> Then, Lu Yinghai tried to do the similar job, you can see:
+> https://lwn.net/Articles/554854/
+> for more information. Hope that can help you.
+>
+Thanks, It is a long thread, as my understanding, Tejun concerned
+about the early parsing of ACPI consumes memory from memblock
+allocator. If it is, then this should not happen in my series.
+Cc Tejun and Yinghai.
 
-Yes, we can drop this patch. I found the issues in reverse order. Can
-we get an ACK for 11/11?
-
+Regards,
+Pingfan
+> Thanks,
+> Chao Fan
 >
-> thanks,
-> rui
+> >
+> >Cc: Thomas Gleixner <tglx@linutronix.de>
+> >Cc: Ingo Molnar <mingo@redhat.com>
+> >Cc: Borislav Petkov <bp@alien8.de>
+> >Cc: "H. Peter Anvin" <hpa@zytor.com>
+> >Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> >Cc: Andy Lutomirski <luto@kernel.org>
+> >Cc: Peter Zijlstra <peterz@infradead.org>
+> >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >Cc: Len Brown <lenb@kernel.org>
+> >Cc: linux-kernel@vger.kernel.org
+> >
+> >Pingfan Liu (4):
+> >  acpi: change the topo of acpi_table_upgrade()
+> >  x86/setup: parse acpi to get hotplug info before init_mem_mapping()
+> >  x86/mm: set allowed range for memblock allocator
+> >  x86/mm: remove bottom-up allocation style for x86_64
+> >
+> > arch/arm64/kernel/setup.c |   2 +-
+> > arch/x86/kernel/setup.c   |  17 ++++-
+> > arch/x86/mm/init.c        | 154 +++++++---------------------------------------
+> > arch/x86/mm/init_32.c     | 123 ++++++++++++++++++++++++++++++++++++
+> > arch/x86/mm/mm_internal.h |   7 +++
+> > drivers/acpi/tables.c     |   4 +-
+> > include/linux/acpi.h      |   5 +-
+> > 7 files changed, 172 insertions(+), 140 deletions(-)
+> >
+> >--
+> >2.7.4
+> >
+> >
+> >
+>
+>
