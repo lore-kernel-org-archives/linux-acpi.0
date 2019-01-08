@@ -1,37 +1,75 @@
-From: Dave Hansen <dave.hansen@intel.com>
-Subject: Re: [RFC PATCH 4/4] x86/mm: remove bottom-up allocation style for
- x86_64
-Date: Tue, 8 Jan 2019 09:32:59 -0800
-Message-ID: <7706aaac-c00b-8a11-a7a1-cb95b5a01581@intel.com>
-References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
- <1546849485-27933-5-git-send-email-kernelfans@gmail.com>
- <57ca63ef-ac5b-edd7-710b-f7ee698207c9@intel.com>
- <CAFgQCTudfQDAzKGYLAo_TuoEaEExzGn018mRewQ_LZvZbVDU+A@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v6 3/4] ACPI / PMIC: Add generic
+ intel_soc_pmic_exec_mipi_pmic_seq_element handling
+Date: Tue, 8 Jan 2019 19:33:44 +0200
+Message-ID: <20190108173344.GE9170@smile.fi.intel.com>
+References: <20190107111556.4510-1-hdegoede@redhat.com>
+ <20190107111556.4510-4-hdegoede@redhat.com>
+ <20190107154616.GQ9170@smile.fi.intel.com>
+ <14fa653e-a7c2-a1cf-ebc2-c1b65f0e26ec@redhat.com>
+ <20190108145119.GC9170@smile.fi.intel.com>
+ <ed2fda33-3728-8585-e56d-7857d9217cc0@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAFgQCTudfQDAzKGYLAo_TuoEaEExzGn018mRewQ_LZvZbVDU+A@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Pingfan Liu <kernelfans@gmail.com>
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <ed2fda33-3728-8585-e56d-7857d9217cc0@redhat.com>
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/7/19 10:13 PM, Pingfan Liu wrote:
-> On Tue, Jan 8, 2019 at 1:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
->> Why is this 0x100000 open-coded?  Why is this needed *now*?
->>
-> 
-> Memory under 1MB should be used by BIOS. For x86_64, after
-> e820__memblock_setup(), the memblock allocator has already been ready
-> to work. But there are two factors to in order to
-> set_alloc_range(0x100000, end). The major one is to be compatible with
-> x86_32, please refer to alloc_low_pages->memblock_find_in_range() uses
-> [min_pfn_mapped, max_pfn_mapped] to limit the range, which is ready to
-> be allocated from. The minor one is to prevent unexpected allocation
-> from memblock allocator through allow_low_pages() at very early stage.
-
-Wow, that's a ton of critical information which was neither commented
-upon or referenced in the changelog.  Can you fix this up in the next
-version, please?
+T24gVHVlLCBKYW4gMDgsIDIwMTkgYXQgMDQ6MzU6NDVQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPiBIaSwKPiAKPiBPbiAwOC0wMS0xOSAxNTo1MSwgQW5keSBTaGV2Y2hlbmtvIHdyb3Rl
+Ogo+ID4gT24gVHVlLCBKYW4gMDgsIDIwMTkgYXQgMDI6NDU6MzlQTSArMDEwMCwgSGFucyBkZSBH
+b2VkZSB3cm90ZToKPiA+ID4gT24gMDctMDEtMTkgMTY6NDYsIEFuZHkgU2hldmNoZW5rbyB3cm90
+ZToKPiA+ID4gPiBPbiBNb24sIEphbiAwNywgMjAxOSBhdCAxMjoxNTo1NVBNICswMTAwLCBIYW5z
+IGRlIEdvZWRlIHdyb3RlOgo+ID4gCj4gPiA+ID4gPiArCX0gZWxzZSBpZiAoZC0+cG1pY19pMmNf
+YWRkcmVzcykgewo+ID4gPiA+ID4gKwkJaWYgKGkyY19hZGRyZXNzID09IGQtPnBtaWNfaTJjX2Fk
+ZHJlc3MpIHsKPiA+ID4gPiA+ICsJCQlyZXQgPSByZWdtYXBfdXBkYXRlX2JpdHMoaW50ZWxfcG1p
+Y19vcHJlZ2lvbi0+cmVnbWFwLAo+ID4gPiA+ID4gKwkJCQkJCSByZWdfYWRkcmVzcywgbWFzaywg
+dmFsdWUpOwo+ID4gPiA+ID4gKwkJfSBlbHNlIHsKPiA+ID4gPiA+ICsJCQlwcl9lcnIoIiVzOiBV
+bmV4cGVjdGVkIGkyYy1hZGRyOiAweCUwMnggKHJlZy1hZGRyIDB4JXggdmFsdWUgMHgleCBtYXNr
+IDB4JXgpXG4iLAo+ID4gPiA+ID4gKwkJCSAgICAgICBfX2Z1bmNfXywgaTJjX2FkZHJlc3MsIHJl
+Z19hZGRyZXNzLCB2YWx1ZSwgbWFzayk7Cj4gPiA+ID4gPiArCQkJcmV0ID0gLUVOWElPOwo+ID4g
+PiA+ID4gKwkJfQo+ID4gPiA+IAo+ID4gPiA+ID4gLS0tIGEvZHJpdmVycy9hY3BpL3BtaWMvaW50
+ZWxfcG1pY194cG93ZXIuYwo+ID4gPiA+ID4gKysrIGIvZHJpdmVycy9hY3BpL3BtaWMvaW50ZWxf
+cG1pY194cG93ZXIuYwo+ID4gPiA+ID4gKwkucG1pY19pMmNfYWRkcmVzcyA9IDB4MzQsCj4gPiA+
+ID4gCj4gPiA+ID4gQ2FuIHdlIGp1c3QgaGF2ZSBhIGhvb2sgaGVyZSBpbnN0ZWFkIG9mIGV4cG9z
+aW5nIFBNSUMgSTJDIGFkZHJlc3M/Cj4gPiA+ID4gQW0gSSBtaXNzaW5nIHNvbWV0aGluZyBpbiBj
+YXNlIGl0J3Mgbm90IHBvc3NpYmxlPwo+ID4gPiAKPiA+ID4gV2UgYWxyZWFkeSBoYXZlIGEgaG9v
+aywgYnV0IGl0IGlzbid0IHJlYWxseSBuZWNlc3NhcnkgdG8gaW1wbGVtZW50Cj4gPiA+IHRoYXQg
+Zm9yIGVhY2ggbW9kZWwgUE1JQy4gVGhlIE1GRCBkZXZpY2Ugd2hpY2ggaXMgdGhlIFBNSUMncyBw
+YXJlbnQKPiA+ID4gaW4gbW9zdCBjYXNlcyB3aWxsIGdpdmUgdXMgYSByZWdtYXAgdG8gYWNjZXNz
+IHRoZSBQTUlDIHJlZ2lzdGVycyBhbmQKPiA+ID4gdGhhdCBhbGxvd3MgdXMgdG8gZG8gYSBnZW5l
+cmljIGltcGxlbWVudGF0aW9uLgo+ID4gPiAKPiA+ID4gQnV0IHRoZSBNSVBJIFBNSUMgc2VxdWVu
+Y2UgaW5jbHVkZXMgYW4gaTJjLWFkZHJlc3MgYXMgc29tZSBQTUlDcwo+ID4gPiBzcGFuIG11bHRp
+cGxlIGkyYy1hZGRyZXNzZXMuIEZvciB0aGUgc2ltcGxlIHNpbmdsZSBpMmMtYWRkcmVzcyBjYXNl
+Cj4gPiA+IHRoZSByZWdtYXAgZ2l2ZXMgdXMgYWNjZXNzIHRvIHRoZSByZWdpc3RlcnMgYmVoaW5k
+IHRoYXQgc2luZ2xlIGFkZHJlc3MKPiA+ID4gYW5kIHdlIGNhbiB1c2UgYSBnZW5lcmljIHNvbHV0
+aW9uLiBJbiB0aGlzIGNhc2Ugd2Ugc2hvdWxkIHZlcmlmeSB0aGUKPiA+ID4gaTJjLWFkZHIgaXMg
+d2hhdCB3ZSBleHBlY3QsIHdoaWNoIGlzIHdoZXJlIHRoZSBwbWljX2kyY19hZGRyZXNzIGNvbWVz
+IGluLgo+ID4gCj4gPiBCdXQgd2UgYWxzbyBjYW4gaGF2ZSBhIGdlbmVyaWMgaG9vayBpbiBpbnRl
+bF9wbWljLmMgYW5kIGFzc2lnbiBpdCB3aGVuZXZlcgo+ID4gaXQncyB0aGUgY2FzZT8KPiAKPiBX
+ZSBjb3VsZCwgYnV0IHRoZW4gd2Ugc3RpbGwgbmVlZCB0aGUgcG1pY19pMmNfYWRkcmVzcyBtZW1i
+ZXIgYW5kIG5vdyB0aGUKPiBob29rIHdvdWxkIG5lZWQgdG8gcGFzc2VkIGJvdGggdGhlIHJlZ21h
+cCBhbmQgdGhlIGludGVsX3BtaWNfb3ByZWdpb25fZGF0YQo+IHBvaW50ZXIgc28gdGhhdCBpdCBj
+YW4gdmVyaWZ5IHRoZSBpMmMgYWRkcmVzcyBzbyBoYW5kbGluZyB0aGUgZ2VuZXJpYyBjYXNlCj4g
+ZGlyZWN0bHkgaW5zaWRlIGludGVsX3NvY19wbWljX2V4ZWNfbWlwaV9wbWljX3NlcV9lbGVtZW50
+IGlzIGVhc2llci4KCkkgc2VlLgoKT25lIG1vcmUgcXVlc3Rpb24sIGNhbiB3ZSB1bmlmeSBzb21l
+aG93IGVycm9yIG1lc3NhZ2VzIGFuZCBkbyBzb21ldGhpbmcgbGlrZQoKaWYgKC4uLikgewoJLi4u
+Cn0gZWxzZSBpZiAocG1pY19pMmNfYWRkcmVzcyAmJiBpMmNfYWRkcmVzcyA9PSBwbWljX2kyY19h
+ZGRyZXNzKSB7CglyZXQgPSByZWdtYXBfdXBkYXRlX2JpdHMoLi4uKTsKfSBlbHNlIHsKCS4uLgp9
+Cgo/CgotLSAKV2l0aCBCZXN0IFJlZ2FyZHMsCkFuZHkgU2hldmNoZW5rbwoKCl9fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxp
+c3QKSW50ZWwtZ2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNr
+dG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
