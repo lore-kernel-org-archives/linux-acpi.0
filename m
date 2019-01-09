@@ -1,86 +1,25 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v6 4/4] drm/i915/intel_dsi_vbt: Add support
- for PMIC MIPI sequences
-Date: Wed, 9 Jan 2019 10:40:44 +0100
-Message-ID: <a1ba7a49-26fe-9e8f-0347-2c083429d9d0@redhat.com>
-References: <20190107111556.4510-1-hdegoede@redhat.com>
- <20190107111556.4510-5-hdegoede@redhat.com>
- <20190107153119.GQ20097@intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] ACPI / tables: table override from built-in initrd
+Date: Wed, 9 Jan 2019 10:58:36 +0100
+Message-ID: <CAJZ5v0iEVUXZ=jV9JosNM+UwEC4y-i-GzJDJPyCiEXJPY8-h+Q@mail.gmail.com>
+References: <1545112965-2692-1-git-send-email-shunyong.yang@hxt-semitech.com> <dc56c63fba6c410b9fd35a4ebe11ce07@HXTBJIDCEMVIW02.hxtcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <20190107153119.GQ20097@intel.com>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
-Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <dc56c63fba6c410b9fd35a4ebe11ce07@HXTBJIDCEMVIW02.hxtcorp.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Yang, Shunyong" <shunyong.yang@hxt-semitech.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zheng, Joey" <yu.zheng@hxt-semitech.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAwNy0wMS0xOSAxNjozMSwgVmlsbGUgU3lyasOkbMOkIHdyb3RlOgo+IE9uIE1vbiwg
-SmFuIDA3LCAyMDE5IGF0IDEyOjE1OjU2UE0gKzAxMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+
-IEFkZCBzdXBwb3J0IGZvciBQTUlDIE1JUEkgc2VxdWVuY2VzIHVzaW5nIHRoZSBuZXcKPj4gaW50
-ZWxfc29jX3BtaWNfZXhlY19taXBpX3BtaWNfc2VxX2VsZW1lbnQgZnVuY3Rpb24uCj4+Cj4+IFRo
-aXMgZml4ZXMgdGhlIERTSSBMQ0QgcGFuZWwgbm90IGxpZ2h0aW5nIHVwIHdoZW4gbm90IGluaXRp
-YWxpemVkIGJ5IHRoZQo+PiBHT1AgKGJlY2F1c2UgYW4gZXh0ZXJuYWwgbW9uaXRvciB3YXMgY29u
-bmVjdGVkKSBvbiBHUEQgd2luIGFuZCBHUEQgcG9ja2V0Cj4+IGRldmljZXMuCj4+Cj4+IFNwZWNp
-ZmljYWxseSB0aGUgTENEIHBhbmVsIHNlZW1zIHRvIG5lZWQgR1BJTyBwaW4gOSBvbiB0aGUgUE1J
-QyB0byBiZQo+PiBkcml2ZW4gaGlnaCwgd2hpY2ggaXMgZG9uZSB0aHJvdWdoIGEgUE1JQyBNSVBJ
-IHNlcXVlbmNlLiBCZWZvcmUgdGhpcyBjb21taXQKPj4gaWYgdGhlIHNlcXVlbmNlIHdhcyBub3Qg
-ZXhlY3V0ZWQgYnkgdGhlIEdPUCB0aGUgcGluIHdvdWxkIHN0YXkgbG93IGNhdXNpbmcKPj4gdGhl
-IExDRCBwYW5lbCB0byBub3Qgd29yay4gSGF2aW5nIHRoZSBNSVBJIHNlcXVlbmNlcyBwcm9wZXJs
-eSBjb250cm9sIHRoaXMKPj4gR1BJTyBzaG91bGQgYWxzbyBoZWxwIHNhdmUgc29tZSBwb3dlciB3
-aGVuIHRoZSBwYW5lbCBpcyBvZmYuCj4+Cj4+IENoYW5nZXMgaW4gdjIsIHYzOgo+PiAtT25seSBj
-aGFuZ2VzIHRvIG90aGVyIHBhdGNoZXMgaW4gdGhpcyBwYXRjaC1zZXQKPj4KPj4gQ2hhbmdlcyBp
-biB2NDoKPj4gLU1vdmUgZGVjb2Rpbmcgb2YgdGhlIHJhdyAxNSBieXRlcyBQTUlDIE1JUEkgc2Vx
-dWVuY2UgZWxlbWVudCBpbnRvCj4+ICAgaTJjLWFkZHJlc3MsIHJlZ2lzdGVyLWFkZHJlc3MsIHZh
-bHVlIGFuZCBtYXNrIGludG8gdGhlIG1pcGlfZXhlY19wbWljKCkKPj4gICBmdW5jdGlvbiBpbnN0
-ZWFkIG9mIHBhc3NpbmcgdGhlIHJhdyBkYXRhIHRvCj4+ICAgaW50ZWxfc29jX3BtaWNfZXhlY19t
-aXBpX3BtaWNfc2VxX2VsZW1lbnQoKQo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRl
-IDxoZGVnb2VkZUByZWRoYXQuY29tPgo+IAo+IFJldmlld2VkLWJ5OiBWaWxsZSBTeXJqw6Rsw6Qg
-PHZpbGxlLnN5cmphbGFAbGludXguaW50ZWwuY29tPgoKVGhhbmsgeW91LgoKSSd2ZSBwdXNoZWQg
-dGhpcyBzZXJpZXMgdG8gZHJtLWludGVsLW5leHQtcXVldWVkIG5vdy4KClJlZ2FyZHMsCgpIYW5z
-CgoKCj4gCj4+IC0tLQo+PiAgIGRyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2RzaV92YnQuYyB8
-IDIyICsrKysrKysrKysrKysrKysrKysrKy0KPj4gICAxIGZpbGUgY2hhbmdlZCwgMjEgaW5zZXJ0
-aW9ucygrKSwgMSBkZWxldGlvbigtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9ncHUvZHJt
-L2k5MTUvaW50ZWxfZHNpX3ZidC5jIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaW50ZWxfZHNpX3Zi
-dC5jCj4+IGluZGV4IDNkMWZhMWEwM2E2Ni4uMjQwNjY0ZWYyOTRjIDEwMDY0NAo+PiAtLS0gYS9k
-cml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9kc2lfdmJ0LmMKPj4gKysrIGIvZHJpdmVycy9ncHUv
-ZHJtL2k5MTUvaW50ZWxfZHNpX3ZidC5jCj4+IEBAIC0yOSw5ICsyOSwxMSBAQAo+PiAgICNpbmNs
-dWRlIDxkcm0vZHJtX2VkaWQuaD4KPj4gICAjaW5jbHVkZSA8ZHJtL2k5MTVfZHJtLmg+Cj4+ICAg
-I2luY2x1ZGUgPGxpbnV4L2dwaW8vY29uc3VtZXIuaD4KPj4gKyNpbmNsdWRlIDxsaW51eC9tZmQv
-aW50ZWxfc29jX3BtaWMuaD4KPj4gICAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgo+PiAgICNpbmNs
-dWRlIDx2aWRlby9taXBpX2Rpc3BsYXkuaD4KPj4gICAjaW5jbHVkZSA8YXNtL2ludGVsLW1pZC5o
-Pgo+PiArI2luY2x1ZGUgPGFzbS91bmFsaWduZWQuaD4KPj4gICAjaW5jbHVkZSAiaTkxNV9kcnYu
-aCIKPj4gICAjaW5jbHVkZSAiaW50ZWxfZHJ2LmgiCj4+ICAgI2luY2x1ZGUgImludGVsX2RzaS5o
-Igo+PiBAQCAtMzkyLDcgKzM5NCwyNSBAQCBzdGF0aWMgY29uc3QgdTggKm1pcGlfZXhlY19zcGko
-c3RydWN0IGludGVsX2RzaSAqaW50ZWxfZHNpLCBjb25zdCB1OCAqZGF0YSkKPj4gICAKPj4gICBz
-dGF0aWMgY29uc3QgdTggKm1pcGlfZXhlY19wbWljKHN0cnVjdCBpbnRlbF9kc2kgKmludGVsX2Rz
-aSwgY29uc3QgdTggKmRhdGEpCj4+ICAgewo+PiAtCURSTV9ERUJVR19LTVMoIlNraXBwaW5nIFBN
-SUMgZWxlbWVudCBleGVjdXRpb25cbiIpOwo+PiArI2lmZGVmIENPTkZJR19QTUlDX09QUkVHSU9O
-Cj4+ICsJdTMyIHZhbHVlLCBtYXNrLCByZWdfYWRkcmVzczsKPj4gKwl1MTYgaTJjX2FkZHJlc3M7
-Cj4+ICsJaW50IHJldDsKPj4gKwo+PiArCS8qIGJ5dGUgMCBha2EgUE1JQyBGbGFnIGlzIHJlc2Vy
-dmVkICovCj4+ICsJaTJjX2FkZHJlc3MJPSBnZXRfdW5hbGlnbmVkX2xlMTYoZGF0YSArIDEpOwo+
-PiArCXJlZ19hZGRyZXNzCT0gZ2V0X3VuYWxpZ25lZF9sZTMyKGRhdGEgKyAzKTsKPj4gKwl2YWx1
-ZQkJPSBnZXRfdW5hbGlnbmVkX2xlMzIoZGF0YSArIDcpOwo+PiArCW1hc2sJCT0gZ2V0X3VuYWxp
-Z25lZF9sZTMyKGRhdGEgKyAxMSk7Cj4+ICsKPj4gKwlyZXQgPSBpbnRlbF9zb2NfcG1pY19leGVj
-X21pcGlfcG1pY19zZXFfZWxlbWVudChpMmNfYWRkcmVzcywKPj4gKwkJCQkJCQlyZWdfYWRkcmVz
-cywKPj4gKwkJCQkJCQl2YWx1ZSwgbWFzayk7Cj4+ICsJaWYgKHJldCkKPj4gKwkJRFJNX0VSUk9S
-KCIlcyBmYWlsZWQsIGVycm9yOiAlZFxuIiwgX19mdW5jX18sIHJldCk7Cj4+ICsjZWxzZQo+PiAr
-CURSTV9FUlJPUigiWW91ciBoYXJkd2FyZSByZXF1aXJlcyBDT05GSUdfUE1JQ19PUFJFR0lPTiBh
-bmQgaXQgaXMgbm90IHNldFxuIik7Cj4+ICsjZW5kaWYKPj4gICAKPj4gICAJcmV0dXJuIGRhdGEg
-KyAxNTsKPj4gICB9Cj4+IC0tIAo+PiAyLjIwLjEKPj4KPj4gX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18KPj4gSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdAo+PiBJ
-bnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCj4+IGh0dHBzOi8vbGlzdHMuZnJlZWRlc2t0
-b3Aub3JnL21haWxtYW4vbGlzdGluZm8vaW50ZWwtZ2Z4Cj4gCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCkludGVsLWdmeCBtYWlsaW5nIGxpc3QKSW50ZWwt
-Z2Z4QGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwczovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9t
-YWlsbWFuL2xpc3RpbmZvL2ludGVsLWdmeAo=
+On Wed, Jan 9, 2019 at 3:41 AM Yang, Shunyong
+<shunyong.yang@hxt-semitech.com> wrote:
+>
+> Hi, Rafael,
+>
+> Gentle ping for this patch.
+
+It is in my queue, I'll get to it when the most urgent 5.0-candidate
+fixes have been pushed.
+
+Thanks!
