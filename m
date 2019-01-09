@@ -1,7 +1,7 @@
 From: Keith Busch <keith.busch@intel.com>
-Subject: [PATCHv3 11/13] Documentation/ABI: Add node cache attributes
-Date: Wed,  9 Jan 2019 10:43:39 -0700
-Message-ID: <20190109174341.19818-12-keith.busch@intel.com>
+Subject: [PATCHv3 12/13] acpi/hmat: Register memory side cache attributes
+Date: Wed,  9 Jan 2019 10:43:40 -0700
+Message-ID: <20190109174341.19818-13-keith.busch@intel.com>
 References: <20190109174341.19818-1-keith.busch@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20190109174341.19818-1-keith.busch@intel.com>
@@ -10,54 +10,63 @@ To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>, Keith Busch <keith.busch@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add the attributes for the system memory side caches.
+Register memory side cache attributes with the memory's node if HMAT
+provides the side cache iniformation table.
 
 Signed-off-by: Keith Busch <keith.busch@intel.com>
 ---
- Documentation/ABI/stable/sysfs-devices-node | 34 +++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ drivers/acpi/hmat.c | 32 ++++++++++++++++++++++++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff --git a/Documentation/ABI/stable/sysfs-devices-node b/Documentation/ABI/stable/sysfs-devices-node
-index 74cfc80cabf6..e128464691f0 100644
---- a/Documentation/ABI/stable/sysfs-devices-node
-+++ b/Documentation/ABI/stable/sysfs-devices-node
-@@ -142,3 +142,37 @@ Contact:	Keith Busch <keith.busch@intel.com>
- Description:
- 		This node's write latency in nanosecondss available to memory
- 		initiators in nodes found in this class's initiators_nodelist.
+diff --git a/drivers/acpi/hmat.c b/drivers/acpi/hmat.c
+index 45e20dc677f9..9efdd0a63a79 100644
+--- a/drivers/acpi/hmat.c
++++ b/drivers/acpi/hmat.c
+@@ -206,6 +206,7 @@ static __init int hmat_parse_cache(union acpi_subtable_headers *header,
+ 				   const unsigned long end)
+ {
+ 	struct acpi_hmat_cache *cache = (void *)header;
++	struct node_cache_attrs cache_attrs;
+ 	u32 attrs;
+ 
+ 	if (cache->header.length < sizeof(*cache)) {
+@@ -219,6 +220,37 @@ static __init int hmat_parse_cache(union acpi_subtable_headers *header,
+ 		cache->memory_PD, cache->cache_size, attrs,
+ 		cache->number_of_SMBIOShandles);
+ 
++	cache_attrs.size = cache->cache_size;
++	cache_attrs.level = (attrs & ACPI_HMAT_CACHE_LEVEL) >> 4;
++	cache_attrs.line_size = (attrs & ACPI_HMAT_CACHE_LINE_SIZE) >> 16;
 +
-+What:		/sys/devices/system/node/nodeX/side_cache/indexY/associativity
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The caches associativity: 0 for direct mapped, non-zero if
-+		indexed.
++	switch ((attrs & ACPI_HMAT_CACHE_ASSOCIATIVITY) >> 8) {
++	case ACPI_HMAT_CA_DIRECT_MAPPED:
++		cache_attrs.associativity = NODE_CACHE_DIRECT_MAP;
++		break;
++	case ACPI_HMAT_CA_COMPLEX_CACHE_INDEXING:
++		cache_attrs.associativity = NODE_CACHE_INDEXED;
++		break;
++	case ACPI_HMAT_CA_NONE:
++	default:
++		cache_attrs.associativity = NODE_CACHE_OTHER;
++		break;
++	}
 +
-+What:		/sys/devices/system/node/nodeX/side_cache/indexY/level
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		This cache's level in the memory hierarchy. Matches 'Y' in the
-+		directory name.
++	switch ((attrs & ACPI_HMAT_WRITE_POLICY) >> 12) {
++	case ACPI_HMAT_CP_WB:
++		cache_attrs.write_policy = NODE_CACHE_WRITE_BACK;
++		break;
++	case ACPI_HMAT_CP_WT:
++		cache_attrs.write_policy = NODE_CACHE_WRITE_THROUGH;
++		break;
++	case ACPI_HMAT_CP_NONE:
++	default:
++		cache_attrs.write_policy = NODE_CACHE_WRITE_OTHER;
++		break;
++	}
 +
-+What:		/sys/devices/system/node/nodeX/side_cache/indexY/line_size
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The number of bytes accessed from the next cache level on a
-+		cache miss.
-+
-+What:		/sys/devices/system/node/nodeX/side_cache/indexY/size
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The size of this memory side cache in bytes.
-+
-+What:		/sys/devices/system/node/nodeX/side_cache/indexY/write_policy
-+Date:		December 2018
-+Contact:	Keith Busch <keith.busch@intel.com>
-+Description:
-+		The cache write policy: 0 for write-back, 1 for write-through,
-+		2 for other or unknown.
++	node_add_cache(pxm_to_node(cache->memory_PD), &cache_attrs);
+ 	return 0;
+ }
+ 
 -- 
 2.14.4
