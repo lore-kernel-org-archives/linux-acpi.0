@@ -1,189 +1,58 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [RFT][PATCH v2] gpiolib: acpi: Introduce
-	ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Wed,  9 Jan 2019 12:52:45 +0200
-Message-ID: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v6 05/11] platform/x86: intel_pmc: Make PCI dependency explicit
+Date: Wed, 9 Jan 2019 13:10:45 +0200
+Message-ID: <CAHp75VeKB_4Fc-G_QG0YnSqhAu9w8csASrgrg0cVAo_gYjeJ_g@mail.gmail.com>
+References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-6-okaya@kernel.org>
+ <3184241.VH7flF4h5P@aspire.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3184241.VH7flF4h5P@aspire.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sinan Kaya <okaya@kernel.org>, Andy Shevchenko <andy@infradead.org>, linux-next <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-New quirk enforces search for GPIO based on its type,
-i.e. iterate over GpioIo resources only.
+On Wed, Jan 9, 2019 at 12:48 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> On Saturday, January 5, 2019 11:06:00 AM CET Sinan Kaya wrote:
+> > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+> > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+> > satisfied implicitly through dependencies on CONFIG_ACPI have to be
+> > specified directly. Code relies on PCI for execution. Specify this
+> > in the Kconfig.
+> >
+> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
+> > ---
+> >  drivers/platform/x86/Kconfig | 2 +-
+> >  1 file changed, 1 insertion(+), 1 deletion(-)
+> >
+> > diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
+> > index b36ea14b41ad..7afb96cb1cd6 100644
+> > --- a/drivers/platform/x86/Kconfig
+> > +++ b/drivers/platform/x86/Kconfig
+> > @@ -1174,7 +1174,7 @@ config INTEL_SMARTCONNECT
+> >
+> >  config INTEL_PMC_IPC
+> >       tristate "Intel PMC IPC Driver"
+> > -     depends on ACPI
+> > +     depends on ACPI && PCI
+> >       ---help---
+> >       This driver provides support for PMC control on some Intel platforms.
+> >       The PMC is an ARC processor which defines IPC commands for communication
+>
+> Andy, you had some reservations regarding this patch IIRC.
+>
+> Should I apply it?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
+Let's do it as a quick fix with something like below being added to
+the commit message:
 
-- it was sent few weeks ago to Hans for testing, but better to re-test
-- it's supposed to go via ASoC subsystem due to recent changes made for
-  sound driver
+"For sake of a quick fix this introduces a new mandatory dependency to
+the driver which may survive without it. Otherwise we need to revisit
+the driver architecture to address this properly."
 
-v2:
-- Expand explanation why this quirk might be needed (Mika)
-
- drivers/gpio/gpiolib-acpi.c           | 15 ++++--
- include/linux/acpi.h                  |  7 +++
- sound/soc/intel/boards/bytcr_rt5651.c | 74 ++++-----------------------
- 3 files changed, 27 insertions(+), 69 deletions(-)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 259cf6ab969b..4d291b75cb9f 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -530,17 +530,24 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
- 	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
- 		return 1;
- 
--	if (lookup->n++ == lookup->index && !lookup->desc) {
-+	if (!lookup->desc) {
- 		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
--		int pin_index = lookup->pin_index;
-+		bool gpioint = agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		int pin_index;
- 
-+		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ONLY_GPIOIO && gpioint)
-+			lookup->index++;
-+
-+		if (lookup->n++ != lookup->index)
-+			return 1;
-+
-+		pin_index = lookup->pin_index;
- 		if (pin_index >= agpio->pin_table_length)
- 			return 1;
- 
- 		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
- 					      agpio->pin_table[pin_index]);
--		lookup->info.gpioint =
--			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		lookup->info.gpioint = gpioint;
- 
- 		/*
- 		 * Polarity and triggering are only specified for GpioInt
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 1e89c688139f..430fd0b6df7b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1020,6 +1020,13 @@ struct acpi_gpio_mapping {
- 
- /* Ignore IoRestriction field */
- #define ACPI_GPIO_QUIRK_NO_IO_RESTRICTION	BIT(0)
-+/*
-+ * When ACPI GPIO mapping table is in use the index parameter inside it
-+ * refers to the GPIO resource in _CRS method. That index has no
-+ * distinction of actual type of the resource. When consumer wants to
-+ * get GpioIo type explicitly, this quirk may be used.
-+ */
-+#define ACPI_GPIO_QUIRK_ONLY_GPIOIO		BIT(1)
- 
- 	unsigned int quirks;
- };
-diff --git a/sound/soc/intel/boards/bytcr_rt5651.c b/sound/soc/intel/boards/bytcr_rt5651.c
-index b618d984e2d5..99d0c01a1bec 100644
---- a/sound/soc/intel/boards/bytcr_rt5651.c
-+++ b/sound/soc/intel/boards/bytcr_rt5651.c
-@@ -844,74 +844,18 @@ static const struct x86_cpu_id cherrytrail_cpu_ids[] = {
- 	{}
- };
- 
--static const struct acpi_gpio_params first_gpio = { 0, 0, false };
--static const struct acpi_gpio_params second_gpio = { 1, 0, false };
-+static const struct acpi_gpio_params ext_amp_enable_gpios = { 0, 0, false };
- 
--static const struct acpi_gpio_mapping byt_rt5651_amp_en_first[] = {
--	{ "ext-amp-enable-gpios", &first_gpio, 1 },
--	{ },
--};
--
--static const struct acpi_gpio_mapping byt_rt5651_amp_en_second[] = {
--	{ "ext-amp-enable-gpios", &second_gpio, 1 },
-+static const struct acpi_gpio_mapping cht_rt5651_gpios[] = {
-+	/*
-+	 * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources,
-+	 * other boards may  have I2cSerialBusV2, GpioInt, GpioIo instead.
-+	 * We want the GpioIo one for the ext-amp-enable-gpio.
-+	 */
-+	{ "ext-amp-enable-gpios", &ext_amp_enable_gpios, 1, ACPI_GPIO_QUIRK_ONLY_GPIOIO },
- 	{ },
- };
- 
--/*
-- * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources, other
-- * boards may  have I2cSerialBusV2, GpioInt, GpioIo instead. We want the
-- * GpioIo one for the ext-amp-enable-gpio and both count for the index in
-- * acpi_gpio_params index.  So we have 2 different mappings and the code
-- * below figures out which one to use.
-- */
--struct byt_rt5651_acpi_resource_data {
--	int gpio_count;
--	int gpio_int_idx;
--};
--
--static int snd_byt_rt5651_acpi_resource(struct acpi_resource *ares, void *arg)
--{
--	struct byt_rt5651_acpi_resource_data *data = arg;
--
--	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
--		return 0;
--
--	if (ares->data.gpio.connection_type == ACPI_RESOURCE_GPIO_TYPE_INT)
--		data->gpio_int_idx = data->gpio_count;
--
--	data->gpio_count++;
--	return 0;
--}
--
--static void snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(struct device *codec)
--{
--	struct byt_rt5651_acpi_resource_data data = { 0, -1 };
--	LIST_HEAD(resources);
--	int ret;
--
--	ret = acpi_dev_get_resources(ACPI_COMPANION(codec), &resources,
--				     snd_byt_rt5651_acpi_resource, &data);
--	if (ret < 0) {
--		dev_warn(codec, "Failed to get ACPI resources, not adding external amplifier GPIO mapping\n");
--		return;
--	}
--
--	/* All info we need is gathered during the walk */
--	acpi_dev_free_resource_list(&resources);
--
--	switch (data.gpio_int_idx) {
--	case 0:
--		byt_rt5651_gpios = byt_rt5651_amp_en_second;
--		break;
--	case 1:
--		byt_rt5651_gpios = byt_rt5651_amp_en_first;
--		break;
--	default:
--		dev_warn(codec, "Unknown GpioInt index %d, not adding external amplifier GPIO mapping\n",
--			 data.gpio_int_idx);
--	}
--}
--
- struct acpi_chan_package {   /* ACPICA seems to require 64 bit integers */
- 	u64 aif_value;       /* 1: AIF1, 2: AIF2 */
- 	u64 mclock_value;    /* usually 25MHz (0x17d7940), ignored */
-@@ -1037,7 +981,7 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
- 
- 	/* Cherry Trail devices use an external amplifier enable gpio */
- 	if (x86_match_cpu(cherrytrail_cpu_ids) && !byt_rt5651_gpios)
--		snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(codec_dev);
-+		byt_rt5651_gpios = cht_rt5651_gpios;
- 
- 	if (byt_rt5651_gpios) {
- 		devm_acpi_dev_add_driver_gpios(codec_dev, byt_rt5651_gpios);
 -- 
-2.20.1
+With Best Regards,
+Andy Shevchenko
