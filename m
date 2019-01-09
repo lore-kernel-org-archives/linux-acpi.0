@@ -1,24 +1,88 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFT][PATCH v1] gpiolib: acpi: Introduce
- ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Wed, 9 Jan 2019 11:20:58 +0200
-Message-ID: <20190109092058.GD2469@lahna.fi.intel.com>
-References: <20190108180205.55109-1-andriy.shevchenko@linux.intel.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v6 3/4] ACPI / PMIC: Add generic
+ intel_soc_pmic_exec_mipi_pmic_seq_element handling
+Date: Wed, 9 Jan 2019 10:26:57 +0100
+Message-ID: <de4f20d6-aaba-967a-c2d5-063fbd57165f@redhat.com>
+References: <20190107111556.4510-1-hdegoede@redhat.com>
+ <20190107111556.4510-4-hdegoede@redhat.com>
+ <20190107154616.GQ9170@smile.fi.intel.com>
+ <14fa653e-a7c2-a1cf-ebc2-c1b65f0e26ec@redhat.com>
+ <20190108145119.GC9170@smile.fi.intel.com>
+ <ed2fda33-3728-8585-e56d-7857d9217cc0@redhat.com>
+ <20190108173344.GE9170@smile.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190108180205.55109-1-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <20190108173344.GE9170@smile.fi.intel.com>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <https://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <https://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org
+Cc: intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Rodrigo Vivi <rodrigo.vivi@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 08, 2019 at 08:02:05PM +0200, Andy Shevchenko wrote:
-> New quirk enforces search for GPIO based on its type.
-> Note, supplied index in the mapping table must be 0.
-
-Can you document this where you define the new flag so new users do not
-need go through git history?
-
-Otherwise looks good. :)
+SGksCgpPbiAwOC0wMS0xOSAxODozMywgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+IE9uIFR1ZSwg
+SmFuIDA4LCAyMDE5IGF0IDA0OjM1OjQ1UE0gKzAxMDAsIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+
+IEhpLAo+Pgo+PiBPbiAwOC0wMS0xOSAxNTo1MSwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+Pj4g
+T24gVHVlLCBKYW4gMDgsIDIwMTkgYXQgMDI6NDU6MzlQTSArMDEwMCwgSGFucyBkZSBHb2VkZSB3
+cm90ZToKPj4+PiBPbiAwNy0wMS0xOSAxNjo0NiwgQW5keSBTaGV2Y2hlbmtvIHdyb3RlOgo+Pj4+
+PiBPbiBNb24sIEphbiAwNywgMjAxOSBhdCAxMjoxNTo1NVBNICswMTAwLCBIYW5zIGRlIEdvZWRl
+IHdyb3RlOgo+Pj4KPj4+Pj4+ICsJfSBlbHNlIGlmIChkLT5wbWljX2kyY19hZGRyZXNzKSB7Cj4+
+Pj4+PiArCQlpZiAoaTJjX2FkZHJlc3MgPT0gZC0+cG1pY19pMmNfYWRkcmVzcykgewo+Pj4+Pj4g
+KwkJCXJldCA9IHJlZ21hcF91cGRhdGVfYml0cyhpbnRlbF9wbWljX29wcmVnaW9uLT5yZWdtYXAs
+Cj4+Pj4+PiArCQkJCQkJIHJlZ19hZGRyZXNzLCBtYXNrLCB2YWx1ZSk7Cj4+Pj4+PiArCQl9IGVs
+c2Ugewo+Pj4+Pj4gKwkJCXByX2VycigiJXM6IFVuZXhwZWN0ZWQgaTJjLWFkZHI6IDB4JTAyeCAo
+cmVnLWFkZHIgMHgleCB2YWx1ZSAweCV4IG1hc2sgMHgleClcbiIsCj4+Pj4+PiArCQkJICAgICAg
+IF9fZnVuY19fLCBpMmNfYWRkcmVzcywgcmVnX2FkZHJlc3MsIHZhbHVlLCBtYXNrKTsKPj4+Pj4+
+ICsJCQlyZXQgPSAtRU5YSU87Cj4+Pj4+PiArCQl9Cj4+Pj4+Cj4+Pj4+PiAtLS0gYS9kcml2ZXJz
+L2FjcGkvcG1pYy9pbnRlbF9wbWljX3hwb3dlci5jCj4+Pj4+PiArKysgYi9kcml2ZXJzL2FjcGkv
+cG1pYy9pbnRlbF9wbWljX3hwb3dlci5jCj4+Pj4+PiArCS5wbWljX2kyY19hZGRyZXNzID0gMHgz
+NCwKPj4+Pj4KPj4+Pj4gQ2FuIHdlIGp1c3QgaGF2ZSBhIGhvb2sgaGVyZSBpbnN0ZWFkIG9mIGV4
+cG9zaW5nIFBNSUMgSTJDIGFkZHJlc3M/Cj4+Pj4+IEFtIEkgbWlzc2luZyBzb21ldGhpbmcgaW4g
+Y2FzZSBpdCdzIG5vdCBwb3NzaWJsZT8KPj4+Pgo+Pj4+IFdlIGFscmVhZHkgaGF2ZSBhIGhvb2ss
+IGJ1dCBpdCBpc24ndCByZWFsbHkgbmVjZXNzYXJ5IHRvIGltcGxlbWVudAo+Pj4+IHRoYXQgZm9y
+IGVhY2ggbW9kZWwgUE1JQy4gVGhlIE1GRCBkZXZpY2Ugd2hpY2ggaXMgdGhlIFBNSUMncyBwYXJl
+bnQKPj4+PiBpbiBtb3N0IGNhc2VzIHdpbGwgZ2l2ZSB1cyBhIHJlZ21hcCB0byBhY2Nlc3MgdGhl
+IFBNSUMgcmVnaXN0ZXJzIGFuZAo+Pj4+IHRoYXQgYWxsb3dzIHVzIHRvIGRvIGEgZ2VuZXJpYyBp
+bXBsZW1lbnRhdGlvbi4KPj4+Pgo+Pj4+IEJ1dCB0aGUgTUlQSSBQTUlDIHNlcXVlbmNlIGluY2x1
+ZGVzIGFuIGkyYy1hZGRyZXNzIGFzIHNvbWUgUE1JQ3MKPj4+PiBzcGFuIG11bHRpcGxlIGkyYy1h
+ZGRyZXNzZXMuIEZvciB0aGUgc2ltcGxlIHNpbmdsZSBpMmMtYWRkcmVzcyBjYXNlCj4+Pj4gdGhl
+IHJlZ21hcCBnaXZlcyB1cyBhY2Nlc3MgdG8gdGhlIHJlZ2lzdGVycyBiZWhpbmQgdGhhdCBzaW5n
+bGUgYWRkcmVzcwo+Pj4+IGFuZCB3ZSBjYW4gdXNlIGEgZ2VuZXJpYyBzb2x1dGlvbi4gSW4gdGhp
+cyBjYXNlIHdlIHNob3VsZCB2ZXJpZnkgdGhlCj4+Pj4gaTJjLWFkZHIgaXMgd2hhdCB3ZSBleHBl
+Y3QsIHdoaWNoIGlzIHdoZXJlIHRoZSBwbWljX2kyY19hZGRyZXNzIGNvbWVzIGluLgo+Pj4KPj4+
+IEJ1dCB3ZSBhbHNvIGNhbiBoYXZlIGEgZ2VuZXJpYyBob29rIGluIGludGVsX3BtaWMuYyBhbmQg
+YXNzaWduIGl0IHdoZW5ldmVyCj4+PiBpdCdzIHRoZSBjYXNlPwo+Pgo+PiBXZSBjb3VsZCwgYnV0
+IHRoZW4gd2Ugc3RpbGwgbmVlZCB0aGUgcG1pY19pMmNfYWRkcmVzcyBtZW1iZXIgYW5kIG5vdyB0
+aGUKPj4gaG9vayB3b3VsZCBuZWVkIHRvIHBhc3NlZCBib3RoIHRoZSByZWdtYXAgYW5kIHRoZSBp
+bnRlbF9wbWljX29wcmVnaW9uX2RhdGEKPj4gcG9pbnRlciBzbyB0aGF0IGl0IGNhbiB2ZXJpZnkg
+dGhlIGkyYyBhZGRyZXNzIHNvIGhhbmRsaW5nIHRoZSBnZW5lcmljIGNhc2UKPj4gZGlyZWN0bHkg
+aW5zaWRlIGludGVsX3NvY19wbWljX2V4ZWNfbWlwaV9wbWljX3NlcV9lbGVtZW50IGlzIGVhc2ll
+ci4KPiAKPiBJIHNlZS4KPiAKPiBPbmUgbW9yZSBxdWVzdGlvbiwgY2FuIHdlIHVuaWZ5IHNvbWVo
+b3cgZXJyb3IgbWVzc2FnZXMgYW5kIGRvIHNvbWV0aGluZyBsaWtlCj4gCj4gaWYgKC4uLikgewo+
+IAkuLi4KPiB9IGVsc2UgaWYgKHBtaWNfaTJjX2FkZHJlc3MgJiYgaTJjX2FkZHJlc3MgPT0gcG1p
+Y19pMmNfYWRkcmVzcykgewo+IAlyZXQgPSByZWdtYXBfdXBkYXRlX2JpdHMoLi4uKTsKPiB9IGVs
+c2Ugewo+IAkuLi4KPiB9CgpJIGNhbiB1bmRlcnN0YW5kIHdoZXJlIHlvdSBhcmUgY29taW5nIGZy
+b20gd2l0aCB0aGlzIHJlcXVlc3QgYnV0IEkgd291bGQKcHJlZmVyIHRvIGtlZXAgdGhlIG1lc3Nh
+Z2VzIHNlcGFyYXRlLCBtZXJnaW5nIHRoZW0gZG9pbmcgc29tZXRoaW5nIGxpa2UgdGhpczoKCmlm
+ICguLi4pIHsKICAJLi4uCn0gZWxzZSBpZiAocG1pY19pMmNfYWRkcmVzcyAmJiBpMmNfYWRkcmVz
+cyA9PSBwbWljX2kyY19hZGRyZXNzKSB7CiAgCXJldCA9IHJlZ21hcF91cGRhdGVfYml0cyguLi4p
+Owp9IGVsc2UgewogIAkuLi4KfQoKaWYgKHJldCkKCXByX2VycigpCgpXb3VsZCBtZWFuIHRoYXQg
+dGhlIG1lc3NhZ2VzIGJlY29tZSBsZXNzIGNsZWFyIGFuZCB0aGUgdXNlciB3b3VsZCBuZWVkIHRv
+CmdvIGJ5IHRoZSBlcnJvciBjb2RlIHRvIGZpZ3VyZSBvdXQgd2hhdCBpcyBnb2luZyBvbi4gQWxz
+byBjdXJyZW50bHkgb25lCm9mIHRoZSAyIG1lc3NhZ2VzIHRoaXMgd291bGQgbWVyZ2UgaXMgYSBw
+cl9lcnIsIHdoaWxlIHRoZSBvdGhlciBpcyBhIHByX3dhcm4uCgpJIGhvcGUgdGhhdCB0aGUgY2xl
+YXIgZXJyb3IgbWVzc2FnZXMgbGVhZCB0byBjbGVhciBidWcgcmVwb3J0cyAob3IgaGVscAp0aGUg
+dXNlciBvdmVyIHRoZSB0aHJlc2hvbGQgdG8gcmVwb3J0IGEgYnVnIGF0IGFsbCB3aGVuIHRoZXkg
+YXJlIGhpdCkuCgpSZWdhcmRzLAoKSGFucwoKCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cHM6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pbnRlbC1nZngK
