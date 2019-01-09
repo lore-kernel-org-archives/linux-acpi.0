@@ -1,58 +1,127 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v6 05/11] platform/x86: intel_pmc: Make PCI dependency explicit
-Date: Wed, 9 Jan 2019 13:10:45 +0200
-Message-ID: <CAHp75VeKB_4Fc-G_QG0YnSqhAu9w8csASrgrg0cVAo_gYjeJ_g@mail.gmail.com>
-References: <20190105100606.6673-1-okaya@kernel.org> <20190105100606.6673-6-okaya@kernel.org>
- <3184241.VH7flF4h5P@aspire.rjw.lan>
+From: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v3 0/5] kvm "virtio pmem" device
+Date: Wed,  9 Jan 2019 19:20:19 +0530
+Message-ID: <20190109135024.14093-1-pagupta@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3184241.VH7flF4h5P@aspire.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sinan Kaya <okaya@kernel.org>, Andy Shevchenko <andy@infradead.org>, linux-next <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, "open list:X86 PLATFORM DRIVERS" <platform-driver-x86@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: jack-AlSwsSmVLrQ@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 9, 2019 at 12:48 PM Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> On Saturday, January 5, 2019 11:06:00 AM CET Sinan Kaya wrote:
-> > After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
-> > CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
-> > satisfied implicitly through dependencies on CONFIG_ACPI have to be
-> > specified directly. Code relies on PCI for execution. Specify this
-> > in the Kconfig.
-> >
-> > Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
-> > Signed-off-by: Sinan Kaya <okaya@kernel.org>
-> > ---
-> >  drivers/platform/x86/Kconfig | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/drivers/platform/x86/Kconfig b/drivers/platform/x86/Kconfig
-> > index b36ea14b41ad..7afb96cb1cd6 100644
-> > --- a/drivers/platform/x86/Kconfig
-> > +++ b/drivers/platform/x86/Kconfig
-> > @@ -1174,7 +1174,7 @@ config INTEL_SMARTCONNECT
-> >
-> >  config INTEL_PMC_IPC
-> >       tristate "Intel PMC IPC Driver"
-> > -     depends on ACPI
-> > +     depends on ACPI && PCI
-> >       ---help---
-> >       This driver provides support for PMC control on some Intel platforms.
-> >       The PMC is an ARC processor which defines IPC commands for communication
->
-> Andy, you had some reservations regarding this patch IIRC.
->
-> Should I apply it?
-
-Let's do it as a quick fix with something like below being added to
-the commit message:
-
-"For sake of a quick fix this introduces a new mandatory dependency to
-the driver which may survive without it. Otherwise we need to revisit
-the driver architecture to address this properly."
-
--- 
-With Best Regards,
-Andy Shevchenko
+IFRoaXMgcGF0Y2ggc2VyaWVzIGhhcyBpbXBsZW1lbnRhdGlvbiBmb3IgInZpcnRpbyBwbWVtIi4g
+CiAidmlydGlvIHBtZW0iIGlzIGZha2UgcGVyc2lzdGVudCBtZW1vcnkobnZkaW1tKSBpbiBndWVz
+dCAKIHdoaWNoIGFsbG93cyB0byBieXBhc3MgdGhlIGd1ZXN0IHBhZ2UgY2FjaGUuIFRoaXMgYWxz
+bwogaW1wbGVtZW50cyBhIFZJUlRJTyBiYXNlZCBhc3luY2hyb25vdXMgZmx1c2ggbWVjaGFuaXNt
+LiAgCiAKIFNoYXJpbmcgZ3Vlc3Qga2VybmVsIGRyaXZlciBpbiB0aGlzIHBhdGNoc2V0IHdpdGgg
+dGhlIAogY2hhbmdlcyBzdWdnZXN0ZWQgaW4gdjIuIFRlc3RlZCB3aXRoIFFlbXUgc2lkZSBkZXZp
+Y2UgCiBlbXVsYXRpb24gZm9yIHZpcnRpby1wbWVtIFs2XS4gCiAKIERldGFpbHMgb2YgcHJvamVj
+dCBpZGVhIGZvciAndmlydGlvIHBtZW0nIGZsdXNoaW5nIGludGVyZmFjZSAKIGlzIHNoYXJlZCBb
+M10gJiBbNF0uCgogSW1wbGVtZW50YXRpb24gaXMgZGl2aWRlZCBpbnRvIHR3byBwYXJ0czoKIE5l
+dyB2aXJ0aW8gcG1lbSBndWVzdCBkcml2ZXIgYW5kIHFlbXUgY29kZSBjaGFuZ2VzIGZvciBuZXcg
+CiB2aXJ0aW8gcG1lbSBwYXJhdmlydHVhbGl6ZWQgZGV2aWNlLgoKMS4gR3Vlc3QgdmlydGlvLXBt
+ZW0ga2VybmVsIGRyaXZlcgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KICAgLSBS
+ZWFkcyBwZXJzaXN0ZW50IG1lbW9yeSByYW5nZSBmcm9tIHBhcmF2aXJ0IGRldmljZSBhbmQgCiAg
+ICAgcmVnaXN0ZXJzIHdpdGggJ252ZGltbV9idXMnLiAgCiAgIC0gJ252ZGltbS9wbWVtJyBkcml2
+ZXIgdXNlcyB0aGlzIGluZm9ybWF0aW9uIHRvIGFsbG9jYXRlIAogICAgIHBlcnNpc3RlbnQgbWVt
+b3J5IHJlZ2lvbiBhbmQgc2V0dXAgZmlsZXN5c3RlbSBvcGVyYXRpb25zIAogICAgIHRvIHRoZSBh
+bGxvY2F0ZWQgbWVtb3J5LiAKICAgLSB2aXJ0aW8gcG1lbSBkcml2ZXIgaW1wbGVtZW50cyBhc3lu
+Y2hyb25vdXMgZmx1c2hpbmcgCiAgICAgaW50ZXJmYWNlIHRvIGZsdXNoIGZyb20gZ3Vlc3QgdG8g
+aG9zdC4KCjIuIFFlbXUgdmlydGlvLXBtZW0gZGV2aWNlCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLQogICAtIENyZWF0ZXMgdmlydGlvIHBtZW0gZGV2aWNlIGFuZCBleHBvc2VzIGEg
+bWVtb3J5IHJhbmdlIHRvIAogICAgIEtWTSBndWVzdC4gCiAgIC0gQXQgaG9zdCBzaWRlIHRoaXMg
+aXMgZmlsZSBiYWNrZWQgbWVtb3J5IHdoaWNoIGFjdHMgYXMgCiAgICAgcGVyc2lzdGVudCBtZW1v
+cnkuIAogICAtIFFlbXUgc2lkZSBmbHVzaCB1c2VzIGFpbyB0aHJlYWQgcG9vbCBBUEkncyBhbmQg
+dmlydGlvIAogICAgIGZvciBhc3luY2hyb25vdXMgZ3Vlc3QgbXVsdGkgcmVxdWVzdCBoYW5kbGlu
+Zy4gCgogICBEYXZpZCBIaWxkZW5icmFuZCBDQ2VkIGFsc28gcG9zdGVkIGEgbW9kaWZpZWQgdmVy
+c2lvbls2XSBvZiAKICAgcWVtdSB2aXJ0aW8tcG1lbSBjb2RlIGJhc2VkIG9uIHVwZGF0ZWQgUWVt
+dSBtZW1vcnkgZGV2aWNlIEFQSS4gCgogVmlydGlvLXBtZW0gZXJyb3JzIGhhbmRsaW5nOgogLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogIENoZWNrZWQgYmVoYXZpb3Vy
+IG9mIHZpcnRpby1wbWVtIGZvciBiZWxvdyB0eXBlcyBvZiBlcnJvcnMKICBOZWVkIHN1Z2dlc3Rp
+b25zIG9uIGV4cGVjdGVkIGJlaGF2aW91ciBmb3IgaGFuZGxpbmcgdGhlc2UgZXJyb3JzPwoKICAt
+IEhhcmR3YXJlIEVycm9yczogVW5jb3JyZWN0YWJsZSByZWNvdmVyYWJsZSBFcnJvcnM6IAogIGFd
+IHZpcnRpby1wbWVtOiAKICAgIC0gQXMgcGVyIGN1cnJlbnQgbG9naWMgaWYgZXJyb3IgcGFnZSBi
+ZWxvbmdzIHRvIFFlbXUgcHJvY2VzcywgCiAgICAgIGhvc3QgTUNFIGhhbmRsZXIgaXNvbGF0ZXMo
+aHdwb2lzb24pIHRoYXQgcGFnZSBhbmQgc2VuZCBTSUdCVVMuIAogICAgICBRZW11IFNJR0JVUyBo
+YW5kbGVyIGluamVjdHMgZXhjZXB0aW9uIHRvIEtWTSBndWVzdC4gCiAgICAtIEtWTSBndWVzdCB0
+aGVuIGlzb2xhdGVzIHRoZSBwYWdlIGFuZCBzZW5kIFNJR0JVUyB0byBndWVzdCAKICAgICAgdXNl
+cnNwYWNlIHByb2Nlc3Mgd2hpY2ggaGFzIG1hcHBlZCB0aGUgcGFnZS4gCiAgCiAgYl0gRXhpc3Rp
+bmcgaW1wbGVtZW50YXRpb24gZm9yIEFDUEkgcG1lbSBkcml2ZXI6IAogICAgLSBIYW5kbGVzIHN1
+Y2ggZXJyb3JzIHdpdGggTUNFIG5vdGlmaWVyIGFuZCBjcmVhdGVzIGEgbGlzdCAKICAgICAgb2Yg
+YmFkIGJsb2Nrcy4gUmVhZC9kaXJlY3QgYWNjZXNzIERBWCBvcGVyYXRpb24gcmV0dXJuIEVJTyAK
+ICAgICAgaWYgYWNjZXNzZWQgbWVtb3J5IHBhZ2UgZmFsbCBpbiBiYWQgYmxvY2sgbGlzdC4KICAg
+IC0gSXQgYWxzbyBzdGFydHMgYmFja2dvdW5kIHNjcnViYmluZy4gIAogICAgLSBTaW1pbGFyIGZ1
+bmN0aW9uYWxpdHkgY2FuIGJlIHJldXNlZCBpbiB2aXJ0aW8tcG1lbSB3aXRoIE1DRSAKICAgICAg
+bm90aWZpZXIgYnV0IHdpdGhvdXQgc2NydWJiaW5nKG5vIEFDUEkvQVJTKT8gTmVlZCBpbnB1dHMg
+dG8gCiAgICAgIGNvbmZpcm0gaWYgdGhpcyBiZWhhdmlvdXIgaXMgb2sgb3IgbmVlZHMgYW55IGNo
+YW5nZT8KCkNoYW5nZXMgZnJvbSBQQVRDSCB2MjogWzFdCi0gRGlzYWJsZSBNQVBfU1lOQyBmb3Ig
+ZXh0NCAmIFhGUyBmaWxlc3lzdGVtcyAtIFtEYW5dIAotIFVzZSBuYW1lICd2aXJ0aW8gcG1lbScg
+aW4gcGxhY2Ugb2YgJ2Zha2UgZGF4JyAKCkNoYW5nZXMgZnJvbSBQQVRDSCB2MTogWzJdCi0gMC1k
+YXkgYnVpbGQgdGVzdCBmb3IgYnVpbGQgZGVwZW5kZW5jeSBvbiBsaWJudmRpbW0gCgogQ2hhbmdl
+cyBzdWdnZXN0ZWQgYnkgLSBbRGFuIFdpbGxpYW1zXQotIFNwbGl0IHRoZSBkcml2ZXIgaW50byB0
+d28gcGFydHMgdmlydGlvICYgcG1lbSAgCi0gTW92ZSBxdWV1aW5nIG9mIGFzeW5jIGJsb2NrIHJl
+cXVlc3QgdG8gYmxvY2sgbGF5ZXIKLSBBZGQgInN5bmMiIHBhcmFtZXRlciBpbiBudmRpbW1fZmx1
+c2ggZnVuY3Rpb24KLSBVc2UgaW5kaXJlY3QgY2FsbCBmb3IgbnZkaW1tX2ZsdXNoCi0gRG9u4oCZ
+dCBtb3ZlIGRlY2xhcmF0aW9ucyB0byBjb21tb24gZ2xvYmFsIGhlYWRlciBlLmcgbmQuaAotIG52
+ZGltbV9mbHVzaCgpIHJldHVybiAwIG9yIC1FSU8gaWYgaXQgZmFpbHMKLSBUZWFjaCBuc2lvX3J3
+X2J5dGVzKCkgdGhhdCB0aGUgZmx1c2ggY2FuIGZhaWwKLSBSZW5hbWUgbnZkaW1tX2ZsdXNoKCkg
+dG8gZ2VuZXJpY19udmRpbW1fZmx1c2goKQotIFVzZSAnbmRfcmVnaW9uLT5wcm92aWRlcl9kYXRh
+JyBmb3IgbG9uZyBkZXJlZmVyZW5jaW5nCi0gUmVtb3ZlIHZpcnRpb19wbWVtX2ZyZWV6ZS9yZXN0
+b3JlIGZ1bmN0aW9ucwotIFJlbW92ZSBCU0QgbGljZW5zZSB0ZXh0IHdpdGggU1BEWCBsaWNlbnNl
+IHRleHQKCi0gQWRkIG1pZ2h0X3NsZWVwKCkgaW4gdmlydGlvX3BtZW1fZmx1c2ggLSBbTHVpel0K
+LSBNYWtlIHNwaW5fbG9ja19pcnFzYXZlKCkgbmFycm93CgpDaGFuZ2VzIGZyb20gUkZDIHYzCi0g
+UmViYXNlIHRvIGxhdGVzdCB1cHN0cmVhbSAtIEx1aXoKLSBDYWxsIG5kcmVnaW9uLT5mbHVzaCBp
+biBwbGFjZSBvZiBudmRpbW1fZmx1c2gtIEx1aXoKLSBrbWFsbG9jIHJldHVybiBjaGVjayAtIEx1
+aXoKLSB2aXJ0cXVldWUgZnVsbCBoYW5kbGluZyAtIFN0ZWZhbgotIERvbid0IG1hcCBlbnRpcmUg
+dmlydGlvX3BtZW1fcmVxIHRvIGRldmljZSAtIFN0ZWZhbgotIHJlcXVlc3QgbGVhaywgY29ycmVj
+dCBzaXplb2YgcmVxLSBTdGVmYW4KLSBNb3ZlIGRlY2xhcmF0aW9uIHRvIHZpcnRpb19wbWVtLmMK
+CkNoYW5nZXMgZnJvbSBSRkMgdjI6Ci0gQWRkIGZsdXNoIGZ1bmN0aW9uIGluIHRoZSBuZF9yZWdp
+b24gaW4gcGxhY2Ugb2Ygc3dpdGNoaW5nCiAgb24gYSBmbGFnIC0gRGFuICYgU3RlZmFuCi0gQWRk
+IGZsdXNoIGNvbXBsZXRpb24gZnVuY3Rpb24gd2l0aCBwcm9wZXIgbG9ja2luZyBhbmQgd2FpdAog
+IGZvciBob3N0IHNpZGUgZmx1c2ggY29tcGxldGlvbiAtIFN0ZWZhbiAmIERhbgotIEtlZXAgdXNl
+cnNwYWNlIEFQSSBpbiB1YXBpIGhlYWRlciBmaWxlIC0gU3RlZmFuLCBNU1QKLSBVc2UgTEUgZmll
+bGRzICYgTmV3IGRldmljZSBpZCAtIE1TVAotIEluZGVudGF0aW9uICYgc3BhY2luZyBzdWdnZXN0
+aW9ucyAtIE1TVCAmIEVyaWMKLSBSZW1vdmUgZXh0cmEgaGVhZGVyIGZpbGVzICYgYWRkIGxpY2Vu
+c2luZyAtIFN0ZWZhbgoKQ2hhbmdlcyBmcm9tIFJGQyB2MToKLSBSZXVzZSBleGlzdGluZyAncG1l
+bScgY29kZSBmb3IgcmVnaXN0ZXJpbmcgcGVyc2lzdGVudCAKICBtZW1vcnkgYW5kIG90aGVyIG9w
+ZXJhdGlvbnMgaW5zdGVhZCBvZiBjcmVhdGluZyBhbiBlbnRpcmVseSAKICBuZXcgYmxvY2sgZHJp
+dmVyLgotIFVzZSBWSVJUSU8gZHJpdmVyIHRvIHJlZ2lzdGVyIG1lbW9yeSBpbmZvcm1hdGlvbiB3
+aXRoIAogIG52ZGltbV9idXMgYW5kIGNyZWF0ZSByZWdpb25fdHlwZSBhY2NvcmRpbmdseS4gCi0g
+Q2FsbCBWSVJUSU8gZmx1c2ggZnJvbSBleGlzdGluZyBwbWVtIGRyaXZlci4KClBhbmthaiBHdXB0
+YSAoNSk6CiAgIGxpYm52ZGltbTogbmRfcmVnaW9uIGZsdXNoIGNhbGxiYWNrIHN1cHBvcnQKICAg
+dmlydGlvLXBtZW06IEFkZCB2aXJ0aW8tcG1lbSBndWVzdCBkcml2ZXIKICAgbGlibnZkaW1tOiBh
+ZGQgbmRfcmVnaW9uIGJ1ZmZlcmVkIGRheF9kZXYgZmxhZwogICBleHQ0OiBkaXNhYmxlIG1hcF9z
+eW5jIGZvciB2aXJ0aW8gcG1lbQogICB4ZnM6IGRpc2FibGUgbWFwX3N5bmMgZm9yIHZpcnRpbyBw
+bWVtCgpbMl0gaHR0cHM6Ly9sa21sLm9yZy9sa21sLzIwMTgvOC8zMS80MDcKWzNdIGh0dHBzOi8v
+d3d3LnNwaW5pY3MubmV0L2xpc3RzL2t2bS9tc2cxNDk3NjEuaHRtbApbNF0gaHR0cHM6Ly93d3cu
+c3Bpbmljcy5uZXQvbGlzdHMva3ZtL21zZzE1MzA5NS5odG1sICAKWzVdIGh0dHBzOi8vbGttbC5v
+cmcvbGttbC8yMDE4LzgvMzEvNDEzCls2XSBodHRwczovL21hcmMuaW5mby8/bD1xZW11LWRldmVs
+Jm09MTUzNTU1NzIxOTAxODI0Jnc9MgoKIGRyaXZlcnMvYWNwaS9uZml0L2NvcmUuYyAgICAgICAg
+IHwgICAgNCAtCiBkcml2ZXJzL2RheC9zdXBlci5jICAgICAgICAgICAgICB8ICAgMTcgKysrKysK
+IGRyaXZlcnMvbnZkaW1tL2NsYWltLmMgICAgICAgICAgIHwgICAgNiArCiBkcml2ZXJzL252ZGlt
+bS9uZC5oICAgICAgICAgICAgICB8ICAgIDEgCiBkcml2ZXJzL252ZGltbS9wbWVtLmMgICAgICAg
+ICAgICB8ICAgMTUgKysrLQogZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYyAgICAgfCAgIDQ1
+ICsrKysrKysrKysrKystCiBkcml2ZXJzL252ZGltbS92aXJ0aW9fcG1lbS5jICAgICB8ICAgODQg
+KysrKysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvdmlydGlvL0tjb25maWcgICAgICAg
+ICAgIHwgICAxMCArKysKIGRyaXZlcnMvdmlydGlvL01ha2VmaWxlICAgICAgICAgIHwgICAgMSAK
+IGRyaXZlcnMvdmlydGlvL3BtZW0uYyAgICAgICAgICAgIHwgIDEyNSArKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysKIGZzL2V4dDQvZmlsZS5jICAgICAgICAgICAgICAgICAg
+IHwgICAxMSArKysKIGZzL3hmcy94ZnNfZmlsZS5jICAgICAgICAgICAgICAgIHwgICAgOCArKwog
+aW5jbHVkZS9saW51eC9kYXguaCAgICAgICAgICAgICAgfCAgICA5ICsrCiBpbmNsdWRlL2xpbnV4
+L2xpYm52ZGltbS5oICAgICAgICB8ICAgMTEgKysrCiBpbmNsdWRlL2xpbnV4L3ZpcnRpb19wbWVt
+LmggICAgICB8ICAgNjAgKysrKysrKysrKysrKysrKysrCiBpbmNsdWRlL3VhcGkvbGludXgvdmly
+dGlvX2lkcy5oICB8ICAgIDEgCiBpbmNsdWRlL3VhcGkvbGludXgvdmlydGlvX3BtZW0uaCB8ICAg
+MTAgKysrCiAxNyBmaWxlcyBjaGFuZ2VkLCA0MDYgaW5zZXJ0aW9ucygrKSwgMTIgZGVsZXRpb25z
+KC0pCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpMaW51
+eC1udmRpbW0gbWFpbGluZyBsaXN0CkxpbnV4LW52ZGltbUBsaXN0cy4wMS5vcmcKaHR0cHM6Ly9s
+aXN0cy4wMS5vcmcvbWFpbG1hbi9saXN0aW5mby9saW51eC1udmRpbW0K
