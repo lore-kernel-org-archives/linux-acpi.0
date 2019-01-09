@@ -1,170 +1,54 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [RFT][PATCH v1] gpiolib: acpi: Introduce ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Tue,  8 Jan 2019 20:02:05 +0200
-Message-ID: <20190108180205.55109-1-andriy.shevchenko@linux.intel.com>
+From: "Wang, Dongsheng" <dongsheng.wang@hxt-semitech.com>
+Subject: Re: [PATCH v6 09/11] mmc: sdhci-acpi: Make PCI dependency explicit
+Date: Wed, 9 Jan 2019 02:10:08 +0000
+Message-ID: <532b0481985641138516730fe01290d9@HXTBJIDCEMVIW02.hxtcorp.net>
+References: <20190105100606.6673-1-okaya@kernel.org>
+ <20190105100606.6673-10-okaya@kernel.org>
+ <CAJZ5v0gXM3d0uuaQPyeafVS3S1tNbo0gY5TMskpQptNGvmVKzA@mail.gmail.com>
+ <39fa9438-8928-5a1b-2a86-617df39e4c73@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Adrian Hunter <adrian.hunter@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Sinan Kaya <okaya@kernel.org>
+Cc: Linux-Next Mailing List <linux-next@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ulf Hansson <ulf.hansson@linaro.org>, Shawn Lin <shawn.lin@rock-chips.com>, Masahiro Yamada <yamada.masahiro@socionext.com>, Paul Cercueil <paul@crapouillou.net>, Geert Uytterhoeven <geert@linux-m68k.org>, Faiz Abbas <faiz_abbas@ti.com>, Chunyan Zhang <chunyan.zhang@unisoc.com>, Jisheng Zhang <Jisheng.Zhang@synaptics.com>, Ludovic Barre <ludovic.barre@st.com>, Arnd Bergmann <arnd@arndb.de>, Alex Smith <alex.smith@imgtec.com>, Chris Brandt <chris.brandt@renesas.com>, "open list:MULTIMEDIA CARD (MMC), SECURE DIGITAL (SD) AND..." <linux-mmc@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Shah Nehal-Bakulchandra <Nehal-bakulchan>
 List-Id: linux-acpi@vger.kernel.org
 
-New quirk enforces search for GPIO based on its type.
-Note, supplied index in the mapping table must be 0.
+On 2019/1/7 20:43, Adrian Hunter wrote:
+> On 7/01/19 1:17 PM, Rafael J. Wysocki wrote:
+>> On Sat, Jan 5, 2019 at 11:06 AM Sinan Kaya <okaya@kernel.org> wrote:
+>>> After 'commit 5d32a66541c4 ("PCI/ACPI: Allow ACPI to be built without
+>>> CONFIG_PCI set")' dependencies on CONFIG_PCI that previously were
+>>> satisfied implicitly through dependencies on CONFIG_ACPI have to be
+>>> specified directly. This driver relies on IOSF_MBI and IOSF_MBI depends
+>>> on PCI. For this reason, add a direct dependency to CONFIG_PCI here.
+>>>
+>>> Fixes: 5d32a66541c46 ("PCI/ACPI: Allow ACPI to be built without CONFIG_PCI set")
+>>> Signed-off-by: Sinan Kaya <okaya@kernel.org>
+>>> ---
+>>>  drivers/mmc/host/Kconfig | 2 +-
+>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/mmc/host/Kconfig b/drivers/mmc/host/Kconfig
+>>> index e26b8145efb3..1b9401fe94c0 100644
+>>> --- a/drivers/mmc/host/Kconfig
+>>> +++ b/drivers/mmc/host/Kconfig
+>>> @@ -116,7 +116,7 @@ config MMC_RICOH_MMC
+>>>
+>>>  config MMC_SDHCI_ACPI
+>>>         tristate "SDHCI support for ACPI enumerated SDHCI controllers"
+>>> -       depends on MMC_SDHCI && ACPI
+>>> +       depends on MMC_SDHCI && ACPI && PCI
+>>>         select IOSF_MBI if X86
+>>>         help
+>>>           This selects support for ACPI enumerated SDHCI controllers,
+>>> --
+>> Any objections against this one from anyone?
+> + QCOM and AMD contributors
+>
+No issue with QCOM.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-
-- it was sent few weeks ago to Hans for testing, but better to re-test
-- it's supposed to go via ASoC subsystem due to recent changes made for sound driver
-
- drivers/gpio/gpiolib-acpi.c           | 15 ++++--
- include/linux/acpi.h                  |  2 +
- sound/soc/intel/boards/bytcr_rt5651.c | 74 ++++-----------------------
- 3 files changed, 22 insertions(+), 69 deletions(-)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 259cf6ab969b..4d291b75cb9f 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -530,17 +530,24 @@ static int acpi_populate_gpio_lookup(struct acpi_resource *ares, void *data)
- 	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
- 		return 1;
- 
--	if (lookup->n++ == lookup->index && !lookup->desc) {
-+	if (!lookup->desc) {
- 		const struct acpi_resource_gpio *agpio = &ares->data.gpio;
--		int pin_index = lookup->pin_index;
-+		bool gpioint = agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		int pin_index;
- 
-+		if (lookup->info.quirks & ACPI_GPIO_QUIRK_ONLY_GPIOIO && gpioint)
-+			lookup->index++;
-+
-+		if (lookup->n++ != lookup->index)
-+			return 1;
-+
-+		pin_index = lookup->pin_index;
- 		if (pin_index >= agpio->pin_table_length)
- 			return 1;
- 
- 		lookup->desc = acpi_get_gpiod(agpio->resource_source.string_ptr,
- 					      agpio->pin_table[pin_index]);
--		lookup->info.gpioint =
--			agpio->connection_type == ACPI_RESOURCE_GPIO_TYPE_INT;
-+		lookup->info.gpioint = gpioint;
- 
- 		/*
- 		 * Polarity and triggering are only specified for GpioInt
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 1e89c688139f..7af06794e6fd 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -1020,6 +1020,8 @@ struct acpi_gpio_mapping {
- 
- /* Ignore IoRestriction field */
- #define ACPI_GPIO_QUIRK_NO_IO_RESTRICTION	BIT(0)
-+/* Choose one of GpioIo() type */
-+#define ACPI_GPIO_QUIRK_ONLY_GPIOIO		BIT(1)
- 
- 	unsigned int quirks;
- };
-diff --git a/sound/soc/intel/boards/bytcr_rt5651.c b/sound/soc/intel/boards/bytcr_rt5651.c
-index b618d984e2d5..5bfbbdc2a62a 100644
---- a/sound/soc/intel/boards/bytcr_rt5651.c
-+++ b/sound/soc/intel/boards/bytcr_rt5651.c
-@@ -844,74 +844,18 @@ static const struct x86_cpu_id cherrytrail_cpu_ids[] = {
- 	{}
- };
- 
--static const struct acpi_gpio_params first_gpio = { 0, 0, false };
--static const struct acpi_gpio_params second_gpio = { 1, 0, false };
-+static const struct acpi_gpio_params ext_amp_enable_gpios = { 0, 0, false };
- 
--static const struct acpi_gpio_mapping byt_rt5651_amp_en_first[] = {
--	{ "ext-amp-enable-gpios", &first_gpio, 1 },
--	{ },
--};
--
--static const struct acpi_gpio_mapping byt_rt5651_amp_en_second[] = {
--	{ "ext-amp-enable-gpios", &second_gpio, 1 },
-+static const struct acpi_gpio_mapping cht_rt5651_gpios[] = {
-+	/*
-+	 * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources, other
-+	 * boards may  have I2cSerialBusV2, GpioInt, GpioIo instead. We want the
-+	 * GpioIo one for the ext-amp-enable-gpio. That's why quirk is enabled.
-+	 */
-+	{ "ext-amp-enable-gpios", &ext_amp_enable_gpios, 1, ACPI_GPIO_QUIRK_ONLY_GPIOIO },
- 	{ },
- };
- 
--/*
-- * Some boards have I2cSerialBusV2, GpioIo, GpioInt as ACPI resources, other
-- * boards may  have I2cSerialBusV2, GpioInt, GpioIo instead. We want the
-- * GpioIo one for the ext-amp-enable-gpio and both count for the index in
-- * acpi_gpio_params index.  So we have 2 different mappings and the code
-- * below figures out which one to use.
-- */
--struct byt_rt5651_acpi_resource_data {
--	int gpio_count;
--	int gpio_int_idx;
--};
--
--static int snd_byt_rt5651_acpi_resource(struct acpi_resource *ares, void *arg)
--{
--	struct byt_rt5651_acpi_resource_data *data = arg;
--
--	if (ares->type != ACPI_RESOURCE_TYPE_GPIO)
--		return 0;
--
--	if (ares->data.gpio.connection_type == ACPI_RESOURCE_GPIO_TYPE_INT)
--		data->gpio_int_idx = data->gpio_count;
--
--	data->gpio_count++;
--	return 0;
--}
--
--static void snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(struct device *codec)
--{
--	struct byt_rt5651_acpi_resource_data data = { 0, -1 };
--	LIST_HEAD(resources);
--	int ret;
--
--	ret = acpi_dev_get_resources(ACPI_COMPANION(codec), &resources,
--				     snd_byt_rt5651_acpi_resource, &data);
--	if (ret < 0) {
--		dev_warn(codec, "Failed to get ACPI resources, not adding external amplifier GPIO mapping\n");
--		return;
--	}
--
--	/* All info we need is gathered during the walk */
--	acpi_dev_free_resource_list(&resources);
--
--	switch (data.gpio_int_idx) {
--	case 0:
--		byt_rt5651_gpios = byt_rt5651_amp_en_second;
--		break;
--	case 1:
--		byt_rt5651_gpios = byt_rt5651_amp_en_first;
--		break;
--	default:
--		dev_warn(codec, "Unknown GpioInt index %d, not adding external amplifier GPIO mapping\n",
--			 data.gpio_int_idx);
--	}
--}
--
- struct acpi_chan_package {   /* ACPICA seems to require 64 bit integers */
- 	u64 aif_value;       /* 1: AIF1, 2: AIF2 */
- 	u64 mclock_value;    /* usually 25MHz (0x17d7940), ignored */
-@@ -1037,7 +981,7 @@ static int snd_byt_rt5651_mc_probe(struct platform_device *pdev)
- 
- 	/* Cherry Trail devices use an external amplifier enable gpio */
- 	if (x86_match_cpu(cherrytrail_cpu_ids) && !byt_rt5651_gpios)
--		snd_byt_rt5651_mc_pick_amp_en_gpio_mapping(codec_dev);
-+		byt_rt5651_gpios = cht_rt5651_gpios;
- 
- 	if (byt_rt5651_gpios) {
- 		devm_acpi_dev_add_driver_gpios(codec_dev, byt_rt5651_gpios);
--- 
-2.19.2
+Cheers
+Dongsheng
