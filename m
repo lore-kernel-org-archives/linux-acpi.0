@@ -1,67 +1,49 @@
-From: "Darrick J. Wong" <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v3 5/5] xfs: disable map_sync for virtio pmem
-Date: Wed, 9 Jan 2019 08:26:54 -0800
-Message-ID: <20190109162654.GW12689@magnolia>
-References: <20190109144736.17452-1-pagupta@redhat.com>
- <20190109144736.17452-6-pagupta@redhat.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 1/3] x86/cpu: Introduce INTEL_CPU_FAM*_NODATA() helper macros
+Date: Wed,  9 Jan 2019 18:57:52 +0200
+Message-ID: <20190109165754.90072-1-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190109144736.17452-6-pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 09, 2019 at 08:17:36PM +0530, Pankaj Gupta wrote:
-> Virtio pmem provides asynchronous host page cache flush
-> mechanism. we don't support 'MAP_SYNC' with virtio pmem 
-> and xfs.
-> 
-> Signed-off-by: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-> ---
->  fs/xfs/xfs_file.c | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
-> index e474250..eae4aa4 100644
-> --- a/fs/xfs/xfs_file.c
-> +++ b/fs/xfs/xfs_file.c
-> @@ -1190,6 +1190,14 @@ xfs_file_mmap(
->  	if (!IS_DAX(file_inode(filp)) && (vma->vm_flags & VM_SYNC))
->  		return -EOPNOTSUPP;
->  
-> +	/* We don't support synchronous mappings with guest direct access
-> +	 * and virtio based host page cache mechanism.
-> +	 */
-> +	if (IS_DAX(file_inode(filp)) && virtio_pmem_host_cache_enabled(
+These macros are often used by the drivers and we have already a lot of
+duplication as ICPU() macro across them.
 
-Echoing what Jan said, this ought to be some sort of generic function
-that tells us whether or not memory mapped from the dax device will
-always still be accessible even after a crash (i.e. supports MAP_SYNC).
+Provide a generic x86 macro for users.
 
-What if the underlying file on the host is itself on pmem and can be
-MAP_SYNC'd?  Shouldn't the guest be able to use MAP_SYNC as well?
+This adds no driver data variants.
 
---D
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ arch/x86/include/asm/intel-family.h | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-> +		xfs_find_daxdev_for_inode(file_inode(filp))) &&
-> +					(vma->vm_flags & VM_SYNC))
-> +		return -EOPNOTSUPP;
-> +
->  	file_accessed(filp);
->  	vma->vm_ops = &xfs_file_vm_ops;
->  	if (IS_DAX(file_inode(filp)))
-> -- 
-> 2.9.3
-> 
+diff --git a/arch/x86/include/asm/intel-family.h b/arch/x86/include/asm/intel-family.h
+index 25b28760fada..afd70055a750 100644
+--- a/arch/x86/include/asm/intel-family.h
++++ b/arch/x86/include/asm/intel-family.h
+@@ -86,10 +86,16 @@
+ 	.family		= _family,				\
+ 	.model		= _model,				\
+ 	.feature	= X86_FEATURE_ANY,			\
+-	.driver_data	= (kernel_ulong_t)&_driver_data		\
++	.driver_data	= (kernel_ulong_t)_driver_data		\
+ }
+ 
+ #define INTEL_CPU_FAM6(_model, _driver_data)			\
+-	INTEL_CPU_FAM_ANY(6, INTEL_FAM6_##_model, _driver_data)
++	INTEL_CPU_FAM_ANY(6, INTEL_FAM6_##_model, &_driver_data)
++
++#define INTEL_CPU_FAM_ANY_NODATA(_family, _model)		\
++	INTEL_CPU_FAM_ANY(_family, _model, 0)
++
++#define INTEL_CPU_FAM6_NODATA(_model)				\
++	INTEL_CPU_FAM_ANY_NODATA(6, INTEL_FAM6_##_model)
+ 
+ #endif /* _ASM_X86_INTEL_FAMILY_H */
+-- 
+2.20.1
