@@ -1,40 +1,97 @@
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: Re: [RFC PATCH 4/4] x86/mm: remove bottom-up allocation style for x86_64
-Date: Wed, 9 Jan 2019 10:44:41 +0800
-Message-ID: <CAFgQCTtaNteN37hpDOmjR7Cjoqaza0suxE9EOfdpDW3DbAsrcw@mail.gmail.com>
-References: <1546849485-27933-1-git-send-email-kernelfans@gmail.com>
- <1546849485-27933-5-git-send-email-kernelfans@gmail.com> <57ca63ef-ac5b-edd7-710b-f7ee698207c9@intel.com>
- <CAFgQCTudfQDAzKGYLAo_TuoEaEExzGn018mRewQ_LZvZbVDU+A@mail.gmail.com> <7706aaac-c00b-8a11-a7a1-cb95b5a01581@intel.com>
+From: Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] nfit: Mark some functions as __maybe_unused
+Date: Tue,  8 Jan 2019 22:00:37 -0700
+Message-ID: <20190109050036.17322-1-natechancellor@gmail.com>
+References: <20190108045853.5471-1-natechancellor@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7706aaac-c00b-8a11-a7a1-cb95b5a01581@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Hansen <dave.hansen@intel.com>
-Cc: x86@kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <20190108045853.5471-1-natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Vishal Verma <vishal.l.verma-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dave Jiang <dave.jiang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 9, 2019 at 1:33 AM Dave Hansen <dave.hansen@intel.com> wrote:
->
-> On 1/7/19 10:13 PM, Pingfan Liu wrote:
-> > On Tue, Jan 8, 2019 at 1:42 AM Dave Hansen <dave.hansen@intel.com> wrote:
-> >> Why is this 0x100000 open-coded?  Why is this needed *now*?
-> >>
-> >
-> > Memory under 1MB should be used by BIOS. For x86_64, after
-> > e820__memblock_setup(), the memblock allocator has already been ready
-> > to work. But there are two factors to in order to
-> > set_alloc_range(0x100000, end). The major one is to be compatible with
-> > x86_32, please refer to alloc_low_pages->memblock_find_in_range() uses
-> > [min_pfn_mapped, max_pfn_mapped] to limit the range, which is ready to
-> > be allocated from. The minor one is to prevent unexpected allocation
-> > from memblock allocator through allow_low_pages() at very early stage.
->
-> Wow, that's a ton of critical information which was neither commented
-> upon or referenced in the changelog.  Can you fix this up in the next
-> version, please?
+On arm64 little endian allyesconfig:
 
-Sure.
+drivers/acpi/nfit/intel.c:149:12: warning: unused function 'intel_security_unlock' [-Wunused-function]
+static int intel_security_unlock(struct nvdimm *nvdimm,
+           ^
+drivers/acpi/nfit/intel.c:230:12: warning: unused function 'intel_security_erase' [-Wunused-function]
+static int intel_security_erase(struct nvdimm *nvdimm,
+           ^
+drivers/acpi/nfit/intel.c:279:12: warning: unused function 'intel_security_query_overwrite' [-Wunused-function]
+static int intel_security_query_overwrite(struct nvdimm *nvdimm)
+           ^
+drivers/acpi/nfit/intel.c:316:12: warning: unused function 'intel_security_overwrite' [-Wunused-function]
+static int intel_security_overwrite(struct nvdimm *nvdimm,
+           ^
+4 warnings generated.
 
-Thanks,
-Pingfan
+Mark these functions as __maybe_unused because they are only used when
+CONFIG_X86 is set.
+
+Fixes: 4c6926a23b76 ("acpi/nfit, libnvdimm: Add unlock of nvdimm support for Intel DIMMs")
+Suggested-by: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Nathan Chancellor <natechancellor-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+
+v1 -> v2:
+
+* Mark the functions as __maybe_unused rather than expanding the
+  CONFIG_X86, as requested by Dan.
+
+ drivers/acpi/nfit/intel.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/nfit/intel.c b/drivers/acpi/nfit/intel.c
+index 850b2927b4e7..f70de71f79d6 100644
+--- a/drivers/acpi/nfit/intel.c
++++ b/drivers/acpi/nfit/intel.c
+@@ -146,7 +146,7 @@ static int intel_security_change_key(struct nvdimm *nvdimm,
+ 
+ static void nvdimm_invalidate_cache(void);
+ 
+-static int intel_security_unlock(struct nvdimm *nvdimm,
++static int __maybe_unused intel_security_unlock(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key_data)
+ {
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+@@ -227,7 +227,7 @@ static int intel_security_disable(struct nvdimm *nvdimm,
+ 	return 0;
+ }
+ 
+-static int intel_security_erase(struct nvdimm *nvdimm,
++static int __maybe_unused intel_security_erase(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *key,
+ 		enum nvdimm_passphrase_type ptype)
+ {
+@@ -276,7 +276,7 @@ static int intel_security_erase(struct nvdimm *nvdimm,
+ 	return 0;
+ }
+ 
+-static int intel_security_query_overwrite(struct nvdimm *nvdimm)
++static int __maybe_unused intel_security_query_overwrite(struct nvdimm *nvdimm)
+ {
+ 	int rc;
+ 	struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+@@ -313,7 +313,7 @@ static int intel_security_query_overwrite(struct nvdimm *nvdimm)
+ 	return 0;
+ }
+ 
+-static int intel_security_overwrite(struct nvdimm *nvdimm,
++static int __maybe_unused intel_security_overwrite(struct nvdimm *nvdimm,
+ 		const struct nvdimm_key_data *nkey)
+ {
+ 	int rc;
+-- 
+2.20.1
