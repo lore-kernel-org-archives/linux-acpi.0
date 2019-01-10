@@ -1,82 +1,256 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1] APEI / ERST: Switch to use new generic UUID API
-Date: Thu, 10 Jan 2019 17:38:55 +0200
-Message-ID: <20190110153855.47180-1-andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCHv3 03/13] acpi/hmat: Parse and report heterogeneous memory
+Date: Thu, 10 Jan 2019 16:42:46 +0100
+Message-ID: <CAJZ5v0jk7ML21zxGwf9GaGNK8tP1LAs6Rd9NTK5O9HbzYeyPLA@mail.gmail.com>
+References: <20190109174341.19818-1-keith.busch@intel.com> <20190109174341.19818-4-keith.busch@intel.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20190109174341.19818-4-keith.busch@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Kees Cook <keescook@chromium.org>, Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@alien8.de>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Keith Busch <keith.busch@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There are new types and helpers that are supposed to be used in new code.
+On Wed, Jan 9, 2019 at 6:47 PM Keith Busch <keith.busch@intel.com> wrote:
+>
+> Systems may provide different memory types and export this information
+> in the ACPI Heterogeneous Memory Attribute Table (HMAT). Parse these
+> tables provided by the platform and report the memory access and caching
+> attributes.
+>
+> Signed-off-by: Keith Busch <keith.busch@intel.com>
 
-As a preparation to get rid of legacy types and API functions do
-the conversion here.
+While this is generally fine by me, it's another piece of code going
+under drivers/acpi/ just because it happens to use ACPI to extract
+some information from the platform firmware.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/acpi/apei/erst.c | 27 ++++++++++++---------------
- 1 file changed, 12 insertions(+), 15 deletions(-)
+Isn't there any better place for it?
 
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 9953e50667ec..389d88e35ffb 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -938,17 +938,17 @@ static struct pstore_info erst_info = {
- };
- 
- #define CPER_CREATOR_PSTORE						\
--	UUID_LE(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
--		0x64, 0x90, 0xb8, 0x9d)
-+	GUID_INIT(0x75a574e3, 0x5052, 0x4b29, 0x8a, 0x8e, 0xbe, 0x2c,	\
-+		  0x64, 0x90, 0xb8, 0x9d)
- #define CPER_SECTION_TYPE_DMESG						\
--	UUID_LE(0xc197e04e, 0xd545, 0x4a70, 0x9c, 0x17, 0xa5, 0x54,	\
--		0x94, 0x19, 0xeb, 0x12)
-+	GUID_INIT(0xc197e04e, 0xd545, 0x4a70, 0x9c, 0x17, 0xa5, 0x54,	\
-+		  0x94, 0x19, 0xeb, 0x12)
- #define CPER_SECTION_TYPE_DMESG_Z					\
--	UUID_LE(0x4f118707, 0x04dd, 0x4055, 0xb5, 0xdd, 0x95, 0x6d,	\
--		0x34, 0xdd, 0xfa, 0xc6)
-+	GUID_INIT(0x4f118707, 0x04dd, 0x4055, 0xb5, 0xdd, 0x95, 0x6d,	\
-+		  0x34, 0xdd, 0xfa, 0xc6)
- #define CPER_SECTION_TYPE_MCE						\
--	UUID_LE(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
--		0x04, 0x4a, 0x38, 0xfc)
-+	GUID_INIT(0xfe08ffbe, 0x95e4, 0x4be7, 0xbc, 0x73, 0x40, 0x96,	\
-+		  0x04, 0x4a, 0x38, 0xfc)
- 
- struct cper_pstore_record {
- 	struct cper_record_header hdr;
-@@ -1012,7 +1012,7 @@ static ssize_t erst_reader(struct pstore_record *record)
- 		rc = -EIO;
- 		goto out;
- 	}
--	if (uuid_le_cmp(rcd->hdr.creator_id, CPER_CREATOR_PSTORE) != 0)
-+	if (!guid_equal(&rcd->hdr.creator_id, &CPER_CREATOR_PSTORE))
- 		goto skip;
- 
- 	record->buf = kmalloc(len, GFP_KERNEL);
-@@ -1024,15 +1024,12 @@ static ssize_t erst_reader(struct pstore_record *record)
- 	record->id = record_id;
- 	record->compressed = false;
- 	record->ecc_notice_size = 0;
--	if (uuid_le_cmp(rcd->sec_hdr.section_type,
--			CPER_SECTION_TYPE_DMESG_Z) == 0) {
-+	if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_DMESG_Z)) {
- 		record->type = PSTORE_TYPE_DMESG;
- 		record->compressed = true;
--	} else if (uuid_le_cmp(rcd->sec_hdr.section_type,
--			CPER_SECTION_TYPE_DMESG) == 0)
-+	} else if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_DMESG))
- 		record->type = PSTORE_TYPE_DMESG;
--	else if (uuid_le_cmp(rcd->sec_hdr.section_type,
--			     CPER_SECTION_TYPE_MCE) == 0)
-+	else if (guid_equal(&rcd->sec_hdr.section_type, &CPER_SECTION_TYPE_MCE))
- 		record->type = PSTORE_TYPE_MCE;
- 	else
- 		record->type = PSTORE_TYPE_MAX;
--- 
-2.20.1
+> ---
+>  drivers/acpi/Kconfig  |   8 +++
+>  drivers/acpi/Makefile |   1 +
+>  drivers/acpi/hmat.c   | 180 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 189 insertions(+)
+>  create mode 100644 drivers/acpi/hmat.c
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index 7b65a807b3dd..b102d9f544ee 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -326,6 +326,14 @@ config ACPI_NUMA
+>         depends on (X86 || IA64 || ARM64)
+>         default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
+>
+> +config ACPI_HMAT
+> +       bool "ACPI Heterogeneous Memory Attribute Table Support"
+> +       depends on ACPI_NUMA
+> +       help
+> +        Parses representation of the ACPI Heterogeneous Memory Attributes
+> +        Table (HMAT) and set the memory node relationships and access
+> +        attributes.
+> +
+>  config ACPI_CUSTOM_DSDT_FILE
+>         string "Custom DSDT Table file to include"
+>         default ""
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index 7c6afc111d76..2a435dcfaa9c 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -55,6 +55,7 @@ acpi-$(CONFIG_X86)            += x86/apple.o
+>  acpi-$(CONFIG_X86)             += x86/utils.o
+>  acpi-$(CONFIG_DEBUG_FS)                += debugfs.o
+>  acpi-$(CONFIG_ACPI_NUMA)       += numa.o
+> +acpi-$(CONFIG_ACPI_HMAT)       += hmat.o
+>  acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>  acpi-y                         += acpi_lpat.o
+>  acpi-$(CONFIG_ACPI_LPIT)       += acpi_lpit.o
+> diff --git a/drivers/acpi/hmat.c b/drivers/acpi/hmat.c
+> new file mode 100644
+> index 000000000000..833a783868d5
+> --- /dev/null
+> +++ b/drivers/acpi/hmat.c
+> @@ -0,0 +1,180 @@
+> +// SPDX-License-Identifier: GPL-2.0
+> +/*
+> + * Heterogeneous Memory Attributes Table (HMAT) representation
+> + *
+> + * Copyright (c) 2018, Intel Corporation.
+> + */
+> +
+> +#include <acpi/acpi_numa.h>
+> +#include <linux/acpi.h>
+> +#include <linux/bitops.h>
+> +#include <linux/cpu.h>
+> +#include <linux/device.h>
+> +#include <linux/init.h>
+> +#include <linux/list.h>
+> +#include <linux/module.h>
+> +#include <linux/node.h>
+> +#include <linux/slab.h>
+> +#include <linux/sysfs.h>
+> +
+> +static __init const char *hmat_data_type(u8 type)
+> +{
+> +       switch (type) {
+> +       case ACPI_HMAT_ACCESS_LATENCY:
+> +               return "Access Latency";
+> +       case ACPI_HMAT_READ_LATENCY:
+> +               return "Read Latency";
+> +       case ACPI_HMAT_WRITE_LATENCY:
+> +               return "Write Latency";
+> +       case ACPI_HMAT_ACCESS_BANDWIDTH:
+> +               return "Access Bandwidth";
+> +       case ACPI_HMAT_READ_BANDWIDTH:
+> +               return "Read Bandwidth";
+> +       case ACPI_HMAT_WRITE_BANDWIDTH:
+> +               return "Write Bandwidth";
+> +       default:
+> +               return "Reserved";
+> +       };
+> +}
+> +
+> +static __init const char *hmat_data_type_suffix(u8 type)
+> +{
+> +       switch (type) {
+> +       case ACPI_HMAT_ACCESS_LATENCY:
+> +       case ACPI_HMAT_READ_LATENCY:
+> +       case ACPI_HMAT_WRITE_LATENCY:
+> +               return " nsec";
+> +       case ACPI_HMAT_ACCESS_BANDWIDTH:
+> +       case ACPI_HMAT_READ_BANDWIDTH:
+> +       case ACPI_HMAT_WRITE_BANDWIDTH:
+> +               return " MB/s";
+> +       default:
+> +               return "";
+> +       };
+> +}
+> +
+> +static __init int hmat_parse_locality(union acpi_subtable_headers *header,
+> +                                     const unsigned long end)
+> +{
+> +       struct acpi_hmat_locality *loc = (void *)header;
+> +       unsigned int init, targ, total_size, ipds, tpds;
+> +       u32 *inits, *targs, value;
+> +       u16 *entries;
+> +       u8 type;
+> +
+> +       if (loc->header.length < sizeof(*loc)) {
+> +               pr_err("HMAT: Unexpected locality header length: %d\n",
+> +                       loc->header.length);
+> +               return -EINVAL;
+> +       }
+> +
+> +       type = loc->data_type;
+> +       ipds = loc->number_of_initiator_Pds;
+> +       tpds = loc->number_of_target_Pds;
+> +       total_size = sizeof(*loc) + sizeof(*entries) * ipds * tpds +
+> +                    sizeof(*inits) * ipds + sizeof(*targs) * tpds;
+> +       if (loc->header.length < total_size) {
+> +               pr_err("HMAT: Unexpected locality header length:%d, minimum required:%d\n",
+> +                       loc->header.length, total_size);
+> +               return -EINVAL;
+> +       }
+> +
+> +       pr_info("HMAT: Locality: Flags:%02x Type:%s Initiator Domains:%d Target Domains:%d Base:%lld\n",
+> +               loc->flags, hmat_data_type(type), ipds, tpds,
+> +               loc->entry_base_unit);
+> +
+> +       inits = (u32 *)(loc + 1);
+> +       targs = &inits[ipds];
+> +       entries = (u16 *)(&targs[tpds]);
+> +       for (targ = 0; targ < tpds; targ++) {
+> +               for (init = 0; init < ipds; init++) {
+> +                       value = entries[init * tpds + targ];
+> +                       value = (value * loc->entry_base_unit) / 10;
+> +                       pr_info("  Initiator-Target[%d-%d]:%d%s\n",
+> +                               inits[init], targs[targ], value,
+> +                               hmat_data_type_suffix(type));
+> +               }
+> +       }
+> +       return 0;
+> +}
+> +
+> +static __init int hmat_parse_cache(union acpi_subtable_headers *header,
+> +                                  const unsigned long end)
+> +{
+> +       struct acpi_hmat_cache *cache = (void *)header;
+> +       u32 attrs;
+> +
+> +       if (cache->header.length < sizeof(*cache)) {
+> +               pr_err("HMAT: Unexpected cache header length: %d\n",
+> +                       cache->header.length);
+> +               return -EINVAL;
+> +       }
+> +
+> +       attrs = cache->cache_attributes;
+> +       pr_info("HMAT: Cache: Domain:%d Size:%llu Attrs:%08x SMBIOS Handles:%d\n",
+> +               cache->memory_PD, cache->cache_size, attrs,
+> +               cache->number_of_SMBIOShandles);
+> +
+> +       return 0;
+> +}
+> +
+> +static int __init hmat_parse_address_range(union acpi_subtable_headers *header,
+> +                                          const unsigned long end)
+> +{
+> +       struct acpi_hmat_address_range *spa = (void *)header;
+> +
+> +       if (spa->header.length != sizeof(*spa)) {
+> +               pr_err("HMAT: Unexpected address range header length: %d\n",
+> +                       spa->header.length);
+> +               return -EINVAL;
+> +       }
+> +       pr_info("HMAT: Memory (%#llx length %#llx) Flags:%04x Processor Domain:%d Memory Domain:%d\n",
+> +               spa->physical_address_base, spa->physical_address_length,
+> +               spa->flags, spa->processor_PD, spa->memory_PD);
+> +       return 0;
+> +}
+> +
+> +static int __init hmat_parse_subtable(union acpi_subtable_headers *header,
+> +                                     const unsigned long end)
+> +{
+> +       struct acpi_hmat_structure *hdr = (void *)header;
+> +
+> +       if (!hdr)
+> +               return -EINVAL;
+> +
+> +       switch (hdr->type) {
+> +       case ACPI_HMAT_TYPE_ADDRESS_RANGE:
+> +               return hmat_parse_address_range(header, end);
+> +       case ACPI_HMAT_TYPE_LOCALITY:
+> +               return hmat_parse_locality(header, end);
+> +       case ACPI_HMAT_TYPE_CACHE:
+> +               return hmat_parse_cache(header, end);
+> +       default:
+> +               return -EINVAL;
+> +       }
+> +}
+> +
+> +static __init int hmat_init(void)
+> +{
+> +       struct acpi_table_header *tbl;
+> +       enum acpi_hmat_type i;
+> +       acpi_status status;
+> +
+> +       if (srat_disabled())
+> +               return 0;
+> +
+> +       status = acpi_get_table(ACPI_SIG_HMAT, 0, &tbl);
+> +       if (ACPI_FAILURE(status))
+> +               return 0;
+> +
+> +       for (i = ACPI_HMAT_TYPE_ADDRESS_RANGE; i < ACPI_HMAT_TYPE_RESERVED; i++) {
+> +               if (acpi_table_parse_entries(ACPI_SIG_HMAT,
+> +                                            sizeof(struct acpi_table_hmat), i,
+> +                                            hmat_parse_subtable, 0) < 0)
+> +                       goto out_put;
+> +       }
+> +out_put:
+> +       acpi_put_table(tbl);
+> +       return 0;
+> +}
+> +subsys_initcall(hmat_init);
+> --
+> 2.14.4
+>
