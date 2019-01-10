@@ -1,59 +1,99 @@
-From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
-Subject: Re: [PATCH v3 0/5] kvm "virtio pmem" device
-Date: Thu, 10 Jan 2019 11:17:57 +0100
-Message-ID: <20190110101757.GC15790@quack2.suse.cz>
-References: <20190109144736.17452-1-pagupta@redhat.com>
- <20190110012617.GA4205@dastard>
+From: Auger Eric <eric.auger-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 1/2] ACPI/IORT: Handle potential overflow in iort_dma_setup
+Date: Thu, 10 Jan 2019 11:44:56 +0100
+Message-ID: <fbf8dc04-6f80-b30b-c9ef-87fa3a33d0ec@redhat.com>
+References: <20181218184841.20034-1-drjones@redhat.com>
+	<20181218184841.20034-2-drjones@redhat.com>
+	<1503e3b8-1a6c-3b66-fa1e-d13f4e19f31f@arm.com>
+	<20181219131849.hziujd5zgclangce@kamzik.brq.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20190110012617.GA4205@dastard>
-List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
-List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
- <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
-Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
-Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
-To: Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>
-Cc: jack-AlSwsSmVLrQ@public.gmane.org, kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org, zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eblake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org, stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, imammedo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, xiaoguangrong.eric-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-xfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-fsdevel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <20181219131849.hziujd5zgclangce-gVz1Vyx/EOXkZJWtSm8s3NvLeJWuRmrY@public.gmane.org>
+Content-Language: en-US
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Andrew Jones <drjones-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Robin Murphy <robin.murphy-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, sudeep.holla-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu 10-01-19 12:26:17, Dave Chinner wrote:
-> On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
-> >  This patch series has implementation for "virtio pmem". 
-> >  "virtio pmem" is fake persistent memory(nvdimm) in guest 
-> >  which allows to bypass the guest page cache. This also
-> >  implements a VIRTIO based asynchronous flush mechanism.  
-> 
-> Hmmmm. Sharing the host page cache direct into the guest VM. Sounds
-> like a good idea, but.....
-> 
-> This means the guest VM can now run timing attacks to observe host
-> side page cache residency, and depending on the implementation I'm
-> guessing that the guest will be able to control host side page
-> cache eviction, too (e.g. via discard or hole punch operations).
-> 
-> Which means this functionality looks to me like a new vector for
-> information leakage into and out of the guest VM via guest
-> controlled host page cache manipulation.
-> 
-> https://arxiv.org/pdf/1901.01161
-> 
-> I might be wrong, but if I'm not we're going to have to be very
-> careful about how guest VMs can access and manipulate host side
-> resources like the page cache.....
+Hi Robin, Drew,
 
-Right. Thinking about this I would be more concerned about the fact that
-guest can effectively pin amount of host's page cache upto size of the
-device/file passed to guest as PMEM, can't it Pankaj? Or is there some QEMU
-magic that avoids this?
+On 12/19/18 2:18 PM, Andrew Jones wrote:
+> On Wed, Dec 19, 2018 at 12:21:35PM +0000, Robin Murphy wrote:
+>> On 18/12/2018 18:48, Andrew Jones wrote:
+>>> The sum of dmaaddr and size may overflow, particularly considering
+>>> there are cases where size will be U64_MAX.
+>>
+>> Only if the firmware is broken in the first place, though. It would be weird
+>> to describe an explicit _DMA range of base=0 and size=U64_MAX, because it's
+>> effectively the same as just not having one at all, but it's not strictly
+>> illegal. However, since the ACPI System Memory address space is at most
+>> 64-bit, anything that would actually overflow here is already describing an
+>> impossibility - really, we should probably scream even louder about a
+>> firmware bug and reject it entirely, rather than quietly hiding it.
+> 
+> Ah, looking again I see the paths. Either acpi_dma_get_range() returns
+> success, in which case base and size are fine, or it returns an EINVAL,
+> in which case base=size=0, or it returns ENODEV in which case base is
+> zero, so size may be set to U64_MAX by rc_dma_get_range() with no problem.
+> The !dev_is_pci(dev) path is also fine since base=0.
 
-								Honza
--- 
-Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
-SUSE Labs, CR
+So practically putting an explicit memory_address_limit=64 is harmless
+as dmaaddr always is 0, right?
+
+In QEMU I intended to update the ACPI code to comply with the rev D
+spec. in that case the RC table revision is 1 (rev D) and the
+memory_address_limit needs to be filled. If we don't want to restrict
+the limit, isn't it the right choice to set 64 here?
+
+Thanks
+
+Eric
+> 
+> While I agree that we should complain when firmware provides bad ACPI
+> tables, my understanding of setting iort.memory_address_limit=64 was
+> that it simply meant "no limit", regardless of the base. However I now
+> see that it won't be used unless base=0. So I don't think we have a
+> problem, and we don't even seem to be missing firmware sanity checks.
+> 
+> It might be nice to have a comment explaining this stuff somewhere, but
+> otherwise sorry for the noise.
+> 
+> Thanks,
+> drew
+> 
+>>
+>> Robin.
+>>
+>>> Signed-off-by: Andrew Jones <drjones-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+>>> ---
+>>>   drivers/acpi/arm64/iort.c | 7 ++++++-
+>>>   1 file changed, 6 insertions(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
+>>> index 70f4e80b9246..a0f4c157ba5e 100644
+>>> --- a/drivers/acpi/arm64/iort.c
+>>> +++ b/drivers/acpi/arm64/iort.c
+>>> @@ -1002,7 +1002,12 @@ void iort_dma_setup(struct device *dev, u64 *dma_addr, u64 *dma_size)
+>>>   	}
+>>>   	if (!ret) {
+>>> -		msb = fls64(dmaaddr + size - 1);
+>>> +		u64 dmaaddr_max = dmaaddr + size - 1;
+>>> +		if (dmaaddr_max >= dmaaddr)
+>>> +			msb = fls64(dmaaddr_max);
+>>> +		else
+>>> +			msb = 64;
+>>> +
+>>>   		/*
+>>>   		 * Round-up to the power-of-two mask or set
+>>>   		 * the mask to the whole 64-bit address space
+>>>
