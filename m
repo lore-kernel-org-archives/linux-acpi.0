@@ -1,11 +1,17 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [RESEND PATCH] ACPI/IORT: Fix rc_dma_get_range()
-Date: Thu, 10 Jan 2019 18:41:51 +0000
-Message-ID: <20190110184151.27492-1-lorenzo.pieralisi@arm.com>
+From: Tyler Baicar <baicar.tyler@gmail.com>
+Subject: Re: [PATCH v7 10/25] ACPI / APEI: Tell firmware the estatus queue
+ consumed the records
+Date: Thu, 10 Jan 2019 16:01:27 -0500
+Message-ID: <CABo9ajArdbYMOBGPRa185yo9MnKRb0pgS-pHqUNdNS9m+kKO-Q@mail.gmail.com>
+References: <20181203180613.228133-1-james.morse@arm.com>
+ <20181203180613.228133-11-james.morse@arm.com>
+ <20181211183634.GO27375@zn.tnic>
+ <56cfa16b-ece4-76e0-3799-58201f8a4ff1@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <56cfa16b-ece4-76e0-3799-58201f8a4ff1@arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,59 +21,69 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Eric Auger <eric.auger@redhat.com>, Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>
+To: James Morse <james.morse@arm.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Fan Wu <wufan@codeaurora.org>, linux-mm@kvack.org, Marc Zyngier <marc.zyngier@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Xie XiuQi <xiexiuqi@huawei.com>, Will Deacon <will.deacon@arm.com>, Christoffer Dall <christoffer.dall@arm.com>, Dongjiu Geng <gengdongjiu@huawei.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, kvmarm@lists.cs.columbia.edu, arm-mail-list <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+On Thu, Jan 10, 2019 at 1:23 PM James Morse <james.morse@arm.com> wrote:
+> >>
+> >> +    if (is_hest_type_generic_v2(ghes) && ghes_ack_error(ghes->generic_v2))
+> >
+> > Since ghes_ack_error() is always prepended with this check, you could
+> > push it down into the function:
+> >
+> > ghes_ack_error(ghes)
+> > ...
+> >
+> >       if (!is_hest_type_generic_v2(ghes))
+> >               return 0;
+> >
+> > and simplify the two callsites :)
+>
+> Great idea! ...
+>
+> .. huh. Turns out for ghes_proc() we discard any errors other than ENOENT from
+> ghes_read_estatus() if is_hest_type_generic_v2(). This masks EIO.
+>
+> Most of the error sources discard the result, the worst thing I can find is
+> ghes_irq_func() will return IRQ_HANDLED, instead of IRQ_NONE when we didn't
+> really handle the IRQ. They're registered as SHARED, but I don't have an example
+> of what goes wrong next.
+>
+> I think this will also stop the spurious handling code kicking in to shut it up
+> if its broken and screaming. Unlikely, but not impossible.
+>
+> Fixed in a prior patch, with Boris' suggestion, ghes_proc()s tail ends up look
+> like this:
+> ----------------------%<----------------------
+> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+> index 0321d9420b1e..8d1f9930b159 100644
+> --- a/drivers/acpi/apei/ghes.c
+> +++ b/drivers/acpi/apei/ghes.c
+> @@ -700,18 +708,11 @@ static int ghes_proc(struct ghes *ghes)
+>
+>  out:
+>         ghes_clear_estatus(ghes, buf_paddr);
+> +       if (rc != -ENOENT)
+> +               rc_ack = ghes_ack_error(ghes);
+>
+> -       if (rc == -ENOENT)
+> -               return rc;
+> -
+> -       /*
+> -        * GHESv2 type HEST entries introduce support for error acknowledgment,
+> -        * so only acknowledge the error if this support is present.
+> -        */
+> -       if (is_hest_type_generic_v2(ghes))
+> -               return ghes_ack_error(ghes->generic_v2);
+> -
+> -       return rc;
+> +       /* If rc and rc_ack failed, return the first one */
+> +       return rc ? rc : rc_ack;
+>  }
+> ----------------------%<----------------------
+>
 
-When executed for a PCI_ROOT_COMPLEX type, iort_match_node_callback()
-expects the opaque pointer argument to be a PCI bus device. At the
-moment rc_dma_get_range() passes the PCI endpoint instead of the bus,
-and we've been lucky to have pci_domain_nr(ptr) return 0 instead of
-crashing. Pass the bus device to iort_scan_node().
+Looks good to me, I guess there's no harm in acking invalid error status blocks.
 
-Fixes: 5ac65e8c8941 ("ACPI/IORT: Support address size limit for root complexes")
-Reported-by: Eric Auger <eric.auger@redhat.com>
-Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Reviewed-by: Eric Auger <eric.auger@redhat.com>
-Acked-by: Robin Murphy <robin.murphy@arm.com>
-Cc: stable@vger.kernel.org
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
----
-Will, Catalin,
-
-resending a reformatted version of this fix previously posted in [1],
-please merge it for one of the upcoming -rc.
-
-Thanks,
-Lorenzo
-
-[1] https://marc.info/?l=linux-acpi&m=154712742324811&w=2
-
- drivers/acpi/arm64/iort.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/arm64/iort.c b/drivers/acpi/arm64/iort.c
-index fdd90ffceb85..c08afe44c488 100644
---- a/drivers/acpi/arm64/iort.c
-+++ b/drivers/acpi/arm64/iort.c
-@@ -952,9 +952,10 @@ static int rc_dma_get_range(struct device *dev, u64 *size)
- {
- 	struct acpi_iort_node *node;
- 	struct acpi_iort_root_complex *rc;
-+	struct pci_bus *pbus = to_pci_dev(dev)->bus;
- 
- 	node = iort_scan_node(ACPI_IORT_NODE_PCI_ROOT_COMPLEX,
--			      iort_match_node_callback, dev);
-+			      iort_match_node_callback, &pbus->dev);
- 	if (!node || node->revision < 1)
- 		return -ENODEV;
- 
--- 
-2.19.2
+T
