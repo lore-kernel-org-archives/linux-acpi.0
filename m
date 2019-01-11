@@ -1,245 +1,91 @@
-From: Alexandru Gagniuc <mr.nuke.me@gmail.com>
-Subject: [RFC] PCI / ACPI: Implementing Type 3 _HPX records
-Date: Thu, 10 Jan 2019 17:11:27 -0600
-Message-ID: <20190110231136.31163-1-mr.nuke.me@gmail.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+From: Pingfan Liu <kernelfans@gmail.com>
+Subject: [PATCHv2 0/7] x86_64/mm: remove bottom-up allocation style by pushing forward the parsing of mem hotplug info
+Date: Fri, 11 Jan 2019 13:12:50 +0800
+Message-ID: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com
-Cc: austin_bolen@dell.com, alex_gagniuc@dellteam.com, keith.busch@intel.com, Shyam_Iyer@Dell.com, lukas@wunner.de, okaya@kernel.org, Alexandru Gagniuc <mr.nuke.me@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Pingfan Liu <kernelfans@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-_HPX Type 3 is intended to be more generic and allow configuration of
-settings not possible with Type 2 tables. For example, FW could ensure
-that the completion timeout value is set accordingly throughout the PCI
-tree; some switches require very special handling.
+Background
+When kaslr kernel can be guaranteed to sit inside unmovable node
+after [1]. But if kaslr kernel is located near the end of the movable node,
+then bottom-up allocator may create pagetable which crosses the boundary
+between unmovable node and movable node.  It is a probability issue,
+two factors include -1. how big the gap between kernel end and
+unmovable node's end.  -2. how many memory does the system own.
+Alternative way to fix this issue is by increasing the gap by
+boot/compressed/kaslr*. But taking the scenario of PB level memory,
+the pagetable will take server MB even if using 1GB page, different page
+attr and fragment will make things worse. So it is hard to decide how much
+should the gap increase.
+The following figure show the defection of current bottom-up style:
+  [startA, endA][startB, "kaslr kernel verly close to" endB][startC, endC]
 
-Type 3 can come in an arbitrary number of ACPI packages. With the older
-types we only ever had one descriptor. We could get lazy and store it
-on the stack. The current flow is to parse the HPX table
---pci_get_hp_params()-- and then program the PCIe device registers.
+If nodeA,B is unmovable, while nodeC is movable, then init_mem_mapping()
+can generate pgtable on nodeC, which stain movable node.
 
-In the current flow, we'll need to malloc(). Here's what I tried:
- 1) devm_kmalloc() on the pci_dev
-  This ended up giving me NULL dereference at boot time.
- 2) Add a cleanup function to be called after writing the PCIe registers
+This patch makes it certainty instead of a probablity problem. It achieves
+this by pushing forward the parsing of mem hotplug info ahead of init_mem_mapping().
 
-This RFC implements method 2. The HPX3 stuff is still NDA'd, but the
-housekeeping parts are in here. Is this a good way to do things? I'm not
-too sure about the need to call cleanup() on a stack variable. But if
-not that, then what else?
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: x86@kernel.org
+Cc: linux-acpi@vger.kernel.org
+Cc: linux-mm@kvack.org
+Pingfan Liu (7):
+  x86/mm: concentrate the code to memblock allocator enabled
+  acpi: change the topo of acpi_table_upgrade()
+  mm/memblock: introduce allocation boundary for tracing purpose
+  x86/setup: parse acpi to get hotplug info before init_mem_mapping()
+  x86/mm: set allowed range for memblock allocator
+  x86/mm: remove bottom-up allocation style for x86_64
+  x86/mm: isolate the bottom-up style to init_32.c
 
-Alex
+ arch/arm/mm/init.c              |   3 +-
+ arch/arm/mm/mmu.c               |   4 +-
+ arch/arm/mm/nommu.c             |   2 +-
+ arch/arm64/kernel/setup.c       |   2 +-
+ arch/csky/kernel/setup.c        |   2 +-
+ arch/microblaze/mm/init.c       |   2 +-
+ arch/mips/kernel/setup.c        |   2 +-
+ arch/powerpc/mm/40x_mmu.c       |   6 +-
+ arch/powerpc/mm/44x_mmu.c       |   2 +-
+ arch/powerpc/mm/8xx_mmu.c       |   2 +-
+ arch/powerpc/mm/fsl_booke_mmu.c |   5 +-
+ arch/powerpc/mm/hash_utils_64.c |   4 +-
+ arch/powerpc/mm/init_32.c       |   2 +-
+ arch/powerpc/mm/pgtable-radix.c |   2 +-
+ arch/powerpc/mm/ppc_mmu_32.c    |   8 +-
+ arch/powerpc/mm/tlb_nohash.c    |   6 +-
+ arch/unicore32/mm/mmu.c         |   2 +-
+ arch/x86/kernel/setup.c         |  93 ++++++++++++++---------
+ arch/x86/mm/init.c              | 163 +++++-----------------------------------
+ arch/x86/mm/init_32.c           | 147 ++++++++++++++++++++++++++++++++++++
+ arch/x86/mm/mm_internal.h       |   8 +-
+ arch/xtensa/mm/init.c           |   2 +-
+ drivers/acpi/tables.c           |   4 +-
+ include/linux/acpi.h            |   5 +-
+ include/linux/memblock.h        |  10 ++-
+ mm/memblock.c                   |  23 ++++--
+ 26 files changed, 290 insertions(+), 221 deletions(-)
 
----
- drivers/pci/pci-acpi.c      | 88 +++++++++++++++++++++++++++++++++++++
- drivers/pci/probe.c         | 29 ++++++++++++
- include/linux/pci_hotplug.h | 17 +++++++
- 3 files changed, 134 insertions(+)
-
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index e1949f7efd9c..2ce1b68ce688 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -219,6 +219,65 @@ static acpi_status decode_type2_hpx_record(union acpi_object *record,
- 	return AE_OK;
- }
- 
-+static acpi_status parse_hpx3_register(struct hpp_type3 *hpx3,
-+				       union acpi_object *reg_fields)
-+{
-+	struct hpp_type3_register *hpx3_reg;
-+
-+	hpx3_reg = kzalloc(sizeof(*hpx3_reg), GFP_KERNEL);
-+	if (!hpx3_reg)
-+		return AE_NO_MEMORY;
-+
-+	/* Parse fields blurb */
-+
-+	list_add_tail(&hpx3_reg->list, &hpx3->regs);
-+	return AE_OK;
-+}
-+
-+static acpi_status decode_type3_hpx_record(union acpi_object *record,
-+					   struct hotplug_params *hpx)
-+{
-+	union acpi_object *fields = record->package.elements;
-+	u32 desc_count, expected_length, revision;
-+	union acpi_object *reg_fields;
-+	acpi_status ret;
-+	int i;
-+
-+	revision = fields[1].integer.value;
-+	switch (revision) {
-+	case 1:
-+		desc_count = fields[2].integer.value;
-+		expected_length = 3 + desc_count * 14;
-+
-+		if (record->package.count != expected_length)
-+			return AE_ERROR;
-+
-+		for (i = 2; i < expected_length; i++)
-+			if (fields[i].type != ACPI_TYPE_INTEGER)
-+				return AE_ERROR;
-+
-+		if (!hpx->t3) {
-+			INIT_LIST_HEAD(&hpx->type3_data.regs);
-+			hpx->t3 = &hpx->type3_data;
-+		}
-+
-+		for (i = 0; i < desc_count; i++) {
-+			reg_fields = fields + 3 + i * 14;
-+			ret = parse_hpx3_register(hpx->t3, reg_fields);
-+			if (ret != AE_OK)
-+				return ret;
-+		}
-+
-+		break;
-+	default:
-+		printk(KERN_WARNING
-+			"%s: Type 3 Revision %d record not supported\n",
-+			__func__, revision);
-+		return AE_ERROR;
-+	}
-+	return AE_OK;
-+}
-+
- static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
- {
- 	acpi_status status;
-@@ -271,6 +330,11 @@ static acpi_status acpi_run_hpx(acpi_handle handle, struct hotplug_params *hpx)
- 			if (ACPI_FAILURE(status))
- 				goto exit;
- 			break;
-+		case 3:
-+			status = decode_type3_hpx_record(record, hpx);
-+			if (ACPI_FAILURE(status))
-+				goto exit;
-+			break;
- 		default:
- 			printk(KERN_ERR "%s: Type %d record not supported\n",
- 			       __func__, type);
-@@ -368,6 +432,30 @@ int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp)
- }
- EXPORT_SYMBOL_GPL(pci_get_hp_params);
- 
-+static int cleantup_type3_hpx_record(struct hpp_type3 *hpx3)
-+{
-+	struct hpp_type3_register *reg;
-+	struct list_head *entry, *temp;
-+
-+	list_for_each_safe(entry, temp, &hpp->t3->regs){
-+		reg = list_entry(entry, typeof(*reg), list);
-+		list_del(entry);
-+		kfree(reg);
-+	}
-+}
-+
-+/* pci_cleanup_hp_params
-+ *
-+ * @hpp - allocated by the caller
-+ */
-+void pci_cleanup_hp_params(struct hotplug_params *hpp)
-+{
-+
-+	if (hpp->t3)
-+		cleanup_type3_hpx_record(hpp->t3);
-+}
-+EXPORT_SYMBOL_GPL(pci_cleanup_hp_params);
-+
- /**
-  * pciehp_is_native - Check whether a hotplug port is handled by the OS
-  * @bridge: Hotplug port to check
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 257b9f6f2ebb..35ef7d1f4f3b 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -1979,6 +1979,32 @@ static void program_hpp_type2(struct pci_dev *dev, struct hpp_type2 *hpp)
- 	 */
- }
- 
-+static void program_hpp_type3_register(struct pci_dev *dev,
-+				       const struct hpp_type3_register *reg)
-+{
-+	/* Complicated ACPI-mandated blurb */
-+}
-+
-+static void program_hpp_type3(struct pci_dev *dev, struct hpp_type3 *hpp)
-+{
-+	struct hpp_type3_register *reg;
-+
-+	if (!hpp)
-+		return;
-+
-+	if (!pci_is_pcie(dev))
-+		return;
-+
-+	if (hpp->revision > 1) {
-+		pci_warn(dev, "PCIe settings rev %d not supported\n",
-+			 hpp->revision);
-+		return;
-+	}
-+
-+	list_for_each_entry(reg, &hpp->regs, list)
-+		program_hpp_type3_register(dev, reg);
-+}
-+
- int pci_configure_extended_tags(struct pci_dev *dev, void *ign)
- {
- 	struct pci_host_bridge *host;
-@@ -2145,9 +2171,12 @@ static void pci_configure_device(struct pci_dev *dev)
- 	if (ret)
- 		return;
- 
-+	program_hpp_type3(dev, hpp.t3);
- 	program_hpp_type2(dev, hpp.t2);
- 	program_hpp_type1(dev, hpp.t1);
- 	program_hpp_type0(dev, hpp.t0);
-+
-+	pci_cleanup_hp_params(&hpp);
- }
- 
- static void pci_release_capabilities(struct pci_dev *dev)
-diff --git a/include/linux/pci_hotplug.h b/include/linux/pci_hotplug.h
-index 7acc9f91e72b..479da87a3774 100644
---- a/include/linux/pci_hotplug.h
-+++ b/include/linux/pci_hotplug.h
-@@ -124,18 +124,35 @@ struct hpp_type2 {
- 	u32 sec_unc_err_mask_or;
- };
- 
-+/*
-+ * PCI Express Setting Record (Type 3)
-+ * The ACPI overlords can never get enough
-+ */
-+struct hpp_type3_register {
-+	u32 crap_describing_entry_contents;
-+	struct list_head list;
-+};
-+
-+struct hpp_type3 {
-+	u32 revision;
-+	struct list_head regs;
-+};
-+
- struct hotplug_params {
- 	struct hpp_type0 *t0;		/* Type0: NULL if not available */
- 	struct hpp_type1 *t1;		/* Type1: NULL if not available */
- 	struct hpp_type2 *t2;		/* Type2: NULL if not available */
-+	struct hpp_type3 *t3;		/* Type3: NULL if not available */
- 	struct hpp_type0 type0_data;
- 	struct hpp_type1 type1_data;
- 	struct hpp_type2 type2_data;
-+	struct hpp_type3 type3_data;
- };
- 
- #ifdef CONFIG_ACPI
- #include <linux/acpi.h>
- int pci_get_hp_params(struct pci_dev *dev, struct hotplug_params *hpp);
-+void pci_cleanup_hp_params(struct hotplug_params *hpp);
- bool pciehp_is_native(struct pci_dev *bridge);
- int acpi_get_hp_hw_control_from_firmware(struct pci_dev *bridge);
- bool shpchp_is_native(struct pci_dev *bridge);
 -- 
-2.19.2
+2.7.4
