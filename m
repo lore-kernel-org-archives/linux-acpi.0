@@ -1,128 +1,73 @@
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: Re: [PATCHv2 2/7] acpi: change the topo of acpi_table_upgrade()
-Date: Fri, 11 Jan 2019 18:08:26 +0800
-Message-ID: <CAFgQCTvWk6t_8fQG3OqNAQDX-23ZaRuCzRyM40-do1rPAhzwhw@mail.gmail.com>
-References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
- <1547183577-20309-3-git-send-email-kernelfans@gmail.com> <20190111053036.GA13263@localhost.localdomain>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] ACPI fixes for v5.0-rc2
+Date: Fri, 11 Jan 2019 11:22:33 +0100
+Message-ID: <CAJZ5v0jRxHZJW5aW5NPLx2pcD1g5dhYzdyUw_PUTRekhOsqeyQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190111053036.GA13263@localhost.localdomain>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Chao Fan <fanc.fnst@cn.fujitsu.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 11, 2019 at 1:31 PM Chao Fan <fanc.fnst@cn.fujitsu.com> wrote:
->
-> On Fri, Jan 11, 2019 at 01:12:52PM +0800, Pingfan Liu wrote:
-> >The current acpi_table_upgrade() relies on initrd_start, but this var is
-> >only valid after relocate_initrd(). There is requirement to extract the
-> >acpi info from initrd before memblock-allocator can work(see [2/4]), hence
-> >acpi_table_upgrade() need to accept the input param directly.
-> >
-> >Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-> >Acked-by: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >Cc: Thomas Gleixner <tglx@linutronix.de>
-> >Cc: Ingo Molnar <mingo@redhat.com>
-> >Cc: Borislav Petkov <bp@alien8.de>
-> >Cc: "H. Peter Anvin" <hpa@zytor.com>
-> >Cc: Dave Hansen <dave.hansen@linux.intel.com>
-> >Cc: Andy Lutomirski <luto@kernel.org>
-> >Cc: Peter Zijlstra <peterz@infradead.org>
-> >Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >Cc: Len Brown <lenb@kernel.org>
-> >Cc: Yinghai Lu <yinghai@kernel.org>
-> >Cc: Tejun Heo <tj@kernel.org>
-> >Cc: Chao Fan <fanc.fnst@cn.fujitsu.com>
-> >Cc: Baoquan He <bhe@redhat.com>
-> >Cc: Juergen Gross <jgross@suse.com>
-> >Cc: Andrew Morton <akpm@linux-foundation.org>
-> >Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-> >Cc: Vlastimil Babka <vbabka@suse.cz>
-> >Cc: Michal Hocko <mhocko@suse.com>
-> >Cc: x86@kernel.org
-> >Cc: linux-acpi@vger.kernel.org
-> >Cc: linux-mm@kvack.org
-> >---
-> > arch/arm64/kernel/setup.c | 2 +-
-> > arch/x86/kernel/setup.c   | 2 +-
-> > drivers/acpi/tables.c     | 4 +---
-> > include/linux/acpi.h      | 4 ++--
-> > 4 files changed, 5 insertions(+), 7 deletions(-)
-> >
-> >diff --git a/arch/arm64/kernel/setup.c b/arch/arm64/kernel/setup.c
-> >index f4fc1e0..bc4b47d 100644
-> >--- a/arch/arm64/kernel/setup.c
-> >+++ b/arch/arm64/kernel/setup.c
-> >@@ -315,7 +315,7 @@ void __init setup_arch(char **cmdline_p)
-> >       paging_init();
-> >       efi_apply_persistent_mem_reservations();
-> >
-> >-      acpi_table_upgrade();
-> >+      acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
-> >
-> >       /* Parse the ACPI tables for possible boot-time configuration */
-> >       acpi_boot_table_init();
-> >diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-> >index ac432ae..dc8fc5d 100644
-> >--- a/arch/x86/kernel/setup.c
-> >+++ b/arch/x86/kernel/setup.c
-> >@@ -1172,8 +1172,8 @@ void __init setup_arch(char **cmdline_p)
-> >
-> >       reserve_initrd();
-> >
-> >-      acpi_table_upgrade();
-> >
-> I wonder whether this will cause two blank lines together.
->
-Yes, will fix it in next version.
+Hi Linus,
 
-Thanks,
-Pingfan
-> Thanks,
-> Chao Fan
->
-> >+      acpi_table_upgrade((void *)initrd_start, initrd_end - initrd_start);
-> >       vsmp_init();
-> >
-> >       io_delay_init();
-> >diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> >index 61203ee..84e0a79 100644
-> >--- a/drivers/acpi/tables.c
-> >+++ b/drivers/acpi/tables.c
-> >@@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
-> >
-> > #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
-> >
-> >-void __init acpi_table_upgrade(void)
-> >+void __init acpi_table_upgrade(void *data, size_t size)
-> > {
-> >-      void *data = (void *)initrd_start;
-> >-      size_t size = initrd_end - initrd_start;
-> >       int sig, no, table_nr = 0, total_offset = 0;
-> >       long offset = 0;
-> >       struct acpi_table_header *table;
-> >diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> >index ed80f14..0b6e0b6 100644
-> >--- a/include/linux/acpi.h
-> >+++ b/include/linux/acpi.h
-> >@@ -1254,9 +1254,9 @@ acpi_graph_get_remote_endpoint(const struct fwnode_handle *fwnode,
-> > #endif
-> >
-> > #ifdef CONFIG_ACPI_TABLE_UPGRADE
-> >-void acpi_table_upgrade(void);
-> >+void acpi_table_upgrade(void *data, size_t size);
-> > #else
-> >-static inline void acpi_table_upgrade(void) { }
-> >+static inline void acpi_table_upgrade(void *data, size_t size) { }
-> > #endif
-> >
-> > #if defined(CONFIG_ACPI) && defined(CONFIG_ACPI_WATCHDOG)
-> >--
-> >2.7.4
-> >
-> >
-> >
->
->
+Please pull from the tag
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ acpi-5.0-rc2
+
+with top-most commit 65a4f3a1efda8e0cc2516301fc3ad64e3eca716c
+
+ Merge branches 'acpi-pci', 'acpi-power' and 'acpi-misc'
+
+on top of commit bfeffd155283772bbe78c6a05dec7c0128ee500c
+
+ Linux 5.0-rc1
+
+to receive ACPI fixes for 5.0-rc2.
+
+This fix a build failure introduced recently, fix the xpower PMIC
+ACPI driver, clean up the handling of duplicate entries in _PRx
+power resource lists and fix addresses in NUMA-related messages on
+32-bit with PAE.
+
+Specifics:
+
+ - Fix build failures with both CONFIG_NLS and CONFIG_PCI unset that
+   can occur since ACPI can be built without PCI now (Sinan Kaya).
+
+ - Clean up the handling of duplicate entries in power resource lists
+   returned by _PRx evaluation to avoid triggering WARN_ON() on
+   attempts to add duplicate symlinks in sysfs (Hans de Goede).
+
+ - Fix issues with the TS current-source switching on systems using
+   the xpower PMIC by avoiding to update unrelated bits in the TS
+   pin-ctrl register and avoiding to unconditionally enable TS
+   current-source on systems where it is not used (Hans de Goede).
+
+ - Fix addresses in NUMA-related messages on 32-bit with PAE which
+   can be truncated due to integer type conversions (Chao Fan).
+
+Thanks!
+
+
+---------------
+
+Chao Fan (1):
+      ACPI: NUMA: Use correct type for printing addresses on i386-PAE
+
+Hans de Goede (2):
+      ACPI: power: Skip duplicate power resource references in _PRx
+      ACPI / PMIC: xpower: Fix TS-pin current-source handling
+
+Sinan Kaya (1):
+      ACPI: Fix build failure when CONFIG_NLS is set to 'n'
+
+---------------
+
+ drivers/acpi/Kconfig                  |  1 +
+ drivers/acpi/numa.c                   |  6 ++---
+ drivers/acpi/pmic/intel_pmic_xpower.c | 41 ++++++++++++++++++++++++++++-------
+ drivers/acpi/power.c                  | 22 +++++++++++++++++++
+ 4 files changed, 59 insertions(+), 11 deletions(-)
