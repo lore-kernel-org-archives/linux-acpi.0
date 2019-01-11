@@ -1,23 +1,79 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFT][PATCH v2] gpiolib: acpi: Introduce
- ACPI_GPIO_QUIRK_ONLY_GPIOIO
-Date: Fri, 11 Jan 2019 07:39:58 +0200
-Message-ID: <20190111053958.GR14577@lahna.fi.intel.com>
-References: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com>
+From: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Subject: Re: [PATCHv2 1/7] x86/mm: concentrate the code to memblock allocator
+ enabled
+Date: Fri, 11 Jan 2019 14:12:21 +0800
+Message-ID: <20190111061221.GB13263@localhost.localdomain>
+References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
+ <1547183577-20309-2-git-send-email-kernelfans@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190109105245.25954-1-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1547183577-20309-2-git-send-email-kernelfans@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>, Linus Walleij <linus.walleij@linaro.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Pierre-Louis Bossart <pierre-louis.bossart@linux.intel.com>, Liam Girdwood <liam.r.girdwood@linux.intel.com>, Jie Yang <yang.jie@linux.intel.com>, Mark Brown <broonie@kernel.org>, alsa-devel@alsa-project.org, Hans de Goede <hdegoede@redhat.com>, linux-kernel@vger.kernel.org
+To: Pingfan Liu <kernelfans@gmail.com>
+Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 09, 2019 at 12:52:45PM +0200, Andy Shevchenko wrote:
-> New quirk enforces search for GPIO based on its type,
-> i.e. iterate over GpioIo resources only.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Fri, Jan 11, 2019 at 01:12:51PM +0800, Pingfan Liu wrote:
+>This patch identifies the point where memblock alloc start. It has no
+>functional.
+[...]
+>+#ifdef CONFIG_MEMORY_HOTPLUG
+>+	/*
+>+	 * Memory used by the kernel cannot be hot-removed because Linux
+>+	 * cannot migrate the kernel pages. When memory hotplug is
+>+	 * enabled, we should prevent memblock from allocating memory
+>+	 * for the kernel.
+>+	 *
+>+	 * ACPI SRAT records all hotpluggable memory ranges. But before
+>+	 * SRAT is parsed, we don't know about it.
+>+	 *
+>+	 * The kernel image is loaded into memory at very early time. We
+>+	 * cannot prevent this anyway. So on NUMA system, we set any
+>+	 * node the kernel resides in as un-hotpluggable.
+>+	 *
+>+	 * Since on modern servers, one node could have double-digit
+>+	 * gigabytes memory, we can assume the memory around the kernel
+>+	 * image is also un-hotpluggable. So before SRAT is parsed, just
+>+	 * allocate memory near the kernel image to try the best to keep
+>+	 * the kernel away from hotpluggable memory.
+>+	 */
+>+	if (movable_node_is_enabled())
+>+		memblock_set_bottom_up(true);
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Hi Pingfan,
+
+In my understanding, 'movable_node' is based on the that memory near
+kernel is considered as in the same node as kernel in high possibility.
+
+If SRAT has been parsed early, do we still need the kernel parameter
+'movable_node'? Since you have got the memory information about hot-remove,
+so I wonder if it's OK to drop 'movable_node', and if memory-hotremove is
+enabled, change memblock allocation according to SRAT.
+
+If there is something wrong in my understanding, please let me know.
+
+Thanks,
+Chao Fan
+
+>+#endif
+> 	init_mem_mapping();
+>+	memblock_set_current_limit(get_max_mapped());
+> 
+> 	idt_setup_early_pf();
+> 
+>@@ -1145,8 +1145,6 @@ void __init setup_arch(char **cmdline_p)
+> 	 */
+> 	mmu_cr4_features = __read_cr4() & ~X86_CR4_PCIDE;
+> 
+>-	memblock_set_current_limit(get_max_mapped());
+>-
+> 	/*
+> 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
+> 	 */
+>-- 
+>2.7.4
+>
+>
+>
