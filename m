@@ -1,11 +1,16 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: [PATCH] MAINTAINERS: Add LAKML list to ACPI for ARM64 entry
-Date: Fri, 11 Jan 2019 12:04:19 +0000
-Message-ID: <20190111120419.10775-1-lorenzo.pieralisi@arm.com>
+From: Joerg Roedel <jroedel@suse.de>
+Subject: Re: [PATCH] ACPI/IORT: Fix build when CONFIG_IOMMU_API=n
+Date: Fri, 11 Jan 2019 13:08:59 +0100
+Message-ID: <20190111120859.iqq7gju2ecrmi66t@suse.de>
+References: <20190107164208.27789-1-lorenzo.pieralisi@arm.com>
+ <20190111113308.5lwgl5d7m7zjvidr@suse.de>
+ <20190111113652.GA30082@fuggles.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190111113652.GA30082@fuggles.cambridge.arm.com>
 List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
 List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
@@ -15,37 +20,22 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
  <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, Qian Cai <cai@lca.pw>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Patches for ACPI for ARM64 must be posted and reviewed on the Linux
-ARM kernel mailing list (in addition to linux-acpi@vger) since they
-affect (and are merged through) the ARM64 tree.
+Hi Will,
 
-Make this explicit.
+On Fri, Jan 11, 2019 at 11:36:52AM +0000, Will Deacon wrote:
+> I've already got this one in arm64 for-next/fixes (should be in linux-next
+> already). Would you prefer me to drop it (which would mean a rebase :()? I
+> was planning to send a pull later today, since I have some other fixes
+> queued as well.
 
-Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
----
- MAINTAINERS | 1 +
- 1 file changed, 1 insertion(+)
+Ah okay, didn't check linux-next, just linus/master. Keep it in your
+tree, I'll drop it from my branch. It is not pushed yet anywhere public,
+so it's easy for me to do.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 32d444476a90..442ec4db7342 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -365,6 +365,7 @@ M:	Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
- M:	Hanjun Guo <hanjun.guo@linaro.org>
- M:	Sudeep Holla <sudeep.holla@arm.com>
- L:	linux-acpi@vger.kernel.org
-+L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	drivers/acpi/arm64
- 
--- 
-2.19.2
+Thanks,
+
+	Joerg
