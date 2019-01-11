@@ -1,68 +1,54 @@
-From: Pankaj Gupta <pagupta@redhat.com>
-Subject: Re: [PATCH v3 0/5] kvm "virtio pmem" device
-Date: Fri, 11 Jan 2019 02:45:04 -0500 (EST)
-Message-ID: <1326478078.61913951.1547192704870.JavaMail.zimbra@redhat.com>
-References: <20190109144736.17452-1-pagupta@redhat.com> <20190110012617.GA4205@dastard>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [RESEND PATCH] ACPI/IORT: Fix rc_dma_get_range()
+Date: Fri, 11 Jan 2019 10:03:20 +0000
+Message-ID: <20190111100320.GA19110@fuggles.cambridge.arm.com>
+References: <20190110184151.27492-1-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190110012617.GA4205@dastard>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dave Chinner <david@fromorbit.com>
-Cc: linux-kernel@vger.kernel.org, kvm@vger.kernel.org, qemu-devel@nongnu.org, linux-nvdimm@ml01.01.org, linux-fsdevel@vger.kernel.org, virtualization@lists.linux-foundation.org, linux-acpi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-xfs@vger.kernel.org, jack@suse.cz, stefanha@redhat.com, dan j williams <dan.j.williams@intel.com>, riel@surriel.com, nilal@redhat.com, kwolf@redhat.com, pbonzini@redhat.com, zwisler@kernel.org, vishal l verma <vishal.l.verma@intel.com>, dave jiang <dave.jiang@intel.com>, david@redhat.com, jmoyer@redhat.com, xiaoguangrong eric <xiaoguangrong.eric@gmail.com>, hch@infradead.org, mst@redhat.com, jasowang@redhat.com, lcapitulino@redhat.com, imammedo@redhat.com, eblake@redhat.com, willy@infradead.org, tytso@mit.edu, adilger kernel <adilger.>
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20190110184151.27492-1-lorenzo.pieralisi@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Eric Auger <eric.auger@redhat.com>, Jean-Philippe Brucker <jean-philippe.brucker@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Robin Murphy <robin.murphy@arm.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-
+On Thu, Jan 10, 2019 at 06:41:51PM +0000, Lorenzo Pieralisi wrote:
+> From: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
 > 
-> On Wed, Jan 09, 2019 at 08:17:31PM +0530, Pankaj Gupta wrote:
-> >  This patch series has implementation for "virtio pmem".
-> >  "virtio pmem" is fake persistent memory(nvdimm) in guest
-> >  which allows to bypass the guest page cache. This also
-> >  implements a VIRTIO based asynchronous flush mechanism.
+> When executed for a PCI_ROOT_COMPLEX type, iort_match_node_callback()
+> expects the opaque pointer argument to be a PCI bus device. At the
+> moment rc_dma_get_range() passes the PCI endpoint instead of the bus,
+> and we've been lucky to have pci_domain_nr(ptr) return 0 instead of
+> crashing. Pass the bus device to iort_scan_node().
 > 
-> Hmmmm. Sharing the host page cache direct into the guest VM. Sounds
-> like a good idea, but.....
+> Fixes: 5ac65e8c8941 ("ACPI/IORT: Support address size limit for root complexes")
+> Reported-by: Eric Auger <eric.auger@redhat.com>
+> Signed-off-by: Jean-Philippe Brucker <jean-philippe.brucker@arm.com>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Reviewed-by: Eric Auger <eric.auger@redhat.com>
+> Acked-by: Robin Murphy <robin.murphy@arm.com>
+> Cc: stable@vger.kernel.org
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> ---
+> Will, Catalin,
 > 
-> This means the guest VM can now run timing attacks to observe host
-> side page cache residency, and depending on the implementation I'm
-> guessing that the guest will be able to control host side page
-> cache eviction, too (e.g. via discard or hole punch operations).
+> resending a reformatted version of this fix previously posted in [1],
+> please merge it for one of the upcoming -rc.
 
-Not sure how? this is similar to mmapping virtual memory by any userspace 
-process. Any host userspace process can do such attack on host page cache
-using mincore & mmap shared file. 
+Thanks, I'll push this out later today.
 
-But i don't think guest can do this alone. For virtio-pmem usecase guest 
-won't be using page cache so timing attack from only guest side is not 
-possible unless host userspace can run checks on page cache eviction state
-using mincore etc. 
-
-As rightly described by Rik, guest will only access its own page cache pages 
-and if guest page cache is managed directly by host, this saves alot of 
-effort for guest in transferring guest state of page cache.  
-
-> 
-> Which means this functionality looks to me like a new vector for
-> information leakage into and out of the guest VM via guest
-> controlled host page cache manipulation.
-> 
-> https://arxiv.org/pdf/1901.01161
-> 
-> I might be wrong, but if I'm not we're going to have to be very
-> careful about how guest VMs can access and manipulate host side
-> resources like the page cache.....
-
-If I am following correctly the discussions in MM thread. 
-Important steps to mitigate this:
-
-* Avoid running mincore in privilege mode: to safeguard page evict state of any 
-  page cache page.
-* tweaking RWF_NOWAIT 
-
-I think if we secure ways to find current state(cached/evicted) of a page in host, 
-we should be able to mitigate the impact for any page cache page access attack 
-including virtio-pmem.
-
-Thanks,
-Pankaj
+Will
