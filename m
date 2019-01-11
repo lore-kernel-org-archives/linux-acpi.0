@@ -1,73 +1,92 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] ACPI fixes for v5.0-rc2
-Date: Fri, 11 Jan 2019 11:22:33 +0100
-Message-ID: <CAJZ5v0jRxHZJW5aW5NPLx2pcD1g5dhYzdyUw_PUTRekhOsqeyQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: Change wrong print type to display the real value for i386-PAE
+Date: Fri, 11 Jan 2019 11:30:38 +0100
+Message-ID: <6382453.vq0rehcvgY@aspire.rjw.lan>
+References: <20181226033450.5098-1-fanc.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20181226033450.5098-1-fanc.fnst@cn.fujitsu.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Chao Fan <fanc.fnst@cn.fujitsu.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lenb@kernel.org, rafael@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Wednesday, December 26, 2018 4:34:50 AM CET Chao Fan wrote:
+> There is a wrong display for memory address of NUMA node in i386-PAE.
+> That may mislead developers.
+> 
+> Here is a debian9-32bit with PAE in QEMU guest whose total memory is
+> more than 4G:
+> qemu-system-i386 \
+> -hda /var/lib/libvirt/images/debian32.qcow2 \
+> -m 5G \
+> -enable-kvm \
+> -smp 10 \
+> -numa node,mem=512M,nodeid=0,cpus=0 \
+> -numa node,mem=512M,nodeid=1,cpus=1 \
+> -numa node,mem=512M,nodeid=2,cpus=2 \
+> -numa node,mem=512M,nodeid=3,cpus=3 \
+> -numa node,mem=512M,nodeid=4,cpus=4 \
+> -numa node,mem=512M,nodeid=5,cpus=5 \
+> -numa node,mem=512M,nodeid=6,cpus=6 \
+> -numa node,mem=512M,nodeid=7,cpus=7 \
+> -numa node,mem=512M,nodeid=8,cpus=8 \
+> -numa node,mem=512M,nodeid=9,cpus=9 \
+> -serial stdio
+> 
+> Because of the wrong value type, it prints as below:
+> [    0.021049] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
+> [    0.021740] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
+> [    0.022425] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
+> [    0.023092] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
+> [    0.023764] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
+> [    0.024431] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
+> [    0.025104] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
+> [    0.025791] ACPI: SRAT Memory (0x0 length 0x20000000) in proximity domain 6 enabled
+> [    0.026412] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 7 enabled
+> [    0.027118] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 8 enabled
+> [    0.027802] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 9 enabled
+> The upper half of start address from domain 6 to domain 9 was cut so
+> that developers get a wrong value.
+> 
+> Fix the value type, it prints as below:
+> [    0.023698] ACPI: SRAT Memory (0x0 length 0xa0000) in proximity domain 0 enabled
+> [    0.024325] ACPI: SRAT Memory (0x100000 length 0x1ff00000) in proximity domain 0 enabled
+> [    0.024981] ACPI: SRAT Memory (0x20000000 length 0x20000000) in proximity domain 1 enabled
+> [    0.025659] ACPI: SRAT Memory (0x40000000 length 0x20000000) in proximity domain 2 enabled
+> [    0.026317] ACPI: SRAT Memory (0x60000000 length 0x20000000) in proximity domain 3 enabled
+> [    0.026980] ACPI: SRAT Memory (0x80000000 length 0x20000000) in proximity domain 4 enabled
+> [    0.027635] ACPI: SRAT Memory (0xa0000000 length 0x20000000) in proximity domain 5 enabled
+> [    0.028311] ACPI: SRAT Memory (0x100000000 length 0x20000000) in proximity domain 6 enabled
+> [    0.028985] ACPI: SRAT Memory (0x120000000 length 0x20000000) in proximity domain 7 enabled
+> [    0.029667] ACPI: SRAT Memory (0x140000000 length 0x20000000) in proximity domain 8 enabled
+> [    0.030334] ACPI: SRAT Memory (0x160000000 length 0x20000000) in proximity domain 9 enabled
+> The start address from domain 6 to domain 9 is the real value.
+> 
+> Signed-off-by: Chao Fan <fanc.fnst@cn.fujitsu.com>
+> ---
+>  drivers/acpi/numa.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 274699463b4f..7bbbf8256a41 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -146,9 +146,9 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+>  		{
+>  			struct acpi_srat_mem_affinity *p =
+>  			    (struct acpi_srat_mem_affinity *)header;
+> -			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
+> -				 (unsigned long)p->base_address,
+> -				 (unsigned long)p->length,
+> +			pr_debug("SRAT Memory (0x%llx length 0x%llx) in proximity domain %d %s%s%s\n",
+> +				 (unsigned long long)p->base_address,
+> +				 (unsigned long long)p->length,
+>  				 p->proximity_domain,
+>  				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
+>  				 "enabled" : "disabled",
+> 
 
-Please pull from the tag
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- acpi-5.0-rc2
-
-with top-most commit 65a4f3a1efda8e0cc2516301fc3ad64e3eca716c
-
- Merge branches 'acpi-pci', 'acpi-power' and 'acpi-misc'
-
-on top of commit bfeffd155283772bbe78c6a05dec7c0128ee500c
-
- Linux 5.0-rc1
-
-to receive ACPI fixes for 5.0-rc2.
-
-This fix a build failure introduced recently, fix the xpower PMIC
-ACPI driver, clean up the handling of duplicate entries in _PRx
-power resource lists and fix addresses in NUMA-related messages on
-32-bit with PAE.
-
-Specifics:
-
- - Fix build failures with both CONFIG_NLS and CONFIG_PCI unset that
-   can occur since ACPI can be built without PCI now (Sinan Kaya).
-
- - Clean up the handling of duplicate entries in power resource lists
-   returned by _PRx evaluation to avoid triggering WARN_ON() on
-   attempts to add duplicate symlinks in sysfs (Hans de Goede).
-
- - Fix issues with the TS current-source switching on systems using
-   the xpower PMIC by avoiding to update unrelated bits in the TS
-   pin-ctrl register and avoiding to unconditionally enable TS
-   current-source on systems where it is not used (Hans de Goede).
-
- - Fix addresses in NUMA-related messages on 32-bit with PAE which
-   can be truncated due to integer type conversions (Chao Fan).
-
-Thanks!
-
-
----------------
-
-Chao Fan (1):
-      ACPI: NUMA: Use correct type for printing addresses on i386-PAE
-
-Hans de Goede (2):
-      ACPI: power: Skip duplicate power resource references in _PRx
-      ACPI / PMIC: xpower: Fix TS-pin current-source handling
-
-Sinan Kaya (1):
-      ACPI: Fix build failure when CONFIG_NLS is set to 'n'
-
----------------
-
- drivers/acpi/Kconfig                  |  1 +
- drivers/acpi/numa.c                   |  6 ++---
- drivers/acpi/pmic/intel_pmic_xpower.c | 41 ++++++++++++++++++++++++++++-------
- drivers/acpi/power.c                  | 22 +++++++++++++++++++
- 4 files changed, 59 insertions(+), 11 deletions(-)
+Applied, thanks!
