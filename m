@@ -1,34 +1,19 @@
 From: Pingfan Liu <kernelfans@gmail.com>
-Subject: [PATCHv2 0/7] x86_64/mm: remove bottom-up allocation style by pushing forward the parsing of mem hotplug info
-Date: Fri, 11 Jan 2019 13:12:50 +0800
-Message-ID: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
+Subject: [PATCHv2 1/7] x86/mm: concentrate the code to memblock allocator enabled
+Date: Fri, 11 Jan 2019 13:12:51 +0800
+Message-ID: <1547183577-20309-2-git-send-email-kernelfans@gmail.com>
+References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Pingfan Liu <kernelfans@gmail.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-Background
-When kaslr kernel can be guaranteed to sit inside unmovable node
-after [1]. But if kaslr kernel is located near the end of the movable node,
-then bottom-up allocator may create pagetable which crosses the boundary
-between unmovable node and movable node.  It is a probability issue,
-two factors include -1. how big the gap between kernel end and
-unmovable node's end.  -2. how many memory does the system own.
-Alternative way to fix this issue is by increasing the gap by
-boot/compressed/kaslr*. But taking the scenario of PB level memory,
-the pagetable will take server MB even if using 1GB page, different page
-attr and fragment will make things worse. So it is hard to decide how much
-should the gap increase.
-The following figure show the defection of current bottom-up style:
-  [startA, endA][startB, "kaslr kernel verly close to" endB][startC, endC]
+This patch identifies the point where memblock alloc start. It has no
+functional.
 
-If nodeA,B is unmovable, while nodeC is movable, then init_mem_mapping()
-can generate pgtable on nodeC, which stain movable node.
-
-This patch makes it certainty instead of a probablity problem. It achieves
-this by pushing forward the parsing of mem hotplug info ahead of init_mem_mapping().
-
+Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -50,42 +35,103 @@ Cc: Michal Hocko <mhocko@suse.com>
 Cc: x86@kernel.org
 Cc: linux-acpi@vger.kernel.org
 Cc: linux-mm@kvack.org
-Pingfan Liu (7):
-  x86/mm: concentrate the code to memblock allocator enabled
-  acpi: change the topo of acpi_table_upgrade()
-  mm/memblock: introduce allocation boundary for tracing purpose
-  x86/setup: parse acpi to get hotplug info before init_mem_mapping()
-  x86/mm: set allowed range for memblock allocator
-  x86/mm: remove bottom-up allocation style for x86_64
-  x86/mm: isolate the bottom-up style to init_32.c
+---
+ arch/x86/kernel/setup.c | 54 ++++++++++++++++++++++++-------------------------
+ 1 file changed, 26 insertions(+), 28 deletions(-)
 
- arch/arm/mm/init.c              |   3 +-
- arch/arm/mm/mmu.c               |   4 +-
- arch/arm/mm/nommu.c             |   2 +-
- arch/arm64/kernel/setup.c       |   2 +-
- arch/csky/kernel/setup.c        |   2 +-
- arch/microblaze/mm/init.c       |   2 +-
- arch/mips/kernel/setup.c        |   2 +-
- arch/powerpc/mm/40x_mmu.c       |   6 +-
- arch/powerpc/mm/44x_mmu.c       |   2 +-
- arch/powerpc/mm/8xx_mmu.c       |   2 +-
- arch/powerpc/mm/fsl_booke_mmu.c |   5 +-
- arch/powerpc/mm/hash_utils_64.c |   4 +-
- arch/powerpc/mm/init_32.c       |   2 +-
- arch/powerpc/mm/pgtable-radix.c |   2 +-
- arch/powerpc/mm/ppc_mmu_32.c    |   8 +-
- arch/powerpc/mm/tlb_nohash.c    |   6 +-
- arch/unicore32/mm/mmu.c         |   2 +-
- arch/x86/kernel/setup.c         |  93 ++++++++++++++---------
- arch/x86/mm/init.c              | 163 +++++-----------------------------------
- arch/x86/mm/init_32.c           | 147 ++++++++++++++++++++++++++++++++++++
- arch/x86/mm/mm_internal.h       |   8 +-
- arch/xtensa/mm/init.c           |   2 +-
- drivers/acpi/tables.c           |   4 +-
- include/linux/acpi.h            |   5 +-
- include/linux/memblock.h        |  10 ++-
- mm/memblock.c                   |  23 ++++--
- 26 files changed, 290 insertions(+), 221 deletions(-)
-
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index d494b9b..ac432ae 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -962,29 +962,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	if (efi_enabled(EFI_BOOT))
+ 		efi_memblock_x86_reserve_range();
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-	/*
+-	 * Memory used by the kernel cannot be hot-removed because Linux
+-	 * cannot migrate the kernel pages. When memory hotplug is
+-	 * enabled, we should prevent memblock from allocating memory
+-	 * for the kernel.
+-	 *
+-	 * ACPI SRAT records all hotpluggable memory ranges. But before
+-	 * SRAT is parsed, we don't know about it.
+-	 *
+-	 * The kernel image is loaded into memory at very early time. We
+-	 * cannot prevent this anyway. So on NUMA system, we set any
+-	 * node the kernel resides in as un-hotpluggable.
+-	 *
+-	 * Since on modern servers, one node could have double-digit
+-	 * gigabytes memory, we can assume the memory around the kernel
+-	 * image is also un-hotpluggable. So before SRAT is parsed, just
+-	 * allocate memory near the kernel image to try the best to keep
+-	 * the kernel away from hotpluggable memory.
+-	 */
+-	if (movable_node_is_enabled())
+-		memblock_set_bottom_up(true);
+-#endif
+ 
+ 	x86_report_nx();
+ 
+@@ -1096,9 +1073,6 @@ void __init setup_arch(char **cmdline_p)
+ 
+ 	cleanup_highmap();
+ 
+-	memblock_set_current_limit(ISA_END_ADDRESS);
+-	e820__memblock_setup();
+-
+ 	reserve_bios_regions();
+ 
+ 	if (efi_enabled(EFI_MEMMAP)) {
+@@ -1113,6 +1087,8 @@ void __init setup_arch(char **cmdline_p)
+ 		efi_reserve_boot_services();
+ 	}
+ 
++	memblock_set_current_limit(0, ISA_END_ADDRESS, false);
++	e820__memblock_setup();
+ 	/* preallocate 4k for mptable mpc */
+ 	e820__memblock_alloc_reserved_mpc_new();
+ 
+@@ -1130,7 +1106,31 @@ void __init setup_arch(char **cmdline_p)
+ 	trim_platform_memory_ranges();
+ 	trim_low_memory_range();
+ 
++#ifdef CONFIG_MEMORY_HOTPLUG
++	/*
++	 * Memory used by the kernel cannot be hot-removed because Linux
++	 * cannot migrate the kernel pages. When memory hotplug is
++	 * enabled, we should prevent memblock from allocating memory
++	 * for the kernel.
++	 *
++	 * ACPI SRAT records all hotpluggable memory ranges. But before
++	 * SRAT is parsed, we don't know about it.
++	 *
++	 * The kernel image is loaded into memory at very early time. We
++	 * cannot prevent this anyway. So on NUMA system, we set any
++	 * node the kernel resides in as un-hotpluggable.
++	 *
++	 * Since on modern servers, one node could have double-digit
++	 * gigabytes memory, we can assume the memory around the kernel
++	 * image is also un-hotpluggable. So before SRAT is parsed, just
++	 * allocate memory near the kernel image to try the best to keep
++	 * the kernel away from hotpluggable memory.
++	 */
++	if (movable_node_is_enabled())
++		memblock_set_bottom_up(true);
++#endif
+ 	init_mem_mapping();
++	memblock_set_current_limit(get_max_mapped());
+ 
+ 	idt_setup_early_pf();
+ 
+@@ -1145,8 +1145,6 @@ void __init setup_arch(char **cmdline_p)
+ 	 */
+ 	mmu_cr4_features = __read_cr4() & ~X86_CR4_PCIDE;
+ 
+-	memblock_set_current_limit(get_max_mapped());
+-
+ 	/*
+ 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
+ 	 */
 -- 
 2.7.4
