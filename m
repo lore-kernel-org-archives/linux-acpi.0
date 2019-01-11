@@ -1,43 +1,75 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH] ACPI/IORT: Fix build when CONFIG_IOMMU_API=n
-Date: Fri, 11 Jan 2019 12:29:55 +0000
-Message-ID: <20190111122955.GB30082@fuggles.cambridge.arm.com>
-References: <20190107164208.27789-1-lorenzo.pieralisi@arm.com>
- <20190111113308.5lwgl5d7m7zjvidr@suse.de>
- <20190111113652.GA30082@fuggles.cambridge.arm.com>
- <20190111120859.iqq7gju2ecrmi66t@suse.de>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 1/3] x86/cpu: Introduce INTEL_CPU_FAM*_NODATA() helper macros
+Date: Fri, 11 Jan 2019 15:29:39 +0200
+Message-ID: <CAHp75Vfn+_7Nn8mHR8ZhU2+CAF4HvrnvjxP7wb9N+=M29b8z1Q@mail.gmail.com>
+References: <20190109165754.90072-1-andriy.shevchenko@linux.intel.com> <CAJZ5v0hzUAYDxneYUNjcpvN5H+F+=fH1PnVcHP5TgLr-5Jc6YA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20190111120859.iqq7gju2ecrmi66t@suse.de>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Joerg Roedel <jroedel@suse.de>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, Qian Cai <cai@lca.pw>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="UTF-8"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0hzUAYDxneYUNjcpvN5H+F+=fH1PnVcHP5TgLr-5Jc6YA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, the arch/x86 maintainers <x86@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 11, 2019 at 01:08:59PM +0100, Joerg Roedel wrote:
-> Hi Will,
-> 
-> On Fri, Jan 11, 2019 at 11:36:52AM +0000, Will Deacon wrote:
-> > I've already got this one in arm64 for-next/fixes (should be in linux-next
-> > already). Would you prefer me to drop it (which would mean a rebase :()? I
-> > was planning to send a pull later today, since I have some other fixes
-> > queued as well.
-> 
-> Ah okay, didn't check linux-next, just linus/master. Keep it in your
-> tree, I'll drop it from my branch. It is not pushed yet anywhere public,
-> so it's easy for me to do.
+On Fri, Jan 11, 2019 at 3:14 PM Rafael J. Wysocki <rafael@kernel.org> wrote:
+>
+> On Wed, Jan 9, 2019 at 5:57 PM Andy Shevchenko
+> <andriy.shevchenko@linux.intel.com> wrote:
+> >
+> > These macros are often used by the drivers and we have already a lot of
+> > duplication as ICPU() macro across them.
+> >
+> > Provide a generic x86 macro for users.
+> >
+> > This adds no driver data variants.
+> >
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>
 
-Thanks Joerg, that keeps things simple! Should land in -rc2.
+> If you want me to apply the series, I need an ACK for this one.
 
-Will
+I hope Ingo can help with this.
+
+> Alternatively, if you want to apply it yourself, please feel free to
+> add ACKs from me to the ACPI-related patches in it.
+
+Thanks, you already gave yours at time of v1.
+
+>
+> > ---
+> >  arch/x86/include/asm/intel-family.h | 10 ++++++++--
+> >  1 file changed, 8 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/arch/x86/include/asm/intel-family.h b/arch/x86/include/asm/intel-family.h
+> > index 25b28760fada..afd70055a750 100644
+> > --- a/arch/x86/include/asm/intel-family.h
+> > +++ b/arch/x86/include/asm/intel-family.h
+> > @@ -86,10 +86,16 @@
+> >         .family         = _family,                              \
+> >         .model          = _model,                               \
+> >         .feature        = X86_FEATURE_ANY,                      \
+> > -       .driver_data    = (kernel_ulong_t)&_driver_data         \
+> > +       .driver_data    = (kernel_ulong_t)_driver_data          \
+> >  }
+> >
+> >  #define INTEL_CPU_FAM6(_model, _driver_data)                   \
+> > -       INTEL_CPU_FAM_ANY(6, INTEL_FAM6_##_model, _driver_data)
+> > +       INTEL_CPU_FAM_ANY(6, INTEL_FAM6_##_model, &_driver_data)
+> > +
+> > +#define INTEL_CPU_FAM_ANY_NODATA(_family, _model)              \
+> > +       INTEL_CPU_FAM_ANY(_family, _model, 0)
+> > +
+> > +#define INTEL_CPU_FAM6_NODATA(_model)                          \
+> > +       INTEL_CPU_FAM_ANY_NODATA(6, INTEL_FAM6_##_model)
+> >
+> >  #endif /* _ASM_X86_INTEL_FAMILY_H */
+> > --
+> > 2.20.1
+> >
+
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
