@@ -1,66 +1,76 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 2/3] ACPI / LPSS: Get rid of custom ICPU() macro
-Date: Mon, 14 Jan 2019 12:08:54 +0100
-Message-ID: <20190114110854.GK2773@zn.tnic>
-References: <20190109165754.90072-1-andriy.shevchenko@linux.intel.com>
- <20190109165754.90072-2-andriy.shevchenko@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2] acpi: fix a potential inconsistency caused by double-fetch
+Date: Mon, 14 Jan 2019 12:15:00 +0100
+Message-ID: <CAJZ5v0iR9WrW6GafCmKR8oHagg3vqGMKEuXmJ58Ewp_cOB5uew@mail.gmail.com>
+References: <20181225214633.69973-1-kjlu@umn.edu> <20190109081423.10781-1-kjlu@umn.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20190109165754.90072-2-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20190109081423.10781-1-kjlu@umn.edu>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, x86@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+To: Kangjie Lu <kjlu@umn.edu>
+Cc: pakki001@umn.edu, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 09, 2019 at 06:57:53PM +0200, Andy Shevchenko wrote:
-> Replace custom grown macro with generic INTEL_CPU_FAM6_NODATA() one.
-> 
-> No functional change intended.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Wed, Jan 9, 2019 at 9:14 AM Kangjie Lu <kjlu@umn.edu> wrote:
+>
+> "user_buf->length" is in user space, and copied in twice. The second
+> copy is after it passes the security check. If a user program races to
+> change user_buf->length in user space, the data fetched in the second
+> copy may invalidate the security check. The fix avoids the double-fetch
+> issue by using the value passing the security check.
+
+AFAICS the patch really does two things: it avoids the issue described
+above and avoids using the (redundant) 'table' local variable on the
+stack.  Arguably, you could fix the issue without getting rid of the
+redundant variable.
+
+>
+> Signed-off-by: Kangjie Lu <kjlu@umn.edu>
 > ---
->  drivers/acpi/acpi_lpss.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 5f94c35d165f..633a528bb6ea 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -311,11 +311,9 @@ static const struct lpss_device_desc bsw_spi_dev_desc = {
->  	.setup = lpss_deassert_reset,
->  };
->  
-> -#define ICPU(model)	{ X86_VENDOR_INTEL, 6, model, X86_FEATURE_ANY, }
-> -
->  static const struct x86_cpu_id lpss_cpu_ids[] = {
-> -	ICPU(INTEL_FAM6_ATOM_SILVERMONT),	/* Valleyview, Bay Trail */
+>  drivers/acpi/custom_method.c | 10 ++++++----
+>  1 file changed, 6 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+> index 4451877f83b6..f10ee0519033 100644
+> --- a/drivers/acpi/custom_method.c
+> +++ b/drivers/acpi/custom_method.c
+> @@ -26,17 +26,16 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+>         static u32 max_size;
+>         static u32 uncopied_bytes;
+>
+> -       struct acpi_table_header table;
+>         acpi_status status;
+>
+>         if (!(*ppos)) {
+>                 /* parse the table header to get the table length */
+>                 if (count <= sizeof(struct acpi_table_header))
+>                         return -EINVAL;
+> -               if (copy_from_user(&table, user_buf,
+> -                                  sizeof(struct acpi_table_header)))
+> +               if (get_user(max_size,
+> +                                       &((struct acpi_table_header *)user_buf)->length))
+>                         return -EFAULT;
+> -               uncopied_bytes = max_size = table.length;
+> +               uncopied_bytes = max_size;
+>                 buf = kzalloc(max_size, GFP_KERNEL);
+>                 if (!buf)
+>                         return -ENOMEM;
+> @@ -57,6 +56,9 @@ static ssize_t cm_write(struct file *file, const char __user * user_buf,
+>                 return -EFAULT;
+>         }
+>
+> +       /* Ensure table length is not changed in the second copy */
+> +       ((struct acpi_table_header *)(buf + (*ppos)))->length = max_size;
 
-Sorry but the previous one was better: INTEL_FAM6_ATOM_SILVERMONT I can
-find in the tree...
+Why don't you return -EFAULT if max_size is different from ->length?
+Surely, the table should not be used at all in that case.
 
-> -	ICPU(INTEL_FAM6_ATOM_AIRMONT),	/* Braswell, Cherry Trail */
-> +	INTEL_CPU_FAM6_NODATA(ATOM_SILVERMONT),	/* Valleyview, Bay Trail */
+Moreover, wouldn't it be even better to compare the entire header with
+the one read previously and return -EFAULT if they don't match?
 
-For ATOM_SILVERMONT I find different things:
-
-INTEL_CPU_FAM6(ATOM_SILVERMONT
-X86_CSTATES_MODEL(INTEL_FAM6_ATOM_SILVERMONT
-ICPU(INTEL_FAM6_ATOM_SILVERMONT
-...
-
-so you guys need to sit down and agree on a single form of usage and
-stick with it.
-
-And I'd advise against the first one which cuts off the
-INTEL_FAM6_ATOM_SILVERMONT and other defines.
-
-Thx.
-
--- 
-Regards/Gruss,
-    Boris.
-
-Good mailing practices for 400: avoid top-posting and trim the reply.
+> +
+>         uncopied_bytes -= count;
+>         *ppos += count;
+>
+> --
