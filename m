@@ -1,14 +1,14 @@
 From: Dave Hansen <dave.hansen@intel.com>
-Subject: Re: [PATCHv2 0/7] x86_64/mm: remove bottom-up allocation style by
- pushing forward the parsing of mem hotplug info
-Date: Mon, 14 Jan 2019 15:02:20 -0800
-Message-ID: <fe88d6ff-00e1-b65d-f411-64b03227bd17@intel.com>
+Subject: Re: [PATCHv2 2/7] acpi: change the topo of acpi_table_upgrade()
+Date: Mon, 14 Jan 2019 15:12:12 -0800
+Message-ID: <a5fe4d86-3551-7da8-caca-fdd497ace99f@intel.com>
 References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
+ <1547183577-20309-3-git-send-email-kernelfans@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
+In-Reply-To: <1547183577-20309-3-git-send-email-kernelfans@gmail.com>
 Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
 To: Pingfan Liu <kernelfans@gmail.com>, linux-kernel@vger.kernel.org
@@ -16,62 +16,43 @@ Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borisl
 List-Id: linux-acpi@vger.kernel.org
 
 On 1/10/19 9:12 PM, Pingfan Liu wrote:
-> Background
-> When kaslr kernel can be guaranteed to sit inside unmovable node
-> after [1].
+> The current acpi_table_upgrade() relies on initrd_start, but this var is
 
-What does this "[1]" refer to?
+"var" meaning variable?
 
-Also, can you clarify your terminology here a bit.  By "kaslr kernel",
-do you mean the base address?
+Could you please go back and try to ensure you spell out all the words
+you are intending to write?  I think "topo" probably means "topology",
+but it's a really odd word to use for changing the arguments of a
+function, so I'm not sure.
 
-> But if kaslr kernel is located near the end of the movable node,
-> then bottom-up allocator may create pagetable which crosses the boundary
-> between unmovable node and movable node.
+There are a couple more of these in this set.
 
-Again, I'm confused.  Do you literally mean a single page table page?  I
-think you mean the page tables, but it would be nice to clarify this,
-and also explicitly state which page tables these are.
+> only valid after relocate_initrd(). There is requirement to extract the
+> acpi info from initrd before memblock-allocator can work(see [2/4]), hence
+> acpi_table_upgrade() need to accept the input param directly.
 
->  It is a probability issue,
-> two factors include -1. how big the gap between kernel end and
-> unmovable node's end.  -2. how many memory does the system own.
-> Alternative way to fix this issue is by increasing the gap by
-> boot/compressed/kaslr*.
+"[2/4]"
 
-Oh, you mean the KASLR code in arch/x86/boot/compressed/kaslr*.[ch]?
+It looks like you quickly resent this set without updating the patch
+descriptions.
 
-It took me a minute to figure out you were talking about filenames.
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 61203ee..84e0a79 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+>  
+>  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+>  
+> -void __init acpi_table_upgrade(void)
+> +void __init acpi_table_upgrade(void *data, size_t size)
+>  {
+> -	void *data = (void *)initrd_start;
+> -	size_t size = initrd_end - initrd_start;
+>  	int sig, no, table_nr = 0, total_offset = 0;
+>  	long offset = 0;
+>  	struct acpi_table_header *table;
 
-> But taking the scenario of PB level memory, the pagetable will take
-> server MB even if using 1GB page, different page attr and fragment
-> will make things worse. So it is hard to decide how much should the
-> gap increase.
-I'm not following this.  If we move the image around, we leave holes.
-Why do we need page table pages allocated to cover these holes?
-
-> The following figure show the defection of current bottom-up style:
->   [startA, endA][startB, "kaslr kernel verly close to" endB][startC, endC]
-
-"defection"?
-
-> If nodeA,B is unmovable, while nodeC is movable, then init_mem_mapping()
-> can generate pgtable on nodeC, which stain movable node.
-
-Let me see if I can summarize this:
-1. The kernel ASLR decompression code picks a spot to place the kernel
-   image in physical memory.
-2. Some page tables are dynamically allocated near (after) this spot.
-3. Sometimes, based on the random ASLR location, these page tables fall
-   over into the "movable node" area.  Being unmovable allocations, this
-   is not cool.
-4. To fix this (on 64-bit at least), we stop allocating page tables
-   based on the location of the kernel image.  Instead, we allocate
-   using the memblock allocator itself, which knows how to avoid the
-   movable node.
-
-> This patch makes it certainty instead of a probablity problem. It achieves
-> this by pushing forward the parsing of mem hotplug info ahead of init_mem_mapping().
-
-What does memory hotplug have to do with this?  I thought this was all
-about early boot.
+I know you are just replacing some existing variables, but we have a
+slightly higher standard for naming when you actually have to specify
+arguments to a function.  Can you please give these proper names?
