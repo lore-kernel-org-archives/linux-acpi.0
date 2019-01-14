@@ -1,74 +1,62 @@
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: Re: [PATCHv2 3/7] mm/memblock: introduce allocation boundary for
- tracing purpose
-Date: Mon, 14 Jan 2019 17:13:48 +0800
-Message-ID: <CAFgQCTtKO445m9rq+cxuX2PqBW4uTNh=62ETFt7zVQGCZ4RaXA@mail.gmail.com>
-References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
- <1547183577-20309-4-git-send-email-kernelfans@gmail.com> <20190114075113.GB1973@rapoport-lnx>
- <CAFgQCTtN4CGFz5xf+uci1ow032oQMB5pExHG01EtgrOpqXrJKA@mail.gmail.com> <20190114085037.GC1973@rapoport-lnx>
+From: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [Qemu-devel] [PATCH v3 0/5] kvm "virtio pmem" device
+Date: Mon, 14 Jan 2019 10:55:20 +0100
+Message-ID: <20190114095520.GC13316@quack2.suse.cz>
+References: <20190109144736.17452-1-pagupta@redhat.com>
+ <20190110012617.GA4205@dastard>
+ <20190110101757.GC15790@quack2.suse.cz>
+ <1354249849.63357171.1547343519970.JavaMail.zimbra@redhat.com>
+ <CAPcyv4hwcgTUpgNCefCGu4DvgkYBp5b=f+hJ+FC=s5APYKoycg@mail.gmail.com>
+ <540171952.63371441.1547345866585.JavaMail.zimbra@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20190114085037.GC1973@rapoport-lnx>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mike Rapoport <rppt@linux.ibm.com>
-Cc: linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <540171952.63371441.1547345866585.JavaMail.zimbra-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+List-Unsubscribe: <https://lists.01.org/mailman/options/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.01.org/pipermail/linux-nvdimm/>
+List-Post: <mailto:linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+List-Help: <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.01.org/mailman/listinfo/linux-nvdimm>,
+ <mailto:linux-nvdimm-request-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org?subject=subscribe>
+Errors-To: linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org
+Sender: "Linux-nvdimm" <linux-nvdimm-bounces-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>
+To: Pankaj Gupta <pagupta-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Jan Kara <jack-AlSwsSmVLrQ@public.gmane.org>, KVM list <kvm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-nvdimm <linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org>, Jason Wang <jasowang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Dave Chinner <david-FqsqvQoI3Ljby3iVrkZq2A@public.gmane.org>, Qemu Developers <qemu-devel-qX2TKyscuCcdnm+yROfE0A@public.gmane.org>, virtualization-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, adilger kernel <adilger.kernel-m1MBpc4rdrD3fQ9qLvQP4Q@public.gmane.org>, Ross Zwisler <zwisler-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, darrick wong <darrick.wong-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Hildenbrand <david-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Matthew Wilcox <willy-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-ext4 <linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rik van Riel <riel-ebMLmSuQjDVBDgjK7y7TUQ@public.gmane.org>, Stefan Hajnoczi <stefanha-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Paolo Bonzini <pbonzini-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, lcapitulino-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Kevin Wolf <kwolf-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Nitesh Narayan Lal <nilal-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Theodore Ts'o <tytso-3s7WtUTddSA@public.gmane.org>, xiaoguangrong eric <xiaoguangrong.eric@gmai>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 4:50 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
->
-> On Mon, Jan 14, 2019 at 04:33:50PM +0800, Pingfan Liu wrote:
-> > On Mon, Jan 14, 2019 at 3:51 PM Mike Rapoport <rppt@linux.ibm.com> wrote:
+On Sat 12-01-19 21:17:46, Pankaj Gupta wrote:
+> > > > Right. Thinking about this I would be more concerned about the fact that
+> > > > guest can effectively pin amount of host's page cache upto size of the
+> > > > device/file passed to guest as PMEM, can't it Pankaj? Or is there some
+> > > > QEMU
+> > > > magic that avoids this?
 > > >
-> > > Hi Pingfan,
-> > >
-> > > On Fri, Jan 11, 2019 at 01:12:53PM +0800, Pingfan Liu wrote:
-> > > > During boot time, there is requirement to tell whether a series of func
-> > > > call will consume memory or not. For some reason, a temporary memory
-> > > > resource can be loan to those func through memblock allocator, but at a
-> > > > check point, all of the loan memory should be turned back.
-> > > > A typical using style:
-> > > >  -1. find a usable range by memblock_find_in_range(), said, [A,B]
-> > > >  -2. before calling a series of func, memblock_set_current_limit(A,B,true)
-> > > >  -3. call funcs
-> > > >  -4. memblock_find_in_range(A,B,B-A,1), if failed, then some memory is not
-> > > >      turned back.
-> > > >  -5. reset the original limit
-> > > >
-> > > > E.g. in the case of hotmovable memory, some acpi routines should be called,
-> > > > and they are not allowed to own some movable memory. Although at present
-> > > > these functions do not consume memory, but later, if changed without
-> > > > awareness, they may do. With the above method, the allocation can be
-> > > > detected, and pr_warn() to ask people to resolve it.
-> > >
-> > > To ensure there were that a sequence of function calls didn't create new
-> > > memblock allocations you can simply check the number of the reserved
-> > > regions before and after that sequence.
-> > >
-> > Yes, thank you point out it.
-> >
-> > > Still, I'm not sure it would be practical to try tracking what code that's called
-> > > from x86::setup_arch() did memory allocation.
-> > > Probably a better approach is to verify no memory ended up in the movable
-> > > areas after their extents are known.
-> > >
-> > It is a probability problem whether allocated memory sit on hotmovable
-> > memory or not. And if warning based on the verification, then it is
-> > also a probability problem and maybe we will miss it.
->
-> I'm not sure I'm following you here.
->
-> After the hotmovable memory configuration is detected it is possible to
-> traverse reserved memblock areas and warn if some of them reside in the
-> hotmovable memory.
->
-Oh, sorry that I did not explain it accurately. Let use say a machine
-with nodeA/B/C from low to high memory address. With top-down
-allocation by default, at this point, memory will always be allocated
-from nodeC. But it depends on machine whether nodeC is hotmovable or
-not. The verification can pass on a machine with unmovable nodeC , but
-fails on a machine with movable nodeC. It will be a probability issue.
+> > > Yes, guest will pin these host page cache pages using 'get_user_pages' by
+> > > elevating the page reference count. But these pages can be reclaimed by
+> > > host
+> > > at any time when there is memory pressure.
+> > 
+> > Wait, how can the guest pin the host pages? I would expect this to
+> > happen only when using vfio and device assignment. Otherwise, no the
+> > host can't reclaim a pinned page, that's the whole point of a pin to
+> > prevent the mm from reclaiming ownership.
+> 
+> yes. You are right I just used the pin word but it does not actually pin pages 
+> permanently. I had gone through the discussion on existing problems with 
+> get_user_pages and DMA e.g [1] to understand Jan's POV. It does mention GUP 
+> pin pages so I also used the word 'pin'. But guest does not permanently pin 
+> these pages and these pages can be reclaimed by host.
 
-Thanks
+OK, then I was just confused how virtio-pmem is going to work. Thanks for
+explanation! So can I imagine this as guest mmaping the host file and
+providing the mapped range as "NVDIMM pages" to the kernel inside the
+guest? Or is it more complex?
 
-[...]
+								Honza
+
+-- 
+Jan Kara <jack-IBi9RG/b67k@public.gmane.org>
+SUSE Labs, CR
