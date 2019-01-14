@@ -1,27 +1,24 @@
 From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCHv3 08/13] Documentation/ABI: Add node performance
- attributes
-Date: Mon, 14 Jan 2019 08:53:11 -0700
-Message-ID: <20190114155310.GB22829@localhost.localdomain>
+Subject: Re: [PATCHv3 13/13] doc/mm: New documentation for memory performance
+Date: Mon, 14 Jan 2019 08:53:54 -0700
+Message-ID: <20190114155354.GC22829@localhost.localdomain>
 References: <20190109174341.19818-1-keith.busch@intel.com>
- <20190109174341.19818-9-keith.busch@intel.com>
- <20190113231012.GD18710@amd>
+ <20190109174341.19818-14-keith.busch@intel.com>
+ <20190113114230.GB8765@rapoport-lnx>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20190113231012.GD18710@amd>
+In-Reply-To: <20190113114230.GB8765@rapoport-lnx>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
+To: Mike Rapoport <rppt@linux.ibm.com>
 Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Rafael Wysocki <rafael@kernel.org>, Dave Hansen <dave.hansen@intel.com>, Dan Williams <dan.j.williams@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 14, 2019 at 12:10:12AM +0100, Pavel Machek wrote:
-> On Wed 2019-01-09 10:43:36, Keith Busch wrote:
-> > +		This node's write latency in nanosecondss available to memory
-> > +		initiators in nodes found in this class's
-> > initiators_nodelist.
+On Sun, Jan 13, 2019 at 01:42:30PM +0200, Mike Rapoport wrote:
+> There are a couple of nitpicks below, otherwise
 > 
-> "nanosecondss", twice.
+> Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 
-Thanks for the catch, fixed up for the next rev.
+Thank you for the detailed review. I've incorporated all your
+recommmendations for the next revision.
