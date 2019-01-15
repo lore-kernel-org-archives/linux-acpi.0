@@ -1,52 +1,65 @@
 From: Pingfan Liu <kernelfans@gmail.com>
-Subject: Re: [PATCHv2 1/7] x86/mm: concentrate the code to memblock allocator enabled
-Date: Tue, 15 Jan 2019 15:06:10 +0800
-Message-ID: <CAFgQCTsV13JSH_S2kSQGeUa3K0s_n4LeGqhrHwBEW9DWeCWgcA@mail.gmail.com>
+Subject: Re: [PATCHv2 2/7] acpi: change the topo of acpi_table_upgrade()
+Date: Tue, 15 Jan 2019 15:28:19 +0800
+Message-ID: <CAFgQCTsMo9+8m9jxUK5Eax44rsY+a3TBpb4HsUrScJW3OQ18Kw@mail.gmail.com>
 References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
- <1547183577-20309-2-git-send-email-kernelfans@gmail.com> <96233c0c-940d-8d7c-b3be-d8863c026996@intel.com>
+ <1547183577-20309-3-git-send-email-kernelfans@gmail.com> <a5fe4d86-3551-7da8-caca-fdd497ace99f@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <96233c0c-940d-8d7c-b3be-d8863c026996@intel.com>
+In-Reply-To: <a5fe4d86-3551-7da8-caca-fdd497ace99f@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Dave Hansen <dave.hansen@intel.com>
 Cc: LKML <linux-kernel@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 15, 2019 at 7:07 AM Dave Hansen <dave.hansen@intel.com> wrote:
+On Tue, Jan 15, 2019 at 7:12 AM Dave Hansen <dave.hansen@intel.com> wrote:
 >
 > On 1/10/19 9:12 PM, Pingfan Liu wrote:
-> > This patch identifies the point where memblock alloc start. It has no
-> > functional.
+> > The current acpi_table_upgrade() relies on initrd_start, but this var is
 >
-> It has no functional ... what?  Effects?
+> "var" meaning variable?
 >
-During re-organize the code, it takes me a long time to figure out why
-memblock_set_bottom_up(true) is added here, and how far can it be
-deferred. And finally, I realize that it only takes effect after
-e820__memblock_setup(), the point where memblock allocator can work.
-So I concentrate the related code, and hope this patch can classify
-this truth.
+> Could you please go back and try to ensure you spell out all the words
+> you are intending to write?  I think "topo" probably means "topology",
+> but it's a really odd word to use for changing the arguments of a
+> function, so I'm not sure.
+>
+> There are a couple more of these in this set.
+>
+Yes. I will do it and fix them in next version.
 
-> > -     memblock_set_current_limit(ISA_END_ADDRESS);
-> > -     e820__memblock_setup();
-> > -
-> >       reserve_bios_regions();
-> >
-> >       if (efi_enabled(EFI_MEMMAP)) {
-> > @@ -1113,6 +1087,8 @@ void __init setup_arch(char **cmdline_p)
-> >               efi_reserve_boot_services();
-> >       }
-> >
-> > +     memblock_set_current_limit(0, ISA_END_ADDRESS, false);
-> > +     e820__memblock_setup();
+> > only valid after relocate_initrd(). There is requirement to extract the
+> > acpi info from initrd before memblock-allocator can work(see [2/4]), hence
+> > acpi_table_upgrade() need to accept the input param directly.
 >
-> It looks like you changed the arguments passed to
-> memblock_set_current_limit().  How can this even compile?  Did you mean
-> that this patch is not functional?
+> "[2/4]"
 >
-Sorry that during rebasing, merge trivial fix by mistake. I will build
-against each patch.
+> It looks like you quickly resent this set without updating the patch
+> descriptions.
+>
+> > diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> > index 61203ee..84e0a79 100644
+> > --- a/drivers/acpi/tables.c
+> > +++ b/drivers/acpi/tables.c
+> > @@ -471,10 +471,8 @@ static DECLARE_BITMAP(acpi_initrd_installed, NR_ACPI_INITRD_TABLES);
+> >
+> >  #define MAP_CHUNK_SIZE   (NR_FIX_BTMAPS << PAGE_SHIFT)
+> >
+> > -void __init acpi_table_upgrade(void)
+> > +void __init acpi_table_upgrade(void *data, size_t size)
+> >  {
+> > -     void *data = (void *)initrd_start;
+> > -     size_t size = initrd_end - initrd_start;
+> >       int sig, no, table_nr = 0, total_offset = 0;
+> >       long offset = 0;
+> >       struct acpi_table_header *table;
+>
+> I know you are just replacing some existing variables, but we have a
+> slightly higher standard for naming when you actually have to specify
+> arguments to a function.  Can you please give these proper names?
+>
+OK, I will change it to acpi_table_upgrade(void *initrd, size_t size).
 
-Best regards,
+Thanks,
 Pingfan
