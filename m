@@ -1,62 +1,106 @@
-From: Dave Hansen <dave.hansen@intel.com>
-Subject: Re: [PATCHv2 6/7] x86/mm: remove bottom-up allocation style for
- x86_64
-Date: Mon, 14 Jan 2019 15:27:25 -0800
-Message-ID: <fff8c6b6-7344-7ecb-b1a8-3c49af34c892@intel.com>
-References: <1547183577-20309-1-git-send-email-kernelfans@gmail.com>
- <1547183577-20309-7-git-send-email-kernelfans@gmail.com>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [PATCH v3 0/5] kvm "virtio pmem" device
+Date: Mon, 14 Jan 2019 21:19:09 -0500
+Message-ID: <20190114205031-mutt-send-email-mst@kernel.org>
+References: <20190109144736.17452-1-pagupta@redhat.com>
+ <20190110012617.GA4205@dastard>
+ <1326478078.61913951.1547192704870.JavaMail.zimbra@redhat.com>
+ <20190113232902.GD4205@dastard>
+ <20190113233820.GX6310@bombadil.infradead.org>
+ <942065073.64011540.1547450140670.JavaMail.zimbra@redhat.com>
+ <20190114212501.GG4205@dastard>
+ <CAPcyv4jtPcLV-s0sKNHwwk0ug7GLBV6699dpm1h3r2xSo879dg@mail.gmail.com>
+ <20190114222132.GH4205@dastard>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1547183577-20309-7-git-send-email-kernelfans@gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20190114222132.GH4205@dastard>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Pingfan Liu <kernelfans@gmail.com>, linux-kernel@vger.kernel.org
-Cc: Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, Borislav Petkov <bp@alien8.de>, "H. Peter Anvin" <hpa@zytor.com>, Dave Hansen <dave.hansen@linux.intel.com>, Andy Lutomirski <luto@kernel.org>, Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Yinghai Lu <yinghai@kernel.org>, Tejun Heo <tj@kernel.org>, Chao Fan <fanc.fnst@cn.fujitsu.com>, Baoquan He <bhe@redhat.com>, Juergen Gross <jgross@suse.com>, Andrew Morton <akpm@linux-foundation.org>, Mike Rapoport <rppt@linux.vnet.ibm.com>, Vlastimil Babka <vbabka@suse.cz>, Michal Hocko <mhocko@suse.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-mm@kvack.org
+To: Dave Chinner <david@fromorbit.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Pankaj Gupta <pagupta@redhat.com>, Matthew Wilcox <willy@infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, KVM list <kvm@vger.kernel.org>, Qemu Developers <qemu-devel@nongnu.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, virtualization@lists.linux-foundation.org, Linux ACPI <linux-acpi@vger.kernel.org>, linux-ext4 <linux-ext4@vger.kernel.org>, linux-xfs <linux-xfs@vger.kernel.org>, Jan Kara <jack@suse.cz>, Stefan Hajnoczi <stefanha@redhat.com>, Rik van Riel <riel@surriel.com>, Nitesh Narayan Lal <nilal@redhat.com>, Kevin Wolf <kwolf@redhat.com>, Paolo Bonzini <pbonzini@redhat.com>, Ross Zwisler <zwisler@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 1/10/19 9:12 PM, Pingfan Liu wrote:
-> Although kaslr-kernel can avoid to stain the movable node. [1]
+On Tue, Jan 15, 2019 at 09:21:32AM +1100, Dave Chinner wrote:
+> On Mon, Jan 14, 2019 at 01:35:57PM -0800, Dan Williams wrote:
+> > On Mon, Jan 14, 2019 at 1:25 PM Dave Chinner <david@fromorbit.com> wrote:
+> > >
+> > > On Mon, Jan 14, 2019 at 02:15:40AM -0500, Pankaj Gupta wrote:
+> > > >
+> > > > > > Until you have images (and hence host page cache) shared between
+> > > > > > multiple guests. People will want to do this, because it means they
+> > > > > > only need a single set of pages in host memory for executable
+> > > > > > binaries rather than a set of pages per guest. Then you have
+> > > > > > multiple guests being able to detect residency of the same set of
+> > > > > > pages. If the guests can then, in any way, control eviction of the
+> > > > > > pages from the host cache, then we have a guest-to-guest information
+> > > > > > leak channel.
+> > > > >
+> > > > > I don't think we should ever be considering something that would allow a
+> > > > > guest to evict page's from the host's pagecache [1].  The guest should
+> > > > > be able to kick its own references to the host's pagecache out of its
+> > > > > own pagecache, but not be able to influence whether the host or another
+> > > > > guest has a read-only mapping cached.
+> > > > >
+> > > > > [1] Unless the guest is allowed to modify the host's file; obviously
+> > > > > truncation, holepunching, etc are going to evict pages from the host's
+> > > > > page cache.
+> > > >
+> > > > This is so correct. Guest does not not evict host page cache pages directly.
+> > >
+> > > They don't right now.
+> > >
+> > > But someone is going to end up asking for discard to work so that
+> > > the guest can free unused space in the underlying spares image (i.e.
+> > > make use of fstrim or mount -o discard) because they have workloads
+> > > that have bursts of space usage and they need to trim the image
+> > > files afterwards to keep their overall space usage under control.
+> > >
+> > > And then....
+> > 
+> > ...we reject / push back on that patch citing the above concern.
+> 
+> So at what point do we draw the line?
+> 
+> We're allowing writable DAX mappings, but as I've pointed out that
+> means we are going to be allowing  a potential information leak via
+> files with shared extents to be directly mapped and written to.
+> 
+> But we won't allow useful admin operations that allow better
+> management of host side storage space similar to how normal image
+> files are used by guests because it's an information leak vector?
+> 
+> That's splitting some really fine hairs there...
 
-Can you explain what staining is, or perhaps try to use some more
-standard nomenclature?  There are exactly 0 instances of the word
-"stain" in arch/x86/ or mm/.
+May I summarize that th security implications need to
+be documented?
 
-> But the
-> pgtable can still stain the movable node. That is a probability problem,
-> although low, but exist. This patch tries to make it certainty by
-> allocating pgtable on unmovable node, instead of following kernel end.
+In fact that would make a fine security implications section
+in the device specification.
 
-Anyway, can you read my suggested summary in the earlier patch and see
-if it fits or if I missed anything?  This description is really hard to
-read.
 
-...> +#ifdef CONFIG_X86_32
-> +
-> +static unsigned long min_pfn_mapped;
-> +
->  static unsigned long __init get_new_step_size(unsigned long step_size)
->  {
->  	/*
-> @@ -653,6 +655,32 @@ static void __init memory_map_bottom_up(unsigned long map_start,
->  	}
->  }
->  
-> +static unsigned long __init init_range_memory_mapping32(
-> +	unsigned long r_start, unsigned long r_end)
-> +{
 
-Why is this returning a value which is not used?
 
-Did you compile this?  Didn't you get a warning that you're not
-returning a value from a function returning non-void?
 
-Also, I'd much rather see something like this written:
-
-static __init
-unsigned long init_range_memory_mapping32(unsigned long r_start,
-					  unsigned long r_end)
-
-than what you have above.  But, if you get rid of the 'unsigned long',
-it will look much more sane in the first place.
+> > > > In case of virtio-pmem & DAX, guest clears guest page cache exceptional entries.
+> > > > Its solely decision of host to take action on the host page cache pages.
+> > > >
+> > > > In case of virtio-pmem, guest does not modify host file directly i.e don't
+> > > > perform hole punch & truncation operation directly on host file.
+> > >
+> > > ... this will no longer be true, and the nuclear landmine in this
+> > > driver interface will have been armed....
+> > 
+> > I agree with the need to be careful when / if explicit cache control
+> > is added, but that's not the case today.
+> 
+> "if"?
+> 
+> I expect it to be "when", not if. Expect the worst, plan for it now.
+> 
+> Cheers,
+> 
+> Dave.
+> -- 
+> Dave Chinner
+> david@fromorbit.com
